@@ -154,20 +154,25 @@ psa_status_t psa_import_key(psa_key_slot_t key,
     }
     else
 #if defined(MBEDTLS_PK_PARSE_C)
-    if( type == PSA_KEY_TYPE_RSA || PSA_KEY_TYPE_IS_ECC( type ) )
+    if( type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
+        type == PSA_KEY_TYPE_RSA_KEYPAIR ||
+        PSA_KEY_TYPE_IS_ECC( type ) )
     {
         int ret;
         mbedtls_pk_context pk;
         mbedtls_pk_init( &pk );
-        ret = mbedtls_pk_parse_key( &pk, data, data_length,
-                                    NULL, 0 );
+        if( PSA_KEY_TYPE_IS_KEYPAIR( type ) )
+            ret = mbedtls_pk_parse_key( &pk, data, data_length, NULL, 0 );
+        else
+            ret = mbedtls_pk_parse_public_key( &pk, data, data_length );
         if( ret != 0 )
             return( mbedtls_to_psa_error( ret ) );
         switch( mbedtls_pk_get_type( &pk ) )
         {
 #if defined(MBEDTLS_RSA_C)
             case MBEDTLS_PK_RSA:
-                if( type == PSA_KEY_TYPE_RSA )
+                if( type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
+                    type == PSA_KEY_TYPE_RSA_KEYPAIR )
                     slot->data.rsa = pk.pk_ctx;
                 else
                     return( PSA_ERROR_INVALID_ARGUMENT );
@@ -214,7 +219,8 @@ psa_status_t psa_destroy_key(psa_key_slot_t key)
     }
     else
 #if defined(MBEDTLS_RSA_C)
-    if( slot->type == PSA_KEY_TYPE_RSA )
+    if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
+        slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
     {
         mbedtls_rsa_free( slot->data.rsa );
     }
@@ -244,7 +250,7 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
     key_slot_t *slot;
 
     if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+        return( PSA_ERROR_EMPTY_SLOT );
     slot = &global_data.key_slots[key];
     if( type != NULL )
         *type = slot->type;
@@ -260,7 +266,8 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
     }
     else
 #if defined(MBEDTLS_RSA_C)
-    if( slot->type == PSA_KEY_TYPE_RSA )
+    if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
+        slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
     {
         if( bits != NULL )
             *bits = mbedtls_rsa_get_bitlen( slot->data.rsa );
@@ -292,7 +299,7 @@ psa_status_t psa_export_key(psa_key_slot_t key,
     key_slot_t *slot;
 
     if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+        return( PSA_ERROR_EMPTY_SLOT );
     slot = &global_data.key_slots[key];
     if( slot->type == PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_EMPTY_SLOT );
@@ -307,13 +314,15 @@ psa_status_t psa_export_key(psa_key_slot_t key,
     }
     else
 #if defined(MBEDTLS_PK_WRITE_C)
-    if( slot->type == PSA_KEY_TYPE_RSA ||
+    if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
+        slot->type == PSA_KEY_TYPE_RSA_KEYPAIR ||
         PSA_KEY_TYPE_IS_ECC( slot->type ) )
     {
         mbedtls_pk_context pk;
         int ret;
         mbedtls_pk_init( &pk );
-        if( slot->type == PSA_KEY_TYPE_RSA )
+        if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
+            slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
         {
             pk.pk_info = &mbedtls_rsa_info;
             pk.pk_ctx = slot->data.rsa;
@@ -323,7 +332,10 @@ psa_status_t psa_export_key(psa_key_slot_t key,
             pk.pk_info = &mbedtls_eckey_info;
             pk.pk_ctx = slot->data.ecp;
         }
-        ret = mbedtls_pk_write_key_der( &pk, data, data_size );
+        if( PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) )
+            ret = mbedtls_pk_write_key_der( &pk, data, data_size );
+        else
+            ret = mbedtls_pk_write_pubkey_der( &pk, data, data_size );
         if( ret < 0 )
             return( mbedtls_to_psa_error( ret ) );
         *data_length = ret;

@@ -113,11 +113,15 @@ typedef uint32_t psa_key_type_t;
 
 #define PSA_KEY_TYPE_NONE                       0x00000000
 #define PSA_KEY_TYPE_RAW_DATA                   0x00000001
-#define PSA_KEY_TYPE_RSA                        0x40000001
+#define PSA_KEY_TYPE_RSA_PUBLIC_KEY             0x40000001
+#define PSA_KEY_TYPE_RSA_KEYPAIR                0x60000001
 #define PSA_KEY_TYPE_ECC_BASE                   0x40010000
 
 #define PSA_KEY_TYPE_VENDOR_FLAG                0x80000000
 #define PSA_KEY_TYPE_ASYMMETRIC_FLAG            0x40000000
+#define PSA_KEY_TYPE_ASYMMETRIC_MASK            0x60000000
+#define PSA_KEY_TYPE_ASYMMETRIC_MASK_PUBLIC     0x40000000
+#define PSA_KEY_TYPE_ASYMMETRIC_MASK_KEYPAIR    0x60000000
 #define PSA_KEY_TYPE_ECC_TEST_MASK              0x7fff0000
 #define PSA_KEY_TYPE_ECC_TEST_VALUE             0x40010000
 
@@ -125,7 +129,11 @@ typedef uint32_t psa_key_type_t;
     (((type) & PSA_KEY_TYPE_VENDOR_FLAG) != 0)
 #define PSA_KEY_TYPE_IS_ASYMMETRIC(type) \
     (((type) & PSA_KEY_TYPE_ASYMMETRIC_FLAG) != 0)
-#define PSA_KEY_TYPE_IS_ECC(type) \
+#define PSA_KEY_TYPE_IS_PUBLIC_KEY(type) \
+    (((type) & PSA_KEY_TYPE_ASYMMETRIC_MASK) == PSA_KEY_TYPE_ASYMMETRIC_MASK_PUBLIC)
+#define PSA_KEY_TYPE_IS_KEYPAIR(type) \
+    (((type) & PSA_KEY_TYPE_ASYMMETRIC_MASK) == PSA_KEY_TYPE_ASYMMETRIC_MASK_KEYPAIR)
+#define PSA_KEY_TYPE_IS_ECC(type)                                       \
     (((type) & PSA_KEY_TYPE_ECC_TEST_MASK) == PSA_KEY_TYPE_ECC_TEST_VALUE)
 
 typedef uint32_t psa_algorithm_type_t;

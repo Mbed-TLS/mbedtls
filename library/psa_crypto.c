@@ -446,6 +446,10 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
 {
     key_slot_t *slot;
 
+    *signature_length = 0;
+    (void) salt;
+    (void) salt_length;
+
     if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_EMPTY_SLOT );
     slot = &global_data.key_slots[key];
@@ -453,9 +457,6 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
         return( PSA_ERROR_EMPTY_SLOT );
     if( ! PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
-
-    (void) salt;
-    (void) salt_length;
 
 #if defined(MBEDTLS_RSA_C)
     if( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
@@ -512,7 +513,8 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
         {
             return( PSA_ERROR_INVALID_ARGUMENT );
         }
-        *signature_length = ( ret == 0 ? rsa->len : 0 );
+        if( ret == 0 )
+            *signature_length = rsa->len;
         return( mbedtls_to_psa_error( ret ) );
     }
     else

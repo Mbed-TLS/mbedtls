@@ -159,9 +159,9 @@ void sign_deterministic( int key_type_arg, char *key_hex,
     size_t input_size;
     unsigned char *output_data = NULL;
     size_t output_size;
-    size_t signature_length;
     unsigned char *signature = NULL;
     size_t signature_size;
+    size_t signature_length = 0xdeadbeef;
 
     key_data = mbedtls_calloc( 1, strlen( key_hex ) / 2 );
     TEST_ASSERT( key_data != NULL );
@@ -219,7 +219,7 @@ void sign_fail( int key_type_arg, char *key_hex,
     psa_status_t actual_status;
     psa_status_t expected_status = expected_status_arg;
     unsigned char *signature;
-    size_t signature_length;
+    size_t signature_length = 0xdeadbeef;
 
     key_data = mbedtls_calloc( 1, strlen( key_hex ) / 2 );
     TEST_ASSERT( key_data != NULL );
@@ -241,6 +241,7 @@ void sign_fail( int key_type_arg, char *key_hex,
                                          signature, signature_size,
                                          &signature_length );
     TEST_ASSERT( actual_status == expected_status );
+    TEST_ASSERT( signature_length == 0 );
 
 exit:
     psa_destroy_key( slot );

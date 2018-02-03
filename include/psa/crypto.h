@@ -103,6 +103,9 @@ typedef enum {
  */
 psa_status_t psa_crypto_init(void);
 
+#define BITS_TO_BYTES(bits) (((bits) + 7) / 8)
+#define BYTES_TO_BITS(bytes) ((bytes) * 8)
+
 /**@}*/
 
 /** \defgroup crypto_types Key and algorithm types
@@ -122,7 +125,8 @@ typedef uint32_t psa_key_type_t;
 #define PSA_KEY_TYPE_ASYMMETRIC_MASK            0x60000000
 #define PSA_KEY_TYPE_ASYMMETRIC_MASK_PUBLIC     0x40000000
 #define PSA_KEY_TYPE_ASYMMETRIC_MASK_KEYPAIR    0x60000000
-#define PSA_KEY_TYPE_ECC_TEST_MASK              0x7fff0000
+#define PSA_KEY_TYPE_ASYMMETRIC_TEST_MASK       0x5fff0000
+#define PSA_KEY_TYPE_RSA_TEST_VALUE             0x40000000
 #define PSA_KEY_TYPE_ECC_TEST_VALUE             0x40010000
 
 #define PSA_KEY_TYPE_IS_VENDOR(type) \
@@ -133,8 +137,10 @@ typedef uint32_t psa_key_type_t;
     (((type) & PSA_KEY_TYPE_ASYMMETRIC_MASK) == PSA_KEY_TYPE_ASYMMETRIC_MASK_PUBLIC)
 #define PSA_KEY_TYPE_IS_KEYPAIR(type) \
     (((type) & PSA_KEY_TYPE_ASYMMETRIC_MASK) == PSA_KEY_TYPE_ASYMMETRIC_MASK_KEYPAIR)
+#define PSA_KEY_TYPE_IS_RSA(type)                                       \
+    (((type) & PSA_KEY_TYPE_ASYMMETRIC_TEST_MASK) == PSA_KEY_TYPE_RSA_TEST_VALUE)
 #define PSA_KEY_TYPE_IS_ECC(type)                                       \
-    (((type) & PSA_KEY_TYPE_ECC_TEST_MASK) == PSA_KEY_TYPE_ECC_TEST_VALUE)
+    (((type) & PSA_KEY_TYPE_ASYMMETRIC_TEST_MASK) == PSA_KEY_TYPE_ECC_TEST_VALUE)
 
 typedef uint32_t psa_algorithm_t;
 
@@ -246,6 +252,41 @@ psa_status_t psa_export_key(psa_key_slot_t key,
 /** \defgroup asymmetric Asymmetric cryptography
  * @{
  */
+
+/**
+ * \brief Maximum ECDSA signature size for a given curve bit size
+ *
+ * \param curve_bits    Curve size in bits
+ * \return              Maximum signature size in bytes
+ *
+ * \note This macro returns a compile-time constant if its argument is one.
+ *
+ * \warning This macro may evaluate its argument multiple times.
+ */
+/*
+ * RFC 4492 page 20:
+ *
+ *     Ecdsa-Sig-Value ::= SEQUENCE {
+ *         r       INTEGER,
+ *         s       INTEGER
+ *     }
+ *
+ * Size is at most
+ *    1 (tag) + 1 (len) + 1 (initial 0) + curve_bytes for each of r and s,
+ *    twice that + 1 (tag) + 2 (len) for the sequence
+ * (assuming curve_bytes is less than 126 for r and s,
+ * and less than 124 (total len <= 255) for the sequence)
+ */
+#define PSA_ECDSA_SIGNATURE_SIZE(curve_bits)                          \
+    ( /*T,L of SEQUENCE*/ ((curve_bits) >= 61 * 8 ? 3 : 2) +          \
+      /*T,L of r,s*/       2 * (((curve_bits) >= 127 * 8 ? 3 : 2) +   \
+      /*V of r,s*/               ((curve_bits) + 8) / 8))
+
+
+#define PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE(key_type, key_bits, alg)        \
+    (PSA_KEY_TYPE_IS_RSA(key_type) ? ((void)alg, BITS_TO_BYTES(key_bits)) : \
+     PSA_KEY_TYPE_IS_ECC(key_type) ? PSA_ECDSA_SIGNATURE_SIZE(key_bits) : \
+     0)
 
 /**
  * \brief Sign a hash or short message with a private key.

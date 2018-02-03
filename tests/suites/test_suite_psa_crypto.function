@@ -134,6 +134,18 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void signature_size( int type_arg, int bits, int alg_arg, int expected_size_arg )
+{
+    psa_key_type_t type = type_arg;
+    psa_algorithm_t alg = alg_arg;
+    size_t actual_size = PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE(type, bits, alg);
+    TEST_ASSERT( actual_size == (size_t) expected_size_arg );
+exit:
+    ;
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void sign_deterministic( int key_type_arg, char *key_hex,
                          int alg_arg, char *input_hex, char *output_hex )
 {
@@ -142,12 +154,14 @@ void sign_deterministic( int key_type_arg, char *key_hex,
     psa_algorithm_t alg = alg_arg;
     unsigned char *key_data = NULL;
     size_t key_size;
+    size_t key_bits;
     unsigned char *input_data = NULL;
     size_t input_size;
     unsigned char *output_data = NULL;
     size_t output_size;
-    unsigned char signature[512];
     size_t signature_length;
+    unsigned char *signature = NULL;
+    size_t signature_size;
 
     key_data = mbedtls_calloc( 1, strlen( key_hex ) / 2 );
     TEST_ASSERT( key_data != NULL );
@@ -163,11 +177,19 @@ void sign_deterministic( int key_type_arg, char *key_hex,
 
     TEST_ASSERT( psa_import_key( slot, key_type,
                                  key_data, key_size ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_get_key_information( slot,
+                                          NULL,
+                                          &key_bits ) == PSA_SUCCESS );
+
+    signature_size = PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE( key_type, alg, key_bits );
+    TEST_ASSERT( signature_size != 0 );
+    signature = mbedtls_calloc( 1, signature_size );
+    TEST_ASSERT( signature != NULL );
 
     TEST_ASSERT( psa_asymmetric_sign( slot, alg,
                                       input_data, input_size,
                                       NULL, 0,
-                                      signature, sizeof( signature ),
+                                      signature, signature_size,
                                       &signature_length ) == PSA_SUCCESS );
     TEST_ASSERT( signature_length == output_size );
     TEST_ASSERT( memcmp( signature, output_data, output_size ) == 0 );
@@ -177,6 +199,7 @@ exit:
     mbedtls_free( key_data );
     mbedtls_free( input_data );
     mbedtls_free( output_data );
+    mbedtls_free( signature );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

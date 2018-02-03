@@ -41,6 +41,8 @@
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/ecp.h"
 #include "mbedtls/entropy.h"
+#include "mbedtls/md.h"
+#include "mbedtls/md_internal.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/pk_internal.h"
 #include "mbedtls/rsa.h"
@@ -343,6 +345,186 @@ psa_status_t psa_export_key(psa_key_slot_t key,
     }
     else
 #endif /* definedMBEDTLS_PK_WRITE_C) */
+    {
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
+}
+
+
+
+/****************************************************************/
+/* Message digests */
+/****************************************************************/
+
+static const mbedtls_md_info_t *mbedtls_md_info_of_psa( psa_algorithm_t alg )
+{
+    switch( alg )
+    {
+#if defined(MBEDTLS_MD2_C)
+        case PSA_ALG_MD2:
+            return( &mbedtls_md2_info );
+#endif
+#if defined(MBEDTLS_MD4_C)
+        case PSA_ALG_MD4:
+            return( &mbedtls_md4_info );
+#endif
+#if defined(MBEDTLS_MD5_C)
+        case PSA_ALG_MD5:
+            return( &mbedtls_md5_info );
+#endif
+#if defined(MBEDTLS_RIPEMD160_C)
+        case PSA_ALG_RIPEMD160:
+            return( &mbedtls_ripemd160_info );
+#endif
+#if defined(MBEDTLS_SHA1_C)
+        case PSA_ALG_SHA_1:
+            return( &mbedtls_sha1_info );
+#endif
+#if defined(MBEDTLS_SHA256_C)
+        case PSA_ALG_SHA_224:
+            return( &mbedtls_sha224_info );
+        case PSA_ALG_SHA_256:
+            return( &mbedtls_sha256_info );
+#endif
+#if defined(MBEDTLS_SHA512_C)
+        case PSA_ALG_SHA_384:
+            return( &mbedtls_sha384_info );
+        case PSA_ALG_SHA_512:
+            return( &mbedtls_sha512_info );
+#endif
+        default:
+            return( NULL );
+    }
+}
+
+#if 0
+static psa_algorithm_t mbedtls_md_alg_to_psa( mbedtls_md_type_t md_alg )
+{
+    switch( md_alg )
+    {
+        case MBEDTLS_MD_NONE:
+            return( 0 );
+        case MBEDTLS_MD_MD2:
+            return( PSA_ALG_MD2 );
+        case MBEDTLS_MD_MD4:
+            return( PSA_ALG_MD4 );
+        case MBEDTLS_MD_MD5:
+            return( PSA_ALG_MD5 );
+        case MBEDTLS_MD_SHA1:
+            return( PSA_ALG_SHA_1 );
+        case MBEDTLS_MD_SHA224:
+            return( PSA_ALG_SHA_224 );
+        case MBEDTLS_MD_SHA256:
+            return( PSA_ALG_SHA_256 );
+        case MBEDTLS_MD_SHA384:
+            return( PSA_ALG_SHA_384 );
+        case MBEDTLS_MD_SHA512:
+            return( PSA_ALG_SHA_512 );
+        case MBEDTLS_MD_RIPEMD160:
+            return( PSA_ALG_RIPEMD160 );
+        default:
+            return( MBEDTLS_MD_NOT_SUPPORTED );
+    }
+}
+#endif
+
+
+
+/****************************************************************/
+/* Asymmetric cryptography */
+/****************************************************************/
+
+psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
+                                 psa_algorithm_t alg,
+                                 const uint8_t *hash,
+                                 size_t hash_length,
+                                 const uint8_t *salt,
+                                 size_t salt_length,
+                                 uint8_t *signature,
+                                 size_t signature_size,
+                                 size_t *signature_length)
+{
+    key_slot_t *slot;
+
+    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
+        return( PSA_ERROR_EMPTY_SLOT );
+    slot = &global_data.key_slots[key];
+    if( slot->type == PSA_KEY_TYPE_NONE )
+        return( PSA_ERROR_EMPTY_SLOT );
+    if( ! PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    (void) salt;
+    (void) salt_length;
+
+#if defined(MBEDTLS_RSA_C)
+    if( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
+    {
+        mbedtls_rsa_context *rsa = slot->data.rsa;
+        int ret;
+        psa_algorithm_t hash_alg = PSA_ALG_RSA_GET_HASH( alg );
+        const mbedtls_md_info_t *md_info = mbedtls_md_info_of_psa( hash_alg );
+        mbedtls_md_type_t md_alg =
+            hash_alg == 0 ? MBEDTLS_MD_NONE : mbedtls_md_get_type( md_info );
+        if( md_alg == MBEDTLS_MD_NONE )
+        {
+#if SIZE_MAX > UINT_MAX
+            if( hash_length > UINT_MAX )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+#endif
+        }
+        else
+        {
+            if( mbedtls_md_get_size( md_info ) != hash_length )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+            if( md_info == NULL )
+                return( PSA_ERROR_NOT_SUPPORTED );
+        }
+        if( signature_size < rsa->len )
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
+#if defined(MBEDTLS_PKCS1_V15)
+        if( PSA_ALG_IS_RSA_PKCS1V15( alg ) )
+        {
+            mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V15,
+                                     MBEDTLS_MD_NONE );
+            ret = mbedtls_rsa_pkcs1_sign( rsa,
+                                          mbedtls_ctr_drbg_random,
+                                          &global_data.ctr_drbg,
+                                          MBEDTLS_RSA_PRIVATE,
+                                          md_alg, hash_length, hash,
+                                          signature );
+        }
+        else
+#endif /* MBEDTLS_PKCS1_V15 */
+#if defined(MBEDTLS_PKCS1_V21)
+        if( alg == PSA_ALG_RSA_PSS_MGF1 )
+        {
+            mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg );
+            ret = mbedtls_rsa_rsassa_pss_sign( rsa,
+                                               mbedtls_ctr_drbg_random,
+                                               &global_data.ctr_drbg,
+                                               MBEDTLS_RSA_PRIVATE,
+                                               md_alg, hash_length, hash,
+                                               signature );
+        }
+        else
+#endif /* MBEDTLS_PKCS1_V21 */
+        {
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        }
+        *signature_length = ( ret == 0 ? rsa->len : 0 );
+        return( mbedtls_to_psa_error( ret ) );
+    }
+    else
+#endif /* defined(MBEDTLS_RSA_C) */
+#if defined(MBEDTLS_ECP_C)
+    if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
+    {
+        // TODO
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
+    else
+#endif /* defined(MBEDTLS_ECP_C) */
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }

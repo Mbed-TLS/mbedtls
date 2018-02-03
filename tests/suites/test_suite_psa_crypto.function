@@ -132,3 +132,98 @@ exit:
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void sign_deterministic( int key_type_arg, char *key_hex,
+                         int alg_arg, char *input_hex, char *output_hex )
+{
+    int slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *key_data = NULL;
+    size_t key_size;
+    unsigned char *input_data = NULL;
+    size_t input_size;
+    unsigned char *output_data = NULL;
+    size_t output_size;
+    unsigned char signature[512];
+    size_t signature_length;
+
+    key_data = mbedtls_calloc( 1, strlen( key_hex ) / 2 );
+    TEST_ASSERT( key_data != NULL );
+    key_size = unhexify( key_data, key_hex );
+    input_data = mbedtls_calloc( 1, strlen( input_hex ) / 2 );
+    TEST_ASSERT( input_data != NULL );
+    input_size = unhexify( input_data, input_hex );
+    output_data = mbedtls_calloc( 1, strlen( output_hex ) / 2 );
+    TEST_ASSERT( output_data != NULL );
+    output_size = unhexify( output_data, output_hex );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( slot, key_type,
+                                 key_data, key_size ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_asymmetric_sign( slot, alg,
+                                      input_data, input_size,
+                                      NULL, 0,
+                                      signature, sizeof( signature ),
+                                      &signature_length ) == PSA_SUCCESS );
+    TEST_ASSERT( signature_length == output_size );
+    TEST_ASSERT( memcmp( signature, output_data, output_size ) == 0 );
+
+exit:
+    psa_destroy_key( slot );
+    mbedtls_free( key_data );
+    mbedtls_free( input_data );
+    mbedtls_free( output_data );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void sign_fail( int key_type_arg, char *key_hex,
+                int alg_arg, char *input_hex,
+                int signature_size, int expected_status_arg )
+{
+    int slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *key_data = NULL;
+    size_t key_size;
+    unsigned char *input_data = NULL;
+    size_t input_size;
+    psa_status_t actual_status;
+    psa_status_t expected_status = expected_status_arg;
+    unsigned char *signature;
+    size_t signature_length;
+
+    key_data = mbedtls_calloc( 1, strlen( key_hex ) / 2 );
+    TEST_ASSERT( key_data != NULL );
+    key_size = unhexify( key_data, key_hex );
+    input_data = mbedtls_calloc( 1, strlen( input_hex ) / 2 );
+    TEST_ASSERT( input_data != NULL );
+    input_size = unhexify( input_data, input_hex );
+    signature = mbedtls_calloc( 1, signature_size );
+    TEST_ASSERT( signature != NULL );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( slot, key_type,
+                                 key_data, key_size ) == PSA_SUCCESS );
+
+    actual_status = psa_asymmetric_sign( slot, alg,
+                                         input_data, input_size,
+                                         NULL, 0,
+                                         signature, signature_size,
+                                         &signature_length );
+    TEST_ASSERT( actual_status == expected_status );
+
+exit:
+    psa_destroy_key( slot );
+    mbedtls_free( key_data );
+    mbedtls_free( input_data );
+    mbedtls_free( signature );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */

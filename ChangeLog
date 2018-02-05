@@ -1,39 +1,40 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 1.3.22 branch released 2017-xx-xx
+= mbed TLS 1.3.22 branch released 2018-02-03
 
 Security
-   * Fix heap corruption in implementation of truncated HMAC extension.
-     When the truncated HMAC extension is enabled and CBC is used,
-     sending a malicious application packet can be used to selectively
-     corrupt 6 bytes on the peer's heap, potentially leading to crash or
-     remote code execution. This can be triggered remotely from either
-     side.
-   * Fix buffer overflow in RSA-PSS verification when the hash is too
-     large for the key size. Found by Seth Terashima, Qualcomm Product
-     Security Initiative, Qualcomm Technologies Inc.
-   * Fix buffer overflow in RSA-PSS verification when the unmasked
-     data is all zeros.
-   * Fix unsafe bounds check in ssl_parse_client_psk_identity() when adding
-     64kB to the address of the SSL buffer wraps around.
-   * Tighten should-be-constant-time memcmp against compiler optimizations.
+   * Fix a heap corruption issue in the implementation of the truncated HMAC
+     extension. When the truncated HMAC extension is enabled and CBC is used,
+     sending a malicious application packet could be used to selectively corrupt
+     6 bytes on the peer's heap, which could potentially lead to crash or remote
+     code execution. The issue could be triggered remotely from either side in
+     both TLS and DTLS. CVE-2018-0488
+   * Fix a buffer overflow in RSA-PSS verification when the hash was too large
+     for the key size, which could potentially lead to crash or remote code
+     execution. Found by Seth Terashima, Qualcomm Product Security Initiative,
+     Qualcomm Technologies Inc. CVE-2018-0487
+   * Fix buffer overflow in RSA-PSS verification when the unmasked data is all
+     zeros.
+   * Fix an unsafe bounds check in ssl_parse_client_psk_identity() when adding
+     64 KiB to the address of the SSL buffer and causing a wrap around.
+   * Add a provision to prevent compiler optimizations breaking the time
+     constancy of the internal function safer_memcmp().
    * Ensure that buffers are cleared after use if they contain sensitive data.
      Changes were introduced in multiple places in the library.
    * Set PEM buffer to zero before freeing it, to avoid decoded private keys
      being leaked to memory after release.
    * Fix dhm_check_range() failing to detect trivial subgroups and potentially
      leaking 1 bit of the private key. Reported by prashantkspatil.
-   * Make mpi_read_binary constant-time with respect to
-     the input data. Previously, trailing zero bytes were detected
-     and omitted for the sake of saving memory, but potentially
-     leading to slight timing differences.
-     Reported by Marco Macchetti, Kudelski Group.
+   * Make mpi_read_binary() constant-time with respect to the input
+     data. Previously, trailing zero bytes were detected and omitted for the
+     sake of saving memory, but potentially leading to slight timing
+     differences. Reported by Marco Macchetti, Kudelski Group.
    * Wipe stack buffer temporarily holding EC private exponent
      after keypair generation.
    * Change default choice of DHE parameters from untrustworthy RFC 5114
      to RFC 3526 containing parameters generated in a nothing-up-my-sleeve
      manner.
-   * Fix a potential heap buffer overread in ALPN extension parsing
+   * Fix a potential heap buffer over-read in ALPN extension parsing
      (server-side). Could result in application crash, but only if an ALPN
      name larger than 16 bytes had been configured on the server.
 
@@ -72,24 +73,25 @@ Bugfix
      RSA implementations. Raised by J.B. in the Mbed TLS forum. Fixes #1011.
    * Don't print X.509 version tag for v1 CRT's, and omit extensions for
      non-v3 CRT's.
-   * Fix bugs in RSA test suite under MBEDTLS_NO_PLATFORM_ENTROPY. #1023 #1024
-   * Fix net_would_block to avoid modification by errno through fcntl call.
+   * Fix bugs in RSA test suite under POLARSSL_NO_PLATFORM_ENTROPY. #1023 #1024
+   * Fix net_would_block() to avoid modification by errno through fcntl() call.
      Found by nkolban. Fixes #845.
-   * Fix handling of handshake messages in ssl_read in case
+   * Fix handling of handshake messages in ssl_read() in case
      POLARSSL_SSL_DISABLE_RENEGOTIATION is set. Found by erja-gp.
-   * Add a check for invalid private parameters in ecdsa_sign.
+   * Add a check for invalid private parameters in ecdsa_sign().
      Reported by Yolan Romailler.
-   * Fix word size check in in pk.c to not depend on MBEDTLS_HAVE_INT64.
-   * Fix crash when calling mbedtls_ssl_cache_free() twice. Found by
-     MilenkoMitrovic, #1104
-   * Fix mbedtls_timing_alarm(0) on Unix and MinGW.
-   * Fix use of uninitialized memory in mbedtls_timing_get_timer when reset=1.
+   * Fix word size check in in pk.c to not depend on POLARSSL_HAVE_INT64.
+   * Fix crash when calling ssl_cache_free() twice. Found by MilenkoMitrovic.
+     #1104
+   * Fix set_alarm(0) on Unix and MinGW.
+   * Fix use of uninitialized memory in get_timer() when reset=1.
    * Fix issue in RSA key generation program programs/x509/rsa_genkey
      where the failure of CTR DRBG initialization lead to freeing an
      RSA context without proper initialization beforehand.
-   * Fix bug in cipher decryption with POLARSSL_PADDING_ONE_AND_ZEROS that
-     sometimes accepted invalid padding. (Not used in TLS.) Found and fixed
-     by Micha Kraus.
+   * Fix an issue in the cipher decryption with the mode
+     POLARSSL_PADDING_ONE_AND_ZEROS that sometimes accepted invalid padding.
+     Note, this padding mode is not used by the TLS protocol. Found and fixed by
+     Micha Kraus.
 
 Changes
    * Extend cert_write example program by options to set the CRT version
@@ -103,8 +105,8 @@ Changes
 
 Security
    * Fix authentication bypass in SSL/TLS: when authmode is set to optional,
-     mbedtls_ssl_get_verify_result() would incorrectly return 0 when the peer's
-     X.509 certificate chain had more than MBEDTLS_X509_MAX_INTERMEDIATE_CA
+     ssl_get_verify_result() would incorrectly return 0 when the peer's
+     X.509 certificate chain had more than POLARSSL_X509_MAX_INTERMEDIATE_CA
      (default: 8) intermediates, even when it was not trusted. This could be
      triggered remotely from either side. (With authmode set to 'required'
      (the default), the handshake was correctly aborted).
@@ -123,11 +125,11 @@ API Changes
 Bugfix
    * Add a check if iv_len is zero in GCM, and return an error if it is zero.
      Reported by roberto. #716
-   * Replace preprocessor condition from #if defined(MBEDTLS_THREADING_PTHREAD)
-     to #if defined(MBEDTLS_THREADING_C) as the library cannot assume they will
+   * Replace preprocessor condition from #if defined(POLARSSL_THREADING_PTHREAD)
+     to #if defined(POLARSSL_THREADING_C) as the library cannot assume they will
      always be implemented by pthread support. Fix for #696
-   * Fix a resource leak on Windows platforms in mbedtls_x509_crt_parse_path(),
-     in the case of an error. Found by redplait. #590
+   * Fix a resource leak on Windows platforms in x509_crt_parse_path(), in the
+     case of an error. Found by redplait. #590
    * Add MPI_CHK to check for error value of mpi_fill_random.
      Backported from a report and fix suggestion by guidovranken in #740
    * Fix a potential integer overflow in the version verification for DER
@@ -175,9 +177,9 @@ Bugfix
      resulting in compatibility problems with Chrome. Found by hfloyrd. #823
    * Accept empty trusted CA chain in authentication mode
      SSL_VERIFY_OPTIONAL. Found by jethrogb. #864.
-   * Fix implementation of mbedtls_ssl_parse_certificate() to not annihilate
-     fatal errors in authentication mode MBEDTLS_SSL_VERIFY_OPTIONAL and to
-     reflect bad EC curves within verification result.
+   * Fix implementation of ssl_parse_certificate() to not annihilate fatal
+     errors in authentication mode MBEDTLS_SSL_VERIFY_OPTIONAL and to reflect
+     bad EC curves within verification result.
    * Fix bug that caused the modular inversion function to accept the invalid
      modulus 1 and therefore to hang. Found by blaufish. #641.
    * Fix incorrect sign computation in modular exponentiation when the base is

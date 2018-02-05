@@ -1,8 +1,8 @@
 Check compiletime library version
-check_compiletime_version:"1.3.21"
+check_compiletime_version:"1.3.22"
 
 Check runtime library version
-check_runtime_version:"1.3.21"
+check_runtime_version:"1.3.22"
 
 Check for POLARSSL_VERSION_C
 check_feature:"POLARSSL_VERSION_C":0

@@ -2446,6 +2446,8 @@ read_record_header:
             ssl->handshake->update_checksum( ssl, ssl->in_msg, ssl->in_hslen );
     }
 
+    ssl->in_left = 0;
+
     if( ssl->in_msgtype == SSL_MSG_ALERT )
     {
         SSL_DEBUG_MSG( 2, ( "got an alert message, type: [%d:%d]",
@@ -2491,8 +2493,6 @@ read_record_header:
         /* Silently discard: fetch new message */
         goto read_record_header;
     }
-
-    ssl->in_left = 0;
 
     SSL_DEBUG_MSG( 2, ( "<= read record" ) );
 

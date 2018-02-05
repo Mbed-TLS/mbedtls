@@ -21,7 +21,7 @@
  */
 
 /**
- * @mainpage mbed TLS v2.1.9 source code documentation
+ * @mainpage mbed TLS v2.1.10 source code documentation
  *
  * This documentation describes the internal structure of mbed TLS.  It was
  * automatically generated from specially formatted comment blocks in

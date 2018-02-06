@@ -45,6 +45,15 @@ ifdef ZLIB
 LOCAL_LDFLAGS += -lz
 endif
 
+# Python executable
+ifndef PYTHON
+ifdef WINDOWS
+PYTHON=python
+else
+PYTHON=python2
+endif
+endif
+
 APPS =	test_suite_aes.ecb	test_suite_aes.cbc	\
 	test_suite_aes.cfb	test_suite_aes.rest	\
 	test_suite_arc4		test_suite_asn1write	\
@@ -161,7 +170,7 @@ C_FILES := $(addsuffix .c,$(APPS))
 .SECONDEXPANSION:
 $(C_FILES): %.c: suites/$$(func.$$*).function suites/%.data scripts/generate_code.py suites/helpers.function suites/main_test.function suites/host_test.function
 	echo "  Gen   $@"
-	python scripts/generate_code.py -f suites/$(func.$*).function \
+	$(PYTHON) scripts/generate_code.py -f suites/$(func.$*).function \
 		-d suites/$*.data \
 		-t suites/main_test.function \
 		-p suites/host_test.function \
@@ -196,7 +205,7 @@ EMBEDDED_TESTS := $(addprefix embedded_,$(APPS))
 .SECONDEXPANSION:
 $(EMBEDDED_TESTS): embedded_%: suites/$$(func.$$*).function suites/%.data scripts/generate_code.py suites/helpers.function suites/main_test.function suites/target_test.function
 	echo "  Gen  ./TESTS/mbedtls/$*/$*.c"
-	python scripts/generate_code.py -f suites/$(func.$*).function \
+	$(PYTHON) scripts/generate_code.py -f suites/$(func.$*).function \
 		-d suites/$*.data \
 		-t suites/main_test.function \
 		-p suites/target_test.function \

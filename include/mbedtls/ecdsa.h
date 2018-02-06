@@ -255,7 +255,7 @@ int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
  *                  or a MBEDTLS_ERR_MPI_XXX or MBEDTLS_ERR_ASN1_XXX error code
  *
  */
-int ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
+int mbedtls_ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
                              unsigned char *sig, size_t *slen,
                              size_t ssize );
 

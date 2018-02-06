@@ -289,7 +289,7 @@ cleanup:
 /*
  * Convert a signature (given by context) to ASN.1
  */
-int ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
+int mbedtls_ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
                              unsigned char *sig, size_t *slen, size_t ssize )
 {
     int ret;
@@ -339,7 +339,7 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
                          hash, hlen, f_rng, p_rng ) );
 #endif
 
-    MBEDTLS_MPI_CHK( ecdsa_signature_to_asn1( &r, &s, sig, slen, ssize ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecdsa_signature_to_asn1( &r, &s, sig, slen, ssize ) );
 
 cleanup:
     mbedtls_mpi_free( &r );

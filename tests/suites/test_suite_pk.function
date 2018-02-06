@@ -90,7 +90,7 @@ static void pk_rsa_match( mbedtls_rsa_context *raw,
     memset( ciph, 0, sizeof ciph );
     memset( test, 0, sizeof test );
 
-    /* Initiliaze basic PK RSA context with raw key */
+    /* Initialize basic PK RSA context with raw key */
     mbedtls_pk_init( &basic_ctx );
     TEST_ASSERT( mbedtls_pk_setup( &basic_ctx,
                                    mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == 0 );

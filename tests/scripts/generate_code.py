@@ -42,6 +42,9 @@ import shutil
 BEGIN_HEADER_REGEX = '/\*\s*BEGIN_HEADER\s*\*/'
 END_HEADER_REGEX = '/\*\s*END_HEADER\s*\*/'
 
+BEGIN_SUITE_HELPERS_REGEX = '/\*\s*BEGIN_SUITE_HELPERS\s*\*/'
+END_SUITE_HELPERS_REGEX = '/\*\s*END_SUITE_HELPERS\s*\*/'
+
 BEGIN_DEP_REGEX = 'BEGIN_DEPENDENCIES'
 END_DEP_REGEX = 'END_DEPENDENCIES'
 
@@ -172,20 +175,21 @@ def gen_dispatch(name, deps):
     return dispatch_code
 
 
-def parse_suite_headers(funcs_f):
+def parse_until_pattern(funcs_f, end_regex):
     """
-    Parses function headers.
+    Parses function headers or helper code until end pattern.
     
     :param funcs_f: file object for .functions file
+    :param end_regex: Pattern to stop parsing
     :return: Test suite headers code
     """
     headers = '#line %d "%s"\n' % (funcs_f.line_no + 1, funcs_f.name)
     for line in funcs_f:
-        if re.search(END_HEADER_REGEX, line):
+        if re.search(end_regex, line):
             break
         headers += line
     else:
-        raise InvalidFileFormat("file: %s - end header pattern [%s] not found!" % (funcs_f.name, END_HEADER_REGEX))
+        raise InvalidFileFormat("file: %s - end pattern [%s] not found!" % (funcs_f.name, end_regex))
 
     return headers
 
@@ -325,6 +329,7 @@ def parse_functions(funcs_f):
              a dict with function identifiers and arguments info.
     """
     suite_headers = ''
+    suite_helpers = ''
     suite_deps = []
     suite_functions = ''
     func_info = {}
@@ -332,8 +337,11 @@ def parse_functions(funcs_f):
     dispatch_code = ''
     for line in funcs_f:
         if re.search(BEGIN_HEADER_REGEX, line):
-            headers = parse_suite_headers(funcs_f)
+            headers = parse_until_pattern(funcs_f, END_HEADER_REGEX)
             suite_headers += headers
+        elif re.search(BEGIN_SUITE_HELPERS_REGEX, line):
+            helpers = parse_until_pattern(funcs_f, END_SUITE_HELPERS_REGEX)
+            suite_helpers += helpers
         elif re.search(BEGIN_DEP_REGEX, line):
             deps = parse_suite_deps(funcs_f)
             suite_deps += deps
@@ -350,7 +358,7 @@ def parse_functions(funcs_f):
             function_idx += 1
 
     ifdef, endif = gen_deps(suite_deps)
-    func_code = ifdef + suite_headers + suite_functions + endif
+    func_code = ifdef + suite_headers + suite_helpers + suite_functions + endif
     return suite_deps, dispatch_code, func_code, func_info
 
 

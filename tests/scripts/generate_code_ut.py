@@ -280,9 +280,9 @@ class StringIOWrapper(StringIO, object):
         return line
 
 
-class ParseSuiteHeaders(TestCase):
+class ParseUntilPattern(TestCase):
     """
-    Test Suite for testing parse_suite_headers().
+    Test Suite for testing parse_until_pattern().
     """
 
     def test_suite_headers(self):
@@ -302,7 +302,7 @@ class ParseSuiteHeaders(TestCase):
 #define ECP_PF_UNKNOWN     -1
 '''
         s = StringIOWrapper('test_suite_ut.function', data, line_no=0)
-        headers = parse_suite_headers(s)
+        headers = parse_until_pattern(s, END_HEADER_REGEX)
         self.assertEqual(headers, expected)
 
     def test_line_no(self):
@@ -323,7 +323,7 @@ class ParseSuiteHeaders(TestCase):
 #define ECP_PF_UNKNOWN     -1
 ''' % (offset_line_no + 1)
         s = StringIOWrapper('test_suite_ut.function', data, offset_line_no)
-        headers = parse_suite_headers(s)
+        headers = parse_until_pattern(s, END_HEADER_REGEX)
         self.assertEqual(headers, expected)
 
     def test_no_end_header_comment(self):
@@ -337,7 +337,7 @@ class ParseSuiteHeaders(TestCase):
 
 '''
         s = StringIOWrapper('test_suite_ut.function', data)
-        self.assertRaises(InvalidFileFormat, parse_suite_headers, s)
+        self.assertRaises(InvalidFileFormat, parse_until_pattern, s, END_HEADER_REGEX)
 
 
 class ParseSuiteDeps(TestCase):
@@ -620,15 +620,15 @@ class ParseFunction(TestCase):
     Test Suite for testing parse_functions()
     """
 
-    @patch("generate_code.parse_suite_headers")
-    def test_begin_header(self, parse_suite_headers_mock):
+    @patch("generate_code.parse_until_pattern")
+    def test_begin_header(self, parse_until_pattern_mock):
         """
-        Test that begin header is checked and parse_suite_headers() is called.
+        Test that begin header is checked and parse_until_pattern() is called.
         :return: 
         """
         def stop(this):
             raise Exception
-        parse_suite_headers_mock.side_effect = stop
+        parse_until_pattern_mock.side_effect = stop
         data = '''/* BEGIN_HEADER */
 #include "mbedtls/ecp.h"
 
@@ -637,13 +637,34 @@ class ParseFunction(TestCase):
 '''
         s = StringIOWrapper('test_suite_ut.function', data)
         self.assertRaises(Exception, parse_functions, s)
-        parse_suite_headers_mock.assert_called_with(s)
+        parse_until_pattern_mock.assert_called_with(s, END_HEADER_REGEX)
+        self.assertEqual(s.line_no, 2)
+
+    @patch("generate_code.parse_until_pattern")
+    def test_begin_helper(self, parse_until_pattern_mock):
+        """
+        Test that begin helper is checked and parse_until_pattern() is called.
+        :return: 
+        """
+        def stop(this):
+            raise Exception
+        parse_until_pattern_mock.side_effect = stop
+        data = '''/* BEGIN_SUITE_HELPERS */
+void print_helloworld()
+{
+    printf ("Hello World!\n");
+}
+/* END_SUITE_HELPERS */
+'''
+        s = StringIOWrapper('test_suite_ut.function', data)
+        self.assertRaises(Exception, parse_functions, s)
+        parse_until_pattern_mock.assert_called_with(s, END_SUITE_HELPERS_REGEX)
         self.assertEqual(s.line_no, 2)
 
     @patch("generate_code.parse_suite_deps")
     def test_begin_dep(self, parse_suite_deps_mock):
         """
-        Test that begin header is checked and parse_suite_headers() is called.
+        Test that begin dep is checked and parse_suite_deps() is called.
         :return: 
         """
         def stop(this):
@@ -662,7 +683,7 @@ class ParseFunction(TestCase):
     @patch("generate_code.parse_function_deps")
     def test_begin_function_dep(self, parse_function_deps_mock):
         """
-        Test that begin header is checked and parse_suite_headers() is called.
+        Test that begin dep is checked and parse_function_deps() is called.
         :return: 
         """
         def stop(this):
@@ -683,7 +704,7 @@ class ParseFunction(TestCase):
     @patch("generate_code.parse_function_deps")
     def test_return(self, parse_function_deps_mock, parse_function_code_mock):
         """
-        Test that begin header is checked and parse_suite_headers() is called.
+        Test that begin case is checked and parse_function_code() is called.
         :return: 
         """
         def stop(this):
@@ -718,7 +739,7 @@ class ParseFunction(TestCase):
 
     def test_parsing(self):
         """
-        Test that begin header is checked and parse_suite_headers() is called.
+        Test case parsing.
         :return: 
         """
         data = '''/* BEGIN_HEADER */
@@ -811,7 +832,7 @@ void test_func2_wrapper( void ** params )
 
     def test_same_function_name(self):
         """
-        Test that begin header is checked and parse_suite_headers() is called.
+        Test name conflict.
         :return: 
         """
         data = '''/* BEGIN_HEADER */

@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix handshake failure in NIST suite b, where the key was determined as
+     MBEDTLS_ECKEY instead of MBEDTLS_ECDSA.
+
 = mbed TLS 2.1.10 branch released 2018-02-03
 
 Security

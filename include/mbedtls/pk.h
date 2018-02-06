@@ -475,7 +475,7 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  *
  * \return          Maximum size in bytes of a signature made with this key.
  */
-size_t mbedtls_pk_signature_size( const mbedtls_pk_context *ctx );
+size_t mbedtls_pk_get_signature_size( const mbedtls_pk_context *ctx );
 
 /**
  * \brief           Decrypt message (including padding if relevant).

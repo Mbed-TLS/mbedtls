@@ -100,7 +100,7 @@ static void pk_rsa_match( mbedtls_rsa_context *raw,
     TEST_ASSERT( mbedtls_pk_can_do( tested_ctx, MBEDTLS_PK_RSA ) );
     TEST_ASSERT( mbedtls_pk_get_bitlen( tested_ctx ) == RSA_KEY_SIZE );
     TEST_ASSERT( mbedtls_pk_get_len( tested_ctx ) == RSA_KEY_LEN );
-    TEST_ASSERT( mbedtls_pk_signature_size( tested_ctx ) == RSA_KEY_LEN );
+    TEST_ASSERT( mbedtls_pk_get_signature_size( tested_ctx ) == RSA_KEY_LEN );
 
     /* Test signature */
     TEST_ASSERT( mbedtls_pk_sign( tested_ctx, MBEDTLS_MD_NONE, hash, sizeof hash,
@@ -533,7 +533,7 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
     TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, sizeof hash,
                           sig, &sig_len, rnd_std_rand, NULL ) == sign_ret );
     if( sign_ret == 0 )
-        TEST_ASSERT( sig_len <= mbedtls_pk_signature_size( &pk ) );
+        TEST_ASSERT( sig_len <= mbedtls_pk_get_signature_size( &pk ) );
 
     TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_SHA256,
                             hash, sizeof hash, sig, sig_len ) == verify_ret );
@@ -774,7 +774,7 @@ void pk_opaque_mock( )
     TEST_ASSERT( mbedtls_pk_get_bitlen( &ctx ) == OPAQUE_MOCK_BITLEN );
     TEST_ASSERT( mbedtls_pk_can_do( &ctx, OPAQUE_MOCK_CAN_DO ) == 1 );
     TEST_ASSERT( mbedtls_pk_can_do( &ctx, OPAQUE_MOCK_CAN_DO ^ 1 ) == 0 );
-    TEST_ASSERT( mbedtls_pk_signature_size( &ctx ) == OPAQUE_MOCK_SIGNATURE_SIZE );
+    TEST_ASSERT( mbedtls_pk_get_signature_size( &ctx ) == OPAQUE_MOCK_SIGNATURE_SIZE );
 
     TEST_ASSERT( mbedtls_pk_verify( &ctx, OPAQUE_MOCK_MD_ALG,
                                     opaque_mock_hash, sizeof( opaque_mock_hash ),
@@ -881,7 +881,7 @@ void pk_opaque_minimal( )
     TEST_ASSERT( mbedtls_pk_get_bitlen( &ctx ) == OPAQUE_MOCK_BITLEN );
     TEST_ASSERT( mbedtls_pk_can_do( &ctx, OPAQUE_MOCK_CAN_DO ) == 1 );
     TEST_ASSERT( mbedtls_pk_can_do( &ctx, OPAQUE_MOCK_CAN_DO ^ 1 ) == 0 );
-    TEST_ASSERT( mbedtls_pk_signature_size( &ctx ) == 0 );
+    TEST_ASSERT( mbedtls_pk_get_signature_size( &ctx ) == 0 );
 
     TEST_ASSERT( mbedtls_pk_verify( &ctx, OPAQUE_MOCK_MD_ALG,
                                     NULL, 0, NULL, 0 ) ==

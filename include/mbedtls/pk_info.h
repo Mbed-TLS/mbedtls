@@ -120,9 +120,11 @@ struct mbedtls_pk_info_t
      * usage restrictions into account. */
     int (*can_do)( const void * ctx, mbedtls_pk_type_t type );
 
-    /** Signature size
+    /** Upper bound of the signature length
      *
-     * mbedtls_pk_signature_size() returns this value.
+     * mbedtls_pk_get_signature_size() returns this value.
+     *
+     * In case of an error, or an unsupported key type, 0 should be returned.
      *
      * Opaque implementations may omit this method if they do not support
      * signature. */

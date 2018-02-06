@@ -357,7 +357,7 @@ size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx )
 /*
  * Maximum signature size
  */
-size_t mbedtls_pk_signature_size( const mbedtls_pk_context *ctx )
+size_t mbedtls_pk_get_signature_size( const mbedtls_pk_context *ctx )
 {
     if( ctx == NULL || ctx->pk_info == NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );

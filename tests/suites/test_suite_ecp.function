@@ -420,17 +420,20 @@ void ecp_ansi_write_group( int id, char *hex )
     unsigned char good[MBEDTLS_OID_EC_GRP_MAX_SIZE];
     unsigned char tested[MBEDTLS_OID_EC_GRP_MAX_SIZE];
     size_t good_len = unhexify( good, hex );
+    size_t received_len = 0;
     int ret = 0;
     mbedtls_ecp_group_init( &grp );
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 
     /* Positive test */
-    ret = mbedtls_ecp_ansi_write_group( &grp, tested, sizeof( tested ) );
-    TEST_ASSERT( ret >= 0 && good_len == (unsigned) ret );
+    ret = mbedtls_ecp_ansi_write_group( &grp, tested, sizeof( tested ),
+										&received_len );
+    TEST_ASSERT( ret == 0 && good_len == (unsigned) received_len );
     TEST_ASSERT( memcmp( good, tested, good_len ) == 0 );
 
     /* Buffer too small */
-    TEST_ASSERT( mbedtls_ecp_ansi_write_group( &grp, tested, good_len - 1 ) ==
+    TEST_ASSERT( mbedtls_ecp_ansi_write_group( &grp, tested, good_len - 1,
+    										   &received_len ) ==
                  MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 
 exit:
@@ -444,20 +447,23 @@ void ecp_ansi_write_point( char *key_file, int format, char *good_hex )
     unsigned char good_buf[1000];
     unsigned char tested_buf[1000];
     size_t good_len = unhexify( good_buf, good_hex );
+    size_t received_len = 0;
     mbedtls_pk_context pk;
-    int ret = 0;
+    int ret = -1;
     mbedtls_pk_init( &pk );
     TEST_ASSERT( mbedtls_pk_parse_public_keyfile( &pk, key_file ) == 0 );
 
     /* Positive test */
     ret = mbedtls_ecp_ansi_write_point( mbedtls_pk_ec( pk ), format,
-                                        tested_buf, sizeof( tested_buf ) );
-    TEST_ASSERT( ret >= 0 && good_len == (unsigned) ret );
+                                        tested_buf, sizeof( tested_buf ), 
+                                        &received_len );
+    TEST_ASSERT( ret == 0 && good_len == (unsigned) received_len );
     TEST_ASSERT( memcmp( good_buf, tested_buf, good_len ) == 0 );
 
     /* Buffer too small */
     TEST_ASSERT( mbedtls_ecp_ansi_write_point( mbedtls_pk_ec( pk ), format,
-                                               tested_buf, good_len - 1 ) ==
+                                               tested_buf, good_len - 1, 
+                                               &received_len ) ==
                  MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 
 exit:

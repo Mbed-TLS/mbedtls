@@ -515,13 +515,14 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp, size_t *olen,
  * \param grp       ECP group used
  * \param buf       Buffer to write to
  * \param size      Buffer size
- *
- * \return          Number of bytes written to \c buf,
+ * \param olen      Number of bytes written to \c buf
+ * \return          0 on success
  *                  or \c MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL
  *                  or \c MBEDTLS_ERR_OID_NOT_FOUND
  */
 int mbedtls_ecp_ansi_write_group( const mbedtls_ecp_group *grp,
-                                  unsigned char *p, size_t size );
+                                  unsigned char *p, size_t size,
+                                  size_t *olen );
 
 /**
  * \brief           Export a point in ANSI X9.62/RFC5480 ECPoint
@@ -533,8 +534,9 @@ int mbedtls_ecp_ansi_write_group( const mbedtls_ecp_group *grp,
  * \param format    Point format, should be a MBEDTLS_ECP_PF_XXX macro
  * \param p         Buffer to write to
  * \param size      Buffer size
+ * \param olen      Number of bytes written to \c buf
  *
- * \return          Number of bytes written to \c buf,
+ * \return          0 on success
  *                  or \c MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL
  *                  or \c MBEDTLS_ERR_ECP_BAD_INPUT_DATA
  *                  or \c MBEDTLS_ERR_ASN1_BUF_TOO_SMALL
@@ -542,7 +544,7 @@ int mbedtls_ecp_ansi_write_group( const mbedtls_ecp_group *grp,
 int mbedtls_ecp_ansi_write_point( const mbedtls_ecp_keypair *ec,
                                   int format,
                                   unsigned char *p,
-                                  size_t size );
+                                  size_t size, size_t *olen );
 #endif /* defined(MBEDTLS_ASN1_WRITE_C) && defined(MBEDTLS_OID_C) */
 
 /**

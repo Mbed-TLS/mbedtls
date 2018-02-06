@@ -329,12 +329,7 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
     }
 
-    if( prv->pk_info->type == MBEDTLS_PK_RSA_ALT )
-    {
-        if( pub->pk_info->type != MBEDTLS_PK_RSA )
-            return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
-    }
-    else if( prv->pk_info->type != MBEDTLS_PK_OPAQUE )
+    if( prv->pk_info->type != MBEDTLS_PK_OPAQUE )
     {
         if( pub->pk_info != prv->pk_info )
             return( MBEDTLS_ERR_PK_TYPE_MISMATCH );

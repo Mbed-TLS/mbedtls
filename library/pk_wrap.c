@@ -486,6 +486,13 @@ static int rsa_alt_check_pair( const mbedtls_pk_context *pub, const void *prv )
     unsigned char hash[32];
     size_t sig_len = 0;
     int ret;
+    const mbedtls_pk_context* prv_context = prv;
+
+    if( prv_context->pk_info->type == MBEDTLS_PK_RSA_ALT )
+    {
+        if( pub->pk_info->type != MBEDTLS_PK_RSA )
+            return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+    }
 
     if( rsa_alt_get_bitlen( prv ) != rsa_get_bitlen( pub->pk_ctx ) )
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );

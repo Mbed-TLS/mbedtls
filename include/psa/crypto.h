@@ -114,67 +114,121 @@ psa_status_t psa_crypto_init(void);
 
 typedef uint32_t psa_key_type_t;
 
-#define PSA_KEY_TYPE_NONE                       0x00000000
-#define PSA_KEY_TYPE_RAW_DATA                   0x00000001
-#define PSA_KEY_TYPE_RSA_PUBLIC_KEY             0x40000001
-#define PSA_KEY_TYPE_RSA_KEYPAIR                0x60000001
-#define PSA_KEY_TYPE_ECC_BASE                   0x40010000
+#define PSA_KEY_TYPE_NONE                       ((psa_key_type_t)0x00000000)
+#define PSA_KEY_TYPE_VENDOR_FLAG                ((psa_key_type_t)0x80000000)
 
-#define PSA_KEY_TYPE_VENDOR_FLAG                0x80000000
-#define PSA_KEY_TYPE_ASYMMETRIC_FLAG            0x40000000
-#define PSA_KEY_TYPE_ASYMMETRIC_MASK            0x60000000
-#define PSA_KEY_TYPE_ASYMMETRIC_MASK_PUBLIC     0x40000000
-#define PSA_KEY_TYPE_ASYMMETRIC_MASK_KEYPAIR    0x60000000
-#define PSA_KEY_TYPE_ASYMMETRIC_TEST_MASK       0x5fff0000
-#define PSA_KEY_TYPE_RSA_TEST_VALUE             0x40000000
-#define PSA_KEY_TYPE_ECC_TEST_VALUE             0x40010000
+#define PSA_KEY_TYPE_CATEGORY_MASK              ((psa_key_type_t)0x7e000000)
+#define PSA_KEY_TYPE_RAW_DATA                   ((psa_key_type_t)0x02000000)
+#define PSA_KEY_TYPE_CATEGORY_SYMMETRIC         ((psa_key_type_t)0x04000000)
+#define PSA_KEY_TYPE_CATEGORY_ASYMMETRIC        ((psa_key_type_t)0x06000000)
+#define PSA_KEY_TYPE_PAIR_FLAG                  ((psa_key_type_t)0x01000000)
 
-#define PSA_KEY_TYPE_IS_VENDOR(type) \
+#define PSA_KEY_TYPE_HMAC                       ((psa_key_type_t)0x02000001)
+#define PSA_KEY_TYPE_AES                        ((psa_key_type_t)0x04000001)
+#define PSA_KEY_TYPE_DES                        ((psa_key_type_t)0x04000002)
+#define PSA_KEY_TYPE_CAMELLIA                   ((psa_key_type_t)0x04000003)
+#define PSA_KEY_TYPE_ARC4                       ((psa_key_type_t)0x04000004)
+
+#define PSA_KEY_TYPE_RSA_PUBLIC_KEY             ((psa_key_type_t)0x06010000)
+#define PSA_KEY_TYPE_RSA_KEYPAIR                ((psa_key_type_t)0x07010000)
+#define PSA_KEY_TYPE_ECC_BASE                   ((psa_key_type_t)0x06030000)
+#define PSA_KEY_TYPE_ECC_CURVE_MASK             ((psa_key_type_t)0x0000ffff)
+
+#define PSA_KEY_TYPE_IS_VENDOR_DEFINED(type) \
     (((type) & PSA_KEY_TYPE_VENDOR_FLAG) != 0)
-#define PSA_KEY_TYPE_IS_ASYMMETRIC(type) \
-    (((type) & PSA_KEY_TYPE_ASYMMETRIC_FLAG) != 0)
-#define PSA_KEY_TYPE_IS_PUBLIC_KEY(type) \
-    (((type) & PSA_KEY_TYPE_ASYMMETRIC_MASK) == PSA_KEY_TYPE_ASYMMETRIC_MASK_PUBLIC)
-#define PSA_KEY_TYPE_IS_KEYPAIR(type) \
-    (((type) & PSA_KEY_TYPE_ASYMMETRIC_MASK) == PSA_KEY_TYPE_ASYMMETRIC_MASK_KEYPAIR)
+#define PSA_KEY_TYPE_IS_ASYMMETRIC(type)                                \
+    (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_ASYMMETRIC)
+#define PSA_KEY_TYPE_IS_PUBLIC_KEY(type)                                \
+    (((type) & (PSA_KEY_TYPE_CATEGORY_MASK | PSA_KEY_TYPE_PAIR_FLAG) == \
+      PSA_KEY_TYPE_CATEGORY_ASYMMETRIC))
+#define PSA_KEY_TYPE_IS_KEYPAIR(type)                                   \
+    (((type) & (PSA_KEY_TYPE_CATEGORY_MASK | PSA_KEY_TYPE_PAIR_FLAG)) == \
+     (PSA_KEY_TYPE_CATEGORY_ASYMMETRIC | PSA_KEY_TYPE_PAIR_FLAG))
 #define PSA_KEY_TYPE_IS_RSA(type)                                       \
-    (((type) & PSA_KEY_TYPE_ASYMMETRIC_TEST_MASK) == PSA_KEY_TYPE_RSA_TEST_VALUE)
+    (((type) & ~PSA_KEY_TYPE_PAIR_FLAG) == PSA_KEY_TYPE_RSA_PUBLIC_KEY)
 #define PSA_KEY_TYPE_IS_ECC(type)                                       \
-    (((type) & PSA_KEY_TYPE_ASYMMETRIC_TEST_MASK) == PSA_KEY_TYPE_ECC_TEST_VALUE)
+    (((type) & ~PSA_KEY_TYPE_ECC_CURVE_MASK) == PSA_KEY_TYPE_ECC_BASE)
 
 typedef uint32_t psa_algorithm_t;
 
-#define PSA_ALG_HASH_BITS                       0x01000000
-#define PSA_ALG_RSA_HASH_MASK                   0x000000ff
-#define PSA_ALG_MD2                             0x01000001
-#define PSA_ALG_MD4                             0x01000002
-#define PSA_ALG_MD5                             0x01000003
-#define PSA_ALG_SHA_256_128                     0x01000004
-#define PSA_ALG_RIPEMD160                       0x01000005
-#define PSA_ALG_SHA_1                           0x01000006
-#define PSA_ALG_SHA_256_160                     0x01000007
-#define PSA_ALG_SHA_224                         0x01000008
-#define PSA_ALG_SHA_256                         0x01000009
-#define PSA_ALG_SHA_384                         0x0100000a
-#define PSA_ALG_SHA_512                         0x0100000b
-#define PSA_ALG_SHA_512_224                     0x0100000c
-#define PSA_ALG_SHA_512_256                     0x0100000d
-#define PSA_ALG_SHA3_224                        0x01000010
-#define PSA_ALG_SHA3_256                        0x01000011
-#define PSA_ALG_SHA3_384                        0x01000012
-#define PSA_ALG_SHA3_512                        0x01000013
+#define PSA_ALG_VENDOR_FLAG                     ((psa_algorithm_t)0x80000000)
+#define PSA_ALG_CATEGORY_MASK                   ((psa_algorithm_t)0x7f000000)
+#define PSA_ALG_CATEGORY_HASH                   ((psa_algorithm_t)0x01000000)
+#define PSA_ALG_CATEGORY_MAC                    ((psa_algorithm_t)0x02000000)
+#define PSA_ALG_CATEGORY_CIPHER                 ((psa_algorithm_t)0x04000000)
+#define PSA_ALG_CATEGORY_AEAD                   ((psa_algorithm_t)0x06000000)
+#define PSA_ALG_CATEGORY_SIGN                   ((psa_algorithm_t)0x10000000)
+#define PSA_ALG_CATEGORY_ASYMMETRIC_ENCRYPTION  ((psa_algorithm_t)0x12000000)
+#define PSA_ALG_CATEGORY_KEY_AGREEMENT          ((psa_algorithm_t)0x22000000)
+#define PSA_ALG_CATEGORY_KEY_DERIVATION         ((psa_algorithm_t)0x30000000)
 
-#define PSA_ALG_RSA_PKCS1V15_RAW                0x40000100
-#define PSA_ALG_RSA_PSS_MGF1                    0x40000200
-#define PSA_ALG_RSA_OAEP                        0x40000300
-#define PSA_ALG_RSA_PKCS1V15(hash_alg)          \
-    (PSA_ALG_RSA_PKCS1V15_RAW | ((hash_alg) & PSA_ALG_RSA_HASH_MASK))
-#define PSA_ALG_IS_RSA_PKCS1V15(alg)            \
+#define PSA_ALG_IS_VENDOR_DEFINED(alg)                                  \
+    (((alg) & PSA_ALG_VENDOR_FLAG) != 0)
+#define PSA_ALG_IS_HASH(alg)                                            \
+    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_HASH)
+#define PSA_ALG_IS_MAC(alg)                                             \
+    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_MAC)
+#define PSA_ALG_IS_CIPHER(alg)                                          \
+    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_CIPHER)
+#define PSA_ALG_IS_AEAD(alg)                                            \
+    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_AEAD)
+#define PSA_ALG_IS_SIGN(alg)                                            \
+    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_SIGN)
+#define PSA_ALG_IS_ASYMMETRIC_ENCRYPTION(alg)                           \
+    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_ASYMMETRIC_ENCRYPTION)
+#define PSA_ALG_IS_KEY_AGREEMENT(alg)                                   \
+    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_KEY_AGREEMENT)
+#define PSA_ALG_IS_KEY_DERIVATION(alg)                                  \
+    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_KEY_DERIVATION)
+
+#define PSA_ALG_HASH_MASK                       ((psa_algorithm_t)0x000000ff)
+#define PSA_ALG_MD2                             ((psa_algorithm_t)0x01000001)
+#define PSA_ALG_MD4                             ((psa_algorithm_t)0x01000002)
+#define PSA_ALG_MD5                             ((psa_algorithm_t)0x01000003)
+#define PSA_ALG_SHA_256_128                     ((psa_algorithm_t)0x01000004)
+#define PSA_ALG_RIPEMD160                       ((psa_algorithm_t)0x01000005)
+#define PSA_ALG_SHA_1                           ((psa_algorithm_t)0x01000006)
+#define PSA_ALG_SHA_256_160                     ((psa_algorithm_t)0x01000007)
+#define PSA_ALG_SHA_224                         ((psa_algorithm_t)0x01000008)
+#define PSA_ALG_SHA_256                         ((psa_algorithm_t)0x01000009)
+#define PSA_ALG_SHA_384                         ((psa_algorithm_t)0x0100000a)
+#define PSA_ALG_SHA_512                         ((psa_algorithm_t)0x0100000b)
+#define PSA_ALG_SHA_512_224                     ((psa_algorithm_t)0x0100000c)
+#define PSA_ALG_SHA_512_256                     ((psa_algorithm_t)0x0100000d)
+#define PSA_ALG_SHA3_224                        ((psa_algorithm_t)0x01000010)
+#define PSA_ALG_SHA3_256                        ((psa_algorithm_t)0x01000011)
+#define PSA_ALG_SHA3_384                        ((psa_algorithm_t)0x01000012)
+#define PSA_ALG_SHA3_512                        ((psa_algorithm_t)0x01000013)
+
+#define PSA_ALG_HMAC_BASE                       ((psa_algorithm_t)0x02800000)
+#define PSA_ALG_HMAC(hash_alg)                  \
+    (PSA_ALG_HMAC_BASE | (hash_alg))
+#define PSA_ALG_CBC_MAC                         ((psa_algorithm_t)0x02000001)
+#define PSA_ALG_CMAC                            ((psa_algorithm_t)0x02000002)
+#define PSA_ALG_GMAC                            ((psa_algorithm_t)0x02000003)
+
+#define PSA_ALG_BLOCK_CIPHER_BASE_MASK          ((psa_algorithm_t)0x000000ff)
+#define PSA_ALG_BLOCK_CIPHER_PADDING_MASK       ((psa_algorithm_t)0x007f0000)
+#define PSA_ALG_BLOCK_CIPHER_PAD_PKCS7          ((psa_algorithm_t)0x00010000)
+#define PSA_ALG_CBC_BASE                        ((psa_algorithm_t)0x04000001)
+#define PSA_ALG_CFB_BASE                        ((psa_algorithm_t)0x04000003)
+#define PSA_ALG_OFB_BASE                        ((psa_algorithm_t)0x04000004)
+#define PSA_ALG_XTS_BASE                        ((psa_algorithm_t)0x04000005)
+#define PSA_ALG_STREAM_CIPHER                   ((psa_algorithm_t)0x04800000)
+#define PSA_ALG_CTR                             ((psa_algorithm_t)0x04800001)
+
+#define PSA_ALG_CCM                             ((psa_algorithm_t)0x06000002)
+#define PSA_ALG_GCM                             ((psa_algorithm_t)0x06000003)
+
+#define PSA_ALG_RSA_PKCS1V15_RAW                ((psa_algorithm_t)0x10010000)
+#define PSA_ALG_RSA_PSS_MGF1                    ((psa_algorithm_t)0x10020000)
+#define PSA_ALG_RSA_OAEP                        ((psa_algorithm_t)0x12020000)
+#define PSA_ALG_RSA_PKCS1V15(hash_alg)                                  \
+    (PSA_ALG_RSA_PKCS1V15_RAW | ((hash_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_IS_RSA_PKCS1V15(alg)                                    \
     (((alg) & 0x7fffff00) == PSA_ALG_RSA_PKCS1V15_RAW)
-#define PSA_ALG_RSA_GET_HASH(alg)               \
-    (((alg) & PSA_ALG_RSA_HASH_MASK) | PSA_ALG_HASH_BITS)
-
-#define PSA_ALG_VENDOR_FLAG                     0x80000000
+#define PSA_ALG_RSA_GET_HASH(alg)                                       \
+    (((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH)
 
 /**@}*/
 

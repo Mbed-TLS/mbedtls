@@ -3,7 +3,10 @@
  *
  * \brief Public Key cryptography abstraction layer: object interface
  *
- *  Copyright (C) 2006-2017, ARM Limited, All Rights Reserved
+ *  This file contains the info structure interface used by developers to
+ *  provide engine-specific implementations of opaque key handling functions.
+ *
+ *  Copyright (C) 2006-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -40,10 +43,16 @@ extern "C" {
  * Methods that opaque key pair objects must implement.
  *
  * Engines that interface with external cryptographic processors must
- * implement this interface. Platform-specific hardware accelerators
- * that can be used for all keys of a given type should use alternative
- * ("xxx_alt") interfaces instead. This interface allows using different
- * engines for each key.
+ * implement this interface. It allows using different engines for each key.
+ * Platform-specific hardware accelerators that can be used for all keys of
+ * a given type should not use this interface, but rather provide an
+ * alternative implementation of the respective cryptographic module - for
+ * example to use an RSA accelerator you can define MBEDTLS_RSA_ALT, and
+ * provide your own implementation of the RSA module.
+ *
+ * \warning: If you are using the PK interface to perform operations on
+ * keys, call the functions in pk.h. The interface in this file should only
+ * be used by implementers of opaque key engines.
  *
  * An engine for asymmetric cryptography must implement the interface
  * described in this structure. The interface for the engine may be
@@ -68,14 +77,11 @@ extern "C" {
  * in the corresponding field. The corresponding function in pk.h will
  * return MBEDTLS_ERR_PK_TYPE_MISMATCH in this case.
  *
- * \note If you are using the PK interface to perform operations on
- * keys, call the functions in pk.h. The interface in this file should only
- * be used by implementers of opaque key engines.
  *
  * \warning: Do not declare this structure directly! It may be extended in
  * future* versions of Mbed TLS. Call the macro
- * MBEDTLS_PK_OPAQUE_INFO_1() or MBEDTLS_PK_OPAQUE_INFO_ASYNC_1() instead.
- * These macros are guaranteed to take parameters with the same type
+ * MBEDTLS_PK_OPAQUE_INFO_1() instead.
+ * This macro is guaranteed to take parameters with the same type
  * and semantics as previous versions and fill any new field of the
  * structure with sensible values.
  */
@@ -105,7 +111,8 @@ struct mbedtls_pk_info_t
      * This function cannot fail. */
     size_t (*get_bitlen)( const void *ctx );
 
-    /** Tell if the context implements this type (e.g.\ ECKEY can do ECDSA).
+    /** Tell if the context implements the algorithm specified by
+     * the provided type (e.g.\ ECKEY can do ECDSA).
      *
      * mbedtls_pk_can_do() calls this function.
      *

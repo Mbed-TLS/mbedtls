@@ -3,7 +3,7 @@
  *
  * \brief Public Key cryptography abstraction layer
  *
- *  Copyright (C) 2006-2017, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -169,7 +169,7 @@ const char * mbedtls_pk_get_name( const mbedtls_pk_context *ctx );
 mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
 
 /**
- * \brief           Merge key types with the same representation
+ * \brief           Get the representation type associated with a given type
  *
  * \param type      Any key type
  * \return          A canonical representative among the types with the
@@ -200,10 +200,10 @@ static inline mbedtls_pk_type_t mbedtls_pk_representation_type( mbedtls_pk_type_
 /**
  * Quick access to an RSA context inside a PK context.
  *
- * \warning You must make sure the PK context actually holds a transparent
- * RSA context before using this function! This function is only valid if
- * `mbedtls_pk_get_type(&pk)` is one of \c MBEDTLS_PK_RSA or
- * \c MBEDTLS_PK_RSASSA_PSS.
+ * \warning You must either make sure the PK context actually holds a
+ * transparent RSA context by checking
+ * \c mbedtls_pk_representation_type( mbedtls_pk_get_type( &pk ) ) before using
+ * this function, or check that the return value is not NULL before using it.
  */
 static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
 {
@@ -220,10 +220,10 @@ static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
 /**
  * Quick access to an EC context inside a PK context.
  *
- * \warning You must make sure the PK context actually holds a transparent
- * EC context before using this function! This function is only valid if
- * `mbedtls_pk_get_type(&pk)` is one of \c MBEDTLS_PK_ECKEY,
- * \c MBEDTLS_PK_ECKEY_DH or \c MBEDTLS_PK_ECDSA.
+ * \warning You must either make sure the PK context actually holds a
+ * transparent RSA context by checking
+ * \c mbedtls_pk_representation_type( mbedtls_pk_get_type( &pk ) ) before using
+ * this function, or check that the return value is not NULL before using it.
  */
 static inline mbedtls_ecp_keypair *mbedtls_pk_ec( const mbedtls_pk_context pk )
 {
@@ -287,11 +287,15 @@ void mbedtls_pk_free( mbedtls_pk_context *ctx );
  *                  MBEDTLS_ERR_PK_BAD_INPUT_DATA on invalid input,
  *                  MBEDTLS_ERR_PK_ALLOC_FAILED on allocation failure.
  *
- * \note            Engines that implement of opaque keys may offer an
+ * \note            Engines that implement opaque keys may offer an
  *                  alternative setup function that take engine-dependent
  *                  parameters. If such a function exists, call it
- *                  instead of mbedtls_pk_setup. The implementation-specific
- *                  setup function should call mbedtls_pk_setup internally.
+ *                  instead of mbedtls_pk_setup. A standard way of providing
+ *                  such function is by first calling the generic
+ *                  mbedtls_pk_setup function (in particular taking care of
+ *                  context allocation through ctx_alloc) and afterwards
+ *                  proceeding to initialize the implementation-specific
+ *                  context structure.
  *
  * \note            For contexts holding an RSA-alt key pair, use
  *                  \c mbedtls_pk_setup_rsa_alt() instead.
@@ -436,17 +440,18 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
  * \param hash      Hash of the message to sign
  * \param hash_len  Hash length or 0 (see notes)
  * \param sig       Place to write the signature
- * \param sig_len   Number of bytes written to sig
+ * \param sig_len   Actual length in bytes of the created signature
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter
  *
  * \return          0 on success, or a type-specific error code.
  *
  * \note            The signature buffer \c sig must be of appropriate size
- *                  which can be calculated with \c mbedtls_pk_signature_size.
+ *                  which can be calculated with
+ *                  \c mbedtls_pk_get_signature_size.
  *                  Depending on the algorithm, the value returned in
  *                  \c sig_len may be less or equal to the value returned by
- *                  \c mbedtls_pk_signature_size.
+ *                  \c mbedtls_pk_get_signature_size.
  *
  * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
  *                  There is no interface in the PK module to make RSASSA-PSS
@@ -526,11 +531,12 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
  *                  * MBEDTLS_ERR_PK_TYPE_MISMATCH if the contexts cannot
  *                    represent keys of the same type.
  *                  * MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE if it is impossible
- *                    to determine whether the keys match. This is guaranteed
- *                    not to happen if \c prv is a transparent key pair.
+ *                    to determine whether the keys match. This can only happen
+ *                    if \c prv is an opaque key.
  *                  * Or a type-specific error code.
  *
- * \note            Opaque key types may not implement this function.
+ * \note            Opaque key types may omit implementing this function
+ *                  by providing a NULL pointer in the mbedtls_pk_info_t structure.
  *                  An opaque \c pub never matches a transparent \c prv.
  */
 int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv );

@@ -52,6 +52,10 @@
  *                  this is a problem, call the function
  *                  mbedtls_ecdsa_max_sig_len instead.
  */
+#if MBEDTLS_ECP_MAX_BYTES > 124
+#error "MBEDTLS_ECP_MAX_BYTES bigger than expected, please fix MBEDTLS_ECDSA_MAX_LEN"
+#endif
+
 #define MBEDTLS_ECDSA_MAX_SIG_LEN( bits )                               \
     ( /*T,L of SEQUENCE*/ ( ( bits ) >= 61 * 8 ? 3 : 2 ) +              \
       /*T,L of r,s*/        2 * ( ( ( bits ) >= 127 * 8 ? 3 : 2 ) +     \
@@ -71,12 +75,9 @@ static inline size_t mbedtls_ecdsa_max_sig_len( size_t bits )
     return( MBEDTLS_ECDSA_MAX_SIG_LEN( bits ) );
 }
 
-#if MBEDTLS_ECP_MAX_BYTES > 124
-#error "MBEDTLS_ECP_MAX_BYTES bigger than expected, please fix MBEDTLS_ECDSA_MAX_LEN"
-#endif
 /** Maximum size of an ECDSA signature in bytes */
-#define MBEDTLS_ECDSA_MAX_LEN  ( 3 + 2 * ( 3 + MBEDTLS_ECP_MAX_BYTES ) )
-
+#define MBEDTLS_ECDSA_MAX_LEN (MBEDTLS_ECDSA_MAX_SIG_LEN( \
+        8 * MBEDTLS_ECP_MAX_BYTES ) )
 /**
  * \brief           ECDSA context structure
  */
@@ -236,7 +237,8 @@ int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
 /**
- * \brief           Convert a signature from numbers to ASN.1
+ * \brief           Convert a signature from numbers to ASN.1 INTEGER's,
+ *                  then both packed together as parts of an ASN.1 SEQUENCE
  *
  * \param r         First number of the signature
  * \param s         Second number of the signature

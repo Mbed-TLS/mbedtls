@@ -3,7 +3,10 @@
  *
  * \brief Public Key cryptography abstraction layer: built-in key types
  *
- *  Copyright (C) 2006-2017, ARM Limited, All Rights Reserved
+ *  This file contains built-in types for handling various key types using
+ *  the interface defined in pk_info.h.
+ *
+ *  Copyright (C) 2006-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may

@@ -4,7 +4,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 Features
    * Allow comments in test data files.
-   * Add support for public keys encoded in PKCS#1 format
+   * Add support for public keys encoded in PKCS#1 format.
 
 Bugfix
    * Fix memory leak in mbedtls_ssl_set_hostname() when called multiple times.

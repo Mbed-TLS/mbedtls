@@ -80,8 +80,11 @@ extern "C" {
 /**@{*/
 
 /**
- * \brief          Asymmetric operation context types
- */
+ * \brief           Asymmetric operation context types
+ *
+ * \note            An opaque key may be an RSA or ECC key or a key of an
+ *                  unrecognized type. Call \c mbedtls_pk_can_do() to check
+ *                  whether a key is of a recognized type. */
 typedef enum {
     MBEDTLS_PK_NONE=0,          /**< Unused context object */
     MBEDTLS_PK_RSA,             /**< RSA key pair (normal software implementation) with PKCS#1 v1.5 or PSS context */
@@ -90,10 +93,7 @@ typedef enum {
     MBEDTLS_PK_ECDSA,           /**< ECC key pair with ECDSA context */
     MBEDTLS_PK_RSA_ALT,         /**< RSA (alternative implementation) */
     MBEDTLS_PK_RSASSA_PSS,      /**< RSA key pair; same context as MBEDTLS_PK_RSA, but used to represent keys with the algorithm identifier id-RSASSA-PSS */
-    /** Opaque key pair (cryptographic material held in an external module).
-     * This may be an RSA or ECC key or a key of an unrecognized type. Call
-     * \c mbedtls_pk_can_do() to check whether a key is of a recognized type. */
-    MBEDTLS_PK_OPAQUE,
+    MBEDTLS_PK_OPAQUE,          /**< Opaque key pair (cryptographic material held in an external module).*/
 } mbedtls_pk_type_t;
 
 /**

@@ -40,6 +40,9 @@
  * (assuming ECP_MAX_BYTES is less than 126 for r and s,
  * and less than 124 (total len <= 255) for the sequence)
  */
+#if MBEDTLS_ECP_MAX_BYTES > 124
+#error "MBEDTLS_ECP_MAX_BYTES bigger than expected, please fix MBEDTLS_ECDSA_MAX_LEN"
+#endif
 
 /**
  * \brief           Maximum ECDSA signature size for a given curve bit size
@@ -52,10 +55,6 @@
  *                  this is a problem, call the function
  *                  mbedtls_ecdsa_max_sig_len instead.
  */
-#if MBEDTLS_ECP_MAX_BYTES > 124
-#error "MBEDTLS_ECP_MAX_BYTES bigger than expected, please fix MBEDTLS_ECDSA_MAX_LEN"
-#endif
-
 #define MBEDTLS_ECDSA_MAX_SIG_LEN( bits )                               \
     ( /*T,L of SEQUENCE*/ ( ( bits ) >= 61 * 8 ? 3 : 2 ) +              \
       /*T,L of r,s*/        2 * ( ( ( bits ) >= 127 * 8 ? 3 : 2 ) +     \
@@ -237,8 +236,7 @@ int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
 /**
- * \brief           Convert a signature from numbers to ASN.1 INTEGER's,
- *                  then both packed together as parts of an ASN.1 SEQUENCE
+ * \brief           Convert a signature from numbers to ASN.1
  *
  * \param r         First number of the signature
  * \param s         Second number of the signature
@@ -250,6 +248,11 @@ int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
  *                  `MBEDTLS_ECDSA_MAX_SIG_LEN(grp->pbits)` bytes long if
  *                  the signature was produced from curve \c grp,
  *                  otherwise this function will return an error.
+ *                  The output ASN.1 SEQUENCE format is as follows:
+ *                  Ecdsa-Sig-Value ::= SEQUENCE {
+ *                              r       INTEGER,
+ *                              s       INTEGER
+ *                          }
  *
  * \return          0 if successful,
  *                  or a MBEDTLS_ERR_MPI_XXX or MBEDTLS_ERR_ASN1_XXX error code

@@ -51,6 +51,11 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/threading.h"
 
+#if defined(MBEDTLS_ASN1_WRITE_C) && defined(MBEDTLS_OID_C)
+#include "mbedtls/asn1write.h"
+#include "mbedtls/oid.h"
+#endif
+
 #include <string.h>
 
 #if !defined(MBEDTLS_ECP_ALT)
@@ -2062,8 +2067,6 @@ cleanup:
 }
 
 #if defined(MBEDTLS_ASN1_WRITE_C) && defined(MBEDTLS_OID_C)
-#include "mbedtls/asn1write.h"
-#include "mbedtls/oid.h"
 int mbedtls_ecp_ansi_write_group( const mbedtls_ecp_group *grp,
                                   unsigned char *p,
                                   size_t size, size_t *olen )

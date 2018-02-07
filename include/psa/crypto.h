@@ -71,6 +71,8 @@ typedef enum {
     PSA_ERROR_INSUFFICIENT_STORAGE,
     /** There was a communication failure inside the implementation. */
     PSA_ERROR_COMMUNICATION_FAILURE,
+    /** There was a storage failure that may have led to data loss. */
+    PSA_ERROR_STORAGE_FAILURE,
     /** A hardware failure was detected. */
     PSA_ERROR_HARDWARE_FAILURE,
     /** A tampering attempt was detected. */
@@ -78,8 +80,10 @@ typedef enum {
     /** There is not enough entropy to generate random data needed
         for the requested action. */
     PSA_ERROR_INSUFFICIENT_ENTROPY,
-    /** The signature or MAC is incorrect. */
+    /** The signature, MAC or hash is incorrect. */
     PSA_ERROR_INVALID_SIGNATURE,
+    /** The decrypted padding is incorrect. */
+    PSA_ERROR_INVALID_PADDING,
     /** An error occurred that does not correspond to any defined
         failure cause. */
     PSA_ERROR_UNKNOWN_ERROR,

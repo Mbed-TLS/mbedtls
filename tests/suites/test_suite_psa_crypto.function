@@ -134,6 +134,73 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void hash_finish( int alg_arg, char *input_hex, char *hash_hex )
+{
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *input = NULL;
+    size_t input_size;
+    unsigned char expected_hash[MBEDTLS_MD_MAX_SIZE];
+    size_t expected_hash_length;
+    unsigned char actual_hash[MBEDTLS_MD_MAX_SIZE];
+    size_t actual_hash_length;
+    psa_hash_operation_t operation;
+
+    input_size = strlen( input_hex ) / 2;
+    input = mbedtls_calloc( 1, input_size );
+    TEST_ASSERT( input != NULL );
+    input_size = unhexify( input, input_hex );
+    expected_hash_length = unhexify( expected_hash, hash_hex );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_hash_start( &operation, alg ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_hash_update( &operation,
+                                  input, input_size ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_hash_finish( &operation,
+                                  actual_hash, sizeof( actual_hash ),
+                                  &actual_hash_length ) == PSA_SUCCESS );
+    TEST_ASSERT( actual_hash_length == expected_hash_length );
+    TEST_ASSERT( memcmp( expected_hash, actual_hash,
+                         expected_hash_length ) == 0 );
+
+exit:
+    mbedtls_free( input );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void hash_verify( int alg_arg, char *input_hex, char *hash_hex )
+{
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *input = NULL;
+    size_t input_size;
+    unsigned char expected_hash[MBEDTLS_MD_MAX_SIZE];
+    size_t expected_hash_length;
+    psa_hash_operation_t operation;
+
+    input_size = strlen( input_hex ) / 2;
+    input = mbedtls_calloc( 1, input_size );
+    TEST_ASSERT( input != NULL );
+    input_size = unhexify( input, input_hex );
+    expected_hash_length = unhexify( expected_hash, hash_hex );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_hash_start( &operation, alg ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_hash_update( &operation,
+                                  input, input_size ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_hash_verify( &operation,
+                                  expected_hash,
+                                  expected_hash_length ) == PSA_SUCCESS );
+
+exit:
+    mbedtls_free( input );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void signature_size( int type_arg, int bits, int alg_arg, int expected_size_arg )
 {
     psa_key_type_t type = type_arg;

@@ -307,6 +307,54 @@ psa_status_t psa_export_key(psa_key_slot_t key,
 
 /**@}*/
 
+/** \defgroup hash Message digests
+ * @{
+ */
+
+typedef struct psa_hash_operation_s psa_hash_operation_t;
+
+#define PSA_HASH_FINAL_SIZE(alg)                \
+    (                                           \
+        (alg) == PSA_ALG_MD2 ? 16 :             \
+        (alg) == PSA_ALG_MD4 ? 16 :             \
+        (alg) == PSA_ALG_MD5 ? 16 :             \
+        (alg) == PSA_ALG_SHA_256_128 ? 16 :     \
+        (alg) == PSA_ALG_RIPEMD160 ? 20 :       \
+        (alg) == PSA_ALG_SHA_1 ? 20 :           \
+        (alg) == PSA_ALG_SHA_256_160 ? 20 :     \
+        (alg) == PSA_ALG_SHA_224 ? 28 :         \
+        (alg) == PSA_ALG_SHA_256 ? 32 :         \
+        (alg) == PSA_ALG_SHA_384 ? 48 :         \
+        (alg) == PSA_ALG_SHA_512 ? 64 :         \
+        (alg) == PSA_ALG_SHA_512_224 ? 28 :     \
+        (alg) == PSA_ALG_SHA_512_256 ? 32 :     \
+        (alg) == PSA_ALG_SHA3_224 ? 28 :        \
+        (alg) == PSA_ALG_SHA3_256 ? 32 :        \
+        (alg) == PSA_ALG_SHA3_384 ? 48 :        \
+        (alg) == PSA_ALG_SHA3_512 ? 64 :        \
+        0)
+
+psa_status_t psa_hash_start(psa_hash_operation_t *operation,
+                            psa_algorithm_t alg);
+
+psa_status_t psa_hash_update(psa_hash_operation_t *operation,
+                             const uint8_t *input,
+                             size_t input_length);
+
+psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
+                             uint8_t *hash,
+                             size_t hash_size,
+                             size_t *hash_length);
+
+psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
+                             const uint8_t *hash,
+                             size_t hash_length);
+
+psa_status_t ps_hash_abort(psa_hash_operation_t *operation);
+
+/**@}*/
+
+/** \defgroup MAC Message authentication codes
 /** \defgroup asymmetric Asymmetric cryptography
  * @{
  */
@@ -379,6 +427,12 @@ psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
 }
 #endif
 
+/* The file "crypto_struct.h" contains definitions for
+ * implementation-specific structs that are declared above. */
+#include "crypto_struct.h"
+
+/* The file "crypto_extra.h" contains vendor-specific definitions. This
+ * can include vendor-defined algorithms, extra functions, etc. */
 #include "crypto_extra.h"
 
 #endif /* PSA_CRYPTO_H */

@@ -61,6 +61,10 @@ struct mbedtls_cmac_context_t
     size_t              unprocessed_len;
 };
 
+#else  /* !MBEDTLS_CMAC_ALT */
+#include "cmac_alt.h"
+#endif /* !MBEDTLS_CMAC_ALT */
+
 /**
  * \brief               This function sets the CMAC key, and prepares to authenticate
  *                      the input data.
@@ -179,18 +183,6 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_len,
                               const unsigned char *input, size_t in_len,
                               unsigned char output[16] );
 #endif /* MBEDTLS_AES_C */
-
-#ifdef __cplusplus
-}
-#endif
-
-#else  /* !MBEDTLS_CMAC_ALT */
-#include "cmac_alt.h"
-#endif /* !MBEDTLS_CMAC_ALT */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #if defined(MBEDTLS_SELF_TEST) && ( defined(MBEDTLS_AES_C) || defined(MBEDTLS_DES_C) )
 /**

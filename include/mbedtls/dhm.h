@@ -65,7 +65,6 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 #include "bignum.h"
-#if !defined(MBEDTLS_DHM_ALT)
 
 /*
  * DHM Error codes
@@ -86,6 +85,8 @@
 extern "C" {
 #endif
 
+#if !defined(MBEDTLS_DHM_ALT)
+
 /**
  * \brief          The DHM context structure.
  */
@@ -104,6 +105,10 @@ typedef struct
     mbedtls_mpi pX;     /*!<  The previous \c X. */
 }
 mbedtls_dhm_context;
+
+#else /* MBEDTLS_DHM_ALT */
+#include "dhm_alt.h"
+#endif /* MBEDTLS_DHM_ALT */
 
 /**
  * \brief          This function initializes the DHM context.
@@ -281,18 +286,6 @@ int mbedtls_dhm_parse_dhm( mbedtls_dhm_context *dhm, const unsigned char *dhmin,
 int mbedtls_dhm_parse_dhmfile( mbedtls_dhm_context *dhm, const char *path );
 #endif /* MBEDTLS_FS_IO */
 #endif /* MBEDTLS_ASN1_PARSE_C */
-
-#ifdef __cplusplus
-}
-#endif
-
-#else /* MBEDTLS_DHM_ALT */
-#include "dhm_alt.h"
-#endif /* MBEDTLS_DHM_ALT */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          The DMH checkup routine.

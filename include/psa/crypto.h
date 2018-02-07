@@ -8,6 +8,14 @@
 
 #include "crypto_platform.h"
 
+#ifdef __DOXYGEN_ONLY__
+/** \defgroup platform Implementation-specific definitions
+ * @{
+ */
+
+/**@}*/
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

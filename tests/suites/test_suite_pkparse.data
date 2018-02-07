@@ -110,11 +110,10 @@ Parse Public RSA Key #1 (PKCS#8 wrapped, DER)
 pk_parse_public_keyfile_rsa:"data_files/rsa_pkcs8_2048_public.der":0
 
 Parse Public RSA Key #3 (PKCS#1 wrapped)
-depends_on:MBEDTLS_RSA_C:MBEDTLS_PEM_PARSE_C
+depends_on:MBEDTLS_PEM_PARSE_C
 pk_parse_public_keyfile_rsa:"data_files/rsa_pkcs1_2048_public.pem":0
 
 Parse Public RSA Key #4 (PKCS#1 wrapped, DER)
-depends_on:MBEDTLS_RSA_C
 pk_parse_public_keyfile_rsa:"data_files/rsa_pkcs1_2048_public.der":0
 
 Parse Public EC Key #1 (RFC 5480, DER)

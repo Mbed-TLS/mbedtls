@@ -1325,16 +1325,16 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
     if( ( ret = mbedtls_pk_setup( ctx, pk_info ) ) != 0 )
         return( ret );
 
-    p =  (unsigned char *) key;
+    p = (unsigned char *)key;
     ret = pk_get_rsapubkey( &p, p + keylen, mbedtls_pk_rsa( *ctx ) );
-    if ( ret == 0 )
+    if( ret == 0 )
     {
         return( ret );
     }
     mbedtls_pk_free( ctx );
-    if ( ret != ( MBEDTLS_ERR_PK_INVALID_PUBKEY + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG ) )
+    if( ret != ( MBEDTLS_ERR_PK_INVALID_PUBKEY + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG ) )
     {
-        return ( ret );
+        return( ret );
     }
 #endif /* MBEDTLS_RSA_C */
     p = (unsigned char *) key;

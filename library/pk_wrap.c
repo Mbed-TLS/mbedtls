@@ -489,11 +489,9 @@ static int rsa_alt_check_pair( const mbedtls_pk_context *pub,
     unsigned char hash[32];
     size_t sig_len = 0;
     int ret;
-    if( prv->pk_info->type == MBEDTLS_PK_RSA_ALT )
-    {
-        if( pub->pk_info->type != MBEDTLS_PK_RSA )
-            return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
-    }
+
+    if( pub->pk_info->type != MBEDTLS_PK_RSA )
+        return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
 
     if( rsa_alt_get_bitlen( prv->pk_ctx ) != rsa_get_bitlen( pub->pk_ctx ) )
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );

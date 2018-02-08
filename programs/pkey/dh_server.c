@@ -217,7 +217,11 @@ int main( void )
     /*
      * 5. Sign the parameters and send them
      */
-    mbedtls_sha1( buf, n, hash );
+    if( ( ret = mbedtls_sha1_ret( buf, n, hash ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_sha1_ret returned %d\n\n", ret );
+        goto exit;
+    }
 
     buf[n    ] = (unsigned char)( rsa.len >> 8 );
     buf[n + 1] = (unsigned char)( rsa.len      );
@@ -248,6 +252,7 @@ int main( void )
 
     memset( buf, 0, sizeof( buf ) );
 
+    n = dhm.len;
     if( ( ret = mbedtls_net_recv( &client_fd, buf, n ) ) != (int) n )
     {
         mbedtls_printf( " failed\n  ! mbedtls_net_recv returned %d\n\n", ret );

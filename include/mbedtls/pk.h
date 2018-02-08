@@ -66,6 +66,7 @@
 #define MBEDTLS_ERR_PK_UNKNOWN_NAMED_CURVE -0x3A00  /**< Elliptic curve is unsupported (only NIST curves are supported). */
 #define MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE -0x3980  /**< Unavailable feature, e.g. RSA disabled for RSA key. */
 #define MBEDTLS_ERR_PK_SIG_LEN_MISMATCH    -0x3900  /**< The signature is valid but its length is less than expected. */
+#define MBEDTLS_ERR_PK_HW_ACCEL_FAILED     -0x3880  /**< PK hardware accelerator failed. */
 #define MBEDTLS_ERR_PK_INVALID_SIGNATURE   -0x3800  /**< Invalid signature */
 #define MBEDTLS_ERR_PK_BUFFER_TOO_SMALL    -0x3780  /**< Output buffer too small */
 #define MBEDTLS_ERR_PK_NOT_PERMITTED       -0x3700  /**< Operation not permitted */

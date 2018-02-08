@@ -51,6 +51,11 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/threading.h"
 
+#if defined(MBEDTLS_ASN1_WRITE_C) && defined(MBEDTLS_OID_C)
+#include "mbedtls/asn1write.h"
+#include "mbedtls/oid.h"
+#endif
+
 #include <string.h>
 
 #if !defined(MBEDTLS_ECP_ALT)
@@ -2058,6 +2063,58 @@ cleanup:
 
     return( ret );
 }
+
+#if defined(MBEDTLS_ASN1_WRITE_C) && defined(MBEDTLS_OID_C)
+int mbedtls_ecp_ansi_write_group( const mbedtls_ecp_group *grp,
+                                  unsigned char *p,
+                                  size_t size, size_t *olen )
+{
+    const char *oid;
+    unsigned char *q;
+    size_t oid_length;
+    int ret;
+
+    ret = mbedtls_oid_get_oid_by_ec_grp( grp->id, &oid, &oid_length );
+    if( ret != 0 )
+        return( ret );
+    // Output is a TLV with len(T)=1, len(L)=1, V=OID
+    if( size < 2 + oid_length )
+        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+    q = p + 2 + oid_length;
+    *olen = mbedtls_asn1_write_oid( &q, p, oid, oid_length );
+    return ( 0 );
+}
+
+int mbedtls_ecp_ansi_write_point( const mbedtls_ecp_keypair *ec,
+                                  int format,
+                                  unsigned char *p,
+                                  size_t size, size_t *olen )
+{
+    unsigned char *q;
+    size_t tl_max_size = 3; /* room for the OCTET_STRING tag and length */
+    int ret;
+
+    if( size < tl_max_size )
+        return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
+
+    q = p + tl_max_size;
+    ret = mbedtls_ecp_point_write_binary( &ec->grp, &ec->Q,
+                                          format,
+                                          olen, q, size - tl_max_size );
+    if( ret < 0 )
+        return( ret );
+    ret = mbedtls_asn1_write_len( &q, p, *olen );
+    if( ret < 0 )
+        return( ret );
+    ret = mbedtls_asn1_write_tag( &q, p, MBEDTLS_ASN1_OCTET_STRING );
+    if( ret < 0 )
+        return( ret );
+    *olen += tl_max_size - ( q - p );
+    if( q != p )
+        memmove( p, q, *olen );
+    return( 0 );
+}
+#endif /* defined(MBEDTLS_ASN1_WRITE_C) && defined(MBEDTLS_OID_C) */
 
 #if defined(MBEDTLS_SELF_TEST)
 

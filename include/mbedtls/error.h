@@ -84,7 +84,7 @@
  * X509      2   20
  * PKCS5     2   4 (Started from top)
  * DHM       3   11
- * PK        3   15 (Started from top)
+ * PK        3   18 (Started from top)
  * RSA       4   11
  * ECP       4   9 (Started from top)
  * MD        5   5

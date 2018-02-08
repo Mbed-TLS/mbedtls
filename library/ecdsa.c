@@ -289,22 +289,22 @@ cleanup:
 /*
  * Convert a signature (given by context) to ASN.1
  */
-static int ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
-                                    unsigned char *sig, size_t *slen )
+int mbedtls_ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
+                             unsigned char *sig, size_t *slen, size_t ssize )
 {
     int ret;
-    unsigned char buf[MBEDTLS_ECDSA_MAX_LEN];
-    unsigned char *p = buf + sizeof( buf );
+    unsigned char *p = sig + ssize;
     size_t len = 0;
 
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &p, buf, s ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &p, buf, r ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &p, sig, s ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &p, sig, r ) );
 
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, buf, len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf,
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, sig, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, sig,
                                        MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
 
-    memcpy( sig, p, len );
+    memmove( sig, p, len );
+    memset( sig + len, 0, ssize - len );
     *slen = len;
 
     return( 0 );
@@ -321,6 +321,7 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
 {
     int ret;
     mbedtls_mpi r, s;
+    const size_t ssize = MBEDTLS_ECDSA_MAX_SIG_LEN( ctx->grp.pbits );
 
     mbedtls_mpi_init( &r );
     mbedtls_mpi_init( &s );
@@ -338,7 +339,7 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
                          hash, hlen, f_rng, p_rng ) );
 #endif
 
-    MBEDTLS_MPI_CHK( ecdsa_signature_to_asn1( &r, &s, sig, slen ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecdsa_signature_to_asn1( &r, &s, sig, slen, ssize ) );
 
 cleanup:
     mbedtls_mpi_free( &r );

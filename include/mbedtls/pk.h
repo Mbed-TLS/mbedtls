@@ -1,10 +1,9 @@
 /**
  * \file pk.h
  *
- * \brief Public Key abstraction layer
- */
-/*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ * \brief Public Key cryptography abstraction layer
+ *
+ *  Copyright (C) 2006-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -50,6 +49,9 @@
 #define inline __inline
 #endif
 
+/** \name Error codes */
+/**@{*/
+
 #define MBEDTLS_ERR_PK_ALLOC_FAILED        -0x3F80  /**< Memory allocation failed. */
 #define MBEDTLS_ERR_PK_TYPE_MISMATCH       -0x3F00  /**< Type mismatch, eg attempt to encrypt with an ECDSA key */
 #define MBEDTLS_ERR_PK_BAD_INPUT_DATA      -0x3E80  /**< Bad input parameters to function. */
@@ -65,22 +67,34 @@
 #define MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE -0x3980  /**< Unavailable feature, e.g. RSA disabled for RSA key. */
 #define MBEDTLS_ERR_PK_SIG_LEN_MISMATCH    -0x3900  /**< The signature is valid but its length is less than expected. */
 #define MBEDTLS_ERR_PK_HW_ACCEL_FAILED     -0x3880  /**< PK hardware accelerator failed. */
+#define MBEDTLS_ERR_PK_INVALID_SIGNATURE   -0x3800  /**< Invalid signature */
+#define MBEDTLS_ERR_PK_BUFFER_TOO_SMALL    -0x3780  /**< Output buffer too small */
+#define MBEDTLS_ERR_PK_NOT_PERMITTED       -0x3700  /**< Operation not permitted */
+
+/**@}*/
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/** \name Asymmetric cryptography operation contexts */
+/**@{*/
+
 /**
- * \brief          Public key types
- */
+ * \brief           Asymmetric operation context types
+ *
+ * \note            An opaque key may be an RSA or ECC key or a key of an
+ *                  unrecognized type. Call \c mbedtls_pk_can_do() to check
+ *                  whether a key is of a recognized type. */
 typedef enum {
-    MBEDTLS_PK_NONE=0,
-    MBEDTLS_PK_RSA,
-    MBEDTLS_PK_ECKEY,
-    MBEDTLS_PK_ECKEY_DH,
-    MBEDTLS_PK_ECDSA,
-    MBEDTLS_PK_RSA_ALT,
-    MBEDTLS_PK_RSASSA_PSS,
+    MBEDTLS_PK_NONE=0,          /**< Unused context object */
+    MBEDTLS_PK_RSA,             /**< RSA key pair (normal software implementation) with PKCS#1 v1.5 or PSS context */
+    MBEDTLS_PK_ECKEY,           /**< ECC key pair with ECDSA context */
+    MBEDTLS_PK_ECKEY_DH,        /**< ECC key pair with ECDH context */
+    MBEDTLS_PK_ECDSA,           /**< ECC key pair with ECDSA context */
+    MBEDTLS_PK_RSA_ALT,         /**< RSA (alternative implementation) */
+    MBEDTLS_PK_RSASSA_PSS,      /**< RSA key pair; same context as MBEDTLS_PK_RSA, but used to represent keys with the algorithm identifier id-RSASSA-PSS */
+    MBEDTLS_PK_OPAQUE,          /**< Opaque key pair (cryptographic material held in an external module).*/
 } mbedtls_pk_type_t;
 
 /**
@@ -118,29 +132,88 @@ typedef struct
 #define MBEDTLS_PK_DEBUG_MAX_ITEMS 3
 
 /**
- * \brief           Public key information and operations
+ * \brief           Key pair information and operations
  */
 typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
 
 /**
- * \brief           Public key container
+ * \brief           Key pair container
  */
 typedef struct
 {
-    const mbedtls_pk_info_t *   pk_info; /**< Public key informations        */
-    void *                      pk_ctx;  /**< Underlying public key context  */
+    const mbedtls_pk_info_t *   pk_info; /**< Algorithm information          */
+    void *                      pk_ctx;  /**< Underlying key pair context */
 } mbedtls_pk_context;
+
+/**
+ * \brief           Access the type name
+ *
+ * \param ctx       Context to use
+ *
+ * \return          Type name on success, or "invalid PK"
+ */
+const char * mbedtls_pk_get_name( const mbedtls_pk_context *ctx );
+
+/**
+ * \brief           Get the key type
+ *
+ * \param ctx       Context to use
+ *
+ * \return          Type on success, or MBEDTLS_PK_NONE
+ *
+ * \note            This function returns the type of the key pair object. The
+ *                  type encodes the representation of the object as well as
+ *                  the operations that it can be used for. To test whether
+ *                  the object represents a key of a recognized type such
+ *                  as RSA or ECDSA, call \c mbedtls_pk_can_do().
+ */
+mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
+
+/**
+ * \brief           Get the representation type associated with a given type
+ *
+ * \param type      Any key type
+ * \return          A canonical representative among the types with the
+ *                  same key representation. This is \c MBEDTLS_PK_RSA
+ *                  for RSA keys using the built-in software engine and
+ *                  MBEDTLS_PK_ECKEY for EC keys using the built-in
+ *                  software engine. Note that for keys of type
+ *                  \c MBEDTLS_PK_OPAQUE, the type does not specify the
+ *                  representation.
+ */
+static inline mbedtls_pk_type_t mbedtls_pk_representation_type( mbedtls_pk_type_t type )
+{
+    switch( type )
+    {
+        case MBEDTLS_PK_RSA:
+        case MBEDTLS_PK_RSASSA_PSS:
+            return( MBEDTLS_PK_RSA );
+        case MBEDTLS_PK_ECKEY:
+        case MBEDTLS_PK_ECKEY_DH:
+        case MBEDTLS_PK_ECDSA:
+            return( MBEDTLS_PK_ECKEY );
+        default:
+            return( type );
+    }
+}
 
 #if defined(MBEDTLS_RSA_C)
 /**
  * Quick access to an RSA context inside a PK context.
  *
- * \warning You must make sure the PK context actually holds an RSA context
- * before using this function!
+ * \warning You must either make sure the PK context actually holds a
+ * transparent RSA context by checking
+ * \c mbedtls_pk_representation_type( mbedtls_pk_get_type( &pk ) ) before using
+ * this function, or check that the return value is not NULL before using it.
  */
 static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
 {
-    return( (mbedtls_rsa_context *) (pk).pk_ctx );
+    mbedtls_pk_type_t type =
+        mbedtls_pk_representation_type( mbedtls_pk_get_type( &pk ) );
+    if( type == MBEDTLS_PK_RSA )
+        return( (mbedtls_rsa_context *)( pk.pk_ctx ) );
+    else
+        return( NULL );
 }
 #endif /* MBEDTLS_RSA_C */
 
@@ -148,12 +221,19 @@ static inline mbedtls_rsa_context *mbedtls_pk_rsa( const mbedtls_pk_context pk )
 /**
  * Quick access to an EC context inside a PK context.
  *
- * \warning You must make sure the PK context actually holds an EC context
- * before using this function!
+ * \warning You must either make sure the PK context actually holds a
+ * transparent RSA context by checking
+ * \c mbedtls_pk_representation_type( mbedtls_pk_get_type( &pk ) ) before using
+ * this function, or check that the return value is not NULL before using it.
  */
 static inline mbedtls_ecp_keypair *mbedtls_pk_ec( const mbedtls_pk_context pk )
 {
-    return( (mbedtls_ecp_keypair *) (pk).pk_ctx );
+    mbedtls_pk_type_t type =
+        mbedtls_pk_representation_type( mbedtls_pk_get_type( &pk ) );
+    if( type == MBEDTLS_PK_ECKEY )
+        return( (mbedtls_ecp_keypair *)( pk.pk_ctx ) );
+    else
+        return( NULL );
 }
 #endif /* MBEDTLS_ECP_C */
 
@@ -172,9 +252,16 @@ typedef size_t (*mbedtls_pk_rsa_alt_key_len_func)( void *ctx );
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
 /**
- * \brief           Return information associated with the given PK type
+ * \brief           Return default information associated with the given PK type
  *
  * \param pk_type   PK type to search for.
+ *
+ * \note            Different PK objects with the same type may have different
+ *                  information. This function returns the information needed
+ *                  to create a object with the default implementation
+ *                  for the given PK operation type (rsa module for an RSA
+ *                  context, ecdh module for an ECDH context, ecdsa module for
+ *                  an ECDSA context).
  *
  * \return          The PK info associated with the type or NULL if not found.
  */
@@ -201,7 +288,17 @@ void mbedtls_pk_free( mbedtls_pk_context *ctx );
  *                  MBEDTLS_ERR_PK_BAD_INPUT_DATA on invalid input,
  *                  MBEDTLS_ERR_PK_ALLOC_FAILED on allocation failure.
  *
- * \note            For contexts holding an RSA-alt key, use
+ * \note            Engines that implement opaque keys may offer an
+ *                  alternative setup function that take engine-dependent
+ *                  parameters. If such a function exists, call it
+ *                  instead of mbedtls_pk_setup. A standard way of providing
+ *                  such function is by first calling the generic
+ *                  mbedtls_pk_setup function (in particular taking care of
+ *                  context allocation through ctx_alloc) and afterwards
+ *                  proceeding to initialize the implementation-specific
+ *                  context structure.
+ *
+ * \note            For contexts holding an RSA-alt key pair, use
  *                  \c mbedtls_pk_setup_rsa_alt() instead.
  */
 int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
@@ -211,7 +308,7 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
  * \brief           Initialize an RSA-alt context
  *
  * \param ctx       Context to initialize. Must be empty (type NONE).
- * \param key       RSA key pointer
+ * \param key       RSA key pair pointer
  * \param decrypt_func  Decryption function
  * \param sign_func     Signing function
  * \param key_len_func  Function returning key length in bytes
@@ -240,6 +337,11 @@ size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx );
  * \brief           Get the length in bytes of the underlying key
  * \param ctx       Context to use
  *
+ * \note            This returns the minimum number of bytes required to
+ *                  store the part of the key that defines its size (modulus
+ *                  for RSA, coordinate for ECC). The way the key is stored
+ *                  in the context may have a different size.
+ *
  * \return          Key length in bytes, or 0 on error
  */
 static inline size_t mbedtls_pk_get_len( const mbedtls_pk_context *ctx )
@@ -248,13 +350,24 @@ static inline size_t mbedtls_pk_get_len( const mbedtls_pk_context *ctx )
 }
 
 /**
- * \brief           Tell if a context can do the operation given by type
+ * \brief           Tell if a context can do the operations given by type
+ *
+ * \note            This function can be used to identify the type of key
+ *                  (e.g. RSA vs ECC), and a superset of permitted
+ *                  operations. It is possible that this function returns
+ *                  true but some operations are not allowed. For example
+ *                  this function always returns true if ctx is an RSA
+ *                  context and type is MBEDTLS_PK_RSA, but the key may
+ *                  be restricted to any subset of operations among signature,
+ *                  verification, encryption and decryption. To determine
+ *                  which operations a key allow, attempt the operation and
+ *                  check the return status.
  *
  * \param ctx       Context to test
  * \param type      Target type
  *
- * \return          0 if context can't do the operations,
- *                  1 otherwise.
+ * \return          1 if context can do the operations,
+ *                  0 otherwise.
  */
 int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type );
 
@@ -271,7 +384,7 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type );
  * \return          0 on success (signature is valid),
  *                  MBEDTLS_ERR_PK_SIG_LEN_MISMATCH if the signature is
  *                  valid but its actual length is less than sig_len,
- *                  or a specific error code.
+ *                  or a type-specific error code.
  *
  * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
  *                  Use \c mbedtls_pk_verify_ext( MBEDTLS_PK_RSASSA_PSS, ... )
@@ -304,7 +417,7 @@ int mbedtls_pk_verify( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  *                  used for this type of signatures,
  *                  MBEDTLS_ERR_PK_SIG_LEN_MISMATCH if the signature is
  *                  valid but its actual length is less than sig_len,
- *                  or a specific error code.
+ *                  or a type-specific error code.
  *
  * \note            If hash_len is 0, then the length associated with md_alg
  *                  is used instead, or an error returned if it is invalid.
@@ -328,11 +441,18 @@ int mbedtls_pk_verify_ext( mbedtls_pk_type_t type, const void *options,
  * \param hash      Hash of the message to sign
  * \param hash_len  Hash length or 0 (see notes)
  * \param sig       Place to write the signature
- * \param sig_len   Number of bytes written
+ * \param sig_len   Actual length in bytes of the created signature
  * \param f_rng     RNG function
  * \param p_rng     RNG parameter
  *
- * \return          0 on success, or a specific error code.
+ * \return          0 on success, or a type-specific error code.
+ *
+ * \note            The signature buffer \c sig must be of appropriate size
+ *                  which can be calculated with
+ *                  \c mbedtls_pk_get_signature_size.
+ *                  Depending on the algorithm, the value returned in
+ *                  \c sig_len may be less or equal to the value returned by
+ *                  \c mbedtls_pk_get_signature_size.
  *
  * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
  *                  There is no interface in the PK module to make RSASSA-PSS
@@ -350,6 +470,15 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
+ * \brief           Calculate the size of a signature made with this key.
+ *
+ * \param ctx       PK context to use
+ *
+ * \return          Maximum size in bytes of a signature made with this key.
+ */
+size_t mbedtls_pk_get_signature_size( const mbedtls_pk_context *ctx );
+
+/**
  * \brief           Decrypt message (including padding if relevant).
  *
  * \param ctx       PK context to use - must hold a private key
@@ -363,7 +492,7 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  *
  * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
  *
- * \return          0 on success, or a specific error code.
+ * \return          0 on success, or a type-specific error code.
  */
 int mbedtls_pk_decrypt( mbedtls_pk_context *ctx,
                 const unsigned char *input, size_t ilen,
@@ -384,7 +513,7 @@ int mbedtls_pk_decrypt( mbedtls_pk_context *ctx,
  *
  * \note            For RSA keys, the default padding type is PKCS#1 v1.5.
  *
- * \return          0 on success, or a specific error code.
+ * \return          0 on success, or a type-specific error code.
  */
 int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
                 const unsigned char *input, size_t ilen,
@@ -397,7 +526,19 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
  * \param pub       Context holding a public key.
  * \param prv       Context holding a private (and public) key.
  *
- * \return          0 on success or MBEDTLS_ERR_PK_BAD_INPUT_DATA
+ * \return          * 0 on success.
+ *                  * MBEDTLS_ERR_PK_BAD_INPUT_DATA if one of the contexts
+ *                    is ill-formed.
+ *                  * MBEDTLS_ERR_PK_TYPE_MISMATCH if the contexts cannot
+ *                    represent keys of the same type.
+ *                  * MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE if it is impossible
+ *                    to determine whether the keys match. This can only happen
+ *                    if \c prv is an opaque key.
+ *                  * Or a type-specific error code.
+ *
+ * \note            Opaque key types may omit implementing this function
+ *                  by providing a NULL pointer in the mbedtls_pk_info_t structure.
+ *                  An opaque \c pub never matches a transparent \c prv.
  */
 int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv );
 
@@ -407,27 +548,16 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
  * \param ctx       Context to use
  * \param items     Place to write debug items
  *
- * \return          0 on success or MBEDTLS_ERR_PK_BAD_INPUT_DATA
+ * \return          * 0 on success.
+ *                  * MBEDTLS_ERR_PK_BAD_INPUT_DATA if the context is ill-formed.
+ *                  * MBEDTLS_ERR_PK_TYPE_MISMATCH if the context does not
+ *                    support exporting debug information.
+ *                  * Or a type-specific error code.
  */
 int mbedtls_pk_debug( const mbedtls_pk_context *ctx, mbedtls_pk_debug_item *items );
 
-/**
- * \brief           Access the type name
- *
- * \param ctx       Context to use
- *
- * \return          Type name on success, or "invalid PK"
- */
-const char * mbedtls_pk_get_name( const mbedtls_pk_context *ctx );
+/**@}*/
 
-/**
- * \brief           Get the key type
- *
- * \param ctx       Context to use
- *
- * \return          Type on success, or MBEDTLS_PK_NONE
- */
-mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
 
 #if defined(MBEDTLS_PK_PARSE_C)
 /** \ingroup pk_module */
@@ -513,7 +643,12 @@ int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path )
 #endif /* MBEDTLS_FS_IO */
 #endif /* MBEDTLS_PK_PARSE_C */
 
+
+
 #if defined(MBEDTLS_PK_WRITE_C)
+/** \name Key pair serialization */
+/**@{*/
+
 /**
  * \brief           Write a private key to a PKCS#1 or SEC1 DER structure
  *                  Note: data is written at the end of the buffer! Use the
@@ -567,11 +702,13 @@ int mbedtls_pk_write_pubkey_pem( mbedtls_pk_context *ctx, unsigned char *buf, si
  */
 int mbedtls_pk_write_key_pem( mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
 #endif /* MBEDTLS_PEM_WRITE_C */
+/**@}*/
 #endif /* MBEDTLS_PK_WRITE_C */
 
-/*
- * WARNING: Low-level functions. You probably do not want to use these unless
- *          you are certain you do ;)
+/** \name Low-level functions */
+/**@{*/
+/**
+ * \warning You probably do not want to use these unless you are certain you do ;)
  */
 
 #if defined(MBEDTLS_PK_PARSE_C)
@@ -610,6 +747,8 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
 #if defined(MBEDTLS_FS_IO)
 int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n );
 #endif
+
+/**@}*/
 
 #ifdef __cplusplus
 }

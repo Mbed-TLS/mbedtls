@@ -273,9 +273,9 @@ exit:
 }
 
 static int opaque_mock_check_pair_func( const mbedtls_pk_context *pub,
-                                        const void *prv )
+                                        const mbedtls_pk_context *prv )
 {
-    TEST_ASSERT( prv == &opaque_mock_fake_ctx );
+    TEST_ASSERT( prv->pk_ctx == &opaque_mock_fake_ctx );
     if( mbedtls_pk_get_type( pub ) != MBEDTLS_PK_RSA )
         return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
     return( 0 );

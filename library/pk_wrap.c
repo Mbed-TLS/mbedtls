@@ -154,9 +154,10 @@ static int rsa_encrypt_wrap( void *ctx,
                                        ilen, input, output ) );
 }
 
-static int rsa_check_pair_wrap( const mbedtls_pk_context *pub, const void *prv )
+static int rsa_check_pair_wrap( const mbedtls_pk_context *pub,
+                                const mbedtls_pk_context *prv )
 {
-    return( mbedtls_rsa_check_pub_priv( pub->pk_ctx, prv ) );
+    return( mbedtls_rsa_check_pub_priv( pub->pk_ctx, prv->pk_ctx ) );
 }
 
 static void *rsa_alloc_wrap( void )
@@ -277,9 +278,10 @@ static size_t ecdsa_signature_size( const void *ctx_arg )
 
 #endif /* MBEDTLS_ECDSA_C */
 
-static int eckey_check_pair( const mbedtls_pk_context *pub, const void *prv )
+static int eckey_check_pair( const mbedtls_pk_context *pub,
+                             const mbedtls_pk_context *prv )
 {
-    return( mbedtls_ecp_check_pub_priv( pub->pk_ctx, prv ) );
+    return( mbedtls_ecp_check_pub_priv( pub->pk_ctx, prv->pk_ctx ) );
 }
 
 static void *eckey_alloc_wrap( void )
@@ -480,26 +482,25 @@ static int rsa_alt_decrypt_wrap( void *ctx,
 }
 
 #if defined(MBEDTLS_RSA_C)
-static int rsa_alt_check_pair( const mbedtls_pk_context *pub, const void *prv )
+static int rsa_alt_check_pair( const mbedtls_pk_context *pub,
+                               const mbedtls_pk_context *prv )
 {
     unsigned char sig[MBEDTLS_MPI_MAX_SIZE];
     unsigned char hash[32];
     size_t sig_len = 0;
     int ret;
-    const mbedtls_pk_context* prv_context = prv;
-
-    if( prv_context->pk_info->type == MBEDTLS_PK_RSA_ALT )
+    if( prv->pk_info->type == MBEDTLS_PK_RSA_ALT )
     {
         if( pub->pk_info->type != MBEDTLS_PK_RSA )
             return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
     }
 
-    if( rsa_alt_get_bitlen( prv ) != rsa_get_bitlen( pub->pk_ctx ) )
+    if( rsa_alt_get_bitlen( prv->pk_ctx ) != rsa_get_bitlen( pub->pk_ctx ) )
         return( MBEDTLS_ERR_RSA_KEY_CHECK_FAILED );
 
     memset( hash, 0x2a, sizeof( hash ) );
 
-    if( ( ret = rsa_alt_sign_wrap( (void *) prv, MBEDTLS_MD_NONE,
+    if( ( ret = rsa_alt_sign_wrap( (void *) prv->pk_ctx, MBEDTLS_MD_NONE,
                                    hash, sizeof( hash ),
                                    sig, &sig_len, NULL, NULL ) ) != 0 )
     {

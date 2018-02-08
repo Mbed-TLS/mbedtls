@@ -202,7 +202,7 @@ struct mbedtls_pk_info_t
      * is guaranteed to be initialized.
      *
      * Opaque implementations may omit this method. */
-    int (*check_pair_func)( const mbedtls_pk_context *pub, const void *prv );
+    int (*check_pair_func)( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv );
 
     /** Allocate a new context
      *

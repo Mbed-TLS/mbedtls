@@ -329,14 +329,14 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
     }
 
-    if( prv->pk_info->type != MBEDTLS_PK_RSA_ALT &&
-        prv->pk_info->type != MBEDTLS_PK_OPAQUE )
-    {
-        if( pub->pk_info != prv->pk_info )
-            return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
-    }
+   if( prv->pk_info->type != MBEDTLS_PK_OPAQUE &&
+       prv->pk_info->type != MBEDTLS_PK_RSA_ALT )
+   {
+       if( pub->pk_info != prv->pk_info )
+           return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+   }
 
-    return( prv->pk_info->check_pair_func( pub, prv->pk_ctx ) );
+    return( prv->pk_info->check_pair_func( pub, prv ) );
 }
 
 /*

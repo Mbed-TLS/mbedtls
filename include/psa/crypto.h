@@ -144,6 +144,9 @@ typedef uint32_t psa_key_type_t;
 
 #define PSA_KEY_TYPE_IS_VENDOR_DEFINED(type) \
     (((type) & PSA_KEY_TYPE_VENDOR_FLAG) != 0)
+#define PSA_KEY_TYPE_IS_RAW_BYTES(type)                                 \
+    (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_RAW_DATA ||  \
+     ((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_SYMMETRIC)
 #define PSA_KEY_TYPE_IS_ASYMMETRIC(type)                                \
     (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_ASYMMETRIC)
 #define PSA_KEY_TYPE_IS_PUBLIC_KEY(type)                                \
@@ -156,6 +159,13 @@ typedef uint32_t psa_key_type_t;
     (((type) & ~PSA_KEY_TYPE_PAIR_FLAG) == PSA_KEY_TYPE_RSA_PUBLIC_KEY)
 #define PSA_KEY_TYPE_IS_ECC(type)                                       \
     (((type) & ~PSA_KEY_TYPE_ECC_CURVE_MASK) == PSA_KEY_TYPE_ECC_BASE)
+
+#define PSA_BLOCK_CIPHER_BLOCK_SIZE(key_type)        \
+    (                                                \
+        (type) == PSA_KEY_TYPE_AES ? 16 :            \
+        (type) == PSA_KEY_TYPE_DES ? 8 :             \
+        (type) == PSA_KEY_TYPE_CAMELLIA ? 16 :       \
+        0)
 
 /** \brief Encoding of a cryptographic algorithm.
  *
@@ -223,25 +233,42 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_SHA3_384                        ((psa_algorithm_t)0x01000012)
 #define PSA_ALG_SHA3_512                        ((psa_algorithm_t)0x01000013)
 
+#define PSA_ALG_MAC_SUBCATEGORY_MASK            ((psa_algorithm_t)0x00c00000)
 #define PSA_ALG_HMAC_BASE                       ((psa_algorithm_t)0x02800000)
 #define PSA_ALG_HMAC(hash_alg)                  \
-    (PSA_ALG_HMAC_BASE | (hash_alg))
-#define PSA_ALG_CBC_MAC                         ((psa_algorithm_t)0x02000001)
-#define PSA_ALG_CMAC                            ((psa_algorithm_t)0x02000002)
-#define PSA_ALG_GMAC                            ((psa_algorithm_t)0x02000003)
+    (PSA_ALG_HMAC_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_HMAC_HASH(hmac_alg)                             \
+    (PSA_ALG_CATEGORY_HASH | ((hmac_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_IS_HMAC(alg)                                            \
+    (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_MAC_SUBCATEGORY_MASK)) == \
+     PSA_ALG_HMAC_BASE)
+#define PSA_ALG_CIPHER_MAC_BASE                 ((psa_algorithm_t)0x02c00000)
+#define PSA_ALG_CBC_MAC                         ((psa_algorithm_t)0x02c00001)
+#define PSA_ALG_CMAC                            ((psa_algorithm_t)0x02c00002)
+#define PSA_ALG_GMAC                            ((psa_algorithm_t)0x02c00003)
+#define PSA_ALG_IS_CIPHER_MAC(alg)                                      \
+    (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_MAC_SUBCATEGORY_MASK)) == \
+     PSA_ALG_CIPHER_MAC_BASE)
 
-#define PSA_ALG_BLOCK_CIPHER_BASE_MASK          ((psa_algorithm_t)0x000000ff)
+#define PSA_ALG_CIPHER_SUBCATEGORY_MASK         ((psa_algorithm_t)0x00c00000)
+#define PSA_ALG_BLOCK_CIPHER_BASE               ((psa_algorithm_t)0x04000001)
+#define PSA_ALG_BLOCK_CIPHER_MODE_MASK          ((psa_algorithm_t)0x000000ff)
 #define PSA_ALG_BLOCK_CIPHER_PADDING_MASK       ((psa_algorithm_t)0x007f0000)
 #define PSA_ALG_BLOCK_CIPHER_PAD_PKCS7          ((psa_algorithm_t)0x00010000)
+#define PSA_ALG_IS_BLOCK_CIPHER(alg)            \
+    (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_CIPHER_SUBCATEGORY_MASK)) == \
+        PSA_ALG_BLOCK_CIPHER_BASE)
+
 #define PSA_ALG_CBC_BASE                        ((psa_algorithm_t)0x04000001)
-#define PSA_ALG_CFB_BASE                        ((psa_algorithm_t)0x04000003)
-#define PSA_ALG_OFB_BASE                        ((psa_algorithm_t)0x04000004)
-#define PSA_ALG_XTS_BASE                        ((psa_algorithm_t)0x04000005)
+#define PSA_ALG_CFB_BASE                        ((psa_algorithm_t)0x04000002)
+#define PSA_ALG_OFB_BASE                        ((psa_algorithm_t)0x04000003)
+#define PSA_ALG_XTS_BASE                        ((psa_algorithm_t)0x04000004)
 #define PSA_ALG_STREAM_CIPHER                   ((psa_algorithm_t)0x04800000)
 #define PSA_ALG_CTR                             ((psa_algorithm_t)0x04800001)
+#define PSA_ALG_ARC4                            ((psa_algorithm_t)0x04800002)
 
-#define PSA_ALG_CCM                             ((psa_algorithm_t)0x06000002)
-#define PSA_ALG_GCM                             ((psa_algorithm_t)0x06000003)
+#define PSA_ALG_CCM                             ((psa_algorithm_t)0x06000001)
+#define PSA_ALG_GCM                             ((psa_algorithm_t)0x06000002)
 
 #define PSA_ALG_RSA_PKCS1V15_RAW                ((psa_algorithm_t)0x10010000)
 #define PSA_ALG_RSA_PSS_MGF1                    ((psa_algorithm_t)0x10020000)
@@ -572,6 +599,38 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
  * \retval PSA_ERROR_TAMPERING_DETECTED
  */
 psa_status_t psa_hash_abort(psa_hash_operation_t *operation);
+
+/**@}*/
+
+/** \defgroup MAC Message authentication codes
+ * @{
+ */
+
+typedef struct psa_mac_operation_s psa_mac_operation_t;
+
+#define PSA_MAC_FINAL_SIZE(key_type, key_bits, alg)                     \
+    (PSA_ALG_IS_HMAC(alg) ? PSA_HASH_FINAL_SIZE(PSA_ALG_HMAC_HASH(alg)) : \
+     PSA_ALG_IS_BLOCK_CIPHER_MAC(alg) ? PSA_BLOCK_CIPHER_BLOCK_SIZE(key_type) : \
+     0)
+
+psa_status_t psa_mac_start(psa_mac_operation_t *operation,
+                           psa_key_slot_t key,
+                           psa_algorithm_t alg);
+
+psa_status_t psa_mac_update(psa_mac_operation_t *operation,
+                            const uint8_t *input,
+                            size_t input_length);
+
+psa_status_t psa_mac_finish(psa_mac_operation_t *operation,
+                            uint8_t *mac,
+                            size_t mac_size,
+                            size_t *mac_length);
+
+psa_status_t psa_mac_verify(psa_mac_operation_t *operation,
+                            const uint8_t *mac,
+                            size_t mac_length);
+
+psa_status_t psa_mac_abort(psa_mac_operation_t *operation);
 
 /**@}*/
 

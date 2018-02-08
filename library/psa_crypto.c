@@ -303,7 +303,7 @@ psa_status_t psa_import_key(psa_key_slot_t key,
     if( slot->type != PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_OCCUPIED_SLOT );
 
-    if( type == PSA_KEY_TYPE_RAW_DATA )
+    if( PSA_KEY_TYPE_IS_RAW_BYTES( type ) )
     {
         if( data_length > SIZE_MAX / 8 )
             return( PSA_ERROR_NOT_SUPPORTED );
@@ -374,7 +374,7 @@ psa_status_t psa_destroy_key(psa_key_slot_t key)
     if( slot->type == PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_EMPTY_SLOT );
 
-    if( slot->type == PSA_KEY_TYPE_RAW_DATA )
+    if( PSA_KEY_TYPE_IS_RAW_BYTES( slot->type ) )
     {
         mbedtls_free( slot->data.raw.data );
     }
@@ -420,7 +420,7 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
     if( slot->type == PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_EMPTY_SLOT );
 
-    if( slot->type == PSA_KEY_TYPE_RAW_DATA )
+    if( PSA_KEY_TYPE_IS_RAW_BYTES( slot->type ) )
     {
         if( bits != NULL )
             *bits = slot->data.raw.bytes * 8;
@@ -465,7 +465,7 @@ psa_status_t psa_export_key(psa_key_slot_t key,
     if( slot->type == PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_EMPTY_SLOT );
 
-    if( slot->type == PSA_KEY_TYPE_RAW_DATA )
+    if( PSA_KEY_TYPE_IS_RAW_BYTES( slot->type ) )
     {
         if( slot->data.raw.bytes > data_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
@@ -856,6 +856,299 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
 
 
 /****************************************************************/
+/* MAC */
+/****************************************************************/
+
+static const mbedtls_cipher_info_t *mbedtls_cipher_info_of_psa(
+    psa_algorithm_t alg,
+    psa_key_type_t key_type,
+    size_t key_bits )
+{
+    mbedtls_cipher_id_t cipher_id;
+    mbedtls_cipher_mode_t mode;
+
+    if( PSA_ALG_IS_CIPHER( alg ) || PSA_ALG_IS_AEAD( alg ) )
+    {
+        if( PSA_ALG_IS_BLOCK_CIPHER( alg ) )
+            alg &= ~PSA_ALG_BLOCK_CIPHER_MODE_MASK;
+        switch( alg )
+        {
+            case PSA_ALG_STREAM_CIPHER:
+                mode = MBEDTLS_MODE_STREAM;
+                break;
+            case PSA_ALG_CBC_BASE:
+                mode = MBEDTLS_MODE_CBC;
+                break;
+            case PSA_ALG_CFB_BASE:
+                mode = MBEDTLS_MODE_CFB;
+                break;
+            case PSA_ALG_OFB_BASE:
+                mode = MBEDTLS_MODE_OFB;
+                break;
+            case PSA_ALG_CTR:
+                mode = MBEDTLS_MODE_CTR;
+                break;
+            case PSA_ALG_CCM:
+                mode = MBEDTLS_MODE_CCM;
+                break;
+            case PSA_ALG_GCM:
+                mode = MBEDTLS_MODE_GCM;
+                break;
+            default:
+                return( NULL );
+        }
+    }
+    else if( alg == PSA_ALG_CMAC )
+        mode = MBEDTLS_MODE_ECB;
+    else if( alg == PSA_ALG_GMAC )
+        mode = MBEDTLS_MODE_GCM;
+    else
+        return( NULL );
+
+    switch( key_type )
+    {
+        case PSA_KEY_TYPE_AES:
+            cipher_id = MBEDTLS_CIPHER_ID_AES;
+            break;
+        case PSA_KEY_TYPE_DES:
+            if( key_bits == 64 )
+                cipher_id = MBEDTLS_CIPHER_ID_DES;
+            else
+                cipher_id = MBEDTLS_CIPHER_ID_3DES;
+            break;
+        case PSA_KEY_TYPE_CAMELLIA:
+            cipher_id = MBEDTLS_CIPHER_ID_CAMELLIA;
+            break;
+        case PSA_KEY_TYPE_ARC4:
+            cipher_id = MBEDTLS_CIPHER_ID_ARC4;
+            break;
+        default:
+            return( NULL );
+    }
+
+    return( mbedtls_cipher_info_from_values( cipher_id, key_bits, mode ) );
+}
+
+psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
+{
+    switch( operation->alg )
+    {
+#if defined(MBEDTLS_CMAC_C)
+        case PSA_ALG_CMAC:
+            mbedtls_cipher_free( &operation->ctx.cmac );
+            break;
+#endif /* MBEDTLS_CMAC_C */
+        default:
+#if defined(MBEDTLS_MD_C)
+            if( PSA_ALG_IS_HMAC( operation->alg ) )
+                mbedtls_md_free( &operation->ctx.hmac );
+            else
+#endif /* MBEDTLS_MD_C */
+                return( PSA_ERROR_NOT_SUPPORTED );
+    }
+    operation->alg = 0;
+    operation->key_set = 0;
+    operation->iv_set = 0;
+    operation->iv_required = 0;
+    operation->has_input = 0;
+    return( PSA_SUCCESS );
+}
+
+psa_status_t psa_mac_start( psa_mac_operation_t *operation,
+                            psa_key_slot_t key,
+                            psa_algorithm_t alg )
+{
+    int ret = MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE;
+    psa_status_t status;
+    key_slot_t *slot;
+    psa_key_type_t key_type;
+    size_t key_bits;
+    const mbedtls_cipher_info_t *cipher_info = NULL;
+
+    operation->alg = 0;
+    operation->key_set = 0;
+    operation->iv_set = 0;
+    operation->iv_required = 1;
+    operation->has_input = 0;
+
+    status = psa_get_key_information( key, &key_type, &key_bits );
+    if( status != PSA_SUCCESS )
+        return( status );
+    slot = &global_data.key_slots[key];
+
+    if( ! PSA_ALG_IS_HMAC( alg ) )
+    {
+        cipher_info = mbedtls_cipher_info_of_psa( alg, key_type, key_bits );
+        if( cipher_info == NULL )
+            return( PSA_ERROR_NOT_SUPPORTED );
+        operation->mac_size = cipher_info->block_size;
+    }
+    switch( alg )
+    {
+#if defined(MBEDTLS_CMAC_C)
+        case PSA_ALG_CMAC:
+            operation->iv_required = 0;
+            mbedtls_cipher_init( &operation->ctx.cmac );
+            ret = mbedtls_cipher_setup( &operation->ctx.cmac, cipher_info );
+            if( ret != 0 )
+                break;
+            ret = mbedtls_cipher_cmac_starts( &operation->ctx.cmac,
+                                              slot->data.raw.data,
+                                              key_bits );
+            break;
+#endif /* MBEDTLS_CMAC_C */
+        default:
+#if defined(MBEDTLS_MD_C)
+            if( PSA_ALG_IS_HMAC( alg ) )
+            {
+                const mbedtls_md_info_t *md_info =
+                    mbedtls_md_info_of_psa( PSA_ALG_HMAC_HASH( alg ) );
+                if( md_info == NULL )
+                    return( PSA_ERROR_NOT_SUPPORTED );
+                if( key_type != PSA_KEY_TYPE_HMAC )
+                    return( PSA_ERROR_INVALID_ARGUMENT );
+                operation->iv_required = 0;
+                operation->mac_size = mbedtls_md_get_size( md_info );
+                mbedtls_md_init( &operation->ctx.hmac );
+                ret = mbedtls_md_setup( &operation->ctx.hmac, md_info, 1 );
+                if( ret != 0 )
+                    break;
+                ret = mbedtls_md_hmac_starts( &operation->ctx.hmac,
+                                              slot->data.raw.data,
+                                              slot->data.raw.bytes );
+                break;
+            }
+            else
+#endif /* MBEDTLS_MD_C */
+                return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
+    /* If we reach this point, then the algorithm-specific part of the
+     * context has at least been initialized, and may contain data that
+     * needs to be wiped on error. */
+    operation->alg = alg;
+    if( ret != 0 )
+    {
+        psa_mac_abort( operation );
+        return( mbedtls_to_psa_error( ret ) );
+    }
+    operation->key_set = 1;
+    return( 0 );
+}
+
+psa_status_t psa_mac_update( psa_mac_operation_t *operation,
+                             const uint8_t *input,
+                             size_t input_length )
+{
+    int ret;
+    if( ! operation->key_set )
+        return( PSA_ERROR_BAD_STATE );
+    if( operation->iv_required && ! operation->iv_set )
+        return( PSA_ERROR_BAD_STATE );
+    operation->has_input = 1;
+
+    switch( operation->alg )
+    {
+#if defined(MBEDTLS_CMAC_C)
+        case PSA_ALG_CMAC:
+            ret = mbedtls_cipher_cmac_update( &operation->ctx.cmac,
+                                              input, input_length );
+            break;
+#endif /* MBEDTLS_CMAC_C */
+        default:
+#if defined(MBEDTLS_MD_C)
+            if( PSA_ALG_IS_HMAC( operation->alg ) )
+            {
+                ret = mbedtls_md_hmac_update( &operation->ctx.hmac,
+                                              input, input_length );
+            }
+            else
+#endif /* MBEDTLS_MD_C */
+            {
+                ret = MBEDTLS_ERR_MD_BAD_INPUT_DATA;
+            }
+            break;
+    }
+    if( ret != 0 )
+        psa_mac_abort( operation );
+    return( mbedtls_to_psa_error( ret ) );
+}
+
+psa_status_t psa_mac_finish( psa_mac_operation_t *operation,
+                             uint8_t *mac,
+                             size_t mac_size,
+                             size_t *mac_length )
+{
+    int ret;
+    if( ! operation->key_set )
+        return( PSA_ERROR_BAD_STATE );
+    if( operation->iv_required && ! operation->iv_set )
+        return( PSA_ERROR_BAD_STATE );
+
+    /* Fill the output buffer with something that isn't a valid mac
+     * (barring an attack on the mac and deliberately-crafted input),
+     * in case the caller doesn't check the return status properly. */
+    *mac_length = operation->mac_size;
+    memset( mac, '!', mac_size );
+
+    if( mac_size < operation->mac_size )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+    switch( operation->alg )
+    {
+#if defined(MBEDTLS_CMAC_C)
+        case PSA_ALG_CMAC:
+            ret = mbedtls_cipher_cmac_finish( &operation->ctx.cmac, mac );
+            break;
+#endif /* MBEDTLS_CMAC_C */
+        default:
+#if defined(MBEDTLS_MD_C)
+            if( PSA_ALG_IS_HMAC( operation->alg ) )
+            {
+                ret = mbedtls_md_hmac_finish( &operation->ctx.hmac, mac );
+            }
+            else
+#endif /* MBEDTLS_MD_C */
+            {
+                ret = MBEDTLS_ERR_MD_BAD_INPUT_DATA;
+            }
+            break;
+    }
+
+    if( ret == 0 )
+    {
+        return( psa_mac_abort( operation ) );
+    }
+    else
+    {
+        psa_mac_abort( operation );
+        return( mbedtls_to_psa_error( ret ) );
+    }
+}
+
+#define MBEDTLS_PSA_MAC_MAX_SIZE                       \
+    ( MBEDTLS_MD_MAX_SIZE > MBEDTLS_MAX_BLOCK_LENGTH ? \
+      MBEDTLS_MD_MAX_SIZE :                            \
+      MBEDTLS_MAX_BLOCK_LENGTH )
+psa_status_t psa_mac_verify( psa_mac_operation_t *operation,
+                             const uint8_t *mac,
+                             size_t mac_length )
+{
+    uint8_t actual_mac[MBEDTLS_PSA_MAC_MAX_SIZE];
+    size_t actual_mac_length;
+    psa_status_t status = psa_mac_finish( operation,
+                                          actual_mac, sizeof( actual_mac ),
+                                          &actual_mac_length );
+    if( status != PSA_SUCCESS )
+        return( status );
+    if( actual_mac_length != mac_length )
+        return( PSA_ERROR_INVALID_SIGNATURE );
+    if( safer_memcmp( mac, actual_mac, actual_mac_length ) != 0 )
+        return( PSA_ERROR_INVALID_SIGNATURE );
+    return( PSA_SUCCESS );
+}
+
+
 
 
 /****************************************************************/

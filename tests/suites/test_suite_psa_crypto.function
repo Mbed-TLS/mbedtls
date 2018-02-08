@@ -1,5 +1,7 @@
 /* BEGIN_HEADER */
 #include "psa/crypto.h"
+
+#include "mbedtls/md.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -196,6 +198,67 @@ void hash_verify( int alg_arg, char *input_hex, char *hash_hex )
 
 exit:
     mbedtls_free( input );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mac_verify( int key_type_arg, char *key_hex,
+                 int alg_arg, char *iv_hex,
+                 char *input_hex, char *mac_hex )
+{
+    int key_slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *key = NULL;
+    size_t key_size;
+    unsigned char *iv = NULL;
+    size_t iv_size;
+    unsigned char *input = NULL;
+    size_t input_size;
+    unsigned char *expected_mac = NULL;
+    size_t expected_mac_size;
+    psa_mac_operation_t operation;
+
+    key_size = strlen( key_hex ) / 2;
+    key = mbedtls_calloc( 1, key_size );
+    TEST_ASSERT( key != NULL );
+    key_size = unhexify( key, key_hex );
+    iv_size = strlen( iv_hex ) / 2;
+    if( iv_size != 0 )
+    {
+        iv = mbedtls_calloc( 1, iv_size );
+        TEST_ASSERT( iv != NULL );
+        iv_size = unhexify( iv, iv_hex );
+    }
+    input_size = strlen( input_hex ) / 2;
+    input = mbedtls_calloc( 1, input_size );
+    TEST_ASSERT( input != NULL );
+    input_size = unhexify( input, input_hex );
+    expected_mac_size = strlen( mac_hex ) / 2;
+    expected_mac = mbedtls_calloc( 1, expected_mac_size );
+    TEST_ASSERT( expected_mac != NULL );
+    expected_mac_size = unhexify( expected_mac, mac_hex );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( key_slot, key_type,
+                                 key, key_size ) == PSA_SUCCESS );
+    // TODO: support IV
+    TEST_ASSERT( psa_mac_start( &operation, key_slot, alg ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_destroy_key( key_slot ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_mac_update( &operation,
+                                 input, input_size ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_mac_verify( &operation,
+                                 expected_mac,
+                                 expected_mac_size ) == PSA_SUCCESS );
+
+exit:
+    mbedtls_free( key );
+    mbedtls_free( iv );
+    mbedtls_free( input );
+    mbedtls_free( expected_mac );
+    psa_destroy_key( key_slot );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

@@ -504,8 +504,14 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp, size_t *olen,
 #if defined(MBEDTLS_ASN1_WRITE_C) && defined(MBEDTLS_OID_C)
 /**
  * \brief           Maximum size of the output of mbedtls_ecp_ansi_write_group
+ *
+ * \note            The maximum size of the OID of a supported group + 2 for
+ *                  tag and length. Maximum size 30 is based on the length of
+ *                  the OID for primeCurves 10-38 over GF(p) defined by the
+ *                  CDC Group, as they seem to have the longest OID out of
+ *                  curves in use.
  */
-#define MBEDTLS_OID_EC_GRP_MAX_SIZE 12
+#define MBEDTLS_ECP_GRP_OID_MAX_SIZE ( 30 + 2 )
 
 /**
  * \brief           Write the ANSI X9.62/RFC5480 OID ECParameters of a group

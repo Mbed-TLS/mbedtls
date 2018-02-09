@@ -759,6 +759,7 @@ void pk_opaque_mock( )
             , opaque_mock_ctx_alloc_func
             , opaque_mock_ctx_free_func
             , opaque_mock_debug_func
+            , NULL // TODO: test open
             );
     mbedtls_pk_context ctx;
     unsigned char sig[OPAQUE_MOCK_SIGNATURE_SIZE] = OPAQUE_MOCK_GOOD_SIGNATURE;
@@ -869,6 +870,7 @@ void pk_opaque_minimal( )
             , NULL
             , opaque_mock_ctx_free_func
             , NULL
+            , NULL
             );
     mbedtls_pk_context ctx;
 
@@ -939,6 +941,7 @@ void pk_opaque_fail_allocation( )
             , opaque_mock_ctx_alloc_fail
             , NULL
             , NULL
+            , NULL
             );
     mbedtls_pk_context ctx;
     mbedtls_pk_init( &ctx );
@@ -974,6 +977,7 @@ void pk_opaque_wrapper( )
             , mbedtls_rsa_info->ctx_alloc_func
             , mbedtls_rsa_info->ctx_free_func
             , mbedtls_rsa_info->debug_func
+            , NULL // TODO: test open by calling pk_parse_keyfile or pk_parse_key
             );
 
     /* Generate an RSA key to use in both contexts */

@@ -117,6 +117,7 @@ int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n )
 
     return( 0 );
 }
+#endif /* MBEDTLS_FS_IO */
 
 /*
  * Load and parse a private key
@@ -124,10 +125,20 @@ int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n )
 int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
                       const char *path, const char *pwd )
 {
+#if defined(MBEDTLS_FS_IO)
     int ret;
     size_t n;
     unsigned char *buf;
+#endif /* MBEDTLS_FS_IO */
+    size_t prefix_length = strlen( MBEDTLS_PK_PARSE_OPAQUE_PATH_PREFIX );
 
+    if( strlen( path ) >= prefix_length &&
+        memcmp( path, MBEDTLS_PK_PARSE_OPAQUE_PATH_PREFIX, prefix_length ) == 0 )
+    {
+        return mbedtls_pk_wrap_opaque_open( ctx, path + prefix_length, NULL );
+    }
+
+#if defined(MBEDTLS_FS_IO)
     if( ( ret = mbedtls_pk_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
@@ -141,6 +152,9 @@ int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
     mbedtls_free( buf );
 
     return( ret );
+#else /* !MBEDTLS_FS_IO */
+    return( MBEDTLS_ERR_PK_FILE_IO_ERROR );
+#endif /* !MBEDTLS_FS_IO */
 }
 
 /*
@@ -148,10 +162,20 @@ int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
  */
 int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path )
 {
+#if defined(MBEDTLS_FS_IO)
     int ret;
     size_t n;
     unsigned char *buf;
+#endif /* MBEDTLS_FS_IO */
+    size_t prefix_length = strlen( MBEDTLS_PK_PARSE_OPAQUE_PATH_PREFIX );
 
+    if( strlen( path ) >= prefix_length &&
+        memcmp( path, MBEDTLS_PK_PARSE_OPAQUE_PATH_PREFIX, prefix_length ) == 0 )
+    {
+        return mbedtls_pk_wrap_opaque_open( ctx, path + prefix_length, NULL );
+    }
+
+#if defined(MBEDTLS_FS_IO)
     if( ( ret = mbedtls_pk_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
 
@@ -161,8 +185,10 @@ int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path )
     mbedtls_free( buf );
 
     return( ret );
+#else /* !MBEDTLS_FS_IO */
+    return( MBEDTLS_ERR_PK_FILE_IO_ERROR );
+#endif /* !MBEDTLS_FS_IO */
 }
-#endif /* MBEDTLS_FS_IO */
 
 #if defined(MBEDTLS_ECP_C)
 /* Minimally parse an ECParameters buffer to and mbedtls_asn1_buf

@@ -292,11 +292,39 @@ void mbedtls_pk_free( mbedtls_pk_context *ctx );
  *                  parameters. If such a function exists, call it
  *                  instead of mbedtls_pk_setup. The implementation-specific
  *                  setup function should call mbedtls_pk_setup internally.
+ *                  Alternatively, call mbedtls_pk_opaque_open(), which
+ *                  also calls mbedtls_pk_setup internally.
  *
  * \note            For contexts holding an RSA-alt key pair, use
  *                  \c mbedtls_pk_setup_rsa_alt() instead.
  */
 int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
+
+/**
+ * \brief Set up a pk object using an opaque key.
+ *
+ * \param ctx       Context to initialize. Must be empty (type NONE).
+ * \param info      Engine to use. This must be an opaque engine.
+ * \param path      Path to the key. The meaning of this parameter depends
+ *                  on the opaque key engine.
+ * \param pwd       Authentication data. The meaning of this parameter depends
+ *                  on the opaque key engine. This may be \c NULL if no
+ *                  authentication data is required.
+ *
+ * \return          0 on success,
+ *                  an MBEDTLS_PK_xxx error code otherwise.
+ */
+int mbedtls_pk_opaque_open( mbedtls_pk_context *ctx,
+                            const mbedtls_pk_info_t *info,
+                            const char *path,
+                            const char *pwd );
+
+/* Wrapper around mbedtls_pk_opaque_open() which splits off the
+ * opaque engine name at the beginning of path and passes on the request
+ * to the engine. */
+int mbedtls_pk_wrap_opaque_open( mbedtls_pk_context *ctx,
+                                 const char *path,
+                                 const char *pwd );
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /**
@@ -596,7 +624,19 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *ctx,
 int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
                          const unsigned char *key, size_t keylen );
 
-#if defined(MBEDTLS_FS_IO)
+/**
+ * \brief Prefix for opaque keys for pseudo-file-names that represent
+ *         opaque keys.
+ *
+ * If a path passed to mbedtls_pk_parse_keyfile() or
+ * mbedtls_pk_parse_public_keyfile() starts with this string, followed
+ * by an opaque engine name, followed by a '/' character, then the path
+ * is interpreted as an opaque key path rather than a file name. The
+ * part following the `/` character after the opaque engine name is
+ * passed to the opaque engine.
+ */
+#define MBEDTLS_PK_PARSE_OPAQUE_PATH_PREFIX "///mbedtls-pk-opaque/"
+
 /** \ingroup pk_module */
 /**
  * \brief           Load and parse a private key
@@ -633,7 +673,6 @@ int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
  * \return          0 if successful, or a specific PK or PEM error code
  */
 int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path );
-#endif /* MBEDTLS_FS_IO */
 #endif /* MBEDTLS_PK_PARSE_C */
 
 

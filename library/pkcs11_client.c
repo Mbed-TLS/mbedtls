@@ -313,6 +313,7 @@ static const mbedtls_pk_info_t mbedtls_pk_pkcs11_info =
                               , pkcs11_pk_alloc
                               , pkcs11_pk_free
                               , NULL //debug_func
+                              , NULL //open_func
         );
 
 int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,

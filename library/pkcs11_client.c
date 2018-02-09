@@ -300,26 +300,10 @@ static int pkcs11_verify( void *ctx_arg,
     }
 }
 
-static const mbedtls_pk_info_t mbedtls_pk_pkcs11_info =
-    MBEDTLS_PK_OPAQUE_INFO_1( "pkcs11"
-                              , pkcs11_pk_get_bitlen
-                              , pkcs11_pk_can_do //can_do
-                              , pkcs11_pk_signature_size
-                              , pkcs11_verify
-                              , pkcs11_sign
-                              , NULL //pkcs11_decrypt
-                              , NULL //pkcs11_encrypt
-                              , NULL //check_pair_func
-                              , pkcs11_pk_alloc
-                              , pkcs11_pk_free
-                              , NULL //debug_func
-                              , NULL //open_func
-        );
-
-int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,
-                             CK_SESSION_HANDLE hSession,
-                             CK_OBJECT_HANDLE hPublicKey,
-                             CK_OBJECT_HANDLE hPrivateKey )
+static int mbedtls_pkcs11_fill_pk( mbedtls_pk_pkcs11_context_t *pkcs11_ctx,
+                                   CK_SESSION_HANDLE hSession,
+                                   CK_OBJECT_HANDLE hPublicKey,
+                                   CK_OBJECT_HANDLE hPrivateKey )
 {
     CK_OBJECT_CLASS public_key_class = -1, private_key_class = -1;
     CK_KEY_TYPE public_key_type = -1, private_key_type = -1;
@@ -375,21 +359,61 @@ int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,
         break;
     }
 
-    {
-        int ret = mbedtls_pk_setup( ctx, &mbedtls_pk_pkcs11_info );
-        if( ret != 0 )
-            return( MBEDTLS_ERR_PK_ALLOC_FAILED );
-    }
-    {
-        mbedtls_pk_pkcs11_context_t *pkcs11_ctx = ctx->pk_ctx;
-        pkcs11_ctx->key_type = can_do;
-        pkcs11_ctx->bit_length = key_size;
-        pkcs11_ctx->hSession = hSession;
-        pkcs11_ctx->hPublicKey = hPublicKey;
-        pkcs11_ctx->hPrivateKey = hPrivateKey;
-    }
+    pkcs11_ctx->key_type = can_do;
+    pkcs11_ctx->bit_length = key_size;
+    pkcs11_ctx->hSession = hSession;
+    pkcs11_ctx->hPublicKey = hPublicKey;
+    pkcs11_ctx->hPrivateKey = hPrivateKey;
     return( 0 );
 }
+
+static int pkcs11_open( void *ctx_arg,
+                        const char *path,
+                        const char *pwd )
+{
+    unsigned long session_handle = 0;
+    unsigned long public_key_handle = 0;
+    unsigned long private_key_handle = 0;
+    char spurious_char = 0;
+    if( sscanf( path, "%lu/%lu/%lu%c",
+                &session_handle, &public_key_handle, &private_key_handle,
+                &spurious_char ) == 3 )
+    {
+        return( mbedtls_pkcs11_fill_pk( ctx_arg,
+                                        session_handle,
+                                        public_key_handle,
+                                        private_key_handle ) );
+    }
+    return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+}
+
+const mbedtls_pk_info_t mbedtls_pk_pkcs11_info =
+    MBEDTLS_PK_OPAQUE_INFO_1( "pkcs11"
+                              , pkcs11_pk_get_bitlen
+                              , pkcs11_pk_can_do //can_do
+                              , pkcs11_pk_signature_size
+                              , pkcs11_verify
+                              , pkcs11_sign
+                              , NULL //pkcs11_decrypt
+                              , NULL //pkcs11_encrypt
+                              , NULL //check_pair_func
+                              , pkcs11_pk_alloc
+                              , pkcs11_pk_free
+                              , NULL //debug_func
+                              , pkcs11_open //open_func
+        );
+
+int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,
+                             CK_SESSION_HANDLE hSession,
+                             CK_OBJECT_HANDLE hPublicKey,
+                             CK_OBJECT_HANDLE hPrivateKey )
+{
+    int ret = mbedtls_pk_setup( ctx, &mbedtls_pk_pkcs11_info );
+    if( ret != 0 )
+        return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+    return( mbedtls_pkcs11_fill_pk( ctx->pk_ctx,
+                                    hSession, hPublicKey, hPrivateKey ) );
+ }
 
 #if defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C)
 static int mpi_to_ck( const mbedtls_mpi *mpi,

@@ -42,6 +42,10 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
+#if defined(MBEDTLS_PKCS11_CLIENT_C)
+#include "mbedtls/pkcs11_client.h"
+#endif
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -567,6 +571,9 @@ int mbedtls_pk_opaque_open( mbedtls_pk_context *ctx,
 }
 
 static const mbedtls_pk_info_t *const mbedtls_pk_built_in_engines[] = {
+#if defined(MBEDTLS_PKCS11_CLIENT_C)
+    &mbedtls_pk_pkcs11_info,
+#endif
     NULL
 };
 

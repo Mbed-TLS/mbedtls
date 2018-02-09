@@ -207,7 +207,11 @@ struct mbedtls_pk_info_t
      * object to NULL, and it is up to an engine-specific setup function to
      * initialize the \c pk_ctx field. This is useful if the size of the
      * memory depends on extra parameters passed to the engine-specific setup
-     * function. */
+     * function.
+     *
+     * Note that if #open_func is provided, its argument is the value
+     * returned by this method, which makes this method effectively
+     * required. */
     void * (*ctx_alloc_func)( void );
 
     /** Free the given context
@@ -225,6 +229,15 @@ struct mbedtls_pk_info_t
      * Opaque implementations may omit this method. */
     void (*debug_func)( const void *ctx, mbedtls_pk_debug_item *items );
 
+    /** Open a key
+     *
+     * mbedtls_pk_opaque_open() calls this function.
+     *
+     * Opaque implementations may omit this method if they do not support
+     * opening a key designated by a string.
+     */
+    int (*open_func)( void *ctx, const char *path, const char *pwd );
+
 };
 
 #define MBEDTLS_PK_OPAQUE_INFO_1(               \
@@ -240,6 +253,7 @@ struct mbedtls_pk_info_t
     , ctx_alloc_func                            \
     , ctx_free_func                             \
     , debug_func                                \
+    , open_func                                 \
     )                                           \
     {                                           \
         MBEDTLS_PK_OPAQUE                       \
@@ -255,6 +269,7 @@ struct mbedtls_pk_info_t
         , ctx_alloc_func                        \
         , ctx_free_func                         \
         , debug_func                            \
+        , open_func                             \
     }
 
 #ifdef __cplusplus

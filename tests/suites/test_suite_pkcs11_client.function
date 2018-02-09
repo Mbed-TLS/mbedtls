@@ -481,3 +481,66 @@ exit:
     mbedtls_pk_free( &transparent_ctx );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_PK_C:MBEDTLS_PK_PARSE_C:MBEDTLS_FS_IO */
+void pk_open_by_handles( char *file )
+{
+    mbedtls_pk_context pkcs11_ctx;
+    mbedtls_pk_context transparent_ctx;
+    CK_SESSION_HANDLE hSession = CK_INVALID_HANDLE;
+    CK_OBJECT_HANDLE hPublicKey = CK_INVALID_HANDLE;
+    CK_OBJECT_HANDLE hPrivateKey = CK_INVALID_HANDLE;
+    unsigned char hash_value[32] = "Fake hash, it doesn't matter....";
+    unsigned char sig_buffer[4096];
+    size_t sig_length = sizeof( sig_buffer );
+    char path[80];
+
+    mbedtls_pk_init( &pkcs11_ctx );
+    mbedtls_pk_init( &transparent_ctx );
+
+    /* Read a transparent key */
+    TEST_ASSERT( mbedtls_pk_parse_keyfile( &transparent_ctx, file, NULL ) == 0 );
+
+    /* Initialize cryptoki and import the key into the token */
+    hSession = pkcs11_init( );
+    TEST_ASSERT( hSession != CK_INVALID_HANDLE );
+    TEST_ASSERT( mbedtls_pk_import_to_pkcs11( &transparent_ctx,
+                                              MBEDTLS_PK_FLAG_SIGN |
+                                              MBEDTLS_PK_FLAG_VERIFY,
+                                              hSession,
+                                              &hPublicKey,
+                                              &hPrivateKey ) == 0 );
+    TEST_ASSERT( hPublicKey != CK_INVALID_HANDLE );
+    TEST_ASSERT( hPrivateKey != CK_INVALID_HANDLE );
+
+    /* Open the key as an opaque key, accessing it through the same handles. */
+    TEST_ASSERT( mbedtls_snprintf( path, sizeof( path ), "%s%s/%lu/%lu/%lu",
+                                   MBEDTLS_PK_PARSE_OPAQUE_PATH_PREFIX,
+                                   "pkcs11",
+                                   (unsigned long) hSession,
+                                   (unsigned long) hPublicKey,
+                                   (unsigned long) hPrivateKey ) >= 0 );
+    TEST_ASSERT( mbedtls_pk_parse_keyfile( &pkcs11_ctx, path, NULL ) == 0 );
+    TEST_ASSERT( strcmp( mbedtls_pk_get_name( &pkcs11_ctx ), "pkcs11" ) == 0 );
+
+    /* Sign with the token and verify in software */
+    TEST_ASSERT( sizeof( sig_buffer ) >= mbedtls_pk_signature_size( &pkcs11_ctx ) );
+    TEST_ASSERT( mbedtls_pk_sign( &pkcs11_ctx, MBEDTLS_MD_SHA256,
+                                  hash_value, 32,
+                                  sig_buffer, &sig_length,
+                                  NULL, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_pk_verify( &transparent_ctx, MBEDTLS_MD_SHA256,
+                                    hash_value, 32,
+                                    sig_buffer, sig_length ) == 0 );
+
+exit:
+    if( hPublicKey != CK_INVALID_HANDLE )
+        C_DestroyObject( hSession, hPublicKey );
+    if( hPrivateKey != CK_INVALID_HANDLE )
+        C_DestroyObject( hSession, hPrivateKey );
+    C_CloseSession( hSession );
+    C_Finalize( NULL_PTR );
+    mbedtls_pk_free( &pkcs11_ctx );
+    mbedtls_pk_free( &transparent_ctx );
+}
+/* END_CASE */

@@ -42,6 +42,10 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
+#if defined(MBEDTLS_PKCS11_CLIENT_C)
+#include "mbedtls/pkcs11_client.h"
+#endif
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -202,6 +206,7 @@ const mbedtls_pk_info_t mbedtls_rsa_info = {
     rsa_alloc_wrap,
     rsa_free_wrap,
     rsa_debug,
+    NULL,
 };
 #endif /* MBEDTLS_RSA_C */
 
@@ -325,6 +330,7 @@ const mbedtls_pk_info_t mbedtls_eckey_info = {
     eckey_alloc_wrap,
     eckey_free_wrap,
     eckey_debug,
+    NULL,
 };
 
 /*
@@ -351,6 +357,7 @@ const mbedtls_pk_info_t mbedtls_eckeydh_info = {
     eckey_alloc_wrap,       /* Same underlying key structure */
     eckey_free_wrap,        /* Same underlying key structure */
     eckey_debug,            /* Same underlying key structure */
+    NULL,
 };
 #endif /* MBEDTLS_ECP_C */
 
@@ -416,6 +423,7 @@ const mbedtls_pk_info_t mbedtls_ecdsa_info = {
     ecdsa_alloc_wrap,
     ecdsa_free_wrap,
     eckey_debug,        /* Compatible key structures */
+    NULL,
 };
 #endif /* MBEDTLS_ECDSA_C */
 
@@ -543,8 +551,61 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
     rsa_alt_alloc_wrap,
     rsa_alt_free_wrap,
     NULL,
+    NULL,
 };
 
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
+
+int mbedtls_pk_opaque_open( mbedtls_pk_context *ctx,
+                            const mbedtls_pk_info_t *info,
+                            const char *path,
+                            const char *pwd )
+{
+    int ret = mbedtls_pk_setup( ctx, info );
+    if( ret != 0 )
+        return( ret );
+    if( info->open_func == NULL )
+        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+    ret = info->open_func( ctx->pk_ctx, path, pwd );
+    return( ret );
+}
+
+static const mbedtls_pk_info_t *const mbedtls_pk_built_in_engines[] = {
+#if defined(MBEDTLS_PKCS11_CLIENT_C)
+    &mbedtls_pk_pkcs11_info,
+#endif
+    NULL
+};
+
+/* Wrapper around mbedtls_pk_opaque_open() which splits off the
+ * opaque engine name at the beginning of path and passes on the request
+ * to the engine. */
+int mbedtls_pk_wrap_opaque_open( mbedtls_pk_context *ctx,
+                                 const char *path,
+                                 const char *pwd )
+{
+    const char *slash;
+    size_t engine_name_length;
+    const mbedtls_pk_info_t *const *p_info;
+
+    slash = strchr( path, '/' );
+    if( slash == NULL )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+    engine_name_length = slash - path;
+
+    for( p_info = mbedtls_pk_built_in_engines; *p_info != NULL; p_info++ )
+    {
+        if( ( *p_info )->name != NULL &&
+            strlen( ( *p_info )->name ) == engine_name_length &&
+            memcmp( ( *p_info )->name, path, engine_name_length ) == 0 )
+        {
+            break;
+        }
+    }
+
+    if( *p_info == NULL )
+        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+    return( mbedtls_pk_opaque_open( ctx, *p_info, slash + 1, pwd ) );
+}
 
 #endif /* MBEDTLS_PK_C */

@@ -79,6 +79,8 @@ int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,
                              CK_OBJECT_HANDLE hPublicKey,
                              CK_OBJECT_HANDLE hPrivateKey );
 
+extern const mbedtls_pk_info_t mbedtls_pk_pkcs11_info;
+
 /**
  * \brief               Import a transparent key into a PKCS#11 token
  *

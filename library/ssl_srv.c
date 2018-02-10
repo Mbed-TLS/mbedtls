@@ -1309,7 +1309,7 @@ read_record_header:
     else
 #endif
     {
-        if( msg_len > MBEDTLS_SSL_MAX_CONTENT_LEN )
+        if( msg_len > MBEDTLS_SSL_MAX_CONTENT_LEN_RX )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
@@ -2241,7 +2241,7 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
 {
     int ret;
     unsigned char *p = buf;
-    const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
+    const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN_TX;
     size_t kkpp_len;
 
     *olen = 0;
@@ -2348,7 +2348,7 @@ static int ssl_write_hello_verify_request( mbedtls_ssl_context *ssl )
     cookie_len_byte = p++;
 
     if( ( ret = ssl->conf->f_cookie_write( ssl->conf->p_cookie,
-                                     &p, ssl->out_buf + MBEDTLS_SSL_BUFFER_LEN,
+                                     &p, ssl->out_buf + MBEDTLS_SSL_BUFFER_LEN_TX,
                                      ssl->cli_id, ssl->cli_id_len ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "f_cookie_write", ret );
@@ -2644,7 +2644,7 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
     size_t dn_size, total_dn_size; /* excluding length bytes */
     size_t ct_len, sa_len; /* including length bytes */
     unsigned char *buf, *p;
-    const unsigned char * const end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
+    const unsigned char * const end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN_TX;
     const mbedtls_x509_crt *crt;
     int authmode;
 
@@ -2891,7 +2891,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
-        const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN;
+        const unsigned char *end = ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN_TX;
 
         ret = mbedtls_ecjpake_write_round_two( &ssl->handshake->ecjpake_ctx,
                 p, end - p, &len, ssl->conf->f_rng, ssl->conf->p_rng );
@@ -3016,7 +3016,7 @@ curve_matching_done:
         }
 
         if( ( ret = mbedtls_ecdh_make_params( &ssl->handshake->ecdh_ctx, &len,
-                                      p, MBEDTLS_SSL_MAX_CONTENT_LEN - n,
+                                      p, MBEDTLS_SSL_MAX_CONTENT_LEN_TX - n,
                                       ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_params", ret );
@@ -3928,7 +3928,7 @@ static int ssl_write_new_session_ticket( mbedtls_ssl_context *ssl )
     if( ( ret = ssl->conf->f_ticket_write( ssl->conf->p_ticket,
                                 ssl->session_negotiate,
                                 ssl->out_msg + 10,
-                                ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN,
+                                ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN_TX,
                                 &tlen, &lifetime ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_ticket_write", ret );

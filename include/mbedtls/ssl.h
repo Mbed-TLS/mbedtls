@@ -210,7 +210,8 @@
 
 /*
  * Maxium fragment length in bytes,
- * determines the size of each of the two internal I/O buffers.
+ * determines the size of each of the two internal I/O buffers, unless
+ * overriden for each buffer individually.
  *
  * Note: the RFC defines the default size of SSL / TLS messages. If you
  * change the value here, other clients / servers may not be able to
@@ -220,7 +221,15 @@
  * peers are using it too!
  */
 #if !defined(MBEDTLS_SSL_MAX_CONTENT_LEN)
-#define MBEDTLS_SSL_MAX_CONTENT_LEN         16384   /**< Size of the input / output buffer */
+#define MBEDTLS_SSL_MAX_CONTENT_LEN_         16384   /**< Size of the input / output buffer */
+#endif
+
+#if !defined(MBEDTLS_SSL_MAX_CONTENT_LEN_RX)
+#define MBEDTLS_SSL_MAX_CONTENT_LEN_RX      MBEDTLS_SSL_MAX_CONTENT_LEN_   /**< Size of the input buffer */
+#endif
+
+#if !defined(MBEDTLS_SSL_MAX_CONTENT_LEN_TX)
+#define MBEDTLS_SSL_MAX_CONTENT_LEN_TX      MBEDTLS_SSL_MAX_CONTENT_LEN_   /**< Size of the output buffer */
 #endif
 
 /* \} name SECTION: Module settings */

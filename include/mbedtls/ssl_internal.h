@@ -140,18 +140,25 @@
 #define MBEDTLS_SSL_PADDING_ADD              0
 #endif
 
-#define MBEDTLS_SSL_PAYLOAD_LEN ( MBEDTLS_SSL_MAX_CONTENT_LEN    \
+#define MBEDTLS_SSL_PAYLOAD_LEN_FUNC(x) ( (x)                    \
                         + MBEDTLS_SSL_COMPRESSION_ADD            \
                         + MBEDTLS_MAX_IV_LENGTH                  \
                         + MBEDTLS_SSL_MAC_ADD                    \
                         + MBEDTLS_SSL_PADDING_ADD                \
                         )
 
+#define MBEDTLS_SSL_PAYLOAD_LEN_RX MBEDTLS_SSL_PAYLOAD_LEN_FUNC( \
+    MBEDTLS_SSL_MAX_CONTENT_LEN_RX )
+
+#define MBEDTLS_SSL_PAYLOAD_LEN_TX MBEDTLS_SSL_PAYLOAD_LEN_FUNC( \
+    MBEDTLS_SSL_MAX_CONTENT_LEN_TX )
+
+
 /*
  * Check that we obey the standard's message size bounds
  */
 
-#if MBEDTLS_SSL_MAX_CONTENT_LEN > 16384
+#if (MBEDTLS_SSL_MAX_CONTENT_LEN_RX > 16384) || (MBEDTLS_SSL_MAX_CONTENT_LEN_TX > 16384)
 #error Bad configuration - record content too large.
 #endif
 
@@ -164,8 +171,11 @@
    implicit sequence number. */
 #define MBEDTLS_SSL_HEADER_LEN 13
 
-#define MBEDTLS_SSL_BUFFER_LEN  \
-    ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_PAYLOAD_LEN ) )
+#define MBEDTLS_SSL_BUFFER_LEN_RX  \
+    ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_PAYLOAD_LEN_RX ) )
+
+#define MBEDTLS_SSL_BUFFER_LEN_TX  \
+    ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_PAYLOAD_LEN_TX ) )
 
 /*
  * TLS extension flags (for extensions with outgoing ServerHello content

@@ -67,7 +67,9 @@ static size_t mbedtls_rsa_key_len_func( void *ctx )
 static void pk_rsa_prepare( mbedtls_rsa_context *raw )
 {
     mbedtls_rsa_init( raw, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_NONE );
+#if defined(MBEDTLS_GENPRIME)
     mbedtls_rsa_gen_key( raw, rnd_std_rand, NULL, RSA_KEY_SIZE, 3 );
+#endif
 }
 
 /* Test the RSA context tested_ctx by comparing its operation with a
@@ -742,7 +744,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_RSA_C:MBEDTLS_ECDSA_C */
 void pk_opaque_mock( )
 {
     mbedtls_pk_info_t info =
@@ -852,7 +854,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
 void pk_opaque_minimal( )
 {
     mbedtls_pk_info_t info =
@@ -922,7 +924,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
 void pk_opaque_fail_allocation( )
 {
     mbedtls_pk_info_t info =

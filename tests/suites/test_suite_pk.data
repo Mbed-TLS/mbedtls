@@ -155,12 +155,15 @@ depends_on:MBEDTLS_RSA_C:MBEDTLS_HAVE_INT64
 pk_rsa_overflow:
 
 PK opaque mock
+depends_on:MBEDTLS_RSA_C:MBEDTLS_ECDSA_C
 pk_opaque_mock:
 
 PK opaque with failed allocation
+depends_on:MBEDTLS_RSA_C
 pk_opaque_fail_allocation:
 
 PK opaque minimal
+depends_on:MBEDTLS_RSA_C
 pk_opaque_minimal:
 
 #PK opaque wrapper (RSA)

@@ -85,6 +85,7 @@ static inline size_t mbedtls_ecdsa_max_sig_len( size_t bits )
 /** The maximal size of an ECDSA signature in Bytes. */
 #define MBEDTLS_ECDSA_MAX_LEN (MBEDTLS_ECDSA_MAX_SIG_LEN( \
         8 * MBEDTLS_ECP_MAX_BYTES ) )
+
 /**
  * \brief           The ECDSA context structure.
  */
@@ -287,7 +288,7 @@ int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
 /**
- * \brief           Convert a signature from numbers to ASN.1
+ * \brief           Convert an ECDSA signature from number pair format to ASN.1
  *
  * \param r         First number of the signature
  * \param s         Second number of the signature

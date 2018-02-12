@@ -4,7 +4,8 @@
  * \brief Public Key cryptography abstraction layer: object interface
  *
  *  This file contains the info structure interface used by developers to
- *  provide engine-specific implementations of opaque key handling functions.
+ *  provide target-specific implementations of opaque key handling functions
+ *  (called engines in the following).
  *
  *  Copyright (C) 2006-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -112,7 +113,7 @@ struct mbedtls_pk_info_t
     size_t (*get_bitlen)( const void *ctx );
 
     /** Tell if the context implements the algorithm specified by
-     * the provided type (e.g.\ ECKEY can do ECDSA).
+     * the provided type (e.g. ECKEY can do ECDSA).
      *
      * mbedtls_pk_can_do() calls this function.
      *
@@ -144,7 +145,7 @@ struct mbedtls_pk_info_t
      *
      * mbedtls_pk_sign() calls this function.
      *
-     * Assume that the buffer \c sig has room for
+     * Assumes that the buffer \c sig has room for
      * \c signature_size_func(ctx) bytes.
      *
      * The arguments \c f_rng and \c p_rng are provided in case the
@@ -154,7 +155,7 @@ struct mbedtls_pk_info_t
      * return #MBEDTLS_ERR_PK_BAD_INPUT_DATA otherwise.
      *
      * Opaque implementations may omit this method if they do not support
-     * signature. */
+     * signing. */
     int (*sign_func)( void *ctx, mbedtls_md_type_t md_alg,
                       const unsigned char *hash, size_t hash_len,
                       unsigned char *sig, size_t *sig_len,

@@ -470,7 +470,8 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
- * \brief           Calculate the size of a signature made with this key.
+ * \brief           Provide an upper bound for the size of a signature made
+ *                  with this key.
  *
  * \param ctx       PK context to use
  *

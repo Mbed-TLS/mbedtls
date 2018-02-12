@@ -427,13 +427,13 @@ void ecp_ansi_write_group( int id, char *hex )
 
     /* Positive test */
     ret = mbedtls_ecp_ansi_write_group( &grp, tested, sizeof( tested ),
-										&received_len );
+                                        &received_len );
     TEST_ASSERT( ret == 0 && good_len == (unsigned) received_len );
     TEST_ASSERT( memcmp( good, tested, good_len ) == 0 );
 
     /* Buffer too small */
     TEST_ASSERT( mbedtls_ecp_ansi_write_group( &grp, tested, good_len - 1,
-    										   &received_len ) ==
+                                               &received_len ) ==
                  MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 
 exit:

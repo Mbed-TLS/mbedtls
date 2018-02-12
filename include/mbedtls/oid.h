@@ -283,7 +283,7 @@
 
 /*
  * ECParameters namedCurve identifiers, from RFC 5480, RFC 5639, and SEC2
- * When adding new OID's, please update \c MBEDTLS_ECP_GRP_OID_MAX_SIZE
+ * When adding new OID's, please update MBEDTLS_ECP_GRP_OID_MAX_SIZE
  * in ecp.h
  */
 

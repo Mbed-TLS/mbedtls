@@ -521,7 +521,7 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp, size_t *olen,
  *                  The output is the group's OID wrapped as ASN.1.
  *
  * \param grp       ECP group used
- * \param buf       Buffer to write to
+ * \param p         Buffer to write to
  * \param size      Buffer size
  * \param olen      Number of bytes written to \c buf
  * \return          0 on success

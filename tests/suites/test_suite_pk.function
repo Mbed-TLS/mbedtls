@@ -173,7 +173,6 @@ exit:
 #define OPAQUE_MOCK_GOOD_SIGNATURE "good"
 static const unsigned char opaque_mock_hash[8] = "HASHhash";
 static const unsigned char opaque_mock_reference_input[10] = "INPUTinput";
-static const unsigned char opaque_mock_input[10] = "INPUTinput";
 static const unsigned char opaque_mock_reference_encrypted[12] = "C:JOQVUjoqvu";
 static const unsigned char opaque_mock_reference_decrypted[12] = "P:HMOTShmots";
 static char opaque_mock_fake_ctx = 'c';

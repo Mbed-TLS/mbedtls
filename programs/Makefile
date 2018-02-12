@@ -22,12 +22,18 @@ WINDOWS_BUILD=1
 endif
 
 ifdef WINDOWS_BUILD
+OBJEXT=.obj
 DLEXT=dll
 EXEXT=.exe
 LOCAL_LDFLAGS += -lws2_32
 ifdef SHARED
 SHARED_SUFFIX=.$(DLEXT)
 endif
+else
+OBJEXT=.o
+DLEXT=so
+EXEXT=
+SHARED_SUFFIX=
 endif
 
 # Zlib shared library extensions:
@@ -189,21 +195,27 @@ random/gen_random_ctr_drbg$(EXEXT): random/gen_random_ctr_drbg.c ../library/libm
 	echo   "  CC    random/gen_random_ctr_drbg.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) random/gen_random_ctr_drbg.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
+ssl/ssl_test_lib$(OBJEXT): ssl/ssl_test_lib.c ssl/ssl_test_lib.h
+	echo   "  CC    ssl/ssl_test_lib.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -c ssl/ssl_test_lib.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
 ssl/ssl_client1$(EXEXT): ssl/ssl_client1.c ../library/libmbedtls.a
 	echo   "  CC    ssl/ssl_client1.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_client1.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
+ssl/ssl_client2$(EXEXT): ssl/ssl_test_lib.h ssl/ssl_test_lib$(OBJEXT)
 ssl/ssl_client2$(EXEXT): ssl/ssl_client2.c ../library/libmbedtls.a
 	echo   "  CC    ssl/ssl_client2.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_client2.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_test_lib$(OBJEXT) ssl/ssl_client2.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/ssl_server$(EXEXT): ssl/ssl_server.c ../library/libmbedtls.a
 	echo   "  CC    ssl/ssl_server.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
+ssl/ssl_server2$(EXEXT): ssl/ssl_test_lib.h ssl/ssl_test_lib$(OBJEXT)
 ssl/ssl_server2$(EXEXT): ssl/ssl_server2.c ../library/libmbedtls.a
 	echo   "  CC    ssl/ssl_server2.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server2.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_test_lib$(OBJEXT) ssl/ssl_server2.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 ssl/ssl_fork_server$(EXEXT): ssl/ssl_fork_server.c ../library/libmbedtls.a
 	echo   "  CC    ssl/ssl_fork_server.c"
@@ -271,10 +283,10 @@ x509/req_app$(EXEXT): x509/req_app.c ../library/libmbedtls.a
 
 clean:
 ifndef WINDOWS
-	rm -f $(APPS)
+	rm -f $(APPS) */*.o
 endif
 ifdef WINDOWS
-	del /S /Q /F *.o *.exe
+	del /S /Q /F *$(OBJEXT) *.exe
 endif
 
 list:

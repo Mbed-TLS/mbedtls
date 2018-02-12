@@ -1,7 +1,7 @@
 /*
  *  SSL client with certificate authentication
  *
- *  Copyright (C) 2006-2013, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2018, ARM Limited, All Rights Reserved
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  *
@@ -20,62 +20,19 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if !defined(POLARSSL_CONFIG_FILE)
-#include "polarssl/config.h"
-#else
-#include POLARSSL_CONFIG_FILE
-#endif
-
-#if defined(POLARSSL_PLATFORM_C)
-#include "polarssl/platform.h"
-#else
-#include <stdio.h>
-#define polarssl_printf     printf
-#define polarssl_fprintf    fprintf
-#define polarssl_printf     printf
-#define polarssl_snprintf   snprintf
-#endif
-
-#if defined(POLARSSL_ENTROPY_C) && defined(POLARSSL_FS_IO) && \
-    defined(POLARSSL_SSL_TLS_C) && defined(POLARSSL_SSL_CLI_C) && \
-    defined(POLARSSL_NET_C) && defined(POLARSSL_CTR_DRBG_C)
-#include "polarssl/net.h"
-#include "polarssl/ssl.h"
-#include "polarssl/entropy.h"
-#include "polarssl/ctr_drbg.h"
-#include "polarssl/certs.h"
-#include "polarssl/x509.h"
-#include "polarssl/error.h"
-#include "polarssl/debug.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#endif
-
-#if defined(POLARSSL_TIMING_C)
-#include "polarssl/timing.h"
-#endif
-
-#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
-#if !defined  snprintf
-#define  snprintf  _snprintf
-#endif
-#endif
+#include "ssl_test_lib.h"
 
 #define DFL_SERVER_NAME         "localhost"
-#define DFL_SERVER_ADDR         NULL
-#define DFL_SERVER_PORT         4433
 #define DFL_REQUEST_PAGE        "/"
 #define DFL_REQUEST_SIZE        -1
 #define DFL_DEBUG_LEVEL         0
 #define DFL_NBIO                0
+#define DFL_FAKE_ENTROPY        ""
 #define DFL_CA_FILE             ""
 #define DFL_CA_PATH             ""
 #define DFL_CRT_FILE            ""
 #define DFL_KEY_FILE            ""
-#define DFL_PSK                 ""
-#define DFL_PSK_IDENTITY        "Client_identity"
+#define DFL_ECJPAKE_PW          NULL
 #define DFL_FORCE_CIPHER        0
 #define DFL_RENEGOTIATION       SSL_RENEGOTIATION_DISABLED
 #define DFL_ALLOW_LEGACY        -2
@@ -121,7 +78,7 @@
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
 #define USAGE_PSK                                                   \
     "    psk=%%s              default: \"\" (in hex, without 0x)\n" \
-    "    psk_identity=%%s     default: \"Client_identity\"\n"
+    "    psk_identity=%%s     default: \"" DFL_PSK_IDENTITY "\"\n"
 #else
 #define USAGE_PSK ""
 #endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
@@ -215,13 +172,15 @@
     "\n acceptable parameters:\n"                           \
     "    server_name=%%s      default: localhost\n"         \
     "    server_addr=%%s      default: given by name\n"     \
-    "    server_port=%%d      default: 4433\n"              \
+    "    server_port=%%d      default: " STRINGIFY(DFL_SERVER_PORT) "\n" \
     "    request_page=%%s     default: \".\"\n"             \
     "    request_size=%%d     default: about 34 (basic request)\n" \
     "                        (minimum: 0, max: 16384)\n" \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
+    "    fake_entropy=%%s     reproducible test mode (also requires no/constant time)\n" \
+    "                        default: empty (use normal entropy sources)\n" \
     "\n"                                                    \
     "    auth_mode=%%s        default: \"required\"\n"      \
     "                        options: none, optional, required\n" \
@@ -253,20 +212,16 @@
     "    force_ciphersuite=<name>    default: all enabled\n"\
     " acceptable ciphersuite names:\n"
 
-#if !defined(POLARSSL_ENTROPY_C) ||  !defined(POLARSSL_FS_IO) || \
-    !defined(POLARSSL_SSL_TLS_C) || !defined(POLARSSL_SSL_CLI_C) || \
-    !defined(POLARSSL_NET_C) || !defined(POLARSSL_CTR_DRBG_C)
+#if !defined(POLARSSL_PROGRAMS_SSL__PREREQUISITES) || \
+    !defined(POLARSSL_SSL_CLI_C)
 int main( void )
 {
-    polarssl_printf("POLARSSL_ENTROPY_C and/or "
+    polarssl_printf( "POLARSSL_ENTROPY_C and/or "
            "POLARSSL_SSL_TLS_C and/or POLARSSL_SSL_CLI_C and/or "
-           "POLARSSL_NET_C and/or POLARSSL_CTR_DRBG_C not defined.\n");
+           "POLARSSL_NET_C and/or POLARSSL_CTR_DRBG_C not defined.\n" );
     return( 0 );
 }
 #else
-
-#define ALPN_LIST_SIZE  10
-#define CURVE_LIST_SIZE 20
 
 /*
  * global options
@@ -280,6 +235,7 @@ struct options
     int nbio;                   /* should I/O be blocking?                  */
     const char *request_page;   /* page on server to request                */
     int request_size;           /* pad request with header to requested size */
+    const char *fake_entropy;   /* string to use instead of entropy */
     const char *ca_file;        /* the file with the CA certificate(s)      */
     const char *ca_path;        /* the path with the CA certificate(s) reside */
     const char *crt_file;       /* the file with the client certificate     */
@@ -308,52 +264,6 @@ struct options
     int extended_ms;            /* negotiate extended master secret?        */
     int etm;                    /* negotiate encrypt then mac?              */
 } opt;
-
-static void my_debug( void *ctx, int level, const char *str )
-{
-    ((void) level);
-
-    polarssl_fprintf( (FILE *) ctx, "%s", str );
-    fflush(  (FILE *) ctx  );
-}
-
-/*
- * Test recv/send functions that make sure each try returns
- * WANT_READ/WANT_WRITE at least once before sucesseding
- */
-static int my_recv( void *ctx, unsigned char *buf, size_t len )
-{
-    static int first_try = 1;
-    int ret;
-
-    if( first_try )
-    {
-        first_try = 0;
-        return( POLARSSL_ERR_NET_WANT_READ );
-    }
-
-    ret = net_recv( ctx, buf, len );
-    if( ret != POLARSSL_ERR_NET_WANT_READ )
-        first_try = 1; /* Next call will be a new operation */
-    return( ret );
-}
-
-static int my_send( void *ctx, const unsigned char *buf, size_t len )
-{
-    static int first_try = 1;
-    int ret;
-
-    if( first_try )
-    {
-        first_try = 0;
-        return( POLARSSL_ERR_NET_WANT_WRITE );
-    }
-
-    ret = net_send( ctx, buf, len );
-    if( ret != POLARSSL_ERR_NET_WANT_WRITE )
-        first_try = 1; /* Next call will be a new operation */
-    return( ret );
-}
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
 /*
@@ -393,7 +303,6 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(POLARSSL_SSL_SET_CURVES)
     ecp_group_id curve_list[CURVE_LIST_SIZE];
-    const ecp_curve_info *curve_cur;
 #endif
 
     const char *pers = "ssl_client2";
@@ -436,14 +345,14 @@ int main( int argc, char *argv[] )
         list = ssl_list_ciphersuites();
         while( *list )
         {
-            polarssl_printf(" %-42s", ssl_get_ciphersuite_name( *list ) );
+            polarssl_printf( " %-42s", ssl_get_ciphersuite_name( *list ) );
             list++;
             if( !*list )
                 break;
-            polarssl_printf(" %s\n", ssl_get_ciphersuite_name( *list ) );
+            polarssl_printf( " %s\n", ssl_get_ciphersuite_name( *list ) );
             list++;
         }
-        polarssl_printf("\n");
+        polarssl_printf( "\n" );
         goto exit;
     }
 
@@ -454,6 +363,7 @@ int main( int argc, char *argv[] )
     opt.nbio                = DFL_NBIO;
     opt.request_page        = DFL_REQUEST_PAGE;
     opt.request_size        = DFL_REQUEST_SIZE;
+    opt.fake_entropy        = DFL_FAKE_ENTROPY;
     opt.ca_file             = DFL_CA_FILE;
     opt.ca_path             = DFL_CA_PATH;
     opt.crt_file            = DFL_CRT_FILE;
@@ -485,7 +395,10 @@ int main( int argc, char *argv[] )
     {
         p = argv[i];
         if( ( q = strchr( p, '=' ) ) == NULL )
+        {
+            polarssl_printf( "Missing value for option %s\n", p );
             goto usage;
+        }
         *q++ = '\0';
 
         if( strcmp( p, "server_name" ) == 0 )
@@ -496,19 +409,31 @@ int main( int argc, char *argv[] )
         {
             opt.server_port = atoi( q );
             if( opt.server_port < 1 || opt.server_port > 65535 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be 1..65535)\n",
+                                p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "debug_level" ) == 0 )
         {
             opt.debug_level = atoi( q );
             if( opt.debug_level < 0 || opt.debug_level > 65535 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be 0..65535)\n",
+                                 p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "nbio" ) == 0 )
         {
             opt.nbio = atoi( q );
             if( opt.nbio < 0 || opt.nbio > 2 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be 0..2)\n",
+                                 p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "request_page" ) == 0 )
             opt.request_page = q;
@@ -516,8 +441,14 @@ int main( int argc, char *argv[] )
         {
             opt.request_size = atoi( q );
             if( opt.request_size < 0 || opt.request_size > SSL_MAX_CONTENT_LEN )
+            {
+                polarssl_printf( "Invalid value for option %s (must be 0..%d)\n",
+                                 p, SSL_MAX_CONTENT_LEN );
                 goto usage;
+            }
         }
+        else if ( strcmp( p, "fake_entropy" ) == 0 )
+            opt.fake_entropy = q;
         else if( strcmp( p, "ca_file" ) == 0 )
             opt.ca_file = q;
         else if( strcmp( p, "ca_path" ) == 0 )
@@ -537,6 +468,7 @@ int main( int argc, char *argv[] )
             if( opt.force_ciphersuite[0] == 0 )
             {
                 ret = 2;
+                polarssl_printf( "Invalid ciphersuite\n" );
                 goto usage;
             }
             opt.force_ciphersuite[1] = 0;
@@ -553,38 +485,61 @@ int main( int argc, char *argv[] )
                 case -1: opt.allow_legacy = SSL_LEGACY_BREAK_HANDSHAKE; break;
                 case 0:  opt.allow_legacy = SSL_LEGACY_NO_RENEGOTIATION; break;
                 case 1:  opt.allow_legacy = SSL_LEGACY_ALLOW_RENEGOTIATION; break;
-                default: goto usage;
+                default:
+                    polarssl_printf( "Invalid value for option %s (must be -1, 0 or 1)\n",
+                                p );
+                    goto usage;
             }
         }
         else if( strcmp( p, "renegotiate" ) == 0 )
         {
             opt.renegotiate = atoi( q );
             if( opt.renegotiate < 0 || opt.renegotiate > 1 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be 0 or 1)\n",
+                                p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "exchanges" ) == 0 )
         {
             opt.exchanges = atoi( q );
             if( opt.exchanges < 1 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be >=1)\n",
+                                p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "reconnect" ) == 0 )
         {
             opt.reconnect = atoi( q );
             if( opt.reconnect < 0 || opt.reconnect > 2 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be 0..2)\n",
+                                p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "reco_delay" ) == 0 )
         {
             opt.reco_delay = atoi( q );
             if( opt.reco_delay < 0 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be >=0)\n",
+                                p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "tickets" ) == 0 )
         {
             opt.tickets = atoi( q );
             if( opt.tickets < 0 || opt.tickets > 2 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be 0..2)\n",
+                                p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "alpn" ) == 0 )
         {
@@ -596,7 +551,10 @@ int main( int argc, char *argv[] )
             {
                 case 0: opt.fallback = SSL_IS_NOT_FALLBACK; break;
                 case 1: opt.fallback = SSL_IS_FALLBACK; break;
-                default: goto usage;
+                default:
+                    polarssl_printf( "Invalid value for option %s (must be 0 or 1)\n",
+                                    p );
+                    goto usage;
             }
         }
         else if( strcmp( p, "extended_ms" ) == 0 )
@@ -605,7 +563,10 @@ int main( int argc, char *argv[] )
             {
                 case 0: opt.extended_ms = SSL_EXTENDED_MS_DISABLED; break;
                 case 1: opt.extended_ms = SSL_EXTENDED_MS_ENABLED; break;
-                default: goto usage;
+                default:
+                    polarssl_printf( "Invalid value for option %s (must be 0 or 1)\n",
+                                    p );
+                    goto usage;
             }
         }
         else if( strcmp( p, "curves" ) == 0 )
@@ -616,33 +577,22 @@ int main( int argc, char *argv[] )
             {
                 case 0: opt.etm = SSL_ETM_DISABLED; break;
                 case 1: opt.etm = SSL_ETM_ENABLED; break;
-                default: goto usage;
+                default:
+                    polarssl_printf( "Invalid value for option %s (must be 0 or 1)\n",
+                                    p );
+                    goto usage;
             }
         }
         else if( strcmp( p, "min_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-                opt.min_version = SSL_MINOR_VERSION_0;
-            else if( strcmp( q, "tls1" ) == 0 )
-                opt.min_version = SSL_MINOR_VERSION_1;
-            else if( strcmp( q, "tls1_1" ) == 0 )
-                opt.min_version = SSL_MINOR_VERSION_2;
-            else if( strcmp( q, "tls1_2" ) == 0 )
-                opt.min_version = SSL_MINOR_VERSION_3;
-            else
+            opt.min_version = polarssl_ssl_test_parse_version( p, q );
+            if( opt.min_version == POLARSSL_SSL_TEST_BAD_VERSION )
                 goto usage;
         }
         else if( strcmp( p, "max_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-                opt.max_version = SSL_MINOR_VERSION_0;
-            else if( strcmp( q, "tls1" ) == 0 )
-                opt.max_version = SSL_MINOR_VERSION_1;
-            else if( strcmp( q, "tls1_1" ) == 0 )
-                opt.max_version = SSL_MINOR_VERSION_2;
-            else if( strcmp( q, "tls1_2" ) == 0 )
-                opt.max_version = SSL_MINOR_VERSION_3;
-            else
+            opt.max_version = polarssl_ssl_test_parse_version( p, q );
+            if( opt.max_version == POLARSSL_SSL_TEST_BAD_VERSION )
                 goto usage;
         }
         else if( strcmp( p, "arc4" ) == 0 )
@@ -651,44 +601,28 @@ int main( int argc, char *argv[] )
             {
                 case 0:     opt.arc4 = SSL_ARC4_DISABLED;   break;
                 case 1:     opt.arc4 = SSL_ARC4_ENABLED;    break;
-                default:    goto usage;
+                default:
+                    polarssl_printf( "Invalid value for option %s (must be 0 or 1)\n",
+                                    p );
+                    goto usage;
             }
         }
         else if( strcmp( p, "force_version" ) == 0 )
         {
-            if( strcmp( q, "ssl3" ) == 0 )
-            {
-                opt.min_version = SSL_MINOR_VERSION_0;
-                opt.max_version = SSL_MINOR_VERSION_0;
-            }
-            else if( strcmp( q, "tls1" ) == 0 )
-            {
-                opt.min_version = SSL_MINOR_VERSION_1;
-                opt.max_version = SSL_MINOR_VERSION_1;
-            }
-            else if( strcmp( q, "tls1_1" ) == 0 )
-            {
-                opt.min_version = SSL_MINOR_VERSION_2;
-                opt.max_version = SSL_MINOR_VERSION_2;
-            }
-            else if( strcmp( q, "tls1_2" ) == 0 )
-            {
-                opt.min_version = SSL_MINOR_VERSION_3;
-                opt.max_version = SSL_MINOR_VERSION_3;
-            }
-            else
+            int version = polarssl_ssl_test_parse_version( p, q );
+            if( version == POLARSSL_SSL_TEST_BAD_VERSION )
                 goto usage;
+            opt.min_version = version;
+            opt.max_version = version;
         }
         else if( strcmp( p, "auth_mode" ) == 0 )
         {
-            if( strcmp( q, "none" ) == 0 )
-                opt.auth_mode = SSL_VERIFY_NONE;
-            else if( strcmp( q, "optional" ) == 0 )
-                opt.auth_mode = SSL_VERIFY_OPTIONAL;
-            else if( strcmp( q, "required" ) == 0 )
-                opt.auth_mode = SSL_VERIFY_REQUIRED;
-            else
+            if( ( opt.auth_mode = polarssl_ssl_test_get_auth_mode( q ) ) < 0 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be none|optional|required)\n",
+                                 p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "max_frag_len" ) == 0 )
         {
@@ -701,7 +635,11 @@ int main( int argc, char *argv[] )
             else if( strcmp( q, "4096" ) == 0 )
                 opt.mfl_code = SSL_MAX_FRAG_LEN_4096;
             else
+            {
+                polarssl_printf( "Invalid value for option %s (must be 512, 1024, 2048 or 4096)\n",
+                                p );
                 goto usage;
+            }
         }
         else if( strcmp( p, "trunc_hmac" ) == 0 )
         {
@@ -709,17 +647,27 @@ int main( int argc, char *argv[] )
             {
                 case 0: opt.trunc_hmac = SSL_TRUNC_HMAC_DISABLED; break;
                 case 1: opt.trunc_hmac = SSL_TRUNC_HMAC_ENABLED; break;
-                default: goto usage;
+                default:
+                    polarssl_printf( "Invalid value for option %s (must be 0 or 1)\n",
+                                p );
+                    goto usage;
             }
         }
         else if( strcmp( p, "recsplit" ) == 0 )
         {
             opt.recsplit = atoi( q );
             if( opt.recsplit < 0 || opt.recsplit > 1 )
+            {
+                polarssl_printf( "Invalid value for option %s (must be 0 or 1)\n",
+                                p );
                 goto usage;
+            }
         }
         else
+        {
+            polarssl_printf( "Unknown option: %s\n", p );
             goto usage;
+        }
     }
 
 #if defined(POLARSSL_DEBUG_C)
@@ -728,171 +676,48 @@ int main( int argc, char *argv[] )
 
     if( opt.force_ciphersuite[0] > 0 )
     {
-        const ssl_ciphersuite_t *ciphersuite_info;
-        ciphersuite_info = ssl_ciphersuite_from_id( opt.force_ciphersuite[0] );
-
-        if( opt.max_version != -1 &&
-            ciphersuite_info->min_minor_ver > opt.max_version )
+        ret = polarssl_ssl_test_forced_ciphersuite( opt.force_ciphersuite[0],
+                                                    opt.min_version,
+                                                    opt.max_version );
+        if( ret != 0 )
         {
-            polarssl_printf("forced ciphersuite not allowed with this protocol version\n");
-            ret = 2;
+            /* Explanation message already printed above */
             goto usage;
         }
-        if( opt.min_version != -1 &&
-            ciphersuite_info->max_minor_ver < opt.min_version )
-        {
-            polarssl_printf("forced ciphersuite not allowed with this protocol version\n");
-            ret = 2;
-            goto usage;
-        }
-        if( opt.max_version > ciphersuite_info->max_minor_ver )
-            opt.max_version = ciphersuite_info->max_minor_ver;
-        if( opt.min_version < ciphersuite_info->min_minor_ver )
-            opt.min_version = ciphersuite_info->min_minor_ver;
     }
 
 #if defined(POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED)
     /*
      * Unhexify the pre-shared key if any is given
      */
-    if( strlen( opt.psk ) )
+    if( polarssl_ssl_test_unhexify( opt.psk,
+                                    psk, POLARSSL_PSK_MAX_LEN,
+                                    &psk_len ) != 0 )
     {
-        unsigned char c;
-        size_t j;
-
-        if( strlen( opt.psk ) % 2 != 0 )
-        {
-            polarssl_printf("pre-shared key not valid hex\n");
-            goto exit;
-        }
-
-        psk_len = strlen( opt.psk ) / 2;
-
-        for( j = 0; j < strlen( opt.psk ); j += 2 )
-        {
-            c = opt.psk[j];
-            if( c >= '0' && c <= '9' )
-                c -= '0';
-            else if( c >= 'a' && c <= 'f' )
-                c -= 'a' - 10;
-            else if( c >= 'A' && c <= 'F' )
-                c -= 'A' - 10;
-            else
-            {
-                polarssl_printf("pre-shared key not valid hex\n");
-                goto exit;
-            }
-            psk[ j / 2 ] = c << 4;
-
-            c = opt.psk[j + 1];
-            if( c >= '0' && c <= '9' )
-                c -= '0';
-            else if( c >= 'a' && c <= 'f' )
-                c -= 'a' - 10;
-            else if( c >= 'A' && c <= 'F' )
-                c -= 'A' - 10;
-            else
-            {
-                polarssl_printf("pre-shared key not valid hex\n");
-                goto exit;
-            }
-            psk[ j / 2 ] |= c;
-        }
+        polarssl_printf( "pre-shared key not valid hex\n" );
+        goto exit;
     }
 #endif /* POLARSSL_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
 #if defined(POLARSSL_SSL_SET_CURVES)
-    if( opt.curves != NULL )
-    {
-        p = (char *) opt.curves;
-        i = 0;
-
-        if( strcmp( p, "none" ) == 0 )
-        {
-            curve_list[0] = POLARSSL_ECP_DP_NONE;
-        }
-        else if( strcmp( p, "default" ) != 0 )
-        {
-            /* Leave room for a final NULL in curve list */
-            while( i < CURVE_LIST_SIZE - 1 && *p != '\0' )
-            {
-                q = p;
-
-                /* Terminate the current string */
-                while( *p != ',' && *p != '\0' )
-                    p++;
-                if( *p == ',' )
-                    *p++ = '\0';
-
-                if( ( curve_cur = ecp_curve_info_from_name( q ) ) != NULL )
-                {
-                    curve_list[i++] = curve_cur->grp_id;
-                }
-                else
-                {
-                    polarssl_printf( "unknown curve %s\n", q );
-                    polarssl_printf( "supported curves: " );
-                    for( curve_cur = ecp_curve_list();
-                         curve_cur->grp_id != POLARSSL_ECP_DP_NONE;
-                         curve_cur++ )
-                    {
-                        polarssl_printf( "%s ", curve_cur->name );
-                    }
-                    polarssl_printf( "\n" );
-                    goto exit;
-                }
-            }
-
-            polarssl_printf( "Number of curves: %d\n", i );
-
-            if( i == CURVE_LIST_SIZE - 1 && *p != '\0' )
-            {
-                polarssl_printf( "curves list too long, maximum %d",
-                                 CURVE_LIST_SIZE - 1 );
-                goto exit;
-            }
-
-            curve_list[i] = POLARSSL_ECP_DP_NONE;
-        }
-    }
+    ret = polarssl_ssl_test_parse_curves( (char *) opt.curves, curve_list );
+    if( ret != 0 )
+        goto exit;
 #endif /* POLARSSL_SSL_SET_CURVES */
 
 #if defined(POLARSSL_SSL_ALPN)
-    if( opt.alpn_string != NULL )
-    {
-        p = (char *) opt.alpn_string;
-        i = 0;
-
-        /* Leave room for a final NULL in alpn_list */
-        while( i < ALPN_LIST_SIZE - 1 && *p != '\0' )
-        {
-            alpn_list[i++] = p;
-
-            /* Terminate the current string and move on to next one */
-            while( *p != ',' && *p != '\0' )
-                p++;
-            if( *p == ',' )
-                *p++ = '\0';
-        }
-    }
+    ret = polarssl_ssl_test_parse_alpn( (char *) opt.alpn_string, alpn_list );
+    if( ret != 0 )
+        goto exit;
 #endif /* POLARSSL_SSL_ALPN */
 
     /*
-     * 0. Initialize the RNG and the session data
+     * 1.0. Initialize the RNG
      */
-    polarssl_printf( "\n  . Seeding the random number generator..." );
-    fflush( stdout );
-
-    entropy_init( &entropy );
-    if( ( ret = ctr_drbg_init( &ctr_drbg, entropy_func, &entropy,
-                               (const unsigned char *) pers,
-                               strlen( pers ) ) ) != 0 )
-    {
-        polarssl_printf( " failed\n  ! ctr_drbg_init returned -0x%x\n", -ret );
+    ret = polarssl_ssl_test_rng_init( opt.fake_entropy, pers,
+                                      &entropy, &ctr_drbg );
+    if( ret != 0 )
         goto exit;
-    }
-
-    polarssl_printf( " ok\n" );
 
 #if defined(POLARSSL_X509_CRT_PARSE_C)
     /*
@@ -920,7 +745,7 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        polarssl_printf("POLARSSL_CERTS_C not defined.");
+        polarssl_printf( "POLARSSL_CERTS_C not defined." );
     }
 #endif
     if( ret < 0 )
@@ -953,7 +778,7 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        polarssl_printf("POLARSSL_CERTS_C not defined.");
+        polarssl_printf( "POLARSSL_CERTS_C not defined." );
     }
 #endif
     if( ret != 0 )
@@ -976,7 +801,7 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        polarssl_printf("POLARSSL_CERTS_C not defined.");
+        polarssl_printf( "POLARSSL_CERTS_C not defined." );
     }
 #endif
     if( ret != 0 )
@@ -1087,10 +912,12 @@ int main( int argc, char *argv[] )
 #endif
 
     ssl_set_rng( &ssl, ctr_drbg_random, &ctr_drbg );
-    ssl_set_dbg( &ssl, my_debug, stdout );
+    ssl_set_dbg( &ssl, polarssl_ssl_test_debug, stdout );
 
     if( opt.nbio == 2 )
-        ssl_set_bio( &ssl, my_recv, &server_fd, my_send, &server_fd );
+        ssl_set_bio( &ssl,
+                     polarssl_ssl_test_recv, &server_fd,
+                     polarssl_ssl_test_send, &server_fd );
     else
         ssl_set_bio( &ssl, net_recv, &server_fd, net_send, &server_fd );
 
@@ -1196,7 +1023,7 @@ int main( int argc, char *argv[] )
 
     if( opt.reconnect != 0 )
     {
-        polarssl_printf("  . Saving session for reuse..." );
+        polarssl_printf( "  . Saving session for reuse..." );
         fflush( stdout );
 
         if( ( ret = ssl_get_session( &ssl, &saved_session ) ) != 0 )
@@ -1437,7 +1264,7 @@ exit:
     {
         char error_buf[100];
         polarssl_strerror( ret, error_buf, 100 );
-        polarssl_printf("Last error was: -0x%X - %s\n\n", -ret, error_buf );
+        polarssl_printf( "Last error was: -0x%X - %s\n\n", -ret, error_buf );
     }
 #endif
 
@@ -1452,7 +1279,8 @@ exit:
     ssl_session_free( &saved_session );
     ssl_free( &ssl );
     ctr_drbg_free( &ctr_drbg );
-    entropy_free( &entropy );
+    if( ! polarssl_ssl_test_rng_use_fake_entropy( opt.fake_entropy ) )
+        entropy_free( &entropy );
 
 #if defined(_WIN32)
     polarssl_printf( "  + Press Enter to exit this program.\n" );
@@ -1465,6 +1293,4 @@ exit:
 
     return( ret );
 }
-#endif /* POLARSSL_BIGNUM_C && POLARSSL_ENTROPY_C && POLARSSL_SSL_TLS_C &&
-          POLARSSL_SSL_CLI_C && POLARSSL_NET_C && POLARSSL_RSA_C &&
-          POLARSSL_CTR_DRBG_C */
+#endif /* POLARSSL_PROGRAMS_SSL__PREREQUISITES && POLARSSL_SSL_CLI_C */

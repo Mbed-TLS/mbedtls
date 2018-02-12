@@ -34,37 +34,80 @@ MEMCHECK=0
 FILTER='.*'
 EXCLUDE='^$'
 
+PRESERVE_LOGS=0
+
+# Pick a "unique" server port in the range 10000-19999. It may be
+# overridden by a command line option.
+PORT=$(($$ % 10000 + 10000))
+
+# Extra options for the test programs, to be added on the command line.
+P_SRV_EXTRA=
+P_CLI_EXTRA=
+
 print_usage() {
-    echo "Usage: $0 [options]"
-    printf "  -h|--help\tPrint this help.\n"
-    printf "  -m|--memcheck\tCheck memory leaks and errors.\n"
-    printf "  -f|--filter\tOnly matching tests are executed (default: '$FILTER')\n"
-    printf "  -e|--exclude\tMatching tests are excluded (default: '$EXCLUDE')\n"
+    cat <<EOF
+Usage: $0 [options]
+     --client-opt=ARG   Additional option(s) to pass to $P_CLI
+  -e|--exclude=BRE      Matching tests are excluded (default: '$EXCLUDE')
+  -f|--filter=BRE       Only matching tests are executed (default: '$FILTER')
+  -h|--help             Print this help
+  -m|--memcheck         Check memory leaks and errors
+     --port=NUM         TCP/UDP port (default: randomish 1xxxx)
+  -p|--preserve-logs    Preserve logs of successful tests as well
+     --server-opt=ARG   Additional option(s) to pass to $P_SRV
+EOF
 }
 
 get_options() {
-    while [ $# -gt 0 ]; do
-        case "$1" in
-            -f|--filter)
-                shift; FILTER=$1
-                ;;
-            -e|--exclude)
-                shift; EXCLUDE=$1
-                ;;
-            -m|--memcheck)
-                MEMCHECK=1
-                ;;
-            -h|--help)
+    opt=
+    while [ $# -gt 0 ] || [ -n "$opt" ]; do
+        if [ -z "$opt" ]; then
+            opt="$1"
+            shift
+        fi
+        target= append=
+        case "${opt%%=*}" in
+            --client-opt) target=P_CLI_EXTRA append=1;;
+            -e*|--exclude) target=EXCLUDE;;
+            -f*|--filter) target=FILTER;;
+            -m*|--memcheck) MEMCHECK=1;;
+            --port) target=PORT;;
+            -p*|--preserve-logs) PRESERVE_LOGS=1;;
+            --server-opt) target=P_SRV_EXTRA append=1;;
+            -h*|--help)
                 print_usage
                 exit 0
                 ;;
             *)
-                echo "Unknown argument: '$1'"
-                print_usage
+                echo >&2 "Unknown argument: '$opt'"
+                print_usage >&2
                 exit 1
                 ;;
         esac
-        shift
+        if [ -n "$target" ]; then
+            case "$opt" in
+                --*=*) value="${opt#*=}";;
+                --*|-?)
+                    if [ $# -eq 0 ]; then
+                        echo >&2 "Missing argument for $opt"
+                        exit 1
+                    fi
+                    value="$1"; shift;;
+                *) value="${opt##??}";;
+            esac
+            if [ -n "$append" ]; then
+                eval "$target=\"\$$target \$value\""
+            else
+                eval "$target=\$value"
+            fi
+            opt=
+        else
+            case "$opt" in
+                -[!-]?*) # bundled short options
+                    opt=-"${opt#??}";;
+                *) opt=;;
+            esac
+        fi
     done
 }
 
@@ -372,6 +415,11 @@ run_test() {
 
     # if we're here, everything is ok
     echo "PASS"
+
+    if [ "$PRESERVE_LOGS" -gt 0 ]; then
+        mv $SRV_OUT o-srv-${TESTS}.log
+        mv $CLI_OUT o-cli-${TESTS}.log
+    fi
     rm -f $SRV_OUT $CLI_OUT
 }
 
@@ -428,13 +476,9 @@ else
     DOG_DELAY=20
 fi
 
-# Pick a "unique" port in the range 10000-19999.
-PORT="0000$$"
-PORT="1$( printf $PORT | tail -c 4 )"
-
 # fix commands to use this port
-P_SRV="$P_SRV server_port=$PORT"
-P_CLI="$P_CLI server_port=$PORT"
+P_SRV="$P_SRV server_port=$PORT $P_SRV_EXTRA"
+P_CLI="$P_CLI server_port=$PORT $P_CLI_EXTRA"
 O_SRV="$O_SRV -accept $PORT"
 O_CLI="$O_CLI -connect localhost:$PORT"
 G_SRV="$G_SRV -p $PORT"

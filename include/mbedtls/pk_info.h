@@ -71,7 +71,7 @@ extern "C" {
  * - Keep the mbedtls_pk_info_t structure hidden and declare a function
  *   to call instead of mbedtls_pk_setup. This function should have an
  *   interface of the form
- *    `int mbedtls_pk_setup_myengine(mbedtls_pk_context *, ...)`
+ *    'int mbedtls_pk_setup_myengine(mbedtls_pk_context *, ...)'
  *   where the extra parameters depend on the engine, e.g. handles to keys
  *   stored in an external cryptographic module.
  *
@@ -228,9 +228,9 @@ struct mbedtls_pk_info_t
      * type does not match the semantic type of \c prv (RSA, ECC or other),
      * then check_pair_func must return #MBEDTLS_ERR_PK_TYPE_MISMATCH.
      *
-     * If \c pub and \c prv are opaque keys from the same engines (i.e. ``),
-     * then check_pair_func must return 0, `#MBEDTLS_ERR_PK_TYPE_MISMATCH`, or
-     * `#MBEDTLS_ERR_RSA_KEY_CHECK_FAILED` or `#MBEDTLS_ERR_ECP_BAD_INPUT_DATA`
+     * If \c pub and \c prv are opaque keys from the same engines (i.e. ''),
+     * then check_pair_func must return 0, #MBEDTLS_ERR_PK_TYPE_MISMATCH, or
+     * #MBEDTLS_ERR_RSA_KEY_CHECK_FAILED or #MBEDTLS_ERR_ECP_BAD_INPUT_DATA
      * as in the case of transparent keys.
      *
      * If \c pub is an opaque key which is not from the same engine as \c prv,

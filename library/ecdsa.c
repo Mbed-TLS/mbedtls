@@ -287,10 +287,13 @@ cleanup:
 #endif /* MBEDTLS_ECDSA_VERIFY_ALT */
 
 /*
- * Convert a signature (given by context) to ASN.1
+ * Convert a signature (given by context) to ASN.1.
+ * This function may leave a half-written upon encountering an error, and
+ * is for internal use only.
  */
-int mbedtls_ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
-                             unsigned char *sig, size_t *slen, size_t ssize )
+static int internal_ecdsa_signature_to_asn1( const mbedtls_mpi *r,
+                                      const mbedtls_mpi *s, unsigned char *sig,
+                                      size_t *slen, size_t ssize )
 {
     int ret;
     unsigned char *p = sig + ssize;
@@ -308,6 +311,18 @@ int mbedtls_ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
     *slen = len;
 
     return( 0 );
+}
+
+/*
+ * Convert a signature (given by context) to ASN.1, zeroize the buffer on error
+ */
+int mbedtls_ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
+                             unsigned char *sig, size_t *slen, size_t ssize )
+{
+    int ret = internal_ecdsa_signature_to_asn1( r, s, sig, slen, ssize );
+    if( ret != 0 )
+        memset( sig, ssize, 0 );
+    return( ret );
 }
 
 /*

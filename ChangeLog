@@ -11,6 +11,7 @@ Changes
    * Fix tag lengths and value ranges in the documentation of CCM encryption.
      Contributed by Mathieu Briand.
    * Fix typo in a comment ctr_drbg.c. Contributed by Paul Sokolovsky.
+   * Remove support for the library reference configuration for picocoin.
 
 = mbed TLS 2.7.0 branch released 2018-02-03
 

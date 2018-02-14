@@ -23,8 +23,6 @@ my %configs = (
     'config-suite-b.h' => {
         'compat' => "-m tls1_2 -f 'ECDHE-ECDSA.*AES.*GCM' -p mbedTLS",
     },
-    'config-picocoin.h' => {
-    },
     'config-ccm-psk-tls1_2.h' => {
         'compat' => '-m tls1_2 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
     },

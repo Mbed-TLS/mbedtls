@@ -1,5 +1,15 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.7.x branch released 2018-xx-xx
+
+Bugfix
+   * Fix the name of a DHE parameter that was accidentally changed in 2.7.0.
+     Fixes #1358.
+
+Changes
+   * Fix tag lengths and value ranges in the documentation of CCM encryption.
+     Contributed by Mathieu Briand.
+
 = mbed TLS 2.7.0 branch released 2018-02-03
 
 Security

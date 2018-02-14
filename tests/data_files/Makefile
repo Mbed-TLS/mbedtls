@@ -66,7 +66,21 @@ server2-sha256.crt: server2-rsa.csr
 	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA test-ca-sha256.crt -CAkey $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 4 -days 3653 -sha256 -in server2-rsa.csr -out $@
 all_final += server2-sha256.crt
 
+rsa_pkcs1_2048_public.pem: server8.key
+	$(OPENSSL)  rsa -in $< -outform PEM -RSAPublicKey_out -out $@
+all_final += rsa_pkcs1_2048_public.pem
 
+rsa_pkcs1_2048_public.der: rsa_pkcs1_2048_public.pem
+	$(OPENSSL) rsa -RSAPublicKey_in -in $< -outform DER -RSAPublicKey_out -out $@
+all_final += rsa_pkcs1_2048_public.der
+
+rsa_pkcs8_2048_public.pem: server8.key
+	$(OPENSSL)  rsa -in $< -outform PEM -pubout -out $@
+all_final += rsa_pkcs8_2048_public.pem
+
+rsa_pkcs8_2048_public.der: rsa_pkcs8_2048_public.pem
+	$(OPENSSL) rsa -pubin -in $< -outform DER -pubout -out $@
+all_final += rsa_pkcs8_2048_public.der
 
 ################################################################
 #### Generate various RSA keys

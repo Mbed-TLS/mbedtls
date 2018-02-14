@@ -8,6 +8,7 @@ Features
      This allows reading encrypted PEM files produced by software that
      uses PBKDF2-SHA2, such as OpenSSL 1.1. Submitted by Antonio Quartulli,
      OpenVPN Inc. Fixes #1339
+   * Add support for public keys encoded in PKCS#1 format. #1122
 
 Bugfix
    * Fix the name of a DHE parameter that was accidentally changed in 2.7.0.

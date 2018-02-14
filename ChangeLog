@@ -5,7 +5,9 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Features
    * Extend PKCS#8 interface by introducing support for the entire SHA
      algorithms family when encrypting private keys using PKCS#5 v2.0.
-     Submitted by Antonio Quartulli, OpenVPN Inc.
+     This allows reading encrypted PEM files produced by software that
+     uses PBKDF2-SHA2, such as OpenSSL 1.1. Submitted by Antonio Quartulli,
+     OpenVPN Inc. Fixes #1339
 
 = mbed TLS 2.1.10 branch released 2018-02-03
 

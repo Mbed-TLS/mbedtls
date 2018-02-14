@@ -5,8 +5,8 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/rsa.h"
 
-/* For detecting 64-bit compilation */
-#include "mbedtls/bignum.h"
+#include <limits.h>
+#include <stdint.h>
 
 static int rnd_std_rand( void *rng_state, unsigned char *output, size_t len );
 
@@ -413,11 +413,14 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_RSA_C:MBEDTLS_HAVE_INT64 */
+/* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
 void pk_rsa_overflow( )
 {
     mbedtls_pk_context pk;
-    size_t hash_len = (size_t)-1;
+    size_t hash_len = SIZE_MAX;
+
+    if( SIZE_MAX <= UINT_MAX )
+        return;
 
     mbedtls_pk_init( &pk );
 
@@ -486,13 +489,13 @@ void pk_rsa_alt( )
     TEST_ASSERT( strcmp( mbedtls_pk_get_name( &alt ), "RSA-alt" ) == 0 );
 
     /* Test signature */
-    TEST_ASSERT( mbedtls_pk_sign( &alt, MBEDTLS_MD_NONE, hash, sizeof hash,
-                          sig, &sig_len, rnd_std_rand, NULL ) == 0 );
-#if defined(MBEDTLS_HAVE_INT64)
-    TEST_ASSERT( mbedtls_pk_sign( &alt, MBEDTLS_MD_NONE, hash, (size_t)-1,
-                          NULL, NULL, rnd_std_rand, NULL ) ==
+#if SIZE_MAX > UINT_MAX
+    TEST_ASSERT( mbedtls_pk_sign( &alt, MBEDTLS_MD_NONE, hash, SIZE_MAX,
+                                  sig, &sig_len, rnd_std_rand, NULL ) ==
                  MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-#endif /* MBEDTLS_HAVE_INT64 */
+#endif /* SIZE_MAX > UINT_MAX */
+    TEST_ASSERT( mbedtls_pk_sign( &alt, MBEDTLS_MD_NONE, hash, sizeof hash,
+                                  sig, &sig_len, rnd_std_rand, NULL ) == 0 );
     TEST_ASSERT( sig_len == RSA_KEY_LEN );
     TEST_ASSERT( mbedtls_pk_verify( &rsa, MBEDTLS_MD_NONE,
                             hash, sizeof hash, sig, sig_len ) == 0 );

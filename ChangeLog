@@ -1,5 +1,10 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.7.x branch released 2018-xx-xx
+
+Changes
+   * Fix typo in a comment ctr_drbg.c. Contributed by Paul Sokolovsky.
+
 = mbed TLS 2.7.0 branch released 2018-02-03
 
 Security

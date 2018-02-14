@@ -2,7 +2,8 @@
  * \file pk.h
  *
  * \brief Public Key cryptography abstraction layer
- *
+ */
+/*
  *  Copyright (C) 2006-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -89,9 +90,9 @@ extern "C" {
 typedef enum {
     MBEDTLS_PK_NONE=0,          /**< Unused context object */
     MBEDTLS_PK_RSA,             /**< RSA key pair (normal software implementation) with PKCS#1 v1.5 or PSS context */
-    MBEDTLS_PK_ECKEY,           /**< ECC key pair with ECDSA context */
-    MBEDTLS_PK_ECKEY_DH,        /**< ECC key pair with ECDH context */
-    MBEDTLS_PK_ECDSA,           /**< ECC key pair with ECDSA context */
+    MBEDTLS_PK_ECKEY,           /**< Generic ECC key pair */
+    MBEDTLS_PK_ECKEY_DH,        /**< ECC key pair restricted to key exchanges */
+    MBEDTLS_PK_ECDSA,           /**< ECC key pair restricted to signature/verification */
     MBEDTLS_PK_RSA_ALT,         /**< RSA (alternative implementation) */
     MBEDTLS_PK_RSASSA_PSS,      /**< RSA key pair; same context as MBEDTLS_PK_RSA, but used to represent keys with the algorithm identifier id-RSASSA-PSS */
     MBEDTLS_PK_OPAQUE,          /**< Opaque key pair (cryptographic material held in an external module).*/
@@ -137,7 +138,14 @@ typedef struct
 typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
 
 /**
- * \brief           Key pair container
+ * \brief           Context structure for public-key cryptographic operations.
+ *
+ * \note            This structure contains all the information needed for
+ *                  performing a public-key cryptography operation. Depending
+ *                  on the operation and the cryptographic algorithm it can
+ *                  represent either the public key or a pair of matching
+ *                  public and private keys. Also it may contain other
+ *                  implementation specific data.
  */
 typedef struct
 {
@@ -256,12 +264,9 @@ typedef size_t (*mbedtls_pk_rsa_alt_key_len_func)( void *ctx );
  *
  * \param pk_type   PK type to search for.
  *
- * \note            Different PK objects with the same type may have different
- *                  information. This function returns the information needed
- *                  to create a object with the default implementation
- *                  for the given PK operation type (rsa module for an RSA
- *                  context, ecdh module for an ECDH context, ecdsa module for
- *                  an ECDSA context).
+ * \note            This function returns NULL if pk_type indicates an opaque
+ *                  key, since the type does not provide enough information to
+ *                  build an opaque key.
  *
  * \return          The PK info associated with the type or NULL if not found.
  */
@@ -290,13 +295,13 @@ void mbedtls_pk_free( mbedtls_pk_context *ctx );
  *
  * \note            Engines that implement opaque keys may offer an
  *                  alternative setup function that take engine-dependent
- *                  parameters. If such a function exists, call it
- *                  instead of mbedtls_pk_setup. A standard way of providing
- *                  such function is by first calling the generic
- *                  mbedtls_pk_setup function (in particular taking care of
- *                  context allocation through ctx_alloc) and afterwards
- *                  proceeding to initialize the implementation-specific
- *                  context structure.
+ *                  parameters. If the documentation of the engine lists such a
+ *                  function, call it instead of mbedtls_pk_setup. A standard
+ *                  way of providing such function is by first calling the
+ *                  generic mbedtls_pk_setup function (in particular taking
+ *                  care of context allocation through ctx_alloc) and
+ *                  afterwards proceeding to initialize the
+ *                  implementation-specific context structure.
  *
  * \note            For contexts holding an RSA-alt key pair, use
  *                  \c mbedtls_pk_setup_rsa_alt() instead.
@@ -539,7 +544,7 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
  *
  * \note            Opaque key types may omit implementing this function
  *                  by providing a NULL pointer in the mbedtls_pk_info_t structure.
- *                  An opaque \c pub never matches a transparent \c prv.
+ *                  Currently, an opaque \c pub never matches a transparent \c prv.
  */
 int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv );
 

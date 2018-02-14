@@ -1,12 +1,19 @@
 /**
  * \file pk_info.h
  *
- * \brief Public Key cryptography abstraction layer: object interface
+ * \brief Public Key cryptography abstraction layer: engine interface
  *
- *  This file contains the info structure interface used by developers to
- *  provide target-specific implementations of opaque key handling functions
- *  (called engines in the following).
- *
+ *  This file defines the interface the public-key cryptography engines
+ *  (PK engines) must implement. A PK engine defines how a public-private
+ *  key pair is represented and how to perform cryptographic operations
+ *  with it. Mbed TLS contains built-in PK engines implemented either
+ *  purely in software or with hardware acceleration support, depending
+ *  on the target platform. In addition, it is possible to define custom
+ *  opaque key engines that forward operation requests to cryptographic
+ *  modules outside Mbed TLS, such as external cryptoprocessors or general
+ *  PKCS#11 tokens.
+ */
+/*
  *  Copyright (C) 2006-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -76,11 +83,11 @@ extern "C" {
  * Some methods are optional; this is clearly indicated in their description.
  * If a method is optional, then an opaque key implementation may put NULL
  * in the corresponding field. The corresponding function in pk.h will
- * return MBEDTLS_ERR_PK_TYPE_MISMATCH in this case.
+ * return #MBEDTLS_ERR_PK_TYPE_MISMATCH in this case.
  *
  *
  * \warning: Do not declare this structure directly! It may be extended in
- * future* versions of Mbed TLS. Call the macro
+ * future versions of Mbed TLS. Call the macro
  * MBEDTLS_PK_OPAQUE_INFO_1() instead.
  * This macro is guaranteed to take parameters with the same type
  * and semantics as previous versions and fill any new field of the
@@ -93,7 +100,7 @@ struct mbedtls_pk_info_t
      * mbedtls_pk_get_type() returns this value.
      *
      * For transparent keys, this contains an indication of supported
-     * algorithms. For opaque keys, this is \c MBEDTLS_PK_OPAQUE. */
+     * algorithms. For opaque keys, this is #MBEDTLS_PK_OPAQUE. */
     mbedtls_pk_type_t type;
 
     /** Type name.
@@ -155,7 +162,8 @@ struct mbedtls_pk_info_t
      * return #MBEDTLS_ERR_PK_BAD_INPUT_DATA otherwise.
      *
      * Opaque implementations may omit this method if they do not support
-     * signing. */
+     * signing. If this method is provided, so must be
+     * \ref mbedtls_pk_info_t.signature_size_func. */
     int (*sign_func)( void *ctx, mbedtls_md_type_t md_alg,
                       const unsigned char *hash, size_t hash_len,
                       unsigned char *sig, size_t *sig_len,
@@ -200,9 +208,39 @@ struct mbedtls_pk_info_t
      *
      * mbedtls_pk_check_pair() calls this function on the private key pair
      * object \c prv. The other argument \c pub may be of any type, but it
-     * is guaranteed to be initialized.
+     * is guaranteed to be initialized. The implementation is allowed to do
+     * a probabilistic and computationally expensive check.
      *
-     * Opaque implementations may omit this method. */
+     * If \c prv is an RSA key and \c pub is a transparent RSA key
+     * (i.e. \c pub has the type #MBEDTLS_PK_RSA or #MBEDTLS_PK_RSASSA_PSS),
+     * then \c check_pair_func must return 0 if the public key is
+     * mathematically equivalent to the public part of \c prv, and
+     * #MBEDTLS_ERR_RSA_KEY_CHECK_FAILED otherwise.
+     *
+     * If \c pub is an ECC key and \c pub is a transparent ECC key that can
+     * be used for ECDSA (i.e. \c pub has the type #MBEDTLS_PK_ECKEY or
+     * #MBEDTLS_PK_ECDSA), then check_pair_func must return 0 if the public
+     * key is mathematically equivalent to the public part of prv, and
+     * #MBEDTLS_ERR_ECP_BAD_INPUT_DATA otherwise.
+     *
+     * If \c pub is a transparent key (key of type #MBEDTLS_PK_RSA,
+     * #MBEDTLS_PK_RSASSA_PSS, #MBEDTLS_PK_ECKEY or #MBEDTLS_PK_ECDSA) whose
+     * type does not match the semantic type of \c prv (RSA, ECC or other),
+     * then check_pair_func must return #MBEDTLS_ERR_PK_TYPE_MISMATCH.
+     *
+     * If \c pub and \c prv are opaque keys from the same engines (i.e. ``),
+     * then check_pair_func must return 0, `#MBEDTLS_ERR_PK_TYPE_MISMATCH`, or
+     * `#MBEDTLS_ERR_RSA_KEY_CHECK_FAILED` or `#MBEDTLS_ERR_ECP_BAD_INPUT_DATA`
+     * as in the case of transparent keys.
+     *
+     * If \c pub is an opaque key which is not from the same engine as \c prv,
+     * then check_pair_func may either return a semantically correct status as
+     * in the case of transparent keys, or it may return
+     * #MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE.
+     *
+     * Alternatively, check_pair_func may return another PK, RSA or ECP error
+     * code if applicable.
+     *  */
     int (*check_pair_func)( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv );
 
     /** Allocate a new context
@@ -213,11 +251,11 @@ struct mbedtls_pk_info_t
      * have failed and the the object remains uninitialized.
      *
      * Opaque implementations may omit this method. In this case,
-     * mbedtls_pk_setup will set the \c pk_ctx field of the mbedtls_pk_context
-     * object to NULL, and it is up to an engine-specific setup function to
-     * initialize the \c pk_ctx field. This is useful if the size of the
-     * memory depends on extra parameters passed to the engine-specific setup
-     * function. */
+     * mbedtls_pk_setup() will set the \c pk_ctx field of the
+     * mbedtls_pk_context object to NULL, and it is up to an engine-specific
+     * setup function to initialize the \c pk_ctx field. This is useful if
+     * the size of the memory depends on extra parameters passed to the
+     * engine-specific setup function. */
     void * (*ctx_alloc_func)( void );
 
     /** Free the given context
@@ -237,6 +275,36 @@ struct mbedtls_pk_info_t
 
 };
 
+/**
+ * Methods that opaque key pair objects must implement.
+ *
+ * \brief Initializer for opaque key engines
+ *
+ * The value of this macro is a suitable initializer for an object of type
+ * mbedtls_pk_info_t. It is guaranteed to remain so in future versions of the
+ * library, even if the type mbedtls_pk_info_t changes.
+ *
+ * This macro is suitable for static initializers provided that all of its
+ * parameters are constant.
+ *
+ * \param name For transparent keys, this reflects the key type. For opaque
+ * keys, this reflects the cryptographic module driver.
+ * \param get_bitlen \ref mbedtls_pk_info_t.get_bitlen method
+ * \param can_do \ref mbedtls_pk_info_t.can_do method
+ * \param signature_size_func \ref mbedtls_pk_info_t.signature_size_func method
+ * \param verify_func \ref mbedtls_pk_info_t.verify_func method
+ * \param sign_func \ref mbedtls_pk_info_t.sign_func method
+ * \param decrypt_func \ref mbedtls_pk_info_t.decrypt_func method
+ * \param encrypt_func \ref mbedtls_pk_info_t.encrypt_func method
+ * \param check_pair_func \ref mbedtls_pk_info_t.check_pair_func method
+ * \param ctx_alloc_func \ref mbedtls_pk_info_t.ctx_alloc_func method
+ * \param ctx_free_func \ref mbedtls_pk_info_t.ctx_free_func method
+ * \param debug_func \ref mbedtls_pk_info_t.debug_func method
+ *
+ * \return Initializer for an object of type mbedtls_pk_info_t with the
+ * specified field values
+ *
+ * */
 #define MBEDTLS_PK_OPAQUE_INFO_1(               \
     name                                        \
     , get_bitlen                                \

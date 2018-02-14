@@ -1,11 +1,16 @@
 /**
  * \file pk_internal.h
  *
- * \brief Public Key cryptography abstraction layer: built-in key types
+ * \brief Public Key cryptography abstraction layer: internal definitions
  *
- *  This file contains built-in types for handling various key types using
- *  the interface defined in pk_info.h.
+ * This file contains built-in types for handling natively supported key types
+ * using the interface defined in pk_info.h.
  *
+ * \warning This file contains internal definitions for the library.
+ *          The interfaces in this file may change in future versions of the
+ *          library without notice.
+ */
+/*
  *  Copyright (C) 2006-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

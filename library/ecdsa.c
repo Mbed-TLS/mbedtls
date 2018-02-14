@@ -311,7 +311,7 @@ int mbedtls_ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
 }
 
 /*
- * Compute and write signature
+ * Compute and write signature. This function assumes that sig is large enough.
  */
 int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t md_alg,
                            const unsigned char *hash, size_t hlen,

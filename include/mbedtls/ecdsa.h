@@ -83,8 +83,8 @@ static inline size_t mbedtls_ecdsa_max_sig_len( size_t bits )
 }
 
 /** The maximal size of an ECDSA signature in Bytes. */
-#define MBEDTLS_ECDSA_MAX_LEN (MBEDTLS_ECDSA_MAX_SIG_LEN( \
-        8 * MBEDTLS_ECP_MAX_BYTES ) )
+#define MBEDTLS_ECDSA_MAX_LEN \
+    ( MBEDTLS_ECDSA_MAX_SIG_LEN( 8 * MBEDTLS_ECP_MAX_BYTES ) )
 
 /**
  * \brief           The ECDSA context structure.
@@ -97,7 +97,10 @@ extern "C" {
 
 /**
  * \brief           This function computes the ECDSA signature of a
- *                  previously-hashed message.
+ *                  previously-hashed message. The signature is in
+ *                  ASN.1 SEQUENCE format, as described in <em>Standards
+ *                  for Efficient Cryptography Group (SECG): SEC1 Elliptic
+ *                  Curve Cryptography</em>, section C.5.
  *
  * \note            The deterministic version is usually preferred.
  *
@@ -210,10 +213,13 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
  * \param f_rng     The RNG function.
  * \param p_rng     The RNG parameter.
  *
- * \note            The \p sig buffer must be at least twice as large as the
- *                  size of the curve used, plus 9. For example, 73 Bytes if
- *                  a 256-bit curve is used. A buffer length of
- *                  #MBEDTLS_ECDSA_MAX_LEN is always safe.
+ * \note            The signature \p sig is expected to be ASN.1 SEQUENCE
+ *                  format, as described in <em>Standards for Efficient
+ *                  Cryptography Group (SECG): SEC1 Elliptic Curve
+ *                  Cryptography</em>, section C.5.
+ *
+ * \note            A \p sig buffer length of #MBEDTLS_ECDSA_MAX_LEN is
+ *                  always safe.
  *
  * \note            If the bitlength of the message hash is larger than the
  *                  bitlength of the group order, then the hash is truncated as
@@ -297,14 +303,16 @@ int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
  * \param ssize     Size of the sig buffer
  *
  * \note            The size of the buffer \c ssize should be at least
- *                  `MBEDTLS_ECDSA_MAX_SIG_LEN(grp->pbits)` bytes long if
- *                  the signature was produced from curve \c grp,
- *                  otherwise this function will return an error.
+ *                  `MBEDTLS_ECDSA_MAX_SIG_LEN(grp->pbits)` bytes long if the
+ *                  signature was produced from curve \c grp, otherwise
+ *                  this function may fail with the error
+ *                  MBEDTLS_ERR_ASN1_BUF_TOO_SMALL.
  *                  The output ASN.1 SEQUENCE format is as follows:
  *                  Ecdsa-Sig-Value ::= SEQUENCE {
  *                              r       INTEGER,
  *                              s       INTEGER
  *                          }
+ *                  This format is expected by \c mbedtls_ecdsa_verify.
  *
  * \return          0 if successful,
  *                  or a MBEDTLS_ERR_MPI_XXX or MBEDTLS_ERR_ASN1_XXX error code

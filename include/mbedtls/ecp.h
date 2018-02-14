@@ -542,7 +542,8 @@ int mbedtls_ecp_ansi_write_group( const mbedtls_ecp_group *grp,
  * \param format    Point format, should be a MBEDTLS_ECP_PF_XXX macro
  * \param p         Buffer to write to
  * \param size      Buffer size
- * \param olen      Number of bytes written to \c buf
+ * \param olen      Number of bytes written to \c buf on success,
+ *                  unspecified on failure.
  *
  * \return          0 on success
  *                  or \c MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL

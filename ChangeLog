@@ -1,5 +1,13 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.1.11 branch released xxxx-xx-xx
+
+Bugfix
+   * Fix assembly sequences in bn_mul.h and aesni.c to avoid segmentation
+     faults and errors when building for the 64-bit ILP32 ABI. Found and fixed
+     by James Cowgill.
+   * Fix test_suite_pk to work on 64-bit ILP32 systems. #849
+
 = mbed TLS 2.1.10 branch released 2018-02-03
 
 Security

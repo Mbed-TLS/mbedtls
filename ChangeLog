@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Changes
+   * Include configuration file in all header files that use configuration,
+     instead of relying on other header files that they include.
+     Inserted as an enhancement for #1371
+
 = mbed TLS 2.1.13 branch released 2018-06-18
 
 Bugfix

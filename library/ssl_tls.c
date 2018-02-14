@@ -843,8 +843,13 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
     {
-        mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc, transform->maclen );
-        mbedtls_md_hmac_starts( &transform->md_ctx_dec, mac_dec, transform->maclen );
+        /*Not necessary for AEAD ciphers*/
+        if( cipher_info->mode != MBEDTLS_MODE_GCM &&
+            cipher_info->mode != MBEDTLS_MODE_CCM )
+        {
+	        mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc, transform->maclen );
+        	mbedtls_md_hmac_starts( &transform->md_ctx_dec, mac_dec, transform->maclen );
+	}
     }
     else
 #endif

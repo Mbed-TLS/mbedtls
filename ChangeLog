@@ -16,6 +16,11 @@ Bugfix
      programs/pkey/gen_key which previously led to compilation failure
      on some toolchains. Reported by phoenixmcallister. Fixes #2170.
 
+Changes
+   * Include configuration file in all header files that use configuration,
+     instead of relying on other header files that they include.
+     Inserted as an enhancement for #1371
+
 = mbed TLS 2.7.8 branch released 2018-11-30
 
 Security

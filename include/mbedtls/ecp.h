@@ -24,6 +24,12 @@
 #ifndef MBEDTLS_ECP_H
 #define MBEDTLS_ECP_H
 
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
+
 #include "bignum.h"
 
 /*

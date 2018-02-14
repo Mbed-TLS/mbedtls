@@ -321,7 +321,7 @@ int mbedtls_ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
 {
     int ret = internal_ecdsa_signature_to_asn1( r, s, sig, slen, ssize );
     if( ret != 0 )
-        memset( sig, ssize, 0 );
+        memset( sig, 0, ssize );
     return( ret );
 }
 

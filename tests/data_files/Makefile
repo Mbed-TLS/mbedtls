@@ -80,6 +80,30 @@ all_final += server2-ocsp-nocheck.crt
 
 
 ################################################################
+#### Generate OCSP responses using existing certificates
+################################################################
+
+ocsp-resp-status-malformed.der:
+	@printf "\x30\x03\x0A\x01\x01" > $@
+all_final += ocsp-resp-status-malformed.der
+
+ocsp-resp-status-internalerror.der:
+	@printf "\x30\x03\x0A\x01\x02" > $@
+all_final += ocsp-resp-status-internal-error.der
+
+ocsp-resp-status-try-later.der:
+	@printf "\x30\x03\x0A\x01\x03" > $@
+all_final += ocsp-resp-status-try-later.der
+
+ocsp-resp-status-sig-required.der:
+	@printf "\x30\x03\x0A\x01\x05" > $@
+all_final += ocsp-resp-status-sig-required.der
+
+ocsp-resp-status-unauthorized.der:
+	@printf "\x30\x03\x0A\x01\x06" > $@
+all_final += ocsp-resp-status-unauthorized.der
+
+################################################################
 #### Meta targets
 ################################################################
 

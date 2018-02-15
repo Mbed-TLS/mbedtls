@@ -682,6 +682,10 @@ add_mbedtls_ciphersuites()
                     TLS-ECDHE-ECDSA-WITH-AES-256-CCM                \
                     TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8              \
                     TLS-ECDHE-ECDSA-WITH-AES-256-CCM-8              \
+                    TLS-ECDHE-ECDSA-WITH-ARIA-256-GCM-SHA384        \
+                    TLS-ECDHE-ECDSA-WITH-ARIA-256-CBC-SHA384        \
+                    TLS-ECDHE-ECDSA-WITH-ARIA-128-GCM-SHA256        \
+                    TLS-ECDHE-ECDSA-WITH-ARIA-128-CBC-SHA256        \
                     "
             fi
             ;;
@@ -698,6 +702,14 @@ add_mbedtls_ciphersuites()
                     TLS-RSA-WITH-AES-256-CCM-8                      \
                     TLS-DHE-RSA-WITH-AES-128-CCM-8                  \
                     TLS-DHE-RSA-WITH-AES-256-CCM-8                  \
+                    TLS-ECDHE-RSA-WITH-ARIA-256-GCM-SHA384          \
+                    TLS-DHE-RSA-WITH-ARIA-256-GCM-SHA384            \
+                    TLS-ECDHE-RSA-WITH-ARIA-256-CBC-SHA384          \
+                    TLS-DHE-RSA-WITH-ARIA-256-CBC-SHA384            \
+                    TLS-ECDHE-RSA-WITH-ARIA-128-GCM-SHA256          \
+                    TLS-DHE-RSA-WITH-ARIA-128-GCM-SHA256            \
+                    TLS-ECDHE-RSA-WITH-ARIA-128-CBC-SHA256          \
+                    TLS-DHE-RSA-WITH-ARIA-128-CBC-SHA256            \
                     "
             fi
             ;;
@@ -726,6 +738,14 @@ add_mbedtls_ciphersuites()
                     TLS-PSK-WITH-AES-256-CCM-8                      \
                     TLS-DHE-PSK-WITH-AES-128-CCM-8                  \
                     TLS-DHE-PSK-WITH-AES-256-CCM-8                  \
+                    TLS-RSA-PSK-WITH-ARIA-256-GCM-SHA384            \
+                    TLS-RSA-PSK-WITH-ARIA-256-CBC-SHA384            \
+                    TLS-RSA-PSK-WITH-ARIA-128-GCM-SHA256            \
+                    TLS-RSA-PSK-WITH-ARIA-128-CBC-SHA256            \
+                    TLS-PSK-WITH-ARIA-256-GCM-SHA384                \
+                    TLS-PSK-WITH-ARIA-256-CBC-SHA384                \
+                    TLS-PSK-WITH-ARIA-128-GCM-SHA256                \
+                    TLS-PSK-WITH-ARIA-128-CBC-SHA256                \
                     "
             fi
             ;;

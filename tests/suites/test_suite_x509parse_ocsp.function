@@ -36,3 +36,39 @@ exit:
     mbedtls_x509_ocsp_response_free( &resp );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void x509_ocsp_response_verify( char *resp_file, char *req_crt_file,
+                                char *crt_chain_file, char *ca_file,
+                                int result, int flags_result )
+{
+    mbedtls_x509_ocsp_response resp;
+    mbedtls_x509_crt req_crt;
+    mbedtls_x509_crt chain;
+    mbedtls_x509_crt ca;
+    uint32_t flags = 0;
+    int ret;
+
+    mbedtls_x509_ocsp_response_init( &resp );
+    mbedtls_x509_crt_init( &req_crt );
+    mbedtls_x509_crt_init( &chain );
+    mbedtls_x509_crt_init( &ca );
+
+    TEST_ASSERT(
+            mbedtls_x509_ocsp_response_parse_file( &resp, resp_file ) == 0 );
+    TEST_ASSERT( mbedtls_x509_crt_parse_file( &req_crt, req_crt_file ) == 0 );
+    TEST_ASSERT( mbedtls_x509_crt_parse_file( &chain, crt_chain_file ) == 0 );
+    TEST_ASSERT( mbedtls_x509_crt_parse_file( &ca, ca_file ) == 0 );
+
+    ret = mbedtls_x509_ocsp_response_verify( &resp, &req_crt, &chain, &ca,
+                                             &flags );
+    TEST_ASSERT( ret == ( result ) );
+    TEST_ASSERT( flags == (uint32_t)( flags_result ) );
+
+exit:
+    mbedtls_x509_ocsp_response_free( &resp );
+    mbedtls_x509_crt_free( &req_crt );
+    mbedtls_x509_crt_free( &chain );
+    mbedtls_x509_crt_free( &ca );
+}
+/* END_CASE */

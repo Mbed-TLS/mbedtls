@@ -687,7 +687,7 @@ add_mbedtls_ciphersuites()
             ;;
 
         "RSA")
-            if [ "$MODE" = "tls1_2" ];
+            if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 M_CIPHERS="$M_CIPHERS                               \
                     TLS-RSA-WITH-AES-128-CCM                        \
@@ -715,7 +715,7 @@ add_mbedtls_ciphersuites()
                     TLS-RSA-PSK-WITH-NULL-SHA            \
                     "
             fi
-            if [ "$MODE" = "tls1_2" ];
+            if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 M_CIPHERS="$M_CIPHERS                               \
                     TLS-PSK-WITH-AES-128-CCM                        \

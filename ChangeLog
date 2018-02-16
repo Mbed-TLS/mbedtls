@@ -18,6 +18,9 @@ Bugfix
      Fixes #1040.
    * Fix C89 incompatibility in benchmark.c. Contributed by Brendan Shanks.
      #1353
+   * Fix parsing of PKCS#8 encoded Elliptic Curve keys. Previously Mbed TLS was
+     unable to parse keys with only the optional parameters field of the
+     ECPrivateKey structure. Found by jethrogb, fixed in #1379.
 
 Changes
    * Support cmake build where Mbed TLS is a subproject. Fix

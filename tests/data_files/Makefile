@@ -578,7 +578,86 @@ keys_rsa_enc_pkcs8_v2: keys_rsa_enc_pkcs8_v2_1024 keys_rsa_enc_pkcs8_v2_2048 key
 ### Generate all RSA keys
 keys_rsa_all: keys_rsa_unenc keys_rsa_enc_basic keys_rsa_enc_pkcs8_v1 keys_rsa_enc_pkcs8_v2
 
+################################################################
+#### Generate various EC keys
+################################################################
 
+###
+### PKCS8 encoded
+###
+
+ec_prv.pk8.der:
+	$(OPENSSL) genpkey -algorithm EC -pkeyopt ec_paramgen_curve:prime192v1 -pkeyopt ec_param_enc:named_curve -out $@ -outform DER
+all_final += ec_prv.pk8.der
+
+# ### Instructions for creating `ec_prv.pk8nopub.der`,
+# ### `ec_prv.pk8nopubparam.der`, and `ec_prv.pk8param.der` by hand from
+# ### `ec_prv.pk8.der`.
+#
+# These instructions assume you are familiar with ASN.1 DER encoding and can
+# use a hex editor to manipulate DER.
+#
+# The relevant ASN.1 definitions for a PKCS#8 encoded Elliptic Curve key are:
+#
+# PrivateKeyInfo ::= SEQUENCE {
+#   version                   Version,
+#   privateKeyAlgorithm       PrivateKeyAlgorithmIdentifier,
+#   privateKey                PrivateKey,
+#   attributes           [0]  IMPLICIT Attributes OPTIONAL
+# }
+#
+# AlgorithmIdentifier  ::=  SEQUENCE  {
+#   algorithm   OBJECT IDENTIFIER,
+#   parameters  ANY DEFINED BY algorithm OPTIONAL
+# }
+#
+# ECParameters ::= CHOICE {
+#   namedCurve         OBJECT IDENTIFIER
+#   -- implicitCurve   NULL
+#   -- specifiedCurve  SpecifiedECDomain
+# }
+#
+# ECPrivateKey ::= SEQUENCE {
+#   version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+#   privateKey     OCTET STRING,
+#   parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+#   publicKey  [1] BIT STRING OPTIONAL
+# }
+#
+# `ec_prv.pk8.der` as generatde above by OpenSSL should have the following
+# fields:
+#
+# * privateKeyAlgorithm       namedCurve
+# * privateKey.parameters     NOT PRESENT
+# * privateKey.publicKey      PRESENT
+# * attributes                NOT PRESENT
+#
+# # ec_prv.pk8nopub.der
+#
+# Take `ec_prv.pk8.der` and remove `privateKey.publicKey`.
+#
+# # ec_prv.pk8nopubparam.der
+#
+# Take `ec_prv.pk8nopub.der` and add `privateKey.parameters`, the same value as
+# `privateKeyAlgorithm.namedCurve`. Don't forget to add the explicit tag.
+#
+# # ec_prv.pk8param.der
+#
+# Take `ec_prv.pk8.der` and add `privateKey.parameters`, the same value as
+# `privateKeyAlgorithm.namedCurve`. Don't forget to add the explicit tag.
+
+ec_prv.pk8.pem: ec_prv.pk8.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@
+all_final += ec_prv.pk8.pem
+ec_prv.pk8nopub.pem: ec_prv.pk8nopub.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@
+all_final += ec_prv.pk8nopub.pem
+ec_prv.pk8nopubparam.pem: ec_prv.pk8nopubparam.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@
+all_final += ec_prv.pk8nopubparam.pem
+ec_prv.pk8param.pem: ec_prv.pk8param.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@
+all_final += ec_prv.pk8param.pem
 
 ################################################################
 ### Generate certificates for CRT write check tests

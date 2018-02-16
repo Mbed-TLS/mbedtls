@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxx-xx-xx
+
+Bugfix
+   * Fix parsing of PKCS#8 encoded Elliptic Curve keys. Previously Mbed TLS was
+     unable to parse keys with only the optional parameters field of the
+     ECPrivateKey structure. Found by jethrogb, fixed in #1379.
+
 = mbed TLS 2.8.0 branch released 2018-03-16
 
 Default behavior changes

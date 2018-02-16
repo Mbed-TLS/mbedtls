@@ -447,7 +447,7 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
  * -# Call psa_hash_start() to specify the algorithm.
- * -# Call psa_hash_update() zero, one or more time, passing a fragment
+ * -# Call psa_hash_update() zero, one or more times, passing a fragment
  *    of the message each time. The hash that is calculated is the hash
  *    of the concatenation of these messages in order.
  * -# To calculate the hash, call psa_hash_finish().
@@ -606,13 +606,69 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation);
  * @{
  */
 
+/** The type of the state data structure for multipart MAC operations.
+ *
+ * This is an implementation-define \c struct. Applications should not
+ * make any assumptions about the content of this structure except
+ * as directed by the documentation of a specific implementation. */
 typedef struct psa_mac_operation_s psa_mac_operation_t;
 
+/** The size of the output of psa_mac_finish(), in bytes.
+ *
+ * This is also the MAC size that psa_mac_verify() expects.
+ *
+ * \param alg   A MAC algorithm (\c PSA_ALG_XXX value such that
+ *              #PSA_ALG_IS_MAC(alg) is true).
+ *
+ * \return The MAC size for the specified algorithm.
+ *         If the MAC algorithm is not recognized, return 0.
+ *         An implementation may return either 0 or the correct size
+ *         for a MAC algorithm that it recognizes, but does not support.
+ */
 #define PSA_MAC_FINAL_SIZE(key_type, key_bits, alg)                     \
     (PSA_ALG_IS_HMAC(alg) ? PSA_HASH_FINAL_SIZE(PSA_ALG_HMAC_HASH(alg)) : \
      PSA_ALG_IS_BLOCK_CIPHER_MAC(alg) ? PSA_BLOCK_CIPHER_BLOCK_SIZE(key_type) : \
      0)
 
+/** Start a multipart MAC operation.
+ *
+ * The sequence of operations to calculate a MAC (message authentication code)
+ * is as follows:
+ * -# Allocate an operation object which will be passed to all the functions
+ *    listed here.
+ * -# Call psa_mac_start() to specify the algorithm and key.
+ *    The key remains associated with the operation even if the content
+ *    of the key slot changes.
+ * -# Call psa_mac_update() zero, one or more times, passing a fragment
+ *    of the message each time. The MAC that is calculated is the MAC
+ *    of the concatenation of these messages in order.
+ * -# To calculate the MAC, call psa_mac_finish().
+ *    To compare the MAC with an expected value, call psa_mac_verify().
+ *
+ * The application may call psa_mac_abort() at any time after the operation
+ * has been initialized with psa_mac_start().
+ *
+ * After a successful call to psa_mac_start(), the application must
+ * eventually destroy the operation through one of the following means:
+ * - A failed call to psa_mac_update().
+ * - A call to psa_mac_final(), psa_mac_verify() or psa_mac_abort().
+ *
+ * \param operation
+ * \param alg       The MAC algorithm to compute (\c PSA_ALG_XXX value
+ *                  such that #PSA_ALG_IS_MAC(alg) is true).
+ *
+ * \retval PSA_SUCCESS
+ *         Success.
+ * \retval PSA_ERROR_EMPTY_SLOT
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ *         \c key is not compatible with \c alg.
+ * \retval PSA_ERROR_NOT_SUPPORTED
+ *         \c alg is not supported or is not a MAC algorithm.
+ * \retval PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
+ */
 psa_status_t psa_mac_start(psa_mac_operation_t *operation,
                            psa_key_slot_t key,
                            psa_algorithm_t alg);

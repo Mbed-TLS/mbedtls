@@ -1057,7 +1057,7 @@ int serial_xfer( const char * serial_port, const unsigned char * tx_buf,
                  size_t tx_buf_len, unsigned char * rx_buf, size_t rx_buf_len,
                  size_t * rx_len )
 {
-    char comm_name[20];
+    char c, comm_name[20];
     HANDLE hComm;
     DCB dcbConfig;
     COMMTIMEOUTS commTimeout;
@@ -1081,11 +1081,6 @@ int serial_xfer( const char * serial_port, const unsigned char * tx_buf,
 
         if( GetCommState( hComm, &dcbConfig ) )
         {
-            /*
-            dcbConfig.fBinary = TRUE;
-            dcbConfig.fParity = TRUE;
-            */
-
             dcbConfig.BaudRate = REMOTE_KEY_SERIAL_BAUD;
             dcbConfig.Parity = NOPARITY;
             dcbConfig.ByteSize = 8;
@@ -1123,6 +1118,8 @@ int serial_xfer( const char * serial_port, const unsigned char * tx_buf,
             break;
 
 
+        /* Flush data on serial before sending sync pattern */
+        while( ReadFile( hComm, &c, sizeof(c), &xfer_len, NULL ) && xfer_len != 0 );
         /* Sync with peer */
         if( !WriteFile( hComm, REMOTE_KEY_MAGIC_PATTERN, strlen(REMOTE_KEY_MAGIC_PATTERN), 
                     &xfer_len, NULL ) )
@@ -1130,8 +1127,6 @@ int serial_xfer( const char * serial_port, const unsigned char * tx_buf,
 
         while( sync_pattern_idx != strlen(REMOTE_KEY_MAGIC_PATTERN) )
         {
-            char c;
-
             if( !ReadFile( hComm, &c, sizeof(c), &xfer_len, NULL ) )
                 break;
             if ( c == REMOTE_KEY_MAGIC_PATTERN[sync_pattern_idx] )

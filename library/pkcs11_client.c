@@ -416,23 +416,24 @@ static int mpi_to_ck( const mbedtls_mpi *mpi,
                       CK_ATTRIBUTE *attr, CK_ATTRIBUTE_TYPE at,
                       unsigned char **p, size_t len )
 {
-    if( mbedtls_mpi_write_binary( mpi, *p, len ) != 0 )
-        return( 0 );
+    int ret = mbedtls_mpi_write_binary( mpi, *p, len );
+    if( ret != 0 )
+        return( ret );
     attr->type = at;
     attr->pValue = *p;
     attr->ulValueLen = len;
     *p += len;
-    return( 1 );
+    return( 0 );
 }
-#define MPI_TO_CK( mpi, attr, at, p, len )                            \
-    do                                                                \
-    {                                                                 \
-        if( !mpi_to_ck( ( mpi ), ( attr ), ( at ), ( p ), ( len ) ) ) \
-        {                                                             \
-            rv = CKR_ARGUMENTS_BAD;                                   \
-            goto exit;                                                \
-        }                                                             \
-    }                                                                 \
+#define MPI_TO_CK( mpi, attr, at, p, len )                               \
+    do                                                                   \
+    {                                                                    \
+        if( mpi_to_ck( ( mpi ), ( attr ), ( at ), ( p ), ( len ) ) != 0) \
+        {                                                                \
+            rv = CKR_ARGUMENTS_BAD;                                      \
+            goto exit;                                                   \
+        }                                                                \
+    }                                                                    \
     while( 0 )
 #endif /* defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C) */
 

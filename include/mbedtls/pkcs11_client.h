@@ -75,7 +75,7 @@ extern "C" {
  *                      exception, it's ok to call mbedtls_pk_free() itself
  *                      even if the Cryptoki handles have become invalid.
  */
-int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,
+int mbedtls_pkcs11_setup_pk( mbedtls_pk_context *ctx,
                              CK_SESSION_HANDLE hSession,
                              CK_OBJECT_HANDLE hPublicKey,
                              CK_OBJECT_HANDLE hPrivateKey );
@@ -140,7 +140,7 @@ int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,
  *                      also failed, for example because the token was
  *                      disconnected.
  */
-int mbedtls_pk_import_to_pkcs11( const mbedtls_pk_context *ctx,
+int mbedtls_pkcs11_import_pk( const mbedtls_pk_context *ctx,
                                  uint32_t flags,
                                  CK_SESSION_HANDLE hSession,
                                  CK_OBJECT_HANDLE *hPublicKey,

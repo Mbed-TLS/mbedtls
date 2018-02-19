@@ -110,8 +110,7 @@ static CK_RV pkcs11_generate_key( mbedtls_pk_type_t key_type,
         {CKA_DECRYPT, &ck_true, sizeof( ck_true )},
         {CKA_SIGN, &ck_true, sizeof( ck_true )},
     };
-    CK_ULONG ck_rsa_key_size = RSA_KEY_SIZE_BITS;
-    unsigned char ecParams[16];
+    unsigned char ecParams[MBEDTLS_OID_EC_GRP_MAX_SIZE];
     size_t ecParams_length;
 
     switch( key_type )
@@ -201,8 +200,8 @@ void pk_generate_sign( int key_type )
 #if defined(MBEDTLS_ECDSA_C)
     case MBEDTLS_PK_ECDSA:
         {
-            unsigned char ecParams[16];
-            unsigned char ecPoint[128];
+            unsigned char ecParams[MBEDTLS_OID_EC_GRP_MAX_SIZE];
+            unsigned char ecPoint[MBEDTLS_ECP_MAX_PT_LEN];
             CK_ATTRIBUTE public_attributes[] = {
                 {CKA_EC_PARAMS, ecParams, sizeof( ecParams )},
                 {CKA_EC_POINT, ecPoint, sizeof( ecPoint )},
@@ -246,7 +245,7 @@ void pk_generate_sign( int key_type )
         break;
     }
 
-    /* Sign with the token and verify in software */
+    /* Sign with cryptoki and verify with mbed TLS */
     TEST_ASSERT( mbedtls_pk_sign( &pkcs11_ctx, MBEDTLS_MD_SHA256,
                                   hash_value, 32,
                                   sig_buffer, &sig_length,
@@ -276,7 +275,7 @@ void pk_import_sign( char *file )
     CK_OBJECT_HANDLE hPublicKey = CK_INVALID_HANDLE;
     CK_OBJECT_HANDLE hPrivateKey = CK_INVALID_HANDLE;
     unsigned char hash_value[32] = "Fake hash, it doesn't matter....";
-    unsigned char sig_buffer[4096];
+    unsigned char sig_buffer[MBEDTLS_MPI_MAX_SIZE];
     size_t sig_length = sizeof( sig_buffer );
 
     mbedtls_pk_init( &pkcs11_ctx );
@@ -336,7 +335,7 @@ void pk_import_sign_verify( char *file )
     CK_OBJECT_HANDLE hPublicKey = CK_INVALID_HANDLE;
     CK_OBJECT_HANDLE hPrivateKey = CK_INVALID_HANDLE;
     unsigned char hash_value[32] = "Fake hash, it doesn't matter....";
-    unsigned char sig_buffer[4096];
+    unsigned char sig_buffer[MBEDTLS_MPI_MAX_SIZE];
     size_t sig_length = sizeof( sig_buffer );
 
     mbedtls_pk_init( &pkcs11_ctx );
@@ -395,7 +394,7 @@ void pk_import_verify_signed( char *file )
     CK_OBJECT_HANDLE hPublicKey = CK_INVALID_HANDLE;
     CK_OBJECT_HANDLE hPrivateKey = CK_INVALID_HANDLE;
     unsigned char hash_value[32] = "Fake hash, it doesn't matter....";
-    unsigned char sig_buffer[4096];
+    unsigned char sig_buffer[MBEDTLS_MPI_MAX_SIZE];
     size_t sig_length = sizeof( sig_buffer );
 
     mbedtls_pk_init( &pkcs11_ctx );

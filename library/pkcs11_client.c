@@ -368,7 +368,7 @@ int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,
     case CKK_ECDSA:
         can_do = MBEDTLS_PK_ECKEY;
         {
-            unsigned char ecParams[16];
+            unsigned char ecParams[MBEDTLS_OID_EC_GRP_MAX_SIZE];
             mbedtls_asn1_buf params_asn1;
             mbedtls_ecp_group_id grp_id;
             const mbedtls_ecp_curve_info *curve_info;

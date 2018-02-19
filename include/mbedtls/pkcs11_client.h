@@ -47,12 +47,12 @@ extern "C" {
 
 #if defined(MBEDTLS_PK_C)
 
-#define MBEDTLS_PK_FLAG_SENSITIVE    ( (uint32_t) 0x00000001 )
-#define MBEDTLS_PK_FLAG_EXTRACTABLE  ( (uint32_t) 0x00000002 )
-#define MBEDTLS_PK_FLAG_SIGN         ( (uint32_t) 0x00000010 )
-#define MBEDTLS_PK_FLAG_VERIFY       ( (uint32_t) 0x00000020 )
-#define MBEDTLS_PK_FLAG_DECRYPT      ( (uint32_t) 0x00000040 )
-#define MBEDTLS_PK_FLAG_ENCRYPT      ( (uint32_t) 0x00000080 )
+#define MBEDTLS_PKCS11_FLAG_SENSITIVE    ( (uint32_t) 0x00000001 )
+#define MBEDTLS_PKCS11_FLAG_EXTRACTABLE  ( (uint32_t) 0x00000002 )
+#define MBEDTLS_PKCS11_FLAG_SIGN         ( (uint32_t) 0x00000010 )
+#define MBEDTLS_PKCS11_FLAG_VERIFY       ( (uint32_t) 0x00000020 )
+#define MBEDTLS_PKCS11_FLAG_DECRYPT      ( (uint32_t) 0x00000040 )
+#define MBEDTLS_PKCS11_FLAG_ENCRYPT      ( (uint32_t) 0x00000080 )
 
 #include "pk.h"
 

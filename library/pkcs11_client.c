@@ -436,7 +436,7 @@ static int mpi_to_ck( const mbedtls_mpi *mpi,
     while( 0 )
 #endif /* defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C) */
 
-#define CK_BOOL( x ) ( ( x ) ? CK_TRUE : CK_FALSE )
+#define MBEDTLS_PKCS11_BOOL( x ) ( ( x ) ? CK_TRUE : CK_FALSE )
 
 int mbedtls_pk_import_to_pkcs11( const mbedtls_pk_context *ctx,
                                  uint32_t flags,
@@ -447,13 +447,13 @@ int mbedtls_pk_import_to_pkcs11( const mbedtls_pk_context *ctx,
     CK_OBJECT_CLASS cko_private_key = CKO_PRIVATE_KEY;
     CK_OBJECT_CLASS cko_public_key = CKO_PUBLIC_KEY;
     CK_KEY_TYPE ck_key_type;
-    CK_BBOOL ck_sensitive = CK_BOOL( flags & MBEDTLS_PK_FLAG_SENSITIVE );
-    CK_BBOOL ck_extractable = CK_BOOL( flags & MBEDTLS_PK_FLAG_EXTRACTABLE );
-    CK_BBOOL ck_sign = CK_BOOL( flags & MBEDTLS_PK_FLAG_SIGN );
-    CK_BBOOL ck_verify = CK_BOOL( flags & MBEDTLS_PK_FLAG_VERIFY );
-    CK_BBOOL ck_decrypt = CK_BOOL( flags & MBEDTLS_PK_FLAG_DECRYPT );
-    CK_BBOOL ck_encrypt = CK_BOOL( flags & MBEDTLS_PK_FLAG_ENCRYPT );
-    CK_BBOOL ck_token = CK_BOOL( flags & MBEDTLS_PKCS11_FLAG_TOKEN );
+    CK_BBOOL ck_sensitive = MBEDTLS_PKCS11_BOOL( flags & MBEDTLS_PKCS11_FLAG_SENSITIVE );
+    CK_BBOOL ck_extractable = MBEDTLS_PKCS11_BOOL( flags & MBEDTLS_PKCS11_FLAG_EXTRACTABLE );
+    CK_BBOOL ck_sign = MBEDTLS_PKCS11_BOOL( flags & MBEDTLS_PKCS11_FLAG_SIGN );
+    CK_BBOOL ck_verify = MBEDTLS_PKCS11_BOOL( flags & MBEDTLS_PKCS11_FLAG_VERIFY );
+    CK_BBOOL ck_decrypt = MBEDTLS_PKCS11_BOOL( flags & MBEDTLS_PKCS11_FLAG_DECRYPT );
+    CK_BBOOL ck_encrypt = MBEDTLS_PKCS11_BOOL( flags & MBEDTLS_PKCS11_FLAG_ENCRYPT );
+    CK_BBOOL ck_token = MBEDTLS_PKCS11_BOOL( flags & MBEDTLS_PKCS11_FLAG_TOKEN );
     CK_ATTRIBUTE public_attributes[] = {
         {CKA_CLASS, &cko_public_key, sizeof( cko_public_key )},
         {CKA_KEY_TYPE, &ck_key_type, sizeof( ck_key_type )},

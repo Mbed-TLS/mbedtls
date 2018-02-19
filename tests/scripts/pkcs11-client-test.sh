@@ -14,6 +14,8 @@ elif [ -e ../../../library/aes.c ]; then
 else
   unset TOPDIR
 fi
+# The SoftHSM library sends error messages to the system logs. If possible, send
+# the messages to standard error instead, by overloading the logging functions.
 if [ -n "${TOPDIR+1}" ] &&
      make -C "$TOPDIR/programs" util/syslog2stderr.so >/dev/null 2>&1
 then

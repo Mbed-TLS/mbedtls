@@ -29,7 +29,6 @@
 
 #include <stdint.h>
 #include <string.h>
-#include <pkcs11.h>
 
 #include "mbedtls/pkcs11_client.h"
 
@@ -144,7 +143,7 @@ static int pkcs11_sign( void *ctx_arg,
     CK_RV rv;
     CK_MECHANISM mechanism = {0, NULL_PTR, 0};
     CK_ULONG ck_sig_len;
-
+    (void)(md_alg);
     /* This function takes size_t arguments but the underlying layer
        takes unsigned long. Either type may be smaller than the other.
        Legitimate values won't overflow either type but we still need
@@ -180,7 +179,8 @@ static int pkcs11_sign( void *ctx_arg,
          * each in the form of a big-endian byte sequence, with r and s
          * having the same length as the base point.
          *
-         * A standard ECDSA signature is encoded in ASN.1:
+         * This library encodes ECDSA signatures in ASN.1 as documented
+         * for mbedtls_ecdsa_write_signature:
          *   SEQUENCE {
          *     r INTEGER,
          *     s INTEGER
@@ -315,7 +315,7 @@ exit:
 static const mbedtls_pk_info_t mbedtls_pk_pkcs11_info =
     MBEDTLS_PK_OPAQUE_INFO_1( "pkcs11"
                               , pkcs11_pk_get_bitlen
-                              , pkcs11_pk_can_do //can_do
+                              , pkcs11_pk_can_do
                               , pkcs11_pk_signature_size
                               , pkcs11_verify
                               , pkcs11_sign

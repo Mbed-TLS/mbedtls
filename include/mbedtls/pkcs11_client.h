@@ -2,7 +2,8 @@
  * \file pkcs11_client.h
  *
  * \brief Generic wrapper for Cryptoki (PKCS#11) support
- *
+ */
+/*
  *  Copyright (C) 2017, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -87,36 +88,42 @@ int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,
  *                      PKCS#11 token. 
  *
  * \param ctx           PK context, which must contain a transparent pk
- *                      object (type \c MBEDTLS_PK_RSA,
- *                      \c MBEDTLS_PK_RSASSA_PSS, \c MBEDTLS_PK_ECKEY or
- *                      \c MBEDTLS_PK_ECDSA).
- * \param flags         Mask of \c MBEDTLS_PKCS11_FLAG_XXX and
- *                      \c MBEDTLS_PK_FLAG_XXX, applying as follows:
- *                      - \c MBEDTLS_PKCS11_FLAG_TOKEN: PKCS#11 \c CKA_TOKEN
+ *                      object (type #MBEDTLS_PK_RSA,
+ *                      #MBEDTLS_PK_RSASSA_PSS, #MBEDTLS_PK_ECKEY or
+ *                      #MBEDTLS_PK_ECDSA).
+ * \param flags         Mask of #MBEDTLS_PKCS11_FLAG_XXX and
+ *                      #MBEDTLS_PK_FLAG_XXX, applying as follows:
+ *                      - #MBEDTLS_PKCS11_FLAG_TOKEN: PKCS#11 \c CKA_TOKEN
  *                        flag: if set, import as token object; if clear,
  *                        import as session object.
- *                      - \c MBEDTLS_PK_FLAG_EXTRACTABLE: PKCS#11
- *                        \c CKA_EXTRACTABLE flag: if set, the key will be
- *                        extractable at least in wrapped form; if clear,
- *                        the key will not be extractable at all.
- *                      - \c MBEDTLS_PK_FLAG_SENSITIVE: PKCS#11
- *                        \c CKA_SENSITIVE flag: if set, the key will be
- *                        not be extractable in plain form; if clear, the
- *                        key will be extractable at least in wrapped form.
- *                      - \c MBEDTLS_PK_FLAG_SIGN: if set, the private key
+ *                      - #MBEDTLS_PK_FLAG_EXTRACTABLE: PKCS#11
+ *                        \c CKA_EXTRACTABLE flag: if set, the private key
+ *                        will be extractable at least in wrapped form; if
+ *                        clear, the key will not be extractable at all.
+ *                      - #MBEDTLS_PK_FLAG_SENSITIVE: PKCS#11
+ *                        \c CKA_SENSITIVE flag: if set, the private key
+ *                        will not be extractable in plain form; if clear,
+ *                        the key will be extractable in plain form if
+ *                        #MBEDTLS_PK_FLAG_EXTRACTABLE is set.
+ *                      - #MBEDTLS_PK_FLAG_SIGN: if set, the private key
  *                        will be authorized for signing.
- *                      - \c MBEDTLS_PK_FLAG_VERIFY: if set, the public key
+ *                      - #MBEDTLS_PK_FLAG_VERIFY: if set, the public key
  *                        will be authorized for verification.
- *                      - \c MBEDTLS_PK_FLAG_DECRYPT: if set, the private key
+ *                      - #MBEDTLS_PK_FLAG_DECRYPT: if set, the private key
  *                        will be authorized for signing.
- *                      - \c MBEDTLS_PK_FLAG_ENCRYPT: if set, the public key
+ *                      - #MBEDTLS_PK_FLAG_ENCRYPT: if set, the public key
  *                        will be authorized for encryption.
  *
- * \param hSession      Cryptoki session.
+ * \param hSession      Cryptoki session. The session must remain valid as long
+ *                      as the PK object is in use.
  * \param hPublicKey    If non-null, on output, Cryptoki handle of the public
- *                      key. If null, the public key is not imported.
+ *                      key. This handle must remain valid as long as the PK
+ *                      object is in use. If null, the public key is not
+ *                      imported.
  * \param hPrivateKey   If non-null, on output, Cryptoki handle of the private
- *                      key. If null, the private key is not imported.
+ *                      key. This handle must remain valid as long as the PK
+ *                      object is in use. If null, the private key is not
+ *                      imported.
  *
  * \return              0 on success,
  *                      or MBEDTLS_ERR_PK_XXX error code.

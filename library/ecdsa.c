@@ -289,9 +289,6 @@ cleanup:
 /*
  * Convert a signature to a raw concatenation of {r, s}
  */
-/*int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
-                            size_t ssize, uint16_t byte_len,
-                            unsigned char *buf, size_t* slen )*/
 int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
                             size_t ssize, uint16_t byte_len,
                             unsigned char *buf, size_t bufsize,
@@ -305,7 +302,7 @@ int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
 
     if( 2 * byte_len > bufsize )
     {
-        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        return (MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
     }
 
     mbedtls_mpi_init( &r );
@@ -326,29 +323,30 @@ int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
     }
 
     if( ( ret = mbedtls_asn1_get_mpi( &p, end, &r ) ) != 0 ||
-            ( ret = mbedtls_asn1_get_mpi( &p, end, &s ) ) != 0 )
+        ( ret = mbedtls_asn1_get_mpi( &p, end, &s ) ) != 0 )
     {
         ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
     }
     p = (unsigned char *) buf;
-    if( ( ret = mbedtls_mpi_write_binary(&r, p, byte_len) ) )
+    if( ( ret = mbedtls_mpi_write_binary( &r, p, byte_len) ) )
     {
         ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
     }
     p += byte_len;
-    if( ( ret = mbedtls_mpi_write_binary(&s, p, byte_len) ) )
+    if( ( ret = mbedtls_mpi_write_binary( &s, p, byte_len) ) )
     {
         ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
     }
     *buflen = 2*byte_len;
-    cleanup:
-        mbedtls_mpi_free( &r );
-        mbedtls_mpi_free( &s );
 
-        return( ret );
+cleanup:
+    mbedtls_mpi_free( &r );
+    mbedtls_mpi_free( &s );
+
+    return( ret );
 }
 
 /*

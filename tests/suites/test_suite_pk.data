@@ -163,6 +163,7 @@ pk_opaque_fail_allocation:
 PK opaque minimal
 pk_opaque_minimal:
 
-PK opaque wrapper (RSA)
-depends_on:MBEDTLS_RSA_C
-pk_opaque_wrapper:
+#PK opaque wrapper (RSA)
+#depends_on:MBEDTLS_RSA_C
+#pk_opaque_wrapper:
+#

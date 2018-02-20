@@ -78,9 +78,9 @@
 
 // Affine Transform A
 // (ra, rb, rc, rd) = state in/out
-// (ta, tb, tc)     = temporary variables
 
-#define ARIA_A( ra, rb, rc, rd, ta, tb, tc ) {  \
+#define ARIA_A( ra, rb, rc, rd ) {  \
+    uint32_t ta, tb, tc;                \
     ta  =   rb;                         \
     rb  =   ra;                         \
     ra  =   ARIA_FLIP1( ta );           \
@@ -105,13 +105,13 @@
 /* ARIA Round function ( Substitution Layer SLx + Affine Transform A )
  * (ra, rb, rc, rd) = state in/out
  * (sa, sb, sc, sd) = 256 8-bit S-Boxes (see below)
- * (ta, tb, tc)     = temporary variables
  *
  * By passing sb1, sb2, is1, is2 as S-Boxes you get SL1-then-A.
  * By passing is1, is2, sb1, sb2 as S-Boxes you get SL2-then-A.
  */
 
-#define ARIA_SLA( ra, rb, rc, rd, sa, sb, sc, sd, ta, tb, tc ) { \
+#define ARIA_SLA( ra, rb, rc, rd, sa, sb, sc, sd ) {        \
+    uint32_t ta, tb, tc;                                    \
     ta  =   ( (uint32_t) sc[(rb >> 16) & 0xFF]) ^           \
             (((uint32_t) sd[ rb >> 24]) << 8)   ^           \
             (((uint32_t) sa[ rb & 0xFF]) << 16) ^           \
@@ -257,14 +257,13 @@ static void aria_fo_xor( uint32_t r[4],
     const uint32_t p[4], const uint32_t k[4], const uint32_t x[4] )
 {
     uint32_t a, b, c, d;
-    uint32_t t, u, v;
 
     a = p[0] ^ k[0];
     b = p[1] ^ k[1];
     c = p[2] ^ k[2];
     d = p[3] ^ k[3];
 
-    ARIA_SLA( a, b, c, d, aria_sb1, aria_sb2, aria_is1, aria_is2, t, u, v );
+    ARIA_SLA( a, b, c, d, aria_sb1, aria_sb2, aria_is1, aria_is2 );
 
     r[0] = a ^ x[0];
     r[1] = b ^ x[1];
@@ -278,14 +277,13 @@ static void aria_fe_xor(uint32_t r[4],
     const uint32_t p[4], const uint32_t k[4], const uint32_t x[4] )
 {
     uint32_t a, b, c, d;
-    uint32_t t, u, v;
 
     a = p[0] ^ k[0];
     b = p[1] ^ k[1];
     c = p[2] ^ k[2];
     d = p[3] ^ k[3];
 
-    ARIA_SLA( a, b, c, d, aria_is1, aria_is2, aria_sb1, aria_sb2, t, u, v );
+    ARIA_SLA( a, b, c, d, aria_is1, aria_is2, aria_sb1, aria_sb2 );
 
     r[0] = a ^ x[0];
     r[1] = b ^ x[1];
@@ -385,7 +383,6 @@ int mbedtls_aria_setkey_dec(mbedtls_aria_context *ctx,
                             const unsigned char *key, unsigned int keybits)
 {
     int i, j, k, ret;
-    uint32_t t, u, v;
 
     ret = mbedtls_aria_setkey_enc( ctx, key, keybits );
     if( ret != 0 )
@@ -396,7 +393,7 @@ int mbedtls_aria_setkey_dec(mbedtls_aria_context *ctx,
     {
         for( k = 0; k < 4; k++ )
         {
-            t = ctx->rk[i][k];
+            uint32_t t = ctx->rk[i][k];
             ctx->rk[i][k] = ctx->rk[j][k];
             ctx->rk[j][k] = t;
         }
@@ -404,10 +401,7 @@ int mbedtls_aria_setkey_dec(mbedtls_aria_context *ctx,
 
     // apply affine transform to middle keys
     for (i = 1; i < ctx->nr; i++ )
-    {
-        ARIA_A( ctx->rk[i][0], ctx->rk[i][1], ctx->rk[i][2], ctx->rk[i][3],
-            t, u, v );
-    }
+        ARIA_A( ctx->rk[i][0], ctx->rk[i][1], ctx->rk[i][2], ctx->rk[i][3] );
 
     return 0;
 }
@@ -422,7 +416,6 @@ int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
     int i;
 
     uint32_t a, b, c, d;
-    uint32_t t, u, v;
 
     ( (void) mode );
 
@@ -439,8 +432,7 @@ int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
         c ^= ctx->rk[i][2];
         d ^= ctx->rk[i][3];
         i++;
-        ARIA_SLA( a, b, c, d,
-            aria_sb1, aria_sb2, aria_is1, aria_is2, t, u, v );
+        ARIA_SLA( a, b, c, d, aria_sb1, aria_sb2, aria_is1, aria_is2 );
 
         a ^= ctx->rk[i][0];
         b ^= ctx->rk[i][1];
@@ -450,8 +442,7 @@ int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
         if (i >= ctx->nr)
             break;
 
-        ARIA_SLA( a, b, c, d,
-            aria_is1, aria_is2, aria_sb1, aria_sb2, t, u, v );
+        ARIA_SLA( a, b, c, d, aria_is1, aria_is2, aria_sb1, aria_sb2 );
     }
 
     // final substitution

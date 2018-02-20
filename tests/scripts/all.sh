@@ -101,6 +101,7 @@ YOTTA=1
 # Default commands, can be overriden by the environment
 : ${OPENSSL:="openssl"}
 : ${OPENSSL_LEGACY:="$OPENSSL"}
+: ${OPENSSL_NEXT:="$OPENSSL"}
 : ${GNUTLS_CLI:="gnutls-cli"}
 : ${GNUTLS_SERV:="gnutls-serv"}
 : ${GNUTLS_LEGACY_CLI:="$GNUTLS_CLI"}
@@ -141,6 +142,7 @@ Tool path options:
      --gnutls-legacy-serv=<GnuTLS_serv_path>    GnuTLS server executable to use for legacy tests.
      --openssl=<OpenSSL_path>                   OpenSSL executable to use for most tests.
      --openssl-legacy=<OpenSSL_path>            OpenSSL executable to use for legacy tests e.g. SSLv3.
+     --openssl-next=<OpenSSL_path>              OpenSSL executable to use for recent things like ARIA
 EOF
 }
 
@@ -267,6 +269,10 @@ while [ $# -gt 0 ]; do
         --openssl-legacy)
             shift
             OPENSSL_LEGACY="$1"
+            ;;
+        --openssl-next)
+            shift
+            OPENSSL_NEXT="$1"
             ;;
         --out-of-source-dir)
             shift
@@ -397,6 +403,7 @@ echo "FORCE: $FORCE"
 echo "SEED: ${SEED-"UNSET"}"
 echo "OPENSSL: $OPENSSL"
 echo "OPENSSL_LEGACY: $OPENSSL_LEGACY"
+echo "OPENSSL_NEXT: $OPENSSL_NEXT"
 echo "GNUTLS_CLI: $GNUTLS_CLI"
 echo "GNUTLS_SERV: $GNUTLS_SERV"
 echo "GNUTLS_LEGACY_CLI: $GNUTLS_LEGACY_CLI"
@@ -419,7 +426,8 @@ export GNUTLS_SERV="$GNUTLS_SERV"
 [ ! -z ${SEED+set} ] && export SEED
 
 # Make sure the tools we need are available.
-check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
+check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$OPENSSL_NEXT" \
+            "$GNUTLS_CLI" "$GNUTLS_SERV" \
             "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
             "arm-none-eabi-gcc" "i686-w64-mingw32-gcc"
 if [ $RUN_ARMCC -ne 0 ]; then
@@ -546,6 +554,9 @@ if_build_succeeded tests/ssl-opt.sh -f Default
 
 msg "test: compat.sh RC4, DES & NULL (full config)" # ~ 2 min
 if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
+
+msg "test: compat.sh ARIA"
+if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA'
 
 msg "test/build: curves.pl (gcc)" # ~ 4 min
 cleanup

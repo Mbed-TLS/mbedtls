@@ -7,6 +7,8 @@ Bugfix
      faults and errors when building for the 64-bit ILP32 ABI. Found and fixed
      by James Cowgill.
    * Fix test_suite_pk to work on 64-bit ILP32 systems. #849
+   * Add dependency for MBEDTLS_VERSION_FEATURES_C in check_version_feature test,
+     to skip unneeded tests. Raised by trinitytonic in #1299
 
 = mbed TLS 2.1.10 branch released 2018-02-03
 

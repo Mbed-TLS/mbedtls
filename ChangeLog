@@ -6,6 +6,9 @@ Bugfix
    * Fix the name of a DHE parameter that was accidentally changed in 2.7.0.
      Fixes #1358.
    * Fix test_suite_pk to work on 64-bit ILP32 systems. #849
+   * Fix mbedtls_x509_crt_profile_suiteb, which used to reject all certificates
+     with flag MBEDTLS_X509_BADCERT_BAD_PK even when the key type was correct.
+     In the context of SSL, this resulted in handshake failure. #1351
 
 Changes
    * Fix tag lengths and value ranges in the documentation of CCM encryption.

@@ -14,6 +14,8 @@ Bugfix
    * Fix the name of a DHE parameter that was accidentally changed in 2.7.0.
      Fixes #1358.
    * Fix test_suite_pk to work on 64-bit ILP32 systems. #849
+   * Add dependency for MBEDTLS_VERSION_FEATURES_C in check_version_feature test,
+     to skip unneeded tests. Raised by trinitytonic in #1299
 
 Changes
    * Fix tag lengths and value ranges in the documentation of CCM encryption.

@@ -493,14 +493,18 @@ add_openssl_ciphersuites()
                 M_CIPHERS="$M_CIPHERS                               \
                     TLS-ECDHE-RSA-WITH-ARIA-256-GCM-SHA384          \
                     TLS-DHE-RSA-WITH-ARIA-256-GCM-SHA384            \
+                    TLS-RSA-WITH-ARIA-256-GCM-SHA384                \
                     TLS-ECDHE-RSA-WITH-ARIA-128-GCM-SHA256          \
                     TLS-DHE-RSA-WITH-ARIA-128-GCM-SHA256            \
+                    TLS-RSA-WITH-ARIA-128-GCM-SHA256                \
                     "
                 O_CIPHERS="$O_CIPHERS               \
                     ECDHE-ARIA256-GCM-SHA384        \
                     DHE-RSA-ARIA256-GCM-SHA384      \
+                    ARIA256-GCM-SHA384              \
                     ECDHE-ARIA128-GCM-SHA256        \
                     DHE-RSA-ARIA128-GCM-SHA256      \
+                    ARIA128-GCM-SHA256              \
                     "
             fi
             ;;
@@ -509,10 +513,14 @@ add_openssl_ciphersuites()
             if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 M_CIPHERS="$M_CIPHERS                               \
+                    TLS-DHE-PSK-WITH-ARIA-256-GCM-SHA384            \
+                    TLS-DHE-PSK-WITH-ARIA-128-GCM-SHA256            \
                     TLS-PSK-WITH-ARIA-256-GCM-SHA384                \
                     TLS-PSK-WITH-ARIA-128-GCM-SHA256                \
                     "
                 O_CIPHERS="$O_CIPHERS               \
+                    DHE-PSK-ARIA256-GCM-SHA384      \
+                    DHE-PSK-ARIA128-GCM-SHA256      \
                     PSK-ARIA256-GCM-SHA384          \
                     PSK-ARIA128-GCM-SHA256          \
                     "
@@ -734,6 +742,10 @@ add_mbedtls_ciphersuites()
                     TLS-ECDHE-ECDSA-WITH-AES-256-CCM-8              \
                     TLS-ECDHE-ECDSA-WITH-ARIA-256-CBC-SHA384        \
                     TLS-ECDHE-ECDSA-WITH-ARIA-128-CBC-SHA256        \
+                    TLS-ECDH-ECDSA-WITH-ARIA-256-GCM-SHA384         \
+                    TLS-ECDH-ECDSA-WITH-ARIA-128-GCM-SHA256         \
+                    TLS-ECDH-ECDSA-WITH-ARIA-256-CBC-SHA384         \
+                    TLS-ECDH-ECDSA-WITH-ARIA-128-CBC-SHA256         \
                     "
             fi
             ;;
@@ -754,6 +766,8 @@ add_mbedtls_ciphersuites()
                     TLS-DHE-RSA-WITH-ARIA-256-CBC-SHA384            \
                     TLS-ECDHE-RSA-WITH-ARIA-128-CBC-SHA256          \
                     TLS-DHE-RSA-WITH-ARIA-128-CBC-SHA256            \
+                    TLS-RSA-WITH-ARIA-256-CBC-SHA384                \
+                    TLS-RSA-WITH-ARIA-128-CBC-SHA256                \
                     "
             fi
             ;;
@@ -788,6 +802,10 @@ add_mbedtls_ciphersuites()
                     TLS-PSK-WITH-ARIA-128-CBC-SHA256                \
                     TLS-RSA-PSK-WITH-ARIA-256-GCM-SHA384            \
                     TLS-RSA-PSK-WITH-ARIA-128-GCM-SHA256            \
+                    TLS-ECDHE-PSK-WITH-ARIA-256-CBC-SHA384          \
+                    TLS-ECDHE-PSK-WITH-ARIA-128-CBC-SHA256          \
+                    TLS-DHE-PSK-WITH-ARIA-256-CBC-SHA384            \
+                    TLS-DHE-PSK-WITH-ARIA-128-CBC-SHA256            \
                     "
             fi
             ;;

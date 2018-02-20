@@ -7,6 +7,9 @@ Bugfix
      faults and errors when building for the 64-bit ILP32 ABI. Found and fixed
      by James Cowgill.
    * Fix test_suite_pk to work on 64-bit ILP32 systems. #849
+   * Fix mbedtls_x509_crt_profile_suiteb, which used to reject all certificates
+     with flag MBEDTLS_X509_BADCERT_BAD_PK even when the key type was correct.
+     In the context of SSL, this resulted in handshake failure. #1351
 
 = mbed TLS 2.1.10 branch released 2018-02-03
 

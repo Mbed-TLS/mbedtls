@@ -19,6 +19,12 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
+/*
+ * This implementation is based on the following standards:
+ * [1] http://210.104.33.10/ARIA/doc/ARIA-specification-e.pdf
+ * [2] https://tools.ietf.org/html/rfc5794
+ */
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -96,10 +102,14 @@
 }
 
 
-// ARIA Round function ( Substitution Layer SLx + Affine Transform A )
-// (ra, rb, rc, rd) = state in/out
-// (sa, sb, sc, sd) = 256 8-bit S-Boxes
-// (ta, tb, tc)     = temporary variables
+/* ARIA Round function ( Substitution Layer SLx + Affine Transform A )
+ * (ra, rb, rc, rd) = state in/out
+ * (sa, sb, sc, sd) = 256 8-bit S-Boxes (see below)
+ * (ta, tb, tc)     = temporary variables
+ *
+ * By passing sb1, sb2, is1, is2 as S-Boxes you get SL1-then-A.
+ * By passing is1, is2, sb1, sb2 as S-Boxes you get SL2-then-A.
+ */
 
 #define ARIA_SLA( ra, rb, rc, rd, sa, sb, sc, sd, ta, tb, tc ) { \
     ta  =   ( (uint32_t) sc[(rb >> 16) & 0xFF]) ^           \
@@ -243,7 +253,7 @@ static const uint8_t aria_is2[0x100] =
 
 // r = FO( p, k ) ^ x
 
-static void aria_fo( uint32_t r[4],
+static void aria_fo_xor( uint32_t r[4],
     const uint32_t p[4], const uint32_t k[4], const uint32_t x[4] )
 {
     uint32_t a, b, c, d;
@@ -264,7 +274,7 @@ static void aria_fo( uint32_t r[4],
 
 // r = FE( p, k ) ^ x
 
-static void aria_fe(uint32_t r[4],
+static void aria_fe_xor(uint32_t r[4],
     const uint32_t p[4], const uint32_t k[4], const uint32_t x[4] )
 {
     uint32_t a, b, c, d;
@@ -350,11 +360,11 @@ int mbedtls_aria_setkey_enc(mbedtls_aria_context *ctx,
     i = (keybits - 128) >> 6;               // index: 0, 1, 2
     ctx->nr = 12 + 2 * i;                   // no. rounds: 12, 14, 16
 
-    aria_fo( w[1], w[0], rc[i], w[1] );     // W1 = FO(W0, CK1) ^ KR
+    aria_fo_xor( w[1], w[0], rc[i], w[1] ); // W1 = FO(W0, CK1) ^ KR
     i = i < 2 ? i + 1 : 0;
-    aria_fe( w[2], w[1], rc[i], w[0] );     // W2 = FE(W1, CK2) ^ W0
+    aria_fe_xor( w[2], w[1], rc[i], w[0] ); // W2 = FE(W1, CK2) ^ W0
     i = i < 2 ? i + 1 : 0;
-    aria_fo( w[3], w[2], rc[i], w[1] );     // W3 = FO(W2, CK3) ^ W1
+    aria_fo_xor( w[3], w[2], rc[i], w[1] ); // W3 = FO(W2, CK3) ^ W1
 
     for( i = 0; i < 4; i++ )                // create round keys
     {

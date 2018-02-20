@@ -288,8 +288,8 @@ cleanup:
 
 /*
  * Convert a signature (given by context) to ASN.1.
- * This function may leave a half-written upon encountering an error, and
- * is for internal use only.
+ * This function is for internal use only. Upon an error, it may leave
+ * the signature buffer partially written.
  */
 static int internal_ecdsa_signature_to_asn1( const mbedtls_mpi *r,
                                       const mbedtls_mpi *s, unsigned char *sig,
@@ -314,7 +314,8 @@ static int internal_ecdsa_signature_to_asn1( const mbedtls_mpi *r,
 }
 
 /*
- * Convert a signature (given by context) to ASN.1, zeroize the buffer on error
+ * Convert a signature from number pair format to ASN.1.
+ * Zeroize the buffer on error.
  */
 int mbedtls_ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
                              unsigned char *sig, size_t *slen, size_t ssize )
@@ -327,6 +328,7 @@ int mbedtls_ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
 
 /*
  * Compute and write signature. This function assumes that sig is large enough.
+ * Refer to MBEDTLS_ECDSA_MAX_SIG_LEN for the signature size.
  */
 int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t md_alg,
                            const unsigned char *hash, size_t hlen,

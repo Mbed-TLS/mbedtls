@@ -86,11 +86,11 @@ static void pk_rsa_match( mbedtls_rsa_context *raw,
     unsigned char msg[50], ciph[1000], test[1000];
     size_t sig_len, ciph_len, test_len;
 
-    memset( hash, 0x2a, sizeof hash );
-    memset( sig, 0, sizeof sig );
-    memset( msg, 0x2a, sizeof msg );
-    memset( ciph, 0, sizeof ciph );
-    memset( test, 0, sizeof test );
+    memset( hash, 0x2a, sizeof( hash ) );
+    memset( sig, 0, sizeof( sig ) );
+    memset( msg, 0x2a, sizeof( msg ) );
+    memset( ciph, 0, sizeof( ciph ) );
+    memset( test, 0, sizeof( test ) );
 
     /* Initialize basic PK RSA context with raw key */
     mbedtls_pk_init( &basic_ctx );
@@ -105,7 +105,7 @@ static void pk_rsa_match( mbedtls_rsa_context *raw,
     TEST_ASSERT( mbedtls_pk_get_signature_size( tested_ctx ) == RSA_KEY_LEN );
 
     /* Test signature */
-    TEST_ASSERT( mbedtls_pk_sign( tested_ctx, MBEDTLS_MD_NONE, hash, sizeof hash,
+    TEST_ASSERT( mbedtls_pk_sign( tested_ctx, MBEDTLS_MD_NONE, hash, sizeof( hash ),
                           sig, &sig_len, rnd_std_rand, NULL ) == sign_ret );
     if( sign_ret == 0 )
     {
@@ -116,46 +116,46 @@ static void pk_rsa_match( mbedtls_rsa_context *raw,
 #endif /* MBEDTLS_HAVE_INT64 */
         TEST_ASSERT( sig_len == RSA_KEY_LEN );
         TEST_ASSERT( mbedtls_pk_verify( &basic_ctx, MBEDTLS_MD_NONE,
-                                        hash, sizeof hash, sig, sig_len ) == 0 );
+                                        hash, sizeof( hash ), sig, sig_len ) == 0 );
     }
 
     /* Test verification */
-    TEST_ASSERT( mbedtls_pk_sign( &basic_ctx, MBEDTLS_MD_NONE, hash, sizeof hash,
+    TEST_ASSERT( mbedtls_pk_sign( &basic_ctx, MBEDTLS_MD_NONE, hash, sizeof( hash ),
                           sig, &sig_len, rnd_std_rand, NULL ) == 0 );
     TEST_ASSERT( mbedtls_pk_verify( tested_ctx, MBEDTLS_MD_NONE,
-                            hash, sizeof hash, sig, sig_len ) == verify_ret );
+                            hash, sizeof( hash ), sig, sig_len ) == verify_ret );
     if( verify_ret == 0 )
     {
         TEST_ASSERT( mbedtls_pk_verify( tested_ctx, MBEDTLS_MD_NONE,
-                                        hash, sizeof hash, sig, sig_len - 1 ) == MBEDTLS_ERR_RSA_VERIFY_FAILED );
+                                        hash, sizeof( hash ), sig, sig_len - 1 ) == MBEDTLS_ERR_RSA_VERIFY_FAILED );
         sig[sig_len-1] ^= 1;
         TEST_ASSERT( mbedtls_pk_verify( tested_ctx, MBEDTLS_MD_NONE,
-                                        hash, sizeof hash, sig, sig_len ) == MBEDTLS_ERR_RSA_INVALID_PADDING );
+                                        hash, sizeof( hash ), sig, sig_len ) == MBEDTLS_ERR_RSA_INVALID_PADDING );
     }
 
     /* Test encryption */
-    TEST_ASSERT( mbedtls_pk_encrypt( tested_ctx, msg, sizeof msg,
-                             ciph, &ciph_len, sizeof ciph,
+    TEST_ASSERT( mbedtls_pk_encrypt( tested_ctx, msg, sizeof( msg ),
+                             ciph, &ciph_len, sizeof( ciph ),
                              rnd_std_rand, NULL ) == encrypt_ret );
     if( encrypt_ret == 0 )
     {
         TEST_ASSERT( mbedtls_pk_decrypt( &basic_ctx, ciph, ciph_len,
-                                         test, &test_len, sizeof test,
+                                         test, &test_len, sizeof( test ),
                                          rnd_std_rand, NULL ) == 0 );
-        TEST_ASSERT( test_len == sizeof msg );
+        TEST_ASSERT( test_len == sizeof( msg ) );
         TEST_ASSERT( memcmp( test, msg, test_len ) == 0 );
     }
 
     /* Test decryption */
-    TEST_ASSERT( mbedtls_pk_encrypt( &basic_ctx, msg, sizeof msg,
-                             ciph, &ciph_len, sizeof ciph,
+    TEST_ASSERT( mbedtls_pk_encrypt( &basic_ctx, msg, sizeof( msg ),
+                             ciph, &ciph_len, sizeof( ciph ),
                              rnd_std_rand, NULL ) == 0 );
     TEST_ASSERT( mbedtls_pk_decrypt( tested_ctx, ciph, ciph_len,
-                             test, &test_len, sizeof test,
+                             test, &test_len, sizeof( test ),
                              rnd_std_rand, NULL ) == decrypt_ret );
     if( decrypt_ret == 0 )
     {
-        TEST_ASSERT( test_len == sizeof msg );
+        TEST_ASSERT( test_len == sizeof( msg ) );
         TEST_ASSERT( memcmp( test, msg, test_len ) == 0 );
     }
 
@@ -525,19 +525,19 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
 
     mbedtls_pk_init( &pk );
 
-    memset( hash, 0x2a, sizeof hash );
-    memset( sig, 0, sizeof sig );
+    memset( hash, 0x2a, sizeof( hash ) );
+    memset( sig, 0, sizeof( sig ) );
 
     TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( type ) ) == 0 );
     TEST_ASSERT( pk_genkey( &pk ) == 0 );
 
-    TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, sizeof hash,
+    TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, sizeof( hash ),
                           sig, &sig_len, rnd_std_rand, NULL ) == sign_ret );
     if( sign_ret == 0 )
         TEST_ASSERT( sig_len <= mbedtls_pk_get_signature_size( &pk ) );
 
     TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_SHA256,
-                            hash, sizeof hash, sig, sig_len ) == verify_ret );
+                            hash, sizeof( hash ), sig, sig_len ) == verify_ret );
 
 exit:
     mbedtls_pk_free( &pk );

@@ -54,10 +54,10 @@
 /**@{*/
 
 #define MBEDTLS_ERR_PK_ALLOC_FAILED        -0x3F80  /**< Memory allocation failed. */
-#define MBEDTLS_ERR_PK_TYPE_MISMATCH       -0x3F00  /**< Type mismatch, eg attempt to encrypt with an ECDSA key */
+#define MBEDTLS_ERR_PK_TYPE_MISMATCH       -0x3F00  /**< Type mismatch, eg attempt to encrypt with an ECDSA key. */
 #define MBEDTLS_ERR_PK_BAD_INPUT_DATA      -0x3E80  /**< Bad input parameters to function. */
 #define MBEDTLS_ERR_PK_FILE_IO_ERROR       -0x3E00  /**< Read/write of file failed. */
-#define MBEDTLS_ERR_PK_KEY_INVALID_VERSION -0x3D80  /**< Unsupported key version */
+#define MBEDTLS_ERR_PK_KEY_INVALID_VERSION -0x3D80  /**< Unsupported key version. */
 #define MBEDTLS_ERR_PK_KEY_INVALID_FORMAT  -0x3D00  /**< Invalid key tag or value. */
 #define MBEDTLS_ERR_PK_UNKNOWN_PK_ALG      -0x3C80  /**< Key algorithm is unsupported (only RSA and EC are supported). */
 #define MBEDTLS_ERR_PK_PASSWORD_REQUIRED   -0x3C00  /**< Private key password can't be empty. */
@@ -68,9 +68,9 @@
 #define MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE -0x3980  /**< Unavailable feature, e.g. RSA disabled for RSA key. */
 #define MBEDTLS_ERR_PK_SIG_LEN_MISMATCH    -0x3900  /**< The signature is valid but its length is less than expected. */
 #define MBEDTLS_ERR_PK_HW_ACCEL_FAILED     -0x3880  /**< PK hardware accelerator failed. */
-#define MBEDTLS_ERR_PK_INVALID_SIGNATURE   -0x3800  /**< Invalid signature */
-#define MBEDTLS_ERR_PK_BUFFER_TOO_SMALL    -0x3780  /**< Output buffer too small */
-#define MBEDTLS_ERR_PK_NOT_PERMITTED       -0x3700  /**< Operation not permitted */
+#define MBEDTLS_ERR_PK_INVALID_SIGNATURE   -0x3800  /**< Invalid signature. */
+#define MBEDTLS_ERR_PK_BUFFER_TOO_SMALL    -0x3780  /**< Output buffer too small. */
+#define MBEDTLS_ERR_PK_NOT_PERMITTED       -0x3700  /**< Operation not permitted. */
 
 /**@}*/
 
@@ -88,14 +88,14 @@ extern "C" {
  *                  unrecognized type. Call \c mbedtls_pk_can_do() to check
  *                  whether a key is of a recognized type. */
 typedef enum {
-    MBEDTLS_PK_NONE=0,          /**< Unused context object */
-    MBEDTLS_PK_RSA,             /**< RSA key pair (normal software implementation) with PKCS#1 v1.5 or PSS context */
-    MBEDTLS_PK_ECKEY,           /**< Generic ECC key pair */
-    MBEDTLS_PK_ECKEY_DH,        /**< ECC key pair restricted to key exchanges */
-    MBEDTLS_PK_ECDSA,           /**< ECC key pair restricted to signature/verification */
-    MBEDTLS_PK_RSA_ALT,         /**< RSA (alternative implementation) */
-    MBEDTLS_PK_RSASSA_PSS,      /**< RSA key pair; same context as MBEDTLS_PK_RSA, but used to represent keys with the algorithm identifier id-RSASSA-PSS */
-    MBEDTLS_PK_OPAQUE,          /**< Opaque key pair (cryptographic material held in an external module).*/
+    MBEDTLS_PK_NONE=0,          /**< Unused context object. */
+    MBEDTLS_PK_RSA,             /**< RSA key pair (normal software implementation) with PKCS#1 v1.5 or PSS context. */
+    MBEDTLS_PK_ECKEY,           /**< Generic ECC key pair. */
+    MBEDTLS_PK_ECKEY_DH,        /**< ECC key pair restricted to key exchanges. */
+    MBEDTLS_PK_ECDSA,           /**< ECC key pair restricted to signature/verification. */
+    MBEDTLS_PK_RSA_ALT,         /**< RSA (alternative implementation). */
+    MBEDTLS_PK_RSASSA_PSS,      /**< RSA key pair; same context as MBEDTLS_PK_RSA, but used to represent keys with the algorithm identifier id-RSASSA-PSS. */
+    MBEDTLS_PK_OPAQUE,          /**< Opaque key pair (cryptographic material held in an external module). */
 } mbedtls_pk_type_t;
 
 /**
@@ -154,7 +154,7 @@ typedef struct
 } mbedtls_pk_context;
 
 /**
- * \brief           Access the type name
+ * \brief           Get the key type name of a PK context.
  *
  * \param ctx       Context to use
  *
@@ -163,7 +163,7 @@ typedef struct
 const char * mbedtls_pk_get_name( const mbedtls_pk_context *ctx );
 
 /**
- * \brief           Get the key type
+ * \brief           Get the key type of a PK context.
  *
  * \param ctx       Context to use
  *

@@ -467,10 +467,11 @@ void ecp_ansi_write_point( char *key_file, int format, char *good_hex )
                  MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
 
 exit:
-    if( ret >= 0 ) {
+    if( ret >= 0 )
+    {
         unsigned char out[999] = {0};
         hexify( out, tested_buf, ret );
-        printf("== %s ==\n", out);
+        printf( "== %s ==\n", out );
     }
     mbedtls_pk_free( &pk );
 }

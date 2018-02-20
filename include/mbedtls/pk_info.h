@@ -3,7 +3,7 @@
  *
  * \brief Public Key cryptography abstraction layer: engine interface
  *
- *  This file defines the interface the public-key cryptography engines
+ *  This file defines the interface which public-key cryptography engines
  *  (PK engines) must implement. A PK engine defines how a public-private
  *  key pair is represented and how to perform cryptographic operations
  *  with it. Mbed TLS contains built-in PK engines implemented either
@@ -135,7 +135,7 @@ struct mbedtls_pk_info_t
      * In case of an error, or an unsupported key type, 0 should be returned.
      *
      * Opaque implementations may omit this method if they do not support
-     * signature. */
+     * signing. */
     size_t (*signature_size_func)( const void *ctx );
 
     /** Verify signature
@@ -239,8 +239,7 @@ struct mbedtls_pk_info_t
      * #MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE.
      *
      * Alternatively, check_pair_func may return another PK, RSA or ECP error
-     * code if applicable.
-     *  */
+     * code if applicable. */
     int (*check_pair_func)( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv );
 
     /** Allocate a new context
@@ -248,7 +247,7 @@ struct mbedtls_pk_info_t
      * mbedtls_pk_setup() calls this function.
      *
      * If this function returns NULL, the allocation is considered to
-     * have failed and the the object remains uninitialized.
+     * have failed and the object remains uninitialized.
      *
      * Opaque implementations may omit this method. In this case,
      * mbedtls_pk_setup() will set the \c pk_ctx field of the
@@ -261,9 +260,8 @@ struct mbedtls_pk_info_t
     /** Free the given context
      *
      * mbedtls_pk_free() calls this function. It must free the data allocated
-     * by \b ctx_alloc_func as well as any other resource that belongs to
-     * the object.
-     * */
+     * by \c ctx_alloc_func as well as any other resource that belongs to
+     * the object. */
     void (*ctx_free_func)( void *ctx );
 
     /** Interface with the debug module
@@ -276,9 +274,9 @@ struct mbedtls_pk_info_t
 };
 
 /**
- * Methods that opaque key pair objects must implement.
- *
  * \brief Initializer for opaque key engines
+ *
+ * Methods that opaque key pair objects must implement.
  *
  * The value of this macro is a suitable initializer for an object of type
  * mbedtls_pk_info_t. It is guaranteed to remain so in future versions of the
@@ -288,7 +286,7 @@ struct mbedtls_pk_info_t
  * parameters are constant.
  *
  * \param name For transparent keys, this reflects the key type. For opaque
- * keys, this reflects the cryptographic module driver.
+ *             keys, this reflects the cryptographic module driver.
  * \param get_bitlen \ref mbedtls_pk_info_t.get_bitlen method
  * \param can_do \ref mbedtls_pk_info_t.can_do method
  * \param signature_size_func \ref mbedtls_pk_info_t.signature_size_func method
@@ -302,9 +300,7 @@ struct mbedtls_pk_info_t
  * \param debug_func \ref mbedtls_pk_info_t.debug_func method
  *
  * \return Initializer for an object of type mbedtls_pk_info_t with the
- * specified field values
- *
- * */
+ *         specified field values */
 #define MBEDTLS_PK_OPAQUE_INFO_1(               \
     name                                        \
     , get_bitlen                                \

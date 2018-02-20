@@ -213,7 +213,7 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
  * \param f_rng     The RNG function.
  * \param p_rng     The RNG parameter.
  *
- * \note            The signature \p sig is expected to be ASN.1 SEQUENCE
+ * \note            The signature \p sig is expected to in be ASN.1 SEQUENCE
  *                  format, as described in <em>Standards for Efficient
  *                  Cryptography Group (SECG): SEC1 Elliptic Curve
  *                  Cryptography</em>, section C.5.

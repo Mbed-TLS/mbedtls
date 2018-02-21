@@ -118,38 +118,53 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  * By passing sb1, sb2, is1, is2 as S-Boxes you get SL1-then-A.
  * By passing is1, is2, sb1, sb2 as S-Boxes you get SL2-then-A.
  */
-#define ARIA_SLA( ra, rb, rc, rd, sa, sb, sc, sd ) {        \
-    uint32_t ta, tb, tc;                                    \
-    ta  =   ( (uint32_t) sc[(rb >> 16) & 0xFF]) ^           \
-            (((uint32_t) sd[ rb >> 24]) << 8)   ^           \
-            (((uint32_t) sa[ rb & 0xFF]) << 16) ^           \
-            (((uint32_t) sb[(rb >> 8) & 0xFF]) << 24);      \
-    rb  =   ( (uint32_t) sa[ ra & 0xFF]) ^                  \
-            (((uint32_t) sb[(ra >> 8) & 0xFF]) << 8) ^      \
-            (((uint32_t) sc[(ra >> 16) & 0xFF]) << 16) ^    \
-            (((uint32_t) sd[ ra >> 24]) << 24);             \
-    ra  =   ta;                                             \
-    ta  =   ( (uint32_t) sd[ rd >> 24]) ^                   \
-            (((uint32_t) sc[(rd >> 16) & 0xFF]) << 8) ^     \
-            (((uint32_t) sb[(rd >> 8) & 0xFF]) << 16) ^     \
-            (((uint32_t) sa[ rd & 0xFF]) << 24);            \
-    rd  =   ( (uint32_t) sb[(rc >> 8) & 0xFF]) ^            \
-            (((uint32_t) sa[ rc & 0xFF]) << 8) ^            \
-            (((uint32_t) sd[ rc >> 24]) << 16) ^            \
-            (((uint32_t) sc[(rc >> 16) & 0xFF]) << 24);     \
-    rc  =   ta;                                             \
-    ta  =   ARIA_FLIP1( ra ) ^ rd;                          \
-    tc  =   ARIA_FLIP1( rb );                               \
-    ta  =   ARIA_FLIP2( ta ) ^ tc ^ rc;                     \
-    tb  =   ARIA_FLIP2( rc ) ^ ARIA_FLIP1( rd );            \
-    tc  ^=  ARIA_FLIP2( ra );                               \
-    rb  ^=  ta ^ tb;                                        \
-    tb  =   ARIA_FLIP1( tb ) ^ ta;                          \
-    ra  ^=  ARIA_FLIP2( tb );                               \
-    ta  =   ARIA_FLIP1( ta );                               \
-    rd  ^=  ARIA_FLIP2( ta ) ^ tc;                          \
-    tc  =   ARIA_FLIP1( tc );                               \
-    rc  ^=  ARIA_FLIP2( tc ) ^ ta;                          \
+static inline void aria_sla( uint32_t *a, uint32_t *b,
+                             uint32_t *c, uint32_t *d,
+                             const uint8_t sa[0x100], const uint8_t sb[0x100],
+                             const uint8_t sc[0x100], const uint8_t sd[0x100] )
+{
+    uint32_t ra, rb, rc, rd, ta, tb, tc;
+
+    ra = *a;
+    rb = *b;
+    rc = *c;
+    rd = *d;
+
+    ta  =   ( (uint32_t) sc[(rb >> 16) & 0xFF]) ^
+            (((uint32_t) sd[ rb >> 24]) << 8)   ^
+            (((uint32_t) sa[ rb & 0xFF]) << 16) ^
+            (((uint32_t) sb[(rb >> 8) & 0xFF]) << 24);
+    rb  =   ( (uint32_t) sa[ ra & 0xFF]) ^
+            (((uint32_t) sb[(ra >> 8) & 0xFF]) << 8) ^
+            (((uint32_t) sc[(ra >> 16) & 0xFF]) << 16) ^
+            (((uint32_t) sd[ ra >> 24]) << 24);
+    ra  =   ta;
+    ta  =   ( (uint32_t) sd[ rd >> 24]) ^
+            (((uint32_t) sc[(rd >> 16) & 0xFF]) << 8) ^
+            (((uint32_t) sb[(rd >> 8) & 0xFF]) << 16) ^
+            (((uint32_t) sa[ rd & 0xFF]) << 24);
+    rd  =   ( (uint32_t) sb[(rc >> 8) & 0xFF]) ^
+            (((uint32_t) sa[ rc & 0xFF]) << 8) ^
+            (((uint32_t) sd[ rc >> 24]) << 16) ^
+            (((uint32_t) sc[(rc >> 16) & 0xFF]) << 24);
+    rc  =   ta;
+    ta  =   ARIA_FLIP1( ra ) ^ rd;
+    tc  =   ARIA_FLIP1( rb );
+    ta  =   ARIA_FLIP2( ta ) ^ tc ^ rc;
+    tb  =   ARIA_FLIP2( rc ) ^ ARIA_FLIP1( rd );
+    tc  ^=  ARIA_FLIP2( ra );
+    rb  ^=  ta ^ tb;
+    tb  =   ARIA_FLIP1( tb ) ^ ta;
+    ra  ^=  ARIA_FLIP2( tb );
+    ta  =   ARIA_FLIP1( ta );
+    rd  ^=  ARIA_FLIP2( ta ) ^ tc;
+    tc  =   ARIA_FLIP1( tc );
+    rc  ^=  ARIA_FLIP2( tc ) ^ ta;
+
+    *a = ra;
+    *b = rb;
+    *c = rc;
+    *d = rd;
 }
 
 /*
@@ -272,7 +287,7 @@ static void aria_fo_xor( uint32_t r[4],
     c = p[2] ^ k[2];
     d = p[3] ^ k[3];
 
-    ARIA_SLA( a, b, c, d, aria_sb1, aria_sb2, aria_is1, aria_is2 );
+    aria_sla( &a, &b, &c, &d, aria_sb1, aria_sb2, aria_is1, aria_is2 );
 
     r[0] = a ^ x[0];
     r[1] = b ^ x[1];
@@ -293,7 +308,7 @@ static void aria_fe_xor(uint32_t r[4],
     c = p[2] ^ k[2];
     d = p[3] ^ k[3];
 
-    ARIA_SLA( a, b, c, d, aria_is1, aria_is2, aria_sb1, aria_sb2 );
+    aria_sla( &a, &b, &c, &d, aria_is1, aria_is2, aria_sb1, aria_sb2 );
 
     r[0] = a ^ x[0];
     r[1] = b ^ x[1];
@@ -447,7 +462,7 @@ int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
         c ^= ctx->rk[i][2];
         d ^= ctx->rk[i][3];
         i++;
-        ARIA_SLA( a, b, c, d, aria_sb1, aria_sb2, aria_is1, aria_is2 );
+        aria_sla( &a, &b, &c, &d, aria_sb1, aria_sb2, aria_is1, aria_is2 );
 
         a ^= ctx->rk[i][0];
         b ^= ctx->rk[i][1];
@@ -457,7 +472,7 @@ int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
         if (i >= ctx->nr)
             break;
 
-        ARIA_SLA( a, b, c, d, aria_is1, aria_is2, aria_sb1, aria_sb2 );
+        aria_sla( &a, &b, &c, &d, aria_is1, aria_is2, aria_sb1, aria_sb2 );
     }
 
     /* final substitution */

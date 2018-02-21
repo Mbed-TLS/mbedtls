@@ -6,6 +6,8 @@ Bugfix
    * Fix the name of a DHE parameter that was accidentally changed in 2.7.0.
      Fixes #1358.
    * Fix test_suite_pk to work on 64-bit ILP32 systems. #849
+   * Don't define mbedtls_aes_decrypt and mbedtls_aes_encrypt under
+     MBEDTLS_DEPRECATED_REMOVED. #1388
 
 Changes
    * Fix tag lengths and value ranges in the documentation of CCM encryption.

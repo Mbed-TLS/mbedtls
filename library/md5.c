@@ -393,12 +393,14 @@ exit:
     return( ret );
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_md5( const unsigned char *input,
                   size_t ilen,
                   unsigned char output[16] )
 {
     mbedtls_md5_ret( input, ilen, output );
 }
+#endif
 
 #if defined(MBEDTLS_SELF_TEST)
 /*

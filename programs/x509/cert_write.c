@@ -554,7 +554,7 @@ static int remote_sign_func(void *ctx, mbedtls_md_type_t md_alg,
     offset += hash_len;
 
     if( serial_xfer( remote_ctx->serial_port, func_buffer, offset, sig,
-                     100/* FIXME */, sig_len ) != 0 )
+                     MBEDTLS_ECDSA_MAX_SIG_LEN(256), sig_len ) != 0 )
     {
         mbedtls_printf( " failed\n  !  Serial error in signing\n\n" );
         return( -1 );

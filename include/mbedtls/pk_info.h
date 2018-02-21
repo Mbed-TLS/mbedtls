@@ -228,10 +228,10 @@ struct mbedtls_pk_info_t
      * type does not match the semantic type of \c prv (RSA, ECC or other),
      * then \c check_pair_func must return #MBEDTLS_ERR_PK_TYPE_MISMATCH.
      *
-     * If \c pub and \c prv are opaque keys from the same engines (i.e. ''),
-     * then \c check_pair_func must return 0, #MBEDTLS_ERR_PK_TYPE_MISMATCH, or
-     * #MBEDTLS_ERR_RSA_KEY_CHECK_FAILED or #MBEDTLS_ERR_ECP_BAD_INPUT_DATA
-     * as in the case of transparent keys.
+     * If \c pub and \c prv are opaque keys from the same engines (i.e. their
+     * pk_info fields are equal), then \c check_pair_func must return 0,
+     * #MBEDTLS_ERR_PK_TYPE_MISMATCH, or #MBEDTLS_ERR_RSA_KEY_CHECK_FAILED
+     * or #MBEDTLS_ERR_ECP_BAD_INPUT_DATA as in the case of transparent keys.
      *
      * If \c pub is an opaque key which is not from the same engine as \c prv,
      * then \c check_pair_func may either return a semantically correct status

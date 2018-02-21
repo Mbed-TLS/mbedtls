@@ -296,21 +296,22 @@ static void aria_fe_xor(uint32_t r[4],
 // little-endian targets and stores state in that order.
 
 static void aria_rot128(uint32_t r[4], const uint32_t a[4],
-                        const uint32_t b[4], int n)
+                        const uint32_t b[4], uint8_t n)
 {
-    int i, j, n1, n2;
+    uint8_t i, j;
     uint32_t t, u;
 
-    j = (n >> 5) & 3;                       // word offset
-    n1 = n & 0x1F;                          // bit offsets
-    n2 = 32 - n1;                           // n1 should be nonzero!
+    const uint8_t n1 = n & 0x1F;            // bit offset
+    const uint8_t n2 = 32 - n1;             // reverse bit offset
+
+    j = (n >> 5) & 3;                       // initial word offset
     t = ARIA_FLIP1( ARIA_FLIP2( b[j] ) );   // big endian
     for( i = 0; i < 4; i++ )
     {
         j = (j + 1) & 3;                    // get next word, big endian
         u = ARIA_FLIP1( ARIA_FLIP2( b[j] ) );
         t <<= n1;                           // rotate
-        if (n2 < 32)                        // intel rotate 32 bits = 0 bits..
+        if (n2 < 32)                        // rotate 32 bits = 0 bits..
             t |= u >> n2;
         t = ARIA_FLIP1( ARIA_FLIP2( t ) );  // back to little endian
         r[i] = a[i] ^ t;                    // store
@@ -367,10 +368,10 @@ int mbedtls_aria_setkey_enc(mbedtls_aria_context *ctx,
     for( i = 0; i < 4; i++ )                // create round keys
     {
         w2 = w[(i + 1) & 3];
-        aria_rot128( ctx->rk[i     ], w[i], w2, -19);
-        aria_rot128( ctx->rk[i +  4], w[i], w2, -31);
-        aria_rot128( ctx->rk[i +  8], w[i], w2,  61);
-        aria_rot128( ctx->rk[i + 12], w[i], w2,  31);
+        aria_rot128( ctx->rk[i     ], w[i], w2, 128 - 19 );
+        aria_rot128( ctx->rk[i +  4], w[i], w2, 128 - 31 );
+        aria_rot128( ctx->rk[i +  8], w[i], w2,       61 );
+        aria_rot128( ctx->rk[i + 12], w[i], w2,       31 );
     }
     aria_rot128( ctx->rk[16], w[0], w[1], 19 );
 

@@ -48,6 +48,11 @@
 
 #if !defined(MBEDTLS_ARIA_ALT)
 
+/* Implementation that should never be optimized out by the compiler */
+static void mbedtls_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
+}
+
 // 32-bit integer manipulation macros (little endian)
 
 #ifndef GET_UINT32_LE
@@ -489,8 +494,7 @@ void mbedtls_aria_free( mbedtls_aria_context *ctx )
     if( ctx == NULL )
         return;
 
-    // compiler can't remove this since this is not a static function
-    memset( ctx, 0, sizeof( mbedtls_aria_context ) );
+    mbedtls_zeroize( ctx, sizeof( mbedtls_aria_context ) );
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)

@@ -2074,6 +2074,7 @@ int mbedtls_ecp_ansi_write_group( const mbedtls_ecp_group *grp,
     size_t oid_length;
     int ret;
 
+    *olen = 0;
     ret = mbedtls_oid_get_oid_by_ec_grp( grp->id, &oid, &oid_length );
     if( ret != 0 )
         return( ret );
@@ -2081,7 +2082,8 @@ int mbedtls_ecp_ansi_write_group( const mbedtls_ecp_group *grp,
     if( size < 2 + oid_length )
         return( MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL );
     q = p + 2 + oid_length;
-    *olen = mbedtls_asn1_write_oid( &q, p, oid, oid_length );
+    MBEDTLS_ASN1_CHK_ADD( *olen, mbedtls_asn1_write_oid( &q, p, oid,
+                                                         oid_length ) );
     if ( p != q )
         return ( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
     return ( 0 );

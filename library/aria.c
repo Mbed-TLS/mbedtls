@@ -291,7 +291,7 @@ static void aria_fe_xor(uint32_t r[4],
     r[3] = d ^ x[3];
 }
 
-// Big endian 128-bit rotation: d = a ^ (b <<< n), used only in key setup.
+// Big endian 128-bit rotation: r = a ^ (b <<< n), used only in key setup.
 // This is relatively slow since our implementation is geared towards
 // little-endian targets and stores state in that order.
 
@@ -301,18 +301,17 @@ static void aria_rot128(uint32_t r[4], const uint32_t a[4],
     uint8_t i, j;
     uint32_t t, u;
 
-    const uint8_t n1 = n & 0x1F;            // bit offset
-    const uint8_t n2 = 32 - n1;             // reverse bit offset
+    const uint8_t n1 = n % 32;              // bit offset
+    const uint8_t n2 = n1 ? 32 - n1 : 0;    // reverse bit offset
 
-    j = (n >> 5) & 3;                       // initial word offset
+    j = (n / 32) % 4;                       // initial word offset
     t = ARIA_FLIP1( ARIA_FLIP2( b[j] ) );   // big endian
     for( i = 0; i < 4; i++ )
     {
-        j = (j + 1) & 3;                    // get next word, big endian
+        j = (j + 1) % 4;                    // get next word, big endian
         u = ARIA_FLIP1( ARIA_FLIP2( b[j] ) );
         t <<= n1;                           // rotate
-        if (n2 < 32)                        // rotate 32 bits = 0 bits..
-            t |= u >> n2;
+        t |= u >> n2;
         t = ARIA_FLIP1( ARIA_FLIP2( t ) );  // back to little endian
         r[i] = a[i] ^ t;                    // store
         t = u;                              // move to next word

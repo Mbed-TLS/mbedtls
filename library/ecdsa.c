@@ -287,31 +287,48 @@ cleanup:
 #endif /* MBEDTLS_ECDSA_VERIFY_ALT */
 
 /*
- * Convert a signature (given by context) to ASN.1
+ * Convert a signature (given by context) to ASN.1.
+ * This function is for internal use only. Upon an error, it may leave
+ * the signature buffer partially written.
  */
-static int ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
-                                    unsigned char *sig, size_t *slen )
+static int internal_ecdsa_signature_to_asn1( const mbedtls_mpi *r,
+                                      const mbedtls_mpi *s, unsigned char *sig,
+                                      size_t *slen, size_t ssize )
 {
     int ret;
-    unsigned char buf[MBEDTLS_ECDSA_MAX_LEN];
-    unsigned char *p = buf + sizeof( buf );
+    unsigned char *p = sig + ssize;
     size_t len = 0;
 
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &p, buf, s ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &p, buf, r ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &p, sig, s ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &p, sig, r ) );
 
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, buf, len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf,
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, sig, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, sig,
                                        MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
 
-    memcpy( sig, p, len );
+    memmove( sig, p, len );
+    memset( sig + len, 0, ssize - len );
     *slen = len;
 
     return( 0 );
 }
 
 /*
- * Compute and write signature
+ * Convert a signature from number pair format to ASN.1.
+ * Zeroize the buffer on error.
+ */
+int mbedtls_ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
+                             unsigned char *sig, size_t *slen, size_t ssize )
+{
+    int ret = internal_ecdsa_signature_to_asn1( r, s, sig, slen, ssize );
+    if( ret != 0 )
+        memset( sig, 0, ssize );
+    return( ret );
+}
+
+/*
+ * Compute and write signature. This function assumes that sig is large enough.
+ * Refer to MBEDTLS_ECDSA_MAX_SIG_LEN for the signature size.
  */
 int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t md_alg,
                            const unsigned char *hash, size_t hlen,
@@ -321,6 +338,7 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
 {
     int ret;
     mbedtls_mpi r, s;
+    const size_t ssize = MBEDTLS_ECDSA_MAX_SIG_LEN( ctx->grp.pbits );
 
     mbedtls_mpi_init( &r );
     mbedtls_mpi_init( &s );
@@ -338,7 +356,7 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
                          hash, hlen, f_rng, p_rng ) );
 #endif
 
-    MBEDTLS_MPI_CHK( ecdsa_signature_to_asn1( &r, &s, sig, slen ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecdsa_signature_to_asn1( &r, &s, sig, slen, ssize ) );
 
 cleanup:
     mbedtls_mpi_free( &r );

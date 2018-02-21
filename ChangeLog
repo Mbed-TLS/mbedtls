@@ -1,5 +1,13 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.7.x feature branch released xxxx-xx-xx
+
+Features
+   * Add support for opaque keys in the pk module. Applications can define
+     opaque key engines to perform operations using keys stored in an
+     external cryptographic module.
+   * Support opaque private keys in TLS.
+
 = mbed TLS 2.7.0 branch released 2018-02-03
 
 Security

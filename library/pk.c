@@ -28,6 +28,7 @@
 #if defined(MBEDTLS_PK_C)
 #include "mbedtls/pk.h"
 #include "mbedtls/pk_internal.h"
+#include "mbedtls/pk_info.h"
 
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
@@ -93,6 +94,7 @@ const mbedtls_pk_info_t * mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type )
             return( &mbedtls_ecdsa_info );
 #endif
         /* MBEDTLS_PK_RSA_ALT omitted on purpose */
+        /* MBEDTLS_PK_OPAQUE omitted on purpose: they can't be built by parsing */
         default:
             return( NULL );
     }
@@ -106,8 +108,11 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info )
     if( ctx == NULL || info == NULL || ctx->pk_info != NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    if( ( ctx->pk_ctx = info->ctx_alloc_func() ) == NULL )
-        return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+    if( info->ctx_alloc_func != NULL )
+    {
+        if( ( ctx->pk_ctx = info->ctx_alloc_func( ) ) == NULL )
+            return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+    }
 
     ctx->pk_info = info;
 
@@ -154,7 +159,7 @@ int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type )
     if( ctx == NULL || ctx->pk_info == NULL )
         return( 0 );
 
-    return( ctx->pk_info->can_do( type ) );
+    return( ctx->pk_info->can_do( ctx->pk_ctx, type ) );
 }
 
 /*
@@ -311,24 +316,27 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
 int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv )
 {
     if( pub == NULL || pub->pk_info == NULL ||
-        prv == NULL || prv->pk_info == NULL ||
-        prv->pk_info->check_pair_func == NULL )
+        prv == NULL || prv->pk_info == NULL )
     {
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
     }
 
-    if( prv->pk_info->type == MBEDTLS_PK_RSA_ALT )
+    if( pub->pk_info == prv->pk_info && pub->pk_ctx == prv->pk_ctx )
+        return( 0 );
+
+    if( prv->pk_info->check_pair_func == NULL )
     {
-        if( pub->pk_info->type != MBEDTLS_PK_RSA )
-            return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
-    }
-    else
-    {
-        if( pub->pk_info != prv->pk_info )
-            return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
     }
 
-    return( prv->pk_info->check_pair_func( pub->pk_ctx, prv->pk_ctx ) );
+   if( prv->pk_info->type != MBEDTLS_PK_OPAQUE &&
+       prv->pk_info->type != MBEDTLS_PK_RSA_ALT )
+   {
+       if( pub->pk_info != prv->pk_info )
+           return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+   }
+
+    return( prv->pk_info->check_pair_func( pub, prv ) );
 }
 
 /*
@@ -340,6 +348,20 @@ size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx )
         return( 0 );
 
     return( ctx->pk_info->get_bitlen( ctx->pk_ctx ) );
+}
+
+/*
+ * Maximum signature size
+ */
+size_t mbedtls_pk_get_signature_size( const mbedtls_pk_context *ctx )
+{
+    if( ctx == NULL || ctx->pk_info == NULL )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    if( ctx->pk_info->signature_size_func == NULL )
+        return( 0 );
+
+    return( ctx->pk_info->signature_size_func( ctx->pk_ctx ) );
 }
 
 /*
@@ -369,7 +391,9 @@ const char *mbedtls_pk_get_name( const mbedtls_pk_context *ctx )
 }
 
 /*
- * Access the PK type
+ * Access the PK type.
+ * For an opaque key pair object, this does not give any information on the
+ * underlying cryptographic material.
  */
 mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx )
 {

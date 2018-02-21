@@ -34,6 +34,11 @@
 #include "ecp.h"
 #include "md.h"
 
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
+#define inline __inline
+#endif
+
 /*
  * RFC-4492 page 20:
  *
@@ -51,8 +56,40 @@
 #if MBEDTLS_ECP_MAX_BYTES > 124
 #error "MBEDTLS_ECP_MAX_BYTES bigger than expected, please fix MBEDTLS_ECDSA_MAX_LEN"
 #endif
+
+/**
+ * \brief           Maximum ECDSA signature size for a given curve bit size
+ *
+ * \param bits      Curve size in bits
+ * \return          Maximum signature size in bytes
+ *
+ * \note            This macro returns a compile-time constant if its argument
+ *                  is one. It may evaluate its argument multiple times; if
+ *                  this is a problem, call the function
+ *                  mbedtls_ecdsa_max_sig_len instead.
+ */
+#define MBEDTLS_ECDSA_MAX_SIG_LEN( bits )                               \
+    ( /*T,L of SEQUENCE*/ ( ( bits ) >= 61 * 8 ? 3 : 2 ) +              \
+      /*T,L of r,s*/        2 * ( ( ( bits ) >= 127 * 8 ? 3 : 2 ) +     \
+      /*V of r,s*/                ( ( bits ) + 8 ) / 8 ) )
+
+/**
+ * \brief           Maximum ECDSA signature size for a given curve bit size
+ *
+ * \param bits      Curve size in bits
+ * \return          Maximum signature size in bytes
+ *
+ * \note            If you need a compile-time constant, call the macro
+ *                  MBEDTLS_ECDSA_MAX_SIG_LEN instead.
+ */
+static inline size_t mbedtls_ecdsa_max_sig_len( size_t bits )
+{
+    return( MBEDTLS_ECDSA_MAX_SIG_LEN( bits ) );
+}
+
 /** The maximal size of an ECDSA signature in Bytes. */
-#define MBEDTLS_ECDSA_MAX_LEN  ( 3 + 2 * ( 3 + MBEDTLS_ECP_MAX_BYTES ) )
+#define MBEDTLS_ECDSA_MAX_LEN \
+    ( MBEDTLS_ECDSA_MAX_SIG_LEN( 8 * MBEDTLS_ECP_MAX_BYTES ) )
 
 /**
  * \brief           The ECDSA context structure.
@@ -65,7 +102,10 @@ extern "C" {
 
 /**
  * \brief           This function computes the ECDSA signature of a
- *                  previously-hashed message.
+ *                  previously-hashed message. The signature is in
+ *                  ASN.1 SEQUENCE format, as described in <em>Standards
+ *                  for Efficient Cryptography Group (SECG): SEC1 Elliptic
+ *                  Curve Cryptography</em>, section C.5.
  *
  * \note            The deterministic version is usually preferred.
  *
@@ -178,10 +218,13 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
  * \param f_rng     The RNG function.
  * \param p_rng     The RNG parameter.
  *
- * \note            The \p sig buffer must be at least twice as large as the
- *                  size of the curve used, plus 9. For example, 73 Bytes if
- *                  a 256-bit curve is used. A buffer length of
- *                  #MBEDTLS_ECDSA_MAX_LEN is always safe.
+ * \note            The signature \p sig is expected to in be ASN.1 SEQUENCE
+ *                  format, as described in <em>Standards for Efficient
+ *                  Cryptography Group (SECG): SEC1 Elliptic Curve
+ *                  Cryptography</em>, section C.5.
+ *
+ * \note            A \p sig buffer length of #MBEDTLS_ECDSA_MAX_LEN is
+ *                  always safe.
  *
  * \note            If the bitlength of the message hash is larger than the
  *                  bitlength of the group order, then the hash is truncated as
@@ -254,6 +297,35 @@ int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
 #undef MBEDTLS_DEPRECATED
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
+
+/**
+ * \brief           Convert an ECDSA signature from number pair format to ASN.1
+ *
+ * \param r         First number of the signature
+ * \param s         Second number of the signature
+ * \param sig       Buffer that will hold the signature
+ * \param slen      Length of the signature written
+ * \param ssize     Size of the sig buffer
+ *
+ * \note            The size of the buffer \c ssize should be at least
+ *                  `MBEDTLS_ECDSA_MAX_SIG_LEN(grp->pbits)` bytes long if the
+ *                  signature was produced from curve \c grp, otherwise
+ *                  this function may fail with the error
+ *                  MBEDTLS_ERR_ASN1_BUF_TOO_SMALL.
+ *                  The output ASN.1 SEQUENCE format is as follows:
+ *                  Ecdsa-Sig-Value ::= SEQUENCE {
+ *                              r       INTEGER,
+ *                              s       INTEGER
+ *                          }
+ *                  This format is expected by \c mbedtls_ecdsa_verify.
+ *
+ * \return          0 if successful,
+ *                  or a MBEDTLS_ERR_MPI_XXX or MBEDTLS_ERR_ASN1_XXX error code
+ *
+ */
+int mbedtls_ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
+                             unsigned char *sig, size_t *slen,
+                             size_t ssize );
 
 /**
  * \brief           This function reads and verifies an ECDSA signature.

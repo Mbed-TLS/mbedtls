@@ -219,27 +219,27 @@ struct mbedtls_pk_info_t
      *
      * If \c pub is an ECC key and \c pub is a transparent ECC key that can
      * be used for ECDSA (i.e. \c pub has the type #MBEDTLS_PK_ECKEY or
-     * #MBEDTLS_PK_ECDSA), then check_pair_func must return 0 if the public
-     * key is mathematically equivalent to the public part of prv, and
+     * #MBEDTLS_PK_ECDSA), then \c check_pair_func must return 0 if the public
+     * key is mathematically equivalent to the public part of \c prv, and
      * #MBEDTLS_ERR_ECP_BAD_INPUT_DATA otherwise.
      *
      * If \c pub is a transparent key (key of type #MBEDTLS_PK_RSA,
      * #MBEDTLS_PK_RSASSA_PSS, #MBEDTLS_PK_ECKEY or #MBEDTLS_PK_ECDSA) whose
      * type does not match the semantic type of \c prv (RSA, ECC or other),
-     * then check_pair_func must return #MBEDTLS_ERR_PK_TYPE_MISMATCH.
+     * then \c check_pair_func must return #MBEDTLS_ERR_PK_TYPE_MISMATCH.
      *
      * If \c pub and \c prv are opaque keys from the same engines (i.e. ''),
-     * then check_pair_func must return 0, #MBEDTLS_ERR_PK_TYPE_MISMATCH, or
+     * then \c check_pair_func must return 0, #MBEDTLS_ERR_PK_TYPE_MISMATCH, or
      * #MBEDTLS_ERR_RSA_KEY_CHECK_FAILED or #MBEDTLS_ERR_ECP_BAD_INPUT_DATA
      * as in the case of transparent keys.
      *
      * If \c pub is an opaque key which is not from the same engine as \c prv,
-     * then check_pair_func may either return a semantically correct status as
-     * in the case of transparent keys, or it may return
+     * then \c check_pair_func may either return a semantically correct status
+     * as in the case of transparent keys, or it may return
      * #MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE.
      *
-     * Alternatively, check_pair_func may return another PK, RSA or ECP error
-     * code if applicable. */
+     * Alternatively, \c check_pair_func may return another PK, RSA or ECP
+     * error code if applicable. */
     int (*check_pair_func)( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv );
 
     /** Allocate a new context

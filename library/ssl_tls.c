@@ -2481,6 +2481,12 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
         if( ret <= 0 )
             return( ret );
 
+        if( (size_t)ret > ssl->out_left )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "f_send returned value greater than out left size" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
         ssl->out_left -= ret;
     }
 

@@ -211,8 +211,8 @@ int is_remote_key( const char *remote_info )
 
 int parse_remote_info( const char *remote_info, int *key_idx, const char **serial_port )
 {
-    int offset = 0;
-    int remote_info_len = strlen( remote_info );
+    size_t offset = 0;
+    size_t remote_info_len = strlen( remote_info );
 
     if( is_remote_key( remote_info ) == 0 )
         return( -1 );
@@ -339,7 +339,7 @@ int serial_xfer( const char * serial_port, const unsigned char * tx_buf,
         /* Flush data on serial before sending sync pattern */
         while( ReadFile( h_comm, &c, sizeof(c), &xfer_len, NULL ) && xfer_len != 0 );
         /* Sync with peer */
-        if( !WriteFile( h_comm, REMOTE_KEY_MAGIC_PATTERN, strlen(REMOTE_KEY_MAGIC_PATTERN), 
+        if( !WriteFile( h_comm, REMOTE_KEY_MAGIC_PATTERN, (DWORD)strlen(REMOTE_KEY_MAGIC_PATTERN), 
                     &xfer_len, NULL ) )
         {
             mbedtls_printf( " failed\n  ! WriteFile returned error %lu\n\n", GetLastError() );
@@ -362,7 +362,7 @@ int serial_xfer( const char * serial_port, const unsigned char * tx_buf,
         /* Exit if there was a read error */
         if ( sync_pattern_idx != strlen(REMOTE_KEY_MAGIC_PATTERN) )
         {
-            mbedtls_printf("Failedi to sync!\n");
+            mbedtls_printf("Failed to sync!\n");
             break;
         }
 
@@ -373,7 +373,7 @@ int serial_xfer( const char * serial_port, const unsigned char * tx_buf,
                 printf ("0x%02x ", (tx_buf)[i]);
             printf("\n");
         }
-        if( !WriteFile( h_comm, tx_buf, tx_buf_len, 
+        if( !WriteFile( h_comm, tx_buf, (DWORD)tx_buf_len,
                     &xfer_len, NULL ) )
         {
             mbedtls_printf( " failed\n  ! WriteFile returned error %lu\n\n", GetLastError() );
@@ -402,7 +402,7 @@ int serial_xfer( const char * serial_port, const unsigned char * tx_buf,
         len = 0;
         while( len < *rx_len )
         {
-            if( !ReadFile( h_comm, rx_buf + len, *rx_len - len, &xfer_len, NULL ) )
+            if( !ReadFile( h_comm, rx_buf + len, (DWORD)(*rx_len - len), &xfer_len, NULL ) )
             {
                 mbedtls_printf( " failed\n  ! ReadFile returned error %lu\n\n", GetLastError() );
                 break;
@@ -545,10 +545,10 @@ static int remote_sign_func(void *ctx, mbedtls_md_type_t md_alg,
 
     func_buffer[offset++] = REMOTE_KEY_FUNC_SIGN;
     func_buffer[offset++] = remote_ctx->key_idx;
-    func_buffer[offset++] = hash_len >> 24;
-    func_buffer[offset++] = hash_len >> 16;
-    func_buffer[offset++] = hash_len >> 8;
-    func_buffer[offset++] = hash_len;
+    func_buffer[offset++] = (unsigned char)(hash_len >> 24);
+    func_buffer[offset++] = (unsigned char)(hash_len >> 16);
+    func_buffer[offset++] = (unsigned char)(hash_len >> 8);
+    func_buffer[offset++] = (unsigned char)(hash_len);
 
     memcpy( func_buffer + offset, hash, hash_len );
     offset += hash_len;

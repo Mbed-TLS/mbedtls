@@ -23,6 +23,8 @@ Changes
      Contributed by Mathieu Briand.
    * Fix typo in a comment ctr_drbg.c. Contributed by Paul Sokolovsky.
    * Remove support for the library reference configuration for picocoin.
+   * Add guard to validate that out_left can not be negative. Raised by 
+     samoconnor in #1245.
 
 = mbed TLS 2.7.0 branch released 2018-02-03
 

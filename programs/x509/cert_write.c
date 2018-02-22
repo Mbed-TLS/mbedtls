@@ -53,10 +53,14 @@ int main( void )
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/md.h"
 #include "mbedtls/error.h"
+#include "mbedtls/pk_info.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined(_WIN32)
+#include <Windows.h>
+#endif
 
 #if defined(MBEDTLS_X509_CSR_PARSE_C)
 #define USAGE_CSR                                                           \
@@ -89,6 +93,8 @@ int main( void )
 #define DFL_SUBJ_IDENT          1
 #define DFL_CONSTRAINTS         1
 #define DFL_DIGEST              MBEDTLS_MD_SHA256
+
+#define UNUSED(x) ((void)(x))
 
 #define USAGE \
     "\n usage: cert_write param=<>...\n"                \
@@ -178,6 +184,448 @@ struct options
     unsigned char key_usage;    /* key usage flags                      */
     unsigned char ns_cert_type; /* NS cert type                         */
 } opt;
+
+#if defined(_WIN32)
+/** Below are the constants used for remote Opaque key implementation.
+ */
+
+/* Remote cryptoprocessor sync pattern. Sent to sync with the device before
+ * sending commands. */
+#define REMOTE_KEY_MAGIC_PATTERN    "rEmOtEkEy" 
+#define REMOTE_KEY_CMD_TAG          "//opaque_pk/ATCA"
+#define REMOTE_KEY_ID_MIN           0
+#define REMOTE_KEY_ID_MAX           7
+#define REMOTE_KEY_SERIAL_BAUD      CBR_9600
+
+#define REMOTE_KEY_FUNC_GET_PUBKEY  0xA
+#define REMOTE_KEY_FUNC_SIGN        0xB
+
+int is_remote_key( const char *remote_info )
+{
+    size_t tag_len = strlen( REMOTE_KEY_CMD_TAG );
+    if ( strlen( remote_info ) > tag_len &&
+            strncmp( remote_info, REMOTE_KEY_CMD_TAG, tag_len ) == 0 )
+        return( 1 );
+    return( 0 );
+}
+
+int parse_remote_info( const char *remote_info, int *key_idx, const char **serial_port )
+{
+    size_t offset = 0;
+    size_t remote_info_len = strlen( remote_info );
+
+    if( !is_remote_key( remote_info ) )
+        return( -1 );
+
+    offset = strlen( REMOTE_KEY_CMD_TAG );
+    offset++; // Skip the delimiter. FUTURE: Add validation.
+    if( offset >= remote_info_len )
+        return( -1 );
+    *key_idx = (int) remote_info[offset++];
+    offset++; // Skip the delimiter
+    if( offset >= remote_info_len )
+        return( -1 );
+    *key_idx = *key_idx - 48; // ascii to decimal
+
+    if ( *key_idx < REMOTE_KEY_ID_MIN || *key_idx > REMOTE_KEY_ID_MAX )
+    {
+        mbedtls_printf( " failed\n  !  Invalid remote key index %d\n\n", *key_idx );
+        return( -1 );
+    }
+    *serial_port = remote_info + offset;
+    printf( "Got key id %d and com port %s\n", *key_idx, *serial_port );
+    return( 0 );
+}
+
+/**
+  * @brief  Send a command to remote cryptoprocessor and receive response.
+  *
+  * It
+  *     - first sends a sync pattern 'rEmOtEkEy' and waits for an echo to sync
+  * with the remote.
+  *     - Then it sends the tx buf supplied by the caller.
+  *     - It waits for a 4 byte length indicator. Value 0 means error.
+  *     - Finally it reads no. of bytes specified in received Length indicator
+  *       and fills received data in rx_buf and returns.
+  *     Note: success is considered when a length indicator > 0 is received and
+  *     data size == length indicator is successfully received.
+  * 
+  *
+  * @param serial_port  Serial port to send & recv data.
+  * @param tx_buf       Command Tx buffer
+  * @param tx_buf_len   Tx buffer length
+  * @param rx_buf       Out response Rx buffer
+  * @param rx_buf_len   Rx buffer length
+  * @param rx_len       Received data length
+  *
+  * @retval 0 if success, or -1.
+  */
+int serial_xfer( const char * serial_port, const unsigned char * tx_buf,
+                 size_t tx_buf_len, unsigned char * rx_buf, size_t rx_buf_len,
+                 size_t * rx_len )
+{
+    char c, comm_name[20]; /* \\\\.\\COMxy = 11 characters at least */
+    HANDLE h_comm;
+    DCB dcb_config;
+    COMMTIMEOUTS comm_timeout;
+    DWORD xfer_len;
+    unsigned char len_buf[sizeof(size_t)];
+    int ret = -1;
+    size_t len = 0, sync_pattern_idx = 0;
+
+    do
+    {
+        sprintf( comm_name, "\\\\.\\%s", serial_port );
+
+        h_comm = CreateFile( comm_name, GENERIC_READ | GENERIC_WRITE, 0, 0,
+                OPEN_EXISTING, 0, 0 );
+        if ( h_comm == INVALID_HANDLE_VALUE )
+        {
+            mbedtls_printf( " failed\n  ! failed to open port %s %lu\n\n", serial_port, GetLastError() );
+            break;
+        }
+
+        if( GetCommState( h_comm, &dcb_config ) )
+        {
+            dcb_config.BaudRate = REMOTE_KEY_SERIAL_BAUD;
+            dcb_config.Parity = NOPARITY;
+            dcb_config.ByteSize = 8;
+            dcb_config.StopBits = ONESTOPBIT;
+            dcb_config.fOutxCtsFlow = FALSE;         // No CTS output flow control
+            dcb_config.fOutxDsrFlow = FALSE;         // No DSR output flow control
+            dcb_config.fDtrControl = DTR_CONTROL_DISABLE; // DTR flow control type
+            dcb_config.fDsrSensitivity = FALSE;      // DSR sensitivity
+            dcb_config.fTXContinueOnXoff = TRUE;     // XOFF continues Tx
+            dcb_config.fOutX = FALSE;                // No XON/XOFF out flow control
+            dcb_config.fInX = FALSE;                 // No XON/XOFF in flow control
+            dcb_config.fErrorChar = FALSE;           // Disable error replacement
+            dcb_config.fNull = FALSE;                // Disable null stripping
+            dcb_config.fRtsControl = RTS_CONTROL_DISABLE; // RTS flow control
+            dcb_config.fAbortOnError = FALSE;        // Do not abort reads/writes on error
+        }
+        else
+        {
+            mbedtls_printf( " failed\n  ! GetCommState returned error %lu\n\n", GetLastError() );
+            break;
+        }
+
+        if( !SetCommState( h_comm, &dcb_config ) )
+        {
+            mbedtls_printf( " failed\n  ! SetCommState returned error %lu\n\n", GetLastError() );
+            break;
+        }
+
+        if( GetCommTimeouts( h_comm, &comm_timeout ) )
+        {
+            comm_timeout.ReadIntervalTimeout = 1000;
+            comm_timeout.ReadTotalTimeoutMultiplier = 10;
+            comm_timeout.ReadTotalTimeoutConstant = 1000;
+            comm_timeout.WriteTotalTimeoutConstant = 1000;
+            comm_timeout.WriteTotalTimeoutMultiplier = 10;
+        }
+        else
+        {
+            mbedtls_printf( " failed\n  ! GetCommTimeouts returned error %lu\n\n", GetLastError() );
+            break;
+        }
+
+        if( !SetCommTimeouts( h_comm, &comm_timeout ) )
+        {
+            mbedtls_printf( " failed\n  ! SetCommTimeouts returned error %lu\n\n", GetLastError() );
+            break;
+        }
+
+
+        /* Flush data on serial before sending sync pattern */
+        while( ReadFile( h_comm, &c, sizeof(c), &xfer_len, NULL ) && xfer_len != 0 );
+        /* Sync with peer */
+        if( !WriteFile( h_comm, REMOTE_KEY_MAGIC_PATTERN, (DWORD)strlen(REMOTE_KEY_MAGIC_PATTERN), 
+                    &xfer_len, NULL ) )
+        {
+            mbedtls_printf( " failed\n  ! WriteFile returned error %lu\n\n", GetLastError() );
+            break;
+        }
+
+        while( sync_pattern_idx != strlen(REMOTE_KEY_MAGIC_PATTERN) )
+        {
+            if( !ReadFile( h_comm, &c, sizeof(c), &xfer_len, NULL ) )
+            {
+                mbedtls_printf( " failed\n  ! ReadFile returned error %lu\n\n", GetLastError() );
+                break;
+            }
+            if ( c == REMOTE_KEY_MAGIC_PATTERN[sync_pattern_idx] )
+                sync_pattern_idx++;
+            else
+                sync_pattern_idx = 0;
+        }
+
+        /* Exit if there was a read error */
+        if ( sync_pattern_idx != strlen(REMOTE_KEY_MAGIC_PATTERN) )
+        {
+            mbedtls_printf("Failed to sync!\n");
+            break;
+        }
+
+        {
+            size_t i;
+            printf("Tx: ");
+            for (i = 0; i < tx_buf_len; i++)
+                printf ("0x%02x ", (tx_buf)[i]);
+            printf("\n");
+        }
+        if( !WriteFile( h_comm, tx_buf, (DWORD)tx_buf_len,
+                    &xfer_len, NULL ) )
+        {
+            mbedtls_printf( " failed\n  ! WriteFile returned error %lu\n\n", GetLastError() );
+            break;
+        }
+
+        /* Read LI (length indicator) */
+        if( !ReadFile( h_comm, len_buf, sizeof(len_buf), &xfer_len, NULL ) ) /* Serial error */
+        {
+            mbedtls_printf( " failed\n  ! ReadFile returned error %lu\n\n", GetLastError() );
+            break;
+        }
+
+        *rx_len = ( len_buf[0] << 24 ) | ( len_buf[1] << 16 ) | ( len_buf[2] << 8 ) | len_buf[3];
+        if ( *rx_len == 0 ) /* LI == 0 indicates remote error */
+        {
+            mbedtls_printf( " failed\n  ! Received length indicator == 0\n\n" );
+            break;
+        }
+        if ( *rx_len > rx_buf_len ) /* Buffer too small */
+        {
+            mbedtls_printf( " failed\n  ! Buffer too small to hold received data\n\n" );
+            break;
+        }
+        /* Read payload */
+        len = 0;
+        while( len < *rx_len )
+        {
+            if( !ReadFile( h_comm, rx_buf + len, (DWORD)(*rx_len - len), &xfer_len, NULL ) )
+            {
+                mbedtls_printf( " failed\n  ! ReadFile returned error %lu\n\n", GetLastError() );
+                break;
+            }
+            len += xfer_len;
+        }
+        if( len < *rx_len ) /* Serial error */
+        {
+            mbedtls_printf( " failed\n  ! ReadFile returned error %lu\n\n", GetLastError() );
+            break;
+        }
+        printf("Received LI 0x%02x 0x%02x 0x%02x 0x%02x \n", len_buf[0], len_buf[1], len_buf[2], len_buf[3]);
+        {
+            size_t i;
+            printf("Rx: ");
+            for (i = 0; i < *rx_len; i++)
+                printf ("0x%02x ", (rx_buf)[i]);
+            printf("\n");
+        }
+
+        ret = 0;
+    } while( 0 );
+
+    if( h_comm != INVALID_HANDLE_VALUE )
+    {
+        CloseHandle( h_comm );
+        h_comm = INVALID_HANDLE_VALUE;
+    }
+
+    return( ret );
+}
+
+/** Load a transparent public key context with public key from remote device
+ *  over serial.
+ *  This function sends:
+ *      rEmOtEkEy<char encoded function code=GetPubKey><char encoded private key ID>
+ *  Receives:
+ *      <4 bytes length indicator in network order><concatenated public key>
+ */
+int load_pubkey_from_remote( const char * remote_info, mbedtls_pk_context * ctx )
+{
+    int key_idx = 0, offset = 0, ret = 0;
+    const char * serial_port = NULL;
+    unsigned char func_buffer[2];   /* Op code: 1 + key Id: 1 */
+    unsigned char pub_key_buf[65];  /* ECDSA Pub key: 64 + EC octet string format tag: 1 */
+    size_t rx_len = 0;
+    static mbedtls_ecp_keypair ecp_key;
+
+    if( parse_remote_info( remote_info, &key_idx, &serial_port ) != 0 )
+        return( -1 );
+
+    /* Prepare command */
+    offset = 0;
+    func_buffer[offset++] = REMOTE_KEY_FUNC_GET_PUBKEY;
+    func_buffer[offset++] = key_idx;
+
+    if( serial_xfer( serial_port, func_buffer, offset, pub_key_buf,
+                     sizeof( pub_key_buf ), &rx_len ) != 0 )
+    {
+        mbedtls_printf( " failed\n  !  Serial error trying to get pulic key\n\n" );
+        return( -1 );
+    }
+
+    /* Import public key from received binary */
+    mbedtls_ecp_keypair_init(&ecp_key);
+    ret = mbedtls_ecp_group_load(&ecp_key.grp, MBEDTLS_ECP_DP_SECP256R1);
+    if( ret != 0 )
+    {
+        mbedtls_printf( " failed\n  !  Failed to load ecp group\n\n" );
+        return( ret );
+    }
+    ret = mbedtls_ecp_point_read_binary(&ecp_key.grp, &ecp_key.Q, pub_key_buf, rx_len );
+    if( ret != 0 )
+    {
+        mbedtls_printf( " failed\n  !  Failed to read ecp key from binary\n\n" );
+        return( ret );
+    }
+    mbedtls_pk_setup( ctx, mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY ) );
+    ctx->pk_ctx = &ecp_key;
+    return( 0 );
+}
+
+/**
+ * @brief           Tell if the context can do the operation given by type
+ *
+ * @param ctx       PK Context
+ * @param type      Target type
+ *
+ * @return          0 if context can't do the operations,
+ *                  1 otherwise.
+ */
+static int remote_can_do_func(const void *ctx, mbedtls_pk_type_t type)
+{
+    UNUSED(ctx);
+    /* At the moment only ECDSA is supported */
+    return (MBEDTLS_PK_ECDSA == type);
+}
+
+typedef struct
+{
+    const char     *serial_port;
+    unsigned char   key_idx;
+} remote_serial_pk_context;
+
+/**
+  * @brief  Sign using remote cryptoprocessor accessed over serial.
+  *
+  * @param ctx       ECDSA context
+  * @param md_alg    Hash Algorithm that was used to hash the message.
+  *                  Only SHA256 is supported.
+  * @param hash      Message hash
+  * @param hash_len  Length of hash
+  * @param sig       Buffer that will hold the signature
+  * @param sig_len   Length of the signature written
+  * @param f_rng     RNG function
+  * @param p_rng     RNG parameter
+  *
+  * @retval 0 if successful, or 1.
+  */
+static int remote_sign_func(void *ctx, mbedtls_md_type_t md_alg,
+                            const unsigned char *hash, size_t hash_len,
+                            unsigned char *sig, size_t *sig_len,
+                            int (*f_rng)(void *, unsigned char *, size_t),
+                            void *p_rng)
+{
+    remote_serial_pk_context * remote_ctx = (remote_serial_pk_context *)ctx;
+    /* Required buffer = func 1 byte + key Id 1 byte + hash len 4 bytes + hash */
+    unsigned char func_buffer[MBEDTLS_MD_MAX_SIZE + 4 + 1 + 1];
+    size_t offset = 0; 
+
+    UNUSED( f_rng );
+    UNUSED( p_rng );
+
+    /* Currently this feature only supports Crypto chip ATCAECC508A that only
+     * supports SHA256. */
+    if( md_alg != MBEDTLS_MD_SHA256 )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    if( hash_len + 4 + 1 + 1 > sizeof( func_buffer ) )
+    {
+        return( MBEDTLS_ERR_PK_BUFFER_TOO_SMALL );
+    }
+
+    func_buffer[offset++] = REMOTE_KEY_FUNC_SIGN;
+    func_buffer[offset++] = remote_ctx->key_idx;
+    func_buffer[offset++] = (unsigned char)(hash_len >> 24);
+    func_buffer[offset++] = (unsigned char)(hash_len >> 16);
+    func_buffer[offset++] = (unsigned char)(hash_len >> 8);
+    func_buffer[offset++] = (unsigned char)(hash_len);
+
+    memcpy( func_buffer + offset, hash, hash_len );
+    offset += hash_len;
+
+    if( serial_xfer( remote_ctx->serial_port, func_buffer, offset, sig,
+                     MBEDTLS_ECDSA_MAX_SIG_LEN(256), sig_len ) != 0 )
+    {
+        mbedtls_printf( " failed\n  !  Serial error in signing\n\n" );
+        return( -1 );
+    }
+
+    return( 0 );
+}
+
+void remote_free( void *ctx )
+{
+    /* Nothing to free since remote context is statically allocated.
+     * Within this app there is no need to scrub the memory.
+     */
+    UNUSED( ctx );
+}
+
+int mbedtls_pk_remote_setup( mbedtls_pk_context * ctx, const char * serial_port,
+                             unsigned char key_idx )
+{
+    /* allocate remote serial context */
+    static remote_serial_pk_context remote;
+    /* Opaque private key */
+    static const mbedtls_pk_info_t remote_pk_info =
+        MBEDTLS_PK_OPAQUE_INFO_1(
+                "RemoteSerial",
+                NULL,
+                remote_can_do_func,
+                NULL,
+                NULL,
+                remote_sign_func,
+                NULL,
+                NULL,
+                NULL,
+                NULL,
+                remote_free,
+                NULL
+                );
+
+
+    if ( ctx == NULL )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    remote.serial_port = serial_port;
+    remote.key_idx = key_idx;
+    mbedtls_pk_setup( ctx, &remote_pk_info );
+    ctx->pk_ctx = (void *)&remote;
+
+    return( 0 );
+}
+
+int setup_opaque_privkey( const char * remote_info, mbedtls_pk_context * ctx )
+{
+    int key_idx = 0, ret = 0;
+    const char * serial_port = NULL;
+
+    if( parse_remote_info( remote_info, &key_idx, &serial_port ) != 0 )
+        return( -1 );
+
+    ret = mbedtls_pk_remote_setup( ctx, serial_port, key_idx );
+    if( ret != 0 )
+    {
+        mbedtls_printf( " failed\n  ! remote pk setup failure \n\n" );
+        return( ret );
+    }
+
+    return( 0 );
+}
+#endif /* _WIN32 */
 
 int write_certificate( mbedtls_x509write_cert *crt, const char *output_file,
                        int (*f_rng)(void *, unsigned char *, size_t),
@@ -577,14 +1025,25 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "  . Loading the subject key ..." );
         fflush( stdout );
 
-        ret = mbedtls_pk_parse_keyfile( &loaded_subject_key, opt.subject_key,
-                                 opt.subject_pwd );
-        if( ret != 0 )
+#if defined(_WIN32)
+        if ( is_remote_key( opt.subject_key ) )
         {
-            mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile "
-                            "returned -0x%04x - %s\n\n", -ret, buf );
-            goto exit;
+            ret = load_pubkey_from_remote( opt.subject_key, &loaded_subject_key );
+            if ( ret != 0 )
+                goto exit;
+        }
+        else
+#endif
+        {
+            ret = mbedtls_pk_parse_keyfile( &loaded_subject_key, opt.subject_key,
+                    opt.subject_pwd );
+            if( ret != 0 )
+            {
+                mbedtls_strerror( ret, buf, 1024 );
+                mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile "
+                        "returned -0x%04x - %s\n\n", -ret, buf );
+                goto exit;
+            }
         }
 
         mbedtls_printf( " ok\n" );
@@ -593,8 +1052,20 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "  . Loading the issuer key ..." );
     fflush( stdout );
 
-    ret = mbedtls_pk_parse_keyfile( &loaded_issuer_key, opt.issuer_key,
-                             opt.issuer_pwd );
+#if defined(_WIN32)
+    if ( is_remote_key( opt.issuer_key ) )
+    {
+        ret = setup_opaque_privkey( opt.issuer_key, &loaded_issuer_key );
+        if ( ret != 0 )
+            goto exit;
+    }
+    else
+#endif
+    {
+        ret = mbedtls_pk_parse_keyfile( &loaded_issuer_key, opt.issuer_key,
+                opt.issuer_pwd );
+    }
+
     if( ret != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
@@ -803,6 +1274,7 @@ exit:
 
     return( ret );
 }
+
 #endif /* MBEDTLS_X509_CRT_WRITE_C && MBEDTLS_X509_CRT_PARSE_C &&
           MBEDTLS_FS_IO && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C &&
           MBEDTLS_ERROR_C && MBEDTLS_PEM_WRITE_C */

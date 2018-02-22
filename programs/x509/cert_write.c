@@ -214,7 +214,7 @@ int parse_remote_info( const char *remote_info, int *key_idx, const char **seria
     size_t offset = 0;
     size_t remote_info_len = strlen( remote_info );
 
-    if( is_remote_key( remote_info ) == 0 )
+    if( !is_remote_key( remote_info ) )
         return( -1 );
 
     offset = strlen( REMOTE_KEY_CMD_TAG );
@@ -446,8 +446,8 @@ int load_pubkey_from_remote( const char * remote_info, mbedtls_pk_context * ctx 
 {
     int key_idx = 0, offset = 0, ret = 0;
     const char * serial_port = NULL;
-    unsigned char func_buffer[10];
-    unsigned char pub_key_buf[100];
+    unsigned char func_buffer[2];   /* Op code: 1 + key Id: 1 */
+    unsigned char pub_key_buf[65];  /* ECDSA Pub key: 64 + ASN.1 overhead: 1 */
     size_t rx_len = 0;
     static mbedtls_ecp_keypair ecp_key;
 
@@ -459,7 +459,8 @@ int load_pubkey_from_remote( const char * remote_info, mbedtls_pk_context * ctx 
     func_buffer[offset++] = REMOTE_KEY_FUNC_GET_PUBKEY;
     func_buffer[offset++] = key_idx;
 
-    if( serial_xfer( serial_port, func_buffer, offset, pub_key_buf, sizeof( pub_key_buf ), &rx_len ) != 0 )
+    if( serial_xfer( serial_port, func_buffer, offset, pub_key_buf,
+                     sizeof( pub_key_buf ), &rx_len ) != 0 )
     {
         mbedtls_printf( " failed\n  !  Serial error trying to get pulic key\n\n" );
         return( -1 );
@@ -479,7 +480,7 @@ int load_pubkey_from_remote( const char * remote_info, mbedtls_pk_context * ctx 
         mbedtls_printf( " failed\n  !  Failed to read ecp key from binary\n\n" );
         return( ret );
     }
-    ctx->pk_info = mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY );
+    mbedtls_pk_setup( ctx, mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY ) );
     ctx->pk_ctx = &ecp_key;
     return( 0 );
 }
@@ -535,6 +536,8 @@ static int remote_sign_func(void *ctx, mbedtls_md_type_t md_alg,
     UNUSED( f_rng );
     UNUSED( p_rng );
 
+    /* Currently this feature only supports Crypto chip ATCAECC508A that only
+     * supports SHA256. */
     if( md_alg != MBEDTLS_MD_SHA256 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
@@ -578,22 +581,20 @@ int mbedtls_pk_remote_setup( mbedtls_pk_context * ctx, const char * serial_port,
     static remote_serial_pk_context remote;
     /* Opaque private key */
     static const mbedtls_pk_info_t remote_pk_info =
-    {
-        /* MBEDTLS_PK_ECKEY, */
-        MBEDTLS_PK_OPAQUE,
-        "RemoteSerial",
-        NULL,
-        remote_can_do_func,
-        NULL,
-        NULL,
-        remote_sign_func,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        remote_free,
-        NULL
-    };
+        MBEDTLS_PK_OPAQUE_INFO_1(
+                "RemoteSerial",
+                NULL,
+                remote_can_do_func,
+                NULL,
+                NULL,
+                remote_sign_func,
+                NULL,
+                NULL,
+                NULL,
+                NULL,
+                remote_free,
+                NULL
+                );
 
 
     if ( ctx == NULL )
@@ -601,8 +602,8 @@ int mbedtls_pk_remote_setup( mbedtls_pk_context * ctx, const char * serial_port,
 
     remote.serial_port = serial_port;
     remote.key_idx = key_idx;
+    mbedtls_pk_setup( ctx, &remote_pk_info );
     ctx->pk_ctx = (void *)&remote;
-    ctx->pk_info = &remote_pk_info;
 
     return( 0 );
 }

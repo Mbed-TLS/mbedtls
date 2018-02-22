@@ -2,19 +2,21 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Default behavior changes
+   * The truncated HMAC extension now conforms to RFC 6066. This means
+     that when both sides of a TLS connection negotiate the truncated
+     HMAC extension, Mbed TLS can now interoperate with other
+     compliant implementations, but this breaks interoperability with
+     prior versions of Mbed TLS. To restore the old behavior, enable
+     the (deprecated) option MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT in
+     config.h. Found by Andreas Walz (ivESK, Offenburg University of
+     Applied Sciences).
+
 Security
-   * Fix heap corruption in implementation of truncated HMAC extension.
-     When the truncated HMAC extension is enabled and CBC is used,
-     sending a malicious application packet can be used to selectively
-     corrupt 6 bytes on the peer's heap, potentially leading to crash or
-     remote code execution. This can be triggered remotely from either
-     side in both TLS and DTLS.
-   * Fix implementation of truncated HMAC extension leading to
-     compatibility problems with non Mbed TLS peers and allowing
-     an offline 2^80 brute force attack on the HMAC key of a single,
-     uninterrupted (excluding session resumption) connection.
-     Found by Andreas Walz (ivESK, Offenburg University of Applied
-     Sciences).
+   * Fix implementation of the truncated HMAC extension. The previous
+     implementation allowed an offline 2^80 brute force attack on the
+     HMAC key of a single, uninterrupted connection (with no
+     resumption of the session).
 
 Features
    * Allow comments in test data files.

@@ -23,6 +23,8 @@ Changes
      Contributed by Mathieu Briand.
    * Fix typo in a comment ctr_drbg.c. Contributed by Paul Sokolovsky.
    * Remove support for the library reference configuration for picocoin.
+   * MD functions deprecated in 2.7.0 are no longer inline, to provide
+     a migration path for those depending on the library's ABI.
 
 = mbed TLS 2.7.0 branch released 2018-02-03
 

@@ -447,7 +447,7 @@ int load_pubkey_from_remote( const char * remote_info, mbedtls_pk_context * ctx 
     int key_idx = 0, offset = 0, ret = 0;
     const char * serial_port = NULL;
     unsigned char func_buffer[2];   /* Op code: 1 + key Id: 1 */
-    unsigned char pub_key_buf[65];  /* ECDSA Pub key: 64 + ASN.1 overhead: 1 */
+    unsigned char pub_key_buf[65];  /* ECDSA Pub key: 64 + EC octet string format tag: 1 */
     size_t rx_len = 0;
     static mbedtls_ecp_keypair ecp_key;
 

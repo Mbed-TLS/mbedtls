@@ -15,9 +15,7 @@ Changes
    * Add guard to validate that out_left can not be negative. Raised by 
      samoconnor in #1245.
 
-
 = mbed TLS 2.1.10 branch released 2018-02-03
-
 
 Security
    * Fix a heap corruption issue in the implementation of the truncated HMAC

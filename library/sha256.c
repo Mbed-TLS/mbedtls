@@ -246,6 +246,7 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
 
     return( 0 );
 }
+#endif /* !MBEDTLS_SHA256_PROCESS_ALT */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha256_process( mbedtls_sha256_context *ctx,
@@ -254,7 +255,6 @@ void mbedtls_sha256_process( mbedtls_sha256_context *ctx,
     mbedtls_internal_sha256_process( ctx, data );
 }
 #endif
-#endif /* !MBEDTLS_SHA256_PROCESS_ALT */
 
 /*
  * SHA-256 process buffer

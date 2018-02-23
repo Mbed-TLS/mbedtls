@@ -243,6 +243,7 @@ int mbedtls_internal_md5_process( mbedtls_md5_context *ctx,
 
     return( 0 );
 }
+#endif /* !MBEDTLS_MD5_PROCESS_ALT */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_md5_process( mbedtls_md5_context *ctx,
@@ -251,7 +252,6 @@ void mbedtls_md5_process( mbedtls_md5_context *ctx,
     mbedtls_internal_md5_process( ctx, data );
 }
 #endif
-#endif /* !MBEDTLS_MD5_PROCESS_ALT */
 
 /*
  * MD5 process buffer

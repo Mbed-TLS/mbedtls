@@ -65,11 +65,16 @@ int main( void )
     mbedtls_rsa_context rsa;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
+    mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
     FILE *fpub  = NULL;
     FILE *fpriv = NULL;
     const char *pers = "rsa_genkey";
 
     mbedtls_ctr_drbg_init( &ctr_drbg );
+    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
+    mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
+    mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E ); mbedtls_mpi_init( &DP );
+    mbedtls_mpi_init( &DQ ); mbedtls_mpi_init( &QP );
 
     mbedtls_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
@@ -86,10 +91,8 @@ int main( void )
     mbedtls_printf( " ok\n  . Generating the RSA key [ %d-bit ]...", KEY_SIZE );
     fflush( stdout );
 
-    mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
-
     if( ( ret = mbedtls_rsa_gen_key( &rsa, mbedtls_ctr_drbg_random, &ctr_drbg, KEY_SIZE,
-                             EXPONENT ) ) != 0 )
+                                     EXPONENT ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_rsa_gen_key returned %d\n\n", ret );
         goto exit;
@@ -98,6 +101,14 @@ int main( void )
     mbedtls_printf( " ok\n  . Exporting the public  key in rsa_pub.txt...." );
     fflush( stdout );
 
+    if( ( ret = mbedtls_rsa_export    ( &rsa, &N, &P, &Q, &D, &E ) ) != 0 ||
+        ( ret = mbedtls_rsa_export_crt( &rsa, &DP, &DQ, &QP ) )      != 0 )
+    {
+        mbedtls_printf( " failed\n  ! could not export RSA parameters\n\n" );
+        ret = 1;
+        goto exit;
+    }
+
     if( ( fpub = fopen( "rsa_pub.txt", "wb+" ) ) == NULL )
     {
         mbedtls_printf( " failed\n  ! could not open rsa_pub.txt for writing\n\n" );
@@ -105,8 +116,8 @@ int main( void )
         goto exit;
     }
 
-    if( ( ret = mbedtls_mpi_write_file( "N = ", &rsa.N, 16, fpub ) ) != 0 ||
-        ( ret = mbedtls_mpi_write_file( "E = ", &rsa.E, 16, fpub ) ) != 0 )
+    if( ( ret = mbedtls_mpi_write_file( "N = ", &N, 16, fpub ) ) != 0 ||
+        ( ret = mbedtls_mpi_write_file( "E = ", &E, 16, fpub ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_mpi_write_file returned %d\n\n", ret );
         goto exit;
@@ -122,14 +133,14 @@ int main( void )
         goto exit;
     }
 
-    if( ( ret = mbedtls_mpi_write_file( "N = " , &rsa.N , 16, fpriv ) ) != 0 ||
-        ( ret = mbedtls_mpi_write_file( "E = " , &rsa.E , 16, fpriv ) ) != 0 ||
-        ( ret = mbedtls_mpi_write_file( "D = " , &rsa.D , 16, fpriv ) ) != 0 ||
-        ( ret = mbedtls_mpi_write_file( "P = " , &rsa.P , 16, fpriv ) ) != 0 ||
-        ( ret = mbedtls_mpi_write_file( "Q = " , &rsa.Q , 16, fpriv ) ) != 0 ||
-        ( ret = mbedtls_mpi_write_file( "DP = ", &rsa.DP, 16, fpriv ) ) != 0 ||
-        ( ret = mbedtls_mpi_write_file( "DQ = ", &rsa.DQ, 16, fpriv ) ) != 0 ||
-        ( ret = mbedtls_mpi_write_file( "QP = ", &rsa.QP, 16, fpriv ) ) != 0 )
+    if( ( ret = mbedtls_mpi_write_file( "N = " , &N , 16, fpriv ) ) != 0 ||
+        ( ret = mbedtls_mpi_write_file( "E = " , &E , 16, fpriv ) ) != 0 ||
+        ( ret = mbedtls_mpi_write_file( "D = " , &D , 16, fpriv ) ) != 0 ||
+        ( ret = mbedtls_mpi_write_file( "P = " , &P , 16, fpriv ) ) != 0 ||
+        ( ret = mbedtls_mpi_write_file( "Q = " , &Q , 16, fpriv ) ) != 0 ||
+        ( ret = mbedtls_mpi_write_file( "DP = ", &DP, 16, fpriv ) ) != 0 ||
+        ( ret = mbedtls_mpi_write_file( "DQ = ", &DQ, 16, fpriv ) ) != 0 ||
+        ( ret = mbedtls_mpi_write_file( "QP = ", &QP, 16, fpriv ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_mpi_write_file returned %d\n\n", ret );
         goto exit;
@@ -157,6 +168,9 @@ exit:
     if( fpriv != NULL )
         fclose( fpriv );
 
+    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
+    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
+    mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
     mbedtls_rsa_free( &rsa );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );

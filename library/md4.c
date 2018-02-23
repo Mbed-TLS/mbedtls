@@ -224,7 +224,6 @@ int mbedtls_internal_md4_process( mbedtls_md4_context *ctx,
 
     return( 0 );
 }
-#endif /* !MBEDTLS_MD4_PROCESS_ALT */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_md4_process( mbedtls_md4_context *ctx,
@@ -233,6 +232,7 @@ void mbedtls_md4_process( mbedtls_md4_context *ctx,
     mbedtls_internal_md4_process( ctx, data );
 }
 #endif
+#endif /* !MBEDTLS_MD4_PROCESS_ALT */
 
 /*
  * MD4 process buffer

@@ -1,12 +1,44 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.7.x feature branch released xxxx-xx-xx
+= mbed TLS 2.7.x+opaque-keys branch released 2018-xx-xx
+
+Default behavior changes
+   * The truncated HMAC extension now conforms to RFC 6066. This means
+     that when both sides of a TLS connection negotiate the truncated
+     HMAC extension, Mbed TLS can now interoperate with other
+     compliant implementations, but this breaks interoperability with
+     prior versions of Mbed TLS. To restore the old behavior, enable
+     the (deprecated) option MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT in
+     config.h. Found by Andreas Walz (ivESK, Offenburg University of
+     Applied Sciences).
+
+Security
+   * Fix implementation of the truncated HMAC extension. The previous
+     implementation allowed an offline 2^80 brute force attack on the
+     HMAC key of a single, uninterrupted connection (with no
+     resumption of the session).
 
 Features
    * Add support for opaque keys in the pk module. Applications can define
      opaque key engines to perform operations using keys stored in an
      external cryptographic module.
    * Support opaque private keys in TLS.
+
+Bugfix
+   * Fix the name of a DHE parameter that was accidentally changed in 2.7.0.
+     Fixes #1358.
+   * Fix test_suite_pk to work on 64-bit ILP32 systems. #849
+   * Fix mbedtls_x509_crt_profile_suiteb, which used to reject all certificates
+     with flag MBEDTLS_X509_BADCERT_BAD_PK even when the key type was correct.
+     In the context of SSL, this resulted in handshake failure. #1351
+   * Fix Windows x64 builds with the included mbedTLS.sln file. #1347
+
+Changes
+   * Fix tag lengths and value ranges in the documentation of CCM encryption.
+     Contributed by Mathieu Briand.
+   * Fix typo in a comment ctr_drbg.c. Contributed by Paul Sokolovsky.
+   * MD functions deprecated in 2.7.0 are no longer inline, to provide
+     a migration path for those depending on the library's ABI.
 
 = mbed TLS 2.7.0 branch released 2018-02-03
 

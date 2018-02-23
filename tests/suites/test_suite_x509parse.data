@@ -2518,6 +2518,14 @@ X509 File parse (trailing spaces, OK)
 depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C:MBEDTLS_RSA_C
 x509parse_crt_file:"data_files/server7_trailing_space.crt":0
 
+X509 File parse (unsupported critical ext Name Constraints, fail)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA256_C
+x509parse_crt_file:"data_files/test-ca-nc.crt":MBEDTLS_ERR_X509_INVALID_EXTENSIONS + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+
+X509 File parse (allowed unsupported critical ext Name Constraints, ok)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA256_C
+x509parse_crt_file_allow_exts:"data_files/test-ca-nc.crt":MBEDTLS_X509_EXT_NAME_CONSTRAINTS:0
+
 X509 Get time (UTC no issues)
 depends_on:MBEDTLS_X509_USE_C
 x509_get_time:MBEDTLS_ASN1_UTC_TIME:"500101000000Z":0:1950:1:1:0:0:0

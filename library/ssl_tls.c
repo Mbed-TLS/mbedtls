@@ -2276,6 +2276,15 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
     }
 
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    if( ssl->session_negotiate->peer_cert != NULL )
+    {
+        ssl->session_negotiate->peer_cert->allowed_unsupported_critical_exts =
+            ssl->conf->allowed_unsupported_critical_exts;
+    }
+#endif
+
     /* Make &ssl->in_msg[i] point to the beginning of the CRT chain. */
     i += 3;
 
@@ -4751,6 +4760,11 @@ void mbedtls_ssl_conf_renegotiation_period( mbedtls_ssl_config *conf,
     memcpy( conf->renego_period, period, 8 );
 }
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
+
+void mbedtls_ssl_conf_allow_unsupported_critical_exts( mbedtls_ssl_config *conf, uint32_t exts )
+{
+    conf->allowed_unsupported_critical_exts = exts;
+}
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 #if defined(MBEDTLS_SSL_CLI_C)

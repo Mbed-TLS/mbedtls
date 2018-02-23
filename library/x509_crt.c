@@ -891,6 +891,7 @@ static int x509_get_crt_ext( unsigned char **p,
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     size_t len;
     unsigned char *end_ext_data, *end_ext_octet;
+    int is_supported;
 
     if( *p == end )
         return( 0 );
@@ -945,9 +946,9 @@ static int x509_get_crt_ext( unsigned char **p,
         /*
          * Detect supported extensions
          */
-        ret = mbedtls_oid_get_x509_ext_type( &extn_oid, &ext_type );
+        ret = mbedtls_oid_get_x509_ext_type_supported( &extn_oid, &ext_type, &is_supported );
 
-        if( ret != 0 )
+        if( ( ret != 0 ) || ( is_supported == 0 ) )
         {
             /* No parser found, skip extension */
             *p = end_ext_octet;
@@ -955,6 +956,10 @@ static int x509_get_crt_ext( unsigned char **p,
 #if !defined(MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION)
             if( is_critical )
             {
+                /* Do not fail if extension is found, but unsupported and allowed in runtime */
+                if( ( ret == 0 ) && ( ext_type & crt->allowed_unsupported_critical_exts ) )
+                    continue;
+
                 /* Data is marked as critical: fail */
                 return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
                         MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
@@ -1346,6 +1351,7 @@ static int mbedtls_x509_crt_parse_der_internal( mbedtls_x509_crt *chain,
 
         prev = crt;
         mbedtls_x509_crt_init( crt->next );
+        crt->next->allowed_unsupported_critical_exts = crt->allowed_unsupported_critical_exts;
         crt = crt->next;
     }
 

@@ -253,42 +253,96 @@ FN_OID_GET_ATTR1(mbedtls_oid_get_attr_short_name, oid_x520_attr_t, x520_attr, co
 typedef struct {
     mbedtls_oid_descriptor_t    descriptor;
     int                 ext_type;
+    int                 is_supported;
 } oid_x509_ext_t;
 
 static const oid_x509_ext_t oid_x509_ext[] =
 {
     {
-        { ADD_LEN( MBEDTLS_OID_BASIC_CONSTRAINTS ),    "id-ce-basicConstraints",    "Basic Constraints" },
-        MBEDTLS_OID_X509_EXT_BASIC_CONSTRAINTS,
+        { ADD_LEN( MBEDTLS_OID_AUTHORITY_KEY_IDENTIFIER ),    "id-ce-authorityKeyIdentifier",      "Authority Key Identifier" },
+        MBEDTLS_OID_X509_EXT_AUTHORITY_KEY_IDENTIFIER, 0,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_KEY_USAGE ),            "id-ce-keyUsage",            "Key Usage" },
-        MBEDTLS_OID_X509_EXT_KEY_USAGE,
+        { ADD_LEN( MBEDTLS_OID_SUBJECT_KEY_IDENTIFIER ),      "id-ce-subjectKeyIdentifier",        "Subject Key Identifier" },
+        MBEDTLS_OID_X509_EXT_SUBJECT_KEY_IDENTIFIER, 0,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_EXTENDED_KEY_USAGE ),   "id-ce-extKeyUsage",         "Extended Key Usage" },
-        MBEDTLS_OID_X509_EXT_EXTENDED_KEY_USAGE,
+        { ADD_LEN( MBEDTLS_OID_KEY_USAGE ),                   "id-ce-keyUsage",                    "Key Usage" },
+        MBEDTLS_OID_X509_EXT_KEY_USAGE, 1,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_SUBJECT_ALT_NAME ),     "id-ce-subjectAltName",      "Subject Alt Name" },
-        MBEDTLS_OID_X509_EXT_SUBJECT_ALT_NAME,
+        { ADD_LEN( MBEDTLS_OID_CERTIFICATE_POLICIES ),        "id-ce-certificatePolicies",         "Certificate Policies" },
+        MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES, 1,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_NS_CERT_TYPE ),         "id-netscape-certtype",      "Netscape Certificate Type" },
-        MBEDTLS_OID_X509_EXT_NS_CERT_TYPE,
+        { ADD_LEN( MBEDTLS_OID_POLICY_MAPPINGS ),             "id-ce-policyMappings",              "Policy Mapping" },
+        MBEDTLS_OID_X509_EXT_POLICY_MAPPINGS, 0,
     },
     {
-        { ADD_LEN( MBEDTLS_OID_CERTIFICATE_POLICIES ), "id-ce-certificatePolicies", "Certificate Policies" },
-        MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES,
+        { ADD_LEN( MBEDTLS_OID_ISSUER_ALT_NAME ),             "id-ce-issuerAltName",               "Issuer Alt Name" },
+        MBEDTLS_OID_X509_EXT_ISSUER_ALT_NAME, 0,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_SUBJECT_DIRECTORY_ATTRS ),     "id-ce-subjectDirectoryAttributes",  "Subject Directory Attributes" },
+        MBEDTLS_OID_X509_EXT_SUBJECT_DIRECTORY_ATTRS, 0,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_BASIC_CONSTRAINTS ),           "id-ce-basicConstraints",            "Basic Constraints" },
+        MBEDTLS_OID_X509_EXT_BASIC_CONSTRAINTS, 1,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_NAME_CONSTRAINTS ),            "id-ce-nameConstraints",             "Name Constraints" },
+        MBEDTLS_OID_X509_EXT_NAME_CONSTRAINTS, 0,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_POLICY_CONSTRAINTS ),          "id-ce-policyConstraints",           "Policy Constraints" },
+        MBEDTLS_OID_X509_EXT_POLICY_CONSTRAINTS, 0,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_EXTENDED_KEY_USAGE ),          "id-ce-extKeyUsage",                 "Extended Key Usage" },
+        MBEDTLS_OID_X509_EXT_EXTENDED_KEY_USAGE, 1
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_CRL_DISTRIBUTION_POINTS ),     "id-ce-cRLDistributionPoints",       "CRL Distribution Points" },
+        MBEDTLS_OID_X509_EXT_CRL_DISTRIBUTION_POINTS, 0,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_INIHIBIT_ANYPOLICY ),          "id-ce-inhibitAnyPolicy",            "Inhibit Any Policy" },
+        MBEDTLS_OID_X509_EXT_INIHIBIT_ANYPOLICY, 0,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_FRESHEST_CRL ),                "id-ce-freshestCRL",                 "Freshest CRL" },
+        MBEDTLS_OID_X509_EXT_FRESHEST_CRL, 0,
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_SUBJECT_ALT_NAME ),            "id-ce-subjectAltName",              "Subject Alt Name" },
+        MBEDTLS_OID_X509_EXT_SUBJECT_ALT_NAME, 1
+    },
+    {
+        { ADD_LEN( MBEDTLS_OID_NS_CERT_TYPE ),                "id-netscape-certtype",              "Netscape Certificate Type" },
+        MBEDTLS_OID_X509_EXT_NS_CERT_TYPE, 1
     },
     {
         { NULL, 0, NULL, NULL },
-        0,
+        0, 0
     },
 };
 
+
 FN_OID_TYPED_FROM_ASN1(oid_x509_ext_t, x509_ext, oid_x509_ext)
-FN_OID_GET_ATTR1(mbedtls_oid_get_x509_ext_type, oid_x509_ext_t, x509_ext, int, ext_type)
+FN_OID_GET_ATTR2(mbedtls_oid_get_x509_ext_type_supported, oid_x509_ext_t, x509_ext, int, ext_type, int, is_supported)
+
+int mbedtls_oid_get_x509_ext_type( const mbedtls_asn1_buf *oid, int *ext_type )
+{
+    int ret = 0;
+    int is_supported = 0;
+
+    ret = mbedtls_oid_get_x509_ext_type_supported( oid, ext_type, &is_supported );
+    if( is_supported == 0 )
+        ret = MBEDTLS_ERR_OID_NOT_FOUND;
+
+  return( ret );
+}
 
 static const mbedtls_oid_descriptor_t oid_ext_key_usage[] =
 {

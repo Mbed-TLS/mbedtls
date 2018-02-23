@@ -96,6 +96,8 @@ typedef struct mbedtls_x509_crt
     mbedtls_pk_type_t sig_pk;           /**< Internal representation of the Public Key algorithm of the signature algorithm, e.g. MBEDTLS_PK_RSA */
     void *sig_opts;             /**< Signature options to be passed to mbedtls_pk_verify_ext(), e.g. for RSASSA-PSS */
 
+    uint32_t allowed_unsupported_critical_exts; /**< Optional Bit flags which represent runtime-enabled unsupported critical extensions, e.g. MBEDTLS_X509_EXT_NAME_CONSTRAINTS */
+
     struct mbedtls_x509_crt *next;     /**< Next certificate in the CA-chain. */
 }
 mbedtls_x509_crt;

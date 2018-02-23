@@ -1063,6 +1063,10 @@ struct mbedtls_ssl_config
                                          retransmission timeout (ms)        */
 #endif
 
+    uint32_t allowed_unsupported_critical_exts; /*!< Bit flags which represent runtime-enabled
+                                                     unsupported critical extensions, e.g.
+                                                     MBEDTLS_X509_EXT_NAME_CONSTRAINTS */
+
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     int renego_max_records;         /*!< grace period for renegotiation     */
     unsigned char renego_period[8]; /*!< value of the record counters
@@ -3416,6 +3420,24 @@ void mbedtls_ssl_conf_renegotiation_enforced( mbedtls_ssl_config *conf, int max_
 void mbedtls_ssl_conf_renegotiation_period( mbedtls_ssl_config *conf,
                                    const unsigned char period[8] );
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
+
+/**
+ * \brief          Allows unsupported critical extensions
+ *
+ *                 Without compile-time flag MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
+ *                 mbedTLS fails certificate verification if certificate contains
+ *                 unsupported critical extensions.
+ *
+ *                 This method allows to modify behavior in runtime by providing
+ *                 bit flags which represent unsupported extensions (for example MBEDTLS_X509_EXT_NAME_CONSTRAINTS)
+ *                 which should be allowed despite missing above mentioned compile-time flag.
+ *
+ * \param conf     SSL configuration
+ * \param exts     Bit flags which represent runtime-enabled unsupported critical extensions,
+ *                 e.g. MBEDTLS_X509_EXT_NAME_CONSTRAINTS
+ *
+ */
+void mbedtls_ssl_conf_allow_unsupported_critical_exts( mbedtls_ssl_config *conf, uint32_t exts );
 
 /**
  * \brief          Check if there is data already read from the

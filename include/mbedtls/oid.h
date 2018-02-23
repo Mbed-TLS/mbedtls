@@ -471,6 +471,17 @@ int mbedtls_oid_get_numeric_string( char *buf, size_t size, const mbedtls_asn1_b
 int mbedtls_oid_get_x509_ext_type( const mbedtls_asn1_buf *oid, int *ext_type );
 
 /**
+ * \brief              Translate supported and unsupported X.509 extension OID into local values
+ *
+ * \param oid          OID to use
+ * \param ext_type     place to store the extension type
+ * \param is_supported place to store flag if extension is supported (1 - supported, 0 otherwise)
+ *
+ * \return             0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
+ */
+int mbedtls_oid_get_x509_ext_type_supported( const mbedtls_asn1_buf *oid, int *ext_type, int *is_supported);
+
+/**
  * \brief          Translate an X.509 attribute type OID into the short name
  *                 (e.g. the OID for an X520 Common Name into "CN")
  *

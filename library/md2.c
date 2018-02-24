@@ -158,7 +158,6 @@ int mbedtls_internal_md2_process( mbedtls_md2_context *ctx )
 
     return( 0 );
 }
-#endif /* !MBEDTLS_MD2_PROCESS_ALT */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_md2_process( mbedtls_md2_context *ctx )
@@ -166,6 +165,7 @@ void mbedtls_md2_process( mbedtls_md2_context *ctx )
     mbedtls_internal_md2_process( ctx );
 }
 #endif
+#endif /* !MBEDTLS_MD2_PROCESS_ALT */
 
 /*
  * MD2 process buffer

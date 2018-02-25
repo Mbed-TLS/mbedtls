@@ -27,6 +27,9 @@ Bugfix
      with flag MBEDTLS_X509_BADCERT_BAD_PK even when the key type was correct.
      In the context of SSL, this resulted in handshake failure. #1351
    * Fix Windows x64 builds with the included mbedTLS.sln file. #1347
+   * In function mbedtls_x509_crt_parse_path resize buffer entry_name from 255 to 512,
+     to avoid overflow of destination buffer. Defined as MBEDTLS_X509_MAX_FILE_PATH_LEN. #1188
+
 
 = mbed TLS 2.1.10 branch released 2018-02-03
 

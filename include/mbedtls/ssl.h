@@ -797,14 +797,6 @@ extern int (*mbedtls_ssl_hw_record_finish)(mbedtls_ssl_context *ssl);
 #endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
 
 /**
- * \brief Returns the list of ciphersuites supported by the SSL/TLS module.
- *
- * \return              a statically allocated array of ciphersuites, the last
- *                      entry is 0.
- */
-const int *mbedtls_ssl_list_ciphersuites( void );
-
-/**
  * \brief               Return the name of the ciphersuite associated with the
  *                      given ID
  *

@@ -92,6 +92,13 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 #define ARIA_P2(x) (((x) >> 16) ^ ((x) << 16))
 
 /*
+ * modify byte order: ( A B C D ) -> ( D C B A ), i.e. change endianness
+ *
+ * This is submatrix P3 in [1] Appendix B.1
+ */
+#define ARIA_P3(x) ARIA_P2( ARIA_P1 ( x ) )
+
+/*
  * ARIA Affine Transform
  * (a, b, c, d) = state in/out
  *
@@ -336,14 +343,14 @@ static void aria_rot128(uint32_t r[4], const uint32_t a[4],
     const uint8_t n2 = n1 ? 32 - n1 : 0;    // reverse bit offset
 
     j = (n / 32) % 4;                       // initial word offset
-    t = ARIA_P2( ARIA_P1( b[j] ) );         // big endian
+    t = ARIA_P3( b[j] );                    // big endian
     for( i = 0; i < 4; i++ )
     {
         j = (j + 1) % 4;                    // get next word, big endian
-        u = ARIA_P2( ARIA_P1( b[j] ) );
+        u = ARIA_P3( b[j] );
         t <<= n1;                           // rotate
         t |= u >> n2;
-        t = ARIA_P2( ARIA_P1( t ) );        // back to little endian
+        t = ARIA_P3( t );                   // back to little endian
         r[i] = a[i] ^ t;                    // store
         t = u;                              // move to next word
     }

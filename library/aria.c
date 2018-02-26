@@ -81,13 +81,26 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  * modify byte order: ( A B C D ) -> ( B A D C ), i.e. swap pairs of bytes
  *
  * This is submatrix P1 in [1] Appendix B.1
+ *
+ * Common compilers fail to translate this to minimal number of instructions,
+ * so let's provide asm versions for common platforms with C fallback.
  */
+#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__)
+#if defined(__i386__) || defined(__amd64__) || defined( __x86_64__)
+/* I couldn't find an Intel equivalent of ret16, so two instructions */
+#define ARIA_P1(x) ARIA_P2( ARIA_P3( x ) )
+#endif
+#endif /* MBEDTLS_HAVE_ASM && GNUC */
+#if !defined(ARIA_P1)
 #define ARIA_P1(x) ((((x) >> 8) & 0x00FF00FF) ^ (((x) & 0x00FF00FF) << 8))
+#endif
 
 /*
  * modify byte order: ( A B C D ) -> ( C D A B ), i.e. rotate by 16 bits
  *
  * This is submatrix P2 in [1] Appendix B.1
+ *
+ * Common compilers will translate this to a single instruction.
  */
 #define ARIA_P2(x) (((x) >> 16) ^ ((x) << 16))
 
@@ -95,8 +108,23 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  * modify byte order: ( A B C D ) -> ( D C B A ), i.e. change endianness
  *
  * This is submatrix P3 in [1] Appendix B.1
+ *
+ * Some compilers fail to translate this to a single instruction,
+ * so let's provide asm versions for common platforms with C fallback.
  */
+#if defined(MBEDTLS_HAVE_ASM) && defined(__GNUC__)
+#if defined(__i386__) || defined(__amd64__) || defined( __x86_64__)
+static inline uint32_t aria_p3( uint32_t x )
+{
+    asm( "bswap %0" : "=r" (x) : "0" (x) );
+    return( x );
+}
+#define ARIA_P3 aria_p3
+#endif
+#endif /* MBEDTLS_HAVE_ASM && GNUC */
+#if !defined(ARIA_P3)
 #define ARIA_P3(x) ARIA_P2( ARIA_P1 ( x ) )
+#endif
 
 /*
  * ARIA Affine Transform

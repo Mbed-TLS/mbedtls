@@ -78,7 +78,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 #endif
 
 /*
- * modify byte order ( A B C D ) -> ( B A D C ), i.e. swap pairs of bytes
+ * modify byte order: ( A B C D ) -> ( B A D C ), i.e. swap pairs of bytes
  *
  * This is submatrix P1 in [1] Appendix B.1
  */
@@ -93,30 +93,49 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 
 /*
  * ARIA Affine Transform
- * (ra, rb, rc, rd) = state in/out
+ * (a, b, c, d) = state in/out
+ *
+ * If we denote the first by of input by 0, ..., the last byte by f,
+ * then inputs are: a = 0123, b = 4567, c = 89ab, d = cdef.
+ *
+ * Reading [1] 2.4 or [2] 2.4.3 in colums and performing simple
+ * rearrangements on adjacent pairs, output is:
+ *
+ * a = 3210 + 4545 + 6767 + 88aa + 99bb + dccd + effe
+ *   = 3210 + 4567 + 6745 + 89ab + 98ba + dcfe + efcd
+ * b = 0101 + 2323 + 5476 + 8998 + baab + ecec + ffdd
+ *   = 0123 + 2301 + 5476 + 89ab + ba98 + efcd + fedc
+ * c = 0022 + 1133 + 4545 + 7667 + ab89 + dcdc + fefe
+ *   = 0123 + 1032 + 4567 + 7654 + ab89 + dcfe + fedc
+ * d = 1001 + 2332 + 6644 + 7755 + 9898 + baba + cedf
+ *   = 1032 + 2301 + 6745 + 7654 + 98ba + ba98 + cdef
+ *
+ * Note: another presentation of the A transform can be found as the first
+ * half of App. B.1 in [1] in terms of 4-byte operators P1, P2, P3 and P4.
+ * The implementation below uses only P1 and P2 as they are sufficient.
  */
 static inline void aria_a( uint32_t *a, uint32_t *b,
                            uint32_t *c, uint32_t *d )
 {
     uint32_t ta, tb, tc;
-    ta  =   *b;
-    *b  =   *a;
-    *a  =   ARIA_P2( ta );
-    tb  =   ARIA_P2( *d );
-    *d  =   ARIA_P1( *c );
-    *c  =   ARIA_P1( tb );
-    ta  ^=  *d;
-    tc  =   ARIA_P2( *b );
-    ta  =   ARIA_P1( ta ) ^ tc ^ *c;
-    tb  ^=  ARIA_P2( *d );
-    tc  ^=  ARIA_P1( *a );
-    *b  ^=  ta ^ tb;
-    tb  =   ARIA_P2( tb ) ^ ta;
-    *a  ^=  ARIA_P1( tb );
-    ta  =   ARIA_P2( ta );
-    *d  ^=  ARIA_P1( ta ) ^ tc;
-    tc  =   ARIA_P2( tc );
-    *c  ^=  ARIA_P1( tc ) ^ ta;
+    ta  =  *b;                      // 4567
+    *b  =  *a;                      // 0123
+    *a  =  ARIA_P2( ta );           // 6745
+    tb  =  ARIA_P2( *d );           // efcd
+    *d  =  ARIA_P1( *c );           // 98ba
+    *c  =  ARIA_P1( tb );           // fedc
+    ta  ^= *d;                      // 4567+98ba
+    tc  =  ARIA_P2( *b );           // 2301
+    ta  =  ARIA_P1( ta ) ^ tc ^ *c; // 2301+5476+89ab+fedc
+    tb  ^= ARIA_P2( *d );           // ba98+efcd
+    tc  ^= ARIA_P1( *a );           // 2301+7654
+    *b  ^= ta ^ tb;                 // 0123+2301+5476+89ab+ba98+efcd+fedc OUT
+    tb  =  ARIA_P2( tb ) ^ ta;      // 2301+5476+89ab+98ba+cdef+fedc
+    *a  ^= ARIA_P1( tb );           // 3210+4567+6745+89ab+98ba+dcfe+efcd OUT
+    ta  =  ARIA_P2( ta );           // 0123+7654+ab89+dcfe
+    *d  ^= ARIA_P1( ta ) ^ tc;      // 1032+2301+6745+7654+98ba+ba98+cdef OUT
+    tc  =  ARIA_P2( tc );           // 0123+5476
+    *c  ^= ARIA_P1( tc ) ^ ta;      // 0123+1032+4567+7654+ab89+dcfe+fedc OUT
 }
 
 /*

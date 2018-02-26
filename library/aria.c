@@ -77,11 +77,19 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 }
 #endif
 
-/* modify byte order: ( A B C D ) -> ( C D A B ), i.e. rotate by 16 bits */
-#define ARIA_FLIP1(x) (((x) >> 16) ^ ((x) << 16))
+/*
+ * modify byte order ( A B C D ) -> ( B A D C ), i.e. swap pairs of bytes
+ *
+ * This is submatrix P1 in [1] Appendix B.1
+ */
+#define ARIA_P1(x) ((((x) >> 8) & 0x00FF00FF) ^ (((x) & 0x00FF00FF) << 8))
 
-/* modify byte order ( A B C D ) -> ( B A D C ), i.e. swap pairs of bytes */
-#define ARIA_FLIP2(x) ((((x) >> 8) & 0x00FF00FF) ^ (((x) & 0x00FF00FF) << 8))
+/*
+ * modify byte order: ( A B C D ) -> ( C D A B ), i.e. rotate by 16 bits
+ *
+ * This is submatrix P2 in [1] Appendix B.1
+ */
+#define ARIA_P2(x) (((x) >> 16) ^ ((x) << 16))
 
 /*
  * ARIA Affine Transform
@@ -93,22 +101,22 @@ static inline void aria_a( uint32_t *a, uint32_t *b,
     uint32_t ta, tb, tc;
     ta  =   *b;
     *b  =   *a;
-    *a  =   ARIA_FLIP1( ta );
-    tb  =   ARIA_FLIP1( *d );
-    *d  =   ARIA_FLIP2( *c );
-    *c  =   ARIA_FLIP2( tb );
+    *a  =   ARIA_P2( ta );
+    tb  =   ARIA_P2( *d );
+    *d  =   ARIA_P1( *c );
+    *c  =   ARIA_P1( tb );
     ta  ^=  *d;
-    tc  =   ARIA_FLIP1( *b );
-    ta  =   ARIA_FLIP2( ta ) ^ tc ^ *c;
-    tb  ^=  ARIA_FLIP1( *d );
-    tc  ^=  ARIA_FLIP2( *a );
+    tc  =   ARIA_P2( *b );
+    ta  =   ARIA_P1( ta ) ^ tc ^ *c;
+    tb  ^=  ARIA_P2( *d );
+    tc  ^=  ARIA_P1( *a );
     *b  ^=  ta ^ tb;
-    tb  =   ARIA_FLIP1( tb ) ^ ta;
-    *a  ^=  ARIA_FLIP2( tb );
-    ta  =   ARIA_FLIP1( ta );
-    *d  ^=  ARIA_FLIP2( ta ) ^ tc;
-    tc  =   ARIA_FLIP1( tc );
-    *c  ^=  ARIA_FLIP2( tc ) ^ ta;
+    tb  =   ARIA_P2( tb ) ^ ta;
+    *a  ^=  ARIA_P1( tb );
+    ta  =   ARIA_P2( ta );
+    *d  ^=  ARIA_P1( ta ) ^ tc;
+    tc  =   ARIA_P2( tc );
+    *c  ^=  ARIA_P1( tc ) ^ ta;
 }
 
 /*
@@ -309,14 +317,14 @@ static void aria_rot128(uint32_t r[4], const uint32_t a[4],
     const uint8_t n2 = n1 ? 32 - n1 : 0;    // reverse bit offset
 
     j = (n / 32) % 4;                       // initial word offset
-    t = ARIA_FLIP1( ARIA_FLIP2( b[j] ) );   // big endian
+    t = ARIA_P2( ARIA_P1( b[j] ) );         // big endian
     for( i = 0; i < 4; i++ )
     {
         j = (j + 1) % 4;                    // get next word, big endian
-        u = ARIA_FLIP1( ARIA_FLIP2( b[j] ) );
+        u = ARIA_P2( ARIA_P1( b[j] ) );
         t <<= n1;                           // rotate
         t |= u >> n2;
-        t = ARIA_FLIP1( ARIA_FLIP2( t ) );  // back to little endian
+        t = ARIA_P2( ARIA_P1( t ) );        // back to little endian
         r[i] = a[i] ^ t;                    // store
         t = u;                              // move to next word
     }

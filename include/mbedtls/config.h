@@ -1806,11 +1806,12 @@
 /**
  * \def MBEDTLS_ARIA_C
  *
- * Enable the ARIA block cipher.
+ * Enable the ARIA block cipher (and TLS ciphersuites that use it, if other
+ * requirements for them are met too).
  *
  * Module:  library/aria.c
  */
-#define MBEDTLS_ARIA_C
+//#define MBEDTLS_ARIA_C
 
 /**
  * \def MBEDTLS_CCM_C

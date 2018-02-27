@@ -48,9 +48,13 @@
  * Requires support for asm() in compiler.
  *
  * Used in:
+ *      library/aria.c
  *      library/timing.c
- *      library/padlock.c
  *      include/mbedtls/bn_mul.h
+ *
+ * Required by:
+ *      MBEDTLS_AESNI_C
+ *      MBEDTLS_PADLOCK_C
  *
  * Comment to disable the use of assembly code.
  */

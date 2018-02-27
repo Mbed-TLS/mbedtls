@@ -291,60 +291,78 @@ cleanup:
  */
 int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
                             size_t ssize, uint16_t byte_len,
-                            unsigned char *buf, size_t bufsize,
-                            size_t* buflen )
+                            unsigned char *buf, size_t* buflen,
+                            size_t bufsize)
 {
     int ret;
     unsigned char *p = (unsigned char *) sig;
+    unsigned char *buf_ptr;
     const unsigned char *end = sig + ssize;
-    size_t len;
-    mbedtls_mpi r, s;
+    size_t len, bytes_skipped, i;
 
     if( 2 * byte_len > bufsize )
     {
         return (MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
     }
 
-    mbedtls_mpi_init( &r );
-    mbedtls_mpi_init( &s );
-
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
         ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-        goto cleanup;
+        return ret;
     }
 
     if( p + len != end )
     {
-        ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA +
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA +
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
-        goto cleanup;
     }
 
-    if( ( ret = mbedtls_asn1_get_mpi( &p, end, &r ) ) != 0 ||
-        ( ret = mbedtls_asn1_get_mpi( &p, end, &s ) ) != 0 )
-    {
-        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-        goto cleanup;
-    }
-    p = (unsigned char *) buf;
-    if( ( ret = mbedtls_mpi_write_binary( &r, p, byte_len) ) )
-    {
-        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-        goto cleanup;
-    }
-    p += byte_len;
-    if( ( ret = mbedtls_mpi_write_binary( &s, p, byte_len) ) )
-    {
-        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-        goto cleanup;
-    }
-    *buflen = 2*byte_len;
+    /*
+     * Step 1: write R
+     */
+    buf_ptr = buf;
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_INTEGER ) ) != 0 )
+            return( ret );
 
-cleanup:
-    mbedtls_mpi_free( &r );
-    mbedtls_mpi_free( &s );
+    for( bytes_skipped = 0; bytes_skipped < len; bytes_skipped++ )
+            if( p[bytes_skipped] != 0 )
+                break;
+
+    if( len - bytes_skipped > bufsize )
+    {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+    *buflen = len - bytes_skipped;
+
+    for( i = bytes_skipped; i < len; i++ )
+    {
+        buf_ptr[i - bytes_skipped] = p[i];
+    }
+    p += len;
+    buf_ptr += *buflen;
+
+    /*
+     * Step 2: write S
+     */
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_INTEGER ) ) != 0 )
+                return( ret );
+
+    for( bytes_skipped = 0; bytes_skipped < len; bytes_skipped++ )
+            if( p[bytes_skipped] != 0 )
+                break;
+
+    if( len - bytes_skipped + *buflen > bufsize )
+    {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    *buflen += len - bytes_skipped;
+
+    for( i = bytes_skipped; i < len; i++ )
+    {
+        buf_ptr[i - bytes_skipped] = p[i];
+    }
 
     return( ret );
 }

@@ -4,7 +4,7 @@
  * \brief Generic wrapper for Cryptoki (PKCS#11) support
  */
 /*
- *  Copyright (C) 2017, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2017-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -70,10 +70,9 @@ extern "C" {
  * \return              0 on success,
  *                      or MBEDTLS_ERR_PK_XXX error code.
  *
- * \note                The session and the key(s) must remain valid until the
- *                      PK context is closed with mbedtls_pk_free(). As an
- *                      exception, it's ok to call mbedtls_pk_free() itself
- *                      even if the Cryptoki handles have become invalid.
+ * \note                If any of the handles become invalid, then you may no
+ *                      longer do anything with the pk object except call
+ *                      mbedtls_pk_free on it.
  */
 int mbedtls_pkcs11_setup_pk( mbedtls_pk_context *ctx,
                              CK_SESSION_HANDLE hSession,
@@ -110,7 +109,7 @@ int mbedtls_pkcs11_setup_pk( mbedtls_pk_context *ctx,
  *                      - #MBEDTLS_PK_FLAG_VERIFY: if set, the public key
  *                        will be authorized for verification.
  *                      - #MBEDTLS_PK_FLAG_DECRYPT: if set, the private key
- *                        will be authorized for signing.
+ *                        will be authorized for decryption.
  *                      - #MBEDTLS_PK_FLAG_ENCRYPT: if set, the public key
  *                        will be authorized for encryption.
  *

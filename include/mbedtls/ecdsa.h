@@ -256,8 +256,8 @@ int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
  */
 int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
                             size_t ssize, uint16_t byte_len,
-                            unsigned char *buf, size_t bufsize,
-                            size_t* buflen );
+                            unsigned char *buf, size_t* buflen,
+                            size_t bufsize );
 /**
  * \brief           Convert a signature from numbers to ASN.1
  *

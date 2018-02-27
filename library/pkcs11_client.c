@@ -1,7 +1,7 @@
 /*
  *  Generic wrapper for Cryptoki (PKCS#11) support
  *
- *  Copyright (C) 2017, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2017-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -292,8 +292,8 @@ static int pkcs11_verify( void *ctx_arg,
             return( MBEDTLS_ERR_PK_ALLOC_FAILED );
         }
         if( mbedtls_ecdsa_signature_to_raw( sig, sig_len, byte_len,
-                                    decoded_sig, 2 * byte_len,
-                                    &decoded_sig_len ) != 0 )
+                                    decoded_sig, &decoded_sig_len,
+                                    2 * byte_len ) != 0 )
         {
             rv = CKR_GENERAL_ERROR;
             goto exit;

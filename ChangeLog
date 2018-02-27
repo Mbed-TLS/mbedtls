@@ -25,7 +25,8 @@ Bugfix
    * Fix test_suite_pk to work on 64-bit ILP32 systems. #849
    * Fix mbedtls_x509_crt_profile_suiteb, which used to reject all certificates
      with flag MBEDTLS_X509_BADCERT_BAD_PK even when the key type was correct.
-     In the context of SSL, this resulted in handshake failure. #1351
+     In the context of SSL, this resulted in handshake failure. Reported by
+     daniel in the Mbed TLS forum. #1351
    * Fix Windows x64 builds with the included mbedTLS.sln file. #1347
 
 = mbed TLS 2.1.10 branch released 2018-02-03

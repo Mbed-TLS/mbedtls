@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Features
+   * Add support for ARIA cipher (RFC 5794) and associated TLS ciphersuites
+     (RFC 6209). Disabled by default, see MBEDTLS_ARIA_C in config.h
+
 = mbed TLS 2.7.x branch released 2018-xx-xx
 
 Default behavior changes

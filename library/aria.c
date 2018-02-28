@@ -181,7 +181,7 @@ static inline uint32_t aria_p3( uint32_t x )
  * If we denote the first by of input by 0, ..., the last byte by f,
  * then inputs are: a = 0123, b = 4567, c = 89ab, d = cdef.
  *
- * Reading [1] 2.4 or [2] 2.4.3 in colums and performing simple
+ * Reading [1] 2.4 or [2] 2.4.3 in columns and performing simple
  * rearrangements on adjacent pairs, output is:
  *
  * a = 3210 + 4545 + 6767 + 88aa + 99bb + dccd + effe
@@ -800,7 +800,7 @@ static const uint8_t aria_test2_iv[16] =
 #endif
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
-static const uint8_t aria_test2_cbc_ct[3][48] =         // CBC ciphertxt
+static const uint8_t aria_test2_cbc_ct[3][48] =         // CBC ciphertext
 {
     { 0x49, 0xd6, 0x18, 0x60, 0xb1, 0x49, 0x09, 0x10,   // 128-bit key
       0x9c, 0xef, 0x0d, 0x22, 0xa9, 0x26, 0x81, 0x34,
@@ -824,7 +824,7 @@ static const uint8_t aria_test2_cbc_ct[3][48] =         // CBC ciphertxt
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
-static const uint8_t aria_test2_cfb_ct[3][48] =         // CFB ciphertxt
+static const uint8_t aria_test2_cfb_ct[3][48] =         // CFB ciphertext
 {
     { 0x37, 0x20, 0xe5, 0x3b, 0xa7, 0xd6, 0x15, 0x38,   // 128-bit key
       0x34, 0x06, 0xb0, 0x9f, 0x0a, 0x05, 0xa2, 0x00,
@@ -848,7 +848,7 @@ static const uint8_t aria_test2_cfb_ct[3][48] =         // CFB ciphertxt
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
-static const uint8_t aria_test2_ctr_ct[3][48] =         // CTR ciphertxt
+static const uint8_t aria_test2_ctr_ct[3][48] =         // CTR ciphertext
 {
     { 0xac, 0x5d, 0x7d, 0xe8, 0x05, 0xa0, 0xbf, 0x1c,   // 128-bit key
       0x57, 0xc8, 0x54, 0x50, 0x1a, 0xf6, 0x0f, 0xa1,

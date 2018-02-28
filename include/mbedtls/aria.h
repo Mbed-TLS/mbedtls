@@ -3,7 +3,13 @@
  *
  * \brief ARIA block cipher
  *
- *  Copyright (C) 2006-2017, ARM Limited, All Rights Reserved
+ *        The ARIA algorithm is a symmetric block cipher that can encrypt and
+ *        decrypt information. It is defined by the Korean Agency for
+ *        Technology and Standards (KATS) in <em>KS X 1213:2004</em> (in
+ *        Korean, but see http://210.104.33.10/ARIA/index-e.html in English)
+ *        and also described by the IETF in <em>RFC 5794</em>.
+ */
+/*  Copyright (C) 2006-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -33,8 +39,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define MBEDTLS_ARIA_ENCRYPT     1
-#define MBEDTLS_ARIA_DECRYPT     0
+#define MBEDTLS_ARIA_ENCRYPT     1 /**< ARIA encryption. */
+#define MBEDTLS_ARIA_DECRYPT     0 /**< ARIA decryption. */
 
 #define MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH   -0x005C  /**< Invalid key length. */
 #define MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH -0x005E  /**< Invalid data input length. */
@@ -48,65 +54,85 @@ extern "C" {
 #endif
 
 /**
- * \brief          ARIA context structure
+ * \brief The ARIA context-type definition.
  */
 
 typedef struct
 {
-    int nr;                         // rounds: nr = 12, 14, or 16
-    uint32_t rk[17][4];             // nr+1 round keys (+1 for final)
+    int nr;                 /*!< The number of rounds (12, 14 or 16) */
+    uint32_t rk[17][4];     /*!< The ARIA round keys. */
 }
 mbedtls_aria_context;
 
 /**
- * \brief          Initialize ARIA context
+ * \brief          This function initializes the specified ARIA context.
  *
- * \param ctx      ARIA context to be initialized
+ *                 It must be the first API called before using
+ *                 the context.
+ *
+ * \param ctx      The ARIA context to initialize.
  */
 void mbedtls_aria_init( mbedtls_aria_context *ctx );
 
 /**
- * \brief          Clear ARIA context
+ * \brief          This function releases and clears the specified ARIA context.
  *
- * \param ctx      ARIA context to be cleared
+ * \param ctx      The ARIA context to clear.
  */
 void mbedtls_aria_free( mbedtls_aria_context *ctx );
 
 /**
- * \brief          ARIA key schedule (encryption)
+ * \brief          This function sets the encryption key.
  *
- * \param ctx      ARIA context to be initialized
- * \param key      encryption key
- * \param keybits  must be 128, 192 or 256
+ * \param ctx      The ARIA context to which the key should be bound.
+ * \param key      The encryption key.
+ * \param keybits  The size of data passed in bits. Valid options are:
+ *                 <ul><li>128 bits</li>
+ *                 <li>192 bits</li>
+ *                 <li>256 bits</li></ul>
  *
- * \return         0 if successful, or MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH
+ * \return         \c 0 on success or #MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH
+ *                 on failure.
  */
 int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx,
                              const unsigned char *key,
                              unsigned int keybits );
 
 /**
- * \brief          ARIA key schedule (decryption)
+ * \brief          This function sets the decryption key.
  *
- * \param ctx      ARIA context to be initialized
- * \param key      decryption key
- * \param keybits  must be 128, 192 or 256
+ * \param ctx      The ARIA context to which the key should be bound.
+ * \param key      The decryption key.
+ * \param keybits  The size of data passed. Valid options are:
+ *                 <ul><li>128 bits</li>
+ *                 <li>192 bits</li>
+ *                 <li>256 bits</li></ul>
  *
- * \return         0 if successful, or MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH
+ * \return         \c 0 on success, or #MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH on failure.
  */
 int mbedtls_aria_setkey_dec( mbedtls_aria_context *ctx,
                              const unsigned char *key,
                              unsigned int keybits );
 
 /**
- * \brief          ARIA-ECB block encryption/decryption
+ * \brief          This function performs an ARIA single-block encryption or
+ *                 decryption operation.
  *
- * \param ctx      ARIA context
- * \param mode     MBEDTLS_ARIA_ENCRYPT or MBEDTLS_ARIA_DECRYPT
- * \param input    16-byte input block
- * \param output   16-byte output block
+ *                 It performs the operation defined in the \p mode parameter
+ *                 (encrypt or decrypt), on the input data buffer defined in
+ *                 the \p input parameter.
  *
- * \return         0 if successful
+ *                 mbedtls_aes_init(), and either mbedtls_aes_setkey_enc() or
+ *                 mbedtls_aes_setkey_dec() must be called before the first
+ *                 call to this API with the same context.
+ *
+ * \param ctx      The ARIA context to use for encryption or decryption.
+ * \param mode     The ARIA operation: #MBEDTLS_ARIA_ENCRYPT or
+ *                 #MBEDTLS_ARIA_DECRYPT.
+ * \param input    The 16-Byte buffer holding the input data.
+ * \param output   The 16-Byte buffer holding the output data.
+
+ * \return         \c 0 on success.
  */
 int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
                             int mode,
@@ -115,62 +141,83 @@ int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 /**
- * \brief          ARIA-CBC buffer encryption/decryption
- *                 Length should be a multiple of the block
- *                 size (16 bytes)
+ * \brief  This function performs an ARIA-CBC encryption or decryption operation
+ *         on full blocks.
  *
- * \note           Upon exit, the content of the IV is updated so that you can
- *                 call the function same function again on the following
- *                 block(s) of data and get the same result as if it was
- *                 encrypted in one call. This allows a "streaming" usage.
- *                 If on the other hand you need to retain the contents of the
- *                 IV, you should either save it manually or use the cipher
- *                 module instead.
+ *         It performs the operation defined in the \p mode
+ *         parameter (encrypt/decrypt), on the input data buffer defined in
+ *         the \p input parameter.
  *
- * \param ctx      ARIA context
- * \param mode     MBEDTLS_ARIA_ENCRYPT or MBEDTLS_ARIA_DECRYPT
- * \param length   length of the input data
- * \param iv       initialization vector (updated after use)
- * \param input    buffer holding the input data
- * \param output   buffer holding the output data
+ *         It can be called as many times as needed, until all the input
+ *         data is processed. mbedtls_aes_init(), and either
+ *         mbedtls_aes_setkey_enc() or mbedtls_aes_setkey_dec() must be called
+ *         before the first call to this API with the same context.
  *
- * \return         0 if successful, or
- *                 MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH
+ * \note   This function operates on aligned blocks, that is, the input size
+ *         must be a multiple of the ARIA block size of 16 Bytes.
+ *
+ * \note   Upon exit, the content of the IV is updated so that you can
+ *         call the same function again on the next
+ *         block(s) of data and get the same result as if it was
+ *         encrypted in one call. This allows a "streaming" usage.
+ *         If you need to retain the contents of the IV, you should
+ *         either save it manually or use the cipher module instead.
+ *
+ *
+ * \param ctx      The ARIA context to use for encryption or decryption.
+ * \param mode     The ARIA operation: #MBEDTLS_ARIA_ENCRYPT or
+ *                 #MBEDTLS_ARIA_DECRYPT.
+ * \param length   The length of the input data in Bytes. This must be a
+ *                 multiple of the block size (16 Bytes).
+ * \param iv       Initialization vector (updated after use).
+ * \param input    The buffer holding the input data.
+ * \param output   The buffer holding the output data.
+ *
+ * \return         \c 0 on success, or #MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH
+ *                 on failure.
  */
 int mbedtls_aria_crypt_cbc( mbedtls_aria_context *ctx,
                             int mode,
                             size_t length,
-                            unsigned char iv[16],
+                            unsigned char iv[MBEDTLS_ARIA_BLOCKSIZE],
                             const unsigned char *input,
                             unsigned char *output );
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
 /**
- * \brief          ARIA-CFB128 buffer encryption/decryption
+ * \brief This function performs an ARIA-CFB128 encryption or decryption
+ *        operation.
  *
- * Note: Due to the nature of CFB you should use the same key schedule for
- * both encryption and decryption. So a context initialized with
- * mbedtls_aria_setkey_enc() for both MBEDTLS_ARIA_ENCRYPT and CAMELLIE_DECRYPT.
+ *        It performs the operation defined in the \p mode
+ *        parameter (encrypt or decrypt), on the input data buffer
+ *        defined in the \p input parameter.
  *
- * \note           Upon exit, the content of the IV is updated so that you can
- *                 call the function same function again on the following
- *                 block(s) of data and get the same result as if it was
- *                 encrypted in one call. This allows a "streaming" usage.
- *                 If on the other hand you need to retain the contents of the
- *                 IV, you should either save it manually or use the cipher
- *                 module instead.
+ *        For CFB, you must set up the context with mbedtls_aes_setkey_enc(),
+ *        regardless of whether you are performing an encryption or decryption
+ *        operation, that is, regardless of the \p mode parameter. This is
+ *        because CFB mode uses the same key schedule for encryption and
+ *        decryption.
  *
- * \param ctx      ARIA context
- * \param mode     MBEDTLS_ARIA_ENCRYPT or MBEDTLS_ARIA_DECRYPT
- * \param length   length of the input data
- * \param iv_off   offset in IV (updated after use)
- * \param iv       initialization vector (updated after use)
- * \param input    buffer holding the input data
- * \param output   buffer holding the output data
+ * \note  Upon exit, the content of the IV is updated so that you can
+ *        call the same function again on the next
+ *        block(s) of data and get the same result as if it was
+ *        encrypted in one call. This allows a "streaming" usage.
+ *        If you need to retain the contents of the
+ *        IV, you must either save it manually or use the cipher
+ *        module instead.
  *
- * \return         0 if successful, or
- *                 MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH
+ *
+ * \param ctx      The ARIA context to use for encryption or decryption.
+ * \param mode     The ARIA operation: #MBEDTLS_ARIA_ENCRYPT or
+ *                 #MBEDTLS_ARIA_DECRYPT.
+ * \param length   The length of the input data.
+ * \param iv_off   The offset in IV (updated after use).
+ * \param iv       The initialization vector (updated after use).
+ * \param input    The buffer holding the input data.
+ * \param output   The buffer holding the output data.
+ *
+ * \return         \c 0 on success.
  */
 int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
                                int mode,
@@ -183,26 +230,32 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
 /**
- * \brief               ARIA-CTR buffer encryption/decryption
+ * \brief      This function performs an ARIA-CTR encryption or decryption
+ *             operation.
  *
- * Warning: You have to keep the maximum use of your counter in mind!
+ *             This function performs the operation defined in the \p mode
+ *             parameter (encrypt/decrypt), on the input data buffer
+ *             defined in the \p input parameter.
  *
- * Note: Due to the nature of CTR you should use the same key schedule for
- * both encryption and decryption. So a context initialized with
- * mbedtls_aria_setkey_enc() for both MBEDTLS_ARIA_ENCRYPT and MBEDTLS_ARIA_DECRYPT.
+ *             Due to the nature of CTR, you must use the same key schedule
+ *             for both encryption and decryption operations. Therefore, you
+ *             must use the context initialized with mbedtls_aes_setkey_enc()
+ *             for both #MBEDTLS_ARIA_ENCRYPT and #MBEDTLS_ARIA_DECRYPT.
  *
- * \param ctx           ARIA context
- * \param length        The length of the data
- * \param nc_off        The offset in the current stream_block (for resuming
- *                      within current cipher stream). The offset pointer to
- *                      should be 0 at the start of a stream.
- * \param nonce_counter The 128-bit nonce and counter.
- * \param stream_block  The saved stream-block for resuming. Is overwritten
- *                      by the function.
- * \param input         The input data stream
- * \param output        The output data stream
+ * \warning    You must keep the maximum use of your counter in mind.
  *
- * \return         0 if successful
+ * \param ctx              The ARIA context to use for encryption or decryption.
+ * \param length           The length of the input data.
+ * \param nc_off           The offset in the current \p stream_block, for
+ *                         resuming within the current cipher stream. The
+ *                         offset pointer should be 0 at the start of a stream.
+ * \param nonce_counter    The 128-bit nonce and counter.
+ * \param stream_block     The saved stream block for resuming. This is
+ *                         overwritten by the function.
+ * \param input            The buffer holding the input data.
+ * \param output           The buffer holding the output data.
+ *
+ * \return     \c 0 on success.
  */
 int mbedtls_aria_crypt_ctr( mbedtls_aria_context *ctx,
                             size_t length,
@@ -226,9 +279,9 @@ extern "C" {
 #endif
 
 /**
- * \brief          Checkup routine
+ * \brief          Checkup routine.
  *
- * \return         0 if successful, or 1 if the test failed
+ * \return         \c 0 on success, or \c 1 on failure.
  */
 int mbedtls_aria_self_test( int verbose );
 

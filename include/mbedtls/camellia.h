@@ -183,11 +183,28 @@ int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
 /**
  * \brief               CAMELLIA-CTR buffer encryption/decryption
  *
- * Warning: You have to keep the maximum use of your counter in mind!
- *
  * Note: Due to the nature of CTR you should use the same key schedule for
  * both encryption and decryption. So a context initialized with
  * mbedtls_camellia_setkey_enc() for both MBEDTLS_CAMELLIA_ENCRYPT and MBEDTLS_CAMELLIA_DECRYPT.
+ *
+ * \warning    You must never reuse a nonce value with the same key. Doing so
+ *             would void the encryption for the two messages encrypted with
+ *             the same nonce and key.
+ *
+ *             There are two common strategies for managing nonces with CTR:
+ *
+ *             1. Use a counter starting at 0 or a random value. With this
+ *             strategy, this function will increment the counter for you, so
+ *             you only need to preserve the \p nonce_counter buffer between
+ *             calls. With this strategy, you must not encrypt more than
+ *             2**128 blocks of data.
+ *             2. Use a randomly-generated \p nonce_counter for each call.
+ *             With this strategy, you need to ensure the nonce is generated
+ *             in an unbiased way and you must not encrypt more than 2**64
+ *             block of data.
+ *
+ *             Note that for both stategies, the limit is in number of blocks
+ *             and that a CAMELLIA block is 16 bytes.
  *
  * \param ctx           CAMELLIA context
  * \param length        The length of the data

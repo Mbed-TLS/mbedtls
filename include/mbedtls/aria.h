@@ -242,7 +242,24 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
  *             must use the context initialized with mbedtls_aes_setkey_enc()
  *             for both #MBEDTLS_ARIA_ENCRYPT and #MBEDTLS_ARIA_DECRYPT.
  *
- * \warning    You must keep the maximum use of your counter in mind.
+ * \warning    You must never reuse a nonce value with the same key. Doing so
+ *             would void the encryption for the two messages encrypted with
+ *             the same nonce and key.
+ *
+ *             There are two common strategies for managing nonces with CTR:
+ *
+ *             1. Use a counter starting at 0 or a random value. With this
+ *             strategy, this function will increment the counter for you, so
+ *             you only need to preserve the \p nonce_counter buffer between
+ *             calls. With this strategy, you must not encrypt more than
+ *             2**128 blocks of data.
+ *             2. Use a randomly-generated \p nonce_counter for each call.
+ *             With this strategy, you need to ensure the nonce is generated
+ *             in an unbiased way and you must not encrypt more than 2**64
+ *             block of data.
+ *
+ *             Note that for both stategies, the limit is in number of blocks
+ *             and that an ARIA block is 16 bytes.
  *
  * \param ctx              The ARIA context to use for encryption or decryption.
  * \param length           The length of the input data.

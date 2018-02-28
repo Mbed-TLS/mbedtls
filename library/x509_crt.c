@@ -1184,8 +1184,17 @@ cleanup:
 
     while( ( entry = readdir( dir ) ) != NULL )
     {
-        mbedtls_snprintf( entry_name, sizeof entry_name, "%s/%s", path, entry->d_name );
-        //entry_name length is MBEDTLS_X509_MAX_FILE_PATH_LEN  and it includes both path and filename
+        if( strlen(path) + strlen(entry->d_name) + 1 < MBEDTLS_X509_MAX_FILE_PATH_LEN )
+        {
+            mbedtls_snprintf( entry_name, sizeof entry_name, "%s/%s", path, entry->d_name );         
+        }
+        else
+        {
+            closedir( dir );
+            ret = MBEDTLS_ERR_X509_FILE_IO_ERROR;
+            goto cleanup;
+        }
+
 
         if( stat( entry_name, &sb ) == -1 )
         {

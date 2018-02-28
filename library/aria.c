@@ -48,6 +48,11 @@
 
 #if !defined(MBEDTLS_ARIA_ALT)
 
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
+#define inline __inline
+#endif
+
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
@@ -97,7 +102,7 @@ static inline uint32_t aria_p1( uint32_t x )
 }
 #define ARIA_P1 aria_p1
 #elif defined(__ARMCC_VERSION) && __ARMCC_VERSION < 6000000
-static __inline uint32_t aria_p1( uint32_t x )
+static inline uint32_t aria_p1( uint32_t x )
 {
     uint32_t r;
     __asm( "rev16 r, x" );
@@ -146,7 +151,7 @@ static inline uint32_t aria_p3( uint32_t x )
 }
 #define ARIA_P3 aria_p3
 #elif defined(__ARMCC_VERSION) && __ARMCC_VERSION < 6000000
-static __inline uint32_t aria_p3( uint32_t x )
+static inline uint32_t aria_p3( uint32_t x )
 {
     uint32_t r;
     __asm( "rev r, x" );

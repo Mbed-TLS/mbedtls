@@ -81,8 +81,9 @@ void mbedtls_aria_free( mbedtls_aria_context *ctx );
  *
  * \return         0 if successful, or MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH
  */
-int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx, const unsigned char *key,
-                         unsigned int keybits );
+int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx,
+                             const unsigned char *key,
+                             unsigned int keybits );
 
 /**
  * \brief          ARIA key schedule (decryption)
@@ -93,8 +94,9 @@ int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx, const unsigned char *key
  *
  * \return         0 if successful, or MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH
  */
-int mbedtls_aria_setkey_dec( mbedtls_aria_context *ctx, const unsigned char *key,
-                         unsigned int keybits );
+int mbedtls_aria_setkey_dec( mbedtls_aria_context *ctx,
+                             const unsigned char *key,
+                             unsigned int keybits );
 
 /**
  * \brief          ARIA-ECB block encryption/decryption
@@ -107,9 +109,9 @@ int mbedtls_aria_setkey_dec( mbedtls_aria_context *ctx, const unsigned char *key
  * \return         0 if successful
  */
 int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
-                    int mode,
-                    const unsigned char input[16],
-                    unsigned char output[16] );
+                            int mode,
+                            const unsigned char input[16],
+                            unsigned char output[16] );
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 /**
@@ -136,11 +138,11 @@ int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
  *                 MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH
  */
 int mbedtls_aria_crypt_cbc( mbedtls_aria_context *ctx,
-                    int mode,
-                    size_t length,
-                    unsigned char iv[16],
-                    const unsigned char *input,
-                    unsigned char *output );
+                            int mode,
+                            size_t length,
+                            unsigned char iv[16],
+                            const unsigned char *input,
+                            unsigned char *output );
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
@@ -171,12 +173,12 @@ int mbedtls_aria_crypt_cbc( mbedtls_aria_context *ctx,
  *                 MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH
  */
 int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
-                       int mode,
-                       size_t length,
-                       size_t *iv_off,
-                       unsigned char iv[16],
-                       const unsigned char *input,
-                       unsigned char *output );
+                               int mode,
+                               size_t length,
+                               size_t *iv_off,
+                               unsigned char iv[16],
+                               const unsigned char *input,
+                               unsigned char *output );
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
@@ -203,12 +205,12 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
  * \return         0 if successful
  */
 int mbedtls_aria_crypt_ctr( mbedtls_aria_context *ctx,
-                       size_t length,
-                       size_t *nc_off,
-                       unsigned char nonce_counter[16],
-                       unsigned char stream_block[16],
-                       const unsigned char *input,
-                       unsigned char *output );
+                            size_t length,
+                            size_t *nc_off,
+                            unsigned char nonce_counter[16],
+                            unsigned char stream_block[16],
+                            const unsigned char *input,
+                            unsigned char *output );
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
 #ifdef __cplusplus

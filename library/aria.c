@@ -56,9 +56,8 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 /*
  * 32-bit integer manipulation macros (little endian)
  */
-
 #ifndef GET_UINT32_LE
-#define GET_UINT32_LE(n,b,i)                    \
+#define GET_UINT32_LE( n, b, i )                \
 {                                               \
     (n) = ( (uint32_t) (b)[(i)    ]       )     \
         | ( (uint32_t) (b)[(i) + 1] <<  8 )     \
@@ -68,7 +67,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 #endif
 
 #ifndef PUT_UINT32_LE
-#define PUT_UINT32_LE(n,b,i)                                    \
+#define PUT_UINT32_LE( n, b, i )                                \
 {                                                               \
     (b)[(i)    ] = (unsigned char) ( ( (n)       ) & 0xFF );    \
     (b)[(i) + 1] = (unsigned char) ( ( (n) >>  8 ) & 0xFF );    \
@@ -431,8 +430,8 @@ static void aria_rot128(uint32_t r[4], const uint32_t a[4],
 /*
  * Set encryption key
  */
-int mbedtls_aria_setkey_enc(mbedtls_aria_context *ctx,
-                            const unsigned char *key, unsigned int keybits)
+int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx,
+                             const unsigned char *key, unsigned int keybits )
 {
     /* round constant masks */
     const uint32_t rc[3][4] =
@@ -446,7 +445,7 @@ int mbedtls_aria_setkey_enc(mbedtls_aria_context *ctx,
     uint32_t w[4][4], *w2;
 
     if (keybits != 128 && keybits != 192 && keybits != 256)
-        return MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH;
+        return( MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH );
 
     /* Copy key to W0 (and potential remainder to W1) */
     GET_UINT32_LE( w[0][0], key,  0 );
@@ -485,20 +484,20 @@ int mbedtls_aria_setkey_enc(mbedtls_aria_context *ctx,
     }
     aria_rot128( ctx->rk[16], w[0], w[1], 19 );
 
-    return 0;
+    return( 0 );
 }
 
 /*
  * Set decryption key
  */
-int mbedtls_aria_setkey_dec(mbedtls_aria_context *ctx,
-                            const unsigned char *key, unsigned int keybits)
+int mbedtls_aria_setkey_dec( mbedtls_aria_context *ctx,
+                             const unsigned char *key, unsigned int keybits )
 {
     int i, j, k, ret;
 
     ret = mbedtls_aria_setkey_enc( ctx, key, keybits );
     if( ret != 0 )
-        return ret;
+        return( ret );
 
     /* flip the order of round keys */
     for( i = 0, j = ctx->nr; i < j; i++, j-- )
@@ -513,9 +512,12 @@ int mbedtls_aria_setkey_dec(mbedtls_aria_context *ctx,
 
     /* apply affine transform to middle keys */
     for (i = 1; i < ctx->nr; i++ )
-        aria_a( &ctx->rk[i][0], &ctx->rk[i][1], &ctx->rk[i][2], &ctx->rk[i][3] );
+    {
+        aria_a( &ctx->rk[i][0], &ctx->rk[i][1],
+                &ctx->rk[i][2], &ctx->rk[i][3] );
+    }
 
-    return 0;
+    return( 0 );
 }
 
 /*
@@ -572,7 +574,7 @@ int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
     PUT_UINT32_LE( c, output,  8 );
     PUT_UINT32_LE( d, output, 12 );
 
-    return 0;
+    return( 0 );
 }
 
 /* Initialize context */
@@ -595,11 +597,11 @@ void mbedtls_aria_free( mbedtls_aria_context *ctx )
  * ARIA-CBC buffer encryption/decryption
  */
 int mbedtls_aria_crypt_cbc( mbedtls_aria_context *ctx,
-                    int mode,
-                    size_t length,
-                    unsigned char iv[16],
-                    const unsigned char *input,
-                    unsigned char *output )
+                            int mode,
+                            size_t length,
+                            unsigned char iv[16],
+                            const unsigned char *input,
+                            unsigned char *output )
 {
     int i;
     unsigned char temp[16];
@@ -649,12 +651,12 @@ int mbedtls_aria_crypt_cbc( mbedtls_aria_context *ctx,
  * ARIA-CFB128 buffer encryption/decryption
  */
 int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
-                       int mode,
-                       size_t length,
-                       size_t *iv_off,
-                       unsigned char iv[16],
-                       const unsigned char *input,
-                       unsigned char *output )
+                               int mode,
+                               size_t length,
+                               size_t *iv_off,
+                               unsigned char iv[16],
+                               const unsigned char *input,
+                               unsigned char *output )
 {
     int c;
     size_t n = *iv_off;
@@ -697,12 +699,12 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
  * ARIA-CTR buffer encryption/decryption
  */
 int mbedtls_aria_crypt_ctr( mbedtls_aria_context *ctx,
-                       size_t length,
-                       size_t *nc_off,
-                       unsigned char nonce_counter[16],
-                       unsigned char stream_block[16],
-                       const unsigned char *input,
-                       unsigned char *output )
+                            size_t length,
+                            size_t *nc_off,
+                            unsigned char nonce_counter[16],
+                            unsigned char stream_block[16],
+                            const unsigned char *input,
+                            unsigned char *output )
 {
     int c, i;
     size_t n = *nc_off;

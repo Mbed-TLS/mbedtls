@@ -1585,7 +1585,7 @@
  * Enable the AES block cipher.
  *
  * Module:  library/aes.c
- * Caller:  library/ssl_tls.c
+ * Caller:  library/cipher.c
  *          library/pem.c
  *          library/ctr_drbg.c
  *
@@ -1660,7 +1660,7 @@
  * Enable the ARCFOUR stream cipher.
  *
  * Module:  library/arc4.c
- * Caller:  library/ssl_tls.c
+ * Caller:  library/cipher.c
  *
  * This module enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -1754,7 +1754,7 @@
  * Enable the Camellia block cipher.
  *
  * Module:  library/camellia.c
- * Caller:  library/ssl_tls.c
+ * Caller:  library/cipher.c
  *
  * This module enables the following ciphersuites (if other requisites are
  * enabled as well):
@@ -1941,7 +1941,7 @@
  *
  * Module:  library/des.c
  * Caller:  library/pem.c
- *          library/ssl_tls.c
+ *          library/cipher.c
  *
  * This module enables the following ciphersuites (if other requisites are
  * enabled as well):

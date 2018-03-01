@@ -72,16 +72,14 @@ int mbedtls_platform_set_calloc_free( void * (*calloc_func)( size_t, size_t ),
 
 #if defined(_WIN32)
 #include <stdarg.h>
-int mbedtls_platform_win32_snprintf( char *s, size_t n, const char *fmt, ... )
+int mbedtls_platform_win32_vsnprintf( char *s, size_t n, const char *fmt, va_list ap )
 {
     int ret;
-    va_list argp;
 
     /* Avoid calling the invalid parameter handler by checking ourselves */
     if( s == NULL || n == 0 || fmt == NULL )
         return( -1 );
 
-    va_start( argp, fmt );
 #if defined(_TRUNCATE)
     ret = _vsnprintf_s( s, n, _TRUNCATE, fmt, argp );
 #else
@@ -92,6 +90,17 @@ int mbedtls_platform_win32_snprintf( char *s, size_t n, const char *fmt, ... )
         ret = -1;
     }
 #endif
+
+    return ret;
+}
+
+int mbedtls_platform_win32_snprintf( char *s, size_t n, const char *fmt, ... )
+{
+    int ret;
+    va_list argp;
+
+    va_start( argp, fmt );
+    ret = mbedtls_platform_win32_vsnprintf( s, n, fmt, argp );
     va_end( argp );
 
     return( ret );
@@ -127,6 +136,37 @@ int mbedtls_platform_set_snprintf( int (*snprintf_func)( char * s, size_t n,
     return( 0 );
 }
 #endif /* MBEDTLS_PLATFORM_SNPRINTF_ALT */
+
+#if defined(MBEDTLS_PLATFORM_VSNPRINTF_ALT)
+#if !defined(MBEDTLS_PLATFORM_STD_VSNPRINTF)
+/*
+ * Make dummy function to prevent NULL pointer dereferences
+ */
+static int platform_vsnprintf_uninit( char * s, size_t n,
+                                     const char * format, va_list argp )
+{
+    ((void) s);
+    ((void) n);
+    ((void) format);
+    ((void) argp);
+    return( 0 );
+}
+
+#define MBEDTLS_PLATFORM_STD_VSNPRINTF    platform_vsnprintf_uninit
+#endif /* !MBEDTLS_PLATFORM_STD_VSNPRINTF */
+
+int (*mbedtls_vsnprintf)( char * s, size_t n,
+                          const char * format,
+                          va_list argp ) = MBEDTLS_PLATFORM_STD_VSNPRINTF;
+
+int mbedtls_platform_set_vsnprintf( int (*vsnprintf_func)( char * s, size_t n,
+                                                 const char * format,
+                                                 va_list argp ) )
+{
+    mbedtls_vsnprintf = vsnprintf_func;
+    return( 0 );
+}
+#endif /* MBEDTLS_PLATFORM_VSNPRINTF_ALT */
 
 #if defined(MBEDTLS_PLATFORM_PRINTF_ALT)
 #if !defined(MBEDTLS_PLATFORM_STD_PRINTF)

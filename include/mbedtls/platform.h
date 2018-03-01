@@ -57,6 +57,13 @@ extern "C" {
 #define MBEDTLS_PLATFORM_STD_SNPRINTF   snprintf /**< The default \c snprintf function to use.  */
 #endif
 #endif
+#if !defined(MBEDTLS_PLATFORM_STD_VSNPRINTF)
+#if defined(_WIN32)
+#define MBEDTLS_PLATFORM_STD_VSNPRINTF   mbedtls_platform_win32_vsnprintf /**< The default \c vsnprintf function to use.  */
+#else
+#define MBEDTLS_PLATFORM_STD_VSNPRINTF   vsnprintf /**< The default \c vsnprintf function to use.  */
+#endif
+#endif
 #if !defined(MBEDTLS_PLATFORM_STD_PRINTF)
 #define MBEDTLS_PLATFORM_STD_PRINTF   printf /**< The default \c printf function to use. */
 #endif
@@ -213,6 +220,27 @@ int mbedtls_platform_set_snprintf( int (*snprintf_func)( char * s, size_t n,
 #define mbedtls_snprintf   snprintf
 #endif /* MBEDTLS_PLATFORM_SNPRINTF_MACRO */
 #endif /* MBEDTLS_PLATFORM_SNPRINTF_ALT */
+
+#if defined(MBEDTLS_PLATFORM_VSNPRINTF_ALT)
+extern int (*mbedtls_vsnprintf)( char * s, size_t n, const char * format, va_list argp );
+
+/**
+ * \brief   This function allows configuring a custom \c vsnprintf function
+ *          pointer.
+ *
+ * \param vsnprintf_func   The \c vsnprintf function implementation.
+ *
+ * \return    \c 0 on success.
+ */
+int mbedtls_platform_set_vsnprintf( int (*vsnprintf_func)( char * s, size_t n,
+                                                 const char * format, va_list argp ) );
+#else /* MBEDTLS_PLATFORM_VSNPRINTF_ALT */
+#if defined(MBEDTLS_PLATFORM_VSNPRINTF_MACRO)
+#define mbedtls_vsnprintf  MBEDTLS_PLATFORM_VSNPRINTF_MACRO
+#else
+#define mbedtls_vsnprintf  vsnprintf
+#endif /* MBEDTLS_PLATFORM_VSNPRINTF_MACRO */
+#endif /* MBEDTLS_PLATFORM_VSNPRINTF_ALT */
 
 /*
  * The function pointers for exit

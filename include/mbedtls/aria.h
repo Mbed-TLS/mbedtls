@@ -262,7 +262,7 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
  *             2. Use a randomly-generated \p nonce_counter for each call.
  *             With this strategy, you need to ensure the nonce is generated
  *             in an unbiased way and you must not encrypt more than 2**64
- *             block of data.
+ *             blocks of data.
  *
  *             Note that for both stategies, the limit is in number of blocks
  *             and that an ARIA block is 16 bytes.

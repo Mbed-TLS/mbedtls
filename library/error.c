@@ -590,6 +590,10 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "ARIA - Invalid key length" );
     if( use_ret == -(MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH) )
         mbedtls_snprintf( buf, buflen, "ARIA - Invalid data input length" );
+    if( use_ret == -(MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE) )
+        mbedtls_snprintf( buf, buflen, "ARIA - Feature not available. For example, an unsupported ARIA key size" );
+    if( use_ret == -(MBEDTLS_ERR_ARIA_HW_ACCEL_FAILED) )
+        mbedtls_snprintf( buf, buflen, "ARIA - ARIA hardware accelerator failed" );
 #endif /* MBEDTLS_ARIA_C */
 
 #if defined(MBEDTLS_ASN1_PARSE_C)

@@ -243,3 +243,6 @@ x509_ocsp_response_verify:"data_files/ocsp-resp-status-sig-required.der":"data_f
 
 X509 OCSP Response verification (unauthorized response status)
 x509_ocsp_response_verify:"data_files/ocsp-resp-status-unauthorized.der":"data_files/server2.crt":"data_files/test-ca-sha256.crt":"data_files/test-ca-sha256.crt":MBEDTLS_ERR_X509_OCSP_RESPONSE_VERIFY_FAILED:MBEDTLS_X509_BADOCSP_RESPONSE_BAD_RESPONSE_STATUS
+
+X509 OCSP Response verification (producedAt is in the future)
+x509_ocsp_response_verify:"data_files/ocsp-resp-future-produced-at.der":"data_files/server2-in-database.crt":"data_files/test-ca-sha256.crt":"data_files/test-ca-sha256.crt":MBEDTLS_ERR_X509_OCSP_RESPONSE_VERIFY_FAILED:MBEDTLS_X509_BADOCSP_RESPONSE_FUTURE

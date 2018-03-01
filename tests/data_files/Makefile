@@ -12,6 +12,7 @@
 
 ## Tools
 OPENSSL ?= openssl
+FAKETIME ?= faketime
 
 ## Build the generated test data. Note that since the final outputs
 ## are committed to the repository, this target should do nothing on a
@@ -78,6 +79,21 @@ server2-ocsp-nocheck.crt: server2-ocsp-nocheck.csr $(cli_crt_extensions_file)
 	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions ocsp-nocheck -CA test-ca-sha256.crt -CAkey $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 4 -days 3653 -sha256 -in $< -out $@
 all_final += server2-ocsp-nocheck.crt
 
+test-ca-index.txt:
+	printf "" > $@
+all_intermediate += test-ca-index.txt test-ca-index.txt.old
+test-ca-index.txt.attr:
+	printf "unique_subject = no" > $@
+all_intermediate += test-ca-index.txt.attr test-ca-index.txt.attr.old
+test-ca-serial.txt:
+	printf "1000" > $@
+all_intermediate += test-ca-serial.txt test-ca-serial.txt.old
+server2-in-database.csr: server2.key $(test_ca_config_file) test-ca-index.txt test-ca-serial.txt test-ca-index.txt.attr
+	$(OPENSSL) req -config $(test_ca_config_file) -key $< -passin "pass:$(test_ca_pwd_rsa)" -subj "/C=NL/O=PolarSSL/CN=Mbed TLS OCSP test cert" -out $@ -new -sha256
+all_intermediate += server2-in-database.csr
+server2-in-database.crt: server2-in-database.csr $(test_ca_config_file)
+	$(OPENSSL) ca -batch -config $(test_ca_config_file) -extensions server_cert -cert test-ca-sha256.crt -keyfile $(test_ca_key_file_rsa) -days 3653 -notext -md sha256 -passin "pass:$(test_ca_pwd_rsa)" -in $< -out $@
+all_final += server2-in-database.crt
 
 ################################################################
 #### Generate OCSP responses using existing certificates
@@ -102,6 +118,13 @@ all_final += ocsp-resp-status-sig-required.der
 ocsp-resp-status-unauthorized.der:
 	@printf "\x30\x03\x0A\x01\x06" > $@
 all_final += ocsp-resp-status-unauthorized.der
+
+ocsp-req-for-server2-in-database.der: server2-in-database.crt test-ca-sha256.crt
+	$(OPENSSL) ocsp -issuer test-ca-sha256.crt -cert server2-in-database.crt -no_nonce -reqout $@
+all_intermediate += ocsp-req-future-produced-at.der
+ocsp-resp-future-produced-at.der: ocsp-req-for-server2-in-database.der test-ca-index.txt test-ca-sha256.crt
+	$(FAKETIME) -f "+9y" $(OPENSSL) ocsp -rsigner test-ca-sha256.crt -index test-ca-index.txt -rkey $(test_ca_key_file_rsa) -CA test-ca-sha256.crt -noverify -reqin $< -respout $@
+all_final += ocsp-resp-future-produced-at.der
 
 ################################################################
 #### Meta targets

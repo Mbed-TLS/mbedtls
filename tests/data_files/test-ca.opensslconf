@@ -1,3 +1,39 @@
+[ca]
+default_ca = CA_default
+
+[CA_default]
+dir = .
+certs = $dir
+new_certs_dir = $dir
+database = ./test-ca-index.txt
+serial = ./test-ca-serial.txt
+
+default_md = sha256
+
+name_opt = ca_default
+cert_opt = ca_default
+default_days = 3653
+policy = policy_loose
+
+[policy_loose]
+countryName             = optional
+stateOrProvinceName     = optional
+localityName            = optional
+organizationName        = optional
+organizationalUnitName  = optional
+commonName              = supplied
+emailAddress            = optional
+
+[server_cert]
+basicConstraints = CA:FALSE
+nsCertType = server
+nsComment = "Mbed TLS Generated Server Certificate"
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer:always
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+authorityInfoAccess = OCSP;URI:http://localhost:4455
+
 [req]
 x509_extensions = v3_ca
 distinguished_name = req_dn

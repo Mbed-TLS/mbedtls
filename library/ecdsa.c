@@ -298,7 +298,7 @@ int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
     unsigned char *p = (unsigned char *) sig;
     unsigned char *buf_ptr;
     const unsigned char *end = sig + ssize;
-    size_t len, bytes_skipped, i;
+    size_t len, bytes_skipped;
 
     if( 2 * byte_len > bufsize )
     {
@@ -335,10 +335,7 @@ int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
     }
     *buflen = len - bytes_skipped;
 
-    for( i = bytes_skipped; i < len; i++ )
-    {
-        buf_ptr[i - bytes_skipped] = p[i];
-    }
+    memmove(buf_ptr, &p[bytes_skipped], *buflen);
     p += len;
     buf_ptr += *buflen;
 
@@ -358,11 +355,7 @@ int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
     }
 
     *buflen += len - bytes_skipped;
-
-    for( i = bytes_skipped; i < len; i++ )
-    {
-        buf_ptr[i - bytes_skipped] = p[i];
-    }
+    memmove(buf_ptr, &p[bytes_skipped], len - bytes_skipped);
 
     return( ret );
 }
@@ -387,6 +380,76 @@ int mbedtls_ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
     memmove( sig, p, len );
     memset( sig + len, 0, ssize - len );
     *slen = len;
+
+    return( 0 );
+ }
+
+int mbedtls_raw_ecdsa_signature_to_asn1( const unsigned char *r,
+                                 const unsigned char *s, uint16_t num_len,
+                                 unsigned char *sig, size_t *slen, size_t ssize )
+{
+    int ret;
+    unsigned char *p = sig + ssize;
+    size_t total_len = 0;
+    size_t padding_len = 0;
+
+    /*
+     * Step 1: write S
+     */
+    memmove( p - num_len, s, num_len );
+    p -= num_len;
+    total_len += num_len;
+    if( *p & 0x80 )
+    {
+        if( p - sig < 1 )
+            return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+        *--p = 0x00;
+        padding_len += 1;
+    }
+    total_len += padding_len;
+
+    MBEDTLS_ASN1_CHK_ADD( total_len, mbedtls_asn1_write_len( &p, sig,
+                                             num_len + padding_len ) );
+    MBEDTLS_ASN1_CHK_ADD( total_len, mbedtls_asn1_write_tag( &p, sig,
+                                             MBEDTLS_ASN1_INTEGER ) );
+
+    padding_len = 0;
+
+    /*
+     * Step 2: write R
+     */
+    memmove( p - num_len, r, num_len );
+    p -= num_len;
+    total_len += num_len;
+    if( *p & 0x80 )
+    {
+        if( p - sig < 1 )
+            return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+        *--p = 0x00;
+        padding_len += 1;
+    }
+    total_len += padding_len;
+
+    MBEDTLS_ASN1_CHK_ADD( total_len, mbedtls_asn1_write_len( &p, sig,
+                                             num_len + padding_len ) );
+    MBEDTLS_ASN1_CHK_ADD( total_len, mbedtls_asn1_write_tag( &p, sig,
+                                             MBEDTLS_ASN1_INTEGER ) );
+
+    /*
+    * Step 3: write rest of the data
+    */
+    MBEDTLS_ASN1_CHK_ADD( total_len, mbedtls_asn1_write_len( &p, sig, total_len ) );
+    MBEDTLS_ASN1_CHK_ADD( total_len, mbedtls_asn1_write_tag( &p, sig,
+                                             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
+
+    /*
+    * Step 4: move to the beginning of the buffer, zeroize the rest
+    */
+    memmove( sig, p, total_len );
+    memset( sig + total_len, 0, ssize - total_len );
+    *slen = total_len;
 
     return( 0 );
 }

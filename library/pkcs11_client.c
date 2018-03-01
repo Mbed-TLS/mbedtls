@@ -191,9 +191,7 @@ static int pkcs11_sign( void *ctx_arg,
          */
         uint16_t byte_len = ( ( ctx->bit_length + 7 ) / 8 );
         size_t sig_size = MBEDTLS_ECDSA_MAX_SIG_LEN( ctx->bit_length );
-        mbedtls_mpi r, s;
-        mbedtls_mpi_init( &r );
-        mbedtls_mpi_init( &s );
+
         rv = CKR_OK;
         if( ck_sig_len != 2 * byte_len )
         {
@@ -201,22 +199,15 @@ static int pkcs11_sign( void *ctx_arg,
             rv = CKR_GENERAL_ERROR;
             goto ecdsa_exit;
         }
-        if( mbedtls_mpi_read_binary( &r, sig, byte_len ) != 0 ||
-            mbedtls_mpi_read_binary( &s, sig + byte_len, byte_len ) != 0 )
-        {
-            rv = CKR_HOST_MEMORY;
-            goto ecdsa_exit;
-        }
+
         /* The signature buffer is guaranteed to have enough room for
            the encoded signature by the pk_sign interface. */
-        if( mbedtls_ecdsa_signature_to_asn1( &r, &s, sig, sig_len, sig_size ) != 0 )
+        if( mbedtls_raw_ecdsa_signature_to_asn1( sig, sig + byte_len, byte_len, sig, sig_len, sig_size ) != 0 )
         {
             rv = CKR_GENERAL_ERROR;
             goto ecdsa_exit;
         }
     ecdsa_exit:
-        mbedtls_mpi_free( &r );
-        mbedtls_mpi_free( &s );
         if( rv != CKR_OK )
             goto exit;
     }

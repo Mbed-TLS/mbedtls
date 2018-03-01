@@ -234,19 +234,19 @@ static inline void aria_sl( uint32_t *a, uint32_t *b,
                             const uint8_t sa[0x100], const uint8_t sb[0x100],
                             const uint8_t sc[0x100], const uint8_t sd[0x100] )
 {
-    *a = ( (uint32_t) sa[ *a        & 0xFF])        ^
+    *a = ( (uint32_t) sa[ *a        & 0xFF]       ) ^
          (((uint32_t) sb[(*a >>  8) & 0xFF]) <<  8) ^
          (((uint32_t) sc[(*a >> 16) & 0xFF]) << 16) ^
          (((uint32_t) sd[ *a >> 24        ]) << 24);
-    *b = ( (uint32_t) sa[ *b        & 0xFF])        ^
+    *b = ( (uint32_t) sa[ *b        & 0xFF]       ) ^
          (((uint32_t) sb[(*b >>  8) & 0xFF]) <<  8) ^
          (((uint32_t) sc[(*b >> 16) & 0xFF]) << 16) ^
          (((uint32_t) sd[ *b >> 24        ]) << 24);
-    *c = ( (uint32_t) sa[ *c        & 0xFF])        ^
+    *c = ( (uint32_t) sa[ *c        & 0xFF]       ) ^
          (((uint32_t) sb[(*c >>  8) & 0xFF]) <<  8) ^
          (((uint32_t) sc[(*c >> 16) & 0xFF]) << 16) ^
          (((uint32_t) sd[ *c >> 24        ]) << 24);
-    *d = ( (uint32_t) sa[ *d        & 0xFF])        ^
+    *d = ( (uint32_t) sa[ *d        & 0xFF]       ) ^
          (((uint32_t) sb[(*d >>  8) & 0xFF]) <<  8) ^
          (((uint32_t) sc[(*d >> 16) & 0xFF]) << 16) ^
          (((uint32_t) sd[ *d >> 24        ]) << 24);
@@ -362,8 +362,8 @@ static const uint8_t aria_is2[0x100] =
 /*
  * Helper for key schedule: r = FO( p, k ) ^ x
  */
-static void aria_fo_xor( uint32_t r[4],
-    const uint32_t p[4], const uint32_t k[4], const uint32_t x[4] )
+static void aria_fo_xor( uint32_t r[4], const uint32_t p[4],
+                         const uint32_t k[4], const uint32_t x[4] )
 {
     uint32_t a, b, c, d;
 
@@ -384,8 +384,8 @@ static void aria_fo_xor( uint32_t r[4],
 /*
  * Helper for key schedule: r = FE( p, k ) ^ x
  */
-static void aria_fe_xor(uint32_t r[4],
-    const uint32_t p[4], const uint32_t k[4], const uint32_t x[4] )
+static void aria_fe_xor( uint32_t r[4], const uint32_t p[4],
+                         const uint32_t k[4], const uint32_t x[4] )
 {
     uint32_t a, b, c, d;
 
@@ -409,8 +409,8 @@ static void aria_fe_xor(uint32_t r[4],
  * We chose to store bytes into 32-bit words in little-endian format (see
  * GET/PUT_UINT32_LE) so we need to reverse bytes here.
  */
-static void aria_rot128(uint32_t r[4], const uint32_t a[4],
-                        const uint32_t b[4], uint8_t n)
+static void aria_rot128( uint32_t r[4], const uint32_t a[4],
+                         const uint32_t b[4], uint8_t n )
 {
     uint8_t i, j;
     uint32_t t, u;
@@ -449,7 +449,7 @@ int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx,
     int i;
     uint32_t w[4][4], *w2;
 
-    if (keybits != 128 && keybits != 192 && keybits != 256)
+    if( keybits != 128 && keybits != 192 && keybits != 256 )
         return( MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH );
 
     /* Copy key to W0 (and potential remainder to W1) */
@@ -458,7 +458,7 @@ int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx,
     GET_UINT32_LE( w[0][2], key,  8 );
     GET_UINT32_LE( w[0][3], key, 12 );
 
-    memset(w[1], 0, 16);
+    memset( w[1], 0, 16 );
     if( keybits >= 192 )
     {
         GET_UINT32_LE( w[1][0], key, 16 );  // 192 bit key
@@ -516,7 +516,7 @@ int mbedtls_aria_setkey_dec( mbedtls_aria_context *ctx,
     }
 
     /* apply affine transform to middle keys */
-    for (i = 1; i < ctx->nr; i++ )
+    for( i = 1; i < ctx->nr; i++ )
     {
         aria_a( &ctx->rk[i][0], &ctx->rk[i][1],
                 &ctx->rk[i][2], &ctx->rk[i][3] );
@@ -545,7 +545,7 @@ int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
     GET_UINT32_LE( d, input, 12 );
 
     i = 0;
-    while (1)
+    while( 1 )
     {
         a ^= ctx->rk[i][0];
         b ^= ctx->rk[i][1];
@@ -563,7 +563,7 @@ int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
         i++;
 
         aria_sl( &a, &b, &c, &d, aria_is1, aria_is2, aria_sb1, aria_sb2 );
-        if (i >= ctx->nr)
+        if( i >= ctx->nr )
             break;
         aria_a( &a, &b, &c, &d );
     }
@@ -907,7 +907,7 @@ int mbedtls_aria_self_test( int verbose )
     {
         /* test ECB encryption */
         if( verbose )
-            printf( "  ARIA-ECB-%d (enc): ", 128 + 64 * i);
+            printf( "  ARIA-ECB-%d (enc): ", 128 + 64 * i );
         mbedtls_aria_setkey_enc( &ctx, aria_test1_ecb_key, 128 + 64 * i );
         mbedtls_aria_crypt_ecb( &ctx, MBEDTLS_ARIA_ENCRYPT,
             aria_test1_ecb_pt, blk );
@@ -916,15 +916,15 @@ int mbedtls_aria_self_test( int verbose )
 
         /* test ECB decryption */
         if( verbose )
-            printf( "  ARIA-ECB-%d (dec): ", 128 + 64 * i);
+            printf( "  ARIA-ECB-%d (dec): ", 128 + 64 * i );
         mbedtls_aria_setkey_dec( &ctx, aria_test1_ecb_key, 128 + 64 * i );
         mbedtls_aria_crypt_ecb( &ctx, MBEDTLS_ARIA_DECRYPT,
             aria_test1_ecb_ct[i], blk );
-        if (memcmp( blk, aria_test1_ecb_pt, MBEDTLS_ARIA_BLOCKSIZE ) != 0)
+        if( memcmp( blk, aria_test1_ecb_pt, MBEDTLS_ARIA_BLOCKSIZE ) != 0 )
             ARIA_SELF_TEST_IF_FAIL;
     }
     if( verbose )
-        printf("\n");
+        printf( "\n" );
 
     /*
      * Test set 2
@@ -934,10 +934,10 @@ int mbedtls_aria_self_test( int verbose )
     {
         /* Test CBC encryption */
         if( verbose )
-            printf( "  ARIA-CBC-%d (enc): ", 128 + 64 * i);
+            printf( "  ARIA-CBC-%d (enc): ", 128 + 64 * i );
         mbedtls_aria_setkey_enc( &ctx, aria_test2_key, 128 + 64 * i );
         memcpy( iv, aria_test2_iv, MBEDTLS_ARIA_BLOCKSIZE );
-        memset( buf, 0x55, sizeof(buf) );
+        memset( buf, 0x55, sizeof( buf ) );
         mbedtls_aria_crypt_cbc( &ctx, MBEDTLS_ARIA_ENCRYPT, 48, iv,
             aria_test2_pt, buf );
         if( memcmp( buf, aria_test2_cbc_ct[i], 48 ) != 0 )
@@ -945,17 +945,17 @@ int mbedtls_aria_self_test( int verbose )
 
         /* Test CBC decryption */
         if( verbose )
-            printf( "  ARIA-CBC-%d (dec): ", 128 + 64 * i);
+            printf( "  ARIA-CBC-%d (dec): ", 128 + 64 * i );
         mbedtls_aria_setkey_dec( &ctx, aria_test2_key, 128 + 64 * i );
         memcpy( iv, aria_test2_iv, MBEDTLS_ARIA_BLOCKSIZE );
-        memset( buf, 0xAA, sizeof(buf) );
+        memset( buf, 0xAA, sizeof( buf ) );
         mbedtls_aria_crypt_cbc( &ctx, MBEDTLS_ARIA_DECRYPT, 48, iv,
             aria_test2_cbc_ct[i], buf );
         if( memcmp( buf, aria_test2_pt, 48 ) != 0 )
             ARIA_SELF_TEST_IF_FAIL;
     }
     if( verbose )
-        printf("\n");
+        printf( "\n" );
 
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -964,10 +964,10 @@ int mbedtls_aria_self_test( int verbose )
     {
         /* Test CFB encryption */
         if( verbose )
-            printf( "  ARIA-CFB-%d (enc): ", 128 + 64 * i);
+            printf( "  ARIA-CFB-%d (enc): ", 128 + 64 * i );
         mbedtls_aria_setkey_enc( &ctx, aria_test2_key, 128 + 64 * i );
         memcpy( iv, aria_test2_iv, MBEDTLS_ARIA_BLOCKSIZE );
-        memset( buf, 0x55, sizeof(buf) );
+        memset( buf, 0x55, sizeof( buf ) );
         j = 0;
         mbedtls_aria_crypt_cfb128( &ctx, MBEDTLS_ARIA_ENCRYPT, 48, &j, iv,
             aria_test2_pt, buf );
@@ -976,10 +976,10 @@ int mbedtls_aria_self_test( int verbose )
 
         /* Test CFB decryption */
         if( verbose )
-            printf( "  ARIA-CFB-%d (dec): ", 128 + 64 * i);
+            printf( "  ARIA-CFB-%d (dec): ", 128 + 64 * i );
         mbedtls_aria_setkey_enc( &ctx, aria_test2_key, 128 + 64 * i );
         memcpy( iv, aria_test2_iv, MBEDTLS_ARIA_BLOCKSIZE );
-        memset( buf, 0xAA, sizeof(buf) );
+        memset( buf, 0xAA, sizeof( buf ) );
         j = 0;
         mbedtls_aria_crypt_cfb128( &ctx, MBEDTLS_ARIA_DECRYPT, 48, &j,
             iv, aria_test2_cfb_ct[i], buf );
@@ -987,7 +987,7 @@ int mbedtls_aria_self_test( int verbose )
             ARIA_SELF_TEST_IF_FAIL;
     }
     if( verbose )
-        printf("\n");
+        printf( "\n" );
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
@@ -995,10 +995,10 @@ int mbedtls_aria_self_test( int verbose )
     {
         /* Test CTR encryption */
         if( verbose )
-            printf( "  ARIA-CTR-%d (enc): ", 128 + 64 * i);
+            printf( "  ARIA-CTR-%d (enc): ", 128 + 64 * i );
         mbedtls_aria_setkey_enc( &ctx, aria_test2_key, 128 + 64 * i );
         memset( iv, 0, MBEDTLS_ARIA_BLOCKSIZE );                    // IV = 0
-        memset( buf, 0x55, sizeof(buf) );
+        memset( buf, 0x55, sizeof( buf ) );
         j = 0;
         mbedtls_aria_crypt_ctr( &ctx, 48, &j, iv, blk,
             aria_test2_pt, buf );
@@ -1007,10 +1007,10 @@ int mbedtls_aria_self_test( int verbose )
 
         /* Test CTR decryption */
         if( verbose )
-            printf( "  ARIA-CTR-%d (dec): ", 128 + 64 * i);
+            printf( "  ARIA-CTR-%d (dec): ", 128 + 64 * i );
         mbedtls_aria_setkey_enc( &ctx, aria_test2_key, 128 + 64 * i );
         memset( iv, 0, MBEDTLS_ARIA_BLOCKSIZE );                    // IV = 0
-        memset( buf, 0xAA, sizeof(buf) );
+        memset( buf, 0xAA, sizeof( buf ) );
         j = 0;
         mbedtls_aria_crypt_ctr( &ctx, 48, &j, iv, blk,
             aria_test2_ctr_ct[i], buf );
@@ -1018,7 +1018,7 @@ int mbedtls_aria_self_test( int verbose )
             ARIA_SELF_TEST_IF_FAIL;
     }
     if( verbose )
-        printf("\n");
+        printf( "\n" );
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
     return( 0 );

@@ -90,10 +90,11 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  * so let's provide asm versions for common platforms with C fallback.
  */
 #if defined(MBEDTLS_HAVE_ASM)
-#if defined(__arm__)
+#if defined(__arm__) /* rev16 available from v6 up */
 /* armcc5 --gnu defines __GNUC__ but doesn't support GNU's extended asm */
 #if defined(__GNUC__) && \
-    ( !defined(__ARMCC_VERSION) || __ARMCC_VERSION >= 6000000 )
+    ( !defined(__ARMCC_VERSION) || __ARMCC_VERSION >= 6000000 ) && \
+    __ARM_ARCH >= 6
 static inline uint32_t aria_p1( uint32_t x )
 {
     uint32_t r;
@@ -101,7 +102,8 @@ static inline uint32_t aria_p1( uint32_t x )
     return( r );
 }
 #define ARIA_P1 aria_p1
-#elif defined(__ARMCC_VERSION) && __ARMCC_VERSION < 6000000
+#elif defined(__ARMCC_VERSION) && __ARMCC_VERSION < 6000000 && \
+    ( __TARGET_ARCH_ARM >= 6 || __TARGET_ARCH_THUMB >= 3 )
 static inline uint32_t aria_p1( uint32_t x )
 {
     uint32_t r;
@@ -139,10 +141,11 @@ static inline uint32_t aria_p1( uint32_t x )
  * so let's provide asm versions for common platforms with C fallback.
  */
 #if defined(MBEDTLS_HAVE_ASM)
-#if defined(__arm__)
+#if defined(__arm__) /* rev available from v6 up */
 /* armcc5 --gnu defines __GNUC__ but doesn't support GNU's extended asm */
 #if defined(__GNUC__) && \
-    ( !defined(__ARMCC_VERSION) || __ARMCC_VERSION >= 6000000 )
+    ( !defined(__ARMCC_VERSION) || __ARMCC_VERSION >= 6000000 ) && \
+    __ARM_ARCH >= 6
 static inline uint32_t aria_p3( uint32_t x )
 {
     uint32_t r;
@@ -150,7 +153,8 @@ static inline uint32_t aria_p3( uint32_t x )
     return( r );
 }
 #define ARIA_P3 aria_p3
-#elif defined(__ARMCC_VERSION) && __ARMCC_VERSION < 6000000
+#elif defined(__ARMCC_VERSION) && __ARMCC_VERSION < 6000000 && \
+    ( __TARGET_ARCH_ARM >= 6 || __TARGET_ARCH_THUMB >= 3 )
 static inline uint32_t aria_p3( uint32_t x )
 {
     uint32_t r;

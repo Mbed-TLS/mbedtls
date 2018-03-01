@@ -1,7 +1,7 @@
 /*
  *  Generic wrapper for Cryptoki (PKCS#11) support
  *
- *  Copyright (C) 2017, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2017-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -29,7 +29,6 @@
 
 #include <stdint.h>
 #include <string.h>
-#include <pkcs11.h>
 
 #include "mbedtls/pkcs11_client.h"
 
@@ -144,7 +143,7 @@ static int pkcs11_sign( void *ctx_arg,
     CK_RV rv;
     CK_MECHANISM mechanism = {0, NULL_PTR, 0};
     CK_ULONG ck_sig_len;
-
+    (void)(md_alg);
     /* This function takes size_t arguments but the underlying layer
        takes unsigned long. Either type may be smaller than the other.
        Legitimate values won't overflow either type but we still need
@@ -180,7 +179,8 @@ static int pkcs11_sign( void *ctx_arg,
          * each in the form of a big-endian byte sequence, with r and s
          * having the same length as the base point.
          *
-         * A standard ECDSA signature is encoded in ASN.1:
+         * This library encodes ECDSA signatures in ASN.1 as documented
+         * for mbedtls_ecdsa_write_signature:
          *   SEQUENCE {
          *     r INTEGER,
          *     s INTEGER
@@ -191,9 +191,7 @@ static int pkcs11_sign( void *ctx_arg,
          */
         uint16_t byte_len = ( ( ctx->bit_length + 7 ) / 8 );
         size_t sig_size = MBEDTLS_ECDSA_MAX_SIG_LEN( ctx->bit_length );
-        mbedtls_mpi r, s;
-        mbedtls_mpi_init( &r );
-        mbedtls_mpi_init( &s );
+
         rv = CKR_OK;
         if( ck_sig_len != 2 * byte_len )
         {
@@ -201,22 +199,15 @@ static int pkcs11_sign( void *ctx_arg,
             rv = CKR_GENERAL_ERROR;
             goto ecdsa_exit;
         }
-        if( mbedtls_mpi_read_binary( &r, sig, byte_len ) != 0 ||
-            mbedtls_mpi_read_binary( &s, sig + byte_len, byte_len ) != 0 )
-        {
-            rv = CKR_HOST_MEMORY;
-            goto ecdsa_exit;
-        }
+
         /* The signature buffer is guaranteed to have enough room for
            the encoded signature by the pk_sign interface. */
-        if( mbedtls_ecdsa_signature_to_asn1( &r, &s, sig, sig_len, sig_size ) != 0 )
+        if( mbedtls_raw_ecdsa_signature_to_asn1( sig, sig + byte_len, byte_len, sig, sig_len, sig_size ) != 0 )
         {
             rv = CKR_GENERAL_ERROR;
             goto ecdsa_exit;
         }
     ecdsa_exit:
-        mbedtls_mpi_free( &r );
-        mbedtls_mpi_free( &s );
         if( rv != CKR_OK )
             goto exit;
     }
@@ -292,8 +283,8 @@ static int pkcs11_verify( void *ctx_arg,
             return( MBEDTLS_ERR_PK_ALLOC_FAILED );
         }
         if( mbedtls_ecdsa_signature_to_raw( sig, sig_len, byte_len,
-                                    decoded_sig, 2 * byte_len,
-                                    &decoded_sig_len ) != 0 )
+                                    decoded_sig, &decoded_sig_len,
+                                    2 * byte_len ) != 0 )
         {
             rv = CKR_GENERAL_ERROR;
             goto exit;
@@ -315,7 +306,7 @@ exit:
 static const mbedtls_pk_info_t mbedtls_pk_pkcs11_info =
     MBEDTLS_PK_OPAQUE_INFO_1( "pkcs11"
                               , pkcs11_pk_get_bitlen
-                              , pkcs11_pk_can_do //can_do
+                              , pkcs11_pk_can_do
                               , pkcs11_pk_signature_size
                               , pkcs11_verify
                               , pkcs11_sign
@@ -327,7 +318,7 @@ static const mbedtls_pk_info_t mbedtls_pk_pkcs11_info =
                               , NULL //debug_func
         );
 
-int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,
+int mbedtls_pkcs11_setup_pk( mbedtls_pk_context *ctx,
                              CK_SESSION_HANDLE hSession,
                              CK_OBJECT_HANDLE hPublicKey,
                              CK_OBJECT_HANDLE hPrivateKey )
@@ -368,7 +359,7 @@ int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,
     case CKK_ECDSA:
         can_do = MBEDTLS_PK_ECKEY;
         {
-            unsigned char ecParams[16];
+            unsigned char ecParams[MBEDTLS_OID_EC_GRP_MAX_SIZE];
             mbedtls_asn1_buf params_asn1;
             mbedtls_ecp_group_id grp_id;
             const mbedtls_ecp_curve_info *curve_info;
@@ -416,29 +407,30 @@ static int mpi_to_ck( const mbedtls_mpi *mpi,
                       CK_ATTRIBUTE *attr, CK_ATTRIBUTE_TYPE at,
                       unsigned char **p, size_t len )
 {
-    if( mbedtls_mpi_write_binary( mpi, *p, len ) != 0 )
-        return( 0 );
+    int ret = mbedtls_mpi_write_binary( mpi, *p, len );
+    if( ret != 0 )
+        return( ret );
     attr->type = at;
     attr->pValue = *p;
     attr->ulValueLen = len;
     *p += len;
-    return( 1 );
+    return( 0 );
 }
-#define MPI_TO_CK( mpi, attr, at, p, len )                            \
-    do                                                                \
-    {                                                                 \
-        if( !mpi_to_ck( ( mpi ), ( attr ), ( at ), ( p ), ( len ) ) ) \
-        {                                                             \
-            rv = CKR_ARGUMENTS_BAD;                                   \
-            goto exit;                                                \
-        }                                                             \
-    }                                                                 \
+#define MPI_TO_CK( mpi, attr, at, p, len )                               \
+    do                                                                   \
+    {                                                                    \
+        if( mpi_to_ck( ( mpi ), ( attr ), ( at ), ( p ), ( len ) ) != 0) \
+        {                                                                \
+            rv = CKR_ARGUMENTS_BAD;                                      \
+            goto exit;                                                   \
+        }                                                                \
+    }                                                                    \
     while( 0 )
 #endif /* defined(MBEDTLS_RSA_C) || defined(MBEDTLS_ECDSA_C) */
 
-#define CK_BOOL( x ) ( ( x ) ? CK_TRUE : CK_FALSE )
+#define MBEDTLS_PKCS11_BOOL( x ) ( ( x ) ? CK_TRUE : CK_FALSE )
 
-int mbedtls_pk_import_to_pkcs11( const mbedtls_pk_context *ctx,
+int mbedtls_pkcs11_import_pk( const mbedtls_pk_context *ctx,
                                  uint32_t flags,
                                  CK_SESSION_HANDLE hSession,
                                  CK_OBJECT_HANDLE *hPublicKey,
@@ -447,13 +439,13 @@ int mbedtls_pk_import_to_pkcs11( const mbedtls_pk_context *ctx,
     CK_OBJECT_CLASS cko_private_key = CKO_PRIVATE_KEY;
     CK_OBJECT_CLASS cko_public_key = CKO_PUBLIC_KEY;
     CK_KEY_TYPE ck_key_type;
-    CK_BBOOL ck_sensitive = CK_BOOL( flags & MBEDTLS_PK_FLAG_SENSITIVE );
-    CK_BBOOL ck_extractable = CK_BOOL( flags & MBEDTLS_PK_FLAG_EXTRACTABLE );
-    CK_BBOOL ck_sign = CK_BOOL( flags & MBEDTLS_PK_FLAG_SIGN );
-    CK_BBOOL ck_verify = CK_BOOL( flags & MBEDTLS_PK_FLAG_VERIFY );
-    CK_BBOOL ck_decrypt = CK_BOOL( flags & MBEDTLS_PK_FLAG_DECRYPT );
-    CK_BBOOL ck_encrypt = CK_BOOL( flags & MBEDTLS_PK_FLAG_ENCRYPT );
-    CK_BBOOL ck_token = CK_BOOL( flags & MBEDTLS_PKCS11_FLAG_TOKEN );
+    CK_BBOOL ck_sensitive = MBEDTLS_PKCS11_BOOL( flags & MBEDTLS_PKCS11_FLAG_SENSITIVE );
+    CK_BBOOL ck_extractable = MBEDTLS_PKCS11_BOOL( flags & MBEDTLS_PKCS11_FLAG_EXTRACTABLE );
+    CK_BBOOL ck_sign = MBEDTLS_PKCS11_BOOL( flags & MBEDTLS_PKCS11_FLAG_SIGN );
+    CK_BBOOL ck_verify = MBEDTLS_PKCS11_BOOL( flags & MBEDTLS_PKCS11_FLAG_VERIFY );
+    CK_BBOOL ck_decrypt = MBEDTLS_PKCS11_BOOL( flags & MBEDTLS_PKCS11_FLAG_DECRYPT );
+    CK_BBOOL ck_encrypt = MBEDTLS_PKCS11_BOOL( flags & MBEDTLS_PKCS11_FLAG_ENCRYPT );
+    CK_BBOOL ck_token = MBEDTLS_PKCS11_BOOL( flags & MBEDTLS_PKCS11_FLAG_TOKEN );
     CK_ATTRIBUTE public_attributes[] = {
         {CKA_CLASS, &cko_public_key, sizeof( cko_public_key )},
         {CKA_KEY_TYPE, &ck_key_type, sizeof( ck_key_type )},

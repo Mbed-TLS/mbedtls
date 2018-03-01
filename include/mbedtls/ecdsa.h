@@ -256,8 +256,8 @@ int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
  */
 int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
                             size_t ssize, uint16_t byte_len,
-                            unsigned char *buf, size_t bufsize,
-                            size_t* buflen );
+                            unsigned char *buf, size_t* buflen,
+                            size_t bufsize );
 /**
  * \brief           Convert a signature from numbers to ASN.1
  *
@@ -279,6 +279,29 @@ int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
 int mbedtls_ecdsa_signature_to_asn1( const mbedtls_mpi *r,
                              const mbedtls_mpi *s, unsigned char *sig,
                              size_t *slen, size_t ssize );
+
+/**
+ * \brief           Convert a signature from a raw representation to ASN.1
+ *
+ * \param r         First number of the signature
+ * \param s         Second number of the signature
+ * \param num_len   Length of each number in bytes
+ * \param sig       Buffer that will hold the signature
+ * \param slen      Length of the signature written
+ * \param ssize     Size of the sig buffer
+ *
+ * \note            The size of the buffer \c ssize should be at least
+ *                  `MBEDTLS_ECDSA_MAX_SIG_LEN(grp->pbits)` bytes long if
+ *                  the signature was produced from curve \c grp,
+ *                  otherwise this function will return an error.
+ *
+ * \return          0 if successful,
+ *                  or a MBEDTLS_ERR_MPI_XXX or MBEDTLS_ERR_ASN1_XXX error code
+ *
+ */
+int mbedtls_raw_ecdsa_signature_to_asn1(const unsigned char *r,
+                             const unsigned char *s, uint16_t num_len,
+                             unsigned char *sig, size_t *slen, size_t ssize );
 
 /**
  * \brief           Read and verify an ECDSA signature

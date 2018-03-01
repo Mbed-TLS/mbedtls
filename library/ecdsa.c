@@ -289,66 +289,75 @@ cleanup:
 /*
  * Convert a signature to a raw concatenation of {r, s}
  */
-/*int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
-                            size_t ssize, uint16_t byte_len,
-                            unsigned char *buf, size_t* slen )*/
 int mbedtls_ecdsa_signature_to_raw( const unsigned char *sig,
                             size_t ssize, uint16_t byte_len,
-                            unsigned char *buf, size_t bufsize,
-                            size_t* buflen )
+                            unsigned char *buf, size_t* buflen,
+                            size_t bufsize)
 {
     int ret;
     unsigned char *p = (unsigned char *) sig;
+    unsigned char *buf_ptr;
     const unsigned char *end = sig + ssize;
-    size_t len;
-    mbedtls_mpi r, s;
+    size_t len, bytes_skipped;
 
     if( 2 * byte_len > bufsize )
     {
-        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+        return (MBEDTLS_ERR_ECP_BAD_INPUT_DATA);
     }
-
-    mbedtls_mpi_init( &r );
-    mbedtls_mpi_init( &s );
 
     if( ( ret = mbedtls_asn1_get_tag( &p, end, &len,
             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
         ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-        goto cleanup;
+        return ret;
     }
 
     if( p + len != end )
     {
-        ret = MBEDTLS_ERR_ECP_BAD_INPUT_DATA +
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA +
                 MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
-        goto cleanup;
     }
 
-    if( ( ret = mbedtls_asn1_get_mpi( &p, end, &r ) ) != 0 ||
-            ( ret = mbedtls_asn1_get_mpi( &p, end, &s ) ) != 0 )
-    {
-        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-        goto cleanup;
-    }
-    p = (unsigned char *) buf;
-    if( ( ret = mbedtls_mpi_write_binary(&r, p, byte_len) ) )
-    {
-        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-        goto cleanup;
-    }
-    p += byte_len;
-    if( ( ret = mbedtls_mpi_write_binary(&s, p, byte_len) ) )
-    {
-        ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-        goto cleanup;
-    }
-    *buflen = 2*byte_len;
-    cleanup:
-        mbedtls_mpi_free( &r );
-        mbedtls_mpi_free( &s );
+    /*
+     * Step 1: write R
+     */
+    buf_ptr = buf;
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_INTEGER ) ) != 0 )
+            return( ret );
 
-        return( ret );
+    for( bytes_skipped = 0; bytes_skipped < len; bytes_skipped++ )
+            if( p[bytes_skipped] != 0 )
+                break;
+
+    if( len - bytes_skipped > bufsize )
+    {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+    *buflen = len - bytes_skipped;
+
+    memmove(buf_ptr, &p[bytes_skipped], *buflen);
+    p += len;
+    buf_ptr += *buflen;
+
+    /*
+     * Step 2: write S
+     */
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &len, MBEDTLS_ASN1_INTEGER ) ) != 0 )
+                return( ret );
+
+    for( bytes_skipped = 0; bytes_skipped < len; bytes_skipped++ )
+            if( p[bytes_skipped] != 0 )
+                break;
+
+    if( len - bytes_skipped + *buflen > bufsize )
+    {
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    *buflen += len - bytes_skipped;
+    memmove(buf_ptr, &p[bytes_skipped], len - bytes_skipped);
+
+    return( ret );
 }
 
 /*
@@ -371,6 +380,76 @@ int mbedtls_ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
     memmove( sig, p, len );
     memset( sig + len, 0, ssize - len );
     *slen = len;
+
+    return( 0 );
+ }
+
+int mbedtls_raw_ecdsa_signature_to_asn1( const unsigned char *r,
+                                 const unsigned char *s, uint16_t num_len,
+                                 unsigned char *sig, size_t *slen, size_t ssize )
+{
+    int ret;
+    unsigned char *p = sig + ssize;
+    size_t total_len = 0;
+    size_t padding_len = 0;
+
+    /*
+     * Step 1: write S
+     */
+    memmove( p - num_len, s, num_len );
+    p -= num_len;
+    total_len += num_len;
+    if( *p & 0x80 )
+    {
+        if( p - sig < 1 )
+            return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+        *--p = 0x00;
+        padding_len += 1;
+    }
+    total_len += padding_len;
+
+    MBEDTLS_ASN1_CHK_ADD( total_len, mbedtls_asn1_write_len( &p, sig,
+                                             num_len + padding_len ) );
+    MBEDTLS_ASN1_CHK_ADD( total_len, mbedtls_asn1_write_tag( &p, sig,
+                                             MBEDTLS_ASN1_INTEGER ) );
+
+    padding_len = 0;
+
+    /*
+     * Step 2: write R
+     */
+    memmove( p - num_len, r, num_len );
+    p -= num_len;
+    total_len += num_len;
+    if( *p & 0x80 )
+    {
+        if( p - sig < 1 )
+            return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+        *--p = 0x00;
+        padding_len += 1;
+    }
+    total_len += padding_len;
+
+    MBEDTLS_ASN1_CHK_ADD( total_len, mbedtls_asn1_write_len( &p, sig,
+                                             num_len + padding_len ) );
+    MBEDTLS_ASN1_CHK_ADD( total_len, mbedtls_asn1_write_tag( &p, sig,
+                                             MBEDTLS_ASN1_INTEGER ) );
+
+    /*
+    * Step 3: write rest of the data
+    */
+    MBEDTLS_ASN1_CHK_ADD( total_len, mbedtls_asn1_write_len( &p, sig, total_len ) );
+    MBEDTLS_ASN1_CHK_ADD( total_len, mbedtls_asn1_write_tag( &p, sig,
+                                             MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
+
+    /*
+    * Step 4: move to the beginning of the buffer, zeroize the rest
+    */
+    memmove( sig, p, total_len );
+    memset( sig + total_len, 0, ssize - total_len );
+    *slen = total_len;
 
     return( 0 );
 }

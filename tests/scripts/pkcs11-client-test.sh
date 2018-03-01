@@ -14,14 +14,16 @@ elif [ -e ../../../library/aes.c ]; then
 else
   unset TOPDIR
 fi
+# The SoftHSM library sends error messages to the system logs. If possible, send
+# the messages to standard error instead, by overloading the logging functions.
 if [ -n "${TOPDIR+1}" ] &&
-     make -C "$TOPDIR/programs" util/syslog2stderr.so >/dev/null 2>&1
+     make -C "$TOPDIR/programs" test/syslog2stderr.so >/dev/null 2>&1
 then
   case $(uname) in
     Darwin)
-      export DYLD_PRELOAD="${DYLD_PRELOAD-}:$TOPDIR/programs/util/syslog2stderr.so";;
+      export DYLD_PRELOAD="${DYLD_PRELOAD-}:$TOPDIR/programs/test/syslog2stderr.so";;
     *)
-      export LD_PRELOAD="${LD_PRELOAD-}:$TOPDIR/programs/util/syslog2stderr.so";;
+      export LD_PRELOAD="${LD_PRELOAD-}:$TOPDIR/programs/test/syslog2stderr.so";;
   esac
 fi
 

@@ -125,6 +125,11 @@ all_intermediate += ocsp-req-future-produced-at.der
 ocsp-resp-future-produced-at.der: ocsp-req-for-server2-in-database.der test-ca-index.txt test-ca-sha256.crt
 	$(FAKETIME) -f "+9y" $(OPENSSL) ocsp -rsigner test-ca-sha256.crt -index test-ca-index.txt -rkey $(test_ca_key_file_rsa) -CA test-ca-sha256.crt -noverify -reqin $< -respout $@
 all_final += ocsp-resp-future-produced-at.der
+ocsp-resp-issuer-is-signer.der: ocsp-req-for-server2-in-database.der test-ca-index.txt test-ca-sha256.crt
+	$(OPENSSL) ocsp -rsigner test-ca-sha256.crt -index test-ca-index.txt -rkey $(test_ca_key_file_rsa) -CA test-ca-sha256.crt -noverify -reqin $< -respout $@
+all_final += ocsp-resp-issuer-is-signed.der
+ocsp-resp-no-certs-in-resp.der: ocsp-req-for-server2-in-database.der test-ca-index.txt test-ca-sha256.crt
+	$(OPENSSL) ocsp -rsigner test-ca-sha256.crt -index test-ca-index.txt -rkey $(test_ca_key_file_rsa) -CA test-ca-sha256.crt -resp_key_id -resp_no_certs -noverify -reqin $< -respout $@
 
 ################################################################
 #### Meta targets

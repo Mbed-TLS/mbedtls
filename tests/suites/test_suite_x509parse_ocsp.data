@@ -246,3 +246,18 @@ x509_ocsp_response_verify:"data_files/ocsp-resp-status-unauthorized.der":"data_f
 
 X509 OCSP Response verification (producedAt is in the future)
 x509_ocsp_response_verify:"data_files/ocsp-resp-future-produced-at.der":"data_files/server2-in-database.crt":"data_files/test-ca-sha256.crt":"data_files/test-ca-sha256.crt":MBEDTLS_ERR_X509_OCSP_RESPONSE_VERIFY_FAILED:MBEDTLS_X509_BADOCSP_RESPONSE_FUTURE
+
+X509 OCSP Response verification (response not supplied)
+x509_ocsp_response_verify:"":"data_files/server2-in-database.crt":"data_files/test-ca-sha256.crt":"data_files/test-ca-sha256.crt":MBEDTLS_ERR_X509_BAD_INPUT_DATA:0
+
+X509 OCSP Response verification (empty requested certificate chain)
+x509_ocsp_response_verify:"data_files/ocsp-resp-issuer-is-signer.der":"":"data_files/test-ca-sha256.crt":"data_files/test-ca-sha256.crt":0:0
+
+X509 OCSP Response verification (issuer not found)
+x509_ocsp_response_verify:"data_files/ocsp-resp-no-certs-in-resp.der":"data_files/server2-in-database.crt":"":"data_files/test-ca-sha256.crt":MBEDTLS_ERR_X509_OCSP_RESPONSE_VERIFY_FAILED:MBEDTLS_X509_BADOCSP_RESPONSE_ISSUER_NOT_TRUSTED | MBEDTLS_X509_BADOCSP_RESPONSE_NOT_TRUSTED
+
+X509 OCSP Response verification (issuer found in response chain with Name ID)
+x509_ocsp_response_verify:"data_files/ocsp-resp-issuer-is-signer.der":"data_files/server2-in-database.crt":"":"data_files/test-ca-sha256.crt":0:0
+
+X509 OCSP Response verification (issuer found in untrusted chain with KeyHash ID)
+x509_ocsp_response_verify:"data_files/ocsp-resp-no-certs-in-resp.der":"data_files/server2-in-database.crt":"data_files/test-ca-sha256.crt":"data_files/test-ca-sha256.crt":0:0

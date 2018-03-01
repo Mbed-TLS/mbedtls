@@ -98,7 +98,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
 static inline uint32_t aria_p1( uint32_t x )
 {
     uint32_t r;
-    asm( "rev16 %0, %1" : "=l" (r) : "l" (x) );
+    __asm( "rev16 %0, %1" : "=l" (r) : "l" (x) );
     return( r );
 }
 #define ARIA_P1 aria_p1
@@ -149,7 +149,7 @@ static inline uint32_t aria_p1( uint32_t x )
 static inline uint32_t aria_p3( uint32_t x )
 {
     uint32_t r;
-    asm( "rev %0, %1" : "=l" (r) : "l" (x) );
+    __asm( "rev %0, %1" : "=l" (r) : "l" (x) );
     return( r );
 }
 #define ARIA_P3 aria_p3
@@ -168,7 +168,7 @@ static inline uint32_t aria_p3( uint32_t x )
     defined(__i386__) || defined(__amd64__) || defined( __x86_64__)
 static inline uint32_t aria_p3( uint32_t x )
 {
-    asm( "bswap %0" : "=r" (x) : "0" (x) );
+    __asm( "bswap %0" : "=r" (x) : "0" (x) );
     return( x );
 }
 #define ARIA_P3 aria_p3

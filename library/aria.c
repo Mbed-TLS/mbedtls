@@ -190,11 +190,11 @@ static inline uint32_t aria_p3( uint32_t x )
  *
  * a = 3210 + 4545 + 6767 + 88aa + 99bb + dccd + effe
  *   = 3210 + 4567 + 6745 + 89ab + 98ba + dcfe + efcd
- * b = 0101 + 2323 + 5476 + 8998 + baab + ecec + ffdd
+ * b = 0101 + 2323 + 5476 + 8998 + baab + eecc + ffdd
  *   = 0123 + 2301 + 5476 + 89ab + ba98 + efcd + fedc
- * c = 0022 + 1133 + 4545 + 7667 + ab89 + dcdc + fefe
+ * c = 0022 + 1133 + 4554 + 7667 + ab89 + dcdc + fefe
  *   = 0123 + 1032 + 4567 + 7654 + ab89 + dcfe + fedc
- * d = 1001 + 2332 + 6644 + 7755 + 9898 + baba + cedf
+ * d = 1001 + 2332 + 6644 + 7755 + 9898 + baba + cdef
  *   = 1032 + 2301 + 6745 + 7654 + 98ba + ba98 + cdef
  *
  * Note: another presentation of the A transform can be found as the first

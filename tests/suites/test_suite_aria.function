@@ -1,5 +1,14 @@
 /* BEGIN_HEADER */
 #include "mbedtls/aria.h"
+
+/* Maxium size of data used by test vectors
+ * WARNING: to be adapted if and when adding larger test cases */
+#define ARIA_MAX_DATASIZE  160
+
+/* Maximum sizes of hexified things */
+#define ARIA_MAX_KEY_STR    ( 2 * MBEDTLS_ARIA_MAX_KEYSIZE + 1 )
+#define ARIA_BLOCK_STR      ( 2 * MBEDTLS_ARIA_BLOCKSIZE + 1 )
+#define ARIA_MAX_DATA_STR   ( 2 * ARIA_MAX_DATASIZE + 1 )
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -11,17 +20,17 @@
 void aria_encrypt_ecb( char *hex_key_string, char *hex_src_string,
                        char *hex_dst_string, int setkey_result )
 {
-    unsigned char key_str[1000];
-    unsigned char src_str[1000];
-    unsigned char dst_str[1000];
-    unsigned char output[1000];
+    unsigned char key_str[ARIA_MAX_KEY_STR];
+    unsigned char src_str[ARIA_MAX_DATA_STR];
+    unsigned char dst_str[ARIA_MAX_DATA_STR];
+    unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
     int key_len, data_len, i;
 
-    memset( key_str, 0x00, 1000 );
-    memset( src_str, 0x00, 1000 );
-    memset( dst_str, 0x00, 1000 );
-    memset( output, 0x00, 1000 );
+    memset( key_str, 0x00, sizeof( key_str ) );
+    memset( src_str, 0x00, sizeof( src_str ) );
+    memset( dst_str, 0x00, sizeof( dst_str ) );
+    memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
@@ -31,7 +40,7 @@ void aria_encrypt_ecb( char *hex_key_string, char *hex_src_string,
                  == setkey_result );
     if( setkey_result == 0 )
     {
-        for( i = 0; i < data_len; i += 16 )
+        for( i = 0; i < data_len; i += MBEDTLS_ARIA_BLOCKSIZE )
         {
             TEST_ASSERT( mbedtls_aria_crypt_ecb( &ctx, MBEDTLS_ARIA_ENCRYPT,
                          src_str + i, output + i ) == 0 );
@@ -50,17 +59,17 @@ exit:
 void aria_decrypt_ecb( char *hex_key_string, char *hex_src_string,
                        char *hex_dst_string, int setkey_result )
 {
-    unsigned char key_str[1000];
-    unsigned char src_str[1000];
-    unsigned char dst_str[1000];
-    unsigned char output[1000];
+    unsigned char key_str[ARIA_MAX_KEY_STR];
+    unsigned char src_str[ARIA_MAX_DATA_STR];
+    unsigned char dst_str[ARIA_MAX_DATA_STR];
+    unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
     int key_len, data_len, i;
 
-    memset( key_str, 0x00, 1000 );
-    memset( src_str, 0x00, 1000 );
-    memset( dst_str, 0x00, 1000 );
-    memset( output, 0x00, 1000 );
+    memset( key_str, 0x00, sizeof( key_str ) );
+    memset( src_str, 0x00, sizeof( src_str ) );
+    memset( dst_str, 0x00, sizeof( dst_str ) );
+    memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
@@ -70,7 +79,7 @@ void aria_decrypt_ecb( char *hex_key_string, char *hex_src_string,
                  == setkey_result );
     if( setkey_result == 0 )
     {
-        for( i = 0; i < data_len; i += 16 )
+        for( i = 0; i < data_len; i += MBEDTLS_ARIA_BLOCKSIZE )
         {
             TEST_ASSERT( mbedtls_aria_crypt_ecb( &ctx, MBEDTLS_ARIA_DECRYPT,
             src_str + i, output + i ) == 0 );
@@ -90,19 +99,19 @@ void aria_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
                        char *hex_src_string, char *hex_dst_string,
                        int cbc_result )
 {
-    unsigned char key_str[1000];
-    unsigned char iv_str[1000];
-    unsigned char src_str[1000];
-    unsigned char dst_str[1000];
-    unsigned char output[1000];
+    unsigned char key_str[ARIA_MAX_KEY_STR];
+    unsigned char iv_str[ARIA_BLOCK_STR];
+    unsigned char src_str[ARIA_MAX_DATA_STR];
+    unsigned char dst_str[ARIA_MAX_DATA_STR];
+    unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
     int key_len, data_len;
 
-    memset( key_str, 0x00, 1000 );
-    memset( iv_str, 0x00, 1000 );
-    memset( src_str, 0x00, 1000 );
-    memset( dst_str, 0x00, 1000 );
-    memset( output, 0x00, 1000 );
+    memset( key_str, 0x00, sizeof( key_str ) );
+    memset( iv_str, 0x00, sizeof( iv_str ) );
+    memset( src_str, 0x00, sizeof( src_str ) );
+    memset( dst_str, 0x00, sizeof( dst_str ) );
+    memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
@@ -130,19 +139,19 @@ void aria_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
                        char *hex_src_string, char *hex_dst_string,
                        int cbc_result )
 {
-    unsigned char key_str[1000];
-    unsigned char iv_str[1000];
-    unsigned char src_str[1000];
-    unsigned char dst_str[1000];
-    unsigned char output[1000];
+    unsigned char key_str[ARIA_MAX_KEY_STR];
+    unsigned char iv_str[ARIA_BLOCK_STR];
+    unsigned char src_str[ARIA_MAX_DATA_STR];
+    unsigned char dst_str[ARIA_MAX_DATA_STR];
+    unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
     int key_len, data_len;
 
-    memset( key_str, 0x00, 1000 );
-    memset( iv_str, 0x00, 1000 );
-    memset( src_str, 0x00, 1000 );
-    memset( dst_str, 0x00, 1000 );
-    memset( output, 0x00, 1000 );
+    memset( key_str, 0x00, sizeof( key_str ) );
+    memset( iv_str, 0x00, sizeof( iv_str ) );
+    memset( src_str, 0x00, sizeof( src_str ) );
+    memset( dst_str, 0x00, sizeof( dst_str ) );
+    memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
@@ -170,20 +179,20 @@ void aria_encrypt_cfb128( char *hex_key_string, char *hex_iv_string,
                           char *hex_src_string, char *hex_dst_string,
                           int result )
 {
-    unsigned char key_str[1000];
-    unsigned char iv_str[1000];
-    unsigned char src_str[1000];
-    unsigned char dst_str[1000];
-    unsigned char output[1000];
+    unsigned char key_str[ARIA_MAX_KEY_STR];
+    unsigned char iv_str[ARIA_BLOCK_STR];
+    unsigned char src_str[ARIA_MAX_DATA_STR];
+    unsigned char dst_str[ARIA_MAX_DATA_STR];
+    unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
     size_t iv_offset = 0;
     int key_len, data_len;
 
-    memset( key_str, 0x00, 1000 );
-    memset( iv_str, 0x00, 1000 );
-    memset( src_str, 0x00, 1000 );
-    memset( dst_str, 0x00, 1000 );
-    memset( output, 0x00, 1000 );
+    memset( key_str, 0x00, sizeof( key_str ) );
+    memset( iv_str, 0x00, sizeof( iv_str ) );
+    memset( src_str, 0x00, sizeof( src_str ) );
+    memset( dst_str, 0x00, sizeof( dst_str ) );
+    memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
@@ -208,20 +217,20 @@ void aria_decrypt_cfb128( char *hex_key_string, char *hex_iv_string,
                           char *hex_src_string, char *hex_dst_string,
                           int result  )
 {
-    unsigned char key_str[1000];
-    unsigned char iv_str[1000];
-    unsigned char src_str[1000];
-    unsigned char dst_str[1000];
-    unsigned char output[1000];
+    unsigned char key_str[ARIA_MAX_KEY_STR];
+    unsigned char iv_str[ARIA_BLOCK_STR];
+    unsigned char src_str[ARIA_MAX_DATA_STR];
+    unsigned char dst_str[ARIA_MAX_DATA_STR];
+    unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
     size_t iv_offset = 0;
     int key_len, data_len;
 
-    memset( key_str, 0x00, 1000 );
-    memset( iv_str, 0x00, 1000 );
-    memset( src_str, 0x00, 1000 );
-    memset( dst_str, 0x00, 1000 );
-    memset( output, 0x00, 1000 );
+    memset( key_str, 0x00, sizeof( key_str ) );
+    memset( iv_str, 0x00, sizeof( iv_str ) );
+    memset( src_str, 0x00, sizeof( src_str ) );
+    memset( dst_str, 0x00, sizeof( dst_str ) );
+    memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
@@ -246,21 +255,21 @@ void aria_encrypt_ctr( char *hex_key_string, char *hex_iv_string,
                        char *hex_src_string, char *hex_dst_string,
                        int result )
 {
-    unsigned char key_str[1000];
-    unsigned char iv_str[1000];
-    unsigned char src_str[1000];
-    unsigned char dst_str[1000];
-    unsigned char output[1000];
-    unsigned char blk[16];
+    unsigned char key_str[ARIA_MAX_KEY_STR];
+    unsigned char iv_str[ARIA_BLOCK_STR];
+    unsigned char src_str[ARIA_MAX_DATA_STR];
+    unsigned char dst_str[ARIA_MAX_DATA_STR];
+    unsigned char output[ARIA_MAX_DATASIZE];
+    unsigned char blk[MBEDTLS_ARIA_BLOCKSIZE];
     mbedtls_aria_context ctx;
     size_t iv_offset = 0;
     int key_len, data_len;
 
-    memset( key_str, 0x00, 1000 );
-    memset( iv_str, 0x00, 1000 );
-    memset( src_str, 0x00, 1000 );
-    memset( dst_str, 0x00, 1000 );
-    memset( output, 0x00, 1000 );
+    memset( key_str, 0x00, sizeof( key_str ) );
+    memset( iv_str, 0x00, sizeof( iv_str ) );
+    memset( src_str, 0x00, sizeof( src_str ) );
+    memset( dst_str, 0x00, sizeof( dst_str ) );
+    memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );
@@ -284,21 +293,21 @@ void aria_decrypt_ctr( char *hex_key_string, char *hex_iv_string,
                        char *hex_src_string, char *hex_dst_string,
                        int result )
 {
-    unsigned char key_str[1000];
-    unsigned char iv_str[1000];
-    unsigned char src_str[1000];
-    unsigned char dst_str[1000];
-    unsigned char output[1000];
-    unsigned char blk[16];
+    unsigned char key_str[ARIA_MAX_KEY_STR];
+    unsigned char iv_str[ARIA_BLOCK_STR];
+    unsigned char src_str[ARIA_MAX_DATA_STR];
+    unsigned char dst_str[ARIA_MAX_DATA_STR];
+    unsigned char output[ARIA_MAX_DATASIZE];
+    unsigned char blk[MBEDTLS_ARIA_BLOCKSIZE];
     mbedtls_aria_context ctx;
     size_t iv_offset = 0;
     int key_len, data_len;
 
-    memset( key_str, 0x00, 1000 );
-    memset( iv_str, 0x00, 1000 );
-    memset( src_str, 0x00, 1000 );
-    memset( dst_str, 0x00, 1000 );
-    memset( output, 0x00, 1000 );
+    memset( key_str, 0x00, sizeof( key_str ) );
+    memset( iv_str, 0x00, sizeof( iv_str ) );
+    memset( src_str, 0x00, sizeof( src_str ) );
+    memset( dst_str, 0x00, sizeof( dst_str ) );
+    memset( output, 0x00, sizeof( output ) );
     mbedtls_aria_init( &ctx );
 
     key_len = unhexify( key_str, hex_key_string );

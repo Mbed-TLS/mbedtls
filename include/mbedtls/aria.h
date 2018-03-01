@@ -42,6 +42,9 @@
 #define MBEDTLS_ARIA_ENCRYPT     1 /**< ARIA encryption. */
 #define MBEDTLS_ARIA_DECRYPT     0 /**< ARIA decryption. */
 
+#define MBEDTLS_ARIA_BLOCKSIZE  16 /**< ARIA block size in bytes. */
+#define MBEDTLS_ARIA_MAX_ROUNDS 16 /**< Maxiumum number of rounds in ARIA. */
+
 #define MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH   -0x005C  /**< Invalid key length. */
 #define MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH -0x005E  /**< Invalid data input length. */
 #define MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE  -0x005A  /**< Feature not available. For example, an unsupported ARIA key size. */
@@ -58,11 +61,11 @@ extern "C" {
 /**
  * \brief The ARIA context-type definition.
  */
-
 typedef struct
 {
     int nr;                 /*!< The number of rounds (12, 14 or 16) */
-    uint32_t rk[17][4];     /*!< The ARIA round keys. */
+    /*! The ARIA round keys. */
+    uint32_t rk[MBEDTLS_ARIA_MAX_ROUNDS + 1][MBEDTLS_ARIA_BLOCKSIZE / 4];
 }
 mbedtls_aria_context;
 
@@ -138,8 +141,8 @@ int mbedtls_aria_setkey_dec( mbedtls_aria_context *ctx,
  */
 int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
                             int mode,
-                            const unsigned char input[16],
-                            unsigned char output[16] );
+                            const unsigned char input[MBEDTLS_ARIA_BLOCKSIZE],
+                            unsigned char output[MBEDTLS_ARIA_BLOCKSIZE] );
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 /**
@@ -225,7 +228,7 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
                                int mode,
                                size_t length,
                                size_t *iv_off,
-                               unsigned char iv[16],
+                               unsigned char iv[MBEDTLS_ARIA_BLOCKSIZE],
                                const unsigned char *input,
                                unsigned char *output );
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
@@ -279,8 +282,8 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
 int mbedtls_aria_crypt_ctr( mbedtls_aria_context *ctx,
                             size_t length,
                             size_t *nc_off,
-                            unsigned char nonce_counter[16],
-                            unsigned char stream_block[16],
+                            unsigned char nonce_counter[MBEDTLS_ARIA_BLOCKSIZE],
+                            unsigned char stream_block[MBEDTLS_ARIA_BLOCKSIZE],
                             const unsigned char *input,
                             unsigned char *output );
 #endif /* MBEDTLS_CIPHER_MODE_CTR */

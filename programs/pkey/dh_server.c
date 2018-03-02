@@ -86,12 +86,17 @@ int main( void )
     mbedtls_dhm_context dhm;
     mbedtls_aes_context aes;
 
+    mbedtls_mpi N, P, Q, D, E;
+
     mbedtls_net_init( &listen_fd );
     mbedtls_net_init( &client_fd );
     mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_SHA256 );
     mbedtls_dhm_init( &dhm );
     mbedtls_aes_init( &aes );
     mbedtls_ctr_drbg_init( &ctr_drbg );
+
+    mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
+    mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E );
 
     /*
      * 1. Setup the RNG
@@ -124,23 +129,32 @@ int main( void )
 
     mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
 
-    if( ( ret = mbedtls_mpi_read_file( &rsa.N , 16, f ) ) != 0 ||
-        ( ret = mbedtls_mpi_read_file( &rsa.E , 16, f ) ) != 0 ||
-        ( ret = mbedtls_mpi_read_file( &rsa.D , 16, f ) ) != 0 ||
-        ( ret = mbedtls_mpi_read_file( &rsa.P , 16, f ) ) != 0 ||
-        ( ret = mbedtls_mpi_read_file( &rsa.Q , 16, f ) ) != 0 ||
-        ( ret = mbedtls_mpi_read_file( &rsa.DP, 16, f ) ) != 0 ||
-        ( ret = mbedtls_mpi_read_file( &rsa.DQ, 16, f ) ) != 0 ||
-        ( ret = mbedtls_mpi_read_file( &rsa.QP, 16, f ) ) != 0 )
+    if( ( ret = mbedtls_mpi_read_file( &N , 16, f ) ) != 0 ||
+        ( ret = mbedtls_mpi_read_file( &E , 16, f ) ) != 0 ||
+        ( ret = mbedtls_mpi_read_file( &D , 16, f ) ) != 0 ||
+        ( ret = mbedtls_mpi_read_file( &P , 16, f ) ) != 0 ||
+        ( ret = mbedtls_mpi_read_file( &Q , 16, f ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_mpi_read_file returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_mpi_read_file returned %d\n\n",
+                        ret );
         fclose( f );
         goto exit;
     }
-
-    rsa.len = ( mbedtls_mpi_bitlen( &rsa.N ) + 7 ) >> 3;
-
     fclose( f );
+
+    if( ( ret = mbedtls_rsa_import( &rsa, &N, &P, &Q, &D, &E ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_rsa_import returned %d\n\n",
+                        ret );
+        goto exit;
+    }
+
+    if( ( ret = mbedtls_rsa_complete( &rsa ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_rsa_complete returned %d\n\n",
+                        ret );
+        goto exit;
+    }
 
     /*
      * 2b. Get the DHM modulus and generator
@@ -203,7 +217,11 @@ int main( void )
     /*
      * 5. Sign the parameters and send them
      */
-    mbedtls_sha1( buf, n, hash );
+    if( ( ret = mbedtls_sha1_ret( buf, n, hash ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_sha1_ret returned %d\n\n", ret );
+        goto exit;
+    }
 
     buf[n    ] = (unsigned char)( rsa.len >> 8 );
     buf[n + 1] = (unsigned char)( rsa.len      );
@@ -234,6 +252,7 @@ int main( void )
 
     memset( buf, 0, sizeof( buf ) );
 
+    n = dhm.len;
     if( ( ret = mbedtls_net_recv( &client_fd, buf, n ) ) != (int) n )
     {
         mbedtls_printf( " failed\n  ! mbedtls_net_recv returned %d\n\n", ret );
@@ -286,6 +305,9 @@ int main( void )
     mbedtls_printf( "\n\n" );
 
 exit:
+
+    mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
+    mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E );
 
     mbedtls_net_free( &client_fd );
     mbedtls_net_free( &listen_fd );

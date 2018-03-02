@@ -33,7 +33,7 @@ endif
 
 SOEXT_TLS=so.10
 SOEXT_X509=so.0
-SOEXT_CRYPTO=so.0
+SOEXT_CRYPTO=so.2
 
 DLEXT=so
 # OSX shared library extension:
@@ -59,9 +59,9 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		padlock.o	pem.o		pk.o		\
 		pk_wrap.o	pkcs12.o	pkcs5.o		\
 		pkparse.o	pkwrite.o	platform.o	\
-		ripemd160.o	rsa.o		sha1.o		\
-		sha256.o	sha512.o	threading.o	\
-		timing.o	version.o			\
+		ripemd160.o	rsa_internal.o	rsa.o  		\
+		sha1.o		sha256.o	sha512.o	\
+		threading.o	timing.o	version.o	\
 		version_features.o		xtea.o
 
 OBJS_X509=	certs.o		pkcs11.o	x509.o		\

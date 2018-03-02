@@ -738,7 +738,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
 
 /**
  * \brief          Encode a hash into a DigestInfo structure as specified
- *                 by PKCS#1(RFC 8017, EMSA-PKCS1-v1_5-ENCODE step 2).
+ *                 by PKCS#1 (RFC 8017, EMSA-PKCS1-v1_5-ENCODE step 2).
  *                 Note: function works backwards in data buffer.
  *
  * \param p        Reference to the current position pointer

@@ -56,7 +56,9 @@ extern "C" {
 #include "pk.h"
 
 /**
- * \brief               Set up a PK context for a key pair in a PKCS#11 token
+ * \brief               Set up a PK context from a key pair in a PKCS#11 token.
+ *                      This allows to access the token's cryptographic
+ *                      functionality through the PK interface.
  *
  * \param ctx           PK context to fill, which must have been initialized
  *                      with mbedtls_pk_init().
@@ -84,7 +86,7 @@ int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,
  *
  *                      This function imports a PK object containing a
  *                      public key or a private-public key pair into a
- *                      PKCS#11 token. 
+ *                      PKCS#11 token.
  *
  * \param ctx           PK context, which must contain a transparent pk
  *                      object (type \c MBEDTLS_PK_RSA,
@@ -113,10 +115,12 @@ int mbedtls_pk_setup_pkcs11( mbedtls_pk_context *ctx,
  *                        will be authorized for encryption.
  *
  * \param hSession      Cryptoki session.
- * \param hPublicKey    If non-null, on output, Cryptoki handle of the public
- *                      key. If null, the public key is not imported.
- * \param hPrivateKey   If non-null, on output, Cryptoki handle of the private
- *                      key. If null, the private key is not imported.
+ * \param hPublicKey    If not NULL, receives the Cryptoki handle of the public
+ *                      key on success. If NULL, the public key is not
+ *                      imported.
+ * \param hPrivateKey   If not NULL, receives the Cryptoki handle of the
+ *                      private key on success. If NULL, the private key is
+ *                      not imported.
  *
  * \return              0 on success,
  *                      or MBEDTLS_ERR_PK_XXX error code.

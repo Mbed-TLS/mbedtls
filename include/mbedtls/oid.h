@@ -227,7 +227,7 @@
 
 #define MBEDTLS_OID_HMAC_SHA1                   MBEDTLS_OID_RSA_COMPANY "\x02\x07" /**< id-hmacWithSHA1 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840) rsadsi(113549) digestAlgorithm(2) 7 } */
 
-#define MBEDTLS_MD_OID_MAX_SIZE 10 /**< Maximum length of an OID of a supported digest algorithm*/
+#define MBEDTLS_MD_OID_MAX_SIZE 10 /**< Maximum length of an OID of a supported digest algorithm */
 
 /*
  * Encryption algorithms

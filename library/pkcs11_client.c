@@ -111,7 +111,7 @@ static size_t pkcs11_pk_get_bitlen( const void *ctx_arg )
 static int pkcs11_pk_can_do( const void *ctx_arg, mbedtls_pk_type_t type )
 {
     const mbedtls_pk_pkcs11_context_t *ctx = ctx_arg;
-    return ctx->key_type == mbedtls_pk_representation_type( type );
+    return( ctx->key_type == mbedtls_pk_representation_type( type ) );
 }
 
 static void *pkcs11_pk_alloc( )
@@ -138,6 +138,7 @@ static size_t pkcs11_pk_signature_size( const void *ctx_arg )
     }
 }
 
+#if defined(MBEDTLS_RSA_C)
 static int pkcs11_sign_core( mbedtls_pk_pkcs11_context_t *ctx,
                              CK_MECHANISM_TYPE mechanism_type,
                              const unsigned char *payload, size_t payload_len,
@@ -145,7 +146,7 @@ static int pkcs11_sign_core( mbedtls_pk_pkcs11_context_t *ctx,
                              size_t sig_size )
 {
     CK_ULONG ck_sig_len = sig_size;
-    CK_MECHANISM mechanism = {mechanism_type, NULL_PTR, 0};
+    CK_MECHANISM mechanism = { mechanism_type, NULL_PTR, 0 };
     CK_RV rv;
     rv = C_SignInit( ctx->hSession, &mechanism, ctx->hPrivateKey );
     if( rv != CKR_OK )
@@ -158,6 +159,7 @@ static int pkcs11_sign_core( mbedtls_pk_pkcs11_context_t *ctx,
 exit:
     return( pkcs11_err_to_mbedtls_pk_err( rv ) );
 }
+#endif /* MBEDTLS_RSA_C */
 
 #if defined(MBEDTLS_RSA_C)
 static int pkcs11_sign_rsa( mbedtls_pk_pkcs11_context_t *ctx,
@@ -234,7 +236,7 @@ static int pkcs11_verify_core( mbedtls_pk_pkcs11_context_t *ctx,
                                const unsigned char *payload, size_t payload_len,
                                const unsigned char *sig, size_t sig_len )
 {
-    CK_MECHANISM mechanism = {mechanism_type, NULL_PTR, 0};
+    CK_MECHANISM mechanism = { mechanism_type, NULL_PTR, 0 };
     CK_RV rv;
 
     rv = C_VerifyInit( ctx->hSession, &mechanism, ctx->hPublicKey );

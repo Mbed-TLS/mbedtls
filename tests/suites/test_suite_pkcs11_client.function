@@ -111,8 +111,6 @@ static CK_RV pkcs11_generate_key( mbedtls_pk_type_t key_type,
         {CKA_SIGN, &ck_true, sizeof( ck_true )},
     };
     CK_ULONG ck_rsa_key_size = RSA_KEY_SIZE_BITS;
-    unsigned char ecParams[16];
-    size_t ecParams_length;
 
     switch( key_type )
     {
@@ -136,10 +134,6 @@ static CK_RV pkcs11_generate_key( mbedtls_pk_type_t key_type,
                                private_attributes,
                                ARRAY_LENGTH( private_attributes ),
                                phPublicKey, phPrivateKey ) );
-exit:
-    /* Shouldn't happen except if there's a test error (e.g. trying to
-       use a curve that isn't compiled in). */
-    return( -1 );
 }
 
 
@@ -298,7 +292,7 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_PK_C:MBEDTLS_SHA256_C */
 void pk_import_sign_verify( char *file )
  {
-    /* Sign with cryptoki, convert to mbedTLS format and save,
+    /* Sign with cryptoki, convert to Mbed TLS format and save,
        verify by cryptoki with a conversion to a raw, concatenated
        format by the engine. */
     mbedtls_pk_context pkcs11_ctx;
@@ -344,14 +338,14 @@ void pk_import_sign_verify( char *file )
                                     sig_buffer, sig_length ) == 0 );
 
 exit:
+    mbedtls_pk_free( &pkcs11_ctx );
+    mbedtls_pk_free( &transparent_ctx );
     if( hPublicKey != CK_INVALID_HANDLE )
         C_DestroyObject( hSession, hPublicKey );
     if( hPrivateKey != CK_INVALID_HANDLE )
         C_DestroyObject( hSession, hPrivateKey );
     C_CloseSession( hSession );
     C_Finalize( NULL_PTR );
-    mbedtls_pk_free( &pkcs11_ctx );
-    mbedtls_pk_free( &transparent_ctx );
 }
 /* END_CASE */
 
@@ -380,7 +374,6 @@ void pk_import_verify_signed( char *file )
     TEST_ASSERT( hSession != CK_INVALID_HANDLE );
 
     TEST_ASSERT( mbedtls_pk_import_to_pkcs11( &transparent_ctx,
-                                              MBEDTLS_PK_FLAG_SIGN |
                                               MBEDTLS_PK_FLAG_VERIFY,
                                               hSession,
                                               &hPublicKey,
@@ -413,7 +406,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
+/* BEGIN_CASE depends_on:MBEDTLS_PK_C:MBEDTLS_RSA_C */
 void pk_rsa_hardcoded_verify( char *message_hex_string, int digest,
                        int mod, int radix_N, char *input_N, int radix_E,
                        char *input_E, char *result_hex_str, int result )

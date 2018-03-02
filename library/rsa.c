@@ -1538,7 +1538,7 @@ int mbedtls_rsa_emsa_pkcs1_v15_encode_digestinfo( unsigned char **p,
 
     if( md_alg == MBEDTLS_MD_NONE )
     {
-        if( *p < start + hashlen )
+        if( *p - start < (ptrdiff_t) hashlen )
             return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
         *p -= hashlen;
         memcpy( *p, hash, hashlen );
@@ -1550,7 +1550,7 @@ int mbedtls_rsa_emsa_pkcs1_v15_encode_digestinfo( unsigned char **p,
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     if( hashlen == 0 )
         hashlen = mbedtls_md_get_size( md_info );
-    else if ( hashlen != mbedtls_md_get_size( md_info ) )
+    else if( hashlen != mbedtls_md_get_size( md_info ) )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     if( mbedtls_oid_get_oid_by_md( md_alg, &oid, &oid_size ) != 0 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -1570,7 +1570,7 @@ int mbedtls_rsa_emsa_pkcs1_v15_encode_digestinfo( unsigned char **p,
      * - Need hashlen bytes for hash
      * - Need oid_size bytes for hash alg OID.
      */
-    if( *p < start + 10 + oid_size + hashlen )
+    if( *p - start < (ptrdiff_t) ( 10 + oid_size + hashlen) )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
     *p -= 10 + oid_size + hashlen;
     start = *p;
@@ -1657,7 +1657,7 @@ static int rsa_rsassa_pkcs1_v15_encode( mbedtls_md_type_t md_alg,
     unsigned char *p = dst + dst_len;
 
     /* Ignore hashlen if a hash algorithm is specified. This is
-     * fragile, but documented, bhavior. */
+     * fragile, but documented, behavior. */
     if( md_alg != MBEDTLS_MD_NONE )
         hashlen = 0;
 

@@ -474,6 +474,34 @@ psa_status_t psa_get_key_policy(psa_key_slot_t key,
 
 /**@}*/
 
+/** \defgroup persistence Key lifetime
+ * @{
+ */
+
+/** Encoding of key lifetimes.
+ */
+typedef uint32_t psa_key_lifetime_t;
+
+/** A volatile key slot retains its content as long as the application is
+ * running. It is guaranteed to be erased on a power reset.
+ */
+#define PSA_KEY_LIFETIME_VOLATILE               ((psa_key_lifetime_t)0x00000000)
+
+/** A persistent key slot retains its content as long as it is not explicitly
+ * destroyed.
+ */
+#define PSA_KEY_LIFETIME_PERSISTENT             ((psa_key_lifetime_t)0x00000001)
+
+/** A write-once key slot may not be modified once a key has been set.
+ * It will retain its content as long as the device remains operational.
+ */
+#define PSA_KEY_LIFETIME_WRITE_ONCE             ((psa_key_lifetime_t)0x7fffffff)
+
+psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
+                                  psa_key_lifetime_t *lifetime);
+
+/**@}*/
+
 /** \defgroup hash Message digests
  * @{
  */

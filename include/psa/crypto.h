@@ -251,9 +251,10 @@ typedef uint32_t psa_algorithm_t;
      PSA_ALG_CIPHER_MAC_BASE)
 
 #define PSA_ALG_CIPHER_SUBCATEGORY_MASK         ((psa_algorithm_t)0x00c00000)
-#define PSA_ALG_BLOCK_CIPHER_BASE               ((psa_algorithm_t)0x04000001)
+#define PSA_ALG_BLOCK_CIPHER_BASE               ((psa_algorithm_t)0x04000000)
 #define PSA_ALG_BLOCK_CIPHER_MODE_MASK          ((psa_algorithm_t)0x000000ff)
-#define PSA_ALG_BLOCK_CIPHER_PADDING_MASK       ((psa_algorithm_t)0x007f0000)
+#define PSA_ALG_BLOCK_CIPHER_PADDING_MASK       ((psa_algorithm_t)0x003f0000)
+#define PSA_ALG_BLOCK_CIPHER_PAD_NONE           ((psa_algorithm_t)0x00000000)
 #define PSA_ALG_BLOCK_CIPHER_PAD_PKCS7          ((psa_algorithm_t)0x00010000)
 #define PSA_ALG_IS_BLOCK_CIPHER(alg)            \
     (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_CIPHER_SUBCATEGORY_MASK)) == \
@@ -687,6 +688,132 @@ psa_status_t psa_mac_verify(psa_mac_operation_t *operation,
                             size_t mac_length);
 
 psa_status_t psa_mac_abort(psa_mac_operation_t *operation);
+
+/**@}*/
+
+/** \defgroup cipher Symmetric ciphers
+ * @{
+ */
+
+/** The type of the state data structure for multipart cipher operations.
+ *
+ * This is an implementation-defined \c struct. Applications should not
+ * make any assumptions about the content of this structure except
+ * as directed by the documentation of a specific implementation. */
+typedef struct psa_cipher_operation_s psa_cipher_operation_t;
+
+/** Set the key for a multipart symmetric encryption operation.
+ *
+ * The sequence of operations to encrypt a message with a symmetric cipher
+ * is as follows:
+ * -# Allocate an operation object which will be passed to all the functions
+ *    listed here.
+ * -# Call psa_encrypt_setup() to specify the algorithm and key.
+ *    The key remains associated with the operation even if the content
+ *    of the key slot changes.
+ * -# Call either psa_encrypt_generate_iv() or psa_encrypt_set_iv() to
+ *    generate or set the IV (initialization vector). You should use
+ *    psa_encrypt_generate_iv() unless the protocol you are implementing
+ *    requires a specific IV value.
+ * -# Call psa_cipher_update() zero, one or more times, passing a fragment
+ *    of the message each time.
+ * -# Call psa_cipher_finish().
+ *
+ * The application may call psa_cipher_abort() at any time after the operation
+ * has been initialized with psa_encrypt_setup().
+ *
+ * After a successful call to psa_encrypt_setup(), the application must
+ * eventually destroy the operation through one of the following means:
+ * - A failed call to psa_encrypt_generate_iv(), psa_encrypt_set_iv()
+ *   or psa_cipher_update().
+ * - A call to psa_cipher_final() or psa_cipher_abort().
+ *
+ * \param operation
+ * \param alg       The cipher algorithm to compute (\c PSA_ALG_XXX value
+ *                  such that #PSA_ALG_IS_CIPHER(alg) is true).
+ *
+ * \retval PSA_SUCCESS
+ *         Success.
+ * \retval PSA_ERROR_EMPTY_SLOT
+ * \retval PSA_ERROR_NOT_PERMITTED
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ *         \c key is not compatible with \c alg.
+ * \retval PSA_ERROR_NOT_SUPPORTED
+ *         \c alg is not supported or is not a cipher algorithm.
+ * \retval PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
+                               psa_key_slot_t key,
+                               psa_algorithm_t alg);
+
+/** Set the key for a multipart symmetric decryption operation.
+ *
+ * The sequence of operations to decrypt a message with a symmetric cipher
+ * is as follows:
+ * -# Allocate an operation object which will be passed to all the functions
+ *    listed here.
+ * -# Call psa_decrypt_setup() to specify the algorithm and key.
+ *    The key remains associated with the operation even if the content
+ *    of the key slot changes.
+ * -# Call psa_cipher_update() with the IV (initialization vector) for the
+ *    decryption. If the IV is prepended to the ciphertext, you can call
+ *    psa_cipher_update() on a buffer containing the IV followed by the
+ *    beginning of the message.
+ * -# Call psa_cipher_update() zero, one or more times, passing a fragment
+ *    of the message each time.
+ * -# Call psa_cipher_finish().
+ *
+ * The application may call psa_cipher_abort() at any time after the operation
+ * has been initialized with psa_encrypt_setup().
+ *
+ * After a successful call to psa_decrypt_setup(), the application must
+ * eventually destroy the operation through one of the following means:
+ * - A failed call to psa_cipher_update().
+ * - A call to psa_cipher_final() or psa_cipher_abort().
+ *
+ * \param operation
+ * \param alg       The cipher algorithm to compute (\c PSA_ALG_XXX value
+ *                  such that #PSA_ALG_IS_CIPHER(alg) is true).
+ *
+ * \retval PSA_SUCCESS
+ *         Success.
+ * \retval PSA_ERROR_EMPTY_SLOT
+ * \retval PSA_ERROR_NOT_PERMITTED
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ *         \c key is not compatible with \c alg.
+ * \retval PSA_ERROR_NOT_SUPPORTED
+ *         \c alg is not supported or is not a cipher algorithm.
+ * \retval PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_decrypt_setup(psa_cipher_operation_t *operation,
+                               psa_key_slot_t key,
+                               psa_algorithm_t alg);
+
+psa_status_t psa_encrypt_generate_iv(psa_cipher_operation_t *operation,
+                                     unsigned char *iv,
+                                     size_t iv_size,
+                                     size_t *iv_length);
+
+psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
+                                const unsigned char *iv,
+                                size_t iv_length);
+
+psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
+                               const uint8_t *input,
+                               size_t input_length);
+
+psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
+                               uint8_t *mac,
+                               size_t mac_size,
+                               size_t *mac_length);
+
+psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
 
 /**@}*/
 

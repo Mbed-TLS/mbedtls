@@ -93,4 +93,16 @@ struct psa_mac_operation_s
     } ctx;
 };
 
+struct psa_cipher_operation_s
+{
+    psa_algorithm_t alg;
+    int key_set : 1;
+    int iv_set : 1;
+    uint8_t iv_size;
+    uint8_t block_size;
+    union
+    {
+    } ctx;
+};
+
 #endif /* PSA_CRYPTO_STRUCT_H */

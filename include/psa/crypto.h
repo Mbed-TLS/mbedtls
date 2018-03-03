@@ -395,6 +395,82 @@ psa_status_t psa_export_key(psa_key_slot_t key,
                             size_t data_size,
                             size_t *data_length);
 
+/**
+ * \brief Export a public key or the public part of a key pair in binary format.
+ *
+ * The output of this function can be passed to psa_import_key() to
+ * create an object that is equivalent to the public key.
+ *
+ * For standard key types, the output format is as follows:
+ *
+ * - For RSA keys (#PSA_KEY_TYPE_RSA_KEYPAIR or #PSA_KEY_TYPE_RSA_PUBLIC_KEY),
+ *   the format is the DER representation defined by X.509.
+ *
+ * \param key           Slot whose content is to be exported. This must
+ *                      be an occupied key slot.
+ * \param data          Buffer where the key data is to be written.
+ * \param data_size     Size of the \c data buffer in bytes.
+ * \param data_length   On success, the number of bytes
+ *                      that make up the key data.
+ *
+ * \retval PSA_SUCCESS
+ * \retval PSA_ERROR_EMPTY_SLOT
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_export_public_key(psa_key_slot_t key,
+                                   uint8_t *data,
+                                   size_t data_size,
+                                   size_t *data_length);
+
+/**@}*/
+
+/** \defgroup policy Key policies
+ * @{
+ */
+
+/** \brief Encoding of permitted usage on a key. */
+typedef uint32_t psa_key_usage_t;
+
+#define PSA_KEY_USAGE_EXPORT                    ((psa_key_usage_t)0x00000001)
+
+#define PSA_KEY_USAGE_ENCRYPT                   ((psa_key_usage_t)0x00000100)
+#define PSA_KEY_USAGE_DECRYPT                   ((psa_key_usage_t)0x00000200)
+#define PSA_KEY_USAGE_SIGN                      ((psa_key_usage_t)0x00000400)
+#define PSA_KEY_USAGE_VERIFY                    ((psa_key_usage_t)0x00000800)
+
+/** The type of the key policy data structure.
+ *
+ * This is an implementation-defined \c struct. Applications should not
+ * make any assumptions about the content of this structure except
+ * as directed by the documentation of a specific implementation. */
+typedef struct psa_key_policy_s psa_key_policy_t;
+
+/** \brief Initialize a key policy structure to a default that forbids all
+ * usage of the key. */
+void psa_key_policy_init(psa_key_policy_t *policy);
+
+void psa_key_policy_set_usage(psa_key_policy_t *policy,
+                              psa_key_usage_t usage,
+                              psa_algorithm_t alg);
+
+psa_key_usage_t psa_key_policy_get_usage(psa_key_policy_t *policy);
+
+psa_algorithm_t psa_key_policy_get_algorithm(psa_key_policy_t *policy);
+
+/** \brief Set the usage policy on a key slot.
+ *
+ * This function must be called on an empty key slot, before importing,
+ * generating or creating a key in the slot. Changing the policy of an
+ * existing key is not permitted.
+ */
+psa_status_t psa_set_key_policy(psa_key_slot_t key,
+                                const psa_key_policy_t *policy);
+
+psa_status_t psa_get_key_policy(psa_key_slot_t key,
+                                psa_key_policy_t *policy);
 
 /**@}*/
 

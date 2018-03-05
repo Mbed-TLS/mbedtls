@@ -45,9 +45,9 @@
 #endif
 
 typedef enum {
-    rfc_3526 = 0,
-    rfc_7919
-} rfc_t;
+    DHM_PRIMES_RFC_3526 = 0,
+    DHM_PRIMES_RFC_7919
+} dhm_primes_stds_t;
 
 typedef enum {
     check_full = 0,
@@ -65,7 +65,7 @@ struct options
     unsigned thread;
 } opt;
 
-#define DFL_RFC        rfc_3526
+#define DFL_RFC        DHM_PRIMES_RFC_3526
 #define DFL_BITSIZE    2048
 #define DFL_CHECK      check_full
 #define DFL_STEP       1
@@ -180,7 +180,7 @@ static char const pi_hex[] =
 
 typedef struct
 {
-    rfc_t    rfc;
+    dhm_primes_stds_t std;
     unsigned bitsize;
     unsigned offset;  /* Offset from the canonical base
                          in multiples of 2^64 */
@@ -206,20 +206,20 @@ const unsigned char mbedtls_dhm_rfc7919_ffdhe8192_p[] =
     MBEDTLS_DHM_RFC7919_FFDHE8192_P_BIN;
 
 static test_vector_t const tests[] = {
-    { rfc_3526, 2048, 124476,
+    { DHM_PRIMES_RFC_3526, 2048, 124476,
       mbedtls_dhm_rfc3526_modp_2048_p,
       MBEDTLS_DHM_RFC3526_MODP_2048_P },
-    { rfc_3526, 3072, 1690314,
+    { DHM_PRIMES_RFC_3526, 3072, 1690314,
       mbedtls_dhm_rfc3526_modp_3072_p,
       MBEDTLS_DHM_RFC3526_MODP_3072_P },
-    { rfc_3526, 4096, 240904,
+    { DHM_PRIMES_RFC_3526, 4096, 240904,
       mbedtls_dhm_rfc3526_modp_4096_p,
       MBEDTLS_DHM_RFC3526_MODP_4096_P },
-    { rfc_7919, 2048, 560316,   mbedtls_dhm_rfc7919_ffdhe2048_p, NULL },
-    { rfc_7919, 3072, 2625351,  mbedtls_dhm_rfc7919_ffdhe3072_p, NULL },
-    { rfc_7919, 4096, 5736041,  mbedtls_dhm_rfc7919_ffdhe4096_p, NULL },
-    { rfc_7919, 6144, 15705020, mbedtls_dhm_rfc7919_ffdhe6144_p, NULL },
-    { rfc_7919, 8192, 10965728, mbedtls_dhm_rfc7919_ffdhe8192_p, NULL }
+    { DHM_PRIMES_RFC_7919, 2048, 560316,   mbedtls_dhm_rfc7919_ffdhe2048_p, NULL },
+    { DHM_PRIMES_RFC_7919, 3072, 2625351,  mbedtls_dhm_rfc7919_ffdhe3072_p, NULL },
+    { DHM_PRIMES_RFC_7919, 4096, 5736041,  mbedtls_dhm_rfc7919_ffdhe4096_p, NULL },
+    { DHM_PRIMES_RFC_7919, 6144, 15705020, mbedtls_dhm_rfc7919_ffdhe6144_p, NULL },
+    { DHM_PRIMES_RFC_7919, 8192, 10965728, mbedtls_dhm_rfc7919_ffdhe8192_p, NULL }
 };
 
 static const size_t num_tests = sizeof( tests ) / sizeof( *tests );
@@ -274,7 +274,7 @@ int main( int argc, char *argv[] )
         goto cleanup;
     }
 
-    opt.rfc      = DFL_RFC;
+    opt.std      = DFL_RFC;
     opt.bitsize  = DFL_BITSIZE;
     opt.check    = DFL_CHECK;
     opt.stepsize = DFL_STEP;
@@ -290,9 +290,9 @@ int main( int argc, char *argv[] )
         if( strcmp( p, "rfc" ) == 0 )
         {
             if( strcmp( q, "3526" ) == 0 )
-                opt.rfc = rfc_3526;
+                opt.std = DHM_PRIMES_RFC_3526;
             else if( strcmp( q, "7919" ) == 0 )
-                opt.rfc = rfc_7919;
+                opt.std = DHM_PRIMES_RFC_7919;
             else
                 goto usage;
         }
@@ -343,7 +343,7 @@ int main( int argc, char *argv[] )
     test = NULL;
     for( i=0; i<num_tests; i++ )
     {
-        if( tests[i].rfc     == opt.rfc &&
+        if( tests[i].std     == opt.std &&
             tests[i].bitsize == opt.bitsize )
         {
             test = &tests[i];
@@ -355,7 +355,7 @@ int main( int argc, char *argv[] )
     {
         mbedtls_printf( "Couldn't find %u-bit prime for RFC %d\n",
                         opt.bitsize,
-                        opt.rfc == rfc_3526 ? 3526 : 7919 );
+                        opt.std == DHM_PRIMES_RFC_3526 ? 3526 : 7919 );
         goto usage;
     }
 
@@ -367,7 +367,7 @@ int main( int argc, char *argv[] )
      * - e for RFC 7919
      * - pi for RFC 3526
      */
-    nums_constant = test->rfc == rfc_3526 ? pi_hex : e_hex;
+    nums_constant = test->std == DHM_PRIMES_RFC_3526 ? pi_hex : e_hex;
 
     /*
      * Do actual work
@@ -375,7 +375,7 @@ int main( int argc, char *argv[] )
 
     mbedtls_printf( "\n--- Checking %d-bit prime from RFC %u ---\n\n",
                     opt.bitsize,
-                    opt.rfc == rfc_3526 ? 3526 : 7919 );
+                    opt.std == DHM_PRIMES_RFC_3526 ? 3526 : 7919 );
 
     if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
                                        &entropy, (unsigned char*) "test",

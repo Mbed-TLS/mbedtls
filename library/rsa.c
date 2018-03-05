@@ -1480,6 +1480,13 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
     mbedtls_md_type_t msg_md_alg;
     const mbedtls_md_info_t *md_info;
     mbedtls_asn1_buf oid;
+    
+    /* Set first two bytes of the buffer so that code checkers will not think
+       we are accessing uninitialized data (normally mbedtls_rsa_public or 
+       mbedtls_rsa_private would fill the buffer). 
+       values chosen are intentionally invalid */
+    buf[0] = 1; 
+    buf[1] = 0;
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );

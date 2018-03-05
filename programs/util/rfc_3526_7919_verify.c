@@ -73,27 +73,43 @@ options_t opt;
 #define DFL_THREAD     0
 
 #define USAGE \
-    "\n usage: rfc_3526_7919_verify param=<>...\n"                      \
-    "\n verifies generation procedure for primes standardized in RFC 3526 and 7919\n" \
-    "\n acceptable parameters:\n"                                       \
-    "    rfc=3526|7919 default: 3526\n"                                 \
-    "    bitsize=2048|3072|4096|6144|8192 default: 2048\n"              \
-    "    check=full|primality|formula|canonicity default:full\n"        \
-    "      * primality checks whether hardcoded number is safe prime\n" \
-    "      * formula checks hardcoded number against formula in RFC\n"  \
-    "      * canonicity checks minimality of offset for safe primality\n" \
-    "        (this is an very computation-heavy task, especially for\n" \
-    "         high bit-sizes)\n"                                        \
-    "      * full checks all of the above\n"                            \
-    "    stepsize=%%d (max 128) default:1\n"                            \
-    "    thread=%%d (between 0 and stepsize-1) default:0\n"             \
-    "      stepsize and thread can be used to have multiple processes\n" \
-    "      share the computational load of the canonicity checks.\n"    \
-    "      with stepsize=N and thread=i, only offsets congruent i\n"    \
-    "      modulo N will be checked for.\n"                             \
-    "\n\n available primes:\n"                                            \
-    "    RFC 3526: 2048-bit, 3072-bit, 4096-bit\n"                      \
-    "    RFC 7919: 2048-bit, 3072-bit, 4096-bit, 6144-bit, 8192-bit\n"  \
+    "\n usage: rfc_3526_7919_verify param=<>...\n"                                        \
+    "\n This program verifies the generation procedure for primes"                        \
+    " standardized in RFC 3526 and 7919\n"                                                \
+    "\n The primes from RFC 3526 and RFC 7919 have been generating by the"                \
+    " following trust-worthy procedure:"                                                  \
+    "\n (1) Fix N in { 2048, 3072, 4096, 6144, 8192 } and consider the N-bit number"      \
+    " the first and last 64 bits are all 1, and the remaining N - 128 bits of"            \
+    " which are 0x7ff...ff."                                                              \
+    "\n (2) Add the smallest multiple of the first N - 129 bits of the binary expansion"  \
+    " of pi (for RFC 5236) or e (for RFC 7919) to this intermediate bit-string"           \
+    " such that the resulting integer is a safe-prime."                                   \
+    "\n (3) The result is the respective RFC 3526 / 7919 prime, and the corresponding"    \
+    " generator is always chosen to be 2 (which is a square for these prime,"             \
+    " hence the corresponding subgroup has order (p-1)/2 and avoids leaking a"            \
+    " bit in the private exponent).\n"                                                    \
+    "\n For RFC 7919 this procedure is described in Appendix A of RFC 7919,"              \
+    " while for RFC 3526 the minimality property of step (2) is not explicitly mentioned,"\
+    " albeit true.\n"                                                                     \
+    "\n acceptable parameters:\n"                                                         \
+    "    rfc=3526|7919 default: 3526\n"                                                   \
+    "    bitsize=2048|3072|4096|6144|8192 default: 2048\n"                                \
+    "    check=full|primality|formula|canonicity default:full\n"                          \
+    "      * primality checks whether hardcoded number is safe prime\n"                   \
+    "      * formula checks hardcoded number against formula in RFC\n"                    \
+    "      * canonicity checks minimality of offset for safe primality\n"                 \
+    "        (this is an very computation-heavy task, especially for\n"                   \
+    "         high bit-sizes)\n"                                                          \
+    "      * full checks all of the above\n"                                              \
+    "    stepsize=%%d (max 128) default:1\n"                                              \
+    "    thread=%%d (between 0 and stepsize-1) default:0\n"                               \
+    "      stepsize and thread can be used to have multiple processes\n"                  \
+    "      share the computational load of the canonicity checks.\n"                      \
+    "      with stepsize=N and thread=i, only offsets congruent i\n"                      \
+    "      modulo N will be checked for.\n"                                               \
+    "\n\n available primes:\n"                                                            \
+    "    RFC 3526: 2048-bit, 3072-bit, 4096-bit\n"                                        \
+    "    RFC 7919: 2048-bit, 3072-bit, 4096-bit, 6144-bit, 8192-bit\n"                    \
     "\n"
 
 /* To generate from decimal expansions easily found on the web, use e.g.

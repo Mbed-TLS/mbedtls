@@ -282,7 +282,7 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
  *                 used to sign the certificate, CRL verification is skipped
  *                 silently, that is *without* setting any flag.
  *
- * \note           The \c trust_ca list can contain two type of certificates:
+ * \note           The \c trust_ca list can contain two types of certificates:
  *                 (1) those of trusted root CAs, so that certificates
  *                 chaining up to those CAs will be trusted, and (2)
  *                 self-signed end-entity certificates to be trusted (for

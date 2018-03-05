@@ -100,7 +100,8 @@ options_t opt;
  * > echo "obase=16;ibase=10;2^9000 * 2.7182818284590452353..." | bc
  */
 static char const e_hex[] =
-    "2B7E151628AED2A6ABF7158809CF4F3C762E7160F38B4DA56A784D9045190CFEF324"
+    "2"
+    "B7E151628AED2A6ABF7158809CF4F3C762E7160F38B4DA56A784D9045190CFEF324"
     "E7738926CFBE5F4BF8D8D8C31D763DA06C80ABB1185EB4F7C7B5757F5958490CFD47"
     "D7C19BB42158D9554F7B46BCED55C4D79FD5F24D6613C31C3839A2DDF8A9A276BCFB"
     "FA1C877C56284DAB79CD4C2B3293D20E9E5EAF02AC60ACC93ED874422A52ECB238FE"
@@ -401,11 +402,11 @@ int main( int argc, char *argv[] )
          * either pi or e, depending on whether RFC 3526 or RFC 7919 is used.
          */
 
-        /* Set P = 2^2048 */
+        /* Set B = 2^2048 */
         MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &B, 1 ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &B, test->bitsize ) );
 
-        /* Set P = 2^2048 - 2^1984 - 1 */
+        /* Set B = 2^2048 - 2^1984 - 1 */
         MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &S, 1 ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &S, max_modifiable_bit ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &B, &B, &S ) );
@@ -422,10 +423,10 @@ int main( int argc, char *argv[] )
         /* Compute 2^64 * [2^1918 * NUMS] */
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &NUMS, 64 ) );
 
-        /* Set P = 2^2048 - 2^1984 - 1 + 2^64 * [2^1918 * NUMS] */
+        /* Set B = 2^2048 - 2^1984 - 1 + 2^64 * [2^1918 * NUMS] */
         MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &B, &B, &NUMS ) );
 
-        /* Save (P-1)/2 in Bp */
+        /* Save (B-1)/2 in Bp */
         MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &Bp, &B, 1 ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &Bp, 1 ) );
 
@@ -469,7 +470,7 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "* Checking formula against hardcoded binary data... " );
 
         /* Again refering to the 2048-bit example, we still have
-         * P = 2^2048 - 2^1984 - 1 + 2^64 * [2^1918 * NUMS] at the moment. */
+         * B = 2^2048 - 2^1984 - 1 + 2^64 * [2^1918 * NUMS] at the moment. */
 
         /* Add offset * 2^64 to base */
         MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &S, test->offset ) );
@@ -497,7 +498,7 @@ int main( int argc, char *argv[] )
             mbedtls_printf( "* Checking formula against hardcoded hex data... " );
 
             /* Again refering to the 2048-bit example, we still have
-             * P = 2^2048 - 2^1984 - 1 + 2^64 * [2^1918 * NUMS] at the moment. */
+             * B = 2^2048 - 2^1984 - 1 + 2^64 * [2^1918 * NUMS] at the moment. */
 
             /* Add offset * 2^64 to base */
             MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &S, test->offset ) );
@@ -529,6 +530,9 @@ int main( int argc, char *argv[] )
     {
         mbedtls_printf( "* Checking canonicity of offsets...\n" );
 
+        /* Again refering to the 2048-bit example, we still have
+         * B = 2^2048 - 2^1984 - 1 + 2^64 * [2^1918 * NUMS] at the moment. */
+
         if( opt.stepsize != 1 )
         {
             mbedtls_printf( "  [! Checking only offsets congruent %u modulo %u !]\n",
@@ -543,7 +547,15 @@ int main( int argc, char *argv[] )
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &S, opt.thread ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &S, 64 ) );
+
+        /* Now B = 2^2048 - 2^1984 - 1 + 2^64 * ( [2^1918 * NUMS] + THREAD ) */
         MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &B,  &B,  &S  ) );
+
+        /* Now we're continuously adding 2^64 * stepsize to B
+         * and check when we first find we find a safe prime.
+         *
+         * During that process, Bp is kept to be (B-1)/2
+         * by adding 2^63 in each iteration. */
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &Sp, opt.thread ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &Sp, 63 ) );

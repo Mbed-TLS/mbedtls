@@ -1631,7 +1631,7 @@ int mbedtls_x509_crt_is_revoked( const mbedtls_x509_crt *crt, const mbedtls_x509
 
 /*
  * Check that the given certificate is not revoked according to the CRL.
- * Skip validation is no CRL for the given CA is present.
+ * Skip validation if no CRL for the given CA is present.
  */
 static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
                                mbedtls_x509_crl *crl_list,

@@ -6,9 +6,10 @@
 #
 # Purpose
 #
-# To test the code dependencies on individual PK algs in each test suite. This
-# is a verification step to ensure we don't ship test suites that do not work
-# for some build options.
+# To test the code dependencies on individual PK algs (those that can be used
+# from the PK layer, so currently signature and encryption but not key
+# exchange) in each test suite. This is a verification step to ensure we don't
+# ship test suites that do not work for some build options.
 #
 # The process is:
 #       for each possible PK alg
@@ -38,6 +39,8 @@ my $ssl_sed = 's/^#define \(MBEDTLS_SSL.*\)/\1/p';
 my $kex_sed = 's/^#define \(MBEDTLS_KEY_EXCHANGE.*\)/\1/p';
 my @ssl = split( /\s+/, `sed -n -e '$ssl_sed' -e '$kex_sed' $config_h` );
 
+# Some algorithms can't be disabled on their own as others depend on them, so
+# we list those reverse-dependencies here to keep check_config.h happy.
 my %algs = (
     'MBEDTLS_ECDSA_C'   => [],
     'MBEDTLS_ECP_C'     => ['MBEDTLS_ECDSA_C', 'MBEDTLS_ECDH_C'],

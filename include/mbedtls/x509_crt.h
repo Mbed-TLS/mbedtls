@@ -287,7 +287,7 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
  *                 chaining up to those CAs will be trusted, and (2)
  *                 self-signed end-entity certificates to be trusted (for
  *                 specific peers you know) - in that case, the self-signed
- *                 certificate doens't need to have the CA bit set.
+ *                 certificate doesn't need to have the CA bit set.
  *
  * \param crt      a certificate (chain) to be verified
  * \param trust_ca the list of trusted CAs (see note above)

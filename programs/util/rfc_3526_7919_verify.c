@@ -56,14 +56,15 @@ typedef enum {
     check_canonicity
 } check_t;
 
-struct options
+typedef struct
 {
-    rfc_t    rfc;
-    unsigned bitsize;
-    check_t  check;
-    unsigned stepsize;
-    unsigned thread;
-} opt;
+    dhm_primes_stds_t std;
+    unsigned          bitsize;
+    check_t           check;
+    unsigned          stepsize;
+    unsigned          thread;
+} options_t;
+options_t opt;
 
 #define DFL_RFC        DHM_PRIMES_RFC_3526
 #define DFL_BITSIZE    2048

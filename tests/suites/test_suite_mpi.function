@@ -830,7 +830,8 @@ void mbedtls_mpi_gen_prime( int bits, int safe, int ref_ret )
         TEST_ASSERT( mbedtls_mpi_is_prime( &X, rnd_std_rand, NULL ) == 0 );
         if( safe )
         {
-            mbedtls_mpi_shift_r( &X, 1 ); /* X = ( X - 1 ) / 2 */
+            /* X = ( X - 1 ) / 2 */
+            TEST_ASSERT( mbedtls_mpi_shift_r( &X, 1 ) == 0 );
             TEST_ASSERT( mbedtls_mpi_is_prime( &X, rnd_std_rand, NULL ) == 0 );
         }
     }

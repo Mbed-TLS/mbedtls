@@ -866,6 +866,34 @@ has_mem_err() {
     fi
 }
 
+# Wait for process $2 to be listening on port $1
+if type lsof >/dev/null 2>/dev/null; then
+    wait_server_start() {
+        START_TIME=$(date +%s)
+        if is_dtls "$MODE"; then
+            proto=UDP
+        else
+            proto=TCP
+        fi
+        while ! lsof -a -n -b -i "$proto:$1" -p "$2" >/dev/null 2>/dev/null; do
+              if [ $(( $(date +%s) - $START_TIME )) -gt $DOG_DELAY ]; then
+                  echo "SERVERSTART TIMEOUT"
+                  echo "SERVERSTART TIMEOUT" >> $SRV_OUT
+                  break
+              fi
+              # Linux and *BSD support decimal arguments to sleep. On other
+              # OSes this may be a tight loop.
+              sleep 0.1 2>/dev/null || true
+        done
+    }
+else
+    echo "Warning: lsof not available, wait_server_start = sleep"
+    wait_server_start() {
+        sleep 2
+    }
+fi
+
+
 # start_server <name>
 # also saves name and command
 start_server() {
@@ -895,7 +923,7 @@ start_server() {
     while :; do echo bla; sleep 1; done | $SERVER_CMD >> $SRV_OUT 2>&1 &
     PROCESS_ID=$!
 
-    sleep 1
+    wait_server_start "$PORT" "$PROCESS_ID"
 }
 
 # terminate the running server

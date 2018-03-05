@@ -28,8 +28,11 @@
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
+#include <stdlib.h>
 #include <stdio.h>
-#define mbedtls_printf     printf
+#define mbedtls_printf       printf
+#define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
 
 #if defined(MBEDTLS_MD5_C)
@@ -45,13 +48,14 @@ int main( void )
 #else
 int main( void )
 {
-    int i;
+    int i, ret;
     unsigned char digest[16];
     char str[] = "Hello, world!";
 
     mbedtls_printf( "\n  MD5('%s') = ", str );
 
-    mbedtls_md5( (unsigned char *) str, 13, digest );
+    if( ( ret = mbedtls_md5_ret( (unsigned char *) str, 13, digest ) ) != 0 )
+        return( MBEDTLS_EXIT_FAILURE );
 
     for( i = 0; i < 16; i++ )
         mbedtls_printf( "%02x", digest[i] );
@@ -63,6 +67,6 @@ int main( void )
     fflush( stdout ); getchar();
 #endif
 
-    return( 0 );
+    return( MBEDTLS_EXIT_SUCCESS );
 }
 #endif /* MBEDTLS_MD5_C */

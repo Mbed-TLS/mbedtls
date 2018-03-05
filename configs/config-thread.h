@@ -1,6 +1,9 @@
-/*
- *  Minimal configuration for using TLS as part of Thread
+/**
+ * \file config-thread.h
  *
+ * \brief Minimal configuration for using TLS as part of Thread
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

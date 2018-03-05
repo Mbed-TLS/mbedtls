@@ -326,7 +326,7 @@ int main( void )
 #define USAGE \
     "\n usage: ssl_server2 param=<>...\n"                   \
     "\n acceptable parameters:\n"                           \
-    "    server_addr=%%d      default: (all interfaces)\n"  \
+    "    server_addr=%%s      default: (all interfaces)\n"  \
     "    server_port=%%d      default: 4433\n"              \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
@@ -2019,8 +2019,10 @@ reset:
 #if !defined(_WIN32)
     if( received_sigterm )
     {
-        mbedtls_printf( " interrupted by SIGTERM\n" );
-        ret = 0;
+        mbedtls_printf( " interrupted by SIGTERM (not in net_accept())\n" );
+        if( ret == MBEDTLS_ERR_NET_INVALID_CONTEXT )
+            ret = 0;
+
         goto exit;
     }
 #endif
@@ -2056,8 +2058,10 @@ reset:
 #if !defined(_WIN32)
         if( received_sigterm )
         {
-            mbedtls_printf( " interrupted by signal\n" );
-            ret = 0;
+            mbedtls_printf( " interrupted by SIGTERM (in net_accept())\n" );
+            if( ret == MBEDTLS_ERR_NET_ACCEPT_FAILED )
+                ret = 0;
+
             goto exit;
         }
 #endif

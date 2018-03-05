@@ -1,6 +1,9 @@
 /**
- * @file
- * Main page documentation file.
+ * \file doc_mainpage.h
+ *
+ * \brief Main page documentation file.
+ */
+/*
  *
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -21,7 +24,7 @@
  */
 
 /**
- * @mainpage mbed TLS v2.6.0 source code documentation
+ * @mainpage mbed TLS v2.7.0 source code documentation
  *
  * This documentation describes the internal structure of mbed TLS.  It was
  * automatically generated from specially formatted comment blocks in

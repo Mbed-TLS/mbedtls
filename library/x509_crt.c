@@ -2009,8 +2009,8 @@ static mbedtls_x509_crt *x509_crt_find_parent_in( mbedtls_x509_crt *child,
 static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
                                                mbedtls_x509_crt *trust_ca,
                                                int *parent_is_trusted,
-                                               int path_cnt,
-                                               int self_cnt )
+                                               size_t path_cnt,
+                                               size_t self_cnt )
 {
     mbedtls_x509_crt *parent;
 
@@ -2096,7 +2096,7 @@ static int x509_crt_verify_chain(
     mbedtls_x509_crt *parent;
     int parent_is_trusted = 0;
     int child_is_trusted = 0;
-    int self_cnt = 0;
+    size_t self_cnt = 0;
 
     child = crt;
     *chain_len = 0;
@@ -2262,7 +2262,7 @@ static int x509_crt_merge_flags_with_cb(
         cur_flags = ver_chain[i-1].flags;
 
         if( NULL != f_vrfy )
-            if( ( ret = f_vrfy( p_vrfy, ver_chain[i-1].crt, i-1, &cur_flags ) ) != 0 )
+            if( ( ret = f_vrfy( p_vrfy, ver_chain[i-1].crt, (int) i-1, &cur_flags ) ) != 0 )
                 return( ret );
 
         *flags |= cur_flags;

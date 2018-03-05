@@ -396,30 +396,33 @@ int main( int argc, char *argv[] )
          *
          * Documenting the example of the 2048-bit key in the following
          * for concreteness.
+         *
+         * In the following, NUMS ([N]othing [U]p [M]y [S]leeve) denotes
+         * either pi or e, depending on whether RFC 3526 or RFC 7919 is used.
          */
 
-        /* P = 2^2048 */
+        /* Set P = 2^2048 */
         MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &B, 1 ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &B, test->bitsize ) );
 
-        /* P = 2^2048 - 2^1984 - 1 */
+        /* Set P = 2^2048 - 2^1984 - 1 */
         MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &S, 1 ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &S, max_modifiable_bit ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_sub_mpi( &B, &B, &S ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &B, &B, 1 ) );
 
-        /* Read e or pi */
+        /* Read NUMS (pi or e) */
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &NUMS, 16, nums_constant ) );
 
-        /* Compute [2^1918 * pi/e] */
+        /* Compute [2^1918 * NUMS]*/
         nums_len    = mbedtls_mpi_bitlen( &NUMS );
         excess_bits = nums_len - nums_digits;
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &NUMS, excess_bits ) );
 
-        /* Compute 2^64 * [2^1918 * pi/e] */
+        /* Compute 2^64 * [2^1918 * NUMS] */
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &NUMS, 64 ) );
 
-        /* P = 2^2048 - 2^1984 - 1 + 2^64 * [2^1918 * pi/e] */
+        /* Set P = 2^2048 - 2^1984 - 1 + 2^64 * [2^1918 * NUMS] */
         MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &B, &B, &NUMS ) );
 
         /* Save (P-1)/2 in Bp */
@@ -466,13 +469,13 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "* Checking formula against hardcoded binary data... " );
 
         /* Again refering to the 2048-bit example, we still have
-         * P = 2^2048 - 2^1984 - 1 + 2^64 * [2^1918 * pi/e] at the moment. */
+         * P = 2^2048 - 2^1984 - 1 + 2^64 * [2^1918 * NUMS] at the moment. */
 
         /* Add offset * 2^64 to base */
         MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &S, test->offset ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &S, 64 ) );
 
-        /* P = 2^2048 - 2^1984 - 1 + 2^64 * ( [2^1918 * pi/e] + offset ) */
+        /* Set P = 2^2048 - 2^1984 - 1 + 2^64 * ( [2^1918 * NUMS] + offset ) */
         MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &P, &B, &S ) );
 
         /* Check that it matches the precomputed value */
@@ -494,13 +497,13 @@ int main( int argc, char *argv[] )
             mbedtls_printf( "* Checking formula against hardcoded hex data... " );
 
             /* Again refering to the 2048-bit example, we still have
-             * P = 2^2048 - 2^1984 - 1 + 2^64 * [2^1918 * pi/e] at the moment. */
+             * P = 2^2048 - 2^1984 - 1 + 2^64 * [2^1918 * NUMS] at the moment. */
 
             /* Add offset * 2^64 to base */
             MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &S, test->offset ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &S, 64 ) );
 
-            /* P = 2^2048 - 2^1984 - 1 + 2^64 * ( [2^1918 * pi/e] + offset ) */
+            /* P = 2^2048 - 2^1984 - 1 + 2^64 * ( [2^1918 * NUMS] + offset ) */
             MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &P, &B, &S ) );
 
             /* Check that it matches the precomputed value */

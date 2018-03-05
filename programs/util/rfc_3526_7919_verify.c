@@ -512,20 +512,7 @@ int main( int argc, char *argv[] )
         if( test->ref_str != NULL )
         {
             mbedtls_printf( "* Checking formula against hardcoded hex data... " );
-
-            /* Again refering to the 2048-bit example, we still have
-             * B = 2^2048 - 2^1984 - 1 + 2^64 * [2^1918 * NUMS] at the moment. */
-
-            /* Add offset * 2^64 to base */
-            MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &S, test->offset ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_l( &S, 64 ) );
-
-            /* P = 2^2048 - 2^1984 - 1 + 2^64 * ( [2^1918 * NUMS] + offset ) */
-            MBEDTLS_MPI_CHK( mbedtls_mpi_add_mpi( &P, &B, &S ) );
-
-            /* Check that it matches the precomputed value */
-            MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &R, 16, test->ref_str ) );
-
+            MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &P, 16, test->ref_str ) );
             if( mbedtls_mpi_cmp_mpi( &P, &R ) == 0 )
             {
                 mbedtls_printf( "ok\n" );

@@ -168,9 +168,9 @@ $(DEP):
 C_FILES := $(addsuffix .c,$(APPS))
 
 .SECONDEXPANSION:
-$(C_FILES): %.c: suites/$$(func.$$*).function suites/%.data scripts/generate_code.py suites/helpers.function suites/main_test.function suites/host_test.function
+$(C_FILES): %.c: suites/$$(func.$$*).function suites/%.data scripts/generate_test_code.py suites/helpers.function suites/main_test.function suites/host_test.function
 	echo "  Gen   $@"
-	$(PYTHON) scripts/generate_code.py -f suites/$(func.$*).function \
+	$(PYTHON) scripts/generate_test_code.py -f suites/$(func.$*).function \
 		-d suites/$*.data \
 		-t suites/main_test.function \
 		-p suites/host_test.function \
@@ -203,9 +203,9 @@ EMBEDDED_TESTS := $(addprefix embedded_,$(APPS))
 # Generate test code for target.
 
 .SECONDEXPANSION:
-$(EMBEDDED_TESTS): embedded_%: suites/$$(func.$$*).function suites/%.data scripts/generate_code.py suites/helpers.function suites/main_test.function suites/target_test.function
+$(EMBEDDED_TESTS): embedded_%: suites/$$(func.$$*).function suites/%.data scripts/generate_test_code.py suites/helpers.function suites/main_test.function suites/target_test.function
 	echo "  Gen  ./TESTS/mbedtls/$*/$*.c"
-	$(PYTHON) scripts/generate_code.py -f suites/$(func.$*).function \
+	$(PYTHON) scripts/generate_test_code.py -f suites/$(func.$*).function \
 		-d suites/$*.data \
 		-t suites/main_test.function \
 		-p suites/target_test.function \

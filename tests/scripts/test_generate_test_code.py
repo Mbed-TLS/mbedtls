@@ -1,6 +1,6 @@
-# Unit test for generate_code.py
+# Unit test for generate_test_code.py
 #
-# Copyright (C) 2006-2017, ARM Limited, All Rights Reserved
+# Copyright (C) 2018, ARM Limited, All Rights Reserved
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -20,11 +20,11 @@
 from StringIO import StringIO
 from unittest import TestCase, main as unittest_main
 from mock import patch
-from generate_code import *
+from generate_test_code import *
 
 
 """
-Unit tests for generate_code.py
+Unit tests for generate_test_code.py
 """
 
 
@@ -510,7 +510,7 @@ void test_func()
         s = StringIOWrapper('test_suite_ut.function', data)
         self.assertRaises(InvalidFileFormat, parse_function_code, s, [], [])
 
-    @patch("generate_code.parse_function_signature")
+    @patch("generate_test_code.parse_function_signature")
     def test_parse_function_signature_called(self, parse_function_signature_mock):
         """
         Test parse_function_code()
@@ -527,10 +527,10 @@ void test_func()
         self.assertTrue(parse_function_signature_mock.called)
         parse_function_signature_mock.assert_called_with('void test_func()\n')
 
-    @patch("generate_code.gen_dispatch")
-    @patch("generate_code.gen_deps")
-    @patch("generate_code.gen_function_wrapper")
-    @patch("generate_code.parse_function_signature")
+    @patch("generate_test_code.gen_dispatch")
+    @patch("generate_test_code.gen_deps")
+    @patch("generate_test_code.gen_function_wrapper")
+    @patch("generate_test_code.parse_function_signature")
     def test_return(self, parse_function_signature_mock,
                                              gen_function_wrapper_mock,
                                              gen_deps_mock,
@@ -572,10 +572,10 @@ exit:
         self.assertEqual(code, expected)
         self.assertEqual(dispatch_code, "\n    test_func_wrapper,\n")
 
-    @patch("generate_code.gen_dispatch")
-    @patch("generate_code.gen_deps")
-    @patch("generate_code.gen_function_wrapper")
-    @patch("generate_code.parse_function_signature")
+    @patch("generate_test_code.gen_dispatch")
+    @patch("generate_test_code.gen_deps")
+    @patch("generate_test_code.gen_function_wrapper")
+    @patch("generate_test_code.parse_function_signature")
     def test_with_exit_label(self, parse_function_signature_mock,
                            gen_function_wrapper_mock,
                            gen_deps_mock,
@@ -620,7 +620,7 @@ class ParseFunction(TestCase):
     Test Suite for testing parse_functions()
     """
 
-    @patch("generate_code.parse_until_pattern")
+    @patch("generate_test_code.parse_until_pattern")
     def test_begin_header(self, parse_until_pattern_mock):
         """
         Test that begin header is checked and parse_until_pattern() is called.
@@ -640,7 +640,7 @@ class ParseFunction(TestCase):
         parse_until_pattern_mock.assert_called_with(s, END_HEADER_REGEX)
         self.assertEqual(s.line_no, 2)
 
-    @patch("generate_code.parse_until_pattern")
+    @patch("generate_test_code.parse_until_pattern")
     def test_begin_helper(self, parse_until_pattern_mock):
         """
         Test that begin helper is checked and parse_until_pattern() is called.
@@ -661,7 +661,7 @@ void print_helloworld()
         parse_until_pattern_mock.assert_called_with(s, END_SUITE_HELPERS_REGEX)
         self.assertEqual(s.line_no, 2)
 
-    @patch("generate_code.parse_suite_deps")
+    @patch("generate_test_code.parse_suite_deps")
     def test_begin_dep(self, parse_suite_deps_mock):
         """
         Test that begin dep is checked and parse_suite_deps() is called.
@@ -680,7 +680,7 @@ void print_helloworld()
         parse_suite_deps_mock.assert_called_with(s)
         self.assertEqual(s.line_no, 2)
 
-    @patch("generate_code.parse_function_deps")
+    @patch("generate_test_code.parse_function_deps")
     def test_begin_function_dep(self, parse_function_deps_mock):
         """
         Test that begin dep is checked and parse_function_deps() is called.
@@ -700,8 +700,8 @@ void print_helloworld()
         parse_function_deps_mock.assert_called_with(deps_str)
         self.assertEqual(s.line_no, 2)
 
-    @patch("generate_code.parse_function_code")
-    @patch("generate_code.parse_function_deps")
+    @patch("generate_test_code.parse_function_code")
+    @patch("generate_test_code.parse_function_deps")
     def test_return(self, parse_function_deps_mock, parse_function_code_mock):
         """
         Test that begin case is checked and parse_function_code() is called.
@@ -1390,9 +1390,9 @@ class GenFromTestData(TestCase):
     Test suite for gen_from_test_data()
     """
 
-    @patch("generate_code.write_deps")
-    @patch("generate_code.write_parameters")
-    @patch("generate_code.gen_suite_deps_checks")
+    @patch("generate_test_code.write_deps")
+    @patch("generate_test_code.write_parameters")
+    @patch("generate_test_code.gen_suite_deps_checks")
     def test_intermediate_data_file(self, gen_suite_deps_checks_mock, write_parameters_mock, write_deps_mock):
         """
         Test that intermediate data file is written with expected data.

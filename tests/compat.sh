@@ -435,7 +435,8 @@ add_common_ciphersuites()
 # with its Mbed TLS name.
 #
 # NOTE: for some reason RSA-PSK doesn't work with OpenSSL,
-# so RSA-PSK ciphersuites need to go in other sections.
+# so RSA-PSK ciphersuites need to go in other sections, see
+# https://github.com/ARMmbed/mbedtls/issues/1419
 add_openssl_ciphersuites()
 {
     case $TYPE in

@@ -264,3 +264,6 @@ x509_ocsp_response_verify:"data_files/ocsp-resp-no-certs-in-resp.der":"data_file
 
 X509 OCSP Response verification (signature verification failed)
 x509_ocsp_response_verify:"data_files/ocsp-resp-invalid-signature.der":"data_files/server2-in-database.crt":"data_files/test-ca-sha256.crt":"data_files/test-ca-sha256.crt":MBEDTLS_ERR_X509_OCSP_RESPONSE_VERIFY_FAILED:MBEDTLS_X509_BADOCSP_RESPONSE_NOT_TRUSTED
+
+X509 OCSP Response verification (no SingleResponse for certificate)
+x509_ocsp_response_verify:"data_files/ocsp-resp-issuer-is-signer.der":"data_files/server2.crt":"data_files/test-ca-sha256.crt":"data_files/test-ca-sha256.crt":MBEDTLS_ERR_X509_OCSP_RESPONSE_VERIFY_FAILED:MBEDTLS_X509_BADOCSP_RESPONSE_INCOMPLETE

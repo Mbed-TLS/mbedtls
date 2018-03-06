@@ -94,6 +94,13 @@ all_intermediate += server2-in-database.csr
 server2-in-database.crt: server2-in-database.csr $(test_ca_config_file) test-ca-sha256.crt
 	$(OPENSSL) ca -batch -config $(test_ca_config_file) -extensions server_cert -cert test-ca-sha256.crt -keyfile $(test_ca_key_file_rsa) -days 3653 -notext -md sha256 -passin "pass:$(test_ca_pwd_rsa)" -in $< -out $@
 all_final += server2-in-database.crt
+server2-in-database-revoked.csr: server2.key $(test_ca_config_file) test-ca-index.txt test-ca-serial.txt test-ca-index.txt.attr
+	$(OPENSSL) req -config $(test_ca_config_file) -key $< -passin "pass:$(test_ca_pwd_rsa)" -subj "/C=NL/O=PolarSSL/CN=Mbed TLS OCSP revoked test cert" -out $@ -new -sha256
+all_intermediate += server2-in-database-revoked.csr
+server2-in-database-revoked.crt: server2-in-database-revoked.csr $(test_ca_config_file) test-ca-index.txt test-ca-serial.txt test-ca-index.txt.attr test-ca-sha256.crt
+	$(OPENSSL) ca -batch -config $(test_ca_config_file) -extensions server_cert -cert test-ca-sha256.crt -keyfile $(test_ca_key_file_rsa) -days 3653 -notext -md sha256 -passin "pass:$(test_ca_pwd_rsa)" -in $< -out $@
+	$(OPENSSL) ca -config $(test_ca_config_file) -passin "pass:$(test_ca_pwd_rsa)" -cert test-ca-sha256.crt -notext -keyfile $(test_ca_key_file_rsa) -revoke $@
+all_final += server2-in-database-revoked.crt
 
 ################################################################
 #### Generate OCSP responses using existing certificates
@@ -136,6 +143,9 @@ all_final += ocsp-resp-future-this-update.der
 ocsp-req-for-server2-in-database.der: server2-in-database.crt test-ca-sha256.crt
 	$(OPENSSL) ocsp -issuer test-ca-sha256.crt -cert $< -no_nonce -reqout $@
 all_intermediate += ocsp-req-for-server2-in-database.der
+ocsp-req-for-server2-in-database-revoked.der: server2-in-database-revoked.crt test-ca-sha256.crt
+	$(OPENSSL) ocsp -issuer test-ca-sha256.crt -cert $< -no_nonce -reqout $@
+all_intermediate += ocsp-req-for-server2-in-database-revoked.der
 ocsp-resp-future-produced-at-this-update.der: ocsp-req-for-server2-in-database.der test-ca-index.txt test-ca-sha256.crt
 	$(FAKETIME) -f "+9y" $(OPENSSL) ocsp -rsigner test-ca-sha256.crt -index test-ca-index.txt -rkey $(test_ca_key_file_rsa) -CA test-ca-sha256.crt -noverify -reqin $< -respout $@
 all_final += ocsp-resp-future-produced-at-this-update.der
@@ -147,6 +157,9 @@ ocsp-resp-no-certs-in-resp.der: ocsp-req-for-server2-in-database.der test-ca-ind
 ocsp-resp-expired-next-update.der: ocsp-req-for-server2-in-database.der test-ca-index.txt test-ca-sha256.crt
 	$(OPENSSL) ocsp -rsigner test-ca-sha256.crt -index test-ca-index.txt -rkey $(test_ca_key_file_rsa) -CA test-ca-sha256.crt -noverify -nmin 0 -reqin $< -respout $@
 all_final += ocsp-resp-expired-next-update.der
+ocsp-resp-revoked-cert.der: ocsp-req-for-server2-in-database-revoked.der test-ca-index.txt test-ca-sha256.crt
+	$(OPENSSL) ocsp -rsigner test-ca-sha256.crt -index test-ca-index.txt -rkey $(test_ca_key_file_rsa) -CA test-ca-sha256.crt -noverify -reqin $< -respout $@
+all_final += ocsp-resp-revoked-cert.der
 
 ################################################################
 #### Meta targets

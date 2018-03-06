@@ -1957,8 +1957,8 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
 static mbedtls_x509_crt *x509_crt_find_parent_in( mbedtls_x509_crt *child,
                                                   mbedtls_x509_crt *candidates,
                                                   int top,
-                                                  int path_cnt,
-                                                  int self_cnt )
+                                                  size_t path_cnt,
+                                                  size_t self_cnt )
 {
     mbedtls_x509_crt *parent, *badtime_parent = NULL;
 
@@ -1970,7 +1970,7 @@ static mbedtls_x509_crt *x509_crt_find_parent_in( mbedtls_x509_crt *child,
 
         /* +1 because stored max_pathlen is 1 higher that the actual value */
         if( parent->max_pathlen > 0 &&
-            parent->max_pathlen < 1 + path_cnt - self_cnt )
+            (size_t) parent->max_pathlen < 1 + path_cnt - self_cnt )
         {
             continue;
         }

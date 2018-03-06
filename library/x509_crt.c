@@ -1895,18 +1895,18 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
 }
 
 /*
- * Verify a certificate no parent inside the chain
+ * Verify a certificate with no parent inside the chain
  * (either the parent is a trusted root, or there is no parent)
  *
  * See comments for mbedtls_x509_crt_verify_with_profile()
- * (also for notation used belowe)
+ * (also for notation used below)
  *
  * This function is called in two cases:
  *  - child was found to have a parent in trusted roots, in which case we're
  *    called with trust_ca pointing directly to that parent (not the full list)
  *      - this happens in cases 1, 2 and 3 of the comment on verify()
  *      - case 1 is special as child and trust_ca point to copies of the same
- *      certificate then
+ *        certificate then
  *  - child was found to have no parent either in the chain or in trusted CAs
  *      - this is cases 4 and 5 of the comment on verify()
  *
@@ -2218,7 +2218,7 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
  *
  * There are five main cases to consider. Let's introduce some notation:
  *  - E means the end-entity certificate
- *  - I and intermediate CA
+ *  - I an intermediate CA
  *  - R the trusted root CA this chain anchors to
  *  - T the list of trusted roots (R and possible some others)
  *
@@ -2229,8 +2229,10 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
  *      verify(E, T) -> verify_top(E, R)
  *  3. E -> I -> R (EE signed by intermediate signed by trusted root)
  *      verify(E, T) -> verify_child(E, I, T) -> verify_top(I, R)
+ *      (plus variant with multiple intermediates)
  *  4. E -> I (EE signed by intermediate that's not trusted)
  *      verify(E, T) -> verify_child(E, I, T) -> verify_top(I, T)
+ *      (plus variant with multiple intermediates)
  *  5. E (EE not trusted)
  *      verify(E, T) -> verify_top(E, T)
  */

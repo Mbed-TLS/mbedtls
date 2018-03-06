@@ -2,7 +2,8 @@
  * \file ecp.h
  *
  * \brief Elliptic curves over GF(p)
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -36,6 +37,7 @@
 #define MBEDTLS_ERR_ECP_RANDOM_FAILED                     -0x4D00  /**< Generation of random value, such as (ephemeral) key, failed. */
 #define MBEDTLS_ERR_ECP_INVALID_KEY                       -0x4C80  /**< Invalid private or public key. */
 #define MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH                  -0x4C00  /**< Signature is valid but shorter than the user-supplied length. */
+#define MBEDTLS_ERR_ECP_HW_ACCEL_FAILED                   -0x4B80  /**< ECP hardware accelerator failed. */
 
 #if !defined(MBEDTLS_ECP_ALT)
 /*
@@ -461,7 +463,7 @@ int mbedtls_ecp_tls_write_point( const mbedtls_ecp_group *grp, const mbedtls_ecp
  * \brief           Set a group using well-known domain parameters
  *
  * \param grp       Destination group
- * \param index     Index in the list of well-known domain parameters
+ * \param id        Index in the list of well-known domain parameters
  *
  * \return          0 if successful,
  *                  MBEDTLS_ERR_MPI_XXX if initialization failed
@@ -470,7 +472,7 @@ int mbedtls_ecp_tls_write_point( const mbedtls_ecp_group *grp, const mbedtls_ecp
  * \note            Index should be a value of RFC 4492's enum NamedCurve,
  *                  usually in the form of a MBEDTLS_ECP_DP_XXX macro.
  */
-int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id index );
+int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id );
 
 /**
  * \brief           Set a group from a TLS ECParameters record

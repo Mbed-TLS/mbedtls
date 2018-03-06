@@ -48,6 +48,7 @@ set(src_crypto
     platform.c
     ripemd160.c
     rsa.c
+    rsa_internal.c
     sha1.c
     sha256.c
     sha512.c
@@ -140,15 +141,15 @@ endif(USE_STATIC_MBEDTLS_LIBRARY)
 
 if(USE_SHARED_MBEDTLS_LIBRARY)
     add_library(mbedcrypto SHARED ${src_crypto})
-    set_target_properties(mbedcrypto PROPERTIES VERSION 2.5.0 SOVERSION 0)
+    set_target_properties(mbedcrypto PROPERTIES VERSION 2.7.0 SOVERSION 1)
     target_link_libraries(mbedcrypto ${libs})
 
     add_library(mbedx509 SHARED ${src_x509})
-    set_target_properties(mbedx509 PROPERTIES VERSION 2.5.0 SOVERSION 0)
+    set_target_properties(mbedx509 PROPERTIES VERSION 2.7.0 SOVERSION 0)
     target_link_libraries(mbedx509 ${libs} mbedcrypto)
 
     add_library(mbedtls SHARED ${src_tls})
-    set_target_properties(mbedtls PROPERTIES VERSION 2.5.0 SOVERSION 10)
+    set_target_properties(mbedtls PROPERTIES VERSION 2.7.0 SOVERSION 10)
     target_link_libraries(mbedtls ${libs} mbedx509)
 
     install(TARGETS mbedtls mbedx509 mbedcrypto

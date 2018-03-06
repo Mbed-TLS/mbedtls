@@ -63,6 +63,9 @@ int main( void )
 #include <stdlib.h>
 #include <string.h>
 
+#define MAX_REQUEST_SIZE      20000
+#define MAX_REQUEST_SIZE_STR "20000"
+
 #define DFL_SERVER_NAME         "localhost"
 #define DFL_SERVER_ADDR         NULL
 #define DFL_SERVER_PORT         "4433"
@@ -242,8 +245,8 @@ int main( void )
     "    server_addr=%%s      default: given by name\n"     \
     "    server_port=%%d      default: 4433\n"              \
     "    request_page=%%s     default: \".\"\n"             \
-    "    request_size=%%d     default: about 34 (basic request)\n" \
-    "                        (minimum: 0, max: 16384)\n" \
+    "    request_size=%%d     default: about 34 (basic request)\n"           \
+    "                        (minimum: 0, max: " MAX_REQUEST_SIZE_STR " )\n" \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
@@ -285,6 +288,9 @@ int main( void )
     "\n"                                                    \
     "    force_ciphersuite=<name>    default: all enabled\n"\
     " acceptable ciphersuite names:\n"
+
+#define ALPN_LIST_SIZE  10
+#define CURVE_LIST_SIZE 20
 
 /*
  * global options
@@ -434,16 +440,18 @@ int main( int argc, char *argv[] )
 {
     int ret = 0, len, tail_len, i, written, frags, retry_left;
     mbedtls_net_context server_fd;
-    unsigned char buf[MBEDTLS_SSL_MAX_CONTENT_LEN + 1];
+
+    unsigned char buf[MAX_REQUEST_SIZE + 1];
+
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char psk[MBEDTLS_PSK_MAX_LEN];
     size_t psk_len = 0;
 #endif
 #if defined(MBEDTLS_SSL_ALPN)
-    const char *alpn_list[10];
+    const char *alpn_list[ALPN_LIST_SIZE];
 #endif
 #if defined(MBEDTLS_ECP_C)
-    mbedtls_ecp_group_id curve_list[20];
+    mbedtls_ecp_group_id curve_list[CURVE_LIST_SIZE];
     const mbedtls_ecp_curve_info *curve_cur;
 #endif
 
@@ -599,7 +607,8 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "request_size" ) == 0 )
         {
             opt.request_size = atoi( q );
-            if( opt.request_size < 0 || opt.request_size > MBEDTLS_SSL_MAX_CONTENT_LEN )
+            if( opt.request_size < 0 ||
+                opt.request_size > MAX_REQUEST_SIZE )
                 goto usage;
         }
         else if( strcmp( p, "ca_file" ) == 0 )
@@ -972,8 +981,7 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "default" ) != 0 )
         {
             /* Leave room for a final NULL in curve list */
-            while( i < (int) ( sizeof( curve_list ) / sizeof( *curve_list ) ) - 1
-                   && *p != '\0' )
+            while( i < CURVE_LIST_SIZE - 1 && *p != '\0' )
             {
                 q = p;
 
@@ -1004,11 +1012,10 @@ int main( int argc, char *argv[] )
 
             mbedtls_printf("Number of curves: %d\n", i );
 
-            if( i == (int) ( sizeof( curve_list ) / sizeof( *curve_list ) ) - 1
-                && *p != '\0' )
+            if( i == CURVE_LIST_SIZE - 1 && *p != '\0' )
             {
-                mbedtls_printf( "curves list too long, maximum %zu",
-                                (size_t) ( sizeof( curve_list ) / sizeof( *curve_list ) - 1 ) );
+                mbedtls_printf( "curves list too long, maximum %d",
+                                CURVE_LIST_SIZE - 1 );
                 goto exit;
             }
 
@@ -1024,7 +1031,7 @@ int main( int argc, char *argv[] )
         i = 0;
 
         /* Leave room for a final NULL in alpn_list */
-        while( i < (int) sizeof alpn_list - 1 && *p != '\0' )
+        while( i < ALPN_LIST_SIZE - 1 && *p != '\0' )
         {
             alpn_list[i++] = p;
 
@@ -1493,8 +1500,8 @@ send_request:
     mbedtls_printf( "  > Write to server:" );
     fflush( stdout );
 
-    len = mbedtls_snprintf( (char *) buf, sizeof(buf) - 1, GET_REQUEST,
-                    opt.request_page );
+    len = mbedtls_snprintf( (char *) buf, sizeof( buf ) - 1, GET_REQUEST,
+                            opt.request_page );
     tail_len = (int) strlen( GET_REQUEST_END );
 
     /* Add padding to GET request to reach opt.request_size in length */
@@ -1505,7 +1512,7 @@ send_request:
         len += opt.request_size - len - tail_len;
     }
 
-    strncpy( (char *) buf + len, GET_REQUEST_END, sizeof(buf) - len - 1 );
+    strncpy( (char *) buf + len, GET_REQUEST_END, sizeof( buf ) - len - 1 );
     len += tail_len;
 
     /* Truncate if request size is smaller than the "natural" size */
@@ -1549,6 +1556,12 @@ send_request:
 
         frags = 1;
         written = ret;
+
+        if( written < len )
+        {
+            mbedtls_printf( " warning\n  ! request didn't fit into single datagram and "
+                            "was truncated to size %u", (unsigned) written );
+        }
     }
 
     buf[written] = '\0';

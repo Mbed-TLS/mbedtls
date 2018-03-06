@@ -7,6 +7,12 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/base64.h"
 
+#if MBEDTLS_X509_MAX_INTERMEDIATE_CA > 19
+#error "The value of MBEDTLS_X509_MAX_INTERMEDIATE_C is larger \
+than the current threshold 19. To test larger values, please \
+adapt the script tests/data_files/dir-max/long.sh."
+#endif
+
 /* Profile for backward compatibility. Allows SHA-1, unlike the default
    profile. */
 const mbedtls_x509_crt_profile compat_profile =
@@ -244,6 +250,10 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
 
     if( strcmp( profile_str, "default" ) == 0 )
         profile = &mbedtls_x509_crt_profile_default;
+    else if( strcmp( profile_str, "next" ) == 0 )
+        profile = &mbedtls_x509_crt_profile_next;
+    else if( strcmp( profile_str, "suite_b" ) == 0 )
+        profile = &mbedtls_x509_crt_profile_suiteb;
     else if( strcmp( profile_str, "compat" ) == 0 )
         profile = &compat_profile;
     else
@@ -497,6 +507,45 @@ void mbedtls_x509_crt_parse_path( char *crt_path, int ret, int nb_crt )
 
 exit:
     mbedtls_x509_crt_free( &chain );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
+void mbedtls_x509_crt_verify_max( char *ca_file, char *chain_dir, int nb_int,
+                                  int ret_chk, int flags_chk )
+{
+    char file_buf[128];
+    int ret;
+    uint32_t flags;
+    mbedtls_x509_crt trusted, chain;
+
+    /*
+     * We expect chain_dir to contain certificates 00.crt, 01.crt, etc.
+     * with NN.crt signed by NN-1.crt
+     */
+
+    mbedtls_x509_crt_init( &trusted );
+    mbedtls_x509_crt_init( &chain );
+
+    /* Load trusted root */
+    TEST_ASSERT( mbedtls_x509_crt_parse_file( &trusted, ca_file ) == 0 );
+
+    /* Load a chain with nb_int intermediates (from 01 to nb_int),
+     * plus one "end-entity" cert (nb_int + 1) */
+    ret = mbedtls_snprintf( file_buf, sizeof file_buf, "%s/c%02d.pem", chain_dir,
+                                                            nb_int + 1 );
+    TEST_ASSERT( ret > 0 && (size_t) ret < sizeof file_buf );
+    TEST_ASSERT( mbedtls_x509_crt_parse_file( &chain, file_buf ) == 0 );
+
+    /* Try to verify that chain */
+    ret = mbedtls_x509_crt_verify( &chain, &trusted, NULL, NULL, &flags,
+                                   NULL, NULL );
+    TEST_ASSERT( ret == ret_chk );
+    TEST_ASSERT( flags == (uint32_t) flags_chk );
+
+exit:
+    mbedtls_x509_crt_free( &chain );
+    mbedtls_x509_crt_free( &trusted );
 }
 /* END_CASE */
 

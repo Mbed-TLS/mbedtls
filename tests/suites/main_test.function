@@ -136,18 +136,31 @@ DISPATCH_FUNCTION
     "TESTCASE_FILENAME"
 
 
+/** Retrieve one input line into buf, which must have room for len
+ * bytes. The trailing line break (if any) is stripped from the result.
+ * Lines beginning with the character '#' are skipped. Lines that are
+ * more than len-1 bytes long including the trailing line break are
+ * truncated; note that the following bytes remain in the input stream.
+ *
+ * \return 0 on success, -1 on error or end of file
+ */
 int get_line( FILE *f, char *buf, size_t len )
 {
     char *ret;
 
-    ret = fgets( buf, len, f );
-    if( ret == NULL )
-        return( -1 );
+    do
+    {
+        ret = fgets( buf, len, f );
+        if( ret == NULL )
+            return( -1 );
+    }
+    while( buf[0] == '#' );
 
-    if( strlen( buf ) && buf[strlen(buf) - 1] == '\n' )
-        buf[strlen(buf) - 1] = '\0';
-    if( strlen( buf ) && buf[strlen(buf) - 1] == '\r' )
-        buf[strlen(buf) - 1] = '\0';
+    ret = buf + strlen( buf );
+    if( ret-- > buf && *ret == '\n' )
+        *ret = '\0';
+    if( ret-- > buf && *ret == '\r' )
+        *ret = '\0';
 
     return( 0 );
 }
@@ -326,6 +339,9 @@ int main(int argc, const char *argv[])
         testfile_count = 1;
     }
 
+    /* Initialize the struct that holds information about the last test */
+    memset( &test_info, 0, sizeof( test_info ) );
+
     /* Now begin to execute the tests in the testfiles */
     for ( testfile_index = 0;
           testfile_index < testfile_count;
@@ -356,7 +372,7 @@ int main(int argc, const char *argv[])
 
             if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
                 break;
-            mbedtls_fprintf( stdout, "%s%.66s", test_errors ? "\n" : "", buf );
+            mbedtls_fprintf( stdout, "%s%.66s", test_info.failed ? "\n" : "", buf );
             mbedtls_fprintf( stdout, " " );
             for( i = strlen( buf ) + 1; i < 67; i++ )
                 mbedtls_fprintf( stdout, "." );
@@ -396,11 +412,11 @@ int main(int argc, const char *argv[])
                     break;
                 cnt = parse_arguments( buf, strlen(buf), params );
             }
- 
+
             // If there are no unmet dependencies execute the test
             if( unmet_dep_count == 0 )
             {
-                test_errors = 0;
+                test_info.failed = 0;
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
                 /* Suppress all output from the library unless we're verbose
@@ -432,52 +448,63 @@ int main(int argc, const char *argv[])
             if( unmet_dep_count > 0 || ret == DISPATCH_UNSUPPORTED_SUITE )
             {
                 total_skipped++;
-                mbedtls_fprintf( stdout, "----\n" );
+                mbedtls_fprintf( stdout, "----" );
 
                 if( 1 == option_verbose && ret == DISPATCH_UNSUPPORTED_SUITE )
                 {
-                    mbedtls_fprintf( stdout, "   Test Suite not enabled" );
+                    mbedtls_fprintf( stdout, "\n   Test Suite not enabled" );
                 }
 
                 if( 1 == option_verbose && unmet_dep_count > 0 )
                 {
-                    mbedtls_fprintf( stdout, "   Unmet dependencies: " );
+                    mbedtls_fprintf( stdout, "\n   Unmet dependencies: " );
                     for( i = 0; i < unmet_dep_count; i++ )
                     {
                         mbedtls_fprintf(stdout, "%s  ",
                                         unmet_dependencies[i]);
                         free(unmet_dependencies[i]);
                     }
-                    mbedtls_fprintf( stdout, "\n" );
                 }
+                mbedtls_fprintf( stdout, "\n" );
                 fflush( stdout );
 
                 unmet_dep_count = 0;
             }
-            else if( ret == DISPATCH_TEST_SUCCESS && test_errors == 0 )
+            else if( ret == DISPATCH_TEST_SUCCESS )
             {
-                mbedtls_fprintf( stdout, "PASS\n" );
+                if( test_info.failed == 0 )
+                {
+                    mbedtls_fprintf( stdout, "PASS\n" );
+                }
+                else
+                {
+                    total_errors++;
+                    mbedtls_fprintf( stdout, "FAILED\n" );
+                    mbedtls_fprintf( stdout, "  %s\n  at line %d, %s\n",
+                                     test_info.test, test_info.line_no,
+                                     test_info.filename );
+                }
                 fflush( stdout );
             }
             else if( ret == DISPATCH_INVALID_TEST_DATA )
             {
                 mbedtls_fprintf( stderr, "FAILED: FATAL PARSE ERROR\n" );
-                fclose(file);
+                fclose( file );
                 mbedtls_exit( 2 );
             }
             else
                 total_errors++;
 
-            if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
+            if( ( ret = get_line( file, buf, sizeof( buf ) ) ) != 0 )
                 break;
-            if( strlen(buf) != 0 )
+            if( strlen( buf ) != 0 )
             {
                 mbedtls_fprintf( stderr, "Should be empty %d\n",
-                                 (int) strlen(buf) );
+                                 (int) strlen( buf ) );
                 return( 1 );
             }
         }
-        fclose(file);
+        fclose( file );
 
         /* In case we encounter early end of file */
         for( i = 0; i < unmet_dep_count; i++ )
@@ -508,4 +535,3 @@ int main(int argc, const char *argv[])
 
     return( total_errors != 0 );
 }
-

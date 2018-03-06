@@ -2,7 +2,8 @@
  * \file threading.h
  *
  * \brief Threading abstraction layer
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -97,9 +98,6 @@ extern int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t *mutex );
  */
 extern mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex;
 extern mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex;
-#if defined(MBEDTLS_ECP_INTERNAL_ALT)
-extern mbedtls_threading_mutex_t mbedtls_threading_ecp_mutex;
-#endif
 #endif /* MBEDTLS_THREADING_C */
 
 #ifdef __cplusplus

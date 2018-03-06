@@ -2,7 +2,8 @@
  * \file check_config.h
  *
  * \brief Consistency checks for configuration options
- *
+ */
+/*
  *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -75,6 +76,10 @@
 
 #if defined(MBEDTLS_DHM_C) && !defined(MBEDTLS_BIGNUM_C)
 #error "MBEDTLS_DHM_C defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT) && !defined(MBEDTLS_SSL_TRUNCATED_HMAC)
+#error "MBEDTLS_SSL_TRUNCATED_HMAC_COMPAT defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_CMAC_C) && \
@@ -649,6 +654,15 @@
 #if defined(MBEDTLS_X509_CSR_WRITE_C) && ( !defined(MBEDTLS_X509_CREATE_C) )
 #error "MBEDTLS_X509_CSR_WRITE_C defined, but not all prerequisites"
 #endif
+
+#if defined(MBEDTLS_HAVE_INT32) && defined(MBEDTLS_HAVE_INT64)
+#error "MBEDTLS_HAVE_INT32 and MBEDTLS_HAVE_INT64 cannot be defined simultaneously"
+#endif /* MBEDTLS_HAVE_INT32 && MBEDTLS_HAVE_INT64 */
+
+#if ( defined(MBEDTLS_HAVE_INT32) || defined(MBEDTLS_HAVE_INT64) ) && \
+    defined(MBEDTLS_HAVE_ASM)
+#error "MBEDTLS_HAVE_INT32/MBEDTLS_HAVE_INT64 and MBEDTLS_HAVE_ASM cannot be defined simultaneously"
+#endif /* (MBEDTLS_HAVE_INT32 || MBEDTLS_HAVE_INT64) && MBEDTLS_HAVE_ASM */
 
 /*
  * Avoid warning from -pedantic. This is a convenient place for this

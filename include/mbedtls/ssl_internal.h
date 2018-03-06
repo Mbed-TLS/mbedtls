@@ -1,8 +1,9 @@
 /**
- * \file ssl_ticket.h
+ * \file ssl_internal.h
  *
  * \brief Internal functions shared by the SSL modules
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -24,6 +25,7 @@
 #define MBEDTLS_SSL_INTERNAL_H
 
 #include "ssl.h"
+#include "cipher.h"
 
 #if defined(MBEDTLS_MD5_C)
 #include "md5.h"
@@ -138,12 +140,32 @@
 #define MBEDTLS_SSL_PADDING_ADD              0
 #endif
 
-#define MBEDTLS_SSL_BUFFER_LEN  ( MBEDTLS_SSL_MAX_CONTENT_LEN               \
-                        + MBEDTLS_SSL_COMPRESSION_ADD               \
-                        + 29 /* counter + header + IV */    \
-                        + MBEDTLS_SSL_MAC_ADD                       \
-                        + MBEDTLS_SSL_PADDING_ADD                   \
+#define MBEDTLS_SSL_PAYLOAD_LEN ( MBEDTLS_SSL_MAX_CONTENT_LEN    \
+                        + MBEDTLS_SSL_COMPRESSION_ADD            \
+                        + MBEDTLS_MAX_IV_LENGTH                  \
+                        + MBEDTLS_SSL_MAC_ADD                    \
+                        + MBEDTLS_SSL_PADDING_ADD                \
                         )
+
+/*
+ * Check that we obey the standard's message size bounds
+ */
+
+#if MBEDTLS_SSL_MAX_CONTENT_LEN > 16384
+#error Bad configuration - record content too large.
+#endif
+
+#if MBEDTLS_SSL_PAYLOAD_LEN > 16384 + 2048
+#error Bad configuration - protected record payload too large.
+#endif
+
+/* Note: Even though the TLS record header is only 5 bytes
+   long, we're internally using 8 bytes to store the
+   implicit sequence number. */
+#define MBEDTLS_SSL_HEADER_LEN 13
+
+#define MBEDTLS_SSL_BUFFER_LEN  \
+    ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_PAYLOAD_LEN ) )
 
 /*
  * TLS extension flags (for extensions with outgoing ServerHello content
@@ -403,6 +425,79 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl );
 
+/**
+ * \brief       Update record layer
+ *
+ *              This function roughly separates the implementation
+ *              of the logic of (D)TLS from the implementation
+ *              of the secure transport.
+ *
+ * \param  ssl  SSL context to use
+ *
+ * \return      0 or non-zero error code.
+ *
+ * \note        A clarification on what is called 'record layer' here
+ *              is in order, as many sensible definitions are possible:
+ *
+ *              The record layer takes as input an untrusted underlying
+ *              transport (stream or datagram) and transforms it into
+ *              a serially multiplexed, secure transport, which
+ *              conceptually provides the following:
+ *
+ *              (1) Three datagram based, content-agnostic transports
+ *                  for handshake, alert and CCS messages.
+ *              (2) One stream- or datagram-based transport
+ *                  for application data.
+ *              (3) Functionality for changing the underlying transform
+ *                  securing the contents.
+ *
+ *              The interface to this functionality is given as follows:
+ *
+ *              a Updating
+ *                [Currently implemented by mbedtls_ssl_read_record]
+ *
+ *                Check if and on which of the four 'ports' data is pending:
+ *                Nothing, a controlling datagram of type (1), or application
+ *                data (2). In any case data is present, internal buffers
+ *                provide access to the data for the user to process it.
+ *                Consumption of type (1) datagrams is done automatically
+ *                on the next update, invalidating that the internal buffers
+ *                for previous datagrams, while consumption of application
+ *                data (2) is user-controlled.
+ *
+ *              b Reading of application data
+ *                [Currently manual adaption of ssl->in_offt pointer]
+ *
+ *                As mentioned in the last paragraph, consumption of data
+ *                is different from the automatic consumption of control
+ *                datagrams (1) because application data is treated as a stream.
+ *
+ *              c Tracking availability of application data
+ *                [Currently manually through decreasing ssl->in_msglen]
+ *
+ *                For efficiency and to retain datagram semantics for
+ *                application data in case of DTLS, the record layer
+ *                provides functionality for checking how much application
+ *                data is still available in the internal buffer.
+ *
+ *              d Changing the transformation securing the communication.
+ *
+ *              Given an opaque implementation of the record layer in the
+ *              above sense, it should be possible to implement the logic
+ *              of (D)TLS on top of it without the need to know anything
+ *              about the record layer's internals. This is done e.g.
+ *              in all the handshake handling functions, and in the
+ *              application data reading function mbedtls_ssl_read.
+ *
+ * \note        The above tries to give a conceptual picture of the
+ *              record layer, but the current implementation deviates
+ *              from it in some places. For example, our implementation of
+ *              the update functionality through mbedtls_ssl_read_record
+ *              discards datagrams depending on the current state, which
+ *              wouldn't fall under the record layer's responsibility
+ *              following the above definition.
+ *
+ */
 int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want );
 
@@ -527,15 +622,32 @@ void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n )
 {
     size_t i;
-    const unsigned char *A = (const unsigned char *) a;
-    const unsigned char *B = (const unsigned char *) b;
-    unsigned char diff = 0;
+    volatile const unsigned char *A = (volatile const unsigned char *) a;
+    volatile const unsigned char *B = (volatile const unsigned char *) b;
+    volatile unsigned char diff = 0;
 
     for( i = 0; i < n; i++ )
         diff |= A[i] ^ B[i];
 
     return( diff );
 }
+
+#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+int mbedtls_ssl_get_key_exchange_md_ssl_tls( mbedtls_ssl_context *ssl,
+                                        unsigned char *output,
+                                        unsigned char *data, size_t data_len );
+#endif /* MBEDTLS_SSL_PROTO_SSL3 || MBEDTLS_SSL_PROTO_TLS1 || \
+          MBEDTLS_SSL_PROTO_TLS1_1 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
+                                        unsigned char *output,
+                                        unsigned char *data, size_t data_len,
+                                        mbedtls_md_type_t md_alg );
+#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
+          MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #ifdef __cplusplus
 }

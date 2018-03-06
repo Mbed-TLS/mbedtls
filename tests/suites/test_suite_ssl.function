@@ -40,3 +40,16 @@ void ssl_dtls_replay( char *prevs, char *new, int ret )
     mbedtls_ssl_config_free( &conf );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
+void ssl_set_hostname_twice( char *hostname0, char *hostname1 )
+{
+    mbedtls_ssl_context ssl;
+    mbedtls_ssl_init( &ssl );
+
+    TEST_ASSERT( mbedtls_ssl_set_hostname( &ssl, hostname0 ) == 0 );
+    TEST_ASSERT( mbedtls_ssl_set_hostname( &ssl, hostname1 ) == 0 );
+
+    mbedtls_ssl_free( &ssl );
+}
+/* END_CASE */

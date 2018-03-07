@@ -28,6 +28,8 @@ Bugfix
      In the context of SSL, this resulted in handshake failure. Reported by
      daniel in the Mbed TLS forum. #1351
    * Fix Windows x64 builds with the included mbedTLS.sln file. #1347
+   * Fix Build failure when using GCC 7. #1188
+
 
 = mbed TLS 2.1.10 branch released 2018-02-03
 

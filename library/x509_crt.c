@@ -1168,7 +1168,7 @@ cleanup:
     int t_ret;
     struct stat sb;
     struct dirent *entry;
-    char entry_name[255];
+    char entry_name[MBEDTLS_X509_MAX_FILE_PATH_LEN];
     DIR *dir = opendir( path );
 
     if( dir == NULL )
@@ -1184,7 +1184,17 @@ cleanup:
 
     while( ( entry = readdir( dir ) ) != NULL )
     {
-        mbedtls_snprintf( entry_name, sizeof entry_name, "%s/%s", path, entry->d_name );
+        if( strlen(path) + 1 + strlen(entry->d_name) + 1 <= MBEDTLS_X509_MAX_FILE_PATH_LEN )
+        {
+            mbedtls_snprintf( entry_name, sizeof entry_name, "%s/%s", path, entry->d_name );
+        }
+        else
+        {
+            closedir( dir );
+            ret = MBEDTLS_ERR_X509_BUFFER_TOO_SMALL;
+            goto cleanup;
+        }
+
 
         if( stat( entry_name, &sb ) == -1 )
         {

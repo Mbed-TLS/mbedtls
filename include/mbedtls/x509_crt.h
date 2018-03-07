@@ -120,6 +120,8 @@ mbedtls_x509_crt_profile;
 #define MBEDTLS_X509_RFC5280_MAX_SERIAL_LEN 32
 #define MBEDTLS_X509_RFC5280_UTC_TIME_LEN   15
 
+#define MBEDTLS_X509_MAX_FILE_PATH_LEN 512
+
 /**
  * Container for writing a certificate (CRT)
  */

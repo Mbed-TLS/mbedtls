@@ -178,7 +178,7 @@ typedef uint32_t psa_key_type_t;
 #define PSA_KEY_TYPE_IS_ECC(type)                                       \
     (((type) & ~PSA_KEY_TYPE_ECC_CURVE_MASK) == PSA_KEY_TYPE_ECC_BASE)
 
-#define PSA_BLOCK_CIPHER_BLOCK_SIZE(key_type)        \
+#define PSA_BLOCK_CIPHER_BLOCK_SIZE(type)            \
     (                                                \
         (type) == PSA_KEY_TYPE_AES ? 16 :            \
         (type) == PSA_KEY_TYPE_DES ? 8 :             \

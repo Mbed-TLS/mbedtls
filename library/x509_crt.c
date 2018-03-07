@@ -1953,6 +1953,19 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
  * way we select the correct one is by checking the signature (as we don't
  * rely on key identifier extensions). (This is one way users might choose to
  * handle key rollover, another relies on self-issued certs, see [SIRO].)
+ *
+ * Arguments:
+ *  - [in] child: certificate for which we're looking for a parent
+ *  - [in] candidates: chained list of potential parents
+ *  - [in] top: 1 if candidates consists of trusted roots, ie we're at the top
+ *         of the chain, 0 otherwise
+ *  - [in] path_cnt: number of intermediates seen so far
+ *  - [in] self_cnt: number of self-signed intermediates seen so far
+ *         (will never be greater than path_cnt)
+ *
+ * Return value:
+ *  - the first suitable parent found (see above regarding time-validity)
+ *  - NULL if no suitable parent was found
  */
 static mbedtls_x509_crt *x509_crt_find_parent_in( mbedtls_x509_crt *child,
                                                   mbedtls_x509_crt *candidates,
@@ -2005,6 +2018,19 @@ static mbedtls_x509_crt *x509_crt_find_parent_in( mbedtls_x509_crt *child,
  *
  * Searches in trusted CAs first, and return the first suitable parent found
  * (see find_parent_in() for definition of suitable).
+ *
+ * Arguments:
+ *  - [in] child: certificate for which we're looking for a parent, followed
+ *         by a chain of possible intermediates
+ *  - [in] trust_ca: locally trusted CAs
+ *  - [out] 1 if parent was found in trust_ca, 0 if found in provided chain
+ *  - [in] path_cnt: number of intermediates seen so far
+ *  - [in] self_cnt: number of self-signed intermediates seen so far
+ *         (will always be no greater than path_cnt)
+ *
+ * Return value:
+ *  - the first suitable parent found (see find_parent_in() for "suitable")
+ *  - NULL if no suitable parent was found
  */
 static mbedtls_x509_crt *x509_crt_find_parent( mbedtls_x509_crt *child,
                                                mbedtls_x509_crt *trust_ca,

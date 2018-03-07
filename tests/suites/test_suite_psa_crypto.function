@@ -33,10 +33,8 @@ void import( char *hex, int type, int expected_status )
     unsigned char *data = NULL;
     size_t data_size;
 
-    data_size = strlen( hex ) / 2;
-    data = mbedtls_calloc( 1, data_size );
+    data = unhexify_alloc( hex, &data_size );
     TEST_ASSERT( data != NULL );
-    data_size = unhexify( data, hex );
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
     status = psa_import_key( slot, type, data, data_size );
@@ -71,10 +69,8 @@ void import_export( char *hex, int type_arg,
     psa_key_type_t got_type;
     size_t got_bits;
 
-    data_size = strlen( hex ) / 2;
-    data = mbedtls_calloc( 1, data_size );
+    data = unhexify_alloc( hex, &data_size );
     TEST_ASSERT( data != NULL );
-    data_size = unhexify( data, hex );
     export_size = (ssize_t) data_size + export_size_delta;
     exported = mbedtls_calloc( 1, export_size );
     TEST_ASSERT( exported != NULL );
@@ -147,10 +143,8 @@ void hash_finish( int alg_arg, char *input_hex, char *hash_hex )
     size_t actual_hash_length;
     psa_hash_operation_t operation;
 
-    input_size = strlen( input_hex ) / 2;
-    input = mbedtls_calloc( 1, input_size );
+    input = unhexify_alloc( input_hex, &input_size );
     TEST_ASSERT( input != NULL );
-    input_size = unhexify( input, input_hex );
     expected_hash_length = unhexify( expected_hash, hash_hex );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
@@ -181,10 +175,8 @@ void hash_verify( int alg_arg, char *input_hex, char *hash_hex )
     size_t expected_hash_length;
     psa_hash_operation_t operation;
 
-    input_size = strlen( input_hex ) / 2;
-    input = mbedtls_calloc( 1, input_size );
+    input = unhexify_alloc( input_hex, &input_size );
     TEST_ASSERT( input != NULL );
-    input_size = unhexify( input, input_hex );
     expected_hash_length = unhexify( expected_hash, hash_hex );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
@@ -220,25 +212,17 @@ void mac_verify( int key_type_arg, char *key_hex,
     size_t expected_mac_size;
     psa_mac_operation_t operation;
 
-    key_size = strlen( key_hex ) / 2;
-    key = mbedtls_calloc( 1, key_size );
+    key = unhexify_alloc( key_hex, &key_size );
     TEST_ASSERT( key != NULL );
-    key_size = unhexify( key, key_hex );
-    iv_size = strlen( iv_hex ) / 2;
-    if( iv_size != 0 )
+    if( iv_hex[0] != 0 )
     {
-        iv = mbedtls_calloc( 1, iv_size );
+        iv = unhexify_alloc( iv_hex, &iv_size );
         TEST_ASSERT( iv != NULL );
-        iv_size = unhexify( iv, iv_hex );
     }
-    input_size = strlen( input_hex ) / 2;
-    input = mbedtls_calloc( 1, input_size );
+    input = unhexify_alloc( input_hex, &input_size );
     TEST_ASSERT( input != NULL );
-    input_size = unhexify( input, input_hex );
-    expected_mac_size = strlen( mac_hex ) / 2;
-    expected_mac = mbedtls_calloc( 1, expected_mac_size );
+    expected_mac = unhexify_alloc( mac_hex, &expected_mac_size );
     TEST_ASSERT( expected_mac != NULL );
-    expected_mac_size = unhexify( expected_mac, mac_hex );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
@@ -293,15 +277,12 @@ void sign_deterministic( int key_type_arg, char *key_hex,
     size_t signature_size;
     size_t signature_length = 0xdeadbeef;
 
-    key_data = mbedtls_calloc( 1, strlen( key_hex ) / 2 );
+    key_data = unhexify_alloc( key_hex, &key_size );
     TEST_ASSERT( key_data != NULL );
-    key_size = unhexify( key_data, key_hex );
-    input_data = mbedtls_calloc( 1, strlen( input_hex ) / 2 );
+    input_data = unhexify_alloc( input_hex, &input_size );
     TEST_ASSERT( input_data != NULL );
-    input_size = unhexify( input_data, input_hex );
-    output_data = mbedtls_calloc( 1, strlen( output_hex ) / 2 );
+    output_data = unhexify_alloc( output_hex, &output_size );
     TEST_ASSERT( output_data != NULL );
-    output_size = unhexify( output_data, output_hex );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
@@ -348,15 +329,13 @@ void sign_fail( int key_type_arg, char *key_hex,
     size_t input_size;
     psa_status_t actual_status;
     psa_status_t expected_status = expected_status_arg;
-    unsigned char *signature;
+    unsigned char *signature = NULL;
     size_t signature_length = 0xdeadbeef;
 
-    key_data = mbedtls_calloc( 1, strlen( key_hex ) / 2 );
+    key_data = unhexify_alloc( key_hex, &key_size );
     TEST_ASSERT( key_data != NULL );
-    key_size = unhexify( key_data, key_hex );
-    input_data = mbedtls_calloc( 1, strlen( input_hex ) / 2 );
+    input_data = unhexify_alloc( input_hex, &input_size );
     TEST_ASSERT( input_data != NULL );
-    input_size = unhexify( input_data, input_hex );
     signature = mbedtls_calloc( 1, signature_size );
     TEST_ASSERT( signature != NULL );
 

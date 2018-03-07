@@ -279,3 +279,6 @@ x509_ocsp_response_verify:"data_files/ocsp-resp-expired-next-update.der":"data_f
 
 X509 OCSP Response verification (SingleResponse revoked cert status)
 x509_ocsp_response_verify:"data_files/ocsp-resp-revoked-cert.der":"data_files/server2-in-database-revoked.crt":"data_files/test-ca-sha256.crt":"data_files/test-ca-sha256.crt":MBEDTLS_ERR_X509_OCSP_RESPONSE_VERIFY_FAILED:MBEDTLS_X509_BADOCSP_RESPONSE_REVOKED_CERT
+
+X509 OCSP Response verification (SingleResponse unknown cert status)
+x509_ocsp_response_verify:"data_files/ocsp-resp-unknown-cert.der":"data_files/server2.crt":"data_files/test-ca-sha256.crt":"data_files/test-ca-sha256.crt":MBEDTLS_ERR_X509_OCSP_RESPONSE_VERIFY_FAILED:MBEDTLS_X509_BADOCSP_RESPONSE_UNKNOWN_CERT

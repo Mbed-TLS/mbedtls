@@ -11,6 +11,11 @@
 #include <stddef.h>
 
 #ifdef __DOXYGEN_ONLY__
+/* This __DOXYGEN_ONLY__ block contains mock definitions for things that
+ * must be defined in the crypto_platform.h header. These mock definitions
+ * are present in this file as a convenience to generate pretty-printed
+ * documentation that includes those definitions. */
+
 /** \defgroup platform Implementation-specific definitions
  * @{
  */
@@ -30,7 +35,7 @@
 typedef _unsigned_integral_type_ psa_key_slot_t;
 
 /**@}*/
-#endif
+#endif /* __DOXYGEN_ONLY__ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -120,7 +125,19 @@ psa_status_t psa_crypto_init(void);
  */
 typedef uint32_t psa_key_type_t;
 
+/** An invalid key type value.
+ *
+ * Zero is not the encoding of any key type.
+ */
 #define PSA_KEY_TYPE_NONE                       ((psa_key_type_t)0x00000000)
+
+/** Vendor-defined flag
+ *
+ * Key types defined by this standard will never have the
+ * #PSA_KEY_TYPE_VENDOR_FLAG bit set. Vendors who define additional key types
+ * must use an encoding with the #PSA_KEY_TYPE_VENDOR_FLAG bit set and should
+ * respect the bitwise structure used by standard encodings whenever practical.
+ */
 #define PSA_KEY_TYPE_VENDOR_FLAG                ((psa_key_type_t)0x80000000)
 
 #define PSA_KEY_TYPE_CATEGORY_MASK              ((psa_key_type_t)0x7e000000)
@@ -142,6 +159,7 @@ typedef uint32_t psa_key_type_t;
 #define PSA_KEY_TYPE_ECC_BASE                   ((psa_key_type_t)0x06030000)
 #define PSA_KEY_TYPE_ECC_CURVE_MASK             ((psa_key_type_t)0x0000ffff)
 
+/** Whether a key type is vendor-defined. */
 #define PSA_KEY_TYPE_IS_VENDOR_DEFINED(type) \
     (((type) & PSA_KEY_TYPE_VENDOR_FLAG) != 0)
 #define PSA_KEY_TYPE_IS_RAW_BYTES(type)                                 \
@@ -290,7 +308,8 @@ typedef uint32_t psa_algorithm_t;
 /**
  * \brief Import a key in binary format.
  *
- * This function supports any output from psa_export_key().
+ * This function supports any output from psa_export_key(). Refer to the
+ * documentation of psa_export_key() for the format for each key type.
  *
  * \param key         Slot where the key will be stored. This must be a
  *                    valid slot for a key of the chosen type. It must

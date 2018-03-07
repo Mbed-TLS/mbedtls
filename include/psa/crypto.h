@@ -107,8 +107,8 @@ typedef enum {
  */
 psa_status_t psa_crypto_init(void);
 
-#define BITS_TO_BYTES(bits) (((bits) + 7) / 8)
-#define BYTES_TO_BITS(bytes) ((bytes) * 8)
+#define PSA_BITS_TO_BYTES(bits) (((bits) + 7) / 8)
+#define PSA_BYTES_TO_BITS(bytes) ((bytes) * 8)
 
 /**@}*/
 
@@ -1123,7 +1123,7 @@ psa_status_t psa_aead_abort(psa_aead_operation_t *operation);
  *
  */
 #define PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE(key_type, key_bits, alg)        \
-    (PSA_KEY_TYPE_IS_RSA(key_type) ? ((void)alg, BITS_TO_BYTES(key_bits)) : \
+    (PSA_KEY_TYPE_IS_RSA(key_type) ? ((void)alg, PSA_BITS_TO_BYTES(key_bits)) : \
      PSA_KEY_TYPE_IS_ECC(key_type) ? PSA_ECDSA_SIGNATURE_SIZE(key_bits) : \
      0)
 

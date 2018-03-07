@@ -521,7 +521,7 @@ psa_status_t psa_export_key(psa_key_slot_t key,
 /* Message digests */
 /****************************************************************/
 
-static const mbedtls_md_info_t *mbedtls_md_info_of_psa( psa_algorithm_t alg )
+static const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
 {
     switch( alg )
     {
@@ -865,7 +865,7 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
 /* MAC */
 /****************************************************************/
 
-static const mbedtls_cipher_info_t *mbedtls_cipher_info_of_psa(
+static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     psa_algorithm_t alg,
     psa_key_type_t key_type,
     size_t key_bits )
@@ -984,7 +984,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
 
     if( ! PSA_ALG_IS_HMAC( alg ) )
     {
-        cipher_info = mbedtls_cipher_info_of_psa( alg, key_type, key_bits );
+        cipher_info = mbedtls_cipher_info_from_psa( alg, key_type, key_bits );
         if( cipher_info == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
         operation->mac_size = cipher_info->block_size;
@@ -1008,7 +1008,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
             if( PSA_ALG_IS_HMAC( alg ) )
             {
                 const mbedtls_md_info_t *md_info =
-                    mbedtls_md_info_of_psa( PSA_ALG_HMAC_HASH( alg ) );
+                    mbedtls_md_info_from_psa( PSA_ALG_HMAC_HASH( alg ) );
                 if( md_info == NULL )
                     return( PSA_ERROR_NOT_SUPPORTED );
                 if( key_type != PSA_KEY_TYPE_HMAC )
@@ -1191,7 +1191,7 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
         mbedtls_rsa_context *rsa = slot->data.rsa;
         int ret;
         psa_algorithm_t hash_alg = PSA_ALG_RSA_GET_HASH( alg );
-        const mbedtls_md_info_t *md_info = mbedtls_md_info_of_psa( hash_alg );
+        const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa( hash_alg );
         mbedtls_md_type_t md_alg =
             hash_alg == 0 ? MBEDTLS_MD_NONE : mbedtls_md_get_type( md_info );
         if( md_alg == MBEDTLS_MD_NONE )

@@ -1436,14 +1436,11 @@ static int x509_ocsp_is_parent_crt(
      * Check parental relationship using information in the OCSP response
      */
 
-    /* Check hash of parent's DN */
-    ret = x509_ocsp_mdcmp( single_resp->md_alg, parent->subject_raw.p,
-                           parent->subject_raw.len,
-                           single_resp->issuer_name_hash.p );
-    if( ret < 0 )
-        return( ret );
-    else if( ret != 0 )
-        return( 0 );
+    /*
+     * Note that we cannot check the hash of the parent's DN because it is
+     * possible for the DN in the certificate's issuer to be syntactically
+     * different from parent certificate's subject, yet still be the parent
+     */
 
     /* Check hash of parent's public key */
     ret = x509_ocsp_mdcmp( single_resp->md_alg, parent->pk_raw.p,

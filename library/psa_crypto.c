@@ -1288,6 +1288,8 @@ psa_status_t psa_crypto_init( void )
     if( ret != 0 )
         goto exit;
 
+    global_data.initialized = 1;
+
 exit:
     if( ret != 0 )
         mbedtls_psa_crypto_free( );

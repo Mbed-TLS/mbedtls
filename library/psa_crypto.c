@@ -385,6 +385,7 @@ psa_status_t psa_destroy_key(psa_key_slot_t key)
         slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
     {
         mbedtls_rsa_free( slot->data.rsa );
+        mbedtls_free( slot->data.rsa );
     }
     else
 #endif /* defined(MBEDTLS_RSA_C) */
@@ -392,6 +393,7 @@ psa_status_t psa_destroy_key(psa_key_slot_t key)
     if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
     {
         mbedtls_ecp_keypair_free( slot->data.ecp );
+        mbedtls_free( slot->data.ecp );
     }
     else
 #endif /* defined(MBEDTLS_ECP_C) */

@@ -1904,11 +1904,11 @@ static int x509_crt_check_parent( const mbedtls_x509_crt *child,
  * This function is called in two cases:
  *  - child was found to have a parent in trusted roots, in which case we're
  *    called with trust_ca pointing directly to that parent (not the full list)
- *      - this happens in cases 1, 2 and 3 of the comment on verify()
+ *      - this is cases 1, 2 and 3 of the comment on verify_with_profile()
  *      - case 1 is special as child and trust_ca point to copies of the same
  *        certificate then
  *  - child was found to have no parent either in the chain or in trusted CAs
- *      - this is cases 4 and 5 of the comment on verify()
+ *      - this is cases 4 and 5 of the comment on verify_with_profile()
  *
  * For historical reasons, the function currently does not assume that
  * trust_ca points directly to the right root in the first case, and it
@@ -2235,6 +2235,8 @@ int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
  *      (plus variant with multiple intermediates)
  *  5. E (EE not trusted)
  *      verify(E, T) -> verify_top(E, T)
+ *
+ * Note: this notation and case numbering is also used in x509_crt_verify_top()
  */
 int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
                      mbedtls_x509_crt *trust_ca,

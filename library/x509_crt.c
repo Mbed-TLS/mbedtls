@@ -2088,17 +2088,13 @@ static int x509_crt_verify_child(
         *flags |= MBEDTLS_X509_BADCERT_BAD_PK;
 
     md_info = mbedtls_md_info_from_type( child->sig_md );
-    if( md_info == NULL )
+    if( mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash ) != 0 )
     {
-        /*
-         * Cannot check 'unknown' hash
-         */
+        /* Note: this can't happen except after an internal error */
         *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
     }
     else
     {
-        mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash );
-
         if( x509_profile_check_key( profile, child->sig_pk, &parent->pk ) != 0 )
             *flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 

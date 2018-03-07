@@ -1457,15 +1457,11 @@ static int x509_ocsp_is_parent_crt(
 
     /* Basic parenting skills (name, CA bit, key usage) */
     if( x509_ocsp_crt_check_parent( child, parent, is_trust_ca ) != 0 )
-    {
         return( 0 );
-    }
 
     /* Signature */
     if( x509_ocsp_crt_check_signature( child, parent ) != 0 )
-    {
         return( 0 );
-    }
 
     /*
      * Optional time check.
@@ -1474,9 +1470,7 @@ static int x509_ocsp_is_parent_crt(
      */
     if( mbedtls_x509_time_is_past( &parent->valid_to ) ||
         mbedtls_x509_time_is_future( &parent->valid_from ) )
-    {
         return( 0 );
-    }
 
     /* Found parent of the requested certificate's status */
     *is_parent = 1;

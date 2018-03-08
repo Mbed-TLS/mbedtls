@@ -881,8 +881,5 @@ rm -rf "$OUT_OF_SOURCE_DIR"
 
 msg "Done, cleaning up"
 cleanup
-<<<<<<< HEAD
-=======
 
 final_report
->>>>>>> development-restricted

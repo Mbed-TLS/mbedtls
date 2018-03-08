@@ -156,8 +156,17 @@ typedef uint32_t psa_key_type_t;
 #define PSA_KEY_TYPE_RSA_PUBLIC_KEY             ((psa_key_type_t)0x06010000)
 /** RSA key pair (private and public key). */
 #define PSA_KEY_TYPE_RSA_KEYPAIR                ((psa_key_type_t)0x07010000)
-#define PSA_KEY_TYPE_ECC_BASE                   ((psa_key_type_t)0x06030000)
+/** DSA public key. */
+#define PSA_KEY_TYPE_DSA_PUBLIC_KEY             ((psa_key_type_t)0x06020000)
+/** DSA key pair (private and public key). */
+#define PSA_KEY_TYPE_DSA_KEYPAIR                ((psa_key_type_t)0x07020000)
+#define PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE        ((psa_key_type_t)0x06030000)
+#define PSA_KEY_TYPE_ECC_KEYPAIR_BASE           ((psa_key_type_t)0x07030000)
 #define PSA_KEY_TYPE_ECC_CURVE_MASK             ((psa_key_type_t)0x0000ffff)
+#define PSA_KEY_TYPE_ECC_KEYPAIR(curve)         \
+    (PSA_KEY_TYPE_ECC_KEYPAIR_BASE | (curve))
+#define PSA_KEY_TYPE_ECC_PUBLIC_KEY(curve)              \
+    (PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE | (curve))
 
 /** Whether a key type is vendor-defined. */
 #define PSA_KEY_TYPE_IS_VENDOR_DEFINED(type) \
@@ -165,18 +174,32 @@ typedef uint32_t psa_key_type_t;
 #define PSA_KEY_TYPE_IS_RAW_BYTES(type)                                 \
     (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_RAW_DATA ||  \
      ((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_SYMMETRIC)
+
+/** Whether a key type is asymmetric: either a key pair or a public key. */
 #define PSA_KEY_TYPE_IS_ASYMMETRIC(type)                                \
     (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_ASYMMETRIC)
+/** Whether a key type is the public part of a key pair. */
 #define PSA_KEY_TYPE_IS_PUBLIC_KEY(type)                                \
     (((type) & (PSA_KEY_TYPE_CATEGORY_MASK | PSA_KEY_TYPE_PAIR_FLAG) == \
       PSA_KEY_TYPE_CATEGORY_ASYMMETRIC))
+/** Whether a key type is a key pair containing a private part and a public
+ * part. */
 #define PSA_KEY_TYPE_IS_KEYPAIR(type)                                   \
     (((type) & (PSA_KEY_TYPE_CATEGORY_MASK | PSA_KEY_TYPE_PAIR_FLAG)) == \
      (PSA_KEY_TYPE_CATEGORY_ASYMMETRIC | PSA_KEY_TYPE_PAIR_FLAG))
+/** Whether a key type is an RSA key pair or public key. */
+/** The key pair type corresponding to a public key type. */
+#define PSA_KEY_TYPE_KEYPAIR_OF_PUBLIC_KEY(type)        \
+    ((type) | PSA_KEY_TYPE_PAIR_FLAG)
+/** The public key type corresponding to a key pair type. */
+#define PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type)        \
+    ((type) & ~PSA_KEY_TYPE_PAIR_FLAG)
 #define PSA_KEY_TYPE_IS_RSA(type)                                       \
-    (((type) & ~PSA_KEY_TYPE_PAIR_FLAG) == PSA_KEY_TYPE_RSA_PUBLIC_KEY)
+    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_RSA_PUBLIC_KEY)
+/** Whether a key type is an elliptic curve key pair or public key. */
 #define PSA_KEY_TYPE_IS_ECC(type)                                       \
-    (((type) & ~PSA_KEY_TYPE_ECC_CURVE_MASK) == PSA_KEY_TYPE_ECC_BASE)
+    ((PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) &                        \
+      ~PSA_KEY_TYPE_ECC_CURVE_MASK) == PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE)
 
 #define PSA_BLOCK_CIPHER_BLOCK_SIZE(type)            \
     (                                                \

@@ -537,8 +537,21 @@ typedef uint32_t psa_key_lifetime_t;
  */
 #define PSA_KEY_LIFETIME_WRITE_ONCE             ((psa_key_lifetime_t)0x7fffffff)
 
+/** \brief Retrieve the lifetime of a key slot.
+ *
+ * The assignment of lifetimes to slots is implementation-dependent.
+ */
 psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
                                   psa_key_lifetime_t *lifetime);
+
+/** \brief Change the lifetime of a key slot.
+ *
+ * Whether the lifetime of a key slot can be changed at all, and if so
+ *  whether the lifetime of an occupied key slot can be chaned, is
+ * implementation-dependent.
+ */
+psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
+                                  const psa_key_lifetime_t *lifetime);
 
 /**@}*/
 

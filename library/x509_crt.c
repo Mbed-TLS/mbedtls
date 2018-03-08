@@ -1085,7 +1085,7 @@ int mbedtls_x509_crt_parse( mbedtls_x509_crt *chain, const unsigned char *buf, s
 /*
  * Load one or more certificates and add them to the chained list
  */
-int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const char *path )
+int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const TCHAR *path )
 {
     int ret;
     size_t n;
@@ -1102,15 +1102,15 @@ int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const char *path )
     return( ret );
 }
 
-int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
+int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const TCHAR *path )
 {
     int ret = 0;
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
     int w_ret;
-    WCHAR szDir[MAX_PATH];
-    char filename[MAX_PATH];
-    char *p;
-    size_t len = strlen( path );
+    TCHAR szDir[MAX_PATH];
+    TCHAR filename[MAX_PATH];
+    TCHAR *p;
+    size_t len = _tcslen( path );
 
     WIN32_FIND_DATAW file_data;
     HANDLE hFind;
@@ -1119,18 +1119,13 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
         return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 
     memset( szDir, 0, sizeof(szDir) );
-    memset( filename, 0, MAX_PATH );
-    memcpy( filename, path, len );
-    filename[len++] = '\\';
+    memset( filename, 0, sizeof(filename) );
+    _tcsncpy( filename, path, len );
+    filename[len++] = _T('\\');
     p = filename + len;
-    filename[len++] = '*';
+    filename[len++] = _T('*');
 
-    w_ret = MultiByteToWideChar( CP_ACP, 0, filename, (int)len, szDir,
-                                 MAX_PATH - 3 );
-    if( w_ret == 0 )
-        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
-
-    hFind = FindFirstFileW( szDir, &file_data );
+    hFind = FindFirstFile( szDir, &file_data );
     if( hFind == INVALID_HANDLE_VALUE )
         return( MBEDTLS_ERR_X509_FILE_IO_ERROR );
 
@@ -1142,28 +1137,17 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
         if( file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
             continue;
 
-        w_ret = WideCharToMultiByte( CP_ACP, 0, file_data.cFileName,
-                                     lstrlenW( file_data.cFileName ),
-                                     p, (int) len - 1,
-                                     NULL, NULL );
-        if( w_ret == 0 )
-        {
-            ret = MBEDTLS_ERR_X509_FILE_IO_ERROR;
-            goto cleanup;
-        }
-
         w_ret = mbedtls_x509_crt_parse_file( chain, filename );
         if( w_ret < 0 )
             ret++;
         else
             ret += w_ret;
     }
-    while( FindNextFileW( hFind, &file_data ) != 0 );
+    while( FindNextFile( hFind, &file_data ) != 0 );
 
     if( GetLastError() != ERROR_NO_MORE_FILES )
         ret = MBEDTLS_ERR_X509_FILE_IO_ERROR;
 
-cleanup:
     FindClose( hFind );
 #else /* _WIN32 */
     int t_ret;

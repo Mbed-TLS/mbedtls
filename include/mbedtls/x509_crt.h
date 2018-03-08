@@ -98,7 +98,7 @@ mbedtls_x509_crt;
  * Build flag from an algorithm/curve identifier (pk, md, ecp)
  * Since 0 is always XXX_NONE, ignore it.
  */
-#define MBEDTLS_X509_ID_FLAG( id )   ( 1 << ( id - 1 ) )
+#define MBEDTLS_X509_ID_FLAG( id )   ( 1 << ( ( id ) - 1 ) )
 
 /**
  * Security profile for certificate verification.
@@ -205,7 +205,7 @@ int mbedtls_x509_crt_parse( mbedtls_x509_crt *chain, const unsigned char *buf, s
  * \return         0 if all certificates parsed successfully, a positive number
  *                 if partly successful or a specific X509 or PEM error code
  */
-int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const char *path );
+int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const TCHAR *path );
 
 /**
  * \brief          Load one or more certificate files from a path and add them
@@ -220,7 +220,7 @@ int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const char *path );
  * \return         0 if all certificates parsed successfully, a positive number
  *                 if partly successful or a specific X509 or PEM error code
  */
-int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path );
+int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const TCHAR *path );
 #endif /* MBEDTLS_FS_IO */
 
 /**

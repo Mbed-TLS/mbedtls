@@ -552,7 +552,7 @@ int mbedtls_x509_crl_parse( mbedtls_x509_crl *chain, const unsigned char *buf, s
 /*
  * Load one or more CRLs and add them to the chained list
  */
-int mbedtls_x509_crl_parse_file( mbedtls_x509_crl *chain, const char *path )
+int mbedtls_x509_crl_parse_file( mbedtls_x509_crl *chain, const TCHAR *path )
 {
     int ret;
     size_t n;

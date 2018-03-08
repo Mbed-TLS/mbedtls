@@ -63,9 +63,26 @@ extern "C" {
  * (eg two file descriptors for combined IPv4 + IPv6 support, or additional
  * structures for hand-made UDP demultiplexing).
  */
+#ifdef _MSC_VER
+#define ISINVALID(s) (INVALID_SOCKET==(s))
+#else
+#ifndef SOCKET
+#define SOCKET int
+#endif
+#ifndef SSIZE_T
+typedef SSIZE_T ssize_t
+#endif
+#ifndef INVALID_SOCKET
+#define INVALID_SOCKET (-1)
+#endif
+#ifndef ISINVALID
+#define ISINVALID(s) (0>(s))
+#endif
+#endif
+
 typedef struct
 {
-    int fd;             /**< The underlying file descriptor                 */
+    SOCKET fd;             /**< The underlying socket handle or file descriptor */
 }
 mbedtls_net_context;
 

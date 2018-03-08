@@ -475,13 +475,13 @@ int mbedtls_ctr_drbg_random( void *p_rng, unsigned char *output, size_t output_l
 }
 
 #if defined(MBEDTLS_FS_IO)
-int mbedtls_ctr_drbg_write_seed_file( mbedtls_ctr_drbg_context *ctx, const char *path )
+int mbedtls_ctr_drbg_write_seed_file( mbedtls_ctr_drbg_context *ctx, const TCHAR *path )
 {
     int ret = MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR;
     FILE *f;
     unsigned char buf[ MBEDTLS_CTR_DRBG_MAX_INPUT ];
 
-    if( ( f = fopen( path, "wb" ) ) == NULL )
+    if( ( f = _tfopen( path, _T( "wb" ) ) ) == NULL )
         return( MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR );
 
     if( ( ret = mbedtls_ctr_drbg_random( ctx, buf, MBEDTLS_CTR_DRBG_MAX_INPUT ) ) != 0 )
@@ -499,14 +499,14 @@ exit:
     return( ret );
 }
 
-int mbedtls_ctr_drbg_update_seed_file( mbedtls_ctr_drbg_context *ctx, const char *path )
+int mbedtls_ctr_drbg_update_seed_file( mbedtls_ctr_drbg_context *ctx, const TCHAR *path )
 {
     int ret = 0;
     FILE *f;
     size_t n;
     unsigned char buf[ MBEDTLS_CTR_DRBG_MAX_INPUT ];
 
-    if( ( f = fopen( path, "rb" ) ) == NULL )
+    if( ( f = _tfopen( path, _T( "rb" ) ) ) == NULL )
         return( MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR );
 
     fseek( f, 0, SEEK_END );

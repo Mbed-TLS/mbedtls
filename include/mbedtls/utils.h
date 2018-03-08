@@ -33,6 +33,13 @@
  *
  * \note        This implementation should never be optimized out by the
  *              compiler
+ *
+ * \note        It is extremely difficult to guarantee that calls to
+ *              mbedtls_zeroize() are not removed by aggressive compiler
+ *              optimizations in a portable way. For this reason, Mbed TLS
+ *              provides the configuration option MBEDTLS_UTILS_ZEROIZE_ALT,
+ *              which allows users to configure mbedtls_zeroize() to use a
+ *              suitable implementation for their platform and needs
  */
 void mbedtls_zeroize( void *buf, size_t len );
 

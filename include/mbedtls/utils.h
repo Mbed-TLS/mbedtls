@@ -1,9 +1,9 @@
 /**
  * \file utils.h
  *
- * \brief mbed TLS utility functions
+ * \brief Mbed TLS utility functions
  *
- *  Copyright (C) 2017, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2018, Arm Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -18,7 +18,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  This file is part of mbed TLS (https://tls.mbed.org)
+ *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
 #ifndef MBEDTLS_UTILS_H
 #define MBEDTLS_UTILS_H

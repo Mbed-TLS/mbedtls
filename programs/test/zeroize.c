@@ -10,7 +10,7 @@
  * program. The debugger facilities are then used to manually inspect the
  * memory and verify that the call to mbedtls_zeroize() was not eliminated.
  *
- *  Copyright (C) 2017, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2018, Arm Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may

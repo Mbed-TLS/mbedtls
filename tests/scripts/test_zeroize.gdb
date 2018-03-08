@@ -1,8 +1,8 @@
 # test_zeroize.gdb
 #
-# This file is part of mbed TLS (https://tls.mbed.org)
+# This file is part of Mbed TLS (https://tls.mbed.org)
 #
-# Copyright (c) 2017, ARM Limited, All Rights Reserved
+# Copyright (c) 2018, Arm Limited, All Rights Reserved
 #
 # Purpose
 #

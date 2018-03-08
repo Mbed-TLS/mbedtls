@@ -259,10 +259,8 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_MD2                             ((psa_algorithm_t)0x01000001)
 #define PSA_ALG_MD4                             ((psa_algorithm_t)0x01000002)
 #define PSA_ALG_MD5                             ((psa_algorithm_t)0x01000003)
-#define PSA_ALG_SHA_256_128                     ((psa_algorithm_t)0x01000004)
-#define PSA_ALG_RIPEMD160                       ((psa_algorithm_t)0x01000005)
-#define PSA_ALG_SHA_1                           ((psa_algorithm_t)0x01000006)
-#define PSA_ALG_SHA_256_160                     ((psa_algorithm_t)0x01000007)
+#define PSA_ALG_RIPEMD160                       ((psa_algorithm_t)0x01000004)
+#define PSA_ALG_SHA_1                           ((psa_algorithm_t)0x01000005)
 #define PSA_ALG_SHA_224                         ((psa_algorithm_t)0x01000008)
 #define PSA_ALG_SHA_256                         ((psa_algorithm_t)0x01000009)
 #define PSA_ALG_SHA_384                         ((psa_algorithm_t)0x0100000a)
@@ -572,10 +570,8 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
         (alg) == PSA_ALG_MD2 ? 16 :             \
         (alg) == PSA_ALG_MD4 ? 16 :             \
         (alg) == PSA_ALG_MD5 ? 16 :             \
-        (alg) == PSA_ALG_SHA_256_128 ? 16 :     \
         (alg) == PSA_ALG_RIPEMD160 ? 20 :       \
         (alg) == PSA_ALG_SHA_1 ? 20 :           \
-        (alg) == PSA_ALG_SHA_256_160 ? 20 :     \
         (alg) == PSA_ALG_SHA_224 ? 28 :         \
         (alg) == PSA_ALG_SHA_256 ? 32 :         \
         (alg) == PSA_ALG_SHA_384 ? 48 :         \

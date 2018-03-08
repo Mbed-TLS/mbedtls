@@ -91,9 +91,8 @@
 
 /*
  * Bit masks for each of the components of an ASN.1 tag as specified in
- * Information technnology - ASN.1 encoding rules: Specification of Basic
- * Encoding Rules (BER), Canonical Encoding Rules (CER), and Distinguished
- * encoding rules (DER) Section 8.1.2.2:
+ * ITU X.690 (08/2015), section 8.1 "General rules for encoding",
+ * paragraph 8.1.2.2:
  *
  * Bit  8     7   6   5          1
  *     +-------+-----+------------+

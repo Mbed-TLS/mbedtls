@@ -110,14 +110,14 @@ To configure CMake for building shared libraries, use:
 
 There are many different build modes available within the CMake buildsystem. Most of them are available for gcc and clang, though some are compiler-specific:
 
--   Release. This generates the default code without any unnecessary information in the binary files.
--   Debug. This generates debug information and disables optimization of the code.
--   Coverage. This generates code coverage information in addition to debug information.
--   ASan. This instruments the code with AddressSanitizer to check for memory errors. (This includes LeakSanitizer, with recent version of gcc and clang.) (With recent version of clang, this mode also instruments the code with UndefinedSanitizer to check for undefined behaviour.)
--   ASanDbg. Same as ASan but slower, with debug information and better stack traces.
--   MemSan. This instruments the code with MemorySanitizer to check for uninitialised memory reads. Experimental, needs recent clang on Linux/x86\_64.
--   MemSanDbg. Same as MemSan but slower, with debug information, better stack traces and origin tracking.
--   Check. This activates the compiler warnings that depend on optimization and treats all warnings as errors.
+-   `Release`. This generates the default code without any unnecessary information in the binary files.
+-   `Debug`. This generates debug information and disables optimization of the code.
+-   `Coverage`. This generates code coverage information in addition to debug information.
+-   `ASan`. This instruments the code with AddressSanitizer to check for memory errors. (This includes LeakSanitizer, with recent version of gcc and clang.) (With recent version of clang, this mode also instruments the code with UndefinedSanitizer to check for undefined behaviour.)
+-   `ASanDbg`. Same as ASan but slower, with debug information and better stack traces.
+-   `MemSan`. This instruments the code with MemorySanitizer to check for uninitialised memory reads. Experimental, needs recent clang on Linux/x86\_64.
+-   `MemSanDbg`. Same as MemSan but slower, with debug information, better stack traces and origin tracking.
+-   `Check`. This activates the compiler warnings that depend on optimization and treats all warnings as errors.
 
 Switching build modes in CMake is simple. For debug mode, enter at the command line:
 

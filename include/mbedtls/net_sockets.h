@@ -70,7 +70,7 @@ extern "C" {
 #define SOCKET int
 #endif
 #ifndef SSIZE_T
-typedef SSIZE_T ssize_t
+#define SSIZE_T ssize_t
 #endif
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)

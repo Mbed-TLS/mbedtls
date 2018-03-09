@@ -348,7 +348,7 @@ int mbedtls_hmac_drbg_write_seed_file( mbedtls_hmac_drbg_context *ctx, const MBE
     FILE *f;
     unsigned char buf[ MBEDTLS_HMAC_DRBG_MAX_INPUT ];
 
-    if( ( f = MBEDTLS__TFOPEN( path, MBEDTLS__T( "wb" ) ) ) == NULL )
+    if( ( f = mbedtls_fopen( path, MBEDTLS__T( "wb" ) ) ) == NULL )
         return( MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR );
 
     if( ( ret = mbedtls_hmac_drbg_random( ctx, buf, sizeof( buf ) ) ) != 0 )
@@ -376,7 +376,7 @@ int mbedtls_hmac_drbg_update_seed_file( mbedtls_hmac_drbg_context *ctx, const MB
     size_t n;
     unsigned char buf[ MBEDTLS_HMAC_DRBG_MAX_INPUT ];
 
-    if( ( f = MBEDTLS__TFOPEN( path, MBEDTLS__T( "rb" ) ) ) == NULL )
+    if( ( f = mbedtls_fopen( path, MBEDTLS__T( "rb" ) ) ) == NULL )
         return( MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR );
 
     fseek( f, 0, SEEK_END );

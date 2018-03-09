@@ -52,7 +52,7 @@
 #else
 #include <stdlib.h>
 #define mbedtls_free       free
-#define mbedtls_calloc    calloc
+#define mbedtls_calloc     calloc
 #define mbedtls_snprintf   snprintf
 #endif
 
@@ -72,6 +72,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#define mbedtls_strlen     strlen
+#else
+#define mbedtls_strlen     _tcslen
 #endif /* !_WIN32 || EFIX64 || EFI32 */
 #endif
 
@@ -1110,9 +1113,9 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const MBEDTLS_TCHAR *p
     MBEDTLS_TCHAR szDir[MAX_PATH];
     MBEDTLS_TCHAR filename[MAX_PATH];
     MBEDTLS_TCHAR *p;
-    size_t len = MBEDTLS__TCSLEN( path );
+    size_t len = mbedtls_strlen( path );
 
-    WIN32_FIND_DATAW file_data;
+    WIN32_FIND_DATA file_data;
     HANDLE hFind;
 
     if( len > MAX_PATH - 3 )

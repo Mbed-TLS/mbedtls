@@ -551,7 +551,7 @@ static int load_file( const MBEDTLS_TCHAR *path, unsigned char **buf, size_t *n 
     FILE *f;
     long size;
 
-    if( ( f = MBEDTLS__TFOPEN( path, MBEDTLS__T( "rb" ) ) ) == NULL )
+    if( ( f = mbedtls_fopen( path, MBEDTLS__T( "rb" ) ) ) == NULL )
         return( MBEDTLS_ERR_DHM_FILE_IO_ERROR );
 
     fseek( f, 0, SEEK_END );

@@ -290,7 +290,7 @@ int mbedtls_md_file( const mbedtls_md_info_t *md_info, const MBEDTLS_TCHAR *path
     if( md_info == NULL )
         return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
 
-    if( ( f = MBEDTLS__TFOPEN( path, MBEDTLS__T( "rb" ) ) ) == NULL )
+    if( ( f = mbedtls_fopen( path, MBEDTLS__T( "rb" ) ) ) == NULL )
         return( MBEDTLS_ERR_MD_FILE_IO_ERROR );
 
     mbedtls_md_init( &ctx );

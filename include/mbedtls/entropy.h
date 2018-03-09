@@ -236,7 +236,7 @@ int mbedtls_entropy_update_nv_seed( mbedtls_entropy_context *ctx );
  *                      MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR on file error, or
  *                      MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
  */
-int mbedtls_entropy_write_seed_file( mbedtls_entropy_context *ctx, const TCHAR *path );
+int mbedtls_entropy_write_seed_file( mbedtls_entropy_context *ctx, const MBEDTLS_TCHAR *path );
 
 /**
  * \brief               Read and update a seed file. Seed is added to this
@@ -250,7 +250,7 @@ int mbedtls_entropy_write_seed_file( mbedtls_entropy_context *ctx, const TCHAR *
  *                      MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR on file error,
  *                      MBEDTLS_ERR_ENTROPY_SOURCE_FAILED
  */
-int mbedtls_entropy_update_seed_file( mbedtls_entropy_context *ctx, const TCHAR *path );
+int mbedtls_entropy_update_seed_file( mbedtls_entropy_context *ctx, const MBEDTLS_TCHAR *path );
 #endif /* MBEDTLS_FS_IO */
 
 #if defined(MBEDTLS_SELF_TEST)

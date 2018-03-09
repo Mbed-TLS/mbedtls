@@ -286,7 +286,7 @@ int mbedtls_ctr_drbg_random( void *p_rng,
  *                      #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED on
  *                      failure.
  */
-int mbedtls_ctr_drbg_write_seed_file( mbedtls_ctr_drbg_context *ctx, const TCHAR *path );
+int mbedtls_ctr_drbg_write_seed_file( mbedtls_ctr_drbg_context *ctx, const MBEDTLS_TCHAR *path );
 
 /**
  * \brief               This function reads and updates a seed file. The seed
@@ -300,7 +300,7 @@ int mbedtls_ctr_drbg_write_seed_file( mbedtls_ctr_drbg_context *ctx, const TCHAR
  *                      #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED or
  *                      #MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG on failure.
  */
-int mbedtls_ctr_drbg_update_seed_file( mbedtls_ctr_drbg_context *ctx, const TCHAR *path );
+int mbedtls_ctr_drbg_update_seed_file( mbedtls_ctr_drbg_context *ctx, const MBEDTLS_TCHAR *path );
 #endif /* MBEDTLS_FS_IO */
 
 /**

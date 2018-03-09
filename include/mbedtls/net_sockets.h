@@ -59,30 +59,17 @@ extern "C" {
 /**
  * Wrapper type for sockets.
  *
- * Currently backed by just a file descriptor, but might be more in the future
+ * Currently backed by just a file descriptor/socket handle, but might be more in the future
  * (eg two file descriptors for combined IPv4 + IPv6 support, or additional
  * structures for hand-made UDP demultiplexing).
  */
-#ifdef _MSC_VER
-#define ISINVALID(s) (INVALID_SOCKET==(s))
-#else
-#ifndef SOCKET
-#define SOCKET int
-#endif
-#ifndef SSIZE_T
-#define SSIZE_T ssize_t
-#endif
-#ifndef INVALID_SOCKET
-#define INVALID_SOCKET (-1)
-#endif
-#ifndef ISINVALID
-#define ISINVALID(s) (0>(s))
-#endif
-#endif
-
 typedef struct
 {
-    SOCKET fd;             /**< The underlying socket handle or file descriptor */
+#ifdef _MSC_VER
+    SOCKET fd;          /**< The underlying socket handle or file descriptor */
+#else
+    int fd;             /**< The underlying socket handle or file descriptor */
+#endif
 }
 mbedtls_net_context;
 

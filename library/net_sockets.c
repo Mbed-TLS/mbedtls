@@ -53,6 +53,20 @@
 #else
 #pragma comment( lib, "ws2_32.lib" )
 #endif
+#define ISINVALID(s) (INVALID_SOCKET==(s))
+#else /* _MSC_VER */
+#ifndef SOCKET
+#define SOCKET int
+#endif
+#ifndef SSIZE_T
+#define SSIZE_T ssize_t
+#endif
+#ifndef INVALID_SOCKET
+#define INVALID_SOCKET (-1)
+#endif
+#ifndef ISINVALID
+#define ISINVALID(s) (0>(s))
+#endif
 #endif /* _MSC_VER */
 
 #define read(fd,buf,len)        recv( fd, (char*)( buf ), (int)( len ), 0 )
@@ -263,7 +277,7 @@ static int net_would_block( const mbedtls_net_context *ctx )
 static int net_would_block( const mbedtls_net_context *ctx )
 {
     int err = errno;
-    
+
     /*
      * Never return 'WOULD BLOCK' on a non-blocking socket
      */

@@ -120,7 +120,7 @@ int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, siz
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const TCHAR *path );
+int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const MBEDTLS_TCHAR *path );
 #endif /* MBEDTLS_FS_IO */
 
 /**

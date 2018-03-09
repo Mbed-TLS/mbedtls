@@ -1085,7 +1085,7 @@ int mbedtls_x509_crt_parse( mbedtls_x509_crt *chain, const unsigned char *buf, s
 /*
  * Load one or more certificates and add them to the chained list
  */
-int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const TCHAR *path )
+int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const MBEDTLS_TCHAR *path )
 {
     int ret;
     size_t n;
@@ -1102,15 +1102,15 @@ int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const TCHAR *path )
     return( ret );
 }
 
-int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const TCHAR *path )
+int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const MBEDTLS_TCHAR *path )
 {
     int ret = 0;
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
     int w_ret;
-    TCHAR szDir[MAX_PATH];
-    TCHAR filename[MAX_PATH];
-    TCHAR *p;
-    size_t len = _tcslen( path );
+    MBEDTLS_TCHAR szDir[MAX_PATH];
+    MBEDTLS_TCHAR filename[MAX_PATH];
+    MBEDTLS_TCHAR *p;
+    size_t len = MBEDTLS__TCSLEN( path );
 
     WIN32_FIND_DATAW file_data;
     HANDLE hFind;
@@ -1121,9 +1121,9 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const TCHAR *path )
     memset( szDir, 0, sizeof(szDir) );
     memset( filename, 0, sizeof(filename) );
     _tcsncpy( filename, path, len );
-    filename[len++] = _T('\\');
+    filename[len++] = MBEDTLS__T('\\');
     p = filename + len;
-    filename[len++] = _T('*');
+    filename[len++] = MBEDTLS__T('*');
 
     hFind = FindFirstFile( szDir, &file_data );
     if( hFind == INVALID_HANDLE_VALUE )

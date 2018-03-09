@@ -74,10 +74,10 @@
 #define MBEDTLS_FS_IO
 
 /* A quick fix for MBEDTLS_FS_IO */
-#define _T(x) x
-#define TCHAR char
-#define _tfopen fopen
-#define _tcslen strlen 
+#define MBEDTLS__T(x) x
+#define MBEDTLS_TCHAR char
+#define MBEDTLS__TFOPEN fopen
+#define MBEDTLS__TCSLEN strlen
 
 #include "mbedtls/check_config.h"
 

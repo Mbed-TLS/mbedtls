@@ -76,7 +76,7 @@
 /* A quick fix for MBEDTLS_FS_IO */
 #define MBEDTLS__T(x) x
 #define MBEDTLS_TCHAR char
-#define mbedtls_fopen fopen
+#define MBEDTLS_FOPEN fopen
 
 #include "mbedtls/check_config.h"
 

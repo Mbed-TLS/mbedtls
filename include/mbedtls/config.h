@@ -37,11 +37,11 @@
 #include <tchar.h>
 #define MBEDTLS__T _T
 #define MBEDTLS_TCHAR TCHAR
-#define mbedtls_fopen _tfopen
+#define MBEDTLS_FOPEN _tfopen
 #else
 #define MBEDTLS__T(x) x
 #define MBEDTLS_TCHAR char
-#define mbedtls_fopen fopen
+#define MBEDTLS_FOPEN fopen
 #endif
 
 /**

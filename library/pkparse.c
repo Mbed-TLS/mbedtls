@@ -81,7 +81,7 @@ int mbedtls_pk_load_file( const MBEDTLS_TCHAR *path, unsigned char **buf, size_t
     FILE *f;
     long size;
 
-    if( ( f = mbedtls_fopen( path, MBEDTLS__T("rb") ) ) == NULL )
+    if( ( f = MBEDTLS_FOPEN( path, MBEDTLS__T("rb") ) ) == NULL )
         return( MBEDTLS_ERR_PK_FILE_IO_ERROR );
 
     fseek( f, 0, SEEK_END );

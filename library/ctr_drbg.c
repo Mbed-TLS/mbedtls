@@ -481,7 +481,7 @@ int mbedtls_ctr_drbg_write_seed_file( mbedtls_ctr_drbg_context *ctx, const MBEDT
     FILE *f;
     unsigned char buf[ MBEDTLS_CTR_DRBG_MAX_INPUT ];
 
-    if( ( f = mbedtls_fopen( path, MBEDTLS__T( "wb" ) ) ) == NULL )
+    if( ( f = MBEDTLS_FOPEN( path, MBEDTLS__T( "wb" ) ) ) == NULL )
         return( MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR );
 
     if( ( ret = mbedtls_ctr_drbg_random( ctx, buf, MBEDTLS_CTR_DRBG_MAX_INPUT ) ) != 0 )
@@ -506,7 +506,7 @@ int mbedtls_ctr_drbg_update_seed_file( mbedtls_ctr_drbg_context *ctx, const MBED
     size_t n;
     unsigned char buf[ MBEDTLS_CTR_DRBG_MAX_INPUT ];
 
-    if( ( f = mbedtls_fopen( path, MBEDTLS__T( "rb" ) ) ) == NULL )
+    if( ( f = MBEDTLS_FOPEN( path, MBEDTLS__T( "rb" ) ) ) == NULL )
         return( MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR );
 
     fseek( f, 0, SEEK_END );

@@ -73,6 +73,12 @@
 /* For testing with compat.sh */
 #define MBEDTLS_FS_IO
 
+/* A quick fix for MBEDTLS_FS_IO */
+#define _T(x) x
+#define TCHAR char
+#define _tfopen fopen
+#define _tcslen strlen 
+
 #include "mbedtls/check_config.h"
 
 #endif /* MBEDTLS_CONFIG_H */

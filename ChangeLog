@@ -13,6 +13,8 @@ Default behavior changes
      Applied Sciences).
 
 Security
+   * Verify results of RSA private key operations to defend
+     against Bellcore glitch attack.
    * Fix implementation of the truncated HMAC extension. The previous
      implementation allowed an offline 2^80 brute force attack on the
      HMAC key of a single, uninterrupted connection (with no

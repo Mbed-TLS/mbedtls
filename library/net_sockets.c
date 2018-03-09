@@ -53,21 +53,9 @@
 #else
 #pragma comment( lib, "ws2_32.lib" )
 #endif
-#define ISINVALID(s) (INVALID_SOCKET==(s))
-#else /* _MSC_VER */
-#ifndef SOCKET
-#define SOCKET int
-#endif
-#ifndef SSIZE_T
-#define SSIZE_T ssize_t
-#endif
-#ifndef INVALID_SOCKET
-#define INVALID_SOCKET (-1)
-#endif
-#ifndef ISINVALID
-#define ISINVALID(s) (0>(s))
-#endif
 #endif /* _MSC_VER */
+
+#define ISINVALID(s) (INVALID_SOCKET==(s))
 
 #define read(fd,buf,len)        recv( fd, (char*)( buf ), (int)( len ), 0 )
 #define write(fd,buf,len)       send( fd, (char*)( buf ), (int)( len ), 0 )
@@ -87,6 +75,19 @@ static int wsa_init_done = 0;
 #include <fcntl.h>
 #include <netdb.h>
 #include <errno.h>
+
+#ifndef SOCKET
+#define SOCKET int
+#endif
+#ifndef SSIZE_T
+#define SSIZE_T ssize_t
+#endif
+#ifndef INVALID_SOCKET
+#define INVALID_SOCKET (-1)
+#endif
+#ifndef ISINVALID
+#define ISINVALID(s) (0>(s))
+#endif
 
 #endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 

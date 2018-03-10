@@ -284,7 +284,7 @@ if [ $KEEP_GOING -eq 1 ]; then
     start_red=
     end_color=
     if [ -t 1 ]; then
-        case "$TERM" in
+        case "${TERM:-}" in
             *color*|cygwin|linux|rxvt*|screen|[Eex]term*)
                 start_red=$(printf '\033[31m')
                 end_color=$(printf '\033[0m')

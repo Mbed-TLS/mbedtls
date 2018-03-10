@@ -7,6 +7,9 @@ Bugfix
      is not enabled. Set MBEDTLS_SSL_MIN_MAJOR_VERSION
      and MBEDTLS_SSL_MIN_MINOR_VERSION instead of
      MBEDTLS_SSL_MAJOR_VERSION_3 and MBEDTLS_SSL_MINOR_VERSION_1. #664
+   * Fix compilation error on Mingw32 when _TRUNCATE is defined. Use _TRUNCATE
+     only if __MINGW32__ not defined. Fix suggested by Thomas Glanzmann and
+     Nick Wilson on issue #355
 
 Changes
    * Clarify the documentation of mbedtls_ssl_setup.

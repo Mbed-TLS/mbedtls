@@ -63,9 +63,9 @@ Bugfix
      where the failure of CTR DRBG initialization lead to freeing an
      RSA context without proper initialization beforehand.
    * Fix setting version TLSv1 as minimal version, even if TLS 1
-     is not enabled. Set `MBEDTLS_SSL_MIN_MAJOR_VERSION`
-     and `MBEDTLS_SSL_MIN_MINOR_VERSION` instead
-     of `MBEDTLS_SSL_MAJOR_VERSION_3` and `MBEDTLS_SSL_MINOR_VERSION_1`
+     is not enabled. Set MBEDTLS_SSL_MIN_MAJOR_VERSION
+     and MBEDTLS_SSL_MIN_MINOR_VERSION instead of
+     MBEDTLS_SSL_MAJOR_VERSION_3 and MBEDTLS_SSL_MINOR_VERSION_1. #664
 
 Changes
    * Extend cert_write example program by options to set the CRT version

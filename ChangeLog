@@ -43,6 +43,7 @@ Changes
    * Remove support for the library reference configuration for picocoin.
    * MD functions deprecated in 2.7.0 are no longer inline, to provide
      a migration path for those depending on the library's ABI.
+   * Clarify the documentation of mbedtls_ssl_setup.
 
 = mbed TLS 2.7.0 branch released 2018-02-03
 

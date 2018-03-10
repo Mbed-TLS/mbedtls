@@ -42,6 +42,8 @@ Bugfix
    * Fix compilation error on Mingw32 when _TRUNCATE is defined. Use _TRUNCATE
      only if __MINGW32__ not defined. Fix suggested by Thomas Glanzmann and
      Nick Wilson on issue #355
+   * In test_suite_pk, pass valid parameters when testing for hash length
+     overflow. #1179
 
 Changes
    * Fix tag lengths and value ranges in the documentation of CCM encryption.

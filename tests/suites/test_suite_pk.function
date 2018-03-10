@@ -417,10 +417,14 @@ exit:
 void pk_rsa_overflow( )
 {
     mbedtls_pk_context pk;
-    size_t hash_len = SIZE_MAX;
+    size_t hash_len = SIZE_MAX, sig_len = SIZE_MAX;
+    unsigned char hash[50], sig[100];
 
     if( SIZE_MAX <= UINT_MAX )
         return;
+
+    memset( hash, 0x2a, sizeof hash );
+    memset( sig, 0, sizeof sig );
 
     mbedtls_pk_init( &pk );
 
@@ -429,14 +433,14 @@ void pk_rsa_overflow( )
 
 #if defined(MBEDTLS_PKCS1_V21)
     TEST_ASSERT( mbedtls_pk_verify_ext( MBEDTLS_PK_RSASSA_PSS, NULL, &pk,
-                    MBEDTLS_MD_NONE, NULL, hash_len, NULL, 0 ) ==
+                    MBEDTLS_MD_NONE, hash, hash_len, sig, sig_len ) ==
                  MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 #endif /* MBEDTLS_PKCS1_V21 */
 
-    TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_NONE, NULL, hash_len,
-                    NULL, 0 ) == MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_NONE, hash, hash_len,
+                    sig, sig_len ) == MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_NONE, NULL, hash_len, NULL, 0,
+    TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_NONE, hash, hash_len, sig, &sig_len,
                     rnd_std_rand, NULL ) == MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
 exit:

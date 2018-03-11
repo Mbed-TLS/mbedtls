@@ -113,7 +113,7 @@ static void debug_header( memory_header *hdr )
 #endif
 }
 
-static void debug_chain()
+static void debug_chain(void)
 {
     memory_header *cur = heap.first;
 
@@ -180,7 +180,7 @@ static int verify_header( memory_header *hdr )
     return( 0 );
 }
 
-static int verify_chain()
+static int verify_chain(void)
 {
     memory_header *prv = heap.first, *cur = heap.first->next;
 
@@ -500,13 +500,13 @@ void mbedtls_memory_buffer_set_verify( int verify )
     heap.verify = verify;
 }
 
-int mbedtls_memory_buffer_alloc_verify()
+int mbedtls_memory_buffer_alloc_verify(void)
 {
     return verify_chain();
 }
 
 #if defined(MBEDTLS_MEMORY_DEBUG)
-void mbedtls_memory_buffer_alloc_status()
+void mbedtls_memory_buffer_alloc_status(void)
 {
     mbedtls_fprintf( stderr,
                       "Current use: %zu blocks / %zu bytes, max: %zu blocks / "
@@ -600,7 +600,7 @@ void mbedtls_memory_buffer_alloc_init( unsigned char *buf, size_t len )
     heap.first_free = heap.first;
 }
 
-void mbedtls_memory_buffer_alloc_free()
+void mbedtls_memory_buffer_alloc_free(void)
 {
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_free( &heap.mutex );

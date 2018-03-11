@@ -92,7 +92,12 @@ if(CMAKE_COMPILER_IS_CLANG)
 endif(CMAKE_COMPILER_IS_CLANG)
 
 if(WIN32)
+    if(WINCE)
+      set(libs ${libs} ws2)
+     	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUNICODE") 
+    else()
     set(libs ${libs} ws2_32)
+    endif(WINCE)
 endif(WIN32)
 
 if(USE_PKCS11_HELPER_LIBRARY)

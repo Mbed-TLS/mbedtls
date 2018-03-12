@@ -257,7 +257,7 @@ int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
 {
     int ret;
     size_t len;
-    unsigned char *p, *end;
+    unsigned char *p = NULL, *end = NULL;
     mbedtls_x509_buf sig_params1, sig_params2, sig_oid2;
     mbedtls_x509_crl *crl = chain;
 
@@ -294,7 +294,11 @@ int mbedtls_x509_crl_parse_der( mbedtls_x509_crl *chain,
     /*
      * Copy raw DER-encoded CRL
      */
-    if( ( p = mbedtls_calloc( 1, buflen ) ) == NULL )
+    if( buflen == 0 )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT );
+
+    p = mbedtls_calloc( 1, buflen );
+    if( p == NULL )
         return( MBEDTLS_ERR_X509_ALLOC_FAILED );
 
     memcpy( p, buf, buflen );

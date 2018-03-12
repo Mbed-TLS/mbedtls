@@ -1409,36 +1409,47 @@ X509 OID numstring #5 (arithmetic overflow)
 x509_oid_numstr:"2A8648F9F8F7F6F5F4F3F2F1F001":"":100:MBEDTLS_ERR_OID_BUF_TOO_SMALL
 
 X509 crt keyUsage #1 (no extension, expected KU)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
 x509_check_key_usage:"data_files/server1.crt":MBEDTLS_X509_KU_DIGITAL_SIGNATURE|MBEDTLS_X509_KU_KEY_ENCIPHERMENT:0
 
 X509 crt keyUsage #2 (no extension, surprising KU)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
 x509_check_key_usage:"data_files/server1.crt":MBEDTLS_X509_KU_KEY_CERT_SIGN:0
 
 X509 crt keyUsage #3 (extension present, no KU)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
 x509_check_key_usage:"data_files/server1.key_usage.crt":0:0
 
 X509 crt keyUsage #4 (extension present, single KU present)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
 x509_check_key_usage:"data_files/server1.key_usage.crt":MBEDTLS_X509_KU_DIGITAL_SIGNATURE:0
 
 X509 crt keyUsage #5 (extension present, single KU absent)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
 x509_check_key_usage:"data_files/server1.key_usage.crt":MBEDTLS_X509_KU_KEY_CERT_SIGN:MBEDTLS_ERR_X509_BAD_INPUT_DATA
 
 X509 crt keyUsage #6 (extension present, combined KU present)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
 x509_check_key_usage:"data_files/server1.key_usage.crt":MBEDTLS_X509_KU_DIGITAL_SIGNATURE|MBEDTLS_X509_KU_KEY_ENCIPHERMENT:0
 
 X509 crt keyUsage #7 (extension present, combined KU both absent)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
 x509_check_key_usage:"data_files/server1.key_usage.crt":MBEDTLS_X509_KU_KEY_CERT_SIGN|MBEDTLS_X509_KU_CRL_SIGN:MBEDTLS_ERR_X509_BAD_INPUT_DATA
 
 X509 crt keyUsage #8 (extension present, combined KU one absent)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
 x509_check_key_usage:"data_files/server1.key_usage.crt":MBEDTLS_X509_KU_KEY_ENCIPHERMENT|MBEDTLS_X509_KU_KEY_AGREEMENT:MBEDTLS_ERR_X509_BAD_INPUT_DATA
 
 X509 crt keyUsage #9 (extension present, decOnly allowed absent)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
 x509_check_key_usage:"data_files/server1.key_usage.crt":MBEDTLS_X509_KU_DIGITAL_SIGNATURE|MBEDTLS_X509_KU_KEY_ENCIPHERMENT|MBEDTLS_X509_KU_DECIPHER_ONLY:0
 
 X509 crt keyUsage #10 (extension present, decOnly non-allowed present)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
 x509_check_key_usage:"data_files/keyUsage.decipherOnly.crt":MBEDTLS_X509_KU_DIGITAL_SIGNATURE|MBEDTLS_X509_KU_KEY_ENCIPHERMENT:MBEDTLS_ERR_X509_BAD_INPUT_DATA
 
 X509 crt keyUsage #11 (extension present, decOnly allowed present)
+depends_on:MBEDTLS_RSA_C:MBEDTLS_SHA1_C
 x509_check_key_usage:"data_files/keyUsage.decipherOnly.crt":MBEDTLS_X509_KU_DIGITAL_SIGNATURE|MBEDTLS_X509_KU_KEY_ENCIPHERMENT|MBEDTLS_X509_KU_DECIPHER_ONLY:0
 
 X509 crt extendedKeyUsage #1 (no extension, serverAuth)

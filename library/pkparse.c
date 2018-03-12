@@ -1213,6 +1213,9 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
     {
         unsigned char *key_copy;
 
+        if( keylen == 0 )
+            return( MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
+
         if( ( key_copy = mbedtls_calloc( 1, keylen ) ) == NULL )
             return( MBEDTLS_ERR_PK_ALLOC_FAILED );
 

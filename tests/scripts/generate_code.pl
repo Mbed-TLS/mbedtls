@@ -1,4 +1,49 @@
 #!/usr/bin/env perl
+
+# generate_code.pl
+#
+# Copyright (c) 2009-2016, ARM Limited, All Rights Reserved
+#
+# Purpose
+#
+# Generates the test suite code given inputs of the test suite directory that
+# contain the test suites, and the test suite file names for the test code and
+# test data.
+#
+# Usage: generate_code.pl <suite dir> <code file> <data file> [main code file]
+#
+# Structure of files
+#
+#   - main code file - 'main_test.function'
+#       Template file that contains the main() function for the test suite,
+#       test dispatch code as well as support functions. It contains the
+#       following symbols which are substituted by this script during
+#       processing:
+#           TEST_FILENAME
+#           SUITE_PRE_DEP
+#           MAPPING_CODE
+#           FUNCTION CODE
+#           SUITE_POST_DEP
+#           DEP_CHECK_CODE
+#           DISPATCH_FUNCTION
+#
+#   - common helper code file - 'helpers.function'
+#       Common helper functions
+#
+#   - test suite code file - file name in the form 'test_suite_xxx.function'
+#       Code file that contains the actual test cases. The file contains a
+#       series of code sequences delimited by the following:
+#           BEGIN_HEADER / END_HEADER - list of headers files
+#           BEGIN_SUITE_HELPERS / END_SUITE_HELPERS - helper functions common to
+#               the test suite
+#           BEGIN_CASE / END_CASE - the test cases in the test suite. Each test
+#               case contains at least one function that is used to create the
+#               dispatch code.
+#
+#   - test data file - file name in the form 'test_suite_xxxx.data'
+#       The test case parameters to to be used in execution of the test. The
+#       file name is used to replace the symbol 'TEST_FILENAME' in the main
+#       code file above.
 #
 #       A test data file consists of a sequence of paragraphs separated by
 #       a single empty line. Line breaks may be in Unix (LF) or Windows (CRLF)
@@ -29,15 +74,16 @@ my $suite_name = shift or die "Missing suite name";
 my $data_name = shift or die "Missing data name";
 my $test_main_file = do { my $arg = shift; defined($arg) ? $arg :  $suite_dir."/main_test.function" };
 my $test_file = $data_name.".c";
-my $test_helper_file = $suite_dir."/helpers.function";
+my $test_common_helper_file = $suite_dir."/helpers.function";
 my $test_case_file = $suite_dir."/".$suite_name.".function";
 my $test_case_data = $suite_dir."/".$data_name.".data";
 
 my $line_separator = $/;
 undef $/;
 
-open(TEST_HELPERS, "$test_helper_file") or die "Opening test helpers '$test_helper_file': $!";
-my $test_helpers = <TEST_HELPERS>;
+open(TEST_HELPERS, "$test_common_helper_file") or die "Opening test helpers
+'$test_common_helper_file': $!";
+my $test_common_helpers = <TEST_HELPERS>;
 close(TEST_HELPERS);
 
 open(TEST_MAIN, "$test_main_file") or die "Opening test main '$test_main_file': $!";
@@ -54,6 +100,7 @@ close(TEST_DATA);
 
 my ( $suite_header ) = $test_cases =~ /\/\* BEGIN_HEADER \*\/\n(.*?)\n\/\* END_HEADER \*\//s;
 my ( $suite_defines ) = $test_cases =~ /\/\* BEGIN_DEPENDENCIES\n \* (.*?)\n \* END_DEPENDENCIES/s;
+my ( $suite_helpers ) = $test_cases =~ /\/\* BEGIN_SUITE_HELPERS \*\/\n(.*?)\n\/\* END_SUITE_HELPERS \*\//s;
 
 my $requirements;
 if ($suite_defines =~ /^depends_on:/)
@@ -81,16 +128,43 @@ $/ = $line_separator;
 
 open(TEST_FILE, ">$test_file") or die "Opening destination file '$test_file': $!";
 print TEST_FILE << "END";
+/*
+ * *** THIS FILE HAS BEEN MACHINE GENERATED ***
+ *
+ * This file has been machine generated using the script: $0
+ *
+ * Test file      : $test_file
+ *
+ * The following files were used to create this file.
+ *
+ *      Main code file  : $test_main_file
+ *      Helper file     : $test_common_helper_file
+ *      Test suite file : $test_case_file
+ *      Test suite data : $test_case_data
+ *
+ *
+ *  This file is part of mbed TLS (https://tls.mbed.org)
+ */
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include <mbedtls/config.h>
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-$test_helpers
+
+/*----------------------------------------------------------------------------*/
+/* Common helper code */
+
+$test_common_helpers
+
+
+/*----------------------------------------------------------------------------*/
+/* Test Suite Code */
 
 $suite_pre_code
 $suite_header
+$suite_helpers
 $suite_post_code
 
 END

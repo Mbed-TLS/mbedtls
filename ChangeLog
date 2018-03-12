@@ -46,6 +46,7 @@ Bugfix
      overflow. #1179
    * Fix memory allocation corner cases in memory_buffer_alloc.c module. Found
      by Guido Vranken. #639
+   * Log correct number of ciphersuites used in Client Hello message. #918
 
 Changes
    * Fix tag lengths and value ranges in the documentation of CCM encryption.

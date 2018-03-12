@@ -20,11 +20,6 @@ Features
      heavily-loaded machine.
 
 Bugfix
-   * Properly initialize and free SHA-256 / SHA-512 context in entropy module
-     instead of performing zeroization only. This could lead to failure for
-     alternative implementations of SHA-256 / SHA-512 for which zeroization
-     of contexts is not a proper way of initialization.
-     Found and fix suggested by ccli8.
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records
      as recommended in RFC 6347 Section 4.1.2.7.
    * Fix memory leak in mbedtls_ssl_set_hostname() when called multiple times.
@@ -67,6 +62,11 @@ Bugfix
    * Fix issue in RSA key generation program programs/x509/rsa_genkey
      where the failure of CTR DRBG initialization lead to freeing an
      RSA context without proper initialization beforehand.
+   * Fix the entropy.c module to ensure that mbedtls_sha256_init() or
+     mbedtls_sha512_init() is called before operating on the relevant context
+     structure. Do not assume that zeroizing a context is a correct way to
+     reset it. Found independently by ccli8 on Github.
+   * In mbedtls_entropy_free(), properly free the message digest context.
 
 Changes
    * Extend cert_write example program by options to set the CRT version

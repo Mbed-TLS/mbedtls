@@ -784,11 +784,11 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_S
 x509_verify:"data_files/server5.crt":"data_files/test-ca2.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"suite_b":"NULL"
 
 X509 Certificate verification #96 (next profile Invalid Cert SHA224 Digest)
-depends_on:MBEDTLS_SHA256_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_SHA1_C
 x509_verify:"data_files/cert_sha224.crt":"data_files/test-ca.crt":"data_files/crl.pem":"NULL":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_BAD_MD|MBEDTLS_X509_BADCRL_BAD_MD:"next":"NULL"
 
 X509 Certificate verification #97 (next profile Valid Cert SHA256 Digest)
-depends_on:MBEDTLS_SHA256_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_ECDSA_C
+depends_on:MBEDTLS_SHA256_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_ECDSA_C:MBEDTLS_SHA1_C
 x509_verify:"data_files/cert_sha256.crt":"data_files/test-ca.crt":"data_files/crl-ec-sha256.pem":"NULL":0:0:"next":"NULL"
 
 X509 Certificate verification callback: bad name

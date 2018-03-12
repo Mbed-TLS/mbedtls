@@ -1046,8 +1046,7 @@ psa_status_t psa_decrypt_setup(psa_cipher_operation_t *operation,
                                psa_key_slot_t key,
                                psa_algorithm_t alg);
 
-psa_status_t psa_encrypt_generate_iv(psa_cipher_operation_t *operation,
-                                     unsigned char *iv,
+psa_status_t psa_encrypt_generate_iv(unsigned char *iv,
                                      size_t iv_size,
                                      size_t *iv_length);
 

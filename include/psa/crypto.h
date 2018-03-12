@@ -1057,12 +1057,15 @@ psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
 
 psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
                                const uint8_t *input,
-                               size_t input_length);
+                               size_t input_length,
+                               unsigned char *output, 
+                               size_t output_size, 
+                               size_t *output_length);
 
 psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
-                               uint8_t *mac,
-                               size_t mac_size,
-                               size_t *mac_length);
+                               uint8_t *output,
+                               size_t output_size,
+                               size_t *output_length);
 
 psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
 

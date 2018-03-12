@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Changes
+   * Use (void) when defining functions with no parameters. Contributed by
+     Joris Aerts. #678
+
 = mbed TLS 2.4.0 branch released 2016-10-17
 
 Security

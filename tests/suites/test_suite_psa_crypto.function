@@ -526,3 +526,144 @@ exit:
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
+
+* BEGIN_CASE */
+void cipher_test_positive( psa_algorithm_t alg_arg, int key_type_arg, 
+                           char *key_hex,
+                           char *input_hex )
+{
+    int key_slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *key = NULL;
+    size_t key_size;
+    unsigned char *iv[16] = NULL;
+    size_t iv_size = 16;
+    size_t iv_length = 0;
+    unsigned char *input = NULL;
+    size_t input_size = 0;
+    unsigned char *output = NULL;
+    size_t output_size = 0;
+    size_t output_length = 0;
+    psa_cipher_operation_t operation;
+
+    key = unhexify_alloc( key_hex, &key_size );
+    TEST_ASSERT( key != NULL );
+
+    input = unhexify_alloc( input_hex, &input_size );
+    TEST_ASSERT( input != NULL );
+ 
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( key_slot, key_type,
+                                 key, key_size ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_decrypt_setup( &operation, key_slot, alg ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_encrypt_generate_iv( &operation, iv,
+                                        iv_size, &iv_length) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_encrypt_set_iv( &operation, iv,
+                                     iv_length) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_cipher_update( &operation, input, input_size,
+                                    output, output_size, 
+                                    &output_length) == PSA_SUCCESS );
+    
+    TEST_ASSERT( psa_cipher_finish( &operation, output + output_length,
+                                    output_size - output_length,
+                                    &output_length) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_cipher_abort( &operation1 ) == PSA_SUCCESS );
+
+exit:
+    mbedtls_free( key );
+    mbedtls_free( input );
+    psa_destroy_key( key_slot );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void cipher_test_verify_output( psa_algorithm_t alg_arg, int key_type_arg, 
+                           char *key_hex,
+                           char *input_hex )
+{
+    int key_slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *key = NULL;
+    size_t key_size;
+    unsigned char *iv[16] = NULL;
+    size_t iv_size = 16;
+    size_t iv_length = 0;
+    unsigned char *input = NULL;
+    size_t input_size = 0;
+    unsigned char *output1 = NULL;
+    size_t output1_size = 0;
+    size_t output1_length = 0;
+    unsigned char *output2 = NULL;
+    size_t output2_size = 0;
+    size_t output2_length = 0;
+    size_t tmp_output_length = 0;
+    psa_cipher_operation_t operation1;
+    psa_cipher_operation_t operation2;
+
+    key = unhexify_alloc( key_hex, &key_size );
+    TEST_ASSERT( key != NULL );
+
+    input = unhexify_alloc( input_hex, &input_size );
+    TEST_ASSERT( input != NULL );
+ 
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( key_slot, key_type,
+                                 key, key_size ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_decrypt_setup( &operation1, key_slot, alg ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_encrypt_generate_iv( &operation1, iv,
+                                        iv_size, &iv_length) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_encrypt_set_iv( &operation1, iv,
+                                     iv_length) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_cipher_update( &operation1, input, input_size,
+                                    output1, output1_size, 
+                                    &output1_length) == PSA_SUCCESS );
+    
+    TEST_ASSERT( psa_cipher_finish( &operation1, output1 + output1_length,
+                                    output1_size - output1_length,
+                                    &tmp_output_length) == PSA_SUCCESS );
+
+    output1_length += tmp_output_length;
+
+    TEST_ASSERT( psa_cipher_abort( &operation1 ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_decrypt_setup( &operation2, key_slot, alg ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_encrypt_set_iv( &operation2, iv,
+                                     iv_length) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_cipher_update( &operation2, output, output_length, 
+                                    output2, output2_size, &output2_length) == PSA_SUCCESS );
+    tmp_output_length = 0;
+    TEST_ASSERT( psa_cipher_finish( &operation, output2 + output2_length,
+                                    output2_size - output2_length,
+                                    &tmp_output_length) == PSA_SUCCESS );  
+
+    output2_length += tmp_output_length;
+    
+    TEST_ASSERT( psa_cipher_abort( &operation1 ) == PSA_SUCCESS );
+
+    TEST_ASSERT( input_size == output1_length );
+    TEST_ASSERT( output1_length == output2_length );
+    TEST_ASSERT( memcmp( input, output, input_size ) == 0 );
+
+exit:
+    mbedtls_free( key );
+    mbedtls_free( input );
+    psa_destroy_key( key_slot );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */

@@ -18,6 +18,13 @@ Security
      HMAC key of a single, uninterrupted connection (with no
      resumption of the session).
 
+Features
+   * Extend PKCS#8 interface by introducing support for the entire SHA
+     algorithms family when encrypting private keys using PKCS#5 v2.0.
+     This allows reading encrypted PEM files produced by software that
+     uses PBKDF2-SHA2, such as OpenSSL 1.1. Submitted by Antonio Quartulli,
+     OpenVPN Inc. Fixes #1339
+
 Bugfix
    * Fix assembly sequences in bn_mul.h and aesni.c to avoid segmentation
      faults and errors when building for the 64-bit ILP32 ABI. Found and fixed

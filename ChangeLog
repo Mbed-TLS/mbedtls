@@ -56,6 +56,8 @@ Changes
    * MD functions deprecated in 2.7.0 are no longer inline, to provide
      a migration path for those depending on the library's ABI.
    * Clarify the documentation of mbedtls_ssl_setup.
+   * Use (void) when defining functions with no parameters. Contributed by
+     Joris Aerts. #678
 
 = mbed TLS 2.7.0 branch released 2018-02-03
 

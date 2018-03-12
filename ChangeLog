@@ -1,9 +1,9 @@
-﻿mbed TLS ChangeLog (Sorted per branch, date)
+mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Bugfix
-   * Log correct number of ciphersuites used in Client Hello message. Fix for #918.
+   * Log correct number of ciphersuites used in Client Hello message. #918
 
 = mbed TLS 2.6.0 branch released 2017-08-10
 

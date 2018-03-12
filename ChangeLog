@@ -2,6 +2,11 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Features
+   * Extend PKCS#8 interface by introducing support for the entire SHA
+     algorithms family when encrypting private keys using PKCS#5 v2.0.
+     Submitted by Antonio Quartulli, OpenVPN Inc.
+
 Bugfix
    * Fix setting version TLSv1 as minimal version, even if TLS 1
      is not enabled. Set MBEDTLS_SSL_MIN_MAJOR_VERSION

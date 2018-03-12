@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-
+#
+# This file is part of mbed TLS (https://tls.mbed.org)
+#
+# Copyright (c) 2018, Arm Limited, All Rights Reserved
+#
+# Purpose
+#
 # This script is a small wrapper around the abi-compliance-checker and
 # abi-dumper tools, applying them to compare the ABI and API of the library
 # files from two different Git revisions within an Mbed TLS repository.

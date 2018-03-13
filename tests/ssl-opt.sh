@@ -2527,6 +2527,47 @@ run_test    "Event-driven I/O: session-id resume" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
+run_test    "Event-driven I/O, DTLS: basic handshake" \
+            "$P_SRV dtls=1 event=1 tickets=0 auth_mode=none" \
+            "$P_CLI dtls=1 event=1 tickets=0" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: client auth" \
+            "$P_SRV dtls=1 event=1 tickets=0 auth_mode=required" \
+            "$P_CLI dtls=1 event=1 tickets=0" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: ticket" \
+            "$P_SRV dtls=1 event=1 tickets=1 auth_mode=none" \
+            "$P_CLI dtls=1 event=1 tickets=1" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: ticket + client auth" \
+            "$P_SRV dtls=1 event=1 tickets=1 auth_mode=required" \
+            "$P_CLI dtls=1 event=1 tickets=1" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: ticket + client auth + resume" \
+            "$P_SRV dtls=1 event=1 tickets=1 auth_mode=required" \
+            "$P_CLI dtls=1 event=1 tickets=1 reconnect=1" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: ticket + resume" \
+            "$P_SRV dtls=1 event=1 tickets=1 auth_mode=none" \
+            "$P_CLI dtls=1 event=1 tickets=1 reconnect=1" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: session-id resume" \
+            "$P_SRV dtls=1 event=1 tickets=0 auth_mode=none" \
+            "$P_CLI dtls=1 event=1 tickets=0 reconnect=1" \
+            0 \
+            -c "Read from server: .* bytes read"
 # Tests for version negotiation
 
 run_test    "Version check: all -> 1.2" \

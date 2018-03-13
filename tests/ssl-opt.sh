@@ -2568,6 +2568,19 @@ run_test    "Event-driven I/O, DTLS: session-id resume" \
             "$P_CLI dtls=1 event=1 tickets=0 reconnect=1" \
             0 \
             -c "Read from server: .* bytes read"
+
+# This test demonstrates the need for the mbedtls_ssl_check_pending function.
+# During session resumption, the client will send its ApplicationData record
+# within the same datagram as the Finished messages. In this situation, the
+# server MUST NOT idle on the underlying transport after handshake completion,
+# because the ApplicationData request has already been queued internally.
+run_test    "Event-driven I/O, DTLS: session-id resume, UDP packing" \
+            -p "$P_PXY pack=10" \
+            "$P_SRV dtls=1 event=1 tickets=0 auth_mode=required" \
+            "$P_CLI dtls=1 event=1 tickets=0 reconnect=1" \
+            0 \
+            -c "Read from server: .* bytes read"
+
 # Tests for version negotiation
 
 run_test    "Version check: all -> 1.2" \

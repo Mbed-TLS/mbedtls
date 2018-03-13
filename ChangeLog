@@ -54,6 +54,8 @@ Bugfix
      reset it. Found independently by ccli8 on Github.
    * In mbedtls_entropy_free(), properly free the message digest context.
    * Fix memory leak in RSA self test.
+   * Fix X509 CRT parsing that would potentially accept an invalid tag when
+     parsing the subject alternative names.
 
 Changes
    * Clarified the documentation of mbedtls_ssl_setup.

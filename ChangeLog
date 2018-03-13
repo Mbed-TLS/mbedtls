@@ -2,6 +2,10 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Security
+   * Fix CRL parsing to reject CRLs containing unsupported critical
+     extensions. Found by Falko Strenzke and Evangelos Karatsiolis.
+
 Features
    * Extend PKCS#8 interface by introducing support for the entire SHA
      algorithms family when encrypting private keys using PKCS#5 v2.0.

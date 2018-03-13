@@ -2856,7 +2856,7 @@
  * \def MBEDTLS_UTILS_ZEROIZE_ALT
  *
  * Uncomment the macro to let mbed TLS use your alternate implementation of
- * mbedtls_zeroize(). This replaced the default implementation in utils.c.
+ * mbedtls_zeroize(). This replaces the default implementation in utils.c.
  *
  * mbedtls_zeroize() is a widely used function across the library to zero a
  * block of memory. The implementation is expected to be secure in the sense

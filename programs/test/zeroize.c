@@ -1,7 +1,7 @@
 /*
  * Zeroize application for debugger-driven testing
  *
- * This is a simple test application used for debbuger-driven testing to check
+ * This is a simple test application used for debugger-driven testing to check
  * whether calls to mbedtls_zeroize() are being eliminated by compiler
  * optimizations. This application is used by the GDB script at
  * tests/scripts/test_zeroize.gdb under the assumption that line numbers do not

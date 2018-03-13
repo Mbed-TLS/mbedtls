@@ -75,6 +75,7 @@ static void mbedtls_zeroize( void *v, size_t n ) {
     volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
 }
 
+#if defined(MBEDTLS_PKCS1_V15)
 /* constant-time buffer comparison */
 static inline int mbedtls_safer_memcmp( const void *a, const void *b, size_t n )
 {
@@ -88,6 +89,7 @@ static inline int mbedtls_safer_memcmp( const void *a, const void *b, size_t n )
 
     return( diff );
 }
+#endif /* MBEDTLS_PKCS1_V15 */
 
 int mbedtls_rsa_import( mbedtls_rsa_context *ctx,
                         const mbedtls_mpi *N,

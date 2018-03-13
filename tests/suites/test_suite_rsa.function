@@ -122,7 +122,6 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
                          char *input_N, int radix_E, char *input_E,
                          char *result_hex_str )
 {
-    int res;
     unsigned char message_str[1000];
     unsigned char hash_result[1000];
     unsigned char output[1000];
@@ -167,6 +166,7 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
     /* For PKCS#1 v1.5, there is an alternative way to generate signatures */
     if( padding_mode == MBEDTLS_RSA_PKCS_V15 )
     {
+        int res;
         memset( output, 0x00, 1000 );
         memset( output_str, 0x00, 1000 );
 
@@ -203,7 +203,6 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
                            char *input_N, int radix_E, char *input_E,
                            char *result_hex_str, int correct )
 {
-    int res;
     unsigned char message_str[1000];
     unsigned char hash_result[1000];
     unsigned char result_str[1000];
@@ -240,6 +239,7 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
     /* For PKCS#1 v1.5, there is an alternative way to verify signatures */
     if( padding_mode == MBEDTLS_RSA_PKCS_V15 )
     {
+        int res;
         int ok;
         size_t olen;
 

@@ -17,6 +17,8 @@ Security
      implementation allowed an offline 2^80 brute force attack on the
      HMAC key of a single, uninterrupted connection (with no
      resumption of the session).
+   * Fix CRL parsing to reject CRLs containing unsupported critical
+     extensions. Found by Falko Strenzke and Evangelos Karatsiolis.
 
 Features
    * Extend PKCS#8 interface by introducing support for the entire SHA

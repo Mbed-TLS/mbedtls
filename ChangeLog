@@ -23,6 +23,8 @@ Bugfix
      overflow. #1179
    * Fix memory allocation corner cases in memory_buffer_alloc.c module. Found
      by Guido Vranken. #639
+   * Fix X509 CRT parsing that would potentially accept an invalid tag when
+     parsing the subject alternative names.
 
 Changes
    * Clarify the documentation of mbedtls_ssl_setup.

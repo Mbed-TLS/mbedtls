@@ -9,7 +9,7 @@
  *        system services, making the library easier to port and embed.
  *        Application developers and users of the library can provide their own
  *        implementations of these functions, or implementations specific to
- *        their platform, which can be statically linked to the library or 
+ *        their platform, which can be statically linked to the library or
  *        dynamically configured at runtime.
  */
 /*
@@ -331,7 +331,7 @@ mbedtls_platform_context;
  * \note    This function should be called before any other library functions.
  *
  *          Its implementation is platform-specific, and unless
- *          platform-specific code is provided, it does nothing. 
+ *          platform-specific code is provided, it does nothing.
  *
  * \note    The usage and necessity of this function is dependent on the platform.
  *

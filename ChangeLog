@@ -9,7 +9,8 @@ Bugfix
      returned when unexpected messages were being discarded, ignoring that
      further messages could potentially already be pending to be processed
      in the internal buffers; these cases lead to deadlocks in case
-     event-driven I/O was used. Found by Hubert Mis.
+     event-driven I/O was used.
+     Found and reported by Hubert Mis in #772.
 
 API changes
    * Add function mbedtls_net_poll to public API allowing to wait for a

@@ -2,6 +2,10 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Security
+   * Verify results of RSA private key operations to defend
+     against Bellcore glitch attack.
+
 Features
    * Extend PKCS#8 interface by introducing support for the entire SHA
      algorithms family when encrypting private keys using PKCS#5 v2.0.

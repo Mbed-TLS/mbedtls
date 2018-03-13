@@ -2417,21 +2417,37 @@ data_exchange:
 
         while( 1 )
         {
+            /* Without the call to `mbedtls_ssl_check_pending`, it might
+             * happen that the client sends application data in the same
+             * datagram as the Finished message concluding the handshake.
+             * In this case, the application data would be ready to be
+             * processed while the underlying transport wouldn't signal
+             * any further incoming data.
+             *
+             * See the test 'Event-driven I/O: session-id resume, UDP packing'
+             * in tests/ssl-opt.sh.
+             */
+
+            /* For event-driven IO, wait for socket to become available */
+            if( mbedtls_ssl_check_pending( &ssl ) == 0 &&
+                opt.event == 1 /* level triggered IO */ )
+            {
+#if defined(MBEDTLS_TIMING_C)
+                idle( &client_fd, &timer, MBEDTLS_ERR_SSL_WANT_READ );
+#else
+                idle( &client_fd, MBEDTLS_ERR_SSL_WANT_READ );
+#endif
+            }
+
             ret = mbedtls_ssl_read( &ssl, buf, len );
 
+            /* Note that even if `mbedtls_ssl_check_pending` returns true,
+             * it can happen that the subsequent call to `mbedtls_ssl_read`
+             * returns `MBEDTLS_ERR_SSL_WANT_READ`, because the pending messages
+             * might be discarded (e.g. because they are retransmissions). */
             if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
                 ret != MBEDTLS_ERR_SSL_WANT_WRITE )
                 break;
-
-            /* For event-driven IO, wait for socket to become available */
-            if( opt.event == 1 /* level triggered IO */ )
-            {
-#if defined(MBEDTLS_TIMING_C)
-                idle( &client_fd, &timer, ret );
-#else
-                idle( &client_fd, ret );
-#endif
-            }
         }
 
         if( ret <= 0 )

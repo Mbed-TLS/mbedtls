@@ -1,4 +1,5 @@
 SUITE_PRE_DEP
+#line !LINE_NO! "main_test.function"
 #define TEST_SUITE_ACTIVE
 
 int verify_string( char **str )
@@ -69,6 +70,7 @@ MAPPING_CODE
 
 FUNCTION_CODE
 SUITE_POST_DEP
+#line !LINE_NO! "main_test.function"
 
 
 /*----------------------------------------------------------------------------*/
@@ -80,6 +82,7 @@ int dep_check( char *str )
         return( 1 );
 
 DEP_CHECK_CODE
+#line !LINE_NO! "main_test.function"
 
     return( 1 );
 }
@@ -93,6 +96,7 @@ int dispatch_test(int cnt, char *params[50])
 #if defined(TEST_SUITE_ACTIVE)
 DISPATCH_FUNCTION
     {
+#line !LINE_NO! "main_test.function"
         mbedtls_fprintf( stdout, "FAILED\nSkipping unknown test function '%s'\n", params[0] );
         fflush( stdout );
         return( 1 );

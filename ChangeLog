@@ -9,6 +9,7 @@ Security
 Bugfix
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records
      as recommended in RFC 6347 Section 4.1.2.7.
+   * Fix memory leak in RSA self test.
 
 = mbed TLS 2.1.9 branch released 2017-08-10
 

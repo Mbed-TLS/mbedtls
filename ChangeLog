@@ -49,6 +49,8 @@ Bugfix
    * Fix memory allocation corner cases in memory_buffer_alloc.c module. Found
      by Guido Vranken. #639
    * Log correct number of ciphersuites used in Client Hello message. #918
+   * Fix X509 CRT parsing that would potentially accept an invalid tag when
+     parsing the subject alternative names.
 
 Changes
    * Fix tag lengths and value ranges in the documentation of CCM encryption.

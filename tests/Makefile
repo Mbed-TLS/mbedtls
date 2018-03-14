@@ -49,7 +49,7 @@ endif
 ifdef WINDOWS_BUILD
 DLEXT=dll
 EXEXT=.exe
-LOCAL_LDFLAGS += -lws2_32
+LOCAL_LDFLAGS += -lws2_32 -lbcrypt
 ifdef SHARED
 SHARED_SUFFIX=.$(DLEXT)
 endif

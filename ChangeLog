@@ -46,6 +46,8 @@ Security
    * Change default choice of DHE parameters from untrustworthy RFC 5114
      to RFC 3526 containing parameters generated in a nothing-up-my-sleeve
      manner.
+   * Fix a buffer overread in ssl_parse_server_key_exchange() that could cause
+     a crash on invalid input.
 
 Features
    * Allow comments in test data files.
@@ -180,6 +182,8 @@ Bugfix
    * In mbedtls_entropy_free(), properly free the message digest context.
    * Fix status handshake status message in programs/ssl/dtls_client.c. Found
      and fixed by muddog.
+   * Fix a possible arithmetic overflow in ssl_parse_server_key_exchange()
+     that could cause a key exchange to fail on valid data.
 
 Changes
    * Extend cert_write example program by options to set the certificate version

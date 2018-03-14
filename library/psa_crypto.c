@@ -885,9 +885,6 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
             case PSA_ALG_STREAM_CIPHER:
                 mode = MBEDTLS_MODE_STREAM;
                 break;
-            case PSA_ALG_ECB_BASE:
-                mode = MBEDTLS_MODE_ECB;
-                break;
             case PSA_ALG_CBC_BASE:
                 mode = MBEDTLS_MODE_CBC;
                 break;

@@ -19,6 +19,8 @@ Security
      resumption of the session).
    * Verify results of RSA private key operations to defend
      against Bellcore glitch attack.
+   * Fix a buffer overread in ssl_parse_server_key_exchange() that could cause
+     a crash on invalid input.
 
 Features
    * Extend PKCS#8 interface by introducing support for the entire SHA
@@ -55,6 +57,8 @@ Bugfix
    * Log correct number of ciphersuites used in Client Hello message. #918
    * Fix X509 CRT parsing that would potentially accept an invalid tag when
      parsing the subject alternative names.
+   * Fix a possible arithmetic overflow in ssl_parse_server_key_exchange()
+     that could cause a key exchange to fail on valid data.
 
 Changes
    * Fix tag lengths and value ranges in the documentation of CCM encryption.

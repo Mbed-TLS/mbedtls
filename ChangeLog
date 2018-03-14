@@ -17,6 +17,8 @@ Security
      implementation allowed an offline 2^80 brute force attack on the
      HMAC key of a single, uninterrupted connection (with no
      resumption of the session).
+   * Fix a buffer overread in ssl_parse_server_key_exchange() that could cause
+     a crash on invalid input.
 
 Features
    * Extend PKCS#8 interface by introducing support for the entire SHA
@@ -44,6 +46,8 @@ Bugfix
      Nick Wilson on issue #355
    * In test_suite_pk, pass valid parameters when testing for hash length
      overflow. #1179
+   * Fix a possible arithmetic overflow in ssl_parse_server_key_exchange()
+     that could cause a key exchange to fail on valid data.
 
 Changes
    * Fix tag lengths and value ranges in the documentation of CCM encryption.

@@ -5,9 +5,9 @@ set(libs
     ${mbedtls_target}
 )
 
-if(MSVC)
+if(WIN32)
     set(libs ${libs} bcrypt)
-endif()
+endif(WIN32)
 
 set(executables
     dtls_client

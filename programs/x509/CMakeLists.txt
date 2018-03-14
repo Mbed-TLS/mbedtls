@@ -1,9 +1,10 @@
 set(libs
     ${mbedx509_target}
 )
-if(MSVC)
+
+if(WIN32)
     set(libs ${libs} bcrypt)
-endif()
+endif(WIN32)
 
 set(executables
     cert_app

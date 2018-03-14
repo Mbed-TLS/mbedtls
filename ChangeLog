@@ -23,6 +23,8 @@ Security
      a crash on invalid input.
    * Fix a buffer overread in ssl_parse_server_psk_hint() that could cause a
      crash on invalid input.
+   * Fix CRL parsing to reject CRLs containing unsupported critical
+     extensions. Found by Falko Strenzke and Evangelos Karatsiolis.
 
 Features
    * Extend PKCS#8 interface by introducing support for the entire SHA

@@ -37,6 +37,8 @@ Bugfix
      could cause a key exchange to fail on valid data.
    * Don't define mbedtls_aes_decrypt and mbedtls_aes_encrypt under
      MBEDTLS_DEPRECATED_REMOVED. #1388
+   * Fix a 1-byte heap buffer overflow (read-only) during private key parsing.
+     Found through fuzz testing.
 
 Changes
    * Clarify the documentation of mbedtls_ssl_setup.

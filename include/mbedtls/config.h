@@ -1542,6 +1542,9 @@
  *
  * \note Currently compression can't be used with DTLS.
  *
+ * \deprecated This feature is deprecated and will be removed
+ *             in the next major revision of the library.
+ *
  * Used in: library/ssl_tls.c
  *          library/ssl_cli.c
  *          library/ssl_srv.c

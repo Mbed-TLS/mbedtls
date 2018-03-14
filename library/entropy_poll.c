@@ -51,7 +51,7 @@
 #include <windows.h>
 #if _WIN32_WINNT >= 0x0501 /* _WIN32_WINNT_WINXP */
 #include <bcrypt.h>
-#if _MSC_VER <= 1600
+#if defined(_MSC_VER) && _MSC_VER <= 1600
 /* Visual Studio 2010 and earlier issue a warning when both <stdint.h> and <intsafe.h> are included, as they
  * redefine a number of <TYPE>_MAX constants. These constants are guaranteed to be the same, though, so
  * we suppress the warning when including intsafe.h.
@@ -60,7 +60,7 @@
 #pragma warning( disable : 4005 )
 #endif
 #include <intsafe.h>
-#if _MSC_VER <= 1600
+#if defined(_MSC_VER) && _MSC_VER <= 1600
 #pragma warning( pop )
 #endif
 

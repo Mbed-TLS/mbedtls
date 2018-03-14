@@ -880,12 +880,13 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
 
     if( PSA_ALG_IS_CIPHER( alg ) || PSA_ALG_IS_AEAD( alg ) )
     {
-        if( PSA_ALG_IS_BLOCK_CIPHER( alg ) )
-            alg &= ~PSA_ALG_BLOCK_CIPHER_MODE_MASK;
         switch( alg )
         {
             case PSA_ALG_STREAM_CIPHER:
                 mode = MBEDTLS_MODE_STREAM;
+                break;
+            case PSA_ALG_ECB_BASE:
+                mode = MBEDTLS_MODE_ECB;
                 break;
             case PSA_ALG_CBC_BASE:
                 mode = MBEDTLS_MODE_CBC;

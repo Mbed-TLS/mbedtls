@@ -317,6 +317,7 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_CFB_BASE                        ((psa_algorithm_t)0x04000002)
 #define PSA_ALG_OFB_BASE                        ((psa_algorithm_t)0x04000003)
 #define PSA_ALG_XTS_BASE                        ((psa_algorithm_t)0x04000004)
+#define PSA_ALG_ECB_BASE                        ((psa_algorithm_t)0x04000005)
 #define PSA_ALG_STREAM_CIPHER                   ((psa_algorithm_t)0x04800000)
 #define PSA_ALG_CTR                             ((psa_algorithm_t)0x04800001)
 #define PSA_ALG_ARC4                            ((psa_algorithm_t)0x04800002)

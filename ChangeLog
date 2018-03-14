@@ -21,6 +21,10 @@ Bugfix
      overflow. #1179
    * Fix memory allocation corner cases in memory_buffer_alloc.c module. Found
      by Guido Vranken. #639
+   * Fix a possible arithmetic overflow in ssl_parse_server_key_exchange()
+     that could cause a key exchange to fail on valid data.
+   * Fix a possible arithmetic overflow in ssl_parse_server_psk_hint() that
+     could cause a key exchange to fail on valid data.
 
 Changes
    * Clarify the documentation of mbedtls_ssl_setup.
@@ -108,6 +112,8 @@ Security
      manner.
    * Fix a buffer overread in ssl_parse_server_key_exchange() that could cause
      a crash on invalid input.
+   * Fix a buffer overread in ssl_parse_server_psk_hint() that could cause a
+     crash on invalid input.
 
 Features
    * Allow comments in test data files.
@@ -242,8 +248,6 @@ Bugfix
    * In mbedtls_entropy_free(), properly free the message digest context.
    * Fix status handshake status message in programs/ssl/dtls_client.c. Found
      and fixed by muddog.
-   * Fix a possible arithmetic overflow in ssl_parse_server_key_exchange()
-     that could cause a key exchange to fail on valid data.
 
 Changes
    * Extend cert_write example program by options to set the certificate version

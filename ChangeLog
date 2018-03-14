@@ -19,6 +19,8 @@ Security
      resumption of the session).
    * Fix a buffer overread in ssl_parse_server_key_exchange() that could cause
      a crash on invalid input.
+   * Fix a buffer overread in ssl_parse_server_psk_hint() that could cause a
+     crash on invalid input.
 
 Features
    * Extend PKCS#8 interface by introducing support for the entire SHA
@@ -55,6 +57,8 @@ Bugfix
    * In mbedtls_entropy_free(), properly free the message digest context.
    * Fix a possible arithmetic overflow in ssl_parse_server_key_exchange()
      that could cause a key exchange to fail on valid data.
+   * Fix a possible arithmetic overflow in ssl_parse_server_psk_hint() that
+     could cause a key exchange to fail on valid data.
 
 Changes
    * Clarified the documentation of mbedtls_ssl_setup.

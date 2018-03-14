@@ -63,6 +63,8 @@ Bugfix
      that could cause a key exchange to fail on valid data.
    * Fix a possible arithmetic overflow in ssl_parse_server_psk_hint() that
      could cause a key exchange to fail on valid data.
+   * Don't define mbedtls_aes_decrypt and mbedtls_aes_encrypt under
+     MBEDTLS_DEPRECATED_REMOVED. #1388
 
 Changes
    * Fix tag lengths and value ranges in the documentation of CCM encryption.

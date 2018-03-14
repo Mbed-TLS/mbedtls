@@ -64,6 +64,8 @@ Bugfix
      that could cause a key exchange to fail on valid data.
    * Fix a possible arithmetic overflow in ssl_parse_server_psk_hint() that
      could cause a key exchange to fail on valid data.
+   * Fix a 1-byte heap buffer overflow (read-only) during private key parsing.
+     Found through fuzz testing.
 
 Changes
    * Clarified the documentation of mbedtls_ssl_setup.

@@ -28,6 +28,10 @@ Features
      OpenVPN Inc. Fixes #1339
    * Add support for public keys encoded in PKCS#1 format. #1122
 
+New deprecations
+   * Deprecate support for record compression (configuration option
+     MBEDTLS_ZLIB_SUPPORT).
+
 Bugfix
    * Fix the name of a DHE parameter that was accidentally changed in 2.7.0.
      Fixes #1358.

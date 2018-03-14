@@ -45,6 +45,7 @@ ssl/mini_client
 test/benchmark
 test/ecp-bench
 test/selftest
+test/header_test
 test/ssl_cert_test
 test/udp_proxy
 test/zeroize

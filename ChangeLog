@@ -446,6 +446,10 @@ Changes
 
 = mbed TLS 2.1.0 released 2015-09-04
 
+Security
+   * Fix a buffer overread in ssl_parse_server_psk_hint() that could cause a
+     crash on invalid input.
+
 Features
    * Added support for yotta as a build system.
    * Primary open source license changed to Apache 2.0 license.
@@ -481,6 +485,8 @@ Bugfix
    * Fix unused function warning when using MBEDTLS_MDx_ALT or
      MBEDTLS_SHAxxx_ALT (found by Henrik) (#239)
    * Fix memory corruption in pkey programs (found by yankuncheng) (#210)
+   * Fix a possible arithmetic overflow in ssl_parse_server_psk_hint() that
+     could cause a key exchange to fail on valid data.
 
 Changes
    * The PEM parser now accepts a trailing space at end of lines (#226).

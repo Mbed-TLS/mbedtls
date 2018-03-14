@@ -2,9 +2,9 @@ set(libs
     mbedtls
 )
 
-if(MSVC)
+if(WIN32)
     set(libs ${libs} bcrypt)
-endif()
+endif(WIN32)
 
 add_executable(dh_client dh_client.c)
 target_link_libraries(dh_client ${libs})

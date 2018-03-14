@@ -2,9 +2,9 @@ set(libs
     mbedtls
 )
 
-if(MSVC)
+if(WIN32)
     set(libs ${libs} bcrypt)
-endif()
+endif(WIN32)
 
 add_executable(gen_random_havege gen_random_havege.c)
 target_link_libraries(gen_random_havege ${libs})

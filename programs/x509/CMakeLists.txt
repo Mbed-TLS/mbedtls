@@ -2,9 +2,9 @@ set(libs
     mbedtls
 )
 
-if(MSVC)
+if(WIN32)
     set(libs ${libs} bcrypt)
-endif()
+endif(WIN32)
 
 if(USE_PKCS11_HELPER_LIBRARY)
     set(libs ${libs} pkcs11-helper)

@@ -19,6 +19,10 @@ Security
      resumption of the session).
    * Verify results of RSA private key operations to defend
      against Bellcore glitch attack.
+   * Fix a buffer overread in ssl_parse_server_key_exchange() that could cause
+     a crash on invalid input.
+   * Fix a buffer overread in ssl_parse_server_psk_hint() that could cause a
+     crash on invalid input.
 
 Features
    * Extend PKCS#8 interface by introducing support for the entire SHA
@@ -56,6 +60,10 @@ Bugfix
    * Fix memory leak in RSA self test.
    * Fix X509 CRT parsing that would potentially accept an invalid tag when
      parsing the subject alternative names.
+   * Fix a possible arithmetic overflow in ssl_parse_server_key_exchange()
+     that could cause a key exchange to fail on valid data.
+   * Fix a possible arithmetic overflow in ssl_parse_server_psk_hint() that
+     could cause a key exchange to fail on valid data.
 
 Changes
    * Clarified the documentation of mbedtls_ssl_setup.

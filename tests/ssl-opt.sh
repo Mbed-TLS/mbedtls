@@ -449,7 +449,7 @@ run_test() {
         kill $SRV_PID
         sleep 0.01
         if kill -0 $SRV_PID >/dev/null 2>&1; then
-            kill -KILL $SRV_PID
+            kill -3 $SRV_PID
             wait $SRV_PID
         fi
 
@@ -457,7 +457,7 @@ run_test() {
             kill $PXY_PID >/dev/null 2>&1
             sleep 0.01
             if kill -0 $PXY_PID >/dev/null 2>&1; then
-                kill -KILL $PXY_PID
+                kill -3 $PXY_PID
                 wait $PXY_PID
             fi
         fi

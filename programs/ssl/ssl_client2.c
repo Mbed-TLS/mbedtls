@@ -445,14 +445,13 @@ static int ssl_sig_hashes_for_test[] = {
  */
 #if !defined(MBEDTLS_TIMING_C)
 int idle( mbedtls_net_context *fd,
-           int idle_reason )
-{
+          int idle_reason )
 #else
 int idle( mbedtls_net_context *fd,
-           mbedtls_timing_delay_context *timer,
-           int idle_reason )
-{
+          mbedtls_timing_delay_context *timer,
+          int idle_reason )
 #endif
+{
 
     int ret;
     int poll_type = 0;

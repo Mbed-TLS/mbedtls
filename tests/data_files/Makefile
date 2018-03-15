@@ -101,6 +101,9 @@ server2-in-database-revoked.crt: server2-in-database-revoked.csr $(test_ca_confi
 	$(OPENSSL) ca -batch -config $(test_ca_config_file) -extensions server_cert -cert test-ca-sha256.crt -keyfile $(test_ca_key_file_rsa) -days 3653 -notext -md sha256 -passin "pass:$(test_ca_pwd_rsa)" -in $< -out $@
 	$(OPENSSL) ca -config $(test_ca_config_file) -passin "pass:$(test_ca_pwd_rsa)" -cert test-ca-sha256.crt -notext -keyfile $(test_ca_key_file_rsa) -revoke $@
 all_final += server2-in-database-revoked.crt
+server2_server2-in-database_server2-in-database-revoked.crt: server2.crt server2-in-database.crt server2-in-database-revoked.crt
+	cat $^ > $@
+all_final += server2_server2-in-database_server2-in-database-revoked.crt
 
 ################################################################
 #### Generate OCSP responses using existing certificates
@@ -150,6 +153,9 @@ all_intermediate += ocsp-req-for-server2.der
 ocsp-req-for-server2-in-database-revoked.der: server2-in-database-revoked.crt test-ca-sha256.crt
 	$(OPENSSL) ocsp -issuer test-ca-sha256.crt -cert $< -no_nonce -reqout $@
 all_intermediate += ocsp-req-for-server2-in-database-revoked.der
+ocsp-req-for-good-revoked-unknown.der: server2.crt server2-in-database.crt server2-in-database-revoked.crt test-ca-sha256.crt
+	$(OPENSSL) ocsp -issuer test-ca-sha256.crt -cert server2.crt -cert server2-in-database.crt -cert server2-in-database-revoked.crt -no_nonce -reqout $@
+all_intermediate += ocsp-req-for-good-revoked-unknown.der
 
 ocsp-resp-future-produced-at-this-update.der: ocsp-req-for-server2-in-database.der test-ca-index.txt test-ca-sha256.crt
 	$(FAKETIME) -f "+9y" $(OPENSSL) ocsp -rsigner test-ca-sha256.crt -index test-ca-index.txt -rkey $(test_ca_key_file_rsa) -CA test-ca-sha256.crt -noverify -reqin $< -respout $@
@@ -168,6 +174,9 @@ all_final += ocsp-resp-revoked-cert.der
 ocsp-resp-unknown-cert.der: ocsp-req-for-server2.der test-ca-index.txt test-ca-sha256.crt
 	$(OPENSSL) ocsp -rsigner test-ca-sha256.crt -index test-ca-index.txt -rkey $(test_ca_key_file_rsa) -CA test-ca-sha256.crt -noverify -reqin $< -respout $@
 all_final += ocsp-resp-unknown-cert.der
+ocsp-resp-good-revoked-unknown.der: ocsp-req-for-good-revoked-unknown.der test-ca-index.txt test-ca-sha256.crt
+	$(OPENSSL) ocsp -rsigner test-ca-sha256.crt -index test-ca-index.txt -rkey $(test_ca_key_file_rsa) -CA test-ca-sha256.crt -noverify -reqin $< -respout $@
+all_final += ocsp-resp-good-revoked-unknown.der
 
 ################################################################
 #### Meta targets

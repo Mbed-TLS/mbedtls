@@ -45,6 +45,8 @@
 #if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
     !defined(EFI32)
 
+#define MBEDTLS_EINTR WSAEINTR
+
 #ifdef _WIN32_WINNT
 #undef _WIN32_WINNT
 #endif
@@ -81,6 +83,8 @@ static int wsa_init_done = 0;
 #include <fcntl.h>
 #include <netdb.h>
 #include <errno.h>
+
+#define MBEDTLS_EINTR EINTR
 
 #endif /* ( _WIN32 || _WIN32_WCE ) && !EFIX64 && !EFI32 */
 
@@ -475,12 +479,7 @@ int mbedtls_net_poll( mbedtls_net_context *ctx, uint32_t rw, uint32_t timeout )
         ret = select( fd + 1, &read_fds, &write_fds, NULL,
                       timeout == (uint32_t) -1 ? NULL : &tv );
     }
-#if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
-    !defined(EFI32)
-    while( ret == WSAEINTR );
-#else
-    while( ret == EINTR );
-#endif
+    while( ret == MBEDTLS_EINTR );
 
     if( ret < 0 )
         return( MBEDTLS_ERR_NET_POLL_FAILED );

@@ -863,7 +863,7 @@ int idle( mbedtls_net_context *fd,
         poll_type = MBEDTLS_NET_POLL_READ;
 #if !defined(MBEDTLS_TIMING_C)
     else
-        return;
+        return( 0 );
 #endif
 
     while( 1 )

@@ -1548,7 +1548,7 @@ static int x509_ocsp_verify_response_issuer(
 
 #if defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
     /* Check that the issuer includes the value of id-kp-OCSPSigning */
-    if( ( ret = mbedtls_x509_crt_check_extended_key_usage( issuer,
+    if( ( ret = mbedtls_x509_crt_check_extended_key_usage_ext( issuer,
                         MBEDTLS_OID_OCSP_SIGNING,
                         MBEDTLS_OID_SIZE( MBEDTLS_OID_OCSP_SIGNING ) ) ) != 0 )
     {

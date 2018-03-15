@@ -382,14 +382,32 @@ int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt,
  * \param usage_oid Intended usage (eg MBEDTLS_OID_SERVER_AUTH or MBEDTLS_OID_CLIENT_AUTH).
  * \param usage_len Length of usage_oid (eg given by MBEDTLS_OID_SIZE()).
  *
- * \return         0 if this use of the certificate is allowed,
- *                 MBEDTLS_ERR_X509_BAD_INPUT_DATA if not.
+ * \return         0 if this use of the certificate is allowed or the extension
+ *                 is not present, otherwise MBEDTLS_ERR_X509_BAD_INPUT_DATA.
  *
  * \note           Usually only makes sense on leaf certificates.
  */
 int mbedtls_x509_crt_check_extended_key_usage( const mbedtls_x509_crt *crt,
                                        const char *usage_oid,
                                        size_t usage_len );
+
+/**
+ * \brief           Check usage of certificate against extentedKeyUsage.
+ *
+ * \param crt       Leaf certificate used.
+ * \param usage_oid Intended usage (eg MBEDTLS_OID_SERVER_AUTH or
+ *                  MBEDTLS_OID_CLIENT_AUTH).
+ * \param usage_len Length of usage_oid (eg given by MBEDTLS_OID_SIZE()).
+ *
+ * \return          0 if this use of the certificate is allowed, or
+ *                  MBEDTLS_ERR_X509_BAD_INPUT_DATA if the extension is not
+ *                  present or the usage is not allowed.
+ *
+ * \note           Usually only makes sense on leaf certificates.
+ */
+int mbedtls_x509_crt_check_extended_key_usage_ext( const mbedtls_x509_crt *crt,
+                                                   const char *usage_oid,
+                                                   size_t usage_len );
 #endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE) */
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C)

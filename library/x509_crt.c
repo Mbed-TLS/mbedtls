@@ -1799,6 +1799,18 @@ int mbedtls_x509_crt_check_extended_key_usage( const mbedtls_x509_crt *crt,
 
     return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
 }
+
+int mbedtls_x509_crt_check_extended_key_usage_ext( const mbedtls_x509_crt *crt,
+                                                   const char *usage_oid,
+                                                   size_t usage_len )
+{
+    /* Extension is not mandatory, absent means no restriction */
+    if( ( crt->ext_types & MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE ) == 0 )
+        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+
+    return( mbedtls_x509_crt_check_extended_key_usage( crt, usage_oid,
+                                                       usage_len ) );
+}
 #endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */
 
 #if defined(MBEDTLS_X509_CRL_PARSE_C)

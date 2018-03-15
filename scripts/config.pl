@@ -12,8 +12,8 @@
 # are set in the 'config.h' file.
 #
 # Usage: config.pl [-f <file> | --file <file>] [-o | --force]
-#                   [set <symbol> <value> | unset <symbol> | get <symbol> |
-#                       full | realfull]
+#                  { set <symbol> <value> | unset <symbol> | get <symbol> |
+#                    full | realfull | baremetal }
 #
 # Full usage description provided below.
 #
@@ -115,8 +115,11 @@ MBEDTLS_PLATFORM_FPRINTF_ALT
 );
 
 # Things that should be enabled in "full" even if they match @excluded
+# These are all the platform ALT definitions, so that we test them in "full",
+# except MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT which requires a platform_alt.h
+# that we do not provide.
 my @non_excluded = qw(
-PLATFORM_[A-Z0-9]+_ALT
+MBEDTLS_PLATFORM_(?!SETUP_TEARDOWN)\w+_ALT
 );
 
 # Things that should be enabled in "baremetal"

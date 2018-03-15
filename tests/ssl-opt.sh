@@ -2575,7 +2575,7 @@ run_test    "Event-driven I/O, DTLS: session-id resume" \
 # server MUST NOT idle on the underlying transport after handshake completion,
 # because the ApplicationData request has already been queued internally.
 run_test    "Event-driven I/O, DTLS: session-id resume, UDP packing" \
-            -p "$P_PXY pack=10" \
+            -p "$P_PXY pack=50" \
             "$P_SRV dtls=1 event=1 tickets=0 auth_mode=required" \
             "$P_CLI dtls=1 event=1 tickets=0 reconnect=1" \
             0 \
@@ -3832,7 +3832,7 @@ run_test    "DTLS proxy: duplicate every packet, server anti-replay off" \
             -c "HTTP/1.0 200 OK"
 
 run_test    "DTLS proxy: multiple records in same datagram" \
-            -p "$P_PXY pack=10" \
+            -p "$P_PXY pack=50" \
             "$P_SRV dtls=1 debug_level=2" \
             "$P_CLI dtls=1 debug_level=2" \
             0 \
@@ -3840,7 +3840,7 @@ run_test    "DTLS proxy: multiple records in same datagram" \
             -s "next record in same datagram"
 
 run_test    "DTLS proxy: multiple records in same datagram, duplicate every packet" \
-            -p "$P_PXY pack=10 duplicate=1" \
+            -p "$P_PXY pack=50 duplicate=1" \
             "$P_SRV dtls=1 debug_level=2" \
             "$P_CLI dtls=1 debug_level=2" \
             0 \

@@ -16,9 +16,11 @@ target_link_libraries(selftest ${libs})
 add_executable(benchmark benchmark.c)
 target_link_libraries(benchmark ${libs})
 
-add_executable(header_test header_test.cpp)
-target_link_libraries(header_test ${libs})
-    
+if(TEST_CPP)
+	add_executable(header_test header_test.cpp)
+	target_link_libraries(header_test ${libs})
+endif()
+
 add_executable(ssl_cert_test ssl_cert_test.c)
 target_link_libraries(ssl_cert_test ${libs})
 

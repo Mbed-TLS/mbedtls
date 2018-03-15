@@ -846,16 +846,17 @@ static int ssl_sig_hashes_for_test[] = {
  * (Used in event-driven IO mode).
  */
 #if !defined(MBEDTLS_TIMING_C)
-void idle( mbedtls_net_context *fd,
+int idle( mbedtls_net_context *fd,
            int idle_reason )
 {
 #else
-void idle( mbedtls_net_context *fd,
+int idle( mbedtls_net_context *fd,
            mbedtls_timing_delay_context *timer,
            int idle_reason )
 {
 #endif
 
+    int ret;
     int poll_type = 0;
 
     if( idle_reason == MBEDTLS_ERR_SSL_WANT_WRITE )
@@ -879,12 +880,17 @@ void idle( mbedtls_net_context *fd,
 #endif /* MBEDTLS_TIMING_C */
 
         /* Check if underlying transport became available */
-        if( poll_type != 0 &&
-            mbedtls_net_poll( fd, poll_type, 0 ) == poll_type )
+        if( poll_type != 0 )
         {
-            break;
+            ret = mbedtls_net_poll( fd, poll_type, 0 );
+            if( ret < 0 )
+                return( ret );
+            if( ret == poll_type )
+                break;
         }
     }
+
+    return( 0 );
 }
 
 int main( int argc, char *argv[] )
@@ -2205,10 +2211,12 @@ handshake:
         if( opt.event == 1 /* level triggered IO */ )
         {
 #if defined(MBEDTLS_TIMING_C)
-            idle( &client_fd, &timer, ret );
+            ret = idle( &client_fd, &timer, ret );
 #else
-            idle( &client_fd, ret );
+            ret = idle( &client_fd, ret );
 #endif
+            if( ret != 0 )
+                goto reset;
         }
     }
 

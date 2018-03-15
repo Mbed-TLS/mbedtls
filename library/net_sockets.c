@@ -474,7 +474,13 @@ int mbedtls_net_poll( mbedtls_net_context *ctx, uint32_t rw, uint32_t timeout )
     {
         ret = select( fd + 1, &read_fds, &write_fds, NULL,
                       timeout == (uint32_t) -1 ? NULL : &tv );
-    } while( ret == EINTR );
+    }
+#if ( defined(_WIN32) || defined(_WIN32_WCE) ) && !defined(EFIX64) && \
+    !defined(EFI32)
+    while( ret == WSAEINTR );
+#else
+    while( ret == EINTR );
+#endif
 
     if( ret < 0 )
         return( MBEDTLS_ERR_NET_POLL_FAILED );

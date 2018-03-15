@@ -13,7 +13,8 @@
 #
 # Usage: config.pl [-f <file> | --file <file>] [-o | --force]
 #                  { set <symbol> <value> | unset <symbol> | get <symbol> |
-#                    full | realfull | baremetal }
+#                    full | realfull | baremetal |
+#                    crypto_all }
 #
 # Full usage description provided below.
 #
@@ -64,6 +65,9 @@ Commands
                               'Module configuration options' section
     realfull                - Uncomments all #define's with no exclusions
     baremetal               - Sets full configuration suitable for baremetal build.
+    crypto_all              - Enable all cryptography features including
+                              deprecated or obsolescent algorithms. Disable
+                              X.509, TLS and debugging.
 
 Options
     -f | --file <filename>  - The file or file path for the configuration file
@@ -114,6 +118,44 @@ MBEDTLS_PLATFORM_TIME_ALT
 MBEDTLS_PLATFORM_FPRINTF_ALT
 );
 
+# Things that should be excuded in non-full configurations
+my @excluded_non_full = qw(
+MBEDTLS_AES_ROM_TABLES
+MBEDTLS_CAMELLIA_SMALL_MEMORY
+MBEDTLS_DEPRECATED_\w+
+MBEDTLS_ENTROPY_FORCE_SHA256
+MBEDTLS_ENTROPY_NV_SEED
+MBEDTLS_HAVEGE_C
+MBEDTLS_MEMORY_\w+
+MBEDTLS_PADLOCK_C
+MBEDTLS_PLATFORM_\w+
+MBEDTLS_RSA_NO_CRT
+MBEDTLS_SHA256_SMALLER
+MBEDTLS_THREADING_\w+
+);
+
+my @debug_features = qw(
+MBEDTLS_DEBUG_C
+MBEDTLS_MEMORY_\w+
+);
+
+my @x509_features = qw(
+MBEDTLS_HAVE_TIME
+MBEDTLS_HAVE_TIME_DATE
+MBEDTLS_CERTS_C
+MBEDTLS_X509_\w+
+);
+
+# Note that this includes all TLS features, including weak ciphersuites.
+# Include all of these only for testing purposes, not in production.
+my @tls_features = qw(
+MBEDTLS_KEY_EXCHANGE_\w+
+MBEDTLS_NET_C
+MBEDTLS_TIMING_C
+MBEDTLS_SSL_\w+
+MBEDTLS_TLS_\w+
+);
+
 # Things that should be enabled in "full" even if they match @excluded
 # These are all the platform ALT definitions, so that we test them in "full",
 # except MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT which requires a platform_alt.h
@@ -131,12 +173,19 @@ sub disjunction_re {
     return '^(?:' . join('|', @_) . ')$';
 }
 my $exclude_re = disjunction_re(@excluded);
+my $exclude_non_full_re = disjunction_re(@excluded, @excluded_non_full);
 my $no_exclude_re = disjunction_re(@non_excluded);
 my $exclude_baremetal_re = disjunction_re(@excluded_baremetal);
 my $no_exclude_baremetal_re = disjunction_re(@non_excluded_baremetal);
+my $debug_features_re = disjunction_re(@debug_features);
+my $x509_features_re = disjunction_re(@x509_features);
+my $tls_features_re = disjunction_re(@tls_features);
+
 my %presets = (
                baremetal => {exclude_re => qr/($exclude_re|$exclude_baremetal_re)/,
                              no_exclude_re => qr/(?!$exclude_baremetal_re)$no_exclude_re|$no_exclude_baremetal_re/},
+               crypto_all => {exclude_re => qr/$exclude_non_full_re|$x509_features_re|$tls_features_re|$debug_features_re/,
+                              no_exclude_re => qr/^$/},
                full => {exclude_re => qr/$exclude_re/,
                         no_exclude_re => qr/$no_exclude_re/},
                realfull => {exclude_re => qr/^$/,

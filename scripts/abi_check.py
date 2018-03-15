@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# This file is part of mbed TLS (https://tls.mbed.org)
+# This file is part of Mbed TLS (https://tls.mbed.org)
 #
 # Copyright (c) 2018, Arm Limited, All Rights Reserved
 #
@@ -42,7 +42,9 @@ class AbiChecker(object):
         self.make_command = "make"
 
     def check_repo_path(self):
-        if not __file__ == os.path.join(".", "scripts", "abi_check.py"):
+        current_dir = os.path.realpath('.')
+        root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        if current_dir != root_dir:
             raise Exception("Must be run from Mbed TLS root")
 
     def setup_logger(self):
@@ -230,8 +232,8 @@ def run_main():
         )
         return_code = abi_check.check_for_abi_changes()
         sys.exit(return_code)
-    except Exception as error:
-        traceback.print_exc(error)
+    except Exception:
+        traceback.print_exc()
         sys.exit(2)
 
 

@@ -93,7 +93,7 @@ MBEDTLS_X509_ALLOW_UNSUPPORTED_CRITICAL_EXTENSION
 MBEDTLS_ZLIB_SUPPORT
 MBEDTLS_PKCS11_C
 MBEDTLS_NO_UDBL_DIVISION
-_ALT\s*$
+\w+_ALT
 );
 
 # Things that should be disabled in "baremetal"
@@ -127,6 +127,22 @@ my @non_excluded_baremetal = qw(
 MBEDTLS_NO_PLATFORM_ENTROPY
 );
 
+sub disjunction_re {
+    return '^(?:' . join('|', @_) . ')$';
+}
+my $exclude_re = disjunction_re(@excluded);
+my $no_exclude_re = disjunction_re(@non_excluded);
+my $exclude_baremetal_re = disjunction_re(@excluded_baremetal);
+my $no_exclude_baremetal_re = disjunction_re(@non_excluded_baremetal);
+my %presets = (
+               baremetal => {exclude_re => qr/($exclude_re|$exclude_baremetal_re)/,
+                             no_exclude_re => qr/(?!$exclude_baremetal_re)$no_exclude_re|$no_exclude_baremetal_re/},
+               full => {exclude_re => qr/$exclude_re/,
+                        no_exclude_re => qr/$no_exclude_re/},
+               realfull => {exclude_re => qr/^$/,
+                            no_exclude_re => qr/./},
+              );
+
 # Process the command line arguments
 
 my $force_option = 0;
@@ -151,7 +167,7 @@ while ($arg = shift) {
         # ...else assume it's a command
         $action = $arg;
 
-        if ($action eq "full" || $action eq "realfull" || $action eq "baremetal" ) {
+        if (exists $presets{$action}) {
             # No additional parameters
             die $usage if @ARGV;
 
@@ -194,23 +210,6 @@ open my $config_read, '<', $config_file or die "read $config_file: $!\n";
 my @config_lines = <$config_read>;
 close $config_read;
 
-# Add required baremetal symbols to the list that is included.
-if ( $action eq "baremetal" ) {
-    @non_excluded = ( @non_excluded, @non_excluded_baremetal );
-}
-
-my ($exclude_re, $no_exclude_re, $exclude_baremetal_re);
-if ($action eq "realfull") {
-    $exclude_re = qr/^$/;
-    $no_exclude_re = qr/./;
-} else {
-    $exclude_re = join '|', @excluded;
-    $no_exclude_re = join '|', @non_excluded;
-}
-if ( $action eq "baremetal" ) {
-    $exclude_baremetal_re = join '|', @excluded_baremetal;
-}
-
 my $config_write = undef;
 if ($action ne "get") {
     open $config_write, '>', $config_file or die "write $config_file: $!\n";
@@ -218,21 +217,24 @@ if ($action ne "get") {
 
 my $done;
 for my $line (@config_lines) {
-    if ($action eq "full" || $action eq "realfull" || $action eq "baremetal" ) {
+    if (exists $presets{$action}) {
+        my %settings = %{$presets{$action}};
         if ($line =~ /name SECTION: Module configuration options/) {
             $done = 1;
         }
 
-        if (!$done && $line =~ m!^//\s?#define! &&
-                ( $line !~ /$exclude_re/ || $line =~ /$no_exclude_re/ ) &&
-                ( $action ne "baremetal" || ( $line !~ /$exclude_baremetal_re/ ) ) ) {
-            $line =~ s!^//\s?!!;
-        }
-        if (!$done && $line =~ m!^\s?#define! &&
-                ! ( ( $line !~ /$exclude_re/ || $line =~ /$no_exclude_re/ ) &&
-                    ( $action ne "baremetal" || ( $line !~ /$exclude_baremetal_re/ ) ) ) ) {
-            $line =~ s!^!//!;
-        }
+        if (!$done && $line =~ m!^(//)?\s?#define\s+(\w+)!) {
+            my $disabled = !!$1;
+            my $option = $2;
+            if ($disabled && ($option !~ /$settings{exclude_re}/ ||
+                              $option =~ /$settings{no_exclude_re}/)) {
+                $line =~ s!^//\s?!!;
+            }
+            if (!$disabled && !($option !~ /$settings{exclude_re}/ ||
+                                $option =~ /$settings{no_exclude_re}/)) {
+                $line =~ s!^!//!;
+            }
+       }
     } elsif ($action eq "unset") {
         if (!$done && $line =~ /^\s*#define\s*$name\b/) {
             $line = '//' . $line;

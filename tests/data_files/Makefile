@@ -105,6 +105,20 @@ server2_server2-in-database_server2-in-database-revoked.crt: server2.crt server2
 	cat $^ > $@
 all_final += server2_server2-in-database_server2-in-database-revoked.crt
 
+server2-ca.csr: server2.key
+	$(OPENSSL) req -new -sha256 -key $< -passin "pass:$(test_ca_pwd_rsa)" -subj "/C=NL/O=PolarSSL/CN=PolarSSL Server 2 Test CA" -out $@
+all_intermediate += server2-ca.csr
+server2-ca.crt: server2-ca.csr $(test_ca_key_file_rsa) $(test_ca_config_file)
+	$(OPENSSL) ca -config $(test_ca_config_file) -keyfile $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -cert test-ca-sha256.crt -notext -batch -extensions v3_intermediate_ca -days 3653 -md sha256 -in $< -out $@
+all_final += server2-ca.crt
+
+authorized-ocsp-responder-for-server2-ca.csr: server2.key
+	$(OPENSSL) req -new -sha256 -key $< -passin "pass:$(test_ca_pwd_rsa)" -subj "/C=NL/O=PolarSSL/CN=OCSP Responder for PolarSSL Server 2 Test CA" -out $@
+all_intermediate += authorized-ocsp-responder-for-server2-ca.csr
+authorized-ocsp-responder-for-server2-ca.crt: authorized-ocsp-responder-for-server2-ca.csr server2.key $(cli_crt_extensions_file)
+	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -CAkey server2.key -passin "pass:$(test_ca_pwd_rsa)" -CA server2-ca.crt -extensions ocsp -days 3653 -set_serial 20 -sha256 -in $< -out $@
+all_final += authorized-ocsp-responder-for-server2-ca.crt
+
 ################################################################
 #### Generate OCSP responses using existing certificates
 ################################################################
@@ -177,6 +191,15 @@ all_final += ocsp-resp-unknown-cert.der
 ocsp-resp-good-revoked-unknown.der: ocsp-req-for-good-revoked-unknown.der test-ca-index.txt test-ca-sha256.crt
 	$(OPENSSL) ocsp -rsigner test-ca-sha256.crt -index test-ca-index.txt -rkey $(test_ca_key_file_rsa) -CA test-ca-sha256.crt -noverify -reqin $< -respout $@
 all_final += ocsp-resp-good-revoked-unknown.der
+ocsp-resp-issuer-server2-ocsp-for-server2-in-database.der: ocsp-req-for-server2-in-database.der server2-ocsp.crt server2.key test-ca-index.txt
+	$(OPENSSL) ocsp -rsigner server2-ocsp.crt -index test-ca-index.txt -rkey server2.key -CA test-ca-sha256.crt -noverify -reqin $< -respout $@
+all_final += ocsp-resp-issuer-server2-ocsp-for-server2-in-database.der
+ocsp-resp-fail-issuer-checks.der: ocsp-req-for-server2-in-database.der test-ca-index.txt test-ca-sha256.crt server2-ca.crt server2.key
+	$(OPENSSL) ocsp -rsigner server2-ca.crt -index test-ca-index.txt -rkey server2.key -CA test-ca-sha256.crt -noverify -reqin $< -respout $@
+all_final += ocsp-resp-fail-issuer-checks.der
+ocsp-resp-fail-unauthorized-issuer.der: ocsp-req-for-server2-in-database.der test-ca-index.txt server2-ca.crt server2.key
+	$(OPENSSL) ocsp -rsigner authorized-ocsp-responder-for-server2-ca.crt -index test-ca-index.txt -rkey server2.key -CA server2-ca.crt -noverify -reqin $< -respout $@
+all_final += ocsp-resp-fail-unauthorized-issuer.der
 
 ################################################################
 #### Meta targets

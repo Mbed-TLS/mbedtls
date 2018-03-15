@@ -31,6 +31,7 @@ Bugfix
      overflow. #1179
    * Fix memory allocation corner cases in memory_buffer_alloc.c module. Found
      by Guido Vranken. #639
+   * Log correct number of ciphersuites used in Client Hello message. #918
    * Fix X509 CRT parsing that would potentially accept an invalid tag when
      parsing the subject alternative names.
    * Fix a possible arithmetic overflow in ssl_parse_server_key_exchange()

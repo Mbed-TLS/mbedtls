@@ -80,7 +80,7 @@ APPS +=	ssl/ssl_pthread_server$(EXEXT)
 endif
 
 ifdef TEST_CPP
-APPS += test/header_test$(EXEXT)
+APPS += test/cpp_dummy_build$(EXEXT)
 endif
 
 .SILENT:
@@ -248,9 +248,9 @@ test/benchmark$(EXEXT): test/benchmark.c $(DEP)
 	echo "  CC    test/benchmark.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/benchmark.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-test/header_test$(EXEXT): test/header_test.cpp $(DEP)
-	echo "  CXX   test/header_test.cpp"
-	$(CXX) $(LOCAL_CXXFLAGS) $(CXXFLAGS) test/header_test.cpp   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+test/cpp_dummy_build$(EXEXT): test/cpp_dummy_build.cpp $(DEP)
+	echo "  CXX   test/cpp_dummy_build.cpp"
+	$(CXX) $(LOCAL_CXXFLAGS) $(CXXFLAGS) test/cpp_dummy_build.cpp   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/selftest$(EXEXT): test/selftest.c $(DEP)
 	echo "  CC    test/selftest.c"

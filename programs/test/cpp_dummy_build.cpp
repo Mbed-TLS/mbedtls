@@ -1,6 +1,6 @@
 /*
- *  A C++ program that includes all of the mbed TLS header files, in order to
- *  test if no errors are raised in the process.
+ *  This program is a dummy C++ program to ensure Mbed TLS library header files
+ *  can be included and built with a C++ compiler.
  *
  *  Copyright (C) 2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -108,8 +108,10 @@
 #include "mbedtls/memory_buffer_alloc.h"
 #endif
 
-int main( int argc, char *argv[] )
+int main()
 {
-    (void) argc;
-    (void) argv;
+    mbedtls_platform_context *ctx = NULL;
+    mbedtls_platform_setup(ctx);
+    mbedtls_printf("CPP Build test\n");
+    mbedtls_platform_teardown(ctx);
 }

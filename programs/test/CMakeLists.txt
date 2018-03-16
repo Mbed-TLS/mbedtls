@@ -17,8 +17,8 @@ add_executable(benchmark benchmark.c)
 target_link_libraries(benchmark ${libs})
 
 if(TEST_CPP)
-	add_executable(header_test header_test.cpp)
-	target_link_libraries(header_test ${libs})
+	add_executable(cpp_dummy_build cpp_dummy_build.cpp)
+	target_link_libraries(cpp_dummy_build ${libs})
 endif()
 
 add_executable(ssl_cert_test ssl_cert_test.c)

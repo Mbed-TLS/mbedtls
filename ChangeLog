@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.1.11 branch released xxxx-xx-xx
+= mbed TLS 2.1.11 branch released 2018-03-16
 
 Default behavior changes
    * The truncated HMAC extension now conforms to RFC 6066. This means

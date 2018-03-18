@@ -560,7 +560,7 @@ void cipher_test_positive( int alg_arg, int key_type_arg,
 
     TEST_ASSERT( psa_decrypt_setup( &operation, key_slot, alg ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_encrypt_generate_iv( iv,
+    TEST_ASSERT( psa_encrypt_generate_iv( &operation, iv,
                                         iv_size, &iv_length) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_encrypt_set_iv( &operation, iv,
@@ -622,7 +622,7 @@ void cipher_test_verify_output( int alg_arg, int key_type_arg,
 
     TEST_ASSERT( psa_decrypt_setup( &operation1, key_slot, alg ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_encrypt_generate_iv( iv,
+    TEST_ASSERT( psa_encrypt_generate_iv( &operation1, iv,
                                         iv_size, &iv_length) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_encrypt_set_iv( &operation1, iv,

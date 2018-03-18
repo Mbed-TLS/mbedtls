@@ -286,7 +286,40 @@ static psa_status_t mbedtls_to_psa_error( int ret )
     }
 }
 
+static void psa_operation_init(void *operation,
+                                psa_algorithm_t alg)
+{
+    if( PSA_ALG_IS_MAC(alg) )
+    {
+        if ( ((psa_mac_operation_t*)operation)->alg != 0 ) //restart
+        {
+            ((psa_mac_operation_t*)operation)->alg = 0;
+            ((psa_mac_operation_t*)operation)->iv_required = 0;
+        }
+        else
+        {
+            ((psa_mac_operation_t*)operation)->alg = alg;
+            ((psa_mac_operation_t*)operation)->iv_required = 1;
+        }
 
+        ((psa_mac_operation_t*)operation)->key_set = 0;
+        ((psa_mac_operation_t*)operation)->iv_set = 0;
+        ((psa_mac_operation_t*)operation)->has_input = 0;
+        ((psa_mac_operation_t*)operation)->mac_size = 0;
+    }
+    else if( PSA_ALG_IS_CIPHER(alg) )
+    {
+        if ( ((psa_cipher_operation_t*)operation)->alg != 0 ) //restart
+            ((psa_cipher_operation_t*)operation)->alg = 0;
+        else
+            ((psa_cipher_operation_t*)operation)->alg = alg;
+
+        ((psa_cipher_operation_t*)operation)->key_set = 0;
+        ((psa_cipher_operation_t*)operation)->iv_set = 0;
+        ((psa_cipher_operation_t*)operation)->iv_size = 0;
+        ((psa_cipher_operation_t*)operation)->block_size = 0;
+    }
+}
 
 /****************************************************************/
 /* Key management */
@@ -880,6 +913,10 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
 
     if( PSA_ALG_IS_CIPHER( alg ) || PSA_ALG_IS_AEAD( alg ) )
     {
+        if( PSA_ALG_IS_BLOCK_CIPHER( alg ) )
+        {
+            alg &= ~PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
+        }
         switch( alg )
         {
             case PSA_ALG_STREAM_CIPHER:
@@ -955,11 +992,7 @@ psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
 #endif /* MBEDTLS_MD_C */
                 return( PSA_ERROR_NOT_SUPPORTED );
     }
-    operation->alg = 0;
-    operation->key_set = 0;
-    operation->iv_set = 0;
-    operation->iv_required = 0;
-    operation->has_input = 0;
+    psa_operation_init(operation, 0);
     return( PSA_SUCCESS );
 }
 
@@ -974,11 +1007,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
     size_t key_bits;
     const mbedtls_cipher_info_t *cipher_info = NULL;
 
-    operation->alg = 0;
-    operation->key_set = 0;
-    operation->iv_set = 0;
-    operation->iv_required = 1;
-    operation->has_input = 0;
+    psa_operation_init(operation, alg);
 
     status = psa_get_key_information( key, &key_type, &key_bits );
     if( status != PSA_SUCCESS )
@@ -1291,9 +1320,9 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
 /* Symmetric cryptography */
 /****************************************************************/
 
-psa_status_t psa_decrypt_setup(psa_cipher_operation_t *operation,
+static psa_status_t psa_setup(psa_cipher_operation_t *operation,
                                psa_key_slot_t key,
-                               psa_algorithm_t alg)
+                               psa_algorithm_t alg, mbedtls_operation_t cipher_operation)
 {
     int ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     psa_status_t status;
@@ -1301,12 +1330,10 @@ psa_status_t psa_decrypt_setup(psa_cipher_operation_t *operation,
     psa_key_type_t key_type;
     size_t key_bits;
     const mbedtls_cipher_info_t *cipher_info = NULL;
+    psa_algorithm_t padding_mode = PSA_ALG_BLOCK_CIPHER_PAD_NONE;
+    mbedtls_cipher_padding_t mode = MBEDTLS_PADDING_NONE;
 
-    operation->alg = 0;
-    operation->key_set = 0;
-    operation->iv_set = 0;
-    operation->block_size = 0;
-    operation->iv_size = 0;
+    psa_operation_init(operation, alg);
 
     status = psa_get_key_information( key, &key_type, &key_bits );
     if( status != PSA_SUCCESS )
@@ -1328,33 +1355,78 @@ psa_status_t psa_decrypt_setup(psa_cipher_operation_t *operation,
     }
 
     ret = mbedtls_cipher_setkey( &operation->ctx.cipher, slot->data.raw.data,
-                   key_bits, MBEDTLS_DECRYPT );
+                   key_bits, cipher_operation );
     if (ret != 0)
     {
         psa_cipher_abort( operation );
         return( mbedtls_to_psa_error( ret ) );
     }
 
+#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
+    if (( alg & PSA_ALG_CBC_BASE) == PSA_ALG_CBC_BASE)
+    {
+        padding_mode = alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
+
+        switch (padding_mode)
+        {
+            case PSA_ALG_BLOCK_CIPHER_PAD_PKCS7:
+                mode = MBEDTLS_PADDING_PKCS7;
+                break;
+            case PSA_ALG_BLOCK_CIPHER_PAD_NONE:
+                mode = MBEDTLS_PADDING_NONE;
+                break;
+            default:
+                return ( PSA_ERROR_INVALID_PADDING );
+        }
+        ret = mbedtls_cipher_set_padding_mode( &operation->ctx.cipher, mode );
+        if (ret != 0)
+            return( mbedtls_to_psa_error( ret ) );
+    }
+#endif //MBEDTLS_CIPHER_MODE_WITH_PADDING
+
     operation->key_set = 1;
     operation->alg = alg;
+    operation->block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE(key_type);
+    if ( PSA_ALG_IS_BLOCK_CIPHER(alg) )
+    {
+        operation->iv_size = operation->block_size;
+    }
 
     return ( PSA_SUCCESS );
 }
 
-psa_status_t psa_encrypt_generate_iv(unsigned char *iv,
+psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
+                               psa_key_slot_t key,
+                               psa_algorithm_t alg)
+{
+    return psa_setup(operation, key, alg, MBEDTLS_ENCRYPT);
+}
+
+psa_status_t psa_decrypt_setup(psa_cipher_operation_t *operation,
+                               psa_key_slot_t key,
+                               psa_algorithm_t alg)
+{
+    return psa_setup(operation, key, alg, MBEDTLS_DECRYPT);
+}
+
+psa_status_t psa_encrypt_generate_iv(psa_cipher_operation_t *operation,
+                                     unsigned char *iv,
                                      size_t iv_size,
                                      size_t *iv_length)
 {
     int ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    if (iv_size < operation->iv_size)
+        return ( PSA_ERROR_BUFFER_TOO_SMALL );
     
-    ret = mbedtls_ctr_drbg_random( &global_data.ctr_drbg, iv, iv_size);
+    ret = mbedtls_ctr_drbg_random( &global_data.ctr_drbg, iv, operation->iv_size);
     if (ret != 0)
     {
         return( mbedtls_to_psa_error( ret ) );       
     }
     
-    *iv_length = iv_size;
-    return ( PSA_SUCCESS );
+    *iv_length = operation->iv_size;
+
+    return psa_encrypt_set_iv( operation, iv, *iv_length);
 }
 
 psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
@@ -1371,7 +1443,6 @@ psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
     }
 
     operation->iv_set = 1;
-    operation->iv_size = iv_length;
 
     return ( PSA_SUCCESS );
 }
@@ -1429,11 +1500,7 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation)
 {   
     mbedtls_cipher_free( &operation->ctx.cipher );
     
-    operation->alg = 0;
-    operation->key_set = 0;
-    operation->iv_set = 0;
-    operation->block_size = 0;
-    operation->iv_size = 0;
+    psa_operation_init(operation, 0);
     
     return ( PSA_SUCCESS );
 }

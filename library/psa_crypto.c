@@ -1320,7 +1320,7 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
 /* Symmetric cryptography */
 /****************************************************************/
 
-static psa_status_t psa_setup(psa_cipher_operation_t *operation,
+static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
                                psa_key_slot_t key,
                                psa_algorithm_t alg, mbedtls_operation_t cipher_operation)
 {
@@ -1399,14 +1399,14 @@ psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
                                psa_key_slot_t key,
                                psa_algorithm_t alg)
 {
-    return psa_setup(operation, key, alg, MBEDTLS_ENCRYPT);
+    return psa_cipher_setup(operation, key, alg, MBEDTLS_ENCRYPT);
 }
 
 psa_status_t psa_decrypt_setup(psa_cipher_operation_t *operation,
                                psa_key_slot_t key,
                                psa_algorithm_t alg)
 {
-    return psa_setup(operation, key, alg, MBEDTLS_DECRYPT);
+    return psa_cipher_setup(operation, key, alg, MBEDTLS_DECRYPT);
 }
 
 psa_status_t psa_encrypt_generate_iv(psa_cipher_operation_t *operation,

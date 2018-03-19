@@ -2402,6 +2402,14 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
             if( ret < 0 )
                 return( ret );
 
+            // At this point ret value is positive, verify that adding ret 
+            // value to ssl->in_left doesn't cause a wraparound
+            if (ssl->in_left + (size_t)ret < ssl->in_left)
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "wraparound happened over in_left value" ) );
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            }
+
             ssl->in_left += ret;
         }
     }

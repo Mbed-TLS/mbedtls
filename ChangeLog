@@ -17,6 +17,12 @@ Security
      implementation allowed an offline 2^80 brute force attack on the
      HMAC key of a single, uninterrupted connection (with no
      resumption of the session).
+   * Fix buffer length assertion in the ssl_parse_certificate_request()
+     function which leads to an arbitrary overread of the message buffer. The
+     overreads could occur upon receiving a message malformed at the point
+     where an optional signature algorithms list is expected in the cases of
+     the signature algorithms section being too short. In the debug builds
+     the overread data is printed to the standard output.
 
 Features
    * Extend PKCS#8 interface by introducing support for the entire SHA
@@ -47,6 +53,9 @@ Bugfix
    * Fix memory allocation corner cases in memory_buffer_alloc.c module. Found
      by Guido Vranken. #639
    * Log correct number of ciphersuites used in Client Hello message. #918
+   * Fix buffer length assertions in the ssl_parse_certificate_request()
+     function which leads to a potential one byte overread of the message
+     buffer.
 
 Changes
    * Fix tag lengths and value ranges in the documentation of CCM encryption.

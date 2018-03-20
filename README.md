@@ -1,1 +1,1 @@
-Fork of the mbedtls library. This is for my master thesis. In a few days I will push my AEGIS implementation for this TLS framework.
+This is my AEGIS port for the mbecTLS Library. This work was part of my master thesis in 2018. AEGIS should improve the overall security situation of modern cars. The embedded controllers should be able to use AEGIS efficiently.

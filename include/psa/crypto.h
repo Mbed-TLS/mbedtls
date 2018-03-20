@@ -670,7 +670,8 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  * has been initialized with psa_hash_start().
  *
  * After a successful call to psa_hash_start(), the application must
- * eventually destroy the operation through one of the following means:
+ * eventually terminate the operation. The following events terminate an
+ * operation:
  * - A failed call to psa_hash_update().
  * - A call to psa_hash_final(), psa_hash_verify() or psa_hash_abort().
  *
@@ -862,7 +863,8 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  * has been initialized with psa_mac_start().
  *
  * After a successful call to psa_mac_start(), the application must
- * eventually destroy the operation through one of the following means:
+ * eventually terminate the operation. The following events terminate an
+ * operation:
  * - A failed call to psa_mac_update().
  * - A call to psa_mac_final(), psa_mac_verify() or psa_mac_abort().
  *
@@ -936,7 +938,8 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * has been initialized with psa_encrypt_setup().
  *
  * After a successful call to psa_encrypt_setup(), the application must
- * eventually destroy the operation through one of the following means:
+ * eventually terminate the operation. The following events terminate an
+ * operation:
  * - A failed call to psa_encrypt_generate_iv(), psa_encrypt_set_iv()
  *   or psa_cipher_update().
  * - A call to psa_cipher_final() or psa_cipher_abort().
@@ -983,7 +986,8 @@ psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
  * has been initialized with psa_encrypt_setup().
  *
  * After a successful call to psa_decrypt_setup(), the application must
- * eventually destroy the operation through one of the following means:
+ * eventually terminate the operation. The following events terminate an
+ * operation:
  * - A failed call to psa_cipher_update().
  * - A call to psa_cipher_final() or psa_cipher_abort().
  *
@@ -1064,8 +1068,9 @@ typedef struct psa_aead_operation_s psa_aead_operation_t;
  * The application may call psa_aead_abort() at any time after the operation
  * has been initialized with psa_aead_encrypt_setup().
  *
- * After a successful call to psa_aead_setup(), the application must
- * eventually destroy the operation through one of the following means:
+ * After a successful call to psa_aead_encrypt_setup(), the application must
+ * eventually terminate the operation. The following events terminate an
+ * operation:
  * - A failed call to psa_aead_generate_iv(), psa_aead_set_iv(),
  *   psa_aead_update_ad() or psa_aead_update().
  * - A call to psa_aead_final() or psa_aead_abort().
@@ -1112,8 +1117,9 @@ psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
  * The application may call psa_aead_abort() at any time after the operation
  * has been initialized with psa_aead_decrypt_setup().
  *
- * After a successful call to psa_decrypt_setup(), the application must
- * eventually destroy the operation through one of the following means:
+ * After a successful call to psa_aead_decrypt_setup(), the application must
+ * eventually terminate the operation. The following events terminate an
+ * operation:
  * - A failed call to psa_aead_update().
  * - A call to psa_cipher_final() or psa_cipher_abort().
  *

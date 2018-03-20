@@ -2662,7 +2662,17 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
     cert_type_len = buf[mbedtls_ssl_hs_hdr_len( ssl )];
     n = cert_type_len;
 
-    if( ssl->in_hslen < mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n )
+    /*
+     * In the subsequent code there are two paths that make read from buf:
+     *     * the length of the signature algorithms field (if minor version of
+     *       SSL is 3),
+     *     * distinguished name length otherwise.
+     * Both reach at most the index:
+     *    ...hdr_len + 2 + n,
+     * therefore the buffer length at this point must be greater than that
+     * regardless of the actual code path.
+     */
+    if( ssl->in_hslen <= mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,

@@ -588,7 +588,7 @@ static psa_algorithm_t mbedtls_md_alg_to_psa( mbedtls_md_type_t md_alg )
         case MBEDTLS_MD_RIPEMD160:
             return( PSA_ALG_RIPEMD160 );
         default:
-            return( MBEDTLS_MD_NOT_SUPPORTED );
+            return( 0 );
     }
 }
 #endif
@@ -1039,7 +1039,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
         return( mbedtls_to_psa_error( ret ) );
     }
     operation->key_set = 1;
-    return( 0 );
+    return( PSA_SUCCESS );
 }
 
 psa_status_t psa_mac_update( psa_mac_operation_t *operation,

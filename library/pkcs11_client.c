@@ -157,6 +157,8 @@ static int pkcs11_sign_core( mbedtls_pk_pkcs11_context_t *ctx,
         goto exit;
     *sig_len = ck_sig_len;
 exit:
+    if( rv != CKR_OK )
+        memset( sig, 0, ck_sig_len );
     return( pkcs11_err_to_mbedtls_pk_err( rv ) );
 }
 #endif /* MBEDTLS_RSA_C */
@@ -226,8 +228,6 @@ static int pkcs11_sign( void *ctx_arg,
         return( MBEDTLS_ERR_PK_UNKNOWN_PK_ALG );
     }
 
-    if( ret != 0 )
-        memset( sig, 0, *sig_len );
     return( ret );
 }
 

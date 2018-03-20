@@ -360,3 +360,68 @@ exit:
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void key_lifetime( int lifetime_arg )
+{
+    int key_slot = 1;
+    psa_key_type_t key_type = PSA_ALG_CBC_BASE;
+    unsigned char key[32] = {0};
+    psa_key_lifetime_t lifetime_set = (psa_key_lifetime_t) lifetime_arg;
+    psa_key_lifetime_t lifetime_get;
+
+    TEST_ASSERT( key != NULL );
+
+    memset( key, 0x2a, sizeof( key ) );
+ 
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( key_slot, key_type,
+                                 key, sizeof( key ) ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_set_key_lifetime( key_slot, lifetime_set ));
+    
+    TEST_ASSERT( psa_get_key_lifetime( key_slot, &lifetime_get ));
+
+    TEST_ASSERT( lifetime_get == lifetime_set ); 
+
+exit:
+    mbedtls_free( key );
+    psa_destroy_key( key_slot );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE */
+void key_lifetime_set_fail( int key_slot_arg, int lifetime_arg, int expected_status_arg )
+{
+    int key_slot = 1;
+    psa_key_type_t key_type = PSA_ALG_CBC_BASE;
+    unsigned char key[32] = {0};
+    psa_key_lifetime_t lifetime_set = (psa_key_lifetime_t) lifetime_arg;
+    psa_status_t actual_status;
+    psa_status_t expected_status = expected_status_arg;
+
+    TEST_ASSERT( key != NULL );
+
+    memset( key, 0x2a, sizeof( key ) );
+ 
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( key_slot, key_type,
+                                 key, sizeof( key ) ) == PSA_SUCCESS );
+
+    actual_status = psa_set_key_lifetime( key_slot_arg, lifetime_set );
+
+    if( actual_status == PSA_SUCCESS )
+        actual_status = psa_set_key_lifetime( key_slot_arg, lifetime_set );
+    
+    TEST_ASSERT( expected_status == actual_status );
+
+exit:
+    mbedtls_free( key );
+    psa_destroy_key( key_slot );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */

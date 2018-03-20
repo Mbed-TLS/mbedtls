@@ -89,6 +89,10 @@ typedef enum {
     PSA_ERROR_INVALID_SIGNATURE,
     /** The decrypted padding is incorrect. */
     PSA_ERROR_INVALID_PADDING,
+    /** The key lifetime value is incorrect. */
+    PSA_ERROR_INVALID_LIFETIME,
+    /** The key lifetime can not be changed. */
+    PSA_ERROR_KEY_LIFETIME_CHANGE,
     /** An error occurred that does not correspond to any defined
         failure cause. */
     PSA_ERROR_UNKNOWN_ERROR,
@@ -596,18 +600,47 @@ typedef uint32_t psa_key_lifetime_t;
 /** \brief Retrieve the lifetime of a key slot.
  *
  * The assignment of lifetimes to slots is implementation-dependent.
+ * 
+ * \param key           Slot whose content is to be exported. This must
+ *                      be an occupied key slot.
+ * \param lifetime      On success, the lifetime value.
+ * 
+ * \retval PSA_SUCCESS
+ *         Success.
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ *         The key slot is invalid,
+ *         or the key data is not correctly formatted.
+ * \retval PSA_ERROR_EMPTY_SLOT
+ *         The key slot is not occupied.         
  */
 psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
                                   psa_key_lifetime_t *lifetime);
 
 /** \brief Change the lifetime of a key slot.
+ * 
+ * \note   In case a key slot has PSA_KEY_LIFETIME_WRITE_ONCE lifetime, 
+ *         it can not be changed and trying to set new value will return
+ *         an error
  *
- * Whether the lifetime of a key slot can be changed at all, and if so
- * whether the lifetime of an occupied key slot can be changed, is
- * implementation-dependent.
+ * \param key           Slot whose content is to be exported. This must
+ *                      be an occupied key slot.
+ * \param lifetime      The lifetime value to be set for the given key.
+ * 
+ * \retval PSA_SUCCESS
+ *         Success.
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ *         The key slot is invalid,
+ *         or the key data is not correctly formatted.
+ * \retval PSA_ERROR_EMPTY_SLOT
+ *         The key slot is not occupied.
+ * \retval PSA_ERROR_INVALID_LIFETIME
+ *         The lifetime value is not valid.
+ * \retval PSA_ERROR_KEY_LIFETIME_CHANGE
+ *         The key slot already has PSA_KEY_LIFETIME_WRITE_ONCE value,
+ *         and can not be changed.
  */
 psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
-                                  const psa_key_lifetime_t *lifetime);
+                                  const psa_key_lifetime_t lifetime);
 
 /**@}*/
 

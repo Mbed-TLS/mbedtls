@@ -21,6 +21,9 @@
  *  limitations under the License.
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
+ *
+ *
+ *  Modifications copyright (C) 2018 Benjamin Weigl <r0ot@online.de>
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -55,6 +58,10 @@
 
 #if defined(MBEDTLS_GCM_C)
 #include "mbedtls/gcm.h"
+#endif
+
+#if defined(MBEDTLS_AEGIS_C)
+#include "mbedtls/aegis.h"
 #endif
 
 #if defined(MBEDTLS_CCM_C)
@@ -399,6 +406,65 @@ static const mbedtls_cipher_info_t aes_256_gcm_info = {
     &gcm_aes_info
 };
 #endif /* MBEDTLS_GCM_C */
+
+#if defined(MBEDTLS_AEGIS_C)
+static int aegis_setkey_wrap( void *ctx, const unsigned char *key,
+                                unsigned int key_bitlen )
+{
+    return mbedtls_aegis_setkey( (mbedtls_aegis_context *) ctx, key, key_bitlen );
+}
+
+static void * aegis_ctx_alloc( void )
+{
+    mbedtls_aegis_context *ctx;
+    ctx = mbedtls_calloc( 1, sizeof( mbedtls_aegis_context ) );
+
+    if( ctx == NULL )
+        return( NULL );
+
+    mbedtls_aegis_init( ctx );
+
+    return( ctx );
+}
+
+static void aegis_ctx_free( void *ctx )
+{
+    mbedtls_aegis_free( (mbedtls_aegis_context *) ctx );
+    mbedtls_free( ctx );
+}
+
+static const mbedtls_cipher_base_t aegis_info = {
+    MBEDTLS_CIPHER_ID_AEGIS,
+    NULL,
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_STREAM)
+    NULL,
+#endif
+    aegis_setkey_wrap,
+    aegis_setkey_wrap,
+    aegis_ctx_alloc,
+    aegis_ctx_free,
+};
+
+static const mbedtls_cipher_info_t aegis_128_l_info = {
+    MBEDTLS_CIPHER_AEGIS_128_L,
+    MBEDTLS_MODE_AEAD,
+    128,
+    "AEGIS-128-L",
+    16,
+    0,
+    32,
+    &aegis_info
+};
+#endif /* MBEDTLS_AEGIS_C */
 
 #if defined(MBEDTLS_CCM_C)
 static int ccm_aes_setkey_wrap( void *ctx, const unsigned char *key,
@@ -1378,6 +1444,10 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
     { MBEDTLS_CIPHER_AES_256_CCM,          &aes_256_ccm_info },
 #endif
 #endif /* MBEDTLS_AES_C */
+
+#if defined(MBEDTLS_AEGIS_C)
+    { MBEDTLS_CIPHER_AEGIS_128_L,          &aegis_128_l_info },
+#endif /* MBEDTLS_AEGIS_C */
 
 #if defined(MBEDTLS_ARC4_C)
     { MBEDTLS_CIPHER_ARC4_128,             &arc4_128_info },

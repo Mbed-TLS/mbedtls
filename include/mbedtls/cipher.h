@@ -21,6 +21,9 @@
  *  limitations under the License.
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
+ *
+ *
+ *  Modifications copyright (C) 2018 Benjamin Weigl <r0ot@online.de>
  */
 
 #ifndef MBEDTLS_CIPHER_H
@@ -34,11 +37,12 @@
 
 #include <stddef.h>
 
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C) \
+  || defined(MBEDTLS_AEGIS_C)
 #define MBEDTLS_CIPHER_MODE_AEAD
 #endif
 
-#if defined(MBEDTLS_CIPHER_MODE_CBC)
+#if defined(MBEDTLS_CIPHER_MODE_CBC) || defined(MBEDTLS_AEGIS_C)
 #define MBEDTLS_CIPHER_MODE_WITH_PADDING
 #endif
 
@@ -70,6 +74,7 @@ typedef enum {
     MBEDTLS_CIPHER_ID_NONE = 0,
     MBEDTLS_CIPHER_ID_NULL,
     MBEDTLS_CIPHER_ID_AES,
+    MBEDTLS_CIPHER_ID_AEGIS,
     MBEDTLS_CIPHER_ID_DES,
     MBEDTLS_CIPHER_ID_3DES,
     MBEDTLS_CIPHER_ID_CAMELLIA,
@@ -95,6 +100,7 @@ typedef enum {
     MBEDTLS_CIPHER_AES_128_GCM,
     MBEDTLS_CIPHER_AES_192_GCM,
     MBEDTLS_CIPHER_AES_256_GCM,
+    MBEDTLS_CIPHER_AEGIS_128_L,
     MBEDTLS_CIPHER_CAMELLIA_128_ECB,
     MBEDTLS_CIPHER_CAMELLIA_192_ECB,
     MBEDTLS_CIPHER_CAMELLIA_256_ECB,
@@ -137,6 +143,7 @@ typedef enum {
     MBEDTLS_MODE_OFB, /* Unused! */
     MBEDTLS_MODE_CTR,
     MBEDTLS_MODE_GCM,
+    MBEDTLS_MODE_AEAD,
     MBEDTLS_MODE_STREAM,
     MBEDTLS_MODE_CCM,
 } mbedtls_cipher_mode_t;
@@ -169,7 +176,7 @@ enum {
 /** Maximum length of any IV, in bytes */
 #define MBEDTLS_MAX_IV_LENGTH      16
 /** Maximum block size of any cipher, in bytes */
-#define MBEDTLS_MAX_BLOCK_LENGTH   16
+#define MBEDTLS_MAX_BLOCK_LENGTH   32
 
 /**
  * Base cipher information (opaque struct).
@@ -507,10 +514,10 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
  */
 int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx );
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_AEGIS_C)
 /**
  * \brief               Add additional data (for AEAD ciphers).
- *                      Currently only supported with GCM.
+ *                      Currently only supported with GCM and AEGIS.
  *                      Must be called exactly once, after mbedtls_cipher_reset().
  *
  * \param ctx           generic cipher context
@@ -575,7 +582,7 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
 int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
                    unsigned char *output, size_t *olen );
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_AEGIS_C)
 /**
  * \brief               Write tag for AEAD ciphers.
  *                      Currently only supported with GCM.

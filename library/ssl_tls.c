@@ -1349,9 +1349,10 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_ARC4_C || MBEDTLS_CIPHER_NULL_CIPHER */
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C) || defined(MBEDTLS_AEGIS_C)
     if( mode == MBEDTLS_MODE_GCM ||
-        mode == MBEDTLS_MODE_CCM )
+        mode == MBEDTLS_MODE_CCM ||
+        mode == MBEDTLS_MODE_AEAD)
     {
         int ret;
         size_t enc_msglen, olen;
@@ -1618,7 +1619,8 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_ARC4_C || MBEDTLS_CIPHER_NULL_CIPHER */
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)
     if( mode == MBEDTLS_MODE_GCM ||
-        mode == MBEDTLS_MODE_CCM )
+        mode == MBEDTLS_MODE_CCM ||
+        mode == MBEDTLS_MODE_AEAD )
     {
         int ret;
         size_t dec_msglen, olen;

@@ -29,6 +29,7 @@
 #include "mbedtls/entropy_poll.h"
 #include "mbedtls/hmac_drbg.h"
 #include "mbedtls/ctr_drbg.h"
+#include "mbedtls/aegis.h"
 #include "mbedtls/dhm.h"
 #include "mbedtls/gcm.h"
 #include "mbedtls/ccm.h"

@@ -1,0 +1,3 @@
+AEGIS 128 L Selftest
+depends_on:MBEDTLS_SELF_TEST
+aegis_selftest:

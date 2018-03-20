@@ -21,7 +21,11 @@
  *  limitations under the License.
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
+ *
+ *
+ *  Modifications copyright (C) 2018 Benjamin Weigl <r0ot@online.de>
  */
+
 #ifndef MBEDTLS_CIPHER_WRAP_H
 #define MBEDTLS_CIPHER_WRAP_H
 

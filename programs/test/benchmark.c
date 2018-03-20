@@ -54,6 +54,7 @@ int main( void )
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
+#include "mbedtls/aegis.h"
 #include "mbedtls/arc4.h"
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
@@ -237,7 +238,7 @@ unsigned char buf[BUFSIZE];
 typedef struct {
     char md4, md5, ripemd160, sha1, sha256, sha512,
          arc4, des3, des,
-         aes_cbc, aes_gcm, aes_ccm, aes_cmac, des3_cmac,
+         aes_cbc, aes_gcm, aes_ccm, aes_cmac, aegis, des3_cmac,
          camellia, blowfish,
          havege, ctr_drbg, hmac_drbg,
          rsa, dhm, ecdsa, ecdh;
@@ -289,6 +290,8 @@ int main( int argc, char *argv[] )
                 todo.aes_ccm = 1;
             else if( strcmp( argv[i], "aes_cmac" ) == 0 )
                 todo.aes_cmac = 1;
+            else if( strcmp( argv[i], "aegis" ) == 0 )
+                todo.aegis = 1;
             else if( strcmp( argv[i], "des3_cmac" ) == 0 )
                 todo.des3_cmac = 1;
             else if( strcmp( argv[i], "camellia" ) == 0 )
@@ -449,6 +452,25 @@ int main( int argc, char *argv[] )
 
             mbedtls_gcm_free( &gcm );
         }
+    }
+#endif
+#if defined(MBEDTLS_AEGIS_C)
+    if( todo.aegis )
+    {
+        mbedtls_aegis_context aegis_ctx;
+
+        mbedtls_aegis_init( &aegis_ctx );
+
+        memset( buf, 0, sizeof( buf ) );
+        memset( tmp, 0, sizeof( tmp ) );
+
+        mbedtls_aegis_setkey( &aegis_ctx, tmp, 128 );
+
+        TIME_AND_TSC( "AEGIS-128-L",
+                mbedtls_aegis_crypt_and_tag( &aegis_ctx, MBEDTLS_AEGIS_ENCRYPT, BUFSIZE, tmp,
+                    12, NULL, 0, buf, buf, 16, tmp ) );
+
+        mbedtls_aegis_free( &aegis_ctx );
     }
 #endif
 #if defined(MBEDTLS_CCM_C)

@@ -4,6 +4,7 @@ option(LINK_WITH_PTHREAD "Explicitly link mbed TLS library to pthread." OFF)
 
 set(src_crypto
     aes.c
+    aegis.c
     aesni.c
     arc4.c
     asn1parse.c
@@ -83,11 +84,11 @@ set(src_tls
 )
 
 if(CMAKE_COMPILER_IS_GNUCC)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wmissing-declarations -Wmissing-prototypes")
 endif(CMAKE_COMPILER_IS_GNUCC)
 
 if(CMAKE_COMPILER_IS_CLANG)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes -Wdocumentation -Wno-documentation-deprecated-sync -Wunreachable-code")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -Wmissing-declarations -Wmissing-prototypes -Wdocumentation -Wno-documentation-deprecated-sync -Wunreachable-code")
 endif(CMAKE_COMPILER_IS_CLANG)
 
 if(WIN32)

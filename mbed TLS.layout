@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<FileVersion major="1" minor="0" />
+	<ActiveTarget name="test_suite_cipher.aegis" />
+	<File name="library/cipher.c" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="7632" topLine="154" />
+		</Cursor>
+	</File>
+	<File name="library/aesni.c" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="10334" topLine="243" />
+		</Cursor>
+	</File>
+	<File name="programs/test/selftest.c" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1024" topLine="22" />
+		</Cursor>
+	</File>
+	<File name="library/aegis.c" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="25529" topLine="342" />
+		</Cursor>
+	</File>
+	<File name="library/aes.c" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1160" topLine="33" />
+		</Cursor>
+	</File>
+	<File name="library/blowfish.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1100" topLine="21" />
+		</Cursor>
+	</File>
+	<File name="library/cipher_wrap.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="10160" topLine="450" />
+		</Cursor>
+	</File>
+	<File name="library/gcm.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1279" topLine="93" />
+		</Cursor>
+	</File>
+</CodeBlocks_layout_file>

@@ -4,6 +4,10 @@
 #if defined(MBEDTLS_GCM_C)
 #include "mbedtls/gcm.h"
 #endif
+
+#if defined(MBEDTLS_AEGIS_C)
+#include "mbedtls/aegis.h"
+#endif
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -60,7 +64,7 @@ void cipher_null_args( )
     TEST_ASSERT( mbedtls_cipher_reset( NULL ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_cipher_reset( &ctx ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_AEGIS_C)
     TEST_ASSERT( mbedtls_cipher_update_ad( NULL, buf, 0 )
                  == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_cipher_update_ad( &ctx, buf, 0 )
@@ -77,7 +81,7 @@ void cipher_null_args( )
     TEST_ASSERT( mbedtls_cipher_finish( &ctx, buf, &olen )
                  == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_AEGIS_C)
     TEST_ASSERT( mbedtls_cipher_write_tag( NULL, buf, olen )
                  == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_cipher_write_tag( &ctx, buf, olen )
@@ -138,9 +142,9 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     unsigned char iv[16];
     unsigned char ad[13];
     unsigned char tag[16];
-    unsigned char inbuf[64];
-    unsigned char encbuf[64];
-    unsigned char decbuf[64];
+    unsigned char inbuf[96];
+    unsigned char encbuf[96];
+    unsigned char decbuf[96];
 
     const mbedtls_cipher_info_t *cipher_info;
     mbedtls_cipher_context_t ctx_dec;
@@ -195,7 +199,7 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_dec ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_enc ) );
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C)  || defined(MBEDTLS_AEGIS_C)
     TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_dec, ad, sizeof( ad ) - i ) );
     TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_enc, ad, sizeof( ad ) - i ) );
 #endif
@@ -215,7 +219,7 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     TEST_ASSERT( 0 == mbedtls_cipher_finish( &ctx_enc, encbuf + outlen, &outlen ) );
     total_len += outlen;
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C)  || defined(MBEDTLS_AEGIS_C)
     TEST_ASSERT( 0 == mbedtls_cipher_write_tag( &ctx_enc, tag, sizeof( tag ) ) );
 #endif
 
@@ -236,7 +240,7 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
     TEST_ASSERT( 0 == mbedtls_cipher_finish( &ctx_dec, decbuf + outlen, &outlen ) );
     total_len += outlen;
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C)  || defined(MBEDTLS_AEGIS_C)
     TEST_ASSERT( 0 == mbedtls_cipher_check_tag( &ctx_dec, tag, sizeof( tag ) ) );
 #endif
 
@@ -292,7 +296,7 @@ void enc_fail( int cipher_id, int pad_mode, int key_len,
 #endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
     TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx, iv, 16 ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx ) );
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C)  || defined(MBEDTLS_AEGIS_C)
     TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx, NULL, 0 ) );
 #endif
 
@@ -340,7 +344,7 @@ void dec_empty_buf()
 
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_dec ) );
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C)  || defined(MBEDTLS_AEGIS_C)
     TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_dec, NULL, 0 ) );
 #endif
 
@@ -404,7 +408,7 @@ void enc_dec_buf_multipart( int cipher_id, int key_len, int first_length_val,
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_dec ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx_enc ) );
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C)  || defined(MBEDTLS_AEGIS_C)
     TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_dec, NULL, 0 ) );
     TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx_enc, NULL, 0 ) );
 #endif
@@ -465,7 +469,7 @@ void decrypt_test_vec( int cipher_id, int pad_mode,
     unsigned char ad[200];
     unsigned char tag[20];
     size_t key_len, iv_len, cipher_len, clear_len;
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C)  || defined(MBEDTLS_AEGIS_C)
     size_t ad_len, tag_len;
 #endif
     mbedtls_cipher_context_t ctx;
@@ -486,7 +490,7 @@ void decrypt_test_vec( int cipher_id, int pad_mode,
     iv_len = unhexify( iv, hex_iv );
     cipher_len = unhexify( cipher, hex_cipher );
     clear_len = unhexify( clear, hex_clear );
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C)  || defined(MBEDTLS_AEGIS_C)
     ad_len = unhexify( ad, hex_ad );
     tag_len = unhexify( tag, hex_tag );
 #else
@@ -506,7 +510,7 @@ void decrypt_test_vec( int cipher_id, int pad_mode,
 #endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
     TEST_ASSERT( 0 == mbedtls_cipher_set_iv( &ctx, iv, iv_len ) );
     TEST_ASSERT( 0 == mbedtls_cipher_reset( &ctx ) );
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C)  || defined(MBEDTLS_AEGIS_C)
     TEST_ASSERT( 0 == mbedtls_cipher_update_ad( &ctx, ad, ad_len ) );
 #endif
 
@@ -517,7 +521,7 @@ void decrypt_test_vec( int cipher_id, int pad_mode,
     TEST_ASSERT( finish_result == mbedtls_cipher_finish( &ctx, output + outlen,
                                                  &outlen ) );
     total_len += outlen;
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C)  || defined(MBEDTLS_AEGIS_C)
     TEST_ASSERT( tag_result == mbedtls_cipher_check_tag( &ctx, tag, tag_len ) );
 #endif
 

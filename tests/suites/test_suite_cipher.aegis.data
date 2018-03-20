@@ -1,0 +1,175 @@
+AEGIS 128 L NULL
+depends_on:MBEDTLS_AEGIS_C
+cipher_null_args
+
+AEGIS 128 L Encrypt and decrypt 0 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:0:-1
+
+AEGIS 128 L Encrypt and decrypt 1 byte
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:1:-1
+
+AEGIS 128 L Encrypt and decrypt 2 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:2:-1
+
+AEGIS 128 L Encrypt and decrypt 7 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:7:-1
+
+AEGIS 128 L Encrypt and decrypt 8 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:8:-1
+
+AEGIS 128 L Encrypt and decrypt 9 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:9:-1
+
+AEGIS 128 L Encrypt and decrypt 15 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:15:-1
+
+AEGIS 128 L Encrypt and decrypt 16 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:16:-1
+
+AEGIS 128 L Encrypt and decrypt 17 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:17:-1
+
+AEGIS 128 L Encrypt and decrypt 31 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:31:-1
+
+AEGIS 128 L Encrypt and decrypt 32 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:32:-1
+
+AEGIS 128 L Encrypt and decrypt 33 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:33:-1
+
+AEGIS 128 L Encrypt and decrypt 47 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:47:-1
+
+AEGIS 128 L Encrypt and decrypt 48 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:48:-1
+
+AEGIS 128 L Encrypt and decrypt 49 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:49:-1
+
+AEGIS 128 L Encrypt and decrypt 51 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:51:-1
+
+AEGIS 128 L Encrypt and decrypt 52 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:52:-1
+
+AEGIS 128 L Encrypt and decrypt 53 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:53:-1
+
+AEGIS 128 L Encrypt and decrypt 67 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:67:-1
+
+AEGIS 128 L Encrypt and decrypt 68 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:68:-1
+
+AEGIS 128 L Encrypt and decrypt 69 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf:MBEDTLS_CIPHER_AEGIS_128_L:"AEGIS-128-L":128:69:-1
+
+AEGIS 128 L Encrypt and decrypt multipart 0 bytes
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:0:0
+
+AEGIS 128 L Encrypt and decrypt 1 bytes in multiple parts 1
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:1:0
+
+AEGIS 128 L Encrypt and decrypt 1 bytes in multiple parts 2
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:0:1
+
+AEGIS 128 L Encrypt and decrypt 16 bytes in multiple parts 1
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:16:0
+
+AEGIS 128 L Encrypt and decrypt 16 bytes in multiple parts 2
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:0:16
+
+AEGIS 128 L Encrypt and decrypt 16 bytes in multiple parts 3
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:1:15
+
+AEGIS 128 L Encrypt and decrypt 16 bytes in multiple parts 4
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:15:1
+
+AEGIS 128 L Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:15:7
+
+AEGIS 128 L Encrypt and decrypt 22 bytes in multiple parts 2
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:16:6
+
+AEGIS 128 L Encrypt and decrypt 22 bytes in multiple parts 3
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:17:6
+
+AEGIS 128 L Encrypt and decrypt 32 bytes in multiple parts 1
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:16:16
+
+AEGIS 128 L Encrypt and decrypt 48 bytes in multiple parts 1
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:16:32
+
+AEGIS 128 L Encrypt and decrypt 48 bytes in multiple parts 2
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:32:16
+
+AEGIS 128 L Encrypt and decrypt 64 bytes in multiple parts 1
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:64:0
+
+AEGIS 128 L Encrypt and decrypt 64 bytes in multiple parts 2
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:0:64
+
+AEGIS 128 L Encrypt and decrypt 64 bytes in multiple parts 3
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:63:1
+
+AEGIS 128 L Encrypt and decrypt 64 bytes in multiple parts 4
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:1:63
+
+AEGIS 128 L Encrypt and decrypt 64 bytes in multiple parts 5
+depends_on:MBEDTLS_AEGIS_C
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AEGIS_128_L:128:32:32
+
+AEGIS 128 L Decrypt test vector #0
+depends_on:MBEDTLS_AEGIS_C
+decrypt_test_vec:MBEDTLS_CIPHER_AEGIS_128_L:-1:"00000000000000000000000000000000":"00000000000000000000000000000000":"41de9000a7b5e40e2d68bb64d99ebb19":"00000000000000000000000000000000":"":"f4d997cc9b94227ada4fe4165422b1c8":0:0
+
+AEGIS 128 L Decrypt test vector #1
+depends_on:MBEDTLS_AEGIS_C
+decrypt_test_vec:MBEDTLS_CIPHER_AEGIS_128_L:-1:"00000000000000000000000000000000":"00000000000000000000000000000000":"29a0ce1f5dce8c404d56d00491668604":"00000000000000000000000000000000":"00000000000000000000000000000000":"29c9d93afd7e1276112a1fd0c344ccd2":0:0
+
+AEGIS 128 L Decrypt test vector #2
+depends_on:MBEDTLS_AEGIS_C
+decrypt_test_vec:MBEDTLS_CIPHER_AEGIS_128_L:-1:"00010000000000000000000000000000":"00000200000000000000000000000000":"1c0f229f289844def2c1ef28bea0abf0":"00000000000000000000000000000000":"00010203":"1f0799d68840d2364e7eeca6d41b4d05":0:0
+
+AEGIS 128 L Decrypt test vector #3
+depends_on:MBEDTLS_AEGIS_C
+decrypt_test_vec:MBEDTLS_CIPHER_AEGIS_128_L:-1:"10010000000000000000000000000000":"10000200000000000000000000000000":"79d94593d8c2119d7e8fd9b8fc77845c5c077a05b2528b6ac54b563aed8efe84":"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f":"0001020304050607":"cc6f3372f6aa1bb82388d695c3962d9a":0:0

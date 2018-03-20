@@ -21,6 +21,9 @@
  *  limitations under the License.
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
+ *
+ *
+ *  Modifications copyright (C) 2018 Benjamin Weigl <r0ot@online.de>
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -39,6 +42,10 @@
 
 #if defined(MBEDTLS_GCM_C)
 #include "mbedtls/gcm.h"
+#endif
+
+#if defined(MBEDTLS_AEGIS_C)
+#include "mbedtls/aegis.h"
 #endif
 
 #if defined(MBEDTLS_CCM_C)
@@ -250,22 +257,31 @@ int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx )
     return( 0 );
 }
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_CIPHER_MODE_AEAD)
 int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
                       const unsigned char *ad, size_t ad_len )
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+#if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
     {
         return mbedtls_gcm_starts( (mbedtls_gcm_context *) ctx->cipher_ctx, ctx->operation,
                            ctx->iv, ctx->iv_size, ad, ad_len );
     }
+#endif /* MBEDTLS_GCM_C */
+
+#if defined(MBEDTLS_AEGIS_C)
+    if( MBEDTLS_MODE_AEAD == ctx->cipher_info->mode )
+    {
+        return mbedtls_aegis_starts( (mbedtls_aegis_context *) ctx->cipher_ctx, ctx->iv, ctx->iv_size, ad, ad_len );
+    }
+#endif /* MBEDTLS_AEGIS_C */
 
     return( 0 );
 }
-#endif /* MBEDTLS_GCM_C */
+#endif /* MBEDTLS_CIPHER_MODE_AEAD */
 
 int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *input,
                    size_t ilen, unsigned char *output, size_t *olen )
@@ -347,9 +363,9 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
             memcpy( &( ctx->unprocessed_data[ctx->unprocessed_len] ), input,
                     copy_len );
 
-            if( 0 != ( ret = ctx->cipher_info->base->cbc_func( ctx->cipher_ctx,
-                    ctx->operation, block_size, ctx->iv,
-                    ctx->unprocessed_data, output ) ) )
+            if( 0 != (ret = ctx->cipher_info->base->cbc_func( ctx->cipher_ctx,
+                                                        ctx->operation, block_size, ctx->iv,
+                                                        ctx->unprocessed_data, output )))
             {
                 return( ret );
             }
@@ -400,6 +416,95 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
         return( 0 );
     }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
+
+#if defined(MBEDTLS_AEGIS_C)
+    if( ctx->cipher_info->mode == MBEDTLS_MODE_AEAD )
+    {
+        size_t copy_len = 0;
+
+        /*
+         * If there is not enough data for a full block, cache it.
+         */
+        if( ( ctx->operation == MBEDTLS_DECRYPT &&
+                ilen <= block_size - ctx->unprocessed_len ) ||
+             ( ctx->operation == MBEDTLS_ENCRYPT &&
+                ilen < block_size - ctx->unprocessed_len ) )
+        {
+            memcpy( &( ctx->unprocessed_data[ctx->unprocessed_len] ), input,
+                    ilen );
+
+            ctx->unprocessed_len += ilen;
+            return( 0 );
+        }
+
+        /*
+         * Process cached data first
+         */
+        if( 0 != ctx->unprocessed_len )
+        {
+            copy_len = block_size - ctx->unprocessed_len;
+
+            memcpy( &( ctx->unprocessed_data[ctx->unprocessed_len] ), input,
+                    copy_len );
+
+            if( 0 != (ret = mbedtls_aegis_update( (mbedtls_aegis_context *) ctx->cipher_ctx,
+                                ctx->operation,
+                                block_size,
+                                ctx->unprocessed_data, output ) ) )
+            {
+                return( ret );
+            }
+
+            *olen += block_size;
+            output += block_size;
+            ctx->unprocessed_len = 0;
+
+            input += copy_len;
+            ilen -= copy_len;
+        }
+
+        /*
+         * Cache final, incomplete block
+         */
+        if( 0 != ilen )
+        {
+            if( 0 == block_size )
+            {
+                return MBEDTLS_ERR_CIPHER_INVALID_CONTEXT;
+            }
+
+            copy_len = ilen % block_size;
+            if( copy_len == 0 && ctx->operation == MBEDTLS_DECRYPT )
+                copy_len = block_size;
+
+            memcpy( ctx->unprocessed_data, &( input[ilen - copy_len] ),
+                    copy_len );
+
+            ctx->unprocessed_len += copy_len;
+            ilen -= copy_len;
+        }
+
+        /*
+         * Process remaining full blocks
+         */
+        if( ilen )
+        {
+            if( 0 != ( ret = mbedtls_aegis_update( (mbedtls_aegis_context *) ctx->cipher_ctx,
+                                                ctx->operation, ilen, input, output ) ) )
+            {
+                return( ret );
+            }
+
+            *olen += ilen;
+        }
+
+        return( 0 );
+
+//        *olen = ilen;
+//        return mbedtls_aegis_update( (mbedtls_aegis_context *) ctx->cipher_ctx,
+//                                                ctx->operation, ilen, input, output );
+    }
+#endif
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
     if( ctx->cipher_info->mode == MBEDTLS_MODE_CFB )
@@ -634,6 +739,9 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
     if( MBEDTLS_MODE_CFB == ctx->cipher_info->mode ||
         MBEDTLS_MODE_CTR == ctx->cipher_info->mode ||
         MBEDTLS_MODE_GCM == ctx->cipher_info->mode ||
+//#if defined(MBEDTLS_AEGIS_C)
+//        MBEDTLS_MODE_AEAD == ctx->cipher_info->mode ||
+//#endif /* MBEDTLS_AEGIS_C */
         MBEDTLS_MODE_STREAM == ctx->cipher_info->mode )
     {
         return( 0 );
@@ -647,7 +755,7 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
         return( 0 );
     }
 
-#if defined(MBEDTLS_CIPHER_MODE_CBC)
+#if defined(MBEDTLS_CIPHER_MODE_CBC) || defined(MBEDTLS_CIPHER_MODE_AEAD)
     if( MBEDTLS_MODE_CBC == ctx->cipher_info->mode )
     {
         int ret = 0;
@@ -679,9 +787,9 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
         }
 
         /* cipher block */
-        if( 0 != ( ret = ctx->cipher_info->base->cbc_func( ctx->cipher_ctx,
-                ctx->operation, mbedtls_cipher_get_block_size( ctx ), ctx->iv,
-                ctx->unprocessed_data, output ) ) )
+        if( 0 != (ret = ctx->cipher_info->base->cbc_func( ctx->cipher_ctx,
+                        ctx->operation, mbedtls_cipher_get_block_size( ctx ), ctx->iv,
+                        ctx->unprocessed_data, output )))
         {
             return( ret );
         }
@@ -695,9 +803,33 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
         *olen = mbedtls_cipher_get_block_size( ctx );
         return( 0 );
     }
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
+#if defined(MBEDTLS_AEGIS_C)
+    if( MBEDTLS_MODE_AEAD == ctx->cipher_info->mode )
+    {
+        int ret = 0;
+        if(ctx->unprocessed_len > 0)
+        {
+            unsigned int tmp_len = ctx->unprocessed_len;
+
+            /* cipher block */
+
+            if( 0 != (ret = mbedtls_aegis_update( ctx->cipher_ctx,
+                            ctx->operation, ctx->unprocessed_len,
+                            ctx->unprocessed_data, output )))
+            {
+                return( ret );
+            }
+
+            ctx->unprocessed_len = 0;
+            *olen = tmp_len;
+        }
+
+        return( 0 );
+    }
 #else
     ((void) output);
-#endif /* MBEDTLS_CIPHER_MODE_CBC */
+#endif /* MBEDTLS_AEGIS_C */
 
     return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
 }
@@ -706,7 +838,9 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
 int mbedtls_cipher_set_padding_mode( mbedtls_cipher_context_t *ctx, mbedtls_cipher_padding_t mode )
 {
     if( NULL == ctx ||
-        MBEDTLS_MODE_CBC != ctx->cipher_info->mode )
+        (MBEDTLS_MODE_CBC != ctx->cipher_info->mode &&
+        MBEDTLS_MODE_AEAD != ctx->cipher_info->mode ) )
+
     {
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     }
@@ -750,7 +884,7 @@ int mbedtls_cipher_set_padding_mode( mbedtls_cipher_context_t *ctx, mbedtls_ciph
 }
 #endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_AEGIS_C)
 int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
                       unsigned char *tag, size_t tag_len )
 {
@@ -760,8 +894,15 @@ int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
     if( MBEDTLS_ENCRYPT != ctx->operation )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+#if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
         return mbedtls_gcm_finish( (mbedtls_gcm_context *) ctx->cipher_ctx, tag, tag_len );
+#endif /* MBEDTLS_GCM_C */
+
+#if defined(MBEDTLS_AEGIS_C)
+    if( MBEDTLS_MODE_AEAD == ctx->cipher_info->mode )
+        return mbedtls_aegis_finish( (mbedtls_aegis_context *) ctx->cipher_ctx, tag, tag_len );
+#endif /* MBEDTLS_AEGIS_C */
 
     return( 0 );
 }
@@ -777,7 +918,8 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     }
 
-    if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
+    if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode ||
+        MBEDTLS_MODE_AEAD == ctx->cipher_info->mode )
     {
         unsigned char check_tag[16];
         size_t i;
@@ -786,8 +928,17 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
         if( tag_len > sizeof( check_tag ) )
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-        if( 0 != ( ret = mbedtls_gcm_finish( (mbedtls_gcm_context *) ctx->cipher_ctx,
-                                     check_tag, tag_len ) ) )
+#if defined(MBEDTLS_GCM_C)
+    if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
+        ret = mbedtls_gcm_finish( (mbedtls_gcm_context *) ctx->cipher_ctx, check_tag, tag_len );
+#endif /* MBEDTLS_GCM_C */
+
+#if defined(MBEDTLS_AEGIS_C)
+    if( MBEDTLS_MODE_AEAD == ctx->cipher_info->mode )
+        ret = mbedtls_aegis_finish( (mbedtls_aegis_context *) ctx->cipher_ctx, check_tag, tag_len );
+#endif /* MBEDTLS_AEGIS_C */
+
+        if( 0 != ret )
         {
             return( ret );
         }
@@ -854,6 +1005,15 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
                                    tag_len, tag ) );
     }
 #endif /* MBEDTLS_GCM_C */
+#if defined(MBEDTLS_AEGIS_C)
+    if( MBEDTLS_MODE_AEAD == ctx->cipher_info->mode )
+    {
+        *olen = ilen;
+        return( mbedtls_aegis_crypt_and_tag( ctx->cipher_ctx, MBEDTLS_AEGIS_ENCRYPT, ilen,
+                                   iv, iv_len, ad, ad_len, input, output,
+                                   tag_len, tag ) );
+    }
+#endif /* MBEDTLS_AEGIS_C */
 #if defined(MBEDTLS_CCM_C)
     if( MBEDTLS_MODE_CCM == ctx->cipher_info->mode )
     {
@@ -893,6 +1053,22 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
         return( ret );
     }
 #endif /* MBEDTLS_GCM_C */
+#if defined(MBEDTLS_AEGIS_C)
+    if( MBEDTLS_MODE_AEAD == ctx->cipher_info->mode )
+    {
+        int ret;
+
+        *olen = ilen;
+        ret = mbedtls_aegis_auth_decrypt( ctx->cipher_ctx, ilen,
+                                iv, iv_len, ad, ad_len,
+                                tag, tag_len, input, output );
+
+        if( ret == MBEDTLS_ERR_AEGIS_AUTH_FAILED )
+            ret = MBEDTLS_ERR_CIPHER_AUTH_FAILED;
+
+        return( ret );
+    }
+#endif /* MBEDTLS_AEGIS_C */
 #if defined(MBEDTLS_CCM_C)
     if( MBEDTLS_MODE_CCM == ctx->cipher_info->mode )
     {

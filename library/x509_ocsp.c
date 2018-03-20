@@ -1478,6 +1478,7 @@ static int x509_ocsp_is_parent_crt(
     return( 0 );
 }
 
+#if defined(MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE)
 static int x509_ocsp_find_parent_crt(
                                 mbedtls_x509_ocsp_single_response *single_resp,
                                 mbedtls_x509_crt *child,
@@ -1509,6 +1510,7 @@ static int x509_ocsp_find_parent_crt(
 
     return( 0 );
 }
+#endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */
 
 /*
  * According to RFC 6960 Section 4.2.2.2 the OCSP response issuer can be:
@@ -1601,6 +1603,11 @@ static int x509_ocsp_verify_response_issuer(
          */
         return( 0 );
     }
+#else
+    (void)is_trust_ca;
+    (void)parent;
+    (void)chain;
+    (void)trust_ca;
 #endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */
 
     *flags |= MBEDTLS_X509_BADOCSP_RESPONSE_ISSUER_NOT_TRUSTED;

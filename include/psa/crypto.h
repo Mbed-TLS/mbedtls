@@ -428,7 +428,7 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
  *   is the non-encrypted DER representation defined by PKCS\#8 (RFC 5208)
  *   as PrivateKeyInfo.
  * - For RSA public keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY), the format
- *   is the DER representation defined by X.509.
+ *   is the DER representation defined by RFC 5280 as SubjectPublicKeyInfo.
  *
  * \param key           Slot whose content is to be exported. This must
  *                      be an occupied key slot.
@@ -458,7 +458,8 @@ psa_status_t psa_export_key(psa_key_slot_t key,
  * For standard key types, the output format is as follows:
  *
  * - For RSA keys (#PSA_KEY_TYPE_RSA_KEYPAIR or #PSA_KEY_TYPE_RSA_PUBLIC_KEY),
- *   the format is the DER representation defined by X.509.
+ *   is the DER representation of the public key defined by RFC 5280
+ *   as SubjectPublicKeyInfo.
  *
  * \param key           Slot whose content is to be exported. This must
  *                      be an occupied key slot.

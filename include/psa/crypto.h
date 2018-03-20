@@ -603,7 +603,7 @@ psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
 /** \brief Change the lifetime of a key slot.
  *
  * Whether the lifetime of a key slot can be changed at all, and if so
- *  whether the lifetime of an occupied key slot can be chaned, is
+ * whether the lifetime of an occupied key slot can be changed, is
  * implementation-dependent.
  */
 psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
@@ -673,7 +673,7 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  * eventually terminate the operation. The following events terminate an
  * operation:
  * - A failed call to psa_hash_update().
- * - A call to psa_hash_final(), psa_hash_verify() or psa_hash_abort().
+ * - A call to psa_hash_finish(), psa_hash_verify() or psa_hash_abort().
  *
  * \param operation
  * \param alg       The hash algorithm to compute (\c PSA_ALG_XXX value
@@ -767,7 +767,7 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
  *
  * When this function returns, the operation becomes inactive.
  *
- * \note Applications shall make the best effort to ensure that the
+ * \note Implementations shall make the best effort to ensure that the
  * comparison between the actual hash and the expected hash is performed
  * in constant time.
  *
@@ -866,7 +866,7 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  * eventually terminate the operation. The following events terminate an
  * operation:
  * - A failed call to psa_mac_update().
- * - A call to psa_mac_final(), psa_mac_verify() or psa_mac_abort().
+ * - A call to psa_mac_finish(), psa_mac_verify() or psa_mac_abort().
  *
  * \param operation
  * \param alg       The MAC algorithm to compute (\c PSA_ALG_XXX value
@@ -942,7 +942,7 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * operation:
  * - A failed call to psa_encrypt_generate_iv(), psa_encrypt_set_iv()
  *   or psa_cipher_update().
- * - A call to psa_cipher_final() or psa_cipher_abort().
+ * - A call to psa_cipher_finish() or psa_cipher_abort().
  *
  * \param operation
  * \param alg       The cipher algorithm to compute (\c PSA_ALG_XXX value
@@ -989,7 +989,7 @@ psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
  * eventually terminate the operation. The following events terminate an
  * operation:
  * - A failed call to psa_cipher_update().
- * - A call to psa_cipher_final() or psa_cipher_abort().
+ * - A call to psa_cipher_finish() or psa_cipher_abort().
  *
  * \param operation
  * \param alg       The cipher algorithm to compute (\c PSA_ALG_XXX value
@@ -1073,7 +1073,7 @@ typedef struct psa_aead_operation_s psa_aead_operation_t;
  * operation:
  * - A failed call to psa_aead_generate_iv(), psa_aead_set_iv(),
  *   psa_aead_update_ad() or psa_aead_update().
- * - A call to psa_aead_final() or psa_aead_abort().
+ * - A call to psa_aead_finish() or psa_aead_abort().
  *
  * \param operation
  * \param alg       The AEAD algorithm to compute (\c PSA_ALG_XXX value
@@ -1121,11 +1121,11 @@ psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
  * eventually terminate the operation. The following events terminate an
  * operation:
  * - A failed call to psa_aead_update().
- * - A call to psa_cipher_final() or psa_cipher_abort().
+ * - A call to psa_aead_finish() or psa_aead_abort().
  *
  * \param operation
- * \param alg       The cipher algorithm to compute (\c PSA_ALG_XXX value
- *                  such that #PSA_ALG_IS_CIPHER(alg) is true).
+ * \param alg       The AEAD algorithm to compute (\c PSA_ALG_XXX value
+ *                  such that #PSA_ALG_IS_AEAD(alg) is true).
  *
  * \retval PSA_SUCCESS
  *         Success.
@@ -1134,7 +1134,7 @@ psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
  * \retval PSA_ERROR_INVALID_ARGUMENT
  *         \c key is not compatible with \c alg.
  * \retval PSA_ERROR_NOT_SUPPORTED
- *         \c alg is not supported or is not a cipher algorithm.
+ *         \c alg is not supported or is not an AEAD algorithm.
  * \retval PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval PSA_ERROR_COMMUNICATION_FAILURE
  * \retval PSA_ERROR_HARDWARE_FAILURE

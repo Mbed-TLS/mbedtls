@@ -1304,7 +1304,7 @@ psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
     if ( slot->lifetime == PSA_KEY_LIFETIME_WRITE_ONCE )
         return( PSA_ERROR_KEY_LIFETIME_CHANGE );
         
-    slot->lifetime = liftime;
+    slot->lifetime = lifetime;
 
     return( PSA_SUCCESS );
 }

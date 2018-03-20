@@ -1425,7 +1425,6 @@ psa_status_t psa_encrypt_generate_iv(psa_cipher_operation_t *operation,
     }
     
     *iv_length = operation->iv_size;
-
     return psa_encrypt_set_iv( operation, iv, *iv_length);
 }
 
@@ -1476,16 +1475,13 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
                                size_t *output_length)
 {
     int ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
-
-    if ( output_size < operation->block_size )
-        return ( PSA_ERROR_BUFFER_TOO_SMALL );
     
     if( ! operation->key_set )
         return( PSA_ERROR_BAD_STATE );
     if( ! operation->iv_set )
         return( PSA_ERROR_BAD_STATE );
 
-    ret = mbedtls_cipher_finish( &operation->ctx.cipher, output, 
+    ret = mbedtls_cipher_finish( &operation->ctx.cipher, output,
                                 output_length );
     if (ret != 0)
     {

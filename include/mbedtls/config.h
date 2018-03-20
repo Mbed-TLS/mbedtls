@@ -2527,7 +2527,7 @@
  *
  * Requires: MBEDTLS_X509_USE_C, MBEDTLS_X509_CRT_PARSE_C, MBEDTLS_MD_C,
  *           MBEDTLS_OID_C, MBEDTLS_ASN1_PARSE_C, MBEDTLS_PK_C, MBEDTLS_RSA_C,
- *           MBEDTLS_SHA1_C, MBEDTLS_SHA256_C
+ *           MBEDTLS_SHA256_C
  *
  * This module is used for reading X.509 OCSP responses.
  */

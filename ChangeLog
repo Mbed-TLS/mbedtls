@@ -1,5 +1,10 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.x.x branch released xxxx-xx-xx
+
+Changes
+   * Support TLS testing in out-of-source builds using cmake. Fixes #1193.
+
 = mbed TLS 2.7.0 branch released 2018-02-03
 
 Security

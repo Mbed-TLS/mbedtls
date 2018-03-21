@@ -56,6 +56,30 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
     CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull"
     FORCE)
 
+# Create a symbolic link from ${base_name} in the binary directory
+# to the corresponding path in the source directory.
+function(link_to_source base_name)
+    # Get OS dependent path to use in `execute_process`
+    file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${base_name}" link)
+    file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}" target)
+
+    if (NOT EXISTS ${link})
+        if (CMAKE_HOST_UNIX)
+            set(command ln -s ${target} ${link})
+        else()
+            set(command cmd.exe /c mklink /j ${link} ${target})
+        endif()
+
+        execute_process(COMMAND ${command}
+            RESULT_VARIABLE result
+            ERROR_VARIABLE output)
+
+        if (NOT ${result} EQUAL 0)
+            message(FATAL_ERROR "Could not create symbolic link for: ${target} --> ${output}")
+        endif()
+    endif()
+endfunction(link_to_source)
+
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 
 if(CMAKE_COMPILER_IS_GNUCC)
@@ -163,4 +187,10 @@ if(ENABLE_TESTING)
             COMMAND mv DartConfiguration.tcl.bak DartConfiguration.tcl
         )
     endif(UNIX)
+endif()
+
+# Make scripts and data files needed for testing available in an
+# out-of-source build.
+if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+    link_to_source(scripts)
 endif()

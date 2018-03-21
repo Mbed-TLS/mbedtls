@@ -100,7 +100,7 @@ int main( int argc, char *argv[] )
 
     if( ( ret = mbedtls_pk_parse_keyfile( &pk, argv[1], "" ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! Could not open '%s'\n", argv[1] );
+        mbedtls_printf( " failed\n  ! Could not parse '%s'\n", argv[1] );
         goto exit;
     }
 
@@ -133,6 +133,7 @@ int main( int argc, char *argv[] )
 
     if( ( f = fopen( filename, "wb+" ) ) == NULL )
     {
+        ret = 1;
         mbedtls_printf( " failed\n  ! Could not create %s\n\n", filename );
         goto exit;
     }

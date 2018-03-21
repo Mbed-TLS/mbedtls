@@ -447,7 +447,7 @@ msg "info: output_env.sh"
 OPENSSL="$OPENSSL" OPENSSL_LEGACY="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_CLI" \
     GNUTLS_SERV="$GNUTLS_SERV" GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI" \
     GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV" ARMC5_CC="$ARMC5_CC" \
-    ARMC6_CC="$ARMC6_CC" scripts/output_env.sh
+    ARMC6_CC="$ARMC6_CC" RUN_ARMCC="$RUN_ARMCC" scripts/output_env.sh
 
 msg "test: recursion.pl" # < 1s
 tests/scripts/recursion.pl library/*.c

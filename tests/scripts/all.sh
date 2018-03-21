@@ -131,6 +131,10 @@ EOF
 # remove built files as well as the cmake cache/config
 cleanup()
 {
+    if [ -n "${MBEDTLS_ROOT_DIR+set}" ]; then
+        cd "$MBEDTLS_ROOT_DIR"
+    fi
+
     command make clean
 
     # Remove CMake artefacts
@@ -699,6 +703,7 @@ msg "test: cmake 'out-of-source' build"
 make test
 cd "$MBEDTLS_ROOT_DIR"
 rm -rf "$OUT_OF_SOURCE_DIR"
+unset MBEDTLS_ROOT_DIR
 
 
 

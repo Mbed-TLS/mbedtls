@@ -186,60 +186,21 @@ check_tools()
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --armcc)
-            RUN_ARMCC=1
-            ;;
-        --force|-f)
-            FORCE=1
-            ;;
-        --gnutls-cli)
-            shift
-            GNUTLS_CLI="$1"
-            ;;
-        --gnutls-legacy-cli)
-            shift
-            GNUTLS_LEGACY_CLI="$1"
-            ;;
-        --gnutls-legacy-serv)
-            shift
-            GNUTLS_LEGACY_SERV="$1"
-            ;;
-        --gnutls-serv)
-            shift
-            GNUTLS_SERV="$1"
-            ;;
-        --help|-h)
-            usage
-            exit
-            ;;
-        --keep-going|-k)
-            KEEP_GOING=1
-            ;;
-        --memory|-m)
-            MEMORY=1
-            ;;
-        --no-armcc)
-            RUN_ARMCC=0
-            ;;
-        --openssl)
-            shift
-            OPENSSL="$1"
-            ;;
-        --openssl-legacy)
-            shift
-            OPENSSL_LEGACY="$1"
-            ;;
-        --out-of-source-dir)
-            shift
-            OUT_OF_SOURCE_DIR="$1"
-            ;;
-        --release-test|-r)
-            RELEASE=1
-            ;;
-        --seed|-s)
-            shift
-            SEED="$1"
-            ;;
+        --armcc) RUN_ARMCC=1;;
+        --force|-f) FORCE=1;;
+        --gnutls-cli) shift; GNUTLS_CLI="$1";;
+        --gnutls-legacy-cli) shift; GNUTLS_LEGACY_CLI="$1";;
+        --gnutls-legacy-serv) shift; GNUTLS_LEGACY_SERV="$1";;
+        --gnutls-serv) shift; GNUTLS_SERV="$1";;
+        --help|-h) usage; exit;;
+        --keep-going|-k) KEEP_GOING=1;;
+        --memory|-m) MEMORY=1;;
+        --no-armcc) RUN_ARMCC=0;;
+        --openssl) shift; OPENSSL="$1";;
+        --openssl-legacy) shift; OPENSSL_LEGACY="$1";;
+        --out-of-source-dir) shift; OUT_OF_SOURCE_DIR="$1";;
+        --release-test|-r) RELEASE=1;;
+        --seed|-s) shift; SEED="$1";;
         *)
             echo >&2 "Unknown option: $1"
             echo >&2 "Run $0 --help for usage."

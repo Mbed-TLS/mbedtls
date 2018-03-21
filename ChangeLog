@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix dynamic library building process with Makefile on Mac OS X. Fixed by
+     mnacamura.
+
 = mbed TLS 2.7.0 branch released 2018-02-03
 
 Security

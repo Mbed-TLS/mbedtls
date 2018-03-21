@@ -133,7 +133,13 @@ cleanup()
 {
     command make clean
 
-    find . -name yotta -prune -o -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} \+
+    # Remove CMake artefacts
+    find . -name .git -prune -o -name yotta -prune -o \
+           -iname CMakeFiles -exec rm -rf {} \+ -o \
+           \( -iname cmake_install.cmake -o \
+              -iname CTestTestfile.cmake -o \
+              -iname CMakeCache.txt \) -exec rm {} \+
+    # Recover files overwritten by in-tree CMake builds
     rm -f include/Makefile include/mbedtls/Makefile programs/*/Makefile
     git update-index --no-skip-worktree Makefile library/Makefile programs/Makefile tests/Makefile
     git checkout -- Makefile library/Makefile programs/Makefile tests/Makefile

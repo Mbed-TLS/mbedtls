@@ -524,7 +524,7 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 #endif
 
 #if defined(MBEDTLS_PK_C)
-unsigned char mbedtls_ssl_sig_from_pk(const mbedtls_pk_context *pk);
+unsigned char mbedtls_ssl_sig_from_pk( const mbedtls_pk_context *pk );
 unsigned char mbedtls_ssl_sig_from_pk_alg( mbedtls_pk_type_t type );
 mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig );
 #endif

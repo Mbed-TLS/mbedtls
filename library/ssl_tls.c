@@ -7761,7 +7761,7 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
 /*
  * Convert between MBEDTLS_PK_XXX and SSL_SIG_XXX
  */
-unsigned char mbedtls_ssl_sig_from_pk(const mbedtls_pk_context *pk)
+unsigned char mbedtls_ssl_sig_from_pk( const mbedtls_pk_context *pk )
 {
 #if defined(MBEDTLS_RSA_C)
     if( mbedtls_pk_can_do( pk, MBEDTLS_PK_RSA ) )

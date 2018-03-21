@@ -123,6 +123,8 @@ General options:
   -s|--seed             Integer seed value to use for this test run.
 
 Tool path options:
+     --armc5-bin-dir=<ARMC5_bin_dir_path>       ARM Compiler 5 bin directory.
+     --armc6-bin-dir=<ARMC6_bin_dir_path>       Ignored for compatibility with other Mbed TLS versions.
      --gnutls-cli=<GnuTLS_cli_path>             GnuTLS client executable to use for most tests.
      --gnutls-serv=<GnuTLS_serv_path>           GnuTLS server executable to use for most tests.
      --gnutls-legacy-cli=<GnuTLS_cli_path>      GnuTLS client executable to use for legacy tests.
@@ -191,6 +193,8 @@ check_tools()
 while [ $# -gt 0 ]; do
     case "$1" in
         --armcc) RUN_ARMCC=1;;
+        --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
+        --armc6-bin-dir) shift;; # Ignore for compatibility with later Mbed TLS versions
         --force|-f) FORCE=1;;
         --gnutls-cli) shift; GNUTLS_CLI="$1";;
         --gnutls-legacy-cli) shift; GNUTLS_LEGACY_CLI="$1";;
@@ -322,6 +326,15 @@ echo "GNUTLS_CLI: $GNUTLS_CLI"
 echo "GNUTLS_SERV: $GNUTLS_SERV"
 echo "GNUTLS_LEGACY_CLI: $GNUTLS_LEGACY_CLI"
 echo "GNUTLS_LEGACY_SERV: $GNUTLS_LEGACY_SERV"
+echo "ARMC5_BIN_DIR: ${ARMC5_BIN_DIR:-UNSET}"
+
+if [ -n "${ARMC5_BIN_DIR-}" ]; then
+    ARMC5_CC="$ARMC5_BIN_DIR/armcc"
+    ARMC5_AR="$ARMC5_BIN_DIR/armar"
+else
+    ARMC5_CC=armcc
+    ARMC5_AR=armar
+fi
 
 # To avoid setting OpenSSL and GnuTLS for each call to compat.sh and ssl-opt.sh
 # we just export the variables they require
@@ -339,7 +352,7 @@ check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
             "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
             "arm-none-eabi-gcc"
 if [ $RUN_ARMCC -ne 0 ]; then
-    check_tools "armcc"
+    check_tools "$ARMC5_CC" "$ARMC5_AR"
 fi
 
 
@@ -578,7 +591,7 @@ if [ $RUN_ARMCC -ne 0 ]; then
     scripts/config.pl unset MBEDTLS_THREADING_C
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
-    make CC=armcc AR=armar WARNING_CFLAGS= lib
+    make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS= lib
 fi
 
 msg "build: allow SHA1 in certificates by default"

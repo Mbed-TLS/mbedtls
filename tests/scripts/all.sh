@@ -90,7 +90,6 @@ CONFIG_BAK="$CONFIG_H.bak"
 MEMORY=0
 FORCE=0
 KEEP_GOING=0
-RELEASE=0
 RUN_ARMCC=1
 
 # Default commands, can be overriden by the environment
@@ -114,7 +113,11 @@ General options:
   -m|--memory           Additional optional memory tests.
      --armcc            Run ARM Compiler builds (on by default).
      --no-armcc         Skip ARM Compiler builds.
+     --no-force         Refuse to overwrite modified files (default).
+     --no-keep-going    Stop at the first error (default).
+     --no-memory        No additional memory tests (default).
      --out-of-source-dir=<path>  Directory used for CMake out-of-source build tests.
+     --random-seed      Use a random seed value for randomized tests (default).
   -r|--release-test     Run this script in release mode. This fixes the seed value to 1.
   -s|--seed             Integer seed value to use for this test run.
 
@@ -196,10 +199,14 @@ while [ $# -gt 0 ]; do
         --keep-going|-k) KEEP_GOING=1;;
         --memory|-m) MEMORY=1;;
         --no-armcc) RUN_ARMCC=0;;
+        --no-force) FORCE=0;;
+        --no-keep-going) KEEP_GOING=0;;
+        --no-memory) MEMORY=0;;
         --openssl) shift; OPENSSL="$1";;
         --openssl-legacy) shift; OPENSSL_LEGACY="$1";;
         --out-of-source-dir) shift; OUT_OF_SOURCE_DIR="$1";;
-        --release-test|-r) RELEASE=1;;
+        --random-seed) unset SEED;;
+        --release-test|-r) SEED=1;;
         --seed|-s) shift; SEED="$1";;
         *)
             echo >&2 "Unknown option: $1"
@@ -303,11 +310,6 @@ if_build_succeeded () {
     fi
 }
 
-if [ $RELEASE -eq 1 ]; then
-    # Fix the seed value to 1 to ensure that the tests are deterministic.
-    SEED=1
-fi
-
 msg "info: $0 configuration"
 echo "MEMORY: $MEMORY"
 echo "FORCE: $FORCE"
@@ -326,7 +328,9 @@ export GNUTLS_CLI="$GNUTLS_CLI"
 export GNUTLS_SERV="$GNUTLS_SERV"
 
 # Avoid passing --seed flag in every call to ssl-opt.sh
-[ ! -z ${SEED+set} ] && export SEED
+if [ -n "${SEED-}" ]; then
+  export SEED
+fi
 
 # Make sure the tools we need are available.
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \

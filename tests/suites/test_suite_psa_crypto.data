@@ -87,12 +87,6 @@ sign_fail:PSA_KEY_TYPE_RSA_KEYPAIR:"3082025e02010002818100af057d396ee84fb75fdbb5
 PSA Key Lifetime set and get volatile
 key_lifetime:PSA_KEY_LIFETIME_VOLATILE
 
-PSA Key Lifetime set and get persistent
-key_lifetime:PSA_KEY_LIFETIME_PERSISTENT
-
-PSA Key Lifetime set and get write_once
-key_lifetime:PSA_KEY_LIFETIME_WRITE_ONCE
-
 PSA Key Lifetime set fail, invalid key slot
 key_lifetime_set_fail:0:PSA_KEY_LIFETIME_VOLATILE:PSA_ERROR_INVALID_ARGUMENT
 
@@ -100,7 +94,7 @@ PSA Key Lifetime set fail, unoccupied key slot
 key_lifetime_set_fail:2:PSA_KEY_LIFETIME_VOLATILE:PSA_ERROR_EMPTY_SLOT
 
 PSA Key Lifetime set fail, can not change write_once lifetime
-key_lifetime_set_fail:1:PSA_KEY_LIFETIME_WRITE_ONCE:PSA_ERROR_KEY_LIFETIME_CHANGE
+key_lifetime_set_fail:1:PSA_KEY_LIFETIME_WRITE_ONCE:PSA_ERROR_NOT_SUPPORTED
 
 PSA Key Lifetime set fail, invalid key lifetime value
-key_lifetime_set_fail:1:PSA_KEY_LIFETIME_PERSISTENT+1:PSA_ERROR_INVALID_LIFETIME
+key_lifetime_set_fail:1:PSA_KEY_LIFETIME_PERSISTENT+1:PSA_ERROR_INVALID_ARGUMENT

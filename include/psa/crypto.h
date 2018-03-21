@@ -89,10 +89,6 @@ typedef enum {
     PSA_ERROR_INVALID_SIGNATURE,
     /** The decrypted padding is incorrect. */
     PSA_ERROR_INVALID_PADDING,
-    /** The key lifetime value is incorrect. */
-    PSA_ERROR_INVALID_LIFETIME,
-    /** The key lifetime can not be changed. */
-    PSA_ERROR_KEY_LIFETIME_CHANGE,
     /** An error occurred that does not correspond to any defined
         failure cause. */
     PSA_ERROR_UNKNOWN_ERROR,
@@ -582,15 +578,19 @@ psa_status_t psa_get_key_policy(psa_key_slot_t key,
  */
 typedef uint32_t psa_key_lifetime_t;
 
+/** An invalid key lifetime value.
+ */
+#define PSA_KEY_LIFETIME_NONE               ((psa_key_lifetime_t)0x00000000)
+
 /** A volatile key slot retains its content as long as the application is
  * running. It is guaranteed to be erased on a power reset.
  */
-#define PSA_KEY_LIFETIME_VOLATILE               ((psa_key_lifetime_t)0x00000000)
+#define PSA_KEY_LIFETIME_VOLATILE               ((psa_key_lifetime_t)0x00000001)
 
 /** A persistent key slot retains its content as long as it is not explicitly
  * destroyed.
  */
-#define PSA_KEY_LIFETIME_PERSISTENT             ((psa_key_lifetime_t)0x00000001)
+#define PSA_KEY_LIFETIME_PERSISTENT             ((psa_key_lifetime_t)0x00000002)
 
 /** A write-once key slot may not be modified once a key has been set.
  * It will retain its content as long as the device remains operational.
@@ -617,11 +617,10 @@ psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
                                   psa_key_lifetime_t *lifetime);
 
 /** \brief Change the lifetime of a key slot.
+ * Whether the lifetime of a key slot can be changed at all, and if so
+ * whether the lifetime of an occupied key slot can be changed, is
+ * implementation-dependent.
  * 
- * \note   In case a key slot has PSA_KEY_LIFETIME_WRITE_ONCE lifetime, 
- *         it can not be changed and trying to set new value will return
- *         an error
- *
  * \param key           Slot whose content is to be exported. This must
  *                      be an occupied key slot.
  * \param lifetime      The lifetime value to be set for the given key.
@@ -633,11 +632,6 @@ psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
  *         or the key data is not correctly formatted.
  * \retval PSA_ERROR_EMPTY_SLOT
  *         The key slot is not occupied.
- * \retval PSA_ERROR_INVALID_LIFETIME
- *         The lifetime value is not valid.
- * \retval PSA_ERROR_KEY_LIFETIME_CHANGE
- *         The key slot already has PSA_KEY_LIFETIME_WRITE_ONCE value,
- *         and can not be changed.
  */
 psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
                                   const psa_key_lifetime_t lifetime);

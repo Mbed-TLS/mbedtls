@@ -378,10 +378,10 @@ void key_lifetime( int lifetime_arg )
                                  key, sizeof( key ) ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_set_key_lifetime( key_slot, 
-								 lifetime_set ) == PSA_SUCCESS );
+                                 lifetime_set ) == PSA_SUCCESS );
     
     TEST_ASSERT( psa_get_key_lifetime( key_slot, 
-								 &lifetime_get ) == PSA_SUCCESS );
+                                 &lifetime_get ) == PSA_SUCCESS );
 
     TEST_ASSERT( lifetime_get == lifetime_set ); 
 

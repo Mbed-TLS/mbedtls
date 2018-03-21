@@ -151,7 +151,7 @@ int mbedtls_asn1_get_int( unsigned char **p,
     size_t len;
 
 #if defined(MBEDTLS_ASN1_PARSE_NEGINT)
-    unsigned char *neg = 0;
+    int neg = 0;
 #endif /* MBEDTLS_ASN1_PARSE_NEGINT */
 
     if( ( ret = mbedtls_asn1_get_tag( p, end, &len, MBEDTLS_ASN1_INTEGER ) ) != 0 )
@@ -160,10 +160,10 @@ int mbedtls_asn1_get_int( unsigned char **p,
     if( len == 0 || len > sizeof( int ) )
         return( MBEDTLS_ERR_ASN1_INVALID_LENGTH );
 
-    if ((**p & 0x80) != 0)
+    if( ( **p & 0x80 ) != 0 )
 #if defined(MBEDTLS_ASN1_PARSE_NEGINT)
     {
-        neg = *p;
+        neg = -1 << ( ( 8 * len ) - 1 );
         **p &= ~(0x80);
     }
 #else
@@ -181,8 +181,7 @@ int mbedtls_asn1_get_int( unsigned char **p,
     }
 
 #if defined(MBEDTLS_ASN1_PARSE_NEGINT)
-    if (neg)
-        *val = ( ~(0) << ((*p - neg) * 8 - 1) ) | *val;
+    *val += neg;
 #endif /* MBEDTLS_ASN1_PARSE_NEGINT */
 
     return( 0 );

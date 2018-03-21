@@ -1,3 +1,4 @@
 V	280301220605Z		1000	unknown	/C=NL/O=PolarSSL/CN=Mbed TLS OCSP test cert
 R	280306220741Z	180306220741Z	1001	unknown	/C=NL/O=PolarSSL/CN=Mbed TLS OCSP revoked test cert
 V	280315220334Z		1002	unknown	/C=NL/O=PolarSSL/CN=PolarSSL Server 2 Test CA
+R	280321091453Z	280320091502Z	1003	unknown	/C=NL/O=PolarSSL/CN=Mbed TLS OCSP future revoked test cert

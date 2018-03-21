@@ -392,7 +392,7 @@ psa_status_t psa_destroy_key(psa_key_slot_t key);
  *                      This may be a null pointer, in which case the key type
  *                      is not written.
  * \param bits          On success, the key size in bits.
- *                      This may be a null pointer, in which case the key type
+ *                      This may be a null pointer, in which case the key size
  *                      is not written.
  *
  * \retval PSA_SUCCESS

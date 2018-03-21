@@ -73,6 +73,8 @@ Bugfix
      In the context of SSL, this resulted in handshake failure. Reported by
      daniel in the Mbed TLS forum. #1351
    * Fix Windows x64 builds with the included mbedTLS.sln file. #1347
+   * Fix C89 incompatibility in benchmark.c. Contributed by Brendan Shanks.
+     #1353
 
 Changes
    * Fix tag lengths and value ranges in the documentation of CCM encryption.

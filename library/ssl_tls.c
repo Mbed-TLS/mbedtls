@@ -5991,7 +5991,7 @@ void mbedtls_ssl_conf_cert_profile( mbedtls_ssl_config *conf,
 /* Append a new keycert entry to a (possibly empty) list */
 static int ssl_append_key_cert( mbedtls_ssl_key_cert **head,
                                 mbedtls_x509_crt *cert,
-                                mbedtls_pk_context *key )
+                                const mbedtls_pk_context *key )
 {
     mbedtls_ssl_key_cert *new;
 
@@ -6021,7 +6021,7 @@ static int ssl_append_key_cert( mbedtls_ssl_key_cert **head,
 
 int mbedtls_ssl_conf_own_cert( mbedtls_ssl_config *conf,
                               mbedtls_x509_crt *own_cert,
-                              mbedtls_pk_context *pk_key )
+                              const mbedtls_pk_context *pk_key )
 {
     return( ssl_append_key_cert( &conf->key_cert, own_cert, pk_key ) );
 }
@@ -7761,7 +7761,7 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
 /*
  * Convert between MBEDTLS_PK_XXX and SSL_SIG_XXX
  */
-unsigned char mbedtls_ssl_sig_from_pk( mbedtls_pk_context *pk )
+unsigned char mbedtls_ssl_sig_from_pk( const mbedtls_pk_context *pk )
 {
 #if defined(MBEDTLS_RSA_C)
     if( mbedtls_pk_can_do( pk, MBEDTLS_PK_RSA ) )

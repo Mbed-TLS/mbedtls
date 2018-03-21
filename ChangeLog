@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Changes
+   * Do not define global mutexes around readdir() and gmtime() in
+     configurations where the feature is disabled. Found and fixed by Gergely
+     Budai.
+
 = mbed TLS 2.7.x branch released 2018-xx-xx
 
 Default behavior changes

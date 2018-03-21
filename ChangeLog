@@ -21,6 +21,8 @@ Bugfix
      overflow. #1179
    * Fix memory allocation corner cases in memory_buffer_alloc.c module. Found
      by Guido Vranken. #639
+   * Fix dynamic library building process with Makefile on Mac OS X. Fixed by
+     mnacamura.
 
 Changes
    * Clarify the documentation of mbedtls_ssl_setup.

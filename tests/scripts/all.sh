@@ -116,6 +116,7 @@ General options:
      --no-force         Refuse to overwrite modified files (default).
      --no-keep-going    Stop at the first error (default).
      --no-memory        No additional memory tests (default).
+     --no-yotta         Ignored for compatibility with other Mbed TLS versions.
      --out-of-source-dir=<path>  Directory used for CMake out-of-source build tests.
      --random-seed      Use a random seed value for randomized tests (default).
   -r|--release-test     Run this script in release mode. This fixes the seed value to 1.
@@ -202,6 +203,7 @@ while [ $# -gt 0 ]; do
         --no-force) FORCE=0;;
         --no-keep-going) KEEP_GOING=0;;
         --no-memory) MEMORY=0;;
+        --no-yotta) :;; # No Yotta support anyway, so just ignore --no-yotta
         --openssl) shift; OPENSSL="$1";;
         --openssl-legacy) shift; OPENSSL_LEGACY="$1";;
         --out-of-source-dir) shift; OUT_OF_SOURCE_DIR="$1";;

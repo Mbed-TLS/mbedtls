@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix spurious uninitialized variable warning in cmac.c. Fix independently
+     contributed by Brian J Murray and David Brown.
+
 = mbed TLS 2.7.2 branch released 2018-03-16
 
 Security

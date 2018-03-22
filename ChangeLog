@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.x.x branch released xxxx-xx-xx
+
+Changes
+   * Support cmake build where Mbed TLS is a subproject. Fix
+     contributed independently by Matthieu Volat and Arne Schwabe.
+
 = mbed TLS 2.6.0 branch released 2017-08-10
 
 Security

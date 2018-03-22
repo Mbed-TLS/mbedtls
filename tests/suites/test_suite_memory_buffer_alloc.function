@@ -232,3 +232,31 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_MEMORY_DEBUG */
+void memory_buffer_small_buffer( )
+{
+    unsigned char buf[1];
+
+    mbedtls_memory_buffer_alloc_init( buf, sizeof( buf ) );
+    TEST_ASSERT( mbedtls_memory_buffer_alloc_verify() != 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_MEMORY_DEBUG */
+void memory_buffer_underalloc( )
+{
+    unsigned char buf[100];
+    size_t i;
+
+    mbedtls_memory_buffer_alloc_init( buf, sizeof( buf ) );
+    for( i = 1; i < MBEDTLS_MEMORY_ALIGN_MULTIPLE; i++ )
+    {
+        TEST_ASSERT( mbedtls_calloc( 1,
+                     (size_t)-( MBEDTLS_MEMORY_ALIGN_MULTIPLE - i ) ) == NULL );
+        TEST_ASSERT( mbedtls_memory_buffer_alloc_verify() == 0 );
+    }
+
+exit:
+    mbedtls_memory_buffer_alloc_free();
+}
+/* END_CASE */

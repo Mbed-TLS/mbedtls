@@ -179,7 +179,9 @@ mbedtls_dir_t mbedtls_opendir( const char *path );
 #endif
 
 #include <stdio.h>
+#if !defined(_WIN32)
 #include <dirent.h>
+#endif
 
 typedef FILE *  mbedtls_file_t;
 #define mbedtls_fread( buf, size, stream )      fread( buf, 1, size, stream )
@@ -194,10 +196,12 @@ typedef FILE *  mbedtls_file_t;
 #define MBEDTLS_SEEK_END    SEEK_END
 #define MBEDTLS_FILE_INVALID    NULL
 
+#if !defined(_WIN32)
 typedef DIR *   mbedtls_dir_t;
 #define mbedtls_opendir         opendir
 #define mbedtls_closedir        closedir
 #define MBEDTLS_DIR_INVALID     NULL
+#endif /* !_WIN32 */
 
 #endif /* MBEDTLS_SERIALIZE_C */
 
@@ -214,6 +218,7 @@ typedef DIR *   mbedtls_dir_t;
  */
 mbedtls_file_t mbedtls_fopen( const char *path, const char *mode );
 
+#if !defined(_WIN32)
 /**
  * \brief           Read dir entry (file, dir etc.).
  *
@@ -243,8 +248,9 @@ int mbedtls_closedir( mbedtls_dir_t dir );
  * \return         Returns 0 on success, -1 on failure.
  */
 int mbedtls_stat( const char * path, mbedtls_stat_t * sb );
+#endif /* _WIN32 */
 
-#endif /* MBEDTLS_FS_IO && !MBEDTLS_FS_IO_ALT*/
+#endif /* MBEDTLS_FS_IO && !MBEDTLS_FS_IO_ALT */
 
 #ifdef __cplusplus
 }

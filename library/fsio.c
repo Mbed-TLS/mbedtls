@@ -316,6 +316,7 @@ mbedtls_file_t mbedtls_fopen( const char *path, const char *mode )
     return( f );
 }
 
+#if !defined(_WIN32)
 /**
  * \brief           Read next directory entry.
  *
@@ -393,6 +394,7 @@ int mbedtls_stat( const char * path, mbedtls_stat_t * msb )
 
     return( status );
 }
+#endif /* _WIN32 */
 
 #endif /* else MBEDTLS_SERIALIZE_C */
 #endif /* MBEDTLS_FS_IO && !MBEDTLS_FS_IO_ALT */

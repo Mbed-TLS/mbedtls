@@ -189,8 +189,7 @@ if(ENABLE_TESTING)
     endif(UNIX)
 endif()
 
-# Make scripts and data files needed for testing available in an
-# out-of-source build.
+# Make scripts needed for testing available in an out-of-source build.
 if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     link_to_source(scripts)
 endif()

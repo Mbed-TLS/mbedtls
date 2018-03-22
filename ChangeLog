@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.x.x branch released xxxx-xx-xx
+
+Changes
+   * Fix possible memory leak in mbedtls_ssl_config_free().
+     by junyeonLEE <dlwnsdus2@naver.com>
+
 = mbed TLS 2.7.x branch released 2018-xx-xx
 
 Default behavior changes

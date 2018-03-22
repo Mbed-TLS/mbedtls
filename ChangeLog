@@ -8,6 +8,8 @@ Bugfix
 
 Changes
    * Remove some redundant code in bignum.c. Contributed by Alexey Skalozub.
+   * Support cmake build where Mbed TLS is a subproject. Fix
+     contributed independently by Matthieu Volat and Arne Schwabe.
 
 = mbed TLS 2.8.0 branch released 2018-03-16
 

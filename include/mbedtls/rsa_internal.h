@@ -213,4 +213,8 @@ int mbedtls_rsa_validate_crt( const mbedtls_mpi *P,  const mbedtls_mpi *Q,
                               const mbedtls_mpi *D,  const mbedtls_mpi *DP,
                               const mbedtls_mpi *DQ, const mbedtls_mpi *QP );
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* rsa_internal.h */

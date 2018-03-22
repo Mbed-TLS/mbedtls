@@ -140,6 +140,7 @@ int main( int argc, char *argv[] )
 
     if( fwrite( buf, 1, olen, f ) != olen )
     {
+        ret = 1;
         mbedtls_printf( "failed\n  ! fwrite failed\n\n" );
         fclose( f );
         goto exit;

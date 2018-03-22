@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.x branch
+= mbed TLS 2.x.x branch released xxxx-xx-xx
 
 Bugfix
    * Fix bug in mbedtls_mpi_add_mpi() that caused wrong results when the three
@@ -14,6 +14,7 @@ Changes
    * On ARM platforms, when compiling with -O0 with GCC, Clang or armcc5,
      don't use the optimized assembly for bignum multiplication. This removes
      the need to pass -fomit-frame-pointer to avoid a build error with -O0.
+   * Remove some redundant code in bignum.c. Contributed by Alexey Skalozub.
 
 = mbed TLS 2.2.1 released 2016-01-05
 

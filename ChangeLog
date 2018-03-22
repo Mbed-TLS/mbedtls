@@ -21,6 +21,10 @@ Bugfix
      overflow. #1179
    * Fix memory allocation corner cases in memory_buffer_alloc.c module. Found
      by Guido Vranken. #639
+   * Fix possible memory leak in mbedtls_ssl_config_free().
+     This can occur only if the user doesn't use mbedtls_ssl_conf_psk() and
+     instead incorrectly manipulates conf->psk and/or conf->psk_identity
+     directly. Found and fix submitted by junyeonLEE in #1220.
 
 Changes
    * Clarify the documentation of mbedtls_ssl_setup.

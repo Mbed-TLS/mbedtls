@@ -33,8 +33,9 @@ Changes
    * Fix typo in a comment ctr_drbg.c. Contributed by Paul Sokolovsky.
    * MD functions deprecated in 2.7.0 are no longer inline, to provide
      a migration path for those depending on the library's ABI.
-   * Add guard to validate that out_left can not be negative. Raised by 
-     samoconnor in #1245.
+   * Verify that when (f_send, f_recv and f_recv_timeout) send or receive 
+     more than the required length an error is returned. Raised by 
+     Sam O'Connor in #1245.
 
 = mbed TLS 2.7.0 branch released 2018-02-03
 

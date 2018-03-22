@@ -963,7 +963,7 @@ static void mpi_sub_hlp( size_t n, mbedtls_mpi_uint *s, mbedtls_mpi_uint *d )
     while( c != 0 )
     {
         z = ( *d < c ); *d -= c;
-        c = z; i++; d++;
+        c = z; d++;
     }
 }
 
@@ -1201,8 +1201,8 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, i + j ) );
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
 
-    for( i++; j > 0; j-- )
-        mpi_mul_hlp( i - 1, A->p, X->p + j - 1, B->p[j - 1] );
+    for( ; j > 0; j-- )
+        mpi_mul_hlp( i, A->p, X->p + j - 1, B->p[j - 1] );
 
     X->s = A->s * B->s;
 

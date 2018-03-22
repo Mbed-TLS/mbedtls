@@ -1,5 +1,10 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Changes
+   * Remove some redundant code in bignum.c. Contributed by Alexey Skalozub.
+
 = mbed TLS 2.8.0 branch released 2018-03-16
 
 Default behavior changes

@@ -2,9 +2,11 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.x.x branch released xxxx-xx-xx
 
-Changes
+Bugfix
    * Fix possible memory leak in mbedtls_ssl_config_free().
-     by junyeonLEE <dlwnsdus2@naver.com>
+     This can occur only if the user doesn't use mbedtls_ssl_conf_psk() and
+     instead incorrectly manipulates conf->psk and/or conf->psk_identity
+     directly. Fix submitted by junyeonLEE.
 
 = mbed TLS 2.7.x branch released 2018-xx-xx
 

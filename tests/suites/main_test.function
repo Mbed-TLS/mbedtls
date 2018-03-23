@@ -1,43 +1,5 @@
-#include <string.h>
-
-#if defined(MBEDTLS_PLATFORM_C)
-#include "mbedtls/platform.h"
-#else
-#include <stdio.h>
-#include <stdlib.h>
-#define mbedtls_exit       exit
-#define mbedtls_free       free
-#define mbedtls_calloc     calloc
-#define mbedtls_fprintf    fprintf
-#define mbedtls_printf     printf
-#define mbedtls_snprintf   snprintf
-#endif
-
-#if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-#include "mbedtls/memory_buffer_alloc.h"
-#endif
-
-static int test_errors = 0;
-
 SUITE_PRE_DEP
 #define TEST_SUITE_ACTIVE
-
-static void test_fail( const char *test )
-{
-    test_errors++;
-    if( test_errors == 1 )
-        mbedtls_printf( "FAILED\n" );
-    mbedtls_printf( "  %s\n", test );
-}
-
-#define TEST_ASSERT( TEST )                         \
-    do {                                            \
-        if( ! (TEST) )                              \
-        {                                           \
-            test_fail( #TEST );                     \
-            goto exit;                              \
-        }                                           \
-    } while( 0 )
 
 int verify_string( char **str )
 {
@@ -101,8 +63,16 @@ MAPPING_CODE
     return( -1 );
 }
 
+
+/*----------------------------------------------------------------------------*/
+/* Test Case code */
+
 FUNCTION_CODE
 SUITE_POST_DEP
+
+
+/*----------------------------------------------------------------------------*/
+/* Test dispatch code */
 
 int dep_check( char *str )
 {
@@ -132,6 +102,10 @@ DISPATCH_FUNCTION
 #endif
     return( ret );
 }
+
+
+/*----------------------------------------------------------------------------*/
+/* Main Test code */
 
 /** Retrieve one input line into buf, which must have room for len
  * bytes. The trailing line break (if any) is stripped from the result.
@@ -191,7 +165,7 @@ int parse_arguments( char *buf, size_t len, char *params[50] )
         p++;
     }
 
-    // Replace newlines, question marks and colons in strings
+    /* Replace newlines, question marks and colons in strings */
     for( i = 0; i < cnt; i++ )
     {
         p = params[i];

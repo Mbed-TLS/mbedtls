@@ -284,7 +284,7 @@ if [ $KEEP_GOING -eq 1 ]; then
     start_red=
     end_color=
     if [ -t 1 ]; then
-        case "$TERM" in
+        case "${TERM:-}" in
             *color*|cygwin|linux|rxvt*|screen|[Eex]term*)
                 start_red=$(printf '\033[31m')
                 end_color=$(printf '\033[0m')
@@ -477,6 +477,23 @@ make test
 
 msg "test: !MBEDTLS_SSL_RENEGOTIATION - ssl-opt.sh (ASan build)" # ~ 6 min
 if_build_succeeded tests/ssl-opt.sh
+
+msg "build: Default + RSA_NO_CRT (ASan build)" # ~ 6 min
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_RSA_NO_CRT
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: RSA_NO_CRT - main suites (inc. selftests) (ASan build)" # ~ 50s
+make test
+
+msg "test: RSA_NO_CRT - RSA-related part of ssl-opt.sh (ASan build)" # ~ 5s
+tests/ssl-opt.sh -f RSA
+
+msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
+tests/compat.sh -t RSA
+
 
 msg "build: cmake, full config, clang" # ~ 50s
 cleanup

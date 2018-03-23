@@ -37,8 +37,8 @@ Mbed TLS maintains some legacy branches, which are released as LTS versions. Mbe
 It would be highly appreciated if a contribution would be backported to a legacy branch in addition to the [development branch](https://github.com/ARMmbed/mbedtls/tree/development).
 At the moment, the legacy branches are:
   
-1. [mbedtls-1.3](https://github.com/ARMmbed/mbedtls/tree/mbedtls-1.3)
 1. [mbedtls-2.1](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.1)
+1. [mbedtls-2.7](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.7)
 
 Tests
 -----

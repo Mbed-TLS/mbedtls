@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #define mbedtls_fprintf         fprintf
 #define mbedtls_printf          printf
+#define mbedtls_snprintf        snprintf
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -144,8 +145,11 @@ int main( int argc, char *argv[] )
 
     for( i = 0; i < olen; i++ )
     {
-        mbedtls_fprintf( f, "%02X%s", buf[i],
-                 ( i + 1 ) % 16 == 0 ? "\r\n" : " " );
+        int len = 0;
+        char write_buf[5];
+        len = mbedtls_snprintf( write_buf, sizeof( write_buf ),
+                "%02X%s", buf[i], ( i + 1 ) % 16 == 0 ? "\r\n" : " " );
+        mbedtls_fwrite(write_buf, len, f);
     }
 
     mbedtls_fclose( f );

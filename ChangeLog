@@ -10,6 +10,52 @@ Security
      trusted CA with a non DER-compliant certificate. Found by luocm on GitHub.
      Fixes #825.
 
+= mbed TLS 2.7.2 branch released 2018-03-16
+
+Security
+   * Verify results of RSA private key operations to defend
+     against Bellcore glitch attack.
+   * Fix a buffer overread in ssl_parse_server_key_exchange() that could cause
+     a crash on invalid input.
+   * Fix a buffer overread in ssl_parse_server_psk_hint() that could cause a
+     crash on invalid input.
+   * Fix CRL parsing to reject CRLs containing unsupported critical
+     extensions. Found by Falko Strenzke and Evangelos Karatsiolis.
+
+Features
+   * Extend PKCS#8 interface by introducing support for the entire SHA
+     algorithms family when encrypting private keys using PKCS#5 v2.0.
+     This allows reading encrypted PEM files produced by software that
+     uses PBKDF2-SHA2, such as OpenSSL 1.1. Submitted by Antonio Quartulli,
+     OpenVPN Inc. Fixes #1339
+
+Bugfix
+   * Fix setting version TLSv1 as minimal version, even if TLS 1
+     is not enabled. Set MBEDTLS_SSL_MIN_MAJOR_VERSION
+     and MBEDTLS_SSL_MIN_MINOR_VERSION instead of
+     MBEDTLS_SSL_MAJOR_VERSION_3 and MBEDTLS_SSL_MINOR_VERSION_1. #664
+   * Fix compilation error on Mingw32 when _TRUNCATE is defined. Use _TRUNCATE
+     only if __MINGW32__ not defined. Fix suggested by Thomas Glanzmann and
+     Nick Wilson on issue #355
+   * In test_suite_pk, pass valid parameters when testing for hash length
+     overflow. #1179
+   * Fix memory allocation corner cases in memory_buffer_alloc.c module. Found
+     by Guido Vranken. #639
+   * Log correct number of ciphersuites used in Client Hello message. #918
+   * Fix X509 CRT parsing that would potentially accept an invalid tag when
+     parsing the subject alternative names.
+   * Fix a possible arithmetic overflow in ssl_parse_server_key_exchange()
+     that could cause a key exchange to fail on valid data.
+   * Fix a possible arithmetic overflow in ssl_parse_server_psk_hint() that
+     could cause a key exchange to fail on valid data.
+   * Don't define mbedtls_aes_decrypt and mbedtls_aes_encrypt under
+     MBEDTLS_DEPRECATED_REMOVED. #1388
+   * Fix a 1-byte heap buffer overflow (read-only) during private key parsing.
+     Found through fuzz testing.
+
+Changes
+   * Clarify the documentation of mbedtls_ssl_setup.
+
 = mbed TLS 2.7.1 branch released 2018-02-23
 
 Default behavior changes

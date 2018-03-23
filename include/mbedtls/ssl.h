@@ -1639,7 +1639,7 @@ void mbedtls_ssl_conf_ca_chain( mbedtls_ssl_config *conf,
  */
 int mbedtls_ssl_conf_own_cert( mbedtls_ssl_config *conf,
                               mbedtls_x509_crt *own_cert,
-                              mbedtls_pk_context *pk_key );
+                              const mbedtls_pk_context *pk_key );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)

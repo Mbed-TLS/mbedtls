@@ -1,5 +1,25 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.1.x branch released xxxx-xx-xx
+
+Security
+   * Fix a bug in the X.509 module potentially leading to a buffer overread
+     during CRT verification or to invalid or omitted checks for certificate
+     validity. The former can be triggered remotely, while the latter requires
+     a non DER-compliant certificate correctly signed by a trusted CA, or a
+     trusted CA with a non DER-compliant certificate. Found by luocm on GitHub.
+     Fixes #825.
+
+Bugfix
+   * Add missing dependencies in test suites that led to build failures
+     in configurations that omit certain hashes or public-key algorithms.
+     Fixes #1040.
+
+Changes
+   * Improve testing in configurations that omit certain hashes or
+     public-key algorithms. Includes contributions by Gert van Dijk.
+   * Improve negative testing of X.509 parsing.
+
 = mbed TLS 2.1.11 branch released 2018-03-16
 
 Default behavior changes

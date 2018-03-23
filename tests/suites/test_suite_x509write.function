@@ -121,6 +121,7 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
     TEST_ASSERT( mbedtls_pk_parse_keyfile( &issuer_key, issuer_key_file,
                                          issuer_pwd ) == 0 );
 
+#if defined(MBEDTLS_RSA_C)
     /* For RSA PK contexts, create a copy as an alternative RSA context. */
     if( rsa_alt == 1 && mbedtls_pk_get_type( &issuer_key ) == MBEDTLS_PK_RSA )
     {
@@ -132,6 +133,9 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
 
         key = &issuer_key_alt;
     }
+#else
+    (void) rsa_alt;
+#endif
 
     TEST_ASSERT( mbedtls_mpi_read_string( &serial, 10, serial_str ) == 0 );
 

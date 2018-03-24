@@ -120,7 +120,7 @@ int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char 
  * \param client_ip Will contain the client IP address, can be NULL
  * \param buf_size  Size of the client_ip buffer
  * \param ip_len    Will receive the size of the client IP written,
- *                  can be NULL if client_ip == NULL
+ *                  can be NULL if client_ip is null
  *
  * \return          0 if successful, or
  *                  MBEDTLS_ERR_NET_ACCEPT_FAILED, or

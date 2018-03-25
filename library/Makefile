@@ -35,9 +35,8 @@ SOEXT_TLS=so.10
 SOEXT_X509=so.0
 SOEXT_CRYPTO=so.0
 
-DLEXT=so
-# OSX shared library extension:
-# DLEXT=dylib
+# Set DLEXT=dylib to compile as a shared library for Mac OS X
+DLEXT ?= so
 
 # Windows shared library extension:
 ifdef WINDOWS_BUILD

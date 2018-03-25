@@ -571,7 +571,6 @@ void cipher_test_positive( int alg_arg, int key_type_arg,
                                     output, output_size, 
                                     &output_length) == PSA_SUCCESS );
 	TEST_ASSERT( psa_cipher_finish( &operation, output + output_length,
-                                    output_size,
                                     &output_length) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_cipher_abort( &operation ) == PSA_SUCCESS );
@@ -631,7 +630,6 @@ void cipher_test_verify_output( int alg_arg, int key_type_arg,
                                     output1, output1_size, 
                                     &output1_length) == PSA_SUCCESS );
 	TEST_ASSERT( psa_cipher_finish( &operation1, output1 + output1_length,
-                                    output1_size - output1_length,
                                     &tmp_output_length) == PSA_SUCCESS );
 									
     output1_length += tmp_output_length;
@@ -647,7 +645,6 @@ void cipher_test_verify_output( int alg_arg, int key_type_arg,
                                     output2, output2_size, &output2_length) == PSA_SUCCESS );
     tmp_output_length = 0;
 	TEST_ASSERT( psa_cipher_finish( &operation2, output2 + output2_length,
-                                    output2_size - output2_length,
                                     &tmp_output_length) == PSA_SUCCESS );  
     
 	output2_length += tmp_output_length;

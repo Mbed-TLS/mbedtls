@@ -1471,7 +1471,6 @@ psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
 
 psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
                                uint8_t *output,
-                               size_t output_size,
                                size_t *output_length)
 {
     int ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;

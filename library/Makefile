@@ -38,6 +38,10 @@ SOEXT_CRYPTO=so.0
 # Set DLEXT=dylib to compile as a shared library for Mac OS X
 DLEXT ?= so
 
+# Set AR_DASH= (empty string) to use an ar implentation that does not accept
+# the - prefix for command line options (e.g. llvm-ar)
+AR_DASH ?= -
+
 # Windows shared library extension:
 ifdef WINDOWS_BUILD
 DLEXT=dll
@@ -88,9 +92,9 @@ shared: libmbedcrypto.$(DLEXT) libmbedx509.$(DLEXT) libmbedtls.$(DLEXT)
 # tls
 libmbedtls.a: $(OBJS_TLS)
 	echo "  AR    $@"
-	$(AR) -rc $@ $(OBJS_TLS)
+	$(AR) $(AR_DASH)rc $@ $(OBJS_TLS)
 	echo "  RL    $@"
-	$(AR) -s $@
+	$(AR) $(AR_DASH)s $@
 
 libmbedtls.$(SOEXT_TLS): $(OBJS_TLS) libmbedx509.so
 	echo "  LD    $@"
@@ -111,9 +115,9 @@ libmbedtls.dll: $(OBJS_TLS) libmbedx509.dll
 # x509
 libmbedx509.a: $(OBJS_X509)
 	echo "  AR    $@"
-	$(AR) -rc $@ $(OBJS_X509)
+	$(AR) $(AR_DASH)rc $@ $(OBJS_X509)
 	echo "  RL    $@"
-	$(AR) -s $@
+	$(AR) $(AR_DASH)s $@
 
 libmbedx509.$(SOEXT_X509): $(OBJS_X509) libmbedcrypto.so
 	echo "  LD    $@"
@@ -134,9 +138,9 @@ libmbedx509.dll: $(OBJS_X509) libmbedcrypto.dll
 # crypto
 libmbedcrypto.a: $(OBJS_CRYPTO)
 	echo "  AR    $@"
-	$(AR) -rc $@ $(OBJS_CRYPTO)
+	$(AR) $(AR_DASH)rc $@ $(OBJS_CRYPTO)
 	echo "  RL    $@"
-	$(AR) -s $@
+	$(AR) $(AR_DASH)s $@
 
 libmbedcrypto.$(SOEXT_CRYPTO): $(OBJS_CRYPTO)
 	echo "  LD    $@"

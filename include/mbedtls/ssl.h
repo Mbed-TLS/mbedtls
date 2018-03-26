@@ -673,10 +673,18 @@ struct mbedtls_ssl_config
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    unsigned char *psk;             /*!< pre-shared key                     */
-    size_t         psk_len;         /*!< length of the pre-shared key       */
-    unsigned char *psk_identity;    /*!< identity for PSK negotiation       */
-    size_t         psk_identity_len;/*!< length of identity                 */
+    unsigned char *psk;             /*!< pre-shared key. This field should
+                                         only be set via
+                                         mbedtls_ssl_conf_psk() */
+    size_t         psk_len;         /*!< length of the pre-shared key. This
+                                         field should only be set via
+                                         mbedtls_ssl_conf_psk() */
+    unsigned char *psk_identity;    /*!< identity for PSK negotiation. This
+                                         field should only be set via
+                                         mbedtls_ssl_conf_psk() */
+    size_t         psk_identity_len;/*!< length of identity. This field should
+                                         only be set via
+                                         mbedtls_ssl_conf_psk() */
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)

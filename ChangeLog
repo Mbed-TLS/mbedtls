@@ -5,6 +5,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Fix spurious uninitialized variable warning in cmac.c. Fix independently
      contributed by Brian J Murray and David Brown.
+   * Fix overriding and ignoring return values when parsing and writing to
+     a file in pk_sign program. Found by kevlut in #1142.
 
 Changes
    * Support cmake build where Mbed TLS is a subproject. Fix

@@ -658,13 +658,13 @@ int main( int argc, char *argv[] )
     if( todo.dhm )
     {
         int dhm_sizes[] = { 2048, 3072 };
-        const unsigned char dhm_P_2048[] =
+        static const unsigned char dhm_P_2048[] =
             MBEDTLS_DHM_RFC3526_MODP_2048_P_BIN;
-        const unsigned char dhm_P_3072[] =
+        static const unsigned char dhm_P_3072[] =
             MBEDTLS_DHM_RFC3526_MODP_3072_P_BIN;
-        const unsigned char dhm_G_2048[] =
+        static const unsigned char dhm_G_2048[] =
             MBEDTLS_DHM_RFC3526_MODP_2048_G_BIN;
-        const unsigned char dhm_G_3072[] =
+        static const unsigned char dhm_G_3072[] =
             MBEDTLS_DHM_RFC3526_MODP_3072_G_BIN;
 
         const unsigned char *dhm_P[] = { dhm_P_2048, dhm_P_3072 };

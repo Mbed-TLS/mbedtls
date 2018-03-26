@@ -16,6 +16,8 @@ Bugfix
    * Add missing dependencies in test suites that led to build failures
      in configurations that omit certain hashes or public-key algorithms.
      Fixes #1040.
+   * Fix C89 incompatibility in benchmark.c. Contributed by Brendan Shanks.
+     #1353
 
 Changes
    * Remove some redundant code in bignum.c. Contributed by Alexey Skalozub.

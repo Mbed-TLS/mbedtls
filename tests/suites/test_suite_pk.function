@@ -13,13 +13,18 @@ static int rnd_std_rand( void *rng_state, unsigned char *output, size_t len );
 #define RSA_KEY_SIZE 512
 #define RSA_KEY_LEN   64
 
-static int pk_genkey( mbedtls_pk_context *pk )
+static int pk_genkey( mbedtls_pk_context *pk, int size )
 {
     ((void) pk);
 
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_GENPRIME)
     if( mbedtls_pk_get_type( pk ) == MBEDTLS_PK_RSA )
-        return mbedtls_rsa_gen_key( mbedtls_pk_rsa( *pk ), rnd_std_rand, NULL, RSA_KEY_SIZE, 3 );
+    {
+        if( size == 0 )
+            size = RSA_KEY_SIZE;
+        return( mbedtls_rsa_gen_key( mbedtls_pk_rsa( *pk ),
+                                     rnd_std_rand, NULL, size, 3 ) );
+    }
 #endif
 #if defined(MBEDTLS_ECP_C)
     if( mbedtls_pk_get_type( pk ) == MBEDTLS_PK_ECKEY ||
@@ -27,8 +32,30 @@ static int pk_genkey( mbedtls_pk_context *pk )
         mbedtls_pk_get_type( pk ) == MBEDTLS_PK_ECDSA )
     {
         int ret;
+        mbedtls_ecp_group_id curve;
+        switch( size )
+        {
+            case 0:
+            case 192:
+                curve = MBEDTLS_ECP_DP_SECP192R1;
+                break;
+            case 224:
+                curve = MBEDTLS_ECP_DP_SECP224R1;
+                break;
+            case 256:
+                curve = MBEDTLS_ECP_DP_SECP256R1;
+                break;
+            case 384:
+                curve = MBEDTLS_ECP_DP_SECP384R1;
+                break;
+            case 521:
+                curve = MBEDTLS_ECP_DP_SECP521R1;
+                break;
+            default:
+                return( -1 );
+        }
         if( ( ret = mbedtls_ecp_group_load( &mbedtls_pk_ec( *pk )->grp,
-                                      MBEDTLS_ECP_DP_SECP192R1 ) ) != 0 )
+                                            curve ) ) != 0 )
             return( ret );
 
         return mbedtls_ecp_gen_keypair( &mbedtls_pk_ec( *pk )->grp, &mbedtls_pk_ec( *pk )->d,
@@ -77,7 +104,7 @@ void pk_utils( int type, int size, int len, char * name )
     mbedtls_pk_init( &pk );
 
     TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( type ) ) == 0 );
-    TEST_ASSERT( pk_genkey( &pk ) == 0 );
+    TEST_ASSERT( pk_genkey( &pk, size ) == 0 );
 
     TEST_ASSERT( (int) mbedtls_pk_get_type( &pk ) == type );
     TEST_ASSERT( mbedtls_pk_can_do( &pk, type ) );
@@ -252,7 +279,7 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
     memset( sig, 0, sizeof sig );
 
     TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( type ) ) == 0 );
-    TEST_ASSERT( pk_genkey( &pk ) == 0 );
+    TEST_ASSERT( pk_genkey( &pk, 0 ) == 0 );
 
     TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, sizeof hash,
                           sig, &sig_len, rnd_std_rand, NULL ) == sign_ret );
@@ -447,7 +474,7 @@ void pk_rsa_alt(  )
     /* Initiliaze PK RSA context with random key */
     TEST_ASSERT( mbedtls_pk_setup( &rsa,
                               mbedtls_pk_info_from_type( MBEDTLS_PK_RSA ) ) == 0 );
-    TEST_ASSERT( pk_genkey( &rsa ) == 0 );
+    TEST_ASSERT( pk_genkey( &rsa, RSA_KEY_SIZE ) == 0 );
 
     /* Extract key to the raw rsa context */
     TEST_ASSERT( mbedtls_rsa_copy( &raw, mbedtls_pk_rsa( rsa ) ) == 0 );

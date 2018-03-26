@@ -1,5 +1,7 @@
 /* BEGIN_HEADER */
 #include "psa/crypto.h"
+
+#include "mbedtls/md.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -10,15 +12,351 @@
 /* BEGIN_CASE */
 void init_deinit()
 {
-    psa_status_t ret;
+    psa_status_t status;
     int i;
     for( i = 0; i <= 1; i++ )
     {
-        ret = psa_crypto_init( );
-        TEST_ASSERT( ret == PSA_SUCCESS );
-        ret = psa_crypto_init( );
-        TEST_ASSERT( ret == PSA_SUCCESS );
+        status = psa_crypto_init( );
+        TEST_ASSERT( status == PSA_SUCCESS );
+        status = psa_crypto_init( );
+        TEST_ASSERT( status == PSA_SUCCESS );
         mbedtls_psa_crypto_free( );
     }
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void import( char *hex, int type, int expected_status )
+{
+    int slot = 1;
+    psa_status_t status;
+    unsigned char *data = NULL;
+    size_t data_size;
+
+    data = unhexify_alloc( hex, &data_size );
+    TEST_ASSERT( data != NULL );
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    status = psa_import_key( slot, type, data, data_size );
+    TEST_ASSERT( status == (psa_status_t) expected_status );
+    if( status == PSA_SUCCESS )
+        TEST_ASSERT( psa_destroy_key( slot ) == PSA_SUCCESS );
+
+exit:
+    mbedtls_free( data );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void import_export( char *hex, int type_arg,
+                    int expected_bits,
+                    int export_size_delta,
+                    int expected_export_status,
+                    int canonical_input )
+{
+    int slot = 1;
+    int slot2 = slot + 1;
+    psa_key_type_t type = type_arg;
+    psa_status_t status;
+    unsigned char *data = NULL;
+    unsigned char *exported = NULL;
+    unsigned char *reexported = NULL;
+    size_t data_size;
+    size_t export_size;
+    size_t exported_length;
+    size_t reexported_length;
+    psa_key_type_t got_type;
+    size_t got_bits;
+
+    data = unhexify_alloc( hex, &data_size );
+    TEST_ASSERT( data != NULL );
+    export_size = (ssize_t) data_size + export_size_delta;
+    exported = mbedtls_calloc( 1, export_size );
+    TEST_ASSERT( exported != NULL );
+    if( ! canonical_input )
+    {
+        reexported = mbedtls_calloc( 1, export_size );
+        TEST_ASSERT( reexported != NULL );
+    }
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    /* Import the key */
+    TEST_ASSERT( psa_import_key( slot, type,
+                                 data, data_size ) == PSA_SUCCESS );
+
+    /* Test the key information */
+    TEST_ASSERT( psa_get_key_information( slot,
+                                          &got_type, &got_bits ) ==
+                 PSA_SUCCESS );
+    TEST_ASSERT( got_type == type );
+    TEST_ASSERT( got_bits == (size_t) expected_bits );
+
+    /* Export the key */
+    status = psa_export_key( slot,
+                             exported, export_size,
+                             &exported_length );
+    TEST_ASSERT( status == (psa_status_t) expected_export_status );
+    if( status != PSA_SUCCESS )
+        goto destroy;
+
+    if( canonical_input )
+    {
+        TEST_ASSERT( exported_length == data_size );
+        TEST_ASSERT( memcmp( exported, data, data_size ) == 0 );
+    }
+    else
+    {
+        TEST_ASSERT( psa_import_key( slot2, type,
+                                     exported, export_size ) ==
+                     PSA_SUCCESS );
+        TEST_ASSERT( psa_export_key( slot2,
+                                     reexported, export_size,
+                                     &reexported_length ) ==
+                     PSA_SUCCESS );
+        TEST_ASSERT( reexported_length == exported_length );
+        TEST_ASSERT( memcmp( reexported, exported,
+                             exported_length ) == 0 );
+    }
+
+destroy:
+    /* Destroy the key */
+    TEST_ASSERT( psa_destroy_key( slot ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_get_key_information(
+                     slot, NULL, NULL ) == PSA_ERROR_EMPTY_SLOT );
+
+exit:
+    mbedtls_free( data );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void hash_finish( int alg_arg, char *input_hex, char *hash_hex )
+{
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *input = NULL;
+    size_t input_size;
+    unsigned char expected_hash[MBEDTLS_MD_MAX_SIZE];
+    size_t expected_hash_length;
+    unsigned char actual_hash[MBEDTLS_MD_MAX_SIZE];
+    size_t actual_hash_length;
+    psa_hash_operation_t operation;
+
+    input = unhexify_alloc( input_hex, &input_size );
+    TEST_ASSERT( input != NULL );
+    expected_hash_length = unhexify( expected_hash, hash_hex );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_hash_start( &operation, alg ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_hash_update( &operation,
+                                  input, input_size ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_hash_finish( &operation,
+                                  actual_hash, sizeof( actual_hash ),
+                                  &actual_hash_length ) == PSA_SUCCESS );
+    TEST_ASSERT( actual_hash_length == expected_hash_length );
+    TEST_ASSERT( memcmp( expected_hash, actual_hash,
+                         expected_hash_length ) == 0 );
+
+exit:
+    mbedtls_free( input );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void hash_verify( int alg_arg, char *input_hex, char *hash_hex )
+{
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *input = NULL;
+    size_t input_size;
+    unsigned char expected_hash[MBEDTLS_MD_MAX_SIZE];
+    size_t expected_hash_length;
+    psa_hash_operation_t operation;
+
+    input = unhexify_alloc( input_hex, &input_size );
+    TEST_ASSERT( input != NULL );
+    expected_hash_length = unhexify( expected_hash, hash_hex );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_hash_start( &operation, alg ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_hash_update( &operation,
+                                  input, input_size ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_hash_verify( &operation,
+                                  expected_hash,
+                                  expected_hash_length ) == PSA_SUCCESS );
+
+exit:
+    mbedtls_free( input );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mac_verify( int key_type_arg, char *key_hex,
+                 int alg_arg, char *iv_hex,
+                 char *input_hex, char *mac_hex )
+{
+    int key_slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *key = NULL;
+    size_t key_size;
+    unsigned char *iv = NULL;
+    size_t iv_size;
+    unsigned char *input = NULL;
+    size_t input_size;
+    unsigned char *expected_mac = NULL;
+    size_t expected_mac_size;
+    psa_mac_operation_t operation;
+
+    key = unhexify_alloc( key_hex, &key_size );
+    TEST_ASSERT( key != NULL );
+    if( iv_hex[0] != 0 )
+    {
+        iv = unhexify_alloc( iv_hex, &iv_size );
+        TEST_ASSERT( iv != NULL );
+    }
+    input = unhexify_alloc( input_hex, &input_size );
+    TEST_ASSERT( input != NULL );
+    expected_mac = unhexify_alloc( mac_hex, &expected_mac_size );
+    TEST_ASSERT( expected_mac != NULL );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( key_slot, key_type,
+                                 key, key_size ) == PSA_SUCCESS );
+    // TODO: support IV
+    TEST_ASSERT( psa_mac_start( &operation, key_slot, alg ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_destroy_key( key_slot ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_mac_update( &operation,
+                                 input, input_size ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_mac_verify( &operation,
+                                 expected_mac,
+                                 expected_mac_size ) == PSA_SUCCESS );
+
+exit:
+    mbedtls_free( key );
+    mbedtls_free( iv );
+    mbedtls_free( input );
+    mbedtls_free( expected_mac );
+    psa_destroy_key( key_slot );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void signature_size( int type_arg, int bits, int alg_arg, int expected_size_arg )
+{
+    psa_key_type_t type = type_arg;
+    psa_algorithm_t alg = alg_arg;
+    size_t actual_size = PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE(type, bits, alg);
+    TEST_ASSERT( actual_size == (size_t) expected_size_arg );
+exit:
+    ;
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void sign_deterministic( int key_type_arg, char *key_hex,
+                         int alg_arg, char *input_hex, char *output_hex )
+{
+    int slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *key_data = NULL;
+    size_t key_size;
+    size_t key_bits;
+    unsigned char *input_data = NULL;
+    size_t input_size;
+    unsigned char *output_data = NULL;
+    size_t output_size;
+    unsigned char *signature = NULL;
+    size_t signature_size;
+    size_t signature_length = 0xdeadbeef;
+
+    key_data = unhexify_alloc( key_hex, &key_size );
+    TEST_ASSERT( key_data != NULL );
+    input_data = unhexify_alloc( input_hex, &input_size );
+    TEST_ASSERT( input_data != NULL );
+    output_data = unhexify_alloc( output_hex, &output_size );
+    TEST_ASSERT( output_data != NULL );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( slot, key_type,
+                                 key_data, key_size ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_get_key_information( slot,
+                                          NULL,
+                                          &key_bits ) == PSA_SUCCESS );
+
+    signature_size = PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE( key_type, alg, key_bits );
+    TEST_ASSERT( signature_size != 0 );
+    signature = mbedtls_calloc( 1, signature_size );
+    TEST_ASSERT( signature != NULL );
+
+    TEST_ASSERT( psa_asymmetric_sign( slot, alg,
+                                      input_data, input_size,
+                                      NULL, 0,
+                                      signature, signature_size,
+                                      &signature_length ) == PSA_SUCCESS );
+    TEST_ASSERT( signature_length == output_size );
+    TEST_ASSERT( memcmp( signature, output_data, output_size ) == 0 );
+
+exit:
+    psa_destroy_key( slot );
+    mbedtls_free( key_data );
+    mbedtls_free( input_data );
+    mbedtls_free( output_data );
+    mbedtls_free( signature );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void sign_fail( int key_type_arg, char *key_hex,
+                int alg_arg, char *input_hex,
+                int signature_size, int expected_status_arg )
+{
+    int slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *key_data = NULL;
+    size_t key_size;
+    unsigned char *input_data = NULL;
+    size_t input_size;
+    psa_status_t actual_status;
+    psa_status_t expected_status = expected_status_arg;
+    unsigned char *signature = NULL;
+    size_t signature_length = 0xdeadbeef;
+
+    key_data = unhexify_alloc( key_hex, &key_size );
+    TEST_ASSERT( key_data != NULL );
+    input_data = unhexify_alloc( input_hex, &input_size );
+    TEST_ASSERT( input_data != NULL );
+    signature = mbedtls_calloc( 1, signature_size );
+    TEST_ASSERT( signature != NULL );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( slot, key_type,
+                                 key_data, key_size ) == PSA_SUCCESS );
+
+    actual_status = psa_asymmetric_sign( slot, alg,
+                                         input_data, input_size,
+                                         NULL, 0,
+                                         signature, signature_size,
+                                         &signature_length );
+    TEST_ASSERT( actual_status == expected_status );
+    TEST_ASSERT( signature_length == 0 );
+
+exit:
+    psa_destroy_key( slot );
+    mbedtls_free( key_data );
+    mbedtls_free( input_data );
+    mbedtls_free( signature );
+    mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

@@ -36,4 +36,7 @@
 /* PSA requires several types which C99 provides in stdint.h. */
 #include <stdint.h>
 
+/* Integral type representing a key slot number. */
+typedef uint16_t psa_key_slot_t;
+
 #endif /* PSA_CRYPTO_PLATFORM_H */

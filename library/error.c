@@ -177,6 +177,10 @@
 #include "mbedtls/rsa.h"
 #endif
 
+#if defined(MBEDTLS_SERIALIZE_C)
+#include "mbedtls/serialize.h"
+#endif
+
 #if defined(MBEDTLS_SHA1_C)
 #include "mbedtls/sha1.h"
 #endif
@@ -187,10 +191,6 @@
 
 #if defined(MBEDTLS_SHA512_C)
 #include "mbedtls/sha512.h"
-#endif
-
-#if defined(MBEDTLS_SERIALIZE_C)
-#include "mbedtls/serialize.h"
 #endif
 
 #if defined(MBEDTLS_SSL_TLS_C)
@@ -841,21 +841,6 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "RIPEMD160 - RIPEMD160 hardware accelerator failed" );
 #endif /* MBEDTLS_RIPEMD160_C */
 
-#if defined(MBEDTLS_SHA1_C)
-    if( use_ret == -(MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED) )
-        mbedtls_snprintf( buf, buflen, "SHA1 - SHA-1 hardware accelerator failed" );
-#endif /* MBEDTLS_SHA1_C */
-
-#if defined(MBEDTLS_SHA256_C)
-    if( use_ret == -(MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED) )
-        mbedtls_snprintf( buf, buflen, "SHA256 - SHA-256 hardware accelerator failed" );
-#endif /* MBEDTLS_SHA256_C */
-
-#if defined(MBEDTLS_SHA512_C)
-    if( use_ret == -(MBEDTLS_ERR_SHA512_HW_ACCEL_FAILED) )
-        mbedtls_snprintf( buf, buflen, "SHA512 - SHA-512 hardware accelerator failed" );
-#endif /* MBEDTLS_SHA512_C */
-
 #if defined(MBEDTLS_SERIALIZE_C)
     if( use_ret == -(MBEDTLS_ERR_SERIALIZE_UNSUPPORTED_INPUT) )
         mbedtls_snprintf( buf, buflen, "SERIALIZE - Unable to serialize this input to send it (raised on target)" );
@@ -872,6 +857,21 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_SERIALIZE_ALLOC_FAILED) )
         mbedtls_snprintf( buf, buflen, "SERIALIZE - Out of memory to execute the function" );
 #endif /* MBEDTLS_SERIALIZE_C */
+
+#if defined(MBEDTLS_SHA1_C)
+    if( use_ret == -(MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED) )
+        mbedtls_snprintf( buf, buflen, "SHA1 - SHA-1 hardware accelerator failed" );
+#endif /* MBEDTLS_SHA1_C */
+
+#if defined(MBEDTLS_SHA256_C)
+    if( use_ret == -(MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED) )
+        mbedtls_snprintf( buf, buflen, "SHA256 - SHA-256 hardware accelerator failed" );
+#endif /* MBEDTLS_SHA256_C */
+
+#if defined(MBEDTLS_SHA512_C)
+    if( use_ret == -(MBEDTLS_ERR_SHA512_HW_ACCEL_FAILED) )
+        mbedtls_snprintf( buf, buflen, "SHA512 - SHA-512 hardware accelerator failed" );
+#endif /* MBEDTLS_SHA512_C */
 
 #if defined(MBEDTLS_THREADING_C)
     if( use_ret == -(MBEDTLS_ERR_THREADING_FEATURE_UNAVAILABLE) )

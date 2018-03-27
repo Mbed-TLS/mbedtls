@@ -14,6 +14,9 @@ Bugfix
    * Add missing dependencies in test suites that led to build failures
      in configurations that omit certain hashes or public-key algorithms.
      Fixes #1040.
+   * Add missing dependencies for MBEDTLS_HAVE_TIME_DATE and
+     MBEDTLS_VERSION_FEATURES in test suites. Contributed by Deomid Ryabkov.
+     Fixes #1299, #1475.
 
 Changes
    * Improve testing in configurations that omit certain hashes or

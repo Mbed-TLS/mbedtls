@@ -46,7 +46,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ASN1_PARSE_C */
 void mbedtls_pkcs5_pbes2( int params_tag, char *params_hex, char *pw_hex,
                   char *data_hex, int ref_ret, char *ref_out_hex )
 {

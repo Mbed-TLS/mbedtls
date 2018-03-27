@@ -38,13 +38,14 @@
 #if defined(MBEDTLS_PKCS5_C)
 
 #include "mbedtls/pkcs5.h"
-#include <string.h>
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
 #include "mbedtls/asn1.h"
 #include "mbedtls/cipher.h"
 #include "mbedtls/oid.h"
-#endif
+#endif /* MBEDTLS_ASN1_PARSE_C */
+
+#include <string.h>
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"

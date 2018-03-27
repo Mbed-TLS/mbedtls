@@ -462,12 +462,6 @@ cleanup
 make SHARED=1 all check
 fi
 
-if uname -a | grep -F Linux >/dev/null; then
-msg "build/test: make shared" # ~ 40s
-cleanup
-make SHARED=1 all check
-fi
-
 if uname -a | grep -F x86_64 >/dev/null; then
 msg "build: i386, make, gcc" # ~ 30s
 cleanup

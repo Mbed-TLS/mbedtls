@@ -90,9 +90,6 @@ key_lifetime:PSA_KEY_LIFETIME_VOLATILE
 PSA Key Lifetime set fail, invalid key slot
 key_lifetime_set_fail:0:PSA_KEY_LIFETIME_VOLATILE:PSA_ERROR_INVALID_ARGUMENT
 
-PSA Key Lifetime set fail, unoccupied key slot
-key_lifetime_set_fail:2:PSA_KEY_LIFETIME_VOLATILE:PSA_ERROR_EMPTY_SLOT
-
 PSA Key Lifetime set fail, can not change write_once lifetime
 key_lifetime_set_fail:1:PSA_KEY_LIFETIME_WRITE_ONCE:PSA_ERROR_NOT_SUPPORTED
 

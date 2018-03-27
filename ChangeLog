@@ -3,10 +3,11 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Changes
-   * Allow configuring the prefix operator for the archiver tool when compiling
-     the library using the makefile. Found and fixed by Alex Hixon.
+   * Add an option in the makefile to support ar utilities where the operation
+     letter must not be prefixed by '-', such as LLVM. Found and fixed by
+     Alex Hixon.
    * Allow configuring the shared library extension by setting the DLEXT
-     variable when using the project makefile.
+     environment variable when using the project makefiles.
 
 = mbed TLS 2.1.11 branch released 2018-03-16
 

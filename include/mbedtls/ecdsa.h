@@ -48,7 +48,7 @@
  * (assuming ECP_MAX_BYTES is less than 126 for r and s,
  * and less than 124 (total len <= 255) for the sequence)
  */
-#if MBEDTLS_ECP_MAX_BYTES > 124
+#if MBEDTLS_ECP_MAX_BYTES >= 124
 #error "MBEDTLS_ECP_MAX_BYTES bigger than expected, please fix MBEDTLS_ECDSA_MAX_LEN"
 #endif
 /** The maximal size of an ECDSA signature in Bytes. */

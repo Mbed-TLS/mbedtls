@@ -670,6 +670,11 @@ static int ecp_use_curve25519( mbedtls_ecp_group *grp )
     MBEDTLS_MPI_CHK( mbedtls_mpi_sub_int( &grp->P, &grp->P, 19 ) );
     grp->pbits = mbedtls_mpi_bitlen( &grp->P );
 
+    /* N = 2^252 + 27742317777372353535851937790883648493 */
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &grp->N, 16,
+                                              "14DEF9DEA2F79CD65812631A5CF5D3ED" ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &grp->N, 252, 1 ) );
+
     /* Y intentionaly not set, since we use x/z coordinates.
      * This is used as a marker to identify Montgomery curves! */
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &grp->G.X, 9 ) );

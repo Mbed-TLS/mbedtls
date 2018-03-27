@@ -447,6 +447,15 @@
 //#define MBEDTLS_AES_ROM_TABLES
 
 /**
+ * \def MBEDTLS_AES_SMALL_TABLES
+ *
+ * Use less ROM/RAM for the AES implementation (saves about 6144 bytes).
+ *
+ * Uncomment this macro to use less memory for AES.
+ */
+//#define MBEDTLS_AES_SMALL_TABLES
+
+/**
  * \def MBEDTLS_CAMELLIA_SMALL_MEMORY
  *
  * Use less ROM for the Camellia implementation (saves about 768 bytes).

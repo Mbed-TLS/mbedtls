@@ -2,5 +2,6 @@
 #ifdef _MSC_VER
 #define mbedtls_zeroize RtlSecureZeroMemory
 #else
+#include <stddef.h> 
 void mbedtls_zeroize( void *v, size_t n );
 #endif 

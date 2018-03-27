@@ -10,6 +10,9 @@ Changes
    * Remove some redundant code in bignum.c. Contributed by Alexey Skalozub.
    * Support cmake build where Mbed TLS is a subproject. Fix
      contributed independently by Matthieu Volat and Arne Schwabe.
+   * Provide an empty implementation of mbedtls_pkcs5_pbes2() when
+     MBEDTLS_ASN1_PARSE_C is not enabled. This allows the use of PBKDF2
+     without PBES2. Fixed by Marcos Del Sol Vives.
 
 = mbed TLS 2.8.0 branch released 2018-03-16
 

@@ -89,6 +89,8 @@ typedef enum {
     PSA_ERROR_INVALID_SIGNATURE,
     /** The decrypted padding is incorrect. */
     PSA_ERROR_INVALID_PADDING,
+    /** The key policy is incorrect. */
+    PSA_ERROR_INVALID_KEY_POLICY,
     /** An error occurred that does not correspond to any defined
         failure cause. */
     PSA_ERROR_UNKNOWN_ERROR,
@@ -488,6 +490,10 @@ psa_status_t psa_export_public_key(psa_key_slot_t key,
 
 /** \brief Encoding of permitted usage on a key. */
 typedef uint32_t psa_key_usage_t;
+
+/** An invalid key usage value.
+ * */
+#define PSA_KEY_USAGE_NONE                      ((psa_key_usage_t)0x00000000)
 
 /** Whether the key may be exported.
  *

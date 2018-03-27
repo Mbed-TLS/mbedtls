@@ -360,3 +360,42 @@ exit:
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void key_policy( int usage_arg, int alg_arg )
+{
+    int key_slot = 1;
+    psa_key_type_t key_type = PSA_ALG_CBC_BASE;
+    unsigned char key[32] = {0};
+    psa_key_policy_t policy_set = {0};
+    psa_key_policy_t policy_get = {0};
+        
+    memset( key, 0x2a, sizeof( key ) );
+ 
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init(& policy_set );
+    psa_key_policy_init(& policy_get );
+
+    psa_key_policy_set_usage( &policy_set, usage_arg, alg_arg );
+
+    TEST_ASSERT( psa_key_policy_get_usage( &policy_set ) == ( psa_key_usage_t )usage_arg );
+
+    TEST_ASSERT( psa_key_policy_get_algorithm( &policy_set) == ( psa_algorithm_t )alg_arg );
+
+    TEST_ASSERT( psa_set_key_policy( key_slot, &policy_set ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( key_slot, key_type,
+                                 key, sizeof( key ) ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_get_key_policy( key_slot, &policy_get ) == PSA_SUCCESS );
+
+    TEST_ASSERT( policy_get.usage == policy_set.usage );
+    TEST_ASSERT( policy_get.alg == policy_set.alg );
+
+exit:
+    psa_destroy_key( key_slot );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+

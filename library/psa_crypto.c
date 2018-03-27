@@ -96,6 +96,7 @@ static inline int safer_memcmp( const uint8_t *a, const uint8_t *b, size_t n )
 
 typedef struct {
     psa_key_type_t type;
+    psa_key_policy_t policy;
     union {
         struct raw_data {
             uint8_t *data;
@@ -1260,6 +1261,84 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
 }
 
 
+/****************************************************************/
+/* Key Policy */
+/****************************************************************/
+
+void psa_key_policy_init(psa_key_policy_t *policy)
+{
+    mbedtls_zeroize( policy, sizeof( policy ) );
+}
+
+void psa_key_policy_set_usage(psa_key_policy_t *policy,
+                              psa_key_usage_t usage,
+                              psa_algorithm_t alg)
+{
+    if( policy != NULL )
+    {
+        policy->usage = usage;
+        policy->alg = alg;
+    }
+}
+
+psa_key_usage_t psa_key_policy_get_usage(psa_key_policy_t *policy)
+{
+    return policy->usage;
+}
+
+psa_algorithm_t psa_key_policy_get_algorithm(psa_key_policy_t *policy)
+{
+    return policy->alg;
+}
+
+psa_status_t psa_set_key_policy(psa_key_slot_t key,
+                                const psa_key_policy_t *policy)
+{
+    key_slot_t *slot;
+    psa_key_usage_t usage = PSA_KEY_USAGE_NONE;
+
+    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT || policy == NULL )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    
+    slot = &global_data.key_slots[key];
+    if( slot->type != PSA_KEY_TYPE_NONE )
+        return( PSA_ERROR_OCCUPIED_SLOT );
+
+    usage |= policy->usage & PSA_KEY_USAGE_EXPORT;
+    usage |= policy->usage & PSA_KEY_USAGE_ENCRYPT;
+    usage |= policy->usage & PSA_KEY_USAGE_DECRYPT;
+    usage |= policy->usage & PSA_KEY_USAGE_SIGN;
+    usage |= policy->usage & PSA_KEY_USAGE_VERIFY;
+
+    if( usage == PSA_KEY_USAGE_NONE )
+    {
+        return( PSA_ERROR_INVALID_KEY_POLICY );
+    }
+
+    //TODO: is there any check over the algorithm before setting the policy?
+    slot->policy.usage = policy->usage;
+    slot->policy.alg = policy->alg;
+
+    return( PSA_SUCCESS );
+}
+
+psa_status_t psa_get_key_policy(psa_key_slot_t key,
+                                psa_key_policy_t *policy)
+{
+    key_slot_t *slot;
+
+    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT || policy == NULL )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    slot = &global_data.key_slots[key];
+    if( slot->type == PSA_KEY_TYPE_NONE )
+        return( PSA_ERROR_EMPTY_SLOT );
+    
+    policy->usage = slot->policy.usage;
+    policy->alg = slot->policy.alg;
+
+    return( PSA_SUCCESS );
+}
 
 /****************************************************************/
 /* Module setup */

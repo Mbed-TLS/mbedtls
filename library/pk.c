@@ -42,10 +42,7 @@
 #include <limits.h>
 #include <stdint.h>
 
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
+#include "mbedtls/zeromem.h"
 
 /*
  * Initialise a mbedtls_pk_context

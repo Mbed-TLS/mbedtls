@@ -50,10 +50,7 @@
 #endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
+#include "mbedtls/zeromem.h"
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
@@ -793,7 +790,7 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
     const mbedtls_ssl_ciphersuite_t *suite_info;
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)    
+    defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
     mbedtls_pk_type_t sig_type;
 #endif
 
@@ -2961,7 +2958,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
             return( ret );
         }
 
-#if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)        
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
         dig_signed = p;
         dig_signed_len = len;
 #endif
@@ -3050,7 +3047,7 @@ curve_matching_done:
 
         /*
          * 3.1: Choose hash algorithm:
-         * A: For TLS 1.2, obey signature-hash-algorithm extension 
+         * A: For TLS 1.2, obey signature-hash-algorithm extension
          *    to choose appropriate hash.
          * B: For SSL3, TLS1.0, TLS1.1 and ECDHE_ECDSA, use SHA1
          *    (RFC 4492, Sec. 5.4)
@@ -3071,7 +3068,7 @@ curve_matching_done:
                                                           sig_alg ) ) == MBEDTLS_MD_NONE )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-                /* (... because we choose a cipher suite 
+                /* (... because we choose a cipher suite
                  *      only if there is a matching hash.) */
                 return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
             }

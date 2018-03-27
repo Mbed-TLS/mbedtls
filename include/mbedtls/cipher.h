@@ -1,7 +1,7 @@
 /**
  * \file cipher.h
  *
- * \brief Thif file contains the generic cipher wrapper.
+ * \brief This file contains the generic cipher wrapper.
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  */

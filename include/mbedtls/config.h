@@ -386,9 +386,10 @@
  * Uncomment this macro to use precomputed AES tables stored in ROM.
  * Comment this macro to generate AES tables in RAM at runtime.
  *
- * Tradeoff: Using precomputed ROM tables reduces the time to setup
- * an AES context but comes at the cost of additional ~8kb ROM use
- * (resp. ~2kb if \c MBEDTLS_AES_FEWER_TABLES below is used).
+ * Tradeoff: Using precomputed ROM tables reduces RAM usage by ~8kb
+ * (or ~2kb if \c MBEDTLS_AES_FEWER_TABLES is used) and reduces the
+ * the time to setup an AES context. It comes at the cost of additional
+ * ~8kb ROM use (resp. ~2kb if \c MBEDTLS_AES_FEWER_TABLES below is used).
  *
  * This option is independent of \c MBEDTLS_AES_FEWER_TABLES.
  *

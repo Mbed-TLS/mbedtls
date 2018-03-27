@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.1.x branch released xxxx-xx-xx
+
+Changes
+   * Provide an empty implementation of mbedtls_pkcs5_pbes2() when
+     MBEDTLS_ASN1_PARSE_C is not enabled. This allows the use of PBKDF2
+     without PBES2. Fixed by Marcos Del Sol Vives.
+
 = mbed TLS 2.1.11 branch released 2018-03-16
 
 Default behavior changes

@@ -68,6 +68,7 @@ void import_export( char *hex, int type_arg,
     size_t reexported_length;
     psa_key_type_t got_type;
     size_t got_bits;
+    psa_key_policy_t policy = {0};
 
     data = unhexify_alloc( hex, &data_size );
     TEST_ASSERT( data != NULL );
@@ -80,6 +81,13 @@ void import_export( char *hex, int type_arg,
         TEST_ASSERT( reexported != NULL );
     }
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT, 
+                              PSA_ALG_VENDOR_FLAG );
+
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
 
     /* Import the key */
     TEST_ASSERT( psa_import_key( slot, type,
@@ -107,6 +115,8 @@ void import_export( char *hex, int type_arg,
     }
     else
     {
+        TEST_ASSERT( psa_set_key_policy( slot2, &policy ) == PSA_SUCCESS );
+
         TEST_ASSERT( psa_import_key( slot2, type,
                                      exported, export_size ) ==
                      PSA_SUCCESS );
@@ -276,6 +286,7 @@ void sign_deterministic( int key_type_arg, char *key_hex,
     unsigned char *signature = NULL;
     size_t signature_size;
     size_t signature_length = 0xdeadbeef;
+    psa_key_policy_t policy = {0};
 
     key_data = unhexify_alloc( key_hex, &key_size );
     TEST_ASSERT( key_data != NULL );
@@ -285,6 +296,12 @@ void sign_deterministic( int key_type_arg, char *key_hex,
     TEST_ASSERT( output_data != NULL );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_SIGN, alg_arg );
+
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( slot, key_type,
                                  key_data, key_size ) == PSA_SUCCESS );
@@ -331,6 +348,7 @@ void sign_fail( int key_type_arg, char *key_hex,
     psa_status_t expected_status = expected_status_arg;
     unsigned char *signature = NULL;
     size_t signature_length = 0xdeadbeef;
+    psa_key_policy_t policy = {0};
 
     key_data = unhexify_alloc( key_hex, &key_size );
     TEST_ASSERT( key_data != NULL );
@@ -340,6 +358,12 @@ void sign_fail( int key_type_arg, char *key_hex,
     TEST_ASSERT( signature != NULL );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_SIGN, alg_arg );
+
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( slot, key_type,
                                  key_data, key_size ) == PSA_SUCCESS );

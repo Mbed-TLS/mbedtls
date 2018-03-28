@@ -41,6 +41,9 @@ Changes
      leak memory in case the user doesn't use mbedtls_ssl_conf_psk() and
      instead incorrectly manipulates conf->psk and/or conf->psk_identity
      directly. Found and fix submitted by junyeonLEE in #1220.
+   * Provide an empty implementation of mbedtls_pkcs5_pbes2() when
+     MBEDTLS_ASN1_PARSE_C is not enabled. This allows the use of PBKDF2
+     without PBES2. Fixed by Marcos Del Sol Vives.
 
 = mbed TLS 2.8.0 branch released 2018-03-16
 

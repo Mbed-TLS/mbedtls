@@ -9,8 +9,9 @@ Scripts under this directory are used for deploying tests in the CI. These are k
 - Debug CI scripts on host.
 
 ## CI Infrastructure and test entities relation
-Following entity relation diagram shows the relation between different components involved in Mbed TLS testing:
+Following entity relation diagram shows the relationship between different components involved in Mbed TLS testing:
 ```
+
               --------------- m        1 ----------
               | Slave label |------------|   CI   |
               ---------------            ----------
@@ -29,6 +30,9 @@ Following entity relation diagram shows the relation between different component
 
 ```
 Terms used in the above diagram
+- **1-----1** One to one
+- **1-----m** One to many
+- **m-----m** Many to many
 - **CI** Continuous Integration infrastructure.
 - **Slave label** Label identifying a type of slave machines commissioned for running specific tests.
 - **Job** A test campaign run on a particular revision of source. Like PR, nightly, release testing.
@@ -37,49 +41,32 @@ Terms used in the above diagram
 - **Test environment** Environment to chang a test script behaviour. Like environment ```CC=gcc``` selects compiler GCC.
 
 ## CI meta data
-Based on above entity relation CI jobs can be defined with the meta data in following json format:
+Based on the above entity relation CI jobs can be defined with the meta data in following json format:
 
 ```py
 ci_jobs = {
-   "commit_tests": {
-       'make-gcc': {
-           'script': 'make',
-           'environment': {'MAKE': 'make', 'CC': 'gcc'},
-           'platforms': ['debian-9-i386', 'debian-9-x64'],
+   "mbedtls-commit-tests": {
+       "make-gcc": {
+           "build": "make",
+           "environment": {"MAKE": "make", "CC": "gcc"},
+           "tests": ["basic"],
+           "platforms": ["debian-i386", "debian-x64"]
 
        },
-       'gmake-gcc': {
-           'script': 'make',
-           'environment': {'MAKE': 'gmake', 'CC': 'gcc'},
-           'platforms': ['debian-9-i386', 'debian-9-x64'],
+       "cmake-full":  {
+           "build": "cmake",
+           "environment": {"MAKE": "make", "CC": "gcc"},
+           "tests": ["full"],
+           "platforms": ["debian-i386", "debian-x64"]
        },
-       'cmake': {
-           'script': 'cmake',
-           'environment': {'MAKE': 'gmake', 'CC': 'gcc'},
-           'platforms': ['debian-9-i386', 'debian-9-x64'],
+       
+       "iar8": {
+           "config": "baremetal",
+           "build": "mingw-iar8",
+           "platforms": ["windows-tls"]
        },
-       'cmake-full':  {
-           'script': 'cmake-full',
-           'environment': {'MAKE': 'gmake', 'CC': 'gcc'},
-           'platforms': ['debian-9-i386', 'debian-9-x64'],
-       },
-       'cmake-asan': {
-           'script': 'cmake-asan',
-           'environment': {'MAKE': 'gmake', 'CC': 'clang'},
-           'platforms': ['debian-9-i386', 'debian-9-x64'],
-       },
-       'mingw-make': {
-           'script': 'mingw-make',
-           'platforms': ['windows'],
-       },
-       'msvc12-32': {
-           'script': 'msvc12-32',
-           'platforms': ['windows'],
-       },
-       'msvc12-64': {
-           'script': 'msvc12-64',
-           'platforms': ['windows'],
-       }
+    ...
+    
    },
    "release_tests": {
         'all.sh': {
@@ -91,67 +78,46 @@ ci_jobs = {
 
 ```
 
-Above, root element ```ci_jobs``` contains a collection of jobs in the form of dictionary elements. Job ```commit_tests``` further contains all the tests that need to be run as part of it. These tests may run in parallel depending on the CI implementation. Parallelization is out of scope of this solution.
+Above, root element ```ci_jobs``` contains a collection of jobs in the form of dictionary elements. Job ```mbedtls-commit-tests``` further contains all the tests that need to be run as part of it. These tests may run in parallel depending on the CI implementation. Mechanism for running tests in parallel is CI specific and it is not limited by this solution.
 
-For each test in the job target platform and optional execution environment is specified. Since the job and the test script have many to many relationship. Commands of the test script are not defined here. They are referred by a name in this meta data. They are defined elsewhere and explained later.
+For each test in the job target platform and optional execution environment are specified. Since the job and the test script have many-to-many relationship, commands of the test script are not defined here. They are referred by a name in this meta data and defined in ```ciscript.sh``` and ```ciscript.bat``` depending on the target platform.
 
 ## Test dispatch in CI
-CI needs different jobs to be able to trigger on different events like PR, periodic, manual etc. Each job can use the script in this directory to discover corresponding tests and execute them. The idea here is to make CI agnostic of the test script and environment. Script ```cibuilder.py``` can be used by a CI job to discover the tests it contains by running following command:
+CI contains different jobs that run different set of tests on different events (pull request, periodic, manual etc) and different source revisions. Each job can use the scripts in this directory to discover corresponding tests and execute them. The idea here is to make CI agnostic of the test setup and commands. Script ```cibuilder.py``` can be used by a CI job to discover the tests it contains by running following command:
 
 ```
 $ python cibuilder.py --list-tests <campaign name>
-make-gcc-debian-9-i386|make-gcc|debian-9-i386
-make-gcc-debian-9-x64|make-gcc|debian-9-x64
+make-gcc-debian-9-i386|debian-9-i386
+make-gcc-debian-9-x64|debian-9-x64
 ...
 ...
 ```
-Above, the output displays a unique test name, test script name and platform name to execute it on. This information helps the CI job to run each test on required platform (test slave). Test script commands are explained in the next section.
+Above, the output displays a unique test name and target platform name. This information helps the CI job to run each test on required platform. Test script commands are explained in the next section.
 
 ## Test execution
-Once the CI spawns a test on a target platform it uses ```cibuilder.py``` again to generate the environment for the test. Following command does it:
+Once a CI job spawns a test on a target platform it uses ```cibuilder.py``` again to generate the environment for the test. Following command does it:
 ```
 $ python cibuilder.py --gen-env <test name>
 Created cienv.sh
 ```
-```cienv.sh``` for POSIX and ```cienv.bat``` for Windows. This script contains values for the environment variables required for the test. This script is sourced by script ```ciscript.sh/bat``` that contains commands for each test:
+Example of ```cienv.sh``` for test ```cmake-full```:
 ```
-./ciscript.sh <test name>
+export CC=gcc
+export MAKE=make
+export TEST_NAME=cmake-full-debian-i386
+export BUILD=cmake
+export RUN_FULL_TEST=1
+```
+```cienv.sh``` or ```cienv.bat``` is created for POSIX and Windows respectively. This script sets environment variables required for the test. This script is sourced by script ```ciscript.sh/bat``` that contains commands for each test. The CI job finally executes ```ciscript.sh/bat```:
+```
+./ciscript.sh
 ```
 
-```ciscript.sh/bat``` scripts contain commands for all the tests that are run by Mbed TLS CI. It is invoked by the CI job with the test name. It checks if all the required environment variables for the test are defined and then executes the commands for that test. Following is a snippet of the ```ciscript.sh```:
+```ciscript.sh/bat``` scripts contain commands for all the tests that are run by Mbed TLS CI. They performs following tasks:
 
-```sh
-#!/bin/sh
+- Set configuration if specified.
+- Check that required environment variables are set for the specified build.
+- Execute build commands.
+- Run specified tests.
 
-set -ex
-
-if [ ! -x cienv.sh ]; then
-    echo "Error: Environment file cenv.sh does not exists or it is not executable!"
-    exit 1
-fi
-
-check_env(){
-    for var in "$@"
-    do
-        eval value=\$$var
-        if [ -z "${value}" ]; then
-            echo "Error: Test $TEST_NAME: Required env var $var not set!"
-            exit 1
-        fi
-    done
-}
-
-. ./cienv.sh
-check_env TEST_NAME MBEDTLS_ROOT
-
-cd $MBEDTLS_ROOT
-
-if [ "$TEST_NAME" = "make" ]; then
-    check_env CC MAKE
-    ${MAKE} clean
-    ${MAKE}
-    ${MAKE} check
-    ./programs/test/selftest
-
-...
-```
+These scripts may define and name certain test configuration types (separate from those defined by ```config.pl```) and test collections that can be referenced by their name in the ```cijobs.json```. Please see scritps source for details.

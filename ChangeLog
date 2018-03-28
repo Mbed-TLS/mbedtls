@@ -25,6 +25,9 @@ Changes
    * Do not define global mutexes around readdir() and gmtime() in
      configurations where the feature is disabled. Found and fixed by Gergely
      Budai.
+   * Provide an empty implementation of mbedtls_pkcs5_pbes2() when
+     MBEDTLS_ASN1_PARSE_C is not enabled. This allows the use of PBKDF2
+     without PBES2. Fixed by Marcos Del Sol Vives.
 
 = mbed TLS 2.1.11 branch released 2018-03-16
 

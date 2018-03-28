@@ -96,28 +96,35 @@ REM ############################################################
 REM  Perform build step
 REM ############################################################
 
-if "%BUILD%"=="mingw-make" (
-    cmake . -G "MinGW Makefiles" -DCMAKE_C_COMPILER="gcc"
-    mingw32-make clean
-    mingw32-make
+if defined BUILD (
+    if "%BUILD%"=="mingw-make" (
+        cmake . -G "MinGW Makefiles" -DCMAKE_C_COMPILER="gcc"
+        mingw32-make clean
+        mingw32-make
 
-) else if "%BUILD%"=="msvc12-32" (
-    call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat"
-    cmake . -G "Visual Studio 12"
-    MSBuild ALL_BUILD.vcxproj
+    ) else if "%BUILD%"=="msvc12-32" (
+        call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat"
+        cmake . -G "Visual Studio 12"
+        MSBuild ALL_BUILD.vcxproj
 
-) else if "%BUILD%"=="msvc12-64" (
-    call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat"
-    cmake . -G "Visual Studio 12 Win64"
-    MSBuild ALL_BUILD.vcxproj
+    ) else if "%BUILD%"=="msvc12-64" (
+        call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat"
+        cmake . -G "Visual Studio 12 Win64"
+        MSBuild ALL_BUILD.vcxproj
 
-) else if "%BUILD%"=="mingw-iar8" (
-    perl scripts\config.pl baremetal
-    cmake -D CMAKE_BUILD_TYPE:String=Check -DCMAKE_C_COMPILER="iccarm" -G "MinGW Makefiles" .
-    mingw32-make lib
+    ) else if "%BUILD%"=="mingw-iar8" (
+        perl scripts\config.pl baremetal
+        cmake -D CMAKE_BUILD_TYPE:String=Check -DCMAKE_C_COMPILER="iccarm" -G "MinGW Makefiles" .
+        mingw32-make lib
 
+    ) else (
+        echo "Error: Invalid build %BUILD%!"
+        goto :error
+    )
+) else if defined SCRIPT (
+    %SCRIPT%
 ) else (
-    echo "Error: Invalid build %BUILD%!"
+    echo "Error: Neither BUILD nor SCRIPT defined!"
     goto :error
 )
 

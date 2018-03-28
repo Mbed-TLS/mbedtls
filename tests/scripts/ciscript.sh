@@ -104,45 +104,52 @@ fi
 #### Perform build step
 ################################################################
 
-if [ "$BUILD" = "make" ]; then
-    check_env CC MAKE
-    ${MAKE} clean
-    ${MAKE}
+if [ -n "$BUILD" ]; then
+    if [ "$BUILD" = "make" ]; then
+        check_env CC MAKE
+        ${MAKE} clean
+        ${MAKE}
 
-elif [ "$BUILD" = "cmake" ]; then
-    check_env CC MAKE
-    cmake -D CMAKE_BUILD_TYPE:String=Check .
-    ${MAKE} clean
-    ${MAKE}
+    elif [ "$BUILD" = "cmake" ]; then
+        check_env CC MAKE
+        cmake -D CMAKE_BUILD_TYPE:String=Check .
+        ${MAKE} clean
+        ${MAKE}
 
-elif [ "$BUILD" = "cmake-asan" ]; then
-    check_env CC MAKE
+    elif [ "$BUILD" = "cmake-asan" ]; then
+        check_env CC MAKE
 
-    set +e
-    grep "fno-sanitize-recover=undefined,integer" CMakeLists.txt
-    if [ $? -ne 0 ]
-    then
-        sed -i s/"fno-sanitize-recover"/"fno-sanitize-recover=undefined,integer"/ CMakeLists.txt
+        set +e
+        grep "fno-sanitize-recover=undefined,integer" CMakeLists.txt
+        if [ $? -ne 0 ]
+        then
+            sed -i s/"fno-sanitize-recover"/"fno-sanitize-recover=undefined,integer"/ CMakeLists.txt
+        fi
+        set -e
+
+        cmake -D CMAKE_BUILD_TYPE:String=ASan .
+        ${MAKE}
+
+    elif [ "$BUILD" = "all.sh" ]; then
+
+        if [ ! -d .git ]
+        then
+            git config --global user.email "you@example.com"
+            git config --global user.name "Your Name"
+            git init
+            git add .
+            git commit -m "CI code copy"
+        fi
+        ./tests/scripts/all.sh -r -k --no-yotta
+
+    else
+        echo "Error: Unknown build \"$BUILD\"!"
+        exit 1
     fi
-    set -e
-
-    cmake -D CMAKE_BUILD_TYPE:String=ASan .
-    ${MAKE}
-
-elif [ "$BUILD" = "all.sh" ]; then
-
-    if [ ! -d .git ]
-    then
-        git config --global user.email "you@example.com"
-        git config --global user.name "Your Name"
-        git init
-        git add .
-        git commit -m "CI code copy"
-    fi
-    ./tests/scripts/all.sh -r -k --no-yotta
-
+elif [ -n "$SCRIPT" ]; then
+    $SCRIPT
 else
-    echo "Error: Unknown build \"$BUILD\"!"
+    echo "Error: Neither BUILD nor SCRIPT defined!"
     exit 1
 fi
 

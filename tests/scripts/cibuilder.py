@@ -68,11 +68,15 @@ def get_tests_for_campaign(campaign_name):
     for test_name, details in campaign.items():
         for platform in details["platforms"]:
             ci_test_name = "%s-%s" %(test_name, platform)
-            yield ci_test_name, details['build'], details.get('environment', {}),\
-                  details.get('tests', []), platform
+            print details
+            yield ci_test_name, details.get('build', None),\
+                details.get('script', None),\
+                details.get('environment', {}),\
+                details.get('tests', []), platform
 
 
-def gen_env_file(test_name, build_name, environment, tests, set_cmd, env_file):
+def gen_env_file(test_name, build_name, script, environment, tests, set_cmd,
+                 env_file):
     """
     Generates environment script env_file with test info passed as environment
      variables.
@@ -80,6 +84,7 @@ def gen_env_file(test_name, build_name, environment, tests, set_cmd, env_file):
     :param test_name: A descriptive test name describing test, environment and
                       platform. Example: cmake-asan-debian-x64
     :param build_name: Build name. Example: make, cmake etc.
+    :param script: Script to run. Example: tests/scripts/all.sh
     :param environment: Build & Test environment. Example: {'CC':'gcc'}
     :param tests: Tests to run. Example: [BASIC, FULL]
     :param set_cmd: Example: 'set' for Windows, 'export' for POSIX
@@ -90,7 +95,11 @@ def gen_env_file(test_name, build_name, environment, tests, set_cmd, env_file):
         for k, v in environment.items():
             f.write("%s %s=%s\n" % (set_cmd, k, v))
         f.write("%s %s=%s\n" % (set_cmd, 'TEST_NAME', test_name))
-        f.write("%s %s=%s\n" % (set_cmd, 'BUILD', build_name))
+        assert build_name or script, "Neither BUILD nor SCRIPT specified for test %s" % test_name
+        if build_name:
+            f.write("%s %s=%s\n" % (set_cmd, 'BUILD', build_name))
+        if script:
+            f.write("%s %s=%s\n" % (set_cmd, 'SCRIPT', script))
         for test in tests:
             f.write("%s %s=%s\n" % (set_cmd, 'RUN_%s_TEST' % test.upper(), '1'))
         os.chmod(env_file, 0o777)
@@ -107,11 +116,11 @@ def list_tests(campaign, filename):
     """
     if filename:
         with open(filename, 'w') as f:
-            for test_name, build_name, environment, tests, platform\
+            for test_name, build_name, script, environment, tests, platform\
                     in get_tests_for_campaign(campaign):
                 f.write("%s|%s\n" %(test_name, platform))
     else:
-        for test_name, build_name, environment, tests, platform\
+        for test_name, build_name, script, environment, tests, platform\
                 in get_tests_for_campaign(campaign):
             print("%s|%s" %(test_name, platform))
 
@@ -135,12 +144,12 @@ def gen_environment_for_campaign(test_to_generate):
     :return: 
     """
     for campaign in get_ci_data().keys():
-        for test_name, build_name, environment, tests, platform\
+        for test_name, build_name, script, environment, tests, platform\
                 in get_tests_for_campaign(campaign):
             if test_name == test_to_generate:
                 set_cmd, env_file = ('set', BATCH_ENV_FILE) if 'windows'\
                     in platform.lower() else ('export', SH_ENV_FILE)
-                gen_env_file(test_name, build_name, environment,
+                gen_env_file(test_name, build_name, script, environment,
                              tests, set_cmd, env_file)
                 return
     print("Error: Campaign or test not found!")

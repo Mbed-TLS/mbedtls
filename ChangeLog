@@ -19,6 +19,7 @@ Changes
    * Improve testing in configurations that omit certain hashes or
      public-key algorithms. Includes contributions by Gert van Dijk.
    * Improve negative testing of X.509 parsing.
+   * Improve the documentation of mbedtls_net_accept(). Contributed by Ivan Krylov.
 
 = mbed TLS 2.1.11 branch released 2018-03-16
 

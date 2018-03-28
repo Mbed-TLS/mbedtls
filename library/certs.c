@@ -174,7 +174,7 @@ const size_t mbedtls_test_srv_crt_rsa_len = sizeof( mbedtls_test_srv_crt_rsa );
 
 static const char mbedtls_test_ca_crt_rsa_sha256[] = TEST_CA_CRT_RSA_SHA256;
 
-#endif /* TEST_CA_CR_RSA_SOME */
+#endif /* MBEDTLS_SHA256_C */
 
 #if !defined(TEST_CA_CRT_RSA_SOME) || defined(MBEDTLS_SHA1_C)
 #define TEST_CA_CRT_RSA_SHA1                                            \
@@ -200,6 +200,16 @@ static const char mbedtls_test_ca_crt_rsa_sha256[] = TEST_CA_CRT_RSA_SHA256;
 "7Z2mCGDNMhjQc+BYcdnl0lPXjdDK6V0qCg1dVewhUBcW5gZKzV7e9+DpVA==\r\n"      \
 "-----END CERTIFICATE-----\r\n"
 
+#if !defined (TEST_CA_CRT_RSA_SOME)
+const char   mbedtls_test_ca_crt_rsa[]   = TEST_CA_CRT_RSA_SHA1;
+const size_t mbedtls_test_ca_crt_rsa_len = sizeof( mbedtls_test_ca_crt_rsa );
+#endif
+
+static const char mbedtls_test_ca_crt_rsa_sha1[] = TEST_CA_CRT_RSA_SHA1;
+
+#endif /* !TEST_CA_CRT_RSA_SOME || MBEDTLS_SHA1_C */
+
+#if !defined(TEST_SRV_CRT_RSA_SOME) || defined(MBEDTLS_SHA1_C)
 #define TEST_SRV_CRT_RSA_SHA1                                                  \
 "-----BEGIN CERTIFICATE-----\r\n"                                      \
 "MIIDNzCCAh+gAwIBAgIBAjANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER\r\n" \
@@ -222,19 +232,12 @@ static const char mbedtls_test_ca_crt_rsa_sha256[] = TEST_CA_CRT_RSA_SHA256;
 "4mN4lW7gLdenN6g=\r\n"                                                 \
 "-----END CERTIFICATE-----\r\n";
 
-#if !defined (TEST_CA_CRT_RSA_SOME)
-const char   mbedtls_test_ca_crt_rsa[]   = TEST_CA_CRT_RSA_SHA1;
-const size_t mbedtls_test_ca_crt_rsa_len = sizeof( mbedtls_test_ca_crt_rsa );
-#endif
-
 #if !defined(TEST_SRV_CRT_RSA_SOME)
 const char mbedtls_test_srv_crt_rsa[] =  TEST_SRV_CRT_RSA_SHA1;
 const size_t mbedtls_test_srv_crt_rsa_len = sizeof( mbedtls_test_srv_crt_rsa );
 #endif
 
-static const char mbedtls_test_ca_crt_rsa_sha1[] = TEST_CA_CRT_RSA_SHA1;
-
-#endif /* !TEST_CA_CRT_RSA_SOME || MBEDTLS_SHA1_C */
+#endif /* !TEST_SRV_CRT_RSA_SOME || MBEDTLS_SHA1_C */
 
 const char mbedtls_test_ca_key_rsa[] =
 "-----BEGIN RSA PRIVATE KEY-----\r\n"

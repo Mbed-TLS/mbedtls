@@ -469,6 +469,9 @@ psa_status_t psa_export_key(psa_key_slot_t key,
     if( slot->type == PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_EMPTY_SLOT );
 
+    if( !( slot->policy.usage & PSA_KEY_USAGE_EXPORT ) )
+        return( PSA_ERROR_NOT_PERMITTED );
+
     if( PSA_KEY_TYPE_IS_RAW_BYTES( slot->type ) )
     {
         if( slot->data.raw.bytes > data_size )
@@ -1185,6 +1188,8 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
         return( PSA_ERROR_EMPTY_SLOT );
     if( ! PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
+    if( !( slot->policy.usage & PSA_KEY_USAGE_SIGN ) )
+        return( PSA_ERROR_NOT_PERMITTED );
 
 #if defined(MBEDTLS_RSA_C)
     if( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )

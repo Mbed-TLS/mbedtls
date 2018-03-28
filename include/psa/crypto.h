@@ -1407,7 +1407,7 @@ psa_status_t psa_asymmetric_encrypt(psa_key_slot_t key,
  *                            supported.
  * \param salt_length       Size of the \c salt buffer in bytes.
  *                          If \c salt is \c NULL, pass 0.
- * \param output            Buffer where the encrypted message is to be written.
+ * \param output            Buffer where the decrypted message is to be written.
  * \param output_size       Size of the \c output buffer in bytes.
  * \param output_length     On success, the number of bytes
  *                          that make up the returned output.
@@ -1485,9 +1485,9 @@ psa_status_t psa_generate_random(uint8_t *output,
  * table below. For vendor-defined key types, the vendor documentation
  * shall define the parameter type and the default parameters.
  *
- * Type | Parameter type | Default parameters
- * ---- | -------------- | ------------------
- * `PSA_KEY_TYPE_RSA_KEYPAIR` | `unsigned int` | 65537
+ * Type | Parameter type | Meaning | Parameters used if `parameters == NULL`
+ * ---- | -------------- | ------- | ---------------------------------------
+ * `PSA_KEY_TYPE_RSA_KEYPAIR` | `unsigned int` | Public exponent | 65537
  *
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_NOT_SUPPORTED

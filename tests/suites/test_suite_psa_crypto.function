@@ -389,7 +389,7 @@ exit:
 void key_policy( int usage_arg, int alg_arg )
 {
     int key_slot = 1;
-    psa_key_type_t key_type = PSA_ALG_CBC_BASE;
+    psa_key_type_t key_type = PSA_KEY_TYPE_AES;
     unsigned char key[32] = {0};
     psa_key_policy_t policy_set = {0};
     psa_key_policy_t policy_get = {0};
@@ -423,3 +423,55 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void key_policy_fail( int usage_arg, int alg_arg, int expected_status, char *key_hex )
+{
+    int key_slot = 1;
+    psa_key_type_t key_type = PSA_KEY_TYPE_AES;
+    unsigned char key[32] = {0};
+    unsigned char* keypair = NULL;
+    size_t key_size = 0;
+    size_t signature_length = 0;
+    psa_key_policy_t policy = {0};
+    int actual_status = PSA_SUCCESS;
+        
+    memset( key, 0x2a, sizeof( key ) );
+ 
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+
+    psa_key_policy_set_usage( &policy, usage_arg, alg_arg );
+
+    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+
+    switch( usage_arg )
+    {
+        case PSA_KEY_USAGE_EXPORT:
+            keypair = unhexify_alloc( key_hex, &key_size );
+            TEST_ASSERT( keypair != NULL );
+            key_type = PSA_KEY_TYPE_RSA_KEYPAIR;
+            TEST_ASSERT( psa_import_key( key_slot, key_type,
+                                 keypair, key_size ) == PSA_SUCCESS );
+            actual_status = psa_asymmetric_sign( key_slot, 
+                            ( psa_algorithm_t )alg_arg, NULL, 0, NULL, 0, 
+                            NULL, 0, &signature_length );
+            break;
+        
+        case PSA_KEY_USAGE_SIGN:
+            key_type = PSA_KEY_TYPE_AES;
+            TEST_ASSERT( psa_import_key( key_slot, key_type,
+                                 key, sizeof( key ) ) == PSA_SUCCESS );
+            actual_status = psa_export_key( key_slot, NULL, 0, NULL );
+            break;
+        default:
+            break;
+    }
+
+    TEST_ASSERT( actual_status == expected_status );
+
+exit:
+    psa_destroy_key( key_slot );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */

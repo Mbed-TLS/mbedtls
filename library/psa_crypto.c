@@ -1279,11 +1279,8 @@ void psa_key_policy_set_usage(psa_key_policy_t *policy,
                               psa_key_usage_t usage,
                               psa_algorithm_t alg)
 {
-    if( policy != NULL )
-    {
-        policy->usage = usage;
-        policy->alg = alg;
-    }
+    policy->usage = usage;
+    policy->alg = alg;
 }
 
 psa_key_usage_t psa_key_policy_get_usage(psa_key_policy_t *policy)

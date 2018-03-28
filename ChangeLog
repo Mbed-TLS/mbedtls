@@ -23,6 +23,9 @@ Bugfix
      Fixes #1040.
    * Fix C89 incompatibility in benchmark.c. Contributed by Brendan Shanks.
      #1353
+   * Add missing dependencies for MBEDTLS_HAVE_TIME_DATE and
+     MBEDTLS_VERSION_FEATURES in test suites. Contributed by Deomid Ryabkov.
+     Fixes #1299, #1475.
 
 Changes
    * Remove some redundant code in bignum.c. Contributed by Alexey Skalozub.

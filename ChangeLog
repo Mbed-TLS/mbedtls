@@ -3,7 +3,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Changes
-   * Improve the documentation of mbedtls_net_accept(). Contributed by aitap.
+   * Improve the documentation of mbedtls_net_accept(). Contributed by Ivan Krylov.
 
 = mbed TLS 2.4.1 branch released 2016-12-13
 

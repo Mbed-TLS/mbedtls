@@ -388,8 +388,10 @@
  *
  * Tradeoff: Using precomputed ROM tables reduces RAM usage by ~8kb
  * (or ~2kb if \c MBEDTLS_AES_FEWER_TABLES is used) and reduces the
- * the time to setup an AES context. It comes at the cost of additional
- * ~8kb ROM use (resp. ~2kb if \c MBEDTLS_AES_FEWER_TABLES below is used).
+ * initialization time before the first AES operation can be performed.
+ * It comes at the cost of additional ~8kb ROM use (resp. ~2kb if \c
+ * MBEDTLS_AES_FEWER_TABLES below is used), and potentially degraded
+ * performance if ROM access is slower than RAM access.
  *
  * This option is independent of \c MBEDTLS_AES_FEWER_TABLES.
  *

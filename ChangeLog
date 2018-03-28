@@ -21,6 +21,8 @@ Bugfix
    * Add missing dependencies for MBEDTLS_HAVE_TIME_DATE and
      MBEDTLS_VERSION_FEATURES in test suites. Contributed by Deomid Ryabkov.
      Fixes #1299, #1475.
+   * Fix dynamic library building process with Makefile on Mac OS X. Fixed by
+     mnacamura.
 
 Changes
    * Support cmake build where Mbed TLS is a subproject. Fix

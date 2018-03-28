@@ -324,13 +324,13 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_CCM                             ((psa_algorithm_t)0x06000001)
 #define PSA_ALG_GCM                             ((psa_algorithm_t)0x06000002)
 
-#define PSA_ALG_RSA_PKCS1V15_RAW                ((psa_algorithm_t)0x10010000)
+#define PSA_ALG_RSA_PKCS1V15_SIGN_RAW           ((psa_algorithm_t)0x10010000)
 #define PSA_ALG_RSA_PSS_MGF1                    ((psa_algorithm_t)0x10020000)
 #define PSA_ALG_RSA_OAEP                        ((psa_algorithm_t)0x12020000)
-#define PSA_ALG_RSA_PKCS1V15(hash_alg)                                  \
-    (PSA_ALG_RSA_PKCS1V15_RAW | ((hash_alg) & PSA_ALG_HASH_MASK))
-#define PSA_ALG_IS_RSA_PKCS1V15(alg)                                    \
-    (((alg) & 0x7fffff00) == PSA_ALG_RSA_PKCS1V15_RAW)
+#define PSA_ALG_RSA_PKCS1V15_SIGN(hash_alg)                             \
+    (PSA_ALG_RSA_PKCS1V15_SIGN_RAW | ((hash_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg)                               \
+    (((alg) & 0x7fffff00) == PSA_ALG_RSA_PKCS1V15_SIGN_RAW)
 #define PSA_ALG_RSA_GET_HASH(alg)                                       \
     (((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH)
 

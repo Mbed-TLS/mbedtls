@@ -2,7 +2,8 @@
  * \file ssl.h
  *
  * \brief SSL/TLS functions.
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -48,6 +49,15 @@
 #endif
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
+
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#warning "Record compression support via MBEDTLS_ZLIB_SUPPORT is deprecated and will be removed in the next major revision of the library"
+#endif
+
+#if defined(MBEDTLS_DEPRECATED_REMOVED)
+#error "Record compression support via MBEDTLS_ZLIB_SUPPORT is deprecated and cannot be used if MBEDTLS_DEPRECATED_REMOVED is set"
+#endif
+
 #include "zlib.h"
 #endif
 
@@ -971,8 +981,13 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl );
  * \note           No copy of the configuration context is made, it can be
  *                 shared by many mbedtls_ssl_context structures.
  *
- * \warning        Modifying the conf structure after it has been used in this
- *                 function is unsupported!
+ * \warning        The conf structure will be accessed during the session.
+ *                 It must not be modified or freed as long as the session
+ *                 is active.
+ *
+ * \warning        This function must be called exactly once per context.
+ *                 Calling mbedtls_ssl_setup again is not supported, even
+ *                 if no session is active.
  *
  * \param ssl      SSL context
  * \param conf     SSL configuration to use
@@ -1587,6 +1602,10 @@ void mbedtls_ssl_conf_cert_profile( mbedtls_ssl_config *conf,
 /**
  * \brief          Set the data required to verify peer certificate
  *
+ * \note           See \c mbedtls_x509_crt_verify() for notes regarding the
+ *                 parameters ca_chain (maps to trust_ca for that function)
+ *                 and ca_crl.
+ *
  * \param conf     SSL configuration
  * \param ca_chain trusted CA chain (meaning all fully trusted top-level CAs)
  * \param ca_crl   trusted CA CRLs
@@ -1700,18 +1719,50 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+
 /**
  * \brief          Set the Diffie-Hellman public P and G values,
  *                 read as hexadecimal strings (server-side only)
- *                 (Default: MBEDTLS_DHM_RFC5114_MODP_2048_[PG])
+ *                 (Default values: MBEDTLS_DHM_RFC3526_MODP_2048_[PG])
  *
  * \param conf     SSL configuration
  * \param dhm_P    Diffie-Hellman-Merkle modulus
  * \param dhm_G    Diffie-Hellman-Merkle generator
  *
+ * \deprecated     Superseded by \c mbedtls_ssl_conf_dh_param_bin.
+ *
  * \return         0 if successful
  */
-int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf, const char *dhm_P, const char *dhm_G );
+MBEDTLS_DEPRECATED int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf,
+                                                  const char *dhm_P,
+                                                  const char *dhm_G );
+
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
+
+/**
+ * \brief          Set the Diffie-Hellman public P and G values
+ *                 from big-endian binary presentations.
+ *                 (Default values: MBEDTLS_DHM_RFC3526_MODP_2048_[PG]_BIN)
+ *
+ * \param conf     SSL configuration
+ * \param dhm_P    Diffie-Hellman-Merkle modulus in big-endian binary form
+ * \param P_len    Length of DHM modulus
+ * \param dhm_G    Diffie-Hellman-Merkle generator in big-endian binary form
+ * \param G_len    Length of DHM generator
+ *
+ * \return         0 if successful
+ */
+int mbedtls_ssl_conf_dh_param_bin( mbedtls_ssl_config *conf,
+                                   const unsigned char *dhm_P, size_t P_len,
+                                   const unsigned char *dhm_G,  size_t G_len );
 
 /**
  * \brief          Set the Diffie-Hellman public P and G values,
@@ -1795,15 +1846,22 @@ void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
- * \brief          Set the hostname to check against the received server
- *                 certificate. It sets the ServerName TLS extension too,
- *                 if the extension is enabled.
- *                 (client-side only)
+ * \brief          Set or reset the hostname to check against the received 
+ *                 server certificate. It sets the ServerName TLS extension, 
+ *                 too, if that extension is enabled. (client-side only)
  *
  * \param ssl      SSL context
- * \param hostname the server hostname
+ * \param hostname the server hostname, may be NULL to clear hostname
+ 
+ * \note           Maximum hostname length MBEDTLS_SSL_MAX_HOST_NAME_LEN.
  *
- * \return         0 if successful or MBEDTLS_ERR_SSL_ALLOC_FAILED
+ * \return         0 if successful, MBEDTLS_ERR_SSL_ALLOC_FAILED on 
+ *                 allocation failure, MBEDTLS_ERR_SSL_BAD_INPUT_DATA on 
+ *                 too long input hostname.
+ *
+ *                 Hostname set to the one provided on success (cleared
+ *                 when NULL). On allocation failure hostname is cleared. 
+ *                 On too long input failure, old hostname is unchanged.
  */
 int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */

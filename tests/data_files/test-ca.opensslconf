@@ -11,3 +11,18 @@ commonName = PolarSSL Test CA
 subjectKeyIdentifier=hash
 authorityKeyIdentifier=keyid:always,issuer:always
 basicConstraints = CA:true
+
+[noext_ca]
+basicConstraints = CA:true
+
+[test_ca]
+database = /dev/null
+
+[crl_ext_idp]
+issuingDistributionPoint=critical, @idpdata
+
+[crl_ext_idp_nc]
+issuingDistributionPoint=@idpdata
+
+[idpdata]
+fullname=URI:http://pki.example.com/

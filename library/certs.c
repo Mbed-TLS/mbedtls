@@ -166,11 +166,11 @@ const size_t mbedtls_test_cli_key_ec_len = sizeof( mbedtls_test_cli_key_ec );
 
 const char   mbedtls_test_ca_crt_rsa[]   = TEST_CA_CRT_RSA_SHA256;
 const size_t mbedtls_test_ca_crt_rsa_len = sizeof( mbedtls_test_ca_crt_rsa );
+#define TEST_CA_CRT_RSA_SOME
 
 const char mbedtls_test_srv_crt_rsa[] =  TEST_SRV_CRT_RSA_SHA256;
 const size_t mbedtls_test_srv_crt_rsa_len = sizeof( mbedtls_test_srv_crt_rsa );
-
-#define TEST_CA_CRT_RSA_SOME
+#define TEST_SRV_CRT_RSA_SOME
 
 static const char mbedtls_test_ca_crt_rsa_sha256[] = TEST_CA_CRT_RSA_SHA256;
 
@@ -225,10 +225,12 @@ static const char mbedtls_test_ca_crt_rsa_sha256[] = TEST_CA_CRT_RSA_SHA256;
 #if !defined (TEST_CA_CRT_RSA_SOME)
 const char   mbedtls_test_ca_crt_rsa[]   = TEST_CA_CRT_RSA_SHA1;
 const size_t mbedtls_test_ca_crt_rsa_len = sizeof( mbedtls_test_ca_crt_rsa );
+#endif
 
+#if !defined(TEST_SRV_CRT_RSA_SOME)
 const char mbedtls_test_srv_crt_rsa[] =  TEST_SRV_CRT_RSA_SHA1;
 const size_t mbedtls_test_srv_crt_rsa_len = sizeof( mbedtls_test_srv_crt_rsa );
-#endif /* TEST_CA_CRT_RSA_SOME */
+#endif
 
 static const char mbedtls_test_ca_crt_rsa_sha1[] = TEST_CA_CRT_RSA_SHA1;
 

@@ -1440,6 +1440,71 @@ psa_status_t psa_asymmetric_decrypt(psa_key_slot_t key,
 
 /**@}*/
 
+/** \defgroup generation Key generation
+ * @{
+ */
+
+/**
+ * \brief Generate random bytes.
+ *
+ * \warning This function **can** fail! Callers MUST check the return status
+ *          and MUST NOT use the content of the output buffer if the return
+ *          status is not #PSA_SUCCESS.
+ *
+ * \note    To generate a key, use psa_generate_key() instead.
+ *
+ * \param output            Output buffer for the generated data.
+ * \param output_size       Number of bytes to generate and output.
+ *
+ * \retval PSA_SUCCESS
+ * \retval PSA_ERROR_NOT_SUPPORTED
+ * \retval PSA_ERROR_INSUFFICIENT_ENTROPY
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_generate_random(uint8_t *output,
+                                 size_t output_size);
+
+/**
+ * \brief Generate a key or key pair.
+ *
+ * \param key         Slot where the key will be stored. This must be a
+ *                    valid slot for a key of the chosen type. It must
+ *                    be unoccupied.
+ * \param type        Key type (a \c PSA_KEY_TYPE_XXX value).
+ * \param bits        Key size in bits.
+ * \param parameters  Extra parameters for key generation. The interpretation
+ *                    of this parameter depends on \c type. All types support
+ *                    \c NULL to use default parameters specified below.
+ *
+ * For any symmetric key type (type such that
+ * `PSA_KEY_TYPE_IS_ASYMMETRIC(type)` is false), \c parameters must be
+ * \c NULL. For asymmetric key types defined by this specification,
+ * the parameter type and the default parameters are defined by the
+ * table below. For vendor-defined key types, the vendor documentation
+ * shall define the parameter type and the default parameters.
+ *
+ * Type | Parameter type | Default parameters
+ * ---- | -------------- | ------------------
+ * `PSA_KEY_TYPE_RSA_KEYPAIR` | `unsigned int` | 65537
+ *
+ * \retval PSA_SUCCESS
+ * \retval PSA_ERROR_NOT_SUPPORTED
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ * \retval PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval PSA_ERROR_INSUFFICIENT_ENTROPY
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_generate_key(psa_key_slot_t key,
+                              psa_key_type_t type,
+                              size_t bits,
+                              const void *parameters);
+
+/**@}*/
+
 #ifdef __cplusplus
 }
 #endif

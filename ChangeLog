@@ -26,6 +26,8 @@ Changes
    * Improve testing in configurations that omit certain hashes or
      public-key algorithms. Includes contributions by Gert van Dijk.
    * Improve negative testing of X.509 parsing.
+   * Return plaintext data sooner on unpadded decryption. Contributed by Andy
+     Leiserson. #1180
 
 = mbed TLS 2.8.0 branch released 2018-03-16
 

@@ -22,6 +22,9 @@ Changes
    * Improve testing in configurations that omit certain hashes or
      public-key algorithms. Includes contributions by Gert van Dijk.
    * Improve negative testing of X.509 parsing.
+   * Do not define global mutexes around readdir() and gmtime() in
+     configurations where the feature is disabled. Found and fixed by Gergely
+     Budai.
 
 = mbed TLS 2.1.11 branch released 2018-03-16
 

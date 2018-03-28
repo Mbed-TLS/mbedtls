@@ -24,6 +24,9 @@ Changes
    * Improve testing in configurations that omit certain hashes or
      public-key algorithms. Includes contributions by Gert van Dijk.
    * Improve negative testing of X.509 parsing.
+   * Add the order of the base point as N in the mbedtls_ecp_group structure
+     for Curve25519 (other curves had it already). Contributed by Nicholas
+     Wilson #481
 
 = mbed TLS 2.8.0 branch released 2018-03-16
 

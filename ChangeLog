@@ -23,6 +23,9 @@ Bugfix
      Fixes #1299, #1475.
    * Fix dynamic library building process with Makefile on Mac OS X. Fixed by
      mnacamura.
+   * Fix parsing of PKCS#8 encoded Elliptic Curve keys. Previously Mbed TLS was
+     unable to parse keys with only the optional parameters field of the
+     ECPrivateKey structure. Found by jethrogb, fixed in #1379.
    * Return plaintext data sooner on unpadded decryption, as stated in
      mbedtls_cipher_update documentation. Contributed by Andy Leiserson. #1180
 
@@ -38,6 +41,8 @@ Changes
    * Provide an empty implementation of mbedtls_pkcs5_pbes2() when
      MBEDTLS_ASN1_PARSE_C is not enabled. This allows the use of PBKDF2
      without PBES2. Fixed by Marcos Del Sol Vives.
+   * Improve the documentation of mbedtls_net_accept(). Contributed by Ivan
+     Krylov.
 
 = mbed TLS 2.7.2 branch released 2018-03-16
 

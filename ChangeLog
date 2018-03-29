@@ -18,6 +18,8 @@ Bugfix
      Fixes #1040.
    * Fix C89 incompatibility in benchmark.c. Contributed by Brendan Shanks.
      #1353
+   * Return plaintext data sooner on unpadded decryption, as stated in
+     mbedtls_cipher_update documentation. Contributed by Andy Leiserson. #1180
 
 Changes
    * Remove some redundant code in bignum.c. Contributed by Alexey Skalozub.
@@ -26,8 +28,6 @@ Changes
    * Improve testing in configurations that omit certain hashes or
      public-key algorithms. Includes contributions by Gert van Dijk.
    * Improve negative testing of X.509 parsing.
-   * Return plaintext data sooner on unpadded decryption. Contributed by Andy
-     Leiserson. #1180
 
 = mbed TLS 2.8.0 branch released 2018-03-16
 

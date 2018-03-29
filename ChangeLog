@@ -52,6 +52,8 @@ Changes
    * Add the order of the base point as N in the mbedtls_ecp_group structure
      for Curve25519 (other curves had it already). Contributed by Nicholas
      Wilson #481
+   * Improve the documentation of mbedtls_net_accept(). Contributed by Ivan
+     Krylov.
 
 = mbed TLS 2.8.0 branch released 2018-03-16
 

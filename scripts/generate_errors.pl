@@ -47,7 +47,14 @@ close(FORMAT_FILE);
 
 $/ = $line_separator;
 
-open(GREP, "grep \"define MBEDTLS_ERR_\" $include_dir/* |") || die("Failure when calling grep: $!");
+my @files = <$include_dir/*.h>;
+my @matches;
+foreach my $file (@files) {
+    open(FILE, "$file");
+    my @grep_res = grep(/^\s*#define\s+MBEDTLS_ERR_\w+\s+\-0x[0-9A-Fa-f]+/, <FILE>);
+    push(@matches, @grep_res);
+    close FILE;
+}
 
 my $ll_old_define = "";
 my $hl_old_define = "";
@@ -59,7 +66,8 @@ my $headers = "";
 
 my %error_codes_seen;
 
-while (my $line = <GREP>)
+
+foreach my $line (@matches)
 {
     next if ($line =~ /compat-1.2.h/);
     my ($error_name, $error_code) = $line =~ /(MBEDTLS_ERR_\w+)\s+\-(0x\w+)/;

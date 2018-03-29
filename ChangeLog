@@ -36,6 +36,8 @@ Changes
    * Provide an empty implementation of mbedtls_pkcs5_pbes2() when
      MBEDTLS_ASN1_PARSE_C is not enabled. This allows the use of PBKDF2
      without PBES2. Fixed by Marcos Del Sol Vives.
+   * Return plaintext data sooner on unpadded decryption. Contributed by Andy
+     Leiserson. #1180
 
 = mbed TLS 2.7.2 branch released 2018-03-16
 

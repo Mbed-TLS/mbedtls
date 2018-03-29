@@ -54,6 +54,8 @@ Changes
      Wilson #481
    * Improve the documentation of mbedtls_net_accept(). Contributed by Ivan
      Krylov.
+   * Improve the documentation of mbedtls_ssl_write(). Suggested by
+     Paul Sokolovsky in #1356.
 
 = mbed TLS 2.8.0 branch released 2018-03-16
 

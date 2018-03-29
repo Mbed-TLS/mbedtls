@@ -41,6 +41,8 @@ my @high_level_modules = qw( CIPHER DHM ECP MD
 my $line_separator = $/;
 undef $/;
 
+$ENV{'LC_ALL'} = 'C';
+
 open(FORMAT_FILE, "$error_format_file") or die "Opening error format file '$error_format_file': $!";
 my $error_format = <FORMAT_FILE>;
 close(FORMAT_FILE);

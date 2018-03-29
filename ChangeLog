@@ -19,6 +19,9 @@ Bugfix
      Fixes #1299, #1475.
    * Fix dynamic library building process with Makefile on Mac OS X. Fixed by
      mnacamura.
+   * Fix parsing of PKCS#8 encoded Elliptic Curve keys. Previously Mbed TLS was
+     unable to parse keys with only the optional parameters field of the
+     ECPrivateKey structure. Found by jethrogb, fixed in #1379.
 
 Changes
    * Improve testing in configurations that omit certain hashes or

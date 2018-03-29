@@ -122,6 +122,7 @@ if defined BUILD (
         goto :error
     )
 ) else if defined SCRIPT (
+    echo "Running script %SCRIPT%"
     %SCRIPT%
 ) else (
     echo "Error: Neither BUILD nor SCRIPT defined!"

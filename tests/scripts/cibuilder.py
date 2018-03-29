@@ -68,7 +68,6 @@ def get_tests_for_campaign(campaign_name):
     for test_name, details in campaign.items():
         for platform in details["platforms"]:
             ci_test_name = "%s-%s" %(test_name, platform)
-            print details
             yield ci_test_name, details.get('build', None),\
                 details.get('script', None),\
                 details.get('environment', {}),\

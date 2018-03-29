@@ -589,7 +589,8 @@ typedef struct mbedtls_dtls_srtp_info_t
     size_t dtls_srtp_keys_len; /*!< length in bytes of master keys and master salt for SRTP generated during handshake */
     unsigned char mki_value[MBEDTLS_DTLS_SRTP_MAX_MKI_LENGTH]; /* opaque srtp_mki<0..255> */
     size_t                 mki_len;
-}mbedtls_dtls_srtp_info;
+}
+mbedtls_dtls_srtp_info;
 
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 

@@ -49,6 +49,9 @@ Changes
    * Provide an empty implementation of mbedtls_pkcs5_pbes2() when
      MBEDTLS_ASN1_PARSE_C is not enabled. This allows the use of PBKDF2
      without PBES2. Fixed by Marcos Del Sol Vives.
+   * Add the order of the base point as N in the mbedtls_ecp_group structure
+     for Curve25519 (other curves had it already). Contributed by Nicholas
+     Wilson #481
 
 = mbed TLS 2.8.0 branch released 2018-03-16
 

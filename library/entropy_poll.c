@@ -146,8 +146,10 @@ static int check_version_3_17_plus( void )
 
     return( 0 );
 }
+/* Whether the getrandom system call is available at runtime. This will
+ * be tested during program startup in mbedtls_platform_entropy_init(). */
 static int has_getrandom = -1;
-#endif /* SYS_getrandom */
+#endif /* defined(SYS_getrandom) */
 #endif /* __linux__ */
 
 #include <stdio.h>
@@ -156,17 +158,32 @@ static FILE *urandom_file = NULL;
 
 int mbedtls_platform_entropy_init( void )
 {
-#if !defined(HAVE_GETRANDOM)
+#if defined(HAVE_GETRANDOM)
+    /* Check if the getrandom system call is present. On Linux kernels
+     * older than 3.17, the system call is not present so this returns
+     * ENOSYS. Pass the GRND_NONBLOCK so that this doesn't block even
+     * if the entropy pool is not initialized yet. */
+    has_getrandom = ( check_version_3_17_plus() == 0 );
+    if( has_getrandom )
+        return( 0);
+#endif /* !defined(HAVE_GETRANDOM) */
+
     if( urandom_file != NULL )
         fclose( urandom_file );
 
     urandom_file = fopen( "/dev/urandom", "rb" );
     if( urandom_file == NULL )
         return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
-#endif /* !HAVE_GETRANDOM */
 
     return( 0 );
 }
+
+#if defined(HAVE_GETRANDOM)
+#define NEED_INIT( ) ( has_getrandom == -1 ||                           \
+                       ( has_getrandom == 0 && urandom_file == NULL ) )
+#else
+#define NEED_INIT( ) ( urandom_file == NULL )
+#endif
 
 int mbedtls_platform_entropy_poll( void *data,
                            unsigned char *output, size_t len, size_t *olen )
@@ -174,10 +191,14 @@ int mbedtls_platform_entropy_poll( void *data,
     size_t read_len;
     ((void) data);
 
-#if defined(HAVE_GETRANDOM)
-    if( has_getrandom == -1 )
-        has_getrandom = ( check_version_3_17_plus() == 0 );
+    if( NEED_INIT( ) )
+    {
+        int ret = mbedtls_platform_entropy_init( );
+        if( ret != 0 )
+            return( ret );
+    }
 
+#if defined(HAVE_GETRANDOM)
     if( has_getrandom )
     {
         int ret;
@@ -191,13 +212,6 @@ int mbedtls_platform_entropy_poll( void *data,
 #endif /* HAVE_GETRANDOM */
 
     *olen = 0;
-
-    if( urandom_file == NULL )
-    {
-        int ret = mbedtls_platform_entropy_init();
-        if( ret != 0 )
-            return( ret );
-    }
 
     read_len = fread( output, 1, len, urandom_file );
     if( read_len != len )

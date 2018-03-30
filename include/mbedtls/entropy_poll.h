@@ -57,11 +57,27 @@ extern "C" {
 #if !defined(MBEDTLS_NO_PLATFORM_ENTROPY)
 /**
  * \brief           Platform-specific entropy initialization
+ *
+ * Call this function to initialize the platform entropy sources. On Unix-like
+ * platform, this function opens `/dev/urandom`.
+ *
+ * Calling this function directly is optional: mbedtls_platform_entropy_poll()
+ * calls mbedtls_platform_entropy_init() if needed.
  */
 int mbedtls_platform_entropy_init( void );
 
 /**
  * \brief           Platform-specific entropy poll callback
+ *
+ * This function is meant to be registered with mbedtls_entropy_add_source().
+ *
+ * \param data      Unused.
+ * \param output    Output buffer.
+ * \param len       Number of bytes requested.
+ * \param olen      Number of bytes of entropy written to \c output.
+ *
+ * \return          0 for success,
+ *                  or MBEDTLS_ERR_ENTROPY_SOURCE_FAILED on failure.
  */
 int mbedtls_platform_entropy_poll( void *data,
                            unsigned char *output, size_t len, size_t *olen );
@@ -69,9 +85,17 @@ int mbedtls_platform_entropy_poll( void *data,
 
 #if defined(MBEDTLS_HAVEGE_C)
 /**
- * \brief           HAVEGE based entropy poll callback
+ * \brief           HAVEGE-based entropy poll callback
  *
- * Requires an HAVEGE state as its data pointer.
+ * This function is meant to be registered with mbedtls_entropy_add_source().
+ *
+ * \param data      Pointer to a #mbedtls_havege_state structure.
+ * \param output    Output buffer.
+ * \param len       Number of bytes requested.
+ * \param olen      Number of bytes of entropy written to \c output.
+ *
+ * \return          0 for success,
+ *                  or MBEDTLS_ERR_ENTROPY_SOURCE_FAILED on failure.
  */
 int mbedtls_havege_poll( void *data,
                  unsigned char *output, size_t len, size_t *olen );
@@ -80,6 +104,21 @@ int mbedtls_havege_poll( void *data,
 #if defined(MBEDTLS_TIMING_C)
 /**
  * \brief           mbedtls_timing_hardclock-based entropy poll callback
+ *
+ * This function is meant to be registered with mbedtls_entropy_add_source().
+ *
+ * \warning         This function gathers entropy from timing variations.
+ *                  This is generally a poor source of entropy, especially
+ *                  on a system with light load. It should only be used
+ *                  as a complement of other, stronger entropy sources.
+ *
+ * \param data      Unused.
+ * \param output    Output buffer.
+ * \param len       Number of bytes requested.
+ * \param olen      Number of bytes of entropy written to \c output.
+ *
+ * \return          0 for success,
+ *                  or MBEDTLS_ERR_ENTROPY_SOURCE_FAILED on failure.
  */
 int mbedtls_hardclock_poll( void *data,
                     unsigned char *output, size_t len, size_t *olen );
@@ -92,7 +131,16 @@ int mbedtls_hardclock_poll( void *data,
  * \warning         This is not provided by mbed TLS!
  *                  See \c MBEDTLS_ENTROPY_HARDWARE_ALT in config.h.
  *
- * \note            This must accept NULL as its first argument.
+ * This function is meant to be registered with mbedtls_entropy_add_source().
+ *
+ * \param data      Custom data. The function *must* accept \c NULL as the
+ *                  \c data argument.
+ * \param output    Output buffer.
+ * \param len       Number of bytes requested.
+ * \param olen      Number of bytes of entropy written to \c output.
+ *
+ * \return          0 for success,
+ *                  or MBEDTLS_ERR_ENTROPY_SOURCE_FAILED on failure.
  */
 int mbedtls_hardware_poll( void *data,
                            unsigned char *output, size_t len, size_t *olen );
@@ -102,7 +150,21 @@ int mbedtls_hardware_poll( void *data,
 /**
  * \brief           Entropy poll callback for a non-volatile seed file
  *
- * \note            This must accept NULL as its first argument.
+ * This function is meant to be registered with mbedtls_entropy_add_source().
+ *
+ * This function reads and updates a seed file by calling
+ * mbedtls_nv_seed_read() and mbedtls_nv_seed_write(). The default
+ * implementation of these functions is mbedtls_platform_std_nv_seed_read()
+ * and mbedtls_platform_std_nv_seed_write() respectively but they may be
+ * overridden at build time.
+ *
+ * \param data      Unused.
+ * \param output    Output buffer.
+ * \param len       Number of bytes requested.
+ * \param olen      Number of bytes of entropy written to \c output.
+ *
+ * \return          0 for success,
+ *                  or MBEDTLS_ERR_ENTROPY_SOURCE_FAILED on failure.
  */
 int mbedtls_nv_seed_poll( void *data,
                           unsigned char *output, size_t len, size_t *olen );

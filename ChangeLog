@@ -1,5 +1,15 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.x.x branch released xxxx-xx-xx
+
+Features
+   * On Unix-like platforms, open /dev/urandom at startup and keep it open,
+     so that it remains available even if the process sets up security
+     restrictions that prevent it from opening /dev/urandom later.
+     Contributed by Justin Karneges in #323. Fixes #322.
+   * On Linux, detect getrandom() based on the presence of the system call
+     rather than on the kernel version.
+
 = mbed TLS 2.8.0 branch released 2018-03-16
 
 Default behavior changes

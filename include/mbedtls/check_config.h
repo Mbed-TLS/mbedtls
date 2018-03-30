@@ -600,11 +600,6 @@
 #error "MBEDTLS_SSL_SERVER_NAME_INDICATION defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SSL_PREVERIFY_CB) && \
-        !defined(MBEDTLS_X509_CRT_PARSE_C)
-#error "MBEDTLS_SSL_PREVERIFY_CB defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_THREADING_PTHREAD)
 #if !defined(MBEDTLS_THREADING_C) || defined(MBEDTLS_THREADING_IMPL)
 #error "MBEDTLS_THREADING_PTHREAD defined, but not all prerequisites"

@@ -535,6 +535,16 @@ typedef void mbedtls_ssl_set_timer_t( void * ctx,
  */
 typedef int mbedtls_ssl_get_timer_t( void * ctx );
 
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+/**
+ * \brief          Callback type: receive notification before X.509 chain
+ *                 building
+ *
+ * \param ctx      Context pointer
+ * \param crt      X.509 certificate pointer
+ */
+typedef void mbedtls_ssl_pre_verify_t( void *ctx, mbedtls_x509_crt *crt );
+#endif
 
 /* Defined below */
 typedef struct mbedtls_ssl_session mbedtls_ssl_session;
@@ -624,15 +634,13 @@ struct mbedtls_ssl_config
 #endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+    /** Callback to receive notification before X.509 chain building        */
+    mbedtls_ssl_pre_verify_t *f_pre_vrfy;
+    void *p_pre_vrfy;               /*!< context for pre-verify calllback   */
+
     /** Callback to customize X.509 certificate chain verification          */
     int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *);
     void *p_vrfy;                   /*!< context for X.509 verify calllback */
-#endif
-
-#if defined(MBEDTLS_SSL_PREVERIFY_CB)
-    /** Callback to receive notification before X.509 chain building        */
-    void (*f_pre_vrfy)(void *, mbedtls_x509_crt *);
-    void *p_pre_vrfy;               /*!< context for pre-verify calllback   */
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
@@ -1082,9 +1090,7 @@ void mbedtls_ssl_conf_authmode( mbedtls_ssl_config *conf, int authmode );
 void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
                      void *p_vrfy );
-#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(MBEDTLS_SSL_PREVERIFY_CB)
 /**
  * \brief          Set the pre-verification callback (Optional).
  *
@@ -1096,10 +1102,10 @@ void mbedtls_ssl_conf_verify( mbedtls_ssl_config *conf,
  * \param f_pre_vrfy pre-verification function
  * \param p_pre_vrfy pre-verification parameter
  */
-void mbedtls_ssl_conf_pre_verify(mbedtls_ssl_config *conf,
-                                 void(*f_pre_vrfy)(void *, mbedtls_x509_crt *),
-                                 void *p_pre_vrfy);
-#endif /* MBEDTLS_SSL_PREVERIFY_CB */
+void mbedtls_ssl_conf_pre_verify( mbedtls_ssl_config *conf,
+                         mbedtls_ssl_pre_verify_t *f_pre_vrfy,
+                         void *p_pre_vrfy);
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /**
  * \brief          Set the random number generator callback

@@ -64,10 +64,6 @@ goto :start
 #   1. RUN_BASIC_TEST=1
 #       * Execute CTest tests
 #       * Execute ./programs/test/selftest
-#   2. RUN_FULL_TEST=1
-#       * Execute basic tests defined above
-#       * Execute SSL tests
-#       * Execute config tests
 #
 :start
 
@@ -103,12 +99,14 @@ if defined BUILD (
         mingw32-make
 
     ) else if "%BUILD%"=="msvc12-32" (
-        call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat"
+        call :check_env MSVC12_VCVARSALL_BAT || goto :error
+        call %MSVC12_VCVARSALL_BAT%
         cmake . -G "Visual Studio 12"
         MSBuild ALL_BUILD.vcxproj
 
     ) else if "%BUILD%"=="msvc12-64" (
-        call "C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall.bat"
+        call :check_env MSVC12_VCVARSALL_BAT || goto :error
+        call %MSVC12_VCVARSALL_BAT%
         cmake . -G "Visual Studio 12 Win64"
         MSBuild ALL_BUILD.vcxproj
 
@@ -158,7 +156,7 @@ goto :EOF
 
 :error
 REM for intentional error exit set errorlevel
-if errorlevel == 0 ( errorlevel=1 )
+if %errorlevel% == 0 ( errorlevel=1 )
 echo Failed with error #%errorlevel%!
 exit /b %errorlevel%
 

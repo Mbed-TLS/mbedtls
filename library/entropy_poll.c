@@ -152,9 +152,7 @@ static int has_getrandom = -1;
 
 #include <stdio.h>
 
-#if !defined(HAVE_GETRANDOM)
 static FILE *urandom_file = NULL;
-#endif /* !HAVE_GETRANDOM */
 
 int mbedtls_platform_entropy_init( void )
 {

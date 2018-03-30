@@ -110,42 +110,11 @@ static int getrandom_wrapper( void *buf, size_t buflen, unsigned int flags )
     return( syscall( SYS_getrandom, buf, buflen, flags ) );
 }
 
-#include <sys/utsname.h>
-/* Check if version is at least 3.17.0 */
-static int check_version_3_17_plus( void )
-{
-    int minor;
-    struct utsname un;
-    const char *ver;
+/* This value is copied from "linux/random.h" to avoid depending on
+ * the presence of this header at build time. Since it is part of the
+ * Linux kernel ABI, it won't change. */
+#define GRND_NONBLOCK 0x0001
 
-    /* Get version information */
-    uname(&un);
-    ver = un.release;
-
-    /* Check major version; assume a single digit */
-    if( ver[0] < '3' || ver[0] > '9' || ver [1] != '.' )
-        return( -1 );
-
-    if( ver[0] - '0' > 3 )
-        return( 0 );
-
-    /* Ok, so now we know major == 3, check minor.
-     * Assume 1 or 2 digits. */
-    if( ver[2] < '0' || ver[2] > '9' )
-        return( -1 );
-
-    minor = ver[2] - '0';
-
-    if( ver[3] >= '0' && ver[3] <= '9' )
-        minor = 10 * minor + ver[3] - '0';
-    else if( ver [3] != '.' )
-        return( -1 );
-
-    if( minor < 17 )
-        return( -1 );
-
-    return( 0 );
-}
 /* Whether the getrandom system call is available at runtime. This will
  * be tested during program startup in mbedtls_platform_entropy_init(). */
 static int has_getrandom = -1;
@@ -163,7 +132,7 @@ int mbedtls_platform_entropy_init( void )
      * older than 3.17, the system call is not present so this returns
      * ENOSYS. Pass the GRND_NONBLOCK so that this doesn't block even
      * if the entropy pool is not initialized yet. */
-    has_getrandom = ( check_version_3_17_plus() == 0 );
+    has_getrandom = ( getrandom_wrapper( NULL, 0, GRND_NONBLOCK ) == 0 );
     if( has_getrandom )
         return( 0);
 #endif /* !defined(HAVE_GETRANDOM) */

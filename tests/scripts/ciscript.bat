@@ -40,10 +40,11 @@ goto :start
 # This script requires environment variables to identify config,
 # build type and tests. These are:
 #   1. MBEDTLS_ROOT     - (mandatory) Toplevel directory.
-#   2. BUILD            - (mandatory) Build type. See use below.
-#   3. CONFIG           - (optional)  Argument for config.pl.
-#   4. RUN_BASIC_TEST   - (optional)  Basic tests.
-#   5. RUN_FULL_TEST    - (optional)  Full tests = basic + SSL + config.
+#   2. CONFIG           - (optional)  Argument for config.pl.
+#   3. BUILD            - (mutually exclusive with SCRIPT) Build type.
+#   4. SCRIPT           - (mutually exclusive with BUILD) script to run.
+#   5. RUN_BASIC_TEST   - (optional)  Basic tests.
+#   6. RUN_FULL_TEST    - (optional)  Full tests = basic + SSL + config.
 #
 # All the environment variables must be supplied via cienv.bat file that
 # this script sources in the beginning.
@@ -57,7 +58,7 @@ goto :start
 #
 # This script dispatches tests in following order:
 #   1. Change to specified configuration. (Optional)
-#   2. Run specified build step. (Mandatory)
+#   2. Run specified build step script. (Mandatory)
 #   3. Run specified tests. (Optional)
 #
 # Tests are specified with following environment variables:
@@ -77,7 +78,7 @@ if not exist %ENV_FILE% (
 
 call %ENV_FILE%
 
-call :check_env TEST_NAME BUILD MBEDTLS_ROOT || goto :error
+call :check_env TEST_NAME MBEDTLS_ROOT || goto :error
 
 cd %MBEDTLS_ROOT%
 

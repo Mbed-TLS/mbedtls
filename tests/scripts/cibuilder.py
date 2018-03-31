@@ -20,8 +20,9 @@
 
 """
 Generates Build and Test specification for CI builds. This includes:
-- Generating build & test scripts for CI
-- Specify platform requirements
+- Generating list of tests for a CI job
+- Provide target platform information for each test
+- Generate execution environment for a given test to be executed by ciscript.sh/bat
 """
 
 import os
@@ -52,10 +53,9 @@ class JobsParser(object):
 
     def validate_root(self, data):
         """
-        Validate root element format 
-        
+        Validate root element format. It asserts required data format.
+
         :param data:  Data read from cijobs.json
-        :return: 
         """
         for mandatory_keys in [self.CI_JOBS_KEY_TESTS,
                                self.CI_JOBS_KEY_CAMPAIGNS,
@@ -66,11 +66,10 @@ class JobsParser(object):
     @staticmethod
     def validate_test(name, test):
         """
-        Validate a test field.
-        
+        Validate a test field. It asserts required test format.
+
         :param name: Test name
         :param test: Test details
-        :return: 
         """
         assert ('build' in test) or ('script' in test),\
             "Neither 'build' nor 'script' field present in test '%s'" % name
@@ -88,11 +87,10 @@ class JobsParser(object):
     @staticmethod
     def validate_job(name, job):
         """
-        Validate job field.
-        
-        :param name: 
-        :param job: 
-        :return: 
+        Validate job field. It asserts required job format.
+
+        :param name: Job name
+        :param job: Job details
         """
         assert name is not None and len(name) > 0, \
             "Invalid job name '%s'" % name
@@ -110,9 +108,9 @@ class JobsParser(object):
     def parse(self, data):
         """
         Parse data from cijobs.json
-        
-        :param data: Data read from cijobs.json 
-        :return: 
+
+        :param data: Data read from cijobs.json
+        :return A dictionary keyed by job name containing test details.:
         """
         self.validate_root(data)
         self.tests = data[self.CI_JOBS_KEY_TESTS]
@@ -151,7 +149,7 @@ def get_ci_data():
     """
     Read CI job data from cijobs.json and return.
 
-    :return:
+    :return A dictionary keyed by job name containing test details.:
     """
     ci_data_file = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 CI_META_FILE)
@@ -173,7 +171,7 @@ def get_tests_for_job(job_name):
       platform - Platform on which the test has to run.
 
     :param job_name: job name
-    :return: yield tests with details
+    :return yield test details:
     """
     get_ci_data()
     try:
@@ -195,8 +193,7 @@ def get_tests_for_job(job_name):
 def gen_env_file(test_name, build_name, script, environment, tests, set_cmd,
                  env_file):
     """
-    Generates environment script env_file with test info passed as environment
-     variables.
+    Generates environment script env_file from test details.
 
     :param test_name: A descriptive test name describing test, environment and
                       platform. Example: cmake-asan-debian-x64
@@ -206,7 +203,6 @@ def gen_env_file(test_name, build_name, script, environment, tests, set_cmd,
     :param tests: Tests to run. Example: [BASIC, FULL]
     :param set_cmd: Example: 'set' for Windows, 'export' for POSIX
     :param env_file: Output environment file.
-    :return: 
     """
     with open(env_file, 'w') as f:
         for k, v in environment.items():
@@ -231,10 +227,9 @@ def list_tests(job, filename):
     """
     List tests with their descriptive name and platform. This function is used
     in CI discover tests and target platform.
-    
+
     :param job: job name from cijobs.json
     :param filename: Output file name.
-    :return: 
     """
     if filename:
         with open(filename, 'w') as f:
@@ -250,8 +245,7 @@ def list_tests(job, filename):
 def list_jobs():
     """
     List jobs. Generally used for debugging.
-    
-    :return: 
+
     """
     for job in get_ci_data():
         print(job)
@@ -263,7 +257,6 @@ def gen_environment_for_test(test_to_generate):
     test name output by '-c job_name' option to this script.
 
     :param test_to_generate: Descriptive test name. Ex: cmake-asan-debian-x64
-    :return: 
     """
     for job in get_ci_data().keys():
         for test_name, build_name, script, environment, tests, platform\
@@ -298,3 +291,4 @@ if __name__ == '__main__':
         gen_environment_for_test(opts.gen_env)
     else:
         parser.print_help()
+

@@ -34,6 +34,119 @@ SH_ENV_FILE="cienv.sh"
 BATCH_ENV_FILE="cienv.bat"
 
 
+class JobsParser(object):
+    """
+    Parser for cijobs.json
+    """
+    CI_JOBS_KEY_TESTS = "tests"
+    CI_JOBS_KEY_CAMPAIGNS = "campaigns"
+    CI_JOBS_KEY_JOBS = "jobs"
+
+    def __init__(self):
+        """
+        Initialize parser state.
+        """
+        self.tests = {}
+        self.campaigns = {}
+        self.jobs = {}
+
+    def validate_root(self, data):
+        """
+        Validate root element format 
+        
+        :param data:  Data read from cijobs.json
+        :return: 
+        """
+        for mandatory_keys in [self.CI_JOBS_KEY_TESTS,
+                               self.CI_JOBS_KEY_CAMPAIGNS,
+                               self.CI_JOBS_KEY_JOBS]:
+            assert mandatory_keys in data, \
+                "Mandatory key '%s' not found in cijobs.json" % mandatory_keys
+
+    @staticmethod
+    def validate_test(name, test):
+        """
+        Validate a test field.
+        
+        :param name: Test name
+        :param test: Test details
+        :return: 
+        """
+        assert ('build' in test) or ('script' in test),\
+            "Neither 'build' nor 'script' field present in test '%s'" % name
+        if 'environment' in test:
+            assert type(test['environment']) == dict,\
+                "Test '%s' field 'environment' should be a dictionary." % name
+        if 'tests' in test:
+            assert type(test['tests']) == list,\
+                "Test '%s' field 'tests' should be a list." % name
+        assert "platforms" in test,\
+            "Mandatory field 'platforms' not in test '%s'" % name
+        assert type(test["platforms"]) == list, \
+            "Test '%s' field 'platforms' should be a list." % name
+
+    @staticmethod
+    def validate_job(name, job):
+        """
+        Validate job field.
+        
+        :param name: 
+        :param job: 
+        :return: 
+        """
+        assert name is not None and len(name) > 0, \
+            "Invalid job name '%s'" % name
+        assert type(job) == dict, \
+            "Job '%s' value should be a dictionary." % name
+        assert JobsParser.CI_JOBS_KEY_CAMPAIGNS in job,\
+            "Mandatory field '%s' missing in job '%s'" % \
+            (JobsParser.CI_JOBS_KEY_CAMPAIGNS, name)
+        assert type(job[JobsParser.CI_JOBS_KEY_CAMPAIGNS]) == list,\
+            "Field '%s' should be a list in job '%s'" %\
+            (JobsParser.CI_JOBS_KEY_CAMPAIGNS, name)
+        assert len(job[JobsParser.CI_JOBS_KEY_CAMPAIGNS]) != 0, \
+            "No campaigns specified in job '%s'" % name
+
+    def parse(self, data):
+        """
+        Parse data from cijobs.json
+        
+        :param data: Data read from cijobs.json 
+        :return: 
+        """
+        self.validate_root(data)
+        self.tests = data[self.CI_JOBS_KEY_TESTS]
+        for name, test in self.tests.items():
+            assert name is not None and len(name) > 0,\
+                "Invalid test name '%s'" % name
+            self.validate_test(name, test)
+        self.campaigns = data[self.CI_JOBS_KEY_CAMPAIGNS]
+        for name, campaign in self.campaigns.items():
+            assert name is not None and len(name) > 0, \
+                "Invalid campaign name '%s'" % name
+            assert type(campaign) == list, \
+                "Campaign '%s' should be a list of test names." % name
+        self.jobs = data[self.CI_JOBS_KEY_JOBS]
+        ret = {}
+        for name, job in self.jobs.items():
+            self.validate_job(name, job)
+            # Construct a flat Job to test dict
+            job_campaigns = job[self.CI_JOBS_KEY_CAMPAIGNS]
+            for campaign_name in job_campaigns:
+                assert campaign_name in self.campaigns,\
+                    "Unknown campaign %s" % campaign_name
+                campaign = self.campaigns[campaign_name]
+                for test_name in campaign:
+                    assert test_name in self.tests,\
+                        "Unknown test %s" % test_name
+                    test = self.tests[test_name]
+                    if name in ret:
+                        ret[name][test_name] = test
+                    else:
+                        ret[name] = {test_name: test}
+        return ret
+
+
 def get_ci_data():
     """
     Read CI campaign data from cijobs.json and return.
@@ -43,7 +156,9 @@ def get_ci_data():
     ci_data_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), CI_META_FILE)
     with open(ci_data_file) as f:
         ci_data = json.load(f)
-    return ci_data
+        parser = JobsParser()
+        jobs = parser.parse(ci_data)
+    return jobs
 
 
 def get_tests_for_campaign(campaign_name):
@@ -59,10 +174,12 @@ def get_tests_for_campaign(campaign_name):
     :param campaign_name: Campaign name
     :return: yield tests with details
     """
+    get_ci_data()
     try:
         campaign = get_ci_data()[campaign_name]
-    except KeyError:
-        print("Error: Invalid campaign name")
+    except KeyError, e:
+        print str(e)
+        print("Error: Invalid campaign name '%s'" % campaign_name)
         sys.exit(1)
 
     for test_name, details in campaign.items():

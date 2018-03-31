@@ -176,8 +176,7 @@ def get_tests_for_job(job_name):
     get_ci_data()
     try:
         job = get_ci_data()[job_name]
-    except KeyError, e:
-        print str(e)
+    except KeyError:
         print("Error: Invalid job name '%s'" % job_name)
         sys.exit(1)
 

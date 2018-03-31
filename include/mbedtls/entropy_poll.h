@@ -58,11 +58,16 @@ extern "C" {
 /**
  * \brief           Platform-specific entropy initialization
  *
- * Call this function to initialize the platform entropy sources. On Unix-like
- * platform, this function opens `/dev/urandom`.
+ * Most applications do not need to call this function directly, because
+ * it is called from mbedtls_entropy_init(). You may call it explicitly
+ * to initialize the platform entropy sources earlier.
  *
- * Calling this function directly is optional: mbedtls_platform_entropy_poll()
- * calls mbedtls_platform_entropy_init() if needed.
+ * - On POSIX/Unix-like platforms, this function opens `/dev/urandom`.
+ * - On Windows, this function does nothing.
+ * - If you port this library to another platform and do not define
+ *   `MBEDTLS_NO_PLATFORM_ENTROPY`, you will need to implement this
+ *   function. This may be a function that does nothing if
+ *   mbedtls_platform_entropy_poll() does not require prior initialization.
  */
 int mbedtls_platform_entropy_init( void );
 
@@ -70,6 +75,17 @@ int mbedtls_platform_entropy_init( void );
  * \brief           Platform-specific entropy poll callback
  *
  * This function is meant to be registered with mbedtls_entropy_add_source().
+ *
+ * - On Windows, this function calls CryptGenRandom().
+ * - On Linux, this function calls the getrandom() system call if it is
+ *   available both at build time and at compile time.
+ * - On Unix/POSIX platforms, including Linux without getrandom(), this
+ *   function reads from `/dev/urandom`.
+ * - If you port this library to another platform, you should write an
+ *   implementation of this function that accesses the randomness source
+ *   provided by the operating system or hardware. If there is no randomness
+ *   source, build the library with the macro `MBEDTLS_NO_PLATFORM_ENTROPY`
+ *   defined.
  *
  * \param data      Unused.
  * \param output    Output buffer.

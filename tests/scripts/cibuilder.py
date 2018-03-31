@@ -149,11 +149,12 @@ class JobsParser(object):
 
 def get_ci_data():
     """
-    Read CI campaign data from cijobs.json and return.
+    Read CI job data from cijobs.json and return.
 
     :return:
     """
-    ci_data_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), CI_META_FILE)
+    ci_data_file = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                CI_META_FILE)
     with open(ci_data_file) as f:
         ci_data = json.load(f)
         parser = JobsParser()
@@ -161,9 +162,9 @@ def get_ci_data():
     return jobs
 
 
-def get_tests_for_campaign(campaign_name):
+def get_tests_for_job(job_name):
     """
-    Yields tests with details for passed campaign. Following data is returned
+    Yields tests with details for passed job. Following data is returned
     as part of each test:
       CI test name - A descriptive name used by the CI to run test in parallel.
       build name - Build type. Example: make.
@@ -171,18 +172,18 @@ def get_tests_for_campaign(campaign_name):
       tests - List of tests to run.
       platform - Platform on which the test has to run.
 
-    :param campaign_name: Campaign name
+    :param job_name: job name
     :return: yield tests with details
     """
     get_ci_data()
     try:
-        campaign = get_ci_data()[campaign_name]
+        job = get_ci_data()[job_name]
     except KeyError, e:
         print str(e)
-        print("Error: Invalid campaign name '%s'" % campaign_name)
+        print("Error: Invalid job name '%s'" % job_name)
         sys.exit(1)
 
-    for test_name, details in campaign.items():
+    for test_name, details in job.items():
         for platform in details["platforms"]:
             ci_test_name = "%s-%s" %(test_name, platform)
             yield ci_test_name, details.get('build', None),\
@@ -218,79 +219,82 @@ def gen_env_file(test_name, build_name, script, environment, tests, set_cmd,
             f.write("%s %s=%s\n" % (set_cmd, 'SCRIPT', script))
         for test in tests:
             f.write("%s %s=%s\n" % (set_cmd, 'RUN_%s_TEST' % test.upper(), '1'))
+        mbedtls_root = os.path.realpath(__file__)
+        # mbedtls root is 3 levels up
+        for i in range(3):
+            mbedtls_root = os.path.dirname(mbedtls_root)
+        f.write("%s MBEDTLS_ROOT=%s\n" % (set_cmd, mbedtls_root))
         os.chmod(env_file, 0o777)
 
 
-def list_tests(campaign, filename):
+def list_tests(job, filename):
     """
     List tests with their descriptive name and platform. This function is used
     in CI discover tests and target platform.
     
-    :param campaign: Campaign name from cijobs.json
+    :param job: job name from cijobs.json
     :param filename: Output file name.
     :return: 
     """
     if filename:
         with open(filename, 'w') as f:
             for test_name, build_name, script, environment, tests, platform\
-                    in get_tests_for_campaign(campaign):
+                    in get_tests_for_job(job):
                 f.write("%s|%s\n" %(test_name, platform))
     else:
         for test_name, build_name, script, environment, tests, platform\
-                in get_tests_for_campaign(campaign):
+                in get_tests_for_job(job):
             print("%s|%s" %(test_name, platform))
 
 
-def list_campaigns():
+def list_jobs():
     """
-    List campaigns. Generally used for debugging.
+    List jobs. Generally used for debugging.
     
     :return: 
     """
-    for campaign in get_ci_data():
-        print(campaign)
+    for job in get_ci_data():
+        print(job)
 
 
-def gen_environment_for_campaign(test_to_generate):
+def gen_environment_for_test(test_to_generate):
     """
     Generate environment script for specified test. The test is a descriptive
-    test name output by '-c campaign_name' option to this script.
+    test name output by '-c job_name' option to this script.
 
     :param test_to_generate: Descriptive test name. Ex: cmake-asan-debian-x64
     :return: 
     """
-    for campaign in get_ci_data().keys():
+    for job in get_ci_data().keys():
         for test_name, build_name, script, environment, tests, platform\
-                in get_tests_for_campaign(campaign):
+                in get_tests_for_job(job):
             if test_name == test_to_generate:
                 set_cmd, env_file = ('set', BATCH_ENV_FILE) if 'windows'\
                     in platform.lower() else ('export', SH_ENV_FILE)
                 gen_env_file(test_name, build_name, script, environment,
                              tests, set_cmd, env_file)
                 return
-    print("Error: Campaign or test not found!")
+    print("Error: job or test not found!")
     sys.exit(1)
 
 
 if __name__ == '__main__':
     parser = OptionParser()
-    parser.add_option('-C', '--list-compaigns', action="store_true",
-                      dest="list_campaigns", metavar="LIST_CAMPAIGNS",
-                      help="List campaigns.")
-    parser.add_option('-c', '--list-tests', dest="campaign_name",
-                      metavar="CAMPAIGN_NAME", help="List tests for campaign.")
+    parser.add_option('-J', '--list-jobs', action="store_true",
+                      dest="list_jobs", help="List jobs.")
+    parser.add_option('-l', '--list-tests', dest="job_name",
+                      help="List tests for job.")
     parser.add_option('-o', '--tests-out-file', dest="tests_outfile",
-                      metavar="TESTS_OUTFILE",
                       help="Output test list in this file.")
-    parser.add_option('-e', '--gen-env', dest="gen_env", metavar="GEN_ENV",
+    parser.add_option('-e', '--gen-env', dest="gen_env", metavar="TEST_NAME",
                       help="Generate environment file.")
     opts, args = parser.parse_args()
 
-    if opts.list_campaigns:
-        list_campaigns()
-    elif opts.campaign_name:
-        list_tests(opts.campaign_name, opts.tests_outfile)
+    if opts.list_jobs:
+        list_jobs()
+    elif opts.job_name:
+        list_tests(opts.job_name, opts.tests_outfile)
     elif opts.gen_env:
-        gen_environment_for_campaign(opts.gen_env)
+        gen_environment_for_test(opts.gen_env)
     else:
         parser.print_help()

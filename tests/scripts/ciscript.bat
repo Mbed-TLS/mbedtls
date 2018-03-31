@@ -144,12 +144,16 @@ goto :EOF
 
 :check_env
 setlocal enabledelayedexpansion
+set env_not_found=0
 for %%x in (%*) do (
     call set val=%%%%x%%
     if "!val!"=="" (
         echo "Error: Env var %%x not set!"
-        exit /b 1
+        set env_not_found=1
     )
+)
+if %env_not_found%==1 (
+    exit /b 1
 )
 endlocal
 goto :EOF

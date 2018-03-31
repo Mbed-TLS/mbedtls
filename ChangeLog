@@ -24,6 +24,9 @@ Bugfix
 
 Changes
    * Clarify the documentation of mbedtls_ssl_setup.
+   * Improve robustness of mbedtls_ssl_derive_keys against the use of
+     HMAC functions with non-HMAC ciphersuites. Independently contributed
+     by Jiayuan Chen in #1377. Fixes #1437.
 
 = mbed TLS 2.7.1 branch released 2018-02-23
 

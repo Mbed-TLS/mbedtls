@@ -98,7 +98,7 @@ echo \"MBEDTLS_ROOT=.\" >> cienv.sh
  */
 def create_parallel_jobs( campaign, platform_to_docker_label_map, src_stash_name ){
     sh """
-./tests/scripts/cibuilder.py -c ${campaign} -o tests.txt
+./tests/scripts/cibuilder.py -l ${campaign} -o tests.txt
     """
     def test_jobs = [:]
     def tests = readFile 'tests.txt'

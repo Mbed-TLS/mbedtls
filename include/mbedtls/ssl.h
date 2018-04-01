@@ -2056,11 +2056,11 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
 /**
- * \brief          Add support for mki value in use_srtp extension
- *                 (Default: MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED)
+ * \brief                   Add support for mki value in use_srtp extension
+ *                          (Default: MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED)
  *
- * \param conf     SSL configuration
- * \param truncate Enable or disable (MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED or
+ * \param conf              SSL configuration
+ * \param support_mki_value Enable or disable (MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED or
  *                                    MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED)
  */
 void mbedtls_ssl_conf_srtp_mki_value_supported( mbedtls_ssl_config *conf, int support_mki_value );
@@ -2105,8 +2105,7 @@ mbedtls_ssl_srtp_profile mbedtls_ssl_get_dtls_srtp_protection_profile( const mbe
  *
  * \param ssl              SSL context
  * \param key              Buffer to hold the generated key material
- * \param key_buffer_len   Length in bytes of the key buffer
- * \param key_len          Actual length of data written in the key buffer
+ * \param key_len          [in/out] key buffer size. outputs the actual number of bytes written
  *
  * \return         0 on succes, MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if the key buffer is too small to hold the generated key
  */

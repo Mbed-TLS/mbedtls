@@ -39,6 +39,10 @@
 #define MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH                  -0x4C00  /**< Signature is valid but shorter than the user-supplied length. */
 #define MBEDTLS_ERR_ECP_HW_ACCEL_FAILED                   -0x4B80  /**< ECP hardware accelerator failed. */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if !defined(MBEDTLS_ECP_ALT)
 /*
  * default mbed TLS elliptic curve arithmetic implementation
@@ -47,10 +51,6 @@
  * alternative implementation for the whole module and it will replace this
  * one.)
  */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * Domain parameters (curve, subgroup and generator) identifiers.
@@ -236,6 +236,10 @@ mbedtls_ecp_keypair;
  */
 #define MBEDTLS_ECP_PF_UNCOMPRESSED    0   /**< Uncompressed point format */
 #define MBEDTLS_ECP_PF_COMPRESSED      1   /**< Compressed point format */
+
+#else  /* MBEDTLS_ECP_ALT */
+#include "ecp_alt.h"
+#endif /* MBEDTLS_ECP_ALT */
 
 /*
  * Some other constants from RFC 4492
@@ -678,9 +682,5 @@ int mbedtls_ecp_self_test( int verbose );
 #ifdef __cplusplus
 }
 #endif
-
-#else  /* MBEDTLS_ECP_ALT */
-#include "ecp_alt.h"
-#endif /* MBEDTLS_ECP_ALT */
 
 #endif /* ecp.h */

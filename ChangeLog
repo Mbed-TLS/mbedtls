@@ -138,7 +138,7 @@ Changes
    * Put the Cryptographic API outside of the XXX_ALT macro check, so
      alternative header file will not need to redefined the same API,
      and to force alternative implementer to use the same API.
-     
+
 = mbed TLS 2.7.0 branch released 2018-02-03
 
 Security

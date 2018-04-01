@@ -300,47 +300,47 @@ enc_fail:MBEDTLS_CIPHER_BLOWFISH_CBC:MBEDTLS_PADDING_NONE:128:49:MBEDTLS_ERR_CIP
 
 BLOWFISH Encrypt and decrypt 0 bytes in multiple parts
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:0:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:0:0:-1:0:0:0:0
 
 BLOWFISH Encrypt and decrypt 1 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:1:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:1:0:-1:0:0:0:0
 
 BLOWFISH Encrypt and decrypt 1 bytes in multiple parts 2
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:0:1:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:0:1:-1:0:0:0:0
 
 BLOWFISH Encrypt and decrypt 16 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:16:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:16:0:-1:16:0:8:8
 
 BLOWFISH Encrypt and decrypt 16 bytes in multiple parts 2
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:0:16:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:0:16:-1:0:16:0:16
 
 BLOWFISH Encrypt and decrypt 16 bytes in multiple parts 3
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:1:15:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:1:15:-1:0:16:0:16
 
 BLOWFISH Encrypt and decrypt 16 bytes in multiple parts 4
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:15:1:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:15:1:-1:8:8:8:8
 
 BLOWFISH Encrypt and decrypt 22 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:15:7:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:15:7:-1:8:8:8:8
 
 BLOWFISH Encrypt and decrypt 22 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:16:6:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:16:6:-1:16:0:8:8
 
 BLOWFISH Encrypt and decrypt 22 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:17:6:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:17:6:-1:16:0:16:0
 
 BLOWFISH Encrypt and decrypt 32 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:16:16:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CBC:128:16:16:-1:16:16:8:24
 
 BLOWFISH Encrypt and decrypt 0 bytes
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CFB
@@ -404,47 +404,47 @@ enc_dec_buf:MBEDTLS_CIPHER_BLOWFISH_CFB64:"BLOWFISH-CFB64":128:49:-1
 
 BLOWFISH Encrypt and decrypt 0 bytes in multiple parts
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:0:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:0:0:-1:0:0:0:0
 
 BLOWFISH Encrypt and decrypt 1 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:1:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:1:0:-1:1:0:1:0
 
 BLOWFISH Encrypt and decrypt 1 bytes in multiple parts 2
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:0:1:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:0:1:-1:0:1:0:1
 
 BLOWFISH Encrypt and decrypt 16 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:16:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:16:0:-1:16:0:16:0
 
 BLOWFISH Encrypt and decrypt 16 bytes in multiple parts 2
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:0:16:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:0:16:-1:0:16:0:16
 
 BLOWFISH Encrypt and decrypt 16 bytes in multiple parts 3
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:1:15:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:1:15:-1:1:15:1:15
 
 BLOWFISH Encrypt and decrypt 16 bytes in multiple parts 4
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:15:1:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:15:1:-1:15:1:15:1
 
 BLOWFISH Encrypt and decrypt 22 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:15:7:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:15:7:-1:15:7:15:7
 
 BLOWFISH Encrypt and decrypt 22 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:16:6:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:16:6:-1:16:6:16:6
 
 BLOWFISH Encrypt and decrypt 22 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:17:6:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:17:6:-1:17:6:17:6
 
 BLOWFISH Encrypt and decrypt 32 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:16:16:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CFB64:128:16:16:-1:16:16:16:16
 
 BLOWFISH Encrypt and decrypt 0 bytes
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CTR
@@ -508,47 +508,47 @@ enc_dec_buf:MBEDTLS_CIPHER_BLOWFISH_CTR:"BLOWFISH-CTR":128:49:-1
 
 BLOWFISH Encrypt and decrypt 0 bytes in multiple parts
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:0:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:0:0:-1:0:0:0:0
 
 BLOWFISH Encrypt and decrypt 1 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:1:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:1:0:-1:1:0:1:0
 
 BLOWFISH Encrypt and decrypt 1 bytes in multiple parts 2
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:0:1:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:0:1:-1:0:1:0:1
 
 BLOWFISH Encrypt and decrypt 16 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:16:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:16:0:-1:16:0:16:0
 
 BLOWFISH Encrypt and decrypt 16 bytes in multiple parts 2
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:0:16:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:0:16:-1:0:16:0:16
 
 BLOWFISH Encrypt and decrypt 16 bytes in multiple parts 3
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:1:15:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:1:15:-1:1:15:1:15
 
 BLOWFISH Encrypt and decrypt 16 bytes in multiple parts 4
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:15:1:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:15:1:-1:15:1:15:1
 
 BLOWFISH Encrypt and decrypt 22 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:15:7:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:15:7:-1:15:7:15:7
 
 BLOWFISH Encrypt and decrypt 22 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:16:6:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:16:6:-1:16:6:16:6
 
 BLOWFISH Encrypt and decrypt 22 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:17:6:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:17:6:-1:17:6:17:6
 
 BLOWFISH Encrypt and decrypt 32 bytes in multiple parts 1
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:16:16:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_BLOWFISH_CTR:128:16:16:-1:16:16:16:16
 
 BLOWFISH CBC Encrypt and decrypt 7 bytes, 192-bits key
 depends_on:MBEDTLS_BLOWFISH_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7

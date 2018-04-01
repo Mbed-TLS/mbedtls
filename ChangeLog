@@ -43,6 +43,8 @@ Changes
      without PBES2. Fixed by Marcos Del Sol Vives.
    * Improve the documentation of mbedtls_net_accept(). Contributed by Ivan
      Krylov.
+   * Improve the documentation of mbedtls_ssl_write(). Suggested by
+     Paul Sokolovsky in #1356.
 
 = mbed TLS 2.7.2 branch released 2018-03-16
 

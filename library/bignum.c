@@ -184,7 +184,7 @@ int mbedtls_mpi_shrink( mbedtls_mpi *X, size_t nblimbs )
  */
 int mbedtls_mpi_copy( mbedtls_mpi *X, const mbedtls_mpi *Y )
 {
-    int ret;
+    int ret = 0;
     size_t i;
 
     if( X == Y )
@@ -203,9 +203,15 @@ int mbedtls_mpi_copy( mbedtls_mpi *X, const mbedtls_mpi *Y )
 
     X->s = Y->s;
 
-    MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, i ) );
+    if( X->n < i )
+    {
+        MBEDTLS_MPI_CHK( mbedtls_mpi_grow( X, i ) );
+    }
+    else
+    {
+        memset( X->p + i, 0, ( X->n - i ) * ciL );
+    }
 
-    memset( X->p, 0, X->n * ciL );
     memcpy( X->p, Y->p, i * ciL );
 
 cleanup:

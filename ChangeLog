@@ -18,8 +18,8 @@ Bugfix
      Fixes #1040.
    * Fix C89 incompatibility in benchmark.c. Contributed by Brendan Shanks.
      #1353
-   * Return plaintext data sooner on unpadded decryption, as stated in
-     mbedtls_cipher_update documentation. Contributed by Andy Leiserson. #1180
+   * Return plaintext data sooner on unpadded CBC decryption, as stated in
+     the mbedtls_cipher_update() documentation. Contributed by Andy Leiserson.
 
 Changes
    * Remove some redundant code in bignum.c. Contributed by Alexey Skalozub.

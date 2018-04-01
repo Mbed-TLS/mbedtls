@@ -26,6 +26,8 @@ Bugfix
    * Fix parsing of PKCS#8 encoded Elliptic Curve keys. Previously Mbed TLS was
      unable to parse keys with only the optional parameters field of the
      ECPrivateKey structure. Found by jethrogb, fixed in #1379.
+   * Return plaintext data sooner on unpadded CBC decryption, as stated in
+     the mbedtls_cipher_update() documentation. Contributed by Andy Leiserson.
 
 Changes
    * Support cmake build where Mbed TLS is a subproject. Fix

@@ -4,7 +4,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 Changes
    * Optimize unnecessary zeroing in mbedtls_mpi_copy. Based on a contribution
-     by Alexey Skalozub.
+     by Alexey Skalozub in #405.
 
 = mbed TLS 2.7.0 branch released 2018-02-03
 

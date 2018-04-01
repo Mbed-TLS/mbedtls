@@ -46,3 +46,4 @@ run_test ./tests/scripts/check-doxy-blocks.pl
 run_test ./tests/scripts/check-names.sh
 run_test ./tests/scripts/check-generated-files.sh
 run_test ./tests/scripts/check-files.py
+run_test ./tests/scripts/doxygen.sh

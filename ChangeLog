@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.xx.xx branch released xxxx-xx-xx
+
+Features
+   * Add support for the SHA-3 message digest algorithm family and the
+     SHAKE family of extendable output functions. Contributed by Daniel King
+     in #479.
+
 = mbed TLS 2.13.1 branch released 2018-09-06
 
 API Changes

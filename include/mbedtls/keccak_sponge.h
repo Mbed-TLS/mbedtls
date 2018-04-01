@@ -32,8 +32,6 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if !defined(MBEDTLS_KECCAK_SPONGE_ALT)
-
 #include "keccakf.h"
 
 #ifdef __cplusplus
@@ -43,6 +41,8 @@ extern "C" {
 #define MBEDTLS_ERR_KECCAK_SPONGE_BAD_INPUT_DATA -0x001B /**< Invalid input parameter(s). */
 #define MBEDTLS_ERR_KECCAK_SPONGE_NOT_SETUP      -0x001D /**< mbedtls_keccak_sponge_starts has not been called. */
 #define MBEDTLS_ERR_KECCAK_SPONGE_BAD_STATE      -0x001F /**< Requested operation cannot be performed with the current context state. */
+
+#if !defined(MBEDTLS_KECCAK_SPONGE_ALT)
 
 typedef struct
 {
@@ -55,6 +55,10 @@ typedef struct
     unsigned char suffix;          /** suffix bits appended to message, before padding */
 }
 mbedtls_keccak_sponge_context;
+
+#else /* MBEDTLS_KECCAK_SPONGE_ALT */
+#include "keccak_sponge_alt.h"
+#endif /* MBEDTLS_KECCAK_SPONGE_ALT */
 
 /**
  * \brief               Initialize a Keccak sponge context
@@ -172,7 +176,5 @@ int mbedtls_keccak_sponge_process( mbedtls_keccak_sponge_context *ctx,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* MBEDTLS_KECCAK_SPONGE_ALT */
 
 #endif /* MBEDTLS_KECCAK_SPONGE_H */

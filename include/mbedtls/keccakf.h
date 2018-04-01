@@ -34,8 +34,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#if !defined(MBEDTLS_KECCAKF_ALT)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -46,12 +44,18 @@ extern "C" {
 #define MBEDTLS_KECCAKF_STATE_SIZE_BITS  ( 1600U )
 #define MBEDTLS_KECCAKF_STATE_SIZE_BYTES ( 1600U / 8U )
 
+#if !defined(MBEDTLS_KECCAKF_ALT)
+
 typedef struct
 {
     uint64_t state[5][5];
     uint64_t temp[5][5];
 }
 mbedtls_keccakf_context;
+
+#else /* MBEDTLS_KECCAKF_ALT */
+#include "keccakf_alt.h"
+#endif /* MBEDTLS_KECCAKF_ALT */
 
 /**
  * \brief               Initialize a Keccak-f[1600] context.
@@ -126,7 +130,5 @@ int mbedtls_keccakf_read_binary( mbedtls_keccakf_context *ctx,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* MBEDTLS_KECCAKF_ALT */
 
 #endif /* keccakf.h */

@@ -31,9 +31,6 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if !defined(MBEDTLS_SHAKE_ALT)
-// Regular implementation
-
 #include "keccak_sponge.h"
 
 #ifdef __cplusplus
@@ -51,12 +48,19 @@ typedef enum
 }
 mbedtls_shake_type_t;
 
+#if !defined(MBEDTLS_SHAKE_ALT)
+// Regular implementation
+
 typedef struct
 {
     mbedtls_keccak_sponge_context sponge_ctx;
     size_t block_size;  /* block size in bytes */
 }
 mbedtls_shake_context;
+
+#else  /* MBEDTLS_SHAKE_ALT */
+#include "shake_alt.h"
+#endif /* MBEDTLS_SHAKE_ALT */
 
 /**
  * \brief          Initialize a SHAKE context
@@ -123,18 +127,6 @@ int mbedtls_shake_output( mbedtls_shake_context *ctx,
 
 int mbedtls_shake_process( mbedtls_shake_context *ctx,
                            const unsigned char* input );
-
-#ifdef __cplusplus
-}
-#endif
-
-#else  /* MBEDTLS_SHAKE_ALT */
-#include "shake_alt.h"
-#endif /* MBEDTLS_SHAKE_ALT */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          Generate arbitrary SHAKE output from some input bytes.

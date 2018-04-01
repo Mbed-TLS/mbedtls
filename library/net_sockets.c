@@ -181,7 +181,7 @@ int mbedtls_net_connect( mbedtls_net_context *ctx, const char *host,
 /*
  * Create a listening socket on bind_ip:port
  */
-int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char *port, int proto )
+int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char *port, int proto , int addr_family)
 {
     int n, ret;
     struct addrinfo hints, *addr_list, *cur;
@@ -191,7 +191,21 @@ int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char 
 
     /* Bind to IPv6 and/or IPv4, but only in the desired protocol */
     memset( &hints, 0, sizeof( hints ) );
-    hints.ai_family = AF_UNSPEC;
+    switch( addr_family )
+    {
+        case MBEDTLS_NET_ADDR_FAMILY_4:
+            hints.ai_family = AF_INET;
+            break;
+        case MBEDTLS_NET_ADDR_FAMILY_6:
+            hints.ai_family = AF_INET6;
+            break;
+        case MBEDTLS_NET_ADDR_FAMILY_ANY:
+            hints.ai_family = AF_UNSPEC;
+            break;
+        default:
+            return MBEDTLS_ERR_NET_UNKNOWN_ADDR_FAMILY;
+    }
+
     hints.ai_socktype = proto == MBEDTLS_NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM;
     hints.ai_protocol = proto == MBEDTLS_NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP;
     if( bind_ip == NULL )
@@ -220,6 +234,15 @@ int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char 
             ret = MBEDTLS_ERR_NET_SOCKET_FAILED;
             continue;
         }
+
+        /* If it's an IPv6 address, try to also allow IPv4 connections */
+        #ifdef MBEDTLS_AF6_ALLOW_AF4
+        if( cur->ai_family == AF_INET6 )
+        {
+            n = 0;
+            setsockopt( ctx->fd, IPPROTO_IPV6, IPV6_V6ONLY, (const char *) &n, sizeof( n ) );
+        }
+        #endif
 
         if( bind( ctx->fd, cur->ai_addr, MSVC_INT_CAST cur->ai_addrlen ) != 0 )
         {

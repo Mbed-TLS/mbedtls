@@ -46,11 +46,16 @@
 #define MBEDTLS_ERR_NET_UNKNOWN_HOST                      -0x0052  /**< Failed to get an IP address for the given hostname. */
 #define MBEDTLS_ERR_NET_BUFFER_TOO_SMALL                  -0x0043  /**< Buffer is too small to hold the data. */
 #define MBEDTLS_ERR_NET_INVALID_CONTEXT                   -0x0045  /**< The context is invalid, eg because it was free()ed. */
+#define MBEDTLS_ERR_NET_UNKNOWN_ADDR_FAMILY               -0x0047  /**< The address family is invalid */
 
-#define MBEDTLS_NET_LISTEN_BACKLOG         10 /**< The backlog that listen() should use. */
+#define MBEDTLS_NET_LISTEN_BACKLOG  10 /**< The backlog that listen() should use. */
 
-#define MBEDTLS_NET_PROTO_TCP 0 /**< The TCP transport protocol */
-#define MBEDTLS_NET_PROTO_UDP 1 /**< The UDP transport protocol */
+#define MBEDTLS_NET_PROTO_TCP       0  /**< The TCP transport protocol */
+#define MBEDTLS_NET_PROTO_UDP       1  /**< The UDP transport protocol */
+
+#define MBEDTLS_NET_ADDR_FAMILY_4   0  /**< The address family to use, IPv4 */
+#define MBEDTLS_NET_ADDR_FAMILY_6   1  /**< The address family to use, IPv6 */
+#define MBEDTLS_NET_ADDR_FAMILY_ANY 2 /**< The address family to use, either IPv4 or IPv6 */
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,6 +107,9 @@ int mbedtls_net_connect( mbedtls_net_context *ctx, const char *host, const char 
  * \param bind_ip  IP to bind to, can be NULL
  * \param port     Port number to use
  * \param proto    Protocol: MBEDTLS_NET_PROTO_TCP or MBEDTLS_NET_PROTO_UDP
+ * \param addr_family The address family to use. MBEDTLS_NET_ADDR_FAMILY_4 for IPv4,
+ *                    MBEDTLS_NET_ADDR_FAMILY_6 for IPv6, or
+ *                    MBEDTLS_NET_ADDR_FAMILY_ANY for either.
  *
  * \return         0 if successful, or one of:
  *                      MBEDTLS_ERR_NET_SOCKET_FAILED,
@@ -111,7 +119,7 @@ int mbedtls_net_connect( mbedtls_net_context *ctx, const char *host, const char 
  * \note           Regardless of the protocol, opens the sockets and binds it.
  *                 In addition, make the socket listening if protocol is TCP.
  */
-int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char *port, int proto );
+int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char *port, int proto , int addr_family);
 
 /**
  * \brief           Accept a connection from a remote client

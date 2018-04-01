@@ -507,6 +507,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_AES_C)
     "MBEDTLS_AES_C",
 #endif /* MBEDTLS_AES_C */
+#if defined(MBEDTLS_AF6_ALLOW_AF4)
+    "MBEDTLS_AF6_ALLOW_AF4",
+#endif /* MBEDTLS_AF6_ALLOW_AF4 */
 #if defined(MBEDTLS_ARC4_C)
     "MBEDTLS_ARC4_C",
 #endif /* MBEDTLS_ARC4_C */

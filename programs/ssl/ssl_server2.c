@@ -1733,7 +1733,8 @@ int main( int argc, char *argv[] )
 
     if( ( ret = mbedtls_net_bind( &listen_fd, opt.server_addr, opt.server_port,
                           opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ?
-                          MBEDTLS_NET_PROTO_TCP : MBEDTLS_NET_PROTO_UDP ) ) != 0 )
+                          MBEDTLS_NET_PROTO_TCP : MBEDTLS_NET_PROTO_UDP,
+                          MBEDTLS_NET_ADDR_FAMILY_ANY ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_net_bind returned -0x%x\n\n", -ret );
         goto exit;

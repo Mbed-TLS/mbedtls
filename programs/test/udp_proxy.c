@@ -521,7 +521,7 @@ int main( int argc, char *argv[] )
     fflush( stdout );
 
     if( ( ret = mbedtls_net_bind( &listen_fd, opt.listen_addr, opt.listen_port,
-                          MBEDTLS_NET_PROTO_UDP ) ) != 0 )
+                          MBEDTLS_NET_PROTO_UDP, MBEDTLS_NET_ADDR_FAMILY_ANY ) ) != 0 )
     {
         mbedtls_printf( " failed\n  ! mbedtls_net_bind returned %d\n\n", ret );
         goto exit;

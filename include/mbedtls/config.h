@@ -1685,6 +1685,18 @@
  */
 #define MBEDTLS_AES_C
 
+
+/**
+ * \def MBEDTLS_AF6_ALLOW_AF4
+ *
+ * Disables IPV6_V6ONLY before binding to an IPv6 socket,
+ * allowing IPv4 connections.
+ *
+ * Module:  library/net_sockets.c
+ *
+ */
+#define MBEDTLS_AF6_ALLOW_AF4
+
 /**
  * \def MBEDTLS_ARC4_C
  *

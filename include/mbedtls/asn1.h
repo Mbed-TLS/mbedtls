@@ -219,7 +219,7 @@ int mbedtls_asn1_get_bool( unsigned char **p,
                    int *val );
 
 /**
- * \brief       Retrieve an integer ASN.1 tag and its value.
+ * \brief       Retrieve a +ve integer ASN.1 tag and its value.
  *              Updates the pointer to immediately behind the full tag.
  *
  * \param p     The position in the ASN.1 data

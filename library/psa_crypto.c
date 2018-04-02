@@ -986,6 +986,12 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
         return( status );
     slot = &global_data.key_slots[key];
 
+    if ( ( slot->policy.usage & PSA_KEY_USAGE_SIGN ) != 0 )
+        operation->key_usage_sign = 1;
+
+    if ( ( slot->policy.usage & PSA_KEY_USAGE_VERIFY ) != 0 )
+        operation->key_usage_verify = 1;
+
     if( ! PSA_ALG_IS_HMAC( alg ) )
     {
         cipher_info = mbedtls_cipher_info_from_psa( alg, key_type, key_bits );
@@ -1084,7 +1090,7 @@ psa_status_t psa_mac_update( psa_mac_operation_t *operation,
     return( mbedtls_to_psa_error( ret ) );
 }
 
-psa_status_t psa_mac_finish( psa_mac_operation_t *operation,
+static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
                              uint8_t *mac,
                              size_t mac_size,
                              size_t *mac_length )
@@ -1136,6 +1142,17 @@ psa_status_t psa_mac_finish( psa_mac_operation_t *operation,
     }
 }
 
+psa_status_t psa_mac_finish( psa_mac_operation_t *operation,
+                             uint8_t *mac,
+                             size_t mac_size,
+                             size_t *mac_length )
+{
+    if( !( operation->key_usage_sign ) )
+        return( PSA_ERROR_NOT_PERMITTED );
+
+    return( psa_mac_finish_internal(operation, mac, mac_size, mac_length ) );
+}
+
 #define MBEDTLS_PSA_MAC_MAX_SIZE                       \
     ( MBEDTLS_MD_MAX_SIZE > MBEDTLS_MAX_BLOCK_LENGTH ? \
       MBEDTLS_MD_MAX_SIZE :                            \
@@ -1146,9 +1163,14 @@ psa_status_t psa_mac_verify( psa_mac_operation_t *operation,
 {
     uint8_t actual_mac[MBEDTLS_PSA_MAC_MAX_SIZE];
     size_t actual_mac_length;
-    psa_status_t status = psa_mac_finish( operation,
-                                          actual_mac, sizeof( actual_mac ),
-                                          &actual_mac_length );
+    psa_status_t status;
+
+    if( !( operation->key_usage_verify ) )
+        return( PSA_ERROR_NOT_PERMITTED );
+
+    status = psa_mac_finish_internal( operation,
+                                      actual_mac, sizeof( actual_mac ),
+                                      &actual_mac_length );
     if( status != PSA_SUCCESS )
         return( status );
     if( actual_mac_length != mac_length )
@@ -1272,7 +1294,7 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
 
 void psa_key_policy_init(psa_key_policy_t *policy)
 {
-    mbedtls_zeroize( policy, sizeof( policy ) );
+    memset( policy, 0, sizeof( psa_key_policy_t ) );
 }
 
 void psa_key_policy_set_usage(psa_key_policy_t *policy,
@@ -1285,19 +1307,18 @@ void psa_key_policy_set_usage(psa_key_policy_t *policy,
 
 psa_key_usage_t psa_key_policy_get_usage(psa_key_policy_t *policy)
 {
-    return policy->usage;
+    return( policy->usage );
 }
 
 psa_algorithm_t psa_key_policy_get_algorithm(psa_key_policy_t *policy)
 {
-    return policy->alg;
+    return( policy->alg );
 }
 
 psa_status_t psa_set_key_policy(psa_key_slot_t key,
                                 const psa_key_policy_t *policy)
 {
     key_slot_t *slot;
-    psa_key_usage_t usage = PSA_KEY_USAGE_NONE;
 
     if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT || policy == NULL )
         return( PSA_ERROR_INVALID_ARGUMENT );
@@ -1306,20 +1327,12 @@ psa_status_t psa_set_key_policy(psa_key_slot_t key,
     if( slot->type != PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_OCCUPIED_SLOT );
 
-    usage |= policy->usage & PSA_KEY_USAGE_EXPORT;
-    usage |= policy->usage & PSA_KEY_USAGE_ENCRYPT;
-    usage |= policy->usage & PSA_KEY_USAGE_DECRYPT;
-    usage |= policy->usage & PSA_KEY_USAGE_SIGN;
-    usage |= policy->usage & PSA_KEY_USAGE_VERIFY;
-
-    if( usage == PSA_KEY_USAGE_NONE )
-    {
+    if( ( policy->usage & ~( PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_ENCRYPT 
+                        | PSA_KEY_USAGE_DECRYPT | PSA_KEY_USAGE_SIGN 
+                        | PSA_KEY_USAGE_VERIFY ) ) != 0 )
         return( PSA_ERROR_INVALID_KEY_POLICY );
-    }
 
-    //TODO: is there any check over the algorithm before setting the policy?
-    slot->policy.usage = policy->usage;
-    slot->policy.alg = policy->alg;
+    slot->policy = *policy;
 
     return( PSA_SUCCESS );
 }
@@ -1336,8 +1349,7 @@ psa_status_t psa_get_key_policy(psa_key_slot_t key,
     if( slot->type == PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_EMPTY_SLOT );
     
-    policy->usage = slot->policy.usage;
-    policy->alg = slot->policy.alg;
+    *policy = slot->policy;
 
     return( PSA_SUCCESS );
 }

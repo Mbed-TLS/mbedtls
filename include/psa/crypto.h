@@ -491,10 +491,6 @@ psa_status_t psa_export_public_key(psa_key_slot_t key,
 /** \brief Encoding of permitted usage on a key. */
 typedef uint32_t psa_key_usage_t;
 
-/** An invalid key usage value.
- * */
-#define PSA_KEY_USAGE_NONE                      ((psa_key_usage_t)0x00000000)
-
 /** Whether the key may be exported.
  *
  * A public key or the public part of a key pair may always be exported

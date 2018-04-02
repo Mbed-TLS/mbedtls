@@ -2824,6 +2824,13 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
         authmode = ssl->handshake->sni_authmode;
     else
 #endif
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+    /* check if we have a chosen srtp protection profile */
+    if ( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE ) {
+        authmode = MBEDTLS_SSL_VERIFY_REQUIRED;
+    }
+        else
+#endif
         authmode = ssl->conf->authmode;
 
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
@@ -2833,8 +2840,20 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE ||
         authmode == MBEDTLS_SSL_VERIFY_NONE )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate request" ) );
-        return( 0 );
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+    /* check if we have a chosen srtp protection profile */
+        if ( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE ) {
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "should not happen" ) );
+            return ( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+        }
+        else
+        {
+#endif
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate request" ) );
+            return( 0 );
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+        }
+#endif
     }
 
     /*

@@ -2849,8 +2849,20 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
 
     if( ssl->client_auth == 0 )
     {
-        /* Current message is probably the ServerHelloDone */
-        ssl->keep_current_message = 1;
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+    /* check if we have a chosen srtp protection profile */
+        if ( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE ) {
+            ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+        }
+        else
+        {
+#endif
+            /* MBEDTLS_SSL_DTLS_SRTP */
+            /* Current message is probably the ServerHelloDone */
+            ssl->keep_current_message = 1;
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+        }
+#endif
         goto exit;
     }
 
@@ -3301,9 +3313,19 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
 
     if( ssl->client_auth == 0 || mbedtls_ssl_own_cert( ssl ) == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
-        ssl->state++;
-        return( 0 );
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+    /* check if we have a chosen srtp protection profile */
+        if ( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE ) {
+            return ( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
+        }
+        else
+        {
+#endif /* MBEDTLS_SSL_DTLS_SRTP */
+            ssl->state++;
+            return( 0 );
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+        }
+#endif
     }
 
     if( mbedtls_ssl_own_key( ssl ) == NULL )

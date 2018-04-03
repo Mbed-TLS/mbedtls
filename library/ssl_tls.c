@@ -5888,8 +5888,8 @@ void mbedtls_ssl_conf_pre_verify( mbedtls_ssl_config *conf,
                          mbedtls_ssl_pre_verify_t *f_pre_vrfy,
                          void *p_pre_vrfy)
 {
-  conf->f_pre_vrfy = f_pre_vrfy;
-  conf->p_pre_vrfy = p_pre_vrfy;
+    conf->f_pre_vrfy = f_pre_vrfy;
+    conf->p_pre_vrfy = p_pre_vrfy;
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 

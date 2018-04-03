@@ -28,6 +28,8 @@ Bugfix
      ECPrivateKey structure. Found by jethrogb, fixed in #1379.
    * Return plaintext data sooner on unpadded CBC decryption, as stated in
      the mbedtls_cipher_update() documentation. Contributed by Andy Leiserson.
+   * Fix overriding and ignoring return values when parsing and writing to
+     a file in pk_sign program. Found by kevlut in #1142.
 
 Changes
    * Support cmake build where Mbed TLS is a subproject. Fix

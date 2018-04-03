@@ -521,6 +521,57 @@ psa_status_t psa_export_key(psa_key_slot_t key,
 }
 
 
+psa_status_t psa_export_public_key(psa_key_slot_t key,
+    uint8_t *data,
+    size_t data_size,
+    size_t *data_length)
+{
+    key_slot_t *slot;
+    psa_status_t status;
+
+    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
+        return( PSA_ERROR_EMPTY_SLOT );
+    status = psa_get_key_slot( key, &slot );
+    if( status != PSA_SUCCESS)
+        return( status );
+    if( slot->type == PSA_KEY_TYPE_NONE )
+        return( PSA_ERROR_EMPTY_SLOT );   
+
+    if( !(PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) || PSA_KEY_TYPE_IS_KEYPAIR(slot->type))  )
+        return( PSA_ERROR_INVALID_ARGUMENT );   
+    
+#if defined(MBEDTLS_PK_WRITE_C)
+    if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
+        slot->type == PSA_KEY_TYPE_RSA_KEYPAIR ||
+        PSA_KEY_TYPE_IS_ECC( slot->type ) )
+    {
+        mbedtls_pk_context pk;
+        int ret;
+        mbedtls_pk_init( &pk );
+        if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
+            slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
+        {
+            pk.pk_info = &mbedtls_rsa_info;
+            pk.pk_ctx = slot->data.rsa;
+        }
+        else
+        {
+            pk.pk_info = &mbedtls_eckey_info;
+            pk.pk_ctx = slot->data.ecp;
+        }
+        ret = mbedtls_pk_write_pubkey_der( &pk, data, data_size );
+        if( ret < 0 )
+            return( mbedtls_to_psa_error( ret ) );
+        *data_length = ret;
+        return( PSA_SUCCESS );
+    }
+#endif /* defined(MBEDTLS_PK_WRITE_C) */
+    /* This shouldn't happen in the reference implementation, but
+        it is valid for a special-purpose implementation to omit
+        support for exporting certain key types. */
+    return( PSA_ERROR_NOT_SUPPORTED );
+}
+
 
 /****************************************************************/
 /* Message digests */

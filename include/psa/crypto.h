@@ -463,7 +463,7 @@ psa_status_t psa_export_key(psa_key_slot_t key,
  * For standard key types, the output format is as follows:
  *
  * - For RSA keys (#PSA_KEY_TYPE_RSA_KEYPAIR or #PSA_KEY_TYPE_RSA_PUBLIC_KEY),
- *   is the DER representation of the public key defined by RFC 5280
+ *   the format is the DER representation of the public key defined by RFC 5280
  *   as SubjectPublicKeyInfo.
  *
  * \param key           Slot whose content is to be exported. This must

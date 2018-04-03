@@ -2457,7 +2457,7 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 #endif
         ssl->session_negotiate->id_len != 0 &&
         ssl->conf->f_get_cache != NULL &&
-        ssl->conf->f_get_cache( ssl->conf->p_cache, ssl->session_negotiate ) == 0 )
+        ssl->conf->f_get_cache( ssl->conf->p_cache, ssl->handshake->key_cert->cert, ssl->session_negotiate ) == 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "session successfully restored from cache" ) );
         ssl->handshake->resume = 1;

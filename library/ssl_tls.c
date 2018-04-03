@@ -5256,7 +5256,7 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
         ssl->session->id_len != 0 &&
         resume == 0 )
     {
-        if( ssl->conf->f_set_cache( ssl->conf->p_cache, ssl->session ) != 0 )
+        if( ssl->conf->f_set_cache( ssl->conf->p_cache, ssl->handshake->key_cert->cert, ssl->session ) != 0 )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "cache did not store session" ) );
     }
 
@@ -5928,8 +5928,8 @@ void mbedtls_ssl_set_timer_cb( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_SRV_C)
 void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
         void *p_cache,
-        int (*f_get_cache)(void *, mbedtls_ssl_session *),
-        int (*f_set_cache)(void *, const mbedtls_ssl_session *) )
+        int (*f_get_cache)(void *, const mbedtls_x509_crt *, mbedtls_ssl_session *),
+        int (*f_set_cache)(void *, const mbedtls_x509_crt *, const mbedtls_ssl_session *) )
 {
     conf->p_cache = p_cache;
     conf->f_get_cache = f_get_cache;

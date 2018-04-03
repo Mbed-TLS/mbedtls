@@ -611,10 +611,10 @@ struct mbedtls_ssl_config
     int  (*f_rng)(void *, unsigned char *, size_t);
     void *p_rng;                    /*!< context for the RNG function       */
 
-    /** Callback to retrieve a session from the cache                       */
-    int (*f_get_cache)(void *, mbedtls_ssl_session *);
+    /** Callback to retrieve a session from the cache,                      */
+    int (*f_get_cache)(void *, const mbedtls_x509_crt *, mbedtls_ssl_session *);
     /** Callback to store a session into the cache                          */
-    int (*f_set_cache)(void *, const mbedtls_ssl_session *);
+    int (*f_set_cache)(void *, const mbedtls_x509_crt *, const mbedtls_ssl_session *);
     void *p_cache;                  /*!< context for cache callbacks        */
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
@@ -1529,8 +1529,8 @@ void mbedtls_ssl_conf_handshake_timeout( mbedtls_ssl_config *conf, uint32_t min,
  */
 void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
         void *p_cache,
-        int (*f_get_cache)(void *, mbedtls_ssl_session *),
-        int (*f_set_cache)(void *, const mbedtls_ssl_session *) );
+        int (*f_get_cache)(void *, const mbedtls_x509_crt *, mbedtls_ssl_session *),
+        int (*f_set_cache)(void *, const mbedtls_x509_crt *, const mbedtls_ssl_session *) );
 #endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_CLI_C)

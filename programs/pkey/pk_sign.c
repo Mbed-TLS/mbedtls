@@ -29,6 +29,7 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
+#include <stdlib.h>
 #define mbedtls_snprintf   snprintf
 #define mbedtls_printf     printf
 #endif
@@ -100,8 +101,7 @@ int main( int argc, char *argv[] )
 
     if( ( ret = mbedtls_pk_parse_keyfile( &pk, argv[1], "" ) ) != 0 )
     {
-        ret = 1;
-        mbedtls_printf( " failed\n  ! Could not open '%s'\n", argv[1] );
+        mbedtls_printf( " failed\n  ! Could not parse '%s'\n", argv[1] );
         goto exit;
     }
 
@@ -141,6 +141,7 @@ int main( int argc, char *argv[] )
 
     if( fwrite( buf, 1, olen, f ) != olen )
     {
+        ret = 1;
         mbedtls_printf( "failed\n  ! fwrite failed\n\n" );
         goto exit;
     }
@@ -167,7 +168,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( ret );
+    return( ret ? EXIT_FAILURE : EXIT_SUCCESS );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C &&
           MBEDTLS_SHA256_C && MBEDTLS_PK_PARSE_C && MBEDTLS_FS_IO &&

@@ -275,7 +275,7 @@ static int net_would_block( const mbedtls_net_context *ctx )
 static int net_would_block( const mbedtls_net_context *ctx )
 {
     int err = errno;
-    
+
     /*
      * Never return 'WOULD BLOCK' on a non-blocking socket
      */
@@ -458,6 +458,12 @@ int mbedtls_net_poll( mbedtls_net_context *ctx, uint32_t rw, uint32_t timeout )
 
     if( fd < 0 )
         return( MBEDTLS_ERR_NET_INVALID_CONTEXT );
+
+    /* Ensure that memory sanitizers consider
+     * read_fds and write_fds as initialized even
+     * if FD_ZERO is implemented in assembly. */
+    memset( &read_fds, 0, sizeof( read_fds ) );
+    memset( &write_fds, 0, sizeof( write_fds ) );
 
     FD_ZERO( &read_fds );
     if( rw & MBEDTLS_NET_POLL_READ )

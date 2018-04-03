@@ -219,8 +219,8 @@ int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
  *
  * \return          0 if successful,
  *                  MBEDTLS_ERR_ECP_BAD_INPUT_DATA if signature is invalid,
- *                  MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH if the signature is
- *                  valid but its actual length is less than siglen,
+ *                  MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH if there is a valid
+ *                  signature in sig but its length is less than siglen,
  *                  or a MBEDTLS_ERR_ECP_XXX or MBEDTLS_ERR_MPI_XXX error code
  */
 int mbedtls_ecdsa_read_signature( mbedtls_ecdsa_context *ctx,

@@ -168,7 +168,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( ret );
+    return( ret ? EXIT_FAILURE : EXIT_SUCCESS );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C &&
           MBEDTLS_SHA256_C && MBEDTLS_PK_PARSE_C && MBEDTLS_FS_IO &&

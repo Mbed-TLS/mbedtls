@@ -57,3 +57,9 @@ ssl_dtls_replay:"abcd12340000,abcd12340100":"abcd123400ff":0
 
 SSL SET_HOSTNAME memory leak: call ssl_set_hostname twice
 ssl_set_hostname_twice:"server0":"server1"
+
+SSL preverify callback: basic
+ssl_preverifycb:"data_files/server1.crt":1:1
+
+SSL preverify callback: no callback
+ssl_preverifycb:"data_files/server1.crt":0:0

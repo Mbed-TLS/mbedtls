@@ -659,6 +659,9 @@ struct mbedtls_ssl_config
     int (*f_export_keys)( void *, const unsigned char *,
             const unsigned char *, size_t, size_t, size_t );
     void *p_export_keys;            /*!< context for key export callback    */
+    /** Callback to ClientHello random bytes                                */
+    int (*f_export_ch)( void *, const unsigned char * );
+    void *p_export_ch;            /*!< context for ClientHello callback     */
 #endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -1247,6 +1250,19 @@ typedef int mbedtls_ssl_export_keys_t( void *p_expkey,
                                 size_t maclen,
                                 size_t keylen,
                                 size_t ivlen );
+/**
+ * \brief           Callback type: Export ClientHello random bytes
+ *
+ * \note            This information is required for decrypting SSL with external tools.
+ *
+ * \param p_expkey  Context for the callback
+ * \param bytes     ClientHello random bytes (fixed length: 32 bytes)
+ *
+ * \return          0 if successful, or
+ *                  a specific MBEDTLS_ERR_XXX code.
+ */
+typedef int mbedtls_ssl_export_clienthello_t( void *p_expkey,
+                                              const unsigned char *bytes );
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 /**
@@ -1312,6 +1328,19 @@ void mbedtls_ssl_conf_session_tickets_cb( mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
         mbedtls_ssl_export_keys_t *f_export_keys,
         void *p_export_keys );
+/**
+ * \brief           Configure ClientHello export callback.
+ *                  (Default: none.)
+ *
+ * \note            See \c mbedtls_ssl_export_clienthello_t.
+ *
+ * \param conf      SSL configuration context
+ * \param f_export_ch     Callback for exporting ClientHello
+ * \param p_export_ch     Context for the callback
+ */
+void mbedtls_ssl_conf_export_ch_cb( mbedtls_ssl_config *conf,
+        mbedtls_ssl_export_clienthello_t *f_export_ch,
+        void *p_export_ch );
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
 /**

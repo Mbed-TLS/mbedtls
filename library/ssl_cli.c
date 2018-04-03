@@ -777,6 +777,13 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes", p, 32 );
     p += 32;
 
+#if defined(MBEDTLS_SSL_EXPORT_KEYS)
+    if( ssl->conf->f_export_ch != NULL )
+    {
+        ssl->conf->f_export_ch( ssl->conf->p_export_ch, ssl->handshake->randbytes );
+    }
+#endif
+
     /*
      *    38  .  38   session id length
      *    39  . 39+n  session id

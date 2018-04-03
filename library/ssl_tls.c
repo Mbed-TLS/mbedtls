@@ -6475,6 +6475,13 @@ void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
     conf->f_export_keys = f_export_keys;
     conf->p_export_keys = p_export_keys;
 }
+void mbedtls_ssl_conf_export_ch_cb( mbedtls_ssl_config *conf,
+        mbedtls_ssl_export_clienthello_t *f_export_ch,
+        void *p_export_ch )
+{
+    conf->f_export_ch = f_export_ch;
+    conf->p_export_ch = p_export_ch;
+}
 #endif
 
 /*

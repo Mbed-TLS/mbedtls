@@ -844,8 +844,13 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
     {
-        mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc, mac_key_len );
-        mbedtls_md_hmac_starts( &transform->md_ctx_dec, mac_dec, mac_key_len );
+        /* For HMAC-based ciphersuites, initialize the HMAC transforms.
+           For AEAD-based ciphersuites, there is nothing to do here. */
+        if( mac_key_len != 0 )
+        {
+            mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc, mac_key_len );
+            mbedtls_md_hmac_starts( &transform->md_ctx_dec, mac_dec, mac_key_len );
+        }
     }
     else
 #endif

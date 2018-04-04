@@ -14,6 +14,10 @@ Features
    * Add option MBEDTLS_AES_FEWER_TABLES to dynamically compute 3/4 of the AES tables
      during runtime, thereby reducing the RAM/ROM footprint by ~6kb. Suggested
      and contributed by jkivilin in #394.
+   * Add initial support for Curve448 (RFC 7748). Only mbedtls_ecp_mul() and
+     ECDH primitive functions (mbedtls_ecdh_gen_public(),
+     mbedtls_ecdh_compute_shared()) are supported for now. Contributed by
+     Nicholas Wilson (#348).
 
 Bugfix
    * Fix spurious uninitialized variable warning in cmac.c. Fix independently

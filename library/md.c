@@ -279,7 +279,7 @@ int mbedtls_md( const mbedtls_md_info_t *md_info, const unsigned char *input, si
 }
 
 #if defined(MBEDTLS_FS_IO)
-int mbedtls_md_file( const mbedtls_md_info_t *md_info, const char *path, unsigned char *output )
+int mbedtls_md_file( const mbedtls_md_info_t *md_info, const MBEDTLS_TCHAR *path, unsigned char *output )
 {
     int ret;
     FILE *f;
@@ -290,7 +290,7 @@ int mbedtls_md_file( const mbedtls_md_info_t *md_info, const char *path, unsigne
     if( md_info == NULL )
         return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
 
-    if( ( f = fopen( path, "rb" ) ) == NULL )
+    if( ( f = MBEDTLS_FOPEN( path, MBEDTLS__T( "rb" ) ) ) == NULL )
         return( MBEDTLS_ERR_MD_FILE_IO_ERROR );
 
     mbedtls_md_init( &ctx );

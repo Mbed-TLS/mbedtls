@@ -491,7 +491,7 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
  * \return          0 if successful, or a specific PK or PEM error code
  */
 int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
-                      const char *path, const char *password );
+                      const MBEDTLS_TCHAR *path, const char *password );
 
 /** \ingroup pk_module */
 /**
@@ -509,7 +509,7 @@ int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
  *
  * \return          0 if successful, or a specific PK or PEM error code
  */
-int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path );
+int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const MBEDTLS_TCHAR *path );
 #endif /* MBEDTLS_FS_IO */
 #endif /* MBEDTLS_PK_PARSE_C */
 
@@ -608,7 +608,7 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
  * know you do.
  */
 #if defined(MBEDTLS_FS_IO)
-int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n );
+int mbedtls_pk_load_file( const MBEDTLS_TCHAR *path, unsigned char **buf, size_t *n );
 #endif
 
 #ifdef __cplusplus

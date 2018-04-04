@@ -314,7 +314,7 @@ int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, siz
 /*
  * Load a CSR into the structure
  */
-int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const char *path )
+int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const MBEDTLS_TCHAR *path )
 {
     int ret;
     size_t n;

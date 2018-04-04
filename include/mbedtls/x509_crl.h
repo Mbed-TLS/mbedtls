@@ -133,7 +133,7 @@ int mbedtls_x509_crl_parse( mbedtls_x509_crl *chain, const unsigned char *buf, s
  *
  * \return         0 if successful, or a specific X509 or PEM error code
  */
-int mbedtls_x509_crl_parse_file( mbedtls_x509_crl *chain, const char *path );
+int mbedtls_x509_crl_parse_file( mbedtls_x509_crl *chain, const MBEDTLS_TCHAR *path );
 #endif /* MBEDTLS_FS_IO */
 
 /**

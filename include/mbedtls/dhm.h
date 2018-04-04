@@ -278,7 +278,7 @@ int mbedtls_dhm_parse_dhm( mbedtls_dhm_context *dhm, const unsigned char *dhmin,
  * \return         \c 0 on success, or a specific DHM or PEM error code
  *                 on failure.
  */
-int mbedtls_dhm_parse_dhmfile( mbedtls_dhm_context *dhm, const char *path );
+int mbedtls_dhm_parse_dhmfile( mbedtls_dhm_context *dhm, const MBEDTLS_TCHAR *path );
 #endif /* MBEDTLS_FS_IO */
 #endif /* MBEDTLS_ASN1_PARSE_C */
 

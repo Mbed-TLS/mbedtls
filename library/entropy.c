@@ -465,13 +465,13 @@ int mbedtls_entropy_update_nv_seed( mbedtls_entropy_context *ctx )
 #endif /* MBEDTLS_ENTROPY_NV_SEED */
 
 #if defined(MBEDTLS_FS_IO)
-int mbedtls_entropy_write_seed_file( mbedtls_entropy_context *ctx, const char *path )
+int mbedtls_entropy_write_seed_file( mbedtls_entropy_context *ctx, const MBEDTLS_TCHAR *path )
 {
     int ret = MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR;
     FILE *f;
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
-    if( ( f = fopen( path, "wb" ) ) == NULL )
+    if( ( f = MBEDTLS_FOPEN( path, MBEDTLS__T( "wb" ) ) ) == NULL )
         return( MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR );
 
     if( ( ret = mbedtls_entropy_func( ctx, buf, MBEDTLS_ENTROPY_BLOCK_SIZE ) ) != 0 )
@@ -492,14 +492,14 @@ exit:
     return( ret );
 }
 
-int mbedtls_entropy_update_seed_file( mbedtls_entropy_context *ctx, const char *path )
+int mbedtls_entropy_update_seed_file( mbedtls_entropy_context *ctx, const MBEDTLS_TCHAR *path )
 {
     int ret = 0;
     FILE *f;
     size_t n;
     unsigned char buf[ MBEDTLS_ENTROPY_MAX_SEED_SIZE ];
 
-    if( ( f = fopen( path, "rb" ) ) == NULL )
+    if( ( f = MBEDTLS_FOPEN( path, MBEDTLS__T( "rb" ) ) ) == NULL )
         return( MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR );
 
     fseek( f, 0, SEEK_END );

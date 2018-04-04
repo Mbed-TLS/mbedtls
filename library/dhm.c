@@ -546,12 +546,12 @@ exit:
  * A terminating null byte is always appended. It is included in the announced
  * length only if the data looks like it is PEM encoded.
  */
-static int load_file( const char *path, unsigned char **buf, size_t *n )
+static int load_file( const MBEDTLS_TCHAR *path, unsigned char **buf, size_t *n )
 {
     FILE *f;
     long size;
 
-    if( ( f = fopen( path, "rb" ) ) == NULL )
+    if( ( f = MBEDTLS_FOPEN( path, MBEDTLS__T( "rb" ) ) ) == NULL )
         return( MBEDTLS_ERR_DHM_FILE_IO_ERROR );
 
     fseek( f, 0, SEEK_END );
@@ -594,7 +594,7 @@ static int load_file( const char *path, unsigned char **buf, size_t *n )
 /*
  * Load and parse DHM parameters
  */
-int mbedtls_dhm_parse_dhmfile( mbedtls_dhm_context *dhm, const char *path )
+int mbedtls_dhm_parse_dhmfile( mbedtls_dhm_context *dhm, const MBEDTLS_TCHAR *path )
 {
     int ret;
     size_t n;

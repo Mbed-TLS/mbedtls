@@ -76,12 +76,12 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  * A terminating null byte is always appended. It is included in the announced
  * length only if the data looks like it is PEM encoded.
  */
-int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n )
+int mbedtls_pk_load_file( const MBEDTLS_TCHAR *path, unsigned char **buf, size_t *n )
 {
     FILE *f;
     long size;
 
-    if( ( f = fopen( path, "rb" ) ) == NULL )
+    if( ( f = MBEDTLS_FOPEN( path, MBEDTLS__T("rb") ) ) == NULL )
         return( MBEDTLS_ERR_PK_FILE_IO_ERROR );
 
     fseek( f, 0, SEEK_END );
@@ -125,7 +125,7 @@ int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n )
  * Load and parse a private key
  */
 int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
-                      const char *path, const char *pwd )
+                      const MBEDTLS_TCHAR *path, const char *pwd )
 {
     int ret;
     size_t n;
@@ -149,7 +149,7 @@ int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
 /*
  * Load and parse a public key
  */
-int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path )
+int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const MBEDTLS_TCHAR *path )
 {
     int ret;
     size_t n;

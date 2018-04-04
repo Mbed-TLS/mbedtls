@@ -342,13 +342,13 @@ void mbedtls_hmac_drbg_free( mbedtls_hmac_drbg_context *ctx )
 }
 
 #if defined(MBEDTLS_FS_IO)
-int mbedtls_hmac_drbg_write_seed_file( mbedtls_hmac_drbg_context *ctx, const char *path )
+int mbedtls_hmac_drbg_write_seed_file( mbedtls_hmac_drbg_context *ctx, const MBEDTLS_TCHAR *path )
 {
     int ret;
     FILE *f;
     unsigned char buf[ MBEDTLS_HMAC_DRBG_MAX_INPUT ];
 
-    if( ( f = fopen( path, "wb" ) ) == NULL )
+    if( ( f = MBEDTLS_FOPEN( path, MBEDTLS__T( "wb" ) ) ) == NULL )
         return( MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR );
 
     if( ( ret = mbedtls_hmac_drbg_random( ctx, buf, sizeof( buf ) ) ) != 0 )
@@ -369,14 +369,14 @@ exit:
     return( ret );
 }
 
-int mbedtls_hmac_drbg_update_seed_file( mbedtls_hmac_drbg_context *ctx, const char *path )
+int mbedtls_hmac_drbg_update_seed_file( mbedtls_hmac_drbg_context *ctx, const MBEDTLS_TCHAR *path )
 {
     int ret = 0;
     FILE *f;
     size_t n;
     unsigned char buf[ MBEDTLS_HMAC_DRBG_MAX_INPUT ];
 
-    if( ( f = fopen( path, "rb" ) ) == NULL )
+    if( ( f = MBEDTLS_FOPEN( path, MBEDTLS__T( "rb" ) ) ) == NULL )
         return( MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR );
 
     fseek( f, 0, SEEK_END );

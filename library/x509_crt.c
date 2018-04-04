@@ -1105,53 +1105,61 @@ int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const MBEDTLS_TCHAR *p
     return( ret );
 }
 
-int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const MBEDTLS_TCHAR *path )
+int mbedtls_x509_crt_parse_path(mbedtls_x509_crt *chain, const MBEDTLS_TCHAR *path)
 {
     int ret = 0;
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
     int w_ret;
-    MBEDTLS_TCHAR szDir[MAX_PATH];
     MBEDTLS_TCHAR filename[MAX_PATH];
     MBEDTLS_TCHAR *p;
-    size_t len = mbedtls_strlen( path );
-
     WIN32_FIND_DATA file_data;
     HANDLE hFind;
+    size_t len = mbedtls_strlen(path);
+    size_t flen;
 
-    if( len > MAX_PATH - 3 )
-        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+    if (len > MAX_PATH - 3) {
+        return MBEDTLS_ERR_X509_BAD_INPUT_DATA;
+    }
 
-    memset( szDir, 0, sizeof(szDir) );
-    memset( filename, 0, sizeof(filename) );
-    _tcsncpy( filename, path, len );
-    filename[len++] = MBEDTLS__T('\\');
+    _tcsncpy(filename, path, len);
+    if (path[len - 1] != MBEDTLS__T('\\')) {
+        filename[len++] = MBEDTLS__T('\\');
+    }
     p = filename + len;
     filename[len++] = MBEDTLS__T('*');
+    filename[len] = MBEDTLS__T('\0');
 
-    hFind = FindFirstFile( szDir, &file_data );
-    if( hFind == INVALID_HANDLE_VALUE )
-        return( MBEDTLS_ERR_X509_FILE_IO_ERROR );
+    hFind = FindFirstFile(filename, &file_data);
+    if (hFind == INVALID_HANDLE_VALUE) {
+        return MBEDTLS_ERR_X509_FILE_IO_ERROR;
+    }
 
     len = MAX_PATH - len;
-    do
-    {
-        memset( p, 0, len );
-
-        if( file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
+    do {
+        if (file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
             continue;
+        }
 
-        w_ret = mbedtls_x509_crt_parse_file( chain, filename );
-        if( w_ret < 0 )
+        flen = mbedtls_strlen(file_data.cFileName);
+        if (flen >= len) {
+            continue;
+        }
+
+        _tcsncpy(p, file_data.cFileName, flen);
+        p[flen] = MBEDTLS__T('\0');
+        w_ret = mbedtls_x509_crt_parse_file(chain, filename);
+        if (w_ret < 0) {
             ret++;
-        else
+        } else {
             ret += w_ret;
-    }
-    while( FindNextFile( hFind, &file_data ) != 0 );
+        }
+    } while (FindNextFile( hFind, &file_data) != 0);
 
-    if( GetLastError() != ERROR_NO_MORE_FILES )
+    if (GetLastError() != ERROR_NO_MORE_FILES) {
         ret = MBEDTLS_ERR_X509_FILE_IO_ERROR;
+    }
 
-    FindClose( hFind );
+    FindClose(hFind);
 #else /* _WIN32 */
     int t_ret;
     int snp_ret;

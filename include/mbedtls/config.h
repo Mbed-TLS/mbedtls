@@ -29,7 +29,7 @@
 #ifndef MBEDTLS_CONFIG_H
 #define MBEDTLS_CONFIG_H
 
-#ifdef _MSC_VER
+#if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 #ifndef _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif

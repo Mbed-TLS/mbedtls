@@ -7175,6 +7175,31 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
             len = max_len;
     }
 
+    /*
+     * Possibility of MBEDTLS_ERR_SSL_WANT_WRITE being returned from the
+     * application send callback requires some subtle handling. There are
+     * 4 possibilities:
+     * a) This is an initial call to ssl_write_real() (i.e. very first,
+     *    or after previous successful call to the function), and it is
+     *    spooled completely to the send callback, without it returning
+     *    MBEDTLS_ERR_SSL_WANT_WRITE. In this case, we return len param
+     *    (capped to max_len).
+     * b) The initial call, but callback returns MBEDTLS_ERR_SSL_WANT_WRITE
+     *    (possibly, after spooling some partial data). In this case, encoded
+     *    TLS record remains in our output buffer, we return
+     *    MBEDTLS_ERR_SSL_WANT_WRITE, and expect (and require) the application
+     *    to call write function with the *same* buf and len argument.
+     * c) The repeating call after previously MBEDTLS_ERR_SSL_WANT_WRITE was
+     *    returned, and send callback returned MBEDTLS_ERR_SSL_WANT_WRITE again
+     *    before remaining data in output buffer was spooled. Just as in case
+     *    b), we return MBEDTLS_ERR_SSL_WANT_WRITE and expected being called
+     *    with the same buf and len params as before.
+     * d) The repeating call, but the output buffer was finally spooled
+     *    completely without interruption. As we were called with the same
+     *    len param as for the call which started all the process, we just
+     *    return it (capped to max_len), to signal completion of the cycle,
+     *    next call to the write will start from a).
+     */
     if( ssl->out_left != 0 )
     {
         if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )

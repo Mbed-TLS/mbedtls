@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # Generate files for MS Visual Studio:
 # - for VS6: main project (library) file, individual app files, workspace

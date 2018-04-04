@@ -58,6 +58,8 @@ Changes
    * Improve robustness of mbedtls_ssl_derive_keys against the use of
      HMAC functions with non-HMAC ciphersuites. Independently contributed
      by Jiayuan Chen in #1377. Fixes #1437.
+   * Change the shebang line in Perl scripts to look up perl in the PATH.
+     Contributed by fbrosson in #1533.
 
 = mbed TLS 2.7.2 branch released 2018-03-16
 

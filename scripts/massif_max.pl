@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # Parse a massif.out.xxx file and output peak total memory usage
 

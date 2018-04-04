@@ -522,18 +522,15 @@ psa_status_t psa_export_key(psa_key_slot_t key,
 
 
 psa_status_t psa_export_public_key(psa_key_slot_t key,
-    uint8_t *data,
-    size_t data_size,
-    size_t *data_length)
+                                   uint8_t *data,
+                                   size_t data_size,
+                                   size_t *data_length)
 {
     key_slot_t *slot;
-    psa_status_t status;
 
     if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_EMPTY_SLOT );
-    status = psa_get_key_slot( key, &slot );
-    if( status != PSA_SUCCESS)
-        return( status );
+    slot = &global_data.key_slots[key];        
     if( slot->type == PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_EMPTY_SLOT );   
 

@@ -180,8 +180,8 @@ typedef uint32_t psa_key_type_t;
     (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_ASYMMETRIC)
 /** Whether a key type is the public part of a key pair. */
 #define PSA_KEY_TYPE_IS_PUBLIC_KEY(type)                                \
-    (((type) & (PSA_KEY_TYPE_CATEGORY_MASK | PSA_KEY_TYPE_PAIR_FLAG) == \
-      PSA_KEY_TYPE_CATEGORY_ASYMMETRIC))
+    (((type) & (PSA_KEY_TYPE_CATEGORY_MASK | PSA_KEY_TYPE_PAIR_FLAG)) == \
+      PSA_KEY_TYPE_CATEGORY_ASYMMETRIC)
 /** Whether a key type is a key pair containing a private part and a public
  * part. */
 #define PSA_KEY_TYPE_IS_KEYPAIR(type)                                   \

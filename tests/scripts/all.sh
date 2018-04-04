@@ -681,13 +681,13 @@ make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werro
 echo "Checking that software 64-bit division is not required"
 ! grep __aeabi_uldiv library/*.o
 
-msg "build: ARM Compiler 5, make" # ~ 1 min 30s
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl baremetal
-
 if [ $RUN_ARMCC -ne 0 ]; then
+    msg "build: ARM Compiler 5, make" # ~ 1 min 30s
+    cleanup
+    cp "$CONFIG_H" "$CONFIG_BAK"
+    scripts/config.pl baremetal
     make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
+    # keep config for next tests, so 'make clean' instead of 'cleanup'
     make clean
 
     # ARM Compiler 6 - Target ARMv7-A

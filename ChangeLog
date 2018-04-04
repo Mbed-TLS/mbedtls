@@ -19,6 +19,14 @@ Features
      mbedtls_ecdh_compute_shared()) are supported for now. Contributed by
      Nicholas Wilson (#348).
 
+API Changes
+   * Add function mbedtls_net_poll to public API allowing to wait for a
+     network context to become ready for reading or writing.
+   * Add function mbedtls_ssl_check_pending to public API allowing to check
+     if more data is pending to be processed in the internal message buffers.
+     This function is necessary to determine when it is safe to idle on the
+     underlying transport in case event-driven IO is used.
+
 Bugfix
    * Fix spurious uninitialized variable warning in cmac.c. Fix independently
      contributed by Brian J Murray and David Brown.
@@ -39,6 +47,14 @@ Bugfix
      the mbedtls_cipher_update() documentation. Contributed by Andy Leiserson.
    * Fix overriding and ignoring return values when parsing and writing to
      a file in pk_sign program. Found by kevlut in #1142.
+   * Restrict usage of error code MBEDTLS_ERR_SSL_WANT_READ to situations
+     where data needs to be fetched from the underlying transport in order
+     to make progress. Previously, this error code was also occasionally
+     returned when unexpected messages were being discarded, ignoring that
+     further messages could potentially already be pending to be processed
+     in the internal buffers; these cases lead to deadlocks in case
+     event-driven I/O was used.
+     Found and reported by Hubert Mis in #772.
 
 Changes
    * Remove some redundant code in bignum.c. Contributed by Alexey Skalozub.

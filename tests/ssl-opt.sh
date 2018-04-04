@@ -465,9 +465,12 @@ run_test() {
         eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
         wait_client_done
 
+        sleep 0.05
+
         # terminate the server (and the proxy)
         kill $SRV_PID
         wait $SRV_PID
+
         if [ -n "$PXY_CMD" ]; then
             kill $PXY_PID >/dev/null 2>&1
             wait $PXY_PID
@@ -631,16 +634,19 @@ fi
 get_options "$@"
 
 # sanity checks, avoid an avalanche of errors
-if [ ! -x "$P_SRV" ]; then
-    echo "Command '$P_SRV' is not an executable file"
+P_SRV_BIN="${P_SRV%%[  ]*}"
+P_CLI_BIN="${P_CLI%%[  ]*}"
+P_PXY_BIN="${P_PXY%%[  ]*}"
+if [ ! -x "$P_SRV_BIN" ]; then
+    echo "Command '$P_SRV_BIN' is not an executable file"
     exit 1
 fi
-if [ ! -x "$P_CLI" ]; then
-    echo "Command '$P_CLI' is not an executable file"
+if [ ! -x "$P_CLI_BIN" ]; then
+    echo "Command '$P_CLI_BIN' is not an executable file"
     exit 1
 fi
-if [ ! -x "$P_PXY" ]; then
-    echo "Command '$P_PXY' is not an executable file"
+if [ ! -x "$P_PXY_BIN" ]; then
+    echo "Command '$P_PXY_BIN' is not an executable file"
     exit 1
 fi
 if [ "$MEMCHECK" -gt 0 ]; then
@@ -2704,6 +2710,118 @@ run_test    "Non-blocking I/O: session-id resume" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
+# Tests for event-driven I/O: exercise a variety of handshake flows
+
+run_test    "Event-driven I/O: basic handshake" \
+            "$P_SRV event=1 tickets=0 auth_mode=none" \
+            "$P_CLI event=1 tickets=0" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: client auth" \
+            "$P_SRV event=1 tickets=0 auth_mode=required" \
+            "$P_CLI event=1 tickets=0" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: ticket" \
+            "$P_SRV event=1 tickets=1 auth_mode=none" \
+            "$P_CLI event=1 tickets=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: ticket + client auth" \
+            "$P_SRV event=1 tickets=1 auth_mode=required" \
+            "$P_CLI event=1 tickets=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: ticket + client auth + resume" \
+            "$P_SRV event=1 tickets=1 auth_mode=required" \
+            "$P_CLI event=1 tickets=1 reconnect=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: ticket + resume" \
+            "$P_SRV event=1 tickets=1 auth_mode=none" \
+            "$P_CLI event=1 tickets=1 reconnect=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: session-id resume" \
+            "$P_SRV event=1 tickets=0 auth_mode=none" \
+            "$P_CLI event=1 tickets=0 reconnect=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: basic handshake" \
+            "$P_SRV dtls=1 event=1 tickets=0 auth_mode=none" \
+            "$P_CLI dtls=1 event=1 tickets=0" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: client auth" \
+            "$P_SRV dtls=1 event=1 tickets=0 auth_mode=required" \
+            "$P_CLI dtls=1 event=1 tickets=0" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: ticket" \
+            "$P_SRV dtls=1 event=1 tickets=1 auth_mode=none" \
+            "$P_CLI dtls=1 event=1 tickets=1" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: ticket + client auth" \
+            "$P_SRV dtls=1 event=1 tickets=1 auth_mode=required" \
+            "$P_CLI dtls=1 event=1 tickets=1" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: ticket + client auth + resume" \
+            "$P_SRV dtls=1 event=1 tickets=1 auth_mode=required" \
+            "$P_CLI dtls=1 event=1 tickets=1 reconnect=1" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: ticket + resume" \
+            "$P_SRV dtls=1 event=1 tickets=1 auth_mode=none" \
+            "$P_CLI dtls=1 event=1 tickets=1 reconnect=1" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: session-id resume" \
+            "$P_SRV dtls=1 event=1 tickets=0 auth_mode=none" \
+            "$P_CLI dtls=1 event=1 tickets=0 reconnect=1" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+# This test demonstrates the need for the mbedtls_ssl_check_pending function.
+# During session resumption, the client will send its ApplicationData record
+# within the same datagram as the Finished messages. In this situation, the
+# server MUST NOT idle on the underlying transport after handshake completion,
+# because the ApplicationData request has already been queued internally.
+run_test    "Event-driven I/O, DTLS: session-id resume, UDP packing" \
+            -p "$P_PXY pack=50" \
+            "$P_SRV dtls=1 event=1 tickets=0 auth_mode=required" \
+            "$P_CLI dtls=1 event=1 tickets=0 reconnect=1" \
+            0 \
+            -c "Read from server: .* bytes read"
+
 # Tests for version negotiation
 
 run_test    "Version check: all -> 1.2" \
@@ -4195,8 +4313,8 @@ run_test    "DTLS proxy: duplicate every packet" \
             0 \
             -c "replayed record" \
             -s "replayed record" \
-            -c "discarding invalid record" \
-            -s "discarding invalid record" \
+            -c "record from another epoch" \
+            -s "record from another epoch" \
             -S "resend" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
@@ -4208,12 +4326,28 @@ run_test    "DTLS proxy: duplicate every packet, server anti-replay off" \
             0 \
             -c "replayed record" \
             -S "replayed record" \
-            -c "discarding invalid record" \
-            -s "discarding invalid record" \
+            -c "record from another epoch" \
+            -s "record from another epoch" \
             -c "resend" \
             -s "resend" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
+
+run_test    "DTLS proxy: multiple records in same datagram" \
+            -p "$P_PXY pack=50" \
+            "$P_SRV dtls=1 debug_level=2" \
+            "$P_CLI dtls=1 debug_level=2" \
+            0 \
+            -c "next record in same datagram" \
+            -s "next record in same datagram"
+
+run_test    "DTLS proxy: multiple records in same datagram, duplicate every packet" \
+            -p "$P_PXY pack=50 duplicate=1" \
+            "$P_SRV dtls=1 debug_level=2" \
+            "$P_CLI dtls=1 debug_level=2" \
+            0 \
+            -c "next record in same datagram" \
+            -s "next record in same datagram"
 
 run_test    "DTLS proxy: inject invalid AD record, default badmac_limit" \
             -p "$P_PXY bad_ad=1" \
@@ -4270,8 +4404,6 @@ run_test    "DTLS proxy: delay ChangeCipherSpec" \
             0 \
             -c "record from another epoch" \
             -s "record from another epoch" \
-            -c "discarding invalid record" \
-            -s "discarding invalid record" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 

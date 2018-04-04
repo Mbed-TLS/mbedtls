@@ -23,8 +23,8 @@ Changes
      Contributed by Mathieu Briand.
    * Fix typo in a comment ctr_drbg.c. Contributed by Paul Sokolovsky.
    * Remove support for the library reference configuration for picocoin.
-   * Verify that when (f_send, f_recv and f_recv_timeout) send or receive 
-     more than the required length an error is returned. Raised by 
+   * In the SSL module, when f_send, f_recv or f_recv_timeout report
+     transmitting more than the required length, return an error. Raised by
      Sam O'Connor in #1245.
 
 = mbed TLS 2.7.0 branch released 2018-02-03

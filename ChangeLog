@@ -45,8 +45,8 @@ Changes
      Alex Hixon.
    * Allow configuring the shared library extension by setting the DLEXT
      environment variable when using the project makefiles.
-   * Verify that when (f_send, f_recv and f_recv_timeout) send or receive
-     more than the required length an error is returned. Raised by
+   * In the SSL module, when f_send, f_recv or f_recv_timeout report
+     transmitting more than the required length, return an error. Raised by
      Sam O'Connor in #1245.
    * Improve robustness of mbedtls_ssl_derive_keys against the use of
      HMAC functions with non-HMAC ciphersuites. Independently contributed

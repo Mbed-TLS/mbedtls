@@ -147,9 +147,11 @@ the Mbed TLS source directory, use:
     make
 
 If you want to change `CC` or `CFLAGS` afterwards, you will need to remove the
-CMake cache. This can be done with the following command using GNU find:
+CMake cache. This can be done with the following command using GNU find, but
+please note it is destructive and should be adapted if you're using a VCS
+other than git or have other subdirectories that should be preserved:
 
-    find . -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} +
+    find . -name .git -prune -o -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} +
 
 You can now make the desired change:
 

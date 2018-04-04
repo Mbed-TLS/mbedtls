@@ -65,6 +65,9 @@ Changes
      environment variable when using the project makefiles.
    * Optimize unnecessary zeroing in mbedtls_mpi_copy. Based on a contribution
      by Alexey Skalozub in #405.
+   * In the SSL module, when f_send, f_recv or f_recv_timeout report
+     transmitting more than the required length, return an error. Raised by
+     Sam O'Connor in #1245.
 
 = mbed TLS 2.8.0 branch released 2018-03-16
 

@@ -2402,7 +2402,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
 {
     int ret;
     unsigned char *buf, *p;
-    size_t n = 0, m = 0;
+    size_t n = 0;
     size_t cert_type_len = 0, dn_len = 0;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->transform_negotiate->ciphersuite_info;
@@ -2546,7 +2546,6 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
 #endif
 
         n += 2 + sig_alg_len;
-        m += 2;
 
         if( ssl->in_hslen < mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n )
         {
@@ -2558,11 +2557,11 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
 
     /* Ignore certificate_authorities, we only have one cert anyway */
     // TODO: should not send cert if no CA matches
-    dn_len = ( ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 1 + m + n] <<  8 )
-             | ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 2 + m + n]       ) );
+    dn_len = ( ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 1 + n] <<  8 )
+             | ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n]       ) );
 
     n += dn_len;
-    if( ssl->in_hslen != mbedtls_ssl_hs_hdr_len( ssl ) + 3 + m + n )
+    if( ssl->in_hslen != mbedtls_ssl_hs_hdr_len( ssl ) + 3 + n )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );

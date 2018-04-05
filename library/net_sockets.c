@@ -459,11 +459,15 @@ int mbedtls_net_poll( mbedtls_net_context *ctx, uint32_t rw, uint32_t timeout )
     if( fd < 0 )
         return( MBEDTLS_ERR_NET_INVALID_CONTEXT );
 
-    /* Ensure that memory sanitizers consider
-     * read_fds and write_fds as initialized even
-     * if FD_ZERO is implemented in assembly. */
+#if defined(__has_feature)
+#if __has_feature(memory_sanitizer)
+    /* Ensure that memory sanitizers consider read_fds and write_fds as
+     * initialized even on platforms such as Glibc/x86_64 where FD_ZERO
+     * is implemented in assembly. */
     memset( &read_fds, 0, sizeof( read_fds ) );
     memset( &write_fds, 0, sizeof( write_fds ) );
+#endif
+#endif
 
     FD_ZERO( &read_fds );
     if( rw & MBEDTLS_NET_POLL_READ )

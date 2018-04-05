@@ -9,6 +9,12 @@ Security
      a non DER-compliant certificate correctly signed by a trusted CA, or a
      trusted CA with a non DER-compliant certificate. Found by luocm on GitHub.
      Fixes #825.
+   * Fix buffer length assertion in the ssl_parse_certificate_request()
+     function which leads to an arbitrary overread of the message buffer. The
+     overreads could occur upon receiving a message malformed at the point
+     where an optional signature algorithms list is expected in the cases of
+     the signature algorithms section being too short. In the debug builds
+     the overread data is printed to the standard output.
 
 Bugfix
    * Add missing dependencies in test suites that led to build failures
@@ -24,6 +30,9 @@ Bugfix
      ECPrivateKey structure. Found by jethrogb, fixed in #1379.
    * Return plaintext data sooner on unpadded CBC decryption, as stated in
      the mbedtls_cipher_update() documentation. Contributed by Andy Leiserson.
+   * Fix buffer length assertions in the ssl_parse_certificate_request()
+     function which leads to a potential one byte overread of the message
+     buffer.
 
 Changes
    * Improve testing in configurations that omit certain hashes or

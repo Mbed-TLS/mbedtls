@@ -482,7 +482,7 @@ if_build_succeeded tests/compat.sh
 # 1.2 Basic tests: full config
 ##############################
 
-msg "build: cmake, full config, clang" # ~ 50s
+msg "build: make, full config, clang" # ~ 50s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full

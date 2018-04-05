@@ -847,6 +847,8 @@ if uname -a | grep 'Linux.*x86_64' >/dev/null; then
     msg "build: MSan (clang)" # ~ 1 min
     cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     scripts/config.pl unset MBEDTLS_AESNI_C # memsan doesn't grok asm
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
     make
@@ -868,6 +870,7 @@ else # no MemSan
 
     msg "build: Release (clang)"
     cleanup
+    scripts/config.pl full
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
     make
 

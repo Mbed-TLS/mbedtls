@@ -165,4 +165,8 @@ endif()
 # Make scripts needed for testing available in an out-of-source build.
 if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     link_to_source(scripts)
+    # Copy (don't link) DartConfiguration.tcl, needed for memcheck, to
+    # keep things simple with the sed commands in the memcheck target.
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/DartConfiguration.tcl
+                   ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl COPYONLY)
 endif()

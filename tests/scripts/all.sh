@@ -492,9 +492,10 @@ make CC='clang' CFLAGS='-Werror -O2'
 msg "test: main suites (full config)" # < 10s
 make test
 
-# test things not in the default config, and Default handshake for parameters choice
+# test things that are in the full config but not in the default one,
+# plus Default handshake for parameters choice (+ large ClientHello)
 msg "test: ssl-opt.sh (full config)" # < 10s
-if_build_succeeded tests/ssl-opt.sh -f 'Default\|SSLv3\|RC4'
+if_build_succeeded tests/ssl-opt.sh -f 'Default\|SSLv3\|ECJPAKE'
 
 msg "test: compat.sh SSLv3, RC4, DES & NULL (full config)" # ~ 3 min
 if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'

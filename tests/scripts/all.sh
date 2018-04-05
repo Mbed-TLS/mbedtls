@@ -387,6 +387,12 @@ if_build_succeeded () {
     fi
 }
 
+# to be used instead of ! for commands run with
+# record_status or if_build_succeeded
+not() {
+    ! "$@"
+}
+
 if [ $RELEASE -eq 1 ]; then
     # Fix the seed value to 1 to ensure that the tests are deterministic.
     SEED=1
@@ -708,7 +714,7 @@ scripts/config.pl baremetal
 scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
 make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -O1' lib
 echo "Checking that software 64-bit division is not required"
-! grep __aeabi_uldiv library/*.o
+if_build_succeeded not grep __aeabi_uldiv library/*.o
 
 if [ $RUN_ARMCC -ne 0 ]; then
     msg "build: ARM Compiler 5, make" # ~ 1 min 30s

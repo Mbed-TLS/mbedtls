@@ -2659,6 +2659,13 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
     buf = ssl->in_msg;
 
     /* certificate_types */
+    if( ssl->in_hslen <= mbedtls_ssl_hs_hdr_len( ssl ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
+        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+        return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
+    }
     cert_type_len = buf[mbedtls_ssl_hs_hdr_len( ssl )];
     n = cert_type_len;
 

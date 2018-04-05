@@ -2670,7 +2670,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
     n = cert_type_len;
 
     /*
-     * In the subsequent code there are two paths that make read from buf:
+     * In the subsequent code there are two paths that read from buf:
      *     * the length of the signature algorithms field (if minor version of
      *       SSL is 3),
      *     * distinguished name length otherwise.
@@ -2699,12 +2699,12 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
 #endif
 
         /*
-         * The farthes access in buf is in the loop few lines below:
+         * The furthest access in buf is in the loop few lines below:
          *     sig_alg[i + 1],
          * where:
          *     sig_alg = buf + ...hdr_len + 3 + n,
          *     max(i) = sig_alg_len - 1.
-         * Therefore the farthest access is:
+         * Therefore the furthest access is:
          *     buf[...hdr_len + 3 + n + sig_alg_len - 1 + 1],
          * which reduces to:
          *     buf[...hdr_len + 3 + n + sig_alg_len],

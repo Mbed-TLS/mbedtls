@@ -1,10 +1,9 @@
 #!/usr/bin/perl
 
 # Generate files for MS Visual Studio:
-# - for VS6: main project (library) file, individual app files, workspace
 # - for VS2010: main file, individual apps, solution file
 #
-# Must be run from mbedTLS root or scripts directory.
+# Must be run from mbed TLS root or scripts directory.
 # Takes no argument.
 
 use warnings;
@@ -172,9 +171,10 @@ sub gen_vsx_solution {
 }
 
 sub main {
+
     if( ! check_dirs() ) {
         chdir '..' or die;
-        check_dirs or die "Must but run from mbedTLS root or scripts dir\n";
+        check_dirs or die "Must be run from mbed TLS root or scripts dir\n";
     }
 
     my @app_list = get_app_list();

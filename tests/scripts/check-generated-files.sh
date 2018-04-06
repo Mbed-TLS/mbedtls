@@ -1,6 +1,20 @@
 #!/bin/sh
+#
+# This file is part of mbed TLS (https://tls.mbed.org)
+#
+# Copyright (c) 2012-2016, ARM Limited, All Rights Reserved
+#
+# Purpose
+#
+# Verify if project files that are geneated from the source code are different
+# from what would be generated, if the script were run again.
+#
+# The script is non-destructive.
+#
+# Usage: check-generated-files.sh
+#
 
-# check if generated files are up-to-date
+
 
 set -eu
 
@@ -11,14 +25,17 @@ fi
 
 check()
 {
-    FILE=$1
+    TARGET=$1
     SCRIPT=$2
 
-    cp $FILE $FILE.bak
+    cp -apr $TARGET $TARGET.bak
     $SCRIPT
-    diff $FILE $FILE.bak
-    mv $FILE.bak $FILE
+    diff -r $TARGET $TARGET.bak
+    rm -rf $TARGET
+    mv $TARGET.bak $TARGET
 }
 
 check library/error.c scripts/generate_errors.pl
 check library/version_features.c scripts/generate_features.pl
+check visualc scripts/generate_visualc_files.pl
+

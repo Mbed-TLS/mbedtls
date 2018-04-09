@@ -231,15 +231,15 @@ mbedtls_ecp_keypair;
 
 /* \} name SECTION: Module settings */
 
+#else  /* MBEDTLS_ECP_ALT */
+#include "ecp_alt.h"
+#endif /* MBEDTLS_ECP_ALT */
+
 /*
  * Point formats, from RFC 4492's enum ECPointFormat
  */
 #define MBEDTLS_ECP_PF_UNCOMPRESSED    0   /**< Uncompressed point format */
 #define MBEDTLS_ECP_PF_COMPRESSED      1   /**< Compressed point format */
-
-#else  /* MBEDTLS_ECP_ALT */
-#include "ecp_alt.h"
-#endif /* MBEDTLS_ECP_ALT */
 
 /*
  * Some other constants from RFC 4492

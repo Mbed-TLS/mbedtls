@@ -322,6 +322,12 @@ else
     fi
 fi
 
+if [ $RUN_ARMCC -eq 0 ] && [ $YOTTA -ne 0 ]; then
+    err_msg "Error - yotta testing needs armcc."
+    echo "You can either disable yotta or enable armcc."
+    exit 1
+fi
+
 build_status=0
 if [ $KEEP_GOING -eq 1 ]; then
     failure_summary=
@@ -799,7 +805,7 @@ cd "$MBEDTLS_ROOT_DIR"
 rm -rf "$OUT_OF_SOURCE_DIR"
 
 
-if [ $RUN_ARMCC -ne 0 ] && [ $YOTTA -ne 0 ]; then
+if [ $YOTTA -ne 0 ]; then
     # Note - use of yotta is deprecated, and yotta also requires armcc to be on the
     # path, and uses whatever version of armcc it finds there.
     msg "build: create and build yotta module" # ~ 6 min 30s

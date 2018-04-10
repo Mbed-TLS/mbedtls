@@ -907,7 +907,25 @@ make test
 cd "$MBEDTLS_ROOT_DIR"
 rm -rf "$OUT_OF_SOURCE_DIR"
 
+msg "build: Default + MBEDTLS_SSL_OUT_CONTENT_LEN (ASan build)"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_SSL_OUT_CONTENT_LEN 4096
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
 
+msg "test: Default + MBEDTLS_SSL_OUT_CONTENT_LEN ssl-opt.sh (ASan build)"
+if_build_succeeded tests/ssl-opt.sh -f "Max fragment\|Large packet"
+
+msg "build: Default + MBEDTLS_SSL_IN_CONTENT_LEN (ASan build)"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_SSL_IN_CONTENT_LEN 4096
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: Default + MBEDTLS_SSL_IN_CONTENT_LEN ssl-opt.sh (ASan build)"
+if_build_succeeded tests/ssl-opt.sh -f "Max fragment\|Large packet"
 
 ################################################################
 #### Termination

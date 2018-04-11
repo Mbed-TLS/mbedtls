@@ -1335,10 +1335,15 @@ psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
                                    size_t signature_size);
 
 #define PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE(key_type, key_bits, alg)     \
-    (PSA_KEY_TYPE_IS_RSA(key_type) ? ((void)alg, PSA_BITS_TO_BYTES(key_bits)) : \
-     ((void)alg, 0))
+    (PSA_KEY_TYPE_IS_RSA(key_type) ?                                    \
+     ((void)alg, PSA_BITS_TO_BYTES(key_bits)) :                         \
+     0)
 #define PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(key_type, key_bits, alg) \
-    PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE(key_type, key_bits, alg)
+    (PSA_KEY_TYPE_IS_RSA(key_type) ?                                    \
+     PSA_BITS_TO_BYTES(key_bits) - ((alg) == PSA_ALG_IS_RSA_OAEP_MGF1 ? \
+                                    2 * (PSA_ALG_RSA_GET_HASH(alg) + 1) : \
+                                    11 /*PKCS#1v1.5*/) :                \
+     0)
 
 /**
  * \brief Encrypt a short message with a public key.

@@ -21,6 +21,11 @@
 
 set -u
 
+if cd $( dirname $0 ); then :; else
+    echo "cd $( dirname $0 ) failed" >&2
+    exit 1
+fi
+
 # default values, can be overriden by the environment
 : ${P_SRV:=../programs/ssl/ssl_server2}
 : ${P_CLI:=../programs/ssl/ssl_client2}
@@ -174,6 +179,25 @@ requires_ipv6() {
     fi
 
     if [ "$HAS_IPV6" = "NO" ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
+# Calculate the input & output maximum content lengths set in the config
+MAX_CONTENT_LEN=$( ../scripts/config.pl get MBEDTLS_SSL_MAX_CONTENT_LEN || echo "16384")
+MAX_IN_LEN=$( ../scripts/config.pl get MBEDTLS_SSL_IN_CONTENT_LEN || echo "$MAX_CONTENT_LEN")
+MAX_OUT_LEN=$( ../scripts/config.pl get MBEDTLS_SSL_OUT_CONTENT_LEN || echo "$MAX_CONTENT_LEN")
+
+if [ "$MAX_IN_LEN" -lt "$MAX_CONTENT_LEN" ]; then
+    MAX_CONTENT_LEN="$MAX_IN_LEN"
+fi
+if [ "$MAX_OUT_LEN" -lt "$MAX_CONTENT_LEN" ]; then
+    MAX_CONTENT_LEN="$MAX_OUT_LEN"
+fi
+
+# skip the next test if the SSL output buffer is less than 16KB
+requires_full_size_output_buffer() {
+    if [ "$MAX_OUT_LEN" -ne 16384 ]; then
         SKIP_NEXT="YES"
     fi
 }
@@ -625,11 +649,6 @@ cleanup() {
 #
 # MAIN
 #
-
-if cd $( dirname $0 ); then :; else
-    echo "cd $( dirname $0 ) failed" >&2
-    exit 1
-fi
 
 get_options "$@"
 
@@ -1416,19 +1435,13 @@ run_test    "Session resume using cache: openssl server" \
 
 # Tests for Max Fragment Length extension
 
-MAX_CONTENT_LEN_EXPECT='16384'
-MAX_CONTENT_LEN_CONFIG=$( ../scripts/config.pl get MBEDTLS_SSL_MAX_CONTENT_LEN)
-
-if [ -n "$MAX_CONTENT_LEN_CONFIG" ] && [ "$MAX_CONTENT_LEN_CONFIG" -ne "$MAX_CONTENT_LEN_EXPECT" ]; then
-    printf "The ${CONFIG_H} file contains a value for the configuration of\n"
-    printf "MBEDTLS_SSL_MAX_CONTENT_LEN that is different from the script’s\n"
-    printf "test value of ${MAX_CONTENT_LEN_EXPECT}. \n"
-    printf "\n"
-    printf "The tests assume this value and if it changes, the tests in this\n"
-    printf "script should also be adjusted.\n"
-    printf "\n"
-
+if [ "$MAX_CONTENT_LEN" -lt "4096" ]; then
+    printf "${CONFIG_H} defines MBEDTLS_SSL_MAX_CONTENT_LEN to be less than 4096. Fragment length tests will fail.\n"
     exit 1
+fi
+
+if [ $MAX_CONTENT_LEN -ne 16384 ]; then
+    printf "Using non-default maximum content length $MAX_CONTENT_LEN\n"
 fi
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
@@ -1436,8 +1449,8 @@ run_test    "Max fragment length: enabled, default" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3" \
             0 \
-            -c "Maximum fragment length is 16384" \
-            -s "Maximum fragment length is 16384" \
+            -c "Maximum fragment length is $MAX_CONTENT_LEN" \
+            -s "Maximum fragment length is $MAX_CONTENT_LEN" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
@@ -1446,46 +1459,50 @@ run_test    "Max fragment length: enabled, default" \
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: enabled, default, larger message" \
             "$P_SRV debug_level=3" \
-            "$P_CLI debug_level=3 request_size=16385" \
+            "$P_CLI debug_level=3 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             0 \
-            -c "Maximum fragment length is 16384" \
-            -s "Maximum fragment length is 16384" \
+            -c "Maximum fragment length is $MAX_CONTENT_LEN" \
+            -s "Maximum fragment length is $MAX_CONTENT_LEN" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
             -C "found max_fragment_length extension" \
-            -c "16385 bytes written in 2 fragments" \
-            -s "16384 bytes read" \
+            -c "$(( $MAX_CONTENT_LEN + 1)) bytes written in 2 fragments" \
+            -s "$MAX_CONTENT_LEN bytes read" \
             -s "1 bytes read"
 
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length, DTLS: enabled, default, larger message" \
             "$P_SRV debug_level=3 dtls=1" \
-            "$P_CLI debug_level=3 dtls=1 request_size=16385" \
+            "$P_CLI debug_level=3 dtls=1 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             1 \
-            -c "Maximum fragment length is 16384" \
-            -s "Maximum fragment length is 16384" \
+            -c "Maximum fragment length is $MAX_CONTENT_LEN" \
+            -s "Maximum fragment length is $MAX_CONTENT_LEN" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
             -S "server hello, max_fragment_length extension" \
             -C "found max_fragment_length extension" \
             -c "fragment larger than.*maximum "
 
+# Run some tests with MBEDTLS_SSL_MAX_FRAGMENT_LENGTH disabled
+# (session fragment length will be 16384 regardless of mbedtls
+# content length configuration.)
+
 requires_config_disabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length: disabled, larger message" \
             "$P_SRV debug_level=3" \
-            "$P_CLI debug_level=3 request_size=16385" \
+            "$P_CLI debug_level=3 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             0 \
             -C "Maximum fragment length is 16384" \
             -S "Maximum fragment length is 16384" \
-            -c "16385 bytes written in 2 fragments" \
-            -s "16384 bytes read" \
+            -c "$(( $MAX_CONTENT_LEN + 1)) bytes written in 2 fragments" \
+            -s "$MAX_CONTENT_LEN bytes read" \
             -s "1 bytes read"
 
 requires_config_disabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "Max fragment length DTLS: disabled, larger message" \
             "$P_SRV debug_level=3 dtls=1" \
-            "$P_CLI debug_level=3 dtls=1 request_size=16385" \
+            "$P_CLI debug_level=3 dtls=1 request_size=$(( $MAX_CONTENT_LEN + 1))" \
             1 \
             -C "Maximum fragment length is 16384" \
             -S "Maximum fragment length is 16384" \
@@ -1508,7 +1525,7 @@ run_test    "Max fragment length: used by server" \
             "$P_SRV debug_level=3 max_frag_len=4096" \
             "$P_CLI debug_level=3" \
             0 \
-            -c "Maximum fragment length is 16384" \
+            -c "Maximum fragment length is $MAX_CONTENT_LEN" \
             -s "Maximum fragment length is 4096" \
             -C "client hello, adding max_fragment_length extension" \
             -S "found max fragment length extension" \
@@ -2376,6 +2393,7 @@ if [ -n "$MAX_IM_CA_CONFIG" ] && [ "$MAX_IM_CA_CONFIG" -ne "$MAX_IM_CA" ]; then
     exit 1
 fi
 
+requires_full_size_output_buffer
 run_test    "Authentication: server max_int chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c09.pem \
                     key_file=data_files/dir-maxpath/09.key" \
@@ -2383,6 +2401,7 @@ run_test    "Authentication: server max_int chain, client default" \
             0 \
             -C "X509 - A fatal error occured"
 
+requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client default" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
@@ -2390,6 +2409,7 @@ run_test    "Authentication: server max_int+1 chain, client default" \
             1 \
             -c "X509 - A fatal error occured"
 
+requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client optional" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
@@ -2398,6 +2418,7 @@ run_test    "Authentication: server max_int+1 chain, client optional" \
             1 \
             -c "X509 - A fatal error occured"
 
+requires_full_size_output_buffer
 run_test    "Authentication: server max_int+1 chain, client none" \
             "$P_SRV crt_file=data_files/dir-maxpath/c10.pem \
                     key_file=data_files/dir-maxpath/10.key" \
@@ -2406,6 +2427,7 @@ run_test    "Authentication: server max_int+1 chain, client none" \
             0 \
             -C "X509 - A fatal error occured"
 
+requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server default" \
             "$P_SRV ca_file=data_files/dir-maxpath/00.crt" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
@@ -2413,6 +2435,7 @@ run_test    "Authentication: client max_int+1 chain, server default" \
             0 \
             -S "X509 - A fatal error occured"
 
+requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server optional" \
             "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=optional" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
@@ -2420,6 +2443,7 @@ run_test    "Authentication: client max_int+1 chain, server optional" \
             1 \
             -s "X509 - A fatal error occured"
 
+requires_full_size_output_buffer
 run_test    "Authentication: client max_int+1 chain, server required" \
             "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c10.pem \
@@ -2427,6 +2451,7 @@ run_test    "Authentication: client max_int+1 chain, server required" \
             1 \
             -s "X509 - A fatal error occured"
 
+requires_full_size_output_buffer
 run_test    "Authentication: client max_int chain, server required" \
             "$P_SRV ca_file=data_files/dir-maxpath/00.crt auth_mode=required" \
             "$P_CLI crt_file=data_files/dir-maxpath/c09.pem \
@@ -3970,14 +3995,19 @@ run_test    "SSLv3 with extensions, server side" \
 
 # Test for large packets
 
+# How many fragments do we expect to write $1 bytes?
+fragments_for_write() {
+    echo "$(( ( $1 + $MAX_OUT_LEN - 1 ) / $MAX_OUT_LEN ))"
+}
+
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Large packet SSLv3 BlockCipher" \
             "$P_SRV min_version=ssl3" \
             "$P_CLI request_size=16384 force_version=ssl3 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Large packet SSLv3 StreamCipher" \
@@ -3985,23 +4015,23 @@ run_test    "Large packet SSLv3 StreamCipher" \
             "$P_CLI request_size=16384 force_version=ssl3 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.0 BlockCipher" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.0 BlockCipher, without EtM" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1 etm=0 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.0 BlockCipher, truncated MAC" \
@@ -4009,8 +4039,8 @@ run_test    "Large packet TLS 1.0 BlockCipher, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.0 BlockCipher, without EtM, truncated MAC" \
@@ -4018,21 +4048,21 @@ run_test    "Large packet TLS 1.0 BlockCipher, without EtM, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1 etm=0 recsplit=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.0 StreamCipher" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.0 StreamCipher, without EtM" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA etm=0" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.0 StreamCipher, truncated MAC" \
@@ -4040,7 +4070,7 @@ run_test    "Large packet TLS 1.0 StreamCipher, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.0 StreamCipher, without EtM, truncated MAC" \
@@ -4048,23 +4078,23 @@ run_test    "Large packet TLS 1.0 StreamCipher, without EtM, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1 etm=0" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.1 BlockCipher" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.1 BlockCipher, without EtM" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_1 etm=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.1 BlockCipher, truncated MAC" \
@@ -4072,7 +4102,7 @@ run_test    "Large packet TLS 1.1 BlockCipher, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.1 BlockCipher, without EtM, truncated MAC" \
@@ -4080,23 +4110,23 @@ run_test    "Large packet TLS 1.1 BlockCipher, without EtM, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.1 StreamCipher" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.1 StreamCipher, without EtM" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA etm=0" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.1 StreamCipher, truncated MAC" \
@@ -4104,7 +4134,7 @@ run_test    "Large packet TLS 1.1 StreamCipher, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.1 StreamCipher, without EtM, truncated MAC" \
@@ -4112,31 +4142,31 @@ run_test    "Large packet TLS 1.1 StreamCipher, without EtM, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1 etm=0" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.2 BlockCipher" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.2 BlockCipher, without EtM" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_2 etm=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.2 BlockCipher larger MAC" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA384" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.2 BlockCipher, truncated MAC" \
@@ -4144,7 +4174,7 @@ run_test    "Large packet TLS 1.2 BlockCipher, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.2 BlockCipher, without EtM, truncated MAC" \
@@ -4152,23 +4182,23 @@ run_test    "Large packet TLS 1.2 BlockCipher, without EtM, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.2 StreamCipher" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.2 StreamCipher, without EtM" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA etm=0" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.2 StreamCipher, truncated MAC" \
@@ -4176,7 +4206,7 @@ run_test    "Large packet TLS 1.2 StreamCipher, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
             0 \
-            -s "Read from client: 16384 bytes read"
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Large packet TLS 1.2 StreamCipher, without EtM, truncated MAC" \
@@ -4184,24 +4214,24 @@ run_test    "Large packet TLS 1.2 StreamCipher, without EtM, truncated MAC" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1 etm=0" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.2 AEAD" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 run_test    "Large packet TLS 1.2 AEAD shorter tag" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
             0 \
-            -c "16384 bytes written in 1 fragments" \
-            -s "Read from client: 16384 bytes read"
+            -c "16384 bytes written in $(fragments_for_write 16384) fragments" \
+            -s "Read from client: $MAX_CONTENT_LEN bytes read"
 
 # Tests of asynchronous private key support in SSL
 

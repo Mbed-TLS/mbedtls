@@ -520,6 +520,28 @@ tests/ssl-opt.sh -f RSA
 msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
 tests/compat.sh -t RSA
 
+msg "build: small SSL_OUT_CONTENT_LEN (ASan build)"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_SSL_IN_CONTENT_LEN 16384
+scripts/config.pl set MBEDTLS_SSL_OUT_CONTENT_LEN 4096
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: small SSL_OUT_CONTENT_LEN - ssl-opt.sh MFL and large packet tests"
+if_build_succeeded tests/ssl-opt.sh -f "Max fragment\|Large packet"
+
+msg "build: small SSL_IN_CONTENT_LEN (ASan build)"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_SSL_IN_CONTENT_LEN 4096
+scripts/config.pl set MBEDTLS_SSL_OUT_CONTENT_LEN 16384
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: small SSL_IN_CONTENT_LEN - ssl-opt.sh MFL tests"
+if_build_succeeded tests/ssl-opt.sh -f "Max fragment"
+
 msg "build: cmake, full config, clang" # ~ 50s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
@@ -616,6 +638,7 @@ scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
 scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
 make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0 -std=c99 -pedantic' lib
 
+# Run max fragment length tests with MFL disabled
 msg "build: default config except MFL extension (ASan build)" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
@@ -625,6 +648,18 @@ make
 
 msg "test: ssl-opt.sh, MFL-related tests"
 if_build_succeeded tests/ssl-opt.sh -f "Max fragment length"
+
+msg "build: no MFL extension, small SSL_OUT_CONTENT_LEN (ASan build)"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+scripts/config.pl set MBEDTLS_SSL_IN_CONTENT_LEN 16384
+scripts/config.pl set MBEDTLS_SSL_OUT_CONTENT_LEN 4096
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: MFL tests (disabled MFL extension case) & large packet tests"
+if_build_succeeded tests/ssl-opt.sh -f "Max fragment length\|Large buffer"
 
 msg "build: default config with  MBEDTLS_TEST_NULL_ENTROPY (ASan build)"
 cleanup

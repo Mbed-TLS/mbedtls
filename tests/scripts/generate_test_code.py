@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Test suites code generator.
 #
 # Copyright (C) 2018, ARM Limited, All Rights Reserved
@@ -33,8 +34,10 @@ helper .function - Read common reusable functions.
 """
 
 
+import io
 import os
 import re
+import sys
 import argparse
 import shutil
 
@@ -59,7 +62,7 @@ class InvalidFileFormat(Exception):
     pass
 
 
-class FileWrapper(file):
+class FileWrapper(io.FileIO):
     """
     File wrapper class. Provides reading with line no. tracking. 
     """
@@ -73,24 +76,17 @@ class FileWrapper(file):
         super(FileWrapper, self).__init__(file_name, 'r')
         self.line_no = 0
 
-    def next(self):
+    def __next__(self):
         """
         Iterator return impl.
         :return: Line read from file.
         """
-        line = super(FileWrapper, self).next()
+        line = super(FileWrapper, self).__next__()
         if line:
             self.line_no += 1
-        return line
-
-    def readline(self, limit=0):
-        """
-        Wrap the base class readline.
-        
-        :param limit: limit to match file.readline([limit])
-        :return: Line read from file.
-        """
-        return self.next()
+            # Convert byte array to string with correct encoding
+            return line.decode(sys.getdefaultencoding())
+        return None
 
 
 def split_dep(dep):
@@ -513,7 +509,7 @@ def write_parameters(out_data_f, test_args, func_args, unique_expressions):
     :return: Returns expression check code.
     """
     expression_code = ''
-    for i in xrange(len(test_args)):
+    for i in range(len(test_args)):
         typ = func_args[i]
         val = test_args[i]
 

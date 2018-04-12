@@ -369,27 +369,14 @@ int mbedtls_stat( const char * path, mbedtls_stat_t * msb )
     status = stat( path, &sb );
     if ( status == 0 )
     {
-        switch ( sb.st_mode & S_IFMT )
+        if( S_ISDIR( sb.st_mode ) )
         {
-            case S_IFREG:
-            case S_IFIFO:
-            case S_IFSOCK:
-            case S_IFCHR:
-            case S_IFBLK:
-                msb->type = MBEDTLS_FSIO_DT_FILE;
-                break;
-            case S_IFDIR:
-                msb->type = MBEDTLS_FSIO_DT_DIR;
-                break;
-            default:
-                msb->type = MBEDTLS_FSIO_DT_OTHER;
-                break;
+            msb->type = MBEDTLS_FSIO_DT_DIR;
         }
-    }
-    else if ( lstat( path, &sb ) == 0 ) /* Skip broken links */
-    {
-        msb->type = MBEDTLS_FSIO_DT_OTHER;
-        status = 0;
+        else
+        {
+            msb->type = MBEDTLS_FSIO_DT_FILE;
+        }
     }
 
     return( status );

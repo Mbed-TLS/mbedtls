@@ -1,8 +1,7 @@
 #!/usr/bin/perl
 
-# Generate files for MS Visual Studio:
-# - for VS6: main project (library) file, individual app files, workspace
-# - for VS2010: main file, individual apps, solution file
+# Generate main file, individual apps and solution files for MS Visual Studio
+# 2010
 #
 # Must be run from mbedTLS root or scripts directory.
 # Takes no argument.

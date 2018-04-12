@@ -20,6 +20,7 @@ check()
     SCRIPT=$1
     TO_CHECK=$2
     PATTERN=""
+    FILES=""
 
     if [ -d $TO_CHECK ]; then
         for FILE in $TO_CHECK/*; do

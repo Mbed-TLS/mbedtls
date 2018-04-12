@@ -1365,7 +1365,7 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
 
     operation->key_set = 1;
     operation->alg = alg;
-    operation->block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE(key_type);
+    operation->block_size = PSA_ALG_IS_BLOCK_CIPHER( alg ) ? PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) : 1;
     if( PSA_ALG_IS_BLOCK_CIPHER( alg ) || ( alg == PSA_ALG_CTR ) )
     {
         operation->iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );

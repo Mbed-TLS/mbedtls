@@ -174,10 +174,6 @@ mbedtls_dir_t mbedtls_opendir( const char *path );
 
 #else /* MBEDTLS_SERIALIZE_C */
 
-#if defined(MBEDTLS_PLATFORM_NO_STD_FUNCTIONS)
-#error "No file system implementation present."
-#endif
-
 #include <stdio.h>
 #if !defined(_WIN32)
 #include <dirent.h>

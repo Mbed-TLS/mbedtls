@@ -45,113 +45,16 @@ ifdef ZLIB
 LOCAL_LDFLAGS += -lz
 endif
 
-APPS =	test_suite_aes.ecb	test_suite_aes.cbc		\
-	test_suite_aes.cfb	test_suite_aes.rest		\
-	test_suite_arc4		test_suite_asn1write		\
-	test_suite_base64	test_suite_blowfish		\
-	test_suite_camellia	test_suite_ccm			\
-	test_suite_cmac						\
-	test_suite_cipher.aes					\
-	test_suite_cipher.arc4	test_suite_cipher.ccm		\
-	test_suite_cipher.gcm					\
-	test_suite_cipher.blowfish				\
-	test_suite_cipher.camellia				\
-	test_suite_cipher.des	test_suite_cipher.null		\
-	test_suite_cipher.padding				\
-	test_suite_ctr_drbg	test_suite_debug		\
-	test_suite_des		test_suite_dhm			\
-	test_suite_ecdh		test_suite_ecdsa		\
-	test_suite_ecjpake	test_suite_ecp			\
-	test_suite_error	test_suite_entropy		\
-	test_suite_gcm.aes128_de				\
-	test_suite_gcm.aes192_de				\
-	test_suite_gcm.aes256_de				\
-	test_suite_gcm.aes128_en				\
-	test_suite_gcm.aes192_en				\
-	test_suite_gcm.aes256_en				\
-	test_suite_gcm.camellia					\
-	test_suite_hmac_drbg.misc				\
-	test_suite_hmac_drbg.no_reseed				\
-	test_suite_hmac_drbg.nopr				\
-	test_suite_hmac_drbg.pr					\
-	test_suite_md		test_suite_mdx			\
-	test_suite_memory_buffer_alloc				\
-	test_suite_mpi						\
-	test_suite_pem			test_suite_pkcs1_v15	\
-	test_suite_pkcs1_v21	test_suite_pkcs5		\
-	test_suite_pkparse	test_suite_pkwrite		\
-	test_suite_pk						\
-	test_suite_rsa		test_suite_shax			\
-	test_suite_ssl		test_suite_timing		\
-	test_suite_x509parse	test_suite_x509write		\
-	test_suite_xtea		test_suite_version
-
-# Look up for associated function files
-func.test_suite_aes.ecb.c := test_suite_aes
-func.test_suite_aes.cbc.c := test_suite_aes
-func.test_suite_aes.cfb.c := test_suite_aes
-func.test_suite_aes.rest.c := test_suite_aes
-func.test_suite_arc4.c := test_suite_arc4
-func.test_suite_asn1write.c := test_suite_asn1write
-func.test_suite_base64.c := test_suite_base64
-func.test_suite_blowfish.c := test_suite_blowfish
-func.test_suite_camellia.c := test_suite_camellia
-func.test_suite_ccm.c := test_suite_ccm
-func.test_suite_cmac.c := test_suite_cmac
-func.test_suite_cipher.aes.c := test_suite_cipher
-func.test_suite_cipher.arc4.c := test_suite_cipher
-func.test_suite_cipher.ccm.c := test_suite_cipher
-func.test_suite_cipher.gcm.c := test_suite_cipher
-func.test_suite_cipher.blowfish.c := test_suite_cipher
-func.test_suite_cipher.camellia.c := test_suite_cipher
-func.test_suite_cipher.des.c := test_suite_cipher
-func.test_suite_cipher.null.c := test_suite_cipher
-func.test_suite_cipher.padding.c := test_suite_cipher
-func.test_suite_ctr_drbg.c := test_suite_ctr_drbg
-func.test_suite_debug.c := test_suite_debug
-func.test_suite_des.c := test_suite_des
-func.test_suite_dhm.c := test_suite_dhm
-func.test_suite_ecdh.c := test_suite_ecdh
-func.test_suite_ecdsa.c := test_suite_ecdsa
-func.test_suite_ecjpake.c := test_suite_ecjpake
-func.test_suite_ecp.c := test_suite_ecp
-func.test_suite_error.c := test_suite_error
-func.test_suite_entropy.c := test_suite_entropy
-func.test_suite_gcm.aes128_de.c := test_suite_gcm
-func.test_suite_gcm.aes192_de.c := test_suite_gcm
-func.test_suite_gcm.aes256_de.c := test_suite_gcm
-func.test_suite_gcm.aes128_en.c := test_suite_gcm
-func.test_suite_gcm.aes192_en.c := test_suite_gcm
-func.test_suite_gcm.aes256_en.c := test_suite_gcm
-func.test_suite_gcm.camellia.c := test_suite_gcm
-func.test_suite_hmac_drbg.misc.c := test_suite_hmac_drbg
-func.test_suite_hmac_drbg.no_reseed.c := test_suite_hmac_drbg
-func.test_suite_hmac_drbg.nopr.c := test_suite_hmac_drbg
-func.test_suite_hmac_drbg.pr.c := test_suite_hmac_drbg
-func.test_suite_md.c := test_suite_md
-func.test_suite_mdx.c := test_suite_mdx
-func.test_suite_memory_buffer_alloc.c := test_suite_memory_buffer_alloc
-func.test_suite_mpi.c := test_suite_mpi
-func.test_suite_pem.c := test_suite_pem
-func.test_suite_pkcs1_v15.c := test_suite_pkcs1_v15
-func.test_suite_pkcs1_v21.c := test_suite_pkcs1_v21
-func.test_suite_pkcs5.c := test_suite_pkcs5
-func.test_suite_pkparse.c := test_suite_pkparse
-func.test_suite_pkwrite.c := test_suite_pkwrite
-func.test_suite_pk.c := test_suite_pk
-func.test_suite_rsa.c := test_suite_rsa
-func.test_suite_shax.c := test_suite_shax
-func.test_suite_ssl.c := test_suite_ssl
-func.test_suite_timing.c := test_suite_timing
-func.test_suite_x509parse.c := test_suite_x509parse
-func.test_suite_x509write.c := test_suite_x509write
-func.test_suite_xtea.c := test_suite_xtea
-func.test_suite_version.c := test_suite_version
+# A test application is built for each suites/test_suite_*.data file.
+# Application name is same as .data file's base name and can be
+# constructed by stripping path 'suites/' and extension .data.
+APPS = $(basename $(subst suites/,,$(wildcard suites/test_suite_*.data)))
 
 .SILENT:
 
 .PHONY: all check test clean
 
+# Construct executable name by adding OS specific suffix $(EXEXT).
 BINARIES := $(addsuffix $(EXEXT),$(APPS))
 
 all: $(BINARIES)
@@ -159,12 +62,25 @@ all: $(BINARIES)
 $(DEP):
 	$(MAKE) -C ../library
 
-# invoke perl explicitly for the sake of mingw32-make
-
+# Wildcard target for test code generation:
+# A .c file is generated for each .data file in the suites/ directory. Each .c
+# file depends on a .data and .function file from suites/ directory. Following
+# nameing convention is followed:
+#
+#     C file        |        Depends on
+#-----------------------------------------------------------------------------
+#  foo.c            | suites/foo.function suites/foo.data
+#  foo.bar.c        | suites/foo.function suites/foo.bar.data
+#
+# Note above that .c and .data files have same base name.
+# However, corresponding .function file's base name is the word before first
+# dot in .c file's base name.
+#
+# Perl: invoke perl explicitly for the sake of mingw32-make
 .SECONDEXPANSION:
-%.c: suites/$$(func.$$*.c).function suites/%.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+%.c: suites/$$(firstword $$(subst ., ,$$*)).function suites/%.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites $(func.$@) $*
+	perl scripts/generate_code.pl suites $(firstword $(subst ., ,$*)) $*
 
 
 %$(EXEXT): %.c $(DEP)

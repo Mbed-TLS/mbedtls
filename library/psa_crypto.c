@@ -1368,7 +1368,7 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     operation->block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE(key_type);
     if( PSA_ALG_IS_BLOCK_CIPHER( alg ) || ( alg == PSA_ALG_CTR ) )
     {
-        operation->iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE(key_type);
+        operation->iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
     }
 
     return ( PSA_SUCCESS );
@@ -1401,7 +1401,7 @@ psa_status_t psa_encrypt_generate_iv(psa_cipher_operation_t *operation,
         ret = PSA_ERROR_BUFFER_TOO_SMALL;
         goto exit;
     }
-    ret = mbedtls_ctr_drbg_random( &global_data.ctr_drbg, iv, operation->iv_size);
+    ret = mbedtls_ctr_drbg_random( &global_data.ctr_drbg, iv, operation->iv_size );
     if( ret != 0 )
     {
         ret = mbedtls_to_psa_error( ret );
@@ -1409,10 +1409,10 @@ psa_status_t psa_encrypt_generate_iv(psa_cipher_operation_t *operation,
     }
     
     *iv_length = operation->iv_size;
-    ret = psa_encrypt_set_iv( operation, iv, *iv_length);
+    ret = psa_encrypt_set_iv( operation, iv, *iv_length );
 
     exit:
-        if( ret != PSA_SUCCESS)
+        if( ret != PSA_SUCCESS )
         psa_cipher_abort( operation );
         return( ret );
 }

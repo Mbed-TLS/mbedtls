@@ -339,6 +339,8 @@ static int test_snprintf( size_t n, const char ref_buf[10], int ref_ret )
     char buf[10] = "xxxxxxxxx";
     const char ref[10] = "xxxxxxxxx";
 
+    if( n >= sizeof( buf ) )
+        return( -1 );
     ret = mbedtls_snprintf( buf, n, "%s", "123" );
     if( ret < 0 || (size_t) ret >= n )
         ret = -1;

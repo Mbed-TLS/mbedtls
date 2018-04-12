@@ -824,6 +824,11 @@ setup_arguments()
             else
                 M_CLIENT_ARGS="$M_CLIENT_ARGS crt_file=none key_file=none"
             fi
+
+            # Allow SHA-1. It's disabled by default for security reasons but
+            # our tests still use certificates signed with it.
+            M_SERVER_ARGS="$M_SERVER_ARGS allow_sha1=1"
+            M_CLIENT_ARGS="$M_CLIENT_ARGS allow_sha1=1"
             ;;
 
         "PSK")
@@ -836,6 +841,11 @@ setup_arguments()
             M_CLIENT_ARGS="$M_CLIENT_ARGS psk=6162636465666768696a6b6c6d6e6f70 crt_file=none key_file=none"
             O_CLIENT_ARGS="$O_CLIENT_ARGS -psk 6162636465666768696a6b6c6d6e6f70"
             G_CLIENT_ARGS="$G_CLIENT_ARGS --pskusername Client_identity --pskkey=6162636465666768696a6b6c6d6e6f70"
+
+            # Allow SHA-1. It's disabled by default for security reasons but
+            # our tests still use certificates signed with it.
+            M_SERVER_ARGS="$M_SERVER_ARGS allow_sha1=1"
+            M_CLIENT_ARGS="$M_CLIENT_ARGS allow_sha1=1"
             ;;
     esac
 }
@@ -855,6 +865,34 @@ has_mem_err() {
         return 0 # true: has errors
     fi
 }
+
+# Wait for process $2 to be listening on port $1
+if type lsof >/dev/null 2>/dev/null; then
+    wait_server_start() {
+        START_TIME=$(date +%s)
+        if is_dtls "$MODE"; then
+            proto=UDP
+        else
+            proto=TCP
+        fi
+        while ! lsof -a -n -b -i "$proto:$1" -p "$2" >/dev/null 2>/dev/null; do
+              if [ $(( $(date +%s) - $START_TIME )) -gt $DOG_DELAY ]; then
+                  echo "SERVERSTART TIMEOUT"
+                  echo "SERVERSTART TIMEOUT" >> $SRV_OUT
+                  break
+              fi
+              # Linux and *BSD support decimal arguments to sleep. On other
+              # OSes this may be a tight loop.
+              sleep 0.1 2>/dev/null || true
+        done
+    }
+else
+    echo "Warning: lsof not available, wait_server_start = sleep"
+    wait_server_start() {
+        sleep 2
+    }
+fi
+
 
 # start_server <name>
 # also saves name and command
@@ -885,7 +923,7 @@ start_server() {
     while :; do echo bla; sleep 1; done | $SERVER_CMD >> $SRV_OUT 2>&1 &
     PROCESS_ID=$!
 
-    sleep 1
+    wait_server_start "$PORT" "$PROCESS_ID"
 }
 
 # terminate the running server
@@ -1049,7 +1087,7 @@ run_client() {
             cp $CLI_OUT c-cli-${TESTS}.log
             echo "  ! outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
 
-            if [ "X${USER:-}" = Xbuildbot -o "X${LOGNAME:-}" = Xbuildbot ]; then
+            if [ "X${USER:-}" = Xbuildbot -o "X${LOGNAME:-}" = Xbuildbot -o "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
                 echo "  ! server output:"
                 cat c-srv-${TESTS}.log
                 echo "  ! ==================================================="

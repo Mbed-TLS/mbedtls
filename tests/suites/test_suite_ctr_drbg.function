@@ -1,8 +1,8 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ctr_drbg.h"
 
-int test_offset_idx;
-int mbedtls_entropy_func( void *data, unsigned char *buf, size_t len )
+static int test_offset_idx;
+static int mbedtls_test_entropy_func( void *data, unsigned char *buf, size_t len )
 {
     const unsigned char *p = (unsigned char *) data;
     memcpy( buf, p + test_offset_idx, len );
@@ -39,6 +39,11 @@ void ctr_drbg_special_behaviours( )
     TEST_ASSERT( mbedtls_ctr_drbg_reseed( &ctx, additional,
                         MBEDTLS_CTR_DRBG_MAX_SEED_INPUT + 1 ) ==
                         MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
+
+    mbedtls_ctr_drbg_set_entropy_len( &ctx, ~0 );
+    TEST_ASSERT( mbedtls_ctr_drbg_reseed( &ctx, additional,
+                        MBEDTLS_CTR_DRBG_MAX_SEED_INPUT ) ==
+                        MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG );
 exit:
     mbedtls_ctr_drbg_free( &ctx );
 }
@@ -67,7 +72,7 @@ void ctr_drbg_validate_pr( char *add_init_string, char *entropy_string,
     add2_len = unhexify( add2, add2_string );
 
     test_offset_idx = 0;
-    TEST_ASSERT( mbedtls_ctr_drbg_seed_entropy_len( &ctx, mbedtls_entropy_func, entropy, add_init, add_init_len, 32 ) == 0 );
+    TEST_ASSERT( mbedtls_ctr_drbg_seed_entropy_len( &ctx, mbedtls_test_entropy_func, entropy, add_init, add_init_len, 32 ) == 0 );
     mbedtls_ctr_drbg_set_prediction_resistance( &ctx, MBEDTLS_CTR_DRBG_PR_ON );
 
     TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add1, add1_len ) == 0 );
@@ -105,7 +110,7 @@ void ctr_drbg_validate_nopr( char *add_init_string, char *entropy_string,
     add2_len = unhexify( add2, add2_string );
 
     test_offset_idx = 0;
-    TEST_ASSERT( mbedtls_ctr_drbg_seed_entropy_len( &ctx, mbedtls_entropy_func, entropy, add_init, add_init_len, 32 ) == 0 );
+    TEST_ASSERT( mbedtls_ctr_drbg_seed_entropy_len( &ctx, mbedtls_test_entropy_func, entropy, add_init, add_init_len, 32 ) == 0 );
 
     TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add1, add1_len ) == 0 );
     TEST_ASSERT( mbedtls_ctr_drbg_reseed( &ctx, add_reseed, add_reseed_len ) == 0 );
@@ -136,7 +141,7 @@ void ctr_drbg_entropy_usage( )
 
     /* Init must use entropy */
     last_idx = test_offset_idx;
-    TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctx, mbedtls_entropy_func, entropy, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_ctr_drbg_seed( &ctx, mbedtls_test_entropy_func, entropy, NULL, 0 ) == 0 );
     TEST_ASSERT( last_idx < test_offset_idx );
 
     /* By default, PR is off and reseed_interval is large,

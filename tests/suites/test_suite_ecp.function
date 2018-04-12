@@ -29,7 +29,7 @@ void mbedtls_ecp_curve_info( int id, int tls_id, int size, char *name )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ecp_check_pub_mx( int grp_id, char *key_hex, int ret )
+void ecp_check_pub( int grp_id, char *x_hex, char *y_hex, char *z_hex, int ret )
 {
     mbedtls_ecp_group grp;
     mbedtls_ecp_point P;
@@ -39,8 +39,9 @@ void ecp_check_pub_mx( int grp_id, char *key_hex, int ret )
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, grp_id ) == 0 );
 
-    TEST_ASSERT( mbedtls_mpi_read_string( &P.X, 16, key_hex ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_lset( &P.Z, 1 ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &P.X, 16, x_hex ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &P.Y, 16, y_hex ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &P.Z, 16, z_hex ) == 0 );
 
     TEST_ASSERT( mbedtls_ecp_check_pubkey( &grp, &P ) == ret );
 

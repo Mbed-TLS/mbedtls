@@ -37,6 +37,7 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/ecdsa.h"
+#include "mbedtls/sha256.h"
 
 #include <string.h>
 #endif
@@ -101,8 +102,9 @@ int main( int argc, char *argv[] )
     mbedtls_ecdsa_context ctx_sign, ctx_verify;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
-    unsigned char hash[] = "This should be the hash of a message.";
-    unsigned char sig[512];
+    unsigned char message[100];
+    unsigned char hash[32];
+    unsigned char sig[MBEDTLS_ECDSA_MAX_LEN];
     size_t sig_len;
     const char *pers = "ecdsa";
     ((void) argv);
@@ -111,7 +113,8 @@ int main( int argc, char *argv[] )
     mbedtls_ecdsa_init( &ctx_verify );
     mbedtls_ctr_drbg_init( &ctr_drbg );
 
-    memset(sig, 0, sizeof( sig ) );
+    memset( sig, 0, sizeof( sig ) );
+    memset( message, 0x25, sizeof( message ) );
     ret = 1;
 
     if( argc != 1 )
@@ -155,9 +158,25 @@ int main( int argc, char *argv[] )
     dump_pubkey( "  + Public key: ", &ctx_sign );
 
     /*
-     * Sign some message hash
+     * Compute message hash
      */
-    mbedtls_printf( "  . Signing message..." );
+    mbedtls_printf( "  . Computing message hash..." );
+    fflush( stdout );
+
+    if( ( ret = mbedtls_sha256_ret( message, sizeof( message ), hash, 0 ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_sha256_ret returned %d\n", ret );
+        goto exit;
+    }
+
+    mbedtls_printf( " ok\n" );
+
+    dump_buf( "  + Hash: ", hash, sizeof( hash ) );
+
+    /*
+     * Sign message hash
+     */
+    mbedtls_printf( "  . Signing message hash..." );
     fflush( stdout );
 
     if( ( ret = mbedtls_ecdsa_write_signature( &ctx_sign, MBEDTLS_MD_SHA256,
@@ -170,7 +189,6 @@ int main( int argc, char *argv[] )
     }
     mbedtls_printf( " ok (signature length = %u)\n", (unsigned int) sig_len );
 
-    dump_buf( "  + Hash: ", hash, sizeof hash );
     dump_buf( "  + Signature: ", sig, sig_len );
 
     /*

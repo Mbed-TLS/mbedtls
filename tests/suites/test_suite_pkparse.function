@@ -113,8 +113,8 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
-void pk_parse_key_rsa( char *key_data, char *result_str, int result )
+/* BEGIN_CASE */
+void pk_parse_key( char *key_data, char *result_str, int result )
 {
     mbedtls_pk_context pk;
     unsigned char buf[2000];

@@ -65,15 +65,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IntDir>$(Configuration)\$(TargetName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IntDir>$(Configuration)\$(TargetName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IntDir>$(Configuration)\$(TargetName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IntDir>$(Configuration)\$(TargetName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -168,6 +172,7 @@
     <ClInclude Include="..\..\include\mbedtls\ecdsa.h" />
     <ClInclude Include="..\..\include\mbedtls\ecjpake.h" />
     <ClInclude Include="..\..\include\mbedtls\ecp.h" />
+    <ClInclude Include="..\..\include\mbedtls\ecp_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\entropy.h" />
     <ClInclude Include="..\..\include\mbedtls\entropy_poll.h" />
     <ClInclude Include="..\..\include\mbedtls\error.h" />
@@ -194,6 +199,7 @@
     <ClInclude Include="..\..\include\mbedtls\platform_time.h" />
     <ClInclude Include="..\..\include\mbedtls\ripemd160.h" />
     <ClInclude Include="..\..\include\mbedtls\rsa.h" />
+    <ClInclude Include="..\..\include\mbedtls\rsa_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\sha1.h" />
     <ClInclude Include="..\..\include\mbedtls\sha256.h" />
     <ClInclude Include="..\..\include\mbedtls\sha512.h" />
@@ -262,6 +268,7 @@
     <ClCompile Include="..\..\library\platform.c" />
     <ClCompile Include="..\..\library\ripemd160.c" />
     <ClCompile Include="..\..\library\rsa.c" />
+    <ClCompile Include="..\..\library\rsa_internal.c" />
     <ClCompile Include="..\..\library\sha1.c" />
     <ClCompile Include="..\..\library\sha256.c" />
     <ClCompile Include="..\..\library\sha512.c" />

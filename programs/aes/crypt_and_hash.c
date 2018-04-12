@@ -192,7 +192,7 @@ int main( int argc, char *argv[] )
     }
 
     /*
-     * Read the secret key and clean the command line.
+     * Read the secret key from file or command line
      */
     if( ( fkey = fopen( argv[6], "rb" ) ) != NULL )
     {
@@ -223,8 +223,6 @@ int main( int argc, char *argv[] )
             memcpy( key, argv[6], keylen );
         }
     }
-
-    memset( argv[6], 0, strlen( argv[6] ) );
 
 #if defined(_WIN32_WCE)
     filesize = fseek( fin, 0L, SEEK_END );
@@ -302,8 +300,6 @@ int main( int argc, char *argv[] )
             mbedtls_md_finish( &md_ctx, digest );
 
         }
-
-        memset( key, 0, sizeof( key ) );
 
         if( mbedtls_cipher_setkey( &cipher_ctx, digest, cipher_info->key_bitlen,
                            MBEDTLS_ENCRYPT ) != 0 )
@@ -444,8 +440,6 @@ int main( int argc, char *argv[] )
             mbedtls_md_finish( &md_ctx, digest );
         }
 
-        memset( key, 0, sizeof( key ) );
-
         if( mbedtls_cipher_setkey( &cipher_ctx, digest, cipher_info->key_bitlen,
                            MBEDTLS_DECRYPT ) != 0 )
         {
@@ -540,7 +534,16 @@ exit:
     if( fout )
         fclose( fout );
 
+    /* Zeroize all command line arguments to also cover
+       the case when the user has missed or reordered some,
+       in which case the key might not be in argv[6]. */
+    for( i = 0; i < argc; i++ )
+        memset( argv[i], 0, strlen( argv[i] ) );
+
+    memset( IV,     0, sizeof( IV ) );
+    memset( key,    0, sizeof( key ) );
     memset( buffer, 0, sizeof( buffer ) );
+    memset( output, 0, sizeof( output ) );
     memset( digest, 0, sizeof( digest ) );
 
     mbedtls_cipher_free( &cipher_ctx );

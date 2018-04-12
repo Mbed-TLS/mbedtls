@@ -109,7 +109,10 @@ void ecjpake_selftest()
 void read_round_one( int role, char *data, int ref_ret )
 {
     mbedtls_ecjpake_context ctx;
-    const unsigned char pw[] = {};
+
+    const unsigned char * pw = NULL;
+    const size_t pw_len = 0;
+
     unsigned char *msg;
     size_t len;
 
@@ -119,7 +122,7 @@ void read_round_one( int role, char *data, int ref_ret )
     TEST_ASSERT( msg != NULL );
 
     TEST_ASSERT( mbedtls_ecjpake_setup( &ctx, role,
-                 MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw, 0 ) == 0 );
+                 MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw, pw_len ) == 0 );
 
     TEST_ASSERT( mbedtls_ecjpake_read_round_one( &ctx, msg, len ) == ref_ret );
 
@@ -133,7 +136,10 @@ exit:
 void read_round_two_cli( char *data, int ref_ret )
 {
     mbedtls_ecjpake_context ctx;
-    const unsigned char pw[] = {};
+
+    const unsigned char * pw = NULL;
+    const size_t pw_len = 0;
+
     unsigned char *msg;
     size_t len;
 
@@ -143,7 +149,7 @@ void read_round_two_cli( char *data, int ref_ret )
     TEST_ASSERT( msg != NULL );
 
     TEST_ASSERT( mbedtls_ecjpake_setup( &ctx, MBEDTLS_ECJPAKE_CLIENT,
-                 MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw, 0 ) == 0 );
+                 MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw, pw_len ) == 0 );
 
     TEST_ASSERT( ecjpake_test_load( &ctx,
                  ADD_SIZE( ecjpake_test_x1 ), ADD_SIZE( ecjpake_test_x2 ),
@@ -163,7 +169,10 @@ exit:
 void read_round_two_srv( char *data, int ref_ret )
 {
     mbedtls_ecjpake_context ctx;
-    const unsigned char pw[] = {};
+
+    const unsigned char * pw = NULL;
+    const size_t pw_len = 0;
+
     unsigned char *msg;
     size_t len;
 
@@ -173,7 +182,7 @@ void read_round_two_srv( char *data, int ref_ret )
     TEST_ASSERT( msg != NULL );
 
     TEST_ASSERT( mbedtls_ecjpake_setup( &ctx, MBEDTLS_ECJPAKE_SERVER,
-                 MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw, 0 ) == 0 );
+                 MBEDTLS_MD_SHA256, MBEDTLS_ECP_DP_SECP256R1, pw, pw_len ) == 0 );
 
     TEST_ASSERT( ecjpake_test_load( &ctx,
                  ADD_SIZE( ecjpake_test_x3 ), ADD_SIZE( ecjpake_test_x4 ),

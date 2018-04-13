@@ -282,7 +282,7 @@ int main(int argc, const char *argv[])
     !defined(TEST_SUITE_MEMORY_BUFFER_ALLOC)
     unsigned char alloc_buf[1000000];
 #endif 
-    if( mbedtls_platform_setup( &platform_ctx ) )
+    if( platform_setup() )
     {
         mbedtls_fprintf( stderr, "FATAL: Failed to initialize platform" );
         return -1;
@@ -301,7 +301,7 @@ int main(int argc, const char *argv[])
     if( pointer != NULL )
     {
         mbedtls_fprintf( stderr, "all-bits-zero is not a NULL pointer\n" );
-        mbedtls_platform_teardown( &platform_ctx );
+        platform_teardown();
         return( 1 );
     }
 
@@ -311,7 +311,7 @@ int main(int argc, const char *argv[])
     if( run_test_snprintf() != 0 )
     {
         mbedtls_fprintf( stderr, "the snprintf implementation is broken\n" );
-        mbedtls_platform_teardown( &platform_ctx );
+        platform_teardown();
         return( 0 );
     }
 
@@ -328,7 +328,7 @@ int main(int argc, const char *argv[])
                  strcmp(next_arg, "-h" ) == 0 )
         {
             mbedtls_fprintf( stdout, USAGE );
-            mbedtls_platform_teardown( &platform_ctx );
+            platform_teardown();
             mbedtls_exit( EXIT_SUCCESS );
         }
         else
@@ -368,7 +368,7 @@ int main(int argc, const char *argv[])
         {
             mbedtls_fprintf( stderr, "Failed to open test file: %s\n",
                              test_filename );
-            mbedtls_platform_teardown( &platform_ctx );
+            platform_teardown();
             return( 1 );
         }
 
@@ -378,7 +378,7 @@ int main(int argc, const char *argv[])
             {
                 mbedtls_fprintf( stderr,
                     "FATAL: Dep count larger than zero at start of loop\n" );
-                mbedtls_platform_teardown( &platform_ctx );
+                platform_teardown();
                 mbedtls_exit( MBEDTLS_EXIT_FAILURE );
             }
             unmet_dep_count = 0;
@@ -415,7 +415,7 @@ int main(int argc, const char *argv[])
                         if(  unmet_dependencies[ unmet_dep_count ] == NULL )
                         {
                             mbedtls_fprintf( stderr, "FATAL: Out of memory\n" );
-                            mbedtls_platform_teardown( &platform_ctx );
+                            platform_teardown();
                             mbedtls_exit( MBEDTLS_EXIT_FAILURE );
                         }
                         unmet_dep_count++;
@@ -441,8 +441,8 @@ int main(int argc, const char *argv[])
                     stdout_fd = redirect_output( &stdout, "/dev/null" );
                     if( stdout_fd == -1 )
                     {
+                        platform_teardown();
                         /* Redirection has failed with no stdout so exit */
-                        mbedtls_platform_teardown( &platform_ctx );
                         exit( 1 );
                     }
                 }
@@ -454,7 +454,7 @@ int main(int argc, const char *argv[])
                 if( !option_verbose && restore_output( &stdout, stdout_fd ) )
                 {
                         /* Redirection has failed with no stdout so exit */
-                        mbedtls_platform_teardown( &platform_ctx );
+                        platform_teardown();
                         exit( 1 );
                 }
 #endif /* __unix__ || __APPLE__ __MACH__ */
@@ -506,7 +506,7 @@ int main(int argc, const char *argv[])
             {
                 mbedtls_fprintf( stderr, "FAILED: FATAL PARSE ERROR\n" );
                 fclose( file );
-                mbedtls_platform_teardown( &platform_ctx );
+                platform_teardown();
                 mbedtls_exit( 2 );
             }
             else
@@ -518,7 +518,7 @@ int main(int argc, const char *argv[])
             {
                 mbedtls_fprintf( stderr, "Should be empty %d\n",
                                  (int) strlen( buf ) );
-                mbedtls_platform_teardown( &platform_ctx );
+                platform_teardown();
                 return( 1 );
             }
         }
@@ -551,6 +551,6 @@ int main(int argc, const char *argv[])
         close_output( stdout );
 #endif /* __unix__ || __APPLE__ __MACH__ */
 
-    mbedtls_platform_teardown( &platform_ctx );
+    platform_teardown();
     return( total_errors != 0 );
 }

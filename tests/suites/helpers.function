@@ -109,6 +109,7 @@ static struct
 }
 test_info;
 
+mbedtls_platform_context platform_ctx;
 
 /*----------------------------------------------------------------------------*/
 /* Helper flags for complex dependencies */

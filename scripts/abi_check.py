@@ -12,7 +12,7 @@ files from two different Git revisions within an Mbed TLS repository.
 The results of the comparison are formatted as HTML and stored at
 a configurable location. Returns 0 on success, 1 on ABI/API non-compliance,
 and 2 if there is an error while running the script.
-Note: requires Python 3, must be run from Mbed TLS root.
+Note: must be run from Mbed TLS root.
 """
 
 import os
@@ -199,31 +199,30 @@ def run_main():
     try:
         parser = argparse.ArgumentParser(
             description=(
-                "This script is a small wrapper around the "
-                "abi-compliance-checker and abi-dumper tools, applying them "
-                "to compare the ABI and API of the library files from two "
-                "different Git revisions within an Mbed TLS repository."
-                " The results of the comparison are formatted as HTML and"
-                " stored at a configurable location. Returns 0 on success, "
-                "1 on ABI/API non-compliance, and 2 if there is an error "
-                "while running the script. Note: requires Python 3, "
-                "must be run from Mbed TLS root."
+                """This script is a small wrapper around the
+                abi-compliance-checker and abi-dumper tools, applying them
+                to compare the ABI and API of the library files from two
+                different Git revisions within an Mbed TLS repository.
+                The results of the comparison are formatted as HTML and stored
+                at a configurable location. Returns 0 on success, 1 on ABI/API
+                non-compliance, and 2 if there is an error while running the
+                script. Note: must be run from Mbed TLS root."""
             )
         )
         parser.add_argument(
-            "-r", "--report_dir", type=str, default="reports",
+            "-r", "--report-dir", type=str, default="reports",
             help="directory where reports are stored, default is reports",
         )
         parser.add_argument(
-            "-k", "--keep_all_reports", action="store_true",
+            "-k", "--keep-all-reports", action="store_true",
             help="keep all reports, even if there are no compatibility issues",
         )
         parser.add_argument(
-            "-o", "--old_rev", type=str, help="revision for old version",
+            "-o", "--old-rev", type=str, help="revision for old version",
             required=True
         )
         parser.add_argument(
-            "-n", "--new_rev", type=str, help="revision for new version",
+            "-n", "--new-rev", type=str, help="revision for new version",
             required=True
         )
         abi_args = parser.parse_args()

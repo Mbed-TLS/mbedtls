@@ -739,16 +739,6 @@ msg "test: allow SHA1 in certificates by default"
 make test
 if_build_succeeded tests/ssl-opt.sh -f SHA-1
 
-msg "build: Default + MBEDTLS_RSA_NO_CRT (ASan build)" # ~ 6 min
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl set MBEDTLS_RSA_NO_CRT
-CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-make
-
-msg "test: MBEDTLS_RSA_NO_CRT - main suites (inc. selftests) (ASan build)"
-make test
-
 msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
 cleanup
 make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -O1' WINDOWS_BUILD=1

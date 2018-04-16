@@ -149,6 +149,9 @@ int main( int argc, char *argv[] )
 {
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_net_context server_fd;
     unsigned char buf[1024];
     mbedtls_entropy_context entropy;
@@ -162,6 +165,14 @@ int main( int argc, char *argv[] )
     int verify = 0;
     char *p, *q;
     const char *pers = "cert_app";
+
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned -0x%x\n\n", -ret );
+        goto exit;
+    }
+#endif
 
     /*
      * Set to sane values
@@ -491,6 +502,9 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
     return( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_SSL_TLS_C &&

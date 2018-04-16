@@ -104,6 +104,10 @@ int main( void )
     unsigned char buf[1024];
     const char *pers = "ssl_fork_server";
 
+#if defined(MBEDTLS_PLATFORM_C)
+    int is_parent = 1;
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
@@ -111,6 +115,13 @@ int main( void )
     mbedtls_x509_crt srvcert;
     mbedtls_pk_context pkey;
 
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed!  mbedtls_platform_setup returned %d\n\n", ret );
+        goto exit;
+    }
+#endif
     mbedtls_net_init( &listen_fd );
     mbedtls_net_init( &client_fd );
     mbedtls_ssl_init( &ssl );
@@ -264,6 +275,10 @@ int main( void )
             continue;
         }
 
+#if defined(MBEDTLS_PLATFORM_C)
+        is_parent = 0;
+#endif
+
         mbedtls_net_init( &listen_fd );
 
         pid = getpid();
@@ -414,6 +429,10 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+    if( is_parent )
+        mbedtls_platform_teardown( &platform_ctx );
+#endif
     return( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_CERTS_C && MBEDTLS_ENTROPY_C &&

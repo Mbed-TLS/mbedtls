@@ -52,22 +52,39 @@ int main( void )
 #else
 int main( int argc, char *argv[] )
 {
-    FILE *f;
+    FILE *f = NULL;
     time_t t;
     int i, k, ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_havege_state hs;
     unsigned char buf[1024];
+
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( "Failed to initialize platform.\n" );
+        goto exit;
+    }
+#endif
 
     if( argc < 2 )
     {
         mbedtls_fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
-        return( exit_code );
+#if defined(MBEDTLS_PLATFORM_C)
+        mbedtls_platform_teardown( &platform_ctx );
+#endif
+		return( exit_code );
     }
 
     if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
     {
         mbedtls_printf( "failed to open '%s' for writing.\n", argv[1] );
+#if defined(MBEDTLS_PLATFORM_C)
+        mbedtls_platform_teardown( &platform_ctx );
+#endif
         return( exit_code );
     }
 
@@ -100,7 +117,11 @@ int main( int argc, char *argv[] )
 
 exit:
     mbedtls_havege_free( &hs );
-    fclose( f );
+    if( f != NULL )
+    	fclose( f );
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
     return( exit_code );
 }
 #endif /* MBEDTLS_HAVEGE_C */

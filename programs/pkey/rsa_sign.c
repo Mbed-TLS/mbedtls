@@ -33,6 +33,7 @@
 #define mbedtls_fprintf         fprintf
 #define mbedtls_printf          printf
 #define mbedtls_snprintf        snprintf
+#define mbedtls_exit            exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -58,14 +59,25 @@ int main( void )
 int main( int argc, char *argv[] )
 {
     FILE *f;
-    int ret = 1;
+    int ret = 0;
     int exit_code = MBEDTLS_EXIT_FAILURE;
     size_t i;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_rsa_context rsa;
     unsigned char hash[32];
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     char filename[512];
     mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
+
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_platform_setup returned %d\n\n", ret );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+    }
+#endif
 
     mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
 
@@ -186,6 +198,9 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
     return( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_RSA_C && MBEDTLS_SHA256_C &&

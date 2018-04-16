@@ -73,6 +73,9 @@ int main( int argc, char **argv )
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
     mbedtls_mpi G, P, Q;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     const char *pers = "dh_genprime";
@@ -81,6 +84,13 @@ int main( int argc, char **argv )
     int i;
     char *p, *q;
 
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( "Failed initializing platform.\n" );
+        goto exit;
+    }
+#endif
     mbedtls_mpi_init( &G ); mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
     mbedtls_ctr_drbg_init( &ctr_drbg );
     mbedtls_entropy_init( &entropy );
@@ -88,8 +98,9 @@ int main( int argc, char **argv )
     if( argc == 0 )
     {
     usage:
+        ret = 1;
         mbedtls_printf( USAGE );
-        return( exit_code );
+        goto exit;
     }
 
     for( i = 1; i < argc; i++ )
@@ -195,7 +206,10 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( exit_code );
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
+	return( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_FS_IO &&
           MBEDTLS_CTR_DRBG_C && MBEDTLS_GENPRIME */

@@ -62,8 +62,11 @@ int main( void )
 int main( int argc, char *argv[] )
 {
     FILE *f;
-    int ret = 1;
+    int ret = 0;
     int exit_code = MBEDTLS_EXIT_FAILURE;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_pk_context pk;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
@@ -73,6 +76,13 @@ int main( int argc, char *argv[] )
     const char *pers = "mbedtls_pk_sign";
     size_t olen = 0;
 
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_platofrm_setup returned %d\n", ret );
+        goto exit;
+    }
+#endif
     mbedtls_entropy_init( &entropy );
     mbedtls_ctr_drbg_init( &ctr_drbg );
     mbedtls_pk_init( &pk );
@@ -160,7 +170,7 @@ exit:
     mbedtls_entropy_free( &entropy );
 
 #if defined(MBEDTLS_ERROR_C)
-    if( exit_code != MBEDTLS_EXIT_SUCCESS )
+    if( exit_code != MBEDTLS_EXIT_SUCCESS && ret != 0 )
     {
         mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
         mbedtls_printf( "  !  Last error was: %s\n", buf );
@@ -172,6 +182,9 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
     return( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C &&

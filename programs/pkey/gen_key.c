@@ -1,4 +1,4 @@
-/*
+	/*
  *  Key generation application
  *
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
@@ -189,18 +189,29 @@ static int write_private_key( mbedtls_pk_context *key, const char *output_file )
 
 int main( int argc, char *argv[] )
 {
-    int ret = 1;
+    int ret = 0;
     int exit_code = MBEDTLS_EXIT_FAILURE;
     mbedtls_pk_context key;
     char buf[1024];
     int i;
     char *p, *q;
     mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     const char *pers = "gen_key";
 #if defined(MBEDTLS_ECP_C)
     const mbedtls_ecp_curve_info *curve_info;
+#endif
+
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_platform_setup returned %d\n", ret );
+        goto exit;
+    }
 #endif
 
     /*
@@ -420,7 +431,7 @@ int main( int argc, char *argv[] )
 
 exit:
 
-    if( exit_code != MBEDTLS_EXIT_SUCCESS )
+    if( exit_code != MBEDTLS_EXIT_SUCCESS && ret != 0 )
     {
 #ifdef MBEDTLS_ERROR_C
         mbedtls_strerror( ret, buf, sizeof( buf ) );
@@ -443,7 +454,10 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( exit_code );
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
+	return( exit_code );
 }
 #endif /* MBEDTLS_PK_WRITE_C && MBEDTLS_PEM_WRITE_C && MBEDTLS_FS_IO &&
         * MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */

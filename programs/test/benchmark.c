@@ -29,7 +29,6 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define mbedtls_exit       exit
 #define mbedtls_printf     printf
 #define mbedtls_snprintf   snprintf
 #define mbedtls_free       free
@@ -236,12 +235,20 @@ typedef struct {
 
 int main( int argc, char *argv[] )
 {
-    int i;
+    int i, exit_code = 1;
     unsigned char tmp[200];
     char title[TITLE_LEN];
     todo_list todo;
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     unsigned char alloc_buf[HEAP_SIZE] = { 0 };
+#endif
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+    if( ( exit_code = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( "Failed initializing platform.\n" );
+        goto exit;
+    }
 #endif
 
     if( argc <= 1 )
@@ -562,13 +569,13 @@ int main( int argc, char *argv[] )
         mbedtls_ctr_drbg_init( &ctr_drbg );
 
         if( mbedtls_ctr_drbg_seed( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
-            mbedtls_exit(1);
+            goto exit;
         TIME_AND_TSC( "CTR_DRBG (NOPR)",
                 if( mbedtls_ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
                 mbedtls_exit(1) );
 
         if( mbedtls_ctr_drbg_seed( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
-            mbedtls_exit(1);
+            goto exit;
         mbedtls_ctr_drbg_set_prediction_resistance( &ctr_drbg, MBEDTLS_CTR_DRBG_PR_ON );
         TIME_AND_TSC( "CTR_DRBG (PR)",
                 if( mbedtls_ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
@@ -587,16 +594,16 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_SHA1_C)
         if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA1 ) ) == NULL )
-            mbedtls_exit(1);
+            goto exit;
 
         if( mbedtls_hmac_drbg_seed( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
-            mbedtls_exit(1);
+            goto exit;
         TIME_AND_TSC( "HMAC_DRBG SHA-1 (NOPR)",
                 if( mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
                 mbedtls_exit(1) );
 
         if( mbedtls_hmac_drbg_seed( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
-            mbedtls_exit(1);
+            goto exit;
         mbedtls_hmac_drbg_set_prediction_resistance( &hmac_drbg,
                                              MBEDTLS_HMAC_DRBG_PR_ON );
         TIME_AND_TSC( "HMAC_DRBG SHA-1 (PR)",
@@ -606,16 +613,16 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_SHA256_C)
         if( ( md_info = mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ) ) == NULL )
-            mbedtls_exit(1);
+            goto exit;
 
         if( mbedtls_hmac_drbg_seed( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
-            mbedtls_exit(1);
+            goto exit;
         TIME_AND_TSC( "HMAC_DRBG SHA-256 (NOPR)",
                 if( mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
                 mbedtls_exit(1) );
 
         if( mbedtls_hmac_drbg_seed( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
-            mbedtls_exit(1);
+            goto exit;
         mbedtls_hmac_drbg_set_prediction_resistance( &hmac_drbg,
                                              MBEDTLS_HMAC_DRBG_PR_ON );
         TIME_AND_TSC( "HMAC_DRBG SHA-256 (PR)",
@@ -683,13 +690,13 @@ int main( int argc, char *argv[] )
                 mbedtls_mpi_read_binary( &dhm.G, dhm_G[i],
                                          dhm_G_size[i] ) != 0 )
             {
-                mbedtls_exit( 1 );
+                goto exit;
             }
 
             dhm.len = mbedtls_mpi_size( &dhm.P );
             mbedtls_dhm_make_public( &dhm, (int) dhm.len, buf, dhm.len, myrand, NULL );
             if( mbedtls_mpi_copy( &dhm.GY, &dhm.GX ) != 0 )
-                mbedtls_exit( 1 );
+                goto exit;
 
             mbedtls_snprintf( title, sizeof( title ), "DHE-%d", dhm_sizes[i] );
             TIME_PUBLIC( title, "handshake",
@@ -722,7 +729,7 @@ int main( int argc, char *argv[] )
             mbedtls_ecdsa_init( &ecdsa );
 
             if( mbedtls_ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) != 0 )
-                mbedtls_exit( 1 );
+                goto exit;
             ecp_clear_precomputed( &ecdsa.grp );
 
             mbedtls_snprintf( title, sizeof( title ), "ECDSA-%s",
@@ -744,7 +751,7 @@ int main( int argc, char *argv[] )
                 mbedtls_ecdsa_write_signature( &ecdsa, MBEDTLS_MD_SHA256, buf, curve_info->bit_size,
                                                tmp, &sig_len, myrand, NULL ) != 0 )
             {
-                mbedtls_exit( 1 );
+                goto exit;
             }
             ecp_clear_precomputed( &ecdsa.grp );
 
@@ -780,7 +787,7 @@ int main( int argc, char *argv[] )
                                   myrand, NULL ) != 0 ||
                 mbedtls_ecp_copy( &ecdh.Qp, &ecdh.Q ) != 0 )
             {
-                mbedtls_exit( 1 );
+                goto exit;
             }
             ecp_clear_precomputed( &ecdh.grp );
 
@@ -802,7 +809,7 @@ int main( int argc, char *argv[] )
         if( mbedtls_ecp_group_load( &ecdh.grp, MBEDTLS_ECP_DP_CURVE25519 ) != 0 ||
             mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp, myrand, NULL ) != 0 )
         {
-            mbedtls_exit( 1 );
+            goto exit;
         }
 
         TIME_PUBLIC(  "ECDHE-Curve25519", "handshake",
@@ -828,7 +835,7 @@ int main( int argc, char *argv[] )
                 mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                   myrand, NULL ) != 0 )
             {
-                mbedtls_exit( 1 );
+                goto exit;
             }
             ecp_clear_precomputed( &ecdh.grp );
 
@@ -850,7 +857,7 @@ int main( int argc, char *argv[] )
                              myrand, NULL ) != 0 ||
             mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q, myrand, NULL ) != 0 )
         {
-            mbedtls_exit( 1 );
+            goto exit;
         }
 
         TIME_PUBLIC(  "ECDH-Curve25519", "handshake",
@@ -874,7 +881,14 @@ int main( int argc, char *argv[] )
     fflush( stdout ); getchar();
 #endif
 
-    return( 0 );
+    exit_code = 0;
+exit:
+
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
+
+    return( exit_code );
 }
 
 #endif /* MBEDTLS_TIMING_C */

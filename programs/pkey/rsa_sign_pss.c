@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #define mbedtls_snprintf        snprintf
 #define mbedtls_printf          printf
+#define mbedtls_exit            exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -62,8 +63,11 @@ int main( void )
 int main( int argc, char *argv[] )
 {
     FILE *f;
-    int ret = 1;
+    int ret = 0;
     int exit_code = MBEDTLS_EXIT_FAILURE;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_pk_context pk;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
@@ -73,6 +77,13 @@ int main( int argc, char *argv[] )
     const char *pers = "rsa_sign_pss";
     size_t olen = 0;
 
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_platform_setup returned %d\n", ret );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+    }
+#endif
     mbedtls_entropy_init( &entropy );
     mbedtls_pk_init( &pk );
     mbedtls_ctr_drbg_init( &ctr_drbg );
@@ -173,6 +184,9 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
     return( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_RSA_C &&

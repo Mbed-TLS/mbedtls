@@ -56,6 +56,9 @@ int main( int argc, char *argv[] )
 {
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_ecdh_context ctx_cli, ctx_srv;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
@@ -64,6 +67,13 @@ int main( int argc, char *argv[] )
     ((void) argc);
     ((void) argv);
 
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_platform_setup returned %d\n", ret );
+        goto exit;
+    }
+#endif
     mbedtls_ecdh_init( &ctx_cli );
     mbedtls_ecdh_init( &ctx_srv );
     mbedtls_ctr_drbg_init( &ctr_drbg );
@@ -235,7 +245,9 @@ exit:
     mbedtls_ecdh_free( &ctx_cli );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
-
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
     return( exit_code );
 }
 #endif /* MBEDTLS_ECDH_C && MBEDTLS_ECP_DP_CURVE25519_ENABLED &&

@@ -350,6 +350,9 @@ int main( int argc, char *argv[] )
 {
     int ret = 1, len;
     int exit_code = MBEDTLS_EXIT_FAILURE;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_net_context server_fd;
 #if defined(MBEDTLS_BASE64_C)
     unsigned char base[1024];
@@ -375,6 +378,14 @@ int main( int argc, char *argv[] )
     size_t n;
     char *p, *q;
     const int *list;
+
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_platform_setup returned %d\n", ret );
+        goto exit;
+    }
+#endif
 
     /*
      * Make sure memory references are valid in case we exit early.
@@ -846,6 +857,9 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
     return( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_SSL_TLS_C &&

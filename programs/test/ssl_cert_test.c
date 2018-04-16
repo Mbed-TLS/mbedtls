@@ -85,9 +85,20 @@ int main( void )
 {
     int ret = 1, i;
     int exit_code = MBEDTLS_EXIT_FAILURE;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_x509_crt cacert;
     mbedtls_x509_crl crl;
     char buf[10240];
+
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
+        goto exit;
+    }
+#endif
 
     mbedtls_x509_crt_init( &cacert );
     mbedtls_x509_crl_init( &crl );
@@ -253,6 +264,10 @@ exit:
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
+#endif
+
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
 #endif
 
     return( exit_code );

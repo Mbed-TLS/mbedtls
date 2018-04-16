@@ -97,6 +97,9 @@ int main( int argc, char *argv[] )
     unsigned char buffer[1024];
     unsigned char diff;
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_aes_context aes_ctx;
     mbedtls_md_context_t sha_ctx;
 
@@ -107,6 +110,14 @@ int main( int argc, char *argv[] )
     __int64 filesize, offset;
 #else
       off_t filesize, offset;
+#endif
+
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( "  ! mbedtls_platform_setup() returned %d\n", ret );
+        goto exit;
+    }
 #endif
 
     mbedtls_aes_init( &aes_ctx );
@@ -461,6 +472,9 @@ exit:
 
     mbedtls_aes_free( &aes_ctx );
     mbedtls_md_free( &sha_ctx );
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
 
     return( exit_code );
 }

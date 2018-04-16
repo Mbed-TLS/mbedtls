@@ -101,6 +101,9 @@ static void my_debug( void *ctx, int level,
 int main( void )
 {
     int ret, len;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_net_context listen_fd, client_fd;
     unsigned char buf[1024];
     const char *pers = "dtls_server";
@@ -119,6 +122,13 @@ int main( void )
     mbedtls_ssl_cache_context cache;
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
+        goto exit;
+    }
+#endif
     mbedtls_net_init( &listen_fd );
     mbedtls_net_init( &client_fd );
     mbedtls_ssl_init( &ssl );
@@ -425,6 +435,10 @@ exit:
     /* Shell can not handle large exit numbers -> 1 for errors */
     if( ret < 0 )
         ret = 1;
+
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
 
     return( ret );
 }

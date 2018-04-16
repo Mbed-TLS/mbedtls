@@ -96,6 +96,9 @@ int main( int argc, char *argv[] )
     unsigned char output[1024];
     unsigned char diff;
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     const mbedtls_cipher_info_t *cipher_info;
     const mbedtls_md_info_t *md_info;
     mbedtls_cipher_context_t cipher_ctx;
@@ -109,6 +112,13 @@ int main( int argc, char *argv[] )
       off_t filesize, offset;
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_fprintf( stderr, "failed initializing platform\n" );
+        goto exit;
+    }
+#endif
     mbedtls_cipher_init( &cipher_ctx );
     mbedtls_md_init( &md_ctx );
 
@@ -558,6 +568,9 @@ exit:
 
     mbedtls_cipher_free( &cipher_ctx );
     mbedtls_md_free( &md_ctx );
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
 
     return( exit_code );
 }

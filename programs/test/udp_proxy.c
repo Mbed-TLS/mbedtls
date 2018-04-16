@@ -134,18 +134,7 @@ static struct options
     unsigned int seed;          /* seed for "random" events                 */
 } opt;
 
-static void exit_usage( const char *name, const char *value )
-{
-    if( value == NULL )
-        mbedtls_printf( " unknown option or missing value: %s\n", name );
-    else
-        mbedtls_printf( " option %s: illegal value: %s\n", name, value );
-
-    mbedtls_printf( USAGE );
-    exit( 1 );
-}
-
-static void get_options( int argc, char *argv[] )
+static int get_options( int argc, char *argv[] )
 {
     int i;
     char *p, *q;
@@ -160,7 +149,7 @@ static void get_options( int argc, char *argv[] )
     {
         p = argv[i];
         if( ( q = strchr( p, '=' ) ) == NULL )
-            exit_usage( p, NULL );
+            goto usage;
         *q++ = '\0';
 
         if( strcmp( p, "server_addr" ) == 0 )
@@ -175,59 +164,73 @@ static void get_options( int argc, char *argv[] )
         {
             opt.duplicate = atoi( q );
             if( opt.duplicate < 0 || opt.duplicate > 20 )
-                exit_usage( p, q );
+                goto usage;
         }
         else if( strcmp( p, "delay" ) == 0 )
         {
             opt.delay = atoi( q );
             if( opt.delay < 0 || opt.delay > 20 || opt.delay == 1 )
-                exit_usage( p, q );
+                goto usage;
         }
         else if( strcmp( p, "delay_ccs" ) == 0 )
         {
             opt.delay_ccs = atoi( q );
             if( opt.delay_ccs < 0 || opt.delay_ccs > 1 )
-                exit_usage( p, q );
+                goto usage;
         }
         else if( strcmp( p, "drop" ) == 0 )
         {
             opt.drop = atoi( q );
             if( opt.drop < 0 || opt.drop > 20 || opt.drop == 1 )
-                exit_usage( p, q );
+                goto usage;
         }
         else if( strcmp( p, "mtu" ) == 0 )
         {
             opt.mtu = atoi( q );
             if( opt.mtu < 0 || opt.mtu > MAX_MSG_SIZE )
-                exit_usage( p, q );
+                goto usage;
         }
         else if( strcmp( p, "bad_ad" ) == 0 )
         {
             opt.bad_ad = atoi( q );
             if( opt.bad_ad < 0 || opt.bad_ad > 1 )
-                exit_usage( p, q );
+                goto usage;
         }
         else if( strcmp( p, "protect_hvr" ) == 0 )
         {
             opt.protect_hvr = atoi( q );
             if( opt.protect_hvr < 0 || opt.protect_hvr > 1 )
-                exit_usage( p, q );
+                goto usage;
         }
         else if( strcmp( p, "protect_len" ) == 0 )
         {
             opt.protect_len = atoi( q );
             if( opt.protect_len < 0 )
-                exit_usage( p, q );
+                goto usage;
         }
         else if( strcmp( p, "seed" ) == 0 )
         {
             opt.seed = atoi( q );
             if( opt.seed == 0 )
-                exit_usage( p, q );
+                goto usage;
         }
         else
-            exit_usage( p, NULL );
+        {
+            q = NULL;
+            goto usage;
+        }
     }
+
+    return( 0 );
+
+usage:
+    if( q == NULL )
+        mbedtls_printf( " unknown option or missing value: %s\n", p );
+    else
+        mbedtls_printf( " option %s: illegal value: %s\n", p, q );
+
+    mbedtls_printf( USAGE );
+    return( 1 );
 }
 
 static const char *msg_type( unsigned char *msg, size_t len )
@@ -478,11 +481,21 @@ int main( int argc, char *argv[] )
     int nb_fds;
     fd_set read_fds;
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_platform_setup returned %d\n\n", ret );
+        goto exit;
+    }
+#endif
+
     mbedtls_net_init( &listen_fd );
     mbedtls_net_init( &client_fd );
     mbedtls_net_init( &server_fd );
 
-    get_options( argc, argv );
+    if( ( ret = get_options( argc, argv ) ) != 0 )
+        goto exit;
 
     /*
      * Decisions to drop/delay/duplicate packets are pseudo-random: dropping
@@ -617,6 +630,9 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
     return( exit_code );
 }
 

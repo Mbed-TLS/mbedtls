@@ -54,6 +54,15 @@ int main( void )
     int exit_code = MBEDTLS_EXIT_FAILURE;
     mbedtls_mpi E, P, Q, N, H, D, X, Y, Z;
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( "  Failed initializing platform.\n" );
+        goto cleanup;
+    }
+#endif
+
     mbedtls_mpi_init( &E ); mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q ); mbedtls_mpi_init( &N );
     mbedtls_mpi_init( &H ); mbedtls_mpi_init( &D ); mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y );
     mbedtls_mpi_init( &Z );
@@ -109,6 +118,9 @@ cleanup:
     fflush( stdout ); getchar();
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
     return( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_FS_IO */

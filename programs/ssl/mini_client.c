@@ -171,6 +171,9 @@ enum exit_codes
 int main( void )
 {
     int ret = exit_ok;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_net_context server_fd;
     struct sockaddr_in addr;
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -186,6 +189,13 @@ int main( void )
     /*
      * 0. Initialize and setup stuff
      */
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( "Failed initializing platform.\n" );
+        goto exit;
+    }
+#endif
     mbedtls_net_init( &server_fd );
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );
@@ -295,6 +305,9 @@ exit:
     mbedtls_entropy_free( &entropy );
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_free( &ca );
+#endif
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
 #endif
 
     return( ret );

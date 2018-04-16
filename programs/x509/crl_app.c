@@ -76,6 +76,14 @@ int main( int argc, char *argv[] )
     mbedtls_x509_crl crl;
     int i;
     char *p, *q;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
+        goto exit;
+    }
+#endif
 
     /*
      * Set to sane values
@@ -145,6 +153,9 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
     return( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_RSA_C && MBEDTLS_X509_CRL_PARSE_C &&

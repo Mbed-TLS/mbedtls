@@ -103,6 +103,9 @@ int main( int argc, char *argv[] )
 {
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_ecdsa_context ctx_sign, ctx_verify;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
@@ -113,6 +116,13 @@ int main( int argc, char *argv[] )
     const char *pers = "ecdsa";
     ((void) argv);
 
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( "  Failed initializing platform.\n" );
+        goto exit;
+    }
+#endif
     mbedtls_ecdsa_init( &ctx_sign );
     mbedtls_ecdsa_init( &ctx_verify );
     mbedtls_ctr_drbg_init( &ctr_drbg );
@@ -245,7 +255,9 @@ exit:
     mbedtls_ecdsa_free( &ctx_sign );
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
-
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
     return( exit_code );
 }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C &&

@@ -76,8 +76,8 @@ struct mbedtls_cmac_context_t
  * \param keybits       The length of the CMAC key in bits.
  *                      Must be supported by the cipher.
  *
- * \returns             \c 0 on success.
- * \returns             A cipher-specific error code on failure.
+ * \return              \c 0 on success.
+ * \return              A cipher-specific error code on failure.
  */
 int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
                                 const unsigned char *key, size_t keybits );
@@ -94,8 +94,8 @@ int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
  * \param input         The buffer holding the input data.
  * \param ilen          The length of the input data.
  *
- * \returns            \c 0 on success.
- * \returns            #MBEDTLS_ERR_MD_BAD_INPUT_DATA
+ * \return             \c 0 on success.
+ * \return             #MBEDTLS_ERR_MD_BAD_INPUT_DATA
  *                     if parameter verification fails.
  */
 int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
@@ -112,8 +112,8 @@ int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
  * \param ctx           The cipher context used for the CMAC operation.
  * \param output        The output buffer for the CMAC checksum result.
  *
- * \returns             \c 0 on success.
- * \returns             #MBEDTLS_ERR_MD_BAD_INPUT_DATA
+ * \return              \c 0 on success.
+ * \return              #MBEDTLS_ERR_MD_BAD_INPUT_DATA
  *                      if parameter verification fails.
  */
 int mbedtls_cipher_cmac_finish( mbedtls_cipher_context_t *ctx,
@@ -129,8 +129,8 @@ int mbedtls_cipher_cmac_finish( mbedtls_cipher_context_t *ctx,
  *
  * \param ctx           The cipher context used for the CMAC operation.
  *
- * \returns             \c 0 on success.
- * \returns             #MBEDTLS_ERR_MD_BAD_INPUT_DATA
+ * \return              \c 0 on success.
+ * \return              #MBEDTLS_ERR_MD_BAD_INPUT_DATA
  *                      if parameter verification fails.
  */
 int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx );
@@ -153,8 +153,8 @@ int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx );
  * \param ilen          The length of the input data.
  * \param output        The buffer for the generic CMAC result.
  *
- * \returns             \c 0 on success.
- * \returns             #MBEDTLS_ERR_MD_BAD_INPUT_DATA
+ * \return              \c 0 on success.
+ * \return              #MBEDTLS_ERR_MD_BAD_INPUT_DATA
  *                      if parameter verification fails.
  */
 int mbedtls_cipher_cmac( const mbedtls_cipher_info_t *cipher_info,

@@ -133,7 +133,7 @@ mbedtls_platform_context platform_ctx;
 static int platform_setup()
 {
 #if defined(MBEDTLS_PLATFORM_C)
-    if( mbedtls_platform_setup( &platform_ctx ) )
+    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
         return -1;
     }

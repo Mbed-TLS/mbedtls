@@ -282,7 +282,7 @@ int main(int argc, const char *argv[])
     !defined(TEST_SUITE_MEMORY_BUFFER_ALLOC)
     unsigned char alloc_buf[1000000];
 #endif 
-    if( platform_setup() )
+    if( platform_setup() != 0 )
     {
         mbedtls_fprintf( stderr, "FATAL: Failed to initialize platform" );
         return -1;

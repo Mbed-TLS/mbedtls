@@ -118,6 +118,7 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx );
  *                  4, 6, 8, 10, 12, 14 or 16.
  *
  * \return          \c 0 on success.
+ * \return          A cipher-specific error code on failure.
  */
 int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
                          const unsigned char *iv, size_t iv_len,
@@ -143,8 +144,8 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  * \param tag_len   The length of the tag in Bytes.
  *                  4, 6, 8, 10, 12, 14 or 16.
  *
- * \return          0 if successful and authenticated.
- * \return          #MBEDTLS_ERR_CCM_AUTH_FAILED if the tag does not match.
+ * \return          \c 0 on success.
+ * \return          A cipher-specific error code on failure.
  */
 int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
                       const unsigned char *iv, size_t iv_len,

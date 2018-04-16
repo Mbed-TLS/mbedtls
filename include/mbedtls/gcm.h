@@ -158,7 +158,7 @@ int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
  * \param output    The buffer for holding the output data.
  *
  * \return         0 if successful and authenticated.
- * \return         #MBEDTLS_ERR_GCM_AUTH_FAILED if tag does not match.
+ * \return         #MBEDTLS_ERR_GCM_AUTH_FAILED if the tag does not match.
  */
 int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
                       size_t length,

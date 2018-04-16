@@ -121,7 +121,7 @@ int mbedtls_ecdsa_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
  * \param md_alg    The MD algorithm used to hash the message.
  *
  * \return          \c 0 on success.
- * \return          or an \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX
+ * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX
  *                  error code on failure.
  */
 int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
@@ -149,7 +149,8 @@ int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi 
  * \param s         The second integer of the signature.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if signature is invalid.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if the signature
+ *                  is invalid.
  * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX
  *                  error code on failure for any other reason.
  */
@@ -240,7 +241,7 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
  * \deprecated      Superseded by mbedtls_ecdsa_write_signature() in 2.0.0
  *
  * \param ctx       The ECDSA context.
- * \param hash      The Message hash.
+ * \param hash      The message hash.
  * \param hlen      The length of the hash.
  * \param sig       The buffer that holds the signature.
  * \param slen      The length of the signature written.

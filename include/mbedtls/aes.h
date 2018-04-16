@@ -116,7 +116,7 @@ void mbedtls_aes_free( mbedtls_aes_context *ctx );
  *                 <li>256 bits</li></ul>
  *
  * \return         \c 0 on success.
- *                 #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH on failure.
+ * \return         #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH on failure.
  */
 int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keybits );

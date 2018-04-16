@@ -102,6 +102,10 @@ typedef enum {
  *
  * Applications may call this function more than once. Once a call
  * succeeds, subsequent calls are guaranteed to succeed.
+ * 
+ * \note Initial lifetime value for each key slot is initiated 
+ *       to PSA_KEY_LIFETIME_VOLATILE, user should change this value
+ *       before calling psa_import_key() if needed.
  *
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_INSUFFICIENT_MEMORY
@@ -578,19 +582,15 @@ psa_status_t psa_get_key_policy(psa_key_slot_t key,
  */
 typedef uint32_t psa_key_lifetime_t;
 
-/** An invalid key lifetime value.
- */
-#define PSA_KEY_LIFETIME_NONE               ((psa_key_lifetime_t)0x00000000)
-
 /** A volatile key slot retains its content as long as the application is
  * running. It is guaranteed to be erased on a power reset.
  */
-#define PSA_KEY_LIFETIME_VOLATILE               ((psa_key_lifetime_t)0x00000001)
+#define PSA_KEY_LIFETIME_VOLATILE               ((psa_key_lifetime_t)0x00000000)
 
 /** A persistent key slot retains its content as long as it is not explicitly
  * destroyed.
  */
-#define PSA_KEY_LIFETIME_PERSISTENT             ((psa_key_lifetime_t)0x00000002)
+#define PSA_KEY_LIFETIME_PERSISTENT             ((psa_key_lifetime_t)0x00000001)
 
 /** A write-once key slot may not be modified once a key has been set.
  * It will retain its content as long as the device remains operational.

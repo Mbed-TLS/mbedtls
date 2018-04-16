@@ -534,7 +534,7 @@ psa_status_t psa_export_public_key(psa_key_slot_t key,
     if( slot->type == PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_EMPTY_SLOT );   
 
-    if( !(PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) || PSA_KEY_TYPE_IS_KEYPAIR(slot->type))  )
+    if( !( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) || PSA_KEY_TYPE_IS_KEYPAIR(slot->type) )  )
         return( PSA_ERROR_INVALID_ARGUMENT );   
     
 #if defined(MBEDTLS_PK_WRITE_C)

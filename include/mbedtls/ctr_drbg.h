@@ -3,10 +3,13 @@
  *
  * \brief    This file contains CTR_DRBG definitions and functions.
  *
- * CTR_DRBG is based on AES-256, as defined in <em>NIST SP 800-90A:
- * Recommendation for Random Number Generation Using Deterministic
- * Random Bit Generators</em>.
+ * CTR_DRBG is a standardized way of building a PRNG from a block-cipher
+ * in counter mode operation, as defined in <em>NIST SP 800-90A:
+ * Recommendation for Random Number Generation Using Deterministic Random
+ * Bit Generators</em>.
  *
+ * The Mbed TLS implementation of CTR_DRBG uses AES-256 as the underlying
+ * block cipher.
  */
 /*
  *  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved
@@ -286,8 +289,8 @@ int mbedtls_ctr_drbg_random( void *p_rng,
  * \param path          The name of the file.
  *
  * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR on file error, or
- *                      #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED on
+ * \return              #MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR on file error.
+ * \return              #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED on
  *                      failure.
  */
 int mbedtls_ctr_drbg_write_seed_file( mbedtls_ctr_drbg_context *ctx, const char *path );

@@ -66,10 +66,26 @@ int main( void )
     unsigned char digest[16];
     char str[] = "Hello, world!";
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( "  Failed initializing platform.\n" );
+        goto exit;
+    }
+#endif
+
     mbedtls_printf( "\n  MD5('%s') = ", str );
 
     if( ( ret = mbedtls_md5_ret( (unsigned char *) str, 13, digest ) ) != 0 )
-        return( MBEDTLS_EXIT_FAILURE );
+    {
+        ret = MBEDTLS_EXIT_FAILURE;
+        goto exit;
+    }
+    else
+        ret = MBEDTLS_EXIT_SUCCESS;
 
     for( i = 0; i < 16; i++ )
         mbedtls_printf( "%02x", digest[i] );
@@ -81,6 +97,10 @@ int main( void )
     fflush( stdout ); getchar();
 #endif
 
-    return( MBEDTLS_EXIT_SUCCESS );
+exit:
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
+    return( ret );
 }
 #endif /* MBEDTLS_MD5_C */

@@ -113,6 +113,9 @@ int main( int argc, char *argv[] )
     const char *pers = "dtls_client";
     int retry_left = MAX_RETRY;
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
@@ -122,6 +125,14 @@ int main( int argc, char *argv[] )
 
     ((void) argc);
     ((void) argv);
+
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_platform_setup returned %d\n\n", ret );
+        goto exit;
+    }
+#endif
 
 #if defined(MBEDTLS_DEBUG_C)
     mbedtls_debug_set_threshold( DEBUG_LEVEL );
@@ -365,6 +376,10 @@ exit:
     /* Shell can not handle large exit numbers -> 1 for errors */
     if( ret < 0 )
         ret = 1;
+
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
 
     return( ret );
 }

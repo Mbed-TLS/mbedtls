@@ -74,9 +74,12 @@ void mbedtls_param_failed( const char *failure_condition,
 int main( int argc, char *argv[] )
 {
     FILE *f;
-    int ret = 1;
+    int ret = 0;
     int exit_code = MBEDTLS_EXIT_FAILURE;
     size_t i;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_rsa_context rsa;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
@@ -84,6 +87,15 @@ int main( int argc, char *argv[] )
     unsigned char buf[512];
     const char *pers = "rsa_encrypt";
     mbedtls_mpi N, E;
+
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_platform_setup returned %d\n",
+                        ret );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+    }
+#endif
 
     if( argc != 2 )
     {
@@ -93,7 +105,10 @@ int main( int argc, char *argv[] )
         mbedtls_printf( "\n" );
 #endif
 
-        mbedtls_exit( exit_code );
+#if defined(MBEDTLS_PLATFORM_C)
+        mbedtls_platform_teardown( &platform_ctx );
+#endif
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 
     mbedtls_printf( "\n  . Seeding the random number generator..." );
@@ -195,6 +210,9 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
     return( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_RSA_C && MBEDTLS_ENTROPY_C &&

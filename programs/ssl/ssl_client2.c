@@ -567,6 +567,9 @@ int idle( mbedtls_net_context *fd,
 int main( int argc, char *argv[] )
 {
     int ret = 0, len, tail_len, i, written, frags, retry_left;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_net_context server_fd;
 
     unsigned char buf[MAX_REQUEST_SIZE + 1];
@@ -614,6 +617,14 @@ int main( int argc, char *argv[] )
 #endif
     char *p, *q;
     const int *list;
+
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( "Failed initializing platform.\n" );
+        goto exit;
+    }
+#endif
 
     /*
      * Make sure memory references are valid.
@@ -2314,6 +2325,10 @@ exit:
     // Shell can not handle large exit numbers -> 1 for errors
     if( ret < 0 )
         ret = 1;
+
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
 
     return( ret );
 }

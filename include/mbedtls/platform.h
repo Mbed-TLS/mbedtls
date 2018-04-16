@@ -3,6 +3,14 @@
  *
  * \brief This file contains the definitions and functions of the
  *        Mbed TLS platform abstraction layer.
+ *
+ *        The platform abstraction layer removes the need for the library
+ *        to directly link to standard C library functions or operating
+ *        system services, making the library easier to port and embed.
+ *        Application developers and users of the library can provide their own
+ *        implementations of these functions, or implementations specific to
+ *        their platform, which can be statically linked to the library or 
+ *        dynamically configured at runtime.
  */
 /*
  *  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved
@@ -117,8 +125,8 @@ extern void * (*mbedtls_calloc)( size_t n, size_t size );
 extern void (*mbedtls_free)( void *ptr );
 
 /**
- * \brief               This function allows configuring custom
- *                      memory-management functions.
+ * \brief               This function dynamically sets the memory-management
+ *                      functions used by the library, during runtime.
  *
  * \param calloc_func   The \c calloc function implementation.
  * \param free_func     The \c free function implementation.
@@ -142,8 +150,9 @@ int mbedtls_platform_set_calloc_free( void * (*calloc_func)( size_t, size_t ),
 extern int (*mbedtls_fprintf)( FILE *stream, const char *format, ... );
 
 /**
- * \brief                This function allows configuring a custom
- *                       \p fprintf function pointer.
+ * \brief                This function dynamically configures the fprintf
+ *                       function that is called when the
+ *                       mbedtls_fprintf() function is invoked by the library.
  *
  * \param fprintf_func   The \c fprintf function implementation.
  *
@@ -166,8 +175,9 @@ int mbedtls_platform_set_fprintf( int (*fprintf_func)( FILE *stream, const char 
 extern int (*mbedtls_printf)( const char *format, ... );
 
 /**
- * \brief               This function allows configuring a custom \c printf
- *                      function pointer.
+ * \brief               This function dynamically configures the snprintf
+ *                      function that is called when the mbedtls_snprintf()
+ *                      function is invoked by the library.
  *
  * \param printf_func   The \c printf function implementation.
  *
@@ -224,8 +234,9 @@ int mbedtls_platform_set_snprintf( int (*snprintf_func)( char * s, size_t n,
 extern void (*mbedtls_exit)( int status );
 
 /**
- * \brief             This function allows configuring a custom
- *                    \c exit function pointer.
+ * \brief             This function dynamically configures the exit
+ *                    function that is called when the mbedtls_exit()
+ *                    function is invoked by the library.
  *
  * \param exit_func   The \c exit function implementation.
  *
@@ -314,7 +325,8 @@ mbedtls_platform_context;
 #endif /* !MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT */
 
 /**
- * \brief   This function performs any platform-specific initialization operations.
+ * \brief   This function performs any platform-specific initialization
+ *          operations.
  *
  * \note    This function should be called before any other library functions.
  *
@@ -323,7 +335,7 @@ mbedtls_platform_context;
  *
  * \note    The usage and necessity of this function is dependent on the platform.
  *
- * \param   ctx     The Mbed TLS context.
+ * \param   ctx     The platform context.
  *
  * \return  \c 0 on success.
  */
@@ -339,7 +351,7 @@ int mbedtls_platform_setup( mbedtls_platform_context *ctx );
  *
  * \note    The usage and necessity of this function is dependent on the platform.
  *
- * \param   ctx     The Mbed TLS context.
+ * \param   ctx     The platform context.
  *
  */
 void mbedtls_platform_teardown( mbedtls_platform_context *ctx );

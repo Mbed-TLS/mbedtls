@@ -434,14 +434,11 @@ exit:
 void key_policy_fail( int usage_arg, int alg_arg, int expected_status, char *key_hex )
 {
     int key_slot = 1;
-    unsigned char key[32] = {0};
     unsigned char* keypair = NULL;
     size_t key_size = 0;
     size_t signature_length = 0;
     psa_key_policy_t policy = {0};
     int actual_status = PSA_SUCCESS;
-        
-    memset( key, 0x2a, sizeof( key ) );
  
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
@@ -464,8 +461,10 @@ void key_policy_fail( int usage_arg, int alg_arg, int expected_status, char *key
     
     if( usage_arg & PSA_KEY_USAGE_SIGN )
     {
+        keypair = unhexify_alloc( key_hex, &key_size );
+        TEST_ASSERT( keypair != NULL );
         TEST_ASSERT( psa_import_key( key_slot, PSA_KEY_TYPE_RSA_KEYPAIR,
-                                key, sizeof( key ) ) == PSA_SUCCESS );
+                                keypair, key_size ) == PSA_SUCCESS );
         actual_status = psa_export_key( key_slot, NULL, 0, NULL );
     }
 
@@ -473,6 +472,7 @@ void key_policy_fail( int usage_arg, int alg_arg, int expected_status, char *key
 
 exit:
     psa_destroy_key( key_slot );
+    mbedtls_free( keypair );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

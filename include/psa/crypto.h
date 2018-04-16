@@ -89,8 +89,6 @@ typedef enum {
     PSA_ERROR_INVALID_SIGNATURE,
     /** The decrypted padding is incorrect. */
     PSA_ERROR_INVALID_PADDING,
-    /** The key policy is incorrect. */
-    PSA_ERROR_INVALID_KEY_POLICY,
     /** An error occurred that does not correspond to any defined
         failure cause. */
     PSA_ERROR_UNKNOWN_ERROR,

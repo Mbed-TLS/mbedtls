@@ -1330,7 +1330,7 @@ psa_status_t psa_set_key_policy(psa_key_slot_t key,
     if( ( policy->usage & ~( PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_ENCRYPT 
                         | PSA_KEY_USAGE_DECRYPT | PSA_KEY_USAGE_SIGN 
                         | PSA_KEY_USAGE_VERIFY ) ) != 0 )
-        return( PSA_ERROR_INVALID_KEY_POLICY );
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     slot->policy = *policy;
 

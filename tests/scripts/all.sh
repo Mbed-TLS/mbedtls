@@ -672,6 +672,16 @@ msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
 tests/compat.sh -t RSA
 
 
+msg "build: default config with AES_ROM_TABLES enabled"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_AES_ROM_TABLES
+make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+msg "test: AES_ROM_TABLES"
+make test
+
+
 ################################################################
 #### 3. Various targets (adapted config)
 ################################################################

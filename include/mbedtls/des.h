@@ -67,10 +67,6 @@ typedef struct
 }
 mbedtls_des_context;
 
-#else  /* MBEDTLS_DES_ALT */
-#include "des_alt.h"
-#endif /* MBEDTLS_DES_ALT */
-
 /**
  * \brief          Triple-DES context structure
  */
@@ -79,6 +75,10 @@ typedef struct
     uint32_t sk[96];            /*!<  3DES subkeys      */
 }
 mbedtls_des3_context;
+
+#else  /* MBEDTLS_DES_ALT */
+#include "des_alt.h"
+#endif /* MBEDTLS_DES_ALT */
 
 /**
  * \brief          Initialize DES context

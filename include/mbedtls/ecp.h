@@ -43,15 +43,6 @@
 extern "C" {
 #endif
 
-#if !defined(MBEDTLS_ECP_ALT)
-/*
- * default mbed TLS elliptic curve arithmetic implementation
- *
- * (in case MBEDTLS_ECP_ALT is defined then the developer has to provide an
- * alternative implementation for the whole module and it will replace this
- * one.)
- */
-
 /**
  * Domain parameters (curve, subgroup and generator) identifiers.
  *
@@ -113,6 +104,15 @@ typedef struct
 }
 mbedtls_ecp_point;
 
+#if !defined(MBEDTLS_ECP_ALT)
+/*
+ * default mbed TLS elliptic curve arithmetic implementation
+ *
+ * (in case MBEDTLS_ECP_ALT is defined then the developer has to provide an
+ * alternative implementation for the whole module and it will replace this
+ * one.)
+ */
+
 /**
  * \brief           ECP group structure
  *
@@ -156,21 +156,6 @@ typedef struct
     size_t T_size;      /*!<  number for pre-computed points                */
 }
 mbedtls_ecp_group;
-
-/**
- * \brief           ECP key pair structure
- *
- * A generic key pair that could be used for ECDSA, fixed ECDH, etc.
- *
- * \note Members purposefully in the same order as struc mbedtls_ecdsa_context.
- */
-typedef struct
-{
-    mbedtls_ecp_group grp;      /*!<  Elliptic curve and base point     */
-    mbedtls_mpi d;              /*!<  our secret value                  */
-    mbedtls_ecp_point Q;        /*!<  our public value                  */
-}
-mbedtls_ecp_keypair;
 
 /**
  * \name SECTION: Module settings
@@ -234,6 +219,21 @@ mbedtls_ecp_keypair;
 #else  /* MBEDTLS_ECP_ALT */
 #include "ecp_alt.h"
 #endif /* MBEDTLS_ECP_ALT */
+
+/**
+ * \brief           ECP key pair structure
+ *
+ * A generic key pair that could be used for ECDSA, fixed ECDH, etc.
+ *
+ * \note Members purposefully in the same order as struc mbedtls_ecdsa_context.
+ */
+typedef struct
+{
+    mbedtls_ecp_group grp;      /*!<  Elliptic curve and base point     */
+    mbedtls_mpi d;              /*!<  our secret value                  */
+    mbedtls_ecp_point Q;        /*!<  our public value                  */
+}
+mbedtls_ecp_keypair;
 
 /*
  * Point formats, from RFC 4492's enum ECPointFormat

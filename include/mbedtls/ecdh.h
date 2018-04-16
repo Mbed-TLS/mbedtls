@@ -45,7 +45,7 @@ extern "C" {
  */
 typedef enum
 {
-    MBEDTLS_ECDH_OURS, /**< Our key. */
+    MBEDTLS_ECDH_OURS,   /**< Our key. */
     MBEDTLS_ECDH_THEIRS, /**< The key of the peer. */
 } mbedtls_ecdh_side;
 
@@ -101,8 +101,8 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
  * \see             ecp.h
  *
  * \note            If \p f_rng is not NULL, it is used to implement
- *                  countermeasures against potential elaborate timing
- *                  attacks. For more information, see mbedtls_ecp_mul().
+ *                  countermeasures against side-channel attacks.
+ *                  For more information, see mbedtls_ecp_mul().
  *
  * \param grp       The ECP group.
  * \param z         The destination MPI (shared secret).
@@ -253,8 +253,8 @@ int mbedtls_ecdh_read_public( mbedtls_ecdh_context *ctx,
  *                  and servers.
  *
  * \note            If \p f_rng is not NULL, it is used to implement
- *                  countermeasures against potential elaborate timing
- *                  attacks. For more information, see mbedtls_ecp_mul().
+ *                  countermeasures against side-channel attacks.
+ *                  For more information, see mbedtls_ecp_mul().
  *
  * \see             ecp.h
  *

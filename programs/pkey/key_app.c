@@ -100,14 +100,25 @@ struct options
 
 int main( int argc, char *argv[] )
 {
-    int ret = 1;
+    int ret = 0;
     int exit_code = MBEDTLS_EXIT_FAILURE;
     char buf[1024];
     int i;
     char *p, *q;
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_pk_context pk;
     mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
+
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n", ret );
+        goto exit;
+    }
+#endif
 
     /*
      * Set to sane values
@@ -306,7 +317,7 @@ int main( int argc, char *argv[] )
 cleanup:
 
 #if defined(MBEDTLS_ERROR_C)
-    if( exit_code != MBEDTLS_EXIT_SUCCESS )
+    if( exit_code != MBEDTLS_EXIT_SUCCESS && ret != 0 )
     {
         mbedtls_strerror( ret, buf, sizeof( buf ) );
         mbedtls_printf( "  !  Last error was: %s\n", buf );
@@ -323,6 +334,9 @@ cleanup:
     fflush( stdout ); getchar();
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
     return( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_PK_PARSE_C && MBEDTLS_FS_IO */

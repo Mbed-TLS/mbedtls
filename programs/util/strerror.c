@@ -55,11 +55,20 @@ int main( int argc, char *argv[] )
 {
     long int val;
     char *end = argv[1];
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+    if( ( val = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( "  Failed initializing platform.\n" );
+        goto exit;
+    }
+#endif
 
     if( argc != 2 )
     {
         mbedtls_printf( USAGE );
-        return( 0 );
+        val = 0;
+        goto exit;
     }
 
     val = strtol( argv[1], &end, 10 );
@@ -69,7 +78,8 @@ int main( int argc, char *argv[] )
         if( *end != '\0' )
         {
             mbedtls_printf( USAGE );
-            return( 0 );
+            val = 0;
+            goto exit;
         }
     }
     if( val > 0 )
@@ -87,6 +97,10 @@ int main( int argc, char *argv[] )
     fflush( stdout ); getchar();
 #endif
 
+exit:
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
     return( val );
 }
 #endif /* MBEDTLS_ERROR_C */

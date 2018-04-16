@@ -1202,6 +1202,9 @@ int main( int argc, char *argv[] )
     const char *pers = "ssl_server2";
     unsigned char client_ip[16] = { 0 };
     size_t cliip_len;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
 #if defined(MBEDTLS_SSL_COOKIE_C)
     mbedtls_ssl_cookie_ctx cookie_ctx;
 #endif
@@ -1257,6 +1260,14 @@ int main( int argc, char *argv[] )
     int i;
     char *p, *q;
     const int *list;
+
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( "Failed initializing platform.\n" );
+        goto exit;
+    }
+#endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof(alloc_buf) );
@@ -3184,6 +3195,10 @@ exit:
     // Shell can not handle large exit numbers -> 1 for errors
     if( ret < 0 )
         ret = 1;
+
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
 
     return( ret );
 }

@@ -303,6 +303,14 @@ int main( int argc, char *argv[] )
     unsigned char buf[1000000];
 #endif
     void *pointer;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
+    {
+        mbedtls_printf( "Failed initializing platform.\n" );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+    }
+#endif
 
     /*
      * The C standard doesn't guarantee that all-bits-0 is the representation
@@ -313,6 +321,9 @@ int main( int argc, char *argv[] )
     if( pointer != NULL )
     {
         mbedtls_printf( "all-bits-zero is not a NULL pointer\n" );
+#if defined(MBEDTLS_PLATFORM_C)
+        mbedtls_platform_teardown( &platform_ctx );
+#endif
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 
@@ -322,6 +333,9 @@ int main( int argc, char *argv[] )
     if( run_test_snprintf() != 0 )
     {
         mbedtls_printf( "the snprintf implementation is broken\n" );
+#if defined(MBEDTLS_PLATFORM_C)
+        mbedtls_platform_teardown( &platform_ctx );
+#endif
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 
@@ -424,6 +438,10 @@ int main( int argc, char *argv[] )
         fflush( stdout ); getchar();
 #endif
     }
+
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
 
     if( suites_failed > 0)
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );

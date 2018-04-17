@@ -101,6 +101,8 @@ RUN_ARMCC=1
 : ${GNUTLS_LEGACY_CLI:="$GNUTLS_CLI"}
 : ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
 : ${OUT_OF_SOURCE_DIR:=./mbedtls_out_of_source_build}
+: ${ARMC5_BIN_DIR:=/usr/bin}
+: ${ARMC6_BIN_DIR:=/usr/bin}
 
 usage()
 {
@@ -119,6 +121,8 @@ General options:
   -s|--seed             Integer seed value to use for this test run.
 
 Tool path options:
+     --armc5-bin-dir=<ARMC5_bin_dir_path>       ARM Compiler 5 bin directory.
+     --armc6-bin-dir=<ARMC6_bin_dir_path>       ARM Compiler 6 bin directory.
      --gnutls-cli=<GnuTLS_cli_path>             GnuTLS client executable to use for most tests.
      --gnutls-serv=<GnuTLS_serv_path>           GnuTLS server executable to use for most tests.
      --gnutls-legacy-cli=<GnuTLS_cli_path>      GnuTLS client executable to use for legacy tests.
@@ -169,6 +173,18 @@ msg()
     current_section=$1
 }
 
+if [ $RUN_ARMCC -ne 0 ]; then
+    armc6_build_test()
+    {
+        FLAGS="$1"
+
+        msg "build: ARM Compiler 6 ($FLAGS), make"
+        ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" CFLAGS="$FLAGS" \
+                        WARNING_CFLAGS='-xc -std=c99' make lib
+        make clean
+    }
+fi
+
 err_msg()
 {
     echo "$1" >&2
@@ -188,6 +204,14 @@ while [ $# -gt 0 ]; do
     case "$1" in
         --armcc)
             RUN_ARMCC=1
+            ;;
+        --armc5-bin-dir)
+            shift
+            ARMC5_BIN_DIR="$1"
+            ;;
+        --armc6-bin-dir)
+            shift
+            ARMC6_BIN_DIR="$1"
             ;;
         --force|-f)
             FORCE=1
@@ -357,6 +381,13 @@ echo "GNUTLS_CLI: $GNUTLS_CLI"
 echo "GNUTLS_SERV: $GNUTLS_SERV"
 echo "GNUTLS_LEGACY_CLI: $GNUTLS_LEGACY_CLI"
 echo "GNUTLS_LEGACY_SERV: $GNUTLS_LEGACY_SERV"
+echo "ARMC5_BIN_DIR: $ARMC5_BIN_DIR"
+echo "ARMC6_BIN_DIR: $ARMC6_BIN_DIR"
+
+ARMC5_CC="$ARMC5_BIN_DIR/armcc"
+ARMC5_AR="$ARMC5_BIN_DIR/armar"
+ARMC6_CC="$ARMC6_BIN_DIR/armclang"
+ARMC6_AR="$ARMC6_BIN_DIR/armar"
 
 # To avoid setting OpenSSL and GnuTLS for each call to compat.sh and ssl-opt.sh
 # we just export the variables they require
@@ -372,7 +403,7 @@ check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
             "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
             "arm-none-eabi-gcc"
 if [ $RUN_ARMCC -ne 0 ]; then
-    check_tools "armcc"
+    check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR"
 fi
 
 
@@ -616,25 +647,44 @@ scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS=-Werror lib
 
+msg "build: ARM Compiler 5, make"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset MBEDTLS_NET_C
+scripts/config.pl unset MBEDTLS_TIMING_C
+scripts/config.pl unset MBEDTLS_FS_IO
+scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+scripts/config.pl unset MBEDTLS_HAVE_TIME
+scripts/config.pl unset MBEDTLS_HAVE_TIME_DATE
+scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
+# following things are not in the default config
+scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
+scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
+scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
+scripts/config.pl unset MBEDTLS_THREADING_C
+scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
+scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
+scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
+
 if [ $RUN_ARMCC -ne 0 ]; then
-    msg "build: armcc, make"
-    cleanup
-    cp "$CONFIG_H" "$CONFIG_BAK"
-    scripts/config.pl full
-    scripts/config.pl unset MBEDTLS_NET_C
-    scripts/config.pl unset MBEDTLS_TIMING_C
-    scripts/config.pl unset MBEDTLS_FS_IO
-    scripts/config.pl unset MBEDTLS_HAVE_TIME
-    scripts/config.pl unset MBEDTLS_HAVE_TIME_DATE
-    scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
-    # following things are not in the default config
-    scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
-    scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
-    scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
-    scripts/config.pl unset MBEDTLS_THREADING_C
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
-    make CC=armcc AR=armar WARNING_CFLAGS= lib
+    make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
+    make clean
+
+    # ARM Compiler 6 - Target ARMv7-A
+    armc6_build_test "--target=arm-arm-none-eabi -march=armv7-a"
+
+    # ARM Compiler 6 - Target ARMv7-M
+    armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m"
+
+    # ARM Compiler 6 - Target ARMv8-A - AArch32
+    armc6_build_test "--target=arm-arm-none-eabi -march=armv8.2-a"
+
+    # ARM Compiler 6 - Target ARMv8-M
+    armc6_build_test "--target=arm-arm-none-eabi -march=armv8-m.main"
+
+    # ARM Compiler 6 - Target ARMv8-A - AArch64
+    armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a"
 fi
 
 msg "build: allow SHA1 in certificates by default"

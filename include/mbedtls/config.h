@@ -2853,25 +2853,26 @@
 #define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE
 
 /**
- * \def MBEDTLS_UTILS_ZEROIZE_ALT
+ * \def MBEDTLS_PLATFORM_ZEROIZE_ALT
  *
  * Uncomment the macro to let mbed TLS use your alternate implementation of
- * mbedtls_zeroize(). This replaces the default implementation in utils.c.
+ * mbedtls_platform_zeroize(). This replaces the default implementation in
+ * platform_util.c.
  *
- * mbedtls_zeroize() is a widely used function across the library to zero a
- * block of memory. The implementation is expected to be secure in the sense
- * that it has been written to prevent the compiler from removing calls to
- * mbedtls_zeroize() as part of redundant code elimination optimizations.
- * However, it is difficult to guarantee that calls to mbedtls_zeroize() will
- * not be optimized by the compiler as older versions of the C language
- * standards do not provide a secure implementation of memset(). Therefore,
- * MBEDTLS_UTILS_ZEROIZE_ALT enables users to configure their own
- * implementation of mbedtls_zeroize(), for example by using directives
- * specific to their compiler, features from the C standard (e.g using
- * memset_s() in C11) or calling a secure memset() from their system (e.g
- * explicit_bzero() in BSD).
+ * mbedtls_platform_zeroize() is a widely used function across the library to
+ * zero a block of memory. The implementation is expected to be secure in the
+ * sense that it has been written to prevent the compiler from removing calls
+ * to mbedtls_platform_zeroize() as part of redundant code elimination
+ * optimizations. However, it is difficult to guarantee that calls to
+ * mbedtls_platform_zeroize() will not be optimized by the compiler as older
+ * versions of the C language standards do not provide a secure implementation
+ * of memset(). Therefore, MBEDTLS_PLATFORM_ZEROIZE_ALT enables users to
+ * configure their own implementation of mbedtls_platform_zeroize(), for
+ * example by using directives specific to their compiler, features from the C
+ * standard (e.g using memset_s() in C11) or calling a secure memset() from
+ * their system (e.g explicit_bzero() in BSD).
  */
-//#define MBEDTLS_UTILS_ZEROIZE_ALT
+//#define MBEDTLS_PLATFORM_ZEROIZE_ALT
 
 /* \} name SECTION: Customisation configuration options */
 

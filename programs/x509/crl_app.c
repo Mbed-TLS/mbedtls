@@ -147,7 +147,9 @@ int main( int argc, char *argv[] )
 
 exit:
     mbedtls_x509_crl_free( &crl );
-
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();

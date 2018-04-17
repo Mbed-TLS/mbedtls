@@ -527,17 +527,14 @@ exit:
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_free();
 #endif
-
-#if defined(_WIN32)
-    mbedtls_printf( "  Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
-#endif
-
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_mutex_free( &base_info.platform_ctx_mutex );
     mbedtls_platform_teardown( &base_info.platform_ctx );
 #endif
-
+#if defined(_WIN32)
+    mbedtls_printf( "  Press Enter to exit this program.\n" );
+    fflush( stdout ); getchar();
+#endif
     return( ret );
 }
 

@@ -876,16 +876,15 @@ int main( int argc, char *argv[] )
     mbedtls_memory_buffer_alloc_free();
 #endif
 
-#if defined(_WIN32)
-    mbedtls_printf( "  Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
-#endif
-
     exit_code = 0;
 exit:
 
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_teardown( &platform_ctx );
+#endif
+#if defined(_WIN32)
+    mbedtls_printf( "  Press Enter to exit this program.\n" );
+    fflush( stdout ); getchar();
 #endif
 
     return( exit_code );

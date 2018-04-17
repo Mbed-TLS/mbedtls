@@ -102,7 +102,7 @@ typedef enum {
  *
  * Applications may call this function more than once. Once a call
  * succeeds, subsequent calls are guaranteed to succeed.
- * 
+ *
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval PSA_ERROR_COMMUNICATION_FAILURE
@@ -596,11 +596,11 @@ typedef uint32_t psa_key_lifetime_t;
 /** \brief Retrieve the lifetime of a key slot.
  *
  * The assignment of lifetimes to slots is implementation-dependent.
- * 
  * \param key           Slot whose content is to be exported. This must
  *                      be an occupied key slot.
+ *
  * \param lifetime      On success, the lifetime value.
- * 
+ *
  * \retval PSA_SUCCESS
  *         Success.
  * \retval PSA_ERROR_INVALID_ARGUMENT
@@ -610,14 +610,15 @@ psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
                                   psa_key_lifetime_t *lifetime);
 
 /** \brief Change the lifetime of a key slot.
+ *
  * Whether the lifetime of a key slot can be changed at all, and if so
  * whether the lifetime of an occupied key slot can be changed, is
  * implementation-dependent.
- * 
+ *
  * \param key           Slot whose content is to be exported. This must
  *                      be an occupied key slot.
  * \param lifetime      The lifetime value to be set for the given key.
- * 
+ *
  * \retval PSA_SUCCESS
  *         Success.
  * \retval PSA_ERROR_INVALID_ARGUMENT

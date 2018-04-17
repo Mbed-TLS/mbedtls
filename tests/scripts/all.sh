@@ -460,7 +460,6 @@ make
 
 msg "test: main suites (inc. selftests) (ASan build)" # ~ 50s
 make test
-programs/test/selftest
 
 msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
 if_build_succeeded tests/ssl-opt.sh
@@ -483,7 +482,6 @@ make
 
 msg "test: SSLv3 - main suites (inc. selftests) (ASan build)" # ~ 50s
 make test
-programs/test/selftest
 
 msg "build: SSLv3 - compat.sh (ASan build)" # ~ 6 min
 if_build_succeeded tests/compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
@@ -520,7 +518,6 @@ tests/ssl-opt.sh -f RSA
 
 msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
 tests/compat.sh -t RSA
-
 
 msg "build: cmake, full config, clang" # ~ 50s
 cleanup
@@ -559,13 +556,15 @@ msg "build: Unix make, -Os (gcc)" # ~ 30s
 cleanup
 make CC=gcc CFLAGS='-Werror -Os'
 
-# this is meant to cath missing #define mbedtls_printf etc
-# disable fsio to catch some more missing #include <stdio.h>
-msg "build: full config except platform/fsio, make, gcc" # ~ 30s
+# Full configuration build, without platform support, file IO and net sockets.
+# This should catch missing mbedtls_printf definitions, and by disabling file
+# IO, it should catch missing '#include <stdio.h>'
+msg "build: full config except platform/fsio/net, make, gcc, C99" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_PLATFORM_C
+scripts/config.pl unset MBEDTLS_NET_C
 scripts/config.pl unset MBEDTLS_PLATFORM_MEMORY
 scripts/config.pl unset MBEDTLS_PLATFORM_PRINTF_ALT
 scripts/config.pl unset MBEDTLS_PLATFORM_FPRINTF_ALT
@@ -573,7 +572,10 @@ scripts/config.pl unset MBEDTLS_PLATFORM_SNPRINTF_ALT
 scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
 scripts/config.pl unset MBEDTLS_FS_IO
-make CC=gcc CFLAGS='-Werror -O0'
+# Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
+# to re-enable platform integration features otherwise disabled in C99 builds
+make CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -O0 -D_DEFAULT_SOURCE' lib programs
+make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0' test
 
 # catch compile bugs in _uninit functions
 msg "build: full config with NO_STD_FUNCTION, make, gcc" # ~ 30s
@@ -597,7 +599,9 @@ scripts/config.pl full
 scripts/config.pl unset MBEDTLS_SSL_CLI_C
 make CC=gcc CFLAGS='-Werror -O0'
 
-msg "build: full config except net.c, make, gcc -std=c99 -pedantic" # ~ 30s
+# Note, C99 compliance can also be tested with the sockets support disabled,
+# as that requires a POSIX platform (which isn't the same as C99).
+msg "build: full config except net_sockets.c, make, gcc -std=c99 -pedantic" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full

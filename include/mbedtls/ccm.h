@@ -145,8 +145,9 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  * \param tag_len   The length of the tag in Bytes.
  *                  4, 6, 8, 10, 12, 14 or 16.
  *
- * \return          \c 0 on success.
- * \return          A CCM or cipher-specific error code on failure.
+ * \return          \c 0 on success. This indicates that the message is authentic.
+ * \return          #MBEDTLS_ERR_CCM_AUTH_FAILED if the tag does not match.
+ * \return          A cipher-specific error code on calculation failure.
  */
 int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
                       const unsigned char *iv, size_t iv_len,

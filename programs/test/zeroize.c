@@ -2,13 +2,14 @@
  * Zeroize application for debugger-driven testing
  *
  * This is a simple test application used for debugger-driven testing to check
- * whether calls to mbedtls_zeroize() are being eliminated by compiler
+ * whether calls to mbedtls_platform_zeroize() are being eliminated by compiler
  * optimizations. This application is used by the GDB script at
- * tests/scripts/test_zeroize.gdb under the assumption that line numbers do not
+ * tests/scripts/test_zeroize.gdb under the assumption that the code does not
  * change often (as opposed to the library code) because the script sets a
  * breakpoint at the last return statement in the main() function of this
  * program. The debugger facilities are then used to manually inspect the
- * memory and verify that the call to mbedtls_zeroize() was not eliminated.
+ * memory and verify that the call to mbedtls_platform_zeroize() was not
+ * eliminated.
  *
  *  Copyright (C) 2018, Arm Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -45,14 +46,14 @@
 #define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
 
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #define BUFFER_LEN 1024
 
 void usage( void )
 {
     mbedtls_printf( "Zeroize is a simple program to assist with testing\n" );
-    mbedtls_printf( "the mbedtls_zeroize() function by using the\n" );
+    mbedtls_printf( "the mbedtls_platform_zeroize() function by using the\n" );
     mbedtls_printf( "debugger. This program takes a file as input and\n" );
     mbedtls_printf( "prints the first %d characters. Usage:\n\n", BUFFER_LEN );
     mbedtls_printf( "       zeroize <FILE>\n" );
@@ -94,7 +95,7 @@ int main( int argc, char** argv )
         mbedtls_printf( "The file is empty!\n" );
 
     fclose( fp );
-    mbedtls_zeroize( buf, sizeof( buf ) );
+    mbedtls_platform_zeroize( buf, sizeof( buf ) );
 
     return( exit_code );
 }

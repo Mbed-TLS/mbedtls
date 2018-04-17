@@ -102,7 +102,7 @@ int mbedtls_sha256_starts_ret( mbedtls_sha256_context *ctx, int is224 );
  * \brief          This function feeds an input buffer into an ongoing
  *                 SHA-256 checksum calculation.
  *
- * \param ctx      The SHA-256 context to initialize.
+ * \param ctx      The SHA-256 context.
  * \param input    The buffer holding the data.
  * \param ilen     The length of the input data.
  *

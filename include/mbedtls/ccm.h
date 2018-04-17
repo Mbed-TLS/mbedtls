@@ -78,7 +78,7 @@ void mbedtls_ccm_init( mbedtls_ccm_context *ctx );
  * \param keybits   The key size in bits. This must be acceptable by the cipher.
  *
  * \return          \c 0 on success.
- * \return          A cipher-specific error code on failure.
+ * \return          A CCM or cipher-specific error code on failure.
  */
 int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
                         mbedtls_cipher_id_t cipher,
@@ -118,7 +118,7 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx );
  *                  4, 6, 8, 10, 12, 14 or 16.
  *
  * \return          \c 0 on success.
- * \return          A cipher-specific error code on failure.
+ * \return          A CCM or cipher-specific error code on failure.
  */
 int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
                          const unsigned char *iv, size_t iv_len,
@@ -145,7 +145,7 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  *                  4, 6, 8, 10, 12, 14 or 16.
  *
  * \return          \c 0 on success.
- * \return          A cipher-specific error code on failure.
+ * \return          A CCM or cipher-specific error code on failure.
  */
 int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
                       const unsigned char *iv, size_t iv_len,

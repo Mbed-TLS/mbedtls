@@ -1,7 +1,7 @@
 /**
  * \file rsa.h
  *
- * \brief This file defines the RSA public-key cryptosystem.
+ * \brief This file provides an API for the RSA public-key cryptosystem.
  *
  * The RSA public-key cryptosystem is defined in <em>Public-Key
  * Cryptography Standards (PKCS) #1 v1.5: RSA Encryption</em>

@@ -604,6 +604,9 @@ typedef uint32_t psa_key_lifetime_t;
  *         Success.
  * \retval PSA_ERROR_INVALID_ARGUMENT
  *         The key slot is invalid.
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
  */
 psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
                                   psa_key_lifetime_t *lifetime);
@@ -622,6 +625,15 @@ psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
  * \retval PSA_ERROR_INVALID_ARGUMENT
  *         The key slot is invalid,
  *         or the lifetime value is invalid.
+ * \retval PSA_ERROR_NOT_SUPPORTED
+ *         The implementation does not support the specified lifetime value,
+ *         at least for the specified key slot.
+ * \retval PSA_ERROR_OCCUPIED_SLOT
+ *         The slot contains a key, and the implementation does not support
+ *         changing the lifetime of an occupied slot.
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
  */
 psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
                                   psa_key_lifetime_t lifetime);

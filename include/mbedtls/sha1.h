@@ -97,8 +97,8 @@ void mbedtls_sha1_free( mbedtls_sha1_context *ctx );
  *                 constitutes a security risk. We recommend considering
  *                 stronger message digests instead.
  *
- * \param dst      The destination context.
- * \param src      The context to clone.
+ * \param dst      The SHA-1 context to clone to.
+ * \param src      The SHA-1 context to clone from.
  *
  */
 void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
@@ -111,7 +111,7 @@ void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
  *                 constitutes a security risk. We recommend considering
  *                 stronger message digests instead.
  *
- * \param ctx      The context to initialize.
+ * \param ctx      The SHA-1 context to initialize.
  *
  * \return         \c 0 on success.
  *
@@ -183,7 +183,7 @@ int mbedtls_internal_sha1_process( mbedtls_sha1_context *ctx,
  *
  * \deprecated     Superseded by mbedtls_sha1_starts_ret() in 2.7.0.
  *
- * \param ctx      The context to initialize.
+ * \param ctx      The SHA-1 context to initialize.
  *
  */
 MBEDTLS_DEPRECATED void mbedtls_sha1_starts( mbedtls_sha1_context *ctx );

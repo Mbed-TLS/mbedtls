@@ -63,10 +63,10 @@ int main( int argc, char *argv[] )
     unsigned char buf[1024];
 
 #if defined(MBEDTLS_PLATFORM_C)
-    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
         mbedtls_printf( "Failed to initialize platform.\n" );
-        goto exit;
+        return( 1 );
     }
 #endif
 

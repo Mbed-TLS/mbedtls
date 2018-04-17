@@ -56,10 +56,10 @@ int main( void )
 
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_context platform_ctx;
-    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
         mbedtls_printf( "  Failed initializing platform.\n" );
-        goto cleanup;
+        return( 1 );
     }
 #endif
 

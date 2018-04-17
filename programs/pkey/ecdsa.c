@@ -117,10 +117,10 @@ int main( int argc, char *argv[] )
     ((void) argv);
 
 #if defined(MBEDTLS_PLATFORM_C)
-    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
         mbedtls_printf( "  Failed initializing platform.\n" );
-        goto exit;
+        return( 1 );
     }
 #endif
     mbedtls_ecdsa_init( &ctx_sign );

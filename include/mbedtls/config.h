@@ -2853,8 +2853,6 @@
 #define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE
 
 /**
- * \def MBEDTLS_PLATFORM_ZEROIZE_ALT
- *
  * Uncomment the macro to let mbed TLS use your alternate implementation of
  * mbedtls_platform_zeroize(). This replaces the default implementation in
  * platform_util.c.

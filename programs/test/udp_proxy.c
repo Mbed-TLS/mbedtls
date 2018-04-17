@@ -744,15 +744,6 @@ int main( int argc, char *argv[] )
     int nb_fds;
     fd_set read_fds;
 
-#if defined(MBEDTLS_PLATFORM_C)
-    mbedtls_platform_context platform_ctx;
-    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_platform_setup returned %d\n\n", ret );
-        return( 1 );
-    }
-#endif
-
     mbedtls_net_init( &listen_fd );
     mbedtls_net_init( &client_fd );
     mbedtls_net_init( &server_fd );
@@ -945,9 +936,6 @@ exit:
     mbedtls_net_free( &client_fd );
     mbedtls_net_free( &server_fd );
     mbedtls_net_free( &listen_fd );
-#if defined(MBEDTLS_PLATFORM_C)
-    mbedtls_platform_teardown( &platform_ctx );
-#endif
 #if defined(_WIN32)
     mbedtls_printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();

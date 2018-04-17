@@ -103,10 +103,6 @@ typedef enum {
  * Applications may call this function more than once. Once a call
  * succeeds, subsequent calls are guaranteed to succeed.
  * 
- * \note Initial lifetime value for each key slot is initiated 
- *       to PSA_KEY_LIFETIME_VOLATILE, user should change this value
- *       before calling psa_import_key() if needed.
- *
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval PSA_ERROR_COMMUNICATION_FAILURE
@@ -609,9 +605,7 @@ typedef uint32_t psa_key_lifetime_t;
  *         Success.
  * \retval PSA_ERROR_INVALID_ARGUMENT
  *         The key slot is invalid,
- *         or the key data is not correctly formatted.
- * \retval PSA_ERROR_EMPTY_SLOT
- *         The key slot is not occupied.         
+ *         or the key data is not correctly formatted.   
  */
 psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
                                   psa_key_lifetime_t *lifetime);
@@ -630,11 +624,9 @@ psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
  * \retval PSA_ERROR_INVALID_ARGUMENT
  *         The key slot is invalid,
  *         or the key data is not correctly formatted.
- * \retval PSA_ERROR_EMPTY_SLOT
- *         The key slot is not occupied.
  */
 psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
-                                  const psa_key_lifetime_t lifetime);
+                                  psa_key_lifetime_t lifetime);
 
 /**@}*/
 

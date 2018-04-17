@@ -55,14 +55,6 @@ int main( int argc, char *argv[] )
 {
     long int val;
     char *end = argv[1];
-#if defined(MBEDTLS_PLATFORM_C)
-    mbedtls_platform_context platform_ctx;
-    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
-    {
-        mbedtls_printf( "  Failed initializing platform.\n" );
-        return( 1 );
-    }
-#endif
 
     if( argc != 2 )
     {
@@ -93,9 +85,6 @@ int main( int argc, char *argv[] )
     }
 
 exit:
-#if defined(MBEDTLS_PLATFORM_C)
-    mbedtls_platform_teardown( &platform_ctx );
-#endif
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();

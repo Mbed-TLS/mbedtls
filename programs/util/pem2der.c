@@ -189,14 +189,6 @@ int main( int argc, char *argv[] )
     size_t pem_size, der_size = sizeof(der_buffer);
     int i;
     char *p, *q;
-#if defined(MBEDTLS_PLATFORM_C)
-    mbedtls_platform_context platform_ctx;
-    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
-        return( 1 );
-    }
-#endif
 
     /*
      * Set to sane values
@@ -289,9 +281,6 @@ int main( int argc, char *argv[] )
 
 exit:
     free( pem_buffer );
-#if defined(MBEDTLS_PLATFORM_C)
-    mbedtls_platform_teardown( &platform_ctx );
-#endif
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();

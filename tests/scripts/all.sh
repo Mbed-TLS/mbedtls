@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /usr/bin/env sh
 
 # all.sh
 #
@@ -79,8 +79,11 @@
 # Abort on errors (and uninitialised variables)
 set -eu
 
-if [ -d library -a -d include -a -d tests ]; then :; else
-    err_msg "Must be run from mbed TLS root"
+if [ "$( uname )" != "Linux" ]; then
+    echo "This script only works in Linux" >&2
+    exit 1
+elif [ -d library -a -d include -a -d tests ]; then :; else
+    echo "Must be run from mbed TLS root" >&2
     exit 1
 fi
 
@@ -103,6 +106,11 @@ RUN_ARMCC=1
 : ${OUT_OF_SOURCE_DIR:=./mbedtls_out_of_source_build}
 : ${ARMC5_BIN_DIR:=/usr/bin}
 : ${ARMC6_BIN_DIR:=/usr/bin}
+
+# if MAKEFLAGS is not set add the -j option to speed up invocations of make
+if [ -n "${MAKEFLAGS+set}" ]; then
+    export MAKEFLAGS="-j"
+fi
 
 usage()
 {

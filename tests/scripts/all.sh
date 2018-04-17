@@ -95,6 +95,7 @@ FORCE=0
 KEEP_GOING=0
 RELEASE=0
 RUN_ARMCC=1
+YOTTA=0
 
 # Default commands, can be overriden by the environment
 : ${OPENSSL:="openssl"}
@@ -124,9 +125,11 @@ General options:
   -m|--memory           Additional optional memory tests.
      --armcc            Run ARM Compiler builds (on by default).
      --no-armcc         Skip ARM Compiler builds.
+     --no-yotta         Skip yotta module build (always skipped)
      --out-of-source-dir=<path>  Directory used for CMake out-of-source build tests.
   -r|--release-test     Run this script in release mode. This fixes the seed value to 1.
   -s|--seed             Integer seed value to use for this test run.
+     --yotta            Build yotta module (ignored).
 
 Tool path options:
      --armc5-bin-dir=<ARMC5_bin_dir_path>       ARM Compiler 5 bin directory.
@@ -253,6 +256,9 @@ while [ $# -gt 0 ]; do
         --no-armcc)
             RUN_ARMCC=0
             ;;
+        --no-yotta)
+            YOTTA=0
+            ;;
         --openssl)
             shift
             OPENSSL="$1"
@@ -272,6 +278,9 @@ while [ $# -gt 0 ]; do
             shift
             SEED="$1"
             ;;
+        --yotta)
+            YOTTA=1
+            ;;
         *)
             echo >&2 "Unknown option: $1"
             echo >&2 "Run $0 --help for usage."
@@ -281,13 +290,21 @@ while [ $# -gt 0 ]; do
     shift
 done
 
+if [ $YOTTA -eq 1 ]; then
+    err_msg "Warning: yotta requested but not supported on 2.1 - ignoring"
+    # override value rather than exiting to ease uniforme use across versions
+    YOTTA=0
+fi
+
 if [ $FORCE -eq 1 ]; then
-    rm -rf yotta/module "$OUT_OF_SOURCE_DIR"
+    if [ $YOTTA -eq 1 ]; then
+        rm -rf yotta/module "$OUT_OF_SOURCE_DIR"
+    fi
     git checkout-index -f -q $CONFIG_H
     cleanup
 else
 
-    if [ -d yotta/module ]; then
+    if [ $YOTTA -ne 0 ] && [ -d yotta/module ]; then
         err_msg "Warning - there is an existing yotta module in the directory 'yotta/module'"
         echo "You can either delete your work and retry, or force the test to overwrite the"
         echo "test by rerunning the script as: $0 --force"
@@ -456,10 +473,13 @@ tests/scripts/check-names.sh
 #### Build and test many configurations and targets
 ################################################################
 
-# Yotta not supported in 2.1 branch
-#msg "build: create and build yotta module" # ~ 30s
-#cleanup
-#record_status tests/scripts/yotta-build.sh
+if [ $RUN_ARMCC -ne 0 ] && [ $YOTTA -ne 0 ]; then
+    # Note - use of yotta is deprecated, and yotta also requires armcc to be on the
+    # path, and uses whatever version of armcc it finds there.
+    msg "build: create and build yotta module" # ~ 30s
+    cleanup
+    record_status tests/scripts/yotta-build.sh
+fi
 
 msg "build: cmake, gcc, ASan" # ~ 1 min 50s
 cleanup

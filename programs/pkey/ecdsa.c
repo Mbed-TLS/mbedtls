@@ -258,12 +258,6 @@ int main( int argc, char *argv[] )
     exit_code = MBEDTLS_EXIT_SUCCESS;
 
 exit:
-
-#if defined(_WIN32)
-    mbedtls_printf( "  + Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
-#endif
-
     mbedtls_ecdsa_free( &ctx_verify );
     mbedtls_ecdsa_free( &ctx_sign );
     mbedtls_ctr_drbg_free( &ctr_drbg );
@@ -271,6 +265,12 @@ exit:
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_teardown( &platform_ctx );
 #endif
+
+#if defined(_WIN32)
+    mbedtls_printf( "  + Press Enter to exit this program.\n" );
+    fflush( stdout ); getchar();
+#endif
+
     return( exit_code );
 }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C &&

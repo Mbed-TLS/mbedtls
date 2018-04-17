@@ -328,7 +328,9 @@ cleanup:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P ); mbedtls_mpi_free( &Q );
     mbedtls_mpi_free( &D ); mbedtls_mpi_free( &E ); mbedtls_mpi_free( &DP );
     mbedtls_mpi_free( &DQ ); mbedtls_mpi_free( &QP );
-
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();

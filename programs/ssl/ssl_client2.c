@@ -2131,10 +2131,25 @@ exit:
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
 
-#if defined(_WIN32)
-    mbedtls_printf( "  + Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
-#endif
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED) && \
+    defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( opt.psk_opaque != 0 )
+    {
+        /* This is ok even if the slot hasn't been
+         * initialized (we might have jumed here
+         * immediately because of bad cmd line params,
+         * for example). */
+        status = psa_destroy_key( slot );
+        if( status != PSA_SUCCESS )
+        {
+            mbedtls_printf( "Failed to destroy key slot %u - error was %d",
+                            (unsigned) slot, (int) status );
+            if( ret == 0 )
+                ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+        }
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED &&
+          MBEDTLS_USE_PSA_CRYPTO */
 
     // Shell can not handle large exit numbers -> 1 for errors
     if( ret < 0 )
@@ -2142,6 +2157,10 @@ exit:
 
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_teardown( &platform_ctx );
+#endif
+#if defined(_WIN32)
+    mbedtls_printf( "  + Press Enter to exit this program.\n" );
+    fflush( stdout ); getchar();
 #endif
 
     return( ret );

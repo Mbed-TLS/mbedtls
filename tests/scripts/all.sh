@@ -474,16 +474,6 @@ make
 msg "test: compat.sh (ASan build)" # ~ 6 min
 if_build_succeeded tests/compat.sh
 
-msg "build: default config except MFL extension (ASan build)" # ~ 30s
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-make
-
-msg "test: ssl-opt.sh, MFL-related tests"
-tests/ssl-opt.sh -f "Max fragment length"
-
 msg "build: Default + SSLv3 (ASan build)" # ~ 6 min
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
@@ -614,6 +604,17 @@ scripts/config.pl full
 scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
 scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
 make CC=gcc CFLAGS='-Werror -O0 -std=c99 -pedantic' lib
+
+msg "build: default config except MFL extension (ASan build)" # ~ 30s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: ssl-opt.sh, MFL-related tests"
+if_build_succeeded tests/ssl-opt.sh -f "Max fragment length"
+
 
 if uname -a | grep -F Linux >/dev/null; then
     msg "build/test: make shared" # ~ 40s

@@ -401,7 +401,7 @@ export GNUTLS_SERV="$GNUTLS_SERV"
 # Make sure the tools we need are available.
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
             "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
-            "arm-none-eabi-gcc"
+            "arm-none-eabi-gcc" "i686-w64-mingw32-gcc"
 if [ $RUN_ARMCC -ne 0 ]; then
     check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR"
 fi
@@ -702,14 +702,18 @@ msg "test: allow SHA1 in certificates by default"
 make test
 if_build_succeeded tests/ssl-opt.sh -f SHA-1
 
-if which i686-w64-mingw32-gcc >/dev/null; then
-    msg "build: cross-mingw64, make" # ~ 30s
-    cleanup
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS=-Werror WINDOWS_BUILD=1
-    make WINDOWS_BUILD=1 clean
-    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS=-Werror WINDOWS_BUILD=1 SHARED=1
-    make WINDOWS_BUILD=1 clean
-fi
+msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
+cleanup
+make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs
+
+# note Make tests only builds the tests, but doesn't run them
+make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror' WINDOWS_BUILD=1 tests
+make WINDOWS_BUILD=1 clean
+
+msg "build: Windows cross build - mingw64, make (DLL)" # ~ 30s
+make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 lib programs
+make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 tests
+make WINDOWS_BUILD=1 clean
 
 # MemSan currently only available on Linux 64 bits
 if uname -a | grep 'Linux.*x86_64' >/dev/null; then

@@ -249,11 +249,6 @@ int main( int argc, char *argv[] )
 
 exit:
 
-#if defined(_WIN32)
-    mbedtls_printf( "  + Press Enter to exit this program.\n" );
-    fflush( stdout ); getchar();
-#endif
-
     mbedtls_ecdh_free( &ctx_srv );
     mbedtls_ecdh_free( &ctx_cli );
     mbedtls_ctr_drbg_free( &ctr_drbg );
@@ -261,6 +256,12 @@ exit:
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_teardown( &platform_ctx );
 #endif
+
+#if defined(_WIN32)
+    mbedtls_printf( "  + Press Enter to exit this program.\n" );
+    fflush( stdout ); getchar();
+#endif
+
     return( exit_code );
 }
 #endif /* MBEDTLS_ECDH_C && MBEDTLS_ECP_DP_CURVE25519_ENABLED &&

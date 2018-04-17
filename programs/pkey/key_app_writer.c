@@ -453,6 +453,9 @@ exit:
 
     mbedtls_pk_free( &key );
 
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();

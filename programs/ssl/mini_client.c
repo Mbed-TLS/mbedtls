@@ -200,10 +200,10 @@ int main( void )
      * 0. Initialize and setup stuff
      */
 #if defined(MBEDTLS_PLATFORM_C)
-    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
         mbedtls_printf( "Failed initializing platform.\n" );
-        goto exit;
+        return( 1 );
     }
 #endif
     mbedtls_net_init( &server_fd );

@@ -192,7 +192,7 @@ int main( int argc, char *argv[] )
     mbedtls_md_context_t md_ctx;
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_context platform_ctx;
-    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
         mbedtls_fprintf( stderr, "Failed initializing platform\n" );
         return( exit_code );

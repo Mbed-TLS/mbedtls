@@ -98,10 +98,10 @@ int main( int argc, char **argv )
     char *p, *q;
 
 #if defined(MBEDTLS_PLATFORM_C)
-    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
         mbedtls_printf( "Failed initializing platform.\n" );
-        goto exit;
+        return( 1 );
     }
 #endif
     mbedtls_mpi_init( &G ); mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );

@@ -109,7 +109,7 @@ int main( void )
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
         mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
-        goto exit;
+        return( 1 );
     }
 #endif
 

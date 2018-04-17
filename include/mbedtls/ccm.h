@@ -1,7 +1,8 @@
 /**
  * \file ccm.h
  *
- * \brief This file contains CCM definitions and functions.
+ * \brief This file provides an API for the CCM authenticated encryption
+ *        mode for block ciphers.
  *
  * CCM combines Counter mode encryption with CBC-MAC authentication
  * for 128-bit block ciphers.

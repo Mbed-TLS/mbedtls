@@ -74,32 +74,25 @@ int main( int argc, char *argv[] )
     mbedtls_entropy_context entropy;
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
-#if defined(MBEDTLS_PLATFORM_C)
-    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
-    {
-        mbedtls_printf( "failed!\n" );
-        return( exit_code );
-    }
-#endif
-
     if( argc < 2 )
     {
         mbedtls_fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
-#if defined(MBEDTLS_PLATFORM_C)
-        mbedtls_platform_teardown( &platform_ctx );
-#endif
-		return( exit_code );
+        return( 1 );
     }
 
     if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
     {
         mbedtls_printf( "failed to open '%s' for writing.\n", argv[1] );
-#if defined(MBEDTLS_PLATFORM_C)
-        mbedtls_platform_teardown( &platform_ctx );
-#endif
-        return( exit_code );
+        return( 1 );
     }
 
+#if defined(MBEDTLS_PLATFORM_C)
+    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
+    {
+        mbedtls_printf( "failed!\n" );
+        return( 1 );
+    }
+#endif
     mbedtls_entropy_init( &entropy );
 
     for( i = 0, k = 768; i < k; i++ )

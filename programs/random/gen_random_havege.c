@@ -76,6 +76,18 @@ int main( int argc, char *argv[] )
     mbedtls_havege_state hs;
     unsigned char buf[1024];
 
+    if( argc < 2 )
+    {
+        mbedtls_fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
+        return( 1 );
+    }
+
+    if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
+    {
+        mbedtls_printf( "failed to open '%s' for writing.\n", argv[1] );
+        return( 1 );
+    }
+
 #if defined(MBEDTLS_PLATFORM_C)
     if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
@@ -83,25 +95,6 @@ int main( int argc, char *argv[] )
         return( 1 );
     }
 #endif
-
-    if( argc < 2 )
-    {
-        mbedtls_fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
-#if defined(MBEDTLS_PLATFORM_C)
-        mbedtls_platform_teardown( &platform_ctx );
-#endif
-		return( exit_code );
-    }
-
-    if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
-    {
-        mbedtls_printf( "failed to open '%s' for writing.\n", argv[1] );
-#if defined(MBEDTLS_PLATFORM_C)
-        mbedtls_platform_teardown( &platform_ctx );
-#endif
-        return( exit_code );
-    }
-
     mbedtls_havege_init( &hs );
 
     t = time( NULL );

@@ -734,6 +734,9 @@ int main( int argc, char *argv[] )
     uint8_t delay_idx;
 
     mbedtls_net_context listen_fd, client_fd, server_fd;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
 
 #if defined( MBEDTLS_TIMING_C )
     struct timeval tm;
@@ -743,6 +746,14 @@ int main( int argc, char *argv[] )
 
     int nb_fds;
     fd_set read_fds;
+
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
+        return( MBEDTLS_EXIT_FAILURE );
+    }
+#endif
 
     mbedtls_net_init( &listen_fd );
     mbedtls_net_init( &client_fd );

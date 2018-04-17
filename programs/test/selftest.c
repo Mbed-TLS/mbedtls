@@ -305,11 +305,6 @@ int main( int argc, char *argv[] )
     void *pointer;
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_context platform_ctx;
-    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
-    {
-        mbedtls_printf( "Failed initializing platform.\n" );
-        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
-    }
 #endif
 
     /*
@@ -321,9 +316,6 @@ int main( int argc, char *argv[] )
     if( pointer != NULL )
     {
         mbedtls_printf( "all-bits-zero is not a NULL pointer\n" );
-#if defined(MBEDTLS_PLATFORM_C)
-        mbedtls_platform_teardown( &platform_ctx );
-#endif
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 
@@ -333,9 +325,6 @@ int main( int argc, char *argv[] )
     if( run_test_snprintf() != 0 )
     {
         mbedtls_printf( "the snprintf implementation is broken\n" );
-#if defined(MBEDTLS_PLATFORM_C)
-        mbedtls_platform_teardown( &platform_ctx );
-#endif
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 
@@ -360,6 +349,13 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_SELF_TEST)
 
+#if defined(MBEDTLS_PLATFORM_C)
+    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
+    {
+        mbedtls_printf( "Failed initializing platform.\n" );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+    }
+#endif
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_init( buf, sizeof(buf) );
 #endif

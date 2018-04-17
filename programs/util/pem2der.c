@@ -203,6 +203,9 @@ int main( int argc, char *argv[] )
     size_t pem_size, der_size = sizeof(der_buffer);
     int i;
     char *p, *q;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
 
     /*
      * Set to sane values
@@ -235,6 +238,14 @@ int main( int argc, char *argv[] )
         else
             goto usage;
     }
+
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
+        return( MBEDTLS_EXIT_FAILURE );
+    }
+#endif
 
     /*
      * 1.1. Load the PEM file

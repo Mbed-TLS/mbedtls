@@ -41,7 +41,7 @@
 
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/oid.h"
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -1111,7 +1111,7 @@ int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const char *path )
 
     ret = mbedtls_x509_crt_parse( chain, buf, n );
 
-    mbedtls_zeroize( buf, n );
+    mbedtls_platform_zeroize( buf, n );
     mbedtls_free( buf );
 
     return( ret );
@@ -2422,7 +2422,7 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
         {
             name_prv = name_cur;
             name_cur = name_cur->next;
-            mbedtls_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
+            mbedtls_platform_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
             mbedtls_free( name_prv );
         }
 
@@ -2431,7 +2431,7 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
         {
             name_prv = name_cur;
             name_cur = name_cur->next;
-            mbedtls_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
+            mbedtls_platform_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
             mbedtls_free( name_prv );
         }
 
@@ -2440,7 +2440,8 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
         {
             seq_prv = seq_cur;
             seq_cur = seq_cur->next;
-            mbedtls_zeroize( seq_prv, sizeof( mbedtls_x509_sequence ) );
+            mbedtls_platform_zeroize( seq_prv,
+                                      sizeof( mbedtls_x509_sequence ) );
             mbedtls_free( seq_prv );
         }
 
@@ -2449,13 +2450,14 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
         {
             seq_prv = seq_cur;
             seq_cur = seq_cur->next;
-            mbedtls_zeroize( seq_prv, sizeof( mbedtls_x509_sequence ) );
+            mbedtls_platform_zeroize( seq_prv,
+                                      sizeof( mbedtls_x509_sequence ) );
             mbedtls_free( seq_prv );
         }
 
         if( cert_cur->raw.p != NULL )
         {
-            mbedtls_zeroize( cert_cur->raw.p, cert_cur->raw.len );
+            mbedtls_platform_zeroize( cert_cur->raw.p, cert_cur->raw.len );
             mbedtls_free( cert_cur->raw.p );
         }
 
@@ -2469,7 +2471,7 @@ void mbedtls_x509_crt_free( mbedtls_x509_crt *crt )
         cert_prv = cert_cur;
         cert_cur = cert_cur->next;
 
-        mbedtls_zeroize( cert_prv, sizeof( mbedtls_x509_crt ) );
+        mbedtls_platform_zeroize( cert_prv, sizeof( mbedtls_x509_crt ) );
         if( cert_prv != crt )
             mbedtls_free( cert_prv );
     }

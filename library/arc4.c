@@ -33,7 +33,7 @@
 #if defined(MBEDTLS_ARC4_C)
 
 #include "mbedtls/arc4.h"
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 
@@ -58,7 +58,7 @@ void mbedtls_arc4_free( mbedtls_arc4_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_arc4_context ) );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_arc4_context ) );
 }
 
 /*

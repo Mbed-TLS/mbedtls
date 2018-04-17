@@ -26,7 +26,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #include <stddef.h>
 #include <string.h>

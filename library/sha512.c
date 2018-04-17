@@ -33,7 +33,7 @@
 #if defined(MBEDTLS_SHA512_C)
 
 #include "mbedtls/sha512.h"
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #if defined(_MSC_VER) || defined(__WATCOMC__)
   #define UL64(x) x##ui64
@@ -98,7 +98,7 @@ void mbedtls_sha512_free( mbedtls_sha512_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_sha512_context ) );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha512_context ) );
 }
 
 void mbedtls_sha512_clone( mbedtls_sha512_context *dst,

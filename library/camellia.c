@@ -34,7 +34,7 @@
 #if defined(MBEDTLS_CAMELLIA_C)
 
 #include "mbedtls/camellia.h"
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 
@@ -329,7 +329,7 @@ void mbedtls_camellia_free( mbedtls_camellia_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_camellia_context ) );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_camellia_context ) );
 }
 
 /*

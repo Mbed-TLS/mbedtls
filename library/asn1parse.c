@@ -28,7 +28,7 @@
 #if defined(MBEDTLS_ASN1_PARSE_C)
 
 #include "mbedtls/asn1.h"
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 
@@ -309,7 +309,7 @@ int mbedtls_asn1_get_alg( unsigned char **p,
 
     if( *p == end )
     {
-        mbedtls_zeroize( params, sizeof(mbedtls_asn1_buf) );
+        mbedtls_platform_zeroize( params, sizeof(mbedtls_asn1_buf) );
         return( 0 );
     }
 
@@ -354,7 +354,7 @@ void mbedtls_asn1_free_named_data( mbedtls_asn1_named_data *cur )
     mbedtls_free( cur->oid.p );
     mbedtls_free( cur->val.p );
 
-    mbedtls_zeroize( cur, sizeof( mbedtls_asn1_named_data ) );
+    mbedtls_platform_zeroize( cur, sizeof( mbedtls_asn1_named_data ) );
 }
 
 void mbedtls_asn1_free_named_data_list( mbedtls_asn1_named_data **head )

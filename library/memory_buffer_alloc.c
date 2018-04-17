@@ -31,7 +31,7 @@
 /* No need for the header guard as MBEDTLS_MEMORY_BUFFER_ALLOC_C
    is dependent upon MBEDTLS_PLATFORM_C */
 #include "mbedtls/platform.h"
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 
@@ -608,7 +608,7 @@ void mbedtls_memory_buffer_alloc_free( void )
 #if defined(MBEDTLS_THREADING_C)
     mbedtls_mutex_free( &heap.mutex );
 #endif
-    mbedtls_zeroize( &heap, sizeof(buffer_alloc_ctx) );
+    mbedtls_platform_zeroize( &heap, sizeof(buffer_alloc_ctx) );
 }
 
 #if defined(MBEDTLS_SELF_TEST)

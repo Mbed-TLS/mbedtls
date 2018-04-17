@@ -36,7 +36,7 @@
 #include <string.h>
 
 #include "mbedtls/aes.h"
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 #if defined(MBEDTLS_PADLOCK_C)
 #include "mbedtls/padlock.h"
 #endif
@@ -518,7 +518,7 @@ void mbedtls_aes_free( mbedtls_aes_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_aes_context ) );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_aes_context ) );
 }
 
 /*

@@ -42,7 +42,7 @@
 #endif
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 #endif
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -495,7 +495,7 @@ static void *rsa_alt_alloc_wrap( void )
 
 static void rsa_alt_free_wrap( void *ctx )
 {
-    mbedtls_zeroize( ctx, sizeof( mbedtls_rsa_alt_context ) );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_rsa_alt_context ) );
     mbedtls_free( ctx );
 }
 

@@ -29,7 +29,7 @@
 #include "mbedtls/pk.h"
 #include "mbedtls/pk_internal.h"
 
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #if defined(MBEDTLS_RSA_C)
 #include "mbedtls/rsa.h"
@@ -66,7 +66,7 @@ void mbedtls_pk_free( mbedtls_pk_context *ctx )
 
     ctx->pk_info->ctx_free_func( ctx->pk_ctx );
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_pk_context ) );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_pk_context ) );
 }
 
 /*

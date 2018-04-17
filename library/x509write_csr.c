@@ -35,7 +35,7 @@
 #include "mbedtls/x509_csr.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/asn1write.h"
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -54,7 +54,7 @@ void mbedtls_x509write_csr_free( mbedtls_x509write_csr *ctx )
     mbedtls_asn1_free_named_data_list( &ctx->subject );
     mbedtls_asn1_free_named_data_list( &ctx->extensions );
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_x509write_csr ) );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_x509write_csr ) );
 }
 
 void mbedtls_x509write_csr_set_md_alg( mbedtls_x509write_csr *ctx, mbedtls_md_type_t md_alg )

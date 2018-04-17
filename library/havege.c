@@ -36,7 +36,7 @@
 
 #include "mbedtls/havege.h"
 #include "mbedtls/timing.h"
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 
@@ -204,7 +204,7 @@ void mbedtls_havege_free( mbedtls_havege_state *hs )
     if( hs == NULL )
         return;
 
-    mbedtls_zeroize( hs, sizeof( mbedtls_havege_state ) );
+    mbedtls_platform_zeroize( hs, sizeof( mbedtls_havege_state ) );
 }
 
 /*

@@ -50,7 +50,7 @@
 #endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
@@ -550,7 +550,7 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
     memcpy( ssl->session_negotiate, &session, sizeof( mbedtls_ssl_session ) );
 
     /* Zeroize instead of free as we copied the content */
-    mbedtls_zeroize( &session, sizeof( mbedtls_ssl_session ) );
+    mbedtls_platform_zeroize( &session, sizeof( mbedtls_ssl_session ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "session successfully restored from ticket" ) );
 

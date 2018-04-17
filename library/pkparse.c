@@ -30,7 +30,7 @@
 #include "mbedtls/pk.h"
 #include "mbedtls/asn1.h"
 #include "mbedtls/oid.h"
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 
@@ -98,7 +98,7 @@ int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n )
     {
         fclose( f );
 
-        mbedtls_zeroize( *buf, *n );
+        mbedtls_platform_zeroize( *buf, *n );
         mbedtls_free( *buf );
 
         return( MBEDTLS_ERR_PK_FILE_IO_ERROR );
@@ -133,7 +133,7 @@ int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
         ret = mbedtls_pk_parse_key( ctx, buf, n,
                 (const unsigned char *) pwd, strlen( pwd ) );
 
-    mbedtls_zeroize( buf, n );
+    mbedtls_platform_zeroize( buf, n );
     mbedtls_free( buf );
 
     return( ret );
@@ -153,7 +153,7 @@ int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path )
 
     ret = mbedtls_pk_parse_public_key( ctx, buf, n );
 
-    mbedtls_zeroize( buf, n );
+    mbedtls_platform_zeroize( buf, n );
     mbedtls_free( buf );
 
     return( ret );
@@ -1288,7 +1288,7 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
         ret = pk_parse_key_pkcs8_encrypted_der( pk, key_copy, keylen,
                                                 pwd, pwdlen );
 
-        mbedtls_zeroize( key_copy, keylen );
+        mbedtls_platform_zeroize( key_copy, keylen );
         mbedtls_free( key_copy );
     }
 

@@ -39,7 +39,7 @@
 
 #include "mbedtls/x509_crl.h"
 #include "mbedtls/oid.h"
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 
@@ -612,7 +612,7 @@ int mbedtls_x509_crl_parse_file( mbedtls_x509_crl *chain, const char *path )
 
     ret = mbedtls_x509_crl_parse( chain, buf, n );
 
-    mbedtls_zeroize( buf, n );
+    mbedtls_platform_zeroize( buf, n );
     mbedtls_free( buf );
 
     return( ret );
@@ -733,7 +733,7 @@ void mbedtls_x509_crl_free( mbedtls_x509_crl *crl )
         {
             name_prv = name_cur;
             name_cur = name_cur->next;
-            mbedtls_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
+            mbedtls_platform_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
             mbedtls_free( name_prv );
         }
 
@@ -742,13 +742,14 @@ void mbedtls_x509_crl_free( mbedtls_x509_crl *crl )
         {
             entry_prv = entry_cur;
             entry_cur = entry_cur->next;
-            mbedtls_zeroize( entry_prv, sizeof( mbedtls_x509_crl_entry ) );
+            mbedtls_platform_zeroize( entry_prv,
+                                      sizeof( mbedtls_x509_crl_entry ) );
             mbedtls_free( entry_prv );
         }
 
         if( crl_cur->raw.p != NULL )
         {
-            mbedtls_zeroize( crl_cur->raw.p, crl_cur->raw.len );
+            mbedtls_platform_zeroize( crl_cur->raw.p, crl_cur->raw.len );
             mbedtls_free( crl_cur->raw.p );
         }
 
@@ -762,7 +763,7 @@ void mbedtls_x509_crl_free( mbedtls_x509_crl *crl )
         crl_prv = crl_cur;
         crl_cur = crl_cur->next;
 
-        mbedtls_zeroize( crl_prv, sizeof( mbedtls_x509_crl ) );
+        mbedtls_platform_zeroize( crl_prv, sizeof( mbedtls_x509_crl ) );
         if( crl_prv != crl )
             mbedtls_free( crl_prv );
     }

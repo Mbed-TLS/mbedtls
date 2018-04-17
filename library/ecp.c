@@ -51,7 +51,7 @@
 
 #include "mbedtls/ecp.h"
 #include "mbedtls/threading.h"
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 
@@ -344,7 +344,7 @@ void mbedtls_ecp_group_free( mbedtls_ecp_group *grp )
         mbedtls_free( grp->T );
     }
 
-    mbedtls_zeroize( grp, sizeof( mbedtls_ecp_group ) );
+    mbedtls_platform_zeroize( grp, sizeof( mbedtls_ecp_group ) );
 }
 
 /*

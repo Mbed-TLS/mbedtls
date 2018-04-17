@@ -34,7 +34,7 @@
 #if defined(MBEDTLS_BLOWFISH_C)
 
 #include "mbedtls/blowfish.h"
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 
@@ -161,7 +161,7 @@ void mbedtls_blowfish_free( mbedtls_blowfish_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_blowfish_context ) );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_blowfish_context ) );
 }
 
 /*

@@ -33,7 +33,7 @@
 #if defined(MBEDTLS_SHA256_C)
 
 #include "mbedtls/sha256.h"
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 
@@ -84,7 +84,7 @@ void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
 }
 
 void mbedtls_sha256_clone( mbedtls_sha256_context *dst,

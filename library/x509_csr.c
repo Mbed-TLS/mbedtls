@@ -39,7 +39,7 @@
 
 #include "mbedtls/x509_csr.h"
 #include "mbedtls/oid.h"
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 
@@ -321,7 +321,7 @@ int mbedtls_x509_csr_parse_file( mbedtls_x509_csr *csr, const char *path )
 
     ret = mbedtls_x509_csr_parse( csr, buf, n );
 
-    mbedtls_zeroize( buf, n );
+    mbedtls_platform_zeroize( buf, n );
     mbedtls_free( buf );
 
     return( ret );
@@ -403,17 +403,17 @@ void mbedtls_x509_csr_free( mbedtls_x509_csr *csr )
     {
         name_prv = name_cur;
         name_cur = name_cur->next;
-        mbedtls_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
+        mbedtls_platform_zeroize( name_prv, sizeof( mbedtls_x509_name ) );
         mbedtls_free( name_prv );
     }
 
     if( csr->raw.p != NULL )
     {
-        mbedtls_zeroize( csr->raw.p, csr->raw.len );
+        mbedtls_platform_zeroize( csr->raw.p, csr->raw.len );
         mbedtls_free( csr->raw.p );
     }
 
-    mbedtls_zeroize( csr, sizeof( mbedtls_x509_csr ) );
+    mbedtls_platform_zeroize( csr, sizeof( mbedtls_x509_csr ) );
 }
 
 #endif /* MBEDTLS_X509_CSR_PARSE_C */

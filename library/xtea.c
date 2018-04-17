@@ -28,7 +28,7 @@
 #if defined(MBEDTLS_XTEA_C)
 
 #include "mbedtls/xtea.h"
-#include "mbedtls/utils.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 
@@ -76,7 +76,7 @@ void mbedtls_xtea_free( mbedtls_xtea_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_xtea_context ) );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_xtea_context ) );
 }
 
 /*

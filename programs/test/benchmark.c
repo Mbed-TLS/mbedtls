@@ -244,11 +244,6 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_context platform_ctx;
-    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
-    {
-        mbedtls_printf( "Failed initializing platform.\n" );
-        return( 1 );
-    }
 #endif
 
     if( argc <= 1 )
@@ -317,6 +312,13 @@ int main( int argc, char *argv[] )
 
     mbedtls_printf( "\n" );
 
+#if defined(MBEDTLS_PLATFORM_C)
+    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
+    {
+        mbedtls_printf( "Failed initializing platform.\n" );
+        return( 1 );
+    }
+#endif
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_init( alloc_buf, sizeof( alloc_buf ) );
 #endif

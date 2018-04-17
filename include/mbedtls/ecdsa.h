@@ -238,7 +238,8 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
  *
  * \see             ecp.h
  *
- * \deprecated      Superseded by mbedtls_ecdsa_write_signature() in 2.0.0
+ * \deprecated      Superseded by mbedtls_ecdsa_write_signature() in
+ *                  Mbed TLS version 2.0 and later.
  *
  * \param ctx       The ECDSA context.
  * \param hash      The message hash.

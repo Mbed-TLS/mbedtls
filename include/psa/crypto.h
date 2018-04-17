@@ -604,8 +604,7 @@ typedef uint32_t psa_key_lifetime_t;
  * \retval PSA_SUCCESS
  *         Success.
  * \retval PSA_ERROR_INVALID_ARGUMENT
- *         The key slot is invalid,
- *         or the key data is not correctly formatted.   
+ *         The key slot is invalid.
  */
 psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
                                   psa_key_lifetime_t *lifetime);
@@ -623,7 +622,7 @@ psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
  *         Success.
  * \retval PSA_ERROR_INVALID_ARGUMENT
  *         The key slot is invalid,
- *         or the key data is not correctly formatted.
+ *         or the lifetime value is invalid.
  */
 psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
                                   psa_key_lifetime_t lifetime);

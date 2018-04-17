@@ -1,5 +1,6 @@
 /*
- *  Mbed TLS utility functions
+ * Common and shared functions used by multiple modules in the Mbed TLS
+ * library.
  *
  *  Copyright (C) 2018, Arm Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -30,12 +31,12 @@
 #include <stddef.h>
 #include <string.h>
 
-#if !defined(MBEDTLS_UTILS_ZEROIZE_ALT)
+#if !defined(MBEDTLS_PLATFORM_ZEROIZE_ALT)
 /*
  * This implementation should never be optimized out by the compiler
  *
- * This implementation for mbedtls_zeroize() was inspired from Colin Percival's
- * blog article at:
+ * This implementation for mbedtls_platform_zeroize() was inspired from Colin
+ * Percival's blog article at:
  *
  * http://www.daemonology.net/blog/2014-09-04-how-to-zero-a-buffer.html
  *
@@ -50,17 +51,17 @@
  * if( memset_func != memset )
  *     memset_func( buf, 0, len );
  *
- * Note that it is extremely difficult to guarantee that mbedtls_zeroize()
- * will not be optimized out by aggressive compilers in a portable way. For
- * this reason, Mbed TLS also provides the configuration option
- * MBEDTLS_UTILS_ZEROIZE_ALT, which allows users to configure
- * mbedtls_zeroize() to use a suitable implementation for their platform and
- * needs.
+ * Note that it is extremely difficult to guarantee that
+ * mbedtls_platform_zeroize() will not be optimized out by aggressive compilers
+ * in a portable way. For this reason, Mbed TLS also provides the configuration
+ * option MBEDTLS_PLATFORM_ZEROIZE_ALT, which allows users to configure
+ * mbedtls_platform_zeroize() to use a suitable implementation for their
+ * platform and needs.
  */
 static void * (* const volatile memset_func)( void *, int, size_t ) = memset;
 
-void mbedtls_zeroize( void *buf, size_t len )
+void mbedtls_platform_zeroize( void *buf, size_t len )
 {
     memset_func( buf, 0, len );
 }
-#endif /* MBEDTLS_UTILS_ZEROIZE_ALT */
+#endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT */

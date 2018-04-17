@@ -1,8 +1,10 @@
 /**
- * \file utils.h
+ * \file platform_util.h
  *
- * \brief Mbed TLS utility functions
- *
+ * \brief Common and shared functions used by multiple modules in the Mbed TLS
+ *        library.
+ */
+/*
  *  Copyright (C) 2018, Arm Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -20,10 +22,14 @@
  *
  *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
-#ifndef MBEDTLS_UTILS_H
-#define MBEDTLS_UTILS_H
+#ifndef MBEDTLS_PLATFORM_UTIL_H
+#define MBEDTLS_PLATFORM_UTIL_H
 
 #include <stddef.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief       Securely zeroize a buffer
@@ -35,12 +41,17 @@
  *              compiler
  *
  * \note        It is extremely difficult to guarantee that calls to
- *              mbedtls_zeroize() are not removed by aggressive compiler
- *              optimizations in a portable way. For this reason, Mbed TLS
- *              provides the configuration option MBEDTLS_UTILS_ZEROIZE_ALT,
- *              which allows users to configure mbedtls_zeroize() to use a
- *              suitable implementation for their platform and needs
+ *              mbedtls_platform_zeroize() are not removed by aggressive
+ *              compiler optimizations in a portable way. For this reason, Mbed
+ *              TLS provides the configuration option
+ *              MBEDTLS_PLATFORM_ZEROIZE_ALT, which allows users to configure
+ *              mbedtls_platform_zeroize() to use a suitable implementation for
+ *              their platform and needs
  */
-void mbedtls_zeroize( void *buf, size_t len );
+void mbedtls_platform_zeroize( void *buf, size_t len );
 
-#endif /* MBEDTLS_UTILS_H */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* MBEDTLS_PLATFORM_UTIL_H */

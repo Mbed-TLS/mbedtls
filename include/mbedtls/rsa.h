@@ -1,7 +1,7 @@
 /**
  * \file rsa.h
  *
- * \brief This file contains RSA definitions and functions.
+ * \brief This file defines the RSA public-key cryptosystem.
  *
  * The RSA public-key cryptosystem is defined in <em>Public-Key
  * Cryptography Standards (PKCS) #1 v1.5: RSA Encryption</em>
@@ -104,14 +104,14 @@ typedef struct
     mbedtls_mpi P;              /*!<  The first prime factor. */
     mbedtls_mpi Q;              /*!<  The second prime factor. */
 
-    mbedtls_mpi DP;             /*!<  \p D % (P - 1)       */
-    mbedtls_mpi DQ;             /*!<  \p D % (Q - 1)       */
-    mbedtls_mpi QP;             /*!<  1 / (Q % P)       */
+    mbedtls_mpi DP;             /*!<  <code>D % (P - 1)</code>. */
+    mbedtls_mpi DQ;             /*!<  <code>D % (Q - 1)</code>. */
+    mbedtls_mpi QP;             /*!<  <code>1 / (Q % P)</code>. */
 
-    mbedtls_mpi RN;             /*!<  cached R^2 mod \p N  */
+    mbedtls_mpi RN;             /*!<  cached <code>R^2 mod N</code>. */
 
-    mbedtls_mpi RP;             /*!<  cached R^2 mod \p P  */
-    mbedtls_mpi RQ;             /*!<  cached R^2 mod \p Q  */
+    mbedtls_mpi RP;             /*!<  cached <code>R^2 mod P</code>. */
+    mbedtls_mpi RQ;             /*!<  cached <code>R^2 mod Q</code>. */
 
     mbedtls_mpi Vi;             /*!<  The cached blinding value. */
     mbedtls_mpi Vf;             /*!<  The cached un-blinding value. */
@@ -328,7 +328,7 @@ int mbedtls_rsa_export( const mbedtls_rsa_context *ctx,
  *                 If the function fails due to an unsupported operation,
  *                 the RSA context stays intact and remains usable.
  *
- * \note           The length fields are ignored if the corresponding
+ * \note           The length parameters are ignored if the corresponding
  *                 buffer pointers are NULL.
  *
  * \param ctx      The initialized RSA context.
@@ -338,7 +338,7 @@ int mbedtls_rsa_export( const mbedtls_rsa_context *ctx,
  *                 NULL.
  * \param P_len    The size of the buffer for the first prime factor.
  * \param Q        The Byte array to hold the second prime factor of \p N, or
-                   NULL.
+ *                 NULL.
  * \param Q_len    The size of the buffer for the second prime factor.
  * \param D        The Byte array to hold the private exponent, or NULL.
  * \param D_len    The size of the buffer for the private exponent.
@@ -549,10 +549,6 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
  *                 It is the generic wrapper for performing a PKCS#1 encryption
  *                 operation using the \p mode from the context.
  *
- * \note           Alternative implementations of RSA need not support
- *                 mode being set to #MBEDTLS_RSA_PRIVATE and might instead
- *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
- *
  * \note           The input and output buffers must be as large as the size
  *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
@@ -560,6 +556,10 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
  *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 implicitly set to #MBEDTLS_RSA_PUBLIC.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to #MBEDTLS_RSA_PRIVATE and might instead
+ *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
  * \param ctx      The RSA context.
  * \param f_rng    The RNG function. Needed for padding, PKCS#1 v2.1
@@ -584,10 +584,6 @@ int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
  * \brief          This function performs a PKCS#1 v1.5 encryption operation
  *                 (RSAES-PKCS1-v1_5-ENCRYPT).
  *
- * \note           Alternative implementations of RSA need not support
- *                 mode being set to #MBEDTLS_RSA_PRIVATE and might instead
- *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
- *
  * \note           The output buffer must be as large as the size
  *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
@@ -595,6 +591,10 @@ int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
  *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 implicitly set to #MBEDTLS_RSA_PUBLIC.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to #MBEDTLS_RSA_PRIVATE and might instead
+ *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
  * \param ctx      The RSA context.
  * \param f_rng    The RNG function. Needed for padding and
@@ -619,10 +619,6 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
  * \brief            This function performs a PKCS#1 v2.1 OAEP encryption
  *                   operation (RSAES-OAEP-ENCRYPT).
  *
- * \note             Alternative implementations of RSA need not support
- *                   mode being set to #MBEDTLS_RSA_PRIVATE and might instead
- *                   return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
- *
  * \note             The output buffer must be as large as the size
  *                   of ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
@@ -630,6 +626,10 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
  *                   in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
  *                   are likely to remove the \p mode argument and have it
  *                   implicitly set to #MBEDTLS_RSA_PUBLIC.
+ *
+ * \note             Alternative implementations of RSA need not support
+ *                   mode being set to #MBEDTLS_RSA_PRIVATE and might instead
+ *                   return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
  * \param ctx        The RSA context.
  * \param f_rng      The RNG function. Needed for padding and PKCS#1 v2.1
@@ -671,14 +671,14 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
  * \note           The input buffer must be as large as the size
  *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
- * \note           Alternative implementations of RSA need not support
- *                 mode being set to #MBEDTLS_RSA_PUBLIC and might instead
- *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
- *
  * \deprecated     It is deprecated and discouraged to call this function
  *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 implicitly set to #MBEDTLS_RSA_PRIVATE.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to #MBEDTLS_RSA_PUBLIC and might instead
+ *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
  * \param ctx      The RSA context.
  * \param f_rng    The RNG function. Only needed for #MBEDTLS_RSA_PRIVATE.
@@ -691,7 +691,6 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
  *
  * \return         \c 0 on success.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
- 
  */
 int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
                        int (*f_rng)(void *, unsigned char *, size_t),
@@ -704,10 +703,6 @@ int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
 /**
  * \brief          This function performs a PKCS#1 v1.5 decryption
  *                 operation (RSAES-PKCS1-v1_5-DECRYPT).
- *
- * \note           Alternative implementations of RSA need not support
- *                 mode being set to #MBEDTLS_RSA_PUBLIC and might instead
- *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
  * \note           The output buffer length \c output_max_len should be
  *                 as large as the size \p ctx->len of \p ctx->N, for example,
@@ -723,6 +718,10 @@ int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
  *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 implicitly set to #MBEDTLS_RSA_PRIVATE.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to #MBEDTLS_RSA_PUBLIC and might instead
+ *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
  * \param ctx      The RSA context.
  * \param f_rng    The RNG function. Only needed for #MBEDTLS_RSA_PRIVATE.
@@ -749,25 +748,25 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
  * \brief            This function performs a PKCS#1 v2.1 OAEP decryption
  *                   operation (RSAES-OAEP-DECRYPT).
  *
- * \note             Alternative implementations of RSA need not support
- *                   mode being set to #MBEDTLS_RSA_PUBLIC and might instead
- *                   return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
+ * \note             The output buffer length \c output_max_len should be
+ *                   as large as the size \p ctx->len of \p ctx->N, for
+ *                   example, 128 Bytes if RSA-1024 is used, to be able to
+ *                   hold an arbitrary decrypted message. If it is not
+ *                   large enough to hold the decryption of the particular
+ *                   ciphertext provided, the function returns
+ *                   #MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE.
  *
- * \note           The output buffer length \c output_max_len should be
- *                 as large as the size \p ctx->len of \p ctx->N, for
- *                 example, 128 Bytes if RSA-1024 is used, to be able to
- *                 hold an arbitrary decrypted message. If it is not
- *                 large enough to hold the decryption of the particular
- *                 ciphertext provided, the function returns
- *                 #MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE.
- *
- * \note           The input buffer must be as large as the size
- *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
+ * \note             The input buffer must be as large as the size
+ *                   of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
  * \deprecated       It is deprecated and discouraged to call this function
  *                   in #MBEDTLS_RSA_PUBLIC mode. Future versions of the library
  *                   are likely to remove the \p mode argument and have it
  *                   implicitly set to #MBEDTLS_RSA_PRIVATE.
+ *
+ * \note             Alternative implementations of RSA need not support
+ *                   mode being set to #MBEDTLS_RSA_PUBLIC and might instead
+ *                   return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
  * \param ctx        The RSA context.
  * \param f_rng      The RNG function. Only needed for #MBEDTLS_RSA_PRIVATE.
@@ -800,10 +799,6 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
  *                 It is the generic wrapper for performing a PKCS#1
  *                 signature using the \p mode from the context.
  *
- * \note           Alternative implementations of RSA need not support
- *                 mode being set to #MBEDTLS_RSA_PUBLIC and might instead
- *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
- *
  * \note           The \p sig buffer must be as large as the size
  *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
@@ -815,6 +810,10 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
  *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 implicitly set to #MBEDTLS_RSA_PRIVATE.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to #MBEDTLS_RSA_PUBLIC and might instead
+ *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
  * \param ctx      The RSA context.
  * \param f_rng    The RNG function. Needed for PKCS#1 v2.1 encoding and for
@@ -843,10 +842,6 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
  * \brief          This function performs a PKCS#1 v1.5 signature
  *                 operation (RSASSA-PKCS1-v1_5-SIGN).
  *
- * \note           Alternative implementations of RSA need not support
- *                 mode being set to #MBEDTLS_RSA_PUBLIC and might instead
- *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
- *
  * \note           The \p sig buffer must be as large as the size
  *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
@@ -854,6 +849,10 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
  *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 implicitly set to #MBEDTLS_RSA_PRIVATE.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to #MBEDTLS_RSA_PUBLIC and might instead
+ *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
  * \param ctx      The RSA context.
  * \param f_rng    The RNG function. Only needed for #MBEDTLS_RSA_PRIVATE.
@@ -881,10 +880,6 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  * \brief          This function performs a PKCS#1 v2.1 PSS signature
  *                 operation (RSASSA-PSS-SIGN).
  *
- * \note           Alternative implementations of RSA need not support
- *                 mode being set to #MBEDTLS_RSA_PUBLIC and might instead
- *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
- *
  * \note           The \p sig buffer must be as large as the size
  *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
@@ -899,6 +894,10 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  *                 in #MBEDTLS_RSA_PUBLIC mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 implicitly set to #MBEDTLS_RSA_PRIVATE.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to #MBEDTLS_RSA_PUBLIC and might instead
+ *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
  * \param ctx      The RSA context.
  * \param f_rng    The RNG function. Needed for PKCS#1 v2.1 encoding and for
@@ -930,10 +929,6 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
  *                 This is the generic wrapper for performing a PKCS#1
  *                 verification using the mode from the context.
  *
- * \note           Alternative implementations of RSA need not support
- *                 mode being set to #MBEDTLS_RSA_PRIVATE and might instead
- *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
- *
  * \note           The \p sig buffer must be as large as the size
  *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
@@ -945,6 +940,10 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
  *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 set to #MBEDTLS_RSA_PUBLIC.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to #MBEDTLS_RSA_PRIVATE and might instead
+ *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
  * \param ctx      The RSA public key context.
  * \param f_rng    The RNG function. Only needed for #MBEDTLS_RSA_PRIVATE.
@@ -972,10 +971,6 @@ int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
  * \brief          This function performs a PKCS#1 v1.5 verification
  *                 operation (RSASSA-PKCS1-v1_5-VERIFY).
  *
- * \note           Alternative implementations of RSA need not support
- *                 mode being set to #MBEDTLS_RSA_PRIVATE and might instead
- *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
- *
  * \note           The \p sig buffer must be as large as the size
  *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
@@ -983,6 +978,10 @@ int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
  *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 set to #MBEDTLS_RSA_PUBLIC.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to #MBEDTLS_RSA_PRIVATE and might instead
+ *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
  * \param ctx      The RSA public key context.
  * \param f_rng    The RNG function. Only needed for #MBEDTLS_RSA_PRIVATE.
@@ -1013,10 +1012,6 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
  *                 The hash function for the MGF mask generating function
  *                 is that specified in the RSA context.
  *
- * \note           Alternative implementations of RSA need not support
- *                 mode being set to #MBEDTLS_RSA_PRIVATE and might instead
- *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
- *
  * \note           The \p sig buffer must be as large as the size
  *                 of \p ctx->N. For example, 128 Bytes if RSA-1024 is used.
  *
@@ -1032,6 +1027,10 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
  *                 in #MBEDTLS_RSA_PRIVATE mode. Future versions of the library
  *                 are likely to remove the \p mode argument and have it
  *                 implicitly set to #MBEDTLS_RSA_PUBLIC.
+ *
+ * \note           Alternative implementations of RSA need not support
+ *                 mode being set to #MBEDTLS_RSA_PRIVATE and might instead
+ *                 return #MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION.
  *
  * \param ctx      The RSA public key context.
  * \param f_rng    The RNG function. Only needed for #MBEDTLS_RSA_PRIVATE.

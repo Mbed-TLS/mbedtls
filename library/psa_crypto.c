@@ -1346,8 +1346,6 @@ psa_status_t psa_get_key_policy(psa_key_slot_t key,
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     slot = &global_data.key_slots[key];
-    if( slot->type == PSA_KEY_TYPE_NONE )
-        return( PSA_ERROR_EMPTY_SLOT );
     
     *policy = slot->policy;
 

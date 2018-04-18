@@ -281,15 +281,15 @@ depends_on:MBEDTLS_SHA1_C
 x509_ocsp_response_verify:"data_files/ocsp-resp-status-unauthorized.der":"data_files/server2.crt":"data_files/test-ca-sha256.crt":"data_files/test-ca-sha256.crt":MBEDTLS_ERR_X509_OCSP_RESPONSE_VERIFY_FAILED:MBEDTLS_X509_BADOCSP_RESPONSE_BAD_RESPONSE_STATUS
 
 X509 OCSP Response verification (future producedAt and thisUpdate)
-depends_on:MBEDTLS_SHA1_C
+depends_on:MBEDTLS_SHA1_C:MBEDTLS_HAVE_TIME_DATE
 x509_ocsp_response_verify:"data_files/ocsp-resp-future-produced-at-this-update.der":"data_files/server2-in-database.crt":"data_files/test-ca-sha256.crt":"data_files/test-ca-sha256.crt":MBEDTLS_ERR_X509_OCSP_RESPONSE_VERIFY_FAILED:MBEDTLS_X509_BADOCSP_RESPONSE_FUTURE
 
 X509 OCSP Response verification (future producedAt only)
-depends_on:MBEDTLS_SHA1_C
+depends_on:MBEDTLS_SHA1_C:MBEDTLS_HAVE_TIME_DATE
 x509_ocsp_response_verify:"data_files/ocsp-resp-future-produced-at.der":"data_files/server2-in-database.crt":"data_files/test-ca-sha256.crt":"data_files/test-ca-sha256.crt":MBEDTLS_ERR_X509_OCSP_RESPONSE_VERIFY_FAILED:MBEDTLS_X509_BADOCSP_RESPONSE_FUTURE | MBEDTLS_X509_BADOCSP_RESPONSE_NOT_TRUSTED
 
 X509 OCSP Response verification (future revocationTime only)
-depends_on:MBEDTLS_SHA1_C
+depends_on:MBEDTLS_SHA1_C:MBEDTLS_HAVE_TIME_DATE
 x509_ocsp_response_verify:"data_files/ocsp-resp-for-revoked-future.der":"data_files/server2-in-database-revoked-future.crt":"data_files/test-ca-sha256.crt":"data_files/test-ca-sha256.crt":MBEDTLS_ERR_X509_OCSP_RESPONSE_VERIFY_FAILED:MBEDTLS_X509_BADOCSP_RESPONSE_FUTURE | MBEDTLS_X509_BADOCSP_RESPONSE_REVOKED_CERT
 
 X509 OCSP Response verification (response not supplied)
@@ -321,11 +321,11 @@ depends_on:MBEDTLS_SHA1_C
 x509_ocsp_response_verify:"data_files/ocsp-resp-issuer-is-signer.der":"data_files/server2.crt":"data_files/test-ca-sha256.crt":"data_files/test-ca-sha256.crt":MBEDTLS_ERR_X509_OCSP_RESPONSE_VERIFY_FAILED:MBEDTLS_X509_BADOCSP_RESPONSE_INCOMPLETE
 
 X509 OCSP Response verification (SingleResponse future thisUpdate)
-depends_on:MBEDTLS_SHA1_C
+depends_on:MBEDTLS_SHA1_C:MBEDTLS_HAVE_TIME_DATE
 x509_ocsp_response_verify:"data_files/ocsp-resp-future-this-update.der":"data_files/server2-in-database.crt":"data_files/test-ca-sha256.crt":"data_files/test-ca-sha256.crt":MBEDTLS_ERR_X509_OCSP_RESPONSE_VERIFY_FAILED:MBEDTLS_X509_BADOCSP_RESPONSE_FUTURE | MBEDTLS_X509_BADOCSP_RESPONSE_NOT_TRUSTED
 
 X509 OCSP Response verification (SingleResponse expired nextUpdate)
-depends_on:MBEDTLS_SHA1_C
+depends_on:MBEDTLS_SHA1_C:MBEDTLS_HAVE_TIME_DATE
 x509_ocsp_response_verify:"data_files/ocsp-resp-expired-next-update.der":"data_files/server2-in-database.crt":"data_files/test-ca-sha256.crt":"data_files/test-ca-sha256.crt":MBEDTLS_ERR_X509_OCSP_RESPONSE_VERIFY_FAILED:MBEDTLS_X509_BADOCSP_RESPONSE_EXPIRED
 
 X509 OCSP Response verification (SingleResponse revoked cert status)

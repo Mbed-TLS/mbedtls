@@ -37,7 +37,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
 void x509_ocsp_response_verify( char *resp_file, char *req_crt_file,
                                 char *crt_chain_file, char *ca_file,
                                 int result, int flags_result )

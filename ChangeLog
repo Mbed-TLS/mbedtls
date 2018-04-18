@@ -42,7 +42,7 @@ Bugfix
      mnacamura.
    * Fix parsing of PKCS#8 encoded Elliptic Curve keys. Previously Mbed TLS was
      unable to parse keys with only the optional parameters field of the
-     ECPrivateKey structure. Found by jethrogb, fixed in #1379.
+     ECPrivateKey structure. Found by Jethro Beekman, fixed in #1379.
    * Return plaintext data sooner on unpadded CBC decryption, as stated in
      the mbedtls_cipher_update() documentation. Contributed by Andy Leiserson.
    * Fix overriding and ignoring return values when parsing and writing to
@@ -93,6 +93,8 @@ Changes
    * Improve robustness of mbedtls_ssl_derive_keys against the use of
      HMAC functions with non-HMAC ciphersuites. Independently contributed
      by Jiayuan Chen in #1377. Fixes #1437.
+   * Improve security of RSA key generation by including criteria from FIPS
+     186-4. Contributed by Jethro Beekman. #1380
 
 = mbed TLS 2.8.0 branch released 2018-03-16
 

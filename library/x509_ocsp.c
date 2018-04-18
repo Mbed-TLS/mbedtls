@@ -2228,6 +2228,7 @@ int mbedtls_x509_ocsp_response_verify_info( char *buf, size_t size,
                                       x509_ocsp_response_verify_strings ) );
 }
 
+#if defined(MBEDTLS_FS_IO)
 int mbedtls_x509_ocsp_response_parse_file( mbedtls_x509_ocsp_response *resp,
                                            const char *path )
 {
@@ -2245,4 +2246,6 @@ int mbedtls_x509_ocsp_response_parse_file( mbedtls_x509_ocsp_response *resp,
 
     return( ret );
 }
+#endif /* MBEDTLS_FS_IO */
+
 #endif /* MBEDTLS_X509_OCSP_PARSE_C */

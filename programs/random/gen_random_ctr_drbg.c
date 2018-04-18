@@ -77,6 +77,7 @@ int main( int argc, char *argv[] )
     {
         mbedtls_fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
 #if defined(MBEDTLS_PLATFORM_C)
+        mbedtls_ctr_drbg_free( &ctr_drbg );
         mbedtls_platform_teardown( &platform_ctx );
 #endif
         return( exit_code );
@@ -86,6 +87,7 @@ int main( int argc, char *argv[] )
     {
         mbedtls_printf( "failed to open '%s' for writing.\n", argv[1] );
 #if defined(MBEDTLS_PLATFORM_C)
+        mbedtls_ctr_drbg_free( &ctr_drbg );
         mbedtls_platform_teardown( &platform_ctx );
 #endif
 		return( exit_code );

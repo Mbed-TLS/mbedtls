@@ -1,7 +1,8 @@
 /**
  * \file dhm.h
  *
- * \brief This file contains DHM definitions and functions.
+ * \brief   This file contains Diffie-Hellman-Merkle (DHM) key exchange 
+ *          definitions and functions.
  *
  * Diffie-Hellman-Merkle (DHM) key exchange is defined in
  * <em>RFC-2631: Diffie-Hellman Key Agreement Method</em> and 
@@ -186,7 +187,7 @@ int mbedtls_dhm_set_group( mbedtls_dhm_context *ctx,
                            const mbedtls_mpi *G );
 
 /**
- * \brief          This function imports the G^Y public value of the peer.
+ * \brief          This function imports the public value of the peer, G^Y.
  *
  * \param ctx      The DHM context.
  * \param input    The input buffer containing the G^Y value of the peer.
@@ -199,7 +200,7 @@ int mbedtls_dhm_read_public( mbedtls_dhm_context *ctx,
                      const unsigned char *input, size_t ilen );
 
 /**
- * \brief          This function creates its own \c X private key and
+ * \brief          This function creates its own private key, \c X, and
  *                 exports \c G^X.
  *
  * \note           The destination buffer is always fully written
@@ -267,7 +268,8 @@ void mbedtls_dhm_free( mbedtls_dhm_context *ctx );
  *                    Byte for PEM data.
  *
  * \return            \c 0 on success.
- * \return            A specific DHM or PEM error code on failure.
+ * \return            An \c MBEDTLS_ERR_DHM_XXX or MBEDTLS_ERR_PEM_XXX error code
+ *                    error code on failure.
  */
 int mbedtls_dhm_parse_dhm( mbedtls_dhm_context *dhm, const unsigned char *dhmin,
                    size_t dhminlen );
@@ -281,7 +283,8 @@ int mbedtls_dhm_parse_dhm( mbedtls_dhm_context *dhm, const unsigned char *dhmin,
  * \param path     The filename to read the DHM parameters from.
  *
  * \return         \c 0 on success.
- * \return         A specific DHM or PEM error code on failure.
+ * \return            An \c MBEDTLS_ERR_DHM_XXX or MBEDTLS_ERR_PEM_XXX error code
+ *                    error code on failure.
  */
 int mbedtls_dhm_parse_dhmfile( mbedtls_dhm_context *dhm, const char *path );
 #endif /* MBEDTLS_FS_IO */

@@ -282,10 +282,14 @@ int main(int argc, const char *argv[])
     !defined(TEST_SUITE_MEMORY_BUFFER_ALLOC)
     unsigned char alloc_buf[1000000];
 #endif 
-    if( platform_setup() != 0 )
+    /* Platform setup should be called in the beginning */
+    ret = platform_setup();
+    if( ret != 0 )
     {
-        mbedtls_fprintf( stderr, "FATAL: Failed to initialize platform" );
-        return -1;
+        mbedtls_fprintf( stderr,
+                         "FATAL: Failed to initialize platform - error %d\n",
+                         ret );
+        return( -1 );
     }
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && \
     !defined(TEST_SUITE_MEMORY_BUFFER_ALLOC)
@@ -312,7 +316,7 @@ int main(int argc, const char *argv[])
     {
         mbedtls_fprintf( stderr, "the snprintf implementation is broken\n" );
         platform_teardown();
-        return( 0 );
+        return( 1 );
     }
 
     while( arg_index < argc)

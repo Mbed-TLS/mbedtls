@@ -64,6 +64,8 @@ Bugfix
    * Fix buffer length assertions in the ssl_parse_certificate_request()
      function which leads to a potential one byte overread of the message
      buffer.
+   * Fix cipher suite validation in ssl_parse_server_hello() by performing same
+     checks as performed in ssl_write_client_hello().
 
 Changes
    * Remove some redundant code in bignum.c. Contributed by Alexey Skalozub.

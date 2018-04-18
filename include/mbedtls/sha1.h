@@ -286,7 +286,7 @@ int mbedtls_sha1_ret( const unsigned char *input,
 #define MBEDTLS_DEPRECATED
 #endif
 /**
-* \brief          This function calculates the SHA-1 checksum of a buffer.
+ * \brief          This function calculates the SHA-1 checksum of a buffer.
  *
  *                 The function allocates the context, performs the
  *                 calculation, and frees the context.

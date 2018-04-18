@@ -702,7 +702,7 @@ EXCLUDE                = ../configs ../yotta/module
 # directories that are symbolic links (a Unix file system feature) are excluded
 # from the input.
 
-EXCLUDE_SYMLINKS       = NO
+EXCLUDE_SYMLINKS       = YES
 
 # If the value of the INPUT tag contains directories, you can use the
 # EXCLUDE_PATTERNS tag to specify one or more wildcard patterns to exclude

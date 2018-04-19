@@ -78,8 +78,8 @@ extern "C" {
  *            ciphers instead.
  */
 typedef enum {
-    MBEDTLS_CIPHER_ID_NONE = 0,  /**< None. */
-    MBEDTLS_CIPHER_ID_NULL,      /**< NULL.*/
+    MBEDTLS_CIPHER_ID_NONE = 0,  /**< Placeholder to mark the end of cipher ID lists. */
+    MBEDTLS_CIPHER_ID_NULL,      /**< The identity cipher, treated as a stream cipher. */
     MBEDTLS_CIPHER_ID_AES,       /**< The AES cipher. */
     MBEDTLS_CIPHER_ID_DES,       /**< The DES cipher. */
     MBEDTLS_CIPHER_ID_3DES,      /**< The Trile DES cipher. */
@@ -96,8 +96,8 @@ typedef enum {
  *            ciphers instead.
  */
 typedef enum {
-    MBEDTLS_CIPHER_NONE = 0,             /**< None. */
-    MBEDTLS_CIPHER_NULL,                 /**< NULL. */
+    MBEDTLS_CIPHER_NONE = 0,             /**< Placeholder to mark the end of cipher-pair lists. */
+    MBEDTLS_CIPHER_NULL,                 /**< The cipher-pair, treated as a stream cipher. */
     MBEDTLS_CIPHER_AES_128_ECB,          /**< AES cipher with 128-bit ECB mode. */
     MBEDTLS_CIPHER_AES_192_ECB,          /**< AES cipher with 192-bit ECB mode. */
     MBEDTLS_CIPHER_AES_256_ECB,          /**< AES cipher with 256-bit ECB mode. */
@@ -361,9 +361,10 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx );
  * \param cipher_info   The cipher to use.
  *
  * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on parameter failure.
+ * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
+ *                      parameter-verification failure.
  * \return              #MBEDTLS_ERR_CIPHER_ALLOC_FAILED if allocation of the
- *                      cipher-specific context failed.
+ *                      cipher-specific context fails.
  *
  * \internal Currently, the function also clears the structure.
  * In future versions, the caller will be required to call
@@ -411,7 +412,7 @@ static inline mbedtls_cipher_mode_t mbedtls_cipher_get_cipher_mode( const mbedtl
  * \param ctx   The context of the cipher. Must be initialized.
  *
  * \return      The recommended IV size if no IV has been set.
- * \return      \c 0 for ciphers not using IV or nonce.
+ * \return      \c 0 for ciphers not using an IV or a nonce.
  * \return      The actual size if an IV has been set.
  */
 static inline int mbedtls_cipher_get_iv_size( const mbedtls_cipher_context_t *ctx )
@@ -503,8 +504,8 @@ static inline mbedtls_operation_t mbedtls_cipher_get_operation( const mbedtls_ci
  *                      #MBEDTLS_ENCRYPT or #MBEDTLS_DECRYPT.
  *
  * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA if
- *                      parameter verification fails.
+ * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
+ *                      parameter-verification failure.
  * \return              A cipher-specific error code on failure.
  */
 int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx, const unsigned char *key,
@@ -542,7 +543,8 @@ int mbedtls_cipher_set_padding_mode( mbedtls_cipher_context_t *ctx, mbedtls_ciph
  *                  This parameter is discarded by ciphers with fixed-size IV.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on failure.
+ * \return          #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
+ *                  parameter-verification failure.
  */
 int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
                    const unsigned char *iv, size_t iv_len );
@@ -553,8 +555,8 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
  * \param ctx     The generic cipher context.
  *
  * \return        \c 0 on success.
- * \return        #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
- *                if parameter verification fails.
+ * \return        #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
+ *                parameter-verification failure.
  */
 int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx );
 
@@ -585,10 +587,10 @@ int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
  *                      Exception: For MBEDTLS_MODE_ECB, expects a single block
  *                      in size. For example, 16 Bytes for AES.
  *
- * \note                If the underlying cipher is GCM, all calls to this
- *                      function, except the last one before
- *                      mbedtls_cipher_finish(). Must have \p ilen as a
- *                      multiple of the block_size.
+ * \note                If the underlying cipher is used in GCM mode, all calls
+ *                      to this function, except for the last one before
+ *                      mbedtls_cipher_finish(), must have \p ilen as a
+ *                      multiple of the block size of the cipher.
  *
  * \param ctx           The generic cipher context.
  * \param input         The buffer holding the input data.
@@ -600,8 +602,8 @@ int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
  *                      actual number of Bytes written.
  *
  * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA if
- *                      parameter verification fails.
+ * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
+ *                      parameter-verification failure.
  * \return              #MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE on an
  *                      unsupported mode for a cipher.
  * \return              A cipher-specific error code on failure.
@@ -620,10 +622,10 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
  * \param olen          The length of the data written to the \p output buffer.
  *
  * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA if
- *                      parameter verification fails.
- * \return              #MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED if decryption
- *                      expected a full block but was not provided one.
+ * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
+ *                      parameter-verification failure.
+ * \return              #MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED on decryption
+ *                      expecting a full block but not receiving one.
  * \return              #MBEDTLS_ERR_CIPHER_INVALID_PADDING on invalid padding
  *                      while decrypting.
  * \return              A cipher-specific error code on failure.
@@ -684,9 +686,10 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
  *                      ciphers, use \p iv = NULL and \p iv_len = 0.
  *
  * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA, or
- *                      #MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED if decryption
- *                      expected a full block but was not provided one.
+ * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
+ *                      parameter-verification failure.
+ * \return              #MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED on decryption
+ *                      expecting a full block but not receiving one.
  * \return              #MBEDTLS_ERR_CIPHER_INVALID_PADDING on invalid padding
  *                      while decrypting.
  * \return              A cipher-specific error code on failure.
@@ -716,7 +719,8 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
  * \param tag_len       The desired length of the authentication tag.
  *
  * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA.
+ * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
+ *                      parameter-verification failure.
  * \return              A cipher-specific error code on failure.
  */
 int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
@@ -749,7 +753,8 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
  * \param tag_len       The length of the authentication tag.
  *
  * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA.
+ * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
+ *                      parameter-verification failure.
  * \return              #MBEDTLS_ERR_CIPHER_AUTH_FAILED if data is not authentic.
  * \return              A cipher-specific error code on failure.
  */

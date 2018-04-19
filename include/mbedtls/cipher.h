@@ -82,7 +82,7 @@ typedef enum {
     MBEDTLS_CIPHER_ID_NULL,      /**< The identity cipher, treated as a stream cipher. */
     MBEDTLS_CIPHER_ID_AES,       /**< The AES cipher. */
     MBEDTLS_CIPHER_ID_DES,       /**< The DES cipher. */
-    MBEDTLS_CIPHER_ID_3DES,      /**< The Trile DES cipher. */
+    MBEDTLS_CIPHER_ID_3DES,      /**< The Triple DES cipher. */
     MBEDTLS_CIPHER_ID_CAMELLIA,  /**< The Camellia cipher. */
     MBEDTLS_CIPHER_ID_BLOWFISH,  /**< The Blowfish cipher. */
     MBEDTLS_CIPHER_ID_ARC4,      /**< The RC4 cipher. */

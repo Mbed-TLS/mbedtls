@@ -54,9 +54,11 @@ Changes
      Wilson #481
    * Improve the documentation of mbedtls_net_accept(). Contributed by Ivan
      Krylov.
-   * Put the Cryptographic API outside of the XXX_ALT macro check, so
-     alternative header file will not need to redefined the same API,
-     and to force alternative implementer to use the same API.
+   * Declare functions in header files even when an alternative implementation
+     of the corresponding module is activated by defining the corresponding
+     MBEDTLS_XXX_ALT macro. This means that alternative implementations do
+     not need to copy the declarations, and ensures that they will have the
+     same API.
 
 = mbed TLS 2.8.0 branch released 2018-03-16
 

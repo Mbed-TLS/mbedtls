@@ -539,7 +539,17 @@ psa_status_t psa_import_key(psa_key_slot_t key,
                             size_t data_length);
 
 /**
- * \brief Destroy a key.
+ * \brief Destroy a key and restore the slot to its default state.
+ *
+ * This function destroys the content of the key slot from both volatile
+ * memory and, if applicable, non-volatile storage. Implementations shall
+ * make a best effort to ensure that any previous content of the slot is
+ * unrecoverable.
+ *
+ * This function also erases any metadata such as policies. It returns the
+ * specified slot to its default state.
+ *
+ * \param key           The key slot to erase.
  *
  * \retval PSA_SUCCESS
  *         The slot's content, if any, has been erased.

@@ -373,9 +373,11 @@ psa_status_t psa_destroy_key(psa_key_slot_t key)
         return( PSA_ERROR_INVALID_ARGUMENT );
     slot = &global_data.key_slots[key];
     if( slot->type == PSA_KEY_TYPE_NONE )
-        return( PSA_ERROR_EMPTY_SLOT );
-
-    if( PSA_KEY_TYPE_IS_RAW_BYTES( slot->type ) )
+    {
+        /* No key material to clean, but do zeroize the slot below to wipe
+         * metadata such as policies. */
+    }
+    else if( PSA_KEY_TYPE_IS_RAW_BYTES( slot->type ) )
     {
         mbedtls_free( slot->data.raw.data );
     }

@@ -9,6 +9,12 @@ Security
      a non DER-compliant certificate correctly signed by a trusted CA, or a
      trusted CA with a non DER-compliant certificate. Found by luocm on GitHub.
      Fixes #825.
+   * Fix buffer length assertion in the ssl_parse_certificate_request()
+     function which leads to an arbitrary overread of the message buffer. The
+     overreads could occur upon receiving a message malformed at the point
+     where an optional signature algorithms list is expected in the cases of
+     the signature algorithms section being too short. In the debug builds
+     the overread data is printed to the standard output.
 
 Features
    * Add option MBEDTLS_AES_FEWER_TABLES to dynamically compute 3/4 of the AES tables
@@ -55,6 +61,9 @@ Bugfix
      in the internal buffers; these cases lead to deadlocks in case
      event-driven I/O was used.
      Found and reported by Hubert Mis in #772.
+   * Fix buffer length assertions in the ssl_parse_certificate_request()
+     function which leads to a potential one byte overread of the message
+     buffer.
 
 Changes
    * Remove some redundant code in bignum.c. Contributed by Alexey Skalozub.

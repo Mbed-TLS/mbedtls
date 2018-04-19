@@ -40,13 +40,14 @@
 #define MBEDTLS_ERR_CCM_AUTH_FAILED     -0x000F /**< Authenticated decryption failed. */
 #define MBEDTLS_ERR_CCM_HW_ACCEL_FAILED -0x0011 /**< CCM hardware accelerator failed. */
 
-#if !defined(MBEDTLS_CCM_ALT)
-// Regular implementation
-//
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#if !defined(MBEDTLS_CCM_ALT)
+// Regular implementation
+//
 
 /**
  * \brief    The CCM context-type definition. The CCM context is passed
@@ -56,6 +57,10 @@ typedef struct {
     mbedtls_cipher_context_t cipher_ctx;    /*!< The cipher context used. */
 }
 mbedtls_ccm_context;
+
+#else  /* MBEDTLS_CCM_ALT */
+#include "ccm_alt.h"
+#endif /* MBEDTLS_CCM_ALT */
 
 /**
  * \brief           This function initializes the specified CCM context,
@@ -148,17 +153,6 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
                       const unsigned char *input, unsigned char *output,
                       const unsigned char *tag, size_t tag_len );
 
-#ifdef __cplusplus
-}
-#endif
-
-#else  /* MBEDTLS_CCM_ALT */
-#include "ccm_alt.h"
-#endif /* MBEDTLS_CCM_ALT */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)
 /**

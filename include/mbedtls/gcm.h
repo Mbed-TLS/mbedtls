@@ -42,11 +42,11 @@
 #define MBEDTLS_ERR_GCM_HW_ACCEL_FAILED                   -0x0013  /**< GCM hardware accelerator failed. */
 #define MBEDTLS_ERR_GCM_BAD_INPUT                         -0x0014  /**< Bad input parameters to function. */
 
-#if !defined(MBEDTLS_GCM_ALT)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#if !defined(MBEDTLS_GCM_ALT)
 
 /**
  * \brief          The GCM context structure.
@@ -65,6 +65,10 @@ typedef struct {
                                                #MBEDTLS_GCM_DECRYPT. */
 }
 mbedtls_gcm_context;
+
+#else  /* !MBEDTLS_GCM_ALT */
+#include "gcm_alt.h"
+#endif /* !MBEDTLS_GCM_ALT */
 
 /**
  * \brief           This function initializes the specified GCM context,
@@ -235,18 +239,6 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
  * \param ctx       The GCM context to clear.
  */
 void mbedtls_gcm_free( mbedtls_gcm_context *ctx );
-
-#ifdef __cplusplus
-}
-#endif
-
-#else  /* !MBEDTLS_GCM_ALT */
-#include "gcm_alt.h"
-#endif /* !MBEDTLS_GCM_ALT */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          The GCM checkup routine.

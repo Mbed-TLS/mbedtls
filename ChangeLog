@@ -104,6 +104,11 @@ Changes
      by Jiayuan Chen in #1377. Fixes #1437.
    * Improve security of RSA key generation by including criteria from FIPS
      186-4. Contributed by Jethro Beekman. #1380
+   * Declare functions in header files even when an alternative implementation
+     of the corresponding module is activated by defining the corresponding
+     MBEDTLS_XXX_ALT macro. This means that alternative implementations do
+     not need to copy the declarations, and ensures that they will have the
+     same API.
 
 = mbed TLS 2.8.0 branch released 2018-03-16
 

@@ -77,13 +77,13 @@
  * eg for alternative (PKCS#11) RSA implemenations in the PK layers.
  */
 
-#if !defined(MBEDTLS_RSA_ALT)
-// Regular implementation
-//
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#if !defined(MBEDTLS_RSA_ALT)
+// Regular implementation
+//
 
 /**
  * \brief   The RSA context structure.
@@ -128,6 +128,10 @@ typedef struct
 #endif
 }
 mbedtls_rsa_context;
+
+#else  /* MBEDTLS_RSA_ALT */
+#include "rsa_alt.h"
+#endif /* MBEDTLS_RSA_ALT */
 
 /**
  * \brief          This function initializes an RSA context.
@@ -1111,18 +1115,6 @@ int mbedtls_rsa_copy( mbedtls_rsa_context *dst, const mbedtls_rsa_context *src )
  * \param ctx      The RSA Context to free.
  */
 void mbedtls_rsa_free( mbedtls_rsa_context *ctx );
-
-#ifdef __cplusplus
-}
-#endif
-
-#else  /* MBEDTLS_RSA_ALT */
-#include "rsa_alt.h"
-#endif /* MBEDTLS_RSA_ALT */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          The RSA checkup routine.

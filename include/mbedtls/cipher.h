@@ -97,7 +97,7 @@ typedef enum {
  */
 typedef enum {
     MBEDTLS_CIPHER_NONE = 0,             /**< Placeholder to mark the end of cipher-pair lists. */
-    MBEDTLS_CIPHER_NULL,                 /**< The cipher-pair, treated as a stream cipher. */
+    MBEDTLS_CIPHER_NULL,                 /**< The identity stream cipher. */
     MBEDTLS_CIPHER_AES_128_ECB,          /**< AES cipher with 128-bit ECB mode. */
     MBEDTLS_CIPHER_AES_192_ECB,          /**< AES cipher with 192-bit ECB mode. */
     MBEDTLS_CIPHER_AES_256_ECB,          /**< AES cipher with 256-bit ECB mode. */

@@ -814,23 +814,23 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  *         An implementation may return either 0 or the correct size
  *         for a hash algorithm that it recognizes, but does not support.
  */
-#define PSA_HASH_FINAL_SIZE(alg)                \
-    (                                           \
-        (alg) == PSA_ALG_MD2 ? 16 :             \
-        (alg) == PSA_ALG_MD4 ? 16 :             \
-        (alg) == PSA_ALG_MD5 ? 16 :             \
-        (alg) == PSA_ALG_RIPEMD160 ? 20 :       \
-        (alg) == PSA_ALG_SHA_1 ? 20 :           \
-        (alg) == PSA_ALG_SHA_224 ? 28 :         \
-        (alg) == PSA_ALG_SHA_256 ? 32 :         \
-        (alg) == PSA_ALG_SHA_384 ? 48 :         \
-        (alg) == PSA_ALG_SHA_512 ? 64 :         \
-        (alg) == PSA_ALG_SHA_512_224 ? 28 :     \
-        (alg) == PSA_ALG_SHA_512_256 ? 32 :     \
-        (alg) == PSA_ALG_SHA3_224 ? 28 :        \
-        (alg) == PSA_ALG_SHA3_256 ? 32 :        \
-        (alg) == PSA_ALG_SHA3_384 ? 48 :        \
-        (alg) == PSA_ALG_SHA3_512 ? 64 :        \
+#define PSA_HASH_SIZE(alg)                                            \
+    (                                                                 \
+        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_MD2 ? 16 :               \
+        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_MD4 ? 16 :               \
+        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_MD5 ? 16 :               \
+        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_RIPEMD160 ? 20 :         \
+        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_1 ? 20 :             \
+        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_224 ? 28 :           \
+        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_256 ? 32 :           \
+        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_384 ? 48 :           \
+        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_512 ? 64 :           \
+        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_512_224 ? 28 :       \
+        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_512_256 ? 32 :       \
+        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA3_224 ? 28 :          \
+        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA3_256 ? 32 :          \
+        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA3_384 ? 48 :          \
+        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA3_512 ? 64 :          \
         0)
 
 /** Start a multipart hash operation.
@@ -915,7 +915,7 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
  * \param hash_size     Size of the \c hash buffer in bytes.
  * \param hash_length   On success, the number of bytes
  *                      that make up the hash value. This is always
- *                      #PSA_HASH_FINAL_SIZE(alg) where \c alg is the
+ *                      #PSA_HASH_SIZE(alg) where \c alg is the
  *                      hash algorithm that is calculated.
  *
  * \retval PSA_SUCCESS
@@ -924,7 +924,7 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
  *         The operation state is not valid (not started, or already completed).
  * \retval PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \c hash buffer is too small. You can determine a
- *         sufficient buffer size by calling #PSA_HASH_FINAL_SIZE(alg)
+ *         sufficient buffer size by calling #PSA_HASH_SIZE(alg)
  *         where \c alg is the hash algorithm that is calculated.
  * \retval PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval PSA_ERROR_COMMUNICATION_FAILURE
@@ -1020,7 +1020,7 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  *         for a MAC algorithm that it recognizes, but does not support.
  */
 #define PSA_MAC_FINAL_SIZE(key_type, key_bits, alg)                     \
-    (PSA_ALG_IS_HMAC(alg) ? PSA_HASH_FINAL_SIZE(PSA_ALG_HMAC_HASH(alg)) : \
+    (PSA_ALG_IS_HMAC(alg) ? PSA_HASH_SIZE(PSA_ALG_HMAC_HASH(alg)) : \
      PSA_ALG_IS_BLOCK_CIPHER_MAC(alg) ? PSA_BLOCK_CIPHER_BLOCK_SIZE(key_type) : \
      0)
 

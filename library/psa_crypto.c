@@ -774,7 +774,7 @@ psa_status_t psa_hash_finish( psa_hash_operation_t *operation,
                               size_t *hash_length )
 {
     int ret;
-    size_t actual_hash_length = PSA_HASH_FINAL_SIZE( operation->alg );
+    size_t actual_hash_length = PSA_HASH_SIZE( operation->alg );
 
     /* Fill the output buffer with something that isn't a valid hash
      * (barring an attack on the hash and deliberately-crafted input),

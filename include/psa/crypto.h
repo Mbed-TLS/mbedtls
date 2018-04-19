@@ -304,15 +304,47 @@ typedef uint32_t psa_key_type_t;
 #define PSA_KEY_TYPE_VENDOR_FLAG                ((psa_key_type_t)0x80000000)
 
 #define PSA_KEY_TYPE_CATEGORY_MASK              ((psa_key_type_t)0x7e000000)
+/** Raw data.
+ *
+ * A "key" of this type cannot be used for any cryptographic operation.
+ * Applications may use this type to store arbitrary data in the keystore. */
 #define PSA_KEY_TYPE_RAW_DATA                   ((psa_key_type_t)0x02000000)
 #define PSA_KEY_TYPE_CATEGORY_SYMMETRIC         ((psa_key_type_t)0x04000000)
 #define PSA_KEY_TYPE_CATEGORY_ASYMMETRIC        ((psa_key_type_t)0x06000000)
 #define PSA_KEY_TYPE_PAIR_FLAG                  ((psa_key_type_t)0x01000000)
 
+/** HMAC key.
+ *
+ * The key policy determines which underlying hash algorithm the key can be
+ * used for.
+ *
+ * HMAC keys should generally have the same size as the underlying hash.
+ * This size can be calculated with `PSA_HASH_SIZE(alg)` where
+ * `alg` is the HMAC algorithm or the underlying hash algorithm. */
 #define PSA_KEY_TYPE_HMAC                       ((psa_key_type_t)0x02000001)
+/** Key for an cipher, AEAD or MAC algorithm based on the AES block cipher.
+ *
+ * The size of the key can be 16 bytes (AES-128), 24 bytes (AES-192) or
+ * 32 bytes (AES-256).
+ */
 #define PSA_KEY_TYPE_AES                        ((psa_key_type_t)0x04000001)
+/** Key for a cipher or MAC algorithm based on DES or 3DES (Triple-DES).
+ *
+ * The size of the key can be 8 bytes (single DES), 16 bytes (2-key 3DES) or
+ * 24 bytes (3-key 3DES).
+ *
+ * Note that single DES and 2-key 3DES are weak and strongly
+ * deprecated and should only be used to decrypt legacy data. 3-key 3DES
+ * is weak and deprecated and should only be used in legacy protocols.
+ */
 #define PSA_KEY_TYPE_DES                        ((psa_key_type_t)0x04000002)
+/** Key for an cipher, AEAD or MAC algorithm based on the
+ * Camellia block cipher. */
 #define PSA_KEY_TYPE_CAMELLIA                   ((psa_key_type_t)0x04000003)
+/** Key for the RC4 stream cipher.
+ *
+ * Note that RC4 is weak and deprecated and should only be used in
+ * legacy protocols. */
 #define PSA_KEY_TYPE_ARC4                       ((psa_key_type_t)0x04000004)
 
 /** RSA public key. */
@@ -369,8 +401,14 @@ typedef uint32_t psa_key_type_t;
  * \param type  A cipher key type (value of type #psa_key_type_t).
  *
  * \return      The block size for a block cipher, or 1 for a stream cipher.
- *              The return value is undefined if \c type does not identify
- *              a cipher algorithm.
+ *              The return value is undefined if \c type is not a supported
+ *              cipher key type.
+ *
+ * \note It is possible to build stream cipher algorithms on top of a block
+ *       cipher, for example CTR mode (#PSA_ALG_CTR).
+ *       This macro only takes the key type into account, so it cannot be
+ *       used to determine the size of the data that #psa_cipher_update()
+ *       might buffer for future processing in general.
  *
  * \note This macro returns a compile-time constant if its argument is one.
  *
@@ -451,7 +489,17 @@ typedef uint32_t psa_algorithm_t;
 
 #define PSA_ALG_MAC_SUBCATEGORY_MASK            ((psa_algorithm_t)0x00c00000)
 #define PSA_ALG_HMAC_BASE                       ((psa_algorithm_t)0x02800000)
-#define PSA_ALG_HMAC(hash_alg)                  \
+/** Macro to build an HMAC algorithm.
+ *
+ * For example, `PSA_ALG_HMAC(PSA_ALG_SHA256)` is HMAC-SHA-256.
+ *
+ * \param alg   A hash algorithm (\c PSA_ALG_XXX value such that
+ *              #PSA_ALG_IS_HASH(alg) is true).
+ *
+ * \return      The corresponding HMAC algorithm.
+ * \return      Unspecified if \p alg is not a hash algorithm.
+ */
+#define PSA_ALG_HMAC(hash_alg)                                  \
     (PSA_ALG_HMAC_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
 #define PSA_ALG_HMAC_HASH(hmac_alg)                             \
     (PSA_ALG_CATEGORY_HASH | ((hmac_alg) & PSA_ALG_HASH_MASK))
@@ -817,7 +865,9 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  * This is also the hash size that psa_hash_verify() expects.
  *
  * \param alg   A hash algorithm (\c PSA_ALG_XXX value such that
- *              #PSA_ALG_IS_HASH(alg) is true).
+ *              #PSA_ALG_IS_HASH(alg) is true), or an HMAC algorithm
+ *              (`PSA_ALG_HMAC(hash_alg)` where `hash_alg` is a
+ *              hash algorithm).
  *
  * \return The hash size for the specified hash algorithm.
  *         If the hash algorithm is not recognized, return 0.

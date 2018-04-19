@@ -105,10 +105,6 @@ static void my_mutexed_debug( void *ctx, int level,
 }
 
 typedef struct {
-#if defined(MBEDTLS_PLATFORM_C)
-    mbedtls_platform_context platform_ctx;
-    mbedtls_threading_mutex_t platform_ctx_mutex;
-#endif
     mbedtls_net_context client_fd;
     int thread_complete;
     const mbedtls_ssl_config *config;
@@ -319,6 +315,9 @@ static int thread_create( mbedtls_net_context *client_fd )
 int main( void )
 {
     int ret;
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_context platform_ctx;
+#endif
     mbedtls_net_context listen_fd, client_fd;
     const char pers[] = "ssl_pthread_server";
 
@@ -336,12 +335,11 @@ int main( void )
 #endif
 
 #if defined(MBEDTLS_PLATFORM_C)
-    if( ( ret = mbedtls_platform_setup( &base_info.platform_ctx ) ) != 0 )
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
         mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
         return( 1 );
     }
-    mbedtls_mutex_init( &base_info.platform_ctx_mutex );
 #endif
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
@@ -528,8 +526,7 @@ exit:
     mbedtls_memory_buffer_alloc_free();
 #endif
 #if defined(MBEDTLS_PLATFORM_C)
-    mbedtls_mutex_free( &base_info.platform_ctx_mutex );
-    mbedtls_platform_teardown( &base_info.platform_ctx );
+    mbedtls_platform_teardown( &platform_ctx );
 #endif
 #if defined(_WIN32)
     mbedtls_printf( "  Press Enter to exit this program.\n" );

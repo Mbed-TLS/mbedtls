@@ -435,8 +435,8 @@ int main( int argc, char *argv[] )
     mbedtls_platform_teardown( &platform_ctx );
 #endif
 #if defined(_WIN32)
-        mbedtls_printf( "  Press Enter to exit this program.\n" );
-        fflush( stdout ); getchar();
+    mbedtls_printf( "  Press Enter to exit this program.\n" );
+    fflush( stdout ); getchar();
 #endif
 
     if( suites_failed > 0)

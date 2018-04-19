@@ -1,7 +1,9 @@
 /**
  * \file cipher.h
  *
- * \brief This file contains the generic cipher wrapper.
+ * \brief This file contains an abstraction interface for use with the cipher
+ * primitives provided by the library. It provides a common interface to all of
+ * the available cipher operations.
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  */
@@ -71,7 +73,7 @@ extern "C" {
 /**
  * \brief     Supported cipher types.
  *
- * \warning   ARC4 and DES are considered weak ciphers and their use
+ * \warning   RC4 and DES are considered weak ciphers and their use
  *            constitutes a security risk. Arm recommends considering stronger
  *            ciphers instead.
  */
@@ -80,16 +82,16 @@ typedef enum {
     MBEDTLS_CIPHER_ID_NULL,      /**< NULL.*/
     MBEDTLS_CIPHER_ID_AES,       /**< The AES cipher. */
     MBEDTLS_CIPHER_ID_DES,       /**< The DES cipher. */
-    MBEDTLS_CIPHER_ID_3DES,      /**< The 3DES cipher. */
+    MBEDTLS_CIPHER_ID_3DES,      /**< The Trile DES cipher. */
     MBEDTLS_CIPHER_ID_CAMELLIA,  /**< The Camellia cipher. */
     MBEDTLS_CIPHER_ID_BLOWFISH,  /**< The Blowfish cipher. */
-    MBEDTLS_CIPHER_ID_ARC4,      /**< The ARC4 cipher. */
+    MBEDTLS_CIPHER_ID_ARC4,      /**< The RC4 cipher. */
 } mbedtls_cipher_id_t;
 
 /**
  * \brief     Supported {cipher type, cipher mode} pairs.
  *
- * \warning   ARC4 and DES are considered weak ciphers and their use
+ * \warning   RC4 and DES are considered weak ciphers and their use
  *            constitutes a security risk. Arm recommends considering stronger
  *            ciphers instead.
  */
@@ -136,7 +138,7 @@ typedef enum {
     MBEDTLS_CIPHER_BLOWFISH_CBC,         /**< Blowfish cipher with CBC mode. */
     MBEDTLS_CIPHER_BLOWFISH_CFB64,       /**< Blowfish cipher with CFB64 mode. */
     MBEDTLS_CIPHER_BLOWFISH_CTR,         /**< Blowfish cipher with CTR mode. */
-    MBEDTLS_CIPHER_ARC4_128,             /**< ARC4 cipher with 128-bit mode. */
+    MBEDTLS_CIPHER_ARC4_128,             /**< RC4 cipher with 128-bit mode. */
     MBEDTLS_CIPHER_AES_128_CCM,          /**< AES cipher with 128-bit CCM mode. */
     MBEDTLS_CIPHER_AES_192_CCM,          /**< AES cipher with 192-bit CCM mode. */
     MBEDTLS_CIPHER_AES_256_CCM,          /**< AES cipher with 256-bit CCM mode. */
@@ -151,7 +153,7 @@ typedef enum {
     MBEDTLS_MODE_ECB,                    /**< The ECB cipher mode. */
     MBEDTLS_MODE_CBC,                    /**< The CBC cipher mode. */
     MBEDTLS_MODE_CFB,                    /**< The CFB cipher mode. */
-    MBEDTLS_MODE_OFB,                    /**< Unused. */
+    MBEDTLS_MODE_OFB,                    /**< The OFB cipher mode - unsupported. */
     MBEDTLS_MODE_CTR,                    /**< The CTR cipher mode. */
     MBEDTLS_MODE_GCM,                    /**< The GCM cipher mode. */
     MBEDTLS_MODE_STREAM,                 /**< The stream cipher mode. */
@@ -409,7 +411,7 @@ static inline mbedtls_cipher_mode_t mbedtls_cipher_get_cipher_mode( const mbedtl
  * \param ctx   The context of the cipher. Must be initialized.
  *
  * \return      The recommended IV size if no IV has been set.
- * \return      0 for ciphers not using IV or nonce.
+ * \return      \c 0 for ciphers not using IV or nonce.
  * \return      The actual size if an IV has been set.
  */
 static inline int mbedtls_cipher_get_iv_size( const mbedtls_cipher_context_t *ctx )

@@ -118,7 +118,6 @@ int main( void )
     const char *pers = "ssl_fork_server";
 
 #if defined(MBEDTLS_PLATFORM_C)
-    int is_parent = 1;
     mbedtls_platform_context platform_ctx;
 #endif
     mbedtls_entropy_context entropy;
@@ -288,10 +287,6 @@ int main( void )
             continue;
         }
 
-#if defined(MBEDTLS_PLATFORM_C)
-        is_parent = 0;
-#endif
-
         mbedtls_net_init( &listen_fd );
 
         pid = getpid();
@@ -437,8 +432,7 @@ exit:
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
 #if defined(MBEDTLS_PLATFORM_C)
-    if( is_parent )
-        mbedtls_platform_teardown( &platform_ctx );
+    mbedtls_platform_teardown( &platform_ctx );
 #endif
 #if defined(_WIN32)
     mbedtls_printf( "  Press Enter to exit this program.\n" );

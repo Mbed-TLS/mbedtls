@@ -232,7 +232,6 @@ mbedtls_ecp_keypair;
  *      521       145     141     135     120      97
  *      384       214     209     198     177     146
  *      256       320     320     303     262     226
-
  *      224       475     475     453     398     342
  *      192       640     640     633     587     476
  */
@@ -596,7 +595,7 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 /**
  * \brief           This function performs multiplication and addition of two 
  *                  points by integers: \p R = \p m * \p P + \p n * \p Q
- 
+ *
  *                  It is not thread-safe to use same group in multiple threads.
  *
  * \note            In contrast to mbedtls_ecp_mul(), this function does not 
@@ -680,7 +679,7 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp, const mbedtls_mpi *
  * \return          \c 0 on success.
  * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX error code
  *                  on failure.
-  */
+ */
 int mbedtls_ecp_gen_keypair_base( mbedtls_ecp_group *grp,
                      const mbedtls_ecp_point *G,
                      mbedtls_mpi *d, mbedtls_ecp_point *Q,

@@ -1,11 +1,11 @@
 /**
  * \file ecp.h
  *
- * \brief This file contains ECP definitions and functions.
+ * \brief This file provides an API for Elliptic Curves over GF(P) (ECP).
  *
- * The use of Elliptic Curves over GF(P) (ECP) in cryptography and
- * TLS is defined in <em>Standards for Efficient Cryptography Group
- * (SECG): SEC1 Elliptic Curve Cryptography</em> and
+ * The use of ECP in cryptography and TLS is defined in
+ * <em>Standards for Efficient Cryptography Group (SECG): SEC1
+ * Elliptic Curve Cryptography</em> and
  * <em>RFC-4492: Elliptic Curve Cryptography (ECC) Cipher Suites
  * for Transport Layer Security (TLS)</em>.
  * 
@@ -43,7 +43,7 @@
  */
 #define MBEDTLS_ERR_ECP_BAD_INPUT_DATA                    -0x4F80  /**< Bad input parameters to function. */
 #define MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL                  -0x4F00  /**< The buffer is too small to write to. */
-#define MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE               -0x4E80  /**< The requested curve not available. */
+#define MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE               -0x4E80  /**< The requested curve is not available. */
 #define MBEDTLS_ERR_ECP_VERIFY_FAILED                     -0x4E00  /**< The signature is not valid. */
 #define MBEDTLS_ERR_ECP_ALLOC_FAILED                      -0x4D80  /**< Memory allocation failed. */
 #define MBEDTLS_ERR_ECP_RANDOM_FAILED                     -0x4D00  /**< Generation of random value, such as ephemeral key, failed. */
@@ -65,7 +65,7 @@ extern "C" {
 #endif
 
 /**
- * Definition of domain parameter identifiers: curve, subgroup and generator.
+ * Domain parameters: curve, subgroup, and generator.
  *
  * \note Only curves over prime fields are supported.
  *
@@ -76,16 +76,16 @@ extern "C" {
 typedef enum
 {
     MBEDTLS_ECP_DP_NONE = 0,       /*!< Curve not defined. */
-    MBEDTLS_ECP_DP_SECP192R1,      /*!< Domain parameters for 192-bit NIST curve. */
-    MBEDTLS_ECP_DP_SECP224R1,      /*!< Domain parameters for 224-bit NIST curve. */
-    MBEDTLS_ECP_DP_SECP256R1,      /*!< Domain parameters for 256-bit NIST curve. */
-    MBEDTLS_ECP_DP_SECP384R1,      /*!< Domain parameters for 384-bit NIST curve. */
-    MBEDTLS_ECP_DP_SECP521R1,      /*!< Domain parameters for 521-bit NIST curve. */
+    MBEDTLS_ECP_DP_SECP192R1,      /*!< Domain parameters for the 192-bit curve defined by FIPS 186-4 and SEC1. */
+    MBEDTLS_ECP_DP_SECP224R1,      /*!< Domain parameters for the 224-bit curve defined by FIPS 186-4 and SEC1. */
+    MBEDTLS_ECP_DP_SECP256R1,      /*!< Domain parameters for the 256-bit curve defined by FIPS 186-4 and SEC1. */
+    MBEDTLS_ECP_DP_SECP384R1,      /*!< Domain parameters for the 384-bit curve defined by FIPS 186-4 and SEC1. */
+    MBEDTLS_ECP_DP_SECP521R1,      /*!< Domain parameters for the 521-bit curve defined by FIPS 186-4 and SEC1. */
     MBEDTLS_ECP_DP_BP256R1,        /*!< Domain parameters for 256-bit Brainpool curve. */
     MBEDTLS_ECP_DP_BP384R1,        /*!< Domain parameters for 384-bit Brainpool curve. */
     MBEDTLS_ECP_DP_BP512R1,        /*!< Domain parameters for 512-bit Brainpool curve. */
-    MBEDTLS_ECP_DP_CURVE25519,     /*!< Domain parameters for a Curve25519 curve. */
-    MBEDTLS_ECP_DP_CURVE448,       /*!< Domain parameters for a Curve448 curve. */
+    MBEDTLS_ECP_DP_CURVE25519,     /*!< Domain parameters for Curve25519. */
+    MBEDTLS_ECP_DP_CURVE448,       /*!< Domain parameters for Curve448. */
     MBEDTLS_ECP_DP_SECP192K1,      /*!< Domain parameters for 192-bit "Koblitz" curve. */
     MBEDTLS_ECP_DP_SECP224K1,      /*!< Domain parameters for 224-bit "Koblitz" curve. */
     MBEDTLS_ECP_DP_SECP256K1,      /*!< Domain parameters for 256-bit "Koblitz" curve. */
@@ -105,7 +105,7 @@ typedef struct
 {
     mbedtls_ecp_group_id grp_id;    /*!< An internal identifier. */
     uint16_t tls_id;                /*!< The TLS NamedCurve identifier. */
-    uint16_t bit_size;              /*!< The size of the curve in bits. */
+    uint16_t bit_size;              /*!< The curve size in bits. */
     const char *name;               /*!< A human-friendly name. */
 } mbedtls_ecp_curve_info;
 
@@ -132,15 +132,16 @@ mbedtls_ecp_point;
  * \brief           The ECP group structure.
  *
  * We consider two types of curve equations:
- * <ol><li>Short Weierstrass: <code>y^2 = x^3 + A x + B mod P</code>
+ * <ul><li>Short Weierstrass: <code>y^2 = x^3 + A x + B mod P</code>
  * (SEC1 + RFC-4492)</li>
  * <li>Montgomery: <code>y^2 = x^3 + A x^2 + x mod P</code> (Curve25519,
- * Curve448)</li></ol>
+ * Curve448)</li></ul>
  * In both cases, the generator (\p G) for a prime-order subgroup is fixed.
  *
  * For Short Weierstrass, this subgroup is the whole curve, and its
  * cardinality is denoted by \p N. Our code requires that \p N is an
- * odd prime.
+ * odd prime as mbedtls_ecp_mul() requires an odd number, and
+ * mbedtls_ecdsa_sign() requires that it is prime for blinding purposes.
  *
  * For Montgomery curves, we do not store \p A, but <code>(A + 2) / 4</code>,
  * which is the quantity used in the formulas. Additionally, \p nbits is 
@@ -160,15 +161,15 @@ typedef struct
 {
     mbedtls_ecp_group_id id;    /*!< An internal group identifier. */
     mbedtls_mpi P;              /*!< The prime modulus of the base field. */
-    mbedtls_mpi A;              /*!< For (1) \p A in the equation or for 
-                                     (2) <code>(A + 2) / 4</code>. */
-    mbedtls_mpi B;              /*!< For (1) \p B in the equation or 
-                                     for (2) Unused. */
+    mbedtls_mpi A;              /*!< For Short Weierstrass: \p A in the equation. For
+                                     Montgomery curves: <code>(A + 2) / 4</code>. */
+    mbedtls_mpi B;              /*!< For Short Weierstrass: \p B in the equation.
+                                     For Montgomery curves: unused. */
     mbedtls_ecp_point G;        /*!< The generator of the subgroup used. */
     mbedtls_mpi N;              /*!< The order of \p G. */
     size_t pbits;               /*!< The number of bits in \p P.*/
-    size_t nbits;               /*!< For (1) The number of bits in \p P, or 
-                                     for (2) the private keys. */
+    size_t nbits;               /*!< For Short Weierstrass: The number of bits in \p P.
+                                     For Montgomery curves: the private keys. */
     unsigned int h;             /*!< \internal 1 if the constants are static. */
     int (*modp)(mbedtls_mpi *); /*!< The function for fast pseudo-reduction 
                                      mod \p P (see above).*/
@@ -176,7 +177,7 @@ typedef struct
     int (*t_post)(mbedtls_ecp_point *, void *); /*!< Unused. */
     void *t_data;               /*!< Unused. */
     mbedtls_ecp_point *T;       /*!< Pre-computed points for ecp_mul_comb(). */
-    size_t T_size;              /*!< The number for pre-computed points. */
+    size_t T_size;              /*!< The number of pre-computed points. */
 }
 mbedtls_ecp_group;
 
@@ -498,7 +499,7 @@ int mbedtls_ecp_tls_read_point( const mbedtls_ecp_group *grp, mbedtls_ecp_point 
  * \brief           This function exports a point as a TLS ECPoint record.
  *
  * \param grp       The ECP group used.
- * \param pt        The point to export.
+ * \param pt        he point format to export to an \c MBEDTLS_ECP_PF_XXX constant.
  * \param format    The export format.
  * \param olen      The length of the data written.
  * \param buf       The buffer to write to.
@@ -631,9 +632,9 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  *                  the NIST groups which all have a cofactor of 1.
  *
  * \note            This function uses bare components rather than an 
- *                  mbedtls_ecp_keypair() structure, to ease use with other 
- *                  structures. For example, mbedtls_ecdh_context() or 
- *                  mbedtls_ecdsa_context().
+ *                  ::mbedtls_ecp_keypair structure, to ease use with other 
+ *                  structures, such as ::mbedtls_ecdh_context or 
+ *                  ::mbedtls_ecdsa_context.
  *
  * \param grp       The curve the point should lie on.
  * \param pt        The point to check.
@@ -648,9 +649,9 @@ int mbedtls_ecp_check_pubkey( const mbedtls_ecp_group *grp, const mbedtls_ecp_po
  *                  key for this curve.
  *
  * \note            This function uses bare components rather than an 
- *                  mbedtls_ecp_keypair() structure to ease use with other 
- *                  structures such as mbedtls_ecdh_context() or 
- *                  mbedtls_ecdsa_context().
+ *                  ::mbedtls_ecp_keypair structure to ease use with other 
+ *                  structures, such as ::mbedtls_ecdh_context() or 
+ *                  ::mbedtls_ecdsa_context.
  *
  * \param grp       The group used.
  * \param d         The integer to check.
@@ -665,10 +666,10 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp, const mbedtls_mpi *
  *                  point.
  *
  * \note            This function uses bare components rather than an 
- *                  mbedtls_ecp_keypair() structure to ease use with other 
- *                  structures such as mbedtls_ecdh_context() or 
- *                  mbedtls_ecdsa_context().
-*
+ *                  ::mbedtls_ecp_keypair structure to ease use with other 
+ *                  structures, such as ::mbedtls_ecdh_context or 
+ *                  ::mbedtls_ecdsa_context.
+ *
  * \param grp       The ECP group.
  * \param G         The chosen base point.
  * \param d         The destination MPI (secret part).
@@ -690,9 +691,9 @@ int mbedtls_ecp_gen_keypair_base( mbedtls_ecp_group *grp,
  * \brief           This function generates an ECP keypair.
  *
  * \note            This function uses bare components rather than an 
- *                  mbedtls_ecp_keypair() structure to ease use with other 
- *                  structures such as mbedtls_ecdh_context() or 
- *                  mbedtls_ecdsa_context().
+ *                  ::mbedtls_ecp_keypair structure to ease use with other 
+ *                  structures, such as ::mbedtls_ecdh_context or 
+ *                  ::mbedtls_ecdsa_context.
  *
  * \param grp       The ECP group.
  * \param d         The destination MPI (secret part).
@@ -724,17 +725,19 @@ int mbedtls_ecp_gen_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
- * \brief           This function checks a public-private key pair.
+ * \brief           This function checks that the keypair objects 
+ *                  \p pub and \p prv have the same group and the
+ *                  same public point, and that the private key in
+ *                  \p prv is consistent with the public key.
  *
  * \param pub       The keypair structure holding the public key.
- * \param prv       The keypair structure holding the private key.
+ *                  If it contains a private key, that part is ignored.
+ * \param prv       The keypair structure holding the full keypair.
  *
- * \note            The both are keypairs, and may optionally hold the corresponding other key, but the public key passed in thee pub is checked against the private key passed in prv.
- *
- * \return          \c 0 on success - the keys are valid and match. 
- * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA, or an \c 
- *                  MBEDTLS_ERR_ECP_XXX or an \c MBEDTLS_ERR_MPI_XXX 
- *                  error code on failure.
+ * \return          \c 0 on success, meaning that the keys are valid and match. 
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if the keys are invalid or do not match.
+ * \return          An \c MBEDTLS_ERR_ECP_XXX or an \c MBEDTLS_ERR_MPI_XXX 
+ *                  error code on calculation failure.
  */
 int mbedtls_ecp_check_pub_priv( const mbedtls_ecp_keypair *pub, const mbedtls_ecp_keypair *prv );
 

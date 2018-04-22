@@ -1359,7 +1359,10 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
         }
         ret = mbedtls_cipher_set_padding_mode( &operation->ctx.cipher, mode );
         if (ret != 0)
+        {
+            psa_cipher_abort( operation );
             return( mbedtls_to_psa_error( ret ) );
+        }
     }
 #endif //MBEDTLS_CIPHER_MODE_WITH_PADDING
 
@@ -1424,6 +1427,13 @@ psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
     int ret = PSA_SUCCESS;
     if( operation->iv_set )
         return( PSA_ERROR_BAD_STATE );
+    if (iv_length != operation->iv_size)
+    {
+        if (((operation->alg) & PSA_ALG_ARC4) == PSA_ALG_ARC4)
+            return(PSA_ERROR_BAD_STATE);
+        else
+            return (PSA_ERROR_INVALID_ARGUMENT);
+    }
     ret =  mbedtls_cipher_set_iv( &operation->ctx.cipher, iv, iv_length );
     if( ret != 0 )
     {
@@ -1466,7 +1476,6 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
                                size_t *output_length)
 {
     int ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
-    
     uint8_t temp_output_buffer[ MBEDTLS_MAX_BLOCK_LENGTH ];
 
     if( ! operation->key_set )

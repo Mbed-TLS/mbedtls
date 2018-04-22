@@ -164,6 +164,9 @@ typedef enum {
     MBEDTLS_CIPHER_ARIA_128_CCM,         /**< Aria cipher with 128-bit key and CCM mode. */
     MBEDTLS_CIPHER_ARIA_192_CCM,         /**< Aria cipher with 192-bit key and CCM mode. */
     MBEDTLS_CIPHER_ARIA_256_CCM,         /**< Aria cipher with 256-bit key and CCM mode. */
+    MBEDTLS_CIPHER_AES_128_OFB,
+    MBEDTLS_CIPHER_AES_192_OFB,
+    MBEDTLS_CIPHER_AES_256_OFB
 } mbedtls_cipher_type_t;
 
 /** Supported cipher modes. */

@@ -138,6 +138,15 @@ static int aes_crypt_cfb128_wrap( void *ctx, mbedtls_operation_t operation,
 }
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+static int aes_crypt_ofb_wrap( void *ctx, size_t length, size_t *iv_off,
+        unsigned char *iv, const unsigned char *input, unsigned char *output )
+{
+    return mbedtls_aes_crypt_ofb( (mbedtls_aes_context *) ctx, length, iv_off,
+                                    iv, input, output );
+}
+#endif /* MBEDTLS_CIPHER_MODE_OFB */
+
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
 static int aes_crypt_ctr_wrap( void *ctx, size_t length, size_t *nc_off,
         unsigned char *nonce_counter, unsigned char *stream_block,
@@ -186,6 +195,9 @@ static const mbedtls_cipher_base_t aes_info = {
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
     aes_crypt_cfb128_wrap,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+    aes_crypt_ofb_wrap,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     aes_crypt_ctr_wrap,
@@ -302,6 +314,41 @@ static const mbedtls_cipher_info_t aes_256_cfb128_info = {
 };
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+static const mbedtls_cipher_info_t aes_128_ofb_info = {
+    MBEDTLS_CIPHER_AES_128_OFB,
+    MBEDTLS_MODE_OFB,
+    128,
+    "AES-128-OFB",
+    16,
+    0,
+    16,
+    &aes_info
+};
+
+static const mbedtls_cipher_info_t aes_192_ofb_info = {
+    MBEDTLS_CIPHER_AES_192_OFB,
+    MBEDTLS_MODE_OFB,
+    192,
+    "AES-192-OFB",
+    16,
+    0,
+    16,
+    &aes_info
+};
+
+static const mbedtls_cipher_info_t aes_256_ofb_info = {
+    MBEDTLS_CIPHER_AES_256_OFB,
+    MBEDTLS_MODE_OFB,
+    256,
+    "AES-256-OFB",
+    16,
+    0,
+    16,
+    &aes_info
+};
+#endif /* MBEDTLS_CIPHER_MODE_OFB */
+
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
 static const mbedtls_cipher_info_t aes_128_ctr_info = {
     MBEDTLS_CIPHER_AES_128_CTR,
@@ -352,6 +399,9 @@ static const mbedtls_cipher_base_t gcm_aes_info = {
     NULL,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
     NULL,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
@@ -415,6 +465,9 @@ static const mbedtls_cipher_base_t ccm_aes_info = {
     NULL,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
     NULL,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
@@ -543,6 +596,9 @@ static const mbedtls_cipher_base_t camellia_info = {
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
     camellia_crypt_cfb128_wrap,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+    NULL,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     camellia_crypt_ctr_wrap,
@@ -711,6 +767,9 @@ static const mbedtls_cipher_base_t gcm_camellia_info = {
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
     NULL,
 #endif
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+    NULL,
+#endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     NULL,
 #endif
@@ -772,6 +831,9 @@ static const mbedtls_cipher_base_t ccm_camellia_info = {
     NULL,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
     NULL,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
@@ -950,6 +1012,9 @@ static const mbedtls_cipher_base_t des_info = {
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
     NULL,
 #endif
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+    NULL,
+#endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     NULL,
 #endif
@@ -995,6 +1060,9 @@ static const mbedtls_cipher_base_t des_ede_info = {
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
     NULL,
 #endif
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+    NULL,
+#endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     NULL,
 #endif
@@ -1038,6 +1106,9 @@ static const mbedtls_cipher_base_t des_ede3_info = {
     des3_crypt_cbc_wrap,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
     NULL,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
@@ -1149,6 +1220,9 @@ static const mbedtls_cipher_base_t blowfish_info = {
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
     blowfish_crypt_cfb64_wrap,
 #endif
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+    NULL,
+#endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     blowfish_crypt_ctr_wrap,
 #endif
@@ -1259,6 +1333,9 @@ static const mbedtls_cipher_base_t arc4_base_info = {
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
     NULL,
 #endif
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+    NULL,
+#endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     NULL,
 #endif
@@ -1361,6 +1438,11 @@ const mbedtls_cipher_definition_t mbedtls_cipher_definitions[] =
     { MBEDTLS_CIPHER_AES_128_CFB128,       &aes_128_cfb128_info },
     { MBEDTLS_CIPHER_AES_192_CFB128,       &aes_192_cfb128_info },
     { MBEDTLS_CIPHER_AES_256_CFB128,       &aes_256_cfb128_info },
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+    { MBEDTLS_CIPHER_AES_128_OFB,          &aes_128_ofb_info },
+    { MBEDTLS_CIPHER_AES_192_OFB,          &aes_192_ofb_info },
+    { MBEDTLS_CIPHER_AES_256_OFB,          &aes_256_ofb_info },
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     { MBEDTLS_CIPHER_AES_128_CTR,          &aes_128_ctr_info },

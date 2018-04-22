@@ -59,8 +59,17 @@ struct mbedtls_cipher_base_t
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
     /** Encrypt using CFB (Full length) */
+
     int (*cfb_func)( void *ctx, mbedtls_operation_t mode, size_t length, size_t *iv_off,
                      unsigned char *iv, const unsigned char *input,
+                     unsigned char *output );
+#endif
+
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+    /** Encrypt using OFB (Full length) */
+    int (*ofb_func)( void *ctx, size_t length, size_t *iv_off,
+                     unsigned char *iv,
+                     const unsigned char *input,
                      unsigned char *output );
 #endif
 

@@ -145,6 +145,9 @@ typedef enum {
     MBEDTLS_CIPHER_CAMELLIA_128_CCM,     /**< Camellia cipher with 128-bit CCM mode. */
     MBEDTLS_CIPHER_CAMELLIA_192_CCM,     /**< Camellia cipher with 192-bit CCM mode. */
     MBEDTLS_CIPHER_CAMELLIA_256_CCM,     /**< Camellia cipher with 256-bit CCM mode. */
+    MBEDTLS_CIPHER_AES_128_OFB,
+    MBEDTLS_CIPHER_AES_192_OFB,
+    MBEDTLS_CIPHER_AES_256_OFB
 } mbedtls_cipher_type_t;
 
 /** Supported cipher modes. */

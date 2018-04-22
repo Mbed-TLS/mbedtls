@@ -18,6 +18,8 @@ Features
      ECDH primitive functions (mbedtls_ecdh_gen_public(),
      mbedtls_ecdh_compute_shared()) are supported for now. Contributed by
      Nicholas Wilson (#348).
+   * Add additional block mode, OFB (Output Feedback), to the AES module and
+     cipher abstraction module.
 
 API Changes
    * Add function mbedtls_net_poll to public API allowing to wait for a

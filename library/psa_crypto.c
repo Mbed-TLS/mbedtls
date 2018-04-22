@@ -959,9 +959,9 @@ psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
     }
 
     operation->alg = 0;
-    operation->key_set = 0;	
-    operation->iv_set = 0;	
-    operation->iv_required = 0;	
+    operation->key_set = 0;
+    operation->iv_set = 0;
+    operation->iv_required = 0;
     operation->has_input = 0;
 
     return( PSA_SUCCESS );
@@ -979,9 +979,9 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
     const mbedtls_cipher_info_t *cipher_info = NULL;
 
     operation->alg = 0;
-    operation->key_set = 0;	
-    operation->iv_set = 0;	
-    operation->iv_required = 1;	
+    operation->key_set = 0;
+    operation->iv_set = 0;
+    operation->iv_required = 1;
     operation->has_input = 0;
 
     status = psa_get_key_information( key, &key_type, &key_bits );
@@ -1358,7 +1358,7 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
                 return ( PSA_ERROR_INVALID_ARGUMENT );
         }
         ret = mbedtls_cipher_set_padding_mode( &operation->ctx.cipher, mode );
-        if( ret != 0 )
+        if (ret != 0)
             return( mbedtls_to_psa_error( ret ) );
     }
 #endif //MBEDTLS_CIPHER_MODE_WITH_PADDING
@@ -1413,7 +1413,7 @@ psa_status_t psa_encrypt_generate_iv(psa_cipher_operation_t *operation,
 
     exit:
         if( ret != PSA_SUCCESS )
-        psa_cipher_abort( operation );
+            psa_cipher_abort( operation );
         return( ret );
 }
 
@@ -1478,7 +1478,7 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
         return( mbedtls_to_psa_error( ret ) );
     }
 
-    return ( PSA_SUCCESS );
+    return( PSA_SUCCESS );
 }
 
 psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation)

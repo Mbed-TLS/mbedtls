@@ -1445,7 +1445,8 @@ psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
 {
     int ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
 
-    if( output_size < input_length )
+    if( ( ( PSA_ALG_IS_STREAM_CIPHER( operation->alg ) ) && ( output_size < input_length ) )
+        || ( ( PSA_ALG_IS_BLOCK_CIPHER(operation->alg)) && ( output_size < ((operation->ctx.cipher.unprocessed_len + input_length)/16)*16 ) ) )
         return ( PSA_ERROR_BUFFER_TOO_SMALL );
 
     ret = mbedtls_cipher_update( &operation->ctx.cipher, input,

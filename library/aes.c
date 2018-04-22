@@ -1061,7 +1061,36 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
 
     return( 0 );
 }
-#endif /*MBEDTLS_CIPHER_MODE_CFB */
+#endif /* MBEDTLS_CIPHER_MODE_CFB */
+
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+/*
+ * AES-OFB (Output Feedback Mode) buffer encryption/decryption
+ */
+int mbedtls_aes_crypt_ofb( mbedtls_aes_context *ctx,
+                            size_t length,
+                            size_t *iv_off,
+                            unsigned char iv[16],
+                            const unsigned char *input,
+                            unsigned char *output )
+{
+    size_t n = *iv_off;
+
+    while( length-- )
+    {
+        if( n == 0 )
+            mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
+
+        *output++ =  *input++ ^ iv[n];
+
+        n = ( n + 1 ) & 0x0F;
+    }
+
+    *iv_off = n;
+
+    return( 0 );
+}
+#endif /* MBEDTLS_CIPHER_MODE_OFB */
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
 /*

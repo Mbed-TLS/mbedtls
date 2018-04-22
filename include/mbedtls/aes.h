@@ -296,6 +296,46 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
                     unsigned char *output );
 #endif /*MBEDTLS_CIPHER_MODE_CFB */
 
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+/**
+ * \brief This function performs an AES-OFB (Output Feedback Mode) encryption
+ *        or decryption operation.
+ *
+ *        For OFB, you must set up the context with mbedtls_aes_setkey_enc(),
+ *        regardless of whether you are performing an encryption or decryption
+ *        operation. This is because OFB mode uses the same key schedule for
+ *        encryption and decryption.
+ *
+ *        The OFB operation is identical for encryption or decryption, therefore
+ *        no operation mode needs to be specified.
+ *
+ * \note  Upon exit, the content of the IV is updated so that you can
+ *        call the same function again on the next
+ *        block(s) of data and get the same result as if it was
+ *        encrypted in one call. This allows a "streaming" usage.
+ *        If you need to retain the contents of the
+ *        IV, you must either save it manually or use the cipher
+ *        module instead.
+ *
+ *
+ * \param ctx      The AES context to use for encryption or decryption.
+ * \param length   The length of the input data.
+ * \param iv_off   The offset in IV (updated after use).
+ * \param iv       The initialization vector (updated after use).
+ * \param input    The buffer holding the input data.
+ * \param output   The buffer holding the output data.
+ *
+ * \return         \c 0 on success.
+ */
+int mbedtls_aes_crypt_ofb( mbedtls_aes_context *ctx,
+                       size_t length,
+                       size_t *iv_off,
+                       unsigned char iv[16],
+                       const unsigned char *input,
+                       unsigned char *output );
+
+#endif /* MBEDTLS_CIPHER_MODE_OFB */
+
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
 /**
  * \brief      This function performs an AES-CTR encryption or decryption

@@ -321,6 +321,10 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_CTR                             ((psa_algorithm_t)0x04800001)
 #define PSA_ALG_ARC4                            ((psa_algorithm_t)0x04800002)
 
+#define PSA_ALG_IS_STREAM_CIPHER(alg)            \
+    (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_CIPHER_SUBCATEGORY_MASK)) == \
+        PSA_ALG_STREAM_CIPHER)
+
 #define PSA_ALG_CCM                             ((psa_algorithm_t)0x06000001)
 #define PSA_ALG_GCM                             ((psa_algorithm_t)0x06000002)
 

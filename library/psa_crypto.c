@@ -1466,13 +1466,31 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
 {
     int ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     
+    uint8_t temp_output_buffer[ MBEDTLS_MAX_BLOCK_LENGTH ];
+
     if( ! operation->key_set )
         return( PSA_ERROR_BAD_STATE );
     if( ! operation->iv_set )
         return( PSA_ERROR_BAD_STATE );
+    if( operation->ctx.cipher.operation == MBEDTLS_ENCRYPT )
+    {
+        if (operation->ctx.cipher.unprocessed_len > operation->block_size)
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        if ( ( ( ( operation->alg ) & PSA_ALG_BLOCK_CIPHER_PAD_NONE ) == PSA_ALG_BLOCK_CIPHER_PAD_NONE )
+            && ( operation->ctx.cipher.unprocessed_len != 0 ) )
+            return(PSA_ERROR_INVALID_ARGUMENT);
+        if ( ( ( ( operation->alg ) & PSA_ALG_BLOCK_CIPHER_PAD_PKCS7 ) == PSA_ALG_BLOCK_CIPHER_PAD_PKCS7 )
+            && ( output_size != operation->block_size ) )
+            return(PSA_ERROR_INVALID_ARGUMENT);
+    }
+    if ( operation->ctx.cipher.operation == MBEDTLS_DECRYPT )
+        if (operation->ctx.cipher.unprocessed_len != 0)
+            return( PSA_ERROR_INVALID_ARGUMENT );
 
-    ret = mbedtls_cipher_finish( &operation->ctx.cipher, output,
-                                output_length );
+    ret = mbedtls_cipher_finish(&operation->ctx.cipher, temp_output_buffer,
+                                output_length);
+    if ( output_size > *output_length )
+        memcpy( temp_output_buffer, output, *output_length );
     if( ret != 0 )
     {
         psa_cipher_abort( operation );

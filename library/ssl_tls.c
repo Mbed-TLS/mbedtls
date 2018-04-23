@@ -2087,6 +2087,7 @@ static int ssl_compress_buf( mbedtls_ssl_context *ssl )
 {
     int ret;
     unsigned char *msg_post = ssl->out_msg;
+    ptrdiff_t bytes_written = ssl->out_msg - ssl->out_buf;
     size_t len_pre = ssl->out_msglen;
     unsigned char *msg_pre = ssl->compress_buf;
 
@@ -2106,7 +2107,7 @@ static int ssl_compress_buf( mbedtls_ssl_context *ssl )
     ssl->transform_out->ctx_deflate.next_in = msg_pre;
     ssl->transform_out->ctx_deflate.avail_in = len_pre;
     ssl->transform_out->ctx_deflate.next_out = msg_post;
-    ssl->transform_out->ctx_deflate.avail_out = MBEDTLS_SSL_BUFFER_LEN;
+    ssl->transform_out->ctx_deflate.avail_out = MBEDTLS_SSL_BUFFER_LEN - bytes_written;
 
     ret = deflate( &ssl->transform_out->ctx_deflate, Z_SYNC_FLUSH );
     if( ret != Z_OK )
@@ -2116,7 +2117,7 @@ static int ssl_compress_buf( mbedtls_ssl_context *ssl )
     }
 
     ssl->out_msglen = MBEDTLS_SSL_BUFFER_LEN -
-                      ssl->transform_out->ctx_deflate.avail_out;
+                      ssl->transform_out->ctx_deflate.avail_out - bytes_written;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "after compression: msglen = %d, ",
                    ssl->out_msglen ) );
@@ -2133,6 +2134,7 @@ static int ssl_decompress_buf( mbedtls_ssl_context *ssl )
 {
     int ret;
     unsigned char *msg_post = ssl->in_msg;
+    ptrdiff_t bytes_written = ssl->in_msg - ssl->in_buf;
     size_t len_pre = ssl->in_msglen;
     unsigned char *msg_pre = ssl->compress_buf;
 
@@ -2152,7 +2154,8 @@ static int ssl_decompress_buf( mbedtls_ssl_context *ssl )
     ssl->transform_in->ctx_inflate.next_in = msg_pre;
     ssl->transform_in->ctx_inflate.avail_in = len_pre;
     ssl->transform_in->ctx_inflate.next_out = msg_post;
-    ssl->transform_in->ctx_inflate.avail_out = MBEDTLS_SSL_MAX_CONTENT_LEN;
+    ssl->transform_in->ctx_inflate.avail_out = MBEDTLS_SSL_BUFFER_LEN -
+                                               bytes_written;
 
     ret = inflate( &ssl->transform_in->ctx_inflate, Z_SYNC_FLUSH );
     if( ret != Z_OK )
@@ -2161,8 +2164,8 @@ static int ssl_decompress_buf( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_COMPRESSION_FAILED );
     }
 
-    ssl->in_msglen = MBEDTLS_SSL_MAX_CONTENT_LEN -
-                     ssl->transform_in->ctx_inflate.avail_out;
+    ssl->in_msglen = MBEDTLS_SSL_BUFFER_LEN -
+                     ssl->transform_in->ctx_inflate.avail_out - bytes_written;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "after decompression: msglen = %d, ",
                    ssl->in_msglen ) );

@@ -26,6 +26,8 @@ Bugfix
      the mbedtls_cipher_update() documentation. Contributed by Andy Leiserson.
    * Fix overriding and ignoring return values when parsing and writing to
      a file in pk_sign program. Found by kevlut in #1142.
+   * Fix invalid buffer sizes passed to zlib during record compression and
+     decompression.
 
 Changes
    * Improve testing in configurations that omit certain hashes or

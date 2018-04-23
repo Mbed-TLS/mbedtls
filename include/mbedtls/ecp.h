@@ -499,7 +499,8 @@ int mbedtls_ecp_tls_read_point( const mbedtls_ecp_group *grp, mbedtls_ecp_point 
  * \brief           This function exports a point as a TLS ECPoint record.
  *
  * \param grp       The ECP group used.
- * \param pt        The point format to export to an \c MBEDTLS_ECP_PF_XXX constant.
+ * \param pt        The point format to export to. The point format is an
+ *                  \c MBEDTLS_ECP_PF_XXX constant.
  * \param format    The export format.
  * \param olen      The length of the data written.
  * \param buf       The buffer to write to.

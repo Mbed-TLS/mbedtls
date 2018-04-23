@@ -43,7 +43,7 @@
  */
 #define MBEDTLS_ERR_ECP_BAD_INPUT_DATA                    -0x4F80  /**< Bad input parameters to function. */
 #define MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL                  -0x4F00  /**< The buffer is too small to write to. */
-#define MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE               -0x4E80  /**< The requested curve is not available. */
+#define MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE               -0x4E80  /**< The requested feature is not available, for example, . */
 #define MBEDTLS_ERR_ECP_VERIFY_FAILED                     -0x4E00  /**< The signature is not valid. */
 #define MBEDTLS_ERR_ECP_ALLOC_FAILED                      -0x4D80  /**< Memory allocation failed. */
 #define MBEDTLS_ERR_ECP_RANDOM_FAILED                     -0x4D00  /**< Generation of random value, such as ephemeral key, failed. */
@@ -65,7 +65,7 @@ extern "C" {
 #endif
 
 /**
- * Domain parameters: curve, subgroup, and generator.
+ * Domain-parameter identifiers: curve, subgroup, and generator.
  *
  * \note Only curves over prime fields are supported.
  *
@@ -169,7 +169,8 @@ typedef struct
     mbedtls_mpi N;              /*!< The order of \p G. */
     size_t pbits;               /*!< The number of bits in \p P.*/
     size_t nbits;               /*!< For Short Weierstrass: The number of bits in \p P.
-                                     For Montgomery curves: the private keys. */
+                                     For Montgomery curves: the number of bits in the 
+                                     private keys. */
     unsigned int h;             /*!< \internal 1 if the constants are static. */
     int (*modp)(mbedtls_mpi *); /*!< The function for fast pseudo-reduction 
                                      mod \p P (see above).*/
@@ -187,7 +188,7 @@ mbedtls_ecp_group;
  * A generic key-pair that may be used for ECDSA and fixed ECDH, for example.
  *
  * \note    Members are deliberately in the same order as in the 
- *          #mbedtls_ecdsa_context structure.
+ *          ::mbedtls_ecdsa_context structure.
  */
 typedef struct
 {
@@ -498,7 +499,7 @@ int mbedtls_ecp_tls_read_point( const mbedtls_ecp_group *grp, mbedtls_ecp_point 
  * \brief           This function exports a point as a TLS ECPoint record.
  *
  * \param grp       The ECP group used.
- * \param pt        he point format to export to an \c MBEDTLS_ECP_PF_XXX constant.
+ * \param pt        The point format to export to an \c MBEDTLS_ECP_PF_XXX constant.
  * \param format    The export format.
  * \param olen      The length of the data written.
  * \param buf       The buffer to write to.
@@ -649,7 +650,7 @@ int mbedtls_ecp_check_pubkey( const mbedtls_ecp_group *grp, const mbedtls_ecp_po
  *
  * \note            This function uses bare components rather than an 
  *                  ::mbedtls_ecp_keypair structure to ease use with other 
- *                  structures, such as ::mbedtls_ecdh_context() or 
+ *                  structures, such as ::mbedtls_ecdh_context or 
  *                  ::mbedtls_ecdsa_context.
  *
  * \param grp       The group used.

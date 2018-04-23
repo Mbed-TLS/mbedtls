@@ -140,7 +140,7 @@ int main( void )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
+        printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", -ret );
         return( 1 );
     }
 #endif

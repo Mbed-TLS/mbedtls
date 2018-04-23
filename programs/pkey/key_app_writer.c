@@ -221,9 +221,9 @@ int main( int argc, char *argv[] )
     mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
 
 #if defined(MBEDTLS_PLATFORM_C)
-    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! could not initialize platform\n\n" );
+        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n", -ret );
         return( 1 );
     }
 #endif

@@ -115,7 +115,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
-        mbedtls_fprintf( stderr, "failed initializing platform\n" );
+        mbedtls_fprintf( stderr, "Failed initializing platform\n" );
         return( 1 );
     }
 #endif

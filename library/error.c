@@ -256,19 +256,19 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL) )
             mbedtls_snprintf( buf, buflen, "ECP - The buffer is too small to write to" );
         if( use_ret == -(MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE) )
-            mbedtls_snprintf( buf, buflen, "ECP - Requested curve not available" );
+            mbedtls_snprintf( buf, buflen, "ECP - The requested feature is not available, for example, the requested curve is not supported" );
         if( use_ret == -(MBEDTLS_ERR_ECP_VERIFY_FAILED) )
             mbedtls_snprintf( buf, buflen, "ECP - The signature is not valid" );
         if( use_ret == -(MBEDTLS_ERR_ECP_ALLOC_FAILED) )
             mbedtls_snprintf( buf, buflen, "ECP - Memory allocation failed" );
         if( use_ret == -(MBEDTLS_ERR_ECP_RANDOM_FAILED) )
-            mbedtls_snprintf( buf, buflen, "ECP - Generation of random value, such as (ephemeral) key, failed" );
+            mbedtls_snprintf( buf, buflen, "ECP - Generation of random value, such as ephemeral key, failed" );
         if( use_ret == -(MBEDTLS_ERR_ECP_INVALID_KEY) )
             mbedtls_snprintf( buf, buflen, "ECP - Invalid private or public key" );
         if( use_ret == -(MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH) )
             mbedtls_snprintf( buf, buflen, "ECP - The buffer contains a valid signature followed by more data" );
         if( use_ret == -(MBEDTLS_ERR_ECP_HW_ACCEL_FAILED) )
-            mbedtls_snprintf( buf, buflen, "ECP - ECP hardware accelerator failed" );
+            mbedtls_snprintf( buf, buflen, "ECP - The ECP hardware accelerator failed" );
 #endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_MD_C)

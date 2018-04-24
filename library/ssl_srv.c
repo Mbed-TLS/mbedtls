@@ -2835,7 +2835,7 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) && \
-    defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+    defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 static int ssl_resume_server_key_exchange( mbedtls_ssl_context *ssl,
                                             size_t *signature_len )
 {
@@ -2853,7 +2853,7 @@ static int ssl_resume_server_key_exchange( mbedtls_ssl_context *ssl,
     return( ret );
 }
 #endif /* defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) &&
-          defined(MBEDTLS_SSL_ASYNC_PRIVATE_C) */
+          defined(MBEDTLS_SSL_ASYNC_PRIVATE) */
 
 /* Prepare the ServerKeyExchange message, up to and including
    calculating the signature if any, but excluding formatting the
@@ -3164,7 +3164,7 @@ curve_matching_done:
         }
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if( ssl->conf->f_async_sign_start != NULL )
         {
             ret = ssl->conf->f_async_sign_start(
@@ -3186,7 +3186,7 @@ curve_matching_done:
                 return( ret );
             }
         }
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
         if( mbedtls_ssl_own_key( ssl ) == NULL )
         {
@@ -3248,7 +3248,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME_NON_PFS__ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) && \
-    defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+    defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     /* If we have already prepared the message and there is an ongoing
        signature operation, resume signing. */
     if( ssl->handshake->p_async_operation_ctx != NULL )
@@ -3258,7 +3258,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) &&
-          defined(MBEDTLS_SSL_ASYNC_PRIVATE_C) */
+          defined(MBEDTLS_SSL_ASYNC_PRIVATE) */
     {
         /* ServerKeyExchange is needed. Prepare the message. */
         ret = ssl_prepare_server_key_exchange( ssl, &signature_len );
@@ -3379,7 +3379,7 @@ static int ssl_parse_client_dh_public( mbedtls_ssl_context *ssl, unsigned char *
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) ||                           \
     defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
 
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 static int ssl_resume_decrypt_pms( mbedtls_ssl_context *ssl,
                                    unsigned char *peer_pms,
                                    size_t *peer_pmslen,
@@ -3395,7 +3395,7 @@ static int ssl_resume_decrypt_pms( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_RET( 2, "ssl_decrypt_encrypted_pms", ret );
     return( ret );
 }
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
                                       const unsigned char *p,
@@ -3409,7 +3409,7 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
     mbedtls_pk_context *public_key = &mbedtls_ssl_own_cert( ssl )->pk;
     size_t len = mbedtls_pk_get_len( public_key );
 
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     /* If we have already started decoding the message and there is an ongoing
        decryption operation, resume signing. */
     if( ssl->handshake->p_async_operation_ctx != NULL )
@@ -3418,7 +3418,7 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
         return( ssl_resume_decrypt_pms( ssl,
                                         peer_pms, peer_pmslen, peer_pmssize ) );
     }
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
     /*
      * Prepare to decrypt the premaster using own private RSA key
@@ -3445,7 +3445,7 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
     /*
      * Decrypt the premaster secret
      */
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     if( ssl->conf->f_async_decrypt_start != NULL )
     {
         ret = ssl->conf->f_async_decrypt_start(
@@ -3470,7 +3470,7 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
             return( ret );
         }
     }
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
     if( ! mbedtls_pk_can_do( private_key, MBEDTLS_PK_RSA ) )
     {
@@ -3503,10 +3503,10 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
                                      &peer_pmslen,
                                      sizeof( peer_pms ) );
 
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     if ( ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
         return( ret );
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
     /*
      * Protection against Bleichenbacher's attack: invalid PKCS#1 v1.5 padding
@@ -3644,7 +3644,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse client key exchange" ) );
 
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C) && \
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE) && \
     ( defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) || \
       defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) )
     if( ( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
@@ -3770,7 +3770,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
     {
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if ( ssl->handshake->p_async_operation_ctx != NULL )
         {
             /* There is an asynchronous operation in progress to
@@ -3782,7 +3782,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
             p += ssl->conf->psk_identity_len + 2;
         }
         else
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );

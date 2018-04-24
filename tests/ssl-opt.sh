@@ -4069,7 +4069,7 @@ run_test    "Large packet TLS 1.2 AEAD shorter tag" \
 
 # Tests of asynchronous private key support in SSL
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: sign, delay=0" \
             "$P_SRV \
              async_operations=s async_private_delay1=0 async_private_delay2=0" \
@@ -4078,7 +4078,7 @@ run_test    "SSL async private: sign, delay=0" \
             -s "Async sign callback: using key slot " \
             -s "Async resume (slot [0-9]): sign done, status=0"
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: sign, delay=1" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_delay2=1" \
@@ -4088,7 +4088,7 @@ run_test    "SSL async private: sign, delay=1" \
             -s "Async resume (slot [0-9]): call 0 more times." \
             -s "Async resume (slot [0-9]): sign done, status=0"
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: decrypt, delay=0" \
             "$P_SRV \
              async_operations=d async_private_delay1=0 async_private_delay2=0" \
@@ -4097,7 +4097,7 @@ run_test    "SSL async private: decrypt, delay=0" \
             -s "Async decrypt callback: using key slot " \
             -s "Async resume (slot [0-9]): decrypt done, status=0"
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: decrypt, delay=1" \
             "$P_SRV \
              async_operations=d async_private_delay1=1 async_private_delay2=1" \
@@ -4107,7 +4107,7 @@ run_test    "SSL async private: decrypt, delay=1" \
             -s "Async resume (slot [0-9]): call 0 more times." \
             -s "Async resume (slot [0-9]): decrypt done, status=0"
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: decrypt RSA-PSK, delay=0" \
             "$P_SRV psk=abc123 \
              async_operations=d async_private_delay1=0 async_private_delay2=0" \
@@ -4117,7 +4117,7 @@ run_test    "SSL async private: decrypt RSA-PSK, delay=0" \
             -s "Async decrypt callback: using key slot " \
             -s "Async resume (slot [0-9]): decrypt done, status=0"
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: decrypt RSA-PSK, delay=1" \
             "$P_SRV psk=abc123 \
              async_operations=d async_private_delay1=1 async_private_delay2=1" \
@@ -4128,7 +4128,7 @@ run_test    "SSL async private: decrypt RSA-PSK, delay=1" \
             -s "Async resume (slot [0-9]): call 0 more times." \
             -s "Async resume (slot [0-9]): decrypt done, status=0"
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: sign callback not present" \
             "$P_SRV \
              async_operations=d async_private_delay1=1 async_private_delay2=1" \
@@ -4141,7 +4141,7 @@ run_test    "SSL async private: sign callback not present" \
             -s "Async resume (slot [0-9]): decrypt done, status=0" \
             -s "Successful connection"
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: decrypt callback not present" \
             "$P_SRV debug_level=1 \
              async_operations=s async_private_delay1=1 async_private_delay2=1" \
@@ -4155,7 +4155,7 @@ run_test    "SSL async private: decrypt callback not present" \
             -s "Successful connection"
 
 # key1: ECDSA, key2: RSA; use key1 from slot 0
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: slot 0 used with key1" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 \
@@ -4168,7 +4168,7 @@ run_test    "SSL async private: slot 0 used with key1" \
             -s "Async resume (slot 0): sign done, status=0"
 
 # key1: ECDSA, key2: RSA; use key2 from slot 0
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: slot 0 used with key2" \
             "$P_SRV \
              async_operations=s async_private_delay2=1 \
@@ -4181,7 +4181,7 @@ run_test    "SSL async private: slot 0 used with key2" \
             -s "Async resume (slot 0): sign done, status=0"
 
 # key1: ECDSA, key2: RSA; use key2 from slot 1
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: slot 1 used" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_delay2=1\
@@ -4194,7 +4194,7 @@ run_test    "SSL async private: slot 1 used" \
             -s "Async resume (slot 1): sign done, status=0"
 
 # key1: ECDSA, key2: RSA; use key2 directly
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: fall back to transparent key" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 \
@@ -4204,7 +4204,7 @@ run_test    "SSL async private: fall back to transparent key" \
             0 \
             -s "Async sign callback: no key matches this certificate."
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: error in start" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_delay2=1 \
@@ -4215,7 +4215,7 @@ run_test    "SSL async private: error in start" \
             -S "Async resume" \
             -s "! mbedtls_ssl_handshake returned"
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: cancel after start" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_delay2=1 \
@@ -4226,7 +4226,7 @@ run_test    "SSL async private: cancel after start" \
             -S "Async resume" \
             -s "Async cancel"
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: error in resume" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_delay2=1 \
@@ -4237,7 +4237,7 @@ run_test    "SSL async private: error in resume" \
             -s "Async resume callback: injected error" \
             -s "! mbedtls_ssl_handshake returned"
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: error in pk" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_delay2=1 \
@@ -4248,7 +4248,7 @@ run_test    "SSL async private: error in pk" \
             -s "Async resume callback: sign done but injected error" \
             -s "! mbedtls_ssl_handshake returned"
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: cancel after start then operate correctly" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_delay2=1 \
@@ -4260,7 +4260,7 @@ run_test    "SSL async private: cancel after start then operate correctly" \
             -s "Async resume" \
             -s "Successful connection"
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: error in resume then operate correctly" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_delay2=1 \
@@ -4272,7 +4272,7 @@ run_test    "SSL async private: error in resume then operate correctly" \
             -s "Successful connection"
 
 # key1: ECDSA, key2: RSA; use key1 through async, then key2 directly
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: cancel after start then fall back to transparent key" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_error=-2 \
@@ -4289,7 +4289,7 @@ run_test    "SSL async private: cancel after start then fall back to transparent
             -s "Successful connection"
 
 # key1: ECDSA, key2: RSA; use key1 through async, then key2 directly
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: error in resume then fall back to transparent key" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_error=-3 \
@@ -4304,7 +4304,7 @@ run_test    "SSL async private: error in resume then fall back to transparent ke
             -s "Async sign callback: no key matches this certificate." \
             -s "Successful connection"
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "SSL async private: renegotiation: client-initiated; sign" \
             "$P_SRV \
@@ -4315,7 +4315,7 @@ run_test    "SSL async private: renegotiation: client-initiated; sign" \
             -s "Async sign callback: using key slot " \
             -s "Async resume (slot [0-9]): sign done, status=0"
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "SSL async private: renegotiation: server-initiated; sign" \
             "$P_SRV \
@@ -4326,7 +4326,7 @@ run_test    "SSL async private: renegotiation: server-initiated; sign" \
             -s "Async sign callback: using key slot " \
             -s "Async resume (slot [0-9]): sign done, status=0"
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "SSL async private: renegotiation: client-initiated; decrypt" \
             "$P_SRV \
@@ -4338,7 +4338,7 @@ run_test    "SSL async private: renegotiation: client-initiated; decrypt" \
             -s "Async decrypt callback: using key slot " \
             -s "Async resume (slot [0-9]): decrypt done, status=0"
 
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE_C
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "SSL async private: renegotiation: server-initiated; decrypt" \
             "$P_SRV \

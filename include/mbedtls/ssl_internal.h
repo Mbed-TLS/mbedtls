@@ -243,9 +243,9 @@ struct mbedtls_ssl_handshake_params
     mbedtls_x509_crl *sni_ca_crl;       /*!< trusted CAs CRLs from SNI      */
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     void *p_async_operation_ctx;        /*!< asynchronous operation context */
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */

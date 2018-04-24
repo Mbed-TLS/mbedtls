@@ -200,7 +200,7 @@ int main( void )
 #define USAGE_IO ""
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 #define USAGE_SSL_ASYNC \
     "    async_operations=%%c...   d=decrypt, s=sign (default: -=off)\n" \
     "    async_private_delay1=%%d  Asynchronous delay for key_file or preloaded key\n" \
@@ -210,7 +210,7 @@ int main( void )
     "                              1=start, 2=cancel, 3=resume, 4=pk, negative=first time only)"
 #else
 #define USAGE_SSL_ASYNC ""
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 #define USAGE_PSK                                                   \
@@ -862,7 +862,7 @@ static int ssl_sig_hashes_for_test[] = {
 };
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 typedef struct
 {
     mbedtls_x509_crt *cert;
@@ -1054,7 +1054,7 @@ static void ssl_async_cancel( void *connection_ctx_arg,
     mbedtls_printf( "Async cancel callback.\n" );
     mbedtls_free( ctx );
 }
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 /*
  * Wait for an event from the underlying transport or the timer
@@ -1144,9 +1144,9 @@ int main( int argc, char *argv[] )
     mbedtls_x509_crt srvcert2;
     mbedtls_pk_context pkey2;
     int key_cert_init = 0, key_cert_init2 = 0;
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     ssl_async_key_context_t ssl_async_keys;
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
     mbedtls_dhm_context dhm;
@@ -1346,7 +1346,7 @@ int main( int argc, char *argv[] )
             opt.key_file2 = q;
         else if( strcmp( p, "dhm_file" ) == 0 )
             opt.dhm_file = q;
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         else if( strcmp( p, "async_operations" ) == 0 )
             opt.async_operations = q;
         else if( strcmp( p, "async_private_delay1" ) == 0 )
@@ -1364,7 +1364,7 @@ int main( int argc, char *argv[] )
             }
             opt.async_private_error = n;
         }
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
         else if( strcmp( p, "psk" ) == 0 )
             opt.psk = q;
         else if( strcmp( p, "psk_identity" ) == 0 )
@@ -2261,14 +2261,14 @@ int main( int argc, char *argv[] )
     if( key_cert_init )
     {
         mbedtls_pk_context *pk = &pkey;
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if( opt.async_private_delay1 >= 0 )
         {
             ssl_async_set_key( &ssl_async_keys, &srvcert, pk,
                                opt.async_private_delay1 );
             pk = NULL;
         }
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
         if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &srvcert, pk ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
@@ -2278,14 +2278,14 @@ int main( int argc, char *argv[] )
     if( key_cert_init2 )
     {
         mbedtls_pk_context *pk = &pkey2;
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if( opt.async_private_delay2 >= 0 )
         {
             ssl_async_set_key( &ssl_async_keys, &srvcert2, pk,
                                opt.async_private_delay2 );
             pk = NULL;
         }
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
         if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &srvcert2, pk ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
@@ -2293,7 +2293,7 @@ int main( int argc, char *argv[] )
         }
     }
 
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     if( opt.async_operations[0] != '-' )
     {
         mbedtls_ssl_async_sign_t *sign = NULL;
@@ -2323,7 +2323,7 @@ int main( int argc, char *argv[] )
                                            ssl_async_cancel,
                                            &ssl_async_keys );
     }
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(SNI_OPTION)
@@ -2500,14 +2500,14 @@ handshake:
 
     while( ( ret = mbedtls_ssl_handshake( &ssl ) ) != 0 )
     {
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if( ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS &&
             ssl_async_keys.inject_error == SSL_ASYNC_INJECT_ERROR_CANCEL )
         {
             mbedtls_printf( " cancelling on injected error\n" );
             break;
         }
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
         if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
             ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
@@ -2549,7 +2549,7 @@ handshake:
         }
 #endif
 
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if( opt.async_private_error < 0 )
             /* Injected error only the first time round, to test reset */
             ssl_async_keys.inject_error = SSL_ASYNC_INJECT_ERROR_NONE;

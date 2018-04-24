@@ -537,7 +537,7 @@ typedef void mbedtls_ssl_set_timer_t( void * ctx,
  */
 typedef int mbedtls_ssl_get_timer_t( void * ctx );
 
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
  * \brief           Callback type: start external signature operation
@@ -692,7 +692,7 @@ typedef int mbedtls_ssl_async_resume_t( void *connection_ctx,
  */
 typedef void mbedtls_ssl_async_cancel_t( void *connection_ctx,
                                          void *operation_ctx );
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 /* Defined below */
 typedef struct mbedtls_ssl_session mbedtls_ssl_session;
@@ -826,7 +826,7 @@ struct mbedtls_ssl_config
     mbedtls_x509_crl *ca_crl;       /*!< trusted CAs CRLs                   */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_ssl_async_sign_t *f_async_sign_start; /*!< start asynchronous signature operation */
     mbedtls_ssl_async_decrypt_t *f_async_decrypt_start; /*!< start asynchronous decryption operation */
@@ -834,7 +834,7 @@ struct mbedtls_ssl_config
     mbedtls_ssl_async_resume_t *f_async_resume; /*!< resume asynchronous operation */
     mbedtls_ssl_async_cancel_t *f_async_cancel; /*!< cancel asynchronous operation */
     void *p_async_connection_ctx; /*!< connection context for asynchronous operation callbacks  */
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
     const int *sig_hashes;          /*!< allowed signature hashes           */
@@ -1482,7 +1482,7 @@ void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
         void *p_export_keys );
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 /**
  * \brief           Configure asynchronous private key operation callbacks.
  *
@@ -1514,7 +1514,7 @@ void mbedtls_ssl_conf_async_private_cb( mbedtls_ssl_config *conf,
                                         mbedtls_ssl_async_resume_t *f_async_resume,
                                         mbedtls_ssl_async_cancel_t *f_async_cancel,
                                         void *connection_ctx );
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 /**
  * \brief          Callback type: generate a cookie

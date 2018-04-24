@@ -6478,7 +6478,7 @@ void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
 }
 #endif
 
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 void mbedtls_ssl_conf_async_private_cb(
     mbedtls_ssl_config *conf,
     mbedtls_ssl_async_sign_t *f_async_sign,
@@ -6493,7 +6493,7 @@ void mbedtls_ssl_conf_async_private_cb(
     conf->f_async_cancel = f_async_cancel;
     conf->p_async_connection_ctx = connection_ctx;
 }
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 /*
  * SSL get accessors
@@ -7495,14 +7495,14 @@ void mbedtls_ssl_handshake_free( const mbedtls_ssl_config *conf,
     }
 #endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     if( conf->f_async_cancel != NULL &&
         handshake->p_async_operation_ctx != NULL )
     {
         conf->f_async_cancel( conf->p_async_connection_ctx,
                               handshake->p_async_operation_ctx );
     }
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE_C */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     mbedtls_free( handshake->verify_cookie );

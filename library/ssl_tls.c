@@ -7431,7 +7431,7 @@ void mbedtls_ssl_handshake_free( const mbedtls_ssl_config *conf,
 {
     if( handshake == NULL )
         return;
-    (void) conf; /*unused in some compile-time configurations*/
+    (void) conf; /* Unused in some compile-time configurations. */
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)

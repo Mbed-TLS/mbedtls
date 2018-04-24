@@ -3221,7 +3221,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME_NON_PFS__ENABLED)
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
                             ssl->transform_negotiate->ciphersuite_info;
-#endif /* MBEDTLS_KEY_EXCHANGE__NON_PFS__ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME_NON_PFS__ENABLED */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write server key exchange" ) );
 
@@ -3245,7 +3245,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
         ssl->state++;
         return( 0 );
     }
-#endif /* MBEDTLS_KEY_EXCHANGE__NON_PFS__ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME_NON_PFS__ENABLED */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) && \
     defined(MBEDTLS_SSL_ASYNC_PRIVATE_C)

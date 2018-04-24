@@ -920,11 +920,13 @@ static int ssl_async_start( void *connection_ctx_arg,
     ssl_async_key_context_t *key_ctx = connection_ctx_arg;
     size_t slot;
     ssl_async_operation_context_t *ctx = NULL;
+
     {
         char dn[100];
         mbedtls_x509_dn_gets( dn, sizeof( dn ), &cert->subject );
         mbedtls_printf( "Async %s callback: looking for DN=%s\n", op_name, dn );
     }
+
     for( slot = 0; slot < key_ctx->slots_used; slot++ )
     {
         if( key_ctx->slots[slot].cert == cert )
@@ -938,13 +940,16 @@ static int ssl_async_start( void *connection_ctx_arg,
     }
     mbedtls_printf( "Async %s callback: using key slot %zd, delay=%u.\n",
                     op_name, slot, key_ctx->slots[slot].delay );
+
     if( key_ctx->inject_error == SSL_ASYNC_INJECT_ERROR_START )
     {
         mbedtls_printf( "Async %s callback: injected error\n", op_name );
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
     }
+
     if( input_len > SSL_ASYNC_INPUT_MAX_SIZE )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
     ctx = mbedtls_calloc( 1, sizeof( *ctx ) );
     if( ctx == NULL )
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
@@ -954,6 +959,7 @@ static int ssl_async_start( void *connection_ctx_arg,
     ctx->input_len = input_len;
     ctx->delay = key_ctx->slots[slot].delay;
     *p_operation_ctx = ctx;
+
     if( ctx->delay == 0 )
         return( 0 );
     else
@@ -994,11 +1000,13 @@ static int ssl_async_resume( void *connection_ctx_arg,
     ssl_async_key_slot_t *key_slot = &connection_ctx->slots[ctx->slot];
     int ret;
     const char *op_name;
+
     if( connection_ctx->inject_error == SSL_ASYNC_INJECT_ERROR_RESUME )
     {
         mbedtls_printf( "Async resume callback: injected error\n" );
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
     }
+
     if( ctx->delay > 0 )
     {
         --ctx->delay;
@@ -1006,6 +1014,7 @@ static int ssl_async_resume( void *connection_ctx_arg,
                         ctx->slot, ctx->delay );
         return( MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
     }
+
     if( ctx->md_alg == MBEDTLS_MD_NONE )
     {
         op_name = "decrypt";
@@ -1023,12 +1032,14 @@ static int ssl_async_resume( void *connection_ctx_arg,
                                output, output_len,
                                connection_ctx->f_rng, connection_ctx->p_rng );
     }
+
     if( connection_ctx->inject_error == SSL_ASYNC_INJECT_ERROR_PK )
     {
         mbedtls_printf( "Async resume callback: %s done but injected error\n",
                         op_name );
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
     }
+
     mbedtls_printf( "Async resume (slot %zd): %s done, status=%d.\n",
                     ctx->slot, op_name, ret );
     mbedtls_free( ctx );

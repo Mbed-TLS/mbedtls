@@ -1490,13 +1490,13 @@ void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
  * \param f_async_sign      Callback to start a signature operation. See
  *                          the description of \c mbedtls_ssl_async_sign_t
  *                          for more information. This may be NULL if the
- *                          external processor does no support any signature
+ *                          external processor does not support any signature
  *                          operation; in this case the private key object
  *                          associated with the certificate will be used.
  * \param f_async_decrypt   Callback to start a decryption operation. See
  *                          the description of \c mbedtls_ssl_async_decrypt_t
  *                          for more information. This may be NULL if the
- *                          external processor does no support any decryption
+ *                          external processor does not support any decryption
  *                          operation; in this case the private key object
  *                          associated with the certificate will be used.
  * \param f_async_resume    Callback to resume an asynchronous operation. See

@@ -3508,6 +3508,30 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
         return( ret );
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
+    mbedtls_ssl_write_version( ssl->handshake->max_major_ver,
+                               ssl->handshake->max_minor_ver,
+                               ssl->conf->transport, ver );
+
+    /* Avoid data-dependent branches while checking for invalid
+     * padding, to protect against timing-based Bleichenbacher-type
+     * attacks. */
+    diff  = (unsigned int) ret;
+    diff |= peer_pmslen ^ 48;
+    diff |= peer_pms[0] ^ ver[0];
+    diff |= peer_pms[1] ^ ver[1];
+
+    /* mask = diff ? 0xff : 0x00 using bit operations to avoid branches */
+    /* MSVC has a warning about unary minus on unsigned, but this is
+     * well-defined and precisely what we want to do here */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
+    mask = - ( ( diff | - diff ) >> ( sizeof( unsigned int ) * 8 - 1 ) );
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
+
     /*
      * Protection against Bleichenbacher's attack: invalid PKCS#1 v1.5 padding
      * must not cause the connection to end immediately; instead, send a
@@ -3524,18 +3548,6 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
         return( ret );
     }
 
-    mbedtls_ssl_write_version( ssl->handshake->max_major_ver,
-                               ssl->handshake->max_minor_ver,
-                               ssl->conf->transport, ver );
-
-    /* Avoid data-dependent branches while checking for invalid
-     * padding, to protect against timing-based Bleichenbacher-type
-     * attacks. */
-    diff  = (unsigned int) ret;
-    diff |= peer_pmslen ^ 48;
-    diff |= peer_pms[0] ^ ver[0];
-    diff |= peer_pms[1] ^ ver[1];
-
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
     if( diff != 0 )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
@@ -3548,18 +3560,6 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
     ssl->handshake->pmslen = 48;
-
-    /* mask = diff ? 0xff : 0x00 using bit operations to avoid branches */
-    /* MSVC has a warning about unary minus on unsigned, but this is
-     * well-defined and precisely what we want to do here */
-#if defined(_MSC_VER)
-#pragma warning( push )
-#pragma warning( disable : 4146 )
-#endif
-    mask = - ( ( diff | - diff ) >> ( sizeof( unsigned int ) * 8 - 1 ) );
-#if defined(_MSC_VER)
-#pragma warning( pop )
-#endif
 
     /* Set pms to either the true or the fake PMS, without
      * data-dependent branches. */

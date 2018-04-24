@@ -2287,10 +2287,10 @@ int main( int argc, char *argv[] )
     {
         mbedtls_ssl_async_sign_t *sign = NULL;
         mbedtls_ssl_async_decrypt_t *decrypt = NULL;
-        const char *p;
-        for( p = opt.async_operations; *p; p++ )
+        const char *r;
+        for( r = opt.async_operations; *r; r++ )
         {
-            switch( *p )
+            switch( *r )
             {
             case 'd':
                 decrypt = ssl_async_decrypt;

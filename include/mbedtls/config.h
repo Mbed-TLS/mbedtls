@@ -2866,8 +2866,8 @@
  * versions of the C language standards do not provide a secure implementation
  * of memset(). Therefore, MBEDTLS_PLATFORM_ZEROIZE_ALT enables users to
  * configure their own implementation of mbedtls_platform_zeroize(), for
- * example by using directives specific to their compiler, features from the C
- * standard (e.g using memset_s() in C11) or calling a secure memset() from
+ * example by using directives specific to their compiler, features from newer
+ * C standards (e.g using memset_s() in C11) or calling a secure memset() from
  * their system (e.g explicit_bzero() in BSD).
  */
 //#define MBEDTLS_PLATFORM_ZEROIZE_ALT

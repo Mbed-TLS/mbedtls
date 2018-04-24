@@ -8,13 +8,13 @@
  * Elliptic Curve Cryptography</em> and
  * <em>RFC-4492: Elliptic Curve Cryptography (ECC) Cipher Suites
  * for Transport Layer Security (TLS)</em>.
- * 
+ *
  * <em>RFC-2409: The Internet Key Exchange (IKE)</em> defines ECP
  * group types.
- * 
+ *
  */
 
-/*  
+/*
  *  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -32,7 +32,7 @@
  *
  *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
- 
+
 #ifndef MBEDTLS_ECP_H
 #define MBEDTLS_ECP_H
 
@@ -114,10 +114,10 @@ typedef struct
  *
  * \note            All functions expect and return points satisfying
  *                  the following condition: <code>Z == 0</code> or
- *                  <code>Z == 1</code>. Other values of \p Z are 
+ *                  <code>Z == 1</code>. Other values of \p Z are
  *                  used only by internal functions.
  *                  The point is zero, or "at infinity", if <code>Z == 0</code>.
- *                  Otherwise, \p X and \p Y are its standard (affine) 
+ *                  Otherwise, \p X and \p Y are its standard (affine)
  *                  coordinates.
  */
 typedef struct
@@ -144,18 +144,17 @@ mbedtls_ecp_point;
  * mbedtls_ecdsa_sign() requires that it is prime for blinding purposes.
  *
  * For Montgomery curves, we do not store \p A, but <code>(A + 2) / 4</code>,
- * which is the quantity used in the formulas. Additionally, \p nbits is 
+ * which is the quantity used in the formulas. Additionally, \p nbits is
  * not the size of \p N but the required size for private keys.
  *
- * If \p modp is NULL, reduction modulo \p P is done using a generic algorithm. 
- * Otherwise, \p modp must point to a function that takes an \p mbedtls_mpi in the 
- * range of <code>0..2^(2*pbits)-1</code>, and transforms it in-place to an integer which is
- * congruent mod \p P to the given MPI, and is close enough to \p pbits in size, 
- * so that it may be efficiently brought in the 0..P-1 range by a few additions
- * or subtractions. Therefore, it is only an approximative modular reduction.
+ * If \p modp is NULL, reduction modulo \p P is done using a generic algorithm.
+ * Otherwise, \p modp must point to a function that takes an \p mbedtls_mpi in the
+ * range of <code>0..2^(2*pbits)-1</code>, and transforms it in-place to an integer
+ * which is congruent mod \p P to the given MPI, and is close enough to \p pbits
+ * in size, so that it may be efficiently brought in the 0..P-1 range by a few
+ * additions or subtractions. Therefore, it is only an approximative modular
+ * reduction. It must return 0 on success and non-zero on failure.
  *
- * \return \c 0 on success
- * \return Non-zero error code on failure.
  */
 typedef struct
 {
@@ -169,10 +168,10 @@ typedef struct
     mbedtls_mpi N;              /*!< The order of \p G. */
     size_t pbits;               /*!< The number of bits in \p P.*/
     size_t nbits;               /*!< For Short Weierstrass: The number of bits in \p P.
-                                     For Montgomery curves: the number of bits in the 
+                                     For Montgomery curves: the number of bits in the
                                      private keys. */
     unsigned int h;             /*!< \internal 1 if the constants are static. */
-    int (*modp)(mbedtls_mpi *); /*!< The function for fast pseudo-reduction 
+    int (*modp)(mbedtls_mpi *); /*!< The function for fast pseudo-reduction
                                      mod \p P (see above).*/
     int (*t_pre)(mbedtls_ecp_point *, void *);  /*!< Unused. */
     int (*t_post)(mbedtls_ecp_point *, void *); /*!< Unused. */
@@ -187,7 +186,7 @@ mbedtls_ecp_group;
  *
  * A generic key-pair that may be used for ECDSA and fixed ECDH, for example.
  *
- * \note    Members are deliberately in the same order as in the 
+ * \note    Members are deliberately in the same order as in the
  *          ::mbedtls_ecdsa_context structure.
  */
 typedef struct
@@ -298,7 +297,7 @@ const mbedtls_ecp_group_id *mbedtls_ecp_grp_id_list( void );
 const mbedtls_ecp_curve_info *mbedtls_ecp_curve_info_from_grp_id( mbedtls_ecp_group_id grp_id );
 
 /**
- * \brief           This function retrieves curve information from a TLS 
+ * \brief           This function retrieves curve information from a TLS
  *                  NamedCurve value.
  *
  * \param tls_id    An \c MBEDTLS_ECP_DP_XXX value.
@@ -309,7 +308,7 @@ const mbedtls_ecp_curve_info *mbedtls_ecp_curve_info_from_grp_id( mbedtls_ecp_gr
 const mbedtls_ecp_curve_info *mbedtls_ecp_curve_info_from_tls_id( uint16_t tls_id );
 
 /**
- * \brief           This function retrieves curve information from a 
+ * \brief           This function retrieves curve information from a
  *                  human-readable name.
  *
  * \param name      The human-readable name.
@@ -328,7 +327,7 @@ void mbedtls_ecp_point_init( mbedtls_ecp_point *pt );
 
 /**
  * \brief           This function initializes an ECP group context
- *                  without loading any domain parameters. 
+ *                  without loading any domain parameters.
  *
  * \note            After this function is called, domain parameters
  *                  for various ECP groups can be loaded through the
@@ -364,7 +363,7 @@ void mbedtls_ecp_group_free( mbedtls_ecp_group *grp );
 void mbedtls_ecp_keypair_free( mbedtls_ecp_keypair *key );
 
 /**
- * \brief           This function copies the contents of point \p Q into 
+ * \brief           This function copies the contents of point \p Q into
  *                  point \p P.
  *
  * \param P         The destination point.
@@ -376,7 +375,7 @@ void mbedtls_ecp_keypair_free( mbedtls_ecp_keypair *key );
 int mbedtls_ecp_copy( mbedtls_ecp_point *P, const mbedtls_ecp_point *Q );
 
 /**
- * \brief           This function copies the contents of group \p src into 
+ * \brief           This function copies the contents of group \p src into
  *                  group \p dst.
  *
  * \param dst       The destination group.
@@ -423,7 +422,7 @@ int mbedtls_ecp_point_cmp( const mbedtls_ecp_point *P,
                            const mbedtls_ecp_point *Q );
 
 /**
- * \brief           This function imports a non-zero point from two ASCII 
+ * \brief           This function imports a non-zero point from two ASCII
  *                  strings.
  *
  * \param P         The destination point.
@@ -459,7 +458,7 @@ int mbedtls_ecp_point_write_binary( const mbedtls_ecp_group *grp, const mbedtls_
  * \brief           This function imports a point from unsigned binary data.
  *
  * \note            This function does not check that the point actually
- *                  belongs to the given group, see mbedtls_ecp_check_pubkey() 
+ *                  belongs to the given group, see mbedtls_ecp_check_pubkey()
  *                  for that.
  *
  * \param grp       The group to which the point should belong.
@@ -518,7 +517,7 @@ int mbedtls_ecp_tls_write_point( const mbedtls_ecp_group *grp, const mbedtls_ecp
  * \brief           This function sets a group using standardized domain parameters.
  *
  * \note            The index should be a value of the NamedCurve enum,
- *                  as defined in <em>RFC-4492: Elliptic Curve Cryptography 
+ *                  as defined in <em>RFC-4492: Elliptic Curve Cryptography
  *                  (ECC) Cipher Suites for Transport Layer Security (TLS)</em>,
  *                  usually in the form of an \c MBEDTLS_ECP_DP_XXX macro.
  *
@@ -528,7 +527,7 @@ int mbedtls_ecp_tls_write_point( const mbedtls_ecp_group *grp, const mbedtls_ecp
  * \return          \c 0 on success,
  * \return          An \c MBEDTLS_ERR_MPI_XXX error code on initialization failure.
  * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE for unkownn groups.
- 
+
  */
 int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id );
 
@@ -563,7 +562,7 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp, size_t *olen,
                          unsigned char *buf, size_t blen );
 
 /**
- * \brief           This function performs multiplication of a point by  
+ * \brief           This function performs multiplication of a point by
  *                  an integer: \p R = \p m * \p P.
  *
  *                  It is not thread-safe to use same group in multiple threads.
@@ -595,12 +594,12 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
- * \brief           This function performs multiplication and addition of two 
+ * \brief           This function performs multiplication and addition of two
  *                  points by integers: \p R = \p m * \p P + \p n * \p Q
  *
  *                  It is not thread-safe to use same group in multiple threads.
  *
- * \note            In contrast to mbedtls_ecp_mul(), this function does not 
+ * \note            In contrast to mbedtls_ecp_mul(), this function does not
  *                  guarantee a constant execution flow and timing.
  *
  * \param grp       The ECP group.
@@ -611,8 +610,8 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  * \param Q         The point to be multiplied by \p n.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_ECP_INVALID_KEY if \p m or \p n are not 
- *                  valid private keys, or \p P or \p Q are not valid public 
+ * \return          #MBEDTLS_ERR_ECP_INVALID_KEY if \p m or \p n are not
+ *                  valid private keys, or \p P or \p Q are not valid public
  *                  keys.
  * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
  */
@@ -621,20 +620,20 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *n, const mbedtls_ecp_point *Q );
 
 /**
- * \brief           This function checks that a point is a valid public key 
+ * \brief           This function checks that a point is a valid public key
  *                  on this curve.
  *
- *                  It only checks that the point is non-zero, has 
- *                  valid coordinates and lies on the curve. It does not verify 
- *                  that it is indeed a multiple of \p G. This additional 
+ *                  It only checks that the point is non-zero, has
+ *                  valid coordinates and lies on the curve. It does not verify
+ *                  that it is indeed a multiple of \p G. This additional
  *                  check is computationally more expensive, is not required
  *                  by standards, and should not be necessary if the group
- *                  used has a small cofactor. In particular, it is useless for 
+ *                  used has a small cofactor. In particular, it is useless for
  *                  the NIST groups which all have a cofactor of 1.
  *
- * \note            This function uses bare components rather than an 
- *                  ::mbedtls_ecp_keypair structure, to ease use with other 
- *                  structures, such as ::mbedtls_ecdh_context or 
+ * \note            This function uses bare components rather than an
+ *                  ::mbedtls_ecp_keypair structure, to ease use with other
+ *                  structures, such as ::mbedtls_ecdh_context or
  *                  ::mbedtls_ecdsa_context.
  *
  * \param grp       The curve the point should lie on.
@@ -646,12 +645,12 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 int mbedtls_ecp_check_pubkey( const mbedtls_ecp_group *grp, const mbedtls_ecp_point *pt );
 
 /**
- * \brief           This function checks that an \p mbedtls_mpi is a valid private 
+ * \brief           This function checks that an \p mbedtls_mpi is a valid private
  *                  key for this curve.
  *
- * \note            This function uses bare components rather than an 
- *                  ::mbedtls_ecp_keypair structure to ease use with other 
- *                  structures, such as ::mbedtls_ecdh_context or 
+ * \note            This function uses bare components rather than an
+ *                  ::mbedtls_ecp_keypair structure to ease use with other
+ *                  structures, such as ::mbedtls_ecdh_context or
  *                  ::mbedtls_ecdsa_context.
  *
  * \param grp       The group used.
@@ -663,12 +662,12 @@ int mbedtls_ecp_check_pubkey( const mbedtls_ecp_group *grp, const mbedtls_ecp_po
 int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp, const mbedtls_mpi *d );
 
 /**
- * \brief           This function generates a keypair with a configurable base 
+ * \brief           This function generates a keypair with a configurable base
  *                  point.
  *
- * \note            This function uses bare components rather than an 
- *                  ::mbedtls_ecp_keypair structure to ease use with other 
- *                  structures, such as ::mbedtls_ecdh_context or 
+ * \note            This function uses bare components rather than an
+ *                  ::mbedtls_ecp_keypair structure to ease use with other
+ *                  structures, such as ::mbedtls_ecdh_context or
  *                  ::mbedtls_ecdsa_context.
  *
  * \param grp       The ECP group.
@@ -691,9 +690,9 @@ int mbedtls_ecp_gen_keypair_base( mbedtls_ecp_group *grp,
 /**
  * \brief           This function generates an ECP keypair.
  *
- * \note            This function uses bare components rather than an 
- *                  ::mbedtls_ecp_keypair structure to ease use with other 
- *                  structures, such as ::mbedtls_ecdh_context or 
+ * \note            This function uses bare components rather than an
+ *                  ::mbedtls_ecp_keypair structure to ease use with other
+ *                  structures, such as ::mbedtls_ecdh_context or
  *                  ::mbedtls_ecdsa_context.
  *
  * \param grp       The ECP group.
@@ -726,7 +725,7 @@ int mbedtls_ecp_gen_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
- * \brief           This function checks that the keypair objects 
+ * \brief           This function checks that the keypair objects
  *                  \p pub and \p prv have the same group and the
  *                  same public point, and that the private key in
  *                  \p prv is consistent with the public key.
@@ -735,9 +734,9 @@ int mbedtls_ecp_gen_key( mbedtls_ecp_group_id grp_id, mbedtls_ecp_keypair *key,
  *                  If it contains a private key, that part is ignored.
  * \param prv       The keypair structure holding the full keypair.
  *
- * \return          \c 0 on success, meaning that the keys are valid and match. 
+ * \return          \c 0 on success, meaning that the keys are valid and match.
  * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if the keys are invalid or do not match.
- * \return          An \c MBEDTLS_ERR_ECP_XXX or an \c MBEDTLS_ERR_MPI_XXX 
+ * \return          An \c MBEDTLS_ERR_ECP_XXX or an \c MBEDTLS_ERR_MPI_XXX
  *                  error code on calculation failure.
  */
 int mbedtls_ecp_check_pub_priv( const mbedtls_ecp_keypair *pub, const mbedtls_ecp_keypair *prv );

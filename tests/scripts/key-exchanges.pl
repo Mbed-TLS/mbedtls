@@ -1,8 +1,25 @@
 #!/usr/bin/perl
 
-# test that all configs with only a single key exchange enabled build
+# key-exchanges.pl
+#
+# Copyright (c) 2015-2017, ARM Limited, All Rights Reserved
+#
+# Purpose
+#
+# To test the code dependencies on individual key exchanges in the SSL module.
+# is a verification step to ensure we don't ship SSL code that do not work
+# for some build options.
+#
+# The process is:
+#       for each possible key exchange
+#           build the library with all but that key exchange disabled
 #
 # Usage: tests/scripts/key-exchanges.pl
+#
+# This script should be executed from the root of the project directory.
+#
+# For best effect, run either with cmake disabled, or cmake enabled in a mode
+# that includes -Werror.
 
 use warnings;
 use strict;
@@ -16,7 +33,9 @@ my @kexes = split( /\s+/, `sed -n -e '$sed_cmd' $config_h` );
 system( "cp $config_h $config_h.bak" ) and die;
 sub abort {
     system( "mv $config_h.bak $config_h" ) and warn "$config_h not restored\n";
-    die $_[0];
+    # use an exit code between 1 and 124 for git bisect (die returns 255)
+    warn $_[0];
+    exit 1;
 }
 
 for my $kex (@kexes) {

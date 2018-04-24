@@ -39,7 +39,7 @@
 #if !defined(MBEDTLS_TIMING_ALT)
 
 #if !defined(unix) && !defined(__unix__) && !defined(__unix) && \
-    !defined(__APPLE__) && !defined(_WIN32)
+    !defined(__APPLE__) && !defined(_WIN32) && !defined(__QNXNTO__)
 #error "This module only works on Unix and Windows, see MBEDTLS_TIMING_C in config.h"
 #endif
 
@@ -277,6 +277,14 @@ static DWORD WINAPI TimerProc( LPVOID TimerContext )
 void mbedtls_set_alarm( int seconds )
 {
     DWORD ThreadId;
+
+    if( seconds == 0 )
+    {
+        /* No need to create a thread for this simple case.
+         * Also, this shorcut is more reliable at least on MinGW32 */
+        mbedtls_timing_alarmed = 1;
+        return;
+    }
 
     mbedtls_timing_alarmed = 0;
     alarmMs = seconds * 1000;

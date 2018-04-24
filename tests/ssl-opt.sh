@@ -231,7 +231,7 @@ fail() {
     fi
     echo "  ! outputs saved to o-XXX-${TESTS}.log"
 
-    if [ "X${USER:-}" = Xbuildbot -o "X${LOGNAME:-}" = Xbuildbot ]; then
+    if [ "X${USER:-}" = Xbuildbot -o "X${LOGNAME:-}" = Xbuildbot -o "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
         echo "  ! server output:"
         cat o-srv-${TESTS}.log
         echo "  ! ========================================================"
@@ -308,6 +308,7 @@ if type lsof >/dev/null 2>/dev/null; then
         done
     }
 else
+    echo "Warning: lsof not available, wait_server_start = sleep $START_DELAY"
     wait_server_start() {
         sleep "$START_DELAY"
     }
@@ -464,9 +465,12 @@ run_test() {
         eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
         wait_client_done
 
+        sleep 0.05
+
         # terminate the server (and the proxy)
         kill $SRV_PID
         wait $SRV_PID
+
         if [ -n "$PXY_CMD" ]; then
             kill $PXY_PID >/dev/null 2>&1
             wait $PXY_PID
@@ -630,16 +634,19 @@ fi
 get_options "$@"
 
 # sanity checks, avoid an avalanche of errors
-if [ ! -x "$P_SRV" ]; then
-    echo "Command '$P_SRV' is not an executable file"
+P_SRV_BIN="${P_SRV%%[  ]*}"
+P_CLI_BIN="${P_CLI%%[  ]*}"
+P_PXY_BIN="${P_PXY%%[  ]*}"
+if [ ! -x "$P_SRV_BIN" ]; then
+    echo "Command '$P_SRV_BIN' is not an executable file"
     exit 1
 fi
-if [ ! -x "$P_CLI" ]; then
-    echo "Command '$P_CLI' is not an executable file"
+if [ ! -x "$P_CLI_BIN" ]; then
+    echo "Command '$P_CLI_BIN' is not an executable file"
     exit 1
 fi
-if [ ! -x "$P_PXY" ]; then
-    echo "Command '$P_PXY' is not an executable file"
+if [ ! -x "$P_PXY_BIN" ]; then
+    echo "Command '$P_PXY_BIN' is not an executable file"
     exit 1
 fi
 if [ "$MEMCHECK" -gt 0 ]; then
@@ -656,14 +663,28 @@ fi
 # used by watchdog
 MAIN_PID="$$"
 
-# be more patient with valgrind
+# We use somewhat arbitrary delays for tests:
+# - how long do we wait for the server to start (when lsof not available)?
+# - how long do we allow for the client to finish?
+#   (not to check performance, just to avoid waiting indefinitely)
+# Things are slower with valgrind, so give extra time here.
+#
+# Note: without lsof, there is a trade-off between the running time of this
+# script and the risk of spurious errors because we didn't wait long enough.
+# The watchdog delay on the other hand doesn't affect normal running time of
+# the script, only the case where a client or server gets stuck.
 if [ "$MEMCHECK" -gt 0 ]; then
-    START_DELAY=3
-    DOG_DELAY=30
+    START_DELAY=6
+    DOG_DELAY=60
 else
-    START_DELAY=1
-    DOG_DELAY=10
+    START_DELAY=2
+    DOG_DELAY=20
 fi
+
+# some particular tests need more time:
+# - for the client, we multiply the usual watchdog limit by a factor
+# - for the server, we sleep for a number of seconds after the client exits
+# see client_need_more_time() and server_needs_more_time()
 CLI_DELAY_FACTOR=1
 SRV_DELAY_SECONDS=0
 
@@ -821,40 +842,95 @@ run_test    "Truncated HMAC: client default, server default" \
             "$P_SRV debug_level=4" \
             "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             0 \
-            -s "dumping 'computed mac' (20 bytes)" \
-            -S "dumping 'computed mac' (10 bytes)"
+            -s "dumping 'expected mac' (20 bytes)" \
+            -S "dumping 'expected mac' (10 bytes)"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Truncated HMAC: client disabled, server default" \
             "$P_SRV debug_level=4" \
-            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
-             trunc_hmac=0" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA trunc_hmac=0" \
             0 \
-            -s "dumping 'computed mac' (20 bytes)" \
-            -S "dumping 'computed mac' (10 bytes)"
+            -s "dumping 'expected mac' (20 bytes)" \
+            -S "dumping 'expected mac' (10 bytes)"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Truncated HMAC: client enabled, server default" \
             "$P_SRV debug_level=4" \
-            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
-             trunc_hmac=1" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA trunc_hmac=1" \
             0 \
-            -s "dumping 'computed mac' (20 bytes)" \
-            -S "dumping 'computed mac' (10 bytes)"
+            -s "dumping 'expected mac' (20 bytes)" \
+            -S "dumping 'expected mac' (10 bytes)"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Truncated HMAC: client enabled, server disabled" \
             "$P_SRV debug_level=4 trunc_hmac=0" \
-            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
-             trunc_hmac=1" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA trunc_hmac=1" \
             0 \
-            -s "dumping 'computed mac' (20 bytes)" \
-            -S "dumping 'computed mac' (10 bytes)"
+            -s "dumping 'expected mac' (20 bytes)" \
+            -S "dumping 'expected mac' (10 bytes)"
 
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Truncated HMAC: client disabled, server enabled" \
+            "$P_SRV debug_level=4 trunc_hmac=1" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA trunc_hmac=0" \
+            0 \
+            -s "dumping 'expected mac' (20 bytes)" \
+            -S "dumping 'expected mac' (10 bytes)"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
 run_test    "Truncated HMAC: client enabled, server enabled" \
             "$P_SRV debug_level=4 trunc_hmac=1" \
-            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA \
-             trunc_hmac=1" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA trunc_hmac=1" \
             0 \
-            -S "dumping 'computed mac' (20 bytes)" \
-            -s "dumping 'computed mac' (10 bytes)"
+            -S "dumping 'expected mac' (20 bytes)" \
+            -s "dumping 'expected mac' (10 bytes)"
+
+run_test    "Truncated HMAC, DTLS: client default, server default" \
+            "$P_SRV dtls=1 debug_level=4" \
+            "$P_CLI dtls=1 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -s "dumping 'expected mac' (20 bytes)" \
+            -S "dumping 'expected mac' (10 bytes)"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Truncated HMAC, DTLS: client disabled, server default" \
+            "$P_SRV dtls=1 debug_level=4" \
+            "$P_CLI dtls=1 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA trunc_hmac=0" \
+            0 \
+            -s "dumping 'expected mac' (20 bytes)" \
+            -S "dumping 'expected mac' (10 bytes)"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Truncated HMAC, DTLS: client enabled, server default" \
+            "$P_SRV dtls=1 debug_level=4" \
+            "$P_CLI dtls=1 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA trunc_hmac=1" \
+            0 \
+            -s "dumping 'expected mac' (20 bytes)" \
+            -S "dumping 'expected mac' (10 bytes)"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Truncated HMAC, DTLS: client enabled, server disabled" \
+            "$P_SRV dtls=1 debug_level=4 trunc_hmac=0" \
+            "$P_CLI dtls=1 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA trunc_hmac=1" \
+            0 \
+            -s "dumping 'expected mac' (20 bytes)" \
+            -S "dumping 'expected mac' (10 bytes)"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Truncated HMAC, DTLS: client disabled, server enabled" \
+            "$P_SRV dtls=1 debug_level=4 trunc_hmac=1" \
+            "$P_CLI dtls=1 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA trunc_hmac=0" \
+            0 \
+            -s "dumping 'expected mac' (20 bytes)" \
+            -S "dumping 'expected mac' (10 bytes)"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Truncated HMAC, DTLS: client enabled, server enabled" \
+            "$P_SRV dtls=1 debug_level=4 trunc_hmac=1" \
+            "$P_CLI dtls=1 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA trunc_hmac=1" \
+            0 \
+            -S "dumping 'expected mac' (20 bytes)" \
+            -s "dumping 'expected mac' (10 bytes)"
 
 # Tests for Encrypt-then-MAC extension
 
@@ -2634,6 +2710,118 @@ run_test    "Non-blocking I/O: session-id resume" \
             -C "mbedtls_ssl_handshake returned" \
             -c "Read from server: .* bytes read"
 
+# Tests for event-driven I/O: exercise a variety of handshake flows
+
+run_test    "Event-driven I/O: basic handshake" \
+            "$P_SRV event=1 tickets=0 auth_mode=none" \
+            "$P_CLI event=1 tickets=0" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: client auth" \
+            "$P_SRV event=1 tickets=0 auth_mode=required" \
+            "$P_CLI event=1 tickets=0" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: ticket" \
+            "$P_SRV event=1 tickets=1 auth_mode=none" \
+            "$P_CLI event=1 tickets=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: ticket + client auth" \
+            "$P_SRV event=1 tickets=1 auth_mode=required" \
+            "$P_CLI event=1 tickets=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: ticket + client auth + resume" \
+            "$P_SRV event=1 tickets=1 auth_mode=required" \
+            "$P_CLI event=1 tickets=1 reconnect=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: ticket + resume" \
+            "$P_SRV event=1 tickets=1 auth_mode=none" \
+            "$P_CLI event=1 tickets=1 reconnect=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O: session-id resume" \
+            "$P_SRV event=1 tickets=0 auth_mode=none" \
+            "$P_CLI event=1 tickets=0 reconnect=1" \
+            0 \
+            -S "mbedtls_ssl_handshake returned" \
+            -C "mbedtls_ssl_handshake returned" \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: basic handshake" \
+            "$P_SRV dtls=1 event=1 tickets=0 auth_mode=none" \
+            "$P_CLI dtls=1 event=1 tickets=0" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: client auth" \
+            "$P_SRV dtls=1 event=1 tickets=0 auth_mode=required" \
+            "$P_CLI dtls=1 event=1 tickets=0" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: ticket" \
+            "$P_SRV dtls=1 event=1 tickets=1 auth_mode=none" \
+            "$P_CLI dtls=1 event=1 tickets=1" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: ticket + client auth" \
+            "$P_SRV dtls=1 event=1 tickets=1 auth_mode=required" \
+            "$P_CLI dtls=1 event=1 tickets=1" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: ticket + client auth + resume" \
+            "$P_SRV dtls=1 event=1 tickets=1 auth_mode=required" \
+            "$P_CLI dtls=1 event=1 tickets=1 reconnect=1" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: ticket + resume" \
+            "$P_SRV dtls=1 event=1 tickets=1 auth_mode=none" \
+            "$P_CLI dtls=1 event=1 tickets=1 reconnect=1" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+run_test    "Event-driven I/O, DTLS: session-id resume" \
+            "$P_SRV dtls=1 event=1 tickets=0 auth_mode=none" \
+            "$P_CLI dtls=1 event=1 tickets=0 reconnect=1" \
+            0 \
+            -c "Read from server: .* bytes read"
+
+# This test demonstrates the need for the mbedtls_ssl_check_pending function.
+# During session resumption, the client will send its ApplicationData record
+# within the same datagram as the Finished messages. In this situation, the
+# server MUST NOT idle on the underlying transport after handshake completion,
+# because the ApplicationData request has already been queued internally.
+run_test    "Event-driven I/O, DTLS: session-id resume, UDP packing" \
+            -p "$P_PXY pack=50" \
+            "$P_SRV dtls=1 event=1 tickets=0 auth_mode=required" \
+            "$P_CLI dtls=1 event=1 tickets=0 reconnect=1" \
+            0 \
+            -c "Read from server: .* bytes read"
+
 # Tests for version negotiation
 
 run_test    "Version check: all -> 1.2" \
@@ -3082,7 +3270,7 @@ run_test    "DHM parameters: reference" \
                     debug_level=3" \
             0 \
             -c "value of 'DHM: P ' (2048 bits)" \
-            -c "value of 'DHM: G ' (2048 bits)"
+            -c "value of 'DHM: G ' (2 bits)"
 
 run_test    "DHM parameters: other parameters" \
             "$P_SRV dhm_file=data_files/dhparams.pem" \
@@ -3370,26 +3558,56 @@ run_test    "Small packet TLS 1.0 BlockCipher" \
             0 \
             -s "Read from client: 1 bytes read"
 
-run_test    "Small packet TLS 1.0 BlockCipher without EtM" \
+run_test    "Small packet TLS 1.0 BlockCipher, without EtM" \
             "$P_SRV" \
             "$P_CLI request_size=1 force_version=tls1 etm=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
             0 \
             -s "Read from client: 1 bytes read"
 
-run_test    "Small packet TLS 1.0 BlockCipher truncated MAC" \
-            "$P_SRV" \
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Small packet TLS 1.0 BlockCipher, truncated MAC" \
+            "$P_SRV trunc_hmac=1" \
             "$P_CLI request_size=1 force_version=tls1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
-             trunc_hmac=1" \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
             0 \
             -s "Read from client: 1 bytes read"
 
-run_test    "Small packet TLS 1.0 StreamCipher truncated MAC" \
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Small packet TLS 1.0 BlockCipher, without EtM, truncated MAC" \
+            "$P_SRV trunc_hmac=1" \
+            "$P_CLI request_size=1 force_version=tls1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.0 StreamCipher" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=1 force_version=tls1 \
-             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
-             trunc_hmac=1" \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+run_test    "Small packet TLS 1.0 StreamCipher, without EtM" \
+            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            "$P_CLI request_size=1 force_version=tls1 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA etm=0" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Small packet TLS 1.0 StreamCipher, truncated MAC" \
+            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
+            "$P_CLI request_size=1 force_version=tls1 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Small packet TLS 1.0 StreamCipher, without EtM, truncated MAC" \
+            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
+            "$P_CLI request_size=1 force_version=tls1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
+             trunc_hmac=1 etm=0" \
             0 \
             -s "Read from client: 1 bytes read"
 
@@ -3400,10 +3618,26 @@ run_test    "Small packet TLS 1.1 BlockCipher" \
             0 \
             -s "Read from client: 1 bytes read"
 
-run_test    "Small packet TLS 1.1 BlockCipher without EtM" \
+run_test    "Small packet TLS 1.1 BlockCipher, without EtM" \
             "$P_SRV" \
-            "$P_CLI request_size=1 force_version=tls1_1 etm=0 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            "$P_CLI request_size=1 force_version=tls1_1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA etm=0" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Small packet TLS 1.1 BlockCipher, truncated MAC" \
+            "$P_SRV trunc_hmac=1" \
+            "$P_CLI request_size=1 force_version=tls1_1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Small packet TLS 1.1 BlockCipher, without EtM, truncated MAC" \
+            "$P_SRV trunc_hmac=1" \
+            "$P_CLI request_size=1 force_version=tls1_1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
             0 \
             -s "Read from client: 1 bytes read"
 
@@ -3414,19 +3648,26 @@ run_test    "Small packet TLS 1.1 StreamCipher" \
             0 \
             -s "Read from client: 1 bytes read"
 
-run_test    "Small packet TLS 1.1 BlockCipher truncated MAC" \
-            "$P_SRV" \
+run_test    "Small packet TLS 1.1 StreamCipher, without EtM" \
+            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=1 force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
-             trunc_hmac=1" \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA etm=0" \
             0 \
             -s "Read from client: 1 bytes read"
 
-run_test    "Small packet TLS 1.1 StreamCipher truncated MAC" \
-            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Small packet TLS 1.1 StreamCipher, truncated MAC" \
+            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
             "$P_CLI request_size=1 force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
-             trunc_hmac=1" \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Small packet TLS 1.1 StreamCipher, without EtM, truncated MAC" \
+            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
+            "$P_CLI request_size=1 force_version=tls1_1 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1 etm=0" \
             0 \
             -s "Read from client: 1 bytes read"
 
@@ -3437,10 +3678,10 @@ run_test    "Small packet TLS 1.2 BlockCipher" \
             0 \
             -s "Read from client: 1 bytes read"
 
-run_test    "Small packet TLS 1.2 BlockCipher without EtM" \
+run_test    "Small packet TLS 1.2 BlockCipher, without EtM" \
             "$P_SRV" \
-            "$P_CLI request_size=1 force_version=tls1_2 etm=0 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            "$P_CLI request_size=1 force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA etm=0" \
             0 \
             -s "Read from client: 1 bytes read"
 
@@ -3451,11 +3692,19 @@ run_test    "Small packet TLS 1.2 BlockCipher larger MAC" \
             0 \
             -s "Read from client: 1 bytes read"
 
-run_test    "Small packet TLS 1.2 BlockCipher truncated MAC" \
-            "$P_SRV" \
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Small packet TLS 1.2 BlockCipher, truncated MAC" \
+            "$P_SRV trunc_hmac=1" \
             "$P_CLI request_size=1 force_version=tls1_2 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
-             trunc_hmac=1" \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Small packet TLS 1.2 BlockCipher, without EtM, truncated MAC" \
+            "$P_SRV trunc_hmac=1" \
+            "$P_CLI request_size=1 force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
             0 \
             -s "Read from client: 1 bytes read"
 
@@ -3466,11 +3715,26 @@ run_test    "Small packet TLS 1.2 StreamCipher" \
             0 \
             -s "Read from client: 1 bytes read"
 
-run_test    "Small packet TLS 1.2 StreamCipher truncated MAC" \
+run_test    "Small packet TLS 1.2 StreamCipher, without EtM" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=1 force_version=tls1_2 \
-             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
-             trunc_hmac=1" \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA etm=0" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Small packet TLS 1.2 StreamCipher, truncated MAC" \
+            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
+            "$P_CLI request_size=1 force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Small packet TLS 1.2 StreamCipher, without EtM, truncated MAC" \
+            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
+            "$P_CLI request_size=1 force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1 etm=0" \
             0 \
             -s "Read from client: 1 bytes read"
 
@@ -3485,6 +3749,76 @@ run_test    "Small packet TLS 1.2 AEAD shorter tag" \
             "$P_SRV" \
             "$P_CLI request_size=1 force_version=tls1_2 \
              force_ciphersuite=TLS-RSA-WITH-AES-256-CCM-8" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+# Tests for small packets in DTLS
+
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+run_test    "Small packet DTLS 1.0" \
+            "$P_SRV dtls=1 force_version=dtls1" \
+            "$P_CLI dtls=1 request_size=1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+run_test    "Small packet DTLS 1.0, without EtM" \
+            "$P_SRV dtls=1 force_version=dtls1 etm=0" \
+            "$P_CLI dtls=1 request_size=1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Small packet DTLS 1.0, truncated hmac" \
+            "$P_SRV dtls=1 force_version=dtls1 trunc_hmac=1" \
+            "$P_CLI dtls=1 request_size=1 trunc_hmac=1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Small packet DTLS 1.0, without EtM, truncated MAC" \
+            "$P_SRV dtls=1 force_version=dtls1 trunc_hmac=1 etm=0" \
+            "$P_CLI dtls=1 request_size=1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1"\
+            0 \
+            -s "Read from client: 1 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+run_test    "Small packet DTLS 1.2" \
+            "$P_SRV dtls=1 force_version=dtls1_2" \
+            "$P_CLI dtls=1 request_size=1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+run_test    "Small packet DTLS 1.2, without EtM" \
+            "$P_SRV dtls=1 force_version=dtls1_2 etm=0" \
+            "$P_CLI dtls=1 request_size=1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Small packet DTLS 1.2, truncated hmac" \
+            "$P_SRV dtls=1 force_version=dtls1_2 trunc_hmac=1" \
+            "$P_CLI dtls=1 request_size=1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
+            0 \
+            -s "Read from client: 1 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Small packet DTLS 1.2, without EtM, truncated MAC" \
+            "$P_SRV dtls=1 force_version=dtls1_2 trunc_hmac=1 etm=0" \
+            "$P_CLI dtls=1 request_size=1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1"\
             0 \
             -s "Read from client: 1 bytes read"
 
@@ -3526,20 +3860,57 @@ run_test    "Large packet TLS 1.0 BlockCipher" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.0 BlockCipher truncated MAC" \
+run_test    "Large packet TLS 1.0 BlockCipher, without EtM" \
             "$P_SRV" \
+            "$P_CLI request_size=16384 force_version=tls1 etm=0 recsplit=0 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 16384 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large packet TLS 1.0 BlockCipher, truncated MAC" \
+            "$P_SRV trunc_hmac=1" \
             "$P_CLI request_size=16384 force_version=tls1 recsplit=0 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
-             trunc_hmac=1" \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
             0 \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.0 StreamCipher truncated MAC" \
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large packet TLS 1.0 BlockCipher, without EtM, truncated MAC" \
+            "$P_SRV trunc_hmac=1" \
+            "$P_CLI request_size=16384 force_version=tls1 etm=0 recsplit=0 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
+            0 \
+            -s "Read from client: 16384 bytes read"
+
+run_test    "Large packet TLS 1.0 StreamCipher" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1 \
-             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
-             trunc_hmac=1" \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            0 \
+            -s "Read from client: 16384 bytes read"
+
+run_test    "Large packet TLS 1.0 StreamCipher, without EtM" \
+            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+            "$P_CLI request_size=16384 force_version=tls1 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA etm=0" \
+            0 \
+            -s "Read from client: 16384 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large packet TLS 1.0 StreamCipher, truncated MAC" \
+            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
+            "$P_CLI request_size=16384 force_version=tls1 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
+            0 \
+            -s "Read from client: 16384 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large packet TLS 1.0 StreamCipher, without EtM, truncated MAC" \
+            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
+            "$P_CLI request_size=16384 force_version=tls1 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1 etm=0" \
             0 \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
@@ -3552,6 +3923,29 @@ run_test    "Large packet TLS 1.1 BlockCipher" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
+run_test    "Large packet TLS 1.1 BlockCipher, without EtM" \
+            "$P_SRV" \
+            "$P_CLI request_size=16384 force_version=tls1_1 etm=0 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 16384 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large packet TLS 1.1 BlockCipher, truncated MAC" \
+            "$P_SRV trunc_hmac=1" \
+            "$P_CLI request_size=16384 force_version=tls1_1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
+            0 \
+            -s "Read from client: 16384 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large packet TLS 1.1 BlockCipher, without EtM, truncated MAC" \
+            "$P_SRV trunc_hmac=1" \
+            "$P_CLI request_size=16384 force_version=tls1_1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
+            0 \
+            -s "Read from client: 16384 bytes read"
+
 run_test    "Large packet TLS 1.1 StreamCipher" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
@@ -3560,20 +3954,27 @@ run_test    "Large packet TLS 1.1 StreamCipher" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.1 BlockCipher truncated MAC" \
-            "$P_SRV" \
+run_test    "Large packet TLS 1.1 StreamCipher, without EtM" \
+            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
-             trunc_hmac=1" \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA etm=0" \
             0 \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.1 StreamCipher truncated MAC" \
-            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large packet TLS 1.1 StreamCipher, truncated MAC" \
+            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
             "$P_CLI request_size=16384 force_version=tls1_1 \
-             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
-             trunc_hmac=1" \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
+            0 \
+            -s "Read from client: 16384 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large packet TLS 1.1 StreamCipher, without EtM, truncated MAC" \
+            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
+            "$P_CLI request_size=16384 force_version=tls1_1 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1 etm=0" \
             0 \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
@@ -3586,6 +3987,13 @@ run_test    "Large packet TLS 1.2 BlockCipher" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
+run_test    "Large packet TLS 1.2 BlockCipher, without EtM" \
+            "$P_SRV" \
+            "$P_CLI request_size=16384 force_version=tls1_2 etm=0 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -s "Read from client: 16384 bytes read"
+
 run_test    "Large packet TLS 1.2 BlockCipher larger MAC" \
             "$P_SRV" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
@@ -3594,11 +4002,19 @@ run_test    "Large packet TLS 1.2 BlockCipher larger MAC" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.2 BlockCipher truncated MAC" \
-            "$P_SRV" \
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large packet TLS 1.2 BlockCipher, truncated MAC" \
+            "$P_SRV trunc_hmac=1" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA \
-             trunc_hmac=1" \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1" \
+            0 \
+            -s "Read from client: 16384 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large packet TLS 1.2 BlockCipher, without EtM, truncated MAC" \
+            "$P_SRV trunc_hmac=1" \
+            "$P_CLI request_size=16384 force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA trunc_hmac=1 etm=0" \
             0 \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
@@ -3611,11 +4027,26 @@ run_test    "Large packet TLS 1.2 StreamCipher" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-run_test    "Large packet TLS 1.2 StreamCipher truncated MAC" \
+run_test    "Large packet TLS 1.2 StreamCipher, without EtM" \
             "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
             "$P_CLI request_size=16384 force_version=tls1_2 \
-             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA \
-             trunc_hmac=1" \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA etm=0" \
+            0 \
+            -s "Read from client: 16384 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large packet TLS 1.2 StreamCipher, truncated MAC" \
+            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
+            "$P_CLI request_size=16384 force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
+            0 \
+            -s "Read from client: 16384 bytes read"
+
+requires_config_enabled MBEDTLS_SSL_TRUNCATED_HMAC
+run_test    "Large packet TLS 1.2 StreamCipher, without EtM, truncated MAC" \
+            "$P_SRV arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1" \
+            "$P_CLI request_size=16384 force_version=tls1_2 \
+             force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA trunc_hmac=1 etm=0" \
             0 \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
@@ -4165,8 +4596,8 @@ run_test    "DTLS proxy: duplicate every packet" \
             0 \
             -c "replayed record" \
             -s "replayed record" \
-            -c "discarding invalid record" \
-            -s "discarding invalid record" \
+            -c "record from another epoch" \
+            -s "record from another epoch" \
             -S "resend" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
@@ -4178,12 +4609,28 @@ run_test    "DTLS proxy: duplicate every packet, server anti-replay off" \
             0 \
             -c "replayed record" \
             -S "replayed record" \
-            -c "discarding invalid record" \
-            -s "discarding invalid record" \
+            -c "record from another epoch" \
+            -s "record from another epoch" \
             -c "resend" \
             -s "resend" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
+
+run_test    "DTLS proxy: multiple records in same datagram" \
+            -p "$P_PXY pack=50" \
+            "$P_SRV dtls=1 debug_level=2" \
+            "$P_CLI dtls=1 debug_level=2" \
+            0 \
+            -c "next record in same datagram" \
+            -s "next record in same datagram"
+
+run_test    "DTLS proxy: multiple records in same datagram, duplicate every packet" \
+            -p "$P_PXY pack=50 duplicate=1" \
+            "$P_SRV dtls=1 debug_level=2" \
+            "$P_CLI dtls=1 debug_level=2" \
+            0 \
+            -c "next record in same datagram" \
+            -s "next record in same datagram"
 
 run_test    "DTLS proxy: inject invalid AD record, default badmac_limit" \
             -p "$P_PXY bad_ad=1" \
@@ -4240,8 +4687,6 @@ run_test    "DTLS proxy: delay ChangeCipherSpec" \
             0 \
             -c "record from another epoch" \
             -s "record from another epoch" \
-            -c "discarding invalid record" \
-            -s "discarding invalid record" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 

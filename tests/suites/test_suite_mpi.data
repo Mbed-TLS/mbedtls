@@ -688,6 +688,18 @@ Test mbedtls_mpi_gen_prime (OK, minimum size)
 depends_on:MBEDTLS_GENPRIME
 mbedtls_mpi_gen_prime:3:0:0
 
+Test mbedtls_mpi_gen_prime (corner case limb size -1 bits)
+depends_on:MBEDTLS_GENPRIME
+mbedtls_mpi_gen_prime:63:0:0
+
+Test mbedtls_mpi_gen_prime (corner case limb size)
+depends_on:MBEDTLS_GENPRIME
+mbedtls_mpi_gen_prime:64:0:0
+
+Test mbedtls_mpi_gen_prime (corner case limb size +1 bits)
+depends_on:MBEDTLS_GENPRIME
+mbedtls_mpi_gen_prime:65:0:0
+
 Test mbedtls_mpi_gen_prime (Larger)
 depends_on:MBEDTLS_GENPRIME
 mbedtls_mpi_gen_prime:128:0:0

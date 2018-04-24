@@ -902,6 +902,8 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         *p++ = (unsigned char)( ciphersuites[i]      );
     }
 
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, got %d ciphersuites (excluding SCSVs)", n ) );
+
     /*
      * Add TLS_EMPTY_RENEGOTIATION_INFO_SCSV
      */
@@ -909,6 +911,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
 #endif
     {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "adding EMPTY_RENEGOTIATION_INFO_SCSV" ) );
         *p++ = (unsigned char)( MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO >> 8 );
         *p++ = (unsigned char)( MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO      );
         n++;
@@ -928,8 +931,6 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     *q++ = (unsigned char)( n >> 7 );
     *q++ = (unsigned char)( n << 1 );
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, got %d ciphersuites", n ) );
-
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     offer_compress = 1;
 #else
@@ -937,7 +938,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 #endif
 
     /*
-     * We don't support compression with DTLS right now: is many records come
+     * We don't support compression with DTLS right now: if many records come
      * in the same datagram, uncompressing one could overwrite the next one.
      * We don't want to add complexity for handling that case unless there is
      * an actual need for it.
@@ -2057,10 +2058,16 @@ static int ssl_parse_server_psk_hint( mbedtls_ssl_context *ssl,
      *
      * opaque psk_identity_hint<0..2^16-1>;
      */
+    if( (*p) > end - 2 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message "
+                                    "(psk_identity_hint length)" ) );
+        return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+    }
     len = (*p)[0] << 8 | (*p)[1];
     *p += 2;
 
-    if( (*p) + len > end )
+    if( (*p) > end - len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message "
                                     "(psk_identity_hint length)" ) );
@@ -2478,10 +2485,18 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
         /*
          * Read signature
          */
+
+        if( p > end - 2 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                            MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+            return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+        }
         sig_len = ( p[0] << 8 ) | p[1];
         p += 2;
 
-        if( end != p + sig_len )
+        if( p != end - sig_len )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
             mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -2498,39 +2513,11 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
         if( md_alg == MBEDTLS_MD_NONE )
         {
-            mbedtls_md5_context mbedtls_md5;
-            mbedtls_sha1_context mbedtls_sha1;
-
-            mbedtls_md5_init(  &mbedtls_md5  );
-            mbedtls_sha1_init( &mbedtls_sha1 );
-
             hashlen = 36;
-
-            /*
-             * digitally-signed struct {
-             *     opaque md5_hash[16];
-             *     opaque sha_hash[20];
-             * };
-             *
-             * md5_hash
-             *     MD5(ClientHello.random + ServerHello.random
-             *                            + ServerParams);
-             * sha_hash
-             *     SHA(ClientHello.random + ServerHello.random
-             *                            + ServerParams);
-             */
-            mbedtls_md5_starts( &mbedtls_md5 );
-            mbedtls_md5_update( &mbedtls_md5, ssl->handshake->randbytes, 64 );
-            mbedtls_md5_update( &mbedtls_md5, params, params_len );
-            mbedtls_md5_finish( &mbedtls_md5, hash );
-
-            mbedtls_sha1_starts( &mbedtls_sha1 );
-            mbedtls_sha1_update( &mbedtls_sha1, ssl->handshake->randbytes, 64 );
-            mbedtls_sha1_update( &mbedtls_sha1, params, params_len );
-            mbedtls_sha1_finish( &mbedtls_sha1, hash + 16 );
-
-            mbedtls_md5_free(  &mbedtls_md5  );
-            mbedtls_sha1_free( &mbedtls_sha1 );
+            ret = mbedtls_ssl_get_key_exchange_md_ssl_tls( ssl, hash, params,
+                                                           params_len );
+            if( ret != 0 )
+                return( ret );
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_SSL3 || MBEDTLS_SSL_PROTO_TLS1 || \
@@ -2539,34 +2526,11 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( md_alg != MBEDTLS_MD_NONE )
         {
-            mbedtls_md_context_t ctx;
-
-            mbedtls_md_init( &ctx );
-
-            /* Info from md_alg will be used instead */
-            hashlen = 0;
-
-            /*
-             * digitally-signed struct {
-             *     opaque client_random[32];
-             *     opaque server_random[32];
-             *     ServerDHParams params;
-             * };
-             */
-            if( ( ret = mbedtls_md_setup( &ctx,
-                                     mbedtls_md_info_from_type( md_alg ), 0 ) ) != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_setup", ret );
-                mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                                MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
+            ret = mbedtls_ssl_get_key_exchange_md_tls1_2( ssl, hash, &hashlen,
+                                                          params, params_len,
+                                                          md_alg );
+            if( ret != 0 )
                 return( ret );
-            }
-
-            mbedtls_md_starts( &ctx );
-            mbedtls_md_update( &ctx, ssl->handshake->randbytes, 64 );
-            mbedtls_md_update( &ctx, params, params_len );
-            mbedtls_md_finish( &ctx, hash );
-            mbedtls_md_free( &ctx );
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
@@ -2576,8 +2540,7 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-        MBEDTLS_SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen != 0 ? hashlen :
-            (unsigned int) ( mbedtls_md_get_size( mbedtls_md_info_from_type( md_alg ) ) ) );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
 
         if( ssl->session_negotiate->peer_cert == NULL )
         {

@@ -2,7 +2,8 @@
  * \file ecp.h
  *
  * \brief Elliptic curves over GF(p)
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -35,7 +36,8 @@
 #define MBEDTLS_ERR_ECP_ALLOC_FAILED                      -0x4D80  /**< Memory allocation failed. */
 #define MBEDTLS_ERR_ECP_RANDOM_FAILED                     -0x4D00  /**< Generation of random value, such as (ephemeral) key, failed. */
 #define MBEDTLS_ERR_ECP_INVALID_KEY                       -0x4C80  /**< Invalid private or public key. */
-#define MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH                  -0x4C00  /**< Signature is valid but shorter than the user-supplied length. */
+#define MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH                  -0x4C00  /**< The buffer contains a valid signature followed by more data. */
+#define MBEDTLS_ERR_ECP_HW_ACCEL_FAILED                   -0x4B80  /**< ECP hardware accelerator failed. */
 
 #if !defined(MBEDTLS_ECP_ALT)
 /*
@@ -70,7 +72,8 @@ typedef enum
     MBEDTLS_ECP_DP_BP256R1,        /*!< 256-bits Brainpool curve */
     MBEDTLS_ECP_DP_BP384R1,        /*!< 384-bits Brainpool curve */
     MBEDTLS_ECP_DP_BP512R1,        /*!< 512-bits Brainpool curve */
-    MBEDTLS_ECP_DP_CURVE25519,           /*!< Curve25519               */
+    MBEDTLS_ECP_DP_CURVE25519,     /*!< Curve25519               */
+    MBEDTLS_ECP_DP_CURVE448,       /*!< Curve448                 */
     MBEDTLS_ECP_DP_SECP192K1,      /*!< 192-bits "Koblitz" curve */
     MBEDTLS_ECP_DP_SECP224K1,      /*!< 224-bits "Koblitz" curve */
     MBEDTLS_ECP_DP_SECP256K1,      /*!< 256-bits "Koblitz" curve */
@@ -142,7 +145,7 @@ typedef struct
     mbedtls_mpi A;              /*!<  1. A in the equation, or 2. (A + 2) / 4       */
     mbedtls_mpi B;              /*!<  1. B in the equation, or 2. unused            */
     mbedtls_ecp_point G;        /*!<  generator of the (sub)group used              */
-    mbedtls_mpi N;              /*!<  1. the order of G, or 2. unused               */
+    mbedtls_mpi N;              /*!<  the order of G                                */
     size_t pbits;       /*!<  number of bits in P                           */
     size_t nbits;       /*!<  number of bits in 1. P, or 2. private keys    */
     unsigned int h;     /*!<  internal: 1 if the constants are static       */

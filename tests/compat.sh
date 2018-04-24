@@ -887,8 +887,9 @@ if type lsof >/dev/null 2>/dev/null; then
         done
     }
 else
+    echo "Warning: lsof not available, wait_server_start = sleep"
     wait_server_start() {
-        sleep 1
+        sleep 2
     }
 fi
 
@@ -1086,7 +1087,7 @@ run_client() {
             cp $CLI_OUT c-cli-${TESTS}.log
             echo "  ! outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
 
-            if [ "X${USER:-}" = Xbuildbot -o "X${LOGNAME:-}" = Xbuildbot ]; then
+            if [ "X${USER:-}" = Xbuildbot -o "X${LOGNAME:-}" = Xbuildbot -o "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
                 echo "  ! server output:"
                 cat c-srv-${TESTS}.log
                 echo "  ! ==================================================="

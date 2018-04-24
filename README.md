@@ -76,7 +76,9 @@ You'll still be able to run a much smaller set of tests with:
 
 In order to build for a Windows platform, you should use `WINDOWS_BUILD=1` if the target is Windows but the build environment is Unix-like (for instance when cross-compiling, or compiling from an MSYS shell), and `WINDOWS=1` if the build environment is a Windows shell (for instance using mingw32-make) (in that case some targets will not be available).
 
-Setting the variable `SHARED` in your environment will build shared libraries in addition to the static libraries. Setting `DEBUG` gives you a debug build. You can override `CFLAGS` and `LDFLAGS` by setting them in your environment or on the make command line; if you do so, essential parts such as `-I` will still be preserved. Warning options may be overridden separately using `WARNING_CFLAGS`.
+Setting the variable `SHARED` in your environment will build shared libraries in addition to the static libraries. Setting `DEBUG` gives you a debug build. You can override `CFLAGS` and `LDFLAGS` by setting them in your environment or on the make command line; compiler warning options may be overridden separately using `WARNING_CFLAGS`. Some directory-specific options (for example, `-I` directives) are still preserved.
+
+Please note that setting `CFLAGS` overrides its default value of `-O2` and setting `WARNING_CFLAGS` overrides its default value (starting with `-Wall -W`), so it you just want to add some warning options to the default ones, you can do so by setting `CFLAGS=-O2 -Werror` for example. Setting `WARNING_CFLAGS` is useful when you want to get rid of its default content (for example because your compiler doesn't accept `-Wall` as an option). Directory-specific options cannot be overriden from the command line.
 
 Depending on your platform, you might run into some issues. Please check the Makefiles in `library/`, `programs/` and `tests/` for options to manually add or remove for specific platforms. You can also check [the Mbed TLS Knowledge Base](https://tls.mbed.org/kb) for articles on your platform or issue.
 
@@ -84,9 +86,10 @@ In case you find that you need to do something else as well, please let us know 
 
 ### CMake
 
-In order to build the source using CMake, just enter at the command line:
+In order to build the source using CMake in a separate directory (recommended), just enter at the command line:
 
-    cmake .
+    mkdir /path/to/build_dir && cd /path/to/build_dir
+    cmake /path/to/mbedtls_source
     make
 
 In order to run the tests, enter:
@@ -95,7 +98,7 @@ In order to run the tests, enter:
 
 The test suites need Perl to be built. If you don't have Perl installed, you'll want to disable the test suites with:
 
-    cmake -DENABLE_TESTING=Off .
+    cmake -DENABLE_TESTING=Off /path/to/mbedtls_source
 
 If you disabled the test suites, but kept the programs enabled, you can still run a much smaller set of tests with:
 
@@ -103,31 +106,59 @@ If you disabled the test suites, but kept the programs enabled, you can still ru
 
 To configure CMake for building shared libraries, use:
 
-    cmake -DUSE_SHARED_MBEDTLS_LIBRARY=On .
+    cmake -DUSE_SHARED_MBEDTLS_LIBRARY=On /path/to/mbedtls_source
 
 There are many different build modes available within the CMake buildsystem. Most of them are available for gcc and clang, though some are compiler-specific:
 
--   Release. This generates the default code without any unnecessary information in the binary files.
--   Debug. This generates debug information and disables optimization of the code.
--   Coverage. This generates code coverage information in addition to debug information.
--   ASan. This instruments the code with AddressSanitizer to check for memory errors. (This includes LeakSanitizer, with recent version of gcc and clang.) (With recent version of clang, this mode also instruments the code with UndefinedSanitizer to check for undefined behaviour.)
--   ASanDbg. Same as ASan but slower, with debug information and better stack traces.
--   MemSan. This instruments the code with MemorySanitizer to check for uninitialised memory reads. Experimental, needs recent clang on Linux/x86\_64.
--   MemSanDbg. Same as MemSan but slower, with debug information, better stack traces and origin tracking.
--   Check. This activates the compiler warnings that depend on optimization and treats all warnings as errors.
+-   `Release`. This generates the default code without any unnecessary information in the binary files.
+-   `Debug`. This generates debug information and disables optimization of the code.
+-   `Coverage`. This generates code coverage information in addition to debug information.
+-   `ASan`. This instruments the code with AddressSanitizer to check for memory errors. (This includes LeakSanitizer, with recent version of gcc and clang.) (With recent version of clang, this mode also instruments the code with UndefinedSanitizer to check for undefined behaviour.)
+-   `ASanDbg`. Same as ASan but slower, with debug information and better stack traces.
+-   `MemSan`. This instruments the code with MemorySanitizer to check for uninitialised memory reads. Experimental, needs recent clang on Linux/x86\_64.
+-   `MemSanDbg`. Same as MemSan but slower, with debug information, better stack traces and origin tracking.
+-   `Check`. This activates the compiler warnings that depend on optimization and treats all warnings as errors.
 
 Switching build modes in CMake is simple. For debug mode, enter at the command line:
 
-    cmake -D CMAKE_BUILD_TYPE=Debug .
+    cmake -D CMAKE_BUILD_TYPE=Debug /path/to/mbedtls_source
 
 To list other available CMake options, use:
 
     cmake -LH
 
-Note that, with CMake, if you want to change the compiler or its options after you already ran CMake, you need to clear its cache first, e.g. (using GNU find):
+Note that, with CMake, you can't adjust the compiler or its flags after the
+initial invocation of cmake. This means that `CC=your_cc make` and `make
+CC=your_cc` will *not* work (similarly with `CFLAGS` and other variables).
+These variables need to be adjusted when invoking cmake for the first time,
+for example:
+
+    CC=your_cc cmake /path/to/mbedtls_source
+
+If you already invoked cmake and want to change those settings, you need to
+remove the build directory and create it again.
+
+Note that it is possible to build in-place; this will however overwrite the
+provided Makefiles (see `scripts/tmp_ignore_makefiles.sh` if you want to
+prevent `git status` from showing them as modified). In order to do so, from
+the Mbed TLS source directory, use:
+
+    cmake .
+    make
+
+If you want to change `CC` or `CFLAGS` afterwards, you will need to remove the
+CMake cache. This can be done with the following command using GNU find:
 
     find . -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} +
-    CC=gcc CFLAGS='-fstack-protector-strong -Wa,--noexecstack' cmake .
+
+You can now make the desired change:
+
+    CC=your_cc cmake .
+    make
+
+Regarding variables, also note that if you set CFLAGS when invoking cmake,
+your value of CFLAGS doesn't override the content provided by cmake (depending
+on the build mode as seen above), it's merely prepended to it.
 
 ### Microsoft Visual Studio
 

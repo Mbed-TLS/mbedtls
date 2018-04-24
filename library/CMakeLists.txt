@@ -46,6 +46,7 @@ set(src_crypto
     pkparse.c
     pkwrite.c
     platform.c
+    platform_util.c
     ripemd160.c
     rsa.c
     rsa_internal.c
@@ -57,7 +58,6 @@ set(src_crypto
     version.c
     version_features.c
     xtea.c
-    platform_util.c
 )
 
 set(src_x509

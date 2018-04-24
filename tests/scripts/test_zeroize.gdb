@@ -25,10 +25,10 @@
 # intelligent compiler could determine that this function clears a block of
 # memory that is not accessed later in the program, so removing the call to
 # mbedtls_platform_zeroize() does not have an observable behavior. However,
-# inserting a test after a call to mbedtls_zeroize() to check whether the block
-# of memory was correctly zeroed would force the compiler to not eliminate the
-# mbedtls_platform_zeroize() call. If this does not occur, then the compiler
-# potentially has a bug.
+# inserting a test after a call to mbedtls_platform_zeroize() to check whether
+# the block of memory was correctly zeroed would force the compiler to not
+# eliminate the mbedtls_platform_zeroize() call. If this does not occur, then
+# the compiler potentially has a bug.
 #
 # Note: This test requires that the test program is compiled with -g3.
 #

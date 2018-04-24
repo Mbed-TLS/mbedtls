@@ -909,7 +909,7 @@ rm -rf "$OUT_OF_SOURCE_DIR"
 
 for optimization_flag in -O2 -O3 -Ofast -Os; do
     for compiler in clang gcc; do
-        msg "test: $compiler $optimization_flag, mbedtls_zeroize()"
+        msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
         cleanup
         CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag" make programs
         gdb -x tests/scripts/test_zeroize.gdb -nw -batch -nx

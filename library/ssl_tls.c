@@ -8310,13 +8310,14 @@ exit:
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
 int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
-                                       unsigned char *output,
-                                       unsigned char *data, size_t data_len,
-                                       mbedtls_md_type_t md_alg )
+                                            unsigned char *hash, size_t *hashlen,
+                                            unsigned char *data, size_t data_len,
+                                            mbedtls_md_type_t md_alg )
 {
     int ret = 0;
     mbedtls_md_context_t ctx;
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_alg );
+    *hashlen = mbedtls_md_get_size( md_info );
 
     mbedtls_md_init( &ctx );
 
@@ -8347,7 +8348,7 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_update", ret );
         goto exit;
     }
-    if( ( ret = mbedtls_md_finish( &ctx, output ) ) != 0 )
+    if( ( ret = mbedtls_md_finish( &ctx, hash ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_finish", ret );
         goto exit;

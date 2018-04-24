@@ -3045,7 +3045,7 @@ curve_matching_done:
     if( mbedtls_ssl_ciphersuite_uses_server_signature( ciphersuite_info ) )
     {
         size_t signature_len = 0;
-        unsigned int hashlen = 0;
+        size_t hashlen = 0;
         unsigned char hash[64];
 
         /*
@@ -3116,9 +3116,7 @@ curve_matching_done:
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( md_alg != MBEDTLS_MD_NONE )
         {
-            /* Info from md_alg will be used instead */
-            hashlen = 0;
-            ret = mbedtls_ssl_get_key_exchange_md_tls1_2( ssl, hash,
+            ret = mbedtls_ssl_get_key_exchange_md_tls1_2( ssl, hash, &hashlen,
                                                           dig_signed,
                                                           dig_signed_len,
                                                           md_alg );
@@ -3133,8 +3131,7 @@ curve_matching_done:
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-        MBEDTLS_SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen != 0 ? hashlen :
-            (unsigned int) ( mbedtls_md_get_size( mbedtls_md_info_from_type( md_alg ) ) ) );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
 
         /*
          * 3.3: Compute and add the signature

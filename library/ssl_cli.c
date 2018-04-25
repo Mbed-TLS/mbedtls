@@ -637,17 +637,21 @@ static int ssl_generate_random( mbedtls_ssl_context *ssl )
  *
  * \param suite_info    cipher suite to validate
  * \param ssl           SSL context
+ * \param min_minor_ver Minimal minor version to accept a cipher suite
+ * \param max_minor_ver Maximal minor version to accept a cipher suite
  *
  * \return          0 if valid, else 1
  */
 static int ssl_validate_ciphersuite( const mbedtls_ssl_ciphersuite_t * suite_info,
-                                     const mbedtls_ssl_context * ssl )
+                                     const mbedtls_ssl_context * ssl,
+                                     int min_minor_ver, int max_minor_ver )
 {
+    (void) ssl;
     if( suite_info == NULL )
         return( 1 );
 
-    if( suite_info->min_minor_ver > ssl->conf->max_minor_ver ||
-            suite_info->max_minor_ver < ssl->conf->min_minor_ver )
+    if( suite_info->min_minor_ver > max_minor_ver ||
+            suite_info->max_minor_ver < min_minor_ver )
         return( 1 );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -823,7 +827,9 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     {
         ciphersuite_info = mbedtls_ssl_ciphersuite_from_id( ciphersuites[i] );
 
-        if( ssl_validate_ciphersuite( ciphersuite_info, ssl ) != 0 )
+        if( ssl_validate_ciphersuite( ciphersuite_info, ssl,
+                                      ssl->conf->min_minor_ver,
+                                      ssl->conf->max_minor_ver ) != 0 )
             continue;
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %2d",
@@ -1530,7 +1536,8 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, chosen ciphersuite: %d", i ) );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, compress alg.: %d", buf[37 + n] ) );
 
-    /* Perform cipher suite validation in same way as in ssl_write_client_hello.
+    /*
+     * Perform cipher suite validation in same way as in ssl_write_client_hello.
      */
     i = 0;
     while( 1 )
@@ -1549,7 +1556,7 @@ static int ssl_parse_server_hello( mbedtls_ssl_context *ssl )
     }
 
     suite_info = mbedtls_ssl_ciphersuite_from_id( ssl->session_negotiate->ciphersuite );
-    if( ssl_validate_ciphersuite( suite_info, ssl ) != 0 )
+    if( ssl_validate_ciphersuite( suite_info, ssl, ssl->minor_ver, ssl->minor_ver ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );

@@ -414,11 +414,9 @@ void mbedtls_ssl_transform_free( mbedtls_ssl_transform *transform );
  * \brief           Free referenced items in an SSL handshake context and clear
  *                  memory
  *
- * \param conf      SSL configuration
- * \param handshake SSL handshake context
+ * \param ssl       SSL context
  */
-void mbedtls_ssl_handshake_free( const mbedtls_ssl_config *conf,
-                                 mbedtls_ssl_handshake_params *handshake );
+void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl );

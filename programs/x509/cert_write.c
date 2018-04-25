@@ -238,9 +238,9 @@ int main( int argc, char *argv[] )
     const char *pers = "crt example app";
 
 #if defined(MBEDTLS_PLATFORM_C)
-    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( "Failed initializing platform.\n" );
+        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", -ret );
         return( 1 );
     }
 #endif

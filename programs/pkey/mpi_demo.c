@@ -56,9 +56,9 @@ int main( void )
 
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_context platform_ctx;
-    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( "  Failed initializing platform.\n" );
+        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", -ret );
         return( 1 );
     }
 #endif

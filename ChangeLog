@@ -55,6 +55,8 @@ Bugfix
      in the internal buffers; these cases lead to deadlocks in case
      event-driven I/O was used.
      Found and reported by Hubert Mis in #772.
+   * Fix invalid buffer sizes passed to zlib during record compression and
+     decompression.
 
 Changes
    * Remove some redundant code in bignum.c. Contributed by Alexey Skalozub.

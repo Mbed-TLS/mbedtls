@@ -2870,7 +2870,9 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME_PFS__ENABLED */
 
     (void) ciphersuite_info; /* unused in some configurations */
-    (void) signature_len; /* unused in some configurations */
+#if !defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
+    (void) signature_len;
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
 
     ssl->out_msglen = 4; /* header (type:1, length:3) to be written later */
 

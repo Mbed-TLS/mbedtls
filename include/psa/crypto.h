@@ -1072,14 +1072,6 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
 /** \defgroup aead Authenticated encryption with associated data (AEAD)
  * @{
  */
-
-/** The type of the state data structure for multipart AEAD operations.
- *
- * This is an implementation-defined \c struct. Applications should not
- * make any assumptions about the content of this structure except
- * as directed by the documentation of a specific implementation. */
-typedef struct psa_aead_operation_s psa_aead_operation_t;
-
 /** Set the key for a multipart authenticated encryption operation.
  *
  * The sequence of operations to authenticate-and-encrypt a message
@@ -1131,32 +1123,7 @@ psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
                                     psa_key_slot_t key,
                                     psa_algorithm_t alg);
 
-/** Set the key for a multipart authenticated decryption operation.
- *
- * The sequence of operations to authenticated and decrypt a message
- * is as follows:
- * -# Allocate an operation object which will be passed to all the functions
- *    listed here.
- * -# Call psa_aead_decrypt_setup() to specify the algorithm and key.
- *    The key remains associated with the operation even if the content
- *    of the key slot changes.
- * -# Call psa_aead_set_iv() to pass the initialization vector (IV)
- *    for the authenticated decryption.
- * -# Call psa_aead_update_ad() to pass the associated data that is
- *    to be authenticated but not encrypted. You may omit this step if
- *    there is no associated data.
- * -# Call psa_aead_update() zero, one or more times, passing a fragment
- *    of the data to decrypt each time.
- * -# Call psa_aead_finish().
- *
- * The application may call psa_aead_abort() at any time after the operation
- * has been initialized with psa_aead_decrypt_setup().
- *
- * After a successful call to psa_aead_decrypt_setup(), the application must
- * eventually terminate the operation. The following events terminate an
- * operation:
- * - A failed call to psa_aead_update().
- * - A call to psa_aead_finish() or psa_aead_abort().
+/** Process an integrated authenticated encryption operation.
  *
  * \param operation
  * \param alg       The AEAD algorithm to compute (\c PSA_ALG_XXX value
@@ -1175,37 +1142,29 @@ psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
  * \retval PSA_ERROR_HARDWARE_FAILURE
  * \retval PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_aead_decrypt_setup(psa_aead_operation_t *operation,
-                                    psa_key_slot_t key,
-                                    psa_algorithm_t alg);
+psa_status_t psa_aead_encrypt( psa_key_slot_t key,
+                               psa_algorithm_t alg,
+                               const uint8_t *nonce,
+                               size_t nonce_length,
+                               const uint8_t *additional_data,
+                               size_t additional_data_length,
+                               const uint8_t *plaintext,
+                               size_t plaintext_length,
+                               uint8_t *ciphertext,
+                               size_t ciphertext_size,
+                               size_t *ciphertext_length );
 
-psa_status_t psa_aead_generate_iv(psa_aead_operation_t *operation,
-                                  unsigned char *iv,
-                                  size_t iv_size,
-                                  size_t *iv_length);
-
-psa_status_t psa_aead_set_iv(psa_aead_operation_t *operation,
-                             const unsigned char *iv,
-                             size_t iv_length);
-
-psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
-                                const uint8_t *input,
-                                size_t input_length);
-
-psa_status_t psa_aead_update(psa_aead_operation_t *operation,
-                             const uint8_t *input,
-                             size_t input_length);
-
-psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
-                             uint8_t *tag,
-                             size_t tag_size,
-                             size_t *tag_length);
-
-psa_status_t psa_aead_verify(psa_aead_operation_t *operation,
-                             uint8_t *tag,
-                             size_t tag_length);
-
-psa_status_t psa_aead_abort(psa_aead_operation_t *operation);
+psa_status_t psa_aead_decrypt( psa_key_slot_t key,
+                               psa_algorithm_t alg,
+                               const uint8_t *nonce,
+                               size_t nonce_length,
+                               const uint8_t *additional_data,
+                               size_t additional_data_length,
+                               const uint8_t *ciphertext,
+                               size_t ciphertext_length,
+                               uint8_t *plaintext,
+                               size_t plaintext_size,
+                               size_t *plaintext_length );
 
 /**@}*/
 

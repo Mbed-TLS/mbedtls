@@ -556,25 +556,24 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
- * \brief           Callback type: start external signature operation
+ * \brief           Callback type: start external signature operation.
  *
- *                  Callback to start a signature operation using an
+ *                  This callback is called during an SSL handshake to start
+ *                  a signature decryption operation using an
  *                  external processor. The parameter \c cert contains
  *                  the public key; it is up to the callback function to
- *                  look up the associated private key or a handle to the
- *                  private key.
+ *                  determine how to access the associated private key.
  *
- *                  This function must start the signature operation.
- *                  It is expected to be non-blocking, i.e. typically
- *                  this function sends or enqueues a request and does
- *                  not wait for the operation to complete.
+ *                  This function typically sends or enqueues a request, and
+ *                  does not wait for the operation to complete. This allows
+ *                  the handshake step to be non-blocking.
  *
  *                  The parameters \c ssl and \c cert are
  *                  guaranteed to remain valid as long as the SSL
  *                  configuration remains valid. On the other hand, this
- *                  function must save the contents of \c hash, as the
- *                  \c hash buffer is no longer valid when this function
- *                  returns.
+ *                  function must save the contents of \c hash if the value
+ *                  is needed for later processing, because the \c hash buffer
+ *                  is no longer valid after this function returns.
  *
  *                  This function may call mbedtls_ssl_async_set_data() to
  *                  store an operation context for later retrieval
@@ -582,12 +581,13 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  *
  * \param config_data     The configuration data parameter passed to
  *                        mbedtls_ssl_conf_async_private_cb().
- * \param ssl             The SSL connection instance.
- * \param cert            Certificate containing the public key
- * \param md_alg          Hash algorithm
+ * \param ssl             The SSL connection instance. It should not be
+ *                        modified other than via mbedtls_ssl_async_set_data().
+ * \param cert            Certificate containing the public key.
+ * \param md_alg          Hash algorithm.
  * \param hash            Buffer containing the hash. This buffer is
  *                        no longer valid when the function returns.
- * \param hash_len        Size of the \c hash buffer in bytes
+ * \param hash_len        Size of the \c hash buffer in bytes.
  *
  * \return          - 0 if the operation was started successfully and the SSL
  *                    stack should call the resume callback immediately.
@@ -608,25 +608,24 @@ typedef int mbedtls_ssl_async_sign_t( void *config_data,
                                       size_t hash_len );
 
 /**
- * \brief           Callback type: start external decryption operation
+ * \brief           Callback type: start external decryption operation.
  *
- *                  Callback to start a decryption operation using an
+ *                  This callback is called during an SSL handshake to start
+ *                  an RSA decryption operation using an
  *                  external processor. The parameter \c cert contains
  *                  the public key; it is up to the callback function to
- *                  look up the associated private key or a handle to the
- *                  private key.
+ *                  determine how to access the associated private key.
  *
- *                  This function must start the decryption operation.
- *                  It is expected to be non-blocking, i.e. typically
- *                  this function sends or enqueues a request and does
- *                  not wait for the operation to complete.
+ *                  This function typically sends or enqueues a request, and
+ *                  does not wait for the operation to complete. This allows
+ *                  the handshake step to be non-blocking.
  *
  *                  The parameters \c ssl and \c cert are
  *                  guaranteed to remain valid as long as the SSL
  *                  configuration remains valid. On the other hand, this
- *                  function must save the contents of \c hash, as the
- *                  \c hash buffer is no longer valid when this function
- *                  returns.
+ *                  function must save the contents of \c input if the value
+ *                  is needed for later processing, because the \c input buffer
+ *                  is no longer valid after this function returns.
  *
  *                  This function may call mbedtls_ssl_async_set_data() to
  *                  store an operation context for later retrieval
@@ -634,11 +633,12 @@ typedef int mbedtls_ssl_async_sign_t( void *config_data,
  *
  * \param config_data     The configuration data parameter passed to
  *                        mbedtls_ssl_conf_async_private_cb().
- * \param ssl             The SSL connection instance.
- * \param cert            Certificate containing the public key
+ * \param ssl             The SSL connection instance. It should not be
+ *                        modified other than via mbedtls_ssl_async_set_data().
+ * \param cert            Certificate containing the public key.
  * \param input           Buffer containing the input ciphertext. This buffer
  *                        is no longer valid when the function returns.
- * \param input_len       Size of the \c input buffer in bytes
+ * \param input_len       Size of the \c input buffer in bytes.
  *
  * \return          - 0 if the operation was started successfully and the SSL
  *                    stack should call the resume callback immediately.
@@ -659,10 +659,17 @@ typedef int mbedtls_ssl_async_decrypt_t( void *config_data,
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 /**
- * \brief           Callback type: resume external operation
+ * \brief           Callback type: resume external operation.
  *
- *                  Callback to resume an external operation
- *                  started by the \c mbedtls_ssl_async_sign_t callback.
+ *                  This callback is called during an SSL handshake to resume
+ *                  an external operation started by the
+ *                  \c mbedtls_ssl_async_sign_t or
+ *                  \c mbedtls_ssl_async_decrypt_t callback.
+ *
+ *                  This function typically checks the status of a pending
+ *                  request or causes the request queue to make progress, and
+ *                  does not wait for the operation to complete. This allows
+ *                  the handshake step to be non-blocking.
  *
  *                  This function may call mbedtls_ssl_async_get_data() to
  *                  retrieve an operation context set by the start callback.
@@ -671,10 +678,12 @@ typedef int mbedtls_ssl_async_decrypt_t( void *config_data,
  *
  * \param config_data     The configuration data parameter passed to
  *                        mbedtls_ssl_conf_async_private_cb().
- * \param ssl             The SSL connection instance.
- * \param output          Buffer containing the output on success
- * \param output_len      On success, number of bytes written to \c output
- * \param output_size     Size of the \c output buffer in bytes
+ * \param ssl             The SSL connection instance. It should not be
+ *                        modified other than via mbedtls_ssl_async_set_data().
+ * \param output          Buffer containing the output (signature or decrypted
+ *                        data) on success.
+ * \param output_len      On success, number of bytes written to \c output.
+ * \param output_size     Size of the \c output buffer in bytes.
  *
  * \return          - 0 if output of the operation is available in the
  *                    \c output buffer.
@@ -692,17 +701,18 @@ typedef int mbedtls_ssl_async_resume_t( void *config_data,
                                         size_t output_size );
 
 /**
- * \brief           Callback type: cancel external operation
+ * \brief           Callback type: cancel external operation.
  *
- *                  Callback to cancel an external operation
- *                  started by the \c mbedtls_ssl_async_sign_t callback.
+ *                  This callback is called if an SSL connection is closed
+ *                  while an asynchronous operation is in progress.
  *
  *                  This function may call mbedtls_ssl_async_get_data() to
  *                  retrieve an operation context set by the start callback.
  *
  * \param config_data     The configuration data parameter passed to
  *                        mbedtls_ssl_conf_async_private_cb().
- * \param ssl             The SSL connection instance.
+ * \param ssl             The SSL connection instance. It should not be
+ *                        modified.
  */
 typedef void mbedtls_ssl_async_cancel_t( void *config_data,
                                          mbedtls_ssl_context *ssl );
@@ -1499,10 +1509,13 @@ void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
  *                          associated with the certificate will be used.
  * \param f_async_resume    Callback to resume an asynchronous operation. See
  *                          the description of \c mbedtls_ssl_async_resume_t
- *                          for more information.
+ *                          for more information. This may not be \c NULL unless
+ *                          \p f_async_sign and \p f_async_decrypt are both
+ *                          \c NULL.
  * \param f_async_cancel    Callback to cancel an asynchronous operation. See
  *                          the description of \c mbedtls_ssl_async_cancel_t
- *                          for more information.
+ *                          for more information. This may be \c NULL if
+ *                          no cleanup is needed.
  * \param config_data       A pointer to configuration data which will be
  *                          passed to the callbacks. The library stores and
  *                          passes back this value without dereferencing it.

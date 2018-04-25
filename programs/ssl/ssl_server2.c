@@ -871,11 +871,11 @@ typedef struct
 } ssl_async_key_slot_t;
 
 typedef enum {
-    SSL_ASYNC_INJECT_ERROR_NONE = 0,
-    SSL_ASYNC_INJECT_ERROR_START,
-    SSL_ASYNC_INJECT_ERROR_CANCEL,
-    SSL_ASYNC_INJECT_ERROR_RESUME,
-    SSL_ASYNC_INJECT_ERROR_PK
+    SSL_ASYNC_INJECT_ERROR_NONE = 0, /*!< Let the callbacks succeed */
+    SSL_ASYNC_INJECT_ERROR_START, /*!< Inject error during start */
+    SSL_ASYNC_INJECT_ERROR_CANCEL, /*!< Close the connection after async start */
+    SSL_ASYNC_INJECT_ERROR_RESUME, /*!< Inject error during resume */
+    SSL_ASYNC_INJECT_ERROR_PK /*!< Inject error during resume */
 #define SSL_ASYNC_INJECT_ERROR_MAX SSL_ASYNC_INJECT_ERROR_PK
 } ssl_async_inject_error_t;
 

@@ -3267,6 +3267,10 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 
     if( ret != 0 )
     {
+        /* If we're starting to write a new message, set ssl->out_msglen
+         * to 0. But if we're resuming after an asynchronous message,
+         * out_msglen is the amount of data written so far and mst be
+         * preserved. */
         if( ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write server key exchange (pending)" ) );
         else

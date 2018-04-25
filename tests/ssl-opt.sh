@@ -4182,7 +4182,7 @@ run_test    "SSL async private: slot 0 used with key2" \
 
 # key1: ECDSA, key2: RSA; use key2 from slot 1
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-run_test    "SSL async private: slot 1 used" \
+run_test    "SSL async private: slot 1 used with key2" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_delay2=1 \
              key_file=data_files/server5.key crt_file=data_files/server5.crt \

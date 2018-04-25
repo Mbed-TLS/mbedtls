@@ -1508,6 +1508,9 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
     if( alg == PSA_ALG_GCM )
     {
         mbedtls_gcm_context gcm;
+        if( ciphertext_size < ( plaintext_length + sizeof( tag ) ) )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+
         mbedtls_gcm_init( &gcm );
         ret = mbedtls_gcm_setkey( &gcm, cipher_info->base->cipher, 
                                 ( const unsigned char * )slot->data.raw.data, key_bits );
@@ -1528,12 +1531,16 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
             return( mbedtls_to_psa_error( ret ) );
         }
 
-        //TODO: append the tag to the output buffer and update the output buffer length.
         mbedtls_gcm_free( &gcm );
     }
     else if( alg == PSA_ALG_CCM )
     {
         mbedtls_ccm_context ccm;
+        if( ciphertext_size < ( plaintext_length + sizeof( tag ) ) )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        if( nonce_length < 7 || nonce_length > 13 )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+
         mbedtls_ccm_init( &ccm );
         ret = mbedtls_ccm_setkey( &ccm, cipher_info->base->cipher, 
                                 ( const unsigned char * )slot->data.raw.data, key_bits );
@@ -1554,9 +1561,10 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
             return( mbedtls_to_psa_error( ret ) );
         }
 
-        //TODO: append the tag to the output buffer and update the output buffer length.
         mbedtls_ccm_free( &ccm );
     }
+    memcpy( ciphertext + plaintext_length, tag, sizeof( tag ) );
+    return( PSA_SUCCESS );
 }
 
 psa_status_t psa_aead_decrypt( psa_key_slot_t key,
@@ -1598,6 +1606,9 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
     if( alg == PSA_ALG_GCM )
     {
         mbedtls_gcm_context gcm;
+        if( plaintext_size < ( ciphertext_length + 8 + sizeof( tag ) ) )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+
         mbedtls_gcm_init( &gcm );
         ret = mbedtls_gcm_setkey( &gcm, cipher_info->base->cipher, 
                                 ( const unsigned char * )slot->data.raw.data, key_bits );
@@ -1618,12 +1629,17 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
             return( mbedtls_to_psa_error( ret ) );
         }
 
-        //TODO: append the tag to the output buffer and update the output buffer length.
         mbedtls_gcm_free( &gcm );
+        memcpy( plaintext + ciphertext_length + 8, tag, sizeof( tag ) );
     }
     else if( alg == PSA_ALG_CCM )
     {
         mbedtls_ccm_context ccm;
+        if( plaintext_size < ( ciphertext_length + sizeof( tag ) ) )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        if( nonce_length < 7 || nonce_length > 13 )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+
         mbedtls_ccm_init( &ccm );
         ret = mbedtls_ccm_setkey( &ccm, cipher_info->base->cipher, 
                                 ( const unsigned char * )slot->data.raw.data, key_bits );
@@ -1644,10 +1660,9 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
             return( mbedtls_to_psa_error( ret ) );
         }
 
-        //TODO: append the tag to the output buffer and update the output buffer length.
         mbedtls_ccm_free( &ccm );
+        memcpy( plaintext + ciphertext_length, tag, sizeof( tag ) );
     }
-
     return( PSA_SUCCESS );
 }
 

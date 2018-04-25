@@ -1466,6 +1466,191 @@ psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
 }
 
 
+/****************************************************************/
+/* AEAD */
+/****************************************************************/
+psa_status_t psa_aead_encrypt( psa_key_slot_t key,
+                               psa_algorithm_t alg,
+                               const uint8_t *nonce,
+                               size_t nonce_length,
+                               const uint8_t *additional_data,
+                               size_t additional_data_length,
+                               const uint8_t *plaintext,
+                               size_t plaintext_length,
+                               uint8_t *ciphertext,
+                               size_t ciphertext_size,
+                               size_t *ciphertext_length )
+{
+    int ret;
+    psa_status_t status;
+    key_slot_t *slot;
+    psa_key_type_t key_type;
+    size_t key_bits;
+    const mbedtls_cipher_info_t *cipher_info = NULL;
+    unsigned char tag[16];
+
+    status = psa_get_key_information( key, &key_type, &key_bits );
+    if( status != PSA_SUCCESS )
+        return( status );
+    slot = &global_data.key_slots[key];
+
+    //TODO: check key policy
+
+    cipher_info = mbedtls_cipher_info_from_psa( alg, key_type, key_bits );
+    if( cipher_info == NULL )
+        return( PSA_ERROR_NOT_SUPPORTED );
+
+    if ( key_type != PSA_KEY_TYPE_RAW_DATA)
+        return( PSA_ERROR_BAD_STATE );
+
+    operation->block_size = cipher_info->block_size;
+
+    if( alg == PSA_ALG_GCM )
+    {
+        mbedtls_gcm_context gcm;
+        mbedtls_gcm_init( &gcm );
+        ret = mbedtls_gcm_setkey( &gcm, cipher_info->base->cipher, 
+                                ( const unsigned char * )slot->data.raw.data, key_bits );
+        if( ret != 0 )
+        {
+            mbedtls_gcm_free( &gcm );
+            return( mbedtls_to_psa_error( ret ) );
+        }
+        ret = mbedtls_gcm_crypt_and_tag( &gcm, MBEDTLS_GCM_ENCRYPT,
+                       plaintext_length, ( const unsigned char* )nonce ,
+                       nonce_length, ( const unsigned char* )additional_data,
+                       additional_data_length,
+                       ( const unsigned char* ) plaintext,
+                       ( unsigned char* )ciphertext, sizeof( tag ), tag );
+        if( ret != 0 )
+        {
+            mbedtls_gcm_free( &gcm );
+            return( mbedtls_to_psa_error( ret ) );
+        }
+
+        //TODO: append the tag to the output buffer and update the output buffer length.
+        mbedtls_gcm_free( &gcm );
+    }
+    else if( alg == PSA_ALG_CCM )
+    {
+        mbedtls_ccm_context ccm;
+        mbedtls_ccm_init( &ccm );
+        ret = mbedtls_ccm_setkey( &ccm, cipher_info->base->cipher, 
+                                ( const unsigned char * )slot->data.raw.data, key_bits );
+        if( ret != 0 )
+        {
+            mbedtls_ccm_free( &ccm );
+            return( mbedtls_to_psa_error( ret ) );
+        }
+        ret = mbedtls_ccm_encrypt_and_tag( &ccm, plaintext_length, 
+                       ( const unsigned char* )nonce ,
+                       nonce_length, ( const unsigned char* )additional_data,
+                       additional_data_length,
+                       ( const unsigned char* ) plaintext,
+                       ( unsigned char* )ciphertext, sizeof( tag ), tag );
+        if( ret != 0 )
+        {
+            mbedtls_ccm_free( &ccm );
+            return( mbedtls_to_psa_error( ret ) );
+        }
+
+        //TODO: append the tag to the output buffer and update the output buffer length.
+        mbedtls_ccm_free( &ccm );
+    }
+}
+
+psa_status_t psa_aead_decrypt( psa_key_slot_t key,
+                               psa_algorithm_t alg,
+                               const uint8_t *nonce,
+                               size_t nonce_length,
+                               const uint8_t *additional_data,
+                               size_t additional_data_length,
+                               const uint8_t *ciphertext,
+                               size_t ciphertext_length,
+                               uint8_t *plaintext,
+                               size_t plaintext_size,
+                               size_t *plaintext_length )
+{
+    int ret;
+    psa_status_t status;
+    key_slot_t *slot;
+    psa_key_type_t key_type;
+    size_t key_bits;
+    const mbedtls_cipher_info_t *cipher_info = NULL;
+    unsigned char tag[16];
+
+    status = psa_get_key_information( key, &key_type, &key_bits );
+    if( status != PSA_SUCCESS )
+        return( status );
+    slot = &global_data.key_slots[key];
+
+    //TODO: check key policy
+
+    cipher_info = mbedtls_cipher_info_from_psa( alg, key_type, key_bits );
+    if( cipher_info == NULL )
+        return( PSA_ERROR_NOT_SUPPORTED );
+
+    if ( key_type != PSA_KEY_TYPE_RAW_DATA)
+        return( PSA_ERROR_BAD_STATE );
+
+    operation->block_size = cipher_info->block_size;
+
+    if( alg == PSA_ALG_GCM )
+    {
+        mbedtls_gcm_context gcm;
+        mbedtls_gcm_init( &gcm );
+        ret = mbedtls_gcm_setkey( &gcm, cipher_info->base->cipher, 
+                                ( const unsigned char * )slot->data.raw.data, key_bits );
+        if( ret != 0 )
+        {
+            mbedtls_gcm_free( &gcm );
+            return( mbedtls_to_psa_error( ret ) );
+        }
+        ret = mbedtls_gcm_crypt_and_tag( &gcm, MBEDTLS_GCM_DECRYPT,
+                       ciphertext_length, ( const unsigned char* )nonce ,
+                       nonce_length, ( const unsigned char* )additional_data,
+                       additional_data_length,
+                       ( const unsigned char* )ciphertext,
+                       ( unsigned char* )plaintext, sizeof( tag ), tag );
+        if( ret != 0 )
+        {
+            mbedtls_gcm_free( &gcm );
+            return( mbedtls_to_psa_error( ret ) );
+        }
+
+        //TODO: append the tag to the output buffer and update the output buffer length.
+        mbedtls_gcm_free( &gcm );
+    }
+    else if( alg == PSA_ALG_CCM )
+    {
+        mbedtls_ccm_context ccm;
+        mbedtls_ccm_init( &ccm );
+        ret = mbedtls_ccm_setkey( &ccm, cipher_info->base->cipher, 
+                                ( const unsigned char * )slot->data.raw.data, key_bits );
+        if( ret != 0 )
+        {
+            mbedtls_ccm_free( &ccm );
+            return( mbedtls_to_psa_error( ret ) );
+        }
+        ret = mbedtls_ccm_auth_decrypt( &ccm, ciphertext_length, 
+                       ( const unsigned char* )nonce ,
+                       nonce_length, ( const unsigned char* )additional_data,
+                       additional_data_length,
+                       ( const unsigned char* )ciphertext ,
+                       ( unsigned char* )plaintext, sizeof( tag ), tag );
+        if( ret != 0 )
+        {
+            mbedtls_ccm_free( &ccm );
+            return( mbedtls_to_psa_error( ret ) );
+        }
+
+        //TODO: append the tag to the output buffer and update the output buffer length.
+        mbedtls_ccm_free( &ccm );
+    }
+
+    return( PSA_SUCCESS );
+}
+
 
 /****************************************************************/
 /* Module setup */

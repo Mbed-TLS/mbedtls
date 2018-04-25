@@ -143,23 +143,36 @@
 #define MBEDTLS_SSL_PADDING_ADD              0
 #endif
 
-#define MBEDTLS_SSL_PAYLOAD_LEN ( MBEDTLS_SSL_MAX_CONTENT_LEN    \
-                        + MBEDTLS_SSL_COMPRESSION_ADD            \
-                        + MBEDTLS_MAX_IV_LENGTH                  \
-                        + MBEDTLS_SSL_MAC_ADD                    \
-                        + MBEDTLS_SSL_PADDING_ADD                \
-                        )
+#define MBEDTLS_SSL_IN_PAYLOAD_LEN ( MBEDTLS_SSL_IN_CONTENT_LEN    \
+                        + MBEDTLS_SSL_COMPRESSION_ADD              \
+                        + MBEDTLS_MAX_IV_LENGTH                    \
+                        + MBEDTLS_SSL_MAC_ADD                      \
+                        + MBEDTLS_SSL_PADDING_ADD )                \
+
+#define MBEDTLS_SSL_OUT_PAYLOAD_LEN ( MBEDTLS_SSL_OUT_CONTENT_LEN    \
+                        + MBEDTLS_SSL_COMPRESSION_ADD                \
+                        + MBEDTLS_MAX_IV_LENGTH                      \
+                        + MBEDTLS_SSL_MAC_ADD                        \
+                        + MBEDTLS_SSL_PADDING_ADD )                  \
 
 /*
  * Check that we obey the standard's message size bounds
  */
 
-#if MBEDTLS_SSL_MAX_CONTENT_LEN > 16384
-#error Bad configuration - record content too large.
+#if MBEDTLS_SSL_IN_CONTENT_LEN > 16384
+#error Bad configuration - input record content too large.
 #endif
 
-#if MBEDTLS_SSL_PAYLOAD_LEN > 16384 + 2048
-#error Bad configuration - protected record payload too large.
+#if MBEDTLS_SSL_OUT_CONTENT_LEN > 16384
+#error Bad configuration - output record content too large.
+#endif
+
+#if MBEDTLS_SSL_IN_PAYLOAD_LEN > 16384 + 2048
+#error Bad configuration - protected input record payload too large.
+#endif
+
+#if MBEDTLS_SSL_OUT_PAYLOAD_LEN > 16384 + 2048
+#error Bad configuration - protected output record payload too large.
 #endif
 
 /* Note: Even though the TLS record header is only 5 bytes
@@ -167,8 +180,29 @@
    implicit sequence number. */
 #define MBEDTLS_SSL_HEADER_LEN 13
 
-#define MBEDTLS_SSL_BUFFER_LEN  \
-    ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_PAYLOAD_LEN ) )
+#define MBEDTLS_SSL_IN_BUFFER_LEN ( MBEDTLS_SSL_IN_PAYLOAD_LEN    \
+                                    + MBEDTLS_SSL_HEADER_LEN )
+
+#define MBEDTLS_SSL_OUT_BUFFER_LEN ( MBEDTLS_SSL_OUT_PAYLOAD_LEN    \
+                                     + MBEDTLS_SSL_HEADER_LEN )
+
+#ifdef MBEDTLS_ZLIB_SUPPORT
+/* Compression buffer holds both IN & OUT buffers, so should be size of the larger */
+#define MBEDTLS_SSL_COMPRESS_BUFFER_LEN (                             \
+        ( MBEDTLS_SSL_IN_BUFFER_LEN > MBEDTLS_SSL_OUT_BUFFER_LEN )    \
+        ? MBEDTLS_SSL_IN_BUFFER_LEN                                   \
+        : MBEDTLS_SSL_OUT_BUFFER_LEN                                  \
+        )
+#endif
+
+/* Maximum length we can advertise as our max content length for
+   RFC 6066 max_fragment_length extension negotiation purposes
+   (the lesser of both sizes, if they are unequal.) */
+#define MBEDTLS_TLS_EXT_ADV_CONTENT_LEN (                               \
+        ( MBEDTLS_SSL_IN_CONTENT_LEN > MBEDTLS_SSL_OUT_CONTENT_LEN )    \
+        ? MBEDTLS_SSL_OUT_CONTENT_LEN                                   \
+        : MBEDTLS_SSL_IN_CONTENT_LEN                                    \
+        )
 
 /*
  * TLS extension flags (for extensions with outgoing ServerHello content

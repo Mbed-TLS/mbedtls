@@ -95,6 +95,7 @@ Changes
      by Jiayuan Chen in #1377. Fixes #1437.
    * Improve security of RSA key generation by including criteria from FIPS
      186-4. Contributed by Jethro Beekman. #1380
+   * Add platform setup and teardown calls in test suites.
 
 = mbed TLS 2.8.0 branch released 2018-03-16
 

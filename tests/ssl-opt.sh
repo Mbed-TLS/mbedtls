@@ -4184,7 +4184,7 @@ run_test    "SSL async private: slot 0 used with key2" \
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: slot 1 used" \
             "$P_SRV \
-             async_operations=s async_private_delay1=1 async_private_delay2=1\
+             async_operations=s async_private_delay1=1 async_private_delay2=1 \
              key_file=data_files/server5.key crt_file=data_files/server5.crt \
              key_file2=data_files/server2.key crt_file2=data_files/server2.crt" \
             "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256" \

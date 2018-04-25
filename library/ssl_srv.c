@@ -2856,8 +2856,8 @@ static int ssl_resume_server_key_exchange( mbedtls_ssl_context *ssl,
           defined(MBEDTLS_SSL_ASYNC_PRIVATE) */
 
 /* Prepare the ServerKeyExchange message, up to and including
-   calculating the signature if any, but excluding formatting the
-   signature and sending the message. */
+ * calculating the signature if any, but excluding formatting the
+ * signature and sending the message. */
 static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
                                             size_t *signature_len )
 {
@@ -3212,9 +3212,9 @@ curve_matching_done:
 }
 
 /* Prepare the ServerKeyExchange message and send it. For ciphersuites
-   that do not include a ServerKeyExchange message, do nothing. Either
-   way, if successful, move on to the next step in the SSL state
-   machine */
+ * that do not include a ServerKeyExchange message, do nothing. Either
+ * way, if successful, move on to the next step in the SSL state
+ * machine. */
 static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret;
@@ -3251,7 +3251,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) && \
     defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     /* If we have already prepared the message and there is an ongoing
-       signature operation, resume signing. */
+     * signature operation, resume signing. */
     if( ssl->handshake->async_in_progress != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "resuming signature operation" ) );
@@ -3275,8 +3275,8 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
     }
 
     /* If there is a signature, write its length.
-       ssl_prepare_server_key_exchange already wrote the signature
-       itself at its proper place in the output buffer. */
+     * ssl_prepare_server_key_exchange already wrote the signature
+     * itself at its proper place in the output buffer. */
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
     if( signature_len != 0 )
     {
@@ -3412,7 +3412,7 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     /* If we have already started decoding the message and there is an ongoing
-       decryption operation, resume signing. */
+     * decryption operation, resume signing. */
     if( ssl->handshake->async_in_progress != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "resuming decryption operation" ) );
@@ -3476,7 +3476,6 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
 
     if( ! mbedtls_pk_can_do( private_key, MBEDTLS_PK_RSA ) )
     {
-        /*  */
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no RSA private key" ) );
         return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
     }
@@ -3655,7 +3654,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     {
         /* We've already read a record and there is an asynchronous
          * operation in progress to decrypt it. So skip reading the
-           record. */
+         * record. */
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "will resume decryption of previously-read record" ) );
     }
     else

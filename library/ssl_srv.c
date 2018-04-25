@@ -2841,13 +2841,13 @@ static int ssl_resume_server_key_exchange( mbedtls_ssl_context *ssl,
 {
     size_t sig_max_len = ( ssl->out_buf + MBEDTLS_SSL_MAX_CONTENT_LEN
                            - ( ssl->out_msg + ssl->out_msglen + 2 ) );
-    int ret = ssl->conf->f_async_resume( ssl->conf->p_async_connection_ctx,
-                                         ssl->handshake->p_async_operation_ctx,
+    int ret = ssl->conf->f_async_resume( ssl->conf->p_async_config_data, ssl,
                                          ssl->out_msg + ssl->out_msglen + 2,
                                          signature_len, sig_max_len );
     if( ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
     {
-        ssl->handshake->p_async_operation_ctx = NULL;
+        ssl->handshake->async_in_progress = 0;
+        mbedtls_ssl_async_set_data( ssl, NULL );
     }
     MBEDTLS_SSL_DEBUG_RET( 2, "ssl_resume_server_key_exchange", ret );
     return( ret );
@@ -3167,22 +3167,23 @@ curve_matching_done:
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if( ssl->conf->f_async_sign_start != NULL )
         {
-            ret = ssl->conf->f_async_sign_start(
-                ssl->conf->p_async_connection_ctx,
-                &ssl->handshake->p_async_operation_ctx,
-                mbedtls_ssl_own_cert( ssl ),
-                md_alg, hash, hashlen );
+            ret = ssl->conf->f_async_sign_start( ssl->conf->p_async_config_data,
+                                                 ssl,
+                                                 mbedtls_ssl_own_cert( ssl ),
+                                                 md_alg, hash, hashlen );
             switch( ret )
             {
             case MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH:
                 /* act as if f_async_sign was null */
                 break;
             case 0:
+                ssl->handshake->async_in_progress = 1;
                 return( ssl_resume_server_key_exchange( ssl, signature_len ) );
             case MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS:
+                ssl->handshake->async_in_progress = 1;
                 return( MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
             default:
-                MBEDTLS_SSL_DEBUG_RET( 1, "f_async_sign", ret );
+                MBEDTLS_SSL_DEBUG_RET( 1, "f_async_sign_start", ret );
                 return( ret );
             }
         }
@@ -3251,7 +3252,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
     defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     /* If we have already prepared the message and there is an ongoing
        signature operation, resume signing. */
-    if( ssl->handshake->p_async_operation_ctx != NULL )
+    if( ssl->handshake->async_in_progress != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "resuming signature operation" ) );
         ret = ssl_resume_server_key_exchange( ssl, &signature_len );
@@ -3385,12 +3386,12 @@ static int ssl_resume_decrypt_pms( mbedtls_ssl_context *ssl,
                                    size_t *peer_pmslen,
                                    size_t peer_pmssize )
 {
-    int ret = ssl->conf->f_async_resume( ssl->conf->p_async_connection_ctx,
-                                         ssl->handshake->p_async_operation_ctx,
+    int ret = ssl->conf->f_async_resume( ssl->conf->p_async_config_data, ssl,
                                          peer_pms, peer_pmslen, peer_pmssize );
     if( ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
     {
-        ssl->handshake->p_async_operation_ctx = NULL;
+        ssl->handshake->async_in_progress = 0;
+        mbedtls_ssl_async_set_data( ssl, NULL );
     }
     MBEDTLS_SSL_DEBUG_RET( 2, "ssl_decrypt_encrypted_pms", ret );
     return( ret );
@@ -3412,7 +3413,7 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     /* If we have already started decoding the message and there is an ongoing
        decryption operation, resume signing. */
-    if( ssl->handshake->p_async_operation_ctx != NULL )
+    if( ssl->handshake->async_in_progress != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "resuming decryption operation" ) );
         return( ssl_resume_decrypt_pms( ssl,
@@ -3448,25 +3449,26 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     if( ssl->conf->f_async_decrypt_start != NULL )
     {
-        ret = ssl->conf->f_async_decrypt_start(
-            ssl->conf->p_async_connection_ctx,
-            &ssl->handshake->p_async_operation_ctx,
-            mbedtls_ssl_own_cert( ssl ),
-            p, len );
+        ret = ssl->conf->f_async_decrypt_start( ssl->conf->p_async_config_data,
+                                                ssl,
+                                                mbedtls_ssl_own_cert( ssl ),
+                                                p, len );
         switch( ret )
         {
         case MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH:
             /* act as if f_async_decrypt_start was null */
             break;
         case 0:
+            ssl->handshake->async_in_progress = 1;
             return( ssl_resume_decrypt_pms( ssl,
                                             peer_pms,
                                             peer_pmslen,
                                             peer_pmssize ) );
         case MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS:
+            ssl->handshake->async_in_progress = 1;
             return( MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
         default:
-            MBEDTLS_SSL_DEBUG_RET( 1, "f_async_sign", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "f_async_decrypt_start", ret );
             return( ret );
         }
     }
@@ -3649,7 +3651,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
       defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) )
     if( ( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
           ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA ) &&
-        ( ssl->handshake->p_async_operation_ctx != NULL ) )
+        ( ssl->handshake->async_in_progress != 0 ) )
     {
         /* We've already read a record and there is an asynchronous
          * operation in progress to decrypt it. So skip reading the
@@ -3771,7 +3773,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
     {
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-        if ( ssl->handshake->p_async_operation_ctx != NULL )
+        if ( ssl->handshake->async_in_progress != 0 )
         {
             /* There is an asynchronous operation in progress to
              * decrypt the encrypted premaster secret, so skip

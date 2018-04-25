@@ -6485,13 +6485,28 @@ void mbedtls_ssl_conf_async_private_cb(
     mbedtls_ssl_async_decrypt_t *f_async_decrypt,
     mbedtls_ssl_async_resume_t *f_async_resume,
     mbedtls_ssl_async_cancel_t *f_async_cancel,
-    void *connection_ctx )
+    void *async_config_data )
 {
     conf->f_async_sign_start = f_async_sign;
     conf->f_async_decrypt_start = f_async_decrypt;
     conf->f_async_resume = f_async_resume;
     conf->f_async_cancel = f_async_cancel;
-    conf->p_async_connection_ctx = connection_ctx;
+    conf->p_async_config_data = async_config_data;
+}
+
+void *mbedtls_ssl_async_get_data( mbedtls_ssl_context *ssl )
+{
+    if( ssl->handshake == NULL )
+        return( NULL );
+    else
+        return( ssl->handshake->user_async_ctx );
+}
+
+void mbedtls_ssl_async_set_data( mbedtls_ssl_context *ssl,
+                                 void *ctx )
+{
+    if( ssl->handshake != NULL )
+        ssl->handshake->user_async_ctx = ctx;
 }
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
@@ -7433,6 +7448,14 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
     if( handshake == NULL )
         return;
 
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+    if( ssl->conf->f_async_cancel != NULL && handshake->async_in_progress != 0 )
+    {
+        ssl->conf->f_async_cancel( ssl->conf->p_async_config_data, ssl );
+        handshake->async_in_progress = 0;
+    }
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
     mbedtls_md5_free(    &handshake->fin_md5  );
@@ -7494,15 +7517,6 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
         }
     }
 #endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_SSL_SERVER_NAME_INDICATION */
-
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-    if( ssl->conf->f_async_cancel != NULL &&
-        handshake->p_async_operation_ctx != NULL )
-    {
-        ssl->conf->f_async_cancel( ssl->conf->p_async_connection_ctx,
-                                   handshake->p_async_operation_ctx );
-    }
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     mbedtls_free( handshake->verify_cookie );

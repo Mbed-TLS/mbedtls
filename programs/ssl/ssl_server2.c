@@ -909,15 +909,15 @@ typedef struct
     unsigned delay;
 } ssl_async_operation_context_t;
 
-static int ssl_async_start( void *connection_ctx_arg,
-                            void **p_operation_ctx,
+static int ssl_async_start( void *config_data_arg,
+                            mbedtls_ssl_context *ssl,
                             mbedtls_x509_crt *cert,
                             const char *op_name,
                             mbedtls_md_type_t md_alg,
                             const unsigned char *input,
                             size_t input_len )
 {
-    ssl_async_key_context_t *key_ctx = connection_ctx_arg;
+    ssl_async_key_context_t *config_data = config_data_arg;
     size_t slot;
     ssl_async_operation_context_t *ctx = NULL;
 
@@ -927,21 +927,21 @@ static int ssl_async_start( void *connection_ctx_arg,
         mbedtls_printf( "Async %s callback: looking for DN=%s\n", op_name, dn );
     }
 
-    for( slot = 0; slot < key_ctx->slots_used; slot++ )
+    for( slot = 0; slot < config_data->slots_used; slot++ )
     {
-        if( key_ctx->slots[slot].cert == cert )
+        if( config_data->slots[slot].cert == cert )
             break;
     }
-    if( slot == key_ctx->slots_used )
+    if( slot == config_data->slots_used )
     {
         mbedtls_printf( "Async %s callback: no key matches this certificate.\n",
                         op_name );
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH );
     }
     mbedtls_printf( "Async %s callback: using key slot %zd, delay=%u.\n",
-                    op_name, slot, key_ctx->slots[slot].delay );
+                    op_name, slot, config_data->slots[slot].delay );
 
-    if( key_ctx->inject_error == SSL_ASYNC_INJECT_ERROR_START )
+    if( config_data->inject_error == SSL_ASYNC_INJECT_ERROR_START )
     {
         mbedtls_printf( "Async %s callback: injected error\n", op_name );
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
@@ -957,8 +957,8 @@ static int ssl_async_start( void *connection_ctx_arg,
     ctx->md_alg = md_alg;
     memcpy( ctx->input, input, input_len );
     ctx->input_len = input_len;
-    ctx->delay = key_ctx->slots[slot].delay;
-    *p_operation_ctx = ctx;
+    ctx->delay = config_data->slots[slot].delay;
+    mbedtls_ssl_async_set_data( ssl, ctx );
 
     if( ctx->delay == 0 )
         return( 0 );
@@ -966,42 +966,42 @@ static int ssl_async_start( void *connection_ctx_arg,
         return( MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
 }
 
-static int ssl_async_sign( void *connection_ctx_arg,
-                           void **p_operation_ctx,
+static int ssl_async_sign( void *config_data_arg,
+                           mbedtls_ssl_context *ssl,
                            mbedtls_x509_crt *cert,
                            mbedtls_md_type_t md_alg,
                            const unsigned char *hash,
                            size_t hash_len )
 {
-    return( ssl_async_start( connection_ctx_arg, p_operation_ctx, cert,
+    return( ssl_async_start( config_data_arg, ssl, cert,
                              "sign", md_alg,
                              hash, hash_len ) );
 }
 
-static int ssl_async_decrypt( void *connection_ctx_arg,
-                              void **p_operation_ctx,
+static int ssl_async_decrypt( void *config_data_arg,
+                              mbedtls_ssl_context *ssl,
                               mbedtls_x509_crt *cert,
                               const unsigned char *input,
                               size_t input_len )
 {
-    return( ssl_async_start( connection_ctx_arg, p_operation_ctx, cert,
+    return( ssl_async_start( config_data_arg, ssl, cert,
                              "decrypt", MBEDTLS_MD_NONE,
                              input, input_len ) );
 }
 
-static int ssl_async_resume( void *connection_ctx_arg,
-                             void *operation_ctx_arg,
+static int ssl_async_resume( void *config_data_arg,
+                             mbedtls_ssl_context *ssl,
                              unsigned char *output,
                              size_t *output_len,
                              size_t output_size )
 {
-    ssl_async_operation_context_t *ctx = operation_ctx_arg;
-    ssl_async_key_context_t *connection_ctx = connection_ctx_arg;
-    ssl_async_key_slot_t *key_slot = &connection_ctx->slots[ctx->slot];
+    ssl_async_operation_context_t *ctx = mbedtls_ssl_async_get_data( ssl );
+    ssl_async_key_context_t *config_data = config_data_arg;
+    ssl_async_key_slot_t *key_slot = &config_data->slots[ctx->slot];
     int ret;
     const char *op_name;
 
-    if( connection_ctx->inject_error == SSL_ASYNC_INJECT_ERROR_RESUME )
+    if( config_data->inject_error == SSL_ASYNC_INJECT_ERROR_RESUME )
     {
         mbedtls_printf( "Async resume callback: injected error\n" );
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
@@ -1021,7 +1021,7 @@ static int ssl_async_resume( void *connection_ctx_arg,
         ret = mbedtls_pk_decrypt( key_slot->pk,
                                   ctx->input, ctx->input_len,
                                   output, output_len, output_size,
-                                  connection_ctx->f_rng, connection_ctx->p_rng );
+                                  config_data->f_rng, config_data->p_rng );
     }
     else
     {
@@ -1030,10 +1030,10 @@ static int ssl_async_resume( void *connection_ctx_arg,
                                ctx->md_alg,
                                ctx->input, ctx->input_len,
                                output, output_len,
-                               connection_ctx->f_rng, connection_ctx->p_rng );
+                               config_data->f_rng, config_data->p_rng );
     }
 
-    if( connection_ctx->inject_error == SSL_ASYNC_INJECT_ERROR_PK )
+    if( config_data->inject_error == SSL_ASYNC_INJECT_ERROR_PK )
     {
         mbedtls_printf( "Async resume callback: %s done but injected error\n",
                         op_name );
@@ -1046,11 +1046,11 @@ static int ssl_async_resume( void *connection_ctx_arg,
     return( ret );
 }
 
-static void ssl_async_cancel( void *connection_ctx_arg,
-                              void *operation_ctx_arg )
+static void ssl_async_cancel( void *config_data_arg,
+                              mbedtls_ssl_context *ssl )
 {
-    ssl_async_operation_context_t *ctx = operation_ctx_arg;
-    (void) connection_ctx_arg;
+    ssl_async_operation_context_t *ctx = mbedtls_ssl_async_get_data( ssl );
+    (void) config_data_arg;
     mbedtls_printf( "Async cancel callback.\n" );
     mbedtls_free( ctx );
 }

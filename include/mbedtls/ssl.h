@@ -537,6 +537,22 @@ typedef void mbedtls_ssl_set_timer_t( void * ctx,
  */
 typedef int mbedtls_ssl_get_timer_t( void * ctx );
 
+/* Defined below */
+typedef struct mbedtls_ssl_session mbedtls_ssl_session;
+typedef struct mbedtls_ssl_context mbedtls_ssl_context;
+typedef struct mbedtls_ssl_config  mbedtls_ssl_config;
+
+/* Defined in ssl_internal.h */
+typedef struct mbedtls_ssl_transform mbedtls_ssl_transform;
+typedef struct mbedtls_ssl_handshake_params mbedtls_ssl_handshake_params;
+typedef struct mbedtls_ssl_sig_hash_set_t mbedtls_ssl_sig_hash_set_t;
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+typedef struct mbedtls_ssl_key_cert mbedtls_ssl_key_cert;
+#endif
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
+#endif
+
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
@@ -553,22 +569,20 @@ typedef int mbedtls_ssl_get_timer_t( void * ctx );
  *                  this function sends or enqueues a request and does
  *                  not wait for the operation to complete.
  *
- *                  The parameters \c connection_ctx and \c cert are
+ *                  The parameters \c ssl and \c cert are
  *                  guaranteed to remain valid as long as the SSL
  *                  configuration remains valid. On the other hand, this
  *                  function must save the contents of \c hash, as the
  *                  \c hash buffer is no longer valid when this function
  *                  returns.
  *
- * \param connection_ctx  Pointer to the connection context set in the
- *                        SSL configuration
- * \param p_operation_ctx On success, pointer to the operation context.
- *                        This must be a non-null pointer. Success means
- *                        that an operation was started, and the return
- *                        status is 0 or \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS.
- *                        This pointer will be passed to later calls to the
- *                        resume or cancel function. If the callback fails,
- *                        the value is ignored.
+ *                  This function may call mbedtls_ssl_async_set_data() to
+ *                  store an operation context for later retrieval
+ *                  by the resume callback.
+ *
+ * \param config_data     The configuration data parameter passed to
+ *                        mbedtls_ssl_conf_async_private_cb().
+ * \param ssl             The SSL connection instance.
  * \param cert            Certificate containing the public key
  * \param md_alg          Hash algorithm
  * \param hash            Buffer containing the hash. This buffer is
@@ -586,8 +600,8 @@ typedef int mbedtls_ssl_get_timer_t( void * ctx );
  *                  - Any other error indicates a fatal failure and is
  *                    propagated up the call chain.
  */
-typedef int mbedtls_ssl_async_sign_t( void *connection_ctx,
-                                      void **p_operation_ctx,
+typedef int mbedtls_ssl_async_sign_t( void *config_data,
+                                      mbedtls_ssl_context *ssl,
                                       mbedtls_x509_crt *cert,
                                       mbedtls_md_type_t md_alg,
                                       const unsigned char *hash,
@@ -607,22 +621,20 @@ typedef int mbedtls_ssl_async_sign_t( void *connection_ctx,
  *                  this function sends or enqueues a request and does
  *                  not wait for the operation to complete.
  *
- *                  The parameters \c connection_ctx and \c cert are
+ *                  The parameters \c ssl and \c cert are
  *                  guaranteed to remain valid as long as the SSL
  *                  configuration remains valid. On the other hand, this
  *                  function must save the contents of \c hash, as the
  *                  \c hash buffer is no longer valid when this function
  *                  returns.
  *
- * \param connection_ctx  Pointer to the connection context set in the
- *                        SSL configuration
- * \param p_operation_ctx On success, pointer to the operation context.
- *                        This must be a non-null pointer. Success means
- *                        that an operation was started, and the return
- *                        status is 0 or \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS.
- *                        This pointer will be passed to later calls to the
- *                        resume or cancel function. If the callback fails,
- *                        the value is ignored.
+ *                  This function may call mbedtls_ssl_async_set_data() to
+ *                  store an operation context for later retrieval
+ *                  by the resume callback.
+ *
+ * \param config_data     The configuration data parameter passed to
+ *                        mbedtls_ssl_conf_async_private_cb().
+ * \param ssl             The SSL connection instance.
  * \param cert            Certificate containing the public key
  * \param input           Buffer containing the input ciphertext. This buffer
  *                        is no longer valid when the function returns.
@@ -639,8 +651,8 @@ typedef int mbedtls_ssl_async_sign_t( void *connection_ctx,
  *                  - Any other error indicates a fatal failure and is
  *                    propagated up the call chain.
  */
-typedef int mbedtls_ssl_async_decrypt_t( void *connection_ctx,
-                                         void **p_operation_ctx,
+typedef int mbedtls_ssl_async_decrypt_t( void *config_data,
+                                         mbedtls_ssl_context *ssl,
                                          mbedtls_x509_crt *cert,
                                          const unsigned char *input,
                                          size_t input_len );
@@ -652,13 +664,14 @@ typedef int mbedtls_ssl_async_decrypt_t( void *connection_ctx,
  *                  Callback to resume an external operation
  *                  started by the \c mbedtls_ssl_async_sign_t callback.
  *
- * \param connection_ctx  Pointer to the connection context set in the
- *                        SSL configuration
- * \param operation_ctx   Pointer to the operation context created by
- *                        the start function. If this callback returns
- *                        any value other than
- *                        \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS, it should
- *                        free all resources associated with this context.
+ *                  This function may call mbedtls_ssl_async_get_data() to
+ *                  retrieve an operation context set by the start callback.
+ *                  It may call mbedtls_ssl_async_set_data() to modify this
+ *                  context.
+ *
+ * \param config_data     The configuration data parameter passed to
+ *                        mbedtls_ssl_conf_async_private_cb().
+ * \param ssl             The SSL connection instance.
  * \param output          Buffer containing the output on success
  * \param output_len      On success, number of bytes written to \c output
  * \param output_size     Size of the \c output buffer in bytes
@@ -672,8 +685,8 @@ typedef int mbedtls_ssl_async_decrypt_t( void *connection_ctx,
  *                  - Any other error means that the operation is aborted.
  *                    The SSL handshake is aborted.
  */
-typedef int mbedtls_ssl_async_resume_t( void *connection_ctx,
-                                        void *operation_ctx,
+typedef int mbedtls_ssl_async_resume_t( void *config_data,
+                                        mbedtls_ssl_context *ssl,
                                         unsigned char *output,
                                         size_t *output_len,
                                         size_t output_size );
@@ -684,31 +697,16 @@ typedef int mbedtls_ssl_async_resume_t( void *connection_ctx,
  *                  Callback to cancel an external operation
  *                  started by the \c mbedtls_ssl_async_sign_t callback.
  *
- * \param connection_ctx  Pointer to the connection context set in the
- *                        SSL configuration
- * \param operation_ctx   Pointer to the operation context created by
- *                        the start function. The callback should free
- *                        all resources associated with this context.
+ *                  This function may call mbedtls_ssl_async_get_data() to
+ *                  retrieve an operation context set by the start callback.
+ *
+ * \param config_data     The configuration data parameter passed to
+ *                        mbedtls_ssl_conf_async_private_cb().
+ * \param ssl             The SSL connection instance.
  */
-typedef void mbedtls_ssl_async_cancel_t( void *connection_ctx,
-                                         void *operation_ctx );
+typedef void mbedtls_ssl_async_cancel_t( void *config_data,
+                                         mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
-
-/* Defined below */
-typedef struct mbedtls_ssl_session mbedtls_ssl_session;
-typedef struct mbedtls_ssl_context mbedtls_ssl_context;
-typedef struct mbedtls_ssl_config  mbedtls_ssl_config;
-
-/* Defined in ssl_internal.h */
-typedef struct mbedtls_ssl_transform mbedtls_ssl_transform;
-typedef struct mbedtls_ssl_handshake_params mbedtls_ssl_handshake_params;
-typedef struct mbedtls_ssl_sig_hash_set_t mbedtls_ssl_sig_hash_set_t;
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
-typedef struct mbedtls_ssl_key_cert mbedtls_ssl_key_cert;
-#endif
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
-#endif
 
 /*
  * This structure is used for storing current session data.
@@ -833,7 +831,7 @@ struct mbedtls_ssl_config
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
     mbedtls_ssl_async_resume_t *f_async_resume; /*!< resume asynchronous operation */
     mbedtls_ssl_async_cancel_t *f_async_cancel; /*!< cancel asynchronous operation */
-    void *p_async_connection_ctx; /*!< connection context for asynchronous operation callbacks  */
+    void *p_async_config_data; /*!< Configuration data set by mbedtls_ssl_conf_async_private_cb() and passed to the callbacks. */
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
@@ -1505,15 +1503,45 @@ void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
  * \param f_async_cancel    Callback to cancel an asynchronous operation. See
  *                          the description of \c mbedtls_ssl_async_cancel_t
  *                          for more information.
- * \param connection_ctx    Pointer to the connection context which will be
- *                          passed to the callbacks
+ * \param config_data       A pointer to configuration data which will be
+ *                          passed to the callbacks. The library stores and
+ *                          passes back this value without dereferencing it.
  */
 void mbedtls_ssl_conf_async_private_cb( mbedtls_ssl_config *conf,
                                         mbedtls_ssl_async_sign_t *f_async_sign,
                                         mbedtls_ssl_async_decrypt_t *f_async_decrypt,
                                         mbedtls_ssl_async_resume_t *f_async_resume,
                                         mbedtls_ssl_async_cancel_t *f_async_cancel,
-                                        void *connection_ctx );
+                                        void *config_data );
+
+/**
+ * \brief           Retrieve the asynchronous operation user context.
+ *
+ * \note            This function may only be called while a handshake
+ *                  is in progress.
+ *
+ * \param ssl       The SSL context to access.
+ *
+ * \return          The asynchronous operation user context that was last
+ *                  set during the current handshake. If mbedtls_ssl_set_data()
+ *                  has not been called during the current handshake yet,
+ *                  this function returns \c NULL.
+ */
+void *mbedtls_ssl_async_get_data( mbedtls_ssl_context *ssl );
+
+/**
+ * \brief           Retrieve the asynchronous operation user context.
+ *
+ * \note            This function may only be called while a handshake
+ *                  is in progress.
+ *
+ * \param ssl       The SSL context to access.
+ * \param ctx       The new value of the asynchronous operation user context.
+ *                  Call mbedtls_ssl_get_data() later during the same handshake
+ *                  to retrieve this value.
+ */
+void mbedtls_ssl_async_set_data( mbedtls_ssl_context *ssl,
+                                 void *ctx );
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 /**

@@ -243,9 +243,6 @@ struct mbedtls_ssl_handshake_params
     mbedtls_x509_crl *sni_ca_crl;       /*!< trusted CAs CRLs from SNI      */
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-    void *p_async_operation_ctx;        /*!< asynchronous operation context */
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */
@@ -311,6 +308,19 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     int extended_ms;                    /*!< use Extended Master Secret? */
 #endif
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+    int async_in_progress : 1;          /*!< an asynchronous operation is in progress */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+    /** Asynchronous operation context. This field is meant for use by the
+     * asynchronous operation callbacks (mbedtls_ssl_config::f_async_sign_start,
+     * mbedtls_ssl_config::f_async_decrypt_start,
+     * mbedtls_ssl_config::f_async_resume, mbedtls_ssl_config::f_async_cancel).
+     * The library does not use it internally. */
+    void *user_async_ctx;
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 };
 
 /*

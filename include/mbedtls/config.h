@@ -1137,7 +1137,7 @@
  * operation inside the library.
  *
  */
-//#define MBEDTLS_SSL_ASYNC_PRIVATE
+#define MBEDTLS_SSL_ASYNC_PRIVATE
 
 /**
  * \def MBEDTLS_SSL_DEBUG_ALL

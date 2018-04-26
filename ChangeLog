@@ -35,6 +35,8 @@ Bugfix
    * Fix buffer length assertions in the ssl_parse_certificate_request()
      function which leads to a potential one byte overread of the message
      buffer.
+   * Fix invalid buffer sizes passed to zlib during record compression and
+     decompression.
 
 Changes
    * Improve testing in configurations that omit certain hashes or

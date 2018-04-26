@@ -906,7 +906,7 @@ typedef struct
     mbedtls_md_type_t md_alg;
     unsigned char input[SSL_ASYNC_INPUT_MAX_SIZE];
     size_t input_len;
-    unsigned delay;
+    unsigned remaining_delay;
 } ssl_async_operation_context_t;
 
 static int ssl_async_start( void *config_data_arg,
@@ -957,10 +957,10 @@ static int ssl_async_start( void *config_data_arg,
     ctx->md_alg = md_alg;
     memcpy( ctx->input, input, input_len );
     ctx->input_len = input_len;
-    ctx->delay = config_data->slots[slot].delay;
+    ctx->remaining_delay = config_data->slots[slot].delay;
     mbedtls_ssl_async_set_data( ssl, ctx );
 
-    if( ctx->delay == 0 )
+    if( ctx->remaining_delay == 0 )
         return( 0 );
     else
         return( MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
@@ -1007,11 +1007,11 @@ static int ssl_async_resume( void *config_data_arg,
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
     }
 
-    if( ctx->delay > 0 )
+    if( ctx->remaining_delay > 0 )
     {
-        --ctx->delay;
+        --ctx->remaining_delay;
         mbedtls_printf( "Async resume (slot %zd): call %u more times.\n",
-                        ctx->slot, ctx->delay );
+                        ctx->slot, ctx->remaining_delay );
         return( MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
     }
 

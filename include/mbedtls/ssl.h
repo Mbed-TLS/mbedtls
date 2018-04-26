@@ -579,6 +579,21 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  *                  store an operation context for later retrieval
  *                  by the resume callback.
  *
+ * \note            For RSA signatures, this function must produce output
+ *                  that is consistent with PKCS#1 v1.5 in the same way as
+ *                  mbedtls_rsa_pkcs1_sign(). Before the private key operation,
+ *                  apply the padding steps described in RFC 8017, section 9.2
+ *                  "EMSA-PKCS1-v1_5" as follows.
+ *                  - If \p md_alg is #MBEDTLS_MD_NONE, apply the PKCS#1 v1.5
+ *                    encoding, treating \p hash as the DigestInfo to be
+ *                    padded. In other words, apply EMSA-PKCS1-v1_5 starting
+ *                    from step 3, with `T = hash` and `tLen = hash_len`.
+ *                  - If \p md_alg is #MBEDTLS_MD_NONE, apply the PKCS#1 v1.5
+ *                    encoding, treating \p hash as the hash to be encoded and
+ *                    padded. In other words, apply EMSA-PKCS1-v1_5 starting
+ *                    from step 2, with `digestAlgorithm` obtained by calling
+ *                    mbedtls_oid_get_oid_by_md() on \p md_alg.
+ *
  * \param config_data     The configuration data parameter passed to
  *                        mbedtls_ssl_conf_async_private_cb().
  * \param ssl             The SSL connection instance. It should not be

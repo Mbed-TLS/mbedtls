@@ -4088,6 +4088,18 @@ run_test    "SSL async private: sign, delay=1" \
             -s "Async resume (slot [0-9]): call 0 more times." \
             -s "Async resume (slot [0-9]): sign done, status=0"
 
+# Test that the async callback correctly signs the 36-byte hash of TLS 1.0/1.1
+# with RSA PKCS#1v1.5 as used in TLS 1.0/1.1.
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
+run_test    "SSL async private: sign, RSA, TLS 1.1" \
+            "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt \
+             async_operations=s async_private_delay1=0 async_private_delay2=0" \
+            "$P_CLI force_version=tls1_1" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): sign done, status=0"
+
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
 run_test    "SSL async private: decrypt, delay=0" \
             "$P_SRV \

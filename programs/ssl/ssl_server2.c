@@ -900,9 +900,25 @@ void ssl_async_set_key( ssl_async_key_context_t *ctx,
 }
 
 #define SSL_ASYNC_INPUT_MAX_SIZE 512
+
+typedef enum
+{
+    ASYNC_OP_SIGN,
+    ASYNC_OP_DECRYPT,
+} ssl_async_operation_type_t;
+/* Note that the enum above and the array below need to be kept in sync!
+ * `ssl_async_operation_names[op]` is the name of op for each value `op`
+ * of type `ssl_async_operation_type_t`. */
+static const char *const ssl_async_operation_names[] =
+{
+    "sign",
+    "decrypt",
+};
+
 typedef struct
 {
     size_t slot;
+    ssl_async_operation_type_t operation_type;
     mbedtls_md_type_t md_alg;
     unsigned char input[SSL_ASYNC_INPUT_MAX_SIZE];
     size_t input_len;
@@ -912,7 +928,7 @@ typedef struct
 static int ssl_async_start( void *config_data_arg,
                             mbedtls_ssl_context *ssl,
                             mbedtls_x509_crt *cert,
-                            const char *op_name,
+                            ssl_async_operation_type_t op_type,
                             mbedtls_md_type_t md_alg,
                             const unsigned char *input,
                             size_t input_len )
@@ -920,6 +936,7 @@ static int ssl_async_start( void *config_data_arg,
     ssl_async_key_context_t *config_data = config_data_arg;
     size_t slot;
     ssl_async_operation_context_t *ctx = NULL;
+    const char *op_name = ssl_async_operation_names[op_type];
 
     {
         char dn[100];
@@ -954,6 +971,7 @@ static int ssl_async_start( void *config_data_arg,
     if( ctx == NULL )
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     ctx->slot = slot;
+    ctx->operation_type = op_type;
     ctx->md_alg = md_alg;
     memcpy( ctx->input, input, input_len );
     ctx->input_len = input_len;
@@ -974,7 +992,7 @@ static int ssl_async_sign( void *config_data_arg,
                            size_t hash_len )
 {
     return( ssl_async_start( config_data_arg, ssl, cert,
-                             "sign", md_alg,
+                             ASYNC_OP_SIGN, md_alg,
                              hash, hash_len ) );
 }
 
@@ -985,7 +1003,7 @@ static int ssl_async_decrypt( void *config_data_arg,
                               size_t input_len )
 {
     return( ssl_async_start( config_data_arg, ssl, cert,
-                             "decrypt", MBEDTLS_MD_NONE,
+                             ASYNC_OP_DECRYPT, MBEDTLS_MD_NONE,
                              input, input_len ) );
 }
 
@@ -999,7 +1017,7 @@ static int ssl_async_resume( void *config_data_arg,
     ssl_async_key_context_t *config_data = config_data_arg;
     ssl_async_key_slot_t *key_slot = &config_data->slots[ctx->slot];
     int ret;
-    const char *op_name;
+    const char *op_name = NULL;
 
     if( config_data->inject_error == SSL_ASYNC_INJECT_ERROR_RESUME )
     {
@@ -1015,22 +1033,28 @@ static int ssl_async_resume( void *config_data_arg,
         return( MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
     }
 
-    if( ctx->md_alg == MBEDTLS_MD_NONE )
+    switch( ctx->operation_type )
     {
-        op_name = "decrypt";
-        ret = mbedtls_pk_decrypt( key_slot->pk,
-                                  ctx->input, ctx->input_len,
-                                  output, output_len, output_size,
-                                  config_data->f_rng, config_data->p_rng );
-    }
-    else
-    {
-        op_name = "sign";
-        ret = mbedtls_pk_sign( key_slot->pk,
-                               ctx->md_alg,
-                               ctx->input, ctx->input_len,
-                               output, output_len,
-                               config_data->f_rng, config_data->p_rng );
+        case ASYNC_OP_DECRYPT:
+            op_name = "decrypt";
+            ret = mbedtls_pk_decrypt( key_slot->pk,
+                                      ctx->input, ctx->input_len,
+                                      output, output_len, output_size,
+                                      config_data->f_rng, config_data->p_rng );
+            break;
+        case ASYNC_OP_SIGN:
+            op_name = "sign";
+            ret = mbedtls_pk_sign( key_slot->pk,
+                                   ctx->md_alg,
+                                   ctx->input, ctx->input_len,
+                                   output, output_len,
+                                   config_data->f_rng, config_data->p_rng );
+            break;
+        default:
+            mbedtls_printf( "Async resume (slot %zd): unknown operation type %ld. This shouldn't happen.\n",
+                            ctx->slot, (long) ctx->operation_type );
+            return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+            break;
     }
 
     if( config_data->inject_error == SSL_ASYNC_INJECT_ERROR_PK )

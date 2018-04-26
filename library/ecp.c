@@ -520,15 +520,25 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp, mbedtls_ecp_poi
 
     plen = mbedtls_mpi_size( &grp->P );
 
-    if( buf[0] != 0x04 )
+    if( buf[0] == 0x04 ) {
+      if( ilen != 2 * plen + 1 )
+          return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+      MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &pt->X, buf + 1, plen ) );
+      MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &pt->Y, buf + 1 + plen, plen ) );
+      MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Z, 1 ) );
+    }
+    else if( buf[0] == 0x02 || buf[0] == 0x03) {
+      if( ilen != plen + 1 )
+          return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+      MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &pt->X, buf + 1, plen ) );
+      MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( &pt->Y, 0, buf[0] & 1 ) );
+      MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Z, 1 ) );
+    }
+    else {
         return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
-
-    if( ilen != 2 * plen + 1 )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &pt->X, buf + 1, plen ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &pt->Y, buf + 1 + plen, plen ) );
-    MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &pt->Z, 1 ) );
+    }
 
 cleanup:
     return( ret );

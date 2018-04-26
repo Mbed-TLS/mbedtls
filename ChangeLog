@@ -64,6 +64,8 @@ Bugfix
    * Fix buffer length assertions in the ssl_parse_certificate_request()
      function which leads to a potential one byte overread of the message
      buffer.
+   * Fix invalid buffer sizes passed to zlib during record compression and
+     decompression.
 
 Changes
    * Remove some redundant code in bignum.c. Contributed by Alexey Skalozub.
@@ -109,6 +111,7 @@ Changes
      MBEDTLS_XXX_ALT macro. This means that alternative implementations do
      not need to copy the declarations, and ensures that they will have the
      same API.
+   * Add platform setup and teardown calls in test suites.
 
 = mbed TLS 2.8.0 branch released 2018-03-16
 

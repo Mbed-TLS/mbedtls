@@ -109,6 +109,9 @@ static struct
 }
 test_info;
 
+#if defined(MBEDTLS_PLATFORM_C)
+mbedtls_platform_context platform_ctx;
+#endif
 
 /*----------------------------------------------------------------------------*/
 /* Helper flags for complex dependencies */
@@ -127,6 +130,21 @@ test_info;
 
 /*----------------------------------------------------------------------------*/
 /* Helper Functions */
+static int platform_setup()
+{
+    int ret = 0;
+#if defined(MBEDTLS_PLATFORM_C)
+    ret = mbedtls_platform_setup( &platform_ctx );
+#endif /* MBEDTLS_PLATFORM_C */
+    return( ret );
+}
+
+static void platform_teardown()
+{
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif /* MBEDTLS_PLATFORM_C */
+}
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 static int redirect_output( FILE** out_stream, const char* path )

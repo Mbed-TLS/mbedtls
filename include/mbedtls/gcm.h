@@ -51,7 +51,7 @@ typedef struct {
     unsigned char buf[16];      /*!< buf working value */
     int mode;                   /*!< Encrypt or Decrypt */
     unsigned char ectr_remain[16];/*!<last ectr for remaining data */
-    uint64_t data_remain;		/*!<size of remaining data */
+    size_t data_remain;		/*!<size of remaining data */
 }
 mbedtls_gcm_context;
 

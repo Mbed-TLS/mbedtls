@@ -594,9 +594,16 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  *                    from step 2, with `digestAlgorithm` obtained by calling
  *                    mbedtls_oid_get_oid_by_md() on \p md_alg.
  *
+ * \note            For ECDSA signatures, the output format is the DER encoding
+ *                  `Ecdsa-Sig-Value` defined in
+ *                  [RFC 4492 section 5.4](https://tools.ietf.org/html/rfc4492#section-5.4).
+ *
  * \param ssl             The SSL connection instance. It should not be
  *                        modified other than via mbedtls_ssl_async_set_data().
  * \param cert            Certificate containing the public key.
+ *                        This is one of the pointers passed to
+ *                        mbedtls_ssl_conf_own_cert() when configuring the SSL
+ *                        connection.
  * \param md_alg          Hash algorithm.
  * \param hash            Buffer containing the hash. This buffer is
  *                        no longer valid when the function returns.
@@ -646,9 +653,21 @@ typedef int mbedtls_ssl_async_sign_t( mbedtls_ssl_context *ssl,
  *                  store an operation context for later retrieval
  *                  by the resume callback.
  *
+ * \warning         RSA decryption as used in TLS is subject to a potential
+ *                  timing side channel attack first discovered by Bleichenbacher
+ *                  in 1998. This attack can be remotely exploitable
+ *                  in practice. To avoid this attack, you must ensure that
+ *                  if the callback performs an RSA decryption, the time it
+ *                  takes to execute and return the result does not depend
+ *                  on whether the RSA decryption succeeded or reported
+ *                  invalid padding.
+ *
  * \param ssl             The SSL connection instance. It should not be
  *                        modified other than via mbedtls_ssl_async_set_data().
  * \param cert            Certificate containing the public key.
+ *                        This is one of the pointers passed to
+ *                        mbedtls_ssl_conf_own_cert() when configuring the SSL
+ *                        connection.
  * \param input           Buffer containing the input ciphertext. This buffer
  *                        is no longer valid when the function returns.
  * \param input_len       Size of the \p input buffer in bytes.

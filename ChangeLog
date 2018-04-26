@@ -15,6 +15,11 @@ Security
      where an optional signature algorithms list is expected in the cases of
      the signature algorithms section being too short. In the debug builds
      the overread data is printed to the standard output.
+   * Fix a client-side bug in the validation of the server's ciphersuite choice
+     potentially leading to the client accepting a ciphersuite it didn't offer
+     or one that cannot be used with the (D)TLS version chosen by the server.
+     This may lead to corruption of internal data structures for some
+     configurations.
 
 Bugfix
    * Fix spurious uninitialized variable warning in cmac.c. Fix independently

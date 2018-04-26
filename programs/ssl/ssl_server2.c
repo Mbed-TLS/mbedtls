@@ -207,7 +207,7 @@ int main( void )
     "    async_private_delay2=%%d  Asynchronous delay for key_file2\n" \
     "                              default: -1 (not asynchronous)\n" \
     "    async_private_error=%%d   Async callback error injection (default=0=none,\n" \
-    "                              1=start, 2=cancel, 3=resume, 4=pk, negative=first time only)"
+    "                              1=start, 2=cancel, 3=resume, negative=first time only)"
 #else
 #define USAGE_SSL_ASYNC ""
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
@@ -875,8 +875,7 @@ typedef enum {
     SSL_ASYNC_INJECT_ERROR_START, /*!< Inject error during start */
     SSL_ASYNC_INJECT_ERROR_CANCEL, /*!< Close the connection after async start */
     SSL_ASYNC_INJECT_ERROR_RESUME, /*!< Inject error during resume */
-    SSL_ASYNC_INJECT_ERROR_PK /*!< Inject error during resume */
-#define SSL_ASYNC_INJECT_ERROR_MAX SSL_ASYNC_INJECT_ERROR_PK
+#define SSL_ASYNC_INJECT_ERROR_MAX SSL_ASYNC_INJECT_ERROR_RESUME
 } ssl_async_inject_error_t;
 
 typedef struct
@@ -1019,12 +1018,6 @@ static int ssl_async_resume( void *config_data_arg,
     int ret;
     const char *op_name = NULL;
 
-    if( config_data->inject_error == SSL_ASYNC_INJECT_ERROR_RESUME )
-    {
-        mbedtls_printf( "Async resume callback: injected error\n" );
-        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
-    }
-
     if( ctx->remaining_delay > 0 )
     {
         --ctx->remaining_delay;
@@ -1057,7 +1050,7 @@ static int ssl_async_resume( void *config_data_arg,
             break;
     }
 
-    if( config_data->inject_error == SSL_ASYNC_INJECT_ERROR_PK )
+    if( config_data->inject_error == SSL_ASYNC_INJECT_ERROR_RESUME )
     {
         mbedtls_printf( "Async resume callback: %s done but injected error\n",
                         op_name );

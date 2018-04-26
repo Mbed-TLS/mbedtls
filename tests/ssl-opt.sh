@@ -4246,17 +4246,6 @@ run_test    "SSL async private: error in resume" \
             "$P_CLI" \
             1 \
             -s "Async sign callback: using key slot " \
-            -s "Async resume callback: injected error" \
-            -s "! mbedtls_ssl_handshake returned"
-
-requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-run_test    "SSL async private: error in pk" \
-            "$P_SRV \
-             async_operations=s async_private_delay1=1 async_private_delay2=1 \
-             async_private_error=4" \
-            "$P_CLI" \
-            1 \
-            -s "Async sign callback: using key slot " \
             -s "Async resume callback: sign done but injected error" \
             -s "! mbedtls_ssl_handshake returned"
 

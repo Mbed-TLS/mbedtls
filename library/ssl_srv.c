@@ -2837,13 +2837,18 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED) && \
     defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 static int ssl_resume_server_key_exchange( mbedtls_ssl_context *ssl,
-                                            size_t *signature_len )
+                                           size_t *signature_len )
 {
+    /* Append the signature to ssl->out_msg, leaving 2 bytes for the
+     * signature length which will be added in ssl_write_server_key_exchange
+     * after the call to ssl_prepare_server_key_exchange.
+     * ssl_write_server_key_exchange also takes care of incrementing
+     * ssl->out_msglen. */
+    unsigned char *sig_start = ssl->out_msg + ssl->out_msglen + 2;
     size_t sig_max_len = ( ssl->out_buf + MBEDTLS_SSL_MAX_CONTENT_LEN
-                           - ( ssl->out_msg + ssl->out_msglen + 2 ) );
+                           - sig_start );
     int ret = ssl->conf->f_async_resume( ssl->conf->p_async_config_data, ssl,
-                                         ssl->out_msg + ssl->out_msglen + 2,
-                                         signature_len, sig_max_len );
+                                         sig_start, signature_len, sig_max_len );
     if( ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
     {
         ssl->handshake->async_in_progress = 0;
@@ -3197,6 +3202,11 @@ curve_matching_done:
             return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
         }
 
+        /* Append the signature to ssl->out_msg, leaving 2 bytes for the
+         * signature length which will be added in ssl_write_server_key_exchange
+         * after the call to ssl_prepare_server_key_exchange.
+         * ssl_write_server_key_exchange also takes care of incrementing
+         * ssl->out_msglen. */
         if( ( ret = mbedtls_pk_sign( mbedtls_ssl_own_key( ssl ),
                                      md_alg, hash, hashlen,
                                      ssl->out_msg + ssl->out_msglen + 2,

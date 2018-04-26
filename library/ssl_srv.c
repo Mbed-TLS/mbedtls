@@ -2847,7 +2847,7 @@ static int ssl_resume_server_key_exchange( mbedtls_ssl_context *ssl,
     unsigned char *sig_start = ssl->out_msg + ssl->out_msglen + 2;
     size_t sig_max_len = ( ssl->out_buf + MBEDTLS_SSL_MAX_CONTENT_LEN
                            - sig_start );
-    int ret = ssl->conf->f_async_resume( ssl->conf->p_async_config_data, ssl,
+    int ret = ssl->conf->f_async_resume( ssl,
                                          sig_start, signature_len, sig_max_len );
     if( ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
     {
@@ -3174,8 +3174,7 @@ curve_matching_done:
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if( ssl->conf->f_async_sign_start != NULL )
         {
-            ret = ssl->conf->f_async_sign_start( ssl->conf->p_async_config_data,
-                                                 ssl,
+            ret = ssl->conf->f_async_sign_start( ssl,
                                                  mbedtls_ssl_own_cert( ssl ),
                                                  md_alg, hash, hashlen );
             switch( ret )
@@ -3402,7 +3401,7 @@ static int ssl_resume_decrypt_pms( mbedtls_ssl_context *ssl,
                                    size_t *peer_pmslen,
                                    size_t peer_pmssize )
 {
-    int ret = ssl->conf->f_async_resume( ssl->conf->p_async_config_data, ssl,
+    int ret = ssl->conf->f_async_resume( ssl,
                                          peer_pms, peer_pmslen, peer_pmssize );
     if( ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
     {
@@ -3465,8 +3464,7 @@ static int ssl_decrypt_encrypted_pms( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     if( ssl->conf->f_async_decrypt_start != NULL )
     {
-        ret = ssl->conf->f_async_decrypt_start( ssl->conf->p_async_config_data,
-                                                ssl,
+        ret = ssl->conf->f_async_decrypt_start( ssl,
                                                 mbedtls_ssl_own_cert( ssl ),
                                                 p, len );
         switch( ret )

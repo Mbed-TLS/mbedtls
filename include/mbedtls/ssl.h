@@ -594,8 +594,6 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  *                    from step 2, with `digestAlgorithm` obtained by calling
  *                    mbedtls_oid_get_oid_by_md() on \p md_alg.
  *
- * \param config_data     The configuration data parameter passed to
- *                        mbedtls_ssl_conf_async_private_cb().
  * \param ssl             The SSL connection instance. It should not be
  *                        modified other than via mbedtls_ssl_async_set_data().
  * \param cert            Certificate containing the public key.
@@ -615,8 +613,7 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  * \return          Any other error indicates a fatal failure and is
  *                  propagated up the call chain.
  */
-typedef int mbedtls_ssl_async_sign_t( void *config_data,
-                                      mbedtls_ssl_context *ssl,
+typedef int mbedtls_ssl_async_sign_t( mbedtls_ssl_context *ssl,
                                       mbedtls_x509_crt *cert,
                                       mbedtls_md_type_t md_alg,
                                       const unsigned char *hash,
@@ -646,8 +643,6 @@ typedef int mbedtls_ssl_async_sign_t( void *config_data,
  *                  store an operation context for later retrieval
  *                  by the resume callback.
  *
- * \param config_data     The configuration data parameter passed to
- *                        mbedtls_ssl_conf_async_private_cb().
  * \param ssl             The SSL connection instance. It should not be
  *                        modified other than via mbedtls_ssl_async_set_data().
  * \param cert            Certificate containing the public key.
@@ -666,8 +661,7 @@ typedef int mbedtls_ssl_async_sign_t( void *config_data,
  * \return          Any other error indicates a fatal failure and is
  *                  propagated up the call chain.
  */
-typedef int mbedtls_ssl_async_decrypt_t( void *config_data,
-                                         mbedtls_ssl_context *ssl,
+typedef int mbedtls_ssl_async_decrypt_t( mbedtls_ssl_context *ssl,
                                          mbedtls_x509_crt *cert,
                                          const unsigned char *input,
                                          size_t input_len );
@@ -691,8 +685,6 @@ typedef int mbedtls_ssl_async_decrypt_t( void *config_data,
  *                  It may call mbedtls_ssl_async_set_data() to modify this
  *                  context.
  *
- * \param config_data     The configuration data parameter passed to
- *                        mbedtls_ssl_conf_async_private_cb().
  * \param ssl             The SSL connection instance. It should not be
  *                        modified other than via mbedtls_ssl_async_set_data().
  * \param output          Buffer containing the output (signature or decrypted
@@ -709,8 +701,7 @@ typedef int mbedtls_ssl_async_decrypt_t( void *config_data,
  * \return          Any other error means that the operation is aborted.
  *                  The SSL handshake is aborted.
  */
-typedef int mbedtls_ssl_async_resume_t( void *config_data,
-                                        mbedtls_ssl_context *ssl,
+typedef int mbedtls_ssl_async_resume_t( mbedtls_ssl_context *ssl,
                                         unsigned char *output,
                                         size_t *output_len,
                                         size_t output_size );
@@ -724,13 +715,10 @@ typedef int mbedtls_ssl_async_resume_t( void *config_data,
  *                  This function may call mbedtls_ssl_async_get_data() to
  *                  retrieve an operation context set by the start callback.
  *
- * \param config_data     The configuration data parameter passed to
- *                        mbedtls_ssl_conf_async_private_cb().
  * \param ssl             The SSL connection instance. It should not be
  *                        modified.
  */
-typedef void mbedtls_ssl_async_cancel_t( void *config_data,
-                                         mbedtls_ssl_context *ssl );
+typedef void mbedtls_ssl_async_cancel_t( mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 /*
@@ -856,7 +844,7 @@ struct mbedtls_ssl_config
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
     mbedtls_ssl_async_resume_t *f_async_resume; /*!< resume asynchronous operation */
     mbedtls_ssl_async_cancel_t *f_async_cancel; /*!< cancel asynchronous operation */
-    void *p_async_config_data; /*!< Configuration data set by mbedtls_ssl_conf_async_private_cb() and passed to the callbacks. */
+    void *p_async_config_data; /*!< Configuration data set by mbedtls_ssl_conf_async_private_cb(). */
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
@@ -1531,9 +1519,10 @@ void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
  *                          the description of ::mbedtls_ssl_async_cancel_t
  *                          for more information. This may be \c NULL if
  *                          no cleanup is needed.
- * \param config_data       A pointer to configuration data which will be
- *                          passed to the callbacks. The library stores and
- *                          passes back this value without dereferencing it.
+ * \param config_data       A pointer to configuration data which can be
+ *                          retrieved with
+ *                          mbedtls_ssl_conf_get_async_config_data(). The
+ *                          library stores this value without dereferencing it.
  */
 void mbedtls_ssl_conf_async_private_cb( mbedtls_ssl_config *conf,
                                         mbedtls_ssl_async_sign_t *f_async_sign,
@@ -1541,6 +1530,16 @@ void mbedtls_ssl_conf_async_private_cb( mbedtls_ssl_config *conf,
                                         mbedtls_ssl_async_resume_t *f_async_resume,
                                         mbedtls_ssl_async_cancel_t *f_async_cancel,
                                         void *config_data );
+
+/**
+ * \brief           Retrieve the configuration data set by
+ *                  mbedtls_ssl_conf_async_private_cb().
+ *
+ * \param conf      SSL configuration context
+ * \return          The configuration data set by
+ *                  mbedtls_ssl_conf_async_private_cb().
+ */
+void *mbedtls_ssl_conf_get_async_config_data( const mbedtls_ssl_config *conf );
 
 /**
  * \brief           Retrieve the asynchronous operation user context.
@@ -1555,7 +1554,7 @@ void mbedtls_ssl_conf_async_private_cb( mbedtls_ssl_config *conf,
  *                  has not been called during the current handshake yet,
  *                  this function returns \c NULL.
  */
-void *mbedtls_ssl_async_get_data( mbedtls_ssl_context *ssl );
+void *mbedtls_ssl_async_get_data( const mbedtls_ssl_context *ssl );
 
 /**
  * \brief           Retrieve the asynchronous operation user context.

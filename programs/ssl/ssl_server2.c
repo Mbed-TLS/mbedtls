@@ -941,15 +941,15 @@ typedef struct
     unsigned remaining_delay;
 } ssl_async_operation_context_t;
 
-static int ssl_async_start( void *config_data_arg,
-                            mbedtls_ssl_context *ssl,
+static int ssl_async_start( mbedtls_ssl_context *ssl,
                             mbedtls_x509_crt *cert,
                             ssl_async_operation_type_t op_type,
                             mbedtls_md_type_t md_alg,
                             const unsigned char *input,
                             size_t input_len )
 {
-    ssl_async_key_context_t *config_data = config_data_arg;
+    ssl_async_key_context_t *config_data =
+        mbedtls_ssl_conf_get_async_config_data( ssl->conf );
     size_t slot;
     ssl_async_operation_context_t *ctx = NULL;
     const char *op_name = ssl_async_operation_names[op_type];
@@ -1000,37 +1000,35 @@ static int ssl_async_start( void *config_data_arg,
         return( MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
 }
 
-static int ssl_async_sign( void *config_data_arg,
-                           mbedtls_ssl_context *ssl,
+static int ssl_async_sign( mbedtls_ssl_context *ssl,
                            mbedtls_x509_crt *cert,
                            mbedtls_md_type_t md_alg,
                            const unsigned char *hash,
                            size_t hash_len )
 {
-    return( ssl_async_start( config_data_arg, ssl, cert,
+    return( ssl_async_start( ssl, cert,
                              ASYNC_OP_SIGN, md_alg,
                              hash, hash_len ) );
 }
 
-static int ssl_async_decrypt( void *config_data_arg,
-                              mbedtls_ssl_context *ssl,
+static int ssl_async_decrypt( mbedtls_ssl_context *ssl,
                               mbedtls_x509_crt *cert,
                               const unsigned char *input,
                               size_t input_len )
 {
-    return( ssl_async_start( config_data_arg, ssl, cert,
+    return( ssl_async_start( ssl, cert,
                              ASYNC_OP_DECRYPT, MBEDTLS_MD_NONE,
                              input, input_len ) );
 }
 
-static int ssl_async_resume( void *config_data_arg,
-                             mbedtls_ssl_context *ssl,
+static int ssl_async_resume( mbedtls_ssl_context *ssl,
                              unsigned char *output,
                              size_t *output_len,
                              size_t output_size )
 {
     ssl_async_operation_context_t *ctx = mbedtls_ssl_async_get_data( ssl );
-    ssl_async_key_context_t *config_data = config_data_arg;
+    ssl_async_key_context_t *config_data =
+        mbedtls_ssl_conf_get_async_config_data( ssl->conf );
     ssl_async_key_slot_t *key_slot = &config_data->slots[ctx->slot];
     int ret;
     const char *op_name = NULL;
@@ -1080,11 +1078,9 @@ static int ssl_async_resume( void *config_data_arg,
     return( ret );
 }
 
-static void ssl_async_cancel( void *config_data_arg,
-                              mbedtls_ssl_context *ssl )
+static void ssl_async_cancel( mbedtls_ssl_context *ssl )
 {
     ssl_async_operation_context_t *ctx = mbedtls_ssl_async_get_data( ssl );
-    (void) config_data_arg;
     mbedtls_printf( "Async cancel callback.\n" );
     mbedtls_free( ctx );
 }

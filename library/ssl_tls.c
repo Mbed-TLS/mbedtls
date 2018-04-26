@@ -6494,7 +6494,12 @@ void mbedtls_ssl_conf_async_private_cb(
     conf->p_async_config_data = async_config_data;
 }
 
-void *mbedtls_ssl_async_get_data( mbedtls_ssl_context *ssl )
+void *mbedtls_ssl_conf_get_async_config_data( const mbedtls_ssl_config *conf )
+{
+    return( conf->p_async_config_data );
+}
+
+void *mbedtls_ssl_async_get_data( const mbedtls_ssl_context *ssl )
 {
     if( ssl->handshake == NULL )
         return( NULL );
@@ -7451,7 +7456,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
     if( ssl->conf->f_async_cancel != NULL && handshake->async_in_progress != 0 )
     {
-        ssl->conf->f_async_cancel( ssl->conf->p_async_config_data, ssl );
+        ssl->conf->f_async_cancel( ssl );
         handshake->async_in_progress = 0;
     }
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */

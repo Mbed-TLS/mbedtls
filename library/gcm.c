@@ -373,7 +373,11 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
     p = input;
     if( length != 0 )
     {
-        if( (size_t) ctx->data_remain >= length )
+        /* This case handle the case in which the amount of data before we encrypt
+         * 16 bytes with this context is superior to the number of bytes we want
+         * to encrypt.
+         * So we encrypt the bytes with the old context and do not update it */
+        if( ctx->data_remain >= length )
         {
             for( i = ( 16 - ctx->data_remain ); 
                  i < ( 16 - ctx->data_remain + length ); 
@@ -393,6 +397,11 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
 
             return ( 0 );
         }
+        /* This case handle the case in which the amout of data we want to encrypt
+         * is superoir to the amount of bytes remaining to be encrypted with
+         * the old context. So we encrypt the remaining bytes with the old context,
+         * update it and to a normal encryption
+         */
         else
         {
             for( i = ( 16 - ctx->data_remain ); i < 16; i++ )
@@ -444,7 +453,7 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
         }
         ctx->data_remain = 16 - use_len;
         
-		if( ctx->data_remain == 0 )
+        if( ctx->data_remain == 0 )
 	        gcm_mult( ctx, ctx->buf, ctx->buf );
 
         length -= use_len;
@@ -494,7 +503,7 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
             tag[i] ^= ctx->buf[i];
     }
 
-    mbedtls_zeroize( ctx->ectr_remain, 16 );
+    mbedtls_zeroize( ctx->ectr_remain, sizeof(ctx->ectr_remain) );
     ctx->data_remain = 0;
 
     return( 0 );

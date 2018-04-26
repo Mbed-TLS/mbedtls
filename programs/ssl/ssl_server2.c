@@ -1223,6 +1223,9 @@ int main( int argc, char *argv[] )
     mbedtls_pk_init( &pkey );
     mbedtls_x509_crt_init( &srvcert2 );
     mbedtls_pk_init( &pkey2 );
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+    memset( &ssl_async_keys, 0, sizeof( ssl_async_keys ) );
+#endif
 #endif
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
     mbedtls_dhm_init( &dhm );

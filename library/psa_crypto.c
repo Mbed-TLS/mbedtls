@@ -1562,6 +1562,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
         mbedtls_ccm_free( &ccm );
     }
     memcpy( ciphertext + plaintext_length, tag, sizeof( tag ) );
+    *ciphertext_length = plaintext_length + sizeof( tag );
     return( PSA_SUCCESS );
 }
 
@@ -1629,7 +1630,6 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
         }
 
         mbedtls_gcm_free( &gcm );
-        memcpy( plaintext + ciphertext_length + 8, tag, sizeof( tag ) );
     }
     else if( alg == PSA_ALG_CCM )
     {
@@ -1659,8 +1659,10 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
         }
 
         mbedtls_ccm_free( &ccm );
-        memcpy( plaintext + ciphertext_length, tag, sizeof( tag ) );
     }
+
+    memcpy( plaintext + ciphertext_length, tag, sizeof( tag ) );
+    *plaintext_length = ciphertext_length + sizeof( tag );
     return( PSA_SUCCESS );
 }
 

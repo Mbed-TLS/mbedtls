@@ -611,7 +611,10 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  *                  processor does not support this key. The SSL stack will
  *                  use the private key object instead.
  * \return          Any other error indicates a fatal failure and is
- *                  propagated up the call chain.
+ *                  propagated up the call chain. The callback should
+ *                  use \c MBEDTLS_ERR_PK_xxx error codes, and <b>must not</b>
+ *                  use \c MBEDTLS_ERR_SSL_xxx error codes except as
+ *                  directed here.
  */
 typedef int mbedtls_ssl_async_sign_t( mbedtls_ssl_context *ssl,
                                       mbedtls_x509_crt *cert,
@@ -659,7 +662,10 @@ typedef int mbedtls_ssl_async_sign_t( mbedtls_ssl_context *ssl,
  *                  processor does not support this key. The SSL stack will
  *                  use the private key object instead.
  * \return          Any other error indicates a fatal failure and is
- *                  propagated up the call chain.
+ *                  propagated up the call chain. The callback should
+ *                  use \c MBEDTLS_ERR_PK_xxx error codes, and <b>must not</b>
+ *                  use \c MBEDTLS_ERR_SSL_xxx error codes except as
+ *                  directed here.
  */
 typedef int mbedtls_ssl_async_decrypt_t( mbedtls_ssl_context *ssl,
                                          mbedtls_x509_crt *cert,
@@ -699,7 +705,10 @@ typedef int mbedtls_ssl_async_decrypt_t( mbedtls_ssl_context *ssl,
  *                  on the SSL connection will call the resume callback
  *                  again.
  * \return          Any other error means that the operation is aborted.
- *                  The SSL handshake is aborted.
+ *                  The SSL handshake is aborted. The callback should
+ *                  use \c MBEDTLS_ERR_PK_xxx error codes, and <b>must not</b>
+ *                  use \c MBEDTLS_ERR_SSL_xxx error codes except as
+ *                  directed here.
  */
 typedef int mbedtls_ssl_async_resume_t( mbedtls_ssl_context *ssl,
                                         unsigned char *output,

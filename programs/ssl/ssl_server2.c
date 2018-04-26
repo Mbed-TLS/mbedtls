@@ -862,6 +862,23 @@ static int ssl_sig_hashes_for_test[] = {
 };
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
+/** Return true if \p ret is a status code indicating that there is an
+ * operation in progress on an SSL connection, and false if it indicates
+ * success or a fatal error.
+ *
+ * The possible operations in progress are:
+ *
+ * - A read, when the SSL input buffer does not contain a full message.
+ * - A write, when the SSL output buffer contains some data that has not
+ *   been sent over the network yet.
+ * - An asynchronous callback that has not completed yet. */
+static int mbedtls_status_is_ssl_in_progress( int ret )
+{
+    return( ret == MBEDTLS_ERR_SSL_WANT_READ ||
+            ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
+            ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
+}
+
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 typedef struct
 {
@@ -2526,9 +2543,7 @@ handshake:
         }
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
-        if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
-            ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
-            ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
+        if( ! mbedtls_status_is_ssl_in_progress( ret ) )
             break;
 
         /* For event-driven IO, wait for socket to become available */
@@ -2651,9 +2666,7 @@ data_exchange:
             memset( buf, 0, sizeof( buf ) );
             ret = mbedtls_ssl_read( &ssl, buf, len );
 
-            if( ret == MBEDTLS_ERR_SSL_WANT_READ ||
-                ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
-                ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
+            if( mbedtls_status_is_ssl_in_progress( ret ) )
             {
                 if( opt.event == 1 /* level triggered IO */ )
                 {
@@ -2784,9 +2797,7 @@ data_exchange:
              * returns `MBEDTLS_ERR_SSL_WANT_READ`, because the pending messages
              * might be discarded (e.g. because they are retransmissions). */
         }
-        while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
-               ret == MBEDTLS_ERR_SSL_WANT_WRITE ||
-               ret == MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
+        while( mbedtls_status_is_ssl_in_progress( ret ) );
 
         if( ret <= 0 )
         {
@@ -2821,9 +2832,7 @@ data_exchange:
 
         while( ( ret = mbedtls_ssl_renegotiate( &ssl ) ) != 0 )
         {
-            if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
-                ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
-                ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
+            if( ! mbedtls_status_is_ssl_in_progress( ret ) )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_renegotiate returned %d\n\n", ret );
                 goto reset;
@@ -2866,9 +2875,7 @@ data_exchange:
                     goto reset;
                 }
 
-                if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
-                    ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
-                    ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
+                if( ! mbedtls_status_is_ssl_in_progress( ret ) )
                 {
                     mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
                     goto reset;
@@ -2892,9 +2899,7 @@ data_exchange:
         {
             ret = mbedtls_ssl_write( &ssl, buf, len );
 
-            if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
-                ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
-                ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
+            if( ! mbedtls_status_is_ssl_in_progress( ret ) )
                 break;
 
             /* For event-driven IO, wait for socket to become available */

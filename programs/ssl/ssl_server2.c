@@ -933,7 +933,7 @@ static const char *const ssl_async_operation_names[] =
 
 typedef struct
 {
-    size_t slot;
+    unsigned slot;
     ssl_async_operation_type_t operation_type;
     mbedtls_md_type_t md_alg;
     unsigned char input[SSL_ASYNC_INPUT_MAX_SIZE];
@@ -950,7 +950,7 @@ static int ssl_async_start( mbedtls_ssl_context *ssl,
 {
     ssl_async_key_context_t *config_data =
         mbedtls_ssl_conf_get_async_config_data( ssl->conf );
-    size_t slot;
+    unsigned slot;
     ssl_async_operation_context_t *ctx = NULL;
     const char *op_name = ssl_async_operation_names[op_type];
 
@@ -971,7 +971,7 @@ static int ssl_async_start( mbedtls_ssl_context *ssl,
                         op_name );
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH );
     }
-    mbedtls_printf( "Async %s callback: using key slot %zd, delay=%u.\n",
+    mbedtls_printf( "Async %s callback: using key slot %u, delay=%u.\n",
                     op_name, slot, config_data->slots[slot].delay );
 
     if( config_data->inject_error == SSL_ASYNC_INJECT_ERROR_START )
@@ -1036,7 +1036,7 @@ static int ssl_async_resume( mbedtls_ssl_context *ssl,
     if( ctx->remaining_delay > 0 )
     {
         --ctx->remaining_delay;
-        mbedtls_printf( "Async resume (slot %zd): call %u more times.\n",
+        mbedtls_printf( "Async resume (slot %u): call %u more times.\n",
                         ctx->slot, ctx->remaining_delay );
         return( MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS );
     }
@@ -1059,7 +1059,7 @@ static int ssl_async_resume( mbedtls_ssl_context *ssl,
                                    config_data->f_rng, config_data->p_rng );
             break;
         default:
-            mbedtls_printf( "Async resume (slot %zd): unknown operation type %ld. This shouldn't happen.\n",
+            mbedtls_printf( "Async resume (slot %u): unknown operation type %ld. This shouldn't happen.\n",
                             ctx->slot, (long) ctx->operation_type );
             return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
             break;
@@ -1072,7 +1072,7 @@ static int ssl_async_resume( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
     }
 
-    mbedtls_printf( "Async resume (slot %zd): %s done, status=%d.\n",
+    mbedtls_printf( "Async resume (slot %u): %s done, status=%d.\n",
                     ctx->slot, op_name, ret );
     mbedtls_free( ctx );
     return( ret );

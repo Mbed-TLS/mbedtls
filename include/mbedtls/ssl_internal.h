@@ -310,7 +310,7 @@ struct mbedtls_ssl_handshake_params
 #endif
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-    int async_in_progress : 1;          /*!< an asynchronous operation is in progress */
+    unsigned int async_in_progress : 1; /*!< an asynchronous operation is in progress */
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)

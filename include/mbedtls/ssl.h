@@ -560,7 +560,7 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  *
  *                  This callback is called during an SSL handshake to start
  *                  a signature decryption operation using an
- *                  external processor. The parameter \c cert contains
+ *                  external processor. The parameter \p cert contains
  *                  the public key; it is up to the callback function to
  *                  determine how to access the associated private key.
  *
@@ -568,11 +568,11 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  *                  does not wait for the operation to complete. This allows
  *                  the handshake step to be non-blocking.
  *
- *                  The parameters \c ssl and \c cert are
+ *                  The parameters \p ssl and \p cert are
  *                  guaranteed to remain valid as long as the SSL
  *                  configuration remains valid. On the other hand, this
- *                  function must save the contents of \c hash if the value
- *                  is needed for later processing, because the \c hash buffer
+ *                  function must save the contents of \p hash if the value
+ *                  is needed for later processing, because the \p hash buffer
  *                  is no longer valid after this function returns.
  *
  *                  This function may call mbedtls_ssl_async_set_data() to
@@ -604,16 +604,16 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  *                        no longer valid when the function returns.
  * \param hash_len        Size of the \c hash buffer in bytes.
  *
- * \return          - 0 if the operation was started successfully and the SSL
- *                    stack should call the resume callback immediately.
- *                  - \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if the operation
- *                    was started successfully and the SSL stack should return
- *                    immediately without calling the resume callback yet.
- *                  - \c MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH if the external
- *                    processor does not support this key. The SSL stack will
- *                    use the private key object instead.
- *                  - Any other error indicates a fatal failure and is
- *                    propagated up the call chain.
+ * \return          0 if the operation was started successfully and the SSL
+ *                  stack should call the resume callback immediately.
+ * \return          #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if the operation
+ *                  was started successfully and the SSL stack should return
+ *                  immediately without calling the resume callback yet.
+ * \return          #MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH if the external
+ *                  processor does not support this key. The SSL stack will
+ *                  use the private key object instead.
+ * \return          Any other error indicates a fatal failure and is
+ *                  propagated up the call chain.
  */
 typedef int mbedtls_ssl_async_sign_t( void *config_data,
                                       mbedtls_ssl_context *ssl,
@@ -627,7 +627,7 @@ typedef int mbedtls_ssl_async_sign_t( void *config_data,
  *
  *                  This callback is called during an SSL handshake to start
  *                  an RSA decryption operation using an
- *                  external processor. The parameter \c cert contains
+ *                  external processor. The parameter \p cert contains
  *                  the public key; it is up to the callback function to
  *                  determine how to access the associated private key.
  *
@@ -635,11 +635,11 @@ typedef int mbedtls_ssl_async_sign_t( void *config_data,
  *                  does not wait for the operation to complete. This allows
  *                  the handshake step to be non-blocking.
  *
- *                  The parameters \c ssl and \c cert are
+ *                  The parameters \p ssl and \p cert are
  *                  guaranteed to remain valid as long as the SSL
  *                  configuration remains valid. On the other hand, this
- *                  function must save the contents of \c input if the value
- *                  is needed for later processing, because the \c input buffer
+ *                  function must save the contents of \p input if the value
+ *                  is needed for later processing, because the \p input buffer
  *                  is no longer valid after this function returns.
  *
  *                  This function may call mbedtls_ssl_async_set_data() to
@@ -653,18 +653,18 @@ typedef int mbedtls_ssl_async_sign_t( void *config_data,
  * \param cert            Certificate containing the public key.
  * \param input           Buffer containing the input ciphertext. This buffer
  *                        is no longer valid when the function returns.
- * \param input_len       Size of the \c input buffer in bytes.
+ * \param input_len       Size of the \p input buffer in bytes.
  *
- * \return          - 0 if the operation was started successfully and the SSL
- *                    stack should call the resume callback immediately.
- *                  - \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if the operation
- *                    was started successfully and the SSL stack should return
- *                    immediately without calling the resume callback yet.
- *                  - \c MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH if the external
- *                    processor does not support this key. The SSL stack will
- *                    use the private key object instead.
- *                  - Any other error indicates a fatal failure and is
- *                    propagated up the call chain.
+ * \return          0 if the operation was started successfully and the SSL
+ *                  stack should call the resume callback immediately.
+ * \return          #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if the operation
+ *                  was started successfully and the SSL stack should return
+ *                  immediately without calling the resume callback yet.
+ * \return          #MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH if the external
+ *                  processor does not support this key. The SSL stack will
+ *                  use the private key object instead.
+ * \return          Any other error indicates a fatal failure and is
+ *                  propagated up the call chain.
  */
 typedef int mbedtls_ssl_async_decrypt_t( void *config_data,
                                          mbedtls_ssl_context *ssl,
@@ -678,8 +678,8 @@ typedef int mbedtls_ssl_async_decrypt_t( void *config_data,
  *
  *                  This callback is called during an SSL handshake to resume
  *                  an external operation started by the
- *                  \c mbedtls_ssl_async_sign_t or
- *                  \c mbedtls_ssl_async_decrypt_t callback.
+ *                  ::mbedtls_ssl_async_sign_t or
+ *                  ::mbedtls_ssl_async_decrypt_t callback.
  *
  *                  This function typically checks the status of a pending
  *                  request or causes the request queue to make progress, and
@@ -697,17 +697,17 @@ typedef int mbedtls_ssl_async_decrypt_t( void *config_data,
  *                        modified other than via mbedtls_ssl_async_set_data().
  * \param output          Buffer containing the output (signature or decrypted
  *                        data) on success.
- * \param output_len      On success, number of bytes written to \c output.
- * \param output_size     Size of the \c output buffer in bytes.
+ * \param output_len      On success, number of bytes written to \p output.
+ * \param output_size     Size of the \p output buffer in bytes.
  *
- * \return          - 0 if output of the operation is available in the
- *                    \c output buffer.
- *                  - \c MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if the operation
- *                    is still in progress. Subsequent requests for progress
- *                    on the SSL connection will call the resume callback
- *                    again.
- *                  - Any other error means that the operation is aborted.
- *                    The SSL handshake is aborted.
+ * \return          0 if output of the operation is available in the
+ *                  \p output buffer.
+ * \return          #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if the operation
+ *                  is still in progress. Subsequent requests for progress
+ *                  on the SSL connection will call the resume callback
+ *                  again.
+ * \return          Any other error means that the operation is aborted.
+ *                  The SSL handshake is aborted.
  */
 typedef int mbedtls_ssl_async_resume_t( void *config_data,
                                         mbedtls_ssl_context *ssl,
@@ -1511,24 +1511,24 @@ void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
  *
  * \param conf              SSL configuration context
  * \param f_async_sign      Callback to start a signature operation. See
- *                          the description of \c mbedtls_ssl_async_sign_t
- *                          for more information. This may be NULL if the
+ *                          the description of ::mbedtls_ssl_async_sign_t
+ *                          for more information. This may be \c NULL if the
  *                          external processor does not support any signature
  *                          operation; in this case the private key object
  *                          associated with the certificate will be used.
  * \param f_async_decrypt   Callback to start a decryption operation. See
- *                          the description of \c mbedtls_ssl_async_decrypt_t
- *                          for more information. This may be NULL if the
+ *                          the description of ::mbedtls_ssl_async_decrypt_t
+ *                          for more information. This may be \c NULL if the
  *                          external processor does not support any decryption
  *                          operation; in this case the private key object
  *                          associated with the certificate will be used.
  * \param f_async_resume    Callback to resume an asynchronous operation. See
- *                          the description of \c mbedtls_ssl_async_resume_t
+ *                          the description of ::mbedtls_ssl_async_resume_t
  *                          for more information. This may not be \c NULL unless
  *                          \p f_async_sign and \p f_async_decrypt are both
  *                          \c NULL.
  * \param f_async_cancel    Callback to cancel an asynchronous operation. See
- *                          the description of \c mbedtls_ssl_async_cancel_t
+ *                          the description of ::mbedtls_ssl_async_cancel_t
  *                          for more information. This may be \c NULL if
  *                          no cleanup is needed.
  * \param config_data       A pointer to configuration data which will be

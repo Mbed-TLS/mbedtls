@@ -3561,7 +3561,8 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
     ret = ssl->conf->f_rng( ssl->conf->p_rng, fake_pms, sizeof( fake_pms ) );
     if( ret != 0 )
     {
-        /* It's ok to abort on an RNG failure, since this does not  */
+        /* It's ok to abort on an RNG failure, since this does not reveal
+         * anything about the RSA decryption. */
         return( ret );
     }
 

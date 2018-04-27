@@ -971,8 +971,13 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl );
  * \note           No copy of the configuration context is made, it can be
  *                 shared by many mbedtls_ssl_context structures.
  *
- * \warning        Modifying the conf structure after it has been used in this
- *                 function is unsupported!
+ * \warning        The conf structure will be accessed during the session.
+ *                 It must not be modified or freed as long as the session
+ *                 is active.
+ *
+ * \warning        This function must be called exactly once per context.
+ *                 Calling mbedtls_ssl_setup again is not supported, even
+ *                 if no session is active.
  *
  * \param ssl      SSL context
  * \param conf     SSL configuration to use
@@ -1586,6 +1591,10 @@ void mbedtls_ssl_conf_cert_profile( mbedtls_ssl_config *conf,
 
 /**
  * \brief          Set the data required to verify peer certificate
+ *
+ * \note           See \c mbedtls_x509_crt_verify() for notes regarding the
+ *                 parameters ca_chain (maps to trust_ca for that function)
+ *                 and ca_crl.
  *
  * \param conf     SSL configuration
  * \param ca_chain trusted CA chain (meaning all fully trusted top-level CAs)
@@ -2511,7 +2520,9 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
  *
  * \note           When this function returns MBEDTLS_ERR_SSL_WANT_WRITE/READ,
  *                 it must be called later with the *same* arguments,
- *                 until it returns a positive value.
+ *                 until it returns a positive value. When the function returns
+ *                 MBEDTLS_ERR_SSL_WANT_WRITE there may be some partial
+ *                 data in the output buffer, however this is not yet sent.
  *
  * \note           If the requested length is greater than the maximum
  *                 fragment length (either the built-in limit or the one set

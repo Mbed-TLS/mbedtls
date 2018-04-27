@@ -1049,7 +1049,8 @@
 /**
  * \def MBEDTLS_RSA_NO_CRT
  *
- * Do not use the Chinese Remainder Theorem for the RSA private operation.
+ * Do not use the Chinese Remainder Theorem
+ * for the RSA private operation.
  *
  * Uncomment this macro to disable the use of CRT in RSA.
  *

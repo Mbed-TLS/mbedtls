@@ -328,7 +328,7 @@ if [ $KEEP_GOING -eq 1 ]; then
     start_red=
     end_color=
     if [ -t 1 ]; then
-        case "$TERM" in
+        case "${TERM:-}" in
             *color*|cygwin|linux|rxvt*|screen|[Eex]term*)
                 start_red=$(printf '\033[31m')
                 end_color=$(printf '\033[0m')
@@ -492,7 +492,7 @@ msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
 if_build_succeeded tests/ssl-opt.sh
 
 msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
-if_build_succeeded tests/scripts/test-ref-configs.pl
+record_status tests/scripts/test-ref-configs.pl
 
 msg "build: with ASan (rebuild after ref-configs)" # ~ 1 min
 make
@@ -530,16 +530,32 @@ make test
 msg "test: !MBEDTLS_SSL_RENEGOTIATION - ssl-opt.sh (ASan build)" # ~ 6 min
 if_build_succeeded tests/ssl-opt.sh
 
-msg "build: cmake, full config, clang, C99" # ~ 50s
+msg "build: Default + RSA_NO_CRT (ASan build)" # ~ 6 min
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_RSA_NO_CRT
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: RSA_NO_CRT - main suites (inc. selftests) (ASan build)" # ~ 50s
+make test
+
+msg "test: RSA_NO_CRT - RSA-related part of ssl-opt.sh (ASan build)" # ~ 5s
+tests/ssl-opt.sh -f RSA
+
+msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
+tests/compat.sh -t RSA
+
+msg "build: cmake, full config, clang" # ~ 50s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
 CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
-make CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic'
+make
 
 msg "test: main suites (full config)" # ~ 5s
-make CFLAGS='-Werror -Wall -Wextra' test
+make test
 
 msg "test: ssl-opt.sh default (full config)" # ~ 1s
 if_build_succeeded tests/ssl-opt.sh -f Default
@@ -549,13 +565,19 @@ if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_
 
 msg "test/build: curves.pl (gcc)" # ~ 4 min
 cleanup
-cmake -D CMAKE_BUILD_TYPE:String=Debug .
-if_build_succeeded tests/scripts/curves.pl
+record_status tests/scripts/curves.pl
+
+msg "test/build: depends-hashes.pl (gcc)" # ~ 2 min
+cleanup
+record_status tests/scripts/depends-hashes.pl
+
+msg "test/build: depends-pkalgs.pl (gcc)" # ~ 2 min
+cleanup
+record_status tests/scripts/depends-pkalgs.pl
 
 msg "test/build: key-exchanges (gcc)" # ~ 1 min
 cleanup
-cmake -D CMAKE_BUILD_TYPE:String=Check .
-if_build_succeeded tests/scripts/key-exchanges.pl
+record_status tests/scripts/key-exchanges.pl
 
 msg "build: Unix make, -Os (gcc)" # ~ 30s
 cleanup

@@ -14,7 +14,7 @@ void pbkdf2_hmac( int hash, char *hex_password_string,
 {
     unsigned char pw_str[100];
     unsigned char salt_str[100];
-    unsigned char dst_str[100];
+    unsigned char dst_str[200];
 
     mbedtls_md_context_t ctx;
     const mbedtls_md_info_t *info;
@@ -24,9 +24,9 @@ void pbkdf2_hmac( int hash, char *hex_password_string,
 
     mbedtls_md_init( &ctx );
 
-    memset(pw_str, 0x00, 100);
-    memset(salt_str, 0x00, 100);
-    memset(dst_str, 0x00, 100);
+    memset(pw_str, 0x00, sizeof(pw_str));
+    memset(salt_str, 0x00, sizeof(salt_str));
+    memset(dst_str, 0x00, sizeof(dst_str));
 
     pw_len = unhexify( pw_str, hex_password_string );
     salt_len = unhexify( salt_str, hex_salt_string );
@@ -46,7 +46,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ASN1_PARSE_C */
 void mbedtls_pkcs5_pbes2( int params_tag, char *params_hex, char *pw_hex,
                   char *data_hex, int ref_ret, char *ref_out_hex )
 {

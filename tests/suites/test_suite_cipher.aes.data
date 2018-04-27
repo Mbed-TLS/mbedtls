@@ -2,765 +2,789 @@ Decrypt empty buffer
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 dec_empty_buf:
 
-AES Encrypt and decrypt 0 bytes
+AES-128 CBC - Encrypt and decrypt 0 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:0:-1
 
-AES Encrypt and decrypt 1 byte
+AES-128 CBC - Encrypt and decrypt 1 byte with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:1:-1
 
-AES Encrypt and decrypt 2 bytes
+AES-128 CBC - Encrypt and decrypt 2 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:2:-1
 
-AES Encrypt and decrypt 7 bytes
+AES-128 CBC - Encrypt and decrypt 7 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:7:-1
 
-AES Encrypt and decrypt 8 bytes
+AES-128 CBC - Encrypt and decrypt 8 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:8:-1
 
-AES Encrypt and decrypt 9 bytes
+AES-128 CBC - Encrypt and decrypt 9 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:9:-1
 
-AES Encrypt and decrypt 15 bytes
+AES-128 CBC - Encrypt and decrypt 15 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:15:-1
 
-AES Encrypt and decrypt 16 bytes
+AES-128 CBC - Encrypt and decrypt 16 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:16:-1
 
-AES Encrypt and decrypt 17 bytes
+AES-128 CBC - Encrypt and decrypt 17 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:17:-1
 
-AES Encrypt and decrypt 31 bytes
+AES-128 CBC - Encrypt and decrypt 31 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:31:-1
 
-AES Encrypt and decrypt 32 bytes
+AES-128 CBC - Encrypt and decrypt 32 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:32:-1
 
-AES Encrypt and decrypt 33 bytes
+AES-128 CBC - Encrypt and decrypt 33 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:33:-1
 
-AES Encrypt and decrypt 47 bytes
+AES-128 CBC - Encrypt and decrypt 47 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:47:-1
 
-AES Encrypt and decrypt 48 bytes
+AES-128 CBC - Encrypt and decrypt 48 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:48:-1
 
-AES Encrypt and decrypt 49 bytes
+AES-128 CBC - Encrypt and decrypt 49 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:49:-1
 
-AES Encrypt and decrypt 0 bytes with one and zeros padding
+AES-128 CBC - Encrypt and decrypt 0 bytes with one and zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:0:MBEDTLS_PADDING_ONE_AND_ZEROS
 
-AES Encrypt and decrypt 1 byte with one and zeros padding
+AES-128 CBC - Encrypt and decrypt 1 byte with one and zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:1:MBEDTLS_PADDING_ONE_AND_ZEROS
 
-AES Encrypt and decrypt 2 bytes with one and zeros padding
+AES-128 CBC - Encrypt and decrypt 2 bytes with one and zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:2:MBEDTLS_PADDING_ONE_AND_ZEROS
 
-AES Encrypt and decrypt 7 bytes with one and zeros padding
+AES-128 CBC - Encrypt and decrypt 7 bytes with one and zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:7:MBEDTLS_PADDING_ONE_AND_ZEROS
 
-AES Encrypt and decrypt 8 bytes with one and zeros padding
+AES-128 CBC - Encrypt and decrypt 8 bytes with one and zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:8:MBEDTLS_PADDING_ONE_AND_ZEROS
 
-AES Encrypt and decrypt 9 bytes with one and zeros padding
+AES-128 CBC - Encrypt and decrypt 9 bytes with one and zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:9:MBEDTLS_PADDING_ONE_AND_ZEROS
 
-AES Encrypt and decrypt 15 bytes with one and zeros padding
+AES-128 CBC - Encrypt and decrypt 15 bytes with one and zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:15:MBEDTLS_PADDING_ONE_AND_ZEROS
 
-AES Encrypt and decrypt 16 bytes with one and zeros padding
+AES-128 CBC - Encrypt and decrypt 16 bytes with one and zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:16:MBEDTLS_PADDING_ONE_AND_ZEROS
 
-AES Encrypt and decrypt 17 bytes with one and zeros padding
+AES-128 CBC - Encrypt and decrypt 17 bytes with one and zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:17:MBEDTLS_PADDING_ONE_AND_ZEROS
 
-AES Encrypt and decrypt 31 bytes with one and zeros padding
+AES-128 CBC - Encrypt and decrypt 31 bytes with one and zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:31:MBEDTLS_PADDING_ONE_AND_ZEROS
 
-AES Encrypt and decrypt 32 bytes with one and zeros padding
+AES-128 CBC - Encrypt and decrypt 32 bytes with one and zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:32:MBEDTLS_PADDING_ONE_AND_ZEROS
 
-AES Encrypt and decrypt 33 bytes with one and zeros padding
+AES-128 CBC - Encrypt and decrypt 33 bytes with one and zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:33:MBEDTLS_PADDING_ONE_AND_ZEROS
 
-AES Encrypt and decrypt 47 bytes with one and zeros padding
+AES-128 CBC - Encrypt and decrypt 47 bytes with one and zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:47:MBEDTLS_PADDING_ONE_AND_ZEROS
 
-AES Encrypt and decrypt 48 bytes with one and zeros padding
+AES-128 CBC - Encrypt and decrypt 48 bytes with one and zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:48:MBEDTLS_PADDING_ONE_AND_ZEROS
 
-AES Encrypt and decrypt 49 bytes with one and zeros padding
+AES-128 CBC - Encrypt and decrypt 49 bytes with one and zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ONE_AND_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:49:MBEDTLS_PADDING_ONE_AND_ZEROS
 
-AES Encrypt and decrypt 0 bytes with zeros and len padding
+AES-128 CBC - Encrypt and decrypt 0 bytes with zeros and len padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:0:MBEDTLS_PADDING_ZEROS_AND_LEN
 
-AES Encrypt and decrypt 1 byte with zeros and len padding
+AES-128 CBC - Encrypt and decrypt 1 byte with zeros and len padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:1:MBEDTLS_PADDING_ZEROS_AND_LEN
 
-AES Encrypt and decrypt 2 bytes with zeros and len padding
+AES-128 CBC - Encrypt and decrypt 2 bytes with zeros and len padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:2:MBEDTLS_PADDING_ZEROS_AND_LEN
 
-AES Encrypt and decrypt 7 bytes with zeros and len padding
+AES-128 CBC - Encrypt and decrypt 7 bytes with zeros and len padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:7:MBEDTLS_PADDING_ZEROS_AND_LEN
 
-AES Encrypt and decrypt 8 bytes with zeros and len padding
+AES-128 CBC - Encrypt and decrypt 8 bytes with zeros and len padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:8:MBEDTLS_PADDING_ZEROS_AND_LEN
 
-AES Encrypt and decrypt 9 bytes with zeros and len padding
+AES-128 CBC - Encrypt and decrypt 9 bytes with zeros and len padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:9:MBEDTLS_PADDING_ZEROS_AND_LEN
 
-AES Encrypt and decrypt 15 bytes with zeros and len padding
+AES-128 CBC - Encrypt and decrypt 15 bytes with zeros and len padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:15:MBEDTLS_PADDING_ZEROS_AND_LEN
 
-AES Encrypt and decrypt 16 bytes with zeros and len padding
+AES-128 CBC - Encrypt and decrypt 16 bytes with zeros and len padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:16:MBEDTLS_PADDING_ZEROS_AND_LEN
 
-AES Encrypt and decrypt 17 bytes with zeros and len padding
+AES-128 CBC - Encrypt and decrypt 17 bytes with zeros and len padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:17:MBEDTLS_PADDING_ZEROS_AND_LEN
 
-AES Encrypt and decrypt 31 bytes with zeros and len padding
+AES-128 CBC - Encrypt and decrypt 31 bytes with zeros and len padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:31:MBEDTLS_PADDING_ZEROS_AND_LEN
 
-AES Encrypt and decrypt 32 bytes with zeros and len padding
+AES-128 CBC - Encrypt and decrypt 32 bytes with zeros and len padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:32:MBEDTLS_PADDING_ZEROS_AND_LEN
 
-AES Encrypt and decrypt 33 bytes with zeros and len padding
+AES-128 CBC - Encrypt and decrypt 33 bytes with zeros and len padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:33:MBEDTLS_PADDING_ZEROS_AND_LEN
 
-AES Encrypt and decrypt 47 bytes with zeros and len padding
+AES-128 CBC - Encrypt and decrypt 47 bytes with zeros and len padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:47:MBEDTLS_PADDING_ZEROS_AND_LEN
 
-AES Encrypt and decrypt 48 bytes with zeros and len padding
+AES-128 CBC - Encrypt and decrypt 48 bytes with zeros and len padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:48:MBEDTLS_PADDING_ZEROS_AND_LEN
 
-AES Encrypt and decrypt 49 bytes with zeros and len padding
+AES-128 CBC - Encrypt and decrypt 49 bytes with zeros and len padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS_AND_LEN
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:49:MBEDTLS_PADDING_ZEROS_AND_LEN
 
-AES Encrypt and decrypt 0 bytes with zeros padding
+AES-128 CBC - Encrypt and decrypt 0 bytes with zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:0:MBEDTLS_PADDING_ZEROS
 
-AES Encrypt and decrypt 1 byte with zeros padding
+AES-128 CBC - Encrypt and decrypt 1 byte with zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:1:MBEDTLS_PADDING_ZEROS
 
-AES Encrypt and decrypt 2 bytes with zeros padding
+AES-128 CBC - Encrypt and decrypt 2 bytes with zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:2:MBEDTLS_PADDING_ZEROS
 
-AES Encrypt and decrypt 7 bytes with zeros padding
+AES-128 CBC - Encrypt and decrypt 7 bytes with zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:7:MBEDTLS_PADDING_ZEROS
 
-AES Encrypt and decrypt 8 bytes with zeros padding
+AES-128 CBC - Encrypt and decrypt 8 bytes with zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:8:MBEDTLS_PADDING_ZEROS
 
-AES Encrypt and decrypt 9 bytes with zeros padding
+AES-128 CBC - Encrypt and decrypt 9 bytes with zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:9:MBEDTLS_PADDING_ZEROS
 
-AES Encrypt and decrypt 15 bytes with zeros padding
+AES-128 CBC - Encrypt and decrypt 15 bytes with zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:15:MBEDTLS_PADDING_ZEROS
 
-AES Encrypt and decrypt 16 bytes with zeros padding
+AES-128 CBC - Encrypt and decrypt 16 bytes with zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:16:MBEDTLS_PADDING_ZEROS
 
-AES Encrypt and decrypt 17 bytes with zeros padding
+AES-128 CBC - Encrypt and decrypt 17 bytes with zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:17:MBEDTLS_PADDING_ZEROS
 
-AES Encrypt and decrypt 31 bytes with zeros padding
+AES-128 CBC - Encrypt and decrypt 31 bytes with zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:31:MBEDTLS_PADDING_ZEROS
 
-AES Encrypt and decrypt 32 bytes with zeros padding
+AES-128 CBC - Encrypt and decrypt 32 bytes with zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:32:MBEDTLS_PADDING_ZEROS
 
-AES Encrypt and decrypt 33 bytes with zeros padding
+AES-128 CBC - Encrypt and decrypt 33 bytes with zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:33:MBEDTLS_PADDING_ZEROS
 
-AES Encrypt and decrypt 47 bytes with zeros padding
+AES-128 CBC - Encrypt and decrypt 47 bytes with zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:47:MBEDTLS_PADDING_ZEROS
 
-AES Encrypt and decrypt 48 bytes with zeros padding
+AES-128 CBC - Encrypt and decrypt 48 bytes with zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:48:MBEDTLS_PADDING_ZEROS
 
-AES Encrypt and decrypt 49 bytes with zeros padding
+AES-128 CBC - Encrypt and decrypt 49 bytes with zeros padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_ZEROS
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:49:MBEDTLS_PADDING_ZEROS
 
-AES Encrypt and decrypt 0 bytes with no padding
+AES-128 CBC - Encrypt and decrypt 0 bytes with no padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:0:MBEDTLS_PADDING_NONE
 
-AES Encrypt and decrypt 16 bytes with no padding
+AES-128 CBC - Encrypt and decrypt 16 bytes with no padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:16:MBEDTLS_PADDING_NONE
 
-AES Encrypt and decrypt 32 bytes with no padding
+AES-128 CBC - Encrypt and decrypt 32 bytes with no padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:32:MBEDTLS_PADDING_NONE
 
-AES Encrypt and decrypt 48 bytes with no padding
+AES-128 CBC - Encrypt and decrypt 48 bytes with no padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CBC:"AES-128-CBC":128:48:MBEDTLS_PADDING_NONE
 
-AES Try encrypting 1 bytes with no padding
+AES-128 CBC - Try encrypting 1 bytes with no padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_fail:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_PADDING_NONE:128:1:MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED
 
-AES Try encrypting 2 bytes with no padding
+AES-128 CBC - Try encrypting 2 bytes with no padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_fail:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_PADDING_NONE:128:2:MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED
 
-AES Try encrypting 7 bytes with no padding
+AES-128 CBC - Try encrypting 7 bytes with no padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_fail:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_PADDING_NONE:128:7:MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED
 
-AES Try encrypting 8 bytes with no padding
+AES-128 CBC - Try encrypting 8 bytes with no padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_fail:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_PADDING_NONE:128:8:MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED
 
-AES Try encrypting 9 bytes with no padding
+AES-128 CBC - Try encrypting 9 bytes with no padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_fail:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_PADDING_NONE:128:9:MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED
 
-AES Try encrypting 15 bytes with no padding
+AES-128 CBC - Try encrypting 15 bytes with no padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_fail:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_PADDING_NONE:128:15:MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED
 
-AES Try encrypting 17 bytes with no padding
+AES-128 CBC - Try encrypting 17 bytes with no padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_fail:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_PADDING_NONE:128:17:MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED
 
-AES Try encrypting 31 bytes with no padding
+AES-128 CBC - Try encrypting 31 bytes with no padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_fail:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_PADDING_NONE:128:31:MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED
 
-AES Try encrypting 33 bytes with no padding
+AES-128 CBC - Try encrypting 33 bytes with no padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_fail:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_PADDING_NONE:128:33:MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED
 
-AES Try encrypting 47 bytes with no padding
+AES-128 CBC - Try encrypting 47 bytes with no padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_fail:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_PADDING_NONE:128:47:MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED
 
-AES Try encrypting 49 bytes with no padding
+AES-128 CBC - Try encrypting 49 bytes with no padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_fail:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_PADDING_NONE:128:49:MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED
 
-AES Encrypt and decrypt 0 bytes in multiple parts
+AES-128 CBC - Encrypt and decrypt 0 bytes in multiple parts with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:0:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:0:0:MBEDTLS_PADDING_PKCS7:0:0:0:0
 
-AES Encrypt and decrypt 1 bytes in multiple parts 1
+AES-128 CBC - Encrypt and decrypt 1 bytes in multiple parts with PKCS7 padding 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:1:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:1:0:MBEDTLS_PADDING_PKCS7:0:0:0:0
 
-AES Encrypt and decrypt 1 bytes in multiple parts 2
+AES-128 CBC - Encrypt and decrypt 1 bytes in multiple parts with PKCS7 padding 2
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:0:1:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:0:1:MBEDTLS_PADDING_PKCS7:0:0:0:0
 
-AES Encrypt and decrypt 16 bytes in multiple parts 1
+AES-128 CBC - Encrypt and decrypt 16 bytes in multiple parts with PKCS7 padding 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:16:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:16:0:MBEDTLS_PADDING_PKCS7:16:0:0:16
 
-AES Encrypt and decrypt 16 bytes in multiple parts 2
+AES-128 CBC - Encrypt and decrypt 16 bytes in multiple parts with PKCS7 padding 2
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:0:16:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:0:16:MBEDTLS_PADDING_PKCS7:0:16:0:16
 
-AES Encrypt and decrypt 16 bytes in multiple parts 3
+AES-128 CBC - Encrypt and decrypt 16 bytes in multiple parts with PKCS7 padding 3
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:1:15:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:1:15:MBEDTLS_PADDING_PKCS7:0:16:0:16
 
-AES Encrypt and decrypt 16 bytes in multiple parts 4
+AES-128 CBC - Encrypt and decrypt 16 bytes in multiple parts with PKCS7 padding 4
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:15:1:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:15:1:MBEDTLS_PADDING_PKCS7:0:16:0:16
 
-AES Encrypt and decrypt 22 bytes in multiple parts 1
+AES-128 CBC - Encrypt and decrypt 22 bytes in multiple parts with PKCS7 padding 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:15:7:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:15:7:MBEDTLS_PADDING_PKCS7:0:16:0:16
 
-AES Encrypt and decrypt 22 bytes in multiple parts 1
+AES-128 CBC - Encrypt and decrypt 22 bytes in multiple parts with PKCS7 padding 2
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:16:6:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:16:6:MBEDTLS_PADDING_PKCS7:16:0:0:16
 
-AES Encrypt and decrypt 22 bytes in multiple parts 1
+AES-128 CBC - Encrypt and decrypt 23 bytes in multiple parts with PKCS7 padding 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:17:6:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:17:6:MBEDTLS_PADDING_PKCS7:16:0:16:0
 
-AES Encrypt and decrypt 32 bytes in multiple parts 1
+AES-128 CBC - Encrypt and decrypt 32 bytes in multiple parts with PKCS7 padding 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:16:16:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:16:16:MBEDTLS_PADDING_PKCS7:16:16:0:32
 
-AES Encrypt and decrypt 0 bytes
+AES-128 CBC - Encrypt and decrypt 0 bytes in multiple parts with no padding
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:0:0:MBEDTLS_PADDING_NONE:0:0:0:0
+
+AES-128 CBC - Encrypt and decrypt 16 bytes in multiple parts with no padding 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:16:0:MBEDTLS_PADDING_NONE:16:0:16:0
+
+AES-128 CBC - Encrypt and decrypt 16 bytes in multiple parts with no padding 2
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:0:16:MBEDTLS_PADDING_NONE:0:16:0:16
+
+AES-128 CBC - Encrypt and decrypt 16 bytes in multiple parts with no padding 3
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:1:15:MBEDTLS_PADDING_NONE:0:16:0:16
+
+AES-128 CBC - Encrypt and decrypt 16 bytes in multiple parts with no padding 4
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:15:1:MBEDTLS_PADDING_NONE:0:16:0:16
+
+AES-128 CBC - Encrypt and decrypt 32 bytes in multiple parts with no padding 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CBC:128:16:16:MBEDTLS_PADDING_NONE:16:16:16:16
+
+AES-128 CFB - Encrypt and decrypt 0 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:0:-1
 
-AES Encrypt and decrypt 1 byte
+AES-128 CFB - Encrypt and decrypt 1 byte
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:1:-1
 
-AES Encrypt and decrypt 2 bytes
+AES-128 CFB - Encrypt and decrypt 2 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:2:-1
 
-AES Encrypt and decrypt 7 bytes
+AES-128 CFB - Encrypt and decrypt 7 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:7:-1
 
-AES Encrypt and decrypt 8 bytes
+AES-128 CFB - Encrypt and decrypt 8 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:8:-1
 
-AES Encrypt and decrypt 9 bytes
+AES-128 CFB - Encrypt and decrypt 9 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:9:-1
 
-AES Encrypt and decrypt 15 bytes
+AES-128 CFB - Encrypt and decrypt 15 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:15:-1
 
-AES Encrypt and decrypt 16 bytes
+AES-128 CFB - Encrypt and decrypt 16 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:16:-1
 
-AES Encrypt and decrypt 17 bytes
+AES-128 CFB - Encrypt and decrypt 17 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:17:-1
 
-AES Encrypt and decrypt 31 bytes
+AES-128 CFB - Encrypt and decrypt 31 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:31:-1
 
-AES Encrypt and decrypt 32 bytes
+AES-128 CFB - Encrypt and decrypt 32 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:32:-1
 
-AES Encrypt and decrypt 32 bytes
+AES-128 CFB - Encrypt and decrypt 32 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:33:-1
 
-AES Encrypt and decrypt 47 bytes
+AES-128 CFB - Encrypt and decrypt 47 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:47:-1
 
-AES Encrypt and decrypt 48 bytes
+AES-128 CFB - Encrypt and decrypt 48 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:48:-1
 
-AES Encrypt and decrypt 49 bytes
+AES-128 CFB - Encrypt and decrypt 49 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:49:-1
 
-AES Encrypt and decrypt 0 bytes in multiple parts
+AES-128 CFB - Encrypt and decrypt 0 bytes in multiple parts
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:0:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:0:0:-1:0:0:0:0
 
-AES Encrypt and decrypt 1 bytes in multiple parts 1
+AES-128 CFB - Encrypt and decrypt 1 bytes in multiple parts 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:1:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:1:0:-1:1:0:1:0
 
-AES Encrypt and decrypt 1 bytes in multiple parts 2
+AES-128 CFB - Encrypt and decrypt 1 bytes in multiple parts 2
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:0:1:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:0:1:-1:0:1:0:1
 
-AES Encrypt and decrypt 16 bytes in multiple parts 1
+AES-128 CFB - Encrypt and decrypt 16 bytes in multiple parts 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:16:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:16:0:-1:16:0:16:0
 
-AES Encrypt and decrypt 16 bytes in multiple parts 2
+AES-128 CFB - Encrypt and decrypt 16 bytes in multiple parts 2
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:0:16:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:0:16:-1:0:16:0:16
 
-AES Encrypt and decrypt 16 bytes in multiple parts 3
+AES-128 CFB - Encrypt and decrypt 16 bytes in multiple parts 3
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:1:15:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:1:15:-1:1:15:1:15
 
-AES Encrypt and decrypt 16 bytes in multiple parts 4
+AES-128 CFB - Encrypt and decrypt 16 bytes in multiple parts 4
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:15:1:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:15:1:-1:15:1:15:1
 
-AES Encrypt and decrypt 22 bytes in multiple parts 1
+AES-128 CFB - Encrypt and decrypt 22 bytes in multiple parts 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:15:7:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:15:7:-1:15:7:15:7
 
-AES Encrypt and decrypt 22 bytes in multiple parts 1
+AES-128 CFB - Encrypt and decrypt 22 bytes in multiple parts 2
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:16:6:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:16:6:-1:16:6:16:6
 
-AES Encrypt and decrypt 22 bytes in multiple parts 1
+AES-128 CFB - Encrypt and decrypt 23 bytes in multiple parts 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:17:6:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:17:6:-1:17:6:17:6
 
-AES Encrypt and decrypt 32 bytes in multiple parts 1
+AES-128 CFB - Encrypt and decrypt 32 bytes in multiple parts 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:16:16:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:16:16:-1:16:16:16:16
 
-AES Encrypt and decrypt 0 bytes
+AES-128 CTR - Encrypt and decrypt 0 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:0:-1
 
-AES Encrypt and decrypt 1 byte
+AES-128 CTR - Encrypt and decrypt 1 byte
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:1:-1
 
-AES Encrypt and decrypt 2 bytes
+AES-128 CTR - Encrypt and decrypt 2 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:2:-1
 
-AES Encrypt and decrypt 7 bytes
+AES-128 CTR - Encrypt and decrypt 7 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:7:-1
 
-AES Encrypt and decrypt 8 bytes
+AES-128 CTR - Encrypt and decrypt 8 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:8:-1
 
-AES Encrypt and decrypt 9 bytes
+AES-128 CTR - Encrypt and decrypt 9 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:9:-1
 
-AES Encrypt and decrypt 15 bytes
+AES-128 CTR - Encrypt and decrypt 15 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:15:-1
 
-AES Encrypt and decrypt 16 bytes
+AES-128 CTR - Encrypt and decrypt 16 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:16:-1
 
-AES Encrypt and decrypt 17 bytes
+AES-128 CTR - Encrypt and decrypt 17 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:17:-1
 
-AES Encrypt and decrypt 31 bytes
+AES-128 CTR - Encrypt and decrypt 31 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:31:-1
 
-AES Encrypt and decrypt 32 bytes
+AES-128 CTR - Encrypt and decrypt 32 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:32:-1
 
-AES Encrypt and decrypt 32 bytes
+AES-128 CTR - Encrypt and decrypt 32 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:33:-1
 
-AES Encrypt and decrypt 47 bytes
+AES-128 CTR - Encrypt and decrypt 47 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:47:-1
 
-AES Encrypt and decrypt 48 bytes
+AES-128 CTR - Encrypt and decrypt 48 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:48:-1
 
-AES Encrypt and decrypt 49 bytes
+AES-128 CTR - Encrypt and decrypt 49 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:49:-1
 
-AES Encrypt and decrypt 0 bytes in multiple parts
+AES-128 CTR - Encrypt and decrypt 0 bytes in multiple parts
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:0:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:0:0:-1:0:0:0:0
 
-AES Encrypt and decrypt 1 bytes in multiple parts 1
+AES-128 CTR - Encrypt and decrypt 1 bytes in multiple parts 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:1:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:1:0:-1:1:0:1:0
 
-AES Encrypt and decrypt 1 bytes in multiple parts 2
+AES-128 CTR - Encrypt and decrypt 1 bytes in multiple parts 2
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:0:1:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:0:1:-1:0:1:0:1
 
-AES Encrypt and decrypt 16 bytes in multiple parts 1
+AES-128 CTR - Encrypt and decrypt 16 bytes in multiple parts 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:16:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:16:0:-1:16:0:16:0
 
-AES Encrypt and decrypt 16 bytes in multiple parts 2
+AES-128 CTR - Encrypt and decrypt 16 bytes in multiple parts 2
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:0:16:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:0:16:-1:0:16:0:16
 
-AES Encrypt and decrypt 16 bytes in multiple parts 3
+AES-128 CTR - Encrypt and decrypt 16 bytes in multiple parts 3
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:1:15:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:1:15:-1:1:15:1:15
 
-AES Encrypt and decrypt 16 bytes in multiple parts 4
+AES-128 CTR - Encrypt and decrypt 16 bytes in multiple parts 4
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:15:1:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:15:1:-1:15:1:15:1
 
-AES Encrypt and decrypt 22 bytes in multiple parts 1
+AES-128 CTR - Encrypt and decrypt 22 bytes in multiple parts 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:15:7:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:15:7:-1:15:7:15:7
 
-AES Encrypt and decrypt 22 bytes in multiple parts 1
+AES-128 CTR - Encrypt and decrypt 22 bytes in multiple parts 2
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:16:6:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:16:6:-1:16:6:16:6
 
-AES Encrypt and decrypt 22 bytes in multiple parts 1
+AES-128 CTR - Encrypt and decrypt 23 bytes in multiple parts 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:17:6:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:17:6:-1:17:6:17:6
 
-AES Encrypt and decrypt 32 bytes in multiple parts 1
+AES-128 CTR - Encrypt and decrypt 32 bytes in multiple parts 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:16:16:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CTR:128:16:16:-1:16:16:16:16
 
-AES Encrypt and decrypt 0 bytes
+AES-192 CBC - Encrypt and decrypt 0 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_192_CBC:"AES-192-CBC":192:0:-1
 
-AES Encrypt and decrypt 1 byte
+AES-192 CBC - Encrypt and decrypt 1 byte with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_192_CBC:"AES-192-CBC":192:1:-1
 
-AES Encrypt and decrypt 2 bytes
+AES-192 CBC - Encrypt and decrypt 2 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_192_CBC:"AES-192-CBC":192:2:-1
 
-AES Encrypt and decrypt 7 bytes
+AES-192 CBC - Encrypt and decrypt 7 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_192_CBC:"AES-192-CBC":192:7:-1
 
-AES Encrypt and decrypt 8 bytes
+AES-192 CBC - Encrypt and decrypt 8 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_192_CBC:"AES-192-CBC":192:8:-1
 
-AES Encrypt and decrypt 9 bytes
+AES-192 CBC - Encrypt and decrypt 9 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_192_CBC:"AES-192-CBC":192:9:-1
 
-AES Encrypt and decrypt 15 bytes
+AES-192 CBC - Encrypt and decrypt 15 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_192_CBC:"AES-192-CBC":192:15:-1
 
-AES Encrypt and decrypt 16 bytes
+AES-192 CBC - Encrypt and decrypt 16 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_192_CBC:"AES-192-CBC":192:16:-1
 
-AES Encrypt and decrypt 17 bytes
+AES-192 CBC - Encrypt and decrypt 17 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_192_CBC:"AES-192-CBC":192:17:-1
 
-AES Encrypt and decrypt 31 bytes
+AES-192 CBC - Encrypt and decrypt 31 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_192_CBC:"AES-192-CBC":192:31:-1
 
-AES Encrypt and decrypt 32 bytes
+AES-192 CBC - Encrypt and decrypt 32 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_192_CBC:"AES-192-CBC":192:32:-1
 
-AES Encrypt and decrypt 33 bytes
+AES-192 CBC - Encrypt and decrypt 33 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_192_CBC:"AES-192-CBC":192:33:-1
 
-AES Encrypt and decrypt 47 bytes
+AES-192 CBC - Encrypt and decrypt 47 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_192_CBC:"AES-192-CBC":192:47:-1
 
-AES Encrypt and decrypt 48 bytes
+AES-192 CBC - Encrypt and decrypt 48 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_192_CBC:"AES-192-CBC":192:48:-1
 
-AES Encrypt and decrypt 49 bytes
+AES-192 CBC - Encrypt and decrypt 49 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_192_CBC:"AES-192-CBC":192:49:-1
 
-AES Encrypt and decrypt 0 bytes in multiple parts
+AES-192 CBC - Encrypt and decrypt 0 bytes in multiple parts with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:0:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:0:0:-1:0:0:0:0
 
-AES Encrypt and decrypt 1 bytes in multiple parts 1
+AES-192 CBC - Encrypt and decrypt 1 bytes in multiple parts with PKCS7 padding 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:1:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:1:0:-1:0:0:0:0
 
-AES Encrypt and decrypt 1 bytes in multiple parts 2
+AES-192 CBC - Encrypt and decrypt 1 bytes in multiple parts with PKCS7 padding 2
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:0:1:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:0:1:-1:0:0:0:0
 
-AES Encrypt and decrypt 16 bytes in multiple parts 1
+AES-192 CBC - Encrypt and decrypt 16 bytes in multiple parts with PKCS7 padding 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:16:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:16:0:-1:16:0:0:16
 
-AES Encrypt and decrypt 16 bytes in multiple parts 2
+AES-192 CBC - Encrypt and decrypt 16 bytes in multiple parts with PKCS7 padding 2
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:0:16:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:0:16:-1:0:16:0:16
 
-AES Encrypt and decrypt 16 bytes in multiple parts 3
+AES-192 CBC - Encrypt and decrypt 16 bytes in multiple parts with PKCS7 padding 3
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:1:15:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:1:15:-1:0:16:0:16
 
-AES Encrypt and decrypt 16 bytes in multiple parts 4
+AES-192 CBC - Encrypt and decrypt 16 bytes in multiple parts with PKCS7 padding 4
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:15:1:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:15:1:-1:0:16:0:16
 
-AES Encrypt and decrypt 22 bytes in multiple parts 1
+AES-192 CBC - Encrypt and decrypt 22 bytes in multiple parts with PKCS7 padding 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:15:7:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:15:7:-1:0:16:0:16
 
-AES Encrypt and decrypt 22 bytes in multiple parts 1
+AES-192 CBC - Encrypt and decrypt 22 bytes in multiple parts with PKCS7 padding 2
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:16:6:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:16:6:-1:16:0:0:16
 
-AES Encrypt and decrypt 22 bytes in multiple parts 1
+AES-192 CBC - Encrypt and decrypt 23 bytes in multiple parts with PKCS7 padding 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:17:6:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:17:6:-1:16:0:16:0
 
-AES Encrypt and decrypt 32 bytes in multiple parts 1
+AES-192 CBC - Encrypt and decrypt 32 bytes in multiple parts with PKCS7 padding 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:16:16:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_CBC:192:16:16:-1:16:16:0:32
 
-AES Encrypt and decrypt 0 bytes
+AES-256 CBC - Encrypt and decrypt 0 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_256_CBC:"AES-256-CBC":256:0:-1
 
-AES Encrypt and decrypt 1 byte
+AES-256 CBC - Encrypt and decrypt 1 byte with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_256_CBC:"AES-256-CBC":256:1:-1
 
-AES Encrypt and decrypt 2 bytes
+AES-256 CBC - Encrypt and decrypt 2 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_256_CBC:"AES-256-CBC":256:2:-1
 
-AES Encrypt and decrypt 7 bytes
+AES-256 CBC - Encrypt and decrypt 7 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_256_CBC:"AES-256-CBC":256:7:-1
 
-AES Encrypt and decrypt 8 bytes
+AES-256 CBC - Encrypt and decrypt 8 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_256_CBC:"AES-256-CBC":256:8:-1
 
-AES Encrypt and decrypt 9 bytes
+AES-256 CBC - Encrypt and decrypt 9 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_256_CBC:"AES-256-CBC":256:9:-1
 
-AES Encrypt and decrypt 15 bytes
+AES-256 CBC - Encrypt and decrypt 15 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_256_CBC:"AES-256-CBC":256:15:-1
 
-AES Encrypt and decrypt 16 bytes
+AES-256 CBC - Encrypt and decrypt 16 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_256_CBC:"AES-256-CBC":256:16:-1
 
-AES Encrypt and decrypt 17 bytes
+AES-256 CBC - Encrypt and decrypt 17 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_256_CBC:"AES-256-CBC":256:17:-1
 
-AES Encrypt and decrypt 31 bytes
+AES-256 CBC - Encrypt and decrypt 31 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_256_CBC:"AES-256-CBC":256:31:-1
 
-AES Encrypt and decrypt 32 bytes
+AES-256 CBC - Encrypt and decrypt 32 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_256_CBC:"AES-256-CBC":256:32:-1
 
-AES Encrypt and decrypt 33 bytes
+AES-256 CBC - Encrypt and decrypt 33 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_256_CBC:"AES-256-CBC":256:33:-1
 
-AES Encrypt and decrypt 47 bytes
+AES-256 CBC - Encrypt and decrypt 47 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_256_CBC:"AES-256-CBC":256:47:-1
 
-AES Encrypt and decrypt 48 bytes
+AES-256 CBC - Encrypt and decrypt 48 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_256_CBC:"AES-256-CBC":256:48:-1
 
-AES Encrypt and decrypt 49 bytes
+AES-256 CBC - Encrypt and decrypt 49 bytes with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 enc_dec_buf:MBEDTLS_CIPHER_AES_256_CBC:"AES-256-CBC":256:49:-1
 
-AES Encrypt and decrypt 0 bytes in multiple parts
+AES-256 CBC - Encrypt and decrypt 0 bytes in multiple parts with PKCS7 padding
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:0:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:0:0:-1:0:0:0:0
 
-AES Encrypt and decrypt 1 bytes in multiple parts 1
+AES-256 CBC - Encrypt and decrypt 1 bytes in multiple parts with PKCS7 padding 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:1:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:1:0:-1:0:0:0:0
 
-AES Encrypt and decrypt 1 bytes in multiple parts 2
+AES-256 CBC - Encrypt and decrypt 1 bytes in multiple parts with PKCS7 padding 2
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:0:1:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:0:1:-1:0:0:0:0
 
-AES Encrypt and decrypt 16 bytes in multiple parts 1
+AES-256 CBC - Encrypt and decrypt 16 bytes in multiple parts with PKCS7 padding 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:16:0:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:16:0:-1:16:0:0:16
 
-AES Encrypt and decrypt 16 bytes in multiple parts 2
+AES-256 CBC - Encrypt and decrypt 16 bytes in multiple parts with PKCS7 padding 2
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:0:16:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:0:16:-1:0:16:0:16
 
-AES Encrypt and decrypt 16 bytes in multiple parts 3
+AES-256 CBC - Encrypt and decrypt 16 bytes in multiple parts with PKCS7 padding 3
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:1:15:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:1:15:-1:0:16:0:16
 
-AES Encrypt and decrypt 16 bytes in multiple parts 4
+AES-256 CBC - Encrypt and decrypt 16 bytes in multiple parts with PKCS7 padding 4
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:15:1:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:15:1:-1:0:16:0:16
 
-AES Encrypt and decrypt 22 bytes in multiple parts 1
+AES-256 CBC - Encrypt and decrypt 22 bytes in multiple parts with PKCS7 padding 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:15:7:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:15:7:-1:0:16:0:16
 
-AES Encrypt and decrypt 22 bytes in multiple parts 1
+AES-256 CBC - Encrypt and decrypt 22 bytes in multiple parts with PKCS7 padding 2
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:16:6:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:16:6:-1:16:0:0:16
 
-AES Encrypt and decrypt 22 bytes in multiple parts 1
+AES-256 CBC - Encrypt and decrypt 23 bytes in multiple parts with PKCS7 padding 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:17:6:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:17:6:-1:16:0:16:0
 
-AES Encrypt and decrypt 32 bytes in multiple parts 1
+AES-256 CBC - Encrypt and decrypt 32 bytes in multiple parts with PKCS7 padding 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
-enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:16:16:
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_CBC:256:16:16:-1:16:16:0:32
 
 AES Decrypt test vector #0
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_PADDING_PKCS7:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7

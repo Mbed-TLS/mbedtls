@@ -35,9 +35,12 @@ SOEXT_TLS=so.10
 SOEXT_X509=so.0
 SOEXT_CRYPTO=so.2
 
-DLEXT=so
-# OSX shared library extension:
-# DLEXT=dylib
+# Set DLEXT=dylib to compile as a shared library for Mac OS X
+DLEXT ?= so
+
+# Set AR_DASH= (empty string) to use an ar implentation that does not accept
+# the - prefix for command line options (e.g. llvm-ar)
+AR_DASH ?= -
 
 # Windows shared library extension:
 ifdef WINDOWS_BUILD
@@ -91,9 +94,9 @@ shared: libmbedcrypto.$(DLEXT) libmbedx509.$(DLEXT) libmbedtls.$(DLEXT)
 # tls
 libmbedtls.a: $(OBJS_TLS)
 	echo "  AR    $@"
-	$(AR) -rc $@ $(OBJS_TLS)
+	$(AR) $(AR_DASH)rc $@ $(OBJS_TLS)
 	echo "  RL    $@"
-	$(AR) -s $@
+	$(AR) $(AR_DASH)s $@
 
 libmbedtls.$(SOEXT_TLS): $(OBJS_TLS) libmbedx509.so
 	echo "  LD    $@"
@@ -103,9 +106,9 @@ libmbedtls.so: libmbedtls.$(SOEXT_TLS)
 	echo "  LN    $@ -> $<"
 	ln -sf $< $@
 
-libmbedtls.dylib: $(OBJS_TLS)
+libmbedtls.dylib: $(OBJS_TLS) libmbedx509.dylib
 	echo "  LD    $@"
-	$(CC) -dynamiclib $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_TLS)
+	$(CC) -dynamiclib -L. -lmbedcrypto -lmbedx509 $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_TLS)
 
 libmbedtls.dll: $(OBJS_TLS) libmbedx509.dll
 	echo "  LD    $@"
@@ -114,9 +117,9 @@ libmbedtls.dll: $(OBJS_TLS) libmbedx509.dll
 # x509
 libmbedx509.a: $(OBJS_X509)
 	echo "  AR    $@"
-	$(AR) -rc $@ $(OBJS_X509)
+	$(AR) $(AR_DASH)rc $@ $(OBJS_X509)
 	echo "  RL    $@"
-	$(AR) -s $@
+	$(AR) $(AR_DASH)s $@
 
 libmbedx509.$(SOEXT_X509): $(OBJS_X509) libmbedcrypto.so
 	echo "  LD    $@"
@@ -126,9 +129,9 @@ libmbedx509.so: libmbedx509.$(SOEXT_X509)
 	echo "  LN    $@ -> $<"
 	ln -sf $< $@
 
-libmbedx509.dylib: $(OBJS_X509)
+libmbedx509.dylib: $(OBJS_X509) libmbedcrypto.dylib
 	echo "  LD    $@"
-	$(CC) -dynamiclib $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_X509)
+	$(CC) -dynamiclib -L. -lmbedcrypto  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@ $(OBJS_X509)
 
 libmbedx509.dll: $(OBJS_X509) libmbedcrypto.dll
 	echo "  LD    $@"
@@ -137,9 +140,9 @@ libmbedx509.dll: $(OBJS_X509) libmbedcrypto.dll
 # crypto
 libmbedcrypto.a: $(OBJS_CRYPTO)
 	echo "  AR    $@"
-	$(AR) -rc $@ $(OBJS_CRYPTO)
+	$(AR) $(AR_DASH)rc $@ $(OBJS_CRYPTO)
 	echo "  RL    $@"
-	$(AR) -s $@
+	$(AR) $(AR_DASH)s $@
 
 libmbedcrypto.$(SOEXT_CRYPTO): $(OBJS_CRYPTO)
 	echo "  LD    $@"

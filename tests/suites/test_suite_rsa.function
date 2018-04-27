@@ -122,7 +122,6 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
                          char *input_N, int radix_E, char *input_E,
                          char *result_hex_str )
 {
-    int res;
     unsigned char message_str[1000];
     unsigned char hash_result[1000];
     unsigned char output[1000];
@@ -163,9 +162,11 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
 
     TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
 
+#if defined(MBEDTLS_PKCS1_V15)
     /* For PKCS#1 v1.5, there is an alternative way to generate signatures */
     if( padding_mode == MBEDTLS_RSA_PKCS_V15 )
     {
+        int res;
         memset( output, 0x00, 1000 );
         memset( output_str, 0x00, 1000 );
 
@@ -186,6 +187,7 @@ void rsa_pkcs1_sign_raw( char *message_hex_string, char *hash_result_string,
             TEST_ASSERT( strcasecmp( (char *) output_str, result_hex_str ) == 0 );
         }
     }
+#endif /* MBEDTLS_PKCS1_V15 */
 
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &P );
@@ -201,13 +203,12 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
                            char *input_N, int radix_E, char *input_E,
                            char *result_hex_str, int correct )
 {
-    int res;
     unsigned char message_str[1000];
     unsigned char hash_result[1000];
     unsigned char result_str[1000];
     unsigned char output[1000];
     mbedtls_rsa_context ctx;
-    size_t hash_len, olen;
+    size_t hash_len;
 
     mbedtls_mpi N, E;
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &E );
@@ -234,10 +235,13 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
                               hash_len, hash_result,
                               result_str ) == correct );
 
+#if defined(MBEDTLS_PKCS1_V15)
     /* For PKCS#1 v1.5, there is an alternative way to verify signatures */
     if( padding_mode == MBEDTLS_RSA_PKCS_V15 )
     {
+        int res;
         int ok;
+        size_t olen;
 
         res = mbedtls_rsa_rsaes_pkcs1_v15_decrypt( &ctx,
                     NULL, NULL, MBEDTLS_RSA_PUBLIC,
@@ -259,6 +263,7 @@ void rsa_pkcs1_verify_raw( char *message_hex_string, char *hash_result_string,
                 TEST_ASSERT( ok == 0 );
         }
     }
+#endif /* MBEDTLS_PKCS1_V15 */
 
 exit:
     mbedtls_mpi_free( &N ); mbedtls_mpi_free( &E );

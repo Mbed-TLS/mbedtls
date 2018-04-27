@@ -855,8 +855,13 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
     {
-        mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc, mac_key_len );
-        mbedtls_md_hmac_starts( &transform->md_ctx_dec, mac_dec, mac_key_len );
+        /* For HMAC-based ciphersuites, initialize the HMAC transforms.
+           For AEAD-based ciphersuites, there is nothing to do here. */
+        if( mac_key_len != 0 )
+        {
+            mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc, mac_key_len );
+            mbedtls_md_hmac_starts( &transform->md_ctx_dec, mac_dec, mac_key_len );
+        }
     }
     else
 #endif
@@ -2103,6 +2108,7 @@ static int ssl_compress_buf( mbedtls_ssl_context *ssl )
 {
     int ret;
     unsigned char *msg_post = ssl->out_msg;
+    ptrdiff_t bytes_written = ssl->out_msg - ssl->out_buf;
     size_t len_pre = ssl->out_msglen;
     unsigned char *msg_pre = ssl->compress_buf;
 
@@ -2122,7 +2128,7 @@ static int ssl_compress_buf( mbedtls_ssl_context *ssl )
     ssl->transform_out->ctx_deflate.next_in = msg_pre;
     ssl->transform_out->ctx_deflate.avail_in = len_pre;
     ssl->transform_out->ctx_deflate.next_out = msg_post;
-    ssl->transform_out->ctx_deflate.avail_out = MBEDTLS_SSL_BUFFER_LEN;
+    ssl->transform_out->ctx_deflate.avail_out = MBEDTLS_SSL_BUFFER_LEN - bytes_written;
 
     ret = deflate( &ssl->transform_out->ctx_deflate, Z_SYNC_FLUSH );
     if( ret != Z_OK )
@@ -2132,7 +2138,7 @@ static int ssl_compress_buf( mbedtls_ssl_context *ssl )
     }
 
     ssl->out_msglen = MBEDTLS_SSL_BUFFER_LEN -
-                      ssl->transform_out->ctx_deflate.avail_out;
+                      ssl->transform_out->ctx_deflate.avail_out - bytes_written;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "after compression: msglen = %d, ",
                    ssl->out_msglen ) );
@@ -2149,6 +2155,7 @@ static int ssl_decompress_buf( mbedtls_ssl_context *ssl )
 {
     int ret;
     unsigned char *msg_post = ssl->in_msg;
+    ptrdiff_t header_bytes = ssl->in_msg - ssl->in_buf;
     size_t len_pre = ssl->in_msglen;
     unsigned char *msg_pre = ssl->compress_buf;
 
@@ -2168,7 +2175,8 @@ static int ssl_decompress_buf( mbedtls_ssl_context *ssl )
     ssl->transform_in->ctx_inflate.next_in = msg_pre;
     ssl->transform_in->ctx_inflate.avail_in = len_pre;
     ssl->transform_in->ctx_inflate.next_out = msg_post;
-    ssl->transform_in->ctx_inflate.avail_out = MBEDTLS_SSL_MAX_CONTENT_LEN;
+    ssl->transform_in->ctx_inflate.avail_out = MBEDTLS_SSL_BUFFER_LEN -
+                                               header_bytes;
 
     ret = inflate( &ssl->transform_in->ctx_inflate, Z_SYNC_FLUSH );
     if( ret != Z_OK )
@@ -2177,8 +2185,8 @@ static int ssl_decompress_buf( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_COMPRESSION_FAILED );
     }
 
-    ssl->in_msglen = MBEDTLS_SSL_MAX_CONTENT_LEN -
-                     ssl->transform_in->ctx_inflate.avail_out;
+    ssl->in_msglen = MBEDTLS_SSL_BUFFER_LEN -
+                     ssl->transform_in->ctx_inflate.avail_out - header_bytes;
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "after decompression: msglen = %d, ",
                    ssl->in_msglen ) );
@@ -2434,6 +2442,14 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
             if( ret < 0 )
                 return( ret );
 
+            if ( (size_t)ret > len || ( INT_MAX > SIZE_MAX && ret > SIZE_MAX ) )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1,
+                    ( "f_recv returned %d bytes but only %lu were requested",
+                    ret, (unsigned long)len ) );
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            }
+
             ssl->in_left += ret;
         }
     }
@@ -2480,6 +2496,14 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
 
         if( ret <= 0 )
             return( ret );
+
+        if( (size_t)ret > ssl->out_left || ( INT_MAX > SIZE_MAX && ret > SIZE_MAX ) )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+                ( "f_send returned %d bytes but only %lu bytes were sent",
+                ret, (unsigned long)ssl->out_left ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
 
         ssl->out_left -= ret;
     }
@@ -7685,8 +7709,14 @@ int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
          * Default
          */
         default:
-            conf->min_major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
-            conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_1; /* TLS 1.0 */
+            conf->min_major_ver = ( MBEDTLS_SSL_MIN_MAJOR_VERSION >
+                                    MBEDTLS_SSL_MIN_VALID_MAJOR_VERSION ) ?
+                                    MBEDTLS_SSL_MIN_MAJOR_VERSION :
+                                    MBEDTLS_SSL_MIN_VALID_MAJOR_VERSION;
+            conf->min_minor_ver = ( MBEDTLS_SSL_MIN_MINOR_VERSION >
+                                    MBEDTLS_SSL_MIN_VALID_MINOR_VERSION ) ?
+                                    MBEDTLS_SSL_MIN_MINOR_VERSION :
+                                    MBEDTLS_SSL_MIN_VALID_MINOR_VERSION;
             conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
             conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
 

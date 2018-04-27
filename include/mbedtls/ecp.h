@@ -76,10 +76,10 @@ typedef enum
     MBEDTLS_ECP_DP_BP384R1,        /*!< Domain parameters for 384-bit Brainpool curve. */
     MBEDTLS_ECP_DP_BP512R1,        /*!< Domain parameters for 512-bit Brainpool curve. */
     MBEDTLS_ECP_DP_CURVE25519,     /*!< Domain parameters for Curve25519. */
-    MBEDTLS_ECP_DP_CURVE448,       /*!< Domain parameters for Curve448. */
     MBEDTLS_ECP_DP_SECP192K1,      /*!< Domain parameters for 192-bit "Koblitz" curve. */
     MBEDTLS_ECP_DP_SECP224K1,      /*!< Domain parameters for 224-bit "Koblitz" curve. */
     MBEDTLS_ECP_DP_SECP256K1,      /*!< Domain parameters for 256-bit "Koblitz" curve. */
+    MBEDTLS_ECP_DP_CURVE448,       /*!< Domain parameters for Curve448. */
 } mbedtls_ecp_group_id;
 
 /**

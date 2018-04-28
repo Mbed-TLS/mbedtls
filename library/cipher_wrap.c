@@ -1399,6 +1399,9 @@ static const mbedtls_cipher_base_t null_base_info = {
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
     NULL,
 #endif
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+    NULL,
+#endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     NULL,
 #endif

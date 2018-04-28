@@ -237,6 +237,29 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_XTS */
+void aes_crypt_xts_size( int size, int retval )
+{
+    mbedtls_aes_xts_context ctx;
+    const unsigned char *src = NULL;
+    unsigned char *output = NULL;
+    unsigned char data_unit[16];
+    size_t length = size;
+
+    mbedtls_aes_xts_init( &ctx );
+    memset( data_unit, 0x00, sizeof( data_unit ) );
+
+
+    /* Note that this function will most likely crash on failure, as NULL
+     * parameters will be used. In the passing case, the length check in
+     * mbedtls_aes_crypt_xts() will prevent any accesses to parameters by
+     * exiting the function early. */
+    TEST_ASSERT( mbedtls_aes_crypt_xts( &ctx, MBEDTLS_AES_ENCRYPT, length, data_unit, src, output ) == retval );
+}
+/* END_CASE */
+
+
+
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CFB */
 void aes_encrypt_cfb128( char *hex_key_string, char *hex_iv_string,
                          char *hex_src_string, char *hex_dst_string )

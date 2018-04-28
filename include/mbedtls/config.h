@@ -510,6 +510,14 @@
 #define MBEDTLS_CIPHER_MODE_CTR
 
 /**
+ * \def MBEDTLS_CIPHER_MODE_XTS
+ *
+ * Enable XEX-based tweaked-codebook mode with ciphertext stealing mode (XTS)
+ * for symmetric ciphers.
+ */
+#define MBEDTLS_CIPHER_MODE_XTS
+
+/**
  * \def MBEDTLS_CIPHER_NULL_CIPHER
  *
  * Enable NULL cipher.

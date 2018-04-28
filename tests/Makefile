@@ -46,7 +46,7 @@ LOCAL_LDFLAGS += -lz
 endif
 
 APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
-	test_suite_aes.cfb$(EXEXT)		test_suite_aes.ofb$(EXEXT)	\
+	test_suite_aes.cfb$(EXEXT)	test_suite_aes.ofb$(EXEXT)	\
 	test_suite_aes.rest$(EXEXT)	\
 	test_suite_arc4$(EXEXT)		test_suite_asn1write$(EXEXT)	\
 	test_suite_base64$(EXEXT)	test_suite_blowfish$(EXEXT)	\

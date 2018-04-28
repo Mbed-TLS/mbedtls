@@ -316,7 +316,7 @@ void aes_encrypt_ofb( int fragment_size, char *hex_key_string,
     iv_len = unhexify( iv_str, hex_iv_string );
     in_buffer_len = unhexify( src_str, hex_src_string );
 
-    mbedtls_aes_setkey_enc( &ctx, key_str, key_len * 8 );
+    TEST_ASSERT( mbedtls_aes_setkey_enc( &ctx, key_str, key_len * 8 ) == 0 );
     src_str_next = src_str;
 
     while( in_buffer_len > 0 )

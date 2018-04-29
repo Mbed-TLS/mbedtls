@@ -511,7 +511,7 @@ static  psa_status_t psa_internal_export_key(psa_key_slot_t key,
                 ret = mbedtls_pk_write_key_der( &pk, data, data_size );
             else
                 ret = mbedtls_pk_write_pubkey_der( &pk, data, data_size );
-            if ( ret < 0 )
+            if( ret < 0 )
                 return( mbedtls_to_psa_error( ret ) );
             *data_length = ret;
             return( PSA_SUCCESS );

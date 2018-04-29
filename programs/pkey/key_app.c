@@ -29,8 +29,11 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define mbedtls_printf     printf
-#endif
+#include <stdlib.h>
+#define mbedtls_printf          printf
+#define MBEDTLS_EXTI_SUCCESS    EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
+#endif /* MBEDTLS_PLATFORM_C */
 
 #if defined(MBEDTLS_BIGNUM_C) && \
     defined(MBEDTLS_PK_PARSE_C) && defined(MBEDTLS_FS_IO)
@@ -83,7 +86,8 @@ struct options
 
 int main( int argc, char *argv[] )
 {
-    int ret = 0;
+    int ret = 1;
+    int exit_code = MBEDTLS_EXIT_FAILURE;
     char buf[1024];
     int i;
     char *p, *q;
@@ -283,10 +287,12 @@ int main( int argc, char *argv[] )
     else
         goto usage;
 
+    exit_code = MBEDTLS_EXIT_SUCCESS;
+
 exit:
 
 #if defined(MBEDTLS_ERROR_C)
-    if( ret != 0 )
+    if( exit_code != MBEDTLS_EXIT_SUCCESS )
     {
         mbedtls_strerror( ret, buf, sizeof(buf) );
         mbedtls_printf( "  !  Last error was: %s\n", buf );
@@ -303,6 +309,6 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( ret );
+    return( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_PK_PARSE_C && MBEDTLS_FS_IO */

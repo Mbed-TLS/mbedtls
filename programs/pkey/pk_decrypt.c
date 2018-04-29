@@ -59,7 +59,8 @@ int main( void )
 int main( int argc, char *argv[] )
 {
     FILE *f;
-    int ret, c;
+    int ret = 1, c;
+    int exit_code = MBEDTLS_EXIT_FAILURE;
     size_t i, olen = 0;
     mbedtls_pk_context pk;
     mbedtls_entropy_context entropy;
@@ -71,7 +72,6 @@ int main( int argc, char *argv[] )
 
     mbedtls_ctr_drbg_init( &ctr_drbg );
     memset(result, 0, sizeof( result ) );
-    ret = 1;
 
     if( argc != 2 )
     {
@@ -110,8 +110,6 @@ int main( int argc, char *argv[] )
     /*
      * Extract the RSA encrypted value from the text file
      */
-    ret = 1;
-
     if( ( f = fopen( "result-enc.txt", "rb" ) ) == NULL )
     {
         mbedtls_printf( "\n  ! Could not open %s\n\n", "result-enc.txt" );
@@ -143,14 +141,14 @@ int main( int argc, char *argv[] )
 
     mbedtls_printf( "The decrypted result is: '%s'\n\n", result );
 
-    ret = 0;
+    exit_code = MBEDTLS_EXIT_SUCCESS;
 
 exit:
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
 
 #if defined(MBEDTLS_ERROR_C)
-    if( ret != 0 )
+    if( exit_code != MBEDTLS_EXIT_SUCCESS )
     {
         mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
         mbedtls_printf( "  !  Last error was: %s\n", buf );
@@ -162,7 +160,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( ret );
+    return( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_PK_PARSE_C && MBEDTLS_FS_IO &&
           MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */

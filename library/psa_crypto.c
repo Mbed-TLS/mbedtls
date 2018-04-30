@@ -1309,9 +1309,10 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     mbedtls_cipher_padding_t mode = MBEDTLS_PADDING_NONE;
 
     operation->alg = alg;
-    operation->key_set = 0;	
-    operation->iv_set = 0;	
-    operation->iv_size = 0;	
+    operation->key_set = 0;
+    operation->iv_set = 0;
+    operation->iv_required = 1;
+    operation->iv_size = 0;
     operation->block_size = 0;
 
     status = psa_get_key_information( key, &key_type, &key_bits );
@@ -1397,7 +1398,7 @@ psa_status_t psa_encrypt_generate_iv(psa_cipher_operation_t *operation,
                                      size_t *iv_length)
 {
     int ret = PSA_SUCCESS;
-    if( operation->iv_set )
+    if( operation->iv_set || !( operation->iv_required ) )
         return( PSA_ERROR_BAD_STATE );
     if( iv_size < operation->iv_size )
     {
@@ -1425,7 +1426,7 @@ psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
                                 size_t iv_length)
 {
     int ret = PSA_SUCCESS;
-    if( operation->iv_set )
+    if( operation->iv_set || !( operation->iv_required ) )
         return( PSA_ERROR_BAD_STATE );
     if (iv_length != operation->iv_size)
     {
@@ -1442,6 +1443,7 @@ psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
     }
 
     operation->iv_set = 1;
+    operation->iv_required = 0;
 
     return ( PSA_SUCCESS );
 }
@@ -1480,7 +1482,7 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
 
     if( ! operation->key_set )
         return( PSA_ERROR_BAD_STATE );
-    if( ! operation->iv_set )
+    if ( operation->iv_required && ! operation->iv_set )
         return( PSA_ERROR_BAD_STATE );
     if( operation->ctx.cipher.operation == MBEDTLS_ENCRYPT )
     {
@@ -1515,10 +1517,11 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation)
     mbedtls_cipher_free( &operation->ctx.cipher );
     
     operation->alg = 0;
-    operation->key_set = 0;	
-    operation->iv_set = 0;	
-    operation->iv_size = 0;	
+    operation->key_set = 0;
+    operation->iv_set = 0;
+    operation->iv_size = 0;
     operation->block_size = 0;
+    operation->iv_required = 0;
 
     return ( PSA_SUCCESS );
 }

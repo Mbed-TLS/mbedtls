@@ -3,43 +3,46 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS 2.9.0 branch released 2018-04-30
 
 Security
-   * Fix a bug in the X.509 module potentially leading to a buffer overread
-     during CRT verification or to invalid or omitted checks for certificate
-     validity. The former can be triggered remotely, while the latter requires
-     a non DER-compliant certificate correctly signed by a trusted CA, or a
-     trusted CA with a non DER-compliant certificate. Found by luocm on GitHub.
-     Fixes #825.
-   * Fix buffer length assertion in the ssl_parse_certificate_request()
-     function which leads to an arbitrary overread of the message buffer. The
-     overreads could occur upon receiving a message malformed at the point
-     where an optional signature algorithms list is expected in the cases of
-     the signature algorithms section being too short. In the debug builds
-     the overread data is printed to the standard output.
+   * Fix an issue in the X.509 module which could lead to a buffer overread
+     during certificate validation. Additionally, the issue could also lead to
+     unnecessary callback checks being made or to some validation checks to be
+     omitted. The overread could be triggered remotely, while the other issues
+     would require a non DER-compliant certificate to be correctly signed by a
+     trusted CA, or a trusted CA with a non DER-compliant certificate. Found by
+     luocm. Fixes #825.
+   * Fix the buffer length assertion in the ssl_parse_certificate_request()
+     function which led to an arbitrary overread of the message buffer. The
+     overreads could be caused by receiving a malformed message at the point
+     where an optional signature algorithms list is expected when the signature
+     algorithms section is too short. In builds with debug output, the overread
+     data is output with the debug data.
    * Fix a client-side bug in the validation of the server's ciphersuite choice
-     potentially leading to the client accepting a ciphersuite it didn't offer
-     or one that cannot be used with the (D)TLS version chosen by the server.
-     This may lead to corruption of internal data structures for some
-     configurations.
+     which could potentially lead to the client accepting a ciphersuite it didn't
+     offer or a ciphersuite that cannot be used with the TLS or DTLS version
+     chosen by the server. This could lead to corruption of internal data
+     structures for some configurations.
 
 Features
-   * Add option MBEDTLS_AES_FEWER_TABLES to dynamically compute 3/4 of the AES tables
-     during runtime, thereby reducing the RAM/ROM footprint by ~6kb. Suggested
-     and contributed by jkivilin in #394.
+   * Add an option, MBEDTLS_AES_FEWER_TABLES, to dynamically compute smaller AES
+     tables during runtime, thereby reducing the RAM/ROM footprint by ~6KiB.
+     Suggested and contributed by jkivilin in pull request #394.
    * Add initial support for Curve448 (RFC 7748). Only mbedtls_ecp_mul() and
      ECDH primitive functions (mbedtls_ecdh_gen_public(),
      mbedtls_ecdh_compute_shared()) are supported for now. Contributed by
      Nicholas Wilson (#348).
 
 API Changes
-   * Add function mbedtls_net_poll to public API allowing to wait for a
-     network context to become ready for reading or writing.
-   * Add function mbedtls_ssl_check_pending to public API allowing to check
-     if more data is pending to be processed in the internal message buffers.
+   * Extend the public API with the function of mbedtls_net_poll() to allow user
+     applications to wait for a network context to become ready before reading
+     or writing.
+   * Add function mbedtls_ssl_check_pending() to the public API to allow
+     a check for whether more more data is pending to be processed in the
+     internal message buffers.
      This function is necessary to determine when it is safe to idle on the
      underlying transport in case event-driven IO is used.
 
 Bugfix
-   * Fix spurious uninitialized variable warning in cmac.c. Fix independently
+   * Fix a spurious uninitialized variable warning in cmac.c. Fix independently
      contributed by Brian J Murray and David Brown.
    * Add missing dependencies in test suites that led to build failures
      in configurations that omit certain hashes or public-key algorithms.
@@ -47,15 +50,16 @@ Bugfix
    * Fix C89 incompatibility in benchmark.c. Contributed by Brendan Shanks.
      #1353
    * Add missing dependencies for MBEDTLS_HAVE_TIME_DATE and
-     MBEDTLS_VERSION_FEATURES in test suites. Contributed by Deomid Ryabkov.
-     Fixes #1299, #1475.
-   * Fix dynamic library building process with Makefile on Mac OS X. Fixed by
-     mnacamura.
+     MBEDTLS_VERSION_FEATURES in some test suites. Contributed by
+     Deomid Ryabkov. Fixes #1299, #1475.
+   * Fix the Makefile build process for building shared libraries on Mac OS X.
+     Fixed by mnacamura.
    * Fix parsing of PKCS#8 encoded Elliptic Curve keys. Previously Mbed TLS was
-     unable to parse keys with only the optional parameters field of the
+     unable to parse keys which had only the optional parameters field of the
      ECPrivateKey structure. Found by Jethro Beekman, fixed in #1379.
-   * Return plaintext data sooner on unpadded CBC decryption, as stated in
-     the mbedtls_cipher_update() documentation. Contributed by Andy Leiserson.
+   * Return the plaintext data more quickly on unpadded CBC decryption, as
+     stated in the mbedtls_cipher_update() documentation. Contributed by
+     Andy Leiserson.
    * Fix overriding and ignoring return values when parsing and writing to
      a file in pk_sign program. Found by kevlut in #1142.
    * Restrict usage of error code MBEDTLS_ERR_SSL_WANT_READ to situations
@@ -63,9 +67,8 @@ Bugfix
      to make progress. Previously, this error code was also occasionally
      returned when unexpected messages were being discarded, ignoring that
      further messages could potentially already be pending to be processed
-     in the internal buffers; these cases lead to deadlocks in case
-     event-driven I/O was used.
-     Found and reported by Hubert Mis in #772.
+     in the internal buffers; these cases led to deadlocks when event-driven
+     I/O was used. Found and reported by Hubert Mis in #772.
    * Fix buffer length assertions in the ssl_parse_certificate_request()
      function which leads to a potential one byte overread of the message
      buffer.
@@ -74,18 +77,18 @@ Bugfix
 
 Changes
    * Remove some redundant code in bignum.c. Contributed by Alexey Skalozub.
-   * Support cmake build where Mbed TLS is a subproject. Fix
-     contributed independently by Matthieu Volat and Arne Schwabe.
+   * Support cmake builds where Mbed TLS is a subproject. Fix contributed
+     independently by Matthieu Volat and Arne Schwabe.
    * Improve testing in configurations that omit certain hashes or
      public-key algorithms. Includes contributions by Gert van Dijk.
    * Improve negative testing of X.509 parsing.
    * Do not define global mutexes around readdir() and gmtime() in
      configurations where the feature is disabled. Found and fixed by Gergely
      Budai.
-   * Harden mbedtls_ssl_config_free() against misuse, so that it doesn't
-     leak memory in case the user doesn't use mbedtls_ssl_conf_psk() and
-     instead incorrectly manipulates conf->psk and/or conf->psk_identity
-     directly. Found and fix submitted by junyeonLEE in #1220.
+   * Harden the function mbedtls_ssl_config_free() against misuse, so that it
+     doesn't leak memory if the user doesn't use mbedtls_ssl_conf_psk() and
+     instead incorrectly manipulates the configuration structure directly.
+     Found and fix submitted by junyeonLEE in #1220.
    * Provide an empty implementation of mbedtls_pkcs5_pbes2() when
      MBEDTLS_ASN1_PARSE_C is not enabled. This allows the use of PBKDF2
      without PBES2. Fixed by Marcos Del Sol Vives.
@@ -96,7 +99,7 @@ Changes
      Krylov.
    * Improve the documentation of mbedtls_ssl_write(). Suggested by
      Paul Sokolovsky in #1356.
-   * Add an option in the makefile to support ar utilities where the operation
+   * Add an option in the Makefile to support ar utilities where the operation
      letter must not be prefixed by '-', such as LLVM. Found and fixed by
      Alex Hixon.
    * Allow configuring the shared library extension by setting the DLEXT
@@ -109,8 +112,8 @@ Changes
    * Improve robustness of mbedtls_ssl_derive_keys against the use of
      HMAC functions with non-HMAC ciphersuites. Independently contributed
      by Jiayuan Chen in #1377. Fixes #1437.
-   * Improve security of RSA key generation by including criteria from FIPS
-     186-4. Contributed by Jethro Beekman. #1380
+   * Improve security of RSA key generation by including criteria from
+     FIPS 186-4. Contributed by Jethro Beekman. #1380
    * Declare functions in header files even when an alternative implementation
      of the corresponding module is activated by defining the corresponding
      MBEDTLS_XXX_ALT macro. This means that alternative implementations do
@@ -314,7 +317,7 @@ Bugfix
    * Fix ssl_parse_record_header() to silently discard invalid DTLS records
      as recommended in RFC 6347 Section 4.1.2.7.
    * Fix memory leak in mbedtls_ssl_set_hostname() when called multiple times.
-     Found by projectgus and jethrogb, #836.
+     Found by projectgus and Jethro Beekman, #836.
    * Fix usage help in ssl_server2 example. Found and fixed by Bei Lin.
    * Parse signature algorithm extension when renegotiating. Previously,
      renegotiated handshakes would only accept signatures using SHA-1
@@ -508,8 +511,7 @@ Bugfix
      Previous behaviour was to keep processing data even after the alert has
      been sent.
    * Accept empty trusted CA chain in authentication mode
-     MBEDTLS_SSL_VERIFY_OPTIONAL.
-     Found by jethrogb. #864
+     MBEDTLS_SSL_VERIFY_OPTIONAL. Found by Jethro Beekman. #864
    * Fix implementation of mbedtls_ssl_parse_certificate() to not annihilate
      fatal errors in authentication mode MBEDTLS_SSL_VERIFY_OPTIONAL and to
      reflect bad EC curves within verification result.

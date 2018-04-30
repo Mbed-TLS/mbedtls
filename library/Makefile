@@ -33,7 +33,7 @@ endif
 
 SOEXT_TLS=so.10
 SOEXT_X509=so.0
-SOEXT_CRYPTO=so.1
+SOEXT_CRYPTO=so.2
 
 # Set DLEXT=dylib to compile as a shared library for Mac OS X
 DLEXT ?= so

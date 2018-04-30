@@ -204,7 +204,7 @@ int main( void )
 #define USAGE_SSL_ASYNC \
     "    async_operations=%%c...   d=decrypt, s=sign (default: -=off)\n" \
     "    async_private_delay1=%%d  Asynchronous delay for key_file or preloaded key\n" \
-    "    async_private_delay2=%%d  Asynchronous delay for key_file2\n" \
+    "    async_private_delay2=%%d  Asynchronous delay for key_file2 and sni\n" \
     "                              default: -1 (not asynchronous)\n" \
     "    async_private_error=%%d   Async callback error injection (default=0=none,\n" \
     "                              1=start, 2=cancel, 3=resume, negative=first time only)"
@@ -897,7 +897,7 @@ typedef enum {
 
 typedef struct
 {
-    ssl_async_key_slot_t slots[2];
+    ssl_async_key_slot_t slots[3]; /* key, key2, sni */
     size_t slots_used;
     ssl_async_inject_error_t inject_error;
     int (*f_rng)(void *, unsigned char *, size_t);
@@ -965,7 +965,9 @@ static int ssl_async_start( mbedtls_ssl_context *ssl,
 
     for( slot = 0; slot < config_data->slots_used; slot++ )
     {
-        if( config_data->slots[slot].cert == cert )
+        if( memcmp( &config_data->slots[slot].cert->pk,
+                    &cert->pk,
+                    sizeof( cert->pk ) ) == 0 )
             break;
     }
     if( slot == config_data->slots_used )
@@ -2376,7 +2378,24 @@ int main( int argc, char *argv[] )
 
 #if defined(SNI_OPTION)
     if( opt.sni != NULL )
+    {
         mbedtls_ssl_conf_sni( &conf, sni_callback, sni_info );
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+        if( opt.async_private_delay2 >= 0 )
+        {
+            ret = ssl_async_set_key( &ssl_async_keys,
+                                     sni_info->cert, sni_info->key,
+                                     opt.async_private_delay2 );
+            if( ret < 0 )
+            {
+                mbedtls_printf( "  Test error: ssl_async_set_key failed (%d)\n",
+                                ret );
+                goto exit;
+            }
+            sni_info->key = NULL;
+        }
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+    }
 #endif
 
 #if defined(MBEDTLS_ECP_C)

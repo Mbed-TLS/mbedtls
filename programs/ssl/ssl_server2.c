@@ -1039,7 +1039,7 @@ static int ssl_async_resume( mbedtls_ssl_context *ssl,
         mbedtls_ssl_conf_get_async_config_data( ssl->conf );
     ssl_async_key_slot_t *key_slot = &config_data->slots[ctx->slot];
     int ret;
-    const char *op_name = NULL;
+    const char *op_name;
 
     if( ctx->remaining_delay > 0 )
     {
@@ -1052,14 +1052,12 @@ static int ssl_async_resume( mbedtls_ssl_context *ssl,
     switch( ctx->operation_type )
     {
         case ASYNC_OP_DECRYPT:
-            op_name = "decrypt";
             ret = mbedtls_pk_decrypt( key_slot->pk,
                                       ctx->input, ctx->input_len,
                                       output, output_len, output_size,
                                       config_data->f_rng, config_data->p_rng );
             break;
         case ASYNC_OP_SIGN:
-            op_name = "sign";
             ret = mbedtls_pk_sign( key_slot->pk,
                                    ctx->md_alg,
                                    ctx->input, ctx->input_len,
@@ -1072,6 +1070,8 @@ static int ssl_async_resume( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
             break;
     }
+
+    op_name = ssl_async_operation_names[ctx->operation_type];
 
     if( config_data->inject_error == SSL_ASYNC_INJECT_ERROR_RESUME )
     {

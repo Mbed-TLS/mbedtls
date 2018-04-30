@@ -997,7 +997,7 @@ static int ssl_async_start( mbedtls_ssl_context *ssl,
     memcpy( ctx->input, input, input_len );
     ctx->input_len = input_len;
     ctx->remaining_delay = config_data->slots[slot].delay;
-    mbedtls_ssl_async_set_data( ssl, ctx );
+    mbedtls_ssl_set_async_operation_data( ssl, ctx );
 
     if( ctx->remaining_delay == 0 )
         return( 0 );
@@ -1031,7 +1031,7 @@ static int ssl_async_resume( mbedtls_ssl_context *ssl,
                              size_t *output_len,
                              size_t output_size )
 {
-    ssl_async_operation_context_t *ctx = mbedtls_ssl_async_get_data( ssl );
+    ssl_async_operation_context_t *ctx = mbedtls_ssl_get_async_operation_data( ssl );
     ssl_async_key_context_t *config_data =
         mbedtls_ssl_conf_get_async_config_data( ssl->conf );
     ssl_async_key_slot_t *key_slot = &config_data->slots[ctx->slot];
@@ -1085,7 +1085,7 @@ static int ssl_async_resume( mbedtls_ssl_context *ssl,
 
 static void ssl_async_cancel( mbedtls_ssl_context *ssl )
 {
-    ssl_async_operation_context_t *ctx = mbedtls_ssl_async_get_data( ssl );
+    ssl_async_operation_context_t *ctx = mbedtls_ssl_get_async_operation_data( ssl );
     mbedtls_printf( "Async cancel callback.\n" );
     mbedtls_free( ctx );
 }

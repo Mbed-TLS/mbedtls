@@ -904,15 +904,18 @@ typedef struct
     void *p_rng;
 } ssl_async_key_context_t;
 
-void ssl_async_set_key( ssl_async_key_context_t *ctx,
+int ssl_async_set_key( ssl_async_key_context_t *ctx,
                         mbedtls_x509_crt *cert,
                         mbedtls_pk_context *pk,
                         unsigned delay )
 {
+    if( ctx->slots_used >= sizeof( ctx->slots ) / sizeof( *ctx->slots ) )
+        return( -1 );
     ctx->slots[ctx->slots_used].cert = cert;
     ctx->slots[ctx->slots_used].pk = pk;
     ctx->slots[ctx->slots_used].delay = delay;
     ++ctx->slots_used;
+    return( 0 );
 }
 
 #define SSL_ASYNC_INPUT_MAX_SIZE 512
@@ -2297,8 +2300,14 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if( opt.async_private_delay1 >= 0 )
         {
-            ssl_async_set_key( &ssl_async_keys, &srvcert, pk,
-                               opt.async_private_delay1 );
+            ret = ssl_async_set_key( &ssl_async_keys, &srvcert, pk,
+                                     opt.async_private_delay1 );
+            if( ret < 0 )
+            {
+                mbedtls_printf( "  Test error: ssl_async_set_key failed (%d)\n",
+                                ret );
+                goto exit;
+            }
             pk = NULL;
         }
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
@@ -2314,8 +2323,14 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if( opt.async_private_delay2 >= 0 )
         {
-            ssl_async_set_key( &ssl_async_keys, &srvcert2, pk,
-                               opt.async_private_delay2 );
+            ret = ssl_async_set_key( &ssl_async_keys, &srvcert2, pk,
+                                     opt.async_private_delay2 );
+            if( ret < 0 )
+            {
+                mbedtls_printf( "  Test error: ssl_async_set_key failed (%d)\n",
+                                ret );
+                goto exit;
+            }
             pk = NULL;
         }
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */

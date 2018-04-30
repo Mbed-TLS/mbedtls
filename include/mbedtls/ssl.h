@@ -576,7 +576,7 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  *
  *                  This function may call mbedtls_ssl_set_async_operation_data()
  *                  to store an operation context for later retrieval
- *                  by the resume callback.
+ *                  by the resume or cancel callback.
  *
  * \note            For RSA signatures, this function must produce output
  *                  that is consistent with PKCS#1 v1.5 in the same way as
@@ -653,7 +653,7 @@ typedef int mbedtls_ssl_async_sign_t( mbedtls_ssl_context *ssl,
  *
  *                  This function may call mbedtls_ssl_set_async_operation_data()
  *                  to store an operation context for later retrieval
- *                  by the resume callback.
+ *                  by the resume or cancel callback.
  *
  * \warning         RSA decryption as used in TLS is subject to a potential
  *                  timing side channel attack first discovered by Bleichenbacher
@@ -716,6 +716,10 @@ typedef int mbedtls_ssl_async_decrypt_t( mbedtls_ssl_context *ssl,
  *                  It may call mbedtls_ssl_set_async_operation_data() to modify
  *                  this context.
  *
+ *                  Note that when this function returns a status other than
+ *                  #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS, it must free any
+ *                  resources associated with the operation.
+ *
  * \param ssl             The SSL connection instance. It should not be
  *                        modified other than via
  *                        mbedtls_ssl_set_async_operation_data().
@@ -745,7 +749,12 @@ typedef int mbedtls_ssl_async_resume_t( mbedtls_ssl_context *ssl,
  * \brief           Callback type: cancel external operation.
  *
  *                  This callback is called if an SSL connection is closed
- *                  while an asynchronous operation is in progress.
+ *                  while an asynchronous operation is in progress. Note that
+ *                  this callback is not called if the
+ *                  ::mbedtls_ssl_async_resume_t callback has run and has
+ *                  returned a value other than
+ *                  #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS, since in that case
+ *                  the asynchronous operation has already completed.
  *
  *                  This function may call mbedtls_ssl_get_async_operation_data()
  *                  to retrieve an operation context set by the start callback.

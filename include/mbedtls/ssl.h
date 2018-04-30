@@ -601,9 +601,12 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  * \param ssl             The SSL connection instance. It should not be
  *                        modified other than via mbedtls_ssl_async_set_data().
  * \param cert            Certificate containing the public key.
- *                        This is one of the pointers passed to
+ *                        In simple cases, this is one of the pointers passed to
  *                        mbedtls_ssl_conf_own_cert() when configuring the SSL
- *                        connection.
+ *                        connection. However, if other callbacks are used, this
+ *                        property may not hold. For example, if an SNI callback
+ *                        is registered with mbedtls_ssl_conf_sni(), then
+ *                        this callback determines what certificate is used.
  * \param md_alg          Hash algorithm.
  * \param hash            Buffer containing the hash. This buffer is
  *                        no longer valid when the function returns.
@@ -665,9 +668,12 @@ typedef int mbedtls_ssl_async_sign_t( mbedtls_ssl_context *ssl,
  * \param ssl             The SSL connection instance. It should not be
  *                        modified other than via mbedtls_ssl_async_set_data().
  * \param cert            Certificate containing the public key.
- *                        This is one of the pointers passed to
+ *                        In simple cases, this is one of the pointers passed to
  *                        mbedtls_ssl_conf_own_cert() when configuring the SSL
- *                        connection.
+ *                        connection. However, if other callbacks are used, this
+ *                        property may not hold. For example, if an SNI callback
+ *                        is registered with mbedtls_ssl_conf_sni(), then
+ *                        this callback determines what certificate is used.
  * \param input           Buffer containing the input ciphertext. This buffer
  *                        is no longer valid when the function returns.
  * \param input_len       Size of the \p input buffer in bytes.

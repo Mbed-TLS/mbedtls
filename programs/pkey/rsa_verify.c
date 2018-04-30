@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #define mbedtls_printf          printf
 #define mbedtls_snprintf        snprintf
-#define MBEDTLS_EXTI_SUCCESS    EXIT_SUCCESS
+#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
 

@@ -40,7 +40,7 @@
 #define mbedtls_time            time
 #define mbedtls_time_t          time_t
 #define mbedtls_printf          printf
-#define MBEDTLS_EXTI_SUCCESS    EXIT_SUCCESS
+#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
 

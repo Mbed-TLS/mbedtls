@@ -4297,7 +4297,7 @@ run_test    "SSL async private: cancel after start then fall back to transparent
              [ \$? -eq 1 ] &&
              $P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256" \
             0 \
-            -s "Async sign callback: using key slot 0"
+            -s "Async sign callback: using key slot 0" \
             -S "Async resume" \
             -s "Async cancel" \
             -s "! mbedtls_ssl_handshake returned" \

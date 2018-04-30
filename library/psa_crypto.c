@@ -1600,8 +1600,9 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
     if( cipher_info == NULL )
         return( PSA_ERROR_NOT_SUPPORTED );
 
-    if ( key_type != PSA_KEY_TYPE_RAW_DATA)
-        return( PSA_ERROR_BAD_STATE );
+    if ( ( key_type & PSA_KEY_TYPE_CATEGORY_MASK ) == PSA_KEY_TYPE_CATEGORY_CIPHER
+           && PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) == 16 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     operation->block_size = cipher_info->block_size;
 

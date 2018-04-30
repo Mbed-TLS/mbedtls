@@ -1528,6 +1528,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
         if( ret != 0 )
         {
             mbedtls_gcm_free( &gcm );
+            mbedtls_zeroize( ciphertext, plaintext_length );
             return( mbedtls_to_psa_error( ret ) );
         }
 
@@ -1554,6 +1555,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
         if( ret != 0 )
         {
             mbedtls_ccm_free( &ccm );
+            mbedtls_zeroize( ciphertext, plaintext_length );
             return( mbedtls_to_psa_error( ret ) );
         }
 
@@ -1622,6 +1624,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
         if( ret != 0 )
         {
             mbedtls_gcm_free( &gcm );
+            mbedtls_zeroize( plaintext, ciphertext_length );
             return( mbedtls_to_psa_error( ret ) );
         }
 
@@ -1649,14 +1652,14 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
         if( ret != 0 )
         {
             mbedtls_ccm_free( &ccm );
+            mbedtls_zeroize( plaintext, ciphertext_length );
             return( mbedtls_to_psa_error( ret ) );
         }
 
         mbedtls_ccm_free( &ccm );
     }
 
-    memcpy( plaintext + ciphertext_length, tag, sizeof( tag ) );
-    *plaintext_length = ciphertext_length + sizeof( tag );
+    *plaintext_length = ciphertext_length;
     return( PSA_SUCCESS );
 }
 

@@ -963,11 +963,14 @@ static int ssl_async_start( mbedtls_ssl_context *ssl,
         mbedtls_printf( "Async %s callback: looking for DN=%s\n", op_name, dn );
     }
 
+    /* Look for a private key that matches the public key in cert.
+     * Since this test code has the private key inside Mbed TLS,
+     * we call mbedtls_pk_check_pair to match a private key with the
+     * public key. */
     for( slot = 0; slot < config_data->slots_used; slot++ )
     {
-        if( memcmp( &config_data->slots[slot].cert->pk,
-                    &cert->pk,
-                    sizeof( cert->pk ) ) == 0 )
+        if( mbedtls_pk_check_pair( &cert->pk,
+                                   config_data->slots[slot].pk ) == 0 )
             break;
     }
     if( slot == config_data->slots_used )

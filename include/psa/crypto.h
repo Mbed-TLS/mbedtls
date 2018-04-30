@@ -1072,57 +1072,6 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
 /** \defgroup aead Authenticated encryption with associated data (AEAD)
  * @{
  */
-/** Set the key for a multipart authenticated encryption operation.
- *
- * The sequence of operations to authenticate-and-encrypt a message
- * is as follows:
- * -# Allocate an operation object which will be passed to all the functions
- *    listed here.
- * -# Call psa_aead_encrypt_setup() to specify the algorithm and key.
- *    The key remains associated with the operation even if the content
- *    of the key slot changes.
- * -# Call either psa_aead_generate_iv() or psa_aead_set_iv() to
- *    generate or set the IV (initialization vector). You should use
- *    psa_encrypt_generate_iv() unless the protocol you are implementing
- *    requires a specific IV value.
- * -# Call psa_aead_update_ad() to pass the associated data that is
- *    to be authenticated but not encrypted. You may omit this step if
- *    there is no associated data.
- * -# Call psa_aead_update() zero, one or more times, passing a fragment
- *    of the data to encrypt each time.
- * -# Call psa_aead_finish().
- *
- * The application may call psa_aead_abort() at any time after the operation
- * has been initialized with psa_aead_encrypt_setup().
- *
- * After a successful call to psa_aead_encrypt_setup(), the application must
- * eventually terminate the operation. The following events terminate an
- * operation:
- * - A failed call to psa_aead_generate_iv(), psa_aead_set_iv(),
- *   psa_aead_update_ad() or psa_aead_update().
- * - A call to psa_aead_finish() or psa_aead_abort().
- *
- * \param operation
- * \param alg       The AEAD algorithm to compute (\c PSA_ALG_XXX value
- *                  such that #PSA_ALG_IS_AEAD(alg) is true).
- *
- * \retval PSA_SUCCESS
- *         Success.
- * \retval PSA_ERROR_EMPTY_SLOT
- * \retval PSA_ERROR_NOT_PERMITTED
- * \retval PSA_ERROR_INVALID_ARGUMENT
- *         \c key is not compatible with \c alg.
- * \retval PSA_ERROR_NOT_SUPPORTED
- *         \c alg is not supported or is not an AEAD algorithm.
- * \retval PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval PSA_ERROR_COMMUNICATION_FAILURE
- * \retval PSA_ERROR_HARDWARE_FAILURE
- * \retval PSA_ERROR_TAMPERING_DETECTED
- */
-psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
-                                    psa_key_slot_t key,
-                                    psa_algorithm_t alg);
-
 /** Process an integrated authenticated encryption operation.
  *
  * \param operation

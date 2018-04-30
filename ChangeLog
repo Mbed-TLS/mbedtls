@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.1.x branch released xxxx-xx-xx
+= mbed TLS 2.1.12 branch released 2018-04-30
 
 Security
    * Fix a bug in the X.509 module potentially leading to a buffer overread

@@ -568,9 +568,8 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  *                  does not wait for the operation to complete. This allows
  *                  the handshake step to be non-blocking.
  *
- *                  The parameters \p ssl and \p cert are
- *                  guaranteed to remain valid as long as the SSL
- *                  configuration remains valid. On the other hand, this
+ *                  The parameters \p ssl and \p cert are guaranteed to remain
+ *                  valid throughout the handshake. On the other hand, this
  *                  function must save the contents of \p hash if the value
  *                  is needed for later processing, because the \p hash buffer
  *                  is no longer valid after this function returns.
@@ -588,7 +587,7 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  *                    encoding, treating \p hash as the DigestInfo to be
  *                    padded. In other words, apply EMSA-PKCS1-v1_5 starting
  *                    from step 3, with `T = hash` and `tLen = hash_len`.
- *                  - If \p md_alg is #MBEDTLS_MD_NONE, apply the PKCS#1 v1.5
+ *                  - If `md_alg != MBEDTLS_MD_NONE`, apply the PKCS#1 v1.5
  *                    encoding, treating \p hash as the hash to be encoded and
  *                    padded. In other words, apply EMSA-PKCS1-v1_5 starting
  *                    from step 2, with `digestAlgorithm` obtained by calling
@@ -645,9 +644,8 @@ typedef int mbedtls_ssl_async_sign_t( mbedtls_ssl_context *ssl,
  *                  does not wait for the operation to complete. This allows
  *                  the handshake step to be non-blocking.
  *
- *                  The parameters \p ssl and \p cert are
- *                  guaranteed to remain valid as long as the SSL
- *                  configuration remains valid. On the other hand, this
+ *                  The parameters \p ssl and \p cert are guaranteed to remain
+ *                  valid throughout the handshake. On the other hand, this
  *                  function must save the contents of \p input if the value
  *                  is needed for later processing, because the \p input buffer
  *                  is no longer valid after this function returns.

@@ -456,6 +456,27 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
     }
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
+    if( ctx->cipher_info->mode == MBEDTLS_MODE_XTS )
+    {
+        if( ctx->unprocessed_len > 0 ) {
+            /* We can only process an entire data unit at a time. */
+            return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+        }
+
+        ret = ctx->cipher_info->base->xts_func( ctx->cipher_ctx,
+                ctx->operation, ilen, ctx->iv, input, output );
+        if( ret != 0 )
+        {
+            return( ret );
+        }
+
+        *olen = ilen;
+
+        return( 0 );
+    }
+#endif /* MBEDTLS_CIPHER_MODE_XTS */
+
 #if defined(MBEDTLS_CIPHER_MODE_STREAM)
     if( ctx->cipher_info->mode == MBEDTLS_MODE_STREAM )
     {
@@ -658,6 +679,7 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
         MBEDTLS_MODE_OFB == ctx->cipher_info->mode ||
         MBEDTLS_MODE_CTR == ctx->cipher_info->mode ||
         MBEDTLS_MODE_GCM == ctx->cipher_info->mode ||
+        MBEDTLS_MODE_XTS == ctx->cipher_info->mode ||
         MBEDTLS_MODE_STREAM == ctx->cipher_info->mode )
     {
         return( 0 );

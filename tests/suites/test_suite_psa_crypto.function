@@ -401,6 +401,7 @@ void key_policy( int usage_arg, int alg_arg )
     psa_key_policy_t policy_set = {0};
     psa_key_policy_t policy_get = {0};
         
+
     memset( key, 0x2a, sizeof( key ) );
  
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
@@ -423,6 +424,9 @@ void key_policy( int usage_arg, int alg_arg )
 
     TEST_ASSERT( policy_get.usage == policy_set.usage );
     TEST_ASSERT( policy_get.alg == policy_set.alg );
+
+    
+
 
 exit:
     psa_destroy_key( key_slot );
@@ -473,6 +477,52 @@ void key_policy_fail( int usage_arg, int alg_arg, int expected_status, char *key
 exit:
     psa_destroy_key( key_slot );
     mbedtls_free( keypair );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void key_lifetime( int lifetime_arg )
+{
+    int key_slot = 1;
+    psa_key_type_t key_type = PSA_ALG_CBC_BASE;
+    unsigned char key[32] = {0};
+    psa_key_lifetime_t lifetime_set = (psa_key_lifetime_t) lifetime_arg;
+    psa_key_lifetime_t lifetime_get;
+    memset( key, 0x2a, sizeof( key ) );
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_lifetime( key_slot, 
+                                 lifetime_set ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_import_key( key_slot, key_type,
+                                 key, sizeof( key ) ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_get_key_lifetime( key_slot, 
+                                 &lifetime_get ) == PSA_SUCCESS );
+    TEST_ASSERT( lifetime_get == lifetime_set ); 
+exit:
+    psa_destroy_key( key_slot );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void key_lifetime_set_fail( int key_slot_arg, int lifetime_arg, int expected_status_arg )
+{
+    int key_slot = 1;
+    psa_key_lifetime_t lifetime_set = (psa_key_lifetime_t) lifetime_arg;
+    psa_status_t actual_status;
+    psa_status_t expected_status = expected_status_arg;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    actual_status = psa_set_key_lifetime( key_slot_arg, lifetime_set );
+
+    if( actual_status == PSA_SUCCESS )
+        actual_status = psa_set_key_lifetime( key_slot_arg, lifetime_set );
+    
+    TEST_ASSERT( expected_status == actual_status );
+
+exit:
+    psa_destroy_key( key_slot );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

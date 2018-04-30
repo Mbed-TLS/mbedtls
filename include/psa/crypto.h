@@ -601,6 +601,17 @@ typedef uint32_t psa_key_lifetime_t;
 /** \brief Retrieve the lifetime of a key slot.
  *
  * The assignment of lifetimes to slots is implementation-dependent.
+ *
+ * \param key           Slot to query.
+ * \param lifetime      On success, the lifetime value.
+ *
+ * \retval PSA_SUCCESS
+ *         Success.
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ *         The key slot is invalid.
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
  */
 psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
                                   psa_key_lifetime_t *lifetime);
@@ -610,9 +621,27 @@ psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
  * Whether the lifetime of a key slot can be changed at all, and if so
  * whether the lifetime of an occupied key slot can be changed, is
  * implementation-dependent.
+ *
+ * \param key           Slot whose lifetime is to be changed.
+ * \param lifetime      The lifetime value to set for the given key slot.
+ *
+ * \retval PSA_SUCCESS
+ *         Success.
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ *         The key slot is invalid,
+ *         or the lifetime value is invalid.
+ * \retval PSA_ERROR_NOT_SUPPORTED
+ *         The implementation does not support the specified lifetime value,
+ *         at least for the specified key slot.
+ * \retval PSA_ERROR_OCCUPIED_SLOT
+ *         The slot contains a key, and the implementation does not support
+ *         changing the lifetime of an occupied slot.
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
  */
 psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
-                                  const psa_key_lifetime_t *lifetime);
+                                  psa_key_lifetime_t lifetime);
 
 /**@}*/
 

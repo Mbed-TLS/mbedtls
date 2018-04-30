@@ -97,6 +97,7 @@ static inline int safer_memcmp( const uint8_t *a, const uint8_t *b, size_t n )
 typedef struct {
     psa_key_type_t type;
     psa_key_policy_t policy;
+    psa_key_lifetime_t lifetime;
     union {
         struct raw_data {
             uint8_t *data;
@@ -1288,6 +1289,7 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
 }
 
 
+
 /****************************************************************/
 /* Key Policy */
 /****************************************************************/
@@ -1351,6 +1353,54 @@ psa_status_t psa_get_key_policy(psa_key_slot_t key,
 
     return( PSA_SUCCESS );
 }
+
+
+
+/****************************************************************/
+/* Key Lifetime */
+/****************************************************************/
+
+psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
+                                  psa_key_lifetime_t *lifetime)
+{
+    key_slot_t *slot;
+
+    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    slot = &global_data.key_slots[key];
+    
+    *lifetime = slot->lifetime;
+
+    return( PSA_SUCCESS );
+}
+
+psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
+                                  const psa_key_lifetime_t lifetime)
+{
+    key_slot_t *slot;
+
+    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    if( lifetime != PSA_KEY_LIFETIME_VOLATILE && 
+        lifetime != PSA_KEY_LIFETIME_PERSISTENT && 
+        lifetime != PSA_KEY_LIFETIME_WRITE_ONCE)
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    slot = &global_data.key_slots[key];
+    if( slot->type != PSA_KEY_TYPE_NONE )
+        return( PSA_ERROR_OCCUPIED_SLOT );
+
+    if ( lifetime != PSA_KEY_LIFETIME_VOLATILE )
+        return( PSA_ERROR_NOT_SUPPORTED );
+        
+    slot->lifetime = lifetime;
+
+    return( PSA_SUCCESS );
+}
+
+
 
 /****************************************************************/
 /* Module setup */

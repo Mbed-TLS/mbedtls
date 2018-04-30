@@ -2852,7 +2852,7 @@ static int ssl_resume_server_key_exchange( mbedtls_ssl_context *ssl,
     if( ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
     {
         ssl->handshake->async_in_progress = 0;
-        mbedtls_ssl_async_set_data( ssl, NULL );
+        mbedtls_ssl_set_async_operation_data( ssl, NULL );
     }
     MBEDTLS_SSL_DEBUG_RET( 2, "ssl_resume_server_key_exchange", ret );
     return( ret );
@@ -3406,7 +3406,7 @@ static int ssl_resume_decrypt_pms( mbedtls_ssl_context *ssl,
     if( ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
     {
         ssl->handshake->async_in_progress = 0;
-        mbedtls_ssl_async_set_data( ssl, NULL );
+        mbedtls_ssl_set_async_operation_data( ssl, NULL );
     }
     MBEDTLS_SSL_DEBUG_RET( 2, "ssl_decrypt_encrypted_pms", ret );
     return( ret );

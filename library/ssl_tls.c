@@ -6499,7 +6499,7 @@ void *mbedtls_ssl_conf_get_async_config_data( const mbedtls_ssl_config *conf )
     return( conf->p_async_config_data );
 }
 
-void *mbedtls_ssl_async_get_data( const mbedtls_ssl_context *ssl )
+void *mbedtls_ssl_get_async_operation_data( const mbedtls_ssl_context *ssl )
 {
     if( ssl->handshake == NULL )
         return( NULL );
@@ -6507,7 +6507,7 @@ void *mbedtls_ssl_async_get_data( const mbedtls_ssl_context *ssl )
         return( ssl->handshake->user_async_ctx );
 }
 
-void mbedtls_ssl_async_set_data( mbedtls_ssl_context *ssl,
+void mbedtls_ssl_set_async_operation_data( mbedtls_ssl_context *ssl,
                                  void *ctx )
 {
     if( ssl->handshake != NULL )

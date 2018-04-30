@@ -574,8 +574,8 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  *                  is needed for later processing, because the \p hash buffer
  *                  is no longer valid after this function returns.
  *
- *                  This function may call mbedtls_ssl_async_set_data() to
- *                  store an operation context for later retrieval
+ *                  This function may call mbedtls_ssl_set_async_operation_data()
+ *                  to store an operation context for later retrieval
  *                  by the resume callback.
  *
  * \note            For RSA signatures, this function must produce output
@@ -598,7 +598,8 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  *                  [RFC 4492 section 5.4](https://tools.ietf.org/html/rfc4492#section-5.4).
  *
  * \param ssl             The SSL connection instance. It should not be
- *                        modified other than via mbedtls_ssl_async_set_data().
+ *                        modified other than via
+ *                        mbedtls_ssl_set_async_operation_data().
  * \param cert            Certificate containing the public key.
  *                        In simple cases, this is one of the pointers passed to
  *                        mbedtls_ssl_conf_own_cert() when configuring the SSL
@@ -650,8 +651,8 @@ typedef int mbedtls_ssl_async_sign_t( mbedtls_ssl_context *ssl,
  *                  is needed for later processing, because the \p input buffer
  *                  is no longer valid after this function returns.
  *
- *                  This function may call mbedtls_ssl_async_set_data() to
- *                  store an operation context for later retrieval
+ *                  This function may call mbedtls_ssl_set_async_operation_data()
+ *                  to store an operation context for later retrieval
  *                  by the resume callback.
  *
  * \warning         RSA decryption as used in TLS is subject to a potential
@@ -664,7 +665,8 @@ typedef int mbedtls_ssl_async_sign_t( mbedtls_ssl_context *ssl,
  *                  invalid padding.
  *
  * \param ssl             The SSL connection instance. It should not be
- *                        modified other than via mbedtls_ssl_async_set_data().
+ *                        modified other than via
+ *                        mbedtls_ssl_set_async_operation_data().
  * \param cert            Certificate containing the public key.
  *                        In simple cases, this is one of the pointers passed to
  *                        mbedtls_ssl_conf_own_cert() when configuring the SSL
@@ -709,13 +711,14 @@ typedef int mbedtls_ssl_async_decrypt_t( mbedtls_ssl_context *ssl,
  *                  does not wait for the operation to complete. This allows
  *                  the handshake step to be non-blocking.
  *
- *                  This function may call mbedtls_ssl_async_get_data() to
- *                  retrieve an operation context set by the start callback.
- *                  It may call mbedtls_ssl_async_set_data() to modify this
- *                  context.
+ *                  This function may call mbedtls_ssl_get_async_operation_data()
+ *                  to retrieve an operation context set by the start callback.
+ *                  It may call mbedtls_ssl_set_async_operation_data() to modify
+ *                  this context.
  *
  * \param ssl             The SSL connection instance. It should not be
- *                        modified other than via mbedtls_ssl_async_set_data().
+ *                        modified other than via
+ *                        mbedtls_ssl_set_async_operation_data().
  * \param output          Buffer containing the output (signature or decrypted
  *                        data) on success.
  * \param output_len      On success, number of bytes written to \p output.
@@ -744,8 +747,8 @@ typedef int mbedtls_ssl_async_resume_t( mbedtls_ssl_context *ssl,
  *                  This callback is called if an SSL connection is closed
  *                  while an asynchronous operation is in progress.
  *
- *                  This function may call mbedtls_ssl_async_get_data() to
- *                  retrieve an operation context set by the start callback.
+ *                  This function may call mbedtls_ssl_get_async_operation_data()
+ *                  to retrieve an operation context set by the start callback.
  *
  * \param ssl             The SSL connection instance. It should not be
  *                        modified.
@@ -1582,11 +1585,12 @@ void *mbedtls_ssl_conf_get_async_config_data( const mbedtls_ssl_config *conf );
  * \param ssl       The SSL context to access.
  *
  * \return          The asynchronous operation user context that was last
- *                  set during the current handshake. If mbedtls_ssl_set_data()
- *                  has not been called during the current handshake yet,
- *                  this function returns \c NULL.
+ *                  set during the current handshake. If
+ *                  mbedtls_ssl_set_async_operation_data() has not yet been
+ *                  called during the current handshake, this function returns
+ *                  \c NULL.
  */
-void *mbedtls_ssl_async_get_data( const mbedtls_ssl_context *ssl );
+void *mbedtls_ssl_get_async_operation_data( const mbedtls_ssl_context *ssl );
 
 /**
  * \brief           Retrieve the asynchronous operation user context.
@@ -1596,10 +1600,10 @@ void *mbedtls_ssl_async_get_data( const mbedtls_ssl_context *ssl );
  *
  * \param ssl       The SSL context to access.
  * \param ctx       The new value of the asynchronous operation user context.
- *                  Call mbedtls_ssl_get_data() later during the same handshake
- *                  to retrieve this value.
+ *                  Call mbedtls_ssl_get_async_operation_data() later during the
+ *                  same handshake to retrieve this value.
  */
-void mbedtls_ssl_async_set_data( mbedtls_ssl_context *ssl,
+void mbedtls_ssl_set_async_operation_data( mbedtls_ssl_context *ssl,
                                  void *ctx );
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 

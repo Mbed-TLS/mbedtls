@@ -1484,29 +1484,32 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
         return( PSA_ERROR_BAD_STATE );
     if ( operation->iv_required && ! operation->iv_set )
         return( PSA_ERROR_BAD_STATE );
-    if( operation->ctx.cipher.operation == MBEDTLS_ENCRYPT )
-    {
-        if (operation->ctx.cipher.unprocessed_len > operation->block_size)
-            return( PSA_ERROR_INVALID_ARGUMENT );
-        if ( ( ( ( operation->alg ) & PSA_ALG_BLOCK_CIPHER_PAD_NONE ) == PSA_ALG_BLOCK_CIPHER_PAD_NONE )
-            && ( operation->ctx.cipher.unprocessed_len != 0 ) )
-            return(PSA_ERROR_INVALID_ARGUMENT);
-        if ( ( ( ( operation->alg ) & PSA_ALG_BLOCK_CIPHER_PAD_PKCS7 ) == PSA_ALG_BLOCK_CIPHER_PAD_PKCS7 )
-            && ( output_size != operation->block_size ) )
-            return(PSA_ERROR_INVALID_ARGUMENT);
-    }
-    if ( operation->ctx.cipher.operation == MBEDTLS_DECRYPT )
-        if (operation->ctx.cipher.unprocessed_len != 0)
-            return( PSA_ERROR_INVALID_ARGUMENT );
 
-    ret = mbedtls_cipher_finish(&operation->ctx.cipher, temp_output_buffer,
-                                output_length);
-    if ( output_size > *output_length )
-        memcpy( temp_output_buffer, output, *output_length );
+    if ( operation->ctx.cipher.operation == MBEDTLS_ENCRYPT )
+    {
+        if( operation->ctx.cipher.unprocessed_len > operation->block_size )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        if( ( ( ( operation->alg ) & PSA_ALG_BLOCK_CIPHER_PAD_NONE ) == PSA_ALG_BLOCK_CIPHER_PAD_NONE )
+            && ( operation->ctx.cipher.unprocessed_len != 0 ) )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        if( ( ( ( operation->alg) & PSA_ALG_BLOCK_CIPHER_PAD_PKCS7 ) == PSA_ALG_BLOCK_CIPHER_PAD_PKCS7 )
+            && ( output_size != operation->block_size ) )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+
+    ret = mbedtls_cipher_finish( &operation->ctx.cipher, temp_output_buffer,
+        output_length );
     if( ret != 0 )
     {
         psa_cipher_abort( operation );
         return( mbedtls_to_psa_error( ret ) );
+    }
+    if(output_size >= *output_length)
+        memcpy( output, temp_output_buffer, *output_length );
+    else
+    {
+        psa_cipher_abort( operation );
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
     }
 
     return( PSA_SUCCESS );

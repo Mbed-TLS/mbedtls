@@ -30,11 +30,13 @@
 #else
 #include <stdio.h>
 #include <stdlib.h>
-#define mbedtls_time       time
-#define mbedtls_time_t     time_t
-#define mbedtls_fprintf    fprintf
-#define mbedtls_printf     printf
-#endif
+#define mbedtls_time            time
+#define mbedtls_time_t          time_t
+#define mbedtls_fprintf         fprintf
+#define mbedtls_printf          printf
+#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
+#endif /* MBEDTLS_PLATFORM_C */
 
 #if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_ENTROPY_C) ||  \
     !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_CLI_C) || \

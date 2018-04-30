@@ -1521,11 +1521,10 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
             return( mbedtls_to_psa_error( ret ) );
         }
         ret = mbedtls_gcm_crypt_and_tag( &gcm, MBEDTLS_GCM_ENCRYPT,
-                       plaintext_length, ( const unsigned char* )nonce ,
-                       nonce_length, ( const unsigned char* )additional_data,
-                       additional_data_length,
-                       ( const unsigned char* ) plaintext,
-                       ( unsigned char* )ciphertext, sizeof( tag ), tag );
+                       plaintext_length, nonce ,
+                       nonce_length, additional_data,
+                       additional_data_length, plaintext,
+                       ciphertext, sizeof( tag ), tag );
         if( ret != 0 )
         {
             mbedtls_gcm_free( &gcm );
@@ -1542,18 +1541,16 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
 
         mbedtls_ccm_init( &ccm );
         ret = mbedtls_ccm_setkey( &ccm, cipher_info->base->cipher, 
-                                ( const unsigned char * )slot->data.raw.data, key_bits );
+                                  slot->data.raw.data, key_bits );
         if( ret != 0 )
         {
             mbedtls_ccm_free( &ccm );
             return( mbedtls_to_psa_error( ret ) );
         }
         ret = mbedtls_ccm_encrypt_and_tag( &ccm, plaintext_length, 
-                       ( const unsigned char* )nonce ,
-                       nonce_length, ( const unsigned char* )additional_data,
+                       nonce , nonce_length, additional_data,
                        additional_data_length,
-                       ( const unsigned char* ) plaintext,
-                       ( unsigned char* )ciphertext, sizeof( tag ), tag );
+                       plaintext, ciphertext, sizeof( tag ), tag );
         if( ret != 0 )
         {
             mbedtls_ccm_free( &ccm );
@@ -1612,18 +1609,16 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
 
         mbedtls_gcm_init( &gcm );
         ret = mbedtls_gcm_setkey( &gcm, cipher_info->base->cipher, 
-                                ( const unsigned char * )slot->data.raw.data, key_bits );
+                                  slot->data.raw.data, key_bits );
         if( ret != 0 )
         {
             mbedtls_gcm_free( &gcm );
             return( mbedtls_to_psa_error( ret ) );
         }
         ret = mbedtls_gcm_crypt_and_tag( &gcm, MBEDTLS_GCM_DECRYPT,
-                       ciphertext_length, ( const unsigned char* )nonce ,
-                       nonce_length, ( const unsigned char* )additional_data,
-                       additional_data_length,
-                       ( const unsigned char* )ciphertext,
-                       ( unsigned char* )plaintext, sizeof( tag ), tag );
+                       ciphertext_length, nonce , nonce_length, 
+                       additional_data, additional_data_length,
+                       ciphertext, plaintext, sizeof( tag ), tag );
         if( ret != 0 )
         {
             mbedtls_gcm_free( &gcm );
@@ -1641,18 +1636,16 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
 
         mbedtls_ccm_init( &ccm );
         ret = mbedtls_ccm_setkey( &ccm, cipher_info->base->cipher, 
-                                ( const unsigned char * )slot->data.raw.data, key_bits );
+                                  slot->data.raw.data, key_bits );
         if( ret != 0 )
         {
             mbedtls_ccm_free( &ccm );
             return( mbedtls_to_psa_error( ret ) );
         }
         ret = mbedtls_ccm_auth_decrypt( &ccm, ciphertext_length, 
-                       ( const unsigned char* )nonce ,
-                       nonce_length, ( const unsigned char* )additional_data,
-                       additional_data_length,
-                       ( const unsigned char* )ciphertext ,
-                       ( unsigned char* )plaintext, sizeof( tag ), tag );
+                       nonce , nonce_length, additional_data,
+                       additional_data_length, ciphertext ,
+                       plaintext, sizeof( tag ), tag );
         if( ret != 0 )
         {
             mbedtls_ccm_free( &ccm );

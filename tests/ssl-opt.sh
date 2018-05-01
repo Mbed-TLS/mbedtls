@@ -2648,7 +2648,7 @@ run_test    "SNI: CA override with CRL" \
 
 # Tests for SNI and DTLS
 
-run_test    "SNI/DTLS: matching cert 1" \
+run_test    "SNI: DTLS, matching cert 1" \
             "$P_SRV debug_level=3 dtls=1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
              sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
@@ -2658,7 +2658,7 @@ run_test    "SNI/DTLS: matching cert 1" \
             -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
             -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
 
-run_test    "SNI/DTLS: CA override" \
+run_test    "SNI: DTLS, CA override" \
             "$P_SRV debug_level=3 auth_mode=optional dtls=1 \
              crt_file=data_files/server5.crt key_file=data_files/server5.key \
              ca_file=data_files/test-ca.crt \
@@ -2676,7 +2676,7 @@ run_test    "SNI/DTLS: CA override" \
             -S "! The certificate is not correctly signed by the trusted CA" \
             -S "The certificate has been revoked (is on a CRL)"
 
-run_test    "SNI/DTLS: CA override with CRL" \
+run_test    "SNI: DTLS, CA override with CRL" \
             "$P_SRV debug_level=3 auth_mode=optional \
              crt_file=data_files/server5.crt key_file=data_files/server5.key dtls=1 \
              ca_file=data_files/test-ca.crt \

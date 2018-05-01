@@ -29,7 +29,7 @@ Features
    * Add initial support for Curve448 (RFC 7748). Only mbedtls_ecp_mul() and
      ECDH primitive functions (mbedtls_ecdh_gen_public(),
      mbedtls_ecdh_compute_shared()) are supported for now. Contributed by
-     Nicholas Wilson (#348).
+     Nicholas Wilson in pull request #348.
 
 API Changes
    * Extend the public API with the function of mbedtls_net_poll() to allow user
@@ -74,6 +74,10 @@ Bugfix
      buffer.
    * Fix invalid buffer sizes passed to zlib during record compression and
      decompression.
+   * Fix the soversion of libmbedcrypto to match the soversion of the
+     maintained 2.7 branch. The soversion was increased in Mbed TLS
+     version 2.7.1 to reflect breaking changes in that release, but the
+     increment was missed in 2.8.0 and later releases outside of the 2.7 branch.
 
 Changes
    * Remove some redundant code in bignum.c. Contributed by Alexey Skalozub.

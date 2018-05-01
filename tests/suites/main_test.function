@@ -226,12 +226,23 @@ int parse_arguments( char *buf, size_t len, char *params[50] )
     return( cnt );
 }
 
+#if defined(__GNUC__)
+/* At high optimization levels (e.g. gcc -O3), this function may be
+ * inlined in run_test_snprintf. This can trigger a spurious warning about
+ * potential misuse of snprintf from gcc -Wformat-truncation (observed with
+ * gcc 7.2). This warning makes tests in run_test_snprintf redundant on gcc
+ * only. They are still valid for other compilers. Avoid this warning by
+ * forbidding inlining of this function by gcc. */
+__attribute__((__noinline__))
+#endif
 static int test_snprintf( size_t n, const char ref_buf[10], int ref_ret )
 {
     int ret;
     char buf[10] = "xxxxxxxxx";
     const char ref[10] = "xxxxxxxxx";
 
+    if( n >= sizeof( buf ) )
+        return( -1 );
     ret = mbedtls_snprintf( buf, n, "%s", "123" );
     if( ret < 0 || (size_t) ret >= n )
         ret = -1;

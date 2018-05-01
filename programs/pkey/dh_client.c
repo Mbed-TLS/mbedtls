@@ -209,7 +209,6 @@ int main( void )
 
     if( ( n = (size_t) ( end - p ) ) != rsa.len )
     {
-        ret = 1;
         mbedtls_printf( " failed\n  ! Invalid RSA signature size\n\n" );
         goto exit;
     }

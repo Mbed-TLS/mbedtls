@@ -1489,11 +1489,11 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
     {
         if( operation->ctx.cipher.unprocessed_len > operation->block_size )
             return( PSA_ERROR_INVALID_ARGUMENT );
-        if( ( ( ( operation->alg ) & PSA_ALG_BLOCK_CIPHER_PAD_NONE ) == PSA_ALG_BLOCK_CIPHER_PAD_NONE )
+        if( ( ( operation->alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK ) == PSA_ALG_BLOCK_CIPHER_PAD_NONE )
             && ( operation->ctx.cipher.unprocessed_len != 0 ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
-        if( ( ( ( operation->alg) & PSA_ALG_BLOCK_CIPHER_PAD_PKCS7 ) == PSA_ALG_BLOCK_CIPHER_PAD_PKCS7 )
-            && ( output_size != operation->block_size ) )
+        if( ( ( operation->alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK ) == PSA_ALG_BLOCK_CIPHER_PAD_PKCS7 )
+            && ( *output_length != operation->block_size ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
     }
 

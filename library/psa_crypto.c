@@ -468,7 +468,7 @@ static  psa_status_t psa_internal_export_key(psa_key_slot_t key,
 
     if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_EMPTY_SLOT );
-    slot = &global_data.key_slots[ key ];
+    slot = &global_data.key_slots[key];
     if( slot->type == PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_EMPTY_SLOT );
 		
@@ -478,7 +478,7 @@ static  psa_status_t psa_internal_export_key(psa_key_slot_t key,
     if( ( export_public_key ) && ( !( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) || PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) ) ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    if( ( !export_public_key) && PSA_KEY_TYPE_IS_RAW_BYTES( slot->type ) )
+    if ( PSA_KEY_TYPE_IS_RAW_BYTES( slot->type ) )
     {
         if( slot->data.raw.bytes > data_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
@@ -487,6 +487,7 @@ static  psa_status_t psa_internal_export_key(psa_key_slot_t key,
         return( PSA_SUCCESS );
     }
     else
+    {
 #if defined(MBEDTLS_PK_WRITE_C)
         if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
             slot->type == PSA_KEY_TYPE_RSA_KEYPAIR ||
@@ -506,11 +507,10 @@ static  psa_status_t psa_internal_export_key(psa_key_slot_t key,
                 pk.pk_info = &mbedtls_eckey_info;
                 pk.pk_ctx = slot->data.ecp;
             }
-
-            if( ( ! export_public_key ) && PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) )
-                ret = mbedtls_pk_write_key_der( &pk, data, data_size );
-            else
+            if ( export_public_key || PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) )
                 ret = mbedtls_pk_write_pubkey_der( &pk, data, data_size );
+            else
+                ret = mbedtls_pk_write_key_der( &pk, data, data_size );
             if( ret < 0 )
                 return( mbedtls_to_psa_error( ret ) );
             *data_length = ret;
@@ -524,6 +524,7 @@ static  psa_status_t psa_internal_export_key(psa_key_slot_t key,
             support for exporting certain key types. */
             return( PSA_ERROR_NOT_SUPPORTED );
         }
+    }
 }
 
 psa_status_t psa_export_key(psa_key_slot_t key,

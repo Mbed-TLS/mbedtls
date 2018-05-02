@@ -624,8 +624,7 @@ exit:
 
 /* BEGIN_CASE */
 void asymmetric_encrypt( int key_type_arg, char *key_hex,
-                         int alg_arg, char *input_hex,
-                          char *expected_hex, int expected_size )
+                         int alg_arg, char *input_hex )
 {
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;
@@ -634,44 +633,52 @@ void asymmetric_encrypt( int key_type_arg, char *key_hex,
     size_t key_size;
     unsigned char *input_data = NULL;
     size_t input_size;
-    unsigned char *expected_data = NULL;
-    size_t expected_data_size;
     unsigned char *output = NULL;
     size_t output_size = 4096;
     size_t output_length = 0;
+    unsigned char *output2 = NULL;
+    size_t output2_size = 4096;
+    size_t output2_length = 0;
 
     key_data = unhexify_alloc( key_hex, &key_size );
     TEST_ASSERT( key_data != NULL );
     input_data = unhexify_alloc( input_hex, &input_size );
     TEST_ASSERT( input_data != NULL );
-    expected_data = unhexify_alloc( expected_hex, &expected_data_size );
-    TEST_ASSERT( expected_data != NULL );
     output = mbedtls_calloc( 1, output_size );
     TEST_ASSERT( output != NULL );
-    
+    output2 = mbedtls_calloc( 1, output2_size );
+    TEST_ASSERT( output2 != NULL );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( slot, key_type,
                                  key_data, key_size ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_asymmetric_encrypt(slot, alg, 
-                                    input_data, 
-                                    input_size, 
-                                    NULL, 0, 
-                                    output, 
-                                    output_size, 
+    //checked using encrypt/decrpyt because of non-optional random 
+    // part of encryption process preventing using fixed vectors
+    TEST_ASSERT( psa_asymmetric_encrypt(slot, alg,
+                                    input_data,
+                                    input_size,
+                                    NULL, 0,
+                                    output,
+                                    output_size,
                                     &output_length) == PSA_SUCCESS );
-    TEST_ASSERT( ((size_t)expected_size) == output_length );
-    // function uses random internally 
-    //TEST_ASSERT( memcmp( expected_data, output, output_length ) == 0 ); 
+
+    TEST_ASSERT( psa_asymmetric_decrypt(slot, alg,
+                                    output,
+                                    output_length,
+                                    NULL, 0,
+                                    output2,
+                                    output2_size,
+                                    &output2_length) == PSA_SUCCESS ); 
+    TEST_ASSERT( memcmp( input_data, output2, input_size ) == 0 );
 
 exit:
     psa_destroy_key( slot );
     mbedtls_free( key_data );
     mbedtls_free( input_data );
-    mbedtls_free( expected_data );
     mbedtls_free( output);
+    mbedtls_free( output2);
     mbedtls_psa_crypto_free( );
 
 }
@@ -711,12 +718,12 @@ void asymmetric_encrypt_fail( int key_type_arg, char *key_hex,
     TEST_ASSERT( psa_import_key( slot, key_type,
                                  key_data, key_size ) == PSA_SUCCESS );
 
-    actual_status = psa_asymmetric_encrypt(slot, alg, 
-                                    input_data, 
-                                    input_size, 
-                                    NULL, 0, 
-                                    output, 
-                                    output_size, 
+    actual_status = psa_asymmetric_encrypt(slot, alg,
+                                    input_data,
+                                    input_size,
+                                    NULL, 0,
+                                    output,
+                                    output_size,
                                     &output_length);
     TEST_ASSERT( actual_status == expected_status );
 
@@ -763,12 +770,12 @@ void asymmetric_decrypt( int key_type_arg, char *key_hex,
     TEST_ASSERT( psa_import_key( slot, key_type,
                                  key_data, key_size ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_asymmetric_decrypt( slot, alg, 
-                                    input_data, 
-                                    input_size, 
-                                    NULL, 0, 
-                                    output, 
-                                    output_size, 
+    TEST_ASSERT( psa_asymmetric_decrypt( slot, alg,
+                                    input_data,
+                                    input_size,
+                                    NULL, 0,
+                                    output,
+                                    output_size,
                                     &output_length) == PSA_SUCCESS );
     TEST_ASSERT( ((size_t)expected_size) == output_length );
     TEST_ASSERT( memcmp( expected_data, output, (output_length/8) ) == 0 );
@@ -818,12 +825,12 @@ void asymmetric_decrypt_fail( int key_type_arg, char *key_hex,
     TEST_ASSERT( psa_import_key( slot, key_type,
                                  key_data, key_size ) == PSA_SUCCESS );
 
-    actual_status = psa_asymmetric_decrypt(slot, alg, 
-                                    input_data, 
-                                    input_size, 
-                                    NULL, 0, 
-                                    output, 
-                                    output_size, 
+    actual_status = psa_asymmetric_decrypt(slot, alg,
+                                    input_data,
+                                    input_size,
+                                    NULL, 0,
+                                    output,
+                                    output_size,
                                     &output_length);
     TEST_ASSERT( actual_status == expected_status );
 

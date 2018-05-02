@@ -414,7 +414,7 @@ AES-128 CFB - Encrypt and decrypt 32 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:32:-1
 
-AES-128 CFB - Encrypt and decrypt 32 bytes
+AES-128 CFB - Encrypt and decrypt 33 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:33:-1
 
@@ -518,7 +518,7 @@ AES-128 CTR - Encrypt and decrypt 32 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:32:-1
 
-AES-128 CTR - Encrypt and decrypt 32 bytes
+AES-128 CTR - Encrypt and decrypt 33 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:33:-1
 

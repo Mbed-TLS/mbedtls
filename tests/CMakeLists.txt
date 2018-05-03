@@ -77,3 +77,5 @@ if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     link_to_source(scripts)
     link_to_source(ssl-opt.sh)
 endif()
+
+add_subdirectory(fuzz)

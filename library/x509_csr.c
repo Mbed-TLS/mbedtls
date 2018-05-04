@@ -294,11 +294,9 @@ int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, siz
         /*
          * Was PEM encoded, parse the result
          */
-        if( ( ret = mbedtls_x509_csr_parse_der( csr, pem.buf, pem.buflen ) ) != 0 )
-            return( ret );
-
+        ret = mbedtls_x509_csr_parse_der( csr, pem.buf, pem.buflen );
         mbedtls_pem_free( &pem );
-        return( 0 );
+        return( ret );
     }
     else if( ret != MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT )
     {

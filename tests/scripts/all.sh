@@ -90,7 +90,6 @@ CONFIG_BAK="$CONFIG_H.bak"
 MEMORY=0
 FORCE=0
 KEEP_GOING=0
-RELEASE=0
 RUN_ARMCC=1
 
 # Default commands, can be overriden by the environment
@@ -114,11 +113,18 @@ General options:
   -m|--memory           Additional optional memory tests.
      --armcc            Run ARM Compiler builds (on by default).
      --no-armcc         Skip ARM Compiler builds.
+     --no-force         Refuse to overwrite modified files (default).
+     --no-keep-going    Stop at the first error (default).
+     --no-memory        No additional memory tests (default).
+     --no-yotta         Ignored for compatibility with other Mbed TLS versions.
      --out-of-source-dir=<path>  Directory used for CMake out-of-source build tests.
+     --random-seed      Use a random seed value for randomized tests (default).
   -r|--release-test     Run this script in release mode. This fixes the seed value to 1.
   -s|--seed             Integer seed value to use for this test run.
 
 Tool path options:
+     --armc5-bin-dir=<ARMC5_bin_dir_path>       ARM Compiler 5 bin directory.
+     --armc6-bin-dir=<ARMC6_bin_dir_path>       Ignored for compatibility with other Mbed TLS versions.
      --gnutls-cli=<GnuTLS_cli_path>             GnuTLS client executable to use for most tests.
      --gnutls-serv=<GnuTLS_serv_path>           GnuTLS server executable to use for most tests.
      --gnutls-legacy-cli=<GnuTLS_cli_path>      GnuTLS client executable to use for legacy tests.
@@ -186,60 +192,28 @@ check_tools()
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --armcc)
-            RUN_ARMCC=1
-            ;;
-        --force|-f)
-            FORCE=1
-            ;;
-        --gnutls-cli)
-            shift
-            GNUTLS_CLI="$1"
-            ;;
-        --gnutls-legacy-cli)
-            shift
-            GNUTLS_LEGACY_CLI="$1"
-            ;;
-        --gnutls-legacy-serv)
-            shift
-            GNUTLS_LEGACY_SERV="$1"
-            ;;
-        --gnutls-serv)
-            shift
-            GNUTLS_SERV="$1"
-            ;;
-        --help|-h)
-            usage
-            exit
-            ;;
-        --keep-going|-k)
-            KEEP_GOING=1
-            ;;
-        --memory|-m)
-            MEMORY=1
-            ;;
-        --no-armcc)
-            RUN_ARMCC=0
-            ;;
-        --openssl)
-            shift
-            OPENSSL="$1"
-            ;;
-        --openssl-legacy)
-            shift
-            OPENSSL_LEGACY="$1"
-            ;;
-        --out-of-source-dir)
-            shift
-            OUT_OF_SOURCE_DIR="$1"
-            ;;
-        --release-test|-r)
-            RELEASE=1
-            ;;
-        --seed|-s)
-            shift
-            SEED="$1"
-            ;;
+        --armcc) RUN_ARMCC=1;;
+        --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
+        --armc6-bin-dir) shift;; # Ignore for compatibility with later Mbed TLS versions
+        --force|-f) FORCE=1;;
+        --gnutls-cli) shift; GNUTLS_CLI="$1";;
+        --gnutls-legacy-cli) shift; GNUTLS_LEGACY_CLI="$1";;
+        --gnutls-legacy-serv) shift; GNUTLS_LEGACY_SERV="$1";;
+        --gnutls-serv) shift; GNUTLS_SERV="$1";;
+        --help|-h) usage; exit;;
+        --keep-going|-k) KEEP_GOING=1;;
+        --memory|-m) MEMORY=1;;
+        --no-armcc) RUN_ARMCC=0;;
+        --no-force) FORCE=0;;
+        --no-keep-going) KEEP_GOING=0;;
+        --no-memory) MEMORY=0;;
+        --no-yotta) :;; # No Yotta support anyway, so just ignore --no-yotta
+        --openssl) shift; OPENSSL="$1";;
+        --openssl-legacy) shift; OPENSSL_LEGACY="$1";;
+        --out-of-source-dir) shift; OUT_OF_SOURCE_DIR="$1";;
+        --random-seed) unset SEED;;
+        --release-test|-r) SEED=1;;
+        --seed|-s) shift; SEED="$1";;
         *)
             echo >&2 "Unknown option: $1"
             echo >&2 "Run $0 --help for usage."
@@ -342,11 +316,6 @@ if_build_succeeded () {
     fi
 }
 
-if [ $RELEASE -eq 1 ]; then
-    # Fix the seed value to 1 to ensure that the tests are deterministic.
-    SEED=1
-fi
-
 msg "info: $0 configuration"
 echo "MEMORY: $MEMORY"
 echo "FORCE: $FORCE"
@@ -357,6 +326,15 @@ echo "GNUTLS_CLI: $GNUTLS_CLI"
 echo "GNUTLS_SERV: $GNUTLS_SERV"
 echo "GNUTLS_LEGACY_CLI: $GNUTLS_LEGACY_CLI"
 echo "GNUTLS_LEGACY_SERV: $GNUTLS_LEGACY_SERV"
+echo "ARMC5_BIN_DIR: ${ARMC5_BIN_DIR:-UNSET}"
+
+if [ -n "${ARMC5_BIN_DIR-}" ]; then
+    ARMC5_CC="$ARMC5_BIN_DIR/armcc"
+    ARMC5_AR="$ARMC5_BIN_DIR/armar"
+else
+    ARMC5_CC=armcc
+    ARMC5_AR=armar
+fi
 
 # To avoid setting OpenSSL and GnuTLS for each call to compat.sh and ssl-opt.sh
 # we just export the variables they require
@@ -365,14 +343,16 @@ export GNUTLS_CLI="$GNUTLS_CLI"
 export GNUTLS_SERV="$GNUTLS_SERV"
 
 # Avoid passing --seed flag in every call to ssl-opt.sh
-[ ! -z ${SEED+set} ] && export SEED
+if [ -n "${SEED-}" ]; then
+  export SEED
+fi
 
 # Make sure the tools we need are available.
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
             "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
             "arm-none-eabi-gcc"
 if [ $RUN_ARMCC -ne 0 ]; then
-    check_tools "armcc"
+    check_tools "$ARMC5_CC" "$ARMC5_AR"
 fi
 
 
@@ -634,7 +614,7 @@ if [ $RUN_ARMCC -ne 0 ]; then
     scripts/config.pl unset MBEDTLS_THREADING_C
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
-    make CC=armcc AR=armar WARNING_CFLAGS= lib
+    make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS= lib
 fi
 
 msg "build: allow SHA1 in certificates by default"

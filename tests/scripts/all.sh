@@ -376,7 +376,7 @@ fi
 # Make sure the tools we need are available.
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
             "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
-            "arm-none-eabi-gcc" "i686-w64-mingw32-gcc"
+            "arm-none-eabi-gcc" "i686-w64-mingw32-gcc" "gdb"
 if [ $RUN_ARMCC -ne 0 ]; then
     check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR"
 fi
@@ -861,6 +861,15 @@ msg "test: cmake 'out-of-source' build"
 make test
 cd "$MBEDTLS_ROOT_DIR"
 rm -rf "$OUT_OF_SOURCE_DIR"
+
+for optimization_flag in -O2 -O3 -Ofast -Os; do
+    for compiler in clang gcc; do
+        msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
+        cleanup
+        CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag" make programs
+        gdb -x tests/scripts/test_zeroize.gdb -nw -batch -nx
+    done
+done
 
 
 

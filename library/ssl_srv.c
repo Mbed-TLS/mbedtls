@@ -38,6 +38,7 @@
 #include "mbedtls/debug.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/ssl_internal.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 
@@ -47,13 +48,6 @@
 
 #if defined(MBEDTLS_HAVE_TIME)
 #include "mbedtls/platform_time.h"
-#endif
-
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
@@ -553,7 +547,7 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
     memcpy( ssl->session_negotiate, &session, sizeof( mbedtls_ssl_session ) );
 
     /* Zeroize instead of free as we copied the content */
-    mbedtls_zeroize( &session, sizeof( mbedtls_ssl_session ) );
+    mbedtls_platform_zeroize( &session, sizeof( mbedtls_ssl_session ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "session successfully restored from ticket" ) );
 

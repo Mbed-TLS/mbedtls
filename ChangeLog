@@ -1,5 +1,18 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+API Changes
+   * Extend the platform module with a util component that contains
+     functionality shared by multiple Mbed TLS modules. At this stage
+     platform_util.h (and its associated platform_util.c) only contain
+     mbedtls_platform_zeroize(), which is a critical function from a security
+     point of view. mbedtls_platform_zeroize() needs to be regularly tested
+     against compilers to ensure that calls to it are not removed from the
+     output binary as part of redundant code elimination optimizations.
+     Therefore, mbedtls_platform_zeroize() is moved to the platform module to
+     facilitate testing and maintenance.
+
 = mbed TLS 2.9.0 branch released 2018-04-30
 
 Security

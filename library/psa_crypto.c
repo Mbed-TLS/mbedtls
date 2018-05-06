@@ -1367,7 +1367,7 @@ psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
     (void) salt_length;
 
     if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
-        return( PSA_ERROR_EMPTY_SLOT );
+        return( PSA_ERROR_INVALID_ARGUMENT );
     slot = &global_data.key_slots[key];
     if( slot->type == PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_EMPTY_SLOT );
@@ -1460,14 +1460,13 @@ psa_status_t psa_asymmetric_encrypt(psa_key_slot_t key,
     (void) salt_length;
 
     if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
-        return( PSA_ERROR_EMPTY_SLOT );
+        return( PSA_ERROR_INVALID_ARGUMENT );
     slot = &global_data.key_slots[key];
     if( slot->type == PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_EMPTY_SLOT );
     if( ! PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    // check output size?
 
 #if defined(MBEDTLS_RSA_C)
     if( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )

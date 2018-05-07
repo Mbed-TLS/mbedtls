@@ -421,7 +421,7 @@ static const unsigned char test_mac[1][16] =
 
 int mbedtls_aead_chacha20_poly1305_self_test( int verbose )
 {
-    size_t i;
+    unsigned i;
     int result;
     unsigned char output[200];
     unsigned char mac[16];
@@ -430,7 +430,7 @@ int mbedtls_aead_chacha20_poly1305_self_test( int verbose )
     {
         if ( verbose != 0 )
         {
-            mbedtls_printf( "  ChaCha20-Poly1305 test %zu ", i );
+            mbedtls_printf( "  ChaCha20-Poly1305 test %u ", i );
         }
 
         result = mbedtls_aead_chacha20_poly1305_crypt_and_mac( test_key[i],

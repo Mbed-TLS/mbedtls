@@ -291,8 +291,6 @@ int mbedtls_aead_chacha20_poly1305_finish( mbedtls_aead_chacha20_poly1305_contex
     return( 0 );
 }
 
-#endif /* MBEDTLS_AEAD_CHACHA20_POLY1305_ALT */
-
 int mbedtls_aead_chacha20_poly1305_crypt_and_mac ( const unsigned char key[32],
                                                     const unsigned char nonce[12],
                                                     mbedtls_aead_chacha20_poly1305_mode_t mode,
@@ -330,6 +328,8 @@ cleanup:
     mbedtls_aead_chacha20_poly1305_free( &ctx );
     return( result );
 }
+
+#endif /* MBEDTLS_AEAD_CHACHA20_POLY1305_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 

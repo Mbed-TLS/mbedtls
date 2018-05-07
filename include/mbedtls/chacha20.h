@@ -31,12 +31,12 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if !defined(MBEDTLS_CHACHA20_ALT)
-
 #include <stdint.h>
 #include <stddef.h>
 
 #define MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA -0x003B /**< Invalid input parameter(s). */
+
+#if !defined(MBEDTLS_CHACHA20_ALT)
 
 typedef struct
 {
@@ -46,6 +46,10 @@ typedef struct
     size_t keystream_bytes_used; /*! Number of keystream bytes currently used */
 }
 mbedtls_chacha20_context;
+
+#else  /* MBEDTLS_CHACHA20_ALT */
+#include "chacha20_alt.h"
+#endif /* MBEDTLS_CHACHA20_ALT */
 
 /**
  * \brief           Initialize ChaCha20 context
@@ -148,10 +152,6 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
                               size_t size,
                               const unsigned char *input,
                               unsigned char *output );
-
-#else  /* MBEDTLS_CHACHA20_ALT */
-#include "chacha20_alt.h"
-#endif /* MBEDTLS_CHACHA20_ALT */
 
 /**
  * \brief           Encrypt or decrypt a message using ChaCha20.

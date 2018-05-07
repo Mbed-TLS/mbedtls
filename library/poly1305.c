@@ -390,8 +390,6 @@ int mbedtls_poly1305_finish( mbedtls_poly1305_context *ctx,
     return( 0 );
 }
 
-#endif /* MBEDTLS_POLY1305_ALT */
-
 int mbedtls_poly1305_mac( const unsigned char key[32],
                            size_t ilen,
                            const unsigned char *input,
@@ -416,6 +414,8 @@ cleanup:
     mbedtls_poly1305_free( &ctx );
     return( 0 );
 }
+
+#endif /* MBEDTLS_POLY1305_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 

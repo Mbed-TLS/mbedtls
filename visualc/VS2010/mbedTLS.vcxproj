@@ -158,6 +158,8 @@
     <ClInclude Include="..\..\include\mbedtls\camellia.h" />
     <ClInclude Include="..\..\include\mbedtls\ccm.h" />
     <ClInclude Include="..\..\include\mbedtls\certs.h" />
+    <ClInclude Include="..\..\include\mbedtls\chacha20.h" />
+    <ClInclude Include="..\..\include\mbedtls\chachapoly.h" />
     <ClInclude Include="..\..\include\mbedtls\check_config.h" />
     <ClInclude Include="..\..\include\mbedtls\cipher.h" />
     <ClInclude Include="..\..\include\mbedtls\cipher_internal.h" />
@@ -198,6 +200,7 @@
     <ClInclude Include="..\..\include\mbedtls\platform.h" />
     <ClInclude Include="..\..\include\mbedtls\platform_time.h" />
     <ClInclude Include="..\..\include\mbedtls\platform_util.h" />
+    <ClInclude Include="..\..\include\mbedtls\poly1305.h" />
     <ClInclude Include="..\..\include\mbedtls\ripemd160.h" />
     <ClInclude Include="..\..\include\mbedtls\rsa.h" />
     <ClInclude Include="..\..\include\mbedtls\rsa_internal.h" />
@@ -231,6 +234,8 @@
     <ClCompile Include="..\..\library\camellia.c" />
     <ClCompile Include="..\..\library\ccm.c" />
     <ClCompile Include="..\..\library\certs.c" />
+    <ClCompile Include="..\..\library\chacha20.c" />
+    <ClCompile Include="..\..\library\chachapoly.c" />
     <ClCompile Include="..\..\library\cipher.c" />
     <ClCompile Include="..\..\library\cipher_wrap.c" />
     <ClCompile Include="..\..\library\cmac.c" />
@@ -268,6 +273,7 @@
     <ClCompile Include="..\..\library\pkwrite.c" />
     <ClCompile Include="..\..\library\platform.c" />
     <ClCompile Include="..\..\library\platform_util.c" />
+    <ClCompile Include="..\..\library\poly1305.c" />
     <ClCompile Include="..\..\library\ripemd160.c" />
     <ClCompile Include="..\..\library\rsa.c" />
     <ClCompile Include="..\..\library\rsa_internal.c" />

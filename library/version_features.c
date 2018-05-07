@@ -84,9 +84,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_TIMING_ALT)
     "MBEDTLS_TIMING_ALT",
 #endif /* MBEDTLS_TIMING_ALT */
-#if defined(MBEDTLS_AEAD_CHACHA20_POLY1305_ALT)
-    "MBEDTLS_AEAD_CHACHA20_POLY1305_ALT",
-#endif /* MBEDTLS_AEAD_CHACHA20_POLY1305_ALT */
+#if defined(MBEDTLS_CHACHAPOLY_ALT)
+    "MBEDTLS_CHACHAPOLY_ALT",
+#endif /* MBEDTLS_CHACHAPOLY_ALT */
 #if defined(MBEDTLS_AES_ALT)
     "MBEDTLS_AES_ALT",
 #endif /* MBEDTLS_AES_ALT */
@@ -519,9 +519,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_AES_C)
     "MBEDTLS_AES_C",
 #endif /* MBEDTLS_AES_C */
-#if defined(MBEDTLS_AEAD_CHACHA20_POLY1305_C)
-    "MBEDTLS_AEAD_CHACHA20_POLY1305_C",
-#endif /* MBEDTLS_AEAD_CHACHA20_POLY1305_C */
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    "MBEDTLS_CHACHAPOLY_C",
+#endif /* MBEDTLS_CHACHAPOLY_C */
 #if defined(MBEDTLS_ARC4_C)
     "MBEDTLS_ARC4_C",
 #endif /* MBEDTLS_ARC4_C */

@@ -1,5 +1,5 @@
 /**
- * \file aead_chacha20_poly1305.h
+ * \file chachapoly.h
  *
  * \brief ChaCha20-Poly1305 AEAD construction based on RFC 7539.
  *
@@ -20,8 +20,8 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
-#ifndef MBEDTLS_AEAD_CHACHA20_POLY1305_H
-#define MBEDTLS_AEAD_CHACHA20_POLY1305_H
+#ifndef MBEDTLS_CHACHAPOLY_H
+#define MBEDTLS_CHACHAPOLY_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
@@ -29,8 +29,8 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#define MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA -0x00047 /**< Invalid input parameter(s). */
-#define MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_STATE      -0x00049 /**< The requested operation is not permitted in the current state */
+#define MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA -0x00047 /**< Invalid input parameter(s). */
+#define MBEDTLS_ERR_CHACHAPOLY_BAD_STATE      -0x00049 /**< The requested operation is not permitted in the current state */
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,12 +38,12 @@ extern "C" {
 
 typedef enum
 {
-    MBEDTLS_AEAD_CHACHA20_POLY1305_ENCRYPT,
-    MBEDTLS_AEAD_CHACHA20_POLY1305_DECRYPT
+    MBEDTLS_CHACHAPOLY_ENCRYPT,
+    MBEDTLS_CHACHAPOLY_DECRYPT
 }
-mbedtls_aead_chacha20_poly1305_mode_t;
+mbedtls_chachapoly_mode_t;
 
-#if !defined(MBEDTLS_AEAD_CHACHA20_POLY1305_ALT)
+#if !defined(MBEDTLS_CHACHAPOLY_ALT)
 
 #include "chacha20.h"
 #include "poly1305.h"
@@ -55,27 +55,27 @@ typedef struct
     uint64_t aad_len;                           /** Length (bytes) of the Additional Authenticated Data */
     uint64_t ciphertext_len;                    /** Length (bytes) of the ciphertext */
     int state;                                  /** Current state of the context */
-    mbedtls_aead_chacha20_poly1305_mode_t mode; /** Cipher mode (encrypt or decrypt) */
+    mbedtls_chachapoly_mode_t mode; /** Cipher mode (encrypt or decrypt) */
 }
-mbedtls_aead_chacha20_poly1305_context;
+mbedtls_chachapoly_context;
 
-#else /* !MBEDTLS_AEAD_CHACHA20_POLY1305_ALT */
-#include "aead_chacha20_poly1305_alt.h"
-#endif /* !MBEDTLS_AEAD_CHACHA20_POLY1305_ALT */
+#else /* !MBEDTLS_CHACHAPOLY_ALT */
+#include "chachapoly_alt.h"
+#endif /* !MBEDTLS_CHACHAPOLY_ALT */
 
 /**
  * \brief               Initialize ChaCha20-Poly1305 context
  *
  * \param ctx           ChaCha20-Poly1305 context to be initialized
  */
-void mbedtls_aead_chacha20_poly1305_init( mbedtls_aead_chacha20_poly1305_context *ctx );
+void mbedtls_chachapoly_init( mbedtls_chachapoly_context *ctx );
 
 /**
  * \brief               Clear ChaCha20-Poly1305 context
  *
  * \param ctx           ChaCha20-Poly1305 context to be cleared
  */
-void mbedtls_aead_chacha20_poly1305_free( mbedtls_aead_chacha20_poly1305_context *ctx );
+void mbedtls_chachapoly_free( mbedtls_chachapoly_context *ctx );
 
 /**
  * \brief               Set the ChaCha20-Poly1305 symmetric encryption key.
@@ -83,12 +83,12 @@ void mbedtls_aead_chacha20_poly1305_free( mbedtls_aead_chacha20_poly1305_context
  * \param ctx           The ChaCha20-Poly1305 context.
  * \param key           The 256-bit (32 bytes) key.
  *
- * \return              MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA is returned
+ * \return              MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA is returned
  *                      if \p ctx or \p key are NULL.
  *                      Otherwise, 0 is returned to indicate success.
  */
-int mbedtls_aead_chacha20_poly1305_setkey( mbedtls_aead_chacha20_poly1305_context *ctx,
-                                           const unsigned char key[32] );
+int mbedtls_chachapoly_setkey( mbedtls_chachapoly_context *ctx,
+                               const unsigned char key[32] );
 
 /**
  * \brief               Setup ChaCha20-Poly1305 context for encryption or decryption.
@@ -102,13 +102,13 @@ int mbedtls_aead_chacha20_poly1305_setkey( mbedtls_aead_chacha20_poly1305_contex
  * \param mode          Specifies whether the context is used to encrypt or
  *                      decrypt data.
  *
- * \return              MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA is returned
+ * \return              MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA is returned
  *                      if \p ctx or \p mac are NULL.
  *                      Otherwise, 0 is returned to indicate success.
  */
-int mbedtls_aead_chacha20_poly1305_starts( mbedtls_aead_chacha20_poly1305_context *ctx,
-                                           const unsigned char nonce[12],
-                                           mbedtls_aead_chacha20_poly1305_mode_t mode );
+int mbedtls_chachapoly_starts( mbedtls_chachapoly_context *ctx,
+                               const unsigned char nonce[12],
+                               mbedtls_chachapoly_mode_t mode );
 
 /**
  * \brief               Process additional authenticated data (AAD).
@@ -118,14 +118,14 @@ int mbedtls_aead_chacha20_poly1305_starts( mbedtls_aead_chacha20_poly1305_contex
  *
  * \note                This function is called before data is encrypted/decrypted.
  *                      I.e. call this function to process the AAD before calling
- *                      mbedtls_aead_chacha20_poly1305_update.
+ *                      mbedtls_chachapoly_update.
  *
  *                      You may call this function multiple times to process
  *                      an arbitrary amount of AAD. It is permitted to call
  *                      this function 0 times, if no AAD is used.
  *
  *                      This function cannot be called any more if data has
- *                      been processed by mbedtls_aead_chacha20_poly1305_update,
+ *                      been processed by mbedtls_chachapoly_update,
  *                      or if the context has been finished.
  *
  * \param ctx           The ChaCha20-Poly1305 context.
@@ -134,23 +134,23 @@ int mbedtls_aead_chacha20_poly1305_starts( mbedtls_aead_chacha20_poly1305_contex
  * \param aad           Buffer containing the AAD.
  *                      This pointer can be NULL if aad_len == 0.
  *
- * \return              MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA is returned
+ * \return              MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA is returned
  *                      if \p ctx or \p aad are NULL.
- *                      MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_STATE is returned if
+ *                      MBEDTLS_ERR_CHACHAPOLY_BAD_STATE is returned if
  *                      the context has not been setup, the context has been
  *                      finished, or if the AAD has been finished.
  *                      Otherwise, 0 is returned to indicate success.
  */
-int mbedtls_aead_chacha20_poly1305_update_aad( mbedtls_aead_chacha20_poly1305_context *ctx,
-                                               size_t aad_len,
-                                               const unsigned char *aad );
+int mbedtls_chachapoly_update_aad( mbedtls_chachapoly_context *ctx,
+                                   size_t aad_len,
+                                   const unsigned char *aad );
 
 /**
  * \brief               Encrypt/decrypt data.
  *
  *                      The direction (encryption or decryption) depends on the
  *                      mode that was given when calling
- *                      mbedtls_aead_chacha20_poly1305_starts.
+ *                      mbedtls_chachapoly_starts.
  *
  *                      You may call this function multiple times to process
  *                      an arbitrary amount of data. It is permitted to call
@@ -164,17 +164,17 @@ int mbedtls_aead_chacha20_poly1305_update_aad( mbedtls_aead_chacha20_poly1305_co
  * \param output        Buffer to where the encrypted or decrypted data is written.
  *                      This pointer can be NULL if len == 0.
  *
- * \return              MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA is returned
+ * \return              MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA is returned
  *                      if \p ctx, \p input, or \p output are NULL.
- *                      MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_STATE is returned if
+ *                      MBEDTLS_ERR_CHACHAPOLY_BAD_STATE is returned if
  *                      the context has not been setup, or if the context has been
  *                      finished.
  *                      Otherwise, 0 is returned to indicate success.
  */
-int mbedtls_aead_chacha20_poly1305_update( mbedtls_aead_chacha20_poly1305_context *ctx,
-                                            size_t len,
-                                            const unsigned char *input,
-                                            unsigned char *output );
+int mbedtls_chachapoly_update( mbedtls_chachapoly_context *ctx,
+                               size_t len,
+                               const unsigned char *input,
+                               unsigned char *output );
 
 /**
  * \brief               Compute the ChaCha20-Poly1305 MAC.
@@ -182,14 +182,14 @@ int mbedtls_aead_chacha20_poly1305_update( mbedtls_aead_chacha20_poly1305_contex
  * \param ctx           The ChaCha20-Poly1305 context.
  * \param mac           Buffer to where the 128-bit (16 bytes) MAC is written.
  *
- * \return              MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA is returned
+ * \return              MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA is returned
  *                      if \p ctx or \p mac are NULL.
- *                      MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_STATE is returned if
+ *                      MBEDTLS_ERR_CHACHAPOLY_BAD_STATE is returned if
  *                      the context has not been setup.
  *                      Otherwise, 0 is returned to indicate success.
  */
-int mbedtls_aead_chacha20_poly1305_finish( mbedtls_aead_chacha20_poly1305_context *ctx,
-                                           unsigned char mac[16] );
+int mbedtls_chachapoly_finish( mbedtls_chachapoly_context *ctx,
+                               unsigned char mac[16] );
 
 /**
  * \brief               Encrypt or decrypt data, and produce a MAC with ChaCha20-Poly1305.
@@ -210,29 +210,29 @@ int mbedtls_aead_chacha20_poly1305_finish( mbedtls_aead_chacha20_poly1305_contex
  *                      This pointer can be NULL if ilen == 0.
  * \param mac           Buffer to where the computed 128-bit (16 bytes) MAC is written.
  *
- * \return              MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA is returned
+ * \return              MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA is returned
  *                      if one or more of the required parameters are NULL.
  *                      Otherwise, 0 is returned to indicate success.
  */
-int mbedtls_aead_chacha20_poly1305_crypt_and_mac( const unsigned char key[32],
-                                                  const unsigned char nonce[12],
-                                                  mbedtls_aead_chacha20_poly1305_mode_t mode,
-                                                  size_t aad_len,
-                                                  const unsigned char *aad,
-                                                  size_t ilen,
-                                                  const unsigned char *input,
-                                                  unsigned char *output,
-                                                  unsigned char mac[16] );
+int mbedtls_chachapoly_crypt_and_mac( const unsigned char key[32],
+                                      const unsigned char nonce[12],
+                                      mbedtls_chachapoly_mode_t mode,
+                                      size_t aad_len,
+                                      const unsigned char *aad,
+                                      size_t ilen,
+                                      const unsigned char *input,
+                                      unsigned char *output,
+                                      unsigned char mac[16] );
 
 /**
  * \brief               Checkup routine
  *
  * \return              0 if successful, or 1 if the test failed
  */
-int mbedtls_aead_chacha20_poly1305_self_test( int verbose );
+int mbedtls_chachapoly_self_test( int verbose );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* MBEDTLS_AEAD_CHACHA20_POLY1305_H */
+#endif /* MBEDTLS_CHACHAPOLY_H */

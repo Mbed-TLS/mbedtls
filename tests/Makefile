@@ -45,14 +45,14 @@ ifdef ZLIB
 LOCAL_LDFLAGS += -lz
 endif
 
-APPS = test_suite_aead_chacha20_poly1305$(EXEXT)			\
-	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
+APPS = 	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_aes.cfb$(EXEXT)	test_suite_aes.rest$(EXEXT)	\
 	test_suite_arc4$(EXEXT)		test_suite_asn1write$(EXEXT)	\
 	test_suite_base64$(EXEXT)	test_suite_blowfish$(EXEXT)	\
 	test_suite_camellia$(EXEXT)	test_suite_ccm$(EXEXT)		\
-	test_suite_chacha20$(EXEXT)	test_suite_cmac$(EXEXT)		\
-	test_suite_cipher.aead_chacha20_poly1305$(EXEXT)		\
+	test_suite_chacha20$(EXEXT)	test_suite_chachapoly$(EXEXT)	\
+	test_suite_cmac$(EXEXT)						\
+	test_suite_cipher.chachapoly$(EXEXT)				\
 	test_suite_cipher.aes$(EXEXT)					\
 	test_suite_cipher.arc4$(EXEXT)	test_suite_cipher.ccm$(EXEXT)	\
 	test_suite_cipher.chacha20$(EXEXT)				\
@@ -117,10 +117,6 @@ test_suite_aes.rest.c : suites/test_suite_aes.function suites/test_suite_aes.res
 	echo "  Gen   $@"
 	perl scripts/generate_code.pl suites test_suite_aes test_suite_aes.rest
 
-test_suite_cipher.aead_chacha20_poly1305.c : suites/test_suite_cipher.function suites/test_suite_cipher.aead_chacha20_poly1305.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
-	echo "  Gen   $@"
-	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.aead_chacha20_poly1305
-
 test_suite_cipher.aes.c : suites/test_suite_cipher.function suites/test_suite_cipher.aes.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
 	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.aes
@@ -136,6 +132,10 @@ test_suite_cipher.ccm.c : suites/test_suite_cipher.function suites/test_suite_ci
 test_suite_cipher.chacha20.c : suites/test_suite_cipher.function suites/test_suite_cipher.chacha20.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
 	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.chacha20
+
+test_suite_cipher.chachapoly.c : suites/test_suite_cipher.function suites/test_suite_cipher.chachapoly.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo "  Gen   $@"
+	perl scripts/generate_code.pl suites test_suite_cipher test_suite_cipher.chachapoly
 
 test_suite_cipher.gcm.c : suites/test_suite_cipher.function suites/test_suite_cipher.gcm.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
@@ -210,10 +210,6 @@ test_suite_hmac_drbg.pr.c : suites/test_suite_hmac_drbg.function suites/test_sui
 	perl scripts/generate_code.pl suites $* $*
 
 
-test_suite_aead_chacha20_poly1305$(EXEXT): test_suite_aead_chacha20_poly1305.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
 test_suite_aes.ecb$(EXEXT): test_suite_aes.ecb.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
@@ -258,15 +254,15 @@ test_suite_chacha20$(EXEXT): test_suite_chacha20.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
+test_suite_chachapoly$(EXEXT): test_suite_chachapoly.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
 test_suite_cmac$(EXEXT): test_suite_cmac.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_cipher.aes$(EXEXT): test_suite_cipher.aes.c $(DEP)
-	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test_suite_cipher.aead_chacha20_poly1305$(EXEXT): test_suite_cipher.aead_chacha20_poly1305.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
@@ -279,6 +275,10 @@ test_suite_cipher.ccm$(EXEXT): test_suite_cipher.ccm.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_cipher.chacha20$(EXEXT): test_suite_cipher.chacha20.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_cipher.chachapoly$(EXEXT): test_suite_cipher.chachapoly.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 

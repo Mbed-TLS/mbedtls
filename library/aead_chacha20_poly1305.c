@@ -155,7 +155,7 @@ int mbedtls_aead_chacha20_poly1305_starts( mbedtls_aead_chacha20_poly1305_contex
     if ( result != 0 )
         goto cleanup;
 
-    result = mbedtls_poly1305_setkey( &ctx->poly1305_ctx, poly1305_key );
+    result = mbedtls_poly1305_starts( &ctx->poly1305_ctx, poly1305_key );
 
     if ( result == 0 )
     {

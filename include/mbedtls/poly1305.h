@@ -81,7 +81,7 @@ void mbedtls_poly1305_free( mbedtls_poly1305_context *ctx );
  *                      or key are NULL.
  *                      Otherwise, 0 is returned to indicate success.
  */
-int mbedtls_poly1305_setkey( mbedtls_poly1305_context *ctx,
+int mbedtls_poly1305_starts( mbedtls_poly1305_context *ctx,
                              const unsigned char key[32] );
 
 /**

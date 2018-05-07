@@ -32,9 +32,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#if !defined(MBEDTLS_POLY1305_ALT)
-
 #define MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA -0x0041 /**< Invalid input parameter(s). */
+
+#if !defined(MBEDTLS_POLY1305_ALT)
 
 typedef struct
 {
@@ -45,6 +45,10 @@ typedef struct
     size_t queue_len;   /** Number of bytes stored in 'queue'. Always less than 16 */
 }
 mbedtls_poly1305_context;
+
+#else  /* MBEDTLS_POLY1305_ALT */
+#include "poly1305_alt.h"
+#endif /* MBEDTLS_POLY1305_ALT */
 
 /**
  * \brief               Initialize a Poly1305 context
@@ -108,10 +112,6 @@ int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
  */
 int mbedtls_poly1305_finish( mbedtls_poly1305_context *ctx,
                              unsigned char mac[16] );
-
-#else  /* MBEDTLS_POLY1305_ALT */
-#include "poly1305_alt.h"
-#endif /* MBEDTLS_POLY1305_ALT */
 
 /**
  * \brief               Generate the Poly1305 MAC of some data with the given key.

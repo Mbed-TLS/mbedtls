@@ -354,8 +354,6 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
     return( 0 );
 }
 
-#endif /* !MBEDTLS_CHACHA20_ALT */
-
 int mbedtls_chacha20_crypt( const unsigned char key[32],
                             const unsigned char nonce[12],
                             uint32_t counter,
@@ -382,6 +380,8 @@ cleanup:
     mbedtls_chacha20_free( &ctx );
     return( result );
 }
+
+#endif /* !MBEDTLS_CHACHA20_ALT */
 
 #if defined(MBEDTLS_SELF_TEST)
 

@@ -29,11 +29,6 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if !defined(MBEDTLS_AEAD_CHACHA20_POLY1305_ALT)
-
-#include "chacha20.h"
-#include "poly1305.h"
-
 #define MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA -0x00047 /**< Invalid input parameter(s). */
 #define MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_STATE      -0x00049 /**< The requested operation is not permitted in the current state */
 
@@ -43,6 +38,11 @@ typedef enum
     MBEDTLS_AEAD_CHACHA20_POLY1305_DECRYPT
 }
 mbedtls_aead_chacha20_poly1305_mode_t;
+
+#if !defined(MBEDTLS_AEAD_CHACHA20_POLY1305_ALT)
+
+#include "chacha20.h"
+#include "poly1305.h"
 
 typedef struct
 {
@@ -54,6 +54,10 @@ typedef struct
     mbedtls_aead_chacha20_poly1305_mode_t mode; /** Cipher mode (encrypt or decrypt) */
 }
 mbedtls_aead_chacha20_poly1305_context;
+
+#else /* !MBEDTLS_AEAD_CHACHA20_POLY1305_ALT */
+#include "aead_chacha20_poly1305_alt.h"
+#endif /* !MBEDTLS_AEAD_CHACHA20_POLY1305_ALT */
 
 /**
  * \brief               Initialize ChaCha20-Poly1305 context
@@ -182,10 +186,6 @@ int mbedtls_aead_chacha20_poly1305_update( mbedtls_aead_chacha20_poly1305_contex
  */
 int mbedtls_aead_chacha20_poly1305_finish( mbedtls_aead_chacha20_poly1305_context *ctx,
                                            unsigned char mac[16] );
-
-#else /* !MBEDTLS_AEAD_CHACHA20_POLY1305_ALT */
-#include "aead_chacha20_poly1305_alt.h"
-#endif /* !MBEDTLS_AEAD_CHACHA20_POLY1305_ALT */
 
 /**
  * \brief               Encrypt or decrypt data, and produce a MAC with ChaCha20-Poly1305.

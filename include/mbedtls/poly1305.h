@@ -34,6 +34,10 @@
 
 #define MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA -0x0041 /**< Invalid input parameter(s). */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if !defined(MBEDTLS_POLY1305_ALT)
 
 typedef struct
@@ -139,5 +143,9 @@ int mbedtls_poly1305_mac( const unsigned char key[32],
  * \return              0 if successful, or 1 if the test failed
  */
 int mbedtls_poly1305_self_test( int verbose );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* MBEDTLS_POLY1305_H */

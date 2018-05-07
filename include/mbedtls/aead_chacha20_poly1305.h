@@ -32,6 +32,10 @@
 #define MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_INPUT_DATA -0x00047 /**< Invalid input parameter(s). */
 #define MBEDTLS_ERR_AEAD_CHACHA20_POLY1305_BAD_STATE      -0x00049 /**< The requested operation is not permitted in the current state */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum
 {
     MBEDTLS_AEAD_CHACHA20_POLY1305_ENCRYPT,
@@ -226,5 +230,9 @@ int mbedtls_aead_chacha20_poly1305_crypt_and_mac( const unsigned char key[32],
  * \return              0 if successful, or 1 if the test failed
  */
 int mbedtls_aead_chacha20_poly1305_self_test( int verbose );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* MBEDTLS_AEAD_CHACHA20_POLY1305_H */

@@ -36,6 +36,10 @@
 
 #define MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA -0x003B /**< Invalid input parameter(s). */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if !defined(MBEDTLS_CHACHA20_ALT)
 
 typedef struct
@@ -188,5 +192,9 @@ int mbedtls_chacha20_crypt( const unsigned char key[32],
  * \return          0 if successful, or 1 if the test failed
  */
 int mbedtls_chacha20_self_test( int verbose );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* MBEDTLS_CHACHA20_H */

@@ -256,7 +256,7 @@ void mbedtls_poly1305_free( mbedtls_poly1305_context *ctx )
     }
 }
 
-int mbedtls_poly1305_setkey( mbedtls_poly1305_context *ctx,
+int mbedtls_poly1305_starts( mbedtls_poly1305_context *ctx,
                              const unsigned char key[32] )
 {
     if ( ctx == NULL )
@@ -400,7 +400,7 @@ int mbedtls_poly1305_mac( const unsigned char key[32],
 
     mbedtls_poly1305_init( &ctx );
 
-    result = mbedtls_poly1305_setkey( &ctx, key );
+    result = mbedtls_poly1305_starts( &ctx, key );
     if ( result != 0 )
         goto cleanup;
 

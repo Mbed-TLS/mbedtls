@@ -554,14 +554,14 @@ static const size_t test_lengths[2] =
 int mbedtls_chacha20_self_test( int verbose )
 {
     unsigned char output[381];
-    size_t i;
+    unsigned i;
     int result;
 
     for ( i = 0U; i < 2U; i++ )
     {
         if ( verbose != 0 )
         {
-            mbedtls_printf( "  ChaCha20 test %zu ", i );
+            mbedtls_printf( "  ChaCha20 test %u ", i );
         }
 
         result = mbedtls_chacha20_crypt( test_keys[i],

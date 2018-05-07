@@ -485,14 +485,14 @@ static const unsigned char test_mac[2][16] =
 int mbedtls_poly1305_self_test( int verbose )
 {
     unsigned char mac[16];
-    size_t i;
+    unsigned i;
     int result;
 
     for ( i = 0U; i < 2U; i++ )
     {
         if ( verbose != 0 )
         {
-            mbedtls_printf( "  Poly1305 test %zu ", i );
+            mbedtls_printf( "  Poly1305 test %u ", i );
         }
 
         result = mbedtls_poly1305_mac( test_keys[i],

@@ -31,6 +31,8 @@
 
 #define MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA -0x00047 /**< Invalid input parameter(s). */
 #define MBEDTLS_ERR_CHACHAPOLY_BAD_STATE      -0x00049 /**< The requested operation is not permitted in the current state */
+#define MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED    -0x00049 /**< Authenticated decryption failed: data was not authentic. */
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -192,37 +194,64 @@ int mbedtls_chachapoly_finish( mbedtls_chachapoly_context *ctx,
                                unsigned char mac[16] );
 
 /**
- * \brief               Encrypt or decrypt data, and produce a MAC with ChaCha20-Poly1305.
+ * \brief               Encrypt or decrypt data, and produce a MAC (tag) with ChaCha20-Poly1305.
  *
- * \param key           The 256-bit (32 bytes) encryption key to use.
- * \param nonce         The 96-bit (12 bytes) nonce/IV to use.
+ * \param ctx           The ChachaPoly context.
  * \param mode          Specifies whether the data in the \p input buffer is to
  *                      be encrypted or decrypted. If there is no data to encrypt
  *                      or decrypt (i.e. \p ilen is 0) then the value of this
  *                      parameter does not matter.
- * \param aad_len       The length (in bytes) of the AAD data to process.
+ * \param length        The length (in bytes) of the data to encrypt or decrypt.
+ * \param nonce         The 96-bit (12 bytes) nonce/IV to use.
  * \param aad           Buffer containing the additional authenticated data (AAD).
  *                      This pointer can be NULL if aad_len == 0.
- * \param ilen          The length (in bytes) of the data to encrypt or decrypt.
+ * \param aad_len       The length (in bytes) of the AAD data to process.
  * \param input         Buffer containing the data to encrypt or decrypt.
  *                      This pointer can be NULL if ilen == 0.
  * \param output        Buffer to where the encrypted or decrypted data is written.
  *                      This pointer can be NULL if ilen == 0.
- * \param mac           Buffer to where the computed 128-bit (16 bytes) MAC is written.
+ * \param tag           Buffer to where the computed 128-bit (16 bytes) MAC is written.
  *
  * \return              MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA is returned
  *                      if one or more of the required parameters are NULL.
  *                      Otherwise, 0 is returned to indicate success.
  */
-int mbedtls_chachapoly_crypt_and_mac( const unsigned char key[32],
-                                      const unsigned char nonce[12],
+int mbedtls_chachapoly_crypt_and_tag( mbedtls_chachapoly_context *ctx,
                                       mbedtls_chachapoly_mode_t mode,
-                                      size_t aad_len,
+                                      size_t length,
+                                      const unsigned char nonce[12],
                                       const unsigned char *aad,
-                                      size_t ilen,
+                                      size_t aad_len,
                                       const unsigned char *input,
                                       unsigned char *output,
-                                      unsigned char mac[16] );
+                                      unsigned char tag[16] );
+
+/**
+ * \brief           Decrypt data and check a MAC (tag) with ChaCha20-Poly1305.
+ *
+ * \param ctx       The ChachaPoly context.
+ * \param length    The length of the input and output data.
+ * \param nonce     The nonce / initialization vector.
+ * \param aad       The buffer holding the additional authenticated data.
+ * \param aad_len   The length of the additional authenticated data.
+ * \param tag       The buffer holding the tag.
+ * \param input     The buffer holding the input data.
+ * \param output    The buffer for holding the output data.
+ *
+ * \return              MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA is returned
+ *                      if one or more of the required parameters are NULL.
+ *                      MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED if the tag does not
+ *                      match.
+ *                      Otherwise, 0 is returned to indicate success.
+ */
+int mbedtls_chachapoly_auth_decrypt( mbedtls_chachapoly_context *ctx,
+                                     size_t length,
+                                     const unsigned char nonce[12],
+                                     const unsigned char *aad,
+                                     size_t aad_len,
+                                     const unsigned char tag[16],
+                                     const unsigned char *input,
+                                     unsigned char *output );
 
 /**
  * \brief               Checkup routine

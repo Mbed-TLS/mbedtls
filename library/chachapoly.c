@@ -295,42 +295,68 @@ int mbedtls_chachapoly_finish( mbedtls_chachapoly_context *ctx,
     return( 0 );
 }
 
-int mbedtls_chachapoly_crypt_and_mac ( const unsigned char key[32],
-                                       const unsigned char nonce[12],
-                                       mbedtls_chachapoly_mode_t mode,
-                                       size_t aad_len,
-                                       const unsigned char *aad,
-                                       size_t ilen,
-                                       const unsigned char *input,
-                                       unsigned char *output,
-                                       unsigned char mac[16] )
+int mbedtls_chachapoly_crypt_and_tag( mbedtls_chachapoly_context *ctx,
+                                      mbedtls_chachapoly_mode_t mode,
+                                      size_t length,
+                                      const unsigned char nonce[12],
+                                      const unsigned char *aad,
+                                      size_t aad_len,
+                                      const unsigned char *input,
+                                      unsigned char *output,
+                                      unsigned char tag[16] )
 {
-    mbedtls_chachapoly_context ctx;
     int result;
 
-    mbedtls_chachapoly_init( &ctx );
-
-    result = mbedtls_chachapoly_setkey( &ctx, key );
+    result = mbedtls_chachapoly_starts( ctx, nonce, mode );
     if ( result != 0 )
         goto cleanup;
 
-    result = mbedtls_chachapoly_starts( &ctx, nonce, mode );
-    if ( result != 0 )
-        goto cleanup;
-
-    result = mbedtls_chachapoly_update_aad( &ctx, aad_len, aad );
+    result = mbedtls_chachapoly_update_aad( ctx, aad_len, aad );
     if ( result != 0 )
             goto cleanup;
 
-    result = mbedtls_chachapoly_update( &ctx, ilen, input, output );
+    result = mbedtls_chachapoly_update( ctx, length, input, output );
     if ( result != 0 )
             goto cleanup;
 
-    result = mbedtls_chachapoly_finish( &ctx, mac );
+    result = mbedtls_chachapoly_finish( ctx, tag );
 
 cleanup:
-    mbedtls_chachapoly_free( &ctx );
     return( result );
+}
+
+int mbedtls_chachapoly_auth_decrypt( mbedtls_chachapoly_context *ctx,
+                                     size_t length,
+                                     const unsigned char nonce[12],
+                                     const unsigned char *aad,
+                                     size_t aad_len,
+                                     const unsigned char tag[16],
+                                     const unsigned char *input,
+                                     unsigned char *output )
+{
+    int ret;
+    unsigned char check_tag[16];
+    size_t i;
+    int diff;
+
+    if( ( ret = mbedtls_chachapoly_crypt_and_tag( ctx,
+                        MBEDTLS_CHACHAPOLY_DECRYPT, length, nonce,
+                        aad, aad_len, input, output, check_tag ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    /* Check tag in "constant-time" */
+    for( diff = 0, i = 0; i < sizeof( check_tag ); i++ )
+        diff |= tag[i] ^ check_tag[i];
+
+    if( diff != 0 )
+    {
+        mbedtls_zeroize( output, length );
+        return( MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED );
+    }
+
+    return( 0 );
 }
 
 #endif /* MBEDTLS_CHACHAPOLY_ALT */
@@ -425,6 +451,7 @@ static const unsigned char test_mac[1][16] =
 
 int mbedtls_chachapoly_self_test( int verbose )
 {
+    mbedtls_chachapoly_context ctx;
     unsigned i;
     int result;
     unsigned char output[200];
@@ -437,12 +464,24 @@ int mbedtls_chachapoly_self_test( int verbose )
             mbedtls_printf( "  ChaCha20-Poly1305 test %u ", i );
         }
 
-        result = mbedtls_chachapoly_crypt_and_mac( test_key[i],
-                                                   test_nonce[i],
+        mbedtls_chachapoly_init( &ctx );
+
+        result = mbedtls_chachapoly_setkey( &ctx, test_key[i] );
+        if ( result != 0 )
+        {
+            if ( verbose != 0 )
+            {
+                mbedtls_printf( "setkey() error code: %i\n", result );
+            }
+            return( -1 );
+        }
+
+        result = mbedtls_chachapoly_crypt_and_tag( &ctx,
                                                    MBEDTLS_CHACHAPOLY_ENCRYPT,
-                                                   test_aad_len[i],
-                                                   test_aad[i],
                                                    test_input_len[i],
+                                                   test_nonce[i],
+                                                   test_aad[i],
+                                                   test_aad_len[i],
                                                    test_input[i],
                                                    output,
                                                    mac );
@@ -450,7 +489,7 @@ int mbedtls_chachapoly_self_test( int verbose )
         {
             if ( verbose != 0 )
             {
-                mbedtls_printf( "error code: %i\n", result );
+                mbedtls_printf( "crypt_and_tag() error code: %i\n", result );
             }
             return( -1 );
         }
@@ -472,6 +511,8 @@ int mbedtls_chachapoly_self_test( int verbose )
             }
             return( -1 );
         }
+
+        mbedtls_chachapoly_free( &ctx );
 
         if ( verbose != 0 )
         {

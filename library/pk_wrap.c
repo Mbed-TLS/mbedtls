@@ -53,10 +53,7 @@
 #include <stdint.h>
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
+#include "mbedtls/zeromem.h"
 #endif
 
 #if defined(MBEDTLS_RSA_C)

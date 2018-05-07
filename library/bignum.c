@@ -58,19 +58,17 @@
 #define mbedtls_free       free
 #endif
 
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_mpi_zeroize( mbedtls_mpi_uint *v, size_t n ) {
-    volatile mbedtls_mpi_uint *p = v; while( n-- ) *p++ = 0;
-}
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
-
 #define ciL    (sizeof(mbedtls_mpi_uint))         /* chars in limb  */
 #define biL    (ciL << 3)               /* bits  in limb  */
 #define biH    (ciL << 2)               /* half limb size */
+
+#include "mbedtls/zeromem.h"
+
+ /* Implementation that should never be optimized out by the compiler */
+static void mbedtls_mpi_zeroize(mbedtls_mpi_uint *v, size_t n)
+{
+	mbedtls_zeroize(v, ciL * n);
+}
 
 #define MPI_SIZE_T_MAX  ( (size_t) -1 ) /* SIZE_T_MAX is not standard */
 

@@ -3,7 +3,6 @@ option(USE_SHARED_MBEDTLS_LIBRARY "Build mbed TLS shared library." OFF)
 option(LINK_WITH_PTHREAD "Explicitly link mbed TLS library to pthread." OFF)
 
 set(src_crypto
-    aead_chacha20_poly1305.c
     aes.c
     aesni.c
     arc4.c
@@ -15,6 +14,7 @@ set(src_crypto
     camellia.c
     ccm.c
     chacha20.c
+    chachapoly.c
     cipher.c
     cipher_wrap.c
     cmac.c

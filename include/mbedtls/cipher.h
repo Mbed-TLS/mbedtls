@@ -37,7 +37,7 @@
 
 #include <stddef.h>
 
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C) || defined(MBEDTLS_AEAD_CHACHA20_POLY1305_C)
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
 #define MBEDTLS_CIPHER_MODE_AEAD
 #endif
 
@@ -563,7 +563,7 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
  */
 int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx );
 
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_AEAD_CHACHA20_POLY1305_C)
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
 /**
  * \brief               This function adds additional data for AEAD ciphers.
  *                      Currently supported with GCM and ChaCha20+Poly1305.
@@ -578,7 +578,7 @@ int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx );
  */
 int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
                       const unsigned char *ad, size_t ad_len );
-#endif /* MBEDTLS_GCM_C || MBEDTLS_AEAD_CHACHA20_POLY1305_C */
+#endif /* MBEDTLS_GCM_C || MBEDTLS_CHACHAPOLY_C */
 
 /**
  * \brief               The generic cipher update function. It encrypts or
@@ -636,7 +636,7 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
 int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
                    unsigned char *output, size_t *olen );
 
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_AEAD_CHACHA20_POLY1305_C)
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
 /**
  * \brief               This function writes a tag for AEAD ciphers.
  *                      Currently supported with GCM and ChaCha20+Poly1305.
@@ -666,7 +666,7 @@ int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
  */
 int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
                       const unsigned char *tag, size_t tag_len );
-#endif /* MBEDTLS_GCM_C || MBEDTLS_AEAD_CHACHA20_POLY1305_C */
+#endif /* MBEDTLS_GCM_C || MBEDTLS_CHACHAPOLY_C */
 
 /**
  * \brief               The generic all-in-one encryption/decryption function,

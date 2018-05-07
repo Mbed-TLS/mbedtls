@@ -133,9 +133,8 @@ int mbedtls_chacha20_keystream_block( const mbedtls_chacha20_context *ctx,
  *
  *                  This function is used to both encrypt and decrypt data.
  *
- * \note            The \p input and \p output buffers may overlap, but only
- *                  if input >= output (i.e. only if input points ahead of
- *                  the output pointer).
+ * \note            The \p input and \p output pointers must either be equal or
+ *                  point to non-overlapping buffers.
  *
  * \note            mbedtls_chacha20_setkey and mbedtls_chacha20_starts must be
  *                  called at least once to setup the context before this function

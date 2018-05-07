@@ -246,43 +246,6 @@ int mbedtls_chacha20_starts( mbedtls_chacha20_context* ctx,
     return( 0 );
 }
 
-int mbedtls_chacha20_keystream_block( const mbedtls_chacha20_context *ctx,
-                                      uint32_t counter,
-                                      unsigned char keystream[64] )
-{
-    uint32_t initial_state[16];
-    uint32_t working_state[16];
-
-    if ( ( ctx == NULL ) || ( keystream == NULL ) )
-    {
-        return( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
-    }
-
-    initial_state[0]  = ctx->initial_state[0];
-    initial_state[1]  = ctx->initial_state[1];
-    initial_state[2]  = ctx->initial_state[2];
-    initial_state[3]  = ctx->initial_state[3];
-    initial_state[4]  = ctx->initial_state[4];
-    initial_state[5]  = ctx->initial_state[5];
-    initial_state[6]  = ctx->initial_state[6];
-    initial_state[7]  = ctx->initial_state[7];
-    initial_state[8]  = ctx->initial_state[8];
-    initial_state[9]  = ctx->initial_state[9];
-    initial_state[10] = ctx->initial_state[10];
-    initial_state[11] = ctx->initial_state[11];
-    initial_state[12] = counter;
-    initial_state[13] = ctx->initial_state[13];
-    initial_state[14] = ctx->initial_state[14];
-    initial_state[15] = ctx->initial_state[15];
-
-    mbedtls_chacha20_block( initial_state, working_state, keystream );
-
-    mbedtls_zeroize( initial_state, sizeof( initial_state ) );
-    mbedtls_zeroize( working_state, sizeof( working_state ) );
-
-    return( 0 );
-}
-
 int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
                               size_t size,
                               const unsigned char *input,

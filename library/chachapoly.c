@@ -143,15 +143,19 @@ int mbedtls_chachapoly_starts( mbedtls_chachapoly_context *ctx,
         return( MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
     }
 
-    result = mbedtls_chacha20_starts( &ctx->chacha20_ctx, nonce, 1U );
+    /* Set counter = 0, will be update to 1 when generating Poly1305 key */
+    result = mbedtls_chacha20_starts( &ctx->chacha20_ctx, nonce, 0U );
     if ( result != 0 )
         goto cleanup;
 
     /* Generate the Poly1305 key by getting the ChaCha20 keystream output with counter = 0.
+     * This is the same as encrypting a buffer of zeroes.
      * Only the first 256-bits (32 bytes) of the key is used for Poly1305.
      * The other 256 bits are discarded.
      */
-    result = mbedtls_chacha20_keystream_block( &ctx->chacha20_ctx, 0U, poly1305_key );
+    memset( poly1305_key, 0, sizeof( poly1305_key ) );
+    result = mbedtls_chacha20_update( &ctx->chacha20_ctx, sizeof( poly1305_key ),
+                                      poly1305_key, poly1305_key );
     if ( result != 0 )
         goto cleanup;
 

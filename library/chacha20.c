@@ -314,22 +314,21 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
     /* Process full blocks */
     while ( size >= CHACHA20_BLOCK_SIZE_BYTES )
     {
-        mbedtls_chacha20_block( ctx->initial_state, ctx->working_state, &output[offset] );
+        /* Generate new keystream block and increment counter */
+        mbedtls_chacha20_block( ctx->initial_state, ctx->working_state, ctx->keystream8 );
+        ctx->initial_state[CHACHA20_CTR_INDEX]++;
 
         for ( i = 0U; i < 64U; i += 8U )
         {
-            output[offset + i     ] ^= input[offset + i     ];
-            output[offset + i + 1U] ^= input[offset + i + 1U];
-            output[offset + i + 2U] ^= input[offset + i + 2U];
-            output[offset + i + 3U] ^= input[offset + i + 3U];
-            output[offset + i + 4U] ^= input[offset + i + 4U];
-            output[offset + i + 5U] ^= input[offset + i + 5U];
-            output[offset + i + 6U] ^= input[offset + i + 6U];
-            output[offset + i + 7U] ^= input[offset + i + 7U];
+            output[offset + i      ] = input[offset + i      ] ^ ctx->keystream8[i      ];
+            output[offset + i + 1U ] = input[offset + i + 1U ] ^ ctx->keystream8[i + 1U ];
+            output[offset + i + 2U ] = input[offset + i + 2U ] ^ ctx->keystream8[i + 2U ];
+            output[offset + i + 3U ] = input[offset + i + 3U ] ^ ctx->keystream8[i + 3U ];
+            output[offset + i + 4U ] = input[offset + i + 4U ] ^ ctx->keystream8[i + 4U ];
+            output[offset + i + 5U ] = input[offset + i + 5U ] ^ ctx->keystream8[i + 5U ];
+            output[offset + i + 6U ] = input[offset + i + 6U ] ^ ctx->keystream8[i + 6U ];
+            output[offset + i + 7U ] = input[offset + i + 7U ] ^ ctx->keystream8[i + 7U ];
         }
-
-        /* Increment counter */
-        ctx->initial_state[CHACHA20_CTR_INDEX]++;
 
         offset += CHACHA20_BLOCK_SIZE_BYTES;
         size   -= CHACHA20_BLOCK_SIZE_BYTES;
@@ -338,7 +337,9 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
     /* Last (partial) block */
     if ( size > 0U )
     {
+        /* Generate new keystream block and increment counter */
         mbedtls_chacha20_block( ctx->initial_state, ctx->working_state, ctx->keystream8 );
+        ctx->initial_state[CHACHA20_CTR_INDEX]++;
 
         for ( i = 0U; i < size; i++)
         {
@@ -347,8 +348,6 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
 
         ctx->keystream_bytes_used = size;
 
-        /* Increment counter */
-        ctx->initial_state[CHACHA20_CTR_INDEX]++;
     }
 
     return( 0 );

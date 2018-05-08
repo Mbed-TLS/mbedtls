@@ -281,6 +281,9 @@ static psa_status_t mbedtls_to_psa_error( int ret )
         case MBEDTLS_ERR_XTEA_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );
 
+        case MBEDTLS_ERR_ECP_BAD_INPUT_DATA:
+            return( PSA_ERROR_INVALID_ARGUMENT );
+
         default:
             return( PSA_ERROR_UNKNOWN_ERROR );
     }
@@ -1278,8 +1281,58 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
 #if defined(MBEDTLS_ECP_C)
     if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
     {
-        // TODO
+        mbedtls_ecp_keypair *ecdsa = slot->data.ecp;
+        int ret;
+        const mbedtls_md_info_t *md_info;
+        mbedtls_md_type_t md_alg;
+        if( signature_size < PSA_ECDSA_SIGNATURE_SIZE( ecdsa->grp.pbits ) )
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
+        md_info = mbedtls_md_info_from_psa( alg );
+        md_alg = mbedtls_md_get_type( md_info );
+        ret = mbedtls_ecdsa_write_signature( ecdsa, md_alg, hash, hash_length,
+            signature, signature_length, mbedtls_ctr_drbg_random,
+            &global_data.ctr_drbg );
+        return( mbedtls_to_psa_error( ret ) );
+    }
+    else
+#endif /* defined(MBEDTLS_ECP_C) */
+    {
         return( PSA_ERROR_NOT_SUPPORTED );
+    }
+}
+
+psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
+                                    psa_algorithm_t alg,
+                                    const uint8_t *hash,
+                                    size_t hash_length,
+                                    const uint8_t *salt,
+                                    size_t salt_length,
+                                    uint8_t *signature,
+                                    size_t signature_size )
+{
+    key_slot_t *slot;
+    (void) salt;
+    (void) salt_length;
+
+    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    slot = &global_data.key_slots[key];
+    if( slot->type == PSA_KEY_TYPE_NONE )
+        return( PSA_ERROR_EMPTY_SLOT );
+    if( ! PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    if( !( slot->policy.usage & PSA_KEY_USAGE_VERIFY ) )
+        return( PSA_ERROR_NOT_PERMITTED );
+
+#if defined(MBEDTLS_ECP_C)
+    if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
+    {
+        mbedtls_ecp_keypair *ecdsa = slot->data.ecp;
+        int ret;
+        (void) alg;
+        ret = mbedtls_ecdsa_read_signature( ecdsa, hash, hash_length, signature,
+            signature_size );
+        return( mbedtls_to_psa_error( ret ) );
     }
     else
 #endif /* defined(MBEDTLS_ECP_C) */

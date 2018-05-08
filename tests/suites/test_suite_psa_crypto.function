@@ -526,3 +526,50 @@ exit:
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void asymmetric_verify( int key_type_arg, char *key_hex,
+                         int alg_arg, char *hash_hex, char *signature_hex )
+{
+    int slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *key_data = NULL;
+    size_t key_size;
+    unsigned char *hash_data = NULL;
+    size_t hash_size;
+    unsigned char *signature_data = NULL;
+    size_t signature_size;
+    psa_key_policy_t policy = {0};
+
+    key_data = unhexify_alloc( key_hex, &key_size );
+    TEST_ASSERT( key_data != NULL );
+    hash_data = unhexify_alloc( hash_hex, &hash_size );
+    TEST_ASSERT( hash_data != NULL );
+    signature_data = unhexify_alloc( signature_hex, &signature_size );
+    TEST_ASSERT( signature_data != NULL );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_VERIFY, alg_arg );
+
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( slot, key_type,
+                                 key_data, key_size ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_asymmetric_verify( slot, alg,
+                                        hash_data, hash_size,
+                                        NULL, 0,
+                                        signature_data, signature_size ) ==
+                                        PSA_SUCCESS );
+exit:
+    psa_destroy_key( slot );
+    mbedtls_free( key_data );
+    mbedtls_free( hash_data );
+    mbedtls_free( signature_data );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */

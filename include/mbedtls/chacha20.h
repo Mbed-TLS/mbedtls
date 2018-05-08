@@ -1,11 +1,18 @@
 /**
  * \file chacha20.h
  *
- * \brief ChaCha20 cipher.
+ * \brief   This file contains ChaCha20 definitions and functions.
+ *
+ *          ChaCha20 is a stream cipher that can encrypt and decrypt
+ *          information. ChaCha was created by Daniel Bernstein as a variant of
+ *          its Salsa cipher https://cr.yp.to/chacha/chacha-20080128.pdf
+ *          ChaCha20 is the variant with 20 rounds, that was also standardized
+ *          in RFC 7539.
  *
  * \author Daniel King <damaki.gh@gmail.com>
- *
- *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
+ */
+
+/*  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved.
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -20,8 +27,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  This file is part of mbed TLS (https://tls.mbed.org)
+ *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
+
 #ifndef MBEDTLS_CHACHA20_H
 #define MBEDTLS_CHACHA20_H
 
@@ -44,10 +52,10 @@ extern "C" {
 
 typedef struct
 {
-    uint32_t initial_state[16];  /*! Holds the initial state (before round operations) */
-    uint32_t working_state[16];  /*! Holds the working state (after round operations) */
-    uint8_t  keystream8[64];     /*! Holds leftover keystream bytes */
-    size_t keystream_bytes_used; /*! Number of keystream bytes currently used */
+    uint32_t initial_state[16];  /*! The initial state (before round operations). */
+    uint32_t working_state[16];  /*! The working state (after round operations). */
+    uint8_t  keystream8[64];     /*! Leftover keystream bytes. */
+    size_t keystream_bytes_used; /*! Number of keystream bytes already used. */
 }
 mbedtls_chacha20_context;
 
@@ -56,118 +64,141 @@ mbedtls_chacha20_context;
 #endif /* MBEDTLS_CHACHA20_ALT */
 
 /**
- * \brief           Initialize ChaCha20 context
+ * \brief           This function initializes the specified ChaCha20 context.
  *
- * \param ctx       ChaCha20 context to be initialized
+ *                  It must be the first API called before using
+ *                  the context.
+ *
+ *                  It is usually followed by calls to
+ *                  \c mbedtls_chacha20_setkey() and
+ *                  \c mbedtls_chacha20_starts(), then one or more calls to
+ *                  to \c mbedtls_chacha20_update(), and finally to
+ *                  \c mbedtls_chacha20_free().
+ *
+ * \param ctx       The ChaCha20 context to initialize.
  */
 void mbedtls_chacha20_init( mbedtls_chacha20_context *ctx );
 
 /**
- * \brief           Clear ChaCha20 context
+ * \brief           This function releases and clears the specified ChaCha20 context.
  *
- * \param ctx       ChaCha20 context to be cleared
+ * \param ctx       The ChaCha20 context to clear.
  */
 void mbedtls_chacha20_free( mbedtls_chacha20_context *ctx );
 
 /**
- * \brief           Set the ChaCha20 key.
+ * \brief           This function sets the encryption/decryption key.
  *
- * \note            The nonce and counter must be set after calling this function,
- *                  before data can be encrypted/decrypted. The nonce and
- *                  counter are set by calling mbedtls_chacha20_starts.
+ * \note            After using this function, you must also call
+ *                  \c mbedtls_chacha20_starts() to set a nonce before you
+ *                  start encrypting/decrypting data with
+ *                  \c mbedtls_chacha_update().
  *
- * \see             mbedtls_chacha20_starts
+ * \param ctx       The ChaCha20 context to which the key should be bound.
+ * \param key       The encryption/decryption key. Must be 32 bytes in length.
  *
- * \param ctx       The context to setup.
- * \param key       Buffer containing the 256-bit key. Must be 32 bytes in length.
- *
- * \return          MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA is returned if ctx or key
- *                  is NULL, or if key_bits is not 128 or 256.
- *                  Otherwise, 0 is returned to indicate success.
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA if ctx or key is NULL.
  */
 int mbedtls_chacha20_setkey( mbedtls_chacha20_context *ctx,
                              const unsigned char key[32] );
 
 /**
- * \brief           Set the ChaCha20 nonce and initial counter value.
+ * \brief           This function sets the nonce and initial counter value.
  *
  * \note            A ChaCha20 context can be re-used with the same key by
- *                  calling this function to change the nonce and/or initial
- *                  counter value.
+ *                  calling this function to change the nonce.
  *
- * \param ctx       The ChaCha20 context.
- * \param nonce     Buffer containing the 96-bit nonce. Must be 12 bytes in size.
- * \param counter   Initial counter value to use. This is usually 0.
+ * \warning         You must never use the same nonce twice with the same key.
+ *                  This would void any confidentiality guarantees for the
+ *                  messages encrypted with the same nonce and key.
  *
- * \return          MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA is returned if ctx or
- *                  nonce is NULL.
- *                  Otherwise, 0 is returned to indicate success.
+ * \param ctx       The ChaCha20 context to which the nonce should be bound.
+ * \param nonce     The nonce. Must be 12 bytes in size.
+ * \param counter   The initial counter value. This is usually 0.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA if ctx or nonce is
+ *                  NULL.
  */
 int mbedtls_chacha20_starts( mbedtls_chacha20_context* ctx,
                              const unsigned char nonce[12],
                              uint32_t counter );
 
 /**
- * \brief           Encrypt or decrypt data.
+ * \brief           This function encrypts or decrypts data.
  *
- *                  This function is used to both encrypt and decrypt data.
+ *                  Since ChaCha20 is a stream cipher, the same operation is
+ *                  used for encrypting and decrypting data.
  *
  * \note            The \p input and \p output pointers must either be equal or
  *                  point to non-overlapping buffers.
  *
- * \note            mbedtls_chacha20_setkey and mbedtls_chacha20_starts must be
- *                  called at least once to setup the context before this function
- *                  can be called.
+ * \note            \c mbedtls_chacha20_setkey() and
+ *                  \c mbedtls_chacha20_starts() must be called at least once
+ *                  to setup the context before this function can be called.
  *
- * \param ctx       The ChaCha20 context.
- * \param size      The length (in bytes) to process. This can have any length.
- * \param input     Buffer containing the input data.
+ * \note            This function can be called mutliple times in a row in
+ *                  order to encrypt of decrypt data piecewise with the same
+ *                  key and nonce.
+ *
+ * \param ctx       The ChaCha20 context to use for encryption or decryption.
+ * \param size      The length of the input data in bytes.
+ * \param input     The buffer holding the input data.
  *                  This pointer can be NULL if size == 0.
- * \param output    Buffer containing the output data.
+ * \param output    The buffer holding the output data.
+ *                  Must be able to hold \p size bytes.
  *                  This pointer can be NULL if size == 0.
  *
- * \return          MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA if the ctx, input, or
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA if the ctx, input, or
  *                  output pointers are NULL.
- *                  Otherwise, 0 is returned to indicate success.
  */
 int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
-                              size_t size,
-                              const unsigned char *input,
-                              unsigned char *output );
+                             size_t size,
+                             const unsigned char *input,
+                             unsigned char *output );
 
 /**
- * \brief           Encrypt or decrypt a message using ChaCha20.
+ * \brief           This function encrypts or decrypts data with ChaCha20 and
+ *                  the given key and nonce.
  *
- *                  This function is used the same way for encrypting and
- *                  decrypting data. It's not necessary to specify which
- *                  operation is being performed.
+ *                  Since ChaCha20 is a stream cipher, the same operation is
+ *                  used for encrypting and decrypting data.
  *
- * \note            The \p input and \p output buffers may overlap, but only
- *                  if input >= output (i.e. only if input points ahead of
- *                  the output pointer).
+ * \warning         You must never use the same (key, nonce) pair more than
+ *                  once. This would void any confidentiality guarantees for
+ *                  the messages encrypted with the same nonce and key.
  *
- * \param key       Buffer containing the 256-bit key. Must be 32 bytes in length.
- * \param nonce     Buffer containing the 96-bit nonce. Must be 12 bytes in length.
+ * \note            The \p input and \p output pointers must either be equal or
+ *                  point to non-overlapping buffers.
+ *
+ * \param key       The encryption/decryption key. Must be 32 bytes in length.
+ * \param nonce     The nonce. Must be 12 bytes in size.
  * \param counter   The initial counter value. This is usually 0.
- * \param data_len  The number of bytes to process.
- * \param input     Buffer containing the input data (data to encrypt or decrypt).
- * \param output    Buffer to where the processed data is written.
+ * \param size      The length of the input data in bytes.
+ * \param input     The buffer holding the input data.
+ *                  This pointer can be NULL if size == 0.
+ * \param output    The buffer holding the output data.
+ *                  Must be able to hold \p size bytes.
+ *                  This pointer can be NULL if size == 0.
  *
- * \return          MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA if key, nonce, input,
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA if key, nonce, input,
  *                  or output is NULL.
- *                  Otherwise, 0 is returned to indicate success.
  */
 int mbedtls_chacha20_crypt( const unsigned char key[32],
                             const unsigned char nonce[12],
                             uint32_t counter,
-                            size_t data_len,
+                            size_t size,
                             const unsigned char* input,
                             unsigned char* output );
 
 /**
- * \brief           Checkup routine
+ * \brief           The ChaCha20 checkup routine.
  *
- * \return          0 if successful, or 1 if the test failed
+ * \return          \c 0 on success.
+ * \return          \c 1 on failure.
  */
 int mbedtls_chacha20_self_test( int verbose );
 

@@ -86,7 +86,7 @@ typedef enum {
     MBEDTLS_CIPHER_ID_CAMELLIA,  /**< The Camellia cipher. */
     MBEDTLS_CIPHER_ID_BLOWFISH,  /**< The Blowfish cipher. */
     MBEDTLS_CIPHER_ID_ARC4,      /**< The RC4 cipher. */
-    MBEDTLS_CIPHER_ID_CHACHA20,  /**< The Chacha20 cipher. */
+    MBEDTLS_CIPHER_ID_CHACHA20,  /**< The ChaCha20 cipher. */
 } mbedtls_cipher_id_t;
 
 /**
@@ -146,8 +146,8 @@ typedef enum {
     MBEDTLS_CIPHER_CAMELLIA_128_CCM,     /**< Camellia cipher with 128-bit CCM mode. */
     MBEDTLS_CIPHER_CAMELLIA_192_CCM,     /**< Camellia cipher with 192-bit CCM mode. */
     MBEDTLS_CIPHER_CAMELLIA_256_CCM,     /**< Camellia cipher with 256-bit CCM mode. */
-    MBEDTLS_CIPHER_CHACHA20,             /**< Chacha20 stream cipher. */
-    MBEDTLS_CIPHER_CHACHA20_POLY1305,    /**< Chacha20-Poly1305 AEAD cipher. */
+    MBEDTLS_CIPHER_CHACHA20,             /**< ChaCha20 stream cipher. */
+    MBEDTLS_CIPHER_CHACHA20_POLY1305,    /**< ChaCha20-Poly1305 AEAD cipher. */
 } mbedtls_cipher_type_t;
 
 /** Supported cipher modes. */

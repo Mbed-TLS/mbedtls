@@ -1,9 +1,18 @@
 /**
  * \file poly1305.h
  *
- * \brief Poly1305 authenticator algorithm.
+ * \brief   This file containts Poly1305 definitions and functions.
  *
- *  Copyright (C) 2006-2016, ARM Limited, All Rights Reserved
+ *          Poly1305 is a one-time message authenticator that can be used to
+ *          authenticate messages. Poly1305-AES was created by Daniel
+ *          Bernstein https://cr.yp.to/mac/poly1305-20050329.pdf The generic
+ *          Poly1305 algorithm (not tied to AES) was also standardized in RFC
+ *          7539.
+ *
+ * \author Daniel King <damaki.gh@gmail.com>
+ */
+
+/*  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved.
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -18,8 +27,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
- *  This file is part of mbed TLS (https://tls.mbed.org)
+ *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
+
 #ifndef MBEDTLS_POLY1305_H
 #define MBEDTLS_POLY1305_H
 
@@ -42,11 +52,11 @@ extern "C" {
 
 typedef struct
 {
-    uint32_t r[4];      /** Stores the value for 'r' (low 128 bits of the key) */
-    uint32_t s[4];      /** Stores the value for 's' (high 128 bits of the key) */
-    uint32_t acc[5];    /** Accumulator number */
-    uint8_t queue[16];  /** Stores partial block data */
-    size_t queue_len;   /** Number of bytes stored in 'queue'. Always less than 16 */
+    uint32_t r[4];      /** The value for 'r' (low 128 bits of the key). */
+    uint32_t s[4];      /** The value for 's' (high 128 bits of the key). */
+    uint32_t acc[5];    /** The accumulator number. */
+    uint8_t queue[16];  /** The current partial block of data. */
+    size_t queue_len;   /** The number of bytes stored in 'queue'. */
 }
 mbedtls_poly1305_context;
 
@@ -55,82 +65,97 @@ mbedtls_poly1305_context;
 #endif /* MBEDTLS_POLY1305_ALT */
 
 /**
- * \brief               Initialize a Poly1305 context
+ * \brief           This function initializes the specified Poly1305 context.
  *
- * \param ctx           The Poly1305 context to be initialized
+ *                  It must be the first API called before using
+ *                  the context.
+ *
+ *                  It is usually followed by a call to
+ *                  \c mbedtls_poly1305_starts(), then one or more calls to
+ *                  \c mbedtls_poly1305_update(), then one call to
+ *                  \c mbedtls_poly1305_finish(), then finally
+ *                  \c mbedtls_poly1305_free().
+ *
+ * \param ctx       The Poly1305 context to initialize.
  */
 void mbedtls_poly1305_init( mbedtls_poly1305_context *ctx );
 
 /**
- * \brief               Clear a Poly1305 context
+ * \brief           This function releases and clears the specified Poly1305 context.
  *
- * \param ctx           The Poly1305 context to be cleared
+ * \param ctx       The Poly1305 context to clear.
  */
 void mbedtls_poly1305_free( mbedtls_poly1305_context *ctx );
 
 /**
- * \brief               Set the Poly1305 authentication key.
+ * \brief           This function sets the one-time authentication key.
  *
- * \warning             The key should be unique, and \b MUST be
- *                      unpredictable for each invocation of Poly1305.
+ * \warning         The key must be unique and unpredictable for each
+ *                  invocation of Poly1305.
  *
- * \param ctx           The Poly1305 context.
- * \param key           Buffer containing the 256-bit key.
+ * \param ctx       The Poly1305 context to which the key should be bound.
+ * \param key       The buffer containing the 256-bit key.
  *
- * \return              MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA is returned if ctx
- *                      or key are NULL.
- *                      Otherwise, 0 is returned to indicate success.
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA
+ *                  if ctx or key are NULL.
  */
 int mbedtls_poly1305_starts( mbedtls_poly1305_context *ctx,
                              const unsigned char key[32] );
 
 /**
- * \brief               Process data with Poly1305.
+ * \brief           This functions feeds an input bufer into an ongoing
+ *                  Poly1305 computation.
  *
- *                      This function can be called multiple times to process
- *                      a stream of data.
+ *                  It is called between \c mbedtls_cipher_cmac_starts() and
+ *                  \c mbedtls_cipher_cmac_finish().
+ *                  Can be called repeatedly to process a stream of data.
  *
- * \param ctx           The Poly1305 context.
- * \param ilen          The input length (in bytes). Any value is accepted.
- * \param input         Buffer containing the input data to Process.
- *                      This pointer can be NULL if ilen == 0.
+ * \param ctx       The Poly1305 context to use for the Poly1305 operation.
+ * \param ilen      The length of the input data (in bytes). Any value is accepted.
+ * \param input     The buffer holding the input data.
+ *                  This pointer can be NULL if ilen == 0.
  *
- * \return              MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA is returned if ctx
- *                      or input are NULL.
- *                      Otherwise, 0 is returned to indicate success.
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA
+ *                  if ctx or input are NULL.
  */
 int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
                              size_t ilen,
                              const unsigned char *input );
 
 /**
- * \brief               Generate the Poly1305 MAC.
+ * \brief           This function generates the Poly1305 Message
+ *                  Authentication Code (MAC).
  *
- * \param ctx           The Poly1305 context.
- * \param mac           Buffer to where the MAC is written. Must be big enough
- *                      to hold the 16-byte MAC.
+ * \param ctx       The Poly1305 context to use for the Poly1305 operation.
+ * \param mac       The buffer to where the MAC is written. Must be big enough
+ *                  to hold the 16-byte MAC.
  *
- * \return              MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA is returned if ctx
- *                      or mac are NULL.
- *                      Otherwise, 0 is returned to indicate success.
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA
+ *                  if ctx or mac are NULL.
  */
 int mbedtls_poly1305_finish( mbedtls_poly1305_context *ctx,
                              unsigned char mac[16] );
 
 /**
- * \brief               Generate the Poly1305 MAC of some data with the given key.
+ * \brief           This function calculates the Poly1305 MAC of the input
+ *                  buffer with the provided key.
  *
- * \warning             The key should be unique, and \b MUST be
- *                      unpredictable for each invocation of Poly1305.
+ * \warning         The key must be unique and unpredictable for each
+ *                  invocation of Poly1305.
  *
- * \param key           Buffer containing the 256-bit (32 bytes) key.
- * \param ilen          The length of the input data (in bytes).
- * \param input         Buffer containing the input data to process.
- * \param mac           Buffer to where the 128-bit (16 bytes) MAC is written.
+ * \param key       The buffer containing the 256-bit key.
+ * \param ilen      The length of the input data (in bytes). Any value is accepted.
+ * \param input     The buffer holding the input data.
+ *                  This pointer can be NULL if ilen == 0.
+ * \param mac       The buffer to where the MAC is written. Must be big enough
+ *                  to hold the 16-byte MAC.
  *
- * \return              MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA is returned if key,
- *                      input, or mac are NULL.
- *                      Otherwise, 0 is returned to indicate success.
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA
+ *                  if key, input, or mac are NULL.
  */
 int mbedtls_poly1305_mac( const unsigned char key[32],
                           size_t ilen,
@@ -138,9 +163,10 @@ int mbedtls_poly1305_mac( const unsigned char key[32],
                           unsigned char mac[16] );
 
 /**
- * \brief               Checkup routine
+ * \brief           The Poly1305 checkup routine.
  *
- * \return              0 if successful, or 1 if the test failed
+ * \return          \c 0 on success.
+ * \return          \c 1 on failure.
  */
 int mbedtls_poly1305_self_test( int verbose );
 

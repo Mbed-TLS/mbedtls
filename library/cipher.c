@@ -1000,34 +1000,17 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
 #if defined(MBEDTLS_CHACHAPOLY_C)
     if ( MBEDTLS_CIPHER_CHACHA20_POLY1305 == ctx->cipher_info->type )
     {
-        int ret;
-
+        /* ChachaPoly has fixed length nonce and MAC (tag) */
         if ( ( iv_len != ctx->cipher_info->iv_size ) ||
-             ( tag_len != 16U ) ) /* Truncated MAC is not allowed for Poly1305 */
+             ( tag_len != 16U ) )
         {
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
         }
 
         *olen = ilen;
-
-        ret = mbedtls_chachapoly_starts( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
-                                                     iv, MBEDTLS_CHACHAPOLY_ENCRYPT );
-        if ( ret != 0 )
-            return( ret );
-
-        ret = mbedtls_chachapoly_update_aad( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
-                                                         ad_len, ad );
-        if ( ret != 0 )
-            return( ret );
-
-        ret = mbedtls_chachapoly_update( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
-                                                     ilen, input, output );
-        if ( ret != 0 )
-            return( ret );
-
-        ret = mbedtls_chachapoly_finish( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
-                                                     tag );
-        return( ret );
+        return( mbedtls_chachapoly_crypt_and_tag( ctx->cipher_ctx,
+                                MBEDTLS_CHACHAPOLY_ENCRYPT,
+                                ilen, iv, ad, ad_len, input, output, tag ) );
     }
 #endif /* MBEDTLS_CHACHAPOLY_C */
 
@@ -1079,42 +1062,23 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
 #if defined(MBEDTLS_CHACHAPOLY_C)
     if ( MBEDTLS_CIPHER_CHACHA20_POLY1305 == ctx->cipher_info->type )
     {
-        unsigned char check_tag[16];
         int ret;
 
+        /* ChachaPoly has fixed length nonce and MAC (tag) */
         if ( ( iv_len != ctx->cipher_info->iv_size ) ||
-             ( tag_len != 16U ) ) /* Truncated MAC is not allowed for Poly1305 */
+             ( tag_len != 16U ) )
         {
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
         }
 
         *olen = ilen;
+        ret = mbedtls_chachapoly_auth_decrypt( ctx->cipher_ctx, ilen,
+                                iv, ad, ad_len, tag, input, output );
 
-        ret = mbedtls_chachapoly_starts( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
-                                                     iv, MBEDTLS_CHACHAPOLY_DECRYPT );
-        if ( ret != 0 )
-            return( ret );
+        if( ret == MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED )
+            ret = MBEDTLS_ERR_CIPHER_AUTH_FAILED;
 
-        ret = mbedtls_chachapoly_update_aad( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
-                                                         ad_len, ad );
-        if ( ret != 0 )
-            return( ret );
-
-        ret = mbedtls_chachapoly_update( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
-                                                     ilen, input, output );
-        if ( ret != 0 )
-            return( ret );
-
-        ret = mbedtls_chachapoly_finish( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
-                                                     check_tag );
-        if ( ret != 0 )
-            return( ret );
-
-        /* Compare the tag in constant time */
-        if ( mbedtls_constant_time_memcmp( tag, check_tag, tag_len ) != 0 )
-            return( MBEDTLS_ERR_CIPHER_AUTH_FAILED );
-
-        return( 0 );
+        return( ret );
     }
 #endif /* MBEDTLS_CHACHAPOLY_C */
 

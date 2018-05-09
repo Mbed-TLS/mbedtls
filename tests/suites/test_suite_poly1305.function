@@ -6,16 +6,16 @@
 /* BEGIN_CASE depends_on:MBEDTLS_POLY1305_C */
 void mbedtls_poly1305( char *hex_key_string, char *hex_mac_string, char *hex_src_string  )
 {
-    unsigned char src_str[10000];
-    unsigned char mac_str[100];
-    unsigned char key[32];
-    unsigned char mac[16];
+    unsigned char src_str[375]; /* max size of binary input */
+    unsigned char key[32]; /* size set by the standard */
+    unsigned char mac[16]; /* size set by the standard */
+    unsigned char mac_str[33]; /* hex expansion of the above */
     size_t src_len;
 
-    memset(src_str, 0x00, 10000);
-    memset(mac_str, 0x00, 100);
-    memset(key,     0x00, 32);
-    memset(mac,     0x00, 16);
+    memset( src_str, 0x00, sizeof( src_str ) );
+    memset( mac_str, 0x00, sizeof( mac_str ) );
+    memset( key,     0x00, sizeof( key ) );
+    memset( mac,     0x00, sizeof( mac ) );
 
     src_len = unhexify( src_str, hex_src_string );
     unhexify( key, hex_key_string );

@@ -14,21 +14,21 @@ void chacha20_crypt( char *hex_key_string,
                      char *hex_src_string,
                      char *hex_dst_string )
 {
-    unsigned char key_str[100];
-    unsigned char nonce_str[100];
-    unsigned char src_str[10000];
-    unsigned char dst_str[10000];
-    unsigned char output[10000];
+    unsigned char key_str[32]; /* size set by the standard */
+    unsigned char nonce_str[12]; /* size set by the standard */
+    unsigned char src_str[375]; /* max size of binary input */
+    unsigned char dst_str[751]; /* hex expansion of the above */
+    unsigned char output[751];
     size_t key_len;
     size_t nonce_len;
     size_t src_len;
     size_t dst_len;
 
-    memset(key_str, 0x00, 100);
-    memset(nonce_str, 0x00, 100);
-    memset(src_str, 0x00, 10000);
-    memset(dst_str, 0x00, 10000);
-    memset(output, 0x00, 10000);
+    memset( key_str,    0x00, sizeof( key_str ) );
+    memset( nonce_str,  0x00, sizeof( nonce_str ) );
+    memset( src_str,    0x00, sizeof( src_str ) );
+    memset( dst_str,    0x00, sizeof( dst_str ) );
+    memset( output,     0x00, sizeof( output ) );
 
     key_len   = unhexify( key_str, hex_key_string );
     nonce_len = unhexify( nonce_str, hex_nonce_string );

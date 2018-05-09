@@ -575,9 +575,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void aead_encrypt_decrypt( int key_type_arg, char *key_hex,
-                int alg_arg, char *input_hex,
-                cahr* additional_data, int additional_data_length )
+void aead_encrypt_decrypt( int key_type_arg, char * key_hex,
+                int alg_arg, char * input_hex,
+                char * add_data )
 {
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;
@@ -590,15 +590,19 @@ void aead_encrypt_decrypt( int key_type_arg, char *key_hex,
     size_t output_length;
     unsigned char *output_data2 = NULL;
     size_t output_length2;
-    psa_status_t actual_status;
     uint8_t nonce[16];
     size_t nonce_length = 16;
     size_t tag_length = 16;
+    unsigned char *additional_data = NULL;
+    size_t additional_data_length = 0;
+    size_t i = 0;
 
 
     key_data = unhexify_alloc( key_hex, &key_size );
     TEST_ASSERT( key_data != NULL );
     input_data = unhexify_alloc( input_hex, &input_size );
+    TEST_ASSERT( input_data != NULL );
+    additional_data = unhexify_alloc( add_data, &additional_data_length );
     TEST_ASSERT( input_data != NULL );
     output_data = mbedtls_calloc( 1, input_size + tag_length );
     TEST_ASSERT( output_data != NULL );
@@ -607,7 +611,7 @@ void aead_encrypt_decrypt( int key_type_arg, char *key_hex,
         nonce_length = 12;
     }
 
-    for( int i = 0; i < nonce_length; ++nonce_length )
+    for( ; i < nonce_length; ++nonce_length )
         nonce[i] = i;
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
@@ -630,7 +634,7 @@ void aead_encrypt_decrypt( int key_type_arg, char *key_hex,
                             output_data, output_length - tag_length, output_data2,
                             output_length, &output_length2 ) == PSA_SUCCESS );
     
-    TEST_ASSERT( memcmp( input, output_data2,
+    TEST_ASSERT( memcmp( input_data, output_data2,
                              input_size ) == 0 );
     
 
@@ -638,7 +642,6 @@ exit:
     psa_destroy_key( slot );
     mbedtls_free( key_data );
     mbedtls_free( input_data );
-    mbedtls_free( signature );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

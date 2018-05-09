@@ -175,8 +175,8 @@ cleanup:
 }
 
 int mbedtls_chachapoly_update_aad( mbedtls_chachapoly_context *ctx,
-                                   size_t aad_len,
-                                   const unsigned char *aad )
+                                   const unsigned char *aad,
+                                   size_t aad_len )
 {
     if ( ctx == NULL )
     {
@@ -311,7 +311,7 @@ int mbedtls_chachapoly_crypt_and_tag( mbedtls_chachapoly_context *ctx,
     if ( result != 0 )
         goto cleanup;
 
-    result = mbedtls_chachapoly_update_aad( ctx, aad_len, aad );
+    result = mbedtls_chachapoly_update_aad( ctx, aad, aad_len );
     if ( result != 0 )
             goto cleanup;
 

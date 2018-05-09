@@ -243,6 +243,12 @@ int mbedtls_chacha20_starts( mbedtls_chacha20_context* ctx,
     ctx->initial_state[14] = BYTES_TO_U32_LE( nonce, 4 );
     ctx->initial_state[15] = BYTES_TO_U32_LE( nonce, 8 );
 
+    mbedtls_zeroize( ctx->working_state, sizeof( ctx->working_state ) );
+    mbedtls_zeroize( ctx->keystream8, sizeof( ctx->keystream8 ) );
+
+    /* Initially, there's no keystream bytes available */
+    ctx->keystream_bytes_used = CHACHA20_BLOCK_SIZE_BYTES;
+
     return( 0 );
 }
 

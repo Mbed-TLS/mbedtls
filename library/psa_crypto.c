@@ -1564,6 +1564,10 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
 
         mbedtls_ccm_free( &ccm );
     }
+    else
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
     memcpy( ciphertext + plaintext_length, tag, sizeof( tag ) );
     *ciphertext_length = plaintext_length + sizeof( tag );
     return( PSA_SUCCESS );

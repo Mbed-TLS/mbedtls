@@ -1486,7 +1486,6 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
     key_slot_t *slot;
     psa_key_type_t key_type;
     size_t key_bits;
-    const mbedtls_cipher_info_t *cipher_info = NULL;
     unsigned char tag[16];
     mbedtls_cipher_id_t cipher_id;
     
@@ -1509,9 +1508,6 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
 
     //TODO: check key policy
 
-    cipher_info = mbedtls_cipher_info_from_psa( alg, key_type, key_bits );
-    if( cipher_info == NULL )
-        return( PSA_ERROR_NOT_SUPPORTED );
 
     if ( ( key_type & PSA_KEY_TYPE_CATEGORY_MASK ) == PSA_KEY_TYPE_CATEGORY_CIPHER
            && PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) == 16 )
@@ -1591,7 +1587,6 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
     key_slot_t *slot;
     psa_key_type_t key_type;
     size_t key_bits;
-    const mbedtls_cipher_info_t *cipher_info = NULL;
     unsigned char tag[16];
     mbedtls_cipher_id_t cipher_id;
 
@@ -1614,9 +1609,6 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
 
     //TODO: check key policy
 
-    cipher_info = mbedtls_cipher_info_from_psa( alg, key_type, key_bits );
-    if( cipher_info == NULL )
-        return( PSA_ERROR_NOT_SUPPORTED );
 
     if ( ( key_type & PSA_KEY_TYPE_CATEGORY_MASK ) == PSA_KEY_TYPE_CATEGORY_CIPHER
            && PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) == 16 )

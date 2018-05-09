@@ -121,8 +121,8 @@ int mbedtls_poly1305_starts( mbedtls_poly1305_context *ctx,
  *                  if ctx or input are NULL.
  */
 int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
-                             size_t ilen,
-                             const unsigned char *input );
+                             const unsigned char *input,
+                             size_t ilen );
 
 /**
  * \brief           This function generates the Poly1305 Message
@@ -158,8 +158,8 @@ int mbedtls_poly1305_finish( mbedtls_poly1305_context *ctx,
  *                  if key, input, or mac are NULL.
  */
 int mbedtls_poly1305_mac( const unsigned char key[32],
-                          size_t ilen,
                           const unsigned char *input,
+                          size_t ilen,
                           unsigned char mac[16] );
 
 /**

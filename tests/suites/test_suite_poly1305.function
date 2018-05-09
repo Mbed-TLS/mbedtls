@@ -20,7 +20,7 @@ void mbedtls_poly1305( char *hex_key_string, char *hex_mac_string, char *hex_src
     src_len = unhexify( src_str, hex_src_string );
     unhexify( key, hex_key_string );
 
-    mbedtls_poly1305_mac( key, src_len, src_str, mac );
+    mbedtls_poly1305_mac( key, src_str, src_len, mac );
     hexify( mac_str, mac, 16 );
 
     TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );

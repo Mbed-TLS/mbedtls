@@ -66,8 +66,8 @@ static void mbedtls_chachapoly_pad_aad( mbedtls_chachapoly_context *ctx )
     {
         memset( zeroes, 0, sizeof( zeroes ) );
         (void) mbedtls_poly1305_update( &ctx->poly1305_ctx,
-                                        16U - partial_block_len,
-                                        zeroes );
+                                        zeroes,
+                                        16U - partial_block_len );
     }
 }
 
@@ -85,8 +85,8 @@ static void mbedtls_chachapoly_pad_ciphertext( mbedtls_chachapoly_context *ctx )
     {
         memset( zeroes, 0, sizeof( zeroes ) );
         (void) mbedtls_poly1305_update( &ctx->poly1305_ctx,
-                                        16U - partial_block_len,
-                                        zeroes );
+                                        zeroes,
+                                        16U - partial_block_len );
     }
 }
 
@@ -194,7 +194,7 @@ int mbedtls_chachapoly_update_aad( mbedtls_chachapoly_context *ctx,
 
     ctx->aad_len += aad_len;
 
-    return( mbedtls_poly1305_update( &ctx->poly1305_ctx, aad_len, aad ) );
+    return( mbedtls_poly1305_update( &ctx->poly1305_ctx, aad, aad_len ) );
 }
 
 int mbedtls_chachapoly_update( mbedtls_chachapoly_context *ctx,
@@ -233,11 +233,11 @@ int mbedtls_chachapoly_update( mbedtls_chachapoly_context *ctx,
          *       above, we can safety ignore the return value.
          */
         (void) mbedtls_chacha20_update( &ctx->chacha20_ctx, len, input, output );
-        (void) mbedtls_poly1305_update( &ctx->poly1305_ctx, len, output );
+        (void) mbedtls_poly1305_update( &ctx->poly1305_ctx, output, len );
     }
     else /* DECRYPT */
     {
-        (void) mbedtls_poly1305_update( &ctx->poly1305_ctx, len, input );
+        (void) mbedtls_poly1305_update( &ctx->poly1305_ctx, input, len );
         (void) mbedtls_chacha20_update( &ctx->chacha20_ctx, len, input, output );
     }
 
@@ -289,7 +289,7 @@ int mbedtls_chachapoly_finish( mbedtls_chachapoly_context *ctx,
     len_block[14] = (unsigned char) ( ctx->ciphertext_len >> 48 );
     len_block[15] = (unsigned char) ( ctx->ciphertext_len >> 56 );
 
-    (void) mbedtls_poly1305_update( &ctx->poly1305_ctx, 16U, len_block );
+    (void) mbedtls_poly1305_update( &ctx->poly1305_ctx, len_block, 16U );
     (void) mbedtls_poly1305_finish( &ctx->poly1305_ctx, mac );
 
     return( 0 );

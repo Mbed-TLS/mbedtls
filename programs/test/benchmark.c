@@ -538,7 +538,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_POLY1305_C)
     if ( todo.poly1305 )
     {
-        TIME_AND_TSC( "Poly1305", mbedtls_poly1305_mac( buf, BUFSIZE, buf, buf ) );
+        TIME_AND_TSC( "Poly1305", mbedtls_poly1305_mac( buf, buf, BUFSIZE, buf ) );
     }
 #endif
 

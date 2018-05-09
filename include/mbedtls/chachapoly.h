@@ -183,8 +183,8 @@ int mbedtls_chachapoly_starts( mbedtls_chachapoly_context *ctx,
  *                  finished, or if the AAD has been finished.
  */
 int mbedtls_chachapoly_update_aad( mbedtls_chachapoly_context *ctx,
-                                   size_t aad_len,
-                                   const unsigned char *aad );
+                                   const unsigned char *aad,
+                                   size_t aad_len );
 
 /**
  * \brief           Thus function feeds data to be encrypted or decrypted

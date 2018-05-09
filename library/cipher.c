@@ -320,7 +320,7 @@ int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
             return( result );
 
         return mbedtls_chachapoly_update_aad( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
-                                                          ad_len, ad );
+                                                          ad, ad_len );
     }
 #endif
 

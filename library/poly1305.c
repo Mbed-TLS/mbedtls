@@ -280,6 +280,11 @@ int mbedtls_poly1305_starts( mbedtls_poly1305_context *ctx,
     ctx->acc[1] = 0U;
     ctx->acc[2] = 0U;
     ctx->acc[3] = 0U;
+    ctx->acc[4] = 0U;
+
+    /* Queue initially empty */
+    mbedtls_zeroize( ctx->queue, sizeof( ctx->queue ) );
+    ctx->queue_len = 0U;
 
     return( 0 );
 }

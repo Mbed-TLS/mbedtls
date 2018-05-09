@@ -67,8 +67,8 @@ void chacha20_crypt( char *hex_key_string,
      * Test the streaming API again, piecewise
      */
 
-    /* Don't reset the context of key, in order to test that starts() do the
-     * right thing. */
+    /* Don't free/init the context nor set the key again,
+     * in order to test that starts() does the right thing. */
     TEST_ASSERT( mbedtls_chacha20_starts( &ctx, nonce_str, counter ) == 0 );
 
     memset( output, 0x00, sizeof( output ) );

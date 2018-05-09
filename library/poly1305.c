@@ -285,8 +285,8 @@ int mbedtls_poly1305_starts( mbedtls_poly1305_context *ctx,
 }
 
 int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
-                             size_t ilen,
-                             const unsigned char* input )
+                             const unsigned char *input,
+                             size_t ilen )
 {
     size_t offset    = 0U;
     size_t remaining = ilen;
@@ -391,9 +391,9 @@ int mbedtls_poly1305_finish( mbedtls_poly1305_context *ctx,
 }
 
 int mbedtls_poly1305_mac( const unsigned char key[32],
-                           size_t ilen,
-                           const unsigned char *input,
-                           unsigned char mac[16] )
+                          const unsigned char *input,
+                          size_t ilen,
+                          unsigned char mac[16] )
 {
     mbedtls_poly1305_context ctx;
     int result;
@@ -404,7 +404,7 @@ int mbedtls_poly1305_mac( const unsigned char key[32],
     if ( result != 0 )
         goto cleanup;
 
-    result = mbedtls_poly1305_update( &ctx, ilen, input );
+    result = mbedtls_poly1305_update( &ctx, input, ilen );
     if ( result != 0 )
         goto cleanup;
 
@@ -496,8 +496,8 @@ int mbedtls_poly1305_self_test( int verbose )
         }
 
         result = mbedtls_poly1305_mac( test_keys[i],
-                                       test_data_len[i],
                                        test_data[i],
+                                       test_data_len[i],
                                        mac );
         if ( result != 0 )
         {

@@ -587,6 +587,7 @@ void aead_encrypt_decrypt( int key_type_arg, char * key_hex,
     unsigned char *input_data = NULL;
     size_t input_size;
     unsigned char *output_data = NULL;
+    size_t output_size = 0;
     size_t output_length;
     unsigned char *output_data2 = NULL;
     size_t output_length2;
@@ -604,14 +605,15 @@ void aead_encrypt_decrypt( int key_type_arg, char * key_hex,
     TEST_ASSERT( input_data != NULL );
     additional_data = unhexify_alloc( add_data, &additional_data_length );
     TEST_ASSERT( input_data != NULL );
-    output_data = mbedtls_calloc( 1, input_size + tag_length );
+    output_size = input_size + tag_length;
+    output_data = mbedtls_calloc( 1, output_size );
     TEST_ASSERT( output_data != NULL );
     if( alg == PSA_ALG_CCM )
     {
         nonce_length = 12;
     }
 
-    for( ; i < nonce_length; ++nonce_length )
+    for( ; i < nonce_length; ++i )
         nonce[i] = i;
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
@@ -623,7 +625,7 @@ void aead_encrypt_decrypt( int key_type_arg, char * key_hex,
                                nonce, nonce_length,
                                additional_data, additional_data_length,
                                input_data, input_size, output_data,
-                               input_size, &output_length ) == PSA_SUCCESS );
+                               output_size, &output_length ) == PSA_SUCCESS );
 
     output_data2 = mbedtls_calloc( 1, output_length );
     TEST_ASSERT( output_data2 != NULL );

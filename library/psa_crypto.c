@@ -282,7 +282,19 @@ static psa_status_t mbedtls_to_psa_error( int ret )
             return( PSA_ERROR_HARDWARE_FAILURE );
 
         case MBEDTLS_ERR_ECP_BAD_INPUT_DATA:
+        case MBEDTLS_ERR_ECP_INVALID_KEY:
             return( PSA_ERROR_INVALID_ARGUMENT );
+        case MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL:
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
+        case MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE:
+            return( PSA_ERROR_NOT_SUPPORTED );
+        case MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH:
+        case MBEDTLS_ERR_ECP_VERIFY_FAILED:
+            return( PSA_ERROR_INVALID_SIGNATURE );
+        case MBEDTLS_ERR_ECP_ALLOC_FAILED:
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+        case MBEDTLS_ERR_ECP_HW_ACCEL_FAILED:
+            return( PSA_ERROR_HARDWARE_FAILURE );
 
         default:
             return( PSA_ERROR_UNKNOWN_ERROR );

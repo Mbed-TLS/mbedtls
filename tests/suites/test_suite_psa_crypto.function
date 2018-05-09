@@ -577,7 +577,7 @@ exit:
 /* BEGIN_CASE */
 void aead_encrypt_decrypt( int key_type_arg, char * key_hex,
                 int alg_arg, char * input_hex,
-                char * add_data )
+                char * add_data, int expected_result )
 {
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;
@@ -625,7 +625,7 @@ void aead_encrypt_decrypt( int key_type_arg, char * key_hex,
                                nonce, nonce_length,
                                additional_data, additional_data_length,
                                input_data, input_size, output_data,
-                               output_size, &output_length ) == PSA_SUCCESS );
+                               output_size, &output_length ) == ( psa_status_t )expected_result );
 
     output_data2 = mbedtls_calloc( 1, output_length );
     TEST_ASSERT( output_data2 != NULL );
@@ -634,16 +634,21 @@ void aead_encrypt_decrypt( int key_type_arg, char * key_hex,
                             nonce, nonce_length,
                             additional_data, additional_data_length,
                             output_data, output_length - tag_length, output_data2,
-                            output_length, &output_length2 ) == PSA_SUCCESS );
+                            output_length, &output_length2 ) == ( psa_status_t )expected_result );
     
-    TEST_ASSERT( memcmp( input_data, output_data2,
+    if( expected_result == 0 )
+    {
+        TEST_ASSERT( memcmp( input_data, output_data2,
                              input_size ) == 0 );
+    }
     
 
 exit:
     psa_destroy_key( slot );
     mbedtls_free( key_data );
     mbedtls_free( input_data );
+    mbedtls_free( additional_data );
+    mbedtls_free( output_data );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

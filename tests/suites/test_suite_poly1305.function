@@ -11,6 +11,7 @@ void mbedtls_poly1305( char *hex_key_string, char *hex_mac_string, char *hex_src
     unsigned char mac[16]; /* size set by the standard */
     unsigned char mac_str[33]; /* hex expansion of the above */
     size_t src_len;
+    mbedtls_poly1305_context ctx;
 
     memset( src_str, 0x00, sizeof( src_str ) );
     memset( mac_str, 0x00, sizeof( mac_str ) );
@@ -20,10 +21,45 @@ void mbedtls_poly1305( char *hex_key_string, char *hex_mac_string, char *hex_src
     src_len = unhexify( src_str, hex_src_string );
     unhexify( key, hex_key_string );
 
+    /*
+     * Test the integrated API
+     */
     mbedtls_poly1305_mac( key, src_str, src_len, mac );
-    hexify( mac_str, mac, 16 );
 
+    hexify( mac_str, mac, 16 );
     TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
+
+    /*
+     * Test the streaming API
+     */
+    mbedtls_poly1305_init( &ctx );
+
+    TEST_ASSERT( mbedtls_poly1305_starts( &ctx, key ) == 0 );
+
+    TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str, src_len ) == 0 );
+
+    TEST_ASSERT( mbedtls_poly1305_finish( &ctx, mac ) == 0 );
+
+    hexify( mac_str, mac, 16 );
+    TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
+
+    /*
+     * Test the streaming API again, piecewise
+     */
+
+    /* Don't free/init the context, in order to test that starts() does the
+     * right thing. */
+    TEST_ASSERT( mbedtls_poly1305_starts( &ctx, key ) == 0 );
+
+    TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str, 1 ) == 0 );
+    TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str + 1, src_len - 1) == 0 );
+
+    TEST_ASSERT( mbedtls_poly1305_finish( &ctx, mac ) == 0 );
+
+    hexify( mac_str, mac, 16 );
+    TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
+
+    mbedtls_poly1305_free( &ctx );
 }
 /* END_CASE */
 

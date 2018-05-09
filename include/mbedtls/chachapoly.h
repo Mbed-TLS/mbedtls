@@ -39,9 +39,10 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#define MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA -0x00047 /**< Invalid input parameter(s). */
-#define MBEDTLS_ERR_CHACHAPOLY_BAD_STATE      -0x00049 /**< The requested operation is not permitted in the current state. */
-#define MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED    -0x00049 /**< Authenticated decryption failed: data was not authentic. */
+#define MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA       -0x0054 /**< Invalid input parameter(s). */
+#define MBEDTLS_ERR_CHACHAPOLY_BAD_STATE            -0x0056 /**< The requested operation is not permitted in the current state. */
+#define MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED          -0x0058 /**< Authenticated decryption failed: data was not authentic. */
+#define MBEDTLS_ERR_CHACHAPOLY_FEATURE_UNAVAILABLE  -0x005A /**< Feature not available. For example, s part of the API is not implemented. */
 
 
 #ifdef __cplusplus

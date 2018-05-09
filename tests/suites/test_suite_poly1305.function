@@ -66,6 +66,6 @@ void mbedtls_poly1305( char *hex_key_string, char *hex_mac_string, char *hex_src
 /* BEGIN_CASE depends_on:MBEDTLS_POLY1305_C:MBEDTLS_SELF_TEST */
 void poly1305_selftest()
 {
-    TEST_ASSERT( mbedtls_poly1305_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_poly1305_self_test( 1 ) == 0 );
 }
 /* END_CASE */

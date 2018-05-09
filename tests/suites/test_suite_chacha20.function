@@ -85,6 +85,6 @@ void chacha20_crypt( char *hex_key_string,
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void chacha20_self_test()
 {
-    TEST_ASSERT( mbedtls_chacha20_self_test( 0 ) == 0 );
+    TEST_ASSERT( mbedtls_chacha20_self_test( 1 ) == 0 );
 }
 /* END_CASE */

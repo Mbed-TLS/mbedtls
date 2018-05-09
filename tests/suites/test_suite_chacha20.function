@@ -23,6 +23,7 @@ void chacha20_crypt( char *hex_key_string,
     size_t nonce_len;
     size_t src_len;
     size_t dst_len;
+    mbedtls_chacha20_context ctx;
 
     memset( key_str,    0x00, sizeof( key_str ) );
     memset( nonce_str,  0x00, sizeof( nonce_str ) );
@@ -39,11 +40,45 @@ void chacha20_crypt( char *hex_key_string,
     TEST_ASSERT( key_len   == 32U );
     TEST_ASSERT( nonce_len == 12U );
 
+    /*
+     * Test the integrated API
+     */
     TEST_ASSERT( mbedtls_chacha20_crypt( key_str, nonce_str, counter, src_len, src_str, output ) == 0 );
 
     hexify( dst_str, output, src_len );
+    TEST_ASSERT( strcmp( (char*) dst_str, hex_dst_string ) == 0 );
 
-    TEST_ASSERT( strcmp( (char*) dst_str, hex_dst_string ) == 0);
+    /*
+     * Test the streaming API
+     */
+    mbedtls_chacha20_init( &ctx );
+
+    TEST_ASSERT( mbedtls_chacha20_setkey( &ctx, key_str ) == 0 );
+
+    TEST_ASSERT( mbedtls_chacha20_starts( &ctx, nonce_str, counter ) == 0 );
+
+    memset( output, 0x00, sizeof( output ) );
+    TEST_ASSERT( mbedtls_chacha20_update( &ctx, src_len, src_str, output ) == 0 );
+
+    hexify( dst_str, output, src_len );
+    TEST_ASSERT( strcmp( (char*) dst_str, hex_dst_string ) == 0 );
+
+    /*
+     * Test the streaming API again, piecewise
+     */
+
+    /* Don't reset the context of key, in order to test that starts() do the
+     * right thing. */
+    TEST_ASSERT( mbedtls_chacha20_starts( &ctx, nonce_str, counter ) == 0 );
+
+    memset( output, 0x00, sizeof( output ) );
+    TEST_ASSERT( mbedtls_chacha20_update( &ctx, 1, src_str, output ) == 0 );
+    TEST_ASSERT( mbedtls_chacha20_update( &ctx, src_len - 1, src_str + 1, output + 1 ) == 0 );
+
+    hexify( dst_str, output, src_len );
+    TEST_ASSERT( strcmp( (char*) dst_str, hex_dst_string ) == 0 );
+
+    mbedtls_chacha20_free( &ctx );
 }
 /* END_CASE */
 

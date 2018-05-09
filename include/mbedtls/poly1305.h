@@ -42,7 +42,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA -0x0041 /**< Invalid input parameter(s). */
+#define MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA         -0x0057 /**< Invalid input parameter(s). */
+#define MBEDTLS_ERR_POLY1305_FEATURE_UNAVAILABLE    -0x0059 /**< Feature not available. For example, s part of the API is not implemented. */
 
 #ifdef __cplusplus
 extern "C" {

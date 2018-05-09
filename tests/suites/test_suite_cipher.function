@@ -560,14 +560,14 @@ void auth_crypt_tv( int cipher_id, char *hex_key, char *hex_iv,
     int ret;
     unsigned char key[50];
     unsigned char iv[50];
-    unsigned char cipher[200];
-    unsigned char clear[200];
+    unsigned char cipher[265]; /* max size of test data so far */
+    unsigned char clear[265];
+    unsigned char output[267]; /* above + 2 (overwrite check) */
     unsigned char ad[200];
     unsigned char tag[20];
     unsigned char my_tag[20];
     size_t key_len, iv_len, cipher_len, clear_len, ad_len, tag_len;
     mbedtls_cipher_context_t ctx;
-    unsigned char output[200];
     size_t outlen;
 
     mbedtls_cipher_init( &ctx );

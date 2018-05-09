@@ -129,6 +129,14 @@ int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi 
                     mbedtls_md_type_t md_alg );
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
+int mbedtls_ecdsa_sm2_sign(mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
+					const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
+					int(*f_rng)(void *, unsigned char *, size_t), void *p_rng);
+
+int mbedtls_ecdsa_sm2_sign_det(mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
+					const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
+					mbedtls_md_type_t md_alg);
+
 /**
  * \brief           This function verifies the ECDSA signature of a
  *                  previously-hashed message.
@@ -158,6 +166,9 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
                   const unsigned char *buf, size_t blen,
                   const mbedtls_ecp_point *Q, const mbedtls_mpi *r, const mbedtls_mpi *s);
 
+int mbedtls_ecdsa_sm2_verify(mbedtls_ecp_group *grp,
+				  const unsigned char *buf, size_t blen,
+				  const mbedtls_ecp_point *Q, const mbedtls_mpi *r, const mbedtls_mpi *s);
 /**
  * \brief           This function computes the ECDSA signature and writes it
  *                  to a buffer, serialized as defined in <em>RFC-4492:

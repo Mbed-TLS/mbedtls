@@ -1488,7 +1488,8 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
     size_t key_bits;
     const mbedtls_cipher_info_t *cipher_info = NULL;
     unsigned char tag[16];
-
+    mbedtls_cipher_id_t cipher_id;
+    
     if( ciphertext_size < ( plaintext_length + sizeof( tag ) ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
 
@@ -1496,6 +1497,15 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
     if( status != PSA_SUCCESS )
         return( status );
     slot = &global_data.key_slots[key];
+
+    if ( key_type == PSA_KEY_TYPE_AES )
+    {
+        cipher_id = MBEDTLS_CIPHER_ID_AES;
+    }
+    else
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
 
     //TODO: check key policy
 
@@ -1507,13 +1517,11 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
            && PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) == 16 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    operation->block_size = cipher_info->block_size;
-
     if( alg == PSA_ALG_GCM )
     {
         mbedtls_gcm_context gcm;
         mbedtls_gcm_init( &gcm );
-        ret = mbedtls_gcm_setkey( &gcm, cipher_info->base->cipher, 
+        ret = mbedtls_gcm_setkey( &gcm, cipher_id, 
                                 ( const unsigned char * )slot->data.raw.data, key_bits );
         if( ret != 0 )
         {
@@ -1541,7 +1549,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
             return( PSA_ERROR_INVALID_ARGUMENT );
 
         mbedtls_ccm_init( &ccm );
-        ret = mbedtls_ccm_setkey( &ccm, cipher_info->base->cipher, 
+        ret = mbedtls_ccm_setkey( &ccm, cipher_id, 
                                   slot->data.raw.data, key_bits );
         if( ret != 0 )
         {
@@ -1551,7 +1559,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
         ret = mbedtls_ccm_encrypt_and_tag( &ccm, plaintext_length, 
                        nonce , nonce_length, additional_data,
                        additional_data_length,
-                       plaintext, ciphertext, sizeof( tag ), tag );
+                       plaintext, ciphertext, tag, sizeof( tag ) );
         if( ret != 0 )
         {
             mbedtls_ccm_free( &ccm );
@@ -1585,6 +1593,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
     size_t key_bits;
     const mbedtls_cipher_info_t *cipher_info = NULL;
     unsigned char tag[16];
+    mbedtls_cipher_id_t cipher_id;
 
     if( plaintext_size < ciphertext_length )
             return( PSA_ERROR_INVALID_ARGUMENT );
@@ -1593,6 +1602,15 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
     if( status != PSA_SUCCESS )
         return( status );
     slot = &global_data.key_slots[key];
+
+    if ( key_type == PSA_KEY_TYPE_AES )
+    {
+        cipher_id = MBEDTLS_CIPHER_ID_AES;
+    }
+    else
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
 
     //TODO: check key policy
 
@@ -1604,14 +1622,12 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
            && PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) == 16 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    operation->block_size = cipher_info->block_size;
-
     if( alg == PSA_ALG_GCM )
     {
         mbedtls_gcm_context gcm;
 
         mbedtls_gcm_init( &gcm );
-        ret = mbedtls_gcm_setkey( &gcm, cipher_info->base->cipher, 
+        ret = mbedtls_gcm_setkey( &gcm, cipher_id, 
                                   slot->data.raw.data, key_bits );
         if( ret != 0 )
         {
@@ -1639,7 +1655,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
             return( PSA_ERROR_INVALID_ARGUMENT );
 
         mbedtls_ccm_init( &ccm );
-        ret = mbedtls_ccm_setkey( &ccm, cipher_info->base->cipher, 
+        ret = mbedtls_ccm_setkey( &ccm, cipher_id, 
                                   slot->data.raw.data, key_bits );
         if( ret != 0 )
         {
@@ -1649,7 +1665,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
         ret = mbedtls_ccm_auth_decrypt( &ccm, ciphertext_length, 
                        nonce , nonce_length, additional_data,
                        additional_data_length, ciphertext ,
-                       plaintext, sizeof( tag ), tag );
+                       plaintext, tag, sizeof( tag ) );
         if( ret != 0 )
         {
             mbedtls_ccm_free( &ccm );

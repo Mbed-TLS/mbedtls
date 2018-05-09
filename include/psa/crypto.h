@@ -143,6 +143,7 @@ typedef uint32_t psa_key_type_t;
 #define PSA_KEY_TYPE_CATEGORY_MASK              ((psa_key_type_t)0x7e000000)
 #define PSA_KEY_TYPE_RAW_DATA                   ((psa_key_type_t)0x02000000)
 #define PSA_KEY_TYPE_CATEGORY_SYMMETRIC         ((psa_key_type_t)0x04000000)
+#define PSA_KEY_TYPE_CATEGORY_CIPHER            ((psa_key_type_t)0x04000000)
 #define PSA_KEY_TYPE_CATEGORY_ASYMMETRIC        ((psa_key_type_t)0x06000000)
 #define PSA_KEY_TYPE_PAIR_FLAG                  ((psa_key_type_t)0x01000000)
 

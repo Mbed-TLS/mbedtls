@@ -62,6 +62,7 @@ int main( void )
 #include "mbedtls/chacha20.h"
 #include "mbedtls/gcm.h"
 #include "mbedtls/ccm.h"
+#include "mbedtls/chachapoly.h"
 #include "mbedtls/cmac.h"
 #include "mbedtls/poly1305.h"
 #include "mbedtls/havege.h"
@@ -96,7 +97,7 @@ int main( void )
 #define OPTIONS                                                         \
     "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
     "arc4, des3, des, camellia, blowfish, chacha20,\n"                  \
-    "aes_cbc, aes_gcm, aes_ccm,\n"                                      \
+    "aes_cbc, aes_gcm, aes_ccm, chachapoly,\n"                                      \
     "aes_cmac, des3_cmac, poly1305\n"                                   \
     "havege, ctr_drbg, hmac_drbg\n"                                     \
     "rsa, dhm, ecdsa, ecdh.\n"
@@ -231,7 +232,8 @@ unsigned char buf[BUFSIZE];
 typedef struct {
     char md4, md5, ripemd160, sha1, sha256, sha512,
          arc4, des3, des,
-         aes_cbc, aes_gcm, aes_ccm, aes_cmac, des3_cmac,
+         aes_cbc, aes_gcm, aes_ccm, chachapoly,
+         aes_cmac, des3_cmac,
          camellia, blowfish, chacha20,
          poly1305,
          havege, ctr_drbg, hmac_drbg,
@@ -282,6 +284,8 @@ int main( int argc, char *argv[] )
                 todo.aes_gcm = 1;
             else if( strcmp( argv[i], "aes_ccm" ) == 0 )
                 todo.aes_ccm = 1;
+            else if( strcmp( argv[i], "chachapoly" ) == 0 )
+                todo.chachapoly = 1;
             else if( strcmp( argv[i], "aes_cmac" ) == 0 )
                 todo.aes_cmac = 1;
             else if( strcmp( argv[i], "des3_cmac" ) == 0 )
@@ -471,6 +475,27 @@ int main( int argc, char *argv[] )
 
             mbedtls_ccm_free( &ccm );
         }
+    }
+#endif
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    if( todo.chachapoly )
+    {
+        mbedtls_chachapoly_context chachapoly;
+
+        mbedtls_chachapoly_init( &chachapoly );
+        memset( buf, 0, sizeof( buf ) );
+        memset( tmp, 0, sizeof( tmp ) );
+
+        mbedtls_snprintf( title, sizeof( title ), "ChaCha20-Poly1305" );
+
+        mbedtls_chachapoly_setkey( &chachapoly, tmp );
+
+        TIME_AND_TSC( title,
+                mbedtls_chachapoly_crypt_and_tag( &chachapoly,
+                    MBEDTLS_CHACHAPOLY_ENCRYPT, BUFSIZE, tmp,
+                    NULL, 0, buf, buf, tmp ) );
+
+        mbedtls_chachapoly_free( &chachapoly );
     }
 #endif
 #if defined(MBEDTLS_CMAC_C)

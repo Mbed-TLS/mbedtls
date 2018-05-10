@@ -268,6 +268,86 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void chachapoly_state()
+{
+    unsigned char key[32];
+    unsigned char nonce[12];
+    unsigned char aad[1];
+    unsigned char input[1];
+    unsigned char output[1];
+    unsigned char mac[16];
+    size_t input_len = sizeof( input );
+    size_t aad_len = sizeof( aad );
+    mbedtls_chachapoly_context ctx;
+
+    memset( key,    0x00, sizeof( key ) );
+    memset( nonce,  0x00, sizeof( nonce ) );
+    memset( aad,    0x00, sizeof( aad ) );
+    memset( input,  0x00, sizeof( input ) );
+    memset( output, 0x00, sizeof( output ) );
+    memset( mac,    0x00, sizeof( mac ) );
+
+    /* Initial state: finish, update, update_aad forbidden */
+    mbedtls_chachapoly_init( &ctx );
+
+    TEST_ASSERT( mbedtls_chachapoly_finish( &ctx, mac )
+                 == MBEDTLS_ERR_CHACHAPOLY_BAD_STATE );
+    TEST_ASSERT( mbedtls_chachapoly_update( &ctx, input_len, input, output )
+                 == MBEDTLS_ERR_CHACHAPOLY_BAD_STATE );
+    TEST_ASSERT( mbedtls_chachapoly_update_aad( &ctx, aad, aad_len )
+                 == MBEDTLS_ERR_CHACHAPOLY_BAD_STATE );
+
+    /* Still initial state: finish, update, update_aad forbidden */
+    TEST_ASSERT( mbedtls_chachapoly_setkey( &ctx, key )
+                 == 0 );
+
+    TEST_ASSERT( mbedtls_chachapoly_finish( &ctx, mac )
+                 == MBEDTLS_ERR_CHACHAPOLY_BAD_STATE );
+    TEST_ASSERT( mbedtls_chachapoly_update( &ctx, input_len, input, output )
+                 == MBEDTLS_ERR_CHACHAPOLY_BAD_STATE );
+    TEST_ASSERT( mbedtls_chachapoly_update_aad( &ctx, aad, aad_len )
+                 == MBEDTLS_ERR_CHACHAPOLY_BAD_STATE );
+
+    /* Starts -> finish OK */
+    TEST_ASSERT( mbedtls_chachapoly_starts( &ctx, nonce, MBEDTLS_CHACHAPOLY_ENCRYPT )
+                 == 0 );
+    TEST_ASSERT( mbedtls_chachapoly_finish( &ctx, mac )
+                 == 0 );
+
+    /* After finish: update, update_aad forbidden */
+    TEST_ASSERT( mbedtls_chachapoly_update( &ctx, input_len, input, output )
+                 == MBEDTLS_ERR_CHACHAPOLY_BAD_STATE );
+    TEST_ASSERT( mbedtls_chachapoly_update_aad( &ctx, aad, aad_len )
+                 == MBEDTLS_ERR_CHACHAPOLY_BAD_STATE );
+
+    /* Starts -> update* OK */
+    TEST_ASSERT( mbedtls_chachapoly_starts( &ctx, nonce, MBEDTLS_CHACHAPOLY_ENCRYPT )
+                 == 0 );
+    TEST_ASSERT( mbedtls_chachapoly_update( &ctx, input_len, input, output )
+                 == 0 );
+    TEST_ASSERT( mbedtls_chachapoly_update( &ctx, input_len, input, output )
+                 == 0 );
+
+    /* After update: update_aad forbidden */
+    TEST_ASSERT( mbedtls_chachapoly_update_aad( &ctx, aad, aad_len )
+                 == MBEDTLS_ERR_CHACHAPOLY_BAD_STATE );
+
+    /* Starts -> update_aad* -> finish OK */
+    TEST_ASSERT( mbedtls_chachapoly_starts( &ctx, nonce, MBEDTLS_CHACHAPOLY_ENCRYPT )
+                 == 0 );
+    TEST_ASSERT( mbedtls_chachapoly_update_aad( &ctx, aad, aad_len )
+                 == 0 );
+    TEST_ASSERT( mbedtls_chachapoly_update_aad( &ctx, aad, aad_len )
+                 == 0 );
+    TEST_ASSERT( mbedtls_chachapoly_finish( &ctx, mac )
+                 == 0 );
+
+exit:
+    mbedtls_chachapoly_free( &ctx );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void chachapoly_selftest()
 {

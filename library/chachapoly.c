@@ -452,6 +452,19 @@ static const unsigned char test_mac[1][16] =
     }
 };
 
+#define ASSERT( cond, args )            \
+    do                                  \
+    {                                   \
+        if( ! ( cond ) )                \
+        {                               \
+            if( verbose != 0 )          \
+                mbedtls_printf args;    \
+                                        \
+            return( -1 );               \
+        }                               \
+    }                                   \
+    while( 0 )
+
 int mbedtls_chachapoly_self_test( int verbose )
 {
     mbedtls_chachapoly_context ctx;
@@ -460,24 +473,15 @@ int mbedtls_chachapoly_self_test( int verbose )
     unsigned char output[200];
     unsigned char mac[16];
 
-    for ( i = 0U; i < 1U; i++ )
+    for( i = 0U; i < 1U; i++ )
     {
-        if ( verbose != 0 )
-        {
+        if( verbose != 0 )
             mbedtls_printf( "  ChaCha20-Poly1305 test %u ", i );
-        }
 
         mbedtls_chachapoly_init( &ctx );
 
         result = mbedtls_chachapoly_setkey( &ctx, test_key[i] );
-        if ( result != 0 )
-        {
-            if ( verbose != 0 )
-            {
-                mbedtls_printf( "setkey() error code: %i\n", result );
-            }
-            return( -1 );
-        }
+        ASSERT( 0 == result, ( "setkey() error code: %i\n", result ) );
 
         result = mbedtls_chachapoly_crypt_and_tag( &ctx,
                                                    MBEDTLS_CHACHAPOLY_ENCRYPT,
@@ -488,45 +492,23 @@ int mbedtls_chachapoly_self_test( int verbose )
                                                    test_input[i],
                                                    output,
                                                    mac );
-        if ( result != 0 )
-        {
-            if ( verbose != 0 )
-            {
-                mbedtls_printf( "crypt_and_tag() error code: %i\n", result );
-            }
-            return( -1 );
-        }
 
-        if ( memcmp( output, test_output[i], test_input_len[i] ) != 0 )
-        {
-            if ( verbose != 0 )
-            {
-                mbedtls_printf( "failure (wrong output)\n" );
-            }
-            return( -1 );
-        }
+        ASSERT( 0 == result, ( "crypt_and_tag() error code: %i\n", result ) );
 
-        if ( memcmp( mac, test_mac[i], 16U ) != 0 )
-        {
-            if ( verbose != 0 )
-            {
-                mbedtls_printf( "failure (wrong MAC)\n" );
-            }
-            return( -1 );
-        }
+        ASSERT( 0 == memcmp( output, test_output[i], test_input_len[i] ),
+                ( "failure (wrong output)\n" ) );
+
+        ASSERT( 0 == memcmp( mac, test_mac[i], 16U ),
+                ( "failure (wrong MAC)\n" ) );
 
         mbedtls_chachapoly_free( &ctx );
 
-        if ( verbose != 0 )
-        {
+        if( verbose != 0 )
             mbedtls_printf( "passed\n" );
-        }
     }
 
     if( verbose != 0 )
-    {
         mbedtls_printf( "\n" );
-    }
 
     return( 0 );
 }

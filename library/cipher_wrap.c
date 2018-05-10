@@ -1305,6 +1305,19 @@ static int chacha20_setkey_wrap( void *ctx, const unsigned char *key,
     return( 0 );
 }
 
+static int chacha20_stream_wrap( void *ctx,  size_t length,
+                                 const unsigned char *input,
+                                 unsigned char *output )
+{
+    int ret;
+
+    ret = mbedtls_chacha20_update( ctx, length, input, output );
+    if( ret == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+    return( ret );
+}
+
 static void * chacha20_ctx_alloc( void )
 {
     mbedtls_chacha20_context *ctx;
@@ -1337,7 +1350,7 @@ static const mbedtls_cipher_base_t chacha20_base_info = {
     NULL,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_STREAM)
-    NULL,
+    chacha20_stream_wrap,
 #endif
     chacha20_setkey_wrap,
     chacha20_setkey_wrap,
@@ -1346,12 +1359,12 @@ static const mbedtls_cipher_base_t chacha20_base_info = {
 };
 static const mbedtls_cipher_info_t chacha20_info = {
     MBEDTLS_CIPHER_CHACHA20,
-    MBEDTLS_MODE_NONE,
+    MBEDTLS_MODE_STREAM,
     256,
     "CHACHA20",
     12,
     0,
-    64,
+    1,
     &chacha20_base_info
 };
 #endif /* MBEDTLS_CHACHA20_C */
@@ -1417,7 +1430,7 @@ static const mbedtls_cipher_info_t chachapoly_info = {
     "CHACHA20-POLY1305",
     12,
     0,
-    64,
+    1,
     &chachapoly_base_info
 };
 #endif /* MBEDTLS_CHACHAPOLY_C */

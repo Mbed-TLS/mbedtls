@@ -193,7 +193,7 @@ enum {
 /** Maximum length of any IV, in Bytes. */
 #define MBEDTLS_MAX_IV_LENGTH      16
 /** Maximum block size of any cipher, in Bytes. */
-#define MBEDTLS_MAX_BLOCK_LENGTH   64
+#define MBEDTLS_MAX_BLOCK_LENGTH   16
 
 /**
  * Base cipher information (opaque struct).

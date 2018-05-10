@@ -259,7 +259,7 @@ void mbedtls_poly1305_free( mbedtls_poly1305_context *ctx )
 int mbedtls_poly1305_starts( mbedtls_poly1305_context *ctx,
                              const unsigned char key[32] )
 {
-    if ( ctx == NULL )
+    if ( ctx == NULL || key == NULL )
     {
         return( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     }
@@ -417,7 +417,7 @@ int mbedtls_poly1305_mac( const unsigned char key[32],
 
 cleanup:
     mbedtls_poly1305_free( &ctx );
-    return( 0 );
+    return( result );
 }
 
 #endif /* MBEDTLS_POLY1305_ALT */

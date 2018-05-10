@@ -54,15 +54,35 @@ void mbedtls_poly1305( char *hex_key_string, char *hex_mac_string, char *hex_src
 
     /* Don't free/init the context, in order to test that starts() does the
      * right thing. */
-    TEST_ASSERT( mbedtls_poly1305_starts( &ctx, key ) == 0 );
+    if( src_len >= 1 )
+    {
+        TEST_ASSERT( mbedtls_poly1305_starts( &ctx, key ) == 0 );
 
-    TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str, 1 ) == 0 );
-    TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str + 1, src_len - 1) == 0 );
+        TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str, 1 ) == 0 );
+        TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str + 1, src_len - 1 ) == 0 );
 
-    TEST_ASSERT( mbedtls_poly1305_finish( &ctx, mac ) == 0 );
+        TEST_ASSERT( mbedtls_poly1305_finish( &ctx, mac ) == 0 );
 
-    hexify( mac_str, mac, 16 );
-    TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
+        hexify( mac_str, mac, 16 );
+        TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
+    }
+
+    /*
+     * Again with more pieces
+     */
+    if( src_len >= 2 )
+    {
+        TEST_ASSERT( mbedtls_poly1305_starts( &ctx, key ) == 0 );
+
+        TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str, 1 ) == 0 );
+        TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str + 1, 1 ) == 0 );
+        TEST_ASSERT( mbedtls_poly1305_update( &ctx, src_str + 2, src_len - 2 ) == 0 );
+
+        TEST_ASSERT( mbedtls_poly1305_finish( &ctx, mac ) == 0 );
+
+        hexify( mac_str, mac, 16 );
+        TEST_ASSERT( strcmp( (char *) mac_str, hex_mac_string ) == 0 );
+    }
 
     mbedtls_poly1305_free( &ctx );
 }

@@ -367,6 +367,15 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
     }
 #endif
 
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    if ( ctx->cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 )
+    {
+        *olen = ilen;
+        return mbedtls_chachapoly_update( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
+                                                      ilen, input, output );
+    }
+#endif
+
     if ( 0 == block_size )
     {
         return MBEDTLS_ERR_CIPHER_INVALID_CONTEXT;
@@ -377,31 +386,6 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
     {
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     }
-
-
-#if defined(MBEDTLS_CHACHA20_C)
-    if ( ctx->cipher_info->type == MBEDTLS_CIPHER_CHACHA20 )
-    {
-        *olen = ilen;
-        return mbedtls_chacha20_update( (mbedtls_chacha20_context*) ctx->cipher_ctx,
-                                         ilen, input, output );
-    }
-#endif
-
-    if( input == output &&
-       ( ctx->unprocessed_len != 0 || ilen % mbedtls_cipher_get_block_size( ctx ) ) )
-    {
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    }
-
-#if defined(MBEDTLS_CHACHAPOLY_C)
-    if ( ctx->cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 )
-    {
-        *olen = ilen;
-        return mbedtls_chachapoly_update( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
-                                                      ilen, input, output );
-    }
-#endif
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     if( ctx->cipher_info->mode == MBEDTLS_MODE_CBC )

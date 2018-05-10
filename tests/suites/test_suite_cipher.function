@@ -479,8 +479,9 @@ void decrypt_test_vec( int cipher_id, int pad_mode,
 {
     unsigned char key[50];
     unsigned char iv[50];
-    unsigned char cipher[200];
-    unsigned char clear[200];
+    unsigned char cipher[265]; /* max length of test data so far */
+    unsigned char clear[265];
+    unsigned char output[265];
     unsigned char ad[200];
     unsigned char tag[20];
     size_t key_len, iv_len, cipher_len, clear_len;
@@ -488,7 +489,6 @@ void decrypt_test_vec( int cipher_id, int pad_mode,
     size_t ad_len, tag_len;
 #endif
     mbedtls_cipher_context_t ctx;
-    unsigned char output[200];
     size_t outlen, total_len;
 
     mbedtls_cipher_init( &ctx );

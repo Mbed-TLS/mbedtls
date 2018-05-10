@@ -202,7 +202,7 @@ int mbedtls_chachapoly_update( mbedtls_chachapoly_context *ctx,
                                const unsigned char *input,
                                unsigned char *output )
 {
-    if ( ( ctx == NULL ) || ( input == NULL ) || ( output == NULL ) )
+    if ( ctx == NULL )
     {
         return( MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
     }
@@ -338,6 +338,9 @@ int mbedtls_chachapoly_auth_decrypt( mbedtls_chachapoly_context *ctx,
     unsigned char check_tag[16];
     size_t i;
     int diff;
+
+    if( tag == NULL )
+        return( MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
 
     if( ( ret = mbedtls_chachapoly_crypt_and_tag( ctx,
                         MBEDTLS_CHACHAPOLY_DECRYPT, length, nonce,

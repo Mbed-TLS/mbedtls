@@ -519,18 +519,29 @@ static const size_t test_lengths[2] =
     375U
 };
 
+#define ASSERT( cond, args )            \
+    do                                  \
+    {                                   \
+        if( ! ( cond ) )                \
+        {                               \
+            if( verbose != 0 )          \
+                mbedtls_printf args;    \
+                                        \
+            return( -1 );               \
+        }                               \
+    }                                   \
+    while( 0 )
+
 int mbedtls_chacha20_self_test( int verbose )
 {
     unsigned char output[381];
     unsigned i;
     int result;
 
-    for ( i = 0U; i < 2U; i++ )
+    for( i = 0U; i < 2U; i++ )
     {
-        if ( verbose != 0 )
-        {
+        if( verbose != 0 )
             mbedtls_printf( "  ChaCha20 test %u ", i );
-        }
 
         result = mbedtls_chacha20_crypt( test_keys[i],
                                          test_nonces[i],
@@ -538,36 +549,18 @@ int mbedtls_chacha20_self_test( int verbose )
                                          test_lengths[i],
                                          test_input[i],
                                          output );
-        if ( result != 0)
-        {
-            if ( verbose != 0 )
-            {
-                mbedtls_printf( "error code: %i\n", result );
-            }
 
-            return( -1 );
-        }
+        ASSERT( 0 == result, ( "error code: %i\n", result ) );
 
-        if ( 0 != memcmp( output, test_output[i], test_lengths[i] ) )
-        {
-            if ( verbose != 0 )
-            {
-                mbedtls_printf( "failed\n" );
-            }
+        ASSERT( 0 == memcmp( output, test_output[i], test_lengths[i] ),
+                ( "failed (output)\n" ) );
 
-            return( -1 );
-        }
-
-        if ( verbose != 0 )
-        {
+        if( verbose != 0 )
             mbedtls_printf( "passed\n" );
-        }
     }
 
     if( verbose != 0 )
-    {
         mbedtls_printf( "\n" );
-    }
 
     return( 0 );
 }

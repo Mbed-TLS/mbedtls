@@ -487,53 +487,44 @@ static const unsigned char test_mac[2][16] =
     }
 };
 
+#define ASSERT( cond, args )            \
+    do                                  \
+    {                                   \
+        if( ! ( cond ) )                \
+        {                               \
+            if( verbose != 0 )          \
+                mbedtls_printf args;    \
+                                        \
+            return( -1 );               \
+        }                               \
+    }                                   \
+    while( 0 )
+
 int mbedtls_poly1305_self_test( int verbose )
 {
     unsigned char mac[16];
     unsigned i;
     int result;
 
-    for ( i = 0U; i < 2U; i++ )
+    for( i = 0U; i < 2U; i++ )
     {
-        if ( verbose != 0 )
-        {
+        if( verbose != 0 )
             mbedtls_printf( "  Poly1305 test %u ", i );
-        }
 
         result = mbedtls_poly1305_mac( test_keys[i],
                                        test_data[i],
                                        test_data_len[i],
                                        mac );
-        if ( result != 0 )
-        {
-            if ( verbose != 0 )
-            {
-                mbedtls_printf( "error code: %i\n", result );
-            }
+        ASSERT( 0 == result, ( "error code: %i\n", result ) );
 
-            return( -1 );
-        }
+        ASSERT( 0 == memcmp( mac, test_mac[i], 16U ), ( "failed (mac)\n" ) );
 
-        if ( memcmp( mac, test_mac[i], 16U ) != 0 )
-        {
-            if ( verbose != 0 )
-            {
-                mbedtls_printf( "failed\n" );
-            }
-
-            return( -1 );
-        }
-
-        if ( verbose != 0 )
-        {
+        if( verbose != 0 )
             mbedtls_printf( "passed\n" );
-        }
     }
 
     if( verbose != 0 )
-    {
         mbedtls_printf( "\n" );
-    }
 
     return( 0 );
 }

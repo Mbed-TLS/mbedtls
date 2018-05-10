@@ -82,6 +82,56 @@ void chacha20_crypt( char *hex_key_string,
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void chacha20_bad_params()
+{
+    unsigned char key[32];
+    unsigned char nonce[12];
+    unsigned char src[1];
+    unsigned char dst[1];
+    uint32_t counter = 0;
+    size_t len = sizeof( src );
+    mbedtls_chacha20_context ctx;
+
+    mbedtls_chacha20_init( NULL );
+    mbedtls_chacha20_free( NULL );
+
+    mbedtls_chacha20_init( &ctx );
+
+    TEST_ASSERT( mbedtls_chacha20_setkey( NULL, key )
+                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_chacha20_setkey( &ctx, NULL )
+                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_chacha20_starts( NULL, nonce, counter )
+                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_chacha20_starts( &ctx, NULL, counter )
+                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_chacha20_update( NULL, 0, src, dst )
+                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_chacha20_update( &ctx, len, NULL, dst )
+                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_chacha20_update( &ctx, len, src, NULL )
+                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_chacha20_update( &ctx, 0, NULL, NULL )
+                 == 0 );
+
+    mbedtls_chacha20_free( &ctx );
+
+    TEST_ASSERT( mbedtls_chacha20_crypt( NULL, nonce, counter, 0, src, dst )
+                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_chacha20_crypt( key, NULL, counter, 0, src, dst )
+                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_chacha20_crypt( key, nonce, counter, len, NULL, dst )
+                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_chacha20_crypt( key, nonce, counter, len, src, NULL )
+                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_chacha20_crypt( key, nonce, counter, 0, NULL, NULL )
+                 == 0 );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void chacha20_self_test()
 {

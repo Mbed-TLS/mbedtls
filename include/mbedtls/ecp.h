@@ -51,15 +51,6 @@
 #define MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH                  -0x4C00  /**< The buffer contains a valid signature followed by more data. */
 #define MBEDTLS_ERR_ECP_HW_ACCEL_FAILED                   -0x4B80  /**< The ECP hardware accelerator failed. */
 
-#if !defined(MBEDTLS_ECP_ALT)
-/*
- * default mbed TLS elliptic curve arithmetic implementation
- *
- * (in case MBEDTLS_ECP_ALT is defined then the developer has to provide an
- * alternative implementation for the whole module and it will replace this
- * one.)
- */
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -85,10 +76,10 @@ typedef enum
     MBEDTLS_ECP_DP_BP384R1,        /*!< Domain parameters for 384-bit Brainpool curve. */
     MBEDTLS_ECP_DP_BP512R1,        /*!< Domain parameters for 512-bit Brainpool curve. */
     MBEDTLS_ECP_DP_CURVE25519,     /*!< Domain parameters for Curve25519. */
-    MBEDTLS_ECP_DP_CURVE448,       /*!< Domain parameters for Curve448. */
     MBEDTLS_ECP_DP_SECP192K1,      /*!< Domain parameters for 192-bit "Koblitz" curve. */
     MBEDTLS_ECP_DP_SECP224K1,      /*!< Domain parameters for 224-bit "Koblitz" curve. */
     MBEDTLS_ECP_DP_SECP256K1,      /*!< Domain parameters for 256-bit "Koblitz" curve. */
+    MBEDTLS_ECP_DP_CURVE448,       /*!< Domain parameters for Curve448. */
 	MBEDTLS_ECP_DP_SM2256,		   /*!< Domain parameters for 256-bit SM2 curve */
 } mbedtls_ecp_group_id;
 
@@ -128,6 +119,15 @@ typedef struct
     mbedtls_mpi Z;          /*!< The Z coordinate of the ECP point. */
 }
 mbedtls_ecp_point;
+
+#if !defined(MBEDTLS_ECP_ALT)
+/*
+ * default mbed TLS elliptic curve arithmetic implementation
+ *
+ * (in case MBEDTLS_ECP_ALT is defined then the developer has to provide an
+ * alternative implementation for the whole module and it will replace this
+ * one.)
+ */
 
 /**
  * \brief           The ECP group structure.
@@ -181,22 +181,6 @@ typedef struct
     size_t T_size;              /*!< The number of pre-computed points. */
 }
 mbedtls_ecp_group;
-
-/**
- * \brief    The ECP key-pair structure.
- *
- * A generic key-pair that may be used for ECDSA and fixed ECDH, for example.
- *
- * \note    Members are deliberately in the same order as in the
- *          ::mbedtls_ecdsa_context structure.
- */
-typedef struct
-{
-    mbedtls_ecp_group grp;      /*!<  The elliptic curve and base point. */
-    mbedtls_mpi d;              /*!<  Our secret value. */
-    mbedtls_ecp_point Q;        /*!<  Our public value. */
-}
-mbedtls_ecp_keypair;
 
 /**
  * \name SECTION: Module settings
@@ -255,6 +239,26 @@ mbedtls_ecp_keypair;
 #endif /* MBEDTLS_ECP_FIXED_POINT_OPTIM */
 
 /* \} name SECTION: Module settings */
+
+#else  /* MBEDTLS_ECP_ALT */
+#include "ecp_alt.h"
+#endif /* MBEDTLS_ECP_ALT */
+
+/**
+ * \brief    The ECP key-pair structure.
+ *
+ * A generic key-pair that may be used for ECDSA and fixed ECDH, for example.
+ *
+ * \note    Members are deliberately in the same order as in the
+ *          ::mbedtls_ecdsa_context structure.
+ */
+typedef struct
+{
+    mbedtls_ecp_group grp;      /*!<  Elliptic curve and base point     */
+    mbedtls_mpi d;              /*!<  our secret value                  */
+    mbedtls_ecp_point Q;        /*!<  our public value                  */
+}
+mbedtls_ecp_keypair;
 
 /*
  * Point formats, from RFC 4492's enum ECPointFormat
@@ -757,9 +761,5 @@ int mbedtls_ecp_self_test( int verbose );
 #ifdef __cplusplus
 }
 #endif
-
-#else  /* MBEDTLS_ECP_ALT */
-#include "ecp_alt.h"
-#endif /* MBEDTLS_ECP_ALT */
 
 #endif /* ecp.h */

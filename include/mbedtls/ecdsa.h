@@ -216,6 +216,12 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng );
 
+int mbedtls_ecdsa_sm2_write_signature(mbedtls_ecdsa_context *ctx, mbedtls_md_type_t md_alg,
+						   const unsigned char *hash, size_t hlen,
+						   unsigned char *sig, size_t *slen,
+						   int(*f_rng)(void *, unsigned char *, size_t),
+						   void *p_rng);
+
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 #if ! defined(MBEDTLS_DEPRECATED_REMOVED)
 #if defined(MBEDTLS_DEPRECATED_WARNING)
@@ -271,6 +277,12 @@ int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
 #endif /* MBEDTLS_DEPRECATED_REMOVED */
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
+int mbedtls_ecdsa_sm2_write_signature_det(mbedtls_ecdsa_context *ctx,
+							  const unsigned char *hash, size_t hlen,
+							  unsigned char *sig, size_t *slen,
+							  mbedtls_md_type_t md_alg);
+
+
 /**
  * \brief           This function reads and verifies an ECDSA signature.
  *
@@ -298,6 +310,11 @@ int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
 int mbedtls_ecdsa_read_signature( mbedtls_ecdsa_context *ctx,
                           const unsigned char *hash, size_t hlen,
                           const unsigned char *sig, size_t slen );
+
+int mbedtls_ecdsa_sm2_read_signature(mbedtls_ecdsa_context *ctx,
+					     const unsigned char *hash, size_t hlen,
+						 const unsigned char *sig, size_t slen);
+
 
 /**
  * \brief          This function generates an ECDSA keypair on the given curve.

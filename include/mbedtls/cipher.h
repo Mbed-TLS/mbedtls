@@ -145,6 +145,9 @@ typedef enum {
     MBEDTLS_CIPHER_CAMELLIA_128_CCM,     /**< Camellia cipher with 128-bit CCM mode. */
     MBEDTLS_CIPHER_CAMELLIA_192_CCM,     /**< Camellia cipher with 192-bit CCM mode. */
     MBEDTLS_CIPHER_CAMELLIA_256_CCM,     /**< Camellia cipher with 256-bit CCM mode. */
+    MBEDTLS_CIPHER_AES_128_OFB,          /**< AES 128-bit cipher in OFB mode. */
+    MBEDTLS_CIPHER_AES_192_OFB,          /**< AES 192-bit cipher in OFB mode. */
+    MBEDTLS_CIPHER_AES_256_OFB,          /**< AES 256-bit cipher in OFB mode. */
 } mbedtls_cipher_type_t;
 
 /** Supported cipher modes. */
@@ -153,7 +156,7 @@ typedef enum {
     MBEDTLS_MODE_ECB,                    /**< The ECB cipher mode. */
     MBEDTLS_MODE_CBC,                    /**< The CBC cipher mode. */
     MBEDTLS_MODE_CFB,                    /**< The CFB cipher mode. */
-    MBEDTLS_MODE_OFB,                    /**< The OFB cipher mode - unsupported. */
+    MBEDTLS_MODE_OFB,                    /**< The OFB cipher mode. */
     MBEDTLS_MODE_CTR,                    /**< The CTR cipher mode. */
     MBEDTLS_MODE_GCM,                    /**< The GCM cipher mode. */
     MBEDTLS_MODE_STREAM,                 /**< The stream cipher mode. */

@@ -14,7 +14,9 @@ API Changes
      facilitate testing and maintenance.
 
 Features
-    * Implement HKDF per RFC 5869. Contributed by Thomas Fossati.
+   * Implement HKDF per RFC 5869. Contributed by Thomas Fossati.
+   * Add additional block mode, OFB (Output Feedback), to the AES module and
+     cipher abstraction module.
 
 = mbed TLS 2.9.0 branch released 2018-04-30
 

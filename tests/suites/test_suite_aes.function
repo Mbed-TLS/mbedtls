@@ -289,6 +289,58 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_OFB */
+void aes_encrypt_ofb( int fragment_size, char *hex_key_string,
+                        char *hex_iv_string, char *hex_src_string,
+                        char *hex_dst_string )
+{
+    unsigned char key_str[100];
+    unsigned char iv_str[100];
+    unsigned char src_str[200];
+    unsigned char dst_str[200];
+    unsigned char output[200];
+    mbedtls_aes_context ctx;
+    size_t iv_offset = 0;
+    int in_buffer_len;
+    unsigned char* src_str_next;
+    int key_len;
+
+    memset(key_str, 0x00, 100);
+    memset(iv_str, 0x00, 100);
+    memset(src_str, 0x00, 200);
+    memset(dst_str, 0x00, 200);
+    memset(output, 0x00, 200);
+    mbedtls_aes_init( &ctx );
+
+    key_len = unhexify( key_str, hex_key_string );
+    unhexify( iv_str, hex_iv_string );
+    in_buffer_len = unhexify( src_str, hex_src_string );
+
+    TEST_ASSERT( mbedtls_aes_setkey_enc( &ctx, key_str, key_len * 8 ) == 0 );
+    src_str_next = src_str;
+
+    while( in_buffer_len > 0 )
+    {
+        TEST_ASSERT( mbedtls_aes_crypt_ofb( &ctx, fragment_size, &iv_offset,
+                                            iv_str, src_str_next, output ) == 0 );
+
+        hexify( dst_str, output, fragment_size );
+        TEST_ASSERT( strncmp( (char *) dst_str, hex_dst_string,
+                                ( 2 * fragment_size) ) == 0 );
+
+        in_buffer_len -= fragment_size;
+        hex_dst_string += ( fragment_size * 2 );
+        src_str_next += fragment_size;
+
+        if( in_buffer_len < fragment_size )
+            fragment_size = in_buffer_len;
+    }
+
+exit:
+    mbedtls_aes_free( &ctx );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void aes_selftest()
 {

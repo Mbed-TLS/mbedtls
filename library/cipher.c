@@ -38,12 +38,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(MBEDTLS_CHACHAPOLY_C)
+#include "mbedtls/chachapoly.h"
+#endif
+
 #if defined(MBEDTLS_GCM_C)
 #include "mbedtls/gcm.h"
 #endif
 
 #if defined(MBEDTLS_CCM_C)
 #include "mbedtls/ccm.h"
+#endif
+
+#if defined(MBEDTLS_CHACHA20_C)
+#include "mbedtls/chacha20.h"
 #endif
 
 #if defined(MBEDTLS_CMAC_C)
@@ -60,6 +68,27 @@
 #if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER)
 #define MBEDTLS_CIPHER_MODE_STREAM
 #endif
+
+
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+/* Compare the contents of two buffers in constant time.
+ * Returns 0 if the contents are bitwise identical, otherwise returns
+ * a non-zero value.
+ * This is currently only used by GCM and ChaCha20+Poly1305.
+ */
+static int mbedtls_constant_time_memcmp( const void *v1, const void *v2, size_t len )
+{
+    const unsigned char *p1 = (const unsigned char*) v1;
+    const unsigned char *p2 = (const unsigned char*) v2;
+    size_t i;
+    unsigned char diff;
+
+    for( diff = 0, i = 0; i < len; i++ )
+        diff |= p1[i] ^ p2[i];
+
+    return (int)diff;
+}
+#endif /* MBEDTLS_GCM_C || MBEDTLS_CHACHAPOLY_C */
 
 static int supported_init = 0;
 
@@ -232,6 +261,18 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     }
 
+#if defined(MBEDTLS_CHACHA20_C)
+    if ( ctx->cipher_info->type == MBEDTLS_CIPHER_CHACHA20 )
+    {
+        if ( 0 != mbedtls_chacha20_starts( (mbedtls_chacha20_context*)ctx->cipher_ctx,
+                                           iv,
+                                           0U ) ) /* Initial counter value */
+        {
+            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        }
+    }
+#endif
+
     memcpy( ctx->iv, iv, actual_iv_size );
     ctx->iv_size = actual_iv_size;
 
@@ -248,22 +289,45 @@ int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx )
     return( 0 );
 }
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
 int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
                       const unsigned char *ad, size_t ad_len )
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+#if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
     {
         return mbedtls_gcm_starts( (mbedtls_gcm_context *) ctx->cipher_ctx, ctx->operation,
                            ctx->iv, ctx->iv_size, ad, ad_len );
     }
+#endif
+
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    if (MBEDTLS_CIPHER_CHACHA20_POLY1305 == ctx->cipher_info->type )
+    {
+        int result;
+        mbedtls_chachapoly_mode_t mode;
+
+        mode = ( ctx->operation == MBEDTLS_ENCRYPT )
+                ? MBEDTLS_CHACHAPOLY_ENCRYPT
+                : MBEDTLS_CHACHAPOLY_DECRYPT;
+
+        result = mbedtls_chachapoly_starts( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
+                                                        ctx->iv,
+                                                        mode );
+        if ( result != 0 )
+            return( result );
+
+        return mbedtls_chachapoly_update_aad( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
+                                                          ad, ad_len );
+    }
+#endif
 
     return( 0 );
 }
-#endif /* MBEDTLS_GCM_C */
+#endif /* MBEDTLS_GCM_C || MBEDTLS_CHACHAPOLY_C */
 
 int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *input,
                    size_t ilen, unsigned char *output, size_t *olen )
@@ -301,6 +365,15 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
         *olen = ilen;
         return mbedtls_gcm_update( (mbedtls_gcm_context *) ctx->cipher_ctx, ilen, input,
                            output );
+    }
+#endif
+
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    if ( ctx->cipher_info->type == MBEDTLS_CIPHER_CHACHA20_POLY1305 )
+    {
+        *olen = ilen;
+        return mbedtls_chachapoly_update( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
+                                                      ilen, input, output );
     }
 #endif
 
@@ -685,6 +758,12 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
         return( 0 );
     }
 
+    if ( ( MBEDTLS_CIPHER_CHACHA20          == ctx->cipher_info->type ) ||
+         ( MBEDTLS_CIPHER_CHACHA20_POLY1305 == ctx->cipher_info->type ) )
+    {
+        return( 0 );
+    }
+
     if( MBEDTLS_MODE_ECB == ctx->cipher_info->mode )
     {
         if( ctx->unprocessed_len != 0 )
@@ -796,7 +875,7 @@ int mbedtls_cipher_set_padding_mode( mbedtls_cipher_context_t *ctx, mbedtls_ciph
 }
 #endif /* MBEDTLS_CIPHER_MODE_WITH_PADDING */
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
 int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
                       unsigned char *tag, size_t tag_len )
 {
@@ -806,8 +885,22 @@ int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
     if( MBEDTLS_ENCRYPT != ctx->operation )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+#if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
         return mbedtls_gcm_finish( (mbedtls_gcm_context *) ctx->cipher_ctx, tag, tag_len );
+#endif
+
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    if ( MBEDTLS_CIPHER_CHACHA20_POLY1305 == ctx->cipher_info->type )
+    {
+        /* Don't allow truncated MAC for Poly1305 */
+        if ( tag_len != 16U )
+            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+        return mbedtls_chachapoly_finish( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
+                                                      tag );
+    }
+#endif
 
     return( 0 );
 }
@@ -815,6 +908,7 @@ int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
 int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
                       const unsigned char *tag, size_t tag_len )
 {
+    unsigned char check_tag[16];
     int ret;
 
     if( NULL == ctx || NULL == ctx->cipher_info ||
@@ -823,12 +917,9 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     }
 
+#if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
     {
-        unsigned char check_tag[16];
-        size_t i;
-        int diff;
-
         if( tag_len > sizeof( check_tag ) )
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
@@ -839,18 +930,38 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
         }
 
         /* Check the tag in "constant-time" */
-        for( diff = 0, i = 0; i < tag_len; i++ )
-            diff |= tag[i] ^ check_tag[i];
-
-        if( diff != 0 )
+        if( mbedtls_constant_time_memcmp( tag, check_tag, tag_len ) != 0 )
             return( MBEDTLS_ERR_CIPHER_AUTH_FAILED );
 
         return( 0 );
     }
+#endif /* MBEDTLS_GCM_C */
+
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    if ( MBEDTLS_CIPHER_CHACHA20_POLY1305 == ctx->cipher_info->type )
+    {
+        /* Don't allow truncated MAC for Poly1305 */
+        if ( tag_len != sizeof( check_tag ) )
+            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+        ret = mbedtls_chachapoly_finish( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
+                                                     check_tag );
+        if ( ret != 0 )
+        {
+            return( ret );
+        }
+
+        /* Check the tag in "constant-time" */
+        if( mbedtls_constant_time_memcmp( tag, check_tag, tag_len ) != 0 )
+            return( MBEDTLS_ERR_CIPHER_AUTH_FAILED );
+
+        return( 0 );
+    }
+#endif /* MBEDTLS_CHACHAPOLY_C */
 
     return( 0 );
 }
-#endif /* MBEDTLS_GCM_C */
+#endif /* MBEDTLS_GCM_C || MBEDTLS_CHACHAPOLY_C */
 
 /*
  * Packet-oriented wrapper for non-AEAD modes
@@ -909,6 +1020,22 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
                                      tag, tag_len ) );
     }
 #endif /* MBEDTLS_CCM_C */
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    if ( MBEDTLS_CIPHER_CHACHA20_POLY1305 == ctx->cipher_info->type )
+    {
+        /* ChachaPoly has fixed length nonce and MAC (tag) */
+        if ( ( iv_len != ctx->cipher_info->iv_size ) ||
+             ( tag_len != 16U ) )
+        {
+            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        }
+
+        *olen = ilen;
+        return( mbedtls_chachapoly_crypt_and_tag( ctx->cipher_ctx,
+                                MBEDTLS_CHACHAPOLY_ENCRYPT,
+                                ilen, iv, ad, ad_len, input, output, tag ) );
+    }
+#endif /* MBEDTLS_CHACHAPOLY_C */
 
     return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
 }
@@ -955,6 +1082,28 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
         return( ret );
     }
 #endif /* MBEDTLS_CCM_C */
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    if ( MBEDTLS_CIPHER_CHACHA20_POLY1305 == ctx->cipher_info->type )
+    {
+        int ret;
+
+        /* ChachaPoly has fixed length nonce and MAC (tag) */
+        if ( ( iv_len != ctx->cipher_info->iv_size ) ||
+             ( tag_len != 16U ) )
+        {
+            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+        }
+
+        *olen = ilen;
+        ret = mbedtls_chachapoly_auth_decrypt( ctx->cipher_ctx, ilen,
+                                iv, ad, ad_len, tag, input, output );
+
+        if( ret == MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED )
+            ret = MBEDTLS_ERR_CIPHER_AUTH_FAILED;
+
+        return( ret );
+    }
+#endif /* MBEDTLS_CHACHAPOLY_C */
 
     return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
 }

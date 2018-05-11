@@ -579,6 +579,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_HAVEGE_C)
     "MBEDTLS_HAVEGE_C",
 #endif /* MBEDTLS_HAVEGE_C */
+#if defined(MBEDTLS_HKDF_C)
+    "MBEDTLS_HKDF_C",
+#endif /* MBEDTLS_HKDF_C */
 #if defined(MBEDTLS_HMAC_DRBG_C)
     "MBEDTLS_HMAC_DRBG_C",
 #endif /* MBEDTLS_HMAC_DRBG_C */

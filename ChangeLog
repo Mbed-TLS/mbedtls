@@ -13,6 +13,9 @@ API Changes
      Therefore, mbedtls_platform_zeroize() is moved to the platform module to
      facilitate testing and maintenance.
 
+Features
+    * Implement HKDF per RFC 5869. Contributed by Thomas Fossati.
+
 = mbed TLS 2.9.0 branch released 2018-04-30
 
 Security

@@ -1,0 +1,39 @@
+/* BEGIN_HEADER */
+#include "mbedtls/hkdf.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_HKDF_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void test_hkdf(int md_alg, char *hex_ikm_string, char *hex_salt_string,
+               char *hex_info_string, char *hex_okm_string)
+{
+    int ret;
+    size_t ikm_len, salt_len, info_len, okm_len;
+    unsigned char ikm[1024] = {'\0'};
+    unsigned char salt[1024] = {'\0'};
+    unsigned char info[1024] = {'\0'};
+    unsigned char expected_okm[1024] = {'\0'};
+    unsigned char okm[1024] = {'\0'};
+    unsigned char okm_string[1000] = {'\0'};
+
+    const mbedtls_md_info_t *md = mbedtls_md_info_from_type(md_alg);
+    TEST_ASSERT(md != NULL);
+
+    ikm_len = unhexify(ikm, hex_ikm_string);
+    salt_len = unhexify(salt, hex_salt_string);
+    info_len = unhexify(info, hex_info_string);
+    okm_len = unhexify(expected_okm, hex_okm_string);
+
+    ret = mbedtls_hkdf(md, salt, salt_len, ikm, ikm_len, info, info_len, okm,
+                       okm_len);
+    TEST_ASSERT(ret == 0);
+
+    // Run hexify on it so that it looks nicer if the assertion fails
+    hexify(okm_string, okm, okm_len);
+    TEST_ASSERT(!strcmp((char *)okm_string, hex_okm_string));
+}
+/* END_CASE */

@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.1.15 branch released xxxx-xx-xx
+
+Bugfix
+   * Fix undefined shifts with negative values in certificates parsing
+     (found by Catena cyber using oss-fuzz)
+
 = mbed TLS 2.1.14 branch released 2018-07-25
 
 Security

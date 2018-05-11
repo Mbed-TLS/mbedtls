@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.1.13 branch released 2018-xx-xx
+
+Bugfix
+   * Added the macro MBEDTLS_X509_MAX_FILE_PATH_LEN that enables the user to
+     configure the maximum length of a file path that can be buffered when
+     calling mbedtls_x509_crt_parse_path().
+
 = mbed TLS 2.1.12 branch released 2018-04-30
 
 Security
@@ -44,9 +51,6 @@ Bugfix
      buffer.
    * Fix invalid buffer sizes passed to zlib during record compression and
      decompression.
-   * Added the macro MBEDTLS_X509_MAX_FILE_PATH_LEN that enables the user to
-     configure the maximum length of a file path that can be buffered when
-     calling mbedtls_x509_crt_parse_path().
 
 Changes
    * Improve testing in configurations that omit certain hashes or

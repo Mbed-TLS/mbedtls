@@ -18,6 +18,8 @@ Features
      ECDH primitive functions (mbedtls_ecdh_gen_public(),
      mbedtls_ecdh_compute_shared()) are supported for now. Contributed by
      Nicholas Wilson (#348).
+   * Add initial support for Chinese Guomi SM2 Digital Signature Algorithm.
+     Support SM2 256bit curve.Contributed by Zhao Yang.#1620
 
 API Changes
    * Add function mbedtls_net_poll to public API allowing to wait for a
@@ -26,6 +28,11 @@ API Changes
      if more data is pending to be processed in the internal message buffers.
      This function is necessary to determine when it is safe to idle on the
      underlying transport in case event-driven IO is used.
+   * Add function mbedtls_ecdsa_sm2_sign(),mbedtls_ecdsa_sm2_sign_det(),
+     mbedtls_ecdsa_sm2_verify(),mbedtls_ecdsa_sm2_write_signature(),
+     mbedtls_ecdsa_sm2_write_signature_det(),mbedtls_ecdsa_sm2_read_signature()
+      to support Chinese Guomi SM2 digital signature algorithm.
+
 
 Bugfix
    * Fix spurious uninitialized variable warning in cmac.c. Fix independently
@@ -98,6 +105,7 @@ Changes
    * Improve security of RSA key generation by including criteria from FIPS
      186-4. Contributed by Jethro Beekman. #1380
    * Add platform setup and teardown calls in test suites.
+   * Add Chinese Guomi SM2 256 bits curve.Contrubuted by Zhao Yang.#1620
 
 = mbed TLS 2.8.0 branch released 2018-03-16
 

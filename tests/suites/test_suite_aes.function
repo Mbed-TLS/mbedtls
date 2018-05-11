@@ -7,6 +7,20 @@
  * END_DEPENDENCIES
  */
 
+#if 0
+/* BEGIN_SUITE_HELPERS depends_on:MBEDTLS_CIPHER_MODE_XTS  */
+static void aes_crypt_xts( char *hex_key_string
+                           char *hex_data_unit_string,
+                           char *hex_src_string, char *hex_dst_string,
+                           int mode)
+{
+    /* XXX Code Review: is this possible? (having a shared helper function for
+     * a test, enabled only when that test is). Would line numbers and test
+     * results look appropriate still or would it be too much indirection? */
+}
+/* END_SUITE_HELPERS */
+#endif
+
 /* BEGIN_CASE */
 void aes_encrypt_ecb( char *hex_key_string, char *hex_src_string,
                       char *hex_dst_string, int setkey_result )
@@ -338,6 +352,96 @@ void aes_encrypt_ofb( int fragment_size, char *hex_key_string,
 
 exit:
     mbedtls_aes_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_XTS */
+void aes_encrypt_xts( char *hex_key_string, char *hex_data_unit_string,
+                      char *hex_src_string, char *hex_dst_string )
+{
+    enum { AES_BLOCK_SIZE = 16 };
+    unsigned char *key;
+    unsigned char *data_unit;
+    unsigned char *src;
+    unsigned char *dst;
+    unsigned char *output;
+    mbedtls_aes_xts_context ctx;
+    size_t key_len, src_len, dst_len, data_unit_len;
+
+    mbedtls_aes_xts_init( &ctx );
+
+    data_unit = unhexify_alloc( hex_data_unit_string, &data_unit_len );
+    TEST_ASSERT( data_unit_len == AES_BLOCK_SIZE );
+
+    key = unhexify_alloc( hex_key_string, &key_len );
+    TEST_ASSERT( key_len % 2 == 0 );
+
+    src = unhexify_alloc( hex_src_string, &src_len );
+    dst = unhexify_alloc( hex_dst_string, &dst_len );
+    TEST_ASSERT( src_len == dst_len );
+
+    output = zero_alloc(dst_len);
+
+    mbedtls_aes_xts_setkey_enc( &ctx, key, key_len * 8 );
+    TEST_ASSERT( mbedtls_aes_crypt_xts( &ctx, MBEDTLS_AES_ENCRYPT, src_len, data_unit, src, output ) == 0 ); // XXX Code Review: must this be one line?
+
+    TEST_ASSERT( memcmp( output, dst, dst_len ) == 0 );
+
+exit:
+    mbedtls_aes_xts_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_XTS */
+void aes_decrypt_xts( char *hex_key_string, char *hex_data_unit_string,
+                      char *hex_dst_string, char *hex_src_string )
+{
+    /* XXX Code Review: I don't really like all this duplicated code between
+     * encrypt and decrypt. The only thing different is the mode and key
+     * initialization. */
+    enum { AES_BLOCK_SIZE = 16 };
+    unsigned char *key;
+    unsigned char *data_unit;
+    unsigned char *src;
+    unsigned char *dst;
+    unsigned char *output;
+    mbedtls_aes_xts_context ctx;
+    size_t key_len, src_len, dst_len, data_unit_len;
+
+    mbedtls_aes_xts_init( &ctx );
+
+    data_unit = unhexify_alloc( hex_data_unit_string, &data_unit_len );
+    TEST_ASSERT( data_unit_len == AES_BLOCK_SIZE );
+
+    key = unhexify_alloc( hex_key_string, &key_len );
+    TEST_ASSERT( key_len % 2 == 0 );
+    src = unhexify_alloc( hex_src_string, &src_len );
+    dst = unhexify_alloc( hex_dst_string, &dst_len );
+    TEST_ASSERT( src_len == dst_len );
+
+    output = zero_alloc(dst_len);
+
+    mbedtls_aes_xts_setkey_dec( &ctx, key, key_len * 8 );
+    TEST_ASSERT( mbedtls_aes_crypt_xts( &ctx, MBEDTLS_AES_DECRYPT, src_len, data_unit, src, output ) == 0 ); // XXX Code Review: must this be one line?
+
+    TEST_ASSERT( memcmp( output, dst, dst_len ) == 0 );
+
+exit:
+    mbedtls_aes_xts_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_XTS */
+void aes_crypt_xts_size( int size, int retval )
+{
+    size_t length = size;
+    /* Note that this function will most likely crash on failure, as NULL
+     * parameters will be used. In the passing case, the length check in
+     * mbedtls_aes_crypt_xts() will prevent any accesses to parameters by
+     * exiting the function early. XXX <-- Hey look, Mr. Codereviewer. What do
+     * you think? Any ideas how to be safe and not have to actually allocate a
+     * 16 MiB buffer nor add NULL checks to mbedtls_aes_crypt_xts()? */
+    TEST_ASSERT( mbedtls_aes_crypt_xts( NULL, MBEDTLS_AES_ENCRYPT, length, NULL, NULL, NULL ) == retval );
 }
 /* END_CASE */
 

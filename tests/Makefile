@@ -47,6 +47,7 @@ endif
 
 APPS =	test_suite_aes.ecb$(EXEXT)	test_suite_aes.cbc$(EXEXT)	\
 	test_suite_aes.cfb$(EXEXT)	test_suite_aes.ofb$(EXEXT)	\
+	test_suite_aes.xts$(EXEXT)	\
 	test_suite_aes.rest$(EXEXT)	\
 	test_suite_arc4$(EXEXT)		test_suite_asn1write$(EXEXT)	\
 	test_suite_base64$(EXEXT)	test_suite_blowfish$(EXEXT)	\
@@ -114,6 +115,10 @@ test_suite_aes.cfb.c : suites/test_suite_aes.function suites/test_suite_aes.cfb.
 test_suite_aes.ofb.c : suites/test_suite_aes.function suites/test_suite_aes.ofb.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
 	perl scripts/generate_code.pl suites test_suite_aes test_suite_aes.ofb
+
+test_suite_aes.xts.c : suites/test_suite_aes.function suites/test_suite_aes.xts.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
+	echo "  Gen   $@"
+	perl scripts/generate_code.pl suites test_suite_aes test_suite_aes.xts
 
 test_suite_aes.rest.c : suites/test_suite_aes.function suites/test_suite_aes.rest.data scripts/generate_code.pl suites/helpers.function suites/main_test.function
 	echo "  Gen   $@"
@@ -220,6 +225,10 @@ test_suite_aes.cfb$(EXEXT): test_suite_aes.cfb.c $(DEP)
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test_suite_aes.ofb$(EXEXT): test_suite_aes.ofb.c $(DEP)
+	echo "  CC    $<"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test_suite_aes.xts$(EXEXT): test_suite_aes.xts.c $(DEP)
 	echo "  CC    $<"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) $<	$(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 

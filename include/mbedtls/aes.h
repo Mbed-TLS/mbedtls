@@ -88,6 +88,18 @@ typedef struct
 }
 mbedtls_aes_context;
 
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
+/**
+ * \brief The AES XTS context-type definition.
+ */
+typedef struct
+{
+    mbedtls_aes_context crypt; /*!< The AES context to use for AES block
+                                        encryption or decryption. */
+    mbedtls_aes_context tweak; /*!< The AES context used for tweak computation. */
+} mbedtls_aes_xts_context;
+#endif /* MBEDTLS_CIPHER_MODE_XTS */
+
 #else  /* MBEDTLS_AES_ALT */
 #include "aes_alt.h"
 #endif /* MBEDTLS_AES_ALT */
@@ -108,6 +120,25 @@ void mbedtls_aes_init( mbedtls_aes_context *ctx );
  * \param ctx      The AES context to clear.
  */
 void mbedtls_aes_free( mbedtls_aes_context *ctx );
+
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
+/**
+ * \brief          This function initializes the specified AES XTS context.
+ *
+ *                 It must be the first API called before using
+ *                 the context.
+ *
+ * \param ctx      The AES XTS context to initialize.
+ */
+void mbedtls_aes_xts_init( mbedtls_aes_xts_context *ctx );
+
+/**
+ * \brief          This function releases and clears the specified AES XTS context.
+ *
+ * \param ctx      The AES XTS context to clear.
+ */
+void mbedtls_aes_xts_free( mbedtls_aes_xts_context *ctx );
+#endif /* MBEDTLS_CIPHER_MODE_XTS */
 
 /**
  * \brief          This function sets the encryption key.
@@ -140,6 +171,44 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
  */
 int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keybits );
+
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
+/**
+ * \brief          This function sets the encryption key.
+ *
+ * \param ctx      The AES XTS context to which the key should be bound.
+ * \param key      The encryption key. This is comprised of the XTS key1
+ *                 concatenated with the XTS key2.
+ * \param keybits  The size of data passed in bits. Valid options are:
+ *                 <ul><li>256 bits</li>
+ *                 <li>384 bits</li>
+ *                 <li>512 bits</li></ul>
+ *
+ * \return         \c 0 on success.
+ * \return         #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH on failure.
+ */
+int mbedtls_aes_xts_setkey_enc( mbedtls_aes_xts_context *ctx,
+                                const unsigned char *key,
+                                unsigned int keybits );
+
+/**
+ * \brief          This function sets the decryption key.
+ *
+ * \param ctx      The AES XTS context to which the key should be bound.
+ * \param key      The decryption key. This is comprised of the XTS key1
+ *                 concatenated with the XTS key2.
+ * \param keybits  The size of data passed. Valid options are:
+ *                 <ul><li>256 bits</li>
+ *                 <li>384 bits</li>
+ *                 <li>512 bits</li></ul>
+ *
+ * \return         \c 0 on success.
+ * \return         #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH on failure.
+ */
+int mbedtls_aes_xts_setkey_dec( mbedtls_aes_xts_context *ctx,
+                                const unsigned char *key,
+                                unsigned int keybits );
+#endif /* MBEDTLS_CIPHER_MODE_XTS */
 
 /**
  * \brief          This function performs an AES single-block encryption or
@@ -372,6 +441,44 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
                        const unsigned char *input,
                        unsigned char *output );
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
+
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
+/**
+ * \brief      This function performs an AES-XTS encryption or decryption
+ *             operation for an entire XTS sector.
+ *
+ *             AES-XTS encrypts or decrypts blocks based on their location as
+ *             defined by a sector number. These must be provided by \p sector.
+ *
+ *             NIST SP 800-38E limits the maximum size of a data unit to 2**20
+ *             AES blocks. If the data unit is larger than this, this function
+ *             returns #MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH.
+ *
+ * \param ctx          The AES XTS context to use for AES XTS operations.
+ * \param mode         The AES operation: #MBEDTLS_AES_ENCRYPT or
+ *                     #MBEDTLS_AES_DECRYPT.
+ * \param length       The length of both an entire sector and the input data
+ *                     in bytes. The length must be at least 16 bytes. The
+ *                     length does not need to be a multiple of 16 bytes.
+ * \param data_unit    The data unit (commonly a block device sector) address
+ *                     in byte array form. The least significant byte must be
+ *                     at sector[0]. The most significant byte must be at
+ *                     sector[15]. Array must be 16 bytes in length.
+ * \param input        The buffer holding the input data.
+ * \param output       The buffer holding the output data.
+ *
+ * \return             \c 0 on success.
+ * \return             #MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH if length smaller
+ *                     than an AES block in size (16 bytes) or if the length is
+ *                     larger than 2**20 blocks.
+ */
+int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
+                           int mode,
+                           size_t length,
+                           const unsigned char data_unit[16],
+                           const unsigned char *input,
+                           unsigned char *output );
+#endif /* MBEDTLS_CIPHER_MODE_XTS */
 
 /**
  * \brief           Internal AES block encryption function. This is only

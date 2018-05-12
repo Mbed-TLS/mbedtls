@@ -13,6 +13,10 @@ API Changes
      Therefore, mbedtls_platform_zeroize() is moved to the platform module to
      facilitate testing and maintenance.
 
+Changes
+   * Change the dtls_client and dtls_server samples to work by default over
+     IPv6 and optionally by a build option over IPv4.
+
 = mbed TLS 2.9.0 branch released 2018-04-30
 
 Security

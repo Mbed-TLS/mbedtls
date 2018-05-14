@@ -74,6 +74,47 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_AES_C */
+void ccm_sfix_lengths( int msg_len, int iv_len, int add_len, int tag_len,
+                       int res )
+{
+    mbedtls_ccm_context ctx;
+    unsigned char key[16];
+    unsigned char msg[10];
+    unsigned char iv[14];
+    unsigned char add[10];
+    unsigned char out[10];
+    unsigned char tag[18];
+    int decrypt_ret;
+
+    mbedtls_ccm_init( &ctx );
+
+    memset( key, 0, sizeof( key ) );
+    memset( msg, 0, sizeof( msg ) );
+    memset( iv, 0, sizeof( iv ) );
+    memset( add, 0, sizeof( add ) );
+    memset( out, 0, sizeof( out ) );
+    memset( tag, 0, sizeof( tag ) );
+
+    TEST_ASSERT( mbedtls_ccm_setkey( &ctx, MBEDTLS_CIPHER_ID_AES,
+                                 key, 8 * sizeof( key ) ) == 0 );
+
+    TEST_ASSERT( mbedtls_ccm_sfix_encrypt_and_tag( &ctx, msg_len, iv, iv_len,
+                 add, add_len, msg, out, tag, tag_len ) == res );
+
+    decrypt_ret = mbedtls_ccm_sfix_auth_decrypt( &ctx, msg_len, iv, iv_len, add,
+                  add_len, msg, out, tag, tag_len );
+
+    if( res == 0 && tag_len != 0 )
+        TEST_ASSERT( decrypt_ret == MBEDTLS_ERR_CCM_AUTH_FAILED );
+    else
+        TEST_ASSERT( decrypt_ret == res );
+
+exit:
+    mbedtls_ccm_free( &ctx );
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void mbedtls_ccm_encrypt_and_tag( int cipher_id,
                           char *key_hex, char *msg_hex,

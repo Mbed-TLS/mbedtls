@@ -289,6 +289,23 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void aes_invalid_param( )
+{
+    mbedtls_aes_context dummy_ctx;
+    const unsigned char key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+
+    /* mbedtls_aes_setkey_enc() */
+    TEST_ASSERT( mbedtls_aes_setkey_enc( NULL, key, 128  )
+                                            == MBEDTLS_ERR_AES_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_aes_setkey_enc( &dummy_ctx, NULL, 128  )
+                                            == MBEDTLS_ERR_AES_BAD_INPUT_DATA );
+
+exit:
+    return;
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void aes_selftest()
 {

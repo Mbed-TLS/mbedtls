@@ -531,14 +531,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     unsigned int i;
     uint32_t *RK;
 
-#if !defined(MBEDTLS_AES_ROM_TABLES)
-    if( aes_init_done == 0 )
-    {
-        aes_gen_tables();
-        aes_init_done = 1;
-
-    }
-#endif
+    MBEDTLS_AES_VALIDATE( ctx != NULL && key != NULL );
 
     switch( keybits )
     {
@@ -547,6 +540,15 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
         case 256: ctx->nr = 14; break;
         default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
     }
+
+#if !defined(MBEDTLS_AES_ROM_TABLES)
+    if( aes_init_done == 0 )
+    {
+        aes_gen_tables();
+        aes_init_done = 1;
+
+    }
+#endif
 
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_PADLOCK_ALIGN16)
     if( aes_padlock_ace == -1 )

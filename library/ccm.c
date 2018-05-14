@@ -154,7 +154,13 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
      * 'length' checked later (when writing it to the first block)
      */
     if( tag_len < 4 || tag_len > 16 || tag_len % 2 != 0 )
-        return( MBEDTLS_ERR_CCM_BAD_INPUT );
+    {
+        /*
+         * Loosen the requirements to enable support for CCM* (IEEE 802.15.4)
+         */
+        if( tag_len != 0 )
+            return( MBEDTLS_ERR_CCM_BAD_INPUT );
+    }
 
     /* Also implies q is within bounds */
     if( iv_len < 7 || iv_len > 13 )
@@ -302,7 +308,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
 /*
  * Authenticated encryption
  */
-int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
+int mbedtls_ccm_star_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
                          const unsigned char *iv, size_t iv_len,
                          const unsigned char *add, size_t add_len,
                          const unsigned char *input, unsigned char *output,
@@ -312,10 +318,23 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
                             add, add_len, input, output, tag, tag_len ) );
 }
 
+int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
+                         const unsigned char *iv, size_t iv_len,
+                         const unsigned char *add, size_t add_len,
+                         const unsigned char *input, unsigned char *output,
+                         unsigned char *tag, size_t tag_len )
+{
+    if( tag_len == 0 )
+        return( MBEDTLS_ERR_CCM_BAD_INPUT );
+
+    return( mbedtls_ccm_star_encrypt_and_tag( ctx, length, iv, iv_len, add,
+                add_len, input, output, tag, tag_len ) );
+}
+
 /*
  * Authenticated decryption
  */
-int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
+int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
                       const unsigned char *iv, size_t iv_len,
                       const unsigned char *add, size_t add_len,
                       const unsigned char *input, unsigned char *output,
@@ -346,6 +365,18 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
     return( 0 );
 }
 
+int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
+                      const unsigned char *iv, size_t iv_len,
+                      const unsigned char *add, size_t add_len,
+                      const unsigned char *input, unsigned char *output,
+                      const unsigned char *tag, size_t tag_len )
+{
+    if( tag_len == 0 )
+        return( MBEDTLS_ERR_CCM_BAD_INPUT );
+
+    return( mbedtls_ccm_star_auth_decrypt( ctx, length, iv, iv_len, add,
+                add_len, input, output, tag, tag_len ) );
+}
 #endif /* !MBEDTLS_CCM_ALT */
 
 #if defined(MBEDTLS_SELF_TEST) && defined(MBEDTLS_AES_C)

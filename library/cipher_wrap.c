@@ -210,8 +210,9 @@ static int aes_setkey_enc_wrap( void *ctx, const unsigned char *key,
 
 static void * aes_ctx_alloc( void )
 {
-    mbedtls_aes_context *aes = mbedtls_calloc( 1, sizeof( mbedtls_aes_context ) );
+    mbedtls_aes_context *aes;
 
+    aes = mbedtls_calloc( 1, sizeof( mbedtls_aes_context ) );
     if( aes == NULL )
         return( NULL );
 

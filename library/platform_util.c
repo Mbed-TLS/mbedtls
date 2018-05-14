@@ -35,6 +35,7 @@
 #endif
 
 #include "mbedtls/platform_util.h"
+#include "mbedtls/platform.h"
 #include "mbedtls/threading.h"
 
 #include <stddef.h>
@@ -133,3 +134,12 @@ struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 }
 #endif /* MBEDTLS_HAVE_TIME_DATE && MBEDTLS_PLATFORM_GMTIME_R_ALT */
+
+#if defined( MBEDTLS_CHECK_PARAMS ) && defined(MBEDTLS_PLATFORM_C) && \
+    defined(MBEDTLS_DEBUG_INVALID_PARAMS)
+void mbedtls_param_failed( char* failure_condition )
+{
+    mbedtls_printf("%s:%i: Input param failed - %s\n", __FILE__, __LINE__,                           failure_condition );
+}
+#endif
+

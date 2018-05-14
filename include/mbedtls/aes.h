@@ -56,6 +56,17 @@
 /* Error codes in range 0x0023-0x0025 */
 #define MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE               -0x0023  /**< Feature not available. For example, an unsupported AES key size. */
 #define MBEDTLS_ERR_AES_HW_ACCEL_FAILED                   -0x0025  /**< AES hardware accelerator failed. */
+#define MBEDTLS_ERR_AES_BAD_INPUT_DATA                    -0x0027  /**< Invalid
+input data. */
+
+#if defined( MBEDTLS_CHECK_PARAMS )
+#define MBEDTLS_AES_VALIDATE( cond )  do{ if( !(cond)  ) \
+                                        return MBEDTLS_ERR_AES_BAD_INPUT_DATA; \
+                                      } while(0);
+#else
+/* No validation of parameters will be performed */
+#define MBEDTLS_AES_VALIDATE( cond)
+#endif
 
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)

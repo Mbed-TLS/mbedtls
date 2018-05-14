@@ -335,6 +335,24 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
                 add_len, input, output, tag, tag_len ) );
 }
 
+#define CCM_MAX_IV_LEN 13
+
+int mbedtls_ccm_svar_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
+                         size_t iv_len, const unsigned char *add,
+                         size_t add_len, const unsigned char *input,
+                         unsigned char *output, unsigned char *tag,
+                         size_t tag_len, mbedtls_ccm_star_get_iv_t get_iv,
+                         void *get_iv_ctx )
+{
+    unsigned char iv[CCM_MAX_IV_LEN];
+
+    if( get_iv( get_iv_ctx, tag_len, iv, iv_len ) != 0 )
+        return MBEDTLS_ERR_CCM_BAD_INPUT;
+
+    return( mbedtls_ccm_sfix_encrypt_and_tag( ctx, length, iv, iv_len, add,
+                add_len, input, output, tag, tag_len ) );
+}
+
 /*
  * Authenticated decryption
  */
@@ -380,6 +398,26 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
 
     return( mbedtls_ccm_sfix_auth_decrypt( ctx, length, iv, iv_len, add,
                 add_len, input, output, tag, tag_len ) );
+}
+
+
+int mbedtls_ccm_svar_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
+                      const unsigned char *iv, size_t iv_len,
+                      const unsigned char *add, size_t add_len,
+                      const unsigned char *input, unsigned char *output,
+                      size_t* output_len,
+                      mbedtls_ccm_star_get_tag_len_t get_tag_len,
+                      void *get_tlen_ctx )
+{
+    size_t tag_len = 0;
+
+    if( get_tag_len( get_tlen_ctx, &tag_len, iv, iv_len ) != 0 )
+        return( MBEDTLS_ERR_CCM_BAD_INPUT );
+
+    *output_len = length - tag_len;
+
+    return( mbedtls_ccm_sfix_auth_decrypt( ctx, length, iv, iv_len, add,
+                add_len, input, output, input + length, tag_len ) );
 }
 #endif /* !MBEDTLS_CCM_ALT */
 

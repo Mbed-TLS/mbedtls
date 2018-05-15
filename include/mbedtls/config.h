@@ -222,10 +222,10 @@
 //#define MBEDTLS_DEPRECATED_REMOVED
 
 /**
- * \def MBEDTLS_PARAM_VALIDATION_LEVEL
+ * \def MBEDTLS_CHECK_PARAMS
  *
- * The defined parameter validation level for the library. This configuration
- * controls whether the library validates parameters passed to it.
+ * This configuration controls whether the library validates parameters passed
+ * to it.
  *
  * Application code that deals with 3rd party input may wish to enable such
  * validation, whilst code on closed systems, such as embedded systems, where

@@ -1,17 +1,29 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.7.3 branch released 2018-04-30
 
 Security
-   * Fix a bug in the X.509 module potentially leading to a buffer overread
-     during CRT verification or to invalid or omitted checks for certificate
-     validity. The former can be triggered remotely, while the latter requires
-     a non DER-compliant certificate correctly signed by a trusted CA, or a
-     trusted CA with a non DER-compliant certificate. Found by luocm on GitHub.
-     Fixes #825.
+   * Fix an issue in the X.509 module which could lead to a buffer overread
+     during certificate validation. Additionally, the issue could also lead to
+     unnecessary callback checks being made or to some validation checks to be
+     omitted. The overread could be triggered remotely, while the other issues
+     would require a non DER-compliant certificate to be correctly signed by a
+     trusted CA, or a trusted CA with a non DER-compliant certificate. Found by
+     luocm. Fixes #825.
+   * Fix the buffer length assertion in the ssl_parse_certificate_request()
+     function which led to an arbitrary overread of the message buffer. The
+     overreads could be caused by receiving a malformed message at the point
+     where an optional signature algorithms list is expected when the signature
+     algorithms section is too short. In builds with debug output, the overread
+     data is output with the debug data.
+   * Fix a client-side bug in the validation of the server's ciphersuite choice
+     which could potentially lead to the client accepting a ciphersuite it didn't
+     offer or a ciphersuite that cannot be used with the TLS or DTLS version
+     chosen by the server. This could lead to corruption of internal data
+     structures for some configurations.
 
 Bugfix
-   * Fix spurious uninitialized variable warning in cmac.c. Fix independently
+   * Fix a spurious uninitialized variable warning in cmac.c. Fix independently
      contributed by Brian J Murray and David Brown.
    * Add missing dependencies in test suites that led to build failures
      in configurations that omit certain hashes or public-key algorithms.
@@ -19,23 +31,27 @@ Bugfix
    * Fix C89 incompatibility in benchmark.c. Contributed by Brendan Shanks.
      #1353
    * Add missing dependencies for MBEDTLS_HAVE_TIME_DATE and
-     MBEDTLS_VERSION_FEATURES in test suites. Contributed by Deomid Ryabkov.
-     Fixes #1299, #1475.
-   * Fix dynamic library building process with Makefile on Mac OS X. Fixed by
-     mnacamura.
+     MBEDTLS_VERSION_FEATURES in some test suites. Contributed by
+     Deomid Ryabkov. Fixes #1299, #1475.
+   * Fix the Makefile build process for building shared libraries on Mac OS X.
+     Fixed by mnacamura.
    * Fix parsing of PKCS#8 encoded Elliptic Curve keys. Previously Mbed TLS was
-     unable to parse keys with only the optional parameters field of the
-     ECPrivateKey structure. Found by jethrogb, fixed in #1379.
-   * Return plaintext data sooner on unpadded CBC decryption, as stated in
-     the mbedtls_cipher_update() documentation. Contributed by Andy Leiserson.
+     unable to parse keys which had only the optional parameters field of the
+     ECPrivateKey structure. Found by Jethro Beekman, fixed in #1379.
+   * Return the plaintext data more quickly on unpadded CBC decryption, as
+     stated in the mbedtls_cipher_update() documentation. Contributed by
+     Andy Leiserson.
    * Fix overriding and ignoring return values when parsing and writing to
      a file in pk_sign program. Found by kevlut in #1142.
+   * Fix buffer length assertions in the ssl_parse_certificate_request()
+     function which leads to a potential one byte overread of the message
+     buffer.
    * Fix invalid buffer sizes passed to zlib during record compression and
      decompression.
 
 Changes
-   * Support cmake build where Mbed TLS is a subproject. Fix
-     contributed independently by Matthieu Volat and Arne Schwabe.
+   * Support cmake builds where Mbed TLS is a subproject. Fix contributed
+     independently by Matthieu Volat and Arne Schwabe.
    * Improve testing in configurations that omit certain hashes or
      public-key algorithms. Includes contributions by Gert van Dijk.
    * Improve negative testing of X.509 parsing.
@@ -49,7 +65,7 @@ Changes
      Krylov.
    * Improve the documentation of mbedtls_ssl_write(). Suggested by
      Paul Sokolovsky in #1356.
-   * Add an option in the makefile to support ar utilities where the operation
+   * Add an option in the Makefile to support ar utilities where the operation
      letter must not be prefixed by '-', such as LLVM. Found and fixed by
      Alex Hixon.
    * Allow configuring the shared library extension by setting the DLEXT

@@ -1046,6 +1046,171 @@ void mbedtls_mps_reader_random_usage( int num_out_chunks,
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER */
+void mbedtls_mps_reader_ext_basic( )
+{
+    /* This test checks whether the extended reader correctly
+     * checks for the global bounds of the logical buffer. */
+
+    mbedtls_reader_ext rd_ext;
+    mbedtls_reader rd;
+    unsigned char buf[75];
+    unsigned char *tmp;
+    size_t tmp_sz;
+
+    /* Initialize reader and extended reader separately. */
+    TEST_ASSERT( mbedtls_reader_init_ext( &rd_ext, 100 ) == 0 );
+    TEST_ASSERT( mbedtls_reader_init( &rd, NULL, 0 ) == 0 );
+    for( size_t idx=0; idx < sizeof( buf ); idx++ )
+        buf[idx] = (unsigned char) idx;
+
+    /* Prepare reader and bind it to extended reader */
+    TEST_ASSERT( mbedtls_reader_feed( &rd, buf, sizeof( buf ) ) == 0 );
+    TEST_ASSERT( mbedtls_reader_attach( &rd_ext, &rd ) == 0 );
+
+    /* Do actual fetching */
+    TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 101, &tmp, NULL ) ==
+                 MBEDTLS_ERR_READER_BOUNDS_VIOLATION );
+
+    /* ([C]ommit, [F]etch) = (0,0) */
+    TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 50, &tmp, NULL ) == 0 );
+    /* Now (C,F) = (0,50) */
+    TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 10, &tmp, NULL ) == 0 );
+    /* Now (C,F) = (0,60) */
+    TEST_ASSERT( mbedtls_reader_commit_ext( &rd_ext ) == 0 );
+    /* Now (C,F) = (60,60) */
+    TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 41, &tmp, NULL ) ==
+                 MBEDTLS_ERR_READER_BOUNDS_VIOLATION );
+    /* Now (C,F) = (60,60) */
+    TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 40,
+                                         &tmp, &tmp_sz ) == 0 );
+    TEST_ASSERT( tmp_sz == 15 );
+    /* Now (C,F) = (60,75) */
+    TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 26, &tmp, &tmp_sz ) ==
+                 MBEDTLS_ERR_READER_BOUNDS_VIOLATION );
+    TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 25, &tmp, NULL ) ==
+                 MBEDTLS_ERR_READER_OUT_OF_DATA );
+    TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 25, &tmp, &tmp_sz ) == 0 );
+    TEST_ASSERT( tmp_sz == 0 );
+    /* Now still (C,F) = (60,75) */
+
+    TEST_ASSERT( mbedtls_reader_detach( &rd_ext ) == 0 );
+
+exit:
+
+    mbedtls_reader_free_ext( &rd_ext );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER */
+void mbedtls_mps_reader_ext_group_open_close( )
+{
+    /* This test checks whether the extended reader correctly
+     * checks for the global bounds of the logical buffer. */
+
+    mbedtls_reader_ext rd_ext;
+    mbedtls_reader rd;
+    unsigned char buf[75];
+    unsigned char *tmp;
+    size_t tmp_sz;
+
+    /* Initialize reader and extended reader separately. */
+    TEST_ASSERT( mbedtls_reader_init_ext( &rd_ext, 100 ) == 0 );
+    TEST_ASSERT( mbedtls_reader_init( &rd, NULL, 0 ) == 0 );
+    for( size_t idx=0; idx < sizeof( buf ); idx++ )
+        buf[idx] = (unsigned char) idx;
+
+    /* Prepare reader and bind it to extended reader */
+    TEST_ASSERT( mbedtls_reader_feed( &rd, buf, sizeof( buf ) ) == 0 );
+    TEST_ASSERT( mbedtls_reader_attach( &rd_ext, &rd ) == 0 );
+
+    /* Do actual fetching */
+    TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 101, &tmp, NULL ) ==
+                 MBEDTLS_ERR_READER_BOUNDS_VIOLATION );
+
+    /* ([C]ommit, [F]etch) = (0,0) */
+    TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 50, &tmp, NULL ) == 0 );
+    /* Now (C,F) = (0,50) */
+    TEST_ASSERT( mbedtls_reader_group_open( &rd_ext, 51 ) ==
+                 MBEDTLS_ERR_READER_BOUNDS_VIOLATION );
+    TEST_ASSERT( mbedtls_reader_group_open( &rd_ext, 20 ) == 0 );
+    /* Now (C,F) have a sub-group in the range from 50-70 */
+    TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 21, &tmp, NULL ) ==
+                 MBEDTLS_ERR_READER_BOUNDS_VIOLATION );
+    TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 10, &tmp, NULL ) == 0 );
+    /* Now (C,F) = (0,60) */
+    /* Cannot close group yet */
+    TEST_ASSERT( mbedtls_reader_group_close( &rd_ext ) ==
+                 MBEDTLS_ERR_READER_BOUNDS_VIOLATION );
+    TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 10, &tmp, NULL ) == 0 );
+    /* Now (C,F) = (0,70) */
+    TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 1, &tmp, NULL ) ==
+                 MBEDTLS_ERR_READER_BOUNDS_VIOLATION );
+    TEST_ASSERT( mbedtls_reader_group_close( &rd_ext ) == 0 );
+    /* Now only open group is 0-100 again */
+    TEST_ASSERT( mbedtls_reader_commit_ext( &rd_ext ) == 0 );
+    /* Now (C,F) = (70,70) */
+    TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 1, &tmp, NULL ) == 0 );
+    /* Now (C,F) = (70,71) */
+    TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 30, &tmp, NULL ) ==
+                 MBEDTLS_ERR_READER_BOUNDS_VIOLATION );
+    TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 29, &tmp, &tmp_sz ) == 0 );
+    TEST_ASSERT( tmp_sz == 4 );
+    /* Now (C,F) = (70, 75) */
+
+    TEST_ASSERT( mbedtls_reader_detach( &rd_ext ) == 0 );
+
+exit:
+
+    mbedtls_reader_free_ext( &rd_ext );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER */
+void mbedtls_mps_reader_ext_many_groups( )
+{
+    /* This test checks whether the extended reader correctly
+     * checks for the global bounds of the logical buffer. */
+
+    mbedtls_reader_ext rd_ext;
+    mbedtls_reader rd;
+    unsigned char buf[75];
+    unsigned char *tmp;
+
+    /* Initialize reader and extended reader separately. */
+    TEST_ASSERT( mbedtls_reader_init_ext( &rd_ext, 100 ) == 0 );
+    TEST_ASSERT( mbedtls_reader_init( &rd, NULL, 0 ) == 0 );
+    for( size_t idx=0; idx < sizeof( buf ); idx++ )
+        buf[idx] = (unsigned char) idx;
+
+    /* Prepare reader and bind it to extended reader */
+    TEST_ASSERT( mbedtls_reader_feed( &rd, buf, sizeof( buf ) ) == 0 );
+    TEST_ASSERT( mbedtls_reader_attach( &rd_ext, &rd ) == 0 );
+
+    for( size_t cur_grp=1; cur_grp < MBEDTLS_READER_MAX_GROUPS; cur_grp++ )
+    {
+        TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 100 - 2 * cur_grp + 3,
+                                             &tmp, NULL ) ==
+                     MBEDTLS_ERR_READER_BOUNDS_VIOLATION );
+        TEST_ASSERT( mbedtls_reader_get_ext( &rd_ext, 1, &tmp, NULL ) == 0 );
+        TEST_ASSERT( mbedtls_reader_group_open( &rd_ext,
+                                                100 - 2 * ( cur_grp - 1 ) ) ==
+                     MBEDTLS_ERR_READER_BOUNDS_VIOLATION );
+        TEST_ASSERT( mbedtls_reader_group_open( &rd_ext,
+                                                100 - 2 * cur_grp ) == 0 );
+    }
+
+    TEST_ASSERT( mbedtls_reader_group_open( &rd_ext, 1 ) ==
+                 MBEDTLS_ERR_READER_TOO_MANY_GROUPS );
+
+    TEST_ASSERT( mbedtls_reader_detach( &rd_ext ) == 0 );
+
+exit:
+
+    mbedtls_reader_free_ext( &rd_ext );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
 void mbedtls_mps_writer_feed_empty( int option )
 {

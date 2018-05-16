@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include "../include/mbedtls/mps/reader.h"
+#include "../include/mbedtls/mps/writer.h"
 
 /*
  * Compile-time configuration for test suite.
@@ -18,6 +19,7 @@
  * tasks such as the conversion of E-ACSL annotations
  * into runtime assertions. */
 #define TEST_SUITE_MPS_READER
+#define TEST_SUITE_MPS_WRITER
 
 /* End of compile-time configuration. */
 
@@ -1040,6 +1042,857 @@ void mbedtls_mps_reader_random_usage( int num_out_chunks,
     free( incoming );
     free( outgoing );
     free( acc );
+    free( cur_chunk );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
+void mbedtls_mps_writer_feed_empty( int option )
+{
+    unsigned char buf[100];
+    unsigned char *tmp;
+    mbedtls_writer wr;
+    for( int i=0; (unsigned) i < sizeof( buf ); i++ )
+        buf[i] = (unsigned char) i;
+
+    /* Provisioning (lower layer) */
+    TEST_ASSERT( mbedtls_writer_init( &wr, NULL, 0 ) == 0 );
+    switch( option )
+    {
+        case 0: /* NULL buffer */
+            TEST_ASSERT( mbedtls_writer_feed( &wr, NULL, 0 ) ==
+                         MBEDTLS_ERR_WRITER_INVALID_ARG );
+            break;
+
+        default:
+            TEST_ASSERT( 0 );
+            break;
+    }
+    /* Subsequent feed-calls should still succeed. */
+    TEST_ASSERT( mbedtls_writer_feed( &wr, buf, sizeof( buf ) ) == 0 );
+    /* Producing (upper layer) */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 100, &tmp, NULL ) == 0 );
+    TEST_ASSERT( memcmp( tmp, buf, 100 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    /* Wrapup */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
+void mbedtls_mps_writer_no_queueing_single_step_single_round( int with_queue )
+{
+    /* The most basic use case: lower layer provides space
+     * for outgoing data to be written to, and upper layer
+     * fetches and writes it in a single go. */
+    unsigned char buf[100];
+    unsigned char out[100];
+    unsigned char queue[10];
+    unsigned char *tmp;
+    mbedtls_writer wr;
+
+    for( int i=0; (unsigned) i < 100; i++ )
+        out[i] = (unsigned char) i;
+
+    /* Provisioning (lower layer) */
+    if( with_queue == 0 )
+        TEST_ASSERT( mbedtls_writer_init( &wr, NULL, 0 ) == 0 );
+    else
+        TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    /* Can't reclaim as long as nothing's provided. */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) ==
+                 MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
+    /* Feed some buffer to the writer */
+    TEST_ASSERT( mbedtls_writer_feed( &wr, buf, sizeof( buf ) ) == 0 );
+    /* Can't feed again as we're now in producing mode */
+    TEST_ASSERT( mbedtls_writer_feed( &wr, buf, sizeof( buf ) ) == 0
+                 MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
+    /* Producing (upper layer) */
+    /* Fetch and write to the entire output buffer */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 100, &tmp, NULL ) == 0 );
+    memcpy( tmp, out, 100 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+
+    /* Wrapup (lower layer) */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+
+    TEST_ASSERT( memcmp( buf, out, 100 ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
+void mbedtls_mps_writer_unexpected_operations()
+{
+    /* Unexpected operations shouldn't corrupt any internal structures.
+     * This test checks this by exercising a simple writer test with
+     * queueing and inserting multiple unexpected calls in between. */
+    unsigned char bufA[100], bufB[100];
+    unsigned char outA[100], outB[100];
+    unsigned char queue[20];
+    unsigned char *tmp;
+    size_t olen;
+    mbedtls_writer wr;
+
+    for( int i=0; (unsigned) i < 100; i++ )
+        outA[i] = (unsigned char) i;
+    for( int i=0; (unsigned) i < 100; i++ )
+        outB[i] = ~ (unsigned char) i;
+
+    /* Provisioning (lower layer) */
+    TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    /* Can't reclaim as long as nothing's provided. */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) ==
+                 MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
+    /* Can't get or commit anything as long as nothing's provided. */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 100, &tmp, NULL ) ==
+                 MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) ==
+                 MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
+    /* Feed some buffer to the writer */
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
+    /* Can't feed again as we're now in producing mode */
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0
+                 MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
+    /* Producing (upper layer) */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) == 0 );
+    memcpy( tmp, outA, 90 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    /* Test the committing again has no effect. */
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 20, &tmp, NULL ) == 0 );
+    memcpy( tmp, outA + 90, 10 );
+    memcpy( tmp + 10, outB, 10 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    /* Test the committing again has no effect. */
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    /* Provisioning */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, &olen, NULL, 0 ) == 0 );
+    TEST_ASSERT( olen == 100 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 100, &tmp, NULL ) ==
+                 MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufB, sizeof( bufB ) ) == 0 );
+    /* Providing */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) == 0 );
+    memcpy( tmp, outB + 10, 90 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    /* Wrapup */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, &olen, NULL, 0 ) == 0 );
+    TEST_ASSERT( olen == 100 );
+    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+
+    TEST_ASSERT( memcmp( bufA, outA, 100 ) == 0 );
+    TEST_ASSERT( memcmp( bufB, outB, 100 ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
+void mbedtls_mps_writer_no_queueing_single_step_multiple_rounds( int with_queue )
+{
+    /* Multiple rounds of lower layer providing space
+     * for outgoing data to be written to, and upper layer
+     * fetches and writes it in a single go. */
+    unsigned char bufA[100], bufB[100];
+    unsigned char outA[100], outB[100];
+    unsigned char queue[10];
+    unsigned char *tmp;
+    mbedtls_writer wr;
+    for( int i=0; (unsigned) i < sizeof( outA ); i++ )
+        outA[i] = (unsigned char) i;
+    for( int i=0; (unsigned) i < sizeof( outB ); i++ )
+        outB[i] = ~ ((unsigned char) i);
+
+    /* Provisioning (lower layer) */
+    if( with_queue == 0 )
+        TEST_ASSERT( mbedtls_writer_init( &wr, NULL, 0 ) == 0 );
+    else
+        TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
+    /* Producing (upper layer) */
+    /* Consume exactly what's available */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 100, &tmp, NULL ) == 0 );
+    memcpy( tmp, outA, 100 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    /* Provisioning */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufB, sizeof( bufB ) ) == 0 );
+    /* Producing */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 100, &tmp, NULL ) == 0 );
+    memcpy( tmp, outB, 100 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    /* Wrapup (lower layer) */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+
+    TEST_ASSERT( memcmp( bufA, outA, 100 ) == 0 );
+    TEST_ASSERT( memcmp( bufB, outB, 100 ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
+void mbedtls_mps_writer_no_queueing_multiple_steps_single_round( int with_queue )
+{
+    /* Lower layer provides output buffer that the upper layer
+     * fetches and writes to in multiple `get` calls. */
+    unsigned char buf[100];
+    unsigned char out[100];
+    unsigned char queue[10];
+    unsigned char *tmp;
+    size_t tmp_len;
+    mbedtls_writer wr;
+    for( int i=0; (unsigned) i < sizeof( out ); i++ )
+        out[i] = (unsigned char) i;
+
+    /* Provisioning (lower layer) */
+    if( with_queue == 0 )
+        TEST_ASSERT( mbedtls_writer_init( &wr, NULL, 0 ) == 0 );
+    else
+        TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, buf, sizeof( buf ) ) == 0 );
+    /* Producing (upper layer) */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 10, &tmp, NULL ) == 0 );
+    memcpy( tmp, out, 10 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 70, &tmp, NULL ) == 0 );
+    memcpy( tmp, out + 10, 70 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 30, &tmp, &tmp_len ) == 0 );
+    TEST_ASSERT( tmp_len == 20 );
+    memcpy( tmp, out + 80, 20 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    /* Wrapup (lower layer) */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+
+    TEST_ASSERT( memcmp( buf, out, 100 ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
+void mbedtls_mps_writer_no_queueing_multiple_steps_multiple_rounds( int with_queue )
+{
+    /* Repeat lower layer providing output buffer that the upper layer
+     * fetches and writes to in multiple `get` calls. */
+    unsigned char bufA[100], bufB[100];
+    unsigned char outA[100], outB[100];
+    unsigned char queue[10];
+    unsigned char *tmp;
+    size_t tmp_len;
+    mbedtls_writer wr;
+    for( int i=0; (unsigned) i < sizeof( outA ); i++ )
+        outA[i] = (unsigned char) i;
+    for( int i=0; (unsigned) i < sizeof( outB ); i++ )
+        outB[i] = ~ ((unsigned char) i);
+
+    /* Provisioning (lower layer) */
+    if( with_queue == 0 )
+        TEST_ASSERT( mbedtls_writer_init( &wr, NULL, 0 ) == 0 );
+    else
+        TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
+    /* Producing (upper layer) */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 10, &tmp, NULL ) == 0 );
+    memcpy( tmp, outA, 10 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 70, &tmp, NULL ) == 0 );
+    memcpy( tmp, outA + 10, 70 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 30, &tmp, &tmp_len ) == 0 );
+    TEST_ASSERT( tmp_len == 20 );
+    memcpy( tmp, outA + 80, 20 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    /* Provisioning */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufB, sizeof( bufB ) ) == 0 );
+    /* Producing */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 100, &tmp, NULL ) == 0 );
+    memcpy( tmp, outB, 100 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    /* Wrapup */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+
+    TEST_ASSERT( memcmp( outA, bufA, 100 ) == 0 );
+    TEST_ASSERT( memcmp( outB, bufB, 100 ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
+void mbedtls_mps_writer_no_queueing_multiple_steps_multiple_rounds_partial_commit( int with_queue )
+{
+    /* Almost identical to multiple_steps_multiple_rounds_no_commit,
+     * but only partially comitting writes in first round. */
+    unsigned char bufA[100], bufB[100];
+    unsigned char outA[100], outB[100];
+    unsigned char queue[10];
+    unsigned char *tmp;
+    size_t tmp_len;
+    mbedtls_writer wr;
+    for( int i=0; (unsigned) i < sizeof( outA ); i++ )
+        outA[i] = (unsigned char) i;
+    for( int i=0; (unsigned) i < sizeof( outB ); i++ )
+        outB[i] = ~ ((unsigned char) i);
+
+    /* Provisioning (lower layer) */
+    if( with_queue == 0 )
+        TEST_ASSERT( mbedtls_writer_init( &wr, NULL, 0 ) == 0 );
+    else
+        TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
+    /* Producing (upper layer) */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 10, &tmp, NULL ) == 0 );
+    memcpy( tmp, outA, 10 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 70, &tmp, NULL ) == 0 );
+    memcpy( tmp, outA + 10, 70 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 30, &tmp, &tmp_len ) == 0 );
+    TEST_ASSERT( tmp_len == 20 );
+    memcpy( tmp, outA + 80, 20 );
+    /* Provisioning */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 1 /*force*/ ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufB, sizeof( bufB ) ) == 0 );
+    /* Producing */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 100, &tmp, NULL ) == 0 );
+    memcpy( tmp, outB, 100 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    /* Wrapup */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+
+    TEST_ASSERT( memcmp( outA, bufA, 80  ) == 0 );
+    TEST_ASSERT( memcmp( outB, bufB, 100 ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
+void mbedtls_mps_writer_queue_needed_disabled()
+{
+    /* If a write request goes beyond the provided output buffer
+     * and queueing is not used, signal OUT_OF_DATA. */
+    unsigned char buf[100];
+    unsigned char out[100];
+    unsigned char *tmp;
+    mbedtls_writer wr;
+    for( int i=0; (unsigned) i < sizeof( out ); i++ )
+        out[i] = (unsigned char) i;
+
+    /* Preparation (lower layer) */
+    TEST_ASSERT( mbedtls_writer_init( &wr, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, buf, sizeof( buf ) ) == 0 );
+    /* Consumption (upper layer) */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 50, &tmp, NULL ) == 0 );
+    memcpy( tmp, out, 50 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 100, &tmp, NULL ) ==
+                 MBEDTLS_ERR_WRITER_OUT_OF_DATA );
+    /* Wrapup (lower layer) */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) ==
+                 MBEDTLS_ERR_WRITER_DATA_LEFT );
+    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    TEST_ASSERT( memcmp( buf, out, 50 ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
+void mbedtls_mps_writer_queue_needed_too_small()
+{
+    /* If a write request goes beyond the provided output buffer
+     * and queueing is used but the queue is too small, signal OUT_OF_DATA. */
+    unsigned char buf[100];
+    unsigned char out[100];
+    unsigned char queue[10];
+    unsigned char *tmp;
+    mbedtls_writer wr;
+    for( int i=0; (unsigned) i < sizeof( out ); i++ )
+        out[i] = (unsigned char) i;
+
+    /* Provisioning (lower layer) */
+    TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, buf, sizeof( buf ) ) == 0 );
+    /* Producing (upper layer) */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 50, &tmp, NULL ) == 0 );
+    memcpy( tmp, out, 50 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 100, &tmp, NULL ) ==
+                 MBEDTLS_ERR_WRITER_OUT_OF_DATA );
+    /* Wrapup (lower layer) */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) ==
+                 MBEDTLS_ERR_WRITER_DATA_LEFT );
+    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    TEST_ASSERT( memcmp( buf, out, 50 ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
+void mbedtls_mps_writer_queue_basic( int commit )
+{
+    unsigned char bufA[100], bufB[100];
+    unsigned char outA[100], outB[100];
+    unsigned char queue[20];
+    unsigned char *tmp;
+    mbedtls_writer wr;
+    for( int i=0; (unsigned) i < sizeof( outA ); i++ )
+        outA[i] = (unsigned char) i;
+    for( int i=0; (unsigned) i < sizeof( outB ); i++ )
+        outB[i] = ~ ((unsigned char) i);
+
+    /* Provisioning (lower layer) */
+    TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
+    /* Producing (upper layer) */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) == 0 );
+    memcpy( tmp, outA, 90 );
+    if( commit == 1 )
+        TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 20, &tmp, NULL ) == 0 );
+    memcpy( tmp, outA + 90, 10 );
+    memcpy( tmp + 10, outB, 10 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) ==
+                 MBEDTLS_ERR_WRITER_OUT_OF_DATA );
+    /* Provisioning */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufB, sizeof( bufB ) ) == 0 );
+    /* Producing */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) == 0 );
+    memcpy( tmp, outB + 10, 90 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    /* Wrapup (lower layer) */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    TEST_ASSERT( memcmp( bufA, outA, 100 ) == 0 );
+    TEST_ASSERT( memcmp( bufB, outB, 100 ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
+void mbedtls_mps_writer_queue_boundary()
+{
+    /* This test exercises the behavior of the writer
+     * when a write-request is made after the entire
+     * output buffer has been requested and committed.
+     * There are two ways to handle this in the implementation:
+     * 1. Reject the request, indicating that not enough data is available.
+     * 2. Attempt to serve the request from the accumulator.
+     * Currently, the implementation follows behavior 2,
+     * and the test checks for that. */
+
+    unsigned char bufA[100], bufB[100];
+    unsigned char outA[100], outB[100];
+    unsigned char queue[20];
+
+    unsigned char *tmp;
+    mbedtls_writer wr;
+    for( int i=0; (unsigned) i < sizeof( outA ); i++ )
+        outA[i] = (unsigned char) i;
+    for( int i=0; (unsigned) i < sizeof( outB ); i++ )
+        outB[i] = ~ ((unsigned char) i);
+
+    /* Provisioning (lower layer) */
+    TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
+    /* Producing (upper layer) */
+    TEST_ASSERT( mbedtls_writer_get( &wr, sizeof( bufA ), &tmp, NULL ) == 0 );
+    memcpy( tmp, outA, sizeof( bufA ) );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    /* In behavior 2, the following write-request
+     * will be served from the queue. */
+    TEST_ASSERT( mbedtls_writer_get( &wr, sizeof( queue ), &tmp, NULL ) == 0 );
+    memcpy( tmp, outB, sizeof( queue ) );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 1, &tmp, NULL ) ==
+                 MBEDTLS_ERR_WRITER_OUT_OF_DATA );
+    /* Provisioning */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufB, sizeof( bufB ) ) == 0 );
+    /* Wrapup (lower layer) */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 1 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    TEST_ASSERT( memcmp( bufA, outA, sizeof( bufA ) ) == 0 );
+    TEST_ASSERT( memcmp( bufB, outB, sizeof( queue ) ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
+void mbedtls_mps_writer_queue_multiple_requests( int commit )
+{
+    /* This test exercises the behavior of the writer
+     * when multiple requests are served from the queue. */
+
+    unsigned char bufA[100], bufB[100];
+    unsigned char outA[100], outB[100];
+    unsigned char queue[40];
+    unsigned char *tmp;
+    mbedtls_writer wr;
+    for( int i=0; (unsigned) i < sizeof( outA ); i++ )
+        outA[i] = (unsigned char) i;
+    for( int i=0; (unsigned) i < sizeof( outB ); i++ )
+        outB[i] = ~ ((unsigned char) i);
+
+    /* Provisioning (lower layer) */
+    TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
+    /* Producing (upper layer) */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) == 0 );
+    memcpy( tmp, outA, 90 );
+    if( commit )
+        TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 20, &tmp, NULL ) == 0 );
+    memcpy( tmp, outA + 90, 10 );
+    memcpy( tmp + 10, outB, 10 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) ==
+                 MBEDTLS_ERR_WRITER_OUT_OF_DATA );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 10, &tmp, NULL ) == 0 );
+    memcpy( tmp, outB + 10, 10 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    /* Provisioning */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufB, sizeof( bufB ) ) == 0 );
+    /* Producing */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 80, &tmp, NULL ) == 0 );
+    memcpy( tmp, outB + 20, 80 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    /* Wrapup (lower layer) */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    TEST_ASSERT( memcmp( bufA, outA, 100 ) == 0 );
+    TEST_ASSERT( memcmp( bufB, outB, 100 ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
+void mbedtls_mps_writer_queue_multiple_refeed()
+{
+    /* Test situation where multiple output buffers are
+     * needed to hold the queued outbound data. */
+    unsigned char bufA[100], bufB[100];
+    unsigned char outA[100], outB[100];
+    unsigned char queue[20];
+    unsigned char *tmp;
+    mbedtls_writer wr;
+    for( int i=0; (unsigned) i < sizeof( outA ); i++ )
+    {
+        bufA[i] = 0;
+        outA[i] = (unsigned char) i;
+    }
+    for( int i=0; (unsigned) i < sizeof( outB ); i++ )
+    {
+        bufB[i] = 0;
+        outB[i] = ~ ((unsigned char) i);
+    }
+
+    /* Provisioning (lower layer) */
+    TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
+    /* Producing (upper layer) */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) == 0 );
+    memcpy( tmp, outA, 90 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 20, &tmp, NULL ) == 0 );
+    memcpy( tmp, outA + 90, 10 );
+    memcpy( tmp + 10, outB, 10 );
+    /* So far we have been writing to the queue, and the results
+     * are not partially copied to the output buffer until the buffer is reclaimed. */
+    TEST_ASSERT( memcmp( bufA, outA, 100 ) != 0 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) ==
+                 MBEDTLS_ERR_WRITER_OUT_OF_DATA );
+    /* Provisioning */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    /* Now they should be there. */
+    TEST_ASSERT( memcmp( bufA, outA, 100 ) == 0 );
+    for( int i=0; i<9; i++ )
+    {
+        TEST_ASSERT( mbedtls_writer_feed( &wr, bufB + i, 1 ) ==
+                     MBEDTLS_ERR_WRITER_NEED_MORE );
+    }
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufB + 9, 91 ) == 0 );
+    /* Producing */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) == 0 );
+    memcpy( tmp, outB + 10, 90 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    /* Wrapup (lower layer) */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    TEST_ASSERT( memcmp( bufA, outA, 100 ) == 0 );
+    TEST_ASSERT( memcmp( bufB, outB, 100 ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
+void mbedtls_mps_writer_queue_multiple_rounds()
+{
+    /* Exercise three rounds of feed-get-commit-reclaim, with queueing*/
+    unsigned char bufA[100], bufB[100], bufC[100];
+    unsigned char outA[100], outB[100], outC[100];
+    unsigned char queue[20];
+    unsigned char *tmp;
+    mbedtls_writer wr;
+    for( int i=0; (unsigned) i < sizeof( outA ); i++ )
+        outA[i] = (unsigned char) i;
+    for( int i=0; (unsigned) i < sizeof( outB ); i++ )
+        outB[i] = ~ ((unsigned char) i);
+    for( int i=0; (unsigned) i < sizeof( outC ); i++ )
+        outC[i] = (unsigned char)( 128 + i );
+
+    /* Provisioning (lower layer) */
+    TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
+    /* Producing (upper layer) */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) == 0 );
+    memcpy( tmp, outA, 90 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 20, &tmp, NULL ) == 0 );
+    memcpy( tmp, outA + 90, 10 );
+    memcpy( tmp + 10, outB, 10 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) ==
+                 MBEDTLS_ERR_WRITER_OUT_OF_DATA );
+    /* Provisioning */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufB, sizeof( bufB ) ) == 0 );
+    /* Producing */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 80, &tmp, NULL ) == 0 );
+    memcpy( tmp, outB + 10, 80 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 20, &tmp, NULL ) == 0 );
+    memcpy( tmp, outB + 90, 10 );
+    memcpy( tmp + 10, outC, 10 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) ==
+                 MBEDTLS_ERR_WRITER_OUT_OF_DATA );
+    /* Provisioning */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_feed( &wr, bufC, sizeof( bufC ) ) == 0 );
+    /* Producing */
+    TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) == 0 );
+    memcpy( tmp, outC + 10, 90 );
+    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
+    /* Wrapup (lower layer) */
+    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    TEST_ASSERT( memcmp( bufA, outA, 100 ) == 0 );
+    TEST_ASSERT( memcmp( bufB, outB, 100 ) == 0 );
+    TEST_ASSERT( memcmp( bufC, outC, 100 ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
+void mbedtls_mps_writer_random_usage( int data_amount,
+                                      int max_chunk_size,
+                                      int max_request,
+                                      int queue_size )
+
+{
+    /* Randomly pass a writer object back and forth between lower and
+     * upper layer and let each of them call the respective writer API
+     * functions in a random fashion.
+     *
+     * On the lower layer, we're tracking and concatenating
+     * the data passed to successful reclaim calls.
+     *
+     * For the upper layer, we track and concatenate buffers
+     * obtained from successful commit calls.
+     *
+     * As long as the lower layer calls reclaim at least once, (resetting the
+     * fetched but not-yet-committed data), this should always lead to the same
+     * stream of outgoing/incoming data for the lower/upper layers, even if
+     * most of the random calls fail.
+     *
+     * NOTE: This test uses rand() for random data, which is not optimal.
+     *       Instead, it would be better to get the random data from a
+     *       static buffer. This both eases reproducibility and allows
+     *       simple conversion to a fuzz target.
+     */
+    int ret;
+    unsigned char *queue = NULL;
+    unsigned char *outgoing, *incoming;
+    unsigned char *cur_chunk = NULL;
+    size_t cur_out_chunk_size, out_pos, in_commit, in_fetch;
+    int rand_op;  /* Lower layer:
+                   * - Reclaim (0)
+                   * - Feed (1)
+                   * Upper layer:
+                   * - Get, do tolerate smaller output (0)
+                   * - Get, don't tolerate smaller output (1)
+                   * - Commit (2) */
+    int mode = 0; /* Lower layer (0) or Upper layer (1) */
+    int reclaimed = 1; /* Have to call reclaim at least once before
+                        * returning the reader to the upper layer. */
+    int force;
+    mbedtls_writer wr;
+
+    unsigned seed;
+
+    if( queue_size > 0 )
+    {
+        queue = malloc( queue_size );
+        TEST_ASSERT( queue != NULL );
+    }
+
+    /* This probably needs to be changed because we want
+     * our tests to be deterministic. */
+    seed = time( NULL ); // 1522933016;
+    srand( seed );
+
+    outgoing = malloc( data_amount );
+    incoming = malloc( data_amount );
+
+    TEST_ASSERT( outgoing != NULL );
+    TEST_ASSERT( incoming != NULL );
+
+    TEST_ASSERT( mbedtls_writer_init( &wr, queue, queue_size ) == 0 );
+
+    cur_out_chunk_size = 0;
+    in_commit = 0;
+    in_fetch = 0;
+    out_pos = 0;
+    while( out_pos < (unsigned) data_amount )
+    {
+        if( mode == 0 )
+        {
+            /* Choose randomly between reclaim and feed */
+            rand_op = rand() % 3;
+
+            if( rand_op == 0 || rand_op == 1 )
+            {
+                size_t out_committed;
+
+                /* Reclaim */
+
+                if( cur_out_chunk_size > out_pos - (unsigned) data_amount )
+                    force = 1;
+                else
+                    force = ( rand_op == 0 );
+
+                if( force == 1 )
+                {
+                    ret = mbedtls_writer_reclaim( &wr, &out_committed,
+                                                  NULL, 1 );
+                }
+                else
+                {
+                    ret = mbedtls_writer_reclaim( &wr, NULL, NULL, 0 );
+                    out_committed = cur_out_chunk_size;
+                }
+
+                TEST_ASSERT( ! ( force == 1 &&
+                                 ret == MBEDTLS_ERR_WRITER_DATA_LEFT ) );
+
+                if( ret == 0 )
+                {
+                    TEST_ASSERT( out_committed <= cur_out_chunk_size );
+                    TEST_ASSERT( cur_chunk != NULL );
+                    memcpy( outgoing + out_pos, cur_chunk, out_committed );
+                    out_pos += out_committed;
+
+                    free( cur_chunk );
+                    cur_chunk = NULL;
+                }
+                reclaimed = 1;
+            }
+            else
+            {
+                /* Feed writer another outgoing data chunk */
+                unsigned char *tmp;
+                size_t tmp_size;
+
+                tmp_size = ( rand() % max_chunk_size ) + 1;
+                tmp = malloc( tmp_size );
+                TEST_ASSERT( tmp != NULL );
+
+                ret = mbedtls_writer_feed( &wr, tmp, tmp_size );
+
+                if( ret == MBEDTLS_ERR_WRITER_NEED_MORE )
+                {
+                    /* Outgoing data chunk has been entirely written
+                     * from the queue. */
+                    memcpy( outgoing + out_pos, tmp, tmp_size );
+                    out_pos += tmp_size;
+                }
+
+                if( ret == 0 )
+                {
+                    cur_chunk = tmp;
+                    cur_out_chunk_size = tmp_size;
+                }
+                else
+                {
+                    free( tmp );
+                }
+            }
+
+            /* Randomly switch to consumption mode if reclaim
+             * was called at least once. */
+            if( reclaimed == 1 && rand() % 3 == 0 )
+            {
+                in_fetch = 0;
+                mode = 1;
+            }
+        }
+        else
+        {
+            /* Choose randomly between get tolerating fewer data,
+             * get not tolerating fewer data, and commit. */
+            rand_op = rand() % 3;
+            if( rand_op == 0 || rand_op == 1 )
+            {
+                size_t get_size, real_size;
+                unsigned char *chunk_get;
+                get_size = ( rand() % max_request ) + 1;
+                if( get_size > data_amount - ( in_commit + in_fetch ) )
+                    get_size = data_amount - in_commit - in_fetch;
+
+                if( rand_op == 0 )
+                {
+                    ret = mbedtls_writer_get( &wr, get_size, &chunk_get,
+                                              &real_size );
+                }
+                else
+                {
+                    real_size = get_size;
+                    ret = mbedtls_writer_get( &wr, get_size, &chunk_get, NULL );
+                }
+
+                if( ret == 0 )
+                {
+                    /* Fill output buffer with random data. */
+                    mbedtls_test_rnd_std_rand( NULL, incoming + in_commit + in_fetch, real_size );
+                    memcpy( chunk_get, incoming + in_commit + in_fetch, real_size );
+                    in_fetch += real_size;
+                }
+                else if( ret == MBEDTLS_ERR_WRITER_OUT_OF_DATA )
+                {
+                    TEST_ASSERT( in_commit + in_fetch + get_size >
+                                 (unsigned) queue_size );
+                }
+            }
+            else if( rand_op == 2 ) /* Commit */
+            {
+                ret = mbedtls_writer_commit( &wr );
+                if( ret == 0 )
+                {
+                    in_commit += in_fetch;
+                    in_fetch = 0;
+                }
+            }
+
+            /* Randomly switch back to preparation */
+            if( rand() % 3 == 0 )
+            {
+                reclaimed = 0;
+                mode = 0;
+            }
+        }
+    }
+
+    /* Compare results. */
+    TEST_ASSERT( in_commit == (unsigned) data_amount );
+    TEST_ASSERT( memcmp( outgoing, incoming, data_amount ) == 0 );
+
+    /* Cleanup */
+    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    free( incoming );
+    free( outgoing );
+    free( queue );
     free( cur_chunk );
 }
 /* END_CASE */

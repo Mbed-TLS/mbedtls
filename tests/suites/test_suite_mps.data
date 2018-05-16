@@ -120,3 +120,69 @@ mbedtls_mps_reader_random_usage:10000:1:100:80
 
 MPS Reader: Random usage, 100 rds, feed 100, get 1000, acc 500
 mbedtls_mps_reader_random_usage:100:100:1000:500
+
+MPS Writer: Single step, single round, queueing disabled
+mbedtls_mps_writer_no_queueing_single_step_single_round:0
+
+MPS Writer: Single step, single round, queueing enabled but unused
+mbedtls_mps_writer_no_queueing_single_step_single_round:1
+
+MPS Writer: Single step, multiple rounds, queueing disabled
+mbedtls_mps_writer_no_queueing_single_step_multiple_rounds:0
+
+MPS Writer: Single step, multiple rounds, queueing enabled but unused
+mbedtls_mps_writer_no_queueing_single_step_multiple_rounds:1
+
+MPS Writer: Multiple steps, single round, queueing disabled
+mbedtls_mps_writer_no_queueing_multiple_steps_single_round:0
+
+MPS Writer: Multiple steps, single round, queueing enabled but unused
+mbedtls_mps_writer_no_queueing_multiple_steps_single_round:1
+
+MPS Writer: Multiple steps, multiple rounds, queueing disabled
+mbedtls_mps_writer_no_queueing_multiple_steps_multiple_rounds:0
+
+MPS Writer: Multiple steps, multiple rounds, queueing enabled but unused
+mbedtls_mps_writer_no_queueing_multiple_steps_multiple_rounds:1
+
+MPS Writer: Multiple steps, multiple rounds, partial commit, queueing disabled
+mbedtls_mps_writer_no_queueing_multiple_steps_multiple_rounds_partial_commit:0
+
+MPS Writer: Multiple steps, multiple rounds, partial commit, queueing enabled but unused
+mbedtls_mps_writer_no_queueing_multiple_steps_multiple_rounds_partial_commit:1
+
+MPS Writer: Queue needed but disabled
+mbedtls_mps_writer_queue_needed_disabled:
+
+MPS Writer: Queue needed + enabled, but queue too small
+mbedtls_mps_writer_queue_needed_too_small:
+
+MPS Writer: Queueing, basic #1
+mbedtls_mps_writer_queue_basic:0
+
+MPS Writer: Queueing, basic #2
+mbedtls_mps_writer_queue_basic:1
+
+MPS Writer: Queueing, switch to queue at buffer boundary
+mbedtls_mps_writer_queue_boundary:
+
+MPS Writer: Queueing, feed in multiple steps after queueing
+mbedtls_mps_writer_queue_multiple_refeed:
+
+MPS Writer: Queueing, multiple requests served from queue, #0
+mbedtls_mps_writer_queue_multiple_requests:0
+
+MPS Writer: Queueing, multiple requests served from queue, #1
+mbedtls_mps_writer_queue_multiple_requests:1
+
+MPS Writer: Queueing, multiple rounds
+mbedtls_mps_writer_queue_multiple_rounds:
+
+MPS Writer: Test behavior on unexpected operations
+mbedtls_mps_writer_unexpected_operations:
+
+MPS Writer: Feed with invalid buffer (NULL)
+mbedtls_mps_writer_feed_empty:0
+
+MPS Writer: Random usage
+mbedtls_mps_writer_random_usage:10000:100:40:50

@@ -64,6 +64,7 @@ set(src_crypto
     version.c
     version_features.c
     xtea.c
+    mps/trace.c
 )
 
 set(src_x509

@@ -66,6 +66,7 @@ set(src_crypto
     xtea.c
     mps/trace.c
     mps/reader.c
+    mps/writer.c
 )
 
 set(src_x509

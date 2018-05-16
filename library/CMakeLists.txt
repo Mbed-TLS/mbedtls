@@ -79,6 +79,7 @@ set(src_crypto
     xtea.c
     mps/allocator.c
     mps/trace.c
+    mps/layer1.c
     mps/reader.c
     mps/writer.c
 )

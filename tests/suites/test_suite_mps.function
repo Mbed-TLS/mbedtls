@@ -6,8 +6,10 @@
 /* BEGIN_HEADER */
 
 #include <stdlib.h>
+#include "../include/mbedtls/mps/allocator.h"
 #include "../include/mbedtls/mps/reader.h"
 #include "../include/mbedtls/mps/writer.h"
+#include "../include/mbedtls/mps/layer1.h"
 
 /*
  * Compile-time configuration for test suite.
@@ -20,8 +22,266 @@
  * into runtime assertions. */
 #define TEST_SUITE_MPS_READER
 #define TEST_SUITE_MPS_WRITER
+#define TEST_SUITE_MPS_L1
 
 /* End of compile-time configuration. */
+
+/*
+ *
+ * Helper structures for Layer 1 testing
+ *
+ * Layer 1 interfaces with the following components:
+ * (1) An allocator providing the read and write buffers
+ *     that the Layer 1 implementation uses when interfacing
+ *     with the underlying transport (the interface for which
+ *     does currently not allow in-place operations).
+ * (2) The underlying stream or datagram transport (Layer 0).
+ *
+ */
+
+/*
+ * Mock object for a Layer 0 stream transport
+ */
+
+static size_t layer0_bufsize = 42;
+typedef struct
+{
+    unsigned char *buf;
+    size_t buflen;
+    size_t avail;
+} layer0_mock;
+
+static layer0_mock c2s; /* Client-to-Server */
+static layer0_mock s2c; /* Server-to-Client */
+
+int layer0_init( layer0_mock *mbuf )
+{
+    mbuf->buf = malloc( layer0_bufsize );
+    if( mbuf->buf == NULL )
+        return( -1 );
+
+    mbuf->avail = 0;
+    mbuf->buflen = layer0_bufsize;
+    return( 0 );
+}
+
+void layer0_free( layer0_mock *mbuf )
+{
+    if( mbuf->buf != NULL )
+        free( mbuf->buf );
+}
+
+/* Read size bytes from mbuf into dst */
+int layer0_read( layer0_mock* const mbuf, unsigned char *dst,
+                 unsigned long size )
+{
+    size_t remaining;
+
+    if( mbuf->avail == 0 )
+        return( MPS_ERR_WANT_READ );
+
+    if( size > mbuf->avail )
+        size = mbuf->avail;
+
+    /* Return only a part of the available buffer
+     * to test how the upper layers deal with it. */
+    size = ( size * ( ( rand() % 100 ) + 1 ) ) / 100;
+    if( size == 0 )
+        size = 1;
+    remaining = mbuf->avail - size;
+
+    memcpy( dst, mbuf->buf, size );
+    memmove( mbuf->buf, mbuf->buf + size, remaining );
+
+    mbuf->avail = remaining;
+    return( size );
+}
+
+/* Write size bytes from src into mbuf */
+int layer0_write( layer0_mock* const mbuf, const unsigned char *src,
+                  size_t size )
+{
+    const size_t remaining = mbuf->buflen - mbuf->avail;
+
+    if( size == 0 )
+        return( 0 );
+
+    if( remaining == 0 )
+        return( MPS_ERR_WANT_WRITE );
+
+    if( size > remaining )
+        size = remaining;
+
+    /* Return only a part of the available buffer
+     * to test how the upper layers deal with it. */
+    size = ( size * ( ( rand() % 100 ) + 1 ) ) / 100;
+    if( size == 0 )
+        size = 1;
+
+    memcpy( mbuf->buf + mbuf->avail, src, size );
+    mbuf->avail += size;
+
+    return( size );
+}
+
+/* Write size bytes from src into the server to client buffer */
+int layer0_write_srv( const unsigned char *src, size_t size )
+{
+    return layer0_write( &s2c, src, size );
+}
+
+/* Write size bytes from src into the client to server buffer */
+int layer0_write_cli( const unsigned char *src, size_t size )
+{
+    return layer0_write( &c2s, src, size );
+}
+
+/* Read size bytes from the client to server buffer into dst */
+int layer0_read_srv( unsigned char *dst, unsigned long size )
+{
+    return layer0_read( &c2s, dst, size );
+}
+
+/* Read size bytes from the server to client buffer into dst */
+int layer0_read_cli( unsigned char *dst, unsigned long size )
+{
+    return layer0_read( &s2c, dst, size );
+}
+
+/*
+ * Mock a Layer 0 datagram transport
+ */
+
+typedef struct
+{
+    unsigned char *buf;
+    size_t buflen;
+} layer0_dgram_mock_msg;
+
+#define L0_MOCK_DGRAM_MAX_MSGS 128
+
+/* Simply a FIFO of instances of layer0_dgram_mock_msg */
+typedef struct
+{
+    layer0_dgram_mock_msg msgs[ L0_MOCK_DGRAM_MAX_MSGS ];
+    size_t read_pos;
+    size_t write_pos;
+} layer0_dgram_mock;
+
+static layer0_dgram_mock c2s_d; /* Client-to-Server */
+static layer0_dgram_mock s2c_d; /* Server-to-Client */
+
+static void layer0_dgram_msg_free( layer0_dgram_mock_msg *msg )
+{
+    free( msg->buf );
+    msg->buf = NULL;
+    msg->buflen = 0;
+}
+
+static int layer0_dgram_msg_init( layer0_dgram_mock_msg *msg, size_t len )
+{
+    msg->buf = malloc( len );
+    if( msg->buf == NULL )
+    {
+        printf( "ALLOC FAILED\n" );
+        return( -1 );
+    }
+
+    msg->buflen = len;
+    return( 0 );
+}
+
+static int layer0_dgram_init( layer0_dgram_mock *ctx )
+{
+    layer0_dgram_mock_msg null_buf = { NULL, 0 };
+    size_t idx;
+    ctx->read_pos = 0;
+    ctx->write_pos = 0;
+    for( idx = 0; idx < L0_MOCK_DGRAM_MAX_MSGS; idx++ )
+        ctx->msgs[idx] = null_buf;
+
+    return( 0 );
+}
+
+static int layer0_dgram_free( layer0_dgram_mock *ctx )
+{
+    layer0_dgram_mock_msg null_buf = { NULL, 0 };
+    size_t idx;
+    ctx->read_pos = 0;
+    ctx->write_pos = 0;
+    for( idx = 0; idx < L0_MOCK_DGRAM_MAX_MSGS; idx++ )
+        ctx->msgs[idx] = null_buf;
+
+    return( 0 );
+}
+
+static size_t layer0_dgram_inc_idx( size_t idx )
+{
+    if( idx == L0_MOCK_DGRAM_MAX_MSGS - 1 )
+        return( 0 );
+    else
+        return( idx + 1);
+}
+
+static int layer0_dgram_write( layer0_dgram_mock *ctx,
+                               const unsigned char *src, size_t size )
+{
+    size_t write_pos = ctx->write_pos;
+    size_t read_pos = ctx->read_pos;
+    size_t new_write_pos = layer0_dgram_inc_idx( write_pos );
+    if( new_write_pos == read_pos )
+        return( MPS_ERR_WANT_WRITE );
+
+    layer0_dgram_msg_init( &ctx->msgs[write_pos], size );
+    memcpy( ctx->msgs[write_pos].buf, src, size );
+
+    ctx->write_pos = new_write_pos;
+    return( 0 );
+}
+
+static int layer0_dgram_read( layer0_dgram_mock *ctx,
+                              unsigned char *dst, unsigned long size )
+{
+    size_t write_pos = ctx->write_pos;
+    size_t read_pos = ctx->read_pos;
+    size_t new_read_pos = layer0_dgram_inc_idx( read_pos );
+
+    if( read_pos == write_pos )
+        return( MPS_ERR_WANT_READ );
+
+    if( ctx->msgs[read_pos].buflen > size )
+        size = ctx->msgs[read_pos].buflen;
+
+    memcpy( dst, ctx->msgs[read_pos].buf, size );
+    layer0_dgram_msg_free( &ctx->msgs[read_pos] );
+
+    ctx->read_pos = new_read_pos;
+    return( (int) size );
+}
+
+/* Write size bytes from src into the server to client buffer */
+int layer0_dgram_write_srv( const unsigned char *src, size_t size )
+{
+    return layer0_dgram_write( &s2c_d, src, size );
+}
+
+/* Write size bytes from src into the client to server buffer */
+int layer0_dgram_write_cli( const unsigned char *src, size_t size )
+{
+    return layer0_dgram_write( &c2s_d, src, size );
+}
+
+/* Read size bytes from the client to server buffer into dst */
+int layer0_dgram_read_srv( unsigned char *dst, unsigned long size )
+{
+    return layer0_dgram_read( &c2s_d, dst, size );
+}
+
+/* Read size bytes from the server to client buffer into dst */
+int layer0_dgram_read_cli( unsigned char *dst, unsigned long size )
+{
+    return layer0_dgram_read( &s2c_d, dst, size );
+}
 
 /* END_HEADER */
 
@@ -2068,5 +2328,756 @@ void mbedtls_mps_writer_random_usage( int data_amount,
     free( outgoing );
     free( queue );
     free( cur_chunk );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L1 */
+void mbedtls_mps_l1_basic( int send_multiple,
+                           int send_multiple_do_flush,
+                           int recv_multiple,
+                           int recv_multiple_do_consume )
+{
+    mps_alloc cli_alloc, srv_alloc;
+    mps_l1 cli, srv;
+
+    /* This test exercises a client sending a chunk of
+     * data to the server in one or multiple chunks (as
+     * determined by `send_multiple`), and the server reading
+     * it in one or multiple chunks (as determined by
+     * `recv_multiple`).
+     * If `send_multiple_do_flush` is set in addition to
+     * `send_multiple`, the client flushes Layer 1 after
+     * each chunk has been sent.
+     * If `recv_multiple_do_consume` is set in addition to
+     * `recv_multiple`, the server consumes each chunk
+     * after it has read it.
+     */
+
+    unsigned char data[100];
+    unsigned char data_in[100];
+    size_t const data_len = sizeof( data );
+    size_t send_chunk_size = 10; /* Size of outgoing chunks in the
+                                  * multiple-send-chunk case. */
+    size_t recv_chunk_size = 10; /* Size of incoming chunks in the
+                                  * multiple-recv-chunk case. */
+    unsigned char *out_buf;
+    unsigned char *in_buf;
+    size_t out_len;
+
+    /* Initialize Layer 0 mock objects */
+    layer0_bufsize = (size_t) data_len;
+    TEST_ASSERT( layer0_init( &s2c ) == 0 );
+    TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, data_len );
+    mps_alloc_init( &srv_alloc, data_len );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli, MPS_L1_MODE_STREAM, &cli_alloc,
+                              layer0_write_cli, layer0_read_cli ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv, MPS_L1_MODE_STREAM, &srv_alloc,
+                              layer0_write_srv, layer0_read_srv ) == 0 );
+
+    /* Generate the random content to be exchanged */
+    TEST_ASSERT( mbedtls_test_rnd_std_rand( NULL, data, data_len ) == 0 );
+
+    /* Step 1: Send data from client to server,
+     *         either in a single or in multiple chunks. */
+    if( ! send_multiple )
+    {
+        /* Send data in a single chunk. */
+        TEST_ASSERT( mps_l1_write( &cli, &out_buf, &out_len ) == 0 );
+
+        /* The allocator is configured so that it should return
+         * a buffer large enough to hold all data to be sent. */
+        TEST_ASSERT( out_len >= data_len );
+
+        memcpy( out_buf, data, data_len );
+
+        /* Dispatch data in one go. */
+        TEST_ASSERT( mps_l1_dispatch( &cli, data_len ) == 0 );
+        TEST_ASSERT( mps_l1_flush( &cli ) == 0 );
+    }
+    else
+    {
+        /* Send data in multiple chunks of size `send_chunk_size` each. */
+        TEST_ASSERT( data_len % send_chunk_size == 0 );
+        for( size_t idx=0; idx < data_len; idx += send_chunk_size )
+        {
+            /* Send data in a single chunk. */
+            TEST_ASSERT( mps_l1_write( &cli, &out_buf, &out_len ) == 0 );
+
+            /* The allocator is configured so that it should return
+             * a buffer large enough to hold all data to be sent. */
+            TEST_ASSERT( out_len >= send_chunk_size );
+
+            memcpy( out_buf, data + idx, send_chunk_size );
+
+            TEST_ASSERT( mps_l1_dispatch( &cli, send_chunk_size ) == 0 );
+            if( send_multiple_do_flush )
+                TEST_ASSERT( mps_l1_flush( &cli ) == 0 );
+        }
+
+        if( ! send_multiple_do_flush )
+            TEST_ASSERT( mps_l1_flush( &cli ) == 0 );
+    }
+
+    /* Step 2: Receive data on the server,
+     *         either in a single or in multiple chunks. */
+    if( ! recv_multiple )
+    {
+        /* Receive in a single chunk. */
+        TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, data_len ) == 0 );
+        memcpy( data_in, in_buf, data_len );
+        TEST_ASSERT( mps_l1_consume( &srv ) == 0 );
+    }
+    else
+    {
+        /* Receive in multiple chunks. */
+        TEST_ASSERT( data_len % recv_chunk_size == 0 );
+        for( size_t idx=0; idx < data_len; idx += recv_chunk_size )
+        {
+            if( recv_multiple_do_consume )
+            {
+                TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, recv_chunk_size ) == 0 );
+                memcpy( data_in + idx, in_buf, recv_chunk_size );
+                TEST_ASSERT( mps_l1_consume( &srv ) == 0 );
+            }
+            else
+            {
+                TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, idx + recv_chunk_size ) == 0 );
+                memcpy( data_in + idx, in_buf + idx, recv_chunk_size );
+            }
+        }
+
+        if( ! recv_multiple_do_consume )
+            TEST_ASSERT( mps_l1_consume( &srv ) == 0 );
+    }
+
+    TEST_ASSERT( memcmp( data_in, data, data_len ) == 0 );
+
+    TEST_ASSERT( mps_l1_free( &cli ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv ) == 0 );
+
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+
+    layer0_free( &s2c );
+    layer0_free( &c2s );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L1 */
+void mbedtls_mps_l1_want_read( )
+{
+    mps_alloc cli_alloc, srv_alloc;
+    mps_l1 cli, srv;
+
+    /* This test exercises the behavior of the receiving
+     * side of Layer 1 if the underlying stream transport
+     * cannot provide enough incoming data.
+     * Concretely:
+     * 1. Client sends 10 bytes.
+     * 2. Server requests 20 bytes, observing a WANT_READ.
+     * 3. Client sends another 10 bytes.
+     * 4. Server retries, this time successfully.
+     */
+
+    unsigned char data[20];
+    size_t const data_len = sizeof( data );
+    unsigned char *out_buf;
+    unsigned char *in_buf;
+    size_t out_len;
+
+    /* Initialize Layer 0 mock objects */
+    layer0_bufsize = (size_t) data_len;
+    TEST_ASSERT( layer0_init( &s2c ) == 0 );
+    TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, data_len );
+    mps_alloc_init( &srv_alloc, data_len );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli, MPS_L1_MODE_STREAM, &cli_alloc,
+                              layer0_write_cli, layer0_read_cli ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv, MPS_L1_MODE_STREAM, &srv_alloc,
+                              layer0_write_srv, layer0_read_srv ) == 0 );
+
+    /* Generate the random content to be exchanged */
+    TEST_ASSERT( mbedtls_test_rnd_std_rand( NULL, data, data_len ) == 0 );
+
+    /* Step 1: Client sends first half of bytes. */
+    TEST_ASSERT( mps_l1_write( &cli, &out_buf, &out_len ) == 0 );
+
+    /* The allocator is configured so that it should return
+     * a buffer large enough to hold all data to be sent. */
+    TEST_ASSERT( out_len == data_len );
+    memcpy( out_buf, data, data_len / 2 );
+
+    TEST_ASSERT( mps_l1_dispatch( &cli, data_len / 2 ) == 0 );
+    TEST_ASSERT( mps_l1_flush( &cli ) == 0 );
+
+    /* Step 2: Receive data on the server,
+     *         either in a single or in multiple chunks. */
+
+    TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, data_len ) ==
+                 MPS_ERR_WANT_READ );
+
+    /* Step 3: Client sends second half of bytes. */
+    TEST_ASSERT( mps_l1_write( &cli, &out_buf, &out_len ) == 0 );
+
+    /* The allocator is configured so that it should return
+     * a buffer large enough to hold all data to be sent. */
+    TEST_ASSERT( out_len == data_len );
+    memcpy( out_buf, data + ( data_len / 2 ), data_len /2 );
+
+    TEST_ASSERT( mps_l1_dispatch( &cli, data_len / 2 ) == 0 );
+    TEST_ASSERT( mps_l1_flush( &cli ) == 0 );
+
+    /* Step 4: Server retries, this time successfully. */
+
+    TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, data_len ) == 0 );
+    TEST_ASSERT( memcmp( in_buf, data, data_len ) == 0 );
+
+    TEST_ASSERT( mps_l1_free( &cli ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv ) == 0 );
+
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+
+    layer0_free( &s2c );
+    layer0_free( &c2s );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L1 */
+void mbedtls_mps_l1_want_write( int client_write_instead_reflush,
+                                int server_trigger_want_read )
+{
+    mps_alloc cli_alloc, srv_alloc;
+    mps_l1 cli, srv;
+
+    /* This test exercises the behavior of the writing
+     * side of Layer 1 if the underlying stream transport
+     * cannot deliver all data.
+     * Concretely:
+     * 1. Client dispatches 20 bytes and attempts to flush.
+     *    Only 10 bytes can be flushed, and the client gets
+     *    WANT_WRITE.
+     * 2. Client attempts another write, but the flush --
+     *    which still can't make progress -- takes precedence,
+     *    so WANT_WRITE is returned again.
+     * 3a. Server reads 10 bytes, succeeds and consumes.
+     * 3b. Server reads 20 bytes and fails with WANT_READ.
+     * [ `server_trigger_want_read` decides between 3a and 3b ]
+     * 4a. Client retries the flush and succeeds.
+     * 4b. Client retries the write and succeeds.
+     * [ `client_write_instead_reflush` decides between 4a and 4b ]
+     * 5a (3a cont'd). Server reads 10 bytes successfully and consumes.
+     * 5b (3b cont'd). Server re-tries 20 byte request and succeeds.
+     */
+
+    unsigned char data[20];
+    size_t const data_len = sizeof( data );
+    unsigned char *out_buf;
+    unsigned char *in_buf;
+    size_t out_len;
+
+    /* Initialize Layer 0 mock objects */
+    layer0_bufsize = (size_t) data_len / 2;
+    TEST_ASSERT( layer0_init( &s2c ) == 0 );
+    TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, 100 );
+    mps_alloc_init( &srv_alloc, 100 );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli, MPS_L1_MODE_STREAM, &cli_alloc,
+                              layer0_write_cli, layer0_read_cli ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv, MPS_L1_MODE_STREAM, &srv_alloc,
+                              layer0_write_srv, layer0_read_srv ) == 0 );
+
+    /* Generate the random content to be exchanged */
+    TEST_ASSERT( mbedtls_test_rnd_std_rand( NULL, data, data_len ) == 0 );
+
+    /* Step 1: Client prepares, dispatches and attempts to flush 20 bytes. */
+    TEST_ASSERT( mps_l1_write( &cli, &out_buf, &out_len ) == 0 );
+
+    /* The allocator is configured so that it should return
+     * a buffer large enough to hold all data to be sent. */
+    TEST_ASSERT( out_len >= data_len );
+    memcpy( out_buf, data, data_len );
+
+    TEST_ASSERT( mps_l1_dispatch( &cli, data_len ) == 0 );
+    TEST_ASSERT( mps_l1_flush( &cli ) == MPS_ERR_WANT_WRITE );
+
+    /* Step 2: Client attempts another write. */
+    TEST_ASSERT( mps_l1_write( &cli, &out_buf, &out_len ) == MPS_ERR_WANT_WRITE );
+
+    /* Step 3a and 3b */
+    if( ! server_trigger_want_read )
+    {
+        /* Step 3a: Server reads 10 bytes and consumes. */
+        TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, data_len / 2 ) == 0 );
+        TEST_ASSERT( memcmp( in_buf, data, data_len / 2 ) == 0 );
+        TEST_ASSERT( mps_l1_consume( &srv ) == 0 );
+    }
+    else
+    {
+        /* Step 3b: Server reads 20 bytes and fails. */
+        /* Nonetheless, the attempt should have fetched the
+         * available 10 bytes from the underlying Layer 0,
+         * allowing more data to be sent by the client. */
+        TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, data_len ) ==
+                     MPS_ERR_WANT_READ );
+    }
+
+    /* Step 4a and 4b */
+    if( ! client_write_instead_reflush )
+    {
+        /* Step 4a: Client retries flush */
+        TEST_ASSERT( mps_l1_flush( &cli ) == 0 );
+    }
+    else
+    {
+        /* Step 4b: Client tries another write. */
+        TEST_ASSERT( mps_l1_write( &cli, &out_buf, &out_len ) == 0 );
+        /* Don't actually write anything. */
+        TEST_ASSERT( mps_l1_dispatch( &cli, 0 ) == 0 );
+    }
+
+    /* Step 5a and 5b */
+    if( ! server_trigger_want_read )
+    {
+        /* Step 5a: Server reads next 10 bytes and consumes. */
+        TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, data_len / 2 ) == 0 );
+        TEST_ASSERT( memcmp( in_buf, data + data_len / 2, data_len / 2 ) == 0 );
+        TEST_ASSERT( mps_l1_consume( &srv ) == 0 );
+    }
+    else
+    {
+        /* Step 5b: Server retries to read 20 bytes and succeeds. */
+        TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, data_len ) == 0 );
+        TEST_ASSERT( memcmp( in_buf, data, data_len ) == 0 );
+    }
+
+    TEST_ASSERT( mps_l1_free( &cli ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv ) == 0 );
+
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+
+    layer0_free( &s2c );
+    layer0_free( &c2s );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L1 */
+void mbedtls_mps_l1_overly_large_request()
+{
+    mps_alloc alloc;
+    mps_l1 l1;
+
+    unsigned char *in_buf;
+
+    /* Initialize Layer 0 mock objects */
+    layer0_bufsize = (size_t) 10;
+    TEST_ASSERT( layer0_init( &s2c ) == 0 );
+    TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+    /* Initialize allocator */
+    mps_alloc_init( &alloc, 90 );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &l1, MPS_L1_MODE_STREAM, &alloc,
+                              layer0_write_cli, layer0_read_cli ) == 0 );
+
+    /* Try to request more data than what fits in the allocator buffer. */
+    TEST_ASSERT( mps_l1_fetch( &l1, &in_buf, 90 ) ==
+                 MPS_ERR_WANT_READ );
+    TEST_ASSERT( mps_l1_fetch( &l1, &in_buf, 90 + 1 ) ==
+                 MPS_ERR_BUFFER_TOO_SMALL );
+
+    TEST_ASSERT( mps_l1_free( &l1 ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &alloc ) == 0 );
+    layer0_free( &s2c );
+    layer0_free( &c2s );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L1 */
+void mbedtls_mps_l1_random_communication( int allocator_buffer_sz,
+                                          int layer0_buffer_sz )
+{
+    int ret;
+    mps_alloc cli_alloc, srv_alloc;
+    mps_l1 cli, srv;
+
+    /* This test exercises a random of way for a client and server
+     * to send and receive a fixed amount of data through Layer 1.
+     *
+     * - The send buffers xxx_send_buffer hold what each side wants to transmit,
+     *   and xxx_send_pos indicates what has already been dispatched to layer 1.
+     *
+     * - The receive buffers xxx_recv_buffer store what has already been fetched
+     *   from layer 1, with xxx_recv_pos indicating the current read position.
+     *
+     * NOTE: This test uses rand() for random data, which is not optimal.
+     *       Instead, it would be better to get the random data from a
+     *       static buffer. This both eases reproducibility and allows
+     *       simple conversion to a fuzz target.
+     */
+
+    size_t len_total = 10000;
+    unsigned char c2s_send_buffer[10000];
+    unsigned char c2s_recv_buffer[10000];
+    unsigned char s2c_send_buffer[10000];
+    unsigned char s2c_recv_buffer[10000];
+    size_t c2s_send_pos = 0, s2c_send_pos = 0;
+    size_t c2s_recv_pos = 0, s2c_recv_pos = 0;
+
+    /* This probably needs to be changed because we want
+     * our tests to be deterministic. */
+    srand( time( NULL ) );
+
+    /* Initialize Layer 0 mock objects */
+    layer0_bufsize = (size_t) layer0_buffer_sz;
+    TEST_ASSERT( layer0_init( &s2c ) == 0 );
+    TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, allocator_buffer_sz );
+    mps_alloc_init( &srv_alloc, allocator_buffer_sz );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli, MPS_L1_MODE_STREAM, &cli_alloc,
+                              layer0_write_cli, layer0_read_cli ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv, MPS_L1_MODE_STREAM, &srv_alloc,
+                              layer0_write_srv, layer0_read_srv ) == 0 );
+
+    /* Generate the random content to be exchanged */
+    TEST_ASSERT( mbedtls_test_rnd_std_rand( NULL, c2s_send_buffer,
+                               sizeof( c2s_send_buffer ) ) == 0 );
+    TEST_ASSERT( mbedtls_test_rnd_std_rand( NULL, s2c_send_buffer,
+                               sizeof( s2c_send_buffer ) ) == 0 );
+
+    /* Loop as long as at least client or server haven't completed
+     * receiving or sending. */
+    while( c2s_send_pos < len_total || c2s_recv_pos < len_total ||
+           s2c_send_pos < len_total || s2c_recv_pos < len_total )
+    {
+        /* Point to the respective variables for client/server,
+         * depending on the random choice of actor in this round. */
+        mps_l1 *actor;
+        unsigned char *recv_dst_buf, *send_src_buf;
+        unsigned char *send_dst_buf, *recv_src_buf;
+        size_t *send_pos, *recv_pos;
+        /* Randomly choose between server and client */
+        if( rand() & 1 )
+        {
+            actor = &cli;
+            send_pos = &c2s_send_pos;
+            recv_pos = &c2s_recv_pos;
+            recv_dst_buf = c2s_recv_buffer;
+            send_src_buf = c2s_send_buffer;
+        }
+        else
+        {
+            actor = &srv;
+            send_pos = &s2c_send_pos;
+            recv_pos = &s2c_recv_pos;
+            recv_dst_buf = s2c_recv_buffer;
+            send_src_buf = s2c_send_buffer;
+        }
+
+        /* Choose between sending and receiving */
+        if( rand() & 1 )
+        {
+            /* Sending */
+            size_t send_attempt;
+            size_t send_dst_len;
+
+            /* Once we have dispatched everything, only call flush.
+             * And even if we have more to dispatch, call flush randomly. */
+            if( len_total == *send_pos || rand() % 4 )
+            {
+                ret = mps_l1_flush( actor );
+                TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_WRITE );
+                continue;
+            }
+
+            /* Request write-buffer from Layer 1
+             * It might be that the request is not successful because
+             * data is pending to be flushed first; in this case, skip
+             * the step for now. */
+            ret = mps_l1_write( actor, &send_dst_buf, &send_dst_len );
+            TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_WRITE );
+            if( ret != 0 )
+                continue;
+
+            /* Pick a random, nonempty percentage of the remaining data
+             * to be sent and copy it into the write-buffer */
+            if( send_dst_len > len_total - *send_pos )
+                send_dst_len = len_total - *send_pos;
+            send_attempt = ( send_dst_len * ( ( rand() % 25 ) + 1 ) ) / 100;
+            if( send_attempt == 0 )
+                send_attempt = 1;
+            memcpy( send_dst_buf, send_src_buf + *send_pos, send_attempt );
+
+            /* Transfer data to Layer 1 -- note that this does not
+             * necessarily immediately transfer the data to Layer 0. */
+            ret = mps_l1_dispatch( actor, send_attempt );
+            TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_WRITE );
+
+            *send_pos += send_attempt;
+        }
+        else
+        {
+            /* Receiving */
+            size_t recv_attempt;
+
+            /* Skip this if we have already received everything */
+            if( len_total == *recv_pos )
+                continue;
+
+            /* Pick random, nonempty share of the data still
+             * remaining to be received. */
+            recv_attempt = len_total - *recv_pos;
+            if( recv_attempt > 10 * (unsigned) allocator_buffer_sz )
+                recv_attempt = 10 * (unsigned) allocator_buffer_sz;
+
+            recv_attempt = ( recv_attempt * ( ( rand() % 10 ) + 1 ) ) / 100;
+
+            if( recv_attempt == 0 )
+                recv_attempt = 1;
+
+            /* Attempt to fetch the data.
+             * Layer 1 never returns less than the requested amount
+             * to the user; instead, if the read cannot be fulfilled
+             * in its entirety, WANT_READ is returned, and one should
+             * retry later. */
+            ret = mps_l1_fetch( actor, &recv_src_buf, recv_attempt );
+            TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_READ ||
+                         ( recv_attempt > (unsigned) allocator_buffer_sz &&
+                           ret == MPS_ERR_BUFFER_TOO_SMALL ) );
+            if( ret != 0 )
+                continue;
+
+            /* Randomly decide to ignore (and re-read on the next occasion)
+             * the fetched contents. */
+            if( rand() & 1 )
+                continue;
+
+            /* Request was successful; copy data to local buffer
+             * and notify Layer 1 that it is fully consumed. */
+            memcpy( recv_dst_buf + *recv_pos, recv_src_buf, recv_attempt );
+            TEST_ASSERT( mps_l1_consume( actor ) == 0 );
+
+            *recv_pos += recv_attempt;
+        }
+    }
+
+    /* Ensure that both parties have observed the same communication. */
+    TEST_ASSERT( memcmp( c2s_recv_buffer, s2c_send_buffer, len_total ) == 0 );
+    TEST_ASSERT( memcmp( s2c_recv_buffer, c2s_send_buffer, len_total ) == 0 );
+
+    TEST_ASSERT( mps_l1_free( &cli ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv ) == 0 );
+
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+
+    layer0_free( &s2c );
+    layer0_free( &c2s );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L1 */
+void mbedtls_mps_l1_random_communication_dgram( int max_dgram_size )
+{
+    int ret;
+    mps_alloc cli_alloc, srv_alloc;
+    mps_l1 cli, srv;
+
+    /* This test exercises a random of way for a client and server
+     * to send and receive a fixed amount of data through Layer 1.
+     *
+     * - The send buffers xxx_send_buffer hold what each side wants to transmit,
+     *   and xxx_send_pos indicates what has already been dispatched to layer 1.
+     *
+     * - The receive buffers xxx_recv_buffer store what has already been fetched
+     *   from layer 1, with xxx_recv_pos indicating the current read position.
+     *
+     * NOTE: This test uses rand() for random data, which is not optimal.
+     *       Instead, it would be better to get the random data from a
+     *       static buffer. This both eases reproducibility and allows
+     *       simple conversion to a fuzz target.
+     */
+
+    size_t len_total = 10000;
+    unsigned char c2s_send_buffer[10000];
+    unsigned char c2s_recv_buffer[10000];
+    unsigned char s2c_send_buffer[10000];
+    unsigned char s2c_recv_buffer[10000];
+    size_t c2s_send_pos = 0, s2c_send_pos = 0;
+    size_t c2s_recv_pos = 0, s2c_recv_pos = 0;
+
+    /* This probably needs to be changed because we want
+     * our tests to be deterministic. */
+    srand( time( NULL ) );
+
+    /* Initialize Layer 0 mock objects */
+    TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
+    TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, max_dgram_size );
+    mps_alloc_init( &srv_alloc, max_dgram_size );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli, MPS_L1_MODE_DGRAM, &cli_alloc,
+                              layer0_dgram_write_cli,
+                              layer0_dgram_read_cli ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv, MPS_L1_MODE_DGRAM, &srv_alloc,
+                              layer0_dgram_write_srv,
+                              layer0_dgram_read_srv ) == 0 );
+
+    /* Generate the random content to be exchanged */
+    TEST_ASSERT( mbedtls_test_rnd_std_rand( NULL, c2s_send_buffer,
+                               sizeof( c2s_send_buffer ) ) == 0 );
+    TEST_ASSERT( mbedtls_test_rnd_std_rand( NULL, s2c_send_buffer,
+                               sizeof( s2c_send_buffer ) ) == 0 );
+
+    /* Loop as long as at least client or server haven't completed
+     * receiving or sending. */
+    while( c2s_send_pos < len_total || c2s_recv_pos < len_total ||
+           s2c_send_pos < len_total || s2c_recv_pos < len_total )
+    {
+        /* Point to the respective variables for client/server,
+         * depending on the random choice of actor in this round. */
+        mps_l1 *actor;
+        unsigned char *recv_dst_buf, *send_src_buf;
+        unsigned char *send_dst_buf, *recv_src_buf;
+        size_t *send_pos, *recv_pos;
+        /* Randomly choose between server and client */
+        if( rand() & 1 )
+        {
+            actor = &cli;
+            send_pos = &c2s_send_pos;
+            recv_pos = &c2s_recv_pos;
+            recv_dst_buf = c2s_recv_buffer;
+            send_src_buf = c2s_send_buffer;
+        }
+        else
+        {
+            actor = &srv;
+            send_pos = &s2c_send_pos;
+            recv_pos = &s2c_recv_pos;
+            recv_dst_buf = s2c_recv_buffer;
+            send_src_buf = s2c_send_buffer;
+        }
+
+        /* Choose between sending and receiving */
+        if( rand() & 1 )
+        {
+            /* Sending */
+            size_t send_attempt;
+            size_t send_dst_len;
+
+            /* Once we have dispatched everything, only call flush.
+             * And even if we have more to dispatch, call flush randomly. */
+            if( len_total == *send_pos || rand() % 4 )
+            {
+                ret = mps_l1_flush( actor );
+                TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_WRITE );
+                continue;
+            }
+
+            /* Request write-buffer from Layer 1
+             * It might be that the request is not successful because
+             * data is pending to be flushed first; in this case, skip
+             * the step for now. */
+            ret = mps_l1_write( actor, &send_dst_buf, &send_dst_len );
+            TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_WRITE );
+            if( ret != 0 )
+                continue;
+
+            /* Pick a random, nonempty percentage of the remaining data
+             * to be sent and copy it into the write-buffer */
+            if( send_dst_len > len_total - *send_pos )
+                send_dst_len = len_total - *send_pos;
+            send_attempt = ( send_dst_len * ( ( rand() % 25 ) + 1 ) ) / 100;
+            if( send_attempt == 0 )
+                send_attempt = 1;
+            memcpy( send_dst_buf, send_src_buf + *send_pos, send_attempt );
+
+            /* Transfer data to Layer 1 -- note that this does not
+             * necessarily immediately transfer the data to Layer 0. */
+            ret = mps_l1_dispatch( actor, send_attempt );
+            TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_WRITE );
+
+            *send_pos += send_attempt;
+        }
+        else
+        {
+            /* Receiving */
+            size_t recv_attempt;
+
+            /* Skip this if we have already received everything */
+            if( len_total == *recv_pos )
+                continue;
+
+            /* Pick random, nonempty share of the data still
+             * remaining to be received. */
+            recv_attempt = len_total - *recv_pos;
+            if( recv_attempt > 10 * (unsigned) max_dgram_size )
+                recv_attempt = 10 * (unsigned) max_dgram_size;
+
+            recv_attempt = ( recv_attempt * ( ( rand() % 10 ) + 1 ) ) / 100;
+
+            if( recv_attempt == 0 )
+                recv_attempt = 1;
+
+            /* Attempt to fetch the data.
+             * Layer 1 never returns less than the requested amount
+             * to the user; instead, if the read cannot be fulfilled
+             * in its entirety, WANT_READ is returned, and one should
+             * retry later. */
+            ret = mps_l1_fetch( actor, &recv_src_buf, recv_attempt );
+            TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_READ ||
+                         ( recv_attempt > (unsigned) max_dgram_size &&
+                           ret == MPS_ERR_BUFFER_TOO_SMALL ) );
+            if( ret != 0 )
+                continue;
+
+            /* Randomly decide to ignore (and re-read on the next occasion)
+             * the fetched contents. */
+            if( rand() & 1 )
+                continue;
+
+            /* Request was successful; copy data to local buffer
+             * and notify Layer 1 that it is fully consumed. */
+            memcpy( recv_dst_buf + *recv_pos, recv_src_buf, recv_attempt );
+            TEST_ASSERT( mps_l1_consume( actor ) == 0 );
+
+            *recv_pos += recv_attempt;
+        }
+    }
+
+    /* Ensure that both parties have observed the same communication. */
+    TEST_ASSERT( memcmp( c2s_recv_buffer, s2c_send_buffer, len_total ) == 0 );
+    TEST_ASSERT( memcmp( s2c_recv_buffer, c2s_send_buffer, len_total ) == 0 );
+
+    TEST_ASSERT( mps_l1_free( &cli ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv ) == 0 );
+
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+
+    layer0_dgram_free( &s2c_d );
+    layer0_dgram_free( &c2s_d );
 }
 /* END_CASE */

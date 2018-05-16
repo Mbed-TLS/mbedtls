@@ -189,3 +189,61 @@ mbedtls_mps_writer_random_usage:10000:100:100:50
 
 MPS Writer: Random usage #2
 mbedtls_mps_writer_random_usage:10000:100:50:100
+
+MPS Layer 1: Single chunk send and receive
+mbedtls_mps_l1_basic:0:0:0:0
+
+MPS Layer 1: Multiple chunk send, single chunk receive
+mbedtls_mps_l1_basic:1:0:0:0
+
+MPS Layer 1: Multiple chunk send & flush, single chunk receive
+mbedtls_mps_l1_basic:1:1:0:0
+
+MPS Layer 1: Single chunk send, multiple chunk receive
+mbedtls_mps_l1_basic:0:0:1:1
+
+MPS Layer 1: Single chunk send, multiple chunk receive no comsume
+mbedtls_mps_l1_basic:0:0:1:0
+
+MPS Layer 1: Multiple chunk send, multiple chunk receive
+mbedtls_mps_l1_basic:1:0:1:1
+
+MPS Layer 1: Multiple chunk send & flush, multiple chunk receive
+mbedtls_mps_l1_basic:1:1:1:1
+
+MPS Layer 1: Underlying stream transport isn't ready to send #0
+mbedtls_mps_l1_want_write:0:0
+
+MPS Layer 1: Underlying stream transport isn't ready to send #1
+mbedtls_mps_l1_want_write:1:0
+
+MPS Layer 1: Underlying stream transport isn't ready to send #2
+mbedtls_mps_l1_want_write:1:0
+
+MPS Layer 1: Underlying stream transport isn't ready to send #3
+mbedtls_mps_l1_want_write:1:1
+
+MPS Layer 1: Request more data than fits into internal buffer
+mbedtls_mps_l1_overly_large_request:
+
+MPS Layer 1 Random Communication #1 (Alloc 1k, L0 1kb)
+mbedtls_mps_l1_random_communication:1024:1024:
+
+MPS Layer 1 Random Communication #2 (Alloc 128b, L0 1kb)
+mbedtls_mps_l1_random_communication:128:1024:
+
+MPS Layer 1 Random Communication #3 (Alloc 3b, L0 1kb)
+mbedtls_mps_l1_random_communication:3:1024:
+
+MPS Layer 1 Random Communication #4 (Alloc 1kb, L0 128b)
+mbedtls_mps_l1_random_communication:1024:128:
+
+MPS Layer 1 Random Communication #5 (Alloc 1kb, L0 1b)
+mbedtls_mps_l1_random_communication:1024:1:
+
+MPS Layer 1 Random Communication #6 (Alloc 128b, L0 64b)
+mbedtls_mps_l1_random_communication:128:65:
+
+MPS Layer 1 Random Communication #7 (Alloc 1b, L0 1b)
+mbedtls_mps_l1_random_communication:1:1:
+>>>>>>> 5ebf917... MPS: Test Layer 1

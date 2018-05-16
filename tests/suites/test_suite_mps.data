@@ -246,4 +246,66 @@ mbedtls_mps_l1_random_communication:128:65:
 
 MPS Layer 1 Random Communication #7 (Alloc 1b, L0 1b)
 mbedtls_mps_l1_random_communication:1:1:
->>>>>>> 5ebf917... MPS: Test Layer 1
+
+MPS Layer 2: Exchange of messages of two types, fake transform
+mbedtls_mps_l2_basic:100:300:20:0
+
+MPS Layer 2: Exchange of messages of two types, empty, fake transform
+mbedtls_mps_l2_basic:100:300:0:0
+
+MPS Layer 2: Exchange of messages of two types, real transform
+mbedtls_mps_l2_basic:100:300:20:1
+
+MPS Layer 2: Exchange of messages of two types, empty, real transform
+mbedtls_mps_l2_basic:100:300:0:1
+
+MPS Layer 2: Exchange of messages of two types, with pausing
+mbedtls_mps_l2_pausing:100:300:0:1
+
+MPS Layer 2: Exchange of messages of two types, with pausing, accumulator too small
+mbedtls_mps_l2_pausing:100:300:1:1
+
+MPS Layer 2: Exchange of messages of two types, with pausing, type not pausable
+mbedtls_mps_l2_pausing:100:300:0:1
+
+MPS Layer 2: Exchange of messages of two types, with pausing, accumulator too small and type not pausable
+mbedtls_mps_l2_pausing:100:300:1:0
+
+MPS Layer 2: Exchange of single large message, with queueing
+mbedtls_mps_l2_queueing:100:20000:1000:1
+
+MPS Layer 2: Exchange of single large message, with queueing, non-pausable for sender
+mbedtls_mps_l2_queueing:100:20000:1000:0
+
+MPS Layer 2: Exchange of messages of two types and two epochs, fake transforms
+mbedtls_mps_l2_switch_epoch:100:100:0
+
+MPS Layer 2: Exchange of messages of two types and two epochs, real transforms
+mbedtls_mps_l2_switch_epoch:200:1000:1
+
+MPS Layer 2: Exchange of messages of two types, many epochs, fake transforms
+mbedtls_mps_l2_many_epochs:200:20000:100:0
+
+MPS Layer 2: Exchange of messages of two types, many epochs, real transforms
+mbedtls_mps_l2_many_epochs:200:20000:100:1
+
+MPS Layer 2: Random communication, fake transforms
+mbedtls_mps_l2_random:100:200:10:5:50:200:0:50:50
+
+MPS Layer 2: Random communication, fake transforms, small records
+mbedtls_mps_l2_random:36:200:10:5:10:100:0:50:50
+
+MPS Layer 2: Random communication, real transforms
+mbedtls_mps_l2_random:100:200:10:5:50:200:1:50:50
+
+MPS Layer 2: Random communication, real transforms, small records
+mbedtls_mps_l2_random:70:200:6:5:10:100:1:50:50
+
+MPS Layer 2: Random communication, real transforms, small records, 1-byte Layer 0
+mbedtls_mps_l2_random:70:1:6:5:10:100:1:50:50
+
+MPS Layer 2: Random communication, real transforms, big records
+mbedtls_mps_l2_random:1000:200:20:5:10:1000:1:50:50
+
+MPS Layer 2: Random communication, real transforms, big records, 1-byte Layer 0
+mbedtls_mps_l2_random:1000:1:5:5:10:1000:1:50:50

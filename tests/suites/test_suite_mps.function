@@ -10,6 +10,7 @@
 #include "../include/mbedtls/mps/reader.h"
 #include "../include/mbedtls/mps/writer.h"
 #include "../include/mbedtls/mps/layer1.h"
+#include "../include/mbedtls/mps/layer2.h"
 
 /*
  * Compile-time configuration for test suite.
@@ -23,8 +24,43 @@
 #define TEST_SUITE_MPS_READER
 #define TEST_SUITE_MPS_WRITER
 #define TEST_SUITE_MPS_L1
+#define TEST_SUITE_MPS_L2
+
+/* Comment/Uncomment this to disable/enable the testing
+ * of the production SSL record transformations as implemented
+ * in ssl_decrypt_buf and ssl_encrypt_buf.
+ *
+ * Apart from this dependency, the MPS is entirely
+ * independent of the rest of Mbed TLS and this suite
+ * can be run standalone. */
+//#define TEST_SUITE_MPS_NO_SSL
+
+/* The sizes of the accumulator/queue used by the
+ * readers/writers in Layer 2.
+ *
+ * These are passed as `max_read` and `max_write`
+ * in `l2_init()`; see the documentation of the latter
+ * for how they manifest as semantic guarantees on
+ * the Layer 2 API boundary.
+ */
+#define L2_DEFAULT_ACCUMULATOR_SIZE 100
+#define L2_DEFAULT_QUEUE_SIZE       10
 
 /* End of compile-time configuration. */
+
+#if !defined(TEST_SUITE_MPS_NO_SSL)
+#include "../include/mbedtls/ssl_internal.h"
+#endif
+
+/* Currently, the real record transformation functions
+ * ssl_decrypt_buf and ssl_encrypt_buf use debugging macros
+ * which depend on a properly configured SSL context
+ * to be setup. Currently, we don't setup such a context
+ * here, hence we cannot use real transforms if DEBUG_C
+ * is set. */
+#if !defined(TEST_SUITE_MPS_NO_SSL) && defined(MBEDTLS_DEBUG_C)
+#error Real record transformations can only be tested without MBEDTLS_DEBUG_C!
+#endif
 
 /*
  *
@@ -281,6 +317,616 @@ int layer0_dgram_read_srv( unsigned char *dst, unsigned long size )
 int layer0_dgram_read_cli( unsigned char *dst, unsigned long size )
 {
     return layer0_dgram_read( &s2c_d, dst, size );
+}
+
+/*
+ *
+ * Helper structures for Layer 2 testing
+ *
+ * Layer 2 interfaces with the following components:
+ * (1) A layer 1 implementation
+ * (2) An implementation of record payload protection
+ * (2) Heap allocator: Currently, space for accumulators
+ *     and queues are obtained by malloc/free -- at some
+ *     point we might want to handle this through the
+ *     the allocator that's also used by Layer 1.
+ *
+ * Currently, we have no Layer 1 mock object, so the
+ * Layer 2 testing uses the production-implementation of
+ * Layer 1.
+ *
+ * For record payload protection, we define a mock
+ * implementation (not encrypting anything, but adding
+ * some pre- and post-padding) to be able to test MPS
+ * independently of the other parts of Mbed TLS.
+ *
+ */
+
+/* This structure is used for Layer 2 random testing
+ * and represents a typed chunk of data to be sent
+ * and received through Layer 2. */
+typedef struct
+{
+    uint8_t type;
+    unsigned char *buf;
+    size_t len;
+    size_t send_progress;
+    size_t read_progress;
+} typed_data_chunk;
+
+/*
+ * Mock object for record payload protection
+ *
+ * This mock record transformation does the either nothing or the following:
+ * 1. Add a fixed length 0-1-2-...-x-padding at the beginning of the plaintext.
+ * 2. Add a random length 1-0-...-0-padding at the end of the plaintext.
+ * 3. Add record sequence number and epoch at the beginning of the
+ *    plaintext (after the pre-padding).
+ */
+
+typedef struct
+{
+    size_t enabled; /* 0: Do nothing, 1: Transform as described above */
+    size_t pad;
+} mbedtls_transform_mock_t;
+
+/*
+ * Transform multiplexing mock record payload protection
+ * and real payload protection.
+ */
+struct mbedtls_mps_transform_t
+{
+    uint8_t type; /* 0: mock, 1: real */
+    mbedtls_transform_mock_t mock;
+#if !defined(TEST_SUITE_MPS_NO_SSL)
+    mbedtls_ssl_transform real;
+#endif
+};
+
+static void write_version( int major, int minor, int transport,
+                           unsigned char ver[2] )
+{
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        if( minor == MBEDTLS_SSL_MINOR_VERSION_2 )
+            --minor; /* DTLS 1.0 stored as TLS 1.1 internally */
+
+        ver[0] = (unsigned char)( 255 - ( major - 2 ) );
+        ver[1] = (unsigned char)( 255 - ( minor - 1 ) );
+    }
+    else
+#else
+    ((void) transport);
+#endif
+    {
+        ver[0] = (unsigned char) major;
+        ver[1] = (unsigned char) minor;
+    }
+}
+
+static void read_version( int *major, int *minor, int transport,
+                          const unsigned char ver[2] )
+{
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        *major = 255 - ver[0] + 2;
+        *minor = 255 - ver[1] + 1;
+
+        if( *minor == MBEDTLS_SSL_MINOR_VERSION_1 )
+            ++*minor; /* DTLS 1.0 stored as TLS 1.1 internally */
+    }
+    else
+#else
+    ((void) transport);
+#endif
+    {
+        *major = ver[0];
+        *minor = ver[1];
+    }
+}
+
+#define CHK( x )                                \
+    do                                          \
+    {                                           \
+        if( !( x ) )                            \
+            return( 1 );                        \
+    } while( 0 )
+
+
+/*
+ * Create pairs of matching incoming/outgoing record transformations
+ * given the type of cipher, the hash to use, as well as flags indicating
+ * the use of Encrypt-Then-MAC, truncated authentication tags, and the
+ * TLS version.
+ */
+#if !defined(TEST_SUITE_MPS_NO_SSL)
+static int build_transforms( mbedtls_ssl_transform *t_in,
+                             mbedtls_ssl_transform *t_out,
+                             int cipher_type, int hash_id,
+                             int etm, int tag_mode, int ver,
+                             int (*f_rng)(void *, unsigned char *, size_t),
+                             void *p_rng )
+{
+    mbedtls_cipher_info_t const *cipher_info;
+    mbedtls_md_info_t const *md_info;
+
+    size_t keylen, maclen, ivlen;
+    unsigned char *key0, *key1, *md0, *md1;
+    unsigned char iv_enc[16], iv_dec[16];
+
+    /* Pick cipher */
+    cipher_info = mbedtls_cipher_info_from_type( cipher_type );
+    CHK( cipher_info != NULL );
+    CHK( cipher_info->iv_size <= 16 );
+    CHK( cipher_info->key_bitlen % 8 == 0 );
+
+    /* Pick keys */
+    keylen = cipher_info->key_bitlen / 8;
+    CHK( ( key0 = malloc( keylen ) ) != NULL );
+    CHK( ( key1 = malloc( keylen ) ) != NULL );
+
+    f_rng( p_rng, key0, keylen );
+    f_rng( p_rng, key1, keylen );
+
+    /* Pick hash */
+    md_info = mbedtls_md_info_from_type( hash_id );
+    CHK( md_info != NULL );
+
+    /* Pick hash keys */
+    maclen = mbedtls_md_get_size( md_info );
+    CHK( ( md0 = malloc( maclen ) ) != NULL );
+    CHK( ( md1 = malloc( maclen ) ) != NULL );
+    f_rng( p_rng, md0, maclen );
+    f_rng( p_rng, md1, maclen );
+
+    /* Pick IV's (regardless of whether they
+     * are being used by the transform). */
+    ivlen = cipher_info->iv_size;
+    f_rng( p_rng, iv_enc, sizeof( iv_enc ) );
+    f_rng( p_rng, iv_dec, sizeof( iv_dec ) );
+
+    /*
+     * Setup transforms
+     */
+
+    t_out->encrypt_then_mac = etm;
+    t_in->encrypt_then_mac = etm;
+    t_out->minor_ver = ver;
+    t_in->minor_ver = ver;
+    t_out->ivlen = ivlen; /* redundant, must be iv size */
+    t_in->ivlen = ivlen;  /* redundant, must be iv size */
+
+    switch( cipher_info->mode )
+    {
+        case MBEDTLS_MODE_GCM:
+        case MBEDTLS_MODE_CCM:
+            t_out->fixed_ivlen = 4; /* redundant, must be 4 for AEAD */
+            t_in->fixed_ivlen = 4;  /* redundant, must be 4 for AEAD */
+            t_out->maclen = 0;
+            t_in->maclen = 0;
+            switch( tag_mode )
+            {
+                case 0: /* Full tag */
+                    t_out->taglen = 16;
+                    t_in->taglen = 16;
+                    break;
+                case 1: /* Partial tag */
+                    t_out->taglen = 8;
+                    t_in->taglen = 8;
+                    break;
+                default:
+                    return( 1 );
+            }
+            break;
+
+        case MBEDTLS_MODE_STREAM:
+        case MBEDTLS_MODE_CBC:
+            t_out->fixed_ivlen = 0; /* redundant, must be 0 */
+            t_in->fixed_ivlen = 0;  /* redundant, must be 0 */
+            t_out->taglen = 0;
+            t_in->taglen = 0;
+            switch( tag_mode )
+            {
+                case 0: /* Full tag */
+                    t_out->maclen = maclen;
+                    t_in->maclen = maclen;
+                    break;
+                case 1: /* Partial tag */
+                    t_out->maclen = maclen / 2;
+                    t_in->maclen = maclen / 2;
+                    break;
+                default:
+                    return( 1 );
+            }
+            break;
+        default:
+            return( 1 );
+            break;
+    }
+
+    /* Setup MAC contexts */
+
+    if( cipher_info->mode == MBEDTLS_MODE_CBC ||
+        cipher_info->mode == MBEDTLS_MODE_STREAM )
+    {
+        CHK( mbedtls_md_setup( &t_out->md_ctx_enc, md_info, 1 ) == 0 );
+        CHK( mbedtls_md_setup( &t_out->md_ctx_dec, md_info, 1 ) == 0 );
+        CHK( mbedtls_md_setup( &t_in->md_ctx_enc,  md_info, 1 ) == 0 );
+        CHK( mbedtls_md_setup( &t_in->md_ctx_dec,  md_info, 1 ) == 0 );
+
+        if( ver > MBEDTLS_SSL_MINOR_VERSION_0 )
+        {
+            CHK( mbedtls_md_hmac_starts( &t_in->md_ctx_enc,
+                                         md0, maclen ) == 0 );
+            CHK( mbedtls_md_hmac_starts( &t_in->md_ctx_dec,
+                                         md1, maclen ) == 0 );
+            CHK( mbedtls_md_hmac_starts( &t_out->md_ctx_enc,
+                                         md1, maclen ) == 0 );
+            CHK( mbedtls_md_hmac_starts( &t_out->md_ctx_dec,
+                                         md0, maclen ) == 0 );
+        }
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+        else
+        {
+            memcpy( &t_in->mac_enc, md0, maclen );
+            memcpy( &t_in->mac_dec, md1, maclen );
+            memcpy( &t_out->mac_enc, md1, maclen );
+            memcpy( &t_out->mac_dec, md0, maclen );
+        }
+#endif
+    }
+    free( md0 );
+    free( md1 );
+
+    /* Setup cipher contexts */
+
+    CHK( mbedtls_cipher_setup( &t_in->cipher_ctx_enc,  cipher_info ) == 0 );
+    CHK( mbedtls_cipher_setup( &t_in->cipher_ctx_dec,  cipher_info ) == 0 );
+    CHK( mbedtls_cipher_setup( &t_out->cipher_ctx_enc, cipher_info ) == 0 );
+    CHK( mbedtls_cipher_setup( &t_out->cipher_ctx_dec, cipher_info ) == 0 );
+
+    if( cipher_info->mode == MBEDTLS_MODE_CBC )
+    {
+        CHK( mbedtls_cipher_set_padding_mode( &t_in->cipher_ctx_enc,
+                                              MBEDTLS_PADDING_NONE ) == 0 );
+        CHK( mbedtls_cipher_set_padding_mode( &t_in->cipher_ctx_dec,
+                                              MBEDTLS_PADDING_NONE ) == 0 );
+        CHK( mbedtls_cipher_set_padding_mode( &t_out->cipher_ctx_enc,
+                                              MBEDTLS_PADDING_NONE ) == 0 );
+        CHK( mbedtls_cipher_set_padding_mode( &t_out->cipher_ctx_dec,
+                                              MBEDTLS_PADDING_NONE ) == 0 );
+    }
+
+    CHK( mbedtls_cipher_setkey( &t_in->cipher_ctx_enc, key0,
+                                keylen << 3, MBEDTLS_ENCRYPT ) == 0 );
+    CHK( mbedtls_cipher_setkey( &t_in->cipher_ctx_dec, key1,
+                                keylen << 3, MBEDTLS_DECRYPT ) == 0 );
+    CHK( mbedtls_cipher_setkey( &t_out->cipher_ctx_enc, key1,
+                                keylen << 3, MBEDTLS_ENCRYPT ) == 0 );
+    CHK( mbedtls_cipher_setkey( &t_out->cipher_ctx_dec, key0,
+                                keylen << 3, MBEDTLS_DECRYPT ) == 0 );
+    free( key0 );
+    free( key1 );
+
+    /* Setup IV's */
+
+    memcpy( &t_in->iv_dec, iv_dec, sizeof( iv_dec ) );
+    memcpy( &t_in->iv_enc, iv_enc, sizeof( iv_enc ) );
+    memcpy( &t_out->iv_dec, iv_enc, sizeof( iv_enc ) );
+    memcpy( &t_out->iv_enc, iv_dec, sizeof( iv_dec ) );
+
+    return( 0 );
+}
+#endif
+
+int transform_free( mbedtls_mps_transform_t *transform_ )
+{
+#if !defined(TEST_SUITE_MPS_NO_SSL)
+    if( transform_->type == 1 )
+    {
+        mbedtls_ssl_transform_free( &transform_->real );
+    }
+    else
+#else
+    ((void) transform_);
+#endif
+    {
+        /* No freeing necessary for mock transform */
+    }
+
+    return( 0 );
+}
+
+int transform_encrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec,
+                       int (*f_rng)(void *, unsigned char *, size_t),
+                       void *p_rng )
+{
+    size_t idx;
+    size_t pre_pad;
+    size_t post_pad;
+    mbedtls_transform_mock_t *transform;
+
+    /* Distinguish between our test-only mock transforms and
+     * the real record transformations used in [D]TLS. */
+
+    printf( "Transform %p\n", transform_ );
+
+#if !defined(TEST_SUITE_MPS_NO_SSL)
+    if( transform_->type == 1 )
+    {
+        /* Real transformation */
+
+        int ret;
+        mbedtls_ssl_transform *real = &transform_->real;
+        mbedtls_record rec_alt;
+
+        /* TEMPORARY:
+         * Convert between different versions of record structure.
+         * This needs to be uniformized at some point.
+         */
+
+        rec_alt.buf = rec->buf.buf;
+        rec_alt.buf_len = rec->buf.buf_len;
+        rec_alt.data_len = rec->buf.data_len;
+        rec_alt.data_offset = rec->buf.data_offset;
+        rec_alt.type = rec->type;
+        rec_alt.ctr[0] = ( rec->ctr >> 56 ) & 0xFF;
+        rec_alt.ctr[1] = ( rec->ctr >> 48 ) & 0xFF;
+        rec_alt.ctr[2] = ( rec->ctr >> 40 ) & 0xFF;
+        rec_alt.ctr[3] = ( rec->ctr >> 32 ) & 0xFF;
+        rec_alt.ctr[4] = ( rec->ctr >> 24 ) & 0xFF;
+        rec_alt.ctr[5] = ( rec->ctr >> 16 ) & 0xFF;
+        rec_alt.ctr[6] = ( rec->ctr >>  8 ) & 0xFF;
+        rec_alt.ctr[7] = ( rec->ctr >>  0 ) & 0xFF;
+        write_version( rec->major_ver, rec->minor_ver,
+                       MPS_L2_MODE_STREAM, &rec_alt.ver[0] );
+
+        printf( "Encrypt...\n" );
+        ret = ssl_encrypt_buf( NULL, real, &rec_alt, f_rng, p_rng );
+        if( ret != 0 )
+            return( ret );
+
+        rec->buf.data_offset = rec_alt.data_offset;
+        rec->buf.data_len = rec_alt.data_len;
+
+        return( 0 );
+    }
+#endif
+
+    /* Mock transformation */
+    ((void) p_rng);
+    ((void) f_rng);
+
+    transform = &transform_->mock;
+    if( transform->enabled == 0 )
+    {
+        /* Identity transformation */
+        return( 0 );
+    }
+
+//    srand( rand() % time( NULL ) );
+
+    /* Add record sequence number */
+    if( rec->buf.data_offset < sizeof( rec->ctr ) )
+        return( -1 );
+    rec->buf.data_offset -= sizeof( rec->ctr );
+    rec->buf.data_len += sizeof( rec->ctr );
+
+    memcpy( rec->buf.buf + rec->buf.data_offset, &rec->ctr, 8 );
+//    *((uint64_t*)( rec->buf.buf + rec->buf.data_offset )) = rec->ctr;
+
+    /* Add epoch */
+    if( rec->buf.data_offset < sizeof( rec->epoch ) )
+        return( -1 );
+    rec->buf.data_offset -= sizeof( rec->epoch );
+    rec->buf.data_len += sizeof( rec->epoch );
+    memcpy( rec->buf.buf + rec->buf.data_offset,
+            (unsigned char*) &rec->epoch, sizeof( rec->epoch ) );
+
+    /* Add pre-padding */
+    pre_pad = transform->pad;
+    if( rec->buf.data_offset < pre_pad )
+        return( -1 );
+    rec->buf.data_offset -= pre_pad;
+    rec->buf.data_len += pre_pad;
+    for( idx=0; idx < pre_pad; idx++ )
+        rec->buf.buf[ rec->buf.data_offset + idx ] = idx;
+
+    /* Add random post-padding */
+    post_pad = rand() % transform->pad;
+    rec->buf.buf[ rec->buf.data_len ] = 0x1;
+    memset( rec->buf.buf + rec->buf.data_len + 1, 0, post_pad );
+    rec->buf.data_len += post_pad + 1;
+
+    return( 0 );
+}
+
+int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
+{
+    size_t idx;
+    size_t pre_pad;
+    size_t post_pad;
+    uint8_t val;
+    uint64_t ctr;
+
+    mbedtls_transform_mock_t *transform;
+    transform = &transform_->mock;
+
+    /* Distinguish between our test-only mock transforms and
+     * the real record transformations used in [D]TLS. */
+
+#if !defined(TEST_SUITE_MPS_NO_SSL)
+    if( transform_->type == 1 )
+    {
+        /* Real transformations */
+
+        int ret;
+        mbedtls_ssl_transform *real = &transform_->real;
+        mbedtls_record rec_alt;
+
+        /* TEMPORARY:
+         * Convert between different versions of record structure.
+         * This needs to be uniformized at some point.
+         */
+
+        rec_alt.buf = rec->buf.buf;
+        rec_alt.buf_len = rec->buf.buf_len;
+        rec_alt.data_len = rec->buf.data_len;
+        rec_alt.data_offset = rec->buf.data_offset;
+        rec_alt.type = rec->type;
+        rec_alt.ctr[0] = ( rec->ctr >> 56 ) & 0xFF;
+        rec_alt.ctr[1] = ( rec->ctr >> 48 ) & 0xFF;
+        rec_alt.ctr[2] = ( rec->ctr >> 40 ) & 0xFF;
+        rec_alt.ctr[3] = ( rec->ctr >> 32 ) & 0xFF;
+        rec_alt.ctr[4] = ( rec->ctr >> 24 ) & 0xFF;
+        rec_alt.ctr[5] = ( rec->ctr >> 16 ) & 0xFF;
+        rec_alt.ctr[6] = ( rec->ctr >>  8 ) & 0xFF;
+        rec_alt.ctr[7] = ( rec->ctr >>  0 ) & 0xFF;
+        write_version( rec->major_ver, rec->minor_ver,
+                       MPS_L2_MODE_STREAM, &rec_alt.ver[0] );
+
+        ret = ssl_decrypt_buf( NULL, real, &rec_alt );
+        if( ret != 0 )
+            return( ret );
+
+        rec->buf.data_offset = rec_alt.data_offset;
+        rec->buf.data_len = rec_alt.data_len;
+
+        return( 0 );
+    }
+#endif
+
+    /* Mock transformations */
+
+    printf( "Decryption, %p\n", transform );
+    if( rec->buf.data_offset != 0 )
+    {
+        printf( "BAD OFFSET!\n" );
+        return( -1 );
+    }
+    if( transform->enabled == 0 )
+    {
+        /* Identity transformation */
+        return( 0 );
+    }
+
+    printf( "Decryption, padding %u\n", (unsigned) transform->pad );
+
+    /* Check pre-padding */
+    pre_pad = transform->pad;
+    if( rec->buf.data_len <= pre_pad )
+        return( -1 );
+    for( idx = 0; idx < pre_pad; idx++ )
+    {
+        if( rec->buf.buf[idx] != idx )
+        {
+            printf( "Bad pre-padding!\n" );
+            return( -1 );
+        }
+    }
+    rec->buf.data_offset = pre_pad;
+    rec->buf.data_len -= pre_pad;
+
+    /* Check post-padding */
+    for( idx = rec->buf.data_len - 1; idx > 0; idx-- )
+    {
+        val = rec->buf.buf[ rec->buf.data_offset + idx ];
+        if( val == 0 )
+            continue;
+        if( val != 1 )
+        {
+            printf( "Bad post-padding\n" );
+            return( -1 );
+        }
+        break;
+    }
+    val = rec->buf.buf[ rec->buf.data_offset + idx ];
+    if( val != 1 )
+        return( -1 );
+
+    post_pad = rec->buf.data_len - idx - 1;
+    if( post_pad >= transform->pad )
+        return( -1 );
+    printf( "Found post-padding %u\n", (unsigned) post_pad );
+    rec->buf.data_len -= post_pad + 1;
+
+    /* Check epoch */
+    if( rec->buf.data_len < sizeof( rec->epoch ) )
+        return( -1 );
+    if( memcmp( rec->buf.buf + rec->buf.data_offset,
+                (unsigned char*)&rec->epoch, sizeof( rec->epoch ) ) != 0 )
+        return( -1 );
+    rec->buf.data_offset += sizeof( rec->epoch );
+    rec->buf.data_len -= sizeof( rec->epoch );
+
+    /* Check sequence number */
+    if( rec->buf.data_len < sizeof( rec->ctr ) )
+        return( -1 );
+
+    memcpy( &ctr, rec->buf.buf + rec->buf.data_offset, 8 );
+//    ctr = *((uint64_t*)( rec->buf.buf + rec->buf.data_offset ));
+    if( ctr != rec->ctr )
+    {
+        printf( "Sequence number mismatch: Expected %u, got %u\n",
+                (unsigned) rec->ctr, (unsigned) ctr );
+        return( -1 );
+    }
+    rec->buf.data_offset += sizeof( rec->ctr );
+    rec->buf.data_len -= sizeof( rec->ctr );
+
+    return( 0 );
+}
+
+int transform_get_expansion( mbedtls_mps_transform_t *transform,
+                             size_t *pre_exp, size_t *post_exp )
+{
+#if !defined(TEST_SUITE_MPS_NO_SSL)
+    if( transform->type == 1 )
+    {
+        /* Real transformation */
+
+        /* For the moment copied from mbedtls_ssl_get_record_expansion */
+        *pre_exp = transform->real.ivlen - transform->real.fixed_ivlen;
+        printf( "Pre-expansion: %u\n", (unsigned) *pre_exp );
+        switch( mbedtls_cipher_get_cipher_mode(
+                    &transform->real.cipher_ctx_enc ) )
+        {
+            case MBEDTLS_MODE_GCM:
+            case MBEDTLS_MODE_CCM:
+            case MBEDTLS_MODE_STREAM:
+                *post_exp = transform->real.minlen;
+                break;
+
+            case MBEDTLS_MODE_CBC:
+                *post_exp = transform->real.maclen
+                    + mbedtls_cipher_get_block_size(
+                        &transform->real.cipher_ctx_enc );
+                break;
+
+            default:
+                return( -1 );
+        }
+
+        return( 0 );
+    }
+#endif
+
+    /* Mock transformations */
+
+    if( transform->mock.enabled == 0 )
+    {
+        /* Identity transform doesn't expand. */
+        *pre_exp = 0;
+        *post_exp = 0;
+        return( 0 );
+    }
+
+    *pre_exp = transform->mock.pad + sizeof( ((mps_rec*) NULL)->ctr ) +
+                                     sizeof( ((mps_rec*) NULL)->epoch );
+    *post_exp = transform->mock.pad;
+    return( 0 );
 }
 
 /* END_HEADER */
@@ -3079,5 +3725,1532 @@ void mbedtls_mps_l1_random_communication_dgram( int max_dgram_size )
 
     layer0_dgram_free( &s2c_d );
     layer0_dgram_free( &c2s_d );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
+void mbedtls_mps_l2_basic( int allocator_buffer_sz,
+                           int layer0_buffer_sz,
+                           int rec_sz,
+                           int real_transforms )
+{
+    /* This test exercises a client making two write-requests for different
+     * record content types to the server. It uses a single epoch, and the
+     * write requests are small enough so that they can be served by single
+     * records. */
+
+    size_t pre_exp, post_exp;
+
+    mps_alloc cli_alloc, srv_alloc;
+
+    /* Layer 1 objects */
+    mps_l1 cli_l1, srv_l1;
+
+    uint8_t const ty_A = 0;
+    uint8_t const ty_B = 1;
+    mbedtls_mps_epoch_id epoch_init = 0;
+
+    uint8_t *buf;
+    size_t sz;
+
+    /* Layer 2 objects */
+    mps_l2 cli, srv;
+    mps_l2_out out_cli;
+    mps_l2_in in_srv;
+
+    /* Dummy record transformations for epoch 0 */
+    mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
+    mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
+
+#if !defined(TEST_SUITE_MPS_NO_SSL)
+    if( real_transforms == 1 )
+    {
+        dummy_c->type = 1;
+        dummy_s->type = 1;
+        build_transforms( &dummy_c->real,
+                          &dummy_s->real,
+                          MBEDTLS_CIPHER_AES_128_CBC,
+                          MBEDTLS_MD_SHA1,
+                          1, 0, MBEDTLS_SSL_MINOR_VERSION_3,
+                          mbedtls_test_rnd_std_rand, NULL );
+    }
+    else
+#else
+    ((void) real_transforms);
+#endif
+    {
+        dummy_s->type = 0;
+        dummy_s->mock.enabled = 1;
+        dummy_s->mock.pad = 5;
+        dummy_c->type = 0;
+        dummy_c->mock.enabled = 1;
+        dummy_c->mock.pad = 5;
+    }
+
+    /* Ensure that the test parameters are valid */
+    TEST_ASSERT( rec_sz <= 20 );
+    TEST_ASSERT( transform_get_expansion( dummy_c, &pre_exp, &post_exp ) == 0 );
+    TEST_ASSERT( (unsigned) allocator_buffer_sz > 40 + pre_exp + post_exp );
+    TEST_ASSERT( transform_get_expansion( dummy_s, &pre_exp, &post_exp ) == 0 );
+    TEST_ASSERT( (unsigned) allocator_buffer_sz > 40 + pre_exp + post_exp );
+
+    /* Initialize Layer 0 mock objects */
+    layer0_bufsize = (size_t) layer0_buffer_sz;
+    TEST_ASSERT( layer0_init( &s2c ) == 0 );
+    TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, allocator_buffer_sz );
+    mps_alloc_init( &srv_alloc, allocator_buffer_sz );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
+                              layer0_write_cli, layer0_read_cli ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
+                              layer0_write_srv, layer0_read_srv ) == 0 );
+
+    /* Initialize and configure Layer 2 */
+    TEST_ASSERT( mps_l2_init( &cli, &cli_l1, MPS_L2_MODE_STREAM,
+                              0, 0, mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_init( &srv, &srv_l1, MPS_L2_MODE_STREAM,
+                              0, 0, mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &cli,
+                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &srv,
+                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A, 1, 1, 1 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_B, 1, 0, 1 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A, 1, 1, 1 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_B, 0, 1, 1 ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init, MPS_EPOCH_WRITE ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_add( &srv, dummy_s, &epoch_init ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_init, MPS_EPOCH_READ ) == 0 );
+
+    /*
+     * Client: Write something of type A to server
+     */
+
+    /* Step 1: Make record write request */
+    out_cli.type = ty_A;
+    out_cli.epoch = epoch_init;
+    TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+
+    /* Step 2: Request writer for record content */
+    TEST_ASSERT( mbedtls_writer_get( out_cli.wr, rec_sz, &buf, &sz ) == 0 );
+
+    /* Step 3: Write and commit contents through writer. */
+    TEST_ASSERT( sz == (unsigned) rec_sz );
+    for( uint8_t idx = 0; idx < sz; idx++ )
+        buf[idx] = idx;
+    TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+
+    /* Step 4: Finish record writing. */
+    TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+    TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
+
+    /*
+     * Client: Write something of type B to server
+     *
+     * This in particular exercises Layer 2 automatically
+     * closing the record for type A.
+     */
+
+    out_cli.type = ty_B;
+    out_cli.epoch = epoch_init;
+    TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+
+    TEST_ASSERT( mbedtls_writer_get( out_cli.wr, 2 * rec_sz, &buf, &sz ) == 0 );
+    TEST_ASSERT( sz == (unsigned) ( 2 * rec_sz ) );
+    for( uint8_t idx = 0; idx < sz; idx++ )
+        buf[idx] = ( sz - idx );
+    TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+
+    TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+    TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
+
+    /*
+     * Server: Read first record.
+     */
+
+    /* Step 1: Check for incoming data. */
+    TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
+
+    /* Step 2: Check for type and epoch. */
+    TEST_ASSERT( in_srv.epoch == epoch_init );
+    TEST_ASSERT( in_srv.type == ty_A );
+
+    /* Step 3: Request record contents from writer. */
+    TEST_ASSERT( mbedtls_reader_get( in_srv.rd, rec_sz, &buf, &sz ) == 0 );
+
+    /* Step 4: Process and commti record contents. */
+    TEST_ASSERT( sz == (unsigned) rec_sz );
+    for( uint8_t idx = 0; idx < sz; idx++ )
+        TEST_ASSERT( buf[idx] == idx );
+    TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
+
+    /* Step 5: Close record. */
+    TEST_ASSERT( mps_l2_read_done( &srv ) == 0 );
+
+    /*
+     * Server: Read second record.
+     */
+    TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
+    TEST_ASSERT( in_srv.epoch == epoch_init );
+    TEST_ASSERT( in_srv.type == ty_B );
+    TEST_ASSERT( mbedtls_reader_get( in_srv.rd, 2 * rec_sz, &buf, &sz ) == 0 );
+    TEST_ASSERT( sz == (unsigned) ( 2 * rec_sz ) );
+    for( uint8_t idx = 0; idx < sz; idx++ )
+        TEST_ASSERT( buf[idx] == ( sz - idx ) );
+    TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
+    TEST_ASSERT( mps_l2_read_done( &srv ) == 0 );
+
+exit:
+
+    /*
+     * Wrapup
+     */
+
+    TEST_ASSERT( mps_l2_free( &cli ) == 0 );
+    TEST_ASSERT( mps_l2_free( &srv ) == 0 );
+    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+    layer0_free( &s2c );
+    layer0_free( &c2s );
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
+void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
+                             int layer0_buffer_sz,
+                             int accumulator_too_small,
+                             int pausable_for_receiver )
+{
+    /* This test exercises the client making three write-requests of
+     * type A, B, A, respectively, which can be served through single
+     * records each. The server, however, attempts to read the contents
+     * of the two type-A records in a single go, and the reader's pausing
+     * functionality needs to be used to make that possible. */
+    int ret;
+
+    mps_alloc cli_alloc, srv_alloc;
+
+    /* Layer 1 objects */
+    mps_l1 cli_l1, srv_l1;
+
+    uint8_t const ty_A = 0;
+    uint8_t const ty_B = 1;
+    mbedtls_mps_epoch_id epoch_init = 0;
+
+    uint8_t *buf;
+    size_t sz;
+    size_t pre_exp, post_exp;
+
+    /* Layer 2 objects */
+    mps_l2 cli, srv;
+    mps_l2_out out_cli;
+    mps_l2_in in_srv;
+
+    /* The length of the two type A chunks the client sends.   */
+    size_t const msg_chunk_size_A = 40;
+    /* The length of the single type B chunk the client sends. */
+    size_t const msg_chunk_size_B = 40;
+
+    mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
+    mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
+    dummy_s->type = 0;
+    dummy_s->mock.enabled = 1;
+    dummy_s->mock.pad = 5;
+    dummy_c->type = 0;
+    dummy_c->mock.enabled = 1;
+    dummy_c->mock.pad = 5;
+
+    /* Ensure that the test parameters are valid */
+    TEST_ASSERT( transform_get_expansion( dummy_c, &pre_exp, &post_exp ) == 0 );
+    TEST_ASSERT( (unsigned) allocator_buffer_sz > 40 + pre_exp + post_exp );
+    TEST_ASSERT( transform_get_expansion( dummy_s, &pre_exp, &post_exp ) == 0 );
+    TEST_ASSERT( (unsigned) allocator_buffer_sz > 40 + pre_exp + post_exp );
+
+    /* Initialize Layer 0 mock objects */
+    layer0_bufsize = (size_t) layer0_buffer_sz;
+    TEST_ASSERT( layer0_init( &s2c ) == 0 );
+    TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, allocator_buffer_sz );
+    mps_alloc_init( &srv_alloc, allocator_buffer_sz );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
+                              layer0_write_cli, layer0_read_cli ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
+                              layer0_write_srv, layer0_read_srv ) == 0 );
+
+    /* Initialize and configure Layer 2 */
+    TEST_ASSERT( mps_l2_init( &cli, &cli_l1, MPS_L2_MODE_STREAM,
+       0 /* The client doesn't send anything -> no accumulator needed */,
+       0 /* The client doesn't need a queue */,
+       mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_init( &srv, &srv_l1, MPS_L2_MODE_STREAM,
+            msg_chunk_size_A - ( accumulator_too_small == 1 ),
+            0 /* Server doesn't send anything -> no queue needed. */,
+            mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &cli,
+                                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &srv,
+                                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A, 1, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_B, 0, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A, pausable_for_receiver == 1,
+                                         1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_B, 0, 1, 0 ) == 0 );
+
+    TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init, MPS_EPOCH_WRITE ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_add( &srv, dummy_s, &epoch_init ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_init, MPS_EPOCH_READ ) == 0 );
+
+    /*
+     * Client: Write something of type A to server
+     *
+     * The basic steps are as in the basic test mps_l2_basic above.
+     */
+
+    out_cli.type = ty_A;
+    out_cli.epoch = epoch_init;
+    TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+
+    TEST_ASSERT( mbedtls_writer_get( out_cli.wr, msg_chunk_size_A, &buf, &sz ) == 0 );
+
+    TEST_ASSERT( sz == msg_chunk_size_A );
+    for( uint8_t idx = 0; idx < sz; idx++ )
+        buf[idx] = idx;
+    TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+
+    TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+    TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
+
+    /*
+     * Client: Write something of type B to server
+     */
+
+    out_cli.type = ty_B;
+    out_cli.epoch = epoch_init;
+    TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( out_cli.wr, msg_chunk_size_B,
+                                     &buf, &sz ) == 0 );
+    TEST_ASSERT( sz == msg_chunk_size_B );
+    for( uint8_t idx = 0; idx < sz; idx++ )
+        buf[idx] = idx;
+    TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+    ret = mps_l2_write_done( &cli );
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
+
+    /*
+     * Client: Write more of type A to the server.
+     */
+
+    out_cli.type = ty_A;
+    out_cli.epoch = epoch_init;
+    TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+
+    TEST_ASSERT( mbedtls_writer_get( out_cli.wr, msg_chunk_size_A,
+                                     &buf, &sz ) == 0 );
+
+    TEST_ASSERT( sz == msg_chunk_size_A );
+    for( uint8_t idx = 0; idx < sz; idx++ )
+        buf[idx] = ( sz - idx );
+    TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+
+    TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+    TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
+
+    /*
+     * Server: Attempt to read across type-A record boundaries.
+     */
+
+    /* Open first type-A record. */
+    TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
+    TEST_ASSERT( in_srv.epoch == epoch_init );
+    TEST_ASSERT( in_srv.type == ty_A );
+    /* Read first half of first type-A record. */
+    TEST_ASSERT( mbedtls_reader_get( in_srv.rd, msg_chunk_size_A / 2,
+                                     &buf, &sz ) == 0 );
+    TEST_ASSERT( sz == msg_chunk_size_A / 2 );
+    for( uint8_t idx = 0; idx < sz; idx++ )
+        TEST_ASSERT( buf[idx] == idx );
+    TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
+    /* Attempt to read more, exceeding the record bounds. */
+    TEST_ASSERT( mbedtls_reader_get( in_srv.rd, msg_chunk_size_A,
+                                     &buf, NULL ) ==
+                 MBEDTLS_ERR_READER_OUT_OF_DATA );
+    /* Pause reading. */
+
+    TEST_ASSERT( mps_l2_read_done( &srv ) ==
+                 ( pausable_for_receiver == 0 ?
+                   MPS_ERR_TYPE_CANT_BE_PAUSED :
+                   ( accumulator_too_small == 1 ?
+                     MPS_ERR_PAUSE_REFUSED : 0 ) ) );
+    if( accumulator_too_small == 1 ||
+        pausable_for_receiver == 1 )
+        goto exit;
+
+    /* Open next record; turns out to be type-B. */
+    TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
+    TEST_ASSERT( in_srv.epoch == epoch_init );
+    TEST_ASSERT( in_srv.type == ty_B );
+    /* Read and process its entire contents. */
+    TEST_ASSERT( mbedtls_reader_get( in_srv.rd, msg_chunk_size_B,
+                                     &buf, &sz ) == 0 );
+    TEST_ASSERT( sz == msg_chunk_size_B );
+    for( uint8_t idx = 0; idx < sz; idx++ )
+        TEST_ASSERT( buf[idx] == idx );
+    TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
+    TEST_ASSERT( mps_l2_read_done( &srv ) == 0 );
+
+    /* Open the type-A stream again and retry the request
+     * that failed last time. */
+    TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
+    TEST_ASSERT( in_srv.epoch == epoch_init );
+    TEST_ASSERT( in_srv.type == ty_A );
+
+    /* ... now it should work thanks to the reader's pausing ability. */
+    TEST_ASSERT( mbedtls_reader_get( in_srv.rd, msg_chunk_size_A,
+                                     &buf, &sz ) == 0 );
+
+    TEST_ASSERT( sz == msg_chunk_size_A );
+    for( uint8_t idx = 0; idx < msg_chunk_size_A / 2; idx++ )
+        /* Should get last chunk of bytes of first type-A record ... */
+        TEST_ASSERT( buf[idx] == ( ( msg_chunk_size_A / 2 ) + idx ) );
+    for( uint8_t idx = 0; idx < msg_chunk_size_A / 2; idx++ )
+    {
+        /* ... and first chunk of bytes of second type-A record. */
+        TEST_ASSERT( buf[msg_chunk_size_A / 2 + idx] ==
+                     ( msg_chunk_size_A - idx ) );
+    }
+    TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
+    TEST_ASSERT( mps_l2_read_done( &srv ) == 0 );
+
+exit:
+
+    /*
+     * Wrapup
+     */
+    TEST_ASSERT( mps_l2_free( &cli ) == 0 );
+    TEST_ASSERT( mps_l2_free( &srv ) == 0 );
+    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+    layer0_free( &s2c );
+    layer0_free( &c2s );
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
+void mbedtls_mps_l2_switch_epoch( int allocator_buffer_sz,
+                                  int layer0_buffer_sz,
+                                  int real_transforms )
+{
+    /* This test exercises the client sending two records of different
+     * content types and epochs to the server. */
+    int ret;
+
+    mps_alloc cli_alloc, srv_alloc;
+
+    /* Layer 1 objects */
+    mps_l1 cli_l1, srv_l1;
+
+    uint8_t const ty_A = 0;
+    uint8_t const ty_B = 1;
+    mbedtls_mps_epoch_id epoch_init = 0;
+    mbedtls_mps_epoch_id epoch_crypt = 1;
+
+    uint8_t *buf;
+    size_t sz;
+
+    /* Layer 2 objects */
+    mps_l2 cli, srv;
+    mps_l2_out out_cli;
+    mps_l2_in in_srv;
+
+    mbedtls_mps_transform_t *epoch0_c = malloc( sizeof( mbedtls_mps_transform_t ) );
+    mbedtls_mps_transform_t *epoch1_c = malloc( sizeof( mbedtls_mps_transform_t ) );
+    mbedtls_mps_transform_t *epoch0_s = malloc( sizeof( mbedtls_mps_transform_t ) );
+    mbedtls_mps_transform_t *epoch1_s = malloc( sizeof( mbedtls_mps_transform_t ) );
+
+#if !defined(TEST_SUITE_MPS_NO_SSL)
+    if( real_transforms == 1 )
+    {
+        srand( 0 );
+        epoch0_c->type = 1;
+        epoch0_s->type = 1;
+        epoch1_c->type = 1;
+        epoch1_s->type = 1;
+        build_transforms( &epoch0_c->real,
+                          &epoch0_s->real,
+                          MBEDTLS_CIPHER_AES_128_CBC,
+                          MBEDTLS_MD_SHA256,
+                          0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
+                          mbedtls_test_rnd_std_rand, NULL );
+        build_transforms( &epoch1_c->real,
+                          &epoch1_s->real,
+                          MBEDTLS_CIPHER_AES_128_CBC,
+                          MBEDTLS_MD_SHA256,
+                          0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
+                          mbedtls_test_rnd_std_rand, NULL );
+    }
+    else
+#else
+    ((void) real_transforms);
+#endif
+    {
+        epoch0_c->type = 0;
+        epoch0_c->mock.enabled = 0;
+        epoch0_c->mock.pad = 0;
+        epoch1_c->type = 0;
+        epoch1_c->mock.enabled = 1;
+        epoch1_c->mock.pad = 5;
+        epoch0_s->type = 0;
+        epoch0_s->mock.enabled = 0;
+        epoch0_s->mock.pad = 0;
+        epoch1_s->type = 0;
+        epoch1_s->mock.enabled = 1;
+        epoch1_s->mock.pad = 5;
+    }
+
+    /* Initialize Layer 0 mock objects */
+    layer0_bufsize = (size_t) layer0_buffer_sz;
+    TEST_ASSERT( layer0_init( &s2c ) == 0 );
+    TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, allocator_buffer_sz );
+    mps_alloc_init( &srv_alloc, allocator_buffer_sz );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
+                              layer0_write_cli, layer0_read_cli ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
+                              layer0_write_srv, layer0_read_srv ) == 0 );
+
+    /* Initialize and configure Layer 2 */
+    TEST_ASSERT( mps_l2_init( &cli, &cli_l1, MPS_L2_MODE_STREAM,
+                              L2_DEFAULT_ACCUMULATOR_SIZE,
+                              L2_DEFAULT_QUEUE_SIZE,
+                              mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_init( &srv, &srv_l1, MPS_L2_MODE_STREAM,
+                              L2_DEFAULT_ACCUMULATOR_SIZE,
+                              L2_DEFAULT_QUEUE_SIZE,
+                              mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &cli,
+                                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &srv,
+                                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A, 1, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_B, 1, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A, 1, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_B, 1, 1, 0 ) == 0 );
+
+    TEST_ASSERT( mps_l2_epoch_add( &cli,  epoch0_c, &epoch_init ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_add( &srv,  epoch0_s, &epoch_init ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init, MPS_EPOCH_WRITE ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_init, MPS_EPOCH_READ  ) == 0 );
+
+    TEST_ASSERT( mps_l2_epoch_add( &cli, epoch1_c, &epoch_crypt ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_add( &srv, epoch1_s, &epoch_crypt ) == 0 );
+
+    /*
+     * Client: Write something of type A to server, using initial epoch
+     */
+
+    out_cli.type = ty_A;
+    out_cli.epoch = epoch_init;
+    ret = mps_l2_write_start( &cli, &out_cli );
+    if( ret != 0 )
+        printf( "l2_write_start returned %d\n", ret );
+    TEST_ASSERT( ret == 0 );
+
+    TEST_ASSERT( mbedtls_writer_get( out_cli.wr, 20, &buf, &sz ) == 0 );
+
+    TEST_ASSERT( sz == 20 );
+    for( uint8_t idx = 0; idx < sz; idx++ )
+        buf[idx] = idx;
+    TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+
+    TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+    TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
+
+    /*
+     * Client: Switch epochs
+     */
+    TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_crypt, MPS_EPOCH_WRITE ) == 0);
+
+    /*
+     * Client: Write something of type B to server, using new epoch
+     */
+
+    out_cli.type = ty_B;
+    out_cli.epoch = epoch_crypt;
+    TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+
+    TEST_ASSERT( mbedtls_writer_get( out_cli.wr, 20, &buf, &sz ) == 0 );
+
+    TEST_ASSERT( sz == 20 );
+    for( uint8_t idx = 0; idx < sz; idx++ )
+        buf[idx] = idx;
+    TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+
+    TEST_ASSERT( ( ret = mps_l2_write_done( &cli ) ) == 0 );
+    do {
+        ret = mps_l2_write_flush( &cli );
+        TEST_ASSERT( ret == MPS_ERR_WANT_WRITE || ret == 0 );
+    } while( ret != 0 );
+
+    /*
+     * Server: Read type-A record with initial epoch.
+     */
+
+    TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
+    TEST_ASSERT( in_srv.epoch == epoch_init );
+    TEST_ASSERT( in_srv.type == ty_A );
+
+    TEST_ASSERT( mbedtls_reader_get( in_srv.rd, 20, &buf, &sz ) == 0 );
+
+    TEST_ASSERT( sz == 20 );
+    for( uint8_t idx = 0; idx < sz; idx++ )
+        TEST_ASSERT( buf[idx] == idx );
+    TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
+
+    TEST_ASSERT( mps_l2_read_done( &srv ) == 0 );
+
+    /*
+     * Server: Switch epochs
+     */
+    TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_crypt, MPS_EPOCH_READ ) == 0 );
+
+    /*
+     * Server: Read type B record using new epoch.
+     */
+    TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
+    TEST_ASSERT( in_srv.epoch == epoch_crypt );
+    TEST_ASSERT( in_srv.type == ty_B );
+
+    TEST_ASSERT( mbedtls_reader_get( in_srv.rd, 20, &buf, &sz ) == 0 );
+
+    TEST_ASSERT( sz == 20 );
+    for( uint8_t idx = 0; idx < sz; idx++ )
+        TEST_ASSERT( buf[idx] == idx );
+    TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
+
+    TEST_ASSERT( mps_l2_read_done( &srv ) == 0 );
+
+exit:
+
+    /*
+     * Wrapup
+     */
+    TEST_ASSERT( mps_l2_free( &cli ) == 0 );
+    TEST_ASSERT( mps_l2_free( &srv ) == 0 );
+    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+    layer0_free( &s2c );
+    layer0_free( &c2s );
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
+void mbedtls_mps_l2_queueing( int allocator_buffer_sz,
+                              int layer0_buffer_sz,
+                              int msg_size,
+                              int pausable_for_sender )
+{
+    /* This test exercises the client making a write-request exceeding
+     * the internal maximum record size, and having Layer 2 and the
+     * writer doing the necessary fragmentation under the hood. */
+
+    mps_alloc cli_alloc, srv_alloc;
+
+    /* Layer 1 objects */
+    mps_l1 cli_l1, srv_l1;
+
+    uint8_t const ty_A = 0;
+    mbedtls_mps_epoch_id epoch_init = 1;
+
+    uint8_t *buf;
+    size_t sz;
+    size_t server_read_pos = 0;
+
+    /* Layer 2 objects */
+    mps_l2 cli, srv;
+    mps_l2_out out_cli;
+    mps_l2_in in_srv;
+    mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
+    mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
+    dummy_c->type = 0;
+    dummy_c->mock.enabled = 1;
+    dummy_c->mock.pad = 5;
+    dummy_s->type = 0;
+    dummy_s->mock.enabled = 1;
+    dummy_s->mock.pad = 5;
+
+    /* Initialize Layer 0 mock objects */
+    layer0_bufsize = (size_t) layer0_buffer_sz;
+    TEST_ASSERT( layer0_init( &s2c ) == 0 );
+    TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, allocator_buffer_sz );
+    mps_alloc_init( &srv_alloc, allocator_buffer_sz );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
+                              layer0_write_cli, layer0_read_cli ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
+                              layer0_write_srv, layer0_read_srv ) == 0 );
+
+    /* Initialize and configure Layer 2 */
+    TEST_ASSERT( mps_l2_init( &cli, &cli_l1, MPS_L2_MODE_STREAM,
+          0 /* The client doesn't read anything -> no accumulator needed */,
+          (size_t) msg_size /* Queue as big as the intended message size */,
+          mbedtls_test_rnd_std_rand,
+          NULL ) == 0 );
+    TEST_ASSERT( mps_l2_init( &srv, &srv_l1, MPS_L2_MODE_STREAM,
+             0 /* The server accepts any chunksize fo incoming data   */,
+             0 /* The server doesn't send anything -> no queue needed */,
+             mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &cli,
+                                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &srv,
+                                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A, pausable_for_sender == 1,
+                                         1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A, 0, 1, 0 ) == 0 );
+
+    TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init, MPS_EPOCH_WRITE ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_add( &srv, dummy_s, &epoch_init ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_init, MPS_EPOCH_READ ) == 0 );
+
+    /*
+     * Client: Request a large write of type A to server, so
+     *         that the writer will need to use its queue.
+     */
+
+    out_cli.type = ty_A;
+    out_cli.epoch = epoch_init;
+    TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+
+    if( pausable_for_sender == 0 )
+    {
+        TEST_ASSERT( mbedtls_writer_get( out_cli.wr, (size_t) msg_size,
+                                         &buf, NULL ) ==
+                     MBEDTLS_ERR_WRITER_OUT_OF_DATA );
+        goto exit;
+    }
+
+    TEST_ASSERT( mbedtls_writer_get( out_cli.wr, (size_t) msg_size,
+                                     &buf, NULL ) == 0 );
+    for( unsigned idx = 0; idx < (size_t) msg_size; idx++ )
+        buf[idx] = (uint8_t) idx;
+    TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+
+    TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+    TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
+
+    /*
+     * Server: Read type-A data.
+     *
+     * The large client write will have been split into multiple records,
+     * so several iterations are necessary.
+     */
+    while( server_read_pos < (size_t) msg_size )
+    {
+        TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
+        TEST_ASSERT( in_srv.epoch == epoch_init );
+        TEST_ASSERT( in_srv.type == ty_A );
+        TEST_ASSERT( mbedtls_reader_get( in_srv.rd,
+                                         (size_t) msg_size - server_read_pos,
+                                         &buf, &sz ) == 0 );
+        for( uint8_t idx = 0; idx < sz; idx++ )
+            TEST_ASSERT( buf[idx] == (uint8_t) ( server_read_pos + idx ) );
+
+        server_read_pos += sz;
+        TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
+        TEST_ASSERT( mps_l2_read_done( &srv ) == 0 );
+    }
+
+exit:
+
+    /*
+     * Wrapup
+     */
+    TEST_ASSERT( mps_l2_free( &cli ) == 0 );
+    TEST_ASSERT( mps_l2_free( &srv ) == 0 );
+    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+    layer0_free( &s2c );
+    layer0_free( &c2s );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
+void mbedtls_mps_l2_many_epochs( int allocator_buffer_sz,
+                                 int layer0_buffer_sz,
+                                 int num_rounds,
+                                 int real_transforms )
+{
+    /* This test exercises the client repeatedly sending pairs of type-A
+     * and type-B records to the server, switching the epoch after each pair.
+     * This test is important to test epoch-window shifting, and also epoch
+     * overflow. */
+    int ret;
+
+    uint8_t const ty_A = 0;
+    uint8_t const ty_B = 1;
+
+    mps_alloc cli_alloc, srv_alloc;
+
+    /* Layer 1 objects */
+    mps_l1 cli_l1, srv_l1;
+
+    uint8_t *buf;
+    size_t sz;
+
+    /* Layer 2 objects */
+    mps_l2 cli, srv;
+    mps_l2_out out_cli;
+    mps_l2_in in_srv;
+
+    mbedtls_mps_epoch_id next_cli_epoch;
+    mbedtls_mps_epoch_id next_srv_epoch;
+
+    mbedtls_mps_transform_t **epochs_c = malloc( num_rounds *
+                                             sizeof( mbedtls_mps_transform_t ) );
+    mbedtls_mps_transform_t **epochs_s = malloc( num_rounds *
+                                             sizeof( mbedtls_mps_transform_t ) );
+    TEST_ASSERT( epochs_s != NULL && epochs_c != NULL );
+    for( size_t id=0; id < (unsigned) num_rounds; id++ )
+    {
+        epochs_c[id] = malloc( sizeof( mbedtls_mps_transform_t ) );
+        epochs_s[id] = malloc( sizeof( mbedtls_mps_transform_t ) );
+        TEST_ASSERT( epochs_s[id] != NULL && epochs_c[id] != NULL );
+
+#if !defined(TEST_SUITE_MPS_NO_SSL)
+        if( real_transforms == 1 )
+        {
+            srand( id );
+            epochs_c[id]->type = 1;
+            epochs_s[id]->type = 1;
+            build_transforms( &epochs_c[id]->real,
+                              &epochs_s[id]->real,
+                              MBEDTLS_CIPHER_AES_128_CBC,
+                              MBEDTLS_MD_SHA1,
+                              0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
+                              mbedtls_test_rnd_std_rand, NULL );
+        }
+        else
+#else
+    ((void) real_transforms);
+#endif
+        {
+            epochs_c[id]->type = 0;
+            epochs_c[id]->mock.enabled = ( id > 0 );
+            epochs_c[id]->mock.pad = id % 13 + 5;
+            epochs_s[id]->type = 0;
+            epochs_s[id]->mock.enabled = ( id > 0 );
+            epochs_s[id]->mock.pad = id % 13 + 5;
+        }
+    }
+
+    /* Initialize Layer 0 mock objects */
+    layer0_bufsize = (size_t) layer0_buffer_sz;
+    TEST_ASSERT( layer0_init( &s2c ) == 0 );
+    TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, allocator_buffer_sz );
+    mps_alloc_init( &srv_alloc, allocator_buffer_sz );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
+                              layer0_write_cli, layer0_read_cli ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
+                              layer0_write_srv, layer0_read_srv ) == 0 );
+
+    /* Initialize and configure Layer 2 */
+    TEST_ASSERT( mps_l2_init( &cli, &cli_l1, MPS_L2_MODE_STREAM,
+                              L2_DEFAULT_ACCUMULATOR_SIZE,
+                              L2_DEFAULT_QUEUE_SIZE,
+                              mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_init( &srv, &srv_l1, MPS_L2_MODE_STREAM,
+                              L2_DEFAULT_ACCUMULATOR_SIZE,
+                              L2_DEFAULT_QUEUE_SIZE,
+                              mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &cli,
+                                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &srv,
+                                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A, 1, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_B, 1, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A, 1, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_B, 1, 1, 0 ) == 0 );
+
+    TEST_ASSERT( mps_l2_epoch_add( &cli, epochs_c[0], &next_cli_epoch ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_add( &srv, epochs_s[0], &next_srv_epoch ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &cli, next_cli_epoch,
+                                     MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &srv, next_srv_epoch,
+                                     MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+
+    for( size_t rd=0; rd < (unsigned) num_rounds - 1; rd++ )
+    {
+        /*
+         * Client: Write something of type A to server
+         */
+
+        printf( "CLIENT ROUND %u\n", (unsigned) rd );
+
+        out_cli.type = ty_A;
+        out_cli.epoch = rd;
+        TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+
+        sz = 20;
+        TEST_ASSERT( mbedtls_writer_get( out_cli.wr, sz, &buf, NULL ) == 0 );
+        for( uint8_t idx = 0; idx < sz; idx++ )
+            buf[idx] = idx;
+        TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+
+        TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+
+        /*
+         * Client: Switch epoch
+         */
+
+        ret = mps_l2_epoch_add( &cli, epochs_c[rd + 1],
+                                &next_cli_epoch);
+        if( rd + 1 >= MPS_L2_LIMIT_EPOCH )
+        {
+            TEST_ASSERT( ret == MPS_ERR_EPOCH_OVERFLOW );
+            break;
+        }
+        else
+            TEST_ASSERT( ret == 0 );
+
+        TEST_ASSERT( mps_l2_epoch_usage( &cli, next_cli_epoch,
+                                MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+
+        /*
+         * Client: Write something of type B to server
+         * This exercises Layer 2 automatically closing the record for type A
+         */
+        out_cli.type = ty_B;
+        out_cli.epoch = rd + 1;
+        do {
+            ret = mps_l2_write_start( &cli, &out_cli );
+            TEST_ASSERT( ret == MPS_ERR_WANT_WRITE || ret == 0 );
+        } while( ret != 0 );
+        TEST_ASSERT( mbedtls_writer_get( out_cli.wr, sz, &buf, NULL ) == 0 );
+        for( uint8_t idx = 0; idx < sz; idx++ )
+            buf[idx] = idx;
+        TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+        ret = mps_l2_write_done( &cli );
+        TEST_ASSERT( ret == 0 );
+
+        do {
+            ret = mps_l2_write_flush( &cli );
+            TEST_ASSERT( ret == MPS_ERR_WANT_WRITE || ret == 0 );
+        } while( ret != 0 );
+
+        /*
+         * Server: Read first message
+         */
+        printf( "SERVER ROUND %u\n", (unsigned) rd );
+
+        while( 1 )
+        {
+            ret = mps_l2_read_start( &srv, &in_srv );
+            TEST_ASSERT( ret == MPS_ERR_WANT_READ || ret == 0 );
+            if( ret != 0 )
+                continue;
+            TEST_ASSERT( in_srv.epoch == (mbedtls_mps_epoch_id) rd );
+            TEST_ASSERT( in_srv.type == ty_A );
+
+            ret = mbedtls_reader_get( in_srv.rd, 20, &buf, NULL );
+            TEST_ASSERT( ret == MBEDTLS_ERR_READER_OUT_OF_DATA || ret == 0 );
+            if( ret == 0 )
+                for( uint8_t idx = 0; idx < 20; idx++ )
+                    TEST_ASSERT( buf[idx] == idx );
+
+            TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
+            TEST_ASSERT( mps_l2_read_done( &srv ) == 0 );
+            if( ret == 0 )
+                break;
+        }
+
+        /*
+         * Server: Switch epochs
+         */
+        TEST_ASSERT( mps_l2_epoch_add( &srv, epochs_s[rd + 1],
+                                       &next_srv_epoch ) == 0 );
+        TEST_ASSERT( mps_l2_epoch_usage( &srv, next_srv_epoch,
+                                MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+
+        /*
+         * Server: Read second message
+         */
+        while( 1 )
+        {
+            ret = mps_l2_read_start( &srv, &in_srv );
+            TEST_ASSERT( ret == MPS_ERR_WANT_READ || ret == 0 );
+            if( ret != 0 )
+                continue;
+
+            TEST_ASSERT( in_srv.epoch == (mbedtls_mps_epoch_id) ( rd + 1 ) );
+            TEST_ASSERT( in_srv.type == ty_B );
+
+            ret = mbedtls_reader_get( in_srv.rd, 20, &buf, NULL );
+            TEST_ASSERT( ret == MBEDTLS_ERR_READER_OUT_OF_DATA || ret == 0 );
+            if( ret == 0 )
+                for( uint8_t idx = 0; idx < 20; idx++ )
+                    TEST_ASSERT( buf[idx] == idx );
+
+            TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
+            TEST_ASSERT( mps_l2_read_done( &srv ) == 0 );
+            if( ret == 0 )
+                break;
+        }
+    }
+
+exit:
+
+    /*
+     * Wrapup
+     */
+    TEST_ASSERT( mps_l2_free( &cli ) == 0 );
+    TEST_ASSERT( mps_l2_free( &srv ) == 0 );
+    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+    layer0_free( &s2c );
+    layer0_free( &c2s );
+
+    free( epochs_s );
+    free( epochs_c );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
+void mbedtls_mps_l2_random( int allocator_buffer_sz,
+                            int layer0_buffer_sz,
+                            int num_epochs,
+                            int num_types,
+                            int num_chunks,
+                            int max_chunk,
+                            int real_transforms,
+                            int write_probability,
+                            int flush_probability )
+{
+    int ret;
+
+    mps_alloc cli_alloc, srv_alloc;
+
+    /* Layer 1 objects */
+    mps_l1 cli_l1, srv_l1;
+
+    uint8_t *buf;
+
+    /* Layer 2 objects */
+    mps_l2 endpoint[2];
+
+    typed_data_chunk **chunks[2];
+    size_t *chunks_per_epoch[2];
+    mbedtls_mps_transform_t **epochs[2];
+    mbedtls_mps_epoch_id read_epoch[2];
+    mbedtls_mps_epoch_id write_epoch[2];
+    size_t read_chunk[2];
+    size_t write_chunk[2];
+
+    mbedtls_mps_epoch_id latest_epoch[2];
+
+    epochs[0] = malloc( num_epochs * sizeof( mbedtls_mps_transform_t ) );
+    epochs[1] = malloc( num_epochs * sizeof( mbedtls_mps_transform_t ) );
+    chunks[0] = malloc( num_epochs * sizeof( typed_data_chunk* ) );
+    chunks[1] = malloc( num_epochs * sizeof( typed_data_chunk* ) );
+    chunks_per_epoch[0] = malloc( num_epochs * sizeof( size_t ) );
+    chunks_per_epoch[1] = malloc( num_epochs * sizeof( size_t ) );
+
+    TEST_ASSERT( chunks[0] != NULL && chunks_per_epoch[0] != NULL );
+    TEST_ASSERT( chunks[1] != NULL && chunks_per_epoch[1] != NULL );
+    TEST_ASSERT( epochs[0] != NULL && epochs[1] != NULL );
+
+    for( size_t id=0; id < (unsigned) num_epochs; id++ )
+    {
+        size_t chunks_in_epoch;
+
+        epochs[0][id] = malloc( sizeof( mbedtls_mps_transform_t ) );
+        epochs[1][id] = malloc( sizeof( mbedtls_mps_transform_t ) );
+        TEST_ASSERT( epochs[0][id] != NULL && epochs[1][id] != NULL );
+
+#if !defined(TEST_SUITE_MPS_NO_SSL)
+        if( real_transforms == 1 )
+        {
+            srand( id );
+            epochs[0][id]->type = 1;
+            epochs[1][id]->type = 1;
+            build_transforms( &epochs[0][id]->real,
+                              &epochs[1][id]->real,
+                              MBEDTLS_CIPHER_AES_128_CBC,
+                              MBEDTLS_MD_SHA1,
+                              0, 0, MBEDTLS_SSL_MINOR_VERSION_3,
+                              mbedtls_test_rnd_std_rand, NULL );
+        }
+        else
+#else
+    ((void) real_transforms);
+#endif
+        {
+            epochs[0][id]->type = 0;
+            epochs[0][id]->mock.enabled = ( id > 0 );
+            epochs[0][id]->mock.pad = 10;
+            epochs[1][id]->type = 0;
+            epochs[1][id]->mock.enabled = ( id > 0 );
+            epochs[1][id]->mock.pad = 10;
+        }
+
+        for( size_t k=0; k<2; k++ )
+        {
+            /* Pick a random number of chunks per epoch */
+            chunks_in_epoch = ( rand() % num_chunks ) + 1;
+            chunks_per_epoch[k][id] = chunks_in_epoch;
+            chunks[k][id] = malloc( sizeof( typed_data_chunk ) * chunks_in_epoch );
+            TEST_ASSERT( chunks[k][id] != NULL );
+            for( size_t chunk=0; chunk < chunks_in_epoch; chunk++ )
+            {
+                size_t cur_chunk_size;
+                cur_chunk_size = ( rand() % max_chunk ) + 1;
+
+                chunks[k][id][chunk].type = rand() % num_types;
+                chunks[k][id][chunk].buf = malloc( cur_chunk_size );
+                chunks[k][id][chunk].len = cur_chunk_size;
+                chunks[k][id][chunk].read_progress = 0;
+                chunks[k][id][chunk].send_progress = 0;
+                TEST_ASSERT( chunks[k][id][chunk].buf != NULL );
+
+                mbedtls_test_rnd_std_rand( NULL, chunks[k][id][chunk].buf, cur_chunk_size );
+            }
+        }
+    }
+
+    /* Initialize Layer 0 mock objects */
+    layer0_bufsize = (size_t) layer0_buffer_sz;
+    TEST_ASSERT( layer0_init( &s2c ) == 0 );
+    TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, allocator_buffer_sz );
+    mps_alloc_init( &srv_alloc, allocator_buffer_sz );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
+                              layer0_write_cli, layer0_read_cli ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
+                              layer0_write_srv, layer0_read_srv ) == 0 );
+
+    /* Initialize and configure Layer 2 */
+    TEST_ASSERT( mps_l2_init( &endpoint[0], &cli_l1, MPS_L2_MODE_STREAM,
+                              L2_DEFAULT_ACCUMULATOR_SIZE,
+                              L2_DEFAULT_QUEUE_SIZE,
+                              mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_init( &endpoint[1], &srv_l1, MPS_L2_MODE_STREAM,
+                              L2_DEFAULT_ACCUMULATOR_SIZE,
+                              L2_DEFAULT_QUEUE_SIZE,
+                              mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &endpoint[0],
+                                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &endpoint[1],
+                                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+
+    TEST_ASSERT( num_types <= 64 );
+    for( size_t ty=0; ty < (unsigned) num_types; ty++ )
+    {
+        TEST_ASSERT( mps_l2_config_add_type( &endpoint[0], ty, 1, 1, 0 ) == 0 );
+        TEST_ASSERT( mps_l2_config_add_type( &endpoint[1], ty, 1, 1, 0 ) == 0 );
+    }
+
+    TEST_ASSERT( mps_l2_epoch_add( &endpoint[0], epochs[0][0],
+                                   &latest_epoch[0] ) == 0 );
+    TEST_ASSERT( latest_epoch[0] == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &endpoint[0], latest_epoch[0],
+                                  MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+    read_epoch[0] = write_epoch[0] = latest_epoch[0];
+
+    TEST_ASSERT( mps_l2_epoch_add( &endpoint[1], epochs[1][0],
+                                   &latest_epoch[1] ) == 0 );
+    TEST_ASSERT( latest_epoch[1] == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &endpoint[1], latest_epoch[1],
+                                  MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+    read_epoch[1] = write_epoch[1] = latest_epoch[1];
+
+
+    write_chunk[0] = 0;
+    write_chunk[1] = 0;
+    read_chunk[0]  = 0;
+    read_chunk[1]  = 0;
+
+    while( read_epoch[0] < num_epochs ||
+           read_epoch[1] < num_epochs )
+    {
+        size_t self;
+        size_t peer;
+        size_t read_or_write;
+
+        self = rand() % 2;
+        peer = self ^ 1;
+
+        read_or_write = rand() % 100;
+        if( read_or_write >= (unsigned) write_probability )
+        {
+            /* Reading */
+
+            mbedtls_mps_epoch_id epoch;
+            size_t chunk_num;
+            typed_data_chunk *chunk;
+            mps_l2_in in;
+            size_t data_remaining;
+            size_t data_requested;
+            size_t data_obtained;
+
+            epoch = read_epoch[self];
+            chunk_num = read_chunk[self];
+
+            /* If we have already read everything, skip. */
+            if( epoch == num_epochs )
+            {
+                printf( "SKIP READ, REACHED FINAL EPOCH %u\n",
+                        (unsigned) epoch );
+                continue;
+            }
+
+            printf( "[%u] READ, EPOCH %u, CHUNK %u / %u\n",
+                    (unsigned) self, (unsigned) epoch,
+                    (unsigned) ( chunk_num + 1 ),
+                    (unsigned) chunks_per_epoch[peer][epoch] );
+
+            /* Check if we need to switch the epoch */
+            if( chunk_num == chunks_per_epoch[peer][epoch] )
+            {
+                typed_data_chunk *new_chunk = NULL;
+
+                /* Need to switch the epoch */
+                chunk_num = 0;
+                epoch++;
+
+                if( epoch == num_epochs )
+                {
+                    read_epoch[self] = epoch;
+                    read_chunk[self] = chunk_num;
+                    printf( "SKIP READ, REACHED FINAL EPOCH %u\n",
+                            (unsigned) epoch );
+                    continue;
+                }
+
+                printf( "[%u] SWITCH TO READ EPOCH %u, WRITE EPOCH %u\n",
+                        (unsigned) self, (unsigned) epoch,
+                        (unsigned) write_epoch[ self ] );
+
+                /* Check if have already added the epoch for writing. */
+                if( epoch > write_epoch[self] )
+                {
+                    /* No, need to add epoch */
+                    ret = mps_l2_epoch_add( &endpoint[self],
+                                            epochs[self][epoch],
+                                            &latest_epoch[self] );
+                    TEST_ASSERT( ret == 0                             ||
+                                 ret == MPS_ERR_EPOCH_WINDOW_EXCEEDED );
+                    if( ret == MPS_ERR_EPOCH_WINDOW_EXCEEDED )
+                        continue;
+
+                    TEST_ASSERT( epoch == latest_epoch[self] );
+                }
+
+                TEST_ASSERT( mps_l2_epoch_usage( &endpoint[self],
+                                                 epoch,
+                                                 MPS_EPOCH_READ ) == 0 );
+
+                printf( "[%u] SWITCHED TO READ EPOCH %u\n",
+                        (unsigned) self, (unsigned) epoch );
+
+                read_epoch[self] = epoch;
+                read_chunk[self] = chunk_num;
+
+                new_chunk = &chunks[peer][epoch][chunk_num];
+                new_chunk->read_progress = 0;
+            }
+
+            chunk = &chunks[peer][epoch][chunk_num];
+
+            TEST_ASSERT( chunk->read_progress <= chunk->send_progress );
+            data_remaining = chunk->send_progress - chunk->read_progress;
+            if( data_remaining != 0 )
+                data_requested = ( rand() % data_remaining ) + 1;
+            else
+                data_requested = 0;
+
+            ret = mps_l2_read_start( &endpoint[self], &in );
+            TEST_ASSERT( ret == MPS_ERR_WANT_READ || ret == 0 );
+            if( ret != 0 )
+            {
+                printf( "WANT_READ\n" );
+                continue;
+            }
+
+            printf( " READ START DONE\n" );
+
+            TEST_ASSERT( in.type == chunk->type );
+            ret = mbedtls_reader_get( in.rd, data_requested, &buf,
+                                      &data_obtained );
+            TEST_ASSERT( ret == 0 );
+            TEST_ASSERT( memcmp( buf, chunk->buf + chunk->read_progress,
+                                 data_obtained ) == 0 );
+            chunk->read_progress += data_obtained;
+
+            TEST_ASSERT( mbedtls_reader_commit( in.rd ) == 0 );
+            TEST_ASSERT( mps_l2_read_done( &endpoint[self] ) == 0 );
+
+            printf( "     PROGRESS %u / %u\n",
+                    (unsigned) chunk->read_progress, (unsigned) chunk->len );
+
+            /* Check if we're at the end of the chunk */
+            if( chunk->read_progress == chunk->len )
+            {
+                /* Switch to the next chunk */
+                typed_data_chunk *new_chunk = NULL;
+
+                chunk_num++;
+                read_chunk[self] = chunk_num;
+
+                /* Check if we need to switch the epoch */
+                if( chunk_num == chunks_per_epoch[peer][epoch] )
+                    continue;
+
+                new_chunk = &chunks[peer][epoch][chunk_num];
+                new_chunk->read_progress = 0;
+            }
+        }
+        else
+        {
+            /* Writing */
+
+            uint8_t flush_or_write;
+
+            mbedtls_mps_epoch_id epoch;
+            size_t chunk_num;
+            typed_data_chunk *chunk;
+            mps_l2_out out;
+            size_t data_remaining;
+            size_t data_requested;
+            size_t data_obtained;
+            size_t tmp_send_progress;
+
+            /* If we have already written everything, skip. */
+            epoch = write_epoch[self];
+            chunk_num = write_chunk[self];
+
+            /* Choose between flushing and writing */
+            flush_or_write = rand() % 100;
+            if( flush_or_write < (unsigned) flush_probability )
+            {
+                /* Flushing */
+                printf( "[%u] FLUSHING, EPOCH %u, CHUNK %u\n",
+                        (unsigned) self, (unsigned) epoch,
+                        (unsigned) chunk_num );
+                ret = mps_l2_write_flush( &endpoint[self] );
+                TEST_ASSERT( ret == MPS_ERR_WANT_WRITE || ret == 0 );
+                continue;
+            }
+
+            if( epoch == num_epochs )
+            {
+                printf( "SKIP WRITE, REACHED FINAL EPOCH %u\n",
+                        (unsigned) epoch );
+                continue;
+            }
+
+            printf( "[%u] WRITE, EPOCH %u, CHUNK %u / %u\n",
+                    (unsigned) self, (unsigned) epoch,
+                    (unsigned) ( chunk_num + 1 ),
+                    (unsigned) chunks_per_epoch[self][epoch] );
+
+            /* Check if we need to switch the epoch */
+            if( chunk_num == chunks_per_epoch[self][epoch] )
+            {
+                typed_data_chunk *new_chunk = NULL;
+
+                /* Need to switch the epoch */
+                chunk_num = 0;
+                epoch++;
+
+                if( epoch == num_epochs )
+                {
+                    write_epoch[self] = epoch;
+                    write_chunk[self] = chunk_num;
+                    printf( "SKIP WRITE, REACHED FINAL EPOCH %u\n",
+                            (unsigned) epoch );
+                    continue;
+                }
+
+                printf( "[%u] SWITCH TO WRITE EPOCH %u, READ EPOCH %u, LATEST %u\n",
+                        (unsigned) self, (unsigned) epoch,
+                        (unsigned) read_epoch[self],
+                        (unsigned) latest_epoch[self] );
+
+                /* Check if have already added the epoch for writing. */
+                if( epoch > read_epoch[self] )
+                {
+                    /* No, need to add epoch */
+                    ret = mps_l2_epoch_add( &endpoint[self],
+                                            epochs[self][epoch],
+                                            &latest_epoch[self] );
+                    TEST_ASSERT( ret == 0                             ||
+                                 ret == MPS_ERR_EPOCH_WINDOW_EXCEEDED );
+                    if( ret == MPS_ERR_EPOCH_WINDOW_EXCEEDED )
+                        continue;
+
+                    TEST_ASSERT( epoch == latest_epoch[self] );
+                }
+
+                TEST_ASSERT( mps_l2_epoch_usage( &endpoint[self],
+                                                 epoch,
+                                                 MPS_EPOCH_WRITE ) == 0 );
+
+                printf( "[%u] SWITCHED TO WRITE EPOCH %u\n",
+                        (unsigned) self, (unsigned) epoch );
+
+                write_epoch[self] = epoch;
+                write_chunk[self] = chunk_num;
+
+                new_chunk = &chunks[self][epoch][chunk_num];
+                new_chunk->send_progress = 0;
+            }
+
+            chunk = &chunks[self][epoch][chunk_num];
+
+            printf( "[%u] WRITE, EPOCH %u, CHUNK %u / %u, WRITE %u / %u\n",
+                    (unsigned) self, (unsigned) epoch,
+                    (unsigned) ( chunk_num + 1 ),
+                    (unsigned) chunks_per_epoch[self][epoch],
+                    (unsigned) chunk->send_progress,
+                    (unsigned) chunk->len );
+
+            out.type = chunk->type;
+            out.epoch = epoch;
+            ret = mps_l2_write_start( &endpoint[self], &out );
+            TEST_ASSERT( ret == MPS_ERR_WANT_WRITE || ret == 0 );
+            if( ret != 0 )
+                continue;
+
+            tmp_send_progress = chunk->send_progress;
+            TEST_ASSERT( tmp_send_progress < chunk->len );
+
+            /* Make use of the writer in a random way */
+            while( tmp_send_progress < chunk->len )
+            {
+                data_remaining = chunk->len - tmp_send_progress;
+                data_requested = ( rand() % data_remaining ) + 1;
+
+                printf( "    REQUEST %u\n", (unsigned) data_requested );
+                ret = mbedtls_writer_get( out.wr, data_requested, &buf,
+                                          &data_obtained );
+                TEST_ASSERT( ret == 0 ||
+                             ret == MBEDTLS_ERR_WRITER_OUT_OF_DATA );
+                if( ret == MBEDTLS_ERR_WRITER_OUT_OF_DATA )
+                    break;
+
+                printf( "    WRITE %u\n", (unsigned) data_obtained );
+                memcpy( buf, chunk->buf + tmp_send_progress, data_obtained );
+                tmp_send_progress += data_obtained;
+
+                /* Don't always commit */
+                if( rand() % 2 )
+                {
+                    printf( "    COMMIT\n" );
+                    TEST_ASSERT( mbedtls_writer_commit( out.wr ) == 0 );
+                    chunk->send_progress = tmp_send_progress;
+                }
+
+                if( rand() % 5 == 0 )
+                    break;
+            }
+
+            TEST_ASSERT( mps_l2_write_done( &endpoint[self] ) == 0 );
+
+            printf( "     PROGRESS %u / %u\n",
+                    (unsigned) chunk->send_progress, (unsigned) chunk->len );
+
+            /* Check if we're at the end of the chunk */
+            if( chunk->send_progress == chunk->len )
+            {
+                /* Switch to the next chunk */
+                typed_data_chunk *new_chunk = NULL;
+
+                chunk_num++;
+                write_chunk[self] = chunk_num;
+
+                /* Check if we need to switch the epoch */
+                if( chunk_num == chunks_per_epoch[self][epoch] )
+                    continue;
+
+                new_chunk = &chunks[self][epoch][chunk_num];
+                new_chunk->send_progress = 0;
+            }
+        }
+    }
+
+exit:
+
+    /*
+     * Wrapup
+     */
+
+    mps_l2_free( &endpoint[0] );
+    mps_l2_free( &endpoint[1] );
+
+    for( size_t id=0; id < (unsigned) num_epochs; id++ )
+    {
+        for( size_t k=0; k<2; k++ )
+        {
+            size_t chunks_in_epoch = chunks_per_epoch[k][id];
+            for( size_t chunk=0; chunk < chunks_in_epoch; chunk++ )
+                free( chunks[k][id][chunk].buf );
+            free( chunks[k][id] );
+        }
+    }
+
+    free( chunks_per_epoch[ 0 ] );
+    free( chunks_per_epoch[ 1 ] );
+    free( chunks[0] );
+    free( chunks[1] );
+    free( epochs[0] );
+    free( epochs[1] );
+
+    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+    layer0_free( &s2c );
+    layer0_free( &c2s );
+
 }
 /* END_CASE */

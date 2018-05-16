@@ -1,0 +1,65 @@
+
+SRC = tests/test_suite_mps.c library/mps/reader.c library/mps/writer.c library/mps/layer1.c library/mps/layer2.c library/mps/layer3.c library/mps/trace.c
+OBJS_EACSL = $(patsubst %.c,%.eacsl.o,$(SRC))
+SRC_DEPS = $(patsubst %.c,%.d,$(SRC))
+SRC_EACSL = $(patsubst %.c,%.eacsl.c,$(SRC))
+
+MBEDTLS_REPO = /home/hanno/mbedtls
+
+FRAMAC_BASE = /home/hanno/FramaC
+#FRAMAC_BASE = /home/hanno/.opam/system
+
+#
+# E-ACSL configuration flags
+#
+
+# Memory model
+MMODEL_FLAG = -DE_ACSL_BITTREE_MMODEL
+# MMODEL_FLAG = -DE_ACSL_SEGMENT_MMODEL
+
+# Debugging
+#DEBUG_FLAG = -DE_ACSL_DEBUG
+
+# Fail on assertions
+KEEP_GOING_FLAG = -DE_ACSL_NO_ASSERT_FAIL
+
+# Verbosity
+#VERBOSITY_FLAG = -DE_ACSL_VERBOSE -DE_ACSL_DEBUG_VERBOSE
+
+# All flags together
+EACSL_CFLAGS = $(MMODEL_FLAG) $(DEBUG_FLAG) $(KEEP_GOING_FLAG) $(VERBOSITY_FLAG)
+
+$(SRC_DEPS) : %.d : %.c
+	$(CC) -I./include -MM $< -MF $@
+	sed -r -i.bak "s/.o/.eacsl.o/" $@
+
+depend: $(SRC_DEPS)
+
+-include $(SRC_DEPS)
+
+$(SRC_EACSL) : %.eacsl.c : %.c
+	$(FRAMAC_BASE)/bin/frama-c -variadic-no-translation -no-frama-c-stdlib -machdep gcc_x86_64 -cpp-extra-args="-I$(MBEDTLS_REPO)/include/ -D__NO_CTYPE -D__FC_MACHDEP_X86_64" $< -e-acsl -e-acsl-full-mmodel -e-acsl-share=$(FRAMAC_BASE)/share/frama-c/e-acsl/ -then-last -print -ocode $@
+	sed -r -i.bak "s/((int|void) __gen)/static \\1/" $@
+	sed -r -i "s/((int|void) __e_acsl_globals_init)/__attribute__((constructor(65535))) static \\1/" $@
+	sed -r -i "s/(char \*__gen_e_acsl_literal_string)/static \\1/" $@
+
+tests/test_suite_mps.eacsl.c : tests/test_suite_mps.c
+	$(FRAMAC_BASE)/bin/frama-c -variadic-no-translation -no-frama-c-stdlib -machdep gcc_x86_64 -cpp-extra-args="-I$(MBEDTLS_REPO)/include/ -D__NO_CTYPE -D__FC_MACHDEP_X86_64" $< -e-acsl -e-acsl-full-mmodel -e-acsl-share=$(FRAMAC_BASE)/share/frama-c/e-acsl/ -then-last -print -ocode $@
+	sed -r -i.bak "s/((int|void) __gen)/static \\1/" $@
+	sed -r -i "s/((int|void) __e_acsl_globals_init)/__attribute__((constructor(65535))) static \\1/" $@
+	sed -r -i "s/(char \*__gen_e_acsl_literal_string)/static \\1/" $@
+	cat $@ $(MBEDTLS_REPO)/eacsl_mem_init_clean.c > $@.new
+	mv $@.new $@
+
+$(OBJS_EACSL) : %.eacsl.o : %.eacsl.c
+	gcc  -fPIC -c $(EACSL_CFLAGS) -DE_ACSL_IDENTIFY -std=c99 -m64 -O3 -fno-builtin -fno-merge-constants -Wall -Wno-long-long -Wno-attributes -Wno-undef -Wno-unused -Wno-unused-function -Wno-unused-result -Wno-unused-value -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -Wno-implicit-function-declaration -Wno-empty-body -I$(FRAMAC_BASE)/share/frama-c/e-acsl/ $< -I./include -o $@
+
+compile: $(OBJS_EACSL)
+
+tests/test_suite_mps.eacsl : $(OBJS_EACSL)
+	gcc -DTEST_SUITE_MPS_NO_SSL $(EACSL_CFLAGS) -DE_ACSL_IDENTIFY -std=c99 -m64 -g -O2 -fno-builtin -fno-merge-constants -Wall -Wno-long-long -Wno-attributes -Wno-undef -Wno-unused -Wno-unused-function -Wno-unused-result -Wno-unused-value -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -Wno-implicit-function-declaration -Wno-empty-body -I$(FRAMAC_BASE)/share/frama-c/e-acsl/ -o $@ $^ $(FRAMAC_BASE)/share/frama-c/e-acsl/e_acsl_rtl.c $(FRAMAC_BASE)/lib/libeacsl-dlmalloc.a $(FRAMAC_BASE)/lib/libeacsl-gmp.a -lm -lpthread -I./include
+
+test: tests/test_suite_mps.eacsl
+
+clean:
+	rm -rf $(OBJS_EACSL) $(SRC_DEPS) $(SRC_EACSL)

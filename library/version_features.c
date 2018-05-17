@@ -249,9 +249,6 @@ static const char *features[] = {
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     "MBEDTLS_CIPHER_MODE_CBC",
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
-#if defined(MBEDTLS_CIPHER_MODE_XEX)
-    "MBEDTLS_CIPHER_MODE_XEX",
-#endif /* MBEDTLS_CIPHER_MODE_XEX */
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
     "MBEDTLS_CIPHER_MODE_XTS",
 #endif /* MBEDTLS_CIPHER_MODE_XTS */

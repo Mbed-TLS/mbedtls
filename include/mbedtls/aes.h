@@ -213,30 +213,6 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
                     unsigned char *output );
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-#if defined(MBEDTLS_CIPHER_MODE_XEX)
-/**
- * \brief           AES-XEX buffer encryption/decryption
- *                  Length should be a multiple of the block size (16 bytes)
- *
- * \param crypt_ctx AES context for encrypting data
- * \param tweak_ctx AES context for xor-ing with data
- * \param mode      MBEDTLS_AES_ENCRYPT or MBEDTLS_AES_DECRYPT
- * \param length    length of the input data
- * \param iv        initialization vector
- * \param input     buffer holding the input data
- * \param output    buffer holding the output data
- *
- * \return         0 if successful, or MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH
- */
-int mbedtls_aes_crypt_xex( mbedtls_aes_context *crypt_ctx,
-                    mbedtls_aes_context *tweak_ctx,
-                    int mode,
-                    size_t length,
-                    unsigned char iv[16],
-                    const unsigned char *input,
-                    unsigned char *output );
-#endif /* MBEDTLS_CIPHER_MODE_XEX */
-
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
 /**
  * \brief           AES-XTS buffer encryption/decryption

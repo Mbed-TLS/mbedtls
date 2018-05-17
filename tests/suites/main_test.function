@@ -281,7 +281,7 @@ int main(int argc, const char *argv[])
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && \
     !defined(TEST_SUITE_MEMORY_BUFFER_ALLOC)
     unsigned char alloc_buf[1000000];
-#endif 
+#endif
     /* Platform setup should be called in the beginning */
     ret = platform_setup();
     if( ret != 0 )

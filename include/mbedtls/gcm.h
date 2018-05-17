@@ -116,7 +116,7 @@ int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
  * \param ctx       The GCM context to use for encryption or decryption.
  * \param mode      The operation to perform: #MBEDTLS_GCM_ENCRYPT or
  *                  #MBEDTLS_GCM_DECRYPT.
- * \param length    The length of the input data. This must be a multiple of 
+ * \param length    The length of the input data. This must be a multiple of
  *                  16 except in the last call before mbedtls_gcm_finish().
  * \param iv        The initialization vector.
  * \param iv_len    The length of the IV.

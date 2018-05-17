@@ -31,7 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define mbedtls_time       time
-#define mbedtls_time_t     time_t 
+#define mbedtls_time_t     time_t
 #define mbedtls_fprintf    fprintf
 #define mbedtls_printf     printf
 #endif

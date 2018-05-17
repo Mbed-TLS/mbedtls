@@ -18,10 +18,10 @@ sub get_val($$)
         next if($line !~ /^# $str/);
         last;
     }
-        
+
     while(my $line = <TEST_DATA>)
     {
-        last if($line eq "\r\n"); 
+        last if($line eq "\r\n");
         $val .= $line;
     }
 
@@ -66,7 +66,7 @@ while (my $line = <TEST_DATA>)
         print(":\"$val_salt\"");
         print(":\"$val_sig\":0");
         print("\n\n");
-    } 
+    }
     $cnt++;
 }
 close(TEST_DATA);

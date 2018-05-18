@@ -73,7 +73,7 @@ static const x509_attr_descriptor_t x509_attrs[] =
     { ADD_STRLEN( "generationQualifier" ),      MBEDTLS_OID_AT_GENERATION_QUALIFIER, MBEDTLS_ASN1_UTF8_STRING },
     { ADD_STRLEN( "domainComponent" ),          MBEDTLS_OID_DOMAIN_COMPONENT,   MBEDTLS_ASN1_IA5_STRING },
     { ADD_STRLEN( "DC" ),                       MBEDTLS_OID_DOMAIN_COMPONENT,   MBEDTLS_ASN1_IA5_STRING },
-    { NULL, 0, NULL }
+    { NULL, 0, NULL, MBEDTLS_ASN1_NULL }
 };
 
 static const x509_attr_descriptor_t *x509_at_oid_from_name( const char *name, size_t name_len )

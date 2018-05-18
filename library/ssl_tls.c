@@ -4198,33 +4198,244 @@ int mbedtls_ssl_send_alert_message( mbedtls_ssl_context *ssl,
 /*
  * Handshake functions
  */
-#if !defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)         && \
-    !defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)     && \
-    !defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)     && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)    && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
-/* No certificate support -> dummy functions */
-int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
-{
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
 
+/*
+ *
+ * STATE HANDLING: Outgoing Certificate
+ *
+ */
+
+/*
+ * Overview
+ */
+
+/* Main state-handling entry point; orchestrates the other functions. */
+int mbedtls_ssl_process_write_certificate( mbedtls_ssl_context *ssl );
+
+/* Check if a certificate should be written, and if yes,
+ * if it is available.
+ * Returns a negative error code on failure (such as no certificate
+ * being available on the server), and otherwise
+ * SSL_WRITE_CERTIFICATE_AVAILABLE or
+ * SSL_WRITE_CERTIFICATE_SKIP
+ * indicating that a Certificate message should be written based
+ * on the configured certificate, or whether it should be silently skipped.
+ */
+
+#define SSL_WRITE_CERTIFICATE_AVAILABLE  0
+#define SSL_WRITE_CERTIFICATE_SKIP       1
+static int ssl_write_certificate_coordinate( mbedtls_ssl_context *ssl );
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+/* Write certificate message based on the configured certificate */
+static int ssl_write_certificate_write( mbedtls_ssl_context *ssl,
+                                        unsigned char *buf,
+                                        size_t buflen,
+                                        size_t *olen );
+#endif
+/* Update the state after handling the outgoing certificate message. */
+static int ssl_write_certificate_postprocess( mbedtls_ssl_context *ssl );
+
+/*
+ * Implementation
+ */
+
+int mbedtls_ssl_process_write_certificate( mbedtls_ssl_context *ssl )
+{
+    int ret;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
 
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
+    /* Coordination: Check if we need to send a certificate. */
+    SSL_PROC_CHK( ssl_write_certificate_coordinate( ssl ) );
+
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+    if( ret == SSL_WRITE_CERTIFICATE_AVAILABLE )
+    {
+        /* Make sure we can write a new message. */
+        SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
+
+        /* Write certificate to message buffer. */
+        SSL_PROC_CHK( ssl_write_certificate_write( ssl, ssl->out_msg,
+                                                MBEDTLS_SSL_MAX_CONTENT_LEN,
+                                                &ssl->out_msglen ) );
+
+        ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
+        ssl->out_msg[0]  = MBEDTLS_SSL_HS_CERTIFICATE;
+
+        /* Update state */
+        SSL_PROC_CHK( ssl_write_certificate_postprocess( ssl ) );
+
+        /* Dispatch message */
+        SSL_PROC_CHK( mbedtls_ssl_write_record( ssl ) );
+
+        /* NOTE: With the new messaging layer, the postprocessing
+         *       step might come after the dispatching step if the
+         *       latter doesn't send the message immediately.
+         *       At the moment, we must do the postprocessing
+         *       prior to the dispatching because if the latter
+         *       returns WANT_WRITE, we want the handshake state
+         *       to be updated in order to not enter
+         *       this function again on retry.
+         *
+         *       Further, once the two calls can be re-ordered, the two
+         *       calls to ssl_write_certificate_postprocess() can be
+         *       consolidated. */
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
+    if( ret == SSL_WRITE_CERTIFICATE_SKIP )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
-        ssl->state++;
-        return( 0 );
+
+        /* Update state */
+        SSL_PROC_CHK( ssl_write_certificate_postprocess( ssl ) );
+    }
+    else
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
+cleanup:
+
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write certificate" ) );
+    return( ret );
+}
+
+static int ssl_write_certificate_coordinate( mbedtls_ssl_context *ssl )
+{
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+        ssl->transform_negotiate->ciphersuite_info;
+
+    if( !mbedtls_ssl_ciphersuite_uses_srv_cert( ciphersuite_info ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
+        return( SSL_WRITE_CERTIFICATE_SKIP );
+    }
+
+#if !defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+#else
+
+#if defined(MBEDTLS_SSL_CLI_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+    {
+        if( ssl->client_auth == 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
+            return( SSL_WRITE_CERTIFICATE_SKIP );
+        }
+
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+        /*
+         * If using SSLv3 and got no cert, send an Alert message
+         * (otherwise an empty Certificate message will be sent).
+         */
+        if( mbedtls_ssl_own_cert( ssl )  == NULL &&
+            ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+        {
+            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_WARNING;
+            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_NO_CERT;
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "got no certificate to send" ) );
+            return( SSL_WRITE_CERTIFICATE_SKIP );
+        }
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
+    }
+#endif /* MBEDTLS_SSL_CLI_C */
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+    {
+        if( mbedtls_ssl_own_cert( ssl ) == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no certificate to send" ) );
+            return( MBEDTLS_ERR_SSL_CERTIFICATE_REQUIRED );
+        }
+    }
+#endif
+
+    return( SSL_WRITE_CERTIFICATE_AVAILABLE );
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 }
+
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+static int ssl_write_certificate_write( mbedtls_ssl_context *ssl,
+                                        unsigned char * buf,
+                                        size_t buflen,
+                                        size_t *olen )
+{
+    unsigned char *pos;
+    size_t remaining;
+    size_t total_crt_size = 0;
+    size_t crt_size;
+    const mbedtls_x509_crt *crt;
+
+    if( buflen < 7 )
+        return( MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE );
+
+    pos = buf + 7;
+    remaining = buflen - 7;
+
+    crt = mbedtls_ssl_own_cert( ssl );
+    while( crt != NULL )
+    {
+        crt_size = crt->raw.len;
+        if( crt_size + 3 > remaining )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "certificate too large, %d > %d",
+                                        crt_size + 3, remaining ) );
+            return( MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE );
+        }
+
+        pos[0] = (unsigned char)( crt_size >> 16 );
+        pos[1] = (unsigned char)( crt_size >>  8 );
+        pos[2] = (unsigned char)( crt_size       );
+
+        memcpy( pos + 3, crt->raw.p, crt_size );
+
+        pos            += crt_size + 3;
+        total_crt_size += crt_size + 3;
+        remaining      -= crt_size + 3;
+
+        crt = crt->next;
+    }
+
+    buf[4]  = (unsigned char)( total_crt_size >> 16 );
+    buf[5]  = (unsigned char)( total_crt_size >>  8 );
+    buf[6]  = (unsigned char)( total_crt_size >>  0 );
+
+    *olen = total_crt_size + 7;
+    return( 0 );
+}
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
+
+/* Update the state after handling the outgoing certificate message. */
+static int ssl_write_certificate_postprocess( mbedtls_ssl_context *ssl )
+{
+#if defined(MBEDTLS_SSL_CLI_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+    {
+        ssl->state = MBEDTLS_SSL_CLIENT_KEY_EXCHANGE;
+        return( 0 );
+    }
+    else
+#endif /* MBEDTLS_SSL_CLI_C */
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+    {
+        ssl->state = MBEDTLS_SSL_SERVER_KEY_EXCHANGE;
+        return( 0 );
+    }
+#endif /* MBEDTLS_SSL_SRV_C */
+
+    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+}
+
+#if !defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
 
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 {
@@ -4246,124 +4457,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
 
-#else
-/* Some certificate support -> implement write and parse */
-
-int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
-{
-    int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-    size_t i, n;
-    const mbedtls_x509_crt *crt;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
-
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
-        ssl->state++;
-        return( 0 );
-    }
-
-#if defined(MBEDTLS_SSL_CLI_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
-    {
-        if( ssl->client_auth == 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
-            ssl->state++;
-            return( 0 );
-        }
-
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-        /*
-         * If using SSLv3 and got no cert, send an Alert message
-         * (otherwise an empty Certificate message will be sent).
-         */
-        if( mbedtls_ssl_own_cert( ssl )  == NULL &&
-            ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
-        {
-            ssl->out_msglen  = 2;
-            ssl->out_msgtype = MBEDTLS_SSL_MSG_ALERT;
-            ssl->out_msg[0]  = MBEDTLS_SSL_ALERT_LEVEL_WARNING;
-            ssl->out_msg[1]  = MBEDTLS_SSL_ALERT_MSG_NO_CERT;
-
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "got no certificate to send" ) );
-            goto write_msg;
-        }
-#endif /* MBEDTLS_SSL_PROTO_SSL3 */
-    }
-#endif /* MBEDTLS_SSL_CLI_C */
-#if defined(MBEDTLS_SSL_SRV_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
-    {
-        if( mbedtls_ssl_own_cert( ssl ) == NULL )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no certificate to send" ) );
-            return( MBEDTLS_ERR_SSL_CERTIFICATE_REQUIRED );
-        }
-    }
-#endif
-
-    MBEDTLS_SSL_DEBUG_CRT( 3, "own certificate", mbedtls_ssl_own_cert( ssl ) );
-
-    /*
-     *     0  .  0    handshake type
-     *     1  .  3    handshake length
-     *     4  .  6    length of all certs
-     *     7  .  9    length of cert. 1
-     *    10  . n-1   peer certificate
-     *     n  . n+2   length of cert. 2
-     *    n+3 . ...   upper level cert, etc.
-     */
-    i = 7;
-    crt = mbedtls_ssl_own_cert( ssl );
-
-    while( crt != NULL )
-    {
-        n = crt->raw.len;
-        if( n > MBEDTLS_SSL_MAX_CONTENT_LEN - 3 - i )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "certificate too large, %d > %d",
-                           i + 3 + n, MBEDTLS_SSL_MAX_CONTENT_LEN ) );
-            return( MBEDTLS_ERR_SSL_CERTIFICATE_TOO_LARGE );
-        }
-
-        ssl->out_msg[i    ] = (unsigned char)( n >> 16 );
-        ssl->out_msg[i + 1] = (unsigned char)( n >>  8 );
-        ssl->out_msg[i + 2] = (unsigned char)( n       );
-
-        i += 3; memcpy( ssl->out_msg + i, crt->raw.p, n );
-        i += n; crt = crt->next;
-    }
-
-    ssl->out_msg[4]  = (unsigned char)( ( i - 7 ) >> 16 );
-    ssl->out_msg[5]  = (unsigned char)( ( i - 7 ) >>  8 );
-    ssl->out_msg[6]  = (unsigned char)( ( i - 7 )       );
-
-    ssl->out_msglen  = i;
-    ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
-    ssl->out_msg[0]  = MBEDTLS_SSL_HS_CERTIFICATE;
-
-#if defined(MBEDTLS_SSL_PROTO_SSL3) && defined(MBEDTLS_SSL_CLI_C)
-write_msg:
-#endif
-
-    ssl->state++;
-
-    if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
-        return( ret );
-    }
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write certificate" ) );
-
-    return( ret );
-}
+#else /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 {
@@ -4741,13 +4835,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
     return( ret );
 }
-#endif /* !MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
-          !MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
-          !MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
-          !MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-          !MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-          !MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-          !MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 int mbedtls_ssl_write_change_cipher_spec( mbedtls_ssl_context *ssl )
 {

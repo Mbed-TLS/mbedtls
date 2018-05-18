@@ -3604,7 +3604,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
         *        Finished
         */
        case MBEDTLS_SSL_CLIENT_CERTIFICATE:
-           ret = mbedtls_ssl_write_certificate( ssl );
+           ret = mbedtls_ssl_process_write_certificate( ssl );
            break;
 
        case MBEDTLS_SSL_CLIENT_KEY_EXCHANGE:

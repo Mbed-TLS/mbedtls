@@ -2348,10 +2348,9 @@ run_test    "Authentication: client no cert, ssl3" \
             -S "skip write certificate request" \
             -C "skip parse certificate request" \
             -c "got a certificate request" \
-            -C "skip write certificate$" \
+            -s "got NO-CRT alert from client" \
             -c "skip write certificate verify" \
             -c "got no certificate to send" \
-            -s "SSLv3 client has no certificate" \
             -s "skip parse certificate verify" \
             -s "! Certificate was missing" \
             -S "! mbedtls_ssl_handshake returned" \

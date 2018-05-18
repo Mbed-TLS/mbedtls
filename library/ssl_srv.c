@@ -3918,38 +3918,161 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-#if !defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)       && \
-    !defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)   && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)  && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)&& \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
-static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
+/*
+ *
+ * STATE HANDLING: CertificateVerify
+ *
+ */
+
+/*
+ * Overview
+ */
+
+/* Main entry point; orchestrates the other functions */
+static int ssl_process_certificate_verify( mbedtls_ssl_context *ssl );
+
+/* Coordinate: Check whether a certificate verify message is expected.
+ * Returns a negative value on failure, and otherwise
+ * - SSL_CERTIFICATE_VERIFY_SKIP
+ * - SSL_CERTIFICATE_VERIFY_READ
+ * to indicate if the CertificateVerify message should be present or not.
+ */
+#define SSL_CERTIFICATE_VERIFY_SKIP 0
+#define SSL_CERTIFICATE_VERIFY_READ 1
+static int ssl_certificate_verify_coordinate( mbedtls_ssl_context *ssl );
+
+#if defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
+/* Parse and validate CertificateVerify message */
+static int ssl_certificate_verify_parse( mbedtls_ssl_context *ssl,
+                                         unsigned char const *buf,
+                                         size_t buflen );
+#endif /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
+
+/* Update handshake state machine */
+static int ssl_certificate_verify_postprocess( mbedtls_ssl_context *ssl );
+
+/*
+ * Implementation
+ */
+
+static int ssl_process_certificate_verify( mbedtls_ssl_context *ssl )
 {
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
-        ssl->transform_negotiate->ciphersuite_info;
+    int ret;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process certificate verify" ) );
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
+    /* Coordination step */
 
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
+    SSL_PROC_CHK( ssl_certificate_verify_coordinate( ssl ) );
+
+#if defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
+    if( ret == SSL_CERTIFICATE_VERIFY_READ )
+    {
+        /* Reading step */
+
+        /* Read the message without adding it to the checksum.
+         *
+         * This will change with the new version of the messaging layer
+         * which will no longer automatically update the checksum with
+         * each incoming message.
+         */
+        do {
+
+            do ret = mbedtls_ssl_read_record_layer( ssl );
+            while( ret == MBEDTLS_ERR_SSL_CONTINUE_PROCESSING );
+
+            if( ret != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_read_record_layer" ), ret );
+                return( ret );
+            }
+
+            ret = mbedtls_ssl_handle_message_type( ssl );
+
+        } while( MBEDTLS_ERR_SSL_NON_FATAL           == ret ||
+                 MBEDTLS_ERR_SSL_CONTINUE_PROCESSING == ret );
+
+        if( 0 != ret )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_handle_message_type" ), ret );
+            return( ret );
+        }
+
+        if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
+            ssl->in_msg[0] != MBEDTLS_SSL_HS_CERTIFICATE_VERIFY )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
+        }
+
+        /* Process the message contents */
+
+        SSL_PROC_CHK( ssl_certificate_verify_parse( ssl, ssl->in_msg,
+                                                    ssl->in_hslen ) );
+
+        /* Update the checksum manually */
+
+        mbedtls_ssl_update_handshake_status( ssl );
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
+    if( ret == SSL_CERTIFICATE_VERIFY_SKIP )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
-        ssl->state++;
-        return( 0 );
+    }
+    else
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
+    /* Update state machine and handshake checksum state.
+     *
+     * The manual update of the checksum state only needs to be
+     * done manually here because we couldn't have it done automatically
+     * when reading the message.
+     */
+    SSL_PROC_CHK( ssl_certificate_verify_postprocess( ssl ) );
+
+cleanup:
+
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process certificate verify" ) );
+    return( ret );
+}
+
+
+static int ssl_certificate_verify_coordinate( mbedtls_ssl_context *ssl )
+{
+    const mbedtls_ssl_ciphersuite_t *info =
+        ssl->transform_negotiate->ciphersuite_info;
+
+    if( !mbedtls_ssl_ciphersuite_cert_req_allowed( info ) )
+    {
+        return( SSL_CERTIFICATE_VERIFY_SKIP );
+    }
+
+#if !defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-}
 #else
-static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
+    if( ssl->session_negotiate->peer_cert == NULL )
+        return( SSL_CERTIFICATE_VERIFY_SKIP );
+
+    return( SSL_CERTIFICATE_VERIFY_READ );
+#endif /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
+}
+
+#if defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
+static int ssl_certificate_verify_parse( mbedtls_ssl_context *ssl,
+                                         unsigned char const *buf,
+                                         size_t buflen )
 {
-    int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-    size_t i, sig_len;
+    int ret;
+    size_t sig_len;
     unsigned char hash[48];
     unsigned char *hash_start = hash;
     size_t hashlen;
@@ -3957,57 +4080,21 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     mbedtls_pk_type_t pk_alg;
 #endif
     mbedtls_md_type_t md_alg;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
-        ssl->transform_negotiate->ciphersuite_info;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate verify" ) );
+    /*
+     * Note: We cannot do a targeted precomputation
+     * of the expected hash because the client chooses
+     * which hash algorithm to use.
+     */
 
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE ||
-        ssl->session_negotiate->peer_cert == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate verify" ) );
-        ssl->state++;
-        return( 0 );
-    }
-
-    /* Read the message without adding it to the checksum */
-    do {
-
-        do ret = mbedtls_ssl_read_record_layer( ssl );
-        while( ret == MBEDTLS_ERR_SSL_CONTINUE_PROCESSING );
-
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_read_record_layer" ), ret );
-            return( ret );
-        }
-
-        ret = mbedtls_ssl_handle_message_type( ssl );
-
-    } while( MBEDTLS_ERR_SSL_NON_FATAL           == ret ||
-             MBEDTLS_ERR_SSL_CONTINUE_PROCESSING == ret );
-
-    if( 0 != ret )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_handle_message_type" ), ret );
-        return( ret );
-    }
-
-    ssl->state++;
-
-    /* Process the message contents */
-    if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
-        ssl->in_msg[0] != MBEDTLS_SSL_HS_CERTIFICATE_VERIFY )
+    if( buflen < mbedtls_ssl_hs_hdr_len( ssl ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
     }
 
-    i = mbedtls_ssl_hs_hdr_len( ssl );
+    buflen -= mbedtls_ssl_hs_hdr_len( ssl );
+    buf    += mbedtls_ssl_hs_hdr_len( ssl );
 
     /*
      *  struct {
@@ -4019,16 +4106,16 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
     if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_3 )
     {
-        md_alg = MBEDTLS_MD_NONE;
+        md_alg  = MBEDTLS_MD_NONE;
         hashlen = 36;
 
         /* For ECDSA, use SHA-1, not MD-5 + SHA-1 */
         if( mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk,
-                        MBEDTLS_PK_ECDSA ) )
+                               MBEDTLS_PK_ECDSA ) )
         {
             hash_start += 16;
-            hashlen -= 16;
-            md_alg = MBEDTLS_MD_SHA1;
+            hashlen    -= 16;
+            md_alg      = MBEDTLS_MD_SHA1;
         }
     }
     else
@@ -4037,7 +4124,7 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
-        if( i + 2 > ssl->in_hslen )
+        if( buflen < 2 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
@@ -4046,12 +4133,13 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         /*
          * Hash
          */
-        md_alg = mbedtls_ssl_md_alg_from_hash( ssl->in_msg[i] );
+        md_alg = mbedtls_ssl_md_alg_from_hash( buf[0] );
 
-        if( md_alg == MBEDTLS_MD_NONE || mbedtls_ssl_set_calc_verify_md( ssl, ssl->in_msg[i] ) )
+        if( md_alg == MBEDTLS_MD_NONE ||
+            mbedtls_ssl_set_calc_verify_md( ssl, buf[0] ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
-                                " for verify message" ) );
+                                        " for verify message" ) );
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
         }
 
@@ -4063,12 +4151,10 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         /* Info from md_alg will be used instead */
         hashlen = 0;
 
-        i++;
-
         /*
          * Signature
          */
-        if( ( pk_alg = mbedtls_ssl_pk_alg_from_sig( ssl->in_msg[i] ) )
+        if( ( pk_alg = mbedtls_ssl_pk_alg_from_sig( buf[1] ) )
                         == MBEDTLS_PK_NONE )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "peer not adhering to requested sig_alg"
@@ -4079,13 +4165,15 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         /*
          * Check the certificate's key type matches the signature alg
          */
-        if( ! mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk, pk_alg ) )
+        if( ! mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk,
+                                 pk_alg ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "sig_alg doesn't match cert key" ) );
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
         }
 
-        i++;
+        buf    += 2;
+        buflen -= 2;
     }
     else
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
@@ -4094,16 +4182,17 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    if( i + 2 > ssl->in_hslen )
+    if( buflen < 2 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
     }
 
-    sig_len = ( ssl->in_msg[i] << 8 ) | ssl->in_msg[i+1];
-    i += 2;
+    sig_len = ( buf[0] << 8 ) | buf[1];
+    buf    += 2;
+    buflen -= 2;
 
-    if( i + sig_len != ssl->in_hslen )
+    if( buflen != sig_len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate verify message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_VERIFY );
@@ -4114,24 +4203,21 @@ static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl )
 
     if( ( ret = mbedtls_pk_verify( &ssl->session_negotiate->peer_cert->pk,
                            md_alg, hash_start, hashlen,
-                           ssl->in_msg + i, sig_len ) ) != 0 )
+                           buf, sig_len ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify", ret );
         return( ret );
     }
 
-    mbedtls_ssl_update_handshake_status( ssl );
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate verify" ) );
-
-    return( ret );
+    return( 0 );
 }
-#endif /* !MBEDTLS_KEY_EXCHANGE_RSA_ENABLED &&
-          !MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED &&
-          !MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED &&
-          !MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED &&
-          !MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED &&
-          !MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
+
+static int ssl_certificate_verify_postprocess( mbedtls_ssl_context *ssl )
+{
+    ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
+    return( 0 );
+}
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 static int ssl_write_new_session_ticket( mbedtls_ssl_context *ssl )
@@ -4279,7 +4365,7 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl )
             break;
 
         case MBEDTLS_SSL_CERTIFICATE_VERIFY:
-            ret = ssl_parse_certificate_verify( ssl );
+            ret = ssl_process_certificate_verify( ssl );
             break;
 
         case MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC:

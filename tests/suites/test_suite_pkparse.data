@@ -939,8 +939,18 @@ depends_on:MBEDTLS_DES_C:MBEDTLS_SHA512_C:MBEDTLS_PKCS5_C
 pk_parse_keyfile_rsa:"data_files/rsa_pkcs8_pbes2_pbkdf2_4096_des_sha512.der":"":MBEDTLS_ERR_PK_KEY_INVALID_FORMAT
 
 Parse Public RSA Key #1 (PKCS#8 wrapped)
-depends_on:MBEDTLS_MD5_C:MBEDTLS_PEM_PARSE_C
-pk_parse_public_keyfile_rsa:"data_files/format_gen.pub":0
+depends_on:MBEDTLS_PEM_PARSE_C
+pk_parse_public_keyfile_rsa:"data_files/rsa_pkcs8_2048_public.pem":0
+
+Parse Public RSA Key #1 (PKCS#8 wrapped, DER)
+pk_parse_public_keyfile_rsa:"data_files/rsa_pkcs8_2048_public.der":0
+
+Parse Public RSA Key #3 (PKCS#1 wrapped)
+depends_on:MBEDTLS_PEM_PARSE_C
+pk_parse_public_keyfile_rsa:"data_files/rsa_pkcs1_2048_public.pem":0
+
+Parse Public RSA Key #4 (PKCS#1 wrapped, DER)
+pk_parse_public_keyfile_rsa:"data_files/rsa_pkcs1_2048_public.der":0
 
 Parse Public EC Key #1 (RFC 5480, DER)
 depends_on:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED

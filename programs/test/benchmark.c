@@ -766,9 +766,16 @@ int main( int argc, char *argv[] )
     if( todo.ecdh )
     {
         mbedtls_ecdh_context ecdh;
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
         mbedtls_mpi z;
+        const mbedtls_ecp_curve_info montgomery_curve_list[] = {
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+            { MBEDTLS_ECP_DP_CURVE25519, 0, 0, "Curve25519" },
 #endif
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+            { MBEDTLS_ECP_DP_CURVE448, 0, 0, "Curve448" },
+#endif
+            { MBEDTLS_ECP_DP_NONE, 0, 0, 0 }
+        };
         const mbedtls_ecp_curve_info *curve_info;
         size_t olen;
 
@@ -797,26 +804,31 @@ int main( int argc, char *argv[] )
             mbedtls_ecdh_free( &ecdh );
         }
 
-        /* Curve25519 needs to be handled separately */
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
-        mbedtls_ecdh_init( &ecdh );
-        mbedtls_mpi_init( &z );
-
-        if( mbedtls_ecp_group_load( &ecdh.grp, MBEDTLS_ECP_DP_CURVE25519 ) != 0 ||
-            mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp, myrand, NULL ) != 0 )
+        /* Montgomery curves need to be handled separately */
+        for ( curve_info = montgomery_curve_list;
+              curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
+              curve_info++ )
         {
-            mbedtls_exit( 1 );
+            mbedtls_ecdh_init( &ecdh );
+            mbedtls_mpi_init( &z );
+
+            if( mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) != 0 ||
+                mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp, myrand, NULL ) != 0 )
+            {
+                mbedtls_exit( 1 );
+            }
+
+            mbedtls_snprintf( title, sizeof(title), "ECDHE-%s",
+                              curve_info->name );
+            TIME_PUBLIC(  title, "handshake",
+                    ret |= mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q,
+                                            myrand, NULL );
+                    ret |= mbedtls_ecdh_compute_shared( &ecdh.grp, &z, &ecdh.Qp, &ecdh.d,
+                                                myrand, NULL ) );
+
+            mbedtls_ecdh_free( &ecdh );
+            mbedtls_mpi_free( &z );
         }
-
-        TIME_PUBLIC(  "ECDHE-Curve25519", "handshake",
-                ret |= mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q,
-                                        myrand, NULL );
-                ret |= mbedtls_ecdh_compute_shared( &ecdh.grp, &z, &ecdh.Qp, &ecdh.d,
-                                            myrand, NULL ) );
-
-        mbedtls_ecdh_free( &ecdh );
-        mbedtls_mpi_free( &z );
-#endif
 
         for( curve_info = mbedtls_ecp_curve_list();
              curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
@@ -843,26 +855,31 @@ int main( int argc, char *argv[] )
             mbedtls_ecdh_free( &ecdh );
         }
 
-        /* Curve25519 needs to be handled separately */
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
-        mbedtls_ecdh_init( &ecdh );
-        mbedtls_mpi_init( &z );
-
-        if( mbedtls_ecp_group_load( &ecdh.grp, MBEDTLS_ECP_DP_CURVE25519 ) != 0 ||
-            mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp,
-                             myrand, NULL ) != 0 ||
-            mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q, myrand, NULL ) != 0 )
+        /* Montgomery curves need to be handled separately */
+        for ( curve_info = montgomery_curve_list;
+              curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
+              curve_info++)
         {
-            mbedtls_exit( 1 );
+            mbedtls_ecdh_init( &ecdh );
+            mbedtls_mpi_init( &z );
+
+            if( mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) != 0 ||
+                mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp,
+                                 myrand, NULL ) != 0 ||
+                mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q, myrand, NULL ) != 0 )
+            {
+                mbedtls_exit( 1 );
+            }
+
+            mbedtls_snprintf( title, sizeof(title), "ECDH-%s",
+                              curve_info->name );
+            TIME_PUBLIC(  title, "handshake",
+                    ret |= mbedtls_ecdh_compute_shared( &ecdh.grp, &z, &ecdh.Qp, &ecdh.d,
+                                                myrand, NULL ) );
+
+            mbedtls_ecdh_free( &ecdh );
+            mbedtls_mpi_free( &z );
         }
-
-        TIME_PUBLIC(  "ECDH-Curve25519", "handshake",
-                ret |= mbedtls_ecdh_compute_shared( &ecdh.grp, &z, &ecdh.Qp, &ecdh.d,
-                                            myrand, NULL ) );
-
-        mbedtls_ecdh_free( &ecdh );
-        mbedtls_mpi_free( &z );
-#endif
     }
 #endif
 

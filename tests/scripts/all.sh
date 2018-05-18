@@ -376,7 +376,7 @@ fi
 # Make sure the tools we need are available.
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
             "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
-            "arm-none-eabi-gcc" "i686-w64-mingw32-gcc"
+            "arm-none-eabi-gcc" "i686-w64-mingw32-gcc" "gdb"
 if [ $RUN_ARMCC -ne 0 ]; then
     check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR"
 fi
@@ -619,6 +619,34 @@ make
 msg "test: MBEDTLS_TEST_NULL_ENTROPY - main suites (inc. selftests) (ASan build)"
 make test
 
+msg "build: default config with AES_FEWER_TABLES enabled"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_AES_FEWER_TABLES
+make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+msg "test: AES_FEWER_TABLES"
+make test
+
+msg "build: default config with AES_ROM_TABLES enabled"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_AES_ROM_TABLES
+make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+msg "test: AES_ROM_TABLES"
+make test
+
+msg "build: default config with AES_ROM_TABLES and AES_FEWER_TABLES enabled"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_AES_FEWER_TABLES
+scripts/config.pl set MBEDTLS_AES_ROM_TABLES
+make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+msg "test: AES_FEWER_TABLES + AES_ROM_TABLES"
+make test
+
 if uname -a | grep -F Linux >/dev/null; then
     msg "build/test: make shared" # ~ 40s
     cleanup
@@ -833,6 +861,15 @@ msg "test: cmake 'out-of-source' build"
 make test
 cd "$MBEDTLS_ROOT_DIR"
 rm -rf "$OUT_OF_SOURCE_DIR"
+
+for optimization_flag in -O2 -O3 -Ofast -Os; do
+    for compiler in clang gcc; do
+        msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
+        cleanup
+        CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag" make programs
+        gdb -x tests/scripts/test_zeroize.gdb -nw -batch -nx
+    done
+done
 
 
 

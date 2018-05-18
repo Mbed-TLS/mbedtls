@@ -35,7 +35,7 @@ void gcm_bad_parameters( int cipher_id, int direction,
     memset( tag_str, 0x00, sizeof( tag_str ) );
     memset( output, 0x00, sizeof( output ) );
     memset( tag_output, 0x00, sizeof( tag_output ) );
-    
+
     key_len = unhexify( key_str, hex_key_string );
     pt_len = unhexify( src_str, hex_src_string );
     iv_len = unhexify( iv_str, hex_iv_string );

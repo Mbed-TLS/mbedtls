@@ -128,8 +128,21 @@ server5-ss-forgeca.crt: server5.key
 	$(FAKETIME) '2015-09-01 14:08:43' $(OPENSSL) req -x509 -new -subj "/C=UK/O=mbed TLS/CN=mbed TLS Test intermediate CA 3" -set_serial 77 -config $(test_ca_config_file) -extensions noext_ca -days 3650 -sha256 -key $< -out $@
 all_final += server5-ss-forgeca.crt
 
+rsa_pkcs1_2048_public.pem: server8.key
+	$(OPENSSL)  rsa -in $< -outform PEM -RSAPublicKey_out -out $@
+all_final += rsa_pkcs1_2048_public.pem
 
+rsa_pkcs1_2048_public.der: rsa_pkcs1_2048_public.pem
+	$(OPENSSL) rsa -RSAPublicKey_in -in $< -outform DER -RSAPublicKey_out -out $@
+all_final += rsa_pkcs1_2048_public.der
 
+rsa_pkcs8_2048_public.pem: server8.key
+	$(OPENSSL)  rsa -in $< -outform PEM -pubout -out $@
+all_final += rsa_pkcs8_2048_public.pem
+
+rsa_pkcs8_2048_public.der: rsa_pkcs8_2048_public.pem
+	$(OPENSSL) rsa -pubin -in $< -outform DER -pubout -out $@
+all_final += rsa_pkcs8_2048_public.der
 
 ################################################################
 #### Generate various RSA keys

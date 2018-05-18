@@ -301,10 +301,10 @@ mbedtls_mpi_add_mpi:10:"64380800680355443923012985496149269915138610753401343291
 Base test mbedtls_mpi_add_mpi inplace #1
 mbedtls_mpi_add_mpi_inplace:10:"12345678":10:"24691356"
 
-Test mbedtls_mpi_add_mpi inplace #2 
+Test mbedtls_mpi_add_mpi inplace #2
 mbedtls_mpi_add_mpi_inplace:10:"643808006803554439230129854961492699151386107534013432918073439524138264842370630061369715394739134090922937332590384720397133335969549256322620979036686633213903952966175107096769180017646161851573147596390153":10:"1287616013607108878460259709922985398302772215068026865836146879048276529684741260122739430789478268181845874665180769440794266671939098512645241958073373266427807905932350214193538360035292323703146295192780306"
 
-Test mbedtls_mpi_add_mpi inplace #3 
+Test mbedtls_mpi_add_mpi inplace #3
 mbedtls_mpi_add_mpi_inplace:16:"ffffffffffffffffffffffffffffffff":16:"01fffffffffffffffffffffffffffffffe"
 
 Test mbedtls_mpi_add_int #1
@@ -687,6 +687,18 @@ mbedtls_mpi_gen_prime:2:0:MBEDTLS_ERR_MPI_BAD_INPUT_DATA
 Test mbedtls_mpi_gen_prime (OK, minimum size)
 depends_on:MBEDTLS_GENPRIME
 mbedtls_mpi_gen_prime:3:0:0
+
+Test mbedtls_mpi_gen_prime (corner case limb size -1 bits)
+depends_on:MBEDTLS_GENPRIME
+mbedtls_mpi_gen_prime:63:0:0
+
+Test mbedtls_mpi_gen_prime (corner case limb size)
+depends_on:MBEDTLS_GENPRIME
+mbedtls_mpi_gen_prime:64:0:0
+
+Test mbedtls_mpi_gen_prime (corner case limb size +1 bits)
+depends_on:MBEDTLS_GENPRIME
+mbedtls_mpi_gen_prime:65:0:0
 
 Test mbedtls_mpi_gen_prime (Larger)
 depends_on:MBEDTLS_GENPRIME

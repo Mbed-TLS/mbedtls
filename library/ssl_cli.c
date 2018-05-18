@@ -3225,76 +3225,168 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-#if !defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)       && \
-    !defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)   && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)  && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)&& \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
-static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
+/*
+ *
+ * STATE HANDLING: CertificateVerify
+ *
+ */
+
+/*
+ * Overview
+ */
+
+/* Main entry point: orchestrates the other functions. */
+static int ssl_process_certificate_verify( mbedtls_ssl_context *ssl );
+
+/* Coordinate: Check whether a certificate verify message should be sent.
+ * Returns a negative value on failure, and otherwise
+ * - SSL_CERTIFICATE_VERIFY_SKIP
+ * - SSL_CERTIFICATE_VERIFY_SEND
+ * to indicate if the CertificateVerify message should be sent or not.
+ */
+#define SSL_CERTIFICATE_VERIFY_SKIP 0
+#define SSL_CERTIFICATE_VERIFY_SEND 1
+static int ssl_certificate_verify_coordinate( mbedtls_ssl_context *ssl );
+#if defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
+static int ssl_certificate_verify_write( mbedtls_ssl_context *ssl,
+                                         unsigned char *buf,
+                                         size_t buflen,
+                                         size_t *olen );
+#endif
+static int ssl_certificate_verify_postprocess( mbedtls_ssl_context *ssl );
+
+/*
+ * Implementation
+ */
+
+static int ssl_process_certificate_verify( mbedtls_ssl_context *ssl )
 {
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
-        ssl->transform_negotiate->ciphersuite_info;
-    int ret;
+    int ret = 0;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process certificate verify" ) );
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
-
-    if( ( ret = mbedtls_ssl_derive_keys( ssl ) ) != 0 )
+    if( ssl->handshake->crt_vrfy_preparation_done == 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_derive_keys", ret );
-        return( ret );
+        /* Preparation step: Set PRF's and generate keys.
+         *
+         * NOTE: The placement of this call is unintuitive at first:
+         *       Key-derivation should happen either at ChangeCipherSpec
+         *       or once the keying material is available.
+         *       The following needs to be considered:
+         *       - The reason why it can't be done later than here is that
+         *         mbedtls_ssl_derive_keys() also sets the PRF for the chosen
+         *         TLS version, as well as the checksum calculation functions --
+         *         these functions are needed in order to calculate the
+         *         verification value sent in the CertificateVerify.
+         *         This is separate from key derivation and should be handled
+         *         in a different routine. Once that's done, key derivation
+         *         could be postponed to the ChangeCipherSpec state.
+         *       - The reason why it can currently not be done earlier
+         *         is that if the ExtendedMasterSecret extension is used,
+         *         the derivation of the master secret from the
+         *         premaster secret involves the hash of the handshake
+         *         up to and including the ClientKeyExchange message.
+         *         Therefore, key derivation cannot happen before the
+         *         ClientKeyExchange message has been sent.
+         *         This suggests that once that restructuring is done,
+         *         key derivation might be added to the postprocessing
+         *         part of the outgoing ClientKeyExchange handling.
+         *         However, the postprocessing is currently done before
+         *         calling ssl_write_record() (which is responsible for
+         *         encrypting and delivering the record to the underlying
+         *         transport) because ssl_write_record(), and as it's
+         *         ssl_write_record() that's updating the handshake checksum,
+         *         the handshake transcript isn't yet the correct one
+         *         to compute the master secret from.
+         *         Once we switch to the new messaging layer, which treats
+         *         checksum updating manually in the logic layer, we can
+         *         call mbedtls_ssl_derive_keys() to the postprocessing
+         *         of the outging ClientKeyExchange message, once the
+         *         the checksum has been updated.
+         */
+        SSL_PROC_CHK( mbedtls_ssl_derive_keys( ssl ) );
+        ssl->handshake->crt_vrfy_preparation_done = 1;
     }
 
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
+    /* Coordination step: Check if we need to send a CertificateVerify */
+    SSL_PROC_CHK( ssl_certificate_verify_coordinate( ssl ) );
+
+#if defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
+    if( ret == SSL_CERTIFICATE_VERIFY_SEND )
+    {
+        /* Make sure we can write a new message. */
+        SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
+
+        /* Prepare CertificateVerify message in output buffer. */
+        SSL_PROC_CHK( ssl_certificate_verify_write( ssl, ssl->out_msg,
+                                                    MBEDTLS_SSL_MAX_CONTENT_LEN,
+                                                    &ssl->out_msglen ) );
+
+        ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
+        ssl->out_msg[0]  = MBEDTLS_SSL_HS_CERTIFICATE_VERIFY;
+
+        /* Update state */
+        SSL_PROC_CHK( ssl_certificate_verify_postprocess( ssl ) );
+
+        /* Dispatch message */
+        SSL_PROC_CHK( mbedtls_ssl_write_record( ssl ) );
+
+        /* NOTE: With the new messaging layer, the postprocessing
+         *       step might come after the dispatching step if the
+         *       latter doesn't send the message immediately.
+         *       At the moment, we must do the postprocessing
+         *       prior to the dispatching because if the latter
+         *       returns WANT_WRITE, we want the handshake state
+         *       to be updated in order to not enter
+         *       this function again on retry.
+         *
+         *       Further, once the two calls can be re-ordered, the two
+         *       calls to ssl_certificate_verify_postprocess() can be
+         *       consolidated. */
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
+    if( ret == SSL_CERTIFICATE_VERIFY_SKIP )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
-        ssl->state++;
-        return( 0 );
+
+        /* Update state */
+        SSL_PROC_CHK( ssl_certificate_verify_postprocess( ssl ) );
+    }
+    else
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
+cleanup:
+
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process certificate verify" ) );
+    return( ret );
+}
+
+static int ssl_certificate_verify_coordinate( mbedtls_ssl_context *ssl )
+{
+    const mbedtls_ssl_ciphersuite_t *info =
+        ssl->transform_negotiate->ciphersuite_info;
+
+    if( !mbedtls_ssl_ciphersuite_cert_req_allowed( info ) )
+    {
+        return( SSL_CERTIFICATE_VERIFY_SKIP );
+    }
+
+#if !defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-}
 #else
-static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
-{
-    int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
-        ssl->transform_negotiate->ciphersuite_info;
-    size_t n = 0, offset = 0;
-    unsigned char hash[48];
-    unsigned char *hash_start = hash;
-    mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
-    unsigned int hashlen;
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
-
-    if( ( ret = mbedtls_ssl_derive_keys( ssl ) ) != 0 )
+    if( mbedtls_ssl_own_cert( ssl ) == NULL ||
+        ssl->client_auth == 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_derive_keys", ret );
-        return( ret );
-    }
-
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
-        ssl->state++;
-        return( 0 );
-    }
-
-    if( ssl->client_auth == 0 || mbedtls_ssl_own_cert( ssl ) == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
-        ssl->state++;
-        return( 0 );
+        return( SSL_CERTIFICATE_VERIFY_SKIP );
     }
 
     if( mbedtls_ssl_own_key( ssl ) == NULL )
@@ -3302,6 +3394,31 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no private key for certificate" ) );
         return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
     }
+
+    return( SSL_CERTIFICATE_VERIFY_SEND );
+#endif /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
+}
+
+#if defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
+static int ssl_certificate_verify_write( mbedtls_ssl_context *ssl,
+                                         unsigned char *buf,
+                                         size_t buflen,
+                                         size_t *olen )
+{
+    int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+    size_t n = 0, offset = 0;
+    unsigned char hash[48];
+    unsigned char *hash_start = hash;
+    mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
+    unsigned int hashlen;
+
+    /* NOTE: We need an upper bound check for the size
+     *       of the signature here! Currently, the PK API
+     *       does not provide a function for that, but
+     *       it'll change with the introduction of the
+     *       OpaqueKeys feature branch.
+     */
+    ((void) buflen);
 
     /*
      * Make an RSA signature of the handshake digests
@@ -3362,14 +3479,14 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
             MBEDTLS_MD_SHA384 )
         {
             md_alg = MBEDTLS_MD_SHA384;
-            ssl->out_msg[4] = MBEDTLS_SSL_HASH_SHA384;
+            buf[4] = MBEDTLS_SSL_HASH_SHA384;
         }
         else
         {
             md_alg = MBEDTLS_MD_SHA256;
-            ssl->out_msg[4] = MBEDTLS_SSL_HASH_SHA256;
+            buf[4] = MBEDTLS_SSL_HASH_SHA256;
         }
-        ssl->out_msg[5] = mbedtls_ssl_sig_from_pk( mbedtls_ssl_own_key( ssl ) );
+        buf[5] = mbedtls_ssl_sig_from_pk( mbedtls_ssl_own_key( ssl ) );
 
         /* Info from md_alg will be used instead */
         hashlen = 0;
@@ -3382,39 +3499,27 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    if( ( ret = mbedtls_pk_sign( mbedtls_ssl_own_key( ssl ), md_alg, hash_start, hashlen,
-                         ssl->out_msg + 6 + offset, &n,
-                         ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+    if( ( ret = mbedtls_pk_sign( mbedtls_ssl_own_key( ssl ), md_alg, hash_start,
+                                 hashlen, buf + 6 + offset, &n,
+                                 ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_sign", ret );
         return( ret );
     }
 
-    ssl->out_msg[4 + offset] = (unsigned char)( n >> 8 );
-    ssl->out_msg[5 + offset] = (unsigned char)( n      );
+    buf[4 + offset] = (unsigned char)( n >> 8 );
+    buf[5 + offset] = (unsigned char)( n      );
 
-    ssl->out_msglen  = 6 + n + offset;
-    ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
-    ssl->out_msg[0]  = MBEDTLS_SSL_HS_CERTIFICATE_VERIFY;
-
-    ssl->state++;
-
-    if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
-        return( ret );
-    }
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write certificate verify" ) );
-
-    return( ret );
+    *olen = 6 + n + offset;
+    return( 0 );
 }
-#endif /* !MBEDTLS_KEY_EXCHANGE_RSA_ENABLED &&
-          !MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED &&
-          !MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED &&
-          !MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED &&
-          !MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED &&
-          !MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
+
+static int ssl_certificate_verify_postprocess( mbedtls_ssl_context *ssl )
+{
+    ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
+    return( 0 );
+}
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
@@ -3612,7 +3717,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
            break;
 
        case MBEDTLS_SSL_CERTIFICATE_VERIFY:
-           ret = ssl_write_certificate_verify( ssl );
+           ret = ssl_process_certificate_verify( ssl );
            break;
 
        case MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC:

@@ -250,7 +250,7 @@ typedef enum {
     MBEDTLS_KEY_EXCHANGE_ECJPAKE,
 } mbedtls_key_exchange_type_t;
 
-/* Key exchanges using a certificate */
+/* Key exchanges using a server certificate */
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)           || \
     defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)       || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)     || \

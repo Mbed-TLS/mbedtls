@@ -4326,10 +4326,7 @@ static int ssl_write_certificate_coordinate( mbedtls_ssl_context *ssl )
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
         if( ssl->client_auth == 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate" ) );
             return( SSL_WRITE_CERTIFICATE_SKIP );
-        }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
         /*

@@ -290,6 +290,13 @@ struct mbedtls_ssl_handshake_params
                     const unsigned char *, size_t,
                     unsigned char *, size_t);
 
+    /*
+     * State-local variables used during the processing
+     * of a specific handshake state.
+     *
+     * TODO: Put these in a union.
+     */
+
     /* Finished message
      * Buffer to hold the digest of the entire handshake
      * up to the Finished message.
@@ -297,9 +304,15 @@ struct mbedtls_ssl_handshake_params
     unsigned char handshake_digest[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN];
     size_t handshake_digest_len;
 
+    /* Client, incoming server hello */
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     int renegotiation_info_seen;
 #endif
+
+    /* Certificate Verify */
+    int crt_vrfy_preparation_done;
+
+    /* End of state-local variables. */
 
     size_t pmslen;                      /*!<  premaster length        */
 

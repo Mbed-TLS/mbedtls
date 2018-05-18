@@ -85,6 +85,9 @@ static const x509_attr_descriptor_t *x509_at_oid_from_name( const char *name, si
             strncmp( cur->name, name, name_len ) == 0 )
             break;
 
+    if ( cur->name == NULL )
+        return( NULL );
+        
     return( cur );
 }
 

@@ -2932,11 +2932,20 @@ exit:
 }
 #endif /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
 
-static int ssl_parse_server_hello_done( mbedtls_ssl_context *ssl )
+/*
+ *
+ * STATE HANDLING: ServerHelloDone
+ *
+ */
+
+static int ssl_process_server_hello_done( mbedtls_ssl_context *ssl )
 {
     int ret;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process server hello done" ) );
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server hello done" ) );
+    /* Preparation & Coordination: None */
+
+    /* Reading */
 
     if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {
@@ -2959,15 +2968,16 @@ static int ssl_parse_server_hello_done( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE );
     }
 
-    ssl->state++;
-
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
         mbedtls_ssl_recv_flight_completed( ssl );
 #endif
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse server hello done" ) );
+    /* Postprocessing: Update state */
 
+    ssl->state = MBEDTLS_SSL_CLIENT_CERTIFICATE;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse server hello done" ) );
     return( 0 );
 }
 
@@ -3698,7 +3708,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
            break;
 
        case MBEDTLS_SSL_SERVER_HELLO_DONE:
-           ret = ssl_parse_server_hello_done( ssl );
+           ret = ssl_process_server_hello_done( ssl );
            break;
 
        /*

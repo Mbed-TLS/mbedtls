@@ -2749,43 +2749,109 @@ exit:
     return( 0 );
 }
 
-#if ! defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
-static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
+/*
+ *
+ * STATE HANDLING: CertificateRequest
+ *
+ */
+
+/*
+ * Overview
+ */
+
+/* Main entry point; orchestrates the other functions */
+static int ssl_process_certificate_request( mbedtls_ssl_context *ssl );
+
+/* Coordination:
+ * Deals with the ambiguity of not knowing if a CertificateRequest
+ * will be sent. Returns a negative code on failure, or
+ * - SSL_CERTIFICATE_REQUEST_EXPECT_REQUEST
+ * - SSL_CERTIFICATE_REQUEST_SKIP
+ * indicating if a Certificate Request is expected or not.
+ */
+#define SSL_CERTIFICATE_REQUEST_EXPECT_REQUEST 0
+#define SSL_CERTIFICATE_REQUEST_SKIP    1
+static int ssl_certificate_request_coordinate( mbedtls_ssl_context *ssl );
+#if defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
+static int ssl_certificate_request_parse( mbedtls_ssl_context *ssl,
+                                          unsigned char const *buf,
+                                          size_t buflen );
+#endif /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
+static int ssl_certificate_request_postprocess( mbedtls_ssl_context *ssl );
+
+/*
+ * Implementation
+ */
+
+/* Main entry point; orchestrates the other functions */
+static int ssl_process_certificate_request( mbedtls_ssl_context *ssl )
 {
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
-        ssl->transform_negotiate->ciphersuite_info;
+    int ret = 0;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate request" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process certificate request" ) );
 
-    if( ! mbedtls_ssl_ciphersuite_cert_req_allowed( ciphersuite_info ) )
+    /* Coordination step
+     * - Fetch record
+     * - Make sure it's either a CertificateRequest or a ServerHelloDone
+     */
+    SSL_PROC_CHK( ssl_certificate_request_coordinate( ssl ) );
+
+#if defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
+    if( ret == SSL_CERTIFICATE_REQUEST_EXPECT_REQUEST )
+    {
+        /* Parsing step */
+        SSL_PROC_CHK( ssl_certificate_request_parse( ssl, ssl->in_msg,
+                                                     ssl->in_hslen ) );
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
+    if( ret == SSL_CERTIFICATE_REQUEST_SKIP )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate request" ) );
-        ssl->state++;
-        return( 0 );
+    }
+    else
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    /* Update state */
+    SSL_PROC_CHK( ssl_certificate_request_postprocess( ssl ) );
+
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "got %s certificate request",
+                        ssl->client_auth ? "a" : "no" ) );
+
+cleanup:
+
+    /* In the MPS one would close the read-port here to
+     * ensure there's no overlap of reading and writing. */
+
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process certificate request" ) );
+    return( ret );
 }
-#else /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
-static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
+
+static int ssl_certificate_request_coordinate( mbedtls_ssl_context *ssl )
 {
     int ret;
-    unsigned char *buf;
-    size_t n = 0;
-    size_t cert_type_len = 0, dn_len = 0;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+    const mbedtls_ssl_ciphersuite_t *info =
         ssl->transform_negotiate->ciphersuite_info;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate request" ) );
-
-    if( ! mbedtls_ssl_ciphersuite_cert_req_allowed( ciphersuite_info ) )
+    if( !mbedtls_ssl_ciphersuite_cert_req_allowed( info ) )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate request" ) );
-        ssl->state++;
-        return( 0 );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "ciphersuite doesn't allow certificate request" ) );
+        return( SSL_CERTIFICATE_REQUEST_SKIP );
     }
 
+#if !defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
+    ((void) ret);
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+#else
     if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
@@ -2795,23 +2861,29 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE;
         return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
-    ssl->state++;
-    ssl->client_auth = ( ssl->in_msg[0] == MBEDTLS_SSL_HS_CERTIFICATE_REQUEST );
-
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "got %s certificate request",
-                        ssl->client_auth ? "a" : "no" ) );
-
-    if( ssl->client_auth == 0 )
+    if( ssl->in_msg[0] == MBEDTLS_SSL_HS_CERTIFICATE_REQUEST )
     {
-        /* Current message is probably the ServerHelloDone */
-        ssl->keep_current_message = 1;
-        goto exit;
+        return( SSL_CERTIFICATE_REQUEST_EXPECT_REQUEST );
     }
+
+    ssl->keep_current_message = 1;
+    return( SSL_CERTIFICATE_REQUEST_SKIP );
+#endif /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
+}
+
+#if defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
+static int ssl_certificate_request_parse( mbedtls_ssl_context *ssl,
+                                          const unsigned char* buf,
+                                          size_t buflen )
+{
+    size_t n = 0;
+    size_t cert_type_len = 0, dn_len = 0;
+    size_t const hs_hdr_len = mbedtls_ssl_hs_hdr_len( ssl );
 
     /*
      *  struct {
@@ -2837,17 +2909,17 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
      *  However, we still minimally parse the message to check it is at least
      *  superficially sane.
      */
-    buf = ssl->in_msg;
 
     /* certificate_types */
-    if( ssl->in_hslen <= mbedtls_ssl_hs_hdr_len( ssl ) )
+    if( buflen <= hs_hdr_len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
     }
-    cert_type_len = buf[mbedtls_ssl_hs_hdr_len( ssl )];
+
+    cert_type_len = buf[ hs_hdr_len ];
     n = cert_type_len;
 
     /*
@@ -2860,11 +2932,11 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
      * therefore the buffer length at this point must be greater than that
      * regardless of the actual code path.
      */
-    if( ssl->in_hslen <= mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n )
+    if( buflen <= hs_hdr_len + 2 + n )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
     }
 
@@ -2872,10 +2944,10 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
-        size_t sig_alg_len = ( ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 1 + n] <<  8 )
-                             | ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n]       ) );
+        size_t sig_alg_len = ( ( buf[hs_hdr_len + 1 + n] <<  8 )
+                             | ( buf[hs_hdr_len + 2 + n]       ) );
 #if defined(MBEDTLS_DEBUG_C)
-        unsigned char* sig_alg;
+        unsigned char const* sig_alg;
         size_t i;
 #endif
 
@@ -2891,16 +2963,16 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
          *     buf[...hdr_len + 3 + n + sig_alg_len],
          * which is one less than we need the buf to be.
          */
-        if( ssl->in_hslen <= mbedtls_ssl_hs_hdr_len( ssl ) + 3 + n + sig_alg_len )
+        if( buflen <= hs_hdr_len + 3 + n + sig_alg_len )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
-            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                            MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
         }
 
 #if defined(MBEDTLS_DEBUG_C)
-        sig_alg = buf + mbedtls_ssl_hs_hdr_len( ssl ) + 3 + n;
+        sig_alg = buf + hs_hdr_len + 3 + n;
         for( i = 0; i < sig_alg_len; i += 2 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "Supported Signature Algorithm found: %d"
@@ -2913,24 +2985,28 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
     /* certificate_authorities */
-    dn_len = ( ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 1 + n] <<  8 )
-             | ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n]       ) );
+    dn_len = ( ( buf[hs_hdr_len + 1 + n] <<  8 )
+             | ( buf[hs_hdr_len + 2 + n]       ) );
 
     n += dn_len;
-    if( ssl->in_hslen != mbedtls_ssl_hs_hdr_len( ssl ) + 3 + n )
+    if( buflen != hs_hdr_len + 3 + n )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
     }
 
-exit:
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate request" ) );
-
+    ssl->client_auth = 1;
     return( 0 );
 }
 #endif /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
+
+static int ssl_certificate_request_postprocess( mbedtls_ssl_context *ssl )
+{
+    ssl->state = MBEDTLS_SSL_SERVER_HELLO_DONE;
+    return( 0 );
+}
 
 /*
  *
@@ -3704,7 +3780,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
            break;
 
        case MBEDTLS_SSL_CERTIFICATE_REQUEST:
-           ret = ssl_parse_certificate_request( ssl );
+           ret = ssl_process_certificate_request( ssl );
            break;
 
        case MBEDTLS_SSL_SERVER_HELLO_DONE:

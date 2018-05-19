@@ -2445,8 +2445,8 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
 
             if ( (size_t)ret > len || ( INT_MAX > SIZE_MAX && ret > SIZE_MAX ) )
             {
-                MBEDTLS_SSL_DEBUG_MSG( 1, 
-                    ( "f_recv returned %d bytes but only %lu were requested", 
+                MBEDTLS_SSL_DEBUG_MSG( 1,
+                    ( "f_recv returned %d bytes but only %lu were requested",
                     ret, (unsigned long)len ) );
                 return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
             }
@@ -2500,8 +2500,8 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
 
         if( (size_t)ret > ssl->out_left || ( INT_MAX > SIZE_MAX && ret > SIZE_MAX ) )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, 
-                ( "f_send returned %d bytes but only %lu bytes were sent", 
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+                ( "f_send returned %d bytes but only %lu bytes were sent",
                 ret, (unsigned long)ssl->out_left ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
@@ -4431,6 +4431,145 @@ static int ssl_write_certificate_postprocess( mbedtls_ssl_context *ssl )
 
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
+
+/*
+ *
+ * STATE HANDLING: Incoming Certificate
+ *
+ */
+
+/*
+ * Overview
+ */
+
+/* Main state-handling entry point; orchestrates the other functions. */
+int mbedtls_ssl_process_read_certificate( mbedtls_ssl_context *ssl );
+
+/* Coordination: Check if a certificate is expected.
+ * Returns a negative error code on failure, and otherwise
+ * SSL_CERTIFICATE_EXPECTED or
+ * SSL_CERTIFICATE_SKIP
+ * indicating whether a Certificate message is expected or not.
+ */
+#define SSL_CERTIFICATE_EXPECTED   0
+#define SSL_CERTIFICATE_SKIP       1
+static int ssl_read_certificate_coordinate( mbedtls_ssl_context *ssl );
+
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+/* Parse certificate chain send by the peer. */
+static int ssl_read_certificate_parse( mbedtls_ssl_context *ssl,
+                                       unsigned char const *buf,
+                                       size_t buflen );
+
+/* Validate certificate chain sent by the peer. */
+static int ssl_read_certificate_validate( mbedtls_ssl_context *ssl );
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
+
+/* Update the state after handling the incoming certificate message. */
+static int ssl_read_certificate_postprocess( mbedtls_ssl_context *ssl );
+
+/*
+ * Implementation
+ */
+
+int mbedtls_ssl_process_read_certificate( mbedtls_ssl_context *ssl )
+{
+    int ret;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
+
+    /* Coordination:
+     * Check if we expect a certificate, and if yes,
+     * check if a non-empty certificate has been sent. */
+    SSL_PROC_CHK( ssl_read_certificate_coordinate( ssl ) );
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+    if( ret == SSL_CERTIFICATE_EXPECTED )
+    {
+        /* Reading step */
+
+        if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
+        {
+            /* mbedtls_ssl_read_record may have sent an alert already. We
+               let it decide whether to alert. */
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
+            return( ret );
+        }
+
+        if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
+            ssl->in_msg[0]  != MBEDTLS_SSL_HS_CERTIFICATE )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
+            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE;
+            ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+            goto cleanup;
+        }
+        else
+        {
+            /* Parse the certificate chain sent by the peer. */
+            SSL_PROC_CHK( ssl_read_certificate_parse( ssl, ssl->in_msg,
+                                                      ssl->in_hslen ) );
+        }
+
+        /* Validate the certificate chain and set the verification results.
+         * Note: This includes not only the case of a non-empty
+         * CRT chain, but also the SSLv3 case when the client sent
+         * a NO_CERT warning, as well as the >= TLS 1.0 case when
+         * the client sent an empty certificate chain. */
+        SSL_PROC_CHK( ssl_read_certificate_validate( ssl ) );
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
+    if( ret == SSL_CERTIFICATE_SKIP )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
+    }
+    else
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    /* Update state */
+    SSL_PROC_CHK( ssl_read_certificate_postprocess( ssl ) );
+
+cleanup:
+
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );
+    return( ret );
+}
+
+static int ssl_read_certificate_coordinate( mbedtls_ssl_context *ssl )
+{
+    /* TBD */
+}
+
+
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+/* Write certificate message based on the configured certificate */
+static int ssl_read_certificate_parse( mbedtls_ssl_context *ssl,
+                                       unsigned char const *buf,
+                                       size_t buflen )
+{
+    /* TBD */
+}
+
+static int ssl_read_certificate_validate( mbedtls_ssl_context *ssl )
+{
+    /* TBD */
+}
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
+
+static int ssl_read_certificate_postprocess( mbedtls_ssl_context *ssl )
+{
+    /* TBD */
+}
+
+/* TO BE ADDED */
 
 #if !defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
 

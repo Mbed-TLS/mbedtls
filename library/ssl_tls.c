@@ -4780,15 +4780,15 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
           MBEDTLS_SSL_PROTO_TLS1_2 */
 #endif /* MBEDTLS_SSL_SRV_C */
 
-    if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
-        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
-    }
+    /* if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ) */
+    /* { */
+    /*     MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) ); */
+    /*     mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL, */
+    /*                                     MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE ); */
+    /*     return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE ); */
+    /* } */
 
-    if( ssl->in_msg[0] != MBEDTLS_SSL_HS_CERTIFICATE ||
+    if( /* ssl->in_msg[0] != MBEDTLS_SSL_HS_CERTIFICATE || */
         ssl->in_hslen < mbedtls_ssl_hs_hdr_len( ssl ) + 3 + 3 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );

@@ -2200,6 +2200,7 @@ run_test    "Authentication: client has no cert, server required (SSLv3)" \
             -c "got a certificate request" \
             -c "got no certificate to send" \
             -S "x509_verify_cert() returned" \
+            -s "got NO-CRT alert from client" \
             -s "client has no certificate" \
             -s "! mbedtls_ssl_handshake returned" \
             -c "! mbedtls_ssl_handshake returned" \

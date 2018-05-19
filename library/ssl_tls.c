@@ -4497,11 +4497,30 @@ int mbedtls_ssl_process_read_certificate( mbedtls_ssl_context *ssl )
         if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
             ssl->in_msg[0]  != MBEDTLS_SSL_HS_CERTIFICATE )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE;
-            ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
-            goto cleanup;
+#if defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+            /*
+             * SSLv3: Check if the client sent a NoCertificate warning
+             */
+            if( ssl->conf->endpoint  == MBEDTLS_SSL_IS_SERVER            &&
+                ssl->minor_ver       == MBEDTLS_SSL_MINOR_VERSION_0      &&
+                ssl->in_msglen       == 2                                &&
+                ssl->in_msgtype      == MBEDTLS_SSL_MSG_ALERT            &&
+                ssl->in_msg[0]       == MBEDTLS_SSL_ALERT_LEVEL_WARNING  &&
+                ssl->in_msg[1]       == MBEDTLS_SSL_ALERT_MSG_NO_CERT )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "got NO-CRT alert from client" ) );
+            }
+            else
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
+#endif /* MBEDTLS_SSL_SRV_C      */
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
+                ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+                ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE;
+                ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+                goto cleanup;
+            }
         }
         else
         {
@@ -4708,32 +4727,32 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
     /* ssl->state++; */
 
-#if defined(MBEDTLS_SSL_SRV_C)
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-    /*
-     * Check if the client sent an empty certificate
-     */
-    if( ssl->conf->endpoint  == MBEDTLS_SSL_IS_SERVER &&
-        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
-    {
-        if( ssl->in_msglen  == 2                        &&
-            ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT            &&
-            ssl->in_msg[0]  == MBEDTLS_SSL_ALERT_LEVEL_WARNING  &&
-            ssl->in_msg[1]  == MBEDTLS_SSL_ALERT_MSG_NO_CERT )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "SSLv3 client has no certificate" ) );
+/* #if defined(MBEDTLS_SSL_SRV_C) */
+/* #if defined(MBEDTLS_SSL_PROTO_SSL3) */
+/*     /\* */
+/*      * Check if the client sent an empty certificate */
+/*      *\/ */
+/*     if( ssl->conf->endpoint  == MBEDTLS_SSL_IS_SERVER && */
+/*         ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ) */
+/*     { */
+/*         if( ssl->in_msglen  == 2                        && */
+/*             ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT            && */
+/*             ssl->in_msg[0]  == MBEDTLS_SSL_ALERT_LEVEL_WARNING  && */
+/*             ssl->in_msg[1]  == MBEDTLS_SSL_ALERT_MSG_NO_CERT ) */
+/*         { */
+/*             MBEDTLS_SSL_DEBUG_MSG( 1, ( "SSLv3 client has no certificate" ) ); */
 
-            /* The client was asked for a certificate but didn't send
-               one. The client should know what's going on, so we
-               don't send an alert. */
-            ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING;
-            if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
-                return( 0 );
-            else
-                return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
-        }
-    }
-#endif /* MBEDTLS_SSL_PROTO_SSL3 */
+/*             /\* The client was asked for a certificate but didn't send */
+/*                one. The client should know what's going on, so we */
+/*                don't send an alert. *\/ */
+/*             ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING; */
+/*             if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL ) */
+/*                 return( 0 ); */
+/*             else */
+/*                 return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE ); */
+/*         } */
+/*     } */
+/* #endif /\* MBEDTLS_SSL_PROTO_SSL3 *\/ */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)

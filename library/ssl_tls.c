@@ -4642,10 +4642,13 @@ static int ssl_read_certificate_parse( mbedtls_ssl_context *ssl,
     }
 
     /* In case we tried to reuse a session but it failed */
+    /* NOTE: This should be moved to the place where the
+     *       session resumption fails. */
     if( ssl->session_negotiate->peer_cert != NULL )
     {
         mbedtls_x509_crt_free( ssl->session_negotiate->peer_cert );
         mbedtls_free( ssl->session_negotiate->peer_cert );
+        ssl->session_negotiate->peer_cert = NULL;
     }
 
     buf    += 3;

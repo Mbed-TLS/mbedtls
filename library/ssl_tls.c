@@ -4560,6 +4560,30 @@ static int ssl_read_certificate_coordinate( mbedtls_ssl_context *ssl )
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 #else
 
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+    {
+        if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
+            return( SSL_CERTIFICATE_SKIP );
+
+        /* If SNI was used, overwrite authentication mode
+         * from the configuration. */
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+        if( ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET )
+            authmode = ssl->handshake->sni_authmode;
+#endif
+
+        if( authmode == MBEDTLS_SSL_VERIFY_NONE )
+        {
+            /* NOTE: Is it intentional that we set verify_result
+             * to SKIP_VERIFY on server-side only? */
+            ssl->session_negotiate->verify_result =
+                MBEDTLS_X509_BADCERT_SKIP_VERIFY;
+            return( SSL_CERTIFICATE_SKIP );
+        }
+    }
+#endif /* MBEDTLS_SSL_SRV_C */
+
     return( SSL_CERTIFICATE_EXPECTED );
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 }
@@ -4650,29 +4674,29 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     /*     return( 0 ); */
     /* } */
 
-#if defined(MBEDTLS_SSL_SRV_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
-        ssl->state++;
-        return( 0 );
-    }
+/* #if defined(MBEDTLS_SSL_SRV_C) */
+/*     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER && */
+/*         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ) */
+/*     { */
+/*         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) ); */
+/*         ssl->state++; */
+/*         return( 0 ); */
+/*     } */
 
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    if( ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET )
-        authmode = ssl->handshake->sni_authmode;
-#endif
+/* #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) */
+/*     if( ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET ) */
+/*         authmode = ssl->handshake->sni_authmode; */
+/* #endif */
 
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
-        authmode == MBEDTLS_SSL_VERIFY_NONE )
-    {
-        ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_SKIP_VERIFY;
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
-        ssl->state++;
-        return( 0 );
-    }
-#endif
+/*     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER && */
+/*         authmode == MBEDTLS_SSL_VERIFY_NONE ) */
+/*     { */
+/*         ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_SKIP_VERIFY; */
+/*         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) ); */
+/*         ssl->state++; */
+/*         return( 0 ); */
+/*     } */
+/* #endif */
 
     if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {

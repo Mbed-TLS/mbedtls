@@ -4545,7 +4545,23 @@ cleanup:
 
 static int ssl_read_certificate_coordinate( mbedtls_ssl_context *ssl )
 {
-    /* TBD */
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+        ssl->transform_negotiate->ciphersuite_info;
+    int authmode = ssl->conf->authmode;
+
+    if( !mbedtls_ssl_ciphersuite_uses_srv_cert( ciphersuite_info ) )
+    {
+        return( SSL_CERTIFICATE_SKIP );
+    }
+
+#if !defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+    ((void) authmode);
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+#else
+
+    return( SSL_CERTIFICATE_EXPECTED );
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 }
 
 
@@ -4566,7 +4582,26 @@ static int ssl_read_certificate_validate( mbedtls_ssl_context *ssl )
 
 static int ssl_read_certificate_postprocess( mbedtls_ssl_context *ssl )
 {
-    /* TBD */
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+    {
+        ssl->state = MBEDTLS_SSL_CLIENT_KEY_EXCHANGE;
+    }
+    else
+#endif /* MBEDTLS_SSL_SRV_C */
+#if defined(MBEDTLS_SSL_CLI_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+    {
+        ssl->state = MBEDTLS_SSL_SERVER_KEY_EXCHANGE;
+    }
+    else
+#endif /* MBEDTLS_SSL_CLI_C */
+    {
+        /* Should not happen */
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    return( 0 );
 }
 
 /* TO BE ADDED */
@@ -4579,15 +4614,15 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
-        ssl->state++;
-        return( 0 );
-    }
+    /* if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK || */
+    /*     ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK || */
+    /*     ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK || */
+    /*     ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE ) */
+    /* { */
+    /*     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) ); */
+    /*     ssl->state++; */
+    /*     return( 0 ); */
+    /* } */
 
     MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
@@ -4605,15 +4640,15 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
-        ssl->state++;
-        return( 0 );
-    }
+    /* if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK || */
+    /*     ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK || */
+    /*     ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK || */
+    /*     ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE ) */
+    /* { */
+    /*     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) ); */
+    /*     ssl->state++; */
+    /*     return( 0 ); */
+    /* } */
 
 #if defined(MBEDTLS_SSL_SRV_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&

@@ -4698,15 +4698,15 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 /*     } */
 /* #endif */
 
-    if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
-    {
-        /* mbedtls_ssl_read_record may have sent an alert already. We
-           let it decide whether to alert. */
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
-        return( ret );
-    }
+    /* if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 ) */
+    /* { */
+    /*     /\* mbedtls_ssl_read_record may have sent an alert already. We */
+    /*        let it decide whether to alert. *\/ */
+    /*     MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret ); */
+    /*     return( ret ); */
+    /* } */
 
-    ssl->state++;
+    /* ssl->state++; */
 
 #if defined(MBEDTLS_SSL_SRV_C)
 #if defined(MBEDTLS_SSL_PROTO_SSL3)

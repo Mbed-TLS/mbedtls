@@ -4729,7 +4729,49 @@ static int ssl_read_certificate_parse( mbedtls_ssl_context *ssl,
 
 static int ssl_read_certificate_validate( mbedtls_ssl_context *ssl )
 {
-    /* TBD */
+    int ret = 0;
+    int authmode = ssl->conf->authmode;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+        ssl->transform_negotiate->ciphersuite_info;
+    mbedtls_x509_crt *ca_chain;
+    mbedtls_x509_crl *ca_crl;
+
+    /* If SNI was used, overwrite authentication mode
+     * from the configuration. */
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    if( ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET )
+        authmode = ssl->handshake->sni_authmode;
+#endif
+
+    /*
+     * Regardless of whether we're using SSLv3 or >= TLS 1.0,
+     * if the client hasn't sent a certificate (i.e. it sent
+     * a NoCert alert in SSL3 or an empty certificate chain
+     * for TLS 1.0 or higher), this is reflected in the peer CRT
+     * structure being unset.
+     * Check for that and handle it depending on the
+     * server's authentication mode.
+     */
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( ssl->conf->endpoint  == MBEDTLS_SSL_IS_SERVER &&
+        ssl->session_negotiate->peer_cert == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "client has no certificate" ) );
+
+        /* The client was asked for a certificate but didn't send
+           one. The client should know what's going on, so we
+           don't send an alert. */
+
+        /* Note that for authmode == VERIFY_NONE we don't end up in this
+         * routine in the first place, because ssl_read_certificate_coordinate
+         * will return CERTIFICATE_SKIP. */
+        ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING;
+        if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
+            return( 0 );
+        else
+            return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
+    }
+#endif /* MBEDTLS_SSL_SRV_C */
 }
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 

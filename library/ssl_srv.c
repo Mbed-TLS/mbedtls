@@ -4071,6 +4071,22 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
     /* The ClientKeyExchange message is never skipped. */
 
     /* Reading step */
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE) && \
+    ( defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) || \
+      defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) )
+    if( ( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+          == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
+          mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+          == MBEDTLS_KEY_EXCHANGE_RSA ) &&
+        ( ssl->handshake->async_in_progress != 0 ) )
+    {
+        /* We've already read a record and there is an asynchronous
+         * operation in progress to decrypt it. So skip reading the
+         * record. */
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "will resume decryption of previously-read record" ) );
+    }
+    else
+#endif
     if( ( ret = mbedtls_ssl_read_record( ssl,
                                          1 /* update checksum */ ) ) != 0 )
     {
@@ -4104,7 +4120,185 @@ static int ssl_client_key_exchange_parse( mbedtls_ssl_context *ssl,
                                           unsigned char *buf,
                                           size_t buflen )
 {
-    /* TBD */
+    int ret;
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
+    unsigned char *p, *end;
+
+    p = buf + mbedtls_ssl_hs_hdr_len( ssl );
+    end = buf + buflen;
+
+#if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_DHE_RSA )
+    {
+        if( ( ret = ssl_parse_client_dh_public( ssl, &p, end ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_dh_public" ), ret );
+            return( ret );
+        }
+
+        if( p != end )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        }
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                      \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDH_RSA ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
+    {
+        if( ( ret = mbedtls_ecdh_read_public( &ssl->handshake->ecdh_ctx,
+                                      p, end - p) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_read_public", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
+        }
+
+        MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
+                                MBEDTLS_DEBUG_ECDH_QP );
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_PSK )
+    {
+        if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
+            return( ret );
+        }
+
+        if( p != end )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        }
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
+    {
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+        if ( ssl->handshake->async_in_progress != 0 )
+        {
+            /* There is an asynchronous operation in progress to
+             * decrypt the encrypted premaster secret, so skip
+             * directly to resuming this operation. */
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "PSK identity already parsed" ) );
+            /* Update p to skip the PSK identity. ssl_parse_encrypted_pms
+             * won't actually use it, but maintain p anyway for robustness. */
+            p += ssl->conf->psk_identity_len + 2;
+        }
+        else
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+        if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
+            return( ret );
+        }
+
+        if( ( ret = ssl_parse_encrypted_pms( ssl, p, end, 2 ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_encrypted_pms" ), ret );
+            return( ret );
+        }
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_DHE_PSK )
+    {
+        if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
+            return( ret );
+        }
+        if( ( ret = ssl_parse_client_dh_public( ssl, &p, end ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_dh_public" ), ret );
+            return( ret );
+        }
+
+        if( p != end )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        }
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
+    {
+        if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
+            return( ret );
+        }
+
+        if( ( ret = mbedtls_ecdh_read_public( &ssl->handshake->ecdh_ctx,
+                                       p, end - p ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_read_public", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
+        }
+
+        MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH: Qp ", &ssl->handshake->ecdh_ctx.Qp );
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_RSA )
+    {
+        if( ( ret = ssl_parse_encrypted_pms( ssl, p, end, 0 ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_parse_encrypted_pms_secret" ), ret );
+            return( ret );
+        }
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
+    {
+        ret = mbedtls_ecjpake_read_round_two( &ssl->handshake->ecjpake_ctx,
+                                              p, end - p );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecjpake_read_round_two", ret );
+            return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
+        }
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    return( 0 );
 }
 
 /* Update the handshake state */
@@ -4113,6 +4307,8 @@ static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl )
     int ret;
     mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
         mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse client key exchange" ) );
 
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
@@ -4262,19 +4458,21 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse client key exchange" ) );
 
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE) && \
-    ( defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) || \
-      defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) )
-    if( ( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
-          mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) == MBEDTLS_KEY_EXCHANGE_RSA ) &&
-        ( ssl->handshake->async_in_progress != 0 ) )
-    {
-        /* We've already read a record and there is an asynchronous
-         * operation in progress to decrypt it. So skip reading the
-         * record. */
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "will resume decryption of previously-read record" ) );
-    }
-    else
+/* #if defined(MBEDTLS_SSL_ASYNC_PRIVATE) && \ */
+/*     ( defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) || \ */
+/*       defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED) ) */
+/*     if( ( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) */
+/*           == MBEDTLS_KEY_EXCHANGE_RSA_PSK || */
+/*           mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) */
+/*           == MBEDTLS_KEY_EXCHANGE_RSA ) && */
+/*         ( ssl->handshake->async_in_progress != 0 ) ) */
+/*     { */
+/*         /\* We've already read a record and there is an asynchronous */
+/*          * operation in progress to decrypt it. So skip reading the */
+/*          * record. *\/ */
+/*         MBEDTLS_SSL_DEBUG_MSG( 3, ( "will resume decryption of previously-read record" ) ); */
+/*     } */
+/*     else */
 #endif
     if( ( ret = mbedtls_ssl_read_record( ssl, 1 ) ) != 0 )
     {
@@ -4301,17 +4499,17 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_DHE_RSA )
     {
-        if( ( ret = ssl_parse_client_dh_public( ssl, &p, end ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_dh_public" ), ret );
-            return( ret );
-        }
+        /* if( ( ret = ssl_parse_client_dh_public( ssl, &p, end ) ) != 0 ) */
+        /* { */
+        /*     MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_dh_public" ), ret ); */
+        /*     return( ret ); */
+        /* } */
 
-        if( p != end )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
-        }
+        /* if( p != end ) */
+        /* { */
+        /*     MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) ); */
+        /*     return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE ); */
+        /* } */
 
         /* if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx, */
         /*                               ssl->handshake->premaster, */
@@ -4341,15 +4539,15 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
         mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
         == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
     {
-        if( ( ret = mbedtls_ecdh_read_public( &ssl->handshake->ecdh_ctx,
-                                      p, end - p) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_read_public", ret );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
-        }
+        /* if( ( ret = mbedtls_ecdh_read_public( &ssl->handshake->ecdh_ctx, */
+        /*                               p, end - p) ) != 0 ) */
+        /* { */
+        /*     MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_read_public", ret ); */
+        /*     return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP ); */
+        /* } */
 
-        MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
-                                MBEDTLS_DEBUG_ECDH_QP );
+        /* MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx, */
+        /*                         MBEDTLS_DEBUG_ECDH_QP ); */
 
         /* if( ( ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx, */
         /*                               &ssl->handshake->pmslen, */
@@ -4374,17 +4572,17 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
         MBEDTLS_KEY_EXCHANGE_PSK )
     {
-        if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
-            return( ret );
-        }
+        /* if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 ) */
+        /* { */
+        /*     MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret ); */
+        /*     return( ret ); */
+        /* } */
 
-        if( p != end )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
-        }
+        /* if( p != end ) */
+        /* { */
+        /*     MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) ); */
+        /*     return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE ); */
+        /* } */
 
         /* if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl, */
         /*        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 ) */
@@ -4399,30 +4597,30 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
         MBEDTLS_KEY_EXCHANGE_RSA_PSK )
     {
-#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
-        if ( ssl->handshake->async_in_progress != 0 )
-        {
-            /* There is an asynchronous operation in progress to
-             * decrypt the encrypted premaster secret, so skip
-             * directly to resuming this operation. */
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "PSK identity already parsed" ) );
-            /* Update p to skip the PSK identity. ssl_parse_encrypted_pms
-             * won't actually use it, but maintain p anyway for robustness. */
-            p += ssl->conf->psk_identity_len + 2;
-        }
-        else
-#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
-        if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
-            return( ret );
-        }
+/* #if defined(MBEDTLS_SSL_ASYNC_PRIVATE) */
+/*         if ( ssl->handshake->async_in_progress != 0 ) */
+/*         { */
+/*             /\* There is an asynchronous operation in progress to */
+/*              * decrypt the encrypted premaster secret, so skip */
+/*              * directly to resuming this operation. *\/ */
+/*             MBEDTLS_SSL_DEBUG_MSG( 3, ( "PSK identity already parsed" ) ); */
+/*             /\* Update p to skip the PSK identity. ssl_parse_encrypted_pms */
+/*              * won't actually use it, but maintain p anyway for robustness. *\/ */
+/*             p += ssl->conf->psk_identity_len + 2; */
+/*         } */
+/*         else */
+/* #endif /\* MBEDTLS_SSL_ASYNC_PRIVATE *\/ */
+/*         if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 ) */
+/*         { */
+/*             MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret ); */
+/*             return( ret ); */
+/*         } */
 
-        if( ( ret = ssl_parse_encrypted_pms( ssl, p, end, 2 ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_encrypted_pms" ), ret );
-            return( ret );
-        }
+        /* if( ( ret = ssl_parse_encrypted_pms( ssl, p, end, 2 ) ) != 0 ) */
+        /* { */
+        /*     MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_encrypted_pms" ), ret ); */
+        /*     return( ret ); */
+        /* } */
 
         /* if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl, */
         /*        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 ) */
@@ -4437,22 +4635,22 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
         MBEDTLS_KEY_EXCHANGE_DHE_PSK )
     {
-        if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
-            return( ret );
-        }
-        if( ( ret = ssl_parse_client_dh_public( ssl, &p, end ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_dh_public" ), ret );
-            return( ret );
-        }
+        /* if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 ) */
+        /* { */
+        /*     MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret ); */
+        /*     return( ret ); */
+        /* } */
+        /* if( ( ret = ssl_parse_client_dh_public( ssl, &p, end ) ) != 0 ) */
+        /* { */
+        /*     MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_dh_public" ), ret ); */
+        /*     return( ret ); */
+        /* } */
 
-        if( p != end )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
-        }
+        /* if( p != end ) */
+        /* { */
+        /*     MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange" ) ); */
+        /*     return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE ); */
+        /* } */
 
         /* if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl, */
         /*        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 ) */
@@ -4467,21 +4665,21 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
         MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
     {
-        if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret );
-            return( ret );
-        }
+        /* if( ( ret = ssl_parse_client_psk_identity( ssl, &p, end ) ) != 0 ) */
+        /* { */
+        /*     MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_client_psk_identity" ), ret ); */
+        /*     return( ret ); */
+        /* } */
 
-        if( ( ret = mbedtls_ecdh_read_public( &ssl->handshake->ecdh_ctx,
-                                       p, end - p ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_read_public", ret );
-            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
-        }
+        /* if( ( ret = mbedtls_ecdh_read_public( &ssl->handshake->ecdh_ctx, */
+        /*                                p, end - p ) ) != 0 ) */
+        /* { */
+        /*     MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_read_public", ret ); */
+        /*     return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP ); */
+        /* } */
 
-        MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
-                                MBEDTLS_DEBUG_ECDH_QP );
+        /* MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx, */
+        /*                         MBEDTLS_DEBUG_ECDH_QP ); */
 
         /* if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl, */
         /*        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 ) */
@@ -4496,11 +4694,11 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
         MBEDTLS_KEY_EXCHANGE_RSA )
     {
-        if( ( ret = ssl_parse_encrypted_pms( ssl, p, end, 0 ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_parse_encrypted_pms_secret" ), ret );
-            return( ret );
-        }
+        /* if( ( ret = ssl_parse_encrypted_pms( ssl, p, end, 0 ) ) != 0 ) */
+        /* { */
+        /*     MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_parse_parse_encrypted_pms_secret" ), ret ); */
+        /*     return( ret ); */
+        /* } */
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
@@ -4508,13 +4706,13 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
         MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
-        ret = mbedtls_ecjpake_read_round_two( &ssl->handshake->ecjpake_ctx,
-                                              p, end - p );
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecjpake_read_round_two", ret );
-            return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
-        }
+        /* ret = mbedtls_ecjpake_read_round_two( &ssl->handshake->ecjpake_ctx, */
+        /*                                       p, end - p ); */
+        /* if( ret != 0 ) */
+        /* { */
+        /*     MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecjpake_read_round_two", ret ); */
+        /*     return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE ); */
+        /* } */
 
         /* ret = mbedtls_ecjpake_derive_secret( &ssl->handshake->ecjpake_ctx, */
         /*         ssl->handshake->premaster, 32, &ssl->handshake->pmslen, */

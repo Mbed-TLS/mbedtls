@@ -2936,7 +2936,34 @@ cleanup:
 
 static int ssl_certificate_request_coordinate( mbedtls_ssl_context *ssl )
 {
-    /* TBD */
+    int authmode;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+        ssl->transform_negotiate->ciphersuite_info;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
+
+    if( !mbedtls_ssl_ciphersuite_cert_req_allowed( ciphersuite_info ) )
+        return( SSL_CERTIFICATE_REQUEST_SKIP );
+
+#if !defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
+    ((void) authmode);
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+#else
+
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    if( ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET )
+        authmode = ssl->handshake->sni_authmode;
+    else
+#endif
+        authmode = ssl->conf->authmode;
+
+    if( authmode == MBEDTLS_SSL_VERIFY_NONE )
+        return( SSL_CERTIFICATE_REQUEST_SKIP );
+
+    return( SSL_CERTIFICATE_REQUEST_SEND );
+
+#endif /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
@@ -2957,34 +2984,31 @@ static int ssl_certificate_request_postprocess( mbedtls_ssl_context *ssl )
 /* OLD CODE -- only kept temporarily to gradually move and adapt
  * it to the new function taxonomy. */
 
-#if !defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)       && \
-    !defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)   && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)  && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)&& \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
-static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
-{
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
-        ssl->transform_negotiate->ciphersuite_info;
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) );
-
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate request" ) );
-        ssl->state++;
-        return( 0 );
-    }
-
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
-}
-#else
+/* #if !defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)       && \ */
+/*     !defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)   && \ */
+/*     !defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)  && \ */
+/*     !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) && \ */
+/*     !defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)&& \ */
+/*     !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) */
+/* static int ssl_write_certificate_request( mbedtls_ssl_context *ssl ) */
+/* { */
+/*     const mbedtls_ssl_ciphersuite_t *ciphersuite_info = */
+/*         ssl->transform_negotiate->ciphersuite_info; */
+/*     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate request" ) ); */
+/*     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK || */
+/*         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK || */
+/*         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK || */
+/*         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK || */
+/*         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE ) */
+/*     { */
+/*         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate request" ) ); */
+/*         ssl->state++; */
+/*         return( 0 ); */
+/*     } */
+/*     MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) ); */
+/*     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR ); */
+/* } */
+/* #else */
 static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
@@ -3001,23 +3025,23 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
 
     ssl->state++;
 
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    if( ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET )
-        authmode = ssl->handshake->sni_authmode;
-    else
-#endif
-        authmode = ssl->conf->authmode;
+/* #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION) */
+/*     if( ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET ) */
+/*         authmode = ssl->handshake->sni_authmode; */
+/*     else */
+/* #endif */
+/*         authmode = ssl->conf->authmode; */
 
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE ||
-        authmode == MBEDTLS_SSL_VERIFY_NONE )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate request" ) );
-        return( 0 );
-    }
+    /* if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK || */
+    /*     ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK || */
+    /*     ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK || */
+    /*     ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK || */
+    /*     ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE || */
+    /*     authmode == MBEDTLS_SSL_VERIFY_NONE ) */
+    /* { */
+    /*     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate request" ) ); */
+    /*     return( 0 ); */
+    /* } */
 
     /*
      *     0  .   0   handshake type

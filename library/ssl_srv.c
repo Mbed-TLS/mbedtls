@@ -2835,6 +2835,128 @@ static int ssl_process_server_hello_write( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
+/*
+ *
+ * STATE HANDLING: CertificateRequest
+ *
+ */
+
+/* Main entry point; orchestrates the other functions */
+static int ssl_process_certificate_request( mbedtls_ssl_context *ssl );
+
+/* Coordination:
+ * Check whether a CertificateRequest message should be written.
+ * Returns a negative error code on failure, or one of
+ * - SSL_CERTIFICATE_REQUEST_EXPECT_WRITE or
+ * - SSL_CERTIFICATE_REQUEST_SKIP
+ * indicating if the writing of the CertificateRequest
+ * should be skipped or not.
+ */
+#define SSL_CERTIFICATE_REQUEST_SEND 0
+#define SSL_CERTIFICATE_REQUEST_SKIP 1
+static int ssl_certificate_request_coordinate( mbedtls_ssl_context *ssl );
+#if defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
+static int ssl_certificate_request_write( mbedtls_ssl_context *ssl,
+                                          unsigned char *buf,
+                                          size_t buflen,
+                                          size_t *olen );
+#endif /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
+static int ssl_certificate_request_postprocess( mbedtls_ssl_context *ssl );
+
+/*
+ * Implementation
+ */
+
+static int ssl_process_certificate_request( mbedtls_ssl_context *ssl )
+{
+    int ret = 0;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process certificate request" ) );
+
+    /* Coordination step: Check if we need to send a CertificateRequest */
+    SSL_PROC_CHK( ssl_certificate_request_coordinate( ssl ) );
+
+#if defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
+    if( ret == SSL_CERTIFICATE_REQUEST_SEND )
+    {
+        /* Make sure we can write a new message. */
+        SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
+
+        /* Prepare CertificateRequest message in output buffer. */
+        SSL_PROC_CHK( ssl_certificate_request_write( ssl, ssl->out_msg,
+                                                    MBEDTLS_SSL_MAX_CONTENT_LEN,
+                                                    &ssl->out_msglen ) );
+
+        ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
+        ssl->out_msg[0]  = MBEDTLS_SSL_HS_CERTIFICATE_REQUEST;
+
+        /* Update state */
+        SSL_PROC_CHK( ssl_certificate_request_postprocess( ssl ) );
+
+        /* Dispatch message */
+        SSL_PROC_CHK( mbedtls_ssl_write_record( ssl ) );
+
+        /* NOTE: With the new messaging layer, the postprocessing
+         *       step might come after the dispatching step if the
+         *       latter doesn't send the message immediately.
+         *       At the moment, we must do the postprocessing
+         *       prior to the dispatching because if the latter
+         *       returns WANT_WRITE, we want the handshake state
+         *       to be updated in order to not enter
+         *       this function again on retry.
+         *
+         *       Further, once the two calls can be re-ordered, the two
+         *       calls to ssl_certificate_request_postprocess() can be
+         *       consolidated. */
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
+    if( ret == SSL_CERTIFICATE_REQUEST_SKIP )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate request" ) );
+
+        /* Update state */
+        SSL_PROC_CHK( ssl_certificate_request_postprocess( ssl ) );
+    }
+    else
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+cleanup:
+
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process certificate request" ) );
+    return( ret );
+}
+
+static int ssl_certificate_request_coordinate( mbedtls_ssl_context *ssl )
+{
+    /* TBD */
+}
+
+#if defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
+static int ssl_certificate_request_write( mbedtls_ssl_context *ssl,
+                                          unsigned char *buf,
+                                          size_t buflen,
+                                          size_t *olen )
+{
+    /* TBD */
+}
+#endif /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
+
+static int ssl_certificate_request_postprocess( mbedtls_ssl_context *ssl )
+{
+    /* TBD */
+}
+
+/* OLD CODE -- only kept temporarily to gradually move and adapt
+ * it to the new function taxonomy. */
+
 #if !defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)       && \
     !defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)   && \
     !defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)  && \
@@ -3035,6 +3157,8 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
           !MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED &&
           !MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED &&
           !MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED */
+
+/* END OLD CODE */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
@@ -4342,7 +4466,7 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl )
             break;
 
         case MBEDTLS_SSL_CERTIFICATE_REQUEST:
-            ret = ssl_write_certificate_request( ssl );
+            ret = ssl_process_certificate_request( ssl );
             break;
 
         case MBEDTLS_SSL_SERVER_HELLO_DONE:

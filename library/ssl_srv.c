@@ -4360,48 +4360,8 @@ static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl )
           MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
-#if defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
-    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
-        == MBEDTLS_KEY_EXCHANGE_PSK )
-    {
-        if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
-               mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_psk_derive_premaster", ret );
-            return( ret );
-        }
-    }
-    else
-#endif /* MBEDTLS_KEY_EXCHANGE_PSK_ENABLED */
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
-    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
-        == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
-    {
-        if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
-               mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_psk_derive_premaster", ret );
-            return( ret );
-        }
-    }
-    else
-#endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
-#if defined(MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED)
-    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
-        == MBEDTLS_KEY_EXCHANGE_DHE_PSK )
-    {
-        if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
-             mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_psk_derive_premaster", ret );
-            return( ret );
-        }
-    }
-    else
-#endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
-#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED)
-    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
-        == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK )
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+    if( mbedtls_ssl_ciphersuite_uses_psk( ciphersuite_info ) )
     {
         if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
               mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 )
@@ -4411,7 +4371,7 @@ static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl )
         }
     }
     else
-#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {

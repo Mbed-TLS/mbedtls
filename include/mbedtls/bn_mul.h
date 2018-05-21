@@ -630,6 +630,23 @@
            "r6", "r7", "r8", "r9", "cc"         \
          );
 
+#elif defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)
+
+#define MULADDC_INIT                            \
+    asm(
+
+#define MULADDC_CORE                            \
+            "ldr    r0, [%0], #4        \n\t"   \
+            "ldr    r1, [%1]            \n\t"   \
+            "umaal  r1, %2, %3, r0      \n\t"   \
+            "str    r1, [%1], #4        \n\t"
+
+#define MULADDC_STOP                            \
+         : "=r" (s),  "=r" (d), "=r" (c)        \
+         : "r" (b), "0" (s), "1" (d), "2" (c)   \
+         : "r0", "r1", "memory"                 \
+         );
+
 #else
 
 #define MULADDC_INIT                                    \

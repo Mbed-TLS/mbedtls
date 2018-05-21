@@ -2663,8 +2663,7 @@ static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
             ssl->in_msg[0]  != MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            mbedtls_ssl_pend_alert_message( ssl,
-                                     MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+            mbedtls_ssl_pend_fatal_alert( ssl,
                                      MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
             ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
             goto cleanup;
@@ -2696,7 +2695,33 @@ cleanup:
 
 static int ssl_server_key_exchange_prepare( mbedtls_ssl_context *ssl )
 {
-    /* TBD */
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+        ssl->transform_negotiate->ciphersuite_info;
+    ((void) ciphersuite_info);
+
+    /* If applicable, extract static DH parameters from Server CRT. */
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
+        MBEDTLS_KEY_EXCHANGE_ECDH_RSA ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
+        MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
+    {
+        int ret;
+
+        if( ( ret = ssl_get_ecdh_params_from_cert( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_get_ecdh_params_from_cert", ret );
+            mbedtls_ssl_pend_fatal_alert( ssl,
+                                     MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
+            return( ret );
+        }
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+
+    return( 0 );
 }
 
 static int ssl_server_key_exchange_coordinate( mbedtls_ssl_context *ssl )
@@ -2746,25 +2771,25 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
-    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
-        MBEDTLS_KEY_EXCHANGE_ECDH_RSA ||
-        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
-        MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
-    {
-        if( ( ret = ssl_get_ecdh_params_from_cert( ssl ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_get_ecdh_params_from_cert", ret );
-            mbedtls_ssl_pend_fatal_alert( ssl,
-                                    MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
-            return( ret );
-        }
+/*     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) == */
+/*         MBEDTLS_KEY_EXCHANGE_ECDH_RSA || */
+/*         mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) == */
+/*         MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA ) */
+/*     { */
+/*         if( ( ret = ssl_get_ecdh_params_from_cert( ssl ) ) != 0 ) */
+/*         { */
+/*             MBEDTLS_SSL_DEBUG_RET( 1, "ssl_get_ecdh_params_from_cert", ret ); */
+/*             mbedtls_ssl_pend_fatal_alert( ssl, */
+/*                                     MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE ); */
+/*             return( ret ); */
+/*         } */
 
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
-        ssl->state++;
-        return( 0 );
-    }
-    ((void) p);
-    ((void) end);
+/*         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) ); */
+/*         ssl->state++; */
+/*         return( 0 ); */
+/*     } */
+/*     ((void) p); */
+/*     ((void) end); */
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 

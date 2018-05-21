@@ -48,28 +48,50 @@
 
 #if !defined(MBEDTLS_ARC4_ALT)
 
+/* Implementation that should never be optimized out by the compiler */
+static void mbedtls_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
+}
+
+int mbedtls_arc4_init_ret( mbedtls_arc4_context *ctx )
+{
+    MBEDTLS_ARC4_VALIDATE( ctx != NULL );
+    memset( ctx, 0, sizeof( mbedtls_arc4_context ) );
+    return( 0 );
+}
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_arc4_init( mbedtls_arc4_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_arc4_context ) );
+    mbedtls_arc4_init_ret( ctx );
+}
+#endif
+
+int mbedtls_arc4_free_ret( mbedtls_arc4_context *ctx )
+{
+    MBEDTLS_ARC4_VALIDATE( ctx != NULL );
+    mbedtls_zeroize( ctx, sizeof( mbedtls_arc4_context ) );
+    return( 0 );
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_arc4_free( mbedtls_arc4_context *ctx )
 {
-    if( ctx == NULL )
-        return;
-
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_arc4_context ) );
+    mbedtls_arc4_free_ret( ctx );
 }
+#endif
 
 /*
  * ARC4 key schedule
  */
-void mbedtls_arc4_setup( mbedtls_arc4_context *ctx, const unsigned char *key,
+int mbedtls_arc4_setup_ret( mbedtls_arc4_context *ctx, const unsigned char *key,
                  unsigned int keylen )
 {
     int i, j, a;
     unsigned int k;
     unsigned char *m;
+
+    MBEDTLS_ARC4_VALIDATE( ctx != NULL && key != NULL );
 
     ctx->x = 0;
     ctx->y = 0;
@@ -89,7 +111,17 @@ void mbedtls_arc4_setup( mbedtls_arc4_context *ctx, const unsigned char *key,
         m[i] = m[j];
         m[j] = (unsigned char) a;
     }
+
+    return( 0 );
 }
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+void mbedtls_arc4_setup( mbedtls_arc4_context *ctx, const unsigned char *key,
+                 unsigned int keylen )
+{
+    mbedtls_arc4_setup_ret( ctx, key, keylen );
+}
+#endif
 
 /*
  * ARC4 cipher function
@@ -100,6 +132,8 @@ int mbedtls_arc4_crypt( mbedtls_arc4_context *ctx, size_t length, const unsigned
     int x, y, a, b;
     size_t i;
     unsigned char *m;
+
+    MBEDTLS_ARC4_VALIDATE( ctx != NULL && input != NULL && output != NULL );
 
     x = ctx->x;
     y = ctx->y;
@@ -171,8 +205,23 @@ int mbedtls_arc4_self_test( int verbose )
 
         memcpy( ibuf, arc4_test_pt[i], 8 );
 
-        mbedtls_arc4_setup( &ctx, arc4_test_key[i], 8 );
-        mbedtls_arc4_crypt( &ctx, 8, ibuf, obuf );
+        if( mbedtls_arc4_setup_ret( &ctx, arc4_test_key[i], 8 ) != 0 )
+        {
+            if( verbose != 0 )
+                mbedtls_printf( "setup failed\n" );
+
+            ret = 1;
+            goto exit;
+        }
+
+        if( mbedtls_arc4_crypt( &ctx, 8, ibuf, obuf ) != 0 )
+        {
+            if( verbose != 0 )
+                mbedtls_printf( "encryption failed\n" );
+
+            ret = 1;
+            goto exit;
+        }
 
         if( memcmp( obuf, arc4_test_ct[i], 8 ) != 0 )
         {

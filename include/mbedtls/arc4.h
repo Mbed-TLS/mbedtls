@@ -37,6 +37,15 @@
 #include <stddef.h>
 
 #define MBEDTLS_ERR_ARC4_HW_ACCEL_FAILED                  -0x0019  /**< ARC4 hardware accelerator failed. */
+#define MBEDTLS_ERR_ARC4_BAD_INPUT_DATA                   -0x001B  /**< Input invalid. */
+
+#if defined( MBEDTLS_CHECK_PARAMS )
+#define MBEDTLS_ARC4_VALIDATE( cond )   do { if( !(cond) ) \
+                                            return( MBEDTLS_ERR_ARC4_BAD_INPUT_DATA ); \
+                                        } while( 0 )
+#else
+#define MBEDTLS_ARC4_VALIDATE( cond )
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -65,29 +74,12 @@ mbedtls_arc4_context;
 #include "arc4_alt.h"
 #endif /* MBEDTLS_ARC4_ALT */
 
-/**
- * \brief          Initialize ARC4 context
- *
- * \param ctx      ARC4 context to be initialized
- *
- * \warning        ARC4 is considered a weak cipher and its use constitutes a
- *                 security risk. We recommend considering stronger ciphers
- *                 instead.
- *
- */
-void mbedtls_arc4_init( mbedtls_arc4_context *ctx );
-
-/**
- * \brief          Clear ARC4 context
- *
- * \param ctx      ARC4 context to be cleared
- *
- * \warning        ARC4 is considered a weak cipher and its use constitutes a
- *                 security risk. We recommend considering stronger ciphers
- *                 instead.
- *
- */
-void mbedtls_arc4_free( mbedtls_arc4_context *ctx );
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
 
 /**
  * \brief          ARC4 key schedule
@@ -101,7 +93,79 @@ void mbedtls_arc4_free( mbedtls_arc4_context *ctx );
  *                 instead.
  *
  */
-void mbedtls_arc4_setup( mbedtls_arc4_context *ctx, const unsigned char *key,
+MBEDTLS_DEPRECATED void mbedtls_arc4_setup( mbedtls_arc4_context *ctx,
+        const unsigned char *key, unsigned int keylen );
+
+/**
+ * \brief          Initialize ARC4 context
+ *
+ * \param ctx      ARC4 context to be initialized
+ *
+ * \warning        ARC4 is considered a weak cipher and its use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
+ *
+ */
+MBEDTLS_DEPRECATED void mbedtls_arc4_init( mbedtls_arc4_context *ctx );
+
+/**
+ * \brief          Clear ARC4 context
+ *
+ * \param ctx      ARC4 context to be cleared
+ *
+ * \warning        ARC4 is considered a weak cipher and its use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
+ *
+ */
+MBEDTLS_DEPRECATED void mbedtls_arc4_free( mbedtls_arc4_context *ctx );
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+
+/**
+ * \brief          Initialize ARC4 context
+ *
+ * \param ctx      ARC4 context to be initialized
+ *
+ * \return         0 upon success
+ *
+ * \warning        ARC4 is considered a weak cipher and its use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
+ *
+ */
+int mbedtls_arc4_init_ret( mbedtls_arc4_context *ctx );
+
+/**
+ * \brief          Clear ARC4 context
+ *
+ * \param ctx      ARC4 context to be cleared
+ *
+ * \return         0 upon success
+ *
+ * \warning        ARC4 is considered a weak cipher and its use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
+ *
+ */
+int mbedtls_arc4_free_ret( mbedtls_arc4_context *ctx );
+
+/**
+ * \brief          ARC4 key schedule
+ *
+ * \param ctx      ARC4 context to be setup
+ * \param key      the secret key
+ * \param keylen   length of the key, in bytes
+ *
+ * \return         0 upon success
+ *
+ * \warning        ARC4 is considered a weak cipher and its use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
+ *
+ */
+int mbedtls_arc4_setup_ret( mbedtls_arc4_context *ctx, const unsigned char *key,
                  unsigned int keylen );
 
 /**

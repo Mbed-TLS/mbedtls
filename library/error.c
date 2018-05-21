@@ -581,6 +581,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 #if defined(MBEDTLS_ARC4_C)
     if( use_ret == -(MBEDTLS_ERR_ARC4_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "ARC4 - ARC4 hardware accelerator failed" );
+    if( use_ret == -(MBEDTLS_ERR_ARC4_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "ARC4 - Input invalid" );
 #endif /* MBEDTLS_ARC4_C */
 
 #if defined(MBEDTLS_ASN1_PARSE_C)

@@ -68,7 +68,7 @@
  * PBKDF2    1  0x007C-0x007C
  * HMAC_DRBG 4                  0x0003-0x0009
  * CCM       3                  0x000D-0x0011
- * ARC4      1                  0x0019-0x0019
+ * ARC4      1                  0x0019-0x001B
  * MD2       1                  0x002B-0x002B
  * MD4       1                  0x002D-0x002D
  * MD5       1                  0x002F-0x002F

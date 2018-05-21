@@ -40,9 +40,18 @@
 #define MBEDTLS_BLOWFISH_ROUNDS      16         /**< Rounds to use. When increasing this value, make sure to extend the initialisation vectors */
 #define MBEDTLS_BLOWFISH_BLOCKSIZE   8          /* Blowfish uses 64 bit blocks */
 
+#define MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA                    -0x0015  /**< Input invalid. */
 #define MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH                -0x0016  /**< Invalid key length. */
 #define MBEDTLS_ERR_BLOWFISH_HW_ACCEL_FAILED                   -0x0017  /**< Blowfish hardware accelerator failed. */
 #define MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH              -0x0018  /**< Invalid data input length. */
+
+#if defined( MBEDTLS_CHECK_PARAMS )
+#define MBEDTLS_BLOWFISH_VALIDATE( cond )   do { if( !(cond) ) \
+                                                return( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA ); \
+                                            } while( 0 )
+#else
+#define MBEDTLS_BLOWFISH_VALIDATE( cond )
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,19 +75,47 @@ mbedtls_blowfish_context;
 #include "blowfish_alt.h"
 #endif /* MBEDTLS_BLOWFISH_ALT */
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+
 /**
  * \brief          Initialize Blowfish context
  *
  * \param ctx      Blowfish context to be initialized
  */
-void mbedtls_blowfish_init( mbedtls_blowfish_context *ctx );
+MBEDTLS_DEPRECATED void mbedtls_blowfish_init( mbedtls_blowfish_context *ctx );
 
 /**
  * \brief          Clear Blowfish context
  *
  * \param ctx      Blowfish context to be cleared
  */
-void mbedtls_blowfish_free( mbedtls_blowfish_context *ctx );
+MBEDTLS_DEPRECATED void mbedtls_blowfish_free( mbedtls_blowfish_context *ctx );
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+
+/**
+ * \brief          Initialize Blowfish context
+ *
+ * \param ctx      Blowfish context to be initialized
+ *
+ * \return         0 if successful
+ */
+int mbedtls_blowfish_init_ret( mbedtls_blowfish_context *ctx );
+
+/**
+ * \brief          Clear Blowfish context
+ *
+ * \param ctx      Blowfish context to be cleared
+ *
+ * \return         0 if successful
+ */
+int mbedtls_blowfish_free_ret( mbedtls_blowfish_context *ctx );
 
 /**
  * \brief          Blowfish key schedule

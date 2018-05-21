@@ -627,6 +627,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 #endif /* MBEDTLS_BIGNUM_C */
 
 #if defined(MBEDTLS_BLOWFISH_C)
+    if( use_ret == -(MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "BLOWFISH - Input invalid" );
     if( use_ret == -(MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH) )
         mbedtls_snprintf( buf, buflen, "BLOWFISH - Invalid key length" );
     if( use_ret == -(MBEDTLS_ERR_BLOWFISH_HW_ACCEL_FAILED) )

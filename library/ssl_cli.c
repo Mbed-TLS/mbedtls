@@ -2695,8 +2695,8 @@ cleanup:
 
 static int ssl_server_key_exchange_prepare( mbedtls_ssl_context *ssl )
 {
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
-        ssl->transform_negotiate->ciphersuite_info;
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
     ((void) ciphersuite_info);
 
     /* If applicable, extract static DH parameters from Server CRT. */
@@ -2726,7 +2726,31 @@ static int ssl_server_key_exchange_prepare( mbedtls_ssl_context *ssl )
 
 static int ssl_server_key_exchange_coordinate( mbedtls_ssl_context *ssl )
 {
-    /* TBD */
+    int ret;
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
+
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
+        MBEDTLS_KEY_EXCHANGE_RSA )
+    {
+        return( SSL_SRV_KEY_EXCHANGE_SKIP );
+    }
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
+        MBEDTLS_KEY_EXCHANGE_ECDH_RSA ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
+        MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
+    {
+        return( SSL_SRV_KEY_EXCHANGE_SKIP );
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+
+    return( SSL_SRV_KEY_EXCHANGE_EXPECTED );
 }
 
 static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
@@ -2757,17 +2781,17 @@ static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server key exchange" ) );
 
-#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
-    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
-        MBEDTLS_KEY_EXCHANGE_RSA )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
-        ssl->state++;
-        return( 0 );
-    }
-    ((void) p);
-    ((void) end);
-#endif
+/* #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) */
+/*     if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) == */
+/*         MBEDTLS_KEY_EXCHANGE_RSA ) */
+/*     { */
+/*         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) ); */
+/*         ssl->state++; */
+/*         return( 0 ); */
+/*     } */
+/*     ((void) p); */
+/*     ((void) end); */
+/* #endif */
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)

@@ -3151,6 +3151,134 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 
+/*
+ *
+ * STATE HANDLING: Client Key Exchange
+ *
+ */
+
+/*
+ * Overview
+ */
+
+/* Main entry point; orchestrates the other functions */
+static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl );
+
+static int ssl_server_key_exchange_prepare( mbedtls_ssl_context *ssl );
+/*
+ * Check if the ServerKeyExchange message should be written.
+ * Returns a negative code on failure, or
+ * - SSL_SERVER_KEY_EXCHANGE_SKIP
+ * - SSL_SERVER_KEY_EXCHANGE_SEND
+ * to indicate if the ServerKeyExchange message should be sent or not.
+ */
+#define SSL_SERVER_KEY_EXCHANGE_SKIP 0
+#define SSL_SERVER_KEY_EXCHANGE_SEND 1
+static int ssl_server_key_exchange_coordinate( mbedtls_ssl_context *ssl );
+static int ssl_server_key_exchange_write( mbedtls_ssl_context *ssl,
+                                          unsigned char *buf,
+                                          size_t buflen,
+                                          size_t *olen );
+static int ssl_server_key_exchange_postprocess( mbedtls_ssl_context *ssl );
+
+/*
+ * Implementation
+ */
+
+static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
+{
+    int ret = 0;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process server key exchange" ) );
+
+    if( ssl->handshake->cli_key_exchange_preparation_done == 0 )
+    {
+        SSL_PROC_CHK( ssl_server_key_exchange_prepare( ssl ) );
+        ssl->handshake->cli_key_exchange_preparation_done = 1;
+    }
+
+    SSL_PROC_CHK( ssl_server_key_exchange_coordinate( ssl ) );
+    if( ret == SSL_SERVER_KEY_EXCHANGE_SEND )
+    {
+        /* Make sure we can write a new message. */
+        SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
+
+        /* Prepare CertificateVerify message in output buffer. */
+        SSL_PROC_CHK( ssl_server_key_exchange_write( ssl, ssl->out_msg,
+                                                   MBEDTLS_SSL_MAX_CONTENT_LEN,
+                                                   &ssl->out_msglen ) );
+
+        ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
+        ssl->out_msg[0]  = MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE;
+
+        /* Update state */
+        SSL_PROC_CHK( ssl_server_key_exchange_postprocess( ssl ) );
+
+        /* Dispatch message */
+        SSL_PROC_CHK( mbedtls_ssl_write_record( ssl ) );
+
+        /* NOTE: With the new messaging layer, the postprocessing
+         *       step might come after the dispatching step if the
+         *       latter doesn't send the message immediately.
+         *       At the moment, we must do the postprocessing
+         *       prior to the dispatching because if the latter
+         *       returns WANT_WRITE, we want the handshake state
+         *       to be updated in order to not enter
+         *       this function again on retry.
+         *
+         *       Further, once the two calls can be re-ordered, the two
+         *       calls to ssl_server_key_exchange_postprocess() can be
+         *       consolidated. */
+    }
+    else if( ret == SSL_SERVER_KEY_EXCHANGE_SKIP )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write server key exchange" ) );
+
+        /* Update state */
+        SSL_PROC_CHK( ssl_server_key_exchange_postprocess( ssl ) );
+    }
+
+cleanup:
+
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process client key exchange" ) );
+    return( ret );
+}
+
+static int ssl_server_key_exchange_prepare( mbedtls_ssl_context *ssl )
+{
+    /* TBD */
+}
+
+static int ssl_server_key_exchange_coordinate( mbedtls_ssl_context *ssl )
+    {
+    /* TBD */
+}
+
+static int ssl_server_key_exchange_write( mbedtls_ssl_context *ssl,
+                                          unsigned char *buf,
+                                          size_t buflen,
+                                          size_t *olen )
+{
+    /* TBD */
+}
+
+static int ssl_server_key_exchange_postprocess( mbedtls_ssl_context *ssl )
+{
+    /* TBD */
+}
+
+
+/* OLD CODE
+ *
+ * Temporarily included to gradually move it to the correct
+ * place in the restructured code.
+ *
+ */
+
 static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret;
@@ -3523,6 +3651,8 @@ curve_matching_done:
 
     return( 0 );
 }
+
+/* END OF OLD CODE */
 
 static int ssl_write_server_hello_done( mbedtls_ssl_context *ssl )
 {
@@ -4428,7 +4558,7 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl )
             break;
 
         case MBEDTLS_SSL_SERVER_KEY_EXCHANGE:
-            ret = ssl_write_server_key_exchange( ssl );
+            ret = ssl_process_server_key_exchange( ssl );
             break;
 
         case MBEDTLS_SSL_CERTIFICATE_REQUEST:

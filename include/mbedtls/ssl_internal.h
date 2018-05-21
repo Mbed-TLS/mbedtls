@@ -409,7 +409,6 @@ struct mbedtls_ssl_handshake_params
         ssl_ecrs_crt_vrfy_sign,         /*!< CertificateVerify: pk_sign()   */
     } ecrs_state;                       /*!< current (or last) operation    */
     mbedtls_x509_crt *ecrs_peer_cert;   /*!< The peer's CRT chain.          */
-    size_t ecrs_n;                      /*!< place for saving a length      */
 #endif
 #if defined(MBEDTLS_X509_CRT_PARSE_C) && \
     !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)

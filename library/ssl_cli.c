@@ -3221,6 +3221,16 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
     int ret = 0;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process client key exchange" ) );
 
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    if( ssl->handshake->ecrs_enabled )
+    {
+        if( ssl->handshake->ecrs_state == ssl_ecrs_cke_ecdh_calc_secret )
+            goto cli_key_exchange_postprocess;
+
+        mbedtls_ecdh_enable_restart( &ssl->handshake->ecdh_ctx );
+    }
+#endif
+
     SSL_PROC_CHK( ssl_client_key_exchange_prepare( ssl ) );
 
      /* Prepare CertificateVerify message in output buffer. */
@@ -3231,7 +3241,10 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_CLIENT_KEY_EXCHANGE;
 
-    /* Update state */
+    /* Calculate secrets and update state */
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+cli_key_exchange_postprocess:
+#endif
     SSL_PROC_CHK( ssl_client_key_exchange_postprocess( ssl ) );
 
     /* Dispatch message */
@@ -3268,7 +3281,112 @@ static int ssl_client_key_exchange_write( mbedtls_ssl_context *ssl,
 
 static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl )
 {
-    /* TBD */
+    int ret;
+/*    size_t i, n; */
+    mbedtls_ssl_ciphersuite_handle_t ciphersuite_info =
+        mbedtls_ssl_handshake_get_ciphersuite( ssl->handshake );
+
+#if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_DHE_RSA )
+    {
+        if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
+                                      ssl->handshake->premaster,
+                                      MBEDTLS_PREMASTER_SIZE,
+                                     &ssl->handshake->pmslen,
+                                      mbedtls_ssl_conf_get_frng( ssl->conf ),
+                                      ssl->conf->p_rng ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );
+            return( ret );
+        }
+
+        MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED) ||                     \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) ||                   \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||                      \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_RSA                       ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA                     ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDH_RSA                        ||
+        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info )
+        == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
+    {
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+        if( ssl->handshake->ecrs_enabled )
+            ssl->handshake->ecrs_state = ssl_ecrs_cke_ecdh_calc_secret;
+#endif /* MBEDTLS_SSL__ECP_RESTARTABLE */
+
+        if( ( ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx,
+                                      &ssl->handshake->pmslen,
+                                       ssl->handshake->premaster,
+                                       MBEDTLS_MPI_MAX_SIZE,
+                                       mbedtls_ssl_conf_get_frng( ssl->conf ),
+                                       ssl->conf->p_rng ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
+            return( ret );
+        }
+
+        MBEDTLS_SSL_DEBUG_MPI( 3, "ECDH: z", &ssl->handshake->ecdh_ctx.z );
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED ||
+          MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+    if( mbedtls_ssl_ciphersuite_uses_psk( ciphersuite_info ) )
+    {
+        if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
+               mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_psk_derive_premaster", ret );
+            return( ret );
+        }
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+    if( mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ==
+        MBEDTLS_KEY_EXCHANGE_ECJPAKE )
+    {
+        ret = mbedtls_ecjpake_derive_secret( &ssl->handshake->ecjpake_ctx,
+                ssl->handshake->premaster, 32, &ssl->handshake->pmslen,
+                mbedtls_ssl_conf_get_frng( ssl->conf ),
+                ssl->conf->p_rng );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecjpake_derive_secret", ret );
+            return( ret );
+        }
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA )
+    {
+        ((void) ret);
+        /* The premaster secret has already been by
+         * ssl_rsa_generate_partial_pms(). Only the
+         * PMS length needs to be set. */
+        ssl->handshake->pmslen = 48;
+    }
+    else
+#endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
+
+    ssl->state = MBEDTLS_SSL_CERTIFICATE_VERIFY;
+    return( 0 );
 }
 
 /* OLD CODE
@@ -3313,18 +3431,18 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: X ", &ssl->handshake->dhm_ctx.X  );
         MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: GX", &ssl->handshake->dhm_ctx.GX );
 
-        if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
-                                      ssl->handshake->premaster,
-                                      MBEDTLS_PREMASTER_SIZE,
-                                     &ssl->handshake->pmslen,
-                                      mbedtls_ssl_conf_get_frng( ssl->conf ),
-                                      ssl->conf->p_rng ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );
-            return( ret );
-        }
+        /* if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx, */
+        /*                               ssl->handshake->premaster, */
+        /*                               MBEDTLS_PREMASTER_SIZE, */
+        /*                              &ssl->handshake->pmslen, */
+        /*                               mbedtls_ssl_conf_get_frng( ssl->conf ), */
+        /*                               ssl->conf->p_rng ) ) != 0 ) */
+        /* { */
+        /*     MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret ); */
+        /*     return( ret ); */
+        /* } */
 
-        MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
+        /* MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  ); */
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED */
@@ -3374,34 +3492,34 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
                                 MBEDTLS_DEBUG_ECDH_Q );
 
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-        if( ssl->handshake->ecrs_enabled )
-        {
-            ssl->handshake->ecrs_n = n;
-            ssl->handshake->ecrs_state = ssl_ecrs_cke_ecdh_calc_secret;
-        }
+/* #if defined(MBEDTLS_SSL__ECP_RESTARTABLE) */
+/*         if( ssl->handshake->ecrs_enabled ) */
+/*         { */
+/*             ssl->handshake->ecrs_n = n; */
+/*             ssl->handshake->ecrs_state = ssl_ecrs_cke_ecdh_calc_secret; */
+/*         } */
 
-ecdh_calc_secret:
-        if( ssl->handshake->ecrs_enabled )
-            n = ssl->handshake->ecrs_n;
-#endif
-        if( ( ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx,
-                                      &ssl->handshake->pmslen,
-                                       ssl->handshake->premaster,
-                                       MBEDTLS_MPI_MAX_SIZE,
-                                       mbedtls_ssl_conf_get_frng( ssl->conf ),
-                                       ssl->conf->p_rng ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-            if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
-                ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
-#endif
-            return( ret );
-        }
+/* ecdh_calc_secret: */
+/*         if( ssl->handshake->ecrs_enabled ) */
+/*             n = ssl->handshake->ecrs_n; */
+/* #endif */
+/*         if( ( ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx, */
+/*                                       &ssl->handshake->pmslen, */
+/*                                        ssl->handshake->premaster, */
+/*                                        MBEDTLS_MPI_MAX_SIZE, */
+/*                                        mbedtls_ssl_conf_get_frng( ssl->conf ), */
+/*                                        ssl->conf->p_rng ) ) != 0 ) */
+/*         { */
+/*             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret ); */
+/* #if defined(MBEDTLS_SSL__ECP_RESTARTABLE) */
+/*             if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS ) */
+/*                 ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS; */
+/* #endif */
+/*             return( ret ); */
+/*         } */
 
-        MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx,
-                                MBEDTLS_DEBUG_ECDH_Z );
+/*         MBEDTLS_SSL_DEBUG_ECDH( 3, &ssl->handshake->ecdh_ctx, */
+/*                                 MBEDTLS_DEBUG_ECDH_Z ); */
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
@@ -3512,12 +3630,12 @@ ecdh_calc_secret:
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-        if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
-               mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_psk_derive_premaster", ret );
-            return( ret );
-        }
+        /* if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl, */
+        /*        mbedtls_ssl_suite_get_key_exchange( ciphersuite_info ) ) ) != 0 ) */
+        /* { */
+        /*     MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_psk_derive_premaster", ret ); */
+        /*     return( ret ); */
+        /* } */
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
@@ -3547,15 +3665,15 @@ ecdh_calc_secret:
             return( ret );
         }
 
-        ret = mbedtls_ecjpake_derive_secret( &ssl->handshake->ecjpake_ctx,
-                ssl->handshake->premaster, 32, &ssl->handshake->pmslen,
-                mbedtls_ssl_conf_get_frng( ssl->conf ),
-                ssl->conf->p_rng );
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecjpake_derive_secret", ret );
-            return( ret );
-        }
+        /* ret = mbedtls_ecjpake_derive_secret( &ssl->handshake->ecjpake_ctx, */
+        /*         ssl->handshake->premaster, 32, &ssl->handshake->pmslen, */
+        /*         mbedtls_ssl_conf_get_frng( ssl->conf ), */
+        /*         ssl->conf->p_rng ); */
+        /* if( ret != 0 ) */
+        /* { */
+        /*     MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecjpake_derive_secret", ret ); */
+        /*     return( ret ); */
+        /* } */
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */

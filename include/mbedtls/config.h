@@ -221,6 +221,25 @@
  */
 //#define MBEDTLS_DEPRECATED_REMOVED
 
+/**
+ * \def MBEDTLS_CHECK_PARAMS
+ *
+ * This configuration controls whether the library validates parameters passed
+ * to it.
+ *
+ * Application code that deals with 3rd party input may wish to enable such
+ * validation, whilst code on closed systems, such as embedded systems, where
+ * the input is controlled and predictable, may wish to disable it entirely to
+ * reduce the code size of the library.
+ *
+ * When the symbol is not defined, no parameter validation except that required
+ * to ensure the integrity or security of the library are performed.
+ *
+ * When the symbol is defined, all parameters will be validated, and an error
+ * code returned where appropriate.
+ */
+#define MBEDTLS_CHECK_PARAMS
+
 /* \} name SECTION: System support */
 
 /**

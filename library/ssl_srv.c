@@ -3866,6 +3866,91 @@ static int ssl_parse_client_psk_identity( mbedtls_ssl_context *ssl, unsigned cha
 }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
+/*
+ *
+ * STATE HANDLING: Client Key Exchange
+ *
+ */
+
+/*
+ * Overview
+ */
+
+/* Main entry point; orchestrates the other functions. */
+static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl );
+
+static int ssl_client_key_exchange_parse( mbedtls_ssl_context *ssl,
+                                          unsigned char *buf,
+                                          size_t buflen );
+/* Update the handshake state */
+static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl );
+
+/*
+ * Implementation
+ */
+
+static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
+{
+    int ret;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process client key exchange" ) );
+
+    /* The ClientKeyExchange message is never skipped. */
+
+    /* Reading step */
+    if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
+        return( ret );
+    }
+
+    if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
+        ssl->in_msg[0]  != MBEDTLS_SSL_HS_CLIENT_KEY_EXCHANGE )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE;
+        ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+        goto cleanup;
+    }
+
+    SSL_PROC_CHK( ssl_client_key_exchange_parse( ssl, ssl->in_msg,
+                                                 ssl->in_hslen ) );
+
+    /* Update state */
+    SSL_PROC_CHK( ssl_client_key_exchange_postprocess( ssl ) );
+
+cleanup:
+
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process client key exchange" ) );
+    return( ret );
+}
+
+static int ssl_client_key_exchange_parse( mbedtls_ssl_context *ssl,
+                                          unsigned char *buf,
+                                          size_t buflen )
+{
+    /* TBD */
+}
+
+/* Update the handshake state */
+static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl )
+{
+    ssl->state = MBEDTLS_SSL_CERTIFICATE_VERIFY;
+    return( 0 );
+}
+
+/* OLD CODE
+ *
+ * Temporarily included to gradually move it to the correct
+ * place in the restructured code.
+ *
+ */
+
 static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret;
@@ -4115,6 +4200,8 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 
     return( 0 );
 }
+
+/* END OF OLD CODE */
 
 /*
  *
@@ -4559,7 +4646,7 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl )
             break;
 
         case MBEDTLS_SSL_CLIENT_KEY_EXCHANGE:
-            ret = ssl_parse_client_key_exchange( ssl );
+            ret = ssl_process_client_key_exchange( ssl );
             break;
 
         case MBEDTLS_SSL_CERTIFICATE_VERIFY:

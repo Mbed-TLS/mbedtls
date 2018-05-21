@@ -2435,6 +2435,137 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED) ||
           MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
 
+/*
+ *
+ * STATE HANDLING: ServerKeyExchange
+ *
+ */
+
+/*
+ * Overview
+ */
+
+/* Main entry point; orchestrates the other functions. */
+static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl );
+
+/* Coordination:
+ * Check if a ServerKeyExchange message is expected, and skip if not.
+ * Returns a negative code on failure, or
+ * - SSL_SRV_KEY_EXCHANGE_SKIP
+ * - SSL_SRV_KEY_EXCHANGE_EXPECTED
+ * indicating if a ServerKeyExchange message is expected or not.
+ */
+#define SSL_SRV_KEY_EXCHANGE_SKIP      0
+#define SSL_SRV_KEY_EXCHANGE_EXPECTED  1
+static int ssl_server_key_exchange_coordinate( mbedtls_ssl_context *ssl );
+/* Preparation
+ * If applicable, prepare DH parameters from Server certificate. */
+static int ssl_server_key_exchange_prepare( mbedtls_ssl_context *ssl );
+/* Parse SrvKeyExchange message and store contents
+ * (PSK or DH parameters) in handshake structure. */
+static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
+                                          unsigned char *buf,
+                                          size_t buflen );
+/* Update the handshake state */
+static int ssl_server_key_exchange_postprocess( mbedtls_ssl_context *ssl );
+
+/*
+ * Implementation
+ */
+
+static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
+{
+    int ret;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server key exchange" ) );
+
+    /* Preparation:
+     * Potentially extract DH parameters from Server's certificate.
+     *
+     * TODO: Why don't we do this as post-processing after
+     *       the server certificate has been read?
+     */
+    if( !ssl->handshake->srv_key_exchange_preparation_done )
+    {
+        SSL_PROC_CHK( ssl_server_key_exchange_prepare( ssl ) );
+        ssl->handshake->srv_key_exchange_preparation_done = 1;
+    }
+
+    /* Coordination:
+     * Check if we expect a ServerKeyExchange */
+    SSL_PROC_CHK( ssl_server_key_exchange_coordinate( ssl ) );
+
+    if( ret == SSL_SRV_KEY_EXCHANGE_EXPECTED )
+    {
+        /* Reading step */
+        if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
+            return( ret );
+        }
+
+        if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
+            ssl->in_msg[0]  != MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
+            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE;
+            ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+            goto cleanup;
+        }
+        else
+        {
+            SSL_PROC_CHK( ssl_server_key_exchange_parse( ssl, ssl->in_msg,
+                                                         ssl->in_hslen ) );
+        }
+    }
+    else if( ret == SSL_SRV_KEY_EXCHANGE_SKIP )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse server key exchange" ) );
+    }
+
+    /* Update state */
+    SSL_PROC_CHK( ssl_server_key_exchange_postprocess( ssl ) );
+
+cleanup:
+
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse server key exchange" ) );
+    return( ret );
+}
+
+static int ssl_server_key_exchange_prepare( mbedtls_ssl_context *ssl )
+{
+    /* TBD */
+}
+
+static int ssl_server_key_exchange_coordinate( mbedtls_ssl_context *ssl )
+{
+    /* TBD */
+}
+
+static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
+                                          unsigned char *buf,
+                                          size_t buflen )
+{
+    /* TBD */
+}
+
+static int ssl_server_key_exchange_postprocess( mbedtls_ssl_context *ssl )
+{
+    /* TBD */
+}
+
+/* OLD CODE
+ *
+ * Temporarily included to gradually move it to the correct
+ * place in the restructured code.
+ *
+ */
+
 static int ssl_parse_server_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret;
@@ -2748,6 +2879,8 @@ exit:
 
     return( 0 );
 }
+
+/* END OLD CODE */
 
 /*
  *
@@ -3776,7 +3909,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
            break;
 
        case MBEDTLS_SSL_SERVER_KEY_EXCHANGE:
-           ret = ssl_parse_server_key_exchange( ssl );
+           ret = ssl_process_server_key_exchange( ssl );
            break;
 
        case MBEDTLS_SSL_CERTIFICATE_REQUEST:

@@ -297,6 +297,9 @@ struct mbedtls_ssl_handshake_params
      * TODO: Put these in a union.
      */
 
+    /* ServerKeyExchange */
+    int srv_key_exchange_preparation_done;
+
     /* Finished message
      * Buffer to hold the digest of the entire handshake
      * up to the Finished message.

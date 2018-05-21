@@ -312,6 +312,9 @@ struct mbedtls_ssl_handshake_params
     int renegotiation_info_seen;
 #endif
 
+    /* Outgoing ClientKeyExchange */
+    int cli_key_exchange_preparation_done;
+
     /* Certificate Verify */
     int crt_vrfy_preparation_done;
 

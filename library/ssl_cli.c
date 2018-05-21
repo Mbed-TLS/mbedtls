@@ -3184,6 +3184,108 @@ static int ssl_process_server_hello_done( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+/*
+ *
+ * STATE HANDLING: Client Key Exchange
+ *
+ */
+
+/*
+ * Overview
+ */
+
+/* Main entry point; orchestrates the other functions */
+static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl );
+
+/* Preparation
+ * - For ECDH: Generate client params and derive premater secret
+ * - For RSA-suites: Encrypt PMS
+ * - For ECJPAKE: Do Round 2
+ */
+static int ssl_client_key_exchange_prepare( mbedtls_ssl_context *ssl );
+static int ssl_client_key_exchange_write( mbedtls_ssl_context *ssl,
+                                          unsigned char *buf,
+                                          size_t buflen,
+                                          size_t *olen );
+static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl );
+
+/*
+ * Implementation
+ */
+
+static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
+{
+    int ret = 0;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process client key exchange" ) );
+
+    if( ssl->handshake->cli_key_exchange_preparation_done == 0 )
+    {
+        SSL_PROC_CHK( ssl_client_key_exchange_prepare( ssl ) );
+        ssl->handshake->cli_key_exchange_preparation_done = 1;
+    }
+
+    /* Make sure we can write a new message. */
+    SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
+
+    /* Prepare CertificateVerify message in output buffer. */
+    SSL_PROC_CHK( ssl_client_key_exchange_write( ssl, ssl->out_msg,
+                                                 MBEDTLS_SSL_MAX_CONTENT_LEN,
+                                                 &ssl->out_msglen ) );
+
+    ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
+    ssl->out_msg[0]  = MBEDTLS_SSL_HS_CLIENT_KEY_EXCHANGE;
+
+    /* Update state */
+    SSL_PROC_CHK( ssl_client_key_exchange_postprocess( ssl ) );
+
+    /* Dispatch message */
+    SSL_PROC_CHK( mbedtls_ssl_write_record( ssl ) );
+
+    /* NOTE: For the new messaging layer, the postprocessing step
+     *       might come after the dispatching step if the latter
+     *       doesn't send the message immediately.
+     *       At the moment, we must do the postprocessing
+     *       prior to the dispatching because if the latter
+     *       returns WANT_WRITE, we want the handshake state
+     *       to be updated in order to not enter
+     *       this function again on retry. */
+
+cleanup:
+
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process client key exchange" ) );
+    return( ret );
+}
+
+static int ssl_client_key_exchange_prepare( mbedtls_ssl_context *ssl )
+{
+    /* TBD */
+}
+
+static int ssl_client_key_exchange_write( mbedtls_ssl_context *ssl,
+                                          unsigned char *buf,
+                                          size_t buflen,
+                                          size_t *olen )
+{
+    /* TBD */
+}
+
+static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl )
+{
+    /* TBD */
+}
+
+/* OLD CODE
+ *
+ * Temporarily included to gradually move it to the correct
+ * place in the restructured code.
+ *
+ */
+
 static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret;
@@ -3437,6 +3539,8 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 
     return( 0 );
 }
+
+/* END OF OLD CODE */
 
 /*
  *
@@ -3926,7 +4030,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
            break;
 
        case MBEDTLS_SSL_CLIENT_KEY_EXCHANGE:
-           ret = ssl_write_client_key_exchange( ssl );
+           ret = ssl_process_client_key_exchange( ssl );
            break;
 
        case MBEDTLS_SSL_CERTIFICATE_VERIFY:

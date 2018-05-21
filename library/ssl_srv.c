@@ -2972,13 +2972,158 @@ static int ssl_certificate_request_write( mbedtls_ssl_context *ssl,
                                           size_t buflen,
                                           size_t *olen )
 {
-    /* TBD */
+    unsigned char *p, *end;
+    size_t dn_size, total_dn_size; /* excluding length bytes */
+    size_t ct_len, sa_len;         /* including length bytes */
+    const mbedtls_x509_crt *crt;
+
+    end = buf + buflen;
+
+    /* TODO:
+     * The previous code did not include any bounds checks,
+     * as the message was always written at the beginning
+     * of the outgoing message buffer, and in a sane configuration
+     * the size of the CertificateRequest would be smaller
+     * than the configured outgoing buffer size.
+     *
+     * Now that the writing function should be standalone,
+     * and that concretely it might be called with a small
+     * buffer because there's not much space left in the
+     * current record, we must add the bounds checks.
+     */
+
+    /*
+     *     0  .   0   handshake type
+     *     1  .   3   handshake length
+     *     4  .   4   cert type count
+     *     5  .. m-1  cert types
+     *     m  .. m+1  sig alg length (TLS 1.2 only)
+     *    m+1 .. n-1  SignatureAndHashAlgorithms (TLS 1.2 only)
+     *     n  .. n+1  length of all DNs
+     *    n+2 .. n+3  length of DN 1
+     *    n+4 .. ...  Distinguished Name #1
+     *    ... .. ...  length of DN 2, etc.
+     */
+
+    p = buf + 4;
+
+    /*
+     * Supported certificate types
+     *
+     *     ClientCertificateType certificate_types<1..2^8-1>;
+     *     enum { (255) } ClientCertificateType;
+     */
+    ct_len = 0;
+
+#if defined(MBEDTLS_RSA_C)
+    p[1 + ct_len++] = MBEDTLS_SSL_CERT_TYPE_RSA_SIGN;
+#endif
+#if defined(MBEDTLS_ECDSA_C)
+    p[1 + ct_len++] = MBEDTLS_SSL_CERT_TYPE_ECDSA_SIGN;
+#endif
+
+    p[0] = (unsigned char) ct_len++;
+    p += ct_len;
+
+    sa_len = 0;
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    /*
+     * Add signature_algorithms for verify (TLS 1.2)
+     *
+     *     SignatureAndHashAlgorithm supported_signature_algorithms<2..2^16-2>;
+     *
+     *     struct {
+     *           HashAlgorithm hash;
+     *           SignatureAlgorithm signature;
+     *     } SignatureAndHashAlgorithm;
+     *
+     *     enum { (255) } HashAlgorithm;
+     *     enum { (255) } SignatureAlgorithm;
+     */
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
+    {
+        const int *cur;
+
+        /*
+         * Supported signature algorithms
+         */
+        for( cur = ssl->conf->sig_hashes; *cur != MBEDTLS_MD_NONE; cur++ )
+        {
+            unsigned char hash = mbedtls_ssl_hash_from_md_alg( *cur );
+
+            if( MBEDTLS_SSL_HASH_NONE == hash || mbedtls_ssl_set_calc_verify_md( ssl, hash ) )
+                continue;
+
+#if defined(MBEDTLS_RSA_C)
+            p[2 + sa_len++] = hash;
+            p[2 + sa_len++] = MBEDTLS_SSL_SIG_RSA;
+#endif
+#if defined(MBEDTLS_ECDSA_C)
+            p[2 + sa_len++] = hash;
+            p[2 + sa_len++] = MBEDTLS_SSL_SIG_ECDSA;
+#endif
+        }
+
+        p[0] = (unsigned char)( sa_len >> 8 );
+        p[1] = (unsigned char)( sa_len      );
+        sa_len += 2;
+        p += sa_len;
+    }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+    /*
+     * DistinguishedName certificate_authorities<0..2^16-1>;
+     * opaque DistinguishedName<1..2^16-1>;
+     */
+    p += 2;
+
+    total_dn_size = 0;
+
+    if( ssl->conf->cert_req_ca_list ==  MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED )
+    {
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+        if( ssl->handshake->sni_ca_chain != NULL )
+            crt = ssl->handshake->sni_ca_chain;
+        else
+#endif
+            crt = ssl->conf->ca_chain;
+
+        while( crt != NULL && crt->version != 0 )
+        {
+            dn_size = crt->subject_raw.len;
+
+            if( end < p ||
+                (size_t)( end - p ) < dn_size ||
+                (size_t)( end - p ) < 2 + dn_size )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "skipping CAs: buffer too short" ) );
+                break;
+            }
+
+            *p++ = (unsigned char)( dn_size >> 8 );
+            *p++ = (unsigned char)( dn_size      );
+            memcpy( p, crt->subject_raw.p, dn_size );
+            p += dn_size;
+
+            MBEDTLS_SSL_DEBUG_BUF( 3, "requested DN", p - dn_size, dn_size );
+
+            total_dn_size += 2 + dn_size;
+            crt = crt->next;
+        }
+    }
+
+    buf[4 + ct_len + sa_len] = (unsigned char)( total_dn_size  >> 8 );
+    buf[5 + ct_len + sa_len] = (unsigned char)( total_dn_size       );
+
+    *olen  = p - buf;
+    return( 0 );
 }
 #endif /* MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED */
 
 static int ssl_certificate_request_postprocess( mbedtls_ssl_context *ssl )
 {
-    /* TBD */
+    ssl->state = MBEDTLS_SSL_SERVER_HELLO_DONE;
+    return( 0 );
 }
 
 /* OLD CODE -- only kept temporarily to gradually move and adapt

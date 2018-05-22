@@ -235,8 +235,8 @@ static inline void aria_a( uint32_t *a, uint32_t *b,
  */
 static inline void aria_sl( uint32_t *a, uint32_t *b,
                             uint32_t *c, uint32_t *d,
-                            const uint8_t sa[0x100], const uint8_t sb[0x100],
-                            const uint8_t sc[0x100], const uint8_t sd[0x100] )
+                            const uint8_t sa[256], const uint8_t sb[256],
+                            const uint8_t sc[256], const uint8_t sd[256] )
 {
     *a = ( (uint32_t) sa[ *a        & 0xFF]       ) ^
          (((uint32_t) sb[(*a >>  8) & 0xFF]) <<  8) ^
@@ -259,7 +259,7 @@ static inline void aria_sl( uint32_t *a, uint32_t *b,
 /*
  * S-Boxes
  */
-static const uint8_t aria_sb1[0x100] =
+static const uint8_t aria_sb1[256] =
 {
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B,
     0xFE, 0xD7, 0xAB, 0x76, 0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0,
@@ -285,7 +285,7 @@ static const uint8_t aria_sb1[0x100] =
     0xB0, 0x54, 0xBB, 0x16
 };
 
-static const uint8_t aria_sb2[0x100] =
+static const uint8_t aria_sb2[256] =
 {
     0xE2, 0x4E, 0x54, 0xFC, 0x94, 0xC2, 0x4A, 0xCC, 0x62, 0x0D, 0x6A, 0x46,
     0x3C, 0x4D, 0x8B, 0xD1, 0x5E, 0xFA, 0x64, 0xCB, 0xB4, 0x97, 0xBE, 0x2B,
@@ -311,7 +311,7 @@ static const uint8_t aria_sb2[0x100] =
     0xAF, 0xBA, 0xB5, 0x81
 };
 
-static const uint8_t aria_is1[0x100] =
+static const uint8_t aria_is1[256] =
 {
     0x52, 0x09, 0x6A, 0xD5, 0x30, 0x36, 0xA5, 0x38, 0xBF, 0x40, 0xA3, 0x9E,
     0x81, 0xF3, 0xD7, 0xFB, 0x7C, 0xE3, 0x39, 0x82, 0x9B, 0x2F, 0xFF, 0x87,
@@ -337,7 +337,7 @@ static const uint8_t aria_is1[0x100] =
     0x55, 0x21, 0x0C, 0x7D
 };
 
-static const uint8_t aria_is2[0x100] =
+static const uint8_t aria_is2[256] =
 {
     0x30, 0x68, 0x99, 0x1B, 0x87, 0xB9, 0x21, 0x78, 0x50, 0x39, 0xDB, 0xE1,
     0x72, 0x09, 0x62, 0x3C, 0x3E, 0x7E, 0x5E, 0x8E, 0xF1, 0xA0, 0xCC, 0xA3,
@@ -422,11 +422,11 @@ static void aria_rot128( uint32_t r[4], const uint32_t a[4],
     const uint8_t n1 = n % 32;              // bit offset
     const uint8_t n2 = n1 ? 32 - n1 : 0;    // reverse bit offset
 
-    j = (n / 32) % 4;                       // initial word offset
+    j = ( n / 32 ) % 4;                     // initial word offset
     t = ARIA_P3( b[j] );                    // big endian
     for( i = 0; i < 4; i++ )
     {
-        j = (j + 1) % 4;                    // get next word, big endian
+        j = ( j + 1 ) % 4;                  // get next word, big endian
         u = ARIA_P3( b[j] );
         t <<= n1;                           // rotate
         t |= u >> n2;
@@ -474,7 +474,7 @@ int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx,
         GET_UINT32_LE( w[1][3], key, 28 );
     }
 
-    i = (keybits - 128) >> 6;               // index: 0, 1, 2
+    i = ( keybits - 128 ) >> 6;             // index: 0, 1, 2
     ctx->nr = 12 + 2 * i;                   // no. rounds: 12, 14, 16
 
     aria_fo_xor( w[1], w[0], rc[i], w[1] ); // W1 = FO(W0, CK1) ^ KR

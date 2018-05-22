@@ -319,18 +319,33 @@ static void camellia_feistel( const uint32_t x[2], const uint32_t k[2],
     z[1] ^= I0;
 }
 
+int mbedtls_camellia_init_ret( mbedtls_camellia_context *ctx )
+{
+    MBEDTLS_CAMELLIA_VALIDATE( ctx != NULL );
+    memset( ctx, 0, sizeof( mbedtls_camellia_context ) );
+    return( 0 );
+}
+
+int mbedtls_camellia_free_ret( mbedtls_camellia_context *ctx )
+{
+    MBEDTLS_CAMELLIA_VALIDATE( ctx != NULL );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_camellia_context ) );
+    return( 0 );
+}
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_camellia_init( mbedtls_camellia_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_camellia_context ) );
+    mbedtls_camellia_init_ret( ctx );
 }
+#endif
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_camellia_free( mbedtls_camellia_context *ctx )
 {
-    if( ctx == NULL )
-        return;
-
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_camellia_context ) );
+    mbedtls_camellia_free_ret( ctx );
 }
+#endif
 
 /*
  * Camellia key schedule (encryption)
@@ -345,6 +360,8 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx, const unsigned c
     uint32_t SIGMA[6][2];
     uint32_t KC[16];
     uint32_t TK[20];
+
+    MBEDTLS_CAMELLIA_VALIDATE( ctx != NULL && key != NULL );
 
     RK = ctx->rk;
 
@@ -449,6 +466,8 @@ int mbedtls_camellia_setkey_dec( mbedtls_camellia_context *ctx, const unsigned c
     uint32_t *RK;
     uint32_t *SK;
 
+    MBEDTLS_CAMELLIA_VALIDATE( ctx != NULL && key != NULL );
+
     mbedtls_camellia_init( &cty );
 
     /* Also checks keybits */
@@ -497,6 +516,8 @@ int mbedtls_camellia_crypt_ecb( mbedtls_camellia_context *ctx,
     uint32_t *RK, X[4];
 
     ( (void) mode );
+
+    MBEDTLS_CAMELLIA_VALIDATE( ctx != NULL );
 
     NR = ctx->nr;
     RK = ctx->rk;
@@ -561,6 +582,8 @@ int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
     int i;
     unsigned char temp[16];
 
+    MBEDTLS_CAMELLIA_VALIDATE( ctx != NULL && input != NULL && output != NULL );
+
     if( length % 16 )
         return( MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH );
 
@@ -614,7 +637,12 @@ int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
                        unsigned char *output )
 {
     int c;
-    size_t n = *iv_off;
+    size_t n;
+
+    MBEDTLS_CAMELLIA_VALIDATE( ctx != NULL && iv_off != NULL &&
+            input != NULL && output != NULL );
+
+    n = *iv_off;
 
     if( mode == MBEDTLS_CAMELLIA_DECRYPT )
     {
@@ -662,7 +690,12 @@ int mbedtls_camellia_crypt_ctr( mbedtls_camellia_context *ctx,
                        unsigned char *output )
 {
     int c, i;
-    size_t n = *nc_off;
+    size_t n;
+
+    MBEDTLS_CAMELLIA_VALIDATE( ctx != NULL && nc_off != NULL &&
+            input != NULL && output != NULL );
+
+    n = *nc_off;
 
     while( length-- )
     {

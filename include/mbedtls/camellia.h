@@ -36,9 +36,18 @@
 #define MBEDTLS_CAMELLIA_ENCRYPT     1
 #define MBEDTLS_CAMELLIA_DECRYPT     0
 
+#define MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA               -0x0021  /**< Input invalid. */
 #define MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH           -0x0024  /**< Invalid key length. */
 #define MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH         -0x0026  /**< Invalid data input length. */
 #define MBEDTLS_ERR_CAMELLIA_HW_ACCEL_FAILED              -0x0027  /**< Camellia hardware accelerator failed. */
+
+#if defined( MBEDTLS_CHECK_PARAMS )
+#define MBEDTLS_CAMELLIA_VALIDATE( cond ) do { if( !(cond) ) \
+                                              return( MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA ); \
+                                          } while( 0 )
+#else
+#define MBEDTLS_CAMELLIA_VALIDATE( cond )
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,19 +71,47 @@ mbedtls_camellia_context;
 #include "camellia_alt.h"
 #endif /* MBEDTLS_CAMELLIA_ALT */
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+
 /**
  * \brief          Initialize CAMELLIA context
  *
  * \param ctx      CAMELLIA context to be initialized
  */
-void mbedtls_camellia_init( mbedtls_camellia_context *ctx );
+MBEDTLS_DEPRECATED void mbedtls_camellia_init( mbedtls_camellia_context *ctx );
 
 /**
  * \brief          Clear CAMELLIA context
  *
  * \param ctx      CAMELLIA context to be cleared
  */
-void mbedtls_camellia_free( mbedtls_camellia_context *ctx );
+MBEDTLS_DEPRECATED void mbedtls_camellia_free( mbedtls_camellia_context *ctx );
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+
+/**
+ * \brief          Initialize CAMELLIA context
+ *
+ * \param ctx      CAMELLIA context to be initialized
+ *
+ * \return         0 if succeeded
+ */
+int mbedtls_camellia_init_ret( mbedtls_camellia_context *ctx );
+
+/**
+ * \brief          Clear CAMELLIA context
+ *
+ * \param ctx      CAMELLIA context to be cleared
+ *
+ * \return         0 if succeeded
+ */
+int mbedtls_camellia_free_ret( mbedtls_camellia_context *ctx );
 
 /**
  * \brief          CAMELLIA key schedule (encryption)

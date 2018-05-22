@@ -636,6 +636,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 #endif /* MBEDTLS_BLOWFISH_C */
 
 #if defined(MBEDTLS_CAMELLIA_C)
+    if( use_ret == -(MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "CAMELLIA - Input invalid" );
     if( use_ret == -(MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH) )
         mbedtls_snprintf( buf, buflen, "CAMELLIA - Invalid key length" );
     if( use_ret == -(MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH) )

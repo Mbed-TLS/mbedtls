@@ -47,13 +47,15 @@ print_version()
 print_version "uname" "-a" ""
 echo
 
-: ${ARMC5_CC:=armcc}
-print_version "$ARMC5_CC" "--vsn" "armcc not found!" "head -n 2"
-echo
+if [ "${RUN_ARMCC:-1}" -ne 0 ]; then
+    : "${ARMC5_CC:=armcc}"
+    print_version "$ARMC5_CC" "--vsn" "armcc not found!" "head -n 2"
+    echo
 
-: ${ARMC6_CC:=armclang}
-print_version "$ARMC6_CC" "--vsn" "armclang not found!" "head -n 2"
-echo
+    : "${ARMC6_CC:=armclang}"
+    print_version "$ARMC6_CC" "--vsn" "armclang not found!" "head -n 2"
+    echo
+fi
 
 print_version "arm-none-eabi-gcc" "--version" "gcc-arm not found!" "head -n 1"
 echo

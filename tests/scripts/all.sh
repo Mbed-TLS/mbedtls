@@ -94,7 +94,6 @@ CONFIG_BAK="$CONFIG_H.bak"
 MEMORY=0
 FORCE=0
 KEEP_GOING=0
-RELEASE=0
 RUN_ARMCC=1
 YOTTA=1
 
@@ -127,8 +126,12 @@ General options:
   -m|--memory           Additional optional memory tests.
      --armcc            Run ARM Compiler builds (on by default).
      --no-armcc         Skip ARM Compiler builds.
+     --no-force         Refuse to overwrite modified files (default).
+     --no-keep-going    Stop at the first error (default).
+     --no-memory        No additional memory tests (default).
      --no-yotta         Skip yotta module build.
      --out-of-source-dir=<path>  Directory used for CMake out-of-source build tests.
+     --random-seed      Use a random seed value for randomized tests (default).
   -r|--release-test     Run this script in release mode. This fixes the seed value to 1.
   -s|--seed             Integer seed value to use for this test run.
      --yotta            Build yotta module (on by default).
@@ -216,78 +219,30 @@ check_tools()
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --armcc)
-            RUN_ARMCC=1
-            ;;
-        --armc5-bin-dir)
-            shift
-            ARMC5_BIN_DIR="$1"
-            ;;
-        --armc6-bin-dir)
-            shift
-            ARMC6_BIN_DIR="$1"
-            ;;
-        --force|-f)
-            FORCE=1
-            ;;
-        --gnutls-cli)
-            shift
-            GNUTLS_CLI="$1"
-            ;;
-        --gnutls-legacy-cli)
-            shift
-            GNUTLS_LEGACY_CLI="$1"
-            ;;
-        --gnutls-legacy-serv)
-            shift
-            GNUTLS_LEGACY_SERV="$1"
-            ;;
-        --gnutls-serv)
-            shift
-            GNUTLS_SERV="$1"
-            ;;
-        --help|-h)
-            usage
-            exit
-            ;;
-        --keep-going|-k)
-            KEEP_GOING=1
-            ;;
-        --memory|-m)
-            MEMORY=1
-            ;;
-        --no-armcc)
-            RUN_ARMCC=0
-            ;;
-        --no-yotta)
-            YOTTA=0
-            ;;
-        --openssl)
-            shift
-            OPENSSL="$1"
-            ;;
-        --openssl-legacy)
-            shift
-            OPENSSL_LEGACY="$1"
-            ;;
-        --openssl-next)
-            shift
-            OPENSSL_NEXT="$1"
-            ;;
-        --out-of-source-dir)
-            shift
-            OUT_OF_SOURCE_DIR="$1"
-            ;;
-        --release-test|-r)
-            RELEASE=1
-            ;;
-        --seed|-s)
-            shift
-            SEED="$1"
-            ;;
-        --yotta)
-            YOTTA=1
-            ;;
+        --armcc) RUN_ARMCC=1;;
+        --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
+        --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
+        --force|-f) FORCE=1;;
+        --gnutls-cli) shift; GNUTLS_CLI="$1";;
+        --gnutls-legacy-cli) shift; GNUTLS_LEGACY_CLI="$1";;
+        --gnutls-legacy-serv) shift; GNUTLS_LEGACY_SERV="$1";;
+        --gnutls-serv) shift; GNUTLS_SERV="$1";;
+        --help|-h) usage; exit;;
+        --keep-going|-k) KEEP_GOING=1;;
+        --memory|-m) MEMORY=1;;
+        --no-armcc) RUN_ARMCC=0;;
+        --no-force) FORCE=0;;
+        --no-keep-going) KEEP_GOING=0;;
+        --no-memory) MEMORY=0;;
+        --no-yotta) YOTTA=0;;
+        --openssl) shift; OPENSSL="$1";;
+        --openssl-legacy) shift; OPENSSL_LEGACY="$1";;
+        --openssl-next) shift; OPENSSL_NEXT="$1";;
+        --out-of-source-dir) shift; OUT_OF_SOURCE_DIR="$1";;
+        --random-seed) unset SEED;;
+        --release-test|-r) SEED=1;;
+        --seed|-s) shift; SEED="$1";;
+        --yotta) YOTTA=1;;
         *)
             echo >&2 "Unknown option: $1"
             echo >&2 "Run $0 --help for usage."
@@ -334,7 +289,7 @@ if [ $KEEP_GOING -eq 1 ]; then
     start_red=
     end_color=
     if [ -t 1 ]; then
-        case "$TERM" in
+        case "${TERM:-}" in
             *color*|cygwin|linux|rxvt*|screen|[Eex]term*)
                 start_red=$(printf '\033[31m')
                 end_color=$(printf '\033[0m')
@@ -392,11 +347,6 @@ if_build_succeeded () {
     fi
 }
 
-if [ $RELEASE -eq 1 ]; then
-    # Fix the seed value to 1 to ensure that the tests are deterministic.
-    SEED=1
-fi
-
 msg "info: $0 configuration"
 echo "MEMORY: $MEMORY"
 echo "FORCE: $FORCE"
@@ -423,13 +373,15 @@ export GNUTLS_CLI="$GNUTLS_CLI"
 export GNUTLS_SERV="$GNUTLS_SERV"
 
 # Avoid passing --seed flag in every call to ssl-opt.sh
-[ ! -z ${SEED+set} ] && export SEED
+if [ -n "${SEED-}" ]; then
+  export SEED
+fi
 
 # Make sure the tools we need are available.
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$OPENSSL_NEXT" \
             "$GNUTLS_CLI" "$GNUTLS_SERV" \
             "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
-            "arm-none-eabi-gcc" "i686-w64-mingw32-gcc"
+            "arm-none-eabi-gcc" "i686-w64-mingw32-gcc" "gdb"
 if [ $RUN_ARMCC -ne 0 ]; then
     check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR"
 fi
@@ -455,7 +407,7 @@ msg "info: output_env.sh"
 OPENSSL="$OPENSSL" OPENSSL_LEGACY="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_CLI" \
     GNUTLS_SERV="$GNUTLS_SERV" GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI" \
     GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV" ARMC5_CC="$ARMC5_CC" \
-    ARMC6_CC="$ARMC6_CC" scripts/output_env.sh
+    ARMC6_CC="$ARMC6_CC" RUN_ARMCC="$RUN_ARMCC" scripts/output_env.sh
 
 msg "test: recursion.pl" # < 1s
 tests/scripts/recursion.pl library/*.c
@@ -500,7 +452,7 @@ msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
 if_build_succeeded tests/ssl-opt.sh
 
 msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
-if_build_succeeded tests/scripts/test-ref-configs.pl
+record_status tests/scripts/test-ref-configs.pl
 
 msg "build: with ASan (rebuild after ref-configs)" # ~ 1 min
 make
@@ -538,16 +490,32 @@ make test
 msg "test: !MBEDTLS_SSL_RENEGOTIATION - ssl-opt.sh (ASan build)" # ~ 6 min
 if_build_succeeded tests/ssl-opt.sh
 
-msg "build: cmake, full config, clang, C99" # ~ 50s
+msg "build: Default + RSA_NO_CRT (ASan build)" # ~ 6 min
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_RSA_NO_CRT
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: RSA_NO_CRT - main suites (inc. selftests) (ASan build)" # ~ 50s
+make test
+
+msg "test: RSA_NO_CRT - RSA-related part of ssl-opt.sh (ASan build)" # ~ 5s
+tests/ssl-opt.sh -f RSA
+
+msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
+tests/compat.sh -t RSA
+
+msg "build: cmake, full config, clang" # ~ 50s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
 CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
-make CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic'
+make
 
 msg "test: main suites (full config)" # ~ 5s
-make CFLAGS='-Werror -Wall -Wextra' test
+make test
 
 msg "test: ssl-opt.sh default (full config)" # ~ 1s
 if_build_succeeded tests/ssl-opt.sh -f Default
@@ -560,13 +528,19 @@ if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'A
 
 msg "test/build: curves.pl (gcc)" # ~ 4 min
 cleanup
-cmake -D CMAKE_BUILD_TYPE:String=Debug .
-if_build_succeeded tests/scripts/curves.pl
+record_status tests/scripts/curves.pl
+
+msg "test/build: depends-hashes.pl (gcc)" # ~ 2 min
+cleanup
+record_status tests/scripts/depends-hashes.pl
+
+msg "test/build: depends-pkalgs.pl (gcc)" # ~ 2 min
+cleanup
+record_status tests/scripts/depends-pkalgs.pl
 
 msg "test/build: key-exchanges (gcc)" # ~ 1 min
 cleanup
-cmake -D CMAKE_BUILD_TYPE:String=Check .
-if_build_succeeded tests/scripts/key-exchanges.pl
+record_status tests/scripts/key-exchanges.pl
 
 msg "build: Unix make, -Os (gcc)" # ~ 30s
 cleanup
@@ -651,6 +625,34 @@ CC=gcc cmake  -D UNSAFE_BUILD=ON -D CMAKE_C_FLAGS:String="-fsanitize=address -fn
 make
 
 msg "test: MBEDTLS_TEST_NULL_ENTROPY - main suites (inc. selftests) (ASan build)"
+make test
+
+msg "build: default config with AES_FEWER_TABLES enabled"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_AES_FEWER_TABLES
+make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+msg "test: AES_FEWER_TABLES"
+make test
+
+msg "build: default config with AES_ROM_TABLES enabled"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_AES_ROM_TABLES
+make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+msg "test: AES_ROM_TABLES"
+make test
+
+msg "build: default config with AES_ROM_TABLES and AES_FEWER_TABLES enabled"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_AES_FEWER_TABLES
+scripts/config.pl set MBEDTLS_AES_ROM_TABLES
+make CC=gcc CFLAGS='-Werror -Wall -Wextra'
+
+msg "test: AES_FEWER_TABLES + AES_ROM_TABLES"
 make test
 
 if uname -a | grep -F Linux >/dev/null; then
@@ -867,6 +869,15 @@ msg "test: cmake 'out-of-source' build"
 make test
 cd "$MBEDTLS_ROOT_DIR"
 rm -rf "$OUT_OF_SOURCE_DIR"
+
+for optimization_flag in -O2 -O3 -Ofast -Os; do
+    for compiler in clang gcc; do
+        msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
+        cleanup
+        CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag" make programs
+        gdb -x tests/scripts/test_zeroize.gdb -nw -batch -nx
+    done
+done
 
 
 

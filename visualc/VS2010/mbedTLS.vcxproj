@@ -198,6 +198,7 @@
     <ClInclude Include="..\..\include\mbedtls\pkcs5.h" />
     <ClInclude Include="..\..\include\mbedtls\platform.h" />
     <ClInclude Include="..\..\include\mbedtls\platform_time.h" />
+    <ClInclude Include="..\..\include\mbedtls\platform_util.h" />
     <ClInclude Include="..\..\include\mbedtls\ripemd160.h" />
     <ClInclude Include="..\..\include\mbedtls\rsa.h" />
     <ClInclude Include="..\..\include\mbedtls\rsa_internal.h" />
@@ -268,6 +269,7 @@
     <ClCompile Include="..\..\library\pkparse.c" />
     <ClCompile Include="..\..\library\pkwrite.c" />
     <ClCompile Include="..\..\library\platform.c" />
+    <ClCompile Include="..\..\library\platform_util.c" />
     <ClCompile Include="..\..\library\ripemd160.c" />
     <ClCompile Include="..\..\library\rsa.c" />
     <ClCompile Include="..\..\library\rsa_internal.c" />

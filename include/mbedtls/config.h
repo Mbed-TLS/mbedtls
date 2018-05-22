@@ -446,11 +446,44 @@
 /**
  * \def MBEDTLS_AES_ROM_TABLES
  *
- * Store the AES tables in ROM.
+ * Use precomputed AES tables stored in ROM.
  *
- * Uncomment this macro to store the AES tables in ROM.
+ * Uncomment this macro to use precomputed AES tables stored in ROM.
+ * Comment this macro to generate AES tables in RAM at runtime.
+ *
+ * Tradeoff: Using precomputed ROM tables reduces RAM usage by ~8kb
+ * (or ~2kb if \c MBEDTLS_AES_FEWER_TABLES is used) and reduces the
+ * initialization time before the first AES operation can be performed.
+ * It comes at the cost of additional ~8kb ROM use (resp. ~2kb if \c
+ * MBEDTLS_AES_FEWER_TABLES below is used), and potentially degraded
+ * performance if ROM access is slower than RAM access.
+ *
+ * This option is independent of \c MBEDTLS_AES_FEWER_TABLES.
+ *
  */
 //#define MBEDTLS_AES_ROM_TABLES
+
+/**
+ * \def MBEDTLS_AES_FEWER_TABLES
+ *
+ * Use less ROM/RAM for AES tables.
+ *
+ * Uncommenting this macro omits 75% of the AES tables from
+ * ROM / RAM (depending on the value of \c MBEDTLS_AES_ROM_TABLES)
+ * by computing their values on the fly during operations
+ * (the tables are entry-wise rotations of one another).
+ *
+ * Tradeoff: Uncommenting this reduces the RAM / ROM footprint
+ * by ~6kb but at the cost of more arithmetic operations during
+ * runtime. Specifically, one has to compare 4 accesses within
+ * different tables to 4 accesses with additional arithmetic
+ * operations within the same table. The performance gain/loss
+ * depends on the system and memory details.
+ *
+ * This option is independent of \c MBEDTLS_AES_ROM_TABLES.
+ *
+ */
+//#define MBEDTLS_AES_FEWER_TABLES
 
 /**
  * \def MBEDTLS_CAMELLIA_SMALL_MEMORY
@@ -582,6 +615,7 @@
 #define MBEDTLS_ECP_DP_BP384R1_ENABLED
 #define MBEDTLS_ECP_DP_BP512R1_ENABLED
 #define MBEDTLS_ECP_DP_CURVE25519_ENABLED
+#define MBEDTLS_ECP_DP_CURVE448_ENABLED
 
 /**
  * \def MBEDTLS_ECP_NIST_OPTIM
@@ -1055,7 +1089,8 @@
 /**
  * \def MBEDTLS_RSA_NO_CRT
  *
- * Do not use the Chinese Remainder Theorem for the RSA private operation.
+ * Do not use the Chinese Remainder Theorem
+ * for the RSA private operation.
  *
  * Uncomment this macro to disable the use of CRT in RSA.
  *
@@ -1546,6 +1581,9 @@
  * CRIME or similar exploits may be a applicable to your use case.
  *
  * \note Currently compression can't be used with DTLS.
+ *
+ * \deprecated This feature is deprecated and will be removed
+ *             in the next major revision of the library.
  *
  * Used in: library/ssl_tls.c
  *          library/ssl_cli.c
@@ -2871,6 +2909,26 @@
  *
  */
 #define MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE
+
+/**
+ * Uncomment the macro to let mbed TLS use your alternate implementation of
+ * mbedtls_platform_zeroize(). This replaces the default implementation in
+ * platform_util.c.
+ *
+ * mbedtls_platform_zeroize() is a widely used function across the library to
+ * zero a block of memory. The implementation is expected to be secure in the
+ * sense that it has been written to prevent the compiler from removing calls
+ * to mbedtls_platform_zeroize() as part of redundant code elimination
+ * optimizations. However, it is difficult to guarantee that calls to
+ * mbedtls_platform_zeroize() will not be optimized by the compiler as older
+ * versions of the C language standards do not provide a secure implementation
+ * of memset(). Therefore, MBEDTLS_PLATFORM_ZEROIZE_ALT enables users to
+ * configure their own implementation of mbedtls_platform_zeroize(), for
+ * example by using directives specific to their compiler, features from newer
+ * C standards (e.g using memset_s() in C11) or calling a secure memset() from
+ * their system (e.g explicit_bzero() in BSD).
+ */
+//#define MBEDTLS_PLATFORM_ZEROIZE_ALT
 
 /* \} name SECTION: Customisation configuration options */
 

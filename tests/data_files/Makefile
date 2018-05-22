@@ -12,6 +12,7 @@
 
 ## Tools
 OPENSSL ?= openssl
+FAKETIME ?= faketime
 MBEDTLS_CERT_WRITE ?= $(PWD)/../../programs/x509/cert_write
 
 ## Build the generated test data. Note that since the final outputs
@@ -46,6 +47,40 @@ test-ca-sha256.crt: $(test_ca_key_file_rsa) $(test_ca_config_file) test-ca.csr
 	$(OPENSSL) req -x509 -config $(test_ca_config_file) -key $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 0 -days 3653 -sha256 -in test-ca.csr -out $@
 all_final += test-ca-sha256.crt
 
+test_ca_key_file_rsa_alt = test-ca-alt.key
+
+$(test_ca_key_file_rsa_alt):
+	$(OPENSSL) genrsa -out $@ 2048
+test-ca-alt.csr: $(test_ca_key_file_rsa_alt) $(test_ca_config_file)
+	$(OPENSSL) req -new -config $(test_ca_config_file) -key $(test_ca_key_file_rsa_alt) -subj "/C=NL/O=PolarSSL/CN=PolarSSL Test CA" -out $@
+all_intermediate += test-ca-alt.csr
+test-ca-alt.crt: $(test_ca_key_file_rsa_alt) $(test_ca_config_file) test-ca-alt.csr
+	$(OPENSSL) req -x509 -config $(test_ca_config_file) -key $(test_ca_key_file_rsa_alt) -set_serial 0 -days 3653 -sha256 -in test-ca-alt.csr -out $@
+all_final += test-ca-alt.crt
+test-ca-alt-good.crt: test-ca-alt.crt test-ca-sha256.crt
+	cat test-ca-alt.crt test-ca-sha256.crt > $@
+all_final += test-ca-alt-good.crt
+test-ca-good-alt.crt: test-ca-alt.crt test-ca-sha256.crt
+	cat test-ca-sha256.crt test-ca-alt.crt > $@
+all_final += test-ca-good-alt.crt
+
+test_ca_crt_file_ec = test-ca2.crt
+test_ca_key_file_ec = test-ca2.key
+
+test-int-ca.csr: test-int-ca.key $(test_ca_config_file)
+	$(OPENSSL) req -new -config $(test_ca_config_file) -key test-int-ca.key -subj "/C=NL/O=PolarSSL/CN=PolarSSL Test Intermediate CA" -out $@
+all_intermediate += test-int-ca.csr
+test-int-ca-exp.crt: $(test_ca_crt_file_ec) $(test_ca_key_file_ec) $(test_ca_config_file) test-int-ca.csr
+	$(FAKETIME) -f -3653d $(OPENSSL) x509 -req -extfile $(test_ca_config_file) -extensions v3_ca -CA $(test_ca_crt_file_ec) -CAkey $(test_ca_key_file_ec) -set_serial 14 -days 3653 -sha256 -in test-int-ca.csr -out $@
+all_final += test-int-ca-exp.crt
+
+crl-idp.pem: $(test_ca_crt) $(test_ca_key_file_rsa) $(test_ca_config_file)
+	$(OPENSSL) ca -gencrl -batch -cert $(test_ca_crt) -keyfile $(test_ca_key_file_rsa) -key $(test_ca_pwd_rsa) -config $(test_ca_config_file) -name test_ca -md sha256 -crldays 3653 -crlexts crl_ext_idp -out $@
+all_final += crl-idp.pem
+crl-idpnc.pem: $(test_ca_crt) $(test_ca_key_file_rsa) $(test_ca_config_file)
+	$(OPENSSL) ca -gencrl -batch -cert $(test_ca_crt) -keyfile $(test_ca_key_file_rsa) -key $(test_ca_pwd_rsa) -config $(test_ca_config_file) -name test_ca -md sha256 -crldays 3653 -crlexts crl_ext_idp_nc -out $@
+all_final += crl-idpnc.pem
+
 cli_crt_key_file_rsa = cli-rsa.key
 cli_crt_extensions_file = cli.opensslconf
 
@@ -65,6 +100,33 @@ all_intermediate += server2-rsa.csr
 server2-sha256.crt: server2-rsa.csr
 	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA test-ca-sha256.crt -CAkey $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 4 -days 3653 -sha256 -in server2-rsa.csr -out $@
 all_final += server2-sha256.crt
+
+test_ca_int_rsa1 = test-int-ca.crt
+
+server7.csr: server7.key
+	$(OPENSSL) req -new -key server7.key -subj "/C=NL/O=PolarSSL/CN=localhost" -out $@
+all_intermediate += server7.csr
+server7-expired.crt: server7.csr $(test_ca_int_rsa1)
+	$(FAKETIME) -f -3653d $(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA $(test_ca_int_rsa1) -CAkey test-int-ca.key -set_serial 16 -days 3653 -sha256 -in server7.csr | cat - $(test_ca_int_rsa1) > $@
+all_final += server7-expired.crt
+server7-future.crt: server7.csr $(test_ca_int_rsa1)
+	$(FAKETIME) -f +3653d $(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA $(test_ca_int_rsa1) -CAkey test-int-ca.key -set_serial 16 -days 3653 -sha256 -in server7.csr | cat - $(test_ca_int_rsa1) > $@
+all_final += server7-future.crt
+server7-badsign.crt: server7.crt $(test_ca_int_rsa1)
+	{ head -n-2 server7.crt; tail -n-2 server7.crt | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; cat test-int-ca.crt; } > server7-badsign.crt
+all_final += server7-badsign.crt
+server7_int-ca-exp.crt: server7.crt test-int-ca-exp.crt
+	cat server7.crt test-int-ca-exp.crt > $@
+all_final += server7_int-ca-exp.crt
+
+server5-ss-expired.crt: server5.key
+	$(FAKETIME) -f -3653d $(OPENSSL) req -x509 -new -subj "/C=UK/O=mbed TLS/OU=testsuite/CN=localhost" -days 3653 -sha256 -key $< -out $@
+all_final += server5-ss-expired.crt
+
+# try to forge a copy of test-int-ca3 with different key
+server5-ss-forgeca.crt: server5.key
+	$(FAKETIME) '2015-09-01 14:08:43' $(OPENSSL) req -x509 -new -subj "/C=UK/O=mbed TLS/CN=mbed TLS Test intermediate CA 3" -set_serial 77 -config $(test_ca_config_file) -extensions noext_ca -days 3650 -sha256 -key $< -out $@
+all_final += server5-ss-forgeca.crt
 
 rsa_pkcs1_2048_public.pem: server8.key
 	$(OPENSSL)  rsa -in $< -outform PEM -RSAPublicKey_out -out $@
@@ -571,7 +633,86 @@ keys_rsa_enc_pkcs8_v2: keys_rsa_enc_pkcs8_v2_1024 keys_rsa_enc_pkcs8_v2_2048 key
 ### Generate all RSA keys
 keys_rsa_all: keys_rsa_unenc keys_rsa_enc_basic keys_rsa_enc_pkcs8_v1 keys_rsa_enc_pkcs8_v2
 
+################################################################
+#### Generate various EC keys
+################################################################
 
+###
+### PKCS8 encoded
+###
+
+ec_prv.pk8.der:
+	$(OPENSSL) genpkey -algorithm EC -pkeyopt ec_paramgen_curve:prime192v1 -pkeyopt ec_param_enc:named_curve -out $@ -outform DER
+all_final += ec_prv.pk8.der
+
+# ### Instructions for creating `ec_prv.pk8nopub.der`,
+# ### `ec_prv.pk8nopubparam.der`, and `ec_prv.pk8param.der` by hand from
+# ### `ec_prv.pk8.der`.
+#
+# These instructions assume you are familiar with ASN.1 DER encoding and can
+# use a hex editor to manipulate DER.
+#
+# The relevant ASN.1 definitions for a PKCS#8 encoded Elliptic Curve key are:
+#
+# PrivateKeyInfo ::= SEQUENCE {
+#   version                   Version,
+#   privateKeyAlgorithm       PrivateKeyAlgorithmIdentifier,
+#   privateKey                PrivateKey,
+#   attributes           [0]  IMPLICIT Attributes OPTIONAL
+# }
+#
+# AlgorithmIdentifier  ::=  SEQUENCE  {
+#   algorithm   OBJECT IDENTIFIER,
+#   parameters  ANY DEFINED BY algorithm OPTIONAL
+# }
+#
+# ECParameters ::= CHOICE {
+#   namedCurve         OBJECT IDENTIFIER
+#   -- implicitCurve   NULL
+#   -- specifiedCurve  SpecifiedECDomain
+# }
+#
+# ECPrivateKey ::= SEQUENCE {
+#   version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+#   privateKey     OCTET STRING,
+#   parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+#   publicKey  [1] BIT STRING OPTIONAL
+# }
+#
+# `ec_prv.pk8.der` as generatde above by OpenSSL should have the following
+# fields:
+#
+# * privateKeyAlgorithm       namedCurve
+# * privateKey.parameters     NOT PRESENT
+# * privateKey.publicKey      PRESENT
+# * attributes                NOT PRESENT
+#
+# # ec_prv.pk8nopub.der
+#
+# Take `ec_prv.pk8.der` and remove `privateKey.publicKey`.
+#
+# # ec_prv.pk8nopubparam.der
+#
+# Take `ec_prv.pk8nopub.der` and add `privateKey.parameters`, the same value as
+# `privateKeyAlgorithm.namedCurve`. Don't forget to add the explicit tag.
+#
+# # ec_prv.pk8param.der
+#
+# Take `ec_prv.pk8.der` and add `privateKey.parameters`, the same value as
+# `privateKeyAlgorithm.namedCurve`. Don't forget to add the explicit tag.
+
+ec_prv.pk8.pem: ec_prv.pk8.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@
+all_final += ec_prv.pk8.pem
+ec_prv.pk8nopub.pem: ec_prv.pk8nopub.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@
+all_final += ec_prv.pk8nopub.pem
+ec_prv.pk8nopubparam.pem: ec_prv.pk8nopubparam.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@
+all_final += ec_prv.pk8nopubparam.pem
+ec_prv.pk8param.pem: ec_prv.pk8param.der
+	$(OPENSSL) pkey -in $< -inform DER -out $@
+all_final += ec_prv.pk8param.pem
 
 ################################################################
 ### Generate certificates for CRT write check tests

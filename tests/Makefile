@@ -35,7 +35,7 @@ ifdef SHARED
 SHARED_SUFFIX=.$(DLEXT)
 endif
 else
-DLEXT=so
+DLEXT ?= so
 EXEXT=
 SHARED_SUFFIX=
 endif

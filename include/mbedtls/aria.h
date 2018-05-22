@@ -70,6 +70,10 @@ typedef struct
 }
 mbedtls_aria_context;
 
+#else  /* MBEDTLS_ARIA_ALT */
+#include "aria_alt.h"
+#endif /* MBEDTLS_ARIA_ALT */
+
 /**
  * \brief          This function initializes the specified ARIA context.
  *
@@ -285,18 +289,6 @@ int mbedtls_aria_crypt_ctr( mbedtls_aria_context *ctx,
                             const unsigned char *input,
                             unsigned char *output );
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
-
-#ifdef __cplusplus
-}
-#endif
-
-#else  /* MBEDTLS_ARIA_ALT */
-#include "aria_alt.h"
-#endif /* MBEDTLS_ARIA_ALT */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #if defined(MBEDTLS_SELF_TEST)
 /**

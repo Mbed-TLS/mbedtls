@@ -124,24 +124,21 @@ int mbedtls_aria_setkey_dec( mbedtls_aria_context *ctx,
  * \brief          This function performs an ARIA single-block encryption or
  *                 decryption operation.
  *
- *                 It performs the operation defined in the \p mode parameter
- *                 (encrypt or decrypt), on the input data buffer defined in
- *                 the \p input parameter.
+ *                 It performs encryption or decryption (depending on whether
+ *                 the key was set for encryption on decryption) on the input
+ *                 data buffer defined in the \p input parameter.
  *
  *                 mbedtls_aria_init(), and either mbedtls_aria_setkey_enc() or
  *                 mbedtls_aria_setkey_dec() must be called before the first
  *                 call to this API with the same context.
  *
  * \param ctx      The ARIA context to use for encryption or decryption.
- * \param mode     The ARIA operation: #MBEDTLS_ARIA_ENCRYPT or
- *                 #MBEDTLS_ARIA_DECRYPT.
  * \param input    The 16-Byte buffer holding the input data.
  * \param output   The 16-Byte buffer holding the output data.
 
  * \return         \c 0 on success.
  */
 int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
-                            int mode,
                             const unsigned char input[MBEDTLS_ARIA_BLOCKSIZE],
                             unsigned char output[MBEDTLS_ARIA_BLOCKSIZE] );
 

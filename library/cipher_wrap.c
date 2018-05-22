@@ -831,7 +831,8 @@ static const mbedtls_cipher_info_t camellia_256_ccm_info = {
 static int aria_crypt_ecb_wrap( void *ctx, mbedtls_operation_t operation,
         const unsigned char *input, unsigned char *output )
 {
-    return mbedtls_aria_crypt_ecb( (mbedtls_aria_context *) ctx, operation, input,
+    (void) operation;
+    return mbedtls_aria_crypt_ecb( (mbedtls_aria_context *) ctx, input,
                                output );
 }
 
@@ -840,7 +841,8 @@ static int aria_crypt_cbc_wrap( void *ctx, mbedtls_operation_t operation,
         size_t length, unsigned char *iv,
         const unsigned char *input, unsigned char *output )
 {
-    return mbedtls_aria_crypt_cbc( (mbedtls_aria_context *) ctx, operation, length, iv,
+    (void) operation;
+    return mbedtls_aria_crypt_cbc( (mbedtls_aria_context *) ctx, length, iv,
                                input, output );
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */

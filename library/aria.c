@@ -182,7 +182,7 @@ static inline uint32_t aria_p3( uint32_t x )
  * ARIA Affine Transform
  * (a, b, c, d) = state in/out
  *
- * If we denote the first by of input by 0, ..., the last byte by f,
+ * If we denote the first byte of input by 0, ..., the last byte by f,
  * then inputs are: a = 0123, b = 4567, c = 89ab, d = cdef.
  *
  * Reading [1] 2.4 or [2] 2.4.3 in columns and performing simple

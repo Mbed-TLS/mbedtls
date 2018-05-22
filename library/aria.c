@@ -115,7 +115,7 @@ static inline uint32_t aria_p1( uint32_t x )
 #endif /* arm */
 #if defined(__GNUC__) && \
     defined(__i386__) || defined(__amd64__) || defined( __x86_64__)
-/* I couldn't find an Intel equivalent of ret16, so two instructions */
+/* I couldn't find an Intel equivalent of rev16, so two instructions */
 #define ARIA_P1(x) ARIA_P2( ARIA_P3( x ) )
 #endif /* x86 gnuc */
 #endif /* MBEDTLS_HAVE_ASM && GNUC */

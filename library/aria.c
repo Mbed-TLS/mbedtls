@@ -48,15 +48,12 @@
 
 #if !defined(MBEDTLS_ARIA_ALT)
 
+#include "mbedtls/platform_util.h"
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
 #endif
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = (unsigned char*)v; while( n-- ) *p++ = 0;
-}
 
 /*
  * 32-bit integer manipulation macros (little endian)
@@ -494,7 +491,7 @@ int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx,
     aria_rot128( ctx->rk[16], w[0], w[1], 19 );
 
     /* w holds enough info to reconstruct the round keys */
-    mbedtls_zeroize( w, sizeof( w ) );
+    mbedtls_platform_zeroize( w, sizeof( w ) );
 
     return( 0 );
 }
@@ -598,7 +595,7 @@ void mbedtls_aria_free( mbedtls_aria_context *ctx )
     if( ctx == NULL )
         return;
 
-    mbedtls_zeroize( ctx, sizeof( mbedtls_aria_context ) );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_aria_context ) );
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)

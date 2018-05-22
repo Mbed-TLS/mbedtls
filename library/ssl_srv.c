@@ -4413,16 +4413,81 @@ static int ssl_certificate_verify_postprocess( mbedtls_ssl_context *ssl )
 }
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-static int ssl_write_new_session_ticket( mbedtls_ssl_context *ssl )
+/*
+ *
+ * STATE HANDLING: New Session Ticket
+ *
+ */
+
+/*
+ * Overview
+ */
+
+/* Main state-handling entry point. */
+static int ssl_process_new_session_ticket( mbedtls_ssl_context *ssl );
+
+static int ssl_new_session_ticket_write( mbedtls_ssl_context *ssl,
+                                         unsigned char *buf,
+                                         size_t buflen,
+                                         size_t *olen );
+static int ssl_new_session_ticket_postprocess( mbedtls_ssl_context *ssl );
+
+/*
+ * Implementation
+ */
+
+static int ssl_process_new_session_ticket( mbedtls_ssl_context *ssl )
+{
+    int ret;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write new session ticket" ) );
+
+    /* Make sure we can write a new message. */
+    SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
+
+    /* Prepare the session ticket message */
+    SSL_PROC_CHK( ssl_new_session_ticket_write( ssl, ssl->out_msg,
+                                                MBEDTLS_SSL_MAX_CONTENT_LEN,
+                                                &ssl->out_msglen ) );
+
+    ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
+    ssl->out_msg[0]  = MBEDTLS_SSL_HS_NEW_SESSION_TICKET;
+
+    /* NOTE: With the new messaging layer, the postprocessing
+     *       step might come after the dispatching step if the
+     *       latter doesn't send the message immediately.
+     *       At the moment, we must do the postprocessing
+     *       prior to the dispatching because if the latter
+     *       returns WANT_WRITE, we want the handshake state
+     *       to be updated in order to not enter
+     *       this function again on retry. */
+    SSL_PROC_CHK( ssl_new_session_ticket_postprocess( ssl ) );
+
+    if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
+        return( ret );
+    }
+
+cleanup:
+
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write new session ticket" ) );
+    return( ret );
+}
+
+static int ssl_new_session_ticket_write( mbedtls_ssl_context *ssl,
+                                         unsigned char *buf,
+                                         size_t buflen,
+                                         size_t *olen )
 {
     int ret;
     size_t tlen;
     uint32_t lifetime;
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write new session ticket" ) );
-
-    ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
-    ssl->out_msg[0]  = MBEDTLS_SSL_HS_NEW_SESSION_TICKET;
 
     /*
      * struct {
@@ -4435,42 +4500,41 @@ static int ssl_write_new_session_ticket( mbedtls_ssl_context *ssl )
      * 10 .  9+n ticket content
      */
 
+    if( buflen < 10 )
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
     if( ( ret = ssl->conf->f_ticket_write( ssl->conf->p_ticket,
                                 ssl->session_negotiate,
-                                ssl->out_msg + 10,
-                                ssl->out_msg + MBEDTLS_SSL_MAX_CONTENT_LEN,
+                                buf + 10,
+                                buf + buflen,
                                 &tlen, &lifetime ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_ticket_write", ret );
         tlen = 0;
     }
 
-    ssl->out_msg[4] = ( lifetime >> 24 ) & 0xFF;
-    ssl->out_msg[5] = ( lifetime >> 16 ) & 0xFF;
-    ssl->out_msg[6] = ( lifetime >>  8 ) & 0xFF;
-    ssl->out_msg[7] = ( lifetime       ) & 0xFF;
+    buf[4] = ( lifetime >> 24 ) & 0xFF;
+    buf[5] = ( lifetime >> 16 ) & 0xFF;
+    buf[6] = ( lifetime >>  8 ) & 0xFF;
+    buf[7] = ( lifetime       ) & 0xFF;
 
-    ssl->out_msg[8] = (unsigned char)( ( tlen >> 8 ) & 0xFF );
-    ssl->out_msg[9] = (unsigned char)( ( tlen      ) & 0xFF );
+    buf[8] = (unsigned char)( ( tlen >> 8 ) & 0xFF );
+    buf[9] = (unsigned char)( ( tlen      ) & 0xFF );
 
-    ssl->out_msglen = 10 + tlen;
+    *olen = 10 + tlen;
+    return( 0 );
+}
 
+static int ssl_new_session_ticket_postprocess( mbedtls_ssl_context *ssl )
+{
     /*
      * Morally equivalent to updating ssl->state, but NewSessionTicket and
      * ChangeCipherSpec share the same state.
      */
     ssl->handshake->new_session_ticket = 0;
-
-    if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
-        return( ret );
-    }
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write new session ticket" ) );
-
     return( 0 );
 }
+
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
 /*
@@ -4577,7 +4641,7 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl )
         case MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC:
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
             if( ssl->handshake->new_session_ticket != 0 )
-                ret = ssl_write_new_session_ticket( ssl );
+                ret = ssl_process_new_session_ticket( ssl );
             else
 #endif
                 ret = mbedtls_ssl_process_out_ccs( ssl );

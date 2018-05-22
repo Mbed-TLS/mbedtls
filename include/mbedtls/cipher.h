@@ -66,6 +66,14 @@
 #define MBEDTLS_CIPHER_VARIABLE_IV_LEN     0x01    /**< Cipher accepts IVs of variable length. */
 #define MBEDTLS_CIPHER_VARIABLE_KEY_LEN    0x02    /**< Cipher accepts keys of variable length. */
 
+#if defined( MBEDTLS_CHECK_PARAMS )
+#define MBEDTLS_CIPHER_VALIDATE( cond )   do { if( !(cond) ) \
+                                            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA ); \
+                                        } while( 0 )
+#else
+#define MBEDTLS_CIPHER_VALIDATE( cond )
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -339,17 +347,39 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_values( const mbedtls_ciph
                                               int key_bitlen,
                                               const mbedtls_cipher_mode_t mode );
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+
 /**
  * \brief               This function initializes a \p cipher_context as NONE.
  */
-void mbedtls_cipher_init( mbedtls_cipher_context_t *ctx );
+MBEDTLS_DEPRECATED void mbedtls_cipher_init( mbedtls_cipher_context_t *ctx );
 
 /**
  * \brief               This function frees and clears the cipher-specific
  *                      context of \p ctx. Freeing \p ctx itself remains the
  *                      responsibility of the caller.
  */
-void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx );
+MBEDTLS_DEPRECATED void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx );
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+
+/**
+ * \brief               This function initializes a \p cipher_context as NONE.
+ */
+int mbedtls_cipher_init_ret( mbedtls_cipher_context_t *ctx );
+
+/**
+ * \brief               This function frees and clears the cipher-specific
+ *                      context of \p ctx. Freeing \p ctx itself remains the
+ *                      responsibility of the caller.
+ */
+int mbedtls_cipher_free_ret( mbedtls_cipher_context_t *ctx );
 
 
 /**

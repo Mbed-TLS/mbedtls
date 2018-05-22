@@ -1105,7 +1105,7 @@ void ssl_calc_verify_tls_sha384( mbedtls_ssl_context *ssl, unsigned char hash[48
 #endif /* MBEDTLS_SHA512_C */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_complete_pms( mbedtls_ssl_context *ssl )
 {
     int ret;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info
@@ -1157,10 +1157,10 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_psk( ciphersuite_info ) )
     {
-        if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
+        if( ( ret = mbedtls_ssl_complete_pms_add_psk( ssl,
                         ciphersuite_info->key_exchange ) ) != 0 )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_psk_derive_premaster", ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_complete_pms_add_psk", ret );
             return( ret );
         }
     }
@@ -1200,7 +1200,7 @@ int mbedtls_ssl_build_pms( mbedtls_ssl_context *ssl )
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exchange_type_t key_ex )
+int mbedtls_ssl_complete_pms_add_psk( mbedtls_ssl_context *ssl, mbedtls_key_exchange_type_t key_ex )
 {
     unsigned char *p = ssl->handshake->premaster;
     unsigned char *end = p + sizeof( ssl->handshake->premaster );
@@ -1241,10 +1241,14 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
     if( key_ex == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
     {
-        /*
-         * other_secret already set by the ClientKeyExchange message,
-         * and is 48 bytes long
-         */
+        /* For RSA-PSK, the client-generated
+         * random part of the PMS has already been
+         * written by ssl_rsa_generate_partial_pms()
+         * as bytes 2, 3, ..., 50.
+         * According to RFC-4279, the first two
+         * bytes must contain the uint16 BE encoding
+         * of the random part's length of 48 bytes.
+         * Add this here. */
         *p++ = 0;
         *p++ = 48;
         p += 48;

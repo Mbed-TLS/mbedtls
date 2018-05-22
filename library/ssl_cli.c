@@ -3564,9 +3564,9 @@ static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl )
 {
     int ret;
 
-    if( ( ret = mbedtls_ssl_build_pms( ssl ) ) != 0 )
+    if( ( ret = mbedtls_ssl_complete_pms( ssl ) ) != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_build_pms", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_complete_pms", ret );
         return( ret );
     }
 

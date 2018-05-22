@@ -43,6 +43,13 @@
 #define MBEDTLS_ERR_CCM_AUTH_FAILED     -0x000F /**< Authenticated decryption failed. */
 #define MBEDTLS_ERR_CCM_HW_ACCEL_FAILED -0x0011 /**< CCM hardware accelerator failed. */
 
+#if defined( MBEDTLS_CHECK_PARAMS )
+#define MBEDTLS_CCM_VALIDATE( cond )   do { if( !(cond) ) \
+                                           return( MBEDTLS_ERR_CCM_BAD_INPUT ); \
+                                       } while( 0 )
+#else
+#define MBEDTLS_CCM_VALIDATE( cond )
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -65,6 +72,13 @@ mbedtls_ccm_context;
 #include "ccm_alt.h"
 #endif /* MBEDTLS_CCM_ALT */
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+
 /**
  * \brief           This function initializes the specified CCM context,
  *                  to make references valid, and prepare the context
@@ -72,7 +86,29 @@ mbedtls_ccm_context;
  *
  * \param ctx       The CCM context to initialize.
  */
-void mbedtls_ccm_init( mbedtls_ccm_context *ctx );
+MBEDTLS_DEPRECATED void mbedtls_ccm_init( mbedtls_ccm_context *ctx );
+
+/**
+ * \brief   This function releases and clears the specified CCM context
+ *          and underlying cipher sub-context.
+ *
+ * \param ctx       The CCM context to clear.
+ */
+MBEDTLS_DEPRECATED void mbedtls_ccm_free( mbedtls_ccm_context *ctx );
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+
+/**
+ * \brief           This function initializes the specified CCM context,
+ *                  to make references valid, and prepare the context
+ *                  for mbedtls_ccm_setkey() or mbedtls_ccm_free().
+ *
+ * \param ctx       The CCM context to initialize.
+ *
+ * \return          0 if succeeded.
+ */
+int mbedtls_ccm_init_ret( mbedtls_ccm_context *ctx );
 
 /**
  * \brief           This function initializes the CCM context set in the
@@ -96,8 +132,10 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
  *          and underlying cipher sub-context.
  *
  * \param ctx       The CCM context to clear.
+ *
+ * \return          0 if succeeded
  */
-void mbedtls_ccm_free( mbedtls_ccm_context *ctx );
+int mbedtls_ccm_free_ret( mbedtls_ccm_context *ctx );
 
 /**
  * \brief           This function encrypts a buffer using CCM.

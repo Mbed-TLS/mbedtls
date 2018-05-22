@@ -58,10 +58,19 @@
 /*
  * Initialize context
  */
+int mbedtls_ccm_init_ret( mbedtls_ccm_context *ctx )
+{
+    MBEDTLS_CCM_VALIDATE( ctx != NULL );
+    memset( ctx, 0, sizeof( mbedtls_ccm_context ) );
+    return( 0 );
+}
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_ccm_init( mbedtls_ccm_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_ccm_context ) );
+    mbedtls_ccm_init_ret( ctx );
 }
+#endif
 
 int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
                         mbedtls_cipher_id_t cipher,
@@ -70,6 +79,8 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
 {
     int ret;
     const mbedtls_cipher_info_t *cipher_info;
+
+    MBEDTLS_CCM_VALIDATE( ctx != NULL && key != NULL );
 
     cipher_info = mbedtls_cipher_info_from_values( cipher, keybits, MBEDTLS_MODE_ECB );
     if( cipher_info == NULL )
@@ -95,11 +106,20 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
 /*
  * Free context
  */
-void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
+int mbedtls_ccm_free_ret( mbedtls_ccm_context *ctx )
 {
+    MBEDTLS_CCM_VALIDATE( ctx != NULL );
     mbedtls_cipher_free( &ctx->cipher_ctx );
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_ccm_context ) );
+    return( 0 );
 }
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
+{
+    mbedtls_ccm_free_ret( ctx );
+}
+#endif
 
 /*
  * Macros for common operations.
@@ -308,6 +328,8 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
                          const unsigned char *input, unsigned char *output,
                          unsigned char *tag, size_t tag_len )
 {
+    MBEDTLS_CCM_VALIDATE( ctx != NULL && iv != NULL && add != NULL &&
+            input != NULL && output != NULL && tag != NULL );
     return( ccm_auth_crypt( ctx, CCM_ENCRYPT, length, iv, iv_len,
                             add, add_len, input, output, tag, tag_len ) );
 }
@@ -325,6 +347,9 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
     unsigned char check_tag[16];
     unsigned char i;
     int diff;
+
+    MBEDTLS_CCM_VALIDATE( ctx != NULL && iv != NULL && add != NULL &&
+            input != NULL && output != NULL && tag != NULL );
 
     if( ( ret = ccm_auth_crypt( ctx, CCM_DECRYPT, length,
                                 iv, iv_len, add, add_len,

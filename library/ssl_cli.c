@@ -3871,14 +3871,33 @@ static int ssl_certificate_verify_postprocess( mbedtls_ssl_context *ssl )
 }
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
+
+/*
+ *
+ * STATE HANDLING: NewSessionTicket
+ *
+ */
+
+/*
+ * Overview
+ */
+
+/* Main state-handling entry point; orchestrates the other functions. */
+static int ssl_process_new_session_ticket( mbedtls_ssl_context *ssl );
+
+
+static int ssl_new_session_ticket_parse( mbedtls_ssl_context *ssl,
+                                         unsigned char *buf,
+                                         size_t buflen );
+static int ssl_new_session_ticket_postprocess( mbedtls_ssl_context *ssl );
+
+/*
+ * Implementation
+ */
+
+static int ssl_process_new_session_ticket( mbedtls_ssl_context *ssl )
 {
     int ret;
-    uint32_t lifetime;
-    size_t ticket_len;
-    unsigned char *ticket;
-    const unsigned char *msg;
-
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse new session ticket" ) );
 
     if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
@@ -3890,10 +3909,44 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad new session ticket message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
-        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE;
+        ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+        goto cleanup;
     }
+
+    if( ssl->in_msg[0] != MBEDTLS_SSL_HS_NEW_SESSION_TICKET )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad new session ticket message" ) );
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+        ret = MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET;
+        goto cleanup;
+    }
+
+    SSL_PROC_CHK( ssl_new_session_ticket_parse( ssl, ssl->in_msg,
+                                                ssl->in_hslen ) );
+
+    SSL_PROC_CHK( ssl_new_session_ticket_postprocess( ssl ) );
+
+cleanup:
+
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse server key exchange" ) );
+    return( ret );
+}
+
+static int ssl_new_session_ticket_parse( mbedtls_ssl_context *ssl,
+                                         unsigned char *buf,
+                                         size_t buflen )
+{
+    uint32_t lifetime;
+    size_t ticket_len;
+    unsigned char *ticket;
 
     /*
      * struct {
@@ -3905,35 +3958,35 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
      * 4  .  5   ticket_len (n)
      * 6  .  5+n ticket content
      */
-    if( ssl->in_msg[0] != MBEDTLS_SSL_HS_NEW_SESSION_TICKET ||
-        ssl->in_hslen < 6 + mbedtls_ssl_hs_hdr_len( ssl ) )
+
+    if( buflen < 6 + mbedtls_ssl_hs_hdr_len( ssl ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad new session ticket message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
         return( MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET );
     }
 
-    msg = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
+    buf    += mbedtls_ssl_hs_hdr_len( ssl );
+    buflen -= mbedtls_ssl_hs_hdr_len( ssl );
 
-    lifetime = ( msg[0] << 24 ) | ( msg[1] << 16 ) |
-               ( msg[2] <<  8 ) | ( msg[3]       );
+    lifetime = ( buf[0] << 24 ) | ( buf[1] << 16 ) |
+               ( buf[2] <<  8 ) | ( buf[3]       );
 
-    ticket_len = ( msg[4] << 8 ) | ( msg[5] );
+    ticket_len = ( buf[4] << 8 ) | ( buf[5] );
 
-    if( ticket_len + 6 + mbedtls_ssl_hs_hdr_len( ssl ) != ssl->in_hslen )
+    buf    += 6;
+    buflen -= 6;
+
+    if( ticket_len != buflen )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad new session ticket message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
         return( MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET );
     }
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket length: %d", ticket_len ) );
-
-    /* We're not waiting for a NewSessionTicket message any more */
-    ssl->handshake->new_session_ticket = 0;
-    ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
 
     /*
      * Zero-length ticket means the server changed his mind and doesn't want
@@ -3951,12 +4004,12 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
     if( ( ticket = mbedtls_calloc( 1, ticket_len ) ) == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "ticket alloc failed" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR;
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 
-    memcpy( ticket, msg + 6, ticket_len );
+    memcpy( ticket, buf, ticket_len );
 
     ssl->session_negotiate->ticket = ticket;
     ssl->session_negotiate->ticket_len = ticket_len;
@@ -3970,10 +4023,18 @@ static int ssl_parse_new_session_ticket( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket in use, discarding session id" ) );
     ssl->session_negotiate->id_len = 0;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse new session ticket" ) );
+    return( 0 );
+}
+
+static int ssl_new_session_ticket_postprocess( mbedtls_ssl_context *ssl )
+{
+    /* We're not waiting for a NewSessionTicket message any more */
+    ssl->handshake->new_session_ticket = 0;
+    ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
 
     return( 0 );
 }
+
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
 /*
@@ -4084,7 +4145,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
         */
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
        case MBEDTLS_SSL_SERVER_NEW_SESSION_TICKET:
-           ret = ssl_parse_new_session_ticket( ssl );
+           ret = ssl_process_new_session_ticket( ssl );
            break;
 #endif
 

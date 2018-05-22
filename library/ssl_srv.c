@@ -3631,18 +3631,48 @@ static int ssl_server_key_exchange_postprocess( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+/*
+ *
+ * STATE HANDLING: ServerHelloDone
+ *
+ */
 
-static int ssl_write_server_hello_done( mbedtls_ssl_context *ssl )
+/* Main entry point; orchestrates the other functions */
+static int ssl_process_server_hello_done( mbedtls_ssl_context *ssl );
+
+static int ssl_server_hello_done_write( mbedtls_ssl_context *ssl,
+                                 unsigned char *buf,
+                                 size_t buflen,
+                                 size_t *olen );
+static int ssl_server_hello_done_postprocess( mbedtls_ssl_context *ssl );
+
+/*
+ * Implementation
+ */
+
+static int ssl_process_server_hello_done( mbedtls_ssl_context *ssl )
 {
     int ret;
-
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write server hello done" ) );
 
-    ssl->out_msglen  = 4;
+    /* Make sure we can write a new message. */
+    SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
+
+    SSL_PROC_CHK( ssl_server_hello_done_write( ssl, ssl->out_msg,
+                                        MBEDTLS_SSL_MAX_CONTENT_LEN,
+                                        &ssl->out_msglen ) );
     ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_SERVER_HELLO_DONE;
 
-    ssl->state++;
+    /* NOTE: With the new messaging layer, the postprocessing
+     *       step might come after the dispatching step if the
+     *       latter doesn't send the message immediately.
+     *       At the moment, we must do the postprocessing
+     *       prior to the dispatching because if the latter
+     *       returns WANT_WRITE, we want the handshake state
+     *       to be updated in order to not enter
+     *       this function again on retry. */
+    SSL_PROC_CHK( ssl_server_hello_done_postprocess( ssl ) );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
@@ -3655,8 +3685,32 @@ static int ssl_write_server_hello_done( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write server hello done" ) );
+cleanup:
 
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write server hello done" ) );
+    return( ret );
+}
+
+static int ssl_server_hello_done_write( mbedtls_ssl_context *ssl,
+                                 unsigned char *buf,
+                                 size_t buflen,
+                                 size_t *olen )
+{
+    ((void) ssl);
+    ((void) buf);
+    ((void) buflen);
+    *olen = 4;
+    return( 0 );
+}
+
+static int ssl_server_hello_done_postprocess( mbedtls_ssl_context *ssl )
+{
+    ssl->state = MBEDTLS_SSL_CLIENT_CERTIFICATE;
     return( 0 );
 }
 
@@ -4603,7 +4657,7 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl )
             break;
 
         case MBEDTLS_SSL_SERVER_HELLO_DONE:
-            ret = ssl_write_server_hello_done( ssl );
+            ret = ssl_process_server_hello_done( ssl );
             break;
 
         /*

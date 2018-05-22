@@ -1068,11 +1068,11 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
  * AES-OFB (Output Feedback Mode) buffer encryption/decryption
  */
 int mbedtls_aes_crypt_ofb( mbedtls_aes_context *ctx,
-                            size_t length,
-                            size_t *iv_off,
-                            unsigned char iv[16],
-                            const unsigned char *input,
-                            unsigned char *output )
+                           size_t length,
+                           size_t *iv_off,
+                           unsigned char iv[16],
+                           const unsigned char *input,
+                           unsigned char *output )
 {
     int ret = 0;
     size_t n = *iv_off;

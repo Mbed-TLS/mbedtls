@@ -298,12 +298,14 @@ int mbedtls_aria_crypt_ctr( mbedtls_aria_context *ctx,
 extern "C" {
 #endif
 
+#if defined(MBEDTLS_SELF_TEST)
 /**
  * \brief          Checkup routine.
  *
  * \return         \c 0 on success, or \c 1 on failure.
  */
 int mbedtls_aria_self_test( int verbose );
+#endif /* MBEDTLS_SELF_TEST */
 
 #ifdef __cplusplus
 }

@@ -128,8 +128,8 @@ int mbedtls_aria_setkey_dec( mbedtls_aria_context *ctx,
  *                 (encrypt or decrypt), on the input data buffer defined in
  *                 the \p input parameter.
  *
- *                 mbedtls_aes_init(), and either mbedtls_aes_setkey_enc() or
- *                 mbedtls_aes_setkey_dec() must be called before the first
+ *                 mbedtls_aria_init(), and either mbedtls_aria_setkey_enc() or
+ *                 mbedtls_aria_setkey_dec() must be called before the first
  *                 call to this API with the same context.
  *
  * \param ctx      The ARIA context to use for encryption or decryption.
@@ -155,8 +155,8 @@ int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
  *         the \p input parameter.
  *
  *         It can be called as many times as needed, until all the input
- *         data is processed. mbedtls_aes_init(), and either
- *         mbedtls_aes_setkey_enc() or mbedtls_aes_setkey_dec() must be called
+ *         data is processed. mbedtls_aria_init(), and either
+ *         mbedtls_aria_setkey_enc() or mbedtls_aria_setkey_dec() must be called
  *         before the first call to this API with the same context.
  *
  * \note   This function operates on aligned blocks, that is, the input size
@@ -199,7 +199,7 @@ int mbedtls_aria_crypt_cbc( mbedtls_aria_context *ctx,
  *        parameter (encrypt or decrypt), on the input data buffer
  *        defined in the \p input parameter.
  *
- *        For CFB, you must set up the context with mbedtls_aes_setkey_enc(),
+ *        For CFB, you must set up the context with mbedtls_aria_setkey_enc(),
  *        regardless of whether you are performing an encryption or decryption
  *        operation, that is, regardless of the \p mode parameter. This is
  *        because CFB mode uses the same key schedule for encryption and
@@ -245,7 +245,7 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
  *
  *             Due to the nature of CTR, you must use the same key schedule
  *             for both encryption and decryption operations. Therefore, you
- *             must use the context initialized with mbedtls_aes_setkey_enc()
+ *             must use the context initialized with mbedtls_aria_setkey_enc()
  *             for both #MBEDTLS_ARIA_ENCRYPT and #MBEDTLS_ARIA_DECRYPT.
  *
  * \warning    You must never reuse a nonce value with the same key. Doing so

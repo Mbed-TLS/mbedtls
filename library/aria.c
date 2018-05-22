@@ -493,6 +493,9 @@ int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx,
     }
     aria_rot128( ctx->rk[16], w[0], w[1], 19 );
 
+    /* w holds enough info to reconstruct the round keys */
+    mbedtls_zeroize( w, sizeof( w ) );
+
     return( 0 );
 }
 

@@ -542,8 +542,8 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_process_read_certificate( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_process_write_certificate( mbedtls_ssl_context *ssl );
 
-int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl );
-int mbedtls_ssl_write_change_cipher_spec( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_process_out_ccs( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_process_in_ccs( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_process_finished( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl );

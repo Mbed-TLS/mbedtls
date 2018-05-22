@@ -4070,7 +4070,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
            break;
 
        case MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC:
-           ret = mbedtls_ssl_write_change_cipher_spec( ssl );
+           ret = mbedtls_ssl_process_out_ccs( ssl );
            break;
 
        case MBEDTLS_SSL_CLIENT_FINISHED:
@@ -4089,7 +4089,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
 #endif
 
        case MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC:
-           ret = mbedtls_ssl_parse_change_cipher_spec( ssl );
+           ret = mbedtls_ssl_process_in_ccs( ssl );
            break;
 
        case MBEDTLS_SSL_SERVER_FINISHED:

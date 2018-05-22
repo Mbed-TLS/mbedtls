@@ -5060,17 +5060,52 @@ static int ssl_read_certificate_postprocess( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-int mbedtls_ssl_write_change_cipher_spec( mbedtls_ssl_context *ssl )
+/*
+ *
+ * STATE HANDLING: Outgoing Change Cipher Spec
+ *
+ */
+
+/*
+ * Overview
+ */
+
+/* Main state-handling entry point */
+int mbedtls_ssl_process_out_ccs( mbedtls_ssl_context *ssl );
+
+/* Update state after handling the outgoing CCS */
+static int ssl_process_out_ccs_postprocess( mbedtls_ssl_context *ssl );
+
+/*
+ * Implementation
+ */
+
+int mbedtls_ssl_process_out_ccs( mbedtls_ssl_context *ssl )
 {
     int ret;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write change cipher spec" ) );
 
+    /* Make sure we can write a new message. */
+    SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
+
     ssl->out_msgtype = MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC;
     ssl->out_msglen  = 1;
     ssl->out_msg[0]  = 1;
 
-    ssl->state++;
+    /* NOTE: With the new messaging layer, the postprocessing
+     *       step might come after the dispatching step if the
+     *       latter doesn't send the message immediately.
+     *       At the moment, we must do the postprocessing
+     *       prior to the dispatching because if the latter
+     *       returns WANT_WRITE, we want the handshake state
+     *       to be updated in order to not enter
+     *       this function again on retry.
+     *
+     *       Further, once the two calls can be re-ordered, the two
+     *       calls to ssl_write_certificate_postprocess() can be
+     *       consolidated. */
+    SSL_PROC_CHK( ssl_process_out_ccs_postprocess( ssl ) );
 
     if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
     {
@@ -5078,12 +5113,52 @@ int mbedtls_ssl_write_change_cipher_spec( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write change cipher spec" ) );
+cleanup:
 
-    return( 0 );
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write change cipher spec" ) );
+    return( ret );
 }
 
-int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
+static int ssl_process_out_ccs_postprocess( mbedtls_ssl_context *ssl )
+{
+    /* Update handshake state */
+#if defined(MBEDTLS_SSL_CLI_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+        ssl->state = MBEDTLS_SSL_CLIENT_FINISHED;
+#endif
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+        ssl->state = MBEDTLS_SSL_SERVER_FINISHED;
+#endif
+
+    return( 0 );}
+
+/*
+ *
+ * STATE HANDLING: Incoming ChangeCipherSpec
+ *
+ */
+
+/*
+ * Overview
+ */
+
+/* Main state-handling entry point */
+int mbedtls_ssl_process_in_ccs( mbedtls_ssl_context *ssl );
+
+/* Update state after handling the incoming CCS */
+static int ssl_process_in_ccs_postprocess( mbedtls_ssl_context *ssl );
+
+/*
+ * Implementation
+ */
+
+int mbedtls_ssl_process_in_ccs( mbedtls_ssl_context *ssl )
 {
     int ret;
 
@@ -5098,19 +5173,36 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad change cipher spec message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
-        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE;
+        ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
+        goto cleanup;
     }
 
     if( ssl->in_msglen != 1 || ssl->in_msg[0] != 1 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad change cipher spec message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC );
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+        ret = MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC;
+        goto cleanup;
     }
 
+    SSL_PROC_CHK( ssl_process_in_ccs_postprocess( ssl ) );
+
+cleanup:
+
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse change cipher spec" ) );
+    return( ret );
+}
+
+static int ssl_process_in_ccs_postprocess( mbedtls_ssl_context *ssl )
+{
     /*
      * Switch to our negotiated transform and session parameters for inbound
      * data.
@@ -5118,6 +5210,9 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "switching to new transform spec for inbound data" ) );
     ssl->transform_in = ssl->transform_negotiate;
     ssl->session_in = ssl->session_negotiate;
+
+    /* For the new messaging layer, this should be hidden in a
+     * single call changing the outgoing security parameter set. */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
@@ -5150,6 +5245,9 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
     else
         ssl->in_msg = ssl->in_iv;
 
+    /* TODO: It still needs to be discussed what how we deal with
+     * this in the presence of the new messaging layer. */
+
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_activate != NULL )
     {
@@ -5163,9 +5261,15 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
     }
 #endif
 
-    ssl->state++;
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse change cipher spec" ) );
+    /* Update handshake state */
+#if defined(MBEDTLS_SSL_CLI_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+        ssl->state = MBEDTLS_SSL_SERVER_FINISHED;
+#endif
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+        ssl->state = MBEDTLS_SSL_CLIENT_FINISHED;
+#endif
 
     return( 0 );
 }

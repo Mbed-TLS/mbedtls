@@ -667,7 +667,7 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
                                const unsigned char *input,
                                unsigned char *output )
 {
-    int c;
+    unsigned char c;
     size_t n = *iv_off;
 
     if( mode == MBEDTLS_ARIA_DECRYPT )
@@ -678,8 +678,8 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
                 mbedtls_aria_crypt_ecb( ctx, iv, iv );
 
             c = *input++;
-            *output++ = (unsigned char)( c ^ iv[n] );
-            iv[n] = (unsigned char) c;
+            *output++ = c ^ iv[n];
+            iv[n] = c;
 
             n = ( n + 1 ) & 0x0F;
         }

@@ -84,10 +84,20 @@
 /*
  * Initialize a context
  */
+
+int mbedtls_gcm_init_ret( mbedtls_gcm_context *ctx )
+{
+    MBEDTLS_GCM_VALIDATE( ctx != NULL );
+    memset( ctx, 0, sizeof( mbedtls_gcm_context ) );
+    return( 0 );
+}
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_gcm_init( mbedtls_gcm_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_gcm_context ) );
+    mbedtls_gcm_init_ret( ctx );
 }
+#endif
 
 /*
  * Precompute small multiples of H, that is set
@@ -164,6 +174,8 @@ int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
 {
     int ret;
     const mbedtls_cipher_info_t *cipher_info;
+
+    MBEDTLS_GCM_VALIDATE( ctx != NULL && key != NULL );
 
     cipher_info = mbedtls_cipher_info_from_values( cipher, keybits, MBEDTLS_MODE_ECB );
     if( cipher_info == NULL )
@@ -273,7 +285,11 @@ int mbedtls_gcm_starts( mbedtls_gcm_context *ctx,
     unsigned char work_buf[16];
     size_t i;
     const unsigned char *p;
-    size_t use_len, olen = 0;
+    size_t use_len, olen;
+
+    MBEDTLS_GCM_VALIDATE( ctx != NULL && iv != NULL && (add != NULL || add_len == 0) );
+
+    olen = 0;
 
     /* IV and AD are limited to 2^64 bits, so 2^61 bytes */
     /* IV is not allowed to be zero length */
@@ -354,8 +370,13 @@ int mbedtls_gcm_update( mbedtls_gcm_context *ctx,
     unsigned char ectr[16];
     size_t i;
     const unsigned char *p;
-    unsigned char *out_p = output;
-    size_t use_len, olen = 0;
+    unsigned char *out_p;
+    size_t use_len, olen;
+
+    MBEDTLS_GCM_VALIDATE( ctx != NULL && input != NULL && output != NULL );
+
+    out_p = output;
+    olen = 0;
 
     if( output > input && (size_t) ( output - input ) < length )
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
@@ -412,6 +433,8 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
     size_t i;
     uint64_t orig_len = ctx->len * 8;
     uint64_t orig_add_len = ctx->add_len * 8;
+
+    MBEDTLS_GCM_VALIDATE( ctx != NULL && tag != NULL );
 
     if( tag_len > 16 || tag_len < 4 )
         return( MBEDTLS_ERR_GCM_BAD_INPUT );
@@ -501,11 +524,20 @@ int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
     return( 0 );
 }
 
-void mbedtls_gcm_free( mbedtls_gcm_context *ctx )
+int mbedtls_gcm_free_ret( mbedtls_gcm_context *ctx )
 {
+    MBEDTLS_GCM_VALIDATE( ctx != NULL );
     mbedtls_cipher_free( &ctx->cipher_ctx );
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_gcm_context ) );
+    return( 0 );
 }
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+void mbedtls_gcm_free( mbedtls_gcm_context *ctx )
+{
+    mbedtls_gcm_free_ret( ctx );
+}
+#endif
 
 #endif /* !MBEDTLS_GCM_ALT */
 

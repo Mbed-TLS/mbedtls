@@ -44,6 +44,14 @@
 #define MBEDTLS_ERR_GCM_HW_ACCEL_FAILED                   -0x0013  /**< GCM hardware accelerator failed. */
 #define MBEDTLS_ERR_GCM_BAD_INPUT                         -0x0014  /**< Bad input parameters to function. */
 
+#if defined( MBEDTLS_CHECK_PARAMS )
+#define MBEDTLS_GCM_VALIDATE( cond )   do { if( !(cond) ) \
+                                           return( MBEDTLS_ERR_GCM_BAD_INPUT ); \
+                                       } while( 0 )
+#else
+#define MBEDTLS_GCM_VALIDATE( cond )
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -82,8 +90,10 @@ mbedtls_gcm_context;
  *                  mbedtls_gcm_setkey().
  *
  * \param ctx       The GCM context to initialize.
+ *
+ * \return          0 if succeeded.
  */
-void mbedtls_gcm_init( mbedtls_gcm_context *ctx );
+int mbedtls_gcm_init_ret( mbedtls_gcm_context *ctx );
 
 /**
  * \brief           This function associates a GCM context with a
@@ -247,8 +257,10 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
  *                  cipher sub-context.
  *
  * \param ctx       The GCM context to clear.
+ *
+ * \return          0 if succeeded.
  */
-void mbedtls_gcm_free( mbedtls_gcm_context *ctx );
+int mbedtls_gcm_free_ret( mbedtls_gcm_context *ctx );
 
 /**
  * \brief          The GCM checkup routine.
@@ -257,6 +269,37 @@ void mbedtls_gcm_free( mbedtls_gcm_context *ctx );
  * \return         \c 1 on failure.
  */
 int mbedtls_gcm_self_test( int verbose );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+
+/**
+ * \brief           This function clears a GCM context and the underlying
+ *                  cipher sub-context.
+ *
+ * \param ctx       The GCM context to clear.
+ */
+MBEDTLS_DEPRECATED void mbedtls_gcm_free( mbedtls_gcm_context *ctx );
+
+/**
+ * \brief           This function initializes the specified GCM context,
+ *                  to make references valid, and prepares the context
+ *                  for mbedtls_gcm_setkey() or mbedtls_gcm_free().
+ *
+ *                  The function does not bind the GCM context to a particular
+ *                  cipher, nor set the key. For this purpose, use
+ *                  mbedtls_gcm_setkey().
+ *
+ * \param ctx       The GCM context to initialize.
+ */
+MBEDTLS_DEPRECATED void mbedtls_gcm_init( mbedtls_gcm_context *ctx );
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 #ifdef __cplusplus
 }

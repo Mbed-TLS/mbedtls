@@ -1436,7 +1436,7 @@ static int ssl_process_server_hello( mbedtls_ssl_context *ssl )
      * - Switch processing routine in case of HelloVerifyRequest
      */
 
-    SSL_PROC_CHK( ssl_process_server_hello_coordinate( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_process_server_hello_coordinate( ssl ) );
     msg_expect = ret;
 
     /* Parsing step
@@ -1446,13 +1446,13 @@ static int ssl_process_server_hello( mbedtls_ssl_context *ssl )
 
     if( msg_expect == SSL_SERVER_HELLO_COORDINATE_HELLO )
     {
-        SSL_PROC_CHK( ssl_process_server_hello_parse( ssl, ssl->in_msg,
+        MBEDTLS_SSL_PROC_CHK( ssl_process_server_hello_parse( ssl, ssl->in_msg,
                                                       ssl->in_hslen ) );
     }
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     else
     {
-        SSL_PROC_CHK( ssl_process_hello_verify_parse( ssl, ssl->in_msg,
+        MBEDTLS_SSL_PROC_CHK( ssl_process_hello_verify_parse( ssl, ssl->in_msg,
                                                       ssl->in_hslen ) );
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
@@ -2503,13 +2503,13 @@ static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
      */
     if( !ssl->handshake->srv_key_exchange_preparation_done )
     {
-        SSL_PROC_CHK( ssl_server_key_exchange_prepare( ssl ) );
+        MBEDTLS_SSL_PROC_CHK( ssl_server_key_exchange_prepare( ssl ) );
         ssl->handshake->srv_key_exchange_preparation_done = 1;
     }
 
     /* Coordination:
      * Check if we expect a ServerKeyExchange */
-    SSL_PROC_CHK( ssl_server_key_exchange_coordinate( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_server_key_exchange_coordinate( ssl ) );
 
     if( ret == SSL_SRV_KEY_EXCHANGE_EXPECTED )
     {
@@ -2531,7 +2531,7 @@ static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
         }
         else
         {
-            SSL_PROC_CHK( ssl_server_key_exchange_parse( ssl, ssl->in_msg,
+            MBEDTLS_SSL_PROC_CHK( ssl_server_key_exchange_parse( ssl, ssl->in_msg,
                                                          ssl->in_hslen ) );
         }
     }
@@ -2541,7 +2541,7 @@ static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
     }
 
     /* Update state */
-    SSL_PROC_CHK( ssl_server_key_exchange_postprocess( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_server_key_exchange_postprocess( ssl ) );
 
 cleanup:
 
@@ -2938,13 +2938,13 @@ static int ssl_process_certificate_request( mbedtls_ssl_context *ssl )
      * - Fetch record
      * - Make sure it's either a CertificateRequest or a ServerHelloDone
      */
-    SSL_PROC_CHK( ssl_certificate_request_coordinate( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_certificate_request_coordinate( ssl ) );
 
 #if defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
     if( ret == SSL_CERTIFICATE_REQUEST_EXPECT_REQUEST )
     {
         /* Parsing step */
-        SSL_PROC_CHK( ssl_certificate_request_parse( ssl, ssl->in_msg,
+        MBEDTLS_SSL_PROC_CHK( ssl_certificate_request_parse( ssl, ssl->in_msg,
                                                      ssl->in_hslen ) );
     }
     else
@@ -2960,7 +2960,7 @@ static int ssl_process_certificate_request( mbedtls_ssl_context *ssl )
     }
 
     /* Update state */
-    SSL_PROC_CHK( ssl_certificate_request_postprocess( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_certificate_request_postprocess( ssl ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "got %s certificate request",
                         ssl->client_auth ? "a" : "no" ) );
@@ -3237,15 +3237,15 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
 
     if( ssl->handshake->cli_key_exchange_preparation_done == 0 )
     {
-        SSL_PROC_CHK( ssl_client_key_exchange_prepare( ssl ) );
+        MBEDTLS_SSL_PROC_CHK( ssl_client_key_exchange_prepare( ssl ) );
         ssl->handshake->cli_key_exchange_preparation_done = 1;
     }
 
     /* Make sure we can write a new message. */
-    SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
 
     /* Prepare CertificateVerify message in output buffer. */
-    SSL_PROC_CHK( ssl_client_key_exchange_write( ssl, ssl->out_msg,
+    MBEDTLS_SSL_PROC_CHK( ssl_client_key_exchange_write( ssl, ssl->out_msg,
                                                  MBEDTLS_SSL_MAX_CONTENT_LEN,
                                                  &ssl->out_msglen ) );
 
@@ -3253,10 +3253,10 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
     ssl->out_msg[0]  = MBEDTLS_SSL_HS_CLIENT_KEY_EXCHANGE;
 
     /* Update state */
-    SSL_PROC_CHK( ssl_client_key_exchange_postprocess( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_client_key_exchange_postprocess( ssl ) );
 
     /* Dispatch message */
-    SSL_PROC_CHK( mbedtls_ssl_write_record( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_write_record( ssl ) );
 
     /* NOTE: For the new messaging layer, the postprocessing step
      *       might come after the dispatching step if the latter
@@ -3652,21 +3652,21 @@ static int ssl_process_certificate_verify( mbedtls_ssl_context *ssl )
          *         of the outging ClientKeyExchange message, once the
          *         the checksum has been updated.
          */
-        SSL_PROC_CHK( mbedtls_ssl_derive_keys( ssl ) );
+        MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_derive_keys( ssl ) );
         ssl->handshake->crt_vrfy_preparation_done = 1;
     }
 
     /* Coordination step: Check if we need to send a CertificateVerify */
-    SSL_PROC_CHK( ssl_certificate_verify_coordinate( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_certificate_verify_coordinate( ssl ) );
 
 #if defined(MBEDTLS_KEY_EXCHANGE__CERT_REQ_ALLOWED__ENABLED)
     if( ret == SSL_CERTIFICATE_VERIFY_SEND )
     {
         /* Make sure we can write a new message. */
-        SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
+        MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
 
         /* Prepare CertificateVerify message in output buffer. */
-        SSL_PROC_CHK( ssl_certificate_verify_write( ssl, ssl->out_msg,
+        MBEDTLS_SSL_PROC_CHK( ssl_certificate_verify_write( ssl, ssl->out_msg,
                                                     MBEDTLS_SSL_MAX_CONTENT_LEN,
                                                     &ssl->out_msglen ) );
 
@@ -3674,10 +3674,10 @@ static int ssl_process_certificate_verify( mbedtls_ssl_context *ssl )
         ssl->out_msg[0]  = MBEDTLS_SSL_HS_CERTIFICATE_VERIFY;
 
         /* Update state */
-        SSL_PROC_CHK( ssl_certificate_verify_postprocess( ssl ) );
+        MBEDTLS_SSL_PROC_CHK( ssl_certificate_verify_postprocess( ssl ) );
 
         /* Dispatch message */
-        SSL_PROC_CHK( mbedtls_ssl_write_record( ssl ) );
+        MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_write_record( ssl ) );
 
         /* NOTE: With the new messaging layer, the postprocessing
          *       step might come after the dispatching step if the
@@ -3699,7 +3699,7 @@ static int ssl_process_certificate_verify( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
 
         /* Update state */
-        SSL_PROC_CHK( ssl_certificate_verify_postprocess( ssl ) );
+        MBEDTLS_SSL_PROC_CHK( ssl_certificate_verify_postprocess( ssl ) );
     }
     else
     {
@@ -3924,10 +3924,10 @@ static int ssl_process_new_session_ticket( mbedtls_ssl_context *ssl )
         goto cleanup;
     }
 
-    SSL_PROC_CHK( ssl_new_session_ticket_parse( ssl, ssl->in_msg,
+    MBEDTLS_SSL_PROC_CHK( ssl_new_session_ticket_parse( ssl, ssl->in_msg,
                                                 ssl->in_hslen ) );
 
-    SSL_PROC_CHK( ssl_new_session_ticket_postprocess( ssl ) );
+    MBEDTLS_SSL_PROC_CHK( ssl_new_session_ticket_postprocess( ssl ) );
 
 cleanup:
 

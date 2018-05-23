@@ -660,7 +660,7 @@ int mbedtls_ssl_dtls_replay_check( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 #endif
 
-#define SSL_PROC_CHK(f) do { if( ( ret = f ) < 0 ) goto cleanup; } while( 0 )
+#define MBEDTLS_SSL_PROC_CHK(f) do { if( ( ret = f ) < 0 ) goto cleanup; } while( 0 )
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
 int mbedtls_ssl_check_renego_not_honored( mbedtls_ssl_context *ssl );

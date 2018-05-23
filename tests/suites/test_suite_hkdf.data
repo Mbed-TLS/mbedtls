@@ -1,3 +1,18 @@
+HKDF extract fails with hash_len of 0
+test_hkdf_extract_ret:0:MBEDTLS_ERR_HKDF_BAD_INPUT_DATA
+
+HKDF expand fails with NULL okm
+test_hkdf_expand_ret:32:32:0:MBEDTLS_ERR_HKDF_BAD_INPUT_DATA
+
+HKDF expand fails with hash_len of 0
+test_hkdf_expand_ret:0:32:32:MBEDTLS_ERR_HKDF_BAD_INPUT_DATA
+
+HKDF expand fails with prk_len < hash_len
+test_hkdf_expand_ret:32:16:32:MBEDTLS_ERR_HKDF_BAD_INPUT_DATA
+
+HKDF expand fails with okm_len / hash_len > 255
+test_hkdf_expand_ret:32:32:8192:MBEDTLS_ERR_HKDF_BAD_INPUT_DATA
+
 HKDF RFC5869 Test Vector #1
 depends_on:MBEDTLS_SHA256_C
 test_hkdf:6:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"000102030405060708090a0b0c":"f0f1f2f3f4f5f6f7f8f9":"3cb25f25faacd57a90434f64d0362f2a2d2d0a90cf1a5a4c5db02d56ecc4c5bf34007208d5b887185865"

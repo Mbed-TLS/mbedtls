@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include "mbedtls/hkdf.h"
+#include "mbedtls/md_internal.h"
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -106,5 +107,64 @@ exit:
     mbedtls_free(prk);
     mbedtls_free(okm);
     mbedtls_free(output_okm);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void test_hkdf_extract_ret( int hash_len, int ret )
+{
+    int output_ret;
+    unsigned char *salt = NULL;
+    unsigned char *ikm = NULL;
+    unsigned char *prk = NULL;
+    size_t salt_len, ikm_len;
+    struct mbedtls_md_info_t fake_md_info;
+
+    memset( &fake_md_info, 0, sizeof( fake_md_info ) );
+    fake_md_info.type = MBEDTLS_MD_NONE;
+    fake_md_info.size = hash_len;
+
+    prk = mbedtls_calloc( MBEDTLS_MD_MAX_SIZE, 1 );
+    salt_len = 0;
+    ikm_len = 0;
+
+    output_ret = mbedtls_hkdf_extract( &fake_md_info, salt, salt_len,
+                                       ikm, ikm_len, prk );
+    TEST_ASSERT( output_ret == ret );
+
+exit:
+    mbedtls_free(prk);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void test_hkdf_expand_ret( int hash_len, int prk_len, int okm_len, int ret )
+{
+    int output_ret;
+    unsigned char *info = NULL;
+    unsigned char *prk = NULL;
+    unsigned char *okm = NULL;
+    size_t info_len;
+    struct mbedtls_md_info_t fake_md_info;
+
+    memset( &fake_md_info, 0, sizeof( fake_md_info ) );
+    fake_md_info.type = MBEDTLS_MD_NONE;
+    fake_md_info.size = hash_len;
+
+    info_len = 0;
+
+    if (prk_len > 0)
+        prk = mbedtls_calloc( prk_len, 1 );
+
+    if (okm_len > 0)
+        okm = mbedtls_calloc( okm_len, 1 );
+
+    output_ret = mbedtls_hkdf_expand( &fake_md_info, prk, prk_len,
+                                      info, info_len, okm, okm_len );
+    TEST_ASSERT( output_ret == ret );
+
+exit:
+    mbedtls_free(prk);
+    mbedtls_free(okm);
 }
 /* END_CASE */

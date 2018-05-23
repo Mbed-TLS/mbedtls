@@ -300,12 +300,11 @@ struct mbedtls_ssl_handshake_params
     /* ServerKeyExchange */
     int srv_key_exchange_preparation_done;
 
-    /* Finished message
-     * Buffer to hold the digest of the entire handshake
-     * up to the Finished message.
-     */
-    unsigned char handshake_digest[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN];
-    size_t handshake_digest_len;
+    /* Incoming Finished message */
+    /* Buffer holding digest of the handshake up to but
+     * excluding the peer's incoming finished message. */
+    unsigned char finished_in_digest[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN];
+    size_t finished_in_digest_len;
 
     /* Client, incoming server hello */
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
@@ -545,8 +544,8 @@ int mbedtls_ssl_process_write_certificate( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_process_out_ccs( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_process_in_ccs( mbedtls_ssl_context *ssl );
 
-int mbedtls_ssl_process_finished( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_process_finished_in( mbedtls_ssl_context *ssl );
 
 void mbedtls_ssl_optimize_checksum( mbedtls_ssl_context *ssl,
                             const mbedtls_ssl_ciphersuite_t *ciphersuite_info );

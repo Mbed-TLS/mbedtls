@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+
+   * Fix braces in mbedtls_memory_buffer_alloc_status(). Found by sbranden, #552.
+
 = mbed TLS 2.1.12 branch released 2018-04-30
 
 Security
@@ -70,7 +76,6 @@ Changes
    * Improve robustness of mbedtls_ssl_derive_keys against the use of
      HMAC functions with non-HMAC ciphersuites. Independently contributed
      by Jiayuan Chen in #1377. Fixes #1437.
-   * Fix braces in mbedtls_memory_buffer_alloc_status(). Found by sbranden, #552.
 
 = mbed TLS 2.1.11 branch released 2018-03-16
 

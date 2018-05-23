@@ -8,6 +8,8 @@ Features
    * Implement the HMAC-based extract-and-expand key derivation function
      (HKDF) per RFC 5869. Contributed by Thomas Fossati.
    * Add support for the CCM* block cipher mode as defined in IEEE Std. 802.15.4.
+   * Add support for the XTS block cipher mode with AES (AES-XTS).
+     Contributed by Aorimn in pull request #414.
 
 Bugfix
    * Fix the cert_write example to handle certificates signed with elliptic

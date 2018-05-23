@@ -2255,40 +2255,59 @@ static int ssl_parse_server_psk_hint( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) ||                           \
     defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
-/*
- * Generate a pre-master secret and encrypt it with the server's RSA key
- */
-static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
-                                    size_t offset, size_t *olen,
-                                    size_t pms_offset )
+
+static int ssl_rsa_generate_partial_pms( mbedtls_ssl_context *ssl,
+                                         unsigned char* out,
+                                         unsigned add_length_tag )
 {
     int ret;
-    size_t len_bytes = ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ? 0 : 2;
-    unsigned char *p = ssl->handshake->premaster + pms_offset;
-
-    if( offset + len_bytes > MBEDTLS_SSL_MAX_CONTENT_LEN )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small for encrypted pms" ) );
-        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
-    }
 
     /*
-     * Generate (part of) the pre-master as
+     * Generate (part of) the pre-master secret as
      *  struct {
+     *      [ uint16 length(48) ]
      *      ProtocolVersion client_version;
      *      opaque random[46];
      *  } PreMasterSecret;
      */
-    mbedtls_ssl_write_version( ssl->conf->max_major_ver, ssl->conf->max_minor_ver,
-                       ssl->conf->transport, p );
 
-    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, p + 2, 46 ) ) != 0 )
+    if( add_length_tag )
+    {
+        out[0] = 0;
+        out[1] = 48;
+        out += 2;
+    }
+
+    mbedtls_ssl_write_version( ssl->conf->max_major_ver,
+                               ssl->conf->max_minor_ver,
+                               ssl->conf->transport, out );
+
+    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, out + 2, 46 ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "f_rng", ret );
         return( ret );
     }
 
-    ssl->handshake->pmslen = 48;
+    return( 0 );
+}
+
+/*
+ * Encrypt the Premaster Secret it with the server's RSA key and
+ * write it to the provided buffer.
+ */
+static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
+                                        unsigned char const *ppms,
+                                        unsigned char *out, size_t buflen,
+                                        size_t *olen )
+{
+    int ret;
+    size_t len_bytes = ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ? 0 : 2;
+
+    if( buflen < len_bytes )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small for encrypted pms" ) );
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+    }
 
     if( ssl->session_negotiate->peer_cert == NULL )
     {
@@ -2297,20 +2316,18 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
     }
 
     /*
-     * Now write it out, encrypted
+     * Encrypt the part of the premaster secret and write it out.
      */
     if( ! mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk,
-                MBEDTLS_PK_RSA ) )
+                             MBEDTLS_PK_RSA ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "certificate key type mismatch" ) );
         return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
     }
 
     if( ( ret = mbedtls_pk_encrypt( &ssl->session_negotiate->peer_cert->pk,
-                            p, ssl->handshake->pmslen,
-                            ssl->out_msg + offset + len_bytes, olen,
-                            MBEDTLS_SSL_MAX_CONTENT_LEN - offset - len_bytes,
-                            ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+                           ppms, 48, out + len_bytes, olen, buflen - len_bytes,
+                           ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_rsa_pkcs1_encrypt", ret );
         return( ret );
@@ -2320,8 +2337,8 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( len_bytes == 2 )
     {
-        ssl->out_msg[offset+0] = (unsigned char)( *olen >> 8 );
-        ssl->out_msg[offset+1] = (unsigned char)( *olen      );
+        out[0] = (unsigned char)( *olen >> 8 );
+        out[1] = (unsigned char)( *olen      );
         *olen += 2;
     }
 #endif
@@ -3261,9 +3278,62 @@ cleanup:
     return( ret );
 }
 
+
+
 static int ssl_client_key_exchange_prepare( mbedtls_ssl_context *ssl )
 {
-    /* TBD */
+    int ret;
+
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+        ssl->transform_negotiate->ciphersuite_info;
+
+    ((void) ret);
+    ((void) ciphersuite_info);
+
+    /* TODO: The current API for DH and ECDH does not allow
+     * to separate public key generation from public key export.
+     *
+     * Ideally, we would like to pick the private (EC)DH keys
+     * in this preparation step, exporting the corresponding
+     * public key in the writing step only.
+     *
+     * The necessary extension of the (EC)DH API is being
+     * considered, but until then we perform the public
+     * generation + export in the writing step.
+     *
+     */
+
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
+    {
+        /* For RSA-PSK, the premaster secret is composed of
+         * - Length tag with value 48, encoded as a uint16
+         * - 2 bytes indicating the TLS version
+         * - 46 randomly chosen bytes
+         * - the chosen PSK.
+         * The following call takes care of all but the PSK. */
+        ret = ssl_rsa_generate_partial_pms( ssl, ssl->handshake->premaster,
+                                            1 /* Add length tag */ );
+        if( ret != 0 )
+            return( ret );
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED */
+
+#if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA )
+    {
+        /* For RSA-PSK, the premaster secret is composed of
+         * - 2 bytes indicating the TLS version
+         * - 46 randomly chosen bytes
+         * which the following call generates. */
+        ret = ssl_rsa_generate_partial_pms( ssl, ssl->handshake->premaster,
+                                            0 /* Omit length tag */ );
+        if( ret != 0 )
+            return( ret );
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE_RSA_ENABLED */
+
+    return( 0 );
 }
 
 static int ssl_client_key_exchange_write( mbedtls_ssl_context *ssl,
@@ -3494,6 +3564,8 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
         if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
         {
+            /* Code for PMS generation has been moved,
+             * code for encryption and writing it hasn't. */
             if( ( ret = ssl_write_encrypted_pms( ssl, i, &n, 2 ) ) != 0 )
                 return( ret );
         }
@@ -3566,6 +3638,8 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA )
     {
         i = 4;
+        /* Code for PMS generation has been moved,
+         * code for encryption and writing it hasn't. */
         if( ( ret = ssl_write_encrypted_pms( ssl, i, &n, 0 ) ) != 0 )
             return( ret );
     }

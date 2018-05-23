@@ -13,6 +13,10 @@ API Changes
      Therefore, mbedtls_platform_zeroize() is moved to the platform module to
      facilitate testing and maintenance.
 
+Bugfix
+   * Fix "no symbols" warning issued by ranlib when building on Mac OS X. Fix
+     contributed by tabascoeye in pull request #1600.
+
 = mbed TLS 2.9.0 branch released 2018-04-30
 
 Security

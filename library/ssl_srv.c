@@ -896,6 +896,110 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
     return( 0 );
 }
 
+
+/*
+ *
+ * STATE HANDLING: ClientHello
+ *
+ */
+
+/*
+ * Overview
+ */
+
+/* Main entry point from the state machine; orchestrates the otherfunctions. */
+static int ssl_process_client_hello( mbedtls_ssl_context *ssl );
+
+/* Reads a new message and checks if it's a ClientHello.
+ * Returns a negative code on failure or
+ * - SSL_CLIENT_HELLO_V3
+ * - SSL_CLIENT_HELLO_V2
+ * to indicate the version of the ClientHello message found.
+ */
+#define SSL_CLIENT_HELLO_V3 0
+#define SSL_CLIENT_HELLO_V2 1
+static int ssl_client_hello_fetch( mbedtls_ssl_context *ssl,
+                                   unsigned char **buf,
+                                   size_t *buflen );
+#if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
+/* Parse and process an SSLv2 Client Hello message */
+static int ssl_client_hello_v2_parse( mbedtls_ssl_context *ssl,
+                                      unsigned char *buf,
+                                      size_t buflen );
+#endif /* MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO */
+static int ssl_client_hello_v3_parse( mbedtls_ssl_context *ssl,
+                                      unsigned char *buf,
+                                      size_t buflen );
+/* Update the handshake statae machine */
+static int ssl_client_hello_postprocess( mbedtls_ssl_context *ssl );
+
+/*
+ * Implementation
+ */
+
+static int ssl_process_client_hello( mbedtls_ssl_context *ssl )
+{
+    int ret;
+    unsigned char *buf = NULL;
+    size_t buflen = 0;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse client hello" ) );
+
+    SSL_PROC_CHK( ssl_client_hello_fetch( ssl, &buf, &buflen ) );
+    if( ret == SSL_CLIENT_HELLO_V3 )
+        SSL_PROC_CHK( ssl_client_hello_v3_parse( ssl, buf, buflen ) );
+#if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
+    else
+        SSL_PROC_CHK( ssl_client_hello_v2_parse( ssl, buf, buflen ) );
+#endif /* MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO */
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        mbedtls_ssl_recv_flight_completed( ssl );
+#endif
+
+    SSL_PROC_CHK( ssl_client_hello_postprocess( ssl ) );
+
+cleanup:
+
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process client hello" ) );
+    return( ret );
+}
+
+static int ssl_client_hello_fetch( mbedtls_ssl_context *ssl,
+                                   unsigned char **buf,
+                                   size_t *buflen )
+{
+    /* TBD */
+}
+
+#if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
+static int ssl_client_hello_v2_parse( mbedtls_ssl_context *ssl,
+                                      unsigned char *buf,
+                                      size_t buflen )
+{
+    /* TBD */
+}
+#endif /* MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO */
+
+static int ssl_client_hello_v3_parse( mbedtls_ssl_context *ssl,
+                                      unsigned char *buf,
+                                      size_t buflen )
+{
+    /* TBD */
+}
+
+static int ssl_client_hello_postprocess( mbedtls_ssl_context *ssl )
+{
+    /* TBD */
+}
+
+/* OLD CODE */
+
 #if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
 static int ssl_parse_client_hello_v2( mbedtls_ssl_context *ssl )
 {
@@ -2009,6 +2113,8 @@ have_ciphersuite:
 
     return( 0 );
 }
+
+/* END OF OLD CODE */
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
 static void ssl_write_truncated_hmac_ext( mbedtls_ssl_context const *ssl,
@@ -4625,7 +4731,7 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl )
          *  <==   ClientHello
          */
         case MBEDTLS_SSL_CLIENT_HELLO:
-            ret = ssl_parse_client_hello( ssl );
+            ret = ssl_process_client_hello( ssl );
             break;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

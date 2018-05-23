@@ -37,3 +37,74 @@ void test_hkdf( int md_alg, char *hex_ikm_string, char *hex_salt_string,
     TEST_ASSERT( !strcmp( (char *)okm_string, hex_okm_string ) );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void test_hkdf_extract( int md_alg, char *hex_ikm_string,
+                        char *hex_salt_string, char *hex_prk_string )
+{
+    int ret;
+    unsigned char *ikm = NULL;
+    unsigned char *salt = NULL;
+    unsigned char *prk = NULL;
+    unsigned char *output_prk = NULL;
+    size_t ikm_len, salt_len, prk_len, output_prk_len;
+
+    const mbedtls_md_info_t *md = mbedtls_md_info_from_type( md_alg );
+    TEST_ASSERT( md != NULL );
+
+    output_prk_len = mbedtls_md_get_size( md );
+    output_prk = mbedtls_calloc( 1, output_prk_len );
+
+    ikm = unhexify_alloc( hex_ikm_string, &ikm_len );
+    salt = unhexify_alloc( hex_salt_string, &salt_len );
+    prk = unhexify_alloc( hex_prk_string, &prk_len );
+    TEST_ASSERT( prk_len == output_prk_len );
+
+    ret = mbedtls_hkdf_extract( md, salt, salt_len, ikm, ikm_len, output_prk );
+    TEST_ASSERT( ret == 0 );
+
+    TEST_ASSERT( !memcmp( output_prk, prk, prk_len ) );
+
+exit:
+    mbedtls_free(ikm);
+    mbedtls_free(salt);
+    mbedtls_free(prk);
+    mbedtls_free(output_prk);
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void test_hkdf_expand( int md_alg, char *hex_info_string,
+                       char *hex_prk_string, char *hex_okm_string )
+{
+    enum { OKM_LEN  = 1024 };
+    int ret;
+    unsigned char *info = NULL;
+    unsigned char *prk = NULL;
+    unsigned char *okm = NULL;
+    unsigned char *output_okm = NULL;
+    size_t info_len, prk_len, okm_len;
+
+    const mbedtls_md_info_t *md = mbedtls_md_info_from_type( md_alg );
+    TEST_ASSERT( md != NULL );
+
+    output_okm = mbedtls_calloc( OKM_LEN, 1 );
+
+    prk = unhexify_alloc( hex_prk_string, &prk_len );
+    info = unhexify_alloc( hex_info_string, &info_len );
+    okm = unhexify_alloc( hex_okm_string, &okm_len );
+    TEST_ASSERT( prk_len == mbedtls_md_get_size( md ) );
+    TEST_ASSERT( okm_len < OKM_LEN );
+
+    ret = mbedtls_hkdf_expand( md, prk, prk_len, info, info_len,
+                               output_okm, OKM_LEN );
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( !memcmp( output_okm, okm, okm_len ) );
+
+exit:
+    mbedtls_free(info);
+    mbedtls_free(prk);
+    mbedtls_free(okm);
+    mbedtls_free(output_okm);
+}
+/* END_CASE */

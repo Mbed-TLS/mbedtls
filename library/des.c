@@ -302,31 +302,61 @@ static const uint32_t RHs[16] =
 
 #define SWAP(a,b) { uint32_t t = a; a = b; b = t; t = 0; }
 
+int mbedtls_des_init_ret( mbedtls_des_context *ctx )
+{
+    MBEDTLS_DES_VALIDATE( ctx != NULL );
+    memset( ctx, 0, sizeof( mbedtls_des_context ) );
+    return( 0 );
+}
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_des_init( mbedtls_des_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_des_context ) );
+    mbedtls_des_init_ret( ctx );
+}
+#endif
+
+int mbedtls_des_free_ret( mbedtls_des_context *ctx )
+{
+    MBEDTLS_DES_VALIDATE( ctx != NULL );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_des_context ) );
+    return( 0 );
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_des_free( mbedtls_des_context *ctx )
 {
-    if( ctx == NULL )
-        return;
+    mbedtls_des_free_ret( ctx );
+}
+#endif
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_des_context ) );
+int mbedtls_des3_init_ret( mbedtls_des3_context *ctx )
+{
+    MBEDTLS_DES_VALIDATE( ctx != NULL );
+    memset( ctx, 0, sizeof( mbedtls_des3_context ) );
+    return( 0 );
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_des3_init( mbedtls_des3_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_des3_context ) );
+    mbedtls_des3_init_ret( ctx );
+}
+#endif
+
+int mbedtls_des3_free_ret( mbedtls_des3_context *ctx )
+{
+    MBEDTLS_DES_VALIDATE( ctx != NULL );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_des3_context ) );
+    return( 0 );
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_des3_free( mbedtls_des3_context *ctx )
 {
-    if( ctx == NULL )
-        return;
-
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_des3_context ) );
+    mbedtls_des3_free_ret( ctx );
 }
+#endif
 
 static const unsigned char odd_parity_table[128] = { 1,  2,  4,  7,  8,
         11, 13, 14, 16, 19, 21, 22, 25, 26, 28, 31, 32, 35, 37, 38, 41, 42, 44,
@@ -492,8 +522,8 @@ void mbedtls_des_setkey( uint32_t SK[32], const unsigned char key[MBEDTLS_DES_KE
  */
 int mbedtls_des_setkey_enc( mbedtls_des_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE] )
 {
+    MBEDTLS_DES_VALIDATE( ctx != NULL );
     mbedtls_des_setkey( ctx->sk, key );
-
     return( 0 );
 }
 
@@ -503,6 +533,8 @@ int mbedtls_des_setkey_enc( mbedtls_des_context *ctx, const unsigned char key[MB
 int mbedtls_des_setkey_dec( mbedtls_des_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE] )
 {
     int i;
+
+    MBEDTLS_DES_VALIDATE( ctx != NULL );
 
     mbedtls_des_setkey( ctx->sk, key );
 
@@ -548,6 +580,8 @@ int mbedtls_des3_set2key_enc( mbedtls_des3_context *ctx,
 {
     uint32_t sk[96];
 
+    MBEDTLS_DES_VALIDATE( ctx != NULL );
+
     des3_set2key( ctx->sk, sk, key );
     mbedtls_platform_zeroize( sk,  sizeof( sk ) );
 
@@ -561,6 +595,8 @@ int mbedtls_des3_set2key_dec( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 2] )
 {
     uint32_t sk[96];
+
+    MBEDTLS_DES_VALIDATE( ctx != NULL );
 
     des3_set2key( sk, ctx->sk, key );
     mbedtls_platform_zeroize( sk,  sizeof( sk ) );
@@ -599,6 +635,8 @@ int mbedtls_des3_set3key_enc( mbedtls_des3_context *ctx,
 {
     uint32_t sk[96];
 
+    MBEDTLS_DES_VALIDATE( ctx != NULL );
+
     des3_set3key( ctx->sk, sk, key );
     mbedtls_platform_zeroize( sk,  sizeof( sk ) );
 
@@ -612,6 +650,8 @@ int mbedtls_des3_set3key_dec( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 3] )
 {
     uint32_t sk[96];
+
+    MBEDTLS_DES_VALIDATE( ctx != NULL );
 
     des3_set3key( sk, ctx->sk, key );
     mbedtls_platform_zeroize( sk,  sizeof( sk ) );
@@ -629,6 +669,8 @@ int mbedtls_des_crypt_ecb( mbedtls_des_context *ctx,
 {
     int i;
     uint32_t X, Y, T, *SK;
+
+    MBEDTLS_DES_VALIDATE( ctx != NULL );
 
     SK = ctx->sk;
 
@@ -665,6 +707,8 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
 {
     int i;
     unsigned char temp[8];
+
+    MBEDTLS_DES_VALIDATE( ctx != NULL && input != NULL && output != NULL );
 
     if( length % 8 )
         return( MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH );
@@ -717,6 +761,8 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
     int i;
     uint32_t X, Y, T, *SK;
 
+    MBEDTLS_DES_VALIDATE( ctx != NULL );
+
     SK = ctx->sk;
 
     GET_UINT32_BE( X, input, 0 );
@@ -764,6 +810,8 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
 {
     int i;
     unsigned char temp[8];
+
+    MBEDTLS_DES_VALIDATE( ctx != NULL && input != NULL && output != NULL );
 
     if( length % 8 )
         return( MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH );

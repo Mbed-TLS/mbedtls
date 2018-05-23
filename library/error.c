@@ -670,6 +670,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 #endif /* MBEDTLS_CTR_DRBG_C */
 
 #if defined(MBEDTLS_DES_C)
+    if( use_ret == -(MBEDTLS_ERR_DES_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "DES - Invalid input arguments" );
     if( use_ret == -(MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH) )
         mbedtls_snprintf( buf, buflen, "DES - The data input has an invalid length" );
     if( use_ret == -(MBEDTLS_ERR_DES_HW_ACCEL_FAILED) )

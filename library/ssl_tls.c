@@ -5697,11 +5697,97 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= handshake wrapup" ) );
 }
 
-int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
-{
-    int ret, hash_len;
+/*
+ *
+ * STATE HANDLING: Outgoing Finished
+ *
+ */
 
+/*
+ * Overview
+ */
+
+/* Main entry point: orchestrates the other functions */
+int mbedtls_ssl_process_finished_out( mbedtls_ssl_context *ssl );
+
+static int ssl_finished_out_prepare( mbedtls_ssl_context *ssl );
+static int ssl_finished_out_write( mbedtls_ssl_context *ssl,
+                                   unsigned char* buf,
+                                   size_t buflen,
+                                   size_t *olen );
+static int ssl_finished_out_postprocess( mbedtls_ssl_context *ssl );
+
+
+/*
+ * Implementation
+ */
+
+
+int mbedtls_ssl_process_finished_out( mbedtls_ssl_context *ssl )
+{
+    int ret;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write finished" ) );
+
+    if( !ssl->handshake->finished_out_preparation_done )
+    {
+        SSL_PROC_CHK( ssl_finished_out_prepare( ssl ) );
+        ssl->handshake->finished_out_preparation_done = 1;
+    }
+
+    /* Make sure we can write a new message. */
+    SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
+
+    SSL_PROC_CHK( ssl_finished_out_write( ssl, ssl->out_msg,
+                                          MBEDTLS_SSL_MAX_CONTENT_LEN,
+                                          &ssl->out_msglen ) );
+    ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
+    ssl->out_msg[0]  = MBEDTLS_SSL_HS_FINISHED;
+
+    /* NOTE: With the new messaging layer, the postprocessing
+     *       step might come after the dispatching step if the
+     *       latter doesn't send the message immediately.
+     *       At the moment, we must do the postprocessing
+     *       prior to the dispatching because if the latter
+     *       returns WANT_WRITE, we want the handshake state
+     *       to be updated in order to not enter
+     *       this function again on retry. */
+    SSL_PROC_CHK( ssl_finished_out_postprocess( ssl ) );
+
+    SSL_PROC_CHK( mbedtls_ssl_write_record( ssl ) );
+
+cleanup:
+
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write certificate" ) );
+    return( ret );
+}
+
+static int ssl_finished_out_prepare( mbedtls_ssl_context *ssl )
+{
+    /* Compute transcript of handshake up to now. */
+
+    /*
+     * RFC 5246 7.4.9 (Page 63) says 12 is the default length and ciphersuites
+     * may define some other value. Currently (early 2016), no defined
+     * ciphersuite does this (and this is unlikely to change as activity has
+     * moved to TLS 1.3 now) so we can keep the hardcoded 12 here.
+     */
+    ssl->handshake->finished_out_digest_len =
+        ( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ) ? 36 : 12;
+    ssl->handshake->calc_finished( ssl, ssl->handshake->finished_out_digest,
+                                   ssl->conf->endpoint );
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    ssl->verify_data_len = ssl->handshake->finished_out_digest_len;
+    memcpy( ssl->own_verify_data, ssl->handshake->finished_out_digest,
+            ssl->handshake->finished_out_digest_len );
+#endif
+
+    /* Perform messaging-layer specific adaptions. */
 
     /*
      * Set the out_msg pointer to the correct location based on IV length
@@ -5713,43 +5799,6 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
     }
     else
         ssl->out_msg = ssl->out_iv;
-
-    ssl->handshake->calc_finished( ssl, ssl->out_msg + 4, ssl->conf->endpoint );
-
-    /*
-     * RFC 5246 7.4.9 (Page 63) says 12 is the default length and ciphersuites
-     * may define some other value. Currently (early 2016), no defined
-     * ciphersuite does this (and this is unlikely to change as activity has
-     * moved to TLS 1.3 now) so we can keep the hardcoded 12 here.
-     */
-    hash_len = ( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ) ? 36 : 12;
-
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    ssl->verify_data_len = hash_len;
-    memcpy( ssl->own_verify_data, ssl->out_msg + 4, hash_len );
-#endif
-
-    ssl->out_msglen  = 4 + hash_len;
-    ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
-    ssl->out_msg[0]  = MBEDTLS_SSL_HS_FINISHED;
-
-    /*
-     * In case of session resuming, invert the client and server
-     * ChangeCipherSpec messages order.
-     */
-    if( ssl->handshake->resume != 0 )
-    {
-#if defined(MBEDTLS_SSL_CLI_C)
-        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
-            ssl->state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
-#endif
-#if defined(MBEDTLS_SSL_SRV_C)
-        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
-            ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
-#endif
-    }
-    else
-        ssl->state++;
 
     /*
      * Switch to our negotiated transform and session parameters for outbound
@@ -5799,19 +5848,53 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
     }
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-        mbedtls_ssl_send_flight_completed( ssl );
-#endif
+    return( 0 );
+}
 
-    if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
+static int ssl_finished_out_postprocess( mbedtls_ssl_context *ssl )
+{
+    /*
+     * In case of session resuming, invert the client and server
+     * ChangeCipherSpec messages order.
+     */
+    if( ssl->handshake->resume != 0 )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
-        return( ret );
+#if defined(MBEDTLS_SSL_CLI_C)
+        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+            ssl->state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
+#endif
+#if defined(MBEDTLS_SSL_SRV_C)
+        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+            ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
+#endif
+    }
+    else
+    {
+#if defined(MBEDTLS_SSL_CLI_C)
+        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+            ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
+#endif
+#if defined(MBEDTLS_SSL_SRV_C)
+        if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
+            ssl->state = MBEDTLS_SSL_FLUSH_BUFFERS;
+#endif
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write finished" ) );
+    return( 0 );
+}
 
+static int ssl_finished_out_write( mbedtls_ssl_context *ssl,
+                                   unsigned char* buf,
+                                   size_t buflen,
+                                   size_t *olen )
+{
+    if( buflen < 4 + ssl->handshake->finished_out_digest_len )
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+
+    memcpy( buf + 4, ssl->handshake->finished_out_digest,
+            ssl->handshake->finished_out_digest_len );
+
+    *olen = 4 + ssl->handshake->finished_out_digest_len;
     return( 0 );
 }
 

@@ -4702,7 +4702,7 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl )
             break;
 
         case MBEDTLS_SSL_SERVER_FINISHED:
-            ret = mbedtls_ssl_write_finished( ssl );
+            ret = mbedtls_ssl_process_finished_out( ssl );
             break;
 
         case MBEDTLS_SSL_FLUSH_BUFFERS:

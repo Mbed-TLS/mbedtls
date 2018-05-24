@@ -54,8 +54,7 @@ extern "C" {
 
 typedef struct
 {
-    uint32_t initial_state[16];  /*! The initial state (before round operations). */
-    uint32_t working_state[16];  /*! The working state (after round operations). */
+    uint32_t state[16];          /*! The state (before round operations). */
     uint8_t  keystream8[64];     /*! Leftover keystream bytes. */
     size_t keystream_bytes_used; /*! Number of keystream bytes already used. */
 }

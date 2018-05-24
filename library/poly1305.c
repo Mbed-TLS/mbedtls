@@ -57,12 +57,12 @@
  * \brief                   Process blocks with Poly1305.
  *
  * \param ctx               The Poly1305 context.
- * \param nblocks           Number of blocks to process. Note that this function
- *                          only processes full blocks.
+ * \param nblocks           Number of blocks to process. Note that this
+ *                          function only processes full blocks.
  * \param input             Buffer containing the input block(s).
- * \param needs_padding     Set to 0 if the padding bit has already been applied
- *                          to the input data before calling this function.
- *                          Otherwise, set this parameter to 1.
+ * \param needs_padding     Set to 0 if the padding bit has already been
+ *                          applied to the input data before calling this
+ *                          function.  Otherwise, set this parameter to 1.
  */
 static void poly1305_process( mbedtls_poly1305_context *ctx,
                               size_t nblocks,
@@ -92,14 +92,19 @@ static void poly1305_process( mbedtls_poly1305_context *ctx,
     acc4 = ctx->acc[4];
 
     /* Process full blocks */
-    for ( i = 0U; i < nblocks; i++ )
+    for( i = 0U; i < nblocks; i++ )
     {
-        /* Compute: acc += block */
-        /* Note that the input block is treated as a 128-bit little-endian integer */
-        d0   = (uint64_t) acc0 + BYTES_TO_U32_LE( input, offset + 0  );
-        d1   = (uint64_t) acc1 + BYTES_TO_U32_LE( input, offset + 4  ) + ( d0 >> 32U );
-        d2   = (uint64_t) acc2 + BYTES_TO_U32_LE( input, offset + 8  ) + ( d1 >> 32U );
-        d3   = (uint64_t) acc3 + BYTES_TO_U32_LE( input, offset + 12 ) + ( d2 >> 32U );
+        /* The input block is treated as a 128-bit little-endian integer */
+        d0   = BYTES_TO_U32_LE( input, offset + 0  );
+        d1   = BYTES_TO_U32_LE( input, offset + 4  );
+        d2   = BYTES_TO_U32_LE( input, offset + 8  );
+        d3   = BYTES_TO_U32_LE( input, offset + 12 );
+
+        /* Compute: acc += (padded) block as a 130-bit integer */
+        d0  += (uint64_t) acc0;
+        d1  += (uint64_t) acc1 + ( d0 >> 32U );
+        d2  += (uint64_t) acc2 + ( d1 >> 32U );
+        d3  += (uint64_t) acc3 + ( d2 >> 32U );
         acc0 = (uint32_t) d0;
         acc1 = (uint32_t) d1;
         acc2 = (uint32_t) d2;
@@ -182,7 +187,7 @@ static void poly1305_compute_mac( const mbedtls_poly1305_context *ctx,
     acc3 = ctx->acc[3];
     acc4 = ctx->acc[4];
 
-    /* Before adding 's' we need to ensure that the accumulator is mod 2^130 - 5.
+    /* Before adding 's' we ensure that the accumulator is mod 2^130 - 5.
      * We do this by calculating acc - (2^130 - 5), then checking if
      * the 131st bit is set. If it is, then reduce: acc -= (2^130 - 5)
      */
@@ -218,27 +223,27 @@ static void poly1305_compute_mac( const mbedtls_poly1305_context *ctx,
     acc3 += ctx->s[3] + (uint32_t) ( d >> 32U );
 
     /* Compute MAC (128 least significant bits of the accumulator) */
-    mac[0]  = (unsigned char) acc0;
-    mac[1]  = (unsigned char) ( acc0 >> 8  );
-    mac[2]  = (unsigned char) ( acc0 >> 16 );
-    mac[3]  = (unsigned char) ( acc0 >> 24 );
-    mac[4]  = (unsigned char) acc1;
-    mac[5]  = (unsigned char) ( acc1 >> 8  );
-    mac[6]  = (unsigned char) ( acc1 >> 16 );
-    mac[7]  = (unsigned char) ( acc1 >> 24 );
-    mac[8]  = (unsigned char) acc2;
-    mac[9]  = (unsigned char) ( acc2 >> 8  );
-    mac[10] = (unsigned char) ( acc2 >> 16 );
-    mac[11] = (unsigned char) ( acc2 >> 24 );
-    mac[12] = (unsigned char) acc3;
-    mac[13] = (unsigned char) ( acc3 >> 8  );
-    mac[14] = (unsigned char) ( acc3 >> 16 );
-    mac[15] = (unsigned char) ( acc3 >> 24 );
+    mac[ 0] = (unsigned char)( acc0       );
+    mac[ 1] = (unsigned char)( acc0 >>  8 );
+    mac[ 2] = (unsigned char)( acc0 >> 16 );
+    mac[ 3] = (unsigned char)( acc0 >> 24 );
+    mac[ 4] = (unsigned char)( acc1       );
+    mac[ 5] = (unsigned char)( acc1 >>  8 );
+    mac[ 6] = (unsigned char)( acc1 >> 16 );
+    mac[ 7] = (unsigned char)( acc1 >> 24 );
+    mac[ 8] = (unsigned char)( acc2       );
+    mac[ 9] = (unsigned char)( acc2 >>  8 );
+    mac[10] = (unsigned char)( acc2 >> 16 );
+    mac[11] = (unsigned char)( acc2 >> 24 );
+    mac[12] = (unsigned char)( acc3       );
+    mac[13] = (unsigned char)( acc3 >>  8 );
+    mac[14] = (unsigned char)( acc3 >> 16 );
+    mac[15] = (unsigned char)( acc3 >> 24 );
 }
 
 void mbedtls_poly1305_init( mbedtls_poly1305_context *ctx )
 {
-    if ( ctx != NULL )
+    if( ctx != NULL )
     {
         mbedtls_platform_zeroize( ctx, sizeof( mbedtls_poly1305_context ) );
     }
@@ -246,7 +251,7 @@ void mbedtls_poly1305_init( mbedtls_poly1305_context *ctx )
 
 void mbedtls_poly1305_free( mbedtls_poly1305_context *ctx )
 {
-    if ( ctx != NULL )
+    if( ctx != NULL )
     {
         mbedtls_platform_zeroize( ctx, sizeof( mbedtls_poly1305_context ) );
     }
@@ -255,7 +260,7 @@ void mbedtls_poly1305_free( mbedtls_poly1305_context *ctx )
 int mbedtls_poly1305_starts( mbedtls_poly1305_context *ctx,
                              const unsigned char key[32] )
 {
-    if ( ctx == NULL || key == NULL )
+    if( ctx == NULL || key == NULL )
     {
         return( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     }
@@ -294,21 +299,21 @@ int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
     size_t queue_free_len;
     size_t nblocks;
 
-    if ( ctx == NULL )
+    if( ctx == NULL )
     {
         return( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     }
-    else if ( ( ilen > 0U ) && ( input == NULL ) )
+    else if( ( ilen > 0U ) && ( input == NULL ) )
     {
         /* input pointer is allowed to be NULL only if ilen == 0 */
         return( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     }
 
-    if ( ( remaining > 0U ) && ( ctx->queue_len > 0U ) )
+    if( ( remaining > 0U ) && ( ctx->queue_len > 0U ) )
     {
         queue_free_len = ( POLY1305_BLOCK_SIZE_BYTES - ctx->queue_len );
 
-        if ( ilen < queue_free_len )
+        if( ilen < queue_free_len )
         {
             /* Not enough data to complete the block.
              * Store this data with the other leftovers.
@@ -337,7 +342,7 @@ int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
         }
     }
 
-    if ( remaining >= POLY1305_BLOCK_SIZE_BYTES )
+    if( remaining >= POLY1305_BLOCK_SIZE_BYTES )
     {
         nblocks = remaining / POLY1305_BLOCK_SIZE_BYTES;
 
@@ -347,7 +352,7 @@ int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
         remaining %= POLY1305_BLOCK_SIZE_BYTES;
     }
 
-    if ( remaining > 0U )
+    if( remaining > 0U )
     {
         /* Store partial block */
         ctx->queue_len = remaining;
@@ -360,13 +365,13 @@ int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
 int mbedtls_poly1305_finish( mbedtls_poly1305_context *ctx,
                              unsigned char mac[16] )
 {
-    if ( ( ctx == NULL ) || ( mac == NULL ) )
+    if( ( ctx == NULL ) || ( mac == NULL ) )
     {
         return( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     }
 
     /* Process any leftover data */
-    if ( ctx->queue_len > 0U )
+    if( ctx->queue_len > 0U )
     {
         /* Add padding bit */
         ctx->queue[ctx->queue_len] = 1U;
@@ -378,7 +383,7 @@ int mbedtls_poly1305_finish( mbedtls_poly1305_context *ctx,
                 POLY1305_BLOCK_SIZE_BYTES - ctx->queue_len );
 
         poly1305_process( ctx, 1U,          /* Process 1 block */
-                          ctx->queue, 0U ); /* Don't add padding bit (it was just added above) */
+                          ctx->queue, 0U ); /* Already padded above */
     }
 
     poly1305_compute_mac( ctx, mac );
@@ -392,23 +397,23 @@ int mbedtls_poly1305_mac( const unsigned char key[32],
                           unsigned char mac[16] )
 {
     mbedtls_poly1305_context ctx;
-    int result;
+    int ret;
 
     mbedtls_poly1305_init( &ctx );
 
-    result = mbedtls_poly1305_starts( &ctx, key );
-    if ( result != 0 )
+    ret = mbedtls_poly1305_starts( &ctx, key );
+    if( ret != 0 )
         goto cleanup;
 
-    result = mbedtls_poly1305_update( &ctx, input, ilen );
-    if ( result != 0 )
+    ret = mbedtls_poly1305_update( &ctx, input, ilen );
+    if( ret != 0 )
         goto cleanup;
 
-    result = mbedtls_poly1305_finish( &ctx, mac );
+    ret = mbedtls_poly1305_finish( &ctx, mac );
 
 cleanup:
     mbedtls_poly1305_free( &ctx );
-    return( result );
+    return( ret );
 }
 
 #endif /* MBEDTLS_POLY1305_ALT */
@@ -495,18 +500,18 @@ int mbedtls_poly1305_self_test( int verbose )
 {
     unsigned char mac[16];
     unsigned i;
-    int result;
+    int ret;
 
     for( i = 0U; i < 2U; i++ )
     {
         if( verbose != 0 )
             mbedtls_printf( "  Poly1305 test %u ", i );
 
-        result = mbedtls_poly1305_mac( test_keys[i],
-                                       test_data[i],
-                                       test_data_len[i],
-                                       mac );
-        ASSERT( 0 == result, ( "error code: %i\n", result ) );
+        ret = mbedtls_poly1305_mac( test_keys[i],
+                                    test_data[i],
+                                    test_data_len[i],
+                                    mac );
+        ASSERT( 0 == ret, ( "error code: %i\n", ret ) );
 
         ASSERT( 0 == memcmp( mac, test_mac[i], 16U ), ( "failed (mac)\n" ) );
 

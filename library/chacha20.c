@@ -55,7 +55,8 @@
           | (uint32_t) ( (uint32_t) data[( offset ) + 3] << 24 )  \
     )
 
-#define ROTL32( value, amount ) ( (uint32_t) ( value << amount ) | ( value >> ( 32 - amount ) ) )
+#define ROTL32( value, amount ) \
+        ( (uint32_t) ( value << amount ) | ( value >> ( 32 - amount ) ) )
 
 #define CHACHA20_CTR_INDEX ( 12U )
 
@@ -127,7 +128,7 @@ static void chacha20_inner_block( uint32_t state[16] )
 /**
  * \brief               Generates a keystream block.
  *
- * \param initial_state The initial ChaCha20 state (containing the key, nonce, counter).
+ * \param initial_state The initial ChaCha20 state (key, nonce, counter).
  * \param keystream     Generated keystream bytes are written to this buffer.
  */
 static void chacha20_block( const uint32_t initial_state[16],
@@ -140,19 +141,19 @@ static void chacha20_block( const uint32_t initial_state[16],
             initial_state,
             CHACHA20_BLOCK_SIZE_BYTES );
 
-    for ( i = 0U; i < 10U; i++ )
+    for( i = 0U; i < 10U; i++ )
         chacha20_inner_block( working_state );
 
-    working_state[0]  += initial_state[0];
-    working_state[1]  += initial_state[1];
-    working_state[2]  += initial_state[2];
-    working_state[3]  += initial_state[3];
-    working_state[4]  += initial_state[4];
-    working_state[5]  += initial_state[5];
-    working_state[6]  += initial_state[6];
-    working_state[7]  += initial_state[7];
-    working_state[8]  += initial_state[8];
-    working_state[9]  += initial_state[9];
+    working_state[ 0] += initial_state[ 0];
+    working_state[ 1] += initial_state[ 1];
+    working_state[ 2] += initial_state[ 2];
+    working_state[ 3] += initial_state[ 3];
+    working_state[ 4] += initial_state[ 4];
+    working_state[ 5] += initial_state[ 5];
+    working_state[ 6] += initial_state[ 6];
+    working_state[ 7] += initial_state[ 7];
+    working_state[ 8] += initial_state[ 8];
+    working_state[ 9] += initial_state[ 9];
     working_state[10] += initial_state[10];
     working_state[11] += initial_state[11];
     working_state[12] += initial_state[12];
@@ -160,14 +161,14 @@ static void chacha20_block( const uint32_t initial_state[16],
     working_state[14] += initial_state[14];
     working_state[15] += initial_state[15];
 
-    for ( i = 0U; i < 16; i++ )
+    for( i = 0U; i < 16; i++ )
     {
         size_t offset = i * 4U;
 
-        keystream[offset     ] = (unsigned char)   working_state[i];
-        keystream[offset + 1U] = (unsigned char) ( working_state[i] >> 8  );
-        keystream[offset + 2U] = (unsigned char) ( working_state[i] >> 16 );
-        keystream[offset + 3U] = (unsigned char) ( working_state[i] >> 24 );
+        keystream[offset     ] = (unsigned char)( working_state[i]       );
+        keystream[offset + 1U] = (unsigned char)( working_state[i] >>  8 );
+        keystream[offset + 2U] = (unsigned char)( working_state[i] >> 16 );
+        keystream[offset + 3U] = (unsigned char)( working_state[i] >> 24 );
     }
 
     mbedtls_platform_zeroize( working_state, sizeof( working_state ) );
@@ -175,7 +176,7 @@ static void chacha20_block( const uint32_t initial_state[16],
 
 void mbedtls_chacha20_init( mbedtls_chacha20_context *ctx )
 {
-    if ( ctx != NULL )
+    if( ctx != NULL )
     {
         mbedtls_platform_zeroize( ctx->state, sizeof( ctx->state ) );
         mbedtls_platform_zeroize( ctx->keystream8, sizeof( ctx->keystream8 ) );
@@ -187,7 +188,7 @@ void mbedtls_chacha20_init( mbedtls_chacha20_context *ctx )
 
 void mbedtls_chacha20_free( mbedtls_chacha20_context *ctx )
 {
-    if ( ctx != NULL )
+    if( ctx != NULL )
     {
         mbedtls_platform_zeroize( ctx, sizeof( mbedtls_chacha20_context ) );
     }
@@ -196,7 +197,7 @@ void mbedtls_chacha20_free( mbedtls_chacha20_context *ctx )
 int mbedtls_chacha20_setkey( mbedtls_chacha20_context *ctx,
                             const unsigned char key[32] )
 {
-    if ( ( ctx == NULL ) || ( key == NULL ) )
+    if( ( ctx == NULL ) || ( key == NULL ) )
     {
         return( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
     }
@@ -224,7 +225,7 @@ int mbedtls_chacha20_starts( mbedtls_chacha20_context* ctx,
                              const unsigned char nonce[12],
                              uint32_t counter )
 {
-    if ( ( ctx == NULL ) || ( nonce == NULL ) )
+    if( ( ctx == NULL ) || ( nonce == NULL ) )
     {
         return( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
     }
@@ -253,20 +254,21 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
     size_t offset = 0U;
     size_t i;
 
-    if ( ctx == NULL )
+    if( ctx == NULL )
     {
         return( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
     }
-    else if ( ( size > 0U ) && ( ( input == NULL ) || ( output == NULL ) ) )
+    else if( ( size > 0U ) && ( ( input == NULL ) || ( output == NULL ) ) )
     {
         /* input and output pointers are allowed to be NULL only if size == 0 */
         return( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
     }
 
     /* Use leftover keystream bytes, if available */
-    while ( ( size > 0U ) && ( ctx->keystream_bytes_used < CHACHA20_BLOCK_SIZE_BYTES ) )
+    while( size > 0U && ctx->keystream_bytes_used < CHACHA20_BLOCK_SIZE_BYTES )
     {
-        output[offset] = input[offset] ^ ctx->keystream8[ctx->keystream_bytes_used];
+        output[offset] = input[offset]
+                       ^ ctx->keystream8[ctx->keystream_bytes_used];
 
         ctx->keystream_bytes_used++;
         offset++;
@@ -274,22 +276,22 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
     }
 
     /* Process full blocks */
-    while ( size >= CHACHA20_BLOCK_SIZE_BYTES )
+    while( size >= CHACHA20_BLOCK_SIZE_BYTES )
     {
         /* Generate new keystream block and increment counter */
         chacha20_block( ctx->state, ctx->keystream8 );
         ctx->state[CHACHA20_CTR_INDEX]++;
 
-        for ( i = 0U; i < 64U; i += 8U )
+        for( i = 0U; i < 64U; i += 8U )
         {
-            output[offset + i      ] = input[offset + i      ] ^ ctx->keystream8[i      ];
-            output[offset + i + 1U ] = input[offset + i + 1U ] ^ ctx->keystream8[i + 1U ];
-            output[offset + i + 2U ] = input[offset + i + 2U ] ^ ctx->keystream8[i + 2U ];
-            output[offset + i + 3U ] = input[offset + i + 3U ] ^ ctx->keystream8[i + 3U ];
-            output[offset + i + 4U ] = input[offset + i + 4U ] ^ ctx->keystream8[i + 4U ];
-            output[offset + i + 5U ] = input[offset + i + 5U ] ^ ctx->keystream8[i + 5U ];
-            output[offset + i + 6U ] = input[offset + i + 6U ] ^ ctx->keystream8[i + 6U ];
-            output[offset + i + 7U ] = input[offset + i + 7U ] ^ ctx->keystream8[i + 7U ];
+            output[offset + i  ] = input[offset + i  ] ^ ctx->keystream8[i  ];
+            output[offset + i+1] = input[offset + i+1] ^ ctx->keystream8[i+1];
+            output[offset + i+2] = input[offset + i+2] ^ ctx->keystream8[i+2];
+            output[offset + i+3] = input[offset + i+3] ^ ctx->keystream8[i+3];
+            output[offset + i+4] = input[offset + i+4] ^ ctx->keystream8[i+4];
+            output[offset + i+5] = input[offset + i+5] ^ ctx->keystream8[i+5];
+            output[offset + i+6] = input[offset + i+6] ^ ctx->keystream8[i+6];
+            output[offset + i+7] = input[offset + i+7] ^ ctx->keystream8[i+7];
         }
 
         offset += CHACHA20_BLOCK_SIZE_BYTES;
@@ -297,13 +299,13 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
     }
 
     /* Last (partial) block */
-    if ( size > 0U )
+    if( size > 0U )
     {
         /* Generate new keystream block and increment counter */
         chacha20_block( ctx->state, ctx->keystream8 );
         ctx->state[CHACHA20_CTR_INDEX]++;
 
-        for ( i = 0U; i < size; i++)
+        for( i = 0U; i < size; i++)
         {
             output[offset + i] = input[offset + i] ^ ctx->keystream8[i];
         }
@@ -323,23 +325,23 @@ int mbedtls_chacha20_crypt( const unsigned char key[32],
                             unsigned char* output )
 {
     mbedtls_chacha20_context ctx;
-    int result;
+    int ret;
 
     mbedtls_chacha20_init( &ctx );
 
-    result = mbedtls_chacha20_setkey( &ctx, key );
-    if ( result != 0 )
+    ret = mbedtls_chacha20_setkey( &ctx, key );
+    if( ret != 0 )
         goto cleanup;
 
-    result = mbedtls_chacha20_starts( &ctx, nonce, counter );
-    if ( result != 0 )
+    ret = mbedtls_chacha20_starts( &ctx, nonce, counter );
+    if( ret != 0 )
         goto cleanup;
 
-    result = mbedtls_chacha20_update( &ctx, data_len, input, output );
+    ret = mbedtls_chacha20_update( &ctx, data_len, input, output );
 
 cleanup:
     mbedtls_chacha20_free( &ctx );
-    return( result );
+    return( ret );
 }
 
 #endif /* !MBEDTLS_CHACHA20_ALT */
@@ -529,21 +531,21 @@ int mbedtls_chacha20_self_test( int verbose )
 {
     unsigned char output[381];
     unsigned i;
-    int result;
+    int ret;
 
     for( i = 0U; i < 2U; i++ )
     {
         if( verbose != 0 )
             mbedtls_printf( "  ChaCha20 test %u ", i );
 
-        result = mbedtls_chacha20_crypt( test_keys[i],
-                                         test_nonces[i],
-                                         test_counters[i],
-                                         test_lengths[i],
-                                         test_input[i],
-                                         output );
+        ret = mbedtls_chacha20_crypt( test_keys[i],
+                                      test_nonces[i],
+                                      test_counters[i],
+                                      test_lengths[i],
+                                      test_input[i],
+                                      output );
 
-        ASSERT( 0 == result, ( "error code: %i\n", result ) );
+        ASSERT( 0 == ret, ( "error code: %i\n", ret ) );
 
         ASSERT( 0 == memcmp( output, test_output[i], test_lengths[i] ),
                 ( "failed (output)\n" ) );

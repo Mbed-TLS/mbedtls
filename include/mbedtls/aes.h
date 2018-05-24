@@ -315,18 +315,39 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
  *
  *             There are two common strategies for managing nonces with CTR:
  *
- *             1. Use a counter starting at 0 or a random value. With this
- *             strategy, this function will increment the counter for you, so
- *             you only need to preserve the \p nonce_counter buffer between
- *             calls. With this strategy, you must not encrypt more than
- *             2**128 blocks of data.
- *             2. Use a randomly-generated \p nonce_counter for each call.
- *             With this strategy, you need to ensure the nonce is generated
- *             in an unbiased way and you must not encrypt more than 2**64
- *             blocks of data.
+ *             1. You can handle everything as a single message processed over
+ *             successive calls to this function. In that case, you want to
+ *             set \p nonce_counter and \p nc_off to 0 for the first call, and
+ *             then preserve the values of \p nonce_counter, \p nc_off and \p
+ *             stream_block across calls to this function as they will be
+ *             updated by this function.
  *
- *             Note that for both stategies, the limit is in number of blocks
- *             and that an AES block is 16 bytes.
+ *             With this strategy, you must not encrypt more than 2**128
+ *             blocks of data with the same key.
+ *
+ *             2. You can encrypt separate messages by dividing the \p
+ *             nonce_counter buffer in two areas: the first one used for a
+ *             per-message nonce, handled by yourself, and the second one
+ *             updated by this function internally.
+ *
+ *             For example, you might reserve the first 12 bytes for the
+ *             per-message nonce, and the last 4 bytes for internal use. In that
+ *             case, before calling this function on a new message you need to
+ *             set the first 12 bytes of \p nonce_counter to your chosen nonce
+ *             value, the last 4 to 0, and \p nc_off to 0 (which will cause \p
+ *             stream_block to be ignored). That way, you can encrypt at most
+ *             2**96 messages of up to 2**32 blocks each with the same key.
+ *
+ *             The per-message nonce (or information sufficient to reconstruct
+ *             it) needs to be communicated with the ciphertext and must be unique.
+ *             The recommended way to ensure uniqueness is to use a message
+ *             counter. An alternative is to generate random nonces, but this
+ *             limits the number of messages that can be securely encrypted:
+ *             for example, with 96-bit random nonces, you should not encrypt
+ *             more than 2**32 messages with the same key.
+ *
+ *             Note that for both stategies, sizes are measured in blocks and
+ *             that an AES block is 16 bytes.
  *
  * \param ctx              The AES context to use for encryption or decryption.
  * \param length           The length of the input data.

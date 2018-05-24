@@ -88,6 +88,8 @@ int mbedtls_padlock_xcryptecb( mbedtls_aes_context *ctx,
     uint32_t *ctrl;
     unsigned char buf[256];
 
+    MBEDTLS_PADLOCK_VALIDATE( ctx != NULL );
+
     rk  = ctx->rk;
     blk = MBEDTLS_PADLOCK_ALIGN16( buf );
     memcpy( blk, input, 16 );
@@ -130,6 +132,8 @@ int mbedtls_padlock_xcryptcbc( mbedtls_aes_context *ctx,
     uint32_t *iw;
     uint32_t *ctrl;
     unsigned char buf[256];
+
+    MBEDTLS_PADLOCK_VALIDATE( ctx != NULL && input != NULL && output != NULL );
 
     if( ( (long) input  & 15 ) != 0 ||
         ( (long) output & 15 ) != 0 )

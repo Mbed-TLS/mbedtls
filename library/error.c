@@ -761,6 +761,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 #endif /* MBEDTLS_OID_C */
 
 #if defined(MBEDTLS_PADLOCK_C)
+    if( use_ret == -(MBEDTLS_ERR_PADLOCK_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "PADLOCK - Incorrect input" );
     if( use_ret == -(MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED) )
         mbedtls_snprintf( buf, buflen, "PADLOCK - Input data should be aligned" );
 #endif /* MBEDTLS_PADLOCK_C */

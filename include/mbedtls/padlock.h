@@ -27,7 +27,16 @@
 
 #include "aes.h"
 
+#define MBEDTLS_ERR_PADLOCK_BAD_INPUT_DATA                -0x001D  /**< Incorrect input. */
 #define MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED               -0x0030  /**< Input data should be aligned. */
+
+#if defined( MBEDTLS_CHECK_PARAMS )
+#define MBEDTLS_PADLOCK_VALIDATE( cond )   do { if( !(cond) ) \
+                                               return( MBEDTLS_ERR_PADLOCK_BAD_INPUT_DATA ); \
+                                           } while( 0 )
+#else
+#define MBEDTLS_PADLOCK_VALIDATE( cond )
+#endif
 
 #if defined(__has_feature)
 #if __has_feature(address_sanitizer)

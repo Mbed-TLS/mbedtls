@@ -89,13 +89,31 @@ mbedtls_chachapoly_context;
  *                  \c mbedtls_chachapoly_crypt_and_tag() or
  *                  \c mbedtls_chachapoly_auth_decrypt().
  *
- *                  In order to encrypt or decrypt messages piecewise, for each
+ *                  In order to encrypt messages piecewise, for each
  *                  message you should make a call to
  *                  \c mbedtls_chachapoly_starts(), then 0 or more calls to
  *                  \c mbedtls_chachapoly_update_aad(), then 0 or more calls to
  *                  \c mbedtls_chachapoly_update(), then one call to
  *                  \c mbedtls_chachapoly_finish().
  *
+ * \warning         Decryption with the piecewise API is discouraged! Always
+ *                  use \c mbedtls_chachapoly_auth_decrypt() when possible!
+ *
+ *                  If however this is not possible because the data is too
+ *                  large to fit in memory, you need to:
+ *
+ *                  - call \c mbedtls_chachapoly_starts() and (if needed)
+ *                  \c mbedtls_chachapoly_update_aad() as above,
+ *                  - call \c mbedtls_chachapoly_update() multiple times and
+ *                  ensure its output (the plaintext) is NOT used in any other
+ *                  way than placing it in temporary storage at this point,
+ *                  - call \c mbedtls_chachapoly_finish() to compute the
+ *                  authentication tag and compared it in constant time to the
+ *                  tag received with the ciphertext.
+ *
+ *                  If the tags are not equal, you must immediately discard
+ *                  all previous outputs of \c mbedtls_chachapoly_update(),
+ *                  otherwise you can now safely use the plaintext.
  *
  * \param ctx       The ChachaPoly context to initialize.
  */
@@ -134,10 +152,13 @@ int mbedtls_chachapoly_setkey( mbedtls_chachapoly_context *ctx,
  * \note            If the context is being used for AAD only (no data to
  *                  encrypt or decrypt) then \p mode can be set to any value.
  *
+ * \warning         Decryption with the piecewise API is discouraged, see the
+ *                  warning on \c mbedtls_chachapoly_init().
+ *
  * \param ctx       The ChaCha20-Poly1305 context.
  * \param nonce     The nonce/IV to use for the message. Must be 12 bytes.
  * \param mode      The operation to perform: #MBEDTLS_CHACHAPOLY_ENCRYPT or
- *                  #MBEDTLS_CHACHAPOLY_DECRYPT.
+ *                  #MBEDTLS_CHACHAPOLY_DECRYPT (discouraged, see warning).
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA
@@ -168,6 +189,9 @@ int mbedtls_chachapoly_starts( mbedtls_chachapoly_context *ctx,
  *                  This function cannot be called any more if data has
  *                  been processed by \c mbedtls_chachapoly_update(),
  *                  or if the context has been finished.
+ *
+ * \warning         Decryption with the piecewise API is discouraged, see the
+ *                  warning on \c mbedtls_chachapoly_init().
  *
  * \param ctx       The ChaCha20-Poly1305 context to use.
  * \param aad_len   The length (in bytes) of the AAD. The length has no
@@ -200,6 +224,9 @@ int mbedtls_chachapoly_update_aad( mbedtls_chachapoly_context *ctx,
  *                  this function 0 times, if no data is to be encrypted
  *                  or decrypted.
  *
+ * \warning         Decryption with the piecewise API is discouraged, see the
+ *                  warning on \c mbedtls_chachapoly_init().
+ *
  * \param ctx       The ChaCha20-Poly1305 context to use.
  * \param len       The length (in bytes) of the data to encrypt or decrypt.
  * \param input     The buffer containing the data to encrypt or decrypt.
@@ -226,6 +253,9 @@ int mbedtls_chachapoly_update( mbedtls_chachapoly_context *ctx,
  *
  * \param ctx       The ChaCha20-Poly1305 context to use.
  * \param mac       The buffer to where the 128-bit (16 bytes) MAC is written.
+ *
+ * \warning         Decryption with the piecewise API is discouraged, see the
+ *                  warning on \c mbedtls_chachapoly_init().
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA

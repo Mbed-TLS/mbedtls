@@ -231,6 +231,10 @@ int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
  *             Note that for both stategies, sizes are measured in blocks and
  *             that a CAMELLIA block is 16 bytes.
  *
+ * \warning    Upon return, \p stream_block contains sensitive data. Its
+ *             content must not be written to insecure storage and should be
+ *             securely discarded as soon as it's no longer needed.
+ *
  * \param ctx           CAMELLIA context
  * \param length        The length of the data
  * \param nc_off        The offset in the current stream_block (for resuming

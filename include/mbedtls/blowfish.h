@@ -211,6 +211,10 @@ int mbedtls_blowfish_crypt_cfb64( mbedtls_blowfish_context *ctx,
  *             Note that for both stategies, sizes are measured in blocks and
  *             that a Blowfish block is 8 bytes.
  *
+ * \warning    Upon return, \p stream_block contains sensitive data. Its
+ *             content must not be written to insecure storage and should be
+ *             securely discarded as soon as it's no longer needed.
+ *
  * \param ctx           Blowfish context
  * \param length        The length of the data
  * \param nc_off        The offset in the current stream_block (for resuming

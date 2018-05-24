@@ -349,6 +349,10 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
  *             Note that for both stategies, sizes are measured in blocks and
  *             that an AES block is 16 bytes.
  *
+ * \warning    Upon return, \p stream_block contains sensitive data. Its
+ *             content must not be written to insecure storage and should be
+ *             securely discarded as soon as it's no longer needed.
+ *
  * \param ctx              The AES context to use for encryption or decryption.
  * \param length           The length of the input data.
  * \param nc_off           The offset in the current \p stream_block, for

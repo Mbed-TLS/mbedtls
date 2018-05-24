@@ -289,7 +289,7 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
  *             Note that for both stategies, sizes are measured in blocks and
  *             that an ARIA block is 16 bytes.
  *
- * \warning    Upon return, \p stream_block constains sensitive data. Its
+ * \warning    Upon return, \p stream_block contains sensitive data. Its
  *             content must not be written to insecure storage and should be
  *             securely discarded as soon as it's no longer needed.
  *

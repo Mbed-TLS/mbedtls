@@ -263,7 +263,7 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
  *             updated by this function.
  *
  *             With this strategy, you must not encrypt more than 2**128
- *             blocks of data.
+ *             blocks of data with the same key.
  *
  *             2. You can encrypt separate messages by dividing the \p
  *             nonce_counter buffer in two areas: the first one used for a
@@ -276,7 +276,7 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
  *             set the first 12 bytes of \p nonce_counter to your chosen nonce
  *             value, the last 4 to 0, and \p nc_off to 0 (which will cause \p
  *             stream_block to be ignored). That way, you can encrypt at most
- *             2**96 messages of up to 2**32 blocks each.
+ *             2**96 messages of up to 2**32 blocks each with the same key.
  *
  *             The per-message nonce (or information sufficient to reconstruct
  *             it) needs to be communicated with the ciphertext and must be unique.
@@ -286,8 +286,8 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
  *             for example, with 96-bit random nonces, you should not encrypt
  *             more than 2**32 messages with the same key.
  *
- *             Note that for both stategies, the limit is in number of blocks
- *             and that an ARIA block is 16 bytes.
+ *             Note that for both stategies, sizes are measured in blocks and
+ *             that an ARIA block is 16 bytes.
  *
  * \warning    Upon return, \p stream_block constains sensitive data. Its
  *             content must not be written to insecure storage and should be

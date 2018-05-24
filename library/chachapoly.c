@@ -29,6 +29,8 @@
 #if defined(MBEDTLS_CHACHAPOLY_C)
 
 #include "mbedtls/chachapoly.h"
+#include "mbedtls/platform_util.h"
+
 #include <string.h>
 
 #if defined(MBEDTLS_SELF_TEST)
@@ -46,11 +48,6 @@
 #define CHACHAPOLY_STATE_AAD        ( 1 )
 #define CHACHAPOLY_STATE_CIPHERTEXT ( 2 ) /* Encrypting or decrypting */
 #define CHACHAPOLY_STATE_FINISHED   ( 3 )
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 /**
  * \brief           Adds padding bytes (zeroes) to pad the AAD for Poly1305.
@@ -170,7 +167,7 @@ int mbedtls_chachapoly_starts( mbedtls_chachapoly_context *ctx,
     }
 
 cleanup:
-    mbedtls_zeroize( poly1305_key, 64U );
+    mbedtls_platform_zeroize( poly1305_key, 64U );
     return( result );
 }
 
@@ -355,7 +352,7 @@ int mbedtls_chachapoly_auth_decrypt( mbedtls_chachapoly_context *ctx,
 
     if( diff != 0 )
     {
-        mbedtls_zeroize( output, length );
+        mbedtls_platform_zeroize( output, length );
         return( MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED );
     }
 

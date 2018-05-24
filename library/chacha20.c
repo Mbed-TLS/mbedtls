@@ -22,7 +22,6 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
-#include "mbedtls/chacha20.h"
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
@@ -32,7 +31,8 @@
 
 #if defined(MBEDTLS_CHACHA20_C)
 
-#if !defined(MBEDTLS_CHACHA20_ALT)
+#include "mbedtls/chacha20.h"
+#include "mbedtls/platform_util.h"
 
 #include <stddef.h>
 #include <string.h>
@@ -46,6 +46,8 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
+#if !defined(MBEDTLS_CHACHA20_ALT)
+
 #define BYTES_TO_U32_LE( data, offset )                           \
     ( (uint32_t) data[offset]                                     \
           | (uint32_t) ( (uint32_t) data[( offset ) + 1] << 8 )   \
@@ -58,11 +60,6 @@
 #define CHACHA20_CTR_INDEX ( 12U )
 
 #define CHACHA20_BLOCK_SIZE_BYTES ( 4U * 16U )
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 /**
  * \brief           ChaCha20 quarter round operation.
@@ -182,9 +179,9 @@ void mbedtls_chacha20_init( mbedtls_chacha20_context *ctx )
 {
     if ( ctx != NULL )
     {
-        mbedtls_zeroize( ctx->initial_state, sizeof( ctx->initial_state ) );
-        mbedtls_zeroize( ctx->working_state, sizeof( ctx->working_state ) );
-        mbedtls_zeroize( ctx->keystream8, sizeof( ctx->keystream8 ) );
+        mbedtls_platform_zeroize( ctx->initial_state, sizeof( ctx->initial_state ) );
+        mbedtls_platform_zeroize( ctx->working_state, sizeof( ctx->working_state ) );
+        mbedtls_platform_zeroize( ctx->keystream8, sizeof( ctx->keystream8 ) );
 
         /* Initially, there's no keystream bytes available */
         ctx->keystream_bytes_used = CHACHA20_BLOCK_SIZE_BYTES;
@@ -195,7 +192,7 @@ void mbedtls_chacha20_free( mbedtls_chacha20_context *ctx )
 {
     if ( ctx != NULL )
     {
-        mbedtls_zeroize( ctx, sizeof( mbedtls_chacha20_context ) );
+        mbedtls_platform_zeroize( ctx, sizeof( mbedtls_chacha20_context ) );
     }
 }
 
@@ -243,8 +240,8 @@ int mbedtls_chacha20_starts( mbedtls_chacha20_context* ctx,
     ctx->initial_state[14] = BYTES_TO_U32_LE( nonce, 4 );
     ctx->initial_state[15] = BYTES_TO_U32_LE( nonce, 8 );
 
-    mbedtls_zeroize( ctx->working_state, sizeof( ctx->working_state ) );
-    mbedtls_zeroize( ctx->keystream8, sizeof( ctx->keystream8 ) );
+    mbedtls_platform_zeroize( ctx->working_state, sizeof( ctx->working_state ) );
+    mbedtls_platform_zeroize( ctx->keystream8, sizeof( ctx->keystream8 ) );
 
     /* Initially, there's no keystream bytes available */
     ctx->keystream_bytes_used = CHACHA20_BLOCK_SIZE_BYTES;

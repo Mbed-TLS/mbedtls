@@ -28,9 +28,8 @@
 
 #if defined(MBEDTLS_POLY1305_C)
 
-#if !defined(MBEDTLS_POLY1305_ALT)
-
 #include "mbedtls/poly1305.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 
@@ -43,6 +42,8 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
+#if !defined(MBEDTLS_POLY1305_ALT)
+
 #define POLY1305_BLOCK_SIZE_BYTES ( 16U )
 
 #define BYTES_TO_U32_LE( data, offset )                           \
@@ -51,11 +52,6 @@
           | (uint32_t) ( (uint32_t) data[( offset ) + 2] << 16 )  \
           | (uint32_t) ( (uint32_t) data[( offset ) + 3] << 24 )  \
     )
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 /**
  * \brief                   Process blocks with Poly1305.
@@ -244,7 +240,7 @@ void mbedtls_poly1305_init( mbedtls_poly1305_context *ctx )
 {
     if ( ctx != NULL )
     {
-        mbedtls_zeroize( ctx, sizeof( mbedtls_poly1305_context ) );
+        mbedtls_platform_zeroize( ctx, sizeof( mbedtls_poly1305_context ) );
     }
 }
 
@@ -252,7 +248,7 @@ void mbedtls_poly1305_free( mbedtls_poly1305_context *ctx )
 {
     if ( ctx != NULL )
     {
-        mbedtls_zeroize( ctx, sizeof( mbedtls_poly1305_context ) );
+        mbedtls_platform_zeroize( ctx, sizeof( mbedtls_poly1305_context ) );
     }
 }
 
@@ -283,7 +279,7 @@ int mbedtls_poly1305_starts( mbedtls_poly1305_context *ctx,
     ctx->acc[4] = 0U;
 
     /* Queue initially empty */
-    mbedtls_zeroize( ctx->queue, sizeof( ctx->queue ) );
+    mbedtls_platform_zeroize( ctx->queue, sizeof( ctx->queue ) );
     ctx->queue_len = 0U;
 
     return( 0 );

@@ -54,7 +54,7 @@
  *
  * \param ctx       The ChaCha20-Poly1305 context.
  */
-static void mbedtls_chachapoly_pad_aad( mbedtls_chachapoly_context *ctx )
+static void chachapoly_pad_aad( mbedtls_chachapoly_context *ctx )
 {
     uint32_t partial_block_len = (uint32_t) ( ctx->aad_len % 16U );
     unsigned char zeroes[15];
@@ -73,7 +73,7 @@ static void mbedtls_chachapoly_pad_aad( mbedtls_chachapoly_context *ctx )
  *
  * \param ctx       The ChaCha20-Poly1305 context.
  */
-static void mbedtls_chachapoly_pad_ciphertext( mbedtls_chachapoly_context *ctx )
+static void chachapoly_pad_ciphertext( mbedtls_chachapoly_context *ctx )
 {
     uint32_t partial_block_len = (uint32_t) ( ctx->ciphertext_len % 16U );
     unsigned char zeroes[15];
@@ -218,7 +218,7 @@ int mbedtls_chachapoly_update( mbedtls_chachapoly_context *ctx,
     {
         ctx->state = CHACHAPOLY_STATE_CIPHERTEXT;
 
-        mbedtls_chachapoly_pad_aad( ctx );
+        chachapoly_pad_aad( ctx );
     }
 
     ctx->ciphertext_len += len;
@@ -257,11 +257,11 @@ int mbedtls_chachapoly_finish( mbedtls_chachapoly_context *ctx,
 
     if ( ctx->state == CHACHAPOLY_STATE_AAD )
     {
-        mbedtls_chachapoly_pad_aad( ctx );
+        chachapoly_pad_aad( ctx );
     }
     else if ( ctx->state == CHACHAPOLY_STATE_CIPHERTEXT )
     {
-        mbedtls_chachapoly_pad_ciphertext( ctx );
+        chachapoly_pad_ciphertext( ctx );
     }
 
     ctx->state = CHACHAPOLY_STATE_FINISHED;

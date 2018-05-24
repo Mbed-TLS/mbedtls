@@ -76,11 +76,11 @@
  * \param c         The index of 'c' in the state.
  * \param d         The index of 'd' in the state.
  */
-static inline void mbedtls_chacha20_quarter_round( uint32_t state[16],
-                                                   size_t a,
-                                                   size_t b,
-                                                   size_t c,
-                                                   size_t d )
+static inline void chacha20_quarter_round( uint32_t state[16],
+                                           size_t a,
+                                           size_t b,
+                                           size_t c,
+                                           size_t d )
 {
     /* a += b; d ^= a; d <<<= 16; */
     state[a] += state[b];
@@ -111,17 +111,17 @@ static inline void mbedtls_chacha20_quarter_round( uint32_t state[16],
  *
  * \param state     The ChaCha20 state to update.
  */
-static void mbedtls_chacha20_inner_block( uint32_t state[16] )
+static void chacha20_inner_block( uint32_t state[16] )
 {
-    mbedtls_chacha20_quarter_round( state, 0, 4, 8,  12 );
-    mbedtls_chacha20_quarter_round( state, 1, 5, 9,  13 );
-    mbedtls_chacha20_quarter_round( state, 2, 6, 10, 14 );
-    mbedtls_chacha20_quarter_round( state, 3, 7, 11, 15 );
+    chacha20_quarter_round( state, 0, 4, 8,  12 );
+    chacha20_quarter_round( state, 1, 5, 9,  13 );
+    chacha20_quarter_round( state, 2, 6, 10, 14 );
+    chacha20_quarter_round( state, 3, 7, 11, 15 );
 
-    mbedtls_chacha20_quarter_round( state, 0, 5, 10, 15 );
-    mbedtls_chacha20_quarter_round( state, 1, 6, 11, 12 );
-    mbedtls_chacha20_quarter_round( state, 2, 7, 8,  13 );
-    mbedtls_chacha20_quarter_round( state, 3, 4, 9,  14 );
+    chacha20_quarter_round( state, 0, 5, 10, 15 );
+    chacha20_quarter_round( state, 1, 6, 11, 12 );
+    chacha20_quarter_round( state, 2, 7, 8,  13 );
+    chacha20_quarter_round( state, 3, 4, 9,  14 );
 }
 
 /**
@@ -131,9 +131,9 @@ static void mbedtls_chacha20_inner_block( uint32_t state[16] )
  * \param working_state This state is used as a temporary working area.
  * \param keystream     Generated keystream bytes are written to this buffer.
  */
-static void mbedtls_chacha20_block( const uint32_t initial_state[16],
-                                    uint32_t working_state[16],
-                                    unsigned char keystream[64] )
+static void chacha20_block( const uint32_t initial_state[16],
+                            uint32_t working_state[16],
+                            unsigned char keystream[64] )
 {
     size_t i;
     size_t offset;
@@ -143,9 +143,7 @@ static void mbedtls_chacha20_block( const uint32_t initial_state[16],
             CHACHA20_BLOCK_SIZE_BYTES );
 
     for ( i = 0U; i < 10U; i++ )
-    {
-        mbedtls_chacha20_inner_block( working_state );
-    }
+        chacha20_inner_block( working_state );
 
     working_state[0]  += initial_state[0];
     working_state[1]  += initial_state[1];
@@ -281,7 +279,7 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
     while ( size >= CHACHA20_BLOCK_SIZE_BYTES )
     {
         /* Generate new keystream block and increment counter */
-        mbedtls_chacha20_block( ctx->initial_state, ctx->working_state, ctx->keystream8 );
+        chacha20_block( ctx->initial_state, ctx->working_state, ctx->keystream8 );
         ctx->initial_state[CHACHA20_CTR_INDEX]++;
 
         for ( i = 0U; i < 64U; i += 8U )
@@ -304,7 +302,7 @@ int mbedtls_chacha20_update( mbedtls_chacha20_context *ctx,
     if ( size > 0U )
     {
         /* Generate new keystream block and increment counter */
-        mbedtls_chacha20_block( ctx->initial_state, ctx->working_state, ctx->keystream8 );
+        chacha20_block( ctx->initial_state, ctx->working_state, ctx->keystream8 );
         ctx->initial_state[CHACHA20_CTR_INDEX]++;
 
         for ( i = 0U; i < size; i++)

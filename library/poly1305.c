@@ -64,10 +64,10 @@
  *                          to the input data before calling this function.
  *                          Otherwise, set this parameter to 1.
  */
-static void mbedtls_poly1305_process( mbedtls_poly1305_context *ctx,
-                                      size_t nblocks,
-                                      const unsigned char *input,
-                                      uint32_t needs_padding )
+static void poly1305_process( mbedtls_poly1305_context *ctx,
+                              size_t nblocks,
+                              const unsigned char *input,
+                              uint32_t needs_padding )
 {
     uint64_t d0, d1, d2, d3;
     uint32_t acc0, acc1, acc2, acc3, acc4;
@@ -167,8 +167,8 @@ static void mbedtls_poly1305_process( mbedtls_poly1305_context *ctx,
  * \param mac               The buffer to where the MAC is written. Must be
  *                          big enough to contain the 16-byte MAC.
  */
-static void mbedtls_poly1305_compute_mac( const mbedtls_poly1305_context *ctx,
-                                          unsigned char mac[16] )
+static void poly1305_compute_mac( const mbedtls_poly1305_context *ctx,
+                                  unsigned char mac[16] )
 {
     uint64_t d;
     uint32_t g0, g1, g2, g3, g4;
@@ -330,10 +330,7 @@ int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
 
             ctx->queue_len = 0U;
 
-            mbedtls_poly1305_process( ctx,
-                                      1U,
-                                      ctx->queue,
-                                      1U ); /* add padding bit */
+            poly1305_process( ctx, 1U, ctx->queue, 1U ); /* add padding bit */
 
             offset    += queue_free_len;
             remaining -= queue_free_len;
@@ -344,7 +341,7 @@ int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
     {
         nblocks = remaining / POLY1305_BLOCK_SIZE_BYTES;
 
-        mbedtls_poly1305_process( ctx, nblocks, &input[offset], 1U );
+        poly1305_process( ctx, nblocks, &input[offset], 1U );
 
         offset += nblocks * POLY1305_BLOCK_SIZE_BYTES;
         remaining %= POLY1305_BLOCK_SIZE_BYTES;
@@ -380,13 +377,11 @@ int mbedtls_poly1305_finish( mbedtls_poly1305_context *ctx,
                 0,
                 POLY1305_BLOCK_SIZE_BYTES - ctx->queue_len );
 
-        mbedtls_poly1305_process( ctx,
-                                  1U,           /* Process 1 block */
-                                  ctx->queue,
-                                  0U );         /* Don't add padding bit (it was just added above) */
+        poly1305_process( ctx, 1U,          /* Process 1 block */
+                          ctx->queue, 0U ); /* Don't add padding bit (it was just added above) */
     }
 
-    mbedtls_poly1305_compute_mac( ctx, mac );
+    poly1305_compute_mac( ctx, mac );
 
     return( 0 );
 }

@@ -670,17 +670,15 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "CHACHA20 - Invalid input parameter(s)" );
     if( use_ret == -(MBEDTLS_ERR_CHACHA20_FEATURE_UNAVAILABLE) )
         mbedtls_snprintf( buf, buflen, "CHACHA20 - Feature not available. For example, s part of the API is not implemented" );
+    if( use_ret == -(MBEDTLS_ERR_CHACHA20_HW_ACCEL_FAILED) )
+        mbedtls_snprintf( buf, buflen, "CHACHA20 - Chacha20 hardware accelerator failed" );
 #endif /* MBEDTLS_CHACHA20_C */
 
 #if defined(MBEDTLS_CHACHAPOLY_C)
-    if( use_ret == -(MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA) )
-        mbedtls_snprintf( buf, buflen, "CHACHAPOLY - Invalid input parameter(s)" );
     if( use_ret == -(MBEDTLS_ERR_CHACHAPOLY_BAD_STATE) )
         mbedtls_snprintf( buf, buflen, "CHACHAPOLY - The requested operation is not permitted in the current state" );
     if( use_ret == -(MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED) )
         mbedtls_snprintf( buf, buflen, "CHACHAPOLY - Authenticated decryption failed: data was not authentic" );
-    if( use_ret == -(MBEDTLS_ERR_CHACHAPOLY_FEATURE_UNAVAILABLE) )
-        mbedtls_snprintf( buf, buflen, "CHACHAPOLY - Feature not available. For example, s part of the API is not implemented" );
 #endif /* MBEDTLS_CHACHAPOLY_C */
 
 #if defined(MBEDTLS_CMAC_C)
@@ -800,6 +798,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "POLY1305 - Invalid input parameter(s)" );
     if( use_ret == -(MBEDTLS_ERR_POLY1305_FEATURE_UNAVAILABLE) )
         mbedtls_snprintf( buf, buflen, "POLY1305 - Feature not available. For example, s part of the API is not implemented" );
+    if( use_ret == -(MBEDTLS_ERR_POLY1305_HW_ACCEL_FAILED) )
+        mbedtls_snprintf( buf, buflen, "POLY1305 - Poly1305 hardware accelerator failed" );
 #endif /* MBEDTLS_POLY1305_C */
 
 #if defined(MBEDTLS_RIPEMD160_C)

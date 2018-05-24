@@ -145,77 +145,77 @@ void chachapoly_bad_params()
     mbedtls_chachapoly_init( &ctx );
 
     TEST_ASSERT( mbedtls_chachapoly_setkey( NULL, key )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_chachapoly_setkey( &ctx, NULL )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
 
     TEST_ASSERT( mbedtls_chachapoly_crypt_and_tag( NULL,
                                       MBEDTLS_CHACHAPOLY_ENCRYPT,
                                       0, nonce,
                                       aad, 0,
                                       input, output, mac )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_chachapoly_crypt_and_tag( &ctx,
                                       MBEDTLS_CHACHAPOLY_ENCRYPT,
                                       0, NULL,
                                       aad, 0,
                                       input, output, mac )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_chachapoly_crypt_and_tag( &ctx,
                                       MBEDTLS_CHACHAPOLY_ENCRYPT,
                                       0, nonce,
                                       NULL, aad_len,
                                       input, output, mac )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_chachapoly_crypt_and_tag( &ctx,
                                       MBEDTLS_CHACHAPOLY_ENCRYPT,
                                       input_len, nonce,
                                       aad, 0,
                                       NULL, output, mac )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_chachapoly_crypt_and_tag( &ctx,
                                       MBEDTLS_CHACHAPOLY_ENCRYPT,
                                       input_len, nonce,
                                       aad, 0,
                                       input, NULL, mac )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_chachapoly_crypt_and_tag( &ctx,
                                       MBEDTLS_CHACHAPOLY_ENCRYPT,
                                       0, nonce,
                                       aad, 0,
                                       input, output, NULL )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
 
     TEST_ASSERT( mbedtls_chachapoly_auth_decrypt( NULL,
                                            0, nonce,
                                            aad, 0,
                                            mac, input, output )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_chachapoly_auth_decrypt( &ctx,
                                            0, NULL,
                                            aad, 0,
                                            mac, input, output )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_chachapoly_auth_decrypt( &ctx,
                                            0, nonce,
                                            NULL, aad_len,
                                            mac, input, output )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_chachapoly_auth_decrypt( &ctx,
                                            0, nonce,
                                            aad, 0,
                                            NULL, input, output )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_chachapoly_auth_decrypt( &ctx,
                                            input_len, nonce,
                                            aad, 0,
                                            mac, NULL, output )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_chachapoly_auth_decrypt( &ctx,
                                            input_len, nonce,
                                            aad, 0,
                                            mac, input, NULL )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
 
     TEST_ASSERT( mbedtls_chachapoly_crypt_and_tag( &ctx,
                                       MBEDTLS_CHACHAPOLY_ENCRYPT,
@@ -242,26 +242,26 @@ void chachapoly_bad_params()
                  == 0 );
 
     TEST_ASSERT( mbedtls_chachapoly_starts( NULL, nonce, MBEDTLS_CHACHAPOLY_ENCRYPT )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_chachapoly_starts( &ctx, NULL, MBEDTLS_CHACHAPOLY_ENCRYPT )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
 
     TEST_ASSERT( mbedtls_chachapoly_update_aad( NULL, aad, aad_len )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_chachapoly_update_aad( &ctx, NULL, aad_len )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
 
     TEST_ASSERT( mbedtls_chachapoly_update( NULL, input_len, input, output )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_chachapoly_update( &ctx, input_len, NULL, output )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_chachapoly_update( &ctx, input_len, input, NULL )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
 
     TEST_ASSERT( mbedtls_chachapoly_finish( NULL, mac )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     TEST_ASSERT( mbedtls_chachapoly_finish( &ctx, NULL )
-                 == MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
 
 exit:
     mbedtls_chachapoly_free( &ctx );

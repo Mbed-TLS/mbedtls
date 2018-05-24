@@ -123,7 +123,7 @@ int mbedtls_chachapoly_setkey( mbedtls_chachapoly_context *ctx,
 
     if ( ( ctx == NULL ) || ( key == NULL ) )
     {
-        return( MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     }
 
     result = mbedtls_chacha20_setkey( &ctx->chacha20_ctx, key );
@@ -140,7 +140,7 @@ int mbedtls_chachapoly_starts( mbedtls_chachapoly_context *ctx,
 
     if ( ( ctx == NULL ) || ( nonce == NULL ) )
     {
-        return( MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     }
 
     /* Set counter = 0, will be update to 1 when generating Poly1305 key */
@@ -180,12 +180,12 @@ int mbedtls_chachapoly_update_aad( mbedtls_chachapoly_context *ctx,
 {
     if ( ctx == NULL )
     {
-        return( MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     }
     else if ( ( aad_len > 0U ) && ( aad == NULL ) )
     {
         /* aad pointer is allowed to be NULL if aad_len == 0 */
-        return( MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     }
     else if ( ctx->state != CHACHAPOLY_STATE_AAD )
     {
@@ -204,12 +204,12 @@ int mbedtls_chachapoly_update( mbedtls_chachapoly_context *ctx,
 {
     if ( ctx == NULL )
     {
-        return( MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     }
     else if ( ( len > 0U ) && ( ( input == NULL ) || ( output == NULL ) ) )
     {
         /* input and output pointers are allowed to be NULL if len == 0 */
-        return( MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     }
     else if ( ( ctx->state != CHACHAPOLY_STATE_AAD ) &&
               ( ctx->state != CHACHAPOLY_STATE_CIPHERTEXT ) )
@@ -251,7 +251,7 @@ int mbedtls_chachapoly_finish( mbedtls_chachapoly_context *ctx,
 
     if ( ( ctx == NULL ) || ( mac == NULL ) )
     {
-        return( MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
     }
     else if ( ctx->state == CHACHAPOLY_STATE_INIT )
     {
@@ -340,7 +340,7 @@ int mbedtls_chachapoly_auth_decrypt( mbedtls_chachapoly_context *ctx,
     int diff;
 
     if( tag == NULL )
-        return( MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
 
     if( ( ret = mbedtls_chachapoly_crypt_and_tag( ctx,
                         MBEDTLS_CHACHAPOLY_DECRYPT, length, nonce,

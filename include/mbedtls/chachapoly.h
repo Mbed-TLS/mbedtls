@@ -39,11 +39,11 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#define MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA       -0x0054 /**< Invalid input parameter(s). */
-#define MBEDTLS_ERR_CHACHAPOLY_BAD_STATE            -0x0056 /**< The requested operation is not permitted in the current state. */
-#define MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED          -0x0058 /**< Authenticated decryption failed: data was not authentic. */
-#define MBEDTLS_ERR_CHACHAPOLY_FEATURE_UNAVAILABLE  -0x005A /**< Feature not available. For example, s part of the API is not implemented. */
+/* for shared error codes */
+#include "poly1305.h"
 
+#define MBEDTLS_ERR_CHACHAPOLY_BAD_STATE            -0x0054 /**< The requested operation is not permitted in the current state. */
+#define MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED          -0x0056 /**< Authenticated decryption failed: data was not authentic. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,7 +59,6 @@ mbedtls_chachapoly_mode_t;
 #if !defined(MBEDTLS_CHACHAPOLY_ALT)
 
 #include "chacha20.h"
-#include "poly1305.h"
 
 typedef struct
 {
@@ -117,7 +116,7 @@ void mbedtls_chachapoly_free( mbedtls_chachapoly_context *ctx );
  * \param key       The 256-bit (32 bytes) key.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA
+ * \return          #MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA
  *                  if \p ctx or \p key are NULL.
  */
 int mbedtls_chachapoly_setkey( mbedtls_chachapoly_context *ctx,
@@ -141,7 +140,7 @@ int mbedtls_chachapoly_setkey( mbedtls_chachapoly_context *ctx,
  *                  #MBEDTLS_CHACHAPOLY_DECRYPT.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA
+ * \return          #MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA
  *                  if \p ctx or \p mac are NULL.
  */
 int mbedtls_chachapoly_starts( mbedtls_chachapoly_context *ctx,
@@ -177,7 +176,7 @@ int mbedtls_chachapoly_starts( mbedtls_chachapoly_context *ctx,
  *                  This pointer can be NULL if aad_len == 0.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA
+ * \return          #MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA
  *                  if \p ctx or \p aad are NULL.
  * \return          #MBEDTLS_ERR_CHACHAPOLY_BAD_STATE
  *                  if the operations has not been started or has been
@@ -210,7 +209,7 @@ int mbedtls_chachapoly_update_aad( mbedtls_chachapoly_context *ctx,
  *                  This pointer can be NULL if len == 0.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA
+ * \return          #MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA
  *                  if \p ctx, \p input, or \p output are NULL.
  * \return          #MBEDTLS_ERR_CHACHAPOLY_BAD_STATE
  *                  if the operation has not been started or has been
@@ -229,7 +228,7 @@ int mbedtls_chachapoly_update( mbedtls_chachapoly_context *ctx,
  * \param mac       The buffer to where the 128-bit (16 bytes) MAC is written.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA
+ * \return          #MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA
  *                  if \p ctx or \p mac are NULL.
  * \return          #MBEDTLS_ERR_CHACHAPOLY_BAD_STATE
  *                  if the operation has not been started or has been
@@ -265,7 +264,7 @@ int mbedtls_chachapoly_finish( mbedtls_chachapoly_context *ctx,
  * \param tag       The buffer to where the computed 128-bit (16 bytes) MAC is written.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA
+ * \return          #MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA
  *                  if one or more of the required parameters are NULL.
  */
 int mbedtls_chachapoly_crypt_and_tag( mbedtls_chachapoly_context *ctx,
@@ -298,7 +297,7 @@ int mbedtls_chachapoly_crypt_and_tag( mbedtls_chachapoly_context *ctx,
  *                  This pointer can be NULL if ilen == 0.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_CHACHAPOLY_BAD_INPUT_DATA
+ * \return          #MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA
  *                  if one or more of the required parameters are NULL.
  * \return          #MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED
  *                  if the data was not authentic.

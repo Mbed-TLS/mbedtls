@@ -196,6 +196,7 @@ int mbedtls_chacha20_crypt( const unsigned char key[32],
                             const unsigned char* input,
                             unsigned char* output );
 
+#if defined(MBEDTLS_SELF_TEST)
 /**
  * \brief           The ChaCha20 checkup routine.
  *
@@ -203,6 +204,7 @@ int mbedtls_chacha20_crypt( const unsigned char key[32],
  * \return          \c 1 on failure.
  */
 int mbedtls_chacha20_self_test( int verbose );
+#endif /* MBEDTLS_SELF_TEST */
 
 #ifdef __cplusplus
 }

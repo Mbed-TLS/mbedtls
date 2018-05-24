@@ -311,6 +311,7 @@ int mbedtls_chachapoly_auth_decrypt( mbedtls_chachapoly_context *ctx,
                                      const unsigned char *input,
                                      unsigned char *output );
 
+#if defined(MBEDTLS_SELF_TEST)
 /**
  * \brief           The ChaCha20-Poly1305 checkup routine.
  *
@@ -318,6 +319,7 @@ int mbedtls_chachapoly_auth_decrypt( mbedtls_chachapoly_context *ctx,
  * \return          \c 1 on failure.
  */
 int mbedtls_chachapoly_self_test( int verbose );
+#endif /* MBEDTLS_SELF_TEST */
 
 #ifdef __cplusplus
 }

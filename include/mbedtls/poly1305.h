@@ -164,6 +164,7 @@ int mbedtls_poly1305_mac( const unsigned char key[32],
                           size_t ilen,
                           unsigned char mac[16] );
 
+#if defined(MBEDTLS_SELF_TEST)
 /**
  * \brief           The Poly1305 checkup routine.
  *
@@ -171,6 +172,7 @@ int mbedtls_poly1305_mac( const unsigned char key[32],
  * \return          \c 1 on failure.
  */
 int mbedtls_poly1305_self_test( int verbose );
+#endif /* MBEDTLS_SELF_TEST */
 
 #ifdef __cplusplus
 }

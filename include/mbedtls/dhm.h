@@ -87,6 +87,14 @@
 #define MBEDTLS_ERR_DHM_HW_ACCEL_FAILED                   -0x3500  /**< DHM hardware accelerator failed. */
 #define MBEDTLS_ERR_DHM_SET_GROUP_FAILED                  -0x3580  /**< Setting the modulus and generator failed. */
 
+#if defined( MBEDTLS_CHECK_PARAMS )
+#define MBEDTLS_DHM_VALIDATE( cond )   do { if( !(cond) ) \
+                                           return( MBEDTLS_ERR_DHM_BAD_INPUT_DATA ); \
+                                       } while( 0 )
+#else
+#define MBEDTLS_DHM_VALIDATE( cond )
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -116,12 +124,38 @@ mbedtls_dhm_context;
 #include "dhm_alt.h"
 #endif /* MBEDTLS_DHM_ALT */
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+
 /**
  * \brief          This function initializes the DHM context.
  *
  * \param ctx      The DHM context to initialize.
  */
-void mbedtls_dhm_init( mbedtls_dhm_context *ctx );
+MBEDTLS_DEPRECATED void mbedtls_dhm_init( mbedtls_dhm_context *ctx );
+
+/**
+ * \brief          This function frees and clears the components of a DHM context.
+ *
+ * \param ctx      The DHM context to free and clear.
+ */
+MBEDTLS_DEPRECATED void mbedtls_dhm_free( mbedtls_dhm_context *ctx );
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+
+/**
+ * \brief          This function initializes the DHM context.
+ *
+ * \param ctx      The DHM context to initialize.
+ *
+ * \return         0 if successful.
+ */
+int mbedtls_dhm_init_ret( mbedtls_dhm_context *ctx );
 
 /**
  * \brief          This function parses the ServerKeyExchange parameters.
@@ -259,8 +293,10 @@ int mbedtls_dhm_calc_secret( mbedtls_dhm_context *ctx,
  * \brief          This function frees and clears the components of a DHM context.
  *
  * \param ctx      The DHM context to free and clear.
+ *
+ * \return         0 if successful.
  */
-void mbedtls_dhm_free( mbedtls_dhm_context *ctx );
+int mbedtls_dhm_free_ret( mbedtls_dhm_context *ctx );
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
 /** \ingroup x509_module */

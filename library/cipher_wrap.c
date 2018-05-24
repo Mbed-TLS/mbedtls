@@ -841,8 +841,7 @@ static int aria_crypt_cbc_wrap( void *ctx, mbedtls_operation_t operation,
         size_t length, unsigned char *iv,
         const unsigned char *input, unsigned char *output )
 {
-    (void) operation;
-    return mbedtls_aria_crypt_cbc( (mbedtls_aria_context *) ctx, length, iv,
+    return mbedtls_aria_crypt_cbc( (mbedtls_aria_context *) ctx, operation, length, iv,
                                input, output );
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */

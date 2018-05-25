@@ -91,7 +91,10 @@ int mbedtls_rsa_deduce_primes( mbedtls_mpi const *N,
 
     const size_t num_primes = sizeof( primes ) / sizeof( *primes );
 
-    if( P == NULL || Q == NULL || P->p != NULL || Q->p != NULL )
+    MBEDTLS_RSA_VALIDATE( N != NULL && E != NULL && D != NULL && P != NULL &&
+            Q != NULL );
+
+    if( P->p != NULL || Q->p != NULL )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
     if( mbedtls_mpi_cmp_int( N, 0 ) <= 0 ||
@@ -208,6 +211,8 @@ int mbedtls_rsa_deduce_private_exponent( mbedtls_mpi const *P,
     int ret = 0;
     mbedtls_mpi K, L;
 
+    MBEDTLS_RSA_VALIDATE( P != NULL && Q != NULL && E != NULL );
+
     if( D == NULL || mbedtls_mpi_cmp_int( D, 0 ) != 0 )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
@@ -253,6 +258,7 @@ int mbedtls_rsa_validate_crt( const mbedtls_mpi *P,  const mbedtls_mpi *Q,
     int ret = 0;
 
     mbedtls_mpi K, L;
+
     mbedtls_mpi_init( &K );
     mbedtls_mpi_init( &L );
 
@@ -457,6 +463,8 @@ int mbedtls_rsa_deduce_crt( const mbedtls_mpi *P, const mbedtls_mpi *Q,
     int ret = 0;
     mbedtls_mpi K;
     mbedtls_mpi_init( &K );
+
+    MBEDTLS_RSA_VALIDATE( P != NULL && Q != NULL );
 
     /* DP = D mod P-1 */
     if( DP != NULL )

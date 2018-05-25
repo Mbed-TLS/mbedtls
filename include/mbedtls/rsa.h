@@ -77,6 +77,14 @@
  * eg for alternative (PKCS#11) RSA implemenations in the PK layers.
  */
 
+#if defined( MBEDTLS_CHECK_PARAMS )
+#define MBEDTLS_RSA_VALIDATE( cond )   do { if( !(cond) ) \
+                                           return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA ); \
+                                       } while( 0 )
+#else
+#define MBEDTLS_RSA_VALIDATE( cond )
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -133,6 +141,13 @@ mbedtls_rsa_context;
 #include "rsa_alt.h"
 #endif /* MBEDTLS_RSA_ALT */
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+
 /**
  * \brief          This function initializes an RSA context.
  *
@@ -159,7 +174,61 @@ mbedtls_rsa_context;
  * \param hash_id  The hash identifier of #mbedtls_md_type_t type, if
  *                 \p padding is #MBEDTLS_RSA_PKCS_V21.
  */
-void mbedtls_rsa_init( mbedtls_rsa_context *ctx,
+MBEDTLS_DEPRECATED void mbedtls_rsa_init( mbedtls_rsa_context *ctx, int padding,
+                       int hash_id);
+
+/**
+ * \brief          This function sets padding for an already initialized RSA
+ *                 context. See mbedtls_rsa_init() for details.
+ *
+ * \param ctx      The RSA context to be set.
+ * \param padding  Selects padding mode: #MBEDTLS_RSA_PKCS_V15 or
+ *                 #MBEDTLS_RSA_PKCS_V21.
+ * \param hash_id  The #MBEDTLS_RSA_PKCS_V21 hash identifier.
+ */
+MBEDTLS_DEPRECATED void mbedtls_rsa_set_padding( mbedtls_rsa_context *ctx,
+        int padding, int hash_id);
+
+/**
+ * \brief          This function frees the components of an RSA key.
+ *
+ * \param ctx      The RSA Context to free.
+ */
+MBEDTLS_DEPRECATED void mbedtls_rsa_free( mbedtls_rsa_context *ctx );
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+
+
+/**
+ * \brief          This function initializes an RSA context.
+ *
+ * \note           Set padding to #MBEDTLS_RSA_PKCS_V21 for the RSAES-OAEP
+ *                 encryption scheme and the RSASSA-PSS signature scheme.
+ *
+ * \note           The \p hash_id parameter is ignored when using
+ *                 #MBEDTLS_RSA_PKCS_V15 padding.
+ *
+ * \note           The choice of padding mode is strictly enforced for private key
+ *                 operations, since there might be security concerns in
+ *                 mixing padding modes. For public key operations it is
+ *                 a default value, which can be overriden by calling specific
+ *                 \c rsa_rsaes_xxx or \c rsa_rsassa_xxx functions.
+ *
+ * \note           The hash selected in \p hash_id is always used for OEAP
+ *                 encryption. For PSS signatures, it is always used for
+ *                 making signatures, but can be overriden for verifying them.
+ *                 If set to #MBEDTLS_MD_NONE, it is always overriden.
+ *
+ * \param ctx      The RSA context to initialize.
+ * \param padding  Selects padding mode: #MBEDTLS_RSA_PKCS_V15 or
+ *                 #MBEDTLS_RSA_PKCS_V21.
+ * \param hash_id  The hash identifier of #mbedtls_md_type_t type, if
+ *                 \p padding is #MBEDTLS_RSA_PKCS_V21.
+ *
+ * \return         0 if succeeded.
+ */
+int mbedtls_rsa_init_ret( mbedtls_rsa_context *ctx,
                        int padding,
                        int hash_id);
 
@@ -389,8 +458,10 @@ int mbedtls_rsa_export_crt( const mbedtls_rsa_context *ctx,
  * \param padding  Selects padding mode: #MBEDTLS_RSA_PKCS_V15 or
  *                 #MBEDTLS_RSA_PKCS_V21.
  * \param hash_id  The #MBEDTLS_RSA_PKCS_V21 hash identifier.
+ *
+ * \return         0 if succeeded.
  */
-void mbedtls_rsa_set_padding( mbedtls_rsa_context *ctx, int padding,
+int mbedtls_rsa_set_padding_ret( mbedtls_rsa_context *ctx, int padding,
                               int hash_id);
 
 /**
@@ -1113,8 +1184,10 @@ int mbedtls_rsa_copy( mbedtls_rsa_context *dst, const mbedtls_rsa_context *src )
  * \brief          This function frees the components of an RSA key.
  *
  * \param ctx      The RSA Context to free.
+ *
+ * \return         0 if succeeded.
  */
-void mbedtls_rsa_free( mbedtls_rsa_context *ctx );
+int mbedtls_rsa_free_ret( mbedtls_rsa_context *ctx );
 
 /**
  * \brief          The RSA checkup routine.

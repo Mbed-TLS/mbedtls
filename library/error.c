@@ -783,6 +783,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 #if defined(MBEDTLS_SHA512_C)
     if( use_ret == -(MBEDTLS_ERR_SHA512_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "SHA512 - SHA-512 hardware accelerator failed" );
+    if( use_ret == -(MBEDTLS_ERR_SHA512_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "SHA512 - Input invalid" );
 #endif /* MBEDTLS_SHA512_C */
 
 #if defined(MBEDTLS_THREADING_C)

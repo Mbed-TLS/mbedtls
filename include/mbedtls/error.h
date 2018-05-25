@@ -76,6 +76,7 @@
  * SHA1      1                  0x0035-0x0035
  * SHA256    1                  0x0037-0x0037
  * SHA512    1                  0x0039-0x0039
+ *                              0x004F-0x004F
  *
  * High-level module nr (3 bits - 0x0...-0x7...)
  * Name      ID  Nr of Errors

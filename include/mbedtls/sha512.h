@@ -36,6 +36,15 @@
 #include <stdint.h>
 
 #define MBEDTLS_ERR_SHA512_HW_ACCEL_FAILED                -0x0039  /**< SHA-512 hardware accelerator failed */
+#define MBEDTLS_ERR_SHA512_BAD_INPUT_DATA                 -0x004F  /**< Input invalid. */
+
+#if defined( MBEDTLS_CHECK_PARAMS )
+#define MBEDTLS_SHA512_VALIDATE( cond )   do { if( !(cond) ) \
+                                              return( MBEDTLS_ERR_SHA512_BAD_INPUT_DATA ); \
+                                          } while( 0 )
+#else
+#define MBEDTLS_SHA512_VALIDATE( cond )
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,14 +80,14 @@ mbedtls_sha512_context;
  *
  * \param ctx      The SHA-512 context to initialize.
  */
-void mbedtls_sha512_init( mbedtls_sha512_context *ctx );
+int mbedtls_sha512_init_ret( mbedtls_sha512_context *ctx );
 
 /**
  * \brief          This function clears a SHA-512 context.
  *
  * \param ctx      The SHA-512 context to clear.
  */
-void mbedtls_sha512_free( mbedtls_sha512_context *ctx );
+int mbedtls_sha512_free_ret( mbedtls_sha512_context *ctx );
 
 /**
  * \brief          This function clones the state of a SHA-512 context.
@@ -86,8 +95,41 @@ void mbedtls_sha512_free( mbedtls_sha512_context *ctx );
  * \param dst      The destination context.
  * \param src      The context to clone.
  */
-void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
-                           const mbedtls_sha512_context *src );
+int mbedtls_sha512_clone_ret( mbedtls_sha512_context *dst,
+                              const mbedtls_sha512_context *src );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+
+/**
+ * \brief          This function initializes a SHA-512 context.
+ *
+ * \param ctx      The SHA-512 context to initialize.
+ */
+MBEDTLS_DEPRECATED void mbedtls_sha512_init( mbedtls_sha512_context *ctx );
+
+/**
+ * \brief          This function clears a SHA-512 context.
+ *
+ * \param ctx      The SHA-512 context to clear.
+ */
+MBEDTLS_DEPRECATED void mbedtls_sha512_free( mbedtls_sha512_context *ctx );
+
+/**
+ * \brief          This function clones the state of a SHA-512 context.
+ *
+ * \param dst      The destination context.
+ * \param src      The context to clone.
+ */
+MBEDTLS_DEPRECATED void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
+                                              const mbedtls_sha512_context *src );
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 /**
  * \brief          This function starts a SHA-384 or SHA-512 checksum

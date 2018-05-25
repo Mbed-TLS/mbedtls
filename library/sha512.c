@@ -88,30 +88,57 @@
 }
 #endif /* PUT_UINT64_BE */
 
+int mbedtls_sha512_init_ret( mbedtls_sha512_context *ctx )
+{
+    MBEDTLS_SHA512_VALIDATE( ctx != NULL );
+    memset( ctx, 0, sizeof( mbedtls_sha512_context ) );
+    return( 0 );
+}
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha512_init( mbedtls_sha512_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_sha512_context ) );
+    mbedtls_sha512_init_ret( ctx );
+}
+#endif
+
+int mbedtls_sha512_free_ret( mbedtls_sha512_context *ctx )
+{
+    MBEDTLS_SHA512_VALIDATE( ctx != NULL );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha512_context ) );
+    return( 0 );
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha512_free( mbedtls_sha512_context *ctx )
 {
-    if( ctx == NULL )
-        return;
+    mbedtls_sha512_free_ret( ctx );
+}
+#endif
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha512_context ) );
+int mbedtls_sha512_clone_ret( mbedtls_sha512_context *dst,
+                           const mbedtls_sha512_context *src )
+{
+    MBEDTLS_SHA512_VALIDATE( dst != NULL && src != NULL );
+    *dst = *src;
+    return( 0 );
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
                            const mbedtls_sha512_context *src )
 {
-    *dst = *src;
+    mbedtls_sha512_clone_ret( dst, src );
 }
+#endif
 
 /*
  * SHA-512 context setup
  */
 int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 )
 {
+    MBEDTLS_SHA512_VALIDATE( ctx != NULL );
+
     ctx->total[0] = 0;
     ctx->total[1] = 0;
 
@@ -209,6 +236,8 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
     uint64_t temp1, temp2, W[80];
     uint64_t A, B, C, D, E, F, G, H;
 
+    MBEDTLS_SHA512_VALIDATE( ctx != NULL );
+
 #define  SHR(x,n) (x >> n)
 #define ROTR(x,n) (SHR(x,n) | (x << (64 - n)))
 
@@ -294,6 +323,8 @@ int mbedtls_sha512_update_ret( mbedtls_sha512_context *ctx,
     size_t fill;
     unsigned int left;
 
+    MBEDTLS_SHA512_VALIDATE( ctx != NULL && ( input != NULL || ilen == 0 ) );
+
     if( ilen == 0 )
         return( 0 );
 
@@ -363,6 +394,8 @@ int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
     size_t last, padn;
     uint64_t high, low;
     unsigned char msglen[16];
+
+    MBEDTLS_SHA512_VALIDATE( ctx != NULL );
 
     high = ( ctx->total[0] >> 61 )
          | ( ctx->total[1] <<  3 );

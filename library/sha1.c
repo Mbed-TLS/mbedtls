@@ -71,30 +71,57 @@
 }
 #endif
 
+int mbedtls_sha1_init_ret( mbedtls_sha1_context *ctx )
+{
+    MBEDTLS_SHA1_VALIDATE( ctx != NULL );
+    memset( ctx, 0, sizeof( mbedtls_sha1_context ) );
+    return( 0 );
+}
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED) 
 void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_sha1_context ) );
+    mbedtls_sha1_init_ret( ctx );
+}
+#endif
+
+int mbedtls_sha1_free_ret( mbedtls_sha1_context *ctx )
+{
+    MBEDTLS_SHA1_VALIDATE( ctx );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
+    return( 0 );
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED) 
 void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
 {
-    if( ctx == NULL )
-        return;
+    mbedtls_sha1_free_ret( ctx );
+}
+#endif
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha1_context ) );
+int mbedtls_sha1_clone_ret( mbedtls_sha1_context *dst,
+                            const mbedtls_sha1_context *src )
+{
+    MBEDTLS_SHA1_VALIDATE( dst != NULL && src != NULL );
+    *dst = *src;
+    return( 0 );
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED) 
 void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
                          const mbedtls_sha1_context *src )
 {
-    *dst = *src;
+    mbedtls_sha1_clone_ret( dst, src );
 }
+#endif
 
 /*
  * SHA-1 context setup
  */
 int mbedtls_sha1_starts_ret( mbedtls_sha1_context *ctx )
 {
+    MBEDTLS_SHA1_VALIDATE( ctx != NULL );
+
     ctx->total[0] = 0;
     ctx->total[1] = 0;
 
@@ -119,6 +146,8 @@ int mbedtls_internal_sha1_process( mbedtls_sha1_context *ctx,
                                    const unsigned char data[64] )
 {
     uint32_t temp, W[16], A, B, C, D, E;
+
+    MBEDTLS_SHA1_VALIDATE( ctx != NULL );
 
     GET_UINT32_BE( W[ 0], data,  0 );
     GET_UINT32_BE( W[ 1], data,  4 );
@@ -294,6 +323,8 @@ int mbedtls_sha1_update_ret( mbedtls_sha1_context *ctx,
     size_t fill;
     uint32_t left;
 
+    MBEDTLS_SHA1_VALIDATE( ctx != NULL && ( input != NULL || ilen == 0 ) );
+
     if( ilen == 0 )
         return( 0 );
 
@@ -360,6 +391,8 @@ int mbedtls_sha1_finish_ret( mbedtls_sha1_context *ctx,
     uint32_t last, padn;
     uint32_t high, low;
     unsigned char msglen[8];
+
+    MBEDTLS_SHA1_VALIDATE( ctx != NULL );
 
     high = ( ctx->total[0] >> 29 )
          | ( ctx->total[1] <<  3 );

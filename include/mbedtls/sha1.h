@@ -41,6 +41,15 @@
 #include <stdint.h>
 
 #define MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED                  -0x0035  /**< SHA-1 hardware accelerator failed */
+#define MBEDTLS_ERR_SHA1_BAD_INPUT_DATA                   -0x004B  /**< Input invalid. */
+
+#if defined( MBEDTLS_CHECK_PARAMS )
+#define MBEDTLS_SHA1_VALIDATE( cond )   do { if( !(cond) ) \
+                                            return( MBEDTLS_ERR_SHA1_BAD_INPUT_DATA ); \
+                                        } while( 0 )
+#else
+#define MBEDTLS_SHA1_VALIDATE( cond )
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,8 +88,59 @@ mbedtls_sha1_context;
  *
  * \param ctx      The SHA-1 context to initialize.
  *
+ * \return         0 if succeeded.
+ *
  */
-void mbedtls_sha1_init( mbedtls_sha1_context *ctx );
+int mbedtls_sha1_init_ret( mbedtls_sha1_context *ctx );
+
+/**
+ * \brief          This function clears a SHA-1 context.
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
+ * \param ctx      The SHA-1 context to clear.
+ *
+ * \return         0 if succeeded.
+ *
+ */
+int mbedtls_sha1_free_ret( mbedtls_sha1_context *ctx );
+
+/**
+ * \brief          This function clones the state of a SHA-1 context.
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
+ * \param dst      The SHA-1 context to clone to.
+ * \param src      The SHA-1 context to clone from.
+ *
+ * \return         0 if succeeded.
+ *
+ */
+int mbedtls_sha1_clone_ret( mbedtls_sha1_context *dst,
+                         const mbedtls_sha1_context *src );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+
+/**
+ * \brief          This function initializes a SHA-1 context.
+ *
+ * \warning        SHA-1 is considered a weak message digest and its use
+ *                 constitutes a security risk. We recommend considering
+ *                 stronger message digests instead.
+ *
+ * \param ctx      The SHA-1 context to initialize.
+ *
+ */
+MBEDTLS_DEPRECATED void mbedtls_sha1_init( mbedtls_sha1_context *ctx );
 
 /**
  * \brief          This function clears a SHA-1 context.
@@ -92,7 +152,7 @@ void mbedtls_sha1_init( mbedtls_sha1_context *ctx );
  * \param ctx      The SHA-1 context to clear.
  *
  */
-void mbedtls_sha1_free( mbedtls_sha1_context *ctx );
+MBEDTLS_DEPRECATED void mbedtls_sha1_free( mbedtls_sha1_context *ctx );
 
 /**
  * \brief          This function clones the state of a SHA-1 context.
@@ -105,8 +165,11 @@ void mbedtls_sha1_free( mbedtls_sha1_context *ctx );
  * \param src      The SHA-1 context to clone from.
  *
  */
-void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
+MBEDTLS_DEPRECATED void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
                          const mbedtls_sha1_context *src );
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 /**
  * \brief          This function starts a SHA-1 checksum calculation.

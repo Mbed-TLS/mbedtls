@@ -37,6 +37,15 @@
 #include <stdint.h>
 
 #define MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED                -0x0037  /**< SHA-256 hardware accelerator failed */
+#define MBEDTLS_ERR_SHA256_BAD_INPUT_DATA                 -0x004D  /**< Input invalid. */
+
+#if defined( MBEDTLS_CHECK_PARAMS )
+#define MBEDTLS_SHA256_VALIDATE( cond )   do { if( !(cond) ) \
+                                              return( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA ); \
+                                          } while( 0 )
+#else
+#define MBEDTLS_SHA256_VALIDATE( cond )
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,15 +80,51 @@ mbedtls_sha256_context;
  * \brief          This function initializes a SHA-256 context.
  *
  * \param ctx      The SHA-256 context to initialize.
+ *
+ * \return         0 if succeeded.
  */
-void mbedtls_sha256_init( mbedtls_sha256_context *ctx );
+int mbedtls_sha256_init_ret( mbedtls_sha256_context *ctx );
+
+/**
+ * \brief          This function clears a SHA-256 context.
+ *
+ * \param ctx      The SHA-256 context to clear.
+ *
+ * \return         0 if succeeded.
+ */
+int mbedtls_sha256_free_ret( mbedtls_sha256_context *ctx );
+
+/**
+ * \brief          This function clones the state of a SHA-256 context.
+ *
+ * \param dst      The destination context.
+ * \param src      The context to clone.
+ *
+ * \return         0 if succeeded.
+ */
+int mbedtls_sha256_clone_ret( mbedtls_sha256_context *dst,
+                              const mbedtls_sha256_context *src );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+
+/**
+ * \brief          This function initializes a SHA-256 context.
+ *
+ * \param ctx      The SHA-256 context to initialize.
+ */
+MBEDTLS_DEPRECATED void mbedtls_sha256_init( mbedtls_sha256_context *ctx );
 
 /**
  * \brief          This function clears a SHA-256 context.
  *
  * \param ctx      The SHA-256 context to clear.
  */
-void mbedtls_sha256_free( mbedtls_sha256_context *ctx );
+MBEDTLS_DEPRECATED void mbedtls_sha256_free( mbedtls_sha256_context *ctx );
 
 /**
  * \brief          This function clones the state of a SHA-256 context.
@@ -87,8 +132,11 @@ void mbedtls_sha256_free( mbedtls_sha256_context *ctx );
  * \param dst      The destination context.
  * \param src      The context to clone.
  */
-void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
+MBEDTLS_DEPRECATED void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
                            const mbedtls_sha256_context *src );
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 /**
  * \brief          This function starts a SHA-224 or SHA-256 checksum

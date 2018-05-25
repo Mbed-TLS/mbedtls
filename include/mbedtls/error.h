@@ -75,6 +75,7 @@
  * RIPEMD160 1                  0x0031-0x0031
  * SHA1      1                  0x0035-0x0035
  * SHA256    1                  0x0037-0x0037
+ *                              0x004D-0x004D
  * SHA512    1                  0x0039-0x0039
  *
  * High-level module nr (3 bits - 0x0...-0x7...)

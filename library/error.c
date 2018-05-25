@@ -778,6 +778,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 #if defined(MBEDTLS_SHA256_C)
     if( use_ret == -(MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "SHA256 - SHA-256 hardware accelerator failed" );
+    if( use_ret == -(MBEDTLS_ERR_SHA256_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "SHA256 - Input invalid" );
 #endif /* MBEDTLS_SHA256_C */
 
 #if defined(MBEDTLS_SHA512_C)

@@ -74,30 +74,57 @@ do {                                                    \
 } while( 0 )
 #endif
 
+int mbedtls_sha256_init_ret( mbedtls_sha256_context *ctx )
+{
+    MBEDTLS_SHA256_VALIDATE( ctx != NULL );
+    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
+    return( 0 );
+}
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED) 
 void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_sha256_context ) );
+    mbedtls_sha256_init_ret( ctx );
+}
+#endif
+
+int mbedtls_sha256_free_ret( mbedtls_sha256_context *ctx )
+{
+    MBEDTLS_SHA256_VALIDATE( ctx != NULL );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
+    return( 0 );
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED) 
 void mbedtls_sha256_free( mbedtls_sha256_context *ctx )
 {
-    if( ctx == NULL )
-        return;
+    mbedtls_sha256_free_ret( ctx );
+}
+#endif
 
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_sha256_context ) );
+int mbedtls_sha256_clone_ret( mbedtls_sha256_context *dst,
+                           const mbedtls_sha256_context *src )
+{
+    MBEDTLS_SHA256_VALIDATE( dst != NULL && src != NULL );
+    *dst = *src;
+    return( 0 );
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED) 
 void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
                            const mbedtls_sha256_context *src )
 {
-    *dst = *src;
+    mbedtls_sha256_clone_ret( dst, src );
 }
+#endif
 
 /*
  * SHA-256 context setup
  */
 int mbedtls_sha256_starts_ret( mbedtls_sha256_context *ctx, int is224 )
 {
+    MBEDTLS_SHA256_VALIDATE( ctx != NULL );
+
     ctx->total[0] = 0;
     ctx->total[1] = 0;
 
@@ -192,6 +219,8 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
     uint32_t A[8];
     unsigned int i;
 
+    MBEDTLS_SHA256_VALIDATE( ctx != NULL );
+
     for( i = 0; i < 8; i++ )
         A[i] = ctx->state[i];
 
@@ -263,6 +292,8 @@ int mbedtls_sha256_update_ret( mbedtls_sha256_context *ctx,
     size_t fill;
     uint32_t left;
 
+    MBEDTLS_SHA256_VALIDATE( ctx != NULL && ( input != NULL || ilen == 0 ) );
+
     if( ilen == 0 )
         return( 0 );
 
@@ -329,6 +360,8 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
     uint32_t last, padn;
     uint32_t high, low;
     unsigned char msglen[8];
+
+    MBEDTLS_SHA256_VALIDATE( ctx != NULL );
 
     high = ( ctx->total[0] >> 29 )
          | ( ctx->total[1] <<  3 );

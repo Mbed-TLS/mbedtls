@@ -162,5 +162,9 @@ if(ENABLE_TESTING)
             COMMAND rm -f memcheck.log
             COMMAND mv DartConfiguration.tcl.bak DartConfiguration.tcl
         )
+        set(DEST_DIR "${CMAKE_INSTALL_PREFIX}")
+        get_target_property(MBEDTLS_VERSION mbedtls VERSION)
+        set(PRIVATE_LIBS "-lmbedtls")
+        CONFIGURE_FILE("mbedtls.pc.in" "mbedtls.pc" @ONLY)
     endif(UNIX)
 endif()

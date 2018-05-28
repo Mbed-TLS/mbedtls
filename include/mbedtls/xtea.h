@@ -38,6 +38,15 @@
 
 #define MBEDTLS_ERR_XTEA_INVALID_INPUT_LENGTH             -0x0028  /**< The data input has an invalid length. */
 #define MBEDTLS_ERR_XTEA_HW_ACCEL_FAILED                  -0x0029  /**< XTEA hardware accelerator failed. */
+#define MBEDTLS_ERR_XTEA_BAD_INPUT_DATA                   -0x0051  /**< Input invalid. */
+
+#if defined( MBEDTLS_CHECK_PARAMS )
+#define MBEDTLS_XTEA_VALIDATE( cond )   do { if( !(cond) ) \
+                                            return( MBEDTLS_ERR_XTEA_BAD_INPUT_DATA ); \
+                                        } while( 0 )
+#else
+#define MBEDTLS_XTEA_VALIDATE( cond )
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -64,15 +73,50 @@ mbedtls_xtea_context;
  * \brief          Initialize XTEA context
  *
  * \param ctx      XTEA context to be initialized
+ *
+ * \return         0 if succeeded
  */
-void mbedtls_xtea_init( mbedtls_xtea_context *ctx );
+int mbedtls_xtea_init_ret( mbedtls_xtea_context *ctx );
+
+/**
+ * \brief          Clear XTEA context
+ *
+ * \param ctx      XTEA context to be cleared
+ *
+ * \return         0 if succeeded
+ */
+int mbedtls_xtea_free_ret( mbedtls_xtea_context *ctx );
+
+/**
+ * \brief          XTEA key schedule
+ *
+ * \param ctx      XTEA context to be initialized
+ * \param key      the secret key
+ *
+ * \return         0 if succeeded
+ */
+int mbedtls_xtea_setup_ret( mbedtls_xtea_context *ctx, const unsigned char key[16] );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+
+/**
+ * \brief          Initialize XTEA context
+ *
+ * \param ctx      XTEA context to be initialized
+ */
+MBEDTLS_DEPRECATED void mbedtls_xtea_init( mbedtls_xtea_context *ctx );
 
 /**
  * \brief          Clear XTEA context
  *
  * \param ctx      XTEA context to be cleared
  */
-void mbedtls_xtea_free( mbedtls_xtea_context *ctx );
+MBEDTLS_DEPRECATED void mbedtls_xtea_free( mbedtls_xtea_context *ctx );
 
 /**
  * \brief          XTEA key schedule
@@ -80,7 +124,11 @@ void mbedtls_xtea_free( mbedtls_xtea_context *ctx );
  * \param ctx      XTEA context to be initialized
  * \param key      the secret key
  */
-void mbedtls_xtea_setup( mbedtls_xtea_context *ctx, const unsigned char key[16] );
+MBEDTLS_DEPRECATED void mbedtls_xtea_setup( mbedtls_xtea_context *ctx,
+                                            const unsigned char key[16] );
+
+#undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 /**
  * \brief          XTEA cipher function

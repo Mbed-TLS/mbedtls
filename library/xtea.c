@@ -66,33 +66,57 @@
 }
 #endif
 
+int mbedtls_xtea_init_ret( mbedtls_xtea_context *ctx )
+{
+    MBEDTLS_XTEA_VALIDATE( ctx != NULL );
+    memset( ctx, 0, sizeof( mbedtls_xtea_context ) );
+    return( 0 );
+}
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_xtea_init( mbedtls_xtea_context *ctx )
 {
-    memset( ctx, 0, sizeof( mbedtls_xtea_context ) );
+    mbedtls_xtea_init_ret( ctx );
+}
+#endif
+
+int mbedtls_xtea_free_ret( mbedtls_xtea_context *ctx )
+{
+    MBEDTLS_XTEA_VALIDATE( ctx != NULL );
+    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_xtea_context ) );
+    return( 0 );
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 void mbedtls_xtea_free( mbedtls_xtea_context *ctx )
 {
-    if( ctx == NULL )
-        return;
-
-    mbedtls_platform_zeroize( ctx, sizeof( mbedtls_xtea_context ) );
+    mbedtls_xtea_free_ret( ctx );
 }
+#endif
 
 /*
  * XTEA key schedule
  */
-void mbedtls_xtea_setup( mbedtls_xtea_context *ctx, const unsigned char key[16] )
+int mbedtls_xtea_setup_ret( mbedtls_xtea_context *ctx,
+                            const unsigned char key[16] )
 {
     int i;
-
+    MBEDTLS_XTEA_VALIDATE( ctx != NULL );
     memset( ctx, 0, sizeof(mbedtls_xtea_context) );
-
     for( i = 0; i < 4; i++ )
     {
         GET_UINT32_BE( ctx->k[i], key, i << 2 );
     }
+    return( 0 );
 }
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+void mbedtls_xtea_setup( mbedtls_xtea_context *ctx,
+                         const unsigned char key[16] )
+{
+    mbedtls_xtea_setup_ret( ctx, key );
+}
+#endif
 
 /*
  * XTEA encrypt function
@@ -101,6 +125,8 @@ int mbedtls_xtea_crypt_ecb( mbedtls_xtea_context *ctx, int mode,
                     const unsigned char input[8], unsigned char output[8])
 {
     uint32_t *k, v0, v1, i;
+
+    MBEDTLS_XTEA_VALIDATE( ctx != NULL );
 
     k = ctx->k;
 
@@ -146,6 +172,9 @@ int mbedtls_xtea_crypt_cbc( mbedtls_xtea_context *ctx, int mode, size_t length,
 {
     int i;
     unsigned char temp[8];
+
+    MBEDTLS_XTEA_VALIDATE( ctx != NULL &&
+            ( length == 0 || ( input != NULL && output != NULL ) ) );
 
     if( length % 8 )
         return( MBEDTLS_ERR_XTEA_INVALID_INPUT_LENGTH );

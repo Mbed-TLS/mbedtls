@@ -799,6 +799,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "XTEA - The data input has an invalid length" );
     if( use_ret == -(MBEDTLS_ERR_XTEA_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "XTEA - XTEA hardware accelerator failed" );
+    if( use_ret == -(MBEDTLS_ERR_XTEA_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "XTEA - Input invalid" );
 #endif /* MBEDTLS_XTEA_C */
     // END generated code
 

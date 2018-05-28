@@ -309,7 +309,8 @@ const int *mbedtls_cipher_list( void );
  * \brief               This function retrieves the cipher-information
  *                      structure associated with the given cipher name.
  *
- * \param cipher_name   Name of the cipher to search for.
+ * \param cipher_name   Name of the cipher to search for. If NULL, a NULL pointer
+ *                      shall be returned.
  *
  * \return              The cipher information structure associated with the
  *                      given \p cipher_name.
@@ -371,6 +372,8 @@ MBEDTLS_DEPRECATED void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx );
 
 /**
  * \brief               This function initializes a \p cipher_context as NONE.
+ *
+ * \return              0 if successful.
  */
 int mbedtls_cipher_init_ret( mbedtls_cipher_context_t *ctx );
 
@@ -378,6 +381,8 @@ int mbedtls_cipher_init_ret( mbedtls_cipher_context_t *ctx );
  * \brief               This function frees and clears the cipher-specific
  *                      context of \p ctx. Freeing \p ctx itself remains the
  *                      responsibility of the caller.
+ *
+ * \return              0 if successful.
  */
 int mbedtls_cipher_free_ret( mbedtls_cipher_context_t *ctx );
 

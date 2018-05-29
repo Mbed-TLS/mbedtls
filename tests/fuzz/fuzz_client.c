@@ -77,16 +77,16 @@ static int dummy_random( void *p_rng, unsigned char *output, size_t output_len )
 
 static int dummy_entropy( void *data, unsigned char *output, size_t len )
 {
-    int ret;
     size_t i;
 
     //use mbedtls_entropy_func to find bugs in it
-    ret = mbedtls_entropy_func(data, output, len);
+    //test performance impact of entropy
+    //ret = mbedtls_entropy_func(data, output, len);
     for (i=0; i<len; i++) {
         //replace result with pseudo random
         output[i] = (unsigned char) random();
     }
-    return( ret );
+    return( 0 );
 }
 
 

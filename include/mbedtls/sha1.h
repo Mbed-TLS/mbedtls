@@ -194,7 +194,7 @@ int mbedtls_sha1_starts_ret( mbedtls_sha1_context *ctx );
  *                 stronger message digests instead.
  *
  * \param ctx      The SHA-1 context.
- * \param input    The buffer holding the input data.
+ * \param input    The buffer holding the input data or NULL if ilen = 0.
  * \param ilen     The length of the input data.
  *
  * \return         \c 0 on success.
@@ -266,7 +266,7 @@ MBEDTLS_DEPRECATED void mbedtls_sha1_starts( mbedtls_sha1_context *ctx );
  * \deprecated     Superseded by mbedtls_sha1_update_ret() in 2.7.0.
  *
  * \param ctx      The SHA-1 context.
- * \param input    The buffer holding the input data.
+ * \param input    The buffer holding the input data or NULL if ilen = 0.
  * \param ilen     The length of the input data.
  *
  */
@@ -323,7 +323,7 @@ MBEDTLS_DEPRECATED void mbedtls_sha1_process( mbedtls_sha1_context *ctx,
  *                 constitutes a security risk. We recommend considering
  *                 stronger message digests instead.
  *
- * \param input    The buffer holding the input data.
+ * \param input    The buffer holding the input data or NULL if ilen = 0.
  * \param ilen     The length of the input data.
  * \param output   The SHA-1 checksum result.
  *
@@ -355,7 +355,7 @@ int mbedtls_sha1_ret( const unsigned char *input,
  *
  * \deprecated     Superseded by mbedtls_sha1_ret() in 2.7.0
  *
- * \param input    The buffer holding the input data.
+ * \param input    The buffer holding the input data or NULL if ilen = 0.
  * \param ilen     The length of the input data.
  * \param output   The SHA-1 checksum result.
  *

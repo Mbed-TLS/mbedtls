@@ -229,8 +229,7 @@ MBEDTLS_DEPRECATED void mbedtls_rsa_free( mbedtls_rsa_context *ctx );
  * \return         0 if succeeded.
  */
 int mbedtls_rsa_init_ret( mbedtls_rsa_context *ctx,
-                       int padding,
-                       int hash_id);
+                          int padding, int hash_id);
 
 /**
  * \brief          This function imports a set of core parameters into an
@@ -638,7 +637,8 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
  *
  * \param ctx      The RSA context.
  * \param f_rng    The RNG function. Needed for padding, PKCS#1 v2.1
- *                 encoding, and #MBEDTLS_RSA_PRIVATE.
+ *                 encoding, and #MBEDTLS_RSA_PRIVATE. May be NULL if blinding
+ *                 is not required.
  * \param p_rng    The RNG context.
  * \param mode     #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE.
  * \param ilen     The length of the plaintext.

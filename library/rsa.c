@@ -244,12 +244,16 @@ static int rsa_check_context( mbedtls_rsa_context const *ctx, int is_priv,
 int mbedtls_rsa_complete( mbedtls_rsa_context *ctx )
 {
     int ret = 0;
+    int have_N, have_P, have_Q, have_D, have_E;
+    int n_missing, pq_missing, d_missing, is_pub, is_priv;
 
-    const int have_N = ( mbedtls_mpi_cmp_int( &ctx->N, 0 ) != 0 );
-    const int have_P = ( mbedtls_mpi_cmp_int( &ctx->P, 0 ) != 0 );
-    const int have_Q = ( mbedtls_mpi_cmp_int( &ctx->Q, 0 ) != 0 );
-    const int have_D = ( mbedtls_mpi_cmp_int( &ctx->D, 0 ) != 0 );
-    const int have_E = ( mbedtls_mpi_cmp_int( &ctx->E, 0 ) != 0 );
+    MBEDTLS_RSA_VALIDATE( ctx != NULL );
+
+    have_N = ( mbedtls_mpi_cmp_int( &ctx->N, 0 ) != 0 );
+    have_P = ( mbedtls_mpi_cmp_int( &ctx->P, 0 ) != 0 );
+    have_Q = ( mbedtls_mpi_cmp_int( &ctx->Q, 0 ) != 0 );
+    have_D = ( mbedtls_mpi_cmp_int( &ctx->D, 0 ) != 0 );
+    have_E = ( mbedtls_mpi_cmp_int( &ctx->E, 0 ) != 0 );
 
     /*
      * Check whether provided parameters are enough
@@ -260,16 +264,13 @@ int mbedtls_rsa_complete( mbedtls_rsa_context *ctx )
      * (2) D and potentially N missing.
      *
      */
-
-    const int n_missing  =              have_P &&  have_Q &&  have_D && have_E;
-    const int pq_missing =   have_N && !have_P && !have_Q &&  have_D && have_E;
-    const int d_missing  =              have_P &&  have_Q && !have_D && have_E;
-    const int is_pub     =   have_N && !have_P && !have_Q && !have_D && have_E;
+    n_missing  =              have_P &&  have_Q &&  have_D && have_E;
+    pq_missing =   have_N && !have_P && !have_Q &&  have_D && have_E;
+    d_missing  =              have_P &&  have_Q && !have_D && have_E;
+    is_pub     =   have_N && !have_P && !have_Q && !have_D && have_E;
 
     /* These three alternatives are mutually exclusive */
-    const int is_priv = n_missing || pq_missing || d_missing;
-
-    MBEDTLS_RSA_VALIDATE( ctx != NULL );
+    is_priv = n_missing || pq_missing || d_missing;
 
     if( !is_priv && !is_pub )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -342,16 +343,17 @@ int mbedtls_rsa_export_raw( const mbedtls_rsa_context *ctx,
                             unsigned char *E, size_t E_len )
 {
     int ret = 0;
+    int is_priv;
+
+    MBEDTLS_RSA_VALIDATE( ctx != NULL );
 
     /* Check if key is private or public */
-    const int is_priv =
+    is_priv =
         mbedtls_mpi_cmp_int( &ctx->N, 0 ) != 0 &&
         mbedtls_mpi_cmp_int( &ctx->P, 0 ) != 0 &&
         mbedtls_mpi_cmp_int( &ctx->Q, 0 ) != 0 &&
         mbedtls_mpi_cmp_int( &ctx->D, 0 ) != 0 &&
         mbedtls_mpi_cmp_int( &ctx->E, 0 ) != 0;
-
-    MBEDTLS_RSA_VALIDATE( ctx != NULL );
 
     if( !is_priv )
     {
@@ -387,16 +389,17 @@ int mbedtls_rsa_export( const mbedtls_rsa_context *ctx,
                         mbedtls_mpi *D, mbedtls_mpi *E )
 {
     int ret;
+    int is_priv;
+
+    MBEDTLS_RSA_VALIDATE( ctx != NULL );
 
     /* Check if key is private or public */
-    int is_priv =
+    is_priv =
         mbedtls_mpi_cmp_int( &ctx->N, 0 ) != 0 &&
         mbedtls_mpi_cmp_int( &ctx->P, 0 ) != 0 &&
         mbedtls_mpi_cmp_int( &ctx->Q, 0 ) != 0 &&
         mbedtls_mpi_cmp_int( &ctx->D, 0 ) != 0 &&
         mbedtls_mpi_cmp_int( &ctx->E, 0 ) != 0;
-
-    MBEDTLS_RSA_VALIDATE( ctx != NULL );
 
     if( !is_priv )
     {
@@ -431,16 +434,17 @@ int mbedtls_rsa_export_crt( const mbedtls_rsa_context *ctx,
                             mbedtls_mpi *DP, mbedtls_mpi *DQ, mbedtls_mpi *QP )
 {
     int ret;
+    int is_priv;
+
+    MBEDTLS_RSA_VALIDATE( ctx != NULL );
 
     /* Check if key is private or public */
-    int is_priv =
+    is_priv =
         mbedtls_mpi_cmp_int( &ctx->N, 0 ) != 0 &&
         mbedtls_mpi_cmp_int( &ctx->P, 0 ) != 0 &&
         mbedtls_mpi_cmp_int( &ctx->Q, 0 ) != 0 &&
         mbedtls_mpi_cmp_int( &ctx->D, 0 ) != 0 &&
         mbedtls_mpi_cmp_int( &ctx->E, 0 ) != 0;
-
-    MBEDTLS_RSA_VALIDATE( ctx != NULL );
 
     if( !is_priv )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -849,23 +853,29 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
 
     /* Pointers to actual exponents to be used - either the unblinded
      * or the blinded ones, depending on the presence of a PRNG. */
-    mbedtls_mpi *DP = &ctx->DP;
-    mbedtls_mpi *DQ = &ctx->DQ;
+    mbedtls_mpi *DP;
+    mbedtls_mpi *DQ;
 #else
     /* Temporary holding the blinded exponent (if used). */
     mbedtls_mpi D_blind;
 
     /* Pointer to actual exponent to be used - either the unblinded
      * or the blinded one, depending on the presence of a PRNG. */
-    mbedtls_mpi *D = &ctx->D;
+    mbedtls_mpi *D;
 #endif /* MBEDTLS_RSA_NO_CRT */
 
     /* Temporaries holding the initial input and the double
      * checked result; should be the same in the end. */
     mbedtls_mpi I, C;
 
-    MBEDTLS_RSA_VALIDATE( ctx != NULL && f_rng != NULL && input != NULL &&
-            output != NULL );
+    MBEDTLS_RSA_VALIDATE( ctx != NULL && input != NULL && output != NULL );
+
+#if !defined(MBEDTLS_RSA_NO_CRT)
+    DP = &ctx->DP;
+    DQ = &ctx->DQ;
+#else
+    D = &ctx->D;
+#endif /* MBEDTLS_RSA_NO_CRT */
 
     if( rsa_check_context( ctx, 1             /* private key checks */,
                                 f_rng != NULL /* blinding y/n       */ ) != 0 )
@@ -1127,8 +1137,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     const mbedtls_md_info_t *md_info;
     mbedtls_md_context_t md_ctx;
 
-    MBEDTLS_RSA_VALIDATE( ctx != NULL && input != NULL &&
-            output != NULL );
+    MBEDTLS_RSA_VALIDATE( ctx != NULL && input != NULL && output != NULL );
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V21 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -1313,7 +1322,8 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     const mbedtls_md_info_t *md_info;
     mbedtls_md_context_t md_ctx;
 
-    MBEDTLS_RSA_VALIDATE( ctx != NULL );
+    MBEDTLS_RSA_VALIDATE( ctx != NULL && input != NULL && output != NULL &&
+            olen != NULL );
 
     /*
      * Parameters sanity checks
@@ -1447,6 +1457,9 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     unsigned char *p, bad, pad_done = 0;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
 
+    MBEDTLS_RSA_VALIDATE( ctx != NULL && input != NULL && output != NULL &&
+            olen != NULL );
+
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
@@ -1538,6 +1551,7 @@ int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
                        unsigned char *output,
                        size_t output_max_len)
 {
+    MBEDTLS_RSA_VALIDATE( ctx != NULL );
     switch( ctx->padding )
     {
 #if defined(MBEDTLS_PKCS1_V15)
@@ -1579,6 +1593,8 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     size_t msb;
     const mbedtls_md_info_t *md_info;
     mbedtls_md_context_t md_ctx;
+
+    MBEDTLS_RSA_VALIDATE( ctx != NULL && sig != NULL );
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V21 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -1816,8 +1832,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
     int ret;
     unsigned char *sig_try = NULL, *verif = NULL;
 
-    MBEDTLS_RSA_VALIDATE( ctx != NULL && f_rng != NULL && hash != NULL &&
-            sig != NULL );
+    MBEDTLS_RSA_VALIDATE( ctx != NULL && hash != NULL && sig != NULL );
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -2098,7 +2113,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
     const size_t sig_len = ctx->len;
     unsigned char *encoded = NULL, *encoded_expected = NULL;
 
-    MBEDTLS_RSA_VALIDATE( ctx != NULL && hash != NULL );
+    MBEDTLS_RSA_VALIDATE( ctx != NULL );
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );

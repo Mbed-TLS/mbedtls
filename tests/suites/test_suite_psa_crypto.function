@@ -545,6 +545,7 @@ void import_export_public_key( char *hex,
     size_t exported_length;
     psa_key_type_t got_type;
     size_t got_bits;
+    psa_key_policy_t policy = {0};
 
     data = unhexify_alloc( hex, &data_size );
     TEST_ASSERT( data != NULL );
@@ -553,6 +554,13 @@ void import_export_public_key( char *hex,
     TEST_ASSERT( exported != NULL );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT, 
+                              PSA_ALG_VENDOR_FLAG );
+
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
 
     /* Import the key */
     TEST_ASSERT( psa_import_key( slot, type,

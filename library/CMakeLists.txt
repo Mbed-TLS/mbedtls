@@ -90,6 +90,10 @@ set(src_tls
     ssl_tls.c
 )
 
+# Extract version from include/mbedtls/version.h
+file(STRINGS "${PROJECT_SOURCE_DIR}/include/mbedtls/version.h" MBEDTLS_VERSION_H REGEX "^#define *MBEDTLS_VERSION_STRING *\"[^\"]*\"$")
+string(REGEX REPLACE "^.*MBEDTLS_VERSION_STRING +\"([0-9.]*)\"$" "\\1" MBEDTLS_VERSION_STRING ${MBEDTLS_VERSION_H})
+
 if(CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes")
 endif(CMAKE_COMPILER_IS_GNUCC)
@@ -170,16 +174,15 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
 endif(USE_STATIC_MBEDTLS_LIBRARY)
 
 if(USE_SHARED_MBEDTLS_LIBRARY)
-
     add_library(mbedx509 SHARED ${src_x509})
-    set_target_properties(mbedx509 PROPERTIES VERSION 2.17.0 SOVERSION 0)
+    set_target_properties(mbedx509 PROPERTIES VERSION ${MBEDTLS_VERSION_STRING} SOVERSION 0)
     target_link_libraries(mbedx509 ${libs} mbedcrypto)
     target_include_directories(mbedx509
         PUBLIC ${MBEDTLS_DIR}/include/
         PUBLIC ${MBEDTLS_DIR}/crypto/include/)
 
     add_library(mbedtls SHARED ${src_tls})
-    set_target_properties(mbedtls PROPERTIES VERSION 2.17.0 SOVERSION 12)
+    set_target_properties(mbedtls PROPERTIES VERSION ${MBEDTLS_VERSION_STRING} SOVERSION 12)
     target_link_libraries(mbedtls ${libs} mbedx509)
     target_include_directories(mbedtls
         PUBLIC ${MBEDTLS_DIR}/include/

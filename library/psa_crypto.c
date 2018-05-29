@@ -989,10 +989,10 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
         return( status );
     slot = &global_data.key_slots[key];
 
-    if ( ( slot->policy.usage & PSA_KEY_USAGE_SIGN ) != 0 )
+    \ ( slot->policy.usage & PSA_KEY_USAGE_SIGN ) != 0 )
         operation->key_usage_sign = 1;
 
-    if ( ( slot->policy.usage & PSA_KEY_USAGE_VERIFY ) != 0 )
+    if( ( slot->policy.usage & PSA_KEY_USAGE_VERIFY ) != 0 )
         operation->key_usage_verify = 1;
 
     if( ! PSA_ALG_IS_HMAC( alg ) )
@@ -1347,7 +1347,7 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     {
         padding_mode = alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
 
-        switch (padding_mode)
+        switch ( padding_mode )
         {
             case PSA_ALG_BLOCK_CIPHER_PAD_PKCS7:
                 mode = MBEDTLS_PADDING_PKCS7;
@@ -1359,7 +1359,7 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
                 return ( PSA_ERROR_INVALID_ARGUMENT );
         }
         ret = mbedtls_cipher_set_padding_mode( &operation->ctx.cipher, mode );
-        if (ret != 0)
+        if( ret != 0 )
         {
             psa_cipher_abort( operation );
             return( mbedtls_to_psa_error( ret ) );
@@ -1382,14 +1382,14 @@ psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
                                psa_key_slot_t key,
                                psa_algorithm_t alg)
 {
-    return psa_cipher_setup(operation, key, alg, MBEDTLS_ENCRYPT);
+    return psa_cipher_setup( operation, key, alg, MBEDTLS_ENCRYPT );
 }
 
 psa_status_t psa_decrypt_setup(psa_cipher_operation_t *operation,
                                psa_key_slot_t key,
                                psa_algorithm_t alg)
 {
-    return psa_cipher_setup(operation, key, alg, MBEDTLS_DECRYPT);
+    return psa_cipher_setup( operation, key, alg, MBEDTLS_DECRYPT );
 }
 
 psa_status_t psa_encrypt_generate_iv(psa_cipher_operation_t *operation,
@@ -1428,12 +1428,12 @@ psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
     int ret = PSA_SUCCESS;
     if( operation->iv_set || !( operation->iv_required ) )
         return( PSA_ERROR_BAD_STATE );
-    if (iv_length != operation->iv_size)
+    if( iv_length != operation->iv_size )
     {
-        if (((operation->alg) & PSA_ALG_ARC4) == PSA_ALG_ARC4)
-            return(PSA_ERROR_BAD_STATE);
+        if( ( ( operation->alg ) & PSA_ALG_ARC4 ) == PSA_ALG_ARC4 )
+            return( PSA_ERROR_BAD_STATE );
         else
-            return (PSA_ERROR_INVALID_ARGUMENT);
+            return( PSA_ERROR_INVALID_ARGUMENT );
     }
     ret =  mbedtls_cipher_set_iv( &operation->ctx.cipher, iv, iv_length );
     if( ret != 0 )
@@ -1482,10 +1482,10 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
 
     if( ! operation->key_set )
         return( PSA_ERROR_BAD_STATE );
-    if ( operation->iv_required && ! operation->iv_set )
+    if( operation->iv_required && ! operation->iv_set )
         return( PSA_ERROR_BAD_STATE );
 
-    if ( operation->ctx.cipher.operation == MBEDTLS_ENCRYPT )
+    if( operation->ctx.cipher.operation == MBEDTLS_ENCRYPT )
     {
         if( operation->ctx.cipher.unprocessed_len > operation->block_size )
             return( PSA_ERROR_INVALID_ARGUMENT );
@@ -1632,7 +1632,7 @@ psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
     if( slot->type != PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_OCCUPIED_SLOT );
 
-    if ( lifetime != PSA_KEY_LIFETIME_VOLATILE )
+    if( lifetime != PSA_KEY_LIFETIME_VOLATILE )
         return( PSA_ERROR_NOT_SUPPORTED );
         
     slot->lifetime = lifetime;

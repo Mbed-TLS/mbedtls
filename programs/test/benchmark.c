@@ -432,23 +432,23 @@ int main( int argc, char *argv[] )
     if( todo.aes_xts )
     {
         int keysize;
-        mbedtls_aes_context crypt_ctx, tweak_ctx;
-        mbedtls_aes_init( &crypt_ctx );
-        mbedtls_aes_init( &tweak_ctx );
-        for( keysize = 128; keysize <= 256; keysize += 64 )
+        mbedtls_aes_xts_context ctx;
+
+        mbedtls_aes_xts_init( &ctx );
+        for( keysize = 128; keysize <= 256; keysize += 128 )
         {
             mbedtls_snprintf( title, sizeof( title ), "AES-XTS-%d", keysize );
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            mbedtls_aes_setkey_enc( &crypt_ctx, tmp, keysize );
-            mbedtls_aes_setkey_enc( &tweak_ctx, tmp, keysize );
+            mbedtls_aes_xts_setkey_enc( &ctx, tmp, keysize * 2 );
 
             TIME_AND_TSC( title,
-                mbedtls_aes_crypt_xts( &crypt_ctx, &tweak_ctx, MBEDTLS_AES_ENCRYPT, BUFSIZE * 8, tmp, buf, buf ) );
+                    mbedtls_aes_crypt_xts( &ctx, MBEDTLS_AES_ENCRYPT, BUFSIZE,
+                                           tmp, buf, buf ) );
+
+            mbedtls_aes_xts_free( &ctx );
         }
-        mbedtls_aes_free( &crypt_ctx );
-        mbedtls_aes_free( &tweak_ctx );
     }
 #endif
 #if defined(MBEDTLS_GCM_C)

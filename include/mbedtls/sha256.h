@@ -155,7 +155,7 @@ int mbedtls_sha256_starts_ret( mbedtls_sha256_context *ctx, int is224 );
  *                 SHA-256 checksum calculation.
  *
  * \param ctx      The SHA-256 context.
- * \param input    The buffer holding the data.
+ * \param input    The buffer holding the data or NULL if ilen = 0.
  * \param ilen     The length of the input data.
  *
  * \return         \c 0 on success.
@@ -216,7 +216,7 @@ MBEDTLS_DEPRECATED void mbedtls_sha256_starts( mbedtls_sha256_context *ctx,
  * \deprecated     Superseded by mbedtls_sha256_update_ret() in 2.7.0.
  *
  * \param ctx      The SHA-256 context to initialize.
- * \param input    The buffer holding the data.
+ * \param input    The buffer holding the data or NULL if ilen = 0.
  * \param ilen     The length of the input data.
  */
 MBEDTLS_DEPRECATED void mbedtls_sha256_update( mbedtls_sha256_context *ctx,
@@ -261,7 +261,7 @@ MBEDTLS_DEPRECATED void mbedtls_sha256_process( mbedtls_sha256_context *ctx,
  *                 The SHA-256 result is calculated as
  *                 output = SHA-256(input buffer).
  *
- * \param input    The buffer holding the input data.
+ * \param input    The buffer holding the input data or NULL if ilen = 0.
  * \param ilen     The length of the input data.
  * \param output   The SHA-224 or SHA-256 checksum result.
  * \param is224    Determines which function to use:
@@ -291,7 +291,7 @@ int mbedtls_sha256_ret( const unsigned char *input,
  *
  * \deprecated     Superseded by mbedtls_sha256_ret() in 2.7.0.
  *
- * \param input    The buffer holding the data.
+ * \param input    The buffer holding the data or NULL if ilen = 0.
  * \param ilen     The length of the input data.
  * \param output   The SHA-224 or SHA-256 checksum result.
  * \param is224    Determines which function to use:

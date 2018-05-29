@@ -153,8 +153,8 @@ int mbedtls_xtea_crypt_ecb( mbedtls_xtea_context *ctx,
  * \param mode     MBEDTLS_XTEA_ENCRYPT or MBEDTLS_XTEA_DECRYPT
  * \param length   the length of input, multiple of 8
  * \param iv       initialization vector for CBC mode
- * \param input    input block
- * \param output   output block
+ * \param input    input block or NULL if length = 0
+ * \param output   output block or NULL if length = 0
  *
  * \return         0 if successful,
  *                 MBEDTLS_ERR_XTEA_INVALID_INPUT_LENGTH if the length % 8 != 0

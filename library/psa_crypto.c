@@ -1371,8 +1371,6 @@ psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
     slot = &global_data.key_slots[key];
     if( slot->type == PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_EMPTY_SLOT );
-    if( ! PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
 
     #if defined(MBEDTLS_RSA_C)
     if( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )

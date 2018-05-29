@@ -79,6 +79,8 @@ mbedtls_sha512_context;
  * \brief          This function initializes a SHA-512 context.
  *
  * \param ctx      The SHA-512 context to initialize.
+ *
+ * \return         0 if successful.
  */
 int mbedtls_sha512_init_ret( mbedtls_sha512_context *ctx );
 
@@ -86,6 +88,8 @@ int mbedtls_sha512_init_ret( mbedtls_sha512_context *ctx );
  * \brief          This function clears a SHA-512 context.
  *
  * \param ctx      The SHA-512 context to clear.
+ *
+ * \return         0 if successful.
  */
 int mbedtls_sha512_free_ret( mbedtls_sha512_context *ctx );
 
@@ -94,6 +98,8 @@ int mbedtls_sha512_free_ret( mbedtls_sha512_context *ctx );
  *
  * \param dst      The destination context.
  * \param src      The context to clone.
+ *
+ * \return         0 if successful.
  */
 int mbedtls_sha512_clone_ret( mbedtls_sha512_context *dst,
                               const mbedtls_sha512_context *src );
@@ -148,7 +154,7 @@ int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 );
  *                 SHA-512 checksum calculation.
  *
  * \param ctx      The SHA-512 context.
- * \param input    The buffer holding the input data.
+ * \param input    The buffer holding the input data or NULL if ilen = 0.
  * \param ilen     The length of the input data.
  *
  * \return         \c 0 on success.
@@ -207,7 +213,7 @@ MBEDTLS_DEPRECATED void mbedtls_sha512_starts( mbedtls_sha512_context *ctx,
  * \deprecated     Superseded by mbedtls_sha512_update_ret() in 2.7.0.
  *
  * \param ctx      The SHA-512 context.
- * \param input    The buffer holding the data.
+ * \param input    The buffer holding the data or NULL if ilen = 0.
  * \param ilen     The length of the input data.
  */
 MBEDTLS_DEPRECATED void mbedtls_sha512_update( mbedtls_sha512_context *ctx,
@@ -253,7 +259,7 @@ MBEDTLS_DEPRECATED void mbedtls_sha512_process(
  *                 The SHA-512 result is calculated as
  *                 output = SHA-512(input buffer).
  *
- * \param input    The buffer holding the input data.
+ * \param input    The buffer holding the input data or NULL if ilen = 0.
  * \param ilen     The length of the input data.
  * \param output   The SHA-384 or SHA-512 checksum result.
  * \param is384    Determines which function to use:
@@ -284,7 +290,7 @@ int mbedtls_sha512_ret( const unsigned char *input,
  *
  * \deprecated     Superseded by mbedtls_sha512_ret() in 2.7.0
  *
- * \param input    The buffer holding the data.
+ * \param input    The buffer holding the data or NULL if ilen = 0.
  * \param ilen     The length of the input data.
  * \param output   The SHA-384 or SHA-512 checksum result.
  * \param is384    Determines which function to use:

@@ -1130,7 +1130,7 @@ static void mbedtls_gf128mul_x_ble( unsigned char r[16],
  */
 int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
                            int mode,
-                           size_t bits_length,
+                           size_t length,
                            const unsigned char iv[16],
                            const unsigned char *input,
                            unsigned char *output )
@@ -1147,7 +1147,6 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
     union xts_buf128 *inbuf;
     union xts_buf128 *outbuf;
 
-    size_t length = bits_length / 8;
     size_t nblk   = length / 16;
     size_t remn   = length % 16;
 

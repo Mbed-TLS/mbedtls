@@ -295,7 +295,7 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
  * \param ctx          The AES XTS context to use for AES XTS operations.
  * \param mode         The AES operation: #MBEDTLS_AES_ENCRYPT or
  *                     #MBEDTLS_AES_DECRYPT.
- * \param bits_length  The length of a data unit in bits.
+ * \param length       The length of a data unit in bytes.
  * \param iv           The address of the data unit encoded as an array of 16
  *                     bytes in little-endian format. For disk encryption, this
  *                     is typically the index of the block device sector that
@@ -313,7 +313,7 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
  */
 int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
                            int mode,
-                           size_t bits_length,
+                           size_t length,
                            const unsigned char iv[16],
                            const unsigned char *input,
                            unsigned char *output );

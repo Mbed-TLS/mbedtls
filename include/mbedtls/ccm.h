@@ -14,6 +14,18 @@
  * <li>Nonce - A unique value that is assigned to the payload and the
  * associated data.</li></ul>
  *
+ * Definition of CCM:
+ * http://csrc.nist.gov/publications/nistpubs/800-38C/SP800-38C_updated-July20_2007.pdf
+ * RFC 3610 "Counter with CBC-MAC (CCM)"
+ *
+ * Related:
+ * RFC 5116 "An Interface and Algorithms for Authenticated Encryption"
+ *
+ * Definition of CCM*:
+ * IEEE 802.15.4 - IEEE Standard for Local and metropolitan area networks
+ * Integer representation is fixed most-significant-octet-first order and
+ * the representation of octets is most-significant-bit-first order. This is
+ * consistent with RFC 3610.
  */
 /*
  *  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved
@@ -111,15 +123,17 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx );
  * \param ctx       The CCM context to use for encryption.
  * \param length    The length of the input data in Bytes.
  * \param iv        Initialization vector (nonce).
- * \param iv_len    The length of the IV in Bytes: 7, 8, 9, 10, 11, 12, or 13.
+ * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
+ *                  or 13. The length L of the message length field is
+ *                  15 - \p iv_len.
  * \param add       The additional data field.
  * \param add_len   The length of additional data in Bytes.
  *                  Must be less than 2^16 - 2^8.
  * \param input     The buffer holding the input data.
  * \param output    The buffer holding the output data.
  *                  Must be at least \p length Bytes wide.
- * \param tag       The buffer holding the tag.
- * \param tag_len   The length of the tag to generate in Bytes:
+ * \param tag       The buffer holding the authentication field.
+ * \param tag_len   The length of the authentication field to generate in Bytes:
  *                  4, 6, 8, 10, 12, 14 or 16.
  *
  * \return          \c 0 on success.
@@ -147,15 +161,17 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  * \param ctx       The CCM context to use for encryption.
  * \param length    The length of the input data in Bytes.
  * \param iv        Initialization vector (nonce).
- * \param iv_len    The length of the IV in Bytes: 7, 8, 9, 10, 11, 12, or 13.
+ * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
+ *                  or 13. The length L of the message length field is
+ *                  15 - \p iv_len.
  * \param add       The additional data field.
  * \param add_len   The length of additional data in Bytes.
  *                  Must be less than 2^16 - 2^8.
  * \param input     The buffer holding the input data.
  * \param output    The buffer holding the output data.
  *                  Must be at least \p length Bytes wide.
- * \param tag       The buffer holding the tag.
- * \param tag_len   The length of the tag to generate in Bytes:
+ * \param tag       The buffer holding the authentication field.
+ * \param tag_len   The length of the authentication field to generate in Bytes:
  *                  0, 4, 6, 8, 10, 12, 14 or 16.
  *
  * \warning         Passing 0 as \p tag_len means that the message is no
@@ -177,15 +193,17 @@ int mbedtls_ccm_star_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  * \param ctx       The CCM context to use for decryption.
  * \param length    The length of the input data in Bytes.
  * \param iv        Initialization vector.
- * \param iv_len    The length of the IV in Bytes: 7, 8, 9, 10, 11, 12, or 13.
+ * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
+ *                  or 13. The length L of the message length field is
+ *                  15 - \p iv_len.
  * \param add       The additional data field.
  * \param add_len   The length of additional data in Bytes.
  *                  Must be less than 2^16 - 2^8.
  * \param input     The buffer holding the input data.
  * \param output    The buffer holding the output data.
  *                  Must be at least \p length Bytes wide.
- * \param tag       The buffer holding the tag.
- * \param tag_len   The length of the tag in Bytes.
+ * \param tag       The buffer holding the authentication field.
+ * \param tag_len   The length of the authentication field in Bytes.
  *                  4, 6, 8, 10, 12, 14 or 16.
  *
  * \return          \c 0 on success. This indicates that the message is authentic.
@@ -210,15 +228,17 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  * \param ctx       The CCM context to use for decryption.
  * \param length    The length of the input data in Bytes.
  * \param iv        Initialization vector.
- * \param iv_len    The length of the IV in Bytes: 7, 8, 9, 10, 11, 12, or 13.
+ * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
+ *                  or 13. The length L of the message length field is
+ *                  15 - \p iv_len.
  * \param add       The additional data field.
  * \param add_len   The length of additional data in Bytes.
  *                  Must be less than 2^16 - 2^8.
  * \param input     The buffer holding the input data.
  * \param output    The buffer holding the output data.
  *                  Must be at least \p length Bytes wide.
- * \param tag       The buffer holding the tag.
- * \param tag_len   The length of the tag in Bytes.
+ * \param tag       The buffer holding the authentication field.
+ * \param tag_len   The length of the authentication field in Bytes.
  *                  0, 4, 6, 8, 10, 12, 14 or 16.
  *
  * \warning         Passing 0 as \p tag_len means that the message is no

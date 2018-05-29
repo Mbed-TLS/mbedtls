@@ -44,10 +44,6 @@
 #include "mbedtls/aesni.h"
 #endif
 
-#if defined(MBEDTLS_CIPHER_MODE_XEX) || defined(MBEDTLS_CIPHER_MODE_XTS)
-#include "mbedtls/gf128mul.h"
-#endif
-
 #if defined(MBEDTLS_SELF_TEST)
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -1046,6 +1042,61 @@ first:
 #endif /* MBEDTLS_CIPHER_MODE_XEX */
 
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
+
+/* Endianess with 64 bits values */
+#ifndef GET_UINT64_LE
+#define GET_UINT64_LE(n,b,i)                            \
+{                                                       \
+    (n) = ( (uint64_t) (b)[(i) + 7] << 56 )             \
+        | ( (uint64_t) (b)[(i) + 6] << 48 )             \
+        | ( (uint64_t) (b)[(i) + 5] << 40 )             \
+        | ( (uint64_t) (b)[(i) + 4] << 32 )             \
+        | ( (uint64_t) (b)[(i) + 3] << 24 )             \
+        | ( (uint64_t) (b)[(i) + 2] << 16 )             \
+        | ( (uint64_t) (b)[(i) + 1] <<  8 )             \
+        | ( (uint64_t) (b)[(i)    ]       );            \
+}
+#endif
+
+#ifndef PUT_UINT64_LE
+#define PUT_UINT64_LE(n,b,i)                            \
+{                                                       \
+    (b)[(i) + 7] = (unsigned char) ( (n) >> 56 );       \
+    (b)[(i) + 6] = (unsigned char) ( (n) >> 48 );       \
+    (b)[(i) + 5] = (unsigned char) ( (n) >> 40 );       \
+    (b)[(i) + 4] = (unsigned char) ( (n) >> 32 );       \
+    (b)[(i) + 3] = (unsigned char) ( (n) >> 24 );       \
+    (b)[(i) + 2] = (unsigned char) ( (n) >> 16 );       \
+    (b)[(i) + 1] = (unsigned char) ( (n) >>  8 );       \
+    (b)[(i)    ] = (unsigned char) ( (n)       );       \
+}
+#endif
+
+typedef unsigned char mbedtls_be128[16];
+
+/*
+ * GF(2^128) multiplication function
+ *
+ * This function multiplies a field element by x, by x^4 and by x^8 in the
+ * polynomial field representation. It uses 64-bit word operations to gain
+ * speed but compensates for machine endianess and hence works correctly on
+ * both big and little endian machines.
+ */
+static void mbedtls_gf128mul_x_ble( unsigned char r[16],
+                                    const unsigned char x[16])
+{
+    uint64_t a, b, ra, rb;
+
+    GET_UINT64_LE(a, x, 0);
+    GET_UINT64_LE(b, x, 8);
+
+    ra = (a << 1)  ^ 0x0087 >> ( 8 - ( ( b >> 63 ) << 3 ) );
+    rb = (a >> 63) | (b << 1);
+
+    PUT_UINT64_LE(ra, r, 0);
+    PUT_UINT64_LE(rb, r, 8);
+}
+
 /*
  * AES-XTS buffer encryption/decryption
  */

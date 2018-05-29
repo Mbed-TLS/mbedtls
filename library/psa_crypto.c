@@ -457,7 +457,6 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
     return( PSA_SUCCESS );
 }
 
-
 static  psa_status_t psa_internal_export_key(psa_key_slot_t key,
                                              uint8_t *data,
                                              size_t data_size,
@@ -478,7 +477,7 @@ static  psa_status_t psa_internal_export_key(psa_key_slot_t key,
     if( ( export_public_key ) && ( !( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) || PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) ) ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    if ( PSA_KEY_TYPE_IS_RAW_BYTES( slot->type ) )
+    if( PSA_KEY_TYPE_IS_RAW_BYTES( slot->type ) )
     {
         if( slot->data.raw.bytes > data_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
@@ -507,7 +506,7 @@ static  psa_status_t psa_internal_export_key(psa_key_slot_t key,
                 pk.pk_info = &mbedtls_eckey_info;
                 pk.pk_ctx = slot->data.ecp;
             }
-            if ( export_public_key || PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) )
+            if( export_public_key || PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) )
                 ret = mbedtls_pk_write_pubkey_der( &pk, data, data_size );
             else
                 ret = mbedtls_pk_write_key_der( &pk, data, data_size );
@@ -1011,10 +1010,10 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
         return( status );
     slot = &global_data.key_slots[key];
 
-    if ( ( slot->policy.usage & PSA_KEY_USAGE_SIGN ) != 0 )
+    if( ( slot->policy.usage & PSA_KEY_USAGE_SIGN ) != 0 )
         operation->key_usage_sign = 1;
 
-    if ( ( slot->policy.usage & PSA_KEY_USAGE_VERIFY ) != 0 )
+    if( ( slot->policy.usage & PSA_KEY_USAGE_VERIFY ) != 0 )
         operation->key_usage_verify = 1;
 
     if( ! PSA_ALG_IS_HMAC( alg ) )
@@ -1416,7 +1415,7 @@ psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
     if( slot->type != PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_OCCUPIED_SLOT );
 
-    if ( lifetime != PSA_KEY_LIFETIME_VOLATILE )
+    if( lifetime != PSA_KEY_LIFETIME_VOLATILE )
         return( PSA_ERROR_NOT_SUPPORTED );
         
     slot->lifetime = lifetime;

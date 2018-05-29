@@ -51,11 +51,6 @@
 }
 #endif
 
-
-/* Jump table for not having ifs */
-static const uint16_t gf128mul_table_bbe[2] = { 0x00, 0x87 };
-
-
 /*
  * This function multiply a field element by x, by x^4 and by x^8
  * in the polynomial field representation. It uses 64-bit word operations
@@ -69,7 +64,7 @@ void mbedtls_gf128mul_x_ble(mbedtls_be128 r, const mbedtls_be128 x)
     GET_UINT64_LE(a, x, 0);
     GET_UINT64_LE(b, x, 8);
 
-    ra = (a << 1)  ^ gf128mul_table_bbe[b >> 63];
+    ra = (a << 1)  ^ 0x0087 >> ( 8 - ( ( b >> 63 ) << 3 ) );
     rb = (a >> 63) | (b << 1);
 
     PUT_UINT64_LE(ra, r, 0);

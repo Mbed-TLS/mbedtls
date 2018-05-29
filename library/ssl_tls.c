@@ -1985,20 +1985,66 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
         {
             /*
              * Process MAC and always update for padlen afterwards to make
-             * total time independent of padlen
-             *
-             * extra_run compensates MAC check for padlen
+             * total time independent of padlen.
              *
              * Known timing attacks:
              *  - Lucky Thirteen (http://www.isg.rhul.ac.uk/tls/TLStiming.pdf)
              *
-             * We use ( ( Lx + 8 ) / 64 ) to handle 'negative Lx' values
-             * correctly. (We round down instead of up, so -56 is the correct
-             * value for our calculations instead of -55)
+             * To compensate for different timings for the MAC calculation
+             * depending on how much padding was removed (which is determined
+             * by padlen), process extra_run more blocks through the hash
+             * function.
+             *
+             * The formula in the paper is
+             *   extra_run = ceil( (L1-55) / 64 ) - ceil( (L2-55) / 64 )
+             * where L1 is the size of the header plus the decrypted message
+             * plus CBC padding and L2 is the size of the header plus the
+             * decrypted message. This is for an underlying hash function
+             * with 64-byte blocks.
+             * We use ( (Lx+8) / 64 ) to handle 'negative Lx' values
+             * correctly. We round down instead of up, so -56 is the correct
+             * value for our calculations instead of -55.
+             *
+             * Repeat the formula rather than defining a block_size variable
+             * so that the code only uses division by a constant, not division
+             * by a variable.
              */
             size_t j, extra_run = 0;
-            extra_run = ( 13 + ssl->in_msglen + padlen + 8 ) / 64 -
-                        ( 13 + ssl->in_msglen          + 8 ) / 64;
+            switch( ssl->transform_in->ciphersuite_info->mac )
+            {
+#if defined(MBEDTLS_MD2_C)
+                case MBEDTLS_MD_MD2:
+                    /* no size prepended, 64-byte compression blocks */
+                    extra_run = ( 13 + ssl->in_msglen + padlen ) / 64 -
+                                ( 13 + ssl->in_msglen          ) / 64;
+                    break;
+#endif
+#if defined(MBEDTLS_MD4_C) || defined(MBEDTLS_MD5_C) || \
+    defined(MBEDTLS_SHA1_C) || defined(MBEDTLS_SHA224_C) || \
+    defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_RIPEMD160_C)
+                case MBEDTLS_MD_MD4:
+                case MBEDTLS_MD_MD5:
+                case MBEDTLS_MD_SHA1:
+                case MBEDTLS_MD_SHA224:
+                case MBEDTLS_MD_SHA256:
+                case MBEDTLS_MD_RIPEMD160:
+                    /* 8 bytes of message size, 64-byte compression blocks */
+                    extra_run = ( 13 + ssl->in_msglen + padlen + 8 ) / 64 -
+                                ( 13 + ssl->in_msglen          + 8 ) / 64;
+                    break;
+#endif
+#if defined(MBEDTLS_SHA384_C) || defined(MBEDTLS_SHA512_C)
+                case MBEDTLS_MD_SHA384:
+                case MBEDTLS_MD_SHA512:
+                    /* 16 bytes of message size, 128-byte compression blocks */
+                    extra_run = ( 13 + ssl->in_msglen + padlen + 16 ) / 128 -
+                                ( 13 + ssl->in_msglen          + 16 ) / 128;
+                    break;
+#endif
+                default:
+                    MBEDTLS_SSL_DEBUG_MSG( 1, ( "unsupported HMAC hash" ) );
+                    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            }
 
             extra_run &= correct * 0xFF;
 

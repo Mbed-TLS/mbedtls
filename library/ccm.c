@@ -156,9 +156,7 @@ static int ccm_auth_crypt( mbedtls_ccm_context *ctx, int mode, size_t length,
      * Also, loosen the requirements to enable support for CCM* (IEEE 802.15.4).
      */
     if( tag_len == 2 || tag_len > 16 || tag_len % 2 != 0 )
-    {
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
-    }
 
     /* Also implies q is within bounds */
     if( iv_len < 7 || iv_len > 13 )

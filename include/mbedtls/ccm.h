@@ -192,7 +192,7 @@ int mbedtls_ccm_star_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  *
  * \param ctx       The CCM context to use for decryption.
  * \param length    The length of the input data in Bytes.
- * \param iv        Initialization vector.
+ * \param iv        Initialization vector (nonce).
  * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
  *                  or 13. The length L of the message length field is
  *                  15 - \p iv_len.
@@ -227,7 +227,7 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  *
  * \param ctx       The CCM context to use for decryption.
  * \param length    The length of the input data in Bytes.
- * \param iv        Initialization vector.
+ * \param iv        Initialization vector (nonce).
  * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
  *                  or 13. The length L of the message length field is
  *                  15 - \p iv_len.
@@ -244,8 +244,7 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  * \warning         Passing 0 as \p tag_len means that the message is no
  *                  longer authenticated.
  *
- * \return          \c 0 on success. This indicates that the message is
- *                  authentic.
+ * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_CCM_AUTH_FAILED if the tag does not match.
  * \return          A cipher-specific error code on calculation failure.
  */

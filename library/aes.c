@@ -1131,7 +1131,7 @@ static void mbedtls_gf128mul_x_ble( unsigned char r[16],
 int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
                            int mode,
                            size_t length,
-                           const unsigned char iv[16],
+                           const unsigned char data_unit[16],
                            const unsigned char *input,
                            unsigned char *output )
 {
@@ -1151,7 +1151,8 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
         return MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH;
 
     /* Compute the tweak. */
-    ret = mbedtls_aes_crypt_ecb( &ctx->tweak, MBEDTLS_AES_ENCRYPT, iv, tweak );
+    ret = mbedtls_aes_crypt_ecb( &ctx->tweak, MBEDTLS_AES_ENCRYPT,
+                                 data_unit, tweak );
     if( ret != 0 )
         return( ret );
 

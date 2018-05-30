@@ -290,7 +290,7 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
  *
  *             AES-XTS encrypts or decrypts blocks based on their location as
  *             defined by a data unit number. The data unit number must be
- *             provided by \p iv.
+ *             provided by \p data_unit.
  *
  *             NIST SP 800-38E limits the maximum size of a data unit to 2^20
  *             AES blocks. If the data unit is larger than this, this function
@@ -302,7 +302,7 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
  * \param length       The length of a data unit in bytes. This can be any
  *                     length between 16 bytes and 2^24 bytes inclusive
  *                     (between 1 and 2^20 block cipher blocks).
- * \param iv           The address of the data unit encoded as an array of 16
+ * \param data_unit    The address of the data unit encoded as an array of 16
  *                     bytes in little-endian format. For disk encryption, this
  *                     is typically the index of the block device sector that
  *                     contains the data.
@@ -321,7 +321,7 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
 int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
                            int mode,
                            size_t length,
-                           const unsigned char iv[16],
+                           const unsigned char data_unit[16],
                            const unsigned char *input,
                            unsigned char *output );
 #endif /* MBEDTLS_CIPHER_MODE_XTS */

@@ -292,10 +292,16 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
  *             defined by a data unit number. The data unit number must be
  *             provided by \p iv.
  *
+ *             NIST SP 800-38E limits the maximum size of a data unit to 2^20
+ *             AES blocks. If the data unit is larger than this, this function
+ *             returns #MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH.
+ *
  * \param ctx          The AES XTS context to use for AES XTS operations.
  * \param mode         The AES operation: #MBEDTLS_AES_ENCRYPT or
  *                     #MBEDTLS_AES_DECRYPT.
- * \param length       The length of a data unit in bytes.
+ * \param length       The length of a data unit in bytes. This can be any
+ *                     length between 16 bytes and 2^24 bytes inclusive
+ *                     (between 1 and 2^20 block cipher blocks).
  * \param iv           The address of the data unit encoded as an array of 16
  *                     bytes in little-endian format. For disk encryption, this
  *                     is typically the index of the block device sector that
@@ -309,7 +315,8 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
  *
  * \return             \c 0 on success.
  * \return             #MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH if \p length is
- *                     smaller than an AES block in size (16 bytes).
+ *                     smaller than an AES block in size (16 bytes) or if \p
+ *                     length is larger than 2^20 blocks (16 MiB).
  */
 int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
                            int mode,

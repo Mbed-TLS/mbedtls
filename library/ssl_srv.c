@@ -91,6 +91,13 @@ static int ssl_parse_servername_ext( mbedtls_ssl_context *ssl,
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "parse ServerName extension" ) );
 
+    if( len < 2 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                       MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
     servername_list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
     if( servername_list_size + 2 != len )
     {
@@ -101,7 +108,7 @@ static int ssl_parse_servername_ext( mbedtls_ssl_context *ssl,
     }
 
     p = buf + 2;
-    while( servername_list_size > 0 )
+    while( servername_list_size > 2 )
     {
         hostname_len = ( ( p[1] << 8 ) | p[2] );
         if( hostname_len + 3 > servername_list_size )
@@ -205,6 +212,12 @@ static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
     mbedtls_md_type_t md_cur;
     mbedtls_pk_type_t sig_cur;
 
+    if ( len < 2 ) {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                       MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
     sig_alg_list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
     if( sig_alg_list_size + 2 != len ||
         sig_alg_list_size % 2 != 0 )
@@ -273,6 +286,12 @@ static int ssl_parse_supported_elliptic_curves( mbedtls_ssl_context *ssl,
     const unsigned char *p;
     const mbedtls_ecp_curve_info *curve_info, **curves;
 
+    if ( len < 2 ) {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                       MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
     list_size = ( ( buf[0] << 8 ) | ( buf[1] ) );
     if( list_size + 2 != len ||
         list_size % 2 != 0 )
@@ -332,14 +351,14 @@ static int ssl_parse_supported_point_formats( mbedtls_ssl_context *ssl,
     size_t list_size;
     const unsigned char *p;
 
-    list_size = buf[0];
-    if( list_size + 1 != len )
+    if( len == 0 || (size_t)( buf[0] + 1 ) != len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
     }
+    list_size = buf[0];
 
     p = buf + 1;
     while( list_size > 0 )
@@ -1656,10 +1675,16 @@ read_record_header:
 
         while( ext_len != 0 )
         {
-            unsigned int ext_id   = ( ( ext[0] <<  8 )
-                                    | ( ext[1]       ) );
-            unsigned int ext_size = ( ( ext[2] <<  8 )
-                                    | ( ext[3]       ) );
+            unsigned int ext_id;
+            unsigned int ext_size;
+            if ( ext_len < 4 ) {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client hello message" ) );
+                mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                               MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+                return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
+            }
+            ext_id   = ( ( ext[0] <<  8 ) | ( ext[1] ) );
+            ext_size = ( ( ext[2] <<  8 ) | ( ext[3] ) );
 
             if( ext_size + 4 > ext_len )
             {
@@ -3299,6 +3324,10 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_0 )
     {
+        if ( p + 2 > end ) {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad client key exchange message" ) );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE );
+        }
         if( *p++ != ( ( len >> 8 ) & 0xFF ) ||
             *p++ != ( ( len      ) & 0xFF ) )
         {

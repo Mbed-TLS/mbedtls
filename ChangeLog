@@ -1741,7 +1741,7 @@ Features
      issuer_key_identifier, etc)
    * Optional blinding for RSA, DHM and EC
    * Support for multiple active certificate / key pairs in SSL servers for
-   	 the same host (Not to be confused with SNI!)
+     the same host (Not to be confused with SNI!)
 
 Changes
    * Ability to enable / disable SSL v3 / TLS 1.0 / TLS 1.1 / TLS 1.2
@@ -1972,7 +1972,7 @@ Changes
      PKCS#8 private key formats
    * Added mechanism to provide alternative implementations for all
      symmetric cipher and hash algorithms (e.g. POLARSSL_AES_ALT in
-	 config.h)
+     config.h)
    * PKCS#5 module added. Moved PBKDF2 functionality inside and deprecated
      old PBKDF2 module
 
@@ -1984,7 +1984,7 @@ Bugfix
    * x509parse_crt() now better handles PEM error situations
    * ssl_parse_certificate() now calls x509parse_crt_der() directly
      instead of the x509parse_crt() wrapper that can also parse PEM
-	 certificates
+     certificates
    * x509parse_crtpath() is now reentrant and uses more portable stat()
    * Fixed bignum.c and bn_mul.h to support Thumb2 and LLVM compiler
    * Fixed values for 2-key Triple DES in cipher layer
@@ -2142,7 +2142,7 @@ Bugfix
    * mpi_exp_mod() now correctly handles negative base numbers (Closes ticket
      #52)
    * Handle encryption with private key and decryption with public key as per
-   	 RFC 2313
+     RFC 2313
    * Handle empty certificate subject names
    * Prevent reading over buffer boundaries on X509 certificate parsing
    * mpi_add_abs() now correctly handles adding short numbers to long numbers
@@ -2173,7 +2173,7 @@ Bugfix
    * x509parse_crt() now better handles PEM error situations
    * ssl_parse_certificate() now calls x509parse_crt_der() directly
      instead of the x509parse_crt() wrapper that can also parse PEM
-	 certificates
+     certificates
    * Fixed values for 2-key Triple DES in cipher layer
    * ssl_write_certificate_request() can handle empty ca_chain
 
@@ -2254,16 +2254,16 @@ Bugfix
 Features
    * Added ssl_session_reset() to allow better multi-connection pools of
      SSL contexts without needing to set all non-connection-specific
-	 data and pointers again. Adapted ssl_server to use this functionality.
+     data and pointers again. Adapted ssl_server to use this functionality.
    * Added ssl_set_max_version() to allow clients to offer a lower maximum
      supported version to a server to help buggy server implementations.
-	 (Closes ticket #36)
+     (Closes ticket #36)
    * Added cipher_get_cipher_mode() and cipher_get_cipher_operation()
      introspection functions (Closes ticket #40)
    * Added CTR_DRBG based on AES-256-CTR (NIST SP 800-90) random generator
    * Added a generic entropy accumulator that provides support for adding
      custom entropy sources and added some generic and platform dependent
-	 entropy sources
+     entropy sources
 
 Changes
    * Documentation for AES and Camellia in modes CTR and CFB128 clarified.
@@ -2396,7 +2396,7 @@ Bugfixes
    * Corrected parsing of UTCTime dates before 1990 and
      after 1950
    * Support more exotic OID's when parsing certificates
-   	 (found by Mads Kiilerich)
+     (found by Mads Kiilerich)
    * Support more exotic name representations when parsing
      certificates (found by Mads Kiilerich)
    * Replaced the expired test certificates
@@ -2426,7 +2426,7 @@ Note: Most of these features have been donated by Fox-IT
          status, objects and configuration
        + Added verification callback on certificate chain
          verification to allow external blacklisting
-	   + Additional example programs to show usage
+       + Additional example programs to show usage
    * Added support for PKCS#11 through the use of the
      libpkcs11-helper library
 

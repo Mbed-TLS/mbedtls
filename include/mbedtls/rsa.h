@@ -5,7 +5,7 @@
  *
  * The RSA public-key cryptosystem is defined in <em>Public-Key
  * Cryptography Standards (PKCS) #1 v1.5: RSA Encryption</em>
- * and <em>Public-Key Cryptography Standards (PKCS) #1 v2.1: 
+ * and <em>Public-Key Cryptography Standards (PKCS) #1 v2.1:
  * RSA Cryptography Specifications</em>.
  *
  */
@@ -77,13 +77,13 @@
  * eg for alternative (PKCS#11) RSA implemenations in the PK layers.
  */
 
-#if !defined(MBEDTLS_RSA_ALT)
-// Regular implementation
-//
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#if !defined(MBEDTLS_RSA_ALT)
+// Regular implementation
+//
 
 /**
  * \brief   The RSA context structure.
@@ -128,6 +128,10 @@ typedef struct
 #endif
 }
 mbedtls_rsa_context;
+
+#else  /* MBEDTLS_RSA_ALT */
+#include "rsa_alt.h"
+#endif /* MBEDTLS_RSA_ALT */
 
 /**
  * \brief          This function initializes an RSA context.
@@ -777,7 +781,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
  * \param olen       The length of the plaintext.
  * \param input      The buffer holding the encrypted data.
  * \param output     The buffer to hold the plaintext.
- * \param output_max_len    The maximum length of the output buffer. 
+ * \param output_max_len    The maximum length of the output buffer.
  *
  * \return         \c 0 on success.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -1111,18 +1115,6 @@ int mbedtls_rsa_copy( mbedtls_rsa_context *dst, const mbedtls_rsa_context *src )
  * \param ctx      The RSA Context to free.
  */
 void mbedtls_rsa_free( mbedtls_rsa_context *ctx );
-
-#ifdef __cplusplus
-}
-#endif
-
-#else  /* MBEDTLS_RSA_ALT */
-#include "rsa_alt.h"
-#endif /* MBEDTLS_RSA_ALT */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          The RSA checkup routine.

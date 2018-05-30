@@ -46,17 +46,13 @@
 #include "mbedtls/debug.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/ssl_internal.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #include "mbedtls/oid.h"
 #endif
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 /* Length of the "epoch" field in the record header */
 static inline size_t ssl_ep_len( const mbedtls_ssl_context *ssl )
@@ -269,8 +265,8 @@ exit:
     mbedtls_md5_free(  &md5  );
     mbedtls_sha1_free( &sha1 );
 
-    mbedtls_zeroize( padding, sizeof( padding ) );
-    mbedtls_zeroize( sha1sum, sizeof( sha1sum ) );
+    mbedtls_platform_zeroize( padding, sizeof( padding ) );
+    mbedtls_platform_zeroize( sha1sum, sizeof( sha1sum ) );
 
     return( ret );
 }
@@ -367,8 +363,8 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
 
     mbedtls_md_free( &md_ctx );
 
-    mbedtls_zeroize( tmp, sizeof( tmp ) );
-    mbedtls_zeroize( h_i, sizeof( h_i ) );
+    mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
+    mbedtls_platform_zeroize( h_i, sizeof( h_i ) );
 
     return( 0 );
 }
@@ -432,8 +428,8 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 
     mbedtls_md_free( &md_ctx );
 
-    mbedtls_zeroize( tmp, sizeof( tmp ) );
-    mbedtls_zeroize( h_i, sizeof( h_i ) );
+    mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
+    mbedtls_platform_zeroize( h_i, sizeof( h_i ) );
 
     return( 0 );
 }
@@ -642,7 +638,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
             return( ret );
         }
 
-        mbedtls_zeroize( handshake->premaster, sizeof(handshake->premaster) );
+        mbedtls_platform_zeroize( handshake->premaster,
+                                  sizeof(handshake->premaster) );
     }
     else
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "no premaster (session resumed)" ) );
@@ -653,7 +650,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     memcpy( tmp, handshake->randbytes, 64 );
     memcpy( handshake->randbytes, tmp + 32, 32 );
     memcpy( handshake->randbytes + 32, tmp, 32 );
-    mbedtls_zeroize( tmp, sizeof( tmp ) );
+    mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
 
     /*
      *  SSLv3:
@@ -681,7 +678,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_BUF( 4, "random bytes", handshake->randbytes, 64 );
     MBEDTLS_SSL_DEBUG_BUF( 4, "key block", keyblk, 256 );
 
-    mbedtls_zeroize( handshake->randbytes, sizeof( handshake->randbytes ) );
+    mbedtls_platform_zeroize( handshake->randbytes,
+                              sizeof( handshake->randbytes ) );
 
     /*
      * Determine the appropriate key, IV and MAC length.
@@ -948,7 +946,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
-    mbedtls_zeroize( keyblk, sizeof( keyblk ) );
+    mbedtls_platform_zeroize( keyblk, sizeof( keyblk ) );
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     // Initialize compression
@@ -2447,8 +2445,8 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
 
             if ( (size_t)ret > len || ( INT_MAX > SIZE_MAX && ret > SIZE_MAX ) )
             {
-                MBEDTLS_SSL_DEBUG_MSG( 1, 
-                    ( "f_recv returned %d bytes but only %lu were requested", 
+                MBEDTLS_SSL_DEBUG_MSG( 1,
+                    ( "f_recv returned %d bytes but only %lu were requested",
                     ret, (unsigned long)len ) );
                 return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
             }
@@ -2502,8 +2500,8 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
 
         if( (size_t)ret > ssl->out_left || ( INT_MAX > SIZE_MAX && ret > SIZE_MAX ) )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, 
-                ( "f_send returned %d bytes but only %lu bytes were sent", 
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+                ( "f_send returned %d bytes but only %lu bytes were sent",
                 ret, (unsigned long)ssl->out_left ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
@@ -5030,9 +5028,9 @@ static void ssl_calc_finished_ssl(
     mbedtls_md5_free(  &md5  );
     mbedtls_sha1_free( &sha1 );
 
-    mbedtls_zeroize(  padbuf, sizeof(  padbuf ) );
-    mbedtls_zeroize(  md5sum, sizeof(  md5sum ) );
-    mbedtls_zeroize( sha1sum, sizeof( sha1sum ) );
+    mbedtls_platform_zeroize(  padbuf, sizeof(  padbuf ) );
+    mbedtls_platform_zeroize(  md5sum, sizeof(  md5sum ) );
+    mbedtls_platform_zeroize( sha1sum, sizeof( sha1sum ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
@@ -5091,7 +5089,7 @@ static void ssl_calc_finished_tls(
     mbedtls_md5_free(  &md5  );
     mbedtls_sha1_free( &sha1 );
 
-    mbedtls_zeroize(  padbuf, sizeof(  padbuf ) );
+    mbedtls_platform_zeroize(  padbuf, sizeof(  padbuf ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
@@ -5141,7 +5139,7 @@ static void ssl_calc_finished_tls_sha256(
 
     mbedtls_sha256_free( &sha256 );
 
-    mbedtls_zeroize(  padbuf, sizeof(  padbuf ) );
+    mbedtls_platform_zeroize(  padbuf, sizeof(  padbuf ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
@@ -5190,7 +5188,7 @@ static void ssl_calc_finished_tls_sha384(
 
     mbedtls_sha512_free( &sha512 );
 
-    mbedtls_zeroize(  padbuf, sizeof( padbuf ) );
+    mbedtls_platform_zeroize(  padbuf, sizeof( padbuf ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 }
@@ -6109,7 +6107,7 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
 
     if( conf->psk != NULL )
     {
-        mbedtls_zeroize( conf->psk, conf->psk_len );
+        mbedtls_platform_zeroize( conf->psk, conf->psk_len );
 
         mbedtls_free( conf->psk );
         conf->psk = NULL;
@@ -6152,7 +6150,8 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
 
     if( ssl->handshake->psk != NULL )
     {
-        mbedtls_zeroize( ssl->handshake->psk, ssl->handshake->psk_len );
+        mbedtls_platform_zeroize( ssl->handshake->psk,
+                                  ssl->handshake->psk_len );
         mbedtls_free( ssl->handshake->psk );
         ssl->handshake->psk_len = 0;
     }
@@ -6282,7 +6281,7 @@ int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname )
 
     if( ssl->hostname != NULL )
     {
-        mbedtls_zeroize( ssl->hostname, strlen( ssl->hostname ) );
+        mbedtls_platform_zeroize( ssl->hostname, strlen( ssl->hostname ) );
         mbedtls_free( ssl->hostname );
     }
 
@@ -6951,30 +6950,6 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
         }
     }
 
-    /*
-     * The logic could be streamlined here. Instead of
-     * - Manually checking whether ssl->in_offt is NULL
-     * - Fetching a new record if yes
-     * - Setting ssl->in_offt if one finds an application record
-     * - Resetting keep_current_message after handling the application data
-     * one should
-     * - Adapt read_record to set ssl->in_offt automatically
-     *   when a new application data record is processed.
-     * - Always call mbedtls_ssl_read_record here.
-     * This way, the logic of ssl_read would be much clearer:
-     * (1) Always call record layer and see what kind of record is on
-     *     and have it ready for consumption (in particular, in_offt
-     *     properly set for application data records).
-     * (2) If it's application data (either freshly fetched
-     *     or something already being partially processed),
-     *     serve the read request from it.
-     * (3) If it's something different from application data,
-     *     handle it accordingly, e.g. potentially start a
-     *     renegotiation.
-     * This will also remove the need to manually reset
-     * ssl->keep_current_message = 0 below.
-     */
-
     /* Loop as long as no application data record is available */
     while( ssl->in_offt == NULL )
     {
@@ -7395,7 +7370,7 @@ void mbedtls_ssl_transform_free( mbedtls_ssl_transform *transform )
     mbedtls_md_free( &transform->md_ctx_enc );
     mbedtls_md_free( &transform->md_ctx_dec );
 
-    mbedtls_zeroize( transform, sizeof( mbedtls_ssl_transform ) );
+    mbedtls_platform_zeroize( transform, sizeof( mbedtls_ssl_transform ) );
 }
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -7455,7 +7430,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake )
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( handshake->psk != NULL )
     {
-        mbedtls_zeroize( handshake->psk, handshake->psk_len );
+        mbedtls_platform_zeroize( handshake->psk, handshake->psk_len );
         mbedtls_free( handshake->psk );
     }
 #endif
@@ -7485,7 +7460,8 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake )
     ssl_flight_free( handshake->flight );
 #endif
 
-    mbedtls_zeroize( handshake, sizeof( mbedtls_ssl_handshake_params ) );
+    mbedtls_platform_zeroize( handshake,
+                              sizeof( mbedtls_ssl_handshake_params ) );
 }
 
 void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
@@ -7505,7 +7481,7 @@ void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
     mbedtls_free( session->ticket );
 #endif
 
-    mbedtls_zeroize( session, sizeof( mbedtls_ssl_session ) );
+    mbedtls_platform_zeroize( session, sizeof( mbedtls_ssl_session ) );
 }
 
 /*
@@ -7520,20 +7496,20 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 
     if( ssl->out_buf != NULL )
     {
-        mbedtls_zeroize( ssl->out_buf, MBEDTLS_SSL_BUFFER_LEN );
+        mbedtls_platform_zeroize( ssl->out_buf, MBEDTLS_SSL_BUFFER_LEN );
         mbedtls_free( ssl->out_buf );
     }
 
     if( ssl->in_buf != NULL )
     {
-        mbedtls_zeroize( ssl->in_buf, MBEDTLS_SSL_BUFFER_LEN );
+        mbedtls_platform_zeroize( ssl->in_buf, MBEDTLS_SSL_BUFFER_LEN );
         mbedtls_free( ssl->in_buf );
     }
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     if( ssl->compress_buf != NULL )
     {
-        mbedtls_zeroize( ssl->compress_buf, MBEDTLS_SSL_BUFFER_LEN );
+        mbedtls_platform_zeroize( ssl->compress_buf, MBEDTLS_SSL_BUFFER_LEN );
         mbedtls_free( ssl->compress_buf );
     }
 #endif
@@ -7564,7 +7540,7 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     if( ssl->hostname != NULL )
     {
-        mbedtls_zeroize( ssl->hostname, strlen( ssl->hostname ) );
+        mbedtls_platform_zeroize( ssl->hostname, strlen( ssl->hostname ) );
         mbedtls_free( ssl->hostname );
     }
 #endif
@@ -7584,7 +7560,7 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= free" ) );
 
     /* Actually clear after last debug message */
-    mbedtls_zeroize( ssl, sizeof( mbedtls_ssl_context ) );
+    mbedtls_platform_zeroize( ssl, sizeof( mbedtls_ssl_context ) );
 }
 
 /*
@@ -7811,7 +7787,7 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( conf->psk != NULL )
     {
-        mbedtls_zeroize( conf->psk, conf->psk_len );
+        mbedtls_platform_zeroize( conf->psk, conf->psk_len );
         mbedtls_free( conf->psk );
         conf->psk = NULL;
         conf->psk_len = 0;
@@ -7819,7 +7795,7 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
 
     if( conf->psk_identity != NULL )
     {
-        mbedtls_zeroize( conf->psk_identity, conf->psk_identity_len );
+        mbedtls_platform_zeroize( conf->psk_identity, conf->psk_identity_len );
         mbedtls_free( conf->psk_identity );
         conf->psk_identity = NULL;
         conf->psk_identity_len = 0;
@@ -7830,7 +7806,7 @@ void mbedtls_ssl_config_free( mbedtls_ssl_config *conf )
     ssl_key_cert_free( conf->key_cert );
 #endif
 
-    mbedtls_zeroize( conf, sizeof( mbedtls_ssl_config ) );
+    mbedtls_platform_zeroize( conf, sizeof( mbedtls_ssl_config ) );
 }
 
 #if defined(MBEDTLS_PK_C) && \

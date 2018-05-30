@@ -53,7 +53,8 @@
 #define MBEDTLS_ERR_AES_INVALID_KEY_LENGTH                -0x0020  /**< Invalid key length. */
 #define MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH              -0x0022  /**< Invalid data input length. */
 
-/* Error codes in range 0x0023-0x0025 */
+/* Error codes in range 0x0021-0x0025 */
+#define MBEDTLS_ERR_AES_BAD_INPUT_DATA                    -0x0021  /**< Invalid input data. */
 #define MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE               -0x0023  /**< Feature not available. For example, an unsupported AES key size. */
 #define MBEDTLS_ERR_AES_HW_ACCEL_FAILED                   -0x0025  /**< AES hardware accelerator failed. */
 
@@ -62,13 +63,13 @@
 #define inline __inline
 #endif
 
-#if !defined(MBEDTLS_AES_ALT)
-// Regular implementation
-//
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#if !defined(MBEDTLS_AES_ALT)
+// Regular implementation
+//
 
 /**
  * \brief The AES context-type definition.
@@ -87,6 +88,10 @@ typedef struct
                                          </li></ul> */
 }
 mbedtls_aes_context;
+
+#else  /* MBEDTLS_AES_ALT */
+#include "aes_alt.h"
+#endif /* MBEDTLS_AES_ALT */
 
 /**
  * \brief          This function initializes the specified AES context.
@@ -395,18 +400,6 @@ MBEDTLS_DEPRECATED void mbedtls_aes_decrypt( mbedtls_aes_context *ctx,
 
 #undef MBEDTLS_DEPRECATED
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
-
-#ifdef __cplusplus
-}
-#endif
-
-#else  /* MBEDTLS_AES_ALT */
-#include "aes_alt.h"
-#endif /* MBEDTLS_AES_ALT */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          Checkup routine.

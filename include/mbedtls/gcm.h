@@ -44,11 +44,11 @@
 #define MBEDTLS_ERR_GCM_HW_ACCEL_FAILED                   -0x0013  /**< GCM hardware accelerator failed. */
 #define MBEDTLS_ERR_GCM_BAD_INPUT                         -0x0014  /**< Bad input parameters to function. */
 
-#if !defined(MBEDTLS_GCM_ALT)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#if !defined(MBEDTLS_GCM_ALT)
 
 /**
  * \brief          The GCM context structure.
@@ -67,6 +67,10 @@ typedef struct {
                                                #MBEDTLS_GCM_DECRYPT. */
 }
 mbedtls_gcm_context;
+
+#else  /* !MBEDTLS_GCM_ALT */
+#include "gcm_alt.h"
+#endif /* !MBEDTLS_GCM_ALT */
 
 /**
  * \brief           This function initializes the specified GCM context,
@@ -112,7 +116,7 @@ int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
  * \param ctx       The GCM context to use for encryption or decryption.
  * \param mode      The operation to perform: #MBEDTLS_GCM_ENCRYPT or
  *                  #MBEDTLS_GCM_DECRYPT.
- * \param length    The length of the input data. This must be a multiple of 
+ * \param length    The length of the input data. This must be a multiple of
  *                  16 except in the last call before mbedtls_gcm_finish().
  * \param iv        The initialization vector.
  * \param iv_len    The length of the IV.
@@ -245,18 +249,6 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
  * \param ctx       The GCM context to clear.
  */
 void mbedtls_gcm_free( mbedtls_gcm_context *ctx );
-
-#ifdef __cplusplus
-}
-#endif
-
-#else  /* !MBEDTLS_GCM_ALT */
-#include "gcm_alt.h"
-#endif /* !MBEDTLS_GCM_ALT */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          The GCM checkup routine.

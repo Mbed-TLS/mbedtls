@@ -38,13 +38,13 @@
 
 #define MBEDTLS_ERR_SHA256_HW_ACCEL_FAILED                -0x0037  /**< SHA-256 hardware accelerator failed */
 
-#if !defined(MBEDTLS_SHA256_ALT)
-// Regular implementation
-//
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#if !defined(MBEDTLS_SHA256_ALT)
+// Regular implementation
+//
 
 /**
  * \brief          The SHA-256 context structure.
@@ -62,6 +62,10 @@ typedef struct
                                      0: Use SHA-256, or 1: Use SHA-224. */
 }
 mbedtls_sha256_context;
+
+#else  /* MBEDTLS_SHA256_ALT */
+#include "sha256_alt.h"
+#endif /* MBEDTLS_SHA256_ALT */
 
 /**
  * \brief          This function initializes a SHA-256 context.
@@ -198,17 +202,6 @@ MBEDTLS_DEPRECATED void mbedtls_sha256_process( mbedtls_sha256_context *ctx,
 
 #undef MBEDTLS_DEPRECATED
 #endif /* !MBEDTLS_DEPRECATED_REMOVED */
-#ifdef __cplusplus
-}
-#endif
-
-#else  /* MBEDTLS_SHA256_ALT */
-#include "sha256_alt.h"
-#endif /* MBEDTLS_SHA256_ALT */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          This function calculates the SHA-224 or SHA-256

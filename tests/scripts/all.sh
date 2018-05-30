@@ -94,7 +94,6 @@ CONFIG_BAK="$CONFIG_H.bak"
 MEMORY=0
 FORCE=0
 KEEP_GOING=0
-RELEASE=0
 RUN_ARMCC=1
 YOTTA=1
 
@@ -126,8 +125,12 @@ General options:
   -m|--memory           Additional optional memory tests.
      --armcc            Run ARM Compiler builds (on by default).
      --no-armcc         Skip ARM Compiler builds.
+     --no-force         Refuse to overwrite modified files (default).
+     --no-keep-going    Stop at the first error (default).
+     --no-memory        No additional memory tests (default).
      --no-yotta         Skip yotta module build.
      --out-of-source-dir=<path>  Directory used for CMake out-of-source build tests.
+     --random-seed      Use a random seed value for randomized tests (default).
   -r|--release-test     Run this script in release mode. This fixes the seed value to 1.
   -s|--seed             Integer seed value to use for this test run.
      --yotta            Build yotta module (on by default).
@@ -214,74 +217,29 @@ check_tools()
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --armcc)
-            RUN_ARMCC=1
-            ;;
-        --armc5-bin-dir)
-            shift
-            ARMC5_BIN_DIR="$1"
-            ;;
-        --armc6-bin-dir)
-            shift
-            ARMC6_BIN_DIR="$1"
-            ;;
-        --force|-f)
-            FORCE=1
-            ;;
-        --gnutls-cli)
-            shift
-            GNUTLS_CLI="$1"
-            ;;
-        --gnutls-legacy-cli)
-            shift
-            GNUTLS_LEGACY_CLI="$1"
-            ;;
-        --gnutls-legacy-serv)
-            shift
-            GNUTLS_LEGACY_SERV="$1"
-            ;;
-        --gnutls-serv)
-            shift
-            GNUTLS_SERV="$1"
-            ;;
-        --help|-h)
-            usage
-            exit
-            ;;
-        --keep-going|-k)
-            KEEP_GOING=1
-            ;;
-        --memory|-m)
-            MEMORY=1
-            ;;
-        --no-armcc)
-            RUN_ARMCC=0
-            ;;
-        --no-yotta)
-            YOTTA=0
-            ;;
-        --openssl)
-            shift
-            OPENSSL="$1"
-            ;;
-        --openssl-legacy)
-            shift
-            OPENSSL_LEGACY="$1"
-            ;;
-        --out-of-source-dir)
-            shift
-            OUT_OF_SOURCE_DIR="$1"
-            ;;
-        --release-test|-r)
-            RELEASE=1
-            ;;
-        --seed|-s)
-            shift
-            SEED="$1"
-            ;;
-        --yotta)
-            YOTTA=1
-            ;;
+        --armcc) RUN_ARMCC=1;;
+        --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
+        --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
+        --force|-f) FORCE=1;;
+        --gnutls-cli) shift; GNUTLS_CLI="$1";;
+        --gnutls-legacy-cli) shift; GNUTLS_LEGACY_CLI="$1";;
+        --gnutls-legacy-serv) shift; GNUTLS_LEGACY_SERV="$1";;
+        --gnutls-serv) shift; GNUTLS_SERV="$1";;
+        --help|-h) usage; exit;;
+        --keep-going|-k) KEEP_GOING=1;;
+        --memory|-m) MEMORY=1;;
+        --no-armcc) RUN_ARMCC=0;;
+        --no-force) FORCE=0;;
+        --no-keep-going) KEEP_GOING=0;;
+        --no-memory) MEMORY=0;;
+        --no-yotta) YOTTA=0;;
+        --openssl) shift; OPENSSL="$1";;
+        --openssl-legacy) shift; OPENSSL_LEGACY="$1";;
+        --out-of-source-dir) shift; OUT_OF_SOURCE_DIR="$1";;
+        --random-seed) unset SEED;;
+        --release-test|-r) SEED=1;;
+        --seed|-s) shift; SEED="$1";;
+        --yotta) YOTTA=1;;
         *)
             echo >&2 "Unknown option: $1"
             echo >&2 "Run $0 --help for usage."
@@ -386,11 +344,6 @@ if_build_succeeded () {
     fi
 }
 
-if [ $RELEASE -eq 1 ]; then
-    # Fix the seed value to 1 to ensure that the tests are deterministic.
-    SEED=1
-fi
-
 msg "info: $0 configuration"
 echo "MEMORY: $MEMORY"
 echo "FORCE: $FORCE"
@@ -416,12 +369,14 @@ export GNUTLS_CLI="$GNUTLS_CLI"
 export GNUTLS_SERV="$GNUTLS_SERV"
 
 # Avoid passing --seed flag in every call to ssl-opt.sh
-[ ! -z ${SEED+set} ] && export SEED
+if [ -n "${SEED-}" ]; then
+  export SEED
+fi
 
 # Make sure the tools we need are available.
 check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
             "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
-            "arm-none-eabi-gcc" "i686-w64-mingw32-gcc"
+            "arm-none-eabi-gcc" "i686-w64-mingw32-gcc" "gdb"
 if [ $RUN_ARMCC -ne 0 ]; then
     check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR"
 fi
@@ -447,7 +402,7 @@ msg "info: output_env.sh"
 OPENSSL="$OPENSSL" OPENSSL_LEGACY="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_CLI" \
     GNUTLS_SERV="$GNUTLS_SERV" GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI" \
     GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV" ARMC5_CC="$ARMC5_CC" \
-    ARMC6_CC="$ARMC6_CC" scripts/output_env.sh
+    ARMC6_CC="$ARMC6_CC" RUN_ARMCC="$RUN_ARMCC" scripts/output_env.sh
 
 msg "test: recursion.pl" # < 1s
 tests/scripts/recursion.pl library/*.c
@@ -457,6 +412,10 @@ tests/scripts/check-generated-files.sh
 
 msg "test: doxygen markup outside doxygen blocks" # < 1s
 tests/scripts/check-doxy-blocks.pl
+
+msg "test: check-files.py" # < 1s
+cleanup
+tests/scripts/check-files.py
 
 msg "test/build: declared and exported names" # < 3s
 cleanup
@@ -906,6 +865,15 @@ msg "test: cmake 'out-of-source' build"
 make test
 cd "$MBEDTLS_ROOT_DIR"
 rm -rf "$OUT_OF_SOURCE_DIR"
+
+for optimization_flag in -O2 -O3 -Ofast -Os; do
+    for compiler in clang gcc; do
+        msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
+        cleanup
+        CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag" make programs
+        gdb -x tests/scripts/test_zeroize.gdb -nw -batch -nx
+    done
+done
 
 
 

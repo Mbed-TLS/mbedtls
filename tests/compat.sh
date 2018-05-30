@@ -998,7 +998,7 @@ run_client() {
             if [ $EXIT -eq 0 ]; then
                 RESULT=0
             else
-                # If the cipher isn't supported... 
+                # If the cipher isn't supported...
                 if grep 'Cipher is (NONE)' $CLI_OUT >/dev/null; then
                     RESULT=1
                 else

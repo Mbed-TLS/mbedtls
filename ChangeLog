@@ -13,6 +13,9 @@ Bugfix
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.
      Contributed by fbrosson in #1533.
+   * Adds of lengths checks in different functions (not a security issue as
+     original buffer is overgrown) thanks to Philippe Antoine from Catena
+     cyber. #1663.
 
 = mbed TLS 2.1.13 branch released 2018-06-18
 

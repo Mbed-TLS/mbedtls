@@ -41,6 +41,15 @@ ccm_lengths:5:10:65281:8:MBEDTLS_ERR_CCM_BAD_INPUT
 CCM lengths #8 msg too long for this IV length (2^16, q = 2)
 ccm_lengths:65536:13:5:8:MBEDTLS_ERR_CCM_BAD_INPUT
 
+CCM lengths #9 tag length 0
+ccm_lengths:5:10:5:0:MBEDTLS_ERR_CCM_BAD_INPUT
+
+CCM* fixed tag lengths #1 all OK
+ccm_star_lengths:5:10:5:8:0
+
+CCM* fixed tag lengths #2 all OK - tag length 0
+ccm_star_lengths:5:10:5:0:0
+
 CCM encrypt and tag RFC 3610 #1
 depends_on:MBEDTLS_AES_C
 mbedtls_ccm_encrypt_and_tag:MBEDTLS_CIPHER_ID_AES:"C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF":"08090A0B0C0D0E0F101112131415161718191A1B1C1D1E":"00000003020100A0A1A2A3A4A5":"0001020304050607":"588C979A61C663D2F066D0C2C0F989806D5F6B61DAC38417E8D12CFDF926E0"

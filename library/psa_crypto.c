@@ -1324,8 +1324,6 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     if( cipher_info == NULL )
         return( PSA_ERROR_NOT_SUPPORTED );
 
-    operation->block_size = cipher_info->block_size;
-
     mbedtls_cipher_init( &operation->ctx.cipher );
     ret = mbedtls_cipher_setup( &operation->ctx.cipher, cipher_info );
     if( ret != 0 )
@@ -1442,7 +1440,6 @@ psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
     }
 
     operation->iv_set = 1;
-    operation->iv_required = 0;
 
     return( PSA_SUCCESS );
 }

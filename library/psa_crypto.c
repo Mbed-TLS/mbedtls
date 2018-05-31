@@ -1398,7 +1398,7 @@ psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
         if( signature_size < rsa->len )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
 #if defined(MBEDTLS_PKCS1_V15)
-        if( PSA_ALG_IS_RSA_PKCS1V15( alg ) )
+        if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) )
         {
             mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V15,
                                      MBEDTLS_MD_NONE );
@@ -1474,7 +1474,7 @@ psa_status_t psa_asymmetric_encrypt(psa_key_slot_t key,
         if( output_size < rsa->len ) 
                 return( PSA_ERROR_INVALID_ARGUMENT );
 #if defined(MBEDTLS_PKCS1_V15)
-        if( PSA_ALG_IS_RSA_PKCS1V15( alg ) )
+        if( alg == PSA_ALG_RSA_PKCS1V15_CRYPT )
         {
         ret = mbedtls_rsa_pkcs1_encrypt(  rsa,
                                         mbedtls_ctr_drbg_random,
@@ -1548,7 +1548,7 @@ psa_status_t psa_asymmetric_decrypt(psa_key_slot_t key,
             return( PSA_ERROR_INVALID_ARGUMENT );
 
 #if defined(MBEDTLS_PKCS1_V15)
-        if( PSA_ALG_IS_RSA_PKCS1V15( alg ) )
+        if( alg == PSA_ALG_RSA_PKCS1V15_CRYPT )
         {
             *output_length = input_length; // check this
             ret = mbedtls_rsa_pkcs1_decrypt(  rsa,

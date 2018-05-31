@@ -1105,10 +1105,10 @@ typedef unsigned char mbedtls_be128[16];
 /*
  * GF(2^128) multiplication function
  *
- * This function multiplies a field element by x, by x^4 and by x^8 in the
- * polynomial field representation. It uses 64-bit word operations to gain
- * speed but compensates for machine endianess and hence works correctly on
- * both big and little endian machines.
+ * This function multiplies a field element by x in the polynomial field
+ * representation. It uses 64-bit word operations to gain speed but compensates
+ * for machine endianess and hence works correctly on both big and little
+ * endian machines.
  */
 static void mbedtls_gf128mul_x_ble( unsigned char r[16],
                                     const unsigned char x[16])

@@ -258,6 +258,21 @@ void aes_crypt_xts_size( int size, int retval )
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_XTS */
+void aes_crypt_xts_keysize( int size, int retval )
+{
+    mbedtls_aes_xts_context ctx;
+    const unsigned char *key = NULL;
+    size_t key_len = size;
+
+    mbedtls_aes_xts_init( &ctx );
+
+    TEST_ASSERT( mbedtls_aes_xts_setkey_enc( &ctx, key, key_len * 8 ) == retval );
+    TEST_ASSERT( mbedtls_aes_xts_setkey_dec( &ctx, key, key_len * 8 ) == retval );
+exit:
+    mbedtls_aes_xts_free( &ctx );
+}
+/* END_CASE */
 
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CFB */

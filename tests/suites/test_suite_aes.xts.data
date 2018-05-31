@@ -13,6 +13,21 @@ aes_crypt_xts_size:16777217:MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH
 AES-128-XTS Encrypt Fail Sector Too Large (by 1 block)
 aes_crypt_xts_size:16777232:MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH
 
+AES-0-XTS Setkey Fail Invalid Key Length
+aes_crypt_xts_keysize:0:MBEDTLS_ERR_AES_INVALID_KEY_LENGTH
+
+AES-4-XTS Setkey Fail Invalid Key Length
+aes_crypt_xts_keysize:1:MBEDTLS_ERR_AES_INVALID_KEY_LENGTH
+
+AES-64-XTS Setkey Fail Invalid Key Length
+aes_crypt_xts_keysize:16:MBEDTLS_ERR_AES_INVALID_KEY_LENGTH
+
+AES-192-XTS Setkey Fail Invalid Key Length
+aes_crypt_xts_keysize:48:MBEDTLS_ERR_AES_INVALID_KEY_LENGTH
+
+AES-384-XTS Setkey Fail Invalid Key Length
+aes_crypt_xts_keysize:96:MBEDTLS_ERR_AES_INVALID_KEY_LENGTH
+
 AES-128-XTS Encrypt NIST XTSTestVectors #1
 aes_encrypt_xts:"a1b90cba3f06ac353b2c343876081762090923026e91771815f29dab01932f2f":"4faef7117cda59c66e4b92013e768ad5":"ebabce95b14d3c8d6fb350390790311c":"778ae8b43cb98d5a825081d5be471c63"
 

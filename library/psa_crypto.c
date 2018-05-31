@@ -989,7 +989,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
         return( status );
     slot = &global_data.key_slots[key];
 
-    \ ( slot->policy.usage & PSA_KEY_USAGE_SIGN ) != 0 )
+    if( ( slot->policy.usage & PSA_KEY_USAGE_SIGN ) != 0 )
         operation->key_usage_sign = 1;
 
     if( ( slot->policy.usage & PSA_KEY_USAGE_VERIFY ) != 0 )

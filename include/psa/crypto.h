@@ -162,6 +162,7 @@ typedef uint32_t psa_key_type_t;
 #define PSA_KEY_TYPE_DSA_KEYPAIR                ((psa_key_type_t)0x07020000)
 #define PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE        ((psa_key_type_t)0x06030000)
 #define PSA_KEY_TYPE_ECC_KEYPAIR_BASE           ((psa_key_type_t)0x07030000)
+#define PSA_KEY_TYPE_ECC_CURVE_NISTP256R1       ((psa_key_type_t)0x00000001)
 #define PSA_KEY_TYPE_ECC_CURVE_MASK             ((psa_key_type_t)0x0000ffff)
 #define PSA_KEY_TYPE_ECC_KEYPAIR(curve)         \
     (PSA_KEY_TYPE_ECC_KEYPAIR_BASE | (curve))

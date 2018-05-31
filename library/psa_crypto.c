@@ -1442,15 +1442,15 @@ psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
     }
 }
 
- 
-psa_status_t psa_asymmetric_encrypt(psa_key_slot_t key, 
-                                    psa_algorithm_t alg, 
-                                    const uint8_t *input, 
-                                    size_t input_length, 
-                                    const uint8_t *salt, 
-                                    size_t salt_length, 
-                                    uint8_t *output, 
-                                    size_t output_size, 
+
+psa_status_t psa_asymmetric_encrypt(psa_key_slot_t key,
+                                    psa_algorithm_t alg,
+                                    const uint8_t *input,
+                                    size_t input_length,
+                                    const uint8_t *salt,
+                                    size_t salt_length,
+                                    uint8_t *output,
+                                    size_t output_size,
                                     size_t *output_length)
 {
     key_slot_t *slot;
@@ -1471,7 +1471,7 @@ psa_status_t psa_asymmetric_encrypt(psa_key_slot_t key,
     {
         mbedtls_rsa_context *rsa = slot->data.rsa;
         int ret;
-        if( output_size < rsa->len ) 
+        if( output_size < rsa->len )
                 return( PSA_ERROR_INVALID_ARGUMENT );
 #if defined(MBEDTLS_PKCS1_V15)
         if( alg == PSA_ALG_RSA_PKCS1V15_CRYPT )
@@ -1480,7 +1480,7 @@ psa_status_t psa_asymmetric_encrypt(psa_key_slot_t key,
                                         mbedtls_ctr_drbg_random,
                                         &global_data.ctr_drbg,
                                         MBEDTLS_RSA_PUBLIC,
-                                        input_length, 
+                                        input_length,
                                         input,
                                         output );
         }
@@ -1513,17 +1513,17 @@ psa_status_t psa_asymmetric_encrypt(psa_key_slot_t key,
         return( PSA_ERROR_NOT_SUPPORTED );
     }
 
-} 
+}
 
- 
-psa_status_t psa_asymmetric_decrypt(psa_key_slot_t key, 
-                                    psa_algorithm_t alg, 
-                                    const uint8_t *input, 
-                                    size_t input_length, 
-                                    const uint8_t *salt, 
-                                    size_t salt_length, 
-                                    uint8_t *output, 
-                                    size_t output_size, 
+
+psa_status_t psa_asymmetric_decrypt(psa_key_slot_t key,
+                                    psa_algorithm_t alg,
+                                    const uint8_t *input,
+                                    size_t input_length,
+                                    const uint8_t *salt,
+                                    size_t salt_length,
+                                    uint8_t *output,
+                                    size_t output_size,
                                     size_t *output_length)
 {
     key_slot_t *slot;
@@ -1544,7 +1544,7 @@ psa_status_t psa_asymmetric_decrypt(psa_key_slot_t key,
         mbedtls_rsa_context *rsa = slot->data.rsa;
         int ret;
 
-        if( output_size < rsa->len ) 
+        if( output_size < rsa->len )
             return( PSA_ERROR_INVALID_ARGUMENT );
 
 #if defined(MBEDTLS_PKCS1_V15)
@@ -1555,9 +1555,9 @@ psa_status_t psa_asymmetric_decrypt(psa_key_slot_t key,
                                             mbedtls_ctr_drbg_random,
                                             &global_data.ctr_drbg,
                                             MBEDTLS_RSA_PRIVATE,
-                                            output_length, 
+                                            output_length,
                                             input,
-                                            output, 
+                                            output,
                                             output_size );
         }
         else
@@ -1589,8 +1589,8 @@ psa_status_t psa_asymmetric_decrypt(psa_key_slot_t key,
         return( PSA_ERROR_NOT_SUPPORTED );
     }
 
-} 
-                    
+}
+
 
 /****************************************************************/
 /* Key Policy */
@@ -1626,13 +1626,13 @@ psa_status_t psa_set_key_policy(psa_key_slot_t key,
 
     if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT || policy == NULL )
         return( PSA_ERROR_INVALID_ARGUMENT );
-    
+
     slot = &global_data.key_slots[key];
     if( slot->type != PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_OCCUPIED_SLOT );
 
-    if( ( policy->usage & ~( PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_ENCRYPT 
-                        | PSA_KEY_USAGE_DECRYPT | PSA_KEY_USAGE_SIGN 
+    if( ( policy->usage & ~( PSA_KEY_USAGE_EXPORT | PSA_KEY_USAGE_ENCRYPT
+                        | PSA_KEY_USAGE_DECRYPT | PSA_KEY_USAGE_SIGN
                         | PSA_KEY_USAGE_VERIFY ) ) != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
@@ -1650,7 +1650,7 @@ psa_status_t psa_get_key_policy(psa_key_slot_t key,
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     slot = &global_data.key_slots[key];
-    
+
     *policy = slot->policy;
 
     return( PSA_SUCCESS );
@@ -1671,7 +1671,7 @@ psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     slot = &global_data.key_slots[key];
-    
+
     *lifetime = slot->lifetime;
 
     return( PSA_SUCCESS );
@@ -1685,8 +1685,8 @@ psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
     if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    if( lifetime != PSA_KEY_LIFETIME_VOLATILE && 
-        lifetime != PSA_KEY_LIFETIME_PERSISTENT && 
+    if( lifetime != PSA_KEY_LIFETIME_VOLATILE &&
+        lifetime != PSA_KEY_LIFETIME_PERSISTENT &&
         lifetime != PSA_KEY_LIFETIME_WRITE_ONCE)
         return( PSA_ERROR_INVALID_ARGUMENT );
 
@@ -1696,7 +1696,7 @@ psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
 
     if ( lifetime != PSA_KEY_LIFETIME_VOLATILE )
         return( PSA_ERROR_NOT_SUPPORTED );
-        
+
     slot->lifetime = lifetime;
 
     return( PSA_SUCCESS );

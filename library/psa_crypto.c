@@ -1376,7 +1376,7 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
         operation->iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
     }
 
-    return ( PSA_SUCCESS );
+    return( PSA_SUCCESS );
 }
 
 psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
@@ -1416,10 +1416,10 @@ psa_status_t psa_encrypt_generate_iv(psa_cipher_operation_t *operation,
     *iv_length = operation->iv_size;
     ret = psa_encrypt_set_iv( operation, iv, *iv_length );
 
-    exit:
-        if( ret != PSA_SUCCESS )
-            psa_cipher_abort( operation );
-        return( ret );
+exit:
+    if( ret != PSA_SUCCESS )
+        psa_cipher_abort( operation );
+    return( ret );
 }
 
 psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
@@ -1444,7 +1444,7 @@ psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
     operation->iv_set = 1;
     operation->iv_required = 0;
 
-    return ( PSA_SUCCESS );
+    return( PSA_SUCCESS );
 }
 
 psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
@@ -1455,10 +1455,12 @@ psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
                                size_t *output_length)
 {
     int ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
-
-    if( ( ( PSA_ALG_IS_STREAM_CIPHER( operation->alg ) ) && ( output_size < input_length ) )
-        || ( ( PSA_ALG_IS_BLOCK_CIPHER(operation->alg)) && ( output_size < ((operation->ctx.cipher.unprocessed_len + input_length)/16)*16 ) ) )
-        return ( PSA_ERROR_BUFFER_TOO_SMALL );
+    size_t expected_output_size = ( ( operation->ctx.cipher.unprocessed_len + input_length )/operation->block_size )*operation->block_size; 
+    if( ( ( PSA_ALG_IS_STREAM_CIPHER( operation->alg ) ) && 
+        ( output_size < input_length ) ) || 
+        ( ( PSA_ALG_IS_BLOCK_CIPHER( operation->alg ) ) && 
+        ( output_size < expected_output_size ) ) )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
 
     ret = mbedtls_cipher_update( &operation->ctx.cipher, input,
                    input_length, output, output_length );
@@ -1468,7 +1470,7 @@ psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
         return( mbedtls_to_psa_error( ret ) );
     }
 
-    return ( PSA_SUCCESS );
+    return( PSA_SUCCESS );
 }
 
 psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
@@ -1525,7 +1527,7 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation)
     operation->block_size = 0;
     operation->iv_required = 0;
 
-    return ( PSA_SUCCESS );
+    return( PSA_SUCCESS );
 }
 
 

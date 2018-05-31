@@ -116,3 +116,15 @@ cipher_test_decrypt:PSA_ALG_CBC_BASE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf715880
 PSA Symmetric encryption/decryption: AES-128
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
 cipher_test_verify_output:PSA_ALG_CBC_BASE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a"
+
+PSA Symmetric encryption multipart: AES-128
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_test_encrypt_multipart:PSA_ALG_CBC_BASE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":7:"a076ec9dfbe47d52afc357336f20743b"
+
+PSA Symmetric encryption multipart: AES-128
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_test_encrypt_multipart:PSA_ALG_CBC_BASE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":3:"a076ec9dfbe47d52afc357336f20743b"
+
+PSA Symmetric encryption multipart: AES-128
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_test_encrypt_multipart:PSA_ALG_CBC_BASE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":11:"a076ec9dfbe47d52afc357336f20743b"

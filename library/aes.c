@@ -1111,18 +1111,18 @@ typedef unsigned char mbedtls_be128[16];
  * endian machines.
  */
 static void mbedtls_gf128mul_x_ble( unsigned char r[16],
-                                    const unsigned char x[16])
+                                    const unsigned char x[16] )
 {
     uint64_t a, b, ra, rb;
 
-    GET_UINT64_LE(a, x, 0);
-    GET_UINT64_LE(b, x, 8);
+    GET_UINT64_LE( a, x, 0 );
+    GET_UINT64_LE( b, x, 8 );
 
-    ra = (a << 1)  ^ 0x0087 >> ( 8 - ( ( b >> 63 ) << 3 ) );
-    rb = (a >> 63) | (b << 1);
+    ra = ( a << 1 )  ^ 0x0087 >> ( 8 - ( ( b >> 63 ) << 3 ) );
+    rb = ( a >> 63 ) | ( b << 1 );
 
-    PUT_UINT64_LE(ra, r, 0);
-    PUT_UINT64_LE(rb, r, 8);
+    PUT_UINT64_LE( ra, r, 0 );
+    PUT_UINT64_LE( rb, r, 8 );
 }
 
 /*

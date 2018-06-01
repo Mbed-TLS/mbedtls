@@ -10,6 +10,8 @@ Bugfix
      calling mbedtls_x509_crt_parse_path().
    * Fix redundant declaration of mbedtls_ssl_list_ciphersuites. Raised by
      TrinityTonic. #1359.
+   * Fix an issue with MicroBlaze support in bn_mul.h which was causing the
+     build to fail. Found by zv-io. Fixes #1651.
 
 Changes
    * Support TLS testing in out-of-source builds using cmake.

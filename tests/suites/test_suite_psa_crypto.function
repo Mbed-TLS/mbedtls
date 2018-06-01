@@ -637,7 +637,7 @@ void aead_encrypt_decrypt( int key_type_arg, char * key_hex,
         TEST_ASSERT( psa_aead_decrypt( slot, alg,
                                 nonce, nonce_length,
                                 additional_data, additional_data_length,
-                                output_data, output_length - tag_length, output_data2,
+                                output_data, output_length, output_data2,
                                 output_length, &output_length2 ) == expected_result );
         
 

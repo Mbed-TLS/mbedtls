@@ -1073,11 +1073,39 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
 /** \defgroup aead Authenticated encryption with associated data (AEAD)
  * @{
  */
-/** Process an integrated authenticated encryption operation.
+
+#define PSA_AEAD_ENCRYPT_OUTPUT_SIZE(alg, plaintext_length)     \
+    ((alg) == PSA_ALG_GCM ? (plaintext_length) + 16 :           \
+     (alg) == PSA_ALG_CCM ? (plaintext_length) + 16 :           \
+     0)
+
+/** Process an authenticated encryption operation.
  *
- * \param operation
- * \param alg       The AEAD algorithm to compute (\c PSA_ALG_XXX value
- *                  such that #PSA_ALG_IS_AEAD(alg) is true).
+ * \param key                     Slot containing the key to use.
+ * \param alg                     The AEAD algorithm to compute
+ *                                (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_AEAD(alg) is true).
+ * \param nonce                   Nonce or IV to use.
+ * \param nonce_length            Size of the \p nonce buffer in bytes.
+ * \param additional_data         Additional data that will be authenticated
+ *                                but not encrypted.
+ * \param additional_data_length  Size of \p additional_data in bytes.
+ * \param plaintext               Data that will be authenticated and
+ *                                encrypted.
+ * \param plaintext_length        Size of \p plaintext in bytes.
+ * \param ciphertext              Output buffer for the authenticated and
+ *                                encrypted data. The additional data is not
+ *                                part of this output. For algorithms where the
+ *                                encrypted data and the authentication tag
+ *                                are defined as separate outputs, the
+ *                                authentication tag is appended to the
+ *                                encrypted data.
+ * \param ciphertext_size         Size of the \p ciphertext buffer in bytes.
+ *                                This must be at least
+ *                                #PSA_AEAD_ENCRYPT_OUTPUT_SIZE(\p alg,
+ *                                \p plaintext_length).
+ * \param ciphertext_length       On success, the size of the output
+ *                                in the \b ciphertext buffer.
  *
  * \retval PSA_SUCCESS
  *         Success.
@@ -1104,6 +1132,52 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
                                size_t ciphertext_size,
                                size_t *ciphertext_length );
 
+#define PSA_AEAD_DECRYPT_OUTPUT_SIZE(alg, ciphertext_length)     \
+    ((alg) == PSA_ALG_GCM ? (ciphertext_length) - 16 :           \
+     (alg) == PSA_ALG_CCM ? (ciphertext_length) - 16 :           \
+     0)
+
+/** Process an authenticated decryption operation.
+ *
+ * \param key                     Slot containing the key to use.
+ * \param alg                     The AEAD algorithm to compute
+ *                                (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_AEAD(alg) is true).
+ * \param nonce                   Nonce or IV to use.
+ * \param nonce_length            Size of the \p nonce buffer in bytes.
+ * \param additional_data         Additional data that has been authenticated
+ *                                but not encrypted.
+ * \param additional_data_length  Size of \p additional_data in bytes.
+ * \param ciphertext              Data that has been authenticated and
+ *                                encrypted. For algorithms where the
+ *                                encrypted data and the authentication tag
+ *                                are defined as separate inputs, the buffer
+ *                                must contain the encrypted data followed
+ *                                by the authentication tag.
+ * \param ciphertext_length       Size of \p ciphertext in bytes.
+ * \param plaintext               Output buffer for the decrypted data.
+ * \param plaintext_size          Size of the \p plaintext buffer in bytes.
+ *                                This must be at least
+ *                                #PSA_AEAD_DECRYPT_OUTPUT_SIZE(\p alg,
+ *                                \p ciphertext_length).
+ * \param plaintext_length        On success, the size of the output
+ *                                in the \b plainrtext buffer.
+ *
+ * \retval PSA_SUCCESS
+ *         Success.
+ * \retval PSA_ERROR_EMPTY_SLOT
+ * \retval PSA_ERROR_INVALID_SIGNATURE
+ *         The ciphertext is not authentic.
+ * \retval PSA_ERROR_NOT_PERMITTED
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ *         \c key is not compatible with \c alg.
+ * \retval PSA_ERROR_NOT_SUPPORTED
+ *         \c alg is not supported or is not an AEAD algorithm.
+ * \retval PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
+ */
 psa_status_t psa_aead_decrypt( psa_key_slot_t key,
                                psa_algorithm_t alg,
                                const uint8_t *nonce,

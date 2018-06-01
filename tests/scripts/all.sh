@@ -150,9 +150,19 @@ EOF
 # remove built files as well as the cmake cache/config
 cleanup()
 {
+    if [ -n "${MBEDTLS_ROOT_DIR+set}" ]; then
+        cd "$MBEDTLS_ROOT_DIR"
+    fi
+
     command make clean
 
-    find . -name yotta -prune -o -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} \+
+    # Remove CMake artefacts
+    find . -name .git -prune -o -name yotta -prune -o \
+           -iname CMakeFiles -exec rm -rf {} \+ -o \
+           \( -iname cmake_install.cmake -o \
+              -iname CTestTestfile.cmake -o \
+              -iname CMakeCache.txt \) -exec rm {} \+
+    # Recover files overwritten by in-tree CMake builds
     rm -f include/Makefile include/mbedtls/Makefile programs/*/Makefile
     git update-index --no-skip-worktree Makefile library/Makefile programs/Makefile tests/Makefile
     git checkout -- Makefile library/Makefile programs/Makefile tests/Makefile
@@ -863,8 +873,20 @@ make
 
 msg "test: cmake 'out-of-source' build"
 make test
+# Test an SSL option that requires an auxiliary script in test/scripts/.
+# Also ensure that there are no error messages such as
+# "No such file or directory", which would indicate that some required
+# file is missing (ssl-opt.sh tolerates the absence of some files so
+# may exit with status 0 but emit errors).
+if_build_succeeded ./tests/ssl-opt.sh -f 'Fallback SCSV: beginning of list' 2>ssl-opt.err
+if [ -s ssl-opt.err ]; then
+  cat ssl-opt.err >&2
+  record_status [ ! -s ssl-opt.err ]
+  rm ssl-opt.err
+fi
 cd "$MBEDTLS_ROOT_DIR"
 rm -rf "$OUT_OF_SOURCE_DIR"
+unset MBEDTLS_ROOT_DIR
 
 for optimization_flag in -O2 -O3 -Ofast -Os; do
     for compiler in clang gcc; do

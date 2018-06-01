@@ -17,6 +17,9 @@ Bugfix
    * Fix an issue with MicroBlaze support in bn_mul.h which was causing the
      build to fail. Found by zv-io. Fixes #1651.
 
+Changes
+   * Support TLS testing in out-of-source builds using cmake. Fixes #1193.
+
 = mbed TLS 2.9.0 branch released 2018-04-30
 
 Security

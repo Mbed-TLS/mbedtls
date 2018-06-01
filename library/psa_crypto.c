@@ -1669,7 +1669,11 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
 
         mbedtls_ccm_free( &ccm );
     }
-
+    else
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+    
     *plaintext_length = ciphertext_length;
     return( PSA_SUCCESS );
 }

@@ -25,13 +25,14 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#include <string.h>
+
 #if defined(MBEDTLS_ENTROPY_C)
 
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
 
 #if defined(MBEDTLS_TIMING_C)
-#include <string.h>
 #include "mbedtls/timing.h"
 #endif
 #if defined(MBEDTLS_HAVEGE_C)

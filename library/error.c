@@ -49,6 +49,10 @@
 #include "mbedtls/arc4.h"
 #endif
 
+#if defined(MBEDTLS_ARIA_C)
+#include "mbedtls/aria.h"
+#endif
+
 #if defined(MBEDTLS_BASE64_C)
 #include "mbedtls/base64.h"
 #endif
@@ -584,6 +588,17 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_ARC4_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "ARC4 - ARC4 hardware accelerator failed" );
 #endif /* MBEDTLS_ARC4_C */
+
+#if defined(MBEDTLS_ARIA_C)
+    if( use_ret == -(MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH) )
+        mbedtls_snprintf( buf, buflen, "ARIA - Invalid key length" );
+    if( use_ret == -(MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH) )
+        mbedtls_snprintf( buf, buflen, "ARIA - Invalid data input length" );
+    if( use_ret == -(MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE) )
+        mbedtls_snprintf( buf, buflen, "ARIA - Feature not available. For example, an unsupported ARIA key size" );
+    if( use_ret == -(MBEDTLS_ERR_ARIA_HW_ACCEL_FAILED) )
+        mbedtls_snprintf( buf, buflen, "ARIA - ARIA hardware accelerator failed" );
+#endif /* MBEDTLS_ARIA_C */
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
     if( use_ret == -(MBEDTLS_ERR_ASN1_OUT_OF_DATA) )

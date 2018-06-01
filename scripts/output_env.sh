@@ -83,6 +83,11 @@ if [ -n "${OPENSSL_LEGACY+set}" ]; then
     echo
 fi
 
+if [ -n "${OPENSSL_NEXT+set}" ]; then
+    print_version "$OPENSSL_NEXT" "version" "openssl next version not found!"
+    echo
+fi
+
 : ${GNUTLS_CLI:=gnutls-cli}
 print_version "$GNUTLS_CLI" "--version" "gnuTLS client not found!" "head -n 1"
 echo

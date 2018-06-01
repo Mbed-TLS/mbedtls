@@ -90,6 +90,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_ARC4_ALT)
     "MBEDTLS_ARC4_ALT",
 #endif /* MBEDTLS_ARC4_ALT */
+#if defined(MBEDTLS_ARIA_ALT)
+    "MBEDTLS_ARIA_ALT",
+#endif /* MBEDTLS_ARIA_ALT */
 #if defined(MBEDTLS_BLOWFISH_ALT)
     "MBEDTLS_BLOWFISH_ALT",
 #endif /* MBEDTLS_BLOWFISH_ALT */
@@ -531,6 +534,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_CAMELLIA_C)
     "MBEDTLS_CAMELLIA_C",
 #endif /* MBEDTLS_CAMELLIA_C */
+#if defined(MBEDTLS_ARIA_C)
+    "MBEDTLS_ARIA_C",
+#endif /* MBEDTLS_ARIA_C */
 #if defined(MBEDTLS_CCM_C)
     "MBEDTLS_CCM_C",
 #endif /* MBEDTLS_CCM_C */

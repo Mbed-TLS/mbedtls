@@ -1490,7 +1490,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
     mbedtls_cipher_id_t cipher_id;
 
     if( ciphertext_size < ( plaintext_length + sizeof( tag ) ) )
-            return( PSA_ERROR_INVALID_ARGUMENT );
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_get_key_information( key, &key_type, &key_bits );
     if( status != PSA_SUCCESS )
@@ -1509,25 +1509,26 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
     //TODO: check key policy
 
     if ( !( ( key_type & PSA_KEY_TYPE_CATEGORY_MASK ) == PSA_KEY_TYPE_CATEGORY_CIPHER
-           && PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) == 16 ) )
+            && PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) == 16 ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     if( alg == PSA_ALG_GCM )
     {
         mbedtls_gcm_context gcm;
         mbedtls_gcm_init( &gcm );
-        ret = mbedtls_gcm_setkey( &gcm, cipher_id, 
-                                ( const unsigned char * )slot->data.raw.data, key_bits );
+        ret = mbedtls_gcm_setkey( &gcm, cipher_id,
+                                  ( const unsigned char * )slot->data.raw.data,
+                                  key_bits );
         if( ret != 0 )
         {
             mbedtls_gcm_free( &gcm );
             return( mbedtls_to_psa_error( ret ) );
         }
         ret = mbedtls_gcm_crypt_and_tag( &gcm, MBEDTLS_GCM_ENCRYPT,
-                       plaintext_length, nonce ,
-                       nonce_length, additional_data,
-                       additional_data_length, plaintext,
-                       ciphertext, sizeof( tag ), tag );
+                                         plaintext_length, nonce,
+                                         nonce_length, additional_data,
+                                         additional_data_length, plaintext,
+                                         ciphertext, sizeof( tag ), tag );
         if( ret != 0 )
         {
             mbedtls_gcm_free( &gcm );
@@ -1544,17 +1545,18 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
             return( PSA_ERROR_INVALID_ARGUMENT );
 
         mbedtls_ccm_init( &ccm );
-        ret = mbedtls_ccm_setkey( &ccm, cipher_id, 
+        ret = mbedtls_ccm_setkey( &ccm, cipher_id,
                                   slot->data.raw.data, key_bits );
         if( ret != 0 )
         {
             mbedtls_ccm_free( &ccm );
             return( mbedtls_to_psa_error( ret ) );
         }
-        ret = mbedtls_ccm_encrypt_and_tag( &ccm, plaintext_length, 
-                       nonce , nonce_length, additional_data,
-                       additional_data_length,
-                       plaintext, ciphertext, tag, sizeof( tag ) );
+        ret = mbedtls_ccm_encrypt_and_tag( &ccm, plaintext_length,
+                                           nonce, nonce_length, additional_data,
+                                           additional_data_length,
+                                           plaintext, ciphertext,
+                                           tag, sizeof( tag ) );
         if( ret != 0 )
         {
             mbedtls_ccm_free( &ccm );
@@ -1594,7 +1596,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
     mbedtls_cipher_id_t cipher_id;
 
     if( plaintext_size < ciphertext_length )
-            return( PSA_ERROR_INVALID_ARGUMENT );
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_get_key_information( key, &key_type, &key_bits );
     if( status != PSA_SUCCESS )
@@ -1613,7 +1615,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
     //TODO: check key policy
 
     if ( !( ( key_type & PSA_KEY_TYPE_CATEGORY_MASK ) == PSA_KEY_TYPE_CATEGORY_CIPHER
-           && PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) == 16 ) )
+            && PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) == 16 ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     if( alg == PSA_ALG_GCM )
@@ -1621,7 +1623,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
         mbedtls_gcm_context gcm;
 
         mbedtls_gcm_init( &gcm );
-        ret = mbedtls_gcm_setkey( &gcm, cipher_id, 
+        ret = mbedtls_gcm_setkey( &gcm, cipher_id,
                                   slot->data.raw.data, key_bits );
         if( ret != 0 )
         {
@@ -1629,9 +1631,10 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
             return( mbedtls_to_psa_error( ret ) );
         }
         ret = mbedtls_gcm_crypt_and_tag( &gcm, MBEDTLS_GCM_DECRYPT,
-                       ciphertext_length, nonce , nonce_length, 
-                       additional_data, additional_data_length,
-                       ciphertext, plaintext, sizeof( tag ), tag );
+                                         ciphertext_length, nonce, nonce_length,
+                                         additional_data, additional_data_length,
+                                         ciphertext, plaintext,
+                                         sizeof( tag ), tag );
         if( ret != 0 )
         {
             mbedtls_gcm_free( &gcm );
@@ -1644,22 +1647,22 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
     else if( alg == PSA_ALG_CCM )
     {
         mbedtls_ccm_context ccm;
-        
+
         if( nonce_length < 7 || nonce_length > 13 )
             return( PSA_ERROR_INVALID_ARGUMENT );
 
         mbedtls_ccm_init( &ccm );
-        ret = mbedtls_ccm_setkey( &ccm, cipher_id, 
+        ret = mbedtls_ccm_setkey( &ccm, cipher_id,
                                   slot->data.raw.data, key_bits );
         if( ret != 0 )
         {
             mbedtls_ccm_free( &ccm );
             return( mbedtls_to_psa_error( ret ) );
         }
-        ret = mbedtls_ccm_auth_decrypt( &ccm, ciphertext_length, 
-                       nonce , nonce_length, additional_data,
-                       additional_data_length, ciphertext ,
-                       plaintext, tag, sizeof( tag ) );
+        ret = mbedtls_ccm_auth_decrypt( &ccm, ciphertext_length,
+                                        nonce, nonce_length, additional_data,
+                                        additional_data_length, ciphertext,
+                                        plaintext, tag, sizeof( tag ) );
         if( ret != 0 )
         {
             mbedtls_ccm_free( &ccm );
@@ -1673,7 +1676,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
     {
         return( PSA_ERROR_INVALID_ARGUMENT );
     }
-    
+
     *plaintext_length = ciphertext_length;
     return( PSA_SUCCESS );
 }

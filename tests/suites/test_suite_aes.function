@@ -294,23 +294,28 @@ void aes_encrypt_ofb( int fragment_size, char *hex_key_string,
                       char *hex_iv_string, char *hex_src_string,
                       char *hex_dst_string )
 {
-    unsigned char key_str[100];
-    unsigned char iv_str[100];
-    unsigned char src_str[200];
-    unsigned char dst_str[200];
-    unsigned char output[200];
+    unsigned char key_str[32];
+    unsigned char iv_str[16];
+    unsigned char src_str[64];
+    unsigned char dst_str[64];
+    unsigned char output[32];
     mbedtls_aes_context ctx;
     size_t iv_offset = 0;
     int in_buffer_len;
     unsigned char* src_str_next;
     int key_len;
 
-    memset(key_str, 0x00, 100);
-    memset(iv_str, 0x00, 100);
-    memset(src_str, 0x00, 200);
-    memset(dst_str, 0x00, 200);
-    memset(output, 0x00, 200);
+    memset(key_str, 0x00, 32);
+    memset(iv_str, 0x00, 16);
+    memset(src_str, 0x00, 64);
+    memset(dst_str, 0x00, 64);
+    memset(output, 0x00, 32);
     mbedtls_aes_init( &ctx );
+
+    TEST_ASSERT( strlen( hex_key_string ) <= ( 32 * 2 ) );
+    TEST_ASSERT( strlen( hex_iv_string ) <= ( 16 * 2 ) );
+    TEST_ASSERT( strlen( hex_src_string ) <= ( 64 * 2 ) );
+    TEST_ASSERT( strlen( hex_dst_string ) <= ( 64 * 2 ) );
 
     key_len = unhexify( key_str, hex_key_string );
     unhexify( iv_str, hex_iv_string );

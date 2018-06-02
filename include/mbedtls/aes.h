@@ -309,13 +309,22 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
  *        The OFB operation is identical for encryption or decryption, therefore
  *        no operation mode needs to be specified.
  *
- * \note  Upon exit, the content of the IV is updated so that you can
- *        call the same function again on the next
- *        block(s) of data and get the same result as if it was
- *        encrypted in one call. This allows a "streaming" usage.
- *        If you need to retain the contents of the
- *        IV, you must either save it manually or use the cipher
- *        module instead.
+ * \note  Upon exit, the content of iv, the Initialisation Vector, is updated
+ *        so that you can call the same function again on the next block(s) of
+ *        data and get the same result as if it was encrypted in one call. This
+ *        allows a "streaming" usage, by initialising iv_off to 0 before the
+ *        first call, and preserving its value between calls.
+ *
+ *        For block by block usage, (or non-streaming use), the iv should be
+ *        initialised on each call to a unique value, and iv_off set to 0 on
+ *        each call.
+ *
+ *        If you need to retain the contents of the initialisation vector, you
+ *        must either save it manually or use the cipher module instead.
+ *
+ *        For the OFB mode, the initiallisation vector must be unique and must
+ *        be unique for every encryption operation. Reuse of an initialisation
+ *        vector will compromise security.
  *
  *
  * \param ctx      The AES context to use for encryption or decryption.

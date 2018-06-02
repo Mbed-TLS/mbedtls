@@ -305,11 +305,11 @@ void aes_encrypt_ofb( int fragment_size, char *hex_key_string,
     unsigned char* src_str_next;
     int key_len;
 
-    memset(key_str, 0x00, 32);
-    memset(iv_str, 0x00, 16);
-    memset(src_str, 0x00, 64);
-    memset(dst_str, 0x00, 64);
-    memset(output, 0x00, 32);
+    memset( key_str, 0x00, sizeof( key_str ) );
+    memset( iv_str, 0x00, sizeof( iv_str ) );
+    memset( src_str, 0x00, sizeof( src_str ) );
+    memset( dst_str, 0x00, sizeof( dst_str ) );
+    memset( output, 0x00, sizeof( output ) );
     mbedtls_aes_init( &ctx );
 
     TEST_ASSERT( strlen( hex_key_string ) <= ( 32 * 2 ) );

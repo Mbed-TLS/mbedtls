@@ -888,10 +888,11 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
 static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     psa_algorithm_t alg,
     psa_key_type_t key_type,
-    size_t key_bits )
+    size_t key_bits, 
+    mbedtls_cipher_id_t* cipher_id )
 {
-    mbedtls_cipher_id_t cipher_id;
     mbedtls_cipher_mode_t mode;
+    mbedtls_cipher_id_t cipher_id_tmp;
 
     if( PSA_ALG_IS_CIPHER( alg ) || PSA_ALG_IS_AEAD( alg ) )
     {
@@ -934,25 +935,27 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     switch( key_type )
     {
         case PSA_KEY_TYPE_AES:
-            cipher_id = MBEDTLS_CIPHER_ID_AES;
+            cipher_id_tmp = MBEDTLS_CIPHER_ID_AES;
             break;
         case PSA_KEY_TYPE_DES:
             if( key_bits == 64 )
-                cipher_id = MBEDTLS_CIPHER_ID_DES;
+                cipher_id_tmp = MBEDTLS_CIPHER_ID_DES;
             else
-                cipher_id = MBEDTLS_CIPHER_ID_3DES;
+                cipher_id_tmp = MBEDTLS_CIPHER_ID_3DES;
             break;
         case PSA_KEY_TYPE_CAMELLIA:
-            cipher_id = MBEDTLS_CIPHER_ID_CAMELLIA;
+            cipher_id_tmp = MBEDTLS_CIPHER_ID_CAMELLIA;
             break;
         case PSA_KEY_TYPE_ARC4:
-            cipher_id = MBEDTLS_CIPHER_ID_ARC4;
+            cipher_id_tmp = MBEDTLS_CIPHER_ID_ARC4;
             break;
         default:
             return( NULL );
     }
+    if( cipher_id != NULL )
+        *cipher_id == cipher_id_tmp;
 
-    return( mbedtls_cipher_info_from_values( cipher_id, key_bits, mode ) );
+    return( mbedtls_cipher_info_from_values( cipher_id_tmp, key_bits, mode ) );
 }
 
 psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
@@ -1010,7 +1013,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
 
     if( ! PSA_ALG_IS_HMAC( alg ) )
     {
-        cipher_info = mbedtls_cipher_info_from_psa( alg, key_type, key_bits );
+        cipher_info = mbedtls_cipher_info_from_psa( alg, key_type, key_bits, NULL );
         if( cipher_info == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
         operation->mac_size = cipher_info->block_size;

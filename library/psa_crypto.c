@@ -1491,6 +1491,8 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
     size_t key_bits;
     unsigned char tag[16];
     mbedtls_cipher_id_t cipher_id;
+    const mbedtls_cipher_info_t *cipher_info = NULL;
+    
     *ciphertext_length = 0;
 
     if( ciphertext_size < ( plaintext_length + sizeof( tag ) ) )
@@ -1501,14 +1503,9 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
         return( status );
     slot = &global_data.key_slots[key];
 
-    if ( key_type == PSA_KEY_TYPE_AES )
-    {
-        cipher_id = MBEDTLS_CIPHER_ID_AES;
-    }
-    else
-    {
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    }
+    cipher_info = mbedtls_cipher_info_from_psa( alg, key_type, key_bits, &cipher_id );
+    if( cipher_info == NULL )
+            return( PSA_ERROR_NOT_SUPPORTED );
 
     //TODO: check key policy
 
@@ -1622,7 +1619,8 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
     const uint8_t *tag;
     size_t tag_length;
     mbedtls_cipher_id_t cipher_id;
-
+    const mbedtls_cipher_info_t *cipher_info = NULL;
+    
     *plaintext_length = 0;
 
     status = psa_get_key_information( key, &key_type, &key_bits );
@@ -1630,15 +1628,9 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
         return( status );
     slot = &global_data.key_slots[key];
 
-    if ( key_type == PSA_KEY_TYPE_AES )
-    {
-        cipher_id = MBEDTLS_CIPHER_ID_AES;
-    }
-    else
-    {
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    }
-
+    cipher_info = mbedtls_cipher_info_from_psa( alg, key_type, key_bits, &cipher_id );
+    if( cipher_info == NULL )
+            return( PSA_ERROR_NOT_SUPPORTED );
     //TODO: check key policy
 
     if ( !( ( key_type & PSA_KEY_TYPE_CATEGORY_MASK ) == PSA_KEY_TYPE_CATEGORY_CIPHER

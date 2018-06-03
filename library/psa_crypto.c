@@ -1491,6 +1491,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
     size_t key_bits;
     unsigned char tag[16];
     mbedtls_cipher_id_t cipher_id;
+    *ciphertext_length = 0;
 
     if( ciphertext_size < ( plaintext_length + sizeof( tag ) ) )
         return( PSA_ERROR_INVALID_ARGUMENT );

@@ -577,8 +577,7 @@ exit:
 /* BEGIN_CASE */
 void aead_encrypt_decrypt( int key_type_arg, char * key_hex,
                 int alg_arg, char * input_hex,
-                char * add_data
-                , int expected_result_arg )
+                char * add_data, int expected_result_arg )
 {
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;

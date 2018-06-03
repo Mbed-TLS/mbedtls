@@ -1564,7 +1564,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
         if( ret != 0 )
         {
             mbedtls_ccm_free( &ccm );
-            mbedtls_zeroize( ciphertext, plaintext_length );
+            memset( ciphertext, 0, plaintext_length );
             return( mbedtls_to_psa_error( ret ) );
         }
 
@@ -1711,7 +1711,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
 
     if( ret != 0 )
     {
-        mbedtls_zeroize( plaintext, *plaintext_length );
+        memset( plaintext, 0, *plaintext_length );
         *plaintext_length = 0;
     }
     return( mbedtls_to_psa_error( ret ) );

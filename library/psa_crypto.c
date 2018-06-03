@@ -1544,14 +1544,6 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
         if( nonce_length < 7 || nonce_length > 13 )
             return( PSA_ERROR_INVALID_ARGUMENT );
 
-        tag_length = 16;
-        status = psa_aead_unpadded_locate_tag( tag_length,
-                                               ciphertext, ciphertext_length,
-                                               plaintext_size, plaintext_length,
-                                               &tag );
-        if( status != PSA_SUCCESS )
-            return( status );
-
         mbedtls_ccm_init( &ccm );
         ret = mbedtls_ccm_setkey( &ccm, cipher_id,
                                   slot->data.raw.data, key_bits );
@@ -1684,6 +1676,14 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
 
         if( nonce_length < 7 || nonce_length > 13 )
             return( PSA_ERROR_INVALID_ARGUMENT );
+
+        tag_length = 16;
+        status = psa_aead_unpadded_locate_tag( tag_length,
+                                               ciphertext, ciphertext_length,
+                                               plaintext_size, plaintext_length,
+                                               &tag );
+        if( status != PSA_SUCCESS )
+            return( status );
 
         mbedtls_ccm_init( &ccm );
         ret = mbedtls_ccm_setkey( &ccm, cipher_id,

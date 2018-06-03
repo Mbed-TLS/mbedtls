@@ -1572,7 +1572,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
     }
     else
     {
-        return( PSA_ERROR_INVALID_ARGUMENT );
+        return( PSA_ERROR_NOT_SUPPORTED );
     }
     memcpy( ciphertext + plaintext_length, tag, sizeof( tag ) );
     *ciphertext_length = plaintext_length + sizeof( tag );
@@ -1706,7 +1706,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
     }
     else
     {
-        return( PSA_ERROR_INVALID_ARGUMENT );
+        return( PSA_ERROR_NOT_SUPPORTED );
     }
 
     if( ret != 0 )

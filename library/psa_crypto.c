@@ -953,7 +953,7 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
             return( NULL );
     }
     if( cipher_id != NULL )
-        *cipher_id == cipher_id_tmp;
+        *cipher_id = cipher_id_tmp;
 
     return( mbedtls_cipher_info_from_values( cipher_id_tmp, key_bits, mode ) );
 }
@@ -1595,7 +1595,6 @@ static psa_status_t psa_aead_unpadded_locate_tag( size_t tag_length,
                                                   const uint8_t *ciphertext,
                                                   size_t ciphertext_length,
                                                   size_t plaintext_size,
-                                                  size_t *plaintext_length,
                                                   const uint8_t **p_tag )
 {
     size_t payload_length;
@@ -1605,7 +1604,6 @@ static psa_status_t psa_aead_unpadded_locate_tag( size_t tag_length,
     if( payload_length > plaintext_size )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
     *p_tag = ciphertext + payload_length;
-    *plaintext_length = payload_length;
     return( PSA_SUCCESS );
 }
 
@@ -1654,8 +1652,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
         tag_length = 16;
         status = psa_aead_unpadded_locate_tag( tag_length,
                                                ciphertext, ciphertext_length,
-                                               plaintext_size, plaintext_length,
-                                               &tag );
+                                               plaintext_size, &tag );
         if( status != PSA_SUCCESS )
             return( status );
 
@@ -1669,7 +1666,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
         }
 
         ret = mbedtls_gcm_auth_decrypt( &gcm,
-                                        *plaintext_length,
+                                        ciphertext_length - tag_length,
                                         nonce, nonce_length,
                                         additional_data, additional_data_length,
                                         tag, tag_length,
@@ -1686,8 +1683,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
         tag_length = 16;
         status = psa_aead_unpadded_locate_tag( tag_length,
                                                ciphertext, ciphertext_length,
-                                               plaintext_size, plaintext_length,
-                                               &tag );
+                                               plaintext_size, &tag );
         if( status != PSA_SUCCESS )
             return( status );
 
@@ -1699,7 +1695,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
             mbedtls_ccm_free( &ccm );
             return( mbedtls_to_psa_error( ret ) );
         }
-        ret = mbedtls_ccm_auth_decrypt( &ccm, *plaintext_length,
+        ret = mbedtls_ccm_auth_decrypt( &ccm, ciphertext_length - tag_length,
                                         nonce, nonce_length,
                                         additional_data, additional_data_length,
                                         ciphertext, plaintext,
@@ -1712,10 +1708,10 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
     }
 
     if( ret != 0 )
-    {
-        memset( plaintext, 0, *plaintext_length );
-        *plaintext_length = 0;
-    }
+        memset( plaintext, 0, plaintext_size );
+    else
+        *plaintext_length = ciphertext_length - tag_length;
+
     return( mbedtls_to_psa_error( ret ) );
 }
 

@@ -1521,7 +1521,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
         mbedtls_gcm_context gcm;
         mbedtls_gcm_init( &gcm );
         ret = mbedtls_gcm_setkey( &gcm, cipher_id,
-                                  ( const unsigned char * )slot->data.raw.data,
+                                  slot->data.raw.data,
                                   key_bits );
         if( ret != 0 )
         {

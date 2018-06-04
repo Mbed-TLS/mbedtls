@@ -2021,9 +2021,9 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
                     break;
 #endif
 #if defined(MBEDTLS_MD4_C) || defined(MBEDTLS_MD5_C) || \
-    defined(MBEDTLS_SHA1_C) || defined(MBEDTLS_SHA224_C) || \
-    defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_RIPEMD160_C)
                 case MBEDTLS_MD_MD4:
+    defined(MBEDTLS_SHA1_C) || defined(MBEDTLS_SHA256_C) \
+    defined(MBEDTLS_RIPEMD160_C)
                 case MBEDTLS_MD_MD5:
                 case MBEDTLS_MD_SHA1:
                 case MBEDTLS_MD_SHA224:
@@ -2034,7 +2034,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
                                 ( 13 + ssl->in_msglen          + 8 ) / 64;
                     break;
 #endif
-#if defined(MBEDTLS_SHA384_C) || defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_SHA512_C)
                 case MBEDTLS_MD_SHA384:
                 case MBEDTLS_MD_SHA512:
                     /* 16 bytes of message size, 128-byte compression blocks */

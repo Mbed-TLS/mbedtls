@@ -4527,6 +4527,7 @@ static int ssl_write_certificate_postprocess( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_SSL_SRV_C */
 
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
 
@@ -5057,6 +5058,7 @@ static int ssl_read_certificate_postprocess( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -5136,7 +5138,9 @@ static int ssl_process_out_ccs_postprocess( mbedtls_ssl_context *ssl )
         ssl->state = MBEDTLS_SSL_SERVER_FINISHED;
 #endif
 
-    return( 0 );}
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
+    return( 0 );
+}
 
 /*
  *
@@ -5271,6 +5275,7 @@ static int ssl_process_in_ccs_postprocess( mbedtls_ssl_context *ssl )
         ssl->state = MBEDTLS_SSL_CLIENT_FINISHED;
 #endif
 
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -5728,10 +5733,10 @@ int mbedtls_ssl_process_finished_out( mbedtls_ssl_context *ssl )
     int ret;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write finished" ) );
 
-    if( !ssl->handshake->finished_out_preparation_done )
+    if( !ssl->handshake->state_local.finished_out.preparation_done )
     {
         MBEDTLS_SSL_PROC_CHK( ssl_finished_out_prepare( ssl ) );
-        ssl->handshake->finished_out_preparation_done = 1;
+        ssl->handshake->state_local.finished_out.preparation_done = 1;
     }
 
     /* Make sure we can write a new message. */
@@ -5776,15 +5781,18 @@ static int ssl_finished_out_prepare( mbedtls_ssl_context *ssl )
      * ciphersuite does this (and this is unlikely to change as activity has
      * moved to TLS 1.3 now) so we can keep the hardcoded 12 here.
      */
-    ssl->handshake->finished_out_digest_len =
+    ssl->handshake->state_local.finished_out.digest_len =
         ( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ) ? 36 : 12;
-    ssl->handshake->calc_finished( ssl, ssl->handshake->finished_out_digest,
-                                   ssl->conf->endpoint );
+    ssl->handshake->calc_finished( ssl,
+                               ssl->handshake->state_local.finished_out.digest,
+                               ssl->conf->endpoint );
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-    ssl->verify_data_len = ssl->handshake->finished_out_digest_len;
-    memcpy( ssl->own_verify_data, ssl->handshake->finished_out_digest,
-            ssl->handshake->finished_out_digest_len );
+    ssl->verify_data_len =
+        ssl->handshake->state_local.finished_out.digest_len;
+    memcpy( ssl->own_verify_data,
+            ssl->handshake->state_local.finished_out.digest,
+            ssl->handshake->state_local.finished_out.digest_len );
 #endif
 
     /* Perform messaging-layer specific adaptions. */
@@ -5880,6 +5888,7 @@ static int ssl_finished_out_postprocess( mbedtls_ssl_context *ssl )
 #endif
     }
 
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -5888,13 +5897,13 @@ static int ssl_finished_out_write( mbedtls_ssl_context *ssl,
                                    size_t buflen,
                                    size_t *olen )
 {
-    if( buflen < 4 + ssl->handshake->finished_out_digest_len )
+    if( buflen < 4 + ssl->handshake->state_local.finished_out.digest_len )
         return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
-    memcpy( buf + 4, ssl->handshake->finished_out_digest,
-            ssl->handshake->finished_out_digest_len );
+    memcpy( buf + 4, ssl->handshake->state_local.finished_out.digest,
+            ssl->handshake->state_local.finished_out.digest_len );
 
-    *olen = 4 + ssl->handshake->finished_out_digest_len;
+    *olen = 4 + ssl->handshake->state_local.finished_out.digest_len;
     return( 0 );
 }
 
@@ -5999,20 +6008,21 @@ static int ssl_finished_in_preprocess( mbedtls_ssl_context *ssl )
     /* There is currently no ciphersuite using another length with TLS 1.2 */
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
-        ssl->handshake->finished_in_digest_len = 36;
+        ssl->handshake->state_local.finished_in.digest_len = 36;
     else
 #endif
-        ssl->handshake->finished_in_digest_len = 12;
+        ssl->handshake->state_local.finished_in.digest_len = 12;
 
-    ssl->handshake->calc_finished( ssl, ssl->handshake->finished_in_digest,
-                                   ssl->conf->endpoint ^ 1 );
+    ssl->handshake->calc_finished( ssl,
+                               ssl->handshake->state_local.finished_in.digest,
+                               ssl->conf->endpoint ^ 1 );
 
     /* Remember digest for secure renegotiation */
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-    ssl->verify_data_len = ssl->handshake->finished_in_digest_len;
+    ssl->verify_data_len = ssl->handshake->state_local.finished_in.digest_len;
     memcpy( ssl->peer_verify_data,
-            ssl->handshake->finished_in_digest,
-            ssl->handshake->finished_in_digest_len );
+            ssl->handshake->state_local.finished_in.digest,
+            ssl->handshake->state_local.finished_in.digest_len );
 #endif
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process finished - preprocess" ) );
@@ -6026,7 +6036,7 @@ static int ssl_finished_in_parse( mbedtls_ssl_context *ssl,
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse finished" ) );
 
     /* Structural validation */
-    if( buflen != ssl->handshake->finished_in_digest_len )
+    if( buflen != ssl->handshake->state_local.finished_in.digest_len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
 
@@ -6037,8 +6047,8 @@ static int ssl_finished_in_parse( mbedtls_ssl_context *ssl,
 
     /* Semantic validation */
     if( mbedtls_ssl_safer_memcmp( buf,
-                                  ssl->handshake->finished_in_digest,
-                                  ssl->handshake->finished_in_digest_len ) != 0 )
+                   ssl->handshake->state_local.finished_in.digest,
+                   ssl->handshake->state_local.finished_in.digest_len ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
 
@@ -6073,6 +6083,7 @@ static int ssl_finished_in_postprocess( mbedtls_ssl_context* ssl )
     }
 #endif /* MBEDTLS_SSL_SRV_C */
 
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -6122,6 +6133,8 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     handshake->sni_authmode = MBEDTLS_SSL_VERIFY_UNSET;
 #endif
+
+    mbedtls_ssl_handshake_params_state_local_clear( handshake );
 }
 
 static void ssl_transform_init( mbedtls_ssl_transform *transform )

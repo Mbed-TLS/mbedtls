@@ -2084,6 +2084,7 @@ have_ciphersuite:
 static int ssl_client_hello_postprocess( mbedtls_ssl_context *ssl )
 {
     ssl->state = MBEDTLS_SSL_SERVER_HELLO;
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -2768,6 +2769,7 @@ static int ssl_process_server_hello_postprocess( mbedtls_ssl_context *ssl )
         }
     }
 
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -3200,6 +3202,7 @@ static int ssl_certificate_request_write( mbedtls_ssl_context *ssl,
 static int ssl_certificate_request_postprocess( mbedtls_ssl_context *ssl )
 {
     ssl->state = MBEDTLS_SSL_SERVER_HELLO_DONE;
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -3267,10 +3270,10 @@ static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
     int ret = 0;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process server key exchange" ) );
 
-    if( ssl->handshake->cli_key_exchange_preparation_done == 0 )
+    if( ssl->handshake->state_local.cli_key_exch_in.preparation_done == 0 )
     {
         MBEDTLS_SSL_PROC_CHK( ssl_server_key_exchange_prepare( ssl ) );
-        ssl->handshake->cli_key_exchange_preparation_done = 1;
+        ssl->handshake->state_local.cli_key_exch_in.preparation_done = 1;
     }
 
     MBEDTLS_SSL_PROC_CHK( ssl_server_key_exchange_coordinate( ssl ) );
@@ -3705,6 +3708,7 @@ static int ssl_server_key_exchange_write( mbedtls_ssl_context *ssl,
 static int ssl_server_key_exchange_postprocess( mbedtls_ssl_context *ssl )
 {
     ssl->state = MBEDTLS_SSL_CERTIFICATE_REQUEST;
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -3788,6 +3792,7 @@ static int ssl_server_hello_done_write( mbedtls_ssl_context *ssl,
 static int ssl_server_hello_done_postprocess( mbedtls_ssl_context *ssl )
 {
     ssl->state = MBEDTLS_SSL_CLIENT_CERTIFICATE;
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -4239,6 +4244,7 @@ static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl )
     }
 
     ssl->state = MBEDTLS_SSL_CERTIFICATE_VERIFY;
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -4540,6 +4546,7 @@ static int ssl_certificate_verify_parse( mbedtls_ssl_context *ssl,
 static int ssl_certificate_verify_postprocess( mbedtls_ssl_context *ssl )
 {
     ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 

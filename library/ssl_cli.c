@@ -1475,8 +1475,8 @@ static int ssl_process_server_hello( mbedtls_ssl_context *ssl )
         }
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
         else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS &&
-                 ssl->secure_renegotiation == MBEDTLS_SSL_SECURE_RENEGOTIATION &&
-                 ssl->handshake->renegotiation_info_seen == 0 )
+               ssl->secure_renegotiation == MBEDTLS_SSL_SECURE_RENEGOTIATION &&
+                ssl->handshake->state_local.srv_hello_in.renego_info_seen == 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "renegotiation_info extension missing (secure)" ) );
             handshake_failure = 1;
@@ -1490,7 +1490,7 @@ static int ssl_process_server_hello( mbedtls_ssl_context *ssl )
         }
         else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS &&
                  ssl->secure_renegotiation == MBEDTLS_SSL_LEGACY_RENEGOTIATION &&
-                 ssl->handshake->renegotiation_info_seen == 1 )
+                 ssl->handshake->state_local.srv_hello_in.renego_info_seen == 1 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "renegotiation_info extension present (legacy)" ) );
             handshake_failure = 1;
@@ -1542,6 +1542,7 @@ static int ssl_process_server_hello( mbedtls_ssl_context *ssl )
         mbedtls_ssl_recv_flight_completed( ssl );
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
 
 cleanup:
 
@@ -1897,7 +1898,7 @@ static int ssl_process_server_hello_parse( mbedtls_ssl_context *ssl,
         case MBEDTLS_TLS_EXT_RENEGOTIATION_INFO:
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "found renegotiation extension" ) );
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-            ssl->handshake->renegotiation_info_seen = 1;
+            ssl->handshake->state_local.srv_hello_in.renego_info_seen = 1;
 #endif
 
             if( ( ret = ssl_parse_renegotiation_info( ssl, ext + 4,
@@ -2501,10 +2502,10 @@ static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
      * TODO: Why don't we do this as post-processing after
      *       the server certificate has been read?
      */
-    if( !ssl->handshake->srv_key_exchange_preparation_done )
+    if( !ssl->handshake->state_local.srv_key_exchange.preparation_done )
     {
         MBEDTLS_SSL_PROC_CHK( ssl_server_key_exchange_prepare( ssl ) );
-        ssl->handshake->srv_key_exchange_preparation_done = 1;
+        ssl->handshake->state_local.srv_key_exchange.preparation_done = 1;
     }
 
     /* Coordination:
@@ -2890,6 +2891,7 @@ static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
 static int ssl_server_key_exchange_postprocess( mbedtls_ssl_context *ssl )
 {
     ssl->state = MBEDTLS_SSL_CERTIFICATE_REQUEST;
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -3149,6 +3151,7 @@ static int ssl_certificate_request_parse( mbedtls_ssl_context *ssl,
 static int ssl_certificate_request_postprocess( mbedtls_ssl_context *ssl )
 {
     ssl->state = MBEDTLS_SSL_SERVER_HELLO_DONE;
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -3196,6 +3199,7 @@ static int ssl_process_server_hello_done( mbedtls_ssl_context *ssl )
     /* Postprocessing: Update state */
 
     ssl->state = MBEDTLS_SSL_CLIENT_CERTIFICATE;
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse server hello done" ) );
     return( 0 );
@@ -3235,10 +3239,10 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
     int ret = 0;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process client key exchange" ) );
 
-    if( ssl->handshake->cli_key_exchange_preparation_done == 0 )
+    if( ssl->handshake->state_local.cli_key_exch_out.preparation_done == 0 )
     {
         MBEDTLS_SSL_PROC_CHK( ssl_client_key_exchange_prepare( ssl ) );
-        ssl->handshake->cli_key_exchange_preparation_done = 1;
+        ssl->handshake->state_local.cli_key_exch_out.preparation_done = 1;
     }
 
     /* Make sure we can write a new message. */
@@ -3571,6 +3575,7 @@ static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl )
     }
 
     ssl->state = MBEDTLS_SSL_CERTIFICATE_VERIFY;
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -3613,7 +3618,7 @@ static int ssl_process_certificate_verify( mbedtls_ssl_context *ssl )
     int ret = 0;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process certificate verify" ) );
 
-    if( ssl->handshake->crt_vrfy_preparation_done == 0 )
+    if( ssl->handshake->state_local.crt_vrfy_out.preparation_done == 0 )
     {
         /* Preparation step: Set PRF's and generate keys.
          *
@@ -3653,7 +3658,7 @@ static int ssl_process_certificate_verify( mbedtls_ssl_context *ssl )
          *         the checksum has been updated.
          */
         MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_derive_keys( ssl ) );
-        ssl->handshake->crt_vrfy_preparation_done = 1;
+        ssl->handshake->state_local.crt_vrfy_out.preparation_done = 1;
     }
 
     /* Coordination step: Check if we need to send a CertificateVerify */
@@ -3867,6 +3872,7 @@ static int ssl_certificate_verify_write( mbedtls_ssl_context *ssl,
 static int ssl_certificate_verify_postprocess( mbedtls_ssl_context *ssl )
 {
     ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -4031,7 +4037,7 @@ static int ssl_new_session_ticket_postprocess( mbedtls_ssl_context *ssl )
     /* We're not waiting for a NewSessionTicket message any more */
     ssl->handshake->new_session_ticket = 0;
     ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
-
+    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 

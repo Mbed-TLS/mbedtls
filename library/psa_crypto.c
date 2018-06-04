@@ -1394,8 +1394,12 @@ psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
 #if defined(MBEDTLS_ECP_C)
     if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
     {
-        // TODO
-        return( PSA_ERROR_NOT_SUPPORTED );
+        mbedtls_ecp_keypair *ecdsa = slot->data.ecp;
+        int ret;
+        (void)alg;
+        ret = mbedtls_ecdsa_read_signature(ecdsa, hash, hash_length, signature,
+            signature_size);
+        return(mbedtls_to_psa_error(ret));
     }
     else
 #endif /* defined(MBEDTLS_ECP_C) */

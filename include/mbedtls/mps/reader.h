@@ -67,6 +67,30 @@
  * from Consuming to either Unset or Accumulating (depending
  * on what has been processed) is done via mbedtls_reader_reclaim().
  *
+ * The following diagram depicts the producer-state progression:
+ *
+ *        +------------------+             reclaim
+ *        |      Unset       +<-------------------------------------+       get
+ *        +--------|---------+                                      |   +------+
+ *                 |                                                |   |      |
+ *                 |                                                |   |      |
+ *                 |                feed                  +---------+---+--+   |
+ *                 +-------------------------------------->    Attached    <---+
+ *                                                        |       /        |
+ *                 +-------------------------------------->    Consuming   <---+
+ *                 |     feed, enough data available      +---------+---+--+   |
+ *                 |     to serve previous consumer request         |   |      |
+ *                 |                                                |   |      |
+ *        +--------+---------+                                      |   +------+
+ *   +---->   Accumulating   |<-------------------------------------+    commit
+ *   |    +---+--------------+      reclaim, previous read request
+ *   |        |                        couldn't be fulfilled
+ *   |        |
+ *   +--------+
+ *     feed, need more data to serve
+ *     previous consumer request
+ *
+ *
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

@@ -1203,6 +1203,30 @@ psa_status_t psa_mac_verify( psa_mac_operation_t *operation,
 /* Asymmetric cryptography */
 /****************************************************************/
 
+static psa_status_t verify_RSA_hash_input_and_get_md_type(psa_algorithm_t alg, size_t hash_length, mbedtls_md_type_t *md_alg)
+{
+    psa_algorithm_t hash_alg = PSA_ALG_RSA_GET_HASH(alg);
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa(hash_alg);
+    *md_alg = hash_alg == 0 ? MBEDTLS_MD_NONE : mbedtls_md_get_type(md_info);
+    if (*md_alg == MBEDTLS_MD_NONE)
+    {
+#if SIZE_MAX > UINT_MAX
+        if (hash_length > UINT_MAX)
+            return(PSA_ERROR_INVALID_ARGUMENT);
+#endif
+    }
+    else
+    {
+        if (mbedtls_md_get_size(md_info) != hash_length)
+            return(PSA_ERROR_INVALID_ARGUMENT);
+        if (md_info == NULL)
+            return(PSA_ERROR_NOT_SUPPORTED);
+    }
+    return PSA_SUCCESS;
+}
+
+
+
 psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
                                  psa_algorithm_t alg,
                                  const uint8_t *hash,
@@ -1214,10 +1238,11 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
                                  size_t *signature_length)
 {
     key_slot_t *slot;
-
+    psa_status_t status;
     *signature_length = 0;
     (void) salt;
     (void) salt_length;
+
 
     if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_EMPTY_SLOT );
@@ -1234,24 +1259,12 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
     {
         mbedtls_rsa_context *rsa = slot->data.rsa;
         int ret;
-        psa_algorithm_t hash_alg = PSA_ALG_RSA_GET_HASH( alg );
-        const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa( hash_alg );
-        mbedtls_md_type_t md_alg =
-            hash_alg == 0 ? MBEDTLS_MD_NONE : mbedtls_md_get_type( md_info );
-        if( md_alg == MBEDTLS_MD_NONE )
-        {
-#if SIZE_MAX > UINT_MAX
-            if( hash_length > UINT_MAX )
-                return( PSA_ERROR_INVALID_ARGUMENT );
-#endif
-        }
-        else
-        {
-            if( mbedtls_md_get_size( md_info ) != hash_length )
-                return( PSA_ERROR_INVALID_ARGUMENT );
-            if( md_info == NULL )
-                return( PSA_ERROR_NOT_SUPPORTED );
-        }
+        mbedtls_md_type_t md_alg;
+        status = verify_RSA_hash_input_and_get_md_type( alg, hash_length,
+                                                       &md_alg );
+        if ( status != PSA_SUCCESS )
+            return status;
+
         if( signature_size < rsa->len )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
 #if defined(MBEDTLS_PKCS1_V15)
@@ -1323,6 +1336,7 @@ psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
                                    size_t signature_size)
 {
     key_slot_t *slot;
+    psa_status_t status;
     (void) salt;
     (void) salt_length;
 
@@ -1332,29 +1346,17 @@ psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
     if( slot->type == PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_EMPTY_SLOT );
 
-    #if defined(MBEDTLS_RSA_C)
+ #if defined(MBEDTLS_RSA_C)
     if( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
     {
         mbedtls_rsa_context *rsa = slot->data.rsa;
         int ret;
-        psa_algorithm_t hash_alg = PSA_ALG_RSA_GET_HASH( alg );
-        const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa( hash_alg );
-        mbedtls_md_type_t md_alg =
-            hash_alg == 0 ? MBEDTLS_MD_NONE : mbedtls_md_get_type( md_info );
-        if( md_alg == MBEDTLS_MD_NONE )
-        {
-#if SIZE_MAX > UINT_MAX
-            if( hash_length > UINT_MAX )
-                return( PSA_ERROR_INVALID_ARGUMENT );
-#endif
-        }
-        else
-        {
-            if( mbedtls_md_get_size( md_info ) != hash_length )
-                return( PSA_ERROR_INVALID_ARGUMENT );
-            if( md_info == NULL )
-                return( PSA_ERROR_NOT_SUPPORTED );
-        }
+        mbedtls_md_type_t md_alg;
+        status = verify_RSA_hash_input_and_get_md_type(alg, hash_length,
+            &md_alg);
+        if (status != PSA_SUCCESS)
+            return status;
+
         if( signature_size < rsa->len )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
 #if defined(MBEDTLS_PKCS1_V15)

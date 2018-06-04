@@ -350,6 +350,12 @@ struct mbedtls_ssl_handshake_params
             uint8_t preparation_done;
         } crt_vrfy_out;
 
+        /* Client, outgoing ClientHello */
+        struct
+        {
+            uint8_t preparation_done;
+        }  cli_hello_out;
+
 #endif /* MBEDTLS_SSL_CLI_C */
 
 #if defined(MBEDTLS_SSL_SRV_C)

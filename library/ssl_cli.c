@@ -757,6 +757,114 @@ static int ssl_validate_ciphersuite( const mbedtls_ssl_ciphersuite_t * suite_inf
     return( 0 );
 }
 
+/*
+ *
+ * STATE HANDLING: ClientHello
+ *
+ */
+
+/*
+ * Overview
+ */
+
+/* Main entry point; orchestrates the other functions */
+static int ssl_process_client_hello( mbedtls_ssl_context *ssl );
+
+static int ssl_client_hello_prepare( mbedtls_ssl_context *ssl );
+static int ssl_client_hello_write( mbedtls_ssl_context *ssl,
+                                   unsigned char* buf,
+                                   size_t buflen,
+                                   size_t *olen );
+static int ssl_client_hello_postprocess( mbedtls_ssl_context *ssl );
+
+/*
+ * Implementation
+ */
+
+static int ssl_process_client_hello( mbedtls_ssl_context *ssl )
+{
+    int ret = 0;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process client hello" ) );
+
+    if( ssl->handshake->state_local.cli_hello_out.preparation_done == 0 )
+    {
+        MBEDTLS_SSL_PROC_CHK( ssl_client_hello_prepare( ssl ) );
+        ssl->handshake->state_local.cli_hello_out.preparation_done = 1;
+    }
+
+    /* Make sure we can write a new message. */
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_flush_output( ssl ) );
+
+    /* Prepare CertificateVerify message in output buffer. */
+    MBEDTLS_SSL_PROC_CHK( ssl_client_hello_write( ssl, ssl->out_msg,
+                                            MBEDTLS_SSL_MAX_CONTENT_LEN,
+                                            &ssl->out_msglen ) );
+
+    ssl->out_msgtype = MBEDTLS_SSL_MSG_HANDSHAKE;
+    ssl->out_msg[0]  = MBEDTLS_SSL_HS_CLIENT_HELLO;
+
+    /* Update state */
+    MBEDTLS_SSL_PROC_CHK( ssl_client_hello_postprocess( ssl ) );
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        mbedtls_ssl_send_flight_completed( ssl );
+#endif
+
+    /* Dispatch message */
+    MBEDTLS_SSL_PROC_CHK( mbedtls_ssl_write_record( ssl ) );
+
+    /* NOTE: With the new messaging layer, the postprocessing
+     *       step might come after the dispatching step if the
+     *       latter doesn't send the message immediately.
+     *       At the moment, we must do the postprocessing
+     *       prior to the dispatching because if the latter
+     *       returns WANT_WRITE, we want the handshake state
+     *       to be updated in order to not enter
+     *       this function again on retry.
+     *
+     *       Further, once the two calls can be re-ordered, the two
+     *       calls to ssl_certificate_verify_postprocess() can be
+     *       consolidated. */
+
+cleanup:
+
+    /* Ignore error code for now */
+    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
+     *           was set from the low-level functions? */
+    mbedtls_ssl_handle_pending_alert( ssl );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process client hello" ) );
+    return( ret );
+}
+
+static int ssl_client_hello_prepare( mbedtls_ssl_context *ssl )
+{
+    /* TBD */
+    return( 0 );
+}
+
+static int ssl_client_hello_write( mbedtls_ssl_context *ssl,
+                                   unsigned char* buf,
+                                   size_t buflen,
+                                   size_t *olen )
+{
+    /* TBD */
+    return( 0 );
+}
+static int ssl_client_hello_postprocess( mbedtls_ssl_context *ssl )
+{
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO );
+    return( 0 );
+}
+
+/* OLD CODE
+ *
+ * Temporarily included to gradually move it to the correct
+ * place in the restructured code.
+ *
++ */
+
 static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 {
     int ret;
@@ -1086,6 +1194,8 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 
     return( 0 );
 }
+
+/* END OF OLD CODE */
 
 static int ssl_parse_renegotiation_info( mbedtls_ssl_context *ssl,
                                          const unsigned char *buf,
@@ -4093,7 +4203,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
         *  ==>   ClientHello
         */
        case MBEDTLS_SSL_CLIENT_HELLO:
-           ret = ssl_write_client_hello( ssl );
+           ret = ssl_process_client_hello( ssl );
            break;
 
        /*

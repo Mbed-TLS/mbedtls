@@ -1256,7 +1256,7 @@ static const unsigned char aes_test_cfb128_ct[3][64] =
 /*
  * AES-OFB test vectors from:
  *
- * http://csrc.nist.gov/publications/nistpubs/800-38a/sp800-38a.pdf
+ * https://csrc.nist.gov/publications/detail/sp/800-38a/final
  */
 static const unsigned char aes_test_ofb_key[3][32] =
 {

@@ -1639,11 +1639,13 @@ static int ssl_process_server_hello_coordinate( mbedtls_ssl_context *ssl );
 static int ssl_process_server_hello_parse( mbedtls_ssl_context *ssl,
                                            const unsigned char* buf,
                                            size_t buflen );
+static int ssl_process_server_hello_postprocess( mbedtls_ssl_context *ssl );
 /* Parse HelloVerify */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 static int ssl_process_hello_verify_parse( mbedtls_ssl_context *ssl,
                                            const unsigned char* buf,
                                            size_t buflen );
+static int ssl_process_hello_verify_postprocess( mbedtls_ssl_context *ssl );
 #endif
 
 /*
@@ -1687,90 +1689,14 @@ static int ssl_process_server_hello( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     /* Post-processing step */
-    /* TODO: Make this a separate function, too, and think about whether
-     * the branches for ServerHello and HelloVerify should be kept separate. */
     if( msg_expect == SSL_SERVER_HELLO_COORDINATE_HELLO )
     {
-        int handshake_failure = 0;
-
-        /*
-         * Renegotiation security checks
-         */
-        if( ssl->secure_renegotiation == MBEDTLS_SSL_LEGACY_RENEGOTIATION &&
-            ssl->conf->allow_legacy_renegotiation == MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "legacy renegotiation, breaking off handshake" ) );
-            handshake_failure = 1;
-        }
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-        else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS &&
-               ssl->secure_renegotiation == MBEDTLS_SSL_SECURE_RENEGOTIATION &&
-                ssl->handshake->state_local.srv_hello_in.renego_info_seen == 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "renegotiation_info extension missing (secure)" ) );
-            handshake_failure = 1;
-        }
-        else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS &&
-                 ssl->secure_renegotiation == MBEDTLS_SSL_LEGACY_RENEGOTIATION &&
-                 ssl->conf->allow_legacy_renegotiation == MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "legacy renegotiation not allowed" ) );
-            handshake_failure = 1;
-        }
-        else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS &&
-                 ssl->secure_renegotiation == MBEDTLS_SSL_LEGACY_RENEGOTIATION &&
-                 ssl->handshake->state_local.srv_hello_in.renego_info_seen == 1 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "renegotiation_info extension present (legacy)" ) );
-            handshake_failure = 1;
-        }
-#endif /* MBEDTLS_SSL_RENEGOTIATION */
-
-        if( handshake_failure == 1 )
-        {
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE;
-
-            return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
-        }
-
-        /* Check if previous session should be resumed. */
-        if( ssl->handshake->resume == 0 )
-        {
-            /* If not, move on to ServerCertificate state. */
-            mbedtls_ssl_handshake_set_state( ssl,
-                                             MBEDTLS_SSL_SERVER_CERTIFICATE );
-        }
-        else
-        {
-            /* If yes, derive keys and jump ahead to
-             * awaiting server's ChangeCipherSpec. */
-            mbedtls_ssl_handshake_set_state( ssl,
-                                             MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC );
-
-            /* NOTE
-             * Key derivation could be uniformly done as part of
-             * the preprocessing for the ChangeCipherSpec state.
-             * Think about that and potentially remove this call here.
-             */
-            if( ( ret = mbedtls_ssl_derive_keys( ssl ) ) != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_derive_keys", ret );
-
-                ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-                ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR;
-                goto cleanup;
-            }
-        }
+        MBEDTLS_SSL_PROC_CHK( ssl_process_server_hello_postprocess( ssl ) );
     }
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     else
     {
-        /* Start over at ClientHello */
-        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
-        mbedtls_ssl_reset_checksum( ssl );
-
-        mbedtls_ssl_recv_flight_completed( ssl );
+        MBEDTLS_SSL_PROC_CHK( ssl_process_hello_verify_postprocess( ssl ) );
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
@@ -1786,6 +1712,94 @@ cleanup:
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process server hello" ) );
     return( ret );
+}
+
+static int ssl_process_server_hello_postprocess( mbedtls_ssl_context *ssl )
+{
+    int ret;
+    int handshake_failure = 0;
+
+    /*
+     * Renegotiation security checks
+     */
+    if( ssl->secure_renegotiation == MBEDTLS_SSL_LEGACY_RENEGOTIATION &&
+        ssl->conf->allow_legacy_renegotiation == MBEDTLS_SSL_LEGACY_BREAK_HANDSHAKE )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "legacy renegotiation, breaking off handshake" ) );
+        handshake_failure = 1;
+    }
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS &&
+             ssl->secure_renegotiation == MBEDTLS_SSL_SECURE_RENEGOTIATION &&
+             ssl->handshake->state_local.srv_hello_in.renego_info_seen == 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "renegotiation_info extension missing (secure)" ) );
+        handshake_failure = 1;
+    }
+    else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS &&
+             ssl->secure_renegotiation == MBEDTLS_SSL_LEGACY_RENEGOTIATION &&
+             ssl->conf->allow_legacy_renegotiation == MBEDTLS_SSL_LEGACY_NO_RENEGOTIATION )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "legacy renegotiation not allowed" ) );
+        handshake_failure = 1;
+    }
+    else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS &&
+             ssl->secure_renegotiation == MBEDTLS_SSL_LEGACY_RENEGOTIATION &&
+             ssl->handshake->state_local.srv_hello_in.renego_info_seen == 1 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "renegotiation_info extension present (legacy)" ) );
+        handshake_failure = 1;
+    }
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
+
+    if( handshake_failure == 1 )
+    {
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE;
+
+        return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
+    }
+
+    /* Check if previous session should be resumed. */
+    if( ssl->handshake->resume == 0 )
+    {
+        /* If not, move on to ServerCertificate state. */
+        mbedtls_ssl_handshake_set_state( ssl,
+                                         MBEDTLS_SSL_SERVER_CERTIFICATE );
+    }
+    else
+    {
+        /* If yes, derive keys and jump ahead to
+         * awaiting server's ChangeCipherSpec. */
+        mbedtls_ssl_handshake_set_state( ssl,
+                                         MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC );
+
+        /* NOTE
+         * Key derivation could be uniformly done as part of
+         * the preprocessing for the ChangeCipherSpec state.
+         * Think about that and potentially remove this call here.
+         */
+        if( ( ret = mbedtls_ssl_derive_keys( ssl ) ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_derive_keys", ret );
+
+            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR;
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+    }
+
+    return( 0 );
+}
+
+static int ssl_process_hello_verify_postprocess( mbedtls_ssl_context *ssl )
+{
+    /* Start over at ClientHello */
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
+    mbedtls_ssl_reset_checksum( ssl );
+    mbedtls_ssl_recv_flight_completed( ssl );
+
+    return( 0 );
 }
 
 static int ssl_process_server_hello_coordinate( mbedtls_ssl_context *ssl )

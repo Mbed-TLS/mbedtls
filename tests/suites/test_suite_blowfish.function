@@ -258,3 +258,66 @@ exit:
     mbedtls_blowfish_free( &ctx );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void blowfish_invalid_param( )
+{
+    mbedtls_blowfish_context ctx;
+    unsigned char arbitrary_buffer[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+    int arbitrary_int = 0;
+    size_t arbitrary_size_t = 0;
+    TEST_ASSERT( mbedtls_blowfish_init_ret( NULL ) ==
+        MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_blowfish_free_ret( NULL ) ==
+        MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_blowfish_setkey(
+        NULL, arbitrary_buffer, arbitrary_int ) ==
+            MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_blowfish_setkey( &ctx, NULL, arbitrary_int ) ==
+        MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_blowfish_crypt_ecb(
+        NULL, arbitrary_int, arbitrary_buffer, arbitrary_buffer ) ==
+            MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA );
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+    TEST_ASSERT( mbedtls_blowfish_crypt_cbc(
+        NULL, arbitrary_int, arbitrary_int, arbitrary_buffer, arbitrary_buffer,
+            arbitrary_buffer ) == MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_blowfish_crypt_cbc(
+        &ctx, arbitrary_int, arbitrary_int, arbitrary_buffer, NULL,
+            arbitrary_buffer ) == MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_blowfish_crypt_cbc(
+        &ctx, arbitrary_int, arbitrary_int, arbitrary_buffer, arbitrary_buffer,
+            NULL ) == MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA );
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+    TEST_ASSERT( mbedtls_blowfish_crypt_cfb64(
+        NULL, arbitrary_int, arbitrary_int, &arbitrary_size_t, arbitrary_buffer,
+            arbitrary_buffer, arbitrary_buffer ) == MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_blowfish_crypt_cfb64(
+        &ctx, arbitrary_int, arbitrary_int, NULL, arbitrary_buffer,
+            arbitrary_buffer, arbitrary_buffer ) == MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_blowfish_crypt_cfb64(
+        &ctx, arbitrary_int, arbitrary_int, &arbitrary_size_t, arbitrary_buffer,
+            NULL, arbitrary_buffer ) == MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_blowfish_crypt_cfb64(
+        &ctx, arbitrary_int, arbitrary_int, &arbitrary_size_t, arbitrary_buffer,
+            arbitrary_buffer, NULL ) == MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA );
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+    TEST_ASSERT( mbedtls_blowfish_crypt_ctr(
+        NULL, arbitrary_int, &arbitrary_size_t, arbitrary_buffer, arbitrary_buffer,
+            arbitrary_buffer, arbitrary_buffer ) == MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_blowfish_crypt_ctr(
+        &ctx, arbitrary_int, NULL, arbitrary_buffer, arbitrary_buffer,
+            arbitrary_buffer, arbitrary_buffer ) == MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_blowfish_crypt_ctr(
+        &ctx, arbitrary_int, &arbitrary_size_t, arbitrary_buffer, arbitrary_buffer,
+            NULL, arbitrary_buffer ) == MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_blowfish_crypt_ctr(
+        &ctx, arbitrary_int, &arbitrary_size_t, arbitrary_buffer, arbitrary_buffer,
+            arbitrary_buffer, NULL ) == MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA );
+#endif
+exit:
+    return;
+}
+/* END_CASE */

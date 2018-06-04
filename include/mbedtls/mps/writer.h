@@ -12,29 +12,29 @@
  * to which outgoing data can be written, and an entity
  * (the 'consumer' in the following) consuming them by writing
  * the actual data into it.
- * Both the size of the data buffers the producer provides
+ * Both the size of the data buffers the provider prepares
  * and the size of chunks in which the consumer writes the
  * data are variable and may be different.
  * It is the writer's responsibility to do the
  * necessary copying and pointer arithmetic.
  *
- * The basic flow of operation is that the producer feeds
- * an outgoing data buffer to the writer, switching from
- * 'producing' to 'consuming' mode. The consumer subsequently
+ * The basic flow of operation is that the provider feeds
+ * an outgoing data buffer to the writer, transferring it from
+ * 'providing' to 'consuming' mode. The consumer subsequently
  * fetches parts of the buffer and writes data to them.
- * Once that's done, the producer revokes the writer's access
+ * Once that's done, the provider revokes the writer's access
  * to the outgoing data buffer, putting the writer back to
- * producing mode; the producer may then continue processing,
+ * providing mode; the provider may then continue processing
  * (e.g. dispatching) the data provided in the outgoing data buffer.
- * After that, the producer feeds another outgoing data buffer
+ * After that, the provider feeds another outgoing data buffer
  * to the writer and the cycle starts again.
  * In the event that a consumer's request cannot be fulfilled
  * on the basis of the outgoing data buffer provided by the
- * producer, the writer may provide a temporary 'queue' buffer
+ * provider, the writer may provide a temporary 'queue' buffer
  * instead. In this case, the queue buffer will be copied to the
- * outgoing data buffers when the producer subsequently provides
+ * outgoing data buffers when the provider subsequently provides
  * them. The details of this are opaque to the consumer and the
- * producer, but it means that if the producer feeds an outgoing
+ * provider, but it means that if the provider feeds an outgoing
  * data buffer to the writer, the writer might entirely fill it
  * immediately on the basis of what has been queued internally.
  *
@@ -155,13 +155,13 @@ struct mbedtls_writer
                              *   overlap between the queue and the current out
                              *   buffer, once end > out_len. If end < out_len,
                              *   it's value is 0.
-                             *   In producing mode, this denotes the amount of
+                             *   In providing mode, this denotes the amount of
                              *   data from the queue that has already been
                              *   copied to some outgoing data buffer.        */
     size_t queue_remaining; /*!< The amount of data within the queue buffer
                              *   that hasn't been copied to some outgoing
                              *   data buffer yet. This is only used in
-                             *   producing mode, and if the writer uses a
+                             *   providing mode, and if the writer uses a
                              *   queue (queue != \c NULL), and in this case its
                              *   value is at most queue_len - queue_next.    */
 };
@@ -347,7 +347,7 @@ int mbedtls_writer_free( mbedtls_writer *writer );
  * \brief           Pass output buffer to the writer.
  *
  *                  This function is used to transition the writer
- *                  from producing to consuming mode.
+ *                  from providing to consuming mode.
  *
  * \param writer    The writer context to be used.
  * \param buf       The buffer that outgoing data can be written to
@@ -357,7 +357,7 @@ int mbedtls_writer_free( mbedtls_writer *writer );
  * \return          \c 0 on success. In this case, the writer is
  *                  in consuming mode afterwards.
  * \return          #MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION if
- *                  the writer is not in producing mode. In this case,
+ *                  the writer is not in providing mode. In this case,
  *                  the writer is unmodified and can still be used.
  *                  In particular, the writer stays in consuming mode.
  * \return          #MBEDTLS_ERR_WRITER_NEED_MORE if the provided
@@ -387,7 +387,7 @@ int mbedtls_writer_feed( mbedtls_writer *writer,
  * \brief           Attempt to reclaim output buffer from writer,
  *
  *                  This function is used to transition the writer
- *                  from consuming to producing mode.
+ *                  from consuming to providing mode.
  *
  * \param writer    The writer context to be used.
  * \param queued    The address at which to store the amount of
@@ -399,11 +399,11 @@ int mbedtls_writer_feed( mbedtls_writer *writer,
  *                  or #MBEDTLS_WRITER_RECLAIM_NO_FORCE.
  *
  * \return          \c 0 on success. In this case, the writer is in
- *                  producing mode afterwards.
+ *                  providing mode afterwards.
  * \return          #MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION if
  *                  the writer is not in consuming mode. In this case,
  *                  the writer is unmodified and can still be used.
- *                  In particular, the writer stays in producing mode.
+ *                  In particular, the writer stays in providing mode.
  * \return          #MBEDTLS_ERR_WRITER_DATA_LEFT if there is space
  *                  left to be written in the output buffer.
  *                  In this case, the writer stays in consuming mode.

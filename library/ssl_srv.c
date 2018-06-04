@@ -2379,10 +2379,16 @@ static void ssl_write_ecjpake_kkpp_ext( mbedtls_ssl_context *ssl,
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_ECJPAKE_KKPP >> 8 ) & 0xFF );
     *p++ = (unsigned char)( ( MBEDTLS_TLS_EXT_ECJPAKE_KKPP      ) & 0xFF );
 
-    /* TODO:
-     * Move this to the preparation phase.
-     * This is currently the only reason why the ServerHello writing
-     * is not constant in the ssl_context. */
+    /* Ideally, the computations of ECJPAKE Round 1 should be separable
+     * from writing their results, but the API does currently not allow that.
+     *
+     * If we change the ECJPAKE API at some point to allow the separation
+     * of computing and writing, the computation should go to the preparation
+     * step of the ServerHello handling, while the writing should happen here.
+     *
+     * This change would also allow to make this function const on the
+     * provided SSL context.
+     */
     ret = mbedtls_ecjpake_write_round_one( &ssl->handshake->ecjpake_ctx,
                                         p + 2, end - p - 2, &kkpp_len,
                                         ssl->conf->f_rng, ssl->conf->p_rng );
@@ -2696,8 +2702,8 @@ static int ssl_process_server_hello_preprocess( mbedtls_ssl_context *ssl )
      *    put forward by the client and potentially restore the
      *    session from that.
      *
-     * TODO:
-     * - Handle both ways of session resumption in a single place.
+     * NOTE:
+     *   Can we handle both ways of session resumption in a single place?
      *   In particular, note that when restoring a session from a ticket,
      *   the session options can partly be overwritten by subsequent
      *   extensions in the ClientHello, while if a session gets restored

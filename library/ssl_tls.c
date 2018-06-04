@@ -5246,9 +5246,6 @@ static int ssl_process_in_ccs_postprocess( mbedtls_ssl_context *ssl )
     else
         ssl->in_msg = ssl->in_iv;
 
-    /* TODO: It still needs to be discussed what how we deal with
-     * this in the presence of the new messaging layer. */
-
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_activate != NULL )
     {

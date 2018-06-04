@@ -75,6 +75,16 @@ struct psa_hash_operation_s
     } ctx;
 };
 
+
+typedef struct {
+        unsigned int block_size;
+        /** The hash context. */
+        struct psa_hash_operation_s hash_ctx;
+        /** The HMAC part of the context. */
+        void *hmac_ctx;
+} psa_hmac_internal_data;
+
+
 struct psa_mac_operation_s
 {
     psa_algorithm_t alg;
@@ -89,7 +99,7 @@ struct psa_mac_operation_s
     {
         unsigned dummy; /* Make the union non-empty even with no supported algorithms. */
 #if defined(MBEDTLS_MD_C)
-        mbedtls_md_context_t hmac;
+        psa_hmac_internal_data hmac;
 #endif
 #if defined(MBEDTLS_CMAC_C)
         mbedtls_cipher_context_t cmac;

@@ -595,6 +595,7 @@ void asymmetric_verify_fail( int key_type_arg, char *key_hex,
     size_t signature_size;
     psa_status_t actual_status;
     psa_status_t expected_status = expected_status_arg;
+    psa_key_policy_t policy = {0};
 
     key_data = unhexify_alloc( key_hex, &key_size );
     TEST_ASSERT( key_data != NULL );
@@ -604,6 +605,12 @@ void asymmetric_verify_fail( int key_type_arg, char *key_hex,
     TEST_ASSERT( signature_data != NULL );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_VERIFY, alg_arg );
+
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( slot, key_type,
                                  key_data, key_size ) == PSA_SUCCESS );
@@ -643,6 +650,7 @@ void asymmetric_encrypt( int key_type_arg, char *key_hex,
     unsigned char *output2 = NULL;
     size_t output2_size = 0;
     size_t output2_length = 0;
+    psa_key_policy_t policy = {0};
 
     key_data = unhexify_alloc( key_hex, &key_size );
     TEST_ASSERT( key_data != NULL );
@@ -656,6 +664,10 @@ void asymmetric_encrypt( int key_type_arg, char *key_hex,
     TEST_ASSERT( output2 != NULL );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT, alg_arg );
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( slot, key_type,
                                  key_data, key_size ) == PSA_SUCCESS );
@@ -710,6 +722,7 @@ void asymmetric_encrypt_fail( int key_type_arg, char *key_hex,
     size_t output_length = 0;
     psa_status_t actual_status;
     psa_status_t expected_status = expected_status_arg;
+    psa_key_policy_t policy = {0};
 
     key_data = unhexify_alloc( key_hex, &key_size );
     TEST_ASSERT( key_data != NULL );
@@ -720,6 +733,10 @@ void asymmetric_encrypt_fail( int key_type_arg, char *key_hex,
     TEST_ASSERT( output != NULL );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT, alg_arg );
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( slot, key_type,
                                  key_data, key_size ) == PSA_SUCCESS );
@@ -774,6 +791,10 @@ void asymmetric_decrypt( int key_type_arg, char *key_hex,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DECRYPT, alg_arg );
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+
     TEST_ASSERT( psa_import_key( slot, key_type,
                                  key_data, key_size ) == PSA_SUCCESS );
 
@@ -818,6 +839,7 @@ void asymmetric_decrypt_fail( int key_type_arg, char *key_hex,
     size_t output_length = 0;
     psa_status_t actual_status;
     psa_status_t expected_status = expected_status_arg;
+    psa_key_policy_t policy = {0};
 
     key_data = unhexify_alloc( key_hex, &key_size );
     TEST_ASSERT( key_data != NULL );
@@ -828,6 +850,10 @@ void asymmetric_decrypt_fail( int key_type_arg, char *key_hex,
     TEST_ASSERT( output != NULL );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DECRYPT, alg_arg );
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( slot, key_type,
                                  key_data, key_size ) == PSA_SUCCESS );

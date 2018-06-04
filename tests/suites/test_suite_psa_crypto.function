@@ -741,7 +741,7 @@ exit:
 void aead_decrypt( int key_type_arg, char * key_hex,
                 int alg_arg, char * input_hex,
                 char * add_data, char * nonce_hex,
-                char * expected_result_hex )
+                char * expected_result_hex, int expected_result_arg )
 {
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;
@@ -753,7 +753,7 @@ void aead_decrypt( int key_type_arg, char * key_hex,
     unsigned char *output_data = NULL;
     size_t output_size = 0;
     size_t output_length = 0;
-    unsigned char *expected_result = NULL;
+    unsigned char *expected_data = NULL;
     size_t expected_result_length = 0;
     uint8_t* nonce = NULL;
     size_t nonce_length = 0;
@@ -761,6 +761,7 @@ void aead_decrypt( int key_type_arg, char * key_hex,
     unsigned char *additional_data = NULL;
     size_t additional_data_length = 0;
     psa_key_policy_t policy = {0};
+    psa_status_t expected_result = (psa_status_t) expected_result_arg;
 
 
     key_data = unhexify_alloc( key_hex, &key_size );
@@ -774,8 +775,8 @@ void aead_decrypt( int key_type_arg, char * key_hex,
     TEST_ASSERT( output_data != NULL );
     nonce = unhexify_alloc( nonce_hex, &nonce_length );
     TEST_ASSERT( nonce != NULL );
-    expected_result = unhexify_alloc( expected_result_hex, &expected_result_length );
-    TEST_ASSERT( expected_result != NULL );
+    expected_data = unhexify_alloc( expected_result_hex, &expected_result_length );
+    TEST_ASSERT( expected_data != NULL );
     
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
@@ -792,11 +793,15 @@ void aead_decrypt( int key_type_arg, char * key_hex,
                                nonce, nonce_length,
                                additional_data, additional_data_length,
                                input_data, input_size, output_data,
-                               output_size, &output_length ) == PSA_SUCCESS );
+                               output_size, &output_length ) == expected_result );
 
 
-    TEST_ASSERT( memcmp( output_data, expected_result,
-                                output_length ) == 0 );
+    if ( expected_result == PSA_SUCCESS )
+    {
+        TEST_ASSERT( memcmp( output_data, expected_data,
+                                    output_length ) == 0 );
+    }
+
     
 
 exit:
@@ -806,7 +811,7 @@ exit:
     mbedtls_free( additional_data );
     mbedtls_free( output_data );
     mbedtls_free( nonce );
-    mbedtls_free( expected_result );
+    mbedtls_free( expected_data );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

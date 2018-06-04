@@ -2013,22 +2013,11 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
             size_t j, extra_run = 0;
             switch( ssl->transform_in->ciphersuite_info->mac )
             {
-#if defined(MBEDTLS_MD2_C)
-                case MBEDTLS_MD_MD2:
-                    /* no size prepended, 64-byte compression blocks */
-                    extra_run = ( 13 + ssl->in_msglen + padlen ) / 64 -
-                                ( 13 + ssl->in_msglen          ) / 64;
-                    break;
-#endif
-#if defined(MBEDTLS_MD4_C) || defined(MBEDTLS_MD5_C) || \
-                case MBEDTLS_MD_MD4:
-    defined(MBEDTLS_SHA1_C) || defined(MBEDTLS_SHA256_C) \
-    defined(MBEDTLS_RIPEMD160_C)
+#if defined(MBEDTLS_MD5_C) || defined(MBEDTLS_SHA1_C) || \
+    defined(MBEDTLS_SHA256_C)
                 case MBEDTLS_MD_MD5:
                 case MBEDTLS_MD_SHA1:
-                case MBEDTLS_MD_SHA224:
                 case MBEDTLS_MD_SHA256:
-                case MBEDTLS_MD_RIPEMD160:
                     /* 8 bytes of message size, 64-byte compression blocks */
                     extra_run = ( 13 + ssl->in_msglen + padlen + 8 ) / 64 -
                                 ( 13 + ssl->in_msglen          + 8 ) / 64;
@@ -2036,7 +2025,6 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
 #endif
 #if defined(MBEDTLS_SHA512_C)
                 case MBEDTLS_MD_SHA384:
-                case MBEDTLS_MD_SHA512:
                     /* 16 bytes of message size, 128-byte compression blocks */
                     extra_run = ( 13 + ssl->in_msglen + padlen + 16 ) / 128 -
                                 ( 13 + ssl->in_msglen          + 16 ) / 128;

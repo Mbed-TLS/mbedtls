@@ -124,7 +124,7 @@ int mbedtls_writer_reclaim( mbedtls_writer *wr, size_t *olen,
     size_t commit, ol, qn;
     TRACE_INIT( "writer_reclaim, force %u", (unsigned) force );
 
-    /* Check that the reader is in producing mode. */
+    /* Check that the reader is in providing mode. */
     out = wr->out;
     if( out == NULL )
         RETURN( MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
@@ -192,7 +192,7 @@ int mbedtls_writer_bytes_written( mbedtls_writer *wr, size_t *written )
     unsigned char *out;
     TRACE_INIT( "writer_bytes_written" );
 
-    /* Check that the reader is in producing mode. */
+    /* Check that the reader is in providing mode. */
     out = wr->out;
     if( out == NULL )
         RETURN( MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
@@ -310,7 +310,7 @@ int mbedtls_writer_commit( mbedtls_writer *wr )
     size_t end;
     TRACE_INIT( "writer_commit" );
 
-    /* Check that the reader is in producing mode. */
+    /* Check that the reader is in providing mode. */
     out = wr->out;
     if( out == NULL )
         RETURN( MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );

@@ -2276,15 +2276,17 @@ static int ssl_rsa_generate_partial_pms( mbedtls_ssl_context *ssl,
     if( add_length_tag )
     {
         out[0] = 0;
-        out[1] = 48;
-        out += 2;
+        out[1] = MBEDTLS_RSA_PMS_LEN;
+        out += MBEDTLS_RSA_PMS_LEN_BYTES;
     }
 
     mbedtls_ssl_write_version( ssl->conf->max_major_ver,
                                ssl->conf->max_minor_ver,
                                ssl->conf->transport, out );
+    out += MBEDTLS_RSA_PMS_VERSION_LEN;
 
-    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, out + 2, 46 ) ) != 0 )
+    if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, out,
+                                  MBEDTLS_RSA_PMS_RANDOM_LEN ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "f_rng", ret );
         return( ret );
@@ -2294,11 +2296,12 @@ static int ssl_rsa_generate_partial_pms( mbedtls_ssl_context *ssl,
 }
 
 /*
- * Encrypt the Premaster Secret it with the server's RSA key and
+ * Encrypt the Premaster Secret with the server's RSA key and
  * write it to the provided buffer.
  */
 static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
                                         unsigned char const *ppms,
+                                        size_t ppms_len,
                                         unsigned char *out, size_t buflen,
                                         size_t *olen )
 {
@@ -2328,7 +2331,8 @@ static int ssl_rsa_encrypt_partial_pms( mbedtls_ssl_context *ssl,
     }
 
     if( ( ret = mbedtls_pk_encrypt( &ssl->session_negotiate->peer_cert->pk,
-                           ppms, 48, out + len_bytes, olen, buflen - len_bytes,
+                           ppms, ppms_len, out + len_bytes,
+                           olen, buflen - len_bytes,
                            ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_rsa_pkcs1_encrypt", ret );
@@ -2500,8 +2504,8 @@ static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
     /* Preparation:
      * Potentially extract DH parameters from Server's certificate.
      *
-     * TODO: Why don't we do this as post-processing after
-     *       the server certificate has been read?
+     * Question: Can we do this as post-processing after
+     *           the server certificate has been read?
      */
     if( !ssl->handshake->state_local.srv_key_exchange.preparation_done )
     {
@@ -3292,7 +3296,8 @@ static int ssl_client_key_exchange_prepare( mbedtls_ssl_context *ssl )
     ((void) ret);
     ((void) ciphersuite_info);
 
-    /* TODO: The current API for DH and ECDH does not allow
+    /* Note:
+     * The current API for DH and ECDH does not allow
      * to separate public key generation from public key export.
      *
      * Ideally, we would like to pick the private (EC)DH keys
@@ -3461,7 +3466,9 @@ static int ssl_client_key_exchange_write( mbedtls_ssl_context *ssl,
         if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
         {
             if( ( ret = ssl_rsa_encrypt_partial_pms( ssl,
-                                                ssl->handshake->premaster + 2,
+                                                ssl->handshake->premaster +
+                                                     MBEDTLS_RSA_PMS_LEN_BYTES,
+                                                MBEDTLS_RSA_PMS_LEN,
                                                 p, end - p, &n ) ) != 0 )
                 return( ret );
             p += n;
@@ -3532,6 +3539,7 @@ static int ssl_client_key_exchange_write( mbedtls_ssl_context *ssl,
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA )
     {
         if( ( ret = ssl_rsa_encrypt_partial_pms( ssl, ssl->handshake->premaster,
+                                                 MBEDTLS_RSA_PMS_LEN,
                                                  p, end - p, &n ) ) != 0 )
             return( ret );
         p += n;

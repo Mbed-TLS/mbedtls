@@ -1509,13 +1509,15 @@ static int ssl_process_server_hello( mbedtls_ssl_context *ssl )
         if( ssl->handshake->resume == 0 )
         {
             /* If not, move on to ServerCertificate state. */
-            ssl->state = MBEDTLS_SSL_SERVER_CERTIFICATE;
+            mbedtls_ssl_handshake_set_state( ssl,
+                                             MBEDTLS_SSL_SERVER_CERTIFICATE );
         }
         else
         {
             /* If yes, derive keys and jump ahead to
              * awaiting server's ChangeCipherSpec. */
-            ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
+            mbedtls_ssl_handshake_set_state( ssl,
+                                             MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC );
 
             /* NOTE
              * Key derivation could be uniformly done as part of
@@ -1536,13 +1538,12 @@ static int ssl_process_server_hello( mbedtls_ssl_context *ssl )
     else
     {
         /* Start over at ClientHello */
-        ssl->state = MBEDTLS_SSL_CLIENT_HELLO;
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
         mbedtls_ssl_reset_checksum( ssl );
 
         mbedtls_ssl_recv_flight_completed( ssl );
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
 
 cleanup:
 
@@ -2890,8 +2891,7 @@ static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
 
 static int ssl_server_key_exchange_postprocess( mbedtls_ssl_context *ssl )
 {
-    ssl->state = MBEDTLS_SSL_CERTIFICATE_REQUEST;
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_REQUEST );
     return( 0 );
 }
 
@@ -3150,8 +3150,7 @@ static int ssl_certificate_request_parse( mbedtls_ssl_context *ssl,
 
 static int ssl_certificate_request_postprocess( mbedtls_ssl_context *ssl )
 {
-    ssl->state = MBEDTLS_SSL_SERVER_HELLO_DONE;
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO_DONE );
     return( 0 );
 }
 
@@ -3198,8 +3197,7 @@ static int ssl_process_server_hello_done( mbedtls_ssl_context *ssl )
 
     /* Postprocessing: Update state */
 
-    ssl->state = MBEDTLS_SSL_CLIENT_CERTIFICATE;
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse server hello done" ) );
     return( 0 );
@@ -3574,8 +3572,7 @@ static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
-    ssl->state = MBEDTLS_SSL_CERTIFICATE_VERIFY;
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_VERIFY );
     return( 0 );
 }
 
@@ -3871,8 +3868,8 @@ static int ssl_certificate_verify_write( mbedtls_ssl_context *ssl,
 
 static int ssl_certificate_verify_postprocess( mbedtls_ssl_context *ssl )
 {
-    ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
+    mbedtls_ssl_handshake_set_state( ssl,
+                                     MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC );
     return( 0 );
 }
 
@@ -4036,8 +4033,8 @@ static int ssl_new_session_ticket_postprocess( mbedtls_ssl_context *ssl )
 {
     /* We're not waiting for a NewSessionTicket message any more */
     ssl->handshake->new_session_ticket = 0;
-    ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
+    mbedtls_ssl_handshake_set_state( ssl,
+                                     MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC );
     return( 0 );
 }
 
@@ -4073,14 +4070,15 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
     if( ssl->state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC &&
         ssl->handshake->new_session_ticket != 0 )
     {
-        ssl->state = MBEDTLS_SSL_SERVER_NEW_SESSION_TICKET;
+        mbedtls_ssl_handshake_set_state( ssl,
+                                MBEDTLS_SSL_SERVER_NEW_SESSION_TICKET );
     }
 #endif
 
     switch( ssl->state )
     {
         case MBEDTLS_SSL_HELLO_REQUEST:
-            ssl->state = MBEDTLS_SSL_CLIENT_HELLO;
+            mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
             break;
 
        /*
@@ -4165,7 +4163,8 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
 
        case MBEDTLS_SSL_FLUSH_BUFFERS:
            MBEDTLS_SSL_DEBUG_MSG( 2, ( "handshake: done" ) );
-           ssl->state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
+           mbedtls_ssl_handshake_set_state( ssl,
+                                            MBEDTLS_SSL_HANDSHAKE_WRAPUP );
            break;
 
        case MBEDTLS_SSL_HANDSHAKE_WRAPUP:

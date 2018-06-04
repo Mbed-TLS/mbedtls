@@ -2083,8 +2083,7 @@ have_ciphersuite:
 
 static int ssl_client_hello_postprocess( mbedtls_ssl_context *ssl )
 {
-    ssl->state = MBEDTLS_SSL_SERVER_HELLO;
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO );
     return( 0 );
 }
 
@@ -2564,7 +2563,8 @@ static int ssl_process_hello_verify( mbedtls_ssl_context *ssl )
 
     /* Postprocess */
 
-    ssl->state = MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT;
+    mbedtls_ssl_handshake_set_state( ssl,
+                               MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT );
 
     /* Dispatch */
 
@@ -2756,11 +2756,12 @@ static int ssl_process_server_hello_postprocess( mbedtls_ssl_context *ssl )
 
     if( ssl->handshake->resume == 0 )
     {
-        ssl->state = MBEDTLS_SSL_SERVER_CERTIFICATE;
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_CERTIFICATE );
     }
     else
     {
-        ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
+        mbedtls_ssl_handshake_set_state( ssl,
+                                       MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC );
 
         if( ( ret = mbedtls_ssl_derive_keys( ssl ) ) != 0 )
         {
@@ -2769,7 +2770,6 @@ static int ssl_process_server_hello_postprocess( mbedtls_ssl_context *ssl )
         }
     }
 
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -3201,8 +3201,7 @@ static int ssl_certificate_request_write( mbedtls_ssl_context *ssl,
 
 static int ssl_certificate_request_postprocess( mbedtls_ssl_context *ssl )
 {
-    ssl->state = MBEDTLS_SSL_SERVER_HELLO_DONE;
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_HELLO_DONE );
     return( 0 );
 }
 
@@ -3707,8 +3706,7 @@ static int ssl_server_key_exchange_write( mbedtls_ssl_context *ssl,
 
 static int ssl_server_key_exchange_postprocess( mbedtls_ssl_context *ssl )
 {
-    ssl->state = MBEDTLS_SSL_CERTIFICATE_REQUEST;
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_REQUEST );
     return( 0 );
 }
 
@@ -3791,8 +3789,7 @@ static int ssl_server_hello_done_write( mbedtls_ssl_context *ssl,
 
 static int ssl_server_hello_done_postprocess( mbedtls_ssl_context *ssl )
 {
-    ssl->state = MBEDTLS_SSL_CLIENT_CERTIFICATE;
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE );
     return( 0 );
 }
 
@@ -4243,8 +4240,7 @@ static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
-    ssl->state = MBEDTLS_SSL_CERTIFICATE_VERIFY;
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CERTIFICATE_VERIFY );
     return( 0 );
 }
 
@@ -4545,8 +4541,8 @@ static int ssl_certificate_verify_parse( mbedtls_ssl_context *ssl,
 
 static int ssl_certificate_verify_postprocess( mbedtls_ssl_context *ssl )
 {
-    ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
+    mbedtls_ssl_handshake_set_state( ssl,
+                                     MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC );
     return( 0 );
 }
 
@@ -4702,7 +4698,7 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl )
     switch( ssl->state )
     {
         case MBEDTLS_SSL_HELLO_REQUEST:
-            ssl->state = MBEDTLS_SSL_CLIENT_HELLO;
+            mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_HELLO );
             break;
 
         /*
@@ -4791,7 +4787,8 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl )
 
         case MBEDTLS_SSL_FLUSH_BUFFERS:
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "handshake: done" ) );
-            ssl->state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
+            mbedtls_ssl_handshake_set_state( ssl,
+                                             MBEDTLS_SSL_HANDSHAKE_WRAPUP );
             break;
 
         case MBEDTLS_SSL_HANDSHAKE_WRAPUP:

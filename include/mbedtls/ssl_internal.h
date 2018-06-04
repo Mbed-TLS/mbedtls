@@ -24,6 +24,8 @@
 #ifndef MBEDTLS_SSL_INTERNAL_H
 #define MBEDTLS_SSL_INTERNAL_H
 
+#include "string.h"
+
 #include "ssl.h"
 #include "cipher.h"
 
@@ -704,10 +706,24 @@ void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_check_renego_not_honored( mbedtls_ssl_context *ssl );
 #endif
 
-static inline void mbedtls_ssl_handshake_params_state_local_clear(
-    mbedtls_ssl_handshake_params *handshake )
+static inline void mbedtls_ssl_handshake_set_state( mbedtls_ssl_context *ssl,
+                                                    int state )
 {
-    memset( &handshake->state_local, 0, sizeof( handshake->state_local ) );
+    ssl->state = state;
+
+    /* Note:
+     * This only works as long as all state-local struct members
+     * of mbedtls_ssl_hanshake_params::state_local can be initialized
+     * through zeroization.
+     * Exceptions must be manually checked for here.
+     */
+    if( state != MBEDTLS_SSL_HANDSHAKE_WRAPUP &&
+        state != MBEDTLS_SSL_HANDSHAKE_OVER   &&
+        state != MBEDTLS_SSL_FLUSH_BUFFERS )
+    {
+        memset( &ssl->handshake->state_local, 0,
+                sizeof( ssl->handshake->state_local ) );
+    }
 }
 
 /* constant-time buffer comparison */

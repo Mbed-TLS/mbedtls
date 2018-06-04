@@ -4514,7 +4514,7 @@ static int ssl_write_certificate_postprocess( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_CLI_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
-        ssl->state = MBEDTLS_SSL_CLIENT_KEY_EXCHANGE;
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_KEY_EXCHANGE );
         return( 0 );
     }
     else
@@ -4522,12 +4522,11 @@ static int ssl_write_certificate_postprocess( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_SRV_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
     {
-        ssl->state = MBEDTLS_SSL_SERVER_KEY_EXCHANGE;
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_KEY_EXCHANGE );
         return( 0 );
     }
 #endif /* MBEDTLS_SSL_SRV_C */
 
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
 
@@ -5042,14 +5041,14 @@ static int ssl_read_certificate_postprocess( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_SRV_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
     {
-        ssl->state = MBEDTLS_SSL_CLIENT_KEY_EXCHANGE;
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_KEY_EXCHANGE );
     }
     else
 #endif /* MBEDTLS_SSL_SRV_C */
 #if defined(MBEDTLS_SSL_CLI_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
-        ssl->state = MBEDTLS_SSL_SERVER_KEY_EXCHANGE;
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_KEY_EXCHANGE );
     }
     else
 #endif /* MBEDTLS_SSL_CLI_C */
@@ -5058,7 +5057,6 @@ static int ssl_read_certificate_postprocess( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -5131,14 +5129,13 @@ static int ssl_process_out_ccs_postprocess( mbedtls_ssl_context *ssl )
     /* Update handshake state */
 #if defined(MBEDTLS_SSL_CLI_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
-        ssl->state = MBEDTLS_SSL_CLIENT_FINISHED;
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_FINISHED );
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
-        ssl->state = MBEDTLS_SSL_SERVER_FINISHED;
+        mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_SERVER_FINISHED );
 #endif
 
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -5268,14 +5265,15 @@ static int ssl_process_in_ccs_postprocess( mbedtls_ssl_context *ssl )
     /* Update handshake state */
 #if defined(MBEDTLS_SSL_CLI_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
-        ssl->state = MBEDTLS_SSL_SERVER_FINISHED;
+        mbedtls_ssl_handshake_set_state( ssl,
+                                         MBEDTLS_SSL_SERVER_FINISHED );
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
-        ssl->state = MBEDTLS_SSL_CLIENT_FINISHED;
+        mbedtls_ssl_handshake_set_state( ssl,
+                                         MBEDTLS_SSL_CLIENT_FINISHED );
 #endif
 
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -5697,8 +5695,7 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
 #endif
         ssl_handshake_wrapup_free_hs_transform( ssl );
 
-    ssl->state++;
-
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HANDSHAKE_OVER );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "<= handshake wrapup" ) );
 }
 
@@ -5869,26 +5866,29 @@ static int ssl_finished_out_postprocess( mbedtls_ssl_context *ssl )
     {
 #if defined(MBEDTLS_SSL_CLI_C)
         if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
-            ssl->state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
+            mbedtls_ssl_handshake_set_state( ssl,
+                                   MBEDTLS_SSL_HANDSHAKE_WRAPUP );
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)
         if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
-            ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
+            mbedtls_ssl_handshake_set_state( ssl,
+                                   MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC );
 #endif
     }
     else
     {
 #if defined(MBEDTLS_SSL_CLI_C)
         if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
-            ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
+            mbedtls_ssl_handshake_set_state( ssl,
+                                   MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC );
 #endif
 #if defined(MBEDTLS_SSL_SRV_C)
         if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
-            ssl->state = MBEDTLS_SSL_FLUSH_BUFFERS;
+            mbedtls_ssl_handshake_set_state( ssl,
+                                   MBEDTLS_SSL_FLUSH_BUFFERS );
 #endif
     }
 
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -6068,22 +6068,25 @@ static int ssl_finished_in_postprocess( mbedtls_ssl_context* ssl )
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
     {
         if( ssl->handshake->resume != 0 )
-            ssl->state = MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC;
+            mbedtls_ssl_handshake_set_state( ssl,
+                                   MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC );
         else
-            ssl->state = MBEDTLS_SSL_FLUSH_BUFFERS;
+            mbedtls_ssl_handshake_set_state( ssl,
+                                   MBEDTLS_SSL_FLUSH_BUFFERS );
     }
 #endif /* MBEDTLS_SSL_CLI_C */
 #if defined(MBEDTLS_SSL_SRV_C)
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER )
     {
         if( ssl->handshake->resume != 0 )
-            ssl->state = MBEDTLS_SSL_HANDSHAKE_WRAPUP;
+            mbedtls_ssl_handshake_set_state( ssl,
+                             MBEDTLS_SSL_HANDSHAKE_WRAPUP );
         else
-            ssl->state = MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC;
+            mbedtls_ssl_handshake_set_state( ssl,
+                             MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC );
     }
 #endif /* MBEDTLS_SSL_SRV_C */
 
-    mbedtls_ssl_handshake_params_state_local_clear( ssl->handshake );
     return( 0 );
 }
 
@@ -6133,8 +6136,6 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     handshake->sni_authmode = MBEDTLS_SSL_VERIFY_UNSET;
 #endif
-
-    mbedtls_ssl_handshake_params_state_local_clear( handshake );
 }
 
 static void ssl_transform_init( mbedtls_ssl_transform *transform )
@@ -6330,8 +6331,6 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
 {
     int ret;
 
-    ssl->state = MBEDTLS_SSL_HELLO_REQUEST;
-
     /* Cancel any possibly running timer */
     ssl_set_timer( ssl, 0 );
 
@@ -6422,6 +6421,8 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
 
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         return( ret );
+
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HELLO_REQUEST );
 
     return( 0 );
 }
@@ -7391,7 +7392,7 @@ static int ssl_start_renegotiation( mbedtls_ssl_context *ssl )
     }
 #endif
 
-    ssl->state = MBEDTLS_SSL_HELLO_REQUEST;
+    mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_HELLO_REQUEST );
     ssl->renego_status = MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS;
 
     if( ( ret = mbedtls_ssl_handshake( ssl ) ) != 0 )

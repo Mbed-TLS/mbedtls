@@ -65,7 +65,7 @@ int mbedtls_writer_feed( mbedtls_writer *wr,
     if( buf == NULL )
         RETURN( MBEDTLS_ERR_WRITER_INVALID_ARG );
 
-    /* Check if there's is data in the queue pending to be dispatched. */
+    /* Check if there is data in the queue pending to be dispatched. */
     queue = wr->queue;
     copy_from_queue = 0;
     if( queue != NULL )
@@ -76,7 +76,8 @@ int mbedtls_writer_feed( mbedtls_writer *wr,
         TRACE( trace_comment, "Queue data pending to be dispatched: %u",
                (unsigned) wr->queue_remaining );
 
-        /* Copy as much data from the queue to the provided buffer. */
+        /* Copy as much data from the queue to
+         * the provided buffer as possible. */
         copy_from_queue = qr;
         if( copy_from_queue > buf_len )
             copy_from_queue = buf_len;

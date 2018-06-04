@@ -93,7 +93,8 @@ int mbedtls_reader_feed( mbedtls_reader *rd, unsigned char *new_frag,
     for( size_t idx=0; idx < new_frag_len; idx++ )
         TRACE( trace_comment, "Data[%u] = %02x", (unsigned) idx, (unsigned) new_frag[idx] );
 
-    /* Feeding is only possible if no fragment is currently being processed. */
+    /* Feeding is only possible in producing mode, i.e.
+     * if no fragment is currently being processed. */
     frag = rd->frag;
     if( frag != NULL )
         RETURN( MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );

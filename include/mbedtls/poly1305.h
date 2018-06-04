@@ -106,7 +106,7 @@ int mbedtls_poly1305_starts( mbedtls_poly1305_context *ctx,
                              const unsigned char key[32] );
 
 /**
- * \brief           This functions feeds an input bufer into an ongoing
+ * \brief           This functions feeds an input buffer into an ongoing
  *                  Poly1305 computation.
  *
  *                  It is called between \c mbedtls_cipher_cmac_starts() and

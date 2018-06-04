@@ -1313,46 +1313,6 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
     }
 }
 
-psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
-                                    psa_algorithm_t alg,
-                                    const uint8_t *hash,
-                                    size_t hash_length,
-                                    const uint8_t *salt,
-                                    size_t salt_length,
-                                    uint8_t *signature,
-                                    size_t signature_size )
-{
-    key_slot_t *slot;
-    (void) salt;
-    (void) salt_length;
-
-    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    slot = &global_data.key_slots[key];
-    if( slot->type == PSA_KEY_TYPE_NONE )
-        return( PSA_ERROR_EMPTY_SLOT );
-    if( ! PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    if( !( slot->policy.usage & PSA_KEY_USAGE_VERIFY ) )
-        return( PSA_ERROR_NOT_PERMITTED );
-
-#if defined(MBEDTLS_ECP_C)
-    if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
-    {
-        mbedtls_ecp_keypair *ecdsa = slot->data.ecp;
-        int ret;
-        (void) alg;
-        ret = mbedtls_ecdsa_read_signature( ecdsa, hash, hash_length, signature,
-            signature_size );
-        return( mbedtls_to_psa_error( ret ) );
-    }
-    else
-#endif /* defined(MBEDTLS_ECP_C) */
-    {
-        return( PSA_ERROR_NOT_SUPPORTED );
-    }
-}
-
 psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
                                    psa_algorithm_t alg,
                                    const uint8_t *hash,
@@ -1497,7 +1457,7 @@ psa_status_t psa_asymmetric_encrypt(psa_key_slot_t key,
             return( PSA_ERROR_INVALID_ARGUMENT );
         }
         if( ret == 0 )
-            *output_length = rsa->len; // check if this is correct
+            *output_length = rsa->len;
         return( mbedtls_to_psa_error( ret ) );
     }
 #endif
@@ -1550,7 +1510,6 @@ psa_status_t psa_asymmetric_decrypt(psa_key_slot_t key,
 #if defined(MBEDTLS_PKCS1_V15)
         if( alg == PSA_ALG_RSA_PKCS1V15_CRYPT )
         {
-            *output_length = input_length; // check this
             ret = mbedtls_rsa_pkcs1_decrypt(  rsa,
                                             mbedtls_ctr_drbg_random,
                                             &global_data.ctr_drbg,
@@ -1572,8 +1531,7 @@ psa_status_t psa_asymmetric_decrypt(psa_key_slot_t key,
         {
             return( PSA_ERROR_INVALID_ARGUMENT );
         }
-        if( ret == 0 )
-            *output_length = rsa->len; // check if this is correct
+
         return( mbedtls_to_psa_error( ret ) );
     }
 #endif

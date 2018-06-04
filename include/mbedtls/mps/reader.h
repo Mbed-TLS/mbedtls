@@ -1,8 +1,8 @@
 /**
  * \file reader.h
  *
- * \brief This file defines reader objects, which together with
- *        their sibling writer objects form the basis for the communication
+ * \brief This file defines reader objects, which together with their
+ *        sibling writer objects form the basis for the communication
  *        between the various layers of the Mbed TLS messaging stack,
  *        as well as the communication between the messaging stack and
  *        the (D)TLS handshake protocol implementation.
@@ -12,21 +12,28 @@
  * a 'consumer' which fetches and processes it in chunks of
  * again arbitrary, and potentially different, size.
  *
- * The reader abstracts away the underlying pointer arithmetic
- * as well as the merging of incoming data chunks in case the
- * consumer requests data in larger chunks than what the
- * producer provides.
+ * Readers can be seen as datagram-to-stream converters,
+ * and they abstract away the following two tasks from the user:
+ * 1. The pointer arithmetic of stepping through a producer-
+ *    provided chunk in smaller chunks.
+ * 2. The merging of incoming data chunks in case the
+ *    consumer requests data in larger chunks than what the
+ *    producer provides.
  *
- * The basic flow of operation is that the producer hands
- * an incoming data buffer to the reader, switching from
- * 'producing' to 'consuming' mode. The consumer subsequently
- * fetches and processes the buffer content. Once that's done --
- * or partially done and a consumer's requests can't be fulfilled --
- * the producer revokes the reader's access to the incoming
- * data buffer, putting the reader back to producing mode;
- * the producer subsequently gathers more incoming data and hands
- * it to reader until the latter switches back to consuming mode
- * if enough data is available.
+ * The basic abstract flow of operation is the following:
+ * - Initially, the reader is in 'producing mode'.
+ * - The producer hands an incoming data buffer to the reader,
+ *   moving it from 'producing' to 'consuming' mode.
+ * - The consumer subsequently fetches and processes the buffer
+ *   content. Once that's done -- or partially done and a consumer's
+ *   requests can't be fulfilled -- the producer revokes the reader's
+ *   access to the incoming data buffer, putting the reader back to
+ *   producing mode.
+ * - The producer subsequently gathers more incoming data and hands
+ *   it to reader until the latter switches back to consuming mode
+ *   if enough data is available for the last consumer request to
+ *   be satisfiable.
+ * - Repeat the above.
  *
  * From the perspective of the consumer, the state of the
  * reader is a potentially empty list of input buffers that
@@ -35,12 +42,15 @@
  * while previously obtained input buffers can be marked processed
  * through calls to mbedtls_reader_consume(), emptying the list of
  * input buffers and invalidating them from the consumer's perspective.
+ * The consumer need not be aware of the distinction between consumer
+ * and producer mode, because he only interfaces with the reader
+ * when the latter is in consuming mode.
  *
  * From the perspective of the producer, the state of the reader
  * is one of the following:
- * - Consuming: An incoming data buffer is currently
- *              being managed by the reader.
- * - Empty: No incoming data buffer is currently
+ * - Attached: An incoming data buffer is currently
+ *             being managed by the reader, and
+ * - Unset: No incoming data buffer is currently
  *          managed by the reader, and all previously
  *          handed incoming data buffers have been
  *          fully processed.
@@ -49,10 +59,12 @@
  *                 from the previous incoming data buffer
  *                 hasn't been processed yet and is internally
  *                 held back.
+ * The Unset and Accumulating states belong to producing mode,
+ * while the Attached state belongs to consuming mode.
  *
- * Transitioning from Empty or Accumulating to Consuming is
+ * Transitioning from Unset or Accumulating to Attached is
  * done via calls to mbedtls_reader_feed(), while transitioning
- * from Consuming to either Empty or Accumulating (depending
+ * from Consuming to either Unset or Accumulating (depending
  * on what has been processed) is done via mbedtls_reader_reclaim().
  *
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
@@ -183,6 +195,19 @@ struct mbedtls_reader
                                *   (invariant READER_INV_ACC_CONSUME).      */
     } acc_share;
 };
+
+/*
+ * Concrete to abstract state mapping:
+ *
+ * The concrete C-state of the reader maps the abstract producer state
+ * in the following way:
+ *
+ * - The reader is in Attached/Consuming state if and only if frag is not NULL.
+ * - If the reader is not in Attached/Consuming state, it is in state Unset
+ *   resp. Accumulating if and only if acc_share.acc_remaining is 0 resp. bigger
+ *   than 0.
+ *
+ */
 
 /*
  * E-ACSL invariants for reader

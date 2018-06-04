@@ -1295,8 +1295,8 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
 /* Symmetric cryptography */
 /****************************************************************/
 
-static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
-                               psa_key_slot_t key,
+static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
+                                      psa_key_slot_t key,
                                psa_algorithm_t alg, mbedtls_operation_t cipher_operation)
 {
     int ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
@@ -1333,7 +1333,7 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     }
 
     ret = mbedtls_cipher_setkey( &operation->ctx.cipher, slot->data.raw.data,
-                   key_bits, cipher_operation );
+                                 key_bits, cipher_operation );
     if( ret != 0 )
     {
         psa_cipher_abort( operation );
@@ -1377,24 +1377,24 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
-                               psa_key_slot_t key,
-                               psa_algorithm_t alg)
+psa_status_t psa_encrypt_setup( psa_cipher_operation_t *operation,
+                                psa_key_slot_t key,
+                                psa_algorithm_t alg )
 {
     return psa_cipher_setup( operation, key, alg, MBEDTLS_ENCRYPT );
 }
 
-psa_status_t psa_decrypt_setup(psa_cipher_operation_t *operation,
-                               psa_key_slot_t key,
-                               psa_algorithm_t alg)
+psa_status_t psa_decrypt_setup( psa_cipher_operation_t *operation,
+                                psa_key_slot_t key,
+                                psa_algorithm_t alg )
 {
     return psa_cipher_setup( operation, key, alg, MBEDTLS_DECRYPT );
 }
 
-psa_status_t psa_encrypt_generate_iv(psa_cipher_operation_t *operation,
-                                     unsigned char *iv,
-                                     size_t iv_size,
-                                     size_t *iv_length)
+psa_status_t psa_encrypt_generate_iv( psa_cipher_operation_t *operation,
+                                      unsigned char *iv,
+                                      size_t iv_size,
+                                      size_t *iv_length )
 {
     int ret = PSA_SUCCESS;
     if( operation->iv_set || !( operation->iv_required ) )
@@ -1408,9 +1408,9 @@ psa_status_t psa_encrypt_generate_iv(psa_cipher_operation_t *operation,
     if( ret != 0 )
     {
         ret = mbedtls_to_psa_error( ret );
-        goto exit;       
+        goto exit;
     }
-    
+
     *iv_length = operation->iv_size;
     ret = psa_encrypt_set_iv( operation, iv, *iv_length );
 
@@ -1420,9 +1420,9 @@ exit:
     return( ret );
 }
 
-psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
-                                const unsigned char *iv,
-                                size_t iv_length)
+psa_status_t psa_encrypt_set_iv( psa_cipher_operation_t *operation,
+                                 const unsigned char *iv,
+                                 size_t iv_length )
 {
     int ret = PSA_SUCCESS;
     if( operation->iv_set || !( operation->iv_required ) )
@@ -1444,23 +1444,23 @@ psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
-                               const uint8_t *input,
-                               size_t input_length,
-                               unsigned char *output, 
-                               size_t output_size, 
-                               size_t *output_length)
+psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
+                                const uint8_t *input,
+                                size_t input_length,
+                                unsigned char *output,
+                                size_t output_size,
+                                size_t *output_length )
 {
     int ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     size_t expected_output_size = ( ( operation->ctx.cipher.unprocessed_len + input_length )/operation->block_size )*operation->block_size; 
-    if( ( ( PSA_ALG_IS_STREAM_CIPHER( operation->alg ) ) && 
-        ( output_size < input_length ) ) || 
-        ( ( PSA_ALG_IS_BLOCK_CIPHER( operation->alg ) ) && 
-        ( output_size < expected_output_size ) ) )
+    if( ( ( PSA_ALG_IS_STREAM_CIPHER( operation->alg ) ) &&
+          ( output_size < input_length ) ) ||
+        ( ( PSA_ALG_IS_BLOCK_CIPHER( operation->alg ) ) &&
+          ( output_size < expected_output_size ) ) )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
     ret = mbedtls_cipher_update( &operation->ctx.cipher, input,
-                   input_length, output, output_length );
+                                 input_length, output, output_length );
     if( ret != 0 )
     {
         psa_cipher_abort( operation );
@@ -1470,13 +1470,13 @@ psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
-                               uint8_t *output,
-                               size_t output_size,
-                               size_t *output_length)
+psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
+                                uint8_t *output,
+                                size_t output_size,
+                                size_t *output_length )
 {
     int ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
-    uint8_t temp_output_buffer[ MBEDTLS_MAX_BLOCK_LENGTH ];
+    uint8_t temp_output_buffer[MBEDTLS_MAX_BLOCK_LENGTH];
 
     if( ! operation->key_set )
         return( PSA_ERROR_BAD_STATE );
@@ -1496,13 +1496,13 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
     }
 
     ret = mbedtls_cipher_finish( &operation->ctx.cipher, temp_output_buffer,
-        output_length );
+                                 output_length );
     if( ret != 0 )
     {
         psa_cipher_abort( operation );
         return( mbedtls_to_psa_error( ret ) );
     }
-    if(output_size >= *output_length)
+    if( output_size >= *output_length )
         memcpy( output, temp_output_buffer, *output_length );
     else
     {
@@ -1513,10 +1513,10 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation)
-{   
+psa_status_t psa_cipher_abort( psa_cipher_operation_t *operation )
+{
     mbedtls_cipher_free( &operation->ctx.cipher );
-    
+
     operation->alg = 0;
     operation->key_set = 0;
     operation->iv_set = 0;

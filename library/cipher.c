@@ -992,8 +992,7 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
         }
 
         *olen = ilen;
-        return( mbedtls_chachapoly_crypt_and_tag( ctx->cipher_ctx,
-                                MBEDTLS_CHACHAPOLY_ENCRYPT,
+        return( mbedtls_chachapoly_encrypt_and_tag( ctx->cipher_ctx,
                                 ilen, iv, ad, ad_len, input, output, tag ) );
     }
 #endif /* MBEDTLS_CHACHAPOLY_C */

@@ -269,7 +269,7 @@ int mbedtls_chachapoly_finish( mbedtls_chachapoly_context *ctx,
 
 /**
  * \brief           This function performs a complete ChaCha20-Poly1305
- *                  operation with the previously-set key.
+ *                  authenticated encryption with the previously-set key.
  *
  * \note            Before using this function, you must set the key with
  *                  \c mbedtls_chachapoly_setkey().
@@ -280,8 +280,6 @@ int mbedtls_chachapoly_finish( mbedtls_chachapoly_context *ctx,
  *                  and key.
  *
  * \param ctx       The ChaCha20-Poly1305 context to use (holds the key).
- * \param mode      The operation to perform: #MBEDTLS_CHACHAPOLY_ENCRYPT or
- *                  #MBEDTLS_CHACHAPOLY_DECRYPT.
  * \param length    The length (in bytes) of the data to encrypt or decrypt.
  * \param nonce     The 96-bit (12 bytes) nonce/IV to use.
  * \param aad       The buffer containing the additional authenticated data (AAD).
@@ -297,15 +295,14 @@ int mbedtls_chachapoly_finish( mbedtls_chachapoly_context *ctx,
  * \return          #MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA
  *                  if one or more of the required parameters are NULL.
  */
-int mbedtls_chachapoly_crypt_and_tag( mbedtls_chachapoly_context *ctx,
-                                      mbedtls_chachapoly_mode_t mode,
-                                      size_t length,
-                                      const unsigned char nonce[12],
-                                      const unsigned char *aad,
-                                      size_t aad_len,
-                                      const unsigned char *input,
-                                      unsigned char *output,
-                                      unsigned char tag[16] );
+int mbedtls_chachapoly_encrypt_and_tag( mbedtls_chachapoly_context *ctx,
+                                        size_t length,
+                                        const unsigned char nonce[12],
+                                        const unsigned char *aad,
+                                        size_t aad_len,
+                                        const unsigned char *input,
+                                        unsigned char *output,
+                                        unsigned char tag[16] );
 
 /**
  * \brief           This function performs a complete ChaCha20-Poly1305

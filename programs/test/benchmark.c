@@ -491,9 +491,8 @@ int main( int argc, char *argv[] )
         mbedtls_chachapoly_setkey( &chachapoly, tmp );
 
         TIME_AND_TSC( title,
-                mbedtls_chachapoly_crypt_and_tag( &chachapoly,
-                    MBEDTLS_CHACHAPOLY_ENCRYPT, BUFSIZE, tmp,
-                    NULL, 0, buf, buf, tmp ) );
+                mbedtls_chachapoly_encrypt_and_tag( &chachapoly,
+                    BUFSIZE, tmp, NULL, 0, buf, buf, tmp ) );
 
         mbedtls_chachapoly_free( &chachapoly );
     }

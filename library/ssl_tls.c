@@ -2005,9 +2005,10 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
              * correctly. We round down instead of up, so -56 is the correct
              * value for our calculations instead of -55.
              *
-             * Repeat the formula rather than defining a block_size variable
-             * so that the code only uses division by a constant, not division
-             * by a variable.
+             * Repeat the formula rather than defining a block_size variable.
+             * This avoids requiring division by a variable at runtime
+             * (which would be marginally less efficient and would require
+             * linking an extra division function in some builds).
              */
             size_t j, extra_run = 0;
             switch( ssl->transform_in->ciphersuite_info->mac )

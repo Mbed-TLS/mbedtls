@@ -1456,13 +1456,22 @@ psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
                                 size_t *output_length )
 {
     int ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
-    size_t expected_output_size =
-        ( ( operation->ctx.cipher.unprocessed_len + input_length ) /
-          operation->block_size ) * operation->block_size;
-    if( ( ( PSA_ALG_IS_STREAM_CIPHER( operation->alg ) ) &&
-          ( output_size < input_length ) ) ||
-        ( ( PSA_ALG_IS_BLOCK_CIPHER( operation->alg ) ) &&
-          ( output_size < expected_output_size ) ) )
+    size_t expected_output_size;
+    if( PSA_ALG_IS_BLOCK_CIPHER( operation->alg ) )
+    {
+        /* Take the unprocessed partial block left over from previous
+         * update calls, if any, plus the input to this call. Remove
+         * the last partial block, if any. You get the data that will be
+         * output in this call. */
+        expected_output_size =
+            ( operation->ctx.cipher.unprocessed_len + input_length )
+            / operation->block_size * operation->block_size;
+    }
+    else
+    {
+        expected_output_size = input_length;
+    }
+    if( output_size < expected_output_size )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
     ret = mbedtls_cipher_update( &operation->ctx.cipher, input,
@@ -1493,14 +1502,17 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
     {
         if( operation->ctx.cipher.unprocessed_len > operation->block_size )
             return( PSA_ERROR_INVALID_ARGUMENT );
-        if( ( ( operation->alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK )
-              == PSA_ALG_BLOCK_CIPHER_PAD_NONE )
-            && ( operation->ctx.cipher.unprocessed_len != 0 ) )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-        if( ( ( operation->alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK )
-              == PSA_ALG_BLOCK_CIPHER_PAD_PKCS7 )
-            && ( *output_length != operation->block_size ) )
-            return( PSA_ERROR_INVALID_ARGUMENT );
+        switch( operation->alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK )
+        {
+            case PSA_ALG_BLOCK_CIPHER_PAD_NONE:
+                if( operation->ctx.cipher.unprocessed_len != 0 )
+                    return( PSA_ERROR_INVALID_ARGUMENT );
+                break;
+            case PSA_ALG_BLOCK_CIPHER_PAD_PKCS7:
+                if( *output_length != operation->block_size )
+                    return( PSA_ERROR_INVALID_ARGUMENT );
+                break;
+        }
     }
 
     ret = mbedtls_cipher_finish( &operation->ctx.cipher, temp_output_buffer,

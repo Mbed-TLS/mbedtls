@@ -471,13 +471,13 @@ static  psa_status_t psa_internal_export_key(psa_key_slot_t key,
     if( slot->type == PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_EMPTY_SLOT );
 
-    if( !( slot->policy.usage & PSA_KEY_USAGE_EXPORT ) )
-        return( PSA_ERROR_NOT_PERMITTED );
-
-    if( export_public_key && !( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) ||
-                                PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) ) )
+    if( export_public_key && ( !( PSA_KEY_TYPE_IS_ASYMMETRIC( slot->type ) ) ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
+    if( ( !export_public_key ) && ( !( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) ) ) &&
+        ( !( slot->policy.usage & PSA_KEY_USAGE_EXPORT ) ) )
+        return( PSA_ERROR_NOT_PERMITTED );
+    
     if( PSA_KEY_TYPE_IS_RAW_BYTES( slot->type ) )
     {
         if( slot->data.raw.bytes > data_size )

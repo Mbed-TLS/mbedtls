@@ -283,9 +283,9 @@ struct mbedtls_ssl_handshake_params
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-    void (*update_checksum)(mbedtls_ssl_context *, const unsigned char *, size_t);
-    void (*calc_verify)(mbedtls_ssl_context *, unsigned char *);
-    void (*calc_finished)(mbedtls_ssl_context *, unsigned char *, int);
+    int (*update_checksum)(mbedtls_ssl_context *, const unsigned char *, size_t);
+    int (*calc_verify)(mbedtls_ssl_context *, unsigned char *);
+    int (*calc_finished)(mbedtls_ssl_context *, unsigned char *, int);
     int  (*tls_prf)(const unsigned char *, size_t, const char *,
                     const unsigned char *, size_t,
                     unsigned char *, size_t);
@@ -420,7 +420,7 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_send_fatal_handshake_failure( mbedtls_ssl_context *ssl );
 
-void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_read_record_layer( mbedtls_ssl_context *ssl );

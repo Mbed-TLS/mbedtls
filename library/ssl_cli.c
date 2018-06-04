@@ -1393,6 +1393,7 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
     const unsigned char *p = ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl );
     int major_ver, minor_ver;
     unsigned char cookie_len;
+    int ret;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse hello verify request" ) );
 
@@ -1449,7 +1450,8 @@ static int ssl_parse_hello_verify_request( mbedtls_ssl_context *ssl )
 
     /* Start over at ClientHello */
     ssl->state = MBEDTLS_SSL_CLIENT_HELLO;
-    mbedtls_ssl_reset_checksum( ssl );
+    if( ( ret = mbedtls_ssl_reset_checksum( ssl ) ) != 0 )
+        return ( ret );
 
     mbedtls_ssl_recv_flight_completed( ssl );
 

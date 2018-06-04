@@ -38,6 +38,36 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void arc4_invalid_param( )
+{
+    mbedtls_arc4_context ctx;
+    const unsigned char arbitrary_buffer[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+    const size_t arbitrary_len = 1;
+    TEST_ASSERT( mbedtls_arc4_init_ret( NULL ) == MBEDTLS_ERR_ARC4_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_arc4_free_ret( NULL ) == MBEDTLS_ERR_ARC4_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_arc4_setup_ret(
+            NULL, arbitrary_buffer, sizeof( arbitrary_buffer ) ) ==
+            MBEDTLS_ERR_ARC4_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_arc4_setup_ret(
+            &ctx, NULL, sizeof( arbitrary_buffer ) ) ==
+            MBEDTLS_ERR_ARC4_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_arc4_setup_ret(
+            &ctx, NULL, 0 ) == MBEDTLS_ERR_ARC4_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_arc4_crypt(
+            NULL, arbitrary_len, arbitrary_buffer, arbitrary_buffer ) ==
+            MBEDTLS_ERR_ARC4_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_arc4_crypt(
+            &ctx, arbitrary_len, NULL, arbitrary_buffer ) ==
+            MBEDTLS_ERR_ARC4_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_arc4_crypt(
+            &ctx, arbitrary_len, arbitrary_buffer, NULL ) ==
+            MBEDTLS_ERR_ARC4_BAD_INPUT_DATA );
+exit:
+    return;
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void arc4_selftest()
 {

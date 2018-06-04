@@ -2043,7 +2043,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
                     break;
 #endif
                 default:
-                    MBEDTLS_SSL_DEBUG_MSG( 1, ( "unsupported HMAC hash" ) );
+                    MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
                     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
             }
 

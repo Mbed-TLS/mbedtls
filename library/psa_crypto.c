@@ -1507,14 +1507,16 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
 
     //TODO: check key policy
 
-    if ( !( ( key_type & PSA_KEY_TYPE_CATEGORY_MASK ) == PSA_KEY_TYPE_CATEGORY_SYMMETRIC
-            && PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) == cipher_info->block_size ) )
+    if ( ( key_type & PSA_KEY_TYPE_CATEGORY_MASK ) != PSA_KEY_TYPE_CATEGORY_SYMMETRIC )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     if( alg == PSA_ALG_GCM )
     {
         mbedtls_gcm_context gcm;
         tag_length = 16;
+
+        if( PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) != 16 )
+            return( PSA_ERROR_INVALID_ARGUMENT );
 
         //make sure we have place to hold the tag in the ciphertext buffer
         if( ciphertext_size < ( plaintext_length + tag_length ) )
@@ -1543,6 +1545,9 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
     {
         mbedtls_ccm_context ccm;
         tag_length = 16;
+
+        if( PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) != 16 )
+            return( PSA_ERROR_INVALID_ARGUMENT );
 
         if( nonce_length < 7 || nonce_length > 13 )
             return( PSA_ERROR_INVALID_ARGUMENT );

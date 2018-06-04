@@ -1422,6 +1422,7 @@ psa_status_t psa_asymmetric_encrypt(psa_key_slot_t key,
     key_slot_t *slot;
     (void) salt;
     (void) salt_length;
+    *output_length = 0;
 
     if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_INVALID_ARGUMENT );
@@ -1495,6 +1496,7 @@ psa_status_t psa_asymmetric_decrypt(psa_key_slot_t key,
     key_slot_t *slot;
     (void) salt;
     (void) salt_length;
+    *output_length = 0;
 
     if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_EMPTY_SLOT );

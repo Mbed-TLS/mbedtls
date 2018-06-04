@@ -473,9 +473,9 @@ static  psa_status_t psa_internal_export_key(psa_key_slot_t key,
 
     if( !( slot->policy.usage & PSA_KEY_USAGE_EXPORT ) )
         return( PSA_ERROR_NOT_PERMITTED );
-		
-    if( ( export_public_key ) && ( !( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) 
-				 || PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) ) ) )
+
+    if( export_public_key && !( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) ||
+                                PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     if( PSA_KEY_TYPE_IS_RAW_BYTES( slot->type ) )
@@ -520,8 +520,8 @@ static  psa_status_t psa_internal_export_key(psa_key_slot_t key,
 #endif /* defined(MBEDTLS_PK_WRITE_C) */
         {
             /* This shouldn't happen in the reference implementation, but
-            it is valid for a special-purpose implementation to omit
-            support for exporting certain key types. */
+               it is valid for a special-purpose implementation to omit
+               support for exporting certain key types. */
             return( PSA_ERROR_NOT_SUPPORTED );
         }
     }

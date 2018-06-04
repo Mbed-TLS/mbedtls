@@ -840,7 +840,64 @@ cleanup:
 
 static int ssl_client_hello_prepare( mbedtls_ssl_context *ssl )
 {
-    /* TBD */
+    int ret;
+
+    if( ssl->conf->f_rng == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "no RNG provided") );
+        return( MBEDTLS_ERR_SSL_NO_RNG );
+    }
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
+#endif
+    {
+        /* When renegotiating, we keep the previously
+         * negotiated version for the ClientHello. */
+        ssl->major_ver = ssl->conf->min_major_ver;
+        ssl->minor_ver = ssl->conf->min_minor_ver;
+    }
+
+    if( ssl->conf->max_major_ver == 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "configured max major version is invalid, "
+                            "consider using mbedtls_ssl_config_defaults()" ) );
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+    }
+
+    if( ( ret = ssl_generate_random( ssl ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_generate_random", ret );
+        return( ret );
+    }
+
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+
+    /*
+     * RFC 5077 section 3.4: "When presenting a ticket, the client MAY
+     * generate and include a Session ID in the TLS ClientHello."
+     */
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
+#endif
+    {
+        if( ssl->session_negotiate->ticket != NULL &&
+            ssl->session_negotiate->ticket_len != 0 )
+        {
+            ret = ssl->conf->f_rng( ssl->conf->p_rng,
+                                    ssl->session_negotiate->id,
+                                    sizeof( ssl->session_negotiate->id ) );
+
+            if( ret != 0 )
+                return( ret );
+
+            ssl->session_negotiate->id_len =
+                sizeof( ssl->session_negotiate->id );
+        }
+    }
+#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+
     return( 0 );
 }
 
@@ -877,26 +934,26 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write client hello" ) );
 
-    if( ssl->conf->f_rng == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "no RNG provided") );
-        return( MBEDTLS_ERR_SSL_NO_RNG );
-    }
+    /* if( ssl->conf->f_rng == NULL ) */
+    /* { */
+    /*     MBEDTLS_SSL_DEBUG_MSG( 1, ( "no RNG provided") ); */
+    /*     return( MBEDTLS_ERR_SSL_NO_RNG ); */
+    /* } */
 
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
-#endif
-    {
-        ssl->major_ver = ssl->conf->min_major_ver;
-        ssl->minor_ver = ssl->conf->min_minor_ver;
-    }
+/* #if defined(MBEDTLS_SSL_RENEGOTIATION) */
+/*     if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE ) */
+/* #endif */
+/*     { */
+/*         ssl->major_ver = ssl->conf->min_major_ver; */
+/*         ssl->minor_ver = ssl->conf->min_minor_ver; */
+/*     } */
 
-    if( ssl->conf->max_major_ver == 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "configured max major version is invalid, "
-                            "consider using mbedtls_ssl_config_defaults()" ) );
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    }
+/*     if( ssl->conf->max_major_ver == 0 ) */
+/*     { */
+/*         MBEDTLS_SSL_DEBUG_MSG( 1, ( "configured max major version is invalid, " */
+/*                             "consider using mbedtls_ssl_config_defaults()" ) ); */
+/*         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA ); */
+/*     } */
 
     /*
      *     0  .   0   handshake type
@@ -915,11 +972,11 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, max version: [%d:%d]",
                    buf[4], buf[5] ) );
 
-    if( ( ret = ssl_generate_random( ssl ) ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "ssl_generate_random", ret );
-        return( ret );
-    }
+    /* if( ( ret = ssl_generate_random( ssl ) ) != 0 ) */
+    /* { */
+    /*     MBEDTLS_SSL_DEBUG_RET( 1, "ssl_generate_random", ret ); */
+    /*     return( ret ); */
+    /* } */
 
     memcpy( p, ssl->handshake->randbytes, 32 );
     MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes", p, 32 );
@@ -948,27 +1005,27 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         n = 0;
     }
 
-#if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    /*
-     * RFC 5077 section 3.4: "When presenting a ticket, the client MAY
-     * generate and include a Session ID in the TLS ClientHello."
-     */
-#if defined(MBEDTLS_SSL_RENEGOTIATION)
-    if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE )
-#endif
-    {
-        if( ssl->session_negotiate->ticket != NULL &&
-                ssl->session_negotiate->ticket_len != 0 )
-        {
-            ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->session_negotiate->id, 32 );
+/* #if defined(MBEDTLS_SSL_SESSION_TICKETS) */
+/*     /\* */
+/*      * RFC 5077 section 3.4: "When presenting a ticket, the client MAY */
+/*      * generate and include a Session ID in the TLS ClientHello." */
+/*      *\/ */
+/* #if defined(MBEDTLS_SSL_RENEGOTIATION) */
+/*     if( ssl->renego_status == MBEDTLS_SSL_INITIAL_HANDSHAKE ) */
+/* #endif */
+/*     { */
+/*         if( ssl->session_negotiate->ticket != NULL && */
+/*                 ssl->session_negotiate->ticket_len != 0 ) */
+/*         { */
+/*             ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->session_negotiate->id, 32 ); */
 
-            if( ret != 0 )
-                return( ret );
+/*             if( ret != 0 ) */
+/*                 return( ret ); */
 
-            ssl->session_negotiate->id_len = n = 32;
-        }
-    }
-#endif /* MBEDTLS_SSL_SESSION_TICKETS */
+/*             ssl->session_negotiate->id_len = n = 32; */
+/*         } */
+/*     } */
+/* #endif /\* MBEDTLS_SSL_SESSION_TICKETS *\/ */
 
     *p++ = (unsigned char) n;
 

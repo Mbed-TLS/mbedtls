@@ -527,68 +527,6 @@ exit:
 }
 /* END_CASE */
 
-* BEGIN_CASE */
-void cipher_test_positive( int alg_arg, int key_type_arg, 
-                           char *key_hex,
-                           char *input_hex )
-{
-    int key_slot = 1;
-    psa_key_type_t key_type = key_type_arg;
-    psa_algorithm_t alg = alg_arg;
-    unsigned char *key = NULL;
-    size_t key_size;
-    unsigned char iv[16] = {0};
-    unsigned char *input = NULL;
-    size_t input_size = 0;
-    unsigned char *output;
-    unsigned char *expected_output;
-    size_t output_size = 0;
-    size_t output_length = 0;
-    psa_cipher_operation_t operation;
-
-
-    key = unhexify_alloc( key_hex, &key_size );
-    TEST_ASSERT( key != NULL );
-
-    input = unhexify_alloc( input_hex, &input_size );
-    TEST_ASSERT( input != NULL );
-
-    expected_output = unhexify_alloc( output_hex, &output_size );
-    TEST_ASSERT( expected_output != NULL );
-
-    memset( iv, 0x2a, sizeof( iv ) );
- 
-    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
-
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
-                                 key, key_size ) == PSA_SUCCESS );
-
-    TEST_ASSERT( psa_encrypt_setup( &operation, key_slot, alg ) == PSA_SUCCESS );
-
-    TEST_ASSERT( psa_encrypt_set_iv( &operation, iv,
-                                        sizeof( iv ) ) == PSA_SUCCESS );
-
-    output = mbedtls_calloc(0, output_size);
-
-    TEST_ASSERT( psa_cipher_update( &operation, input, input_size,
-                                    output, output_size, 
-                                    &output_length) == PSA_SUCCESS );
-    TEST_ASSERT( psa_cipher_finish( &operation, output + output_length,
-                                    output_size, &output_length) == PSA_SUCCESS );
-
-    TEST_ASSERT( psa_cipher_abort( &operation ) == PSA_SUCCESS );
-
-    TEST_ASSERT( input_size == output_size );
-    TEST_ASSERT( memcmp( expected_output, output, output_size ) == 0 );
-
-exit:
-    mbedtls_free( key );
-    mbedtls_free( input );
-    psa_destroy_key( key_slot );
-    mbedtls_psa_crypto_free( );
-}
-/* END_CASE */
-
 /* BEGIN_CASE */
 void cipher_test_encrypt( int alg_arg, int key_type_arg, 
                            char *key_hex,

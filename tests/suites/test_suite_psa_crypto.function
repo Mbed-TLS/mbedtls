@@ -598,6 +598,7 @@ void aead_encrypt_decrypt( int key_type_arg, char * key_hex,
     size_t additional_data_length = 0;
     size_t i = 0;
     psa_status_t expected_result = (psa_status_t) expected_result_arg;
+    psa_key_policy_t policy = {0};
 
 
     key_data = unhexify_alloc( key_hex, &key_size );
@@ -618,6 +619,12 @@ void aead_encrypt_decrypt( int key_type_arg, char * key_hex,
         nonce[i] = i;
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT , alg );
+
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( slot, key_type,
                                  key_data, key_size ) == PSA_SUCCESS );
@@ -679,6 +686,7 @@ void aead_encrypt( int key_type_arg, char * key_hex,
     size_t tag_length = 16;
     unsigned char *additional_data = NULL;
     size_t additional_data_length = 0;
+    psa_key_policy_t policy = {0};
 
 
     key_data = unhexify_alloc( key_hex, &key_size );
@@ -696,6 +704,12 @@ void aead_encrypt( int key_type_arg, char * key_hex,
     TEST_ASSERT( expected_result != NULL );
     
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT , alg );
+
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( slot, key_type,
                                  key_data, key_size ) == PSA_SUCCESS );

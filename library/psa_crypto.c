@@ -1505,7 +1505,8 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
     if( cipher_info == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
 
-    //TODO: check key policy
+    if( !( slot->policy.usage & PSA_KEY_USAGE_ENCRYPT ) )
+        return( PSA_ERROR_NOT_PERMITTED );
 
     if ( ( key_type & PSA_KEY_TYPE_CATEGORY_MASK ) != PSA_KEY_TYPE_CATEGORY_SYMMETRIC )
         return( PSA_ERROR_INVALID_ARGUMENT );
@@ -1644,7 +1645,9 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
     cipher_info = mbedtls_cipher_info_from_psa( alg, key_type, key_bits, &cipher_id );
     if( cipher_info == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
-    //TODO: check key policy
+    
+    if( !( slot->policy.usage & PSA_KEY_USAGE_DECRYPT ) )
+        return( PSA_ERROR_NOT_PERMITTED );
 
     if ( !( ( key_type & PSA_KEY_TYPE_CATEGORY_MASK ) == PSA_KEY_TYPE_CATEGORY_SYMMETRIC
             && PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) == cipher_info->block_size ) )

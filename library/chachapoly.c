@@ -74,7 +74,7 @@ static int chachapoly_pad_aad( mbedtls_chachapoly_context *ctx )
  *
  * \param ctx       The ChaCha20-Poly1305 context.
  */
-static void chachapoly_pad_ciphertext( mbedtls_chachapoly_context *ctx )
+static int chachapoly_pad_ciphertext( mbedtls_chachapoly_context *ctx )
 {
     uint32_t partial_block_len = (uint32_t) ( ctx->ciphertext_len % 16U );
     unsigned char zeroes[15];

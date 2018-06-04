@@ -414,10 +414,12 @@ int mbedtls_reader_reclaim( mbedtls_reader *rd, size_t *paused )
         if( commit < fo )
         {
             /* No, accumulator is still being processed. */
+            int overflow;
             TRACE( trace_comment, "Still processing data from the accumulator" );
-            if( fo + fl < fo              ||
-                fo + fl + pause < fo + fl ||
-                al < fo + fl + pause )
+
+            overflow =
+                ( fo + fl < fo ) || ( fo + fl + pause < fo + fl );
+            if( overflow || al < fo + fl + pause )
             {
                 rd->end = commit;
                 rd->pause = 0;
@@ -434,11 +436,14 @@ int mbedtls_reader_reclaim( mbedtls_reader *rd, size_t *paused )
         else
         {
             /* Yes, the accumulator is already processed. */
+            int overflow;
             TRACE( trace_comment, "The accumulator has already been processed" );
+
             frag_backup_offset = commit;
             frag_backup_len = fl - commit;
+            overflow = ( frag_backup_len + pause < pause );
 
-            if( frag_backup_len + pause < pause ||
+            if( overflow ||
                 al - fo < frag_backup_len + pause )
             {
                 rd->end = commit;

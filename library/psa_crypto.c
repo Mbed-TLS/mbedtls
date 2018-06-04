@@ -1001,7 +1001,7 @@ psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
                 if ( operation->ctx.hmac.hmac_ctx != NULL )
                 {
                     mbedtls_zeroize( operation->ctx.hmac.hmac_ctx, 
-                        sizeof(  operation->ctx.hmac.block_size * 2 ) );
+                                    operation->ctx.hmac.block_size * 2  );
                     mbedtls_free( operation->ctx.hmac.hmac_ctx );
                     operation->ctx.hmac.block_size = 0;
                 }

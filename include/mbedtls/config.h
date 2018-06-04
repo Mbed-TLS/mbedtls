@@ -269,13 +269,13 @@
  *            digests and ciphers instead.
  *
  */
-//#define MBEDTLS_CHACHAPOLY_ALT
 //#define MBEDTLS_AES_ALT
 //#define MBEDTLS_ARC4_ALT
 //#define MBEDTLS_BLOWFISH_ALT
 //#define MBEDTLS_CAMELLIA_ALT
 //#define MBEDTLS_CCM_ALT
 //#define MBEDTLS_CHACHA20_ALT
+//#define MBEDTLS_CHACHAPOLY_ALT
 //#define MBEDTLS_CMAC_ALT
 //#define MBEDTLS_DES_ALT
 //#define MBEDTLS_DHM_ALT
@@ -1690,17 +1690,6 @@
 #define MBEDTLS_AES_C
 
 /**
- * \def MBEDTLS_CHACHAPOLY_C
- *
- * Enable the ChaCha20-Poly1305 AEAD algorithm.
- *
- * Module:  library/chachapoly.c
- *
- * This module requires: MBEDTLS_CHACHA20_C, MBEDTLS_POLY1305_C
- */
-#define MBEDTLS_CHACHAPOLY_C
-
-/**
  * \def MBEDTLS_ARC4_C
  *
  * Enable the ARCFOUR stream cipher.
@@ -1850,16 +1839,6 @@
 #define MBEDTLS_CAMELLIA_C
 
 /**
- * \def MBEDTLS_CHACHA20_C
- *
- * Enable the ChaCha20 block cipher.
- *
- * Module:  library/chacha20.c
- * Caller:  library/chachapoly.c
- */
-#define MBEDTLS_CHACHA20_C
-
-/**
  * \def MBEDTLS_CCM_C
  *
  * Enable the Counter with CBC-MAC (CCM) mode for 128-bit block cipher.
@@ -1893,6 +1872,17 @@
  * Module:  library/chacha20.c
  */
 #define MBEDTLS_CHACHA20_C
+
+/**
+ * \def MBEDTLS_CHACHAPOLY_C
+ *
+ * Enable the ChaCha20-Poly1305 AEAD algorithm.
+ *
+ * Module:  library/chachapoly.c
+ *
+ * This module requires: MBEDTLS_CHACHA20_C, MBEDTLS_POLY1305_C
+ */
+#define MBEDTLS_CHACHAPOLY_C
 
 /**
  * \def MBEDTLS_CIPHER_C

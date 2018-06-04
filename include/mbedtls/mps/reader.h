@@ -171,12 +171,12 @@ struct mbedtls_reader
                            *   consuming mode, i.e. \c frag != \c NULL;
                            *   otherwise, its value is \c 0
                            *   (invariant READER_INV_FRAG_UNSET_VARS_ZERO). */
-    size_t pause;         /*!< The amount of incoming data missing on the
-                           *   last call to mbedtls_reader_get.
+    size_t pending;       /*!< The amount of incoming data missing on the
+                           *   last call to mbedtls_reader_get().
                            *   In particular, it is \c 0 if the last call
                            *   was successful.
                            *   If a reader is reclaimed after an
-                           *   unsuccessful call to mbedtls_reader_get,
+                           *   unsuccessful call to mbedtls_reader_get(),
                            *   this variable is used to have the reader
                            *   remember how much data should be accumulated
                            *   before the reader can be passed back to
@@ -251,7 +251,7 @@ struct mbedtls_reader
       ( (p)->frag_len == 0 &&                      \
         (p)->commit   == 0 &&                      \
         (p)->end      == 0 &&                      \
-        (p)->pause    == 0 ) )
+        (p)->pending    == 0 ) )
 
 #define READER_INV_ACC_VALID( p )                        \
     ( (p)->acc != NULL ==>                               \

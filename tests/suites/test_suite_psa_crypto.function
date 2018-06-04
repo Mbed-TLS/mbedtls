@@ -581,7 +581,7 @@ void import_export_public_key( char *hex,
         goto destroy;
 
  
-    TEST_ASSERT( exported_length == public_key_expected_length );
+    TEST_ASSERT( exported_length == (size_t) public_key_expected_length );
 
 destroy:
     /* Destroy the key */

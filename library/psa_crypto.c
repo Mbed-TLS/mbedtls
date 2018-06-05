@@ -1029,7 +1029,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
     key_slot_t *slot;
     psa_key_type_t key_type;
     size_t key_bits;
-    size_t keylen;
+    size_t key_length;
     uint8_t* key_ptr = NULL;
     const mbedtls_cipher_info_t *cipher_info = NULL;
 
@@ -1050,7 +1050,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
         return(PSA_ERROR_EMPTY_SLOT);
 
     key_ptr = slot->data.raw.data;
-    keylen = slot->data.raw.bytes;
+    key_length = slot->data.raw.bytes;
 
     if( ( slot->policy.usage & PSA_KEY_USAGE_SIGN ) != 0 )
         operation->key_usage_sign = 1;
@@ -1122,7 +1122,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
                     if ( status != PSA_SUCCESS )
                         goto cleanup;
 
-                    keylen = sum_size;
+                    key_length = sum_size;
                     key_ptr = sum;
                 }
 
@@ -1133,7 +1133,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
                 memset( ipad, 0x36, operation->ctx.hmac.block_size );
                 memset( opad, 0x5C, operation->ctx.hmac.block_size );
 
-                for( i = 0; i < keylen; i++ )
+                for( i = 0; i < key_length; i++ )
                 {
                     ipad[i] = ( unsigned char )( ipad[i] ^ key_ptr[i] );
                     opad[i] = ( unsigned char )( opad[i] ^ key_ptr[i] );

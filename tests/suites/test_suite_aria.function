@@ -42,9 +42,8 @@ void aria_encrypt_ecb( char *hex_key_string, char *hex_src_string,
     {
         for( i = 0; i < data_len; i += MBEDTLS_ARIA_BLOCKSIZE )
         {
-            TEST_ASSERT( mbedtls_aria_crypt_ecb( &ctx, MBEDTLS_ARIA_ENCRYPT,
-                                                 src_str + i, output + i )
-                         == 0 );
+            TEST_ASSERT( mbedtls_aria_crypt_ecb( &ctx, src_str + i, output + i )
+                                                 == 0 );
         }
         hexify( dst_str, output, data_len );
 
@@ -82,8 +81,7 @@ void aria_decrypt_ecb( char *hex_key_string, char *hex_src_string,
     {
         for( i = 0; i < data_len; i += MBEDTLS_ARIA_BLOCKSIZE )
         {
-            TEST_ASSERT( mbedtls_aria_crypt_ecb( &ctx, MBEDTLS_ARIA_DECRYPT,
-                                                 src_str + i, output + i )
+            TEST_ASSERT( mbedtls_aria_crypt_ecb( &ctx, src_str + i, output + i )
                          == 0 );
         }
         hexify( dst_str, output, data_len );

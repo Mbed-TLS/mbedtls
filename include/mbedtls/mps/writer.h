@@ -154,7 +154,7 @@ struct mbedtls_writer
     size_t queue_next;      /*!< In consuming mode, this denotes the size of the
                              *   overlap between the queue and the current out
                              *   buffer, once end > out_len. If end < out_len,
-                             *   it's value is 0.
+                             *   its value is 0.
                              *   In providing mode, this denotes the amount of
                              *   data from the queue that has already been
                              *   copied to some outgoing data buffer.        */
@@ -466,6 +466,41 @@ int mbedtls_writer_bytes_written( mbedtls_writer *writer, size_t *written );
   WRITER_INV_ENSURES(writer)
   @*/
 int mbedtls_writer_commit( mbedtls_writer *writer );
+
+/**
+ * \brief           Signal that parts of the output buffers obtained
+ *                  from mbedtls_writer_get() are ready to be dispatched.
+ *
+ *                  This function must only be called when the writer
+ *                  is in consuming mode.
+ *
+ * \param writer    The writer context to use.
+ * \param omit      The number of bytes at the end of the last output
+ *                  buffer obtained from mbedtls_writer_get() that should
+ *                  not be committed.
+ *
+ * \note            After this function has been called, all
+ *                  output buffers obtained from prior calls to
+ *                  mbedtls_writer_get() are invalid and must not
+ *                  be used anymore.
+ *
+ * \return          \c 0 on success. In this case, the writer
+ *                  stays in consuming mode.
+ * \return          #MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION
+ *                  if the writer is not in consuming mode.
+ *                  In this case, the writer is unchanged and
+ *                  can still be used.
+ * \return          Another negative error code otherwise. In this case,
+ *                  the state of the writer is unspecified and it must
+ *                  not be used anymore.
+ *
+ */
+
+/*@
+  WRITER_INV_REQUIRES(writer)
+  WRITER_INV_ENSURES(writer)
+  @*/
+int mbedtls_writer_commit_partial( mbedtls_writer *writer, size_t omit );
 
 /**
  * \brief           Request buffer to hold outbound data.

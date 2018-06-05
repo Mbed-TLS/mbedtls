@@ -100,7 +100,7 @@ int main( void )
     "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
     "arc4, des3, des, camellia, blowfish,\n"                            \
     "aes_cbc, aes_gcm, aes_ccm, aes_cmac, aes_xts,\n"                   \
-    "des3_cmac, havege, ctr_drbg, hmac_drbg\n"                          \
+    "des3_cmac, havege, ctr_drbg, hmac_drbg,\n"                         \
     "rsa, dhm, ecdsa, ecdh.\n"
 
 #if defined(MBEDTLS_ERROR_C)

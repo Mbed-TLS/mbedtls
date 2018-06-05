@@ -1349,7 +1349,8 @@ psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
         return(PSA_ERROR_NOT_PERMITTED);
 
  #if defined(MBEDTLS_RSA_C)
-    if( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
+    if( ( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR ) ||
+        ( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ) )
     {
         mbedtls_rsa_context *rsa = slot->data.rsa;
         int ret;
@@ -1438,7 +1439,8 @@ psa_status_t psa_asymmetric_encrypt(psa_key_slot_t key,
 
 
 #if defined(MBEDTLS_RSA_C)
-    if( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
+    if( ( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR ) ||
+        ( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY) )
     {
         mbedtls_rsa_context *rsa = slot->data.rsa;
         int ret;

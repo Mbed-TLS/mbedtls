@@ -187,3 +187,68 @@ exit:
     mbedtls_ccm_free( &ctx );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void ccm_invalid_param( )
+{
+    mbedtls_ccm_context ctx;
+    mbedtls_cipher_id_t arbitrary_cipher_id = 0;
+    unsigned char arbitrary_buffer[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+    int arbitrary_int = 0;
+    size_t arbitrary_size_t = 0;
+    TEST_ASSERT( mbedtls_ccm_init_ret( NULL ) == MBEDTLS_ERR_CCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_ccm_free_ret( NULL ) == MBEDTLS_ERR_CCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_ccm_setkey( NULL, arbitrary_cipher_id,
+        arbitrary_buffer, arbitrary_int ) == MBEDTLS_ERR_CCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_ccm_setkey( &ctx, arbitrary_cipher_id,
+        NULL, arbitrary_int ) == MBEDTLS_ERR_CCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_ccm_encrypt_and_tag( NULL, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_buffer, arbitrary_buffer, arbitrary_size_t) ==
+            MBEDTLS_ERR_CCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_ccm_encrypt_and_tag( &ctx, arbitrary_size_t,
+        NULL, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_buffer, arbitrary_buffer, arbitrary_size_t) ==
+            MBEDTLS_ERR_CCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_ccm_encrypt_and_tag( &ctx, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, NULL, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_buffer, arbitrary_buffer, arbitrary_size_t) ==
+            MBEDTLS_ERR_CCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_ccm_encrypt_and_tag( &ctx, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        NULL, arbitrary_buffer, arbitrary_buffer, arbitrary_size_t) ==
+            MBEDTLS_ERR_CCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_ccm_encrypt_and_tag( &ctx, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, NULL, arbitrary_buffer, arbitrary_size_t) ==
+            MBEDTLS_ERR_CCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_ccm_encrypt_and_tag( &ctx, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_buffer, NULL, arbitrary_size_t) ==
+            MBEDTLS_ERR_CCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_ccm_auth_decrypt( NULL, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_buffer, arbitrary_buffer, arbitrary_size_t) ==
+            MBEDTLS_ERR_CCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_ccm_auth_decrypt( &ctx, arbitrary_size_t,
+        NULL, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_buffer, arbitrary_buffer, arbitrary_size_t) ==
+            MBEDTLS_ERR_CCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_ccm_auth_decrypt( &ctx, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, NULL, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_buffer, arbitrary_buffer, arbitrary_size_t) ==
+            MBEDTLS_ERR_CCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_ccm_auth_decrypt( &ctx, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        NULL, arbitrary_buffer, arbitrary_buffer, arbitrary_size_t) ==
+            MBEDTLS_ERR_CCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_ccm_auth_decrypt( &ctx, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, NULL, arbitrary_buffer, arbitrary_size_t) ==
+            MBEDTLS_ERR_CCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_ccm_auth_decrypt( &ctx, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_buffer, NULL, arbitrary_size_t) ==
+            MBEDTLS_ERR_CCM_BAD_INPUT );
+}
+/* END_CASE */

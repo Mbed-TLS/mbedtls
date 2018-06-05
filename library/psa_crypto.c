@@ -1342,7 +1342,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     }
 
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
-    if( ( alg & PSA_ALG_CBC_BASE) == PSA_ALG_CBC_BASE )
+    if( ( alg & ~PSA_ALG_BLOCK_CIPHER_PADDING_MASK ) == PSA_ALG_CBC_BASE )
     {
         padding_mode = alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
 
@@ -1494,24 +1494,29 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
     uint8_t temp_output_buffer[MBEDTLS_MAX_BLOCK_LENGTH];
 
     if( ! operation->key_set )
-        return( PSA_ERROR_BAD_STATE );
-    if( operation->iv_required && ! operation->iv_set )
-        return( PSA_ERROR_BAD_STATE );
-
-    if( operation->ctx.cipher.operation == MBEDTLS_ENCRYPT )
     {
-        if( operation->ctx.cipher.unprocessed_len > operation->block_size )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-        switch( operation->alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK )
+        psa_cipher_abort( operation );
+        return( PSA_ERROR_BAD_STATE );
+    }
+    if( operation->iv_required && ! operation->iv_set )
+    {
+        psa_cipher_abort( operation );    
+        return( PSA_ERROR_BAD_STATE );
+    }
+    if( ( operation->ctx.cipher.operation == MBEDTLS_ENCRYPT ) && PSA_ALG_IS_BLOCK_CIPHER( operation->alg ) )
+    {
+        if( operation->ctx.cipher.unprocessed_len >= operation->block_size )
         {
-            case PSA_ALG_BLOCK_CIPHER_PAD_NONE:
-                if( operation->ctx.cipher.unprocessed_len != 0 )
-                    return( PSA_ERROR_INVALID_ARGUMENT );
-                break;
-            case PSA_ALG_BLOCK_CIPHER_PAD_PKCS7:
-                if( *output_length != operation->block_size )
-                    return( PSA_ERROR_INVALID_ARGUMENT );
-                break;
+            psa_cipher_abort( operation );    
+            return( PSA_ERROR_TAMPERING_DETECTED );
+        }
+        if( ( operation->alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK ) == PSA_ALG_BLOCK_CIPHER_PAD_NONE )
+        {
+            if( operation->ctx.cipher.unprocessed_len != 0 )
+            {
+                psa_cipher_abort( operation );            
+                return( PSA_ERROR_INVALID_ARGUMENT );
+            }
         }
     }
 

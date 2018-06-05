@@ -1867,10 +1867,19 @@ void mbedtls_mps_writer_random_usage( int data_amount,
             }
             else if( rand_op == 2 ) /* Commit */
             {
-                ret = mbedtls_writer_commit( &wr );
+                size_t omit=0;
+
+                /* Leave a change to omit more than what was
+                 * fetched since the last commit. */
+                omit = rand() % ( 2 * in_fetch + 1 );
+
+                ret = mbedtls_writer_commit_partial( &wr, omit );
+                if( omit > in_fetch )
+                    TEST_ASSERT( ret ==  MBEDTLS_ERR_WRITER_INVALID_ARG );
+
                 if( ret == 0 )
                 {
-                    in_commit += in_fetch;
+                    in_commit += in_fetch - omit;
                     in_fetch = 0;
                 }
             }

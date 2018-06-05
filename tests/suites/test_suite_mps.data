@@ -184,5 +184,8 @@ mbedtls_mps_writer_unexpected_operations:
 MPS Writer: Feed with invalid buffer (NULL)
 mbedtls_mps_writer_feed_empty:0
 
-MPS Writer: Random usage
-mbedtls_mps_writer_random_usage:10000:100:40:50
+MPS Writer: Random usage #1
+mbedtls_mps_writer_random_usage:10000:100:100:50
+
+MPS Writer: Random usage #2
+mbedtls_mps_writer_random_usage:10000:100:50:100

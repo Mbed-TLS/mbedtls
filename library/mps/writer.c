@@ -252,16 +252,23 @@ int mbedtls_writer_get( mbedtls_writer *wr, size_t desired,
     or = ol - end;
     if( or < desired )
     {
-        /* Out buffer is too small. Serve what's left or use queue. */
         TRACE( trace_comment, "need %u, but only %u remains in write buffer",
                (unsigned) desired, (unsigned) or );
 
-        if( buflen == NULL )
+        queue  = wr->queue;
+        ql     = wr->queue_len;
+
+        /* Out buffer is too small. Attempt to serve from queue if it is
+         * available and larger than than the remaining output buffer. */
+        if( queue != NULL && ql > or )
         {
-            /* Attempt to serve from queue */
-            queue = wr->queue;
-            ql = wr->queue_len;
-            if( queue == NULL || ql < desired || end + desired < end )
+            int overflow;
+
+            if( buflen != NULL && desired > ql )
+                desired = ql;
+
+            overflow = ( end + desired < end );
+            if( overflow || desired > ql )
             {
                 TRACE( trace_comment, "no queue, or queue too small" );
                 RETURN( MBEDTLS_ERR_WRITER_OUT_OF_DATA );
@@ -270,7 +277,10 @@ int mbedtls_writer_get( mbedtls_writer *wr, size_t desired,
             /* Queue large enough, transition to serving from queue. */
             end += desired;
             wr->end = end;
+
             *buffer = queue;
+            if( buflen != NULL )
+                *buflen = desired;
 
             /* Remember the overlap between queue and output buffer. */
             wr->queue_next = or;
@@ -280,7 +290,11 @@ int mbedtls_writer_get( mbedtls_writer *wr, size_t desired,
             RETURN( 0 );
         }
 
-        /* Serve what's left. */
+        /* No queue present, so serve only what's available
+         * in the output buffer, provided the user allows it. */
+        if( buflen == NULL )
+            RETURN( MBEDTLS_ERR_WRITER_OUT_OF_DATA );
+
         desired = or;
     }
 

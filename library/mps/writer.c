@@ -120,8 +120,8 @@ int mbedtls_writer_feed( mbedtls_writer *wr,
 int mbedtls_writer_reclaim( mbedtls_writer *wr, size_t *olen,
                             size_t *queued, int force )
 {
-    unsigned char *out, *queue;
-    size_t commit, ol, qn;
+    unsigned char *out;
+    size_t commit, ol;
     TRACE_INIT( "writer_reclaim, force %u", (unsigned) force );
 
     /* Check that the reader is in providing mode. */
@@ -152,21 +152,13 @@ int mbedtls_writer_reclaim( mbedtls_writer *wr, size_t *olen,
     }
     else
     {
-        /* Copy the beginning of the queue to
-         * the end of the outgoing data buffer. */
-        TRACE( trace_comment, "copy %u bytes from queue to output buffer",
-               (unsigned) wr->queue_next );
-        qn = wr->queue_next;
-        queue = wr->queue;
-        out += ol - qn;
-        memcpy( out, queue, qn );
-
         /* The commited parts of the queue that
          * have no overlap with the current outgoing
          * data buffer need to be dispatched on
          * the next call(s) to mbedtls_writer_fetch. */
         wr->queue_remaining = commit - ol;
         /* No need to modify wr->queue_next */
+
         if( olen != NULL )
             *olen = ol;
     }
@@ -306,17 +298,61 @@ int mbedtls_writer_get( mbedtls_writer *wr, size_t desired,
 
 int mbedtls_writer_commit( mbedtls_writer *wr )
 {
-    unsigned char *out;
-    size_t end;
-    TRACE_INIT( "writer_commit" );
+    return( mbedtls_writer_commit_partial( wr, 0 ) );
+}
+
+int mbedtls_writer_commit_partial( mbedtls_writer *wr,
+                                   size_t omit )
+{
+    size_t to_be_committed, commit, end, queue_overlap;
+    size_t out_len, copy_from_queue;
+    unsigned char *out, *queue;
+    TRACE_INIT( "writer_commit_partial" );
+    TRACE( trace_comment, "* Omit %u bytes", (unsigned) omit );
 
     /* Check that the reader is in providing mode. */
     out = wr->out;
     if( out == NULL )
         RETURN( MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
 
-    end = wr->end;
-    wr->commit = end;
+    queue_overlap = wr->queue_next;
+    commit        = wr->commit;
+    end           = wr->end;
+    out_len       = wr->out_len;
+
+    if( omit > end - commit )
+        RETURN( MBEDTLS_ERR_WRITER_INVALID_ARG );
+
+    to_be_committed = end - omit;
+
+    TRACE( trace_comment, "* Last commit:       %u", (unsigned) commit );
+    TRACE( trace_comment, "* End of last fetch: %u", (unsigned) end );
+    TRACE( trace_comment, "* New commit:        %u", (unsigned) to_be_committed );
+
+    if( end     > out_len &&
+        commit  < out_len &&
+        to_be_committed > out_len - queue_overlap )
+    {
+        /* Copy the beginning of the queue to
+         * the end of the outgoing data buffer. */
+        copy_from_queue = to_be_committed - ( out_len - queue_overlap );
+        if( copy_from_queue > queue_overlap )
+            copy_from_queue = queue_overlap;
+
+        TRACE( trace_comment, "copy %u bytes from queue to output buffer",
+               (unsigned) copy_from_queue );
+
+        queue = wr->queue;
+        out   += out_len - queue_overlap;
+        memcpy( out, queue, copy_from_queue );
+    }
+
+    if( to_be_committed < out_len )
+        wr->queue_next = 0;
+
+    wr->end    = to_be_committed;
+    wr->commit = to_be_committed;
+
     RETURN( 0 );
 }
 

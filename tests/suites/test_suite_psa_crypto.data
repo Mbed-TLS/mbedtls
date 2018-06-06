@@ -55,27 +55,76 @@ mac_verify:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":PSA_ALG_CMAC:"":"
 
 PSA Symmetric encryption: AES-128
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
-cipher_test_encrypt:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":"a076ec9dfbe47d52afc357336f20743b"
+cipher_test_encrypt:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":"a076ec9dfbe47d52afc357336f20743b":PSA_SUCCESS
+
+PSA Symmetric encryption: bad, input buffer too small AES-128
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_test_encrypt:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee223":"6bc1bee223":PSA_ERROR_INVALID_ARGUMENT
 
 PSA Symmetric decryption: AES-128
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
-cipher_test_decrypt:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"396ee84fb75fdbb5c2b13c7fe5a654aa":"49e4e66c89a86b67758df89db9ad6955"
+cipher_test_decrypt:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"396ee84fb75fdbb5c2b13c7fe5a654aa":"49e4e66c89a86b67758df89db9ad6955":PSA_SUCCESS
+
+PSA Symmetric decryption: AES-128 bad, input buffer too small AES-128
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_test_decrypt:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee223":"6bc1bee223":PSA_ERROR_BAD_STATE
+
 
 PSA Symmetric encryption/decryption: AES-128
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
 cipher_test_verify_output:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a"
 
-PSA Symmetric encryption multipart: AES-128, 7+9
+PSA Symmetric encryption/decryption: 16 bytes PKC padding
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_test_verify_output:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a"
+
+PSA Symmetric encryption/decryption: 15 bytes PKC padding
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_test_verify_output:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e11739317"
+
+PSA Symmetric encryption/decryption CTR alg: AES-128
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_test_verify_output:PSA_ALG_CTR | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a"
+
+PSA Symmetric encryption multipart: AES-128 7+9
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
 cipher_test_encrypt_multipart:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":7:"a076ec9dfbe47d52afc357336f20743b"
 
-PSA Symmetric encryption multipart: AES-128, 3+13
+PSA Symmetric encryption multipart: AES-128 3+13
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
 cipher_test_encrypt_multipart:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":3:"a076ec9dfbe47d52afc357336f20743b"
 
-PSA Symmetric encryption multipart: AES-128, 11+5
+PSA Symmetric encryption multipart: AES-128 4+12
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_test_encrypt_multipart:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":4:"a076ec9dfbe47d52afc357336f20743b"
+
+PSA Symmetric encryption multipart: AES-128 11+5
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
 cipher_test_encrypt_multipart:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"6bc1bee22e409f96e93d7e117393172a":11:"a076ec9dfbe47d52afc357336f20743b"
+
+PSA Symmetric decryption multipart: AES-128 7+9
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_test_decrypt_multipart:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"a076ec9dfbe47d52afc357336f20743b":7:"6bc1bee22e409f96e93d7e117393172a"
+
+PSA Symmetric decryption multipart: AES-128 3+12
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_test_decrypt_multipart:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"a076ec9dfbe47d52afc357336f20743b":3:"6bc1bee22e409f96e93d7e117393172a"
+
+PSA Symmetric decryption multipart: AES-128 11+5
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_test_decrypt_multipart:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"a076ec9dfbe47d52afc357336f20743b":11:"6bc1bee22e409f96e93d7e117393172a"
+
+PSA Symmetric encryption + decryption multipart: AES-128 11+5
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_test_verify_output_multpart:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"a076ec9dfbe47d52afc357336f20743b":11
+
+PSA Symmetric encryption + decryption multipart: AES-128 PKC padding, 4+12
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_test_verify_output_multpart:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_PKCS7:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"a076ec9dfbe47d52afc357336f20743b":4
+
+PSA Symmetric encryption + decryption multipart: AES-128 16+16
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC
+cipher_test_verify_output_multpart:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_TYPE_AES:"2b7e151628aed2a6abf7158809cf4f3c":"a076ec9dfbe47d52afc357336f20743ba076ec9dfbe47d52afc357336f20743b":16
 
 PSA signature size: RSA keypair, 1024 bits, PKCS#1 v1.5 raw
 signature_size:PSA_KEY_TYPE_RSA_KEYPAIR:1024:PSA_ALG_RSA_PKCS1V15_SIGN_RAW:128
@@ -128,3 +177,5 @@ key_lifetime_set_fail:1:PSA_KEY_LIFETIME_WRITE_ONCE:PSA_ERROR_NOT_SUPPORTED
 
 PSA Key Lifetime set fail, invalid key lifetime value
 key_lifetime_set_fail:1:PSA_KEY_LIFETIME_PERSISTENT+1:PSA_ERROR_INVALID_ARGUMENT
+
+

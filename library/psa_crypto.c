@@ -1523,7 +1523,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
 
         //make sure we have place to hold the tag in the ciphertext buffer
         if( ciphertext_size < ( plaintext_length + tag_length ) )
-            return( PSA_ERROR_INVALID_ARGUMENT );
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
 
         //update the tag pointer to point to the end of the ciphertext_length
         tag = ciphertext + plaintext_length;
@@ -1557,7 +1557,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
 
         //make sure we have place to hold the tag in the ciphertext buffer
         if( ciphertext_size < ( plaintext_length + tag_length ) )
-            return( PSA_ERROR_INVALID_ARGUMENT );
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
 
         //update the tag pointer to point to the end of the ciphertext_length
         tag = ciphertext + plaintext_length;

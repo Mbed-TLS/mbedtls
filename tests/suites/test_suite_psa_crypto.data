@@ -172,4 +172,3 @@ key_lifetime_set_fail:1:PSA_KEY_LIFETIME_WRITE_ONCE:PSA_ERROR_NOT_SUPPORTED
 
 PSA Key Lifetime set fail, invalid key lifetime value
 key_lifetime_set_fail:1:PSA_KEY_LIFETIME_PERSISTENT+1:PSA_ERROR_INVALID_ARGUMENT
-

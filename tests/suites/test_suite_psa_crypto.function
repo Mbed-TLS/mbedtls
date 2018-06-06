@@ -49,7 +49,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void import_export( char *hex, int type_arg,
+void import_export( char *hex,
+                    int type_arg,
+                    int alg_arg,
+                    int usage_arg,
                     int expected_bits,
                     int export_size_delta,
                     int expected_export_status,
@@ -84,8 +87,7 @@ void import_export( char *hex, int type_arg,
 
     psa_key_policy_init( &policy );
 
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT, 
-                              PSA_ALG_VENDOR_FLAG );
+    psa_key_policy_set_usage( &policy, usage_arg, alg_arg );
 
     TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
 
@@ -128,6 +130,74 @@ void import_export( char *hex, int type_arg,
         TEST_ASSERT( memcmp( reexported, exported,
                              exported_length ) == 0 );
     }
+
+destroy:
+    /* Destroy the key */
+    TEST_ASSERT( psa_destroy_key( slot ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_get_key_information(
+                     slot, NULL, NULL ) == PSA_ERROR_EMPTY_SLOT );
+
+exit:
+    mbedtls_free( data );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE */
+void import_export_public_key( char *hex,
+                                int type_arg,
+                                int alg_arg,
+                                int expected_bits,
+                                int public_key_expected_length,
+                                int expected_export_status )
+{
+    int slot = 1;
+    psa_key_type_t type = type_arg;
+    psa_status_t status;
+    unsigned char *data = NULL;
+    unsigned char *exported = NULL;
+    size_t data_size;
+    size_t export_size;
+    size_t exported_length;
+    psa_key_type_t got_type;
+    size_t got_bits;
+    psa_key_policy_t policy = {0};
+
+    data = unhexify_alloc( hex, &data_size );
+    TEST_ASSERT( data != NULL );
+    export_size = (ssize_t) data_size ;
+    exported = mbedtls_calloc( 1, export_size );
+    TEST_ASSERT( exported != NULL );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT,
+                              alg_arg );
+
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+
+    /* Import the key */
+    TEST_ASSERT( psa_import_key( slot, type,
+                                 data, data_size ) == PSA_SUCCESS );
+
+    /* Test the key information */
+    TEST_ASSERT( psa_get_key_information( slot,
+                 &got_type, &got_bits ) == PSA_SUCCESS );
+    TEST_ASSERT( got_type == type );
+    TEST_ASSERT( got_bits == (size_t) expected_bits );
+
+    /* Export the key */
+    status = psa_export_public_key( slot,
+                             exported, export_size,
+                             &exported_length );
+    TEST_ASSERT( status == (psa_status_t) expected_export_status );
+    if( status != PSA_SUCCESS )
+        goto destroy;
+
+    TEST_ASSERT( exported_length == (size_t) public_key_expected_length );
 
 destroy:
     /* Destroy the key */

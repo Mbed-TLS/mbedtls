@@ -181,8 +181,8 @@ typedef uint32_t psa_key_type_t;
     (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_ASYMMETRIC)
 /** Whether a key type is the public part of a key pair. */
 #define PSA_KEY_TYPE_IS_PUBLIC_KEY(type)                                \
-    (((type) & (PSA_KEY_TYPE_CATEGORY_MASK | PSA_KEY_TYPE_PAIR_FLAG) == \
-      PSA_KEY_TYPE_CATEGORY_ASYMMETRIC))
+    (((type) & (PSA_KEY_TYPE_CATEGORY_MASK | PSA_KEY_TYPE_PAIR_FLAG)) == \
+      PSA_KEY_TYPE_CATEGORY_ASYMMETRIC)
 /** Whether a key type is a key pair containing a private part and a public
  * part. */
 #define PSA_KEY_TYPE_IS_KEYPAIR(type)                                   \
@@ -464,7 +464,7 @@ psa_status_t psa_export_key(psa_key_slot_t key,
  * For standard key types, the output format is as follows:
  *
  * - For RSA keys (#PSA_KEY_TYPE_RSA_KEYPAIR or #PSA_KEY_TYPE_RSA_PUBLIC_KEY),
- *   is the DER representation of the public key defined by RFC 5280
+ *   the format is the DER representation of the public key defined by RFC 5280
  *   as SubjectPublicKeyInfo.
  *
  * \param key           Slot whose content is to be exported. This must

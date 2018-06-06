@@ -472,10 +472,11 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_export_key(psa_key_slot_t key,
-                            uint8_t *data,
-                            size_t data_size,
-                            size_t *data_length)
+static  psa_status_t psa_internal_export_key(psa_key_slot_t key,
+                                             uint8_t *data,
+                                             size_t data_size,
+                                             size_t *data_length,
+                                             int export_public_key)
 {
     key_slot_t *slot;
 
@@ -485,9 +486,13 @@ psa_status_t psa_export_key(psa_key_slot_t key,
     if( slot->type == PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_EMPTY_SLOT );
 
-    if( !( slot->policy.usage & PSA_KEY_USAGE_EXPORT ) )
-        return( PSA_ERROR_NOT_PERMITTED );
+    if( export_public_key && ( !( PSA_KEY_TYPE_IS_ASYMMETRIC( slot->type ) ) ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
+    if( ( !export_public_key ) && ( !( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) ) ) &&
+        ( !( slot->policy.usage & PSA_KEY_USAGE_EXPORT ) ) )
+        return( PSA_ERROR_NOT_PERMITTED );
+    
     if( PSA_KEY_TYPE_IS_RAW_BYTES( slot->type ) )
     {
         if( slot->data.raw.bytes > data_size )
@@ -497,45 +502,64 @@ psa_status_t psa_export_key(psa_key_slot_t key,
         return( PSA_SUCCESS );
     }
     else
+    {
 #if defined(MBEDTLS_PK_WRITE_C)
-    if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
-        slot->type == PSA_KEY_TYPE_RSA_KEYPAIR ||
-        PSA_KEY_TYPE_IS_ECC( slot->type ) )
-    {
-        mbedtls_pk_context pk;
-        int ret;
-        mbedtls_pk_init( &pk );
         if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
-            slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
+            slot->type == PSA_KEY_TYPE_RSA_KEYPAIR ||
+            PSA_KEY_TYPE_IS_ECC( slot->type ) )
         {
-            pk.pk_info = &mbedtls_rsa_info;
-            pk.pk_ctx = slot->data.rsa;
+            mbedtls_pk_context pk;
+            int ret;
+            mbedtls_pk_init( &pk );
+            if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
+                slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
+            {
+                pk.pk_info = &mbedtls_rsa_info;
+                pk.pk_ctx = slot->data.rsa;
+            }
+            else
+            {
+                pk.pk_info = &mbedtls_eckey_info;
+                pk.pk_ctx = slot->data.ecp;
+            }
+            if( export_public_key || PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) )
+                ret = mbedtls_pk_write_pubkey_der( &pk, data, data_size );
+            else
+                ret = mbedtls_pk_write_key_der( &pk, data, data_size );
+            if( ret < 0 )
+                return( mbedtls_to_psa_error( ret ) );
+            *data_length = ret;
+            return( PSA_SUCCESS );
         }
         else
-        {
-            pk.pk_info = &mbedtls_eckey_info;
-            pk.pk_ctx = slot->data.ecp;
-        }
-        if( PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) )
-            ret = mbedtls_pk_write_key_der( &pk, data, data_size );
-        else
-            ret = mbedtls_pk_write_pubkey_der( &pk, data, data_size );
-        if( ret < 0 )
-            return( mbedtls_to_psa_error( ret ) );
-        *data_length = ret;
-        return( PSA_SUCCESS );
-    }
-    else
 #endif /* defined(MBEDTLS_PK_WRITE_C) */
-    {
-        /* This shouldn't happen in the reference implementation, but
-           it is valid for a special-purpose implementation to omit
-           support for exporting certain key types. */
-        return( PSA_ERROR_NOT_SUPPORTED );
+        {
+            /* This shouldn't happen in the reference implementation, but
+               it is valid for a special-purpose implementation to omit
+               support for exporting certain key types. */
+            return( PSA_ERROR_NOT_SUPPORTED );
+        }
     }
 }
 
+psa_status_t psa_export_key(psa_key_slot_t key,
+                            uint8_t *data,
+                            size_t data_size,
+                            size_t *data_length)
+{
+    return psa_internal_export_key( key, data, data_size,
+                                  data_length, 0 );
+}
 
+
+psa_status_t psa_export_public_key(psa_key_slot_t key,
+                                   uint8_t *data,
+                                   size_t data_size,
+                                   size_t *data_length)
+{
+    return psa_internal_export_key( key, data, data_size,
+                                   data_length, 1 );
+}
 
 /****************************************************************/
 /* Message digests */
@@ -1002,10 +1026,10 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
         return( status );
     slot = &global_data.key_slots[key];
 
-    if ( ( slot->policy.usage & PSA_KEY_USAGE_SIGN ) != 0 )
+    if( ( slot->policy.usage & PSA_KEY_USAGE_SIGN ) != 0 )
         operation->key_usage_sign = 1;
 
-    if ( ( slot->policy.usage & PSA_KEY_USAGE_VERIFY ) != 0 )
+    if( ( slot->policy.usage & PSA_KEY_USAGE_VERIFY ) != 0 )
         operation->key_usage_verify = 1;
 
     if( ! PSA_ALG_IS_HMAC( alg ) )
@@ -1457,7 +1481,7 @@ psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
     if( slot->type != PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_OCCUPIED_SLOT );
 
-    if ( lifetime != PSA_KEY_LIFETIME_VOLATILE )
+    if( lifetime != PSA_KEY_LIFETIME_VOLATILE )
         return( PSA_ERROR_NOT_SUPPORTED );
         
     slot->lifetime = lifetime;

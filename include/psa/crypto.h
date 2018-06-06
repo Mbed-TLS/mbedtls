@@ -1073,6 +1073,7 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  * @{
  */
 
+// This macro calculates the encryption output size according to given algorithm
 #define PSA_AEAD_ENCRYPT_OUTPUT_SIZE(alg, plaintext_length)     \
     ((alg) == PSA_ALG_GCM ? (plaintext_length) + 16 :           \
      (alg) == PSA_ALG_CCM ? (plaintext_length) + 16 :           \
@@ -1131,6 +1132,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
                                size_t ciphertext_size,
                                size_t *ciphertext_length );
 
+// This macro calculates the decryption output size according to given algorithm
 #define PSA_AEAD_DECRYPT_OUTPUT_SIZE(alg, ciphertext_length)     \
     ((alg) == PSA_ALG_GCM ? (ciphertext_length) - 16 :           \
      (alg) == PSA_ALG_CCM ? (ciphertext_length) - 16 :           \
@@ -1160,7 +1162,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
  *                                #PSA_AEAD_DECRYPT_OUTPUT_SIZE(\p alg,
  *                                \p ciphertext_length).
  * \param plaintext_length        On success, the size of the output
- *                                in the \b plainrtext buffer.
+ *                                in the \b plaintext buffer.
  *
  * \retval PSA_SUCCESS
  *         Success.

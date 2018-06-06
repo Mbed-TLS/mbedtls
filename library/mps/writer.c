@@ -108,6 +108,12 @@ int mbedtls_writer_feed( mbedtls_writer *wr,
         TRACE( trace_comment, "Queue is empty" );
         wr->queue_next = 0;
         wr->queue_remaining = 0;
+
+        /* NOTE: Currently this returns success if the provided output
+         *       buffer is exactly as big as the remaining queue,
+         *       in which case there is no space left after the
+         *       queue has been copied. Is that intentional? */
+
     }
 
     wr->out = buf;
@@ -557,9 +563,9 @@ int mbedtls_writer_check_done( mbedtls_writer_ext *wr_ext )
         RETURN( MBEDTLS_ERR_WRITER_BOUNDS_VIOLATION );
     }
 
-    if( wr_ext->ofs_commit != wr_ext->grp_end[0] )
+    if( wr_ext->grp_end[0] != (size_t) -1 &&
+        wr_ext->ofs_commit != wr_ext->grp_end[0] )
     {
-        TRACE( trace_comment, "message not fully committed" );
         RETURN( MBEDTLS_ERR_WRITER_BOUNDS_VIOLATION );
     }
 

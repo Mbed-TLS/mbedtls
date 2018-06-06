@@ -259,6 +259,10 @@ struct mbedtls_writer
     requires WRITER_INV_QUEUE_AVAIL_BOUND( p );             \
     requires WRITER_INV_QUEUE_REMAINING( p );
 
+#define MBEDTLS_WRITER_EXT_PASS   0
+#define MBEDTLS_WRITER_EXT_HOLD   1
+#define MBEDTLS_WRITER_EXT_BLOCK  2
+
 struct mbedtls_writer_ext
 {
     unsigned cur_grp; /*!< The 0-based index of the currently active group.
@@ -274,6 +278,12 @@ struct mbedtls_writer_ext
     size_t ofs_fetch;   /*!< The offset of the first byte of the next chunk.  */
     size_t ofs_commit;  /*!< The offset of first byte beyond
                          *   the last committed chunk .*/
+    int passthrough; /*!< Indicates if commits should be passed
+                      *   through to the underlying writer or not.
+                      *   Possible values are:
+                      *   - #MBEDTLS_WRITER_EXT_PASS
+                      *   - #MBEDTLS_WRITER_EXT_HOLD
+                      *   - #MBEDTLS_WRITER_EXT_BLOCK                         */
 };
 
 #define WRITER_EXT_INV_CUR_GRP_VALID( p )               \
@@ -615,13 +625,13 @@ int mbedtls_writer_get_ext( mbedtls_writer_ext *writer, size_t desired,
 
 /**
  * \brief           Signal that all output buffers previously obtained
- *                  from mbedtls_writer_get() are ready to be dispatched.
+ *                  from mbedtls_writer_get_ext() are ready to be dispatched.
  *
  * \param writer    The extended writer context to use.
  *
  * \note            After this function has been called, all
  *                  output buffers obtained from prior calls to
- *                  mbedtls_writer_get() are invalid and must not
+ *                  mbedtls_writer_get_ext() are invalid and must not
  *                  be accessed anymore.
  *
  * \return          \c 0 on success.
@@ -633,6 +643,41 @@ int mbedtls_writer_get_ext( mbedtls_writer_ext *writer, size_t desired,
   WRITER_EXT_INV_ENSURES(writer)
   @*/
 int mbedtls_writer_commit_ext( mbedtls_writer_ext *writer );
+
+/**
+ * \brief           Signal that parts of the output buffers obtained
+ *                  from mbedtls_writer_get_ext() are ready to be dispatched.
+ *
+ *                  This function must only be called when the writer
+ *                  is in consuming mode.
+ *
+ * \param writer    The writer context to use.
+ * \param omit      The number of bytes at the end of the last output
+ *                  buffer obtained from mbedtls_writer_get_ext() that should
+ *                  not be committed.
+ *
+ * \note            After this function has been called, all
+ *                  output buffers obtained from prior calls to
+ *                  mbedtls_writer_get_ext() are invalid and must not
+ *                  be used anymore.
+ *
+ * \return          \c 0 on success. In this case, the writer
+ *                  stays in consuming mode.
+ * \return          #MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION
+ *                  if the writer is not in consuming mode.
+ *                  In this case, the writer is unchanged and
+ *                  can still be used.
+ * \return          Another negative error code otherwise. In this case,
+ *                  the state of the writer is unspecified and it must
+ *                  not be used anymore.
+ *
+ */
+
+/*@
+  WRITER_INV_REQUIRES(writer)
+  WRITER_INV_ENSURES(writer)
+  @*/
+int mbedtls_writer_commit_partial_ext( mbedtls_writer_ext *writer, size_t omit );
 
 /**
  * \brief            Open a new logical subbuffer.
@@ -692,6 +737,18 @@ int mbedtls_writer_group_close( mbedtls_writer_ext *writer );
  *
  * \param wr_ext    The extended writer context to use.
  * \param wr        The writer to bind to the extended writer \p wr_ext.
+ * \param pass      Indicates whether commits should be passed through
+ *                  to the underlying writer. Possible values are:
+ *                  - #MBEDTLS_WRITER_EXT_PASS: All commits are passed
+ *                    through to the underlying reader. An unlimited
+ *                    number of partial commits is possible.
+ *                  - #MBEDTLS_WRITER_EXT_HOLD: Commits are remembered
+ *                    but not yet passed to the underlying reader, and
+ *                    only a single partial commit is possible, after
+ *                    which the writer gets blocked. The information
+ *                    about committed and uncommitted data is returned
+ *                    when detaching the underlying writer via
+ *                    mbedtls_writer_detach().
  *
  * \return          \c 0 on success.
  * \return          A negative error code \c MBEDTLS_ERR_WRITER_XXX on failure.
@@ -702,12 +759,18 @@ int mbedtls_writer_group_close( mbedtls_writer_ext *writer );
   WRITER_INV_REQUIRES(wr)
   WRITER_EXT_INV_ENSURES(wr_ext)
   @*/
+
 int mbedtls_writer_attach( mbedtls_writer_ext *wr_ext,
-                           mbedtls_writer *wr );
+                           mbedtls_writer *wr,
+                           int pass );
 /**
- * \brief            Detach a writer from an extended writer.
+ * \brief             Detach a writer from an extended writer.
  *
- * \param wr_ext     The extended writer context to use.
+ * \param wr_ext      The extended writer context to use.
+ * \param committed   Address to which to write the number of committed bytes
+ *                    May be \c NULL if this information is not needed.
+ * \param uncommitted Address to which to write the number of uncommitted bytes
+ *                    May be \c NULL if this information is not needed.
  *
  * \return           \c 0 on success.
  * \return           A negative error code \c MBEDTLS_ERR_WRITER_XXX on failure.
@@ -717,7 +780,9 @@ int mbedtls_writer_attach( mbedtls_writer_ext *wr_ext,
   WRITER_EXT_INV_REQUIRES(wr_ext)
   WRITER_EXT_INV_ENSURES(wr_ext)
   @*/
-int mbedtls_writer_detach( mbedtls_writer_ext *wr_ext );
+int mbedtls_writer_detach( mbedtls_writer_ext *wr_ext,
+                           size_t *committed,
+                           size_t *uncommitted );
 
 /**
  * \brief            Check if the extended writer is finished processing

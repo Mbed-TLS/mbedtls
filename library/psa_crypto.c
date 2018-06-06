@@ -1657,9 +1657,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
         return( PSA_ERROR_NOT_PERMITTED );
 
     if ( !( ( key_type & PSA_KEY_TYPE_CATEGORY_MASK ) ==
-            PSA_KEY_TYPE_CATEGORY_SYMMETRIC
-            && PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) ==
-            cipher_info->block_size ) )
+            PSA_KEY_TYPE_CATEGORY_SYMMETRIC )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     if( alg == PSA_ALG_GCM )

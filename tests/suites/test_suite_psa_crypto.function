@@ -264,6 +264,7 @@ exit:
 }
 /* END_CASE */
 
+
 /* BEGIN_CASE */
 void cipher_test_encrypt( int alg_arg, int key_type_arg, 
                            char *key_hex,
@@ -613,9 +614,6 @@ void cipher_test_verify_output( int alg_arg, int key_type_arg,
 exit:
     mbedtls_free( key );
     mbedtls_free( input );
-    mbedtls_free( output1 );
-    mbedtls_free( output2 );
-
     psa_destroy_key( key_slot );
     mbedtls_psa_crypto_free( );
 }
@@ -718,13 +716,10 @@ void cipher_test_verify_output_multpart( int alg_arg,
 exit:
     mbedtls_free( key );
     mbedtls_free( input );
-    mbedtls_free( output1 );
-    mbedtls_free( output2 );
     psa_destroy_key( key_slot );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
-
 
 /* BEGIN_CASE */
 void signature_size( int type_arg, int bits, int alg_arg, int expected_size_arg )

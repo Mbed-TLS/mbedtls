@@ -24,70 +24,216 @@ void mbedtls_cipher_list( )
 /* BEGIN_CASE */
 void cipher_null_args( )
 {
-    mbedtls_cipher_context_t ctx;
-    const mbedtls_cipher_info_t *info = mbedtls_cipher_info_from_type( *( mbedtls_cipher_list() ) );
-    unsigned char buf[1] = { 0 };
-    size_t olen;
+    mbedtls_cipher_context_t ctx_zero_initialized;
+    const mbedtls_cipher_info_t *info =
+        mbedtls_cipher_info_from_type( *( mbedtls_cipher_list() ) );
+    unsigned char arbitrary_buffer[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+    mbedtls_operation_t arbitrary_operation = 1;
+    mbedtls_cipher_padding_t arbitrary_padding_mode = 0;
+    int arbitrary_int = 0;
+    size_t arbitrary_size_t = 0;
 
-    mbedtls_cipher_init( &ctx );
+    mbedtls_cipher_init( &ctx_zero_initialized );
+
+    TEST_ASSERT( mbedtls_cipher_init_ret( &ctx_zero_initialized ) == 0 );
+    TEST_ASSERT( mbedtls_cipher_init_ret( NULL ) ==
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_free_ret( NULL ) ==
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
     TEST_ASSERT( mbedtls_cipher_get_block_size( NULL ) == 0 );
-    TEST_ASSERT( mbedtls_cipher_get_block_size( &ctx ) == 0 );
+    TEST_ASSERT( mbedtls_cipher_get_block_size( &ctx_zero_initialized ) == 0 );
 
     TEST_ASSERT( mbedtls_cipher_get_cipher_mode( NULL ) == MBEDTLS_MODE_NONE );
-    TEST_ASSERT( mbedtls_cipher_get_cipher_mode( &ctx ) == MBEDTLS_MODE_NONE );
+    TEST_ASSERT( mbedtls_cipher_get_cipher_mode( &ctx_zero_initialized ) ==
+        MBEDTLS_MODE_NONE );
 
     TEST_ASSERT( mbedtls_cipher_get_iv_size( NULL ) == 0 );
-    TEST_ASSERT( mbedtls_cipher_get_iv_size( &ctx ) == 0 );
+    TEST_ASSERT( mbedtls_cipher_get_iv_size( &ctx_zero_initialized ) == 0 );
 
     TEST_ASSERT( mbedtls_cipher_info_from_string( NULL ) == NULL );
 
-    TEST_ASSERT( mbedtls_cipher_setup( &ctx, NULL )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_setup( NULL, info )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_setup( &ctx_zero_initialized, NULL ) ==
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_setup( NULL, info ) ==
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-    TEST_ASSERT( mbedtls_cipher_setkey( NULL, buf, 0, MBEDTLS_ENCRYPT )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_setkey( &ctx, buf, 0, MBEDTLS_ENCRYPT )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_setkey( NULL, arbitrary_buffer, 0,
+        MBEDTLS_ENCRYPT ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_setkey( &ctx_zero_initialized, arbitrary_buffer,
+        0, MBEDTLS_ENCRYPT ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_setkey( &ctx_zero_initialized, arbitrary_buffer,
+        arbitrary_int, arbitrary_operation ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_setkey( &ctx_zero_initialized, arbitrary_buffer,
+        arbitrary_int, arbitrary_operation ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_setkey( NULL, arbitrary_buffer, arbitrary_int,
+        arbitrary_operation ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_setkey( &ctx_zero_initialized, NULL, arbitrary_int,
+        arbitrary_operation ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_setkey( &ctx_zero_initialized, arbitrary_buffer,
+        arbitrary_int, arbitrary_operation ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-    TEST_ASSERT( mbedtls_cipher_set_iv( NULL, buf, 0 )
+    TEST_ASSERT( mbedtls_cipher_set_iv( NULL, arbitrary_buffer, 0 )
                  == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_set_iv( &ctx, buf, 0 )
+    TEST_ASSERT( mbedtls_cipher_set_iv( &ctx_zero_initialized, arbitrary_buffer, 0 )
                  == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_set_iv( &ctx_zero_initialized, arbitrary_buffer,
+        arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_set_iv( &ctx_zero_initialized, NULL,
+        arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-    TEST_ASSERT( mbedtls_cipher_reset( NULL ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_reset( &ctx ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_reset( NULL ) ==
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_reset( &ctx_zero_initialized ) ==
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_GCM_C)
-    TEST_ASSERT( mbedtls_cipher_update_ad( NULL, buf, 0 )
+    TEST_ASSERT( mbedtls_cipher_update_ad( NULL, arbitrary_buffer, 0 )
                  == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_update_ad( &ctx, buf, 0 )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_update_ad( &ctx_zero_initialized,
+        arbitrary_buffer, 0 ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_update_ad( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_update_ad( &ctx_zero_initialized, NULL,
+        arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 #endif
 
-    TEST_ASSERT( mbedtls_cipher_update( NULL, buf, 0, buf, &olen )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_update( &ctx, buf, 0, buf, &olen )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_update( NULL, arbitrary_buffer, 0, arbitrary_buffer,
+        &arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_update( &ctx_zero_initialized, arbitrary_buffer, 0,
+        arbitrary_buffer, &arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_update( &ctx_zero_initialized, arbitrary_buffer,
+        arbitrary_size_t, arbitrary_buffer, &arbitrary_size_t ) ==
+            MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_update( &ctx_zero_initialized, NULL,
+        arbitrary_size_t, arbitrary_buffer, &arbitrary_size_t ) ==
+            MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_update( &ctx_zero_initialized, arbitrary_buffer,
+        arbitrary_size_t, NULL, &arbitrary_size_t ) ==
+            MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_update( &ctx_zero_initialized, arbitrary_buffer,
+        arbitrary_size_t, arbitrary_buffer, NULL ) ==
+            MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-    TEST_ASSERT( mbedtls_cipher_finish( NULL, buf, &olen )
+    TEST_ASSERT( mbedtls_cipher_finish( NULL, arbitrary_buffer, &arbitrary_size_t )
                  == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_finish( &ctx, buf, &olen )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_finish( &ctx_zero_initialized, arbitrary_buffer,
+        &arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_finish( &ctx_zero_initialized, arbitrary_buffer,
+        &arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_finish( &ctx_zero_initialized, NULL,
+        &arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_finish( &ctx_zero_initialized, arbitrary_buffer,
+        NULL) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_cipher_set_padding_mode( NULL,
+        arbitrary_padding_mode ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_set_padding_mode( &ctx_zero_initialized,
+        arbitrary_padding_mode ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_GCM_C)
-    TEST_ASSERT( mbedtls_cipher_write_tag( NULL, buf, olen )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_write_tag( &ctx, buf, olen )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_write_tag( NULL, arbitrary_buffer,
+        arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_write_tag( &ctx_zero_initialized, arbitrary_buffer,
+        arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_write_tag( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_write_tag( &ctx_zero_initialized,
+        NULL, arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-    TEST_ASSERT( mbedtls_cipher_check_tag( NULL, buf, olen )
+    TEST_ASSERT( mbedtls_cipher_check_tag( NULL, arbitrary_buffer, arbitrary_size_t )
                  == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_check_tag( &ctx, buf, olen )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_check_tag( &ctx_zero_initialized, arbitrary_buffer,
+        arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_check_tag( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_check_tag( &ctx_zero_initialized,
+        NULL, arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 #endif
+
+    TEST_ASSERT( mbedtls_cipher_crypt( NULL,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, &arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_crypt( &ctx_zero_initialized,
+        NULL, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, &arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_crypt( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t, NULL, arbitrary_size_t,
+        arbitrary_buffer, &arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_crypt( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        NULL, &arbitrary_size_t ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_crypt( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, NULL) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_cipher_auth_encrypt( NULL,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, &arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_auth_encrypt( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, &arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_auth_encrypt( &ctx_zero_initialized,
+        NULL, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, &arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_auth_encrypt( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t, NULL, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, &arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_auth_encrypt( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        NULL, arbitrary_size_t, arbitrary_buffer, &arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_auth_encrypt( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, NULL, &arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_auth_encrypt( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, NULL,
+        arbitrary_buffer, arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_auth_encrypt( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, &arbitrary_size_t,
+        NULL, arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_cipher_auth_decrypt( NULL,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, &arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_auth_decrypt( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, &arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_auth_decrypt( &ctx_zero_initialized,
+        NULL, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, &arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_auth_decrypt( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t, NULL, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, &arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_auth_decrypt( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        NULL, arbitrary_size_t, arbitrary_buffer, &arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_auth_decrypt( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, NULL, &arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_auth_decrypt( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, NULL,
+        arbitrary_buffer, arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_cipher_auth_decrypt( &ctx_zero_initialized,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, &arbitrary_size_t,
+        NULL, arbitrary_size_t) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+exit:
+    mbedtls_cipher_free( &ctx_zero_initialized );
 }
 /* END_CASE */
 

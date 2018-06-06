@@ -168,9 +168,7 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx )
 
 int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx, const mbedtls_cipher_info_t *cipher_info )
 {
-    MBEDTLS_CIPHER_VALIDATE( NULL != ctx && NULL != cipher_info &&
-            NULL != cipher_info->base &&
-            NULL != cipher_info->base->ctx_alloc_func );
+    MBEDTLS_CIPHER_VALIDATE( NULL != ctx && NULL != cipher_info );
 
     memset( ctx, 0, sizeof( mbedtls_cipher_context_t ) );
 
@@ -197,7 +195,7 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx, const unsigned char *k
         int key_bitlen, const mbedtls_operation_t operation )
 {
     MBEDTLS_CIPHER_VALIDATE( NULL != ctx && NULL != ctx->cipher_info &&
-            NULL != ctx->cipher_info->base && NULL != key );
+            NULL != key );
 
     if( ( ctx->cipher_info->flags & MBEDTLS_CIPHER_VARIABLE_KEY_LEN ) == 0 &&
         (int) ctx->cipher_info->key_bitlen != key_bitlen )
@@ -257,7 +255,7 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
 
 int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx )
 {
-    MBEDTLS_CIPHER_VALIDATE( NULL != ctx );
+    MBEDTLS_CIPHER_VALIDATE( NULL != ctx && NULL != ctx->cipher_info );
     ctx->unprocessed_len = 0;
     return( 0 );
 }

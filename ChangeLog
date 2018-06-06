@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.10.0 branch released 2018-06-06
 
 Features
    * Add support for ARIA cipher (RFC 5794) and associated TLS ciphersuites

@@ -1499,23 +1499,24 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
     }
     if( operation->iv_required && ! operation->iv_set )
     {
-        psa_cipher_abort( operation );    
+        psa_cipher_abort( operation );
         return( PSA_ERROR_BAD_STATE );
     }
-    if( ( operation->ctx.cipher.operation == MBEDTLS_ENCRYPT ) && PSA_ALG_IS_BLOCK_CIPHER( operation->alg ) )
+    if( operation->ctx.cipher.operation == MBEDTLS_ENCRYPT &&
+        PSA_ALG_IS_BLOCK_CIPHER( operation->alg ) )
     {
         psa_algorithm_t padding_mode =
             operation->alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
         if( operation->ctx.cipher.unprocessed_len >= operation->block_size )
         {
-            psa_cipher_abort( operation );    
+            psa_cipher_abort( operation );
             return( PSA_ERROR_TAMPERING_DETECTED );
         }
         if( padding_mode == PSA_ALG_BLOCK_CIPHER_PAD_NONE )
         {
             if( operation->ctx.cipher.unprocessed_len != 0 )
             {
-                psa_cipher_abort( operation );            
+                psa_cipher_abort( operation );
                 return( PSA_ERROR_INVALID_ARGUMENT );
             }
         }

@@ -378,8 +378,9 @@ int mbedtls_writer_commit_partial( mbedtls_writer *wr,
 
 int mbedtls_writer_init_ext( mbedtls_writer_ext *wr_ext, size_t size )
 {
-    mbedtls_writer_ext zero = { 0, { 0 }, NULL, 0, 0, };
-    TRACE_INIT( "writer_init_ext, size %d", (unsigned) size );
+    mbedtls_writer_ext zero = { 0, { 0 }, NULL, 0, 0,
+                                MBEDTLS_WRITER_EXT_PASS, };
+    TRACE_INIT( "writer_init_ext, size %u", (unsigned) size );
     *wr_ext = zero;
 
     wr_ext->grp_end[0] = size;
@@ -388,7 +389,8 @@ int mbedtls_writer_init_ext( mbedtls_writer_ext *wr_ext, size_t size )
 
 int mbedtls_writer_free_ext( mbedtls_writer_ext *rd )
 {
-    mbedtls_writer_ext zero = { 0, { 0 }, NULL, 0, 0, };
+    mbedtls_writer_ext zero = { 0, { 0 }, NULL, 0, 0,
+                                MBEDTLS_WRITER_EXT_PASS, };
     TRACE_INIT( "writer_free_ext" );
 
     *rd = zero;
@@ -403,7 +405,16 @@ int mbedtls_writer_get_ext( mbedtls_writer_ext *wr_ext, size_t desired,
     TRACE_INIT( "writer_get_ext: desired %u", (unsigned) desired );
 
     if( wr_ext->wr == NULL )
+    {
+        TRACE( trace_error, "No writer attached" );
         RETURN( MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
+    }
+
+    if( wr_ext->passthrough == MBEDTLS_WRITER_EXT_BLOCK )
+    {
+        TRACE( trace_error, "Extended writer is blocked." );
+        RETURN( MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
+    }
 
     logic_avail = wr_ext->grp_end[wr_ext->cur_grp] - wr_ext->ofs_fetch;
     TRACE( trace_comment, "desired %u, logic_avail %u",
@@ -431,16 +442,35 @@ int mbedtls_writer_get_ext( mbedtls_writer_ext *wr_ext, size_t desired,
 
 int mbedtls_writer_commit_ext( mbedtls_writer_ext *wr )
 {
+    return( mbedtls_writer_commit_partial_ext( wr, 0 ) );
+}
+
+int mbedtls_writer_commit_partial_ext( mbedtls_writer_ext *wr,
+                                       size_t omit )
+{
     int ret;
     TRACE_INIT( "writer_commit_ext" );
 
-    if( wr->wr == NULL )
+    if( wr->wr == NULL ||
+        wr->passthrough == MBEDTLS_WRITER_EXT_BLOCK )
+    {
         RETURN( MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
+    }
 
-    ret = mbedtls_writer_commit( wr->wr );
-    if( ret != 0 )
-        RETURN( ret );
+    if( wr->passthrough == MBEDTLS_WRITER_EXT_PASS )
+    {
+        ret = mbedtls_writer_commit_partial( wr->wr, omit );
+        if( ret != 0 )
+            RETURN( ret );
+    }
 
+    if( wr->passthrough == MBEDTLS_WRITER_EXT_HOLD &&
+        omit > 0 )
+    {
+        wr->passthrough = MBEDTLS_WRITER_EXT_BLOCK;
+    }
+
+    wr->ofs_fetch  -= omit;
     wr->ofs_commit = wr->ofs_fetch;
     RETURN( 0 );
 }
@@ -485,21 +515,31 @@ int mbedtls_writer_group_close( mbedtls_writer_ext *wr_ext )
 }
 
 int mbedtls_writer_attach( mbedtls_writer_ext *wr_ext,
-                           mbedtls_writer *wr )
+                           mbedtls_writer *wr,
+                           int pass )
 {
-    TRACE_INIT( "writer_check_attach" );
+    TRACE_INIT( "mbedtls_writer_attach" );
     if( wr_ext->wr != NULL )
         RETURN( MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
 
-    wr_ext->wr = wr;
+    wr_ext->passthrough = pass;
+    wr_ext->wr   = wr;
+
     RETURN( 0 );
 }
 
-int mbedtls_writer_detach( mbedtls_writer_ext *wr_ext )
+int mbedtls_writer_detach( mbedtls_writer_ext *wr_ext,
+                           size_t *committed,
+                           size_t *uncommitted )
 {
     TRACE_INIT( "writer_check_detach" );
     if( wr_ext->wr == NULL )
         RETURN( MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
+
+    if( uncommitted != NULL )
+        *uncommitted = wr_ext->ofs_fetch - wr_ext->ofs_commit;
+    if( committed != NULL )
+        *committed = wr_ext->ofs_commit;
 
     wr_ext->ofs_fetch = wr_ext->ofs_commit;
     wr_ext->wr = NULL;

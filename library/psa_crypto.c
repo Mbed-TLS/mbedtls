@@ -1306,8 +1306,6 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     psa_key_type_t key_type;
     size_t key_bits;
     const mbedtls_cipher_info_t *cipher_info = NULL;
-    psa_algorithm_t padding_mode = PSA_ALG_BLOCK_CIPHER_PAD_NONE;
-    mbedtls_cipher_padding_t mode = MBEDTLS_PADDING_NONE;
 
     operation->alg = alg;
     operation->key_set = 0;
@@ -1344,7 +1342,8 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
     if( ( alg & ~PSA_ALG_BLOCK_CIPHER_PADDING_MASK ) == PSA_ALG_CBC_BASE )
     {
-        padding_mode = alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
+        psa_algorithm_t padding_mode = alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
+        mbedtls_cipher_padding_t mode;
 
         switch ( padding_mode )
         {
@@ -1505,12 +1504,14 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
     }
     if( ( operation->ctx.cipher.operation == MBEDTLS_ENCRYPT ) && PSA_ALG_IS_BLOCK_CIPHER( operation->alg ) )
     {
+        psa_algorithm_t padding_mode =
+            operation->alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
         if( operation->ctx.cipher.unprocessed_len >= operation->block_size )
         {
             psa_cipher_abort( operation );    
             return( PSA_ERROR_TAMPERING_DETECTED );
         }
-        if( ( operation->alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK ) == PSA_ALG_BLOCK_CIPHER_PAD_NONE )
+        if( padding_mode == PSA_ALG_BLOCK_CIPHER_PAD_NONE )
         {
             if( operation->ctx.cipher.unprocessed_len != 0 )
             {

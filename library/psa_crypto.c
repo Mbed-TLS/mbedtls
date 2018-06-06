@@ -1500,6 +1500,8 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
     if( status != PSA_SUCCESS )
         return( status );
     slot = &global_data.key_slots[key];
+    if( slot->type == PSA_KEY_TYPE_NONE )
+            return( PSA_ERROR_EMPTY_SLOT );
 
     cipher_info = mbedtls_cipher_info_from_psa( alg, key_type,
                                                 key_bits, &cipher_id );
@@ -1643,6 +1645,8 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
     if( status != PSA_SUCCESS )
         return( status );
     slot = &global_data.key_slots[key];
+    if( slot->type == PSA_KEY_TYPE_NONE )
+            return( PSA_ERROR_EMPTY_SLOT );
 
     cipher_info = mbedtls_cipher_info_from_psa( alg, key_type,
                                                 key_bits, &cipher_id );

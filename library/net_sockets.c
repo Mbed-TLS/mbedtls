@@ -183,6 +183,116 @@ int mbedtls_net_connect( mbedtls_net_context *ctx, const char *host,
 }
 
 /*
+ * Initiate a TCP connection with host:port and the given protocol
+ * waiting for timeout (ms)
+ */
+int mbedtls_net_connect_timeout( mbedtls_net_context *ctx, const char *host,
+                                 const char *port, int proto, uint32_t timeout )
+{
+    int ret;
+    struct addrinfo hints, *addr_list, *cur;
+
+    if( ( ret = net_prepare() ) != 0 )
+        return( ret );
+
+    /* Do name resolution with both IPv6 and IPv4 */
+    memset( &hints, 0, sizeof( hints ) );
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = proto == MBEDTLS_NET_PROTO_UDP ? SOCK_DGRAM : SOCK_STREAM;
+    hints.ai_protocol = proto == MBEDTLS_NET_PROTO_UDP ? IPPROTO_UDP : IPPROTO_TCP;
+
+    if( getaddrinfo( host, port, &hints, &addr_list ) != 0 )
+        return( MBEDTLS_ERR_NET_UNKNOWN_HOST );
+
+    /* Try the sockaddrs until a connection succeeds */
+    ret = MBEDTLS_ERR_NET_UNKNOWN_HOST;
+    for( cur = addr_list; cur != NULL; cur = cur->ai_next )
+    {
+        ctx->fd = (int) socket( cur->ai_family, cur->ai_socktype,
+                                cur->ai_protocol );
+        if( ctx->fd < 0 )
+        {
+            ret = MBEDTLS_ERR_NET_SOCKET_FAILED;
+            continue;
+        }
+
+        if( mbedtls_net_set_nonblock( ctx ) < 0 )
+        {
+            close( ctx->fd );
+            ctx->fd = -1;
+            ret = MBEDTLS_ERR_NET_CONNECT_FAILED;
+            break;
+        }
+
+        if( connect( ctx->fd, cur->ai_addr, cur->ai_addrlen ) == 0 )
+        {
+            ret = 0;
+            break;
+        }
+        else if( errno == EINPROGRESS )
+        {
+            int            fd = (int)ctx->fd;
+            int            opt;
+            socklen_t      slen;
+            struct timeval tv;
+            fd_set         fds;
+
+            while(1)
+            {
+                FD_ZERO( &fds );
+                FD_SET( fd, &fds );
+
+                tv.tv_sec  = timeout / 1000;
+                tv.tv_usec = ( timeout % 1000 ) * 1000;
+
+                ret = select( fd+1, NULL, &fds, NULL, timeout == 0 ? NULL : &tv );
+                if( ret == -1 )
+                {
+                    if(errno == EINTR) continue;
+                }
+                else if( ret == 0 )
+                {
+                    close( fd );
+                    ctx->fd = -1;
+                    ret = MBEDTLS_ERR_NET_CONNECT_FAILED;
+                }
+                else
+                {
+                    ret = 0;
+
+                    slen = sizeof(int);
+                    if( (getsockopt(fd, SOL_SOCKET, SO_ERROR, (void *)&opt, &slen) == 0) && (opt > 0) )
+                    {
+                        close( fd );
+                        ctx->fd = -1;
+                        ret = MBEDTLS_ERR_NET_CONNECT_FAILED;
+                    }
+                }
+
+                break;
+            }
+
+            break;
+        }
+
+        close( ctx->fd );
+        ctx->fd = -1;
+        ret = MBEDTLS_ERR_NET_CONNECT_FAILED;
+    }
+
+    freeaddrinfo( addr_list );
+
+    if( (ret == 0) && (mbedtls_net_set_block( ctx ) < 0) )
+    {
+        close( ctx->fd );
+        ctx->fd = -1;
+        ret = MBEDTLS_ERR_NET_CONNECT_FAILED;
+    }
+
+    return( ret );
+}
+
+/*
  * Create a listening socket on bind_ip:port
  */
 int mbedtls_net_bind( mbedtls_net_context *ctx, const char *bind_ip, const char *port, int proto )

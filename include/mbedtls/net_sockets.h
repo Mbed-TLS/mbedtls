@@ -100,6 +100,31 @@ void mbedtls_net_init( mbedtls_net_context *ctx );
 int mbedtls_net_connect( mbedtls_net_context *ctx, const char *host, const char *port, int proto );
 
 /**
+ * \brief          Initiate a connection with host:port in the given protocol,
+ *                 blocking for at most 'timeout' milliseconds.
+ *
+ * \param ctx      Socket to use
+ * \param host     Host to connect to
+ * \param port     Port to connect to
+ * \param proto    Protocol: MBEDTLS_NET_PROTO_TCP or MBEDTLS_NET_PROTO_UDP
+ * \param timeout  Maximum number of milliseconds to wait for connecting
+ *                 0 means no timeout (wait forever)
+ *
+ * \return         0 if successful, or one of:
+ *                      MBEDTLS_ERR_NET_SOCKET_FAILED,
+ *                      MBEDTLS_ERR_NET_UNKNOWN_HOST,
+ *                      MBEDTLS_ERR_NET_CONNECT_FAILED
+ *
+ * \note           Sets the socket in connected mode even with UDP.
+ * \note           This function will block (until connect or
+ *                 timeout is reached) even if the socket is set to
+ *                 non-blocking.
+ */
+
+int mbedtls_net_connect_timeout( mbedtls_net_context *ctx, const char *host, const char *port,
+                                 int proto, uint32_t timeout );
+
+/**
  * \brief          Create a receiving socket on bind_ip:port in the chosen
  *                 protocol. If bind_ip == NULL, all interfaces are bound.
  *

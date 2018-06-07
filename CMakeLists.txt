@@ -29,7 +29,11 @@ function(link_to_source base_name)
         if (CMAKE_HOST_UNIX)
             set(command ln -s ${target} ${link})
         else()
-            set(command cmd.exe /c mklink /j ${link} ${target})
+            if (IS_DIRECTORY ${target})
+                set(command cmd.exe /c mklink /j ${link} ${target})
+            else()
+                set(command cmd.exe /c mklink ${link} ${target})
+            endif()
         endif()
 
         execute_process(COMMAND ${command}

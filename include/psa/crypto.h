@@ -340,6 +340,8 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_RSA_GET_HASH(alg)                                       \
     (((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH)
 
+#define PSA_ALG_ECDSA_RAW                       ((psa_algorithm_t)0x10030000)
+
 /**@}*/
 
 /** \defgroup key_management Key management

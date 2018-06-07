@@ -1078,6 +1078,9 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
     int c, i;
     size_t n = *nc_off;
 
+    if ( n > 0x0F )
+        return( MBEDTLS_ERR_AES_BAD_INPUT_DATA );
+
     while( length-- )
     {
         if( n == 0 ) {

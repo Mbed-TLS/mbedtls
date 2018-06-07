@@ -44,6 +44,7 @@
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"
 #include "mbedtls/camellia.h"
+#include "mbedtls/aria.h"
 #include "mbedtls/chacha20.h"
 #include "mbedtls/poly1305.h"
 #include "mbedtls/chachapoly.h"
@@ -236,6 +237,9 @@ const selftest_t selftests[] =
 #endif
 #if defined(MBEDTLS_CAMELLIA_C)
     {"camellia", mbedtls_camellia_self_test},
+#endif
+#if defined(MBEDTLS_ARIA_C)
+    {"aria", mbedtls_aria_self_test},
 #endif
 #if defined(MBEDTLS_CTR_DRBG_C)
     {"ctr_drbg", mbedtls_ctr_drbg_self_test},

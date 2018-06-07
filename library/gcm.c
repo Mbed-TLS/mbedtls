@@ -431,10 +431,13 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
 {
     unsigned char work_buf[16];
     size_t i;
-    uint64_t orig_len = ctx->len * 8;
-    uint64_t orig_add_len = ctx->add_len * 8;
+    uint64_t orig_len;
+    uint64_t orig_add_len;
 
     MBEDTLS_GCM_VALIDATE( ctx != NULL && tag != NULL );
+
+    orig_len = ctx->len * 8;
+    orig_add_len = ctx->add_len * 8;
 
     if( tag_len > 16 || tag_len < 4 )
         return( MBEDTLS_ERR_GCM_BAD_INPUT );

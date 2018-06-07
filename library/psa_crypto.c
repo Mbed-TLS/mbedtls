@@ -1074,8 +1074,7 @@ psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
                 if ( operation->ctx.hmac.hmac_ctx != NULL )
                 {
                     mbedtls_zeroize( operation->ctx.hmac.hmac_ctx,
-                                     block_size * 2 );
-                    mbedtls_free( operation->ctx.hmac.hmac_ctx );
+                                     block_size);
                 }
             }
             else
@@ -1155,8 +1154,9 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
 #if defined(MBEDTLS_MD_C)
             if( PSA_ALG_IS_HMAC( alg ) )
             {
-                unsigned char sum[MBEDTLS_MD_MAX_SIZE];
-                unsigned char *ipad, *opad;
+                unsigned char sum[PSA_CRYPTO_MD_MAX_SIZE];
+                unsigned char ipad[PSA_CRYPTO_MD_BLOCK_SIZE];
+                unsigned char *opad;
                 size_t i;
                 size_t sum_size = MBEDTLS_MD_MAX_SIZE;
                 unsigned int block_size = 0;
@@ -1171,12 +1171,6 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
 
                 operation->iv_required = 0;
                 operation->mac_size = digest_size;
-                operation->ctx.hmac.hmac_ctx = mbedtls_calloc( 2, block_size );
-                if( operation->ctx.hmac.hmac_ctx == NULL )
-                {
-                    ret = MBEDTLS_ERR_MD_ALLOC_FAILED;
-                    goto cleanup;
-                }
 
                 status = psa_hash_start( &operation->ctx.hmac.hash_ctx,
                                         PSA_ALG_HMAC_HASH( alg ) );
@@ -1198,9 +1192,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
                     key_ptr = sum;
                 }
 
-                ipad = ( unsigned char * ) operation->ctx.hmac.hmac_ctx;
-                opad = ( unsigned char * ) operation->ctx.hmac.hmac_ctx +
-                                           block_size;
+                opad = ( unsigned char * ) operation->ctx.hmac.hmac_ctx;
 
                 memset( ipad, 0x36, block_size );
                 memset( opad, 0x5C, block_size );
@@ -1326,8 +1318,7 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
                 if( status != PSA_SUCCESS )
                     return( status );
 
-                opad = (unsigned char *) operation->ctx.hmac.hmac_ctx +
-                                         block_size;
+                opad = (unsigned char *) operation->ctx.hmac.hmac_ctx;
 
                 status = psa_hash_finish( &operation->ctx.hmac.hash_ctx, tmp,
                                          sizeof ( tmp ), &hash_size );

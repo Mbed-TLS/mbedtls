@@ -661,6 +661,11 @@ struct mbedtls_ssl_config
             const unsigned char *, size_t, size_t, size_t );
     void *p_export_keys;            /*!< context for key export callback    */
 #endif
+#if defined(MBEDTLS_EAP_TLS_KEY_MATERIAL)
+    void *key_material;          /*!< pointer to key_material */
+    int key_material_len;        /*!< length of key_material */
+    char *key_material_label;    /*!< label to generate key_material */
+#endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     const mbedtls_x509_crt_profile *cert_profile; /*!< verification profile */
@@ -1306,6 +1311,20 @@ void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
         mbedtls_ssl_export_keys_t *f_export_keys,
         void *p_export_keys );
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
+
+#if defined(MBEDTLS_EAP_TLS_KEY_MATERIAL)
+/**
+ * \brief           Configure key_material pointer.
+ *                  (Default: none.)
+ *
+ * \param conf                SSL configuration context
+ * \param key_material        Pointer to key_material
+ * \param key_material_len    Length of key_material
+ * \param key_material_label  Label to generate key_material
+ */
+void mbedtls_ssl_conf_set_key_material( mbedtls_ssl_config *conf,
+        void *key_material, int key_material_len, char* key_material_label );
+#endif
 
 /**
  * \brief          Callback type: generate a cookie

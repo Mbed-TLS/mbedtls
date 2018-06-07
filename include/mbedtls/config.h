@@ -1433,6 +1433,19 @@
 #define MBEDTLS_SSL_EXPORT_KEYS
 
 /**
+ * \def MBEDTLS_EAP_TLS_KEY_MATERIAL
+ *
+ * Enable support for RCF 5216 to generate key_material.
+ *
+ * In the context of EAP-TLS, first 64 bytes of key_material
+ * are considered as MSK (Master Session Key). Out of those 64 bytes,
+ * first 32 bytes are considered as PMK (Pairwise Master Key).
+ *
+ * Uncomment this macro to enable support to generate key_material
+ */
+//#define MBEDTLS_EAP_TLS_KEY_MATERIAL
+
+/**
  * \def MBEDTLS_SSL_SERVER_NAME_INDICATION
  *
  * Enable support for RFC 6066 server name indication (SNI) in SSL.

@@ -644,6 +644,30 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     else
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "no premaster (session resumed)" ) );
 
+#if defined(MBEDTLS_EAP_TLS_KEY_MATERIAL)
+    /*
+     * Perform EAP-TLS PRF operation to generate key_material
+     * (before swapping handshake randbytes).
+     *
+     * In the context of EAP-TLS, first 64 bytes of key_material
+     * are considered as MSK (Master Session Key). Out of those 64 bytes,
+     * first 32 bytes are considered as PMK (Pairwise Master Key).
+     */
+    if( (ssl->conf->key_material != NULL) && (ssl->conf->key_material != NULL) )
+    {
+        mbedtls_zeroize( ssl->conf->key_material, ssl->conf->key_material_len );
+
+        ret = handshake->tls_prf( session->master, 48, ssl->conf->key_material_label,
+                                  handshake->randbytes, 64, ssl->conf->key_material,
+                                  ssl->conf->key_material_len );
+        if( ret != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );
+            return( ret );
+        }
+     }
+#endif
+
     /*
      * Swap the client and server random values.
      */
@@ -6477,6 +6501,16 @@ void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
 {
     conf->f_export_keys = f_export_keys;
     conf->p_export_keys = p_export_keys;
+}
+#endif
+
+#if defined(MBEDTLS_EAP_TLS_KEY_MATERIAL)
+void mbedtls_ssl_conf_set_key_material( mbedtls_ssl_config *conf,
+        void *key_material, int key_material_len, char* key_material_label )
+{
+    conf->key_material = key_material;
+    conf->key_material_len = key_material_len;
+    conf->key_material_label = key_material_label;
 }
 #endif
 

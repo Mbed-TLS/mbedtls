@@ -119,11 +119,17 @@ int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
  *                  only. For decryption, use mbedtls_gcm_auth_decrypt() instead.
  *
  * \param ctx       The GCM context to use for encryption or decryption.
- * \param mode      The operation to perform: #MBEDTLS_GCM_ENCRYPT or
- *                  #MBEDTLS_GCM_DECRYPT. Note that during decryption, the
- *                  tag is not verified. You should use this function only
- *                  to encrypt data, and use mbedtls_gcm_auth_decrypt()
- *                  to decrypt.
+ * \param mode      The operation to perform:
+ *                  - #MBEDTLS_GCM_ENCRYPT to perform authenticated encryption.
+ *                    The ciphertext is written to \p output and the
+ *                    authentication tag is written to \p tag.
+ *                  - #MBEDTLS_GCM_DECRYPT to perform decryption.
+ *                    The plaintext is written to \p output and the
+ *                    authentication tag is written to \p tag.
+ *                    Note that this mode is not recommended, because it does
+ *                    not verify the authenticity of the data. For this reason,
+ *                    you should use mbedtls_gcm_auth_decrypt() instead of
+ *                    calling this function in decryption mode.
  * \param length    The length of the input data, which is equal to the length
  *                  of the output data.
  * \param iv        The initialization vector.

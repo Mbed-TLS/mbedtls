@@ -221,7 +221,7 @@ static void mbedtls_serialize_discard_stack( mbedtls_serialize_context_t *ctx )
     } else {}
 
 
-/** File context 
+/** File context
  */
 typedef struct {
     void *      file;

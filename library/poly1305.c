@@ -53,6 +53,34 @@
           | (uint32_t) ( (uint32_t) data[( offset ) + 3] << 24 )  \
     )
 
+/*
+ * Our implementation is tuned for 32-bit platforms with a 64-bit multiplier.
+ * However we provided an alternative for platforms without such a multiplier.
+ */
+#if defined(MBEDTLS_NO_64BIT_MULTIPLICATION)
+static uint64_t mul64( uint32_t a, uint32_t b )
+{
+    /* a = al + 2**16 ah, b = bl + 2**16 bh */
+    const uint16_t al = (uint16_t) a;
+    const uint16_t bl = (uint16_t) b;
+    const uint16_t ah = a >> 16;
+    const uint16_t bh = b >> 16;
+
+    /* ab = al*bl + 2**16 (ah*bl + bl*bh) + 2**32 ah*bh */
+    const uint32_t lo = (uint32_t) al * bl;
+    const uint64_t me = (uint64_t)( (uint32_t) ah * bl ) + (uint32_t) al * bh;
+    const uint32_t hi = (uint32_t) ah * bh;
+
+    return( lo + ( me << 16 ) + ( (uint64_t) hi << 32 ) );
+}
+#else
+static inline uint64_t mul64( uint32_t a, uint32_t b )
+{
+    return( (uint64_t) a * b );
+}
+#endif
+
+
 /**
  * \brief                   Process blocks with Poly1305.
  *
@@ -112,25 +140,25 @@ static void poly1305_process( mbedtls_poly1305_context *ctx,
         acc4 += (uint32_t) ( d3 >> 32U ) + needs_padding;
 
         /* Compute: acc *= r */
-        d0 = ( (uint64_t) acc0 * r0  ) +
-             ( (uint64_t) acc1 * rs3 ) +
-             ( (uint64_t) acc2 * rs2 ) +
-             ( (uint64_t) acc3 * rs1 );
-        d1 = ( (uint64_t) acc0 * r1  ) +
-             ( (uint64_t) acc1 * r0  ) +
-             ( (uint64_t) acc2 * rs3 ) +
-             ( (uint64_t) acc3 * rs2 ) +
-             ( (uint64_t) acc4 * rs1 );
-        d2 = ( (uint64_t) acc0 * r2  ) +
-             ( (uint64_t) acc1 * r1  ) +
-             ( (uint64_t) acc2 * r0  ) +
-             ( (uint64_t) acc3 * rs3 ) +
-             ( (uint64_t) acc4 * rs2 );
-        d3 = ( (uint64_t) acc0 * r3  ) +
-             ( (uint64_t) acc1 * r2  ) +
-             ( (uint64_t) acc2 * r1  ) +
-             ( (uint64_t) acc3 * r0  ) +
-             ( (uint64_t) acc4 * rs3 );
+        d0 = mul64( acc0, r0  ) +
+             mul64( acc1, rs3 ) +
+             mul64( acc2, rs2 ) +
+             mul64( acc3, rs1 );
+        d1 = mul64( acc0, r1  ) +
+             mul64( acc1, r0  ) +
+             mul64( acc2, rs3 ) +
+             mul64( acc3, rs2 ) +
+             mul64( acc4, rs1 );
+        d2 = mul64( acc0, r2  ) +
+             mul64( acc1, r1  ) +
+             mul64( acc2, r0  ) +
+             mul64( acc3, rs3 ) +
+             mul64( acc4, rs2 );
+        d3 = mul64( acc0, r3  ) +
+             mul64( acc1, r2  ) +
+             mul64( acc2, r1  ) +
+             mul64( acc3, r0  ) +
+             mul64( acc4, rs3 );
         acc4 *= r0;
 
         /* Compute: acc %= (2^130 - 5) (partial remainder) */

@@ -1,0 +1,3 @@
+GCM - Invalid parameters
+depends_on:MBEDTLS_CHECK_PARAMS
+gcm_invalid_param:

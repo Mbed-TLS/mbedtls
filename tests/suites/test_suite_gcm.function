@@ -159,6 +159,99 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void gcm_invalid_param()
+{
+    mbedtls_gcm_context ctx;
+    unsigned char arbitrary_buffer[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+    mbedtls_cipher_id_t arbitrary_cipher_id = 0;
+    int arbitrary_int = 0;
+    size_t arbitrary_size_t = 0;
+    size_t non_zero_size_t = 1;
+
+    TEST_ASSERT( mbedtls_gcm_init_ret( NULL ) == MBEDTLS_ERR_GCM_BAD_INPUT );
+
+    TEST_ASSERT( mbedtls_gcm_setkey( NULL, arbitrary_cipher_id,
+        arbitrary_buffer, arbitrary_int ) == MBEDTLS_ERR_GCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_gcm_setkey( &ctx, arbitrary_cipher_id,
+        NULL, arbitrary_int ) == MBEDTLS_ERR_GCM_BAD_INPUT );
+
+    TEST_ASSERT( mbedtls_gcm_crypt_and_tag( NULL, arbitrary_int, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_buffer, arbitrary_size_t, arbitrary_buffer) ==
+            MBEDTLS_ERR_GCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_gcm_crypt_and_tag( &ctx, arbitrary_int, arbitrary_size_t,
+        NULL, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_buffer, arbitrary_size_t, arbitrary_buffer) ==
+            MBEDTLS_ERR_GCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_gcm_crypt_and_tag( &ctx, arbitrary_int, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, NULL, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_buffer, arbitrary_size_t, arbitrary_buffer) ==
+            MBEDTLS_ERR_GCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_gcm_crypt_and_tag( &ctx, arbitrary_int, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        NULL, arbitrary_buffer, arbitrary_size_t, arbitrary_buffer) ==
+            MBEDTLS_ERR_GCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_gcm_crypt_and_tag( &ctx, arbitrary_int, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, NULL, arbitrary_size_t, arbitrary_buffer) ==
+            MBEDTLS_ERR_GCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_gcm_crypt_and_tag( &ctx, arbitrary_int, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_buffer, arbitrary_size_t, NULL) ==
+            MBEDTLS_ERR_GCM_BAD_INPUT );
+
+    TEST_ASSERT( mbedtls_gcm_auth_decrypt( NULL, arbitrary_size_t, arbitrary_buffer,
+        arbitrary_size_t, arbitrary_buffer, arbitrary_size_t, arbitrary_buffer,
+        arbitrary_size_t, arbitrary_buffer, arbitrary_buffer ) ==
+            MBEDTLS_ERR_GCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_gcm_auth_decrypt( &ctx, arbitrary_size_t, NULL,
+        arbitrary_size_t, arbitrary_buffer, arbitrary_size_t, arbitrary_buffer,
+        arbitrary_size_t, arbitrary_buffer, arbitrary_buffer ) ==
+            MBEDTLS_ERR_GCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_gcm_auth_decrypt( &ctx, arbitrary_size_t, arbitrary_buffer,
+        arbitrary_size_t, NULL, arbitrary_size_t, arbitrary_buffer,
+        arbitrary_size_t, arbitrary_buffer, arbitrary_buffer ) ==
+            MBEDTLS_ERR_GCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_gcm_auth_decrypt( &ctx, arbitrary_size_t, arbitrary_buffer,
+        arbitrary_size_t, arbitrary_buffer, arbitrary_size_t, NULL,
+        arbitrary_size_t, arbitrary_buffer, arbitrary_buffer ) ==
+            MBEDTLS_ERR_GCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_gcm_auth_decrypt( &ctx, arbitrary_size_t, arbitrary_buffer,
+        arbitrary_size_t, arbitrary_buffer, arbitrary_size_t, arbitrary_buffer,
+        arbitrary_size_t, NULL, arbitrary_buffer ) ==
+            MBEDTLS_ERR_GCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_gcm_auth_decrypt( &ctx, arbitrary_size_t, arbitrary_buffer,
+        arbitrary_size_t, arbitrary_buffer, arbitrary_size_t, arbitrary_buffer,
+        arbitrary_size_t, arbitrary_buffer, NULL) ==
+            MBEDTLS_ERR_GCM_BAD_INPUT );
+
+    TEST_ASSERT( mbedtls_gcm_starts( NULL, arbitrary_int, arbitrary_buffer,
+        arbitrary_size_t, arbitrary_buffer, arbitrary_size_t ) ==
+            MBEDTLS_ERR_GCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_gcm_starts( &ctx, arbitrary_int, NULL,
+        arbitrary_size_t, arbitrary_buffer, arbitrary_size_t ) ==
+            MBEDTLS_ERR_GCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_gcm_starts( &ctx, arbitrary_int, arbitrary_buffer,
+        arbitrary_size_t, NULL, non_zero_size_t ) == MBEDTLS_ERR_GCM_BAD_INPUT );
+
+    TEST_ASSERT( mbedtls_gcm_update( NULL, arbitrary_size_t, arbitrary_buffer,
+        arbitrary_buffer ) == MBEDTLS_ERR_GCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_gcm_update( &ctx, arbitrary_size_t, NULL,
+        arbitrary_buffer ) == MBEDTLS_ERR_GCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_gcm_update( &ctx, arbitrary_size_t, arbitrary_buffer,
+        NULL ) == MBEDTLS_ERR_GCM_BAD_INPUT );
+
+    TEST_ASSERT( mbedtls_gcm_finish( NULL, arbitrary_buffer, arbitrary_size_t )
+        == MBEDTLS_ERR_GCM_BAD_INPUT );
+    TEST_ASSERT( mbedtls_gcm_finish( &ctx, NULL, arbitrary_size_t )
+        == MBEDTLS_ERR_GCM_BAD_INPUT );
+
+    TEST_ASSERT( mbedtls_gcm_free_ret( NULL ) == MBEDTLS_ERR_GCM_BAD_INPUT );
+
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void gcm_selftest()
 {

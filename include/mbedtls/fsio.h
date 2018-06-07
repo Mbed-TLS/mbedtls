@@ -46,7 +46,7 @@ extern "C" {
  * Structure returned by mbedtls_stat().
  *
  * \note Future versions of the library may add more fields at the end of this
- * 	 structure.
+ *       structure.
  */
 typedef struct mbedtls_stat_tag
 {

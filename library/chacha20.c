@@ -48,6 +48,11 @@
 
 #if !defined(MBEDTLS_CHACHA20_ALT)
 
+#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
+    !defined(inline) && !defined(__cplusplus)
+#define inline __inline
+#endif
+
 #define BYTES_TO_U32_LE( data, offset )                           \
     ( (uint32_t) data[offset]                                     \
           | (uint32_t) ( (uint32_t) data[( offset ) + 1] << 8 )   \

@@ -493,6 +493,9 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     int ret = 0;
     unsigned char tmp[64];
     unsigned char keyblk[256];
+#if defined(MBEDTLS_EAP_TLS)
+    unsigned char key_material[256];
+#endif
     unsigned char *key1;
     unsigned char *key2;
     unsigned char *mac_enc;
@@ -643,6 +646,23 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     }
     else
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "no premaster (session resumed)" ) );
+
+#if defined(MBEDTLS_EAP_TLS)
+    /*
+     * Perform EAP-TLS PRF operation before swapping handshake randbytes.
+     *
+     * In the context of EAP-TLS, first 64 bytes of key_material
+     * are considered as MSK (Master Session Key). Out of those 64 bytes,
+     * first 32 bytes are considered as PMK (Pairwise Master Key).
+     */
+    ret = handshake->tls_prf( session->master, 48, "client EAP encryption",
+                              handshake->randbytes, 64, key_material, 256 );
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );
+        return( ret );
+    }
+#endif
 
     /*
      * Swap the client and server random values.
@@ -890,10 +910,17 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_EXPORT_KEYS)
     if( ssl->conf->f_export_keys != NULL )
     {
+#if defined(MBEDTLS_EAP_TLS)
+        ssl->conf->f_export_keys( ssl->conf->p_export_keys,
+                                  session->master, key_material,
+                                  transform->maclen, transform->keylen,
+                                  iv_copy_len );
+#else
         ssl->conf->f_export_keys( ssl->conf->p_export_keys,
                                   session->master, keyblk,
                                   mac_key_len, transform->keylen,
                                   iv_copy_len );
+#endif
     }
 #endif
 

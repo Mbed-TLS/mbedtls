@@ -1074,22 +1074,24 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  */
 
 
-/** AEAD Encrypted data size
+/** The maximum size of the output of psa_aead_encrypt(), in bytes.
  *
- * This macro calculates the encrypted data size according to given algorithm
- * and plaintext_length.
+ * If the size of the ciphertext buffer is at least this large, it is
+ * guaranteed that psa_aead_encrypt() will not fail due to an
+ * insufficient buffer size. Depending on the algorithm, the actual size of
+ * the ciphertext may be smaller.
  *
- *
- * \param alg                 The AEAD algorithm to compute
+ * \param alg                 An AEAD algorithm
  *                            (\c PSA_ALG_XXX value such that
  *                            #PSA_ALG_IS_AEAD(alg) is true).
- * \param plaintext_length    Size of \p plaintext in bytes.
+ * \param plaintext_length    Size of the plaintext in bytes.
  *
- * \return If the algorithm is PSA_ALG_GCM the encrypted data size is 
- *         plaintext_length plus 16-bytes for tag.
- *         If the algorithm is PSA_ALG_CCM the encrypted data size is 
- *         plaintext_length plus 16-bytes for tag.
- *         Otherwise return zero.
+ * \return                    The AEAD ciphertext size for the specified
+ *                            algorithm.
+ *                            If the AEAD algorithm is not recognized, return 0.
+ *                            An implementation may return either 0 or a
+ *                            correct size for an AEAD algorithm that it
+ *                            recognizes, but does not support.
  */
 #define PSA_AEAD_ENCRYPT_OUTPUT_SIZE(alg, plaintext_length)     \
     ((alg) == PSA_ALG_GCM ? (plaintext_length) + 16 :           \
@@ -1149,22 +1151,24 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
                                size_t ciphertext_size,
                                size_t *ciphertext_length );
 
-/** AEAD Decrypted data size
+/** The maximum size of the output of psa_aead_decrypt(), in bytes.
  *
- * This macro calculates the decrypted data size according to given algorithm
- * and ciphertext_length.
+ * If the size of the plaintext buffer is at least this large, it is
+ * guaranteed that psa_aead_decrypt() will not fail due to an
+ * insufficient buffer size. Depending on the algorithm, the actual size of
+ * the plaintext may be smaller.
  *
- *
- * \param alg                 The AEAD algorithm to compute
+ * \param alg                 An AEAD algorithm
  *                            (\c PSA_ALG_XXX value such that
  *                            #PSA_ALG_IS_AEAD(alg) is true).
- * \param ciphertext_length    Size of \p ciphertext in bytes.
+ * \param ciphertext_length   Size of the plaintext in bytes.
  *
- * \return If the algorithm is PSA_ALG_GCM the decrypted data size is 
- *         ciphertext_length minus 16-bytes for tag.
- *         If the algorithm is PSA_ALG_CCM the decrypted data size is 
- *         ciphertext_length minus 16-bytes for tag.
- *         Otherwise return zero.
+ * \return                    The AEAD ciphertext size for the specified
+ *                            algorithm.
+ *                            If the AEAD algorithm is not recognized, return 0.
+ *                            An implementation may return either 0 or a
+ *                            correct size for an AEAD algorithm that it
+ *                            recognizes, but does not support.
  */
 #define PSA_AEAD_DECRYPT_OUTPUT_SIZE(alg, ciphertext_length)     \
     ((alg) == PSA_ALG_GCM ? (ciphertext_length) - 16 :           \

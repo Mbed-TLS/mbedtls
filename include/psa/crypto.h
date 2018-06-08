@@ -1073,6 +1073,25 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  * @{
  */
 
+/** The tag size for an AEAD algorithm, in bytes.
+ *
+ * \param alg                 An AEAD algorithm
+ *                            (\c PSA_ALG_XXX value such that
+ *                            #PSA_ALG_IS_AEAD(alg) is true).
+ *
+ * \return                    The tag size for the specified algorithm.
+ *                            If the AEAD algorithm does not have an identified
+ *                            tag that can be distinguished from the rest of
+ *                            the ciphertext, return 0.
+ *                            If the AEAD algorithm is not recognized, return 0.
+ *                            An implementation may return either 0 or a
+ *                            correct size for an AEAD algorithm that it
+ *                            recognizes, but does not support.
+ */
+#define PSA_AEAD_TAG_SIZE(alg)             \
+    ((alg) == PSA_ALG_GCM ? 16 :           \
+     (alg) == PSA_ALG_CCM ? 16 :           \
+     0)
 
 /** The maximum size of the output of psa_aead_encrypt(), in bytes.
  *
@@ -1094,8 +1113,8 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  *                            recognizes, but does not support.
  */
 #define PSA_AEAD_ENCRYPT_OUTPUT_SIZE(alg, plaintext_length)     \
-    ((alg) == PSA_ALG_GCM ? (plaintext_length) + 16 :           \
-     (alg) == PSA_ALG_CCM ? (plaintext_length) + 16 :           \
+    (PSA_AEAD_TAG_SIZE(alg) != 0 ?                              \
+     (plaintext_length) + PSA_AEAD_TAG_SIZE(alg) :              \
      0)
 
 /** Process an authenticated encryption operation.
@@ -1170,9 +1189,9 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
  *                            correct size for an AEAD algorithm that it
  *                            recognizes, but does not support.
  */
-#define PSA_AEAD_DECRYPT_OUTPUT_SIZE(alg, ciphertext_length)     \
-    ((alg) == PSA_ALG_GCM ? (ciphertext_length) - 16 :           \
-     (alg) == PSA_ALG_CCM ? (ciphertext_length) - 16 :           \
+#define PSA_AEAD_DECRYPT_OUTPUT_SIZE(alg, ciphertext_length)    \
+    (PSA_AEAD_TAG_SIZE(alg) != 0 ?                              \
+     (plaintext_length) - PSA_AEAD_TAG_SIZE(alg) :              \
      0)
 
 /** Process an authenticated decryption operation.

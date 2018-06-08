@@ -84,7 +84,7 @@ void import_export( char *hex, int type_arg,
 
     psa_key_policy_init( &policy );
 
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT,
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT, 
                               PSA_ALG_VENDOR_FLAG );
 
     TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );

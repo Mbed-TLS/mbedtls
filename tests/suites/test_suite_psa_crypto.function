@@ -282,8 +282,9 @@ void cipher_test_encrypt( int alg_arg, int key_type_arg,
     size_t input_size = 0;
     unsigned char *output;
     unsigned char *expected_output;
-    size_t output_size, max_output_size = 0;
-    size_t output_length = 0;
+    size_t expected_output_size;
+    size_t output_buffer_size = 0;
+    size_t function_output_length = 0;
     psa_cipher_operation_t operation;
 
 
@@ -293,7 +294,7 @@ void cipher_test_encrypt( int alg_arg, int key_type_arg,
     input = unhexify_alloc( input_hex, &input_size );
     TEST_ASSERT( input != NULL );
 
-    expected_output = unhexify_alloc( output_hex, &output_size );
+    expected_output = unhexify_alloc( output_hex, &expected_output_size );
     TEST_ASSERT( expected_output != NULL );
 
     memset( iv, 0x2a, sizeof( iv ) );
@@ -307,19 +308,22 @@ void cipher_test_encrypt( int alg_arg, int key_type_arg,
 
     TEST_ASSERT( psa_encrypt_set_iv( &operation,
                                      iv, sizeof( iv ) ) == PSA_SUCCESS );
-    max_output_size = input_size + operation.block_size;
-    output = mbedtls_calloc( 1, max_output_size );
+    output_buffer_size = input_size + operation.block_size;
+    output = mbedtls_calloc( 1, output_buffer_size );
 
     TEST_ASSERT( psa_cipher_update( &operation, input, input_size,
-                                    output, max_output_size,
-                                    &output_length ) == PSA_SUCCESS );
-    status = psa_cipher_finish( &operation, output + output_length,
-                                max_output_size, &output_length );
+                                    output, output_buffer_size,
+                                    &function_output_length ) == PSA_SUCCESS );
+    status = psa_cipher_finish( &operation,
+                                output + function_output_length,
+                                output_buffer_size,
+                                &function_output_length );
     TEST_ASSERT( status == (psa_status_t) expected_status );
     if( expected_status == PSA_SUCCESS )
     {
         TEST_ASSERT( psa_cipher_abort( &operation ) == PSA_SUCCESS );
-        TEST_ASSERT( memcmp( expected_output, output, output_size ) == 0 );
+        TEST_ASSERT( memcmp( expected_output, output,
+                             expected_output_size ) == 0 );
     }
 exit:
     mbedtls_free( key );
@@ -345,8 +349,9 @@ void cipher_test_encrypt_multipart( int alg_arg, int key_type_arg,
     size_t input_size = 0;
     unsigned char *output;
     unsigned char *expected_output;
-    size_t output_size, max_output_size = 0;
-    size_t output_length = 0;
+    size_t expected_output_size;
+    size_t output_buffer_size = 0;
+    size_t function_output_length = 0;
     psa_cipher_operation_t operation;
 
 
@@ -356,7 +361,7 @@ void cipher_test_encrypt_multipart( int alg_arg, int key_type_arg,
     input = unhexify_alloc( input_hex, &input_size );
     TEST_ASSERT( input != NULL );
 
-    expected_output = unhexify_alloc( output_hex, &output_size );
+    expected_output = unhexify_alloc( output_hex, &expected_output_size );
     TEST_ASSERT( expected_output != NULL );
 
     memset( iv, 0x2a, sizeof( iv ) );
@@ -370,25 +375,27 @@ void cipher_test_encrypt_multipart( int alg_arg, int key_type_arg,
 
     TEST_ASSERT( psa_encrypt_set_iv( &operation,
                                      iv, sizeof( iv ) ) == PSA_SUCCESS );
-    max_output_size = input_size + operation.block_size;
-    output = mbedtls_calloc( 1, max_output_size );
+    output_buffer_size = input_size + operation.block_size;
+    output = mbedtls_calloc( 1, output_buffer_size );
 
     TEST_ASSERT( (unsigned int) first_part_size < input_size );
     TEST_ASSERT( psa_cipher_update( &operation, input, first_part_size,
-                                    output, max_output_size,
-                                    &output_length ) == PSA_SUCCESS );
+                                    output, output_buffer_size,
+                                    &function_output_length ) == PSA_SUCCESS );
     TEST_ASSERT( psa_cipher_update( &operation,
                                     input + first_part_size,
                                     input_size - first_part_size,
-                                    output, max_output_size,
-                                    &output_length ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_cipher_finish( &operation, output + output_length,
-                                    max_output_size, &output_length ) == PSA_SUCCESS );
+                                    output, output_buffer_size,
+                                    &function_output_length ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_cipher_finish( &operation,
+                                    output + function_output_length,
+                                    output_buffer_size,
+                                    &function_output_length ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_cipher_abort( &operation ) == PSA_SUCCESS );
 
-    TEST_ASSERT( input_size == output_size );
-    TEST_ASSERT( memcmp( expected_output, output, output_size ) == 0 );
+    TEST_ASSERT( input_size == expected_output_size );
+    TEST_ASSERT( memcmp( expected_output, output, expected_output_size ) == 0 );
 
 exit:
     mbedtls_free( key );
@@ -415,8 +422,9 @@ void cipher_test_decrypt_multipart( int alg_arg, int key_type_arg,
     size_t input_size = 0;
     unsigned char *output;
     unsigned char *expected_output;
-    size_t output_size, max_output_size = 0;
-    size_t output_length = 0;
+    size_t expected_output_size;
+    size_t output_buffer_size = 0;
+    size_t function_output_length = 0;
     psa_cipher_operation_t operation;
 
 
@@ -426,7 +434,7 @@ void cipher_test_decrypt_multipart( int alg_arg, int key_type_arg,
     input = unhexify_alloc( input_hex, &input_size );
     TEST_ASSERT( input != NULL );
 
-    expected_output = unhexify_alloc( output_hex, &output_size );
+    expected_output = unhexify_alloc( output_hex, &expected_output_size );
     TEST_ASSERT( expected_output != NULL );
 
     memset( iv, 0x2a, sizeof( iv ) );
@@ -441,24 +449,26 @@ void cipher_test_decrypt_multipart( int alg_arg, int key_type_arg,
     TEST_ASSERT( psa_encrypt_set_iv( &operation,
                                      iv, sizeof( iv ) ) == PSA_SUCCESS );
 
-    max_output_size = input_size + operation.block_size;
-    output = mbedtls_calloc( 1, max_output_size );
+    output_buffer_size = input_size + operation.block_size;
+    output = mbedtls_calloc( 1, output_buffer_size );
 
     TEST_ASSERT( (unsigned int) first_part_size < input_size );
     TEST_ASSERT( psa_cipher_update( &operation, input, first_part_size,
-                                    output, max_output_size,
-                                    &output_length ) == PSA_SUCCESS );
+                                    output, output_buffer_size,
+                                    &function_output_length ) == PSA_SUCCESS );
     TEST_ASSERT( psa_cipher_update( &operation,
                                     input + first_part_size,
                                     input_size - first_part_size,
-                                    output, max_output_size,
-                                    &output_length ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_cipher_finish( &operation, output + output_length,
-                                    max_output_size, &output_length ) == PSA_SUCCESS );
+                                    output, output_buffer_size,
+                                    &function_output_length ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_cipher_finish( &operation,
+                                    output + function_output_length,
+                                    output_buffer_size,
+                                    &function_output_length ) == PSA_SUCCESS );
     TEST_ASSERT( psa_cipher_abort( &operation ) == PSA_SUCCESS );
 
-    TEST_ASSERT( input_size == output_size );
-    TEST_ASSERT( memcmp( expected_output, output, output_size ) == 0 );
+    TEST_ASSERT( input_size == expected_output_size );
+    TEST_ASSERT( memcmp( expected_output, output, expected_output_size ) == 0 );
 
 exit:
     mbedtls_free( key );
@@ -486,8 +496,9 @@ void cipher_test_decrypt( int alg_arg, int key_type_arg,
     size_t input_size = 0;
     unsigned char *output;
     unsigned char *expected_output;
-    size_t output_size, max_output_size = 0;
-    size_t output_length = 0;
+    size_t expected_output_size;
+    size_t output_buffer_size = 0;
+    size_t function_output_length = 0;
     psa_cipher_operation_t operation;
 
 
@@ -497,7 +508,7 @@ void cipher_test_decrypt( int alg_arg, int key_type_arg,
     input = unhexify_alloc( input_hex, &input_size );
     TEST_ASSERT( input != NULL );
 
-    expected_output = unhexify_alloc( output_hex, &output_size );
+    expected_output = unhexify_alloc( output_hex, &expected_output_size );
     TEST_ASSERT( expected_output != NULL );
 
     memset( iv, 0x2a, sizeof( iv ) );
@@ -512,20 +523,23 @@ void cipher_test_decrypt( int alg_arg, int key_type_arg,
     TEST_ASSERT( psa_encrypt_set_iv( &operation,
                                      iv, sizeof( iv ) ) == PSA_SUCCESS );
 
-    max_output_size = input_size + operation.block_size;
-    output = mbedtls_calloc( 1, max_output_size );
+    output_buffer_size = input_size + operation.block_size;
+    output = mbedtls_calloc( 1, output_buffer_size );
 
     TEST_ASSERT( psa_cipher_update( &operation, input, input_size,
-                                    output, max_output_size,
-                                    &output_length ) == PSA_SUCCESS );
-    status = psa_cipher_finish( &operation, output + output_length,
-                                max_output_size, &output_length );
+                                    output, output_buffer_size,
+                                    &function_output_length ) == PSA_SUCCESS );
+    status = psa_cipher_finish( &operation,
+                                output + function_output_length,
+                                output_buffer_size,
+                                &function_output_length );
     TEST_ASSERT( status == (psa_status_t) expected_status );
 
     if( expected_status == PSA_SUCCESS )
     {
         TEST_ASSERT( psa_cipher_abort( &operation ) == PSA_SUCCESS );
-        TEST_ASSERT( memcmp( expected_output, output, output_size ) == 0 );
+        TEST_ASSERT( memcmp( expected_output, output,
+                             expected_output_size ) == 0 );
     }
 
 
@@ -559,7 +573,7 @@ void cipher_test_verify_output( int alg_arg, int key_type_arg,
     unsigned char *output2;
     size_t output2_size = 0;
     size_t output2_length = 0;
-    size_t tmp_output_length = 0;
+    size_t function_output_length = 0;
     psa_cipher_operation_t operation1;
     psa_cipher_operation_t operation2;
 
@@ -589,9 +603,9 @@ void cipher_test_verify_output( int alg_arg, int key_type_arg,
                                     &output1_length ) == PSA_SUCCESS );
     TEST_ASSERT( psa_cipher_finish( &operation1,
                                     output1 + output1_length, output1_size,
-                                    &tmp_output_length ) == PSA_SUCCESS );
+                                    &function_output_length ) == PSA_SUCCESS );
 
-    output1_length += tmp_output_length;
+    output1_length += function_output_length;
 
     TEST_ASSERT( psa_cipher_abort( &operation1 ) == PSA_SUCCESS );
 
@@ -603,13 +617,13 @@ void cipher_test_verify_output( int alg_arg, int key_type_arg,
     TEST_ASSERT( psa_cipher_update( &operation2, output1, output1_length,
                                     output2, output2_size,
                                     &output2_length ) == PSA_SUCCESS );
-    tmp_output_length = 0;
+    function_output_length = 0;
     TEST_ASSERT( psa_cipher_finish( &operation2,
                                     output2 + output2_length,
                                     output2_size,
-                                    &tmp_output_length ) == PSA_SUCCESS );
+                                    &function_output_length ) == PSA_SUCCESS );
 
-    output2_length += tmp_output_length;
+    output2_length += function_output_length;
 
     TEST_ASSERT( psa_cipher_abort( &operation1 ) == PSA_SUCCESS );
 
@@ -642,12 +656,12 @@ void cipher_test_verify_output_multpart( int alg_arg,
     unsigned char *input = NULL;
     size_t input_size = 0;
     unsigned char *output1;
-    size_t output1_size = 0;
+    size_t output1_buffer_size = 0;
     size_t output1_length = 0;
     unsigned char *output2;
-    size_t output2_size = 0;
+    size_t output2_buffer_size = 0;
     size_t output2_length = 0;
-    size_t tmp_output_length, temp = 0;
+    size_t function_output_length;
     psa_cipher_operation_t operation1;
     psa_cipher_operation_t operation2;
 
@@ -668,56 +682,54 @@ void cipher_test_verify_output_multpart( int alg_arg,
     TEST_ASSERT( psa_encrypt_generate_iv( &operation1,
                                           iv, iv_size,
                                           &iv_length ) == PSA_SUCCESS );
-    output1_size = input_size + operation1.block_size;
-    output1 = mbedtls_calloc( 1, output1_size );
+    output1_buffer_size = input_size + operation1.block_size;
+    output1 = mbedtls_calloc( 1, output1_buffer_size );
 
     TEST_ASSERT( (unsigned int) first_part_size < input_size );
 
     TEST_ASSERT( psa_cipher_update( &operation1, input, first_part_size,
-                                    output1, output1_size,
-                                    &output1_length ) == PSA_SUCCESS );
-    temp = output1_length;
+                                    output1, output1_buffer_size,
+                                    &function_output_length ) == PSA_SUCCESS );
+    output1_length += function_output_length;
 
     TEST_ASSERT( psa_cipher_update( &operation1,
                                     input + first_part_size,
                                     input_size - first_part_size,
-                                    output1, output1_size,
-                                    &output1_length ) == PSA_SUCCESS );
-    output1_length += temp;
+                                    output1, output1_buffer_size,
+                                    &function_output_length ) == PSA_SUCCESS );
+    output1_length += function_output_length;
 
-    TEST_ASSERT( psa_cipher_finish( &operation1, output1 + output1_length,
-                                    output1_size - output1_length,
-                                    &tmp_output_length ) == PSA_SUCCESS );
-
-    output1_length += tmp_output_length;
+    TEST_ASSERT( psa_cipher_finish( &operation1,
+                                    output1 + output1_length,
+                                    output1_buffer_size - output1_length,
+                                    &function_output_length ) == PSA_SUCCESS );
+    output1_length += function_output_length;
 
     TEST_ASSERT( psa_cipher_abort( &operation1 ) == PSA_SUCCESS );
 
-    output2_size = output1_length;
-    output2 = mbedtls_calloc( 1, output2_size );
+    output2_buffer_size = output1_length;
+    output2 = mbedtls_calloc( 1, output2_buffer_size );
 
     TEST_ASSERT( psa_encrypt_set_iv( &operation2,
                                      iv, iv_length ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_cipher_update( &operation2, output1, first_part_size,
-                                    output2, output2_size,
-                                    &output2_length ) == PSA_SUCCESS );
+                                    output2, output2_buffer_size,
+                                    &function_output_length ) == PSA_SUCCESS );
+    output2_length += function_output_length;
 
-    temp = output2_length;
-
-    TEST_ASSERT( psa_cipher_update( &operation2, output1 + first_part_size,
+    TEST_ASSERT( psa_cipher_update( &operation2,
+                                    output1 + first_part_size,
                                     output1_length - first_part_size,
-                                    output2, output2_size,
-                                    &output2_length ) == PSA_SUCCESS );
+                                    output2, output2_buffer_size,
+                                    &function_output_length ) == PSA_SUCCESS );
+    output2_length += function_output_length;
 
-    output2_length += temp;
-    tmp_output_length = 0;
     TEST_ASSERT( psa_cipher_finish( &operation2,
                                     output2 + output2_length,
-                                    output2_size - output2_length,
-                                    &tmp_output_length ) == PSA_SUCCESS );
-
-    output2_length += tmp_output_length;
+                                    output2_buffer_size - output2_length,
+                                    &function_output_length ) == PSA_SUCCESS );
+    output2_length += function_output_length;
 
     TEST_ASSERT( psa_cipher_abort( &operation1 ) == PSA_SUCCESS );
 

@@ -1411,7 +1411,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
         return( status );
     slot = &global_data.key_slots[key];
 
-    cipher_info = mbedtls_cipher_info_from_psa( alg, key_type, key_bits );
+    cipher_info = mbedtls_cipher_info_from_psa( alg, key_type, key_bits, NULL );
     if( cipher_info == NULL )
         return( PSA_ERROR_NOT_SUPPORTED );
 

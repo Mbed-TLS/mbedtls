@@ -32,7 +32,7 @@ function(link_to_source base_name)
             if (IS_DIRECTORY ${target})
                 set(command cmd.exe /c mklink /j ${link} ${target})
             else()
-                set(command cmd.exe /c mklink ${link} ${target})
+                set(command cmd.exe /c mklink /h ${link} ${target})
             endif()
         endif()
 

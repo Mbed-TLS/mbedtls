@@ -336,7 +336,7 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_RSA_OAEP_MGF1(hash_alg)                             \
     (PSA_ALG_RSA_OAEP_MGF1_RAW | ((hash_alg) & PSA_ALG_HASH_MASK))
 #define PSA_ALG_IS_RSA_OAEP_MGF1(alg)                               \
-    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_OAEP_MGF1_RAW)
+    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_OAEP_MGF1_BASE)
 #define PSA_ALG_RSA_GET_HASH(alg)                                       \
     (((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH)
 

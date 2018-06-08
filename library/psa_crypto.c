@@ -1458,7 +1458,7 @@ psa_status_t psa_asymmetric_encrypt( psa_key_slot_t key,
         else
 #endif /* MBEDTLS_PKCS1_V15 */
 #if defined(MBEDTLS_PKCS1_V21)
-        if( alg == PSA_ALG_RSA_PSS_MGF1 )
+        if( PSA_ALG_IS_RSA_OAEP_MGF1( alg ) )
         {
             return( PSA_ERROR_NOT_SUPPORTED );
         }
@@ -1535,7 +1535,7 @@ psa_status_t psa_asymmetric_decrypt( psa_key_slot_t key,
         else
 #endif /* MBEDTLS_PKCS1_V15 */
 #if defined(MBEDTLS_PKCS1_V21)
-        if( alg == PSA_ALG_RSA_PSS_MGF1 )
+        if( PSA_ALG_IS_RSA_OAEP_MGF1( alg ) )
         {
             return( PSA_ERROR_NOT_SUPPORTED );
         }

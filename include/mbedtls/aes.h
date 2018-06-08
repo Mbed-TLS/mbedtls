@@ -324,9 +324,9 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
  *              you must either save it manually or use the cipher module
  *              instead.
  *
- * \warning     For the OFB mode, the initiallisation vector must be unique and
- *              must be unique for every encryption operation. Reuse of an
- *              initialisation vector will compromise security.
+ * \warning     For the OFB mode, the initialisation vector must be unique
+ *              every encryption operation. Reuse of an initialisation vector
+ *              will compromise security.
  *
  * \param ctx      The AES context to use for encryption or decryption.
  * \param length   The length of the input data.

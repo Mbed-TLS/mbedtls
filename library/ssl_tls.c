@@ -6916,41 +6916,6 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
         }
     }
 
-    /*
-     * TODO
-     *
-     * The logic should be streamlined here:
-     *
-     * Instead of
-     *
-     * - Manually checking whether ssl->in_offt is NULL
-     * - Fetching a new record if yes
-     * - Setting ssl->in_offt if one finds an application record
-     * - Resetting keep_current_message after handling the application data
-     *
-     * one should
-     *
-     * - Adapt read_record to set ssl->in_offt automatically
-     *   when a new application data record is processed.
-     * - Always call mbedtls_ssl_read_record here.
-     *
-     * This way, the logic of ssl_read would be much clearer:
-     *
-     * (1) Always call record layer and see what kind of record is on
-     *     and have it ready for consumption (in particular, in_offt
-     *     properly set for application data records).
-     * (2) If it's application data (either freshly fetched
-     *     or something already being partially processed),
-     *     serve the read request from it.
-     * (3) If it's something different from application data,
-     *     handle it accordingly, e.g. potentially start a
-     *     renegotiation.
-     *
-     * This will also remove the need to manually reset
-     * ssl->keep_current_message = 0 below.
-     *
-     */
-
     if( ssl->in_offt == NULL )
     {
         /* Start timer if not already running */

@@ -1477,15 +1477,8 @@ psa_status_t psa_asymmetric_encrypt( psa_key_slot_t key,
             *output_length = rsa->len;
         return( mbedtls_to_psa_error( ret ) );
     }
-#endif
-#if defined(MBEDTLS_ECP_C)
-    if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
-    {
-        // TODO
-        return( PSA_ERROR_NOT_SUPPORTED );
-    }
     else
-#endif /* defined(MBEDTLS_ECP_C) */
+#endif /* defined(MBEDTLS_RSA_C) */
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }
@@ -1553,15 +1546,8 @@ psa_status_t psa_asymmetric_decrypt( psa_key_slot_t key,
 
         return( mbedtls_to_psa_error( ret ) );
     }
-#endif
-#if defined(MBEDTLS_ECP_C)
-    if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
-    {
-        // TODO
-        return( PSA_ERROR_NOT_SUPPORTED );
-    }
     else
-#endif /* defined(MBEDTLS_ECP_C) */
+#endif /* defined(MBEDTLS_RSA_C) */
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }

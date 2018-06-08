@@ -1516,7 +1516,7 @@ psa_status_t psa_asymmetric_decrypt( psa_key_slot_t key,
         mbedtls_rsa_context *rsa = slot->data.rsa;
         int ret;
 
-        if( output_size < rsa->len )
+        if( input_length != rsa->len )
             return( PSA_ERROR_INVALID_ARGUMENT );
 
 #if defined(MBEDTLS_PKCS1_V15)

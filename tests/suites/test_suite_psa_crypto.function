@@ -634,8 +634,8 @@ exit:
 
 
 /* BEGIN_CASE */
-void asymmetric_encrypt( int key_type_arg, char *key_hex,
-                         int alg_arg, char *input_hex )
+void asymmetric_encrypt_decrypt( int key_type_arg, char *key_hex,
+                                 int alg_arg, char *input_hex )
 {
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;
@@ -672,8 +672,9 @@ void asymmetric_encrypt( int key_type_arg, char *key_hex,
     TEST_ASSERT( psa_import_key( slot, key_type,
                                  key_data, key_size ) == PSA_SUCCESS );
 
-    //checked using encrypt/decrpyt because of non-optional random
-    // part of encryption process preventing using fixed vectors
+    /* We test encryption by checking that encrypt-then-decrypt gives back
+     * the original plaintext because of the non-optional random
+     * part of encryption process which prevents using fixed vectors. */
     TEST_ASSERT( psa_asymmetric_encrypt(slot, alg,
                                     input_data,
                                     input_size,

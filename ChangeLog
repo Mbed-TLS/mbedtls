@@ -10,6 +10,8 @@ Bugfix
      calling mbedtls_x509_crt_parse_path().
    * Fix redundant declaration of mbedtls_ssl_list_ciphersuites. Raised by
      TrinityTonic. #1359.
+   * Fix for redefinition of _WIN32_WINNT to avoid overriding a definition
+     used by user applications. Found and fixed by Fabio Alessandrelli.
 
 = mbed TLS 2.1.12 branch released 2018-04-30
 

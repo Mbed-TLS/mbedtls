@@ -88,7 +88,7 @@ typedef struct {
         /** The hash context. */
         struct psa_hash_operation_s hash_ctx;
         /** The HMAC part of the context. */
-        char hmac_ctx[PSA_CRYPTO_MD_BLOCK_SIZE];
+        uint8_t hmac_ctx[PSA_CRYPTO_MD_BLOCK_SIZE];
 } psa_hmac_internal_data;
 
 

@@ -1383,7 +1383,13 @@ psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
 #if defined(MBEDTLS_PKCS1_V21)
         if( alg == PSA_ALG_RSA_PSS_MGF1 )
         {
-            return( PSA_ERROR_NOT_SUPPORTED );
+            mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg );
+            ret = mbedtls_rsa_rsassa_pss_verify( rsa,
+                                                 mbedtls_ctr_drbg_random,
+                                                 &global_data.ctr_drbg,
+                                                 MBEDTLS_RSA_PUBLIC,
+                                                 md_alg, hash_length, hash,
+                                                 signature );
         }
         else
 #endif /* MBEDTLS_PKCS1_V21 */

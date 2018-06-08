@@ -1203,9 +1203,11 @@ psa_status_t psa_mac_verify( psa_mac_operation_t *operation,
 /* Asymmetric cryptography */
 /****************************************************************/
 
-static psa_status_t verify_RSA_hash_input_and_get_md_type( psa_algorithm_t alg,
-                                                           size_t hash_length,
-                                                           mbedtls_md_type_t *md_alg )
+/* Decode the hash algorithm from alg and store the mbedtls encoding in
+ * md_alg. Verify that the hash length is consistent. */
+static psa_status_t psa_rsa_decode_md_type( psa_algorithm_t alg,
+                                            size_t hash_length,
+                                            mbedtls_md_type_t *md_alg )
 {
     psa_algorithm_t hash_alg = PSA_ALG_RSA_GET_HASH( alg );
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa( hash_alg );
@@ -1259,8 +1261,7 @@ psa_status_t psa_asymmetric_sign( psa_key_slot_t key,
         mbedtls_rsa_context *rsa = slot->data.rsa;
         int ret;
         mbedtls_md_type_t md_alg;
-        status = verify_RSA_hash_input_and_get_md_type( alg, hash_length,
-                                                        &md_alg );
+        status = psa_rsa_decode_md_type( alg, hash_length, &md_alg );
         if( status != PSA_SUCCESS )
             return( status );
 
@@ -1355,8 +1356,7 @@ psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
         mbedtls_rsa_context *rsa = slot->data.rsa;
         int ret;
         mbedtls_md_type_t md_alg;
-        status = verify_RSA_hash_input_and_get_md_type( alg, hash_length,
-                                                       &md_alg );
+        status = psa_rsa_decode_md_type( alg, hash_length, &md_alg );
         if( status != PSA_SUCCESS )
             return( status );
 

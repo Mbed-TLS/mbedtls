@@ -910,10 +910,11 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
 static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     psa_algorithm_t alg,
     psa_key_type_t key_type,
-    size_t key_bits )
+    size_t key_bits, 
+    mbedtls_cipher_id_t* cipher_id )
 {
-    mbedtls_cipher_id_t cipher_id;
     mbedtls_cipher_mode_t mode;
+    mbedtls_cipher_id_t cipher_id_tmp;
 
     if( PSA_ALG_IS_CIPHER( alg ) || PSA_ALG_IS_AEAD( alg ) )
     {
@@ -958,25 +959,27 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     switch( key_type )
     {
         case PSA_KEY_TYPE_AES:
-            cipher_id = MBEDTLS_CIPHER_ID_AES;
+            cipher_id_tmp = MBEDTLS_CIPHER_ID_AES;
             break;
         case PSA_KEY_TYPE_DES:
             if( key_bits == 64 )
-                cipher_id = MBEDTLS_CIPHER_ID_DES;
+                cipher_id_tmp = MBEDTLS_CIPHER_ID_DES;
             else
-                cipher_id = MBEDTLS_CIPHER_ID_3DES;
+                cipher_id_tmp = MBEDTLS_CIPHER_ID_3DES;
             break;
         case PSA_KEY_TYPE_CAMELLIA:
-            cipher_id = MBEDTLS_CIPHER_ID_CAMELLIA;
+            cipher_id_tmp = MBEDTLS_CIPHER_ID_CAMELLIA;
             break;
         case PSA_KEY_TYPE_ARC4:
-            cipher_id = MBEDTLS_CIPHER_ID_ARC4;
+            cipher_id_tmp = MBEDTLS_CIPHER_ID_ARC4;
             break;
         default:
             return( NULL );
     }
+    if( cipher_id != NULL )
+        *cipher_id = cipher_id_tmp;
 
-    return( mbedtls_cipher_info_from_values( cipher_id, key_bits, mode ) );
+    return( mbedtls_cipher_info_from_values( cipher_id_tmp, key_bits, mode ) );
 }
 
 psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
@@ -1036,7 +1039,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
 
     if( ! PSA_ALG_IS_HMAC( alg ) )
     {
-        cipher_info = mbedtls_cipher_info_from_psa( alg, key_type, key_bits );
+        cipher_info = mbedtls_cipher_info_from_psa( alg, key_type, key_bits, NULL );
         if( cipher_info == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
         operation->mac_size = cipher_info->block_size;
@@ -1754,6 +1757,268 @@ psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
     return( PSA_SUCCESS );
 }
 
+
+/****************************************************************/
+/* AEAD */
+/****************************************************************/
+psa_status_t psa_aead_encrypt( psa_key_slot_t key,
+                               psa_algorithm_t alg,
+                               const uint8_t *nonce,
+                               size_t nonce_length,
+                               const uint8_t *additional_data,
+                               size_t additional_data_length,
+                               const uint8_t *plaintext,
+                               size_t plaintext_length,
+                               uint8_t *ciphertext,
+                               size_t ciphertext_size,
+                               size_t *ciphertext_length )
+{
+    int ret;
+    psa_status_t status;
+    key_slot_t *slot;
+    psa_key_type_t key_type;
+    size_t key_bits;
+    uint8_t *tag;
+    size_t tag_length;
+    mbedtls_cipher_id_t cipher_id;
+    const mbedtls_cipher_info_t *cipher_info = NULL;
+    
+    *ciphertext_length = 0;
+
+    status = psa_get_key_information( key, &key_type, &key_bits );
+    if( status != PSA_SUCCESS )
+        return( status );
+    slot = &global_data.key_slots[key];
+    if( slot->type == PSA_KEY_TYPE_NONE )
+            return( PSA_ERROR_EMPTY_SLOT );
+
+    cipher_info = mbedtls_cipher_info_from_psa( alg, key_type,
+                                                key_bits, &cipher_id );
+    if( cipher_info == NULL )
+            return( PSA_ERROR_NOT_SUPPORTED );
+
+    if( !( slot->policy.usage & PSA_KEY_USAGE_ENCRYPT ) )
+        return( PSA_ERROR_NOT_PERMITTED );
+
+    if ( ( key_type & PSA_KEY_TYPE_CATEGORY_MASK ) !=
+           PSA_KEY_TYPE_CATEGORY_SYMMETRIC )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    if( alg == PSA_ALG_GCM )
+    {
+        mbedtls_gcm_context gcm;
+        tag_length = 16;
+
+        if( PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) != 16 )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+
+        //make sure we have place to hold the tag in the ciphertext buffer
+        if( ciphertext_size < ( plaintext_length + tag_length ) )
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+        //update the tag pointer to point to the end of the ciphertext_length
+        tag = ciphertext + plaintext_length;
+
+        mbedtls_gcm_init( &gcm );
+        ret = mbedtls_gcm_setkey( &gcm, cipher_id,
+                                  slot->data.raw.data,
+                                  key_bits );
+        if( ret != 0 )
+        {
+            mbedtls_gcm_free( &gcm );
+            return( mbedtls_to_psa_error( ret ) );
+        }
+        ret = mbedtls_gcm_crypt_and_tag( &gcm, MBEDTLS_GCM_ENCRYPT,
+                                         plaintext_length, nonce,
+                                         nonce_length, additional_data,
+                                         additional_data_length, plaintext,
+                                         ciphertext, tag_length, tag );
+        mbedtls_gcm_free( &gcm );
+    }
+    else if( alg == PSA_ALG_CCM )
+    {
+        mbedtls_ccm_context ccm;
+        tag_length = 16;
+
+        if( PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) != 16 )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+
+        if( nonce_length < 7 || nonce_length > 13 )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+
+        //make sure we have place to hold the tag in the ciphertext buffer
+        if( ciphertext_size < ( plaintext_length + tag_length ) )
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+        //update the tag pointer to point to the end of the ciphertext_length
+        tag = ciphertext + plaintext_length;
+
+
+
+        mbedtls_ccm_init( &ccm );
+        ret = mbedtls_ccm_setkey( &ccm, cipher_id,
+                                  slot->data.raw.data, key_bits );
+        if( ret != 0 )
+        {
+            mbedtls_ccm_free( &ccm );
+            return( mbedtls_to_psa_error( ret ) );
+        }
+        ret = mbedtls_ccm_encrypt_and_tag( &ccm, plaintext_length,
+                                           nonce, nonce_length, additional_data,
+                                           additional_data_length,
+                                           plaintext, ciphertext,
+                                           tag, tag_length );
+        mbedtls_ccm_free( &ccm );
+    }
+    else
+    {
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
+    
+    if( ret != 0 )
+    {
+        memset( ciphertext, 0, ciphertext_size );
+        return( mbedtls_to_psa_error( ret ) );
+    }
+    
+    *ciphertext_length = plaintext_length + tag_length;
+    return( PSA_SUCCESS );
+}
+
+/* Locate the tag in a ciphertext buffer containing the encrypted data
+ * followed by the tag. Return the length of the part preceding the tag in
+ * *plaintext_length. This is the size of the plaintext in modes where
+ * the encrypted data has the same size as the plaintext, such as
+ * CCM and GCM. */
+static psa_status_t psa_aead_unpadded_locate_tag( size_t tag_length,
+                                                  const uint8_t *ciphertext,
+                                                  size_t ciphertext_length,
+                                                  size_t plaintext_size,
+                                                  const uint8_t **p_tag )
+{
+    size_t payload_length;
+    if( tag_length > ciphertext_length )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    payload_length = ciphertext_length - tag_length;
+    if( payload_length > plaintext_size )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+    *p_tag = ciphertext + payload_length;
+    return( PSA_SUCCESS );
+}
+
+psa_status_t psa_aead_decrypt( psa_key_slot_t key,
+                               psa_algorithm_t alg,
+                               const uint8_t *nonce,
+                               size_t nonce_length,
+                               const uint8_t *additional_data,
+                               size_t additional_data_length,
+                               const uint8_t *ciphertext,
+                               size_t ciphertext_length,
+                               uint8_t *plaintext,
+                               size_t plaintext_size,
+                               size_t *plaintext_length )
+{
+    int ret;
+    psa_status_t status;
+    key_slot_t *slot;
+    psa_key_type_t key_type;
+    size_t key_bits;
+    const uint8_t *tag;
+    size_t tag_length;
+    mbedtls_cipher_id_t cipher_id;
+    const mbedtls_cipher_info_t *cipher_info = NULL;
+    
+    *plaintext_length = 0;
+
+    status = psa_get_key_information( key, &key_type, &key_bits );
+    if( status != PSA_SUCCESS )
+        return( status );
+    slot = &global_data.key_slots[key];
+    if( slot->type == PSA_KEY_TYPE_NONE )
+            return( PSA_ERROR_EMPTY_SLOT );
+
+    cipher_info = mbedtls_cipher_info_from_psa( alg, key_type,
+                                                key_bits, &cipher_id );
+    if( cipher_info == NULL )
+            return( PSA_ERROR_NOT_SUPPORTED );
+    
+    if( !( slot->policy.usage & PSA_KEY_USAGE_DECRYPT ) )
+        return( PSA_ERROR_NOT_PERMITTED );
+
+    if ( ( key_type & PSA_KEY_TYPE_CATEGORY_MASK ) != 
+         PSA_KEY_TYPE_CATEGORY_SYMMETRIC )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    if( alg == PSA_ALG_GCM )
+    {
+        mbedtls_gcm_context gcm;
+
+        tag_length = 16;
+        status = psa_aead_unpadded_locate_tag( tag_length,
+                                               ciphertext, ciphertext_length,
+                                               plaintext_size, &tag );
+        if( status != PSA_SUCCESS )
+            return( status );
+
+        mbedtls_gcm_init( &gcm );
+        ret = mbedtls_gcm_setkey( &gcm, cipher_id,
+                                  slot->data.raw.data, key_bits );
+        if( ret != 0 )
+        {
+            mbedtls_gcm_free( &gcm );
+            return( mbedtls_to_psa_error( ret ) );
+        }
+
+        ret = mbedtls_gcm_auth_decrypt( &gcm,
+                                        ciphertext_length - tag_length,
+                                        nonce, nonce_length,
+                                        additional_data,
+                                        additional_data_length,
+                                        tag, tag_length,
+                                        ciphertext, plaintext );
+        mbedtls_gcm_free( &gcm );
+    }
+    else if( alg == PSA_ALG_CCM )
+    {
+        mbedtls_ccm_context ccm;
+
+        if( nonce_length < 7 || nonce_length > 13 )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+
+        tag_length = 16;
+        status = psa_aead_unpadded_locate_tag( tag_length,
+                                               ciphertext, ciphertext_length,
+                                               plaintext_size, &tag );
+        if( status != PSA_SUCCESS )
+            return( status );
+
+        mbedtls_ccm_init( &ccm );
+        ret = mbedtls_ccm_setkey( &ccm, cipher_id,
+                                  slot->data.raw.data, key_bits );
+        if( ret != 0 )
+        {
+            mbedtls_ccm_free( &ccm );
+            return( mbedtls_to_psa_error( ret ) );
+        }
+        ret = mbedtls_ccm_auth_decrypt( &ccm, ciphertext_length - tag_length,
+                                        nonce, nonce_length,
+                                        additional_data, additional_data_length,
+                                        ciphertext, plaintext,
+                                        tag, tag_length );
+        mbedtls_ccm_free( &ccm );
+    }
+    else
+    {
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
+    if( ret != 0 )
+        memset( plaintext, 0, plaintext_size );
+    else
+        *plaintext_length = ciphertext_length - tag_length;
+
+    return( mbedtls_to_psa_error( ret ) );
+}
 
 
 /****************************************************************/

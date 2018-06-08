@@ -716,7 +716,7 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  * - A failed call to psa_hash_update().
  * - A call to psa_hash_finish(), psa_hash_verify() or psa_hash_abort().
  *
- * \param operation
+ * \param operation The operation object to use.
  * \param alg       The hash algorithm to compute (\c PSA_ALG_XXX value
  *                  such that #PSA_ALG_IS_HASH(alg) is true).
  *
@@ -909,7 +909,7 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  * - A failed call to psa_mac_update().
  * - A call to psa_mac_finish(), psa_mac_verify() or psa_mac_abort().
  *
- * \param operation
+ * \param operation The operation object to use.
  * \param alg       The MAC algorithm to compute (\c PSA_ALG_XXX value
  *                  such that #PSA_ALG_IS_MAC(alg) is true).
  *
@@ -985,7 +985,7 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  *   or psa_cipher_update().
  * - A call to psa_cipher_finish() or psa_cipher_abort().
  *
- * \param operation
+ * \param operation The operation object to use.
  * \param alg       The cipher algorithm to compute (\c PSA_ALG_XXX value
  *                  such that #PSA_ALG_IS_CIPHER(alg) is true).
  *
@@ -1032,7 +1032,7 @@ psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
  * - A failed call to psa_cipher_update().
  * - A call to psa_cipher_finish() or psa_cipher_abort().
  *
- * \param operation
+ * \param operation The operation object to use.
  * \param alg       The cipher algorithm to compute (\c PSA_ALG_XXX value
  *                  such that #PSA_ALG_IS_CIPHER(alg) is true).
  *
@@ -1082,46 +1082,77 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  * @{
  */
 
-/** The type of the state data structure for multipart AEAD operations.
+/** The tag size for an AEAD algorithm, in bytes.
  *
- * This is an implementation-defined \c struct. Applications should not
- * make any assumptions about the content of this structure except
- * as directed by the documentation of a specific implementation. */
-typedef struct psa_aead_operation_s psa_aead_operation_t;
+ * \param alg                 An AEAD algorithm
+ *                            (\c PSA_ALG_XXX value such that
+ *                            #PSA_ALG_IS_AEAD(alg) is true).
+ *
+ * \return                    The tag size for the specified algorithm.
+ *                            If the AEAD algorithm does not have an identified
+ *                            tag that can be distinguished from the rest of
+ *                            the ciphertext, return 0.
+ *                            If the AEAD algorithm is not recognized, return 0.
+ *                            An implementation may return either 0 or a
+ *                            correct size for an AEAD algorithm that it
+ *                            recognizes, but does not support.
+ */
+#define PSA_AEAD_TAG_SIZE(alg)             \
+    ((alg) == PSA_ALG_GCM ? 16 :           \
+     (alg) == PSA_ALG_CCM ? 16 :           \
+     0)
 
-/** Set the key for a multipart authenticated encryption operation.
+/** The maximum size of the output of psa_aead_encrypt(), in bytes.
  *
- * The sequence of operations to authenticate-and-encrypt a message
- * is as follows:
- * -# Allocate an operation object which will be passed to all the functions
- *    listed here.
- * -# Call psa_aead_encrypt_setup() to specify the algorithm and key.
- *    The key remains associated with the operation even if the content
- *    of the key slot changes.
- * -# Call either psa_aead_generate_iv() or psa_aead_set_iv() to
- *    generate or set the IV (initialization vector). You should use
- *    psa_encrypt_generate_iv() unless the protocol you are implementing
- *    requires a specific IV value.
- * -# Call psa_aead_update_ad() to pass the associated data that is
- *    to be authenticated but not encrypted. You may omit this step if
- *    there is no associated data.
- * -# Call psa_aead_update() zero, one or more times, passing a fragment
- *    of the data to encrypt each time.
- * -# Call psa_aead_finish().
+ * If the size of the ciphertext buffer is at least this large, it is
+ * guaranteed that psa_aead_encrypt() will not fail due to an
+ * insufficient buffer size. Depending on the algorithm, the actual size of
+ * the ciphertext may be smaller.
  *
- * The application may call psa_aead_abort() at any time after the operation
- * has been initialized with psa_aead_encrypt_setup().
+ * \param alg                 An AEAD algorithm
+ *                            (\c PSA_ALG_XXX value such that
+ *                            #PSA_ALG_IS_AEAD(alg) is true).
+ * \param plaintext_length    Size of the plaintext in bytes.
  *
- * After a successful call to psa_aead_encrypt_setup(), the application must
- * eventually terminate the operation. The following events terminate an
- * operation:
- * - A failed call to psa_aead_generate_iv(), psa_aead_set_iv(),
- *   psa_aead_update_ad() or psa_aead_update().
- * - A call to psa_aead_finish() or psa_aead_abort().
+ * \return                    The AEAD ciphertext size for the specified
+ *                            algorithm.
+ *                            If the AEAD algorithm is not recognized, return 0.
+ *                            An implementation may return either 0 or a
+ *                            correct size for an AEAD algorithm that it
+ *                            recognizes, but does not support.
+ */
+#define PSA_AEAD_ENCRYPT_OUTPUT_SIZE(alg, plaintext_length)     \
+    (PSA_AEAD_TAG_SIZE(alg) != 0 ?                              \
+     (plaintext_length) + PSA_AEAD_TAG_SIZE(alg) :              \
+     0)
+
+/** Process an authenticated encryption operation.
  *
- * \param operation
- * \param alg       The AEAD algorithm to compute (\c PSA_ALG_XXX value
- *                  such that #PSA_ALG_IS_AEAD(alg) is true).
+ * \param key                     Slot containing the key to use.
+ * \param alg                     The AEAD algorithm to compute
+ *                                (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_AEAD(alg) is true).
+ * \param nonce                   Nonce or IV to use.
+ * \param nonce_length            Size of the \p nonce buffer in bytes.
+ * \param additional_data         Additional data that will be authenticated
+ *                                but not encrypted.
+ * \param additional_data_length  Size of \p additional_data in bytes.
+ * \param plaintext               Data that will be authenticated and
+ *                                encrypted.
+ * \param plaintext_length        Size of \p plaintext in bytes.
+ * \param ciphertext              Output buffer for the authenticated and
+ *                                encrypted data. The additional data is not
+ *                                part of this output. For algorithms where the
+ *                                encrypted data and the authentication tag
+ *                                are defined as separate outputs, the
+ *                                authentication tag is appended to the
+ *                                encrypted data.
+ * \param ciphertext_size         Size of the \p ciphertext buffer in bytes.
+ *                                This must be at least
+ *                                #PSA_AEAD_ENCRYPT_OUTPUT_SIZE(\p alg,
+ *                                \p plaintext_length).
+ * \param ciphertext_length       On success, the size of the output
+ *                                in the \b ciphertext buffer.
  *
  * \retval PSA_SUCCESS
  *         Success.
@@ -1136,44 +1167,73 @@ typedef struct psa_aead_operation_s psa_aead_operation_t;
  * \retval PSA_ERROR_HARDWARE_FAILURE
  * \retval PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
-                                    psa_key_slot_t key,
-                                    psa_algorithm_t alg);
+psa_status_t psa_aead_encrypt( psa_key_slot_t key,
+                               psa_algorithm_t alg,
+                               const uint8_t *nonce,
+                               size_t nonce_length,
+                               const uint8_t *additional_data,
+                               size_t additional_data_length,
+                               const uint8_t *plaintext,
+                               size_t plaintext_length,
+                               uint8_t *ciphertext,
+                               size_t ciphertext_size,
+                               size_t *ciphertext_length );
 
-/** Set the key for a multipart authenticated decryption operation.
+/** The maximum size of the output of psa_aead_decrypt(), in bytes.
  *
- * The sequence of operations to authenticated and decrypt a message
- * is as follows:
- * -# Allocate an operation object which will be passed to all the functions
- *    listed here.
- * -# Call psa_aead_decrypt_setup() to specify the algorithm and key.
- *    The key remains associated with the operation even if the content
- *    of the key slot changes.
- * -# Call psa_aead_set_iv() to pass the initialization vector (IV)
- *    for the authenticated decryption.
- * -# Call psa_aead_update_ad() to pass the associated data that is
- *    to be authenticated but not encrypted. You may omit this step if
- *    there is no associated data.
- * -# Call psa_aead_update() zero, one or more times, passing a fragment
- *    of the data to decrypt each time.
- * -# Call psa_aead_finish().
+ * If the size of the plaintext buffer is at least this large, it is
+ * guaranteed that psa_aead_decrypt() will not fail due to an
+ * insufficient buffer size. Depending on the algorithm, the actual size of
+ * the plaintext may be smaller.
  *
- * The application may call psa_aead_abort() at any time after the operation
- * has been initialized with psa_aead_decrypt_setup().
+ * \param alg                 An AEAD algorithm
+ *                            (\c PSA_ALG_XXX value such that
+ *                            #PSA_ALG_IS_AEAD(alg) is true).
+ * \param ciphertext_length   Size of the plaintext in bytes.
  *
- * After a successful call to psa_aead_decrypt_setup(), the application must
- * eventually terminate the operation. The following events terminate an
- * operation:
- * - A failed call to psa_aead_update().
- * - A call to psa_aead_finish() or psa_aead_abort().
+ * \return                    The AEAD ciphertext size for the specified
+ *                            algorithm.
+ *                            If the AEAD algorithm is not recognized, return 0.
+ *                            An implementation may return either 0 or a
+ *                            correct size for an AEAD algorithm that it
+ *                            recognizes, but does not support.
+ */
+#define PSA_AEAD_DECRYPT_OUTPUT_SIZE(alg, ciphertext_length)    \
+    (PSA_AEAD_TAG_SIZE(alg) != 0 ?                              \
+     (plaintext_length) - PSA_AEAD_TAG_SIZE(alg) :              \
+     0)
+
+/** Process an authenticated decryption operation.
  *
- * \param operation
- * \param alg       The AEAD algorithm to compute (\c PSA_ALG_XXX value
- *                  such that #PSA_ALG_IS_AEAD(alg) is true).
+ * \param key                     Slot containing the key to use.
+ * \param alg                     The AEAD algorithm to compute
+ *                                (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_AEAD(alg) is true).
+ * \param nonce                   Nonce or IV to use.
+ * \param nonce_length            Size of the \p nonce buffer in bytes.
+ * \param additional_data         Additional data that has been authenticated
+ *                                but not encrypted.
+ * \param additional_data_length  Size of \p additional_data in bytes.
+ * \param ciphertext              Data that has been authenticated and
+ *                                encrypted. For algorithms where the
+ *                                encrypted data and the authentication tag
+ *                                are defined as separate inputs, the buffer
+ *                                must contain the encrypted data followed
+ *                                by the authentication tag.
+ * \param ciphertext_length       Size of \p ciphertext in bytes.
+ * \param plaintext               Output buffer for the decrypted data.
+ * \param plaintext_size          Size of the \p plaintext buffer in bytes.
+ *                                This must be at least
+ *                                #PSA_AEAD_DECRYPT_OUTPUT_SIZE(\p alg,
+ *                                \p ciphertext_length).
+ * \param plaintext_length        On success, the size of the output
+ *                                in the \b plaintext buffer.
  *
  * \retval PSA_SUCCESS
  *         Success.
  * \retval PSA_ERROR_EMPTY_SLOT
+ * \retval PSA_ERROR_INVALID_SIGNATURE
+ *         The ciphertext is not authentic.
  * \retval PSA_ERROR_NOT_PERMITTED
  * \retval PSA_ERROR_INVALID_ARGUMENT
  *         \c key is not compatible with \c alg.
@@ -1184,37 +1244,17 @@ psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
  * \retval PSA_ERROR_HARDWARE_FAILURE
  * \retval PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_aead_decrypt_setup(psa_aead_operation_t *operation,
-                                    psa_key_slot_t key,
-                                    psa_algorithm_t alg);
-
-psa_status_t psa_aead_generate_iv(psa_aead_operation_t *operation,
-                                  unsigned char *iv,
-                                  size_t iv_size,
-                                  size_t *iv_length);
-
-psa_status_t psa_aead_set_iv(psa_aead_operation_t *operation,
-                             const unsigned char *iv,
-                             size_t iv_length);
-
-psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
-                                const uint8_t *input,
-                                size_t input_length);
-
-psa_status_t psa_aead_update(psa_aead_operation_t *operation,
-                             const uint8_t *input,
-                             size_t input_length);
-
-psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
-                             uint8_t *tag,
-                             size_t tag_size,
-                             size_t *tag_length);
-
-psa_status_t psa_aead_verify(psa_aead_operation_t *operation,
-                             uint8_t *tag,
-                             size_t tag_length);
-
-psa_status_t psa_aead_abort(psa_aead_operation_t *operation);
+psa_status_t psa_aead_decrypt( psa_key_slot_t key,
+                               psa_algorithm_t alg,
+                               const uint8_t *nonce,
+                               size_t nonce_length,
+                               const uint8_t *additional_data,
+                               size_t additional_data_length,
+                               const uint8_t *ciphertext,
+                               size_t ciphertext_length,
+                               uint8_t *plaintext,
+                               size_t plaintext_size,
+                               size_t *plaintext_length );
 
 /**@}*/
 

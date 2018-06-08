@@ -322,6 +322,10 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_CTR                             ((psa_algorithm_t)0x04800001)
 #define PSA_ALG_ARC4                            ((psa_algorithm_t)0x04800002)
 
+#define PSA_ALG_IS_STREAM_CIPHER(alg)            \
+    (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_CIPHER_SUBCATEGORY_MASK)) == \
+        PSA_ALG_STREAM_CIPHER)
+
 #define PSA_ALG_CCM                             ((psa_algorithm_t)0x06000001)
 #define PSA_ALG_GCM                             ((psa_algorithm_t)0x06000002)
 
@@ -1060,12 +1064,15 @@ psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
 
 psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
                                const uint8_t *input,
-                               size_t input_length);
+                               size_t input_length,
+                               unsigned char *output, 
+                               size_t output_size, 
+                               size_t *output_length);
 
 psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
-                               uint8_t *mac,
-                               size_t mac_size,
-                               size_t *mac_length);
+                               uint8_t *output,
+                               size_t output_size,
+                               size_t *output_length);
 
 psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
 

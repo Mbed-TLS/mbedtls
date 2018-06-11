@@ -830,6 +830,242 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void aead_encrypt_decrypt( int key_type_arg, char * key_hex,
+                int alg_arg, char * input_hex, char * nonce_hex,
+                char * add_data, int expected_result_arg )
+{
+    int slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *key_data = NULL;
+    size_t key_size;
+    unsigned char *input_data = NULL;
+    size_t input_size;
+    unsigned char *output_data = NULL;
+    size_t output_size = 0;
+    size_t output_length = 0;
+    unsigned char *output_data2 = NULL;
+    size_t output_length2 = 0;
+    uint8_t* nonce;
+    size_t nonce_length = 16;
+    size_t tag_length = 16;
+    unsigned char *additional_data = NULL;
+    size_t additional_data_length = 0;
+    psa_status_t expected_result = (psa_status_t) expected_result_arg;
+    psa_key_policy_t policy = {0};
+
+
+    key_data = unhexify_alloc( key_hex, &key_size );
+    TEST_ASSERT( key_data != NULL );
+    input_data = unhexify_alloc( input_hex, &input_size );
+    TEST_ASSERT( input_data != NULL );
+    additional_data = unhexify_alloc( add_data, &additional_data_length );
+    TEST_ASSERT( input_data != NULL );
+    output_size = input_size + tag_length;
+    output_data = mbedtls_calloc( 1, output_size );
+    TEST_ASSERT( output_data != NULL );
+    nonce = unhexify_alloc( nonce_hex, &nonce_length );
+    TEST_ASSERT( nonce != NULL );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT , alg );
+
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( slot, key_type,
+                                 key_data, key_size ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_aead_encrypt( slot, alg,
+                               nonce, nonce_length,
+                               additional_data, additional_data_length,
+                               input_data, input_size, output_data,
+                               output_size, &output_length ) == expected_result );
+
+    if( PSA_SUCCESS == expected_result )
+    {
+        output_data2 = mbedtls_calloc( 1, output_length );
+        TEST_ASSERT( output_data2 != NULL );
+
+        TEST_ASSERT( psa_aead_decrypt( slot, alg,
+                                nonce, nonce_length,
+                                additional_data, additional_data_length,
+                                output_data, output_length, output_data2,
+                                output_length, &output_length2 ) == expected_result );
+        
+
+        TEST_ASSERT( memcmp( input_data, output_data2,
+                                input_size ) == 0 );
+    }
+    
+
+exit:
+    psa_destroy_key( slot );
+    mbedtls_free( key_data );
+    mbedtls_free( input_data );
+    mbedtls_free( additional_data );
+    mbedtls_free( output_data );
+    mbedtls_free( output_data2 );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void aead_encrypt( int key_type_arg, char * key_hex,
+                int alg_arg, char * input_hex,
+                char * add_data, char * nonce_hex,
+                char * expected_result_hex )
+{
+    int slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *key_data = NULL;
+    size_t key_size;
+    unsigned char *input_data = NULL;
+    size_t input_size;
+    unsigned char *output_data = NULL;
+    size_t output_size = 0;
+    size_t output_length = 0;
+    unsigned char *expected_result = NULL;
+    size_t expected_result_length = 0;
+    uint8_t* nonce = NULL;
+    size_t nonce_length = 0;
+    size_t tag_length = 16;
+    unsigned char *additional_data = NULL;
+    size_t additional_data_length = 0;
+    psa_key_policy_t policy = {0};
+
+
+    key_data = unhexify_alloc( key_hex, &key_size );
+    TEST_ASSERT( key_data != NULL );
+    input_data = unhexify_alloc( input_hex, &input_size );
+    TEST_ASSERT( input_data != NULL );
+    additional_data = unhexify_alloc( add_data, &additional_data_length );
+    TEST_ASSERT( input_data != NULL );
+    output_size = input_size + tag_length;
+    output_data = mbedtls_calloc( 1, output_size );
+    TEST_ASSERT( output_data != NULL );
+    nonce = unhexify_alloc( nonce_hex, &nonce_length );
+    TEST_ASSERT( nonce != NULL );
+    expected_result = unhexify_alloc( expected_result_hex, &expected_result_length );
+    TEST_ASSERT( expected_result != NULL );
+    
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT , alg );
+
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( slot, key_type,
+                                 key_data, key_size ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_aead_encrypt( slot, alg,
+                               nonce, nonce_length,
+                               additional_data, additional_data_length,
+                               input_data, input_size, output_data,
+                               output_size, &output_length ) == PSA_SUCCESS );
+
+
+    TEST_ASSERT( memcmp( output_data, expected_result,
+                                output_length ) == 0 );
+    
+
+exit:
+    psa_destroy_key( slot );
+    mbedtls_free( key_data );
+    mbedtls_free( input_data );
+    mbedtls_free( additional_data );
+    mbedtls_free( output_data );
+    mbedtls_free( nonce );
+    mbedtls_free( expected_result );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void aead_decrypt( int key_type_arg, char * key_hex,
+                int alg_arg, char * input_hex,
+                char * add_data, char * nonce_hex,
+                char * expected_result_hex, int expected_result_arg )
+{
+    int slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *key_data = NULL;
+    size_t key_size;
+    unsigned char *input_data = NULL;
+    size_t input_size;
+    unsigned char *output_data = NULL;
+    size_t output_size = 0;
+    size_t output_length = 0;
+    unsigned char *expected_data = NULL;
+    size_t expected_result_length = 0;
+    uint8_t* nonce = NULL;
+    size_t nonce_length = 0;
+    size_t tag_length = 16;
+    unsigned char *additional_data = NULL;
+    size_t additional_data_length = 0;
+    psa_key_policy_t policy = {0};
+    psa_status_t expected_result = (psa_status_t) expected_result_arg;
+
+
+    key_data = unhexify_alloc( key_hex, &key_size );
+    TEST_ASSERT( key_data != NULL );
+    input_data = unhexify_alloc( input_hex, &input_size );
+    TEST_ASSERT( input_data != NULL );
+    additional_data = unhexify_alloc( add_data, &additional_data_length );
+    TEST_ASSERT( input_data != NULL );
+    output_size = input_size + tag_length;
+    output_data = mbedtls_calloc( 1, output_size );
+    TEST_ASSERT( output_data != NULL );
+    nonce = unhexify_alloc( nonce_hex, &nonce_length );
+    TEST_ASSERT( nonce != NULL );
+    expected_data = unhexify_alloc( expected_result_hex, &expected_result_length );
+    TEST_ASSERT( expected_data != NULL );
+    
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DECRYPT , alg );
+
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( slot, key_type,
+                                 key_data, key_size ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_aead_decrypt( slot, alg,
+                               nonce, nonce_length,
+                               additional_data, additional_data_length,
+                               input_data, input_size, output_data,
+                               output_size, &output_length ) == expected_result );
+
+
+    if ( expected_result == PSA_SUCCESS )
+    {
+        TEST_ASSERT( memcmp( output_data, expected_data,
+                                    output_length ) == 0 );
+    }
+
+    
+
+exit:
+    psa_destroy_key( slot );
+    mbedtls_free( key_data );
+    mbedtls_free( input_data );
+    mbedtls_free( additional_data );
+    mbedtls_free( output_data );
+    mbedtls_free( nonce );
+    mbedtls_free( expected_data );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void signature_size( int type_arg, int bits, int alg_arg, int expected_size_arg )
 {
     psa_key_type_t type = type_arg;
@@ -1139,242 +1375,6 @@ exit:
     mbedtls_free( key_data );
     mbedtls_free( hash_data );
     mbedtls_free( signature_data );
-    mbedtls_psa_crypto_free( );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void aead_encrypt_decrypt( int key_type_arg, char * key_hex,
-                int alg_arg, char * input_hex, char * nonce_hex,
-                char * add_data, int expected_result_arg )
-{
-    int slot = 1;
-    psa_key_type_t key_type = key_type_arg;
-    psa_algorithm_t alg = alg_arg;
-    unsigned char *key_data = NULL;
-    size_t key_size;
-    unsigned char *input_data = NULL;
-    size_t input_size;
-    unsigned char *output_data = NULL;
-    size_t output_size = 0;
-    size_t output_length = 0;
-    unsigned char *output_data2 = NULL;
-    size_t output_length2 = 0;
-    uint8_t* nonce;
-    size_t nonce_length = 16;
-    size_t tag_length = 16;
-    unsigned char *additional_data = NULL;
-    size_t additional_data_length = 0;
-    psa_status_t expected_result = (psa_status_t) expected_result_arg;
-    psa_key_policy_t policy = {0};
-
-
-    key_data = unhexify_alloc( key_hex, &key_size );
-    TEST_ASSERT( key_data != NULL );
-    input_data = unhexify_alloc( input_hex, &input_size );
-    TEST_ASSERT( input_data != NULL );
-    additional_data = unhexify_alloc( add_data, &additional_data_length );
-    TEST_ASSERT( input_data != NULL );
-    output_size = input_size + tag_length;
-    output_data = mbedtls_calloc( 1, output_size );
-    TEST_ASSERT( output_data != NULL );
-    nonce = unhexify_alloc( nonce_hex, &nonce_length );
-    TEST_ASSERT( nonce != NULL );
-
-    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
-
-    psa_key_policy_init( &policy );
-
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT , alg );
-
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
-
-    TEST_ASSERT( psa_import_key( slot, key_type,
-                                 key_data, key_size ) == PSA_SUCCESS );
-
-    TEST_ASSERT( psa_aead_encrypt( slot, alg,
-                               nonce, nonce_length,
-                               additional_data, additional_data_length,
-                               input_data, input_size, output_data,
-                               output_size, &output_length ) == expected_result );
-
-    if( PSA_SUCCESS == expected_result )
-    {
-        output_data2 = mbedtls_calloc( 1, output_length );
-        TEST_ASSERT( output_data2 != NULL );
-
-        TEST_ASSERT( psa_aead_decrypt( slot, alg,
-                                nonce, nonce_length,
-                                additional_data, additional_data_length,
-                                output_data, output_length, output_data2,
-                                output_length, &output_length2 ) == expected_result );
-        
-
-        TEST_ASSERT( memcmp( input_data, output_data2,
-                                input_size ) == 0 );
-    }
-    
-
-exit:
-    psa_destroy_key( slot );
-    mbedtls_free( key_data );
-    mbedtls_free( input_data );
-    mbedtls_free( additional_data );
-    mbedtls_free( output_data );
-    mbedtls_free( output_data2 );
-    mbedtls_psa_crypto_free( );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void aead_encrypt( int key_type_arg, char * key_hex,
-                int alg_arg, char * input_hex,
-                char * add_data, char * nonce_hex,
-                char * expected_result_hex )
-{
-    int slot = 1;
-    psa_key_type_t key_type = key_type_arg;
-    psa_algorithm_t alg = alg_arg;
-    unsigned char *key_data = NULL;
-    size_t key_size;
-    unsigned char *input_data = NULL;
-    size_t input_size;
-    unsigned char *output_data = NULL;
-    size_t output_size = 0;
-    size_t output_length = 0;
-    unsigned char *expected_result = NULL;
-    size_t expected_result_length = 0;
-    uint8_t* nonce = NULL;
-    size_t nonce_length = 0;
-    size_t tag_length = 16;
-    unsigned char *additional_data = NULL;
-    size_t additional_data_length = 0;
-    psa_key_policy_t policy = {0};
-
-
-    key_data = unhexify_alloc( key_hex, &key_size );
-    TEST_ASSERT( key_data != NULL );
-    input_data = unhexify_alloc( input_hex, &input_size );
-    TEST_ASSERT( input_data != NULL );
-    additional_data = unhexify_alloc( add_data, &additional_data_length );
-    TEST_ASSERT( input_data != NULL );
-    output_size = input_size + tag_length;
-    output_data = mbedtls_calloc( 1, output_size );
-    TEST_ASSERT( output_data != NULL );
-    nonce = unhexify_alloc( nonce_hex, &nonce_length );
-    TEST_ASSERT( nonce != NULL );
-    expected_result = unhexify_alloc( expected_result_hex, &expected_result_length );
-    TEST_ASSERT( expected_result != NULL );
-    
-    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
-
-    psa_key_policy_init( &policy );
-
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT , alg );
-
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
-
-    TEST_ASSERT( psa_import_key( slot, key_type,
-                                 key_data, key_size ) == PSA_SUCCESS );
-
-    TEST_ASSERT( psa_aead_encrypt( slot, alg,
-                               nonce, nonce_length,
-                               additional_data, additional_data_length,
-                               input_data, input_size, output_data,
-                               output_size, &output_length ) == PSA_SUCCESS );
-
-
-    TEST_ASSERT( memcmp( output_data, expected_result,
-                                output_length ) == 0 );
-    
-
-exit:
-    psa_destroy_key( slot );
-    mbedtls_free( key_data );
-    mbedtls_free( input_data );
-    mbedtls_free( additional_data );
-    mbedtls_free( output_data );
-    mbedtls_free( nonce );
-    mbedtls_free( expected_result );
-    mbedtls_psa_crypto_free( );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void aead_decrypt( int key_type_arg, char * key_hex,
-                int alg_arg, char * input_hex,
-                char * add_data, char * nonce_hex,
-                char * expected_result_hex, int expected_result_arg )
-{
-    int slot = 1;
-    psa_key_type_t key_type = key_type_arg;
-    psa_algorithm_t alg = alg_arg;
-    unsigned char *key_data = NULL;
-    size_t key_size;
-    unsigned char *input_data = NULL;
-    size_t input_size;
-    unsigned char *output_data = NULL;
-    size_t output_size = 0;
-    size_t output_length = 0;
-    unsigned char *expected_data = NULL;
-    size_t expected_result_length = 0;
-    uint8_t* nonce = NULL;
-    size_t nonce_length = 0;
-    size_t tag_length = 16;
-    unsigned char *additional_data = NULL;
-    size_t additional_data_length = 0;
-    psa_key_policy_t policy = {0};
-    psa_status_t expected_result = (psa_status_t) expected_result_arg;
-
-
-    key_data = unhexify_alloc( key_hex, &key_size );
-    TEST_ASSERT( key_data != NULL );
-    input_data = unhexify_alloc( input_hex, &input_size );
-    TEST_ASSERT( input_data != NULL );
-    additional_data = unhexify_alloc( add_data, &additional_data_length );
-    TEST_ASSERT( input_data != NULL );
-    output_size = input_size + tag_length;
-    output_data = mbedtls_calloc( 1, output_size );
-    TEST_ASSERT( output_data != NULL );
-    nonce = unhexify_alloc( nonce_hex, &nonce_length );
-    TEST_ASSERT( nonce != NULL );
-    expected_data = unhexify_alloc( expected_result_hex, &expected_result_length );
-    TEST_ASSERT( expected_data != NULL );
-    
-    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
-
-    psa_key_policy_init( &policy );
-
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DECRYPT , alg );
-
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
-
-    TEST_ASSERT( psa_import_key( slot, key_type,
-                                 key_data, key_size ) == PSA_SUCCESS );
-
-    TEST_ASSERT( psa_aead_decrypt( slot, alg,
-                               nonce, nonce_length,
-                               additional_data, additional_data_length,
-                               input_data, input_size, output_data,
-                               output_size, &output_length ) == expected_result );
-
-
-    if ( expected_result == PSA_SUCCESS )
-    {
-        TEST_ASSERT( memcmp( output_data, expected_data,
-                                    output_length ) == 0 );
-    }
-
-    
-
-exit:
-    psa_destroy_key( slot );
-    mbedtls_free( key_data );
-    mbedtls_free( input_data );
-    mbedtls_free( additional_data );
-    mbedtls_free( output_data );
-    mbedtls_free( nonce );
-    mbedtls_free( expected_data );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

@@ -1069,7 +1069,6 @@ static int psa_hmac_start( psa_mac_operation_t *operation,
     unsigned char ipad[PSA_CRYPTO_MD_BLOCK_SIZE];
     unsigned char *opad = operation->ctx.hmac.hmac_ctx;
     size_t i;
-    size_t sum_size = MBEDTLS_MD_MAX_SIZE;
     size_t block_size =
         PSA_HASH_BLOCK_SIZE( ( PSA_ALG_HMAC_HASH( alg ) ) );
     unsigned int digest_size =
@@ -1099,11 +1098,9 @@ static int psa_hmac_start( psa_mac_operation_t *operation,
         if( status != PSA_SUCCESS )
             return( status );
         status = psa_hash_finish( &operation->ctx.hmac.hash_ctx,
-                                  sum, sum_size, &sum_size);
+                                  sum, sizeof( sum ), &key_length );
         if( status != PSA_SUCCESS )
             return( status );
-
-        key_length = sum_size;
         key_ptr = sum;
     }
 

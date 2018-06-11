@@ -109,6 +109,31 @@ void mbedtls_sha512(char *hex_src_string, char *hex_hash_string )
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void sha512_invalid_param( )
+{
+    mbedtls_sha512_context ctx;
+    size_t non_zero_size_t = 1;
+    int arbitrary_int = 0;
+    unsigned char arbitrary_buffer[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+    TEST_ASSERT( mbedtls_sha512_init_ret( NULL ) == MBEDTLS_ERR_SHA512_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_sha512_free_ret( NULL ) == MBEDTLS_ERR_SHA512_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_sha512_clone_ret( NULL, &ctx ) == MBEDTLS_ERR_SHA512_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_sha512_clone_ret( &ctx, NULL ) == MBEDTLS_ERR_SHA512_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_sha512_starts_ret( NULL, arbitrary_int ) == MBEDTLS_ERR_SHA512_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_sha512_update_ret( NULL, arbitrary_buffer,
+        non_zero_size_t ) == MBEDTLS_ERR_SHA512_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_sha512_update_ret( &ctx, NULL,
+        non_zero_size_t ) == MBEDTLS_ERR_SHA512_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_sha512_finish_ret( NULL, arbitrary_buffer ) ==
+        MBEDTLS_ERR_SHA512_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_internal_sha512_process( NULL, arbitrary_buffer ) ==
+        MBEDTLS_ERR_SHA512_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_sha512_ret( NULL, non_zero_size_t, arbitrary_buffer,
+        arbitrary_int ) == MBEDTLS_ERR_SHA512_BAD_INPUT_DATA );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SHA1_C:MBEDTLS_SELF_TEST */
 void sha1_selftest()
 {

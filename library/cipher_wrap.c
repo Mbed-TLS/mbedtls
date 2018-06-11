@@ -968,6 +968,9 @@ static const mbedtls_cipher_base_t aria_info = {
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
     aria_crypt_cfb128_wrap,
 #endif
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+    NULL,
+#endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     aria_crypt_ctr_wrap,
 #endif
@@ -1133,6 +1136,9 @@ static const mbedtls_cipher_base_t gcm_aria_info = {
     NULL,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
     NULL,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
@@ -1762,6 +1768,9 @@ static const mbedtls_cipher_base_t null_base_info = {
     NULL,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
+    NULL,
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
     NULL,
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)

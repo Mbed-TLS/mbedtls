@@ -89,7 +89,7 @@
  * PKCS5     2   4 (Started from top)
  * DHM       3   12
  * PK        3   15 (Started from top)
- * RSA       4   12
+ * RSA       4   11
  * ECP       4   9 (Started from top)
  * MD        5   5
  * HKDF      5   1 (Started from top)

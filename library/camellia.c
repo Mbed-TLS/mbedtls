@@ -889,7 +889,7 @@ static const int camellia_test_ctr_len[3] =
  */
 int mbedtls_camellia_self_test( int verbose )
 {
-    int i, j, u, v;
+    int i, j, u, v, ret;
     unsigned char key[32];
     unsigned char buf[64];
     unsigned char src[16];
@@ -919,18 +919,30 @@ int mbedtls_camellia_self_test( int verbose )
         memcpy( key, camellia_test_ecb_key[u][i], 16 + 8 * u );
 
         if( v == MBEDTLS_CAMELLIA_DECRYPT ) {
-            mbedtls_camellia_setkey_dec( &ctx, key, 128 + u * 64 );
+            ret = mbedtls_camellia_setkey_dec( &ctx, key, 128 + u * 64 );
             memcpy( src, camellia_test_ecb_cipher[u][i], 16 );
             memcpy( dst, camellia_test_ecb_plain[i], 16 );
         } else { /* MBEDTLS_CAMELLIA_ENCRYPT */
-            mbedtls_camellia_setkey_enc( &ctx, key, 128 + u * 64 );
+            ret = mbedtls_camellia_setkey_enc( &ctx, key, 128 + u * 64 );
             memcpy( src, camellia_test_ecb_plain[i], 16 );
             memcpy( dst, camellia_test_ecb_cipher[u][i], 16 );
         }
 
-        mbedtls_camellia_crypt_ecb( &ctx, v, src, buf );
+        if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+        else if( ret != 0 )
+        {
+            if( verbose != 0 )
+                mbedtls_printf( "failed\n" );
 
-        if( memcmp( buf, dst, 16 ) != 0 )
+            return( 1 );
+        }
+
+        ret = mbedtls_camellia_crypt_ecb( &ctx, v, src, buf );
+        if( ret != 0 || ( memcmp( buf, dst, 16 ) != 0 ) )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
@@ -964,9 +976,21 @@ int mbedtls_camellia_self_test( int verbose )
         memcpy( key, camellia_test_cbc_key[u], 16 + 8 * u );
 
         if( v == MBEDTLS_CAMELLIA_DECRYPT ) {
-            mbedtls_camellia_setkey_dec( &ctx, key, 128 + u * 64 );
+            ret = mbedtls_camellia_setkey_dec( &ctx, key, 128 + u * 64 );
         } else {
-            mbedtls_camellia_setkey_enc( &ctx, key, 128 + u * 64 );
+            ret = mbedtls_camellia_setkey_enc( &ctx, key, 128 + u * 64 );
+        }
+        if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+        else if( ret != 0 )
+        {
+            if( verbose != 0 )
+                mbedtls_printf( "failed\n" );
+
+            return( 1 );
         }
 
         for( i = 0; i < CAMELLIA_TESTS_CBC; i++ ) {
@@ -981,9 +1005,14 @@ int mbedtls_camellia_self_test( int verbose )
                 memcpy( dst, camellia_test_cbc_cipher[u][i], 16 );
             }
 
-            mbedtls_camellia_crypt_cbc( &ctx, v, 16, iv, src, buf );
+            ret = mbedtls_camellia_crypt_cbc( &ctx, v, 16, iv, src, buf );
+            if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+            {
+                mbedtls_printf( "skipped\n" );
+                continue;
+            }
 
-            if( memcmp( buf, dst, 16 ) != 0 )
+            if( ( ret != 0 ) || ( memcmp( buf, dst, 16 ) != 0 ) )
             {
                 if( verbose != 0 )
                     mbedtls_printf( "failed\n" );
@@ -1024,10 +1053,14 @@ int mbedtls_camellia_self_test( int verbose )
             len = camellia_test_ctr_len[u];
             memcpy( buf, camellia_test_ctr_ct[u], len );
 
-            mbedtls_camellia_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block,
-                                buf, buf );
-
-            if( memcmp( buf, camellia_test_ctr_pt[u], len ) != 0 )
+            ret = mbedtls_camellia_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block,
+                                              buf, buf );
+            if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+            {
+                mbedtls_printf( "skipped\n" );
+                continue;
+            }
+            if( ( ret != 0) || ( memcmp( buf, camellia_test_ctr_pt[u], len ) != 0 ) )
             {
                 if( verbose != 0 )
                     mbedtls_printf( "failed\n" );
@@ -1040,10 +1073,15 @@ int mbedtls_camellia_self_test( int verbose )
             len = camellia_test_ctr_len[u];
             memcpy( buf, camellia_test_ctr_pt[u], len );
 
-            mbedtls_camellia_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block,
+            ret = mbedtls_camellia_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block,
                                 buf, buf );
+            if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+            {
+                mbedtls_printf( "skipped\n" );
+                continue;
+            }
 
-            if( memcmp( buf, camellia_test_ctr_ct[u], len ) != 0 )
+            if( ( ret != 0 ) || ( memcmp( buf, camellia_test_ctr_ct[u], len ) != 0 ) )
             {
                 if( verbose != 0 )
                     mbedtls_printf( "failed\n" );

@@ -405,8 +405,6 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "RSA - The implementation does not offer the requested operation, for example, because of security violations or lack of functionality" );
         if( use_ret == -(MBEDTLS_ERR_RSA_HW_ACCEL_FAILED) )
             mbedtls_snprintf( buf, buflen, "RSA - RSA hardware accelerator failed" );
-        if( use_ret == -(MBEDTLS_ERR_RSA_FEATURE_UNAVAILABLE) )
-            mbedtls_snprintf( buf, buflen, "RSA - Feature not available. For example, an unsupported RSA key size" );
 #endif /* MBEDTLS_RSA_C */
 
 #if defined(MBEDTLS_SSL_TLS_C)

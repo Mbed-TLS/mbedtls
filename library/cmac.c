@@ -60,11 +60,15 @@
 #include <stdlib.h>
 #define mbedtls_calloc     calloc
 #define mbedtls_free       free
+#endif /* MBEDTLS_PLATFORM_C */
 #if defined(MBEDTLS_SELF_TEST)
+#include <mbedtls/aes.h>
+#include <mbedtls/des.h>
+#if !defined(MBEDTLS_PLATFORM_C)
 #include <stdio.h>
 #define mbedtls_printf     printf
-#endif /* MBEDTLS_SELF_TEST */
 #endif /* MBEDTLS_PLATFORM_C */
+#endif /* MBEDTLS_SELF_TEST */
 
 #if !defined(MBEDTLS_CMAC_ALT) || defined(MBEDTLS_SELF_TEST)
 
@@ -798,8 +802,15 @@ static int cmac_test_subkeys( int verbose,
         if( ( ret = mbedtls_cipher_setkey( &ctx, key, keybits,
                                        MBEDTLS_ENCRYPT ) ) != 0 )
         {
-            if( verbose != 0 )
-                mbedtls_printf( "test execution failed\n" );
+            if ( ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE ) ||
+                 ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE ) )
+            {
+                ret = 0;
+                if( verbose != 0 )
+                    mbedtls_printf( "test execution skipped\n" );
+            }
+            else if( verbose != 0 )
+                     mbedtls_printf( "test execution failed\n" );
 
             goto cleanup;
         }
@@ -869,8 +880,17 @@ static int cmac_test_wth_cipher( int verbose,
         if( ( ret = mbedtls_cipher_cmac( cipher_info, key, keybits, messages,
                                          message_lengths[i], output ) ) != 0 )
         {
-            if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
+            if ( ( ret == MBEDTLS_ERR_CMAC_FEATURE_UNAVAILABLE) ||
+                 ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE) ||
+                 ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE) )
+            {
+                ret = 0;
+                if( verbose != 0 )
+                    mbedtls_printf( "skipped\n" );
+            }
+            else if( verbose != 0 )
+                     mbedtls_printf( "failed\n" );
+
             goto exit;
         }
 
@@ -904,9 +924,16 @@ static int test_aes128_cmac_prf( int verbose )
         if( ret != 0 ||
             memcmp( output, PRFT[i], MBEDTLS_AES_BLOCK_SIZE ) != 0 )
         {
-
-            if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
+            if ( ( ret == MBEDTLS_ERR_CMAC_FEATURE_UNAVAILABLE) ||
+                 ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE) ||
+                 ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE) )
+            {
+                ret = 0;
+                if( verbose != 0 )
+                    mbedtls_printf( "skipped\n" );
+             }
+             else if( verbose != 0 )
+                      mbedtls_printf( "failed\n" );
 
             return( ret );
         }

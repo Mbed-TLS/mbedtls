@@ -48,6 +48,7 @@
 #include <stdio.h>
 #define mbedtls_printf printf
 #endif /* MBEDTLS_PLATFORM_C */
+#include "mbedtls/aes.h"
 #endif /* MBEDTLS_SELF_TEST && MBEDTLS_AES_C */
 
 #if !defined(MBEDTLS_CCM_ALT)
@@ -432,7 +433,17 @@ int mbedtls_ccm_self_test( int verbose )
 
     mbedtls_ccm_init( &ctx );
 
-    if( mbedtls_ccm_setkey( &ctx, MBEDTLS_CIPHER_ID_AES, key, 8 * sizeof key ) != 0 )
+    ret = mbedtls_ccm_setkey( &ctx, MBEDTLS_CIPHER_ID_AES, key, 8 * sizeof key );
+    if( ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE) ||
+        ( ret == MBEDTLS_ERR_CCM_FEATURE_UNAVAILABLE) )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "  CCM: skipped\n" );
+
+        return( 0 );
+    }
+
+    if( ret != 0 )
     {
         if( verbose != 0 )
             mbedtls_printf( "  CCM: setup failed" );

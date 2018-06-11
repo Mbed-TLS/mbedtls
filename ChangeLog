@@ -11,6 +11,9 @@ Bugfix
    * Fix redundant declaration of mbedtls_ssl_list_ciphersuites. Raised by
      TrinityTonic. #1359.
 
+Changes
+   * Support TLS testing in out-of-source builds using cmake.
+
 = mbed TLS 2.1.12 branch released 2018-04-30
 
 Security

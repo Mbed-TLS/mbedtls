@@ -1061,11 +1061,9 @@ static int psa_cmac_start( psa_mac_operation_t *operation,
 
 static int psa_hmac_start( psa_mac_operation_t *operation,
                            psa_key_type_t key_type,
-                           size_t key_bits,
                            key_slot_t *slot,
                            psa_algorithm_t alg )
 {
-    unsigned char sum[PSA_CRYPTO_MD_MAX_SIZE];
     unsigned char ipad[PSA_CRYPTO_MD_BLOCK_SIZE];
     unsigned char *opad = operation->ctx.hmac.hmac_ctx;
     size_t i;
@@ -1073,7 +1071,6 @@ static int psa_hmac_start( psa_mac_operation_t *operation,
         PSA_HASH_BLOCK_SIZE( ( PSA_ALG_HMAC_HASH( alg ) ) );
     unsigned int digest_size =
         PSA_HASH_FINAL_SIZE( ( PSA_ALG_HMAC_HASH( alg ) ) );
-    uint8_t* key_ptr = slot->data.raw.data;
     size_t key_length = slot->data.raw.bytes;
     psa_status_t status;
 
@@ -1091,27 +1088,31 @@ static int psa_hmac_start( psa_mac_operation_t *operation,
     if( status != PSA_SUCCESS )
         return( status );
 
-    if( key_bits / 8 > block_size )
+    if( key_length > block_size )
     {
         status = psa_hash_update( &operation->ctx.hmac.hash_ctx,
-                                  key_ptr, slot->data.raw.bytes);
+                                  slot->data.raw.data, slot->data.raw.bytes );
         if( status != PSA_SUCCESS )
             return( status );
         status = psa_hash_finish( &operation->ctx.hmac.hash_ctx,
-                                  sum, sizeof( sum ), &key_length );
+                                  ipad, sizeof( ipad ), &key_length );
         if( status != PSA_SUCCESS )
             return( status );
-        key_ptr = sum;
     }
+    else
+        memcpy( ipad, slot->data.raw.data, slot->data.raw.bytes );
 
-    memset( ipad, 0x36, block_size );
-    memset( opad, 0x5C, block_size );
-
+    /* ipad contains the key followed by garbage. Xor and fill with 0x36
+     * to create the ipad value. */
     for( i = 0; i < key_length; i++ )
-    {
-        ipad[i] = ipad[i] ^ key_ptr[i];
-        opad[i] = opad[i] ^ key_ptr[i];
-    }
+        ipad[i] ^= 0x36;
+    memset( ipad + key_length, 0x36, block_size - key_length );
+
+    /* Copy the key material from ipad to opad, flipping the requisite bits,
+     * and filling the rest of opad with the requisite constant. */
+    for( i = 0; i < key_length; i++ )
+        opad[i] = ipad[i] ^ 0x36 ^ 0x5C;
+    memset( opad + key_length, 0x5C, block_size - key_length );
 
     status = psa_hash_start( &operation->ctx.hmac.hash_ctx,
                              PSA_ALG_HMAC_HASH( alg ) );
@@ -1122,8 +1123,6 @@ static int psa_hmac_start( psa_mac_operation_t *operation,
                               block_size );
 
 cleanup:
-    if( key_bits / 8 > (size_t) block_size )
-        mbedtls_zeroize( sum, key_length );
     mbedtls_zeroize( ipad, key_length );
     /* opad is in the context. It needs to stay in memory if this function
      * succeeds, and it will be wiped by psa_mac_abort() called from
@@ -1184,9 +1183,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
         default:
 #if defined(MBEDTLS_MD_C)
             if( PSA_ALG_IS_HMAC( alg ) )
-                status = psa_hmac_start( operation,
-                                         key_type, key_bits, slot,
-                                         alg );
+                status = psa_hmac_start( operation, key_type, slot, alg );
             else
 #endif /* MBEDTLS_MD_C */
                 return( PSA_ERROR_NOT_SUPPORTED );

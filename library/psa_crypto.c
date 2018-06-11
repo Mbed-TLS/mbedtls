@@ -1116,10 +1116,19 @@ static int psa_hmac_start( psa_mac_operation_t *operation,
     status = psa_hash_start( &operation->ctx.hmac.hash_ctx,
                              PSA_ALG_HMAC_HASH( alg ) );
     if( status != PSA_SUCCESS )
-        return( status );
+        goto cleanup;
 
     status = psa_hash_update( &operation->ctx.hmac.hash_ctx, ipad,
                               block_size );
+
+cleanup:
+    if( key_bits / 8 > (size_t) block_size )
+        mbedtls_zeroize( sum, key_length );
+    mbedtls_zeroize( ipad, key_length );
+    /* opad is in the context. It needs to stay in memory if this function
+     * succeeds, and it will be wiped by psa_mac_abort() called from
+     * psa_mac_start in the error case. */
+
     return( status );
 }
 
@@ -1188,7 +1197,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
      * context may contain data that needs to be wiped on error. */
     if( status != PSA_SUCCESS )
     {
-        psa_mac_abort(operation);
+        psa_mac_abort( operation );
     }
 
     else
@@ -1288,26 +1297,27 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
                                           sizeof( tmp ), &hash_size );
                 if( status != PSA_SUCCESS )
                     goto cleanup;
+                /* From here on, tmp needs to be wiped. */
 
                 status = psa_hash_start( &operation->ctx.hmac.hash_ctx,
                                          PSA_ALG_HMAC_HASH( operation->alg ) );
                 if( status != PSA_SUCCESS )
-                    goto cleanup;
+                    goto hmac_cleanup;
 
                 status = psa_hash_update( &operation->ctx.hmac.hash_ctx, opad,
                                           block_size );
                 if( status != PSA_SUCCESS )
-                    goto cleanup;
+                    goto hmac_cleanup;
 
                 status = psa_hash_update( &operation->ctx.hmac.hash_ctx, tmp,
                                           hash_size);
                 if( status != PSA_SUCCESS )
-                    goto cleanup;
+                    goto hmac_cleanup;
 
                 status = psa_hash_finish( &operation->ctx.hmac.hash_ctx, mac,
                                           mac_size, mac_length );
-                if( status != PSA_SUCCESS )
-                    goto cleanup;
+            hmac_cleanup:
+                mbedtls_zeroize( tmp, hash_size );
             }
             else
 #endif /* MBEDTLS_MD_C */

@@ -1201,9 +1201,9 @@ void key_policy( int usage_arg, int alg_arg )
     unsigned char key[32] = {0};
     psa_key_policy_t policy_set = {0};
     psa_key_policy_t policy_get = {0};
-        
+
     memset( key, 0x2a, sizeof( key ) );
- 
+
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
     psa_key_policy_init(& policy_set );
@@ -1240,7 +1240,7 @@ void key_policy_fail( int usage_arg, int alg_arg, int expected_status, char *key
     size_t signature_length = 0;
     psa_key_policy_t policy = {0};
     int actual_status = PSA_SUCCESS;
- 
+
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
     psa_key_policy_init( &policy );
@@ -1255,11 +1255,11 @@ void key_policy_fail( int usage_arg, int alg_arg, int expected_status, char *key
         TEST_ASSERT( keypair != NULL );
         TEST_ASSERT( psa_import_key( key_slot, PSA_KEY_TYPE_RSA_KEYPAIR,
                                 keypair, key_size ) == PSA_SUCCESS );
-        actual_status = psa_asymmetric_sign( key_slot, 
-                        ( psa_algorithm_t )alg_arg, NULL, 0, NULL, 0, 
+        actual_status = psa_asymmetric_sign( key_slot,
+                        ( psa_algorithm_t )alg_arg, NULL, 0, NULL, 0,
                         NULL, 0, &signature_length );
     }
-    
+
     if( usage_arg & PSA_KEY_USAGE_SIGN )
     {
         keypair = unhexify_alloc( key_hex, &key_size );
@@ -1288,19 +1288,19 @@ void key_lifetime( int lifetime_arg )
     psa_key_lifetime_t lifetime_get;
 
     memset( key, 0x2a, sizeof( key ) );
- 
+
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_set_key_lifetime( key_slot, 
+    TEST_ASSERT( psa_set_key_lifetime( key_slot,
                                  lifetime_set ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( key_slot, key_type,
                                  key, sizeof( key ) ) == PSA_SUCCESS );
-    
-    TEST_ASSERT( psa_get_key_lifetime( key_slot, 
+
+    TEST_ASSERT( psa_get_key_lifetime( key_slot,
                                  &lifetime_get ) == PSA_SUCCESS );
 
-    TEST_ASSERT( lifetime_get == lifetime_set ); 
+    TEST_ASSERT( lifetime_get == lifetime_set );
 
 exit:
     psa_destroy_key( key_slot );
@@ -1323,7 +1323,7 @@ void key_lifetime_set_fail( int key_slot_arg, int lifetime_arg, int expected_sta
 
     if( actual_status == PSA_SUCCESS )
         actual_status = psa_set_key_lifetime( key_slot_arg, lifetime_set );
-    
+
     TEST_ASSERT( expected_status == actual_status );
 
 exit:
@@ -1375,6 +1375,305 @@ exit:
     mbedtls_free( key_data );
     mbedtls_free( hash_data );
     mbedtls_free( signature_data );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void asymmetric_verify_fail( int key_type_arg, char *key_hex,
+                         int alg_arg, char *hash_hex, char *signature_hex,
+                          int expected_status_arg )
+{
+
+    int slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *key_data = NULL;
+    size_t key_size;
+    unsigned char *hash_data = NULL;
+    size_t hash_size;
+    unsigned char *signature_data = NULL;
+    size_t signature_size;
+    psa_status_t actual_status;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_policy_t policy = {0};
+
+    key_data = unhexify_alloc( key_hex, &key_size );
+    TEST_ASSERT( key_data != NULL );
+    hash_data = unhexify_alloc( hash_hex, &hash_size );
+    TEST_ASSERT( hash_data != NULL );
+    signature_data = unhexify_alloc( signature_hex, &signature_size );
+    TEST_ASSERT( signature_data != NULL );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_VERIFY, alg_arg );
+
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( slot, key_type,
+                                 key_data, key_size ) == PSA_SUCCESS );
+
+    actual_status = psa_asymmetric_verify( slot, alg,
+                                        hash_data, hash_size,
+                                        NULL, 0,
+                                        signature_data, signature_size );
+
+
+    TEST_ASSERT( actual_status == expected_status );
+
+exit:
+    psa_destroy_key( slot );
+    mbedtls_free( key_data );
+    mbedtls_free( hash_data );
+    mbedtls_free( signature_data );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE */
+void asymmetric_encrypt_decrypt( int key_type_arg, char *key_hex,
+                                 int alg_arg, char *input_hex )
+{
+    int slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *key_data = NULL;
+    size_t key_size;
+    unsigned char *input_data = NULL;
+    size_t input_size;
+    unsigned char *output = NULL;
+    size_t output_size = 0;
+    size_t output_length = 0;
+    unsigned char *output2 = NULL;
+    size_t output2_size = 0;
+    size_t output2_length = 0;
+    psa_key_policy_t policy = {0};
+
+    key_data = unhexify_alloc( key_hex, &key_size );
+    TEST_ASSERT( key_data != NULL );
+    output_size = key_size;
+    output2_size = key_size;
+    input_data = unhexify_alloc( input_hex, &input_size );
+    TEST_ASSERT( input_data != NULL );
+    output = mbedtls_calloc( 1, output_size );
+    TEST_ASSERT( output != NULL );
+    output2 = mbedtls_calloc( 1, output2_size );
+    TEST_ASSERT( output2 != NULL );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT, alg_arg );
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( slot, key_type,
+                                 key_data, key_size ) == PSA_SUCCESS );
+
+    /* We test encryption by checking that encrypt-then-decrypt gives back
+     * the original plaintext because of the non-optional random
+     * part of encryption process which prevents using fixed vectors. */
+    TEST_ASSERT( psa_asymmetric_encrypt(slot, alg,
+                                    input_data,
+                                    input_size,
+                                    NULL, 0,
+                                    output,
+                                    output_size,
+                                    &output_length) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_asymmetric_decrypt(slot, alg,
+                                    output,
+                                    output_length,
+                                    NULL, 0,
+                                    output2,
+                                    output2_size,
+                                    &output2_length) == PSA_SUCCESS );
+    TEST_ASSERT( memcmp( input_data, output2, input_size ) == 0 );
+
+exit:
+    psa_destroy_key( slot );
+    mbedtls_free( key_data );
+    mbedtls_free( input_data );
+    mbedtls_free( output);
+    mbedtls_free( output2);
+    mbedtls_psa_crypto_free( );
+
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE */
+void asymmetric_encrypt_fail( int key_type_arg, char *key_hex,
+                            int alg_arg, char *input_hex,
+                            int expected_status_arg )
+{
+
+
+    int slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *key_data = NULL;
+    size_t key_size;
+    unsigned char *input_data = NULL;
+    size_t input_size;
+    unsigned char *output = NULL;
+    size_t output_size = 0;
+    size_t output_length = 0;
+    psa_status_t actual_status;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_policy_t policy = {0};
+
+    key_data = unhexify_alloc( key_hex, &key_size );
+    TEST_ASSERT( key_data != NULL );
+    output_size = key_size;
+    input_data = unhexify_alloc( input_hex, &input_size );
+    TEST_ASSERT( input_data != NULL );
+    output = mbedtls_calloc( 1, output_size );
+    TEST_ASSERT( output != NULL );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT, alg_arg );
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( slot, key_type,
+                                 key_data, key_size ) == PSA_SUCCESS );
+
+    actual_status = psa_asymmetric_encrypt(slot, alg,
+                                    input_data,
+                                    input_size,
+                                    NULL, 0,
+                                    output,
+                                    output_size,
+                                    &output_length);
+    TEST_ASSERT( actual_status == expected_status );
+
+exit:
+    psa_destroy_key( slot );
+    mbedtls_free( key_data );
+    mbedtls_free( input_data );
+    mbedtls_free( output);
+    mbedtls_psa_crypto_free( );
+
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void asymmetric_decrypt( int key_type_arg, char *key_hex,
+                         int alg_arg, char *input_hex,
+                         char *expected_hex, int expected_size )
+{
+    int slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *key_data = NULL;
+    size_t key_size;
+    unsigned char *input_data = NULL;
+    size_t input_size;
+    unsigned char *expected_data = NULL;
+    size_t expected_data_size;
+    unsigned char *output = NULL;
+    size_t output_size = 0;
+    size_t output_length = 0;
+    psa_key_policy_t policy = {0};
+
+    key_data = unhexify_alloc( key_hex, &key_size );
+    TEST_ASSERT( key_data != NULL );
+    output_size = key_size;
+    input_data = unhexify_alloc( input_hex, &input_size );
+    TEST_ASSERT( input_data != NULL );
+    expected_data = unhexify_alloc( expected_hex, &expected_data_size );
+    TEST_ASSERT( expected_data != NULL );
+    output = mbedtls_calloc( 1, output_size );
+    TEST_ASSERT( output != NULL );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DECRYPT, alg_arg );
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( slot, key_type,
+                                 key_data, key_size ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_asymmetric_decrypt( slot, alg,
+                                    input_data,
+                                    input_size,
+                                    NULL, 0,
+                                    output,
+                                    output_size,
+                                    &output_length) == PSA_SUCCESS );
+    TEST_ASSERT( ((size_t)expected_size) == output_length );
+    TEST_ASSERT( memcmp( expected_data, output, (output_length) ) == 0 );
+
+exit:
+    psa_destroy_key( slot );
+    mbedtls_free( key_data );
+    mbedtls_free( input_data );
+    mbedtls_free( expected_data );
+    mbedtls_free( output);
+    mbedtls_psa_crypto_free( );
+
+
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE */
+void asymmetric_decrypt_fail( int key_type_arg, char *key_hex,
+                            int alg_arg, char *input_hex,
+                            int expected_status_arg  )
+{
+
+    int slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    unsigned char *key_data = NULL;
+    size_t key_size;
+    unsigned char *input_data = NULL;
+    size_t input_size;
+    unsigned char *output = NULL;
+    size_t output_size = 0;
+    size_t output_length = 0;
+    psa_status_t actual_status;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_policy_t policy = {0};
+
+    key_data = unhexify_alloc( key_hex, &key_size );
+    TEST_ASSERT( key_data != NULL );
+    output_size = key_size;
+    input_data = unhexify_alloc( input_hex, &input_size );
+    TEST_ASSERT( input_data != NULL );
+    output = mbedtls_calloc( 1, output_size );
+    TEST_ASSERT( output != NULL );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DECRYPT, alg_arg );
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( slot, key_type,
+                                 key_data, key_size ) == PSA_SUCCESS );
+
+    actual_status = psa_asymmetric_decrypt(slot, alg,
+                                    input_data,
+                                    input_size,
+                                    NULL, 0,
+                                    output,
+                                    output_size,
+                                    &output_length);
+    TEST_ASSERT( actual_status == expected_status );
+
+exit:
+    psa_destroy_key( slot );
+    mbedtls_free( key_data );
+    mbedtls_free( input_data );
+    mbedtls_free( output);
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

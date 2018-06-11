@@ -997,73 +997,8 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
         (alg) == PSA_ALG_SHA_512 ? 128 :        \
         0)
 
-static psa_status_t get_block_size_from_hash_algorithm( psa_algorithm_t alg, unsigned int *block_size, unsigned int *digest_size)
-{
-    *block_size = 0;
-    *digest_size = 0;
-
-    switch( PSA_ALG_HMAC_HASH( alg ) )
-    {
-#if defined(MBEDTLS_MD2_C)
-        case PSA_ALG_MD2:
-            *block_size = 16;
-            *digest_size = 16;
-            break;
-#endif
-#if defined(MBEDTLS_MD4_C)
-        case PSA_ALG_MD4:
-            *block_size = 64;
-            *digest_size = 16;
-            break;
-#endif
-#if defined(MBEDTLS_MD5_C)
-        case PSA_ALG_MD5:
-            *block_size = 64;
-            *digest_size = 16;
-            break;
-#endif
-#if defined(MBEDTLS_RIPEMD160_C)
-        case PSA_ALG_RIPEMD160:
-            *block_size = 64;
-            *digest_size = 20;
-            break;
-#endif
-#if defined(MBEDTLS_SHA1_C)
-        case PSA_ALG_SHA_1:
-            *block_size = 64;
-            *digest_size = 20;
-            break;
-#endif
-#if defined(MBEDTLS_SHA256_C)
-        case PSA_ALG_SHA_224:
-            *block_size = 64;
-            *digest_size = 28;
-            break;
-        case PSA_ALG_SHA_256:
-            *block_size = 64;
-            *digest_size = 32;
-            break;
-#endif
-#if defined(MBEDTLS_SHA512_C)
-        case PSA_ALG_SHA_384:
-            *block_size = 128;
-            *digest_size = 48;
-            break;
-        case PSA_ALG_SHA_512:
-            *block_size = 128;
-            *digest_size = 64;
-            break;
-#endif
-        default:
-            return( PSA_ERROR_NOT_SUPPORTED );
-    }
-return ( PSA_SUCCESS );
-}
-
-
 psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
 {
-    psa_status_t status;
     switch( operation->alg )
     {
 #if defined(MBEDTLS_CMAC_C)

@@ -1,0 +1,31 @@
+/* BEGIN_HEADER */
+#include "mbedtls/padlock.h"
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PADLOCK_C:MBEDTLS_HAVE_X86
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void padlock_invalid_param( )
+{
+    mbedtls_aes_context aes_ctx;
+    unsigned char arbitrary_buffer[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+    int arbitrary_int = 0;
+    size_t arbitrary_size_t = 0;
+
+    TEST_ASSERT( mbedtls_padlock_xcryptecb( NULL, arbitrary_int, arbitrary_buffer,
+        arbitrary_buffer ) == MBEDTLS_ERR_PADLOCK_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_padlock_xcryptcbc( NULL, arbitrary_int,
+        arbitrary_size_t, arbitrary_buffer, arbitrary_buffer, arbitrary_buffer )
+            == MBEDTLS_ERR_PADLOCK_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_padlock_xcryptcbc( &aes_ctx, arbitrary_int,
+        arbitrary_size_t, arbitrary_buffer, NULL, arbitrary_buffer )
+            == MBEDTLS_ERR_PADLOCK_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_padlock_xcryptcbc( &aes_ctx, arbitrary_int,
+        arbitrary_size_t, arbitrary_buffer, arbitrary_buffer, NULL )
+            == MBEDTLS_ERR_PADLOCK_BAD_INPUT_DATA );
+}
+/* END_CASE */

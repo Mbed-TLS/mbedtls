@@ -268,6 +268,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "DHM - DHM hardware accelerator failed" );
         if( use_ret == -(MBEDTLS_ERR_DHM_SET_GROUP_FAILED) )
             mbedtls_snprintf( buf, buflen, "DHM - Setting the modulus and generator failed" );
+        if( use_ret == -(MBEDTLS_ERR_DHM_FEATURE_UNAVAILABLE) )
+            mbedtls_snprintf( buf, buflen, "DHM - Feature not available" );
 #endif /* MBEDTLS_DHM_C */
 
 #if defined(MBEDTLS_ECP_C)
@@ -403,6 +405,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "RSA - The implementation does not offer the requested operation, for example, because of security violations or lack of functionality" );
         if( use_ret == -(MBEDTLS_ERR_RSA_HW_ACCEL_FAILED) )
             mbedtls_snprintf( buf, buflen, "RSA - RSA hardware accelerator failed" );
+        if( use_ret == -(MBEDTLS_ERR_RSA_FEATURE_UNAVAILABLE) )
+            mbedtls_snprintf( buf, buflen, "RSA - Feature not available. For example, an unsupported RSA key size" );
 #endif /* MBEDTLS_RSA_C */
 
 #if defined(MBEDTLS_SSL_TLS_C)
@@ -677,6 +681,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "CAMELLIA - Invalid data input length" );
     if( use_ret == -(MBEDTLS_ERR_CAMELLIA_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "CAMELLIA - Camellia hardware accelerator failed" );
+    if( use_ret == -(MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE) )
+        mbedtls_snprintf( buf, buflen, "CAMELLIA - Feature not available. For example, an unsupported key size" );
 #endif /* MBEDTLS_CAMELLIA_C */
 
 #if defined(MBEDTLS_CCM_C)
@@ -686,6 +692,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "CCM - Authenticated decryption failed" );
     if( use_ret == -(MBEDTLS_ERR_CCM_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "CCM - CCM hardware accelerator failed" );
+    if( use_ret == -(MBEDTLS_ERR_CCM_FEATURE_UNAVAILABLE) )
+        mbedtls_snprintf( buf, buflen, "CCM - Feature not available" );
 #endif /* MBEDTLS_CCM_C */
 
 #if defined(MBEDTLS_CHACHA20_C)
@@ -707,6 +715,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 #if defined(MBEDTLS_CMAC_C)
     if( use_ret == -(MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "CMAC - CMAC hardware accelerator failed" );
+    if( use_ret == -(MBEDTLS_ERR_CMAC_FEATURE_UNAVAILABLE) )
+        mbedtls_snprintf( buf, buflen, "CMAC - Feature not available" );
 #endif /* MBEDTLS_CMAC_C */
 
 #if defined(MBEDTLS_CTR_DRBG_C)
@@ -725,6 +735,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "DES - The data input has an invalid length" );
     if( use_ret == -(MBEDTLS_ERR_DES_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "DES - DES hardware accelerator failed" );
+    if( use_ret == -(MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE) )
+        mbedtls_snprintf( buf, buflen, "DES - Feature not available. For example, an unsupported cipher mode" );
 #endif /* MBEDTLS_DES_C */
 
 #if defined(MBEDTLS_ENTROPY_C)
@@ -747,6 +759,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "GCM - GCM hardware accelerator failed" );
     if( use_ret == -(MBEDTLS_ERR_GCM_BAD_INPUT) )
         mbedtls_snprintf( buf, buflen, "GCM - Bad input parameters to function" );
+    if( use_ret == -(MBEDTLS_ERR_GCM_FEATURE_UNAVAILABLE) )
+        mbedtls_snprintf( buf, buflen, "GCM - Feature not available" );
 #endif /* MBEDTLS_GCM_C */
 
 #if defined(MBEDTLS_HKDF_C)
@@ -864,6 +878,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "XTEA - The data input has an invalid length" );
     if( use_ret == -(MBEDTLS_ERR_XTEA_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "XTEA - XTEA hardware accelerator failed" );
+    if( use_ret == -(MBEDTLS_ERR_XTEA_FEATURE_UNAVAILABLE) )
+        mbedtls_snprintf( buf, buflen, "XTEA - Feature not available. For example, an unsupported cipher mode" );
 #endif /* MBEDTLS_XTEA_C */
     // END generated code
 

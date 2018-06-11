@@ -43,6 +43,7 @@
 #define MBEDTLS_ERR_GCM_AUTH_FAILED                       -0x0012  /**< Authenticated decryption failed. */
 #define MBEDTLS_ERR_GCM_HW_ACCEL_FAILED                   -0x0013  /**< GCM hardware accelerator failed. */
 #define MBEDTLS_ERR_GCM_BAD_INPUT                         -0x0014  /**< Bad input parameters to function. */
+#define MBEDTLS_ERR_GCM_FEATURE_UNAVAILABLE               -0x0015  /**< Feature not available. */
 
 #ifdef __cplusplus
 extern "C" {

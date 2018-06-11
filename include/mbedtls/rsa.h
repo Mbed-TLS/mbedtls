@@ -57,7 +57,7 @@
 #define MBEDTLS_ERR_RSA_RNG_FAILED                        -0x4480  /**< The random generator failed to generate non-zeros. */
 #define MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION             -0x4500  /**< The implementation does not offer the requested operation, for example, because of security violations or lack of functionality. */
 #define MBEDTLS_ERR_RSA_HW_ACCEL_FAILED                   -0x4580  /**< RSA hardware accelerator failed. */
-
+#define MBEDTLS_ERR_RSA_FEATURE_UNAVAILABLE               -0x4600  /**< Feature not available. For example, an unsupported RSA key size. */
 /*
  * RSA constants
  */

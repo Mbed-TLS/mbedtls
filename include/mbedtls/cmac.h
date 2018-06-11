@@ -34,7 +34,8 @@
 extern "C" {
 #endif
 
-#define MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED -0x007A  /**< CMAC hardware accelerator failed. */
+#define MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED     -0x007A  /**< CMAC hardware accelerator failed. */
+#define MBEDTLS_ERR_CMAC_FEATURE_UNAVAILABLE -0x007B  /**< Feature not available. */
 
 #define MBEDTLS_AES_BLOCK_SIZE          16
 #define MBEDTLS_DES3_BLOCK_SIZE         8

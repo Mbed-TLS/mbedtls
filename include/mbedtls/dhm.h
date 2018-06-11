@@ -86,6 +86,7 @@
 #define MBEDTLS_ERR_DHM_FILE_IO_ERROR                     -0x3480  /**< Read or write of file failed. */
 #define MBEDTLS_ERR_DHM_HW_ACCEL_FAILED                   -0x3500  /**< DHM hardware accelerator failed. */
 #define MBEDTLS_ERR_DHM_SET_GROUP_FAILED                  -0x3580  /**< Setting the modulus and generator failed. */
+#define MBEDTLS_ERR_DHM_FEATURE_UNAVAILABLE               -0x3600  /**< Feature not available. */
 
 #ifdef __cplusplus
 extern "C" {

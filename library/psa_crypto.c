@@ -1067,10 +1067,10 @@ static int psa_hmac_start( psa_mac_operation_t *operation,
 {
     unsigned char sum[PSA_CRYPTO_MD_MAX_SIZE];
     unsigned char ipad[PSA_CRYPTO_MD_BLOCK_SIZE];
-    unsigned char *opad;
+    unsigned char *opad = operation->ctx.hmac.hmac_ctx;
     size_t i;
     size_t sum_size = MBEDTLS_MD_MAX_SIZE;
-    unsigned int block_size =
+    size_t block_size =
         PSA_HASH_BLOCK_SIZE( ( PSA_ALG_HMAC_HASH( alg ) ) );
     unsigned int digest_size =
         PSA_HASH_FINAL_SIZE( ( PSA_ALG_HMAC_HASH( alg ) ) );
@@ -1092,7 +1092,7 @@ static int psa_hmac_start( psa_mac_operation_t *operation,
     if( status != PSA_SUCCESS )
         return( status );
 
-    if( key_bits / 8 > (size_t) block_size )
+    if( key_bits / 8 > block_size )
     {
         status = psa_hash_update( &operation->ctx.hmac.hash_ctx,
                                   key_ptr, slot->data.raw.bytes);
@@ -1107,15 +1107,13 @@ static int psa_hmac_start( psa_mac_operation_t *operation,
         key_ptr = sum;
     }
 
-    opad = (unsigned char *) operation->ctx.hmac.hmac_ctx;
-
     memset( ipad, 0x36, block_size );
     memset( opad, 0x5C, block_size );
 
     for( i = 0; i < key_length; i++ )
     {
-        ipad[i] = (unsigned char) ( ipad[i] ^ key_ptr[i] );
-        opad[i] = (unsigned char) ( opad[i] ^ key_ptr[i] );
+        ipad[i] = ipad[i] ^ key_ptr[i];
+        opad[i] = opad[i] ^ key_ptr[i];
     }
 
     status = psa_hash_start( &operation->ctx.hmac.hash_ctx,
@@ -1281,15 +1279,13 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
             if( PSA_ALG_IS_HMAC( operation->alg ) )
             {
                 unsigned char tmp[MBEDTLS_MD_MAX_SIZE];
-                unsigned char *opad;
+                unsigned char *opad = operation->ctx.hmac.hmac_ctx;
                 size_t hash_size = 0;
                 unsigned int block_size =
                 PSA_HASH_BLOCK_SIZE( ( PSA_ALG_HMAC_HASH( operation->alg ) ) );
 
                 if( block_size == 0 )
                     return( PSA_ERROR_NOT_SUPPORTED );
-
-                opad = (unsigned char *) operation->ctx.hmac.hmac_ctx;
 
                 status = psa_hash_finish( &operation->ctx.hmac.hash_ctx, tmp,
                                           sizeof( tmp ), &hash_size );

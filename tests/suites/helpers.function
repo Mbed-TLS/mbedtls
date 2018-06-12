@@ -99,11 +99,52 @@ typedef UINT32 uint32_t;
 /*----------------------------------------------------------------------------*/
 /* Global variables */
 
-static int test_errors = 0;
+
+static struct
+{
+    int failed;
+    const char *test;
+    const char *filename;
+    int line_no;
+}
+test_info;
+
+#if defined(MBEDTLS_PLATFORM_C)
+mbedtls_platform_context platform_ctx;
+#endif
+
+/*----------------------------------------------------------------------------*/
+/* Helper flags for complex dependencies */
+
+/* Indicates whether we expect mbedtls_entropy_init
+ * to initialize some strong entropy source. */
+#if defined(MBEDTLS_TEST_NULL_ENTROPY) ||             \
+    ( !defined(MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES) && \
+      ( !defined(MBEDTLS_NO_PLATFORM_ENTROPY)  ||     \
+         defined(MBEDTLS_HAVEGE_C)             ||     \
+         defined(MBEDTLS_ENTROPY_HARDWARE_ALT) ||     \
+         defined(ENTROPY_NV_SEED) ) )
+#define ENTROPY_HAVE_STRONG
+#endif
 
 
 /*----------------------------------------------------------------------------*/
 /* Helper Functions */
+static int platform_setup()
+{
+    int ret = 0;
+#if defined(MBEDTLS_PLATFORM_C)
+    ret = mbedtls_platform_setup( &platform_ctx );
+#endif /* MBEDTLS_PLATFORM_C */
+    return( ret );
+}
+
+static void platform_teardown()
+{
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif /* MBEDTLS_PLATFORM_C */
+}
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 static int redirect_output( FILE** out_stream, const char* path )
@@ -395,10 +436,8 @@ static int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len )
 
 static void test_fail( const char *test, int line_no, const char* filename )
 {
-    test_errors++;
-    if( test_errors == 1 )
-        mbedtls_fprintf( stdout, "FAILED\n" );
-    mbedtls_fprintf( stdout, "  %s\n  at line %d, %s\n", test, line_no,
-                        filename );
+    test_info.failed = 1;
+    test_info.test = test;
+    test_info.line_no = line_no;
+    test_info.filename = filename;
 }
-

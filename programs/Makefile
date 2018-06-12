@@ -35,7 +35,7 @@ ifdef SHARED
 SHARED_SUFFIX=.$(DLEXT)
 endif
 else
-DLEXT=so
+DLEXT ?= so
 EXEXT=
 SHARED_SUFFIX=
 endif
@@ -67,6 +67,7 @@ APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 	random/gen_random_ctr_drbg$(EXEXT)				\
 	test/ssl_cert_test$(EXEXT)	test/benchmark$(EXEXT)		\
 	test/selftest$(EXEXT)		test/udp_proxy$(EXEXT)		\
+	test/zeroize$(EXEXT)						\
 	util/pem2der$(EXEXT)		util/strerror$(EXEXT)		\
 	x509/cert_app$(EXEXT)		x509/crl_app$(EXEXT)		\
 	x509/cert_req$(EXEXT)		x509/cert_write$(EXEXT)		\
@@ -248,6 +249,10 @@ test/selftest$(EXEXT): test/selftest.c $(DEP)
 test/udp_proxy$(EXEXT): test/udp_proxy.c $(DEP)
 	echo "  CC    test/udp_proxy.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/udp_proxy.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test/zeroize$(EXEXT): test/zeroize.c $(DEP)
+	echo "  CC    test/zeroize.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/zeroize.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 util/pem2der$(EXEXT): util/pem2der.c $(DEP)
 	echo "  CC    util/pem2der.c"

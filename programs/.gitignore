@@ -47,6 +47,7 @@ test/ecp-bench
 test/selftest
 test/ssl_cert_test
 test/udp_proxy
+test/zeroize
 util/pem2der
 util/strerror
 x509/cert_app

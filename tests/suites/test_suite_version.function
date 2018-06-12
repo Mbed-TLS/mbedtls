@@ -64,7 +64,7 @@ void check_runtime_version( char *version_str )
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_VERSION_FEATURES */
 void check_feature( char *feature, int result )
 {
     int check = mbedtls_version_check_feature( feature );

@@ -49,6 +49,27 @@
 #       file name is used to replace the symbol 'TESTCASE_FILENAME' in the main
 #       code file above.
 #
+#       A test data file consists of a sequence of paragraphs separated by
+#       a single empty line. Line breaks may be in Unix (LF) or Windows (CRLF)
+#       format. Lines starting with the character '#' are ignored
+#       (the parser behaves as if they were not present).
+#
+#       Each paragraph describes one test case and must consist of: (1) one
+#       line which is the test case name; (2) an optional line starting with
+#       the 11-character prefix "depends_on:"; (3) a line containing the test
+#       function to execute and its parameters.
+#
+#       A depends_on: line consists of a list of compile-time options
+#       separated by the character ':', with no whitespace. The test case
+#       is executed only if this compilation option is enabled in config.h.
+#
+#       The last line of each paragraph contains a test function name and
+#       a list of parameters separated by the character ':'. Running the
+#       test case calls this function with the specified parameters. Each
+#       parameter may either be an integer written in decimal or hexadecimal,
+#       or a string surrounded by double quotes which may not contain the
+#       ':' character.
+#
 
 use strict;
 
@@ -312,7 +333,7 @@ END
 # and make check code
 my $dep_check_code;
 
-my @res = $test_data =~ /^depends_on:([\w:]+)/msg;
+my @res = $test_data =~ /^depends_on:([!:\w]+)/msg;
 my %case_deps;
 foreach my $deps (@res)
 {
@@ -323,7 +344,23 @@ foreach my $deps (@res)
 }
 while( my ($key, $value) = each(%case_deps) )
 {
-    $dep_check_code .= << "END";
+    if( substr($key, 0, 1) eq "!" )
+    {
+        my $key = substr($key, 1);
+        $dep_check_code .= << "END";
+    if( strcmp( str, "!$key" ) == 0 )
+    {
+#if !defined($key)
+        return( DEPENDENCY_SUPPORTED );
+#else
+        return( DEPENDENCY_NOT_SUPPORTED );
+#endif
+    }
+END
+    }
+    else
+    {
+        $dep_check_code .= << "END";
     if( strcmp( str, "$key" ) == 0 )
     {
 #if defined($key)
@@ -333,6 +370,7 @@ while( my ($key, $value) = each(%case_deps) )
 #endif
     }
 END
+    }
 }
 
 # Make mapping code

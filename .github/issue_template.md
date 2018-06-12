@@ -8,7 +8,7 @@ Note: This is just a template, so feel free to use/remove the unnecessary things
 ## Bug
 
 **OS**  
-mbed-OS|linux|windows|
+Mbed OS|linux|windows|
 
 **mbed TLS build:**  
 Version: x.x.x or git commit id  
@@ -38,4 +38,4 @@ Version:
 
 ## Question
 
-**Please first check for answers in the [mbed TLS knowledge Base](https://tls.mbed.org/kb), and preferebly file an issue in the [mbed TLS support forum](https://tls.mbed.org/discussions)**  
+**Please first check for answers in the [Mbed TLS knowledge Base](https://tls.mbed.org/kb), and preferably file an issue in the [Mbed TLS support forum](https://tls.mbed.org/discussions)**  

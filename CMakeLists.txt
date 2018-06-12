@@ -31,7 +31,7 @@ find_package(Perl)
 if(PERL_FOUND)
 
     # If NULL Entropy is configured, display an appropriate warning
-    execute_process(COMMAND ${PERL_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/config.pl -f ${CMAKE_SOURCE_DIR}/include/mbedtls/config.h get MBEDTLS_TEST_NULL_ENTROPY
+    execute_process(COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.pl -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/config.h get MBEDTLS_TEST_NULL_ENTROPY
                         RESULT_VARIABLE result)
     if(${result} EQUAL 0)
         message(WARNING ${NULL_ENTROPY_WARNING})
@@ -55,6 +55,34 @@ endif()
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
     CACHE STRING "Choose the type of build: None Debug Release Coverage ASan ASanDbg MemSan MemSanDbg Check CheckFull"
     FORCE)
+
+# Create a symbolic link from ${base_name} in the binary directory
+# to the corresponding path in the source directory.
+function(link_to_source base_name)
+    # Get OS dependent path to use in `execute_process`
+    file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${base_name}" link)
+    file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}" target)
+
+    if (NOT EXISTS ${link})
+        if (CMAKE_HOST_UNIX)
+            set(command ln -s ${target} ${link})
+        else()
+            if (IS_DIRECTORY ${target})
+                set(command cmd.exe /c mklink /j ${link} ${target})
+            else()
+                set(command cmd.exe /c mklink /h ${link} ${target})
+            endif()
+        endif()
+
+        execute_process(COMMAND ${command}
+            RESULT_VARIABLE result
+            ERROR_VARIABLE output)
+
+        if (NOT ${result} EQUAL 0)
+            message(FATAL_ERROR "Could not create symbolic link for: ${target} --> ${output}")
+        endif()
+    endif()
+endfunction(link_to_source)
 
 string(REGEX MATCH "Clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER_ID}")
 
@@ -126,8 +154,8 @@ if(ENABLE_PROGRAMS)
 endif()
 
 ADD_CUSTOM_TARGET(apidoc
-    COMMAND doxygen doxygen/mbedtls.doxyfile
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    COMMAND doxygen mbedtls.doxyfile
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doxygen)
 
 if(ENABLE_TESTING)
     enable_testing()
@@ -163,4 +191,13 @@ if(ENABLE_TESTING)
             COMMAND mv DartConfiguration.tcl.bak DartConfiguration.tcl
         )
     endif(UNIX)
+endif()
+
+# Make scripts needed for testing available in an out-of-source build.
+if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+    link_to_source(scripts)
+    # Copy (don't link) DartConfiguration.tcl, needed for memcheck, to
+    # keep things simple with the sed commands in the memcheck target.
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/DartConfiguration.tcl
+                   ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl COPYONLY)
 endif()

@@ -145,7 +145,7 @@ int verify_print( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint
     ret = mbedtls_x509_dn_gets( p, n, &crt->subject );
     MBEDTLS_X509_SAFE_SNPRINTF;
 
-    ret = mbedtls_snprintf( p, n, " - flags 0x%04x\n", *flags );
+    ret = mbedtls_snprintf( p, n, " - flags 0x%08x\n", *flags );
     MBEDTLS_X509_SAFE_SNPRINTF;
 
     ctx->p = p;
@@ -341,6 +341,10 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
 
     if( strcmp( profile_str, "" ) == 0 )
         profile = &mbedtls_x509_crt_profile_default;
+    else if( strcmp( profile_str, "next" ) == 0 )
+        profile = &mbedtls_x509_crt_profile_next;
+    else if( strcmp( profile_str, "suite_b" ) == 0 )
+        profile = &mbedtls_x509_crt_profile_suiteb;
     else if( strcmp( profile_str, "compat" ) == 0 )
         profile = &compat_profile;
     else

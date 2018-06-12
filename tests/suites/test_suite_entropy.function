@@ -163,7 +163,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:ENTROPY_HAVE_STRONG */
 void entropy_func_len( int len, int ret )
 {
     mbedtls_entropy_context ctx;
@@ -224,7 +224,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:ENTROPY_HAVE_STRONG */
 void entropy_threshold( int threshold, int chunk_size, int result )
 {
     mbedtls_entropy_context ctx;
@@ -377,7 +377,7 @@ void entropy_nv_seed( char *read_seed_str )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
+/* BEGIN_CASE depends_on:ENTROPY_HAVE_STRONG:MBEDTLS_SELF_TEST */
 void entropy_selftest( int result )
 {
     TEST_ASSERT( mbedtls_entropy_self_test( 1 ) == result );

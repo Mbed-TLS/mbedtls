@@ -31,7 +31,7 @@ function(add_test_suite suite_name)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
     add_executable(test_suite_${data_name} test_suite_${data_name}.c)
     target_link_libraries(test_suite_${data_name} ${libs})
-    add_test(${data_name}-suite test_suite_${data_name})
+    add_test(${data_name}-suite test_suite_${data_name} --verbose)
 endfunction(add_test_suite)
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG)
@@ -49,6 +49,7 @@ add_test_suite(aes aes.cbc)
 add_test_suite(aes aes.cfb)
 add_test_suite(aes aes.rest)
 add_test_suite(arc4)
+add_test_suite(aria)
 add_test_suite(asn1write)
 add_test_suite(base64)
 add_test_suite(blowfish)
@@ -105,26 +106,11 @@ add_test_suite(xtea)
 add_test_suite(x509parse)
 add_test_suite(x509write)
 
-# Make data_files available in an out-of-source build
+# Make scripts and data files needed for testing available in an
+# out-of-source build.
 if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
-    # Get OS dependent path to use in `execute_process`
-    file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/data_files" link)
-    file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/data_files" target)
-
-    if (NOT EXISTS ${link})
-        if (CMAKE_HOST_UNIX)
-            set(command ln -s ${target} ${link})
-        else()
-            set(command cmd.exe /c mklink /j ${link} ${target})
-        endif()
-
-        execute_process(COMMAND ${command}
-                        RESULT_VARIABLE result
-                        ERROR_VARIABLE output)
-
-        if (NOT ${result} EQUAL 0)
-            message(FATAL_ERROR "Could not create symbolic link for: ${target} --> ${output}")
-        endif()
-    endif()
+    link_to_source(compat.sh)
+    link_to_source(data_files)
+    link_to_source(scripts)
+    link_to_source(ssl-opt.sh)
 endif()
-

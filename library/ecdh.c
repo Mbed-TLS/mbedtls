@@ -38,6 +38,7 @@
 
 #include <string.h>
 
+#if !defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
 /*
  * Generate public key (restartable version)
  */
@@ -71,7 +72,9 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
 {
     return( ecdh_gen_public_restartable( grp, d, Q, f_rng, p_rng, NULL ) );
 }
+#endif /* MBEDTLS_ECDH_GEN_PUBLIC_ALT */
 
+#if !defined(MBEDTLS_ECDH_COMPUTE_SHARED_ALT)
 /*
  * Compute shared secret (SEC1 3.3.1)
  */
@@ -103,6 +106,7 @@ cleanup:
 
     return( ret );
 }
+#endif /* MBEDTLS_ECDH_COMPUTE_SHARED_ALT */
 
 /*
  * Compute shared secret (SEC1 3.3.1)

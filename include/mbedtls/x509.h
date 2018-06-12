@@ -2,7 +2,8 @@
  * \file x509.h
  *
  * \brief X.509 generic defines and structures
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -247,12 +248,12 @@ int mbedtls_x509_serial_gets( char *buf, size_t size, const mbedtls_x509_buf *se
  * \note           Intended usage is "if( is_past( valid_to ) ) ERROR".
  *                 Hence the return value of 1 if on internal errors.
  *
- * \param time     mbedtls_x509_time to check
+ * \param to       mbedtls_x509_time to check
  *
  * \return         1 if the given time is in the past or an error occured,
  *                 0 otherwise.
  */
-int mbedtls_x509_time_is_past( const mbedtls_x509_time *time );
+int mbedtls_x509_time_is_past( const mbedtls_x509_time *to );
 
 /**
  * \brief          Check a given mbedtls_x509_time against the system time
@@ -261,12 +262,12 @@ int mbedtls_x509_time_is_past( const mbedtls_x509_time *time );
  * \note           Intended usage is "if( is_future( valid_from ) ) ERROR".
  *                 Hence the return value of 1 if on internal errors.
  *
- * \param time     mbedtls_x509_time to check
+ * \param from     mbedtls_x509_time to check
  *
  * \return         1 if the given time is in the future or an error occured,
  *                 0 otherwise.
  */
-int mbedtls_x509_time_is_future( const mbedtls_x509_time *time );
+int mbedtls_x509_time_is_future( const mbedtls_x509_time *from );
 
 /**
  * \brief          Checkup routine
@@ -295,7 +296,7 @@ int mbedtls_x509_get_sig_alg( const mbedtls_x509_buf *sig_oid, const mbedtls_x50
                       mbedtls_md_type_t *md_alg, mbedtls_pk_type_t *pk_alg,
                       void **sig_opts );
 int mbedtls_x509_get_time( unsigned char **p, const unsigned char *end,
-                   mbedtls_x509_time *time );
+                   mbedtls_x509_time *t );
 int mbedtls_x509_get_serial( unsigned char **p, const unsigned char *end,
                      mbedtls_x509_buf *serial );
 int mbedtls_x509_get_ext( unsigned char **p, const unsigned char *end,

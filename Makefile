@@ -24,12 +24,12 @@ ifndef WINDOWS
 install: no_test
 	mkdir -p $(DESTDIR)/include/mbedtls
 	cp -r include/mbedtls $(DESTDIR)/include
-	
+
 	mkdir -p $(DESTDIR)/lib
 	cp -RP library/libmbedtls.*    $(DESTDIR)/lib
 	cp -RP library/libmbedx509.*   $(DESTDIR)/lib
 	cp -RP library/libmbedcrypto.* $(DESTDIR)/lib
-	
+
 	mkdir -p $(DESTDIR)/bin
 	for p in programs/*/* ; do              \
 	    if [ -x $$p ] && [ ! -d $$p ] ;     \
@@ -44,7 +44,7 @@ uninstall:
 	rm -f $(DESTDIR)/lib/libmbedtls.*
 	rm -f $(DESTDIR)/lib/libmbedx509.*
 	rm -f $(DESTDIR)/lib/libmbedcrypto.*
-	
+
 	for p in programs/*/* ; do              \
 	    if [ -x $$p ] && [ ! -d $$p ] ;     \
 	    then                                \
@@ -103,7 +103,7 @@ lcov:
 
 apidoc:
 	mkdir -p apidoc
-	doxygen doxygen/mbedtls.doxyfile
+	cd doxygen && doxygen mbedtls.doxyfile
 
 apidoc_clean:
 	rm -rf apidoc

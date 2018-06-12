@@ -26,6 +26,7 @@
  * GECC = Guide to Elliptic Curve Cryptography - Hankerson, Menezes, Vanstone
  * FIPS 186-3 http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
  * RFC 4492 for the related TLS structures and constants
+ * RFC 7748 for the Curve448 and Curve25519 curve definitions
  *
  * [Curve25519] http://cr.yp.to/ecdh/curve25519-20060209.pdf
  *
@@ -50,6 +51,7 @@
 
 #include "mbedtls/ecp.h"
 #include "mbedtls/threading.h"
+#include "mbedtls/platform_util.h"
 
 #include <string.h>
 
@@ -71,11 +73,6 @@
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
 #endif
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 #if defined(MBEDTLS_SELF_TEST)
 /*
@@ -316,7 +313,8 @@ int mbedtls_ecp_check_budget( const mbedtls_ecp_group *grp,
 #define ECP_SHORTWEIERSTRASS
 #endif
 
-#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
 #define ECP_MONTGOMERY
 #endif
 
@@ -577,7 +575,7 @@ void mbedtls_ecp_group_free( mbedtls_ecp_group *grp )
         mbedtls_free( grp->T );
     }
 
-    mbedtls_zeroize( grp, sizeof( mbedtls_ecp_group ) );
+    mbedtls_platform_zeroize( grp, sizeof( mbedtls_ecp_group ) );
 }
 
 /*
@@ -2477,6 +2475,8 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 static int ecp_check_pubkey_mx( const mbedtls_ecp_group *grp, const mbedtls_ecp_point *pt )
 {
     /* [Curve25519 p. 5] Just check X is the correct number of bytes */
+    /* Allow any public value, if it's too big then we'll just reduce it mod p
+     * (RFC 7748 sec. 5 para. 3). */
     if( mbedtls_mpi_size( &pt->X ) > ( grp->nbits + 7 ) / 8 )
         return( MBEDTLS_ERR_ECP_INVALID_KEY );
 
@@ -2512,14 +2512,18 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp, const mbedtls_mpi *
 #if defined(ECP_MONTGOMERY)
     if( ecp_get_type( grp ) == ECP_TYPE_MONTGOMERY )
     {
-        /* see [Curve25519] page 5 */
+        /* see RFC 7748 sec. 5 para. 5 */
         if( mbedtls_mpi_get_bit( d, 0 ) != 0 ||
             mbedtls_mpi_get_bit( d, 1 ) != 0 ||
-            mbedtls_mpi_get_bit( d, 2 ) != 0 ||
             mbedtls_mpi_bitlen( d ) - 1 != grp->nbits ) /* mbedtls_mpi_bitlen is one-based! */
             return( MBEDTLS_ERR_ECP_INVALID_KEY );
         else
-            return( 0 );
+
+        /* see [Curve25519] page 5 */
+        if( grp->nbits == 254 && mbedtls_mpi_get_bit( d, 2 ) != 0 )
+            return( MBEDTLS_ERR_ECP_INVALID_KEY );
+
+        return( 0 );
     }
 #endif /* ECP_MONTGOMERY */
 #if defined(ECP_SHORTWEIERSTRASS)
@@ -2565,10 +2569,14 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
         else
             MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, grp->nbits, 1 ) );
 
-        /* Make sure the last three bits are unset */
+        /* Make sure the last two bits are unset for Curve448, three bits for
+           Curve25519 */
         MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, 0, 0 ) );
         MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, 1, 0 ) );
-        MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, 2, 0 ) );
+        if( grp->nbits == 254 )
+        {
+            MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( d, 2, 0 ) );
+        }
     }
 #endif /* ECP_MONTGOMERY */
 
@@ -2577,7 +2585,6 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
     {
         /* SEC1 3.2.1: Generate d such that 1 <= n < N */
         int count = 0;
-        unsigned char rnd[MBEDTLS_ECP_MAX_BYTES];
 
         /*
          * Match the procedure given in RFC 6979 (deterministic ECDSA):
@@ -2585,23 +2592,23 @@ int mbedtls_ecp_gen_privkey( const mbedtls_ecp_group *grp,
          * - keep the leftmost nbits bits of the generated octet string;
          * - try until result is in the desired range.
          * This also avoids any biais, which is especially important for ECDSA.
-         *
-         * Each try has at worst a probability 1/2 of failing (the msb has
-         * a probability 1/2 of being 0, and then the result will be < N),
-         * so after 30 tries failure probability is a most 2**(-30).
-         *
-         * For most curves, 1 try is enough with overwhelming probability,
-         * since N starts with a lot of 1s in binary, but some curves
-         * such as secp224k1 are actually very close to the worst case.
          */
         do
         {
+            MBEDTLS_MPI_CHK( mbedtls_mpi_fill_random( d, n_size, f_rng, p_rng ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, 8 * n_size - grp->nbits ) );
+
+            /*
+             * Each try has at worst a probability 1/2 of failing (the msb has
+             * a probability 1/2 of being 0, and then the result will be < N),
+             * so after 30 tries failure probability is a most 2**(-30).
+             *
+             * For most curves, 1 try is enough with overwhelming probability,
+             * since N starts with a lot of 1s in binary, but some curves
+             * such as secp224k1 are actually very close to the worst case.
+             */
             if( ++count > 30 )
                 return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
-
-            MBEDTLS_MPI_CHK( f_rng( p_rng, rnd, n_size ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( d, rnd, n_size ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( d, 8 * n_size - grp->nbits ) );
         }
         while( mbedtls_mpi_cmp_int( d, 1 ) < 0 ||
                mbedtls_mpi_cmp_mpi( d, &grp->N ) >= 0 );

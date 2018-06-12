@@ -32,27 +32,35 @@ use strict;
 
 my $config_h = 'include/mbedtls/config.h';
 
-# as many SSL options depend on specific algs
-# and SSL is not in the test suites anyways,
-# disable it to avoid dependcies issues
-my $ssl_sed = 's/^#define \(MBEDTLS_SSL.*\)/\1/p';
-my $kex_sed = 's/^#define \(MBEDTLS_KEY_EXCHANGE.*\)/\1/p';
-my @ssl = split( /\s+/, `sed -n -e '$ssl_sed' -e '$kex_sed' $config_h` );
-
 # Some algorithms can't be disabled on their own as others depend on them, so
 # we list those reverse-dependencies here to keep check_config.h happy.
 my %algs = (
-    'MBEDTLS_ECDSA_C'   => [],
-    'MBEDTLS_ECP_C'     => ['MBEDTLS_ECDSA_C', 'MBEDTLS_ECDH_C'],
+    'MBEDTLS_ECDSA_C'   => ['MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED'],
+    'MBEDTLS_ECP_C'     => ['MBEDTLS_ECDSA_C',
+                            'MBEDTLS_ECDH_C',
+                            'MBEDTLS_ECJPAKE_C',
+                            'MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
+                            'MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED',
+                            'MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED',
+                            'MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED',
+                            'MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED'],
     'MBEDTLS_X509_RSASSA_PSS_SUPPORT'   => [],
     'MBEDTLS_PKCS1_V21' => ['MBEDTLS_X509_RSASSA_PSS_SUPPORT'],
-    'MBEDTLS_PKCS1_V15' => [],
-    'MBEDTLS_RSA_C'     => ['MBEDTLS_X509_RSASSA_PSS_SUPPORT'],
+    'MBEDTLS_PKCS1_V15' => ['MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED',
+                            'MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED',
+                            'MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED',
+                            'MBEDTLS_KEY_EXCHANGE_RSA_ENABLED'],
+    'MBEDTLS_RSA_C'     => ['MBEDTLS_X509_RSASSA_PSS_SUPPORT',
+                            'MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED',
+                            'MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED',
+                            'MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED',
+                            'MBEDTLS_KEY_EXCHANGE_RSA_ENABLED'],
 );
 
 system( "cp $config_h $config_h.bak" ) and die;
 sub abort {
     system( "mv $config_h.bak $config_h" ) and warn "$config_h not restored\n";
+    # use an exit code between 1 and 124 for git bisect (die returns 255)
     warn $_[0];
     exit 1;
 }
@@ -68,11 +76,6 @@ while( my ($alg, $extras) = each %algs ) {
     system( "scripts/config.pl unset $alg" )
         and abort "Failed to disable $alg\n";
     for my $opt (@$extras) {
-        system( "scripts/config.pl unset $opt" )
-            and abort "Failed to disable $opt\n";
-    }
-
-    for my $opt (@ssl) {
         system( "scripts/config.pl unset $opt" )
             and abort "Failed to disable $opt\n";
     }

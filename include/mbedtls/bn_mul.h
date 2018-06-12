@@ -1,8 +1,9 @@
 /**
  * \file bn_mul.h
  *
- * \brief  Multi-precision integer library
- *
+ * \brief Multi-precision integer library
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -520,7 +521,7 @@
         "swi   r3,   %2         \n\t"   \
         : "=m" (c), "=m" (d), "=m" (s)              \
         : "m" (s), "m" (d), "m" (c), "m" (b)        \
-        : "r3", "r4"  "r5", "r6", "r7", "r8",       \
+        : "r3", "r4", "r5", "r6", "r7", "r8",       \
           "r9", "r10", "r11", "r12", "r13"          \
     );
 

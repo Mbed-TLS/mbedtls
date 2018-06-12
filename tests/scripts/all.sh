@@ -896,12 +896,29 @@ cd "$MBEDTLS_ROOT_DIR"
 rm -rf "$OUT_OF_SOURCE_DIR"
 unset MBEDTLS_ROOT_DIR
 
+# Test that the function mbedtls_platform_zeroize() is not optimized away by
+# different combinations of compilers and optimization flags by using an
+# auxiliary GDB script. Unfortunately, GDB does not return error values to the
+# system in all cases that the script fails, so we must manually search the
+# output to check whether the pass string is present and no failure strings
+# were printed.
 for optimization_flag in -O2 -O3 -Ofast -Os; do
     for compiler in clang gcc; do
         msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
         cleanup
-        CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag" make programs
-        gdb -x tests/scripts/test_zeroize.gdb -nw -batch -nx
+        make programs CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag"
+        if_build_succeeded gdb -x tests/scripts/test_zeroize.gdb -nw -batch -nx > test_zeroize.log 2>&1
+        if [ ! -s test_zeroize.log ]; then
+            err_msg "test_zeroize.log was not found or is empty"
+            record_status [ -s test_zeroize.log ]
+        elif ! grep "The buffer was correctly zeroized" test_zeroize.log >/dev/null 2>&1; then
+            err_msg "test_zeroize.log does not contain pass string"
+            record_status false
+        elif grep -i "error" test_zeroize.log >/dev/null 2>&1; then
+            err_msg "test_zeroize.log contains error string"
+            record_status false
+        fi
+        rm -f test_zeroize.log
     done
 done
 

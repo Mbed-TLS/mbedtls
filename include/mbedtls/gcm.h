@@ -85,19 +85,41 @@ int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
  *       If buffers overlap, the output buffer must trail at least 8 bytes
  *       behind the input buffer.
  *
- * \param ctx       GCM context
- * \param mode      MBEDTLS_GCM_ENCRYPT or MBEDTLS_GCM_DECRYPT
- * \param length    length of the input data
- * \param iv        initialization vector
- * \param iv_len    length of IV
- * \param add       additional data
- * \param add_len   length of additional data
- * \param input     buffer holding the input data
- * \param output    buffer for holding the output data
- * \param tag_len   length of the tag to generate
- * \param tag       buffer for holding the tag
+ * \warning         When this function performs a decryption, it outputs the
+ *                  authentication tag and does not verify that the data is
+ *                  authentic. You should use this function to perform encryption
+ *                  only. For decryption, use mbedtls_gcm_auth_decrypt() instead.
  *
- * \return         0 if successful
+ * \param ctx       The GCM context to use for encryption or decryption.
+ * \param mode      The operation to perform:
+ *                  - #MBEDTLS_GCM_ENCRYPT to perform authenticated encryption.
+ *                    The ciphertext is written to \p output and the
+ *                    authentication tag is written to \p tag.
+ *                  - #MBEDTLS_GCM_DECRYPT to perform decryption.
+ *                    The plaintext is written to \p output and the
+ *                    authentication tag is written to \p tag.
+ *                    Note that this mode is not recommended, because it does
+ *                    not verify the authenticity of the data. For this reason,
+ *                    you should use mbedtls_gcm_auth_decrypt() instead of
+ *                    calling this function in decryption mode.
+ * \param length    The length of the input data, which is equal to the length
+ *                  of the output data.
+ * \param iv        The initialization vector.
+ * \param iv_len    The length of the IV.
+ * \param add       The buffer holding the additional data.
+ * \param add_len   The length of the additional data.
+ * \param input     The buffer holding the input data. Its size is \b length.
+ * \param output    The buffer for holding the output data. It must have room
+ *                  for \b length bytes.
+ * \param tag_len   The length of the tag to generate.
+ * \param tag       The buffer for holding the tag.
+ *
+ * \return          \c 0 if the encryption or decryption was performed
+ *                  successfully. Note that in #MBEDTLS_GCM_DECRYPT mode,
+ *                  this does not indicate that the data is authentic.
+ * \return          #MBEDTLS_ERR_GCM_BAD_INPUT if the lengths are not valid.
+ * \return          A cipher-specific error code if the encryption or
+ *                  decryption failed.
  */
 int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
                        int mode,
@@ -118,19 +140,23 @@ int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
  *       If buffers overlap, the output buffer must trail at least 8 bytes
  *       behind the input buffer.
  *
- * \param ctx       GCM context
- * \param length    length of the input data
- * \param iv        initialization vector
- * \param iv_len    length of IV
- * \param add       additional data
- * \param add_len   length of additional data
- * \param tag       buffer holding the tag
- * \param tag_len   length of the tag
- * \param input     buffer holding the input data
- * \param output    buffer for holding the output data
+ * \param ctx       The GCM context.
+ * \param length    The length of the ciphertext to decrypt, which is also
+ *                  the length of the decrypted plaintext.
+ * \param iv        The initialization vector.
+ * \param iv_len    The length of the IV.
+ * \param add       The buffer holding the additional data.
+ * \param add_len   The length of the additional data.
+ * \param tag       The buffer holding the tag to verify.
+ * \param tag_len   The length of the tag to verify.
+ * \param input     The buffer holding the ciphertext. Its size is \b length.
+ * \param output    The buffer for holding the decrypted plaintext. It must
+ *                  have room for \b length bytes.
  *
- * \return         0 if successful and authenticated,
- *                 MBEDTLS_ERR_GCM_AUTH_FAILED if tag does not match
+ * \return          \c 0 if successful and authenticated.
+ * \return          #MBEDTLS_ERR_GCM_AUTH_FAILED if the tag does not match.
+ * \return          #MBEDTLS_ERR_GCM_BAD_INPUT if the lengths are not valid.
+ * \return          A cipher-specific error code if the decryption failed.
  */
 int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
                       size_t length,

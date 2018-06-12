@@ -8,6 +8,10 @@ Features
   * Implement the HMAC-based extract-and-expand key derivation function
     (HKDF) per RFC 5869. Contributed by Thomas Fossati.
 
+Bugfix
+  * Fix the cert_write example to handle certificates signed with elliptic
+    curves as well as RSA. Fixes #777 found by dbedev.
+
 = mbed TLS 2.10.0 branch released 2018-06-06
 
 Features

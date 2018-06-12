@@ -1077,6 +1077,7 @@ static int ssl_async_resume( mbedtls_ssl_context *ssl,
     {
         mbedtls_printf( "Async resume callback: %s done but injected error\n",
                         op_name );
+        mbedtls_free( ctx );
         return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
     }
 

@@ -105,6 +105,10 @@
 #include "mbedtls/gcm.h"
 #endif
 
+#if defined(MBEDTLS_HKDF_C)
+#include "mbedtls/hkdf.h"
+#endif
+
 #if defined(MBEDTLS_HMAC_DRBG_C)
 #include "mbedtls/hmac_drbg.h"
 #endif
@@ -714,6 +718,11 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_GCM_BAD_INPUT) )
         mbedtls_snprintf( buf, buflen, "GCM - Bad input parameters to function" );
 #endif /* MBEDTLS_GCM_C */
+
+#if defined(MBEDTLS_HKDF_C)
+    if( use_ret == -(MBEDTLS_ERR_HKDF_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "HKDF - Bad input parameters to function" );
+#endif /* MBEDTLS_HKDF_C */
 
 #if defined(MBEDTLS_HMAC_DRBG_C)
     if( use_ret == -(MBEDTLS_ERR_HMAC_DRBG_REQUEST_TOO_BIG) )

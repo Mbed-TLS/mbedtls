@@ -57,6 +57,7 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		ecjpake.o	ecp.o				\
 		ecp_curves.o	entropy.o	entropy_poll.o	\
 		error.o		gcm.o		havege.o	\
+		hkdf.o						\
 		hmac_drbg.o	md.o		md2.o		\
 		md4.o		md5.o		md_wrap.o	\
 		memory_buffer_alloc.o		oid.o		\

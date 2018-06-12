@@ -1028,7 +1028,7 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
                                           NULL,
                                           &key_bits ) == PSA_SUCCESS );
 
-    signature_size = PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE( key_type, alg, key_bits );
+    signature_size = PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE( key_type, key_bits, alg );
     TEST_ASSERT( signature_size != 0 );
     signature = mbedtls_calloc( 1, signature_size );
     TEST_ASSERT( signature != NULL );

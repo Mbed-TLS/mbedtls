@@ -5,6 +5,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Features
    * Add support for ARIA cipher (RFC 5794) and associated TLS ciphersuites
      (RFC 6209). Disabled by default, see MBEDTLS_ARIA_C in config.h
+   * Add additional block mode, OFB (Output Feedback), to the AES module and
+     cipher abstraction module.
 
 API Changes
    * Extend the platform module with a util component that contains

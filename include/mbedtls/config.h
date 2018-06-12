@@ -502,6 +502,13 @@
 #define MBEDTLS_CIPHER_MODE_CBC
 
 /**
+ * \def MBEDTLS_CIPHER_MODE_OFB
+ *
+ * Enable Output Feedback mode (OFB) for symmetric ciphers.
+ */
+#define MBEDTLS_CIPHER_MODE_OFB
+
+/**
  * \def MBEDTLS_CIPHER_MODE_CFB
  *
  * Enable Cipher Feedback mode (CFB) for symmetric ciphers.

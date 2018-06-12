@@ -428,11 +428,16 @@ cleanup:
  */
 void mbedtls_dhm_free( mbedtls_dhm_context *ctx )
 {
-    mbedtls_mpi_free( &ctx->pX ); mbedtls_mpi_free( &ctx->Vf );
-    mbedtls_mpi_free( &ctx->Vi ); mbedtls_mpi_free( &ctx->RP );
-    mbedtls_mpi_free( &ctx->K  ); mbedtls_mpi_free( &ctx->GY );
-    mbedtls_mpi_free( &ctx->GX ); mbedtls_mpi_free( &ctx->X  );
-    mbedtls_mpi_free( &ctx->G  ); mbedtls_mpi_free( &ctx->P  );
+    mbedtls_mpi_free( &ctx->pX );
+    mbedtls_mpi_free( &ctx->Vf );
+    mbedtls_mpi_free( &ctx->Vi );
+    mbedtls_mpi_free( &ctx->RP );
+    mbedtls_mpi_free( &ctx->K  );
+    mbedtls_mpi_free( &ctx->GY );
+    mbedtls_mpi_free( &ctx->GX );
+    mbedtls_mpi_free( &ctx->X  );
+    mbedtls_mpi_free( &ctx->G  );
+    mbedtls_mpi_free( &ctx->P  );
 
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_dhm_context ) );
 }

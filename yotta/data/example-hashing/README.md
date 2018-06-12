@@ -36,13 +36,13 @@ To build and run this example you must have:
 
 5. Copy `build/frdm-k64f-gcc/test/mbedtls-test-example-hashing.bin` to your mbed board and wait until the LED next to the USB port stops blinking.
 
-6. Start the serial terminal emulator and connect to the virtual serial port presented by FRDM-K64F. 
+6. Start the serial terminal emulator and connect to the virtual serial port presented by FRDM-K64F.
 
-	Use the following settings:
+    Use the following settings:
 
-	* 115200 baud (not 9600).
-	* 8N1.
-	* No flow control. 
+    * 115200 baud (not 9600).
+    * 8N1.
+    * No flow control.
 
 7. Press the Reset button on the board.
 

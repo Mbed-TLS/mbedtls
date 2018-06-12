@@ -21,6 +21,8 @@ endif
 # if were running on Windows build for Windows
 ifdef WINDOWS
 WINDOWS_BUILD=1
+else ifdef APPLE
+APPLE_BUILD=1
 endif
 
 # To compile as a shared library:

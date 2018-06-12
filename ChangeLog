@@ -3,15 +3,18 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Features
-  * Add additional block mode, OFB (Output Feedback), to the AES module and
-    cipher abstraction module.
-  * Implement the HMAC-based extract-and-expand key derivation function
-    (HKDF) per RFC 5869. Contributed by Thomas Fossati.
-  * Add support for the CCM* block cipher mode as defined in IEEE Std. 802.15.4.
+   * Add additional block mode, OFB (Output Feedback), to the AES module and
+     cipher abstraction module.
+   * Implement the HMAC-based extract-and-expand key derivation function
+     (HKDF) per RFC 5869. Contributed by Thomas Fossati.
+   * Add support for the CCM* block cipher mode as defined in IEEE Std. 802.15.4.
 
 Bugfix
-  * Fix the cert_write example to handle certificates signed with elliptic
-    curves as well as RSA. Fixes #777 found by dbedev.
+   * Fix the cert_write example to handle certificates signed with elliptic
+     curves as well as RSA. Fixes #777 found by dbedev.
+
+Changes
+   * Changed CMake defaults for IAR to treat all compiler warnings as errors.
 
 = mbed TLS 2.10.0 branch released 2018-06-06
 

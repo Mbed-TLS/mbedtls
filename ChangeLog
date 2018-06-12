@@ -8,6 +8,7 @@ Bugfix
 
 Changes
    * Support TLS testing in out-of-source builds using cmake. Fixes #1193.
+   * Changed CMake defaults for IAR to treat all compiler warnings as errors.
 
 = mbed TLS 2.7.3 branch released 2018-04-30
 

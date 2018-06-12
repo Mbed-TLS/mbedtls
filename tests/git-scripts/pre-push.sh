@@ -45,3 +45,4 @@ run_test()
 run_test ./tests/scripts/check-doxy-blocks.pl
 run_test ./tests/scripts/check-names.sh
 run_test ./tests/scripts/check-generated-files.sh
+run_test ./tests/scripts/check-files.py

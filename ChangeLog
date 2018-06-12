@@ -5,6 +5,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Features
   * Add additional block mode, OFB (Output Feedback), to the AES module and
     cipher abstraction module.
+  * Implement the HMAC-based extract-and-expand key derivation function
+    (HKDF) per RFC 5869. Contributed by Thomas Fossati.
 
 = mbed TLS 2.10.0 branch released 2018-06-06
 
@@ -72,10 +74,6 @@ API Changes
      internal message buffers.
      This function is necessary to determine when it is safe to idle on the
      underlying transport in case event-driven IO is used.
-
-Features
-    * Implement the HMAC-based extract-and-expand key derivation function
-      (HKDF) per RFC 5869. Contributed by Thomas Fossati.
 
 Bugfix
    * Fix a spurious uninitialized variable warning in cmac.c. Fix independently

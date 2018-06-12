@@ -1466,6 +1466,248 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void rsa_invalid_param( )
+{
+    mbedtls_rsa_context ctx;
+    int arbitrary_int = 0;
+    size_t arbitrary_size_t = 0;
+    mbedtls_md_type_t arbitrary_md_type = 0;
+    mbedtls_mpi arbitrary_mpi;
+    int (*arbitrary_callback)(void*, unsigned char *, size_t) = NULL;
+    unsigned char arbitrary_buffer[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+
+    TEST_ASSERT( mbedtls_rsa_init_ret( &ctx, MBEDTLS_RSA_PKCS_V15, 0 ) == 0 );
+
+    TEST_ASSERT( mbedtls_rsa_init_ret( NULL, arbitrary_int, arbitrary_int ) ==
+        MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_import( NULL, &arbitrary_mpi, &arbitrary_mpi,
+        &arbitrary_mpi, &arbitrary_mpi, &arbitrary_mpi ) ==
+        MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_import_raw( NULL,
+        arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_complete( NULL ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_export( NULL, &arbitrary_mpi, &arbitrary_mpi,
+        &arbitrary_mpi, &arbitrary_mpi, &arbitrary_mpi ) ==
+        MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_export_raw( NULL,
+        arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_size_t ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_export_crt( NULL, &arbitrary_mpi, &arbitrary_mpi,
+        &arbitrary_mpi ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_set_padding_ret( NULL, arbitrary_int,
+        arbitrary_int ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_gen_key( NULL, arbitrary_callback, &arbitrary_int,
+        arbitrary_int, arbitrary_int ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_check_pubkey( NULL ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_check_privkey( NULL ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_check_pub_priv( NULL, &ctx ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_check_pub_priv( &ctx, NULL ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_public( NULL, arbitrary_buffer, arbitrary_buffer )
+        == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_public( &ctx, NULL, arbitrary_buffer )
+        == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_public( &ctx, arbitrary_buffer, NULL )
+        == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_private( NULL, arbitrary_callback,
+        &arbitrary_int, arbitrary_buffer, arbitrary_buffer ) ==
+        MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_private( &ctx, arbitrary_callback,
+        &arbitrary_int, NULL, arbitrary_buffer ) ==
+        MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_private( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_buffer, NULL ) ==
+        MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( NULL, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_size_t, arbitrary_buffer,
+        arbitrary_buffer ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_size_t, NULL,
+        arbitrary_buffer ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( NULL, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_size_t, arbitrary_buffer,
+        NULL ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+#if defined(MBEDTLS_PKCS1_V15)
+    TEST_ASSERT( mbedtls_rsa_rsaes_pkcs1_v15_encrypt( NULL, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_size_t, arbitrary_buffer,
+        arbitrary_buffer ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsaes_pkcs1_v15_encrypt( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_size_t, NULL,
+        arbitrary_buffer ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsaes_pkcs1_v15_encrypt( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_size_t, arbitrary_buffer,
+        NULL ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_rsaes_pkcs1_v15_decrypt( NULL, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, &arbitrary_size_t, arbitrary_buffer,
+        arbitrary_buffer, arbitrary_size_t ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsaes_pkcs1_v15_decrypt( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, NULL, arbitrary_buffer,
+        arbitrary_buffer, arbitrary_size_t ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsaes_pkcs1_v15_decrypt( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, &arbitrary_size_t, NULL,
+        arbitrary_buffer, arbitrary_size_t ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsaes_pkcs1_v15_decrypt( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, &arbitrary_size_t, arbitrary_buffer,
+        NULL, arbitrary_size_t ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_rsassa_pkcs1_v15_sign( NULL, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        arbitrary_buffer, arbitrary_buffer ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsassa_pkcs1_v15_sign( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        NULL, arbitrary_buffer ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsassa_pkcs1_v15_sign( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        arbitrary_buffer, NULL) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_rsassa_pkcs1_v15_verify( NULL, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        arbitrary_buffer, arbitrary_buffer ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsassa_pkcs1_v15_verify( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        NULL, arbitrary_buffer ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsassa_pkcs1_v15_verify( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        arbitrary_buffer, NULL) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+#endif
+
+#if defined(MBEDTLS_PKCS1_V21)
+    TEST_ASSERT( mbedtls_rsa_rsaes_oaep_encrypt( NULL, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_size_t, arbitrary_buffer, arbitrary_buffer )
+        == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsaes_oaep_encrypt( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_size_t, NULL, arbitrary_buffer )
+        == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsaes_oaep_encrypt( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_buffer, arbitrary_size_t,
+        arbitrary_size_t, arbitrary_buffer, NULL )
+        == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_rsaes_oaep_decrypt( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_buffer, arbitrary_size_t,
+        &arbitrary_size_t, arbitrary_buffer, arbitrary_buffer,
+        arbitrary_size_t ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsaes_oaep_decrypt( NULL, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_buffer, arbitrary_size_t,
+        &arbitrary_size_t, arbitrary_buffer, arbitrary_buffer,
+        arbitrary_size_t ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsaes_oaep_decrypt( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_buffer, arbitrary_size_t,
+        NULL, arbitrary_buffer, arbitrary_buffer,
+        arbitrary_size_t ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsaes_oaep_decrypt( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_buffer, arbitrary_size_t,
+        &arbitrary_size_t, NULL, arbitrary_buffer,
+        arbitrary_size_t ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsaes_oaep_decrypt( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_buffer, arbitrary_size_t,
+        &arbitrary_size_t, arbitrary_buffer, NULL,
+        arbitrary_size_t ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+#endif
+
+    TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( NULL, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, &arbitrary_size_t, arbitrary_buffer,
+        arbitrary_buffer, arbitrary_size_t ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, NULL, arbitrary_buffer,
+        arbitrary_buffer, arbitrary_size_t ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, &arbitrary_size_t, NULL,
+        arbitrary_buffer, arbitrary_size_t ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, &arbitrary_size_t, arbitrary_buffer,
+        NULL, arbitrary_size_t ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_pkcs1_sign( NULL, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        arbitrary_buffer, arbitrary_buffer ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        NULL, arbitrary_buffer ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_sign( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        arbitrary_buffer, NULL) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_rsassa_pss_sign( NULL, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        arbitrary_buffer, arbitrary_buffer ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsassa_pss_sign( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        NULL, arbitrary_buffer ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsassa_pss_sign( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        arbitrary_buffer, NULL) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( NULL, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        arbitrary_buffer, arbitrary_buffer ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        NULL, arbitrary_buffer ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_verify( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        arbitrary_buffer, NULL) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_rsassa_pss_verify( NULL, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        arbitrary_buffer, arbitrary_buffer ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsassa_pss_verify( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        NULL, arbitrary_buffer ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsassa_pss_verify( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        arbitrary_buffer, NULL) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_rsassa_pss_verify_ext( NULL, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        arbitrary_buffer, arbitrary_md_type, arbitrary_int, arbitrary_buffer )
+        == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsassa_pss_verify_ext( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        NULL, arbitrary_md_type, arbitrary_int, arbitrary_buffer )
+        == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_rsassa_pss_verify_ext( &ctx, arbitrary_callback,
+        &arbitrary_int, arbitrary_int, arbitrary_md_type, arbitrary_int,
+        arbitrary_buffer, arbitrary_md_type, arbitrary_int, NULL )
+        == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_copy( NULL, &ctx ) ==
+        MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_rsa_copy( &ctx, NULL ) ==
+        MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_rsa_free_ret( NULL ) == MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
+exit:
+    mbedtls_rsa_free( &ctx );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void rsa_selftest()
 {

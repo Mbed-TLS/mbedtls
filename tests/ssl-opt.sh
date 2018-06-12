@@ -4243,7 +4243,7 @@ run_test    "SSL async private: fall back to transparent key" \
             -s "Async sign callback: no key matches this certificate."
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-run_test    "SSL async private: error in start" \
+run_test    "SSL async private: sign, error in start" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_delay2=1 \
              async_private_error=1" \
@@ -4255,7 +4255,7 @@ run_test    "SSL async private: error in start" \
             -s "! mbedtls_ssl_handshake returned"
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-run_test    "SSL async private: cancel after start" \
+run_test    "SSL async private: sign, cancel after start" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_delay2=1 \
              async_private_error=2" \
@@ -4266,7 +4266,7 @@ run_test    "SSL async private: cancel after start" \
             -s "Async cancel"
 
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-run_test    "SSL async private: error in resume" \
+run_test    "SSL async private: sign, error in resume" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_delay2=1 \
              async_private_error=3" \
@@ -4274,6 +4274,41 @@ run_test    "SSL async private: error in resume" \
             1 \
             -s "Async sign callback: using key slot " \
             -s "Async resume callback: sign done but injected error" \
+            -S "Async cancel" \
+            -s "! mbedtls_ssl_handshake returned"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt, error in start" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=1" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            1 \
+            -s "Async decrypt callback: injected error" \
+            -S "Async resume" \
+            -S "Async cancel" \
+            -s "! mbedtls_ssl_handshake returned"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt, cancel after start" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=2" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            1 \
+            -s "Async decrypt callback: using key slot " \
+            -S "Async resume" \
+            -s "Async cancel"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt, error in resume" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=3" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            1 \
+            -s "Async decrypt callback: using key slot " \
+            -s "Async resume callback: decrypt done but injected error" \
             -S "Async cancel" \
             -s "! mbedtls_ssl_handshake returned"
 
@@ -4320,7 +4355,7 @@ run_test    "SSL async private: cancel after start then fall back to transparent
 
 # key1: ECDSA, key2: RSA; use key1 through async, then key2 directly
 requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
-run_test    "SSL async private: error in resume then fall back to transparent key" \
+run_test    "SSL async private: sign, error in resume then fall back to transparent key" \
             "$P_SRV \
              async_operations=s async_private_delay1=1 async_private_error=-3 \
              key_file=data_files/server5.key crt_file=data_files/server5.crt \

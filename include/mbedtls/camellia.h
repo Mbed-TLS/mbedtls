@@ -85,6 +85,8 @@ void mbedtls_camellia_free( mbedtls_camellia_context *ctx );
  * \param keybits  must be 128, 192 or 256
  *
  * \return         0 if successful, or MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH
+ * \return         #MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the key size.
  */
 int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx, const unsigned char *key,
                          unsigned int keybits );
@@ -97,6 +99,8 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx, const unsigned c
  * \param keybits  must be 128, 192 or 256
  *
  * \return         0 if successful, or MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH
+ * \return         #MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the key size.
  */
 int mbedtls_camellia_setkey_dec( mbedtls_camellia_context *ctx, const unsigned char *key,
                          unsigned int keybits );
@@ -139,6 +143,8 @@ int mbedtls_camellia_crypt_ecb( mbedtls_camellia_context *ctx,
  *
  * \return         0 if successful, or
  *                 MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH
+ * \return         #MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the cipher mode.
  */
 int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
                     int mode,
@@ -174,6 +180,8 @@ int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
  *
  * \return         0 if successful, or
  *                 MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH
+ * \return         #MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the cipher mode.
  */
 int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
                        int mode,
@@ -248,6 +256,8 @@ int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
  * \param output        The output data stream
  *
  * \return         0 if successful
+ * \return         #MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the cipher mode.
  */
 int mbedtls_camellia_crypt_ctr( mbedtls_camellia_context *ctx,
                        size_t length,

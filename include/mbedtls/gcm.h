@@ -100,6 +100,8 @@ void mbedtls_gcm_init( mbedtls_gcm_context *ctx );
  *
  * \return          \c 0 on success.
  * \return          A cipher-specific error code on failure.
+ * \return         #MBEDTLS_ERR_GCM_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the key size.
  */
 int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
                         mbedtls_cipher_id_t cipher,

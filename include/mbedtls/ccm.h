@@ -97,6 +97,8 @@ void mbedtls_ccm_init( mbedtls_ccm_context *ctx );
  *
  * \return          \c 0 on success.
  * \return          A CCM or cipher-specific error code on failure.
+ * \return          #MBEDTLS_ERR_CCM_FEATURE_UNAVAILABLE if the
+ *                  alternative implementation doesn't support the key size or cipher mode.
  */
 int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
                         mbedtls_cipher_id_t cipher,

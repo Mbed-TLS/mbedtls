@@ -110,6 +110,8 @@ int mbedtls_xtea_crypt_ecb( mbedtls_xtea_context *ctx,
  *
  * \return         0 if successful,
  *                 MBEDTLS_ERR_XTEA_INVALID_INPUT_LENGTH if the length % 8 != 0
+ * \return         #MBEDTLS_ERR_XTEA_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the cipher mode.
  */
 int mbedtls_xtea_crypt_cbc( mbedtls_xtea_context *ctx,
                     int mode,

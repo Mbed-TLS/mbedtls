@@ -240,6 +240,8 @@ int mbedtls_des3_set3key_dec( mbedtls_des3_context *ctx,
  * \param output   64-bit output block
  *
  * \return         0 if successful
+ * \return         #MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the cipher mode.
  *
  * \warning        DES is considered a weak cipher and its use constitutes a
  *                 security risk. We recommend considering stronger ciphers
@@ -271,6 +273,8 @@ int mbedtls_des_crypt_ecb( mbedtls_des_context *ctx,
  * \warning        DES is considered a weak cipher and its use constitutes a
  *                 security risk. We recommend considering stronger ciphers
  *                 instead.
+ * \return         #MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the cipher mode.
  */
 int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
                     int mode,
@@ -288,6 +292,8 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
  * \param output   64-bit output block
  *
  * \return         0 if successful
+ * \return         #MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the cipher mode.
  */
 int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
                      const unsigned char input[8],
@@ -313,6 +319,8 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
  * \param output   buffer holding the output data
  *
  * \return         0 if successful, or MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH
+ * \return         #MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the cipher mode.
  */
 int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
                      int mode,

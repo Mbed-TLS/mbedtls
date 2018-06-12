@@ -159,6 +159,8 @@ void mbedtls_aes_xts_free( mbedtls_aes_xts_context *ctx );
  *
  * \return         \c 0 on success.
  * \return         #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH on failure.
+ * \return         #MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the key size.
  */
 int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keybits );
@@ -175,6 +177,8 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
  *
  * \return         \c 0 on success.
  * \return         #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH on failure.
+ * \return         #MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the key size.
  */
 int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keybits );
@@ -279,6 +283,8 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
  * \return         \c 0 on success.
  * \return         #MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH
  *                 on failure.
+ * \return         #MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the cipher mode.
  */
 int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
                     int mode,
@@ -365,6 +371,8 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
  * \param output   The buffer holding the output data.
  *
  * \return         \c 0 on success.
+ * \return         #MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the cipher mode.
  */
 int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
                        int mode,
@@ -405,6 +413,8 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
  * \param output   The buffer holding the output data.
  *
  * \return         \c 0 on success.
+ * \return         #MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the cipher mode.
  */
 int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
                     int mode,
@@ -534,6 +544,8 @@ int mbedtls_aes_crypt_ofb( mbedtls_aes_context *ctx,
  * \param output           The buffer holding the output data.
  *
  * \return                 \c 0 on success.
+ * \return                 #MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE if the
+ *                         alternative implementation doesn't support the cipher mode.
  */
 int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
                        size_t length,

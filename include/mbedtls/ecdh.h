@@ -85,6 +85,8 @@ mbedtls_ecdh_context;
  * \return          \c 0 on success.
  * \return          An \c MBEDTLS_ERR_ECP_XXX or
  *                  \c MBEDTLS_MPI_XXX error code on failure.
+ * \return         #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the ECP group.
  *
  */
 int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp_point *Q,
@@ -114,6 +116,8 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
  * \return          \c 0 on success.
  * \return          An \c MBEDTLS_ERR_ECP_XXX or
  *                  \c MBEDTLS_MPI_XXX error code on failure.
+ * \return         #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the ECP group.
  */
 int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
                          const mbedtls_ecp_point *Q, const mbedtls_mpi *d,

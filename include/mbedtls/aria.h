@@ -103,6 +103,8 @@ void mbedtls_aria_free( mbedtls_aria_context *ctx );
  *
  * \return         \c 0 on success or #MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH
  *                 on failure.
+ * \return         #MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the key size.
  */
 int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx,
                              const unsigned char *key,
@@ -119,6 +121,8 @@ int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx,
  *                 <li>256 bits</li></ul>
  *
  * \return         \c 0 on success, or #MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH on failure.
+ * \return         #MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the key size.
  */
 int mbedtls_aria_setkey_dec( mbedtls_aria_context *ctx,
                              const unsigned char *key,
@@ -182,6 +186,8 @@ int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
  *
  * \return         \c 0 on success, or #MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH
  *                 on failure.
+ * \return         #MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the cipher mode.
  */
 int mbedtls_aria_crypt_cbc( mbedtls_aria_context *ctx,
                             int mode,
@@ -225,6 +231,8 @@ int mbedtls_aria_crypt_cbc( mbedtls_aria_context *ctx,
  * \param output   The buffer holding the output data.
  *
  * \return         \c 0 on success.
+ * \return         #MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the cipher mode.
  */
 int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
                                int mode,
@@ -305,6 +313,8 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
  * \param output           The buffer holding the output data.
  *
  * \return     \c 0 on success.
+ * \return     #MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE if the
+ *             alternative implementation doesn't support the cipher mode.
  */
 int mbedtls_aria_crypt_ctr( mbedtls_aria_context *ctx,
                             size_t length,

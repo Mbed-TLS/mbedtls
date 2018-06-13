@@ -882,9 +882,10 @@ static int mbedtls_status_is_ssl_in_progress( int ret )
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 typedef struct
 {
-    mbedtls_x509_crt *cert;
-    mbedtls_pk_context *pk;
-    unsigned delay;
+    mbedtls_x509_crt *cert; /*!< Certificate corresponding to the key */
+    mbedtls_pk_context *pk; /*!< Private key */
+    unsigned delay; /*!< Number of resume steps to go through */
+    unsigned pk_owned : 1; /*!< Whether to free the pk object on exit */
 } ssl_async_key_slot_t;
 
 typedef enum {
@@ -905,15 +906,17 @@ typedef struct
 } ssl_async_key_context_t;
 
 int ssl_async_set_key( ssl_async_key_context_t *ctx,
-                        mbedtls_x509_crt *cert,
-                        mbedtls_pk_context *pk,
-                        unsigned delay )
+                       mbedtls_x509_crt *cert,
+                       mbedtls_pk_context *pk,
+                       int pk_take_ownership,
+                       unsigned delay )
 {
     if( ctx->slots_used >= sizeof( ctx->slots ) / sizeof( *ctx->slots ) )
         return( -1 );
     ctx->slots[ctx->slots_used].cert = cert;
     ctx->slots[ctx->slots_used].pk = pk;
     ctx->slots[ctx->slots_used].delay = delay;
+    ctx->slots[ctx->slots_used].pk_owned = pk_take_ownership;
     ++ctx->slots_used;
     return( 0 );
 }
@@ -1067,6 +1070,7 @@ static int ssl_async_resume( mbedtls_ssl_context *ssl,
         default:
             mbedtls_printf( "Async resume (slot %u): unknown operation type %ld. This shouldn't happen.\n",
                             ctx->slot, (long) ctx->operation_type );
+            mbedtls_free( ctx );
             return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
             break;
     }
@@ -2306,7 +2310,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if( opt.async_private_delay1 >= 0 )
         {
-            ret = ssl_async_set_key( &ssl_async_keys, &srvcert, pk,
+            ret = ssl_async_set_key( &ssl_async_keys, &srvcert, pk, 0,
                                      opt.async_private_delay1 );
             if( ret < 0 )
             {
@@ -2329,7 +2333,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if( opt.async_private_delay2 >= 0 )
         {
-            ret = ssl_async_set_key( &ssl_async_keys, &srvcert2, pk,
+            ret = ssl_async_set_key( &ssl_async_keys, &srvcert2, pk, 0,
                                      opt.async_private_delay2 );
             if( ret < 0 )
             {
@@ -2391,7 +2395,7 @@ int main( int argc, char *argv[] )
             for( cur = sni_info; cur != NULL; cur = cur->next )
             {
                 ret = ssl_async_set_key( &ssl_async_keys,
-                                         cur->cert, cur->key,
+                                         cur->cert, cur->key, 1,
                                          opt.async_private_delay2 );
                 if( ret < 0 )
                 {
@@ -3017,6 +3021,17 @@ exit:
     mbedtls_pk_free( &pkey );
     mbedtls_x509_crt_free( &srvcert2 );
     mbedtls_pk_free( &pkey2 );
+#endif
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+    for( i = 0; (size_t) i < ssl_async_keys.slots_used; i++ )
+    {
+        if( ssl_async_keys.slots[i].pk_owned )
+        {
+            mbedtls_pk_free( ssl_async_keys.slots[i].pk );
+            mbedtls_free( ssl_async_keys.slots[i].pk );
+            ssl_async_keys.slots[i].pk = NULL;
+        }
+    }
 #endif
 #if defined(SNI_OPTION)
     sni_free( sni_info );

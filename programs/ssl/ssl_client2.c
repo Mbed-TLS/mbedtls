@@ -1516,7 +1516,7 @@ int main( int argc, char *argv[] )
     {
         if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
             ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
-            ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+            ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n",
                             -ret );
@@ -1533,7 +1533,7 @@ int main( int argc, char *argv[] )
         }
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-            if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+            if( ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
                 continue;
 #endif
 
@@ -1630,7 +1630,7 @@ int main( int argc, char *argv[] )
         {
             if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
                 ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
-                ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+                ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_renegotiate returned %d\n\n",
                                 ret );
@@ -1695,7 +1695,7 @@ send_request:
             {
                 if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
                     ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
-                    ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+                    ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
                 {
                     mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned -0x%x\n\n",
                                     -ret );
@@ -1721,7 +1721,7 @@ send_request:
             ret = mbedtls_ssl_write( &ssl, buf, len );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-            if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+            if( ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
                 continue;
 #endif
 
@@ -1779,7 +1779,7 @@ send_request:
             ret = mbedtls_ssl_read( &ssl, buf, len );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-            if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+            if( ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
                 continue;
 #endif
 
@@ -1844,7 +1844,7 @@ send_request:
             ret = mbedtls_ssl_read( &ssl, buf, len );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-            if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+            if( ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
                 continue;
 #endif
 
@@ -1911,7 +1911,7 @@ send_request:
         {
             if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
                 ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
-                ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+                ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n",
                                 -ret );
@@ -2010,7 +2010,7 @@ reconnect:
         {
             if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
                 ret != MBEDTLS_ERR_SSL_WANT_WRITE &&
-                ret != MBEDTLS_ERR_ECP_IN_PROGRESS )
+                ret != MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n",
                                 -ret );

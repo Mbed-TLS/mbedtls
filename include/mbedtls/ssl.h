@@ -120,6 +120,7 @@
 #define MBEDTLS_ERR_SSL_NON_FATAL                         -0x6680  /**< The alert message received indicates a non-fatal error. */
 #define MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH               -0x6600  /**< Couldn't set the hash for verifying CertificateVerify */
 #define MBEDTLS_ERR_SSL_CONTINUE_PROCESSING               -0x6580  /**< Internal-only message signaling that further message-processing should be done */
+#define MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS                -0x6500  /**< A cryptographic operation is in progress. Try again later. */
 
 /*
  * Various constants

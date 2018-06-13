@@ -2055,6 +2055,10 @@ static int ssl_parse_server_ecdh_params( mbedtls_ssl_context *ssl,
                                   (const unsigned char **) p, end ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ecdh_read_params" ), ret );
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+            if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+                ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+#endif
         return( ret );
     }
 
@@ -2619,6 +2623,10 @@ start_processing:
                 mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                                 MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR );
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify", ret );
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+            if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+                ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+#endif
             return( ret );
         }
     }
@@ -2933,6 +2941,10 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_public", ret );
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+            if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+                ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+#endif
             return( ret );
         }
 
@@ -2956,6 +2968,10 @@ ecdh_calc_secret:
                                        ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+            if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+                ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+#endif
             return( ret );
         }
 
@@ -3313,6 +3329,10 @@ sign:
                          ssl->conf->f_rng, ssl->conf->p_rng, rs_ctx ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_sign", ret );
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+            ret = MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS;
+#endif
         return( ret );
     }
 

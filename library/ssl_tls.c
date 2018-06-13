@@ -4683,7 +4683,7 @@ crt_verify:
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
         if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
-            return( ret );
+            return( MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS );
 #endif
 
         /*

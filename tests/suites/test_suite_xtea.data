@@ -70,6 +70,10 @@ xtea_decrypt_cbc:"00000000000000000000000000000000":"4142434445464748":"41414141
 XTEA Decrypt CBC #6
 xtea_decrypt_cbc:"00000000000000000000000000000000":"0000000000000000":"5a5b6e278948d77f70e1225d6e4e7655e78f2d13744341d8":"c1e2dbbf67ee786e29e051bea18c6abc66f1de5c2daefc2a"
 
+XTEA - Invalid parameters
+depends_on:MBEDTLS_CHECK_PARAMS
+xtea_invalid_param:
+
 XTEA Selftest
 depends_on:MBEDTLS_SELF_TEST
 xtea_selftest:

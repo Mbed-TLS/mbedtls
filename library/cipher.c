@@ -298,9 +298,82 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
 #if defined(MBEDTLS_GCM_C)
     if( ctx->cipher_info->mode == MBEDTLS_MODE_GCM )
     {
-        *olen = ilen;
-        return mbedtls_gcm_update( (mbedtls_gcm_context *) ctx->cipher_ctx, ilen, input,
-                           output );
+        size_t copy_len = 0;
+
+        /*
+         * If there is not enough data for a full block, cache it.
+         */
+        if( ilen < block_size - ctx->unprocessed_len )
+        {
+            memcpy( &( ctx->unprocessed_data[ctx->unprocessed_len] ), input,
+                    ilen );
+
+            ctx->unprocessed_len += ilen;
+            return( 0 );
+        }
+
+        /*
+         * Process cached data first
+         */
+        if( 0 != ctx->unprocessed_len )
+        {
+            copy_len = block_size - ctx->unprocessed_len;
+
+            memcpy( &( ctx->unprocessed_data[ctx->unprocessed_len] ), input,
+                    copy_len );
+
+            if( 0 != ( ret = mbedtls_gcm_update( (mbedtls_gcm_context *) ctx->cipher_ctx,
+                    ilen, ctx->unprocessed_data, output ) ) )
+            {
+                return( ret );
+            }
+
+            *olen += block_size;
+            output += block_size;
+            ctx->unprocessed_len = 0;
+
+            input += copy_len;
+            ilen -= copy_len;
+        }
+
+        /*
+         * Cache final, incomplete block
+         */
+        if( 0 != ilen )
+        {
+            if( 0 == block_size )
+            {
+                return MBEDTLS_ERR_CIPHER_INVALID_CONTEXT;
+            }
+
+            copy_len = ilen % block_size;
+            if( copy_len == 0 )
+            {
+                copy_len = block_size;
+            }
+
+            memcpy( ctx->unprocessed_data, &( input[ilen - copy_len] ),
+                    copy_len );
+
+            ctx->unprocessed_len += copy_len;
+            ilen -= copy_len;
+        }
+
+        /*
+         * Process remaining full blocks
+         */
+        if( ilen )
+        {
+            if( 0 != ( ret = mbedtls_gcm_update( (mbedtls_gcm_context *) ctx->cipher_ctx,
+                    ilen, input, output ) ) )
+            {
+                return( ret );
+            }
+
+            *olen += ilen;
+        }
+
+        return ( 0 )
     }
 #endif
 

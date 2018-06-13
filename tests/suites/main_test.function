@@ -130,7 +130,7 @@ typedef void (*TestWrapper_t)( void ** );
  */
 TestWrapper_t test_funcs[] =
 {{
-{dispatch_code} 
+{dispatch_code}
 #line {line_no} "suites/main_test.function"
 }};
 

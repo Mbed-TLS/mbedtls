@@ -57,20 +57,20 @@ END_CASE_REGEX = '/\*\s*END_CASE\s*\*/'
 
 class InvalidFileFormat(Exception):
     """
-    Exception to indicate invalid file format. 
+    Exception to indicate invalid file format.
     """
     pass
 
 
 class FileWrapper(io.FileIO):
     """
-    File wrapper class. Provides reading with line no. tracking. 
+    File wrapper class. Provides reading with line no. tracking.
     """
 
     def __init__(self, file_name):
         """
         Init file handle.
-        
+
         :param file_name: File path to open.
         """
         super(FileWrapper, self).__init__(file_name, 'r')
@@ -174,7 +174,7 @@ def gen_dispatch(name, deps):
 def parse_until_pattern(funcs_f, end_regex):
     """
     Parses function headers or helper code until end pattern.
-    
+
     :param funcs_f: file object for .functions file
     :param end_regex: Pattern to stop parsing
     :return: Test suite headers code
@@ -193,7 +193,7 @@ def parse_until_pattern(funcs_f, end_regex):
 def parse_suite_deps(funcs_f):
     """
     Parses test suite dependencies.
-    
+
     :param funcs_f: file object for .functions file
     :return: List of test suite dependencies.
     """
@@ -213,7 +213,7 @@ def parse_suite_deps(funcs_f):
 def parse_function_deps(line):
     """
     Parses function dependencies.
-    
+
     :param line: Line from .functions file that has dependencies.
     :return: List of dependencies.
     """
@@ -230,7 +230,7 @@ def parse_function_deps(line):
 def parse_function_signature(line):
     """
     Parsing function signature
-    
+
     :param line: Line from .functions file that has a function signature.
     :return: function name, argument list, local variables for wrapper function and argument dispatch code.
     """
@@ -271,7 +271,7 @@ def parse_function_signature(line):
 def parse_function_code(funcs_f, deps, suite_deps):
     """
     Parses out a function from function file object and generates function and dispatch code.
-    
+
     :param funcs_f: file object of the functions file.
     :param deps: List of dependencies
     :param suite_deps: List of test suite dependencies
@@ -319,7 +319,7 @@ def parse_function_code(funcs_f, deps, suite_deps):
 def parse_functions(funcs_f):
     """
     Returns functions code pieces
-    
+
     :param funcs_f: file object of the functions file.
     :return: List of test suite dependencies, test function dispatch code, function code and
              a dict with function identifiers and arguments info.
@@ -361,7 +361,7 @@ def parse_functions(funcs_f):
 def escaped_split(str, ch):
     """
     Split str on character ch but ignore escaped \{ch}
-    Since return value is used to write back to the intermediate data file. 
+    Since return value is used to write back to the intermediate data file.
     Any escape characters in the input are retained in the output.
 
     :param str: String to split
@@ -388,7 +388,7 @@ def escaped_split(str, ch):
 def parse_test_data(data_f, debug=False):
     """
     Parses .data file
-    
+
     :param data_f: file object of the data file.
     :return: Generator that yields test name, function name, dependency list and function argument list.
     """
@@ -432,7 +432,7 @@ def parse_test_data(data_f, debug=False):
 def gen_dep_check(dep_id, dep):
     """
     Generate code for the dependency.
-    
+
     :param dep_id: Dependency identifier
     :param dep: Dependency macro
     :return: Dependency check code
@@ -456,7 +456,7 @@ def gen_dep_check(dep_id, dep):
 def gen_expression_check(exp_id, exp):
     """
     Generates code for expression check
-    
+
     :param exp_id: Expression Identifier
     :param exp: Expression/Macro
     :return: Expression check code
@@ -476,7 +476,7 @@ def write_deps(out_data_f, test_deps, unique_deps):
     """
     Write dependencies to intermediate test data file.
     It also returns dependency check code.
-      
+
     :param out_data_f: Output intermediate data file
     :param test_deps: Dependencies
     :param unique_deps: Mutable list to track unique dependencies that are global to this re-entrant function.
@@ -501,7 +501,7 @@ def write_parameters(out_data_f, test_args, func_args, unique_expressions):
     """
     Writes test parameters to the intermediate data file.
     Also generates expression code.
-     
+
     :param out_data_f: Output intermediate data file
     :param test_args: Test parameters
     :param func_args: Function arguments
@@ -533,7 +533,7 @@ def write_parameters(out_data_f, test_args, func_args, unique_expressions):
 def gen_suite_deps_checks(suite_deps, dep_check_code, expression_code):
     """
     Adds preprocessor checks for test suite dependencies.
-    
+
     :param suite_deps: Test suite dependencies read from the .functions file.
     :param dep_check_code: Dependency check code
     :param expression_code: Expression check code
@@ -557,7 +557,7 @@ def gen_suite_deps_checks(suite_deps, dep_check_code, expression_code):
 def gen_from_test_data(data_f, out_data_f, func_info, suite_deps):
     """
     Generates dependency checks, expression code and intermediate data file from test data file.
-    
+
     :param data_f: Data file object
     :param out_data_f:Output intermediate data file
     :param func_info: Dict keyed by function and with function id and arguments info

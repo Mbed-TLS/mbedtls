@@ -323,7 +323,7 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
                     copy_len );
 
             if( 0 != ( ret = mbedtls_gcm_update( (mbedtls_gcm_context *) ctx->cipher_ctx,
-                    ilen, ctx->unprocessed_data, output ) ) )
+                    block_size, ctx->unprocessed_data, output ) ) )
             {
                 return( ret );
             }
@@ -371,7 +371,7 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
 
         return ( 0 );
     }
-#endif
+#endif /* MBEDTLS_GCM_C */
 
     if ( 0 == block_size )
     {
@@ -745,7 +745,6 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
     {
         int ret = 0;
-
         if( ctx->unprocessed_len != 0 )
         {
             if( 0 != ( ret = mbedtls_gcm_update( (mbedtls_gcm_context *) ctx->cipher_ctx,

@@ -3513,6 +3513,15 @@ static int ssl_parse_encrypted_pms( mbedtls_ssl_context *ssl,
     size_t i, peer_pmslen;
     unsigned int diff;
 
+    /* In case of a failure in decryption, the decryption may write less than
+     * 2 bytes of output, but we always read the first two bytes. It doesn't
+     * matter in the end because diff will be nonzero in that case due to
+     * peer_pmslen being less than 48, and we only care whether diff is 0.
+     * But do initialize peer_pms for robustness anyway. This also makes
+     * memory analyzers happy (don't access uninitialized memory, even
+     * if it's an unsigned char). */
+    peer_pms[0] = peer_pms[1] = ~0;
+
     ret = ssl_decrypt_encrypted_pms( ssl, p, end,
                                      peer_pms,
                                      &peer_pmslen,

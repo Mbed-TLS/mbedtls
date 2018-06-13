@@ -21,7 +21,7 @@ endif
 # if were running on Windows build for Windows
 ifdef WINDOWS
 WINDOWS_BUILD=1
-else ifdef APPLE
+else ifeq ($(shell uname -s),Darwin)
 APPLE_BUILD=1
 endif
 

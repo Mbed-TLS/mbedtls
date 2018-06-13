@@ -347,10 +347,6 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
             }
 
             copy_len = ilen % block_size;
-            if( copy_len == 0 )
-            {
-                copy_len = block_size;
-            }
 
             memcpy( ctx->unprocessed_data, &( input[ilen - copy_len] ),
                     copy_len );
@@ -373,7 +369,7 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
             *olen += ilen;
         }
 
-        return ( 0 )
+        return ( 0 );
     }
 #endif
 
@@ -730,7 +726,6 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
     if( MBEDTLS_MODE_CFB == ctx->cipher_info->mode ||
         MBEDTLS_MODE_OFB == ctx->cipher_info->mode ||
         MBEDTLS_MODE_CTR == ctx->cipher_info->mode ||
-        MBEDTLS_MODE_GCM == ctx->cipher_info->mode ||
         MBEDTLS_MODE_STREAM == ctx->cipher_info->mode )
     {
         return( 0 );
@@ -744,20 +739,27 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
         return( 0 );
     }
 
-/*
- * Process cache data if there is some
- */
-#if defined(MBEDTLS_MODE_GCM)
-    if( ctx->unprocessed_len != 0 )
+    /*
+    * Process cache data if there is some
+    */
+    if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
     {
-        if( 0 != ( ret = mbedtls_gcm_update( (mbedtls_gcm_context *) ctx->cipher_ctx,
-                ctx->unprocessed_len, ctx->unprocessed_data, output ) ) )
+        int ret = 0;
+
+        if( ctx->unprocessed_len != 0 )
         {
-            return( ret );
+            if( 0 != ( ret = mbedtls_gcm_update( (mbedtls_gcm_context *) ctx->cipher_ctx,
+                    ctx->unprocessed_len, ctx->unprocessed_data, output ) ) )
+            {
+                return( ret );
+            }
+
+            *olen += ctx->unprocessed_len;
+            ctx->unprocessed_len = 0;
         }
+
+        return( 0 );
     }
-    return( 0 );
-#endif
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     if( MBEDTLS_MODE_CBC == ctx->cipher_info->mode )

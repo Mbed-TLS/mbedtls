@@ -36,7 +36,7 @@ class GenDep(TestCase):
     def test_deps_list(self):
         """
         Test that gen_dep() correctly creates deps for given dependency list.
-        :return: 
+        :return:
         """
         deps = ['DEP1', 'DEP2']
         dep_start, dep_end = gen_deps(deps)
@@ -50,7 +50,7 @@ class GenDep(TestCase):
     def test_disabled_deps_list(self):
         """
         Test that gen_dep() correctly creates deps for given dependency list.
-        :return: 
+        :return:
         """
         deps = ['!DEP1', '!DEP2']
         dep_start, dep_end = gen_deps(deps)
@@ -64,7 +64,7 @@ class GenDep(TestCase):
     def test_mixed_deps_list(self):
         """
         Test that gen_dep() correctly creates deps for given dependency list.
-        :return: 
+        :return:
         """
         deps = ['!DEP1', 'DEP2']
         dep_start, dep_end = gen_deps(deps)
@@ -78,7 +78,7 @@ class GenDep(TestCase):
     def test_empty_deps_list(self):
         """
         Test that gen_dep() correctly creates deps for given dependency list.
-        :return: 
+        :return:
         """
         deps = []
         dep_start, dep_end = gen_deps(deps)
@@ -88,7 +88,7 @@ class GenDep(TestCase):
     def test_large_deps_list(self):
         """
         Test that gen_dep() correctly creates deps for given dependency list.
-        :return: 
+        :return:
         """
         deps = []
         count = 10
@@ -107,7 +107,7 @@ class GenDepOneLine(TestCase):
     def test_deps_list(self):
         """
         Test that gen_dep() correctly creates deps for given dependency list.
-        :return: 
+        :return:
         """
         deps = ['DEP1', 'DEP2']
         dep_str = gen_deps_one_line(deps)
@@ -162,14 +162,14 @@ class GenFunctionWrapper(TestCase):
     def test_params_unpack(self):
         """
         Test that params are properly unpacked in the function call.
-        
-        :return: 
+
+        :return:
         """
         code = gen_function_wrapper('test_a', '', ('a', 'b', 'c', 'd'))
         expected = '''
 void test_a_wrapper( void ** params )
 {
-    
+
 
     test_a( a, b, c, d );
 }
@@ -179,14 +179,14 @@ void test_a_wrapper( void ** params )
     def test_local(self):
         """
         Test that params are properly unpacked in the function call.
-        
-        :return: 
+
+        :return:
         """
         code = gen_function_wrapper('test_a', 'int x = 1;', ('x', 'b', 'c', 'd'))
         expected = '''
 void test_a_wrapper( void ** params )
 {
-    
+
 int x = 1;
     test_a( x, b, c, d );
 }
@@ -196,8 +196,8 @@ int x = 1;
     def test_empty_params(self):
         """
         Test that params are properly unpacked in the function call.
-        
-        :return: 
+
+        :return:
         """
         code = gen_function_wrapper('test_a', '', ())
         expected = '''
@@ -219,7 +219,7 @@ class GenDispatch(TestCase):
     def test_dispatch(self):
         """
         Test that dispatch table entry is generated correctly.
-        :return: 
+        :return:
         """
         code = gen_dispatch('test_a', ['DEP1', 'DEP2'])
         expected = '''
@@ -234,7 +234,7 @@ class GenDispatch(TestCase):
     def test_empty_deps(self):
         """
         Test empty dependency list.
-        :return: 
+        :return:
         """
         code = gen_dispatch('test_a', [])
         expected = '''
@@ -250,8 +250,8 @@ class StringIOWrapper(StringIO, object):
     def __init__(self, file_name, data, line_no = 1):
         """
         Init file handle.
-        
-        :param file_name: 
+
+        :param file_name:
         :param data:
         :param line_no:
         """
@@ -262,7 +262,7 @@ class StringIOWrapper(StringIO, object):
     def next(self):
         """
         Iterator return impl.
-        :return: 
+        :return:
         """
         line = super(StringIOWrapper, self).next()
         return line
@@ -270,9 +270,9 @@ class StringIOWrapper(StringIO, object):
     def readline(self, limit=0):
         """
         Wrap the base class readline.
-        
-        :param limit: 
-        :return: 
+
+        :param limit:
+        :return:
         """
         line = super(StringIOWrapper, self).readline()
         if line:
@@ -288,8 +288,8 @@ class ParseUntilPattern(TestCase):
     def test_suite_headers(self):
         """
         Test that suite headers are parsed correctly.
-        
-        :return: 
+
+        :return:
         """
         data = '''#include "mbedtls/ecp.h"
 
@@ -307,9 +307,9 @@ class ParseUntilPattern(TestCase):
 
     def test_line_no(self):
         """
-        Test that #line is set to correct line no. in source .function file. 
-        
-        :return: 
+        Test that #line is set to correct line no. in source .function file.
+
+        :return:
         """
         data = '''#include "mbedtls/ecp.h"
 
@@ -329,7 +329,7 @@ class ParseUntilPattern(TestCase):
     def test_no_end_header_comment(self):
         """
         Test that InvalidFileFormat is raised when end header comment is missing.
-        :return: 
+        :return:
         """
         data = '''#include "mbedtls/ecp.h"
 
@@ -347,8 +347,8 @@ class ParseSuiteDeps(TestCase):
 
     def test_suite_deps(self):
         """
-        
-        :return: 
+
+        :return:
         """
         data = '''
  * depends_on:MBEDTLS_ECP_C
@@ -363,7 +363,7 @@ class ParseSuiteDeps(TestCase):
     def test_no_end_dep_comment(self):
         """
         Test that InvalidFileFormat is raised when end dep comment is missing.
-        :return: 
+        :return:
         """
         data = '''
 * depends_on:MBEDTLS_ECP_C
@@ -374,10 +374,10 @@ class ParseSuiteDeps(TestCase):
     def test_deps_split(self):
         """
         Test that InvalidFileFormat is raised when end dep comment is missing.
-        :return: 
+        :return:
         """
         data = '''
- * depends_on:MBEDTLS_ECP_C:A:B:   C  : D :F : G: !H 
+ * depends_on:MBEDTLS_ECP_C:A:B:   C  : D :F : G: !H
  * END_DEPENDENCIES
  */
 '''
@@ -389,13 +389,13 @@ class ParseSuiteDeps(TestCase):
 
 class ParseFuncDeps(TestCase):
     """
-    Test Suite for testing parse_function_deps() 
+    Test Suite for testing parse_function_deps()
     """
 
     def test_function_deps(self):
         """
         Test that parse_function_deps() correctly parses function dependencies.
-        :return: 
+        :return:
         """
         line = '/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_FS_IO */'
         expected = ['MBEDTLS_ENTROPY_NV_SEED', 'MBEDTLS_FS_IO']
@@ -405,7 +405,7 @@ class ParseFuncDeps(TestCase):
     def test_no_deps(self):
         """
         Test that parse_function_deps() correctly parses function dependencies.
-        :return: 
+        :return:
         """
         line = '/* BEGIN_CASE */'
         deps = parse_function_deps(line)
@@ -414,7 +414,7 @@ class ParseFuncDeps(TestCase):
     def test_poorly_defined_deps(self):
         """
         Test that parse_function_deps() correctly parses function dependencies.
-        :return: 
+        :return:
         """
         line = '/* BEGIN_CASE depends_on:MBEDTLS_FS_IO: A : !B:C : F*/'
         deps = parse_function_deps(line)
@@ -423,13 +423,13 @@ class ParseFuncDeps(TestCase):
 
 class ParseFuncSignature(TestCase):
     """
-    Test Suite for parse_function_signature(). 
+    Test Suite for parse_function_signature().
     """
 
     def test_int_and_char_params(self):
         """
         Test int and char parameters parsing
-        :return: 
+        :return:
         """
         line = 'void entropy_threshold( char * a, int b, int result )'
         name, args, local, arg_dispatch = parse_function_signature(line)
@@ -441,7 +441,7 @@ class ParseFuncSignature(TestCase):
     def test_hex_params(self):
         """
         Test hex parameters parsing
-        :return: 
+        :return:
         """
         line = 'void entropy_threshold( char * a, HexParam_t * h, int result )'
         name, args, local, arg_dispatch = parse_function_signature(line)
@@ -453,7 +453,7 @@ class ParseFuncSignature(TestCase):
     def test_non_void_function(self):
         """
         Test invalid signature (non void).
-        :return: 
+        :return:
         """
         line = 'int entropy_threshold( char * a, HexParam_t * h, int result )'
         self.assertRaises(ValueError, parse_function_signature, line)
@@ -461,7 +461,7 @@ class ParseFuncSignature(TestCase):
     def test_unsupported_arg(self):
         """
         Test unsupported arguments (not among int, char * and HexParam_t)
-        :return: 
+        :return:
         """
         line = 'int entropy_threshold( char * a, HexParam_t * h, int * result )'
         self.assertRaises(ValueError, parse_function_signature, line)
@@ -469,7 +469,7 @@ class ParseFuncSignature(TestCase):
     def test_no_params(self):
         """
         Test no parameters.
-        :return: 
+        :return:
         """
         line = 'void entropy_threshold()'
         name, args, local, arg_dispatch = parse_function_signature(line)
@@ -487,7 +487,7 @@ class ParseFunctionCode(TestCase):
     def test_no_function(self):
         """
         Test no test function found.
-        :return: 
+        :return:
         """
         data = '''
 No
@@ -500,7 +500,7 @@ function
     def test_no_end_case_comment(self):
         """
         Test missing end case.
-        :return: 
+        :return:
         """
         data = '''
 void test_func()
@@ -514,7 +514,7 @@ void test_func()
     def test_parse_function_signature_called(self, parse_function_signature_mock):
         """
         Test parse_function_code()
-        :return: 
+        :return:
         """
         parse_function_signature_mock.return_value = ('test_func', [], '', [])
         data = '''
@@ -537,7 +537,7 @@ void test_func()
                                              gen_dispatch_mock):
         """
         Test generated code.
-        :return: 
+        :return:
         """
         parse_function_signature_mock.return_value = ('func', [], '', [])
         gen_function_wrapper_mock.return_value = ''
@@ -582,7 +582,7 @@ exit:
                            gen_dispatch_mock):
         """
         Test when exit label is present.
-        :return: 
+        :return:
         """
         parse_function_signature_mock.return_value = ('func', [], '', [])
         gen_function_wrapper_mock.return_value = ''
@@ -624,7 +624,7 @@ class ParseFunction(TestCase):
     def test_begin_header(self, parse_until_pattern_mock):
         """
         Test that begin header is checked and parse_until_pattern() is called.
-        :return: 
+        :return:
         """
         def stop(this):
             raise Exception
@@ -644,7 +644,7 @@ class ParseFunction(TestCase):
     def test_begin_helper(self, parse_until_pattern_mock):
         """
         Test that begin helper is checked and parse_until_pattern() is called.
-        :return: 
+        :return:
         """
         def stop(this):
             raise Exception
@@ -665,7 +665,7 @@ void print_helloworld()
     def test_begin_dep(self, parse_suite_deps_mock):
         """
         Test that begin dep is checked and parse_suite_deps() is called.
-        :return: 
+        :return:
         """
         def stop(this):
             raise Exception
@@ -684,7 +684,7 @@ void print_helloworld()
     def test_begin_function_dep(self, parse_function_deps_mock):
         """
         Test that begin dep is checked and parse_function_deps() is called.
-        :return: 
+        :return:
         """
         def stop(this):
             raise Exception
@@ -705,7 +705,7 @@ void print_helloworld()
     def test_return(self, parse_function_deps_mock, parse_function_code_mock):
         """
         Test that begin case is checked and parse_function_code() is called.
-        :return: 
+        :return:
         """
         def stop(this):
             raise Exception
@@ -740,7 +740,7 @@ void print_helloworld()
     def test_parsing(self):
         """
         Test case parsing.
-        :return: 
+        :return:
         """
         data = '''/* BEGIN_HEADER */
 #include "mbedtls/ecp.h"
@@ -833,7 +833,7 @@ void test_func2_wrapper( void ** params )
     def test_same_function_name(self):
         """
         Test name conflict.
-        :return: 
+        :return:
         """
         data = '''/* BEGIN_HEADER */
 #include "mbedtls/ecp.h"
@@ -872,14 +872,14 @@ class ExcapedSplit(TestCase):
     def test_invalid_input(self):
         """
         Test when input split character is not a character.
-        :return: 
+        :return:
         """
         self.assertRaises(ValueError, escaped_split, '', 'string')
 
     def test_empty_string(self):
         """
         Test empty strig input.
-        :return: 
+        :return:
         """
         splits = escaped_split('', ':')
         self.assertEqual(splits, [])
@@ -887,7 +887,7 @@ class ExcapedSplit(TestCase):
     def test_no_escape(self):
         """
         Test with no escape character. The behaviour should be same as str.split()
-        :return: 
+        :return:
         """
         s = 'yahoo:google'
         splits = escaped_split(s, ':')
@@ -896,7 +896,7 @@ class ExcapedSplit(TestCase):
     def test_escaped_input(self):
         """
         Test imput that has escaped delimiter.
-        :return: 
+        :return:
         """
         s = 'yahoo\:google:facebook'
         splits = escaped_split(s, ':')
@@ -905,7 +905,7 @@ class ExcapedSplit(TestCase):
     def test_escaped_escape(self):
         """
         Test imput that has escaped delimiter.
-        :return: 
+        :return:
         """
         s = 'yahoo\\\:google:facebook'
         splits = escaped_split(s, ':')
@@ -914,7 +914,7 @@ class ExcapedSplit(TestCase):
     def test_all_at_once(self):
         """
         Test imput that has escaped delimiter.
-        :return: 
+        :return:
         """
         s = 'yahoo\\\:google:facebook\:instagram\\\:bbc\\\\:wikipedia'
         splits = escaped_split(s, ':')
@@ -929,7 +929,7 @@ class ParseTestData(TestCase):
     def test_parser(self):
         """
         Test that tests are parsed correctly from data file.
-        :return: 
+        :return:
         """
         data = """
 Diffie-Hellman full exchange #1
@@ -970,7 +970,7 @@ dhm_selftest:
     def test_with_dependencies(self):
         """
         Test that tests with dependencies are parsed.
-        :return: 
+        :return:
         """
         data = """
 Diffie-Hellman full exchange #1
@@ -997,7 +997,7 @@ dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
     def test_no_args(self):
         """
         Test AssertionError is raised when test function name and args line is missing.
-        :return: 
+        :return:
         """
         data = """
 Diffie-Hellman full exchange #1
@@ -1020,7 +1020,7 @@ dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
     def test_incomplete_data(self):
         """
         Test AssertionError is raised when test function name and args line is missing.
-        :return: 
+        :return:
         """
         data = """
 Diffie-Hellman full exchange #1
@@ -1038,13 +1038,13 @@ depends_on:YAHOO
 
 class GenDepCheck(TestCase):
     """
-    Test suite for gen_dep_check(). It is assumed this function is called with valid inputs. 
+    Test suite for gen_dep_check(). It is assumed this function is called with valid inputs.
     """
 
     def test_gen_dep_check(self):
         """
         Test that dependency check code generated correctly.
-        :return: 
+        :return:
         """
         expected = """
         case 5:
@@ -1062,7 +1062,7 @@ class GenDepCheck(TestCase):
     def test_noT(self):
         """
         Test dependency with !.
-        :return: 
+        :return:
         """
         expected = """
         case 5:
@@ -1080,27 +1080,27 @@ class GenDepCheck(TestCase):
     def test_empty_dependency(self):
         """
         Test invalid dependency input.
-        :return: 
+        :return:
         """
         self.assertRaises(AssertionError, gen_dep_check, 5, '!')
 
     def test_negative_dep_id(self):
         """
         Test invalid dependency input.
-        :return: 
+        :return:
         """
         self.assertRaises(AssertionError, gen_dep_check, -1, 'YAHOO')
 
 
 class GenExpCheck(TestCase):
     """
-    Test suite for gen_expression_check(). It is assumed this function is called with valid inputs. 
+    Test suite for gen_expression_check(). It is assumed this function is called with valid inputs.
     """
 
     def test_gen_exp_check(self):
         """
         Test that expression check code generated correctly.
-        :return: 
+        :return:
         """
         expected = """
         case 5:
@@ -1114,14 +1114,14 @@ class GenExpCheck(TestCase):
     def test_invalid_expression(self):
         """
         Test invalid expression input.
-        :return: 
+        :return:
         """
         self.assertRaises(AssertionError, gen_expression_check, 5, '')
 
     def test_negative_exp_id(self):
         """
         Test invalid expression id.
-        :return: 
+        :return:
         """
         self.assertRaises(AssertionError, gen_expression_check, -1, 'YAHOO')
 
@@ -1134,7 +1134,7 @@ class WriteDeps(TestCase):
     def test_no_test_deps(self):
         """
         Test when test_deps is empty.
-        :return: 
+        :return:
         """
         s = StringIOWrapper('test_suite_ut.data', '')
         unique_deps = []
@@ -1145,8 +1145,8 @@ class WriteDeps(TestCase):
 
     def test_unique_dep_ids(self):
         """
-        
-        :return: 
+
+        :return:
         """
         s = StringIOWrapper('test_suite_ut.data', '')
         unique_deps = []
@@ -1185,8 +1185,8 @@ class WriteDeps(TestCase):
 
     def test_dep_id_repeat(self):
         """
-        
-        :return: 
+
+        :return:
         """
         s = StringIOWrapper('test_suite_ut.data', '')
         unique_deps = []
@@ -1235,7 +1235,7 @@ class WriteParams(TestCase):
     def test_no_params(self):
         """
         Test with empty test_args
-        :return: 
+        :return:
         """
         s = StringIOWrapper('test_suite_ut.data', '')
         unique_expressions = []
@@ -1247,7 +1247,7 @@ class WriteParams(TestCase):
     def test_no_exp_param(self):
         """
         Test when there is no macro or expression in the params.
-        :return: 
+        :return:
         """
         s = StringIOWrapper('test_suite_ut.data', '')
         unique_expressions = []
@@ -1260,7 +1260,7 @@ class WriteParams(TestCase):
     def test_hex_format_int_param(self):
         """
         Test int parameter in hex format.
-        :return: 
+        :return:
         """
         s = StringIOWrapper('test_suite_ut.data', '')
         unique_expressions = []
@@ -1273,7 +1273,7 @@ class WriteParams(TestCase):
     def test_with_exp_param(self):
         """
         Test when there is macro or expression in the params.
-        :return: 
+        :return:
         """
         s = StringIOWrapper('test_suite_ut.data', '')
         unique_expressions = []
@@ -1304,7 +1304,7 @@ class WriteParams(TestCase):
     def test_with_repeate_calls(self):
         """
         Test when write_parameter() is called with same macro or expression.
-        :return: 
+        :return:
         """
         s = StringIOWrapper('test_suite_ut.data', '')
         unique_expressions = []
@@ -1343,13 +1343,13 @@ class WriteParams(TestCase):
 
 class GenTestSuiteDepsChecks(TestCase):
     """
-    
+
     """
     def test_empty_suite_deps(self):
         """
         Test with empty suite_deps list.
-        
-        :return: 
+
+        :return:
         """
         dep_check_code, expression_code = gen_suite_deps_checks([], 'DEP_CHECK_CODE', 'EXPRESSION_CODE')
         self.assertEqual(dep_check_code, 'DEP_CHECK_CODE')
@@ -1358,8 +1358,8 @@ class GenTestSuiteDepsChecks(TestCase):
     def test_suite_deps(self):
         """
         Test with suite_deps list.
-        
-        :return: 
+
+        :return:
         """
         dep_check_code, expression_code = gen_suite_deps_checks(['SUITE_DEP'], 'DEP_CHECK_CODE', 'EXPRESSION_CODE')
         exprectd_dep_check_code = '''
@@ -1377,8 +1377,8 @@ EXPRESSION_CODE
 
     def test_no_dep_no_exp(self):
         """
-        Test when there are no dependency and expression code. 
-        :return: 
+        Test when there are no dependency and expression code.
+        :return:
         """
         dep_check_code, expression_code = gen_suite_deps_checks([], '', '')
         self.assertEqual(dep_check_code, '')
@@ -1396,7 +1396,7 @@ class GenFromTestData(TestCase):
     def test_intermediate_data_file(self, gen_suite_deps_checks_mock, write_parameters_mock, write_deps_mock):
         """
         Test that intermediate data file is written with expected data.
-        :return: 
+        :return:
         """
         data = '''
 My test
@@ -1428,7 +1428,7 @@ func1:0
     def test_function_not_found(self):
         """
         Test that AssertError is raised when function info in not found.
-        :return: 
+        :return:
         """
         data = '''
 My test
@@ -1444,7 +1444,7 @@ func1:0
     def test_different_func_args(self):
         """
         Test that AssertError is raised when no. of parameters and function args differ.
-        :return: 
+        :return:
         """
         data = '''
 My test
@@ -1460,7 +1460,7 @@ func1:0
     def test_output(self):
         """
         Test that intermediate data file is written with expected data.
-        :return: 
+        :return:
         """
         data = '''
 My test 1

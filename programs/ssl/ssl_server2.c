@@ -897,7 +897,7 @@ typedef enum {
 
 typedef struct
 {
-    ssl_async_key_slot_t slots[3]; /* key, key2, sni */
+    ssl_async_key_slot_t slots[4]; /* key, key2, sni1, sni2 */
     size_t slots_used;
     ssl_async_inject_error_t inject_error;
     int (*f_rng)(void *, unsigned char *, size_t);
@@ -2387,16 +2387,20 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
         if( opt.async_private_delay2 >= 0 )
         {
-            ret = ssl_async_set_key( &ssl_async_keys,
-                                     sni_info->cert, sni_info->key,
-                                     opt.async_private_delay2 );
-            if( ret < 0 )
+            sni_entry *cur;
+            for( cur = sni_info; cur != NULL; cur = cur->next )
             {
-                mbedtls_printf( "  Test error: ssl_async_set_key failed (%d)\n",
-                                ret );
-                goto exit;
+                ret = ssl_async_set_key( &ssl_async_keys,
+                                         cur->cert, cur->key,
+                                         opt.async_private_delay2 );
+                if( ret < 0 )
+                {
+                    mbedtls_printf( "  Test error: ssl_async_set_key failed (%d)\n",
+                                    ret );
+                    goto exit;
+                }
+                cur->key = NULL;
             }
-            sni_info->key = NULL;
         }
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
     }

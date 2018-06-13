@@ -247,5 +247,8 @@ des3_encrypt_cbc:3:"0123456789abcdeff1e0d3c2b5a49786fedcba9876543210":"fedcba987
 Run through parity bit tests
 des_key_parity_run:
 
+DES - invalid parameters
+des_invalid_param:
+
 DES Selftest
 des_selftest:

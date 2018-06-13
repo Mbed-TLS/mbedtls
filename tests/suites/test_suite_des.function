@@ -359,6 +359,50 @@ void des_key_parity_run()
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void des_invalid_param( )
+{
+    unsigned char arbitrary_buffer[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+    int arbitrary_int = 0;
+    size_t arbitrary_size_t = 0;
+    mbedtls_des_context ctx;
+
+    TEST_ASSERT( mbedtls_des_init_ret( NULL ) == MBEDTLS_ERR_DES_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_des_free_ret( NULL ) == MBEDTLS_ERR_DES_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_des3_init_ret( NULL ) == MBEDTLS_ERR_DES_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_des3_free_ret( NULL ) == MBEDTLS_ERR_DES_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_des_setkey_enc( NULL, arbitrary_buffer ) == MBEDTLS_ERR_DES_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_des_setkey_dec( NULL, arbitrary_buffer ) == MBEDTLS_ERR_DES_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_des3_set2key_enc( NULL, arbitrary_buffer ) == MBEDTLS_ERR_DES_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_des3_set2key_dec( NULL, arbitrary_buffer ) == MBEDTLS_ERR_DES_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_des3_set3key_enc( NULL, arbitrary_buffer ) == MBEDTLS_ERR_DES_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_des3_set3key_dec( NULL, arbitrary_buffer ) == MBEDTLS_ERR_DES_BAD_INPUT_DATA );
+
+    TEST_ASSERT( mbedtls_des_crypt_ecb( NULL, arbitrary_buffer, arbitrary_buffer ) == MBEDTLS_ERR_DES_BAD_INPUT_DATA );
+
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+    TEST_ASSERT( mbedtls_des_crypt_cbc( NULL, arbitrary_int, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_buffer, arbitrary_buffer ) ==
+        MBEDTLS_ERR_DES_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_des_crypt_cbc( &ctx, arbitrary_int, arbitrary_size_t,
+        arbitrary_buffer, NULL, arbitrary_buffer ) ==
+        MBEDTLS_ERR_DES_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_des_crypt_cbc( &ctx, arbitrary_int, arbitrary_size_t,
+        arbitrary_buffer, arbitrary_buffer, NULL ) ==
+        MBEDTLS_ERR_DES_BAD_INPUT_DATA );
+#endif
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
 void des_selftest()
 {

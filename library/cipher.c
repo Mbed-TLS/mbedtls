@@ -744,6 +744,21 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
         return( 0 );
     }
 
+/*
+ * Process cache data if there is some
+ */
+#if defined(MBEDTLS_MODE_GCM)
+    if( ctx->unprocessed_len != 0 )
+    {
+        if( 0 != ( ret = mbedtls_gcm_update( (mbedtls_gcm_context *) ctx->cipher_ctx,
+                ctx->unprocessed_len, ctx->unprocessed_data, output ) ) )
+        {
+            return( ret );
+        }
+    }
+    return( 0 );
+#endif
+
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     if( MBEDTLS_MODE_CBC == ctx->cipher_info->mode )
     {

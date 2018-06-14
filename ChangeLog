@@ -12,6 +12,8 @@ Features
 Bugfix
    * Fix the cert_write example to handle certificates signed with elliptic
      curves as well as RSA. Fixes #777 found by dbedev.
+   * Fix for redefinition of _WIN32_WINNT to avoid overriding a definition
+     used by user applications. Found and fixed by Fabio Alessandrelli.
 
 Changes
    * Changed CMake defaults for IAR to treat all compiler warnings as errors.

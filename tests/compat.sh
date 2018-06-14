@@ -42,6 +42,9 @@ if ( which $GNUTLS_CLI && which $GNUTLS_SERV ) >/dev/null 2>&1; then
             PEER_GNUTLS=""
         else
             PEER_GNUTLS=" GnuTLS"
+            if [ $MINOR -lt 4 ]; then
+                GNUTLS_MINOR_LT_FOUR='x'
+            fi
         fi
     fi
 else
@@ -545,12 +548,20 @@ add_gnutls_ciphersuites()
                     TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-CBC-SHA384    \
                     TLS-ECDHE-ECDSA-WITH-CAMELLIA-128-GCM-SHA256    \
                     TLS-ECDHE-ECDSA-WITH-CAMELLIA-256-GCM-SHA384    \
+                    TLS-ECDHE-ECDSA-WITH-AES-128-CCM                \
+                    TLS-ECDHE-ECDSA-WITH-AES-256-CCM                \
+                    TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8              \
+                    TLS-ECDHE-ECDSA-WITH-AES-256-CCM-8              \
                    "
                 G_CIPHERS="$G_CIPHERS                               \
                     +ECDHE-ECDSA:+CAMELLIA-128-CBC:+SHA256          \
                     +ECDHE-ECDSA:+CAMELLIA-256-CBC:+SHA384          \
                     +ECDHE-ECDSA:+CAMELLIA-128-GCM:+AEAD            \
                     +ECDHE-ECDSA:+CAMELLIA-256-GCM:+AEAD            \
+                    +ECDHE-ECDSA:+AES-128-CCM:+AEAD                 \
+                    +ECDHE-ECDSA:+AES-256-CCM:+AEAD                 \
+                    +ECDHE-ECDSA:+AES-128-CCM-8:+AEAD               \
+                    +ECDHE-ECDSA:+AES-256-CCM-8:+AEAD               \
                    "
             fi
             ;;
@@ -580,6 +591,14 @@ add_gnutls_ciphersuites()
                     TLS-DHE-RSA-WITH-CAMELLIA-256-GCM-SHA384    \
                     TLS-RSA-WITH-CAMELLIA-128-GCM-SHA256        \
                     TLS-RSA-WITH-CAMELLIA-256-GCM-SHA384        \
+                    TLS-RSA-WITH-AES-128-CCM                    \
+                    TLS-RSA-WITH-AES-256-CCM                    \
+                    TLS-DHE-RSA-WITH-AES-128-CCM                \
+                    TLS-DHE-RSA-WITH-AES-256-CCM                \
+                    TLS-RSA-WITH-AES-128-CCM-8                  \
+                    TLS-RSA-WITH-AES-256-CCM-8                  \
+                    TLS-DHE-RSA-WITH-AES-128-CCM-8              \
+                    TLS-DHE-RSA-WITH-AES-256-CCM-8              \
                     "
                 G_CIPHERS="$G_CIPHERS                           \
                     +ECDHE-RSA:+CAMELLIA-128-CBC:+SHA256        \
@@ -594,6 +613,14 @@ add_gnutls_ciphersuites()
                     +DHE-RSA:+CAMELLIA-256-GCM:+AEAD            \
                     +RSA:+CAMELLIA-128-GCM:+AEAD                \
                     +RSA:+CAMELLIA-256-GCM:+AEAD                \
+                    +RSA:+AES-128-CCM:+AEAD                     \
+                    +RSA:+AES-256-CCM:+AEAD                     \
+                    +RSA:+AES-128-CCM-8:+AEAD                   \
+                    +RSA:+AES-256-CCM-8:+AEAD                   \
+                    +DHE-RSA:+AES-128-CCM:+AEAD                 \
+                    +DHE-RSA:+AES-256-CCM:+AEAD                 \
+                    +DHE-RSA:+AES-128-CCM-8:+AEAD               \
+                    +DHE-RSA:+AES-256-CCM-8:+AEAD               \
                     "
             fi
             ;;
@@ -665,6 +692,14 @@ add_gnutls_ciphersuites()
                     TLS-PSK-WITH-AES-256-GCM-SHA384             \
                     TLS-DHE-PSK-WITH-AES-128-GCM-SHA256         \
                     TLS-DHE-PSK-WITH-AES-256-GCM-SHA384         \
+                    TLS-PSK-WITH-AES-128-CCM                    \
+                    TLS-PSK-WITH-AES-256-CCM                    \
+                    TLS-DHE-PSK-WITH-AES-128-CCM                \
+                    TLS-DHE-PSK-WITH-AES-256-CCM                \
+                    TLS-PSK-WITH-AES-128-CCM-8                  \
+                    TLS-PSK-WITH-AES-256-CCM-8                  \
+                    TLS-DHE-PSK-WITH-AES-128-CCM-8              \
+                    TLS-DHE-PSK-WITH-AES-256-CCM-8              \
                     TLS-RSA-PSK-WITH-CAMELLIA-128-GCM-SHA256    \
                     TLS-RSA-PSK-WITH-CAMELLIA-256-GCM-SHA384    \
                     TLS-PSK-WITH-CAMELLIA-128-GCM-SHA256        \
@@ -695,6 +730,14 @@ add_gnutls_ciphersuites()
                     +PSK:+AES-256-GCM:+AEAD                     \
                     +DHE-PSK:+AES-128-GCM:+AEAD                 \
                     +DHE-PSK:+AES-256-GCM:+AEAD                 \
+                    +PSK:+AES-128-CCM:+AEAD                     \
+                    +PSK:+AES-256-CCM:+AEAD                     \
+                    +DHE-PSK:+AES-128-CCM:+AEAD                 \
+                    +DHE-PSK:+AES-256-CCM:+AEAD                 \
+                    +PSK:+AES-128-CCM-8:+AEAD                   \
+                    +PSK:+AES-256-CCM-8:+AEAD                   \
+                    +DHE-PSK:+AES-128-CCM-8:+AEAD               \
+                    +DHE-PSK:+AES-256-CCM-8:+AEAD               \
                     +RSA-PSK:+CAMELLIA-128-GCM:+AEAD            \
                     +RSA-PSK:+CAMELLIA-256-GCM:+AEAD            \
                     +PSK:+CAMELLIA-128-GCM:+AEAD                \
@@ -737,10 +780,6 @@ add_mbedtls_ciphersuites()
                 M_CIPHERS="$M_CIPHERS                               \
                     TLS-ECDH-ECDSA-WITH-CAMELLIA-128-GCM-SHA256     \
                     TLS-ECDH-ECDSA-WITH-CAMELLIA-256-GCM-SHA384     \
-                    TLS-ECDHE-ECDSA-WITH-AES-128-CCM                \
-                    TLS-ECDHE-ECDSA-WITH-AES-256-CCM                \
-                    TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8              \
-                    TLS-ECDHE-ECDSA-WITH-AES-256-CCM-8              \
                     TLS-ECDHE-ECDSA-WITH-ARIA-256-CBC-SHA384        \
                     TLS-ECDHE-ECDSA-WITH-ARIA-128-CBC-SHA256        \
                     TLS-ECDH-ECDSA-WITH-ARIA-256-GCM-SHA384         \
@@ -755,14 +794,6 @@ add_mbedtls_ciphersuites()
             if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 M_CIPHERS="$M_CIPHERS                               \
-                    TLS-RSA-WITH-AES-128-CCM                        \
-                    TLS-RSA-WITH-AES-256-CCM                        \
-                    TLS-DHE-RSA-WITH-AES-128-CCM                    \
-                    TLS-DHE-RSA-WITH-AES-256-CCM                    \
-                    TLS-RSA-WITH-AES-128-CCM-8                      \
-                    TLS-RSA-WITH-AES-256-CCM-8                      \
-                    TLS-DHE-RSA-WITH-AES-128-CCM-8                  \
-                    TLS-DHE-RSA-WITH-AES-256-CCM-8                  \
                     TLS-ECDHE-RSA-WITH-ARIA-256-CBC-SHA384          \
                     TLS-DHE-RSA-WITH-ARIA-256-CBC-SHA384            \
                     TLS-ECDHE-RSA-WITH-ARIA-128-CBC-SHA256          \
@@ -789,14 +820,6 @@ add_mbedtls_ciphersuites()
             if [ `minor_ver "$MODE"` -ge 3 ]
             then
                 M_CIPHERS="$M_CIPHERS                               \
-                    TLS-PSK-WITH-AES-128-CCM                        \
-                    TLS-PSK-WITH-AES-256-CCM                        \
-                    TLS-DHE-PSK-WITH-AES-128-CCM                    \
-                    TLS-DHE-PSK-WITH-AES-256-CCM                    \
-                    TLS-PSK-WITH-AES-128-CCM-8                      \
-                    TLS-PSK-WITH-AES-256-CCM-8                      \
-                    TLS-DHE-PSK-WITH-AES-128-CCM-8                  \
-                    TLS-DHE-PSK-WITH-AES-256-CCM-8                  \
                     TLS-RSA-PSK-WITH-ARIA-256-CBC-SHA384            \
                     TLS-RSA-PSK-WITH-ARIA-128-CBC-SHA256            \
                     TLS-PSK-WITH-ARIA-256-CBC-SHA384                \
@@ -842,10 +865,17 @@ setup_arguments()
             exit 1;
     esac
 
+    # GnuTLS < 3.4 will choke if we try to allow CCM-8
+    if [ -z "${GNUTLS_MINOR_LT_FOUR-}" ]; then
+        G_PRIO_CCM="+AES-256-CCM-8:+AES-128-CCM-8:"
+    else
+        G_PRIO_CCM=""
+    fi
+
     M_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE arc4=1"
     O_SERVER_ARGS="-accept $PORT -cipher NULL,ALL -$MODE -dhparam data_files/dhparams.pem"
     G_SERVER_ARGS="-p $PORT --http $G_MODE"
-    G_SERVER_PRIO="NORMAL:+ARCFOUR-128:+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
+    G_SERVER_PRIO="NORMAL:${G_PRIO_CCM}+ARCFOUR-128:+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
 
     # with OpenSSL 1.0.1h, -www, -WWW and -HTTP break DTLS handshakes
     if is_dtls "$MODE"; then

@@ -7,6 +7,7 @@ Bugfix
      TrinityTonic. #1359.
    * Fix for redefinition of _WIN32_WINNT to avoid overriding a definition
      used by user applications. Found and fixed by Fabio Alessandrelli.
+   * Fix braces in mbedtls_memory_buffer_alloc_status(). Found by sbranden, #552.
 
 Changes
    * Support TLS testing in out-of-source builds using cmake. Fixes #1193.

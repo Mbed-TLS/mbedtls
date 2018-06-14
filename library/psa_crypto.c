@@ -1070,7 +1070,7 @@ static int psa_hmac_start( psa_mac_operation_t *operation,
     size_t block_size =
         PSA_HASH_BLOCK_SIZE( ( PSA_ALG_HMAC_HASH( alg ) ) );
     unsigned int digest_size =
-        PSA_HASH_FINAL_SIZE( ( PSA_ALG_HMAC_HASH( alg ) ) );
+        PSA_HASH_SIZE( ( PSA_ALG_HMAC_HASH( alg ) ) );
     size_t key_length = slot->data.raw.bytes;
     psa_status_t status;
 

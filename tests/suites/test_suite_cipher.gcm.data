@@ -94,6 +94,14 @@ AES 128 GCM Encrypt and decrypt 32 bytes in different parts 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C
 enc_dec_buf_multipart_different_size:MBEDTLS_CIPHER_AES_128_GCM:128:28:4:4:28:-1:16:16:0:32
 
+AES 128 GCM Encrypt and decrypt 22 bytes in different parts 2
+depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C
+enc_dec_buf_multipart_different_size:MBEDTLS_CIPHER_AES_128_GCM:128:17:5:8:14:-1:16:0:0:16
+
+AES 128 GCM Encrypt and decrypt 60 bytes in different parts 3
+depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C
+enc_dec_buf_multipart_different_size:MBEDTLS_CIPHER_AES_128_GCM:128:33:27:18:42:-1:32:16:16:32
+
 AES 128 GCM Decrypt test vector #1
 depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C
 decrypt_test_vec:MBEDTLS_CIPHER_AES_128_GCM:-1:"d785dafea3e966731ef6fc6202262584":"d91a46205ee94058b3b8403997592dd2":"":"":"":"3b92a17c1b9c3578a68cffea5a5b6245":0:0
@@ -222,6 +230,18 @@ AES 192 GCM Encrypt and decrypt 32 bytes in multiple parts 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_GCM:192:16:16:-1:16:16:16:16
 
+AES 192 GCM Encrypt and decrypt 32 bytes in different parts 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C
+enc_dec_buf_multipart_different_size:MBEDTLS_CIPHER_AES_192_GCM:192:28:4:4:28:-1:16:16:0:32
+
+AES 192 GCM Encrypt and decrypt 22 bytes in different parts 2
+depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C
+enc_dec_buf_multipart_different_size:MBEDTLS_CIPHER_AES_192_GCM:192:17:5:8:14:-1:16:0:0:16
+
+AES 192 GCM Encrypt and decrypt 60 bytes in different parts 3
+depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C
+enc_dec_buf_multipart_different_size:MBEDTLS_CIPHER_AES_192_GCM:192:33:27:18:42:-1:32:16:16:32
+
 AES 192 GCM Decrypt test vector #1
 depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C
 decrypt_test_vec:MBEDTLS_CIPHER_AES_192_GCM:-1:"806766a4d2b6507cc4113bc0e46eebe120eacd948c24dc7f":"4f801c772395c4519ec830980c8ca5a4":"":"":"":"8fa16452b132bebc6aa521e92cb3b0ea":0:MBEDTLS_ERR_CIPHER_AUTH_FAILED
@@ -337,6 +357,18 @@ enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_GCM:256:0:22:-1:0:16:0:16
 AES 256 GCM Encrypt and decrypt 32 bytes in multiple parts 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_GCM:256:16:16:-1:16:16:16:16
+
+AES 256 GCM Encrypt and decrypt 32 bytes in different parts 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C
+enc_dec_buf_multipart_different_size:MBEDTLS_CIPHER_AES_256_GCM:256:28:4:4:28:-1:16:16:0:32
+
+AES 256 GCM Encrypt and decrypt 22 bytes in different parts 2
+depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C
+enc_dec_buf_multipart_different_size:MBEDTLS_CIPHER_AES_256_GCM:256:17:5:8:14:-1:16:0:0:16
+
+AES 256 GCM Encrypt and decrypt 60 bytes in different parts 3
+depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C
+enc_dec_buf_multipart_different_size:MBEDTLS_CIPHER_AES_256_GCM:256:33:27:18:42:-1:32:16:16:32
 
 AES 128 GCM Decrypt test vector #0
 depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C

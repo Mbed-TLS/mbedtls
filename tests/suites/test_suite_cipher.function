@@ -738,15 +738,10 @@ void enc_dec_buf_multipart_different_size( int cipher_id, int key_len, int first
                             int pad_mode, int first_encrypt_output_len, int second_encrypt_output_len,
                             int first_decrypt_output_len, int second_decrypt_output_len )
 {
-    size_t first_length_enc = first_length_enc_val;
-    size_t second_length_enc = second_length_enc_val;
-    size_t first_length_dec = first_length_dec_val;
-    size_t second_length_dec = second_length_dec_val;
-
-    TEST_ASSERT( ( first_length_enc + second_length_enc ) == ( first_length_dec + second_length_dec ) );
-
-    size_t length = first_length_enc + second_length_enc;
     size_t block_size;
+    size_t length;
+    size_t outlen;
+    size_t totaloutlen;
     unsigned char key[32];
     unsigned char iv[16];
 
@@ -758,8 +753,16 @@ void enc_dec_buf_multipart_different_size( int cipher_id, int key_len, int first
     unsigned char encbuf[64];
     unsigned char decbuf[64];
 
-    size_t outlen = 0;
-    size_t totaloutlen = 0;
+    size_t first_length_enc = first_length_enc_val;
+    size_t second_length_enc = second_length_enc_val;
+    size_t first_length_dec = first_length_dec_val;
+    size_t second_length_dec = second_length_dec_val;
+
+    TEST_ASSERT( ( first_length_enc + second_length_enc ) == ( first_length_dec + second_length_dec ) );
+
+    length = first_length_enc + second_length_enc;
+    outlen = 0;
+    totaloutlen = 0;
 
     memset( key, 0, 32 );
     memset( iv , 0, 16 );

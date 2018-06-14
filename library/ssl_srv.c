@@ -2888,7 +2888,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
         int ret;
-        size_t len;
+        size_t len = 0;
 
         ret = mbedtls_ecjpake_write_round_two(
             &ssl->handshake->ecjpake_ctx,
@@ -2928,7 +2928,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
     if( mbedtls_ssl_ciphersuite_uses_dhe( ciphersuite_info ) )
     {
         int ret;
-        size_t len;
+        size_t len = 0;
 
         if( ssl->conf->dhm_P.p == NULL || ssl->conf->dhm_G.p == NULL )
         {
@@ -2993,7 +2993,7 @@ static int ssl_prepare_server_key_exchange( mbedtls_ssl_context *ssl,
         const mbedtls_ecp_curve_info **curve = NULL;
         const mbedtls_ecp_group_id *gid;
         int ret;
-        size_t len;
+        size_t len = 0;
 
         /* Match our preference list against the offered curves */
         for( gid = ssl->conf->curve_list; *gid != MBEDTLS_ECP_DP_NONE; gid++ )

@@ -739,9 +739,8 @@ void enc_dec_buf_multipart_different_size( int cipher_id, int key_len, int first
                             int first_decrypt_output_len, int second_decrypt_output_len )
 {
     size_t block_size;
-    size_t length;
-    size_t outlen;
-    size_t totaloutlen;
+    size_t length, outlen, totaloutlen;
+    size_t first_length_enc, second_length_enc, first_length_dec, second_length_dec;
     unsigned char key[32];
     unsigned char iv[16];
 
@@ -753,10 +752,10 @@ void enc_dec_buf_multipart_different_size( int cipher_id, int key_len, int first
     unsigned char encbuf[64];
     unsigned char decbuf[64];
 
-    size_t first_length_enc = first_length_enc_val;
-    size_t second_length_enc = second_length_enc_val;
-    size_t first_length_dec = first_length_dec_val;
-    size_t second_length_dec = second_length_dec_val;
+    first_length_enc = first_length_enc_val;
+    second_length_enc = second_length_enc_val;
+    first_length_dec = first_length_dec_val;
+    second_length_dec = second_length_dec_val;
 
     TEST_ASSERT( ( first_length_enc + second_length_enc ) == ( first_length_dec + second_length_dec ) );
 

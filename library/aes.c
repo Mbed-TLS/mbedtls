@@ -1397,7 +1397,8 @@ int mbedtls_aes_self_test( int verbose )
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     unsigned char prv[16];
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CTR) || defined(MBEDTLS_CIPHER_MODE_CFB)
+#if defined(MBEDTLS_CIPHER_MODE_CTR) || defined(MBEDTLS_CIPHER_MODE_CFB) || \
+    defined(MBEDTLS_CIPHER_MODE_OFB)
     size_t offset;
 #endif
 #if defined(MBEDTLS_CIPHER_MODE_CTR)

@@ -5,6 +5,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Fix redundant declaration of mbedtls_ssl_list_ciphersuites. Raised by
      TrinityTonic. #1359.
+   * Fix compilation warnings with IAR toolchain, on 32 bit platform.
+     Reported by rahmanih in #683
 
 Changes
    * Support TLS testing in out-of-source builds using cmake. Fixes #1193.

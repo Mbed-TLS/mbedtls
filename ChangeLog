@@ -10,6 +10,9 @@ Features
    * Add support for the CCM* block cipher mode as defined in IEEE Std. 802.15.4.
    * Add support for the XTS block cipher mode with AES (AES-XTS).
      Contributed by Aorimn in pull request #414.
+   * In TLS servers, support offloading private key operations to an external
+     cryptoprocessor. Private key operations can be asynchronous to allow
+     non-blocking operation of the TLS server stack.
 
 Bugfix
    * Fix the cert_write example to handle certificates signed with elliptic

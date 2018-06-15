@@ -1149,6 +1149,17 @@
 #define MBEDTLS_SSL_ALL_ALERT_MESSAGES
 
 /**
+ * \def MBEDTLS_SSL_ASYNC_PRIVATE
+ *
+ * Enable asynchronous external private key operations in SSL. This allows
+ * you to configure an SSL connection to call an external cryptographic
+ * module to perform private key operations instead of performing the
+ * operation inside the library.
+ *
+ */
+#define MBEDTLS_SSL_ASYNC_PRIVATE
+
+/**
  * \def MBEDTLS_SSL_DEBUG_ALL
  *
  * Enable the debug messages in SSL module for all issues.

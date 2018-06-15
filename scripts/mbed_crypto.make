@@ -70,6 +70,10 @@ LIB_FILES := \
 	platform.c \
 	platform_util.c \
 	psa_crypto.c \
+	psa_crypto_storage.h \
+	psa_crypto_storage.c \
+	psa_crypto_storage_backend.h \
+	psa_crypto_storage_file.c \
 	ripemd160.c \
 	rsa_internal.c \
 	rsa.c \
@@ -154,6 +158,8 @@ TEST_FILES := \
 	tests/suites/test_suite_psa_crypto_hash.function \
 	tests/suites/test_suite_psa_crypto_metadata.data \
 	tests/suites/test_suite_psa_crypto_metadata.function \
+	tests/suites/test_suite_psa_crypto_storage_file.data \
+	tests/suites/test_suite_psa_crypto_storage_file.function \
 # Don't delete this line.
 
 OTHER_FILES := \

@@ -506,6 +506,18 @@
 #error "MBEDTLS_PSA_CRYPTO_SPM defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) &&            \
+    !( defined(MBEDTLS_PSA_CRYPTO_C) &&           \
+       defined(MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C) )
+#error "MBEDTLS_PSA_CRYPTO_STORAGE_C defined, but not all prerequisites"
+#endif
+
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C) &&            \
+    !( defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) &&           \
+       defined(MBEDTLS_FS_IO) )
+#error "MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_RSA_C) && ( !defined(MBEDTLS_BIGNUM_C) ||         \
     !defined(MBEDTLS_OID_C) )
 #error "MBEDTLS_RSA_C defined, but not all prerequisites"

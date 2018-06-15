@@ -45,6 +45,8 @@ OBJS_CRYPTO := \
 	platform.o \
 	platform_util.o \
 	psa_crypto.o \
+	psa_crypto_storage.o \
+	psa_crypto_storage_file.o \
 	ripemd160.o \
 	rsa_internal.o \
 	rsa.o \

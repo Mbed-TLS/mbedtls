@@ -230,6 +230,8 @@
     <ClInclude Include="..\..\include\psa\crypto_platform.h" />
     <ClInclude Include="..\..\include\psa\crypto_sizes.h" />
     <ClInclude Include="..\..\include\psa\crypto_struct.h" />
+    <ClInclude Include="..\..\library/psa_crypto_storage.h" />
+    <ClInclude Include="..\..\library/psa_crypto_storage_backend.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\library\aes.c" />
@@ -287,6 +289,8 @@
     <ClCompile Include="..\..\library\platform_util.c" />
     <ClCompile Include="..\..\library\poly1305.c" />
     <ClCompile Include="..\..\library\psa_crypto.c" />
+    <ClCompile Include="..\..\library\psa_crypto_storage.c" />
+    <ClCompile Include="..\..\library\psa_crypto_storage_file.c" />
     <ClCompile Include="..\..\library\ripemd160.c" />
     <ClCompile Include="..\..\library\rsa.c" />
     <ClCompile Include="..\..\library\rsa_internal.c" />

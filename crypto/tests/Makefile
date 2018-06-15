@@ -16,11 +16,13 @@ PYTHON ?= python
 APPS := \
 	test_suite_psa_crypto \
 	test_suite_psa_crypto_metadata \
+	test_suite_psa_crypto_storage_file \
 # Don't delete this line.
 
 # Look up for associated function files
 func.test_suite_psa_crypto := test_suite_psa_crypto
 func.test_suite_psa_crypto_metadata := test_suite_psa_crypto_metadata
+func.test_suite_psa_crypto_storage_file := test_suite_psa_crypto_storage_file
 
 .SILENT:
 
@@ -56,6 +58,7 @@ clean:
 test: $(APPS)
 	./test_suite_psa_crypto_metadata
 	./test_suite_psa_crypto
+	./test_suite_psa_crypto_storage_file
 
 # Create separate targets for generating embedded tests.
 EMBEDDED_TESTS := $(addprefix embedded_,$(APPS))

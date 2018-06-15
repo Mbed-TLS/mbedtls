@@ -962,8 +962,9 @@ static int ssl_async_start( mbedtls_ssl_context *ssl,
 
     {
         char dn[100];
-        mbedtls_x509_dn_gets( dn, sizeof( dn ), &cert->subject );
-        mbedtls_printf( "Async %s callback: looking for DN=%s\n", op_name, dn );
+        if( mbedtls_x509_dn_gets( dn, sizeof( dn ), &cert->subject ) > 0 )
+            mbedtls_printf( "Async %s callback: looking for DN=%s\n",
+                            op_name, dn );
     }
 
     /* Look for a private key that matches the public key in cert.

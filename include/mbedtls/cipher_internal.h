@@ -79,6 +79,13 @@ struct mbedtls_cipher_base_t
                      const unsigned char *input, unsigned char *output );
 #endif
 
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
+    /** Encrypt or decrypt using XTS. */
+    int (*xts_func)( void *ctx, mbedtls_operation_t mode, size_t length,
+                     const unsigned char data_unit[16],
+                     const unsigned char *input, unsigned char *output );
+#endif
+
 #if defined(MBEDTLS_CIPHER_MODE_STREAM)
     /** Encrypt using STREAM */
     int (*stream_func)( void *ctx, size_t length,

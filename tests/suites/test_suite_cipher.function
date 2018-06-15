@@ -734,7 +734,7 @@ void check_padding( int pad_mode, char *input_str, int ret, int dlen_check )
 
 /* BEGIN_CASE */
 void enc_dec_buf_multipart_different_size( int cipher_id, int key_len, int first_length_enc_val,
-                            int second_length_enc_val, int first_length_dec_val, int second_length_dec_val, 
+                            int second_length_enc_val, int first_length_dec_val, int second_length_dec_val,
                             int pad_mode, int first_encrypt_output_len, int second_encrypt_output_len,
                             int first_decrypt_output_len, int second_decrypt_output_len )
 {
@@ -757,7 +757,8 @@ void enc_dec_buf_multipart_different_size( int cipher_id, int key_len, int first
     first_length_dec = first_length_dec_val;
     second_length_dec = second_length_dec_val;
 
-    TEST_ASSERT( ( first_length_enc + second_length_enc ) == ( first_length_dec + second_length_dec ) );
+    TEST_ASSERT( ( first_length_enc + second_length_enc ) == 
+        ( first_length_dec + second_length_dec ) );
 
     length = first_length_enc + second_length_enc;
     outlen = 0;
@@ -811,7 +812,8 @@ void enc_dec_buf_multipart_different_size( int cipher_id, int key_len, int first
     TEST_ASSERT( 0 == mbedtls_cipher_update( &ctx_enc, inbuf, first_length_enc, encbuf, &outlen ) );
     TEST_ASSERT( (size_t)first_encrypt_output_len == outlen );
     totaloutlen = outlen;
-    TEST_ASSERT( 0 == mbedtls_cipher_update( &ctx_enc, inbuf + first_length_enc, second_length_enc, encbuf + totaloutlen, &outlen ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_update( &ctx_enc, inbuf + first_length_enc,
+         second_length_enc, encbuf + totaloutlen, &outlen ) );
     TEST_ASSERT( (size_t)second_encrypt_output_len == outlen );
     totaloutlen += outlen;
     TEST_ASSERT( totaloutlen == length ||
@@ -831,7 +833,8 @@ void enc_dec_buf_multipart_different_size( int cipher_id, int key_len, int first
     TEST_ASSERT( 0 == mbedtls_cipher_update( &ctx_dec, encbuf, first_length_dec, decbuf, &outlen ) );
     TEST_ASSERT( (size_t)first_decrypt_output_len == outlen );
     totaloutlen = outlen;
-    TEST_ASSERT( 0 == mbedtls_cipher_update( &ctx_dec, encbuf + first_length_dec, second_length_dec, decbuf + totaloutlen, &outlen ) );
+    TEST_ASSERT( 0 == mbedtls_cipher_update( &ctx_dec, encbuf + first_length_dec, 
+        second_length_dec, decbuf + totaloutlen, &outlen ) );
     TEST_ASSERT( (size_t)second_decrypt_output_len == outlen );
     totaloutlen += outlen;
 

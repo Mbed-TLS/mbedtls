@@ -2652,6 +2652,142 @@ run_test    "SNI: CA override with CRL" \
             -S "! The certificate is not correctly signed by the trusted CA" \
             -s "The certificate has been revoked (is on a CRL)"
 
+# Tests for SNI and DTLS
+
+run_test    "SNI: DTLS, no SNI callback" \
+            "$P_SRV debug_level=3 dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key" \
+            "$P_CLI server_name=localhost dtls=1" \
+            0 \
+            -S "parse ServerName extension" \
+            -c "issuer name *: C=NL, O=PolarSSL, CN=Polarssl Test EC CA" \
+            -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
+
+run_test    "SNI: DTLS, matching cert 1" \
+            "$P_SRV debug_level=3 dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
+            "$P_CLI server_name=localhost dtls=1" \
+            0 \
+            -s "parse ServerName extension" \
+            -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
+            -c "subject name *: C=NL, O=PolarSSL, CN=localhost"
+
+run_test    "SNI: DTLS, matching cert 2" \
+            "$P_SRV debug_level=3 dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
+            "$P_CLI server_name=polarssl.example dtls=1" \
+            0 \
+            -s "parse ServerName extension" \
+            -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
+            -c "subject name *: C=NL, O=PolarSSL, CN=polarssl.example"
+
+run_test    "SNI: DTLS, no matching cert" \
+            "$P_SRV debug_level=3 dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
+            "$P_CLI server_name=nonesuch.example dtls=1" \
+            1 \
+            -s "parse ServerName extension" \
+            -s "ssl_sni_wrapper() returned" \
+            -s "mbedtls_ssl_handshake returned" \
+            -c "mbedtls_ssl_handshake returned" \
+            -c "SSL - A fatal alert message was received from our peer"
+
+run_test    "SNI: DTLS, client auth no override: optional" \
+            "$P_SRV debug_level=3 auth_mode=optional dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-" \
+            "$P_CLI debug_level=3 server_name=localhost dtls=1" \
+            0 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate" \
+            -C "skip write certificate verify" \
+            -S "skip parse certificate verify"
+
+run_test    "SNI: DTLS, client auth override: none -> optional" \
+            "$P_SRV debug_level=3 auth_mode=none dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,optional" \
+            "$P_CLI debug_level=3 server_name=localhost dtls=1" \
+            0 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate" \
+            -C "skip write certificate verify" \
+            -S "skip parse certificate verify"
+
+run_test    "SNI: DTLS, client auth override: optional -> none" \
+            "$P_SRV debug_level=3 auth_mode=optional dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,none" \
+            "$P_CLI debug_level=3 server_name=localhost dtls=1" \
+            0 \
+            -s "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got no certificate request" \
+            -c "skip write certificate" \
+            -c "skip write certificate verify" \
+            -s "skip parse certificate verify"
+
+run_test    "SNI: DTLS, CA no override" \
+            "$P_SRV debug_level=3 auth_mode=optional dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             ca_file=data_files/test-ca.crt \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,required" \
+            "$P_CLI debug_level=3 server_name=localhost dtls=1 \
+             crt_file=data_files/server6.crt key_file=data_files/server6.key" \
+            1 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate" \
+            -C "skip write certificate verify" \
+            -S "skip parse certificate verify" \
+            -s "x509_verify_cert() returned" \
+            -s "! The certificate is not correctly signed by the trusted CA" \
+            -S "The certificate has been revoked (is on a CRL)"
+
+run_test    "SNI: DTLS, CA override" \
+            "$P_SRV debug_level=3 auth_mode=optional dtls=1 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             ca_file=data_files/test-ca.crt \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,data_files/test-ca2.crt,-,required" \
+            "$P_CLI debug_level=3 server_name=localhost dtls=1 \
+             crt_file=data_files/server6.crt key_file=data_files/server6.key" \
+            0 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate" \
+            -C "skip write certificate verify" \
+            -S "skip parse certificate verify" \
+            -S "x509_verify_cert() returned" \
+            -S "! The certificate is not correctly signed by the trusted CA" \
+            -S "The certificate has been revoked (is on a CRL)"
+
+run_test    "SNI: DTLS, CA override with CRL" \
+            "$P_SRV debug_level=3 auth_mode=optional \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key dtls=1 \
+             ca_file=data_files/test-ca.crt \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,data_files/test-ca2.crt,data_files/crl-ec-sha256.pem,required" \
+            "$P_CLI debug_level=3 server_name=localhost dtls=1 \
+             crt_file=data_files/server6.crt key_file=data_files/server6.key" \
+            1 \
+            -S "skip write certificate request" \
+            -C "skip parse certificate request" \
+            -c "got a certificate request" \
+            -C "skip write certificate" \
+            -C "skip write certificate verify" \
+            -S "skip parse certificate verify" \
+            -s "x509_verify_cert() returned" \
+            -S "! The certificate is not correctly signed by the trusted CA" \
+            -s "The certificate has been revoked (is on a CRL)"
+
 # Tests for non-blocking I/O: exercise a variety of handshake flows
 
 run_test    "Non-blocking I/O: basic handshake" \
@@ -4066,6 +4202,354 @@ run_test    "Large packet TLS 1.2 AEAD shorter tag" \
             0 \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
+
+# Tests of asynchronous private key support in SSL
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign, delay=0" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=0 async_private_delay2=0" \
+            "$P_CLI" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): sign done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign, delay=1" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1" \
+            "$P_CLI" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): call 0 more times." \
+            -s "Async resume (slot [0-9]): sign done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign, delay=2" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=2 async_private_delay2=2" \
+            "$P_CLI" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -U "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): call 1 more times." \
+            -s "Async resume (slot [0-9]): call 0 more times." \
+            -s "Async resume (slot [0-9]): sign done, status=0"
+
+# Test that the async callback correctly signs the 36-byte hash of TLS 1.0/1.1
+# with RSA PKCS#1v1.5 as used in TLS 1.0/1.1.
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
+run_test    "SSL async private: sign, RSA, TLS 1.1" \
+            "$P_SRV key_file=data_files/server2.key crt_file=data_files/server2.crt \
+             async_operations=s async_private_delay1=0 async_private_delay2=0" \
+            "$P_CLI force_version=tls1_1" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): sign done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign, SNI" \
+            "$P_SRV debug_level=3 \
+             async_operations=s async_private_delay1=0 async_private_delay2=0 \
+             crt_file=data_files/server5.crt key_file=data_files/server5.key \
+             sni=localhost,data_files/server2.crt,data_files/server2.key,-,-,-,polarssl.example,data_files/server1-nospace.crt,data_files/server1.key,-,-,-" \
+            "$P_CLI server_name=polarssl.example" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): sign done, status=0" \
+            -s "parse ServerName extension" \
+            -c "issuer name *: C=NL, O=PolarSSL, CN=PolarSSL Test CA" \
+            -c "subject name *: C=NL, O=PolarSSL, CN=polarssl.example"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt, delay=0" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=0 async_private_delay2=0" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -s "Async decrypt callback: using key slot " \
+            -s "Async resume (slot [0-9]): decrypt done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt, delay=1" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=1 async_private_delay2=1" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -s "Async decrypt callback: using key slot " \
+            -s "Async resume (slot [0-9]): call 0 more times." \
+            -s "Async resume (slot [0-9]): decrypt done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt RSA-PSK, delay=0" \
+            "$P_SRV psk=abc123 \
+             async_operations=d async_private_delay1=0 async_private_delay2=0" \
+            "$P_CLI psk=abc123 \
+             force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async decrypt callback: using key slot " \
+            -s "Async resume (slot [0-9]): decrypt done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt RSA-PSK, delay=1" \
+            "$P_SRV psk=abc123 \
+             async_operations=d async_private_delay1=1 async_private_delay2=1" \
+            "$P_CLI psk=abc123 \
+             force_ciphersuite=TLS-RSA-PSK-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async decrypt callback: using key slot " \
+            -s "Async resume (slot [0-9]): call 0 more times." \
+            -s "Async resume (slot [0-9]): decrypt done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign callback not present" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=1 async_private_delay2=1" \
+            "$P_CLI; [ \$? -eq 1 ] &&
+             $P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -S "Async sign callback" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -s "The own private key or pre-shared key is not set, but needed" \
+            -s "Async resume (slot [0-9]): decrypt done, status=0" \
+            -s "Successful connection"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt callback not present" \
+            "$P_SRV debug_level=1 \
+             async_operations=s async_private_delay1=1 async_private_delay2=1" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA;
+             [ \$? -eq 1 ] && $P_CLI" \
+            0 \
+            -S "Async decrypt callback" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -s "got no RSA private key" \
+            -s "Async resume (slot [0-9]): sign done, status=0" \
+            -s "Successful connection"
+
+# key1: ECDSA, key2: RSA; use key1 from slot 0
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: slot 0 used with key1" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async sign callback: using key slot 0," \
+            -s "Async resume (slot 0): call 0 more times." \
+            -s "Async resume (slot 0): sign done, status=0"
+
+# key1: ECDSA, key2: RSA; use key2 from slot 0
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: slot 0 used with key2" \
+            "$P_SRV \
+             async_operations=s async_private_delay2=1 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async sign callback: using key slot 0," \
+            -s "Async resume (slot 0): call 0 more times." \
+            -s "Async resume (slot 0): sign done, status=0"
+
+# key1: ECDSA, key2: RSA; use key2 from slot 1
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: slot 1 used with key2" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async sign callback: using key slot 1," \
+            -s "Async resume (slot 1): call 0 more times." \
+            -s "Async resume (slot 1): sign done, status=0"
+
+# key1: ECDSA, key2: RSA; use key2 directly
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: fall back to transparent key" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt " \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async sign callback: no key matches this certificate."
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign, error in start" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=1" \
+            "$P_CLI" \
+            1 \
+            -s "Async sign callback: injected error" \
+            -S "Async resume" \
+            -S "Async cancel" \
+            -s "! mbedtls_ssl_handshake returned"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign, cancel after start" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=2" \
+            "$P_CLI" \
+            1 \
+            -s "Async sign callback: using key slot " \
+            -S "Async resume" \
+            -s "Async cancel"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign, error in resume" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=3" \
+            "$P_CLI" \
+            1 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume callback: sign done but injected error" \
+            -S "Async cancel" \
+            -s "! mbedtls_ssl_handshake returned"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt, error in start" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=1" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            1 \
+            -s "Async decrypt callback: injected error" \
+            -S "Async resume" \
+            -S "Async cancel" \
+            -s "! mbedtls_ssl_handshake returned"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt, cancel after start" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=2" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            1 \
+            -s "Async decrypt callback: using key slot " \
+            -S "Async resume" \
+            -s "Async cancel"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: decrypt, error in resume" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=3" \
+            "$P_CLI force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            1 \
+            -s "Async decrypt callback: using key slot " \
+            -s "Async resume callback: decrypt done but injected error" \
+            -S "Async cancel" \
+            -s "! mbedtls_ssl_handshake returned"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: cancel after start then operate correctly" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=-2" \
+            "$P_CLI; [ \$? -eq 1 ] && $P_CLI" \
+            0 \
+            -s "Async cancel" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -s "Async resume" \
+            -s "Successful connection"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: error in resume then operate correctly" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1 \
+             async_private_error=-3" \
+            "$P_CLI; [ \$? -eq 1 ] && $P_CLI" \
+            0 \
+            -s "! mbedtls_ssl_handshake returned" \
+            -s "Async resume" \
+            -s "Successful connection"
+
+# key1: ECDSA, key2: RSA; use key1 through async, then key2 directly
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: cancel after start then fall back to transparent key" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_error=-2 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256;
+             [ \$? -eq 1 ] &&
+             $P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async sign callback: using key slot 0" \
+            -S "Async resume" \
+            -s "Async cancel" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -s "Async sign callback: no key matches this certificate." \
+            -s "Successful connection"
+
+# key1: ECDSA, key2: RSA; use key1 through async, then key2 directly
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+run_test    "SSL async private: sign, error in resume then fall back to transparent key" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_error=-3 \
+             key_file=data_files/server5.key crt_file=data_files/server5.crt \
+             key_file2=data_files/server2.key crt_file2=data_files/server2.crt" \
+            "$P_CLI force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256;
+             [ \$? -eq 1 ] &&
+             $P_CLI force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -s "Async resume" \
+            -s "! mbedtls_ssl_handshake returned" \
+            -s "Async sign callback: no key matches this certificate." \
+            -s "Successful connection"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "SSL async private: renegotiation: client-initiated; sign" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1 \
+             exchanges=2 renegotiation=1" \
+            "$P_CLI exchanges=2 renegotiation=1 renegotiate=1" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): sign done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "SSL async private: renegotiation: server-initiated; sign" \
+            "$P_SRV \
+             async_operations=s async_private_delay1=1 async_private_delay2=1 \
+             exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI exchanges=2 renegotiation=1" \
+            0 \
+            -s "Async sign callback: using key slot " \
+            -s "Async resume (slot [0-9]): sign done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "SSL async private: renegotiation: client-initiated; decrypt" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=1 async_private_delay2=1 \
+             exchanges=2 renegotiation=1" \
+            "$P_CLI exchanges=2 renegotiation=1 renegotiate=1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -s "Async decrypt callback: using key slot " \
+            -s "Async resume (slot [0-9]): decrypt done, status=0"
+
+requires_config_enabled MBEDTLS_SSL_ASYNC_PRIVATE
+requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
+run_test    "SSL async private: renegotiation: server-initiated; decrypt" \
+            "$P_SRV \
+             async_operations=d async_private_delay1=1 async_private_delay2=1 \
+             exchanges=2 renegotiation=1 renegotiate=1" \
+            "$P_CLI exchanges=2 renegotiation=1 \
+             force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -s "Async decrypt callback: using key slot " \
+            -s "Async resume (slot [0-9]): decrypt done, status=0"
 
 # Tests for DTLS HelloVerifyRequest
 

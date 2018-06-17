@@ -502,13 +502,6 @@
 #define MBEDTLS_CIPHER_MODE_CBC
 
 /**
- * \def MBEDTLS_CIPHER_MODE_OFB
- *
- * Enable Output Feedback mode (OFB) for symmetric ciphers.
- */
-#define MBEDTLS_CIPHER_MODE_OFB
-
-/**
  * \def MBEDTLS_CIPHER_MODE_CFB
  *
  * Enable Cipher Feedback mode (CFB) for symmetric ciphers.
@@ -521,6 +514,20 @@
  * Enable Counter Block Cipher mode (CTR) for symmetric ciphers.
  */
 #define MBEDTLS_CIPHER_MODE_CTR
+
+/**
+ * \def MBEDTLS_CIPHER_MODE_OFB
+ *
+ * Enable Output Feedback mode (OFB) for symmetric ciphers.
+ */
+#define MBEDTLS_CIPHER_MODE_OFB
+
+/**
+ * \def MBEDTLS_CIPHER_MODE_XTS
+ *
+ * Enable Xor-encrypt-xor with ciphertext stealing mode (XTS) for AES.
+ */
+#define MBEDTLS_CIPHER_MODE_XTS
 
 /**
  * \def MBEDTLS_CIPHER_NULL_CIPHER
@@ -1140,6 +1147,17 @@
  * Enable sending of all alert messages
  */
 #define MBEDTLS_SSL_ALL_ALERT_MESSAGES
+
+/**
+ * \def MBEDTLS_SSL_ASYNC_PRIVATE
+ *
+ * Enable asynchronous external private key operations in SSL. This allows
+ * you to configure an SSL connection to call an external cryptographic
+ * module to perform private key operations instead of performing the
+ * operation inside the library.
+ *
+ */
+#define MBEDTLS_SSL_ASYNC_PRIVATE
 
 /**
  * \def MBEDTLS_SSL_DEBUG_ALL

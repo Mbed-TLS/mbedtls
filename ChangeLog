@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.xx branch released xxxx-xx-xx
+
+Bugfix
+   * Fix compilation error when MBEDTLS_ARC4_C is disabled and
+     MBEDTLS_CIPHER_NULL_CIPHER is enabled. Found by TrinityTonic in #1719.
+
 = mbed TLS 2.1.13 branch released 2018-06-18
 
 Bugfix

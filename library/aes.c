@@ -1714,8 +1714,10 @@ int mbedtls_aes_self_test( int verbose )
     defined(MBEDTLS_CIPHER_MODE_OFB)
     size_t offset;
 #endif
-#if defined(MBEDTLS_CIPHER_MODE_CTR)
+#if defined(MBEDTLS_CIPHER_MODE_CTR) || defined(MBEDTLS_CIPHER_MODE_XTS)
     int len;
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
     unsigned char nonce_counter[16];
     unsigned char stream_block[16];
 #endif

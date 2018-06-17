@@ -1018,11 +1018,8 @@ psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
                     return( PSA_ERROR_NOT_SUPPORTED );
 
                 psa_hash_abort( &operation->ctx.hmac.hash_ctx );
-                if ( operation->ctx.hmac.hmac_ctx != NULL )
-                {
-                    mbedtls_zeroize( operation->ctx.hmac.hmac_ctx,
+                mbedtls_zeroize( operation->ctx.hmac.opad,
                                      block_size);
-                }
             }
             else
 #endif /* MBEDTLS_MD_C */
@@ -1065,7 +1062,7 @@ static int psa_hmac_start( psa_mac_operation_t *operation,
                            psa_algorithm_t alg )
 {
     unsigned char ipad[PSA_CRYPTO_MD_BLOCK_SIZE];
-    unsigned char *opad = operation->ctx.hmac.hmac_ctx;
+    unsigned char *opad = operation->ctx.hmac.opad;
     size_t i;
     size_t block_size =
         PSA_HASH_BLOCK_SIZE( ( PSA_ALG_HMAC_HASH( alg ) ) );
@@ -1282,7 +1279,7 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
             if( PSA_ALG_IS_HMAC( operation->alg ) )
             {
                 unsigned char tmp[MBEDTLS_MD_MAX_SIZE];
-                unsigned char *opad = operation->ctx.hmac.hmac_ctx;
+                unsigned char *opad = operation->ctx.hmac.opad;
                 size_t hash_size = 0;
                 unsigned int block_size =
                 PSA_HASH_BLOCK_SIZE( ( PSA_ALG_HMAC_HASH( operation->alg ) ) );

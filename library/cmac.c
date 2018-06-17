@@ -818,8 +818,14 @@ static int cmac_test_subkeys( int verbose,
         ret = cmac_generate_subkeys( &ctx, K1, K2 );
         if( ret != 0 )
         {
-           if( verbose != 0 )
-                mbedtls_printf( "failed\n" );
+            if(ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+                {
+                    ret = 0;
+                    if( verbose != 0 )
+                        mbedtls_printf( "skipped\n" );
+                }
+                else if( verbose != 0 )
+                    mbedtls_printf( "failed\n" );
 
             goto cleanup;
         }

@@ -31,7 +31,7 @@
 #include "mbedtls/asn1.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
-
+#include "mbedtls/des.h"
 #include <string.h>
 
 #if defined(MBEDTLS_RSA_C)
@@ -1297,7 +1297,9 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *pk,
 
     mbedtls_pk_free( pk );
 
-    if( ret == MBEDTLS_ERR_PK_PASSWORD_MISMATCH )
+    if( ( ret == MBEDTLS_ERR_PK_PASSWORD_MISMATCH ) ||
+        ( ret == MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE ) ||
+        ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE ) )
     {
         return( ret );
     }

@@ -1833,9 +1833,18 @@ int mbedtls_aes_self_test( int verbose )
             }
 
             ret = mbedtls_aes_crypt_cbc( &ctx, mode, 16, iv, buf, buf );
-            if( ret != 0 )
+            if( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE )
+            {
+                mbedtls_printf( "skipped\n" );
+                break;
+            }
+            else if( ret != 0 )
                 goto exit;
 
+        }
+        if( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE )
+        {
+            continue;
         }
 
         if( memcmp( buf, aes_tests, 16 ) != 0 )
@@ -1894,7 +1903,12 @@ int mbedtls_aes_self_test( int verbose )
         }
 
         ret = mbedtls_aes_crypt_cfb128( &ctx, mode, 64, &offset, iv, buf, buf );
-        if( ret != 0 )
+        if( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+        else  if( ret != 0 )
             goto exit;
 
         if( memcmp( buf, aes_tests, 64 ) != 0 )
@@ -2009,7 +2023,12 @@ int mbedtls_aes_self_test( int verbose )
 
         ret = mbedtls_aes_crypt_ctr( &ctx, len, &offset, nonce_counter,
                                      stream_block, buf, buf );
-        if( ret != 0 )
+        if( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE )
+        {
+            mbedtls_printf( "skipped\n" );
+            continue;
+        }
+        else if( ret != 0 )
             goto exit;
 
         if( memcmp( buf, aes_tests, len ) != 0 )

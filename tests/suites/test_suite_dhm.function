@@ -22,7 +22,7 @@ void dhm_do_dhm( int radix_P, char *input_P,
     size_t pub_cli_len = 0;
     size_t sec_srv_len;
     size_t sec_cli_len;
-    int x_size, i;
+    int x_size, i, ret;
     rnd_pseudo_info rnd_info;
 
     mbedtls_dhm_init( &ctx_srv );
@@ -50,7 +50,10 @@ void dhm_do_dhm( int radix_P, char *input_P,
 
     ske[ske_len++] = 0;
     ske[ske_len++] = 0;
-    TEST_ASSERT( mbedtls_dhm_read_params( &ctx_cli, &p, ske + ske_len ) == 0 );
+    ret = mbedtls_dhm_read_params( &ctx_cli, &p, ske + ske_len );
+    if( ret == MBEDTLS_ERR_DHM_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
 
     TEST_ASSERT( mbedtls_dhm_make_public( &ctx_cli, x_size, pub_cli, pub_cli_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
     TEST_ASSERT( mbedtls_dhm_read_public( &ctx_srv, pub_cli, pub_cli_len ) == 0 );

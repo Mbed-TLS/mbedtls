@@ -29,6 +29,7 @@ void des_encrypt_ecb( char *hex_key_string, char *hex_src_string,
     unsigned char dst_str[100];
     unsigned char output[100];
     mbedtls_des_context ctx;
+    int ret;
 
     memset(key_str, 0x00, 100);
     memset(src_str, 0x00, 100);
@@ -39,8 +40,13 @@ void des_encrypt_ecb( char *hex_key_string, char *hex_src_string,
     unhexify( key_str, hex_key_string );
     unhexify( src_str, hex_src_string );
 
-    mbedtls_des_setkey_enc( &ctx, key_str );
-    TEST_ASSERT( mbedtls_des_crypt_ecb( &ctx, src_str, output ) == 0 );
+    ret = mbedtls_des_setkey_enc( &ctx, key_str );
+    if ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
+    ret = mbedtls_des_crypt_ecb( &ctx, src_str, output );
+    if ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
     hexify( dst_str, output, 8 );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
@@ -59,6 +65,7 @@ void des_decrypt_ecb( char *hex_key_string, char *hex_src_string,
     unsigned char dst_str[100];
     unsigned char output[100];
     mbedtls_des_context ctx;
+    int ret;
 
     memset(key_str, 0x00, 100);
     memset(src_str, 0x00, 100);
@@ -69,8 +76,13 @@ void des_decrypt_ecb( char *hex_key_string, char *hex_src_string,
     unhexify( key_str, hex_key_string );
     unhexify( src_str, hex_src_string );
 
-    mbedtls_des_setkey_dec( &ctx, key_str );
-    TEST_ASSERT( mbedtls_des_crypt_ecb( &ctx, src_str, output ) == 0 );
+    ret = mbedtls_des_setkey_dec( &ctx, key_str );
+    if ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
+    ret =  mbedtls_des_crypt_ecb( &ctx, src_str, output );
+    if ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
     hexify( dst_str, output, 8 );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
@@ -90,7 +102,7 @@ void des_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
     unsigned char dst_str[100];
     unsigned char output[100];
     mbedtls_des_context ctx;
-    int src_len;
+    int src_len, ret;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -103,8 +115,13 @@ void des_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
     unhexify( iv_str, hex_iv_string );
     src_len = unhexify( src_str, hex_src_string );
 
-    mbedtls_des_setkey_enc( &ctx, key_str );
-    TEST_ASSERT( mbedtls_des_crypt_cbc( &ctx, MBEDTLS_DES_ENCRYPT, src_len, iv_str, src_str, output ) == cbc_result );
+    ret = mbedtls_des_setkey_enc( &ctx, key_str );
+    if ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
+    ret = mbedtls_des_crypt_cbc( &ctx, MBEDTLS_DES_ENCRYPT, src_len, iv_str, src_str, output );
+    if ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == cbc_result );
     if( cbc_result == 0 )
     {
         hexify( dst_str, output, src_len );
@@ -127,7 +144,7 @@ void des_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
     unsigned char dst_str[100];
     unsigned char output[100];
     mbedtls_des_context ctx;
-    int src_len;
+    int src_len, ret;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -140,8 +157,13 @@ void des_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
     unhexify( iv_str, hex_iv_string );
     src_len = unhexify( src_str, hex_src_string );
 
-    mbedtls_des_setkey_dec( &ctx, key_str );
-    TEST_ASSERT( mbedtls_des_crypt_cbc( &ctx, MBEDTLS_DES_DECRYPT, src_len, iv_str, src_str, output ) == cbc_result );
+    ret = mbedtls_des_setkey_dec( &ctx, key_str );
+    if ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
+    ret = mbedtls_des_crypt_cbc( &ctx, MBEDTLS_DES_DECRYPT, src_len, iv_str, src_str, output );
+    if ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == cbc_result );
     if( cbc_result == 0 )
     {
         hexify( dst_str, output, src_len );
@@ -163,6 +185,7 @@ void des3_encrypt_ecb( int key_count, char *hex_key_string,
     unsigned char dst_str[100];
     unsigned char output[100];
     mbedtls_des3_context ctx;
+    int ret;
 
     memset(key_str, 0x00, 100);
     memset(src_str, 0x00, 100);
@@ -174,13 +197,18 @@ void des3_encrypt_ecb( int key_count, char *hex_key_string,
     unhexify( src_str, hex_src_string );
 
     if( key_count == 2 )
-        mbedtls_des3_set2key_enc( &ctx, key_str );
+        ret = mbedtls_des3_set2key_enc( &ctx, key_str );
     else if( key_count == 3 )
-        mbedtls_des3_set3key_enc( &ctx, key_str );
+        ret = mbedtls_des3_set3key_enc( &ctx, key_str );
     else
         TEST_ASSERT( 0 );
+    if ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
 
-    TEST_ASSERT( mbedtls_des3_crypt_ecb( &ctx, src_str, output ) == 0 );
+    ret = mbedtls_des3_crypt_ecb( &ctx, src_str, output );
+    if ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
     hexify( dst_str, output, 8 );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
@@ -199,6 +227,7 @@ void des3_decrypt_ecb( int key_count, char *hex_key_string,
     unsigned char dst_str[100];
     unsigned char output[100];
     mbedtls_des3_context ctx;
+    int ret;
 
     memset(key_str, 0x00, 100);
     memset(src_str, 0x00, 100);
@@ -210,13 +239,18 @@ void des3_decrypt_ecb( int key_count, char *hex_key_string,
     unhexify( src_str, hex_src_string );
 
     if( key_count == 2 )
-        mbedtls_des3_set2key_dec( &ctx, key_str );
+        ret = mbedtls_des3_set2key_dec( &ctx, key_str );
     else if( key_count == 3 )
-        mbedtls_des3_set3key_dec( &ctx, key_str );
+        ret = mbedtls_des3_set3key_dec( &ctx, key_str );
     else
         TEST_ASSERT( 0 );
+    if ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
 
-    TEST_ASSERT( mbedtls_des3_crypt_ecb( &ctx, src_str, output ) == 0 );
+    ret = mbedtls_des3_crypt_ecb( &ctx, src_str, output );
+    if ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
     hexify( dst_str, output, 8 );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
@@ -237,7 +271,7 @@ void des3_encrypt_cbc( int key_count, char *hex_key_string,
     unsigned char dst_str[100];
     unsigned char output[100];
     mbedtls_des3_context ctx;
-    int src_len;
+    int src_len, ret;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -251,13 +285,18 @@ void des3_encrypt_cbc( int key_count, char *hex_key_string,
     src_len = unhexify( src_str, hex_src_string );
 
     if( key_count == 2 )
-        mbedtls_des3_set2key_enc( &ctx, key_str );
+        ret = mbedtls_des3_set2key_enc( &ctx, key_str );
     else if( key_count == 3 )
-        mbedtls_des3_set3key_enc( &ctx, key_str );
+        ret = mbedtls_des3_set3key_enc( &ctx, key_str );
     else
         TEST_ASSERT( 0 );
 
-    TEST_ASSERT( mbedtls_des3_crypt_cbc( &ctx, MBEDTLS_DES_ENCRYPT, src_len, iv_str, src_str, output ) == cbc_result );
+    if ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
+    ret = mbedtls_des3_crypt_cbc( &ctx, MBEDTLS_DES_ENCRYPT, src_len, iv_str, src_str, output );
+    if ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == cbc_result );
 
     if( cbc_result == 0 )
     {
@@ -282,7 +321,7 @@ void des3_decrypt_cbc( int key_count, char *hex_key_string,
     unsigned char dst_str[100];
     unsigned char output[100];
     mbedtls_des3_context ctx;
-    int src_len;
+    int src_len, ret;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -296,13 +335,17 @@ void des3_decrypt_cbc( int key_count, char *hex_key_string,
     src_len = unhexify( src_str, hex_src_string );
 
     if( key_count == 2 )
-        mbedtls_des3_set2key_dec( &ctx, key_str );
+        ret = mbedtls_des3_set2key_dec( &ctx, key_str );
     else if( key_count == 3 )
-        mbedtls_des3_set3key_dec( &ctx, key_str );
+        ret = mbedtls_des3_set3key_dec( &ctx, key_str );
     else
         TEST_ASSERT( 0 );
-
-    TEST_ASSERT( mbedtls_des3_crypt_cbc( &ctx, MBEDTLS_DES_DECRYPT, src_len, iv_str, src_str, output ) == cbc_result );
+    if ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
+    ret = mbedtls_des3_crypt_cbc( &ctx, MBEDTLS_DES_DECRYPT, src_len, iv_str, src_str, output );
+    if ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == cbc_result );
 
     if( cbc_result == 0 )
     {

@@ -1018,6 +1018,7 @@ int mbedtls_des_self_test( int verbose )
         }
         if( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
         {
+            ret = 0;
             if( verbose != 0 )
                 mbedtls_printf( "skipped\n" );
             continue;
@@ -1065,6 +1066,7 @@ int mbedtls_des_self_test( int verbose )
         }
         if( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
         {
+            ret = 0;
             if( verbose != 0 )
                 mbedtls_printf( "skipped\n" );
             continue;

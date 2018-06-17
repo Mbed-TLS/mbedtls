@@ -15,6 +15,7 @@ void ecdsa_prim_random( int id )
     mbedtls_mpi d, r, s;
     rnd_pseudo_info rnd_info;
     unsigned char buf[66];
+    int ret;
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_ecp_point_init( &Q );
@@ -28,9 +29,15 @@ void ecdsa_prim_random( int id )
     TEST_ASSERT( mbedtls_ecp_gen_keypair( &grp, &d, &Q, &rnd_pseudo_rand, &rnd_info )
                  == 0 );
 
-    TEST_ASSERT( mbedtls_ecdsa_sign( &grp, &r, &s, &d, buf, sizeof( buf ),
-                             &rnd_pseudo_rand, &rnd_info ) == 0 );
-    TEST_ASSERT( mbedtls_ecdsa_verify( &grp, buf, sizeof( buf ), &Q, &r, &s ) == 0 );
+    ret = mbedtls_ecdsa_sign( &grp, &r, &s, &d, buf, sizeof( buf ),
+                             &rnd_pseudo_rand, &rnd_info );
+    if( ret == MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
+    ret = mbedtls_ecdsa_verify( &grp, buf, sizeof( buf ), &Q, &r, &s );
+    if( ret == MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
 
 exit:
     mbedtls_ecp_group_free( &grp );
@@ -50,6 +57,7 @@ void ecdsa_prim_test_vectors( int id, char *d_str, char *xQ_str, char *yQ_str,
     unsigned char hash[66], rnd_buf[66];
     size_t hlen;
     rnd_buf_info rnd_info;
+    int ret;
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_ecp_point_init( &Q );
@@ -79,15 +87,21 @@ void ecdsa_prim_test_vectors( int id, char *d_str, char *xQ_str, char *yQ_str,
         rnd_buf[rnd_info.length-1] <<= shift;
     }
 
-    TEST_ASSERT( mbedtls_ecdsa_sign( &grp, &r, &s, &d, hash, hlen,
-                 rnd_buffer_rand, &rnd_info ) == result );
+    ret = mbedtls_ecdsa_sign( &grp, &r, &s, &d, hash, hlen,
+                 rnd_buffer_rand, &rnd_info );
+    if( ret == MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == result );
 
     if ( result == 0)
     {
         TEST_ASSERT( mbedtls_mpi_cmp_mpi( &r, &r_check ) == 0 );
         TEST_ASSERT( mbedtls_mpi_cmp_mpi( &s, &s_check ) == 0 );
 
-        TEST_ASSERT( mbedtls_ecdsa_verify( &grp, hash, hlen, &Q, &r_check, &s_check ) == 0 );
+        ret = mbedtls_ecdsa_verify( &grp, hash, hlen, &Q, &r_check, &s_check );
+        if( ret == MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE )
+            goto exit;
+        TEST_ASSERT( ret == 0 );
     }
 
 exit:
@@ -107,6 +121,7 @@ void ecdsa_det_test_vectors( int id, char *d_str, int md_alg,
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     size_t hlen;
     const mbedtls_md_info_t *md_info;
+    int ret;
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_mpi_init( &d ); mbedtls_mpi_init( &r ); mbedtls_mpi_init( &s );
@@ -123,7 +138,10 @@ void ecdsa_det_test_vectors( int id, char *d_str, int md_alg,
     hlen = mbedtls_md_get_size( md_info );
     mbedtls_md( md_info, (const unsigned char *) msg, strlen( msg ), hash );
 
-    TEST_ASSERT( mbedtls_ecdsa_sign_det( &grp, &r, &s, &d, hash, hlen, md_alg ) == 0 );
+    ret = mbedtls_ecdsa_sign_det( &grp, &r, &s, &d, hash, hlen, md_alg );
+    if( ret == MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
 
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &r, &r_check ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &s, &s_check ) == 0 );
@@ -143,6 +161,7 @@ void ecdsa_write_read_random( int id )
     unsigned char hash[32];
     unsigned char sig[200];
     size_t sig_len, i;
+    int ret;
 
     mbedtls_ecdsa_init( &ctx );
     memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
@@ -153,14 +172,23 @@ void ecdsa_write_read_random( int id )
     TEST_ASSERT( rnd_pseudo_rand( &rnd_info, hash, sizeof( hash ) ) == 0 );
 
     /* generate signing key */
-    TEST_ASSERT( mbedtls_ecdsa_genkey( &ctx, id, &rnd_pseudo_rand, &rnd_info ) == 0 );
+    ret = mbedtls_ecdsa_genkey( &ctx, id, &rnd_pseudo_rand, &rnd_info );
+    if( ret == MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
 
     /* generate and write signature, then read and verify it */
-    TEST_ASSERT( mbedtls_ecdsa_write_signature( &ctx, MBEDTLS_MD_SHA256,
+    ret = mbedtls_ecdsa_write_signature( &ctx, MBEDTLS_MD_SHA256,
                  hash, sizeof( hash ),
-                 sig, &sig_len, &rnd_pseudo_rand, &rnd_info ) == 0 );
-    TEST_ASSERT( mbedtls_ecdsa_read_signature( &ctx, hash, sizeof( hash ),
-                 sig, sig_len ) == 0 );
+                 sig, &sig_len, &rnd_pseudo_rand, &rnd_info );
+    if( ret == MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
+    ret = mbedtls_ecdsa_read_signature( &ctx, hash, sizeof( hash ),
+                 sig, sig_len );
+    if( ret == MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
 
     /* check we didn't write past the announced length */
     for( i = sig_len; i < sizeof( sig ); i++ )

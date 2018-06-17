@@ -924,8 +924,8 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
         {
             alg &= ~PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
         }
-        switch( alg )
 
+        switch( alg )
         {
             case PSA_ALG_STREAM_CIPHER:
                 mode = MBEDTLS_MODE_STREAM;
@@ -1252,9 +1252,9 @@ psa_status_t psa_mac_update( psa_mac_operation_t *operation,
     }
     if ( ( ret != 0 ) || ( status != PSA_SUCCESS ) )
     {
-        psa_mac_abort(operation);
-        if (ret != 0)
-            status = mbedtls_to_psa_error(ret);
+        psa_mac_abort( operation );
+        if ( ret != 0 )
+            status = mbedtls_to_psa_error( ret );
     }
 
     return status;

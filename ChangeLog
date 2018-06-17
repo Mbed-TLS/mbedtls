@@ -12,6 +12,8 @@ Bugfix
      TrinityTonic. #1359.
    * Fix an issue with MicroBlaze support in bn_mul.h which was causing the
      build to fail. Found by zv-io. Fixes #1651.
+   * Fix for redefinition of _WIN32_WINNT to avoid overriding a definition
+     used by user applications. Found and fixed by Fabio Alessandrelli.
 
 Changes
    * Support TLS testing in out-of-source builds using cmake.

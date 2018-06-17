@@ -65,11 +65,6 @@
 #define mbedtls_free   free
 #endif
 
-#if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER)
-#define MBEDTLS_CIPHER_MODE_STREAM
-#endif
-
-
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
 /* Compare the contents of two buffers in constant time.
  * Returns 0 if the contents are bitwise identical, otherwise returns

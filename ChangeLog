@@ -18,6 +18,8 @@ Bugfix
      return value. Found by @davidwu2000. #839
    * Fix a memory leak in mbedtls_x509_csr_parse(), found by catenacyber,
      Philippe Antoine. Fixes #1623.
+   * Fix compilation error when MBEDTLS_ARC4_C is disabled and
+     MBEDTLS_CIPHER_NULL_CIPHER is enabled. Found by TrinityTonic in #1719.
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.

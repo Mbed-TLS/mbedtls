@@ -1073,8 +1073,9 @@ int mbedtls_camellia_self_test( int verbose )
             len = camellia_test_ctr_len[u];
             memcpy( buf, camellia_test_ctr_pt[u], len );
 
-            ret = mbedtls_camellia_crypt_ctr( &ctx, len, &offset, nonce_counter, stream_block,
-                                buf, buf );
+            ret = mbedtls_camellia_crypt_ctr( &ctx, len, &offset,
+                                              nonce_counter, stream_block,
+                                              buf, buf );
             if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
             {
                 mbedtls_printf( "skipped\n" );

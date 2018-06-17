@@ -2345,7 +2345,7 @@ int mbedtls_rsa_self_test( int verbose )
 
             if( verbose != 0 )
                 mbedtls_printf( "passed\n" );
-        }/* mbedtls_rsa_pkcs1_decrypt not supported */
+        } /* mbedtls_rsa_pkcs1_decrypt not supported */
         else if( verbose != 0 )
             mbedtls_printf( "skipped\n" );
     } /* mbedtls_rsa_pkcs1_encrypt not supported */
@@ -2386,7 +2386,7 @@ int mbedtls_rsa_self_test( int verbose )
                                         sha1sum, rsa_ciphertext );
         if( ret != MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
         {
-            if(  ret != 0 )
+            if( ret != 0 )
             {
                 if( verbose != 0 )
                     mbedtls_printf( "failed\n" );

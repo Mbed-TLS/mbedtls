@@ -250,7 +250,7 @@ int mbedtls_xtea_self_test( int verbose )
         mbedtls_xtea_setup( &ctx, xtea_test_key[i] );
         ret = mbedtls_xtea_crypt_ecb( &ctx, MBEDTLS_XTEA_ENCRYPT, buf, buf );
 
-        if( (ret != 0 ) || ( memcmp( buf, xtea_test_ct[i], 8 ) != 0 ) )
+        if( ( ret != 0 ) || ( memcmp( buf, xtea_test_ct[i], 8 ) != 0 ) )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );

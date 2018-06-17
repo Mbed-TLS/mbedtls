@@ -1072,7 +1072,7 @@ int mbedtls_des_self_test( int verbose )
             continue;
         }
 
-        if( (ret != 0 ) ||
+        if( ( ret != 0 ) ||
             ( v == MBEDTLS_DES_DECRYPT &&
                 memcmp( buf, des3_test_cbc_dec[u], 8 ) != 0 ) ||
             ( v != MBEDTLS_DES_DECRYPT &&

@@ -924,7 +924,7 @@ int mbedtls_aria_self_test( int verbose )
         }
 
         ret = mbedtls_aria_crypt_ecb( &ctx, aria_test1_ecb_pt, blk );
-        if( (ret != 0) || ( memcmp( blk, aria_test1_ecb_ct[i], MBEDTLS_ARIA_BLOCKSIZE ) != 0 ) )
+        if( ( ret != 0) || ( memcmp( blk, aria_test1_ecb_ct[i], MBEDTLS_ARIA_BLOCKSIZE ) != 0 ) )
             ARIA_SELF_TEST_IF_FAIL;
 
         /* test ECB decryption */
@@ -938,7 +938,7 @@ int mbedtls_aria_self_test( int verbose )
             return( 1 );
         }
         ret = mbedtls_aria_crypt_ecb( &ctx, aria_test1_ecb_ct[i], blk );
-        if( (ret != 0 ) || ( memcmp( blk, aria_test1_ecb_pt, MBEDTLS_ARIA_BLOCKSIZE ) != 0 ) )
+        if( ( ret != 0 ) || ( memcmp( blk, aria_test1_ecb_pt, MBEDTLS_ARIA_BLOCKSIZE ) != 0 ) )
             ARIA_SELF_TEST_IF_FAIL;
     }
     if( verbose )
@@ -976,7 +976,7 @@ int mbedtls_aria_self_test( int verbose )
                 printf( "skipped\n" );
                 continue;
         }
-        if( (ret != 0 ) || ( memcmp( buf, aria_test2_cbc_ct[i], 48 ) != 0 ) )
+        if( ( ret != 0 ) || ( memcmp( buf, aria_test2_cbc_ct[i], 48 ) != 0 ) )
             ARIA_SELF_TEST_IF_FAIL;
 
         /* Test CBC decryption */
@@ -993,7 +993,7 @@ int mbedtls_aria_self_test( int verbose )
         memset( buf, 0xAA, sizeof( buf ) );
         ret = mbedtls_aria_crypt_cbc( &ctx, MBEDTLS_ARIA_DECRYPT, 48, iv,
             aria_test2_cbc_ct[i], buf );
-        if( (ret != 0 ) || ( memcmp( buf, aria_test2_pt, 48 ) != 0 ) )
+        if( ( ret != 0 ) || ( memcmp( buf, aria_test2_pt, 48 ) != 0 ) )
             ARIA_SELF_TEST_IF_FAIL;
     }
     if( verbose )
@@ -1087,7 +1087,7 @@ int mbedtls_aria_self_test( int verbose )
                 printf( "skipped\n" );
                 continue;
         }
-        if( (ret != 0 ) || ( memcmp( buf, aria_test2_ctr_ct[i], 48 ) != 0 ) )
+        if( ( ret != 0 ) || ( memcmp( buf, aria_test2_ctr_ct[i], 48 ) != 0 ) )
             ARIA_SELF_TEST_IF_FAIL;
 
         /* Test CTR decryption */

@@ -985,30 +985,30 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     return( mbedtls_cipher_info_from_values( cipher_id_tmp, key_bits, mode ) );
 }
 
-static size_t psa_get_hash_block_size(psa_algorithm_t alg)
+static size_t psa_get_hash_block_size( psa_algorithm_t alg )
 {
     switch(alg)
     {
         case PSA_ALG_MD2:
-            return 16;
+            return( 16 );
         case PSA_ALG_MD4:
-            return 64;
+            return( 64 );
         case PSA_ALG_MD5:
-            return 64;
+            return( 64 );
         case PSA_ALG_RIPEMD160:
-            return 64;
+            return( 64 );
         case PSA_ALG_SHA_1:
-            return 64;
+            return( 64 );
         case PSA_ALG_SHA_224:
-            return 64;
+            return( 64 );
         case PSA_ALG_SHA_256:
-            return 64;
+            return( 64 );
         case PSA_ALG_SHA_384:
-            return 128;
+            return( 128 );
         case PSA_ALG_SHA_512:
-            return 128;
+            return ( 128 );
         default: 
-            return 0;
+            return ( 0 );
     }
 }
 

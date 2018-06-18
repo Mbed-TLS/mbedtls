@@ -8,6 +8,7 @@ if [ -d include/mbedtls ]; then :; else
 fi
 
 HEADERS=$( ls include/mbedtls/*.h | egrep -v 'compat-1\.3\.h' )
+HEADERS="$HEADERS configs/config-default.h"
 
 sed -n -e 's/.*#define \([a-zA-Z0-9_]*\).*/\1/p' $HEADERS \
     | egrep -v '^(asm|inline|EMIT|_CRT_SECURE_NO_DEPRECATE)$|^MULADDC_' \

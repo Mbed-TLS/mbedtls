@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.7.4 branch released 2018-06-18
 
 Bugfix
    * Fix redundant declaration of mbedtls_ssl_list_ciphersuites. Raised by

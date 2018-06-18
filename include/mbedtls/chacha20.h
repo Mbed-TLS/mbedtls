@@ -139,7 +139,7 @@ int mbedtls_chacha20_starts( mbedtls_chacha20_context* ctx,
  *                  \c mbedtls_chacha20_starts() must be called at least once
  *                  to setup the context before this function can be called.
  *
- * \note            This function can be called mutliple times in a row in
+ * \note            This function can be called multiple times in a row in
  *                  order to encrypt of decrypt data piecewise with the same
  *                  key and nonce.
  *

@@ -187,7 +187,7 @@ int mbedtls_chachapoly_update_aad( mbedtls_chachapoly_context *ctx,
     }
     else if( ctx->state != CHACHAPOLY_STATE_AAD )
     {
-        return(MBEDTLS_ERR_CHACHAPOLY_BAD_STATE );
+        return( MBEDTLS_ERR_CHACHAPOLY_BAD_STATE );
     }
 
     ctx->aad_len += aad_len;

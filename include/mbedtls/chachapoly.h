@@ -175,7 +175,7 @@ int mbedtls_chachapoly_starts( mbedtls_chachapoly_context *ctx,
  *                  The Additional Authenticated Data (AAD), also called
  *                  Associated Data (AD) is only authenticated but not
  *                  encrypted nor included in the encrypted output. It is
- *                  usually transmitted separately fro mthe ciphertext or
+ *                  usually transmitted separately from the ciphertext or
  *                  computed locally by each party.
  *
  * \note            This function is called before data is encrypted/decrypted.

@@ -1,7 +1,7 @@
 /**
  * \file poly1305.h
  *
- * \brief   This file containts Poly1305 definitions and functions.
+ * \brief   This file contains Poly1305 definitions and functions.
  *
  *          Poly1305 is a one-time message authenticator that can be used to
  *          authenticate messages. Poly1305-AES was created by Daniel
@@ -109,9 +109,9 @@ int mbedtls_poly1305_starts( mbedtls_poly1305_context *ctx,
  * \brief           This functions feeds an input buffer into an ongoing
  *                  Poly1305 computation.
  *
- *                  It is called between \c mbedtls_cipher_cmac_starts() and
- *                  \c mbedtls_cipher_cmac_finish().
- *                  Can be called repeatedly to process a stream of data.
+ *                  It is called between \c mbedtls_cipher_poly1305_starts() and
+ *                  \c mbedtls_cipher_poly1305_finish().
+ *                  It can be called repeatedly to process a stream of data.
  *
  * \param ctx       The Poly1305 context to use for the Poly1305 operation.
  * \param ilen      The length of the input data (in bytes). Any value is accepted.

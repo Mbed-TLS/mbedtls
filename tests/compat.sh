@@ -61,7 +61,8 @@ FILTER=""
 # - RC4, single-DES: requires legacy OpenSSL/GnuTLS versions
 #   avoid plain DES but keep 3DES-EDE-CBC (mbedTLS), DES-CBC3 (OpenSSL)
 # - ARIA: not in default config.h + requires OpenSSL >= 1.1.1
-EXCLUDE='NULL\|DES-CBC-\|RC4\|ARCFOUR\|ARIA'
+# - ChachaPoly: requires OpenSSL >= 1.1.0
+EXCLUDE='NULL\|DES-CBC-\|RC4\|ARCFOUR\|ARIA\|CHACHA20-POLY1305'
 VERBOSE=""
 MEMCHECK=0
 PEERS="OpenSSL$PEER_GNUTLS mbedTLS"
@@ -440,6 +441,9 @@ add_common_ciphersuites()
 # NOTE: for some reason RSA-PSK doesn't work with OpenSSL,
 # so RSA-PSK ciphersuites need to go in other sections, see
 # https://github.com/ARMmbed/mbedtls/issues/1419
+#
+# ChachaPoly suites are here rather than in "common", as they were added in
+# GnuTLS in 3.5.0 and the CI only has 3.4.x so far.
 add_openssl_ciphersuites()
 {
     case $TYPE in
@@ -471,6 +475,7 @@ add_openssl_ciphersuites()
                     TLS-ECDH-ECDSA-WITH-AES-256-GCM-SHA384          \
                     TLS-ECDHE-ECDSA-WITH-ARIA-256-GCM-SHA384        \
                     TLS-ECDHE-ECDSA-WITH-ARIA-128-GCM-SHA256        \
+                    TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256   \
                     "
                 O_CIPHERS="$O_CIPHERS               \
                     ECDH-ECDSA-AES128-SHA256        \
@@ -479,6 +484,7 @@ add_openssl_ciphersuites()
                     ECDH-ECDSA-AES256-GCM-SHA384    \
                     ECDHE-ECDSA-ARIA256-GCM-SHA384  \
                     ECDHE-ECDSA-ARIA128-GCM-SHA256  \
+                    ECDHE-ECDSA-CHACHA20-POLY1305   \
                     "
             fi
             ;;
@@ -501,6 +507,8 @@ add_openssl_ciphersuites()
                     TLS-ECDHE-RSA-WITH-ARIA-128-GCM-SHA256          \
                     TLS-DHE-RSA-WITH-ARIA-128-GCM-SHA256            \
                     TLS-RSA-WITH-ARIA-128-GCM-SHA256                \
+                    TLS-DHE-RSA-WITH-CHACHA20-POLY1305-SHA256       \
+                    TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256     \
                     "
                 O_CIPHERS="$O_CIPHERS               \
                     ECDHE-ARIA256-GCM-SHA384        \
@@ -509,6 +517,8 @@ add_openssl_ciphersuites()
                     ECDHE-ARIA128-GCM-SHA256        \
                     DHE-RSA-ARIA128-GCM-SHA256      \
                     ARIA128-GCM-SHA256              \
+                    DHE-RSA-CHACHA20-POLY1305       \
+                    ECDHE-RSA-CHACHA20-POLY1305     \
                     "
             fi
             ;;
@@ -521,12 +531,18 @@ add_openssl_ciphersuites()
                     TLS-DHE-PSK-WITH-ARIA-128-GCM-SHA256            \
                     TLS-PSK-WITH-ARIA-256-GCM-SHA384                \
                     TLS-PSK-WITH-ARIA-128-GCM-SHA256                \
+                    TLS-PSK-WITH-CHACHA20-POLY1305-SHA256           \
+                    TLS-ECDHE-PSK-WITH-CHACHA20-POLY1305-SHA256     \
+                    TLS-DHE-PSK-WITH-CHACHA20-POLY1305-SHA256       \
                     "
                 O_CIPHERS="$O_CIPHERS               \
                     DHE-PSK-ARIA256-GCM-SHA384      \
                     DHE-PSK-ARIA128-GCM-SHA256      \
                     PSK-ARIA256-GCM-SHA384          \
                     PSK-ARIA128-GCM-SHA256          \
+                    DHE-PSK-CHACHA20-POLY1305       \
+                    ECDHE-PSK-CHACHA20-POLY1305     \
+                    PSK-CHACHA20-POLY1305           \
                     "
             fi
             ;;
@@ -830,6 +846,7 @@ add_mbedtls_ciphersuites()
                     TLS-ECDHE-PSK-WITH-ARIA-128-CBC-SHA256          \
                     TLS-DHE-PSK-WITH-ARIA-256-CBC-SHA384            \
                     TLS-DHE-PSK-WITH-ARIA-128-CBC-SHA256            \
+                    TLS-RSA-PSK-WITH-CHACHA20-POLY1305-SHA256       \
                     "
             fi
             ;;

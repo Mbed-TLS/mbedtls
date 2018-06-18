@@ -305,6 +305,8 @@ static psa_status_t mbedtls_to_psa_error( int ret )
     }
 }
 
+
+
 /****************************************************************/
 /* Key management */
 /****************************************************************/
@@ -556,7 +558,6 @@ psa_status_t psa_export_key( psa_key_slot_t key,
                                      data_length, 0 ) );
 }
 
-
 psa_status_t psa_export_public_key( psa_key_slot_t key,
                                     uint8_t *data,
                                     size_t data_size,
@@ -565,6 +566,8 @@ psa_status_t psa_export_public_key( psa_key_slot_t key,
     return( psa_internal_export_key( key, data, data_size,
                                      data_length, 1 ) );
 }
+
+
 
 /****************************************************************/
 /* Message digests */
@@ -906,7 +909,6 @@ psa_status_t psa_hash_verify( psa_hash_operation_t *operation,
         return( PSA_ERROR_INVALID_SIGNATURE );
     return( PSA_SUCCESS );
 }
-
 
 
 
@@ -1395,7 +1397,6 @@ psa_status_t psa_mac_verify( psa_mac_operation_t *operation,
 
 
 
-
 /****************************************************************/
 /* Asymmetric cryptography */
 /****************************************************************/
@@ -1679,7 +1680,6 @@ psa_status_t psa_asymmetric_encrypt( psa_key_slot_t key,
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }
-
 }
 
 psa_status_t psa_asymmetric_decrypt( psa_key_slot_t key,
@@ -1748,8 +1748,9 @@ psa_status_t psa_asymmetric_decrypt( psa_key_slot_t key,
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }
-
 }
+
+
 
 /****************************************************************/
 /* Symmetric cryptography */
@@ -2015,6 +2016,7 @@ psa_status_t psa_cipher_abort( psa_cipher_operation_t *operation )
 }
 
 
+
 /****************************************************************/
 /* Key Policy */
 /****************************************************************/
@@ -2128,9 +2130,11 @@ psa_status_t psa_set_key_lifetime( psa_key_slot_t key,
 }
 
 
+
 /****************************************************************/
 /* AEAD */
 /****************************************************************/
+
 psa_status_t psa_aead_encrypt( psa_key_slot_t key,
                                psa_algorithm_t alg,
                                const uint8_t *nonce,
@@ -2222,8 +2226,6 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
 
         //update the tag pointer to point to the end of the ciphertext_length
         tag = ciphertext + plaintext_length;
-
-
 
         mbedtls_ccm_init( &ccm );
         ret = mbedtls_ccm_setkey( &ccm, cipher_id,
@@ -2391,6 +2393,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
 
     return( mbedtls_to_psa_error( ret ) );
 }
+
 
 
 /****************************************************************/

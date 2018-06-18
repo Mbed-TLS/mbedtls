@@ -145,7 +145,6 @@ exit:
 }
 /* END_CASE */
 
-
 /* BEGIN_CASE */
 void import_export_public_key( data_t *data,
                                int type_arg,
@@ -316,7 +315,6 @@ exit:
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
-
 
 /* BEGIN_CASE */
 void cipher_encrypt( int alg_arg, int key_type_arg,
@@ -524,7 +522,6 @@ exit:
 }
 /* END_CASE */
 
-
 /* BEGIN_CASE */
 void cipher_decrypt( int alg_arg, int key_type_arg,
                      data_t *key,
@@ -585,14 +582,12 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
                              (size_t) expected_output->len ) == 0 );
     }
 
-
 exit:
     mbedtls_free( output );
     psa_destroy_key( key_slot );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
-
 
 /* BEGIN_CASE */
 void cipher_verify_output( int alg_arg, int key_type_arg,
@@ -853,11 +848,9 @@ void aead_encrypt_decrypt( int key_type_arg,
                                        &output_length2 ) ==
                      expected_result );
 
-
         TEST_ASSERT( memcmp( input_data->x, output_data2,
                              (size_t) input_data->len ) == 0 );
     }
-
 
 exit:
     psa_destroy_key( slot );
@@ -917,10 +910,8 @@ void aead_encrypt( int key_type_arg, data_t * key_data,
                                    output_data, output_size,
                                    &output_length ) == PSA_SUCCESS );
 
-
     TEST_ASSERT( memcmp( output_data, expected_result->x,
                          output_length ) == 0 );
-
 
 exit:
     psa_destroy_key( slot );
@@ -944,7 +935,6 @@ void aead_decrypt( int key_type_arg, data_t * key_data,
     size_t tag_length = 16;
     psa_key_policy_t policy = {0};
     psa_status_t expected_result = (psa_status_t) expected_result_arg;
-
 
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( input_data != NULL );
@@ -982,14 +972,11 @@ void aead_decrypt( int key_type_arg, data_t * key_data,
                                    output_size, &output_length ) ==
                  expected_result );
 
-
     if( expected_result == PSA_SUCCESS )
     {
         TEST_ASSERT( memcmp( output_data, expected_data->x,
                              output_length ) == 0 );
     }
-
-
 
 exit:
     psa_destroy_key( slot );
@@ -1239,7 +1226,6 @@ exit:
 }
 /* END_CASE */
 
-
 /* BEGIN_CASE */
 void key_lifetime_set_fail( int key_slot_arg,
                             int lifetime_arg,
@@ -1312,7 +1298,6 @@ void asymmetric_verify_fail( int key_type_arg, data_t *key_data,
                              data_t *signature_data,
                              int expected_status_arg )
 {
-
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
@@ -1345,7 +1330,6 @@ void asymmetric_verify_fail( int key_type_arg, data_t *key_data,
                                            signature_data->x,
                                            (size_t) signature_data->len );
 
-
     TEST_ASSERT( actual_status == expected_status );
 
 exit:
@@ -1353,7 +1337,6 @@ exit:
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
-
 
 /* BEGIN_CASE */
 void asymmetric_encrypt_decrypt( int key_type_arg, data_t *key_data,
@@ -1420,18 +1403,14 @@ exit:
     mbedtls_free( output );
     mbedtls_free( output2 );
     mbedtls_psa_crypto_free( );
-
 }
 /* END_CASE */
-
 
 /* BEGIN_CASE */
 void asymmetric_encrypt_fail( int key_type_arg, data_t *key_data,
                               int alg_arg, data_t *input_data,
                               int expected_status_arg )
 {
-
-
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
@@ -1474,7 +1453,6 @@ exit:
     psa_destroy_key( slot );
     mbedtls_free( output );
     mbedtls_psa_crypto_free( );
-
 }
 /* END_CASE */
 
@@ -1526,18 +1504,14 @@ exit:
     psa_destroy_key( slot );
     mbedtls_free( output );
     mbedtls_psa_crypto_free( );
-
-
 }
 /* END_CASE */
-
 
 /* BEGIN_CASE */
 void asymmetric_decrypt_fail( int key_type_arg, data_t *key_data,
                               int alg_arg, data_t *input_data,
                               int expected_status_arg  )
 {
-
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;

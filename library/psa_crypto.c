@@ -311,6 +311,41 @@ static psa_status_t mbedtls_to_psa_error( int ret )
 /* Key management */
 /****************************************************************/
 
+static psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid )
+{
+    switch( grpid )
+    {
+        case MBEDTLS_ECP_DP_SECP192R1:
+            return( PSA_ECC_CURVE_SECP192R1 );
+        case MBEDTLS_ECP_DP_SECP224R1:
+            return( PSA_ECC_CURVE_SECP224R1 );
+        case MBEDTLS_ECP_DP_SECP256R1:
+            return( PSA_ECC_CURVE_SECP256R1 );
+        case MBEDTLS_ECP_DP_SECP384R1:
+            return( PSA_ECC_CURVE_SECP384R1 );
+        case MBEDTLS_ECP_DP_SECP521R1:
+            return( PSA_ECC_CURVE_SECP521R1 );
+        case MBEDTLS_ECP_DP_BP256R1:
+            return( PSA_ECC_CURVE_BRAINPOOL_P256R1 );
+        case MBEDTLS_ECP_DP_BP384R1:
+            return( PSA_ECC_CURVE_BRAINPOOL_P384R1 );
+        case MBEDTLS_ECP_DP_BP512R1:
+            return( PSA_ECC_CURVE_BRAINPOOL_P512R1 );
+        case MBEDTLS_ECP_DP_CURVE25519:
+            return( PSA_ECC_CURVE_CURVE25519 );
+        case MBEDTLS_ECP_DP_SECP192K1:
+            return( PSA_ECC_CURVE_SECP192K1 );
+        case MBEDTLS_ECP_DP_SECP224K1:
+            return( PSA_ECC_CURVE_SECP224K1 );
+        case MBEDTLS_ECP_DP_SECP256K1:
+            return( PSA_ECC_CURVE_SECP256K1 );
+        case MBEDTLS_ECP_DP_CURVE448:
+            return( PSA_ECC_CURVE_CURVE448 );
+        default:
+            return( 0 );
+    }
+}
+
 psa_status_t psa_import_key( psa_key_slot_t key,
                              psa_key_type_t type,
                              const uint8_t *data,
@@ -356,7 +391,7 @@ psa_status_t psa_import_key( psa_key_slot_t key,
             case MBEDTLS_PK_RSA:
                 if( type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
                     type == PSA_KEY_TYPE_RSA_KEYPAIR )
-                    slot->data.rsa = pk.pk_ctx;
+                    slot->data.rsa = mbedtls_pk_rsa( pk );
                 else
                     return( PSA_ERROR_INVALID_ARGUMENT );
                 break;
@@ -365,8 +400,14 @@ psa_status_t psa_import_key( psa_key_slot_t key,
             case MBEDTLS_PK_ECKEY:
                 if( PSA_KEY_TYPE_IS_ECC( type ) )
                 {
-                    // TODO: check curve
-                    slot->data.ecp = pk.pk_ctx;
+                    mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( pk );
+                    psa_ecc_curve_t actual_curve =
+                        mbedtls_ecc_group_to_psa( ecp->grp.id );
+                    psa_ecc_curve_t expected_curve =
+                        PSA_KEY_TYPE_GET_CURVE( type );
+                    if( actual_curve != expected_curve )
+                        return( PSA_ERROR_INVALID_ARGUMENT );
+                    slot->data.ecp = ecp;
                 }
                 else
                     return( PSA_ERROR_INVALID_ARGUMENT );

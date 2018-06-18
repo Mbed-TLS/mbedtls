@@ -76,17 +76,24 @@ class FileWrapper(io.FileIO):
         super(FileWrapper, self).__init__(file_name, 'r')
         self.line_no = 0
 
+    # Override the generator function in a way that works in both Python 2
+    # and Python 3.
     def __next__(self):
         """
         Iterator return impl.
         :return: Line read from file.
         """
-        line = super(FileWrapper, self).__next__()
+        parent = super(FileWrapper, self)
+        if hasattr(parent, '__next__'):
+            line = parent.__next__() # Python 3
+        else:
+            line = parent.next() # Python 2
         if line:
             self.line_no += 1
             # Convert byte array to string with correct encoding
             return line.decode(sys.getdefaultencoding())
         return None
+    next = __next__
 
 
 def split_dep(dep):

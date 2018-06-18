@@ -2021,7 +2021,7 @@ psa_status_t psa_cipher_abort( psa_cipher_operation_t *operation )
 
 void psa_key_policy_init( psa_key_policy_t *policy )
 {
-    memset( policy, 0, sizeof( psa_key_policy_t ) );
+    memset( policy, 0, sizeof( *policy ) );
 }
 
 void psa_key_policy_set_usage( psa_key_policy_t *policy,

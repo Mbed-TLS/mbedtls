@@ -186,6 +186,7 @@ typedef enum {
     MBEDTLS_MODE_STREAM,                 /**< The stream cipher mode. */
     MBEDTLS_MODE_CCM,                    /**< The CCM cipher mode. */
     MBEDTLS_MODE_XTS,                    /**< The XTS cipher mode. */
+    MBEDTLS_MODE_CHACHAPOLY,             /**< The ChaCha-Poly cipher mode. */
 } mbedtls_cipher_mode_t;
 
 /** Supported cipher padding types. */

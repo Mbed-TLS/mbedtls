@@ -2040,7 +2040,7 @@ static const mbedtls_cipher_base_t chachapoly_base_info = {
 };
 static const mbedtls_cipher_info_t chachapoly_info = {
     MBEDTLS_CIPHER_CHACHA20_POLY1305,
-    MBEDTLS_MODE_NONE,
+    MBEDTLS_MODE_CHACHAPOLY,
     256,
     "CHACHA20-POLY1305",
     12,

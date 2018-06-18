@@ -48,7 +48,7 @@
 #if defined(MBEDTLS_SHA512_C)
 #define PSA_CRYPTO_MD_MAX_SIZE 64
 #define PSA_CRYPTO_MD_BLOCK_SIZE 128
-#else 
+#else
 #define PSA_CRYPTO_MD_MAX_SIZE 32
 #define PSA_CRYPTO_MD_BLOCK_SIZE 64
 #endif
@@ -84,7 +84,8 @@ struct psa_hash_operation_s
 };
 
 
-typedef struct {
+typedef struct
+{
         /** The hash context. */
         struct psa_hash_operation_s hash_ctx;
         /** The HMAC part of the context. */

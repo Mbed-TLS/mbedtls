@@ -1304,8 +1304,8 @@ psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
 psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
                                const uint8_t *input,
                                size_t input_length,
-                               unsigned char *output, 
-                               size_t output_size, 
+                               unsigned char *output,
+                               size_t output_size,
                                size_t *output_length);
 
 psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,

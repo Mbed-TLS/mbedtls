@@ -24,6 +24,9 @@ Bugfix
 
 Changes
    * Changed CMake defaults for IAR to treat all compiler warnings as errors.
+   * Changed the Clang parameters used in the CMake build files to work for
+     versions later than 3.6. Versions of Clang earlier than this may no longer
+     work. Fixes #1072
 
 = mbed TLS 2.10.0 branch released 2018-06-06
 

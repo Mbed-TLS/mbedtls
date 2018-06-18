@@ -1210,17 +1210,17 @@ void key_lifetime_set_fail( int key_slot_arg,
                             int lifetime_arg,
                             int expected_status_arg )
 {
-    int key_slot = 1;
+    psa_key_slot_t key_slot = key_slot_arg;
     psa_key_lifetime_t lifetime_set = lifetime_arg;
     psa_status_t actual_status;
     psa_status_t expected_status = expected_status_arg;
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
-    actual_status = psa_set_key_lifetime( key_slot_arg, lifetime_set );
+    actual_status = psa_set_key_lifetime( key_slot, lifetime_set );
 
     if( actual_status == PSA_SUCCESS )
-        actual_status = psa_set_key_lifetime( key_slot_arg, lifetime_set );
+        actual_status = psa_set_key_lifetime( key_slot, lifetime_set );
 
     TEST_ASSERT( expected_status == actual_status );
 

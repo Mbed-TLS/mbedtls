@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.1.13 branch released 2018-06-18
 
 Bugfix
    * Fix compilation warnings with IAR toolchain, on 32 bit platform.

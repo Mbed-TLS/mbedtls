@@ -614,37 +614,6 @@ static const mbedtls_md_info_t *mbedtls_md_info_from_psa( psa_algorithm_t alg )
     }
 }
 
-#if 0
-static psa_algorithm_t mbedtls_md_alg_to_psa( mbedtls_md_type_t md_alg )
-{
-    switch( md_alg )
-    {
-        case MBEDTLS_MD_NONE:
-            return( 0 );
-        case MBEDTLS_MD_MD2:
-            return( PSA_ALG_MD2 );
-        case MBEDTLS_MD_MD4:
-            return( PSA_ALG_MD4 );
-        case MBEDTLS_MD_MD5:
-            return( PSA_ALG_MD5 );
-        case MBEDTLS_MD_SHA1:
-            return( PSA_ALG_SHA_1 );
-        case MBEDTLS_MD_SHA224:
-            return( PSA_ALG_SHA_224 );
-        case MBEDTLS_MD_SHA256:
-            return( PSA_ALG_SHA_256 );
-        case MBEDTLS_MD_SHA384:
-            return( PSA_ALG_SHA_384 );
-        case MBEDTLS_MD_SHA512:
-            return( PSA_ALG_SHA_512 );
-        case MBEDTLS_MD_RIPEMD160:
-            return( PSA_ALG_RIPEMD160 );
-        default:
-            return( 0 );
-    }
-}
-#endif
-
 psa_status_t psa_hash_abort( psa_hash_operation_t *operation )
 {
     switch( operation->alg )
@@ -1081,7 +1050,7 @@ static int psa_hmac_start( psa_mac_operation_t *operation,
                            key_slot_t *slot,
                            psa_algorithm_t alg )
 {
-    unsigned char ipad[PSA_CRYPTO_MD_BLOCK_SIZE];
+    unsigned char ipad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
     unsigned char *opad = operation->ctx.hmac.opad;
     size_t i;
     size_t block_size =

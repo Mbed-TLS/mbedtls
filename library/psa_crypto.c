@@ -43,6 +43,10 @@
 
 #include "psa/crypto.h"
 
+/* Include internal declarations that are useful for implementing persistently
+ * stored keys. */
+#include "psa_crypto_storage.h"
+
 #include <stdlib.h>
 #include <string.h>
 #if defined(MBEDTLS_PLATFORM_C)
@@ -702,6 +706,27 @@ static psa_status_t psa_import_key_into_slot( key_slot_t *slot,
     return( PSA_SUCCESS );
 }
 
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t key,
+                                                       key_slot_t *p_slot )
+{
+    psa_status_t status = PSA_SUCCESS;
+    uint8_t *key_data = NULL;
+    size_t key_data_length = 0;
+
+    status = psa_load_persistent_key( key, &( p_slot )->type,
+                                      &( p_slot )->policy, &key_data,
+                                      &key_data_length );
+    if( status != PSA_SUCCESS )
+        goto exit;
+    status = psa_import_key_into_slot( p_slot,
+                                       key_data, key_data_length );
+exit:
+    psa_free_persistent_key_data( key_data, key_data_length );
+    return( status );
+}
+#endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+
 /* Retrieve a key slot, occupied or not. */
 static psa_status_t psa_get_key_slot( psa_key_slot_t key,
                                       key_slot_t **p_slot )
@@ -715,6 +740,23 @@ static psa_status_t psa_get_key_slot( psa_key_slot_t key,
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     *p_slot = &global_data.key_slots[key - 1];
+
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+    if( ( *p_slot )->lifetime == PSA_KEY_LIFETIME_PERSISTENT )
+    {
+        /* There are two circumstances this can occur: the key material has
+         * not yet been created, or the key exists in storage but has not yet
+         * been loaded into memory. */
+        if( ( *p_slot )->type == PSA_KEY_TYPE_NONE )
+        {
+            psa_status_t status = PSA_SUCCESS;
+            status = psa_load_persistent_key_into_slot( key, *p_slot );
+            if( status != PSA_ERROR_EMPTY_SLOT )
+                return( status );
+        }
+    }
+#endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+
     return( PSA_SUCCESS );
 }
 
@@ -830,18 +872,44 @@ psa_status_t psa_import_key( psa_key_slot_t key,
         return( status );
     }
 
-    return( PSA_SUCCESS );
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+    if( slot->lifetime == PSA_KEY_LIFETIME_PERSISTENT )
+    {
+        /* Store in file location */
+        status = psa_save_persistent_key( key, slot->type, &slot->policy, data,
+                                          data_length );
+        if( status != PSA_SUCCESS )
+        {
+            (void) psa_remove_key_data_from_memory( slot );
+            slot->type = PSA_KEY_TYPE_NONE;
+        }
+    }
+#endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+
+    return( status );
 }
 
 psa_status_t psa_destroy_key( psa_key_slot_t key )
 {
     key_slot_t *slot;
-    psa_status_t status;
+    psa_status_t status = PSA_SUCCESS;
+    psa_status_t storage_status = PSA_SUCCESS;
 
     status = psa_get_key_slot( key, &slot );
     if( status != PSA_SUCCESS )
         return( status );
-    return( psa_remove_key_from_memory( slot ) );
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+    if( slot->lifetime == PSA_KEY_LIFETIME_PERSISTENT )
+    {
+        storage_status = psa_destroy_persistent_key( key );
+    }
+#endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+    status = psa_remove_key_data_from_memory( slot );
+    /* Zeroize the slot to wipe metadata such as policies. */
+    mbedtls_zeroize( slot, sizeof( *slot ) );
+    if( status != PSA_SUCCESS )
+        return( status );
+    return( storage_status );
 }
 
 /* Return the size of the key in the given slot, in bits. */
@@ -2974,15 +3042,20 @@ psa_status_t psa_set_key_lifetime( psa_key_slot_t key,
 
     if( lifetime != PSA_KEY_LIFETIME_VOLATILE &&
         lifetime != PSA_KEY_LIFETIME_PERSISTENT &&
-        lifetime != PSA_KEY_LIFETIME_WRITE_ONCE)
+        lifetime != PSA_KEY_LIFETIME_WRITE_ONCE )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_get_empty_key_slot( key, &slot );
     if( status != PSA_SUCCESS )
         return( status );
 
-    if( lifetime != PSA_KEY_LIFETIME_VOLATILE )
+    if( lifetime == PSA_KEY_LIFETIME_WRITE_ONCE )
         return( PSA_ERROR_NOT_SUPPORTED );
+
+#if !defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+    if( lifetime == PSA_KEY_LIFETIME_PERSISTENT )
+        return( PSA_ERROR_NOT_SUPPORTED );
+#endif
 
     slot->lifetime = lifetime;
 

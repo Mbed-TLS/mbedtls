@@ -1834,3 +1834,7 @@ validate_module_init_generate_random:
 
 PSA validate module initialization: key based
 validate_module_init_key_based:
+
+persistent key can be accessed after in-memory deletion: AES, 128 bits, CTR
+depends_on:MBEDTLS_PK_C:MBEDTLS_PK_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PSA_CRYPTO_STORAGE_C
+persistent_key_load_key_from_storage:"2b7e151628aed2a6abf7158809cf4f3c":PSA_KEY_TYPE_AES:128:PSA_KEY_USAGE_EXPORT:PSA_ALG_CTR

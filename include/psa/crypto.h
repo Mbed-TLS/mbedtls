@@ -1441,6 +1441,7 @@ typedef uint32_t psa_algorithm_t;
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
@@ -1921,6 +1922,16 @@ psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
  * Whether the lifetime of a key slot can be changed at all, and if so
  * whether the lifetime of an occupied key slot can be changed, is
  * implementation-dependent.
+ *
+ * When creating a persistent key, you must call this function before creating
+ * the key material with psa_import_key(), psa_generate_key() or
+ * psa_generator_import_key(). To open an existing persistent key, you must
+ * call this function with the correct lifetime value before using the slot
+ * for a cryptographic operation. Once a slot's lifetime has been set,
+ * the lifetime remains associated with the slot until a subsequent call to
+ * psa_set_key_lifetime(), until the key is wiped with psa_destroy_key or
+ * until the application terminates (or disconnects from the cryptography
+ * service, if the implementation offers such a possibility).
  *
  * \param key           Slot whose lifetime is to be changed.
  * \param lifetime      The lifetime value to set for the given key slot.

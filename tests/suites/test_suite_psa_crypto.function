@@ -4030,3 +4030,84 @@ void validate_module_init_key_based( )
     TEST_ASSERT( status == PSA_ERROR_BAD_STATE );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C */
+void persistent_key_load_key_from_storage( data_t *data, int type_arg,
+                                           int bits, int usage_arg,
+                                           int alg_arg )
+{
+    psa_key_slot_t slot = 1;
+    psa_key_type_t type = (psa_key_type_t) type_arg;
+    psa_key_type_t type_get;
+    size_t bits_get;
+    psa_key_policy_t policy_set;
+    psa_key_policy_t policy_get;
+    psa_key_usage_t policy_usage = (psa_key_usage_t) usage_arg;
+    psa_algorithm_t policy_alg = (psa_algorithm_t) alg_arg;
+    unsigned char *first_export = NULL;
+    unsigned char *second_export = NULL;
+    size_t export_size = PSA_KEY_EXPORT_MAX_SIZE( type, bits );
+    size_t first_exported_length;
+    size_t second_exported_length;
+
+    ASSERT_ALLOC( first_export, export_size );
+    ASSERT_ALLOC( second_export, export_size );
+
+    TEST_ASSERT( psa_crypto_init() == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_set_key_lifetime(
+        slot, PSA_KEY_LIFETIME_PERSISTENT ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy_set );
+
+    psa_key_policy_set_usage( &policy_set, policy_usage,
+                              policy_alg );
+
+    TEST_ASSERT( psa_set_key_policy( slot, &policy_set ) == PSA_SUCCESS );
+
+    /* Import the key */
+    TEST_ASSERT( psa_import_key( slot, type,
+                                 data->x, data->len ) == PSA_SUCCESS );
+
+    /* Export the key */
+    TEST_ASSERT( psa_export_key( slot, first_export, export_size,
+                                 &first_exported_length ) == PSA_SUCCESS );
+
+    /* Shutdown and restart */
+    mbedtls_psa_crypto_free();
+
+    TEST_ASSERT( psa_crypto_init() == PSA_SUCCESS );
+
+    /* Mark slot as persistent again */
+    TEST_ASSERT( psa_set_key_lifetime(
+        slot, PSA_KEY_LIFETIME_PERSISTENT ) == PSA_SUCCESS );
+
+    /* Check key slot still contains key data */
+    TEST_ASSERT( psa_get_key_information(
+        slot, &type_get, &bits_get ) == PSA_SUCCESS );
+    TEST_ASSERT( type_get == type );
+    TEST_ASSERT( bits_get == (size_t) bits );
+
+    TEST_ASSERT( psa_get_key_policy( slot, &policy_get ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_key_policy_get_usage(
+        &policy_get ) == policy_usage );
+    TEST_ASSERT( psa_key_policy_get_algorithm(
+        &policy_get ) == policy_alg );
+
+    /* Export the key again */
+    TEST_ASSERT( psa_export_key( slot, second_export, export_size,
+                                 &second_exported_length ) == PSA_SUCCESS );
+
+    ASSERT_COMPARE( first_export, first_exported_length,
+                    second_export, second_exported_length );
+
+    ASSERT_COMPARE( data->x, data->len,
+                    first_export, first_exported_length );
+
+exit:
+    mbedtls_free( first_export );
+    mbedtls_free( second_export );
+    psa_destroy_key( slot );
+    mbedtls_psa_crypto_free();
+}
+/* END_CASE */

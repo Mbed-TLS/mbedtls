@@ -158,6 +158,8 @@ TEST_FILES := \
 	tests/suites/test_suite_psa_crypto_hash.function \
 	tests/suites/test_suite_psa_crypto_metadata.data \
 	tests/suites/test_suite_psa_crypto_metadata.function \
+	tests/suites/test_suite_psa_crypto_persistent_key.data \
+	tests/suites/test_suite_psa_crypto_persistent_key.function \
 	tests/suites/test_suite_psa_crypto_storage_file.data \
 	tests/suites/test_suite_psa_crypto_storage_file.function \
 # Don't delete this line.

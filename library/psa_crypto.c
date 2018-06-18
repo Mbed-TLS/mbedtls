@@ -92,7 +92,7 @@ static inline int safer_memcmp( const uint8_t *a, const uint8_t *b, size_t n )
 
 /* Number of key slots (plus one because 0 is not used).
  * The value is a compile-time constant for now, for simplicity. */
-#define MBEDTLS_PSA_KEY_SLOT_COUNT 32
+#define PSA_KEY_SLOT_COUNT 32
 
 typedef struct
 {
@@ -120,7 +120,7 @@ typedef struct
     int initialized;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
-    key_slot_t key_slots[MBEDTLS_PSA_KEY_SLOT_COUNT];
+    key_slot_t key_slots[PSA_KEY_SLOT_COUNT];
 } psa_global_data_t;
 
 static psa_global_data_t global_data;
@@ -353,7 +353,7 @@ psa_status_t psa_import_key( psa_key_slot_t key,
 {
     key_slot_t *slot;
 
-    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
+    if( key == 0 || key > PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_INVALID_ARGUMENT );
     slot = &global_data.key_slots[key];
     if( slot->type != PSA_KEY_TYPE_NONE )
@@ -431,7 +431,7 @@ psa_status_t psa_destroy_key( psa_key_slot_t key )
 {
     key_slot_t *slot;
 
-    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
+    if( key == 0 || key > PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_INVALID_ARGUMENT );
     slot = &global_data.key_slots[key];
     if( slot->type == PSA_KEY_TYPE_NONE )
@@ -477,7 +477,7 @@ psa_status_t psa_get_key_information( psa_key_slot_t key,
 {
     key_slot_t *slot;
 
-    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
+    if( key == 0 || key > PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_EMPTY_SLOT );
     slot = &global_data.key_slots[key];
     if( type != NULL )
@@ -527,7 +527,7 @@ static  psa_status_t psa_internal_export_key( psa_key_slot_t key,
 {
     key_slot_t *slot;
 
-    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
+    if( key == 0 || key > PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_EMPTY_SLOT );
     slot = &global_data.key_slots[key];
     if( slot->type == PSA_KEY_TYPE_NONE )
@@ -1166,7 +1166,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
     key_slot_t *slot;
     psa_key_type_t key_type;
     size_t key_bits;
-    const mbedtls_cipher_info_t *cipher_info;
+    const mbedtls_cipher_info_t *cipher_info = NULL;
 
     operation->alg = 0;
     operation->key_set = 0;
@@ -1378,7 +1378,7 @@ psa_status_t psa_mac_finish( psa_mac_operation_t *operation,
                                      mac_size, mac_length ) );
 }
 
-#define MBEDTLS_PSA_MAC_MAX_SIZE                        \
+#define PSA_MAC_MAX_SIZE                                \
     ( MBEDTLS_MD_MAX_SIZE > MBEDTLS_MAX_BLOCK_LENGTH ?  \
       MBEDTLS_MD_MAX_SIZE :                             \
       MBEDTLS_MAX_BLOCK_LENGTH )
@@ -1386,7 +1386,7 @@ psa_status_t psa_mac_verify( psa_mac_operation_t *operation,
                              const uint8_t *mac,
                              size_t mac_length )
 {
-    uint8_t actual_mac[MBEDTLS_PSA_MAC_MAX_SIZE];
+    uint8_t actual_mac[PSA_MAC_MAX_SIZE];
     size_t actual_mac_length;
     psa_status_t status;
 
@@ -1453,7 +1453,7 @@ psa_status_t psa_asymmetric_sign( psa_key_slot_t key,
     (void) salt;
     (void) salt_length;
 
-    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
+    if( key == 0 || key > PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_EMPTY_SLOT );
     slot = &global_data.key_slots[key];
     if( slot->type == PSA_KEY_TYPE_NONE )
@@ -1549,7 +1549,7 @@ psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
     (void) salt;
     (void) salt_length;
 
-    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
+    if( key == 0 || key > PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_INVALID_ARGUMENT );
     slot = &global_data.key_slots[key];
     if( slot->type == PSA_KEY_TYPE_NONE )
@@ -1640,7 +1640,7 @@ psa_status_t psa_asymmetric_encrypt( psa_key_slot_t key,
     (void) salt_length;
     *output_length = 0;
 
-    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
+    if( key == 0 || key > PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_INVALID_ARGUMENT );
     slot = &global_data.key_slots[key];
     if( slot->type == PSA_KEY_TYPE_NONE )
@@ -1707,7 +1707,7 @@ psa_status_t psa_asymmetric_decrypt( psa_key_slot_t key,
     (void) salt_length;
     *output_length = 0;
 
-    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
+    if( key == 0 || key > PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_EMPTY_SLOT );
     slot = &global_data.key_slots[key];
     if( slot->type == PSA_KEY_TYPE_NONE )
@@ -2059,7 +2059,7 @@ psa_status_t psa_set_key_policy( psa_key_slot_t key,
 {
     key_slot_t *slot;
 
-    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT || policy == NULL )
+    if( key == 0 || key > PSA_KEY_SLOT_COUNT || policy == NULL )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     slot = &global_data.key_slots[key];
@@ -2083,7 +2083,7 @@ psa_status_t psa_get_key_policy( psa_key_slot_t key,
 {
     key_slot_t *slot;
 
-    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT || policy == NULL )
+    if( key == 0 || key > PSA_KEY_SLOT_COUNT || policy == NULL )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     slot = &global_data.key_slots[key];
@@ -2104,7 +2104,7 @@ psa_status_t psa_get_key_lifetime( psa_key_slot_t key,
 {
     key_slot_t *slot;
 
-    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
+    if( key == 0 || key > PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     slot = &global_data.key_slots[key];
@@ -2119,7 +2119,7 @@ psa_status_t psa_set_key_lifetime( psa_key_slot_t key,
 {
     key_slot_t *slot;
 
-    if( key == 0 || key > MBEDTLS_PSA_KEY_SLOT_COUNT )
+    if( key == 0 || key > PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     if( lifetime != PSA_KEY_LIFETIME_VOLATILE &&
@@ -2413,7 +2413,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
 void mbedtls_psa_crypto_free( void )
 {
     size_t key;
-    for( key = 1; key < MBEDTLS_PSA_KEY_SLOT_COUNT; key++ )
+    for( key = 1; key < PSA_KEY_SLOT_COUNT; key++ )
         psa_destroy_key( key );
     mbedtls_ctr_drbg_free( &global_data.ctr_drbg );
     mbedtls_entropy_free( &global_data.entropy );

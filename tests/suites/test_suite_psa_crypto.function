@@ -73,7 +73,7 @@ void import_export( data_t *data,
     size_t reexported_length;
     psa_key_type_t got_type;
     size_t got_bits;
-    psa_key_policy_t policy = {0};
+    psa_key_policy_t policy;
 
     TEST_ASSERT( data != NULL );
     TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( data->len ) );
@@ -161,7 +161,7 @@ void import_export_public_key( data_t *data,
     size_t exported_length;
     psa_key_type_t got_type;
     size_t got_bits;
-    psa_key_policy_t policy = {0};
+    psa_key_policy_t policy;
 
     TEST_ASSERT( data != NULL );
     TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( data->len ) );
@@ -791,7 +791,7 @@ void aead_encrypt_decrypt( int key_type_arg,
     size_t output_length2 = 0;
     size_t tag_length = 16;
     psa_status_t expected_result = expected_result_arg;
-    psa_key_policy_t policy = {0};
+    psa_key_policy_t policy;
 
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( input_data != NULL );
@@ -863,7 +863,7 @@ void aead_encrypt( int key_type_arg, data_t * key_data,
     size_t output_size = 0;
     size_t output_length = 0;
     size_t tag_length = 16;
-    psa_key_policy_t policy = {0};
+    psa_key_policy_t policy;
 
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( input_data != NULL );
@@ -920,7 +920,7 @@ void aead_decrypt( int key_type_arg, data_t * key_data,
     size_t output_size = 0;
     size_t output_length = 0;
     size_t tag_length = 16;
-    psa_key_policy_t policy = {0};
+    psa_key_policy_t policy;
     psa_status_t expected_result = expected_result_arg;
 
     TEST_ASSERT( key_data != NULL );
@@ -996,7 +996,7 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
     unsigned char *signature = NULL;
     size_t signature_size;
     size_t signature_length = 0xdeadbeef;
-    psa_key_policy_t policy = {0};
+    psa_key_policy_t policy;
 
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( input_data != NULL );
@@ -1052,7 +1052,7 @@ void sign_fail( int key_type_arg, data_t *key_data,
     psa_status_t expected_status = expected_status_arg;
     unsigned char *signature = NULL;
     size_t signature_length = 0xdeadbeef;
-    psa_key_policy_t policy = {0};
+    psa_key_policy_t policy;
 
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( input_data != NULL );
@@ -1095,8 +1095,8 @@ void key_policy( int usage_arg, int alg_arg )
     psa_key_usage_t usage = usage_arg;
     psa_key_type_t key_type = PSA_KEY_TYPE_AES;
     unsigned char key[32] = {0};
-    psa_key_policy_t policy_set = {0};
-    psa_key_policy_t policy_get = {0};
+    psa_key_policy_t policy_set;
+    psa_key_policy_t policy_get;
 
     memset( key, 0x2a, sizeof( key ) );
 
@@ -1133,7 +1133,7 @@ void key_policy_fail( int usage_arg, int alg_arg, int expected_status,
     psa_algorithm_t alg = alg_arg;
     psa_key_usage_t usage = usage_arg;
     size_t signature_length = 0;
-    psa_key_policy_t policy = {0};
+    psa_key_policy_t policy;
     int actual_status = PSA_SUCCESS;
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
@@ -1238,7 +1238,7 @@ void asymmetric_verify( int key_type_arg, data_t *key_data,
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
-    psa_key_policy_t policy = {0};
+    psa_key_policy_t policy;
 
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( hash_data != NULL );
@@ -1279,7 +1279,7 @@ void asymmetric_verify_fail( int key_type_arg, data_t *key_data,
     psa_algorithm_t alg = alg_arg;
     psa_status_t actual_status;
     psa_status_t expected_status = expected_status_arg;
-    psa_key_policy_t policy = {0};
+    psa_key_policy_t policy;
 
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( hash_data != NULL );
@@ -1325,7 +1325,7 @@ void asymmetric_encrypt_decrypt( int key_type_arg, data_t *key_data,
     unsigned char *output2 = NULL;
     size_t output2_size = 0;
     size_t output2_length = 0;
-    psa_key_policy_t policy = {0};
+    psa_key_policy_t policy;
 
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( input_data != NULL );
@@ -1389,7 +1389,7 @@ void asymmetric_encrypt_fail( int key_type_arg, data_t *key_data,
     size_t output_length = 0;
     psa_status_t actual_status;
     psa_status_t expected_status = expected_status_arg;
-    psa_key_policy_t policy = {0};
+    psa_key_policy_t policy;
 
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( input_data != NULL );
@@ -1435,7 +1435,7 @@ void asymmetric_decrypt( int key_type_arg, data_t *key_data,
     unsigned char *output = NULL;
     size_t output_size = 0;
     size_t output_length = 0;
-    psa_key_policy_t policy = {0};
+    psa_key_policy_t policy;
 
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( input_data != NULL );
@@ -1487,7 +1487,7 @@ void asymmetric_decrypt_fail( int key_type_arg, data_t *key_data,
     size_t output_length = 0;
     psa_status_t actual_status;
     psa_status_t expected_status = expected_status_arg;
-    psa_key_policy_t policy = {0};
+    psa_key_policy_t policy;
 
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( input_data != NULL );

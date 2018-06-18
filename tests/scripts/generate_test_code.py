@@ -136,11 +136,11 @@ def gen_function_wrapper(name, locals, args_dispatch):
     wrapper = '''
 void {name}_wrapper( void ** params )
 {{
-    {unused_params}
-{locals}
+{unused_params}{locals}
     {name}( {args} );
 }}
-'''.format(name=name, unused_params='(void)params;' if len(args_dispatch) == 0 else '',
+'''.format(name=name,
+           unused_params='' if args_dispatch else '    (void) params;\n',
            args=', '.join(args_dispatch),
            locals=locals)
     return wrapper

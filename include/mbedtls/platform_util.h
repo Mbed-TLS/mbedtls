@@ -46,7 +46,7 @@ extern "C" {
 #define mbedtls_platform_zeroize( buf, len )  \
     MBEDTLS_PLATFORM_ZEROIZE_MACRO( buf, len )
 #else
-#if defined(MBEDTLS_PLATFORM_ZEROIZE_ALT) || !defined(_MSC_VER)
+#if defined(MBEDTLS_PLATFORM_ZEROIZE_ALT) || !defined(_WIN32)
 /**
  * \brief       Securely zeroize a buffer
  *
@@ -74,7 +74,7 @@ void mbedtls_platform_zeroize( void *buf, size_t len );
 /* Windows implementation */
 #include <windows.h>
 #define MBEDTLS_PLATFORM_ZEROIZE_MACRO  RtlSecureZeroMemory
-#endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT || !_MSC_VER */
+#endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT || !_WIN32 */
 #endif /* MBEDTLS_PLATFORM_ZEROIZE_MACRO */
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)

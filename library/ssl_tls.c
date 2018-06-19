@@ -7266,17 +7266,15 @@ static int ssl_write_real( mbedtls_ssl_context *ssl,
             return( ret );
         }
     }
-    else
-    {
-        ssl->out_msglen  = len;
-        ssl->out_msgtype = MBEDTLS_SSL_MSG_APPLICATION_DATA;
-        memcpy( ssl->out_msg, buf, len );
 
-        if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
-            return( ret );
-        }
+    ssl->out_msglen  = len;
+    ssl->out_msgtype = MBEDTLS_SSL_MSG_APPLICATION_DATA;
+    memcpy( ssl->out_msg, buf, len );
+
+    if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
+        return( ret );
     }
 
     return( (int) len );

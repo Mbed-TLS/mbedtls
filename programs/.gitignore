@@ -57,7 +57,6 @@ x509/crl_app
 x509/cert_write
 x509/req_app
 host/frontend
-host/frontend.log
 
 # generated files
 pkey/keyfile.key

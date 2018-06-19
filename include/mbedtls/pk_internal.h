@@ -84,6 +84,7 @@ struct mbedtls_pk_info_t
     void (*debug_func)( const void *ctx, mbedtls_pk_debug_item *items );
 
 };
+
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /* Container for RSA-alt */
 typedef struct
@@ -93,7 +94,16 @@ typedef struct
     mbedtls_pk_rsa_alt_sign_func sign_func;
     mbedtls_pk_rsa_alt_key_len_func key_len_func;
 } mbedtls_rsa_alt_context;
-#endif
+#endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
+
+#if defined(MBEDTLS_PK_ECDSA_ALT_SUPPORT)
+typedef struct
+{
+    void *key;
+    mbedtls_pk_ecdsa_alt_sign_func sign_func;
+    mbedtls_pk_ecdsa_alt_key_bitlen_func key_bitlen_func;
+} mbedtls_ecdsa_alt_context;
+#endif /* MBEDTLS_PK_ECDSA_ALT_SUPPORT */
 
 #if defined(MBEDTLS_RSA_C)
 extern const mbedtls_pk_info_t mbedtls_rsa_info;
@@ -110,6 +120,10 @@ extern const mbedtls_pk_info_t mbedtls_ecdsa_info;
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 extern const mbedtls_pk_info_t mbedtls_rsa_alt_info;
+#endif
+
+#if defined(MBEDTLS_PK_ECDSA_ALT_SUPPORT)
+extern const mbedtls_pk_info_t mbedtls_ecdsa_alt_info;
 #endif
 
 #endif /* MBEDTLS_PK_WRAP_H */

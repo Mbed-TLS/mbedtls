@@ -393,6 +393,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
     "MBEDTLS_PK_RSA_ALT_SUPPORT",
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
+#if defined(MBEDTLS_PK_ECDSA_ALT_SUPPORT)
+    "MBEDTLS_PK_ECDSA_ALT_SUPPORT",
+#endif /* MBEDTLS_PK_ECDSA_ALT_SUPPORT */
 #if defined(MBEDTLS_PKCS1_V15)
     "MBEDTLS_PKCS1_V15",
 #endif /* MBEDTLS_PKCS1_V15 */

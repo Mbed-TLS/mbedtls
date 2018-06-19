@@ -142,6 +142,35 @@ int mbedtls_pk_setup_rsa_alt( mbedtls_pk_context *ctx, void * key,
 }
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
+#if defined(MBEDTLS_PK_ECDSA_ALT_SUPPORT)
+/*
+ * Initialize an ECDSA-alt context
+ */
+int mbedtls_pk_setup_ecdsa_alt( mbedtls_pk_context *ctx, void *key,
+                        mbedtls_pk_ecdsa_alt_sign_func sign_func,
+                        mbedtls_pk_ecdsa_alt_key_bitlen_func key_bitlen_func )
+{
+    mbedtls_ecdsa_alt_context *ecdsa_alt;
+    const mbedtls_pk_info_t *info = &mbedtls_ecdsa_alt_info;
+
+    if( ctx == NULL || ctx->pk_info != NULL )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    if( ( ctx->pk_ctx = info->ctx_alloc_func() ) == NULL )
+        return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+
+    ctx->pk_info = info;
+
+    ecdsa_alt = (mbedtls_ecdsa_alt_context *)ctx->pk_ctx;
+
+    ecdsa_alt->key = key;
+    ecdsa_alt->sign_func = sign_func;
+    ecdsa_alt->key_bitlen_func = key_bitlen_func;
+
+    return( 0 );
+}
+#endif /* MBEDTLS_PK_ECDSA_ALT_SUPPORT */
+
 /*
  * Tell if a PK can do the operations of the given type
  */
@@ -317,6 +346,11 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
     if( prv->pk_info->type == MBEDTLS_PK_RSA_ALT )
     {
         if( pub->pk_info->type != MBEDTLS_PK_RSA )
+            return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
+    }
+    else if( prv->pk_info->type == MBEDTLS_PK_ECDSA_ALT )
+    {
+        if( pub->pk_info->type != MBEDTLS_PK_ECDSA )
             return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
     }
     else

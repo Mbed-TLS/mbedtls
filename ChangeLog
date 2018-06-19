@@ -263,6 +263,9 @@ Changes
 
 = mbed TLS 2.7.0 branch released 2018-02-03
 
+Features
+   * Add support for ECDSA external private keys in the PK layer.
+
 Security
    * Fix a heap corruption issue in the implementation of the truncated HMAC
      extension. When the truncated HMAC extension is enabled and CBC is used,

@@ -37,9 +37,8 @@
 #include "mbedtls/ecp.h"
 #endif
 
-#if defined(MBEDTLS_ECDSA_C)
+/* Even if ECDSA is not activated, for the sake of ECDSA-alt */
 #include "mbedtls/ecdsa.h"
-#endif
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 #include "mbedtls/platform_util.h"
@@ -519,5 +518,106 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 };
 
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
+
+#if defined(MBEDTLS_PK_ECDSA_ALT_SUPPORT)
+
+static int ecdsa_alt_can_do( mbedtls_pk_type_t type )
+{
+    return( type == MBEDTLS_PK_ECDSA );
+}
+
+static size_t ecdsa_alt_get_bitlen( const void *ctx )
+{
+    const mbedtls_ecdsa_alt_context *ecdsa_alt =
+                                        (const mbedtls_ecdsa_alt_context *)ctx;
+
+    return( ecdsa_alt->key_bitlen_func( ecdsa_alt->key ) );
+}
+
+static int ecdsa_alt_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                                const unsigned char *hash, size_t hash_len,
+                                unsigned char *sig, size_t *sig_len,
+                                int (*f_rng)(void *, unsigned char *, size_t),
+                                void *p_rng )
+{
+    mbedtls_ecdsa_alt_context *ecdsa_alt = (mbedtls_ecdsa_alt_context *)ctx;
+
+    return( ecdsa_alt->sign_func( ecdsa_alt->key, md_alg, hash, hash_len, sig,
+                                  sig_len, f_rng, p_rng ) );
+}
+
+#if defined(MBEDTLS_ECP_C)
+static int ecdsa_alt_check_pair( const void *pub, const void *prv )
+{
+    unsigned char sig[MBEDTLS_ECDSA_MAX_LEN];
+    unsigned char hash[32];
+    size_t sig_len = 0;
+    int ret;
+
+    if( ecdsa_alt_get_bitlen( prv ) != eckey_get_bitlen( pub ) )
+        return( MBEDTLS_ERR_ECP_INVALID_KEY );
+
+    memset( hash, 0x2A, sizeof( hash ) );
+
+    /*
+     * If the underlying implementation only supports deterministic ECDSA
+     * then a MD algorith is required and the function pointer to by
+     * ecdsa_alt->sign_func should use a default MD (e.g. SHA256). This ensures
+     * that the following check succeeds as well as the call to
+     * eckey_verify_wrap() since it does not need to know the MD algorithm.
+     */
+    if( ( ret = ecdsa_alt_sign_wrap( (void *)prv, MBEDTLS_MD_NONE,
+                                     hash, sizeof( hash ), sig,
+                                     &sig_len, NULL, NULL ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    if( eckey_verify_wrap( (void *)pub, MBEDTLS_MD_NONE,
+                           hash, sizeof( hash ), sig, sig_len ) != 0 )
+    {
+        return( MBEDTLS_ERR_ECP_VERIFY_FAILED );
+    }
+
+    return( 0 );
+}
+#endif /* MBEDTLS_ECP_C */
+
+static void *ecdsa_alt_alloc_wrap( void )
+{
+    void *ctx = mbedtls_calloc( 1, sizeof( mbedtls_ecdsa_alt_context ) );
+
+    if( ctx != NULL )
+        memset( ctx, 0, sizeof( mbedtls_ecdsa_alt_context ) );
+
+    return( ctx );
+}
+
+static void ecdsa_alt_free_wrap( void *ctx )
+{
+    mbedtls_zeroize( ctx, sizeof( mbedtls_ecdsa_alt_context ) );
+    mbedtls_free( ctx );
+}
+
+const mbedtls_pk_info_t mbedtls_ecdsa_alt_info = {
+    MBEDTLS_PK_ECDSA_ALT,
+    "ECDSA-alt",
+    ecdsa_alt_get_bitlen,
+    ecdsa_alt_can_do,
+    NULL,
+    ecdsa_alt_sign_wrap,
+    NULL,
+    NULL,
+#if defined(MBEDTLS_ECP_C)
+    ecdsa_alt_check_pair,
+#else
+    NULL,
+#endif
+    ecdsa_alt_alloc_wrap,
+    ecdsa_alt_free_wrap,
+    NULL,
+};
+
+#endif /* MBEDTLS_PK_ECDSA_ALT_SUPPORT */
 
 #endif /* MBEDTLS_PK_C */

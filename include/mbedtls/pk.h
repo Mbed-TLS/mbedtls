@@ -81,6 +81,7 @@ typedef enum {
     MBEDTLS_PK_ECDSA,
     MBEDTLS_PK_RSA_ALT,
     MBEDTLS_PK_RSASSA_PSS,
+    MBEDTLS_PK_ECDSA_ALT,
 } mbedtls_pk_type_t;
 
 /**
@@ -171,6 +172,18 @@ typedef int (*mbedtls_pk_rsa_alt_sign_func)( void *ctx,
 typedef size_t (*mbedtls_pk_rsa_alt_key_len_func)( void *ctx );
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
+#if defined(MBEDTLS_PK_ECDSA_ALT_SUPPORT)
+/**
+ * \brief           Types for ECDSA-alt abstraction
+ */
+typedef int (*mbedtls_pk_ecdsa_alt_sign_func)( void *ctx,
+                    mbedtls_md_type_t md_alg, const unsigned char *hash,
+                    size_t hash_len, unsigned char *sig, size_t *sig_len,
+                    int (*f_rng)(void *, unsigned char *, size_t),
+                    void *p_rng );
+typedef size_t (*mbedtls_pk_ecdsa_alt_key_bitlen_func)( void *ctx );
+#endif /* MBEDTLS_PK_ECDSA_ALT_SUPPORT */
+
 /**
  * \brief           Return information associated with the given PK type
  *
@@ -227,6 +240,26 @@ int mbedtls_pk_setup_rsa_alt( mbedtls_pk_context *ctx, void * key,
                          mbedtls_pk_rsa_alt_key_len_func key_len_func );
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
+#if defined(MBEDTLS_PK_ECDSA_ALT_SUPPORT)
+/**
+ * \brief               Initialize an ECDSA-alt context
+ *
+ * \param ctx               Context to initialize. Must be empty (type NONE)
+ * \param key               ECDSA key pointer
+ * \param sign_func         Signing function
+ * \param key_bitlen_func   Function returning key length in bytes
+ *
+ * \return              0 on success, or MBEDTLS_ERR_PK_BAD_INPUT_DATA if the
+ *                      context wasn't already initialized as ECDSA_ALT.
+ *
+ * \note                This function replaces \c mbedtls_pk_setup() for
+ *                      ECDSA-alt.
+ */
+int mbedtls_pk_setup_ecdsa_alt( mbedtls_pk_context *ctx, void *key,
+                        mbedtls_pk_ecdsa_alt_sign_func sign_func,
+                        mbedtls_pk_ecdsa_alt_key_bitlen_func key_bitlen_func );
+#endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
+
 /**
  * \brief           Get the size in bits of the underlying key
  *
@@ -238,6 +271,7 @@ size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx );
 
 /**
  * \brief           Get the length in bytes of the underlying key
+ *
  * \param ctx       Context to use
  *
  * \return          Key length in bytes, or 0 on error

@@ -1902,27 +1902,27 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
              * and fake check up to 256 bytes of padding
              */
             size_t pad_count = 0, real_count = 1;
-            size_t padding_idx = ssl->in_msglen - padlen - 1;
+            size_t padding_idx = ssl->in_msglen - padlen;
 
             /*
              * Padding is guaranteed to be incorrect if:
-             *   1. padlen >= ssl->in_msglen
+             *   1. padlen > ssl->in_msglen
              *
-             *   2. padding_idx >= MBEDTLS_SSL_MAX_CONTENT_LEN +
+             *   2. padding_idx > MBEDTLS_SSL_MAX_CONTENT_LEN +
              *                     ssl->transform_in->maclen
              *
              * In both cases we reset padding_idx to a safe value (0) to
              * prevent out-of-buffer reads.
              */
-            correct &= ( ssl->in_msglen >= padlen + 1 );
-            correct &= ( padding_idx < MBEDTLS_SSL_MAX_CONTENT_LEN +
+            correct &= ( padlen <= ssl->in_msglen );
+            correct &= ( padding_idx <= MBEDTLS_SSL_MAX_CONTENT_LEN +
                                        ssl->transform_in->maclen );
 
             padding_idx *= correct;
 
-            for( i = 1; i <= 256; i++ )
+            for( i = 0; i < 256; i++ )
             {
-                real_count &= ( i <= padlen );
+                real_count &= ( i < padlen );
                 pad_count += real_count *
                              ( ssl->in_msg[padding_idx + i] == padlen - 1 );
             }

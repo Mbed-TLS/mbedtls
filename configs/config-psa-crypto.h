@@ -152,13 +152,10 @@
  * \warning MBEDTLS_PLATFORM_XXX_ALT cannot be defined at the same time as
  * MBEDTLS_PLATFORM_XXX_MACRO!
  *
- * Requires: MBEDTLS_PLATFORM_TIME_ALT requires MBEDTLS_HAVE_TIME
- *
  * Uncomment a macro to enable alternate implementation of specific base
  * platform function
  */
 //#define MBEDTLS_PLATFORM_EXIT_ALT
-//#define MBEDTLS_PLATFORM_TIME_ALT
 //#define MBEDTLS_PLATFORM_FPRINTF_ALT
 //#define MBEDTLS_PLATFORM_PRINTF_ALT
 //#define MBEDTLS_PLATFORM_SNPRINTF_ALT
@@ -1220,29 +1217,6 @@
  * requisites are enabled as well.
  */
 #define MBEDTLS_GCM_C
-
-/**
- * \def MBEDTLS_HAVEGE_C
- *
- * Enable the HAVEGE random generator.
- *
- * Warning: the HAVEGE random generator is not suitable for virtualized
- *          environments
- *
- * Warning: the HAVEGE random generator is dependent on timing and specific
- *          processor traits. It is therefore not advised to use HAVEGE as
- *          your applications primary random generator or primary entropy pool
- *          input. As a secondary input to your entropy pool, it IS able add
- *          the (limited) extra entropy it provides.
- *
- * Module:  library/havege.c
- * Caller:
- *
- * Requires: MBEDTLS_TIMING_C
- *
- * Uncomment to enable the HAVEGE random generator.
- */
-//#define MBEDTLS_HAVEGE_C
 
 /**
  * \def MBEDTLS_HMAC_DRBG_C

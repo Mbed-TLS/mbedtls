@@ -1846,14 +1846,17 @@ psa_status_t psa_generate_random(uint8_t *output,
 /**
  * \brief Generate a key or key pair.
  *
- * \param key         Slot where the key will be stored. This must be a
- *                    valid slot for a key of the chosen type. It must
- *                    be unoccupied.
- * \param type        Key type (a \c PSA_KEY_TYPE_XXX value).
- * \param bits        Key size in bits.
- * \param parameters  Extra parameters for key generation. The interpretation
- *                    of this parameter depends on \c type. All types support
- *                    \c NULL to use default parameters specified below.
+ * \param key               Slot where the key will be stored. This must be a
+ *                          valid slot for a key of the chosen type. It must
+ *                          be unoccupied.
+ * \param type              Key type (a \c PSA_KEY_TYPE_XXX value).
+ * \param bits              Key size in bits.
+ * \param parameters        Extra parameters for key generation. The
+ *                          interpretation of this parameter depends on
+ *                          \c type. All types support \c NULL to use
+ *                          the default parameters specified below.
+ * \param parameters_size   Size of the buffer that \param parameters
+ *                          points to, in bytes.
  *
  * For any symmetric key type (type such that
  * `PSA_KEY_TYPE_IS_ASYMMETRIC(type)` is false), \c parameters must be
@@ -1878,7 +1881,8 @@ psa_status_t psa_generate_random(uint8_t *output,
 psa_status_t psa_generate_key(psa_key_slot_t key,
                               psa_key_type_t type,
                               size_t bits,
-                              const void *parameters);
+                              const void *parameters,
+                              size_t parameters_size);
 
 /**@}*/
 

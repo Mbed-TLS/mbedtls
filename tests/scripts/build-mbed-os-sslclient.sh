@@ -16,6 +16,7 @@ MBED_OS_SSLCLIENT_CONFIG=$MBED_OS_SSLCLIENT/mbed-os/features/mbedtls/inc/mbedtls
 # Fetch mbed-os
 cd $MBED_OS_SSLCLIENT
 mbed config root .
+mbed new .
 mbed deploy
 
 # Import mbedtls into mbed-os
@@ -29,5 +30,4 @@ $MBEDTLS_ROOT/scripts/config.pl -f $MBED_OS_SSLCLIENT_CONFIG set MBEDTLS_FS_IO
 
 # Build ssl client
 cd $MBED_OS_SSLCLIENT
-mbed-cli config root .
 mbed-cli compile -m K64F -t GCC_ARM

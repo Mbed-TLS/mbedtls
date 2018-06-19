@@ -4,8 +4,9 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 Features
    * Add new crypto primitives from RFC 7539: stream cipher Chacha20, one-time
-   authenticator Poly1305 and AEAD construct Chacha20-Poly1305. Contributed by
-   Daniel King (#485).
+     authenticator Poly1305 and AEAD construct Chacha20-Poly1305. Contributed
+     by Daniel King (#485).
+   * Add support for CHACHA20-POLY1305 ciphersuites from RFC 7905.
 
 = mbed TLS 2.11.0 branch released 2018-06-18
 

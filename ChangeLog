@@ -15,6 +15,11 @@ Bugfix
      by Brendan Shanks. Part of a fix for #992.
    * Fix compilation error when MBEDTLS_ARC4_C is disabled and
      MBEDTLS_CIPHER_NULL_CIPHER is enabled. Found by TrinityTonic in #1719.
+   * Fix decryption of zero length messages (all padding) in some circumstances:
+     DTLS 1.0 and 1.2, and CBC ciphersuites using encrypt-then-MAC. Most often
+     seen when communicating with OpenSSL using TLS 1.0. Reported by @kFYatek
+     (#1632) and by Conor Murphy on the forum. Fix contributed by Espressif
+     Systems.
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.

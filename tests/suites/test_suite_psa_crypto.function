@@ -7,6 +7,25 @@
 #else
 #define PSA_CRYPTO_TEST_SIZE_T_RANGE( x ) 1
 #endif
+
+/** Test if a buffer is not all-bits zero.
+ *
+ * \param buffer    Pointer to the beginning of the buffer.
+ * \param size      Size of the buffer in bytes.
+ *
+ * \return          0 if the buffer is all-bits-zero.
+ * \return          A nonzero value otherwise.
+ */
+int mem_is_nonzero( void *buffer, size_t size )
+{
+    size_t i;
+    for( i = 0; i < size; i++ )
+    {
+        if( ( (unsigned char *) buffer )[i] != 0 )
+            return( i + 1 );
+    }
+    return( 0 );
+}
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -106,8 +125,13 @@ void import_export( data_t *data,
                              exported, export_size,
                              &exported_length );
     TEST_ASSERT( status == (psa_status_t) expected_export_status );
+    TEST_ASSERT( ! mem_is_nonzero( exported + exported_length,
+                                   export_size - exported_length ) );
     if( status != PSA_SUCCESS )
+    {
+        TEST_ASSERT( exported_length == 0 );
         goto destroy;
+    }
 
     if( canonical_input )
     {

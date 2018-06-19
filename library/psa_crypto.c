@@ -628,17 +628,22 @@ static  psa_status_t psa_internal_export_key( psa_key_slot_t key,
             else
                 ret = mbedtls_pk_write_key_der( &pk, data, data_size );
             if( ret < 0 )
+            {
+                memset( data, 0, data_size );
                 return( mbedtls_to_psa_error( ret ) );
+            }
             /* The mbedtls_pk_xxx functions write to the end of the buffer.
              * Move the data to the beginning and erase remaining data
              * at the original location. */
             if( 2 * (size_t) ret <= data_size )
             {
                 memcpy( data, data + data_size - ret, ret );
+                memset( data + data_size - ret, 0, ret );
             }
             else if( (size_t) ret < data_size )
             {
                 memmove( data, data + data_size - ret, ret );
+                memset( data + ret, 0, data_size - ret );
             }
             *data_length = ret;
             return( PSA_SUCCESS );

@@ -346,6 +346,41 @@ static psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid )
     }
 }
 
+static mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve )
+{
+    switch( curve )
+    {
+        case PSA_ECC_CURVE_SECP192R1:
+            return( MBEDTLS_ECP_DP_SECP192R1 );
+        case PSA_ECC_CURVE_SECP224R1:
+            return( MBEDTLS_ECP_DP_SECP224R1 );
+        case PSA_ECC_CURVE_SECP256R1:
+            return( MBEDTLS_ECP_DP_SECP256R1 );
+        case PSA_ECC_CURVE_SECP384R1:
+            return( MBEDTLS_ECP_DP_SECP384R1 );
+        case PSA_ECC_CURVE_SECP521R1:
+            return( MBEDTLS_ECP_DP_SECP521R1 );
+        case PSA_ECC_CURVE_BRAINPOOL_P256R1:
+            return( MBEDTLS_ECP_DP_BP256R1 );
+        case PSA_ECC_CURVE_BRAINPOOL_P384R1:
+            return( MBEDTLS_ECP_DP_BP384R1 );
+        case PSA_ECC_CURVE_BRAINPOOL_P512R1:
+            return( MBEDTLS_ECP_DP_BP512R1 );
+        case PSA_ECC_CURVE_CURVE25519:
+            return( MBEDTLS_ECP_DP_CURVE25519 );
+        case PSA_ECC_CURVE_SECP192K1:
+            return( MBEDTLS_ECP_DP_SECP192K1 );
+        case PSA_ECC_CURVE_SECP224K1:
+            return( MBEDTLS_ECP_DP_SECP224K1 );
+        case PSA_ECC_CURVE_SECP256K1:
+            return( MBEDTLS_ECP_DP_SECP256K1 );
+        case PSA_ECC_CURVE_CURVE448:
+            return( MBEDTLS_ECP_DP_CURVE448 );
+        default:
+            return( MBEDTLS_ECP_DP_NONE );
+    }
+}
+
 static psa_status_t prepare_raw_data_slot( psa_key_type_t type,
                                            size_t bits,
                                            struct raw_data *raw )
@@ -2495,7 +2530,114 @@ psa_status_t psa_generate_key( psa_key_slot_t key,
                                const void *parameters,
                                size_t parameters_size )
 {
-    return( PSA_ERROR_NOT_SUPPORTED );
+    key_slot_t *slot;
+
+    if( key == 0 || key > PSA_KEY_SLOT_COUNT )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    slot = &global_data.key_slots[key];
+    if( slot->type != PSA_KEY_TYPE_NONE )
+        return( PSA_ERROR_OCCUPIED_SLOT );
+    if( parameters == NULL && parameters_size != 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    if( PSA_KEY_TYPE_IS_RAW_BYTES( type ) )
+    {
+        psa_status_t status = prepare_raw_data_slot( type, bits,
+                                                     &slot->data.raw );
+        if( status != PSA_SUCCESS )
+            return( status );
+        status = psa_generate_random( slot->data.raw.data,
+                                      slot->data.raw.bytes );
+        if( status != PSA_SUCCESS )
+        {
+            mbedtls_free( slot->data.raw.data );
+            return( status );
+        }
+#if defined(MBEDTLS_DES_C)
+        if( type == PSA_KEY_TYPE_DES )
+        {
+            mbedtls_des_key_set_parity( slot->data.raw.data );
+            if( slot->data.raw.bytes >= 16 )
+                mbedtls_des_key_set_parity( slot->data.raw.data + 8 );
+            if( slot->data.raw.bytes == 24 )
+                mbedtls_des_key_set_parity( slot->data.raw.data + 16 );
+        }
+#endif /* MBEDTLS_DES_C */
+    }
+    else
+
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_GENPRIME)
+    if ( type == PSA_KEY_TYPE_RSA_KEYPAIR )
+    {
+        mbedtls_rsa_context *rsa;
+        int ret;
+        int exponent = 65537;
+        if( parameters != NULL )
+        {
+            const unsigned *p = parameters;
+            if( parameters_size != sizeof( *p ) )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+            if( *p > INT_MAX )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+            exponent = *p;
+        }
+        rsa = mbedtls_calloc( 1, sizeof( *rsa ) );
+        if( rsa == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+        mbedtls_rsa_init( rsa, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_NONE );
+        ret = mbedtls_rsa_gen_key( rsa,
+                                   mbedtls_ctr_drbg_random,
+                                   &global_data.ctr_drbg,
+                                   bits,
+                                   exponent );
+        if( ret != 0 )
+        {
+            mbedtls_rsa_free( rsa );
+            mbedtls_free( rsa );
+            return( mbedtls_to_psa_error( ret ) );
+        }
+        slot->data.rsa = rsa;
+    }
+    else
+#endif /* MBEDTLS_RSA_C && MBEDTLS_GENPRIME */
+
+#if defined(MBEDTLS_ECP_C)
+    if ( PSA_KEY_TYPE_IS_ECC( type ) && PSA_KEY_TYPE_IS_KEYPAIR( type ) )
+    {
+        psa_ecc_curve_t curve = PSA_KEY_TYPE_GET_CURVE( type );
+        mbedtls_ecp_group_id grp_id = mbedtls_ecc_group_of_psa( curve );
+        const mbedtls_ecp_curve_info *curve_info =
+            mbedtls_ecp_curve_info_from_grp_id( grp_id );
+        mbedtls_ecp_keypair *ecp;
+        int ret;
+        if( parameters != NULL )
+            return( PSA_ERROR_NOT_SUPPORTED );
+        if( grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL )
+            return( PSA_ERROR_NOT_SUPPORTED );
+        if( curve_info->bit_size != bits )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        ecp = mbedtls_calloc( 1, sizeof( *ecp ) );
+        if( ecp == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+        mbedtls_ecp_keypair_init( ecp );
+        ret = mbedtls_ecp_gen_key( grp_id, ecp,
+                                   mbedtls_ctr_drbg_random,
+                                   &global_data.ctr_drbg );
+        if( ret != 0 )
+        {
+            mbedtls_ecp_keypair_free( ecp );
+            mbedtls_free( ecp );
+            return( mbedtls_to_psa_error( ret ) );
+        }
+        slot->data.ecp = ecp;
+    }
+    else
+#endif /* MBEDTLS_ECP_C */
+
+        return( PSA_ERROR_NOT_SUPPORTED );
+
+    slot->type = type;
+    return( PSA_SUCCESS );
 }
 
 

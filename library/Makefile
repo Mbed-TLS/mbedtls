@@ -31,9 +31,9 @@ LOCAL_CFLAGS += -fPIC -fpic
 endif
 endif
 
-SOEXT_TLS=so.10
+SOEXT_TLS=so.11
 SOEXT_X509=so.0
-SOEXT_CRYPTO=so.2
+SOEXT_CRYPTO=so.3
 
 # Set DLEXT=dylib to compile as a shared library for Mac OS X
 DLEXT ?= so
@@ -57,6 +57,7 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		ecjpake.o	ecp.o				\
 		ecp_curves.o	entropy.o	entropy_poll.o	\
 		error.o		gcm.o		havege.o	\
+		hkdf.o						\
 		hmac_drbg.o	md.o		md2.o		\
 		md4.o		md5.o		md_wrap.o	\
 		memory_buffer_alloc.o		oid.o		\

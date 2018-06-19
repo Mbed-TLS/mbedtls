@@ -8,7 +8,7 @@
  *  memory footprint.
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -539,6 +539,20 @@
  * Enable Counter Block Cipher mode (CTR) for symmetric ciphers.
  */
 #define MBEDTLS_CIPHER_MODE_CTR
+
+/**
+ * \def MBEDTLS_CIPHER_MODE_OFB
+ *
+ * Enable Output Feedback mode (OFB) for symmetric ciphers.
+ */
+#define MBEDTLS_CIPHER_MODE_OFB
+
+/**
+ * \def MBEDTLS_CIPHER_MODE_XTS
+ *
+ * Enable Xor-encrypt-xor with ciphertext stealing mode (XTS) for AES.
+ */
+#define MBEDTLS_CIPHER_MODE_XTS
 
 /**
  * \def MBEDTLS_CIPHER_NULL_CIPHER
@@ -1158,6 +1172,17 @@
  * Enable sending of all alert messages
  */
 #define MBEDTLS_SSL_ALL_ALERT_MESSAGES
+
+/**
+ * \def MBEDTLS_SSL_ASYNC_PRIVATE
+ *
+ * Enable asynchronous external private key operations in SSL. This allows
+ * you to configure an SSL connection to call an external cryptographic
+ * module to perform private key operations instead of performing the
+ * operation inside the library.
+ *
+ */
+//#define MBEDTLS_SSL_ASYNC_PRIVATE
 
 /**
  * \def MBEDTLS_SSL_DEBUG_ALL
@@ -2193,6 +2218,21 @@
  * Uncomment to enable the HAVEGE random generator.
  */
 //#define MBEDTLS_HAVEGE_C
+
+/**
+ * \def MBEDTLS_HKDF_C
+ *
+ * Enable the HKDF algorithm (RFC 5869).
+ *
+ * Module:  library/hkdf.c
+ * Caller:
+ *
+ * Requires: MBEDTLS_MD_C
+ *
+ * This module adds support for the Hashed Message Authentication Code
+ * (HMAC)-based key derivation function (HKDF).
+ */
+#define MBEDTLS_HKDF_C
 
 /**
  * \def MBEDTLS_HMAC_DRBG_C

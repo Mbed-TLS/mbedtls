@@ -113,6 +113,10 @@
 #include "mbedtls/gcm.h"
 #endif
 
+#if defined(MBEDTLS_HKDF_C)
+#include "mbedtls/hkdf.h"
+#endif
+
 #if defined(MBEDTLS_HMAC_DRBG_C)
 #include "mbedtls/hmac_drbg.h"
 #endif
@@ -509,6 +513,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "SSL - Couldn't set the hash for verifying CertificateVerify" );
         if( use_ret == -(MBEDTLS_ERR_SSL_CONTINUE_PROCESSING) )
             mbedtls_snprintf( buf, buflen, "SSL - Internal-only message signaling that further message-processing should be done" );
+        if( use_ret == -(MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS) )
+            mbedtls_snprintf( buf, buflen, "SSL - The asynchronous operation is not completed yet" );
 #endif /* MBEDTLS_SSL_TLS_C */
 
 #if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)
@@ -742,6 +748,11 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_GCM_BAD_INPUT) )
         mbedtls_snprintf( buf, buflen, "GCM - Bad input parameters to function" );
 #endif /* MBEDTLS_GCM_C */
+
+#if defined(MBEDTLS_HKDF_C)
+    if( use_ret == -(MBEDTLS_ERR_HKDF_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "HKDF - Bad input parameters to function" );
+#endif /* MBEDTLS_HKDF_C */
 
 #if defined(MBEDTLS_HMAC_DRBG_C)
     if( use_ret == -(MBEDTLS_ERR_HMAC_DRBG_REQUEST_TOO_BIG) )

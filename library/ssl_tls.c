@@ -5202,7 +5202,7 @@ static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl )
     /*
      * Free our handshake params
      */
-    mbedtls_ssl_handshake_free( ssl->handshake );
+    mbedtls_ssl_handshake_free( ssl );
     mbedtls_free( ssl->handshake );
     ssl->handshake = NULL;
 
@@ -5557,7 +5557,7 @@ static int ssl_handshake_init( mbedtls_ssl_context *ssl )
     if( ssl->session_negotiate )
         mbedtls_ssl_session_free( ssl->session_negotiate );
     if( ssl->handshake )
-        mbedtls_ssl_handshake_free( ssl->handshake );
+        mbedtls_ssl_handshake_free( ssl );
 
     /*
      * Either the pointers are now NULL or cleared properly and can be freed.
@@ -6480,6 +6480,43 @@ void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
 }
 #endif
 
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+void mbedtls_ssl_conf_async_private_cb(
+    mbedtls_ssl_config *conf,
+    mbedtls_ssl_async_sign_t *f_async_sign,
+    mbedtls_ssl_async_decrypt_t *f_async_decrypt,
+    mbedtls_ssl_async_resume_t *f_async_resume,
+    mbedtls_ssl_async_cancel_t *f_async_cancel,
+    void *async_config_data )
+{
+    conf->f_async_sign_start = f_async_sign;
+    conf->f_async_decrypt_start = f_async_decrypt;
+    conf->f_async_resume = f_async_resume;
+    conf->f_async_cancel = f_async_cancel;
+    conf->p_async_config_data = async_config_data;
+}
+
+void *mbedtls_ssl_conf_get_async_config_data( const mbedtls_ssl_config *conf )
+{
+    return( conf->p_async_config_data );
+}
+
+void *mbedtls_ssl_get_async_operation_data( const mbedtls_ssl_context *ssl )
+{
+    if( ssl->handshake == NULL )
+        return( NULL );
+    else
+        return( ssl->handshake->user_async_ctx );
+}
+
+void mbedtls_ssl_set_async_operation_data( mbedtls_ssl_context *ssl,
+                                 void *ctx )
+{
+    if( ssl->handshake != NULL )
+        ssl->handshake->user_async_ctx = ctx;
+}
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+
 /*
  * SSL get accessors
  */
@@ -7387,10 +7424,20 @@ static void ssl_key_cert_free( mbedtls_ssl_key_cert *key_cert )
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake )
+void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 {
+    mbedtls_ssl_handshake_params *handshake = ssl->handshake;
+
     if( handshake == NULL )
         return;
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+    if( ssl->conf->f_async_cancel != NULL && handshake->async_in_progress != 0 )
+    {
+        ssl->conf->f_async_cancel( ssl );
+        handshake->async_in_progress = 0;
+    }
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
@@ -7522,7 +7569,7 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl )
 
     if( ssl->handshake )
     {
-        mbedtls_ssl_handshake_free( ssl->handshake );
+        mbedtls_ssl_handshake_free( ssl );
         mbedtls_ssl_transform_free( ssl->transform_negotiate );
         mbedtls_ssl_session_free( ssl->session_negotiate );
 
@@ -8289,13 +8336,14 @@ exit:
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
 int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
-                                       unsigned char *output,
-                                       unsigned char *data, size_t data_len,
-                                       mbedtls_md_type_t md_alg )
+                                            unsigned char *hash, size_t *hashlen,
+                                            unsigned char *data, size_t data_len,
+                                            mbedtls_md_type_t md_alg )
 {
     int ret = 0;
     mbedtls_md_context_t ctx;
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_alg );
+    *hashlen = mbedtls_md_get_size( md_info );
 
     mbedtls_md_init( &ctx );
 
@@ -8326,7 +8374,7 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_update", ret );
         goto exit;
     }
-    if( ( ret = mbedtls_md_finish( &ctx, output ) ) != 0 )
+    if( ( ret = mbedtls_md_finish( &ctx, hash ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_finish", ret );
         goto exit;

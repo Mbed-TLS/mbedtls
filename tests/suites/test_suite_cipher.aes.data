@@ -414,7 +414,7 @@ AES-128 CFB - Encrypt and decrypt 32 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:32:-1
 
-AES-128 CFB - Encrypt and decrypt 32 bytes
+AES-128 CFB - Encrypt and decrypt 33 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CFB128:"AES-128-CFB128":128:33:-1
 
@@ -474,6 +474,382 @@ AES-128 CFB - Encrypt and decrypt 32 bytes in multiple parts 1
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_CFB128:128:16:16:-1:16:16:16:16
 
+AES-128 OFB - Encrypt and decrypt 0 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_OFB:"AES-128-OFB":128:0:-1
+
+AES-128 OFB - Encrypt and decrypt 1 byte
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_OFB:"AES-128-OFB":128:1:-1
+
+AES-128 OFB - Encrypt and decrypt 2 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_OFB:"AES-128-OFB":128:2:-1
+
+AES-128 OFB - Encrypt and decrypt 7 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_OFB:"AES-128-OFB":128:7:-1
+
+AES-128 OFB - Encrypt and decrypt 8 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_OFB:"AES-128-OFB":128:8:-1
+
+AES-128 OFB - Encrypt and decrypt 9 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_OFB:"AES-128-OFB":128:9:-1
+
+AES-128 OFB - Encrypt and decrypt 15 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_OFB:"AES-128-OFB":128:15:-1
+
+AES-128 OFB - Encrypt and decrypt 16 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_OFB:"AES-128-OFB":128:16:-1
+
+AES-128 OFB - Encrypt and decrypt 17 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_OFB:"AES-128-OFB":128:17:-1
+
+AES-128 OFB - Encrypt and decrypt 31 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_OFB:"AES-128-OFB":128:31:-1
+
+AES-128 OFB - Encrypt and decrypt 32 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_OFB:"AES-128-OFB":128:32:-1
+
+AES-128 OFB - Encrypt and decrypt 33 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_OFB:"AES-128-OFB":128:33:-1
+
+AES-128 OFB - Encrypt and decrypt 47 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_OFB:"AES-128-OFB":128:47:-1
+
+AES-128 OFB - Encrypt and decrypt 48 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_OFB:"AES-128-OFB":128:48:-1
+
+AES-128 OFB - Encrypt and decrypt 49 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_OFB:"AES-128-OFB":128:49:-1
+
+AES-128 OFB - Encrypt and decrypt 0 bytes in multiple parts
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_OFB:128:0:0:-1:0:0:0:0
+
+AES-128 OFB - Encrypt and decrypt 1 bytes in multiple parts 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_OFB:128:1:0:-1:1:0:1:0
+
+AES-128 OFB - Encrypt and decrypt 1 bytes in multiple parts 2
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_OFB:128:0:1:-1:0:1:0:1
+
+AES-128 OFB - Encrypt and decrypt 16 bytes in multiple parts 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_OFB:128:16:0:-1:16:0:16:0
+
+AES-128 OFB - Encrypt and decrypt 16 bytes in multiple parts 2
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_OFB:128:0:16:-1:0:16:0:16
+
+AES-128 OFB - Encrypt and decrypt 16 bytes in multiple parts 3
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_OFB:128:1:15:-1:1:15:1:15
+
+AES-128 OFB - Encrypt and decrypt 16 bytes in multiple parts 4
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_OFB:128:15:1:-1:15:1:15:1
+
+AES-128 OFB - Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_OFB:128:15:7:-1:15:7:15:7
+
+AES-128 OFB - Encrypt and decrypt 22 bytes in multiple parts 2
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_OFB:128:16:6:-1:16:6:16:6
+
+AES-128 OFB - Encrypt and decrypt 23 bytes in multiple parts 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_OFB:128:17:6:-1:17:6:17:6
+
+AES-128 OFB - Encrypt and decrypt 32 bytes in multiple parts 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_128_OFB:128:16:16:-1:16:16:16:16
+
+AES-192 OFB - Encrypt and decrypt 0 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_192_OFB:"AES-192-OFB":192:0:-1
+
+AES-192 OFB - Encrypt and decrypt 1 byte
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_192_OFB:"AES-192-OFB":192:1:-1
+
+AES-192 OFB - Encrypt and decrypt 2 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_192_OFB:"AES-192-OFB":192:2:-1
+
+AES-192 OFB - Encrypt and decrypt 7 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_192_OFB:"AES-192-OFB":192:7:-1
+
+AES-192 OFB - Encrypt and decrypt 8 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_192_OFB:"AES-192-OFB":192:8:-1
+
+AES-192 OFB - Encrypt and decrypt 9 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_192_OFB:"AES-192-OFB":192:9:-1
+
+AES-192 OFB - Encrypt and decrypt 15 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_192_OFB:"AES-192-OFB":192:15:-1
+
+AES-192 OFB - Encrypt and decrypt 16 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_192_OFB:"AES-192-OFB":192:16:-1
+
+AES-192 OFB - Encrypt and decrypt 17 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_192_OFB:"AES-192-OFB":192:17:-1
+
+AES-192 OFB - Encrypt and decrypt 31 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_192_OFB:"AES-192-OFB":192:31:-1
+
+AES-192 OFB - Encrypt and decrypt 32 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_192_OFB:"AES-192-OFB":192:32:-1
+
+AES-192 OFB - Encrypt and decrypt 33 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_192_OFB:"AES-192-OFB":192:33:-1
+
+AES-192 OFB - Encrypt and decrypt 47 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_192_OFB:"AES-192-OFB":192:47:-1
+
+AES-192 OFB - Encrypt and decrypt 48 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_192_OFB:"AES-192-OFB":192:48:-1
+
+AES-192 OFB - Encrypt and decrypt 49 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_192_OFB:"AES-192-OFB":192:49:-1
+
+AES-192 OFB - Encrypt and decrypt 0 bytes in multiple parts
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_OFB:192:0:0:-1:0:0:0:0
+
+AES-192 OFB - Encrypt and decrypt 1 bytes in multiple parts 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_OFB:192:1:0:-1:1:0:1:0
+
+AES-192 OFB - Encrypt and decrypt 1 bytes in multiple parts 2
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_OFB:192:0:1:-1:0:1:0:1
+
+AES-192 OFB - Encrypt and decrypt 16 bytes in multiple parts 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_OFB:192:16:0:-1:16:0:16:0
+
+AES-192 OFB - Encrypt and decrypt 16 bytes in multiple parts 2
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_OFB:192:0:16:-1:0:16:0:16
+
+AES-192 OFB - Encrypt and decrypt 16 bytes in multiple parts 3
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_OFB:192:1:15:-1:1:15:1:15
+
+AES-192 OFB - Encrypt and decrypt 16 bytes in multiple parts 4
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_OFB:192:15:1:-1:15:1:15:1
+
+AES-192 OFB - Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_OFB:192:15:7:-1:15:7:15:7
+
+AES-192 OFB - Encrypt and decrypt 22 bytes in multiple parts 2
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_OFB:192:16:6:-1:16:6:16:6
+
+AES-192 OFB - Encrypt and decrypt 23 bytes in multiple parts 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_OFB:192:17:6:-1:17:6:17:6
+
+AES-192 OFB - Encrypt and decrypt 32 bytes in multiple parts 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_192_OFB:192:16:16:-1:16:16:16:16
+
+AES-256 OFB - Encrypt and decrypt 0 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_OFB:"AES-256-OFB":256:0:-1
+
+AES-256 OFB - Encrypt and decrypt 1 byte
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_OFB:"AES-256-OFB":256:1:-1
+
+AES-256 OFB - Encrypt and decrypt 2 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_OFB:"AES-256-OFB":256:2:-1
+
+AES-256 OFB - Encrypt and decrypt 7 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_OFB:"AES-256-OFB":256:7:-1
+
+AES-256 OFB - Encrypt and decrypt 8 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_OFB:"AES-256-OFB":256:8:-1
+
+AES-256 OFB - Encrypt and decrypt 9 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_OFB:"AES-256-OFB":256:9:-1
+
+AES-256 OFB - Encrypt and decrypt 15 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_OFB:"AES-256-OFB":256:15:-1
+
+AES-256 OFB - Encrypt and decrypt 16 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_OFB:"AES-256-OFB":256:16:-1
+
+AES-256 OFB - Encrypt and decrypt 17 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_OFB:"AES-256-OFB":256:17:-1
+
+AES-256 OFB - Encrypt and decrypt 31 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_OFB:"AES-256-OFB":256:31:-1
+
+AES-256 OFB - Encrypt and decrypt 32 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_OFB:"AES-256-OFB":256:32:-1
+
+AES-256 OFB - Encrypt and decrypt 33 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_OFB:"AES-256-OFB":256:33:-1
+
+AES-256 OFB - Encrypt and decrypt 47 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_OFB:"AES-256-OFB":256:47:-1
+
+AES-256 OFB - Encrypt and decrypt 48 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_OFB:"AES-256-OFB":256:48:-1
+
+AES-256 OFB - Encrypt and decrypt 49 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_OFB:"AES-256-OFB":256:49:-1
+
+AES-256 OFB - Encrypt and decrypt 0 bytes in multiple parts
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_OFB:256:0:0:-1:0:0:0:0
+
+AES-256 OFB - Encrypt and decrypt 1 bytes in multiple parts 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_OFB:256:1:0:-1:1:0:1:0
+
+AES-256 OFB - Encrypt and decrypt 1 bytes in multiple parts 2
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_OFB:256:0:1:-1:0:1:0:1
+
+AES-256 OFB - Encrypt and decrypt 16 bytes in multiple parts 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_OFB:256:16:0:-1:16:0:16:0
+
+AES-256 OFB - Encrypt and decrypt 16 bytes in multiple parts 2
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_OFB:256:0:16:-1:0:16:0:16
+
+AES-256 OFB - Encrypt and decrypt 16 bytes in multiple parts 3
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_OFB:256:1:15:-1:1:15:1:15
+
+AES-256 OFB - Encrypt and decrypt 16 bytes in multiple parts 4
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_OFB:256:15:1:-1:15:1:15:1
+
+AES-256 OFB - Encrypt and decrypt 22 bytes in multiple parts 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_OFB:256:15:7:-1:15:7:15:7
+
+AES-256 OFB - Encrypt and decrypt 22 bytes in multiple parts 2
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_OFB:256:16:6:-1:16:6:16:6
+
+AES-256 OFB - Encrypt and decrypt 23 bytes in multiple parts 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_OFB:256:17:6:-1:17:6:17:6
+
+AES-256 OFB - Encrypt and decrypt 32 bytes in multiple parts 1
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+enc_dec_buf_multipart:MBEDTLS_CIPHER_AES_256_OFB:256:16:16:-1:16:16:16:16
+
+AES-128 XTS - Encrypt and decrypt 16 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_XTS
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_XTS:"AES-128-XTS":256:16:-1
+
+AES-128 XTS - Encrypt and decrypt 17 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_XTS
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_XTS:"AES-128-XTS":256:17:-1
+
+AES-128 XTS - Encrypt and decrypt 31 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_XTS
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_XTS:"AES-128-XTS":256:31:-1
+
+AES-128 XTS - Encrypt and decrypt 32 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_XTS
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_XTS:"AES-128-XTS":256:32:-1
+
+AES-128 XTS - Encrypt and decrypt 33 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_XTS
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_XTS:"AES-128-XTS":256:33:-1
+
+AES-128 XTS - Encrypt and decrypt 47 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_XTS
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_XTS:"AES-128-XTS":256:47:-1
+
+AES-128 XTS - Encrypt and decrypt 48 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_XTS
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_XTS:"AES-128-XTS":256:48:-1
+
+AES-128 XTS - Encrypt and decrypt 49 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_XTS
+enc_dec_buf:MBEDTLS_CIPHER_AES_128_XTS:"AES-128-XTS":256:49:-1
+
+AES-256 XTS - Encrypt and decrypt 16 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_XTS
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_XTS:"AES-256-XTS":512:16:-1
+
+AES-256 XTS - Encrypt and decrypt 17 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_XTS
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_XTS:"AES-256-XTS":512:17:-1
+
+AES-256 XTS - Encrypt and decrypt 31 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_XTS
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_XTS:"AES-256-XTS":512:31:-1
+
+AES-256 XTS - Encrypt and decrypt 32 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_XTS
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_XTS:"AES-256-XTS":512:32:-1
+
+AES-256 XTS - Encrypt and decrypt 33 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_XTS
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_XTS:"AES-256-XTS":512:33:-1
+
+AES-256 XTS - Encrypt and decrypt 47 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_XTS
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_XTS:"AES-256-XTS":512:47:-1
+
+AES-256 XTS - Encrypt and decrypt 48 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_XTS
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_XTS:"AES-256-XTS":512:48:-1
+
+AES-256 XTS - Encrypt and decrypt 49 bytes
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_XTS
+enc_dec_buf:MBEDTLS_CIPHER_AES_256_XTS:"AES-256-XTS":512:49:-1
+
 AES-128 CTR - Encrypt and decrypt 0 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:0:-1
@@ -518,7 +894,7 @@ AES-128 CTR - Encrypt and decrypt 32 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:32:-1
 
-AES-128 CTR - Encrypt and decrypt 32 bytes
+AES-128 CTR - Encrypt and decrypt 33 bytes
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CTR
 enc_dec_buf:MBEDTLS_CIPHER_AES_128_CTR:"AES-128-CTR":128:33:-1
 
@@ -813,6 +1189,18 @@ decrypt_test_vec:MBEDTLS_CIPHER_AES_192_CFB128:-1:"fffffffffffffffffffffffffffff
 AES Decrypt test vector #6
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CFB
 decrypt_test_vec:MBEDTLS_CIPHER_AES_256_CFB128:-1:"ffffffffff800000000000000000000000000000000000000000000000000000":"00000000000000000000000000000000":"be66cfea2fecd6bf0ec7b4352c99bcaa":"00000000000000000000000000000000":"":"":0:0
+
+AES Decrypt test vector #7
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+decrypt_test_vec:MBEDTLS_CIPHER_AES_128_OFB:-1:"2B7E151628AED2A6ABF7158809CF4F3C":"000102030405060708090A0B0C0D0E0F":"3B3FD92EB72DAD20333449F8E83CFB4A7789508d16918f03f53c52dac54ed8259740051e9c5fecf64344f7a82260edcc304c6528f659c77866a510d9c1d6ae5e":"6BC1BEE22E409F96E93D7E117393172AAE2D8A571E03AC9C9EB76FAC45AF8E5130C81C46A35CE411E5FBC1191A0A52EFF69F2445DF4F9B17AD2B417BE66C3710":"":"":0:0:
+
+AES Decrypt test vector #8
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+decrypt_test_vec:MBEDTLS_CIPHER_AES_192_OFB:-1:"8E73B0F7DA0E6452C810F32B809079E562F8EAD2522C6B7B":"000102030405060708090A0B0C0D0E0F":"CDC80D6FDDF18CAB34C25909C99A4174fcc28b8d4c63837c09e81700c11004018d9a9aeac0f6596f559c6d4daf59a5f26d9f200857ca6c3e9cac524bd9acc92a":"6BC1BEE22E409F96E93D7E117393172AAE2D8A571E03AC9C9EB76FAC45AF8E5130C81C46A35CE411E5FBC1191A0A52EFF69F2445DF4F9B17AD2B417BE66C3710":"":"":0:0:
+
+AES Decrypt test vector #9
+depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_OFB
+decrypt_test_vec:MBEDTLS_CIPHER_AES_256_OFB:-1:"603DEB1015CA71BE2B73AEF0857D77811F352C073B6108D72D9810A30914DFF4":"000102030405060708090A0B0C0D0E0F":"DC7E84BFDA79164B7ECD8486985D38604febdc6740d20b3ac88f6ad82a4fb08d71ab47a086e86eedf39d1c5bba97c4080126141d67f37be8538f5a8be740e484":"6BC1BEE22E409F96E93D7E117393172AAE2D8A571E03AC9C9EB76FAC45AF8E5130C81C46A35CE411E5FBC1191A0A52EFF69F2445DF4F9B17AD2B417BE66C3710":"":"":0:0:
 
 AES-128-ECB Encrypt NIST KAT #1
 depends_on:MBEDTLS_AES_C

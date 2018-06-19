@@ -134,7 +134,7 @@ void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
                   int length_val, int pad_mode )
 {
     size_t length = length_val, outlen, total_len, i, block_size;
-    unsigned char key[32];
+    unsigned char key[64];
     unsigned char iv[16];
     unsigned char ad[13];
     unsigned char tag[16];

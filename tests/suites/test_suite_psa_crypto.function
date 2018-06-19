@@ -1520,3 +1520,44 @@ exit:
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void generate_random( int bytes, int retries )
+{
+    const unsigned char trail[] = "foobar";
+    unsigned char *buffer1 = mbedtls_calloc( 1, bytes + sizeof( trail ) );
+    unsigned char *buffer2 = mbedtls_calloc( 1, bytes );
+
+    TEST_ASSERT( buffer1 != NULL );
+    TEST_ASSERT( buffer2 != NULL );
+    memcpy( buffer1 + bytes, trail, sizeof( trail ) );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_generate_random( buffer1, bytes ) == PSA_SUCCESS );
+
+    /* Check that no more than bytes have been overwritten */
+    TEST_ASSERT( memcmp( buffer1 + bytes, trail, sizeof( trail ) ) == 0 );
+
+    if( bytes == 0 )
+        goto exit;
+
+    /* We can't validate that the data is really random, but we can
+     * validate that it doesn't repeat between calls. There's a
+     * 1/256^bytes chance that it does repeat, of course, so allow
+     * a few retries. */
+    ++retries; /* The first time isn't a REtry */
+    do
+    {
+        --retries;
+        TEST_ASSERT( psa_generate_random( buffer2, bytes ) == PSA_SUCCESS );
+    }
+    while( memcmp( buffer1, buffer2, bytes ) == 0 && retries >= -1 );
+    TEST_ASSERT( retries >= 0 );
+
+exit:
+    mbedtls_psa_crypto_free( );
+    mbedtls_free( buffer1 );
+    mbedtls_free( buffer2 );
+}
+/* END_CASE */

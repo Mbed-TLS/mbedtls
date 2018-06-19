@@ -2462,6 +2462,28 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
 
 
 /****************************************************************/
+/* Key generation */
+/****************************************************************/
+
+psa_status_t psa_generate_random( uint8_t *output,
+                                  size_t output_size )
+{
+    int ret = mbedtls_ctr_drbg_random( &global_data.ctr_drbg,
+                                       output, output_size );
+    return( mbedtls_to_psa_error( ret ) );
+}
+
+psa_status_t psa_generate_key( psa_key_slot_t key,
+                               psa_key_type_t type,
+                               size_t bits,
+                               const void *parameters,
+                               size_t parameters_size )
+{
+    return( PSA_ERROR_NOT_SUPPORTED );
+}
+
+
+/****************************************************************/
 /* Module setup */
 /****************************************************************/
 

@@ -43,8 +43,24 @@
 #define mbedtls_free      free
 #define mbedtls_fprintf   fprintf
 #include <unistd.h>
+#include <getopt.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#endif
+
+#if defined(_WIN32) || defined(__MINGW32__)
+#include <windows.h>
+typedef HANDLE SERIAL_HANDLE;
+#define INVALID_SERIAL_HANDLE INVALID_HANDLE_VALUE
+#define BAUD_RATE 9600
+#else
+#include <termios.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+typedef int SERIAL_HANDLE;
+#define INVALID_SERIAL_HANDLE -1
+#define BAUD_RATE B9600
 #endif
 
 FILE * fdbg = NULL;
@@ -55,6 +71,16 @@ static int debug_verbose = 0;
                         __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__ );  \
                fflush( fdbg ); \
 } while (0)
+
+#define ERR DBG
+
+#define DUMP_CHAR( c ) do {                 \
+               fprintf( fdbg, "%c" , c );   \
+               fflush( fdbg );              \
+} while (0)
+
+static char * get_last_err_str( void );
+#define print_last_error() ERR( "Error: %s", get_last_err_str() )
 
 #include "mbedtls/serialize.h"
 #include "mbedtls/net_sockets.h"
@@ -142,8 +168,8 @@ static void set_item_uint32( mbedtls_serialize_item_t *item, uint32_t value )
  * This data structure represents one connection to a target.
  */
 typedef struct {
-    int read_fd; /**< File descriptor for input from the target */
-    int write_fd; /**< File descriptor for output to the target */
+    SERIAL_HANDLE read_fd; /**< File descriptor for input from the target */
+    SERIAL_HANDLE write_fd; /**< File descriptor for output to the target */
     mbedtls_serialize_item_t *stack; /**< Stack of inputs */
     mbedtls_serialize_status_t status; /**< Frontend status */
 } mbedtls_serialize_context_t;
@@ -158,7 +184,7 @@ static int mbedtls_serialize_write( mbedtls_serialize_context_t *ctx,
         result = write( ctx->write_fd, buffer, length );
         if( result < 0 )
         {
-            DBG( "Error writing: %s", strerror( errno ) );
+            DBG( "Error writing: %s %d", strerror( errno ), ctx->write_fd );
             return( MBEDTLS_ERR_SERIALIZE_SEND );
         }
         length -= result;
@@ -172,18 +198,212 @@ static int mbedtls_serialize_write( mbedtls_serialize_context_t *ctx,
 static int mbedtls_serialize_read( mbedtls_serialize_context_t *ctx,
                                    uint8_t *buffer, size_t length )
 {
-    ssize_t result;
-    do {
-        result = read( ctx->read_fd, buffer, length );
-        if( result < 0 )
+    ssize_t n, remaining = length, token_count = 0;
+    while( token_count < 2 )
+    {
+        n = read( ctx->read_fd, buffer, 1 );
+        if( n < 0 )
         {
             perror( "Serialization read error" );
             return( MBEDTLS_ERR_SERIALIZE_RECEIVE );
         }
-        length -= result;
-        buffer += result;
-    } while( length > 0 );
+        if( buffer[0] == '{' )
+        {
+            token_count++;
+        }
+        else
+        {
+            token_count = 0;
+            DUMP_CHAR( buffer[0] );
+        }
+    }
+    do {
+        n = read( ctx->read_fd, buffer, remaining );
+        if( n < 0 )
+        {
+            perror( "Serialization read error" );
+            return( MBEDTLS_ERR_SERIALIZE_RECEIVE );
+        }
+        remaining -= n;
+        buffer += n;
+    } while( remaining > 0 );
     return( 0 );
+}
+
+#if defined(_WIN32) || defined(__MINGW32__)
+
+static char * get_last_err_str( void )
+{
+    DWORD last_error_id = GetLastError( );
+    char *last_error_string;
+    char last_error_id_str[100];
+    if( FormatMessage(
+            FORMAT_MESSAGE_ALLOCATE_BUFFER |
+            FORMAT_MESSAGE_FROM_SYSTEM |
+            FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL,
+            last_error_id,
+            MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),
+            (LPSTR) &last_error_string,
+            0,
+            NULL) )
+    {
+        return( last_error_string );
+    }
+    else
+    {
+        snprintf( last_error_id_str, sizeof( last_error_id_str ), "%d", last_error_id );
+        return( last_error_id_str );
+    }
+}
+
+#else // defined(_WIN32) || defined(__MINGW32__)
+
+static char * get_last_err_str( void )
+{
+    return( strerror( errno ) );
+}
+
+#endif // defined(_WIN32) || defined(__MINGW32__)
+
+#if defined(_WIN32) || defined(__MINGW32__)
+
+/** Set the common attributes to the seial interface */
+static int port_set_attributes(
+        SERIAL_HANDLE port,
+        int speed,
+        int parity )
+{
+    DCB parameters = { 0, };
+
+    parameters.DCBlength = sizeof( parameters );
+    if( !GetCommState( port, &parameters ) )
+    {
+        print_last_error( );
+        return( -1 );
+    }
+
+    parameters.BaudRate = speed;
+    parameters.Parity = parity;
+    parameters.ByteSize = 8;
+    parameters.StopBits = ONESTOPBIT;
+    parameters.fOutxCtsFlow = FALSE;         // No CTS output flow control
+    parameters.fOutxDsrFlow = FALSE;         // No DSR output flow control
+    parameters.fDtrControl = DTR_CONTROL_DISABLE; // DTR flow control type
+    parameters.fDsrSensitivity = FALSE;      // DSR sensitivity
+    parameters.fTXContinueOnXoff = TRUE;     // XOFF continues Tx
+    parameters.fOutX = FALSE;                // No XON/XOFF out flow control
+    parameters.fInX = FALSE;                 // No XON/XOFF in flow control
+    parameters.fErrorChar = FALSE;           // Disable error replacement
+    parameters.fNull = FALSE;                // Disable null stripping
+    parameters.fRtsControl = RTS_CONTROL_DISABLE; // RTS flow control
+    parameters.fAbortOnError = FALSE;        // Do not abort reads/writes on error
+
+    if( !SetCommState( port, &parameters ) )
+    {
+        print_last_error( );
+        return( -1 );
+    }
+
+    return( 0 );
+}
+
+#else // defined(_WIN32) || defined(__MINGW32__)
+
+/** Set the common attributes to the seial interface */
+static int port_set_attributes(
+        SERIAL_HANDLE fd,
+        int speed,
+        int parity )
+{
+    struct termios tty;
+    memset( &tty, 0, sizeof( tty ) );
+
+    if( tcgetattr( fd, &tty ) != 0 )
+    {
+        print_last_error( );
+        return( -1 );
+    }
+
+    cfsetospeed( &tty, speed );
+    cfsetispeed( &tty, speed );
+
+    tty.c_cflag = ( tty.c_cflag & ~( tcflag_t )CSIZE ) | CS8;
+
+    tty.c_iflag &= ~IGNBRK; // no break processing
+    tty.c_lflag = 0;        // no signaling chars, echo, canonical processing
+    tty.c_oflag = 0;        // no remapping, delays
+    tty.c_cc[VMIN]  = 1;    // Blocking or not
+    tty.c_cc[VTIME] = 5;    // 0.5 seconds read timeout
+    tty.c_iflag &= ~( IXON | IXOFF | IXANY ); // shut off xon/xoff ctrl
+    tty.c_cflag |= ( CLOCAL | CREAD );        // ignore modem controls,
+                                              // enable reading
+    tty.c_cflag &= ~( PARENB | PARODD );      // shut off parity
+    tty.c_cflag |= parity;
+    tty.c_cflag &= ~CSTOPB;
+    tty.c_cflag &= ~CRTSCTS;
+
+    if( tcsetattr( fd, TCSANOW, &tty ) != 0 )
+    {
+        print_last_error( );
+        return( -1 );
+    }
+
+    return( 0 );
+}
+
+#endif // defined(_WIN32) || defined(__MINGW32__)
+
+static int port_close( SERIAL_HANDLE handle )
+{
+    int result;
+
+#if defined(_WIN32) || defined(__MINGW32__)
+    result = CloseHandle( handle )?0:1;
+#else // defined(_WIN32) || defined(__MINGW32__)
+    result = close( handle );
+#endif // defined(_WIN32) || defined(__MINGW32__)
+
+    if( result != 0 )
+        print_last_error( );
+
+    return( result );
+}
+
+static SERIAL_HANDLE port_open( char *name )
+{
+    SERIAL_HANDLE handle;
+
+    DBG( "Opening %s", name );
+#if defined(_WIN32) || defined(__MINGW32__)
+    handle = CreateFile(
+        name,
+        GENERIC_READ|GENERIC_WRITE,
+        0,
+        0,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        0 );
+#else // defined(_WIN32) || defined(__MINGW32__)
+    handle = open( name, O_RDWR | O_CLOEXEC | O_NOCTTY | O_SYNC );
+#endif // defined(_WIN32) || defined(__MINGW32__)
+
+    if( handle == INVALID_SERIAL_HANDLE )
+    {
+        print_last_error();
+        return( INVALID_SERIAL_HANDLE );
+    }
+    DBG("fd = %d", handle);
+    if( port_set_attributes( handle, BAUD_RATE, 0 ) != 0 )
+    {
+        port_close( handle );
+        return( INVALID_SERIAL_HANDLE );
+    }
+
+    if( handle == INVALID_SERIAL_HANDLE )
+        print_last_error( );
+
+    return( handle );
 }
 
 /** Discard all items on the stack and free them. */
@@ -900,12 +1120,13 @@ static int mbedtls_serialize_pull( mbedtls_serialize_context_t *ctx )
 
         default:
             ctx->status = MBEDTLS_SERIALIZE_STATUS_DEAD;
-            fprintf( stderr, "Bad type for serialized data: 0x%02x\n", header[0] );
+            fprintf( stderr, "Bad type for serialized data: 0x%02x '%c'\n", header[0], header[1] );
             return( MBEDTLS_ERR_SERIALIZE_BAD_INPUT );
+            return( 0 );
     }
 }
 
-static void mbedtls_serialize_frontend( mbedtls_serialize_context_t *ctx )
+static int mbedtls_serialize_frontend( mbedtls_serialize_context_t *ctx )
 {
     while( ctx->status == MBEDTLS_SERIALIZE_STATUS_OK ||
            ctx->status == MBEDTLS_SERIALIZE_STATUS_OUT_OF_MEMORY )
@@ -914,14 +1135,132 @@ static void mbedtls_serialize_frontend( mbedtls_serialize_context_t *ctx )
     }
     close( ctx->read_fd );
     close( ctx->write_fd );
+    return( ctx->status );
 }
 
-int main( int argc, char **argv )
+static int read_args(
+        int argc,
+        char **argv,
+        char **serialization_port,
+        int *sub_args_len,
+        char **sub_args )
+{
+    int i;
+    int write_index;
+
+    // Assert input
+    DBG( "Arguments:" );
+    for( i = 0; i < argc; i++ )
+        DBG( "  %d: [%s]", i, argv[i] );
+
+    if( argc <= 2 )
+    {
+        ERR(
+            "Incorrect argument count\n"
+            "\t Usage: %s <offloading-port> ...",
+            argv[0] );
+        return( -1 );
+    }
+
+    *serialization_port = NULL;
+
+    while( 1 )
+    {
+        static struct option long_options[] =
+        {
+            { "port", required_argument, NULL, 'p'},
+            /* Functionality disabling options: */
+            { 0, 0, 0, 0 }
+        };
+        int option_index;
+        int c = getopt_long( argc, argv, "p:", long_options, &option_index );
+
+        switch( c )
+        {
+        case 'p':
+            *serialization_port = optarg;
+            break;
+        case -1:
+            goto opt_done;
+        }
+    }
+opt_done:
+
+    if( *serialization_port == NULL )
+    {
+        return( -1 );
+    }
+    // Arguments for the remote process
+    *sub_args = NULL;
+    *sub_args_len = 0;
+
+    {
+        // Compute the arguments' length (including NUL character for each argument)
+        *sub_args_len = 0;
+        for( i = optind + 2; i < argc; ++i )
+            *sub_args_len += strlen(argv[i]) + 1;
+
+        // Allocate the cumulative buffer for all the arguments
+        *sub_args = malloc(*sub_args_len);
+
+        // Copy the arguments one by one
+        write_index = 0;
+        for( i = optind + 2; i < argc; ++i )
+        {
+            int len = strlen(argv[i]);
+            memcpy(*sub_args + write_index, argv[i], len + 1); // Copy including NUL character
+            write_index += len + 1; // Advance the write location, including the NUL character
+        }
+    }
+
+    return( 0 );
+}
+
+
+int main(int argc, char** argv)
+{
+    char *serialization_port;
+    int ret;
+    mbedtls_serialize_context_t serialization_context = {0};
+    int sub_args_len = -1;
+    char *sub_args = NULL;
+
+    fdbg = stdout; //fopen("frontend.log", "w");
+    if( read_args(
+            argc,
+            argv,
+            &serialization_port,
+            &sub_args_len,
+            &sub_args) != 0 )
+    {
+        fprintf( stderr, "Failed to read arguments\n" );
+        return( 1 );
+    }
+
+    serialization_context.status = MBEDTLS_SERIALIZE_STATUS_OK;
+    serialization_context.read_fd = serialization_context.write_fd = port_open( serialization_port );
+
+    /*
+    send_args(
+            log_context.write_fd,
+            log_context.args_size,
+            log_context.args );
+    */
+
+    ret = mbedtls_serialize_frontend( &serialization_context );
+
+    port_close( serialization_context.read_fd );
+
+    DBG( "Returning %d", ret );
+    return( ret );
+}
+
+int old_main( int argc, char **argv )
 {
     mbedtls_serialize_context_t ctx = { .read_fd = 3, .write_fd = 4,
                                         .stack = NULL,
                                         .status = MBEDTLS_SERIALIZE_STATUS_OK};
-    fdbg = fopen("frontend.log", "w");
+    fdbg = stdout; //fopen("frontend.log", "w");
     /* If forked, parent passes rd/wr pipe descriptors via command line */
     if ( argc == 3 )
     {
@@ -933,3 +1272,4 @@ int main( int argc, char **argv )
     mbedtls_serialize_frontend( &ctx );
     return( ctx.status != MBEDTLS_SERIALIZE_STATUS_EXITED );
 }
+

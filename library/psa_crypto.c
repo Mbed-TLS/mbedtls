@@ -1235,6 +1235,7 @@ static int psa_cmac_start( psa_mac_operation_t *operation,
 }
 #endif /* MBEDTLS_CMAC_C */
 
+#if defined(MBEDTLS_MD_C)
 static int psa_hmac_start( psa_mac_operation_t *operation,
                            psa_key_type_t key_type,
                            key_slot_t *slot,
@@ -1301,6 +1302,7 @@ cleanup:
 
     return( status );
 }
+#endif /* MBEDTLS_MD_C */
 
 psa_status_t psa_mac_start( psa_mac_operation_t *operation,
                             psa_key_slot_t key,
@@ -1357,13 +1359,11 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
     }
 
     /* If we reach this point, then the algorithm-specific part of the
-
      * context may contain data that needs to be wiped on error. */
     if( status != PSA_SUCCESS )
     {
         psa_mac_abort( operation );
     }
-
     else
     {
         operation->key_set = 1;

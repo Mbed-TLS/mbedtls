@@ -865,7 +865,9 @@ psa_status_t psa_hash_start( psa_hash_operation_t *operation,
             break;
 #endif
         default:
-            return( PSA_ERROR_NOT_SUPPORTED );
+            return( PSA_ALG_IS_HASH( alg ) ?
+                    PSA_ERROR_NOT_SUPPORTED :
+                    PSA_ERROR_INVALID_ARGUMENT );
     }
     if( ret == 0 )
         operation->alg = alg;
@@ -1166,7 +1168,8 @@ static psa_status_t psa_mac_init( psa_mac_operation_t *operation,
     else
 #endif /* MBEDTLS_MD_C */
     {
-        /* fall through with NOT_SUPPORTED */
+        if( ! PSA_ALG_IS_MAC( alg ) )
+            status = PSA_ERROR_INVALID_ARGUMENT;
     }
 
     if( status != PSA_SUCCESS )
@@ -1910,6 +1913,12 @@ psa_status_t psa_asymmetric_decrypt( psa_key_slot_t key,
 static psa_status_t psa_cipher_init( psa_cipher_operation_t *operation,
                                      psa_algorithm_t alg )
 {
+    if( ! PSA_ALG_IS_CIPHER( alg ) )
+    {
+        memset( operation, 0, sizeof( *operation ) );
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+
     operation->alg = alg;
     operation->key_set = 0;
     operation->iv_set = 0;

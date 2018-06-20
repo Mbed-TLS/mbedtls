@@ -55,6 +55,9 @@ SHOW_TEST_NUMBER=0
 RUN_TEST_NUMBER=''
 
 PRESERVE_LOGS=0
+ON_TARGET=0
+FLASHER=''
+LIST_TESTS=0
 
 # Pick a "unique" server port in the range 10000-19999, and a proxy
 # port which is this plus 10000. Each port number may be independently
@@ -71,9 +74,13 @@ print_usage() {
     printf "  -n|--number\tExecute only numbered test (comma-separated, e.g. '245,256')\n"
     printf "  -s|--show-numbers\tShow test numbers in front of test names\n"
     printf "  -p|--preserve-logs\tPreserve logs of successful tests as well\n"
+    printf "  -L|--list\tList tests\n"
     printf "     --port\tTCP/UDP port (default: randomish 1xxxx)\n"
     printf "     --proxy-port\tTCP/UDP proxy port (default: randomish 2xxxx)\n"
     printf "     --seed\tInteger seed value to use for this test run\n"
+    printf "     --on-target\tExecute on-target tests only\n"
+    printf "     --flasher\tSpecify flashing application and binary to flash\n"
+    printf "              \t(e.g. mbed-os-flasher.sh '/media/MBED,BUILD/K64F/GCC_ARM/mbed-os-sslclient.bin')\n"
 }
 
 get_options() {
@@ -106,6 +113,16 @@ get_options() {
             --seed)
                 shift; SEED="$1"
                 ;;
+            --on-target)
+                ON_TARGET=1
+                ;;
+            --flasher)
+                shift; FLASHER="$1"
+                shift; BIN_FILE="$1"
+                ;;
+            -L|--list)
+                LIST_TESTS=1
+                ;;
             -h|--help)
                 print_usage
                 exit 0
@@ -119,6 +136,14 @@ get_options() {
         shift
     done
 }
+
+if [ "$ON_TARGET" = 1 ] && [ "$LIST_TESTS" = 0 ]; then
+    if [ "X${FLASHER:-X}" == XX ]; then
+        echo "Option '--flasher' not supplied with option '--on-target'!"
+        print_usage
+        exit 1
+    fi
+fi
 
 # skip next test if the flag is not enabled in config.h
 requires_config_enabled() {
@@ -416,7 +441,15 @@ run_test() {
         return
     fi
 
-    print_name "$NAME"
+    if [ -n "$ON_TARGET" ]; then :
+        #filter_on_target_test "$NAME"
+    fi
+
+    if [ "$LIST_TESTS" = "1" ]; then
+        echo "$NAME"
+    else
+        print_name "$NAME"
+    fi
 
     # Do we only run numbered tests?
     if [ "X$RUN_TEST_NUMBER" = "X" ]; then :
@@ -428,8 +461,14 @@ run_test() {
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then
         SKIP_NEXT="NO"
-        echo "SKIP"
+        if [ "$LIST_TESTS" = "0" ]; then
+            echo "SKIP"
+        fi
         SKIPS=$(( $SKIPS + 1 ))
+        return
+    fi
+
+    if [ "$LIST_TESTS" = "1" ]; then
         return
     fi
 
@@ -5166,6 +5205,9 @@ run_test    "DTLS proxy: 3d, gnutls server, fragmentation, nbio" \
             -s "Extra-header:" \
             -c "Extra-header:"
 
+if [ "$LIST_TESTS" = "1" ]; then
+    exit 0
+fi
 # Final report
 
 echo "------------------------------------------------------------------------"

@@ -1328,7 +1328,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_DEBUG_C)
     mbedtls_debug_set_threshold( opt.debug_level );
 #endif
-    buf = malloc( opt.buffer_size );
+    buf = mbedtls_calloc( 1, opt.buffer_size + 1 );
     if( buf == NULL )
     {
         mbedtls_printf("Could not allocate %u bytes\n", opt.buffer_size);
@@ -2502,6 +2502,7 @@ exit:
     mbedtls_memory_buffer_alloc_free();
 #endif
 
+    mbedtls_free(buf);
     mbedtls_printf( " done.\n" );
 
 #if defined(_WIN32)

@@ -26,6 +26,230 @@ int mem_is_nonzero( void *buffer, size_t size )
     }
     return( 0 );
 }
+
+static int exercise_mac_key( psa_key_slot_t key,
+                             psa_key_usage_t usage,
+                             psa_algorithm_t alg )
+{
+    psa_mac_operation_t operation;
+    const unsigned char input[] = "foo";
+    unsigned char mac[64] = {0};
+    size_t mac_length = sizeof( mac );
+
+    if( usage & PSA_KEY_USAGE_SIGN )
+    {
+        TEST_ASSERT( psa_mac_start( &operation, key, alg ) == PSA_SUCCESS );
+        TEST_ASSERT( psa_mac_update( &operation,
+                                     input, sizeof( input ) ) == PSA_SUCCESS );
+        TEST_ASSERT( psa_mac_finish( &operation,
+                                     mac, sizeof( input ),
+                                     &mac_length ) == PSA_SUCCESS );
+    }
+
+    if( usage & PSA_KEY_USAGE_VERIFY )
+    {
+        psa_status_t verify_status =
+            ( usage & PSA_KEY_USAGE_SIGN ?
+              PSA_SUCCESS :
+              PSA_ERROR_INVALID_SIGNATURE );
+        TEST_ASSERT( psa_mac_start( &operation, key, alg ) == PSA_SUCCESS );
+        TEST_ASSERT( psa_mac_update( &operation,
+                                     input, sizeof( input ) ) == PSA_SUCCESS );
+        TEST_ASSERT( psa_mac_verify( &operation, mac, mac_length ) == verify_status );
+    }
+
+    return( 1 );
+
+exit:
+    psa_mac_abort( &operation );
+    return( 0 );
+}
+
+static int exercise_cipher_key( psa_key_slot_t key,
+                                psa_key_usage_t usage,
+                                psa_algorithm_t alg )
+{
+    psa_cipher_operation_t operation;
+    unsigned char iv[16] = {0};
+    size_t iv_length = sizeof( iv );
+    const unsigned char plaintext[16] = "Hello, world...";
+    unsigned char ciphertext[32] = "(wabblewebblewibblewobblewubble)";
+    size_t ciphertext_length = sizeof( ciphertext );
+    unsigned char decrypted[sizeof( ciphertext )];
+    size_t part_length;
+
+    if( usage & PSA_KEY_USAGE_ENCRYPT )
+    {
+        TEST_ASSERT( psa_encrypt_setup( &operation, key, alg ) == PSA_SUCCESS );
+        TEST_ASSERT( psa_encrypt_generate_iv( &operation,
+                                              iv, sizeof( iv ),
+                                              &iv_length ) == PSA_SUCCESS );
+        TEST_ASSERT( psa_cipher_update( &operation,
+                                        plaintext, sizeof( plaintext ),
+                                        ciphertext, sizeof( ciphertext ),
+                                        &ciphertext_length ) == PSA_SUCCESS );
+        TEST_ASSERT( psa_cipher_finish( &operation,
+                                        ciphertext + ciphertext_length,
+                                        sizeof( ciphertext ) - ciphertext_length,
+                                        &part_length ) == PSA_SUCCESS );
+        ciphertext_length += part_length;
+    }
+
+    if( usage & PSA_KEY_USAGE_DECRYPT )
+    {
+        psa_status_t status;
+        if( ! ( usage & PSA_KEY_USAGE_ENCRYPT ) )
+        {
+            psa_key_type_t type;
+            size_t bits;
+            TEST_ASSERT( psa_get_key_information( key, &type, &bits ) );
+            iv_length = PSA_BLOCK_CIPHER_BLOCK_SIZE( type );
+        }
+        TEST_ASSERT( psa_decrypt_setup( &operation, key, alg ) == PSA_SUCCESS );
+        TEST_ASSERT( psa_encrypt_set_iv( &operation,
+                                         iv, iv_length ) == PSA_SUCCESS );
+        TEST_ASSERT( psa_cipher_update( &operation,
+                                        ciphertext, ciphertext_length,
+                                        decrypted, sizeof( decrypted ),
+                                        &part_length ) == PSA_SUCCESS );
+        status = psa_cipher_finish( &operation,
+                                    decrypted + part_length,
+                                    sizeof( decrypted ) - part_length,
+                                    &part_length );
+        /* For a stream cipher, all inputs are valid. For a block cipher,
+         * if the input is some aribtrary data rather than an actual
+         ciphertext, a padding error is likely.  */
+        if( ( usage & PSA_KEY_USAGE_DECRYPT ) ||
+            PSA_BLOCK_CIPHER_BLOCK_SIZE( alg ) == 1 )
+            TEST_ASSERT( status == PSA_SUCCESS );
+        else
+            TEST_ASSERT( status == PSA_SUCCESS ||
+                         status == PSA_ERROR_INVALID_PADDING );
+    }
+
+    return( 1 );
+
+exit:
+    psa_cipher_abort( &operation );
+    return( 0 );
+}
+
+static int exercise_aead_key( psa_key_slot_t key,
+                              psa_key_usage_t usage,
+                              psa_algorithm_t alg )
+{
+    unsigned char nonce[16] = {0};
+    size_t nonce_length = sizeof( nonce );
+    unsigned char plaintext[16] = "Hello, world...";
+    unsigned char ciphertext[48] = "(wabblewebblewibblewobblewubble)";
+    size_t ciphertext_length = sizeof( ciphertext );
+    size_t plaintext_length = sizeof( ciphertext );
+
+    if( usage & PSA_KEY_USAGE_ENCRYPT )
+    {
+        TEST_ASSERT( psa_aead_encrypt( key, alg,
+                                       nonce, nonce_length,
+                                       NULL, 0,
+                                       plaintext, sizeof( plaintext ),
+                                       ciphertext, sizeof( ciphertext ),
+                                       &ciphertext_length ) == PSA_SUCCESS );
+    }
+
+    if( usage & PSA_KEY_USAGE_DECRYPT )
+    {
+        psa_status_t verify_status =
+            ( usage & PSA_KEY_USAGE_ENCRYPT ?
+              PSA_SUCCESS :
+              PSA_ERROR_INVALID_SIGNATURE );
+        TEST_ASSERT( psa_aead_decrypt( key, alg,
+                                       nonce, nonce_length,
+                                       NULL, 0,
+                                       ciphertext, ciphertext_length,
+                                       plaintext, sizeof( plaintext ),
+                                       &plaintext_length ) == verify_status );
+    }
+
+    return( 1 );
+
+exit:
+    return( 0 );
+}
+
+static int exercise_signature_key( psa_key_slot_t key,
+                                   psa_key_usage_t usage,
+                                   psa_algorithm_t alg )
+{
+    unsigned char payload[16] = {0};
+    size_t payload_length = sizeof( payload );
+    unsigned char signature[256] = {0};
+    size_t signature_length = sizeof( signature );
+
+    if( usage & PSA_KEY_USAGE_SIGN )
+    {
+        TEST_ASSERT( psa_asymmetric_sign( key, alg,
+                                          payload, payload_length,
+                                          NULL, 0,
+                                          signature, sizeof( signature ),
+                                          &signature_length ) == PSA_SUCCESS );
+    }
+
+    if( usage & PSA_KEY_USAGE_VERIFY )
+    {
+        psa_status_t verify_status =
+            ( usage & PSA_KEY_USAGE_SIGN ?
+              PSA_SUCCESS :
+              PSA_ERROR_INVALID_SIGNATURE );
+        TEST_ASSERT( psa_asymmetric_verify( key, alg,
+                                            payload, payload_length,
+                                            NULL, 0,
+                                            signature, signature_length ) ==
+                     verify_status );
+    }
+
+    return( 1 );
+
+exit:
+    return( 0 );
+}
+
+static int exercise_asymmetric_encryption_key( psa_key_slot_t key,
+                                               psa_key_usage_t usage,
+                                               psa_algorithm_t alg )
+{
+    unsigned char plaintext[256] = "Hello, world...";
+    unsigned char ciphertext[256] = "(wabblewebblewibblewobblewubble)";
+    size_t ciphertext_length = sizeof( ciphertext );
+    size_t plaintext_length = 16;
+
+    if( usage & PSA_KEY_USAGE_ENCRYPT )
+    {
+        TEST_ASSERT(
+            psa_asymmetric_encrypt( key, alg,
+                                    plaintext, plaintext_length,
+                                    NULL, 0,
+                                    ciphertext, sizeof( ciphertext ),
+                                    &ciphertext_length ) == PSA_SUCCESS );
+    }
+
+    if( usage & PSA_KEY_USAGE_DECRYPT )
+    {
+        psa_status_t status =
+            psa_asymmetric_decrypt( key, alg,
+                                    ciphertext, ciphertext_length,
+                                    NULL, 0,
+                                    plaintext, sizeof( plaintext ),
+                                    &plaintext_length );
+        TEST_ASSERT( status == PSA_SUCCESS ||
+                     ( ( usage & PSA_KEY_USAGE_ENCRYPT ) == 0 &&
+                       ( status == PSA_ERROR_INVALID_ARGUMENT ||
+                         status == PSA_ERROR_INVALID_PADDING ) ) );
+    }
+
+    return( 1 );
+
+exit:
+    return( 0 );
+}
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -1791,9 +2015,17 @@ void generate_key( int type_arg,
 #endif /* MBEDTLS_ECP_C */
     }
 
-    /* We should do something with the key according to its permitted usage.
-     * This would require figuring out what the key type allows or
-     * specifying it somehow in the test data. */
+    /* Do something with the key according to its type and permitted usage. */
+    if( PSA_ALG_IS_MAC( alg ) )
+        exercise_mac_key( slot, usage, alg );
+    else if( PSA_ALG_IS_CIPHER( alg ) )
+        exercise_cipher_key( slot, usage, alg );
+    else if( PSA_ALG_IS_AEAD( alg ) )
+        exercise_aead_key( slot, usage, alg );
+    else if( PSA_ALG_IS_SIGN( alg ) )
+        exercise_signature_key( slot, usage, alg );
+    else if( PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) )
+        exercise_asymmetric_encryption_key( slot, usage, alg );
 
 exit:
     psa_destroy_key( slot );

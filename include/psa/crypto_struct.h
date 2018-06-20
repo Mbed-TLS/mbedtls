@@ -46,11 +46,11 @@
 #include "mbedtls/sha512.h"
 
 #if defined(MBEDTLS_SHA512_C)
-#define PSA_CRYPTO_MD_MAX_SIZE 64
-#define PSA_CRYPTO_MD_BLOCK_SIZE 128
-#else 
-#define PSA_CRYPTO_MD_MAX_SIZE 32
-#define PSA_CRYPTO_MD_BLOCK_SIZE 64
+#define PSA_HASH_MAX_SIZE 64
+#define PSA_HMAC_MAX_HASH_BLOCK_SIZE 128
+#else
+#define PSA_HASH_MAX_SIZE 32
+#define PSA_HMAC_MAX_HASH_BLOCK_SIZE 64
 #endif
 
 struct psa_hash_operation_s
@@ -84,11 +84,12 @@ struct psa_hash_operation_s
 };
 
 
-typedef struct {
+typedef struct
+{
         /** The hash context. */
         struct psa_hash_operation_s hash_ctx;
         /** The HMAC part of the context. */
-        uint8_t opad[PSA_CRYPTO_MD_BLOCK_SIZE];
+        uint8_t opad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
 } psa_hmac_internal_data;
 
 

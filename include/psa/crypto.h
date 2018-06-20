@@ -357,7 +357,6 @@ typedef uint32_t psa_key_type_t;
 #define PSA_KEY_TYPE_DSA_KEYPAIR                ((psa_key_type_t)0x07020000)
 #define PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE        ((psa_key_type_t)0x06030000)
 #define PSA_KEY_TYPE_ECC_KEYPAIR_BASE           ((psa_key_type_t)0x07030000)
-#define PSA_KEY_TYPE_ECC_CURVE_NISTP256R1       ((psa_key_type_t)0x00000001)
 #define PSA_KEY_TYPE_ECC_CURVE_MASK             ((psa_key_type_t)0x0000ffff)
 #define PSA_KEY_TYPE_ECC_KEYPAIR(curve)         \
     (PSA_KEY_TYPE_ECC_KEYPAIR_BASE | (curve))
@@ -396,6 +395,55 @@ typedef uint32_t psa_key_type_t;
 #define PSA_KEY_TYPE_IS_ECC(type)                                       \
     ((PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) &                        \
       ~PSA_KEY_TYPE_ECC_CURVE_MASK) == PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE)
+
+/** The type of PSA elliptic curve identifiers. */
+typedef uint16_t psa_ecc_curve_t;
+/** Extract the curve from an elliptic curve key type. */
+#define PSA_KEY_TYPE_GET_CURVE(type)                             \
+    ((psa_ecc_curve_t) (PSA_KEY_TYPE_IS_ECC(type) ?              \
+                        ((type) & PSA_KEY_TYPE_ECC_CURVE_MASK) : \
+                        0))
+
+/* The encoding of curve identifiers is currently aligned with the
+ * TLS Supported Groups Registry (formerly known as the
+ * TLS EC Named Curve Registry)
+ * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
+ * The values are defined by RFC 4492, RFC 7027 and RFC 7919. */
+#define PSA_ECC_CURVE_SECT163K1         ((psa_ecc_curve_t) 0x0001)
+#define PSA_ECC_CURVE_SECT163R1         ((psa_ecc_curve_t) 0x0002)
+#define PSA_ECC_CURVE_SECT163R2         ((psa_ecc_curve_t) 0x0003)
+#define PSA_ECC_CURVE_SECT193R1         ((psa_ecc_curve_t) 0x0004)
+#define PSA_ECC_CURVE_SECT193R2         ((psa_ecc_curve_t) 0x0005)
+#define PSA_ECC_CURVE_SECT233K1         ((psa_ecc_curve_t) 0x0006)
+#define PSA_ECC_CURVE_SECT233R1         ((psa_ecc_curve_t) 0x0007)
+#define PSA_ECC_CURVE_SECT239K1         ((psa_ecc_curve_t) 0x0008)
+#define PSA_ECC_CURVE_SECT283K1         ((psa_ecc_curve_t) 0x0009)
+#define PSA_ECC_CURVE_SECT283R1         ((psa_ecc_curve_t) 0x000a)
+#define PSA_ECC_CURVE_SECT409K1         ((psa_ecc_curve_t) 0x000b)
+#define PSA_ECC_CURVE_SECT409R1         ((psa_ecc_curve_t) 0x000c)
+#define PSA_ECC_CURVE_SECT571K1         ((psa_ecc_curve_t) 0x000d)
+#define PSA_ECC_CURVE_SECT571R1         ((psa_ecc_curve_t) 0x000e)
+#define PSA_ECC_CURVE_SECP160K1         ((psa_ecc_curve_t) 0x000f)
+#define PSA_ECC_CURVE_SECP160R1         ((psa_ecc_curve_t) 0x0010)
+#define PSA_ECC_CURVE_SECP160R2         ((psa_ecc_curve_t) 0x0011)
+#define PSA_ECC_CURVE_SECP192K1         ((psa_ecc_curve_t) 0x0012)
+#define PSA_ECC_CURVE_SECP192R1         ((psa_ecc_curve_t) 0x0013)
+#define PSA_ECC_CURVE_SECP224K1         ((psa_ecc_curve_t) 0x0014)
+#define PSA_ECC_CURVE_SECP224R1         ((psa_ecc_curve_t) 0x0015)
+#define PSA_ECC_CURVE_SECP256K1         ((psa_ecc_curve_t) 0x0016)
+#define PSA_ECC_CURVE_SECP256R1         ((psa_ecc_curve_t) 0x0017)
+#define PSA_ECC_CURVE_SECP384R1         ((psa_ecc_curve_t) 0x0018)
+#define PSA_ECC_CURVE_SECP521R1         ((psa_ecc_curve_t) 0x0019)
+#define PSA_ECC_CURVE_BRAINPOOL_P256R1  ((psa_ecc_curve_t) 0x001a)
+#define PSA_ECC_CURVE_BRAINPOOL_P384R1  ((psa_ecc_curve_t) 0x001b)
+#define PSA_ECC_CURVE_BRAINPOOL_P512R1  ((psa_ecc_curve_t) 0x001c)
+#define PSA_ECC_CURVE_CURVE25519        ((psa_ecc_curve_t) 0x001d)
+#define PSA_ECC_CURVE_CURVE448          ((psa_ecc_curve_t) 0x001e)
+#define PSA_ECC_CURVE_FFDHE_2048        ((psa_ecc_curve_t) 0x0100)
+#define PSA_ECC_CURVE_FFDHE_3072        ((psa_ecc_curve_t) 0x0101)
+#define PSA_ECC_CURVE_FFDHE_4096        ((psa_ecc_curve_t) 0x0102)
+#define PSA_ECC_CURVE_FFDHE_6144        ((psa_ecc_curve_t) 0x0103)
+#define PSA_ECC_CURVE_FFDHE_8192        ((psa_ecc_curve_t) 0x0104)
 
 /** The block size of a block cipher.
  *
@@ -1304,8 +1352,8 @@ psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
 psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
                                const uint8_t *input,
                                size_t input_length,
-                               unsigned char *output, 
-                               size_t output_size, 
+                               unsigned char *output,
+                               size_t output_size,
                                size_t *output_length);
 
 psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,

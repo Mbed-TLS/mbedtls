@@ -53,7 +53,7 @@ done
 for THING in identifiers; do
     printf "Names of $THING: "
     test -r $THING
-    BAD=$( grep -v '^mbedtls_[0-9a-z_]*[0-9a-z]$' $THING || true )
+    BAD=$( grep -E -v '^(mbedtls|psa)_[0-9a-z_]*[0-9a-z]$' $THING || true )
     if [ "x$BAD" = "x" ]; then
         echo "PASS"
     else

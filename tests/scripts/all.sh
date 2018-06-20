@@ -357,6 +357,12 @@ if_build_succeeded () {
     fi
 }
 
+# to be used instead of ! for commands run with
+# record_status or if_build_succeeded
+not() {
+    ! "$@"
+}
+
 msg "info: $0 configuration"
 echo "MEMORY: $MEMORY"
 echo "FORCE: $FORCE"
@@ -907,17 +913,10 @@ for optimization_flag in -O2 -O3 -Ofast -Os; do
         msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
         cleanup
         make programs CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag"
-        if_build_succeeded gdb -x tests/scripts/test_zeroize.gdb -nw -batch -nx > test_zeroize.log 2>&1
-        if [ ! -s test_zeroize.log ]; then
-            err_msg "test_zeroize.log was not found or is empty"
-            record_status [ -s test_zeroize.log ]
-        elif ! grep "The buffer was correctly zeroized" test_zeroize.log >/dev/null 2>&1; then
-            err_msg "test_zeroize.log does not contain pass string"
-            record_status false
-        elif grep -i "error" test_zeroize.log >/dev/null 2>&1; then
-            err_msg "test_zeroize.log contains error string"
-            record_status false
-        fi
+        if_build_succeeded gdb -x tests/scripts/test_zeroize.gdb -nw -batch -nx 2>&1 | tee test_zeroize.log
+        if_build_succeeded [ -s test_zeroize.log ]
+        if_build_succeeded grep "The buffer was correctly zeroized" test_zeroize.log
+        if_build_succeeded not grep -i "error" test_zeroize.log
         rm -f test_zeroize.log
     done
 done

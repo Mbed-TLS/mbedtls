@@ -1731,7 +1731,7 @@ int main( int argc, char *argv[] )
         ret = 3;
         goto exit;
     }
-    
+
     if( opt.force_ciphersuite[0] > 0 )
     {
         const mbedtls_ssl_ciphersuite_t *ciphersuite_info;

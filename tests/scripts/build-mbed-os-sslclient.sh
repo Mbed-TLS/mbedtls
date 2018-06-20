@@ -27,6 +27,8 @@ make deploy
 # Enable serialized network and file system
 $MBEDTLS_ROOT/scripts/config.pl -f $MBED_OS_SSLCLIENT_CONFIG set MBEDTLS_SERIALIZE_C
 $MBEDTLS_ROOT/scripts/config.pl -f $MBED_OS_SSLCLIENT_CONFIG set MBEDTLS_FS_IO
+$MBEDTLS_ROOT/scripts/config.pl -f $MBED_OS_SSLCLIENT_CONFIG set MBEDTLS_NET_C
+$MBEDTLS_ROOT/scripts/config.pl -f $MBED_OS_SSLCLIENT_CONFIG set MBEDTLS_NET_OFFLOAD_C
 
 # Build ssl client
 cd $MBED_OS_SSLCLIENT

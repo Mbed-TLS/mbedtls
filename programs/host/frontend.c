@@ -1138,6 +1138,40 @@ static int mbedtls_serialize_frontend( mbedtls_serialize_context_t *ctx )
     return( ctx->status );
 }
 
+/**
+ * Sends the commandline args (except for the argv[0] which depends on the
+ * target program) to the target. The protocol is:
+ * - send the four byte integer value denoting the size of the args buffer
+ * - send the args buffer (if size > 0)
+ * If no arguments have been passed for the target program only the four-byte
+ * zero value is sent.
+ * @param args_size Number of chars stored in the args buffer
+ * @param args A buffer containing the commandline arguments concatenated
+ *             maintaining the NUL characters at the end of each argument
+ *             (including the last one)
+ */
+static void send_args( mbedtls_serialize_context_t * ctx, int args_size, char* args )
+{
+    char sizebuf[4] = { 0, 0, 0, 0 };
+    DBG( "I/O Sending args..." );
+    if( args_size == 0 )
+    {
+        // Here sizebuf is filled with zeroes
+        DBG( "Sending 0 args" );
+        mbedtls_serialize_write( ctx, (uint8_t *) sizebuf, 4 );
+    }
+    else
+    {
+        DBG( "Sending %d bytes of args", args_size );
+        sizebuf[0] = args_size >> 24 & 0xff;
+        sizebuf[1] = args_size >> 16 & 0xff;
+        sizebuf[2] = args_size >> 8 & 0xff;
+        sizebuf[3] = args_size & 0xff;
+        mbedtls_serialize_write( ctx, (uint8_t *) sizebuf, 4 );
+        mbedtls_serialize_write( ctx, (uint8_t *) args, args_size );
+    }
+}
+
 static int read_args(
         int argc,
         char **argv,
@@ -1175,6 +1209,7 @@ static int read_args(
         int option_index;
         int c = getopt_long( argc, argv, "p:", long_options, &option_index );
 
+        printf ("optarg %s optind %d\n", optarg, optind);
         switch( c )
         {
         case 'p':
@@ -1197,7 +1232,7 @@ opt_done:
     {
         // Compute the arguments' length (including NUL character for each argument)
         *sub_args_len = 0;
-        for( i = optind + 2; i < argc; ++i )
+        for( i = optind; i < argc; ++i )
             *sub_args_len += strlen(argv[i]) + 1;
 
         // Allocate the cumulative buffer for all the arguments
@@ -1205,7 +1240,7 @@ opt_done:
 
         // Copy the arguments one by one
         write_index = 0;
-        for( i = optind + 2; i < argc; ++i )
+        for( i = optind; i < argc; ++i )
         {
             int len = strlen(argv[i]);
             memcpy(*sub_args + write_index, argv[i], len + 1); // Copy including NUL character
@@ -1240,12 +1275,10 @@ int main(int argc, char** argv)
     serialization_context.status = MBEDTLS_SERIALIZE_STATUS_OK;
     serialization_context.read_fd = serialization_context.write_fd = port_open( serialization_port );
 
-    /*
     send_args(
-            log_context.write_fd,
-            log_context.args_size,
-            log_context.args );
-    */
+            &serialization_context,
+            sub_args_len,
+            sub_args );
 
     ret = mbedtls_serialize_frontend( &serialization_context );
 

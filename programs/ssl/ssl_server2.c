@@ -1331,7 +1331,7 @@ int main( int argc, char *argv[] )
     buf = mbedtls_calloc( 1, opt.buffer_size + 1 );
     if( buf == NULL )
     {
-        mbedtls_printf("Could not allocate %u bytes\n", opt.buffer_size);
+        mbedtls_printf( "Could not allocate %u bytes\n", opt.buffer_size );
         ret = 3;
         goto exit;
     }
@@ -2502,7 +2502,7 @@ exit:
     mbedtls_memory_buffer_alloc_free();
 #endif
 
-    mbedtls_free(buf);
+    mbedtls_free( buf );
     mbedtls_printf( " done.\n" );
 
 #if defined(_WIN32)

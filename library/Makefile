@@ -22,7 +22,9 @@ endif
 ifdef WINDOWS
 WINDOWS_BUILD=1
 else ifeq ($(shell uname -s),Darwin)
+ifeq ($(AR),ar)
 APPLE_BUILD ?= 1
+endif
 endif
 
 # To compile as a shared library:

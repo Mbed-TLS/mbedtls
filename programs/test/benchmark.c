@@ -139,14 +139,12 @@ do {                                                                    \
     if( ret != 0 )                                                      \
     {                                                                   \
         PRINT_ERROR;                                                    \
+        break;                                                          \
     }                                                                   \
-    else                                                                \
-    {                                                                   \
-        mbedtls_printf( "%9lu KiB/s,  %9lu cycles/byte\n",              \
-                         ii * BUFSIZE / 1024,                           \
-                         ( mbedtls_timing_hardclock() - tsc )           \
-                         / ( jj * BUFSIZE ) );                          \
-    }                                                                   \
+                                                                        \
+    mbedtls_printf( "%9lu KiB/s,  %9lu cycles/byte\n",                  \
+                     ii * BUFSIZE / 1024,                               \
+                     ( mbedtls_timing_hardclock() - tsc ) / ( jj * BUFSIZE ) );         \
 } while( 0 )
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && defined(MBEDTLS_MEMORY_DEBUG)
@@ -256,7 +254,7 @@ typedef struct {
 
 int main( int argc, char *argv[] )
 {
-    int i;
+    int i, ret;
     unsigned char tmp[200];
     char title[TITLE_LEN];
     todo_list todo;
@@ -393,9 +391,18 @@ int main( int argc, char *argv[] )
     {
         mbedtls_des3_context des3;
         mbedtls_des3_init( &des3 );
-        mbedtls_des3_set3key_enc( &des3, tmp );
-        TIME_AND_TSC( "3DES",
-                mbedtls_des3_crypt_cbc( &des3, MBEDTLS_DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
+        ret = mbedtls_des3_set3key_enc( &des3, tmp );
+        if( ret  != 0 )
+        {
+            mbedtls_printf( HEADER_FORMAT, title );
+            PRINT_ERROR;
+
+        }
+        else
+        {
+            TIME_AND_TSC( "3DES",
+                    mbedtls_des3_crypt_cbc( &des3, MBEDTLS_DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
+        }
         mbedtls_des3_free( &des3 );
     }
 
@@ -403,9 +410,17 @@ int main( int argc, char *argv[] )
     {
         mbedtls_des_context des;
         mbedtls_des_init( &des );
-        mbedtls_des_setkey_enc( &des, tmp );
-        TIME_AND_TSC( "DES",
-                mbedtls_des_crypt_cbc( &des, MBEDTLS_DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
+        ret = mbedtls_des_setkey_enc( &des, tmp );
+        if( ret  != 0 )
+        {
+            mbedtls_printf( HEADER_FORMAT, title );
+            PRINT_ERROR;
+        }
+        else
+        {
+             TIME_AND_TSC( "DES",
+                     mbedtls_des_crypt_cbc( &des, MBEDTLS_DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
+        }
         mbedtls_des_free( &des );
     }
 
@@ -441,7 +456,13 @@ int main( int argc, char *argv[] )
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            mbedtls_aes_setkey_enc( &aes, tmp, keysize );
+            ret = mbedtls_aes_setkey_enc( &aes, tmp, keysize );
+            if( ret  != 0 )
+            {
+                mbedtls_printf( HEADER_FORMAT, title );
+                PRINT_ERROR;
+                continue;
+            }
 
             TIME_AND_TSC( title,
                 mbedtls_aes_crypt_cbc( &aes, MBEDTLS_AES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
@@ -485,11 +506,17 @@ int main( int argc, char *argv[] )
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            mbedtls_gcm_setkey( &gcm, MBEDTLS_CIPHER_ID_AES, tmp, keysize );
+            ret = mbedtls_gcm_setkey( &gcm, MBEDTLS_CIPHER_ID_AES, tmp, keysize );
+            if( ret  != 0 )
+            {
+                mbedtls_printf( HEADER_FORMAT, title );
+                PRINT_ERROR;
+                continue;
+            }
 
             TIME_AND_TSC( title,
                     mbedtls_gcm_crypt_and_tag( &gcm, MBEDTLS_GCM_ENCRYPT, BUFSIZE, tmp,
-                        12, NULL, 0, buf, buf, 16, tmp ) );
+                                               12, NULL, 0, buf, buf, 16, tmp ) );
 
             mbedtls_gcm_free( &gcm );
         }
@@ -508,11 +535,17 @@ int main( int argc, char *argv[] )
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            mbedtls_ccm_setkey( &ccm, MBEDTLS_CIPHER_ID_AES, tmp, keysize );
+            ret = mbedtls_ccm_setkey( &ccm, MBEDTLS_CIPHER_ID_AES, tmp, keysize );
+            if( ret  != 0 )
+            {
+                mbedtls_printf( HEADER_FORMAT, title );
+                PRINT_ERROR;
+                continue;
+            }
 
             TIME_AND_TSC( title,
                     mbedtls_ccm_encrypt_and_tag( &ccm, BUFSIZE, tmp,
-                        12, NULL, 0, buf, buf, tmp, 16 ) );
+                                                 12, NULL, 0, buf, buf, tmp, 16 ) );
 
             mbedtls_ccm_free( &ccm );
         }
@@ -583,11 +616,17 @@ int main( int argc, char *argv[] )
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            mbedtls_aria_setkey_enc( &aria, tmp, keysize );
+            ret = mbedtls_aria_setkey_enc( &aria, tmp, keysize );
+            if( ret  != 0 )
+            {
+                mbedtls_printf( HEADER_FORMAT, title );
+                PRINT_ERROR;
+                continue;
+            }
 
             TIME_AND_TSC( title,
                     mbedtls_aria_crypt_cbc( &aria, MBEDTLS_ARIA_ENCRYPT,
-                        BUFSIZE, tmp, buf, buf ) );
+                                            BUFSIZE, tmp, buf, buf ) );
         }
         mbedtls_aria_free( &aria );
     }
@@ -605,11 +644,17 @@ int main( int argc, char *argv[] )
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            mbedtls_camellia_setkey_enc( &camellia, tmp, keysize );
+            ret = mbedtls_camellia_setkey_enc( &camellia, tmp, keysize );
+            if( ret  != 0 )
+            {
+                mbedtls_printf( HEADER_FORMAT, title );
+                PRINT_ERROR;
+                continue;
+            }
 
             TIME_AND_TSC( title,
                     mbedtls_camellia_crypt_cbc( &camellia, MBEDTLS_CAMELLIA_ENCRYPT,
-                        BUFSIZE, tmp, buf, buf ) );
+                                                BUFSIZE, tmp, buf, buf ) );
         }
         mbedtls_camellia_free( &camellia );
     }
@@ -642,11 +687,17 @@ int main( int argc, char *argv[] )
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            mbedtls_blowfish_setkey( &blowfish, tmp, keysize );
+            ret = mbedtls_blowfish_setkey( &blowfish, tmp, keysize );
+            if( ret  != 0 )
+            {
+                mbedtls_printf( HEADER_FORMAT, title );
+                PRINT_ERROR;
+                continue;
+            }
 
             TIME_AND_TSC( title,
                     mbedtls_blowfish_crypt_cbc( &blowfish, MBEDTLS_BLOWFISH_ENCRYPT, BUFSIZE,
-                        tmp, buf, buf ) );
+                                                tmp, buf, buf ) );
         }
 
         mbedtls_blowfish_free( &blowfish );
@@ -742,7 +793,13 @@ int main( int argc, char *argv[] )
             mbedtls_snprintf( title, sizeof( title ), "RSA-%d", keysize );
 
             mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
-            mbedtls_rsa_gen_key( &rsa, myrand, NULL, keysize, 65537 );
+            ret = mbedtls_rsa_gen_key( &rsa, myrand, NULL, keysize, 65537 );
+            if( ret  != 0 )
+            {
+                mbedtls_printf( HEADER_FORMAT, title );
+                PRINT_ERROR;
+                continue;
+            }
 
             TIME_PUBLIC( title, " public",
                     buf[0] = 0;
@@ -793,7 +850,13 @@ int main( int argc, char *argv[] )
             }
 
             dhm.len = mbedtls_mpi_size( &dhm.P );
-            mbedtls_dhm_make_public( &dhm, (int) dhm.len, buf, dhm.len, myrand, NULL );
+            ret = mbedtls_dhm_make_public( &dhm, (int) dhm.len, buf, dhm.len, myrand, NULL );
+            if( ret  != 0 )
+            {
+                mbedtls_printf( HEADER_FORMAT, title );
+                PRINT_ERROR;
+                continue;
+            }
             if( mbedtls_mpi_copy( &dhm.GY, &dhm.GX ) != 0 )
                 mbedtls_exit( 1 );
 
@@ -826,13 +889,18 @@ int main( int argc, char *argv[] )
              curve_info++ )
         {
             mbedtls_ecdsa_init( &ecdsa );
-
-            if( mbedtls_ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) != 0 )
-                mbedtls_exit( 1 );
-            ecp_clear_precomputed( &ecdsa.grp );
-
             mbedtls_snprintf( title, sizeof( title ), "ECDSA-%s",
                                               curve_info->name );
+            ret =  mbedtls_ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL );
+            if( ret  != 0 )
+            {
+                mbedtls_printf( HEADER_FORMAT, title );
+                PRINT_ERROR;
+                continue;
+            }
+            ecp_clear_precomputed( &ecdsa.grp );
+
+
             TIME_PUBLIC( title, "sign",
                     ret = mbedtls_ecdsa_write_signature( &ecdsa, MBEDTLS_MD_SHA256, buf, curve_info->bit_size,
                                                 tmp, &sig_len, myrand, NULL ) );
@@ -846,16 +914,18 @@ int main( int argc, char *argv[] )
         {
             mbedtls_ecdsa_init( &ecdsa );
 
-            if( mbedtls_ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) != 0 ||
-                mbedtls_ecdsa_write_signature( &ecdsa, MBEDTLS_MD_SHA256, buf, curve_info->bit_size,
-                                               tmp, &sig_len, myrand, NULL ) != 0 )
+            mbedtls_snprintf( title, sizeof( title ), "ECDSA-%s",
+                                              curve_info->name );
+            if( ( ( ret = mbedtls_ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) ) != 0 ) ||
+                ( ( ret = mbedtls_ecdsa_write_signature( &ecdsa, MBEDTLS_MD_SHA256, buf, curve_info->bit_size,
+                                               tmp, &sig_len, myrand, NULL ) ) != 0 ) )
             {
-                mbedtls_exit( 1 );
+                mbedtls_printf( HEADER_FORMAT, title );
+                PRINT_ERROR;
+                continue;
             }
             ecp_clear_precomputed( &ecdsa.grp );
 
-            mbedtls_snprintf( title, sizeof( title ), "ECDSA-%s",
-                                              curve_info->name );
             TIME_PUBLIC( title, "verify",
                     ret = mbedtls_ecdsa_read_signature( &ecdsa, buf, curve_info->bit_size,
                                                 tmp, sig_len ) );
@@ -888,17 +958,19 @@ int main( int argc, char *argv[] )
         {
             mbedtls_ecdh_init( &ecdh );
 
-            if( mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) != 0 ||
-                mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
-                                  myrand, NULL ) != 0 ||
-                mbedtls_ecp_copy( &ecdh.Qp, &ecdh.Q ) != 0 )
+            mbedtls_snprintf( title, sizeof( title ), "ECDHE-%s",
+                                              curve_info->name );
+            if( ( ( ret = mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) ) != 0 ) ||
+                ( ( ret = mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
+                                  myrand, NULL )  ) != 0 ) ||
+                ( ( ret = mbedtls_ecp_copy( &ecdh.Qp, &ecdh.Q ) != 0 ) ) )
             {
-                mbedtls_exit( 1 );
+                mbedtls_printf( HEADER_FORMAT, title );
+                PRINT_ERROR;
+                continue;
             }
             ecp_clear_precomputed( &ecdh.grp );
 
-            mbedtls_snprintf( title, sizeof( title ), "ECDHE-%s",
-                                              curve_info->name );
             TIME_PUBLIC( title, "handshake",
                     ret |= mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                              myrand, NULL );
@@ -915,14 +987,17 @@ int main( int argc, char *argv[] )
             mbedtls_ecdh_init( &ecdh );
             mbedtls_mpi_init( &z );
 
-            if( mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) != 0 ||
-                mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp, myrand, NULL ) != 0 )
-            {
-                mbedtls_exit( 1 );
-            }
-
             mbedtls_snprintf( title, sizeof(title), "ECDHE-%s",
                               curve_info->name );
+            if( ( ( ret = mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) ) != 0 ) ||
+                ( ( ret = mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp, myrand, NULL ) ) != 0 ) )
+            {
+                mbedtls_printf( HEADER_FORMAT, title );
+                PRINT_ERROR;
+                continue;
+            }
+
+
             TIME_PUBLIC(  title, "handshake",
                     ret |= mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q,
                                             myrand, NULL );
@@ -939,19 +1014,21 @@ int main( int argc, char *argv[] )
         {
             mbedtls_ecdh_init( &ecdh );
 
-            if( mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) != 0 ||
-                mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
-                                  myrand, NULL ) != 0 ||
-                mbedtls_ecp_copy( &ecdh.Qp, &ecdh.Q ) != 0 ||
-                mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
-                                  myrand, NULL ) != 0 )
+            mbedtls_snprintf( title, sizeof( title ), "ECDH-%s",
+                                              curve_info->name );
+            if( ( ( ret = mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) ) != 0 ) ||
+                ( ( ret = mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
+                                  myrand, NULL ) ) != 0 ) ||
+                ( ( ret = mbedtls_ecp_copy( &ecdh.Qp, &ecdh.Q ) ) != 0 ) ||
+                ( ( ret = mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
+                                  myrand, NULL ) ) != 0 ) )
             {
-                mbedtls_exit( 1 );
+                mbedtls_printf( HEADER_FORMAT, title );
+                PRINT_ERROR;
+                continue;
             }
             ecp_clear_precomputed( &ecdh.grp );
 
-            mbedtls_snprintf( title, sizeof( title ), "ECDH-%s",
-                                              curve_info->name );
             TIME_PUBLIC( title, "handshake",
                     ret |= mbedtls_ecdh_calc_secret( &ecdh, &olen, buf, sizeof( buf ),
                                              myrand, NULL ) );
@@ -966,16 +1043,18 @@ int main( int argc, char *argv[] )
             mbedtls_ecdh_init( &ecdh );
             mbedtls_mpi_init( &z );
 
-            if( mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) != 0 ||
-                mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp,
-                                 myrand, NULL ) != 0 ||
-                mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q, myrand, NULL ) != 0 )
-            {
-                mbedtls_exit( 1 );
-            }
-
             mbedtls_snprintf( title, sizeof(title), "ECDH-%s",
                               curve_info->name );
+            if( ( ( ret = mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) ) != 0 ) ||
+                ( ( ret = mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp,
+                                 myrand, NULL ) ) != 0 ) ||
+                ( ( ret = mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q, myrand, NULL ) ) != 0 ) )
+            {
+                mbedtls_printf( HEADER_FORMAT, title );
+                PRINT_ERROR;
+                continue;
+            }
+
             TIME_PUBLIC(  title, "handshake",
                     ret |= mbedtls_ecdh_compute_shared( &ecdh.grp, &z, &ecdh.Qp, &ecdh.d,
                                                 myrand, NULL ) );

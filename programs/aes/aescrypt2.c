@@ -232,10 +232,31 @@ int main( int argc, char *argv[] )
 
         p = argv[2];
 
-        mbedtls_md_starts( &sha_ctx );
-        mbedtls_md_update( &sha_ctx, buffer, 8 );
+        ret = mbedtls_md_starts( &sha_ctx );
+        if( ret != 0 )
+        {
+            mbedtls_fprintf( stderr, "mbedtls_md_starts failed\n" );
+            goto exit;
+        }
+
+        ret = mbedtls_md_update( &sha_ctx, buffer, 8 );
+        if( ret != 0 )
+        {
+            mbedtls_fprintf( stderr, "mbedtls_md_update failed\n" );
+            goto exit;
+        }
         mbedtls_md_update( &sha_ctx, (unsigned char *) p, strlen( p ) );
-        mbedtls_md_finish( &sha_ctx, digest );
+        if( ret != 0 )
+        {
+            mbedtls_fprintf( stderr, "mbedtls_md_update failed\n" );
+            goto exit;
+        }
+        ret = mbedtls_md_finish( &sha_ctx, digest );
+        if( ret != 0 )
+        {
+            mbedtls_fprintf( stderr, "mbedtls_md_finish failed\n" );
+            goto exit;
+        }
 
         memcpy( IV, digest, 16 );
 
@@ -266,14 +287,49 @@ int main( int argc, char *argv[] )
 
         for( i = 0; i < 8192; i++ )
         {
-            mbedtls_md_starts( &sha_ctx );
-            mbedtls_md_update( &sha_ctx, digest, 32 );
-            mbedtls_md_update( &sha_ctx, key, keylen );
-            mbedtls_md_finish( &sha_ctx, digest );
+            ret = mbedtls_md_starts( &sha_ctx );
+            if( ret != 0 )
+            {
+                mbedtls_fprintf( stderr, "mbedtls_md_starts failed\n" );
+                goto exit;
+            }
+            ret = mbedtls_md_update( &sha_ctx, digest, 32 );
+            if( ret != 0 )
+            {
+                mbedtls_fprintf( stderr, "mbedtls_md_update failed\n" );
+                goto exit;
+            }
+            ret = mbedtls_md_update( &sha_ctx, key, keylen );
+            if( ret != 0 )
+            {
+                mbedtls_fprintf( stderr, "mbedtls_md_update failed\n" );
+                goto exit;
+            }
+            ret = mbedtls_md_finish( &sha_ctx, digest );
+            if( ret != 0 )
+            {
+                mbedtls_fprintf( stderr, "mbedtls_md_finish failed\n" );
+                goto exit;
+            }
         }
 
-        mbedtls_aes_setkey_enc( &aes_ctx, digest, 256 );
-        mbedtls_md_hmac_starts( &sha_ctx, digest, 32 );
+        ret = mbedtls_aes_setkey_enc( &aes_ctx, digest, 256 );
+        if( ret != 0 )
+        {
+            if( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE )
+                mbedtls_fprintf( stderr, "AES key size not supported by HW\n" );
+            else
+                mbedtls_fprintf( stderr, "mbedtls_aes_setkey_enc failed\n" );
+            goto exit;
+        }
+
+        ret = mbedtls_md_hmac_starts( &sha_ctx, digest, 32 );
+        if( ret != 0 )
+        {
+            mbedtls_fprintf( stderr, "mbedtls_md_hmac_starts failed\n" );
+            goto exit;
+        }
+
 
         /*
          * Encrypt and write the ciphertext.
@@ -292,8 +348,18 @@ int main( int argc, char *argv[] )
             for( i = 0; i < 16; i++ )
                 buffer[i] = (unsigned char)( buffer[i] ^ IV[i] );
 
-            mbedtls_aes_crypt_ecb( &aes_ctx, MBEDTLS_AES_ENCRYPT, buffer, buffer );
-            mbedtls_md_hmac_update( &sha_ctx, buffer, 16 );
+            ret = mbedtls_aes_crypt_ecb( &aes_ctx, MBEDTLS_AES_ENCRYPT, buffer, buffer );
+            if( ret != 0 )
+            {
+                mbedtls_fprintf( stderr, "mbedtls_aes_crypt_ecb failed\n" );
+                goto exit;
+            }
+            ret = mbedtls_md_hmac_update( &sha_ctx, buffer, 16 );
+            if( ret != 0 )
+            {
+                mbedtls_fprintf( stderr, "mbedtls_md_hmac_update failed\n" );
+                goto exit;
+            }
 
             if( fwrite( buffer, 1, 16, fout ) != 16 )
             {
@@ -307,7 +373,12 @@ int main( int argc, char *argv[] )
         /*
          * Finally write the HMAC.
          */
-        mbedtls_md_hmac_finish( &sha_ctx, digest );
+        ret = mbedtls_md_hmac_finish( &sha_ctx, digest );
+        if( ret != 0 )
+        {
+            mbedtls_fprintf( stderr, "mbedtls_md_hmac_finish failed\n" );
+            goto exit;
+        }
 
         if( fwrite( digest, 1, 32, fout ) != 32 )
         {
@@ -365,14 +436,47 @@ int main( int argc, char *argv[] )
 
         for( i = 0; i < 8192; i++ )
         {
-            mbedtls_md_starts( &sha_ctx );
-            mbedtls_md_update( &sha_ctx, digest, 32 );
-            mbedtls_md_update( &sha_ctx, key, keylen );
-            mbedtls_md_finish( &sha_ctx, digest );
+            ret = mbedtls_md_starts( &sha_ctx );
+            if( ret != 0 )
+            {
+                mbedtls_fprintf( stderr, "mbedtls_md_starts failed\n" );
+                goto exit;
+            }
+            ret = mbedtls_md_update( &sha_ctx, digest, 32 );
+            if( ret != 0 )
+            {
+                mbedtls_fprintf( stderr, "mbedtls_md_update failed\n" );
+                goto exit;
+            }
+            ret = mbedtls_md_update( &sha_ctx, key, keylen );
+            if( ret != 0 )
+            {
+                mbedtls_fprintf( stderr, "mbedtls_md_update failed\n" );
+                goto exit;
+            }
+            ret = mbedtls_md_finish( &sha_ctx, digest );
+            if( ret != 0 )
+            {
+                mbedtls_fprintf( stderr, "mbedtls_md_finish failed\n" );
+                goto exit;
+            }
         }
 
-        mbedtls_aes_setkey_dec( &aes_ctx, digest, 256 );
-        mbedtls_md_hmac_starts( &sha_ctx, digest, 32 );
+        ret = mbedtls_aes_setkey_dec( &aes_ctx, digest, 256 );
+        if( ret != 0 )
+        {
+            if( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE )
+                mbedtls_fprintf( stderr, "AES key size not supported by HW\n" );
+            else
+                mbedtls_fprintf( stderr, "mbedtls_aes_setkey_dec failed\n" );
+            goto exit;
+        }
+        ret = mbedtls_md_hmac_starts( &sha_ctx, digest, 32 );
+        if( ret != 0 )
+        {
+            mbedtls_fprintf( stderr, "mbedtls_md_hmac_starts failed\n" );
+            goto exit;
+        }
 
         /*
          * Decrypt and write the plaintext.
@@ -387,8 +491,18 @@ int main( int argc, char *argv[] )
 
             memcpy( tmp, buffer, 16 );
 
-            mbedtls_md_hmac_update( &sha_ctx, buffer, 16 );
-            mbedtls_aes_crypt_ecb( &aes_ctx, MBEDTLS_AES_DECRYPT, buffer, buffer );
+            ret = mbedtls_md_hmac_update( &sha_ctx, buffer, 16 );
+            if( ret != 0 )
+            {
+                mbedtls_fprintf( stderr, "mbedtls_md_hmac_update failed\n" );
+                goto exit;
+            }
+            ret = mbedtls_aes_crypt_ecb( &aes_ctx, MBEDTLS_AES_DECRYPT, buffer, buffer );
+            if( ret != 0 )
+            {
+                mbedtls_fprintf( stderr, "mbedtls_aes_crypt_ecb failed\n" );
+                goto exit;
+            }
 
             for( i = 0; i < 16; i++ )
                 buffer[i] = (unsigned char)( buffer[i] ^ IV[i] );
@@ -408,7 +522,12 @@ int main( int argc, char *argv[] )
         /*
          * Verify the message authentication code.
          */
-        mbedtls_md_hmac_finish( &sha_ctx, digest );
+        ret = mbedtls_md_hmac_finish( &sha_ctx, digest );
+        if( ret != 0 )
+        {
+            mbedtls_fprintf( stderr, "mbedtls_md_hmac_finish failed\n" );
+            goto exit;
+        }
 
         if( fread( buffer, 1, 32, fin ) != 32 )
         {

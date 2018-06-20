@@ -930,8 +930,7 @@ int mbedtls_camellia_self_test( int verbose )
 
         if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
         {
-            mbedtls_printf( "skipped\n" );
-            continue;
+            break;
         }
         else if( ret != 0 )
         {
@@ -950,7 +949,12 @@ int mbedtls_camellia_self_test( int verbose )
             return( 1 );
         }
     }
-
+    if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "skipped\n" );
+        continue;
+    }
     if( verbose != 0 )
         mbedtls_printf( "passed\n" );
     }

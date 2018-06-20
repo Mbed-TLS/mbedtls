@@ -2350,7 +2350,10 @@ int mbedtls_rsa_self_test( int verbose )
             mbedtls_printf( "skipped\n" );
     } /* mbedtls_rsa_pkcs1_encrypt not supported */
     else if( verbose != 0 )
+    {
+            ret = 0;
             mbedtls_printf( "skipped\n" );
+    }
 
 #if defined(MBEDTLS_SHA1_C)
     if( verbose != 0 )
@@ -2399,10 +2402,16 @@ int mbedtls_rsa_self_test( int verbose )
                 mbedtls_printf( "passed\n" );
         } /* mbedtls_rsa_pkcs1_verify not supported */
         else if( verbose != 0 )
-            mbedtls_printf( "skipped\n" );
+            {
+                ret = 0;
+                mbedtls_printf( "skipped\n" );
+            }
     } /* mbedtls_rsa_pkcs1_sign not supported */
     else if( verbose != 0 )
+    {
+        ret = 0;
         mbedtls_printf( "skipped\n" );
+    }
 #endif /* MBEDTLS_SHA1_C */
 
     if( verbose != 0 )

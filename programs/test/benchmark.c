@@ -99,8 +99,8 @@ int main( void )
 #define OPTIONS                                                         \
     "md4, md5, ripemd160, sha1, sha256, sha512,\n"                      \
     "arc4, des3, des, camellia, blowfish,\n"                            \
-    "aes_cbc, aes_gcm, aes_ccm, aes_cmac, des3_cmac,\n"                 \
-    "havege, ctr_drbg, hmac_drbg\n"                                     \
+    "aes_cbc, aes_gcm, aes_ccm, aes_cmac, aes_xts,\n"                   \
+    "des3_cmac, havege, ctr_drbg, hmac_drbg,\n"                         \
     "rsa, dhm, ecdsa, ecdh.\n"
 
 #if defined(MBEDTLS_ERROR_C)
@@ -233,8 +233,8 @@ unsigned char buf[BUFSIZE];
 typedef struct {
     char md4, md5, ripemd160, sha1, sha256, sha512,
          arc4, des3, des,
-         aes_cbc, aes_gcm, aes_ccm, aes_cmac, des3_cmac,
-         aria, camellia, blowfish,
+         aes_cbc, aes_gcm, aes_ccm, aes_cmac, aes_xts,
+         des3_cmac, aria, camellia, blowfish,
          havege, ctr_drbg, hmac_drbg,
          rsa, dhm, ecdsa, ecdh;
 } todo_list;
@@ -279,6 +279,8 @@ int main( int argc, char *argv[] )
                 todo.des = 1;
             else if( strcmp( argv[i], "aes_cbc" ) == 0 )
                 todo.aes_cbc = 1;
+            else if( strcmp( argv[i], "aes_xts" ) == 0 )
+                todo.aes_xts = 1;
             else if( strcmp( argv[i], "aes_gcm" ) == 0 )
                 todo.aes_gcm = 1;
             else if( strcmp( argv[i], "aes_ccm" ) == 0 )
@@ -424,6 +426,29 @@ int main( int argc, char *argv[] )
                 mbedtls_aes_crypt_cbc( &aes, MBEDTLS_AES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
         }
         mbedtls_aes_free( &aes );
+    }
+#endif
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
+    if( todo.aes_xts )
+    {
+        int keysize;
+        mbedtls_aes_xts_context ctx;
+
+        mbedtls_aes_xts_init( &ctx );
+        for( keysize = 128; keysize <= 256; keysize += 128 )
+        {
+            mbedtls_snprintf( title, sizeof( title ), "AES-XTS-%d", keysize );
+
+            memset( buf, 0, sizeof( buf ) );
+            memset( tmp, 0, sizeof( tmp ) );
+            mbedtls_aes_xts_setkey_enc( &ctx, tmp, keysize * 2 );
+
+            TIME_AND_TSC( title,
+                    mbedtls_aes_crypt_xts( &ctx, MBEDTLS_AES_ENCRYPT, BUFSIZE,
+                                           tmp, buf, buf ) );
+
+            mbedtls_aes_xts_free( &ctx );
+        }
     }
 #endif
 #if defined(MBEDTLS_GCM_C)

@@ -607,11 +607,7 @@ int main( int argc, char *argv[] )
     //
     if( strlen( opt.issuer_crt ) )
     {
-        if( !mbedtls_pk_can_do( &issuer_crt.pk, MBEDTLS_PK_RSA ) ||
-            mbedtls_mpi_cmp_mpi( &mbedtls_pk_rsa( issuer_crt.pk )->N,
-                         &mbedtls_pk_rsa( *issuer_key )->N ) != 0 ||
-            mbedtls_mpi_cmp_mpi( &mbedtls_pk_rsa( issuer_crt.pk )->E,
-                         &mbedtls_pk_rsa( *issuer_key )->E ) != 0 )
+        if( mbedtls_pk_check_pair( &issuer_crt.pk, issuer_key ) != 0 )
         {
             mbedtls_printf( " failed\n  !  issuer_key does not match "
                             "issuer certificate\n\n" );

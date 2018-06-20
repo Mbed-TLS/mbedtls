@@ -255,6 +255,12 @@ static const char *features[] = {
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     "MBEDTLS_CIPHER_MODE_CTR",
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+    "MBEDTLS_CIPHER_MODE_OFB",
+#endif /* MBEDTLS_CIPHER_MODE_OFB */
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
+    "MBEDTLS_CIPHER_MODE_XTS",
+#endif /* MBEDTLS_CIPHER_MODE_XTS */
 #if defined(MBEDTLS_CIPHER_NULL_CIPHER)
     "MBEDTLS_CIPHER_NULL_CIPHER",
 #endif /* MBEDTLS_CIPHER_NULL_CIPHER */
@@ -408,6 +414,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_SSL_ALL_ALERT_MESSAGES)
     "MBEDTLS_SSL_ALL_ALERT_MESSAGES",
 #endif /* MBEDTLS_SSL_ALL_ALERT_MESSAGES */
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+    "MBEDTLS_SSL_ASYNC_PRIVATE",
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 #if defined(MBEDTLS_SSL_DEBUG_ALL)
     "MBEDTLS_SSL_DEBUG_ALL",
 #endif /* MBEDTLS_SSL_DEBUG_ALL */
@@ -588,6 +597,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_HAVEGE_C)
     "MBEDTLS_HAVEGE_C",
 #endif /* MBEDTLS_HAVEGE_C */
+#if defined(MBEDTLS_HKDF_C)
+    "MBEDTLS_HKDF_C",
+#endif /* MBEDTLS_HKDF_C */
 #if defined(MBEDTLS_HMAC_DRBG_C)
     "MBEDTLS_HMAC_DRBG_C",
 #endif /* MBEDTLS_HMAC_DRBG_C */

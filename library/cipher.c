@@ -191,10 +191,11 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx, const unsigned char *k
     ctx->operation = operation;
 
     /*
-     * For CFB and CTR mode always use the encryption key schedule
+     * For OFB, CFB and CTR mode always use the encryption key schedule
      */
     if( MBEDTLS_ENCRYPT == operation ||
         MBEDTLS_MODE_CFB == ctx->cipher_info->mode ||
+        MBEDTLS_MODE_OFB == ctx->cipher_info->mode ||
         MBEDTLS_MODE_CTR == ctx->cipher_info->mode )
     {
         return ctx->cipher_info->base->setkey_enc_func( ctx->cipher_ctx, key,
@@ -424,6 +425,21 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
     }
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
 
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+    if( ctx->cipher_info->mode == MBEDTLS_MODE_OFB )
+    {
+        if( 0 != ( ret = ctx->cipher_info->base->ofb_func( ctx->cipher_ctx,
+                ilen, &ctx->unprocessed_len, ctx->iv, input, output ) ) )
+        {
+            return( ret );
+        }
+
+        *olen = ilen;
+
+        return( 0 );
+    }
+#endif /* MBEDTLS_CIPHER_MODE_OFB */
+
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
     if( ctx->cipher_info->mode == MBEDTLS_MODE_CTR )
     {
@@ -439,6 +455,27 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
         return( 0 );
     }
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
+
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
+    if( ctx->cipher_info->mode == MBEDTLS_MODE_XTS )
+    {
+        if( ctx->unprocessed_len > 0 ) {
+            /* We can only process an entire data unit at a time. */
+            return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+        }
+
+        ret = ctx->cipher_info->base->xts_func( ctx->cipher_ctx,
+                ctx->operation, ilen, ctx->iv, input, output );
+        if( ret != 0 )
+        {
+            return( ret );
+        }
+
+        *olen = ilen;
+
+        return( 0 );
+    }
+#endif /* MBEDTLS_CIPHER_MODE_XTS */
 
 #if defined(MBEDTLS_CIPHER_MODE_STREAM)
     if( ctx->cipher_info->mode == MBEDTLS_MODE_STREAM )
@@ -639,8 +676,10 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
     *olen = 0;
 
     if( MBEDTLS_MODE_CFB == ctx->cipher_info->mode ||
+        MBEDTLS_MODE_OFB == ctx->cipher_info->mode ||
         MBEDTLS_MODE_CTR == ctx->cipher_info->mode ||
         MBEDTLS_MODE_GCM == ctx->cipher_info->mode ||
+        MBEDTLS_MODE_XTS == ctx->cipher_info->mode ||
         MBEDTLS_MODE_STREAM == ctx->cipher_info->mode )
     {
         return( 0 );

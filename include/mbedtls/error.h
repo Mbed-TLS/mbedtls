@@ -4,7 +4,7 @@
  * \brief Error to string translation
  */
 /*
- *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
+ *  Copyright (C) 2006-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -89,8 +89,9 @@
  * RSA       4   11
  * ECP       4   10 (Started from top)
  * MD        5   5
+ * HKDF      5   1 (Started from top)
  * CIPHER    6   8
- * SSL       6   22 (Started from top)
+ * SSL       6   23 (Started from top)
  * SSL       7   31
  *
  * Module dependent error code (5 bits 0x.00.-0x.F8.)

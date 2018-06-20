@@ -2571,10 +2571,9 @@ start_processing:
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
         if( md_alg != MBEDTLS_MD_NONE )
         {
-            /* Info from md_alg will be used instead */
-            hashlen = 0;
-            ret = mbedtls_ssl_get_key_exchange_md_tls1_2( ssl, hash, params,
-                                                          params_len, md_alg );
+            ret = mbedtls_ssl_get_key_exchange_md_tls1_2( ssl, hash, &hashlen,
+                                                          params, params_len,
+                                                          md_alg );
             if( ret != 0 )
                 return( ret );
         }
@@ -2586,8 +2585,7 @@ start_processing:
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-        MBEDTLS_SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen != 0 ? hashlen :
-            (unsigned int) ( mbedtls_md_get_size( mbedtls_md_info_from_type( md_alg ) ) ) );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "parameters hash", hash, hashlen );
 
         if( ssl->session_negotiate->peer_cert == NULL )
         {

@@ -327,6 +327,19 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     int extended_ms;                    /*!< use Extended Master Secret? */
 #endif
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+    unsigned int async_in_progress : 1; /*!< an asynchronous operation is in progress */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+    /** Asynchronous operation context. This field is meant for use by the
+     * asynchronous operation callbacks (mbedtls_ssl_config::f_async_sign_start,
+     * mbedtls_ssl_config::f_async_decrypt_start,
+     * mbedtls_ssl_config::f_async_resume, mbedtls_ssl_config::f_async_cancel).
+     * The library does not use it internally. */
+    void *user_async_ctx;
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 };
 
 /*
@@ -430,9 +443,9 @@ void mbedtls_ssl_transform_free( mbedtls_ssl_transform *transform );
  * \brief           Free referenced items in an SSL handshake context and clear
  *                  memory
  *
- * \param handshake SSL handshake context
+ * \param ssl       SSL context
  */
-void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake );
+void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl );
@@ -650,7 +663,13 @@ static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t
     volatile unsigned char diff = 0;
 
     for( i = 0; i < n; i++ )
-        diff |= A[i] ^ B[i];
+    {
+        /* Read volatile data in order before computing diff.
+         * This avoids IAR compiler warning:
+         * 'the order of volatile accesses is undefined ..' */
+        unsigned char x = A[i], y = B[i];
+        diff |= x ^ y;
+    }
 
     return( diff );
 }
@@ -666,9 +685,9 @@ int mbedtls_ssl_get_key_exchange_md_ssl_tls( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
 int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
-                                        unsigned char *output,
-                                        unsigned char *data, size_t data_len,
-                                        mbedtls_md_type_t md_alg );
+                                            unsigned char *hash, size_t *hashlen,
+                                            unsigned char *data, size_t data_len,
+                                            mbedtls_md_type_t md_alg );
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
           MBEDTLS_SSL_PROTO_TLS1_2 */
 

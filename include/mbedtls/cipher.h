@@ -164,6 +164,11 @@ typedef enum {
     MBEDTLS_CIPHER_ARIA_128_CCM,         /**< Aria cipher with 128-bit key and CCM mode. */
     MBEDTLS_CIPHER_ARIA_192_CCM,         /**< Aria cipher with 192-bit key and CCM mode. */
     MBEDTLS_CIPHER_ARIA_256_CCM,         /**< Aria cipher with 256-bit key and CCM mode. */
+    MBEDTLS_CIPHER_AES_128_OFB,          /**< AES 128-bit cipher in OFB mode. */
+    MBEDTLS_CIPHER_AES_192_OFB,          /**< AES 192-bit cipher in OFB mode. */
+    MBEDTLS_CIPHER_AES_256_OFB,          /**< AES 256-bit cipher in OFB mode. */
+    MBEDTLS_CIPHER_AES_128_XTS,          /**< AES 128-bit cipher in XTS block mode. */
+    MBEDTLS_CIPHER_AES_256_XTS,          /**< AES 256-bit cipher in XTS block mode. */
 } mbedtls_cipher_type_t;
 
 /** Supported cipher modes. */
@@ -172,11 +177,12 @@ typedef enum {
     MBEDTLS_MODE_ECB,                    /**< The ECB cipher mode. */
     MBEDTLS_MODE_CBC,                    /**< The CBC cipher mode. */
     MBEDTLS_MODE_CFB,                    /**< The CFB cipher mode. */
-    MBEDTLS_MODE_OFB,                    /**< The OFB cipher mode - unsupported. */
+    MBEDTLS_MODE_OFB,                    /**< The OFB cipher mode. */
     MBEDTLS_MODE_CTR,                    /**< The CTR cipher mode. */
     MBEDTLS_MODE_GCM,                    /**< The GCM cipher mode. */
     MBEDTLS_MODE_STREAM,                 /**< The stream cipher mode. */
     MBEDTLS_MODE_CCM,                    /**< The CCM cipher mode. */
+    MBEDTLS_MODE_XTS,                    /**< The XTS cipher mode. */
 } mbedtls_cipher_mode_t;
 
 /** Supported cipher padding types. */
@@ -292,7 +298,8 @@ typedef struct {
     /** Number of Bytes that have not been processed yet. */
     size_t unprocessed_len;
 
-    /** Current IV or NONCE_COUNTER for CTR-mode. */
+    /** Current IV or NONCE_COUNTER for CTR-mode, data unit (or sector) number
+     * for XTS-mode. */
     unsigned char iv[MBEDTLS_MAX_IV_LENGTH];
 
     /** IV size in Bytes, for ciphers with variable-length IVs. */

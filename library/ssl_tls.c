@@ -4071,6 +4071,16 @@ read_record_header:
 
     if( ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT )
     {
+        if( ssl->in_msglen != 2 )
+        {
+            /* Note: Standard allows for more than one 2 byte alert
+               to be packed in a single message, but Mbed TLS doesn't
+               currently support this. */
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid alert message, len: %d",
+                           ssl->in_msglen ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+        }
+
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "got an alert message, type: [%d:%d]",
                        ssl->in_msg[0], ssl->in_msg[1] ) );
 

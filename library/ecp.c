@@ -506,7 +506,7 @@ void mbedtls_ecp_group_init( mbedtls_ecp_group *grp )
     if( grp == NULL )
         return;
 
-    grp->id = 0;
+    grp->id = MBEDTLS_ECP_DP_NONE;
     mbedtls_mpi_init( &grp->P );
     mbedtls_mpi_init( &grp->A );
     mbedtls_mpi_init( &grp->B );

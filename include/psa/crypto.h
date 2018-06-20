@@ -45,18 +45,33 @@ extern "C" {
  * @{
  */
 
+#if defined(PSA_SUCCESS)
+/* If PSA_SUCCESS is defined, assume that PSA crypto is being used
+ * together with PSA IPC, which also defines the identifier
+ * PSA_SUCCESS. We must not define PSA_SUCCESS ourselves in that case;
+ * the other error code names don't clash. Also define psa_status_t as
+ * an alias for the type used by PSA IPC. This is a temporary hack
+ * until we unify error reporting in PSA IPC and PSA crypo.
+ *
+ * Note that psa_defs.h must be included before this header!
+ */
+typedef psa_error_t psa_status_t;
+
+#else /* defined(PSA_SUCCESS) */
+
 /**
  * \brief Function return status.
  *
- * Zero indicates success, anything else indicates an error.
+ * This is either #PSA_SUCCESS (which is zero), indicating success,
+ * or a nonzero value indicating that an error occurred. Errors are
+ * encoded as one of the \c PSA_ERROR_xxx values defined here.
  */
-#if defined(PSA_SUCCESS)
-typedef psa_error_t psa_status_t;
-#else
 typedef int32_t psa_status_t;
+
 /** The action was completed successfully. */
 #define PSA_SUCCESS ((psa_status_t)0)
-#endif // PSA_SUCCESS
+
+#endif /* !defined(PSA_SUCCESS) */
 
 /** The requested operation or a parameter is not supported
  * by this implementation.

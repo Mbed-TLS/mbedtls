@@ -279,7 +279,8 @@ int mbedtls_x509_csr_parse( mbedtls_x509_csr *csr, const unsigned char *buf, siz
 
 #if defined(MBEDTLS_PEM_PARSE_C)
     /* Avoid calling mbedtls_pem_read_buffer() on non-null-terminated string */
-    if( buf[buflen - 1] == '\0' ) {
+    if( buf[buflen - 1] == '\0' )
+    {
         mbedtls_pem_init( &pem );
         ret = mbedtls_pem_read_buffer( &pem,
                                "-----BEGIN CERTIFICATE REQUEST-----",

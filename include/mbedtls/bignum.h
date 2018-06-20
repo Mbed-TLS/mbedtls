@@ -192,14 +192,14 @@ mbedtls_mpi;
  *
  * \param X         One MPI to initialize.
  */
-void mbedtls_mpi_init( mbedtls_mpi *X );
+void mbedtls_mpi_init( mbedtls_mpi *const X );
 
 /**
  * \brief          Unallocate one MPI
  *
  * \param X        One MPI to unallocate.
  */
-void mbedtls_mpi_free( mbedtls_mpi *X );
+void mbedtls_mpi_free( mbedtls_mpi *const X );
 
 /**
  * \brief          Enlarge to the specified number of limbs

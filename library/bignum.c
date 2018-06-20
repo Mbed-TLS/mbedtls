@@ -81,7 +81,7 @@ static void mbedtls_mpi_zeroize( mbedtls_mpi_uint *v, size_t n )
 /*
  * Initialize one MPI
  */
-void mbedtls_mpi_init( mbedtls_mpi *X )
+void mbedtls_mpi_init( mbedtls_mpi *const X )
 {
     if( X == NULL )
         return;
@@ -94,7 +94,7 @@ void mbedtls_mpi_init( mbedtls_mpi *X )
 /*
  * Unallocate one MPI
  */
-void mbedtls_mpi_free( mbedtls_mpi *X )
+void mbedtls_mpi_free( mbedtls_mpi *const X )
 {
     if( X == NULL )
         return;

@@ -375,6 +375,25 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void hash_setup( int alg_arg,
+                 int expected_status_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+    psa_hash_operation_t operation;
+    psa_status_t status;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    status = psa_hash_start( &operation, alg );
+    psa_hash_abort( &operation );
+    TEST_ASSERT( status == (psa_status_t) expected_status_arg );
+
+exit:
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void hash_finish( int alg_arg, data_t *input, data_t *expected_hash )
 {
     psa_algorithm_t alg = alg_arg;
@@ -431,6 +450,40 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mac_setup( int key_type_arg,
+                data_t *key,
+                int alg_arg,
+                int expected_status_arg )
+{
+    int key_slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_mac_operation_t operation;
+    psa_key_policy_t policy;
+    psa_status_t status;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy,
+                              PSA_KEY_USAGE_SIGN | PSA_KEY_USAGE_VERIFY,
+                              alg );
+    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( key_slot, key_type,
+                                 key->x, key->len ) == PSA_SUCCESS );
+
+    status = psa_mac_start( &operation, key_slot, alg );
+    psa_mac_abort( &operation );
+    TEST_ASSERT( status == (psa_status_t) expected_status_arg );
+
+exit:
+    psa_destroy_key( key_slot );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mac_verify( int key_type_arg,
                  data_t *key,
                  int alg_arg,
@@ -466,6 +519,38 @@ void mac_verify( int key_type_arg,
     TEST_ASSERT( psa_mac_verify( &operation,
                                  expected_mac->x,
                                  expected_mac->len ) == PSA_SUCCESS );
+
+exit:
+    psa_destroy_key( key_slot );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void cipher_setup( int key_type_arg,
+                   data_t *key,
+                   int alg_arg,
+                   int expected_status_arg )
+{
+    int key_slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_cipher_operation_t operation;
+    psa_key_policy_t policy;
+    psa_status_t status;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT, alg );
+    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( key_slot, key_type,
+                                 key->x, key->len ) == PSA_SUCCESS );
+
+    status = psa_encrypt_setup( &operation, key_slot, alg );
+    psa_cipher_abort( &operation );
+    TEST_ASSERT( status == (psa_status_t) expected_status_arg );
 
 exit:
     psa_destroy_key( key_slot );

@@ -1133,10 +1133,53 @@ static size_t psa_get_hash_block_size( psa_algorithm_t alg )
     }
 }
 
+/* Initialize the MAC operation structure. Once this function has been
+ * called, psa_mac_abort can run and will do the right thing. */
+static psa_status_t psa_mac_init( psa_mac_operation_t *operation,
+                                  psa_algorithm_t alg )
+{
+    psa_status_t status = PSA_ERROR_NOT_SUPPORTED;
+
+    operation->alg = alg;
+    operation->key_set = 0;
+    operation->iv_set = 0;
+    operation->iv_required = 0;
+    operation->has_input = 0;
+    operation->key_usage_sign = 0;
+    operation->key_usage_verify = 0;
+
+#if defined(MBEDTLS_CMAC_C)
+    if( alg == PSA_ALG_CMAC )
+    {
+        operation->iv_required = 0;
+        mbedtls_cipher_init( &operation->ctx.cmac );
+        status = PSA_SUCCESS;
+    }
+    else
+#endif /* MBEDTLS_CMAC_C */
+#if defined(MBEDTLS_MD_C)
+    if( PSA_ALG_IS_HMAC( operation->alg ) )
+    {
+        status = psa_hash_start( &operation->ctx.hmac.hash_ctx,
+                                 PSA_ALG_HMAC_HASH( alg ) );
+    }
+    else
+#endif /* MBEDTLS_MD_C */
+    {
+        /* fall through with NOT_SUPPORTED */
+    }
+
+    if( status != PSA_SUCCESS )
+        memset( operation, 0, sizeof( *operation ) );
+    return( status );
+}
+
 psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
 {
     switch( operation->alg )
     {
+        case 0:
+            return( PSA_SUCCESS );
 #if defined(MBEDTLS_CMAC_C)
         case PSA_ALG_CMAC:
             mbedtls_cipher_free( &operation->ctx.cmac );
@@ -1165,6 +1208,8 @@ psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
     operation->iv_set = 0;
     operation->iv_required = 0;
     operation->has_input = 0;
+    operation->key_usage_sign = 0;
+    operation->key_usage_verify = 0;
 
     return( PSA_SUCCESS );
 }
@@ -1178,8 +1223,6 @@ static int psa_cmac_start( psa_mac_operation_t *operation,
     int ret;
 
     operation->mac_size = cipher_info->block_size;
-    operation->iv_required = 0;
-    mbedtls_cipher_init( &operation->ctx.cmac );
 
     ret = mbedtls_cipher_setup( &operation->ctx.cmac, cipher_info );
     if( ret != 0 )
@@ -1213,14 +1256,9 @@ static int psa_hmac_start( psa_mac_operation_t *operation,
     if( key_type != PSA_KEY_TYPE_HMAC )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    operation->iv_required = 0;
     operation->mac_size = digest_size;
 
-    status = psa_hash_start( &operation->ctx.hmac.hash_ctx,
-                             PSA_ALG_HMAC_HASH( alg ) );
-    if( status != PSA_SUCCESS )
-        return( status );
-
+    /* The hash was started earlier in psa_mac_init. */
     if( key_length > block_size )
     {
         status = psa_hash_update( &operation->ctx.hmac.hash_ctx,
@@ -1274,13 +1312,9 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
     size_t key_bits;
     const mbedtls_cipher_info_t *cipher_info = NULL;
 
-    operation->alg = 0;
-    operation->key_set = 0;
-    operation->iv_set = 0;
-    operation->iv_required = 1;
-    operation->has_input = 0;
-    operation->key_usage_sign = 0;
-    operation->key_usage_verify = 0;
+    status = psa_mac_init( operation, alg );
+    if( status != PSA_SUCCESS )
+        return( status );
 
     status = psa_get_key_information( key, &key_type, &key_bits );
     if( status != PSA_SUCCESS )
@@ -1332,7 +1366,6 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
 
     else
     {
-        operation->alg = alg;
         operation->key_set = 1;
     }
     return( status );
@@ -1872,6 +1905,21 @@ psa_status_t psa_asymmetric_decrypt( psa_key_slot_t key,
 /* Symmetric cryptography */
 /****************************************************************/
 
+/* Initialize the cipher operation structure. Once this function has been
+ * called, psa_cipher_abort can run and will do the right thing. */
+static psa_status_t psa_cipher_init( psa_cipher_operation_t *operation,
+                                     psa_algorithm_t alg )
+{
+    operation->alg = alg;
+    operation->key_set = 0;
+    operation->iv_set = 0;
+    operation->iv_required = 1;
+    operation->iv_size = 0;
+    operation->block_size = 0;
+    mbedtls_cipher_init( &operation->ctx.cipher );
+    return( PSA_SUCCESS );
+}
+
 static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
                                       psa_key_slot_t key,
                                       psa_algorithm_t alg,
@@ -1884,12 +1932,9 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     size_t key_bits;
     const mbedtls_cipher_info_t *cipher_info = NULL;
 
-    operation->alg = alg;
-    operation->key_set = 0;
-    operation->iv_set = 0;
-    operation->iv_required = 1;
-    operation->iv_size = 0;
-    operation->block_size = 0;
+    status = psa_cipher_init( operation, alg );
+    if( status != PSA_SUCCESS )
+        return( status );
 
     status = psa_get_key_information( key, &key_type, &key_bits );
     if( status != PSA_SUCCESS )
@@ -1900,7 +1945,6 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     if( cipher_info == NULL )
         return( PSA_ERROR_NOT_SUPPORTED );
 
-    mbedtls_cipher_init( &operation->ctx.cipher );
     ret = mbedtls_cipher_setup( &operation->ctx.cipher, cipher_info );
     if( ret != 0 )
     {
@@ -1944,7 +1988,6 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
 #endif //MBEDTLS_CIPHER_MODE_WITH_PADDING
 
     operation->key_set = 1;
-    operation->alg = alg;
     operation->block_size = ( PSA_ALG_IS_BLOCK_CIPHER( alg ) ?
                               PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) :
                               1 );
@@ -2119,6 +2162,9 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
 
 psa_status_t psa_cipher_abort( psa_cipher_operation_t *operation )
 {
+    if( operation->alg == 0 )
+        return( PSA_SUCCESS );
+
     mbedtls_cipher_free( &operation->ctx.cipher );
 
     operation->alg = 0;

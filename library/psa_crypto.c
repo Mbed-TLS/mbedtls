@@ -39,6 +39,7 @@
 #endif
 
 #include "mbedtls/arc4.h"
+#include "mbedtls/asn1.h"
 #include "mbedtls/blowfish.h"
 #include "mbedtls/camellia.h"
 #include "mbedtls/cipher.h"
@@ -143,6 +144,17 @@ static psa_status_t mbedtls_to_psa_error( int ret )
 
         case MBEDTLS_ERR_ARC4_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );
+
+        case MBEDTLS_ERR_ASN1_OUT_OF_DATA:
+        case MBEDTLS_ERR_ASN1_UNEXPECTED_TAG:
+        case MBEDTLS_ERR_ASN1_INVALID_LENGTH:
+        case MBEDTLS_ERR_ASN1_LENGTH_MISMATCH:
+        case MBEDTLS_ERR_ASN1_INVALID_DATA:
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        case MBEDTLS_ERR_ASN1_ALLOC_FAILED:
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+        case MBEDTLS_ERR_ASN1_BUF_TOO_SMALL:
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
 
         case MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH:
         case MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH:

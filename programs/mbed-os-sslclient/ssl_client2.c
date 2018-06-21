@@ -600,7 +600,11 @@ int main()
     mbedtls_ssl_session saved_session;
 #if defined(MBEDTLS_TIMING_C)
     mbedtls_timing_delay_context timer;
+#else
+#if defined(MBEDTLS_ON_TARGET_PLATFORM)
+    mbed_os_timing_delay_context_t timer;
 #endif
+#endif /* MBEDTLS_TIMING_C */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     uint32_t flags;
     mbedtls_x509_crt cacert;
@@ -1560,7 +1564,12 @@ int main()
 #if defined(MBEDTLS_TIMING_C)
     mbedtls_ssl_set_timer_cb( &ssl, &timer, mbedtls_timing_set_delay,
                                             mbedtls_timing_get_delay );
+#else
+#if defined(MBEDTLS_ON_TARGET_PLATFORM)
+    mbedtls_ssl_set_timer_cb( &ssl, timer, mbed_os_timing_delay_set,
+                                           mbed_os_timing_delay_get );
 #endif
+#endif /* MBEDTLS_TIMING_C */
 
     mbedtls_printf( " ok\n" );
 

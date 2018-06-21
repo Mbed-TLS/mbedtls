@@ -420,6 +420,8 @@ static psa_status_t prepare_raw_data_slot( psa_key_type_t type,
         default:
             return( PSA_ERROR_NOT_SUPPORTED );
     }
+    if( bits % 8 != 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     /* Allocate memory for the key */
     raw->bytes = PSA_BITS_TO_BYTES( bits );

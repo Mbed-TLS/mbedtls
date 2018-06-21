@@ -576,7 +576,7 @@ int mbedtls_pk_write_key_pem( mbedtls_pk_context *ctx, unsigned char *buf, size_
  *
  * \return          0 if successful, or a specific error code
  */
-int mbedtls_pkcs8_write_key_pem( mbedtls_pk_context *key, unsigned char *buf, size_t size );
+int mbedtls_pkcs8_write_key_pem( mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
 #endif /* MBEDTLS_PEM_WRITE_C */
 #endif /* MBEDTLS_PK_WRITE_C */
 

@@ -85,6 +85,6 @@ void mbedtls_platform_zeroize( void *buf, size_t len );
 #ifdef __cplusplus
 }
 #endif
-#endif /* defined(MBEDTLS_PLATFORM_ZEROIZE_ALT) && !defined(mbedtls_platform_zeroize) */
+#endif /* !defined(mbedtls_platform_zeroize) */
 
 #endif /* MBEDTLS_PLATFORM_UTIL_H */

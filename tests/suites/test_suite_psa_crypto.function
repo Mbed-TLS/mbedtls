@@ -1871,43 +1871,51 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void generate_random( int bytes, int retries )
+void generate_random( int bytes_arg )
 {
-    const unsigned char trail[] = "foobar";
-    unsigned char *buffer1 = mbedtls_calloc( 1, bytes + sizeof( trail ) );
-    unsigned char *buffer2 = mbedtls_calloc( 1, bytes );
+    size_t bytes = bytes_arg;
+    const unsigned char trail[] = "don't overwrite me";
+    unsigned char *output = mbedtls_calloc( 1, bytes + sizeof( trail ) );
+    unsigned char *changed = mbedtls_calloc( 1, bytes );
+    size_t i;
+    unsigned run;
 
-    TEST_ASSERT( buffer1 != NULL );
-    TEST_ASSERT( buffer2 != NULL );
-    memcpy( buffer1 + bytes, trail, sizeof( trail ) );
+    TEST_ASSERT( output != NULL );
+    TEST_ASSERT( changed != NULL );
+    memcpy( output + bytes, trail, sizeof( trail ) );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_generate_random( buffer1, bytes ) == PSA_SUCCESS );
-
-    /* Check that no more than bytes have been overwritten */
-    TEST_ASSERT( memcmp( buffer1 + bytes, trail, sizeof( trail ) ) == 0 );
-
-    if( bytes == 0 )
-        goto exit;
-
-    /* We can't validate that the data is really random, but we can
-     * validate that it doesn't repeat between calls. There's a
-     * 1/256^bytes chance that it does repeat, of course, so allow
-     * a few retries. */
-    ++retries; /* The first time isn't a REtry */
-    do
+    /* Run several times, to ensure that every output byte will be
+     * nonzero at least once with overwhelming probability
+     * (2^(-8*number_of_runs)). */
+    for( run = 0; run < 10; run++ )
     {
-        --retries;
-        TEST_ASSERT( psa_generate_random( buffer2, bytes ) == PSA_SUCCESS );
+        memset( output, 0, bytes );
+        TEST_ASSERT( psa_generate_random( output, bytes ) == PSA_SUCCESS );
+
+        /* Check that no more than bytes have been overwritten */
+        TEST_ASSERT( memcmp( output + bytes, trail, sizeof( trail ) ) == 0 );
+
+        for( i = 0; i < bytes; i++ )
+        {
+            if( output[i] != 0 )
+                ++changed[i];
+        }
     }
-    while( memcmp( buffer1, buffer2, bytes ) == 0 && retries >= -1 );
-    TEST_ASSERT( retries >= 0 );
+
+    /* Check that every byte was changed to nonzero at least once. This
+     * validates that psa_generate_random is overwriting every byte of
+     * the output buffer. */
+    for( i = 0; i < bytes; i++ )
+    {
+        TEST_ASSERT( changed[i] != 0 );
+    }
 
 exit:
     mbedtls_psa_crypto_free( );
-    mbedtls_free( buffer1 );
-    mbedtls_free( buffer2 );
+    mbedtls_free( output );
+    mbedtls_free( changed );
 }
 /* END_CASE */
 

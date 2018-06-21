@@ -48,10 +48,10 @@
 /*
  * User-defined alternative macro definition for mbedtls_platform_zeroize
  */
-#undef mbedtls_platform_zeroize //Ensure error message in platform_util.c
+#undef mbedtls_platform_zeroize //No macro, ensure error message in platform_util.c
 #endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT */
 
-#if defined(MBEDTLS_PLATFORM_ZEROIZE_ALT) && !defined(mbedtls_platform_zeroize)
+#if !defined(mbedtls_platform_zeroize)
 #include <stddef.h>
 
 #ifdef __cplusplus

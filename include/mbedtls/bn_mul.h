@@ -48,8 +48,12 @@
 
 /* armcc5 --gnu defines __GNUC__ but doesn't support GNU's extended asm */
 #if defined(__GNUC__) && \
-    ( !defined(__ARMCC_VERSION) || __ARMCC_VERSION >= 6000000 )
-#if defined(__i386__)
+    ( !defined(__ARMCC_VERSION) || __ARMCC_VERSION >= 6000000 ) && \
+    !defined(__i386__) && !defined (__x86_64__)
+/*
+ * The i386 assembly is reported to be broken.
+ * Disable it for now, until we're able to fix it.
+ */
 
 #define MULADDC_INIT                        \
     asm(                                    \
@@ -157,7 +161,6 @@
         : "eax", "ecx", "edx", "esi", "edi"             \
     );
 #endif /* SSE2 */
-#endif /* i386 */
 
 #if defined(__amd64__) || defined (__x86_64__)
 

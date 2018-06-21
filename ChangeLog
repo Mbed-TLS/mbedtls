@@ -695,6 +695,8 @@ Bugfix
      digits. Found and fixed by Guido Vranken.
    * Fix unlisted DES configuration dependency in some pkparse test cases. Found
      by inestlerode. #555
+   * Disable i386 Big Number multiplication assembly code,
+     as it causes segmentatoin faults.
 
 = mbed TLS 2.4.1 branch released 2016-12-13
 

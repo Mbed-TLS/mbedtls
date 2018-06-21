@@ -274,9 +274,10 @@ void init_deinit( )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void import( data_t *data, int type, int expected_status )
+void import( data_t *data, int type, int expected_status_arg )
 {
     int slot = 1;
+    psa_status_t expected_status = expected_status_arg;
     psa_status_t status;
 
     TEST_ASSERT( data != NULL );
@@ -284,7 +285,7 @@ void import( data_t *data, int type, int expected_status )
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
     status = psa_import_key( slot, type, data->x, data->len );
-    TEST_ASSERT( status == (psa_status_t) expected_status );
+    TEST_ASSERT( status == expected_status );
     if( status == PSA_SUCCESS )
         TEST_ASSERT( psa_destroy_key( slot ) == PSA_SUCCESS );
 
@@ -300,13 +301,14 @@ void import_export( data_t *data,
                     int usage_arg,
                     int expected_bits,
                     int export_size_delta,
-                    int expected_export_status,
+                    int expected_export_status_arg,
                     int canonical_input )
 {
     int slot = 1;
     int slot2 = slot + 1;
     psa_key_type_t type = type_arg;
     psa_algorithm_t alg = alg_arg;
+    psa_status_t expected_export_status = expected_export_status_arg;
     psa_status_t status;
     unsigned char *exported = NULL;
     unsigned char *reexported = NULL;
@@ -348,7 +350,7 @@ void import_export( data_t *data,
     status = psa_export_key( slot,
                              exported, export_size,
                              &exported_length );
-    TEST_ASSERT( status == (psa_status_t) expected_export_status );
+    TEST_ASSERT( status == expected_export_status );
     TEST_ASSERT( mem_is_zero( exported + exported_length,
                               export_size - exported_length ) );
     if( status != PSA_SUCCESS )
@@ -397,11 +399,12 @@ void import_export_public_key( data_t *data,
                                int alg_arg,
                                int expected_bits,
                                int public_key_expected_length,
-                               int expected_export_status )
+                               int expected_export_status_arg )
 {
     int slot = 1;
     psa_key_type_t type = type_arg;
     psa_algorithm_t alg = alg_arg;
+    psa_status_t expected_export_status = expected_export_status_arg;
     psa_status_t status;
     unsigned char *exported = NULL;
     size_t export_size;
@@ -437,7 +440,7 @@ void import_export_public_key( data_t *data,
     status = psa_export_public_key( slot,
                                     exported, export_size,
                                     &exported_length );
-    TEST_ASSERT( status == (psa_status_t) expected_export_status );
+    TEST_ASSERT( status == expected_export_status );
     if( status != PSA_SUCCESS )
         goto destroy;
 
@@ -603,6 +606,7 @@ void hash_setup( int alg_arg,
                  int expected_status_arg )
 {
     psa_algorithm_t alg = alg_arg;
+    psa_status_t expected_status = expected_status_arg;
     psa_hash_operation_t operation;
     psa_status_t status;
 
@@ -610,7 +614,7 @@ void hash_setup( int alg_arg,
 
     status = psa_hash_start( &operation, alg );
     psa_hash_abort( &operation );
-    TEST_ASSERT( status == (psa_status_t) expected_status_arg );
+    TEST_ASSERT( status == expected_status );
 
 exit:
     mbedtls_psa_crypto_free( );
@@ -682,6 +686,7 @@ void mac_setup( int key_type_arg,
     int key_slot = 1;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
+    psa_status_t expected_status = expected_status_arg;
     psa_mac_operation_t operation;
     psa_key_policy_t policy;
     psa_status_t status;
@@ -699,7 +704,7 @@ void mac_setup( int key_type_arg,
 
     status = psa_mac_start( &operation, key_slot, alg );
     psa_mac_abort( &operation );
-    TEST_ASSERT( status == (psa_status_t) expected_status_arg );
+    TEST_ASSERT( status == expected_status );
 
 exit:
     psa_destroy_key( key_slot );
@@ -759,6 +764,7 @@ void cipher_setup( int key_type_arg,
     int key_slot = 1;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
+    psa_status_t expected_status = expected_status_arg;
     psa_cipher_operation_t operation;
     psa_key_policy_t policy;
     psa_status_t status;
@@ -774,7 +780,7 @@ void cipher_setup( int key_type_arg,
 
     status = psa_encrypt_setup( &operation, key_slot, alg );
     psa_cipher_abort( &operation );
-    TEST_ASSERT( status == (psa_status_t) expected_status_arg );
+    TEST_ASSERT( status == expected_status );
 
 exit:
     psa_destroy_key( key_slot );
@@ -786,12 +792,13 @@ exit:
 void cipher_encrypt( int alg_arg, int key_type_arg,
                      data_t *key,
                      data_t *input, data_t *expected_output,
-                     int expected_status )
+                     int expected_status_arg )
 {
     int key_slot = 1;
     psa_status_t status;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
+    psa_status_t expected_status = expected_status_arg;
     unsigned char iv[16] = {0};
     unsigned char *output = NULL;
     size_t output_buffer_size = 0;
@@ -833,7 +840,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
                                 &function_output_length );
     total_output_length += function_output_length;
 
-    TEST_ASSERT( status == (psa_status_t) expected_status );
+    TEST_ASSERT( status == expected_status );
     if( expected_status == PSA_SUCCESS )
     {
         TEST_ASSERT( psa_cipher_abort( &operation ) == PSA_SUCCESS );
@@ -994,12 +1001,13 @@ exit:
 void cipher_decrypt( int alg_arg, int key_type_arg,
                      data_t *key,
                      data_t *input, data_t *expected_output,
-                     int expected_status )
+                     int expected_status_arg )
 {
     int key_slot = 1;
     psa_status_t status;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
+    psa_status_t expected_status = expected_status_arg;
     unsigned char iv[16] = {0};
     unsigned char *output = NULL;
     size_t output_buffer_size = 0;
@@ -1041,7 +1049,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
                                 output_buffer_size,
                                 &function_output_length );
     total_output_length += function_output_length;
-    TEST_ASSERT( status == (psa_status_t) expected_status );
+    TEST_ASSERT( status == expected_status );
 
     if( expected_status == PSA_SUCCESS )
     {

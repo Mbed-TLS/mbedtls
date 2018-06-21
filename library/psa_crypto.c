@@ -822,7 +822,7 @@ psa_status_t psa_hash_abort( psa_hash_operation_t *operation )
             break;
 #endif
         default:
-            return( PSA_ERROR_NOT_SUPPORTED );
+            return( PSA_ERROR_BAD_STATE );
     }
     operation->alg = 0;
     return( PSA_SUCCESS );
@@ -1231,7 +1231,11 @@ psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
             }
             else
 #endif /* MBEDTLS_MD_C */
-                return( PSA_ERROR_NOT_SUPPORTED );
+            {
+                /* Sanity check (shouldn't happen: operation->alg should
+                 * always have been initialized to a valid value). */
+                return( PSA_ERROR_BAD_STATE );
+            }
     }
 
     operation->alg = 0;
@@ -2217,6 +2221,11 @@ psa_status_t psa_cipher_abort( psa_cipher_operation_t *operation )
 {
     if( operation->alg == 0 )
         return( PSA_SUCCESS );
+
+    /* Sanity check (shouldn't happen: operation->alg should
+     * always have been initialized to a valid value). */
+    if( ! PSA_ALG_IS_CIPHER( operation->alg ) )
+        return( PSA_ERROR_BAD_STATE );
 
     mbedtls_cipher_free( &operation->ctx.cipher );
 

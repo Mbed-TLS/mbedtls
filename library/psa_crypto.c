@@ -1102,10 +1102,17 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
             cipher_id_tmp = MBEDTLS_CIPHER_ID_AES;
             break;
         case PSA_KEY_TYPE_DES:
+            /* key_bits is 64 for Single-DES, 128 for two-key Triple-DES,
+             * and 192 for three-key Triple-DES. */
             if( key_bits == 64 )
                 cipher_id_tmp = MBEDTLS_CIPHER_ID_DES;
             else
                 cipher_id_tmp = MBEDTLS_CIPHER_ID_3DES;
+            /* mbedtls doesn't recognize two-key Triple-DES as an algorithm,
+             * but two-key Triple-DES is functionally three-key Triple-DES
+             * with K1=K3, so that's how we present it to mbedtls. */
+            if( key_bits == 128 )
+                key_bits = 192;
             break;
         case PSA_KEY_TYPE_CAMELLIA:
             cipher_id_tmp = MBEDTLS_CIPHER_ID_CAMELLIA;
@@ -1975,8 +1982,24 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
         return( mbedtls_to_psa_error( ret ) );
     }
 
-    ret = mbedtls_cipher_setkey( &operation->ctx.cipher, slot->data.raw.data,
-                                 key_bits, cipher_operation );
+#if defined(MBEDTLS_DES_C)
+    if( key_type == PSA_KEY_TYPE_DES && key_bits == 128 )
+    {
+        /* Two-key Triple-DES is 3-key Triple-DES with K1=K3 */
+        unsigned char keys[24];
+        memcpy( keys, slot->data.raw.data, 16 );
+        memcpy( keys + 16, slot->data.raw.data, 8 );
+        ret = mbedtls_cipher_setkey( &operation->ctx.cipher,
+                                     keys,
+                                     192, cipher_operation );
+    }
+    else
+#endif
+    {
+        ret = mbedtls_cipher_setkey( &operation->ctx.cipher,
+                                     slot->data.raw.data,
+                                     key_bits, cipher_operation );
+    }
     if( ret != 0 )
     {
         psa_cipher_abort( operation );

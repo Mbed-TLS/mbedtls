@@ -116,6 +116,13 @@ typedef struct
     } data;
 } key_slot_t;
 
+static int key_type_is_raw_bytes( psa_key_type_t type )
+{
+    psa_key_type_t category = type & PSA_KEY_TYPE_CATEGORY_MASK;
+    return( category == PSA_KEY_TYPE_RAW_DATA ||
+            category == PSA_KEY_TYPE_CATEGORY_SYMMETRIC );
+}
+
 typedef struct
 {
     int initialized;
@@ -459,7 +466,7 @@ psa_status_t psa_import_key( psa_key_slot_t key,
     if( slot->type != PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_OCCUPIED_SLOT );
 
-    if( PSA_KEY_TYPE_IS_RAW_BYTES( type ) )
+    if( key_type_is_raw_bytes( type ) )
     {
         psa_status_t status;
         /* Ensure that a bytes-to-bit conversion won't overflow. */
@@ -541,7 +548,7 @@ psa_status_t psa_destroy_key( psa_key_slot_t key )
         /* No key material to clean, but do zeroize the slot below to wipe
          * metadata such as policies. */
     }
-    else if( PSA_KEY_TYPE_IS_RAW_BYTES( slot->type ) )
+    else if( key_type_is_raw_bytes( slot->type ) )
     {
         mbedtls_free( slot->data.raw.data );
     }
@@ -589,7 +596,7 @@ psa_status_t psa_get_key_information( psa_key_slot_t key,
     if( slot->type == PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_EMPTY_SLOT );
 
-    if( PSA_KEY_TYPE_IS_RAW_BYTES( slot->type ) )
+    if( key_type_is_raw_bytes( slot->type ) )
     {
         if( bits != NULL )
             *bits = slot->data.raw.bytes * 8;
@@ -643,7 +650,7 @@ static  psa_status_t psa_internal_export_key( psa_key_slot_t key,
         ( slot->policy.usage & PSA_KEY_USAGE_EXPORT ) == 0 )
         return( PSA_ERROR_NOT_PERMITTED );
 
-    if( PSA_KEY_TYPE_IS_RAW_BYTES( slot->type ) )
+    if( key_type_is_raw_bytes( slot->type ) )
     {
         if( slot->data.raw.bytes > data_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
@@ -2632,7 +2639,7 @@ psa_status_t psa_generate_key( psa_key_slot_t key,
     if( parameters == NULL && parameters_size != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    if( PSA_KEY_TYPE_IS_RAW_BYTES( type ) )
+    if( key_type_is_raw_bytes( type ) )
     {
         psa_status_t status = prepare_raw_data_slot( type, bits,
                                                      &slot->data.raw );

@@ -366,9 +366,6 @@ typedef uint32_t psa_key_type_t;
 /** Whether a key type is vendor-defined. */
 #define PSA_KEY_TYPE_IS_VENDOR_DEFINED(type) \
     (((type) & PSA_KEY_TYPE_VENDOR_FLAG) != 0)
-#define PSA_KEY_TYPE_IS_RAW_BYTES(type)                                 \
-    (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_RAW_DATA ||  \
-     ((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_SYMMETRIC)
 
 /** Whether a key type is asymmetric: either a key pair or a public key. */
 #define PSA_KEY_TYPE_IS_ASYMMETRIC(type)                                \

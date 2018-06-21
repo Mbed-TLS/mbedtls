@@ -27,6 +27,13 @@ static int mem_is_zero( void *buffer, size_t size )
     return( 1 );
 }
 
+static int key_type_is_raw_bytes( psa_key_type_t type )
+{
+    psa_key_type_t category = type & PSA_KEY_TYPE_CATEGORY_MASK;
+    return( category == PSA_KEY_TYPE_RAW_DATA ||
+            category == PSA_KEY_TYPE_CATEGORY_SYMMETRIC );
+}
+
 static int exercise_mac_key( psa_key_slot_t key,
                              psa_key_usage_t usage,
                              psa_algorithm_t alg )
@@ -1967,7 +1974,7 @@ void generate_key( int type_arg,
                                  &exported_length ) == expected_export_status );
     if( expected_export_status == PSA_SUCCESS )
     {
-        if( PSA_KEY_TYPE_IS_RAW_BYTES( type ) )
+        if( key_type_is_raw_bytes( type ) )
             TEST_ASSERT( exported_length == ( bits + 7 ) / 8 );
 #if defined(MBEDTLS_DES_C)
         if( type == PSA_KEY_TYPE_DES )

@@ -556,7 +556,7 @@ int idle( mbedtls_net_context *fd,
         /* Check if underlying transport became available */
         if( poll_type != 0 )
         {
-            ret = mbedtls_net_poll( fd, poll_type, 0 );
+            ret = poll_type; //mbedtls_net_poll( fd, poll_type, 0 );
             if( ret < 0 )
                 return( ret );
             if( ret == poll_type )
@@ -630,6 +630,8 @@ int main()
 #if defined(MBEDTLS_SSL_ALPN)
     memset( (void * ) alpn_list, 0, sizeof( alpn_list ) );
 #endif
+
+    receive_args( &argc, &argv );
 
     if( argc == 0 )
     {
@@ -1019,6 +1021,8 @@ int main()
             goto usage;
     }
 
+    //free_received_args( argv );
+
     /* Event-driven IO is incompatible with the above custom
      * receive and send functions, as the polling builds on
      * refers to the underlying net_context. */
@@ -1338,11 +1342,13 @@ int main()
     if( opt.server_addr == NULL)
         opt.server_addr = opt.server_name;
 
-    mbedtls_printf( "  . Connecting to %s/%s/%s...",
+    printf( "  . Connecting to %s/%s/%s...\n",
             opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ? "tcp" : "udp",
             opt.server_addr, opt.server_port );
     fflush( stdout );
 
+    printf ("mbedtls_net_connect %s:%s\n", opt.server_addr, opt.server_port);
+    fflush( stdout );
     if( ( ret = mbedtls_net_connect( &server_fd,
                        opt.server_addr, opt.server_port,
                        opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ?

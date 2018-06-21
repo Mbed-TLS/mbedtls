@@ -263,6 +263,27 @@ unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int 
     }
 }
 
+unsigned long long mbedtls_timing_get_timer_us( struct mbedtls_timing_hr_time *val, int reset )
+{
+    struct _hr_time *t = (struct _hr_time *) val;
+
+    if( reset )
+    {
+        QueryPerformanceCounter( &t->start );
+        return( 0 );
+    }
+    else
+    {
+        unsigned long long delta;
+        LARGE_INTEGER now, hfreq;
+        QueryPerformanceCounter(  &now );
+        QueryPerformanceFrequency( &hfreq );
+        delta = (unsigned long)( ( now.QuadPart - t->start.QuadPart ) * 1000ul * 1000ul
+                                 / hfreq.QuadPart );
+        return( delta );
+    }
+}
+
 /* It's OK to use a global because alarm() is supposed to be global anyway */
 static DWORD alarmMs;
 
@@ -309,6 +330,26 @@ unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int 
         gettimeofday( &now, NULL );
         delta = ( now.tv_sec  - t->start.tv_sec  ) * 1000ul
               + ( now.tv_usec - t->start.tv_usec ) / 1000;
+        return( delta );
+    }
+}
+
+unsigned long long mbedtls_timing_get_timer_us( struct mbedtls_timing_hr_time *val, int reset )
+{
+    struct _hr_time *t = (struct _hr_time *) val;
+
+    if( reset )
+    {
+        gettimeofday( &t->start, NULL );
+        return( 0 );
+    }
+    else
+    {
+        unsigned long long delta;
+        struct timeval now;
+        gettimeofday( &now, NULL );
+        delta = ( now.tv_sec  - t->start.tv_sec  ) * 1000ul * 1000ul
+              + ( now.tv_usec - t->start.tv_usec ) ;
         return( delta );
     }
 }
@@ -419,6 +460,7 @@ int mbedtls_timing_self_test( int verbose )
 {
     unsigned long cycles = 0, ratio = 0;
     unsigned long millisecs = 0, secs = 0;
+    unsigned long long microsecs = 0;
     int hardfail = 0;
     struct mbedtls_timing_hr_time hires;
     uint32_t a = 0, b = 0;
@@ -451,7 +493,34 @@ int mbedtls_timing_self_test( int verbose )
         mbedtls_printf( "passed\n" );
 
     if( verbose != 0 )
-        mbedtls_printf( "  TIMING test #2 (set/get_delay        ): " );
+        mbedtls_printf( "  TIMING test #2 (set_alarm / get_timer in uSec.): " );
+
+    for( secs = 1; secs <= 3; secs++ )
+    {
+        (void) mbedtls_timing_get_timer_us( &hires, 1 );
+
+        mbedtls_set_alarm( (int) secs );
+        while( !mbedtls_timing_alarmed )
+            ;
+
+        microsecs = mbedtls_timing_get_timer_us( &hires, 0 );
+
+        /* For some reason on Windows it looks like alarm has an extra delay
+         * (maybe related to creating a new thread). Allow some room here. */
+        if( microsecs < 800 * 1000 * secs || microsecs > 1200 * 1000 * secs + 300 * 1000 )
+        {
+            if( verbose != 0 )
+                mbedtls_printf( "failed\n" );
+
+            return( 1 );
+        }
+    }
+
+    if( verbose != 0 )
+        mbedtls_printf( "passed\n" );
+
+    if( verbose != 0 )
+        mbedtls_printf( "  TIMING test #3 (set/get_delay        ): " );
 
     {
         a = 800;
@@ -480,7 +549,7 @@ int mbedtls_timing_self_test( int verbose )
         mbedtls_printf( "passed\n" );
 
     if( verbose != 0 )
-        mbedtls_printf( "  TIMING test #3 (hardclock / get_timer): " );
+        mbedtls_printf( "  TIMING test #4 (hardclock / get_timer): " );
 
     /*
      * Allow one failure for possible counter wrapping.

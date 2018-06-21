@@ -77,6 +77,14 @@ extern volatile int mbedtls_timing_alarmed;
 unsigned long mbedtls_timing_hardclock( void );
 
 /**
+ * \brief          Return the elapsed time in micro seconds
+ *
+ * \param val      points to a timer structure
+ * \param reset    if set to 1, the timer is restarted
+ */
+unsigned long long mbedtls_timing_get_timer_us( struct mbedtls_timing_hr_time *val, int reset );
+
+/**
  * \brief          Return the elapsed time in milliseconds
  *
  * \param val      points to a timer structure

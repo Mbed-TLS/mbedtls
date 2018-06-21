@@ -9,6 +9,9 @@ Bugfix
      Philippe Antoine.
    * Clarify documentation for mbedtls_ssl_write() to include 0 as a valid
      return value. Found by @davidwu2000. #839
+   * Add ecc extensions only if an ecc based ciphersuite is used.
+     Affects interoperability with BouncyCastle and other peers.
+     Raised by milenamil in #1157.
 
 = mbed TLS 2.7.4 branch released 2018-06-18
 

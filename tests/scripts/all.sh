@@ -502,6 +502,24 @@ if_build_succeeded tests/ssl-opt.sh -f Default
 msg "test: compat.sh RC4, DES & NULL (full config)" # ~ 2 min
 if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
 
+msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl set MBEDTLS_DEPRECATED_WARNING
+# Build with -O -Wextra to catch a maximum of issues.
+make CC=gcc CFLAGS='-O -Werror -Wall -Wextra' lib programs
+make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
+
+msg "build: make, full config + DEPRECATED_REMOVED, clang -O" # ~ 30s
+# No cleanup, just tweak the configuration and rebuild
+make clean
+scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
+scripts/config.pl set MBEDTLS_DEPRECATED_REMOVED
+# Build with -O -Wextra to catch a maximum of issues.
+make CC=clang CFLAGS='-O -Werror -Wall -Wextra' lib programs
+make CC=clang CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
+
 msg "test/build: curves.pl (gcc)" # ~ 4 min
 cleanup
 record_status tests/scripts/curves.pl

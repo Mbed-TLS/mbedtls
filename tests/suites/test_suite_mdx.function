@@ -21,6 +21,12 @@ void md2_text( char * text_src_string, data_t * hex_hash_string )
     TEST_ASSERT( ret == 0 ) ;
 
     TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof  output, hex_hash_string->len ) == 0 );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+    memset( output, 0x00, sizeof output );
+    mbedtls_md2( src_str, strlen( (char *) src_str ), output );
+    TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof  output, hex_hash_string->len ) == 0 );
+#endif
 }
 /* END_CASE */
 
@@ -40,6 +46,12 @@ void md4_text( char * text_src_string, data_t * hex_hash_string )
     TEST_ASSERT( ret == 0 );
 
     TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof  output, hex_hash_string->len ) == 0 );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+    memset( output, 0x00, sizeof output );
+    mbedtls_md4( src_str, strlen( (char *) src_str ), output );
+    TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof  output, hex_hash_string->len ) == 0 );
+#endif
 }
 /* END_CASE */
 
@@ -59,6 +71,12 @@ void md5_text( char * text_src_string, data_t * hex_hash_string )
     TEST_ASSERT( ret == 0 );
 
     TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof  output, hex_hash_string->len ) == 0 );
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+    memset( output, 0x00, sizeof output );
+    mbedtls_md5( src_str, strlen( (char *) src_str ), output );
+    TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof  output, hex_hash_string->len ) == 0 );
+#endif
 }
 /* END_CASE */
 

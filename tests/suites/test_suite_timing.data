@@ -39,3 +39,7 @@ timing_alarm:1:
 
 Timing: hardclock
 timing_hardclock:
+
+Timing Selftest
+depends_on:MBEDTLS_SELF_TEST
+timing_selftest:

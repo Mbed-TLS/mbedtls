@@ -8,6 +8,10 @@ Bugfix
    * Clarify documentation for mbedtls_ssl_write() to include 0 as a valid
      return value. Found by @davidwu2000. #839
 
+Changes
+   * Change the shebang line in Perl scripts to look up perl in the PATH.
+     Contributed by fbrosson in #1533.
+
 = mbed TLS 2.1.13 branch released 2018-06-18
 
 Bugfix

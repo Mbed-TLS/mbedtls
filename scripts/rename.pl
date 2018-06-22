@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # rename identifiers (functions, types, enum constant, etc)
 # on upgrades of major version according to a list

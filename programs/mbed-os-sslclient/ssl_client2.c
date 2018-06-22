@@ -64,6 +64,10 @@ int main( void )
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(MBEDTLS_ON_TARGET_PLATFORM)
+#include "mbed_os_platform.h"
+#endif
+
 #define MAX_REQUEST_SIZE      20000
 #define MAX_REQUEST_SIZE_STR "20000"
 
@@ -443,79 +447,6 @@ static int ssl_sig_hashes_for_test[] = {
 };
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-uint32_t receive_uint32()
-{
-    uint32_t value;
-    value =  ((uint32_t)greentea_getc()) << 24;
-    value |= ((uint32_t)greentea_getc()) << 16;
-    value |= ((uint32_t)greentea_getc()) << 8;
-    value |= ((uint32_t)greentea_getc());
-    return( (uint32_t)value );
-}
-
-/**
- * Receives the command line sent from the host using the greentea API.
- * The expected data format is:
- * - 4 byte buffer size
- * - buffer of the given size (if size > 0, otherwise no buffer is sent)
- *
- * The postconditions are that:
- * - argv is a newly allocated array of pointers to char containing the incoming
- *   arguments, with (*argv)[0] left to contain NULL (it doesn't make sense to send
- *   it in from the frontend)
- * - argc contains a value of the numner of the argv elements.
- *
- * Note that apart from the array itself, _one_ buffer for the arguments is
- * allocated which contains all the arguments terminated with NUL character.
- * This means that in order to clean up after this procedure both the (*argv)[1]
- * and *argv buffers must be freed.
- */
-static void receive_args( int *argc, char ***argv )
-{
-    uint32_t length;
-    char *buffer;
-    int i;
-
-    length = receive_uint32();
-    if( length == 0 )
-    {
-        // length == 0 means no further data was sent.
-        *argc = 0;
-        *argv = NULL;
-    }
-    else
-    {
-        // if length was non zero, the args have been sent in a subsequent buffer
-        *argc = 1; // Initialize with 1 because of the additional (*argv)[0] which is not sent
-        buffer = malloc( length );
-        for( i = 0; i < length; ++i )
-        {
-            buffer[i] = greentea_getc();
-            if( buffer[i] == '\0' ) // count NULs along the way to count args
-                ++*argc;
-        }
-
-        *argv = malloc( *argc * sizeof(**argv) );
-        (*argv)[0] = NULL; // Fill this in later if necessary
-        for( i = 1; i < *argc; ++i ) // Initialize i to 1 as the first argument
-                                     // has been set above.
-        {
-            // Record current arg
-            (*argv)[i] = buffer;
-            // Find next NUL character
-            while( *buffer ) ++buffer;
-            // Skip beyond the NUL character to the next arg
-            ++buffer;
-        }
-    }
-}
-
-static void free_received_args( char **argv )
-{
-    free(argv[1]); // Free the buffer containing the args
-    free(argv); // Free the arg pointer array
-}
-
 /*
  * Wait for an event from the underlying transport or the timer
  * (Used in event-driven IO mode).
@@ -602,7 +533,11 @@ int main()
     mbedtls_timing_delay_context timer;
 #else
 #if defined(MBEDTLS_ON_TARGET_PLATFORM)
-    mbed_os_timing_delay_context_t timer;
+    //printf("alloc timer\r\n");
+    //fflush(stdout);
+    mbed_os_timing_delay_context_t timer = mbed_os_timing_delay_context_alloc();
+    //fflush(stdout);
+    //printf("done\r\n");
 #endif
 #endif /* MBEDTLS_TIMING_C */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
@@ -1347,8 +1282,8 @@ int main()
             opt.server_addr, opt.server_port );
     fflush( stdout );
 
-    printf ("mbedtls_net_connect %s:%s\n", opt.server_addr, opt.server_port);
-    fflush( stdout );
+    //printf ("mbedtls_net_connect %s:%s\n", opt.server_addr, opt.server_port);
+    //fflush( stdout );
     if( ( ret = mbedtls_net_connect( &server_fd,
                        opt.server_addr, opt.server_port,
                        opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM ?
@@ -1572,8 +1507,11 @@ int main()
                                             mbedtls_timing_get_delay );
 #else
 #if defined(MBEDTLS_ON_TARGET_PLATFORM)
+    //printf("setting timer\r\n");
     mbedtls_ssl_set_timer_cb( &ssl, timer, mbed_os_timing_delay_set,
                                            mbed_os_timing_delay_get );
+    //printf("done\r\n");
+    //fflush(stdout);
 #endif
 #endif /* MBEDTLS_TIMING_C */
 

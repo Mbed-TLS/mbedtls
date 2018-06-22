@@ -513,6 +513,7 @@ run_test() {
         # run the commands
         if [ -n "$PXY_CMD" ]; then
             echo "$PXY_CMD" > $PXY_OUT
+            echo "$PXY_CMD"
             $PXY_CMD >> $PXY_OUT 2>&1 &
             PXY_PID=$!
             # assume proxy starts faster than server
@@ -520,11 +521,13 @@ run_test() {
 
         check_osrv_dtls
         echo "$SRV_CMD" > $SRV_OUT
+        echo "$SRV_CMD"
         provide_input | $SRV_CMD >> $SRV_OUT 2>&1 &
         SRV_PID=$!
         wait_server_start "$SRV_PORT" "$SRV_PID"
 
         echo "$CLI_CMD" > $CLI_OUT
+        echo "$CLI_CMD"
         eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
         wait_client_done
 

@@ -247,7 +247,7 @@ static int ssl_parse_signature_algorithms_ext( mbedtls_ssl_context *ssl,
                                         " unknown hash alg encoding %d", p[0] ) );
             continue;
         }
-        
+
         if( mbedtls_ssl_check_sig_hash( ssl, md_cur ) == 0 )
         {
             mbedtls_ssl_sig_hash_set_add( &ssl->handshake->hash_algs, sig_cur, md_cur );
@@ -721,7 +721,7 @@ static int ssl_ciphersuite_match( mbedtls_ssl_context *ssl, int suite_id,
     const mbedtls_ssl_ciphersuite_t *suite_info;
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
-    defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)    
+    defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
     mbedtls_pk_type_t sig_type;
 #endif
 
@@ -1743,7 +1743,7 @@ read_record_header:
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
-    
+
     /*
      * Try to fall back to default hash SHA1 if the client
      * hasn't provided any preferred signature-hash combinations.
@@ -1751,13 +1751,13 @@ read_record_header:
     if( sig_hash_alg_ext_present == 0 )
     {
         mbedtls_md_type_t md_default = MBEDTLS_MD_SHA1;
-        
+
         if( mbedtls_ssl_check_sig_hash( ssl, md_default ) != 0 )
             md_default = MBEDTLS_MD_NONE;
 
         mbedtls_ssl_sig_hash_set_const_hash( &ssl->handshake->hash_algs, md_default );
     }
-    
+
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
           MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
@@ -2776,7 +2776,7 @@ static int ssl_write_server_key_exchange( mbedtls_ssl_context *ssl )
             return( ret );
         }
 
-#if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)        
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
         dig_signed = p;
         dig_signed_len = len;
 #endif
@@ -2837,7 +2837,7 @@ curve_matching_done:
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_make_params", ret );
             return( ret );
         }
-        
+
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
         dig_signed     = p;
         dig_signed_len = len;
@@ -2865,7 +2865,7 @@ curve_matching_done:
 
         /*
          * 3.1: Choose hash algorithm:
-         * A: For TLS 1.2, obey signature-hash-algorithm extension 
+         * A: For TLS 1.2, obey signature-hash-algorithm extension
          *    to choose appropriate hash.
          * B: For SSL3, TLS1.0, TLS1.1 and ECDHE_ECDSA, use SHA1
          *    (RFC 4492, Sec. 5.4)
@@ -2873,7 +2873,7 @@ curve_matching_done:
          */
 
         mbedtls_md_type_t md_alg;
-        
+
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
         mbedtls_pk_type_t sig_alg =
             mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
@@ -2886,7 +2886,7 @@ curve_matching_done:
                                                           sig_alg ) ) == MBEDTLS_MD_NONE )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-                /* (... because we choose a cipher suite 
+                /* (... because we choose a cipher suite
                  *      only if there is a matching hash.) */
                 return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
             }
@@ -2908,8 +2908,8 @@ curve_matching_done:
             md_alg = MBEDTLS_MD_NONE;
         }
 
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "pick hash algorithm %d for signing", md_alg ) );                    
-        
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "pick hash algorithm %d for signing", md_alg ) );
+
         /*
          * 3.2: Compute the hash to be signed
          */
@@ -2936,7 +2936,7 @@ curve_matching_done:
              *     SHA(ClientHello.random + ServerHello.random
              *                            + ServerParams);
              */
-            
+
             mbedtls_md5_starts( &mbedtls_md5 );
             mbedtls_md5_update( &mbedtls_md5, ssl->handshake->randbytes,  64 );
             mbedtls_md5_update( &mbedtls_md5, dig_signed, dig_signed_len );
@@ -3024,7 +3024,7 @@ curve_matching_done:
              * } DigitallySigned;
              *
              */
-            
+
             *(p++) = mbedtls_ssl_hash_from_md_alg( md_alg );
             *(p++) = mbedtls_ssl_sig_from_pk_alg( sig_alg );
 

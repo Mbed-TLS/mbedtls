@@ -51,6 +51,7 @@
 
 #include <windows.h>
 #include <winbase.h>
+#include <process.h>
 
 struct _hr_time
 {
@@ -266,18 +267,16 @@ unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int 
 /* It's OK to use a global because alarm() is supposed to be global anyway */
 static DWORD alarmMs;
 
-static DWORD WINAPI TimerProc( LPVOID TimerContext )
+static void TimerProc( void *TimerContext )
 {
-    ((void) TimerContext);
+    (void)TimerContext;
     Sleep( alarmMs );
     mbedtls_timing_alarmed = 1;
-    return( TRUE );
+    // Implicit call of _endthread() is better (see MS online docs)
 }
 
 void mbedtls_set_alarm( int seconds )
 {
-    DWORD ThreadId;
-
     if( seconds == 0 )
     {
         /* No need to create a thread for this simple case.
@@ -288,7 +287,7 @@ void mbedtls_set_alarm( int seconds )
 
     mbedtls_timing_alarmed = 0;
     alarmMs = seconds * 1000;
-    CloseHandle( CreateThread( NULL, 0, TimerProc, NULL, 0, &ThreadId ) );
+    (void)_beginthread( TimerProc, 0, NULL );
 }
 
 #else /* _WIN32 && !EFIX64 && !EFI32 */

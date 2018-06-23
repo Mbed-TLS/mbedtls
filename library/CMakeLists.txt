@@ -117,13 +117,16 @@ endif()
 
 # mbedx509 libs
 set(mbedx509_libs mbedcrypto)
+list(APPEND mbedx509_PKGCONFIG_REQUIRES mbedcrypto)
 
 if(USE_PKCS11_HELPER_LIBRARY)
     set(mbedx509_libs ${mbedx509_libs} pkcs11-helper)
+    list(APPEND mbedx509_PKGCONFIG_REQUIRES libpkcs11-helper-1)
 endif(USE_PKCS11_HELPER_LIBRARY)
 
 # mbedtls libs
 set(mbedtls_libs mbedcrypto mbedx509)
+set(mbedtls_PKGCONFIG_REQUIRES mbedx509)
 if(WIN32)
     set(mbedtls_libs ${mbedtls_libs} ws2_32)
 endif(WIN32)
@@ -134,10 +137,12 @@ endif(HAIKU)
 
 if(ENABLE_ZLIB_SUPPORT)
     set(mbedtls_libs ${mbedtls_libs} ${ZLIB_LIBRARIES})
+    set(mbedtls_PKGCONFIG_PRIVATE_LIBS ${ZLIB_LIBRARIES})
 endif(ENABLE_ZLIB_SUPPORT)
 
 if(LINK_WITH_PTHREAD)
     set(mbedtls_libs ${mbedtls_libs} pthread)
+    list(APPEND mbedtls_PKGCONFIG_PRIVATE_LIBS -lpthread)
 endif()
 
 if (NOT USE_STATIC_MBEDTLS_LIBRARY AND NOT USE_SHARED_MBEDTLS_LIBRARY)
@@ -202,3 +207,22 @@ add_custom_target(lib DEPENDS mbedx509 mbedtls)
 if(USE_STATIC_MBEDTLS_LIBRARY AND USE_SHARED_MBEDTLS_LIBRARY)
     add_dependencies(lib mbedx509_static mbedtls_static)
 endif()
+
+include(PkgBuildConfig)
+
+set(PKG_BUILD_LIBDIR ${LIB_INSTALL_DIR})
+set(PKG_BUILD_INCLUDEDIR ${INCLUDE_INSTALL_DIR})
+pkg_build_config(NAME mbedx509
+    VERSION ${MBEDTLS_VERSION_STRING}
+    DESCRIPTION "The mbedTLS X.509 library"
+    LIBS ${mbedx509_PKGCONFIG_LIBS}
+    PRIVATE_LIBS ${mbedx509_PKGCONFIG_PRIVATE_LIBS}
+    REQUIRES ${mbedx509_PKGCONFIG_REQUIRES}
+)
+pkg_build_config(NAME mbedtls
+    VERSION ${MBEDTLS_VERSION_STRING}
+    DESCRIPTION "The mbedTLS TLS library"
+    LIBS ${mbedtls_PKGCONFIG_LIBS}
+    PRIVATE_LIBS ${mbedtls_PKGCONFIG_PRIVATE_LIBS}
+    REQUIRES ${mbedtls_PKGCONFIG_REQUIRES}
+)

@@ -119,10 +119,6 @@ if(CMAKE_COMPILER_IS_CLANG)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes -Wdocumentation -Wno-documentation-deprecated-sync -Wunreachable-code")
 endif(CMAKE_COMPILER_IS_CLANG)
 
-if(WIN32)
-    set(libs ${libs} ws2_32)
-endif(WIN32)
-
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     SET(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
     SET(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
@@ -130,20 +126,29 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     SET(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
 endif()
 
-if(HAIKU)
-    set(libs ${libs} network)
-endif(HAIKU)
+# mbedx509 libs
+set(mbedx509_libs mbedcrypto)
 
 if(USE_PKCS11_HELPER_LIBRARY)
-    set(libs ${libs} pkcs11-helper)
+    set(mbedx509_libs ${mbedx509_libs} pkcs11-helper)
 endif(USE_PKCS11_HELPER_LIBRARY)
 
+# mbedtls libs
+set(mbedtls_libs mbedcrypto mbedx509)
+if(WIN32)
+    set(mbedtls_libs ${mbedtls_libs} ws2_32)
+endif(WIN32)
+
+if(HAIKU)
+    set(mbedtls_libs ${mbedtls_libs} network)
+endif(HAIKU)
+
 if(ENABLE_ZLIB_SUPPORT)
-    set(libs ${libs} ${ZLIB_LIBRARIES})
+    set(mbedtls_libs ${mbedtls_libs} ${ZLIB_LIBRARIES})
 endif(ENABLE_ZLIB_SUPPORT)
 
 if(LINK_WITH_PTHREAD)
-    set(libs ${libs} pthread)
+    set(mbedtls_libs ${mbedtls_libs} pthread)
 endif()
 
 if(LINK_WITH_TRUSTED_STORAGE)
@@ -175,11 +180,11 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
 
     add_library(${mbedx509_static_target} STATIC ${src_x509})
     set_target_properties(${mbedx509_static_target} PROPERTIES OUTPUT_NAME mbedx509)
-    target_link_libraries(${mbedx509_static_target} ${libs} ${mbedcrypto_static_target})
+    target_link_libraries(${mbedx509_static_target} ${mbedx509_libs})
 
     add_library(${mbedtls_static_target} STATIC ${src_tls})
     set_target_properties(${mbedtls_static_target} PROPERTIES OUTPUT_NAME mbedtls)
-    target_link_libraries(${mbedtls_static_target} ${libs} ${mbedx509_static_target})
+    target_link_libraries(${mbedtls_static_target} ${mbedtls_libs})
 endif(USE_STATIC_MBEDTLS_LIBRARY)
 
 if(USE_SHARED_MBEDTLS_LIBRARY)

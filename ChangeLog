@@ -3,6 +3,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Bugfix
+   * Fix the inline assembly for the MPI multiply helper function for i386 and
+     i386 with SSE2. Found by László Langó. Fixes #1550
    * Fix a memory leak in mbedtls_x509_csr_parse(), found by catenacyber,
      Philippe Antoine. Fixes #1623.
    * Clarify documentation for mbedtls_ssl_write() to include 0 as a valid

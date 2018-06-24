@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.xx.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix the inline assembly for the MPI multiply helper function for i386 and
+     i386 with SSE2. Found by László Langó. Fixes #1550
+
 = mbed TLS 2.11.0 branch released 2018-06-18
 
 Features

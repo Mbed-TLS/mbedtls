@@ -4,11 +4,12 @@
 #
 # This file is part of mbed TLS (https://tls.mbed.org)
 #
-# Copyright (c) 2017, ARM Limited, All Rights Reserved
+# Copyright (c) 2018, ARM Limited, All Rights Reserved
 #
 # Purpose
 #
-# To run test builds of the mbed OS module for all supported targets.
+# To run test builds of the mbed OS module for all specified targets.
+# Usage: mbed-build <folder to import to> <optinally string of space seperated targets>
 
 set -eu
 
@@ -55,10 +56,15 @@ create_module
 cd $MBED_APP
 
 TOOLCHAINS="ARM GCC_ARM"
+if [ $# -eq 1 ]
+then
 TARGETS="K64F NUCLEO_F429ZI"
+else
+TARGETS=$2
+fi
 
 for f in *; do
-    if [ -d $f ]; then
+    if [ -d $f ] && [ -d $f"/mbed-os" ]; then
         cd $f
         for TOOLCHAIN in $TOOLCHAINS; do
             for TARGET in $TARGETS; do

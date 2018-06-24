@@ -142,7 +142,7 @@
         "movl   %%esi, %3       \n\t"   \
         : "=m" (t), "=m" (c), "=m" (d), "=m" (s)        \
         : "m" (t), "m" (s), "m" (d), "m" (c), "m" (b)   \
-        : "eax", "ecx", "edx", "esi", "edi"             \
+        : "eax", "ebx", "ecx", "edx", "esi", "edi"      \
     );
 
 #else
@@ -154,7 +154,7 @@
         "movl   %%esi, %3       \n\t"   \
         : "=m" (t), "=m" (c), "=m" (d), "=m" (s)        \
         : "m" (t), "m" (s), "m" (d), "m" (c), "m" (b)   \
-        : "eax", "ecx", "edx", "esi", "edi"             \
+        : "eax", "ebx", "ecx", "edx", "esi", "edi"      \
     );
 #endif /* SSE2 */
 #endif /* i386 */

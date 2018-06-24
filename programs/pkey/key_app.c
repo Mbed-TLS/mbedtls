@@ -266,8 +266,11 @@ int main( int argc, char *argv[] )
 cleanup:
 
 #if defined(MBEDTLS_ERROR_C)
-    mbedtls_strerror( ret, buf, sizeof(buf) );
-    mbedtls_printf( "  !  Last error was: %s\n", buf );
+    if( ret != 0 )
+    {
+        mbedtls_strerror( ret, buf, sizeof( buf ) );
+        mbedtls_printf( "  !  Last error was: %s\n", buf );
+    }
 #endif
 
     mbedtls_pk_free( &pk );

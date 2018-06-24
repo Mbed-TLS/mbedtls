@@ -288,7 +288,7 @@ cleanup:
 #if defined(MBEDTLS_ERROR_C)
     if( ret != 0 )
     {
-        mbedtls_strerror( ret, buf, sizeof(buf) );
+        mbedtls_strerror( ret, buf, sizeof( buf ) );
         mbedtls_printf( "  !  Last error was: %s\n", buf );
     }
 #endif

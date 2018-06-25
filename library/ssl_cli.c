@@ -3617,6 +3617,8 @@ static int ssl_client_key_exchange_write( mbedtls_ssl_context *ssl,
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->transform_negotiate->ciphersuite_info;
 
+    size_t const tls_hs_hdr_len = 4;
+
     /* NOTE: This function will generate different messages
      * when it's called multiple times, because it currently
      * includes private/public key generation in case of
@@ -3628,7 +3630,12 @@ static int ssl_client_key_exchange_write( mbedtls_ssl_context *ssl,
      * Also see the documentation of ssl_client_key_exchange_prepare().
      */
 
-    p   = buf + 4;
+    /* Skip the handshake header.
+     * Note: Even if DTLS is used, the current message writing functions
+     * write TLS headers, and it is only at sending time that the actual
+     * DTLS header is generated. That's why we unconditionally shift by
+     * 4 bytes here as opposed to mbedtls_ssl_hs_hdr_len( ssl ). */
+    p   = buf + tls_hs_hdr_len;
     end = buf + buflen;
 
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)

@@ -295,9 +295,7 @@ struct mbedtls_ssl_handshake_params
     /*
      * State-local variables used during the processing
      * of a specific handshake state.
-     *
      */
-
     union
     {
         /* Outgoing Finished message */
@@ -594,9 +592,13 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_process_read_certificate( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_process_write_certificate( mbedtls_ssl_context *ssl );
 
+/* Routines used by both client and server to process
+ * incoming and outgoing ChangeCipherSpec messages. */
 int mbedtls_ssl_process_out_ccs( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_process_in_ccs( mbedtls_ssl_context *ssl );
 
+/* Routines used by both client and server to process
+ * incoming and outgoing Finished messages. */
 int mbedtls_ssl_process_finished_in( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_process_finished_out( mbedtls_ssl_context *ssl );
 

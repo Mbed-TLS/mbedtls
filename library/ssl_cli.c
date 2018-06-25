@@ -1236,43 +1236,58 @@ static int ssl_client_hello_write( mbedtls_ssl_context *ssl,
 
     if( offer_compress )
     {
+        size_t const compression_list_length_len    = 1;
+        size_t const compression_list_entry_len     = 1;
+        size_t const compression_list_delimeter_len = 1;
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, compress len.: %d", 2 ) );
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, compress alg.: %d %d",
                             MBEDTLS_SSL_COMPRESS_DEFLATE, MBEDTLS_SSL_COMPRESS_NULL ) );
 
-        if( buflen <   1 /* Length byte                 */
-                     + 1 /* Compression algorithm entry */
-                     + 1 /* End of list delimeter       */ )
+        if( buflen <   compression_list_length_len
+                     + compression_list_entry_len
+                     + compression_list_delimeter_len )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small to hold ClientHello" ) );
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         }
 
-        buf[0] = 2;
-        buf[1] = MBEDTLS_SSL_COMPRESS_DEFLATE;
-        buf[2] = MBEDTLS_SSL_COMPRESS_NULL;
+        /* We offer a single compression algorithm entry */
+        buf[0]  = 1 * compression_list_entry_len
+                  + compression_list_delimeter_len;
+        buf    += compression_list_length_len;
+        buflen -= compression_list_length_len;
 
-        buf    += 3;
-        buflen -= 3;
+        buf[0]  = MBEDTLS_SSL_COMPRESS_DEFLATE;
+        buf    += compression_list_entry_len;
+        buflen -= compression_list_entry_len;
+
+        buf[0]  = MBEDTLS_SSL_COMPRESS_NULL;
+        buf    += compression_list_delimeter_len;
+        buflen -= compression_list_delimeter_len;
     }
     else
     {
+        size_t const compression_list_length_len    = 1;
+        size_t const compression_list_delimeter_len = 1;
+
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, compress len.: %d", 1 ) );
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, compress alg.: %d",
                             MBEDTLS_SSL_COMPRESS_NULL ) );
 
-        if( buflen <   1 /* Length byte                 */
-                     + 1 /* End of list delimeter       */ )
+        if( buflen <   compression_list_length_len
+                     + compression_list_delimeter_len )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small to hold ClientHello" ) );
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         }
 
-        buf[0] = 1;
-        buf[1] = MBEDTLS_SSL_COMPRESS_NULL;
+        buf[0]  = 1;
+        buf    += compression_list_length_len;
+        buflen -= compression_list_length_len;
 
-        buf    += 2;
-        buflen -= 2;
+        buf[0]  = MBEDTLS_SSL_COMPRESS_NULL;
+        buflen -= compression_list_delimeter_len;
+        buf    += compression_list_delimeter_len;
     }
 
     /*

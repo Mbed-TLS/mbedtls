@@ -1,5 +1,13 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix Renaming "new" variable #1783.
+     compile error(new variable) with arm-none-eabi-gcc(c++) on mbed TLS 2.7.0.
+
+
 = mbed TLS 2.11.0 branch released 2018-06-18
 
 Features

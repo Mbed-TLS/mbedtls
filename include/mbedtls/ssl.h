@@ -371,7 +371,7 @@
 union mbedtls_ssl_premaster_secret
 {
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)
-    unsigned char _pms_rsa[ MBEDTLS_RSA_PMS_LEN ];     /* RFC 5246 8.1.1 */
+    unsigned char _pms_rsa[MBEDTLS_RSA_PMS_LEN];     /* RFC 5246 8.1.1 */
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)
     unsigned char _pms_dhm[MBEDTLS_MPI_MAX_SIZE];      /* RFC 5246 8.1.2 */
@@ -1869,21 +1869,21 @@ void mbedtls_ssl_conf_sig_hashes( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
- * \brief          Set or reset the hostname to check against the received 
- *                 server certificate. It sets the ServerName TLS extension, 
+ * \brief          Set or reset the hostname to check against the received
+ *                 server certificate. It sets the ServerName TLS extension,
  *                 too, if that extension is enabled. (client-side only)
  *
  * \param ssl      SSL context
  * \param hostname the server hostname, may be NULL to clear hostname
- 
+
  * \note           Maximum hostname length MBEDTLS_SSL_MAX_HOST_NAME_LEN.
  *
- * \return         0 if successful, MBEDTLS_ERR_SSL_ALLOC_FAILED on 
- *                 allocation failure, MBEDTLS_ERR_SSL_BAD_INPUT_DATA on 
+ * \return         0 if successful, MBEDTLS_ERR_SSL_ALLOC_FAILED on
+ *                 allocation failure, MBEDTLS_ERR_SSL_BAD_INPUT_DATA on
  *                 too long input hostname.
  *
  *                 Hostname set to the one provided on success (cleared
- *                 when NULL). On allocation failure hostname is cleared. 
+ *                 when NULL). On allocation failure hostname is cleared.
  *                 On too long input failure, old hostname is unchanged.
  */
 int mbedtls_ssl_set_hostname( mbedtls_ssl_context *ssl, const char *hostname );

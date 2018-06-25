@@ -1115,10 +1115,10 @@ int mbedtls_ssl_complete_pms( mbedtls_ssl_context *ssl )
     if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_RSA )
     {
         if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
-                                      ssl->handshake->premaster,
-                                      MBEDTLS_PREMASTER_SIZE,
-                                     &ssl->handshake->pmslen,
-                                      ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+                                   ssl->handshake->premaster,
+                                   MBEDTLS_PREMASTER_SIZE,
+                                   &ssl->handshake->pmslen,
+                                   ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS );
@@ -1138,10 +1138,10 @@ int mbedtls_ssl_complete_pms( mbedtls_ssl_context *ssl )
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA )
     {
         if( ( ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx,
-                                      &ssl->handshake->pmslen,
-                                       ssl->handshake->premaster,
-                                       MBEDTLS_MPI_MAX_SIZE,
-                                       ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+                             &ssl->handshake->pmslen,
+                             ssl->handshake->premaster,
+                             MBEDTLS_MPI_MAX_SIZE,
+                             ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS );

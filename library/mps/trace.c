@@ -20,6 +20,7 @@ static char const * colors[] =
     color_yellow,
     color_magenta,
     color_cyan,
+    color_blue,
     color_white
 };
 

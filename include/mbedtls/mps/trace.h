@@ -10,8 +10,9 @@
 #define TRACE_ENABLE_LAYER_1
 #define TRACE_ENABLE_LAYER_2
 #define TRACE_ENABLE_LAYER_3
-//#define TRACE_ENABLE_READER
-//#define TRACE_ENABLE_WRITER
+#define TRACE_ENABLE_LAYER_4
+#define TRACE_ENABLE_READER
+#define TRACE_ENABLE_WRITER
 
 /*
  * To use the existing trace module, only change
@@ -31,8 +32,9 @@ typedef enum
 #define TRACE_BIT_LAYER_1 1
 #define TRACE_BIT_LAYER_2 2
 #define TRACE_BIT_LAYER_3 3
-#define TRACE_BIT_WRITER  4
-#define TRACE_BIT_READER  5
+#define TRACE_BIT_LAYER_4 4
+#define TRACE_BIT_WRITER  5
+#define TRACE_BIT_READER  6
 
 #if defined(TRACE_ENABLE_LAYER_1)
 #define TRACE_MASK_LAYER_1 (1u << TRACE_BIT_LAYER_1 )
@@ -52,6 +54,12 @@ typedef enum
 #define TRACE_MASK_LAYER_3 0
 #endif
 
+#if defined(TRACE_ENABLE_LAYER_4)
+#define TRACE_MASK_LAYER_4 (1u << TRACE_BIT_LAYER_4 )
+#else
+#define TRACE_MASK_LAYER_4 0
+#endif
+
 #if defined(TRACE_ENABLE_READER)
 #define TRACE_MASK_READER (1u << TRACE_BIT_READER )
 #else
@@ -67,6 +75,7 @@ typedef enum
 #define TRACE_MASK ( TRACE_MASK_LAYER_1 |           \
                      TRACE_MASK_LAYER_2 |           \
                      TRACE_MASK_LAYER_3 |           \
+                     TRACE_MASK_LAYER_4 |           \
                      TRACE_MASK_READER  |           \
                      TRACE_MASK_WRITER )
 

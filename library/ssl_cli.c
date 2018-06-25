@@ -982,6 +982,10 @@ static int ssl_client_hello_write( mbedtls_ssl_context *ssl,
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
     size_t i; /* Used to iterate through the ciphersuite list. */
 
+    size_t const tls_hs_hdr_len = 4;
+    size_t const version_len    = 2;
+    size_t const rand_bytes_len = 32;
+
     /*
      *     0  .   0   handshake type
      *     1  .   3   handshake length
@@ -996,15 +1000,13 @@ static int ssl_client_hello_write( mbedtls_ssl_context *ssl,
      * the record writing routine mbedtls_ssl_write_record().
      */
 
-    if( buflen < 4  /* handshake header */ +
-                 2  /* version          */ +
-                 32 /* random bytes     */ )
+    if( buflen < tls_hs_hdr_len + version_len + rand_bytes_len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small to hold ClientHello" ) );
         return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
     }
-    buf    += 4;
-    buflen -= 4;
+    buf    += tls_hs_hdr_len;
+    buflen -= tls_hs_hdr_len;
 
 
     /* Write maximum supported version version */
@@ -1014,19 +1016,20 @@ static int ssl_client_hello_write( mbedtls_ssl_context *ssl,
                                ssl->conf->transport, buf );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, max version: [%d:%d]",
                                 buf[0], buf[11] ) );
-    buf    += 2;
-    buflen -= 2;
+    buf    += version_len;
+    buflen -= version_len;
 
     /* Write random bytes
      *
      * These have been generated ssl_client_hello_prepare().
      */
 
-    memcpy( buf, ssl->handshake->randbytes, 32 );
-    MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes", buf, 32 );
+    memcpy( buf, ssl->handshake->randbytes, rand_bytes_len );
+    MBEDTLS_SSL_DEBUG_BUF( 3, "client hello, random bytes", buf,
+                           rand_bytes_len );
 
-    buf    += 32;
-    buflen -= 32;
+    buf    += rand_bytes_len;
+    buflen -= rand_bytes_len;
 
     /* Write (or skip) session ID
      *

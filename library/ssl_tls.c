@@ -5897,13 +5897,25 @@ static int ssl_finished_out_write( mbedtls_ssl_context *ssl,
                                    size_t buflen,
                                    size_t *olen )
 {
-    if( buflen < 4 + ssl->handshake->state_local.finished_out.digest_len )
-        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+    size_t const tls_hs_hdr_len = 4;
 
-    memcpy( buf + 4, ssl->handshake->state_local.finished_out.digest,
+    /* Note: Even if DTLS is used, the current message writing functions
+     * write TLS headers, and it is only at sending time that the actual
+     * DTLS header is generated. That's why we unconditionally shift by
+     * 4 bytes here as opposed to mbedtls_ssl_hs_hdr_len( ssl ). */
+
+    if( buflen < tls_hs_hdr_len
+                 + ssl->handshake->state_local.finished_out.digest_len )
+    {
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
+    }
+
+    memcpy( buf + tls_hs_hdr_len,
+            ssl->handshake->state_local.finished_out.digest,
             ssl->handshake->state_local.finished_out.digest_len );
 
-    *olen = 4 + ssl->handshake->state_local.finished_out.digest_len;
+    *olen = tls_hs_hdr_len
+            + ssl->handshake->state_local.finished_out.digest_len;
     return( 0 );
 }
 

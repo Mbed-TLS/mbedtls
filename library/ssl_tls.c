@@ -5774,6 +5774,9 @@ static int ssl_finished_out_prepare( mbedtls_ssl_context *ssl )
      * may define some other value. Currently (early 2016), no defined
      * ciphersuite does this (and this is unlikely to change as activity has
      * moved to TLS 1.3 now) so we can keep the hardcoded 12 here.
+     *
+     * For SSLv3, the digest length is 36 bytes, containing both a
+     * SHA1 digest (20 bytes) and an MD5 digest (16 bytes).
      */
     ssl->handshake->state_local.finished_out.digest_len =
         ( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 ) ? 36 : 12;

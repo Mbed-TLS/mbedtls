@@ -4,7 +4,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Bugfix
-   * Fix compilation error on c++, because of a variable named new. Found and fixed by Hirotaka Niisato in #1783 
+   * Fix compilation error on C++, because of a variable named new.
+     Found and fixed by Hirotaka Niisato in #1783 
 
 = mbed TLS 2.11.0 branch released 2018-06-18
 

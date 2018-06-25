@@ -3740,7 +3740,9 @@ static int ssl_client_key_exchange_write( mbedtls_ssl_context *ssl,
                                                      MBEDTLS_RSA_PMS_LEN_BYTES,
                                                 MBEDTLS_RSA_PMS_LEN,
                                                 p, end - p, &n ) ) != 0 )
+            {
                 return( ret );
+            }
             p += n;
         }
         else

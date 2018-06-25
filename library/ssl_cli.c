@@ -2517,6 +2517,10 @@ static int ssl_parse_server_psk_hint( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED) ||                           \
     defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)
 
+/*
+ * For RSA-based ciphersuites, generate the
+ * random part of the premaster secret.
+ */
 static int ssl_rsa_generate_partial_pms( mbedtls_ssl_context *ssl,
                                          unsigned char* out,
                                          unsigned add_length_tag )

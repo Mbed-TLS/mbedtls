@@ -1662,8 +1662,6 @@ static int ssl_process_server_hello( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process server hello" ) );
 
-    /* Preprocessing step is no-op */
-
     /* Coordination step
      * - Fetch record
      * - Make sure it's either a ServerHello or a HelloVerifyRequest.

@@ -119,25 +119,34 @@ int main( void )
 #define TIME_AND_TSC( TITLE, CODE )                                     \
 do {                                                                    \
     unsigned long ii, jj, tsc;                                          \
+    int ret = 0;                                                        \
                                                                         \
     mbedtls_printf( HEADER_FORMAT, TITLE );                             \
     fflush( stdout );                                                   \
                                                                         \
     mbedtls_set_alarm( 1 );                                             \
-    for( ii = 1; ! mbedtls_timing_alarmed; ii++ )                       \
+    for( ii = 1; ret == 0 && ! mbedtls_timing_alarmed; ii++ )           \
     {                                                                   \
-        CODE;                                                           \
+        ret = CODE;                                                     \
     }                                                                   \
                                                                         \
     tsc = mbedtls_timing_hardclock();                                   \
-    for( jj = 0; jj < 1024; jj++ )                                      \
+    for( jj = 0; ret == 0 && jj < 1024; jj++ )                          \
     {                                                                   \
-        CODE;                                                           \
+        ret = CODE;                                                     \
     }                                                                   \
                                                                         \
-    mbedtls_printf( "%9lu KiB/s,  %9lu cycles/byte\n",                   \
-                     ii * BUFSIZE / 1024,                               \
-                     ( mbedtls_timing_hardclock() - tsc ) / ( jj * BUFSIZE ) );         \
+    if( ret != 0 )                                                      \
+    {                                                                   \
+        PRINT_ERROR;                                                    \
+    }                                                                   \
+    else                                                                \
+    {                                                                   \
+        mbedtls_printf( "%9lu KiB/s,  %9lu cycles/byte\n",              \
+                         ii * BUFSIZE / 1024,                           \
+                         ( mbedtls_timing_hardclock() - tsc )           \
+                         / ( jj * BUFSIZE ) );                          \
+    }                                                                   \
 } while( 0 )
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C) && defined(MBEDTLS_MEMORY_DEBUG)
@@ -664,15 +673,13 @@ int main( int argc, char *argv[] )
         if( mbedtls_ctr_drbg_seed( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
             mbedtls_exit(1);
         TIME_AND_TSC( "CTR_DRBG (NOPR)",
-                if( mbedtls_ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
-                mbedtls_exit(1) );
+                mbedtls_ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) );
 
         if( mbedtls_ctr_drbg_seed( &ctr_drbg, myrand, NULL, NULL, 0 ) != 0 )
             mbedtls_exit(1);
         mbedtls_ctr_drbg_set_prediction_resistance( &ctr_drbg, MBEDTLS_CTR_DRBG_PR_ON );
         TIME_AND_TSC( "CTR_DRBG (PR)",
-                if( mbedtls_ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) != 0 )
-                mbedtls_exit(1) );
+                mbedtls_ctr_drbg_random( &ctr_drbg, buf, BUFSIZE ) );
         mbedtls_ctr_drbg_free( &ctr_drbg );
     }
 #endif
@@ -692,8 +699,7 @@ int main( int argc, char *argv[] )
         if( mbedtls_hmac_drbg_seed( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
             mbedtls_exit(1);
         TIME_AND_TSC( "HMAC_DRBG SHA-1 (NOPR)",
-                if( mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
-                mbedtls_exit(1) );
+                mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) );
         mbedtls_hmac_drbg_free( &hmac_drbg );
 
         if( mbedtls_hmac_drbg_seed( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
@@ -701,8 +707,7 @@ int main( int argc, char *argv[] )
         mbedtls_hmac_drbg_set_prediction_resistance( &hmac_drbg,
                                              MBEDTLS_HMAC_DRBG_PR_ON );
         TIME_AND_TSC( "HMAC_DRBG SHA-1 (PR)",
-                if( mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
-                mbedtls_exit(1) );
+                mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) );
         mbedtls_hmac_drbg_free( &hmac_drbg );
 #endif
 
@@ -713,8 +718,7 @@ int main( int argc, char *argv[] )
         if( mbedtls_hmac_drbg_seed( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
             mbedtls_exit(1);
         TIME_AND_TSC( "HMAC_DRBG SHA-256 (NOPR)",
-                if( mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
-                mbedtls_exit(1) );
+                mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) );
         mbedtls_hmac_drbg_free( &hmac_drbg );
 
         if( mbedtls_hmac_drbg_seed( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
@@ -722,8 +726,7 @@ int main( int argc, char *argv[] )
         mbedtls_hmac_drbg_set_prediction_resistance( &hmac_drbg,
                                              MBEDTLS_HMAC_DRBG_PR_ON );
         TIME_AND_TSC( "HMAC_DRBG SHA-256 (PR)",
-                if( mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) != 0 )
-                mbedtls_exit(1) );
+                mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) );
         mbedtls_hmac_drbg_free( &hmac_drbg );
 #endif
     }

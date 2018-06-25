@@ -3061,6 +3061,7 @@ static int ssl_certificate_request_write( mbedtls_ssl_context *ssl,
     size_t dn_size, total_dn_size; /* excluding length bytes */
     size_t ct_len, sa_len;         /* including length bytes */
     const mbedtls_x509_crt *crt;
+    size_t const tls_hs_hdr_len = 4;
 
     end = buf + buflen;
 
@@ -3090,7 +3091,14 @@ static int ssl_certificate_request_write( mbedtls_ssl_context *ssl,
      *    ... .. ...  length of DN 2, etc.
      */
 
-    p = buf + 4;
+    /* Skip over handshake header.
+     *
+     * NOTE:
+     * Even for DTLS, we are skipping 4 bytes for the TLS handshake
+     * header. The actual DTLS handshake header is inserted in
+     * the record writing routine mbedtls_ssl_write_record().
+     */
+    p = buf + tls_hs_hdr_len;
 
     /*
      * Supported certificate types
@@ -3438,6 +3446,8 @@ static int ssl_server_key_exchange_write( mbedtls_ssl_context *ssl,
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
                             ssl->transform_negotiate->ciphersuite_info;
 
+    size_t const tls_hs_hdr_len = 4;
+
     ((void) ret);
     ((void) ciphersuite_info);
     ((void) p);
@@ -3449,12 +3459,19 @@ static int ssl_server_key_exchange_write( mbedtls_ssl_context *ssl,
      *
      */
 
-#if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
-    dig_signed = buf + 4;
-#endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
-
-    p = buf + 4;
+    /* Skip over handshake header.
+     *
+     * NOTE:
+     * Even for DTLS, we are skipping 4 bytes for the TLS handshake
+     * header. The actual DTLS handshake header is inserted in
+     * the record writing routine mbedtls_ssl_write_record().
+     */
+    p = buf + tls_hs_hdr_len;
     end = buf + buflen;
+
+#if defined(MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED)
+    dig_signed = p;
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_SERVER_SIGNATURE__ENABLED */
 
     /*
      * - ECJPAKE key exchanges

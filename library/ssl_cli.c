@@ -4166,7 +4166,6 @@ static int ssl_certificate_verify_postprocess( mbedtls_ssl_context *ssl )
 /* Main state-handling entry point; orchestrates the other functions. */
 static int ssl_process_new_session_ticket( mbedtls_ssl_context *ssl );
 
-
 static int ssl_new_session_ticket_parse( mbedtls_ssl_context *ssl,
                                          unsigned char *buf,
                                          size_t buflen );

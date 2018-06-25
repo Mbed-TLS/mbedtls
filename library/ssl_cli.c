@@ -1840,7 +1840,7 @@ static int ssl_process_server_hello_coordinate( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
         if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )
         {
-            if( mbedtls_ssl_check_renego_not_honored( ssl ) != 0 )
+            if( mbedtls_ssl_renego_not_honored( ssl ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "renegotiation requested, "
                                             "but not honored by server" ) );

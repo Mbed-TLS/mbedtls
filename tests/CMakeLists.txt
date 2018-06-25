@@ -16,7 +16,7 @@ if(NOT PERL_FOUND)
 endif()
 
 # Enable definition of various functions used throughout the testsuite
-# (hostname, strdup, fileno...) even when compiling with -std=c99. Harmless
+# (gethostname, strdup, fileno...) even when compiling with -std=c99. Harmless
 # on non-POSIX platforms.
 add_definitions("-D_POSIX_C_SOURCE=200809L")
 

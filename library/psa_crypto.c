@@ -1661,6 +1661,15 @@ static psa_status_t psa_rsa_sign( mbedtls_rsa_context *rsa,
     if( signature_size < rsa->len )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
+    /* The Mbed TLS RSA module uses an unsigned int for hash_length. See if
+     * hash_length will fit and return an error if it doesn't. */
+#if defined(MBEDTLS_PKCS1_V15) || defined(MBEDTLS_PKCS1_V21)
+#if SIZE_MAX > UINT_MAX
+    if( hash_length > UINT_MAX )
+        return( PSA_ERROR_NOT_SUPPORTED );
+#endif
+#endif
+
 #if defined(MBEDTLS_PKCS1_V15)
     if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) )
     {
@@ -1670,7 +1679,9 @@ static psa_status_t psa_rsa_sign( mbedtls_rsa_context *rsa,
                                       mbedtls_ctr_drbg_random,
                                       &global_data.ctr_drbg,
                                       MBEDTLS_RSA_PRIVATE,
-                                      md_alg, hash_length, hash,
+                                      md_alg,
+                                      (unsigned int) hash_length,
+                                      hash,
                                       signature );
     }
     else
@@ -1683,7 +1694,9 @@ static psa_status_t psa_rsa_sign( mbedtls_rsa_context *rsa,
                                            mbedtls_ctr_drbg_random,
                                            &global_data.ctr_drbg,
                                            MBEDTLS_RSA_PRIVATE,
-                                           md_alg, hash_length, hash,
+                                           md_alg,
+                                           (unsigned int) hash_length,
+                                           hash,
                                            signature );
     }
     else
@@ -1715,6 +1728,15 @@ static psa_status_t psa_rsa_verify( mbedtls_rsa_context *rsa,
     if( signature_length < rsa->len )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
+#if defined(MBEDTLS_PKCS1_V15) || defined(MBEDTLS_PKCS1_V21)
+#if SIZE_MAX > UINT_MAX
+    /* The Mbed TLS RSA module uses an unsigned int for hash_length. See if
+     * hash_length will fit and return an error if it doesn't. */
+    if( hash_length > UINT_MAX )
+        return( PSA_ERROR_NOT_SUPPORTED );
+#endif
+#endif
+
 #if defined(MBEDTLS_PKCS1_V15)
     if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) )
     {
@@ -1725,7 +1747,7 @@ static psa_status_t psa_rsa_verify( mbedtls_rsa_context *rsa,
                                         &global_data.ctr_drbg,
                                         MBEDTLS_RSA_PUBLIC,
                                         md_alg,
-                                        hash_length,
+                                        (unsigned int) hash_length,
                                         hash,
                                         signature );
     }
@@ -1739,7 +1761,9 @@ static psa_status_t psa_rsa_verify( mbedtls_rsa_context *rsa,
                                              mbedtls_ctr_drbg_random,
                                              &global_data.ctr_drbg,
                                              MBEDTLS_RSA_PUBLIC,
-                                             md_alg, hash_length, hash,
+                                             md_alg,
+                                             (unsigned int) hash_length,
+                                             hash,
                                              signature );
     }
     else

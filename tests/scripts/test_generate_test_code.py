@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Unit test for generate_test_code.py
 #
 # Copyright (C) 2018, ARM Limited, All Rights Reserved
@@ -857,7 +858,7 @@ void func()
 /* END_CASE */
 '''
         s = StringIOWrapper('test_suite_ut.function', data)
-        self.assertRaises(AssertionError, parse_functions, s)
+        self.assertRaises(GeneratorInputError, parse_functions, s)
 
 
 class ExcapedSplit(TestCase):
@@ -994,7 +995,7 @@ dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
 
     def test_no_args(self):
         """
-        Test AssertionError is raised when test function name and args line is missing.
+        Test GeneratorInputError is raised when test function name and args line is missing.
         :return:
         """
         data = """
@@ -1011,13 +1012,13 @@ dhm_do_dhm:10:"93450983094850938450983409623":10:"9345098304850938450983409622"
         try:
             for x, y, z, a in parse_test_data(s):
                 pass
-        except AssertionError, e:
+        except GeneratorInputError as e:
             pass
-        self.assertEqual(type(e), AssertionError)
+        self.assertEqual(type(e), GeneratorInputError)
 
     def test_incomplete_data(self):
         """
-        Test AssertionError is raised when test function name and args line is missing.
+        Test GeneratorInputError is raised when test function name and args line is missing.
         :return:
         """
         data = """
@@ -1029,9 +1030,9 @@ depends_on:YAHOO
         try:
             for x, y, z, a in parse_test_data(s):
                 pass
-        except AssertionError, e:
+        except GeneratorInputError as e:
             pass
-        self.assertEqual(type(e), AssertionError)
+        self.assertEqual(type(e), GeneratorInputError)
 
 
 class GenDepCheck(TestCase):
@@ -1080,14 +1081,14 @@ class GenDepCheck(TestCase):
         Test invalid dependency input.
         :return:
         """
-        self.assertRaises(AssertionError, gen_dep_check, 5, '!')
+        self.assertRaises(GeneratorInputError, gen_dep_check, 5, '!')
 
     def test_negative_dep_id(self):
         """
         Test invalid dependency input.
         :return:
         """
-        self.assertRaises(AssertionError, gen_dep_check, -1, 'YAHOO')
+        self.assertRaises(GeneratorInputError, gen_dep_check, -1, 'YAHOO')
 
 
 class GenExpCheck(TestCase):
@@ -1114,14 +1115,14 @@ class GenExpCheck(TestCase):
         Test invalid expression input.
         :return:
         """
-        self.assertRaises(AssertionError, gen_expression_check, 5, '')
+        self.assertRaises(GeneratorInputError, gen_expression_check, 5, '')
 
     def test_negative_exp_id(self):
         """
         Test invalid expression id.
         :return:
         """
-        self.assertRaises(AssertionError, gen_expression_check, -1, 'YAHOO')
+        self.assertRaises(GeneratorInputError, gen_expression_check, -1, 'YAHOO')
 
 
 class WriteDeps(TestCase):
@@ -1437,7 +1438,7 @@ func1:0
         out_data_f = StringIOWrapper('test_suite_ut.datax', '')
         func_info = {'test_func2': (1, ('int',))}
         suite_deps = []
-        self.assertRaises(AssertionError, gen_from_test_data, data_f, out_data_f, func_info, suite_deps)
+        self.assertRaises(GeneratorInputError, gen_from_test_data, data_f, out_data_f, func_info, suite_deps)
 
     def test_different_func_args(self):
         """
@@ -1453,7 +1454,7 @@ func1:0
         out_data_f = StringIOWrapper('test_suite_ut.datax', '')
         func_info = {'test_func2': (1, ('int','hex'))}
         suite_deps = []
-        self.assertRaises(AssertionError, gen_from_test_data, data_f, out_data_f, func_info, suite_deps)
+        self.assertRaises(GeneratorInputError, gen_from_test_data, data_f, out_data_f, func_info, suite_deps)
 
     def test_output(self):
         """

@@ -477,6 +477,67 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void import_and_exercise_key( data_t *data,
+                              int type_arg,
+                              int bits_arg,
+                              int alg_arg )
+{
+    int slot = 1;
+    psa_key_type_t type = type_arg;
+    size_t bits = bits_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_key_usage_t usage =
+        ( PSA_ALG_IS_MAC( alg ) || PSA_ALG_IS_SIGN( alg ) ?
+          ( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ?
+            PSA_KEY_USAGE_VERIFY :
+            PSA_KEY_USAGE_SIGN | PSA_KEY_USAGE_VERIFY ) :
+          PSA_ALG_IS_CIPHER( alg ) || PSA_ALG_IS_AEAD( alg ) ||
+          PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) ?
+          ( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ?
+            PSA_KEY_USAGE_ENCRYPT :
+            PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT ) :
+          0 );
+    psa_key_policy_t policy;
+    psa_key_type_t got_type;
+    size_t got_bits;
+    psa_status_t status;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, usage, alg );
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+
+    /* Import the key */
+    status = psa_import_key( slot, type, data->x, data->len );
+    TEST_ASSERT( status == PSA_SUCCESS );
+
+    /* Test the key information */
+    TEST_ASSERT( psa_get_key_information( slot,
+                                          &got_type,
+                                          &got_bits ) == PSA_SUCCESS );
+    TEST_ASSERT( got_type == type );
+    TEST_ASSERT( got_bits == bits );
+
+    /* Do something with the key according to its type and permitted usage. */
+    if( PSA_ALG_IS_MAC( alg ) )
+        exercise_mac_key( slot, usage, alg );
+    else if( PSA_ALG_IS_CIPHER( alg ) )
+        exercise_cipher_key( slot, usage, alg );
+    else if( PSA_ALG_IS_AEAD( alg ) )
+        exercise_aead_key( slot, usage, alg );
+    else if( PSA_ALG_IS_SIGN( alg ) )
+        exercise_signature_key( slot, usage, alg );
+    else if( PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) )
+        exercise_asymmetric_encryption_key( slot, usage, alg );
+
+exit:
+    psa_destroy_key( slot );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void key_policy( int usage_arg, int alg_arg )
 {
     int key_slot = 1;

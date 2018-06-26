@@ -1253,7 +1253,7 @@ psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
 #if defined(MBEDTLS_MD_C)
             if( PSA_ALG_IS_HMAC( operation->alg ) )
             {
-                unsigned int block_size =
+                size_t block_size =
                     psa_get_hash_block_size( PSA_ALG_HMAC_HASH( operation->alg ) );
 
                 if( block_size == 0 )

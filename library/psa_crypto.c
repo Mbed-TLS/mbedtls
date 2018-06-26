@@ -1163,7 +1163,8 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     if( cipher_id != NULL )
         *cipher_id = cipher_id_tmp;
 
-    return( mbedtls_cipher_info_from_values( cipher_id_tmp, key_bits, mode ) );
+    return( mbedtls_cipher_info_from_values( cipher_id_tmp,
+                                             (int) key_bits, mode ) );
 }
 
 static size_t psa_get_hash_block_size( psa_algorithm_t alg )
@@ -2188,7 +2189,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     {
         ret = mbedtls_cipher_setkey( &operation->ctx.cipher,
                                      slot->data.raw.data,
-                                     key_bits, cipher_operation );
+                                     (int) key_bits, cipher_operation );
     }
     if( ret != 0 )
     {
@@ -2604,7 +2605,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
         mbedtls_gcm_init( &gcm );
         ret = mbedtls_gcm_setkey( &gcm, cipher_id,
                                   slot->data.raw.data,
-                                  key_bits );
+                                  (unsigned int) key_bits );
         if( ret != 0 )
         {
             mbedtls_gcm_free( &gcm );
@@ -2637,7 +2638,8 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
 
         mbedtls_ccm_init( &ccm );
         ret = mbedtls_ccm_setkey( &ccm, cipher_id,
-                                  slot->data.raw.data, key_bits );
+                                  slot->data.raw.data,
+                                  (unsigned int) key_bits );
         if( ret != 0 )
         {
             mbedtls_ccm_free( &ccm );
@@ -2743,7 +2745,8 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
 
         mbedtls_gcm_init( &gcm );
         ret = mbedtls_gcm_setkey( &gcm, cipher_id,
-                                  slot->data.raw.data, key_bits );
+                                  slot->data.raw.data,
+                                  (unsigned int) key_bits );
         if( ret != 0 )
         {
             mbedtls_gcm_free( &gcm );
@@ -2775,7 +2778,8 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
 
         mbedtls_ccm_init( &ccm );
         ret = mbedtls_ccm_setkey( &ccm, cipher_id,
-                                  slot->data.raw.data, key_bits );
+                                  slot->data.raw.data,
+                                  (unsigned int) key_bits );
         if( ret != 0 )
         {
             mbedtls_ccm_free( &ccm );
@@ -2882,7 +2886,7 @@ psa_status_t psa_generate_key( psa_key_slot_t key,
         ret = mbedtls_rsa_gen_key( rsa,
                                    mbedtls_ctr_drbg_random,
                                    &global_data.ctr_drbg,
-                                   bits,
+                                   (unsigned int) bits,
                                    exponent );
         if( ret != 0 )
         {

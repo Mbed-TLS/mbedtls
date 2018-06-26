@@ -632,8 +632,28 @@ typedef uint32_t psa_algorithm_t;
     (PSA_ALG_RSA_OAEP_MGF1_RAW | ((hash_alg) & PSA_ALG_HASH_MASK))
 #define PSA_ALG_IS_RSA_OAEP_MGF1(alg)                               \
     (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_OAEP_MGF1_BASE)
-#define PSA_ALG_RSA_GET_HASH(alg)                                       \
-    (((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH)
+/** Get the hash used by a hash-and-sign signature algorithm.
+ *
+ * A hash-and-sign algorithm is a signature algorithm which is
+ * composed of two phases: first a hashing phase which does not use
+ * the key and produces a hash of the input message, then a signing
+ * phase which only uses the hash and the key and not the message
+ * itself.
+ *
+ * \param alg   A signature algorithm (\c PSA_ALG_XXX value such that
+ *              #PSA_ALG_IS_SIGN(alg) is true).
+ *
+ * \return      The underlying hash algorithm if \p alg is a hash-and-sign
+ *              algorithm.
+ * \return      0 if \p alg is a signature algorithm that does not
+ *              follow the hash-and-sign structure.
+ * \return      Unspecified if \p alg is not a signature algorithm or
+ *              if it is not supported by the implementation.
+ */
+#define PSA_ALG_SIGN_GET_HASH(alg)                                     \
+    (PSA_ALG_IS_SIGN(alg) ?                                            \
+     ((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH :             \
+     0)
 
 #define PSA_ALG_ECDSA_RAW                       ((psa_algorithm_t)0x10030000)
 
@@ -994,23 +1014,23 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  *         An implementation may return either 0 or the correct size
  *         for a hash algorithm that it recognizes, but does not support.
  */
-#define PSA_HASH_SIZE(alg)                                            \
-    (                                                                 \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_MD2 ? 16 :               \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_MD4 ? 16 :               \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_MD5 ? 16 :               \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_RIPEMD160 ? 20 :         \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_1 ? 20 :             \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_224 ? 28 :           \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_256 ? 32 :           \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_384 ? 48 :           \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_512 ? 64 :           \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_512_224 ? 28 :       \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_512_256 ? 32 :       \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA3_224 ? 28 :          \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA3_256 ? 32 :          \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA3_384 ? 48 :          \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA3_512 ? 64 :          \
+#define PSA_HASH_SIZE(alg)                                      \
+    (                                                           \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_MD2 ? 16 :            \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_MD4 ? 16 :            \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_MD5 ? 16 :            \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_RIPEMD160 ? 20 :      \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_1 ? 20 :          \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_224 ? 28 :        \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_256 ? 32 :        \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_384 ? 48 :        \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_512 ? 64 :        \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_512_224 ? 28 :    \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_512_256 ? 32 :    \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA3_224 ? 28 :       \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA3_256 ? 32 :       \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA3_384 ? 48 :       \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA3_512 ? 64 :       \
         0)
 
 /** Start a multipart hash operation.

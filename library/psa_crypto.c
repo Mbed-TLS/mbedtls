@@ -1617,7 +1617,7 @@ static psa_status_t psa_rsa_decode_md_type( psa_algorithm_t alg,
                                             size_t hash_length,
                                             mbedtls_md_type_t *md_alg )
 {
-    psa_algorithm_t hash_alg = PSA_ALG_RSA_GET_HASH( alg );
+    psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa( hash_alg );
     *md_alg = hash_alg == 0 ? MBEDTLS_MD_NONE : mbedtls_md_get_type( md_info );
     if( *md_alg == MBEDTLS_MD_NONE )

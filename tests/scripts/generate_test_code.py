@@ -62,6 +62,13 @@ class InvalidFileFormat(Exception):
     pass
 
 
+class GeneratorInputError(Exception):
+    """
+    Exception to indicate error in the input to the generator.
+    """
+    pass
+
+
 class FileWrapper(io.FileIO):
     """
     File wrapper class. Provides reading with line no. tracking.
@@ -353,8 +360,10 @@ def parse_functions(funcs_f):
             func_name, args, func_code, func_dispatch = parse_function_code(funcs_f, deps, suite_deps)
             suite_functions += func_code
             # Generate dispatch code and enumeration info
-            assert func_name not in func_info, "file: %s - function %s re-declared at line %d" % \
-                                               (funcs_f.name, func_name, funcs_f.line_no)
+            if func_name in func_info:
+                raise GeneratorInputError(
+                    "file: %s - function %s re-declared at line %d" % \
+                    (funcs_f.name, func_name, funcs_f.line_no))
             func_info[func_name] = (function_idx, args)
             dispatch_code += '/* Function Id: %d */\n' % function_idx
             dispatch_code += func_dispatch
@@ -411,8 +420,9 @@ def parse_test_data(data_f, debug=False):
 
         # Blank line indicates end of test
         if len(line) == 0:
-            assert state != STATE_READ_ARGS, "Newline before arguments. " \
-                                                 "Test function and arguments missing for %s" % name
+            if state == STATE_READ_ARGS:
+                raise GeneratorInputError("Newline before arguments. " \
+                        "Test function and arguments missing for %s" % name)
             continue
 
         if state == STATE_READ_NAME:
@@ -432,8 +442,9 @@ def parse_test_data(data_f, debug=False):
                 yield name, function, deps, args
                 deps = []
                 state = STATE_READ_NAME
-    assert state != STATE_READ_ARGS, "Newline before arguments. " \
-                                     "Test function and arguments missing for %s" % name
+    if state == STATE_READ_ARGS:
+        raise GeneratorInputError("Newline before arguments. " \
+                "Test function and arguments missing for %s" % name)
 
 
 def gen_dep_check(dep_id, dep):
@@ -444,9 +455,11 @@ def gen_dep_check(dep_id, dep):
     :param dep: Dependency macro
     :return: Dependency check code
     """
-    assert dep_id > -1, "Dependency Id should be a positive integer."
+    if dep_id < 0:
+        raise GeneratorInputError("Dependency Id should be a positive integer.")
     noT, dep = ('!', dep[1:]) if dep[0] == '!' else ('', dep)
-    assert len(dep) > 0, "Dependency should not be an empty string."
+    if len(dep) == 0:
+        raise GeneratorInputError("Dependency should not be an empty string.")
     dep_check = '''
         case {id}:
             {{
@@ -468,8 +481,10 @@ def gen_expression_check(exp_id, exp):
     :param exp: Expression/Macro
     :return: Expression check code
     """
-    assert exp_id > -1, "Expression Id should be a positive integer."
-    assert len(exp) > 0, "Expression should not be an empty string."
+    if exp_id < 0:
+        raise GeneratorInputError("Expression Id should be a positive integer.")
+    if len(exp) == 0:
+        raise GeneratorInputError("Expression should not be an empty string.")
     exp_code = '''
         case {exp_id}:
             {{
@@ -583,13 +598,15 @@ def gen_from_test_data(data_f, out_data_f, func_info, suite_deps):
 
         # Write test function name
         test_function_name = 'test_' + function_name
-        assert test_function_name in func_info, "Function %s not found!" % test_function_name
+        if test_function_name not in func_info:
+            raise GeneratorInputError("Function %s not found!" % test_function_name)
         func_id, func_args = func_info[test_function_name]
         out_data_f.write(str(func_id))
 
         # Write parameters
-        assert len(test_args) == len(func_args), \
-            "Invalid number of arguments in test %s. See function %s signature." % (test_name, function_name)
+        if len(test_args) != len(func_args):
+            raise GeneratorInputError("Invalid number of arguments in test %s. See function %s signature." % (test_name,
+                        function_name))
         expression_code += write_parameters(out_data_f, test_args, func_args, unique_expressions)
 
         # Write a newline as test case separator
@@ -726,4 +743,8 @@ def check_cmd():
 
 
 if __name__ == "__main__":
-    check_cmd()
+    try:
+        check_cmd()
+    except GeneratorInputError as e:
+        script_name = os.path.basename(sys.argv[0])
+        print("%s: input error: %s" % (script_name, str(e)))

@@ -110,12 +110,11 @@ exit:
 /* BEGIN_CASE */
 void mbedtls_ccm_auth_decrypt( int cipher_id, HexParam_t * key,
                                HexParam_t * msg, HexParam_t * iv,
-                               HexParam_t * add, int tag_len, char * result,
+                               HexParam_t * add, int tag_len, int result,
                                HexParam_t * hex_msg )
 {
     unsigned char tag[16];
     mbedtls_ccm_context ctx;
-    int ret;
 
     mbedtls_ccm_init( &ctx );
 
@@ -124,22 +123,13 @@ void mbedtls_ccm_auth_decrypt( int cipher_id, HexParam_t * key,
     msg->len -= tag_len;
     memcpy( tag, msg->x + msg->len, tag_len );
 
-    if( strcmp( "FAIL", result ) == 0 )
-    {
-        ret = MBEDTLS_ERR_CCM_AUTH_FAILED;
-    }
-    else
-    {
-        ret = 0;
-    }
-
     TEST_ASSERT( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ) == 0 );
 
     /* Test with input == output */
     TEST_ASSERT( mbedtls_ccm_auth_decrypt( &ctx, msg->len, iv->x, iv->len, add->x, add->len,
-                 msg->x, msg->x, msg->x + msg->len, tag_len ) == ret );
+                 msg->x, msg->x, msg->x + msg->len, tag_len ) == result );
 
-    if( ret == 0 )
+    if( result == 0 )
     {
         TEST_ASSERT( memcmp( msg->x, hex_msg->x, hex_msg->len ) == 0 );
     }

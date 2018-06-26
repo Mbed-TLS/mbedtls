@@ -189,7 +189,7 @@ static int exercise_signature_key( psa_key_slot_t key,
                                    psa_key_usage_t usage,
                                    psa_algorithm_t alg )
 {
-    unsigned char payload[16] = {0};
+    unsigned char payload[16] = {1};
     size_t payload_length = sizeof( payload );
     unsigned char signature[256] = {0};
     size_t signature_length = sizeof( signature );

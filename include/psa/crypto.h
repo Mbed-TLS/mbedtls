@@ -621,18 +621,52 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_CCM                             ((psa_algorithm_t)0x06000001)
 #define PSA_ALG_GCM                             ((psa_algorithm_t)0x06000002)
 
-#define PSA_ALG_RSA_PKCS1V15_SIGN_RAW           ((psa_algorithm_t)0x10010000)
-#define PSA_ALG_RSA_PSS_MGF1                    ((psa_algorithm_t)0x10020000)
-#define PSA_ALG_RSA_PKCS1V15_CRYPT              ((psa_algorithm_t)0x12010000)
-#define PSA_ALG_RSA_OAEP_MGF1_BASE              ((psa_algorithm_t)0x12020000)
+#define PSA_ALG_RSA_PKCS1V15_SIGN_BASE          ((psa_algorithm_t)0x10020000)
+/** RSA PKCS#1 v1.5 signature with hashing.
+ *
+ * This is the signature scheme defined by RFC 8017
+ * (PKCS#1: RSA Cryptography Specifications) under the name
+ * RSASSA-PKCS1-v1_5.
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(alg) is true).
+ *
+ * \return              The corresponding RSA PKCS#1 v1.5 signature algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      hash algorithm.
+ */
 #define PSA_ALG_RSA_PKCS1V15_SIGN(hash_alg)                             \
-    (PSA_ALG_RSA_PKCS1V15_SIGN_RAW | ((hash_alg) & PSA_ALG_HASH_MASK))
+    (PSA_ALG_RSA_PKCS1V15_SIGN_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+/** Raw PKCS#1 v1.5 signature.
+ *
+ * The input to this algorithm is the DigestInfo structure used by
+ * RFC 8017 (PKCS#1: RSA Cryptography Specifications), &sect;9.2
+ * steps 3&ndash;6.
+ */
+#define PSA_ALG_RSA_PKCS1V15_SIGN_RAW PSA_ALG_RSA_PKCS1V15_SIGN_BASE
 #define PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg)                               \
-    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_PKCS1V15_SIGN_RAW)
-#define PSA_ALG_RSA_OAEP_MGF1(hash_alg)                             \
-    (PSA_ALG_RSA_OAEP_MGF1_RAW | ((hash_alg) & PSA_ALG_HASH_MASK))
-#define PSA_ALG_IS_RSA_OAEP_MGF1(alg)                               \
-    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_OAEP_MGF1_BASE)
+    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_PKCS1V15_SIGN_BASE)
+#define PSA_ALG_RSA_PSS_BASE               ((psa_algorithm_t)0x10030000)
+/** RSA PSS signature with hashing.
+ *
+ * This is the signature scheme defined by RFC 8017
+ * (PKCS#1: RSA Cryptography Specifications) under the name
+ * RSASSA-PSS, with the message generation function MGF1. The specified
+ * hash algorithm is used to hash the input message, to create the
+ * salted hash, and for the mask generation.
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(alg) is true).
+ *
+ * \return              The corresponding RSA PSS signature algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      hash algorithm.
+ */
+#define PSA_ALG_RSA_PSS(hash_alg)                               \
+    (PSA_ALG_RSA_PSS_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_IS_RSA_PSS(alg)                                 \
+    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_PSS_BASE)
+
 /** Get the hash used by a hash-and-sign signature algorithm.
  *
  * A hash-and-sign algorithm is a signature algorithm which is
@@ -657,6 +691,12 @@ typedef uint32_t psa_algorithm_t;
      0)
 
 #define PSA_ALG_ECDSA_RAW                       ((psa_algorithm_t)0x10030000)
+#define PSA_ALG_RSA_PKCS1V15_CRYPT              ((psa_algorithm_t)0x12020000)
+#define PSA_ALG_RSA_OAEP_BASE                   ((psa_algorithm_t)0x12030000)
+#define PSA_ALG_RSA_OAEP(hash_alg)                              \
+    (PSA_ALG_RSA_OAEP_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_IS_RSA_OAEP(alg)                                \
+    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_OAEP_BASE)
 
 /**@}*/
 

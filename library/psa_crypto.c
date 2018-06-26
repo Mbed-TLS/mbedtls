@@ -1690,7 +1690,7 @@ psa_status_t psa_asymmetric_sign( psa_key_slot_t key,
         else
 #endif /* MBEDTLS_PKCS1_V15 */
 #if defined(MBEDTLS_PKCS1_V21)
-        if( alg == PSA_ALG_RSA_PSS_MGF1 )
+        if( PSA_ALG_IS_RSA_PSS( alg ) )
         {
             mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg );
             ret = mbedtls_rsa_rsassa_pss_sign( rsa,
@@ -1789,7 +1789,7 @@ psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
         else
 #endif /* MBEDTLS_PKCS1_V15 */
 #if defined(MBEDTLS_PKCS1_V21)
-        if( alg == PSA_ALG_RSA_PSS_MGF1 )
+        if( PSA_ALG_IS_RSA_PSS( alg ) )
         {
             mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg );
             ret = mbedtls_rsa_rsassa_pss_verify( rsa,
@@ -1872,7 +1872,7 @@ psa_status_t psa_asymmetric_encrypt( psa_key_slot_t key,
         else
 #endif /* MBEDTLS_PKCS1_V15 */
 #if defined(MBEDTLS_PKCS1_V21)
-        if( PSA_ALG_IS_RSA_OAEP_MGF1( alg ) )
+        if( PSA_ALG_IS_RSA_OAEP( alg ) )
         {
             return( PSA_ERROR_NOT_SUPPORTED );
         }
@@ -1941,7 +1941,7 @@ psa_status_t psa_asymmetric_decrypt( psa_key_slot_t key,
         else
 #endif /* MBEDTLS_PKCS1_V15 */
 #if defined(MBEDTLS_PKCS1_V21)
-        if( PSA_ALG_IS_RSA_OAEP_MGF1( alg ) )
+        if( PSA_ALG_IS_RSA_OAEP( alg ) )
         {
             return( PSA_ERROR_NOT_SUPPORTED );
         }

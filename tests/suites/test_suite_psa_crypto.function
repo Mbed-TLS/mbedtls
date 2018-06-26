@@ -11,7 +11,7 @@
 /** An invalid export length that will never be set by psa_export_key(). */
 static const size_t INVALID_EXPORT_LENGTH = ~0U;
 
-/** Test if a buffer is not all-bits zero.
+/** Test if a buffer is all-bits zero.
  *
  * \param buffer    Pointer to the beginning of the buffer.
  * \param size      Size of the buffer in bytes.

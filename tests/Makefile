@@ -34,24 +34,18 @@ LOCAL_LDFLAGS += -lws2_32
 ifdef SHARED
 SHARED_SUFFIX=.$(DLEXT)
 endif
+PYTHON ?= python
 else
 DLEXT ?= so
 EXEXT=
 SHARED_SUFFIX=
+# python2 for POSIX since FreeBSD has only python2 as default.
+PYTHON ?= python2
 endif
 
 # Zlib shared library extensions:
 ifdef ZLIB
 LOCAL_LDFLAGS += -lz
-endif
-
-# Python executable
-ifndef PYTHON
-ifdef WINDOWS
-PYTHON=python
-else
-PYTHON=python2
-endif
 endif
 
 APPS =	test_suite_aes.ecb	test_suite_aes.cbc	\

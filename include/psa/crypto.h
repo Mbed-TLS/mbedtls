@@ -1212,13 +1212,18 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  *
  * This is also the MAC size that psa_mac_verify() expects.
  *
- * \param alg   A MAC algorithm (\c PSA_ALG_XXX value such that
- *              #PSA_ALG_IS_MAC(alg) is true).
+ * \param key_type      The type of the MAC key.
+ * \param key_bits      The size of the MAC key in bits.
+ * \param alg           A MAC algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_MAC(alg) is true).
  *
- * \return The MAC size for the specified algorithm.
- *         If the MAC algorithm is not recognized, return 0.
- *         An implementation may return either 0 or the correct size
- *         for a MAC algorithm that it recognizes, but does not support.
+ * \return              The MAC size for the specified algorithm with
+ *                      the specified key parameters.
+ * \return              0 if the MAC algorithm is not recognized.
+ * \return              Either 0 or the correct size for a MAC algorithm that
+ *                      the implementation recognizes, but does not support.
+ * \return              Unspecified if the key parameters are not consistent
+ *                      with the algorithm.
  */
 #define PSA_MAC_FINAL_SIZE(key_type, key_bits, alg)                     \
     (PSA_ALG_IS_HMAC(alg) ? PSA_HASH_SIZE(PSA_ALG_HMAC_HASH(alg)) : \
@@ -1250,6 +1255,7 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  * - A call to psa_mac_finish(), psa_mac_verify() or psa_mac_abort().
  *
  * \param operation The operation object to use.
+ * \param key       Slot containing the key to use for the operation.
  * \param alg       The MAC algorithm to compute (\c PSA_ALG_XXX value
  *                  such that #PSA_ALG_IS_MAC(alg) is true).
  *
@@ -1326,6 +1332,7 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * - A call to psa_cipher_finish() or psa_cipher_abort().
  *
  * \param operation The operation object to use.
+ * \param key       Slot containing the key to use for the operation.
  * \param alg       The cipher algorithm to compute (\c PSA_ALG_XXX value
  *                  such that #PSA_ALG_IS_CIPHER(alg) is true).
  *
@@ -1373,6 +1380,7 @@ psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
  * - A call to psa_cipher_finish() or psa_cipher_abort().
  *
  * \param operation The operation object to use.
+ * \param key       Slot containing the key to use for the operation.
  * \param alg       The cipher algorithm to compute (\c PSA_ALG_XXX value
  *                  such that #PSA_ALG_IS_CIPHER(alg) is true).
  *

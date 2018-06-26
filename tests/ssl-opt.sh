@@ -56,7 +56,7 @@ RUN_TEST_NUMBER=''
 
 PRESERVE_LOGS=0
 ON_TARGET=0
-FLASHER=''
+TARGET_SERIAL=''
 LIST_TESTS=0
 
 # Pick a "unique" server port in the range 10000-19999, and a proxy
@@ -79,6 +79,7 @@ print_usage() {
     printf "     --proxy-port\tTCP/UDP proxy port (default: randomish 2xxxx)\n"
     printf "     --seed\tInteger seed value to use for this test run\n"
     printf "     --on-target\tExecute on-target tests only\n"
+    printf "     --target-serial\tExecute on-target tests only\n"
     printf "     --flasher\tSpecify flashing application and binary to flash\n"
     printf "              \t(e.g. mbed-os-flasher.sh '/media/MBED,BUILD/K64F/GCC_ARM/mbed-os-sslclient.bin')\n"
 }
@@ -116,9 +117,8 @@ get_options() {
             --on-target)
                 ON_TARGET=1
                 ;;
-            --flasher)
-                shift; FLASHER="$1"
-                shift; BIN_FILE="$1"
+            --target-serial)
+                shift; TARGET_SERIAL="$1"
                 ;;
             -L|--list)
                 LIST_TESTS=1
@@ -136,14 +136,6 @@ get_options() {
         shift
     done
 }
-
-if [ "$ON_TARGET" = 1 ] && [ "$LIST_TESTS" = 0 ]; then
-    if [ "X${FLASHER:-X}" == XX ]; then
-        echo "Option '--flasher' not supplied with option '--on-target'!"
-        print_usage
-        exit 1
-    fi
-fi
 
 # skip next test if the flag is not enabled in config.h
 requires_config_enabled() {
@@ -271,6 +263,7 @@ print_name() {
 # fail <message>
 fail() {
     echo "FAIL"
+    echo "fail error [$1]"
     echo "  ! $1"
 
     mv $SRV_OUT o-srv-${TESTS}.log
@@ -506,7 +499,7 @@ run_test() {
         fi
     fi
 
-    TIMES_LEFT=2
+    TIMES_LEFT=1
     while [ $TIMES_LEFT -gt 0 ]; do
         TIMES_LEFT=$(( $TIMES_LEFT - 1 ))
 
@@ -549,6 +542,7 @@ run_test() {
             TIMES_LEFT=0
         fi
     done
+    echo "Yahan"
 
     # check if the client and server went at least to the handshake stage
     # (useful to avoid tests with only negative assertions and non-zero
@@ -569,6 +563,7 @@ run_test() {
         fi
     fi
 
+    echo "$ ? is $?"
     # check server exit code
     if [ $? != 0 ]; then
         fail "server fail"
@@ -656,6 +651,7 @@ run_test() {
         esac
         shift 2
     done
+    echo "kya yahan fail hai?"
 
     # check valgrind's results
     if [ "$MEMCHECK" -gt 0 ]; then
@@ -668,6 +664,7 @@ run_test() {
             return
         fi
     fi
+    echo "kahan fail hua"
 
     # if we're here, everything is ok
     echo "PASS"
@@ -693,6 +690,28 @@ cleanup() {
 #
 
 get_options "$@"
+
+# Validate --on-target option that needs --flasher option as well.
+echo "ON_TARGET $ON_TARGET PRESERVE_LOGS $PRESERVE_LOGS"
+if [ "$ON_TARGET" -gt 0 ]; then
+    echo "ON_TARGET $ON_TARGET"
+fi
+if [ "$LIST_TESTS" = "0" ]; then
+    echo "LIST_TESTS $LIST_TESTS"
+fi
+
+if [ "$ON_TARGET" = "1" -a "$LIST_TESTS" = "0" ]; then
+    if [ "$TARGET_SERIAL" = "" ]; then
+        echo "Option '--target-serial' not supplied with option '--on-target'!"
+        print_usage
+        exit 1
+    fi
+fi
+
+# Change client to programs/host/frontend for on target testing
+if [ "$ON_TARGET" = 1 ]; then
+    P_CLI="../programs/host/frontend"
+fi
 
 # sanity checks, avoid an avalanche of errors
 P_SRV_BIN="${P_SRV%%[  ]*}"
@@ -737,6 +756,9 @@ MAIN_PID="$$"
 if [ "$MEMCHECK" -gt 0 ]; then
     START_DELAY=6
     DOG_DELAY=60
+elif [ "$ON_TARGET" -gt 0 ]; then
+    START_DELAY=6
+    DOG_DELAY=300
 else
     START_DELAY=2
     DOG_DELAY=20
@@ -752,6 +774,9 @@ SRV_DELAY_SECONDS=0
 # fix commands to use this port, force IPv4 while at it
 # +SRV_PORT will be replaced by either $SRV_PORT or $PXY_PORT later
 P_SRV="$P_SRV server_addr=127.0.0.1 server_port=$SRV_PORT"
+if [ "$ON_TARGET" = 1 ]; then
+    P_CLI="$P_CLI -p $TARGET_SERIAL"
+fi
 P_CLI="$P_CLI server_addr=127.0.0.1 server_port=+SRV_PORT"
 P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 listen_port=$PXY_PORT ${SEED:+"seed=$SEED"}"
 O_SRV="$O_SRV -accept $SRV_PORT -dhparam data_files/dhparams.pem"
@@ -5214,6 +5239,7 @@ fi
 # Final report
 
 echo "------------------------------------------------------------------------"
+echo "FAILS=$FAILS"
 
 if [ $FAILS = 0 ]; then
     printf "PASSED"

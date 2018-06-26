@@ -49,7 +49,7 @@ extern "C" {
 #define MBEDTLS_SERIALIZE_TYPE_EXECUTE  0x45 /**< T>H Execute function */
 #define MBEDTLS_SERIALIZE_TYPE_RESULT   0x72 /**< H>T Output parameter */
 
-#define MBEDTLS_SERIALIZE_FUNCTION_EXIT         0x000100 /**< exit the frontend */
+#define MBEDTLS_SERIALIZE_FUNCTION_EXIT         0x000110 /**< exit the frontend */
 #define MBEDTLS_SERIALIZE_FUNCTION_ECHO         0x000211 /**< echo input */
     /* in: data
        out: data */
@@ -174,6 +174,9 @@ int mbedtls_serialize_execute( uint32_t command );
 int mbedtls_serialize_pop_buffer( void *buffer, size_t max_length, size_t *actual_length );
 int mbedtls_serialize_pop_int16( uint16_t *value );
 int mbedtls_serialize_pop_int32( uint32_t *value );
+
+/** Exit serialization host */
+void mbedtls_serialize_exit( int exitcode );
 
 #if !defined(MBEDTLS_SERIALIZE_FORK_FRONTEND_C)
 /** Following functions need platform specific implementation. */

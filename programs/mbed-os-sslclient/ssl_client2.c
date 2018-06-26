@@ -49,6 +49,11 @@ int main( void )
 }
 #else
 
+#define IMHERE  do {\
+    printf("- @%d\r\n", __LINE__);\
+    fflush(stdout);\
+} while (0)
+
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/ssl.h"
 #include "mbedtls/entropy.h"
@@ -1675,8 +1680,10 @@ send_request:
         memset( buf + len, 'A', opt.request_size - len - tail_len );
         len += opt.request_size - len - tail_len;
     }
+    printf("sizeof(buf) = %d, len = %d\r\n", sizeof(buf), len);
 
-    strncpy( (char *) buf + len, GET_REQUEST_END, sizeof( buf ) - len - 1 );
+    memcpy(buf + len, GET_REQUEST_END, tail_len);
+    //strncpy( (char *) buf + len, GET_REQUEST_END, sizeof( buf ) - len - 1 );
     len += tail_len;
 
     /* Truncate if request size is smaller than the "natural" size */
@@ -1773,7 +1780,7 @@ send_request:
         do
         {
             len = sizeof( buf ) - 1;
-            memset( buf, 0, sizeof( buf ) );
+            memset( buf, 0, 1000 ); //sizeof( buf ) );
             ret = mbedtls_ssl_read( &ssl, buf, len );
 
             if( ret == MBEDTLS_ERR_SSL_WANT_READ ||
@@ -2044,6 +2051,7 @@ exit:
     if( ret < 0 )
         ret = 1;
 
+    mbedtls_serialize_exit( ret );
     return( ret );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_SSL_TLS_C &&

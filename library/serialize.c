@@ -321,5 +321,12 @@ int mbedtls_serialize_pop_int32( uint32_t *value )
     return( 0 );
 }
 
+void mbedtls_serialize_exit( int exitcode )
+{
+    if( mbedtls_serialize_push_int32( exitcode ) != 0 )
+        return;
+    mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_EXIT );
+}
+
 
 #endif /* MBEDTLS_SERIALIZE_C */

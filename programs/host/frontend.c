@@ -64,6 +64,7 @@ typedef int SERIAL_HANDLE;
 #endif
 
 FILE * fdbg = NULL;
+static int exitcode = 0;
 
 static int debug_verbose = 0;
 #define DBG( fmt, ... ) do {                                                \
@@ -522,9 +523,14 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
     switch( function )
     {
         case MBEDTLS_SERIALIZE_FUNCTION_EXIT:
-            ret = 0;
-            ctx_p->status = MBEDTLS_SERIALIZE_STATUS_EXITED;
-            break;
+            {
+                CHECK_ARITY( 1 );
+                CHECK_LENGTH( 0, 4 ); // usec
+                ret = 0;
+                exitcode = ( int )item_uint32( inputs[0] );
+                ctx_p->status = MBEDTLS_SERIALIZE_STATUS_EXITED;
+                break;
+            }
 
         case MBEDTLS_SERIALIZE_FUNCTION_ECHO:
             {
@@ -1093,6 +1099,9 @@ static int mbedtls_serialize_pull( mbedtls_serialize_context_t *ctx )
                 else
                 {
                     status = mbedtls_serialize_perform( ctx, function, outputs + 1 );
+                    if( status == MBEDTLS_SERIALIZE_STATUS_EXITED )
+                        /* Target does not need reply */
+                        return( status );
                 }
                 DBG( "status = 0x%08x", status );
                 status_data[0] = status >> 24 & 0xff;
@@ -1281,11 +1290,12 @@ int main(int argc, char** argv)
             sub_args );
 
     ret = mbedtls_serialize_frontend( &serialization_context );
+    exitcode = ( ret == MBEDTLS_SERIALIZE_STATUS_EXITED )? exitcode: ret;
 
     port_close( serialization_context.read_fd );
 
-    DBG( "Returning %d", ret );
-    return( ret );
+    DBG( "Returning %d", exitcode );
+    return( exitcode );
 }
 
 int old_main( int argc, char **argv )

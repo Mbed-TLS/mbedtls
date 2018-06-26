@@ -667,6 +667,83 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_IS_RSA_PSS(alg)                                 \
     (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_PSS_BASE)
 
+#define PSA_ALG_DSA_BASE                        ((psa_algorithm_t)0x10040000)
+/** DSA signature with hashing.
+ *
+ * This is the signature scheme defined by FIPS 186-4,
+ * with a random per-message secret number (*k*).
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(alg) is true).
+ *
+ * \return              The corresponding DSA signature algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      hash algorithm.
+ */
+#define PSA_ALG_DSA(hash_alg)                             \
+    (PSA_ALG_DSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_DETERMINISTIC_DSA_BASE          ((psa_algorithm_t)0x10050000)
+#define PSA_ALG_DSA_DETERMINISTIC_FLAG          ((psa_algorithm_t)0x00010000)
+#define PSA_ALG_DETERMINISTIC_DSA(hash_alg)                             \
+    (PSA_ALG_DETERMINISTIC_DSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_IS_DSA(alg)                                             \
+    (((alg) & ~PSA_ALG_HASH_MASK & ~PSA_ALG_DSA_DETERMINISTIC_FLAG) ==  \
+     PSA_ALG_DSA_BASE)
+#define PSA_ALG_DSA_IS_DETERMINISTIC(alg)               \
+    (((alg) & PSA_ALG_DSA_DETERMINISTIC_FLAG) != 0)
+
+#define PSA_ALG_ECDSA_BASE                      ((psa_algorithm_t)0x10060000)
+/** ECDSA signature with hashing.
+ *
+ * This is the ECDSA signature scheme defined by ANSI X9.62,
+ * with a random per-message secret number (*k*).
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(alg) is true).
+ *
+ * \return              The corresponding ECDSA signature algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      hash algorithm.
+ */
+#define PSA_ALG_ECDSA(hash_alg)                                 \
+    (PSA_ALG_ECDSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+/** ECDSA signature without hashing.
+ *
+ * This is the signature scheme defined by ANSI X9.62,
+ * without specifying a hash algorithm. This algorithm may only be
+ * used to sign or verify a sequence of bytes that should be an
+ * already-calculated hash. Note that the input is padded with
+ * zeros on the left or truncated on the left as required to fit
+ * the curve size.
+ */
+#define PSA_ALG_ECDSA_ANY PSA_ALG_ECDSA_BASE
+#define PSA_ALG_DETERMINISTIC_ECDSA_BASE        ((psa_algorithm_t)0x10070000)
+/** Deterministic ECDSA signature with hashing.
+ *
+ * This is the deterministic ECDSA signature scheme defined by RFC 6979.
+ *
+ * Note that when this algorithm is used for verification, signatures
+ * made with randomized ECDSA (#PSA_ALG_ECDSA(\c hash_alg)) with the
+ * same private key are accepted. In other words,
+ * #PSA_ALG_DETERMINISTIC_ECDSA(\c hash_alg) differs from
+ * #PSA_ALG_ECDSA(\c hash_alg) only for signature, not for verification.
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(alg) is true).
+ *
+ * \return              The corresponding deterministic ECDSA signature
+ *                      algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      hash algorithm.
+ */
+#define PSA_ALG_DETERMINISTIC_ECDSA(hash_alg)                           \
+    (PSA_ALG_DETERMINISTIC_ECDSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_IS_ECDSA(alg)                                           \
+    (((alg) & ~PSA_ALG_HASH_MASK & ~PSA_ALG_DSA_DETERMINISTIC_FLAG) ==  \
+     PSA_ALG_ECDSA_BASE)
+#define PSA_ALG_ECDSA_IS_DETERMINISTIC(alg)             \
+    (((alg) & PSA_ALG_DSA_DETERMINISTIC_FLAG) != 0)
+
 /** Get the hash used by a hash-and-sign signature algorithm.
  *
  * A hash-and-sign algorithm is a signature algorithm which is
@@ -686,11 +763,11 @@ typedef uint32_t psa_algorithm_t;
  *              if it is not supported by the implementation.
  */
 #define PSA_ALG_SIGN_GET_HASH(alg)                                     \
-    (PSA_ALG_IS_SIGN(alg) ?                                            \
+    (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||   \
+     PSA_ALG_IS_DSA(alg) || PSA_ALG_IS_ECDSA(alg) ?                    \
      ((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH :             \
      0)
 
-#define PSA_ALG_ECDSA_RAW                       ((psa_algorithm_t)0x10030000)
 #define PSA_ALG_RSA_PKCS1V15_CRYPT              ((psa_algorithm_t)0x12020000)
 #define PSA_ALG_RSA_OAEP_BASE                   ((psa_algorithm_t)0x12030000)
 #define PSA_ALG_RSA_OAEP(hash_alg)                              \

@@ -40,6 +40,8 @@
 
 #include "mbedtls/arc4.h"
 #include "mbedtls/asn1.h"
+#include "mbedtls/asn1write.h"
+#include "mbedtls/bignum.h"
 #include "mbedtls/blowfish.h"
 #include "mbedtls/camellia.h"
 #include "mbedtls/cipher.h"
@@ -1637,6 +1639,74 @@ static psa_status_t psa_rsa_decode_md_type( psa_algorithm_t alg,
     return( PSA_SUCCESS );
 }
 
+#if defined(MBEDTLS_ECDSA_C)
+/* Temporary copy from ecdsa.c */
+static int ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
+                                    unsigned char *sig, size_t *slen )
+{
+    int ret;
+    unsigned char buf[MBEDTLS_ECDSA_MAX_LEN];
+    unsigned char *p = buf + sizeof( buf );
+    size_t len = 0;
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &p, buf, s ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &p, buf, r ) );
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, buf, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf,
+                                       MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
+
+    memcpy( sig, p, len );
+    *slen = len;
+
+    return( 0 );
+}
+
+/* `ecp` cannot be const because `ecp->grp` needs to be non-const
+ * for mbedtls_ecdsa_sign() and mbedtls_ecdsa_sign_det()
+ * (even though these functions don't modify it). */
+static psa_status_t psa_ecdsa_sign( mbedtls_ecp_keypair *ecp,
+                                    psa_algorithm_t alg,
+                                    const uint8_t *hash,
+                                    size_t hash_length,
+                                    uint8_t *signature,
+                                    size_t signature_size,
+                                    size_t *signature_length )
+{
+    int ret;
+    mbedtls_mpi r, s;
+    mbedtls_mpi_init( &r );
+    mbedtls_mpi_init( &s );
+
+    if( signature_size < PSA_ECDSA_SIGNATURE_SIZE( ecp->grp.pbits ) )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+    if( PSA_ALG_DSA_IS_DETERMINISTIC( alg ) )
+    {
+        psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
+        const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa( hash_alg );
+        mbedtls_md_type_t md_alg = mbedtls_md_get_type( md_info );
+        MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign_det( &ecp->grp, &r, &s, &ecp->d,
+                                                 hash, hash_length,
+                                                 md_alg ) );
+    }
+    else
+    {
+        MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign( &ecp->grp, &r, &s, &ecp->d,
+                                             hash, hash_length,
+                                             mbedtls_ctr_drbg_random,
+                                             &global_data.ctr_drbg ) );
+    }
+    MBEDTLS_MPI_CHK( ecdsa_signature_to_asn1( &r, &s,
+                                              signature, signature_length ) );
+
+cleanup:
+    mbedtls_mpi_free( &r );
+    mbedtls_mpi_free( &s );
+    return( mbedtls_to_psa_error( ret ) );
+}
+#endif /* MBEDTLS_ECDSA_C */
+
 psa_status_t psa_asymmetric_sign( psa_key_slot_t key,
                                   psa_algorithm_t alg,
                                   const uint8_t *hash,
@@ -1714,19 +1784,19 @@ psa_status_t psa_asymmetric_sign( psa_key_slot_t key,
 #if defined(MBEDTLS_ECP_C)
     if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
     {
-        mbedtls_ecp_keypair *ecdsa = slot->data.ecp;
-        int ret;
-        const mbedtls_md_info_t *md_info;
-        mbedtls_md_type_t md_alg;
-        if( signature_size < PSA_ECDSA_SIGNATURE_SIZE( ecdsa->grp.pbits ) )
-            return( PSA_ERROR_BUFFER_TOO_SMALL );
-        md_info = mbedtls_md_info_from_psa( alg );
-        md_alg = mbedtls_md_get_type( md_info );
-        ret = mbedtls_ecdsa_write_signature( ecdsa, md_alg, hash, hash_length,
-                                             signature, signature_length,
-                                             mbedtls_ctr_drbg_random,
-                                             &global_data.ctr_drbg );
-        return( mbedtls_to_psa_error( ret ) );
+#if defined(MBEDTLS_ECDSA_C)
+        if( PSA_ALG_IS_ECDSA( alg ) )
+            status = psa_ecdsa_sign( slot->data.ecp,
+                                     alg,
+                                     hash, hash_length,
+                                     signature, signature_size,
+                                     signature_length );
+        else
+#endif /* defined(MBEDTLS_ECDSA_C) */
+        {
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        }
+        return( status );
     }
     else
 #endif /* defined(MBEDTLS_ECP_C) */
@@ -1811,12 +1881,20 @@ psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
 #if defined(MBEDTLS_ECP_C)
     if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
     {
-        mbedtls_ecp_keypair *ecdsa = slot->data.ecp;
-        int ret;
-        (void) alg;
-        ret = mbedtls_ecdsa_read_signature( ecdsa, hash, hash_length,
-                                            signature, signature_length );
-        return( mbedtls_to_psa_error( ret ) );
+#if defined(MBEDTLS_ECDSA_C)
+        if( PSA_ALG_IS_ECDSA( alg ) )
+        {
+            int ret;
+            ret = mbedtls_ecdsa_read_signature( slot->data.ecp,
+                                                hash, hash_length,
+                                                signature, signature_length );
+            return( mbedtls_to_psa_error( ret ) );
+        }
+        else
+#endif /* defined(MBEDTLS_ECDSA_C) */
+        {
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        }
     }
     else
 #endif /* defined(MBEDTLS_ECP_C) */

@@ -147,7 +147,7 @@ void {name}_wrapper( void ** params )
     {name}( {args} );
 }}
 '''.format(name=name,
-           unused_params='' if args_dispatch else '    (void) params;\n',
+           unused_params='' if args_dispatch else '    (void)params;\n',
            args=', '.join(args_dispatch),
            locals=locals)
     return wrapper

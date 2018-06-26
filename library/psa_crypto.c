@@ -2513,7 +2513,7 @@ psa_status_t psa_get_key_lifetime( psa_key_slot_t key,
 }
 
 psa_status_t psa_set_key_lifetime( psa_key_slot_t key,
-                                   const psa_key_lifetime_t lifetime )
+                                   psa_key_lifetime_t lifetime )
 {
     key_slot_t *slot;
 

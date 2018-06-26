@@ -421,8 +421,9 @@ def parse_test_data(data_f, debug=False):
         # Blank line indicates end of test
         if len(line) == 0:
             if state == STATE_READ_ARGS:
-                raise GeneratorInputError("Newline before arguments. " \
-                        "Test function and arguments missing for %s" % name)
+                raise GeneratorInputError("[%s:%d] Newline before arguments. " \
+                        "Test function and arguments missing for %s" % \
+                        (data_f.name, data_f.line_no, name))
             continue
 
         if state == STATE_READ_NAME:
@@ -443,8 +444,9 @@ def parse_test_data(data_f, debug=False):
                 deps = []
                 state = STATE_READ_NAME
     if state == STATE_READ_ARGS:
-        raise GeneratorInputError("Newline before arguments. " \
-                "Test function and arguments missing for %s" % name)
+        raise GeneratorInputError("[%s:%d] Newline before arguments. " \
+                "Test function and arguments missing for %s" % \
+                (data_f.name, data_f.line_no, name))
 
 
 def gen_dep_check(dep_id, dep):
@@ -650,7 +652,7 @@ def generate_code(funcs_file, data_file, template_file, platform_file, help_file
                                                               out_data_file.replace('\\', '\\\\')) # escape '\'
 
     # Function code
-    with FileWrapper(funcs_file) as funcs_f, open(data_file, 'r') as data_f, open(out_data_file, 'w') as out_data_f:
+    with FileWrapper(funcs_file) as funcs_f, FileWrapper(data_file) as data_f, open(out_data_file, 'w') as out_data_f:
         suite_deps, dispatch_code, func_code, func_info = parse_functions(funcs_f)
         snippets['functions_code'] = func_code
         snippets['dispatch_code'] = dispatch_code

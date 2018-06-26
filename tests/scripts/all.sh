@@ -35,6 +35,7 @@
 #   * GNU Make
 #   * CMake
 #   * GCC and Clang (recent enough for using ASan with gcc and MemSan with clang, or valgrind)
+#   * G++, unless invoked with --no-cxx
 #   * arm-gcc and mingw-gcc
 #   * ArmCC 5 and ArmCC 6, unless invoked with --no-armcc
 #   * Yotta build dependencies, unless invoked with --no-yotta
@@ -96,6 +97,7 @@ FORCE=0
 KEEP_GOING=0
 RUN_ARMCC=1
 YOTTA=1
+TEST_CXX=1
 
 # Default commands, can be overriden by the environment
 : ${OPENSSL:="openssl"}
@@ -130,6 +132,7 @@ General options:
      --no-keep-going    Stop at the first error (default).
      --no-memory        No additional memory tests (default).
      --no-yotta         Skip yotta module build.
+     --no-cxx           Skip CXX Compiler build.
      --out-of-source-dir=<path>  Directory used for CMake out-of-source build tests.
      --random-seed      Use a random seed value for randomized tests (default).
   -r|--release-test     Run this script in release mode. This fixes the seed value to 1.
@@ -579,6 +582,17 @@ record_status tests/scripts/depends-pkalgs.pl
 msg "test/build: key-exchanges (gcc)" # ~ 1 min
 cleanup
 record_status tests/scripts/key-exchanges.pl
+
+if [ $TEST_CXX -ne 0 ]; then
+    msg "build: Unix make, gcc and g++ test" # ~ 30s
+    cleanup
+    make TEST_CPP=1
+
+    msg "build: cmake, gcc and g++ test" # ~ 30s
+    cleanup
+    CC=gcc cmake -D TEST_CPP=YES .
+    make
+fi
 
 msg "build: Unix make, -Os (gcc)" # ~ 30s
 cleanup

@@ -1715,10 +1715,16 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
 /**
  * \brief Sign a hash or short message with a private key.
  *
+ * Note that to perform a hash-and-sign signature algorithm, you must
+ * first calculate the hash by calling psa_hash_start(), psa_hash_update()
+ * and psa_hash_finish(). Then pass the resulting hash as the \p hash
+ * parameter to this function. You can use #PSA_ALG_SIGN_GET_HASH(\p alg)
+ * to determine the hash algorithm to use.
+ *
  * \param key               Key slot containing an asymmetric key pair.
  * \param alg               A signature algorithm that is compatible with
  *                          the type of \c key.
- * \param hash              The message to sign.
+ * \param hash              The hash or message to sign.
  * \param hash_length       Size of the \c hash buffer in bytes.
  * \param salt              A salt or label, if supported by the signature
  *                          algorithm.
@@ -1762,11 +1768,18 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
 /**
  * \brief Verify the signature a hash or short message using a public key.
  *
+ * Note that to perform a hash-and-sign signature algorithm, you must
+ * first calculate the hash by calling psa_hash_start(), psa_hash_update()
+ * and psa_hash_finish(). Then pass the resulting hash as the \p hash
+ * parameter to this function. You can use #PSA_ALG_SIGN_GET_HASH(\p alg)
+ * to determine the hash algorithm to use.
+ *
  * \param key               Key slot containing a public key or an
  *                          asymmetric key pair.
  * \param alg               A signature algorithm that is compatible with
  *                          the type of \c key.
- * \param hash              The message whose signature is to be verified.
+ * \param hash              The hash or message whose signature is to be
+ *                          verified.
  * \param hash_length       Size of the \c hash buffer in bytes.
  * \param salt              A salt or label, if supported by the signature
  *                          algorithm.

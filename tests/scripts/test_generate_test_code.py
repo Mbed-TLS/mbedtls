@@ -170,7 +170,6 @@ class GenFunctionWrapper(TestCase):
 void test_a_wrapper( void ** params )
 {
 
-
     test_a( a, b, c, d );
 }
 '''
@@ -186,7 +185,6 @@ void test_a_wrapper( void ** params )
         expected = '''
 void test_a_wrapper( void ** params )
 {
-
 int x = 1;
     test_a( x, b, c, d );
 }

@@ -784,6 +784,11 @@ psa_status_t psa_hash_abort( psa_hash_operation_t *operation )
 {
     switch( operation->alg )
     {
+        case 0:
+            /* The object has (apparently) been initialized but it is not
+             * in use. It's ok to call abort on such an object, and there's
+             * nothing to do. */
+            break;
 #if defined(MBEDTLS_MD2_C)
         case PSA_ALG_MD2:
             mbedtls_md2_free( &operation->ctx.md2 );
@@ -1210,6 +1215,9 @@ psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
     switch( operation->alg )
     {
         case 0:
+            /* The object has (apparently) been initialized but it is not
+             * in use. It's ok to call abort on such an object, and there's
+             * nothing to do. */
             return( PSA_SUCCESS );
 #if defined(MBEDTLS_CMAC_C)
         case PSA_ALG_CMAC:
@@ -2220,7 +2228,12 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
 psa_status_t psa_cipher_abort( psa_cipher_operation_t *operation )
 {
     if( operation->alg == 0 )
+    {
+        /* The object has (apparently) been initialized but it is not
+         * in use. It's ok to call abort on such an object, and there's
+         * nothing to do. */
         return( PSA_SUCCESS );
+    }
 
     /* Sanity check (shouldn't happen: operation->alg should
      * always have been initialized to a valid value). */

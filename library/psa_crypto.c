@@ -636,6 +636,12 @@ static  psa_status_t psa_internal_export_key( psa_key_slot_t key,
 {
     key_slot_t *slot;
 
+    /* Set the key to empty now, so that even when there are errors, we always
+     * set data_length to a value between 0 and data_size. On error, setting
+     * the key to empty is a good choice because an empty key representation is
+     * unlikely to be accepted anywhere. */
+    *data_length = 0;
+
     if( key == 0 || key > PSA_KEY_SLOT_COUNT )
         return( PSA_ERROR_EMPTY_SLOT );
     slot = &global_data.key_slots[key];

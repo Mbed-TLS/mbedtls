@@ -43,7 +43,7 @@ static int exercise_mac_key( psa_key_slot_t key,
 {
     psa_mac_operation_t operation;
     const unsigned char input[] = "foo";
-    unsigned char mac[64] = {0};
+    unsigned char mac[PSA_MAC_MAX_SIZE] = {0};
     size_t mac_length = sizeof( mac );
 
     if( usage & PSA_KEY_USAGE_SIGN )
@@ -191,7 +191,7 @@ static int exercise_signature_key( psa_key_slot_t key,
 {
     unsigned char payload[16] = {1};
     size_t payload_length = sizeof( payload );
-    unsigned char signature[256] = {0};
+    unsigned char signature[PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE] = {0};
     size_t signature_length = sizeof( signature );
 
     if( usage & PSA_KEY_USAGE_SIGN )
@@ -709,6 +709,9 @@ void hash_finish( int alg_arg, data_t *input, data_t *expected_hash )
     size_t actual_hash_length;
     psa_hash_operation_t operation;
 
+    TEST_ASSERT( expected_hash->len == PSA_HASH_SIZE( alg ) );
+    TEST_ASSERT( expected_hash->len <= PSA_HASH_MAX_SIZE );
+
     TEST_ASSERT( input != NULL );
     TEST_ASSERT( expected_hash != NULL );
     TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input->len ) );
@@ -736,6 +739,9 @@ void hash_verify( int alg_arg, data_t *input, data_t *expected_hash )
 {
     psa_algorithm_t alg = alg_arg;
     psa_hash_operation_t operation;
+
+    TEST_ASSERT( expected_hash->len == PSA_HASH_SIZE( alg ) );
+    TEST_ASSERT( expected_hash->len <= PSA_HASH_MAX_SIZE );
 
     TEST_ASSERT( input != NULL );
     TEST_ASSERT( expected_hash != NULL );
@@ -804,6 +810,8 @@ void mac_verify( int key_type_arg,
     psa_algorithm_t alg = alg_arg;
     psa_mac_operation_t operation;
     psa_key_policy_t policy;
+
+    TEST_ASSERT( expected_mac->len <= PSA_MAC_MAX_SIZE );
 
     TEST_ASSERT( key != NULL );
     TEST_ASSERT( input != NULL );
@@ -1594,6 +1602,7 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
     signature_size = PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE( key_type,
                                                       key_bits, alg );
     TEST_ASSERT( signature_size != 0 );
+    TEST_ASSERT( signature_size <= PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE );
     signature = mbedtls_calloc( 1, signature_size );
     TEST_ASSERT( signature != NULL );
 
@@ -1676,6 +1685,8 @@ void asymmetric_verify( int key_type_arg, data_t *key_data,
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_key_policy_t policy;
+
+    TEST_ASSERT( signature_data->len <= PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE );
 
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( hash_data != NULL );

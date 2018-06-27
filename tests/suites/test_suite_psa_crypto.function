@@ -425,7 +425,7 @@ void import_export_public_key( data_t *data,
     psa_status_t status;
     unsigned char *exported = NULL;
     size_t export_size;
-    size_t exported_length;
+    size_t exported_length = INVALID_EXPORT_LENGTH;
     psa_key_type_t got_type;
     size_t got_bits;
     psa_key_policy_t policy;
@@ -458,10 +458,11 @@ void import_export_public_key( data_t *data,
                                     exported, export_size,
                                     &exported_length );
     TEST_ASSERT( status == expected_export_status );
+    TEST_ASSERT( exported_length == (size_t) public_key_expected_length );
+    TEST_ASSERT( mem_is_zero( exported + exported_length,
+                              export_size - exported_length ) );
     if( status != PSA_SUCCESS )
         goto destroy;
-
-    TEST_ASSERT( exported_length == (size_t) public_key_expected_length );
 
 destroy:
     /* Destroy the key */

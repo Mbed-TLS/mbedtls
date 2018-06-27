@@ -33,10 +33,6 @@
 
 #include "cipher.h"
 
-#if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER)
-#define MBEDTLS_CIPHER_MODE_STREAM
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

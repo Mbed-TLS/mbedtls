@@ -1098,7 +1098,7 @@ static int ssl_client_hello_write( mbedtls_ssl_context *ssl,
                               ssl->handshake->verify_cookie,
                               ssl->handshake->verify_cookie_len );
 
-            if( buflen < 1 + ssl->handshake->verify_cookie_len )
+            if( buflen < 1 + (unsigned) ssl->handshake->verify_cookie_len )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "buffer too small to hold ClientHello" ) );
                 return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );

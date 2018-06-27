@@ -1741,7 +1741,7 @@ psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
                                     size_t hash_length,
                                     const uint8_t *salt,
                                     size_t salt_length,
-                                    uint8_t *signature,
+                                    const uint8_t *signature,
                                     size_t signature_size )
 {
     key_slot_t *slot;

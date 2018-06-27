@@ -357,6 +357,12 @@ if_build_succeeded () {
     fi
 }
 
+# to be used instead of ! for commands run with
+# record_status or if_build_succeeded
+not() {
+    ! "$@"
+}
+
 msg "info: $0 configuration"
 echo "MEMORY: $MEMORY"
 echo "FORCE: $FORCE"
@@ -713,6 +719,31 @@ make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
 msg "test: gcc, force 64-bit bignum limbs"
 make test
 
+
+msg "build: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
+make CFLAGS='-Werror -O1'
+
+msg "test: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
+make test
+
+
+msg "build: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+scripts/config.pl set MBEDTLS_NO_64BIT_MULTIPLICATION
+make CFLAGS='-Werror -O1'
+
+msg "test: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
+make test
+
+
 msg "build: arm-none-eabi-gcc, make" # ~ 10s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
@@ -748,7 +779,27 @@ scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
 make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
 echo "Checking that software 64-bit division is not required"
-! grep __aeabi_uldiv library/*.o
+if_build_succeeded not grep __aeabi_uldiv library/*.o
+
+msg "build: arm-none-eabi-gcc MBEDTLS_NO_64BIT_MULTIPLICATION, make" # ~ 10s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset MBEDTLS_NET_C
+scripts/config.pl unset MBEDTLS_TIMING_C
+scripts/config.pl unset MBEDTLS_FS_IO
+scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
+# following things are not in the default config
+scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
+scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
+scripts/config.pl unset MBEDTLS_THREADING_C
+scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
+scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
+scripts/config.pl set MBEDTLS_NO_64BIT_MULTIPLICATION
+make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -O1 -march=armv6-m -mthumb' lib
+echo "Checking that software 64-bit multiplication is not required"
+if_build_succeeded not grep __aeabi_lmul library/*.o
 
 msg "build: ARM Compiler 5, make"
 cleanup

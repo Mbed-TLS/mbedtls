@@ -48,10 +48,10 @@ DLEXT=dll
 endif
 
 OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
-		asn1parse.o	asn1write.o	base64.o	\
-		bignum.o	blowfish.o	camellia.o	\
-		aria.o						\
-		ccm.o		cipher.o	cipher_wrap.o	\
+		aria.o		asn1parse.o	asn1write.o	\
+		base64.o	bignum.o	blowfish.o	\
+		camellia.o	ccm.o		chacha20.o	\
+		chachapoly.o	cipher.o	cipher_wrap.o	\
 		cmac.o		ctr_drbg.o	des.o		\
 		dhm.o		ecdh.o		ecdsa.o		\
 		ecjpake.o	ecp.o				\
@@ -64,11 +64,11 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		padlock.o	pem.o		pk.o		\
 		pk_wrap.o	pkcs12.o	pkcs5.o		\
 		pkparse.o	pkwrite.o	platform.o	\
-		platform_util.o	ripemd160.o	rsa_internal.o	\
-		rsa.o 		sha1.o		sha256.o	\
-		sha512.o	threading.o	timing.o	\
-		version.o	version_features.o		\
-		xtea.o
+		platform_util.o	poly1305.o			\
+		ripemd160.o	rsa_internal.o	rsa.o  		\
+		sha1.o		sha256.o	sha512.o	\
+		threading.o	timing.o	version.o	\
+		version_features.o		xtea.o
 
 OBJS_X509=	certs.o		pkcs11.o	x509.o		\
 		x509_create.o	x509_crl.o	x509_crt.o	\

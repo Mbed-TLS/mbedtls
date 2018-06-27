@@ -45,6 +45,9 @@
 #include "mbedtls/aes.h"
 #include "mbedtls/camellia.h"
 #include "mbedtls/aria.h"
+#include "mbedtls/chacha20.h"
+#include "mbedtls/poly1305.h"
+#include "mbedtls/chachapoly.h"
 #include "mbedtls/base64.h"
 #include "mbedtls/bignum.h"
 #include "mbedtls/rsa.h"
@@ -207,6 +210,15 @@ const selftest_t selftests[] =
 #endif
 #if defined(MBEDTLS_CMAC_C)
     {"cmac", mbedtls_cmac_self_test},
+#endif
+#if defined(MBEDTLS_CHACHA20_C)
+    {"chacha20", mbedtls_chacha20_self_test},
+#endif
+#if defined(MBEDTLS_POLY1305_C)
+    {"poly1305", mbedtls_poly1305_self_test},
+#endif
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    {"chacha20-poly1305", mbedtls_chachapoly_self_test},
 #endif
 #if defined(MBEDTLS_BASE64_C)
     {"base64", mbedtls_base64_self_test},

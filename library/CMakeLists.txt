@@ -14,6 +14,8 @@ set(src_crypto
     blowfish.c
     camellia.c
     ccm.c
+    chacha20.c
+    chachapoly.c
     cipher.c
     cipher_wrap.c
     cmac.c
@@ -49,6 +51,7 @@ set(src_crypto
     pkwrite.c
     platform.c
     platform_util.c
+    poly1305.c
     ripemd160.c
     rsa.c
     rsa_internal.c

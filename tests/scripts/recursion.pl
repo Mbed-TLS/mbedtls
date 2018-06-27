@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # Find functions making recursive calls to themselves.
 # (Multiple recursion where a() calls b() which calls a() not covered.)

@@ -7,6 +7,10 @@ Features
    authenticator Poly1305 and AEAD construct Chacha20-Poly1305. Contributed by
    Daniel King (#485).
 
+Changes
+   * Change the shebang line in Perl scripts to look up perl in the PATH.
+     Contributed by fbrosson.
+
 = mbed TLS 2.11.0 branch released 2018-06-18
 
 Features

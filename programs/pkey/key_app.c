@@ -203,14 +203,14 @@ int main( int argc, char *argv[] )
                 goto cleanup;
             }
 
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "N:  ", &rsa->N, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "E:  ", &rsa->E, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "D:  ", &rsa->D, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "P:  ", &rsa->P, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q:  ", &rsa->Q, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "DP: ", &rsa->DP, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "DQ:  ", &rsa->DQ, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "QP:  ", &rsa->QP, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "N:  ", &N, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "E:  ", &E, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "D:  ", &D, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "P:  ", &P, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "Q:  ", &Q, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "DP: ", &DP, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "DQ:  ", &DQ, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "QP:  ", &QP, 16, NULL ) );
         }
         else
 #endif
@@ -260,8 +260,8 @@ int main( int argc, char *argv[] )
                 mbedtls_printf( " failed\n  ! could not export RSA parameters\n\n" );
                 goto cleanup;
             }
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "N:  ", &rsa->N, 16, NULL ) );
-            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "E:  ", &rsa->E, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "N:  ", &N, 16, NULL ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "E:  ", &E, 16, NULL ) );
         }
         else
 #endif

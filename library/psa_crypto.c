@@ -1742,7 +1742,7 @@ psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
                                     const uint8_t *salt,
                                     size_t salt_length,
                                     const uint8_t *signature,
-                                    size_t signature_size )
+                                    size_t signature_length )
 {
     key_slot_t *slot;
     psa_status_t status;
@@ -1768,7 +1768,7 @@ psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
         if( status != PSA_SUCCESS )
             return( status );
 
-        if( signature_size < rsa->len )
+        if( signature_length < rsa->len )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
 #if defined(MBEDTLS_PKCS1_V15)
         if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) )
@@ -1815,7 +1815,7 @@ psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
         int ret;
         (void) alg;
         ret = mbedtls_ecdsa_read_signature( ecdsa, hash, hash_length,
-                                            signature, signature_size );
+                                            signature, signature_length );
         return( mbedtls_to_psa_error( ret ) );
     }
     else

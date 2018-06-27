@@ -1791,7 +1791,7 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
  * \param salt_length       Size of the \c salt buffer in bytes.
  *                          If \c salt is \c NULL, pass 0.
  * \param signature         Buffer containing the signature to verify.
- * \param signature_size    Size of the \c signature buffer in bytes.
+ * \param signature_length  Size of the \c signature buffer in bytes.
  *
  * \retval PSA_SUCCESS
  *         The signature is valid.
@@ -1812,7 +1812,7 @@ psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
                                    const uint8_t *salt,
                                    size_t salt_length,
                                    const uint8_t *signature,
-                                   size_t signature_size);
+                                   size_t signature_length);
 
 #define PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE(key_type, key_bits, alg)     \
     (PSA_KEY_TYPE_IS_RSA(key_type) ?                                    \

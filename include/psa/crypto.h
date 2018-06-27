@@ -2070,6 +2070,10 @@ psa_status_t psa_generate_key(psa_key_slot_t key,
 }
 #endif
 
+/* The file "crypto_sizes.h" contains definitions for size calculation
+ * macros whose definitions are implementation-specific. */
+#include "crypto_sizes.h"
+
 /* The file "crypto_struct.h" contains definitions for
  * implementation-specific structs that are declared above. */
 #include "crypto_struct.h"

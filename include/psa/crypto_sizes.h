@@ -42,6 +42,14 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+/** \def PSA_HASH_MAX_SIZE
+ *
+ * Maximum size of a hash.
+ *
+ * This macro must expand to a compile-time constant integer. This value
+ * should be the maximum size of a hash supported by the implementation,
+ * in bytes, and must be no smaller than this maximum.
+ */
 #if defined(MBEDTLS_SHA512_C)
 #define PSA_HASH_MAX_SIZE 64
 #define PSA_HMAC_MAX_HASH_BLOCK_SIZE 128
@@ -49,6 +57,81 @@
 #define PSA_HASH_MAX_SIZE 32
 #define PSA_HMAC_MAX_HASH_BLOCK_SIZE 64
 #endif
+
+/** \def PSA_MAC_MAX_SIZE
+ *
+ * Maximum size of a MAC.
+ *
+ * This macro must expand to a compile-time constant integer. This value
+ * should be the maximum size of a MAC supported by the implementation,
+ * in bytes, and must be no smaller than this maximum.
+ */
+/* All non-HMAC MACs have a maximum size that's smaller than the
+ * minimum possible value of PSA_HASH_MAX_SIZE in this implementation. */
+#define PSA_MAC_MAX_SIZE PSA_HASH_MAX_SIZE
+
+/* The maximum size of an RSA key on this implementation, in bits.
+ * This is a vendor-specific macro.
+ *
+ * Mbed TLS does not set a hard limit on the size of RSA keys: any key
+ * whose parameters fit in a bignum is accepted. However large keys can
+ * induce a large memory usage and long computation times. Unlike other
+ * auxiliary macros in this file and in crypto.h, which reflect how the
+ * library is configured, this macro defines how the library is
+ * configured. This implementation refuses to import or generate an
+ * RSA key whose size is larger than the value defined here.
+ *
+ * Note that an implementation may set different size limits for different
+ * operations, and does not need to accept all key sizes up to the limit. */
+#define PSA_VENDOR_RSA_MAX_KEY_BITS 4096
+
+/* The maximum size of an ECC key on this implementation, in bits.
+ * This is a vendor-specific macro. */
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+#define PSA_VENDOR_ECC_MAX_CURVE_BITS 521
+#elif defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+#define PSA_VENDOR_ECC_MAX_CURVE_BITS 512
+#elif defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+#define PSA_VENDOR_ECC_MAX_CURVE_BITS 448
+#elif defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+#define PSA_VENDOR_ECC_MAX_CURVE_BITS 384
+#elif defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
+#define PSA_VENDOR_ECC_MAX_CURVE_BITS 384
+#elif defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+#define PSA_VENDOR_ECC_MAX_CURVE_BITS 256
+#elif defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+#define PSA_VENDOR_ECC_MAX_CURVE_BITS 256
+#elif defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
+#define PSA_VENDOR_ECC_MAX_CURVE_BITS 256
+#elif defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+#define PSA_VENDOR_ECC_MAX_CURVE_BITS 255
+#elif defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+#define PSA_VENDOR_ECC_MAX_CURVE_BITS 224
+#elif defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+#define PSA_VENDOR_ECC_MAX_CURVE_BITS 224
+#elif defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+#define PSA_VENDOR_ECC_MAX_CURVE_BITS 192
+#elif defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
+#define PSA_VENDOR_ECC_MAX_CURVE_BITS 192
+#else
+#define PSA_VENDOR_ECC_MAX_CURVE_BITS 0
+#endif
+
+/** \def PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE
+ *
+ * Maximum size of an asymmetric signature.
+ *
+ * This macro must expand to a compile-time constant integer. This value
+ * should be the maximum size of a MAC supported by the implementation,
+ * in bytes, and must be no smaller than this maximum.
+ */
+#define PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE                               \
+    PSA_BITS_TO_BYTES(                                                  \
+        PSA_VENDOR_RSA_MAX_KEY_BITS > PSA_VENDOR_ECC_MAX_CURVE_BITS ?   \
+        PSA_VENDOR_RSA_MAX_KEY_BITS :                                   \
+        PSA_VENDOR_ECC_MAX_CURVE_BITS                                   \
+        )
+
 
 
 /** The size of the output of psa_mac_finish(), in bytes.

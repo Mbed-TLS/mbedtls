@@ -1887,7 +1887,7 @@ psa_status_t psa_generate_random(uint8_t *output,
  *                          interpretation of this parameter depends on
  *                          \c type. All types support \c NULL to use
  *                          the default parameters specified below.
- * \param parameters_size   Size of the buffer that \param parameters
+ * \param parameters_size   Size of the buffer that \p parameters
  *                          points to, in bytes.
  *
  * For any symmetric key type (type such that

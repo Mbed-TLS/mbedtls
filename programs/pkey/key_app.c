@@ -200,7 +200,7 @@ int main( int argc, char *argv[] )
                 ( ret = mbedtls_rsa_export_crt( rsa, &DP, &DQ, &QP ) )      != 0 )
             {
                 mbedtls_printf( " failed\n  ! could not export RSA parameters\n\n" );
-                goto exit;
+                goto cleanup;
             }
 
             MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "N:  ", &rsa->N, 16, NULL ) );
@@ -258,7 +258,7 @@ int main( int argc, char *argv[] )
                                             NULL, &E ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  ! could not export RSA parameters\n\n" );
-                goto exit;
+                goto cleanup;
             }
             MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "N:  ", &rsa->N, 16, NULL ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_write_file( "E:  ", &rsa->E, 16, NULL ) );

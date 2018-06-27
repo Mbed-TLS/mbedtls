@@ -900,8 +900,8 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
  * - For Triple-DES, the format is the concatenation of the
  *   two or three DES keys.
  * - For RSA key pairs (#PSA_KEY_TYPE_RSA_KEYPAIR), the format
- *   is the non-encrypted DER representation defined by PKCS\#8 (RFC 5208)
- *   as PrivateKeyInfo.
+ *   is the non-encrypted DER representation defined by PKCS\#1 (RFC 8017)
+ *   as RSAPrivateKey.
  * - For RSA public keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY), the format
  *   is the DER representation defined by RFC 5280 as SubjectPublicKeyInfo.
  *

@@ -1612,6 +1612,7 @@ psa_status_t psa_mac_verify( psa_mac_operation_t *operation,
 /* Asymmetric cryptography */
 /****************************************************************/
 
+#if defined(MBEDTLS_RSA_C)
 /* Decode the hash algorithm from alg and store the mbedtls encoding in
  * md_alg. Verify that the hash length is consistent. */
 static psa_status_t psa_rsa_decode_md_type( psa_algorithm_t alg,
@@ -1637,6 +1638,115 @@ static psa_status_t psa_rsa_decode_md_type( psa_algorithm_t alg,
     }
     return( PSA_SUCCESS );
 }
+
+static psa_status_t psa_rsa_sign( mbedtls_rsa_context *rsa,
+                                  psa_algorithm_t alg,
+                                  const uint8_t *hash,
+                                  size_t hash_length,
+                                  uint8_t *signature,
+                                  size_t signature_size,
+                                  size_t *signature_length )
+{
+    psa_status_t status;
+    int ret;
+    mbedtls_md_type_t md_alg;
+
+    status = psa_rsa_decode_md_type( alg, hash_length, &md_alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    if( signature_size < rsa->len )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+#if defined(MBEDTLS_PKCS1_V15)
+    if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) )
+    {
+        mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V15,
+                                 MBEDTLS_MD_NONE );
+        ret = mbedtls_rsa_pkcs1_sign( rsa,
+                                      mbedtls_ctr_drbg_random,
+                                      &global_data.ctr_drbg,
+                                      MBEDTLS_RSA_PRIVATE,
+                                      md_alg, hash_length, hash,
+                                      signature );
+    }
+    else
+#endif /* MBEDTLS_PKCS1_V15 */
+#if defined(MBEDTLS_PKCS1_V21)
+    if( PSA_ALG_IS_RSA_PSS( alg ) )
+    {
+        mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg );
+        ret = mbedtls_rsa_rsassa_pss_sign( rsa,
+                                           mbedtls_ctr_drbg_random,
+                                           &global_data.ctr_drbg,
+                                           MBEDTLS_RSA_PRIVATE,
+                                           md_alg, hash_length, hash,
+                                           signature );
+    }
+    else
+#endif /* MBEDTLS_PKCS1_V21 */
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+
+    if( ret == 0 )
+        *signature_length = rsa->len;
+    return( mbedtls_to_psa_error( ret ) );
+}
+
+static psa_status_t psa_rsa_verify( mbedtls_rsa_context *rsa,
+                                    psa_algorithm_t alg,
+                                    const uint8_t *hash,
+                                    size_t hash_length,
+                                    const uint8_t *signature,
+                                    size_t signature_length )
+{
+    psa_status_t status;
+    int ret;
+    mbedtls_md_type_t md_alg;
+
+    status = psa_rsa_decode_md_type( alg, hash_length, &md_alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    if( signature_length < rsa->len )
+        return( PSA_ERROR_BUFFER_TOO_SMALL );
+
+#if defined(MBEDTLS_PKCS1_V15)
+    if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) )
+    {
+        mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V15,
+                                 MBEDTLS_MD_NONE );
+        ret = mbedtls_rsa_pkcs1_verify( rsa,
+                                        mbedtls_ctr_drbg_random,
+                                        &global_data.ctr_drbg,
+                                        MBEDTLS_RSA_PUBLIC,
+                                        md_alg,
+                                        hash_length,
+                                        hash,
+                                        signature );
+    }
+    else
+#endif /* MBEDTLS_PKCS1_V15 */
+#if defined(MBEDTLS_PKCS1_V21)
+    if( PSA_ALG_IS_RSA_PSS( alg ) )
+    {
+        mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg );
+        ret = mbedtls_rsa_rsassa_pss_verify( rsa,
+                                             mbedtls_ctr_drbg_random,
+                                             &global_data.ctr_drbg,
+                                             MBEDTLS_RSA_PUBLIC,
+                                             md_alg, hash_length, hash,
+                                             signature );
+    }
+    else
+#endif /* MBEDTLS_PKCS1_V21 */
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+    return( mbedtls_to_psa_error( ret ) );
+}
+#endif /* MBEDTLS_RSA_C */
 
 #if defined(MBEDTLS_ECDSA_C)
 /* `ecp` cannot be const because `ecp->grp` needs to be non-const
@@ -1740,7 +1850,6 @@ psa_status_t psa_asymmetric_sign( psa_key_slot_t key,
                                   size_t *signature_length )
 {
     key_slot_t *slot;
-    psa_status_t status;
     *signature_length = 0;
     (void) salt;
     (void) salt_length;
@@ -1758,48 +1867,11 @@ psa_status_t psa_asymmetric_sign( psa_key_slot_t key,
 #if defined(MBEDTLS_RSA_C)
     if( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
     {
-        mbedtls_rsa_context *rsa = slot->data.rsa;
-        int ret;
-        mbedtls_md_type_t md_alg;
-        status = psa_rsa_decode_md_type( alg, hash_length, &md_alg );
-        if( status != PSA_SUCCESS )
-            return( status );
-
-        if( signature_size < rsa->len )
-            return( PSA_ERROR_BUFFER_TOO_SMALL );
-#if defined(MBEDTLS_PKCS1_V15)
-        if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) )
-        {
-            mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V15,
-                                     MBEDTLS_MD_NONE );
-            ret = mbedtls_rsa_pkcs1_sign( rsa,
-                                          mbedtls_ctr_drbg_random,
-                                          &global_data.ctr_drbg,
-                                          MBEDTLS_RSA_PRIVATE,
-                                          md_alg, hash_length, hash,
-                                          signature );
-        }
-        else
-#endif /* MBEDTLS_PKCS1_V15 */
-#if defined(MBEDTLS_PKCS1_V21)
-        if( PSA_ALG_IS_RSA_PSS( alg ) )
-        {
-            mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg );
-            ret = mbedtls_rsa_rsassa_pss_sign( rsa,
-                                               mbedtls_ctr_drbg_random,
-                                               &global_data.ctr_drbg,
-                                               MBEDTLS_RSA_PRIVATE,
-                                               md_alg, hash_length, hash,
-                                               signature );
-        }
-        else
-#endif /* MBEDTLS_PKCS1_V21 */
-        {
-            return( PSA_ERROR_INVALID_ARGUMENT );
-        }
-        if( ret == 0 )
-            *signature_length = rsa->len;
-        return( mbedtls_to_psa_error( ret ) );
+        return( psa_rsa_sign( slot->data.rsa,
+                              alg,
+                              hash, hash_length,
+                              signature, signature_size,
+                              signature_length ) );
     }
     else
 #endif /* defined(MBEDTLS_RSA_C) */
@@ -1808,17 +1880,16 @@ psa_status_t psa_asymmetric_sign( psa_key_slot_t key,
     {
 #if defined(MBEDTLS_ECDSA_C)
         if( PSA_ALG_IS_ECDSA( alg ) )
-            status = psa_ecdsa_sign( slot->data.ecp,
-                                     alg,
-                                     hash, hash_length,
-                                     signature, signature_size,
-                                     signature_length );
+            return( psa_ecdsa_sign( slot->data.ecp,
+                                    alg,
+                                    hash, hash_length,
+                                    signature, signature_size,
+                                    signature_length ) );
         else
 #endif /* defined(MBEDTLS_ECDSA_C) */
         {
             return( PSA_ERROR_INVALID_ARGUMENT );
         }
-        return( status );
     }
     else
 #endif /* defined(MBEDTLS_ECP_C) */
@@ -1837,7 +1908,7 @@ psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
                                     size_t signature_length )
 {
     key_slot_t *slot;
-    psa_status_t status;
+
     (void) salt;
     (void) salt_length;
 
@@ -1853,50 +1924,10 @@ psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
     if( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR ||
         slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY )
     {
-        mbedtls_rsa_context *rsa = slot->data.rsa;
-        int ret;
-        mbedtls_md_type_t md_alg;
-        status = psa_rsa_decode_md_type( alg, hash_length, &md_alg );
-        if( status != PSA_SUCCESS )
-            return( status );
-
-        if( signature_length < rsa->len )
-            return( PSA_ERROR_BUFFER_TOO_SMALL );
-#if defined(MBEDTLS_PKCS1_V15)
-        if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) )
-        {
-            mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V15,
-                                     MBEDTLS_MD_NONE );
-
-            ret = mbedtls_rsa_pkcs1_verify( rsa,
-                                            mbedtls_ctr_drbg_random,
-                                            &global_data.ctr_drbg,
-                                            MBEDTLS_RSA_PUBLIC,
-                                            md_alg,
-                                            hash_length,
-                                            hash,
-                                            signature );
-
-        }
-        else
-#endif /* MBEDTLS_PKCS1_V15 */
-#if defined(MBEDTLS_PKCS1_V21)
-        if( PSA_ALG_IS_RSA_PSS( alg ) )
-        {
-            mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg );
-            ret = mbedtls_rsa_rsassa_pss_verify( rsa,
-                                                 mbedtls_ctr_drbg_random,
-                                                 &global_data.ctr_drbg,
-                                                 MBEDTLS_RSA_PUBLIC,
-                                                 md_alg, hash_length, hash,
-                                                 signature );
-        }
-        else
-#endif /* MBEDTLS_PKCS1_V21 */
-        {
-            return( PSA_ERROR_INVALID_ARGUMENT );
-        }
-        return( mbedtls_to_psa_error( ret ) );
+        return( psa_rsa_verify( slot->data.rsa,
+                                alg,
+                                hash, hash_length,
+                                signature, signature_length ) );
     }
     else
 #endif /* defined(MBEDTLS_RSA_C) */

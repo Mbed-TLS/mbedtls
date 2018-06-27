@@ -5,6 +5,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Change the shebang line in Perl scripts to look up perl in the PATH.
      Contributed by fbrosson in #1533.
+   * Fix a memory leak in mbedtls_x509_csr_parse(), found by catenacyber,
+     Philippe Antoine.
 
 = mbed TLS 2.7.4 branch released 2018-06-18
 

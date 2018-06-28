@@ -97,8 +97,9 @@ class FileWrapper(io.FileIO):
             line = parent.next() # Python 2
         if line:
             self.line_no += 1
-            # Convert byte array to string with correct encoding
-            return line.decode(sys.getdefaultencoding())
+            # Convert byte array to string with correct encoding and
+            # strip any whitespaces added in the decoding process.
+            return line.decode(sys.getdefaultencoding()).strip() + "\n"
         return None
     next = __next__
 

@@ -2,6 +2,16 @@
  * \file psa/crypto_struct.h
  *
  * \brief PSA cryptography module: Mbed TLS structured type implementations
+ *
+ * \note This file may not be included directly. Applications must
+ * include psa/crypto.h.
+ *
+ * This file contains the definitions of some data structures with
+ * implementation-specific definitions.
+ *
+ * In implementations with isolation between the application and the
+ * cryptography module, it is expected that the front-end and the back-end
+ * would have different versions of this file.
  */
 /*
  *  Copyright (C) 2018, ARM Limited, All Rights Reserved

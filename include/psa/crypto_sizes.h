@@ -3,11 +3,19 @@
  *
  * \brief PSA cryptography module: Mbed TLS buffer size macros
  *
+ * \note This file may not be included directly. Applications must
+ * include psa/crypto.h.
+ *
  * This file contains the definitions of macros that are useful to
  * compute buffer sizes. The signatures and semantics of these macros
  * are standardized, but the definitions are not, because they depend on
  * the available algorithms and, in some cases, on permitted tolerances
  * on buffer sizes.
+ *
+ * In implementations with isolation between the application and the
+ * cryptography module, implementers should take care to ensure that
+ * the definitions that are exposed to applications match what the
+ * module implements.
  *
  * Macros that compute sizes whose values do not depend on the
  * implementation are in crypto.h.

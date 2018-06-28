@@ -2,6 +2,16 @@
  * \file psa/crypto_platform.h
  *
  * \brief PSA cryptography module: Mbed TLS platfom definitions
+ *
+ * \note This file may not be included directly. Applications must
+ * include psa/crypto.h.
+ *
+ * This file contains platform-dependent type definitions.
+ *
+ * In implementations with isolation between the application and the
+ * cryptography module, implementers should take care to ensure that
+ * the definitions that are exposed to applications match what the
+ * module implements.
  */
 /*
  *  Copyright (C) 2018, ARM Limited, All Rights Reserved

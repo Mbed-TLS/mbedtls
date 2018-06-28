@@ -108,9 +108,9 @@ static int exercise_cipher_key( psa_key_slot_t key,
     if( usage & PSA_KEY_USAGE_DECRYPT )
     {
         psa_status_t status;
+        psa_key_type_t type = PSA_KEY_TYPE_NONE;
         if( ! ( usage & PSA_KEY_USAGE_ENCRYPT ) )
         {
-            psa_key_type_t type;
             size_t bits;
             TEST_ASSERT( psa_get_key_information( key, &type, &bits ) );
             iv_length = PSA_BLOCK_CIPHER_BLOCK_SIZE( type );
@@ -129,8 +129,8 @@ static int exercise_cipher_key( psa_key_slot_t key,
         /* For a stream cipher, all inputs are valid. For a block cipher,
          * if the input is some aribtrary data rather than an actual
          ciphertext, a padding error is likely.  */
-        if( ( usage & PSA_KEY_USAGE_DECRYPT ) ||
-            PSA_BLOCK_CIPHER_BLOCK_SIZE( alg ) == 1 )
+        if( ( usage & PSA_KEY_USAGE_ENCRYPT ) ||
+            PSA_BLOCK_CIPHER_BLOCK_SIZE( type ) == 1 )
             TEST_ASSERT( status == PSA_SUCCESS );
         else
             TEST_ASSERT( status == PSA_SUCCESS ||

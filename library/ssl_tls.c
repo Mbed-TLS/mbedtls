@@ -1276,6 +1276,27 @@ static void ssl_mac( mbedtls_md_context_t *md_ctx,
 #define SSL_SOME_MODES_USE_MAC
 #endif
 
+/* The function below is only used in the Lucky 13 counter-measure in
+ * ssl_decrypt_buf(). These are the defines that guard the call site. */
+#if defined(SSL_SOME_MODES_USE_MAC) && \
+    ( defined(MBEDTLS_SSL_PROTO_TLS1) || \
+      defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
+      defined(MBEDTLS_SSL_PROTO_TLS1_2) )
+/* This function makes sure every byte in the memory region is accessed
+ * (in ascending addresses order) */
+static void ssl_read_memory( unsigned char *p, size_t len )
+{
+    unsigned char acc = 0;
+    volatile unsigned char force;
+
+    for( ; len != 0; p++, len-- )
+        acc ^= *p;
+
+    force = acc;
+    (void) force;
+}
+#endif /* SSL_SOME_MODES_USE_MAC && ( TLS1 || TLS1_1 || TLS1_2 ) */
+
 /*
  * Encryption/decryption functions
  */
@@ -2011,6 +2032,20 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
              * linking an extra division function in some builds).
              */
             size_t j, extra_run = 0;
+
+            /*
+             * The next two sizes are the minimum and maximum values of
+             * in_msglen over all padlen values.
+             *
+             * They're independent of padlen, since we previously did
+             * in_msglen -= padlen.
+             *
+             * Note that max_len + maclen is never more than the buffer
+             * length, as we previously did in_msglen -= maclen too.
+             */
+            const size_t max_len = ssl->in_msglen + padlen;
+            const size_t min_len = ( max_len > 256 ) ? max_len - 256 : 0;
+
             switch( ssl->transform_in->ciphersuite_info->mac )
             {
 #if defined(MBEDTLS_MD5_C) || defined(MBEDTLS_SHA1_C) || \
@@ -2042,12 +2077,25 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
             mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_len, 2 );
             mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_msg,
                              ssl->in_msglen );
+            /* Make sure we access everything even when padlen > 0. This
+             * makes the synchronisation requirements for just-in-time
+             * Prime+Probe attacks much tighter and hopefully impractical. */
+            ssl_read_memory( ssl->in_msg + ssl->in_msglen, padlen );
             mbedtls_md_hmac_finish( &ssl->transform_in->md_ctx_dec, mac_expect );
-            /* Call mbedtls_md_process at least once due to cache attacks */
+
+            /* Call mbedtls_md_process at least once due to cache attacks
+             * that observe whether md_process() was called of not */
             for( j = 0; j < extra_run + 1; j++ )
                 mbedtls_md_process( &ssl->transform_in->md_ctx_dec, ssl->in_msg );
 
             mbedtls_md_hmac_reset( &ssl->transform_in->md_ctx_dec );
+
+            /* Make sure we access all the memory that could contain the MAC,
+             * before we check it in the next code block. This makes the
+             * synchronisation requirements for just-in-time Prime+Probe
+             * attacks much tighter and hopefully impractical. */
+            ssl_read_memory( ssl->in_msg + min_len,
+                                 max_len - min_len + ssl->transform_in->maclen );
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
@@ -2057,9 +2105,11 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
+#if defined(MBEDTLS_SSL_DEBUG_ALL)
         MBEDTLS_SSL_DEBUG_BUF( 4, "expected mac", mac_expect, ssl->transform_in->maclen );
         MBEDTLS_SSL_DEBUG_BUF( 4, "message  mac", ssl->in_msg + ssl->in_msglen,
                                ssl->transform_in->maclen );
+#endif
 
         if( mbedtls_ssl_safer_memcmp( ssl->in_msg + ssl->in_msglen, mac_expect,
                                       ssl->transform_in->maclen ) != 0 )

@@ -8,8 +8,8 @@ Bugfix
    * Clarify documentation for mbedtls_ssl_write() to include 0 as a valid
      return value. Found by @davidwu2000. #839
    * Add ecc extensions only if an ecc based ciphersuite is used.
-     Affects interoperability with BouncyCastle and other peers.
-     Raised by milenamil in #1157.
+     This improves compliance to RFC 4492, and as a result, solves
+     interoperability issues with BouncyCastle. Raised by milenamil in #1157.
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.

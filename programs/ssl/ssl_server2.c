@@ -96,6 +96,7 @@ int main( void )
 
 #define DFL_SERVER_ADDR         NULL
 #define DFL_SERVER_PORT         "4433"
+#define DFL_RESPONSE_SIZE       -1
 #define DFL_DEBUG_LEVEL         0
 #define DFL_NBIO                0
 #define DFL_READ_TIMEOUT        0
@@ -161,7 +162,7 @@ int main( void )
  * You will need to adapt the mbedtls_ssl_get_bytes_avail() test in ssl-opt.sh
  * if you change this value to something outside the range <= 100 or > 500
  */
-#define IO_BUF_LEN      200
+#define DFL_IO_BUF_LEN      200
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 #if defined(MBEDTLS_FS_IO)
@@ -317,6 +318,11 @@ int main( void )
     "    server_addr=%%s      default: (all interfaces)\n"  \
     "    server_port=%%d      default: 4433\n"              \
     "    debug_level=%%d      default: 0 (disabled)\n"      \
+    "    buffer_size=%%d      default: 200 \n" \
+    "                         (minimum: 1, max: 16385)\n" \
+    "    response_size=%%d    default: about 152 (basic response)\n" \
+    "                          (minimum: 0, max: 16384)\n" \
+    "                          increases buffer_size if bigger\n"\
     "    nbio=%%d             default: 0 (blocking I/O)\n"  \
     "                        options: 1 (non-blocking), 2 (added delays)\n" \
     "    read_timeout=%%d     default: 0 ms (no timeout)\n"    \
@@ -385,6 +391,8 @@ struct options
     int debug_level;            /* level of debugging                       */
     int nbio;                   /* should I/O be blocking?                  */
     uint32_t read_timeout;      /* timeout on mbedtls_ssl_read() in milliseconds    */
+    int response_size;          /* pad response with header to requested size */
+    uint16_t buffer_size;       /* IO buffer size */
     const char *ca_file;        /* the file with the CA certificate(s)      */
     const char *ca_path;        /* the path with the CA certificate(s) reside */
     const char *crt_file;       /* the file with the server certificate     */
@@ -824,7 +832,7 @@ int main( int argc, char *argv[] )
 {
     int ret = 0, len, written, frags, exchanges_left;
     int version_suites[4][2];
-    unsigned char buf[IO_BUF_LEN];
+    unsigned char* buf = 0;
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     unsigned char psk[MBEDTLS_PSK_MAX_LEN];
     size_t psk_len = 0;
@@ -949,9 +957,11 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
+    opt.buffer_size         = DFL_IO_BUF_LEN;
     opt.server_addr         = DFL_SERVER_ADDR;
     opt.server_port         = DFL_SERVER_PORT;
     opt.debug_level         = DFL_DEBUG_LEVEL;
+    opt.response_size       = DFL_RESPONSE_SIZE;
     opt.nbio                = DFL_NBIO;
     opt.read_timeout        = DFL_READ_TIMEOUT;
     opt.ca_file             = DFL_CA_FILE;
@@ -1030,6 +1040,20 @@ int main( int argc, char *argv[] )
         }
         else if( strcmp( p, "read_timeout" ) == 0 )
             opt.read_timeout = atoi( q );
+        else if( strcmp( p, "buffer_size" ) == 0 )
+        {
+            opt.buffer_size = atoi( q );
+            if( opt.buffer_size < 1 || opt.buffer_size > MBEDTLS_SSL_MAX_CONTENT_LEN + 1 )
+                goto usage;
+        }
+        else if( strcmp( p, "response_size" ) == 0 )
+        {
+            opt.response_size = atoi( q );
+            if( opt.response_size < 0 || opt.response_size > MBEDTLS_SSL_MAX_CONTENT_LEN )
+                goto usage;
+            if( opt.buffer_size < opt.response_size )
+                opt.buffer_size = opt.response_size;
+        }
         else if( strcmp( p, "ca_file" ) == 0 )
             opt.ca_file = q;
         else if( strcmp( p, "ca_path" ) == 0 )
@@ -1304,6 +1328,13 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_DEBUG_C)
     mbedtls_debug_set_threshold( opt.debug_level );
 #endif
+    buf = malloc( opt.buffer_size );
+    if( buf == NULL )
+    {
+        mbedtls_printf("Could not allocate %u bytes\n", opt.buffer_size);
+        ret = 3;
+        goto exit;
+    }
 
     if( opt.force_ciphersuite[0] > 0 )
     {
@@ -2176,8 +2207,8 @@ data_exchange:
         do
         {
             int terminated = 0;
-            len = sizeof( buf ) - 1;
-            memset( buf, 0, sizeof( buf ) );
+            len = opt.buffer_size - 1;
+            memset( buf, 0, opt.buffer_size );
             ret = mbedtls_ssl_read( &ssl, buf, len );
 
             if( ret == MBEDTLS_ERR_SSL_WANT_READ ||
@@ -2267,8 +2298,8 @@ data_exchange:
     }
     else /* Not stream, so datagram */
     {
-        len = sizeof( buf ) - 1;
-        memset( buf, 0, sizeof( buf ) );
+        len = opt.buffer_size - 1;
+        memset( buf, 0, opt.buffer_size );
 
         do ret = mbedtls_ssl_read( &ssl, buf, len );
         while( ret == MBEDTLS_ERR_SSL_WANT_READ ||
@@ -2327,6 +2358,25 @@ data_exchange:
 
     len = sprintf( (char *) buf, HTTP_RESPONSE,
                    mbedtls_ssl_get_ciphersuite( &ssl ) );
+
+    /* Add padding to the response to reach opt.response_size in length */
+    if( opt.response_size != DFL_RESPONSE_SIZE &&
+        len < opt.response_size )
+    {
+        memset( buf + len, 'B', opt.response_size - len );
+        len += opt.response_size - len;
+    }
+
+    /* Truncate if response size is smaller than the "natural" size */
+    if( opt.response_size != DFL_RESPONSE_SIZE &&
+        len > opt.response_size )
+    {
+        len = opt.response_size;
+
+        /* Still end with \r\n unless that's really not possible */
+        if( len >= 2 ) buf[len - 2] = '\r';
+        if( len >= 1 ) buf[len - 1] = '\n';
+    }
 
     if( opt.transport == MBEDTLS_SSL_TRANSPORT_STREAM )
     {

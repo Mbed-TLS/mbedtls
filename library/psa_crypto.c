@@ -40,7 +40,6 @@
 
 #include "mbedtls/arc4.h"
 #include "mbedtls/asn1.h"
-#include "mbedtls/asn1write.h"
 #include "mbedtls/bignum.h"
 #include "mbedtls/blowfish.h"
 #include "mbedtls/camellia.h"
@@ -1640,28 +1639,6 @@ static psa_status_t psa_rsa_decode_md_type( psa_algorithm_t alg,
 }
 
 #if defined(MBEDTLS_ECDSA_C)
-/* Temporary copy from ecdsa.c */
-static int ecdsa_signature_to_asn1( const mbedtls_mpi *r, const mbedtls_mpi *s,
-                                    unsigned char *sig, size_t *slen )
-{
-    int ret;
-    unsigned char buf[MBEDTLS_ECDSA_MAX_LEN];
-    unsigned char *p = buf + sizeof( buf );
-    size_t len = 0;
-
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &p, buf, s ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_mpi( &p, buf, r ) );
-
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, buf, len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf,
-                                       MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
-
-    memcpy( sig, p, len );
-    *slen = len;
-
-    return( 0 );
-}
-
 /* `ecp` cannot be const because `ecp->grp` needs to be non-const
  * for mbedtls_ecdsa_sign() and mbedtls_ecdsa_sign_det()
  * (even though these functions don't modify it). */
@@ -1675,11 +1652,16 @@ static psa_status_t psa_ecdsa_sign( mbedtls_ecp_keypair *ecp,
 {
     int ret;
     mbedtls_mpi r, s;
+    size_t curve_bytes = PSA_BITS_TO_BYTES( ecp->grp.pbits );
     mbedtls_mpi_init( &r );
     mbedtls_mpi_init( &s );
 
-    if( signature_size < PSA_ECDSA_SIGNATURE_SIZE( ecp->grp.pbits ) )
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
+    *signature_length = 0;
+    if( signature_size < 2 * curve_bytes )
+    {
+        ret = MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
+        goto cleanup;
+    }
 
     if( PSA_ALG_DSA_IS_DETERMINISTIC( alg ) )
     {
@@ -1697,8 +1679,48 @@ static psa_status_t psa_ecdsa_sign( mbedtls_ecp_keypair *ecp,
                                              mbedtls_ctr_drbg_random,
                                              &global_data.ctr_drbg ) );
     }
-    MBEDTLS_MPI_CHK( ecdsa_signature_to_asn1( &r, &s,
-                                              signature, signature_length ) );
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &r,
+                                               signature,
+                                               curve_bytes ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_write_binary( &s,
+                                               signature + curve_bytes,
+                                               curve_bytes ) );
+
+cleanup:
+    mbedtls_mpi_free( &r );
+    mbedtls_mpi_free( &s );
+    if( ret == 0 )
+        *signature_length = 2 * curve_bytes;
+    memset( signature + *signature_length, 0,
+            signature_size - *signature_length );
+    return( mbedtls_to_psa_error( ret ) );
+}
+
+static psa_status_t psa_ecdsa_verify( mbedtls_ecp_keypair *ecp,
+                                      const uint8_t *hash,
+                                      size_t hash_length,
+                                      const uint8_t *signature,
+                                      size_t signature_length )
+{
+    int ret;
+    mbedtls_mpi r, s;
+    size_t curve_bytes = PSA_BITS_TO_BYTES( ecp->grp.pbits );
+    mbedtls_mpi_init( &r );
+    mbedtls_mpi_init( &s );
+
+    if( signature_length != 2 * curve_bytes )
+        return( PSA_ERROR_INVALID_SIGNATURE );
+
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &r,
+                                              signature,
+                                              curve_bytes ) );
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_binary( &s,
+                                              signature + curve_bytes,
+                                              curve_bytes ) );
+
+    ret = mbedtls_ecdsa_verify( &ecp->grp, hash, hash_length,
+                                &ecp->Q, &r, &s );
 
 cleanup:
     mbedtls_mpi_free( &r );
@@ -1883,13 +1905,9 @@ psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
     {
 #if defined(MBEDTLS_ECDSA_C)
         if( PSA_ALG_IS_ECDSA( alg ) )
-        {
-            int ret;
-            ret = mbedtls_ecdsa_read_signature( slot->data.ecp,
-                                                hash, hash_length,
-                                                signature, signature_length );
-            return( mbedtls_to_psa_error( ret ) );
-        }
+            return( psa_ecdsa_verify( slot->data.ecp,
+                                      hash, hash_length,
+                                      signature, signature_length ) );
         else
 #endif /* defined(MBEDTLS_ECDSA_C) */
         {

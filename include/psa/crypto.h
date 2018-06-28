@@ -698,6 +698,12 @@ typedef uint32_t psa_algorithm_t;
  * This is the ECDSA signature scheme defined by ANSI X9.62,
  * with a random per-message secret number (*k*).
  *
+ * The representation of the signature as a byte string consists of
+ * the concatentation of the signature values *r* and *s*. Each of
+ * *r* and *s* is encoded as an *N*-octet string, where *N* is the length
+ * of the base point of the curve in octets. Each value is represented
+ * in big-endian order (most significant octet first).
+ *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
  *                      #PSA_ALG_IS_HASH(alg) is true).
  *
@@ -709,7 +715,7 @@ typedef uint32_t psa_algorithm_t;
     (PSA_ALG_ECDSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
 /** ECDSA signature without hashing.
  *
- * This is the signature scheme defined by ANSI X9.62,
+ * This is the same signature scheme as #PSA_ALG_ECDSA(), but
  * without specifying a hash algorithm. This algorithm may only be
  * used to sign or verify a sequence of bytes that should be an
  * already-calculated hash. Note that the input is padded with
@@ -721,6 +727,8 @@ typedef uint32_t psa_algorithm_t;
 /** Deterministic ECDSA signature with hashing.
  *
  * This is the deterministic ECDSA signature scheme defined by RFC 6979.
+ *
+ * The representation of a signature is the same as with #PSA_ALG_ECDSA().
  *
  * Note that when this algorithm is used for verification, signatures
  * made with randomized ECDSA (#PSA_ALG_ECDSA(\c hash_alg)) with the
@@ -1728,34 +1736,15 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
  */
 
 /**
- * \brief Maximum ECDSA signature size for a given curve bit size
+ * \brief ECDSA signature size for a given curve bit size
  *
- * \param curve_bits    Curve size in bits
- * \return              Maximum signature size in bytes
+ * \param curve_bits    Curve size in bits.
+ * \return              Signature size in bytes.
  *
  * \note This macro returns a compile-time constant if its argument is one.
- *
- * \warning This macro may evaluate its argument multiple times.
  */
-/*
- * RFC 4492 page 20:
- *
- *     Ecdsa-Sig-Value ::= SEQUENCE {
- *         r       INTEGER,
- *         s       INTEGER
- *     }
- *
- * Size is at most
- *    1 (tag) + 1 (len) + 1 (initial 0) + curve_bytes for each of r and s,
- *    twice that + 1 (tag) + 2 (len) for the sequence
- * (assuming curve_bytes is less than 126 for r and s,
- * and less than 124 (total len <= 255) for the sequence)
- */
-#define PSA_ECDSA_SIGNATURE_SIZE(curve_bits)                          \
-    ( /*T,L of SEQUENCE*/ ((curve_bits) >= 61 * 8 ? 3 : 2) +          \
-      /*T,L of r,s*/       2 * (((curve_bits) >= 127 * 8 ? 3 : 2) +   \
-      /*V of r,s*/               ((curve_bits) + 8) / 8))
-
+#define PSA_ECDSA_SIGNATURE_SIZE(curve_bits)    \
+    (PSA_BITS_TO_BYTES(curve_bits) * 2)
 
 /** Safe signature buffer size for psa_asymmetric_sign().
  *

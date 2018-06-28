@@ -574,11 +574,12 @@ typedef uint32_t psa_algorithm_t;
  *
  * For example, `PSA_ALG_HMAC(PSA_ALG_SHA256)` is HMAC-SHA-256.
  *
- * \param alg   A hash algorithm (\c PSA_ALG_XXX value such that
- *              #PSA_ALG_IS_HASH(alg) is true).
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(alg) is true).
  *
- * \return      The corresponding HMAC algorithm.
- * \return      Unspecified if \p alg is not a hash algorithm.
+ * \return              The corresponding HMAC algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      hash algorithm.
  */
 #define PSA_ALG_HMAC(hash_alg)                                  \
     (PSA_ALG_HMAC_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
@@ -620,22 +621,167 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_CCM                             ((psa_algorithm_t)0x06000001)
 #define PSA_ALG_GCM                             ((psa_algorithm_t)0x06000002)
 
-#define PSA_ALG_RSA_PKCS1V15_SIGN_RAW           ((psa_algorithm_t)0x10010000)
-#define PSA_ALG_RSA_PSS_MGF1                    ((psa_algorithm_t)0x10020000)
-#define PSA_ALG_RSA_PKCS1V15_CRYPT              ((psa_algorithm_t)0x12010000)
-#define PSA_ALG_RSA_OAEP_MGF1_BASE              ((psa_algorithm_t)0x12020000)
+#define PSA_ALG_RSA_PKCS1V15_SIGN_BASE          ((psa_algorithm_t)0x10020000)
+/** RSA PKCS#1 v1.5 signature with hashing.
+ *
+ * This is the signature scheme defined by RFC 8017
+ * (PKCS#1: RSA Cryptography Specifications) under the name
+ * RSASSA-PKCS1-v1_5.
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(alg) is true).
+ *
+ * \return              The corresponding RSA PKCS#1 v1.5 signature algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      hash algorithm.
+ */
 #define PSA_ALG_RSA_PKCS1V15_SIGN(hash_alg)                             \
-    (PSA_ALG_RSA_PKCS1V15_SIGN_RAW | ((hash_alg) & PSA_ALG_HASH_MASK))
+    (PSA_ALG_RSA_PKCS1V15_SIGN_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+/** Raw PKCS#1 v1.5 signature.
+ *
+ * The input to this algorithm is the DigestInfo structure used by
+ * RFC 8017 (PKCS#1: RSA Cryptography Specifications), &sect;9.2
+ * steps 3&ndash;6.
+ */
+#define PSA_ALG_RSA_PKCS1V15_SIGN_RAW PSA_ALG_RSA_PKCS1V15_SIGN_BASE
 #define PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg)                               \
-    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_PKCS1V15_SIGN_RAW)
-#define PSA_ALG_RSA_OAEP_MGF1(hash_alg)                             \
-    (PSA_ALG_RSA_OAEP_MGF1_RAW | ((hash_alg) & PSA_ALG_HASH_MASK))
-#define PSA_ALG_IS_RSA_OAEP_MGF1(alg)                               \
-    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_OAEP_MGF1_BASE)
-#define PSA_ALG_RSA_GET_HASH(alg)                                       \
-    (((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH)
+    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_PKCS1V15_SIGN_BASE)
+#define PSA_ALG_RSA_PSS_BASE               ((psa_algorithm_t)0x10030000)
+/** RSA PSS signature with hashing.
+ *
+ * This is the signature scheme defined by RFC 8017
+ * (PKCS#1: RSA Cryptography Specifications) under the name
+ * RSASSA-PSS, with the message generation function MGF1. The specified
+ * hash algorithm is used to hash the input message, to create the
+ * salted hash, and for the mask generation.
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(alg) is true).
+ *
+ * \return              The corresponding RSA PSS signature algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      hash algorithm.
+ */
+#define PSA_ALG_RSA_PSS(hash_alg)                               \
+    (PSA_ALG_RSA_PSS_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_IS_RSA_PSS(alg)                                 \
+    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_PSS_BASE)
 
-#define PSA_ALG_ECDSA_RAW                       ((psa_algorithm_t)0x10030000)
+#define PSA_ALG_DSA_BASE                        ((psa_algorithm_t)0x10040000)
+/** DSA signature with hashing.
+ *
+ * This is the signature scheme defined by FIPS 186-4,
+ * with a random per-message secret number (*k*).
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(alg) is true).
+ *
+ * \return              The corresponding DSA signature algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      hash algorithm.
+ */
+#define PSA_ALG_DSA(hash_alg)                             \
+    (PSA_ALG_DSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_DETERMINISTIC_DSA_BASE          ((psa_algorithm_t)0x10050000)
+#define PSA_ALG_DSA_DETERMINISTIC_FLAG          ((psa_algorithm_t)0x00010000)
+#define PSA_ALG_DETERMINISTIC_DSA(hash_alg)                             \
+    (PSA_ALG_DETERMINISTIC_DSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_IS_DSA(alg)                                             \
+    (((alg) & ~PSA_ALG_HASH_MASK & ~PSA_ALG_DSA_DETERMINISTIC_FLAG) ==  \
+     PSA_ALG_DSA_BASE)
+#define PSA_ALG_DSA_IS_DETERMINISTIC(alg)               \
+    (((alg) & PSA_ALG_DSA_DETERMINISTIC_FLAG) != 0)
+
+#define PSA_ALG_ECDSA_BASE                      ((psa_algorithm_t)0x10060000)
+/** ECDSA signature with hashing.
+ *
+ * This is the ECDSA signature scheme defined by ANSI X9.62,
+ * with a random per-message secret number (*k*).
+ *
+ * The representation of the signature as a byte string consists of
+ * the concatentation of the signature values *r* and *s*. Each of
+ * *r* and *s* is encoded as an *N*-octet string, where *N* is the length
+ * of the base point of the curve in octets. Each value is represented
+ * in big-endian order (most significant octet first).
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(alg) is true).
+ *
+ * \return              The corresponding ECDSA signature algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      hash algorithm.
+ */
+#define PSA_ALG_ECDSA(hash_alg)                                 \
+    (PSA_ALG_ECDSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+/** ECDSA signature without hashing.
+ *
+ * This is the same signature scheme as #PSA_ALG_ECDSA(), but
+ * without specifying a hash algorithm. This algorithm may only be
+ * used to sign or verify a sequence of bytes that should be an
+ * already-calculated hash. Note that the input is padded with
+ * zeros on the left or truncated on the left as required to fit
+ * the curve size.
+ */
+#define PSA_ALG_ECDSA_ANY PSA_ALG_ECDSA_BASE
+#define PSA_ALG_DETERMINISTIC_ECDSA_BASE        ((psa_algorithm_t)0x10070000)
+/** Deterministic ECDSA signature with hashing.
+ *
+ * This is the deterministic ECDSA signature scheme defined by RFC 6979.
+ *
+ * The representation of a signature is the same as with #PSA_ALG_ECDSA().
+ *
+ * Note that when this algorithm is used for verification, signatures
+ * made with randomized ECDSA (#PSA_ALG_ECDSA(\c hash_alg)) with the
+ * same private key are accepted. In other words,
+ * #PSA_ALG_DETERMINISTIC_ECDSA(\c hash_alg) differs from
+ * #PSA_ALG_ECDSA(\c hash_alg) only for signature, not for verification.
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(alg) is true).
+ *
+ * \return              The corresponding deterministic ECDSA signature
+ *                      algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      hash algorithm.
+ */
+#define PSA_ALG_DETERMINISTIC_ECDSA(hash_alg)                           \
+    (PSA_ALG_DETERMINISTIC_ECDSA_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_IS_ECDSA(alg)                                           \
+    (((alg) & ~PSA_ALG_HASH_MASK & ~PSA_ALG_DSA_DETERMINISTIC_FLAG) ==  \
+     PSA_ALG_ECDSA_BASE)
+#define PSA_ALG_ECDSA_IS_DETERMINISTIC(alg)             \
+    (((alg) & PSA_ALG_DSA_DETERMINISTIC_FLAG) != 0)
+
+/** Get the hash used by a hash-and-sign signature algorithm.
+ *
+ * A hash-and-sign algorithm is a signature algorithm which is
+ * composed of two phases: first a hashing phase which does not use
+ * the key and produces a hash of the input message, then a signing
+ * phase which only uses the hash and the key and not the message
+ * itself.
+ *
+ * \param alg   A signature algorithm (\c PSA_ALG_XXX value such that
+ *              #PSA_ALG_IS_SIGN(alg) is true).
+ *
+ * \return      The underlying hash algorithm if \p alg is a hash-and-sign
+ *              algorithm.
+ * \return      0 if \p alg is a signature algorithm that does not
+ *              follow the hash-and-sign structure.
+ * \return      Unspecified if \p alg is not a signature algorithm or
+ *              if it is not supported by the implementation.
+ */
+#define PSA_ALG_SIGN_GET_HASH(alg)                                     \
+    (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||   \
+     PSA_ALG_IS_DSA(alg) || PSA_ALG_IS_ECDSA(alg) ?                    \
+     ((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH :             \
+     0)
+
+#define PSA_ALG_RSA_PKCS1V15_CRYPT              ((psa_algorithm_t)0x12020000)
+#define PSA_ALG_RSA_OAEP_BASE                   ((psa_algorithm_t)0x12030000)
+#define PSA_ALG_RSA_OAEP(hash_alg)                              \
+    (PSA_ALG_RSA_OAEP_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+#define PSA_ALG_IS_RSA_OAEP(alg)                                \
+    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_OAEP_BASE)
 
 /**@}*/
 
@@ -994,23 +1140,23 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  *         An implementation may return either 0 or the correct size
  *         for a hash algorithm that it recognizes, but does not support.
  */
-#define PSA_HASH_SIZE(alg)                                            \
-    (                                                                 \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_MD2 ? 16 :               \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_MD4 ? 16 :               \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_MD5 ? 16 :               \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_RIPEMD160 ? 20 :         \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_1 ? 20 :             \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_224 ? 28 :           \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_256 ? 32 :           \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_384 ? 48 :           \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_512 ? 64 :           \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_512_224 ? 28 :       \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA_512_256 ? 32 :       \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA3_224 ? 28 :          \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA3_256 ? 32 :          \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA3_384 ? 48 :          \
-        PSA_ALG_RSA_GET_HASH(alg) == PSA_ALG_SHA3_512 ? 64 :          \
+#define PSA_HASH_SIZE(alg)                                      \
+    (                                                           \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_MD2 ? 16 :            \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_MD4 ? 16 :            \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_MD5 ? 16 :            \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_RIPEMD160 ? 20 :      \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_1 ? 20 :          \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_224 ? 28 :        \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_256 ? 32 :        \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_384 ? 48 :        \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_512 ? 64 :        \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_512_224 ? 28 :    \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_512_256 ? 32 :    \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA3_224 ? 28 :       \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA3_256 ? 32 :       \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA3_384 ? 48 :       \
+        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA3_512 ? 64 :       \
         0)
 
 /** Start a multipart hash operation.
@@ -1191,13 +1337,18 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  *
  * This is also the MAC size that psa_mac_verify() expects.
  *
- * \param alg   A MAC algorithm (\c PSA_ALG_XXX value such that
- *              #PSA_ALG_IS_MAC(alg) is true).
+ * \param key_type      The type of the MAC key.
+ * \param key_bits      The size of the MAC key in bits.
+ * \param alg           A MAC algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_MAC(alg) is true).
  *
- * \return The MAC size for the specified algorithm.
- *         If the MAC algorithm is not recognized, return 0.
- *         An implementation may return either 0 or the correct size
- *         for a MAC algorithm that it recognizes, but does not support.
+ * \return              The MAC size for the specified algorithm with
+ *                      the specified key parameters.
+ * \return              0 if the MAC algorithm is not recognized.
+ * \return              Either 0 or the correct size for a MAC algorithm that
+ *                      the implementation recognizes, but does not support.
+ * \return              Unspecified if the key parameters are not consistent
+ *                      with the algorithm.
  */
 #define PSA_MAC_FINAL_SIZE(key_type, key_bits, alg)                     \
     (PSA_ALG_IS_HMAC(alg) ? PSA_HASH_SIZE(PSA_ALG_HMAC_HASH(alg)) : \
@@ -1229,6 +1380,7 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  * - A call to psa_mac_finish(), psa_mac_verify() or psa_mac_abort().
  *
  * \param operation The operation object to use.
+ * \param key       Slot containing the key to use for the operation.
  * \param alg       The MAC algorithm to compute (\c PSA_ALG_XXX value
  *                  such that #PSA_ALG_IS_MAC(alg) is true).
  *
@@ -1305,6 +1457,7 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * - A call to psa_cipher_finish() or psa_cipher_abort().
  *
  * \param operation The operation object to use.
+ * \param key       Slot containing the key to use for the operation.
  * \param alg       The cipher algorithm to compute (\c PSA_ALG_XXX value
  *                  such that #PSA_ALG_IS_CIPHER(alg) is true).
  *
@@ -1352,6 +1505,7 @@ psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
  * - A call to psa_cipher_finish() or psa_cipher_abort().
  *
  * \param operation The operation object to use.
+ * \param key       Slot containing the key to use for the operation.
  * \param alg       The cipher algorithm to compute (\c PSA_ALG_XXX value
  *                  such that #PSA_ALG_IS_CIPHER(alg) is true).
  *
@@ -1582,34 +1736,15 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
  */
 
 /**
- * \brief Maximum ECDSA signature size for a given curve bit size
+ * \brief ECDSA signature size for a given curve bit size
  *
- * \param curve_bits    Curve size in bits
- * \return              Maximum signature size in bytes
+ * \param curve_bits    Curve size in bits.
+ * \return              Signature size in bytes.
  *
  * \note This macro returns a compile-time constant if its argument is one.
- *
- * \warning This macro may evaluate its argument multiple times.
  */
-/*
- * RFC 4492 page 20:
- *
- *     Ecdsa-Sig-Value ::= SEQUENCE {
- *         r       INTEGER,
- *         s       INTEGER
- *     }
- *
- * Size is at most
- *    1 (tag) + 1 (len) + 1 (initial 0) + curve_bytes for each of r and s,
- *    twice that + 1 (tag) + 2 (len) for the sequence
- * (assuming curve_bytes is less than 126 for r and s,
- * and less than 124 (total len <= 255) for the sequence)
- */
-#define PSA_ECDSA_SIGNATURE_SIZE(curve_bits)                          \
-    ( /*T,L of SEQUENCE*/ ((curve_bits) >= 61 * 8 ? 3 : 2) +          \
-      /*T,L of r,s*/       2 * (((curve_bits) >= 127 * 8 ? 3 : 2) +   \
-      /*V of r,s*/               ((curve_bits) + 8) / 8))
-
+#define PSA_ECDSA_SIGNATURE_SIZE(curve_bits)    \
+    (PSA_BITS_TO_BYTES(curve_bits) * 2)
 
 /** Safe signature buffer size for psa_asymmetric_sign().
  *
@@ -1646,10 +1781,16 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
 /**
  * \brief Sign a hash or short message with a private key.
  *
+ * Note that to perform a hash-and-sign signature algorithm, you must
+ * first calculate the hash by calling psa_hash_start(), psa_hash_update()
+ * and psa_hash_finish(). Then pass the resulting hash as the \p hash
+ * parameter to this function. You can use #PSA_ALG_SIGN_GET_HASH(\p alg)
+ * to determine the hash algorithm to use.
+ *
  * \param key               Key slot containing an asymmetric key pair.
  * \param alg               A signature algorithm that is compatible with
  *                          the type of \c key.
- * \param hash              The message to sign.
+ * \param hash              The hash or message to sign.
  * \param hash_length       Size of the \c hash buffer in bytes.
  * \param salt              A salt or label, if supported by the signature
  *                          algorithm.
@@ -1693,11 +1834,18 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
 /**
  * \brief Verify the signature a hash or short message using a public key.
  *
+ * Note that to perform a hash-and-sign signature algorithm, you must
+ * first calculate the hash by calling psa_hash_start(), psa_hash_update()
+ * and psa_hash_finish(). Then pass the resulting hash as the \p hash
+ * parameter to this function. You can use #PSA_ALG_SIGN_GET_HASH(\p alg)
+ * to determine the hash algorithm to use.
+ *
  * \param key               Key slot containing a public key or an
  *                          asymmetric key pair.
  * \param alg               A signature algorithm that is compatible with
  *                          the type of \c key.
- * \param hash              The message whose signature is to be verified.
+ * \param hash              The hash or message whose signature is to be
+ *                          verified.
  * \param hash_length       Size of the \c hash buffer in bytes.
  * \param salt              A salt or label, if supported by the signature
  *                          algorithm.
@@ -1709,7 +1857,7 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
  * \param salt_length       Size of the \c salt buffer in bytes.
  *                          If \c salt is \c NULL, pass 0.
  * \param signature         Buffer containing the signature to verify.
- * \param signature_size    Size of the \c signature buffer in bytes.
+ * \param signature_length  Size of the \c signature buffer in bytes.
  *
  * \retval PSA_SUCCESS
  *         The signature is valid.
@@ -1729,8 +1877,8 @@ psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
                                    size_t hash_length,
                                    const uint8_t *salt,
                                    size_t salt_length,
-                                   uint8_t *signature,
-                                   size_t signature_size);
+                                   const uint8_t *signature,
+                                   size_t signature_length);
 
 #define PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE(key_type, key_bits, alg)     \
     (PSA_KEY_TYPE_IS_RSA(key_type) ?                                    \

@@ -53,3 +53,4 @@ void ssl_set_hostname_twice( char *hostname0, char *hostname1 )
     mbedtls_ssl_free( &ssl );
 }
 /* END_CASE */
+

@@ -44,11 +44,11 @@ To build and run this example you must have:
 
 7. Start the serial terminal emulator and connect to the virtual serial port presented by FRDM-K64F. 
 
-	Use the following settings:
+    Use the following settings:
 
-	* 115200 baud (not 9600).
-	* 8N1.
-	* No flow control. 
+    * 115200 baud (not 9600).
+    * 8N1.
+    * No flow control. 
 
 8. Press the Reset button on the board.
 

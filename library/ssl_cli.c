@@ -1890,8 +1890,6 @@ static int ssl_parse_server_psk_hint( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
     }
 
-    // TODO: Retrieve PSK identity hint and callback to app
-    //
     *p += len;
     ret = 0;
 
@@ -2464,9 +2462,6 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
         goto exit;
     }
 
-    // TODO: handshake_failure alert for an anonymous server to request
-    // client authentication
-
     /*
      *  struct {
      *      ClientCertificateType certificate_types<1..2^8-1>;
@@ -2538,7 +2533,6 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 )
     {
         /* Ignored, see comments about hash in write_certificate_verify */
-        // TODO: should check the signature part against our pk_key though
         size_t sig_alg_len = ( ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 1 + n] <<  8 )
                              | ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n]       ) );
 #if defined(MBEDTLS_DEBUG_C)
@@ -2580,7 +2574,6 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
     /* Ignore certificate_authorities, we only have one cert anyway */
-    // TODO: should not send cert if no CA matches
     dn_len = ( ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 1 + n] <<  8 )
              | ( buf[mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n]       ) );
 

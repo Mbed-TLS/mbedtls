@@ -522,9 +522,6 @@ static int x509_get_subject_alt_name( unsigned char **p,
 /*
  * X.509 v3 extensions
  *
- * TODO: Perform all of the basic constraints tests required by the RFC
- * TODO: Set values for undetected extensions to a sane default?
- *
  */
 static int x509_get_crt_ext( unsigned char **p,
                              const unsigned char *end,
@@ -1637,12 +1634,6 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
 
     if( ca == NULL )
         return( flags );
-
-    /*
-     * TODO: What happens if no CRL is present?
-     * Suggestion: Revocation state should be unknown if no CRL is present.
-     * For backwards compatibility this is not yet implemented.
-     */
 
     while( crl_list != NULL )
     {

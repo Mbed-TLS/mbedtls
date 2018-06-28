@@ -214,7 +214,6 @@ int mbedtls_x509_csr_parse_der( mbedtls_x509_csr *csr,
         mbedtls_x509_csr_free( csr );
         return( MBEDTLS_ERR_X509_INVALID_FORMAT + ret );
     }
-    // TODO Parse Attributes / extension requests
 
     p += len;
 

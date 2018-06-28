@@ -64,7 +64,7 @@ while (my $line = <TEST_DATA>)
         my $AdditionalInput2 = get_val("AdditionalInput");
         my $EntropyInputPR2 = get_val("EntropyInputPR") if ($PredictionResistance == 1);
         my $ReturnedBits = get_val("ReturnedBits");
-    
+
         if ($PredictionResistance == 1)
         {
             print("CTR_DRBG NIST Validation (AES-256 use df,$PredictionResistanceStr,$EntropyInputLen,$NonceLen,$PersonalizationStringLen,$AdditionalInputLen) #$Count\n");

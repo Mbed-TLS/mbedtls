@@ -2,6 +2,11 @@
  * \file psa/crypto_extra.h
  *
  * \brief PSA cryptography module: Mbed TLS vendor extensions
+ *
+ * \note This file may not be included directly. Applications must
+ * include psa/crypto.h.
+ *
+ * This file is reserved for vendor-specific definitions.
  */
 /*
  *  Copyright (C) 2018, ARM Limited, All Rights Reserved

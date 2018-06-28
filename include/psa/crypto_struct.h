@@ -2,6 +2,16 @@
  * \file psa/crypto_struct.h
  *
  * \brief PSA cryptography module: Mbed TLS structured type implementations
+ *
+ * \note This file may not be included directly. Applications must
+ * include psa/crypto.h.
+ *
+ * This file contains the definitions of some data structures with
+ * implementation-specific definitions.
+ *
+ * In implementations with isolation between the application and the
+ * cryptography module, it is expected that the front-end and the back-end
+ * would have different versions of this file.
  */
 /*
  *  Copyright (C) 2018, ARM Limited, All Rights Reserved
@@ -44,14 +54,6 @@
 #include "mbedtls/sha1.h"
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha512.h"
-
-#if defined(MBEDTLS_SHA512_C)
-#define PSA_HASH_MAX_SIZE 64
-#define PSA_HMAC_MAX_HASH_BLOCK_SIZE 128
-#else
-#define PSA_HASH_MAX_SIZE 32
-#define PSA_HMAC_MAX_HASH_BLOCK_SIZE 64
-#endif
 
 struct psa_hash_operation_s
 {

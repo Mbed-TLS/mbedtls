@@ -502,7 +502,13 @@ psa_status_t psa_import_key( psa_key_slot_t key,
             case MBEDTLS_PK_RSA:
                 if( type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
                     type == PSA_KEY_TYPE_RSA_KEYPAIR )
-                    slot->data.rsa = mbedtls_pk_rsa( pk );
+                {
+                    mbedtls_rsa_context *rsa = mbedtls_pk_rsa( pk );
+                    size_t bits = mbedtls_rsa_get_bitlen( rsa );
+                    if( bits > PSA_VENDOR_RSA_MAX_KEY_BITS )
+                        return( PSA_ERROR_NOT_SUPPORTED );
+                    slot->data.rsa = rsa;
+                }
                 else
                     status = PSA_ERROR_INVALID_ARGUMENT;
                 break;
@@ -1579,10 +1585,6 @@ psa_status_t psa_mac_finish( psa_mac_operation_t *operation,
                                      mac_size, mac_length ) );
 }
 
-#define PSA_MAC_MAX_SIZE                                \
-    ( MBEDTLS_MD_MAX_SIZE > MBEDTLS_MAX_BLOCK_LENGTH ?  \
-      MBEDTLS_MD_MAX_SIZE :                             \
-      MBEDTLS_MAX_BLOCK_LENGTH )
 psa_status_t psa_mac_verify( psa_mac_operation_t *operation,
                              const uint8_t *mac,
                              size_t mac_length )
@@ -2862,6 +2864,8 @@ psa_status_t psa_generate_key( psa_key_slot_t key,
         mbedtls_rsa_context *rsa;
         int ret;
         int exponent = 65537;
+        if( bits > PSA_VENDOR_RSA_MAX_KEY_BITS )
+            return( PSA_ERROR_NOT_SUPPORTED );
         if( parameters != NULL )
         {
             const unsigned *p = parameters;

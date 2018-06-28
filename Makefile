@@ -23,7 +23,7 @@ tests: lib
 ifndef WINDOWS
 install: no_test
 	mkdir -p $(DESTDIR)/include/mbedtls
-	cp -r include/mbedtls $(DESTDIR)/include
+	cp -rp include/mbedtls $(DESTDIR)/include
 
 	mkdir -p $(DESTDIR)/lib
 	cp -RP library/libmbedtls.*    $(DESTDIR)/lib

@@ -212,5 +212,5 @@ $(EMBEDDED_TESTS): embedded_%: suites/$$(func.$$*).function suites/%.data script
 		--help-file suites/helpers.function \
 		-o ./TESTS/mbedtls/$*
 
-gen-embedded-test: $(EMBEDDED_TESTS)
+generate-target-tests: $(EMBEDDED_TESTS)
 

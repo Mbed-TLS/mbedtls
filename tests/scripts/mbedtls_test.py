@@ -34,6 +34,11 @@ import binascii
 from mbed_host_tests import BaseHostTest, event_callback
 
 
+class TestDataParserError(Exception):
+    """Indicates error in test data, read from .data file."""
+    pass
+
+
 class TestDataParser(object):
     """
     parser for mbedtls test data files.
@@ -107,7 +112,9 @@ class TestDataParser(object):
             function = int(parts[0])
             x = parts[1:]
             l = len(x)
-            assert l % 2 == 0, "Number of test arguments should be even: %s" % line
+            if l % 2 != 0:
+                raise TestDataParserError("Number of test arguments should "
+                                          "be even: %s" % line)
             args = [(x[i * 2], x[(i * 2) + 1]) for i in range(len(x)/2)]
             self.tests.append((name, function, deps, args))
 
@@ -194,10 +201,13 @@ class MbedTlsTest(BaseHostTest):
         :param hex_str: Hex in string format.
         :return: Output Byte array
         """
-        assert hex_str[0] == '"' and hex_str[len(hex_str) - 1] == '"', \
-            "HEX test parameter missing '\"': %s" % hex_str
+        if hex_str[0] != '"' or hex_str[len(hex_str) - 1] != '"':
+            raise TestDataParserError("HEX test parameter missing '\"':"
+                                      " %s" % hex_str)
         hex_str = hex_str.strip('"')
-        assert len(hex_str) % 2 == 0, "HEX parameter len should be mod of 2: %s" % hex_str
+        if len(hex_str) % 2 != 0:
+            raise TestDataParserError("HEX parameter len should be mod of "
+                                      "2: %s" % hex_str)
 
         b = binascii.unhexlify(hex_str)
         return b

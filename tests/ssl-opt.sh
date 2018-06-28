@@ -4551,6 +4551,40 @@ run_test    "SSL async private: renegotiation: server-initiated; decrypt" \
             -s "Async decrypt callback: using key slot " \
             -s "Async resume (slot [0-9]): decrypt done, status=0"
 
+# Tests for ECC extensions (rfc 4492)
+
+run_test    "Force a non ECC ciphersuite in the client side" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            0 \
+            -C "client hello, adding supported_elliptic_curves extension" \
+            -C "client hello, adding supported_point_formats extension" \
+            -S "found supported elliptic curves extension" \
+            -S "found supported point formats extension"
+
+run_test    "Force a non ECC ciphersuite in the server side" \
+            "$P_SRV debug_level=3 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -C "found supported_point_formats extension" \
+            -S "server hello, supported_point_formats extension"
+
+run_test    "Force an ECC ciphersuite in the client side" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
+            0 \
+            -c "client hello, adding supported_elliptic_curves extension" \
+            -c "client hello, adding supported_point_formats extension" \
+            -s "found supported elliptic curves extension" \
+            -s "found supported point formats extension"
+
+run_test    "Force an ECC ciphersuite in the server side" \
+            "$P_SRV debug_level=3 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
+            "$P_CLI debug_level=3" \
+            0 \
+            -c "found supported_point_formats extension" \
+            -s "server hello, supported_point_formats extension"
+
 # Tests for DTLS HelloVerifyRequest
 
 run_test    "DTLS cookie: enabled" \

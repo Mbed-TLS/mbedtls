@@ -3739,106 +3739,39 @@ run_test    "Large packet TLS 1.2 AEAD shorter tag" \
             -c "16384 bytes written in 1 fragments" \
             -s "Read from client: 16384 bytes read"
 
-# Tests for DTLS HelloVerifyRequest
+# Tests for ECC extensions (rfc 4492)
 
-run_test    "DTLS cookie: enabled" \
-            "$P_SRV dtls=1 debug_level=2" \
-            "$P_CLI dtls=1 debug_level=2" \
+run_test    "Force a non ECC ciphersuite in the client side" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             0 \
-            -s "cookie verification failed" \
-            -s "cookie verification passed" \
-            -S "cookie verification skipped" \
-            -c "received hello verify request" \
-            -s "hello verification requested" \
-            -S "SSL - The requested feature is not available"
+            -C "client hello, adding supported_elliptic_curves extension" \
+            -C "client hello, adding supported_point_formats extension" \
+            -S "found supported elliptic curves extension" \
+            -S "found supported point formats extension"
 
-run_test    "DTLS cookie: disabled" \
-            "$P_SRV dtls=1 debug_level=2 cookies=0" \
-            "$P_CLI dtls=1 debug_level=2" \
+run_test    "Force a non ECC ciphersuite in the server side" \
+            "$P_SRV debug_level=3 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            "$P_CLI debug_level=3" \
             0 \
-            -S "cookie verification failed" \
-            -S "cookie verification passed" \
-            -s "cookie verification skipped" \
-            -C "received hello verify request" \
-            -S "hello verification requested" \
-            -S "SSL - The requested feature is not available"
+            -C "found supported_point_formats extension" \
+            -S "server hello, supported_point_formats extension"
 
-run_test    "DTLS cookie: default (failing)" \
-            "$P_SRV dtls=1 debug_level=2 cookies=-1" \
-            "$P_CLI dtls=1 debug_level=2 hs_timeout=100-400" \
-            1 \
-            -s "cookie verification failed" \
-            -S "cookie verification passed" \
-            -S "cookie verification skipped" \
-            -C "received hello verify request" \
-            -S "hello verification requested" \
-            -s "SSL - The requested feature is not available"
-
-requires_ipv6
-run_test    "DTLS cookie: enabled, IPv6" \
-            "$P_SRV dtls=1 debug_level=2 server_addr=::1" \
-            "$P_CLI dtls=1 debug_level=2 server_addr=::1" \
+run_test    "Force an ECC ciphersuite in the client side" \
+            "$P_SRV debug_level=3" \
+            "$P_CLI debug_level=3 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
             0 \
-            -s "cookie verification failed" \
-            -s "cookie verification passed" \
-            -S "cookie verification skipped" \
-            -c "received hello verify request" \
-            -s "hello verification requested" \
-            -S "SSL - The requested feature is not available"
+            -c "client hello, adding supported_elliptic_curves extension" \
+            -c "client hello, adding supported_point_formats extension" \
+            -s "found supported elliptic curves extension" \
+            -s "found supported point formats extension"
 
-run_test    "DTLS cookie: enabled, nbio" \
-            "$P_SRV dtls=1 nbio=2 debug_level=2" \
-            "$P_CLI dtls=1 nbio=2 debug_level=2" \
+run_test    "Force an ECC ciphersuite in the server side" \
+            "$P_SRV debug_level=3 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
+            "$P_CLI debug_level=3" \
             0 \
-            -s "cookie verification failed" \
-            -s "cookie verification passed" \
-            -S "cookie verification skipped" \
-            -c "received hello verify request" \
-            -s "hello verification requested" \
-            -S "SSL - The requested feature is not available"
-
-# Tests for client reconnecting from the same port with DTLS
-
-not_with_valgrind # spurious resend
-run_test    "DTLS client reconnect from same port: reference" \
-            "$P_SRV dtls=1 exchanges=2 read_timeout=1000" \
-            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000" \
-            0 \
-            -C "resend" \
-            -S "The operation timed out" \
-            -S "Client initiated reconnection from same port"
-
-not_with_valgrind # spurious resend
-run_test    "DTLS client reconnect from same port: reconnect" \
-            "$P_SRV dtls=1 exchanges=2 read_timeout=1000" \
-            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000 reconnect_hard=1" \
-            0 \
-            -C "resend" \
-            -S "The operation timed out" \
-            -s "Client initiated reconnection from same port"
-
-not_with_valgrind # server/client too slow to respond in time (next test has higher timeouts)
-run_test    "DTLS client reconnect from same port: reconnect, nbio, no valgrind" \
-            "$P_SRV dtls=1 exchanges=2 read_timeout=1000 nbio=2" \
-            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000 reconnect_hard=1" \
-            0 \
-            -S "The operation timed out" \
-            -s "Client initiated reconnection from same port"
-
-only_with_valgrind # Only with valgrind, do previous test but with higher read_timeout and hs_timeout
-run_test    "DTLS client reconnect from same port: reconnect, nbio, valgrind" \
-            "$P_SRV dtls=1 exchanges=2 read_timeout=2000 nbio=2 hs_timeout=1500-6000" \
-            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=1500-3000 reconnect_hard=1" \
-            0 \
-            -S "The operation timed out" \
-            -s "Client initiated reconnection from same port"
-
-run_test    "DTLS client reconnect from same port: no cookies" \
-            "$P_SRV dtls=1 exchanges=2 read_timeout=1000 cookies=0" \
-            "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-8000 reconnect_hard=1" \
-            0 \
-            -s "The operation timed out" \
-            -S "Client initiated reconnection from same port"
+            -c "found supported_point_formats extension" \
+            -s "server hello, supported_point_formats extension"
 
 # Tests for various cases of client authentication with DTLS
 # (focused on handshake flows and message parsing)

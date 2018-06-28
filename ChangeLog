@@ -14,6 +14,8 @@ Bugfix
      Found and fixed by Hirotaka Niisato in #1783.
    * Fix "no symbols" warning issued by ranlib when building on Mac OS X. Fix
      contributed by tabascoeye in pull request #1600.
+   * Clarify documentation for mbedtls_ssl_write() to include 0 as a valid
+     return value. Found by @davidwu2000. #839
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.

@@ -16,6 +16,8 @@ Bugfix
      contributed by tabascoeye in pull request #1600.
    * Clarify documentation for mbedtls_ssl_write() to include 0 as a valid
      return value. Found by @davidwu2000. #839
+   * Fix a memory leak in mbedtls_x509_csr_parse(), found by catenacyber,
+     Philippe Antoine. Fixes #1623.
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.

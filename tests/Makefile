@@ -180,9 +180,9 @@ $(BINARIES): %$(EXEXT): %.c $(DEP)
 
 clean:
 ifndef WINDOWS
-	rm -rf $(APPS) *.c *.data TESTS
+	rm -rf $(APPS) *.c *.datax TESTS
 else
-	del /Q /F *.c *.exe *.data
+	del /Q /F *.c *.exe *.datax
 	rmdir /Q /S TESTS
 endif
 

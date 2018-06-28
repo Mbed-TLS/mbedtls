@@ -732,7 +732,7 @@ def check_cmd():
     data_name = os.path.splitext(data_file_name)[0]
 
     out_c_file = os.path.join(args.out_dir, data_name + '.c')
-    out_data_file = os.path.join(args.out_dir, data_file_name)
+    out_data_file = os.path.join(args.out_dir, data_name + '.datax')
 
     out_c_file_dir = os.path.dirname(out_c_file)
     out_data_file_dir = os.path.dirname(out_data_file)

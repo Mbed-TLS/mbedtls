@@ -7,6 +7,10 @@ Features
    authenticator Poly1305 and AEAD construct Chacha20-Poly1305. Contributed by
    Daniel King (#485).
 
+Bugfix
+   * Fix the key_app_writer example which was writing a leading zero byte which
+     was creating an invalid ASN.1 tag. Found by Aryeh R. Fixes #1257.
+
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.
      Contributed by fbrosson.

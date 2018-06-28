@@ -46,7 +46,9 @@ static int asn1_write_10x( unsigned char **p,
 {
     int ret;
     int len = bits / 8 + 1;
-    if( x >= 1 << bits )
+    if( bits == 0 )
+        return( MBEDTLS_ERR_ASN1_INVALID_DATA );
+    if( bits <= 8 && x >= 1 << ( bits - 1 ) )
         return( MBEDTLS_ERR_ASN1_INVALID_DATA );
     if( *p < start || *p - start < (ssize_t) len )
         return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );

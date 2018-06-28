@@ -7,6 +7,8 @@ Bugfix
      Philippe Antoine.
    * Clarify documentation for mbedtls_ssl_write() to include 0 as a valid
      return value. Found by @davidwu2000. #839
+   * Fix the key_app_writer example which was writing a leading zero byte which
+     was creating an invalid ASN.1 tag. Found by Aryeh R. Fixes #1257
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.

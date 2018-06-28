@@ -65,7 +65,14 @@
 }
 #endif
 
+/**
+ * Persistent key storage magic header.
+ */
+#define PSA_KEY_STORAGE_MAGIC_HEADER "PSA\0KEY"
+#define PSA_KEY_STORAGE_MAGIC_HEADER_LENGTH ( sizeof( PSA_KEY_STORAGE_MAGIC_HEADER ) )
+
 typedef struct {
+    uint8_t magic[PSA_KEY_STORAGE_MAGIC_HEADER_LENGTH];
     uint8_t version[4];
     uint8_t type[sizeof( psa_key_type_t )];
     uint8_t policy[sizeof( psa_key_policy_t )];
@@ -82,12 +89,21 @@ void psa_format_key_data_for_storage( const uint8_t *data,
     psa_persistent_key_storage_format *storage_format =
         (psa_persistent_key_storage_format *) storage_data;
 
+    memcpy( storage_format->magic, PSA_KEY_STORAGE_MAGIC_HEADER, PSA_KEY_STORAGE_MAGIC_HEADER_LENGTH );
     PUT_UINT32_LE(0, storage_format->version, 0);
     PUT_UINT32_LE(type, storage_format->type, 0);
     PUT_UINT32_LE(policy->usage, storage_format->policy, 0);
     PUT_UINT32_LE(policy->alg, storage_format->policy, sizeof( uint32_t ));
     PUT_UINT32_LE(data_length, storage_format->data_len, 0);
     memcpy( storage_format->key_data, data, data_length );
+}
+
+static psa_status_t check_magic_header( const uint8_t *data )
+{
+    if( memcmp( data, PSA_KEY_STORAGE_MAGIC_HEADER,
+                PSA_KEY_STORAGE_MAGIC_HEADER_LENGTH ) != 0 )
+        return( PSA_ERROR_STORAGE_FAILURE );
+    return( PSA_SUCCESS );
 }
 
 psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
@@ -97,9 +113,17 @@ psa_status_t psa_parse_key_data_from_storage( const uint8_t *storage_data,
                                               psa_key_type_t *type,
                                               psa_key_policy_t *policy )
 {
+    psa_status_t status;
     const psa_persistent_key_storage_format *storage_format =
         (const psa_persistent_key_storage_format *)storage_data;
     uint32_t version;
+
+    if( storage_data_length < sizeof(*storage_format) )
+        return( PSA_ERROR_STORAGE_FAILURE );
+
+    status = check_magic_header( storage_data );
+    if( status != PSA_SUCCESS )
+        return( status );
 
     GET_UINT32_LE(version, storage_format->version, 0);
     if( version != 0 )

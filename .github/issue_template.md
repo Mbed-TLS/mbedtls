@@ -38,4 +38,4 @@ Version:
 
 ## Question
 
-**Please first check for answers in the [Mbed TLS knowledge Base](https://tls.mbed.org/kb), and preferably file an issue in the [Mbed TLS support forum](https://tls.mbed.org/discussions)**  
+**Please first check for answers in the [Mbed TLS knowledge Base](https://tls.mbed.org/kb), and preferably file an issue in the [Mbed TLS support forum](https://forums.mbed.com/c/mbed-tls)**  

@@ -4553,22 +4553,34 @@ run_test    "SSL async private: renegotiation: server-initiated; decrypt" \
 
 # Tests for ECC extensions (rfc 4492)
 
+requires_config_enabled MBEDTLS_AES_C
+requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
+requires_config_enabled MBEDTLS_SHA256_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
 run_test    "Force a non ECC ciphersuite in the client side" \
             "$P_SRV debug_level=3" \
-            "$P_CLI debug_level=3 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            "$P_CLI debug_level=3 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA256" \
             0 \
             -C "client hello, adding supported_elliptic_curves extension" \
             -C "client hello, adding supported_point_formats extension" \
             -S "found supported elliptic curves extension" \
             -S "found supported point formats extension"
 
+requires_config_enabled MBEDTLS_AES_C
+requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
+requires_config_enabled MBEDTLS_SHA256_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
 run_test    "Force a non ECC ciphersuite in the server side" \
-            "$P_SRV debug_level=3 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
+            "$P_SRV debug_level=3 force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA256" \
             "$P_CLI debug_level=3" \
             0 \
             -C "found supported_point_formats extension" \
             -S "server hello, supported_point_formats extension"
 
+requires_config_enabled MBEDTLS_AES_C
+requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
+requires_config_enabled MBEDTLS_SHA256_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 run_test    "Force an ECC ciphersuite in the client side" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
@@ -4578,6 +4590,10 @@ run_test    "Force an ECC ciphersuite in the client side" \
             -s "found supported elliptic curves extension" \
             -s "found supported point formats extension"
 
+requires_config_enabled MBEDTLS_AES_C
+requires_config_enabled MBEDTLS_CIPHER_MODE_CBC
+requires_config_enabled MBEDTLS_SHA256_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 run_test    "Force an ECC ciphersuite in the server side" \
             "$P_SRV debug_level=3 force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256" \
             "$P_CLI debug_level=3" \

@@ -4,8 +4,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 Bugfix
    * Add ecc extensions only if an ecc based ciphersuite is used.
-     Affects interoperability with BouncyCastle and other peers.
-     Raised by milenamil in #1157.
+     This improves compliance to RFC 4492, and as a result, solves
+     interoperability issues with BouncyCastle. Raised by milenamil in #1157.
 
 = mbed TLS 2.11.0 branch released 2018-06-18
 

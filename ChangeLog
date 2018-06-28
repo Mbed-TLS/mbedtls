@@ -16,6 +16,13 @@ Security
      caused by a miscalculation (for SHA-384) in a countermeasure to the
      original Lucky 13 attack. Found by Kenny Paterson, Eyal Ronen and Adi
      Shamir.
+   * Fix a vulnerability in TLS ciphersuites based on CBC, in (D)TLS 1.0 to
+     1.2, that allowed a local attacker, able to execute code on the local
+     machine as well as manipulate network packets, to partially recover the
+     plaintext of messages under some conditions (see previous entry) by using
+     a cache attack targetting an internal MD/SHA buffer. Connections using
+     GCM or CCM instead of CBC or using Encrypt-then-Mac (RFC 7366) were not
+     affected. Found by Kenny Paterson, Eyal Ronen and Adi Shamir.
 
 API Changes
    * Extend the platform module with a util component that contains

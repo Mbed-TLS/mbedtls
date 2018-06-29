@@ -878,9 +878,13 @@ struct mbedtls_ssl_context
     int keep_current_message;   /*!< drop or reuse current message
                                      on next call to record layer? */
 
-    unsigned char send_alert;   /*!< Request sending an alert?
-                                     MBEDTLS_SSL_ALERT_LEVEL_FATAL or
-                                     MBEDTLS_SSL_ALERT_LEVEL_WARNING  */
+    unsigned char send_alert;   /*!< Determines if either a fatal error
+                                     or a warning should be sent. Values:
+                                     - \c 0 if no alert is to be sent.
+                                     - #MBEDTLS_SSL_ALERT_LEVEL_FATAL
+                                       if a fatal alert is to be sent
+                                     - #MBEDTLS_SSL_ALERT_LEVEL_WARNING
+                                       if a non-fatal alert is to be sent. */
     unsigned char alert_type;   /*!< Type of alert if send_alert != 0 */
 
     /*

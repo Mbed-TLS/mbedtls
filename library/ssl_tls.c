@@ -5724,7 +5724,7 @@ int mbedtls_ssl_process_finished_out( mbedtls_ssl_context *ssl )
 
 cleanup:
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write certificate" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write finished" ) );
     return( ret );
 }
 

@@ -174,7 +174,7 @@ $(C_FILES): %.c: suites/$$(func.$$*).function suites/%.data scripts/generate_tes
 		-t suites/main_test.function \
 		-p suites/host_test.function \
 		-s suites  \
-		--help-file suites/helpers.function \
+		--helpers-file suites/helpers.function \
 		-o .
 
 
@@ -209,7 +209,7 @@ $(EMBEDDED_TESTS): embedded_%: suites/$$(func.$$*).function suites/%.data script
 		-t suites/main_test.function \
 		-p suites/target_test.function \
 		-s suites  \
-		--help-file suites/helpers.function \
+		--helpers-file suites/helpers.function \
 		-o ./TESTS/mbedtls/$*
 
 generate-target-tests: $(EMBEDDED_TESTS)

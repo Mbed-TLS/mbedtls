@@ -285,13 +285,19 @@ static int exercise_signature_key( psa_key_slot_t key,
                                    psa_key_usage_t usage,
                                    psa_algorithm_t alg )
 {
-    unsigned char payload[16] = {1};
-    size_t payload_length = sizeof( payload );
+    unsigned char payload[PSA_HASH_MAX_SIZE] = {1};
+    size_t payload_length = 16;
     unsigned char signature[PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE] = {0};
     size_t signature_length = sizeof( signature );
 
     if( usage & PSA_KEY_USAGE_SIGN )
     {
+        /* Some algorithms require the payload to have the size of
+         * the hash encoded in the algorithm. Use this input size
+         * even for algorithms that allow other input sizes. */
+        psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
+        if( hash_alg != 0 )
+            payload_length = PSA_HASH_SIZE( hash_alg );
         TEST_ASSERT( psa_asymmetric_sign( key, alg,
                                           payload, payload_length,
                                           signature, sizeof( signature ),

@@ -48,17 +48,21 @@ typedef struct HexParam_tag
 } HexParam_t;
 
 /*----------------------------------------------------------------------------*/
-/* Constants */
+/* Status and error constants */
 
-#define DEPENDENCY_SUPPORTED            0
-#define KEY_VALUE_MAPPING_FOUND         0
-#define DISPATCH_TEST_SUCCESS           0
+#define DEPENDENCY_SUPPORTED            0   /* Dependency supported by build */
+#define KEY_VALUE_MAPPING_FOUND         0   /* Integer expression found */
+#define DISPATCH_TEST_SUCCESS           0   /* Test dispatch successful */
 
-#define KEY_VALUE_MAPPING_NOT_FOUND     -1
-#define DEPENDENCY_NOT_SUPPORTED        -2
-#define DISPATCH_TEST_FN_NOT_FOUND      -3
-#define DISPATCH_INVALID_TEST_DATA      -4
-#define DISPATCH_UNSUPPORTED_SUITE      -5
+#define KEY_VALUE_MAPPING_NOT_FOUND     -1  /* Integer expression not found */
+#define DEPENDENCY_NOT_SUPPORTED        -2  /* Dependency not supported */
+#define DISPATCH_TEST_FN_NOT_FOUND      -3  /* Test function not found */
+#define DISPATCH_INVALID_TEST_DATA      -4  /* Invalid test parameter type.
+                                               Only int, string, binary data
+                                               and integer expressions are
+                                               allowed */
+#define DISPATCH_UNSUPPORTED_SUITE      -5  /* Test suite not supported by the
+                                               build */
 
 
 /*----------------------------------------------------------------------------*/

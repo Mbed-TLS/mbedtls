@@ -5905,25 +5905,6 @@ static int ssl_finished_in_parse( mbedtls_ssl_context *ssl,
  * Implementation
  */
 
-int mbedtls_ssl_handle_pending_alert( mbedtls_ssl_context *ssl )
-{
-    int ret;
-
-    /* Send alert if requested */
-    if( ssl->send_alert != 0 )
-    {
-        ret = mbedtls_ssl_send_alert_message( ssl,
-                                              ssl->send_alert,
-                                              ssl->alert_type );
-        if( ret != 0 )
-            return( ret );
-    }
-
-    ssl->send_alert = 0;
-    ssl->alert_type = 0;
-    return( 0 );
-}
-
 int mbedtls_ssl_process_finished_in( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
@@ -7930,6 +7911,28 @@ int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write" ) );
 
     return( ret );
+}
+
+/*
+ * Send pending fatal alerts or warnings.
+ */
+int mbedtls_ssl_handle_pending_alert( mbedtls_ssl_context *ssl )
+{
+    int ret;
+
+    /* Send alert if requested */
+    if( ssl->send_alert != 0 )
+    {
+        ret = mbedtls_ssl_send_alert_message( ssl,
+                                              ssl->send_alert,
+                                              ssl->alert_type );
+        if( ret != 0 )
+            return( ret );
+    }
+
+    ssl->send_alert = 0;
+    ssl->alert_type = 0;
+    return( 0 );
 }
 
 /*

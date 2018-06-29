@@ -2014,7 +2014,7 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
                                       NULL, 0,
                                       signature, signature_size,
                                       &signature_length ) == PSA_SUCCESS );
-    /* Verify that the signature is correct. */
+    /* Verify that the signature is what is expected. */
     TEST_ASSERT( signature_length == output_data->len );
     TEST_ASSERT( memcmp( signature, output_data->x,
                          output_data->len ) == 0 );
@@ -2070,6 +2070,81 @@ void sign_fail( int key_type_arg, data_t *key_data,
      * if the caller tries to read *signature_length bytes without
      * checking the error code then they don't overflow a buffer. */
     TEST_ASSERT( signature_length <= signature_size );
+
+exit:
+    psa_destroy_key( slot );
+    mbedtls_free( signature );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void sign_verify( int key_type_arg, data_t *key_data,
+                  int alg_arg, data_t *input_data )
+{
+    int slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    size_t key_bits;
+    unsigned char *signature = NULL;
+    size_t signature_size;
+    size_t signature_length = 0xdeadbeef;
+    psa_key_policy_t policy;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy,
+                              PSA_KEY_USAGE_SIGN | PSA_KEY_USAGE_VERIFY,
+                              alg );
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( slot, key_type,
+                                 key_data->x,
+                                 key_data->len ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_get_key_information( slot,
+                                          NULL,
+                                          &key_bits ) == PSA_SUCCESS );
+
+    /* Allocate a buffer which has the size advertized by the
+     * library. */
+    signature_size = PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE( key_type,
+                                                      key_bits, alg );
+    TEST_ASSERT( signature_size != 0 );
+    TEST_ASSERT( signature_size <= PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE );
+    signature = mbedtls_calloc( 1, signature_size );
+    TEST_ASSERT( signature != NULL );
+
+    /* Perform the signature. */
+    TEST_ASSERT( psa_asymmetric_sign( slot, alg,
+                                      input_data->x, input_data->len,
+                                      NULL, 0,
+                                      signature, signature_size,
+                                      &signature_length ) == PSA_SUCCESS );
+    /* Check that the signature length looks sensible. */
+    TEST_ASSERT( signature_length <= signature_size );
+    TEST_ASSERT( signature_length > 0 );
+
+    /* Use the library to verify that the signature is correct. */
+    TEST_ASSERT( psa_asymmetric_verify(
+                     slot, alg,
+                     input_data->x, input_data->len,
+                     NULL, 0,
+                     signature, signature_length ) == PSA_SUCCESS );
+
+    if( input_data->len != 0 )
+    {
+        /* Flip a bit in the input and verify that the signature is now
+         * detected as invalid. Flip a bit at the beginning, not at the end,
+         * because ECDSA may ignore the last few bits of the input. */
+        input_data->x[0] ^= 1;
+        TEST_ASSERT( psa_asymmetric_verify(
+                         slot, alg,
+                         input_data->x, input_data->len,
+                         NULL, 0,
+                         signature,
+                         signature_length ) == PSA_ERROR_INVALID_SIGNATURE );
+    }
 
 exit:
     psa_destroy_key( slot );

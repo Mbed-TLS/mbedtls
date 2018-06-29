@@ -48,105 +48,13 @@ ifdef ZLIB
 LOCAL_LDFLAGS += -lz
 endif
 
-APPS =	test_suite_aes.ecb		test_suite_aes.cbc	\
-	test_suite_aes.cfb		test_suite_aes.rest	\
-	test_suite_arc4			test_suite_asn1write	\
-	test_suite_base64		test_suite_blowfish	\
-	test_suite_camellia		test_suite_ccm		\
-	test_suite_cipher.aes					\
-	test_suite_cipher.arc4		test_suite_cipher.ccm	\
-	test_suite_cipher.gcm					\
-	test_suite_cipher.blowfish				\
-	test_suite_cipher.camellia				\
-	test_suite_cipher.des		test_suite_cipher.null	\
-	test_suite_cipher.padding				\
-	test_suite_ctr_drbg		test_suite_debug	\
-	test_suite_des			test_suite_dhm		\
-	test_suite_ecdh			test_suite_ecdsa	\
-	test_suite_ecp						\
-	test_suite_error		test_suite_entropy	\
-	test_suite_gcm.aes128_de				\
-	test_suite_gcm.aes192_de				\
-	test_suite_gcm.aes256_de				\
-	test_suite_gcm.aes128_en				\
-	test_suite_gcm.aes192_en				\
-	test_suite_gcm.aes256_en				\
-	test_suite_gcm.camellia					\
-	test_suite_hmac_drbg.misc				\
-	test_suite_hmac_drbg.no_reseed				\
-	test_suite_hmac_drbg.nopr				\
-	test_suite_hmac_drbg.pr					\
-	test_suite_md			test_suite_mdx		\
-	test_suite_memory_buffer_alloc				\
-	test_suite_mpi						\
-	test_suite_pem						\
-	test_suite_pkcs1_v21		test_suite_pkcs5	\
-	test_suite_pkparse		test_suite_pkwrite	\
-	test_suite_pk						\
-	test_suite_rsa			test_suite_shax		\
-	test_suite_ssl						\
-	test_suite_x509parse		test_suite_x509write	\
-	test_suite_xtea			test_suite_version
+# A test application is built for each suites/test_suite_*.data file.
+# Application name is same as .data file's base name and can be
+# constructed by stripping path 'suites/' and extension .data.
+APPS = $(basename $(subst suites/,,$(wildcard suites/test_suite_*.data)))
 
+# Construct executable name by adding OS specific suffix $(EXEXT).
 BINARIES := $(addsuffix $(EXEXT),$(APPS))
-
-# Look up for associated function files
-func.test_suite_aes.ecb := test_suite_aes
-func.test_suite_aes.cbc := test_suite_aes
-func.test_suite_aes.cfb := test_suite_aes
-func.test_suite_aes.rest := test_suite_aes
-func.test_suite_arc4 := test_suite_arc4
-func.test_suite_asn1write := test_suite_asn1write
-func.test_suite_base64 := test_suite_base64
-func.test_suite_blowfish := test_suite_blowfish
-func.test_suite_camellia := test_suite_camellia
-func.test_suite_ccm := test_suite_ccm
-func.test_suite_cipher.aes := test_suite_cipher
-func.test_suite_cipher.arc4 := test_suite_cipher
-func.test_suite_cipher.ccm := test_suite_cipher
-func.test_suite_cipher.gcm := test_suite_cipher
-func.test_suite_cipher.blowfish := test_suite_cipher
-func.test_suite_cipher.camellia := test_suite_cipher
-func.test_suite_cipher.des := test_suite_cipher
-func.test_suite_cipher.null := test_suite_cipher
-func.test_suite_cipher.padding := test_suite_cipher
-func.test_suite_ctr_drbg := test_suite_ctr_drbg
-func.test_suite_debug := test_suite_debug
-func.test_suite_des := test_suite_des
-func.test_suite_dhm := test_suite_dhm
-func.test_suite_ecdh := test_suite_ecdh
-func.test_suite_ecdsa := test_suite_ecdsa
-func.test_suite_ecp := test_suite_ecp
-func.test_suite_error := test_suite_error
-func.test_suite_entropy := test_suite_entropy
-func.test_suite_gcm.aes128_de := test_suite_gcm
-func.test_suite_gcm.aes192_de := test_suite_gcm
-func.test_suite_gcm.aes256_de := test_suite_gcm
-func.test_suite_gcm.aes128_en := test_suite_gcm
-func.test_suite_gcm.aes192_en := test_suite_gcm
-func.test_suite_gcm.aes256_en := test_suite_gcm
-func.test_suite_gcm.camellia := test_suite_gcm
-func.test_suite_hmac_drbg.misc := test_suite_hmac_drbg
-func.test_suite_hmac_drbg.no_reseed := test_suite_hmac_drbg
-func.test_suite_hmac_drbg.nopr := test_suite_hmac_drbg
-func.test_suite_hmac_drbg.pr := test_suite_hmac_drbg
-func.test_suite_md := test_suite_md
-func.test_suite_mdx := test_suite_mdx
-func.test_suite_memory_buffer_alloc := test_suite_memory_buffer_alloc
-func.test_suite_mpi := test_suite_mpi
-func.test_suite_pem := test_suite_pem
-func.test_suite_pkcs1_v21 := test_suite_pkcs1_v21
-func.test_suite_pkcs5 := test_suite_pkcs5
-func.test_suite_pkparse := test_suite_pkparse
-func.test_suite_pkwrite := test_suite_pkwrite
-func.test_suite_pk := test_suite_pk
-func.test_suite_rsa := test_suite_rsa
-func.test_suite_shax := test_suite_shax
-func.test_suite_ssl := test_suite_ssl
-func.test_suite_x509parse := test_suite_x509parse
-func.test_suite_x509write := test_suite_x509write
-func.test_suite_xtea := test_suite_xtea
-func.test_suite_version := test_suite_version
 
 .SILENT:
 
@@ -157,14 +65,26 @@ all: $(BINARIES)
 $(DEP):
 	$(MAKE) -C ../library
 
-# invoke perl explicitly for the sake of mingw32-make
-
 C_FILES := $(addsuffix .c,$(APPS))
 
+# Wildcard target for test code generation:
+# A .c file is generated for each .data file in the suites/ directory. Each .c
+# file depends on a .data and .function file from suites/ directory. Following
+# nameing convention is followed:
+#
+#     C file        |        Depends on
+#-----------------------------------------------------------------------------
+#  foo.c            | suites/foo.function suites/foo.data
+#  foo.bar.c        | suites/foo.function suites/foo.bar.data
+#
+# Note above that .c and .data files have same base name.
+# However, corresponding .function file's base name is the word before first
+# dot in .c file's base name.
+#
 .SECONDEXPANSION:
-$(C_FILES): %.c: suites/$$(func.$$*).function suites/%.data scripts/generate_test_code.py suites/helpers.function suites/main_test.function suites/host_test.function
+%.c: suites/$$(firstword $$(subst ., ,$$*)).function suites/%.data scripts/generate_test_code.py suites/helpers.function suites/main_test.function suites/host_test.function
 	echo "  Gen   $@"
-	$(PYTHON) scripts/generate_test_code.py -f suites/$(func.$*).function \
+	$(PYTHON) scripts/generate_test_code.py -f suites/$(firstword $(subst ., ,$*)).function \
 		-d suites/$*.data \
 		-t suites/main_test.function \
 		-p suites/host_test.function \
@@ -183,7 +103,9 @@ ifndef WINDOWS
 	rm -rf $(APPS) *.c *.datax TESTS
 else
 	del /Q /F *.c *.exe *.datax
+ifneq ($(wildcard TESTS/.*),)
 	rmdir /Q /S TESTS
+endif
 endif
 
 check: $(BINARIES)
@@ -197,9 +119,9 @@ EMBEDDED_TESTS := $(addprefix embedded_,$(APPS))
 # Generate test code for target.
 
 .SECONDEXPANSION:
-$(EMBEDDED_TESTS): embedded_%: suites/$$(func.$$*).function suites/%.data scripts/generate_test_code.py suites/helpers.function suites/main_test.function suites/target_test.function
+$(EMBEDDED_TESTS): embedded_%: suites/$$(firstword $$(subst ., ,$$*)).function suites/%.data scripts/generate_test_code.py suites/helpers.function suites/main_test.function suites/target_test.function
 	echo "  Gen  ./TESTS/mbedtls/$*/$*.c"
-	$(PYTHON) scripts/generate_test_code.py -f suites/$(func.$*).function \
+	$(PYTHON) scripts/generate_test_code.py -f suites/$(firstword $(subst ., ,$*)).function \
 		-d suites/$*.data \
 		-t suites/main_test.function \
 		-p suites/target_test.function \

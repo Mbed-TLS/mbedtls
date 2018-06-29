@@ -11,8 +11,8 @@
 /* BEGIN_CASE */
 void pkcs1_rsaes_oaep_encrypt( int mod, int radix_N, char * input_N,
                                int radix_E, char * input_E, int hash,
-                               HexParam_t * message_str, HexParam_t * rnd_buf,
-                               HexParam_t * result_hex_str, int result )
+                               data_t * message_str, data_t * rnd_buf,
+                               data_t * result_hex_str, int result )
 {
     unsigned char output[1000];
     mbedtls_rsa_context ctx;
@@ -50,8 +50,8 @@ exit:
 void pkcs1_rsaes_oaep_decrypt( int mod, int radix_P, char * input_P,
                                int radix_Q, char * input_Q, int radix_N,
                                char * input_N, int radix_E, char * input_E,
-                               int hash, HexParam_t * result_hex_str,
-                               char * seed, HexParam_t * message_str,
+                               int hash, data_t * result_hex_str,
+                               char * seed, data_t * message_str,
                                int result )
 {
     unsigned char output[1000];
@@ -98,8 +98,8 @@ exit:
 void pkcs1_rsassa_pss_sign( int mod, int radix_P, char * input_P, int radix_Q,
                             char * input_Q, int radix_N, char * input_N,
                             int radix_E, char * input_E, int digest, int hash,
-                            HexParam_t * message_str, HexParam_t * rnd_buf,
-                            HexParam_t * result_hex_str, int result )
+                            data_t * message_str, data_t * rnd_buf,
+                            data_t * result_hex_str, int result )
 {
     unsigned char hash_result[1000];
     unsigned char output[1000];
@@ -149,8 +149,8 @@ exit:
 /* BEGIN_CASE */
 void pkcs1_rsassa_pss_verify( int mod, int radix_N, char * input_N,
                               int radix_E, char * input_E, int digest,
-                              int hash, HexParam_t * message_str, char * salt,
-                              HexParam_t * result_str, int result )
+                              int hash, data_t * message_str, char * salt,
+                              data_t * result_str, int result )
 {
     unsigned char hash_result[1000];
     mbedtls_rsa_context ctx;
@@ -185,8 +185,8 @@ void pkcs1_rsassa_pss_verify_ext( int mod, int radix_N, char * input_N,
                                   int radix_E, char * input_E,
                                   int msg_digest_id, int ctx_hash,
                                   int mgf_hash, int salt_len,
-                                  HexParam_t * message_str,
-                                  HexParam_t * result_str, int result_simple,
+                                  data_t * message_str,
+                                  data_t * result_str, int result_simple,
                                   int result_full )
 {
     unsigned char hash_result[1000];

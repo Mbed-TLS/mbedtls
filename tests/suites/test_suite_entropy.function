@@ -302,7 +302,7 @@ void entropy_nv_seed_std_io(  )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_PLATFORM_NV_SEED_ALT:MBEDTLS_ENTROPY_SHA512_ACCUMULATOR */
-void entropy_nv_seed( HexParam_t * read_seed )
+void entropy_nv_seed( data_t * read_seed )
 {
     mbedtls_sha512_context accumulator;
     mbedtls_entropy_context ctx;

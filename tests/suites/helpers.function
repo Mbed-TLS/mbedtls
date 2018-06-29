@@ -41,11 +41,11 @@ typedef UINT32 uint32_t;
 #endif
 
 /* Type for Hex parameters */
-typedef struct HexParam_tag
+typedef struct data_tag
 {
     uint8_t *   x;
     uint32_t    len;
-} HexParam_t;
+} data_t;
 
 /*----------------------------------------------------------------------------*/
 /* Status and error constants */

@@ -51,9 +51,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ctr_drbg_validate_pr( HexParam_t * add_init, HexParam_t * entropy,
-                           HexParam_t * add1, HexParam_t * add2,
-                           HexParam_t * result_str )
+void ctr_drbg_validate_pr( data_t * add_init, data_t * entropy,
+                           data_t * add1, data_t * add2,
+                           data_t * result_str )
 {
     mbedtls_ctr_drbg_context ctx;
     unsigned char buf[512];
@@ -75,9 +75,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ctr_drbg_validate_nopr( HexParam_t * add_init, HexParam_t * entropy,
-                             HexParam_t * add1, HexParam_t * add_reseed,
-                             HexParam_t * add2, HexParam_t * result_str )
+void ctr_drbg_validate_nopr( data_t * add_init, data_t * entropy,
+                             data_t * add1, data_t * add_reseed,
+                             data_t * add2, data_t * result_str )
 {
     mbedtls_ctr_drbg_context ctx;
     unsigned char buf[512];

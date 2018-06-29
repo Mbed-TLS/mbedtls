@@ -471,9 +471,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void decrypt_test_vec( int cipher_id, int pad_mode, HexParam_t * key,
-                       HexParam_t * iv, HexParam_t * cipher,
-                       HexParam_t * clear, HexParam_t * ad, HexParam_t * tag,
+void decrypt_test_vec( int cipher_id, int pad_mode, data_t * key,
+                       data_t * iv, data_t * cipher,
+                       data_t * clear, data_t * ad, data_t * tag,
                        int finish_result, int tag_result )
 {
     mbedtls_cipher_context_t ctx;
@@ -529,9 +529,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_AEAD */
-void auth_crypt_tv( int cipher_id, HexParam_t * key, HexParam_t * iv,
-                    HexParam_t * ad, HexParam_t * cipher, HexParam_t * tag,
-                    char * result, HexParam_t * clear )
+void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
+                    data_t * ad, data_t * cipher, data_t * tag,
+                    char * result, data_t * clear )
 {
     int ret;
     unsigned char my_tag[20];
@@ -598,8 +598,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void test_vec_ecb( int cipher_id, int operation, HexParam_t * key,
-                   HexParam_t * input, HexParam_t * result, int finish_result
+void test_vec_ecb( int cipher_id, int operation, data_t * key,
+                   data_t * input, data_t * result, int finish_result
                    )
 {
     mbedtls_cipher_context_t ctx;
@@ -655,7 +655,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC */
-void check_padding( int pad_mode, HexParam_t * input, int ret, int dlen_check
+void check_padding( int pad_mode, data_t * input, int ret, int dlen_check
                     )
 {
     mbedtls_cipher_info_t cipher_info;

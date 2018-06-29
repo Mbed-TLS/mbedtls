@@ -106,7 +106,7 @@ void ecjpake_selftest(  )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
-void read_round_one( int role, HexParam_t * msg, int ref_ret )
+void read_round_one( int role, data_t * msg, int ref_ret )
 {
     mbedtls_ecjpake_context ctx;
     const unsigned char * pw = NULL;
@@ -125,7 +125,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
-void read_round_two_cli( HexParam_t * msg, int ref_ret )
+void read_round_two_cli( data_t * msg, int ref_ret )
 {
     mbedtls_ecjpake_context ctx;
     const unsigned char * pw = NULL;
@@ -150,7 +150,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_SHA256_C */
-void read_round_two_srv( HexParam_t * msg, int ref_ret )
+void read_round_two_srv( data_t * msg, int ref_ret )
 {
     mbedtls_ecjpake_context ctx;
     const unsigned char * pw = NULL;

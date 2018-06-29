@@ -300,19 +300,19 @@ def parse_function_signature(line):
         elif re.search('char\s*\*\s*.*', arg.strip()):
             args.append('char*')
             args_dispatch.append('(char *) params[%d]' % arg_idx)
-        elif re.search('HexParam_t\s*\*\s*.*', arg.strip()):
+        elif re.search('data_t\s*\*\s*.*', arg.strip()):
             args.append('hex')
             # create a structure
             pointer_initializer = '(uint8_t *) params[%d]' % arg_idx
             len_initializer = '*( (uint32_t *) params[%d] )' % (arg_idx+1)
-            locals += """    HexParam_t hex%d = {%s, %s};
+            locals += """    data_t data%d = {%s, %s};
 """ % (arg_idx, pointer_initializer, len_initializer)
 
-            args_dispatch.append('&hex%d' % arg_idx)
+            args_dispatch.append('&data%d' % arg_idx)
             arg_idx += 1
         else:
             raise ValueError("Test function arguments can only be 'int', "
-                             "'char *' or 'HexParam_t'\n%s" % line)
+                             "'char *' or 'data_t'\n%s" % line)
         arg_idx += 1
 
     return name, args, locals, args_dispatch

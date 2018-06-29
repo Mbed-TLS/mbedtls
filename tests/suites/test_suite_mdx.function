@@ -6,7 +6,7 @@
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_MD2_C */
-void md2_text( char * text_src_string, HexParam_t * hex_hash_string )
+void md2_text( char * text_src_string, data_t * hex_hash_string )
 {
     int ret;
     unsigned char src_str[100];
@@ -25,7 +25,7 @@ void md2_text( char * text_src_string, HexParam_t * hex_hash_string )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_MD4_C */
-void md4_text( char * text_src_string, HexParam_t * hex_hash_string )
+void md4_text( char * text_src_string, data_t * hex_hash_string )
 {
     int ret;
     unsigned char src_str[100];
@@ -44,7 +44,7 @@ void md4_text( char * text_src_string, HexParam_t * hex_hash_string )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_MD5_C */
-void md5_text( char * text_src_string, HexParam_t * hex_hash_string )
+void md5_text( char * text_src_string, data_t * hex_hash_string )
 {
     int ret;
     unsigned char src_str[100];
@@ -63,7 +63,7 @@ void md5_text( char * text_src_string, HexParam_t * hex_hash_string )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_RIPEMD160_C */
-void ripemd160_text( char * text_src_string, HexParam_t * hex_hash_string )
+void ripemd160_text( char * text_src_string, data_t * hex_hash_string )
 {
     int ret;
     unsigned char src_str[100];

@@ -807,7 +807,8 @@ typedef uint32_t psa_algorithm_t;
  *
  * This is the signature scheme defined by RFC 8017
  * (PKCS#1: RSA Cryptography Specifications) under the name
- * RSASSA-PSS, with the message generation function MGF1. The specified
+ * RSASSA-PSS, with the message generation function MGF1, and with
+ * a salt length equal to the length of the hash. The specified
  * hash algorithm is used to hash the input message, to create the
  * salted hash, and for the mask generation.
  *

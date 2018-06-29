@@ -7505,7 +7505,7 @@ static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
     return( mbedtls_ssl_renegotiate( ssl ) );
 }
 
-int mbedtls_ssl_renego_not_honored( mbedtls_ssl_context *ssl )
+int mbedtls_ssl_update_renego_waiting_counter( mbedtls_ssl_context *ssl )
 {
     ssl->renego_records_seen++;
 
@@ -7775,7 +7775,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
         else if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_PENDING )
         {
-            if( mbedtls_ssl_renego_not_honored( ssl ) != 0 )
+            if( mbedtls_ssl_update_renego_waiting_counter( ssl ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "renegotiation requested, "
                                             "but not honored by client" ) );

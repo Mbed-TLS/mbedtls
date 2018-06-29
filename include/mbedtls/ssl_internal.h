@@ -711,7 +711,7 @@ void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 #define MBEDTLS_SSL_PROC_CHK(f) do { if( ( ret = f ) < 0 ) goto cleanup; } while( 0 )
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-int mbedtls_ssl_renego_not_honored( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_update_renego_waiting_counter( mbedtls_ssl_context *ssl );
 #endif
 
 static inline void mbedtls_ssl_handshake_set_state( mbedtls_ssl_context *ssl,

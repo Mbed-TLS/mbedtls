@@ -2227,6 +2227,60 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void asymmetric_encrypt( int key_type_arg,
+                         data_t *key_data,
+                         int alg_arg,
+                         data_t *input_data,
+                         int expected_output_length_arg,
+                         int expected_status_arg )
+{
+    int slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    size_t expected_output_length = expected_output_length_arg;
+    size_t key_bits;
+    unsigned char *output = NULL;
+    size_t output_size;
+    size_t output_length = ~0;
+    psa_status_t actual_status;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_policy_t policy;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    /* Import the key */
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT, alg );
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_import_key( slot, key_type,
+                                 key_data->x,
+                                 key_data->len ) == PSA_SUCCESS );
+
+    /* Determine the maximum output length */
+    TEST_ASSERT( psa_get_key_information( slot,
+                                          NULL,
+                                          &key_bits ) == PSA_SUCCESS );
+    output_size = PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE( key_type, key_bits, alg );
+    output = mbedtls_calloc( 1, output_size );
+    TEST_ASSERT( output != NULL );
+
+    /* Encrypt the input */
+    actual_status = psa_asymmetric_encrypt( slot, alg,
+                                            input_data->x, input_data->len,
+                                            NULL, 0,
+                                            output, output_size,
+                                            &output_length );
+    TEST_ASSERT( actual_status == expected_status );
+    TEST_ASSERT( output_length == expected_output_length );
+
+exit:
+    psa_destroy_key( slot );
+    mbedtls_free( output );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void asymmetric_encrypt_decrypt( int key_type_arg, data_t *key_data,
                                  int alg_arg, data_t *input_data )
 {
@@ -2286,54 +2340,6 @@ exit:
     psa_destroy_key( slot );
     mbedtls_free( output );
     mbedtls_free( output2 );
-    mbedtls_psa_crypto_free( );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void asymmetric_encrypt_fail( int key_type_arg, data_t *key_data,
-                              int alg_arg, data_t *input_data,
-                              int expected_status_arg )
-{
-    int slot = 1;
-    psa_key_type_t key_type = key_type_arg;
-    psa_algorithm_t alg = alg_arg;
-    unsigned char *output = NULL;
-    size_t output_size = 0;
-    size_t output_length = 0;
-    psa_status_t actual_status;
-    psa_status_t expected_status = expected_status_arg;
-    psa_key_policy_t policy;
-
-    TEST_ASSERT( key_data != NULL );
-    TEST_ASSERT( input_data != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input_data->len ) );
-
-    output_size = key_data->len;
-    output = mbedtls_calloc( 1, output_size );
-    TEST_ASSERT( output != NULL );
-
-    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
-
-    psa_key_policy_init( &policy );
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
-
-    TEST_ASSERT( psa_import_key( slot, key_type,
-                                 key_data->x,
-                                 key_data->len ) == PSA_SUCCESS );
-
-    actual_status = psa_asymmetric_encrypt( slot, alg,
-                                            input_data->x, input_data->len,
-                                            NULL, 0,
-                                            output, output_size,
-                                            &output_length );
-    TEST_ASSERT( actual_status == expected_status );
-
-exit:
-    psa_destroy_key( slot );
-    mbedtls_free( output );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

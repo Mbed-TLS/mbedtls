@@ -1,4 +1,4 @@
-# Greentea host test script for on-target tests.
+# Greentea host test script for Mbed TLS on-target test suite testing.
 #
 # Copyright (C) 2018, ARM Limited, All Rights Reserved
 # SPDX-License-Identifier: Apache-2.0
@@ -19,12 +19,19 @@
 
 
 """
-Greentea host test script for on-target tests.
+Mbed TLS on-target test suite tests are implemented as mbed-os greentea
+tests. Greentea tests are implemented in two parts: target test and
+host test. Target test is a C application that is built for the
+target platform and executes on the target. Host test is a Python
+class derived from mbed_host_tests.BaseHostTest. Target communicates
+with the host over serial for the test data.
 
-Host test script for testing mbed TLS test suites on target. Implements
-BaseHostTest to handle key,value pairs (events) coming from mbed TLS
-tests. Reads data file corresponding to the executing binary and dispatches
-test cases.
+Python tool mbedgt (greentea) is responsible for flashing the test
+binary on to the target and dynamically loading the host test.
+
+This script contains the host test for handling target test's
+requests for test vectors. It also reports the test results
+in format understood by Greentea.
 """
 
 
@@ -41,7 +48,8 @@ class TestDataParserError(Exception):
 
 class TestDataParser(object):
     """
-    parser for mbedtls test data files.
+    Parses test name, dependencies, test function name and test parameters
+    from the data file.
     """
 
     def __init__(self):
@@ -127,19 +135,30 @@ class TestDataParser(object):
 
 class MbedTlsTest(BaseHostTest):
     """
-    Event handler for mbedtls unit tests. This script is loaded at run time
-    by htrun while executing mbedtls unit tests.
+    Host test for mbedtls unit tests. This script is loaded at
+    run time by Greentea for executing mbedtls test suites. Each
+    communication from the target is received in this object as
+    an event, which is then handled by the event handler method
+    decorated by the associated event. Ex: @event_callback('GO').
+
+    Target test sends requests for dispatching next test. It reads
+    tests from the intermediate data file and sends test function
+    identifier, dependency identifiers, expression identifiers and
+    the test data in binary form. Target test checks dependecnies
+    , evaluate integer constant expressions and dispatches the test
+    function with received test parameters.
+
     """
-    # From suites/helpers.function
+    # status/error codes from suites/helpers.function
     DEPENDENCY_SUPPORTED = 0
     KEY_VALUE_MAPPING_FOUND = DEPENDENCY_SUPPORTED
     DISPATCH_TEST_SUCCESS = DEPENDENCY_SUPPORTED
 
-    KEY_VALUE_MAPPING_NOT_FOUND = -1
-    DEPENDENCY_NOT_SUPPORTED = -2
-    DISPATCH_TEST_FN_NOT_FOUND = -3
-    DISPATCH_INVALID_TEST_DATA = -4
-    DISPATCH_UNSUPPORTED_SUITE = -5
+    KEY_VALUE_MAPPING_NOT_FOUND = -1    # Expression Id not found.
+    DEPENDENCY_NOT_SUPPORTED = -2       # Dependency not supported.
+    DISPATCH_TEST_FN_NOT_FOUND = -3     # Test function not found.
+    DISPATCH_INVALID_TEST_DATA = -4     # Invalid parameter type.
+    DISPATCH_UNSUPPORTED_SUITE = -5     # Test suite not supported/enabled.
 
     def __init__(self):
         """
@@ -159,13 +178,15 @@ class MbedTlsTest(BaseHostTest):
 
     def setup(self):
         """
-        Setup hook implementation. Reads test suite data file and parses out tests.
+        Setup hook implementation. Reads test suite data file and parses out
+        tests.
         """
         binary_path = self.get_config_item('image_path')
         script_dir = os.path.split(os.path.abspath(__file__))[0]
         suite_name = os.path.splitext(os.path.basename(binary_path))[0]
         data_file = ".".join((suite_name, 'data'))
-        data_file = os.path.join(script_dir, '..', 'mbedtls', suite_name, data_file)
+        data_file = os.path.join(script_dir, '..', 'mbedtls',
+                                 suite_name, data_file)
         if os.path.exists(data_file):
             self.log("Running tests from %s" % data_file)
             parser = TestDataParser()
@@ -262,7 +283,7 @@ class MbedTlsTest(BaseHostTest):
 
     def run_next_test(self):
         """
-        Send next test function to the target.
+        Fetch next test information and execute the test.
 
         """
         self.test_index += 1
@@ -275,7 +296,7 @@ class MbedTlsTest(BaseHostTest):
 
     def run_test(self, name, function_id, deps, args):
         """
-        Runs the test.
+        Execute the test on target by sending next test information.
 
         :param name: Test name
         :param function_id: function identifier
@@ -304,7 +325,7 @@ class MbedTlsTest(BaseHostTest):
     @event_callback('GO')
     def on_go(self, key, value, timestamp):
         """
-        Called on key "GO". Kicks off test execution.
+        Sent by the target to start first test.
 
         :param key: Event key
         :param value: Value. ignored
@@ -316,7 +337,8 @@ class MbedTlsTest(BaseHostTest):
     @event_callback("R")
     def on_result(self, key, value, timestamp):
         """
-        Handle result. Prints test start, finish prints required by Greentea to detect test execution.
+        Handle result. Prints test start, finish required by Greentea
+        to detect test execution.
 
         :param key: Event key
         :param value: Value. ignored

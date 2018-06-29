@@ -957,6 +957,10 @@ typedef uint32_t psa_algorithm_t;
     (PSA_ALG_RSA_OAEP_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
 #define PSA_ALG_IS_RSA_OAEP(alg)                                \
     (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_OAEP_BASE)
+#define PSA_ALG_RSA_OAEP_GET_HASH(alg)                          \
+    (PSA_ALG_IS_RSA_OAEP(alg) ?                                 \
+     ((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH :      \
+     0)
 
 /**@}*/
 
@@ -2314,8 +2318,8 @@ psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
                                    size_t signature_length);
 
 #define PSA_RSA_MINIMUM_PADDING_SIZE(alg)                               \
-    (PSA_ALG_IS_RSA_OAEP_MGF1(alg) ?                                    \
-     2 * PSA_HASH_FINAL_SIZE(PSA_ALG_RSA_GET_HASH(alg)) + 1 :           \
+    (PSA_ALG_IS_RSA_OAEP(alg) ?                                         \
+     2 * PSA_HASH_FINAL_SIZE(PSA_ALG_RSA_OAEP_GET_HASH(alg)) + 1 :      \
      11 /*PKCS#1v1.5*/)
 
 /**

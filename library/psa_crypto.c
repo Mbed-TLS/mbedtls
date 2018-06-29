@@ -2101,6 +2101,17 @@ psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
     }
 }
 
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V21)
+static void psa_rsa_oaep_set_padding_mode( psa_algorithm_t alg,
+                                           mbedtls_rsa_context *rsa )
+{
+    psa_algorithm_t hash_alg = PSA_ALG_RSA_OAEP_GET_HASH( alg );
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa( hash_alg );
+    mbedtls_md_type_t md_alg = mbedtls_md_get_type( md_info );
+    mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg );
+}
+#endif /* defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V21) */
+
 psa_status_t psa_asymmetric_encrypt( psa_key_slot_t key,
                                      psa_algorithm_t alg,
                                      const uint8_t *input,
@@ -2114,8 +2125,11 @@ psa_status_t psa_asymmetric_encrypt( psa_key_slot_t key,
     key_slot_t *slot;
     psa_status_t status;
 
+    /* Only used by some algorithms which may or may not be included in the
+     * build-time configuration use the salt. */
     (void) salt;
     (void) salt_length;
+
     *output_length = 0;
 
     status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
@@ -2148,7 +2162,15 @@ psa_status_t psa_asymmetric_encrypt( psa_key_slot_t key,
 #if defined(MBEDTLS_PKCS1_V21)
         if( PSA_ALG_IS_RSA_OAEP( alg ) )
         {
-            return( PSA_ERROR_NOT_SUPPORTED );
+            psa_rsa_oaep_set_padding_mode( alg, rsa );
+            ret = mbedtls_rsa_rsaes_oaep_encrypt( rsa,
+                                                  mbedtls_ctr_drbg_random,
+                                                  &global_data.ctr_drbg,
+                                                  MBEDTLS_RSA_PUBLIC,
+                                                  salt, salt_length,
+                                                  input_length,
+                                                  input,
+                                                  output );
         }
         else
 #endif /* MBEDTLS_PKCS1_V21 */
@@ -2179,8 +2201,11 @@ psa_status_t psa_asymmetric_decrypt( psa_key_slot_t key,
     key_slot_t *slot;
     psa_status_t status;
 
+    /* Only used by some algorithms which may or may not be included in the
+     * build-time configuration use the salt. */
     (void) salt;
     (void) salt_length;
+
     *output_length = 0;
 
     status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_DECRYPT, alg );
@@ -2215,7 +2240,16 @@ psa_status_t psa_asymmetric_decrypt( psa_key_slot_t key,
 #if defined(MBEDTLS_PKCS1_V21)
         if( PSA_ALG_IS_RSA_OAEP( alg ) )
         {
-            return( PSA_ERROR_NOT_SUPPORTED );
+            psa_rsa_oaep_set_padding_mode( alg, rsa );
+            ret = mbedtls_rsa_rsaes_oaep_decrypt( rsa,
+                                                  mbedtls_ctr_drbg_random,
+                                                  &global_data.ctr_drbg,
+                                                  MBEDTLS_RSA_PRIVATE,
+                                                  salt, salt_length,
+                                                  output_length,
+                                                  input,
+                                                  output,
+                                                  output_size );
         }
         else
 #endif /* MBEDTLS_PKCS1_V21 */

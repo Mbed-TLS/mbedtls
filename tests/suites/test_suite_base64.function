@@ -49,7 +49,7 @@ void mbedtls_base64_decode( char * src_string, char * dst_string, int result )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void base64_encode_hex( HexParam_t * src, char * dst, int dst_buf_size,
+void base64_encode_hex( data_t * src, char * dst, int dst_buf_size,
                         int result )
 {
     unsigned char *res = NULL;
@@ -70,7 +70,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void base64_decode_hex( char * src, HexParam_t * dst, int dst_buf_size,
+void base64_decode_hex( char * src, data_t * dst, int dst_buf_size,
                         int result )
 {
     unsigned char *res = NULL;
@@ -92,7 +92,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void base64_decode_hex_src( HexParam_t * src, char * dst_ref, int result )
+void base64_decode_hex_src( data_t * src, char * dst_ref, int result )
 {
     unsigned char dst[1000] = { 0 };
     size_t len;

@@ -114,7 +114,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
-void pk_parse_key( HexParam_t * buf, char * result_str, int result )
+void pk_parse_key( data_t * buf, char * result_str, int result )
 {
     mbedtls_pk_context pk;
     unsigned char output[2000];

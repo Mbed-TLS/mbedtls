@@ -442,11 +442,11 @@ class ParseFuncSignature(TestCase):
         Test hex parameters parsing
         :return:
         """
-        line = 'void entropy_threshold( char * a, HexParam_t * h, int result )'
+        line = 'void entropy_threshold( char * a, data_t * h, int result )'
         name, args, local, arg_dispatch = parse_function_signature(line)
         self.assertEqual(name, 'entropy_threshold')
         self.assertEqual(args, ['char*', 'hex', 'int'])
-        self.assertEqual(local, '    HexParam_t hex1 = {(uint8_t *) params[1], *( (uint32_t *) params[2] )};\n')
+        self.assertEqual(local, '    data_t hex1 = {(uint8_t *) params[1], *( (uint32_t *) params[2] )};\n')
         self.assertEqual(arg_dispatch, ['(char *) params[0]', '&hex1', '*( (int *) params[3] )'])
 
     def test_non_void_function(self):
@@ -454,15 +454,15 @@ class ParseFuncSignature(TestCase):
         Test invalid signature (non void).
         :return:
         """
-        line = 'int entropy_threshold( char * a, HexParam_t * h, int result )'
+        line = 'int entropy_threshold( char * a, data_t * h, int result )'
         self.assertRaises(ValueError, parse_function_signature, line)
 
     def test_unsupported_arg(self):
         """
-        Test unsupported arguments (not among int, char * and HexParam_t)
+        Test unsupported arguments (not among int, char * and data_t)
         :return:
         """
-        line = 'int entropy_threshold( char * a, HexParam_t * h, int * result )'
+        line = 'int entropy_threshold( char * a, data_t * h, int * result )'
         self.assertRaises(ValueError, parse_function_signature, line)
 
     def test_no_params(self):

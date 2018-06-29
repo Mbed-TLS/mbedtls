@@ -440,7 +440,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
-void x509parse_crt( HexParam_t * buf, char * result_str, int result )
+void x509parse_crt( data_t * buf, char * result_str, int result )
 {
     mbedtls_x509_crt   crt;
     unsigned char output[2000];
@@ -467,7 +467,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRL_PARSE_C */
-void x509parse_crl( HexParam_t * buf, char * result_str, int result )
+void x509parse_crl( data_t * buf, char * result_str, int result )
 {
     mbedtls_x509_crl   crl;
     unsigned char output[2000];
@@ -494,7 +494,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CSR_PARSE_C */
-void mbedtls_x509_csr_parse( HexParam_t * csr_der, char * ref_out, int ref_ret )
+void mbedtls_x509_csr_parse( data_t * csr_der, char * ref_out, int ref_ret )
 {
     mbedtls_x509_csr csr;
     char my_out[1000];
@@ -621,7 +621,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C */
-void x509_oid_desc( HexParam_t * buf, char * ref_desc )
+void x509_oid_desc( data_t * buf, char * ref_desc )
 {
     mbedtls_x509_buf oid;
     const char *desc = NULL;
@@ -649,7 +649,7 @@ void x509_oid_desc( HexParam_t * buf, char * ref_desc )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C */
-void x509_oid_numstr( HexParam_t * oid_buf, char * numstr, int blen, int ret )
+void x509_oid_numstr( data_t * oid_buf, char * numstr, int blen, int ret )
 {
     mbedtls_x509_buf oid;
     char num_buf[100];
@@ -689,7 +689,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */
-void x509_check_extended_key_usage( char * crt_file, HexParam_t * oid, int ret
+void x509_check_extended_key_usage( char * crt_file, data_t * oid, int ret
                                     )
 {
     mbedtls_x509_crt crt;
@@ -737,7 +737,7 @@ void x509_get_time( int tag, char * time_str, int ret, int year, int mon,
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_X509_RSASSA_PSS_SUPPORT */
-void x509_parse_rsassa_pss_params( HexParam_t * hex_params, int params_tag,
+void x509_parse_rsassa_pss_params( data_t * hex_params, int params_tag,
                                    int ref_msg_md, int ref_mgf_md,
                                    int ref_salt_len, int ref_ret )
 {

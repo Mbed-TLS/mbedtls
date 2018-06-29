@@ -41,8 +41,8 @@ exit:
 
 /* BEGIN_CASE */
 void ecdsa_prim_test_vectors( int id, char * d_str, char * xQ_str,
-                              char * yQ_str, HexParam_t * rnd_buf,
-                              HexParam_t * hash, char * r_str, char * s_str,
+                              char * yQ_str, data_t * rnd_buf,
+                              data_t * hash, char * r_str, char * s_str,
                               int result )
 {
     mbedtls_ecp_group grp;

@@ -53,7 +53,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_mpi_read_binary( HexParam_t * buf, int radix_A, char * input_A )
+void mbedtls_mpi_read_binary( data_t * buf, int radix_A, char * input_A )
 {
     mbedtls_mpi X;
     unsigned char str[1000];
@@ -73,7 +73,7 @@ exit:
 
 /* BEGIN_CASE */
 void mbedtls_mpi_write_binary( int radix_X, char * input_X,
-                               HexParam_t * input_A, int output_size,
+                               data_t * input_A, int output_size,
                                int result )
 {
     mbedtls_mpi X;
@@ -104,7 +104,7 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
 void mbedtls_mpi_read_file( int radix_X, char * input_file,
-                            HexParam_t * input_A, int result )
+                            data_t * input_A, int result )
 {
     mbedtls_mpi X;
     unsigned char buf[1000];

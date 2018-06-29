@@ -127,7 +127,7 @@ void md_info( int md_type, char * md_name, int md_size )
 
 /* BEGIN_CASE */
 void md_text( char * text_md_name, char * text_src_string,
-              HexParam_t * hex_hash_string )
+              data_t * hex_hash_string )
 {
     char md_name[100];
     unsigned char src_str[1000];
@@ -150,8 +150,8 @@ void md_text( char * text_md_name, char * text_src_string,
 /* END_CASE */
 
 /* BEGIN_CASE */
-void md_hex( char * text_md_name, HexParam_t * src_str,
-             HexParam_t * hex_hash_string )
+void md_hex( char * text_md_name, data_t * src_str,
+             data_t * hex_hash_string )
 {
     char md_name[100];
     unsigned char output[100];
@@ -173,7 +173,7 @@ void md_hex( char * text_md_name, HexParam_t * src_str,
 
 /* BEGIN_CASE */
 void md_text_multi( char * text_md_name, char * text_src_string,
-                    HexParam_t * hex_hash_string )
+                    data_t * hex_hash_string )
 {
     char md_name[100];
     unsigned char src_str[1000];
@@ -207,8 +207,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void md_hex_multi( char * text_md_name, HexParam_t * src_str,
-                   HexParam_t * hex_hash_string )
+void md_hex_multi( char * text_md_name, data_t * src_str,
+                   data_t * hex_hash_string )
 {
     char md_name[100];
     unsigned char output[100];
@@ -241,8 +241,8 @@ exit:
 
 /* BEGIN_CASE */
 void mbedtls_md_hmac( char * text_md_name, int trunc_size,
-                      HexParam_t * key_str, HexParam_t * src_str,
-                      HexParam_t * hex_hash_string )
+                      data_t * key_str, data_t * src_str,
+                      data_t * hex_hash_string )
 {
     char md_name[100];
     unsigned char output[100];
@@ -263,8 +263,8 @@ void mbedtls_md_hmac( char * text_md_name, int trunc_size,
 /* END_CASE */
 
 /* BEGIN_CASE */
-void md_hmac_multi( char * text_md_name, int trunc_size, HexParam_t * key_str,
-                    HexParam_t * src_str, HexParam_t * hex_hash_string )
+void md_hmac_multi( char * text_md_name, int trunc_size, data_t * key_str,
+                    data_t * src_str, data_t * hex_hash_string )
 {
     char md_name[100];
     unsigned char output[100];
@@ -305,7 +305,7 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
 void mbedtls_md_file( char * text_md_name, char * filename,
-                      HexParam_t * hex_hash_string )
+                      data_t * hex_hash_string )
 {
     char md_name[100];
     unsigned char output[100];

@@ -1741,28 +1741,45 @@ cleanup:
 
 #if defined(MBEDTLS_RSA_C)
 /* Decode the hash algorithm from alg and store the mbedtls encoding in
- * md_alg. Verify that the hash length is consistent. */
+ * md_alg. Verify that the hash length is acceptable. */
 static psa_status_t psa_rsa_decode_md_type( psa_algorithm_t alg,
                                             size_t hash_length,
                                             mbedtls_md_type_t *md_alg )
 {
     psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa( hash_alg );
-    *md_alg = hash_alg == 0 ? MBEDTLS_MD_NONE : mbedtls_md_get_type( md_info );
-    if( *md_alg == MBEDTLS_MD_NONE )
-    {
+    *md_alg = mbedtls_md_get_type( md_info );
+
+    /* The Mbed TLS RSA module uses an unsigned int for hash length
+     * parameters. Validate that it fits so that we don't risk an
+     * overflow later. */
 #if SIZE_MAX > UINT_MAX
-        if( hash_length > UINT_MAX )
-            return( PSA_ERROR_INVALID_ARGUMENT );
+    if( hash_length > UINT_MAX )
+        return( PSA_ERROR_INVALID_ARGUMENT );
 #endif
-    }
-    else
+
+#if defined(MBEDTLS_PKCS1_V15)
+    /* For PKCS#1 v1.5 signature, if using a hash, the hash length
+     * must be correct. */
+    if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) &&
+        alg != PSA_ALG_RSA_PKCS1V15_SIGN_RAW )
     {
+        if( md_info == NULL )
+            return( PSA_ERROR_NOT_SUPPORTED );
         if( mbedtls_md_get_size( md_info ) != hash_length )
             return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+#endif /* MBEDTLS_PKCS1_V15 */
+
+#if defined(MBEDTLS_PKCS1_V21)
+    /* PSS requires a hash internally. */
+    if( PSA_ALG_IS_RSA_PSS( alg ) )
+    {
         if( md_info == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
     }
+#endif /* MBEDTLS_PKCS1_V21 */
+
     return( PSA_SUCCESS );
 }
 
@@ -1784,15 +1801,6 @@ static psa_status_t psa_rsa_sign( mbedtls_rsa_context *rsa,
 
     if( signature_size < mbedtls_rsa_get_len( rsa ) )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
-
-    /* The Mbed TLS RSA module uses an unsigned int for hash_length. See if
-     * hash_length will fit and return an error if it doesn't. */
-#if defined(MBEDTLS_PKCS1_V15) || defined(MBEDTLS_PKCS1_V21)
-#if SIZE_MAX > UINT_MAX
-    if( hash_length > UINT_MAX )
-        return( PSA_ERROR_NOT_SUPPORTED );
-#endif
-#endif
 
 #if defined(MBEDTLS_PKCS1_V15)
     if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) )
@@ -1818,7 +1826,7 @@ static psa_status_t psa_rsa_sign( mbedtls_rsa_context *rsa,
                                            mbedtls_ctr_drbg_random,
                                            &global_data.ctr_drbg,
                                            MBEDTLS_RSA_PRIVATE,
-                                           md_alg,
+                                           MBEDTLS_MD_NONE,
                                            (unsigned int) hash_length,
                                            hash,
                                            signature );
@@ -1852,15 +1860,6 @@ static psa_status_t psa_rsa_verify( mbedtls_rsa_context *rsa,
     if( signature_length < mbedtls_rsa_get_len( rsa ) )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
 
-#if defined(MBEDTLS_PKCS1_V15) || defined(MBEDTLS_PKCS1_V21)
-#if SIZE_MAX > UINT_MAX
-    /* The Mbed TLS RSA module uses an unsigned int for hash_length. See if
-     * hash_length will fit and return an error if it doesn't. */
-    if( hash_length > UINT_MAX )
-        return( PSA_ERROR_NOT_SUPPORTED );
-#endif
-#endif
-
 #if defined(MBEDTLS_PKCS1_V15)
     if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) )
     {
@@ -1885,7 +1884,7 @@ static psa_status_t psa_rsa_verify( mbedtls_rsa_context *rsa,
                                              mbedtls_ctr_drbg_random,
                                              &global_data.ctr_drbg,
                                              MBEDTLS_RSA_PUBLIC,
-                                             md_alg,
+                                             MBEDTLS_MD_NONE,
                                              (unsigned int) hash_length,
                                              hash,
                                              signature );

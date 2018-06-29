@@ -8,8 +8,8 @@
  */
 
 /* BEGIN_CASE */
-void xtea_encrypt_ecb( HexParam_t * key_str, HexParam_t * src_str,
-                       HexParam_t * hex_dst_string )
+void xtea_encrypt_ecb( data_t * key_str, data_t * src_str,
+                       data_t * hex_dst_string )
 {
     unsigned char output[100];
     mbedtls_xtea_context ctx;
@@ -25,8 +25,8 @@ void xtea_encrypt_ecb( HexParam_t * key_str, HexParam_t * src_str,
 /* END_CASE */
 
 /* BEGIN_CASE */
-void xtea_decrypt_ecb( HexParam_t * key_str, HexParam_t * src_str,
-                       HexParam_t * hex_dst_string )
+void xtea_decrypt_ecb( data_t * key_str, data_t * src_str,
+                       data_t * hex_dst_string )
 {
     unsigned char output[100];
     mbedtls_xtea_context ctx;
@@ -42,8 +42,8 @@ void xtea_decrypt_ecb( HexParam_t * key_str, HexParam_t * src_str,
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC */
-void xtea_encrypt_cbc( HexParam_t * key_str, HexParam_t * iv_str,
-                       HexParam_t * src_str, HexParam_t * hex_dst_string )
+void xtea_encrypt_cbc( data_t * key_str, data_t * iv_str,
+                       data_t * src_str, data_t * hex_dst_string )
 {
     unsigned char output[100];
     mbedtls_xtea_context ctx;
@@ -60,8 +60,8 @@ void xtea_encrypt_cbc( HexParam_t * key_str, HexParam_t * iv_str,
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_CBC */
-void xtea_decrypt_cbc( HexParam_t * key_str, HexParam_t * iv_str,
-                       HexParam_t * src_str, HexParam_t * hex_dst_string )
+void xtea_decrypt_cbc( data_t * key_str, data_t * iv_str,
+                       data_t * src_str, data_t * hex_dst_string )
 {
     unsigned char output[100];
     mbedtls_xtea_context ctx;

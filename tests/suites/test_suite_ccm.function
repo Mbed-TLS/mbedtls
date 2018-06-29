@@ -116,9 +116,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_ccm_encrypt_and_tag( int cipher_id, HexParam_t * key,
-                                  HexParam_t * msg, HexParam_t * iv,
-                                  HexParam_t * add, HexParam_t * result )
+void mbedtls_ccm_encrypt_and_tag( int cipher_id, data_t * key,
+                                  data_t * msg, data_t * iv,
+                                  data_t * add, data_t * result )
 {
     mbedtls_ccm_context ctx;
     size_t tag_len;
@@ -149,10 +149,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_ccm_auth_decrypt( int cipher_id, HexParam_t * key,
-                               HexParam_t * msg, HexParam_t * iv,
-                               HexParam_t * add, int tag_len, int result,
-                               HexParam_t * hex_msg )
+void mbedtls_ccm_auth_decrypt( int cipher_id, data_t * key,
+                               data_t * msg, data_t * iv,
+                               data_t * add, int tag_len, int result,
+                               data_t * hex_msg )
 {
     unsigned char tag[16];
     mbedtls_ccm_context ctx;

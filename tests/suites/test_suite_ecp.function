@@ -193,7 +193,7 @@ exit:
 
 /* BEGIN_CASE */
 void ecp_write_binary( int id, char * x, char * y, char * z, int format,
-                       HexParam_t * out, int blen, int ret )
+                       data_t * out, int blen, int ret )
 {
     mbedtls_ecp_group grp;
     mbedtls_ecp_point P;
@@ -224,7 +224,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ecp_read_binary( int id, HexParam_t * buf, char * x, char * y, char * z,
+void ecp_read_binary( int id, data_t * buf, char * x, char * y, char * z,
                       int ret )
 {
     mbedtls_ecp_group grp;
@@ -257,7 +257,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_ecp_tls_read_point( int id, HexParam_t * buf, char * x, char * y,
+void mbedtls_ecp_tls_read_point( int id, data_t * buf, char * x, char * y,
                                  char * z, int ret )
 {
     mbedtls_ecp_group grp;
@@ -344,7 +344,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_ecp_tls_read_group( HexParam_t * buf, int result, int bits,
+void mbedtls_ecp_tls_read_group( data_t * buf, int result, int bits,
                                  int record_len )
 {
     mbedtls_ecp_group grp;

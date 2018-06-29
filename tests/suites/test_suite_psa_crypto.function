@@ -2347,7 +2347,7 @@ exit:
 /* BEGIN_CASE */
 void asymmetric_decrypt( int key_type_arg, data_t *key_data,
                          int alg_arg, data_t *input_data,
-                         data_t *expected_data, int expected_size )
+                         data_t *expected_data )
 {
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;
@@ -2384,7 +2384,7 @@ void asymmetric_decrypt( int key_type_arg, data_t *key_data,
                                          output,
                                          output_size,
                                          &output_length ) == PSA_SUCCESS );
-    TEST_ASSERT( (size_t) expected_size == output_length );
+    TEST_ASSERT( expected_data->len == output_length );
     TEST_ASSERT( memcmp( expected_data->x, output, output_length ) == 0 );
 
 exit:

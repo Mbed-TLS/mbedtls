@@ -2115,7 +2115,8 @@ psa_status_t psa_asymmetric_encrypt( psa_key_slot_t key,
     status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
     if( status != PSA_SUCCESS )
         return( status );
-    if( ! PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) )
+    if( ! ( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) ||
+            PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
 #if defined(MBEDTLS_RSA_C)

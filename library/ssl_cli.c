@@ -788,7 +788,7 @@ static int ssl_client_hello_postprocess( mbedtls_ssl_context *ssl );
 static int ssl_process_client_hello( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process client hello" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write client hello" ) );
 
     if( ssl->handshake->state_local.cli_hello_out.preparation_done == 0 )
     {
@@ -833,7 +833,7 @@ static int ssl_process_client_hello( mbedtls_ssl_context *ssl )
 
 cleanup:
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process client hello" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write client hello" ) );
     return( ret );
 }
 
@@ -1670,7 +1670,7 @@ static int ssl_process_server_hello( mbedtls_ssl_context *ssl )
     int ret = 0;
     int msg_expect;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process server hello" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server hello" ) );
 
     /* Coordination step
      * - Fetch record
@@ -1716,7 +1716,7 @@ cleanup:
     /* In the MPS one would close the read-port here to
      * ensure there's no overlap of reading and writing. */
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process server hello" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse server hello" ) );
     return( ret );
 }
 
@@ -1809,8 +1809,6 @@ static int ssl_process_server_hello_coordinate( mbedtls_ssl_context *ssl )
 {
     int ret;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process server hello - coordinate" ) );
-
     if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {
         /* No alert on a read error. */
@@ -1873,7 +1871,6 @@ static int ssl_process_server_hello_coordinate( mbedtls_ssl_context *ssl )
         ret = SSL_SERVER_HELLO_COORDINATE_HELLO;
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process server hello - coordinate" ) );
     return( ret );
 }
 
@@ -1890,8 +1887,6 @@ static int ssl_process_server_hello_parse( mbedtls_ssl_context *ssl,
     int accept_comp;
 #endif
     const mbedtls_ssl_ciphersuite_t *suite_info;
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process server hello - parse" ) );
 
     if( buflen < 38 + mbedtls_ssl_hs_hdr_len( ssl ) ||
         buf[0] != MBEDTLS_SSL_HS_SERVER_HELLO )
@@ -2250,8 +2245,6 @@ static int ssl_process_server_hello_parse( mbedtls_ssl_context *ssl,
         }
     }
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process server hello - parse" ) );
-
     return( 0 );
 }
 
@@ -2266,8 +2259,6 @@ static int ssl_process_hello_verify_parse( mbedtls_ssl_context *ssl,
     const unsigned char *p = buf + mbedtls_ssl_hs_hdr_len( ssl );
     int major_ver, minor_ver;
     unsigned char cookie_len;
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse hello verify request" ) );
 
     /*
      * struct {
@@ -3146,7 +3137,7 @@ static int ssl_process_certificate_request( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process certificate request" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate request" ) );
 
     /* Coordination step
      * - Fetch record
@@ -3184,7 +3175,7 @@ cleanup:
     /* In the MPS one would close the read-port here to
      * ensure there's no overlap of reading and writing. */
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process certificate request" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate request" ) );
     return( ret );
 }
 
@@ -3365,7 +3356,7 @@ static int ssl_certificate_request_postprocess( mbedtls_ssl_context *ssl )
 static int ssl_process_server_hello_done( mbedtls_ssl_context *ssl )
 {
     int ret;
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process server hello done" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse server hello done" ) );
 
     /* Preparation & Coordination: None */
 
@@ -3438,7 +3429,7 @@ static int ssl_client_key_exchange_postprocess( mbedtls_ssl_context *ssl );
 static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process client key exchange" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write client key exchange" ) );
 
     if( ssl->handshake->state_local.cli_key_exch_out.preparation_done == 0 )
     {
@@ -3474,7 +3465,7 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
 
 cleanup:
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process client key exchange" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write client key exchange" ) );
     return( ret );
 }
 
@@ -3824,7 +3815,7 @@ static int ssl_certificate_verify_postprocess( mbedtls_ssl_context *ssl );
 static int ssl_process_certificate_verify( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process certificate verify" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
 
     if( ssl->handshake->state_local.crt_vrfy_out.preparation_done == 0 )
     {
@@ -3922,7 +3913,7 @@ static int ssl_process_certificate_verify( mbedtls_ssl_context *ssl )
 
 cleanup:
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process certificate verify" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write certificate verify" ) );
     return( ret );
 }
 

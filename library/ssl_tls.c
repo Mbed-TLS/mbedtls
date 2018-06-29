@@ -5908,8 +5908,7 @@ static int ssl_finished_in_parse( mbedtls_ssl_context *ssl,
 int mbedtls_ssl_process_finished_in( mbedtls_ssl_context *ssl )
 {
     int ret = 0;
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process finished" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse finished" ) );
 
     /* Preprocessing step: Compute handshake digest */
     MBEDTLS_SSL_PROC_CHK( ssl_finished_in_preprocess( ssl ) );
@@ -5949,14 +5948,12 @@ cleanup:
     /* In the MPS one would close the read-port here to
      * ensure there's no overlap of reading and writing. */
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process finished" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse finished" ) );
     return( ret );
 }
 
 static int ssl_finished_in_preprocess( mbedtls_ssl_context *ssl )
 {
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> process finished - preprocess" ) );
-
     /* There is currently no ciphersuite using another length with TLS 1.2 */
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
     if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
@@ -5977,7 +5974,6 @@ static int ssl_finished_in_preprocess( mbedtls_ssl_context *ssl )
             ssl->handshake->state_local.finished_in.digest_len );
 #endif
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process finished - preprocess" ) );
     return( 0 );
 }
 
@@ -5985,8 +5981,6 @@ static int ssl_finished_in_parse( mbedtls_ssl_context *ssl,
                                        const unsigned char* buf,
                                        size_t buflen )
 {
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse finished" ) );
-
     /* Structural validation */
     if( buflen != ssl->handshake->state_local.finished_in.digest_len )
     {
@@ -6006,8 +6000,6 @@ static int ssl_finished_in_parse( mbedtls_ssl_context *ssl,
         SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_FINISHED );
     }
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse finished" ) );
     return( 0 );
 }
 

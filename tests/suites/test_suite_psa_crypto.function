@@ -294,7 +294,6 @@ static int exercise_signature_key( psa_key_slot_t key,
     {
         TEST_ASSERT( psa_asymmetric_sign( key, alg,
                                           payload, payload_length,
-                                          NULL, 0,
                                           signature, sizeof( signature ),
                                           &signature_length ) == PSA_SUCCESS );
     }
@@ -307,7 +306,6 @@ static int exercise_signature_key( psa_key_slot_t key,
               PSA_ERROR_INVALID_SIGNATURE );
         TEST_ASSERT( psa_asymmetric_verify( key, alg,
                                             payload, payload_length,
-                                            NULL, 0,
                                             signature, signature_length ) ==
                      verify_status );
     }
@@ -965,7 +963,6 @@ void asymmetric_signature_key_policy( int policy_usage,
 
     status = psa_asymmetric_sign( key_slot, exercise_alg,
                                   payload, payload_length,
-                                  NULL, 0,
                                   signature, sizeof( signature ),
                                   &signature_length );
     if( policy_alg == exercise_alg &&
@@ -977,7 +974,6 @@ void asymmetric_signature_key_policy( int policy_usage,
     memset( signature, 0, sizeof( signature ) );
     status = psa_asymmetric_verify( key_slot, exercise_alg,
                                     payload, payload_length,
-                                    NULL, 0,
                                     signature, sizeof( signature ) );
     if( policy_alg == exercise_alg &&
         ( policy_usage & PSA_KEY_USAGE_VERIFY ) != 0 )
@@ -2011,7 +2007,6 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
     /* Perform the signature. */
     TEST_ASSERT( psa_asymmetric_sign( slot, alg,
                                       input_data->x, input_data->len,
-                                      NULL, 0,
                                       signature, signature_size,
                                       &signature_length ) == PSA_SUCCESS );
     /* Verify that the signature is what is expected. */
@@ -2061,7 +2056,6 @@ void sign_fail( int key_type_arg, data_t *key_data,
 
     actual_status = psa_asymmetric_sign( slot, alg,
                                          input_data->x, input_data->len,
-                                         NULL, 0,
                                          signature, signature_size,
                                          &signature_length );
     TEST_ASSERT( actual_status == expected_status );
@@ -2118,7 +2112,6 @@ void sign_verify( int key_type_arg, data_t *key_data,
     /* Perform the signature. */
     TEST_ASSERT( psa_asymmetric_sign( slot, alg,
                                       input_data->x, input_data->len,
-                                      NULL, 0,
                                       signature, signature_size,
                                       &signature_length ) == PSA_SUCCESS );
     /* Check that the signature length looks sensible. */
@@ -2129,7 +2122,6 @@ void sign_verify( int key_type_arg, data_t *key_data,
     TEST_ASSERT( psa_asymmetric_verify(
                      slot, alg,
                      input_data->x, input_data->len,
-                     NULL, 0,
                      signature, signature_length ) == PSA_SUCCESS );
 
     if( input_data->len != 0 )
@@ -2141,7 +2133,6 @@ void sign_verify( int key_type_arg, data_t *key_data,
         TEST_ASSERT( psa_asymmetric_verify(
                          slot, alg,
                          input_data->x, input_data->len,
-                         NULL, 0,
                          signature,
                          signature_length ) == PSA_ERROR_INVALID_SIGNATURE );
     }
@@ -2184,7 +2175,6 @@ void asymmetric_verify( int key_type_arg, data_t *key_data,
 
     TEST_ASSERT( psa_asymmetric_verify( slot, alg,
                                         hash_data->x, hash_data->len,
-                                        NULL, 0,
                                         signature_data->x,
                                         signature_data->len ) == PSA_SUCCESS );
 exit:
@@ -2225,7 +2215,6 @@ void asymmetric_verify_fail( int key_type_arg, data_t *key_data,
 
     actual_status = psa_asymmetric_verify( slot, alg,
                                            hash_data->x, hash_data->len,
-                                           NULL, 0,
                                            signature_data->x,
                                            signature_data->len );
 

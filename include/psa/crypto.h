@@ -2241,15 +2241,6 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
  *                              the type of \p key.
  * \param[in] hash              The hash or message to sign.
  * \param hash_length           Size of the \p hash buffer in bytes.
- * \param[in] salt              A salt or label, if supported by the
- *                              signature algorithm.
- *                              If the signature algorithm does not support
- *                              a salt, pass \c NULL.
- *                              If the signature algorithm supports an
- *                              optional salt and you do not want to pass
- *                              a salt, pass \c NULL.
- * \param salt_length           Size of the \p salt buffer in bytes.
- *                              If \p salt is \c NULL, pass 0.
  * \param[out] signature        Buffer where the signature is to be written.
  * \param signature_size        Size of the \p signature buffer in bytes.
  * \param[out] signature_length On success, the number of bytes
@@ -2274,8 +2265,6 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
                                  psa_algorithm_t alg,
                                  const uint8_t *hash,
                                  size_t hash_length,
-                                 const uint8_t *salt,
-                                 size_t salt_length,
                                  uint8_t *signature,
                                  size_t signature_size,
                                  size_t *signature_length);
@@ -2296,15 +2285,6 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
  * \param[in] hash          The hash or message whose signature is to be
  *                          verified.
  * \param hash_length       Size of the \p hash buffer in bytes.
- * \param[in] salt          A salt or label, if supported by the signature
- *                          algorithm.
- *                          If the signature algorithm does not support a
- *                          salt, pass \c NULL.
- *                          If the signature algorithm supports an optional
- *                          salt and you do not want to pass a salt,
- *                          pass \c NULL.
- * \param salt_length       Size of the \p salt buffer in bytes.
- *                          If \p salt is \c NULL, pass 0.
  * \param[in] signature     Buffer containing the signature to verify.
  * \param signature_length  Size of the \p signature buffer in bytes.
  *
@@ -2324,8 +2304,6 @@ psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
                                    psa_algorithm_t alg,
                                    const uint8_t *hash,
                                    size_t hash_length,
-                                   const uint8_t *salt,
-                                   size_t salt_length,
                                    const uint8_t *signature,
                                    size_t signature_length);
 

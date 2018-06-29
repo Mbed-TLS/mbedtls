@@ -1983,8 +1983,6 @@ psa_status_t psa_asymmetric_sign( psa_key_slot_t key,
                                   psa_algorithm_t alg,
                                   const uint8_t *hash,
                                   size_t hash_length,
-                                  const uint8_t *salt,
-                                  size_t salt_length,
                                   uint8_t *signature,
                                   size_t signature_size,
                                   size_t *signature_length )
@@ -1993,9 +1991,6 @@ psa_status_t psa_asymmetric_sign( psa_key_slot_t key,
     psa_status_t status;
 
     *signature_length = signature_size;
-
-    (void) salt;
-    (void) salt_length;
 
     status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_SIGN, alg );
     if( status != PSA_SUCCESS )
@@ -2058,16 +2053,11 @@ psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
                                     psa_algorithm_t alg,
                                     const uint8_t *hash,
                                     size_t hash_length,
-                                    const uint8_t *salt,
-                                    size_t salt_length,
                                     const uint8_t *signature,
                                     size_t signature_length )
 {
     key_slot_t *slot;
     psa_status_t status;
-
-    (void) salt;
-    (void) salt_length;
 
     status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_VERIFY, alg );
     if( status != PSA_SUCCESS )

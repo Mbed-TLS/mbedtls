@@ -567,9 +567,7 @@ psa_status_t psa_import_key( psa_key_slot_t key,
     }
     else
 #if defined(MBEDTLS_PK_PARSE_C)
-    if( type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
-        type == PSA_KEY_TYPE_RSA_KEYPAIR ||
-        PSA_KEY_TYPE_IS_ECC( type ) )
+    if( PSA_KEY_TYPE_IS_RSA( type ) || PSA_KEY_TYPE_IS_ECC( type ) )
     {
         int ret;
         mbedtls_pk_context pk;
@@ -584,8 +582,7 @@ psa_status_t psa_import_key( psa_key_slot_t key,
         {
 #if defined(MBEDTLS_RSA_C)
             case MBEDTLS_PK_RSA:
-                if( type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
-                    type == PSA_KEY_TYPE_RSA_KEYPAIR )
+                if( PSA_KEY_TYPE_IS_RSA( type ) )
                 {
                     mbedtls_rsa_context *rsa = mbedtls_pk_rsa( pk );
                     size_t bits = mbedtls_rsa_get_bitlen( rsa );
@@ -662,8 +659,7 @@ psa_status_t psa_destroy_key( psa_key_slot_t key )
     }
     else
 #if defined(MBEDTLS_RSA_C)
-    if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
-        slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
+    if( PSA_KEY_TYPE_IS_RSA( slot->type ) )
     {
         mbedtls_rsa_free( slot->data.rsa );
         mbedtls_free( slot->data.rsa );
@@ -694,8 +690,7 @@ static size_t psa_get_key_bits( const key_slot_t *slot )
     if( key_type_is_raw_bytes( slot->type ) )
         return( slot->data.raw.bytes * 8 );
 #if defined(MBEDTLS_RSA_C)
-    if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
-        slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
+    if( PSA_KEY_TYPE_IS_RSA( slot->type ) )
         return( mbedtls_rsa_get_bitlen( slot->data.rsa ) );
 #endif /* defined(MBEDTLS_RSA_C) */
 #if defined(MBEDTLS_ECP_C)
@@ -769,15 +764,13 @@ static  psa_status_t psa_internal_export_key( psa_key_slot_t key,
     else
     {
 #if defined(MBEDTLS_PK_WRITE_C)
-        if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
-            slot->type == PSA_KEY_TYPE_RSA_KEYPAIR ||
+        if( PSA_KEY_TYPE_IS_RSA( slot->type ) ||
             PSA_KEY_TYPE_IS_ECC( slot->type ) )
         {
             mbedtls_pk_context pk;
             int ret;
             mbedtls_pk_init( &pk );
-            if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
-                slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
+            if( PSA_KEY_TYPE_IS_RSA( slot->type ) )
             {
                 pk.pk_info = &mbedtls_rsa_info;
                 pk.pk_ctx = slot->data.rsa;
@@ -2064,8 +2057,7 @@ psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
         return( status );
 
 #if defined(MBEDTLS_RSA_C)
-    if( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR ||
-        slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY )
+    if( PSA_KEY_TYPE_IS_RSA( slot->type ) )
     {
         return( psa_rsa_verify( slot->data.rsa,
                                 alg,
@@ -2120,8 +2112,7 @@ psa_status_t psa_asymmetric_encrypt( psa_key_slot_t key,
         return( PSA_ERROR_INVALID_ARGUMENT );
 
 #if defined(MBEDTLS_RSA_C)
-    if( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR ||
-        slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY )
+    if( PSA_KEY_TYPE_IS_RSA( slot->type ) )
     {
         mbedtls_rsa_context *rsa = slot->data.rsa;
         int ret;

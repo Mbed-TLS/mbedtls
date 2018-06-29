@@ -433,7 +433,11 @@ typedef uint32_t psa_key_type_t;
 /** Whether a key type is an RSA key pair or public key. */
 #define PSA_KEY_TYPE_IS_RSA(type)                                       \
     (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_RSA_PUBLIC_KEY)
-/** Whether a key type is an elliptic curve key pair or public key. */
+/** Whether a key type is an RSA key (pair or public-only). */
+#define PSA_KEY_TYPE_IS_RSA(type)                                       \
+    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) ==                        \
+     PSA_KEY_TYPE_RSA_PUBLIC_KEY)
+/** Whether a key type is an elliptic curve key (pair or public-only). */
 #define PSA_KEY_TYPE_IS_ECC(type)                                       \
     ((PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) &                        \
       ~PSA_KEY_TYPE_ECC_CURVE_MASK) == PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE)

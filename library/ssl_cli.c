@@ -833,11 +833,6 @@ static int ssl_process_client_hello( mbedtls_ssl_context *ssl )
 
 cleanup:
 
-    /* Ignore error code for now */
-    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
-     *           was set from the low-level functions? */
-    mbedtls_ssl_handle_pending_alert( ssl );
-
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process client hello" ) );
     return( ret );
 }
@@ -1721,11 +1716,6 @@ cleanup:
     /* In the MPS one would close the read-port here to
      * ensure there's no overlap of reading and writing. */
 
-    /* Ignore error code for now */
-    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
-     *           was set from the low-level functions? */
-    mbedtls_ssl_handle_pending_alert( ssl );
-
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process server hello" ) );
     return( ret );
 }
@@ -1770,9 +1760,7 @@ static int ssl_process_server_hello_postprocess( mbedtls_ssl_context *ssl )
 
     if( handshake_failure == 1 )
     {
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE;
-
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 
@@ -1799,8 +1787,7 @@ static int ssl_process_server_hello_postprocess( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_derive_keys", ret );
 
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
     }
@@ -1856,8 +1843,7 @@ static int ssl_process_server_hello_coordinate( mbedtls_ssl_context *ssl )
 
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message - bad record type" ) );
 
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
         return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
@@ -1912,9 +1898,7 @@ static int ssl_process_server_hello_parse( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
 
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
-
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 
@@ -1946,9 +1930,7 @@ static int ssl_process_server_hello_parse( mbedtls_ssl_context *ssl,
                             ssl->major_ver, ssl->minor_ver,
                             ssl->conf->max_major_ver, ssl->conf->max_minor_ver ) );
 
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
-
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
     }
 
@@ -1968,9 +1950,7 @@ static int ssl_process_server_hello_parse( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
 
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
-
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 
@@ -1984,9 +1964,7 @@ static int ssl_process_server_hello_parse( mbedtls_ssl_context *ssl,
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
 
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
-
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
             return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
         }
     }
@@ -1998,9 +1976,7 @@ static int ssl_process_server_hello_parse( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
 
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
-
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 
@@ -2029,9 +2005,7 @@ static int ssl_process_server_hello_parse( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "server hello, bad compression: %d", comp ) );
 
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
-
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
@@ -2044,9 +2018,7 @@ static int ssl_process_server_hello_parse( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "ciphersuite info for %04x not found", i ) );
 
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR;
-
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
@@ -2093,9 +2065,7 @@ static int ssl_process_server_hello_parse( mbedtls_ssl_context *ssl,
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
 
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
-
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
             return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
         }
 
@@ -2110,8 +2080,7 @@ static int ssl_process_server_hello_parse( mbedtls_ssl_context *ssl,
     if( ssl_validate_ciphersuite( suite_info, ssl, ssl->minor_ver, ssl->minor_ver ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 
@@ -2125,9 +2094,7 @@ static int ssl_process_server_hello_parse( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
 
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
-
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
     ssl->session_negotiate->compression = comp;
@@ -2147,9 +2114,7 @@ static int ssl_process_server_hello_parse( mbedtls_ssl_context *ssl,
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
 
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
-
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
             return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
         }
 
@@ -2325,8 +2290,7 @@ static int ssl_process_hello_verify_parse( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server version" ) );
 
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_PROTOCOL_VERSION );
         return( MBEDTLS_ERR_SSL_BAD_HS_PROTOCOL_VERSION );
     }
 
@@ -2338,8 +2302,7 @@ static int ssl_process_hello_verify_parse( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 1,
             ( "cookie length does not match incoming message size" ) );
 
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
 
@@ -2786,15 +2749,14 @@ static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
         if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
-            return( ret );
+            goto cleanup;
         }
 
         if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
             ssl->in_msg[0]  != MBEDTLS_SSL_HS_SERVER_KEY_EXCHANGE )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
             ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
             goto cleanup;
         }
@@ -2813,11 +2775,6 @@ static int ssl_process_server_key_exchange( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_PROC_CHK( ssl_server_key_exchange_postprocess( ssl ) );
 
 cleanup:
-
-    /* Ignore error code for now */
-    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
-     *           was set from the low-level functions? */
-    mbedtls_ssl_handle_pending_alert( ssl );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse server key exchange" ) );
     return( ret );
@@ -2840,8 +2797,7 @@ static int ssl_server_key_exchange_prepare( mbedtls_ssl_context *ssl )
         if( ( ret = ssl_get_ecdh_params_from_cert( ssl ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "ssl_get_ecdh_params_from_cert", ret );
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
             return( ret );
         }
     }
@@ -2939,8 +2895,7 @@ static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
         if( ssl_parse_server_psk_hint( ssl, &p, end ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
             return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
         }
     } /* FALLTROUGH */
@@ -2962,8 +2917,7 @@ static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
         if( ssl_parse_server_dh_params( ssl, &p, end ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
             return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
         }
     }
@@ -2980,8 +2934,7 @@ static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
         if( ssl_parse_server_ecdh_params( ssl, &p, end ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
             return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
         }
     }
@@ -2997,8 +2950,7 @@ static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecjpake_read_round_two", ret );
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
             return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
         }
     }
@@ -3029,16 +2981,14 @@ static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
                                                &md_alg, &pk_alg ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-                ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-                ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
+                SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
                 return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
             }
 
             if( pk_alg != mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info ) )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-                ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-                ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER;
+                SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
                 return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
             }
         }
@@ -3068,8 +3018,7 @@ static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
         if( p > end - 2 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
             return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
         }
         sig_len = ( p[0] << 8 ) | p[1];
@@ -3078,8 +3027,7 @@ static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
         if( p != end - sig_len )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
             return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_KEY_EXCHANGE );
         }
 
@@ -3126,8 +3074,7 @@ static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
         if( ssl->session_negotiate->peer_cert == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "certificate required" ) );
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
             return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
         }
 
@@ -3137,16 +3084,14 @@ static int ssl_server_key_exchange_parse( mbedtls_ssl_context *ssl,
         if( ! mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk, pk_alg ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message" ) );
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
             return( MBEDTLS_ERR_SSL_PK_TYPE_MISMATCH );
         }
 
         if( ( ret = mbedtls_pk_verify( &ssl->session_negotiate->peer_cert->pk,
                                md_alg, hash, hashlen, p, sig_len ) ) != 0 )
         {
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECRYPT_ERROR );
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_verify", ret );
             return( ret );
         }
@@ -3239,11 +3184,6 @@ cleanup:
     /* In the MPS one would close the read-port here to
      * ensure there's no overlap of reading and writing. */
 
-    /* Ignore error code for now */
-    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
-     *           was set from the low-level functions? */
-    mbedtls_ssl_handle_pending_alert( ssl );
-
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process certificate request" ) );
     return( ret );
 }
@@ -3274,8 +3214,7 @@ static int ssl_certificate_request_coordinate( mbedtls_ssl_context *ssl )
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
         return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
@@ -3327,8 +3266,7 @@ static int ssl_certificate_request_parse( mbedtls_ssl_context *ssl,
     if( buflen <= hs_hdr_len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
     }
 
@@ -3348,8 +3286,7 @@ static int ssl_certificate_request_parse( mbedtls_ssl_context *ssl,
     if( buflen <= hs_hdr_len + 2 + n )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
     }
 
@@ -3379,8 +3316,7 @@ static int ssl_certificate_request_parse( mbedtls_ssl_context *ssl,
         if( buflen <= hs_hdr_len + 3 + n + sig_alg_len )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
         }
 
@@ -3405,8 +3341,7 @@ static int ssl_certificate_request_parse( mbedtls_ssl_context *ssl,
     if( buflen != hs_hdr_len + 3 + n )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );
     }
 
@@ -3439,7 +3374,7 @@ static int ssl_process_server_hello_done( mbedtls_ssl_context *ssl )
     if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
-        return( ret );
+        goto cleanup;
     }
 
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
@@ -3452,9 +3387,9 @@ static int ssl_process_server_hello_done( mbedtls_ssl_context *ssl )
         ssl->in_msg[0] != MBEDTLS_SSL_HS_SERVER_HELLO_DONE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello done message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE );
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+        ret = MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO_DONE;
+        goto cleanup;
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -3463,11 +3398,12 @@ static int ssl_process_server_hello_done( mbedtls_ssl_context *ssl )
 #endif
 
     /* Postprocessing: Update state */
-
     mbedtls_ssl_handshake_set_state( ssl, MBEDTLS_SSL_CLIENT_CERTIFICATE );
 
+cleanup:
+
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse server hello done" ) );
-    return( 0 );
+    return( ret );
 }
 
 /*
@@ -3537,11 +3473,6 @@ static int ssl_process_client_key_exchange( mbedtls_ssl_context *ssl )
      *       this function again on retry. */
 
 cleanup:
-
-    /* Ignore error code for now */
-    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
-     *           was set from the low-level functions? */
-    mbedtls_ssl_handle_pending_alert( ssl );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process client key exchange" ) );
     return( ret );
@@ -3991,11 +3922,6 @@ static int ssl_process_certificate_verify( mbedtls_ssl_context *ssl )
 
 cleanup:
 
-    /* Ignore error code for now */
-    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
-     *           was set from the low-level functions? */
-    mbedtls_ssl_handle_pending_alert( ssl );
-
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process certificate verify" ) );
     return( ret );
 }
@@ -4185,14 +4111,13 @@ static int ssl_process_new_session_ticket( mbedtls_ssl_context *ssl )
     if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
-        return( ret );
+        goto cleanup;
     }
 
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad new session ticket message" ) );
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
         ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
         goto cleanup;
     }
@@ -4200,8 +4125,7 @@ static int ssl_process_new_session_ticket( mbedtls_ssl_context *ssl )
     if( ssl->in_msg[0] != MBEDTLS_SSL_HS_NEW_SESSION_TICKET )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad new session ticket message" ) );
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         ret = MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET;
         goto cleanup;
     }
@@ -4212,11 +4136,6 @@ static int ssl_process_new_session_ticket( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_PROC_CHK( ssl_new_session_ticket_postprocess( ssl ) );
 
 cleanup:
-
-    /* Ignore error code for now */
-    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
-     *           was set from the low-level functions? */
-    mbedtls_ssl_handle_pending_alert( ssl );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse server key exchange" ) );
     return( ret );
@@ -4244,8 +4163,7 @@ static int ssl_new_session_ticket_parse( mbedtls_ssl_context *ssl,
     if( buflen < 6 + mbedtls_ssl_hs_hdr_len( ssl ) )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad new session ticket message" ) );
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET );
     }
 
@@ -4263,8 +4181,7 @@ static int ssl_new_session_ticket_parse( mbedtls_ssl_context *ssl,
     if( ticket_len != buflen )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad new session ticket message" ) );
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_NEW_SESSION_TICKET );
     }
 
@@ -4286,8 +4203,7 @@ static int ssl_new_session_ticket_parse( mbedtls_ssl_context *ssl,
     if( ( ticket = mbedtls_calloc( 1, ticket_len ) ) == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "ticket alloc failed" ) );
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 
@@ -4455,6 +4371,10 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
    }
 
+    /* Ignore error code for now to not shadow the original failure reason. */
+    /* QUESTION: Should we default to sending INTERNAL_ERROR if ret != 0
+     *           but no alert is pending? */
+    mbedtls_ssl_handle_pending_alert( ssl );
     return( ret );
 }
 #endif /* MBEDTLS_SSL_CLI_C */

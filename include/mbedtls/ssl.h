@@ -878,6 +878,11 @@ struct mbedtls_ssl_context
     int keep_current_message;   /*!< drop or reuse current message
                                      on next call to record layer? */
 
+    /* The following two variables indicate if and, if yes,
+     * what kind of alert or warning is pending to be sent.
+     * They should not be set manually but through the macros
+     * SSL_PEND_FATAL_ALERT( TYPE ) and SSL_PEND_WARNING( TYPE )
+     * defined below. */
     unsigned char send_alert;   /*!< Determines if either a fatal error
                                      or a warning should be sent. Values:
                                      - \c 0 if no alert is to be sent.
@@ -964,6 +969,20 @@ extern int (*mbedtls_ssl_hw_record_write)(mbedtls_ssl_context *ssl);
 extern int (*mbedtls_ssl_hw_record_read)(mbedtls_ssl_context *ssl);
 extern int (*mbedtls_ssl_hw_record_finish)(mbedtls_ssl_context *ssl);
 #endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
+
+#define SSL_PEND_FATAL_ALERT( type )                                    \
+    do                                                                  \
+    {                                                                   \
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;                \
+        ssl->alert_type = type;                                         \
+    } while( 0 )
+
+#define SSL_PEND_WARNING( type )                                        \
+    do                                                                  \
+    {                                                                   \
+        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_WARNING;              \
+        ssl->alert_type = type;                                         \
+    } while( 0 )
 
 /**
  * \brief Returns the list of ciphersuites supported by the SSL/TLS module.

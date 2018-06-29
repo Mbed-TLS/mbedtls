@@ -4395,11 +4395,6 @@ int mbedtls_ssl_process_write_certificate( mbedtls_ssl_context *ssl )
 
 cleanup:
 
-    /* Ignore error code for now */
-    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
-     *           was set from the low-level functions? */
-    mbedtls_ssl_handle_pending_alert( ssl );
-
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write certificate" ) );
     return( ret );
 }
@@ -4434,8 +4429,7 @@ static int ssl_write_certificate_coordinate( mbedtls_ssl_context *ssl )
         if( mbedtls_ssl_own_cert( ssl )  == NULL &&
             ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
         {
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_WARNING;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_NO_CERT;
+            SSL_PEND_WARNING( MBEDTLS_SSL_ALERT_MSG_NO_CERT );
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "got no certificate to send" ) );
             return( SSL_WRITE_CERTIFICATE_SKIP );
         }
@@ -4589,7 +4583,7 @@ int mbedtls_ssl_process_read_certificate( mbedtls_ssl_context *ssl )
             /* mbedtls_ssl_read_record may have sent an alert already. We
                let it decide whether to alert. */
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
-            return( ret );
+            goto cleanup;
         }
 
         if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
@@ -4614,8 +4608,7 @@ int mbedtls_ssl_process_read_certificate( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_SRV_C      */
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-                ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-                ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE;
+                SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
                 ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
                 goto cleanup;
             }
@@ -4650,11 +4643,6 @@ int mbedtls_ssl_process_read_certificate( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_PROC_CHK( ssl_read_certificate_postprocess( ssl ) );
 
 cleanup:
-
-    /* Ignore error code for now */
-    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
-     *           was set from the low-level functions? */
-    mbedtls_ssl_handle_pending_alert( ssl );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );
     return( ret );
@@ -4720,8 +4708,7 @@ static int ssl_read_certificate_parse( mbedtls_ssl_context *ssl,
     if( buflen < hs_hdr_len + 3 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
     }
 
@@ -4734,8 +4721,7 @@ static int ssl_read_certificate_parse( mbedtls_ssl_context *ssl,
     if( buf[0] != 0 || buflen != n + 3 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
     }
 
@@ -4763,8 +4749,7 @@ static int ssl_read_certificate_parse( mbedtls_ssl_context *ssl,
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
                                             sizeof( mbedtls_x509_crt ) ) );
-                ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-                ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR;
+                SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
                 return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
             }
             mbedtls_x509_crt_init( ssl->session_negotiate->peer_cert );
@@ -4773,8 +4758,7 @@ static int ssl_read_certificate_parse( mbedtls_ssl_context *ssl,
         if( buflen < 3 || buf[0] != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
         }
 
@@ -4786,8 +4770,7 @@ static int ssl_read_certificate_parse( mbedtls_ssl_context *ssl,
         if( n < 128 || n > buflen )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
         }
 
@@ -4802,17 +4785,16 @@ static int ssl_read_certificate_parse( mbedtls_ssl_context *ssl,
             break;
 
         case MBEDTLS_ERR_X509_ALLOC_FAILED:
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
             goto crt_parse_der_failed;
 
         case MBEDTLS_ERR_X509_UNKNOWN_VERSION:
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT );
             goto crt_parse_der_failed;
 
         default:
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_BAD_CERT;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_BAD_CERT );
         crt_parse_der_failed:
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
             MBEDTLS_SSL_DEBUG_RET( 1, " mbedtls_x509_crt_parse_der", ret );
             return( ret );
         }
@@ -4882,8 +4864,7 @@ static int ssl_read_certificate_validate( mbedtls_ssl_context *ssl )
         if( ssl->session->peer_cert == NULL )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "new server cert during renegotiation" ) );
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED );
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
         }
 
@@ -4894,8 +4875,8 @@ static int ssl_read_certificate_validate( mbedtls_ssl_context *ssl )
                     ssl->session->peer_cert->raw.len ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "server cert changed during renegotiation" ) );
-            ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED;
+
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED );
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
         }
     }
@@ -4996,28 +4977,27 @@ static int ssl_read_certificate_validate( mbedtls_ssl_context *ssl )
            Pick one and send the corresponding alert. Which alert to send
            may be a subject of debate in some cases. */
         if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_OTHER )
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED );
         else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_CN_MISMATCH )
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_BAD_CERT;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_BAD_CERT );
         else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_KEY_USAGE )
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT );
         else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_EXT_KEY_USAGE )
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT );
         else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_NS_CERT_TYPE )
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT );
         else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_BAD_PK )
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT );
         else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_BAD_KEY )
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT );
         else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_EXPIRED )
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_CERT_EXPIRED;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_CERT_EXPIRED );
         else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_REVOKED )
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_CERT_REVOKED;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_CERT_REVOKED );
         else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_NOT_TRUSTED )
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA );
         else
-            ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_CERT_UNKNOWN;
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
+            SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_CERT_UNKNOWN );
     }
 
 #if defined(MBEDTLS_DEBUG_C)
@@ -5110,15 +5090,10 @@ int mbedtls_ssl_process_out_ccs( mbedtls_ssl_context *ssl )
     if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
-        return( ret );
+        goto cleanup;
     }
 
 cleanup:
-
-    /* Ignore error code for now */
-    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
-     *           was set from the low-level functions? */
-    mbedtls_ssl_handle_pending_alert( ssl );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write change cipher spec" ) );
     return( ret );
@@ -5168,14 +5143,13 @@ int mbedtls_ssl_process_in_ccs( mbedtls_ssl_context *ssl )
     if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
-        return( ret );
+        goto cleanup;
     }
 
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad change cipher spec message" ) );
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
         ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
         goto cleanup;
     }
@@ -5183,8 +5157,7 @@ int mbedtls_ssl_process_in_ccs( mbedtls_ssl_context *ssl )
     if( ssl->in_msglen != 1 || ssl->in_msg[0] != 1 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad change cipher spec message" ) );
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         ret = MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC;
         goto cleanup;
     }
@@ -5192,11 +5165,6 @@ int mbedtls_ssl_process_in_ccs( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_PROC_CHK( ssl_process_in_ccs_postprocess( ssl ) );
 
 cleanup:
-
-    /* Ignore error code for now */
-    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
-     *           was set from the low-level functions? */
-    mbedtls_ssl_handle_pending_alert( ssl );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse change cipher spec" ) );
     return( ret );
@@ -5756,11 +5724,6 @@ int mbedtls_ssl_process_finished_out( mbedtls_ssl_context *ssl )
 
 cleanup:
 
-    /* Ignore error code for now */
-    /* QUESTION: Should we default to INTERNAL_ERROR if no error code
-     *           was set from the low-level functions? */
-    mbedtls_ssl_handle_pending_alert( ssl );
-
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write certificate" ) );
     return( ret );
 }
@@ -5974,7 +5937,7 @@ int mbedtls_ssl_process_finished_in( mbedtls_ssl_context *ssl )
     if( ( ret = mbedtls_ssl_read_record( ssl ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
-        return( ret );
+        goto cleanup;
     }
 
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
@@ -5982,8 +5945,7 @@ int mbedtls_ssl_process_finished_in( mbedtls_ssl_context *ssl )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
 
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
         ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
         goto cleanup;
     }
@@ -6005,9 +5967,6 @@ cleanup:
 
     /* In the MPS one would close the read-port here to
      * ensure there's no overlap of reading and writing. */
-
-    /* Ignore error code for now */
-    mbedtls_ssl_handle_pending_alert( ssl );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= process finished" ) );
     return( ret );
@@ -6052,8 +6011,7 @@ static int ssl_finished_in_parse( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
 
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_FINISHED );
     }
 
@@ -6064,8 +6022,7 @@ static int ssl_finished_in_parse( mbedtls_ssl_context *ssl,
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad finished message" ) );
 
-        ssl->send_alert = MBEDTLS_SSL_ALERT_LEVEL_FATAL;
-        ssl->alert_type = MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR;
+        SSL_PEND_FATAL_ALERT( MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
         return( MBEDTLS_ERR_SSL_BAD_HS_FINISHED );
     }
 

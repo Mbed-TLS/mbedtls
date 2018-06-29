@@ -265,7 +265,7 @@ int mbedtls_writer_get( mbedtls_writer *wr, size_t desired,
         ql     = wr->queue_len;
 
         /* Out buffer is too small. Attempt to serve from queue if it is
-         * available and larger than than the remaining output buffer. */
+         * available and larger than the remaining output buffer. */
         if( queue != NULL && ql > or )
         {
             int overflow;

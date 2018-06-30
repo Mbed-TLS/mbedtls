@@ -2237,6 +2237,7 @@ void asymmetric_encrypt( int key_type_arg,
                          data_t *key_data,
                          int alg_arg,
                          data_t *input_data,
+                         data_t *label,
                          int expected_output_length_arg,
                          int expected_status_arg )
 {
@@ -2273,11 +2274,26 @@ void asymmetric_encrypt( int key_type_arg,
     /* Encrypt the input */
     actual_status = psa_asymmetric_encrypt( slot, alg,
                                             input_data->x, input_data->len,
-                                            NULL, 0,
+                                            label->x, label->len,
                                             output, output_size,
                                             &output_length );
     TEST_ASSERT( actual_status == expected_status );
     TEST_ASSERT( output_length == expected_output_length );
+
+    /* If the label is empty, the test framework puts a non-null pointer
+     * in label->x. Test that a null pointer works as well. */
+    if( label->len == 0 )
+    {
+        output_length = ~0;
+        memset( output, 0, output_size );
+        actual_status = psa_asymmetric_encrypt( slot, alg,
+                                                input_data->x, input_data->len,
+                                                NULL, label->len,
+                                                output, output_size,
+                                                &output_length );
+        TEST_ASSERT( actual_status == expected_status );
+        TEST_ASSERT( output_length == expected_output_length );
+    }
 
 exit:
     psa_destroy_key( slot );
@@ -2287,8 +2303,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void asymmetric_encrypt_decrypt( int key_type_arg, data_t *key_data,
-                                 int alg_arg, data_t *input_data )
+void asymmetric_encrypt_decrypt( int key_type_arg,
+                                 data_t *key_data,
+                                 int alg_arg,
+                                 data_t *input_data,
+                                 data_t *label )
 {
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;
@@ -2330,13 +2349,13 @@ void asymmetric_encrypt_decrypt( int key_type_arg, data_t *key_data,
      * part of encryption process which prevents using fixed vectors. */
     TEST_ASSERT( psa_asymmetric_encrypt( slot, alg,
                                          input_data->x, input_data->len,
-                                         NULL, 0,
+                                         label->x, label->len,
                                          output, output_size,
                                          &output_length ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_asymmetric_decrypt( slot, alg,
                                          output, output_length,
-                                         NULL, 0,
+                                         label->x, label->len,
                                          output2, output2_size,
                                          &output2_length ) == PSA_SUCCESS );
     TEST_ASSERT( memcmp( input_data->x, output2,
@@ -2351,8 +2370,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void asymmetric_decrypt( int key_type_arg, data_t *key_data,
-                         int alg_arg, data_t *input_data,
+void asymmetric_decrypt( int key_type_arg,
+                         data_t *key_data,
+                         int alg_arg,
+                         data_t *input_data,
+                         data_t *label,
                          data_t *expected_data )
 {
     int slot = 1;
@@ -2386,12 +2408,28 @@ void asymmetric_decrypt( int key_type_arg, data_t *key_data,
 
     TEST_ASSERT( psa_asymmetric_decrypt( slot, alg,
                                          input_data->x, input_data->len,
-                                         NULL, 0,
+                                         label->x, label->len,
                                          output,
                                          output_size,
                                          &output_length ) == PSA_SUCCESS );
     TEST_ASSERT( expected_data->len == output_length );
     TEST_ASSERT( memcmp( expected_data->x, output, output_length ) == 0 );
+
+    /* If the label is empty, the test framework puts a non-null pointer
+     * in label->x. Test that a null pointer works as well. */
+    if( label->len == 0 )
+    {
+        output_length = ~0;
+        memset( output, 0, output_size );
+        TEST_ASSERT( psa_asymmetric_decrypt( slot, alg,
+                                             input_data->x, input_data->len,
+                                             NULL, label->len,
+                                             output,
+                                             output_size,
+                                             &output_length ) == PSA_SUCCESS );
+        TEST_ASSERT( expected_data->len == output_length );
+        TEST_ASSERT( memcmp( expected_data->x, output, output_length ) == 0 );
+    }
 
 exit:
     psa_destroy_key( slot );
@@ -2401,8 +2439,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void asymmetric_decrypt_fail( int key_type_arg, data_t *key_data,
-                              int alg_arg, data_t *input_data,
+void asymmetric_decrypt_fail( int key_type_arg,
+                              data_t *key_data,
+                              int alg_arg,
+                              data_t *input_data,
+                              data_t *label,
                               int expected_status_arg  )
 {
     int slot = 1;
@@ -2436,10 +2477,24 @@ void asymmetric_decrypt_fail( int key_type_arg, data_t *key_data,
 
     actual_status = psa_asymmetric_decrypt( slot, alg,
                                             input_data->x, input_data->len,
-                                            NULL, 0,
+                                            label->x, label->len,
                                             output, output_size,
                                             &output_length );
     TEST_ASSERT( actual_status == expected_status );
+
+    /* If the label is empty, the test framework puts a non-null pointer
+     * in label->x. Test that a null pointer works as well. */
+    if( label->len == 0 )
+    {
+        output_length = ~0;
+        memset( output, 0, output_size );
+        actual_status = psa_asymmetric_decrypt( slot, alg,
+                                                input_data->x, input_data->len,
+                                                NULL, label->len,
+                                                output, output_size,
+                                                &output_length );
+        TEST_ASSERT( actual_status == expected_status );
+    }
 
 exit:
     psa_destroy_key( slot );

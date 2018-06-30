@@ -514,7 +514,10 @@ psa_status_t psa_import_key( psa_key_slot_t key,
                     mbedtls_rsa_context *rsa = mbedtls_pk_rsa( pk );
                     size_t bits = mbedtls_rsa_get_bitlen( rsa );
                     if( bits > PSA_VENDOR_RSA_MAX_KEY_BITS )
-                        return( PSA_ERROR_NOT_SUPPORTED );
+                    {
+                        status = PSA_ERROR_NOT_SUPPORTED;
+                        break;
+                    }
                     slot->data.rsa = rsa;
                 }
                 else

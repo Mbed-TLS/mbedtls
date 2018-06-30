@@ -2312,25 +2312,19 @@ void asymmetric_encrypt_decrypt( int key_type_arg,
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
+    size_t key_bits;
     unsigned char *output = NULL;
-    size_t output_size = 0;
-    size_t output_length = 0;
+    size_t output_size;
+    size_t output_length = ~0;
     unsigned char *output2 = NULL;
-    size_t output2_size = 0;
-    size_t output2_length = 0;
+    size_t output2_size;
+    size_t output2_length = ~0;
     psa_key_policy_t policy;
 
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( input_data != NULL );
     TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key_data->len ) );
     TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input_data->len ) );
-
-    output_size = key_data->len;
-    output2_size = output_size;
-    output = mbedtls_calloc( 1, output_size );
-    TEST_ASSERT( output != NULL );
-    output2 = mbedtls_calloc( 1, output2_size );
-    TEST_ASSERT( output2 != NULL );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
@@ -2344,6 +2338,18 @@ void asymmetric_encrypt_decrypt( int key_type_arg,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
 
+
+    /* Determine the maximum ciphertext length */
+    TEST_ASSERT( psa_get_key_information( slot,
+                                          NULL,
+                                          &key_bits ) == PSA_SUCCESS );
+    output_size = PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE( key_type, key_bits, alg );
+    output = mbedtls_calloc( 1, output_size );
+    TEST_ASSERT( output != NULL );
+    output2_size = input_data->len;
+    output2 = mbedtls_calloc( 1, output2_size );
+    TEST_ASSERT( output2 != NULL );
+
     /* We test encryption by checking that encrypt-then-decrypt gives back
      * the original plaintext because of the non-optional random
      * part of encryption process which prevents using fixed vectors. */
@@ -2352,12 +2358,16 @@ void asymmetric_encrypt_decrypt( int key_type_arg,
                                          label->x, label->len,
                                          output, output_size,
                                          &output_length ) == PSA_SUCCESS );
+    /* We don't know what ciphertext length to expect, but check that
+     * it looks sensible. */
+    TEST_ASSERT( output_length <= output_size );
 
     TEST_ASSERT( psa_asymmetric_decrypt( slot, alg,
                                          output, output_length,
                                          label->x, label->len,
                                          output2, output2_size,
                                          &output2_length ) == PSA_SUCCESS );
+    TEST_ASSERT( output2_length == input_data->len );
     TEST_ASSERT( memcmp( input_data->x, output2,
                          input_data->len ) == 0 );
 
@@ -2382,7 +2392,7 @@ void asymmetric_decrypt( int key_type_arg,
     psa_algorithm_t alg = alg_arg;
     unsigned char *output = NULL;
     size_t output_size = 0;
-    size_t output_length = 0;
+    size_t output_length = ~0;
     psa_key_policy_t policy;
 
     TEST_ASSERT( key_data != NULL );
@@ -2451,7 +2461,7 @@ void asymmetric_decrypt_fail( int key_type_arg,
     psa_algorithm_t alg = alg_arg;
     unsigned char *output = NULL;
     size_t output_size = 0;
-    size_t output_length = 0;
+    size_t output_length = ~0;
     psa_status_t actual_status;
     psa_status_t expected_status = expected_status_arg;
     psa_key_policy_t policy;
@@ -2481,6 +2491,7 @@ void asymmetric_decrypt_fail( int key_type_arg,
                                             output, output_size,
                                             &output_length );
     TEST_ASSERT( actual_status == expected_status );
+    TEST_ASSERT( output_length <= output_size );
 
     /* If the label is empty, the test framework puts a non-null pointer
      * in label->x. Test that a null pointer works as well. */
@@ -2494,6 +2505,7 @@ void asymmetric_decrypt_fail( int key_type_arg,
                                                 output, output_size,
                                                 &output_length );
         TEST_ASSERT( actual_status == expected_status );
+        TEST_ASSERT( output_length <= output_size );
     }
 
 exit:

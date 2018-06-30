@@ -2125,12 +2125,10 @@ psa_status_t psa_asymmetric_encrypt( psa_key_slot_t key,
     key_slot_t *slot;
     psa_status_t status;
 
-    /* Only used by some algorithms which may or may not be included in the
-     * build-time configuration use the salt. */
-    (void) salt;
-    (void) salt_length;
-
     *output_length = 0;
+
+    if( ! PSA_ALG_IS_RSA_OAEP( alg ) && salt_length != 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
     if( status != PSA_SUCCESS )
@@ -2201,12 +2199,10 @@ psa_status_t psa_asymmetric_decrypt( psa_key_slot_t key,
     key_slot_t *slot;
     psa_status_t status;
 
-    /* Only used by some algorithms which may or may not be included in the
-     * build-time configuration use the salt. */
-    (void) salt;
-    (void) salt_length;
-
     *output_length = 0;
+
+    if( ! PSA_ALG_IS_RSA_OAEP( alg ) && salt_length != 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_DECRYPT, alg );
     if( status != PSA_SUCCESS )

@@ -464,6 +464,8 @@ Bugfix
    * In mbedtls_entropy_free(), properly free the message digest context.
    * Fix status handshake status message in programs/ssl/dtls_client.c. Found
      and fixed by muddog.
+   * Fix broken check for TLSv1.2 prerequisites, requires SHA256, SHA512
+     to be compiled as a prerequisite of TLSv1.2, SHA1 is not a requirement.
 
 Changes
    * Extend cert_write example program by options to set the certificate version

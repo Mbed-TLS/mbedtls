@@ -511,8 +511,8 @@
 #error "MBEDTLS_SSL_PROTO_TLS1_1 defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && ( !defined(MBEDTLS_SHA1_C) &&     \
-    !defined(MBEDTLS_SHA256_C) && !defined(MBEDTLS_SHA512_C) )
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && ( !defined(MBEDTLS_SHA256_C) ||     \
+    !defined(MBEDTLS_SHA512_C) )
 #error "MBEDTLS_SSL_PROTO_TLS1_2 defined, but not all prerequisites"
 #endif
 

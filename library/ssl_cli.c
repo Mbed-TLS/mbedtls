@@ -4122,6 +4122,7 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
         else
         {
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip write certificate verify" ) );
             ssl->state++;
             return( 0 );
 #if defined(MBEDTLS_SSL_DTLS_SRTP)

@@ -46,7 +46,9 @@ static int asn1_write_10x( unsigned char **p,
 {
     int ret;
     int len = bits / 8 + 1;
-    if( x >= 1 << bits )
+    if( bits == 0 )
+        return( MBEDTLS_ERR_ASN1_INVALID_DATA );
+    if( bits <= 8 && x >= 1 << ( bits - 1 ) )
         return( MBEDTLS_ERR_ASN1_INVALID_DATA );
     if( *p < start || *p - start < (ssize_t) len )
         return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
@@ -343,6 +345,36 @@ static int exercise_asymmetric_encryption_key( psa_key_slot_t key,
 exit:
     return( 0 );
 }
+
+static int exercise_key( psa_key_slot_t slot,
+                         psa_key_usage_t usage,
+                         psa_algorithm_t alg )
+{
+    int ok;
+    if( alg == 0 )
+        ok = 1; /* If no algorihm, do nothing (used for raw data "keys"). */
+    else if( PSA_ALG_IS_MAC( alg ) )
+        ok = exercise_mac_key( slot, usage, alg );
+    else if( PSA_ALG_IS_CIPHER( alg ) )
+        ok = exercise_cipher_key( slot, usage, alg );
+    else if( PSA_ALG_IS_AEAD( alg ) )
+        ok = exercise_aead_key( slot, usage, alg );
+    else if( PSA_ALG_IS_SIGN( alg ) )
+        ok = exercise_signature_key( slot, usage, alg );
+    else if( PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) )
+        ok = exercise_asymmetric_encryption_key( slot, usage, alg );
+    else
+    {
+        char message[40];
+        mbedtls_snprintf( message, sizeof( message ),
+                          "No code to exercise alg=0x%08lx",
+                          (unsigned long) alg );
+        test_fail( message, __LINE__, __FILE__ );
+        ok = 0;
+    }
+    return( ok );
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -638,16 +670,8 @@ void import_and_exercise_key( data_t *data,
     TEST_ASSERT( got_bits == bits );
 
     /* Do something with the key according to its type and permitted usage. */
-    if( PSA_ALG_IS_MAC( alg ) )
-        exercise_mac_key( slot, usage, alg );
-    else if( PSA_ALG_IS_CIPHER( alg ) )
-        exercise_cipher_key( slot, usage, alg );
-    else if( PSA_ALG_IS_AEAD( alg ) )
-        exercise_aead_key( slot, usage, alg );
-    else if( PSA_ALG_IS_SIGN( alg ) )
-        exercise_signature_key( slot, usage, alg );
-    else if( PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) )
-        exercise_asymmetric_encryption_key( slot, usage, alg );
+    if( ! exercise_key( slot, usage, alg ) )
+        goto exit;
 
 exit:
     psa_destroy_key( slot );
@@ -2258,16 +2282,8 @@ void generate_key( int type_arg,
     }
 
     /* Do something with the key according to its type and permitted usage. */
-    if( PSA_ALG_IS_MAC( alg ) )
-        exercise_mac_key( slot, usage, alg );
-    else if( PSA_ALG_IS_CIPHER( alg ) )
-        exercise_cipher_key( slot, usage, alg );
-    else if( PSA_ALG_IS_AEAD( alg ) )
-        exercise_aead_key( slot, usage, alg );
-    else if( PSA_ALG_IS_SIGN( alg ) )
-        exercise_signature_key( slot, usage, alg );
-    else if( PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) )
-        exercise_asymmetric_encryption_key( slot, usage, alg );
+    if( ! exercise_key( slot, usage, alg ) )
+        goto exit;
 
 exit:
     psa_destroy_key( slot );

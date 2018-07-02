@@ -1510,10 +1510,6 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
 {
     int ret = 0;
     psa_status_t status = PSA_SUCCESS;
-    if( ! operation->key_set )
-        return( PSA_ERROR_BAD_STATE );
-    if( operation->iv_required && ! operation->iv_set )
-        return( PSA_ERROR_BAD_STATE );
 
     /* Fill the output buffer with something that isn't a valid mac
      * (barring an attack on the mac and deliberately-crafted input),
@@ -1523,6 +1519,11 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
      * call to memset would have undefined behavior. */
     if( mac_size != 0 )
         memset( mac, '!', mac_size );
+
+    if( ! operation->key_set )
+        return( PSA_ERROR_BAD_STATE );
+    if( operation->iv_required && ! operation->iv_set )
+        return( PSA_ERROR_BAD_STATE );
 
     if( mac_size < operation->mac_size )
         return( PSA_ERROR_BUFFER_TOO_SMALL );

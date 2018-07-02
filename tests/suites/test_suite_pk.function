@@ -137,7 +137,8 @@ void pk_rsa_verify_test_vec( char *message_hex_string, int digest,
 
     rs_ctx = &ctx;
     mbedtls_pk_restart_init( rs_ctx );
-    mbedtls_ecp_set_max_ops( 42 );
+    // this setting would ensure restart would happen if ECC was used
+    mbedtls_ecp_set_max_ops( 1 );
 #endif
 
     mbedtls_pk_init( &pk );
@@ -385,6 +386,9 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
 
     rs_ctx = &ctx;
     mbedtls_pk_restart_init( rs_ctx );
+    /* This value is large enough that the operation will complete in one run.
+     * See comments at the top of ecp_test_vect_restart in
+     * test_suite_ecp.function for estimates of operation counts. */
     mbedtls_ecp_set_max_ops( 42000 );
 #endif
 

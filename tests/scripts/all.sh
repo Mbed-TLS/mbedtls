@@ -228,6 +228,14 @@ check_tools()
     done
 }
 
+check_headers_in_cpp () {
+    ls include/mbedtls >headers.txt
+    <programs/test/cpp_dummy_build.cpp sed -n 's/"$//; s!^#include "mbedtls/!!p' |
+    sort |
+    diff headers.txt -
+    rm headers.txt
+}
+
 while [ $# -gt 0 ]; do
     case "$1" in
         --armcc) RUN_ARMCC=1;;
@@ -581,13 +589,15 @@ msg "test/build: key-exchanges (gcc)" # ~ 1 min
 cleanup
 record_status tests/scripts/key-exchanges.pl
 
-msg "build: Unix make, gcc and g++ test" # ~ 30s
-cleanup
-make TEST_CPP=1
-
 msg "build: Unix make, -Os (gcc)" # ~ 30s
 cleanup
 make CC=gcc CFLAGS='-Werror -Wall -Wextra -Os'
+
+msg "test: verify header list in cpp_dummy_build.cpp"
+record_status check_headers_in_cpp
+
+msg "build: Unix make, incremental g++"
+make TEST_CPP=1
 
 # Full configuration build, without platform support, file IO and net sockets.
 # This should catch missing mbedtls_printf definitions, and by disabling file

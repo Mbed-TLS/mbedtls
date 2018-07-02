@@ -2010,7 +2010,7 @@ static int x509_crt_find_parent_in(
 {
     int ret;
     mbedtls_x509_crt *parent, *fallback_parent;
-    int signature_is_good, fallback_sign_good;
+    int signature_is_good, fallback_signature_is_good;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     /* did we have something in progress? */
@@ -2019,12 +2019,12 @@ static int x509_crt_find_parent_in(
         /* restore saved state */
         parent = rs_ctx->parent;
         fallback_parent = rs_ctx->fallback_parent;
-        fallback_sign_good = rs_ctx->fallback_sign_good;
+        fallback_signature_is_good = rs_ctx->fallback_signature_is_good;
 
         /* clear saved state */
         rs_ctx->parent = NULL;
         rs_ctx->fallback_parent = NULL;
-        rs_ctx->fallback_sign_good = 0;
+        rs_ctx->fallback_signature_is_good = 0;
 
         /* resume where we left */
         goto check_signature;
@@ -2032,7 +2032,7 @@ static int x509_crt_find_parent_in(
 #endif
 
     fallback_parent = NULL;
-    fallback_sign_good = 0;
+    fallback_signature_is_good = 0;
 
     for( parent = candidates; parent != NULL; parent = parent->next )
     {
@@ -2059,7 +2059,7 @@ check_signature:
             /* save state */
             rs_ctx->parent = parent;
             rs_ctx->fallback_parent = fallback_parent;
-            rs_ctx->fallback_sign_good = fallback_sign_good;
+            rs_ctx->fallback_signature_is_good = fallback_signature_is_good;
 
             return( ret );
         }
@@ -2078,7 +2078,7 @@ check_signature:
             if( fallback_parent == NULL )
             {
                 fallback_parent = parent;
-                fallback_sign_good = signature_is_good;
+                fallback_signature_is_good = signature_is_good;
             }
 
             continue;
@@ -2095,7 +2095,7 @@ check_signature:
     else
     {
         *r_parent = fallback_parent;
-        *r_signature_is_good = fallback_sign_good;
+        *r_signature_is_good = fallback_signature_is_good;
     }
 
     return( 0 );
@@ -2704,7 +2704,7 @@ void mbedtls_x509_crt_restart_init( mbedtls_x509_crt_restart_ctx *ctx )
 
     ctx->parent = NULL;
     ctx->fallback_parent = NULL;
-    ctx->fallback_sign_good = 0;
+    ctx->fallback_signature_is_good = 0;
 
     ctx->parent_is_trusted = -1;
 

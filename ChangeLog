@@ -9,6 +9,10 @@ Features
      in ECP, ECDSA, PK and X509 (CRL not supported yet), and using existing
      functions in ECDH and SSL (currently only implemented client-side, for
      ECDHE-ECDSA ciphersuites with TLS 1.2, including client authentication).
+
+= mbed TLS 2.11.0 branch released 2018-06-18
+
+Features
    * Add additional block mode, OFB (Output Feedback), to the AES module and
      cipher abstraction module.
    * Implement the HMAC-based extract-and-expand key derivation function

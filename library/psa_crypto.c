@@ -1013,7 +1013,7 @@ psa_status_t psa_hash_finish( psa_hash_operation_t *operation,
     /* Fill the output buffer with something that isn't a valid hash
      * (barring an attack on the hash and deliberately-crafted input),
      * in case the caller doesn't check the return status properly. */
-    *hash_length = actual_hash_length;
+    *hash_length = hash_size;
     /* If hash_size is 0 then hash may be NULL and then the
      * call to memset would have undefined behavior. */
     if( hash_size != 0 )
@@ -1068,6 +1068,7 @@ psa_status_t psa_hash_finish( psa_hash_operation_t *operation,
 
     if( ret == 0 )
     {
+        *hash_length = actual_hash_length;
         return( psa_hash_abort( operation ) );
     }
     else
@@ -1517,7 +1518,7 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
     /* Fill the output buffer with something that isn't a valid mac
      * (barring an attack on the mac and deliberately-crafted input),
      * in case the caller doesn't check the return status properly. */
-    *mac_length = operation->mac_size;
+    *mac_length = mac_size;
     /* If mac_size is 0 then mac may be NULL and then the
      * call to memset would have undefined behavior. */
     if( mac_size != 0 )
@@ -1583,6 +1584,7 @@ cleanup:
 
     if( ret == 0 && status == PSA_SUCCESS )
     {
+        *mac_length = operation->mac_size;
         return( psa_mac_abort( operation ) );
     }
     else

@@ -206,8 +206,8 @@ static inline int pk_hashlen_helper( mbedtls_md_type_t md_alg, size_t *hash_len 
 static int pk_restart_setup( mbedtls_pk_restart_ctx *ctx,
                                const mbedtls_pk_info_t *info )
 {
-    /* Don't do anything it already set up */
-    if( ctx->pk_info != NULL )
+    /* Don't do anything if already set up or invalid */
+    if( ctx == NULL || ctx->pk_info != NULL )
         return( 0 );
 
     /* Should never happen when we're called */

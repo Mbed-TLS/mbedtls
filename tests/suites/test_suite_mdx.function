@@ -29,7 +29,7 @@ void md2_text( char * text_src_string, data_t * hex_hash_string )
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
     memset( output, 0x00, sizeof( output ) );
     mbedtls_md2_init( &ctx );
-    mbdetls_md2_starts( &ctx );
+    mbedtls_md2_starts( &ctx );
     mbedtls_md2_update( &ctx, src_str, strlen( (char *) src_str ) );
     mbedtls_md2_finish( &ctx, output );
     TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof  output, hex_hash_string->len ) == 0 );
@@ -61,7 +61,7 @@ void md4_text( char * text_src_string, data_t * hex_hash_string )
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
     memset( output, 0x00, sizeof( output ) );
     mbedtls_md4_init( &ctx );
-    mbdetls_md4_starts( &ctx );
+    mbedtls_md4_starts( &ctx );
     mbedtls_md4_update( &ctx, src_str, strlen( (char *) src_str ) );
     mbedtls_md4_finish( &ctx, output );
     TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof  output, hex_hash_string->len ) == 0 );

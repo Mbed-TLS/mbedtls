@@ -183,6 +183,9 @@ int main( void )
 #define DFL_NSS_KEYLOG          0
 #define DFL_NSS_KEYLOG_FILE     NULL
 #define DFL_QUERY_CONFIG_MODE   0
+#define DFL_USE_SRTP            0
+#define DFL_SRTP_FORCE_PROFILE  MBEDTLS_SRTP_UNSET_PROFILE
+#define DFL_SRTP_MKI            ""
 
 #define LONG_RESPONSE "<p>01-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n" \
     "02-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah-blah\r\n"  \
@@ -411,6 +414,20 @@ int main( void )
 #define USAGE_DTLS ""
 #endif
 
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+#define USAGE_SRTP \
+    "    use_srtp=%%d         default: 0 (disabled)\n" \
+    "    srtp_force_profile=%%d  default: all enabled\n"   \
+    "                        available profiles:\n"       \
+    "                        1 - SRTP_AES128_CM_HMAC_SHA1_80\n"  \
+    "                        2 - SRTP_AES128_CM_HMAC_SHA1_32\n"  \
+    "                        3 - SRTP_NULL_HMAC_SHA1_80\n"       \
+    "                        4 - SRTP_NULL_HMAC_SHA1_32\n"       \
+    "    mki=%%s              default: \"\" (in hex, without 0x)\n"
+#else
+#define USAGE_SRTP ""
+#endif
+
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
 #define USAGE_EMS \
     "    extended_ms=0/1     default: (library default: on)\n"
@@ -490,6 +507,7 @@ int main( void )
     "    read_timeout=%%d     default: 0 ms (no timeout)\n"    \
     "\n"                                                    \
     USAGE_DTLS                                              \
+    USAGE_SRTP                                              \
     USAGE_COOKIES                                           \
     USAGE_ANTI_REPLAY                                       \
     USAGE_BADMAC_LIMIT                                      \
@@ -645,6 +663,9 @@ struct options
                                  * after renegotiation                      */
     int reproducible;           /* make communication reproducible          */
     int query_config_mode;      /* whether to read config                   */
+    int use_srtp;               /* Support SRTP                             */
+    int force_srtp_profile;     /* SRTP protection profile to use or all    */
+    const char* mki;            /* The dtls mki value to use                */
 } opt;
 
 int query_config( const char *config );
@@ -1792,7 +1813,6 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     unsigned char alloc_buf[MEMORY_HEAP_SIZE];
 #endif
-
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
     unsigned char cid[MBEDTLS_SSL_CID_IN_LEN_MAX];
     unsigned char cid_renego[MBEDTLS_SSL_CID_IN_LEN_MAX];
@@ -1804,6 +1824,10 @@ int main( int argc, char *argv[] )
     size_t context_buf_len = 0;
 #endif
 
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+    unsigned char mki[MBEDTLS_DTLS_SRTP_MAX_MKI_LENGTH];
+    size_t mki_len = 0;
+#endif
     int i;
     char *p, *q;
     const int *list;
@@ -1976,6 +2000,9 @@ int main( int argc, char *argv[] )
     opt.nss_keylog          = DFL_NSS_KEYLOG;
     opt.nss_keylog_file     = DFL_NSS_KEYLOG_FILE;
     opt.query_config_mode   = DFL_QUERY_CONFIG_MODE;
+    opt.use_srtp            = DFL_USE_SRTP;
+    opt.force_srtp_profile  = DFL_SRTP_FORCE_PROFILE;
+    opt.mki                 = DFL_SRTP_MKI;
 
     for( i = 1; i < argc; i++ )
     {
@@ -2423,6 +2450,18 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "nss_keylog_file" ) == 0 )
         {
             opt.nss_keylog_file = q;
+        }
+        else if( strcmp( p, "use_srtp" ) == 0 )
+        {
+            opt.use_srtp = atoi ( q );
+        }
+        else if( strcmp( p, "srtp_force_profile" ) == 0 )
+        {
+            opt.force_srtp_profile = atoi( q );
+        }
+        else if( strcmp( p, "mki" ) == 0 )
+        {
+            opt.mki = q;
         }
         else
             goto usage;
@@ -3028,7 +3067,7 @@ int main( int argc, char *argv[] )
     {
         mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_max_frag_len returned %d\n\n", ret );
         goto exit;
-    };
+    }
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_CONNECTION_ID)
@@ -3057,6 +3096,37 @@ int main( int argc, char *argv[] )
         }
     }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+    if( opt.use_srtp != DFL_USE_SRTP )
+    {
+        if( opt.force_srtp_profile != DFL_SRTP_FORCE_PROFILE )
+        {
+            const mbedtls_ssl_srtp_profile forced_profile[] = { opt.force_srtp_profile };
+            ret = mbedtls_ssl_conf_dtls_srtp_protection_profiles( &conf, forced_profile, sizeof( forced_profile ) / sizeof( mbedtls_ssl_srtp_profile ) );
+        }
+        else
+        {
+            const mbedtls_ssl_srtp_profile default_profiles[] = { MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80,
+                                                                  MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32,
+                                                                  MBEDTLS_SRTP_NULL_HMAC_SHA1_80,
+                                                                  MBEDTLS_SRTP_NULL_HMAC_SHA1_32 };
+            ret = mbedtls_ssl_conf_dtls_srtp_protection_profiles( &conf, default_profiles, sizeof( default_profiles ) / sizeof( mbedtls_ssl_srtp_profile ) );
+        }
+
+        if( ret != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_dtls_srtp_protection_profiles returned %d\n\n", ret );
+            goto exit;
+        }
+
+    }
+    else if( opt.force_srtp_profile != DFL_SRTP_FORCE_PROFILE )
+    {
+        mbedtls_printf( " failed\n  ! must enable use_srtp to force srtp profile\n\n" );
+        goto exit;
+    }
+#endif /* MBEDTLS_SSL_DTLS_SRTP */
 
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
     if( opt.trunc_hmac != DFL_TRUNC_HMAC )
@@ -3462,6 +3532,24 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_TIMING_C)
     mbedtls_ssl_set_timer_cb( &ssl, &timer, mbedtls_timing_set_delay,
                                             mbedtls_timing_get_delay );
+#endif
+
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+    if( opt.use_srtp != DFL_USE_SRTP &&  strlen( opt.mki ) != 0 )
+    {
+        if( unhexify( mki, opt.mki, &mki_len ) != 0 )
+        {
+            mbedtls_printf( "mki value not valid hex\n" );
+             goto exit;
+        }
+
+        mbedtls_ssl_conf_srtp_mki_value_supported( &conf, MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED );
+        if( ( ret = mbedtls_ssl_dtls_srtp_set_mki_value( &ssl, mki, mki_len) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_dtls_srtp_set_mki_value returned %d\n\n", ret );
+            goto exit;
+        }
+    }
 #endif
 
     mbedtls_printf( " ok\n" );

@@ -15,18 +15,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# This file is part of mbed TLS (https://tls.mbed.org)
+# This file is part of Mbed TLS (https://tls.mbed.org)
 
 
 """
-Mbed TLS on-target test suite tests are implemented as mbed-os greentea
+Mbed TLS on-target test suite tests are implemented as mbed-os Greentea
 tests. Greentea tests are implemented in two parts: target test and
 host test. Target test is a C application that is built for the
 target platform and executes on the target. Host test is a Python
 class derived from mbed_host_tests.BaseHostTest. Target communicates
 with the host over serial for the test data.
 
-Python tool mbedgt (greentea) is responsible for flashing the test
+Python tool mbedgt (Greentea) is responsible for flashing the test
 binary on to the target and dynamically loading the host test.
 
 This script contains the host test for handling target test's
@@ -64,67 +64,69 @@ class TestDataParser(object):
 
         :param data_file: Data file path
         """
-        with open(data_file, 'r') as f:
-            self.__parse(f)
+        with open(data_file, 'r') as data_f:
+            self.__parse(data_f)
 
     @staticmethod
-    def __escaped_split(str, ch):
+    def __escaped_split(inp_str, split_char):
         """
-        Splits str on ch except when escaped.
+        Splits inp_str on split_char except when escaped.
 
-        :param str: String to split
-        :param ch: Split character
+        :param inp_str: String to split
+        :param split_char: Split character
         :return: List of splits
         """
-        if len(ch) > 1:
+        if len(split_char) > 1:
             raise ValueError('Expected split character. Found string!')
         out = []
         part = ''
         escape = False
-        for i in range(len(str)):
-            if not escape and str[i] == ch:
+        for character in inp_str:
+            if not escape and character == split_char:
                 out.append(part)
                 part = ''
             else:
-                part += str[i]
-                escape = not escape and str[i] == '\\'
-        if len(part):
+                part += character
+                escape = not escape and character == '\\'
+        if part:
             out.append(part)
         return out
 
-    def __parse(self, file):
+    def __parse(self, data_f):
         """
         Parses data file using supplied file object.
 
-        :param file: Data file object
+        :param data_f: Data file object
         :return:
         """
-        for line in file:
+        for line in data_f:
             line = line.strip()
-            if len(line) == 0:
+            if not line:
                 continue
             # Read test name
             name = line
 
             # Check dependencies
-            deps = []
-            line = file.next().strip()
-            m = re.search('depends_on\:(.*)', line)
-            if m:
-                deps = [int(x) for x in m.group(1).split(':')]
-                line = file.next().strip()
+            dependencies = []
+            line = data_f.next().strip()
+            match = re.search('depends_on:(.*)', line)
+            if match:
+                dependencies = [int(x) for x in match.group(1).split(':')]
+                line = data_f.next().strip()
 
             # Read test vectors
             line = line.replace('\\n', '\n')
             parts = self.__escaped_split(line, ':')
-            function = int(parts[0])
-            x = parts[1:]
-            l = len(x)
-            if l % 2 != 0:
+            function_name = int(parts[0])
+            args = parts[1:]
+            args_count = len(args)
+            if args_count % 2 != 0:
                 raise TestDataParserError("Number of test arguments should "
                                           "be even: %s" % line)
-            args = [(x[i * 2], x[(i * 2) + 1]) for i in range(len(x)/2)]
-            self.tests.append((name, function, deps, args))
+            grouped_args = [(args[i * 2], args[(i * 2) + 1])
+                            for i in range(len(args)/2)]
+            self.tests.append((name, function_name, dependencies,
+                               grouped_args))
 
     def get_test_data(self):
         """
@@ -135,8 +137,8 @@ class TestDataParser(object):
 
 class MbedTlsTest(BaseHostTest):
     """
-    Host test for mbedtls unit tests. This script is loaded at
-    run time by Greentea for executing mbedtls test suites. Each
+    Host test for Mbed TLS unit tests. This script is loaded at
+    run time by Greentea for executing Mbed TLS test suites. Each
     communication from the target is received in this object as
     an event, which is then handled by the event handler method
     decorated by the associated event. Ex: @event_callback('GO').
@@ -144,7 +146,7 @@ class MbedTlsTest(BaseHostTest):
     Target test sends requests for dispatching next test. It reads
     tests from the intermediate data file and sends test function
     identifier, dependency identifiers, expression identifiers and
-    the test data in binary form. Target test checks dependecnies
+    the test data in binary form. Target test checks dependencies
     , evaluate integer constant expressions and dispatches the test
     function with received test parameters.
 
@@ -169,12 +171,18 @@ class MbedTlsTest(BaseHostTest):
         self.test_index = -1
         self.dep_index = 0
         self.error_str = dict()
-        self.error_str[self.DEPENDENCY_SUPPORTED] = 'DEPENDENCY_SUPPORTED'
-        self.error_str[self.KEY_VALUE_MAPPING_NOT_FOUND] = 'KEY_VALUE_MAPPING_NOT_FOUND'
-        self.error_str[self.DEPENDENCY_NOT_SUPPORTED] = 'DEPENDENCY_NOT_SUPPORTED'
-        self.error_str[self.DISPATCH_TEST_FN_NOT_FOUND] = 'DISPATCH_TEST_FN_NOT_FOUND'
-        self.error_str[self.DISPATCH_INVALID_TEST_DATA] = 'DISPATCH_INVALID_TEST_DATA'
-        self.error_str[self.DISPATCH_UNSUPPORTED_SUITE] = 'DISPATCH_UNSUPPORTED_SUITE'
+        self.error_str[self.DEPENDENCY_SUPPORTED] = \
+            'DEPENDENCY_SUPPORTED'
+        self.error_str[self.KEY_VALUE_MAPPING_NOT_FOUND] = \
+            'KEY_VALUE_MAPPING_NOT_FOUND'
+        self.error_str[self.DEPENDENCY_NOT_SUPPORTED] = \
+            'DEPENDENCY_NOT_SUPPORTED'
+        self.error_str[self.DISPATCH_TEST_FN_NOT_FOUND] = \
+            'DISPATCH_TEST_FN_NOT_FOUND'
+        self.error_str[self.DISPATCH_INVALID_TEST_DATA] = \
+            'DISPATCH_INVALID_TEST_DATA'
+        self.error_str[self.DISPATCH_UNSUPPORTED_SUITE] = \
+            'DISPATCH_UNSUPPORTED_SUITE'
 
     def setup(self):
         """
@@ -206,13 +214,13 @@ class MbedTlsTest(BaseHostTest):
             self.log('{{__testcase_name;%s}}' % name)
 
     @staticmethod
-    def align_32bit(b):
+    def align_32bit(data_bytes):
         """
         4 byte aligns input byte array.
 
         :return:
         """
-        b += bytearray((4 - (len(b))) % 4)
+        data_bytes += bytearray((4 - (len(data_bytes))) % 4)
 
     @staticmethod
     def hex_str_bytes(hex_str):
@@ -230,56 +238,56 @@ class MbedTlsTest(BaseHostTest):
             raise TestDataParserError("HEX parameter len should be mod of "
                                       "2: %s" % hex_str)
 
-        b = binascii.unhexlify(hex_str)
-        return b
+        data_bytes = binascii.unhexlify(hex_str)
+        return data_bytes
 
     @staticmethod
-    def int32_to_bigendian_bytes(i):
+    def int32_to_big_endian_bytes(i):
         """
-        Coverts i to bytearray in big endian format.
+        Coverts i to byte array in big endian format.
 
         :param i: Input integer
         :return: Output bytes array in big endian or network order
         """
-        b = bytearray([((i >> x) & 0xff) for x in [24, 16, 8, 0]])
-        return b
+        data_bytes = bytearray([((i >> x) & 0xff) for x in [24, 16, 8, 0]])
+        return data_bytes
 
-    def test_vector_to_bytes(self, function_id, deps, parameters):
+    def test_vector_to_bytes(self, function_id, dependencies, parameters):
         """
         Converts test vector into a byte array that can be sent to the target.
 
         :param function_id: Test Function Identifier
-        :param deps: Dependency list
+        :param dependencies: Dependency list
         :param parameters: Test function input parameters
         :return: Byte array and its length
         """
-        b = bytearray([len(deps)])
-        if len(deps):
-            b += bytearray(deps)
-        b += bytearray([function_id, len(parameters)])
+        data_bytes = bytearray([len(dependencies)])
+        if dependencies:
+            data_bytes += bytearray(dependencies)
+        data_bytes += bytearray([function_id, len(parameters)])
         for typ, param in parameters:
             if typ == 'int' or typ == 'exp':
                 i = int(param)
-                b += 'I' if typ == 'int' else 'E'
-                self.align_32bit(b)
-                b += self.int32_to_bigendian_bytes(i)
+                data_bytes += 'I' if typ == 'int' else 'E'
+                self.align_32bit(data_bytes)
+                data_bytes += self.int32_to_big_endian_bytes(i)
             elif typ == 'char*':
                 param = param.strip('"')
                 i = len(param) + 1  # + 1 for null termination
-                b += 'S'
-                self.align_32bit(b)
-                b += self.int32_to_bigendian_bytes(i)
-                b += bytearray(list(param))
-                b += '\0'   # Null terminate
+                data_bytes += 'S'
+                self.align_32bit(data_bytes)
+                data_bytes += self.int32_to_big_endian_bytes(i)
+                data_bytes += bytearray(list(param))
+                data_bytes += '\0'   # Null terminate
             elif typ == 'hex':
-                hb = self.hex_str_bytes(param)
-                b += 'H'
-                self.align_32bit(b)
-                i = len(hb)
-                b += self.int32_to_bigendian_bytes(i)
-                b += hb
-        length = self.int32_to_bigendian_bytes(len(b))
-        return b, length
+                binary_data = self.hex_str_bytes(param)
+                data_bytes += 'H'
+                self.align_32bit(data_bytes)
+                i = len(binary_data)
+                data_bytes += self.int32_to_big_endian_bytes(i)
+                data_bytes += binary_data
+        length = self.int32_to_big_endian_bytes(len(data_bytes))
+        return data_bytes, length
 
     def run_next_test(self):
         """
@@ -289,25 +297,26 @@ class MbedTlsTest(BaseHostTest):
         self.test_index += 1
         self.dep_index = 0
         if self.test_index < len(self.tests):
-            name, function_id, deps, args = self.tests[self.test_index]
-            self.run_test(name, function_id, deps, args)
+            name, function_id, dependencies, args = self.tests[self.test_index]
+            self.run_test(name, function_id, dependencies, args)
         else:
             self.notify_complete(True)
 
-    def run_test(self, name, function_id, deps, args):
+    def run_test(self, name, function_id, dependencies, args):
         """
         Execute the test on target by sending next test information.
 
         :param name: Test name
         :param function_id: function identifier
-        :param deps: Dependencies list
+        :param dependencies: Dependencies list
         :param args: test parameters
         :return:
         """
         self.log("Running: %s" % name)
 
-        bytes, length = self.test_vector_to_bytes(function_id, deps, args)
-        self.send_kv(length, bytes)
+        param_bytes, length = self.test_vector_to_bytes(function_id,
+                                                        dependencies, args)
+        self.send_kv(length, param_bytes)
 
     @staticmethod
     def get_result(value):
@@ -319,52 +328,52 @@ class MbedTlsTest(BaseHostTest):
         try:
             return int(value)
         except ValueError:
-            ValueError("Result should return error number. Instead received %s" % value)
+            ValueError("Result should return error number. "
+                       "Instead received %s" % value)
         return 0
 
     @event_callback('GO')
-    def on_go(self, key, value, timestamp):
+    def on_go(self, _key, _value, _timestamp):
         """
         Sent by the target to start first test.
 
-        :param key: Event key
-        :param value: Value. ignored
-        :param timestamp: Timestamp ignored.
+        :param _key: Event key
+        :param _value: Value. ignored
+        :param _timestamp: Timestamp ignored.
         :return:
         """
         self.run_next_test()
 
     @event_callback("R")
-    def on_result(self, key, value, timestamp):
+    def on_result(self, _key, value, _timestamp):
         """
         Handle result. Prints test start, finish required by Greentea
         to detect test execution.
 
-        :param key: Event key
+        :param _key: Event key
         :param value: Value. ignored
-        :param timestamp: Timestamp ignored.
+        :param _timestamp: Timestamp ignored.
         :return:
         """
         int_val = self.get_result(value)
-        name, function, deps, args = self.tests[self.test_index]
+        name, _, _, _ = self.tests[self.test_index]
         self.log('{{__testcase_start;%s}}' % name)
         self.log('{{__testcase_finish;%s;%d;%d}}' % (name, int_val == 0,
                                                      int_val != 0))
         self.run_next_test()
 
     @event_callback("F")
-    def on_failure(self, key, value, timestamp):
+    def on_failure(self, _key, value, _timestamp):
         """
         Handles test execution failure. That means dependency not supported or
         Test function not supported. Hence marking test as skipped.
 
-        :param key: Event key
+        :param _key: Event key
         :param value: Value. ignored
-        :param timestamp: Timestamp ignored.
+        :param _timestamp: Timestamp ignored.
         :return:
         """
         int_val = self.get_result(value)
-        name, function, deps, args = self.tests[self.test_index]
         if int_val in self.error_str:
             err = self.error_str[int_val]
         else:

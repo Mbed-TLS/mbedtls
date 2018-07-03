@@ -1,5 +1,10 @@
 /* BEGIN_HEADER */
 #include <stdint.h>
+
+#if defined(MBEDTLS_PSA_CRYPTO_SPM)
+#include "spm/psa_defs.h"
+#endif
+
 #include "mbedtls/asn1write.h"
 #include "psa/crypto.h"
 

@@ -1851,7 +1851,7 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
     if (((uint16_t)( ( buf[0]<<8 ) | buf[1] ) ) != 0x0002) { /* protection profile length must be 0x0002 as we must have only one protection profile in server Hello */
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     } else {
-        server_protection_profile_value = ( buf[2]<<8 ) | buf[3];
+        server_protection_profile_value = ( buf[2] << 8 ) | buf[3];
     }
 
     ssl->dtls_srtp_info.chosen_dtls_srtp_profile = MBEDTLS_SRTP_UNSET_PROFILE;

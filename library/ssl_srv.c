@@ -800,13 +800,13 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
      *
      */
 
-    /* Min length is 5 : at least one protection profile(2 bytes) and length(2 bytes) + srtp_mki length(1 byte) */
+    /* Min length is 5: at least one protection profile(2 bytes) and length(2 bytes) + srtp_mki length(1 byte) */
     if( len < 5 )
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
 
    ssl->dtls_srtp_info.chosen_dtls_srtp_profile = MBEDTLS_SRTP_UNSET_PROFILE;
 
-    profile_length = ( buf[0]<<8 ) | buf[1]; /* first 2 bytes are protection profile length(in bytes) */
+    profile_length = ( buf[0] << 8 ) | buf[1]; /* first 2 bytes are protection profile length(in bytes) */
 
 
     /* parse the extension list values are defined in http://www.iana.org/assignments/srtp-protection/srtp-protection.xhtml */
@@ -856,9 +856,10 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
         }
 
+        ssl->dtls_srtp_info.mki_len = buf[ profile_length + 2 ];
         for( i=0; i < ssl->dtls_srtp_info.mki_len; i++ )
         {
-            ssl->dtls_srtp_info.mki_value[i] = buf[ profile_length + 2 + i ];
+            ssl->dtls_srtp_info.mki_value[i] = buf[ profile_length + 2 + 1 + i ];
         }
     }
 

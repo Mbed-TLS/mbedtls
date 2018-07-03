@@ -26,19 +26,22 @@ Making a Contribution
 1. For quick merging, the contribution should be short, and concentrated on a single feature or topic. The larger the contribution is, the longer it would take to review it and merge it.
 1. Mbed TLS is released under the Apache license, and as such, all the added files should include the Apache license header.
 
-Backports
----------
-Mbed TLS maintains some legacy branches, which are released as LTS versions. Mbed TLS should follow backwards compatibility rules, to fit with existing users. As such, backporting to these branches should be handled according to the following rules:
-  
-1. If the contribution is a new feature or enhancement, no backporting is needed.
-1. Bug fixes should be backported to the legacy branches containing these bugs.
-1. Changes in the API do not require backporting. If a bug fix introduced a new API, such as new error codes, the bug fix should be implemented differently in the legacy branch.
+Long Term Support Branches
+--------------------------
+Mbed TLS maintains several LTS (Long Term Support) branches, which are maintained continuously for a given period. The LTS branches are provided to allow users of the library to have a maintained version of the library which contains security fixes and fixes for other defects, without encountering any API changes or requiring changes in their own code. To allow users to take advantage of the LTS branches, these branches maintain backwards compatibility for both the public API and ABI.
 
-It would be highly appreciated if a contribution would be backported to a legacy branch in addition to the [development branch](https://github.com/ARMmbed/mbedtls/tree/development).
-At the moment, the legacy branches are:
-  
-1. [mbedtls-1.3](https://github.com/ARMmbed/mbedtls/tree/mbedtls-1.3)
+When backporting to these branches please observe the following rules:
+
+ 1. Generally, all changes to the library which change the API cannot be backported.
+ 2. All bug fixes must be backported to the LTS branches if they correct a defect in an LTS branch. If a bug fix introduces a change to the API such as a new function, the fix should be reworked to avoid the API change. API changes without very strong justification are unlikely to be accepted.
+ 3. If a contribution is a new feature or enhancement, no backporting is required. Exceptions to this may be addtional test cases or quality improvements such as changes to scripts.
+
+It would be highly appreciated if contributions are backported to LTS branches in addition to the [development branch](https://github.com/ARMmbed/mbedtls/tree/development).
+
+Currently maintained LTS branches are:
+
 1. [mbedtls-2.1](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.1)
+1. [mbedtls-2.7](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.7)
 
 Tests
 -----

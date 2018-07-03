@@ -210,7 +210,7 @@ int mbedtls_cipher_cmac_setup(mbedtls_cipher_context_t *ctx)
 
     ctx->cmac_ctx = cmac_ctx;
 
-    mbedtls_zeroize( cmac_ctx->state, sizeof( cmac_ctx->state ) );
+    mbedtls_platform_zeroize( cmac_ctx->state, sizeof( cmac_ctx->state ) );
     return 0;
 }
 

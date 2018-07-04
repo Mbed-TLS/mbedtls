@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Test suites code generator.
 #
-# Copyright (C) 2018, ARM Limited, All Rights Reserved
+# Copyright (C) 2018, Arm Limited, All Rights Reserved
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -180,8 +180,18 @@ END_SUITE_HELPERS_REGEX = r'/\*\s*END_SUITE_HELPERS\s*\*/'
 BEGIN_DEP_REGEX = r'BEGIN_DEPENDENCIES'
 END_DEP_REGEX = r'END_DEPENDENCIES'
 
-BEGIN_CASE_REGEX = r'/\*\s*BEGIN_CASE\s*(.*?)\s*\*/'
+BEGIN_CASE_REGEX = r'/\*\s*BEGIN_CASE\s*(?P<depends_on>.*?)\s*\*/'
 END_CASE_REGEX = r'/\*\s*END_CASE\s*\*/'
+
+DEPENDENCY_REGEX = r'depends_on:(?P<dependencies>.*)'
+C_IDENTIFIER_REGEX = r'!?[a-z_][a-z0-9_]*'
+TEST_FUNCTION_VALIDATION_REGEX = r'\s*void\s+(\w+)\s*\('
+INT_CHECK_REGEX = r'int\s+.*'
+CHAR_CHECK_REGEX = r'char\s*\*\s*.*'
+DATA_T_CHECK_REGEX = r'data_t\s*\*\s*.*'
+FUNCTION_ARG_LIST_START_REGEX = r'.*?\s+(\w+)\s*\('
+FUNCTION_ARG_LIST_END_REGEX = r'.*\)'
+EXIT_LABEL_REGEX = r'^exit:'
 
 
 class GeneratorInputError(Exception):
@@ -228,7 +238,7 @@ class FileWrapper(io.FileIO, object):
             self._line_no += 1
             # Convert byte array to string with correct encoding and
             # strip any whitespaces added in the decoding process.
-            return line.decode(sys.getdefaultencoding()).strip() + "\n"
+            return line.decode(sys.getdefaultencoding()).rstrip() + '\n'
         return None
 
     # Python 3 iterator method
@@ -351,7 +361,7 @@ def parse_until_pattern(funcs_f, end_regex):
     Matches pattern end_regex to the lines read from the file object.
     Returns the lines read until end pattern is matched.
 
-    :param funcs_f: file object for .functions file
+    :param funcs_f: file object for .function file
     :param end_regex: Pattern to stop parsing
     :return: Lines read before the end pattern
     """
@@ -367,6 +377,31 @@ def parse_until_pattern(funcs_f, end_regex):
     return headers
 
 
+def validate_dependency(dependency):
+    """
+    Validates a C macro and raises GeneratorInputError on invalid input.
+    :param dependency: Input macro dependency
+    :return: input dependency stripped of leading & trailing white spaces.
+    """
+    dependency = dependency.strip()
+    if not re.match(C_IDENTIFIER_REGEX, dependency, re.I):
+        raise GeneratorInputError('Invalid dependency %s' % dependency)
+    return dependency
+
+
+def parse_dependencies(inp_str):
+    """
+    Parses dependencies out of inp_str, validates them and returns a
+    list of macros.
+
+    :param inp_str: Input string with macros delimited by ':'.
+    :return: list of dependencies
+    """
+    dependencies = [dep for dep in map(validate_dependency,
+                                       inp_str.split(':'))]
+    return dependencies
+
+
 def parse_suite_dependencies(funcs_f):
     """
     Parses test suite dependencies specified at the top of a
@@ -374,14 +409,18 @@ def parse_suite_dependencies(funcs_f):
     and end with END_DEPENDENCIES. Dependencies are specified
     after pattern 'depends_on:' and are delimited by ':'.
 
-    :param funcs_f: file object for .functions file
+    :param funcs_f: file object for .function file
     :return: List of test suite dependencies.
     """
     dependencies = []
     for line in funcs_f:
-        match = re.search('depends_on:(.*)', line.strip())
+        match = re.search(DEPENDENCY_REGEX, line.strip())
         if match:
-            dependencies += [x.strip() for x in match.group(1).split(':')]
+            try:
+                dependencies = parse_dependencies(match.group('dependencies'))
+            except GeneratorInputError as error:
+                raise GeneratorInputError(
+                    str(error) + " - %s:%d" % (funcs_f.name, funcs_f.line_no))
         if re.search(END_DEP_REGEX, line):
             break
     else:
@@ -398,19 +437,18 @@ def parse_function_dependencies(line):
     comment BEGIN_CASE. Dependencies are specified after pattern
     'depends_on:' and are delimited by ':'.
 
-    :param line: Line from .functions file that has dependencies.
+    :param line: Line from .function file that has dependencies.
     :return: List of dependencies.
     """
     dependencies = []
     match = re.search(BEGIN_CASE_REGEX, line)
-    dep_str = match.group(1)
+    dep_str = match.group('depends_on')
     if dep_str:
-        match = re.search('depends_on:(.*)', dep_str)
+        match = re.search(DEPENDENCY_REGEX, dep_str)
         if match:
-            dependencies = [x.strip()
-                            for x in match.group(1).strip().split(':')]
-    return dependencies
+            dependencies += parse_dependencies(match.group('dependencies'))
 
+    return dependencies
 
 def parse_function_signature(line):
     """
@@ -418,7 +456,7 @@ def parse_function_signature(line):
     a dispatch wrapper function that translates input test vectors
     read from the data file into test function arguments.
 
-    :param line: Line from .functions file that has a function
+    :param line: Line from .function file that has a function
                  signature.
     :return: function name, argument list, local variables for
              wrapper function and argument dispatch code.
@@ -427,23 +465,27 @@ def parse_function_signature(line):
     local_vars = ''
     args_dispatch = []
     # Check if the test function returns void.
-    match = re.search(r'\s*void\s+(\w+)\s*\(', line, re.I)
+    match = re.search(TEST_FUNCTION_VALIDATION_REGEX, line, re.I)
     if not match:
         raise ValueError("Test function should return 'void'\n%s" % line)
     name = match.group(1)
     line = line[len(match.group(0)):]
     arg_idx = 0
+    # Process arguments, ex: <type> arg1, <type> arg2 )
+    # This script assumes that the argument list is terminated by ')'
+    # i.e. the test functions will not have a function pointer
+    # argument.
     for arg in line[:line.find(')')].split(','):
         arg = arg.strip()
         if arg == '':
             continue
-        if re.search(r'int\s+.*', arg.strip()):
+        if re.search(INT_CHECK_REGEX, arg.strip()):
             args.append('int')
             args_dispatch.append('*( (int *) params[%d] )' % arg_idx)
-        elif re.search(r'char\s*\*\s*.*', arg.strip()):
+        elif re.search(CHAR_CHECK_REGEX, arg.strip()):
             args.append('char*')
             args_dispatch.append('(char *) params[%d]' % arg_idx)
-        elif re.search(r'data_t\s*\*\s*.*', arg.strip()):
+        elif re.search(DATA_T_CHECK_REGEX, arg.strip()):
             args.append('hex')
             # create a structure
             pointer_initializer = '(uint8_t *) params[%d]' % arg_idx
@@ -472,21 +514,25 @@ def parse_function_code(funcs_f, dependencies, suite_dependencies):
     :return: Function name, arguments, function code and dispatch code.
     """
     code = '#line %d "%s"\n' % (funcs_f.line_no + 1, funcs_f.name)
+    has_exit_label = False
     for line in funcs_f:
-        # Check function signature
-        match = re.match(r'.*?\s+(\w+)\s*\(', line, re.I)
+        # Check function signature. This script expects function name
+        # and return type to be specified at the same line.
+        match = re.match(FUNCTION_ARG_LIST_START_REGEX, line, re.I)
         if match:
             # check if we have full signature i.e. split in more lines
-            if not re.match(r'.*\)', line):
+            if not re.match(FUNCTION_ARG_LIST_END_REGEX, line):
                 for lin in funcs_f:
                     line += lin
-                    if re.search(r'.*?\)', line):
+                    if re.search(FUNCTION_ARG_LIST_END_REGEX, line):
                         break
             name, args, local_vars, args_dispatch = parse_function_signature(
                 line)
-            code += line.replace(name, 'test_' + name)
+            code += line.replace(name, 'test_' + name, 1)
             name = 'test_' + name
             break
+        else:
+            code += line
     else:
         raise GeneratorInputError("file: %s - Test functions not found!" %
                                   funcs_f.name)
@@ -494,6 +540,9 @@ def parse_function_code(funcs_f, dependencies, suite_dependencies):
     for line in funcs_f:
         if re.search(END_CASE_REGEX, line):
             break
+        if not has_exit_label:
+            has_exit_label = \
+                re.search(EXIT_LABEL_REGEX, line.strip()) is not None
         code += line
     else:
         raise GeneratorInputError("file: %s - end case pattern [%s] not "
@@ -504,7 +553,7 @@ def parse_function_code(funcs_f, dependencies, suite_dependencies):
         split_code = code.rsplit('}', 1)
         if len(split_code) == 2:
             code = """exit:
-    ;;
+    ;
 }""".join(split_code)
 
     code += gen_function_wrapper(name, local_vars, args_dispatch)
@@ -541,7 +590,12 @@ def parse_functions(funcs_f):
         elif re.search(BEGIN_DEP_REGEX, line):
             suite_dependencies += parse_suite_dependencies(funcs_f)
         elif re.search(BEGIN_CASE_REGEX, line):
-            dependencies = parse_function_dependencies(line)
+            try:
+                dependencies = parse_function_dependencies(line)
+            except GeneratorInputError as error:
+                raise GeneratorInputError(
+                    "%s:%d: %s" % (funcs_f.name, funcs_f.line_no,
+                                   str(error)))
             func_name, args, func_code, func_dispatch =\
                 parse_function_code(funcs_f, dependencies, suite_dependencies)
             suite_functions += func_code
@@ -568,7 +622,7 @@ def escaped_split(inp_str, split_char):
     output.
 
     :param inp_str: String to split
-    :param split_char: split character
+    :param split_char: Split character
     :return: List of splits
     """
     if len(split_char) > 1:
@@ -609,7 +663,8 @@ def parse_test_data(data_f):
     name = ''
     for line in data_f:
         line = line.strip()
-        if line and line[0] == '#':  # Skip comments
+        # Skip comments
+        if line.startswith('#'):
             continue
 
         # Blank line indicates end of test
@@ -627,10 +682,15 @@ def parse_test_data(data_f):
             state = __state_read_args
         elif state == __state_read_args:
             # Check dependencies
-            match = re.search('depends_on:(.*)', line)
+            match = re.search(DEPENDENCY_REGEX, line)
             if match:
-                dependencies = [x.strip() for x in match.group(1).split(':')
-                                if len(x.strip())]
+                try:
+                    dependencies = parse_dependencies(
+                        match.group('dependencies'))
+                except GeneratorInputError as error:
+                    raise GeneratorInputError(
+                        str(error) + " - %s:%d" %
+                        (data_f.name, data_f.line_no))
             else:
                 # Read test vectors
                 parts = escaped_split(line, ':')
@@ -742,7 +802,8 @@ def write_parameters(out_data_f, test_args, func_args, unique_expressions):
         val = test_args[i]
 
         # check if val is a non literal int val (i.e. an expression)
-        if typ == 'int' and not re.match(r'(\d+$)|((0x)?[0-9a-fA-F]+$)', val):
+        if typ == 'int' and not re.match(r'(\d+|0x[0-9a-f]+)$',
+                                         val, re.I):
             typ = 'exp'
             if val not in unique_expressions:
                 unique_expressions.append(val)
@@ -764,7 +825,7 @@ def gen_suite_dep_checks(suite_dependencies, dep_check_code, expression_code):
     Generates preprocessor checks for test suite dependencies.
 
     :param suite_dependencies: Test suite dependencies read from the
-            .functions file.
+            .function file.
     :param dep_check_code: Dependency check code
     :param expression_code: Expression check code
     :return: Dependency and expression code guarded by test suite
@@ -797,7 +858,7 @@ def gen_from_test_data(data_f, out_data_f, func_info, suite_dependencies):
     evaluation code.
 
     :param data_f: Data file object
-    :param out_data_f:Output intermediate data file
+    :param out_data_f: Output intermediate data file
     :param func_info: Dict keyed by function and with function id
            and arguments info
     :param suite_dependencies: Test suite dependencies
@@ -983,7 +1044,7 @@ def generate_code(**input_info):
     write_test_source_file(template_file, c_file, snippets)
 
 
-def check_cmd():
+def main():
     """
     Command line parser.
 
@@ -1057,7 +1118,7 @@ def check_cmd():
 
 if __name__ == "__main__":
     try:
-        check_cmd()
+        main()
     except GeneratorInputError as err:
         print("%s: input error: %s" %
               (os.path.basename(sys.argv[0]), str(err)))

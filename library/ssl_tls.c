@@ -152,7 +152,8 @@ static unsigned int mfl_code_to_length[MBEDTLS_SSL_MAX_FRAG_LEN_INVALID] =
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
 #if defined(MBEDTLS_SSL_CLI_C)
-static int ssl_session_copy( mbedtls_ssl_session *dst, const mbedtls_ssl_session *src )
+static int ssl_session_copy( mbedtls_ssl_session *dst,
+                             const mbedtls_ssl_session *src )
 {
     mbedtls_ssl_session_free( dst );
     memcpy( dst, src, sizeof( mbedtls_ssl_session ) );
@@ -168,7 +169,8 @@ static int ssl_session_copy( mbedtls_ssl_session *dst, const mbedtls_ssl_session
 
         mbedtls_x509_crt_init( dst->peer_cert );
 
-        if( ( ret = mbedtls_x509_crt_parse_der( dst->peer_cert, src->peer_cert->raw.p,
+        if( ( ret = mbedtls_x509_crt_parse_der( dst->peer_cert,
+                                        src->peer_cert->raw.p,
                                         src->peer_cert->raw.len ) ) != 0 )
         {
             mbedtls_free( dst->peer_cert );
@@ -201,7 +203,8 @@ int (*mbedtls_ssl_hw_record_init)( mbedtls_ssl_context *ssl,
                      size_t ivlen,
                      const unsigned char *mac_enc, const unsigned char *mac_dec,
                      size_t maclen ) = NULL;
-int (*mbedtls_ssl_hw_record_activate)( mbedtls_ssl_context *ssl, int direction) = NULL;
+int (*mbedtls_ssl_hw_record_activate)( mbedtls_ssl_context *ssl,
+                                       int direction) = NULL;
 int (*mbedtls_ssl_hw_record_reset)( mbedtls_ssl_context *ssl ) = NULL;
 int (*mbedtls_ssl_hw_record_write)( mbedtls_ssl_context *ssl ) = NULL;
 int (*mbedtls_ssl_hw_record_read)( mbedtls_ssl_context *ssl ) = NULL;
@@ -225,7 +228,7 @@ static int ssl3_prf( const unsigned char *secret, size_t slen,
     unsigned char sha1sum[20];
     ((void)label);
 
-    mbedtls_md5_init(  &md5  );
+    mbedtls_md5_init( &md5 );
     mbedtls_sha1_init( &sha1 );
 
     /*
@@ -262,7 +265,7 @@ static int ssl3_prf( const unsigned char *secret, size_t slen,
     }
 
 exit:
-    mbedtls_md5_free(  &md5  );
+    mbedtls_md5_free( &md5 );
     mbedtls_sha1_free( &sha1 );
 
     mbedtls_platform_zeroize( padding, sizeof( padding ) );
@@ -309,25 +312,26 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
 
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
         return( ret );
-    if( ( ret =  mbedtls_md_hmac_starts( &md_ctx, S1, hs )) != 0 )
+    if( ( ret = mbedtls_md_hmac_starts( &md_ctx, S1, hs ) ) != 0 )
         goto exit;
-    if( ( ret = mbedtls_md_hmac_update( &md_ctx, tmp + 20, nb )) != 0 )
+    if( ( ret = mbedtls_md_hmac_update( &md_ctx, tmp + 20, nb ) ) != 0 )
         goto exit;
-    if( ( ret =  mbedtls_md_hmac_finish( &md_ctx, 4 + tmp )) != 0 )
+    if( ( ret = mbedtls_md_hmac_finish( &md_ctx, 4 + tmp ) ) != 0 )
         goto exit;
+
     for( i = 0; i < dlen; i += 16 )
     {
-        if( ( ret = mbedtls_md_hmac_reset ( &md_ctx )) != 0 )
+        if( ( ret = mbedtls_md_hmac_reset( &md_ctx ) ) != 0 )
             goto exit;
-        if( ( ret = mbedtls_md_hmac_update( &md_ctx, 4 + tmp, 16 + nb )) != 0 )
+        if( ( ret = mbedtls_md_hmac_update( &md_ctx, 4 + tmp, 16 + nb ) ) != 0 )
             goto exit;
-        if( ( ret = mbedtls_md_hmac_finish( &md_ctx, h_i )) != 0 )
+        if( ( ret = mbedtls_md_hmac_finish( &md_ctx, h_i ) ) != 0 )
             goto exit;
-        if( ( ret = mbedtls_md_hmac_reset ( &md_ctx )) != 0 )
+        if( ( ret = mbedtls_md_hmac_reset( &md_ctx ) ) != 0 )
             goto exit;
-        if( ( ret = mbedtls_md_hmac_update( &md_ctx, 4 + tmp, 16 )) != 0 )
+        if( ( ret = mbedtls_md_hmac_update( &md_ctx, 4 + tmp, 16 ) ) != 0 )
             goto exit;
-        if( ( ret = mbedtls_md_hmac_finish( &md_ctx, 4 + tmp )) != 0 )
+        if( ( ret = mbedtls_md_hmac_finish( &md_ctx, 4 + tmp ) ) != 0 )
             goto exit;
         k = ( i + 16 > dlen ) ? dlen % 16 : 16;
 
@@ -346,27 +350,27 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 1 ) ) != 0 )
         return( ret );
 
-    if( ( ret = mbedtls_md_hmac_starts( &md_ctx, S2, hs )) != 0 )
+    if( ( ret = mbedtls_md_hmac_starts( &md_ctx, S2, hs ) ) != 0 )
         goto exit;
-    if( ( ret = mbedtls_md_hmac_update( &md_ctx, tmp + 20, nb )) != 0 )
+    if( ( ret = mbedtls_md_hmac_update( &md_ctx, tmp + 20, nb ) ) != 0 )
         goto exit;
-    if( ( ret = mbedtls_md_hmac_finish( &md_ctx, tmp )) != 0 )
+    if( ( ret = mbedtls_md_hmac_finish( &md_ctx, tmp ) ) != 0 )
         goto exit;
 
     for( i = 0; i < dlen; i += 20 )
     {
-        if( ( ret = mbedtls_md_hmac_reset ( &md_ctx )) != 0 )
+        if( ( ret = mbedtls_md_hmac_reset( &md_ctx ) ) != 0 )
             goto exit;
-        if( ( ret =  mbedtls_md_hmac_update( &md_ctx, tmp, 20 + nb )) != 0 )
+        if( ( ret = mbedtls_md_hmac_update( &md_ctx, tmp, 20 + nb ) ) != 0 )
             goto exit;
-        if( ( ret = mbedtls_md_hmac_finish( &md_ctx, h_i )) != 0 )
+        if( ( ret = mbedtls_md_hmac_finish( &md_ctx, h_i ) ) != 0 )
             goto exit;
 
-        if( ( ret = mbedtls_md_hmac_reset ( &md_ctx )) != 0 )
+        if( ( ret = mbedtls_md_hmac_reset( &md_ctx ) ) != 0 )
             goto exit;
-        if( ( ret =  mbedtls_md_hmac_update( &md_ctx, tmp, 20 )) != 0 )
+        if( ( ret = mbedtls_md_hmac_update( &md_ctx, tmp, 20 ) ) != 0 )
             goto exit;
-        if( ( ret =  mbedtls_md_hmac_finish( &md_ctx, tmp )) != 0 )
+        if( ( ret = mbedtls_md_hmac_finish( &md_ctx, tmp ) ) != 0 )
             goto exit;
 
         k = ( i + 20 > dlen ) ? dlen % 20 : 20;
@@ -429,14 +433,14 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 
     for( i = 0; i < dlen; i += md_len )
     {
-        if( ( ret = mbedtls_md_hmac_reset ( &md_ctx ) ) != 0 )
+        if( ( ret = mbedtls_md_hmac_reset( &md_ctx ) ) != 0 )
             goto exit;
         if( ( ret = mbedtls_md_hmac_update( &md_ctx, tmp, md_len + nb ) ) != 0 )
             goto exit;
         if( ( ret = mbedtls_md_hmac_finish( &md_ctx, h_i ) ) != 0 )
             goto exit;
 
-        if( ( ret = mbedtls_md_hmac_reset ( &md_ctx ) ) != 0 )
+        if( ( ret = mbedtls_md_hmac_reset( &md_ctx ) ) != 0 )
             goto exit;
         if( ( ret = mbedtls_md_hmac_update( &md_ctx, tmp, md_len ) ) != 0 )
             goto exit;
@@ -481,11 +485,13 @@ static int tls_prf_sha384( const unsigned char *secret, size_t slen,
 #endif /* MBEDTLS_SHA512_C */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
-static int ssl_update_checksum_start( mbedtls_ssl_context *, const unsigned char *, size_t );
+static int ssl_update_checksum_start( mbedtls_ssl_context *,
+                                      const unsigned char *, size_t );
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
-static int ssl_update_checksum_md5sha1( mbedtls_ssl_context *, const unsigned char *, size_t );
+static int ssl_update_checksum_md5sha1( mbedtls_ssl_context *,
+                                        const unsigned char *, size_t );
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
@@ -500,15 +506,19 @@ static int ssl_calc_finished_tls( mbedtls_ssl_context *, unsigned char *, int );
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
-static int ssl_update_checksum_sha256( mbedtls_ssl_context *, const unsigned char *, size_t );
-static int ssl_calc_verify_tls_sha256( mbedtls_ssl_context *,unsigned char * );
-static int ssl_calc_finished_tls_sha256( mbedtls_ssl_context *,unsigned char *, int );
+static int ssl_update_checksum_sha256( mbedtls_ssl_context *,
+                                       const unsigned char *, size_t );
+static int ssl_calc_verify_tls_sha256( mbedtls_ssl_context *, unsigned char * );
+static int ssl_calc_finished_tls_sha256( mbedtls_ssl_context *,
+                                         unsigned char *, int );
 #endif
 
 #if defined(MBEDTLS_SHA512_C)
-static int ssl_update_checksum_sha384( mbedtls_ssl_context *, const unsigned char *, size_t );
+static int ssl_update_checksum_sha384( mbedtls_ssl_context *,
+                                       const unsigned char *, size_t );
 static int ssl_calc_verify_tls_sha384( mbedtls_ssl_context *, unsigned char * );
-static int ssl_calc_finished_tls_sha384( mbedtls_ssl_context *, unsigned char *, int );
+static int ssl_calc_finished_tls_sha384( mbedtls_ssl_context *,
+                                         unsigned char *, int );
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
@@ -532,7 +542,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> derive keys" ) );
 
-    cipher_info = mbedtls_cipher_info_from_type( transform->ciphersuite_info->cipher );
+    cipher_info = mbedtls_cipher_info_from_type(
+                                         transform->ciphersuite_info->cipher );
     if( cipher_info == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "cipher info for %d not found",
@@ -728,8 +739,10 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     else
     {
         /* Initialize HMAC contexts */
-        if( ( ret = mbedtls_md_setup( &transform->md_ctx_enc, md_info, 1 ) ) != 0 ||
-            ( ret = mbedtls_md_setup( &transform->md_ctx_dec, md_info, 1 ) ) != 0 )
+        if( ( ret = mbedtls_md_setup( &transform->md_ctx_enc,
+                                      md_info, 1 ) ) != 0 ||
+            ( ret = mbedtls_md_setup( &transform->md_ctx_dec,
+                                      md_info, 1 ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_md_setup", ret );
             return( ret );
@@ -877,10 +890,14 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     defined(MBEDTLS_SSL_PROTO_TLS1_2)
     if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_1 )
     {
+        /* For HMAC-based ciphersuites, initialize the HMAC transforms.
+           For AEAD-based ciphersuites, there is nothing to do here. */
         if( mac_key_len != 0 )
         {
-            mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc, mac_key_len );
-            mbedtls_md_hmac_starts( &transform->md_ctx_dec, mac_dec, mac_key_len );
+            mbedtls_md_hmac_starts( &transform->md_ctx_enc, mac_enc,
+                                    mac_key_len );
+            mbedtls_md_hmac_starts( &transform->md_ctx_dec, mac_dec,
+                                    mac_key_len );
         }
     }
     else
@@ -897,11 +914,10 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
 
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "going for mbedtls_ssl_hw_record_init()" ) );
 
-        if( ( ret = mbedtls_ssl_hw_record_init( ssl, key1, key2, transform->keylen,
-                                        transform->iv_enc, transform->iv_dec,
-                                        iv_copy_len,
-                                        mac_enc, mac_dec,
-                                        mac_key_len ) ) != 0 )
+        if( ( ret = mbedtls_ssl_hw_record_init( ssl, key1, key2,
+                                        transform->keylen, transform->iv_enc,
+                                        transform->iv_dec, iv_copy_len, mac_enc,
+                                        mac_dec, mac_key_len ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_init", ret );
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
@@ -1027,7 +1043,8 @@ int ssl_calc_verify_ssl( mbedtls_ssl_context *ssl, unsigned char hash[36] )
     memset( pad_1, 0x36, 48 );
     memset( pad_2, 0x5C, 48 );
 
-    if( ( ret = mbedtls_md5_update_ret( &md5, ssl->session_negotiate->master, 48 ) ) != 0 )
+    if( ( ret = mbedtls_md5_update_ret( &md5, ssl->session_negotiate->master,
+                                        48 ) ) != 0 )
         goto exit;
     if( ( ret = mbedtls_md5_update_ret( &md5, pad_1, 48 ) ) != 0 )
         goto exit;
@@ -1036,16 +1053,18 @@ int ssl_calc_verify_ssl( mbedtls_ssl_context *ssl, unsigned char hash[36] )
 
     if( ( ret = mbedtls_md5_starts_ret( &md5 ) ) != 0 )
         goto exit;
-    if( ( ret = mbedtls_md5_update_ret( &md5, ssl->session_negotiate->master, 48 ) ) != 0 )
+    if( ( ret = mbedtls_md5_update_ret( &md5, ssl->session_negotiate->master,
+                                        48 ) ) != 0 )
         goto exit;
-    if( ( ret =  mbedtls_md5_update_ret( &md5, pad_2, 48 ) ) != 0 )
+    if( ( ret = mbedtls_md5_update_ret( &md5, pad_2, 48 ) ) != 0 )
         goto exit;
     if( ( ret = mbedtls_md5_update_ret( &md5, hash,  16 ) ) != 0 )
         goto exit;
     if( ( ret = mbedtls_md5_finish_ret( &md5, hash ) ) != 0 )
         goto exit;
 
-    if( ( ret =  mbedtls_sha1_update_ret( &sha1, ssl->session_negotiate->master, 48 ) ) != 0 )
+    if( ( ret = mbedtls_sha1_update_ret( &sha1, ssl->session_negotiate->master,
+                                          48 ) ) != 0 )
         goto exit;
     if( ( ret = mbedtls_sha1_update_ret( &sha1, pad_1, 40 ) ) != 0 )
         goto exit;
@@ -1054,7 +1073,8 @@ int ssl_calc_verify_ssl( mbedtls_ssl_context *ssl, unsigned char hash[36] )
 
     if( ( ret = mbedtls_sha1_starts_ret( &sha1 ) ) != 0 )
         goto exit;
-    if( ( ret = mbedtls_sha1_update_ret( &sha1, ssl->session_negotiate->master, 48 ) ) != 0 )
+    if( ( ret = mbedtls_sha1_update_ret( &sha1, ssl->session_negotiate->master,
+                                         48 ) ) != 0 )
         goto exit;
     if( ( ret = mbedtls_sha1_update_ret( &sha1, pad_2, 40 ) ) != 0 )
         goto exit;
@@ -1067,9 +1087,10 @@ int ssl_calc_verify_ssl( mbedtls_ssl_context *ssl, unsigned char hash[36] )
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
 exit:
-    mbedtls_md5_free(  &md5  );
+    mbedtls_md5_free( &md5 );
     mbedtls_sha1_free( &sha1 );
-    return ( ret );
+
+    return( ret );
 }
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
@@ -1097,16 +1118,17 @@ int ssl_calc_verify_tls( mbedtls_ssl_context *ssl, unsigned char hash[36] )
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc verify" ) );
 
 exit:
-    mbedtls_md5_free(  &md5  );
+    mbedtls_md5_free( &md5 );
     mbedtls_sha1_free( &sha1 );
 
-    return ( ret );
+    return( ret );
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
-int ssl_calc_verify_tls_sha256( mbedtls_ssl_context *ssl, unsigned char hash[32] )
+int ssl_calc_verify_tls_sha256( mbedtls_ssl_context *ssl,
+                                unsigned char hash[32] )
 {
     mbedtls_sha256_context sha256;
     int ret;
@@ -1123,12 +1145,13 @@ int ssl_calc_verify_tls_sha256( mbedtls_ssl_context *ssl, unsigned char hash[32]
 
     mbedtls_sha256_free( &sha256 );
 
-    return ( ret );
+    return( ret );
 }
 #endif /* MBEDTLS_SHA256_C */
 
 #if defined(MBEDTLS_SHA512_C)
-int ssl_calc_verify_tls_sha384( mbedtls_ssl_context *ssl, unsigned char hash[48] )
+int ssl_calc_verify_tls_sha384( mbedtls_ssl_context *ssl,
+                                unsigned char hash[48] )
 {
     mbedtls_sha512_context sha512;
     int ret;
@@ -1145,13 +1168,14 @@ int ssl_calc_verify_tls_sha384( mbedtls_ssl_context *ssl, unsigned char hash[48]
 
     mbedtls_sha512_free( &sha512 );
 
-    return ( ret );
+    return( ret );
 }
 #endif /* MBEDTLS_SHA512_C */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exchange_type_t key_ex )
+int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl,
+                                      mbedtls_key_exchange_type_t key_ex )
 {
     unsigned char *p = ssl->handshake->premaster;
     unsigned char *end = p + sizeof( ssl->handshake->premaster );
@@ -1211,7 +1235,8 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
         /* Write length only when we know the actual value */
         if( ( ret = mbedtls_dhm_calc_secret( &ssl->handshake->dhm_ctx,
                                       p + 2, end - ( p + 2 ), &len,
-                                      ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+                                      ssl->conf->f_rng,
+                                      ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_dhm_calc_secret", ret );
             return( ret );
@@ -1220,7 +1245,7 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
         *(p++) = (unsigned char)( len );
         p += len;
 
-        MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K  );
+        MBEDTLS_SSL_DEBUG_MPI( 3, "DHM: K ", &ssl->handshake->dhm_ctx.K );
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_DHE_PSK_ENABLED */
@@ -1232,7 +1257,8 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 
         if( ( ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx, &zlen,
                                        p + 2, end - ( p + 2 ),
-                                       ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
+                                       ssl->conf->f_rng,
+                                       ssl->conf->p_rng ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecdh_calc_secret", ret );
             return( ret );
@@ -1302,36 +1328,36 @@ static int ssl_mac( mbedtls_md_context_t *md_ctx,
     memset( padding, 0x36, padlen );
 
     if( ( ret = mbedtls_md_starts( md_ctx ) ) != 0 )
-        return ( ret );
+        return( ret );
     if( ( ret = mbedtls_md_update( md_ctx, secret,  md_size ) ) != 0 )
-        return ( ret );
-    if( ( ret = mbedtls_md_update( md_ctx, padding, padlen  ) ) != 0 )
-        return ( ret );
-    if( ( ret = mbedtls_md_update( md_ctx, header,  11      ) ) != 0 )
-        return ( ret );
-    if( ( ret = mbedtls_md_update( md_ctx, buf,     len     ) ) != 0 )
-        return ( ret );
-    if( ( ret = mbedtls_md_finish( md_ctx, out              ) ) != 0 )
-        return ( ret );
+        return( ret );
+    if( ( ret = mbedtls_md_update( md_ctx, padding, padlen ) ) != 0 )
+        return( ret );
+    if( ( ret = mbedtls_md_update( md_ctx, header, 11 ) ) != 0 )
+        return( ret );
+    if( ( ret = mbedtls_md_update( md_ctx, buf, len ) ) != 0 )
+        return( ret );
+    if( ( ret = mbedtls_md_finish( md_ctx, out ) ) != 0 )
+        return( ret );
 
     memset( padding, 0x5C, padlen );
     if( ( ret = mbedtls_md_starts( md_ctx ) ) != 0 )
-        return ( ret );
-    if( ( ret = mbedtls_md_update( md_ctx, secret,    md_size ) ) != 0 )
-        return ( ret );
-    if( ( ret = mbedtls_md_update( md_ctx, padding,   padlen  ) ) != 0 )
-        return ( ret );
-    if( ( ret = mbedtls_md_update( md_ctx, out,       md_size ) ) != 0 )
-        return ( ret );
-    if( ( ret = mbedtls_md_finish( md_ctx, out                ) ) != 0 )
-        return ( ret );
+        return( ret );
+    if( ( ret = mbedtls_md_update( md_ctx, secret, md_size ) ) != 0 )
+        return( ret );
+    if( ( ret = mbedtls_md_update( md_ctx, padding, padlen ) ) != 0 )
+        return( ret );
+    if( ( ret = mbedtls_md_update( md_ctx, out, md_size ) ) != 0 )
+        return( ret );
+    if( ( ret = mbedtls_md_finish( md_ctx, out ) ) != 0 )
+        return( ret );
 
-    return ( ret );
+    return( ret );
 }
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
 #if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER) ||     \
-    ( defined(MBEDTLS_CIPHER_MODE_CBC) &&                                  \
+    ( defined(MBEDTLS_CIPHER_MODE_CBC) &&                                 \
       ( defined(MBEDTLS_AES_C) || defined(MBEDTLS_CAMELLIA_C) ) )
 #define SSL_SOME_MODES_USE_MAC
 #endif
@@ -1381,16 +1407,17 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
         {
             int ret;
             unsigned char mac[SSL_MAC_MAX_BYTES];
-            if ((ret = ssl_mac(&ssl->transform_out->md_ctx_enc,
-                               ssl->transform_out->mac_enc,
-                               ssl->out_msg, ssl->out_msglen,
-                               ssl->out_ctr, ssl->out_msgtype,
-                               mac)) != 0)
+            if ( ( ret = ssl_mac( &ssl->transform_out->md_ctx_enc,
+                                  ssl->transform_out->mac_enc,
+                                  ssl->out_msg, ssl->out_msglen,
+                                  ssl->out_ctr, ssl->out_msgtype,
+                                  mac ) ) != 0 )
             {
-                return (ret);
+                return( ret );
             }
 
-            memcpy( ssl->out_msg + ssl->out_msglen, mac, ssl->transform_out->maclen );
+            memcpy( ssl->out_msg + ssl->out_msglen, mac,
+                    ssl->transform_out->maclen );
         }
         else
 #endif
@@ -1401,20 +1428,28 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
             int ret = 0;
             unsigned char mac[MBEDTLS_SSL_MAC_ADD];
 
-            if( ( ret =  mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_ctr, 8 ) ) != 0 )
-                return ( ret );
-            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_hdr, 3 ) ) != 0 )
-                return ( ret );
-            if( ( ret =  mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_len, 2 ) ) != 0 )
-                return ( ret );
-            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_msg, ssl->out_msglen ) ) != 0 )
-                return ( ret );
-            if( ( ret = mbedtls_md_hmac_finish( &ssl->transform_out->md_ctx_enc, mac ) ) != 0 )
-                return ( ret );
-            if( ( ret = mbedtls_md_hmac_reset( &ssl->transform_out->md_ctx_enc ) ) != 0 )
-                return ( ret );
+            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc,
+                                                ssl->out_ctr, 8 ) ) != 0 )
+                return( ret );
+            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc,
+                                                ssl->out_hdr, 3 ) ) != 0 )
+                return( ret );
+            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc,
+                                                ssl->out_len, 2 ) ) != 0 )
+                return( ret );
+            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc,
+                                                ssl->out_msg,
+                                                ssl->out_msglen ) ) != 0 )
+                return( ret );
+            if( ( ret = mbedtls_md_hmac_finish( &ssl->transform_out->md_ctx_enc,
+                                                mac ) ) != 0 )
+                return( ret );
+            if( ( ret = mbedtls_md_hmac_reset(
+                                       &ssl->transform_out->md_ctx_enc ) ) != 0 )
+                return( ret );
 
-            memcpy( ssl->out_msg + ssl->out_msglen, mac, ssl->transform_out->maclen );
+            memcpy( ssl->out_msg + ssl->out_msglen, mac,
+                    ssl->transform_out->maclen );
         }
         else
 #endif
@@ -1516,7 +1551,8 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
         /*
          * Encrypt and authenticate
          */
-        if( ( ret = mbedtls_cipher_auth_encrypt( &ssl->transform_out->cipher_ctx_enc,
+        if( ( ret = mbedtls_cipher_auth_encrypt(
+                                         &ssl->transform_out->cipher_ctx_enc,
                                          ssl->transform_out->iv_enc,
                                          ssl->transform_out->ivlen,
                                          add_data, 13,
@@ -1537,7 +1573,8 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
         ssl->out_msglen += taglen;
         auth_done++;
 
-        MBEDTLS_SSL_DEBUG_BUF( 4, "after encrypt: tag", enc_msg + enc_msglen, taglen );
+        MBEDTLS_SSL_DEBUG_BUF( 4, "after encrypt: tag", enc_msg + enc_msglen,
+                               taglen );
     }
     else
 #endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C */
@@ -1572,8 +1609,9 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
             /*
              * Generate IV
              */
-            ret = ssl->conf->f_rng( ssl->conf->p_rng, ssl->transform_out->iv_enc,
-                                  ssl->transform_out->ivlen );
+            ret = ssl->conf->f_rng( ssl->conf->p_rng,
+                                    ssl->transform_out->iv_enc,
+                                    ssl->transform_out->ivlen );
             if( ret != 0 )
                 return( ret );
 
@@ -1644,14 +1682,20 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
 
             MBEDTLS_SSL_DEBUG_BUF( 4, "MAC'd meta-data", pseudo_hdr, 13 );
 
-            if( ( ret =  mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc, pseudo_hdr, 13 ) ) != 0 )
-                return ( ret );
-            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc, ssl->out_iv, ssl->out_msglen ) ) != 0 )
-                return ( ret );
-            if( ( ret = mbedtls_md_hmac_finish( &ssl->transform_out->md_ctx_enc, ssl->out_iv + ssl->out_msglen ) ) != 0 )
-                return ( ret );
-            if( ( ret = mbedtls_md_hmac_reset( &ssl->transform_out->md_ctx_enc ) ) != 0 )
-                return ( ret );
+            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc,
+                                                pseudo_hdr, 13 ) ) != 0 )
+                return( ret );
+            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc,
+                                                ssl->out_iv,
+                                                ssl->out_msglen ) ) != 0 )
+                return( ret );
+            if( ( ret = mbedtls_md_hmac_finish( &ssl->transform_out->md_ctx_enc,
+                                                ssl->out_iv + ssl->out_msglen )
+                ) != 0 )
+                return( ret );
+            if( ( ret = mbedtls_md_hmac_reset(
+                                       &ssl->transform_out->md_ctx_enc ) ) != 0 )
+                return( ret );
 
             ssl->out_msglen += ssl->transform_out->maclen;
             auth_done++;
@@ -1778,7 +1822,8 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
         /*
          * Decrypt and authenticate
          */
-        if( ( ret = mbedtls_cipher_auth_decrypt( &ssl->transform_in->cipher_ctx_dec,
+        if( ( ret = mbedtls_cipher_auth_decrypt(
+                                         &ssl->transform_in->cipher_ctx_dec,
                                          ssl->transform_in->iv_dec,
                                          ssl->transform_in->ivlen,
                                          add_data, 13,
@@ -1859,21 +1904,28 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
             pseudo_hdr[12] = (unsigned char)( ( ssl->in_msglen      ) & 0xFF );
 
             MBEDTLS_SSL_DEBUG_BUF( 4, "MAC'd meta-data", pseudo_hdr, 13 );
-            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec, pseudo_hdr, 13 ) ) != 0 )
-                return ( ret );
-            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_iv, ssl->in_msglen ) ) != 0 )
-                return ( ret );
-            if( ( ret = mbedtls_md_hmac_finish( &ssl->transform_in->md_ctx_dec, mac_expect ) ) != 0 )
-                return ( ret );
-            if( ( ret = mbedtls_md_hmac_reset( &ssl->transform_in->md_ctx_dec ) ) != 0 )
-                return ( ret );
+            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec,
+                                                pseudo_hdr, 13 ) ) != 0 )
+                return( ret );
+            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec,
+                                                ssl->in_iv,
+                                                ssl->in_msglen ) ) != 0 )
+                return( ret );
+            if( ( ret = mbedtls_md_hmac_finish( &ssl->transform_in->md_ctx_dec,
+                                                mac_expect ) ) != 0 )
+                return( ret );
+            if( ( ret = mbedtls_md_hmac_reset(
+                                       &ssl->transform_in->md_ctx_dec ) ) != 0 )
+                return( ret );
 
-            MBEDTLS_SSL_DEBUG_BUF( 4, "message  mac", ssl->in_iv + ssl->in_msglen,
-                                              ssl->transform_in->maclen );
+            MBEDTLS_SSL_DEBUG_BUF( 4, "message  mac",
+                                   ssl->in_iv + ssl->in_msglen,
+                                   ssl->transform_in->maclen );
             MBEDTLS_SSL_DEBUG_BUF( 4, "expected mac", mac_expect,
-                                              ssl->transform_in->maclen );
+                                   ssl->transform_in->maclen );
 
-            if( mbedtls_ssl_safer_memcmp( ssl->in_iv + ssl->in_msglen, mac_expect,
+            if( mbedtls_ssl_safer_memcmp( ssl->in_iv + ssl->in_msglen,
+                                          mac_expect,
                                           ssl->transform_in->maclen ) != 0 )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "message mac does not match" ) );
@@ -2045,13 +2097,13 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
         if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
         {
             int ret;
-            if ((ret = ssl_mac(&ssl->transform_in->md_ctx_dec,
-                               ssl->transform_in->mac_dec,
-                               ssl->in_msg, ssl->in_msglen,
-                               ssl->in_ctr, ssl->in_msgtype,
-                               mac_expect)) != 0)
+            if ( ( ret = ssl_mac( &ssl->transform_in->md_ctx_dec,
+                                  ssl->transform_in->mac_dec,
+                                  ssl->in_msg, ssl->in_msglen,
+                                  ssl->in_ctr, ssl->in_msgtype,
+                                  mac_expect ) ) != 0 )
             {
-                return (ret);
+                return( ret );
             }
         }
         else
@@ -2080,26 +2132,34 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
 
             extra_run &= correct * 0xFF;
 
-            if( ( ret =  mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_ctr, 8 ) ) != 0 )
-                return ( ret );
-            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_hdr, 3 ) ) != 0 )
-                return ( ret );
-            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_len, 2 ) ) != 0 )
-                return ( ret );
-            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec, ssl->in_msg, ssl->in_msglen ) ) != 0 )
-                return ( ret );
-            if( ( ret = mbedtls_md_hmac_finish( &ssl->transform_in->md_ctx_dec, mac_expect ) ) != 0 )
-                return ( ret );
+            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec,
+                                                ssl->in_ctr, 8 ) ) != 0 )
+                return( ret );
+            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec,
+                                                ssl->in_hdr, 3 ) ) != 0 )
+                return( ret );
+            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec,
+                                                ssl->in_len, 2 ) ) != 0 )
+                return( ret );
+            if( ( ret = mbedtls_md_hmac_update( &ssl->transform_in->md_ctx_dec,
+                                                ssl->in_msg,
+                                                ssl->in_msglen ) ) != 0 )
+                return( ret );
+            if( ( ret = mbedtls_md_hmac_finish( &ssl->transform_in->md_ctx_dec,
+                                                mac_expect ) ) != 0 )
+                return( ret );
 
             /* Call mbedtls_md_process at least once due to cache attacks */
             for( j = 0; j < extra_run + 1; j++ )
             {
-                if( ( ret = mbedtls_md_process( &ssl->transform_in->md_ctx_dec, ssl->in_msg ) ) != 0 )
-                    return ( ret );
+                if( ( ret = mbedtls_md_process( &ssl->transform_in->md_ctx_dec,
+                                                ssl->in_msg ) ) != 0 )
+                    return( ret );
             }
 
-            if( ( ret = mbedtls_md_hmac_reset( &ssl->transform_in->md_ctx_dec ) ) != 0 )
-                return ( ret );
+            if( ( ret = mbedtls_md_hmac_reset(
+                                       &ssl->transform_in->md_ctx_dec ) ) != 0 )
+                return( ret );
         }
         else
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
@@ -2109,7 +2169,8 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-        MBEDTLS_SSL_DEBUG_BUF( 4, "expected mac", mac_expect, ssl->transform_in->maclen );
+        MBEDTLS_SSL_DEBUG_BUF( 4, "expected mac", mac_expect,
+                               ssl->transform_in->maclen );
         MBEDTLS_SSL_DEBUG_BUF( 4, "message  mac", ssl->in_msg + ssl->in_msglen,
                                ssl->transform_in->maclen );
 
@@ -2213,7 +2274,8 @@ static int ssl_compress_buf( mbedtls_ssl_context *ssl )
     ssl->transform_out->ctx_deflate.next_in = msg_pre;
     ssl->transform_out->ctx_deflate.avail_in = len_pre;
     ssl->transform_out->ctx_deflate.next_out = msg_post;
-    ssl->transform_out->ctx_deflate.avail_out = MBEDTLS_SSL_BUFFER_LEN - bytes_written;
+    ssl->transform_out->ctx_deflate.avail_out = MBEDTLS_SSL_BUFFER_LEN -
+                                                bytes_written;
 
     ret = deflate( &ssl->transform_out->ctx_deflate, Z_SYNC_FLUSH );
     if( ret != Z_OK )
@@ -2295,7 +2357,8 @@ static int ssl_resend_hello_request( mbedtls_ssl_context *ssl )
      * timeout if we were using the usual handshake doubling scheme */
     if( ssl->conf->renego_max_records < 0 )
     {
-        uint32_t ratio = ssl->conf->hs_timeout_max / ssl->conf->hs_timeout_min + 1;
+        uint32_t ratio = ssl->conf->hs_timeout_max /
+                         ssl->conf->hs_timeout_min + 1;
         unsigned char doublings = 1;
 
         while( ratio != 0 )
@@ -2306,7 +2369,8 @@ static int ssl_resend_hello_request( mbedtls_ssl_context *ssl )
 
         if( ++ssl->renego_records_seen > doublings )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "no longer retransmitting hello request" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 2,
+                           ( "no longer retransmitting hello request" ) );
             return( 0 );
         }
     }
@@ -2386,8 +2450,9 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
 
             if( ssl->in_left != 0 )
             {
-                MBEDTLS_SSL_DEBUG_MSG( 2, ( "next record in same datagram, offset: %d",
-                                    ssl->next_record_offset ) );
+                MBEDTLS_SSL_DEBUG_MSG( 2,
+                               ( "next record in same datagram, offset: %d",
+                               ssl->next_record_offset ) );
                 memmove( ssl->in_hdr,
                          ssl->in_hdr + ssl->next_record_offset,
                          ssl->in_left );
@@ -2574,7 +2639,8 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
     while( ssl->out_left > 0 )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "message length: %d, out_left: %d",
-                       mbedtls_ssl_hdr_len( ssl ) + ssl->out_msglen, ssl->out_left ) );
+                       mbedtls_ssl_hdr_len( ssl ) + ssl->out_msglen,
+                       ssl->out_left ) );
 
         buf = ssl->out_hdr + mbedtls_ssl_hdr_len( ssl ) +
               ssl->out_msglen - ssl->out_left;
@@ -2585,7 +2651,8 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
         if( ret <= 0 )
             return( ret );
 
-        if( (size_t)ret > ssl->out_left || ( INT_MAX > SIZE_MAX && ret > SIZE_MAX ) )
+        if( (size_t)ret > ssl->out_left ||
+            ( INT_MAX > SIZE_MAX && ret > SIZE_MAX ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1,
                 ( "f_send returned %d bytes but only %lu bytes were sent",
@@ -2624,7 +2691,8 @@ static int ssl_flight_append( mbedtls_ssl_context *ssl )
     mbedtls_ssl_flight_item *msg;
 
     /* Allocate space for current message */
-    if( ( msg = mbedtls_calloc( 1, sizeof(  mbedtls_ssl_flight_item ) ) ) == NULL )
+    if( ( msg = mbedtls_calloc( 1,
+                                sizeof( mbedtls_ssl_flight_item ) ) ) == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc %d bytes failed",
                             sizeof( mbedtls_ssl_flight_item ) ) );
@@ -2720,7 +2788,8 @@ static void ssl_swap_epochs( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_activate != NULL )
     {
-        if( ( ret = mbedtls_ssl_hw_record_activate( ssl, MBEDTLS_SSL_CHANNEL_OUTBOUND ) ) != 0 )
+        if( ( ret = mbedtls_ssl_hw_record_activate( ssl,
+                                    MBEDTLS_SSL_CHANNEL_OUTBOUND ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_activate", ret );
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
@@ -2770,7 +2839,8 @@ int mbedtls_ssl_resend( mbedtls_ssl_context *ssl )
 
         ssl->handshake->cur_msg = cur->next;
 
-        MBEDTLS_SSL_DEBUG_BUF( 3, "resent handshake message header", ssl->out_msg, 12 );
+        MBEDTLS_SSL_DEBUG_BUF( 3, "resent handshake message header",
+                               ssl->out_msg, 12 );
 
         if( ( ret = mbedtls_ssl_write_record( ssl ) ) != 0 )
         {
@@ -2997,7 +3067,8 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl )
                      ( ssl->out_len[0] << 8 ) | ssl->out_len[1] ) );
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "output record sent to network",
-                       ssl->out_hdr, mbedtls_ssl_hdr_len( ssl ) + ssl->out_msglen );
+                       ssl->out_hdr,
+                       mbedtls_ssl_hdr_len( ssl ) + ssl->out_msglen );
     }
 
     if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )
@@ -3089,7 +3160,8 @@ static int ssl_reassemble_dtls_handshake( mbedtls_ssl_context *ssl )
 
     if( ssl->handshake == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "not supported outside handshake (for now)" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1,
+                               ( "not supported outside handshake (for now)" ) );
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
@@ -3210,7 +3282,8 @@ static int ssl_reassemble_dtls_handshake( mbedtls_ssl_context *ssl )
         if( ssl->in_left > MBEDTLS_SSL_BUFFER_LEN -
                            (size_t)( ssl->in_hdr - ssl->in_buf ) )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "reassembled message too large for buffer" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+                           ( "reassembled message too large for buffer" ) );
             return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
         }
 
@@ -3295,7 +3368,8 @@ int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
             memcmp( ssl->in_msg + 9, ssl->in_msg + 1, 3 ) != 0 ||
             ( ssl->handshake != NULL && ssl->handshake->hs_msg != NULL ) )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "found fragmented DTLS handshake message" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 2,
+                           ( "found fragmented DTLS handshake message" ) );
 
             if( ( ret = ssl_reassemble_dtls_handshake( ssl ) ) != 0 )
             {
@@ -3309,7 +3383,8 @@ int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
     /* With TLS we don't handle fragmentation (for now) */
     if( ssl->in_msglen < ssl->in_hslen )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLS handshake fragmentation not supported" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 1,
+                       ( "TLS handshake fragmentation not supported" ) );
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
     }
 
@@ -3636,11 +3711,13 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
 {
     int major_ver, minor_ver;
 
-    MBEDTLS_SSL_DEBUG_BUF( 4, "input record header", ssl->in_hdr, mbedtls_ssl_hdr_len( ssl ) );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "input record header", ssl->in_hdr,
+                           mbedtls_ssl_hdr_len( ssl ) );
 
-    ssl->in_msgtype =  ssl->in_hdr[0];
+    ssl->in_msgtype = ssl->in_hdr[0];
     ssl->in_msglen = ( ssl->in_len[0] << 8 ) | ssl->in_len[1];
-    mbedtls_ssl_read_version( &major_ver, &minor_ver, ssl->conf->transport, ssl->in_hdr + 1 );
+    mbedtls_ssl_read_version( &major_ver, &minor_ver, ssl->conf->transport,
+                              ssl->in_hdr + 1 );
 
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "input record: msgtype = %d, "
                         "version = [%d:%d], msglen = %d",
@@ -3749,7 +3826,8 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
             ssl->state != MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC &&
             ssl->state != MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "dropping unexpected ChangeCipherSpec" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+                                   ( "dropping unexpected ChangeCipherSpec" ) );
             return( MBEDTLS_ERR_SSL_UNEXPECTED_RECORD );
         }
 
@@ -3790,7 +3868,8 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
         if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 &&
-            ssl->in_msglen > ssl->transform_in->minlen + MBEDTLS_SSL_MAX_CONTENT_LEN )
+            ssl->in_msglen > ssl->transform_in->minlen +
+                             MBEDTLS_SSL_MAX_CONTENT_LEN )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad message length" ) );
             return( MBEDTLS_ERR_SSL_INVALID_RECORD );
@@ -3904,7 +3983,8 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
 
             if( ret != 0 )
             {
-                MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_read_record_layer" ), ret );
+                MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_read_record_layer" ),
+                                       ret );
                 return( ret );
             }
 
@@ -3915,7 +3995,8 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl )
 
         if( 0 != ret )
         {
-            MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_handle_message_type" ), ret );
+            MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_handle_message_type" ),
+                                   ret );
             return( ret );
         }
 
@@ -4038,7 +4119,8 @@ int mbedtls_ssl_read_record_layer( mbedtls_ssl_context *ssl )
 
     /* Current record either fully processed or to be discarded. */
 
-    if( ( ret = mbedtls_ssl_fetch_input( ssl, mbedtls_ssl_hdr_len( ssl ) ) ) != 0 )
+    if( ( ret = mbedtls_ssl_fetch_input( ssl,
+                                         mbedtls_ssl_hdr_len( ssl ) ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
         return( ret );
@@ -4080,7 +4162,8 @@ int mbedtls_ssl_read_record_layer( mbedtls_ssl_context *ssl )
      * Read and optionally decrypt the message contents
      */
     if( ( ret = mbedtls_ssl_fetch_input( ssl,
-                                 mbedtls_ssl_hdr_len( ssl ) + ssl->in_msglen ) ) != 0 )
+                                 mbedtls_ssl_hdr_len( ssl ) +
+                                 ssl->in_msglen ) ) != 0 )
     {
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_fetch_input", ret );
         return( ret );
@@ -4130,7 +4213,8 @@ int mbedtls_ssl_read_record_layer( mbedtls_ssl_context *ssl )
                 if( ssl->conf->badmac_limit != 0 &&
                     ++ssl->badmac_seen >= ssl->conf->badmac_limit )
                 {
-                    MBEDTLS_SSL_DEBUG_MSG( 1, ( "too many records with bad MAC" ) );
+                    MBEDTLS_SSL_DEBUG_MSG( 1,
+                                           ( "too many records with bad MAC" ) );
                     return( MBEDTLS_ERR_SSL_INVALID_MAC );
                 }
 #endif
@@ -4232,7 +4316,7 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
         ssl->handshake != NULL &&
-        ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER  )
+        ssl->state == MBEDTLS_SSL_HANDSHAKE_OVER )
     {
         ssl_handshake_wrapup_free_hs_transform( ssl );
     }
@@ -4265,7 +4349,8 @@ int mbedtls_ssl_send_alert_message( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> send alert message" ) );
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "send alert level=%u message=%u", level, message ));
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "send alert level=%u message=%u",
+                                level, message ) );
 
     ssl->out_msgtype = MBEDTLS_SSL_MSG_ALERT;
     ssl->out_msglen = 2;
@@ -4295,7 +4380,8 @@ int mbedtls_ssl_send_alert_message( mbedtls_ssl_context *ssl,
 /* No certificate support -> dummy functions */
 int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
 {
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+                                ssl->transform_negotiate->ciphersuite_info;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
 
@@ -4315,7 +4401,8 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
 
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 {
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+                                ssl->transform_negotiate->ciphersuite_info;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
@@ -4341,7 +4428,8 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, n;
     const mbedtls_x509_crt *crt;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+                                ssl->transform_negotiate->ciphersuite_info;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate" ) );
 
@@ -4456,7 +4544,8 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 {
     int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     size_t i, n;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
+    const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
+                                ssl->transform_negotiate->ciphersuite_info;
     int authmode = ssl->conf->authmode;
     uint8_t alert;
 
@@ -4541,7 +4630,8 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         if( ssl->in_hslen   == 3 + mbedtls_ssl_hs_hdr_len( ssl ) &&
             ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE    &&
             ssl->in_msg[0]  == MBEDTLS_SSL_HS_CERTIFICATE   &&
-            memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ), "\0\0\0", 3 ) == 0 )
+            memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ),
+                    "\0\0\0", 3 ) == 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLSv1 client has no certificate" ) );
 
@@ -4656,7 +4746,8 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         default:
             alert = MBEDTLS_SSL_ALERT_MSG_BAD_CERT;
         crt_parse_der_failed:
-            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL, alert );
+            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                            alert );
             MBEDTLS_SSL_DEBUG_RET( 1, " mbedtls_x509_crt_parse_der", ret );
             return( ret );
         }
@@ -4664,7 +4755,8 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         i += n;
     }
 
-    MBEDTLS_SSL_DEBUG_CRT( 3, "peer certificate", ssl->session_negotiate->peer_cert );
+    MBEDTLS_SSL_DEBUG_CRT( 3, "peer certificate",
+                           ssl->session_negotiate->peer_cert );
 
     /*
      * On client, make sure the server cert doesn't change during renego to
@@ -4688,7 +4780,8 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
                     ssl->session_negotiate->peer_cert->raw.p,
                     ssl->session->peer_cert->raw.len ) != 0 )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "server cert changed during renegotiation" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 1,
+                           ( "server cert changed during renegotiation" ) );
             mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                             MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED );
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
@@ -4740,7 +4833,8 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
             /* If certificate uses an EC key, make sure the curve is OK */
             if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECKEY ) &&
-                mbedtls_ssl_check_curve( ssl, mbedtls_pk_ec( *pk )->grp.id ) != 0 )
+                mbedtls_ssl_check_curve( ssl,
+                                         mbedtls_pk_ec( *pk )->grp.id ) != 0 )
             {
                 ssl->session_negotiate->verify_result |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
@@ -4929,7 +5023,8 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_activate != NULL )
     {
-        if( ( ret = mbedtls_ssl_hw_record_activate( ssl, MBEDTLS_SSL_CHANNEL_INBOUND ) ) != 0 )
+        if( ( ret = mbedtls_ssl_hw_record_activate( ssl,
+                    MBEDTLS_SSL_CHANNEL_INBOUND ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_activate", ret );
             mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
@@ -4980,46 +5075,52 @@ int mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl )
     int ret;
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
-    if( ( ret = mbedtls_md5_starts_ret( &ssl->handshake->fin_md5  ) ) != 0 )
-        return ( ret );
+    if( ( ret = mbedtls_md5_starts_ret( &ssl->handshake->fin_md5 ) ) != 0 )
+        return( ret );
     if( ( ret = mbedtls_sha1_starts_ret( &ssl->handshake->fin_sha1 ) ) != 0 )
-        return ( ret );
+        return( ret );
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
-    if( ( ret = mbedtls_sha256_starts_ret( &ssl->handshake->fin_sha256, 0 ) ) != 0 )
-        return ( ret );
+    if( ( ret = mbedtls_sha256_starts_ret( &ssl->handshake->fin_sha256,
+                                           0 ) ) != 0 )
+        return( ret );
 #endif
 #if defined(MBEDTLS_SHA512_C)
-    if( ( ret = mbedtls_sha512_starts_ret( &ssl->handshake->fin_sha512, 1 ) ) != 0 )
-        return ( ret );
+    if( ( ret = mbedtls_sha512_starts_ret( &ssl->handshake->fin_sha512,
+                                           1 ) ) != 0 )
+        return( ret );
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-    return ( ret );
+    return( ret );
 }
 
 static int ssl_update_checksum_start( mbedtls_ssl_context *ssl,
-                                       const unsigned char *buf, size_t len )
+                                      const unsigned char *buf, size_t len )
 {
     int ret = 0;
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
-    if( ( ret = mbedtls_md5_update_ret( &ssl->handshake->fin_md5 , buf, len ) ) != 0 )
-        return ( ret );
-    if( ( ret = mbedtls_sha1_update_ret( &ssl->handshake->fin_sha1, buf, len ) ) != 0 )
-        return ( ret );
+    if( ( ret = mbedtls_md5_update_ret( &ssl->handshake->fin_md5, buf,
+                                        len ) ) != 0 )
+        return( ret );
+    if( ( ret = mbedtls_sha1_update_ret( &ssl->handshake->fin_sha1, buf,
+                                         len ) ) != 0 )
+        return( ret );
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
-    if( ( ret = mbedtls_sha256_update_ret( &ssl->handshake->fin_sha256, buf, len ) ) != 0 )
-        return ( ret );
+    if( ( ret = mbedtls_sha256_update_ret( &ssl->handshake->fin_sha256, buf,
+                                           len ) ) != 0 )
+        return( ret );
 #endif
 #if defined(MBEDTLS_SHA512_C)
-if( ( ret = mbedtls_sha512_update_ret( &ssl->handshake->fin_sha512, buf, len ) ) != 0 )
-        return ( ret );
+if( ( ret = mbedtls_sha512_update_ret( &ssl->handshake->fin_sha512, buf,
+                                       len ) ) != 0 )
+        return( ret );
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
-    return ( ret );
+    return( ret );
 }
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
@@ -5028,37 +5129,39 @@ static int ssl_update_checksum_md5sha1( mbedtls_ssl_context *ssl,
                                          const unsigned char *buf, size_t len )
 {
     int ret;
-    if( ( ret = mbedtls_md5_update_ret( &ssl->handshake->fin_md5 , buf, len ) ) != 0 )
-        return ( ret );
-    if( ( ret = mbedtls_sha1_update_ret( &ssl->handshake->fin_sha1, buf, len ) ) != 0 )
-        return ( ret );
+    if( ( ret = mbedtls_md5_update_ret( &ssl->handshake->fin_md5 , buf,
+                                        len ) ) != 0 )
+        return( ret );
+    if( ( ret = mbedtls_sha1_update_ret( &ssl->handshake->fin_sha1, buf,
+                                         len ) ) != 0 )
+        return( ret );
 
-    return ( ret );
+    return( ret );
 }
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
 static int ssl_update_checksum_sha256( mbedtls_ssl_context *ssl,
-                                        const unsigned char *buf, size_t len )
+                                       const unsigned char *buf, size_t len )
 {
     int ret;
 
     ret = mbedtls_sha256_update_ret( &ssl->handshake->fin_sha256, buf, len );
 
-    return ( ret );
+    return( ret );
 }
 #endif
 
 #if defined(MBEDTLS_SHA512_C)
 static int ssl_update_checksum_sha384( mbedtls_ssl_context *ssl,
-                                        const unsigned char *buf, size_t len )
+                                       const unsigned char *buf, size_t len )
 {
     int ret;
 
     ret = mbedtls_sha512_update_ret( &ssl->handshake->fin_sha512, buf, len );
 
-    return ( ret );
+    return( ret );
 }
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
@@ -5070,6 +5173,7 @@ static int ssl_calc_finished_ssl(
     const char *sender;
     mbedtls_md5_context  md5;
     mbedtls_sha1_context sha1;
+
     unsigned char padbuf[48];
     unsigned char md5sum[16];
     unsigned char sha1sum[20];
@@ -5099,7 +5203,7 @@ static int ssl_calc_finished_ssl(
 
 #if !defined(MBEDTLS_MD5_ALT)
     MBEDTLS_SSL_DEBUG_BUF( 4, "finished  md5 state", (unsigned char *)
-                    md5.state, sizeof(  md5.state ) );
+                    md5.state, sizeof( md5.state ) );
 #endif
 
 #if !defined(MBEDTLS_SHA1_ALT)
@@ -5112,7 +5216,8 @@ static int ssl_calc_finished_ssl(
 
     memset( padbuf, 0x36, 48 );
 
-    if( ( ret = mbedtls_md5_update_ret( &md5, (const unsigned char *) sender, 4 ) ) != 0 )
+    if( ( ret = mbedtls_md5_update_ret( &md5, (const unsigned char *) sender,
+                                        4 ) ) != 0 )
         goto exit;
     if( ( ret = mbedtls_md5_update_ret( &md5, session->master, 48 ) ) != 0 )
         goto exit;
@@ -5121,7 +5226,8 @@ static int ssl_calc_finished_ssl(
     if( ( ret = mbedtls_md5_finish_ret( &md5, md5sum ) ) != 0 )
         goto exit;
 
-    if( ( ret = mbedtls_sha1_update_ret( &sha1, (const unsigned char *) sender, 4 ) ) != 0 )
+    if( ( ret = mbedtls_sha1_update_ret( &sha1, (const unsigned char *) sender,
+                                         4 ) ) != 0 )
         goto exit;
     if( ( ret = mbedtls_sha1_update_ret( &sha1, session->master, 48 ) ) != 0 )
         goto exit;
@@ -5140,7 +5246,7 @@ static int ssl_calc_finished_ssl(
         goto exit;
     if( ( ret = mbedtls_md5_update_ret( &md5, md5sum, 16 ) ) != 0 )
         goto exit;
-    if( ( ret =mbedtls_md5_finish_ret( &md5, buf ) ) != 0 )
+    if( ( ret = mbedtls_md5_finish_ret( &md5, buf ) ) != 0 )
         goto exit;
 
     if( ( ret = mbedtls_sha1_starts_ret( &sha1 ) ) != 0 )
@@ -5157,8 +5263,7 @@ static int ssl_calc_finished_ssl(
     MBEDTLS_SSL_DEBUG_BUF( 3, "calc finished result", buf, 36 );
 
 exit:
-
-    mbedtls_md5_free(  &md5  );
+    mbedtls_md5_free( &md5 );
     mbedtls_sha1_free( &sha1 );
 
     mbedtls_platform_zeroize(  padbuf, sizeof(  padbuf ) );
@@ -5166,7 +5271,7 @@ exit:
     mbedtls_platform_zeroize( sha1sum, sizeof( sha1sum ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
-    return ( ret );
+    return( ret );
 }
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
@@ -5201,7 +5306,7 @@ static int ssl_calc_finished_tls(
 
 #if !defined(MBEDTLS_MD5_ALT)
     MBEDTLS_SSL_DEBUG_BUF( 4, "finished  md5 state", (unsigned char *)
-                    md5.state, sizeof(  md5.state ) );
+                    md5.state, sizeof( md5.state ) );
 #endif
 
 #if !defined(MBEDTLS_SHA1_ALT)
@@ -5213,24 +5318,24 @@ static int ssl_calc_finished_tls(
              ? "client finished"
              : "server finished";
 
-    if( ( ret = mbedtls_md5_finish_ret(  &md5, padbuf ) ) != 0 )
+    if( ( ret = mbedtls_md5_finish_ret( &md5, padbuf ) ) != 0 )
         goto exit;
     if( ( ret = mbedtls_sha1_finish_ret( &sha1, padbuf + 16 ) ) != 0 )
         goto exit;
+
     ssl->handshake->tls_prf( session->master, 48, sender,
                              padbuf, 36, buf, len );
 
     MBEDTLS_SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
 exit:
-
-    mbedtls_md5_free(  &md5  );
+    mbedtls_md5_free( &md5 );
     mbedtls_sha1_free( &sha1 );
 
-    mbedtls_platform_zeroize(  padbuf, sizeof(  padbuf ) );
+    mbedtls_platform_zeroize( padbuf, sizeof( padbuf ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
-    return ( ret );
+    return( ret );
 }
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 */
 
@@ -5279,14 +5384,13 @@ static int ssl_calc_finished_tls_sha256(
     MBEDTLS_SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
 exit:
-
     mbedtls_sha256_free( &sha256 );
 
-    mbedtls_platform_zeroize(  padbuf, sizeof(  padbuf ) );
+    mbedtls_platform_zeroize( padbuf, sizeof( padbuf ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
 
-    return ( ret );
+    return( ret );
 }
 #endif /* MBEDTLS_SHA256_C */
 
@@ -5299,6 +5403,7 @@ static int ssl_calc_finished_tls_sha384(
     mbedtls_sha512_context sha512;
     unsigned char padbuf[48];
     int ret;
+
     mbedtls_ssl_session *session = ssl->session_negotiate;
     if( !session )
         session = ssl->session;
@@ -5333,13 +5438,12 @@ static int ssl_calc_finished_tls_sha384(
     MBEDTLS_SSL_DEBUG_BUF( 3, "calc finished result", buf, len );
 
 exit:
-
     mbedtls_sha512_free( &sha512 );
 
-    mbedtls_platform_zeroize(  padbuf, sizeof( padbuf ) );
+    mbedtls_platform_zeroize( padbuf, sizeof( padbuf ) );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= calc  finished" ) );
-    return ( ret );
+    return( ret );
 }
 #endif /* MBEDTLS_SHA512_C */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
@@ -5378,7 +5482,7 @@ void mbedtls_ssl_handshake_wrapup( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
     if( ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )
     {
-        ssl->renego_status =  MBEDTLS_SSL_RENEGOTIATION_DONE;
+        ssl->renego_status = MBEDTLS_SSL_RENEGOTIATION_DONE;
         ssl->renego_records_seen = 0;
     }
 #endif
@@ -5489,7 +5593,8 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
      * Switch to our negotiated transform and session parameters for outbound
      * data.
      */
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "switching to new transform spec for outbound data" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3,
+                   ( "switching to new transform spec for outbound data" ) );
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
@@ -5525,7 +5630,8 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_activate != NULL )
     {
-        if( ( ret = mbedtls_ssl_hw_record_activate( ssl, MBEDTLS_SSL_CHANNEL_OUTBOUND ) ) != 0 )
+        if( ( ret = mbedtls_ssl_hw_record_activate( ssl,
+                                    MBEDTLS_SSL_CHANNEL_OUTBOUND ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_hw_record_activate", ret );
             return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
@@ -5642,24 +5748,24 @@ static int ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
-    mbedtls_md5_init(   &handshake->fin_md5  );
-    mbedtls_sha1_init(   &handshake->fin_sha1 );
+    mbedtls_md5_init( &handshake->fin_md5 );
+    mbedtls_sha1_init( &handshake->fin_sha1 );
 
-    if( ( ret = mbedtls_md5_starts_ret( &handshake->fin_md5  ) ) != 0 )
-        return ( ret );
+    if( ( ret = mbedtls_md5_starts_ret( &handshake->fin_md5 ) ) != 0 )
+        return( ret );
     if( ( ret = mbedtls_sha1_starts_ret( &handshake->fin_sha1 ) ) != 0 )
-        return ( ret );
+        return( ret );
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
-    mbedtls_sha256_init(   &handshake->fin_sha256    );
+    mbedtls_sha256_init( &handshake->fin_sha256 );
     if( ( ret = mbedtls_sha256_starts_ret( &handshake->fin_sha256, 0 ) ) != 0 )
-        return ( ret );
+        return( ret );
 #endif
 #if defined(MBEDTLS_SHA512_C)
-    mbedtls_sha512_init(   &handshake->fin_sha512    );
-    if( ( ret =  mbedtls_sha512_starts_ret( &handshake->fin_sha512, 1 ) ) != 0 )
-        return ( ret );
+    mbedtls_sha512_init( &handshake->fin_sha512 );
+    if( ( ret = mbedtls_sha512_starts_ret( &handshake->fin_sha512, 1 ) ) != 0 )
+        return( ret );
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
@@ -5688,7 +5794,7 @@ static int ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
     handshake->sni_authmode = MBEDTLS_SSL_VERIFY_UNSET;
 #endif
 
-    return ( ret );
+    return( ret );
 }
 
 static void ssl_transform_init( mbedtls_ssl_transform *transform )
@@ -6010,14 +6116,16 @@ void mbedtls_ssl_conf_dtls_anti_replay( mbedtls_ssl_config *conf, char mode )
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
-void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limit )
+void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf,
+                                         unsigned limit )
 {
     conf->badmac_limit = limit;
 }
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-void mbedtls_ssl_conf_handshake_timeout( mbedtls_ssl_config *conf, uint32_t min, uint32_t max )
+void mbedtls_ssl_conf_handshake_timeout( mbedtls_ssl_config *conf, uint32_t min,
+                                         uint32_t max )
 {
     conf->hs_timeout_min = min;
     conf->hs_timeout_max = max;
@@ -6098,7 +6206,8 @@ void mbedtls_ssl_conf_session_cache( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_SSL_SRV_C */
 
 #if defined(MBEDTLS_SSL_CLI_C)
-int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl, const mbedtls_ssl_session *session )
+int mbedtls_ssl_set_session( mbedtls_ssl_context *ssl,
+                             const mbedtls_ssl_session *session )
 {
     int ret;
 
@@ -6135,7 +6244,8 @@ void mbedtls_ssl_conf_ciphersuites_for_version( mbedtls_ssl_config *conf,
     if( major != MBEDTLS_SSL_MAJOR_VERSION_3 )
         return;
 
-    if( minor < MBEDTLS_SSL_MINOR_VERSION_0 || minor > MBEDTLS_SSL_MINOR_VERSION_3 )
+    if( minor < MBEDTLS_SSL_MINOR_VERSION_0 ||
+        minor > MBEDTLS_SSL_MINOR_VERSION_3 )
         return;
 
     conf->ciphersuite_list[minor] = ciphersuites;
@@ -6324,7 +6434,8 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
 }
 
 void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
-                     int (*f_psk)(void *, mbedtls_ssl_context *, const unsigned char *,
+                     int (*f_psk)(void *, mbedtls_ssl_context *,
+                     const unsigned char *,
                      size_t),
                      void *p_psk )
 {
@@ -6336,7 +6447,8 @@ void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf, const char *dhm_P, const char *dhm_G )
+int mbedtls_ssl_conf_dh_param( mbedtls_ssl_config *conf, const char *dhm_P,
+                               const char *dhm_G )
 {
     int ret;
 
@@ -6369,7 +6481,8 @@ int mbedtls_ssl_conf_dh_param_bin( mbedtls_ssl_config *conf,
     return( 0 );
 }
 
-int mbedtls_ssl_conf_dh_param_ctx( mbedtls_ssl_config *conf, mbedtls_dhm_context *dhm_ctx )
+int mbedtls_ssl_conf_dh_param_ctx( mbedtls_ssl_config *conf,
+                                   mbedtls_dhm_context *dhm_ctx )
 {
     int ret;
 
@@ -6476,7 +6589,8 @@ void mbedtls_ssl_conf_sni( mbedtls_ssl_config *conf,
 #endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 
 #if defined(MBEDTLS_SSL_ALPN)
-int mbedtls_ssl_conf_alpn_protocols( mbedtls_ssl_config *conf, const char **protos )
+int mbedtls_ssl_conf_alpn_protocols( mbedtls_ssl_config *conf,
+                                     const char **protos )
 {
     size_t cur_len, tot_len;
     const char **p;
@@ -6507,13 +6621,15 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_ALPN */
 
-void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor )
+void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major,
+                                   int minor )
 {
     conf->max_major_ver = major;
     conf->max_minor_ver = minor;
 }
 
-void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major, int minor )
+void mbedtls_ssl_conf_min_version( mbedtls_ssl_config *conf, int major,
+                                   int minor )
 {
     conf->min_major_ver = major;
     conf->min_minor_ver = minor;
@@ -6542,7 +6658,8 @@ void mbedtls_ssl_conf_encrypt_then_mac( mbedtls_ssl_config *conf, char etm )
 #endif
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf, char ems )
+void mbedtls_ssl_conf_extended_master_secret( mbedtls_ssl_config *conf,
+                                              char ems )
 {
     conf->extended_ms = ems;
 }
@@ -6556,7 +6673,8 @@ void mbedtls_ssl_conf_arc4_support( mbedtls_ssl_config *conf, char arc4 )
 #endif
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
-int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_code )
+int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf,
+                                   unsigned char mfl_code )
 {
     if( mfl_code >= MBEDTLS_SSL_MAX_FRAG_LEN_INVALID ||
         mfl_code_to_length[mfl_code] > MBEDTLS_SSL_MAX_CONTENT_LEN )
@@ -6578,24 +6696,28 @@ void mbedtls_ssl_conf_truncated_hmac( mbedtls_ssl_config *conf, int truncate )
 #endif /* MBEDTLS_SSL_TRUNCATED_HMAC */
 
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
-void mbedtls_ssl_conf_cbc_record_splitting( mbedtls_ssl_config *conf, char split )
+void mbedtls_ssl_conf_cbc_record_splitting( mbedtls_ssl_config *conf,
+                                            char split )
 {
     conf->cbc_record_splitting = split;
 }
 #endif
 
-void mbedtls_ssl_conf_legacy_renegotiation( mbedtls_ssl_config *conf, int allow_legacy )
+void mbedtls_ssl_conf_legacy_renegotiation( mbedtls_ssl_config *conf,
+                                            int allow_legacy )
 {
     conf->allow_legacy_renegotiation = allow_legacy;
 }
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION)
-void mbedtls_ssl_conf_renegotiation( mbedtls_ssl_config *conf, int renegotiation )
+void mbedtls_ssl_conf_renegotiation( mbedtls_ssl_config *conf,
+                                     int renegotiation )
 {
     conf->disable_renegotiation = renegotiation;
 }
 
-void mbedtls_ssl_conf_renegotiation_enforced( mbedtls_ssl_config *conf, int max_records )
+void mbedtls_ssl_conf_renegotiation_enforced( mbedtls_ssl_config *conf,
+                                              int max_records )
 {
     conf->renego_max_records = max_records;
 }
@@ -6609,7 +6731,8 @@ void mbedtls_ssl_conf_renegotiation_period( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
 #if defined(MBEDTLS_SSL_CLI_C)
-void mbedtls_ssl_conf_session_tickets( mbedtls_ssl_config *conf, int use_tickets )
+void mbedtls_ssl_conf_session_tickets( mbedtls_ssl_config *conf,
+                                       int use_tickets )
 {
     conf->session_tickets = use_tickets;
 }
@@ -6655,7 +6778,8 @@ int mbedtls_ssl_check_pending( const mbedtls_ssl_context *ssl )
 
     if( ssl->keep_current_message == 1 )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "ssl_check_pending: record held back for processing" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3,
+               ( "ssl_check_pending: record held back for processing" ) );
         return( 1 );
     }
 
@@ -6667,7 +6791,8 @@ int mbedtls_ssl_check_pending( const mbedtls_ssl_context *ssl )
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
         ssl->in_left > ssl->next_record_offset )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "ssl_check_pending: more records within current datagram" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3,
+               ( "ssl_check_pending: more records within current datagram" ) );
         return( 1 );
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
@@ -6678,7 +6803,8 @@ int mbedtls_ssl_check_pending( const mbedtls_ssl_context *ssl )
 
     if( ssl->in_hslen > 0 && ssl->in_hslen < ssl->in_msglen )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "ssl_check_pending: more handshake messages within current record" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3,( "ssl_check_pending: more handshake messages"\
+                                   " within current record" ) );
         return( 1 );
     }
 
@@ -6687,7 +6813,8 @@ int mbedtls_ssl_check_pending( const mbedtls_ssl_context *ssl )
      */
     if( ssl->in_offt != NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "ssl_check_pending: application data record is being processed" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "ssl_check_pending: application data " \
+                                    "record is being processed" ) );
         return( 1 );
     }
 
@@ -6781,7 +6908,8 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
 
         case MBEDTLS_MODE_CBC:
             transform_expansion = transform->maclen
-                      + mbedtls_cipher_get_block_size( &transform->cipher_ctx_enc );
+                      + mbedtls_cipher_get_block_size(
+                                               &transform->cipher_ctx_enc );
             break;
 
         default:
@@ -6816,7 +6944,8 @@ size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ssl )
+const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert(
+                                           const mbedtls_ssl_context *ssl )
 {
     if( ssl == NULL || ssl->session == NULL )
         return( NULL );
@@ -6826,7 +6955,8 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ss
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_CLI_C)
-int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session *dst )
+int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl,
+                             mbedtls_ssl_session *dst )
 {
     if( ssl == NULL ||
         dst == NULL ||
@@ -6918,10 +7048,11 @@ static int ssl_write_hello_request( mbedtls_ssl_context *ssl )
  * Actually renegotiate current connection, triggered by either:
  * - any side: calling mbedtls_ssl_renegotiate(),
  * - client: receiving a HelloRequest during mbedtls_ssl_read(),
- * - server: receiving any handshake message on server during mbedtls_ssl_read() after
- *   the initial handshake is completed.
+ * - server: receiving any handshake message on server during mbedtls_ssl_read()
+ *   after the initial handshake is completed.
  * If the handshake doesn't complete due to waiting for I/O, it will continue
- * during the next calls to mbedtls_ssl_renegotiate() or mbedtls_ssl_read() respectively.
+ * during the next calls to mbedtls_ssl_renegotiate() or mbedtls_ssl_read()
+ * respectively.
  */
 static int ssl_start_renegotiation( mbedtls_ssl_context *ssl )
 {
@@ -7158,7 +7289,8 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
                 ( ssl->in_msg[0] != MBEDTLS_SSL_HS_HELLO_REQUEST ||
                   ssl->in_hslen  != mbedtls_ssl_hs_hdr_len( ssl ) ) )
             {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "handshake received (not HelloRequest)" ) );
+                MBEDTLS_SSL_DEBUG_MSG( 1,
+                               ( "handshake received (not HelloRequest)" ) );
 
                 /* With DTLS, drop the packet (probably from last handshake) */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -7175,7 +7307,8 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
             if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
                 ssl->in_msg[0] != MBEDTLS_SSL_HS_CLIENT_HELLO )
             {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "handshake received (not ClientHello)" ) );
+                MBEDTLS_SSL_DEBUG_MSG( 1,
+                               ( "handshake received (not ClientHello)" ) );
 
                 /* With DTLS, drop the packet (probably from last handshake) */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -7222,15 +7355,17 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
                  * Refuse renegotiation
                  */
 
-                MBEDTLS_SSL_DEBUG_MSG( 3, ( "refusing renegotiation, sending alert" ) );
+                MBEDTLS_SSL_DEBUG_MSG( 3,
+                               ( "refusing renegotiation, sending alert" ) );
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
                 if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
                 {
                     /* SSLv3 does not have a "no_renegotiation" warning, so
                        we send a fatal alert and abort the connection. */
-                    mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                                    MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
+                    mbedtls_ssl_send_alert_message( ssl,
+                                    MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                    MBEDTLS_SSL_ALERT_MSG_UNEXPECTED_MESSAGE );
                     return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
                 }
                 else
@@ -7293,7 +7428,8 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
         /* Fatal and closure alerts handled by mbedtls_ssl_read_record() */
         if( ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "ignoring non-fatal non-closure alert" ) );
+            MBEDTLS_SSL_DEBUG_MSG( 2,
+                           ( "ignoring non-fatal non-closure alert" ) );
             return( MBEDTLS_ERR_SSL_WANT_READ );
         }
 
@@ -7444,7 +7580,8 @@ static int ssl_write_split( mbedtls_ssl_context *ssl,
 /*
  * Write application data (public-facing wrapper)
  */
-int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len )
+int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf,
+                       size_t len )
 {
     int ret;
 
@@ -7552,15 +7689,15 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake )
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
     defined(MBEDTLS_SSL_PROTO_TLS1_1)
-    mbedtls_md5_free(    &handshake->fin_md5  );
-    mbedtls_sha1_free(   &handshake->fin_sha1 );
+    mbedtls_md5_free( &handshake->fin_md5 );
+    mbedtls_sha1_free( &handshake->fin_sha1 );
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
-    mbedtls_sha256_free(   &handshake->fin_sha256    );
+    mbedtls_sha256_free( &handshake->fin_sha256 );
 #endif
 #if defined(MBEDTLS_SHA512_C)
-    mbedtls_sha512_free(   &handshake->fin_sha512    );
+    mbedtls_sha512_free( &handshake->fin_sha512 );
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 
@@ -7739,7 +7876,8 @@ static int ssl_preset_default_hashes[] = {
     MBEDTLS_MD_SHA256,
     MBEDTLS_MD_SHA224,
 #endif
-#if defined(MBEDTLS_SHA1_C) && defined(MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE)
+#if defined(MBEDTLS_SHA1_C) && \
+    defined(MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_KEY_EXCHANGE)
     MBEDTLS_MD_SHA1,
 #endif
     MBEDTLS_MD_NONE
@@ -8136,7 +8274,8 @@ unsigned char mbedtls_ssl_hash_from_md_alg( int md )
  * Check if a curve proposed by the peer is in our list.
  * Return 0 if we're willing to use it, -1 otherwise.
  */
-int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl, mbedtls_ecp_group_id grp_id )
+int mbedtls_ssl_check_curve( const mbedtls_ssl_context *ssl,
+                             mbedtls_ecp_group_id grp_id )
 {
     const mbedtls_ecp_group_id *gid;
 
@@ -8252,7 +8391,8 @@ int mbedtls_ssl_check_cert_usage( const mbedtls_x509_crt *cert,
         ext_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_CLIENT_AUTH );
     }
 
-    if( mbedtls_x509_crt_check_extended_key_usage( cert, ext_oid, ext_len ) != 0 )
+    if( mbedtls_x509_crt_check_extended_key_usage( cert, ext_oid,
+                                                   ext_len ) != 0 )
     {
         *flags |= MBEDTLS_X509_BADCERT_EXT_KEY_USAGE;
         ret = -1;

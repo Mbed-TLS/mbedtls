@@ -1,7 +1,7 @@
 #line 2 "suites/host_test.function"
 
 /**
- * \brief       Varifies that string is in string parameter format i.e. "<str>"
+ * \brief       Verifies that string is in string parameter format i.e. "<str>"
  *              It also strips enclosing '"' from the input string.
  *
  * \param str   String parameter.
@@ -18,14 +18,14 @@ int verify_string( char **str )
         return( -1 );
     }
 
-    (*str)++;
-    (*str)[strlen( *str ) - 1] = '\0';
+    ( *str )++;
+    ( *str )[strlen( *str ) - 1] = '\0';
 
     return( 0 );
 }
 
 /**
- * \brief       Varifies that string is an integer. Also gives the converted
+ * \brief       Verifies that string is an integer. Also gives the converted
  *              integer value.
  *
  * \param str   Input string.
@@ -243,7 +243,7 @@ static int convert_params( size_t cnt , char ** params , int * int_params_store 
     char ** out = params;
     int ret = ( 0 );
 
-    while ( cur - params < (int) cnt )
+    while ( cur < params + cnt )
     {
         char * type = *cur++;
         char * val = *cur++;

@@ -26,14 +26,17 @@
 #endif
 
 #if defined(MBEDTLS_PSA_CRYPTO_C)
-
-//! In case MBEDTLS_PSA_CRYPTO_SPM is defined the code is built for SPM (Secure
-//! Partition Manager) integration which separate the code into two parts
-//! NSPE (Non-Secure Process Environment) and SPE (Secure Process Environment).
-//! In this mode an additional header file should be included.
+/*
+ * In case MBEDTLS_PSA_CRYPTO_SPM is defined the code is built for SPM (Secure
+ * Partition Manager) integration which separate the code into two parts
+ * NSPE (Non-Secure Process Environment) and SPE (Secure Process Environment).
+ * In this mode an additional header file should be included.
+ */
 #if defined(MBEDTLS_PSA_CRYPTO_SPM)
-//! PSA_CRYPTO_SECURE means that this file is compiled to the SPE side.
-//! some headers will be affected by this flag.
+/*
+ * PSA_CRYPTO_SECURE means that this file is compiled to the SPE side.
+ * some headers will be affected by this flag.
+ */
 #define PSA_CRYPTO_SECURE 1
 #include "crypto_spe.h"
 #endif
@@ -2492,6 +2495,7 @@ psa_status_t psa_cipher_abort( psa_cipher_operation_t *operation )
 /****************************************************************/
 /* Key Policy */
 /****************************************************************/
+
 #if !defined(MBEDTLS_PSA_CRYPTO_SPM)
 void psa_key_policy_init( psa_key_policy_t *policy )
 {
@@ -2516,6 +2520,7 @@ psa_algorithm_t psa_key_policy_get_algorithm( psa_key_policy_t *policy )
     return( policy->alg );
 }
 #endif /* !defined(MBEDTLS_PSA_CRYPTO_SPM) */
+
 psa_status_t psa_set_key_policy( psa_key_slot_t key,
                                  const psa_key_policy_t *policy )
 {

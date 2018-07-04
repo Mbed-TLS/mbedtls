@@ -18,11 +18,6 @@
  *
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
-
-/*
- * References:
- *  - RFC 5869: HMAC-based Extract-and-Expand Key Derivation Function (HKDF)
- */
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -61,13 +56,14 @@ int mbedtls_hkdf_extract( const mbedtls_md_info_t *md,
                           const unsigned char *ikm, size_t ikm_len,
                           unsigned char *prk )
 {
-    const unsigned char null_salt[MBEDTLS_MD_MAX_SIZE] = { '\0' };
-    size_t hash_len;
+    unsigned char null_salt[MBEDTLS_MD_MAX_SIZE] = { '\0' };
+
     if( salt == NULL )
     {
         if( salt_len != 0 ) {
             return MBEDTLS_ERR_HKDF_BAD_INPUT_DATA;
         }
+        size_t hash_len;
 
         hash_len = mbedtls_md_get_size( md );
 
@@ -122,7 +118,7 @@ int mbedtls_hkdf_expand( const mbedtls_md_info_t *md, const unsigned char *prk,
     }
 
     /*
-     * Per RFC 5869 Section 2.3, okm_len must be less than
+     * Per RFC 5869 Section 2.3, okm_len must not exceed
      * 255 times the hash length
      */
     if( n > 255 )

@@ -3,8 +3,9 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.xx.x branch released xxxx-xx-xx
 
 Bugfixes
-   * Fix C90 compatibility issue in hkdf.c. Contributed by Brian J Murray.
-   * Fix issue if salt = NULL and salt_len !=0 in mbedtls_hkdf_extract(). Contributed by Brian J Murray.
+   * Change the default behaviour of mbedtls_hkdf_extract() to return an error
+     when calling with a NULL salt and non-zero salt_len. Contributed by
+     Brian J Murray.
 
 = mbed TLS 2.11.0 branch released 2018-06-18
 

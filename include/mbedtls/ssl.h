@@ -2088,12 +2088,12 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ss
  * \return         0 if successful,
  *                 MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed,
  *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if used server-side or
- *                 arguments are otherwise invalid
+ *                 arguments are otherwise invalid.
  *
  * \note           Only the server certificate is copied, and not the chain
  *                 but this is not a problem because the result of the chain
  *                 verification is stored in `verify_result` and can be checked
- *                 with \c mbedtls_ssl_get_verify_result()
+ *                 with \c mbedtls_ssl_get_verify_result().
  *
  * \sa             mbedtls_ssl_set_session()
  */

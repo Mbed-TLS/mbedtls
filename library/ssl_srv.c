@@ -3021,9 +3021,9 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
     else
 #endif
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
-    /* check if we have a chosen srtp protection profile */
-    if ( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE ) {
-        authmode = MBEDTLS_SSL_VERIFY_REQUIRED;
+    /* check if we have a chosen srtp protection profile, force verify mode to be at least OPTIONAL */
+    if ( ( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE ) && ( ssl->conf->authmode == MBEDTLS_SSL_VERIFY_NONE ) ) {
+        authmode = MBEDTLS_SSL_VERIFY_OPTIONAL;
     }
         else
 #endif

@@ -3,9 +3,19 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Bugfix
-   * Remove wrong documentation for `mbedtls_ssl_get_session`.
+   * Fix the key_app_writer example which was writing a leading zero byte which
+     was creating an invalid ASN.1 tag. Found by Aryeh R. Fixes #1257.
+   * Fix compilation error on C++, because of a variable named new.
+     Found and fixed by Hirotaka Niisato in #1783.
+   * Fix "no symbols" warning issued by ranlib when building on Mac OS X. Fix
+     contributed by tabascoeye in pull request #1600.
+   * Clarify documentation for mbedtls_ssl_write() to include 0 as a valid
+     return value. Found by @davidwu2000. #839
+   * Fix a memory leak in mbedtls_x509_csr_parse(), found by catenacyber,
+     Philippe Antoine. Fixes #1623.
+   * Correct the documentation for `mbedtls_ssl_get_session()`.
      This API has deep copy of the session, and the peer
-     certificate is not lost. #926
+     certificate is not lost. Fixes #926.
 
 = mbed TLS 2.7.4 branch released 2018-06-18
 

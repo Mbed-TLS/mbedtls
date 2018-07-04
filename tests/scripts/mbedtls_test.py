@@ -1,6 +1,6 @@
 # Greentea host test script for Mbed TLS on-target test suite testing.
 #
-# Copyright (C) 2018, ARM Limited, All Rights Reserved
+# Copyright (C) 2018, Arm Limited, All Rights Reserved
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -19,19 +19,18 @@
 
 
 """
-Mbed TLS on-target test suite tests are implemented as mbed-os Greentea
+Mbed TLS on-target test suite tests are implemented as Greentea
 tests. Greentea tests are implemented in two parts: target test and
 host test. Target test is a C application that is built for the
 target platform and executes on the target. Host test is a Python
 class derived from mbed_host_tests.BaseHostTest. Target communicates
-with the host over serial for the test data.
+with the host over serial for the test data and sends back the result.
 
 Python tool mbedgt (Greentea) is responsible for flashing the test
-binary on to the target and dynamically loading the host test.
+binary on to the target and dynamically loading this host test module.
 
-This script contains the host test for handling target test's
-requests for test vectors. It also reports the test results
-in format understood by Greentea.
+Greentea documentation can be found here:
+https://github.com/ARMmbed/greentea
 """
 
 
@@ -148,7 +147,9 @@ class MbedTlsTest(BaseHostTest):
     identifier, dependency identifiers, expression identifiers and
     the test data in binary form. Target test checks dependencies
     , evaluate integer constant expressions and dispatches the test
-    function with received test parameters.
+    function with received test parameters. After test function is
+    finished, target sends the result. This class handles the result
+    event and prints verdict in the form that Greentea understands.
 
     """
     # status/error codes from suites/helpers.function
@@ -323,14 +324,14 @@ class MbedTlsTest(BaseHostTest):
         """
         Converts result from string type to integer
         :param value: Result code in string
-        :return: Integer result code
+        :return: Integer result code. Value is from the test status
+                 constants defined under the MbedTlsTest class.
         """
         try:
             return int(value)
         except ValueError:
             ValueError("Result should return error number. "
                        "Instead received %s" % value)
-        return 0
 
     @event_callback('GO')
     def on_go(self, _key, _value, _timestamp):

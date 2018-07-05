@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Unit test for generate_test_code.py
 #
-# Copyright (C) 2018, ARM Limited, All Rights Reserved
+# Copyright (C) 2018, Arm Limited, All Rights Reserved
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -23,7 +23,6 @@ Unit tests for generate_test_code.py
 """
 
 
-import sys
 from StringIO import StringIO
 from unittest import TestCase, main as unittest_main
 from mock import patch
@@ -288,7 +287,7 @@ class StringIOWrapper(StringIO, object):
     """
     file like class to mock file object in tests.
     """
-    def __init__(self, file_name, data, line_no=1):
+    def __init__(self, file_name, data, line_no=0):
         """
         Init file handle.
 
@@ -308,14 +307,8 @@ class StringIOWrapper(StringIO, object):
 
         :return: Line read from file.
         """
-        parent = super(StringIOWrapper, self)
-        line = parent.next()  # Python 2
-        if line:
-            self.line_no += 1
-            # Convert byte array to string with correct encoding and
-            # strip any whitespaces added in the decoding process.
-            return line.decode(sys.getdefaultencoding()).strip() + "\n"
-        return None
+        line = super(StringIOWrapper, self).next()
+        return line
 
     __next__ = next
 
@@ -327,7 +320,7 @@ class StringIOWrapper(StringIO, object):
         :return:
         """
         line = super(StringIOWrapper, self).readline()
-        if line:
+        if line is not None:
             self.line_no += 1
         return line
 
@@ -510,10 +503,10 @@ class ParseFuncSignature(TestCase):
         self.assertEqual(name, 'entropy_threshold')
         self.assertEqual(args, ['char*', 'hex', 'int'])
         self.assertEqual(local,
-                         '    data_t hex1 = {(uint8_t *) params[1], '
+                         '    data_t data1 = {(uint8_t *) params[1], '
                          '*( (uint32_t *) params[2] )};\n')
         self.assertEqual(arg_dispatch, ['(char *) params[0]',
-                                        '&hex1',
+                                        '&data1',
                                         '*( (int *) params[3] )'])
 
     def test_non_void_function(self):
@@ -629,13 +622,14 @@ void func()
         gen_function_wrapper_mock.assert_called_with('test_func', '', [])
         self.assertEqual(name, 'test_func')
         self.assertEqual(arg, [])
-        expected = '''#line 2 "test_suite_ut.function"
+        expected = '''#line 1 "test_suite_ut.function"
+
 void test_func()
 {
     ba ba black sheep
     have you any wool
 exit:
-    ;;
+    ;
 }
 '''
         self.assertEqual(code, expected)
@@ -671,7 +665,8 @@ exit:
         stream = StringIOWrapper('test_suite_ut.function', data)
         _, _, code, _ = parse_function_code(stream, [], [])
 
-        expected = '''#line 2 "test_suite_ut.function"
+        expected = '''#line 1 "test_suite_ut.function"
+
 void test_func()
 {
     ba ba black sheep
@@ -708,7 +703,7 @@ class ParseFunction(TestCase):
         stream = StringIOWrapper('test_suite_ut.function', data)
         self.assertRaises(Exception, parse_functions, stream)
         parse_until_pattern_mock.assert_called_with(stream, END_HEADER_REGEX)
-        self.assertEqual(stream.line_no, 2)
+        self.assertEqual(stream.line_no, 1)
 
     @patch("generate_test_code.parse_until_pattern")
     def test_begin_helper(self, parse_until_pattern_mock):
@@ -731,7 +726,7 @@ void print_hello_world()
         self.assertRaises(Exception, parse_functions, stream)
         parse_until_pattern_mock.assert_called_with(stream,
                                                     END_SUITE_HELPERS_REGEX)
-        self.assertEqual(stream.line_no, 2)
+        self.assertEqual(stream.line_no, 1)
 
     @patch("generate_test_code.parse_suite_dependencies")
     def test_begin_dep(self, parse_suite_dependencies_mock):
@@ -752,7 +747,7 @@ void print_hello_world()
         stream = StringIOWrapper('test_suite_ut.function', data)
         self.assertRaises(Exception, parse_functions, stream)
         parse_suite_dependencies_mock.assert_called_with(stream)
-        self.assertEqual(stream.line_no, 2)
+        self.assertEqual(stream.line_no, 1)
 
     @patch("generate_test_code.parse_function_dependencies")
     def test_begin_function_dep(self, func_mock):
@@ -775,7 +770,7 @@ void print_hello_world()
         stream = StringIOWrapper('test_suite_ut.function', data)
         self.assertRaises(Exception, parse_functions, stream)
         func_mock.assert_called_with(dependencies_str)
-        self.assertEqual(stream.line_no, 2)
+        self.assertEqual(stream.line_no, 1)
 
     @patch("generate_test_code.parse_function_code")
     @patch("generate_test_code.parse_function_dependencies")
@@ -866,17 +861,17 @@ void func2()
 '''
         self.assertEqual(dispatch_code, expected_dispatch_code)
         expected_func_code = '''#if defined(MBEDTLS_ECP_C)
-#line 3 "test_suite_ut.function"
+#line 2 "test_suite_ut.function"
 #include "mbedtls/ecp.h"
 
 #define ECP_PF_UNKNOWN     -1
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
 #if defined(MBEDTLS_FS_IO)
-#line 14 "test_suite_ut.function"
+#line 13 "test_suite_ut.function"
 void test_func1()
 {
 exit:
-    ;;
+    ;
 }
 
 void test_func1_wrapper( void ** params )
@@ -889,11 +884,11 @@ void test_func1_wrapper( void ** params )
 #endif /* MBEDTLS_ENTROPY_NV_SEED */
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
 #if defined(MBEDTLS_FS_IO)
-#line 20 "test_suite_ut.function"
+#line 19 "test_suite_ut.function"
 void test_func2()
 {
 exit:
-    ;;
+    ;
 }
 
 void test_func2_wrapper( void ** params )
@@ -989,20 +984,20 @@ class EscapedSplit(TestCase):
         Test input that has escaped delimiter.
         :return:
         """
-        test_str = r'yahoo\\\:google:facebook'
+        test_str = r'yahoo\\:google:facebook'
         splits = escaped_split(test_str, ':')
-        self.assertEqual(splits, [r'yahoo\\\\', 'google', 'facebook'])
+        self.assertEqual(splits, [r'yahoo\\', 'google', 'facebook'])
 
     def test_all_at_once(self):
         """
         Test input that has escaped delimiter.
         :return:
         """
-        test_str = r'yahoo\\\:google:facebook\:instagram\\\:bbc\\\\:wikipedia'
+        test_str = r'yahoo\\:google:facebook\:instagram\\:bbc\\:wikipedia'
         splits = escaped_split(test_str, ':')
-        self.assertEqual(splits, [r'yahoo\\\\', r'google',
-                                  r'facebook\:instagram\\\\',
-                                  r'bbc\\\\', r'wikipedia'])
+        self.assertEqual(splits, [r'yahoo\\', r'google',
+                                  r'facebook\:instagram\\',
+                                  r'bbc\\', r'wikipedia'])
 
 
 class ParseTestData(TestCase):
@@ -1516,7 +1511,7 @@ class GenFromTestData(TestCase):
     @staticmethod
     @patch("generate_test_code.write_dependencies")
     @patch("generate_test_code.write_parameters")
-    @patch("generate_test_code.gen_suite_dependencies_checks")
+    @patch("generate_test_code.gen_suite_dep_checks")
     def test_intermediate_data_file(func_mock1,
                                     write_parameters_mock,
                                     write_dependencies_mock):

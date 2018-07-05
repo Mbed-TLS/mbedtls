@@ -4738,6 +4738,30 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_ALPN */
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
+static const mbedtls_ssl_srtp_profile_info srtp_profile_definitions[] =
+{
+    { MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80, "MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80" },
+    { MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32, "MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32" },
+    { MBEDTLS_SRTP_NULL_HMAC_SHA1_80, "MBEDTLS_SRTP_NULL_HMAC_SHA1_80" },
+    { MBEDTLS_SRTP_NULL_HMAC_SHA1_32, "MBEDTLS_SRTP_NULL_HMAC_SHA1_32" },
+    { MBEDTLS_SRTP_UNSET_PROFILE, "" }
+};
+
+const mbedtls_ssl_srtp_profile_info *mbedtls_ssl_dtls_srtp_profile_info_from_id( mbedtls_ssl_srtp_profile profile )
+{
+    const mbedtls_ssl_srtp_profile_info *cur = srtp_profile_definitions;
+
+    while( cur->profile != MBEDTLS_SRTP_UNSET_PROFILE )
+    {
+        if( cur->profile == profile )
+            return( cur );
+
+        cur++;
+    }
+
+    return( NULL );
+}
+
 void mbedtls_ssl_conf_srtp_mki_value_supported( mbedtls_ssl_config *conf, int support_mki_value )
 {
     conf->dtls_srtp_mki_support = support_mki_value;

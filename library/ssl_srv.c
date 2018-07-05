@@ -783,6 +783,7 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
     mbedtls_ssl_srtp_profile client_protection = MBEDTLS_SRTP_UNSET_PROFILE;
     size_t i,j;
     size_t profile_length;
+    const mbedtls_ssl_srtp_profile_info * profile_info;
 
     /* If use_srtp is not configured, just ignore the extension */
     if( ( ssl->conf->dtls_srtp_profile_list == NULL ) || ( ssl->conf->dtls_srtp_profile_list_len == 0 ) )
@@ -832,12 +833,18 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
                 client_protection = MBEDTLS_SRTP_UNSET_PROFILE;
                 break;
         }
+        profile_info = mbedtls_ssl_dtls_srtp_profile_info_from_id( client_protection );
+        if( profile_info != NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "found srtp profile: %s", profile_info->name ) );
+        }
         /* check if suggested profile is in our list */
         for( i=0; i < ssl->conf->dtls_srtp_profile_list_len; i++)
         {
             if( client_protection == ssl->conf->dtls_srtp_profile_list[i] )
             {
                 ssl->dtls_srtp_info.chosen_dtls_srtp_profile = ssl->conf->dtls_srtp_profile_list[i];
+                MBEDTLS_SSL_DEBUG_MSG( 3, ( "selected srtp profile: %s", profile_info->name ) );
                 break;
             }
         }
@@ -861,6 +868,8 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
         {
             ssl->dtls_srtp_info.mki_value[i] = buf[ profile_length + 2 + 1 + i ];
         }
+
+        MBEDTLS_SSL_DEBUG_BUF( 3, "using mki",  ssl->dtls_srtp_info.mki_value, ssl->dtls_srtp_info.mki_len );
     }
 
      return( 0 );

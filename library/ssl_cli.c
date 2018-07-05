@@ -843,6 +843,7 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
         {
             *p++ = ssl->dtls_srtp_info.mki_value[i];
         }
+        MBEDTLS_SSL_DEBUG_BUF( 3, "sending mki",  ssl->dtls_srtp_info.mki_value, ssl->dtls_srtp_info.mki_len );
     }
 
     /* total extension length: extension type (2 bytes) + extension length (2 bytes) + protection profile length (2 bytes) + 2*nb protection profiles + srtp_mki vector length(1 byte)*/
@@ -1819,6 +1820,7 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
     mbedtls_ssl_srtp_profile server_protection = MBEDTLS_SRTP_UNSET_PROFILE;
     size_t i, mki_len = 0;
     uint16_t server_protection_profile_value = 0;
+    const mbedtls_ssl_srtp_profile_info * profile_info;
 
     /* If use_srtp is not configured, just ignore the extension */
     if( ( ssl->conf->dtls_srtp_profile_list == NULL ) || ( ssl->conf->dtls_srtp_profile_list_len == 0 ) )
@@ -1878,9 +1880,15 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
                 server_protection = MBEDTLS_SRTP_UNSET_PROFILE;
                 break;
         }
+        profile_info = mbedtls_ssl_dtls_srtp_profile_info_from_id( server_protection );
+        if( profile_info != NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "found srtp profile: %s", profile_info->name ) );
+        }
 
         if (server_protection == ssl->conf->dtls_srtp_profile_list[i]) {
             ssl->dtls_srtp_info.chosen_dtls_srtp_profile = ssl->conf->dtls_srtp_profile_list[i];
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "selected srtp profile: %s", profile_info->name ) );
             break;
         }
     }
@@ -1904,6 +1912,12 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
                                         MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
+#if defined (MBEDTLS_DEBUG_C)
+    if( len > 5)
+    {
+        MBEDTLS_SSL_DEBUG_BUF( 3, "received mki",  ssl->dtls_srtp_info.mki_value, ssl->dtls_srtp_info.mki_len );
+    }
+#endif
     return 0;
 }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */

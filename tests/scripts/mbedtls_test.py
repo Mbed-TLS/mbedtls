@@ -80,7 +80,7 @@ class TestDataParser(object):
         out = re.sub(r'(\\.)|' + split_char,
                      lambda m: m.group(1) or '\n', inp_str,
                      len(inp_str)).split('\n')
-        out = filter(lambda x: x or False, out)
+        out = [x for x in out if x]
         return out
 
     def __parse(self, data_f):

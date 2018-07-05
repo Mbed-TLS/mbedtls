@@ -894,6 +894,8 @@ cd "$MBEDTLS_ROOT_DIR"
 rm -rf "$OUT_OF_SOURCE_DIR"
 unset MBEDTLS_ROOT_DIR
 
+msg "Analyse: Python source with Pylint"
+tests/scripts/check-python-files.sh
 
 
 ################################################################

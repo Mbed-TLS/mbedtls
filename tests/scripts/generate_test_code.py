@@ -185,11 +185,10 @@ END_CASE_REGEX = r'/\*\s*END_CASE\s*\*/'
 
 DEPENDENCY_REGEX = r'depends_on:(?P<dependencies>.*)'
 C_IDENTIFIER_REGEX = r'!?[a-z_][a-z0-9_]*'
-TEST_FUNCTION_VALIDATION_REGEX = r'\s*void\s+(\w+)\s*\('
+TEST_FUNCTION_VALIDATION_REGEX = r'\s*void\s+(?P<func_name>\w+)\s*\('
 INT_CHECK_REGEX = r'int\s+.*'
 CHAR_CHECK_REGEX = r'char\s*\*\s*.*'
 DATA_T_CHECK_REGEX = r'data_t\s*\*\s*.*'
-FUNCTION_ARG_LIST_START_REGEX = r'.*?\s+(\w+)\s*\('
 FUNCTION_ARG_LIST_END_REGEX = r'.*\)'
 EXIT_LABEL_REGEX = r'^exit:'
 
@@ -451,7 +450,7 @@ def parse_function_dependencies(line):
     return dependencies
 
 
-def parse_function_signature(line):
+def parse_function_arguments(line):
     """
     Parses test function signature for validation and generates
     a dispatch wrapper function that translates input test vectors
@@ -459,19 +458,15 @@ def parse_function_signature(line):
 
     :param line: Line from .function file that has a function
                  signature.
-    :return: function name, argument list, local variables for
+    :return: argument list, local variables for
              wrapper function and argument dispatch code.
     """
     args = []
     local_vars = ''
     args_dispatch = []
-    # Check if the test function returns void.
-    match = re.search(TEST_FUNCTION_VALIDATION_REGEX, line, re.I)
-    if not match:
-        raise ValueError("Test function should return 'void'\n%s" % line)
-    name = match.group(1)
-    line = line[len(match.group(0)):]
     arg_idx = 0
+    # Remove characters before arguments
+    line = line[line.find('(') + 1:]
     # Process arguments, ex: <type> arg1, <type> arg2 )
     # This script assumes that the argument list is terminated by ')'
     # i.e. the test functions will not have a function pointer
@@ -501,7 +496,7 @@ def parse_function_signature(line):
                              "'char *' or 'data_t'\n%s" % line)
         arg_idx += 1
 
-    return name, args, local_vars, args_dispatch
+    return args, local_vars, args_dispatch
 
 
 def parse_function_code(funcs_f, dependencies, suite_dependencies):
@@ -514,29 +509,37 @@ def parse_function_code(funcs_f, dependencies, suite_dependencies):
     :param suite_dependencies: List of test suite dependencies
     :return: Function name, arguments, function code and dispatch code.
     """
-    code = '#line %d "%s"\n' % (funcs_f.line_no + 1, funcs_f.name)
+    line_directive = '#line %d "%s"\n' % (funcs_f.line_no + 1, funcs_f.name)
+    code = ''
     has_exit_label = False
     for line in funcs_f:
-        # Check function signature. This script expects function name
-        # and return type to be specified at the same line.
-        match = re.match(FUNCTION_ARG_LIST_START_REGEX, line, re.I)
+        # Check function signature. Function signature may be split
+        # across multiple lines. Here we try to find the start of
+        # arguments list, then remove '\n's and apply the regex to
+        # detect function start.
+        up_to_arg_list_start = code + line[:line.find('(') + 1]
+        match = re.match(TEST_FUNCTION_VALIDATION_REGEX,
+                         up_to_arg_list_start.replace('\n', ' '), re.I)
         if match:
             # check if we have full signature i.e. split in more lines
+            name = match.group('func_name')
             if not re.match(FUNCTION_ARG_LIST_END_REGEX, line):
                 for lin in funcs_f:
                     line += lin
                     if re.search(FUNCTION_ARG_LIST_END_REGEX, line):
                         break
-            name, args, local_vars, args_dispatch = parse_function_signature(
+            args, local_vars, args_dispatch = parse_function_arguments(
                 line)
-            code += line.replace(name, 'test_' + name, 1)
-            name = 'test_' + name
-            break
-        else:
             code += line
+            break
+        code += line
     else:
         raise GeneratorInputError("file: %s - Test functions not found!" %
                                   funcs_f.name)
+
+    # Prefix test function name with 'test_'
+    code = code.replace(name, 'test_' + name, 1)
+    name = 'test_' + name
 
     for line in funcs_f:
         if re.search(END_CASE_REGEX, line):
@@ -557,7 +560,8 @@ def parse_function_code(funcs_f, dependencies, suite_dependencies):
     ;
 }""".join(split_code)
 
-    code += gen_function_wrapper(name, local_vars, args_dispatch)
+    code = line_directive + code + gen_function_wrapper(name, local_vars,
+                                                        args_dispatch)
     preprocessor_check_start, preprocessor_check_end = \
         gen_dependencies(dependencies)
     dispatch_code = gen_dispatch(name, suite_dependencies + dependencies)

@@ -31,7 +31,7 @@ from generate_test_code import gen_function_wrapper, gen_dispatch
 from generate_test_code import parse_until_pattern, GeneratorInputError
 from generate_test_code import parse_suite_dependencies
 from generate_test_code import parse_function_dependencies
-from generate_test_code import parse_function_signature, parse_function_code
+from generate_test_code import parse_function_arguments, parse_function_code
 from generate_test_code import parse_functions, END_HEADER_REGEX
 from generate_test_code import END_SUITE_HELPERS_REGEX, escaped_split
 from generate_test_code import parse_test_data, gen_dep_check
@@ -476,7 +476,7 @@ class ParseFuncDependencies(TestCase):
 
 class ParseFuncSignature(TestCase):
     """
-    Test Suite for parse_function_signature().
+    Test Suite for parse_function_arguments().
     """
 
     def test_int_and_char_params(self):
@@ -485,8 +485,7 @@ class ParseFuncSignature(TestCase):
         :return:
         """
         line = 'void entropy_threshold( char * a, int b, int result )'
-        name, args, local, arg_dispatch = parse_function_signature(line)
-        self.assertEqual(name, 'entropy_threshold')
+        args, local, arg_dispatch = parse_function_arguments(line)
         self.assertEqual(args, ['char*', 'int', 'int'])
         self.assertEqual(local, '')
         self.assertEqual(arg_dispatch, ['(char *) params[0]',
@@ -499,8 +498,7 @@ class ParseFuncSignature(TestCase):
         :return:
         """
         line = 'void entropy_threshold( char * a, data_t * h, int result )'
-        name, args, local, arg_dispatch = parse_function_signature(line)
-        self.assertEqual(name, 'entropy_threshold')
+        args, local, arg_dispatch = parse_function_arguments(line)
         self.assertEqual(args, ['char*', 'hex', 'int'])
         self.assertEqual(local,
                          '    data_t data1 = {(uint8_t *) params[1], '
@@ -509,21 +507,13 @@ class ParseFuncSignature(TestCase):
                                         '&data1',
                                         '*( (int *) params[3] )'])
 
-    def test_non_void_function(self):
-        """
-        Test invalid signature (non void).
-        :return:
-        """
-        line = 'int entropy_threshold( char * a, data_t * h, int result )'
-        self.assertRaises(ValueError, parse_function_signature, line)
-
     def test_unsupported_arg(self):
         """
         Test unsupported arguments (not among int, char * and data_t)
         :return:
         """
-        line = 'int entropy_threshold( char * a, data_t * h, int * result )'
-        self.assertRaises(ValueError, parse_function_signature, line)
+        line = 'void entropy_threshold( char * a, data_t * h, char result )'
+        self.assertRaises(ValueError, parse_function_arguments, line)
 
     def test_no_params(self):
         """
@@ -531,8 +521,7 @@ class ParseFuncSignature(TestCase):
         :return:
         """
         line = 'void entropy_threshold()'
-        name, args, local, arg_dispatch = parse_function_signature(line)
-        self.assertEqual(name, 'entropy_threshold')
+        args, local, arg_dispatch = parse_function_arguments(line)
         self.assertEqual(args, [])
         self.assertEqual(local, '')
         self.assertEqual(arg_dispatch, [])
@@ -554,8 +543,9 @@ test
 function
 '''
         stream = StringIOWrapper('test_suite_ut.function', data)
-        self.assertRaises(GeneratorInputError, parse_function_code, stream, [],
-                          [])
+        err_msg = 'file: test_suite_ut.function - Test functions not found!'
+        self.assertRaisesRegexp(GeneratorInputError, err_msg,
+                                parse_function_code, stream, [], [])
 
     def test_no_end_case_comment(self):
         """
@@ -568,17 +558,19 @@ void test_func()
 }
 '''
         stream = StringIOWrapper('test_suite_ut.function', data)
-        self.assertRaises(GeneratorInputError, parse_function_code, stream, [],
-                          [])
+        err_msg = r'file: test_suite_ut.function - '\
+                  'end case pattern .*? not found!'
+        self.assertRaisesRegexp(GeneratorInputError, err_msg,
+                                parse_function_code, stream, [], [])
 
-    @patch("generate_test_code.parse_function_signature")
+    @patch("generate_test_code.parse_function_arguments")
     def test_function_called(self,
-                             parse_function_signature_mock):
+                             parse_function_arguments_mock):
         """
         Test parse_function_code()
         :return:
         """
-        parse_function_signature_mock.return_value = ('test_func', [], '', [])
+        parse_function_arguments_mock.return_value = ([], '', [])
         data = '''
 void test_func()
 {
@@ -587,14 +579,14 @@ void test_func()
         stream = StringIOWrapper('test_suite_ut.function', data)
         self.assertRaises(GeneratorInputError, parse_function_code,
                           stream, [], [])
-        self.assertTrue(parse_function_signature_mock.called)
-        parse_function_signature_mock.assert_called_with('void test_func()\n')
+        self.assertTrue(parse_function_arguments_mock.called)
+        parse_function_arguments_mock.assert_called_with('void test_func()\n')
 
     @patch("generate_test_code.gen_dispatch")
     @patch("generate_test_code.gen_dependencies")
     @patch("generate_test_code.gen_function_wrapper")
-    @patch("generate_test_code.parse_function_signature")
-    def test_return(self, parse_function_signature_mock,
+    @patch("generate_test_code.parse_function_arguments")
+    def test_return(self, parse_function_arguments_mock,
                     gen_function_wrapper_mock,
                     gen_dependencies_mock,
                     gen_dispatch_mock):
@@ -602,7 +594,7 @@ void test_func()
         Test generated code.
         :return:
         """
-        parse_function_signature_mock.return_value = ('func', [], '', [])
+        parse_function_arguments_mock.return_value = ([], '', [])
         gen_function_wrapper_mock.return_value = ''
         gen_dependencies_mock.side_effect = gen_dependencies
         gen_dispatch_mock.side_effect = gen_dispatch
@@ -617,8 +609,8 @@ void func()
         stream = StringIOWrapper('test_suite_ut.function', data)
         name, arg, code, dispatch_code = parse_function_code(stream, [], [])
 
-        self.assertTrue(parse_function_signature_mock.called)
-        parse_function_signature_mock.assert_called_with('void func()\n')
+        self.assertTrue(parse_function_arguments_mock.called)
+        parse_function_arguments_mock.assert_called_with('void func()\n')
         gen_function_wrapper_mock.assert_called_with('test_func', '', [])
         self.assertEqual(name, 'test_func')
         self.assertEqual(arg, [])
@@ -638,8 +630,8 @@ exit:
     @patch("generate_test_code.gen_dispatch")
     @patch("generate_test_code.gen_dependencies")
     @patch("generate_test_code.gen_function_wrapper")
-    @patch("generate_test_code.parse_function_signature")
-    def test_with_exit_label(self, parse_function_signature_mock,
+    @patch("generate_test_code.parse_function_arguments")
+    def test_with_exit_label(self, parse_function_arguments_mock,
                              gen_function_wrapper_mock,
                              gen_dependencies_mock,
                              gen_dispatch_mock):
@@ -647,7 +639,7 @@ exit:
         Test when exit label is present.
         :return:
         """
-        parse_function_signature_mock.return_value = ('func', [], '', [])
+        parse_function_arguments_mock.return_value = ([], '', [])
         gen_function_wrapper_mock.return_value = ''
         gen_dependencies_mock.side_effect = gen_dependencies
         gen_dispatch_mock.side_effect = gen_dispatch
@@ -668,6 +660,66 @@ exit:
         expected = '''#line 1 "test_suite_ut.function"
 
 void test_func()
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+'''
+        self.assertEqual(code, expected)
+
+    def test_non_void_function(self):
+        """
+        Test invalid signature (non void).
+        :return:
+        """
+        data = 'int entropy_threshold( char * a, data_t * h, int result )'
+        err_msg = 'file: test_suite_ut.function - Test functions not found!'
+        stream = StringIOWrapper('test_suite_ut.function', data)
+        self.assertRaisesRegexp(GeneratorInputError, err_msg,
+                                parse_function_code, stream, [], [])
+
+    @patch("generate_test_code.gen_dispatch")
+    @patch("generate_test_code.gen_dependencies")
+    @patch("generate_test_code.gen_function_wrapper")
+    @patch("generate_test_code.parse_function_arguments")
+    def test_functio_name_on_newline(self, parse_function_arguments_mock,
+                                     gen_function_wrapper_mock,
+                                     gen_dependencies_mock,
+                                     gen_dispatch_mock):
+        """
+        Test when exit label is present.
+        :return:
+        """
+        parse_function_arguments_mock.return_value = ([], '', [])
+        gen_function_wrapper_mock.return_value = ''
+        gen_dependencies_mock.side_effect = gen_dependencies
+        gen_dispatch_mock.side_effect = gen_dispatch
+        data = '''
+void
+
+
+func()
+{
+    ba ba black sheep
+    have you any wool
+exit:
+    yes sir yes sir
+    3 bags full
+}
+/* END_CASE */
+'''
+        stream = StringIOWrapper('test_suite_ut.function', data)
+        _, _, code, _ = parse_function_code(stream, [], [])
+
+        expected = '''#line 1 "test_suite_ut.function"
+
+void
+
+
+test_func()
 {
     ba ba black sheep
     have you any wool

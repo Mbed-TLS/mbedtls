@@ -77,18 +77,10 @@ class TestDataParser(object):
         """
         if len(split_char) > 1:
             raise ValueError('Expected split character. Found string!')
-        out = []
-        part = ''
-        escape = False
-        for character in inp_str:
-            if not escape and character == split_char:
-                out.append(part)
-                part = ''
-            else:
-                part += character
-                escape = not escape and character == '\\'
-        if part:
-            out.append(part)
+        out = re.sub(r'(\\.)|' + split_char,
+                     lambda m: m.group(1) or '\n', inp_str,
+                     len(inp_str)).split('\n')
+        out = filter(lambda x: x or False, out)
         return out
 
     def __parse(self, data_f):

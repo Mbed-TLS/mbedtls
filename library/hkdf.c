@@ -62,6 +62,10 @@ int mbedtls_hkdf_extract( const mbedtls_md_info_t *md,
     {
         size_t hash_len;
 
+        if( salt_len != 0 ) {
+            return MBEDTLS_ERR_HKDF_BAD_INPUT_DATA;
+        }
+
         hash_len = mbedtls_md_get_size( md );
 
         if( hash_len == 0 )
@@ -114,6 +118,10 @@ int mbedtls_hkdf_expand( const mbedtls_md_info_t *md, const unsigned char *prk,
         n++;
     }
 
+    /*
+     * Per RFC 5869 Section 2.3, okm_len must not exceed
+     * 255 times the hash length
+     */
     if( n > 255 )
     {
         return( MBEDTLS_ERR_HKDF_BAD_INPUT_DATA );
@@ -126,7 +134,10 @@ int mbedtls_hkdf_expand( const mbedtls_md_info_t *md, const unsigned char *prk,
         goto exit;
     }
 
-    /* RFC 5869 Section 2.3. */
+    /*
+     * Compute T = T(1) | T(2) | T(3) | ... | T(N)
+     * Where T(N) is defined in RFC 5869 Section 2.3
+     */
     for( i = 1; i <= n; i++ )
     {
         size_t num_to_copy;
@@ -150,7 +161,7 @@ int mbedtls_hkdf_expand( const mbedtls_md_info_t *md, const unsigned char *prk,
             goto exit;
         }
 
-        /* The constant concatenated to the end of each t(n) is a single octet.
+        /* The constant concatenated to the end of each T(n) is a single octet.
          * */
         ret = mbedtls_md_hmac_update( &ctx, &c, 1 );
         if( ret != 0 )

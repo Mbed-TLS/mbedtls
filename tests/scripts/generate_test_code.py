@@ -499,6 +499,33 @@ def parse_function_arguments(line):
     return args, local_vars, args_dispatch
 
 
+def generate_function_code(name, code, local_vars, args_dispatch,
+                           dependencies):
+    """
+    Generate function code with preprocessor checks and parameter dispatch
+    wrapper.
+
+    :param name: Function name
+    :param code: Function code
+    :param local_vars: Local variables for function wrapper
+    :param args_dispatch: Argument dispatch code
+    :param dependencies: Preprocessor dependencies list
+    :return: Final function code
+    """
+    # Add exit label if not present
+    if code.find('exit:') == -1:
+        split_code = code.rsplit('}', 1)
+        if len(split_code) == 2:
+            code = """exit:
+    ;
+}""".join(split_code)
+
+    code += gen_function_wrapper(name, local_vars, args_dispatch)
+    preprocessor_check_start, preprocessor_check_end = \
+        gen_dependencies(dependencies)
+    return preprocessor_check_start + code + preprocessor_check_end
+
+
 def parse_function_code(funcs_f, dependencies, suite_dependencies):
     """
     Parses out a function from function file object and generates
@@ -552,21 +579,11 @@ def parse_function_code(funcs_f, dependencies, suite_dependencies):
         raise GeneratorInputError("file: %s - end case pattern [%s] not "
                                   "found!" % (funcs_f.name, END_CASE_REGEX))
 
-    # Add exit label if not present
-    if code.find('exit:') == -1:
-        split_code = code.rsplit('}', 1)
-        if len(split_code) == 2:
-            code = """exit:
-    ;
-}""".join(split_code)
-
-    code = line_directive + code + gen_function_wrapper(name, local_vars,
-                                                        args_dispatch)
-    preprocessor_check_start, preprocessor_check_end = \
-        gen_dependencies(dependencies)
+    code = line_directive + code
+    code = generate_function_code(name, code, local_vars, args_dispatch,
+                                  dependencies)
     dispatch_code = gen_dispatch(name, suite_dependencies + dependencies)
-    return (name, args, preprocessor_check_start + code +
-            preprocessor_check_end, dispatch_code)
+    return (name, args, code, dispatch_code)
 
 
 def parse_functions(funcs_f):
@@ -587,11 +604,10 @@ def parse_functions(funcs_f):
     dispatch_code = ''
     for line in funcs_f:
         if re.search(BEGIN_HEADER_REGEX, line):
-            headers = parse_until_pattern(funcs_f, END_HEADER_REGEX)
-            suite_helpers += headers
+            suite_helpers += parse_until_pattern(funcs_f, END_HEADER_REGEX)
         elif re.search(BEGIN_SUITE_HELPERS_REGEX, line):
-            helpers = parse_until_pattern(funcs_f, END_SUITE_HELPERS_REGEX)
-            suite_helpers += helpers
+            suite_helpers += parse_until_pattern(funcs_f,
+                                                 END_SUITE_HELPERS_REGEX)
         elif re.search(BEGIN_DEP_REGEX, line):
             suite_dependencies += parse_suite_dependencies(funcs_f)
         elif re.search(BEGIN_CASE_REGEX, line):
@@ -635,7 +651,7 @@ def escaped_split(inp_str, split_char):
     out = re.sub(r'(\\.)|' + split_char,
                  lambda m: m.group(1) or '\n', inp_str,
                  len(inp_str)).split('\n')
-    out = filter(lambda x: x or False, out)
+    out = [x for x in out if x]
     return out
 
 

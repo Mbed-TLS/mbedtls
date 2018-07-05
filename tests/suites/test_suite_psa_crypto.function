@@ -1041,6 +1041,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
     size_t function_output_length = 0;
     size_t total_output_length = 0;
     psa_cipher_operation_t operation;
+    psa_key_policy_t policy;
 
     TEST_ASSERT( key != NULL );
     TEST_ASSERT( input != NULL );
@@ -1053,6 +1054,10 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
     memset( iv, 0x2a, iv_size );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT, alg );
+    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( key_slot, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );
@@ -1111,6 +1116,7 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
     size_t function_output_length = 0;
     size_t total_output_length = 0;
     psa_cipher_operation_t operation;
+    psa_key_policy_t policy;
 
     TEST_ASSERT( key != NULL );
     TEST_ASSERT( input != NULL );
@@ -1123,6 +1129,10 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
     memset( iv, 0x2a, iv_size );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT, alg );
+    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( key_slot, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );
@@ -1184,6 +1194,7 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
     size_t function_output_length = 0;
     size_t total_output_length = 0;
     psa_cipher_operation_t operation;
+    psa_key_policy_t policy;
 
     TEST_ASSERT( key != NULL );
     TEST_ASSERT( input != NULL );
@@ -1196,6 +1207,10 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
     memset( iv, 0x2a, iv_size );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DECRYPT, alg );
+    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( key_slot, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );
@@ -1259,6 +1274,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     size_t function_output_length = 0;
     size_t total_output_length = 0;
     psa_cipher_operation_t operation;
+    psa_key_policy_t policy;
 
     TEST_ASSERT( key != NULL );
     TEST_ASSERT( input != NULL );
@@ -1271,6 +1287,10 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     memset( iv, 0x2a, iv_size );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DECRYPT, alg );
+    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( key_slot, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );
@@ -1333,6 +1353,7 @@ void cipher_verify_output( int alg_arg, int key_type_arg,
     size_t function_output_length = 0;
     psa_cipher_operation_t operation1;
     psa_cipher_operation_t operation2;
+    psa_key_policy_t policy;
 
     TEST_ASSERT( key != NULL );
     TEST_ASSERT( input != NULL );
@@ -1340,6 +1361,10 @@ void cipher_verify_output( int alg_arg, int key_type_arg,
     TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input->len ) );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT, alg );
+    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( key_slot, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );
@@ -1420,6 +1445,7 @@ void cipher_verify_output_multipart( int alg_arg,
     size_t function_output_length;
     psa_cipher_operation_t operation1;
     psa_cipher_operation_t operation2;
+    psa_key_policy_t policy;
 
     TEST_ASSERT( key != NULL );
     TEST_ASSERT( input != NULL );
@@ -1427,6 +1453,10 @@ void cipher_verify_output_multipart( int alg_arg,
     TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input->len ) );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT, alg );
+    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( key_slot, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );

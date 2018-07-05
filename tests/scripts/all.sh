@@ -757,9 +757,11 @@ cd "$MBEDTLS_ROOT_DIR"
 rm -rf "$OUT_OF_SOURCE_DIR"
 unset MBEDTLS_ROOT_DIR
 
-msg "Analyse: Python source with Pylint"
+msg "Lint: Python scripts"
 tests/scripts/check-python-files.sh
 
+msg "uint test: generate_test_code.py"
+./tests/scripts/test_generate_test_code.py
 
 ################################################################
 #### Termination

@@ -61,6 +61,13 @@ int mbedtls_hkdf_extract( const mbedtls_md_info_t *md,
     if( salt == NULL )
     {
         size_t hash_len;
+<<<<<<< HEAD
+=======
+        
+        if( salt_len != 0 ) {
+            return MBEDTLS_ERR_HKDF_BAD_INPUT_DATA;
+        }
+>>>>>>> per code review
 
         hash_len = mbedtls_md_get_size( md );
 

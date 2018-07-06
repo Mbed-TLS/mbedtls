@@ -1469,15 +1469,10 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
 {
     psa_status_t status;
     key_slot_t *slot;
-    psa_key_type_t key_type;
     size_t key_bits;
     const mbedtls_cipher_info_t *cipher_info = NULL;
 
     status = psa_mac_init( operation, alg );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    status = psa_get_key_information( key, &key_type, &key_bits );
     if( status != PSA_SUCCESS )
         return( status );
 
@@ -1495,9 +1490,12 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
     if( ( slot->policy.usage & PSA_KEY_USAGE_VERIFY ) != 0 )
         operation->key_usage_verify = 1;
 
+    key_bits = psa_get_key_bits( slot );
+
     if( ! PSA_ALG_IS_HMAC( alg ) )
     {
-        cipher_info = mbedtls_cipher_info_from_psa( alg, key_type, key_bits, NULL );
+        cipher_info = mbedtls_cipher_info_from_psa( alg, slot->type, key_bits,
+                                                    NULL );
         if( cipher_info == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
         operation->mac_size = cipher_info->block_size;
@@ -1515,7 +1513,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
         default:
 #if defined(MBEDTLS_MD_C)
             if( PSA_ALG_IS_HMAC( alg ) )
-                status = psa_hmac_start( operation, key_type, slot, alg );
+                status = psa_hmac_start( operation, slot->type, slot, alg );
             else
 #endif /* MBEDTLS_MD_C */
                 return( PSA_ERROR_NOT_SUPPORTED );
@@ -2254,7 +2252,6 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     int ret = MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
     psa_status_t status;
     key_slot_t *slot;
-    psa_key_type_t key_type;
     size_t key_bits;
     const mbedtls_cipher_info_t *cipher_info = NULL;
     psa_key_usage_t usage = ( cipher_operation == MBEDTLS_ENCRYPT ?
@@ -2265,14 +2262,12 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     if( status != PSA_SUCCESS )
         return( status );
 
-    status = psa_get_key_information( key, &key_type, &key_bits );
-    if( status != PSA_SUCCESS )
-        return( status );
     status = psa_get_key_from_slot( key, &slot, usage, alg);
     if( status != PSA_SUCCESS )
         return( status );
+    key_bits = psa_get_key_bits( slot );
 
-    cipher_info = mbedtls_cipher_info_from_psa( alg, key_type, key_bits, NULL );
+    cipher_info = mbedtls_cipher_info_from_psa( alg, slot->type, key_bits, NULL );
     if( cipher_info == NULL )
         return( PSA_ERROR_NOT_SUPPORTED );
 
@@ -2284,7 +2279,7 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     }
 
 #if defined(MBEDTLS_DES_C)
-    if( key_type == PSA_KEY_TYPE_DES && key_bits == 128 )
+    if( slot->type == PSA_KEY_TYPE_DES && key_bits == 128 )
     {
         /* Two-key Triple-DES is 3-key Triple-DES with K1=K3 */
         unsigned char keys[24];
@@ -2336,11 +2331,11 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
 
     operation->key_set = 1;
     operation->block_size = ( PSA_ALG_IS_BLOCK_CIPHER( alg ) ?
-                              PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) :
+                              PSA_BLOCK_CIPHER_BLOCK_SIZE( slot->type ) :
                               1 );
     if( PSA_ALG_IS_BLOCK_CIPHER( alg ) || alg == PSA_ALG_CTR )
     {
-        operation->iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
+        operation->iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( slot->type );
     }
 
     return( PSA_SUCCESS );
@@ -2675,7 +2670,6 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
     int ret;
     psa_status_t status;
     key_slot_t *slot;
-    psa_key_type_t key_type;
     size_t key_bits;
     uint8_t *tag;
     size_t tag_length;
@@ -2684,19 +2678,17 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
 
     *ciphertext_length = 0;
 
-    status = psa_get_key_information( key, &key_type, &key_bits );
-    if( status != PSA_SUCCESS )
-        return( status );
     status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
     if( status != PSA_SUCCESS )
         return( status );
+    key_bits = psa_get_key_bits( slot );
 
-    cipher_info = mbedtls_cipher_info_from_psa( alg, key_type,
+    cipher_info = mbedtls_cipher_info_from_psa( alg, slot->type,
                                                 key_bits, &cipher_id );
     if( cipher_info == NULL )
         return( PSA_ERROR_NOT_SUPPORTED );
 
-    if( ( key_type & PSA_KEY_TYPE_CATEGORY_MASK ) !=
+    if( ( slot->type & PSA_KEY_TYPE_CATEGORY_MASK ) !=
         PSA_KEY_TYPE_CATEGORY_SYMMETRIC )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
@@ -2705,7 +2697,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
         mbedtls_gcm_context gcm;
         tag_length = 16;
 
-        if( PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) != 16 )
+        if( PSA_BLOCK_CIPHER_BLOCK_SIZE( slot->type ) != 16 )
             return( PSA_ERROR_INVALID_ARGUMENT );
 
         //make sure we have place to hold the tag in the ciphertext buffer
@@ -2736,7 +2728,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
         mbedtls_ccm_context ccm;
         tag_length = 16;
 
-        if( PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) != 16 )
+        if( PSA_BLOCK_CIPHER_BLOCK_SIZE( slot->type ) != 16 )
             return( PSA_ERROR_INVALID_ARGUMENT );
 
         if( nonce_length < 7 || nonce_length > 13 )
@@ -2820,7 +2812,6 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
     int ret;
     psa_status_t status;
     key_slot_t *slot;
-    psa_key_type_t key_type;
     size_t key_bits;
     const uint8_t *tag;
     size_t tag_length;
@@ -2829,19 +2820,17 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
 
     *plaintext_length = 0;
 
-    status = psa_get_key_information( key, &key_type, &key_bits );
-    if( status != PSA_SUCCESS )
-        return( status );
     status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_DECRYPT, alg );
     if( status != PSA_SUCCESS )
         return( status );
+    key_bits = psa_get_key_bits( slot );
 
-    cipher_info = mbedtls_cipher_info_from_psa( alg, key_type,
+    cipher_info = mbedtls_cipher_info_from_psa( alg, slot->type,
                                                 key_bits, &cipher_id );
     if( cipher_info == NULL )
         return( PSA_ERROR_NOT_SUPPORTED );
 
-    if( ( key_type & PSA_KEY_TYPE_CATEGORY_MASK ) !=
+    if( ( slot->type & PSA_KEY_TYPE_CATEGORY_MASK ) !=
         PSA_KEY_TYPE_CATEGORY_SYMMETRIC )
         return( PSA_ERROR_INVALID_ARGUMENT );
 

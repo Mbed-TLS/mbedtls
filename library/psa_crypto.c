@@ -688,6 +688,24 @@ psa_status_t psa_destroy_key( psa_key_slot_t key )
     return( PSA_SUCCESS );
 }
 
+/* Return the size of the key in the given slot, in bits. */
+static size_t psa_get_key_bits( const key_slot_t *slot )
+{
+    if( key_type_is_raw_bytes( slot->type ) )
+        return( slot->data.raw.bytes * 8 );
+#if defined(MBEDTLS_RSA_C)
+    if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
+        slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
+        return( mbedtls_rsa_get_bitlen( slot->data.rsa ) );
+#endif /* defined(MBEDTLS_RSA_C) */
+#if defined(MBEDTLS_ECP_C)
+    if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
+        return( slot->data.ecp->grp.pbits );
+#endif /* defined(MBEDTLS_ECP_C) */
+    /* Shouldn't happen except on an empty slot. */
+    return( 0 );
+}
+
 psa_status_t psa_get_key_information( psa_key_slot_t key,
                                       psa_key_type_t *type,
                                       size_t *bits )
@@ -702,40 +720,13 @@ psa_status_t psa_get_key_information( psa_key_slot_t key,
     status = psa_get_key_slot( key, &slot );
     if( status != PSA_SUCCESS )
         return( status );
+
     if( slot->type == PSA_KEY_TYPE_NONE )
         return( PSA_ERROR_EMPTY_SLOT );
     if( type != NULL )
         *type = slot->type;
-
-    if( key_type_is_raw_bytes( slot->type ) )
-    {
-        if( bits != NULL )
-            *bits = slot->data.raw.bytes * 8;
-    }
-    else
-#if defined(MBEDTLS_RSA_C)
-    if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
-        slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
-    {
-        if( bits != NULL )
-            *bits = mbedtls_rsa_get_bitlen( slot->data.rsa );
-    }
-    else
-#endif /* defined(MBEDTLS_RSA_C) */
-#if defined(MBEDTLS_ECP_C)
-    if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
-    {
-        if( bits != NULL )
-            *bits = slot->data.ecp->grp.pbits;
-    }
-    else
-#endif /* defined(MBEDTLS_ECP_C) */
-    {
-        /* Shouldn't happen: the key type is not any type that we
-         * put in. */
-        return( PSA_ERROR_TAMPERING_DETECTED );
-    }
-
+    if( bits != NULL )
+        *bits = psa_get_key_bits( slot );
     return( PSA_SUCCESS );
 }
 

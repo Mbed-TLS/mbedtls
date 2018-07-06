@@ -1171,7 +1171,8 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
     p += hlen;
     p += olen - 2 * hlen - 2 - ilen;
     *p++ = 1;
-    memcpy( p, input, ilen );
+    if( ilen != 0 )
+        memcpy( p, input, ilen );
 
     mbedtls_md_init( &md_ctx );
     if( ( ret = mbedtls_md_setup( &md_ctx, md_info, 0 ) ) != 0 )
@@ -1263,7 +1264,8 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
     }
 
     *p++ = 0;
-    memcpy( p, input, ilen );
+    if( ilen != 0 )
+        memcpy( p, input, ilen );
 
     return( ( mode == MBEDTLS_RSA_PUBLIC )
             ? mbedtls_rsa_public(  ctx, output, output )
@@ -1441,7 +1443,8 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
     }
 
     *olen = ilen - (p - buf);
-    memcpy( output, p, *olen );
+    if( *olen != 0 )
+        memcpy( output, p, *olen );
     ret = 0;
 
 cleanup:

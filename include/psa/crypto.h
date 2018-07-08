@@ -1464,10 +1464,10 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
- * -# Call psa_encrypt_setup() to specify the algorithm and key.
+ * -# Call psa_cipher_encrypt_setup() to specify the algorithm and key.
  *    The key remains associated with the operation even if the content
  *    of the key slot changes.
- * -# Call either psa_encrypt_generate_iv() or psa_encrypt_set_iv() to
+ * -# Call either psa_encrypt_generate_iv() or psa_cipher_set_iv() to
  *    generate or set the IV (initialization vector). You should use
  *    psa_encrypt_generate_iv() unless the protocol you are implementing
  *    requires a specific IV value.
@@ -1476,12 +1476,12 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * -# Call psa_cipher_finish().
  *
  * The application may call psa_cipher_abort() at any time after the operation
- * has been initialized with psa_encrypt_setup().
+ * has been initialized with psa_cipher_encrypt_setup().
  *
- * After a successful call to psa_encrypt_setup(), the application must
+ * After a successful call to psa_cipher_encrypt_setup(), the application must
  * eventually terminate the operation. The following events terminate an
  * operation:
- * - A failed call to psa_encrypt_generate_iv(), psa_encrypt_set_iv()
+ * - A failed call to psa_encrypt_generate_iv(), psa_cipher_set_iv()
  *   or psa_cipher_update().
  * - A call to psa_cipher_finish() or psa_cipher_abort().
  *
@@ -1503,9 +1503,9 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * \retval PSA_ERROR_HARDWARE_FAILURE
  * \retval PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
-                               psa_key_slot_t key,
-                               psa_algorithm_t alg);
+psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
+                                      psa_key_slot_t key,
+                                      psa_algorithm_t alg);
 
 /** Set the key for a multipart symmetric decryption operation.
  *
@@ -1513,7 +1513,7 @@ psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
  * is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
- * -# Call psa_decrypt_setup() to specify the algorithm and key.
+ * -# Call psa_cipher_decrypt_setup() to specify the algorithm and key.
  *    The key remains associated with the operation even if the content
  *    of the key slot changes.
  * -# Call psa_cipher_update() with the IV (initialization vector) for the
@@ -1525,9 +1525,9 @@ psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
  * -# Call psa_cipher_finish().
  *
  * The application may call psa_cipher_abort() at any time after the operation
- * has been initialized with psa_encrypt_setup().
+ * has been initialized with psa_cipher_decrypt_setup().
  *
- * After a successful call to psa_decrypt_setup(), the application must
+ * After a successful call to psa_cipher_decrypt_setup(), the application must
  * eventually terminate the operation. The following events terminate an
  * operation:
  * - A failed call to psa_cipher_update().
@@ -1551,18 +1551,18 @@ psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
  * \retval PSA_ERROR_HARDWARE_FAILURE
  * \retval PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_decrypt_setup(psa_cipher_operation_t *operation,
-                               psa_key_slot_t key,
-                               psa_algorithm_t alg);
+psa_status_t psa_cipher_decrypt_setup(psa_cipher_operation_t *operation,
+                                      psa_key_slot_t key,
+                                      psa_algorithm_t alg);
 
-psa_status_t psa_encrypt_generate_iv(psa_cipher_operation_t *operation,
-                                     unsigned char *iv,
-                                     size_t iv_size,
-                                     size_t *iv_length);
+psa_status_t psa_cipher_generate_iv(psa_cipher_operation_t *operation,
+                                    unsigned char *iv,
+                                    size_t iv_size,
+                                    size_t *iv_length);
 
-psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
-                                const unsigned char *iv,
-                                size_t iv_length);
+psa_status_t psa_cipher_set_iv(psa_cipher_operation_t *operation,
+                               const unsigned char *iv,
+                               size_t iv_length);
 
 psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
                                const uint8_t *input,

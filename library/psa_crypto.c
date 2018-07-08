@@ -2360,24 +2360,24 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_encrypt_setup( psa_cipher_operation_t *operation,
-                                psa_key_slot_t key,
-                                psa_algorithm_t alg )
+psa_status_t psa_cipher_encrypt_setup( psa_cipher_operation_t *operation,
+                                       psa_key_slot_t key,
+                                       psa_algorithm_t alg )
 {
     return( psa_cipher_setup( operation, key, alg, MBEDTLS_ENCRYPT ) );
 }
 
-psa_status_t psa_decrypt_setup( psa_cipher_operation_t *operation,
-                                psa_key_slot_t key,
-                                psa_algorithm_t alg )
+psa_status_t psa_cipher_decrypt_setup( psa_cipher_operation_t *operation,
+                                       psa_key_slot_t key,
+                                       psa_algorithm_t alg )
 {
     return( psa_cipher_setup( operation, key, alg, MBEDTLS_DECRYPT ) );
 }
 
-psa_status_t psa_encrypt_generate_iv( psa_cipher_operation_t *operation,
-                                      unsigned char *iv,
-                                      size_t iv_size,
-                                      size_t *iv_length )
+psa_status_t psa_cipher_generate_iv( psa_cipher_operation_t *operation,
+                                     unsigned char *iv,
+                                     size_t iv_size,
+                                     size_t *iv_length )
 {
     int ret = PSA_SUCCESS;
     if( operation->iv_set || ! operation->iv_required )
@@ -2396,7 +2396,7 @@ psa_status_t psa_encrypt_generate_iv( psa_cipher_operation_t *operation,
     }
 
     *iv_length = operation->iv_size;
-    ret = psa_encrypt_set_iv( operation, iv, *iv_length );
+    ret = psa_cipher_set_iv( operation, iv, *iv_length );
 
 exit:
     if( ret != PSA_SUCCESS )
@@ -2404,9 +2404,9 @@ exit:
     return( ret );
 }
 
-psa_status_t psa_encrypt_set_iv( psa_cipher_operation_t *operation,
-                                 const unsigned char *iv,
-                                 size_t iv_length )
+psa_status_t psa_cipher_set_iv( psa_cipher_operation_t *operation,
+                                const unsigned char *iv,
+                                size_t iv_length )
 {
     int ret = PSA_SUCCESS;
     if( operation->iv_set || ! operation->iv_required )

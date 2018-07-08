@@ -138,7 +138,7 @@ int main( void )
 #define DFL_NSS_KEYLOG          0
 #define DFL_NSS_KEYLOG_FILE     NULL
 #define DFL_USE_SRTP            0
-#define DFL_SRTP_FORCE_PROFILE  MBEDTLS_SRTP_UNSET_PROFILE
+#define DFL_SRTP_FORCE_PROFILE  0
 #define DFL_SRTP_MKI            ""
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "

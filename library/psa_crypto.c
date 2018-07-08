@@ -1483,8 +1483,8 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
     /* Since this function is called identically for a sign or verify
      * operation, we don't know yet whether the operation is permitted.
      * Store the part of the key policy that we can't check in the
-     * operation structure. psa_mac_finish() or psa_mac_verify() will
-     * check that remaining part. */
+     * operation structure. psa_mac_sign_finish() or psa_mac_verify_finish()
+     * will check that remaining part. */
     if( ( slot->policy.usage & PSA_KEY_USAGE_SIGN ) != 0 )
         operation->key_usage_sign = 1;
     if( ( slot->policy.usage & PSA_KEY_USAGE_VERIFY ) != 0 )
@@ -1671,10 +1671,10 @@ cleanup:
     }
 }
 
-psa_status_t psa_mac_finish( psa_mac_operation_t *operation,
-                             uint8_t *mac,
-                             size_t mac_size,
-                             size_t *mac_length )
+psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
+                                  uint8_t *mac,
+                                  size_t mac_size,
+                                  size_t *mac_length )
 {
     if( ! operation->key_usage_sign )
         return( PSA_ERROR_NOT_PERMITTED );
@@ -1683,9 +1683,9 @@ psa_status_t psa_mac_finish( psa_mac_operation_t *operation,
                                      mac_size, mac_length ) );
 }
 
-psa_status_t psa_mac_verify( psa_mac_operation_t *operation,
-                             const uint8_t *mac,
-                             size_t mac_length )
+psa_status_t psa_mac_verify_finish( psa_mac_operation_t *operation,
+                                    const uint8_t *mac,
+                                    size_t mac_length )
 {
     uint8_t actual_mac[PSA_MAC_MAX_SIZE];
     size_t actual_mac_length;

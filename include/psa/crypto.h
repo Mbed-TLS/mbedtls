@@ -1345,8 +1345,8 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  * -# Call psa_mac_update() zero, one or more times, passing a fragment
  *    of the message each time. The MAC that is calculated is the MAC
  *    of the concatenation of these messages in order.
- * -# To calculate the MAC, call psa_mac_finish().
- *    To compare the MAC with an expected value, call psa_mac_verify().
+ * -# To calculate the MAC, call psa_mac_sign_finish().
+ *    To compare the MAC with an expected value, call psa_mac_verify_finish().
  *
  * The application may call psa_mac_abort() at any time after the operation
  * has been initialized with psa_mac_start().
@@ -1355,7 +1355,8 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  * eventually terminate the operation. The following events terminate an
  * operation:
  * - A failed call to psa_mac_update().
- * - A call to psa_mac_finish(), psa_mac_verify() or psa_mac_abort().
+ * - A call to psa_mac_sign_finish(), psa_mac_verify_finish() or
+ *   psa_mac_abort().
  *
  * \param operation The operation object to use.
  * \param key       Slot containing the key to use for the operation.
@@ -1383,14 +1384,14 @@ psa_status_t psa_mac_update(psa_mac_operation_t *operation,
                             const uint8_t *input,
                             size_t input_length);
 
-psa_status_t psa_mac_finish(psa_mac_operation_t *operation,
-                            uint8_t *mac,
-                            size_t mac_size,
-                            size_t *mac_length);
+psa_status_t psa_mac_sign_finish(psa_mac_operation_t *operation,
+                                 uint8_t *mac,
+                                 size_t mac_size,
+                                 size_t *mac_length);
 
-psa_status_t psa_mac_verify(psa_mac_operation_t *operation,
-                            const uint8_t *mac,
-                            size_t mac_length);
+psa_status_t psa_mac_verify_finish(psa_mac_operation_t *operation,
+                                   const uint8_t *mac,
+                                   size_t mac_length);
 
 psa_status_t psa_mac_abort(psa_mac_operation_t *operation);
 

@@ -1333,30 +1333,32 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation);
  * as directed by the documentation of a specific implementation. */
 typedef struct psa_mac_operation_s psa_mac_operation_t;
 
-/** Start a multipart MAC operation.
+/** Start a multipart MAC calculation operation.
  *
- * The sequence of operations to calculate a MAC (message authentication code)
- * is as follows:
+ * This function sets up the calculation of the MAC
+ * (message authentication code) of a byte string.
+ * To verify the MAC of a message against an
+ * expected value, use psa_mac_verify_setup() instead.
+ *
+ * The sequence of operations to calculate a MAC is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
- * -# Call psa_mac_start() to specify the algorithm and key.
+ * -# Call psa_mac_sign_setup() to specify the algorithm and key.
  *    The key remains associated with the operation even if the content
  *    of the key slot changes.
  * -# Call psa_mac_update() zero, one or more times, passing a fragment
  *    of the message each time. The MAC that is calculated is the MAC
  *    of the concatenation of these messages in order.
- * -# To calculate the MAC, call psa_mac_sign_finish().
- *    To compare the MAC with an expected value, call psa_mac_verify_finish().
+ * -# At the end of the message, call psa_mac_sign_finish() to finish
+ *    calculating the MAC value and retrieve it.
  *
  * The application may call psa_mac_abort() at any time after the operation
- * has been initialized with psa_mac_start().
+ * has been initialized with psa_mac_sign_setup().
  *
- * After a successful call to psa_mac_start(), the application must
- * eventually terminate the operation. The following events terminate an
- * operation:
+ * After a successful call to psa_mac_sign_setup(), the application must
+ * eventually terminate the operation through one of the following methods:
  * - A failed call to psa_mac_update().
- * - A call to psa_mac_sign_finish(), psa_mac_verify_finish() or
- *   psa_mac_abort().
+ * - A call to psa_mac_sign_finish() or psa_mac_abort().
  *
  * \param operation The operation object to use.
  * \param key       Slot containing the key to use for the operation.
@@ -1376,9 +1378,57 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  * \retval PSA_ERROR_HARDWARE_FAILURE
  * \retval PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_mac_start(psa_mac_operation_t *operation,
-                           psa_key_slot_t key,
-                           psa_algorithm_t alg);
+psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
+                                psa_key_slot_t key,
+                                psa_algorithm_t alg);
+
+/** Start a multipart MAC verification operation.
+ *
+ * This function sets up the verification of the MAC
+ * (message authentication code) of a byte string against an expected value.
+ *
+ * The sequence of operations to verify a MAC is as follows:
+ * -# Allocate an operation object which will be passed to all the functions
+ *    listed here.
+ * -# Call psa_mac_verify_setup() to specify the algorithm and key.
+ *    The key remains associated with the operation even if the content
+ *    of the key slot changes.
+ * -# Call psa_mac_update() zero, one or more times, passing a fragment
+ *    of the message each time. The MAC that is calculated is the MAC
+ *    of the concatenation of these messages in order.
+ * -# At the end of the message, call psa_mac_verify_finish() to finish
+ *    calculating the actual MAC of the message and verify it against
+ *    the expected value.
+ *
+ * The application may call psa_mac_abort() at any time after the operation
+ * has been initialized with psa_mac_verify_setup().
+ *
+ * After a successful call to psa_mac_verify_setup(), the application must
+ * eventually terminate the operation through one of the following methods:
+ * - A failed call to psa_mac_update().
+ * - A call to psa_mac_verify_finish() or psa_mac_abort().
+ *
+ * \param operation The operation object to use.
+ * \param key       Slot containing the key to use for the operation.
+ * \param alg       The MAC algorithm to compute (\c PSA_ALG_XXX value
+ *                  such that #PSA_ALG_IS_MAC(alg) is true).
+ *
+ * \retval PSA_SUCCESS
+ *         Success.
+ * \retval PSA_ERROR_EMPTY_SLOT
+ * \retval PSA_ERROR_NOT_PERMITTED
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ *         \c key is not compatible with \c alg.
+ * \retval PSA_ERROR_NOT_SUPPORTED
+ *         \c alg is not supported or is not a MAC algorithm.
+ * \retval PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_mac_verify_setup(psa_mac_operation_t *operation,
+                                  psa_key_slot_t key,
+                                  psa_algorithm_t alg);
 
 psa_status_t psa_mac_update(psa_mac_operation_t *operation,
                             const uint8_t *input,

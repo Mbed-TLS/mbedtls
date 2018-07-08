@@ -138,7 +138,8 @@ static int exercise_mac_key( psa_key_slot_t key,
 
     if( usage & PSA_KEY_USAGE_SIGN )
     {
-        TEST_ASSERT( psa_mac_start( &operation, key, alg ) == PSA_SUCCESS );
+        TEST_ASSERT( psa_mac_sign_setup( &operation,
+                                         key, alg ) == PSA_SUCCESS );
         TEST_ASSERT( psa_mac_update( &operation,
                                      input, sizeof( input ) ) == PSA_SUCCESS );
         TEST_ASSERT( psa_mac_sign_finish( &operation,
@@ -152,7 +153,8 @@ static int exercise_mac_key( psa_key_slot_t key,
             ( usage & PSA_KEY_USAGE_SIGN ?
               PSA_SUCCESS :
               PSA_ERROR_INVALID_SIGNATURE );
-        TEST_ASSERT( psa_mac_start( &operation, key, alg ) == PSA_SUCCESS );
+        TEST_ASSERT( psa_mac_verify_setup( &operation,
+                                           key, alg ) == PSA_SUCCESS );
         TEST_ASSERT( psa_mac_update( &operation,
                                      input, sizeof( input ) ) == PSA_SUCCESS );
         TEST_ASSERT( psa_mac_verify_finish( &operation,
@@ -736,7 +738,6 @@ void mac_key_policy( int policy_usage,
     psa_mac_operation_t operation;
     psa_status_t status;
     unsigned char mac[PSA_MAC_MAX_SIZE];
-    size_t output_length;
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
@@ -747,10 +748,7 @@ void mac_key_policy( int policy_usage,
     TEST_ASSERT( psa_import_key( key_slot, key_type,
                                  key_data->x, key_data->len ) == PSA_SUCCESS );
 
-    status = psa_mac_start( &operation, key_slot, exercise_alg );
-    if( status == PSA_SUCCESS )
-        status = psa_mac_sign_finish( &operation,
-                                      mac, sizeof( mac ), &output_length );
+    status = psa_mac_sign_setup( &operation, key_slot, exercise_alg );
     if( policy_alg == exercise_alg &&
         ( policy_usage & PSA_KEY_USAGE_SIGN ) != 0 )
         TEST_ASSERT( status == PSA_SUCCESS );
@@ -759,12 +757,10 @@ void mac_key_policy( int policy_usage,
     psa_mac_abort( &operation );
 
     memset( mac, 0, sizeof( mac ) );
-    status = psa_mac_start( &operation, key_slot, exercise_alg );
-    if( status == PSA_SUCCESS )
-        status = psa_mac_verify_finish( &operation, mac, sizeof( mac ) );
+    status = psa_mac_verify_setup( &operation, key_slot, exercise_alg );
     if( policy_alg == exercise_alg &&
         ( policy_usage & PSA_KEY_USAGE_VERIFY ) != 0 )
-        TEST_ASSERT( status == PSA_ERROR_INVALID_SIGNATURE );
+        TEST_ASSERT( status == PSA_SUCCESS );
     else
         TEST_ASSERT( status == PSA_ERROR_NOT_PERMITTED );
 
@@ -1155,7 +1151,7 @@ void mac_setup( int key_type_arg,
     TEST_ASSERT( psa_import_key( key_slot, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );
 
-    status = psa_mac_start( &operation, key_slot, alg );
+    status = psa_mac_sign_setup( &operation, key_slot, alg );
     psa_mac_abort( &operation );
     TEST_ASSERT( status == expected_status );
 
@@ -1196,7 +1192,8 @@ void mac_verify( int key_type_arg,
     TEST_ASSERT( psa_import_key( key_slot, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_mac_start( &operation, key_slot, alg ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_mac_verify_setup( &operation,
+                                       key_slot, alg ) == PSA_SUCCESS );
     TEST_ASSERT( psa_destroy_key( key_slot ) == PSA_SUCCESS );
     TEST_ASSERT( psa_mac_update( &operation,
                                  input->x, input->len ) == PSA_SUCCESS );

@@ -102,8 +102,7 @@ struct psa_mac_operation_s
     int iv_required : 1;
     int iv_set : 1;
     int has_input : 1;
-    int key_usage_sign : 1;
-    int key_usage_verify : 1;
+    int is_sign : 1;
     uint8_t mac_size;
     union
     {

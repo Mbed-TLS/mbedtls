@@ -1296,8 +1296,7 @@ static psa_status_t psa_mac_init( psa_mac_operation_t *operation,
     operation->iv_set = 0;
     operation->iv_required = 0;
     operation->has_input = 0;
-    operation->key_usage_sign = 0;
-    operation->key_usage_verify = 0;
+    operation->is_sign = 0;
 
 #if defined(MBEDTLS_CMAC_C)
     if( alg == PSA_ALG_CMAC )
@@ -1367,14 +1366,13 @@ psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
     operation->iv_set = 0;
     operation->iv_required = 0;
     operation->has_input = 0;
-    operation->key_usage_sign = 0;
-    operation->key_usage_verify = 0;
+    operation->is_sign = 0;
 
     return( PSA_SUCCESS );
 }
 
 #if defined(MBEDTLS_CMAC_C)
-static int psa_cmac_start( psa_mac_operation_t *operation,
+static int psa_cmac_setup( psa_mac_operation_t *operation,
                            size_t key_bits,
                            key_slot_t *slot,
                            const mbedtls_cipher_info_t *cipher_info )
@@ -1395,7 +1393,7 @@ static int psa_cmac_start( psa_mac_operation_t *operation,
 #endif /* MBEDTLS_CMAC_C */
 
 #if defined(MBEDTLS_MD_C)
-static int psa_hmac_start( psa_mac_operation_t *operation,
+static int psa_hmac_setup( psa_mac_operation_t *operation,
                            psa_key_type_t key_type,
                            key_slot_t *slot,
                            psa_algorithm_t alg )
@@ -1457,38 +1455,33 @@ cleanup:
     mbedtls_zeroize( ipad, key_length );
     /* opad is in the context. It needs to stay in memory if this function
      * succeeds, and it will be wiped by psa_mac_abort() called from
-     * psa_mac_start in the error case. */
+     * psa_mac_setup in the error case. */
 
     return( status );
 }
 #endif /* MBEDTLS_MD_C */
 
-psa_status_t psa_mac_start( psa_mac_operation_t *operation,
-                            psa_key_slot_t key,
-                            psa_algorithm_t alg )
+static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
+                                   psa_key_slot_t key,
+                                   psa_algorithm_t alg,
+                                   int is_sign )
 {
     psa_status_t status;
     key_slot_t *slot;
     size_t key_bits;
+    psa_key_usage_t usage =
+        is_sign ? PSA_KEY_USAGE_SIGN : PSA_KEY_USAGE_VERIFY;
     const mbedtls_cipher_info_t *cipher_info = NULL;
 
     status = psa_mac_init( operation, alg );
     if( status != PSA_SUCCESS )
         return( status );
+    if( is_sign )
+        operation->is_sign = 1;
 
-    status = psa_get_key_from_slot( key, &slot, 0, alg );
+    status = psa_get_key_from_slot( key, &slot, usage, alg );
     if( status != PSA_SUCCESS )
         return( status );
-
-    /* Since this function is called identically for a sign or verify
-     * operation, we don't know yet whether the operation is permitted.
-     * Store the part of the key policy that we can't check in the
-     * operation structure. psa_mac_sign_finish() or psa_mac_verify_finish()
-     * will check that remaining part. */
-    if( ( slot->policy.usage & PSA_KEY_USAGE_SIGN ) != 0 )
-        operation->key_usage_sign = 1;
-    if( ( slot->policy.usage & PSA_KEY_USAGE_VERIFY ) != 0 )
-        operation->key_usage_verify = 1;
 
     key_bits = psa_get_key_bits( slot );
 
@@ -1504,7 +1497,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
     {
 #if defined(MBEDTLS_CMAC_C)
         case PSA_ALG_CMAC:
-            status = mbedtls_to_psa_error( psa_cmac_start( operation,
+            status = mbedtls_to_psa_error( psa_cmac_setup( operation,
                                                            key_bits,
                                                            slot,
                                                            cipher_info ) );
@@ -1513,7 +1506,7 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
         default:
 #if defined(MBEDTLS_MD_C)
             if( PSA_ALG_IS_HMAC( alg ) )
-                status = psa_hmac_start( operation, slot->type, slot, alg );
+                status = psa_hmac_setup( operation, slot->type, slot, alg );
             else
 #endif /* MBEDTLS_MD_C */
                 return( PSA_ERROR_NOT_SUPPORTED );
@@ -1530,6 +1523,20 @@ psa_status_t psa_mac_start( psa_mac_operation_t *operation,
         operation->key_set = 1;
     }
     return( status );
+}
+
+psa_status_t psa_mac_sign_setup( psa_mac_operation_t *operation,
+                                 psa_key_slot_t key,
+                                 psa_algorithm_t alg )
+{
+    return( psa_mac_setup( operation, key, alg, 1 ) );
+}
+
+psa_status_t psa_mac_verify_setup( psa_mac_operation_t *operation,
+                                   psa_key_slot_t key,
+                                   psa_algorithm_t alg )
+{
+    return( psa_mac_setup( operation, key, alg, 0 ) );
 }
 
 psa_status_t psa_mac_update( psa_mac_operation_t *operation,
@@ -1676,8 +1683,11 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
                                   size_t mac_size,
                                   size_t *mac_length )
 {
-    if( ! operation->key_usage_sign )
-        return( PSA_ERROR_NOT_PERMITTED );
+    if( ! operation->is_sign )
+    {
+        psa_mac_abort( operation );
+        return( PSA_ERROR_BAD_STATE );
+    }
 
     return( psa_mac_finish_internal( operation, mac,
                                      mac_size, mac_length ) );
@@ -1691,8 +1701,11 @@ psa_status_t psa_mac_verify_finish( psa_mac_operation_t *operation,
     size_t actual_mac_length;
     psa_status_t status;
 
-    if( ! operation->key_usage_verify )
-        return( PSA_ERROR_NOT_PERMITTED );
+    if( operation->is_sign )
+    {
+        psa_mac_abort( operation );
+        return( PSA_ERROR_BAD_STATE );
+    }
 
     status = psa_mac_finish_internal( operation,
                                       actual_mac, sizeof( actual_mac ),

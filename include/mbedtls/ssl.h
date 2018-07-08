@@ -881,6 +881,13 @@ typedef enum
 }
 mbedtls_ssl_srtp_profile;
 
+typedef struct
+{
+    const mbedtls_ssl_srtp_profile   profile;
+    const char                      *name;
+}
+mbedtls_ssl_srtp_profile_info;
+
 typedef struct mbedtls_dtls_srtp_info_t
 {
     mbedtls_ssl_srtp_profile chosen_dtls_srtp_profile; /*!< negotiated SRTP profile */
@@ -3233,6 +3240,15 @@ mbedtls_ssl_srtp_profile mbedtls_ssl_get_dtls_srtp_protection_profile( const mbe
  * \return         0 on succes, MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if the key buffer is too small to hold the generated key
  */
 int mbedtls_ssl_get_dtls_srtp_key_material( const mbedtls_ssl_context *ssl, unsigned char *key, size_t *key_len );
+
+/**
+ * \brief                  Utility function to get information on dtls srtp profile.
+ *
+ * \param profile          The dtls-srtp profile id to get info on.
+ *
+ * \return         mbedtls_ssl_srtp_profile_info* on success, NULL if not found
+ */
+const mbedtls_ssl_srtp_profile_info *mbedtls_ssl_dtls_srtp_profile_info_from_id( mbedtls_ssl_srtp_profile profile );
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
 /**

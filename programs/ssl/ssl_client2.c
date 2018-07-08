@@ -151,7 +151,7 @@ int main( void )
 #define DFL_SKIP_CLOSE_NOTIFY   0
 #define DFL_QUERY_CONFIG_MODE   0
 #define DFL_USE_SRTP            0
-#define DFL_SRTP_FORCE_PROFILE  MBEDTLS_SRTP_UNSET_PROFILE
+#define DFL_SRTP_FORCE_PROFILE  0
 #define DFL_SRTP_MKI            ""
 
 #define GET_REQUEST "GET %s HTTP/1.0\r\nExtra-header: "

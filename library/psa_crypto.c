@@ -1585,20 +1585,9 @@ psa_status_t psa_mac_update( psa_mac_operation_t *operation,
 
 static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
                                              uint8_t *mac,
-                                             size_t mac_size,
-                                             size_t *mac_length )
+                                             size_t mac_size )
 {
-    int ret = 0;
-    psa_status_t status = PSA_SUCCESS;
-
-    /* Fill the output buffer with something that isn't a valid mac
-     * (barring an attack on the mac and deliberately-crafted input),
-     * in case the caller doesn't check the return status properly. */
-    *mac_length = mac_size;
-    /* If mac_size is 0 then mac may be NULL and then the
-     * call to memset would have undefined behavior. */
-    if( mac_size != 0 )
-        memset( mac, '!', mac_size );
+    psa_status_t status;
 
     if( ! operation->key_set )
         return( PSA_ERROR_BAD_STATE );
@@ -1612,8 +1601,10 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
     {
 #if defined(MBEDTLS_CMAC_C)
         case PSA_ALG_CMAC:
-            ret = mbedtls_cipher_cmac_finish( &operation->ctx.cmac, mac );
-            break;
+        {
+            int ret = mbedtls_cipher_cmac_finish( &operation->ctx.cmac, mac );
+            return( mbedtls_to_psa_error( ret ) );
+        }
 #endif /* MBEDTLS_CMAC_C */
         default:
 #if defined(MBEDTLS_MD_C)
@@ -1631,7 +1622,7 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
                 status = psa_hash_finish( &operation->ctx.hmac.hash_ctx, tmp,
                                           sizeof( tmp ), &hash_size );
                 if( status != PSA_SUCCESS )
-                    goto cleanup;
+                    return( status );
                 /* From here on, tmp needs to be wiped. */
 
                 status = psa_hash_setup( &operation->ctx.hmac.hash_ctx,
@@ -1650,32 +1641,21 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
                     goto hmac_cleanup;
 
                 status = psa_hash_finish( &operation->ctx.hmac.hash_ctx, mac,
-                                          mac_size, mac_length );
+                                          mac_size, &hash_size );
             hmac_cleanup:
                 mbedtls_zeroize( tmp, hash_size );
             }
             else
 #endif /* MBEDTLS_MD_C */
             {
-                ret = MBEDTLS_ERR_MD_BAD_INPUT_DATA;
+                /* This shouldn't happen if operation was initialized by
+                 * a setup function. */
+                return( PSA_ERROR_BAD_STATE );
             }
             break;
     }
-cleanup:
 
-    if( ret == 0 && status == PSA_SUCCESS )
-    {
-        *mac_length = operation->mac_size;
-        return( psa_mac_abort( operation ) );
-    }
-    else
-    {
-        psa_mac_abort( operation );
-        if( ret != 0 )
-            status = mbedtls_to_psa_error( ret );
-
-        return( status );
-    }
+    return( status );
 }
 
 psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
@@ -1683,14 +1663,37 @@ psa_status_t psa_mac_sign_finish( psa_mac_operation_t *operation,
                                   size_t mac_size,
                                   size_t *mac_length )
 {
+    psa_status_t status;
+
+    /* Fill the output buffer with something that isn't a valid mac
+     * (barring an attack on the mac and deliberately-crafted input),
+     * in case the caller doesn't check the return status properly. */
+    *mac_length = mac_size;
+    /* If mac_size is 0 then mac may be NULL and then the
+     * call to memset would have undefined behavior. */
+    if( mac_size != 0 )
+        memset( mac, '!', mac_size );
+
     if( ! operation->is_sign )
     {
-        psa_mac_abort( operation );
-        return( PSA_ERROR_BAD_STATE );
+        status = PSA_ERROR_BAD_STATE;
+        goto cleanup;
     }
 
-    return( psa_mac_finish_internal( operation, mac,
-                                     mac_size, mac_length ) );
+    status = psa_mac_finish_internal( operation, mac, mac_size );
+
+cleanup:
+    if( status == PSA_SUCCESS )
+    {
+        status = psa_mac_abort( operation );
+        if( status == PSA_SUCCESS )
+            *mac_length = operation->mac_size;
+        else
+            memset( mac, '!', mac_size );
+    }
+    else
+        psa_mac_abort( operation );
+    return( status );
 }
 
 psa_status_t psa_mac_verify_finish( psa_mac_operation_t *operation,
@@ -1698,25 +1701,32 @@ psa_status_t psa_mac_verify_finish( psa_mac_operation_t *operation,
                                     size_t mac_length )
 {
     uint8_t actual_mac[PSA_MAC_MAX_SIZE];
-    size_t actual_mac_length;
     psa_status_t status;
 
     if( operation->is_sign )
     {
-        psa_mac_abort( operation );
-        return( PSA_ERROR_BAD_STATE );
+        status = PSA_ERROR_BAD_STATE;
+        goto cleanup;
+    }
+    if( operation->mac_size != mac_length )
+    {
+        status = PSA_ERROR_INVALID_SIGNATURE;
+        goto cleanup;
     }
 
     status = psa_mac_finish_internal( operation,
-                                      actual_mac, sizeof( actual_mac ),
-                                      &actual_mac_length );
-    if( status != PSA_SUCCESS )
-        return( status );
-    if( actual_mac_length != mac_length )
-        return( PSA_ERROR_INVALID_SIGNATURE );
-    if( safer_memcmp( mac, actual_mac, actual_mac_length ) != 0 )
-        return( PSA_ERROR_INVALID_SIGNATURE );
-    return( PSA_SUCCESS );
+                                      actual_mac, sizeof( actual_mac ) );
+
+    if( safer_memcmp( mac, actual_mac, mac_length ) != 0 )
+        status = PSA_ERROR_INVALID_SIGNATURE;
+
+cleanup:
+    if( status == PSA_SUCCESS )
+        status = psa_mac_abort( operation );
+    else
+        psa_mac_abort( operation );
+
+    return( status );
 }
 
 

@@ -944,7 +944,7 @@ psa_status_t psa_hash_abort( psa_hash_operation_t *operation )
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_hash_start( psa_hash_operation_t *operation,
+psa_status_t psa_hash_setup( psa_hash_operation_t *operation,
                              psa_algorithm_t alg )
 {
     int ret;
@@ -1311,7 +1311,7 @@ static psa_status_t psa_mac_init( psa_mac_operation_t *operation,
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
-        status = psa_hash_start( &operation->ctx.hmac.hash_ctx,
+        status = psa_hash_setup( &operation->ctx.hmac.hash_ctx,
                                  PSA_ALG_HMAC_HASH( alg ) );
     }
     else
@@ -1445,7 +1445,7 @@ static int psa_hmac_start( psa_mac_operation_t *operation,
         opad[i] = ipad[i] ^ 0x36 ^ 0x5C;
     memset( opad + key_length, 0x5C, block_size - key_length );
 
-    status = psa_hash_start( &operation->ctx.hmac.hash_ctx,
+    status = psa_hash_setup( &operation->ctx.hmac.hash_ctx,
                              PSA_ALG_HMAC_HASH( alg ) );
     if( status != PSA_SUCCESS )
         goto cleanup;
@@ -1627,7 +1627,7 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
                     goto cleanup;
                 /* From here on, tmp needs to be wiped. */
 
-                status = psa_hash_start( &operation->ctx.hmac.hash_ctx,
+                status = psa_hash_setup( &operation->ctx.hmac.hash_ctx,
                                          PSA_ALG_HMAC_HASH( operation->alg ) );
                 if( status != PSA_SUCCESS )
                     goto hmac_cleanup;

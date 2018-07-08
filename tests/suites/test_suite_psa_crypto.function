@@ -1057,7 +1057,7 @@ void hash_setup( int alg_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
-    status = psa_hash_start( &operation, alg );
+    status = psa_hash_setup( &operation, alg );
     psa_hash_abort( &operation );
     TEST_ASSERT( status == expected_status );
 
@@ -1084,7 +1084,7 @@ void hash_finish( int alg_arg, data_t *input, data_t *expected_hash )
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_hash_start( &operation, alg ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
     TEST_ASSERT( psa_hash_update( &operation,
                                   input->x, input->len ) == PSA_SUCCESS );
     TEST_ASSERT( psa_hash_finish( &operation,
@@ -1115,7 +1115,7 @@ void hash_verify( int alg_arg, data_t *input, data_t *expected_hash )
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_hash_start( &operation, alg ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
     TEST_ASSERT( psa_hash_update( &operation,
                                   input->x,
                                   input->len ) == PSA_SUCCESS );

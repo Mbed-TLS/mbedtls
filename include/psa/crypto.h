@@ -1165,7 +1165,7 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  * is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
- * -# Call psa_hash_start() to specify the algorithm.
+ * -# Call psa_hash_setup() to specify the algorithm.
  * -# Call psa_hash_update() zero, one or more times, passing a fragment
  *    of the message each time. The hash that is calculated is the hash
  *    of the concatenation of these messages in order.
@@ -1173,9 +1173,9 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  *    To compare the hash with an expected value, call psa_hash_verify().
  *
  * The application may call psa_hash_abort() at any time after the operation
- * has been initialized with psa_hash_start().
+ * has been initialized with psa_hash_setup().
  *
- * After a successful call to psa_hash_start(), the application must
+ * After a successful call to psa_hash_setup(), the application must
  * eventually terminate the operation. The following events terminate an
  * operation:
  * - A failed call to psa_hash_update().
@@ -1194,12 +1194,12 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  * \retval PSA_ERROR_HARDWARE_FAILURE
  * \retval PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_hash_start(psa_hash_operation_t *operation,
+psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
                             psa_algorithm_t alg);
 
 /** Add a message fragment to a multipart hash operation.
  *
- * The application must call psa_hash_start() before calling this function.
+ * The application must call psa_hash_setup() before calling this function.
  *
  * If this function returns an error status, the operation becomes inactive.
  *
@@ -1222,7 +1222,7 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
 
 /** Finish the calculation of the hash of a message.
  *
- * The application must call psa_hash_start() before calling this function.
+ * The application must call psa_hash_setup() before calling this function.
  * This function calculates the hash of the message formed by concatenating
  * the inputs passed to preceding calls to psa_hash_update().
  *
@@ -1265,7 +1265,7 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
 /** Finish the calculation of the hash of a message and compare it with
  * an expected value.
  *
- * The application must call psa_hash_start() before calling this function.
+ * The application must call psa_hash_setup() before calling this function.
  * This function calculates the hash of the message formed by concatenating
  * the inputs passed to preceding calls to psa_hash_update(). It then
  * compares the calculated hash with the expected hash passed as a
@@ -1299,7 +1299,7 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
 
 /** Abort a hash operation.
  *
- * This function may be called at any time after psa_hash_start().
+ * This function may be called at any time after psa_hash_setup().
  * Aborting an operation frees all associated resources except for the
  * \c operation structure itself.
  *
@@ -1680,7 +1680,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
  * \brief Sign a hash or short message with a private key.
  *
  * Note that to perform a hash-and-sign signature algorithm, you must
- * first calculate the hash by calling psa_hash_start(), psa_hash_update()
+ * first calculate the hash by calling psa_hash_setup(), psa_hash_update()
  * and psa_hash_finish(). Then pass the resulting hash as the \p hash
  * parameter to this function. You can use #PSA_ALG_SIGN_GET_HASH(\p alg)
  * to determine the hash algorithm to use.
@@ -1733,7 +1733,7 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
  * \brief Verify the signature a hash or short message using a public key.
  *
  * Note that to perform a hash-and-sign signature algorithm, you must
- * first calculate the hash by calling psa_hash_start(), psa_hash_update()
+ * first calculate the hash by calling psa_hash_setup(), psa_hash_update()
  * and psa_hash_finish(). Then pass the resulting hash as the \p hash
  * parameter to this function. You can use #PSA_ALG_SIGN_GET_HASH(\p alg)
  * to determine the hash algorithm to use.

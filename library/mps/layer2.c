@@ -68,6 +68,56 @@ static int l2_epoch_check_remove_write( mps_l2 *ctx,
                                         mbedtls_mps_epoch_id epoch );
 static int l2_epoch_cleanup( mps_l2 *ctx );
 
+#define MPS_L2_READ_UINT16_LE( src, dst )               \
+    do                                                  \
+    {                                                   \
+        *( dst ) =                                      \
+            ( ( (uint16_t) ( (uint8_t*) ( src ) )[0] ) << 8 ) +  \
+            ( ( (uint16_t) ( (uint8_t*) ( src ) )[1] ) << 0 );   \
+    } while( 0 )
+
+#define MPS_L2_READ_UINT48_LE( src, dst )                \
+    do                                                   \
+    {                                                    \
+        *( dst ) =                                       \
+            ( ( (uint64_t) ( (uint8_t*) ( src ) )[0] ) << 40 ) + \
+            ( ( (uint64_t) ( (uint8_t*) ( src ) )[1] ) << 32 ) + \
+            ( ( (uint64_t) ( (uint8_t*) ( src ) )[2] ) << 24 ) + \
+            ( ( (uint64_t) ( (uint8_t*) ( src ) )[3] ) << 16 ) + \
+            ( ( (uint64_t) ( (uint8_t*) ( src ) )[4] ) <<  8 ) + \
+            ( ( (uint64_t) ( (uint8_t*) ( src ) )[5] ) <<  0 );  \
+    } while( 0 )
+
+#define MPS_L2_READ_UINT8_LE( src, dst )                \
+    do                                                  \
+    {                                                   \
+        *( dst ) = ( (uint8_t*) ( src ) )[0];           \
+    } while( 0 )
+
+#define MPS_L2_WRITE_UINT16_LE( src, dst )                      \
+    do                                                          \
+    {                                                           \
+        *( (uint8_t*) ( dst ) + 0 ) = ( *( src ) >> 8 ) & 0xFF;  \
+        *( (uint8_t*) ( dst ) + 1 ) = ( *( src ) >> 0 ) & 0xFF;  \
+    } while( 0 )
+
+#define MPS_L2_WRITE_UINT48_LE( src, dst )                       \
+    do                                                           \
+    {                                                            \
+        *( (uint8_t*) ( dst ) + 0 ) = ( *( src ) >> 40 ) & 0xFF;  \
+        *( (uint8_t*) ( dst ) + 1 ) = ( *( src ) >> 32 ) & 0xFF;  \
+        *( (uint8_t*) ( dst ) + 2 ) = ( *( src ) >> 24 ) & 0xFF;  \
+        *( (uint8_t*) ( dst ) + 3 ) = ( *( src ) >> 16 ) & 0xFF;  \
+        *( (uint8_t*) ( dst ) + 4 ) = ( *( src ) >>  8 ) & 0xFF;  \
+        *( (uint8_t*) ( dst ) + 5 ) = ( *( src ) >>  0 ) & 0xFF;  \
+    } while( 0 )
+
+#define MPS_L2_WRITE_UINT8_LE( src, dst )               \
+    do                                                  \
+    {                                                   \
+        *( dst ) = ( (uint8_t*) ( src ) )[0];           \
+    } while( 0 )
+
 /*
  * TODO: Decide and document clearly if the family of `dispatch` functions
  *       on the various layers is allowed to do actual transmission to the
@@ -198,7 +248,7 @@ int mps_l2_init( mps_l2 *ctx, mps_l1 *l1, uint8_t mode,
     mbedtls_reader_init( &ctx->in.readers[1].rd, NULL, 0 );
 
     ctx->out_ctr = 0;
-    ctx->in_ctr = 0;
+    ctx->in_ctr  = 0;
 
     ctx->epoch_base = 0;
     ctx->next_epoch = 0;
@@ -292,6 +342,7 @@ static int l2_out_prepare_record( mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
     size_t hdr_len, pre_expansion, post_expansion;
     mbedtls_mps_transform_t *transform;
     unsigned char *hdr;
+    uint8_t overflow;
 
     TRACE_INIT( "l2_out_prepare, epoch %d", epoch );
 
@@ -317,8 +368,11 @@ static int l2_out_prepare_record( mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
     transform_get_expansion( transform, &pre_expansion, &post_expansion );
 
     /* Check for overflow */
-    if( hdr_len + pre_expansion < hdr_len ||
-        hdr_len + pre_expansion + post_expansion < hdr_len + pre_expansion )
+    overflow = 0;
+    overflow |= ( hdr_len + pre_expansion < hdr_len );
+    overflow |= ( ( hdr_len + pre_expansion ) + post_expansion <
+                    hdr_len + pre_expansion );
+    if( overflow )
     {
         TRACE( trace_comment, "INTERNAL ERROR on pre- and postexpansion" );
         RETURN( MPS_ERR_INTERNAL_ERROR );
@@ -347,13 +401,16 @@ static int l2_out_prepare_record( mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
     /* Dissect L1 record buffer into header, ciphertext and plaintext parts.
      * The plaintext sub-buffer can subsequently be fed to the writer which
      * then gets passed to the user, i.e. Layer 3. */
+
     ctx->out.hdr = hdr;
     ctx->out.hdr_len = hdr_len;
-    ctx->out.payload.buf = hdr + hdr_len;
+
+    ctx->out.payload.buf     = hdr + hdr_len;
     ctx->out.payload.buf_len = total_sz - hdr_len;
+
     ctx->out.payload.data_offset = pre_expansion;
-    ctx->out.payload.data_len = total_sz - hdr_len -
-        pre_expansion - post_expansion;
+    ctx->out.payload.data_len    = total_sz -
+        ( hdr_len + pre_expansion + post_expansion );
 
     TRACE( trace_comment, "New outgoing record successfully prepared." );
     TRACE( trace_comment, " * Max plaintext size: %u",
@@ -414,10 +471,15 @@ static int l2_out_dispatch_record( mps_l2 *ctx )
 
         rec.major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
         rec.minor_ver = ctx->conf.version;
-        rec.buf = ctx->out.payload;
-        rec.ctr = ctx->out_ctr;
-        rec.epoch = ctx->out.writer.epoch;
-        rec.type = ctx->out.writer.type;
+        rec.buf       = ctx->out.payload;
+        rec.ctr       = ctx->out_ctr;
+        rec.epoch     = ctx->out.writer.epoch;
+        rec.type      = ctx->out.writer.type;
+
+        TRACE( trace_comment, "Record header fields:" );
+        TRACE( trace_comment, "* Sequence number: %u", (unsigned) rec.ctr   );
+        TRACE( trace_comment, "* Epoch:           %u", (unsigned) rec.epoch );
+        TRACE( trace_comment, "* Type:            %u", (unsigned) rec.type  );
 
         ctx->out_ctr++;
 
@@ -514,14 +576,21 @@ static int l2_out_write_protected_record( mps_l2 *ctx, mps_rec *rec )
 
 static int l2_out_write_protected_record_tls( mps_l2 *ctx, mps_rec *rec )
 {
-    uint8_t * const hdr = ctx->out.hdr;
-    size_t const hdr_len = ctx->out.hdr_len;
+    uint8_t * const hdr     = ctx->out.hdr;
+    size_t    const hdr_len = ctx->out.hdr_len;
+
+    size_t const tls_rec_hdr_len = 5;
+
+    const size_t tls_rec_type_offset = 0;
+    const size_t tls_rec_ver_offset  = 1;
+    const size_t tls_rec_len_offset  = 3;
+
     TRACE_INIT( "l2_write_protected_record_tls" );
 
     /* Double-check that we have calculated the header length
      * correctly when preparing the outgoing record.
      * This should always be true, but better err on the safe side. */
-    if( hdr_len != 5 )
+    if( hdr_len != tls_rec_hdr_len )
         RETURN( MPS_ERR_INTERNAL_ERROR );
 
     /* Header structure is the same for all TLS versions.
@@ -547,13 +616,17 @@ static int l2_out_write_protected_record_tls( mps_l2 *ctx, mps_rec *rec )
 
     */
 
-    hdr[0] = rec->type;
+    /* Write record content type. */
+    MPS_L2_WRITE_UINT8_LE( &rec->type, hdr + tls_rec_type_offset );
 
-    l2_out_write_version( MBEDTLS_SSL_MAJOR_VERSION_3, ctx->conf.version,
-                      ctx->conf.mode, hdr + 1 );
+    /* Write record version. */
+    l2_out_write_version( MBEDTLS_SSL_MAJOR_VERSION_3,
+                          ctx->conf.version,
+                          ctx->conf.mode,
+                          hdr + tls_rec_ver_offset );
 
-    hdr[3] = ( rec->buf.data_len >> 8 ) & 0xff;
-    hdr[4] = ( rec->buf.data_len >> 0 ) & 0xff;
+    /* Write ciphertext length. */
+    MPS_L2_WRITE_UINT16_LE( &rec->buf.data_len, hdr + tls_rec_len_offset );
 
     TRACE( trace_comment, "Write protected record -- DISPATCH" );
     RETURN( mps_l1_dispatch( ctx->conf.l1, hdr_len + rec->buf.data_len ) );
@@ -741,16 +814,12 @@ int mps_l2_epoch_usage( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
             ctx->epochs.tls.default_in != epoch )
         {
             remove_read = ctx->epochs.tls.default_in;
-            /* Reset record sequence number */
-            ctx->in_ctr = 0;
         }
 
         if( ( usage & MPS_EPOCH_WRITE ) != 0   &&
             ctx->epochs.tls.default_out != epoch )
         {
             remove_write = ctx->epochs.tls.default_out;
-            /* Reset record sequence number */
-            ctx->out_ctr = 0;
         }
     }
     else
@@ -785,9 +854,32 @@ int mps_l2_epoch_usage( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
     if( ctx->conf.mode == MPS_L2_MODE_STREAM )
     {
         if( usage & MPS_EPOCH_READ )
+        {
             ctx->epochs.tls.default_in = epoch;
+            if( remove_read != MPS_EPOCH_NONE )
+            {
+                /* Reset incoming record sequence number. */
+                TRACE( trace_comment, "Reset incoming record sequence number." );
+                ctx->in_ctr = 0;
+            }
+        }
+
         if( usage & MPS_EPOCH_WRITE )
+        {
             ctx->epochs.tls.default_out = epoch;
+            if( remove_write != MPS_EPOCH_NONE )
+            {
+                /* Reset outgoing record sequence number.
+                 *
+                 * Note: This must be done after l2_epoch_check_remove_write()
+                 * has been successfully called, as the latter might finish
+                 * and dispatch an internally open record for the old outgoing
+                 * epoch and thereby increment the outgoing sequence number.
+                 */
+                TRACE( trace_comment, "Reset outgoing record sequence number." );
+                ctx->out_ctr = 0;
+            }
+        }
     }
     else
     {
@@ -1224,9 +1316,11 @@ int mps_l2_read_done( mps_l2 *ctx )
     TRACE( trace_comment, "Switch active and paused reader" );
     ctx->in.active_state = MPS_L2_READER_STATE_UNSET;
     ctx->in.paused_state = MPS_L2_READER_STATE_PAUSED;
+
     tmp = ctx->in.active;
     ctx->in.active = ctx->in.paused;
     ctx->in.paused = tmp;
+
     ret = l2_in_release_record( ctx );
     if( ret != 0 )
         RETURN( ret );
@@ -1371,7 +1465,7 @@ int mps_l2_read_start( mps_l2 *ctx, mps_l2_in *in )
             if( ret != 0 )
                 RETURN( ret );
 
-            ctx->in.active->type = rec.type;
+            ctx->in.active->type  = rec.type;
             ctx->in.active->epoch = rec.epoch;
         }
     }
@@ -1391,9 +1485,9 @@ int mps_l2_read_start( mps_l2 *ctx, mps_l2_in *in )
     if( ret != 0 )
         RETURN( ret );
 
-    in->type = ctx->in.active->type;
+    in->type  = ctx->in.active->type;
     in->epoch = ctx->in.active->epoch;
-    in->rd = &ctx->in.active->rd;
+    in->rd    = &ctx->in.active->rd;
 
     ctx->in.active_state = MPS_L2_READER_STATE_EXTERNAL;
 
@@ -1417,7 +1511,8 @@ static int l2_in_release_record( mps_l2 *ctx )
         if( ++ctx->in_ctr == 0 )
             RETURN( MPS_ERR_COUNTER_WRAP );
 
-        TRACE( trace_comment, "new sequence number %u", (unsigned) ctx->in_ctr );
+        TRACE( trace_comment, "New incoming sequence number: %u",
+               (unsigned) ctx->in_ctr );
     }
     else
     {
@@ -1476,34 +1571,24 @@ static int l2_in_fetch_record( mps_l2 *ctx, mps_rec *rec )
      * Step 1: Read protected record
      */
 
-    ret = l2_in_fetch_protected_record( ctx, rec );
-    if( ret != 0 )
-    {
-        TRACE( trace_comment, "l2_in_fetch_protected_record failed with %d", ret );
+    if( ( ret = l2_in_fetch_protected_record( ctx, rec ) ) != 0 )
         RETURN( ret );
-    }
 
     /*
      * Step 2: Decrypt and authenticate record
      */
 
     TRACE( trace_comment, "lookup epoch %u", (unsigned) rec->epoch );
-    ret = l2_epoch_table_lookup( ctx, rec->epoch, NULL, &transform );
-    if( ret != 0 )
+    if( ( ret = l2_epoch_table_lookup( ctx, rec->epoch,
+                                       NULL, &transform ) ) != 0 )
     {
-        TRACE( trace_comment, "epoch %u lookup failed with %d",
-               (unsigned) rec->epoch, ret );
         RETURN( ret );
     }
 
-    TRACE( trace_comment, "decrypt record, transform %p", transform );
-    ret = transform_decrypt( transform, rec );
-    if( ret != 0 )
-    {
-        TRACE( trace_comment, "record decryption failed with %d (=-%04x)", ret, -ret );
+    TRACE( trace_comment, "Decrypt record with transform %p", transform );
+    if( ( ret = transform_decrypt( transform, rec ) ) != 0 )
         RETURN( ret );
-    }
-    TRACE( trace_comment, "decryption done" );
+    TRACE( trace_comment, "Decryption done" );
 
     /* Validate plaintext length */
     if( rec->buf.data_len > ctx->conf.max_plain_in )
@@ -1514,7 +1599,7 @@ static int l2_in_fetch_record( mps_l2 *ctx, mps_rec *rec )
 
     /*
      * Step 3 ([D]TLS 1.3 only): Unpack TLSInnerPlaintext
-     * TODO
+     * Not yet implemented
      */
 
     RETURN( 0 );
@@ -1556,12 +1641,15 @@ static int l2_in_fetch_protected_record( mps_l2 *ctx, mps_rec *rec )
 
 static size_t l2_get_header_len( mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
 {
+    size_t const dtls12_rec_hdr_len = 13;
+    size_t const  tls12_rec_hdr_len  = 5;
+
     ((void) epoch);
     TRACE_INIT( "l2_get_header_len, %d", epoch );
 
     if( ctx->conf.mode == MPS_L2_MODE_STREAM )
     {
-        RETURN( 5 );
+        RETURN( tls12_rec_hdr_len );
     }
 
     if( ctx->conf.mode == MPS_L2_MODE_DATAGRAM )
@@ -1572,7 +1660,7 @@ static size_t l2_get_header_len( mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
         {
             case MBEDTLS_SSL_MINOR_VERSION_2: /* DTLS 1.0 */
             case MBEDTLS_SSL_MINOR_VERSION_3: /* DTLS 1.2 */
-                RETURN( 13 );
+                RETURN( dtls12_rec_hdr_len );
 
             /* At some point, add DTLS 1.3 here */
 
@@ -1585,13 +1673,10 @@ static size_t l2_get_header_len( mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
 
 static int l2_in_fetch_protected_record_tls( mps_l2 *ctx, mps_rec *rec )
 {
-    unsigned char *buf; /* Buffer to hold the header, from layer 1 */
-    int minor_ver, major_ver;
-    uint8_t type;
-    uint16_t len;
     int ret;
 
-    TRACE_INIT( "l2_in_fetch_protected_record_tls" );
+    /* Buffer to hold the record header; will be obtained from Layer 1 */
+    unsigned char *buf;
 
     /* Header structure is the same for all TLS versions.
 
@@ -1616,200 +1701,230 @@ static int l2_in_fetch_protected_record_tls( mps_l2 *ctx, mps_rec *rec )
 
     */
 
+    const size_t tls_rec_hdr_len     = 5;
+
+    const size_t tls_rec_type_offset = 0;
+    const size_t tls_rec_ver_offset  = 1;
+    const size_t tls_rec_len_offset  = 3;
+
+    /* Record fields */
+    int minor_ver, major_ver;
+    uint8_t type;
+    uint16_t len;
+
+
+    TRACE_INIT( "l2_in_fetch_protected_record_tls" );
+
     /*
-     * Read header from layer 1
+     * Fetch TLS record header from Layer 1
      */
 
-    ret = mps_l1_fetch( ctx->conf.l1, &buf, 5 );
+    ret = mps_l1_fetch( ctx->conf.l1, &buf, tls_rec_hdr_len );
     if( ret != 0 )
         RETURN( ret );
 
     /*
-     * Validate header fields
+     * Read and validate header fields
      */
 
-    /* Length */
-    len = ( buf[3] << 8 ) + buf[4];
-    /* TODO: Add length check, at least the architectural bound of 16384 + 2K,
-     *       but preferably a transform-dependent bound that'll catch records
-     *       with overly long plaintext by considering the maximum expansion
-     *       plaintext-to-ciphertext. */
-
-    /* Version */
-    l2_read_version( &major_ver, &minor_ver,
-                     MBEDTLS_SSL_TRANSPORT_STREAM, &buf[1] );
-    if( major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 )
-        RETURN( MPS_ERR_INVALID_RECORD_VERSION );
-    if( ctx->conf.version != MPS_L2_VERSION_UNSPECIFIED &&
-        ctx->conf.version != minor_ver )
-        RETURN( MPS_ERR_INVALID_RECORD_VERSION );
-
-    /* Type */
-    type = buf[0];
+    /* Record content type */
+    MPS_L2_READ_UINT8_LE( buf + tls_rec_type_offset, &type );
     if( l2_type_is_valid( ctx, type ) == 0 )
     {
         TRACE( trace_error, "Invalid record type received" );
         RETURN( MPS_ERR_INVALID_RECORD_TYPE );
     }
 
+    /* Version */
+    l2_read_version( &major_ver, &minor_ver,
+                     MBEDTLS_SSL_TRANSPORT_STREAM,
+                     buf + tls_rec_ver_offset );
+
+    if( major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 )
+        RETURN( MPS_ERR_INVALID_RECORD_VERSION );
+
+    /* Initially, the server doesn't know which TLS version
+     * the client will use for its ClientHello message, so
+     * Layer 2 must be configurable to allow arbitrary TLS
+     * versions. This is done through the initial version
+     * value MPS_L2_VERSION_UNSPECIFIED. */
+    if( ctx->conf.version != MPS_L2_VERSION_UNSPECIFIED &&
+        ctx->conf.version != minor_ver )
+    {
+        RETURN( MPS_ERR_INVALID_RECORD_VERSION );
+    }
+
+    /* Length */
+    MPS_L2_READ_UINT16_LE( buf + tls_rec_len_offset, &len );
+    /* TODO: Add length check, at least the architectural bound of 16384 + 2K,
+     *       but preferably a transform-dependent bound that'll catch records
+     *       with overly long plaintext by considering the maximum expansion
+     *       plaintext-to-ciphertext. */
+
     /*
-     * Read record contents from layer 1
+     * Read record contents from Layer 1
      */
-    ret = mps_l1_fetch( ctx->conf.l1, &buf, 5 + len );
+    ret = mps_l1_fetch( ctx->conf.l1, &buf,
+                        tls_rec_hdr_len + len );
     if( ret != 0 )
         RETURN( ret );
 
     /*
      * Write target record structure
      */
-    rec->ctr = ctx->in_ctr;
-    rec->epoch = ctx->epochs.tls.default_in;
-    rec->type = type;
+
+    rec->ctr       = ctx->in_ctr;
+    rec->epoch     = ctx->epochs.tls.default_in;
+    rec->type      = type;
     rec->major_ver = major_ver;
     rec->minor_ver = minor_ver;
-    rec->buf.buf = buf + 5;
-    rec->buf.buf_len = len;
-    rec->buf.data_len = len;
+
+    rec->buf.buf         = buf + tls_rec_hdr_len;
+    rec->buf.buf_len     = len;
     rec->buf.data_offset = 0;
+    rec->buf.data_len    = len;
+
     RETURN( 0 );
 }
 
 static int l2_in_fetch_protected_record_dtls12( mps_l2 *ctx, mps_rec *rec )
 {
     int ret;
-    unsigned char *hdr; /* Buffer to hold the header, from layer 1 */
 
-    /* For epoch validation */
+    /* Buffer to hold the DTLS record header; will be obtained from Layer 1 */
+    unsigned char *buf;
+
+    /* Header structure the same for DTLS 1.0 and DTLS 1.2.
+
+       From RFC 6347 - Section 4.1
+
+       struct {
+            ContentType type;
+            ProtocolVersion version;
+            uint16 epoch;
+            uint48 sequence_number;
+            uint16 length;
+            opaque fragment[DTLSPlaintext.length];
+          } DTLSPlaintext;
+
+    */
+
+    size_t const dtls_rec_hdr_len      = 13;
+
+    size_t const dtls_rec_type_offset  = 0;
+    size_t const dtls_rec_ver_offset   = 1;
+    size_t const dtls_rec_epoch_offset = 3;
+    size_t const dtls_rec_seq_offset   = 5;
+    size_t const dtls_rec_len_offset   = 11;
+
+    /* Record fields */
+    uint8_t  type;
+    int      minor_ver, major_ver;
     uint16_t epoch;
-    mbedtls_mps_transform_t *epoch_transform;
-
-    size_t pre_exp, post_exp;
-
-    /* For record content type validation */
-    uint8_t type;
-
-    /* For length validation */
+    uint64_t sequence_number;
     uint16_t len;
 
     TRACE_INIT( "l2_in_fetch_protected_record_dtls12" );
 
-    /* Steps:
-     * 1. Fetch header from layer 1
-     * 2. Validate header fields
-     * 2. Copy header fields to record structure
-     */
-
-    /* Header structure the same for DTLS 1.0 and DTLS 1.2 */
-    /* From RFC 6347 - Section 4.1
-
-      struct {
-           ContentType type;
-           ProtocolVersion version;
-           uint16 epoch;                                    // New field
-           uint48 sequence_number;                          // New field
-           uint16 length;
-           opaque fragment[DTLSPlaintext.length];
-         } DTLSPlaintext;
-
-    */
-
     /*
-     * 1. Obtain header from Layer 1
+     * Fetch DTLS record header from Layer 1
      */
 
-    ret = mps_l1_fetch( ctx->conf.l1, &hdr, 13 );
+    ret = mps_l1_fetch( ctx->conf.l1, &buf, dtls_rec_hdr_len );
     if( ret != 0 )
         RETURN( ret );
 
     /*
-     * 2. Validate header fields
+     * Read and validate header fields
      */
 
-    /* Validate epoch */
-    epoch = ( hdr[3] << 8 ) + hdr[4];
+    /* Record content type */
+    MPS_L2_READ_UINT8_LE( buf + dtls_rec_type_offset, &type );
+    if( l2_type_is_valid( ctx, type ) == 0 )
+    {
+        TRACE( trace_error, "Invalid record type received" );
+        RETURN( MPS_ERR_INVALID_RECORD_TYPE );
+    }
 
-    ret = l2_epoch_table_lookup( ctx, epoch, NULL, &epoch_transform );
+    /* Version */
+    l2_read_version( &major_ver, &minor_ver,
+                     MBEDTLS_SSL_TRANSPORT_DATAGRAM,
+                     buf + dtls_rec_ver_offset );
+
+    /* Check minor version, but only if version has
+     * already been specified. This is important to
+     * let through initial records at a stage where
+     * the protocol version has not yet been negotiated. */
+
+    /* Epoch */
+    MPS_L2_READ_UINT16_LE( buf + dtls_rec_epoch_offset, &epoch );
+
+    /* Sequence number */
+    MPS_L2_READ_UINT48_LE( buf + dtls_rec_seq_offset, &sequence_number );
+    /* TODO: Validate record sequence number (replay check) */
+
+    /* Length */
+    MPS_L2_READ_UINT16_LE( buf + dtls_rec_len_offset, &len );
+    /* TODO: Add length check, at least the architectural bound of 16384 + 2K,
+     *       but preferably a transform-dependent bound that'll catch records
+     *       with overly long plaintext by considering the maximum expansion
+     *       plaintext-to-ciphertext. */
+
+    /*
+     * Read record contents from Layer 1
+     */
+    ret = mps_l1_fetch( ctx->conf.l1, &buf,
+                        dtls_rec_hdr_len + len );
     if( ret != 0 )
         RETURN( ret );
-
-    /* Validate ciphertext length. */
-    len = ( hdr[11] << 8 ) + hdr[12];
-    transform_get_expansion( epoch_transform, &pre_exp, &post_exp );
-    if( len > ctx->conf.max_plain_in + pre_exp + post_exp )
-    {
-        RETURN( MPS_ERR_INVALID_RECORD_LENGTH );
-    }
-
-    /* Validate version */
-    if( ctx->conf.mode == MPS_L2_MODE_DATAGRAM )
-    {
-        /* Check major version */
-        if( hdr[1] != TLS_MAJOR_VER_DTLS )
-            RETURN( MPS_ERR_INVALID_RECORD_VERSION );
-
-        /* Check minor version, but only if version has
-         * already been specified. This is important to
-         * let through initial records at a stage where
-         * the protocol version has not yet been negotiated. */
-
-        /* TODO */
-    }
-    else
-    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
-    {
-        /* Check major version */
-        if( hdr[1] != TLS_MAJOR_VER_TLS )
-            RETURN( MPS_ERR_INVALID_RECORD_VERSION );
-
-        /* Check minor version */
-
-        /* TODO */
-    }
-
-    /* Validate content type */
-    type = hdr[0];
-    if( type >= 64 )
-        RETURN( MPS_ERR_INVALID_RECORD_TYPE );
-
-    if( l2_type_is_valid( ctx, type ) == 1 )
-        RETURN( MPS_ERR_INVALID_RECORD_TYPE );
-
-    /* Validate record sequence number (replay check) */
-    /* TODO */
 
     /*
      * 3. Fill record struct
      */
 
-    rec->type   = hdr[0];
-    rec->major_ver = hdr[1];
-    rec->minor_ver = hdr[2];
-    len = rec->buf.buf_len;
+    rec->type      = type;
+    rec->major_ver = major_ver;
+    rec->minor_ver = minor_ver;
+    rec->epoch     = epoch;
+    rec->ctr       = sequence_number;
 
-    /* TODO: Write counter */
+    rec->buf.buf         = buf + dtls_rec_hdr_len;
+    rec->buf.buf_len     = len;
+    rec->buf.data_offset = 0;
+    rec->buf.data_len    = len;
 
     RETURN( 0 );
 }
 
-static int l2_type_can_be_paused( mps_l2 *ctx, uint8_t type )
-{
-    return( ( ctx->conf.pause_flag & ( 1u << type ) ) != 0 );
-}
-
-static int l2_type_can_be_merged( mps_l2 *ctx, uint8_t type )
-{
-    return( ( ctx->conf.merge_flag & ( 1u << type ) ) != 0 );
-}
-
+/* Record content type validation */
 static int l2_type_is_valid( mps_l2 *ctx, uint8_t type )
 {
-    return( type < 64 && ( ctx->conf.type_flag & ( 1u << type ) ) != 0 );
+    return( ( type < 64 ) &&
+            ( ctx->conf.type_flag & ( ( (uint64_t) 1u ) << type ) ) != 0 );
 }
 
+/* Check if a valid record content type can be paused.
+ * This assumes that the provided type is at least valid,
+ * and in particular smaller than 64. */
+static int l2_type_can_be_paused( mps_l2 *ctx, uint8_t type )
+{
+    return( ( ctx->conf.pause_flag & ( ( (uint64_t) 1u ) << type ) ) != 0 );
+}
+
+/* Check if a valid record content type allows merging of data.
+ * This assumes that the provided type is at least valid,
+ * and in particular smaller than 64. */
+static int l2_type_can_be_merged( mps_l2 *ctx, uint8_t type )
+{
+    return( ( ctx->conf.merge_flag & ( ( (uint64_t) 1u ) << type ) ) != 0 );
+}
+
+/* Check if a valid record content type allows empty records.
+ * This assumes that the provided type is at least valid,
+ * and in particular smaller than 64. */
 static int l2_type_empty_allowed( mps_l2 *ctx, uint8_t type )
 {
-    return( ( type < 64 ) &&
-            ( ctx->conf.empty_flag & ( ( (uint64_t) 1u ) << type ) ) != 0 );
+    return( ( ctx->conf.empty_flag & ( ( (uint64_t) 1u ) << type ) ) != 0 );
 }
 
 static int l2_epoch_check( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,

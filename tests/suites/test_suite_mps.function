@@ -715,17 +715,20 @@ int transform_encrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec,
     /* Add record sequence number */
     if( rec->buf.data_offset < sizeof( rec->ctr ) )
         return( -1 );
-    rec->buf.data_offset -= sizeof( rec->ctr );
-    rec->buf.data_len += sizeof( rec->ctr );
 
-    memcpy( rec->buf.buf + rec->buf.data_offset, &rec->ctr, 8 );
-//    *((uint64_t*)( rec->buf.buf + rec->buf.data_offset )) = rec->ctr;
+    printf( "Add sequence number %u\n", (unsigned) rec->ctr );
+    rec->buf.data_offset -= sizeof( rec->ctr );
+    rec->buf.data_len    += sizeof( rec->ctr );
+    memcpy( rec->buf.buf + rec->buf.data_offset, &rec->ctr,
+            sizeof( rec->ctr ) );
 
     /* Add epoch */
     if( rec->buf.data_offset < sizeof( rec->epoch ) )
         return( -1 );
+
+    printf( "Add epoch %u\n", (unsigned) rec->epoch );
     rec->buf.data_offset -= sizeof( rec->epoch );
-    rec->buf.data_len += sizeof( rec->epoch );
+    rec->buf.data_len    += sizeof( rec->epoch );
     memcpy( rec->buf.buf + rec->buf.data_offset,
             (unsigned char*) &rec->epoch, sizeof( rec->epoch ) );
 
@@ -733,13 +736,17 @@ int transform_encrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec,
     pre_pad = transform->pad;
     if( rec->buf.data_offset < pre_pad )
         return( -1 );
+    printf( "Add pre-padding %u\n", (unsigned) pre_pad );
+
     rec->buf.data_offset -= pre_pad;
-    rec->buf.data_len += pre_pad;
+    rec->buf.data_len    += pre_pad;
     for( idx=0; idx < pre_pad; idx++ )
         rec->buf.buf[ rec->buf.data_offset + idx ] = idx;
 
     /* Add random post-padding */
     post_pad = rand() % transform->pad;
+    printf( "Add post-padding %u\n", (unsigned) post_pad );
+
     rec->buf.buf[ rec->buf.data_len ] = 0x1;
     memset( rec->buf.buf + rec->buf.data_len + 1, 0, post_pad );
     rec->buf.data_len += post_pad + 1;
@@ -816,7 +823,7 @@ int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
         return( 0 );
     }
 
-    printf( "Decryption, padding %u\n", (unsigned) transform->pad );
+    printf( "Decryption, pre-padding %u\n", (unsigned) transform->pad );
 
     /* Check pre-padding */
     pre_pad = transform->pad;
@@ -861,16 +868,17 @@ int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
         return( -1 );
     if( memcmp( rec->buf.buf + rec->buf.data_offset,
                 (unsigned char*)&rec->epoch, sizeof( rec->epoch ) ) != 0 )
+    {
         return( -1 );
+    }
     rec->buf.data_offset += sizeof( rec->epoch );
-    rec->buf.data_len -= sizeof( rec->epoch );
+    rec->buf.data_len    -= sizeof( rec->epoch );
 
     /* Check sequence number */
     if( rec->buf.data_len < sizeof( rec->ctr ) )
         return( -1 );
 
-    memcpy( &ctr, rec->buf.buf + rec->buf.data_offset, 8 );
-//    ctr = *((uint64_t*)( rec->buf.buf + rec->buf.data_offset ));
+    memcpy( &ctr, rec->buf.buf + rec->buf.data_offset, sizeof( rec->ctr ) );
     if( ctr != rec->ctr )
     {
         printf( "Sequence number mismatch: Expected %u, got %u\n",
@@ -878,7 +886,7 @@ int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
         return( -1 );
     }
     rec->buf.data_offset += sizeof( rec->ctr );
-    rec->buf.data_len -= sizeof( rec->ctr );
+    rec->buf.data_len    -= sizeof( rec->ctr );
 
     return( 0 );
 }
@@ -5540,97 +5548,6 @@ exit:
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
     layer0_free( &s2c );
-    layer0_free( &c2s );
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L3 */
-void mbedtls_mps_l3_handshake_empty( int allocator_buffer_sz,
-                                     int layer0_buffer_sz,
-                                     int fetch_something )
-{
-    /* Allocator objects */
-    mps_alloc cli_alloc;
-
-    /* Layer 1 objects */
-    mps_l1 cli_l1;
-
-    /* Layer 2 objects */
-    mps_l2 cli_l2;
-
-    /* Layer 3 objects */
-    mps_l3 cli;
-
-    unsigned char *tmp;
-
-    mbedtls_mps_epoch_id cli_epoch;
-
-    mps_l3_handshake_out hs_out;
-
-    /* Dummy record transformations for epoch 0 */
-    mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
-
-    dummy_c->type = 0;
-    dummy_c->mock.enabled = 1;
-    dummy_c->mock.pad = 5;
-
-    /* Initialize Layer 0 mock objects */
-    layer0_bufsize = (size_t) layer0_buffer_sz;
-    TEST_ASSERT( layer0_init( &c2s ) == 0 );
-
-    /* Initialize allocators */
-    mps_alloc_init( &cli_alloc, allocator_buffer_sz );
-
-    /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
-                              layer0_write_cli, layer0_read_cli ) == 0 );
-
-    /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MPS_L2_MODE_STREAM,
-                              L2_DEFAULT_ACCUMULATOR_SIZE,
-                              L2_DEFAULT_QUEUE_SIZE,
-                              mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_config_version( &cli_l2,
-                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
-    TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_HS,
-                                         1, 1, 0 ) == 0 );
-
-    /* Initialize Layer 3 */
-    TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MPS_L3_MODE_STREAM ) == 0 );
-
-    TEST_ASSERT( mps_l3_epoch_add( &cli, dummy_c, &cli_epoch ) == 0 );
-    TEST_ASSERT( mps_l3_epoch_usage( &cli, cli_epoch, MPS_EPOCH_WRITE ) == 0 );
-
-
-    /*
-     * Client: Attempt to dispatch a handshake message
-     *         before comitting anything.
-     */
-
-    hs_out.epoch = 0;
-    hs_out.type = 12;
-    hs_out.len = MPS_L3_LENGTH_UNKNOWN;
-
-    TEST_ASSERT( mps_l3_write_handshake( &cli, &hs_out ) == 0 );
-
-    if( fetch_something )
-    {
-        TEST_ASSERT( mbedtls_writer_get_ext( hs_out.wr_ext, 10,
-                                             &tmp, NULL ) == 0 );
-    }
-
-    TEST_ASSERT( mps_l3_dispatch( &cli ) == MPS_ERR_EMPTY_MESSAGE );
-
-exit:
-
-    /*
-     * Wrapup
-     */
-
-    TEST_ASSERT( mps_l3_free( &cli ) == 0 );
-    TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     layer0_free( &c2s );
 }
 /* END_CASE */

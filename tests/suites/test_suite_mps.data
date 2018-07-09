@@ -373,12 +373,6 @@ mbedtls_mps_l3_basic_handshake:1000:1000:100:1:0:0:0:0:0
 MPS Layer 3: Handshake message, abort after commit
 mbedtls_mps_l3_basic_handshake:1000:1000:100:2:0:0:0:0:0
 
-MPS Layer 3: Handshake message, empty #0
-mbedtls_mps_l3_handshake_empty:1000:1000:0
-
-MPS Layer 3: Handshake message, empty #1
-mbedtls_mps_l3_handshake_empty:1000:1000:1
-
 MPS Layer 3: Handshake message, gradual in small records, real transforms
 mbedtls_mps_l3_handshake_gradual:58:1000:100:1:1:0
 

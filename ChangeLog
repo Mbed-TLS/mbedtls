@@ -2,6 +2,11 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Security
+   * Fix a potential memory leak in mbedtls_ssl_setup( ) function. An allocation
+     failure could leave an unreleased buffer. A handshake init failure would
+     lead to leaving two unreleased buffers.
+
 Features
    * Add new crypto primitives from RFC 7539: stream cipher Chacha20, one-time
      authenticator Poly1305 and AEAD construct Chacha20-Poly1305. Contributed by

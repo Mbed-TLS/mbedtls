@@ -2,6 +2,11 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Security
+   * Fix a potential memory leak in mbedtls_ssl_setup( ) function. An allocation
+     failure could leave an unreleased buffer. A handshake init failure would
+     lead to leaving two unreleased buffers.
+
 Bugfix
    * Fix a memory leak in mbedtls_x509_csr_parse(), found by catenacyber,
      Philippe Antoine. Fixes #1623.

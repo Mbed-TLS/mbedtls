@@ -2463,6 +2463,7 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
         goto error;
     }
 
+    mbedtls_zeroize( temp_output_buffer, sizeof( temp_output_buffer ) );
     status = psa_cipher_abort( operation );
 
     return( status );
@@ -2471,6 +2472,7 @@ error:
 
     *output_length = 0;
 
+    mbedtls_zeroize( temp_output_buffer, sizeof( temp_output_buffer ) );
     (void) psa_cipher_abort( operation );
 
     return( status );

@@ -308,7 +308,7 @@ if type lsof >/dev/null 2>/dev/null; then
         done
     }
 else
-    echo "Warning: lsof not available, wait_server_start = sleep $START_DELAY"
+    echo "Warning: lsof not available, wait_server_start = sleep"
     wait_server_start() {
         sleep "$START_DELAY"
     }

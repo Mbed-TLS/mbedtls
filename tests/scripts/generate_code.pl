@@ -87,11 +87,37 @@ my $test_common_helpers = <TEST_HELPERS>;
 close(TEST_HELPERS);
 
 open(TEST_MAIN, "$test_main_file") or die "Opening test main '$test_main_file': $!";
-my $test_main = <TEST_MAIN>;
+my @test_main_lines = split/^/,  <TEST_MAIN>;
+my $test_main;
+my $index = 2;
+for my $line (@test_main_lines) {
+    $line =~ s/!LINE_NO!/$index/;
+    $test_main = $test_main.$line;
+    $index++;
+}
 close(TEST_MAIN);
 
 open(TEST_CASES, "$test_case_file") or die "Opening test cases '$test_case_file': $!";
-my $test_cases = <TEST_CASES>;
+my @test_cases_lines = split/^/,  <TEST_CASES>;
+my $test_cases;
+my $index = 2;
+for my $line (@test_cases_lines) {
+    if ($line =~ /^\/\* BEGIN_SUITE_HELPERS .*\*\//)
+    {
+        $line = $line."#line $index \"$test_case_file\"\n";
+    }
+
+    if ($line =~ /^\/\* BEGIN_CASE .*\*\//)
+    {
+        $line = $line."#line $index \"$test_case_file\"\n";
+    }
+
+    $line =~ s/!LINE_NO!/$index/;
+
+    $test_cases = $test_cases.$line;
+    $index++;
+}
+
 close(TEST_CASES);
 
 open(TEST_DATA, "$test_case_data") or die "Opening test data '$test_case_data': $!";
@@ -178,16 +204,19 @@ while($test_cases =~ /\/\* BEGIN_CASE *([\w:]*) \*\/\n(.*?)\n\/\* END_CASE \*\//
     my $function_decl = $2;
 
     # Sanity checks of function
-    if ($function_decl !~ /^void /)
+    if ($function_decl !~ /^#line\s*.*\nvoid /)
     {
         die "Test function does not have 'void' as return type\n";
+            "Function declaration:\n" .
+            $function_decl;
     }
-    if ($function_decl !~ /^void (\w+)\(\s*(.*?)\s*\)\s*{(.*)}/ms)
+    if ($function_decl !~ /^(#line\s*.*)\nvoid (\w+)\(\s*(.*?)\s*\)\s*{(.*)}/ms)
     {
         die "Function declaration not in expected format\n";
     }
-    my $function_name = $1;
-    my $function_params = $2;
+    my $line_directive = $1;
+    my $function_name = $2;
+    my $function_params = $3;
     my $function_pre_code;
     my $function_post_code;
     my $param_defs;
@@ -198,7 +227,7 @@ while($test_cases =~ /\/\* BEGIN_CASE *([\w:]*) \*\/\n(.*?)\n\/\* END_CASE \*\//
     my $mapping_regex = "".$function_name;
     my $mapping_count = 0;
 
-    $function_decl =~ s/^void /void test_suite_/;
+    $function_decl =~ s/(^#line\s*.*)\nvoid /$1\nvoid test_suite_/;
 
     # Add exit label if not present
     if ($function_decl !~ /^exit:$/m)

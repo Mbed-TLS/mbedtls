@@ -290,16 +290,28 @@ MPS Layer 2: Exchange of single large message, with queueing, non-pausable for s
 mbedtls_mps_l2_queueing:100:20000:1000:0
 
 MPS Layer 2: Exchange of messages of two types and two epochs, fake transforms
-mbedtls_mps_l2_switch_epoch:100:100:0
+mbedtls_mps_l2_switch_epoch:MPS_L2_MODE_STREAM:100:100:0
 
 MPS Layer 2: Exchange of messages of two types and two epochs, real transforms
-mbedtls_mps_l2_switch_epoch:200:1000:1
+mbedtls_mps_l2_switch_epoch:MPS_L2_MODE_STREAM:200:1000:1
+
+MPS Layer 2 DTLS: Exchange of messages of two types and two epochs, fake transforms
+mbedtls_mps_l2_switch_epoch:MPS_L2_MODE_DATAGRAM:100:100:0
+
+MPS Layer 2 DTLS: Exchange of messages of two types and two epochs, real transforms
+mbedtls_mps_l2_switch_epoch:MPS_L2_MODE_DATAGRAM:200:1000:1
 
 MPS Layer 2: Exchange of messages of two types, many epochs, fake transforms
-mbedtls_mps_l2_many_epochs:200:20000:100:0
+mbedtls_mps_l2_many_epochs:MPS_L2_MODE_STREAM:200:20000:100:0
 
 MPS Layer 2: Exchange of messages of two types, many epochs, real transforms
-mbedtls_mps_l2_many_epochs:200:20000:100:1
+mbedtls_mps_l2_many_epochs:MPS_L2_MODE_STREAM:200:20000:100:1
+
+MPS Layer 2 DTLS: Exchange of messages of two types, many epochs, fake transforms
+mbedtls_mps_l2_many_epochs:MPS_L2_MODE_DATAGRAM:200:20000:100:0
+
+MPS Layer 2 DTLS: Exchange of messages of two types, many epochs, real transforms
+mbedtls_mps_l2_many_epochs:MPS_L2_MODE_DATAGRAM:200:20000:100:1
 
 MPS Layer 2: Random communication, fake transforms
 mbedtls_mps_l2_random:100:200:10:5:50:200:0:50:50

@@ -822,7 +822,8 @@ int mps_l2_epoch_add( mps_l2 *ctx,
     epoch_offset = ctx->next_epoch - ctx->epoch_base;
     if( epoch_offset == MPS_L2_EPOCH_WINDOW_SIZE )
     {
-        TRACE( trace_error, "The epoch window is full." );
+        TRACE( trace_error, "The epoch window of size %u is full.",
+               (unsigned) MPS_L2_EPOCH_WINDOW_SIZE );
         RETURN( MPS_ERR_EPOCH_WINDOW_EXCEEDED );
     }
     *epoch = ctx->next_epoch;
@@ -976,11 +977,15 @@ static int l2_epoch_check_remove_write( mps_l2 *ctx,
         ret = l2_out_release_and_dispatch( ctx, MBEDTLS_WRITER_RECLAIM_FORCE );
         if( ret != 0 )
             RETURN( ret );
+
+        TRACE( trace_comment, "Epoch %u is no longer used for writing.",
+               (unsigned) epoch );
     }
 
     /* Now the outgoing state is UNSET or QUEUEING. */
 
-    TRACE( trace_comment, "The epoch is not actively used for reading." );
+    TRACE( trace_comment, "The write permission for epoch %u can be removed.",
+           (unsigned) epoch );
     RETURN( 0 );
 }
 

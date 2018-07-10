@@ -1628,7 +1628,7 @@ void cipher_verify_output( int alg_arg, int key_type_arg,
 
     output2_length += function_output_length;
 
-    TEST_ASSERT( psa_cipher_abort( &operation1 ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_cipher_abort( &operation2 ) == PSA_SUCCESS );
 
     TEST_ASSERT( input->len == output2_length );
     TEST_ASSERT( memcmp( input->x, output2, input->len ) == 0 );
@@ -1739,7 +1739,7 @@ void cipher_verify_output_multipart( int alg_arg,
                                     &function_output_length ) == PSA_SUCCESS );
     output2_length += function_output_length;
 
-    TEST_ASSERT( psa_cipher_abort( &operation1 ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_cipher_abort( &operation2 ) == PSA_SUCCESS );
 
     TEST_ASSERT( input->len == output2_length );
     TEST_ASSERT( memcmp( input->x, output2, input->len ) == 0 );

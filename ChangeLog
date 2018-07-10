@@ -22,6 +22,8 @@ Bugfix
      Philippe Antoine. Fixes #1623.
    * Remove unused headers included in x509.c. Found by Chris Hanson and fixed
      by Brendan Shanks. Part of a fix for #992.
+   * Fix compilation error when MBEDTLS_ARC4_C is disabled and
+     MBEDTLS_CIPHER_NULL_CIPHER is enabled. Found by TrinityTonic in #1719.
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.

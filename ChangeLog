@@ -15,6 +15,8 @@ Bugfix
      was creating an invalid ASN.1 tag. Found by Aryeh R. Fixes #1257.
    * Remove unused headers included in x509.c. Found by Chris Hanson and fixed
      by Brendan Shanks. Part of a fix for #992.
+   * Fix compilation error when MBEDTLS_ARC4_C is disabled and
+     MBEDTLS_CIPHER_NULL_CIPHER is enabled. Found by TrinityTonic in #1719.
 
 = mbed TLS 2.7.4 branch released 2018-06-18
 

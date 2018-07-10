@@ -3,6 +3,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Bugfix
+   * Fix compilation error on C++, because of a variable named new.
+     Found and fixed by Hirotaka Niisato in #1783.
    * Fix a memory leak in mbedtls_x509_csr_parse(), found by catenacyber,
      Philippe Antoine. Fixes #1623.
    * Clarify documentation for mbedtls_ssl_write() to include 0 as a valid

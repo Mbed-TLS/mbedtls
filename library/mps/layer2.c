@@ -2096,11 +2096,13 @@ static int l2_epoch_cleanup( mps_l2 *ctx )
                 break;
             }
         }
+
+        shift = id;
     }
     else
     {
         /* DTLS */
-        /* An epoch is in use if it's flags are not empty.
+        /* An epoch is in use if its flags are not empty.
          * There is no queueing of outgoing data in DTLS. */
         for( id = 0; id < MPS_L2_EPOCH_WINDOW_SIZE; id++ )
         {
@@ -2131,11 +2133,9 @@ static int l2_epoch_cleanup( mps_l2 *ctx )
                 break;
             }
         }
-    }
 
-    /* Shift the epoch window if it has unset epochs in the beginning. */
-    for( shift = 0; shift < MPS_L2_EPOCH_WINDOW_SIZE &&
-                    ctx->transforms[shift] == NULL; shift++ );
+        shift = id;
+    }
 
     if( shift == 0 )
     {

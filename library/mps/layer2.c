@@ -338,16 +338,25 @@ int mps_l2_config_add_type( mps_l2 *ctx, uint8_t type,
 static int l2_out_prepare_record( mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
 {
     int ret;
-    size_t total_sz;
-    size_t hdr_len, pre_expansion, post_expansion;
-    mbedtls_mps_transform_t *transform;
-    unsigned char *hdr;
-    uint8_t overflow;
+    uint8_t overflow; /* Helper variable to detect arithmetic overflow. */
+
+    unsigned char *rec_buf; /* The buffer received from Layer 1
+                             * to which we write the record.       */
+    size_t total_sz;        /* The total size of rec_buf in bytes. */
+    size_t hdr_len;         /* The length of the record header.    */
+    size_t pre_expansion;   /* The amount of data (in bytes) that
+                             * the transform protecting the record
+                             * adds in front of the plaintext.     */
+    size_t post_expansion;  /* The amount of data (in bytes) that
+                             * the transform protecting the record
+                             * adds beyond the plaintext.          */
+
+    mbedtls_mps_transform_t *trafo; /* The transform protecting the record. */
 
     TRACE_INIT( "l2_out_prepare, epoch %d", epoch );
 
     /* Request buffer from Layer 1 to hold entire record. */
-    ret = mps_l1_write( ctx->conf.l1, &hdr, &total_sz );
+    ret = mps_l1_write( ctx->conf.l1, &rec_buf, &total_sz );
     if( ret != 0 )
     {
         TRACE( trace_comment, "l1_write failed with %d", ret );
@@ -362,10 +371,10 @@ static int l2_out_prepare_record( mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
 
     hdr_len = l2_get_header_len( ctx, epoch );
 
-    ret = l2_epoch_table_lookup( ctx, epoch, NULL, &transform );
+    ret = l2_epoch_table_lookup( ctx, epoch, NULL, &trafo );
     if( ret != 0 )
         RETURN( ret );
-    transform_get_expansion( transform, &pre_expansion, &post_expansion );
+    transform_get_expansion( trafo, &pre_expansion, &post_expansion );
 
     /* Check for overflow */
     overflow = 0;
@@ -402,10 +411,10 @@ static int l2_out_prepare_record( mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
      * The plaintext sub-buffer can subsequently be fed to the writer which
      * then gets passed to the user, i.e. Layer 3. */
 
-    ctx->out.hdr = hdr;
+    ctx->out.hdr     = rec_buf;
     ctx->out.hdr_len = hdr_len;
 
-    ctx->out.payload.buf     = hdr + hdr_len;
+    ctx->out.payload.buf     = rec_buf + hdr_len;
     ctx->out.payload.buf_len = total_sz - hdr_len;
 
     ctx->out.payload.data_offset = pre_expansion;
@@ -491,7 +500,7 @@ static int l2_out_dispatch_record( mps_l2 *ctx )
             RETURN( ret );
         }
 
-        /* TODO: For TLS 1.3, add TLSPlaintext header, incl. padding. */
+        /* TLS-1.3-NOTE: Add TLSPlaintext header, incl. padding. */
 
         /* Step 2: Apply record payload protection. */
         TRACE( trace_comment, "Encrypt record. The plaintext offset is %u.",
@@ -556,7 +565,7 @@ static int l2_out_write_protected_record( mps_l2 *ctx, mps_rec *rec )
             case MBEDTLS_SSL_MINOR_VERSION_3: /* DTLS 1.2 */
                 ret = l2_out_write_protected_record_dtls12( ctx, rec );
 
-            /* At some point, add DTLS 1.3 here */
+            /* TLS-1.3-NOTE: Add DTLS-1.3 here */
 
         }
     }

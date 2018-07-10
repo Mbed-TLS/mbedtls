@@ -3775,7 +3775,8 @@ void mbedtls_mps_l1_random_communication_dgram( int max_dgram_size )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
-void mbedtls_mps_l2_basic( int allocator_buffer_sz,
+void mbedtls_mps_l2_basic( int mode,
+                           int allocator_buffer_sz,
                            int layer0_buffer_sz,
                            int rec_sz,
                            int real_transforms )
@@ -3783,7 +3784,10 @@ void mbedtls_mps_l2_basic( int allocator_buffer_sz,
     /* This test exercises a client making two write-requests for different
      * record content types to the server. It uses a single epoch, and the
      * write requests are small enough so that they can be served by single
-     * records. */
+     * records.
+     *
+     * Neither queueing nor pausing are needed, and hence
+     * the test is valid both for TLS and DTLS. */
 
     size_t pre_exp, post_exp;
 
@@ -3803,6 +3807,8 @@ void mbedtls_mps_l2_basic( int allocator_buffer_sz,
     mps_l2 cli, srv;
     mps_l2_out out_cli;
     mps_l2_in in_srv;
+
+    size_t const rec_hdr_max = 13; /* 5 for TLS, 13 for DTLS */
 
     /* Dummy record transformations for epoch 0 */
     mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
@@ -3833,13 +3839,6 @@ void mbedtls_mps_l2_basic( int allocator_buffer_sz,
         dummy_c->mock.pad = 5;
     }
 
-    /* Ensure that the test parameters are valid */
-    TEST_ASSERT( rec_sz <= 20 );
-    TEST_ASSERT( transform_get_expansion( dummy_c, &pre_exp, &post_exp ) == 0 );
-    TEST_ASSERT( (unsigned) allocator_buffer_sz > 40 + pre_exp + post_exp );
-    TEST_ASSERT( transform_get_expansion( dummy_s, &pre_exp, &post_exp ) == 0 );
-    TEST_ASSERT( (unsigned) allocator_buffer_sz > 40 + pre_exp + post_exp );
-
     /* Initialize Layer 0 mock objects */
     layer0_bufsize = (size_t) layer0_buffer_sz;
     TEST_ASSERT( layer0_init( &s2c ) == 0 );
@@ -3850,6 +3849,9 @@ void mbedtls_mps_l2_basic( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
+
+    /* TODO: Use `mode` here once Layer 1 is implemented
+     *       for datagram transports. */
     TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
                               layer0_write_cli, layer0_read_cli ) == 0 );
     TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
@@ -3864,14 +3866,20 @@ void mbedtls_mps_l2_basic( int allocator_buffer_sz,
                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
     TEST_ASSERT( mps_l2_config_version( &srv,
                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
-    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A, 1, 1, 1 ) == 0 );
-    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_B, 1, 0, 1 ) == 0 );
-    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A, 1, 1, 1 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A, 0, 1, 1 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_B, 0, 0, 1 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A, 0, 1, 1 ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_B, 0, 1, 1 ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init, MPS_EPOCH_WRITE ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &srv, dummy_s, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_init, MPS_EPOCH_READ ) == 0 );
+
+    /* Ensure that the test parameters are valid */
+    TEST_ASSERT( transform_get_expansion( dummy_c, &pre_exp, &post_exp ) == 0 );
+    TEST_ASSERT( (unsigned) allocator_buffer_sz > rec_hdr_max + ( 2 * rec_sz ) + pre_exp + post_exp );
+    TEST_ASSERT( transform_get_expansion( dummy_s, &pre_exp, &post_exp ) == 0 );
+    TEST_ASSERT( (unsigned) allocator_buffer_sz > rec_hdr_max + ( 2 * rec_sz ) + pre_exp + post_exp );
 
     /*
      * Client: Write something of type A to server

@@ -1251,13 +1251,16 @@ static int l2_out_release_and_dispatch( mps_l2 *ctx, uint8_t force )
     int ret;
     TRACE_INIT( "l2_out_release_and_dispatch, force %u", force );
 
-    /* Attempt to release the current record. */
+    /* Attempt to detach the underlying record write-buffer from the writer.
+     * This fails if there is sufficient space left in the buffer. */
     ret = l2_out_release_record( ctx, force );
     if( ret != 0 && ret != MBEDTLS_ERR_WRITER_DATA_LEFT )
         RETURN( ret );
 
     if( ret == 0 )
     {
+        /* The write-buffer is detached from the writer, hence
+         * can be dispatched to Layer 1. */
         TRACE( trace_comment, "Dispatch current outgoing record." );
         ret = l2_out_dispatch_record( ctx );
         if( ret != 0 )

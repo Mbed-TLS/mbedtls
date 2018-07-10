@@ -629,9 +629,9 @@ static int l2_out_write_protected_record_tls( mps_l2 *ctx, mps_rec *rec )
     MPS_L2_WRITE_UINT8_LE( &rec->type, hdr + tls_rec_type_offset );
 
     /* Write record version. */
-    l2_out_write_version( MBEDTLS_SSL_MAJOR_VERSION_3,
-                          ctx->conf.version,
-                          ctx->conf.mode,
+    l2_out_write_version( rec->major_ver,
+                          rec->minor_ver,
+                          MPS_L2_MODE_STREAM,
                           hdr + tls_rec_ver_offset );
 
     /* Write ciphertext length. */

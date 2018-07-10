@@ -6,6 +6,8 @@ Features
    * Add new crypto primitives from RFC 7539: stream cipher Chacha20, one-time
      authenticator Poly1305 and AEAD construct Chacha20-Poly1305. Contributed by
      Daniel King (#485).
+   * Add platform support for the Haiku OS. (https://www.haiku-os.org).
+     Contributed by Augustin Cavalier.
 
 Bugfix
    * Fix the key_app_writer example which was writing a leading zero byte which

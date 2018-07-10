@@ -968,25 +968,33 @@ int mps_l2_free( mps_l2 *ctx );
  * \brief          Configure Layer 2 context to accept records
  *                 of a given record content type.
  *
- *                 This function must only be called at most once
- *                 for each record content type.
+ *                 This function must only be called exactly once
+ *                 for each record content type to be used.
  *
  * \param ctx      The address of the Layer 2 context to use.
  * \param type     The record content type to configure.
- * \param pausing  This parameter must be either 0 or 1 and
- *                 indicates whether pausing is allowed for
- *                 content type \p type (value \c 1) or not (value \c 0).
+ * \param split    This parameter indicates whether content of type
+ *                 \p type is allowed to be split across multiple records
+ *                 (value #MPS_L2_SPLIT_ENABLED) or not
+ *                 (value #MPS_L2_SPLIT_DISABLED).
+ *                 E.g., handshake messages are allowed to be
+ *                 split across multiple records in all versions of TLS,
+ *                 while in TLS 1.3 alert messages must not be split.
  *                 See the documentation of the \c pause_flag
  *                 member of ::mps_l2_config for more information.
- * \param merging  This parameter must be either \c 0 or \c 1 and
- *                 indicates whether merging is allowed for
- *                 content type \p type (value \c 1) or not (value \c 0).
+ * \param pack     This parameter indicates whether successive read/write
+ *                 requests for content type \p type is allowed to be served
+ *                 from the same record (value #MPS_L2_PACK_ENABLED) or not
+ *                 (value #MPS_L2_PACK_DISABLED).
+ *                 E.g., multiple handshake messages are allowed to be packed
+ *                 in the same record in all versions of TLS, while in TLS 1.3
+ *                 a single record must not contain multiple alert messages.
  *                 See the documentation of \c merge_flag
  *                 member of ::mps_l2_config for more information.
- * \param empty    This parameter must be either \c 0 or \c 1 and
- *                 indicates whether empty records of content
- *                 type \p type are allowed to be sent (value \c 1)
- *                 or should be silently discarded (value \c 0).
+ * \param empty    This parameter indicates whether empty records of content
+ *                 type \p type are allowed to be sent
+ *                 (value #MPS_L2_EMPTY_ALLOWED) or should be silently
+ *                 discarded (value #MPS_L2_EMPTY_DISCARD).
  *                 See the documentation of \c empty_flag
  *                 member of ::mps_l2_config for more information.
  *
@@ -994,13 +1002,21 @@ int mps_l2_free( mps_l2 *ctx );
  * \return         A negative error code on failure.
  *
  */
+#define MPS_L2_SPLIT_DISABLED 0
+#define MPS_L2_SPLIT_ENABLED  1
+
+#define MPS_L2_PACK_DISABLED  0
+#define MPS_L2_PACK_ENABLED   1
+
+#define MPS_L2_EMPTY_ALLOWED  0
+#define MPS_L2_EMPTY_DISCARD  1
 
 /*@
   MPS_L2_INV_REQUIRES( ctx )
   MPS_L2_INV_ENSURES( ctx )
 @*/
 int mps_l2_config_add_type( mps_l2 *ctx, uint8_t type,
-                            uint8_t pausing, uint8_t merging, uint8_t empty );
+                            uint8_t split, uint8_t pack, uint8_t empty );
 /**
  * \brief          Configure the TLS/DTLS version to be used
  *                 by a Layer 2 context.

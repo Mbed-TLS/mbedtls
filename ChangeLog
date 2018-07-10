@@ -11,6 +11,8 @@ Bugfix
      return value. Found by @davidwu2000. #839
    * Fix the key_app_writer example which was writing a leading zero byte which
      was creating an invalid ASN.1 tag. Found by Aryeh R. Fixes #1257
+   * Remove unused headers included in x509.c. Found by Chris Hanson and fixed
+     by Brendan Shanks. Part of a fix for #992.
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.

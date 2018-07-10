@@ -643,12 +643,60 @@ static int l2_out_write_protected_record_tls( mps_l2 *ctx, mps_rec *rec )
 
 static int l2_out_write_protected_record_dtls12( mps_l2 *ctx, mps_rec *rec )
 {
-    ((void) ctx);
-    ((void) rec);
+    uint8_t * const hdr     = ctx->out.hdr;
+    size_t    const hdr_len = ctx->out.hdr_len;
+
+    /* Header structure the same for DTLS 1.0 and DTLS 1.2.
+
+       From RFC 6347 - Section 4.1
+
+       struct {
+            ContentType type;
+            ProtocolVersion version;
+            uint16 epoch;
+            uint48 sequence_number;
+            uint16 length;
+            opaque fragment[DTLSPlaintext.length];
+          } DTLSPlaintext;
+
+    */
+
+    size_t const dtls_rec_hdr_len      = 13;
+
+    size_t const dtls_rec_type_offset  = 0;
+    size_t const dtls_rec_ver_offset   = 1;
+    size_t const dtls_rec_epoch_offset = 3;
+    size_t const dtls_rec_seq_offset   = 5;
+    size_t const dtls_rec_len_offset   = 11;
+
     TRACE_INIT( "l2_write_protected_record_dtls12" );
 
-    /* TODO */
-    RETURN( MPS_ERR_UNSUPPORTED_FEATURE );
+    /* Double-check that we have calculated the header length
+     * correctly when preparing the outgoing record.
+     * This should always be true, but better err on the safe side. */
+    if( hdr_len != dtls_rec_hdr_len )
+        RETURN( MPS_ERR_INTERNAL_ERROR );
+
+    /* Write record content type. */
+    MPS_L2_WRITE_UINT8_LE( &rec->type, hdr + dtls_rec_type_offset );
+
+    /* Write record version. */
+    l2_out_write_version( rec->major_ver,
+                          rec->minor_ver,
+                          MPS_L2_MODE_DATAGRAM,
+                          hdr + dtls_rec_ver_offset );
+
+    /* Epoch */
+    MPS_L2_WRITE_UINT16_LE( &rec->epoch, hdr + dtls_rec_epoch_offset );
+
+    /* Sequence number */
+    MPS_L2_WRITE_UINT48_LE( &rec->ctr, hdr + dtls_rec_seq_offset );
+
+    /* Write ciphertext length. */
+    MPS_L2_WRITE_UINT16_LE( &rec->buf.data_len, hdr + dtls_rec_len_offset );
+
+    TRACE( trace_comment, "Write protected record -- DISPATCH" );
+    RETURN( mps_l1_dispatch( ctx->conf.l1, hdr_len + rec->buf.data_len ) );
 }
 
 int mps_l2_write_flush( mps_l2 *ctx )

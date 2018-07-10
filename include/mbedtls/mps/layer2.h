@@ -85,12 +85,15 @@
 #define MPS_L2_ALLOW_PAUSABLE_CONTENT_TYPE_WITHOUT_ACCUMULATOR
 
 typedef int16_t mbedtls_mps_epoch_id;
-#define MPS_L2_LIMIT_EPOCH 100 /* 0x7FFF */ /*!< First unusable epoch ID. */
+
+/*!< First unusable epoch ID. */
+#define MPS_L2_LIMIT_EPOCH ( ( mbedtls_mps_epoch_id ) 100 /* 0x7FFF */ )
+
+#define MPS_EPOCH_NONE ( (mbedtls_mps_epoch_id) -1 )
 
 typedef uint8_t mbedtls_mps_epoch_usage;
-#define MPS_EPOCH_NONE -1
-#define MPS_EPOCH_READ  ( 1u << 1 )
-#define MPS_EPOCH_WRITE ( 1u << 2 )
+#define MPS_EPOCH_READ  ( (mbedtls_mps_epoch_usage) ( 1u << 1 ) )
+#define MPS_EPOCH_WRITE ( (mbedtls_mps_epoch_usage) ( 1u << 2 ) )
 
 struct mps_l2;
 typedef struct mps_l2 mps_l2;

@@ -4220,12 +4220,17 @@ exit:
 
 
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
-void mbedtls_mps_l2_switch_epoch( int allocator_buffer_sz,
+void mbedtls_mps_l2_switch_epoch( int mode,
+                                  int allocator_buffer_sz,
                                   int layer0_buffer_sz,
                                   int real_transforms )
 {
     /* This test exercises the client sending two records of different
-     * content types and epochs to the server. */
+     * content types and epochs to the server.
+     *
+     * Neither queueing nor pausing are needed, and hence
+     * the test is valid both for TLS and DTLS. */
+
     int ret;
 
     mps_alloc cli_alloc, srv_alloc;
@@ -4301,28 +4306,40 @@ void mbedtls_mps_l2_switch_epoch( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
+    /* TODO: Use `mode` here once Layer 1 is implemented
+     *       for datagram transports. */
     TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
                               layer0_write_cli, layer0_read_cli ) == 0 );
     TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
                               layer0_write_srv, layer0_read_srv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli, &cli_l1, MPS_L2_MODE_STREAM,
-                              L2_DEFAULT_ACCUMULATOR_SIZE,
-                              L2_DEFAULT_QUEUE_SIZE,
+    TEST_ASSERT( mps_l2_init( &cli, &cli_l1, mode,
+                              0, 0, /* no queue or accumulator */
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv, &srv_l1, MPS_L2_MODE_STREAM,
-                              L2_DEFAULT_ACCUMULATOR_SIZE,
-                              L2_DEFAULT_QUEUE_SIZE,
+    TEST_ASSERT( mps_l2_init( &srv, &srv_l1, mode,
+                              0, 0, /* no queue or accumulator */
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
     TEST_ASSERT( mps_l2_config_version( &cli,
                                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
     TEST_ASSERT( mps_l2_config_version( &srv,
                                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
-    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A, 1, 1, 0 ) == 0 );
-    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_B, 1, 1, 0 ) == 0 );
-    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A, 1, 1, 0 ) == 0 );
-    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_B, 1, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A,
+                                         MPS_L2_SPLIT_DISABLED,
+                                         MPS_L2_PACK_ENABLED,
+                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_B,
+                                         MPS_L2_SPLIT_DISABLED,
+                                         MPS_L2_PACK_ENABLED,
+                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A,
+                                         MPS_L2_SPLIT_DISABLED,
+                                         MPS_L2_PACK_ENABLED,
+                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_B,
+                                         MPS_L2_SPLIT_DISABLED,
+                                         MPS_L2_PACK_ENABLED,
+                                         MPS_L2_EMPTY_DISCARD ) == 0 );
 
     TEST_ASSERT( mps_l2_epoch_add( &cli,  epoch0_c, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &srv,  epoch0_s, &epoch_init ) == 0 );

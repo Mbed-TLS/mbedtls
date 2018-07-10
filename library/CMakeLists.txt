@@ -108,6 +108,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     SET(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
 endif()
 
+if(HAIKU)
+	set(libs ${libs} network)
+endif(HAIKU)
+
 if(USE_PKCS11_HELPER_LIBRARY)
     set(libs ${libs} pkcs11-helper)
 endif(USE_PKCS11_HELPER_LIBRARY)

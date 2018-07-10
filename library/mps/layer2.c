@@ -1978,7 +1978,10 @@ static int l2_type_is_valid( mps_l2 *ctx, uint8_t type )
  * and in particular smaller than 64. */
 static int l2_type_can_be_paused( mps_l2 *ctx, uint8_t type )
 {
-    return( ( ctx->conf.pause_flag & ( ( (uint64_t) 1u ) << type ) ) != 0 );
+    /* Regardless of the configuration, pausing is only
+     * allowed for stream transports. */
+    return( ( ctx->conf.mode == MPS_L2_MODE_STREAM ) &&
+            ( ( ctx->conf.pause_flag & ( ( (uint64_t) 1u ) << type ) ) != 0 ) );
 }
 
 /* Check if a valid record content type allows merging of data.

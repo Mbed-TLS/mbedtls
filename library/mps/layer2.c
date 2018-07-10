@@ -1671,8 +1671,8 @@ static int l2_in_fetch_record( mps_l2 *ctx, mps_rec *rec )
     }
 
     /*
-     * Step 3 ([D]TLS 1.3 only): Unpack TLSInnerPlaintext
-     * Not yet implemented
+     * TLS-1.3-NOTE
+     * Step 3: Unpack TLSInnerPlaintext
      */
 
     RETURN( 0 );
@@ -1703,8 +1703,7 @@ static int l2_in_fetch_protected_record( mps_l2 *ctx, mps_rec *rec )
             case MBEDTLS_SSL_MINOR_VERSION_3: /* DTLS 1.2 */
                 RETURN( l2_in_fetch_protected_record_dtls12( ctx, rec ) );
 
-            /* At some point, add DTLS 1.3 here */
-
+            /* TLS-1.3-NOTE: At some point, add DTLS 1.3 here */
         }
     }
 
@@ -1735,8 +1734,7 @@ static size_t l2_get_header_len( mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
             case MBEDTLS_SSL_MINOR_VERSION_3: /* DTLS 1.2 */
                 RETURN( dtls12_rec_hdr_len );
 
-            /* At some point, add DTLS 1.3 here */
-
+            /* TLS-1.3-NOTE: At some point, add DTLS 1.3 here */
         }
     }
 
@@ -1784,7 +1782,6 @@ static int l2_in_fetch_protected_record_tls( mps_l2 *ctx, mps_rec *rec )
     int minor_ver, major_ver;
     uint8_t type;
     uint16_t len;
-
 
     TRACE_INIT( "l2_in_fetch_protected_record_tls" );
 

@@ -982,12 +982,16 @@ int mps_l2_write_start( mps_l2 *ctx, mps_l2_out *out )
 
     TRACE_INIT( "mps_l2_write_start" );
 
+    /* We must not attempt to write multiple records simultaneously.
+     * If this happens, the layer most likely forgot to dispatch
+     * the last outgoing record. */
     if( ctx->out.state == MPS_L2_WRITER_STATE_EXTERNAL )
     {
         TRACE( trace_error, "Unexpected operation" );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
 
+    /* Check if the requested record content type is valid. */
     desired_type = out->type;
     if( l2_type_is_valid( ctx, desired_type ) == 0 )
     {
@@ -995,6 +999,7 @@ int mps_l2_write_start( mps_l2 *ctx, mps_l2_out *out )
         RETURN( MPS_ERR_INVALID_RECORD_TYPE );
     }
 
+    /* Check if the requested epoch is valid for writing. */
     desired_epoch = out->epoch;
     ret = l2_epoch_check( ctx, desired_epoch, MPS_EPOCH_WRITE );
     if( ret != 0 )
@@ -1002,7 +1007,8 @@ int mps_l2_write_start( mps_l2 *ctx, mps_l2_out *out )
 
     /* Make sure that no data is queued for dispatching, and that
      * all dispatched data has been delivered by Layer 1 in case
-     * a flush has been requested. */
+     * a flush has been requested.
+     * Please consult the documentation of ::mps_l2 for further information. */
     ret = l2_out_clear_pending( ctx );
     if( ret != 0 )
     {
@@ -1010,13 +1016,16 @@ int mps_l2_write_start( mps_l2 *ctx, mps_l2_out *out )
         RETURN( ret );
     }
 
-    /* State cannot be MPS_L2_WRITER_STATE_QUEUEING anymore now,
-     * so it's either INTERNAL or UNSET.
+    /* If l2_out_clear_pending() succeeds, it guarantees that the
+     * write state is not MPS_L2_WRITER_STATE_QUEUEING anymore.
+     * Hence, it's either INTERNAL or UNSET. */
+
+    /*
+     * If an outgoing record has already been prepared but not yet dispatched,
+     * append to it in case both the requested type and the epoch match.
      *
-     * If an outgoing record has been prepared, append to it
-     * in case both desired type and epoch match. If they don't
-     * the record must be dispatched first before a new one
-     * can be prepared with the correct type and epoch.
+     * If they don't match, the current record must be dispatched first before
+     * a new one can be prepared with the requested type and epoch.
      */
     if( ctx->out.state == MPS_L2_WRITER_STATE_INTERNAL )
     {
@@ -1038,17 +1047,21 @@ int mps_l2_write_start( mps_l2 *ctx, mps_l2_out *out )
         if( ret != 0 )
             RETURN( ret );
 
-        /* Continue on success */
+        /* The old record has been dispatched by now, and we fall through
+         * to open a new one for the requested type and epoch. */
     }
 
     /* State must be MPS_L2_WRITER_STATE_UNSET when we reach this. */
 
+    /* Prepare raw buffers from Layer 1 to hold the new record. */
     ret = l2_out_prepare_record( ctx, desired_epoch );
     if( ret != 0 )
         RETURN( ret );
+
     ctx->out.writer.type  = desired_type;
     ctx->out.writer.epoch = desired_epoch;
 
+    /* Bind buffers to the writer passed to the user. */
     ret = l2_out_track_record( ctx );
     if( ret != 0 )
         RETURN( ret );

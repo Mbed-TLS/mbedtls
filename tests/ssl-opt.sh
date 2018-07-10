@@ -1025,6 +1025,38 @@ run_test    "Fallback SCSV: enabled, max version, openssl client" \
             -s "received FALLBACK_SCSV" \
             -S "inapropriate fallback"
 
+# Test sending and receiving empty application data records
+
+run_test    "Encrypt then MAC: empty application data record" \
+            "$P_SRV auth_mode=none debug_level=4 etm=1" \
+            "$P_CLI auth_mode=none etm=1 request_size=0 force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -S "0000:  0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f" \
+            -s "dumping 'input payload after decrypt' (0 bytes)" \
+            -c "0 bytes written in 1 fragments"
+
+run_test    "Default, no Encrypt then MAC: empty application data record" \
+            "$P_SRV auth_mode=none debug_level=4 etm=0" \
+            "$P_CLI auth_mode=none etm=0 request_size=0" \
+            0 \
+            -s "dumping 'input payload after decrypt' (0 bytes)" \
+            -c "0 bytes written in 1 fragments"
+
+run_test    "Encrypt then MAC, DTLS: empty application data record" \
+            "$P_SRV auth_mode=none debug_level=4 etm=1 dtls=1" \
+            "$P_CLI auth_mode=none etm=1 request_size=0 force_ciphersuite=TLS-ECDHE-RSA-WITH-AES-256-CBC-SHA dtls=1" \
+            0 \
+            -S "0000:  0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f 0f" \
+            -s "dumping 'input payload after decrypt' (0 bytes)" \
+            -c "0 bytes written in 1 fragments"
+
+run_test    "Default, no Encrypt then MAC, DTLS: empty application data record" \
+            "$P_SRV auth_mode=none debug_level=4 etm=0 dtls=1" \
+            "$P_CLI auth_mode=none etm=0 request_size=0 dtls=1" \
+            0 \
+            -s "dumping 'input payload after decrypt' (0 bytes)" \
+            -c "0 bytes written in 1 fragments"
+
 ## ClientHello generated with
 ## "openssl s_client -CAfile tests/data_files/test-ca.crt -tls1_1 -connect localhost:4433 -cipher ..."
 ## then manually twiddling the ciphersuite list.

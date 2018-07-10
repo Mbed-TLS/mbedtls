@@ -8,6 +8,11 @@ Features
      Daniel King (#485).
    * Add platform support for the Haiku OS. (https://www.haiku-os.org).
      Contributed by Augustin Cavalier.
+   * Make the receive and transmit buffers independent sizes, for situations
+     where the outgoing buffer can be fixed at a smaller size than the incoming
+     buffer, which can save some RAM. If buffer lengths are kept equal, there
+     is no functional difference. Contributed by Angus Gratton, and also
+     independently contributed again by Paul Sokolovsky.
 
 Bugfix
    * Fix the key_app_writer example which was writing a leading zero byte which

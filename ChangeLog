@@ -20,6 +20,8 @@ Bugfix
      return value. Found by @davidwu2000. #839
    * Fix a memory leak in mbedtls_x509_csr_parse(), found by catenacyber,
      Philippe Antoine. Fixes #1623.
+   * Remove unused headers included in x509.c. Found by Chris Hanson and fixed
+     by Brendan Shanks. Part of a fix for #992.
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.

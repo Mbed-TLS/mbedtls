@@ -1944,10 +1944,7 @@ static int l2_epoch_check( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
     if( ctx->conf.mode == MPS_L2_MODE_DATAGRAM )
     {
         epoch_usage = ctx->epochs.dtls.state[ epoch_offset ];
-        /* TODO: MPS_EPOCH_VALID is only referenced here.
-         *       What do we need / use it for? */
-        if( ( MPS_EPOCH_VALID & epoch_usage ) == 0 ||
-            ( purpose & epoch_usage ) != purpose )
+        if( ( purpose & epoch_usage ) != purpose )
         {
             TRACE( trace_comment, "epoch usage not allowed" );
             RETURN( MPS_ERR_INVALID_RECORD_EPOCH );
@@ -2034,7 +2031,8 @@ static int l2_epoch_cleanup( mps_l2 *ctx )
          * There is no queueing of outgoing data in DTLS. */
         for( id = 0; id < MPS_L2_EPOCH_WINDOW_SIZE; id++ )
         {
-            if( ctx->epochs.dtls.state[id] == 0 )
+            if( ctx->transforms[id]        != NULL &&
+                ctx->epochs.dtls.state[id] == 0 )
             {
                 TRACE( trace_comment, "epoch %u (off %u, base %u, p %p) no longer needed!",
                        (unsigned) ( ctx->epoch_base + id ),
@@ -2046,6 +2044,17 @@ static int l2_epoch_cleanup( mps_l2 *ctx )
             }
             else
             {
+                mbedtls_mps_epoch_id epoch = ctx->epoch_base + id;
+                if( ctx->epochs.dtls.state[id] & MPS_EPOCH_READ )
+                {
+                    TRACE( trace_comment, "Epoch %d can be used for reading.",
+                           epoch );
+                }
+                if( ctx->epochs.dtls.state[id] & MPS_EPOCH_WRITE )
+                {
+                    TRACE( trace_comment, "Epoch %d can be used for writing.",
+                           epoch );
+                }
                 break;
             }
         }

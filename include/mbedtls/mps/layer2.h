@@ -89,7 +89,6 @@ typedef int16_t mbedtls_mps_epoch_id;
 
 typedef uint8_t mbedtls_mps_epoch_usage;
 #define MPS_EPOCH_NONE -1
-#define MPS_EPOCH_VALID ( 1u << 0 )
 #define MPS_EPOCH_READ  ( 1u << 1 )
 #define MPS_EPOCH_WRITE ( 1u << 2 )
 

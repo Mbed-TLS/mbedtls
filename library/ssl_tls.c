@@ -1442,7 +1442,7 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
          */
         if( transform->ivlen == 12 && transform->fixed_ivlen == 4 )
         {
-            /* GCM and CCM: concatenate fixed + explicit (=seqnum) */
+            /* GCM and CCM: fixed || explicit (=seqnum) */
             memcpy( iv, transform->iv_enc, transform->fixed_ivlen );
             memcpy( iv + transform->fixed_ivlen, ssl->out_ctr, 8 );
             memcpy( ssl->out_iv, ssl->out_ctr, 8 );
@@ -1450,7 +1450,7 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
         }
         else if( transform->ivlen == 12 && transform->fixed_ivlen == 12 )
         {
-            /* ChachaPoly: XOR fixed + sequence number */
+            /* ChachaPoly: fixed XOR sequence number */
             unsigned char i;
 
             memcpy( iv, transform->iv_enc, transform->fixed_ivlen );
@@ -1745,14 +1745,14 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
          */
         if( transform->ivlen == 12 && transform->fixed_ivlen == 4 )
         {
-            /* GCM and CCM: concatenate fixed + explicit (transmitted) */
+            /* GCM and CCM: fixed || explicit (transmitted) */
             memcpy( iv, transform->iv_dec, transform->fixed_ivlen );
             memcpy( iv + transform->fixed_ivlen, ssl->in_iv, 8 );
 
         }
         else if( transform->ivlen == 12 && transform->fixed_ivlen == 12 )
         {
-            /* ChachaPoly: XOR fixed + sequence number */
+            /* ChachaPoly: fixed XOR sequence number */
             unsigned char i;
 
             memcpy( iv, transform->iv_dec, transform->fixed_ivlen );

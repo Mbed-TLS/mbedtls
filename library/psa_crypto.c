@@ -2964,13 +2964,13 @@ psa_status_t psa_generate_random( uint8_t *output,
 psa_status_t psa_generate_key( psa_key_slot_t key,
                                psa_key_type_t type,
                                size_t bits,
-                               const void *parameters,
-                               size_t parameters_size )
+                               const void *extra,
+                               size_t extra_size )
 {
     key_slot_t *slot;
     psa_status_t status;
 
-    if( parameters == NULL && parameters_size != 0 )
+    if( extra == NULL && extra_size != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_get_empty_key_slot( key, &slot );
@@ -3010,10 +3010,10 @@ psa_status_t psa_generate_key( psa_key_slot_t key,
         int exponent = 65537;
         if( bits > PSA_VENDOR_RSA_MAX_KEY_BITS )
             return( PSA_ERROR_NOT_SUPPORTED );
-        if( parameters != NULL )
+        if( extra != NULL )
         {
-            const unsigned *p = parameters;
-            if( parameters_size != sizeof( *p ) )
+            const unsigned *p = extra;
+            if( extra_size != sizeof( *p ) )
                 return( PSA_ERROR_INVALID_ARGUMENT );
             if( *p > INT_MAX )
                 return( PSA_ERROR_INVALID_ARGUMENT );
@@ -3048,7 +3048,7 @@ psa_status_t psa_generate_key( psa_key_slot_t key,
             mbedtls_ecp_curve_info_from_grp_id( grp_id );
         mbedtls_ecp_keypair *ecp;
         int ret;
-        if( parameters != NULL )
+        if( extra != NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
         if( grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );

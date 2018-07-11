@@ -2415,21 +2415,22 @@ psa_status_t psa_generate_random(uint8_t *output,
  *                          be unoccupied.
  * \param type              Key type (a \c PSA_KEY_TYPE_XXX value).
  * \param bits              Key size in bits.
- * \param[in] parameters    Extra parameters for key generation. The
+ * \param[in] extra         Extra parameters for key generation. The
  *                          interpretation of this parameter depends on
  *                          \c type. All types support \c NULL to use
  *                          the default parameters specified below.
- * \param parameters_size   Size of the buffer that \p parameters
- *                          points to, in bytes.
+ * \param extra_size        Size of the buffer that \p extra
+ *                          points to, in bytes. Note that if \p extra is
+ *                          \c NULL then \p extra_size must be zero.
  *
  * For any symmetric key type (a type such that
- * #PSA_KEY_TYPE_IS_ASYMMETRIC(\p type) is false), \c parameters must be
+ * #PSA_KEY_TYPE_IS_ASYMMETRIC(\p type) is false), \p extra must be
  * \c NULL. For asymmetric key types defined by this specification,
  * the parameter type and the default parameters are defined by the
  * table below. For vendor-defined key types, the vendor documentation
  * shall define the parameter type and the default parameters.
  *
- * Type | Parameter type | Meaning | Parameters used if `parameters == NULL`
+ * Type | Parameter type | Meaning | Parameters used if `extra == NULL`
  * ---- | -------------- | ------- | ---------------------------------------
  * `PSA_KEY_TYPE_RSA_KEYPAIR` | `unsigned int` | Public exponent | 65537
  *
@@ -2445,8 +2446,8 @@ psa_status_t psa_generate_random(uint8_t *output,
 psa_status_t psa_generate_key(psa_key_slot_t key,
                               psa_key_type_t type,
                               size_t bits,
-                              const void *parameters,
-                              size_t parameters_size);
+                              const void *extra,
+                              size_t extra_size);
 
 /**@}*/
 

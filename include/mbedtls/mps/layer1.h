@@ -525,8 +525,8 @@ typedef struct mps_l1 mps_l1;
  * Maintenance
  */
 
-#define MPS_L1_MODE_STREAM  1    /*!< Stream mode of operation   */
-#define MPS_L1_MODE_DGRAM   2    /*!< Datagram mode of operation */
+#define MPS_L1_MODE_STREAM     0    /*!< Stream mode of operation   */
+#define MPS_L1_MODE_DATAGRAM   1    /*!< Datagram mode of operation */
 
 /**
  * \brief          Initialize a Layer 1 context

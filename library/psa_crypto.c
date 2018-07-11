@@ -1191,7 +1191,7 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
 
         switch( alg )
         {
-            case PSA_ALG_STREAM_CIPHER:
+            case PSA_ALG_STREAM_CIPHER_BASE:
                 mode = MBEDTLS_MODE_STREAM;
                 break;
             case PSA_ALG_CBC_BASE:

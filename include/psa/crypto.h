@@ -963,7 +963,7 @@ typedef uint32_t psa_algorithm_t;
  *                    valid slot for a key of the chosen type. It must
  *                    be unoccupied.
  * \param type        Key type (a \c PSA_KEY_TYPE_XXX value).
- * \param data        Buffer containing the key data.
+ * \param[in] data    Buffer containing the key data.
  * \param data_length Size of the \c data buffer in bytes.
  *
  * \retval #PSA_SUCCESS
@@ -1027,10 +1027,10 @@ psa_status_t psa_destroy_key(psa_key_slot_t key);
  *
  * \param key           Slot whose content is queried. This must
  *                      be an occupied key slot.
- * \param type          On success, the key type (a \c PSA_KEY_TYPE_XXX value).
+ * \param[out] type     On success, the key type (a \c PSA_KEY_TYPE_XXX value).
  *                      This may be a null pointer, in which case the key type
  *                      is not written.
- * \param bits          On success, the key size in bits.
+ * \param[out] bits     On success, the key size in bits.
  *                      This may be a null pointer, in which case the key size
  *                      is not written.
  *
@@ -1069,12 +1069,12 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
  * - For RSA public keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY), the format
  *   is the DER representation defined by RFC 5280 as SubjectPublicKeyInfo.
  *
- * \param key           Slot whose content is to be exported. This must
- *                      be an occupied key slot.
- * \param data          Buffer where the key data is to be written.
- * \param data_size     Size of the \c data buffer in bytes.
- * \param data_length   On success, the number of bytes
- *                      that make up the key data.
+ * \param key               Slot whose content is to be exported. This must
+ *                          be an occupied key slot.
+ * \param[out] data         Buffer where the key data is to be written.
+ * \param data_size         Size of the \c data buffer in bytes.
+ * \param[out] data_length  On success, the number of bytes
+ *                          that make up the key data.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_EMPTY_SLOT
@@ -1100,12 +1100,12 @@ psa_status_t psa_export_key(psa_key_slot_t key,
  *   the format is the DER representation of the public key defined by RFC 5280
  *   as SubjectPublicKeyInfo.
  *
- * \param key           Slot whose content is to be exported. This must
- *                      be an occupied key slot.
- * \param data          Buffer where the key data is to be written.
- * \param data_size     Size of the \c data buffer in bytes.
- * \param data_length   On success, the number of bytes
- *                      that make up the key data.
+ * \param key               Slot whose content is to be exported. This must
+ *                          be an occupied key slot.
+ * \param[out] data         Buffer where the key data is to be written.
+ * \param data_size         Size of the \c data buffer in bytes.
+ * \param[out] data_length  On success, the number of bytes
+ *                          that make up the key data.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_EMPTY_SLOT
@@ -1257,7 +1257,7 @@ typedef uint32_t psa_key_lifetime_t;
  * The assignment of lifetimes to slots is implementation-dependent.
  *
  * \param key           Slot to query.
- * \param lifetime      On success, the lifetime value.
+ * \param[out] lifetime On success, the lifetime value.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1365,9 +1365,9 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  * - A failed call to psa_hash_update().
  * - A call to psa_hash_finish(), psa_hash_verify() or psa_hash_abort().
  *
- * \param operation The operation object to use.
- * \param alg       The hash algorithm to compute (\c PSA_ALG_XXX value
- *                  such that #PSA_ALG_IS_HASH(\p alg) is true).
+ * \param[out] operation    The operation object to use.
+ * \param alg               The hash algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_HASH(\p alg) is true).
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1387,9 +1387,9 @@ psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
  *
  * If this function returns an error status, the operation becomes inactive.
  *
- * \param operation     Active hash operation.
- * \param input         Buffer containing the message fragment to hash.
- * \param input_length  Size of the \c input buffer in bytes.
+ * \param[in,out] operation Active hash operation.
+ * \param[in] input         Buffer containing the message fragment to hash.
+ * \param input_length      Size of the \c input buffer in bytes.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1420,13 +1420,13 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
  *          about the hashed data which could allow an attacker to guess
  *          a valid hash and thereby bypass security controls.
  *
- * \param operation     Active hash operation.
- * \param hash          Buffer where the hash is to be written.
- * \param hash_size     Size of the \p hash buffer in bytes.
- * \param hash_length   On success, the number of bytes
- *                      that make up the hash value. This is always
- *                      #PSA_HASH_SIZE(`alg`) where `alg` is the
- *                      hash algorithm that is calculated.
+ * \param[in,out] operation     Active hash operation.
+ * \param[out] hash             Buffer where the hash is to be written.
+ * \param hash_size             Size of the \p hash buffer in bytes.
+ * \param[out] hash_length      On success, the number of bytes
+ *                              that make up the hash value. This is always
+ *                              #PSA_HASH_SIZE(`alg`) where `alg` is the
+ *                              hash algorithm that is calculated.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1461,9 +1461,9 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
  * comparison between the actual hash and the expected hash is performed
  * in constant time.
  *
- * \param operation     Active hash operation.
- * \param hash          Buffer containing the expected hash value.
- * \param hash_length   Size of the \c hash buffer in bytes.
+ * \param[in,out] operation     Active hash operation.
+ * \param[in] hash              Buffer containing the expected hash value.
+ * \param hash_length           Size of the \c hash buffer in bytes.
  *
  * \retval #PSA_SUCCESS
  *         The expected hash is identical to the actual hash of the message.
@@ -1493,7 +1493,7 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
  * to be indistinguishable from an active hash operation, and the behavior
  * of psa_hash_abort() is undefined in this case.
  *
- * \param operation     Active hash operation.
+ * \param[in,out] operation     Active hash operation.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_BAD_STATE
@@ -1544,10 +1544,10 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  * - A failed call to psa_mac_update().
  * - A call to psa_mac_sign_finish() or psa_mac_abort().
  *
- * \param operation The operation object to use.
- * \param key       Slot containing the key to use for the operation.
- * \param alg       The MAC algorithm to compute (\c PSA_ALG_XXX value
- *                  such that #PSA_ALG_IS_MAC(alg) is true).
+ * \param[out] operation    The operation object to use.
+ * \param key               Slot containing the key to use for the operation.
+ * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_MAC(alg) is true).
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1592,10 +1592,10 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  * - A failed call to psa_mac_update().
  * - A call to psa_mac_verify_finish() or psa_mac_abort().
  *
- * \param operation The operation object to use.
- * \param key       Slot containing the key to use for the operation.
- * \param alg       The MAC algorithm to compute (\c PSA_ALG_XXX value
- *                  such that #PSA_ALG_IS_MAC(\p alg) is true).
+ * \param[out] operation    The operation object to use.
+ * \param key               Slot containing the key to use for the operation.
+ * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_MAC(\p alg) is true).
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1621,10 +1621,10 @@ psa_status_t psa_mac_verify_setup(psa_mac_operation_t *operation,
  *
  * If this function returns an error status, the operation becomes inactive.
  *
- * \param operation     Active MAC operation.
- * \param input         Buffer containing the message fragment to add to
- *                      the MAC calculation.
- * \param input_length  Size of the \c input buffer in bytes.
+ * \param[in,out] operation Active MAC operation.
+ * \param[in] input         Buffer containing the message fragment to add to
+ *                          the MAC calculation.
+ * \param input_length      Size of the \c input buffer in bytes.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1655,15 +1655,15 @@ psa_status_t psa_mac_update(psa_mac_operation_t *operation,
  *          about the MAC value which could allow an attacker to guess
  *          a valid MAC and thereby bypass security controls.
  *
- * \param operation     Active MAC operation.
- * \param mac           Buffer where the MAC value is to be written.
- * \param mac_size      Size of the \p mac buffer in bytes.
- * \param mac_length    On success, the number of bytes
- *                      that make up the MAC value. This is always
- *                      #PSA_MAC_FINAL_SIZE(\c key_type, \c key_bits, \p alg)
- *                      where \c key_type and \c key_bits are the type and
- *                      bit-size respectively of \c key and `alg` is the
- *                      MAC algorithm that is calculated.
+ * \param[in,out] operation Active MAC operation.
+ * \param[out] mac          Buffer where the MAC value is to be written.
+ * \param mac_size          Size of the \p mac buffer in bytes.
+ * \param[out] mac_length   On success, the number of bytes
+ *                          that make up the MAC value. This is always
+ *                          #PSA_MAC_FINAL_SIZE(\c key_type, \c key_bits, \p alg)
+ *                          where \c key_type and \c key_bits are the type and
+ *                          bit-size respectively of \c key and `alg` is the
+ *                          MAC algorithm that is calculated.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1697,9 +1697,9 @@ psa_status_t psa_mac_sign_finish(psa_mac_operation_t *operation,
  * comparison between the actual MAC and the expected MAC is performed
  * in constant time.
  *
- * \param operation     Active MAC operation.
- * \param mac           Buffer containing the expected MAC value.
- * \param mac_length    Size of the \c mac buffer in bytes.
+ * \param[in,out] operation Active MAC operation.
+ * \param[in] mac           Buffer containing the expected MAC value.
+ * \param mac_length        Size of the \c mac buffer in bytes.
  *
  * \retval #PSA_SUCCESS
  *         The expected MAC is identical to the actual MAC of the message.
@@ -1730,7 +1730,7 @@ psa_status_t psa_mac_verify_finish(psa_mac_operation_t *operation,
  * to be indistinguishable from an active MAC operation, and the behavior
  * of psa_mac_abort() is undefined in this case.
  *
- * \param operation     Active MAC operation.
+ * \param[in,out] operation Active MAC operation.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_BAD_STATE
@@ -1781,10 +1781,11 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  *   or psa_cipher_update().
  * - A call to psa_cipher_finish() or psa_cipher_abort().
  *
- * \param operation The operation object to use.
- * \param key       Slot containing the key to use for the operation.
- * \param alg       The cipher algorithm to compute (\c PSA_ALG_XXX value
- *                  such that #PSA_ALG_IS_CIPHER(\p alg) is true).
+ * \param[out] operation        The operation object to use.
+ * \param key                   Slot containing the key to use for the operation.
+ * \param alg                   The cipher algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1829,10 +1830,11 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
  * - A failed call to psa_cipher_update().
  * - A call to psa_cipher_finish() or psa_cipher_abort().
  *
- * \param operation The operation object to use.
- * \param key       Slot containing the key to use for the operation.
- * \param alg       The cipher algorithm to compute (\c PSA_ALG_XXX value
- *                  such that #PSA_ALG_IS_CIPHER(\p alg) is true).
+ * \param[out] operation        The operation object to use.
+ * \param key                   Slot containing the key to use for the operation.
+ * \param alg                   The cipher algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1862,10 +1864,11 @@ psa_status_t psa_cipher_decrypt_setup(psa_cipher_operation_t *operation,
  *
  * If this function returns an error status, the operation becomes inactive.
  *
- * \param operation     Active cipher operation.
- * \param iv            Buffer where the generated IV is to be written.
- * \param iv_size       Size of the \c iv buffer in bytes.
- * \param iv_length     On success, the number of bytes of the generated IV.
+ * \param[in,out] operation     Active cipher operation.
+ * \param[out] iv               Buffer where the generated IV is to be written.
+ * \param iv_size               Size of the \c iv buffer in bytes.
+ * \param[out] iv_length        On success, the number of bytes of the
+ *                              generated IV.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1897,9 +1900,9 @@ psa_status_t psa_cipher_generate_iv(psa_cipher_operation_t *operation,
  * instead of this function, unless implementing a protocol that requires
  * a non-random IV.
  *
- * \param operation     Active cipher operation.
- * \param iv            Buffer containing the IV to use.
- * \param iv_length     Size of the IV in bytes.
+ * \param[in,out] operation     Active cipher operation.
+ * \param[in] iv                Buffer containing the IV to use.
+ * \param iv_length             Size of the IV in bytes.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1928,14 +1931,14 @@ psa_status_t psa_cipher_set_iv(psa_cipher_operation_t *operation,
  *
  * If this function returns an error status, the operation becomes inactive.
  *
- * \param operation     Active cipher operation.
- * \param input         Buffer containing the message fragment to
- *                      encrypt or decrypt.
- * \param input_length  Size of the \c input buffer in bytes.
- * \param output        Buffer where the output is to be written.
- * \param output_size   Size of the \c output buffer in bytes.
- * \param output_length On success, the number of bytes
- *                      that make up the returned output.
+ * \param[in,out] operation     Active cipher operation.
+ * \param[in] input             Buffer containing the message fragment to
+ *                              encrypt or decrypt.
+ * \param input_length          Size of the \c input buffer in bytes.
+ * \param[out] output           Buffer where the output is to be written.
+ * \param output_size           Size of the \c output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the returned output.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1969,11 +1972,11 @@ psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
  *
  * When this function returns, the operation becomes inactive.
  *
- * \param operation     Active cipher operation.
- * \param output        Buffer where the output is to be written.
- * \param output_size   Size of the \c output buffer in bytes.
- * \param output_length On success, the number of bytes
- *                      that make up the returned output.
+ * \param[in,out] operation     Active cipher operation.
+ * \param[out] output           Buffer where the output is to be written.
+ * \param output_size           Size of the \c output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the returned output.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -2005,7 +2008,7 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
  * to be indistinguishable from an active cipher operation, and the behavior
  * of psa_cipher_abort() is undefined in this case.
  *
- * \param operation     Active cipher operation.
+ * \param[in,out] operation     Active cipher operation.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_BAD_STATE
@@ -2048,15 +2051,15 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  * \param alg                     The AEAD algorithm to compute
  *                                (\c PSA_ALG_XXX value such that
  *                                #PSA_ALG_IS_AEAD(\p alg) is true).
- * \param nonce                   Nonce or IV to use.
+ * \param[in] nonce               Nonce or IV to use.
  * \param nonce_length            Size of the \p nonce buffer in bytes.
- * \param additional_data         Additional data that will be authenticated
+ * \param[in] additional_data     Additional data that will be authenticated
  *                                but not encrypted.
  * \param additional_data_length  Size of \p additional_data in bytes.
- * \param plaintext               Data that will be authenticated and
+ * \param[in] plaintext           Data that will be authenticated and
  *                                encrypted.
  * \param plaintext_length        Size of \p plaintext in bytes.
- * \param ciphertext              Output buffer for the authenticated and
+ * \param[out] ciphertext         Output buffer for the authenticated and
  *                                encrypted data. The additional data is not
  *                                part of this output. For algorithms where the
  *                                encrypted data and the authentication tag
@@ -2067,7 +2070,7 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  *                                This must be at least
  *                                #PSA_AEAD_ENCRYPT_OUTPUT_SIZE(\p alg,
  *                                \p plaintext_length).
- * \param ciphertext_length       On success, the size of the output
+ * \param[out] ciphertext_length  On success, the size of the output
  *                                in the \b ciphertext buffer.
  *
  * \retval #PSA_SUCCESS
@@ -2101,24 +2104,24 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
  * \param alg                     The AEAD algorithm to compute
  *                                (\c PSA_ALG_XXX value such that
  *                                #PSA_ALG_IS_AEAD(\p alg) is true).
- * \param nonce                   Nonce or IV to use.
+ * \param[in] nonce               Nonce or IV to use.
  * \param nonce_length            Size of the \p nonce buffer in bytes.
- * \param additional_data         Additional data that has been authenticated
+ * \param[in] additional_data     Additional data that has been authenticated
  *                                but not encrypted.
  * \param additional_data_length  Size of \p additional_data in bytes.
- * \param ciphertext              Data that has been authenticated and
+ * \param[in] ciphertext          Data that has been authenticated and
  *                                encrypted. For algorithms where the
  *                                encrypted data and the authentication tag
  *                                are defined as separate inputs, the buffer
  *                                must contain the encrypted data followed
  *                                by the authentication tag.
  * \param ciphertext_length       Size of \p ciphertext in bytes.
- * \param plaintext               Output buffer for the decrypted data.
+ * \param[out] plaintext          Output buffer for the decrypted data.
  * \param plaintext_size          Size of the \p plaintext buffer in bytes.
  *                                This must be at least
  *                                #PSA_AEAD_DECRYPT_OUTPUT_SIZE(\p alg,
  *                                \p ciphertext_length).
- * \param plaintext_length        On success, the size of the output
+ * \param[out] plaintext_length   On success, the size of the output
  *                                in the \b plaintext buffer.
  *
  * \retval #PSA_SUCCESS
@@ -2174,24 +2177,24 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
  * parameter to this function. You can use #PSA_ALG_SIGN_GET_HASH(\p alg)
  * to determine the hash algorithm to use.
  *
- * \param key               Key slot containing an asymmetric key pair.
- * \param alg               A signature algorithm that is compatible with
- *                          the type of \c key.
- * \param hash              The hash or message to sign.
- * \param hash_length       Size of the \c hash buffer in bytes.
- * \param salt              A salt or label, if supported by the signature
- *                          algorithm.
- *                          If the signature algorithm does not support a
- *                          salt, pass \c NULL.
- *                          If the signature algorithm supports an optional
- *                          salt and you do not want to pass a salt,
- *                          pass \c NULL.
- * \param salt_length       Size of the \c salt buffer in bytes.
- *                          If \c salt is \c NULL, pass 0.
- * \param signature         Buffer where the signature is to be written.
- * \param signature_size    Size of the \c signature buffer in bytes.
- * \param signature_length  On success, the number of bytes
- *                          that make up the returned signature value.
+ * \param key                   Key slot containing an asymmetric key pair.
+ * \param alg                   A signature algorithm that is compatible with
+ *                              the type of \c key.
+ * \param[in] hash              The hash or message to sign.
+ * \param hash_length           Size of the \c hash buffer in bytes.
+ * \param[in] salt              A salt or label, if supported by the
+ *                              signature algorithm.
+ *                              If the signature algorithm does not support
+ *                              a salt, pass \c NULL.
+ *                              If the signature algorithm supports an
+ *                              optional salt and you do not want to pass
+ *                              a salt, pass \c NULL.
+ * \param salt_length           Size of the \c salt buffer in bytes.
+ *                              If \c salt is \c NULL, pass 0.
+ * \param[out] signature        Buffer where the signature is to be written.
+ * \param signature_size        Size of the \c signature buffer in bytes.
+ * \param[out] signature_length On success, the number of bytes
+ *                              that make up the returned signature value.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
@@ -2231,10 +2234,10 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
  *                          asymmetric key pair.
  * \param alg               A signature algorithm that is compatible with
  *                          the type of \c key.
- * \param hash              The hash or message whose signature is to be
+ * \param[in] hash          The hash or message whose signature is to be
  *                          verified.
  * \param hash_length       Size of the \c hash buffer in bytes.
- * \param salt              A salt or label, if supported by the signature
+ * \param[in] salt          A salt or label, if supported by the signature
  *                          algorithm.
  *                          If the signature algorithm does not support a
  *                          salt, pass \c NULL.
@@ -2243,7 +2246,7 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
  *                          pass \c NULL.
  * \param salt_length       Size of the \c salt buffer in bytes.
  *                          If \c salt is \c NULL, pass 0.
- * \param signature         Buffer containing the signature to verify.
+ * \param[in] signature     Buffer containing the signature to verify.
  * \param signature_length  Size of the \c signature buffer in bytes.
  *
  * \retval #PSA_SUCCESS
@@ -2275,28 +2278,29 @@ psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
 /**
  * \brief Encrypt a short message with a public key.
  *
- * \param key               Key slot containing a public key or an asymmetric
- *                          key pair.
- * \param alg               An asymmetric encryption algorithm that is
- *                          compatible with the type of \c key.
- * \param input             The message to encrypt.
- * \param input_length      Size of the \c input buffer in bytes.
- * \param salt              A salt or label, if supported by the encryption
- *                          algorithm.
- *                          If the algorithm does not support a
- *                          salt, pass \c NULL.
- *                          If the algorithm supports an optional
- *                          salt and you do not want to pass a salt,
- *                          pass \c NULL.
+ * \param key                   Key slot containing a public key or an
+ *                              asymmetric key pair.
+ * \param alg                   An asymmetric encryption algorithm that is
+ *                              compatible with the type of \c key.
+ * \param[in] input             The message to encrypt.
+ * \param input_length          Size of the \c input buffer in bytes.
+ * \param[in] salt              A salt or label, if supported by the
+ *                              encryption algorithm.
+ *                              If the algorithm does not support a
+ *                              salt, pass \c NULL.
+ *                              If the algorithm supports an optional
+ *                              salt and you do not want to pass a salt,
+ *                              pass \c NULL.
  *
- *                          - For #PSA_ALG_RSA_PKCS1V15_CRYPT, no salt is
- *                            supported.
- * \param salt_length       Size of the \c salt buffer in bytes.
- *                          If \c salt is \c NULL, pass 0.
- * \param output            Buffer where the encrypted message is to be written.
- * \param output_size       Size of the \c output buffer in bytes.
- * \param output_length     On success, the number of bytes
- *                          that make up the returned output.
+ *                              - For #PSA_ALG_RSA_PKCS1V15_CRYPT, no salt is
+ *                                supported.
+ * \param salt_length           Size of the \c salt buffer in bytes.
+ *                              If \c salt is \c NULL, pass 0.
+ * \param[out] output           Buffer where the encrypted message is to
+ *                              be written.
+ * \param output_size           Size of the \c output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the returned output.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
@@ -2326,27 +2330,28 @@ psa_status_t psa_asymmetric_encrypt(psa_key_slot_t key,
 /**
  * \brief Decrypt a short message with a private key.
  *
- * \param key               Key slot containing an asymmetric key pair.
- * \param alg               An asymmetric encryption algorithm that is
- *                          compatible with the type of \c key.
- * \param input             The message to decrypt.
- * \param input_length      Size of the \c input buffer in bytes.
- * \param salt              A salt or label, if supported by the encryption
- *                          algorithm.
- *                          If the algorithm does not support a
- *                          salt, pass \c NULL.
- *                          If the algorithm supports an optional
- *                          salt and you do not want to pass a salt,
- *                          pass \c NULL.
+ * \param key                   Key slot containing an asymmetric key pair.
+ * \param alg                   An asymmetric encryption algorithm that is
+ *                              compatible with the type of \c key.
+ * \param[in] input             The message to decrypt.
+ * \param input_length          Size of the \c input buffer in bytes.
+ * \param[in] salt              A salt or label, if supported by the
+ *                              encryption algorithm.
+ *                              If the algorithm does not support a
+ *                              salt, pass \c NULL.
+ *                              If the algorithm supports an optional
+ *                              salt and you do not want to pass a salt,
+ *                              pass \c NULL.
  *
- *                          - For #PSA_ALG_RSA_PKCS1V15_CRYPT, no salt is
- *                            supported.
- * \param salt_length       Size of the \c salt buffer in bytes.
- *                          If \c salt is \c NULL, pass 0.
- * \param output            Buffer where the decrypted message is to be written.
- * \param output_size       Size of the \c output buffer in bytes.
- * \param output_length     On success, the number of bytes
- *                          that make up the returned output.
+ *                              - For #PSA_ALG_RSA_PKCS1V15_CRYPT, no salt is
+ *                                supported.
+ * \param salt_length           Size of the \c salt buffer in bytes.
+ *                              If \c salt is \c NULL, pass 0.
+ * \param[out] output           Buffer where the decrypted message is to
+ *                              be written.
+ * \param output_size           Size of the \c output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the returned output.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
@@ -2389,7 +2394,7 @@ psa_status_t psa_asymmetric_decrypt(psa_key_slot_t key,
  *
  * \note    To generate a key, use psa_generate_key() instead.
  *
- * \param output            Output buffer for the generated data.
+ * \param[out] output       Output buffer for the generated data.
  * \param output_size       Number of bytes to generate and output.
  *
  * \retval #PSA_SUCCESS
@@ -2410,7 +2415,7 @@ psa_status_t psa_generate_random(uint8_t *output,
  *                          be unoccupied.
  * \param type              Key type (a \c PSA_KEY_TYPE_XXX value).
  * \param bits              Key size in bits.
- * \param parameters        Extra parameters for key generation. The
+ * \param[in] parameters    Extra parameters for key generation. The
  *                          interpretation of this parameter depends on
  *                          \c type. All types support \c NULL to use
  *                          the default parameters specified below.

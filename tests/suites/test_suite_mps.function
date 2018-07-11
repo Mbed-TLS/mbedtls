@@ -3614,6 +3614,32 @@ void mbedtls_mps_l1_random_communication( int allocator_buffer_sz,
      * - The receive buffers xxx_recv_buffer store what has already been fetched
      *   from layer 1, with xxx_recv_pos indicating the current read position.
      *
+     * In contrast to the stream-based test, we need to keep track
+     * of datagram boundaries here: Architecturally, we cannot know
+     * how many chunks of outgoing data Layer 1 will fit into a single
+     * datagram on Layer 0. The only guarantees we have are that
+     * - A flush leads enforces delivery to Layer 0, and hence
+     *   enforces a datagram boundary.
+     * - Layer 1 does not split single write-chunks across multiple
+     *   datagrams.
+     * Hence, if the sender sends data in a series of n chunks to Layer 1,
+     * with the total amount of data in the first i chunks denoted by
+     * M_i, and if the sender flushes after chunks i_1, ..., i_k, then the
+     * set of architecturally allowed datagram boundaries in the total
+     * data block of size M_n consists of all subsets of { M_1, ..., M_n }
+     * containing { M_{i_1}, ..., M_{i_k} }. For example, in the extreme case
+     * where the sender flushes after every chunk, the datagram boundaries
+     * are precisely { M_1, ..., M_n }, if the sender only flushes after
+     * dispatching all chunks, the datagram bounds are an arbitrary
+     * subset of { M_1, ..., M_n } containing Mn.
+     *
+     * When writing, we record both the potential datagram bounds M_i as
+     * well as the enforced onces M_{i_j}. When reading, we check that
+     * - any read requests exceeding an enforced boundary M_{i_j} leads
+     *   to a bounds violation, while
+     * - any other read request leading to a bounds violation must
+     *   have crossed a tentative boundary M_i.
+     *
      * NOTE: This test uses rand() for random data, which is not optimal.
      *       Instead, it would be better to get the random data from a
      *       static buffer. This both eases reproducibility and allows
@@ -3811,163 +3837,52 @@ void mbedtls_mps_l1_random_communication_dgram( int max_dgram_size )
     unsigned char c2s_recv_buffer[10000];
     unsigned char s2c_send_buffer[10000];
     unsigned char s2c_recv_buffer[10000];
+
     size_t c2s_send_pos = 0, s2c_send_pos = 0;
     size_t c2s_recv_pos = 0, s2c_recv_pos = 0;
 
-    /* This probably needs to be changed because we want
-     * our tests to be deterministic. */
-    srand( time( NULL ) );
+    size_t out_chunks;  /* Counts the number of outgoing chunks. */
+    size_t out_flushes; /* Counts the number of flushes.         */
+    size_t dispatch_positions[ 100 ]; /* Indicates the offsets within
+                                       * 0, .., len_total at which the
+                                       * sending side has dispatched data. */
+    size_t flush_positions[ 100 ];    /* Indicates the offsets within
+                                       * 0, .., len_total at which the
+                                       * sending side has flushed data.    */
 
-    /* Initialize Layer 0 mock objects */
-    TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
-    TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
+    size_t cur_in_chunk; /* Indicates from which chunk the receiver
+                          * is currently reading. */
+    size_t cur_in_flush; /* Indicates the 0-based index of the first flush
+                          * following the chunk from which the receiver
+                          * is currently reading. */
 
-    /* Initialize allocators */
-    mps_alloc_init( &cli_alloc, max_dgram_size );
-    mps_alloc_init( &srv_alloc, max_dgram_size );
+    /* TO BE WRITTEN */
 
-    /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli, MPS_L1_MODE_DATAGRAM, &cli_alloc,
-                              layer0_dgram_write_cli,
-                              layer0_dgram_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv, MPS_L1_MODE_DATAGRAM, &srv_alloc,
-                              layer0_dgram_write_srv,
-                              layer0_dgram_read_srv ) == 0 );
+    ((void) len_total);
+    ((void) c2s_send_pos);
+    ((void) s2c_send_pos);
+    ((void) c2s_recv_pos);
+    ((void) s2c_recv_pos);
+    ((void) c2s_recv_buffer);
+    ((void) s2c_recv_buffer);
+    ((void) c2s_send_buffer);
+    ((void) s2c_send_buffer);
+    ((void) out_chunks);
+    ((void) out_flushes);
+    ((void) dispatch_positions);
+    ((void) flush_positions);
+    ((void) cur_in_chunk);
+    ((void) cur_in_flush);
 
-    /* Generate the random content to be exchanged */
-    TEST_ASSERT( mbedtls_test_rnd_std_rand( NULL, c2s_send_buffer,
-                               sizeof( c2s_send_buffer ) ) == 0 );
-    TEST_ASSERT( mbedtls_test_rnd_std_rand( NULL, s2c_send_buffer,
-                               sizeof( s2c_send_buffer ) ) == 0 );
+    ((void) srv);
+    ((void) cli);
+    ((void) srv_alloc);
+    ((void) cli_alloc);
+    ((void) ret);
+    ((void) max_dgram_size);
 
-    /* Loop as long as at least client or server haven't completed
-     * receiving or sending. */
-    while( c2s_send_pos < len_total || c2s_recv_pos < len_total ||
-           s2c_send_pos < len_total || s2c_recv_pos < len_total )
-    {
-        /* Point to the respective variables for client/server,
-         * depending on the random choice of actor in this round. */
-        mps_l1 *actor;
-        unsigned char *recv_dst_buf, *send_src_buf;
-        unsigned char *send_dst_buf, *recv_src_buf;
-        size_t *send_pos, *recv_pos;
-        /* Randomly choose between server and client */
-        if( rand() & 1 )
-        {
-            actor = &cli;
-            send_pos = &c2s_send_pos;
-            recv_pos = &c2s_recv_pos;
-            recv_dst_buf = c2s_recv_buffer;
-            send_src_buf = c2s_send_buffer;
-        }
-        else
-        {
-            actor = &srv;
-            send_pos = &s2c_send_pos;
-            recv_pos = &s2c_recv_pos;
-            recv_dst_buf = s2c_recv_buffer;
-            send_src_buf = s2c_send_buffer;
-        }
+    TEST_ASSERT( 1 );
 
-        /* Choose between sending and receiving */
-        if( rand() & 1 )
-        {
-            /* Sending */
-            size_t send_attempt;
-            size_t send_dst_len;
-
-            /* Once we have dispatched everything, only call flush.
-             * And even if we have more to dispatch, call flush randomly. */
-            if( len_total == *send_pos || rand() % 4 )
-            {
-                ret = mps_l1_flush( actor );
-                TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_WRITE );
-                continue;
-            }
-
-            /* Request write-buffer from Layer 1
-             * It might be that the request is not successful because
-             * data is pending to be flushed first; in this case, skip
-             * the step for now. */
-            ret = mps_l1_write( actor, &send_dst_buf, &send_dst_len );
-            TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_WRITE );
-            if( ret != 0 )
-                continue;
-
-            /* Pick a random, nonempty percentage of the remaining data
-             * to be sent and copy it into the write-buffer */
-            if( send_dst_len > len_total - *send_pos )
-                send_dst_len = len_total - *send_pos;
-            send_attempt = ( send_dst_len * ( ( rand() % 25 ) + 1 ) ) / 100;
-            if( send_attempt == 0 )
-                send_attempt = 1;
-            memcpy( send_dst_buf, send_src_buf + *send_pos, send_attempt );
-
-            /* Transfer data to Layer 1 -- note that this does not
-             * necessarily immediately transfer the data to Layer 0. */
-            ret = mps_l1_dispatch( actor, send_attempt );
-            TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_WRITE );
-
-            *send_pos += send_attempt;
-        }
-        else
-        {
-            /* Receiving */
-            size_t recv_attempt;
-
-            /* Skip this if we have already received everything */
-            if( len_total == *recv_pos )
-                continue;
-
-            /* Pick random, nonempty share of the data still
-             * remaining to be received. */
-            recv_attempt = len_total - *recv_pos;
-            if( recv_attempt > 10 * (unsigned) max_dgram_size )
-                recv_attempt = 10 * (unsigned) max_dgram_size;
-
-            recv_attempt = ( recv_attempt * ( ( rand() % 10 ) + 1 ) ) / 100;
-
-            if( recv_attempt == 0 )
-                recv_attempt = 1;
-
-            /* Attempt to fetch the data.
-             * Layer 1 never returns less than the requested amount
-             * to the user; instead, if the read cannot be fulfilled
-             * in its entirety, WANT_READ is returned, and one should
-             * retry later. */
-            ret = mps_l1_fetch( actor, &recv_src_buf, recv_attempt );
-            TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_READ ||
-                         ( recv_attempt > (unsigned) max_dgram_size &&
-                           ret == MPS_ERR_BUFFER_TOO_SMALL ) );
-            if( ret != 0 )
-                continue;
-
-            /* Randomly decide to ignore (and re-read on the next occasion)
-             * the fetched contents. */
-            if( rand() & 1 )
-                continue;
-
-            /* Request was successful; copy data to local buffer
-             * and notify Layer 1 that it is fully consumed. */
-            memcpy( recv_dst_buf + *recv_pos, recv_src_buf, recv_attempt );
-            TEST_ASSERT( mps_l1_consume( actor ) == 0 );
-
-            *recv_pos += recv_attempt;
-        }
-    }
-
-    /* Ensure that both parties have observed the same communication. */
-    TEST_ASSERT( memcmp( c2s_recv_buffer, s2c_send_buffer, len_total ) == 0 );
-    TEST_ASSERT( memcmp( s2c_recv_buffer, c2s_send_buffer, len_total ) == 0 );
-
-    TEST_ASSERT( mps_l1_free( &cli ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv ) == 0 );
-
-    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
-    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
-
-    layer0_dgram_free( &s2c_d );
-    layer0_dgram_free( &c2s_d );
 }
 /* END_CASE */
 

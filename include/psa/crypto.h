@@ -356,7 +356,7 @@ typedef uint32_t psa_key_type_t;
  * used for.
  *
  * HMAC keys should generally have the same size as the underlying hash.
- * This size can be calculated with #PSA_HASH_SIZE(`alg`) where
+ * This size can be calculated with #PSA_HASH_SIZE(\p alg) where
  * `alg` is the HMAC algorithm or the underlying hash algorithm. */
 #define PSA_KEY_TYPE_HMAC                       ((psa_key_type_t)0x02000001)
 
@@ -650,7 +650,7 @@ typedef uint32_t psa_algorithm_t;
  * For example, `PSA_ALG_HMAC(PSA_ALG_SHA256)` is HMAC-SHA-256.
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
- *                      #PSA_ALG_IS_HASH(alg) is true).
+ *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
  *
  * \return              The corresponding HMAC algorithm.
  * \return              Unspecified if \p alg is not a supported
@@ -775,7 +775,7 @@ typedef uint32_t psa_algorithm_t;
  * RSASSA-PKCS1-v1_5.
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
- *                      #PSA_ALG_IS_HASH(alg) is true).
+ *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
  *
  * \return              The corresponding RSA PKCS#1 v1.5 signature algorithm.
  * \return              Unspecified if \p alg is not a supported
@@ -803,7 +803,7 @@ typedef uint32_t psa_algorithm_t;
  * salted hash, and for the mask generation.
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
- *                      #PSA_ALG_IS_HASH(alg) is true).
+ *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
  *
  * \return              The corresponding RSA PSS signature algorithm.
  * \return              Unspecified if \p alg is not a supported
@@ -821,7 +821,7 @@ typedef uint32_t psa_algorithm_t;
  * with a random per-message secret number (*k*).
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
- *                      #PSA_ALG_IS_HASH(alg) is true).
+ *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
  *
  * \return              The corresponding DSA signature algorithm.
  * \return              Unspecified if \p alg is not a supported
@@ -852,7 +852,7 @@ typedef uint32_t psa_algorithm_t;
  * in big-endian order (most significant octet first).
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
- *                      #PSA_ALG_IS_HASH(alg) is true).
+ *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
  *
  * \return              The corresponding ECDSA signature algorithm.
  * \return              Unspecified if \p alg is not a supported
@@ -884,7 +884,7 @@ typedef uint32_t psa_algorithm_t;
  * #PSA_ALG_ECDSA(\c hash_alg) only for signature, not for verification.
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
- *                      #PSA_ALG_IS_HASH(alg) is true).
+ *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
  *
  * \return              The corresponding deterministic ECDSA signature
  *                      algorithm.
@@ -908,7 +908,7 @@ typedef uint32_t psa_algorithm_t;
  * itself.
  *
  * \param alg   A signature algorithm (\c PSA_ALG_XXX value such that
- *              #PSA_ALG_IS_SIGN(alg) is true).
+ *              #PSA_ALG_IS_SIGN(\p alg) is true).
  *
  * \return      The underlying hash algorithm if \p alg is a hash-and-sign
  *              algorithm.
@@ -1315,7 +1315,7 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  * This is also the hash size that psa_hash_verify() expects.
  *
  * \param alg   A hash algorithm (\c PSA_ALG_XXX value such that
- *              #PSA_ALG_IS_HASH(alg) is true), or an HMAC algorithm
+ *              #PSA_ALG_IS_HASH(\p alg) is true), or an HMAC algorithm
  *              (#PSA_ALG_HMAC(`hash_alg`) where `hash_alg` is a
  *              hash algorithm).
  *
@@ -1367,7 +1367,7 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  *
  * \param operation The operation object to use.
  * \param alg       The hash algorithm to compute (\c PSA_ALG_XXX value
- *                  such that #PSA_ALG_IS_HASH(alg) is true).
+ *                  such that #PSA_ALG_IS_HASH(\p alg) is true).
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1422,10 +1422,10 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
  *
  * \param operation     Active hash operation.
  * \param hash          Buffer where the hash is to be written.
- * \param hash_size     Size of the \c hash buffer in bytes.
+ * \param hash_size     Size of the \p hash buffer in bytes.
  * \param hash_length   On success, the number of bytes
  *                      that make up the hash value. This is always
- *                      #PSA_HASH_SIZE(alg) where \c alg is the
+ *                      #PSA_HASH_SIZE(`alg`) where `alg` is the
  *                      hash algorithm that is calculated.
  *
  * \retval #PSA_SUCCESS
@@ -1434,7 +1434,7 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
  *         The operation state is not valid (not started, or already completed).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \c hash buffer is too small. You can determine a
- *         sufficient buffer size by calling #PSA_HASH_SIZE(alg)
+ *         sufficient buffer size by calling #PSA_HASH_SIZE(\c alg)
  *         where \c alg is the hash algorithm that is calculated.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
@@ -1595,7 +1595,7 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  * \param operation The operation object to use.
  * \param key       Slot containing the key to use for the operation.
  * \param alg       The MAC algorithm to compute (\c PSA_ALG_XXX value
- *                  such that #PSA_ALG_IS_MAC(alg) is true).
+ *                  such that #PSA_ALG_IS_MAC(\p alg) is true).
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1784,7 +1784,7 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * \param operation The operation object to use.
  * \param key       Slot containing the key to use for the operation.
  * \param alg       The cipher algorithm to compute (\c PSA_ALG_XXX value
- *                  such that #PSA_ALG_IS_CIPHER(alg) is true).
+ *                  such that #PSA_ALG_IS_CIPHER(\p alg) is true).
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -1832,7 +1832,7 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
  * \param operation The operation object to use.
  * \param key       Slot containing the key to use for the operation.
  * \param alg       The cipher algorithm to compute (\c PSA_ALG_XXX value
- *                  such that #PSA_ALG_IS_CIPHER(alg) is true).
+ *                  such that #PSA_ALG_IS_CIPHER(\p alg) is true).
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -2026,7 +2026,7 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  *
  * \param alg                 An AEAD algorithm
  *                            (\c PSA_ALG_XXX value such that
- *                            #PSA_ALG_IS_AEAD(alg) is true).
+ *                            #PSA_ALG_IS_AEAD(\p alg) is true).
  *
  * \return                    The tag size for the specified algorithm.
  *                            If the AEAD algorithm does not have an identified
@@ -2047,7 +2047,7 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  * \param key                     Slot containing the key to use.
  * \param alg                     The AEAD algorithm to compute
  *                                (\c PSA_ALG_XXX value such that
- *                                #PSA_ALG_IS_AEAD(alg) is true).
+ *                                #PSA_ALG_IS_AEAD(\p alg) is true).
  * \param nonce                   Nonce or IV to use.
  * \param nonce_length            Size of the \p nonce buffer in bytes.
  * \param additional_data         Additional data that will be authenticated
@@ -2100,7 +2100,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
  * \param key                     Slot containing the key to use.
  * \param alg                     The AEAD algorithm to compute
  *                                (\c PSA_ALG_XXX value such that
- *                                #PSA_ALG_IS_AEAD(alg) is true).
+ *                                #PSA_ALG_IS_AEAD(\p alg) is true).
  * \param nonce                   Nonce or IV to use.
  * \param nonce_length            Size of the \p nonce buffer in bytes.
  * \param additional_data         Additional data that has been authenticated
@@ -2197,7 +2197,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \c signature buffer is too small. You can
  *         determine a sufficient buffer size by calling
- *         #PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE(key_type, key_bits, alg)
+ *         #PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE(\c key_type, \c key_bits, \p alg)
  *         where \c key_type and \c key_bits are the type and bit-size
  *         respectively of \c key.
  * \retval #PSA_ERROR_NOT_SUPPORTED
@@ -2302,7 +2302,7 @@ psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \c output buffer is too small. You can
  *         determine a sufficient buffer size by calling
- *         #PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE(key_type, key_bits, alg)
+ *         #PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE(\c key_type, \c key_bits, \p alg)
  *         where \c key_type and \c key_bits are the type and bit-size
  *         respectively of \c key.
  * \retval #PSA_ERROR_NOT_SUPPORTED
@@ -2418,7 +2418,7 @@ psa_status_t psa_generate_random(uint8_t *output,
  *                          points to, in bytes.
  *
  * For any symmetric key type (a type such that
- * #PSA_KEY_TYPE_IS_ASYMMETRIC(`type`) is false), \c parameters must be
+ * #PSA_KEY_TYPE_IS_ASYMMETRIC(\p type) is false), \c parameters must be
  * \c NULL. For asymmetric key types defined by this specification,
  * the parameter type and the default parameters are defined by the
  * table below. For vendor-defined key types, the vendor documentation

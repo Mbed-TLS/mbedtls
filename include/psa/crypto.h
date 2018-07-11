@@ -2427,21 +2427,26 @@ typedef struct {
  * \param[in] extra         Extra parameters for key generation. The
  *                          interpretation of this parameter depends on
  *                          \c type. All types support \c NULL to use
- *                          the default parameters specified below.
+ *                          default parameters. Implementation that support
+ *                          the generation of vendor-specific key types
+ *                          that allow extra parameters shall document
+ *                          the format of these extra parameters and
+ *                          the default values. For standard parameters,
+ *                          the meaning of \p extra is as follows:
+ *                          - For a symmetric key type (a type \c type such
+ *                            that #PSA_KEY_TYPE_IS_ASYMMETRIC(\p type) is
+ *                            false), \p extra must be \c NULL.
+ *                          - For an elliptic curve key type (a type \c type
+ *                            such that #PSA_KEY_TYPE_IS_ECC(\p type) is
+ *                            false), \p extra must be \c NULL.
+ *                          - For an RSA key, \p extra is an optional
+ *                            #psa_generate_key_extra_rsa structure
+ *                            specifying the public exponent. The
+ *                            default public exponent used when \p extra
+ *                            is \c NULL is 65537.
  * \param extra_size        Size of the buffer that \p extra
  *                          points to, in bytes. Note that if \p extra is
  *                          \c NULL then \p extra_size must be zero.
- *
- * For any symmetric key type (a type such that
- * #PSA_KEY_TYPE_IS_ASYMMETRIC(\p type) is false), \p extra must be
- * \c NULL. For asymmetric key types defined by this specification,
- * the parameter type and the default parameters are defined by the
- * table below. For vendor-defined key types, the vendor documentation
- * shall define the parameter type and the default parameters.
- *
- * Type | Parameter type | Meaning | Parameters used if `extra == NULL`
- * ---- | -------------- | ------- | ---------------------------------------
- * `PSA_KEY_TYPE_RSA_KEYPAIR` | #psa_generate_key_extra_rsa | Public exponent | 65537
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_NOT_SUPPORTED

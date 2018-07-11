@@ -19,10 +19,13 @@ Security
    * Fix a vulnerability in TLS ciphersuites based on CBC, in (D)TLS 1.0 to
      1.2, that allowed a local attacker, able to execute code on the local
      machine as well as manipulate network packets, to partially recover the
-     plaintext of messages under some conditions (see previous entry) by using
-     a cache attack targetting an internal MD/SHA buffer. Connections using
-     GCM or CCM instead of CBC or using Encrypt-then-Mac (RFC 7366) were not
-     affected. Found by Kenny Paterson, Eyal Ronen and Adi Shamir.
+     plaintext of messages under some conditions by using a cache attack
+     targetting an internal MD/SHA buffer. With TLS or if
+     mbedtls_ssl_conf_dtls_badmac_limit() was used, the attack only worked if
+     the same secret (for example a HTTP Cookie) has been repeatedly sent over
+     connections manipulated by the attacker. Connections using GCM or CCM
+     instead of CBC or using Encrypt-then-Mac (RFC 7366) were not affected.
+     Found by Kenny Paterson, Eyal Ronen and Adi Shamir.
    * Add a counter-measure against a vulnerability in TLS ciphersuites based
      on CBC, in (D)TLS 1.0 to 1.2, that allowed a local attacker, able to
      execute code on the local machine as well as manipulate network packets,

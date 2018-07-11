@@ -414,6 +414,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_PKCS1_V21)
     "MBEDTLS_PKCS1_V21",
 #endif /* MBEDTLS_PKCS1_V21 */
+#if defined(MBEDTLS_PSA_CRYPTO_SPM)
+    "MBEDTLS_PSA_CRYPTO_SPM",
+#endif /* MBEDTLS_PSA_CRYPTO_SPM */
 #if defined(MBEDTLS_RSA_NO_CRT)
     "MBEDTLS_RSA_NO_CRT",
 #endif /* MBEDTLS_RSA_NO_CRT */

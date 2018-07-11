@@ -64,12 +64,9 @@
 #define MPS_ERR_COUNTER_WRAP           -0x15 /*!< The record sequence number be increased
                                               *   because it would wrap.                   */
 #define MPS_ERR_INVALID_ARGS           -0x28 /*!< The parameter validation failed.         */
-#define MPS_ERR_INVALID_RECORD_TYPE    -0x2  /*!< The record content type is invalid
-                                             *    according to the configuration set through
-                                             *    mps_l2_config_add_type().                */
-#define MPS_ERR_INVALID_RECORD_VERSION -0x3  /*!< The record version is invalid.           */
-#define MPS_ERR_INVALID_RECORD_LENGTH  -0x4  /*!< The record length is invalid.            */
-#define MPS_ERR_INVALID_RECORD_EPOCH   -0x5  /*!< The record epoch is invalid.             */
+#define MPS_ERR_INVALID_RECORD         -0x321  /*!< The record header is invalid.            */
+#define MPS_ERR_INVALID_MAC            -0x33  /*!< The record MAC is invalid.               */
+#define MPS_ERR_INVALID_EPOCH          -0x42  /*!< The record header is invalid.            */
 #define MPS_ERR_EPOCH_CHANGE_REJECTED  -0x6  /*!< The current epoch couldn't be changed.   */
 #define MPS_ERR_EPOCH_ALREADY_SET      -0x7  /*!< The epoch under consideration has already
                                               *   been configured.                         */
@@ -291,7 +288,7 @@ typedef struct
                            *   Incoming record of invalid record content
                            *   types, or attempts to send data of invalid
                            *   content types, are reported through the error
-                           *   code MPS_ERR_INVALID_RECORD_TYPE.              */
+                           *   code MPS_ERR_INVALID_RECORD.                 */
     uint64_t pause_flag;  /*!< This member defines the record content type
                            *   ID's for which the Layer 2 instance allows
                            *   merging contents of multiple incoming records

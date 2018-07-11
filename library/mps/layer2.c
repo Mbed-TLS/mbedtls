@@ -314,7 +314,7 @@ int mps_l2_config_add_type( mps_l2 *ctx, uint8_t type,
            (unsigned) type, (unsigned) pausing, (unsigned) merging );
 
     if( type >= 64 )
-        RETURN( MPS_ERR_INVALID_RECORD_TYPE );
+        RETURN( MPS_ERR_INVALID_RECORD );
 
     mask = ( (uint64_t) 1u << type );
     if( ctx->conf.type_flag & mask )
@@ -851,7 +851,7 @@ int mps_l2_epoch_usage( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
     {
         TRACE( trace_error, "Epoch %d smaller than the base epoch %d.",
                epoch, ctx->epoch_base );
-        RETURN( MPS_ERR_INVALID_RECORD_EPOCH );
+        RETURN( MPS_ERR_INVALID_EPOCH );
     }
 
     epoch_offset = epoch - ctx->epoch_base;
@@ -860,7 +860,7 @@ int mps_l2_epoch_usage( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
         TRACE( trace_error, "The epoch offset %u (== %d - %d) exceeds the epoch window size %u.",
                (unsigned) epoch_offset, epoch,
                ctx->epoch_base, MPS_L2_EPOCH_WINDOW_SIZE );
-        RETURN( MPS_ERR_INVALID_RECORD_EPOCH );
+        RETURN( MPS_ERR_INVALID_EPOCH );
     }
 
     /* 2. Check if the change of permissions collides with
@@ -1049,7 +1049,7 @@ int mps_l2_write_start( mps_l2 *ctx, mps_l2_out *out )
     if( l2_type_is_valid( ctx, desired_type ) == 0 )
     {
         TRACE( trace_error, "Message type %d is invalid", desired_type );
-        RETURN( MPS_ERR_INVALID_RECORD_TYPE );
+        RETURN( MPS_ERR_INTERNAL_ERROR );
     }
 
     /* Check if the requested epoch is valid for writing. */
@@ -1672,7 +1672,7 @@ static int l2_in_fetch_record( mps_l2 *ctx, mps_rec *rec )
     if( rec->buf.data_len > ctx->conf.max_plain_in )
     {
         /* TODO: Release the record */
-        RETURN( MPS_ERR_INVALID_RECORD_LENGTH );
+        RETURN( MPS_ERR_INVALID_RECORD );
     }
 
     /*
@@ -1807,7 +1807,7 @@ static int l2_in_fetch_protected_record_tls( mps_l2 *ctx, mps_rec *rec )
     if( l2_type_is_valid( ctx, type ) == 0 )
     {
         TRACE( trace_error, "Invalid record type received" );
-        RETURN( MPS_ERR_INVALID_RECORD_TYPE );
+        RETURN( MPS_ERR_INVALID_RECORD );
     }
 
     /* Version */
@@ -1816,7 +1816,11 @@ static int l2_in_fetch_protected_record_tls( mps_l2 *ctx, mps_rec *rec )
                      buf + tls_rec_ver_offset );
 
     if( major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 )
-        RETURN( MPS_ERR_INVALID_RECORD_VERSION );
+    {
+        TRACE( trace_error, "Invalid major record version %u received, expected %u",
+               (unsigned) major_ver, MBEDTLS_SSL_MAJOR_VERSION_3 );
+        RETURN( MPS_ERR_INVALID_RECORD );
+    }
 
     /* Initially, the server doesn't know which TLS version
      * the client will use for its ClientHello message, so
@@ -1826,7 +1830,9 @@ static int l2_in_fetch_protected_record_tls( mps_l2 *ctx, mps_rec *rec )
     if( ctx->conf.version != MPS_L2_VERSION_UNSPECIFIED &&
         ctx->conf.version != minor_ver )
     {
-        RETURN( MPS_ERR_INVALID_RECORD_VERSION );
+        TRACE( trace_error, "Invalid minor record version %u received, expected %u",
+               (unsigned) minor_ver, ctx->conf.version );
+        RETURN( MPS_ERR_INVALID_RECORD );
     }
 
     /* Length */
@@ -1918,7 +1924,7 @@ static int l2_in_fetch_protected_record_dtls12( mps_l2 *ctx, mps_rec *rec )
     if( l2_type_is_valid( ctx, type ) == 0 )
     {
         TRACE( trace_error, "Invalid record type received" );
-        RETURN( MPS_ERR_INVALID_RECORD_TYPE );
+        RETURN( MPS_ERR_INVALID_RECORD );
     }
 
     /* Version */
@@ -1926,13 +1932,34 @@ static int l2_in_fetch_protected_record_dtls12( mps_l2 *ctx, mps_rec *rec )
                      MBEDTLS_SSL_TRANSPORT_DATAGRAM,
                      buf + dtls_rec_ver_offset );
 
-    /* Check minor version, but only if version has
-     * already been specified. This is important to
-     * let through initial records at a stage where
-     * the protocol version has not yet been negotiated. */
+    if( major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 )
+    {
+        TRACE( trace_error, "Invalid major record version %u received, expected %u",
+               (unsigned) major_ver, MBEDTLS_SSL_MAJOR_VERSION_3 );
+        RETURN( MPS_ERR_INVALID_RECORD );
+    }
+
+    /* Initially, the server doesn't know which DTLS version
+     * the client will use for its ClientHello message, so
+     * Layer 2 must be configurable to allow arbitrary TLS
+     * versions. This is done through the initial version
+     * value MPS_L2_VERSION_UNSPECIFIED. */
+    if( ctx->conf.version != MPS_L2_VERSION_UNSPECIFIED &&
+        ctx->conf.version != minor_ver )
+    {
+        TRACE( trace_error, "Invalid minor record version %u received, expected %u",
+               (unsigned) minor_ver, ctx->conf.version );
+        RETURN( MPS_ERR_INVALID_RECORD );
+    }
 
     /* Epoch */
     MPS_L2_READ_UINT16_LE( buf + dtls_rec_epoch_offset, &epoch );
+
+    ret = l2_epoch_check( ctx, epoch, MPS_EPOCH_READ );
+    if( ret == MPS_ERR_INVALID_EPOCH )
+        ret = MPS_ERR_INVALID_RECORD;
+    if( ret != 0 )
+        RETURN( ret );
 
     /* Sequence number */
     MPS_L2_READ_UINT48_LE( buf + dtls_rec_seq_offset, &sequence_number );
@@ -1950,6 +1977,13 @@ static int l2_in_fetch_protected_record_dtls12( mps_l2 *ctx, mps_rec *rec )
      */
     ret = mps_l1_fetch( ctx->conf.l1, &buf,
                         dtls_rec_hdr_len + len );
+
+    if( ret == MPS_ERR_REQUEST_OUT_OF_BOUNDS )
+    {
+        TRACE( trace_error, "Claimed record length exceeds datagram bounds." );
+        ret = MPS_ERR_INVALID_RECORD;
+    }
+
     if( ret != 0 )
         RETURN( ret );
 
@@ -2025,7 +2059,7 @@ static int l2_epoch_check( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
         if( ( purpose & epoch_usage ) != purpose )
         {
             TRACE( trace_comment, "epoch usage not allowed" );
-            RETURN( MPS_ERR_INVALID_RECORD_EPOCH );
+            RETURN( MPS_ERR_INVALID_RECORD );
         }
     }
     else
@@ -2034,14 +2068,14 @@ static int l2_epoch_check( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
             ctx->epochs.tls.default_in != epoch )
         {
             TRACE( trace_comment, "epoch not the default incoming one" );
-            RETURN( MPS_ERR_INVALID_RECORD_EPOCH );
+            RETURN( MPS_ERR_INVALID_RECORD );
         }
 
         if( purpose == MPS_EPOCH_WRITE &&
             ctx->epochs.tls.default_out != epoch )
         {
             TRACE( trace_comment, "epoch not the default outgoing one" );
-            RETURN( MPS_ERR_INVALID_RECORD_EPOCH );
+            RETURN( MPS_ERR_INVALID_RECORD );
         }
     }
 
@@ -2186,12 +2220,12 @@ static int l2_epoch_table_lookup( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
     if( epoch == MPS_EPOCH_NONE )
     {
         TRACE( trace_comment, "The epoch is unset." );
-        RETURN( MPS_ERR_INVALID_RECORD_EPOCH );
+        RETURN( MPS_ERR_INVALID_EPOCH );
     }
     else if( epoch < ctx->epoch_base )
     {
         TRACE( trace_comment, "The epoch is below the epoch base." );
-        RETURN( MPS_ERR_INVALID_RECORD_EPOCH );
+        RETURN( MPS_ERR_INVALID_EPOCH );
     }
 
     epoch_offset = epoch - ctx->epoch_base;
@@ -2200,7 +2234,7 @@ static int l2_epoch_table_lookup( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
     if( epoch_offset >= MPS_L2_EPOCH_WINDOW_SIZE )
     {
         TRACE( trace_error, "The epoch is outside the epoch window." );
-        RETURN( MPS_ERR_EPOCH_WINDOW_EXCEEDED );
+        RETURN( MPS_ERR_INVALID_EPOCH );
     }
 
     if( transform != NULL )

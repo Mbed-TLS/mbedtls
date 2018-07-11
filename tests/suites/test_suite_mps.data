@@ -191,25 +191,46 @@ MPS Writer: Random usage #2
 mbedtls_mps_writer_random_usage:10000:100:50:100
 
 MPS Layer 1: Single chunk send and receive
-mbedtls_mps_l1_basic:0:0:0:0
+mbedtls_mps_l1_basic:MPS_L1_MODE_STREAM:0:0:0:0
 
 MPS Layer 1: Multiple chunk send, single chunk receive
-mbedtls_mps_l1_basic:1:0:0:0
+mbedtls_mps_l1_basic:MPS_L1_MODE_STREAM:1:0:0:0
 
 MPS Layer 1: Multiple chunk send & flush, single chunk receive
-mbedtls_mps_l1_basic:1:1:0:0
+mbedtls_mps_l1_basic:MPS_L1_MODE_STREAM:1:1:0:0
 
 MPS Layer 1: Single chunk send, multiple chunk receive
-mbedtls_mps_l1_basic:0:0:1:1
+mbedtls_mps_l1_basic:MPS_L1_MODE_STREAM:0:0:1:1
 
 MPS Layer 1: Single chunk send, multiple chunk receive no comsume
-mbedtls_mps_l1_basic:0:0:1:0
+mbedtls_mps_l1_basic:MPS_L1_MODE_STREAM:0:0:1:0
 
 MPS Layer 1: Multiple chunk send, multiple chunk receive
-mbedtls_mps_l1_basic:1:0:1:1
+mbedtls_mps_l1_basic:MPS_L1_MODE_STREAM:1:0:1:1
 
 MPS Layer 1: Multiple chunk send & flush, multiple chunk receive
-mbedtls_mps_l1_basic:1:1:1:1
+mbedtls_mps_l1_basic:MPS_L1_MODE_STREAM:1:1:1:1
+
+MPS Layer 1 DTLS: Single chunk send and receive
+mbedtls_mps_l1_basic:MPS_L1_MODE_DATAGRAM:0:0:0:0
+
+MPS Layer 1 DTLS: Multiple chunk send, single chunk receive
+mbedtls_mps_l1_basic:MPS_L1_MODE_DATAGRAM:1:0:0:0
+
+MPS Layer 1 DTLS: Multiple chunk send & flush, single chunk receive
+mbedtls_mps_l1_basic:MPS_L1_MODE_DATAGRAM:1:1:0:0
+
+MPS Layer 1 DTLS: Single chunk send, multiple chunk receive
+mbedtls_mps_l1_basic:MPS_L1_MODE_DATAGRAM:0:0:1:1
+
+MPS Layer 1 DTLS: Single chunk send, multiple chunk receive no comsume
+mbedtls_mps_l1_basic:MPS_L1_MODE_DATAGRAM:0:0:1:0
+
+MPS Layer 1 DTLS: Multiple chunk send, multiple chunk receive
+mbedtls_mps_l1_basic:MPS_L1_MODE_DATAGRAM:1:0:1:1
+
+MPS Layer 1 DTLS: Multiple chunk send & flush, multiple chunk receive
+mbedtls_mps_l1_basic:MPS_L1_MODE_DATAGRAM:1:1:1:1
 
 MPS Layer 1: Underlying stream transport isn't ready to send #0
 mbedtls_mps_l1_want_write:0:0

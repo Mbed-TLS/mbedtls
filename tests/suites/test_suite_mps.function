@@ -3047,7 +3047,8 @@ void mbedtls_mps_writer_random_usage( int data_amount,
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_L1 */
-void mbedtls_mps_l1_basic( int send_multiple,
+void mbedtls_mps_l1_basic( int mode,
+                           int send_multiple,
                            int send_multiple_do_flush,
                            int recv_multiple,
                            int recv_multiple_do_consume )
@@ -3079,20 +3080,41 @@ void mbedtls_mps_l1_basic( int send_multiple,
     unsigned char *in_buf;
     size_t out_len;
 
+    mps_l0_send_t *cli_wr,  *srv_wr;
+    mps_l0_recv_t *cli_rcv, *srv_rcv;
+
     /* Initialize Layer 0 mock objects */
-    layer0_bufsize = (size_t) data_len;
-    TEST_ASSERT( layer0_init( &s2c ) == 0 );
-    TEST_ASSERT( layer0_init( &c2s ) == 0 );
+    if( mode == MPS_L1_MODE_STREAM )
+    {
+        layer0_bufsize = (size_t) ( 2 * data_len );
+        TEST_ASSERT( layer0_init( &s2c ) == 0 );
+        TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+        cli_wr  = &layer0_write_cli;
+        cli_rcv = &layer0_read_cli;
+        srv_wr  = &layer0_write_srv;
+        srv_rcv = &layer0_read_srv;
+    }
+    else
+    {
+        TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
+        TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
+
+        cli_wr  = &layer0_dgram_write_cli;
+        cli_rcv = &layer0_dgram_read_cli;
+        srv_wr  = &layer0_dgram_write_srv;
+        srv_rcv = &layer0_dgram_read_srv;
+    }
 
     /* Initialize allocators */
-    mps_alloc_init( &cli_alloc, data_len );
-    mps_alloc_init( &srv_alloc, data_len );
+    mps_alloc_init( &cli_alloc, 2 * data_len );
+    mps_alloc_init( &srv_alloc, 2 * data_len );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli, MPS_L1_MODE_STREAM, &cli_alloc,
-                              layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv, MPS_L1_MODE_STREAM, &srv_alloc,
-                              layer0_write_srv, layer0_read_srv ) == 0 );
+    TEST_ASSERT( mps_l1_init( &cli, mode, &cli_alloc,
+                              cli_wr, cli_rcv ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv, mode, &srv_alloc,
+                              srv_wr, srv_rcv ) == 0 );
 
     /* Generate the random content to be exchanged */
     TEST_ASSERT( mbedtls_test_rnd_std_rand( NULL, data, data_len ) == 0 );
@@ -3142,10 +3164,36 @@ void mbedtls_mps_l1_basic( int send_multiple,
      *         either in a single or in multiple chunks. */
     if( ! recv_multiple )
     {
-        /* Receive in a single chunk. */
-        TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, data_len ) == 0 );
-        memcpy( data_in, in_buf, data_len );
-        TEST_ASSERT( mps_l1_consume( &srv ) == 0 );
+        if( ! ( mode == MPS_L1_MODE_DATAGRAM &&
+                send_multiple                &&
+                send_multiple_do_flush ) )
+        {
+            /* NOTE:
+             * The success of the combination
+             * - send_multiple == 1,
+             * - send_multiple_do_flush == 0,
+             * - recv_multiple == 0
+             * is implementation-dependent:
+             * A Layer 1 implementation is free to merge
+             * successive write requests into a single datagram
+             * or to split them across multiple such.
+             *
+             * If the Layer 1 implementation changes,
+             * it might be that the test case for this
+             * combination breaks.
+             */
+
+            /* Receive in a single chunk. */
+            TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, data_len ) == 0 );
+            memcpy( data_in, in_buf, data_len );
+            TEST_ASSERT( mps_l1_consume( &srv ) == 0 );
+        }
+        else
+        {
+            TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, data_len ) ==
+                         MPS_ERR_REQUEST_OUT_OF_BOUNDS );
+            goto cleanup;
+        }
     }
     else
     {
@@ -3172,14 +3220,25 @@ void mbedtls_mps_l1_basic( int send_multiple,
 
     TEST_ASSERT( memcmp( data_in, data, data_len ) == 0 );
 
+cleanup:
+
     TEST_ASSERT( mps_l1_free( &cli ) == 0 );
     TEST_ASSERT( mps_l1_free( &srv ) == 0 );
 
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
 
-    layer0_free( &s2c );
-    layer0_free( &c2s );
+    /* Initialize Layer 0 mock objects */
+    if( mode == MPS_L1_MODE_STREAM )
+    {
+        layer0_free( &s2c );
+        layer0_free( &c2s );
+    }
+    else
+    {
+        layer0_dgram_free( &s2c_d );
+        layer0_dgram_free( &c2s_d );
+    }
 }
 /* END_CASE */
 
@@ -3264,6 +3323,121 @@ void mbedtls_mps_l1_want_read( )
 
     layer0_free( &s2c );
     layer0_free( &c2s );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L1 */
+void mbedtls_mps_l1_dgram_want_read()
+{
+    mps_alloc cli_alloc, srv_alloc;
+    mps_l1 cli, srv;
+
+    size_t const data_len = 20;
+    unsigned char *in_buf;
+
+    /* This test exercises the behavior of the receiving
+     * side of Layer 1 if the underlying datagram transport
+     * does not have any datagrams available. */
+
+    /* Initialize Layer 0 mock objects */
+    TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
+    TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, data_len );
+    mps_alloc_init( &srv_alloc, data_len );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli, MPS_L1_MODE_DATAGRAM, &cli_alloc,
+                              layer0_dgram_write_cli,
+                              layer0_dgram_read_cli ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv, MPS_L1_MODE_DATAGRAM, &srv_alloc,
+                              layer0_dgram_write_srv,
+                              layer0_dgram_read_srv ) == 0 );
+
+    TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, data_len ) ==
+                 MPS_ERR_WANT_READ );
+
+    TEST_ASSERT( mps_l1_free( &cli ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv ) == 0 );
+
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+
+    layer0_dgram_free( &s2c_d );
+    layer0_dgram_free( &c2s_d );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L1 */
+void mbedtls_mps_l1_dgram_bounds_violation()
+{
+    mps_alloc cli_alloc, srv_alloc;
+    mps_l1 cli, srv;
+
+    /* This test exercises the behavior of the receiving
+     * side of the datagram-mode Layer 1 if the request
+     * goes beyond the bounds of the current datagram.
+     * Concretely:
+     * 1. Client sends 10 bytes.
+     * 2. Server requests 5 bytes successfully.
+     * 3. Server requests 10 bytes, receiving
+     *    a bounds violation.
+     */
+
+    unsigned char data[10];
+    size_t const data_len = sizeof( data );
+    unsigned char *out_buf;
+    unsigned char *in_buf;
+    size_t out_len;
+
+    /* Initialize Layer 0 mock objects */
+    TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
+    TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, data_len );
+    mps_alloc_init( &srv_alloc, data_len );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli, MPS_L1_MODE_DATAGRAM, &cli_alloc,
+                              layer0_dgram_write_cli,
+                              layer0_dgram_read_cli ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv, MPS_L1_MODE_DATAGRAM, &srv_alloc,
+                              layer0_dgram_write_srv,
+                              layer0_dgram_read_srv ) == 0 );
+
+    /* Generate the random content to be exchanged */
+    TEST_ASSERT( mbedtls_test_rnd_std_rand( NULL, data, data_len ) == 0 );
+
+    /* Step 1: Client sends first half of bytes. */
+    TEST_ASSERT( mps_l1_write( &cli, &out_buf, &out_len ) == 0 );
+
+    /* The allocator is configured so that it should return
+     * a buffer large enough to hold all data to be sent. */
+    TEST_ASSERT( out_len == data_len );
+    memcpy( out_buf, data, data_len );
+
+    TEST_ASSERT( mps_l1_dispatch( &cli, data_len ) == 0 );
+    TEST_ASSERT( mps_l1_flush( &cli ) == 0 );
+
+    /* Step 2: Receive data on the server. */
+
+    TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, data_len / 2 ) == 0 );
+    TEST_ASSERT( memcmp( in_buf, data, data_len / 2 ) == 0 );
+    TEST_ASSERT( mps_l1_consume( &srv ) == 0 );
+
+    TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, data_len ) ==
+                 MPS_ERR_REQUEST_OUT_OF_BOUNDS );
+
+    TEST_ASSERT( mps_l1_free( &cli ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv ) == 0 );
+
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+
+    layer0_dgram_free( &s2c_d );
+    layer0_dgram_free( &c2s_d );
 }
 /* END_CASE */
 
@@ -3653,10 +3827,10 @@ void mbedtls_mps_l1_random_communication_dgram( int max_dgram_size )
     mps_alloc_init( &srv_alloc, max_dgram_size );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli, MPS_L1_MODE_DGRAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli, MPS_L1_MODE_DATAGRAM, &cli_alloc,
                               layer0_dgram_write_cli,
                               layer0_dgram_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv, MPS_L1_MODE_DGRAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv, MPS_L1_MODE_DATAGRAM, &srv_alloc,
                               layer0_dgram_write_srv,
                               layer0_dgram_read_srv ) == 0 );
 
@@ -3836,6 +4010,9 @@ void mbedtls_mps_l2_basic( int mode,
     /* Dummy record transformations for epoch 0 */
     mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
     mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
+
+    mps_l0_send_t *cli_wr,  *srv_wr;
+    mps_l0_recv_t *cli_rcv, *srv_rcv;
 
 #if !defined(TEST_SUITE_MPS_NO_SSL)
     if( real_transforms == 1 )

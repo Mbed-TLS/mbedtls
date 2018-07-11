@@ -4040,22 +4040,37 @@ void mbedtls_mps_l2_basic( int mode,
     }
 
     /* Initialize Layer 0 mock objects */
-    layer0_bufsize = (size_t) layer0_buffer_sz;
-    TEST_ASSERT( layer0_init( &s2c ) == 0 );
-    TEST_ASSERT( layer0_init( &c2s ) == 0 );
+    if( mode == MPS_L2_MODE_STREAM )
+    {
+        layer0_bufsize = (size_t) layer0_buffer_sz;
+        TEST_ASSERT( layer0_init( &s2c ) == 0 );
+        TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+        cli_wr  = &layer0_write_cli;
+        cli_rcv = &layer0_read_cli;
+        srv_wr  = &layer0_write_srv;
+        srv_rcv = &layer0_read_srv;
+    }
+    else
+    {
+        TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
+        TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
+
+        cli_wr  = &layer0_dgram_write_cli;
+        cli_rcv = &layer0_dgram_read_cli;
+        srv_wr  = &layer0_dgram_write_srv;
+        srv_rcv = &layer0_dgram_read_srv;
+    }
 
     /* Initialize allocators */
     mps_alloc_init( &cli_alloc, allocator_buffer_sz );
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-
-    /* TODO: Use `mode` here once Layer 1 is implemented
-     *       for datagram transports. */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
-                              layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
-                              layer0_write_srv, layer0_read_srv ) == 0 );
+    TEST_ASSERT( mps_l1_init( &cli_l1, mode, &cli_alloc,
+                              cli_wr, cli_rcv ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv_l1, mode, &srv_alloc,
+                              srv_wr, srv_rcv ) == 0 );
 
     /* Initialize and configure Layer 2 */
     TEST_ASSERT( mps_l2_init( &cli, &cli_l1, MPS_L2_MODE_STREAM,
@@ -4171,11 +4186,339 @@ exit:
     TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
-    layer0_free( &s2c );
-    layer0_free( &c2s );
+
+    if( mode == MPS_L2_MODE_STREAM )
+    {
+        layer0_free( &s2c );
+        layer0_free( &c2s );
+    }
+    else
+    {
+        layer0_dgram_free( &s2c_d );
+        layer0_dgram_free( &c2s_d );
+    }
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
+void mbedtls_mps_l2_bad_record( int mode,
+                                int allocator_buffer_sz,
+                                int layer0_buffer_sz,
+                                int failure_type )
+{
+    /* This test exercises the behavior of Layer 2 when
+     * facing an invalid record.
+     *
+     * A record can be invalid for multiple reasons
+     * distinguished by the `failure_type` parameter:
+     * 1. The record content type is valid as per
+     *    the Layer 2 configuration.
+     * 2. The minor and major record versions don't
+     *    match those set in the Layer 2 configuration.
+     * 3. The record length is too large.
+     * 4. The record has a bad MAC.
+     *
+     * In TLS, all these cases lead to failure,
+     * while for DTLS, they lead to silent dismissal
+     * of the datagram containing the record.
+     */
+
+    mps_alloc cli_alloc, srv_alloc;
+
+    /* Layer 1 objects */
+    mps_l1 cli_l1, srv_l1;
+
+    uint8_t const ty_A = 0;
+    mbedtls_mps_epoch_id epoch_init = 0;
+
+    unsigned char *l1_out_buf; /* Buffer obtained from Layer 1 to which
+                                * we write the malformed record.              */
+    size_t l1_out_buf_len;     /* Lenght of l1_out_buf.                       */
+
+    uint8_t *buf; /* Buffer obtained from reader/writer handed out by Layer 2 */
+    size_t sz;    /* Size of buf. */
+
+    size_t const rec_sz = 10; /* Plaintext size of the valid records
+                               * sent by the client. */
+
+    /* Layer 2 objects */
+    mps_l2 cli, srv;
+    mps_l2_out out_cli;
+    mps_l2_in in_srv;
+
+    /* Dummy record transformations for epoch 0 */
+    mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
+    mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
+
+    mps_l0_send_t *cli_wr,  *srv_wr;
+    mps_l0_recv_t *cli_rcv, *srv_rcv;
+
+    dummy_s->type = 0;
+    dummy_s->mock.enabled = 1;
+    dummy_s->mock.pad = 5;
+    dummy_c->type = 0;
+    dummy_c->mock.enabled = 1;
+    dummy_c->mock.pad = 5;
+
+    /* Initialize Layer 0 mock objects */
+    if( mode == MPS_L2_MODE_STREAM )
+    {
+        layer0_bufsize = (size_t) layer0_buffer_sz;
+        TEST_ASSERT( layer0_init( &s2c ) == 0 );
+        TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+        cli_wr  = &layer0_write_cli;
+        cli_rcv = &layer0_read_cli;
+        srv_wr  = &layer0_write_srv;
+        srv_rcv = &layer0_read_srv;
+    }
+    else
+    {
+        TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
+        TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
+
+        cli_wr  = &layer0_dgram_write_cli;
+        cli_rcv = &layer0_dgram_read_cli;
+        srv_wr  = &layer0_dgram_write_srv;
+        srv_rcv = &layer0_dgram_read_srv;
+    }
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, allocator_buffer_sz );
+    mps_alloc_init( &srv_alloc, allocator_buffer_sz );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli_l1, mode, &cli_alloc,
+                              cli_wr, cli_rcv ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv_l1, mode, &srv_alloc,
+                              srv_wr, srv_rcv ) == 0 );
+
+    /* Initialize and configure Layer 2 */
+    TEST_ASSERT( mps_l2_init( &cli, &cli_l1, mode,
+                              0, 0, mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_init( &srv, &srv_l1, mode,
+                              0, 0, mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &cli,
+                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &srv,
+                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A, 0, 1, 1 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A, 0, 1, 1 ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init, MPS_EPOCH_WRITE ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_add( &srv, dummy_s, &epoch_init ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_init, MPS_EPOCH_READ ) == 0 );
+
+    /*
+     * Client: Write a malformed record to server
+     */
+
+    TEST_ASSERT( mps_l1_write( &cli_l1, &l1_out_buf, &l1_out_buf_len ) == 0 );
+    TEST_ASSERT( l1_out_buf_len >= 100 );
+
+    /* Go through the various kinds of failure types. */
+
+    if( mode == MPS_L2_MODE_STREAM )
+    {
+        size_t const tls_rec_hdr_len = 5;
+
+        const size_t tls_rec_type_offset = 0;
+        const size_t tls_rec_ver_offset  = 1;
+        const size_t tls_rec_len_offset  = 3;
+
+        uint8_t type;
+        uint8_t min_ver;
+        uint8_t maj_ver;
+        uint16_t len;
+
+        /* Write record content type. */
+        if( failure_type != 0 )
+            type = ty_A;
+        else
+            type = ty_A + 1;
+        l1_out_buf[ tls_rec_type_offset ] = type;
+
+        /* Write record version */
+        if( failure_type != 1 )
+            min_ver = MBEDTLS_SSL_MINOR_VERSION_3;
+        else
+            min_ver = MBEDTLS_SSL_MINOR_VERSION_1;
+        if( failure_type != 2 )
+            maj_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+        else
+            maj_ver = 42;
+
+        l1_out_buf[ tls_rec_ver_offset + 0 ] = maj_ver;
+        l1_out_buf[ tls_rec_ver_offset + 1 ] = min_ver;
+
+        len = rec_sz;
+        l1_out_buf[ tls_rec_len_offset + 0 ] = ( len >> 8 ) & 0xFF;
+        l1_out_buf[ tls_rec_len_offset + 1 ] = ( len >> 0 ) & 0xFF;
+
+        /* Write some contents, disobeying the padding
+         * structure of the dummmy transform, and hence
+         * leading to the record being rejected on 'decryption'. */
+        memset( l1_out_buf + tls_rec_hdr_len, 42, rec_sz );
+
+        TEST_ASSERT( mps_l1_dispatch( &cli_l1, tls_rec_hdr_len + rec_sz ) ==
+                     0 );
+    }
+    else
+    {
+        size_t const dtls_rec_hdr_len      = 13;
+
+        size_t const dtls_rec_type_offset  = 0;
+        size_t const dtls_rec_ver_offset   = 1;
+        size_t const dtls_rec_epoch_offset = 3;
+        size_t const dtls_rec_seq_offset   = 5;
+        size_t const dtls_rec_len_offset   = 11;
+
+        uint8_t type;
+        uint8_t min_ver;
+        uint8_t maj_ver;
+        uint16_t len;
+        uint16_t epoch;
+
+        /* Write record content type. */
+        if( failure_type != 0 )
+            type = ty_A;
+        else
+            type = ty_A + 1;
+        l1_out_buf[ dtls_rec_type_offset ] = type;
+
+        /* Write record version */
+        if( failure_type != 1 )
+            min_ver = MBEDTLS_SSL_MINOR_VERSION_3;
+        else
+            min_ver = MBEDTLS_SSL_MINOR_VERSION_1;
+        if( failure_type != 2 )
+            maj_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+        else
+            maj_ver = 42;
+
+        l1_out_buf[ dtls_rec_ver_offset + 0 ] = maj_ver;
+        l1_out_buf[ dtls_rec_ver_offset + 1 ] = min_ver;
+
+        /* Write epoch */
+        if( failure_type != 5 )
+            epoch = epoch_init;
+        else
+            epoch = epoch_init + 1;
+
+        l1_out_buf[ dtls_rec_epoch_offset + 0 ] = ( epoch >> 8 ) & 0xFF;
+        l1_out_buf[ dtls_rec_epoch_offset + 1 ] = ( epoch >> 0 ) & 0xFF;
+
+        /* Write sequence number */
+        memset( l1_out_buf + dtls_rec_seq_offset, 0, 6 );
+
+        /* Write record length */
+        if( failure_type != 3 )
+            len = rec_sz;
+        else
+            len = 10000;
+
+        l1_out_buf[ dtls_rec_len_offset + 0 ] = ( len >> 8 ) & 0xFF;
+        l1_out_buf[ dtls_rec_len_offset + 1 ] = ( len >> 0 ) & 0xFF;
+
+        /* Write some contents, disobeying the padding
+         * structure of the dummmy transform, and hence
+         * leading to the record being rejected on 'decryption'. */
+        memset( l1_out_buf + dtls_rec_hdr_len, 42, rec_sz );
+
+        TEST_ASSERT( mps_l1_dispatch( &cli_l1, dtls_rec_hdr_len + rec_sz ) ==
+                     0 );
+    }
+
+    /* Send a valid record; for DTLS, it will be in the same datagram
+     * as the invalid one. */
+
+    out_cli.type = ty_A;
+    out_cli.epoch = epoch_init;
+    TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+
+    TEST_ASSERT( mbedtls_writer_get( out_cli.wr, 10, &buf, &sz ) == 0 );
+
+    TEST_ASSERT( sz == (unsigned) rec_sz );
+    for( uint8_t idx = 0; idx < sz; idx++ )
+        buf[idx] = idx;
+    TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+
+    TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+
+    /* Flush to make sure a new datagram is started. */
+    TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
+
+    /* Send another valid record. For DTLS, this should be seen
+     * by the server. */
+
+    out_cli.type = ty_A;
+    out_cli.epoch = epoch_init;
+    TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+
+    TEST_ASSERT( mbedtls_writer_get( out_cli.wr, 10, &buf, &sz ) == 0 );
+
+    TEST_ASSERT( sz == (unsigned) rec_sz );
+    for( uint8_t idx = 0; idx < sz; idx++ )
+        buf[idx] = ((uint8_t) ( sz - idx ) );
+    TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+    TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+
+    TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
+
+    /*
+     * Server: Attempt to read record.
+     */
+
+    if( mode == MPS_L2_MODE_STREAM )
+    {
+        TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) ==
+                     ( failure_type != 3 ? MPS_ERR_INVALID_RECORD
+                                         : MPS_ERR_INVALID_MAC ) );
+    }
+    else
+    {
+        TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) ==
+                     MPS_ERR_CONTINUE_PROCESSING );
+
+        TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
+        TEST_ASSERT( in_srv.type == ty_A );
+
+        TEST_ASSERT( mbedtls_reader_get( in_srv.rd, rec_sz, &buf, &sz ) == 0 );
+        TEST_ASSERT( sz == (unsigned) rec_sz );
+        for( uint8_t idx = 0; idx < sz; idx++ )
+            TEST_ASSERT( buf[idx] == ((uint8_t) ( sz - idx ) ) );
+        TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
+        TEST_ASSERT( mps_l2_read_done( &srv ) == 0 );
+
+        TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) ==
+                     MPS_ERR_WANT_READ );
+    }
+
+exit:
+
+    /*
+     * Wrapup
+     */
+
+    TEST_ASSERT( mps_l2_free( &cli ) == 0 );
+    TEST_ASSERT( mps_l2_free( &srv ) == 0 );
+    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+
+    if( mode == MPS_L2_MODE_STREAM )
+    {
+        layer0_free( &s2c );
+        layer0_free( &c2s );
+    }
+    else
+    {
+        layer0_dgram_free( &s2c_d );
+        layer0_dgram_free( &c2s_d );
+    }
+}
+/* END_CASE */
 
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
 void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
@@ -4191,6 +4534,9 @@ void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
     int ret;
 
     mps_alloc cli_alloc, srv_alloc;
+
+    mps_l0_send_t *cli_wr,  *srv_wr;
+    mps_l0_recv_t *cli_rcv, *srv_rcv;
 
     /* Layer 1 objects */
     mps_l1 cli_l1, srv_l1;
@@ -4413,8 +4759,17 @@ exit:
     TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
-    layer0_free( &s2c );
-    layer0_free( &c2s );
+
+    if( mode == MPS_L2_MODE_STREAM )
+    {
+        layer0_free( &s2c );
+        layer0_free( &c2s );
+    }
+    else
+    {
+        layer0_dgram_free( &s2c_d );
+        layer0_dgram_free( &c2s_d );
+    }
 }
 /* END_CASE */
 
@@ -4497,21 +4852,37 @@ void mbedtls_mps_l2_switch_epoch( int mode,
     }
 
     /* Initialize Layer 0 mock objects */
-    layer0_bufsize = (size_t) layer0_buffer_sz;
-    TEST_ASSERT( layer0_init( &s2c ) == 0 );
-    TEST_ASSERT( layer0_init( &c2s ) == 0 );
+    if( mode == MPS_L2_MODE_STREAM )
+    {
+        layer0_bufsize = (size_t) layer0_buffer_sz;
+        TEST_ASSERT( layer0_init( &s2c ) == 0 );
+        TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+        cli_wr  = &layer0_write_cli;
+        cli_rcv = &layer0_read_cli;
+        srv_wr  = &layer0_write_srv;
+        srv_rcv = &layer0_read_srv;
+    }
+    else
+    {
+        TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
+        TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
+
+        cli_wr  = &layer0_dgram_write_cli;
+        cli_rcv = &layer0_dgram_read_cli;
+        srv_wr  = &layer0_dgram_write_srv;
+        srv_rcv = &layer0_dgram_read_srv;
+    }
 
     /* Initialize allocators */
     mps_alloc_init( &cli_alloc, allocator_buffer_sz );
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    /* TODO: Use `mode` here once Layer 1 is implemented
-     *       for datagram transports. */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
-                              layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
-                              layer0_write_srv, layer0_read_srv ) == 0 );
+    TEST_ASSERT( mps_l1_init( &cli_l1, mode, &cli_alloc,
+                              cli_wr, cli_rcv ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv_l1, mode, &srv_alloc,
+                              srv_wr, srv_rcv ) == 0 );
 
     /* Initialize and configure Layer 2 */
     TEST_ASSERT( mps_l2_init( &cli, &cli_l1, mode,
@@ -4827,6 +5198,10 @@ void mbedtls_mps_l2_many_epochs( int mode,
                                              sizeof( mbedtls_mps_transform_t ) );
     mbedtls_mps_transform_t **epochs_s = malloc( num_rounds *
                                              sizeof( mbedtls_mps_transform_t ) );
+
+    mps_l0_send_t *cli_wr,  *srv_wr;
+    mps_l0_recv_t *cli_rcv, *srv_rcv;
+
     TEST_ASSERT( epochs_s != NULL && epochs_c != NULL );
     for( size_t id=0; id < (unsigned) num_rounds; id++ )
     {
@@ -4862,21 +5237,37 @@ void mbedtls_mps_l2_many_epochs( int mode,
     }
 
     /* Initialize Layer 0 mock objects */
-    layer0_bufsize = (size_t) layer0_buffer_sz;
-    TEST_ASSERT( layer0_init( &s2c ) == 0 );
-    TEST_ASSERT( layer0_init( &c2s ) == 0 );
+    if( mode == MPS_L2_MODE_STREAM )
+    {
+        layer0_bufsize = (size_t) layer0_buffer_sz;
+        TEST_ASSERT( layer0_init( &s2c ) == 0 );
+        TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+        cli_wr  = &layer0_write_cli;
+        cli_rcv = &layer0_read_cli;
+        srv_wr  = &layer0_write_srv;
+        srv_rcv = &layer0_read_srv;
+    }
+    else
+    {
+        TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
+        TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
+
+        cli_wr  = &layer0_dgram_write_cli;
+        cli_rcv = &layer0_dgram_read_cli;
+        srv_wr  = &layer0_dgram_write_srv;
+        srv_rcv = &layer0_dgram_read_srv;
+    }
 
     /* Initialize allocators */
     mps_alloc_init( &cli_alloc, allocator_buffer_sz );
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    /* TODO: Use `mode` here once Layer 1 is implemented
-     *       for datagram transports. */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
-                              layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
-                              layer0_write_srv, layer0_read_srv ) == 0 );
+    TEST_ASSERT( mps_l1_init( &cli_l1, mode, &cli_alloc,
+                              cli_wr, cli_rcv ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv_l1, mode, &srv_alloc,
+                              srv_wr, srv_rcv ) == 0 );
 
     /* Initialize and configure Layer 2 */
     TEST_ASSERT( mps_l2_init( &cli, &cli_l1, mode,
@@ -5053,8 +5444,17 @@ exit:
     TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
-    layer0_free( &s2c );
-    layer0_free( &c2s );
+
+    if( mode == MPS_L2_MODE_STREAM )
+    {
+        layer0_free( &s2c );
+        layer0_free( &c2s );
+    }
+    else
+    {
+        layer0_dgram_free( &s2c_d );
+        layer0_dgram_free( &c2s_d );
+    }
 
     free( epochs_s );
     free( epochs_c );

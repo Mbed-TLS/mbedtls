@@ -292,6 +292,36 @@ mbedtls_mps_l2_basic:MPS_L2_MODE_DATAGRAM:150:1000:20:1
 MPS Layer 2 DTLS: Exchange of messages of two types, empty, real transform
 mbedtls_mps_l2_basic:MPS_L2_MODE_DATAGRAM:150:1000:0:1
 
+MPS Layer 2: Bad record - invalid content type
+mbedtls_mps_l2_bad_record:MPS_L2_MODE_STREAM:150:1000:0
+
+MPS Layer 2: Bad record - invalid minor version
+mbedtls_mps_l2_bad_record:MPS_L2_MODE_STREAM:150:1000:1
+
+MPS Layer 2: Bad record - invalid major version
+mbedtls_mps_l2_bad_record:MPS_L2_MODE_STREAM:150:1000:2
+
+MPS Layer 2: Bad record - invalid MAC
+mbedtls_mps_l2_bad_record:MPS_L2_MODE_STREAM:150:1000:3
+
+MPS Layer 2 DTLS: Bad record - invalid content type
+mbedtls_mps_l2_bad_record:MPS_L2_MODE_DATAGRAM:150:1000:0
+
+MPS Layer 2 DTLS: Bad record - invalid MAC
+mbedtls_mps_l2_bad_record:MPS_L2_MODE_DATAGRAM:150:1000:4
+
+MPS Layer 2 DTLS: Bad record - invalid record length
+mbedtls_mps_l2_bad_record:MPS_L2_MODE_DATAGRAM:150:1000:3
+
+MPS Layer 2 DTLS: Bad record - invalid major version
+mbedtls_mps_l2_bad_record:MPS_L2_MODE_DATAGRAM:150:1000:2
+
+MPS Layer 2 DTLS: Bad record - invalid minor version
+mbedtls_mps_l2_bad_record:MPS_L2_MODE_DATAGRAM:150:1000:1
+
+MPS Layer 2 DTLS: Bad record - invalid content type
+mbedtls_mps_l2_bad_record:MPS_L2_MODE_DATAGRAM:150:1000:0
+
 MPS Layer 2: Exchange of messages of two types, with pausing
 mbedtls_mps_l2_pausing:100:300:0:1
 

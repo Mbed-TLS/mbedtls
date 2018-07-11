@@ -157,6 +157,7 @@ OTHER_FILES := \
 	VERSION.txt \
 	programs/psa/crypto_examples.c \
 	programs/psa/key_ladder_demo.c \
+	programs/psa/key_ladder_demo.sh \
 	programs/psa/psa_constant_names.c \
 	scripts/config.pl \
 	scripts/generate_psa_constants.py \

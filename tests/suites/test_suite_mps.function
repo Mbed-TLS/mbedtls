@@ -834,7 +834,7 @@ int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
         if( rec->buf.buf[idx] != idx )
         {
             printf( "Bad pre-padding!\n" );
-            return( -1 );
+            return( MPS_ERR_INVALID_MAC );
         }
     }
     rec->buf.data_offset = pre_pad;
@@ -849,7 +849,7 @@ int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
         if( val != 1 )
         {
             printf( "Bad post-padding\n" );
-            return( -1 );
+            return( MPS_ERR_INVALID_MAC );
         }
         break;
     }
@@ -876,14 +876,14 @@ int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
 
     /* Check sequence number */
     if( rec->buf.data_len < sizeof( rec->ctr ) )
-        return( -1 );
+        return( MPS_ERR_INVALID_MAC );
 
     memcpy( &ctr, rec->buf.buf + rec->buf.data_offset, sizeof( rec->ctr ) );
     if( ctr != rec->ctr )
     {
         printf( "Sequence number mismatch: Expected %u, got %u\n",
                 (unsigned) rec->ctr, (unsigned) ctr );
-        return( -1 );
+        return( MPS_ERR_INVALID_MAC );
     }
     rec->buf.data_offset += sizeof( rec->ctr );
     rec->buf.data_len    -= sizeof( rec->ctr );

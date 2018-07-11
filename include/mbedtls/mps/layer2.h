@@ -74,6 +74,7 @@
                                               *   current epoch window.                    */
 #define MPS_ERR_EPOCH_OVERFLOW         -0x7  /*!< The epoch under consideration exceeds the
                                               *   current epoch window.                    */
+#define MPS_ERR_CONTINUE_PROCESSING    -0x123
 
 /*
  * Compile-time configuration for Layer 2
@@ -353,6 +354,15 @@ typedef struct
                                    *   May be \c NULL if \c f_rng is \c NULL or
                                    *   if no context information is needed by
                                    *   the PRNG, or is stored elsewhere.      */
+
+    uint64_t badmac_limit;        /*!< Determines how many records with bad MAC
+                                   *   are silently tolerated before an error
+                                   *   is raised. Possible values are:
+                                   *   - \c 0: Records with bad MAC are always
+                                   *     tolerated.
+                                   *   - \c n greater \c 0: The n-th record
+                                   *     with a bad MAC will lead to an error.
+                                   */
 
 } mps_l2_config;
 
@@ -658,7 +668,9 @@ struct mps_l2
             (p)->in.paused_state == MPS_L2_READER_STATE_PAUSED )        \
           ==> ( (p)->in.active->type != (p)->in.paused->type ) )
 
-        /* TODO: The record sequence number must be added here for DTLS */
+        uint64_t bad_mac_ctr; /* The number of records with bad MAC that have
+                               * been received so far. DTLS only. */
+
     } in;
 
     /*! The outgoing record sequence number.

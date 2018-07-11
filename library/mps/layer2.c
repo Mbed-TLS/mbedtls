@@ -216,6 +216,7 @@ int mps_l2_init( mps_l2 *ctx, mps_l1 *l1, uint8_t mode,
     ctx->conf.max_cipher_in = 1000;
     ctx->conf.f_rng = f_rng;
     ctx->conf.p_rng = p_rng;
+    ctx->conf.badmac_limit = 0;
 
     /* Initialize write-side */
     ctx->out.flush    = 0;
@@ -246,6 +247,8 @@ int mps_l2_init( mps_l2 *ctx, mps_l1 *l1, uint8_t mode,
     ctx->in.readers[1].epoch = MPS_EPOCH_NONE;
     mbedtls_reader_init( &ctx->in.readers[0].rd, NULL, 0 );
     mbedtls_reader_init( &ctx->in.readers[1].rd, NULL, 0 );
+
+    ctx->in.bad_mac_ctr = 0;
 
     ctx->out_ctr = 0;
     ctx->in_ctr  = 0;
@@ -1455,6 +1458,41 @@ int mps_l2_read_start( mps_l2 *ctx, mps_l2_in *in )
         /* 3 */
 
         ret = l2_in_fetch_record( ctx, &rec );
+
+        /* For DTLS, silently discard datagrams containing records
+         * which have an invalid header field or can't be authenticated. */
+        if( ctx->conf.mode == MPS_L2_MODE_DATAGRAM )
+        {
+            if( ret == MPS_ERR_INVALID_RECORD ||
+                ret == MPS_ERR_INVALID_MAC )
+            {
+                if( ret == MPS_ERR_INVALID_RECORD )
+                {
+                    TRACE( trace_error, "Record with invalid header received -- discard" );
+                }
+                else /* ret == MPS_ERR_INVALID_MAC */
+                {
+                    TRACE( trace_error, "Record with invalid MAC received -- discard" );
+                    if( ctx->conf.badmac_limit != 0 &&
+                        ++ctx->in.bad_mac_ctr >= ctx->conf.badmac_limit )
+                    {
+                        TRACE( trace_error, "Bad-MAC-limit %u exceeded.",
+                               (unsigned) ctx->conf.badmac_limit );
+                        RETURN( MPS_ERR_INVALID_MAC );
+                    }
+                }
+
+                /* Silently discard datagrams containing invalid records. */
+                if( ( ret = mps_l1_skip( ctx->conf.l1 ) ) != 0 )
+                {
+                    RETURN( ret );
+                }
+
+                TRACE( trace_comment, "Signal that the processing should be retried." );
+                RETURN( MPS_ERR_CONTINUE_PROCESSING );
+            }
+        }
+
         if( ret != 0 )
             RETURN( ret );
 

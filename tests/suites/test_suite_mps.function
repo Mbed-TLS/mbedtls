@@ -222,10 +222,7 @@ static int layer0_dgram_msg_init( layer0_dgram_mock_msg *msg, size_t len )
 {
     msg->buf = malloc( len );
     if( msg->buf == NULL )
-    {
-        printf( "ALLOC FAILED\n" );
         return( -1 );
-    }
 
     msg->buflen = len;
     return( 0 );
@@ -266,31 +263,57 @@ static size_t layer0_dgram_inc_idx( size_t idx )
 static int layer0_dgram_write( layer0_dgram_mock *ctx,
                                const unsigned char *src, size_t size )
 {
-    size_t write_pos = ctx->write_pos;
-    size_t read_pos = ctx->read_pos;
+    size_t write_pos     = ctx->write_pos;
+    size_t read_pos      = ctx->read_pos;
     size_t new_write_pos = layer0_dgram_inc_idx( write_pos );
+
+    printf( "Datagram write\n" );
+    printf( "* Write position: %u\n", (unsigned) write_pos );
+    printf( "* Read position:  %u\n", (unsigned) read_pos );
+
     if( new_write_pos == read_pos )
         return( MPS_ERR_WANT_WRITE );
 
     layer0_dgram_msg_init( &ctx->msgs[write_pos], size );
     memcpy( ctx->msgs[write_pos].buf, src, size );
 
+    for( size_t idx=0; idx < size; idx++ )
+    {
+        printf( "data[%u] = %u\n",
+                (unsigned) idx,
+                (unsigned) ctx->msgs[write_pos].buf[idx] );
+    }
+
     ctx->write_pos = new_write_pos;
-    return( 0 );
+    return( (int) size );
 }
 
 static int layer0_dgram_read( layer0_dgram_mock *ctx,
                               unsigned char *dst, unsigned long size )
 {
-    size_t write_pos = ctx->write_pos;
-    size_t read_pos = ctx->read_pos;
+    size_t write_pos    = ctx->write_pos;
+    size_t read_pos     = ctx->read_pos;
     size_t new_read_pos = layer0_dgram_inc_idx( read_pos );
 
-    if( read_pos == write_pos )
-        return( MPS_ERR_WANT_READ );
+    printf( "Datagram Read\n" );
+    printf( "* Write position: %u\n", (unsigned) write_pos );
+    printf( "* Read position:  %u\n", (unsigned) read_pos );
 
-    if( ctx->msgs[read_pos].buflen > size )
+    if( read_pos == write_pos )
+    {
+        printf( "No datagram available\n" );
+        return( MPS_ERR_WANT_READ );
+    }
+
+    if( size > ctx->msgs[read_pos].buflen )
         size = ctx->msgs[read_pos].buflen;
+
+    for( size_t idx=0; idx < size; idx++ )
+    {
+        printf( "data[%u] = %u\n",
+                (unsigned) idx,
+                (unsigned) ctx->msgs[read_pos].buf[idx] );
+    }
 
     memcpy( dst, ctx->msgs[read_pos].buf, size );
     layer0_dgram_msg_free( &ctx->msgs[read_pos] );

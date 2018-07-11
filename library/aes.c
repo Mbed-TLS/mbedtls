@@ -396,13 +396,13 @@ static int aes_init_done = 0;
 
 static void aes_gen_tables( void )
 {
-    int i, x, y, z;
+    uint32_t i, x, y, z;
 #if !defined(MBEDTLS_AES_FEWER_TABLES)
     uint32_t *pow = RT2;
     uint32_t *log = RT3;
 #else
-    unsigned char pow[256];
-    unsigned char log[256];
+    uint8_t pow[256];
+    uint8_t log[256];
 #endif /* !MBEDTLS_AES_FEWER_TABLES */
 
 

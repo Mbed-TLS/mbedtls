@@ -531,7 +531,7 @@ typedef uint32_t psa_algorithm_t;
  * \param alg An algorithm identifier (value of type #psa_algorithm_t).
  *
  * \return 1 if \c alg is a hash algorithm, 0 otherwise.
- *         This macro may return either 0 or 1 if \c alg is not a valid
+ *         This macro may return either 0 or 1 if \c alg is not a supported
  *         algorithm identifier.
  */
 #define PSA_ALG_IS_HASH(alg)                                            \

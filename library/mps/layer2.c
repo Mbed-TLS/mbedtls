@@ -1670,7 +1670,7 @@ static int l2_in_fetch_record( mps_l2 *ctx, mps_rec *rec )
      *    of valid epochs and sequence numbers seen so far.
      *    While this is certainly more than just the version field,
      *    it's comforting to note that this information is at least
-     *    fully present on Layer 2. so in principle it should be possible
+     *    fully present on Layer 2, so in principle it should be possible
      *    to implement DTLS 1.3 record header parsing as part of Layer 2.
      *
      * In any case, what record header parsing should return in *all* cases
@@ -1860,7 +1860,7 @@ static int l2_in_fetch_protected_record_tls( mps_l2 *ctx, mps_rec *rec )
         RETURN( MPS_ERR_INVALID_RECORD );
     }
 
-    /* Initially, the server doesn't know which TLS version
+    /* Initially, the server doesn't know which DTLS version
      * the client will use for its ClientHello message, so
      * Layer 2 must be configurable to allow arbitrary TLS
      * versions. This is done through the initial version

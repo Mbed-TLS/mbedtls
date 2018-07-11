@@ -72,7 +72,7 @@
                                               *   been configured.                         */
 #define MPS_ERR_EPOCH_WINDOW_EXCEEDED  -0x7  /*!< The epoch under consideration exceeds the
                                               *   current epoch window.                    */
-#define MPS_ERR_EPOCH_OVERFLOW         -0x7  /*!< The epoch under consideration exceeds the
+#define MPS_ERR_EPOCH_OVERFLOW         -0xa  /*!< The epoch under consideration exceeds the
                                               *   current epoch window.                    */
 #define MPS_ERR_CONTINUE_PROCESSING    -0x123
 

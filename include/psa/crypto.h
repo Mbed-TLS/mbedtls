@@ -2407,6 +2407,15 @@ psa_status_t psa_asymmetric_decrypt(psa_key_slot_t key,
 psa_status_t psa_generate_random(uint8_t *output,
                                  size_t output_size);
 
+/** Extra parameters for RSA key generation.
+ *
+ * You may pass a pointer to a structure of this type as the `extra`
+ * parameter to psa_generate_key().
+ */
+typedef struct {
+    uint32_t e; /**! Public exponent value. Default: 65537. */
+} psa_generate_key_extra_rsa;
+
 /**
  * \brief Generate a key or key pair.
  *
@@ -2432,7 +2441,7 @@ psa_status_t psa_generate_random(uint8_t *output,
  *
  * Type | Parameter type | Meaning | Parameters used if `extra == NULL`
  * ---- | -------------- | ------- | ---------------------------------------
- * `PSA_KEY_TYPE_RSA_KEYPAIR` | `unsigned int` | Public exponent | 65537
+ * `PSA_KEY_TYPE_RSA_KEYPAIR` | #psa_generate_key_extra_rsa | Public exponent | 65537
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_NOT_SUPPORTED

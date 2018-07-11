@@ -3012,12 +3012,16 @@ psa_status_t psa_generate_key( psa_key_slot_t key,
             return( PSA_ERROR_NOT_SUPPORTED );
         if( extra != NULL )
         {
-            const unsigned *p = extra;
+            const psa_generate_key_extra_rsa *p = extra;
             if( extra_size != sizeof( *p ) )
                 return( PSA_ERROR_INVALID_ARGUMENT );
-            if( *p > INT_MAX )
-                return( PSA_ERROR_INVALID_ARGUMENT );
-            exponent = *p;
+#if INT_MAX < 0xffffffff
+            /* Check that the uint32_t value passed by the caller fits
+             * in the range supported by this implementation. */
+            if( p->e > INT_MAX )
+                return( PSA_ERROR_NOT_SUPPORTED );
+#endif
+            exponent = p->e;
         }
         rsa = mbedtls_calloc( 1, sizeof( *rsa ) );
         if( rsa == NULL )

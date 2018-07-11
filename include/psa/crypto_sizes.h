@@ -237,17 +237,69 @@
  *         sensible size or 0.
  *         If the parameters are not valid, the
  *         return value is unspecified.
- *
  */
 #define PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE(key_type, key_bits, alg)        \
     (PSA_KEY_TYPE_IS_RSA(key_type) ? ((void)alg, PSA_BITS_TO_BYTES(key_bits)) : \
      PSA_KEY_TYPE_IS_ECC(key_type) ? PSA_ECDSA_SIGNATURE_SIZE(key_bits) : \
      ((void)alg, 0))
 
+/** Safe output buffer size for psa_asymmetric_encrypt().
+ *
+ * This macro returns a safe buffer size for a ciphertext produced using
+ * a key of the specified type and size, with the specified algorithm.
+ * Note that the actual size of the ciphertext may be smaller, depending
+ * on the algorithm.
+ *
+ * \warning This function may call its arguments multiple times or
+ *          zero times, so you should not pass arguments that contain
+ *          side effects.
+ *
+ * \param key_type  An asymmetric key type (this may indifferently be a
+ *                  key pair type or a public key type).
+ * \param key_bits  The size of the key in bits.
+ * \param alg       The signature algorithm.
+ *
+ * \return If the parameters are valid and supported, return
+ *         a buffer size in bytes that guarantees that
+ *         psa_asymmetric_encrypt() will not fail with
+ *         #PSA_ERROR_BUFFER_TOO_SMALL.
+ *         If the parameters are a valid combination that is not supported
+ *         by the implementation, this macro either shall return either a
+ *         sensible size or 0.
+ *         If the parameters are not valid, the
+ *         return value is unspecified.
+ */
 #define PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE(key_type, key_bits, alg)     \
     (PSA_KEY_TYPE_IS_RSA(key_type) ?                                    \
      ((void)alg, PSA_BITS_TO_BYTES(key_bits)) :                         \
      0)
+
+/** Safe output buffer size for psa_asymmetric_decrypt().
+ *
+ * This macro returns a safe buffer size for a ciphertext produced using
+ * a key of the specified type and size, with the specified algorithm.
+ * Note that the actual size of the ciphertext may be smaller, depending
+ * on the algorithm.
+ *
+ * \warning This function may call its arguments multiple times or
+ *          zero times, so you should not pass arguments that contain
+ *          side effects.
+ *
+ * \param key_type  An asymmetric key type (this may indifferently be a
+ *                  key pair type or a public key type).
+ * \param key_bits  The size of the key in bits.
+ * \param alg       The signature algorithm.
+ *
+ * \return If the parameters are valid and supported, return
+ *         a buffer size in bytes that guarantees that
+ *         psa_asymmetric_decrypt() will not fail with
+ *         #PSA_ERROR_BUFFER_TOO_SMALL.
+ *         If the parameters are a valid combination that is not supported
+ *         by the implementation, this macro either shall return either a
+ *         sensible size or 0.
+ *         If the parameters are not valid, the
+ *         return value is unspecified.
+ */
 #define PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(key_type, key_bits, alg)     \
     (PSA_KEY_TYPE_IS_RSA(key_type) ?                                    \
      PSA_BITS_TO_BYTES(key_bits) - PSA_RSA_MINIMUM_PADDING_SIZE(alg) :  \

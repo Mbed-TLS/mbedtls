@@ -678,8 +678,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     unsigned char offer_compress;
     const int *ciphersuites;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
     int uses_ec = 0;
 #endif
 
@@ -833,8 +832,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %2d",
                        ciphersuites[i] ) );
 
-#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
-    defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
         uses_ec |= mbedtls_ssl_ciphersuite_uses_ec( ciphersuite_info );
 #endif
 

@@ -1205,10 +1205,10 @@ void psa_key_policy_set_usage(psa_key_policy_t *policy,
                               psa_algorithm_t alg);
 
 /** \brief Retrieve the usage field of a policy structure. */
-psa_key_usage_t psa_key_policy_get_usage(psa_key_policy_t *policy);
+psa_key_usage_t psa_key_policy_get_usage(const psa_key_policy_t *policy);
 
 /** \brief Retrieve the algorithm field of a policy structure. */
-psa_algorithm_t psa_key_policy_get_algorithm(psa_key_policy_t *policy);
+psa_algorithm_t psa_key_policy_get_algorithm(const psa_key_policy_t *policy);
 
 /** \brief Set the usage policy on a key slot.
  *

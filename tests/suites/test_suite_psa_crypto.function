@@ -143,7 +143,7 @@ static int exercise_mac_key( psa_key_slot_t key,
         TEST_ASSERT( psa_mac_update( &operation,
                                      input, sizeof( input ) ) == PSA_SUCCESS );
         TEST_ASSERT( psa_mac_sign_finish( &operation,
-                                          mac, sizeof( input ),
+                                          mac, sizeof( mac ),
                                           &mac_length ) == PSA_SUCCESS );
     }
 

@@ -322,6 +322,21 @@ mbedtls_mps_l2_bad_record:MPS_L2_MODE_DATAGRAM:150:1000:1
 MPS Layer 2 DTLS: Bad record - invalid content type
 mbedtls_mps_l2_bad_record:MPS_L2_MODE_DATAGRAM:150:1000:0
 
+MPS Layer 2 DTLS: Replay protection #0
+mbedtls_mps_l2_anti_replay:150:0
+
+MPS Layer 2 DTLS: Replay protection #1
+mbedtls_mps_l2_anti_replay:150:1
+
+MPS Layer 2 DTLS: Replay protection #2
+mbedtls_mps_l2_anti_replay:150:2
+
+MPS Layer 2 DTLS: Replay protection #3
+mbedtls_mps_l2_anti_replay:150:3
+
+MPS Layer 2 DTLS: Replay protection #4
+mbedtls_mps_l2_anti_replay:150:4
+
 MPS Layer 2: Exchange of messages of two types, with pausing
 mbedtls_mps_l2_pausing:100:300:0:1
 

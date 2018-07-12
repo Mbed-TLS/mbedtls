@@ -25,6 +25,7 @@
 static int trace_id = TRACE_ID_LAYER_2;
 
 #include <stdlib.h>
+#include <string.h>
 
 static void l2_out_write_version( int major, int minor, int transport,
                               unsigned char ver[2] );
@@ -57,16 +58,64 @@ static int l2_type_can_be_merged( mps_l2 *ctx, uint8_t type );
 static int l2_type_is_valid( mps_l2 *ctx, uint8_t type );
 static int l2_type_empty_allowed( mps_l2 *ctx, uint8_t type );
 
-static int l2_epoch_check( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
+/*
+ * Epoch handling
+ */
+
+static void l2_epoch_free( mps_l2_epoch_t *epoch );
+static void l2_epoch_init( mps_l2_epoch_t *epoch );
+
+/* Check if an epoch can be used for a given purpose. */
+static int l2_epoch_check( mps_l2 *ctx,
+                           mbedtls_mps_epoch_id epoch,
                            uint8_t purpose );
-static int l2_epoch_table_lookup( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
-                                  uint8_t *offset,
-                                  mbedtls_mps_transform_t **transform );
+
+/* Lookup the transform associated to an epoch. */
+static int l2_epoch_lookup( mps_l2 *ctx,
+                            mbedtls_mps_epoch_id epoch_id,
+                            mps_l2_epoch_t **epoch );
+
+/* Check some epochs are no longer needed and can be removed. */
+static int l2_epoch_cleanup( mps_l2 *ctx );
+
+/* Check if removal of the read-permission for an epoch
+ * is possible and prepare for it. */
 static int l2_epoch_check_remove_read( mps_l2 *ctx,
                                        mbedtls_mps_epoch_id epoch );
+
+/* Check if removal of the write-permission for an epoch
+ * is possible and prepare for it. */
 static int l2_epoch_check_remove_write( mps_l2 *ctx,
                                         mbedtls_mps_epoch_id epoch );
-static int l2_epoch_cleanup( mps_l2 *ctx );
+
+static int l2_epoch_lookup_internal( mps_l2 *ctx,
+                                     mbedtls_mps_epoch_id epoch_id,
+                                     uint8_t *offset,
+                                     mps_l2_epoch_t **transform );
+
+/*
+ * Sequence number handling
+ */
+
+static int l2_tls_in_get_epoch_and_counter( mps_l2 *ctx,
+                                            uint16_t *dst_epoch,
+                                            uint64_t *dst_ctr );
+
+static int l2_in_update_counter( mps_l2 *ctx,
+                                 uint16_t epoch,
+                                 uint64_t ctr );
+
+static int l2_out_get_and_update_rec_seq( mps_l2 *ctx,
+                                          uint16_t epoch_id,
+                                          uint64_t *dst_ctr );
+
+/*
+ * DTLS replay protection
+ */
+
+static int l2_counter_replay_check( mps_l2 *ctx,
+                                    mbedtls_mps_epoch_id epoch,
+                                    uint64_t ctr );
 
 #define MPS_L2_READ_UINT16_LE( src, dst )               \
     do                                                  \
@@ -125,14 +174,6 @@ static int l2_epoch_cleanup( mps_l2 *ctx );
  *       -- and instead an explicit call to `flush` must be made -- then `dispatch`
  *       may be called in the middle of a function; if it does, then any call
  *       to `dispatch` must be made re-entrant.
- */
-
-/*
- * TODO: For DTLS, invalid records should be silently skipped. For this,
- *       Layer 1 needs to have a l1_skip function implemented, and Layer 2
- *       should use it at the appropriate places to ensure that, despite
- *       an error code is being returned, the user can continue the Layer 2
- *       context.
  */
 
 static void l2_out_write_version( int major, int minor, int transport,
@@ -217,6 +258,7 @@ int mps_l2_init( mps_l2 *ctx, mps_l1 *l1, uint8_t mode,
     ctx->conf.f_rng = f_rng;
     ctx->conf.p_rng = p_rng;
     ctx->conf.badmac_limit = 0;
+    ctx->conf.anti_replay = MPS_L2_ANTI_REPLAY_ENABLED;
 
     /* Initialize write-side */
     ctx->out.flush    = 0;
@@ -247,26 +289,16 @@ int mps_l2_init( mps_l2 *ctx, mps_l1 *l1, uint8_t mode,
     ctx->in.readers[1].epoch = MPS_EPOCH_NONE;
     mbedtls_reader_init( &ctx->in.readers[0].rd, NULL, 0 );
     mbedtls_reader_init( &ctx->in.readers[1].rd, NULL, 0 );
-
     ctx->in.bad_mac_ctr = 0;
 
-    ctx->out_ctr = 0;
-    ctx->in_ctr  = 0;
+    /* Initialize epochs */
 
-    ctx->epoch_base = 0;
-    ctx->next_epoch = 0;
-    for( size_t epoch = 0; epoch < MPS_L2_EPOCH_WINDOW_SIZE; epoch++ )
-        ctx->transforms[ ctx->epoch_base + epoch ] = NULL;
+    memset( &ctx->epochs, 0, sizeof( ctx->epochs ) );
 
-    if( mode == MPS_L2_MODE_DATAGRAM )
+    if( mode == MPS_L2_MODE_STREAM )
     {
-        for( size_t epoch = 0; epoch < MPS_L2_EPOCH_WINDOW_SIZE; epoch++ )
-            ctx->epochs.dtls.state[ ctx->epoch_base + epoch ] = 0;
-    }
-    else
-    {
-        ctx->epochs.tls.default_in  = MPS_EPOCH_NONE;
-        ctx->epochs.tls.default_out = MPS_EPOCH_NONE;
+        ctx->epochs.permissions.tls.default_in  = MPS_EPOCH_NONE;
+        ctx->epochs.permissions.tls.default_out = MPS_EPOCH_NONE;
     }
 
     RETURN( 0 );
@@ -283,20 +315,14 @@ int mps_l2_free( mps_l2 *ctx )
 
     free( ctx->in.accumulator );
     free( ctx->out.queue );
+
     ctx->in.accumulator = NULL;
     ctx->in.acc_len = 0;
     ctx->out.queue = NULL;
     ctx->out.queue_len = 0;
 
-    for( size_t epoch = 0; epoch < MPS_L2_EPOCH_WINDOW_SIZE; epoch++ )
-    {
-        if( ctx->transforms[ epoch ] != NULL )
-        {
-            transform_free( ctx->transforms[ epoch ] );
-            free( ctx->transforms[ epoch] );
-            ctx->transforms[ epoch] = NULL;
-        }
-    }
+    for( size_t offset = 0; offset < MPS_L2_EPOCH_WINDOW_SIZE; offset++ )
+        l2_epoch_free( &ctx->epochs.window[offset] );
 
     RETURN( 0 );
 }
@@ -338,7 +364,7 @@ int mps_l2_config_add_type( mps_l2 *ctx, uint8_t type,
  * and prepares L1-owned buffers holding the record header and record plaintext.
  * The latter is subsequently fed to the user-facing writer object (not done
  * in this function). */
-static int l2_out_prepare_record( mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
+static int l2_out_prepare_record( mps_l2 *ctx, mbedtls_mps_epoch_id epoch_id )
 {
     int ret;
     uint8_t overflow; /* Helper variable to detect arithmetic overflow. */
@@ -354,9 +380,9 @@ static int l2_out_prepare_record( mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
                              * the transform protecting the record
                              * adds beyond the plaintext.          */
 
-    mbedtls_mps_transform_t *trafo; /* The transform protecting the record. */
+    mps_l2_epoch_t *epoch;
 
-    TRACE_INIT( "l2_out_prepare, epoch %d", epoch );
+    TRACE_INIT( "l2_out_prepare, epoch %d", epoch_id );
 
     /* Request buffer from Layer 1 to hold entire record. */
     ret = mps_l1_write( ctx->conf.l1, &rec_buf, &total_sz );
@@ -372,12 +398,15 @@ static int l2_out_prepare_record( mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
      * With this information, the sub-buffer holding the record
      * plaintext before encryption can be calculated. */
 
-    hdr_len = l2_get_header_len( ctx, epoch );
+    hdr_len = l2_get_header_len( ctx, epoch_id );
 
-    ret = l2_epoch_table_lookup( ctx, epoch, NULL, &trafo );
+    ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
     if( ret != 0 )
         RETURN( ret );
-    transform_get_expansion( trafo, &pre_expansion, &post_expansion );
+
+    transform_get_expansion( epoch->transform,
+                             &pre_expansion,
+                             &post_expansion );
 
     /* Check for overflow */
     overflow = 0;
@@ -448,7 +477,7 @@ static int l2_out_dispatch_record( mps_l2 *ctx )
 {
     int ret;
     mps_rec rec;
-    mbedtls_mps_transform_t *transform;
+    mps_l2_epoch_t *epoch;
     TRACE_INIT( "l2_out_dispatch_record" );
     TRACE( trace_comment, "Plaintext length: %u",
            (unsigned) ctx->out.payload.data_len );
@@ -484,19 +513,16 @@ static int l2_out_dispatch_record( mps_l2 *ctx )
         rec.major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
         rec.minor_ver = ctx->conf.version;
         rec.buf       = ctx->out.payload;
-        rec.ctr       = ctx->out_ctr;
         rec.epoch     = ctx->out.writer.epoch;
         rec.type      = ctx->out.writer.type;
+        l2_out_get_and_update_rec_seq( ctx, rec.epoch, &rec.ctr );
 
         TRACE( trace_comment, "Record header fields:" );
         TRACE( trace_comment, "* Sequence number: %u", (unsigned) rec.ctr   );
         TRACE( trace_comment, "* Epoch:           %u", (unsigned) rec.epoch );
         TRACE( trace_comment, "* Type:            %u", (unsigned) rec.type  );
 
-        ctx->out_ctr++;
-
-        ret = l2_epoch_table_lookup( ctx, ctx->out.writer.epoch,
-                                     NULL, &transform );
+        ret = l2_epoch_lookup( ctx, ctx->out.writer.epoch, &epoch );
         if( ret != 0 )
         {
             TRACE( trace_comment, "Epoch lookup failed" );
@@ -508,7 +534,7 @@ static int l2_out_dispatch_record( mps_l2 *ctx )
         /* Step 2: Apply record payload protection. */
         TRACE( trace_comment, "Encrypt record. The plaintext offset is %u.",
                (unsigned) rec.buf.data_offset );
-        ret = transform_encrypt( transform, &rec, ctx->conf.f_rng,
+        ret = transform_encrypt( epoch->transform, &rec, ctx->conf.f_rng,
                                  ctx->conf.p_rng );
         if( ret != 0 )
         {
@@ -804,229 +830,6 @@ static int l2_out_clear_pending( mps_l2 *ctx )
         ctx->out.clearing = 0;
     }
 
-    RETURN( 0 );
-}
-
-int mps_l2_epoch_add( mps_l2 *ctx,
-                      mbedtls_mps_transform_t *transform,
-                      mbedtls_mps_epoch_id *epoch )
-{
-    uint8_t epoch_offset;
-    TRACE_INIT( "mps_l2_epoch_add" );
-    TRACE( trace_comment, "* Transform: %p", transform );
-
-    if( ctx->next_epoch == MPS_L2_LIMIT_EPOCH )
-    {
-        TRACE( trace_error, "We reached the maximum epoch." );
-        RETURN( MPS_ERR_EPOCH_OVERFLOW );
-    }
-
-    /* Check that we have space for another epoch. */
-    epoch_offset = ctx->next_epoch - ctx->epoch_base;
-    if( epoch_offset == MPS_L2_EPOCH_WINDOW_SIZE )
-    {
-        TRACE( trace_error, "The epoch window of size %u is full.",
-               (unsigned) MPS_L2_EPOCH_WINDOW_SIZE );
-        RETURN( MPS_ERR_EPOCH_WINDOW_EXCEEDED );
-    }
-    *epoch = ctx->next_epoch;
-
-    ctx->next_epoch++;
-    ctx->transforms[ epoch_offset ] = transform;
-    RETURN( 0 );
-}
-
-int mps_l2_epoch_usage( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
-                        mbedtls_mps_epoch_usage usage )
-{
-    int ret;
-    uint8_t epoch_offset;
-
-    mbedtls_mps_epoch_id remove_read  = MPS_EPOCH_NONE;
-    mbedtls_mps_epoch_id remove_write = MPS_EPOCH_NONE;
-    TRACE_INIT( "mps_l2_epoch_usage" );
-    TRACE( trace_comment, "* Epoch: %d", epoch );
-    TRACE( trace_comment, "* Usage: %u", (unsigned) usage );
-
-    /* 1. Check if the epoch is valid. */
-
-    if( epoch == MPS_EPOCH_NONE || epoch < ctx->epoch_base )
-    {
-        TRACE( trace_error, "Epoch %d smaller than the base epoch %d.",
-               epoch, ctx->epoch_base );
-        RETURN( MPS_ERR_INVALID_EPOCH );
-    }
-
-    epoch_offset = epoch - ctx->epoch_base;
-    if( epoch_offset >= MPS_L2_EPOCH_WINDOW_SIZE )
-    {
-        TRACE( trace_error, "The epoch offset %u (== %d - %d) exceeds the epoch window size %u.",
-               (unsigned) epoch_offset, epoch,
-               ctx->epoch_base, MPS_L2_EPOCH_WINDOW_SIZE );
-        RETURN( MPS_ERR_INVALID_EPOCH );
-    }
-
-    /* 2. Check if the change of permissions collides with
-     *    potential present usage of the epoch. */
-
-    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
-    {
-        if( ( usage & MPS_EPOCH_READ ) != 0    &&
-            ctx->epochs.tls.default_in != epoch )
-        {
-            remove_read = ctx->epochs.tls.default_in;
-        }
-
-        if( ( usage & MPS_EPOCH_WRITE ) != 0   &&
-            ctx->epochs.tls.default_out != epoch )
-        {
-            remove_write = ctx->epochs.tls.default_out;
-        }
-    }
-    else
-    {
-        mbedtls_mps_epoch_usage old_usage =
-            ctx->epochs.dtls.state[ epoch_offset ];
-
-        mbedtls_mps_epoch_usage permission_removal = old_usage & ( ~usage );
-
-        /* Check if read or write permissions are being removed. */
-        if( ( permission_removal & MPS_EPOCH_READ ) != 0 )
-            remove_read = epoch;
-        if( ( permission_removal & MPS_EPOCH_WRITE ) != 0 )
-            remove_write = epoch;
-    }
-
-    if( remove_read != MPS_EPOCH_NONE )
-    {
-        ret = l2_epoch_check_remove_read( ctx, remove_read );
-        if( ret != 0 )
-            RETURN( ret );
-    }
-    if( remove_write != MPS_EPOCH_NONE )
-    {
-        ret = l2_epoch_check_remove_write( ctx, remove_write );
-        if( ret != 0 )
-            RETURN( ret );
-    }
-
-    /* 3. Apply the change of permissions. */
-
-    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
-    {
-        if( usage & MPS_EPOCH_READ )
-        {
-            ctx->epochs.tls.default_in = epoch;
-            if( remove_read != MPS_EPOCH_NONE )
-            {
-                /* Reset incoming record sequence number. */
-                TRACE( trace_comment, "Reset incoming record sequence number." );
-                ctx->in_ctr = 0;
-            }
-        }
-
-        if( usage & MPS_EPOCH_WRITE )
-        {
-            ctx->epochs.tls.default_out = epoch;
-            if( remove_write != MPS_EPOCH_NONE )
-            {
-                /* Reset outgoing record sequence number.
-                 *
-                 * Note: This must be done after l2_epoch_check_remove_write()
-                 * has been successfully called, as the latter might finish
-                 * and dispatch an internally open record for the old outgoing
-                 * epoch and thereby increment the outgoing sequence number.
-                 */
-                TRACE( trace_comment, "Reset outgoing record sequence number." );
-                ctx->out_ctr = 0;
-            }
-        }
-    }
-    else
-    {
-        ctx->epochs.dtls.state[ epoch_offset ] = usage;
-    }
-
-    RETURN( l2_epoch_cleanup( ctx ) );
-}
-
-static int l2_epoch_check_remove_write( mps_l2 *ctx,
-                                        mbedtls_mps_epoch_id epoch )
-{
-    int ret;
-    TRACE_INIT( "l2_epoch_check_remove_write" );
-    TRACE( trace_comment, " * Epoch ID: %u", (unsigned) epoch );
-
-    if( ctx->out.state == MPS_L2_WRITER_STATE_UNSET ||
-        ctx->out.writer.epoch != epoch )
-    {
-        TRACE( trace_comment, "The epoch is currently not used for writing." );
-        RETURN( 0 );
-    }
-
-    if( ctx->out.state == MPS_L2_WRITER_STATE_EXTERNAL )
-    {
-        TRACE( trace_error, "The active writer is using the epoch." );
-        RETURN( MPS_ERR_EPOCH_CHANGE_REJECTED );
-    }
-
-    if( ctx->out.state == MPS_L2_WRITER_STATE_INTERNAL )
-    {
-        /* An outgoing but not yet dispatched record is open
-         * for the given epoch. Dispatch it, so that the epoch
-         * is no longer needed. */
-        TRACE( trace_comment, "Dispatch current outgoing record." );
-
-        ret = l2_out_release_and_dispatch( ctx, MBEDTLS_WRITER_RECLAIM_FORCE );
-        if( ret != 0 )
-            RETURN( ret );
-
-        TRACE( trace_comment, "Epoch %u is no longer used for writing.",
-               (unsigned) epoch );
-    }
-
-    /* Now the outgoing state is UNSET or QUEUEING. */
-
-    TRACE( trace_comment, "The write permission for epoch %u can be removed.",
-           (unsigned) epoch );
-    RETURN( 0 );
-}
-
-static int l2_epoch_check_remove_read( mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
-{
-    TRACE_INIT( "l2_epoch_check_remove_read" );
-    TRACE( trace_comment, " * Epoch ID: %u", (unsigned) epoch );
-
-    if( ctx->in.active_state == MPS_L2_READER_STATE_EXTERNAL &&
-        ctx->in.active->epoch == epoch )
-    {
-        TRACE( trace_error, "The active reader is using the epoch." );
-        RETURN( MPS_ERR_EPOCH_CHANGE_REJECTED );
-    }
-
-    if( ctx->in.paused_state == MPS_L2_READER_STATE_PAUSED &&
-        ctx->in.paused->epoch == epoch )
-    {
-        TRACE( trace_error, "The paused reader is using the epoch." );
-        RETURN( MPS_ERR_EPOCH_CHANGE_REJECTED );
-    }
-
-    /* NOTE:
-     * We allow the active reader to be in state MPS_L2_READER_STATE_INTERNAL,
-     * i.e. we do not yet error out on this occasion when more incoming data
-     * is available for the same epoch.
-     * Instead, the error will be triggered on the next call to mps_l2_read(),
-     * which will attempt to continue reading from the currently opened record
-     * but will find its epoch no longer valid.
-     *
-     * This covers the scenario where the peer attempts to piggyback
-     * a handshake message that should be encrypted with a new epoch
-     * on top of a handshake record that's encrypted with a previous
-     * epoch, e.g. the EncryptedExtension message piggy backing on the
-     * same record as the ServerHello.
-     */
-
-    TRACE( trace_comment, "The epoch is not actively used for reading." );
     RETURN( 0 );
 }
 
@@ -1493,6 +1296,28 @@ int mps_l2_read_start( mps_l2 *ctx, mps_l2_in *in )
             }
         }
 
+        /* TLS-1.3-NOTE
+         * If the server does not support EarlyData is must silently
+         * ignore the early ApplicationData records that the client
+         * sends.
+         *
+         * This needs the following adaptions to the code:
+         * - There should be a dynamically configurable option
+         *   to silently discard unauthenticated records.
+         * - If this option is set and if l2_in_fetch_record()
+         *   returns INVALID_MAC, we should not forward this error
+         *   here but instead call l2_release_record() and return
+         *   MPS_ERR_CONTINUE_PROCESSING.
+         */
+
+        if( ret != 0 )
+            RETURN( ret );
+
+        /*
+         * Update record sequence numbers and replay protection.
+         */
+
+        ret = l2_in_update_counter( ctx, rec.epoch, rec.ctr );
         if( ret != 0 )
             RETURN( ret );
 
@@ -1619,29 +1444,13 @@ static int l2_in_release_record( mps_l2 *ctx )
     if( ret != 0 )
         RETURN( ret );
 
-    /* Increase incoming sequence number (TLS)
-     * or update replay protection window (DTLS). */
-
-    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
-    {
-        if( ++ctx->in_ctr == 0 )
-            RETURN( MPS_ERR_COUNTER_WRAP );
-
-        TRACE( trace_comment, "New incoming sequence number: %u",
-               (unsigned) ctx->in_ctr );
-    }
-    else
-    {
-        /* TODO */
-    }
-
     RETURN( 0 );
 }
 
 static int l2_in_fetch_record( mps_l2 *ctx, mps_rec *rec )
 {
     int ret;
-    mbedtls_mps_transform_t *transform;
+    mps_l2_epoch_t *epoch;
     TRACE_INIT( "l2_in_fetch_record" );
 
     /*
@@ -1695,14 +1504,14 @@ static int l2_in_fetch_record( mps_l2 *ctx, mps_rec *rec )
      */
 
     TRACE( trace_comment, "lookup epoch %u", (unsigned) rec->epoch );
-    if( ( ret = l2_epoch_table_lookup( ctx, rec->epoch,
-                                       NULL, &transform ) ) != 0 )
+    if( ( ret = l2_epoch_lookup( ctx, rec->epoch,
+                                 &epoch ) ) != 0 )
     {
         RETURN( ret );
     }
 
-    TRACE( trace_comment, "Decrypt record with transform %p", transform );
-    if( ( ret = transform_decrypt( transform, rec ) ) != 0 )
+    TRACE( trace_comment, "Decrypt record with trafo %p", epoch->transform );
+    if( ( ret = transform_decrypt( epoch->transform, rec ) ) != 0 )
         RETURN( ret );
     TRACE( trace_comment, "Decryption done" );
 
@@ -1892,8 +1701,24 @@ static int l2_in_fetch_protected_record_tls( mps_l2 *ctx, mps_rec *rec )
      * Write target record structure
      */
 
-    rec->ctr       = ctx->in_ctr;
-    rec->epoch     = ctx->epochs.tls.default_in;
+    /* For TLS-1.3, we must not increment the in_ctr here
+     * because (in contrast to prior versions of TLS), records
+     * may be silently dismissed on authentication failure,
+     * and in this case the record sequence number should stay
+     * unmodified.
+     *
+     * Instead, postpone updating the incoming record sequence
+     * number to the point where the record has been successfully
+     * authenticated.
+     */
+
+    ret = l2_tls_in_get_epoch_and_counter( ctx, &rec->epoch, &rec->ctr );
+    if( ret != 0 )
+        RETURN( ret );
+
+    TRACE( trace_comment, "* Record epoch:  %u", (unsigned) rec->epoch );
+    TRACE( trace_comment, "* Record number: %u", (unsigned) rec->ctr );
+
     rec->type      = type;
     rec->major_ver = major_ver;
     rec->minor_ver = minor_ver;
@@ -1904,6 +1729,116 @@ static int l2_in_fetch_protected_record_tls( mps_l2 *ctx, mps_rec *rec )
     rec->buf.data_len    = len;
 
     RETURN( 0 );
+}
+
+static int l2_in_update_counter( mps_l2 *ctx,
+                                 uint16_t epoch_id,
+                                 uint64_t ctr )
+{
+    int ret;
+    mps_l2_epoch_t *epoch;
+    ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
+    if( ret != 0 )
+        return( ret );
+
+    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
+    {
+        epoch->stats.tls.in_ctr = ctr + 1;
+        if( epoch->stats.tls.in_ctr == 0 )
+            return( MPS_ERR_COUNTER_WRAP );
+
+        return( 0 );
+    }
+
+    epoch->stats.dtls.last_seen = ctr;
+    if( ctx->conf.anti_replay == MPS_L2_ANTI_REPLAY_DISABLED )
+        return( 0 );
+    else
+    {
+        uint64_t window_top;
+        uint64_t window;
+
+        window_top = epoch->stats.dtls.replay.in_window_top;
+        window     = epoch->stats.dtls.replay.in_window;
+
+        if( ctr > window_top )
+        {
+            /* Update window_top and the contents of the window */
+            uint64_t shift = ctr - window_top;
+
+            if( shift >= 64 )
+                window = 1;
+            else
+            {
+                window <<= shift;
+                window |= 1;
+            }
+
+            window_top = ctr;
+        }
+        else
+        {
+            /* Mark that number as seen in the current window */
+            uint64_t bit = window_top - ctr;
+
+            if( bit < 64 ) /* Always true, but be extra sure */
+                window |= (uint64_t) 1 << bit;
+        }
+
+        epoch->stats.dtls.replay.in_window     = window;
+        epoch->stats.dtls.replay.in_window_top = window_top;
+    }
+
+    return( 0 );
+}
+
+static int l2_tls_in_get_epoch_and_counter( mps_l2 *ctx,
+                                            uint16_t *dst_epoch,
+                                            uint64_t *dst_ctr )
+{
+    uint8_t  offset;
+    uint16_t epoch;
+    uint64_t ctr;
+    TRACE_INIT( "l2_tls_in_get_epoch_and_counter" );
+
+    epoch   = ctx->epochs.base;
+    offset  = ctx->epochs.permissions.tls.default_in;
+    epoch  += offset;
+
+    TRACE( trace_comment, "* Base:   %u", (unsigned) ctx->epochs.base );
+    TRACE( trace_comment, "* Offset: %u", (unsigned) offset );
+
+    ctr = ctx->epochs.window[ offset ].stats.tls.in_ctr;
+
+    *dst_epoch = epoch;
+    *dst_ctr   = ctr;
+
+    RETURN( 0 );
+}
+
+static int l2_out_get_and_update_rec_seq( mps_l2 *ctx,
+                                          uint16_t epoch_id,
+                                          uint64_t *dst_ctr )
+{
+    int ret;
+    uint64_t *src_ctr;
+    mps_l2_epoch_t *epoch;
+
+    ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
+    if( ret != 0 )
+        return( ret );
+
+    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
+        src_ctr = &epoch->stats.tls.out_ctr;
+    else
+        src_ctr = &epoch->stats.dtls.out_ctr;
+
+    *dst_ctr = *src_ctr;
+
+    if( ++*src_ctr == 0 )
+        return( MPS_ERR_COUNTER_WRAP );
+
+    return( 0 );
 }
 
 static int l2_in_fetch_protected_record_dtls12( mps_l2 *ctx, mps_rec *rec )
@@ -2001,7 +1936,11 @@ static int l2_in_fetch_protected_record_dtls12( mps_l2 *ctx, mps_rec *rec )
 
     /* Sequence number */
     MPS_L2_READ_UINT48_LE( buf + dtls_rec_seq_offset, &sequence_number );
-    /* TODO: Validate record sequence number (replay check) */
+    if( l2_counter_replay_check( ctx, epoch, sequence_number ) != 0 )
+    {
+        TRACE( trace_error, "Replayed record -- ignore" );
+        RETURN( MPS_ERR_REPLAYED_RECORD );
+    }
 
     /* Length */
     MPS_L2_READ_UINT16_LE( buf + dtls_rec_len_offset, &len );
@@ -2034,6 +1973,9 @@ static int l2_in_fetch_protected_record_dtls12( mps_l2 *ctx, mps_rec *rec )
     rec->minor_ver = minor_ver;
     rec->epoch     = epoch;
     rec->ctr       = sequence_number;
+
+    TRACE( trace_comment, "* Record epoch:  %u", (unsigned) rec->epoch );
+    TRACE( trace_comment, "* Record number: %u", (unsigned) rec->ctr );
 
     rec->buf.buf         = buf + dtls_rec_hdr_len;
     rec->buf.buf_len     = len;
@@ -2077,7 +2019,211 @@ static int l2_type_empty_allowed( mps_l2 *ctx, uint8_t type )
     return( ( ctx->conf.empty_flag & ( ( (uint64_t) 1u ) << type ) ) != 0 );
 }
 
-static int l2_epoch_check( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
+static void l2_epoch_free( mps_l2_epoch_t *epoch )
+{
+    if( epoch->transform != NULL )
+    {
+        transform_free( epoch->transform );
+        free( epoch->transform );
+    }
+
+    memset( epoch, 0, sizeof( mps_l2_epoch_t ) );
+}
+
+static void l2_epoch_init( mps_l2_epoch_t *epoch )
+{
+    memset( epoch, 0, sizeof( mps_l2_epoch_t ) );
+}
+
+int mps_l2_epoch_add( mps_l2 *ctx,
+                      mbedtls_mps_transform_t *transform,
+                      mbedtls_mps_epoch_id *epoch_id )
+{
+    uint8_t next_offset = ctx->epochs.next;
+    TRACE_INIT( "mps_l2_epoch_add" );
+
+    if( next_offset == MPS_L2_EPOCH_WINDOW_SIZE )
+    {
+        TRACE( trace_error, "The epoch window of size %u is full.",
+               (unsigned) MPS_L2_EPOCH_WINDOW_SIZE );
+        RETURN( MPS_ERR_EPOCH_WINDOW_EXCEEDED );
+    }
+    *epoch_id = ctx->epochs.base + next_offset;
+
+    l2_epoch_init( &ctx->epochs.window[next_offset] );
+    ctx->epochs.window[next_offset].transform = transform;
+    ctx->epochs.next++;
+    RETURN( 0 );
+}
+
+int mps_l2_epoch_usage( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
+                        mbedtls_mps_epoch_usage usage )
+{
+    int ret;
+    uint8_t epoch_offset;
+
+    mbedtls_mps_epoch_id remove_read  = MPS_EPOCH_NONE;
+    mbedtls_mps_epoch_id remove_write = MPS_EPOCH_NONE;
+    TRACE_INIT( "mps_l2_epoch_usage" );
+    TRACE( trace_comment, "* Epoch: %d", epoch );
+    TRACE( trace_comment, "* Usage: %u", (unsigned) usage );
+
+    /* 1. Check if the epoch is valid. */
+
+    ret = l2_epoch_lookup_internal( ctx, epoch, &epoch_offset, NULL );
+    if( ret != 0 )
+        RETURN( ret );
+
+    /* 2. Check if the change of permissions collides with
+     *    potential present usage of the epoch. */
+
+    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
+    {
+        if( ( usage & MPS_EPOCH_READ ) != 0    &&
+            ctx->epochs.permissions.tls.default_in != epoch_offset )
+        {
+            remove_read =
+                ctx->epochs.base + ctx->epochs.permissions.tls.default_in;
+        }
+
+        if( ( usage & MPS_EPOCH_WRITE ) != 0   &&
+            ctx->epochs.permissions.tls.default_out != epoch_offset )
+        {
+            remove_write =
+                ctx->epochs.base + ctx->epochs.permissions.tls.default_out;
+        }
+    }
+    else
+    {
+        mbedtls_mps_epoch_usage old_usage =
+            ctx->epochs.permissions.dtls[ epoch_offset ];
+
+        mbedtls_mps_epoch_usage permission_removal = old_usage & ( ~usage );
+
+        /* Check if read or write permissions are being removed. */
+        if( ( permission_removal & MPS_EPOCH_READ ) != 0 )
+            remove_read = epoch;
+        if( ( permission_removal & MPS_EPOCH_WRITE ) != 0 )
+            remove_write = epoch;
+    }
+
+    if( remove_read != MPS_EPOCH_NONE )
+    {
+        ret = l2_epoch_check_remove_read( ctx, remove_read );
+        if( ret != 0 )
+            RETURN( ret );
+    }
+    if( remove_write != MPS_EPOCH_NONE )
+    {
+        ret = l2_epoch_check_remove_write( ctx, remove_write );
+        if( ret != 0 )
+            RETURN( ret );
+    }
+
+    /* 3. Apply the change of permissions. */
+
+    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
+    {
+        if( usage & MPS_EPOCH_READ )
+            ctx->epochs.permissions.tls.default_in = epoch_offset;
+        if( usage & MPS_EPOCH_WRITE )
+            ctx->epochs.permissions.tls.default_out = epoch_offset;
+    }
+    else
+    {
+        ctx->epochs.permissions.dtls[ epoch_offset ] = usage;
+    }
+
+    RETURN( l2_epoch_cleanup( ctx ) );
+}
+
+static int l2_epoch_check_remove_write( mps_l2 *ctx,
+                                        mbedtls_mps_epoch_id epoch )
+{
+    int ret;
+    TRACE_INIT( "l2_epoch_check_remove_write" );
+    TRACE( trace_comment, " * Epoch ID: %u", (unsigned) epoch );
+
+    if( ctx->out.state == MPS_L2_WRITER_STATE_UNSET ||
+        ctx->out.writer.epoch != epoch )
+    {
+        TRACE( trace_comment, "The epoch is currently not used for writing." );
+        RETURN( 0 );
+    }
+
+    if( ctx->out.state == MPS_L2_WRITER_STATE_EXTERNAL )
+    {
+        TRACE( trace_error, "The active writer is using the epoch." );
+        RETURN( MPS_ERR_EPOCH_CHANGE_REJECTED );
+    }
+
+    if( ctx->out.state == MPS_L2_WRITER_STATE_INTERNAL )
+    {
+        /* An outgoing but not yet dispatched record is open
+         * for the given epoch. Dispatch it, so that the epoch
+         * is no longer needed. */
+        TRACE( trace_comment, "Dispatch current outgoing record." );
+
+        ret = l2_out_release_and_dispatch( ctx, MBEDTLS_WRITER_RECLAIM_FORCE );
+        if( ret != 0 )
+            RETURN( ret );
+
+        TRACE( trace_comment, "Epoch %u is no longer used for writing.",
+               (unsigned) epoch );
+    }
+
+    /* Now the outgoing state is UNSET or QUEUEING. */
+
+    TRACE( trace_comment, "The write permission for epoch %u can be removed.",
+           (unsigned) epoch );
+    RETURN( 0 );
+}
+
+static int l2_epoch_check_remove_read( mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
+{
+    TRACE_INIT( "l2_epoch_check_remove_read" );
+    TRACE( trace_comment, " * Epoch ID: %u", (unsigned) epoch );
+
+    if( ctx->in.active_state == MPS_L2_READER_STATE_EXTERNAL &&
+        ctx->in.active->epoch == epoch )
+    {
+        TRACE( trace_error, "The active reader is using the epoch." );
+        RETURN( MPS_ERR_EPOCH_CHANGE_REJECTED );
+    }
+
+    if( ctx->in.paused_state == MPS_L2_READER_STATE_PAUSED &&
+        ctx->in.paused->epoch == epoch )
+    {
+        TRACE( trace_error, "The paused reader is using the epoch." );
+        RETURN( MPS_ERR_EPOCH_CHANGE_REJECTED );
+    }
+
+    /* NOTE:
+     * We allow the active reader to be in state MPS_L2_READER_STATE_INTERNAL,
+     * i.e. we do not yet error out on this occasion when more incoming data
+     * is available for the same epoch.
+     * Instead, the error will be triggered on the next call to mps_l2_read(),
+     * which will attempt to continue reading from the currently opened record
+     * but will find its epoch no longer valid.
+     *
+     * This covers the scenario where the peer attempts to piggyback
+     * a handshake message that should be encrypted with a new epoch
+     * on top of a handshake record that's encrypted with a previous
+     * epoch, e.g. the EncryptedExtension message piggy backing on the
+     * same record as the ServerHello.
+     *
+     */
+
+    TRACE( trace_comment, "The epoch is not actively used for reading." );
+    RETURN( 0 );
+}
+
+/*
+ * This function checks whether an epoch is valid
+ * and available for reading or writing.
+ */
+static int l2_epoch_check( mps_l2 *ctx,
+                           mbedtls_mps_epoch_id epoch,
                            uint8_t purpose )
 {
     int ret;
@@ -2087,13 +2233,13 @@ static int l2_epoch_check( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
     TRACE_INIT( "l2_epoch_check for epoch %d, purpose %u",
            epoch, (unsigned) purpose );
 
-    ret = l2_epoch_table_lookup( ctx, epoch, &epoch_offset, NULL );
+    ret = l2_epoch_lookup_internal( ctx, epoch, &epoch_offset, NULL );
     if( ret != 0 )
         RETURN( ret );
 
     if( ctx->conf.mode == MPS_L2_MODE_DATAGRAM )
     {
-        epoch_usage = ctx->epochs.dtls.state[ epoch_offset ];
+        epoch_usage = ctx->epochs.permissions.dtls[ epoch_offset ];
         if( ( purpose & epoch_usage ) != purpose )
         {
             TRACE( trace_comment, "epoch usage not allowed" );
@@ -2103,14 +2249,14 @@ static int l2_epoch_check( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
     else
     {
         if( purpose == MPS_EPOCH_READ &&
-            ctx->epochs.tls.default_in != epoch )
+            ctx->epochs.permissions.tls.default_in != epoch_offset )
         {
             TRACE( trace_comment, "epoch not the default incoming one" );
             RETURN( MPS_ERR_INVALID_RECORD );
         }
 
         if( purpose == MPS_EPOCH_WRITE &&
-            ctx->epochs.tls.default_out != epoch )
+            ctx->epochs.permissions.tls.default_out != epoch_offset )
         {
             TRACE( trace_comment, "epoch not the default outgoing one" );
             RETURN( MPS_ERR_INVALID_RECORD );
@@ -2120,9 +2266,49 @@ static int l2_epoch_check( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
     RETURN( 0 );
 }
 
+/*
+ * This functions detects and frees epochs that are no longer needed.
+ *
+ * Whether an epoch is 'needed' or not is jugded as follows:
+ *
+ * - Epochs with non-zero permissions are needed because they might
+ *   be used for reading/writing in the future.
+ *
+ * - An epoch for which an outgoing record is open internally or externally,
+ *   or for which more outgoing data is pending to be dispatched, is needed.
+ *
+ * - An epoch for which an incoming record is open externally,
+ *   or for which more incoming data is pending to be received, is needed.
+ *
+ * NOTE: An internally but not externally open incoming record (i.e. a record
+ *       that has been authenticated and decrypted, but for which no read-handle
+ *       is currently available to the user) is *not* considered a usage
+ *       for the epoch to which it belongs - that's because all interfacing
+ *       with the epoch to which it belongs is done at the time of
+ *       authentication and decryption.
+ *
+ * The following invariants hold which simplify checking of these conditions:
+ * - An internally or externally open outgoing record belongs to an epoch with
+ *   write permissions: An outgoing record is prepared in mps_l2_write_start()
+ *   only if desired epoch has write-permissions, and if mps_l2_epoch_usage()
+ *   is called to remove write-permissions for an epoch,
+ *   l2_epoch_check_remove_write() checks that no outgoing record is externally
+ *   open for it, and dispatches a internally open ones.
+ * - An epoch for which outgoing data is pending to be dispatched
+ *   has write permissions.
+ * - An externally open incoming record belongs to an epoch with read
+ *   permissions.
+ * - An epoch for which incoming data is pending to be received
+ *   has read permissions.
+ *
+ * In summary, in addition to read and write permissions the only epochs
+ * that are in use are those for which outgoing data is pending to be
+ * dispatched, which is only possible in TLS. This explains the checks below.
+ *
+ */
 static int l2_epoch_cleanup( mps_l2 *ctx )
 {
-    uint8_t shift, id;
+    uint8_t shift, offset;
     mbedtls_mps_epoch_id max_shift;
 
     TRACE_INIT( "l2_epoch_cleanup" );
@@ -2134,75 +2320,76 @@ static int l2_epoch_cleanup( mps_l2 *ctx )
          * or the default outgoing epoch, or if there is outgoing
          * data queued on that epoch.
          */
-        mbedtls_mps_epoch_id queued_epoch = MPS_EPOCH_NONE;
+        int16_t queued_epoch_offset = -1;
         if( ctx->out.state == MPS_L2_WRITER_STATE_QUEUEING )
         {
-            queued_epoch = ctx->out.writer.epoch;
+            queued_epoch_offset = ctx->out.writer.epoch - ctx->epochs.base;
             TRACE( trace_comment, "Epoch %u still has data pending to be delivered -> Don't clean up",
-                   (unsigned) queued_epoch );
+                   (unsigned) queued_epoch_offset );
         }
 
-        for( id = 0; id < MPS_L2_EPOCH_WINDOW_SIZE; id++ )
+        for( offset = 0; offset < ctx->epochs.next; offset++ )
         {
-            mbedtls_mps_epoch_id epoch = ctx->epoch_base + id;
-            if( ctx->transforms[id] != NULL &&
-                epoch != ctx->epochs.tls.default_in  &&
-                epoch != ctx->epochs.tls.default_out &&
-                epoch != queued_epoch )
+            if( offset != ctx->epochs.permissions.tls.default_in  &&
+                offset != ctx->epochs.permissions.tls.default_out &&
+                (int16_t) offset != queued_epoch_offset )
             {
-                TRACE( trace_comment, "Epoch %d (offset %u, base %d, transform %p) is no longer needed -> Cleanup",
-                       ctx->epoch_base + id,
-                       (unsigned) ( id ), ctx->epoch_base,
-                       ctx->transforms[id] );
-                transform_free( ctx->transforms[id] );
-                free( ctx->transforms[id] );
-                ctx->transforms[id] = NULL;
+                TRACE( trace_comment, "Epoch %d (offset %u, base %d) is no longer needed",
+                       (unsigned) ( ctx->epochs.base + offset ),
+                       (unsigned) ( offset ),
+                       (unsigned) ( ctx->epochs.base ) );
+
+                l2_epoch_free( &ctx->epochs.window[offset] );
             }
             else
             {
-                if( epoch == ctx->epochs.tls.default_in )
+                if( offset == ctx->epochs.permissions.tls.default_in )
+                {
                     TRACE( trace_comment, "Epoch %d is the current incoming epoch",
-                           epoch );
-                if( epoch == ctx->epochs.tls.default_out )
+                           ctx->epochs.base + offset );
+                }
+                if( offset == ctx->epochs.permissions.tls.default_out )
+                {
                     TRACE( trace_comment, "Epoch %d is the current outgoing epoch",
-                           epoch );
-                if( epoch == queued_epoch )
+                           ctx->epochs.base + offset );
+                }
+                if( (int16_t) offset == queued_epoch_offset )
+                {
                     TRACE( trace_comment, "Epoch %d still has queued data pending to be delivered",
-                           epoch );
+                           ctx->epochs.base + offset );
+                }
 
                 break;
             }
         }
 
-        shift = id;
+        shift = offset;
     }
     else
     {
         /* DTLS */
         /* An epoch is in use if its flags are not empty.
          * There is no queueing of outgoing data in DTLS. */
-        for( id = 0; id < MPS_L2_EPOCH_WINDOW_SIZE; id++ )
+        for( offset = 0; offset < ctx->epochs.next; offset++ )
         {
-            if( ctx->transforms[id]        != NULL &&
-                ctx->epochs.dtls.state[id] == 0 )
+            if( ctx->epochs.permissions.dtls[offset] == 0 )
             {
-                TRACE( trace_comment, "epoch %u (off %u, base %u, p %p) no longer needed!",
-                       (unsigned) ( ctx->epoch_base + id ),
-                       (unsigned) ( id ), (unsigned) ( ctx->epoch_base ),
-                       ctx->transforms[id] );
-                transform_free( ctx->transforms[ id ] );
-                free( ctx->transforms[id] );
-                ctx->transforms[id] = NULL;
+                TRACE( trace_comment, "epoch %u (off %u, base %u) no longer needed",
+                       (unsigned) ( ctx->epochs.base + offset ),
+                       (unsigned) ( offset ),
+                       (unsigned) ( ctx->epochs.base ) );
+
+                l2_epoch_free( &ctx->epochs.window[offset] );
             }
             else
             {
-                mbedtls_mps_epoch_id epoch = ctx->epoch_base + id;
-                if( ctx->epochs.dtls.state[id] & MPS_EPOCH_READ )
+                mbedtls_mps_epoch_id epoch = ctx->epochs.base + offset;
+                if( ctx->epochs.permissions.dtls[offset] & MPS_EPOCH_READ )
                 {
                     TRACE( trace_comment, "Epoch %d can be used for reading.",
                            epoch );
                 }
-                if( ctx->epochs.dtls.state[id] & MPS_EPOCH_WRITE )
+                if( ctx->epochs.permissions.dtls[offset] & MPS_EPOCH_WRITE )
                 {
                     TRACE( trace_comment, "Epoch %d can be used for writing.",
                            epoch );
@@ -2211,7 +2398,7 @@ static int l2_epoch_cleanup( mps_l2 *ctx )
             }
         }
 
-        shift = id;
+        shift = offset;
     }
 
     if( shift == 0 )
@@ -2221,65 +2408,194 @@ static int l2_epoch_cleanup( mps_l2 *ctx )
     }
 
     max_shift = MPS_L2_LIMIT_EPOCH -
-        ( ctx->epoch_base + MPS_L2_EPOCH_WINDOW_SIZE );
+        ( ctx->epochs.base + MPS_L2_EPOCH_WINDOW_SIZE );
     if( shift >= max_shift )
     {
         TRACE( trace_comment, "Cannot shift epoch window further." );
         shift = max_shift;
     }
 
-    TRACE( trace_comment, "Can get rid of the first %u epochs; clearing.", (unsigned) shift );
-    ctx->epoch_base += shift;
+    TRACE( trace_comment, "Can get rid of the first %u epochs; clearing.",
+           (unsigned) shift );
 
-    for( id = 0; id < MPS_L2_EPOCH_WINDOW_SIZE; id++ )
+    ctx->epochs.base += shift;
+    ctx->epochs.next -= shift;
+
+    TRACE( trace_comment, "* New base: %u", (unsigned) ctx->epochs.base );
+
+    /* Shift epochs. */
+    for( offset = 0; offset < MPS_L2_EPOCH_WINDOW_SIZE; offset++ )
     {
-        if( MPS_L2_EPOCH_WINDOW_SIZE - id > shift )
-            ctx->transforms[id] = ctx->transforms[id + shift];
+        if( MPS_L2_EPOCH_WINDOW_SIZE - offset > shift )
+            ctx->epochs.window[offset] = ctx->epochs.window[offset + shift];
         else
-            ctx->transforms[id] = NULL;
+            l2_epoch_init( &ctx->epochs.window[offset] );
+    }
 
-        TRACE( trace_comment, "New transform address at offset %u: %p",
-               (unsigned) id, ctx->transforms[id] );
-
+    /* Shift permissions */
+    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
+    {
+        ctx->epochs.permissions.tls.default_in  -= shift;
+        ctx->epochs.permissions.tls.default_out -= shift;
+    }
+    else
+    {
+        for( offset = 0; offset < MPS_L2_EPOCH_WINDOW_SIZE; offset++ )
+        {
+            if( MPS_L2_EPOCH_WINDOW_SIZE - offset > shift )
+                ctx->epochs.permissions.dtls[offset] =
+                    ctx->epochs.permissions.dtls[offset + shift];
+            else
+                ctx->epochs.permissions.dtls[offset] = 0;
+        }
     }
 
     TRACE( trace_comment, "Epoch cleanup done" );
     RETURN( 0 );
 }
 
-static int l2_epoch_table_lookup( mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
-                                  uint8_t *offset,
-                                  mbedtls_mps_transform_t **transform )
+static int l2_epoch_lookup( mps_l2 *ctx,
+                            mbedtls_mps_epoch_id epoch_id,
+                            mps_l2_epoch_t **epoch )
+{
+    return( l2_epoch_lookup_internal( ctx, epoch_id, NULL, epoch ) );
+}
+
+static int l2_epoch_lookup_internal( mps_l2 *ctx,
+                                     mbedtls_mps_epoch_id epoch_id,
+                                     uint8_t *offset,
+                                     mps_l2_epoch_t **epoch )
 {
     uint8_t epoch_offset;
     TRACE_INIT( "l2_epoch_lookup" );
-    TRACE( trace_comment, "* Epoch:  %d", epoch );
+    TRACE( trace_comment, "* Epoch:  %d", epoch_id );
 
-    if( epoch == MPS_EPOCH_NONE )
+    if( epoch_id == MPS_EPOCH_NONE )
     {
         TRACE( trace_comment, "The epoch is unset." );
         RETURN( MPS_ERR_INVALID_EPOCH );
     }
-    else if( epoch < ctx->epoch_base )
+    else if( epoch_id < ctx->epochs.base )
     {
-        TRACE( trace_comment, "The epoch is below the epoch base." );
+        TRACE( trace_comment, "The epoch %u is below the epoch base %u.",
+               (unsigned) epoch_id, (unsigned) ctx->epochs.base );
         RETURN( MPS_ERR_INVALID_EPOCH );
     }
 
-    epoch_offset = epoch - ctx->epoch_base;
+    epoch_offset = epoch_id - ctx->epochs.base;
     TRACE( trace_comment, "* Offset: %u", (unsigned) epoch_offset );
 
-    if( epoch_offset >= MPS_L2_EPOCH_WINDOW_SIZE )
+    if( epoch_offset >= ctx->epochs.next )
     {
         TRACE( trace_error, "The epoch is outside the epoch window." );
         RETURN( MPS_ERR_INVALID_EPOCH );
     }
 
-    if( transform != NULL )
-        *transform = ctx->transforms[ epoch_offset ];
+    if( epoch != NULL )
+        *epoch = &ctx->epochs.window[ epoch_offset ];
 
     if( offset != NULL )
         *offset = epoch_offset;
 
+    RETURN( 0 );
+}
+
+/*
+ * DTLS replay protection
+ */
+
+static int l2_counter_replay_check( mps_l2 *ctx,
+                                    mbedtls_mps_epoch_id epoch_id,
+                                    uint64_t ctr )
+{
+    int ret;
+    uint64_t bit;
+    mps_l2_epoch_t *epoch;
+    uint64_t window_top;
+    uint64_t window;
+
+    TRACE_INIT( "l2_counter_replay_check, epoch %u, ctr %u",
+                (unsigned) epoch_id, (unsigned) ctr );
+
+    if( ctx->conf.mode == MPS_L2_MODE_STREAM ||
+        ctx->conf.anti_replay == MPS_L2_ANTI_REPLAY_DISABLED )
+    {
+        RETURN( 0 );
+    }
+
+    ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
+    if( ret != 0 )
+        RETURN( ret );
+
+    window_top = epoch->stats.dtls.replay.in_window_top;
+    window     = epoch->stats.dtls.replay.in_window;
+
+    if( ctr > window_top )
+    {
+        TRACE( trace_comment, "Record sequence number larger than everything seen so far." );
+        RETURN( 0 );
+    }
+
+    bit = window_top - ctr;
+
+    if( bit >= 64 )
+    {
+        TRACE( trace_comment, "Record sequence number too old -- drop" );
+        RETURN( -1 );
+    }
+
+    if( ( window & ( (uint64_t) 1 << bit ) ) != 0 )
+    {
+        TRACE( trace_comment, "Record sequence number seen before -- drop" );
+        RETURN( -1 );
+    }
+
+    TRACE( trace_comment, "Record sequence number within window and not seen so far." );
+    RETURN( 0 );
+}
+
+int mps_l2_force_next_sequence_number( mps_l2 *ctx,
+                                       mbedtls_mps_epoch_id epoch_id,
+                                       uint64_t ctr )
+{
+    int ret;
+    mps_l2_epoch_t *epoch;
+    TRACE_INIT( "mps_l2_force_next_sequence_number, epoch %u, ctr %u",
+                (unsigned) epoch_id, (unsigned) ctr );
+
+    if( ctx->conf.mode != MPS_L2_MODE_DATAGRAM )
+    {
+        TRACE( trace_error, "Sequence number forcing only needed and allowed in DTLS." );
+        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+    }
+
+    ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
+    if( ret != 0 )
+        RETURN( ret );
+
+    epoch->stats.dtls.out_ctr = ctr;
+    RETURN( 0 );
+}
+
+int mps_l2_get_last_sequence_number( mps_l2 *ctx,
+                                     mbedtls_mps_epoch_id epoch_id,
+                                     uint64_t *ctr )
+{
+    int ret;
+    mps_l2_epoch_t *epoch;
+    TRACE_INIT( "mps_l2_get_last_sequence_number, epoch %u",
+                (unsigned) epoch_id );
+
+    if( ctx->conf.mode != MPS_L2_MODE_DATAGRAM )
+    {
+        TRACE( trace_error, "Sequence number retrieval only needed and allowed in DTLS." );
+        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+    }
+
+    ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
+    if( ret != 0 )
+        RETURN( ret );
+
+    *ctr = epoch->stats.dtls.last_seen;
     RETURN( 0 );
 }

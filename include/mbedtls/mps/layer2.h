@@ -63,6 +63,7 @@
 #define MPS_ERR_MULTIPLE_PAUSING       -0x19
 #define MPS_ERR_COUNTER_WRAP           -0x15 /*!< The record sequence number be increased
                                               *   because it would wrap.                   */
+#define MPS_ERR_REPLAYED_RECORD        -0x17
 #define MPS_ERR_INVALID_ARGS           -0x28 /*!< The parameter validation failed.         */
 #define MPS_ERR_INVALID_RECORD         -0x321  /*!< The record header is invalid.            */
 #define MPS_ERR_INVALID_MAC            -0x33  /*!< The record MAC is invalid.               */
@@ -79,6 +80,9 @@
 /*
  * Compile-time configuration for Layer 2
  */
+
+#define MPS_L2_ANTI_REPLAY_DISABLED 0
+#define MPS_L2_ANTI_REPLAY_ENABLED  1
 
 #define MPS_L2_ALLOW_PAUSABLE_CONTENT_TYPE_WITHOUT_ACCUMULATOR
 
@@ -251,6 +255,90 @@ typedef struct
 #define TLS_MAX_CIPHERTEXT_LEN_1_3 ( TLS_MAX_PLAINTEXT_LEN      +  256 )
 
 /**
+ * \brief    This structure represents a (D)TLS connection state / epoch.
+ *
+ *           It contains information about the current incoming and outgoing
+ *           sequence numbers (including replay protection windows for DTLS)
+ *           as well as the record protection mechanism to be used.
+ */
+typedef struct
+{
+    /*! Information about the usage of incoming and outgoing
+     *  sequence numbers for this connection state. */
+    union
+    {
+        struct
+        {
+            /*! The outgoing record sequence number
+             *
+             *  This is the implicit record sequence number of
+             *  the current or next outgoing record (depending
+             *  on whether a record is currently open or not).
+             */
+            uint64_t out_ctr;
+
+            /*! The incoming record sequence number.
+             *
+             *  This is the implicit record sequence number of
+             *  the current or next incoming record (depending
+             *  on whether a record is currently open or not).
+             */
+            uint64_t in_ctr;
+
+        } tls;
+
+        struct
+        {
+
+            /*! The outgoing record sequence number
+             *
+             *  This is the explicit record sequence number of
+             *  the current or next outgoing record (depending
+             *  on whether a record is currently open or not).
+             */
+            uint64_t out_ctr;
+
+            /*! The record sequence number of the last valid record.
+             *
+             *  This must be remembered because a server
+             *  replying to a ClientHello with a HelloVerifyRequest
+             *  must copy the record sequence number of the ClientHello:
+             *
+             *  Quoting RFC 6347:
+             *    In order to avoid sequence number duplication in case
+             *    of multiple HelloVerifyRequests, the server MUST use
+             *    the record sequence number in the ClientHello as
+             *    the record sequence number in the HelloVerifyRequest.
+             */
+            uint64_t last_seen;
+
+            /*! The replay protection window. */
+            struct
+            {
+                /*! The top of the replay protection window,
+                 *  i.e. the highest validated record sequence
+                 *  number seen so far. */
+                uint64_t in_window_top;
+
+                /*! The bitmask indicating for which
+                 *  record sequence numbers in the interval
+                 *  [in_window_top-63, .., in_window_top]
+                 *  we have seen a valid record. */
+                uint64_t in_window;
+
+            } replay;
+
+        } dtls;
+
+    } stats;
+
+    /*! The record protection to be applied to records of this epoch.
+     *   A value of \c NULL represents the identity transform. */
+    mbedtls_mps_transform_t *transform;
+
+} mps_l2_epoch_t;
+
+/**
  * \brief    This structure contains the configuration parameters
  *           for a Layer 2 instance.
  */
@@ -267,6 +355,13 @@ typedef struct
                               *   which case multiple [D]TLS versions can be
                               *   received until the exact [D]TLS version has
                               *   been agreed upon.                           */
+
+    uint8_t anti_replay;     /*!< This field indicates whether anti replay
+                              *   protection should be applied (DTLS only).
+                              *   Possible values are:
+                              *   - #MPS_L2_ANTI_REPLAY_DISABLED
+                              *   - #MPS_L2_ANTI_REPLAY_ENABLED.
+                              */
 
     /*! The maximum length of record plaintext (including inner plaintext
      *  header and padding in TLS 1.3) of outgoing records.                   */
@@ -364,6 +459,11 @@ typedef struct
                                    *     with a bad MAC will lead to an error.
                                    */
 
+    /* TLS-1.3-NOTE: A boolean flag needs to be added to indicate whether
+     *               Layer 2 should silently discard records that cannot
+     *               be authenticated. This is necessary to ignore EarlyData
+     *               if the server doesn't support it. */
+
 } mps_l2_config;
 
 /**
@@ -405,7 +505,7 @@ struct mps_l2
         /** This variable indicates if all pending outgoing data
          *  needs to be flushed before the next write can happen.
          *
-         * A Layer 2 cannot have this flag set while serving a write request. */
+         * This flag cannot be set while serving a write request. */
         uint8_t flush;
 
 #define MPS_L2_INV_IF_FLUSH_NO_WRITE( p )                          \
@@ -421,11 +521,11 @@ struct mps_l2
          * that has been dispatched by the user is delivered before
          * the writing can continue. Internally, this splits into ...
          * (1) ... the data that has been dispatched by the user
-         *     but which Layer 2 didn't yet forward the dispatch
-         *     to Layer 1, e.g. because Layer 2 waiting to see if
-         *     it can put more data in the present record.
+         *     but which Layer 2 didn't yet dispatch to Layer 1,
+         *     e.g. because Layer 2 waiting to see if it can put
+         *     more data in the present record.
          * (2) ... the data that has been dispatched to Layer 1, but
-         *     which might Layer 1 might not yet have flushed.
+         *     which Layer 1 might not yet have flushed.
          * Handling the `flush` state means dispatching the pending
          * data of type (1) first, ensuring that nothing of type (1)
          * is left, and then calling a flush on Layer 1 to handle
@@ -445,7 +545,19 @@ struct mps_l2
          *
          */
 
-        /* The basic states during writing are the following:
+        /* Layer 2 manages two types of data related to outgoing records:
+         *
+         * 1) The raw buffers holding the header, plaintext and ciphertext
+         *    of the current outgoing record. They are internal and never
+         *    passed to the user.
+         *    The relevant fields are `hdr`, `hdr_len` and `payload`
+         *    and they are explained in more detail below.
+         *
+         * 2) The structure `writer` representing the ongoing write from
+         *    the perspective of the user, consisting of an epoch,
+         *    a record content type and a writer object.
+         *
+         * The basic states during writing are the following:
          * 1. Initially -- and whenever no outgoing record has been prepared --
          *    hdr, hdr_len and payload are unset, as is the writer.
          * 2. After preparing an outgoing record, hdr and payload are
@@ -544,11 +656,11 @@ struct mps_l2
 
 #define MPS_L2_INV_OUT_ACTIVE_IS_VALID( p )                             \
         ( ( (p)->out.state != MPS_L2_WRITER_STATE_UNSET )               \
-          ==> ( ( ( 1u << (p)->out.writer.type ) & (p)->conf.type_flag ) != 0 ) )
+          ==> ( ( ( (uint64_t) 1u << (p)->out.writer.type ) & (p)->conf.type_flag ) != 0 ) )
 
 #define MPS_L2_INV_OUT_QUEUEING_IS_PAUSABLE( p )                     \
         ( ( (p)->out.state != MPS_L2_WRITER_STATE_QUEUEING )         \
-          ==> ( ( ( 1u << (p)->out.writer.type ) & (p)->conf.pause_flag ) != 0 ) )
+          ==> ( ( ( (uint64_t) 1u << (p)->out.writer.type ) & (p)->conf.pause_flag ) != 0 ) )
 
     } out;
 
@@ -566,6 +678,10 @@ struct mps_l2
         ( (p)->in.accumulator != NULL ==>                   \
           ( \forall integer i; 0 <= i < (p)->in.acc_len     \
             ==> \valid( (p)->in.accumulator+i ) ) )
+
+        /* Note: In contrast to the write-side, the read-side of Layer 2 does
+         * not remember the raw record buffers obtained from Layer 1 as they
+         * can be handled on the stack when a new record is fetched. */
 
         /*! The array of readers internally used by the Layer 2 instance to
          *  track the incoming data streams of the various content types.
@@ -632,13 +748,13 @@ struct mps_l2
          * type must be valid. */
 #define MPS_L2_INV_IN_ACTIVE_IS_VALID( p )                              \
         ( ( (p)->in.active_state != MPS_L2_READER_STATE_UNSET )         \
-          ==> ( ( ( 1u << (p)->in.active->type ) & (p)->conf.type_flag ) != 0 ) )
+          ==> ( ( ( (uint64_t) 1u << (p)->in.active->type ) & (p)->conf.type_flag ) != 0 ) )
 
         /* If the active reader is marked internal, its content
          * type must be mergeable. */
 #define MPS_L2_INV_IN_ACTIVE_IS_MERGEABLE( p )                            \
         ( ( (p)->in.active_state == MPS_L2_READER_STATE_INTERNAL )        \
-          ==> ( ( ( 1u << (p)->in.active->type ) & (p)->conf.merge_flag ) != 0 ) )
+          ==> ( ( ( (uint64_t) 1u << (p)->in.active->type ) & (p)->conf.merge_flag ) != 0 ) )
 
         /*! The state of the \c paused reader.
          *  The value can be either #MPS_L2_READER_STATE_UNSET or
@@ -654,12 +770,12 @@ struct mps_l2
         /* If the paused reader is set, its content type must be valid. */
 #define MPS_L2_INV_IN_PAUSED_IS_VALID( p )                              \
         ( ( (p)->in.paused_state == MPS_L2_READER_STATE_PAUSED )        \
-          ==> ( ( ( 1u << (p)->in.paused->type ) & (p)->conf.type_flag ) != 0 ) )
+          ==> ( ( ( (uint64_t) 1u << (p)->in.paused->type ) & (p)->conf.type_flag ) != 0 ) )
 
         /* The paused reader must have pausable record content type. */
 #define MPS_L2_INV_IN_PAUSED_IS_PAUSABLE( p )                           \
         ( ( (p)->in.paused_state == MPS_L2_READER_STATE_PAUSED )        \
-          ==> ( ( ( 1u << (p)->in.paused->type ) & (p)->conf.pause_flag ) != 0 ) )
+          ==> ( ( ( (uint64_t) 1u << (p)->in.paused->type ) & (p)->conf.pause_flag ) != 0 ) )
 
         /* The paused reader must not serve the same content type
          * as the active reader. */
@@ -673,133 +789,62 @@ struct mps_l2
 
     } in;
 
-    /*! The outgoing record sequence number.
-     *
-     *  For TLS:  The record sequence number of the *next* outgoing
-     *            record, increased with each record being sent.
-     *
-     *  For DTLS: The record sequence number of *next* outgoing record.
+    /**
+     * \brief The substructure holding all data related
+     *        to connection states / epochs.
      */
-    uint64_t out_ctr;
-
-    /*! The incoming record sequence number.
-     *
-     *  For TLS:  The record sequence number of the *next* incoming
-     *            record, increased with each record being received.
-     *
-     *  For DTLS: The successor of the highest sequence number
-     *            in the replay detection window, if used.
-     *            If replay detection is not used, this field
-     *            is unused and 0.
-     */
-    uint64_t  in_ctr;
-
-    /* Layer 2 maintains a window of record transformations indexed by
-     * epoch ID's. The base of the window is stored in \c epoch_base, and
-     * the actual (offset-indexed) array of transforms in `epoch`.
-     * There should never be more than 2 epochs in simultaneous use, so
-     * a window size of 2 should do, but the larger flexibility comes
-     * without cost and allows to test if, indeed, despite of the large
-     * number of epochs in [D]TLS 1.3, never more than two are used at once. */
-
-    /*! The first epoch ID within the current epoch window. */
-    mbedtls_mps_epoch_id epoch_base;
-#define MPS_L2_INV_EPOCH_WINDOW_VALID( p )                              \
-    ( 0 <= (p)->epoch_base                 &&                           \
-      (p)->epoch_base < MPS_L2_LIMIT_EPOCH &&                           \
-      MPS_L2_LIMIT_EPOCH - (p)->epoch_base >= MPS_L2_EPOCH_WINDOW_SIZE )
-
-    /*! The window of record transformations for the epochs of ID
-     *  <code> epoch_base, ..., epoch_base +
-     *         MPS_L2_EPOCH_WINDOW_SIZE - 1.</code> */
-    mbedtls_mps_transform_t *transforms[ MPS_L2_EPOCH_WINDOW_SIZE ];
-
-    /* The next free epoch slot. */
-    mbedtls_mps_epoch_id next_epoch;
-#define MPS_L2_INV_NEXT_EPOCH_BOUNDS( p )                               \
-    ( (p)->next_epoch >= (p)->epoch_base &&                             \
-      (p)->next_epoch - (p)->epoch_base <= MPS_L2_EPOCH_WINDOW_SIZE )
-#define MPS_L2_INV_NEXT_EPOCH_FRESH( p )                                    \
-    ( \forall integer i;                                                    \
-      ( (p)->next_epoch <= i < (p)->epoch_base + MPS_L2_EPOCH_WINDOW_SIZE ) \
-      ==> ( (p)->transforms[ i - (p)->epoch_base ] == NULL ) )
-
-    /*! This structure indicates which epochs can be used
-     *  for reading and writing.
-     *
-     *  The union is indexed by conf.mode, distinguishing between TLS and DTLS.
-     *
-     *  For TLS:  There is a single epoch for each reading and writing, and we
-     *            indicate them through their offset from the epoch base.
-     *
-     *  For DTLS: There might be more, and we maintain a bitflag of the
-     *            read and write capability for each epoch in the
-     *            current epoch window.
-     */
-    union
+    struct
     {
-        struct
+        /* Layer 2 maintains an window of epochs indexed by
+         * epoch ID's. The base-ID of the window is stored in \c base, and
+         * the actual (offset-indexed) array of epochs is stored in `window`.
+         * There should never be more than 2 epochs in simultaneous use, so a
+         * window size of 2 should do, but the larger flexibility comes without
+         * cost and allows to test if, indeed, despite of the large number
+         * of epochs in [D]TLS 1.3, never more than two are used at once. */
+
+        /*! The first epoch ID within the current epoch window. */
+        mbedtls_mps_epoch_id base;
+
+#define MPS_L2_INV_EPOCH_WINDOW_VALID( p )                              \
+        ( 0 <= (p)->epochs.base                 &&                      \
+          (p)->epochs.base < MPS_L2_LIMIT_EPOCH &&                      \
+          MPS_L2_LIMIT_EPOCH - (p)->epochs.base >= MPS_L2_EPOCH_WINDOW_SIZE )
+
+        /* The offset of the next free epoch slot. */
+        uint8_t next;
+#define MPS_L2_INV_NEXT_EPOCH_BOUNDS( p )                               \
+        ( (p)->epochs.next <= MPS_L2_EPOCH_WINDOW_SIZE )
+
+        /*! The window of connection states for the epochs of ID
+         *  <code> base, ..., base +
+         *         MPS_L2_EPOCH_WINDOW_SIZE - 1.</code> */
+        mps_l2_epoch_t window[ MPS_L2_EPOCH_WINDOW_SIZE ];
+
+        /*! The epoch usage permissions. */
+        union
         {
-            /*! The usage restrictions for the epochs
-             *  in the current epoch window. */
-            mbedtls_mps_epoch_usage state[ MPS_L2_EPOCH_WINDOW_SIZE ];
-        } dtls;
-        struct
-        {
-            /*! The epoch ID to be used for incoming data.
-             *  Records not matching this ID will be rejected
-             *  and signalled to the user through an error.   */
-            mbedtls_mps_epoch_id default_in;
+            /*! The permissions for the epochs in the epoch window. */
+            mbedtls_mps_epoch_usage dtls[ MPS_L2_EPOCH_WINDOW_SIZE ];
 
-#define MPS_L2_INV_DEFAULT_IN_VALID( p )                                \
-            ( ( (p)->conf.mode == MPS_L2_MODE_STREAM &&                 \
-                (p)->epochs.tls.default_in != MPS_EPOCH_NONE ) ==>   \
-              ( (p)->epochs.tls.default_in >= (p)->epoch_base &&        \
-                (p)->epochs.tls.default_in - (p)->epoch_base            \
-                < MPS_L2_EPOCH_WINDOW_SIZE &&                           \
-                (p)->transforms[ (p)->epochs.tls.default_in -           \
-                                 (p)->epoch_base ] != NULL ) )
+            struct
+            {
+                /*! The offset of the ID of the epoch to be used for incoming
+                 *  data from the current epoch window base.
+                 *
+                 *  Records not matching this ID will be rejected
+                 *  and signalled to the user through an error.   */
+                uint8_t default_in;
 
-            /* It's not true that state == INTERNAL implies that the
-             * reader's epoch is the default incoming epoch. */
-#define MPS_L2_INV_DEFAULT_IN_ACTIVE( p )                                    \
-            ( ( (p)->conf.mode == MPS_L2_MODE_STREAM &&                      \
-                ( (p)->in.active_state == MPS_L2_READER_STATE_EXTERNAL ||    \
-                  (p)->in.active_state == MPS_L2_READER_STATE_PAUSED ) ) ==> \
-              (p)->in.active->epoch == (p)->epochs.tls.default_in )
+                /*! The offset of the ID of the epoch to be used for outgoing
+                 *  data from the current epoch window base. */
+                uint8_t default_out;
 
-#define MPS_L2_INV_DEFAULT_IN_PAUSED( p )                                    \
-            ( ( (p)->conf.mode == MPS_L2_MODE_STREAM &&                      \
-                ( (p)->in.paused_state == MPS_L2_READER_STATE_PAUSED ) ) ==> \
-              (p)->in.paused->epoch == (p)->epochs.tls.default_in )
+            } tls;
 
-            /*! The epoch ID to be used for outgoing data.
-             *  A user-request to write data with a different
-             *  epoch than this leads to an error.            */
-            mbedtls_mps_epoch_id default_out;
+        } permissions;
 
-#define MPS_L2_INV_DEFAULT_OUT_VALID( p )                               \
-            ( ( (p)->conf.mode == MPS_L2_MODE_STREAM &&                 \
-                (p)->epochs.tls.default_out != MPS_EPOCH_NONE ) ==>  \
-              ( (p)->epochs.tls.default_out >= (p)->epoch_base &&       \
-                (p)->epochs.tls.default_out - (p)->epoch_base           \
-                < MPS_L2_EPOCH_WINDOW_SIZE &&                           \
-                (p)->transforms[ (p)->epochs.tls.default_out -          \
-                                 (p)->epoch_base ] != NULL ) )
-
-            /* It's not true that state != UNSET implies that the
-             * writer's epoch is the default outgoing epoch:
-             * The writer might still have data queued for delivery
-             * when the user changes the default outgoing epoch. */
-#define MPS_L2_INV_DEFAULT_OUT( p )                                      \
-            ( ( (p)->conf.mode == MPS_L2_MODE_STREAM &&                  \
-                ( (p)->out.state == MPS_L2_WRITER_STATE_INTERNAL ||      \
-                  (p)->out.state == MPS_L2_WRITER_STATE_EXTERNAL ) ) ==> \
-              (p)->out.writer.epoch == (p)->epochs.tls.default_out )
-
-        } tls;
     } epochs;
-
 };
 
 /* I don't know why E-ACSL allows the following predicates when spelled
@@ -830,7 +875,6 @@ struct mps_l2
       MPS_L2_INV_IN_NO_ACTIVE_PAUSED_NO_OVERLAP( p ) &&                 \
       MPS_L2_INV_EPOCH_WINDOW_VALID( p ) &&                             \
       MPS_L2_INV_NEXT_EPOCH_BOUNDS( p )  &&                             \
-      MPS_L2_INV_NEXT_EPOCH_FRESH( p )   &&                             \
       MPS_L2_INV_DEFAULT_IN_VALID( p )  &&                              \
       MPS_L2_INV_DEFAULT_IN_ACTIVE( p ) &&                              \
       MPS_L2_INV_DEFAULT_IN_PAUSED( p ) &&                              \
@@ -862,7 +906,6 @@ struct mps_l2
     requires MPS_L2_INV_IN_NO_ACTIVE_PAUSED_NO_OVERLAP( p );            \
     requires MPS_L2_INV_EPOCH_WINDOW_VALID( p );                        \
     requires MPS_L2_INV_NEXT_EPOCH_BOUNDS( p );                         \
-    requires MPS_L2_INV_NEXT_EPOCH_FRESH( p );                          \
     requires MPS_L2_INV_DEFAULT_IN_VALID( p );                          \
     requires MPS_L2_INV_DEFAULT_IN_ACTIVE( p );                         \
     requires MPS_L2_INV_DEFAULT_IN_PAUSED( p );                         \
@@ -894,7 +937,6 @@ struct mps_l2
     ensures MPS_L2_INV_IN_NO_ACTIVE_PAUSED_NO_OVERLAP( p );            \
     ensures MPS_L2_INV_EPOCH_WINDOW_VALID( p );                        \
     ensures MPS_L2_INV_NEXT_EPOCH_BOUNDS( p );                         \
-    ensures MPS_L2_INV_NEXT_EPOCH_FRESH( p );                          \
     ensures MPS_L2_INV_DEFAULT_IN_VALID( p );                          \
     ensures MPS_L2_INV_DEFAULT_IN_ACTIVE( p );                         \
     ensures MPS_L2_INV_DEFAULT_IN_PAUSED( p );                         \
@@ -1235,5 +1277,55 @@ int mps_l2_epoch_add( mps_l2 *ctx,
 int mps_l2_epoch_usage( mps_l2 *ctx,
                         mbedtls_mps_epoch_id epoch,
                         mbedtls_mps_epoch_usage usage );
+
+/**
+ * \brief          Enforce that the next outgoing record of the
+ *                 specified epoch uses a particular record sequence number.
+ *
+ * \param ctx      The address of the Layer 2 context to use.
+ * \param epoch_id The ID of the epoch to configure.
+ * \param ctr      The record sequence number to be used for the
+ *                 next outgoing record of epoch \p epoch_id.
+ *
+ * \note           This function constitutes an abstraction break
+ *                 but is enforced by the following requirement from RFC 6347:
+ *                   Upon receipt of the ServerHello, the client MUST verify
+ *                   that the server version values match. In order to avoid
+ *                   sequence number duplication in case of multiple
+ *                   HelloVerifyRequests, the server MUST use the record
+ *                   sequence number in the ClientHello as the record sequence
+ *                   number in the HelloVerifyRequest.
+ *
+ * \return         \c 0 on success.
+ *
+ */
+int mps_l2_force_next_sequence_number( mps_l2 *ctx,
+                                       mbedtls_mps_epoch_id epoch_id,
+                                       uint64_t ctr );
+
+/**
+ * \brief          Get the sequence number of last incoming record
+ *                 protected with a given epoch.
+ *
+ * \param ctx      The address of the Layer 2 context to use.
+ * \param epoch_id The ID of the epoch to use.
+ * \param ctr      The address to write the sequence number of the
+ *                 last incoming record of epoch \p epoch_id to.
+ *
+ * \note           This function constitutes an abstraction break
+ *                 but is enforced by the following requirement from RFC 6347:
+ *                   Upon receipt of the ServerHello, the client MUST verify
+ *                   that the server version values match. In order to avoid
+ *                   sequence number duplication in case of multiple
+ *                   HelloVerifyRequests, the server MUST use the record
+ *                   sequence number in the ClientHello as the record sequence
+ *                   number in the HelloVerifyRequest.
+ *
+ * \return         \c 0 on success.
+ *
+ */
+int mps_l2_get_last_sequence_number( mps_l2 *ctx,
+                                     mbedtls_mps_epoch_id epoch_id,
+                                     uint64_t *ctr );
 
 #endif /* MBEDTLS_MPS_RECORD_LAYER_H */

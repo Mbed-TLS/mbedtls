@@ -242,12 +242,11 @@ static int layer0_dgram_init( layer0_dgram_mock *ctx )
 
 static int layer0_dgram_free( layer0_dgram_mock *ctx )
 {
-    layer0_dgram_mock_msg null_buf = { NULL, 0 };
     size_t idx;
     ctx->read_pos = 0;
     ctx->write_pos = 0;
     for( idx = 0; idx < L0_MOCK_DGRAM_MAX_MSGS; idx++ )
-        ctx->msgs[idx] = null_buf;
+        layer0_dgram_msg_free( &ctx->msgs[ idx ] );
 
     return( 0 );
 }
@@ -4432,6 +4431,339 @@ exit:
         layer0_dgram_free( &s2c_d );
         layer0_dgram_free( &c2s_d );
     }
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
+void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
+                                 int variant )
+{
+    /* This test exercises the anti-replay protection of Layer 2 for DTLS.
+     * Variants:
+     * (a) Client sends two identital records in succession.
+     *     In this case, the second record should be dropped.
+     * (b) Client sends
+     *     - Record A with counter c_A,
+     *     - Record B with counter c_B > c_A but c_B < c_A + 64
+     *     - Record A with counter c_A
+     *     In this case, the second instance of A should be dropped.
+     * (c) Client sends
+     *     - Record A with counter c_A,
+     *     - Record B with counter c_B > c_A but c_B >= c_A + 64
+     *     - Record A with counter c_A
+     *     In this case, the second instance of A should be dropped.
+     * (d) Client sends
+     *     - Record A with counter c_A
+     *     - Out of order record B with counter c_B >= c_A - 64
+     *     In this case, record B should be seen by the server.
+     * (e) Client sends
+     *     - Record A with counter c_A
+     *     - Out of order record B with counter c_B < c_A - 64
+     *     In this case, record B should not be seen by the server
+     *     because it is too old.
+     */
+
+    mps_alloc cli_alloc, srv_alloc;
+
+    /* Layer 1 objects */
+    mps_l1 cli_l1, srv_l1;
+
+    uint8_t const ty_A = 0;
+    mbedtls_mps_epoch_id epoch_init = 0;
+
+    uint64_t in_ctr;
+
+    /* Layer 2 objects */
+    mps_l2 cli, srv;
+
+    size_t const rec_sz = 10;
+    size_t sz;
+    unsigned char *buf;
+
+    mps_l2_out out_cli;
+    mps_l2_in   in_srv;
+
+    /* Dummy record transformations for epoch 0 */
+    mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
+    mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
+
+    dummy_s->type = 0;
+    dummy_s->mock.enabled = 1;
+    dummy_s->mock.pad = 5;
+    dummy_c->type = 0;
+    dummy_c->mock.enabled = 1;
+    dummy_c->mock.pad = 5;
+
+    /* Initialize Layer 0 mock objects */
+    TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
+    TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, allocator_buffer_sz );
+    mps_alloc_init( &srv_alloc, allocator_buffer_sz );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L2_MODE_DATAGRAM, &cli_alloc,
+                              layer0_dgram_write_cli,
+                              layer0_dgram_read_cli ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L2_MODE_DATAGRAM, &srv_alloc,
+                              layer0_dgram_write_srv,
+                              layer0_dgram_read_srv ) == 0 );
+
+    /* Initialize and configure Layer 2 */
+    TEST_ASSERT( mps_l2_init( &cli, &cli_l1, MPS_L1_MODE_DATAGRAM,
+                              0, 0, mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_init( &srv, &srv_l1, MPS_L1_MODE_DATAGRAM,
+                              0, 0, mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &cli,
+                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &srv,
+                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A, 0, 1, 1 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A, 0, 1, 1 ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init, MPS_EPOCH_WRITE ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_add( &srv, dummy_s, &epoch_init ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_init, MPS_EPOCH_READ ) == 0 );
+
+    /* Writing */
+
+    switch( variant )
+    {
+        case 0:
+        {
+            TEST_ASSERT( mps_l2_force_next_sequence_number( &cli, epoch_init, 42 ) == 0 );
+            out_cli.type  = ty_A;
+            out_cli.epoch = epoch_init;
+            TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+            TEST_ASSERT( mbedtls_writer_get( out_cli.wr, rec_sz, &buf, &sz ) == 0 );
+            TEST_ASSERT( sz == (unsigned) rec_sz );
+            for( uint8_t idx = 0; idx < sz; idx++ )
+                buf[idx] = idx;
+            TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+            TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+            TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
+
+            TEST_ASSERT( mps_l2_force_next_sequence_number( &cli, epoch_init, 42 ) == 0 );
+            out_cli.type  = ty_A;
+            out_cli.epoch = epoch_init;
+            TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+            TEST_ASSERT( mbedtls_writer_get( out_cli.wr, rec_sz, &buf, &sz ) == 0 );
+            TEST_ASSERT( sz == (unsigned) rec_sz );
+            for( uint8_t idx = 0; idx < sz; idx++ )
+                buf[idx] = idx;
+            TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+            TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+            TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
+            break;
+        }
+        case 1:
+        case 2:
+        {
+            TEST_ASSERT( mps_l2_force_next_sequence_number( &cli, epoch_init, 42 ) == 0 );
+            out_cli.type  = ty_A;
+            out_cli.epoch = epoch_init;
+            TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+            TEST_ASSERT( mbedtls_writer_get( out_cli.wr, rec_sz, &buf, &sz ) == 0 );
+            TEST_ASSERT( sz == (unsigned) rec_sz );
+            for( uint8_t idx = 0; idx < sz; idx++ )
+                buf[idx] = idx;
+            TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+            TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+            TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
+
+            if( variant == 1 )
+                TEST_ASSERT( mps_l2_force_next_sequence_number( &cli, epoch_init, 80 ) == 0 );
+            if( variant == 2 )
+                TEST_ASSERT( mps_l2_force_next_sequence_number( &cli, epoch_init, 1223 ) == 0 );
+
+            out_cli.type  = ty_A;
+            out_cli.epoch = epoch_init;
+            TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+            TEST_ASSERT( mbedtls_writer_get( out_cli.wr, rec_sz, &buf, &sz ) == 0 );
+            TEST_ASSERT( sz == (unsigned) rec_sz );
+            for( uint8_t idx = 0; idx < sz; idx++ )
+                buf[idx] = idx + 1;
+            TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+            TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+            TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
+
+            TEST_ASSERT( mps_l2_force_next_sequence_number( &cli, epoch_init, 42 ) == 0 );
+            out_cli.type  = ty_A;
+            out_cli.epoch = epoch_init;
+            TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+            TEST_ASSERT( mbedtls_writer_get( out_cli.wr, rec_sz, &buf, &sz ) == 0 );
+            TEST_ASSERT( sz == (unsigned) rec_sz );
+            for( uint8_t idx = 0; idx < sz; idx++ )
+                buf[idx] = idx;
+            TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+            TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+            TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
+            break;
+        }
+
+        case 3:
+        case 4:
+        {
+            TEST_ASSERT( mps_l2_force_next_sequence_number( &cli, epoch_init, 80 ) == 0 );
+            out_cli.type  = ty_A;
+            out_cli.epoch = epoch_init;
+            TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+            TEST_ASSERT( mbedtls_writer_get( out_cli.wr, rec_sz, &buf, &sz ) == 0 );
+            TEST_ASSERT( sz == (unsigned) rec_sz );
+            for( uint8_t idx = 0; idx < sz; idx++ )
+                buf[idx] = idx;
+            TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+            TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+            TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
+
+            if( variant == 3 )
+                TEST_ASSERT( mps_l2_force_next_sequence_number( &cli, epoch_init, 42 ) == 0 );
+            if( variant == 4 )
+                TEST_ASSERT( mps_l2_force_next_sequence_number( &cli, epoch_init, 10 ) == 0 );
+
+            out_cli.type  = ty_A;
+            out_cli.epoch = epoch_init;
+            TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+            TEST_ASSERT( mbedtls_writer_get( out_cli.wr, rec_sz, &buf, &sz ) == 0 );
+            TEST_ASSERT( sz == (unsigned) rec_sz );
+            for( uint8_t idx = 0; idx < sz; idx++ )
+                buf[idx] = idx + 1;
+            TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+            TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+            TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
+            break;
+            break;
+        }
+
+        default:
+            TEST_ASSERT( 0 );
+            break;
+    }
+
+    /* Reading */
+
+    switch( variant )
+    {
+        case 0:
+        {
+            TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
+            TEST_ASSERT( in_srv.epoch == epoch_init );
+            TEST_ASSERT( in_srv.type == ty_A );
+            TEST_ASSERT( mbedtls_reader_get( in_srv.rd, rec_sz, &buf, &sz ) == 0 );
+            TEST_ASSERT( sz == (unsigned) rec_sz );
+            for( uint8_t idx = 0; idx < sz; idx++ )
+                TEST_ASSERT( buf[idx] == idx );
+            TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
+            TEST_ASSERT( mps_l2_read_done( &srv ) == 0 );
+
+            TEST_ASSERT( mps_l2_get_last_sequence_number( &srv, epoch_init, &in_ctr ) == 0 );
+            TEST_ASSERT( in_ctr == 42 );
+
+            TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == MPS_ERR_REPLAYED_RECORD );
+
+            /* The sequence number of a replayed record shouldn't be recorded. */
+            TEST_ASSERT( mps_l2_get_last_sequence_number( &srv, epoch_init, &in_ctr ) == 0 );
+            TEST_ASSERT( in_ctr == 42 );
+            break;
+        }
+        case 1:
+        case 2:
+        {
+            TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
+            TEST_ASSERT( in_srv.epoch == epoch_init );
+            TEST_ASSERT( in_srv.type == ty_A );
+            TEST_ASSERT( mbedtls_reader_get( in_srv.rd, rec_sz, &buf, &sz ) == 0 );
+            TEST_ASSERT( sz == (unsigned) rec_sz );
+            for( uint8_t idx = 0; idx < sz; idx++ )
+                TEST_ASSERT( buf[idx] == idx );
+            TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
+            TEST_ASSERT( mps_l2_read_done( &srv ) == 0 );
+
+            TEST_ASSERT( mps_l2_get_last_sequence_number( &srv, epoch_init, &in_ctr ) == 0 );
+            TEST_ASSERT( in_ctr == 42 );
+
+            TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
+            TEST_ASSERT( in_srv.epoch == epoch_init );
+            TEST_ASSERT( in_srv.type == ty_A );
+            TEST_ASSERT( mbedtls_reader_get( in_srv.rd, rec_sz, &buf, &sz ) == 0 );
+            TEST_ASSERT( sz == (unsigned) rec_sz );
+            for( uint8_t idx = 0; idx < sz; idx++ )
+                TEST_ASSERT( buf[idx] == idx + 1 );
+            TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
+            TEST_ASSERT( mps_l2_read_done( &srv ) == 0 );
+
+            TEST_ASSERT( mps_l2_get_last_sequence_number( &srv, epoch_init, &in_ctr ) == 0 );
+            if( variant == 1 )
+                TEST_ASSERT( in_ctr == 80 );
+            else
+                TEST_ASSERT( in_ctr == 1223 );
+
+            TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == MPS_ERR_REPLAYED_RECORD );
+
+            break;
+        }
+
+        case 3:
+        case 4:
+        {
+            TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
+            TEST_ASSERT( in_srv.epoch == epoch_init );
+            TEST_ASSERT( in_srv.type == ty_A );
+            TEST_ASSERT( mbedtls_reader_get( in_srv.rd, rec_sz, &buf, &sz ) == 0 );
+            TEST_ASSERT( sz == (unsigned) rec_sz );
+            for( uint8_t idx = 0; idx < sz; idx++ )
+                TEST_ASSERT( buf[idx] == idx );
+            TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
+            TEST_ASSERT( mps_l2_read_done( &srv ) == 0 );
+
+            TEST_ASSERT( mps_l2_get_last_sequence_number( &srv, epoch_init, &in_ctr ) == 0 );
+            TEST_ASSERT( in_ctr == 80 );
+
+            if( variant == 3 )
+            {
+                TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
+                TEST_ASSERT( in_srv.epoch == epoch_init );
+                TEST_ASSERT( in_srv.type == ty_A );
+                TEST_ASSERT( mbedtls_reader_get( in_srv.rd, rec_sz, &buf, &sz ) == 0 );
+                TEST_ASSERT( sz == (unsigned) rec_sz );
+                for( uint8_t idx = 0; idx < sz; idx++ )
+                    TEST_ASSERT( buf[idx] == idx + 1 );
+                TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
+                TEST_ASSERT( mps_l2_read_done( &srv ) == 0 );
+
+                TEST_ASSERT( mps_l2_get_last_sequence_number( &srv, epoch_init, &in_ctr ) == 0 );
+                TEST_ASSERT( in_ctr == 42 );
+            }
+            else
+            {
+                TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == MPS_ERR_REPLAYED_RECORD );
+
+                TEST_ASSERT( mps_l2_get_last_sequence_number( &srv, epoch_init, &in_ctr ) == 0 );
+                TEST_ASSERT( in_ctr == 80 );
+            }
+            break;
+        }
+
+        default:
+            TEST_ASSERT( 0 );
+            break;
+    }
+
+exit:
+
+    /*
+     * Wrapup
+     */
+
+    TEST_ASSERT( mps_l2_free( &cli ) == 0 );
+    TEST_ASSERT( mps_l2_free( &srv ) == 0 );
+    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+    layer0_dgram_free( &s2c_d );
+    layer0_dgram_free( &c2s_d );
 }
 /* END_CASE */
 

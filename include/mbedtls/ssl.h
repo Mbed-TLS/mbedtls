@@ -3190,10 +3190,11 @@ const char *mbedtls_ssl_get_alpn_protocol( const mbedtls_ssl_context *ssl );
  *                          (Default: MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED)
  *
  * \param conf              SSL configuration
- * \param support_mki_value Enable or disable (MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED or
- *                                    MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED)
+ * \param support_mki_value Enable or disable (MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED
+ *                          or MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED)
  */
-void mbedtls_ssl_conf_srtp_mki_value_supported( mbedtls_ssl_config *conf, int support_mki_value );
+void mbedtls_ssl_conf_srtp_mki_value_supported( mbedtls_ssl_config *conf,
+                                                int support_mki_value );
 
 /**
  * \brief                   Set the supported DTLS-SRTP protection profiles.
@@ -3205,7 +3206,9 @@ void mbedtls_ssl_conf_srtp_mki_value_supported( mbedtls_ssl_config *conf, int su
  *
  * \return         0 on success, or MBEDTLS_ERR_SSL_BAD_INPUT_DATA.
  */
-int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf, const mbedtls_ssl_srtp_profile *profiles, size_t profiles_number);
+int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
+                                                    const mbedtls_ssl_srtp_profile *profiles,
+                                                    size_t profiles_number );
 
 /**
  * \brief                   Set the mki_value for the current dtls session.
@@ -3214,9 +3217,12 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf, co
  * \param mki_value        MKI value to set
  * \param mki_len          MKI length
  *
- * \return         0 on success, MBEDTLS_ERR_SSL_BAD_INPUT_DATA or MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE
+ * \return         0 on success, MBEDTLS_ERR_SSL_BAD_INPUT_DATA
+ *                 or MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE on failure
  */
-int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl, unsigned char* mki_value, size_t mki_len );
+int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl,
+                                         unsigned char *mki_value,
+                                         size_t mki_len );
 /**
  * \brief          Get the negotiated DTLS-SRTP Protection Profile.
  *                 This function should be called after the handshake is
@@ -3224,22 +3230,28 @@ int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl, unsigned char
  *
  * \param ssl      SSL context
  *
- * \return         Protection Profile enum member, MBEDTLS_SRTP_UNSET_PROFILE if no protocol was negotiated.
+ * \return         Protection Profile enum member,
+ *                 MBEDTLS_SRTP_UNSET_PROFILE if no protocol was negotiated.
  */
 mbedtls_ssl_srtp_profile mbedtls_ssl_get_dtls_srtp_protection_profile( const mbedtls_ssl_context *ssl );
 
 /**
  * \brief                  Get the generated DTLS-SRTP key material.
  *                         This function should be called after the handshake is
- *                         completed. It shall returns 80 bytes of key material generated according to RFC5764
+ *                         completed. It shall returns 80 bytes of key material
+ *                         generated according to RFC5764
  *
  * \param ssl              SSL context
  * \param key              Buffer to hold the generated key material
- * \param key_len          [in/out] key buffer size. outputs the actual number of bytes written
+ * \param key_len          [in/out] key buffer size. outputs the actual number
+ *                         of bytes written
  *
- * \return         0 on succes, MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if the key buffer is too small to hold the generated key
+ * \return         0 on succes, MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if the key buffer
+ *                 is too small to hold the generated key
  */
-int mbedtls_ssl_get_dtls_srtp_key_material( const mbedtls_ssl_context *ssl, unsigned char *key, size_t *key_len );
+int mbedtls_ssl_get_dtls_srtp_key_material( const mbedtls_ssl_context *ssl,
+                                            unsigned char *key,
+                                            size_t *key_len );
 
 /**
  * \brief                  Utility function to get information on dtls srtp profile.
@@ -3267,7 +3279,7 @@ const mbedtls_ssl_srtp_profile_info *mbedtls_ssl_dtls_srtp_profile_info_from_id(
  *                 MBEDTLS_SSL_MINOR_VERSION_1 and MBEDTLS_SSL_MINOR_VERSION_2,
  *                 MBEDTLS_SSL_MINOR_VERSION_3 supported)
  */
-void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf, int major, int minor );
+void mbedtls_ssl_conf_max_version( mbedtls_ssl_config *conf,int major, int minor );
 
 /**
  * \brief          Set the minimum accepted SSL/TLS protocol version

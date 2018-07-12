@@ -1435,7 +1435,11 @@ static psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data *hmac,
         if( status != PSA_SUCCESS )
             return( status );
     }
-    else
+    /* A 0-length key is not commonly used in HMAC when used as a MAC,
+     * but it is permitted. It is common when HMAC is used in HKDF, for
+     * example. Don't call `memcpy` in the 0-length because `key` could be
+     * an invalid pointer which would make the behavior undefined. */
+    else if( key_length != 0 )
         memcpy( ipad, key, key_length );
 
     /* ipad contains the key followed by garbage. Xor and fill with 0x36

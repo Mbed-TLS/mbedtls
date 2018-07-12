@@ -683,6 +683,8 @@ typedef uint32_t psa_algorithm_t;
 
 /** Whether the specified algorithm is a MAC algorithm based on a block cipher.
  *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
  * \return 1 if \p alg is a MAC algorithm based on a block cipher, 0 otherwise.
  *         This macro may return either 0 or 1 if \p alg is not a supported
  *         algorithm identifier.
@@ -1194,7 +1196,10 @@ typedef uint32_t psa_key_usage_t;
 typedef struct psa_key_policy_s psa_key_policy_t;
 
 /** \brief Initialize a key policy structure to a default that forbids all
- * usage of the key. */
+ * usage of the key.
+ *
+ * \param[out] policy   The policy object to initialize.
+ */
 void psa_key_policy_init(psa_key_policy_t *policy);
 
 /** \brief Set the standard fields of a policy structure.
@@ -1202,15 +1207,29 @@ void psa_key_policy_init(psa_key_policy_t *policy);
  * Note that this function does not make any consistency check of the
  * parameters. The values are only checked when applying the policy to
  * a key slot with psa_set_key_policy().
+ *
+ * \param[out] policy   The policy object to modify.
+ * \param usage         The permitted uses for the key.
+ * \param alg           The algorithm that the key may be used for.
  */
 void psa_key_policy_set_usage(psa_key_policy_t *policy,
                               psa_key_usage_t usage,
                               psa_algorithm_t alg);
 
-/** \brief Retrieve the usage field of a policy structure. */
+/** \brief Retrieve the usage field of a policy structure.
+ *
+ * \param[in] policy    The policy object to query.
+ *
+ * \return The permitted uses for a key with this policy.
+ */
 psa_key_usage_t psa_key_policy_get_usage(const psa_key_policy_t *policy);
 
-/** \brief Retrieve the algorithm field of a policy structure. */
+/** \brief Retrieve the algorithm field of a policy structure.
+ *
+ * \param[in] policy    The policy object to query.
+ *
+ * \return The permitted algorithm for a key with this policy.
+ */
 psa_algorithm_t psa_key_policy_get_algorithm(const psa_key_policy_t *policy);
 
 /** \brief Set the usage policy on a key slot.
@@ -1221,11 +1240,30 @@ psa_algorithm_t psa_key_policy_get_algorithm(const psa_key_policy_t *policy);
  *
  * Implementations may set restrictions on supported key policies
  * depending on the key type and the key slot.
+ *
+ * \param key           The key slot whose policy is to be changed.
+ * \param[in] policy    The policy object to query.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_OCCUPIED_SLOT
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
 psa_status_t psa_set_key_policy(psa_key_slot_t key,
                                 const psa_key_policy_t *policy);
 
 /** \brief Get the usage policy for a key slot.
+ *
+ * \param key           The key slot whose policy is being queried.
+ * \param[out] policy   On success, the key's policy.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
 psa_status_t psa_get_key_policy(psa_key_slot_t key,
                                 psa_key_policy_t *policy);

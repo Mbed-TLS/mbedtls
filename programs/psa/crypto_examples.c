@@ -241,6 +241,51 @@ exit:
     return( status );
 }
 
+static psa_status_t cipher_example_encrypt_decrypt_aes_ctr_multi( void )
+{
+    enum {
+        block_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( PSA_KEY_TYPE_AES ),
+        key_bits = 256,
+        input_size = 100,
+        part_size = 10,
+    };
+    const psa_algorithm_t alg = PSA_ALG_CTR;
+
+    psa_status_t status;
+    size_t output_len = 0;
+    uint8_t iv[block_size], input[input_size], encrypt[input_size],
+            decrypt[input_size];
+
+    status = psa_generate_random( input, sizeof( input ) );
+    ASSERT_STATUS( status, PSA_SUCCESS );
+
+    status = set_key_policy( key_slot_cipher,
+                             PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT,
+                             alg );
+    ASSERT_STATUS( status, PSA_SUCCESS );
+
+    status = psa_generate_key( key_slot_cipher, PSA_KEY_TYPE_AES, key_bits,
+                               NULL, 0 );
+    ASSERT_STATUS( status, PSA_SUCCESS );
+
+    status = cipher_encrypt( key_slot_cipher, alg, iv, sizeof( iv ),
+                             input, sizeof( input ), part_size,
+                             encrypt, sizeof( encrypt ), &output_len );
+    ASSERT_STATUS( status, PSA_SUCCESS );
+
+    status = cipher_decrypt( key_slot_cipher, alg, iv, sizeof( iv ),
+                             encrypt, output_len, part_size,
+                             decrypt, sizeof( decrypt ), &output_len );
+    ASSERT_STATUS( status, PSA_SUCCESS );
+
+    status = memcmp( input, decrypt, sizeof( input ) );
+    ASSERT_STATUS( status, PSA_SUCCESS );
+
+exit:
+    psa_destroy_key( key_slot_cipher );
+    return( status );
+}
+
 static void cipher_examples( void )
 {
     psa_status_t status;
@@ -252,6 +297,11 @@ static void cipher_examples( void )
 
     mbedtls_printf( "cipher encrypt/decrypt AES CBC PKCS7 multipart:\r\n" );
     status = cipher_example_encrypt_decrypt_aes_cbc_pkcs7_multi( );
+    if( status == PSA_SUCCESS )
+        mbedtls_printf( "\tsuccess!\r\n" );
+
+    mbedtls_printf( "cipher encrypt/decrypt AES CTR multipart:\r\n" );
+    status = cipher_example_encrypt_decrypt_aes_ctr_multi( );
     if( status == PSA_SUCCESS )
         mbedtls_printf( "\tsuccess!\r\n" );
 }

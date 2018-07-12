@@ -1963,12 +1963,12 @@ psa_status_t psa_cipher_set_iv(psa_cipher_operation_t *operation,
 
 /** Encrypt or decrypt a message fragment in an active cipher operation.
  *
- * The application must call psa_cipher_encrypt_setup() or
- * psa_cipher_decrypt_setup() before calling this function. The choice
- * of setup function determines whether this function encrypts or
- * decrypts its input. After calling a setup function, if the chosen
- * algorithm requires an IV, the application must call
- * psa_cipher_generate_iv() or psa_cipher_set_iv().
+ * Before calling this function, you must:
+ * 1. Call either psa_cipher_encrypt_setup() or psa_cipher_decrypt_setup().
+ *    The choice of setup function determines whether this function
+ *    encrypts or decrypts its input.
+ * 2. If the algorithm requires an IV, call psa_cipher_generate_iv()
+ *    (recommended when encrypting) or psa_cipher_set_iv().
  *
  * If this function returns an error status, the operation becomes inactive.
  *

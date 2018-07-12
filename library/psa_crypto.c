@@ -1332,6 +1332,14 @@ static psa_status_t psa_mac_init( psa_mac_operation_t *operation,
     return( status );
 }
 
+#if defined(MBEDTLS_MD_C)
+static psa_status_t psa_hmac_abort_internal( psa_hmac_internal_data *hmac )
+{
+    mbedtls_zeroize( hmac->opad, sizeof( hmac->opad ) );
+    return( psa_hash_abort( &hmac->hash_ctx ) );
+}
+#endif /* MBEDTLS_MD_C */
+
 psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
 {
     if( operation->alg == 0 )
@@ -1352,12 +1360,7 @@ psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
-        size_t block_size =
-            psa_get_hash_block_size( PSA_ALG_HMAC_HASH( operation->alg ) );
-        if( block_size == 0 )
-            goto bad_state;
-        psa_hash_abort( &operation->ctx.hmac.hash_ctx );
-        mbedtls_zeroize( operation->ctx.hmac.opad, block_size );
+        psa_hmac_abort_internal( &operation->ctx.hmac );
     }
     else
 #endif /* MBEDTLS_MD_C */
@@ -1407,43 +1410,33 @@ static int psa_cmac_setup( psa_mac_operation_t *operation,
 #endif /* MBEDTLS_CMAC_C */
 
 #if defined(MBEDTLS_MD_C)
-static int psa_hmac_setup( psa_mac_operation_t *operation,
-                           psa_key_type_t key_type,
-                           key_slot_t *slot,
-                           psa_algorithm_t alg )
+static psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data *hmac,
+                                             const uint8_t *key,
+                                             size_t key_length,
+                                             psa_algorithm_t hash_alg )
 {
     unsigned char ipad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
-    unsigned char *opad = operation->ctx.hmac.opad;
     size_t i;
-    size_t block_size =
-        psa_get_hash_block_size( PSA_ALG_HMAC_HASH( alg ) );
-    unsigned int digest_size =
-        PSA_HASH_SIZE( PSA_ALG_HMAC_HASH( alg ) );
-    size_t key_length = slot->data.raw.bytes;
+    size_t block_size = psa_get_hash_block_size( hash_alg );
     psa_status_t status;
 
-    if( block_size == 0 || digest_size == 0 )
+    if( block_size == 0 )
         return( PSA_ERROR_NOT_SUPPORTED );
 
-    if( key_type != PSA_KEY_TYPE_HMAC )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
-    operation->mac_size = digest_size;
 
     /* The hash was started earlier in psa_mac_init. */
     if( key_length > block_size )
     {
-        status = psa_hash_update( &operation->ctx.hmac.hash_ctx,
-                                  slot->data.raw.data, slot->data.raw.bytes );
+        status = psa_hash_update( &hmac->hash_ctx, key, key_length );
         if( status != PSA_SUCCESS )
             return( status );
-        status = psa_hash_finish( &operation->ctx.hmac.hash_ctx,
+        status = psa_hash_finish( &hmac->hash_ctx,
                                   ipad, sizeof( ipad ), &key_length );
         if( status != PSA_SUCCESS )
             return( status );
     }
     else
-        memcpy( ipad, slot->data.raw.data, slot->data.raw.bytes );
+        memcpy( ipad, key, key_length );
 
     /* ipad contains the key followed by garbage. Xor and fill with 0x36
      * to create the ipad value. */
@@ -1454,22 +1447,17 @@ static int psa_hmac_setup( psa_mac_operation_t *operation,
     /* Copy the key material from ipad to opad, flipping the requisite bits,
      * and filling the rest of opad with the requisite constant. */
     for( i = 0; i < key_length; i++ )
-        opad[i] = ipad[i] ^ 0x36 ^ 0x5C;
-    memset( opad + key_length, 0x5C, block_size - key_length );
+        hmac->opad[i] = ipad[i] ^ 0x36 ^ 0x5C;
+    memset( hmac->opad + key_length, 0x5C, block_size - key_length );
 
-    status = psa_hash_setup( &operation->ctx.hmac.hash_ctx,
-                             PSA_ALG_HMAC_HASH( alg ) );
+    status = psa_hash_setup( &hmac->hash_ctx, hash_alg );
     if( status != PSA_SUCCESS )
         goto cleanup;
 
-    status = psa_hash_update( &operation->ctx.hmac.hash_ctx, ipad,
-                              block_size );
+    status = psa_hash_update( &hmac->hash_ctx, ipad, block_size );
 
 cleanup:
     mbedtls_zeroize( ipad, key_length );
-    /* opad is in the context. It needs to stay in memory if this function
-     * succeeds, and it will be wiped by psa_mac_abort() called from
-     * psa_mac_setup in the error case. */
 
     return( status );
 }
@@ -1517,7 +1505,22 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HMAC( alg ) )
     {
-        status = psa_hmac_setup( operation, slot->type, slot, alg );
+        psa_algorithm_t hash_alg = PSA_ALG_HMAC_HASH( alg );
+        if( hash_alg == 0 )
+        {
+            status = PSA_ERROR_NOT_SUPPORTED;
+            goto exit;
+        }
+        if( slot->type != PSA_KEY_TYPE_HMAC )
+        {
+            status = PSA_ERROR_INVALID_ARGUMENT;
+            goto exit;
+        }
+        status = psa_hmac_setup_internal( &operation->ctx.hmac,
+                                          slot->data.raw.data,
+                                          slot->data.raw.bytes,
+                                          hash_alg );
+        operation->mac_size = PSA_HASH_SIZE( hash_alg );
     }
     else
 #endif /* MBEDTLS_MD_C */
@@ -1591,12 +1594,49 @@ cleanup:
     return( status );
 }
 
+#if defined(MBEDTLS_MD_C)
+static psa_status_t psa_hmac_finish_internal( psa_hmac_internal_data *hmac,
+                                              uint8_t *mac,
+                                              size_t mac_size )
+{
+    unsigned char tmp[MBEDTLS_MD_MAX_SIZE];
+    psa_algorithm_t hash_alg = hmac->hash_ctx.alg;
+    size_t hash_size = 0;
+    size_t block_size = psa_get_hash_block_size( hash_alg );
+    psa_status_t status;
+
+    if( block_size == 0 )
+        return( PSA_ERROR_NOT_SUPPORTED );
+
+    status = psa_hash_finish( &hmac->hash_ctx, tmp, sizeof( tmp ), &hash_size );
+    if( status != PSA_SUCCESS )
+        return( status );
+    /* From here on, tmp needs to be wiped. */
+
+    status = psa_hash_setup( &hmac->hash_ctx, hash_alg );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_hash_update( &hmac->hash_ctx, hmac->opad, block_size );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_hash_update( &hmac->hash_ctx, tmp, hash_size );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_hash_finish( &hmac->hash_ctx, mac, mac_size, &hash_size );
+
+exit:
+    mbedtls_zeroize( tmp, hash_size );
+    return( status );
+}
+#endif /* MBEDTLS_MD_C */
+
 static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
                                              uint8_t *mac,
                                              size_t mac_size )
 {
-    psa_status_t status;
-
     if( ! operation->key_set )
         return( PSA_ERROR_BAD_STATE );
     if( operation->iv_required && ! operation->iv_set )
@@ -1616,41 +1656,8 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
-        unsigned char tmp[MBEDTLS_MD_MAX_SIZE];
-        unsigned char *opad = operation->ctx.hmac.opad;
-        size_t hash_size = 0;
-        size_t block_size =
-            psa_get_hash_block_size( PSA_ALG_HMAC_HASH( operation->alg ) );
-
-        if( block_size == 0 )
-            return( PSA_ERROR_NOT_SUPPORTED );
-
-        status = psa_hash_finish( &operation->ctx.hmac.hash_ctx, tmp,
-                                  sizeof( tmp ), &hash_size );
-        if( status != PSA_SUCCESS )
-            return( status );
-        /* From here on, tmp needs to be wiped. */
-
-        status = psa_hash_setup( &operation->ctx.hmac.hash_ctx,
-                                 PSA_ALG_HMAC_HASH( operation->alg ) );
-        if( status != PSA_SUCCESS )
-            goto hmac_cleanup;
-
-        status = psa_hash_update( &operation->ctx.hmac.hash_ctx, opad,
-                                  block_size );
-        if( status != PSA_SUCCESS )
-            goto hmac_cleanup;
-
-        status = psa_hash_update( &operation->ctx.hmac.hash_ctx, tmp,
-                                  hash_size );
-        if( status != PSA_SUCCESS )
-            goto hmac_cleanup;
-
-        status = psa_hash_finish( &operation->ctx.hmac.hash_ctx, mac,
-                                  mac_size, &hash_size );
-    hmac_cleanup:
-        mbedtls_zeroize( tmp, hash_size );
-        return( status );
+        return( psa_hmac_finish_internal( &operation->ctx.hmac,
+                                          mac, mac_size ) );
     }
     else
 #endif /* MBEDTLS_MD_C */

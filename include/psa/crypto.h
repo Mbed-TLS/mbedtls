@@ -414,13 +414,13 @@ typedef uint32_t psa_key_type_t;
 #define PSA_KEY_TYPE_IS_KEYPAIR(type)                                   \
     (((type) & (PSA_KEY_TYPE_CATEGORY_MASK | PSA_KEY_TYPE_PAIR_FLAG)) == \
      (PSA_KEY_TYPE_CATEGORY_ASYMMETRIC | PSA_KEY_TYPE_PAIR_FLAG))
-/** Whether a key type is an RSA key pair or public key. */
 /** The key pair type corresponding to a public key type. */
 #define PSA_KEY_TYPE_KEYPAIR_OF_PUBLIC_KEY(type)        \
     ((type) | PSA_KEY_TYPE_PAIR_FLAG)
 /** The public key type corresponding to a key pair type. */
 #define PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type)        \
     ((type) & ~PSA_KEY_TYPE_PAIR_FLAG)
+/** Whether a key type is an RSA key pair or public key. */
 #define PSA_KEY_TYPE_IS_RSA(type)                                       \
     (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_RSA_PUBLIC_KEY)
 /** Whether a key type is an elliptic curve key pair or public key. */
@@ -1165,7 +1165,7 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  * is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
- * -# Call psa_hash_start() to specify the algorithm.
+ * -# Call psa_hash_setup() to specify the algorithm.
  * -# Call psa_hash_update() zero, one or more times, passing a fragment
  *    of the message each time. The hash that is calculated is the hash
  *    of the concatenation of these messages in order.
@@ -1173,9 +1173,9 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  *    To compare the hash with an expected value, call psa_hash_verify().
  *
  * The application may call psa_hash_abort() at any time after the operation
- * has been initialized with psa_hash_start().
+ * has been initialized with psa_hash_setup().
  *
- * After a successful call to psa_hash_start(), the application must
+ * After a successful call to psa_hash_setup(), the application must
  * eventually terminate the operation. The following events terminate an
  * operation:
  * - A failed call to psa_hash_update().
@@ -1194,12 +1194,12 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  * \retval PSA_ERROR_HARDWARE_FAILURE
  * \retval PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_hash_start(psa_hash_operation_t *operation,
+psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
                             psa_algorithm_t alg);
 
 /** Add a message fragment to a multipart hash operation.
  *
- * The application must call psa_hash_start() before calling this function.
+ * The application must call psa_hash_setup() before calling this function.
  *
  * If this function returns an error status, the operation becomes inactive.
  *
@@ -1222,7 +1222,7 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
 
 /** Finish the calculation of the hash of a message.
  *
- * The application must call psa_hash_start() before calling this function.
+ * The application must call psa_hash_setup() before calling this function.
  * This function calculates the hash of the message formed by concatenating
  * the inputs passed to preceding calls to psa_hash_update().
  *
@@ -1265,7 +1265,7 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
 /** Finish the calculation of the hash of a message and compare it with
  * an expected value.
  *
- * The application must call psa_hash_start() before calling this function.
+ * The application must call psa_hash_setup() before calling this function.
  * This function calculates the hash of the message formed by concatenating
  * the inputs passed to preceding calls to psa_hash_update(). It then
  * compares the calculated hash with the expected hash passed as a
@@ -1299,7 +1299,7 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
 
 /** Abort a hash operation.
  *
- * This function may be called at any time after psa_hash_start().
+ * This function may be called at any time after psa_hash_setup().
  * Aborting an operation frees all associated resources except for the
  * \c operation structure itself.
  *
@@ -1333,29 +1333,32 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation);
  * as directed by the documentation of a specific implementation. */
 typedef struct psa_mac_operation_s psa_mac_operation_t;
 
-/** Start a multipart MAC operation.
+/** Start a multipart MAC calculation operation.
  *
- * The sequence of operations to calculate a MAC (message authentication code)
- * is as follows:
+ * This function sets up the calculation of the MAC
+ * (message authentication code) of a byte string.
+ * To verify the MAC of a message against an
+ * expected value, use psa_mac_verify_setup() instead.
+ *
+ * The sequence of operations to calculate a MAC is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
- * -# Call psa_mac_start() to specify the algorithm and key.
+ * -# Call psa_mac_sign_setup() to specify the algorithm and key.
  *    The key remains associated with the operation even if the content
  *    of the key slot changes.
  * -# Call psa_mac_update() zero, one or more times, passing a fragment
  *    of the message each time. The MAC that is calculated is the MAC
  *    of the concatenation of these messages in order.
- * -# To calculate the MAC, call psa_mac_finish().
- *    To compare the MAC with an expected value, call psa_mac_verify().
+ * -# At the end of the message, call psa_mac_sign_finish() to finish
+ *    calculating the MAC value and retrieve it.
  *
  * The application may call psa_mac_abort() at any time after the operation
- * has been initialized with psa_mac_start().
+ * has been initialized with psa_mac_sign_setup().
  *
- * After a successful call to psa_mac_start(), the application must
- * eventually terminate the operation. The following events terminate an
- * operation:
+ * After a successful call to psa_mac_sign_setup(), the application must
+ * eventually terminate the operation through one of the following methods:
  * - A failed call to psa_mac_update().
- * - A call to psa_mac_finish(), psa_mac_verify() or psa_mac_abort().
+ * - A call to psa_mac_sign_finish() or psa_mac_abort().
  *
  * \param operation The operation object to use.
  * \param key       Slot containing the key to use for the operation.
@@ -1375,22 +1378,70 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  * \retval PSA_ERROR_HARDWARE_FAILURE
  * \retval PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_mac_start(psa_mac_operation_t *operation,
-                           psa_key_slot_t key,
-                           psa_algorithm_t alg);
+psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
+                                psa_key_slot_t key,
+                                psa_algorithm_t alg);
+
+/** Start a multipart MAC verification operation.
+ *
+ * This function sets up the verification of the MAC
+ * (message authentication code) of a byte string against an expected value.
+ *
+ * The sequence of operations to verify a MAC is as follows:
+ * -# Allocate an operation object which will be passed to all the functions
+ *    listed here.
+ * -# Call psa_mac_verify_setup() to specify the algorithm and key.
+ *    The key remains associated with the operation even if the content
+ *    of the key slot changes.
+ * -# Call psa_mac_update() zero, one or more times, passing a fragment
+ *    of the message each time. The MAC that is calculated is the MAC
+ *    of the concatenation of these messages in order.
+ * -# At the end of the message, call psa_mac_verify_finish() to finish
+ *    calculating the actual MAC of the message and verify it against
+ *    the expected value.
+ *
+ * The application may call psa_mac_abort() at any time after the operation
+ * has been initialized with psa_mac_verify_setup().
+ *
+ * After a successful call to psa_mac_verify_setup(), the application must
+ * eventually terminate the operation through one of the following methods:
+ * - A failed call to psa_mac_update().
+ * - A call to psa_mac_verify_finish() or psa_mac_abort().
+ *
+ * \param operation The operation object to use.
+ * \param key       Slot containing the key to use for the operation.
+ * \param alg       The MAC algorithm to compute (\c PSA_ALG_XXX value
+ *                  such that #PSA_ALG_IS_MAC(alg) is true).
+ *
+ * \retval PSA_SUCCESS
+ *         Success.
+ * \retval PSA_ERROR_EMPTY_SLOT
+ * \retval PSA_ERROR_NOT_PERMITTED
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ *         \c key is not compatible with \c alg.
+ * \retval PSA_ERROR_NOT_SUPPORTED
+ *         \c alg is not supported or is not a MAC algorithm.
+ * \retval PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_mac_verify_setup(psa_mac_operation_t *operation,
+                                  psa_key_slot_t key,
+                                  psa_algorithm_t alg);
 
 psa_status_t psa_mac_update(psa_mac_operation_t *operation,
                             const uint8_t *input,
                             size_t input_length);
 
-psa_status_t psa_mac_finish(psa_mac_operation_t *operation,
-                            uint8_t *mac,
-                            size_t mac_size,
-                            size_t *mac_length);
+psa_status_t psa_mac_sign_finish(psa_mac_operation_t *operation,
+                                 uint8_t *mac,
+                                 size_t mac_size,
+                                 size_t *mac_length);
 
-psa_status_t psa_mac_verify(psa_mac_operation_t *operation,
-                            const uint8_t *mac,
-                            size_t mac_length);
+psa_status_t psa_mac_verify_finish(psa_mac_operation_t *operation,
+                                   const uint8_t *mac,
+                                   size_t mac_length);
 
 psa_status_t psa_mac_abort(psa_mac_operation_t *operation);
 
@@ -1413,10 +1464,10 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
- * -# Call psa_encrypt_setup() to specify the algorithm and key.
+ * -# Call psa_cipher_encrypt_setup() to specify the algorithm and key.
  *    The key remains associated with the operation even if the content
  *    of the key slot changes.
- * -# Call either psa_encrypt_generate_iv() or psa_encrypt_set_iv() to
+ * -# Call either psa_encrypt_generate_iv() or psa_cipher_set_iv() to
  *    generate or set the IV (initialization vector). You should use
  *    psa_encrypt_generate_iv() unless the protocol you are implementing
  *    requires a specific IV value.
@@ -1425,12 +1476,12 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * -# Call psa_cipher_finish().
  *
  * The application may call psa_cipher_abort() at any time after the operation
- * has been initialized with psa_encrypt_setup().
+ * has been initialized with psa_cipher_encrypt_setup().
  *
- * After a successful call to psa_encrypt_setup(), the application must
+ * After a successful call to psa_cipher_encrypt_setup(), the application must
  * eventually terminate the operation. The following events terminate an
  * operation:
- * - A failed call to psa_encrypt_generate_iv(), psa_encrypt_set_iv()
+ * - A failed call to psa_encrypt_generate_iv(), psa_cipher_set_iv()
  *   or psa_cipher_update().
  * - A call to psa_cipher_finish() or psa_cipher_abort().
  *
@@ -1452,9 +1503,9 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * \retval PSA_ERROR_HARDWARE_FAILURE
  * \retval PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
-                               psa_key_slot_t key,
-                               psa_algorithm_t alg);
+psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
+                                      psa_key_slot_t key,
+                                      psa_algorithm_t alg);
 
 /** Set the key for a multipart symmetric decryption operation.
  *
@@ -1462,7 +1513,7 @@ psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
  * is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
- * -# Call psa_decrypt_setup() to specify the algorithm and key.
+ * -# Call psa_cipher_decrypt_setup() to specify the algorithm and key.
  *    The key remains associated with the operation even if the content
  *    of the key slot changes.
  * -# Call psa_cipher_update() with the IV (initialization vector) for the
@@ -1474,9 +1525,9 @@ psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
  * -# Call psa_cipher_finish().
  *
  * The application may call psa_cipher_abort() at any time after the operation
- * has been initialized with psa_encrypt_setup().
+ * has been initialized with psa_cipher_decrypt_setup().
  *
- * After a successful call to psa_decrypt_setup(), the application must
+ * After a successful call to psa_cipher_decrypt_setup(), the application must
  * eventually terminate the operation. The following events terminate an
  * operation:
  * - A failed call to psa_cipher_update().
@@ -1500,18 +1551,18 @@ psa_status_t psa_encrypt_setup(psa_cipher_operation_t *operation,
  * \retval PSA_ERROR_HARDWARE_FAILURE
  * \retval PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_decrypt_setup(psa_cipher_operation_t *operation,
-                               psa_key_slot_t key,
-                               psa_algorithm_t alg);
+psa_status_t psa_cipher_decrypt_setup(psa_cipher_operation_t *operation,
+                                      psa_key_slot_t key,
+                                      psa_algorithm_t alg);
 
-psa_status_t psa_encrypt_generate_iv(psa_cipher_operation_t *operation,
-                                     unsigned char *iv,
-                                     size_t iv_size,
-                                     size_t *iv_length);
+psa_status_t psa_cipher_generate_iv(psa_cipher_operation_t *operation,
+                                    unsigned char *iv,
+                                    size_t iv_size,
+                                    size_t *iv_length);
 
-psa_status_t psa_encrypt_set_iv(psa_cipher_operation_t *operation,
-                                const unsigned char *iv,
-                                size_t iv_length);
+psa_status_t psa_cipher_set_iv(psa_cipher_operation_t *operation,
+                               const unsigned char *iv,
+                               size_t iv_length);
 
 psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
                                const uint8_t *input,
@@ -1680,7 +1731,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
  * \brief Sign a hash or short message with a private key.
  *
  * Note that to perform a hash-and-sign signature algorithm, you must
- * first calculate the hash by calling psa_hash_start(), psa_hash_update()
+ * first calculate the hash by calling psa_hash_setup(), psa_hash_update()
  * and psa_hash_finish(). Then pass the resulting hash as the \p hash
  * parameter to this function. You can use #PSA_ALG_SIGN_GET_HASH(\p alg)
  * to determine the hash algorithm to use.
@@ -1733,7 +1784,7 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
  * \brief Verify the signature a hash or short message using a public key.
  *
  * Note that to perform a hash-and-sign signature algorithm, you must
- * first calculate the hash by calling psa_hash_start(), psa_hash_update()
+ * first calculate the hash by calling psa_hash_setup(), psa_hash_update()
  * and psa_hash_finish(). Then pass the resulting hash as the \p hash
  * parameter to this function. You can use #PSA_ALG_SIGN_GET_HASH(\p alg)
  * to determine the hash algorithm to use.

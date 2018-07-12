@@ -142,9 +142,9 @@
 
 
 
-/** The size of the output of psa_mac_finish(), in bytes.
+/** The size of the output of psa_mac_sign_finish(), in bytes.
  *
- * This is also the MAC size that psa_mac_verify() expects.
+ * This is also the MAC size that psa_mac_verify_finish() expects.
  *
  * \param key_type      The type of the MAC key.
  * \param key_bits      The size of the MAC key in bits.

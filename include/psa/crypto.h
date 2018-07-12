@@ -647,7 +647,7 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_HMAC_BASE                       ((psa_algorithm_t)0x02800000)
 /** Macro to build an HMAC algorithm.
  *
- * For example, `PSA_ALG_HMAC(PSA_ALG_SHA256)` is HMAC-SHA-256.
+ * For example, #PSA_ALG_HMAC(#PSA_ALG_SHA_256) is HMAC-SHA-256.
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
  *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
@@ -702,6 +702,7 @@ typedef uint32_t psa_algorithm_t;
  * whole number of blocks for the chosen block cipher.
  */
 #define PSA_ALG_BLOCK_CIPHER_PAD_NONE           ((psa_algorithm_t)0x00000000)
+
 #define PSA_ALG_BLOCK_CIPHER_PAD_PKCS7          ((psa_algorithm_t)0x00010000)
 
 /** Whether the specified algorithm is a block cipher.
@@ -736,6 +737,7 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_XTS_BASE                        ((psa_algorithm_t)0x04000004)
 
 #define PSA_ALG_STREAM_CIPHER_BASE              ((psa_algorithm_t)0x04800000)
+
 /** The CTR stream cipher mode.
  *
  * CTR is a stream cipher which is built from a block cipher. The
@@ -744,6 +746,7 @@ typedef uint32_t psa_algorithm_t;
  * a key of type #PSA_KEY_TYPE_AES and a length of 128 bits (16 bytes).
  */
 #define PSA_ALG_CTR                             ((psa_algorithm_t)0x04800001)
+
 /** The ARC4 stream cipher algorithm.
  */
 #define PSA_ALG_ARC4                            ((psa_algorithm_t)0x04800002)
@@ -1660,9 +1663,9 @@ psa_status_t psa_mac_update(psa_mac_operation_t *operation,
  * \param mac_size          Size of the \p mac buffer in bytes.
  * \param[out] mac_length   On success, the number of bytes
  *                          that make up the MAC value. This is always
- *                          #PSA_MAC_FINAL_SIZE(\c key_type, \c key_bits, \p alg)
+ *                          #PSA_MAC_FINAL_SIZE(\c key_type, \c key_bits, \c alg)
  *                          where \c key_type and \c key_bits are the type and
- *                          bit-size respectively of \c key and `alg` is the
+ *                          bit-size respectively of the key and \c alg is the
  *                          MAC algorithm that is calculated.
  *
  * \retval #PSA_SUCCESS
@@ -1875,7 +1878,7 @@ psa_status_t psa_cipher_decrypt_setup(psa_cipher_operation_t *operation,
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (not started, or IV already set).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
- *         The size of the \c output buffer is too small.
+ *         The size of the \p iv buffer is too small.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -2357,7 +2360,7 @@ psa_status_t psa_asymmetric_encrypt(psa_key_slot_t key,
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small. You can
  *         determine a sufficient buffer size by calling
- *         #PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(key_type, key_bits, alg)
+ *         #PSA_ASYMMETRIC_DECRYPT_OUTPUT_SIZE(\c key_type, \c key_bits, \p alg)
  *         where \c key_type and \c key_bits are the type and bit-size
  *         respectively of \p key.
  * \retval #PSA_ERROR_NOT_SUPPORTED
@@ -2439,8 +2442,9 @@ typedef struct {
  *                          - For an elliptic curve key type (a type
  *                            such that #PSA_KEY_TYPE_IS_ECC(\p type) is
  *                            false), \p extra must be \c NULL.
- *                          - For an RSA key, \p extra is an optional
- *                            #psa_generate_key_extra_rsa structure
+ *                          - For an RSA key (\p type is
+ *                            #PSA_KEY_TYPE_RSA_KEYPAIR), \p extra is an
+ *                            optional #psa_generate_key_extra_rsa structure
  *                            specifying the public exponent. The
  *                            default public exponent used when \p extra
  *                            is \c NULL is 65537.

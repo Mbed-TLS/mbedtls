@@ -371,9 +371,9 @@ static psa_status_t psa_get_empty_key_slot( psa_key_slot_t key,
     return( status );
 }
 
-/* Retrieve a slot which must contain a key. The key must have allow all
- * the usage flags set in \p usage. If \p alg is nonzero, the key must
- * allow operations with this algorithm. */
+/** Retrieve a slot which must contain a key. The key must have allow all the
+ * usage flags set in \p usage. If \p alg is nonzero, the key must allow
+ * operations with this algorithm. */
 static psa_status_t psa_get_key_from_slot( psa_key_slot_t key,
                                            key_slot_t **p_slot,
                                            psa_key_usage_t usage,

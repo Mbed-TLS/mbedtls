@@ -130,6 +130,20 @@ struct psa_cipher_operation_s
     } ctx;
 };
 
+typedef struct
+{
+    uint8_t *info;
+    size_t info_length;
+    psa_hmac_internal_data hmac;
+    uint8_t prk[PSA_HASH_MAX_SIZE];
+    uint8_t output_block[PSA_HASH_MAX_SIZE];
+#if PSA_HASH_MAX_SIZE > 0xff
+#error "PSA_HASH_MAX_SIZE does not fit in uint8_t"
+#endif
+    uint8_t offset_in_block;
+    uint8_t block_number;
+} psa_hkdf_generator_t;
+
 struct psa_crypto_generator_s
 {
     psa_algorithm_t alg;
@@ -141,6 +155,9 @@ struct psa_crypto_generator_s
             uint8_t *data;
             size_t size;
         } buffer;
+#if defined(MBEDTLS_MD_C)
+        psa_hkdf_generator_t hkdf;
+#endif
     } ctx;
 };
 

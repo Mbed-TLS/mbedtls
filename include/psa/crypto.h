@@ -965,6 +965,36 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_IS_RSA_OAEP(alg)                                \
     (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_RSA_OAEP_BASE)
 
+#define PSA_ALG_HKDF_BASE                       ((psa_algorithm_t)0x30000100)
+/** Macro to build an HKDF algorithm.
+ *
+ * For example, `PSA_ALG_HKDF(PSA_ALG_SHA256)` is HKDF using HMAC-SHA-256.
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
+ *
+ * \return              The corresponding HKDF algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      hash algorithm.
+ */
+#define PSA_ALG_HKDF(hash_alg)                                  \
+    (PSA_ALG_HKDF_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+/** Whether the specified algorithm is an HKDF algorithm.
+ *
+ * HKDF is a family of key derivation algorithms that are based on a hash
+ * function and the HMAC construction.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \c alg is an HKDF algorithm, 0 otherwise.
+ *         This macro may return either 0 or 1 if \c alg is not a supported
+ *         key derivation algorithm identifier.
+ */
+#define PSA_ALG_IS_HKDF(alg)                            \
+    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_HKDF_BASE)
+#define PSA_ALG_HKDF_GET_HASH(hkdf_alg)                         \
+    (PSA_ALG_CATEGORY_HASH | ((hkdf_alg) & PSA_ALG_HASH_MASK))
+
 /**@}*/
 
 /** \defgroup key_management Key management
@@ -2638,6 +2668,8 @@ psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
  * be used to produce keys and other cryptographic material.
  *
  * The role of \p label and \p salt is as follows:
+ * - For HKDF (#PSA_ALG_HKDF), \p salt is the salt used in the "extract" step
+ *   and \p label is the info string used in the "expand" step.
  *
  * \param[in,out] generator       The generator object to set up. It must
  *                                have been initialized to .

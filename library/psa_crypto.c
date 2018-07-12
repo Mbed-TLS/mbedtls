@@ -3003,6 +3003,14 @@ psa_status_t psa_generator_abort( psa_crypto_generator_t *generator )
          * nothing to do. */
     }
     else
+#if defined(MBEDTLS_MD_C)
+    if( PSA_ALG_IS_HKDF( generator->alg ) )
+    {
+        mbedtls_free( generator->ctx.hkdf.info );
+        status = psa_hmac_abort_internal( &generator->ctx.hkdf.hmac );
+    }
+    else
+#endif /* MBEDTLS_MD_C */
     {
         status = PSA_ERROR_BAD_STATE;
     }
@@ -3017,6 +3025,66 @@ psa_status_t psa_get_generator_capacity(const psa_crypto_generator_t *generator,
     *capacity = generator->capacity;
     return( PSA_SUCCESS );
 }
+
+#if defined(MBEDTLS_MD_C)
+/* Read some bytes from an HKDF-based generator. This performs a chunk
+ * of the expand phase of the HKDF algorithm. */
+static psa_status_t psa_generator_hkdf_read( psa_hkdf_generator_t *hkdf,
+                                             psa_algorithm_t hash_alg,
+                                             uint8_t *output,
+                                             size_t output_length )
+{
+    uint8_t hash_length = PSA_HASH_SIZE( hash_alg );
+    psa_status_t status;
+
+    while( output_length != 0 )
+    {
+        /* Copy what remains of the current block */
+        uint8_t n = hash_length - hkdf->offset_in_block;
+        if( n > output_length )
+            n = (uint8_t) output_length;
+        memcpy( output, hkdf->output_block + hkdf->offset_in_block, n );
+        output += n;
+        output_length -= n;
+        hkdf->offset_in_block += n;
+        if( output_length == 0 || hkdf->block_number == 0xff )
+            break;
+
+        /* We need a new block */
+        ++hkdf->block_number;
+        hkdf->offset_in_block = 0;
+        status = psa_hmac_setup_internal( &hkdf->hmac,
+                                          hkdf->prk, hash_length,
+                                          hash_alg );
+        if( status != PSA_SUCCESS )
+            return( status );
+        if( hkdf->block_number != 1 )
+        {
+            status = psa_hash_update( &hkdf->hmac.hash_ctx,
+                                      hkdf->output_block,
+                                      hash_length );
+            if( status != PSA_SUCCESS )
+                return( status );
+        }
+        status = psa_hash_update( &hkdf->hmac.hash_ctx,
+                                  hkdf->info,
+                                  hkdf->info_length );
+        if( status != PSA_SUCCESS )
+            return( status );
+        status = psa_hash_update( &hkdf->hmac.hash_ctx,
+                                  &hkdf->block_number, 1 );
+        if( status != PSA_SUCCESS )
+            return( status );
+        status = psa_hmac_finish_internal( &hkdf->hmac,
+                                           hkdf->output_block,
+                                           sizeof( hkdf->output_block ) );
+        if( status != PSA_SUCCESS )
+            return( status );
+    }
+
+    return( PSA_SUCCESS );
+}
+#endif /* MBEDTLS_MD_C */
 
 psa_status_t psa_generator_read( psa_crypto_generator_t *generator,
                                  uint8_t *output,
@@ -3045,6 +3113,15 @@ psa_status_t psa_generator_read( psa_crypto_generator_t *generator,
     }
     generator->capacity -= output_length;
 
+#if defined(MBEDTLS_MD_C)
+    if( PSA_ALG_IS_HKDF( generator->alg ) )
+    {
+        psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( generator->alg );
+        status = psa_generator_hkdf_read( &generator->ctx.hkdf, hash_alg,
+                                          output, output_length );
+    }
+    else
+#endif /* MBEDTLS_MD_C */
     {
         return( PSA_ERROR_BAD_STATE );
     }
@@ -3091,6 +3168,45 @@ exit:
 /* Key derivation */
 /****************************************************************/
 
+/* Set up an HKDF-based generator. This is exactly the extract phase
+ * of the HKDF algorithm. */
+static psa_status_t psa_generator_hkdf_setup( psa_hkdf_generator_t *hkdf,
+                                              key_slot_t *slot,
+                                              psa_algorithm_t hash_alg,
+                                              const uint8_t *salt,
+                                              size_t salt_length,
+                                              const uint8_t *label,
+                                              size_t label_length )
+{
+    psa_status_t status;
+    status = psa_hmac_setup_internal( &hkdf->hmac,
+                                      salt, salt_length,
+                                      PSA_ALG_HMAC_HASH( hash_alg ) );
+    if( status != PSA_SUCCESS )
+        return( status );
+    status = psa_hash_update( &hkdf->hmac.hash_ctx,
+                              slot->data.raw.data,
+                              slot->data.raw.bytes );
+    if( status != PSA_SUCCESS )
+        return( status );
+    status = psa_hmac_finish_internal( &hkdf->hmac,
+                                       hkdf->prk,
+                                       sizeof( hkdf->prk ) );
+    if( status != PSA_SUCCESS )
+        return( status );
+    hkdf->offset_in_block = PSA_HASH_SIZE( hash_alg );
+    hkdf->block_number = 0;
+    hkdf->info_length = label_length;
+    if( label_length != 0 )
+    {
+        hkdf->info = mbedtls_calloc( 1, label_length );
+        if( hkdf->info == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+        memcpy( hkdf->info, label, label_length );
+    }
+    return( PSA_SUCCESS );
+}
+
 psa_status_t psa_key_derivation( psa_crypto_generator_t *generator,
                                  psa_key_type_t key,
                                  psa_algorithm_t alg,
@@ -3115,6 +3231,23 @@ psa_status_t psa_key_derivation( psa_crypto_generator_t *generator,
     if( ! PSA_ALG_IS_KEY_DERIVATION( alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
+#if defined(MBEDTLS_MD_C)
+    if( PSA_ALG_IS_HKDF( alg ) )
+    {
+        psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( alg );
+        size_t hash_size = PSA_HASH_SIZE( hash_alg );
+        if( hash_size == 0 )
+            return( PSA_ERROR_NOT_SUPPORTED );
+        if( capacity > 255 * hash_size )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        status = psa_generator_hkdf_setup( &generator->ctx.hkdf,
+                                           slot,
+                                           hash_alg,
+                                           salt, salt_length,
+                                           label, label_length );
+    }
+    else
+#endif
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }

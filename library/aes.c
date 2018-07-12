@@ -421,7 +421,7 @@ static void aes_gen_tables( void )
      */
     for( i = 0, x = 1; i < 10; i++ )
     {
-        RCON[i] = (uint32_t) x;
+        RCON[i] = x;
         x = XTIME( x ) & 0xFF;
     }
 
@@ -441,8 +441,8 @@ static void aes_gen_tables( void )
         x ^= y; y = ( ( y << 1 ) | ( y >> 7 ) ) & 0xFF;
         x ^= y ^ 0x63;
 
-        FSb[i] = (unsigned char) x;
-        RSb[x] = (unsigned char) i;
+        FSb[i] = (uint8_t) x;
+        RSb[x] = (uint8_t) i;
     }
 
     /*

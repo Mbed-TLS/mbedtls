@@ -2988,7 +2988,105 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
 
 
 /****************************************************************/
-/* Key generation */
+/* Generators */
+/****************************************************************/
+
+psa_status_t psa_generator_abort( psa_crypto_generator_t *generator )
+{
+    psa_status_t status = PSA_SUCCESS;
+    if( generator->alg == 0 )
+    {
+        /* The object has (apparently) been initialized but it is not
+         * in use. It's ok to call abort on such an object, and there's
+         * nothing to do. */
+    }
+    else
+    {
+        status = PSA_ERROR_BAD_STATE;
+    }
+    memset( generator, 0, sizeof( *generator ) );
+    return( status );
+}
+
+
+psa_status_t psa_get_generator_capacity(const psa_crypto_generator_t *generator,
+                                        size_t *capacity)
+{
+    *capacity = generator->capacity;
+    return( PSA_SUCCESS );
+}
+
+psa_status_t psa_generator_read( psa_crypto_generator_t *generator,
+                                 uint8_t *output,
+                                 size_t output_length )
+{
+    psa_status_t status;
+
+    if( output_length > generator->capacity )
+    {
+        generator->capacity = 0;
+        /* Go through the error path to wipe all confidential data now
+         * that the generator object is useless. */
+        status = PSA_ERROR_INSUFFICIENT_CAPACITY;
+        goto exit;
+    }
+    if( output_length == 0 &&
+        generator->capacity == 0 && generator->alg == 0 )
+    {
+        /* Edge case: this is a blank or finished generator, and 0
+         * bytes were requested. The right error in this case could
+         * be either INSUFFICIENT_CAPACITY or BAD_STATE. Return
+         * INSUFFICIENT_CAPACITY, which is right for a finished
+         * generator, for consistency with the case when
+         * output_length > 0. */
+        return( PSA_ERROR_INSUFFICIENT_CAPACITY );
+    }
+    generator->capacity -= output_length;
+
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
+
+exit:
+    if( status != PSA_SUCCESS )
+    {
+        psa_generator_abort( generator );
+        memset( output, '!', output_length );
+    }
+    return( status );
+}
+
+psa_status_t psa_generator_import_key( psa_key_slot_t key,
+                                       psa_key_type_t type,
+                                       size_t bits,
+                                       psa_crypto_generator_t *generator )
+{
+    uint8_t *data = NULL;
+    size_t bytes = PSA_BITS_TO_BYTES( bits );
+    psa_status_t status;
+
+    if( ! key_type_is_raw_bytes( type ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    if( bits % 8 != 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    data = mbedtls_calloc( 1, bytes );
+    if( data == NULL )
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+    status = psa_generator_read( generator, data, bytes );
+    if( status != PSA_SUCCESS )
+        goto exit;
+    status = psa_import_key( key, type, data, bytes );
+
+exit:
+    mbedtls_free( data );
+    return( status );
+}
+
+
+
+/****************************************************************/
+/* Random generation */
 /****************************************************************/
 
 psa_status_t psa_generate_random( uint8_t *output,

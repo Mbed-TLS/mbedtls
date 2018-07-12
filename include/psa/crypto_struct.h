@@ -130,6 +130,27 @@ struct psa_cipher_operation_s
     } ctx;
 };
 
+struct psa_crypto_generator_s
+{
+    psa_algorithm_t alg;
+    size_t capacity;
+    union
+    {
+        struct
+        {
+            uint8_t *data;
+            size_t size;
+        } buffer;
+    } ctx;
+};
+
+#define PSA_CRYPTO_GENERATOR_INIT {0, 0, {{0, 0}}}
+static inline struct psa_crypto_generator_s psa_crypto_generator_init( void )
+{
+    const struct psa_crypto_generator_s v = PSA_CRYPTO_GENERATOR_INIT;
+    return( v );
+}
+
 struct psa_key_policy_s
 {
     psa_key_usage_t usage;

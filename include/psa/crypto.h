@@ -285,12 +285,18 @@ typedef int32_t psa_status_t;
  * depend on the validity of the padding. */
 #define PSA_ERROR_INVALID_PADDING       ((psa_status_t)16)
 
+/** The generator has insufficient capacity left.
+ *
+ * Once a function returns this error, attempts to read from the
+ * generator will always return this error. */
+#define PSA_ERROR_INSUFFICIENT_CAPACITY ((psa_status_t)17)
+
 /** An error occurred that does not correspond to any defined
  * failure cause.
  *
  * Implementations may use this error code if none of the other standard
  * error codes are applicable. */
-#define PSA_ERROR_UNKNOWN_ERROR         ((psa_status_t)17)
+#define PSA_ERROR_UNKNOWN_ERROR         ((psa_status_t)18)
 
 /**
  * \brief Library initialization.
@@ -2437,6 +2443,175 @@ psa_status_t psa_asymmetric_decrypt(psa_key_slot_t key,
                                     uint8_t *output,
                                     size_t output_size,
                                     size_t *output_length);
+
+/**@}*/
+
+/** \defgroup generation Generators
+ * @{
+ */
+
+/** The type of the state data structure for generators.
+ *
+ * Before calling any function on a generator, the application must
+ * initialize it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ *   \code
+ *   psa_crypto_generator_t generator;
+ *   memset(&generator, 0, sizeof(generator));
+ *   \endcode
+ * - Initialize the structure to logical zero values, for example:
+ *   \code
+ *   psa_crypto_generator_t generator = {0};
+ *   \endcode
+ * - Initialize the structure to the initializer #PSA_CRYPTO_GENERATOR_INIT,
+ *   for example:
+ *   \code
+ *   psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+ *   \endcode
+ * - Assign the result of the function psa_crypto_generator_init()
+ *   to the structure, for example:
+ *   \code
+ *   psa_crypto_generator_t generator;
+ *   generator = psa_crypto_generator_init();
+ *   \endcode
+ *
+ * This is an implementation-defined \c struct. Applications should not
+ * make any assumptions about the content of this structure except
+ * as directed by the documentation of a specific implementation.
+ */
+typedef struct psa_crypto_generator_s psa_crypto_generator_t;
+
+/** \def PSA_CRYPTO_GENERATOR_INIT
+ *
+ * This macro returns a suitable initializer for a generator object
+ * of type #psa_crypto_generator_t.
+ */
+#ifdef __DOXYGEN_ONLY__
+/* This is an example definition for documentation purposes.
+ * Implementations should define a suitable value in `crypto_struct.h`.
+ */
+#define PSA_CRYPTO_GENERATOR_INIT {0}
+#endif
+
+/** Return an initial value for a generator object.
+ */
+static psa_crypto_generator_t psa_crypto_generator_init(void);
+
+/** Retrieve the current capacity of a generator.
+ *
+ * The capacity of a generator is the maximum number of bytes that it can
+ * return. Reading *N* bytes from a generator reduces its capacity by *N*.
+ *
+ * \param[in] generator     The generator to query.
+ * \param[out] capacity     On success, the capacity of the generator.
+ *
+ * \retval PSA_SUCCESS
+ * \retval PSA_ERROR_BAD_STATE
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ */
+psa_status_t psa_get_generator_capacity(const psa_crypto_generator_t *generator,
+                                        size_t *capacity);
+
+/** Read some data from a generator.
+ *
+ * This function reads and returns a sequence of bytes from a generator.
+ * The data that is read is discarded from the generator. The generator's
+ * capacity is decreased by the number of bytes read.
+ *
+ * \param[in,out] generator The generator object to read from.
+ * \param[out] output       Buffer where the generator output will be
+ *                          written.
+ * \param output_length     Number of bytes to output.
+ *
+ * \retval PSA_SUCCESS
+ * \retval PSA_ERROR_INSUFFICIENT_CAPACITY
+ *                          There were fewer than \p output_length bytes
+ *                          in the generator. Note that in this case, no
+ *                          output is written to the output buffer.
+ *                          The generator's capacity is set to 0, thus
+ *                          subsequent calls to this function will not
+ *                          succeed, even with a smaller output buffer.
+ * \retval PSA_ERROR_BAD_STATE
+ * \retval PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
+                                uint8_t *output,
+                                size_t output_length);
+
+/** Create a symmetric key from data read from a generator.
+ *
+ * This function reads a sequence of bytes from a generator and imports
+ * these bytes as a key.
+ * The data that is read is discarded from the generator. The generator's
+ * capacity is decreased by the number of bytes read.
+ *
+ * This function is equivalent to calling #psa_generator_read and
+ * passing the resulting output to #psa_import_key, but
+ * if the implementation provides an isolation boundary then
+ * the key material is not exposed outside the isolation boundary.
+ *
+ * \param key               Slot where the key will be stored. This must be a
+ *                          valid slot for a key of the chosen type. It must
+ *                          be unoccupied.
+ * \param type              Key type (a \c PSA_KEY_TYPE_XXX value).
+ *                          This must be a symmetric key type.
+ * \param bits              Key size in bits.
+ * \param[in,out] generator The generator object to read from.
+ *
+ * \retval PSA_SUCCESS
+ *         Success.
+ * \retval PSA_ERROR_INSUFFICIENT_CAPACITY
+ *                          There were fewer than \p output_length bytes
+ *                          in the generator. Note that in this case, no
+ *                          output is written to the output buffer.
+ *                          The generator's capacity is set to 0, thus
+ *                          subsequent calls to this function will not
+ *                          succeed, even with a smaller output buffer.
+ * \retval PSA_ERROR_NOT_SUPPORTED
+ *         The key type or key size is not supported, either by the
+ *         implementation in general or in this particular slot.
+ * \retval PSA_ERROR_BAD_STATE
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ *         The key slot is invalid.
+ * \retval PSA_ERROR_OCCUPIED_SLOT
+ *         There is already a key in the specified slot.
+ * \retval PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval PSA_ERROR_INSUFFICIENT_STORAGE
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_generator_import_key(psa_key_slot_t key,
+                                      psa_key_type_t type,
+                                      size_t bits,
+                                      psa_crypto_generator_t *generator);
+
+/** Abort a generator.
+ *
+ * Once a generator has been aborted, its capacity is zero.
+ * Aborting a generator frees all associated resources except for the
+ * \c generator structure itself.
+ *
+ * This function may be called at any time as long as the generator
+ * object has been initialized to #PSA_CRYPTO_GENERATOR_INIT, to
+ * psa_crypto_generator_init() or a zero value. In particular, it is valid
+ * to call psa_generator_abort() twice, or to call psa_generator_abort()
+ * on a generator that has not been set up.
+ *
+ * Once aborted, the generator object may be called.
+ *
+ * \param[in,out] generator    The generator to abort.
+ *
+ * \retval PSA_SUCCESS
+ * \retval PSA_ERROR_BAD_STATE
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
 
 /**@}*/
 

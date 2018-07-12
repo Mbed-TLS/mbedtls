@@ -2584,6 +2584,149 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void derive_key_exercise( int alg_arg,
+                          data_t *key_data,
+                          data_t *salt,
+                          data_t *label,
+                          int derived_type_arg,
+                          int derived_bits_arg,
+                          int derived_usage_arg,
+                          int derived_alg_arg )
+{
+    psa_key_slot_t base_key = 1;
+    psa_key_slot_t derived_key = 2;
+    psa_algorithm_t alg = alg_arg;
+    psa_key_type_t derived_type = derived_type_arg;
+    size_t derived_bits = derived_bits_arg;
+    psa_key_usage_t derived_usage = derived_usage_arg;
+    psa_algorithm_t derived_alg = derived_alg_arg;
+    size_t capacity = PSA_BITS_TO_BYTES( derived_bits );
+    psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+    psa_key_policy_t policy;
+    psa_key_type_t got_type;
+    size_t got_bits;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
+    TEST_ASSERT( psa_set_key_policy( base_key, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_import_key( base_key, PSA_KEY_TYPE_DERIVE,
+                                 key_data->x,
+                                 key_data->len ) == PSA_SUCCESS );
+
+    /* Derive a key. */
+    TEST_ASSERT( psa_key_derivation( &generator, base_key, alg,
+                                     salt->x, salt->len,
+                                     label->x, label->len,
+                                     capacity ) == PSA_SUCCESS );
+    psa_key_policy_set_usage( &policy, derived_usage, derived_alg );
+    TEST_ASSERT( psa_set_key_policy( derived_key, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_generator_import_key( derived_key,
+                                           derived_type,
+                                           derived_bits,
+                                           &generator ) == PSA_SUCCESS );
+
+    /* Test the key information */
+    TEST_ASSERT( psa_get_key_information( derived_key,
+                                          &got_type,
+                                          &got_bits ) == PSA_SUCCESS );
+    TEST_ASSERT( got_type == derived_type );
+    TEST_ASSERT( got_bits == derived_bits );
+
+    /* Exercise the derived key. */
+    if( ! exercise_key( derived_key, derived_usage, derived_alg ) )
+        goto exit;
+
+exit:
+    psa_generator_abort( &generator );
+    psa_destroy_key( base_key );
+    psa_destroy_key( derived_key );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void derive_key_export( int alg_arg,
+                        data_t *key_data,
+                        data_t *salt,
+                        data_t *label,
+                        int bytes1_arg,
+                        int bytes2_arg )
+{
+    psa_key_slot_t base_key = 1;
+    psa_key_slot_t derived_key = 2;
+    psa_algorithm_t alg = alg_arg;
+    size_t bytes1 = bytes1_arg;
+    size_t bytes2 = bytes2_arg;
+    size_t capacity = bytes1 + bytes2;
+    psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+    uint8_t *output_buffer = mbedtls_calloc( 1, capacity );
+    uint8_t *export_buffer = mbedtls_calloc( 1, capacity );
+    psa_key_policy_t policy;
+    size_t length;
+
+    TEST_ASSERT( output_buffer != NULL );
+    TEST_ASSERT( export_buffer != NULL );
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
+    TEST_ASSERT( psa_set_key_policy( base_key, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_import_key( base_key, PSA_KEY_TYPE_DERIVE,
+                                 key_data->x,
+                                 key_data->len ) == PSA_SUCCESS );
+
+    /* Derive some material and output it. */
+    TEST_ASSERT( psa_key_derivation( &generator, base_key, alg,
+                                     salt->x, salt->len,
+                                     label->x, label->len,
+                                     capacity ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_generator_read( &generator,
+                                     output_buffer,
+                                     capacity ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_generator_abort( &generator ) == PSA_SUCCESS );
+
+    /* Derive the same output again, but this time store it in key objects. */
+    TEST_ASSERT( psa_key_derivation( &generator, base_key, alg,
+                                     salt->x, salt->len,
+                                     label->x, label->len,
+                                     capacity ) == PSA_SUCCESS );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT, 0 );
+    TEST_ASSERT( psa_set_key_policy( derived_key, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_generator_import_key( derived_key,
+                                           PSA_KEY_TYPE_RAW_DATA,
+                                           PSA_BYTES_TO_BITS( bytes1 ),
+                                           &generator ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_export_key( derived_key,
+                                 export_buffer, bytes1,
+                                 &length ) == PSA_SUCCESS );
+    TEST_ASSERT( length == bytes1 );
+    TEST_ASSERT( psa_destroy_key( derived_key ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( derived_key, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_generator_import_key( derived_key,
+                                           PSA_KEY_TYPE_RAW_DATA,
+                                           PSA_BYTES_TO_BITS( bytes2 ),
+                                           &generator ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_export_key( derived_key,
+                                 export_buffer + bytes1, bytes2,
+                                 &length ) == PSA_SUCCESS );
+    TEST_ASSERT( length == bytes2 );
+
+    /* Compare the outputs from the two runs. */
+    TEST_ASSERT( memcmp( output_buffer, export_buffer, capacity ) == 0 );
+
+exit:
+    mbedtls_free( output_buffer );
+    mbedtls_free( export_buffer );
+    psa_generator_abort( &generator );
+    psa_destroy_key( base_key );
+    psa_destroy_key( derived_key );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void generate_random( int bytes_arg )
 {
     size_t bytes = bytes_arg;

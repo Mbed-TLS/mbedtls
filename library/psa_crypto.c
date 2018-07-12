@@ -498,8 +498,9 @@ static psa_status_t prepare_raw_data_slot( psa_key_type_t type,
             break;
 #if defined(MBEDTLS_MD_C)
         case PSA_KEY_TYPE_HMAC:
-            break;
 #endif
+        case PSA_KEY_TYPE_DERIVE:
+            break;
 #if defined(MBEDTLS_AES_C)
         case PSA_KEY_TYPE_AES:
             if( bits != 128 && bits != 192 && bits != 256 )
@@ -2651,7 +2652,8 @@ psa_status_t psa_set_key_policy( psa_key_slot_t key,
                              PSA_KEY_USAGE_ENCRYPT |
                              PSA_KEY_USAGE_DECRYPT |
                              PSA_KEY_USAGE_SIGN |
-                             PSA_KEY_USAGE_VERIFY ) ) != 0 )
+                             PSA_KEY_USAGE_VERIFY |
+                             PSA_KEY_USAGE_DERIVE ) ) != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     slot->policy = *policy;
@@ -3080,6 +3082,49 @@ psa_status_t psa_generator_import_key( psa_key_slot_t key,
 
 exit:
     mbedtls_free( data );
+    return( status );
+}
+
+
+
+/****************************************************************/
+/* Key derivation */
+/****************************************************************/
+
+psa_status_t psa_key_derivation( psa_crypto_generator_t *generator,
+                                 psa_key_type_t key,
+                                 psa_algorithm_t alg,
+                                 const uint8_t *salt,
+                                 size_t salt_length,
+                                 const uint8_t *label,
+                                 size_t label_length,
+                                 size_t capacity )
+{
+    key_slot_t *slot;
+    psa_status_t status;
+
+    if( generator->alg != 0 )
+        return( PSA_ERROR_BAD_STATE );
+
+    status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_DERIVE, alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+    if( slot->type != PSA_KEY_TYPE_DERIVE )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    if( ! PSA_ALG_IS_KEY_DERIVATION( alg ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    {
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
+    /* Set generator->alg even on failure so that abort knows what to do. */
+    generator->alg = alg;
+    if( status == PSA_SUCCESS )
+        generator->capacity = capacity;
+    else
+        psa_generator_abort( generator );
     return( status );
 }
 

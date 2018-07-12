@@ -1018,6 +1018,12 @@ psa_status_t psa_hash_update( psa_hash_operation_t *operation,
                               size_t input_length )
 {
     int ret;
+
+    /* Don't require hash implementations to behave correctly on a
+     * zero-length input, which may have an invalid pointer. */
+    if( input_length == 0 )
+        return( PSA_SUCCESS );
+
     switch( operation->alg )
     {
 #if defined(MBEDTLS_MD2_C)
@@ -1068,6 +1074,7 @@ psa_status_t psa_hash_update( psa_hash_operation_t *operation,
             ret = MBEDTLS_ERR_MD_BAD_INPUT_DATA;
             break;
     }
+
     if( ret != 0 )
         psa_hash_abort( operation );
     return( mbedtls_to_psa_error( ret ) );

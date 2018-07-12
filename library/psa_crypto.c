@@ -1317,8 +1317,9 @@ static psa_status_t psa_mac_init( psa_mac_operation_t *operation,
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
-        status = psa_hash_setup( &operation->ctx.hmac.hash_ctx,
-                                 PSA_ALG_HMAC_HASH( alg ) );
+        /* We'll set up the hash operation later in psa_hmac_setup_internal. */
+        operation->ctx.hmac.hash_ctx.alg = 0;
+        status = PSA_SUCCESS;
     }
     else
 #endif /* MBEDTLS_MD_C */
@@ -1423,8 +1424,10 @@ static psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data *hmac,
     if( block_size == 0 )
         return( PSA_ERROR_NOT_SUPPORTED );
 
+    status = psa_hash_setup( &hmac->hash_ctx, hash_alg );
+    if( status != PSA_SUCCESS )
+        return( status );
 
-    /* The hash was started earlier in psa_mac_init. */
     if( key_length > block_size )
     {
         status = psa_hash_update( &hmac->hash_ctx, key, key_length );

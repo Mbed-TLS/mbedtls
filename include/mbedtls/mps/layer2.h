@@ -58,6 +58,7 @@
 #define MPS_ERR_UNEXPECTED_OPERATION   -0x17 /*!< The requested operation cannot
                                               *  be performed in the current
                                               *  state of the Layer 2 context.*/
+#define MPS_ERR_INVALID_CONTENT_MERGE  -0x52
 #define MPS_ERR_TYPE_CANT_BE_PAUSED    -0x1b
 #define MPS_ERR_PAUSE_REFUSED          -0x18
 #define MPS_ERR_MULTIPLE_PAUSING       -0x19

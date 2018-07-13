@@ -1137,6 +1137,15 @@ int mps_l2_read_done( mps_l2 *ctx )
     {
         /* 1a */
         TRACE( trace_comment, "There is data remaining in the current incoming record." );
+
+        /* Check if the content type is configured to allow packing of
+         * multiple chunks of data in the same record. */
+        if( l2_type_can_be_merged( ctx, ctx->in.active->type ) == 0 )
+        {
+            TRACE( trace_error, "Record content type does not allow multiple reads from the same record." );
+            RETURN( MPS_ERR_INVALID_CONTENT_MERGE );
+        }
+
         ctx->in.active_state = MPS_L2_READER_STATE_INTERNAL;
         RETURN( 0 );
     }

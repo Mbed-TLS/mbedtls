@@ -4114,6 +4114,227 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
+void mbedtls_mps_l2_non_packable_type( int mode,
+                           int allocator_buffer_sz,
+                           int layer0_buffer_sz  )
+{
+    /* This test checks that if a type is configured as non-mergable, then
+     * - Layer 2 dispatches a record of that type immediately when
+     *   mps_l2_write_dispatch() is called, and
+     * - Layer 2 returns an error when a mps_l2_read_consume()
+     *   is called with more data being available in the current
+     *   incoming record.
+     *
+     * The alert record content type is non-mergable as of (D)TLS 1.3.
+     *
+     * The test makes sense for both TLS and DTLS.
+     */
+
+    mps_alloc cli_alloc, srv_alloc;
+
+    /* Layer 1 objects */
+    mps_l1 cli_l1, srv_l1;
+
+    uint8_t const ty_A = 0;
+    mbedtls_mps_epoch_id epoch_init = 0;
+
+    uint8_t *buf;
+    size_t sz;
+
+    /* Layer 2 objects */
+    mps_l2 cli, srv;
+    mps_l2_out out_cli, out_srv;
+    mps_l2_in in_srv, in_cli;
+
+    /* Dummy record transformations for epoch 0 */
+    mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
+    mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
+
+    mps_l0_send_t *cli_wr,  *srv_wr;
+    mps_l0_recv_t *cli_rcv, *srv_rcv;
+
+    dummy_s->type = 0;
+    dummy_s->mock.enabled = 1;
+    dummy_s->mock.pad = 5;
+    dummy_c->type = 0;
+    dummy_c->mock.enabled = 1;
+    dummy_c->mock.pad = 5;
+
+    /* Initialize Layer 0 mock objects */
+    if( mode == MPS_L2_MODE_STREAM )
+    {
+        layer0_bufsize = (size_t) layer0_buffer_sz;
+        TEST_ASSERT( layer0_init( &s2c ) == 0 );
+        TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+        cli_wr  = &layer0_write_cli;
+        cli_rcv = &layer0_read_cli;
+        srv_wr  = &layer0_write_srv;
+        srv_rcv = &layer0_read_srv;
+    }
+    else
+    {
+        TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
+        TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
+
+        cli_wr  = &layer0_dgram_write_cli;
+        cli_rcv = &layer0_dgram_read_cli;
+        srv_wr  = &layer0_dgram_write_srv;
+        srv_rcv = &layer0_dgram_read_srv;
+    }
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, allocator_buffer_sz );
+    mps_alloc_init( &srv_alloc, allocator_buffer_sz );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli_l1, mode, &cli_alloc,
+                              cli_wr, cli_rcv ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv_l1, mode, &srv_alloc,
+                              srv_wr, srv_rcv ) == 0 );
+
+    /* Initialize and configure Layer 2 */
+    TEST_ASSERT( mps_l2_init( &cli, &cli_l1, mode,
+                              0, 0, mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_init( &srv, &srv_l1, mode,
+                              0, 0, mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &cli,
+                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &srv,
+                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A,
+                                         MPS_L2_SPLIT_DISABLED,
+                                         MPS_L2_PACK_ENABLED,
+                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A,
+                                         MPS_L2_SPLIT_DISABLED,
+                                         MPS_L2_PACK_DISABLED,
+                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init,
+                                     MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_add( &srv, dummy_s, &epoch_init ) == 0 );
+    TEST_ASSERT( mps_l2_epoch_usage( &srv, epoch_init,
+                                     MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
+
+    /*
+     * Client: Write two consecutive messages of type ty_A to server.
+     *         Expect them go get packed.
+     */
+
+    out_cli.type  = ty_A;
+    out_cli.epoch = epoch_init;
+    TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( out_cli.wr, 5, &buf, 0 ) == 0 );
+    memset( buf, 42, 5 );
+    TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+    TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+
+    out_cli.type  = ty_A;
+    out_cli.epoch = epoch_init;
+    TEST_ASSERT( mps_l2_write_start( &cli, &out_cli ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( out_cli.wr, 5, &buf, 0 ) == 0 );
+    memset( buf, 42, 5 );
+    TEST_ASSERT( mbedtls_writer_commit( out_cli.wr ) == 0 );
+    TEST_ASSERT( mps_l2_write_done( &cli ) == 0 );
+
+    TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
+
+    /*
+     * Server: Read record.
+     */
+
+    TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
+    TEST_ASSERT( in_srv.epoch == epoch_init );
+    TEST_ASSERT( in_srv.type  == ty_A );
+
+    TEST_ASSERT( mbedtls_reader_get( in_srv.rd, 5, &buf, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_reader_commit( in_srv.rd ) == 0 );
+
+    /* Attempting to close should fail immediately, because more
+     * data of type ty_A is available that wasn't requested. */
+    TEST_ASSERT( mps_l2_read_done( &srv ) ==
+                 MPS_ERR_INVALID_CONTENT_MERGE );
+
+    /*
+     * Server: Do the same as client, i.e. send two consecutive
+     *         messages of type ty_A.
+     *         Expect them to be delivered in two separate records.
+     */
+
+    out_srv.type  = ty_A;
+    out_srv.epoch = epoch_init;
+    TEST_ASSERT( mps_l2_write_start( &srv, &out_srv ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( out_srv.wr, 5, &buf, 0 ) == 0 );
+    memset( buf, 42, 5 );
+    TEST_ASSERT( mbedtls_writer_commit( out_srv.wr ) == 0 );
+    TEST_ASSERT( mps_l2_write_done( &srv ) == 0 );
+
+    out_srv.type  = ty_A;
+    out_srv.epoch = epoch_init;
+    TEST_ASSERT( mps_l2_write_start( &srv, &out_srv ) == 0 );
+    TEST_ASSERT( mbedtls_writer_get( out_srv.wr, 5, &buf, 0 ) == 0 );
+    memset( buf, 42, 5 );
+    TEST_ASSERT( mbedtls_writer_commit( out_srv.wr ) == 0 );
+    TEST_ASSERT( mps_l2_write_done( &srv ) == 0 );
+
+    TEST_ASSERT( mps_l2_write_flush( &srv ) == 0 );
+
+    /*
+     * Client: Read first record.
+     */
+
+    TEST_ASSERT( mps_l2_read_start( &cli, &in_cli ) == 0 );
+    TEST_ASSERT( in_cli.epoch == epoch_init );
+    TEST_ASSERT( in_cli.type  == ty_A );
+
+    TEST_ASSERT( mbedtls_reader_get( in_cli.rd, 10, &buf, &sz ) == 0 );
+    /* We should see only 5 bytes */
+    TEST_ASSERT( sz == 5 );
+    TEST_ASSERT( mbedtls_reader_commit( in_cli.rd ) == 0 );
+    TEST_ASSERT( mps_l2_read_done( &cli ) == 0 );
+
+    /*
+     * Client: Read second record.
+     */
+
+    TEST_ASSERT( mps_l2_read_start( &cli, &in_cli ) == 0 );
+    TEST_ASSERT( in_cli.epoch == epoch_init );
+    TEST_ASSERT( in_cli.type  == ty_A );
+
+    TEST_ASSERT( mbedtls_reader_get( in_cli.rd, 10, &buf, &sz ) == 0 );
+    /* We should see only 5 bytes */
+    TEST_ASSERT( sz == 5 );
+    TEST_ASSERT( mbedtls_reader_commit( in_cli.rd ) == 0 );
+    TEST_ASSERT( mps_l2_read_done( &cli ) == 0 );
+
+exit:
+
+    /*
+     * Wrapup
+     */
+
+    TEST_ASSERT( mps_l2_free( &cli ) == 0 );
+    TEST_ASSERT( mps_l2_free( &srv ) == 0 );
+    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+
+    if( mode == MPS_L2_MODE_STREAM )
+    {
+        layer0_free( &s2c );
+        layer0_free( &c2s );
+    }
+    else
+    {
+        layer0_dgram_free( &s2c_d );
+        layer0_dgram_free( &c2s_d );
+    }
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
 void mbedtls_mps_l2_bad_record( int mode,
                                 int allocator_buffer_sz,
                                 int layer0_buffer_sz,
@@ -7421,7 +7642,7 @@ void mbedtls_mps_l3_basic_alert( int allocator_buffer_sz,
     TEST_ASSERT( mps_l3_epoch_usage( &srv, srv_epoch, MPS_EPOCH_READ ) == 0 );
 
     /*
-     * Client: Write handshake message to server
+     * Client: Write alert message to server
      */
 
     alerts_remaining = (size_t) num_alerts;
@@ -7455,7 +7676,7 @@ void mbedtls_mps_l3_basic_alert( int allocator_buffer_sz,
     TEST_ASSERT( mps_l3_flush( &cli ) == 0 );
 
     /*
-     * Server: Read handshake message from client
+     * Server: Read alert message from client
      */
 
     alerts_remaining = (size_t) num_alerts;

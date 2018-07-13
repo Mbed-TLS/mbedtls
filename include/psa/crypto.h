@@ -1524,17 +1524,23 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
 
 /** Abort a hash operation.
  *
- * This function may be called at any time after psa_hash_setup().
  * Aborting an operation frees all associated resources except for the
- * \p operation structure itself.
+ * \p operation structure itself. Once aborted, the operation object
+ * can be reused for another operation by calling
+ * psa_hash_setup() again.
  *
- * Implementation should strive to be robust and handle inactive hash
- * operations safely (do nothing and return #PSA_ERROR_BAD_STATE). However,
- * application writers should beware that uninitialized memory may happen
- * to be indistinguishable from an active hash operation, and the behavior
- * of psa_hash_abort() is undefined in this case.
+ * You may call this function any time after the operation object has
+ * been initialized by any of the following methods:
+ * - A call to psa_hash_setup(), whether it succeeds or not.
+ * - Initializing the \c struct to all-bits-zero.
+ * - Initializing the \c struct to logical zeros, e.g.
+ *   `psa_hash_operation_t operation = {0}`.
  *
- * \param[in,out] operation     Active hash operation.
+ * In particular, calling psa_hash_abort() after the operation has been
+ * terminated by a call to psa_hash_abort(), psa_hash_finish() or
+ * psa_hash_verify() is safe and has no effect.
+ *
+ * \param[in,out] operation     Initialized hash operation.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_BAD_STATE
@@ -1760,18 +1766,24 @@ psa_status_t psa_mac_verify_finish(psa_mac_operation_t *operation,
 
 /** Abort a MAC operation.
  *
- * This function may be called at any time after psa_mac_sign_setup()
- * or psa_mac_verify_setup().
  * Aborting an operation frees all associated resources except for the
- * \p operation structure itself.
+ * \p operation structure itself. Once aborted, the operation object
+ * can be reused for another operation by calling
+ * psa_mac_sign_setup() or psa_mac_verify_setup() again.
  *
- * Implementation should strive to be robust and handle inactive MAC
- * operations safely (do nothing and return #PSA_ERROR_BAD_STATE). However,
- * application writers should beware that uninitialized memory may happen
- * to be indistinguishable from an active MAC operation, and the behavior
- * of psa_mac_abort() is undefined in this case.
+ * You may call this function any time after the operation object has
+ * been initialized by any of the following methods:
+ * - A call to psa_mac_sign_setup() or psa_mac_verify_setup(), whether
+ *   it succeeds or not.
+ * - Initializing the \c struct to all-bits-zero.
+ * - Initializing the \c struct to logical zeros, e.g.
+ *   `psa_mac_operation_t operation = {0}`.
  *
- * \param[in,out] operation Active MAC operation.
+ * In particular, calling psa_mac_abort() after the operation has been
+ * terminated by a call to psa_mac_abort(), psa_mac_sign_finish() or
+ * psa_mac_verify_finish() is safe and has no effect.
+ *
+ * \param[in,out] operation Initialized MAC operation.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_BAD_STATE
@@ -2038,18 +2050,24 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
 
 /** Abort a cipher operation.
  *
- * This function may be called at any time after
- * psa_cipher_encrypt_setup() or psa_cipher_decrypt_setup().
  * Aborting an operation frees all associated resources except for the
- * \p operation structure itself.
+ * \p operation structure itself. Once aborted, the operation object
+ * can be reused for another operation by calling
+ * psa_cipher_encrypt_setup() or psa_cipher_decrypt_setup() again.
  *
- * Implementation should strive to be robust and handle inactive cipher
- * operations safely (do nothing and return #PSA_ERROR_BAD_STATE). However,
- * application writers should beware that uninitialized memory may happen
- * to be indistinguishable from an active cipher operation, and the behavior
- * of psa_cipher_abort() is undefined in this case.
+ * You may call this function any time after the operation object has
+ * been initialized by any of the following methods:
+ * - A call to psa_cipher_encrypt_setup() or psa_cipher_decrypt_setup(),
+ *   whether it succeeds or not.
+ * - Initializing the \c struct to all-bits-zero.
+ * - Initializing the \c struct to logical zeros, e.g.
+ *   `psa_cipher_operation_t operation = {0}`.
  *
- * \param[in,out] operation     Active cipher operation.
+ * In particular, calling psa_cipher_abort() after the operation has been
+ * terminated by a call to psa_cipher_abort() or psa_cipher_finish()
+ * is safe and has no effect.
+ *
+ * \param[in,out] operation     Initialized cipher operation.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_BAD_STATE

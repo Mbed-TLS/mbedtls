@@ -691,23 +691,18 @@ exit:
 }
 #endif /* defined(MBEDTLS_ECP_C) */
 
-psa_status_t psa_import_key( psa_key_slot_t key,
-                             psa_key_type_t type,
-                             const uint8_t *data,
-                             size_t data_length )
+static psa_status_t psa_import_key_into_slot( key_slot_t *slot,
+                                              const uint8_t *data,
+                                              size_t data_length )
 {
-    key_slot_t *slot;
     psa_status_t status = PSA_SUCCESS;
-    status = psa_get_empty_key_slot( key, &slot );
-    if( status != PSA_SUCCESS )
-        return( status );
 
-    if( key_type_is_raw_bytes( type ) )
+    if( key_type_is_raw_bytes( slot->type ) )
     {
         /* Ensure that a bytes-to-bit conversion won't overflow. */
         if( data_length > SIZE_MAX / 8 )
             return( PSA_ERROR_NOT_SUPPORTED );
-        status = prepare_raw_data_slot( type,
+        status = prepare_raw_data_slot( slot->type,
                                         PSA_BYTES_TO_BITS( data_length ),
                                         &slot->data.raw );
         if( status != PSA_SUCCESS )
@@ -717,9 +712,9 @@ psa_status_t psa_import_key( psa_key_slot_t key,
     }
     else
 #if defined(MBEDTLS_ECP_C)
-    if( PSA_KEY_TYPE_IS_ECC_KEYPAIR( type ) )
+    if( PSA_KEY_TYPE_IS_ECC_KEYPAIR( slot->type ) )
     {
-        status = psa_import_ec_private_key( PSA_KEY_TYPE_GET_CURVE( type ),
+        status = psa_import_ec_private_key( PSA_KEY_TYPE_GET_CURVE( slot->type ),
                                             data, data_length,
                                             &slot->data.ecp );
         if( status != PSA_SUCCESS )
@@ -728,14 +723,15 @@ psa_status_t psa_import_key( psa_key_slot_t key,
     else
 #endif /* MBEDTLS_ECP_C */
 #if defined(MBEDTLS_PK_PARSE_C)
-    if( PSA_KEY_TYPE_IS_RSA( type ) || PSA_KEY_TYPE_IS_ECC( type ) )
+    if( PSA_KEY_TYPE_IS_RSA( slot->type ) ||
+        PSA_KEY_TYPE_IS_ECC( slot->type ) )
     {
         int ret;
         mbedtls_pk_context pk;
         mbedtls_pk_init( &pk );
 
         /* Parse the data. */
-        if( PSA_KEY_TYPE_IS_KEYPAIR( type ) )
+        if( PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) )
             ret = mbedtls_pk_parse_key( &pk, data, data_length, NULL, 0 );
         else
             ret = mbedtls_pk_parse_public_key( &pk, data, data_length );
@@ -746,13 +742,13 @@ psa_status_t psa_import_key( psa_key_slot_t key,
          * If it has the expected type and passes any type-specific
          * checks, store it. */
 #if defined(MBEDTLS_RSA_C)
-        if( PSA_KEY_TYPE_IS_RSA( type ) )
+        if( PSA_KEY_TYPE_IS_RSA( slot->type ) )
             status = psa_import_rsa_key( &pk, &slot->data.rsa );
         else
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_ECP_C)
-        if( PSA_KEY_TYPE_IS_ECC( type ) )
-            status = psa_import_ecp_key( PSA_KEY_TYPE_GET_CURVE( type ),
+        if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
+            status = psa_import_ecp_key( PSA_KEY_TYPE_GET_CURVE( slot->type ),
                                          &pk, &slot->data.ecp );
         else
 #endif /* MBEDTLS_ECP_C */
@@ -773,8 +769,31 @@ psa_status_t psa_import_key( psa_key_slot_t key,
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }
+    return( PSA_SUCCESS );
+}
+
+
+psa_status_t psa_import_key( psa_key_slot_t key,
+                             psa_key_type_t type,
+                             const uint8_t *data,
+                             size_t data_length )
+{
+    key_slot_t *slot;
+    psa_status_t status;
+
+    status = psa_get_empty_key_slot( key, &slot );
+    if( status != PSA_SUCCESS )
+        return( status );
 
     slot->type = type;
+
+    status = psa_import_key_into_slot( slot, data, data_length );
+    if( status != PSA_SUCCESS )
+    {
+        slot->type = PSA_KEY_TYPE_NONE;
+        return( status );
+    }
+
     return( PSA_SUCCESS );
 }
 

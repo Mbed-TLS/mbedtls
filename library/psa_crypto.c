@@ -1191,7 +1191,7 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
 
         switch( alg )
         {
-            case PSA_ALG_STREAM_CIPHER:
+            case PSA_ALG_STREAM_CIPHER_BASE:
                 mode = MBEDTLS_MODE_STREAM;
                 break;
             case PSA_ALG_CBC_BASE:
@@ -2585,12 +2585,12 @@ void psa_key_policy_set_usage( psa_key_policy_t *policy,
     policy->alg = alg;
 }
 
-psa_key_usage_t psa_key_policy_get_usage( psa_key_policy_t *policy )
+psa_key_usage_t psa_key_policy_get_usage( const psa_key_policy_t *policy )
 {
     return( policy->usage );
 }
 
-psa_algorithm_t psa_key_policy_get_algorithm( psa_key_policy_t *policy )
+psa_algorithm_t psa_key_policy_get_algorithm( const psa_key_policy_t *policy )
 {
     return( policy->alg );
 }
@@ -2964,13 +2964,13 @@ psa_status_t psa_generate_random( uint8_t *output,
 psa_status_t psa_generate_key( psa_key_slot_t key,
                                psa_key_type_t type,
                                size_t bits,
-                               const void *parameters,
-                               size_t parameters_size )
+                               const void *extra,
+                               size_t extra_size )
 {
     key_slot_t *slot;
     psa_status_t status;
 
-    if( parameters == NULL && parameters_size != 0 )
+    if( extra == NULL && extra_size != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_get_empty_key_slot( key, &slot );
@@ -3010,14 +3010,18 @@ psa_status_t psa_generate_key( psa_key_slot_t key,
         int exponent = 65537;
         if( bits > PSA_VENDOR_RSA_MAX_KEY_BITS )
             return( PSA_ERROR_NOT_SUPPORTED );
-        if( parameters != NULL )
+        if( extra != NULL )
         {
-            const unsigned *p = parameters;
-            if( parameters_size != sizeof( *p ) )
+            const psa_generate_key_extra_rsa *p = extra;
+            if( extra_size != sizeof( *p ) )
                 return( PSA_ERROR_INVALID_ARGUMENT );
-            if( *p > INT_MAX )
-                return( PSA_ERROR_INVALID_ARGUMENT );
-            exponent = *p;
+#if INT_MAX < 0xffffffff
+            /* Check that the uint32_t value passed by the caller fits
+             * in the range supported by this implementation. */
+            if( p->e > INT_MAX )
+                return( PSA_ERROR_NOT_SUPPORTED );
+#endif
+            exponent = p->e;
         }
         rsa = mbedtls_calloc( 1, sizeof( *rsa ) );
         if( rsa == NULL )
@@ -3048,7 +3052,7 @@ psa_status_t psa_generate_key( psa_key_slot_t key,
             mbedtls_ecp_curve_info_from_grp_id( grp_id );
         mbedtls_ecp_keypair *ecp;
         int ret;
-        if( parameters != NULL )
+        if( extra != NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
         if( grp_id == MBEDTLS_ECP_DP_NONE || curve_info == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );

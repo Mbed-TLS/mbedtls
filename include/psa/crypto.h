@@ -97,7 +97,7 @@ typedef int32_t psa_status_t;
 
 /** An output buffer is too small.
  *
- * Applications can call the `PSA_xxx_SIZE` macro listed in the function
+ * Applications can call the \c PSA_xxx_SIZE macro listed in the function
  * description to determine a sufficient buffer size.
  *
  * Implementations should preferably return this error code only
@@ -356,8 +356,8 @@ typedef uint32_t psa_key_type_t;
  * used for.
  *
  * HMAC keys should generally have the same size as the underlying hash.
- * This size can be calculated with #PSA_HASH_SIZE(\p alg) where
- * `alg` is the HMAC algorithm or the underlying hash algorithm. */
+ * This size can be calculated with #PSA_HASH_SIZE(\c alg) where
+ * \c alg is the HMAC algorithm or the underlying hash algorithm. */
 #define PSA_KEY_TYPE_HMAC                       ((psa_key_type_t)0x02000001)
 
 /** Key for an cipher, AEAD or MAC algorithm based on the AES block cipher.
@@ -1357,7 +1357,7 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  *
  * \param alg   A hash algorithm (\c PSA_ALG_XXX value such that
  *              #PSA_ALG_IS_HASH(\p alg) is true), or an HMAC algorithm
- *              (#PSA_ALG_HMAC(`hash_alg`) where `hash_alg` is a
+ *              (#PSA_ALG_HMAC(\c hash_alg) where \c hash_alg is a
  *              hash algorithm).
  *
  * \return The hash size for the specified hash algorithm.
@@ -1466,7 +1466,7 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
  * \param hash_size             Size of the \p hash buffer in bytes.
  * \param[out] hash_length      On success, the number of bytes
  *                              that make up the hash value. This is always
- *                              #PSA_HASH_SIZE(`alg`) where `alg` is the
+ *                              #PSA_HASH_SIZE(\c alg) where \c alg is the
  *                              hash algorithm that is calculated.
  *
  * \retval #PSA_SUCCESS
@@ -2450,7 +2450,7 @@ psa_status_t psa_generate_random(uint8_t *output,
 
 /** Extra parameters for RSA key generation.
  *
- * You may pass a pointer to a structure of this type as the `extra`
+ * You may pass a pointer to a structure of this type as the \c extra
  * parameter to psa_generate_key().
  */
 typedef struct {

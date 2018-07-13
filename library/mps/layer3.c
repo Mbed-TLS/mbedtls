@@ -45,10 +45,8 @@ static int l3_parse_ccs( mbedtls_reader *rd );
 static int l3_prepare_write( mps_l3 *l3, mbedtls_mps_msg_type_t type,
                              mbedtls_mps_epoch_id epoch );
 static int l3_check_clear( mps_l3 *l3 );
-static int l3_write_hs_header_tls( unsigned char *buf,
-                                   size_t buflen,
-                                   mps_hs_type type,
-                                   uint32_t total_size );
+static int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs );
+static int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs );
 
 /*
  * Constants and sizes from the [D]TLS standard
@@ -60,37 +58,54 @@ static int l3_write_hs_header_tls( unsigned char *buf,
 
 #define MPS_TLS_CCS_VALUE   1
 
+#define MPS_DTLS_HS_HDR_SIZE 13
+
 /*
  * Internal parsing/writing macros
  */
 
-#define MPS_L3_READ_UINT24_BE( dst, src )                               \
+#define MPS_L3_READ_UINT24_LE( dst, src )                               \
     do                                                                  \
     {                                                                   \
         *(dst) =                                                        \
-            ( (src)[0] << 16 ) +                                        \
-            ( (src)[1] <<  8 ) +                                        \
-            ( (src)[2] <<  0 );                                         \
+            ( ( (uint32_t) ( (uint8_t*) ( src ) )[0] ) << 16 ) +        \
+            ( ( (uint32_t) ( (uint8_t*) ( src ) )[1] ) <<  8 ) +        \
+            ( ( (uint32_t) ( (uint8_t*) ( src ) )[2] ) <<  0 );         \
     } while( 0 )
 
-#define MPS_L3_READ_UINT8_BE( dst, src )                                \
+#define MPS_L3_READ_UINT16_LE( dst, src )                               \
     do                                                                  \
     {                                                                   \
-        *(dst) = (src)[0];                                              \
+        *(dst) =                                                        \
+            ( ( (uint16_t) ( (uint8_t*) ( src ) )[0] ) <<  8 ) +        \
+            ( ( (uint16_t) ( (uint8_t*) ( src ) )[1] ) <<  0 );         \
     } while( 0 )
 
-#define MPS_L3_WRITE_UINT24_BE( dst, src )                              \
-    do                                                                  \
-    {                                                                   \
-        (dst)[0] = ( (src) >> 16 ) & 0xFF;                              \
-        (dst)[1] = ( (src) >>  8 ) & 0xFF;                              \
-        (dst)[2] = ( (src) >>  0 ) & 0xFF;                              \
+#define MPS_L3_READ_UINT8_LE( dst, src )                \
+    do                                                  \
+    {                                                   \
+        *( dst ) = ( (uint8_t*) ( src ) )[0];           \
     } while( 0 )
 
-#define MPS_L3_WRITE_UINT8_BE( dst, src )                                    \
+#define MPS_L3_WRITE_UINT24_LE( dst, src )                              \
     do                                                                  \
     {                                                                   \
-        (dst)[0] = (src) & 0xFF;                                        \
+        *( (uint8_t*) ( dst ) + 0 ) = ( *( src ) >> 16 ) & 0xFF;        \
+        *( (uint8_t*) ( dst ) + 1 ) = ( *( src ) >>  8 ) & 0xFF;        \
+        *( (uint8_t*) ( dst ) + 2 ) = ( *( src ) >>  0 ) & 0xFF;        \
+    } while( 0 )
+
+#define MPS_L3_WRITE_UINT16_LE( dst, src )                              \
+    do                                                                  \
+    {                                                                   \
+        *( (uint8_t*) ( dst ) + 0 ) = ( *( src ) >>  8 ) & 0xFF;        \
+        *( (uint8_t*) ( dst ) + 1 ) = ( *( src ) >>  0 ) & 0xFF;        \
+    } while( 0 )
+
+#define MPS_L3_WRITE_UINT8_LE( dst, src )               \
+    do                                                  \
+    {                                                   \
+        *( dst ) = ( (uint8_t*) ( src ) )[0];           \
     } while( 0 )
 
 
@@ -193,18 +208,26 @@ int mps_l3_read( mps_l3 *l3 )
         case MBEDTLS_MPS_MSG_ALERT:
             TRACE( trace_comment, "-> Alert message" );
 
-            /* TLS versions prior to TLS 1.3 allow alert messages
-             * to span two records. Catch this corner case here.
+            /* Attempt to fetch alert.
              *
-             * TODO: Add a preprocessor configuration option
-             *       controlling the support for this weird
-             *       fragmentation, and guard this check accordingly.
+             * - In TLS, this might fail because the alert
+             *   spans a record boundary. In this case,
+             *   we need to await more data from subsequent
+             *   records before we can parse the alert.
+             *   This is transparently handled by Layer 2.
              *
-             * TODO: For DTLS, this must not be tolerated, either.
+             * - For DTLS, an incomplete alert message
+             *   is treated as a fatal error.
              */
             res = l3_parse_alert( in.rd, &l3->in.alert );
             if( res == MBEDTLS_ERR_READER_OUT_OF_DATA )
             {
+                if( l3->conf.mode == MPS_L3_MODE_DATAGRAM )
+                {
+                    TRACE( trace_error, "Incomplete alert message found -- abort" );
+                    RETURN( MPS_ERR_BAD_MSG );
+                }
+
                 TRACE( trace_comment, "Not enough data available in record to read alert message" );
                 res = mps_l2_read_done( l3->conf.l2 );
                 if( res != 0 )
@@ -271,22 +294,29 @@ int mps_l3_read( mps_l3 *l3 )
                 case MPS_L3_HS_NONE:
                     TRACE( trace_comment, "No handshake message is currently processed" );
 
-                    /* Parse handshake header. */
-
-                    /* TLS versions prior to TLS 1.3 allow the handshake header
-                     * to span multiple records. Catch this corner case here.
+                    /* Attempt to fetch and parse handshake header.
                      *
-                     *  TODO: Add a preprocessor configuration option
-                     *        controlling the support for this weird
-                     *        fragmentation, and guard this check accordingly.
+                     * - In TLS, this might fail because the handshake
+                     *   header spans a record boundary. In this case,
+                     *   we need to await more data from subsequent
+                     *   records before we can parse the handshake header.
+                     *   This is transparently handled by Layer 2.
                      *
-                     *  TODO: For DTLS, this must not be tolerated, either.
+                     * - For DTLS, an incomplete handshake header
+                     *   is treated as a fatal error.
                      */
                     res = l3_parse_hs_header( l3->conf.mode, in.rd,
                                               &l3->in.hs );
                     if( res == MBEDTLS_ERR_READER_OUT_OF_DATA )
                     {
-                        TRACE( trace_comment, "Not enough data available in record to read handshake header" );
+                        if( l3->conf.mode == MPS_L3_MODE_DATAGRAM )
+                        {
+                            TRACE( trace_error, "Incomplete handshake header found -- abort" );
+                            RETURN( MPS_ERR_BAD_MSG );
+                        }
+
+                        TRACE( trace_comment, "Incomplete handshake header in current record -- wait for more data." );
+
                         res = mps_l2_read_done( l3->conf.l2 );
                         if( res != 0 )
                             RETURN( res );
@@ -298,7 +328,20 @@ int mps_l3_read( mps_l3 *l3 )
                     /* Setup the extended reader keeping track of the
                      * global message bounds. */
                     TRACE( trace_comment, "Setup extended reader for handshake message" );
-                    res = mbedtls_reader_init_ext( &l3->in.hs.rd_ext, l3->in.hs.len );
+
+                    /* TODO: Think about storing the frag_len in len for DTLS
+                     *       to avoid this distinction. */
+                    if( l3->conf.mode == MPS_L3_MODE_STREAM )
+                    {
+                        res = mbedtls_reader_init_ext( &l3->in.hs.rd_ext,
+                                                       l3->in.hs.len );
+                    }
+                    else
+                    {
+                        res = mbedtls_reader_init_ext( &l3->in.hs.rd_ext,
+                                                       l3->in.hs.frag_len );
+                    }
+
                     if( res != 0 )
                         RETURN( res );
 
@@ -481,18 +524,18 @@ static int l3_parse_hs_header_tls( mbedtls_reader *rd,
 {
     int res;
     unsigned char *tmp;
-    TRACE_INIT( "parse_hs_header_tls" );
+
+    size_t const tls_hs_hdr_len = 4;
+
+    size_t const tls_hs_type_offset   = 0;
+    size_t const tls_hs_length_offset = 1;
 
     /*
 
       From RFC 5246 (TLS 1.2):
 
       enum {
-          hello_request(0), client_hello(1), server_hello(2),
-          certificate(11), server_key_exchange (12),
-          certificate_request(13), server_hello_done(14),
-          certificate_verify(15), client_key_exchange(16),
-          finished(20), (255)
+          ..., (255)
       } HandshakeType;
 
       struct {
@@ -514,36 +557,106 @@ static int l3_parse_hs_header_tls( mbedtls_reader *rd,
 
     */
 
+    TRACE_INIT( "l3_parse_hs_header_tls" );
+
     /* This call might fail for handshake headers spanning
      * multiple records. This will be caught in up in the
      * call chain, and Layer 2 will remember the request
      * in this case and ensure it can be satisfied the next
      * time it signals incoming data of handshake content type.
      * We therefore don't need to save state here. */
-    res = mbedtls_reader_get( rd, MPS_TLS_HS_HDR_SIZE, &tmp, NULL );
+    res = mbedtls_reader_get( rd, tls_hs_hdr_len, &tmp, NULL );
     if( res != 0 )
         RETURN( res );
 
-    MPS_L3_READ_UINT8_BE ( &in->type, tmp + 0 );
-    MPS_L3_READ_UINT24_BE( &in->len,  tmp + 1 );
+    MPS_L3_READ_UINT8_LE ( &in->type, tmp + tls_hs_type_offset   );
+    MPS_L3_READ_UINT24_LE( &in->len,  tmp + tls_hs_length_offset );
 
     res = mbedtls_reader_commit( rd );
     if( res != 0 )
         RETURN( res );
 
     TRACE( trace_comment, "Parsed handshake header" );
-    TRACE( trace_comment, "* Type:   %u", (unsigned) in->type);
-    TRACE( trace_comment, "* Length: %u", (unsigned) in->len);
+    TRACE( trace_comment, "* Type:   %u", (unsigned) in->type );
+    TRACE( trace_comment, "* Length: %u", (unsigned) in->len );
     RETURN( 0 );
 }
 
 static int l3_parse_hs_header_dtls( mbedtls_reader *rd,
                                     mps_l3_hs_in_internal *in )
 {
-    ((void) rd);
-    ((void) in);
-    /* TODO: Implement */
-    return( MPS_ERR_UNSUPPORTED_FEATURE );
+    int res;
+    unsigned char *tmp;
+
+    size_t const dtls_hs_hdr_len         = 13;
+    size_t const dtls_hs_type_offset     = 0;
+    size_t const dtls_hs_len_offset      = 1;
+    size_t const dtls_hs_seq_offset      = 4;
+    size_t const dtls_hs_frag_off_offset = 7;
+    size_t const dtls_hs_frag_len_offset = 10;
+
+    /*
+     *
+     * From RFC 6347 (DTLS 1.2):
+     *
+     *   struct {
+     *     HandshakeType msg_type;
+     *     uint24 length;
+     *     uint16 message_seq;                               // New field
+     *     uint24 fragment_offset;                           // New field
+     *     uint24 fragment_length;                           // New field
+     *     select (HandshakeType) {
+     *       case hello_request: HelloRequest;
+     *       case client_hello:  ClientHello;
+     *       case hello_verify_request: HelloVerifyRequest;  // New type
+     *       case server_hello:  ServerHello;
+     *       case certificate:Certificate;
+     *       case server_key_exchange: ServerKeyExchange;
+     *       case certificate_request: CertificateRequest;
+     *       case server_hello_done:ServerHelloDone;
+     *       case certificate_verify:  CertificateVerify;
+     *       case client_key_exchange: ClientKeyExchange;
+     *       case finished: Finished;
+     *     } body;
+     *   } Handshake;
+     *
+     */
+
+    TRACE_INIT( "parse_hs_header_dtls" );
+
+    res = mbedtls_reader_get( rd, dtls_hs_hdr_len, &tmp, NULL );
+    if( res != 0 )
+        RETURN( res );
+
+    MPS_L3_READ_UINT8_LE ( &in->type,        tmp + dtls_hs_type_offset );
+    MPS_L3_READ_UINT24_LE( &in->len,         tmp + dtls_hs_len_offset  );
+    MPS_L3_READ_UINT16_LE( &in->seq_nr,      tmp + dtls_hs_seq_offset  );
+    MPS_L3_READ_UINT24_LE( &in->frag_offset, tmp + dtls_hs_frag_off_offset  );
+    MPS_L3_READ_UINT24_LE( &in->frag_len,    tmp + dtls_hs_frag_len_offset  );
+
+    res = mbedtls_reader_commit( rd );
+    if( res != 0 )
+        RETURN( res );
+
+    /* frag_offset + frag_len cannot overflow within uint32_t
+     * since the summands are 24 bit each. */
+    if( in->frag_offset + in->frag_len > in->len )
+    {
+        TRACE( trace_error, "Invalid handshake header: frag_offset (%u) + frag_len (%u) > len (%u)",
+               (unsigned)in->frag_offset,
+               (unsigned)in->frag_len,
+               (unsigned)in->len );
+        RETURN( MPS_ERR_BAD_MSG );
+    }
+
+    TRACE( trace_comment, "Parsed DTLS handshake header" );
+    TRACE( trace_comment, "* Type:        %u", (unsigned) in->type        );
+    TRACE( trace_comment, "* Length:      %u", (unsigned) in->len         );
+    TRACE( trace_comment, "* Sequence Nr: %u", (unsigned) in->seq_nr      );
+    TRACE( trace_comment, "* Frag Offset: %u", (unsigned) in->frag_offset );
+    TRACE( trace_comment, "* Frag Length: %u", (unsigned) in->frag_len    );
+
+    RETURN( 0 );
 }
 
 /* Alert */
@@ -578,8 +691,8 @@ static int l3_parse_alert( mbedtls_reader *rd,
     if( res != 0 )
         RETURN( res );
 
-    MPS_L3_READ_UINT8_BE ( &alert->level, tmp + 0 );
-    MPS_L3_READ_UINT8_BE ( &alert->type,  tmp + 1 );
+    MPS_L3_READ_UINT8_LE ( &alert->level, tmp + 0 );
+    MPS_L3_READ_UINT8_LE ( &alert->type,  tmp + 1 );
 
     res = mbedtls_reader_commit( rd );
     if( res != 0 )
@@ -614,14 +727,17 @@ static int l3_parse_ccs( mbedtls_reader *rd )
     if( res != 0 )
         RETURN( res );
 
-    MPS_L3_READ_UINT8_BE( &val, tmp + 0 );
+    MPS_L3_READ_UINT8_LE( &val, tmp + 0 );
 
     res = mbedtls_reader_commit( rd );
     if( res != 0 )
         RETURN( res );
 
     if( val != MPS_TLS_CCS_VALUE )
-        RETURN( MPS_ERR_BAD_CCS );
+    {
+        TRACE( trace_error, "Bad CCS value %u", (unsigned) val );
+        RETURN( MPS_ERR_BAD_MSG );
+    }
 
     TRACE( trace_comment, "Parsed alert message" );
     TRACE( trace_comment, " * Value: %u", MPS_TLS_CCS_VALUE );
@@ -648,6 +764,13 @@ int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs )
     hs->len    = l3->in.hs.len;
     hs->type   = l3->in.hs.type;
     hs->rd_ext = &l3->in.hs.rd_ext;
+
+    if( l3->conf.mode == MPS_L3_MODE_DATAGRAM )
+    {
+        hs->frag_offset = l3->in.hs.frag_offset;
+        hs->frag_len    = l3->in.hs.frag_len;
+    }
+
     RETURN( 0 );
 }
 
@@ -704,18 +827,63 @@ int mps_l3_flush( mps_l3 *l3 )
     RETURN( l3_check_clear( l3 ) );
 }
 
+static int l3_check_write_hs_hdr_tls( mps_l3 *l3 )
+{
+    int res;
+    mps_l3_hs_out_internal *hs = &l3->out.hs;
+
+    if( hs->hdr != NULL &&
+        hs->len != MPS_L3_LENGTH_UNKNOWN )
+    {
+        res = l3_write_hs_header_tls( hs );
+        if( res != 0 )
+            return( res );
+
+        hs->hdr     = NULL;
+        hs->hdr_len = 0;
+    }
+
+    return( 0 );
+}
+
+static int l3_check_write_hs_hdr_dtls( mps_l3 *l3 )
+{
+    int res;
+    mps_l3_hs_out_internal *hs = &l3->out.hs;
+
+    if( hs->hdr      != NULL &&
+        hs->len      != MPS_L3_LENGTH_UNKNOWN &&
+        hs->frag_len != MPS_L3_LENGTH_UNKNOWN )
+    {
+        res = l3_write_hs_header_dtls( hs );
+        if( res != 0 )
+            return( res );
+
+        hs->hdr     = NULL;
+        hs->hdr_len = 0;
+    }
+
+    return( 0 );
+}
+
+static int l3_check_write_hs_hdr( mps_l3 *l3 )
+{
+    if( l3->conf.mode == MPS_L3_MODE_STREAM )
+        return( l3_check_write_hs_hdr_tls( l3 ) );
+    else
+        return( l3_check_write_hs_hdr_dtls( l3 ) );
+}
+
 int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
 {
     int res;
-    mbedtls_mps_epoch_id epoch = out->epoch;
-    uint8_t type = out->type;
-    int32_t len = out->len;
+    int32_t len;
 
     TRACE_INIT( "l3_write_handshake" );
     TRACE( trace_comment, "Parameters: " );
-    TRACE( trace_comment, "* Epoch:  %u", (unsigned) epoch );
-    TRACE( trace_comment, "* Type:   %u", (unsigned) type );
-    TRACE( trace_comment, "* Length: %u", (unsigned) len );
+    TRACE( trace_comment, "* Epoch:  %u", (unsigned) out->epoch );
+    TRACE( trace_comment, "* Type:   %u", (unsigned) out->type );
+    TRACE( trace_comment, "* Length: %u", (unsigned) out->len );
 
     /*
      * See the documentation of mps_l3_read() for a description
@@ -725,27 +893,65 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
      */
 
     if( l3->out.hs.state == MPS_L3_HS_PAUSED &&
-        ( l3->out.hs.epoch != epoch ||
-          l3->out.hs.type  != type  ||
-          l3->out.hs.len   != len ) )
+        ( l3->out.hs.epoch != out->epoch ||
+          l3->out.hs.type  != out->type  ||
+          l3->out.hs.len   != out->len ) )
     {
         RETURN( MPS_ERR_INCONSISTENT_ARGS );
     }
 
-    res = l3_prepare_write( l3, MBEDTLS_MPS_MSG_HS, epoch );
+    res = l3_prepare_write( l3, MBEDTLS_MPS_MSG_HS, out->epoch );
     if( res != 0 )
         RETURN( res );
 
     if( l3->out.hs.state == MPS_L3_HS_NONE )
     {
-        l3->out.hs.epoch = epoch;
-        l3->out.hs.len   = len;
-        l3->out.hs.type  = type;
+        TRACE( trace_comment, "No handshake message currently paused" );
 
-        l3->out.hs.hdr_len = MPS_TLS_HS_HDR_SIZE;
+        l3->out.hs.epoch = out->epoch;
+        l3->out.hs.len   = out->len;
+        l3->out.hs.type  = out->type;
+        if( l3->conf.mode == MPS_L3_MODE_DATAGRAM )
+        {
+            l3->out.hs.seq_nr      = out->seq_nr;
+            l3->out.hs.frag_len    = out->frag_len;
+            l3->out.hs.frag_offset = out->frag_offset;
+
+            /* TODO:
+             * The following two checks are internal sanity checks only.
+             * Consider removing them after initial testing.
+             */
+
+            /* If the total length isn't specified, then
+             * then the fragment offset must be 0, and the
+             * fragment length must be unspecified, too. */
+            if( out->len == MPS_L3_LENGTH_UNKNOWN &&
+                ( out->frag_offset != 0 ||
+                  out->frag_len    != MPS_L3_LENGTH_UNKNOWN ) )
+            {
+                RETURN( MPS_ERR_INTERNAL_ERROR );
+            }
+
+            /* Check that fragment doesn't exceed the total message length. */
+            if( out->len      != MPS_L3_LENGTH_UNKNOWN &&
+                out->frag_len != MPS_L3_LENGTH_UNKNOWN )
+            {
+                int overflow = out->frag_offset + out->frag_len < out->frag_len;
+                if( overflow || out->frag_offset + out->frag_len > out->len )
+                {
+                    RETURN( MPS_ERR_INTERNAL_ERROR );
+                }
+            }
+
+            l3->out.hs.hdr_len = MPS_DTLS_HS_HDR_SIZE;
+        }
+        else
+            l3->out.hs.hdr_len = MPS_TLS_HS_HDR_SIZE;
+
         res = mbedtls_writer_get( l3->out.raw_out,
-                                  MPS_TLS_HS_HDR_SIZE,
+                                  l3->out.hs.hdr_len,
                                   &l3->out.hs.hdr, NULL );
+
         /* It might happen that we're at the end of a record
          * and there's not enough space left to write the
          * handshake header. In this case, abort the write
@@ -764,28 +970,11 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
         else if( res != 0 )
             RETURN( res );
 
-        /* Immediately write and commit the handshake header
-         * if the length is already known. If the length is
-         * not yet known, postpone it. */
-        if( len != MPS_L3_LENGTH_UNKNOWN )
-        {
-            TRACE( trace_comment, "Handshake length provided: %u",
-                   l3->out.hs.len );
-
-            res = l3_write_hs_header_tls( l3->out.hs.hdr,
-                                          l3->out.hs.hdr_len,
-                                          l3->out.hs.type,
-                                          l3->out.hs.len );
-            if( res != 0 )
-                RETURN( res );
-
-            l3->out.hs.hdr = NULL;
-            l3->out.hs.hdr_len = 0;
-        }
-        else
-        {
-            TRACE( trace_comment, "Unspecified handshake length" );
-        }
+        /* Write the handshake header if we have
+         * complete knowledge about the lengths. */
+        res = l3_check_write_hs_hdr( l3 );
+        if( res != 0 )
+            RETURN( res );
 
         /* Note: Even if we do not know the total handshake length in
          *       advance, we do not yet commit the handshake header.
@@ -795,18 +984,35 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
          *       instead of writing an empty handshake fragment. */
 
         TRACE( trace_comment, "Setup extended writer for handshake message" );
+
+        /* TODO: Think about storing the frag_len in len for DTLS
+         *       to avoid this distinction. */
         /* TODO: If `len` is UNKNOWN this is casted to -1u here,
          *       which is OK but fragile. */
-        res = mbedtls_writer_init_ext( &l3->out.hs.wr_ext, len );
+        if( l3->conf.mode == MPS_L3_MODE_STREAM )
+        {
+            res = mbedtls_writer_init_ext( &l3->out.hs.wr_ext,
+                                           out->len );
+        }
+        else
+        {
+            res = mbedtls_writer_init_ext( &l3->out.hs.wr_ext,
+                                           out->frag_len );
+        }
         if( res != 0 )
             RETURN( res );
     }
 
+    if( l3->conf.mode == MPS_L3_MODE_DATAGRAM )
+        len = out->frag_len;
+    else
+        len = out->len;
+
     TRACE( trace_comment, "Bind raw writer to extended writer" );
     res = mbedtls_writer_attach( &l3->out.hs.wr_ext, l3->out.raw_out,
                                  len != MPS_L3_LENGTH_UNKNOWN
-                                     ? MBEDTLS_WRITER_EXT_PASS
-                                     : MBEDTLS_WRITER_EXT_HOLD );
+                                 ? MBEDTLS_WRITER_EXT_PASS
+                                 : MBEDTLS_WRITER_EXT_HOLD );
     if( res != 0 )
         RETURN( res );
 
@@ -1018,24 +1224,31 @@ int mps_l3_dispatch( mps_l3 *l3 )
             if( res != 0 )
                 RETURN( res );
 
-            if( l3->out.hs.len == MPS_L3_LENGTH_UNKNOWN )
+            /* Complete previously unknown length values. */
+            if( l3->conf.mode == MPS_L3_MODE_STREAM )
             {
-                /* We didn't know the handshake message length
-                 * in advance and hence couldn't write the header
-                 * during mps_l3_write_handshake().
-                 * Write the header now. */
-
-                l3->out.hs.len = committed;
-                res = l3_write_hs_header_tls( l3->out.hs.hdr,
-                                              l3->out.hs.hdr_len,
-                                              l3->out.hs.type,
-                                              l3->out.hs.len );
-                if( res != 0 )
-                    RETURN( res );
-
-                l3->out.hs.hdr = NULL;
-                l3->out.hs.hdr_len = 0;
+                if( l3->out.hs.len == MPS_L3_LENGTH_UNKNOWN )
+                    l3->out.hs.len = committed;
             }
+            else
+            {
+                /* It has been checked in mps_l3_write_handshake()
+                 * that if the total length of the handshake message
+                 * is unknown, then the fragment length is unknown, too,
+                 * and the fragment offset is 0. */
+                if( l3->out.hs.len == MPS_L3_LENGTH_UNKNOWN )
+                    l3->out.hs.len = committed;
+                if( l3->out.hs.frag_len == MPS_L3_LENGTH_UNKNOWN )
+                    l3->out.hs.frag_len = committed;
+            }
+
+            /* We didn't know the handshake message length
+             * in advance and hence couldn't write the header
+             * during mps_l3_write_handshake().
+             * Write the header now. */
+            res = l3_check_write_hs_hdr( l3 );
+            if( res != 0 )
+                RETURN( res );
 
             res = mbedtls_writer_commit_partial( l3->out.raw_out,
                                                  uncommitted );
@@ -1083,23 +1296,119 @@ int mps_l3_dispatch( mps_l3 *l3 )
     RETURN( 0 );
 }
 
-static int l3_write_hs_header_tls( unsigned char *buf,
-                                   size_t buf_len,
-                                   mps_hs_type type,
-                                   uint32_t total_size )
+static int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs )
 
 {
-    TRACE_INIT( "l3_write_hs_hdr_tls, type %u, len %u",
-           (unsigned) type, (unsigned) total_size );
+    unsigned char *buf = hs->hdr;
 
-    if( buf_len != MPS_TLS_HS_HDR_SIZE )
+    size_t const tls_hs_hdr_len = 4;
+
+    size_t const tls_hs_type_offset   = 0;
+    size_t const tls_hs_length_offset = 1;
+
+    /*
+
+      From RFC 5246 (TLS 1.2):
+
+      enum {
+          ..., (255)
+      } HandshakeType;
+
+      struct {
+          HandshakeType msg_type;
+          uint24 length;
+          select (HandshakeType) {
+              case hello_request:       HelloRequest;
+              case client_hello:        ClientHello;
+              case server_hello:        ServerHello;
+              case certificate:         Certificate;
+              case server_key_exchange: ServerKeyExchange;
+              case certificate_request: CertificateRequest;
+              case server_hello_done:   ServerHelloDone;
+              case certificate_verify:  CertificateVerify;
+              case client_key_exchange: ClientKeyExchange;
+              case finished:            Finished;
+          } body;
+      } Handshake;
+
+    */
+
+    TRACE_INIT( "l3_write_hs_hdr_tls, type %u, len %u",
+           (unsigned) hs->type, (unsigned) hs->len );
+
+    if( buf == NULL || hs->hdr_len != tls_hs_hdr_len )
     {
-        TRACE( trace_error, "Buffer to hold handshake header is of wrong size." );
+        TRACE( trace_error, "Buffer to hold handshake header is of wrong size: Expected %u, have %u",
+               (unsigned) tls_hs_hdr_len, (unsigned) hs->hdr_len );
         RETURN( MPS_ERR_INTERNAL_ERROR );
     }
 
-    MPS_L3_WRITE_UINT8_BE ( buf + 0, type       );
-    MPS_L3_WRITE_UINT24_BE( buf + 1, total_size );
+    MPS_L3_WRITE_UINT8_LE ( buf + tls_hs_type_offset,   &hs->type );
+    MPS_L3_WRITE_UINT24_LE( buf + tls_hs_length_offset, &hs->len  );
+
+    RETURN( 0 );
+}
+
+static int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs )
+
+{
+    unsigned char *buf = hs->hdr;
+
+    size_t const dtls_hs_hdr_len         = 13;
+    size_t const dtls_hs_type_offset     = 0;
+    size_t const dtls_hs_len_offset      = 1;
+    size_t const dtls_hs_seq_offset      = 4;
+    size_t const dtls_hs_frag_off_offset = 7;
+    size_t const dtls_hs_frag_len_offset = 10;
+
+    /*
+     *
+     * From RFC 6347 (DTLS 1.2):
+     *
+     *   struct {
+     *     HandshakeType msg_type;
+     *     uint24 length;
+     *     uint16 message_seq;                               // New field
+     *     uint24 fragment_offset;                           // New field
+     *     uint24 fragment_length;                           // New field
+     *     select (HandshakeType) {
+     *       case hello_request: HelloRequest;
+     *       case client_hello:  ClientHello;
+     *       case hello_verify_request: HelloVerifyRequest;  // New type
+     *       case server_hello:  ServerHello;
+     *       case certificate:Certificate;
+     *       case server_key_exchange: ServerKeyExchange;
+     *       case certificate_request: CertificateRequest;
+     *       case server_hello_done:ServerHelloDone;
+     *       case certificate_verify:  CertificateVerify;
+     *       case client_key_exchange: ClientKeyExchange;
+     *       case finished: Finished;
+     *     } body;
+     *   } Handshake;
+     *
+     */
+
+    TRACE_INIT( "l3_write_hs_hdr_tls, type %u, len %u",
+           (unsigned) hs->type, (unsigned) hs->len );
+
+    if( buf == NULL || hs->hdr_len != dtls_hs_hdr_len )
+    {
+        TRACE( trace_error, "Buffer to hold DTLS handshake header is of wrong size." );
+        RETURN( MPS_ERR_INTERNAL_ERROR );
+    }
+
+    MPS_L3_WRITE_UINT8_LE ( buf + dtls_hs_type_offset, &hs->type   );
+    MPS_L3_WRITE_UINT24_LE( buf + dtls_hs_len_offset,  &hs->len    );
+    MPS_L3_WRITE_UINT16_LE( buf + dtls_hs_seq_offset,  &hs->seq_nr );
+    MPS_L3_WRITE_UINT24_LE( buf + dtls_hs_frag_off_offset,  &hs->frag_offset );
+    MPS_L3_WRITE_UINT24_LE( buf + dtls_hs_frag_len_offset,  &hs->frag_len    );
+
+    TRACE( trace_comment, "Wrote DTLS handshake header" );
+    TRACE( trace_comment, "* Type:        %u", (unsigned) hs->type        );
+    TRACE( trace_comment, "* Length:      %u", (unsigned) hs->len         );
+    TRACE( trace_comment, "* Sequence Nr: %u", (unsigned) hs->seq_nr      );
+    TRACE( trace_comment, "* Frag Offset: %u", (unsigned) hs->frag_offset );
+    TRACE( trace_comment, "* Frag Length: %u", (unsigned) hs->frag_len    );
 
     RETURN( 0 );
 }

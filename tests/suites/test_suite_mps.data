@@ -400,73 +400,184 @@ mbedtls_mps_l2_random:1000:200:20:5:10:1000:1:50:50
 MPS Layer 2: Random communication, real transforms, big records, 1-byte Layer 0
 mbedtls_mps_l2_random:1000:1:5:5:10:1000:1:50:50
 
-MPS Layer 3: Handshake message, fake transform, unknown length #0
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:0:0:0:0:0
+MPS Layer 3: HS, fake transform, unknown length #0
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:0:0:0:0:0
 
-MPS Layer 3: Handshake message, fake transform, unknown length #1
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:0:0:0:0:1
+MPS Layer 3: HS, fake transform, unknown length #1
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:0:0:0:0:1
 
-MPS Layer 3: Handshake message, fake transform, unknown length #2
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:0:0:1:0:0
+MPS Layer 3: HS, fake transform, unknown length #2
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:0:0:1:0:0
 
-MPS Layer 3: Handshake message, fake transform, unknown length #3
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:0:0:1:0:1
+MPS Layer 3: HS, fake transform, unknown length #3
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:0:0:1:0:1
 
-MPS Layer 3: Handshake message, fake transform, unknown length #4
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:0:0:1:1:0
+MPS Layer 3: HS, fake transform, unknown length #4
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:0:0:1:1:0
 
-MPS Layer 3: Handshake message, fake transform, unknown length #5
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:0:0:1:1:1
+MPS Layer 3: HS, fake transform, unknown length #5
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:0:0:1:1:1
 
-MPS Layer 3: Handshake message, fake transform, known length #0
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:0:1:0:0:0
+MPS Layer 3: HS, fake transform, known length #0
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:0:1:0:0:0
 
-MPS Layer 3: Handshake message, fake transform, known length #1
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:0:1:1:0:0
+MPS Layer 3: HS, fake transform, known length #1
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:0:1:1:0:0
 
-MPS Layer 3: Handshake message, fake transform, known length #2
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:0:1:1:1:0
+MPS Layer 3: HS, fake transform, known length #2
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:0:1:1:1:0
 
-MPS Layer 3: Handshake message, real transform, unknown length #0
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:1:0:0:0:0
+MPS Layer 3: HS, real transform, unknown length #0
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:1:0:0:0:0
 
-MPS Layer 3: Handshake message, real transform, unknown length #1
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:1:0:0:0:1
+MPS Layer 3: HS, real transform, unknown length #1
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:1:0:0:0:1
 
-MPS Layer 3: Handshake message, real transform, unknown length #2
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:1:0:1:0:0
+MPS Layer 3: HS, real transform, unknown length #2
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:1:0:1:0:0
 
-MPS Layer 3: Handshake message, real transform, unknown length #3
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:1:0:1:0:1
+MPS Layer 3: HS, real transform, unknown length #3
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:1:0:1:0:1
 
-MPS Layer 3: Handshake message, real transform, unknown length #4
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:1:0:1:1:0
+MPS Layer 3: HS, real transform, unknown length #4
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:1:0:1:1:0
 
-MPS Layer 3: Handshake message, real transform, unknown length #5
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:1:0:1:1:1
+MPS Layer 3: HS, real transform, unknown length #5
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:1:0:1:1:1
 
-MPS Layer 3: Handshake message, real transform, known length #0
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:1:1:0:0:0
+MPS Layer 3: HS, real transform, known length #0
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:1:1:0:0:0
 
-MPS Layer 3: Handshake message, real transform, known length #1
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:1:1:1:0:0
+MPS Layer 3: HS, real transform, known length #1
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:1:1:1:0:0
 
-MPS Layer 3: Handshake message, real transform, known length #2
-mbedtls_mps_l3_basic_handshake:1000:1000:100:0:1:1:1:1:0
+MPS Layer 3: HS, real transform, known length #2
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:0:1:1:1:1:0
 
-MPS Layer 3: Handshake message, fake transform, unknown length, with abort
-mbedtls_mps_l3_basic_handshake:1000:1000:100:1:0:0:0:0:0
+MPS Layer 3: HS, fake transform, unknown length, with abort
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:1:0:0:0:0:0
 
-MPS Layer 3: Handshake message, fake transform, known length, with abort
-mbedtls_mps_l3_basic_handshake:1000:1000:100:1:0:0:0:0:0
+MPS Layer 3: HS, fake transform, known length, with abort
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:1:0:0:0:0:0
 
-MPS Layer 3: Handshake message, abort after commit
-mbedtls_mps_l3_basic_handshake:1000:1000:100:2:0:0:0:0:0
+MPS Layer 3: HS, abort after commit
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_STREAM:1000:1000:100:2:0:0:0:0:0
 
-MPS Layer 3: Handshake message, gradual in small records, real transforms
+MPS Layer 3 DTLS: HS, fake transform, unknown length #0
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:0:0:0:0:0
+
+MPS Layer 3 DTLS: HS, fake transform, unknown length #1
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:0:0:0:0:1
+
+MPS Layer 3 DTLS: HS, fake transform, unknown length #2
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:0:0:1:0:0
+
+MPS Layer 3 DTLS: HS, fake transform, unknown length #3
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:0:0:1:0:1
+
+MPS Layer 3 DTLS: HS, fake transform, unknown length #4
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:0:0:1:1:0
+
+MPS Layer 3 DTLS: HS, fake transform, unknown length #5
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:0:0:1:1:1
+
+MPS Layer 3 DTLS: HS, fake transform, unknown length #6
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:0:1:0:0:0
+
+MPS Layer 3 DTLS: HS, fake transform, unknown length #7
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:0:1:0:0:1
+
+MPS Layer 3 DTLS: HS, fake transform, unknown length #8
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:0:1:1:0:0
+
+MPS Layer 3 DTLS: HS, fake transform, unknown length #9
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:0:1:1:0:1
+
+MPS Layer 3 DTLS: HS, fake transform, unknown length #10
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:0:1:1:1:0
+
+MPS Layer 3 DTLS: HS, fake transform, unknown length #11
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:0:1:1:1:1
+
+MPS Layer 3 DTLS: HS, fake transform, known length #0
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:0:2:0:0:0
+
+MPS Layer 3 DTLS: HS, fake transform, known length #1
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:0:2:1:0:0
+
+MPS Layer 3 DTLS: HS, fake transform, known length #2
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:0:2:1:1:0
+
+MPS Layer 3 DTLS: HS, real transform, unknown length #0
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:1:0:0:0:0
+
+MPS Layer 3 DTLS: HS, real transform, unknown length #1
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:1:0:0:0:1
+
+MPS Layer 3 DTLS: HS, real transform, unknown length #2
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:1:0:1:0:0
+
+MPS Layer 3 DTLS: HS, real transform, unknown length #3
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:1:0:1:0:1
+
+MPS Layer 3 DTLS: HS, real transform, unknown length #4
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:1:0:1:1:0
+
+MPS Layer 3 DTLS: HS, real transform, unknown length #5
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:1:0:1:1:1
+
+MPS Layer 3 DTLS: HS, real transform, unknown length #6
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:1:1:0:0:0
+
+MPS Layer 3 DTLS: HS, real transform, unknown length #7
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:1:1:0:0:1
+
+MPS Layer 3 DTLS: HS, real transform, unknown length #8
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:1:1:1:0:0
+
+MPS Layer 3 DTLS: HS, real transform, unknown length #9
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:1:1:1:0:1
+
+MPS Layer 3 DTLS: HS, real transform, unknown length #10
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:1:1:1:1:0
+
+MPS Layer 3 DTLS: HS, real transform, unknown length #11
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:1:1:1:1:1
+
+MPS Layer 3 DTLS: HS, real transform, known length #0
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:1:2:0:0:0
+
+MPS Layer 3 DTLS: HS, real transform, known length #1
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:1:2:1:0:0
+
+MPS Layer 3 DTLS: HS, real transform, known length #2
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:0:1:2:1:1:0
+
+MPS Layer 3 DTLS: HS, fake transform, unknown length, with abort
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:1:0:0:0:0:0
+
+MPS Layer 3 DTLS: HS, fake transform, known length, with abort
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:1:0:0:0:0:0
+
+MPS Layer 3 DTLS: HS, abort after commit
+mbedtls_mps_l3_basic_handshake:MPS_L3_MODE_DATAGRAM:1000:1000:100:2:0:0:0:0:0
+
+MPS Layer 3 DTLS: HS, incomplete header
+mbedtls_mps_l3_bad_msg:0
+
+MPS Layer 3 DTLS: HS, frag_offset + frag_len > total len
+mbedtls_mps_l3_bad_msg:1
+
+MPS Layer 3 DTLS: Alert, incomplete
+mbedtls_mps_l3_bad_msg:2
+
+MPS Layer 3 DTLS: CCS, bad constant
+mbedtls_mps_l3_bad_msg:3
+
+MPS Layer 3: HS, gradual in small records, real transforms
 mbedtls_mps_l3_handshake_gradual:58:1000:100:1:1:0
 
-MPS Layer 3: Handshake message, gradual in small records, real transforms, pause after header
+MPS Layer 3: HS, gradual in small records, real transforms, pause after header
 mbedtls_mps_l3_handshake_gradual:58:1000:100:1:1:1
 
 MPS Layer 3: Two handshake messages, gradual in small records, real transforms
@@ -544,58 +655,58 @@ mbedtls_mps_l3_random:100:200:1:3:200:1:50:50
 MPS Layer 3: Random communication, real transforms, 1-byte Layer 0
 mbedtls_mps_l3_random:100:200:100:100:200:1:50:50
 
-MPS Layer 4: Handshake message, fake transform, unknown length #0
+MPS Layer 4: HS, fake transform, unknown length #0
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:0:0:0
 
-MPS Layer 4: Handshake message, fake transform, unknown length #1
+MPS Layer 4: HS, fake transform, unknown length #1
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:0:0:1
 
-MPS Layer 4: Handshake message, fake transform, unknown length #2
+MPS Layer 4: HS, fake transform, unknown length #2
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:1:0:0
 
-MPS Layer 4: Handshake message, fake transform, unknown length #3
+MPS Layer 4: HS, fake transform, unknown length #3
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:1:0:1
 
-MPS Layer 4: Handshake message, fake transform, unknown length #4
+MPS Layer 4: HS, fake transform, unknown length #4
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:1:1:0
 
-MPS Layer 4: Handshake message, fake transform, unknown length #5
+MPS Layer 4: HS, fake transform, unknown length #5
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:1:1:1
 
-MPS Layer 4: Handshake message, fake transform, known length #0
+MPS Layer 4: HS, fake transform, known length #0
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:1:0:0:0
 
-MPS Layer 4: Handshake message, fake transform, known length #1
+MPS Layer 4: HS, fake transform, known length #1
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:1:1:0:0
 
-MPS Layer 4: Handshake message, fake transform, known length #2
+MPS Layer 4: HS, fake transform, known length #2
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:1:1:1:0
 
-MPS Layer 4: Handshake message, real transform, unknown length #0
+MPS Layer 4: HS, real transform, unknown length #0
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:0:0:0
 
-MPS Layer 4: Handshake message, real transform, unknown length #1
+MPS Layer 4: HS, real transform, unknown length #1
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:0:0:1
 
-MPS Layer 4: Handshake message, real transform, unknown length #2
+MPS Layer 4: HS, real transform, unknown length #2
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:1:0:0
 
-MPS Layer 4: Handshake message, real transform, unknown length #3
+MPS Layer 4: HS, real transform, unknown length #3
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:1:0:1
 
-MPS Layer 4: Handshake message, real transform, unknown length #4
+MPS Layer 4: HS, real transform, unknown length #4
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:1:1:0
 
-MPS Layer 4: Handshake message, real transform, unknown length #5
+MPS Layer 4: HS, real transform, unknown length #5
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:1:1:1
 
-MPS Layer 4: Handshake message, real transform, known length #0
+MPS Layer 4: HS, real transform, known length #0
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:1:0:0:0
 
-MPS Layer 4: Handshake message, real transform, known length #1
+MPS Layer 4: HS, real transform, known length #1
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:1:1:0:0
 
-MPS Layer 4: Handshake message, real transform, known length #2
+MPS Layer 4: HS, real transform, known length #2
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:1:1:1:0
 
 MPS Layer 4: Connection closure #0, real transforms

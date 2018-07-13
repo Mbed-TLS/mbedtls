@@ -73,12 +73,8 @@
                                           *   in the handshake message length
                                           *   specified in the initial call
                                           *   to mps_l3_write_handshake().   */
-#define MPS_ERR_BAD_CCS           -0x113 /*!< A CCS message was received
-                                          *   whose content-byte was different
-                                          *   from the static value prescribed
-                                          *   in the standard.               */
-#define MPS_ERR_EMPTY_MESSAGE     -0x114 /*!< An attempt was made to dispatch
-                                          *   an empty handshake message.    */
+#define MPS_ERR_BAD_MSG           -0x124 /*!< A handshake message with invalid
+                                              handshake header was received. */
 
 typedef uint8_t mps_hs_type;
 
@@ -189,6 +185,14 @@ struct mps_l3_handshake_out
                                  *   This must be set by the user before
                                  *   calling mps_l3_write_handshake().       */
 
+    /* DTLS-specific fields. */
+    int32_t frag_len;           /*!< The length of the current handshake
+                                 *   fragment, or #MPS_L3_LENGTH_UNKNOWN
+                                 *   if the will be determined at write-time. */
+    uint16_t frag_offset;       /*!< The offset of the current fragment from
+                                 *   the beginning of the handshake message.  */
+    uint16_t seq_nr;            /*!< The handshake sequence number.           */
+
     /* NOTE: This will need extension for DTLS:
      *       We need two fields for the fragment offset and the fragment
      *       length, and it should be possible for the user to leave
@@ -236,6 +240,15 @@ struct mps_l3_handshake_in
     mps_hs_type type;           /*!< The handshake message type.             */
     uint16_t len;               /*!< The total length of the message
                                  *   (regardless of fragmentation).          */
+
+    /* DTLS-specific fields. */
+    int32_t frag_len;           /*!< The length of the current handshake
+                                 *   fragment, or #MPS_L3_LENGTH_UNKNOWN
+                                 *   if the will be determined at write-time. */
+    uint16_t frag_offset;       /*!< The offset of the current fragment from
+                                 *   the beginning of the handshake message.  */
+    uint16_t seq_nr;            /*!< The handshake sequence number.           */
+
     mbedtls_reader_ext *rd_ext; /*!< The extended reader giving access to
                                  *   the message contents, and keeping track
                                  *   of message bounds.                      */
@@ -348,6 +361,15 @@ struct mps_l3_hs_in_internal
     mps_hs_type type;           /*!< The handshake message type.             */
     int32_t len;                /*!< The total length of the message
                                  *   (regardless of fragmentation).          */
+
+    /* DTLS-specific fields. */
+    int32_t frag_len;           /*!< The length of the current handshake
+                                 *   fragment, or #MPS_L3_LENGTH_UNKNOWN
+                                 *   if the will be determined at write-time. */
+    uint16_t frag_offset;       /*!< The offset of the current fragment from
+                                 *   the beginning of the handshake message.  */
+    uint16_t seq_nr;            /*!< The handshake sequence number.           */
+
     mbedtls_reader_ext rd_ext;  /*!< The extended reader giving access to
                                  *   the message contents, but also keeping
                                  *   track of message bounds.                */
@@ -364,6 +386,15 @@ struct mps_l3_hs_out_internal
                                  *   (regardless of fragmentation),
                                  *   or #MPS_L3_LENGTH_UNKNOWN if
                                  *   it is not yet known.                    */
+
+    /* DTLS-specific fields. */
+    int32_t frag_len;           /*!< The length of the current handshake
+                                 *   fragment, or #MPS_L3_LENGTH_UNKNOWN
+                                 *   if the will be determined at write-time. */
+    uint16_t frag_offset;       /*!< The offset of the current fragment from
+                                 *   the beginning of the handshake message.  */
+    uint16_t seq_nr;            /*!< The handshake sequence number.           */
+
     unsigned char* hdr;         /*!< The buffer that should hold the
                                  *   handshake header once the length
                                  *   of the handshake message is known.      */

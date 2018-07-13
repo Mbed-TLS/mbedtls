@@ -247,7 +247,7 @@ int mps_l2_init( mps_l2 *ctx, mps_l1 *l1, uint8_t mode,
 
     ctx->conf.l1 = l1;
     ctx->conf.mode = mode;
-    ctx->conf.version = MPS_L2_VERSION_UNSPECIFIED;
+    ctx->conf.version = MBEDTLS_SSL_MINOR_VERSION_3/* MPS_L2_VERSION_UNSPECIFIED */;
     ctx->conf.type_flag = 0;
     ctx->conf.merge_flag = 0;
     ctx->conf.pause_flag = 0;
@@ -415,7 +415,8 @@ static int l2_out_prepare_record( mps_l2 *ctx, mbedtls_mps_epoch_id epoch_id )
                     hdr_len + pre_expansion );
     if( overflow )
     {
-        TRACE( trace_comment, "INTERNAL ERROR on pre- and postexpansion" );
+        TRACE( trace_comment, "INTERNAL ERROR on pre- and postexpansion, len %u, pre-expansion %u, post-expansion %u",
+               (unsigned) hdr_len, (unsigned) pre_expansion, (unsigned) post_expansion );
         RETURN( MPS_ERR_INTERNAL_ERROR );
     }
 
@@ -971,10 +972,14 @@ static int l2_out_track_record( mps_l2 *ctx )
     ret = mbedtls_writer_feed( &ctx->out.writer.wr,
                         ctx->out.payload.buf + ctx->out.payload.data_offset,
                         ctx->out.payload.data_len );
-    if( ret == 0 )
-        ctx->out.state = MPS_L2_WRITER_STATE_INTERNAL;
+    if( ret != 0 )
+    {
+        TRACE( trace_error, "mbedtls_writer_feed failed with %d", ret );
+        RETURN( ret );
+    }
 
-    RETURN( ret );
+    ctx->out.state = MPS_L2_WRITER_STATE_INTERNAL;
+    RETURN( 0 );
 }
 
 static int l2_out_release_record( mps_l2 *ctx, uint8_t force )
@@ -1586,11 +1591,20 @@ static size_t l2_get_header_len( mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
             case MBEDTLS_SSL_MINOR_VERSION_3: /* DTLS 1.2 */
                 RETURN( dtls12_rec_hdr_len );
 
+            default:
+                TRACE( trace_error, "Invalid DTLS version %u -- expected DTLS 1.0 (%u) or DTLS 1.2 (%u)",
+                       (unsigned) ctx->conf.version,
+                       MBEDTLS_SSL_MINOR_VERSION_2,
+                       MBEDTLS_SSL_MINOR_VERSION_3 );
             /* TLS-1.3-NOTE: At some point, add DTLS 1.3 here */
         }
     }
 
     /* Should never happen */
+    TRACE( trace_error, "Invalid mode %u -- neither stream (%u) nor datagram (%u)",
+           (unsigned) ctx->conf.mode,
+           MPS_L2_MODE_STREAM,
+           MPS_L2_MODE_DATAGRAM );
     RETURN( MPS_ERR_INTERNAL_ERROR );
 }
 

@@ -1418,10 +1418,21 @@ static psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data *hmac,
 {
     unsigned char ipad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
     size_t i;
+    size_t hash_size = PSA_HASH_SIZE( hash_alg );
     size_t block_size = psa_get_hash_block_size( hash_alg );
     psa_status_t status;
 
-    if( block_size == 0 )
+    /* Sanity checks on block_size, to guarantee that there won't be a buffer
+     * overflow below. This should never trigger if the hash algorithm
+     * is implemented correctly. */
+    /* The size checks against the ipad and opad buffers cannot be written
+     * `block_size > sizeof( ipad ) || block_size > sizeof( hmac->opad )`
+     * because that triggers -Wlogical-op on GCC 7.3. */
+    if( block_size > sizeof( ipad ) )
+        return( PSA_ERROR_NOT_SUPPORTED );
+    if( block_size > sizeof( hmac->opad ) )
+        return( PSA_ERROR_NOT_SUPPORTED );
+    if( block_size < hash_size )
         return( PSA_ERROR_NOT_SUPPORTED );
 
     if( key_length > block_size )
@@ -1517,16 +1528,26 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
             status = PSA_ERROR_NOT_SUPPORTED;
             goto exit;
         }
+
+        operation->mac_size = PSA_HASH_SIZE( hash_alg );
+        /* Sanity check. This shouldn't fail on a valid configuration. */
+        if( operation->mac_size == 0 ||
+            operation->mac_size > sizeof( operation->ctx.hmac.opad ) )
+        {
+            status = PSA_ERROR_NOT_SUPPORTED;
+            goto exit;
+        }
+
         if( slot->type != PSA_KEY_TYPE_HMAC )
         {
             status = PSA_ERROR_INVALID_ARGUMENT;
             goto exit;
         }
+
         status = psa_hmac_setup_internal( &operation->ctx.hmac,
                                           slot->data.raw.data,
                                           slot->data.raw.bytes,
                                           hash_alg );
-        operation->mac_size = PSA_HASH_SIZE( hash_alg );
     }
     else
 #endif /* MBEDTLS_MD_C */
@@ -1610,9 +1631,6 @@ static psa_status_t psa_hmac_finish_internal( psa_hmac_internal_data *hmac,
     size_t hash_size = 0;
     size_t block_size = psa_get_hash_block_size( hash_alg );
     psa_status_t status;
-
-    if( block_size == 0 )
-        return( PSA_ERROR_NOT_SUPPORTED );
 
     status = psa_hash_finish( &hmac->hash_ctx, tmp, sizeof( tmp ), &hash_size );
     if( status != PSA_SUCCESS )

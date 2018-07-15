@@ -57,6 +57,7 @@
 #include "mbedtls/ecp.h"
 #include "mbedtls/ecjpake.h"
 #include "mbedtls/timing.h"
+#include "mbedtls/nist_kw.h"
 
 #include <string.h>
 
@@ -207,6 +208,9 @@ const selftest_t selftests[] =
 #endif
 #if defined(MBEDTLS_CCM_C) && defined(MBEDTLS_AES_C)
     {"ccm", mbedtls_ccm_self_test},
+#endif
+#if defined(MBEDTLS_NIST_KW_C) && defined(MBEDTLS_AES_C)
+    {"nist_kw", mbedtls_nist_kw_self_test},
 #endif
 #if defined(MBEDTLS_CMAC_C)
     {"cmac", mbedtls_cmac_self_test},

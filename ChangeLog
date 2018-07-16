@@ -9,6 +9,10 @@ Security
      a non DER-compliant certificate correctly signed by a trusted CA, or a
      trusted CA with a non DER-compliant certificate. Found by luocm on GitHub.
      Fixes #825.
+   * Fix an issue in the X.509 module which could lead to a buffer overread
+     during certificate extensions parsing. In case of receiving malformed
+     input (extensions length field equal to 0), an illegal read of one byte
+     beyond the input buffer is made. Found and analyzed by Nathan Crandall.
 
 Features
    * Add option MBEDTLS_AES_FEWER_TABLES to dynamically compute 3/4 of the AES tables

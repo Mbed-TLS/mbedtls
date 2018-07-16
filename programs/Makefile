@@ -60,6 +60,7 @@ APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 	pkey/rsa_decrypt$(EXEXT)	pkey/rsa_encrypt$(EXEXT)	\
 	pkey/rsa_sign$(EXEXT)		pkey/rsa_verify$(EXEXT)		\
 	pkey/rsa_sign_pss$(EXEXT)	pkey/rsa_verify_pss$(EXEXT)	\
+	psa/psa_constant_names$(EXEXT)	\
 	ssl/dtls_client$(EXEXT)		ssl/dtls_server$(EXEXT)		\
 	ssl/ssl_client1$(EXEXT)		ssl/ssl_client2$(EXEXT)		\
 	ssl/ssl_server$(EXEXT)		ssl/ssl_server2$(EXEXT)		\
@@ -83,6 +84,8 @@ ifdef TEST_CPP
 APPS += test/cpp_dummy_build$(EXEXT)
 endif
 
+EXTRA_GENERATED =
+
 .SILENT:
 
 .PHONY: all clean list
@@ -91,6 +94,11 @@ all: $(APPS)
 
 $(DEP):
 	$(MAKE) -C ../library
+
+EXTRA_GENERATED += psa/psa_constant_names_generated.c
+psa/psa_constant_names$(EXEXT): psa/psa_constant_names_generated.c
+psa/psa_constant_names_generated.c: ../scripts/generate_psa_constants.py ../include/psa/crypto.h
+	../scripts/generate_psa_constants.py
 
 aes/aescrypt2$(EXEXT): aes/aescrypt2.c $(DEP)
 	echo "  CC    aes/aescrypt2.c"
@@ -187,6 +195,10 @@ pkey/rsa_decrypt$(EXEXT): pkey/rsa_decrypt.c $(DEP)
 pkey/rsa_encrypt$(EXEXT): pkey/rsa_encrypt.c $(DEP)
 	echo "  CC    pkey/rsa_encrypt.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_encrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+psa/psa_constant_names$(EXEXT): psa/psa_constant_names.c $(DEP)
+	echo "  CC    psa/psa_constant_names.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/psa_constant_names.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 random/gen_entropy$(EXEXT): random/gen_entropy.c $(DEP)
 	echo "  CC    random/gen_entropy.c"
@@ -294,9 +306,9 @@ x509/req_app$(EXEXT): x509/req_app.c $(DEP)
 
 clean:
 ifndef WINDOWS
-	rm -f $(APPS)
+	rm -f $(APPS) $(EXTRA_GENERATED)
 else
-	del /S /Q /F *.o *.exe
+	del /S /Q /F *.o *.exe $(EXTRA_GENERATED)
 endif
 
 list:

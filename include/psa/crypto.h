@@ -438,6 +438,12 @@ typedef uint32_t psa_key_type_t;
 #define PSA_KEY_TYPE_IS_ECC(type)                                       \
     ((PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) &                        \
       ~PSA_KEY_TYPE_ECC_CURVE_MASK) == PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE)
+#define PSA_KEY_TYPE_IS_ECC_KEYPAIR(type)                               \
+    (((type) & ~PSA_KEY_TYPE_ECC_CURVE_MASK) ==                         \
+     PSA_KEY_TYPE_ECC_KEYPAIR_BASE)
+#define PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY(type)                            \
+    (((type) & ~PSA_KEY_TYPE_ECC_CURVE_MASK) ==                         \
+     PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE)
 
 /** The type of PSA elliptic curve identifiers. */
 typedef uint16_t psa_ecc_curve_t;
@@ -845,6 +851,10 @@ typedef uint32_t psa_algorithm_t;
      PSA_ALG_DSA_BASE)
 #define PSA_ALG_DSA_IS_DETERMINISTIC(alg)               \
     (((alg) & PSA_ALG_DSA_DETERMINISTIC_FLAG) != 0)
+#define PSA_ALG_IS_DETERMINISTIC_DSA(alg)                       \
+    (PSA_ALG_IS_DSA(alg) && PSA_ALG_DSA_IS_DETERMINISTIC(alg))
+#define PSA_ALG_IS_RANDOMIZED_DSA(alg)                          \
+    (PSA_ALG_IS_DSA(alg) && !PSA_ALG_DSA_IS_DETERMINISTIC(alg))
 
 #define PSA_ALG_ECDSA_BASE                      ((psa_algorithm_t)0x10060000)
 /** ECDSA signature with hashing.
@@ -905,6 +915,10 @@ typedef uint32_t psa_algorithm_t;
      PSA_ALG_ECDSA_BASE)
 #define PSA_ALG_ECDSA_IS_DETERMINISTIC(alg)             \
     (((alg) & PSA_ALG_DSA_DETERMINISTIC_FLAG) != 0)
+#define PSA_ALG_IS_DETERMINISTIC_ECDSA(alg)                             \
+    (PSA_ALG_IS_ECDSA(alg) && PSA_ALG_ECDSA_IS_DETERMINISTIC(alg))
+#define PSA_ALG_IS_RANDOMIZED_ECDSA(alg)                                \
+    (PSA_ALG_IS_ECDSA(alg) && !PSA_ALG_ECDSA_IS_DETERMINISTIC(alg))
 
 /** Get the hash used by a hash-and-sign signature algorithm.
  *

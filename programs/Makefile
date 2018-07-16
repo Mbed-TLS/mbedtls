@@ -60,7 +60,7 @@ APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 	pkey/rsa_decrypt$(EXEXT)	pkey/rsa_encrypt$(EXEXT)	\
 	pkey/rsa_sign$(EXEXT)		pkey/rsa_verify$(EXEXT)		\
 	pkey/rsa_sign_pss$(EXEXT)	pkey/rsa_verify_pss$(EXEXT)	\
-	psa/psa_constant_names$(EXEXT)	\
+	psa/key_ladder_demo$(EXEXT)	psa/psa_constant_names$(EXEXT)	\
 	ssl/dtls_client$(EXEXT)		ssl/dtls_server$(EXEXT)		\
 	ssl/ssl_client1$(EXEXT)		ssl/ssl_client2$(EXEXT)		\
 	ssl/ssl_server$(EXEXT)		ssl/ssl_server2$(EXEXT)		\
@@ -195,6 +195,10 @@ pkey/rsa_decrypt$(EXEXT): pkey/rsa_decrypt.c $(DEP)
 pkey/rsa_encrypt$(EXEXT): pkey/rsa_encrypt.c $(DEP)
 	echo "  CC    pkey/rsa_encrypt.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) pkey/rsa_encrypt.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+psa/key_ladder_demo$(EXEXT): psa/key_ladder_demo.c $(DEP)
+	echo "  CC    psa/key_ladder_demo.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/key_ladder_demo.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 psa/psa_constant_names$(EXEXT): psa/psa_constant_names.c $(DEP)
 	echo "  CC    psa/psa_constant_names.c"

@@ -734,7 +734,7 @@ int mbedtls_x509_get_ext( unsigned char **p, const unsigned char *end,
 int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
 {
     int ret;
-    size_t i, n;
+    size_t i, n, j;
     unsigned char c, merge = 0;
     const mbedtls_x509_name *name;
     const char *short_name = NULL;
@@ -748,6 +748,7 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
 
     while( name != NULL )
     {
+        j = 0;
         if( !name->oid.p )
         {
             name = name->next;
@@ -775,10 +776,16 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
 
             c = name->val.p[i];
             if( c < 32 || c == 127 || ( c > 128 && c < 160 ) )
-                 s[i] = '?';
-            else s[i] = c;
+                 s[i + j] = '?';
+            else if( c == ',' )
+            {
+                s[i + j] = '\\';
+                j++;
+                s[i + j] = c;
+            }
+            else s[i + j] = c;
         }
-        s[i] = '\0';
+        s[i + j] = '\0';
         ret = mbedtls_snprintf( p, n, "%s", s );
         MBEDTLS_X509_SAFE_SNPRINTF;
 

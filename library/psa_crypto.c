@@ -361,76 +361,6 @@ static psa_status_t mbedtls_to_psa_error( int ret )
     }
 }
 
-/* Retrieve a key slot, occupied or not. */
-static psa_status_t psa_get_key_slot( psa_key_slot_t key,
-                                      key_slot_t **p_slot )
-{
-    GUARD_MODULE_INITIALIZED;
-
-    /* 0 is not a valid slot number under any circumstance. This
-     * implementation provides slots number 1 to N where N is the
-     * number of available slots. */
-    if( key == 0 || key > ARRAY_LENGTH( global_data.key_slots ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
-    *p_slot = &global_data.key_slots[key - 1];
-    return( PSA_SUCCESS );
-}
-
-/* Retrieve an empty key slot (slot with no key data, but possibly
- * with some metadata such as a policy). */
-static psa_status_t psa_get_empty_key_slot( psa_key_slot_t key,
-                                            key_slot_t **p_slot )
-{
-    psa_status_t status;
-    key_slot_t *slot = NULL;
-
-    *p_slot = NULL;
-
-    status = psa_get_key_slot( key, &slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    if( slot->type != PSA_KEY_TYPE_NONE )
-        return( PSA_ERROR_OCCUPIED_SLOT );
-
-    *p_slot = slot;
-    return( status );
-}
-
-/** Retrieve a slot which must contain a key. The key must have allow all the
- * usage flags set in \p usage. If \p alg is nonzero, the key must allow
- * operations with this algorithm. */
-static psa_status_t psa_get_key_from_slot( psa_key_slot_t key,
-                                           key_slot_t **p_slot,
-                                           psa_key_usage_t usage,
-                                           psa_algorithm_t alg )
-{
-    psa_status_t status;
-    key_slot_t *slot = NULL;
-
-    *p_slot = NULL;
-
-    status = psa_get_key_slot( key, &slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-    if( slot->type == PSA_KEY_TYPE_NONE )
-        return( PSA_ERROR_EMPTY_SLOT );
-
-    /* Enforce that usage policy for the key slot contains all the flags
-     * required by the usage parameter. There is one exception: public
-     * keys can always be exported, so we treat public key objects as
-     * if they had the export flag. */
-    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) )
-        usage &= ~PSA_KEY_USAGE_EXPORT;
-    if( ( slot->policy.usage & usage ) != usage )
-        return( PSA_ERROR_NOT_PERMITTED );
-    if( alg != 0 && ( alg != slot->policy.alg ) )
-        return( PSA_ERROR_NOT_PERMITTED );
-
-    *p_slot = slot;
-    return( PSA_SUCCESS );
-}
 
 
 
@@ -772,6 +702,76 @@ static psa_status_t psa_import_key_into_slot( key_slot_t *slot,
     return( PSA_SUCCESS );
 }
 
+/* Retrieve a key slot, occupied or not. */
+static psa_status_t psa_get_key_slot( psa_key_slot_t key,
+                                      key_slot_t **p_slot )
+{
+    GUARD_MODULE_INITIALIZED;
+
+    /* 0 is not a valid slot number under any circumstance. This
+     * implementation provides slots number 1 to N where N is the
+     * number of available slots. */
+    if( key == 0 || key > ARRAY_LENGTH( global_data.key_slots ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    *p_slot = &global_data.key_slots[key - 1];
+    return( PSA_SUCCESS );
+}
+
+/* Retrieve an empty key slot (slot with no key data, but possibly
+ * with some metadata such as a policy). */
+static psa_status_t psa_get_empty_key_slot( psa_key_slot_t key,
+                                            key_slot_t **p_slot )
+{
+    psa_status_t status;
+    key_slot_t *slot = NULL;
+
+    *p_slot = NULL;
+
+    status = psa_get_key_slot( key, &slot );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    if( slot->type != PSA_KEY_TYPE_NONE )
+        return( PSA_ERROR_OCCUPIED_SLOT );
+
+    *p_slot = slot;
+    return( status );
+}
+
+/** Retrieve a slot which must contain a key. The key must have allow all the
+ * usage flags set in \p usage. If \p alg is nonzero, the key must allow
+ * operations with this algorithm. */
+static psa_status_t psa_get_key_from_slot( psa_key_slot_t key,
+                                           key_slot_t **p_slot,
+                                           psa_key_usage_t usage,
+                                           psa_algorithm_t alg )
+{
+    psa_status_t status;
+    key_slot_t *slot = NULL;
+
+    *p_slot = NULL;
+
+    status = psa_get_key_slot( key, &slot );
+    if( status != PSA_SUCCESS )
+        return( status );
+    if( slot->type == PSA_KEY_TYPE_NONE )
+        return( PSA_ERROR_EMPTY_SLOT );
+
+    /* Enforce that usage policy for the key slot contains all the flags
+     * required by the usage parameter. There is one exception: public
+     * keys can always be exported, so we treat public key objects as
+     * if they had the export flag. */
+    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) )
+        usage &= ~PSA_KEY_USAGE_EXPORT;
+    if( ( slot->policy.usage & usage ) != usage )
+        return( PSA_ERROR_NOT_PERMITTED );
+    if( alg != 0 && ( alg != slot->policy.alg ) )
+        return( PSA_ERROR_NOT_PERMITTED );
+
+    *p_slot = slot;
+    return( PSA_SUCCESS );
+}
 
 psa_status_t psa_import_key( psa_key_slot_t key,
                              psa_key_type_t type,

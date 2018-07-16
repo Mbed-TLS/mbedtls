@@ -95,6 +95,7 @@ int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *na
     int in_tag = 1;
     char data[MBEDTLS_X509_MAX_DN_NAME_SIZE];
     char *d = data;
+    int in_quot = 0;
 
     /* Clear existing chain if present */
     mbedtls_asn1_free_named_data_list( head );
@@ -112,6 +113,19 @@ int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *na
             s = c + 1;
             in_tag = 0;
             d = data;
+            if( *s == '\"')
+            {
+                in_quot = 1;
+                s++;
+                c += 2;
+            }
+        }
+
+        if( in_quot && *c == '\"' && c != end )
+        {
+            c++;
+            s = c + 1;
+            in_quot = 0;
         }
 
         if( !in_tag && *c == '\\' && c != end )
@@ -125,7 +139,7 @@ int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *na
                 goto exit;
             }
         }
-        else if( !in_tag && ( *c == ',' || c == end ) )
+        else if( !in_tag &&  !in_quot && ( *c == ',' || c == end ) )
         {
             if( mbedtls_asn1_store_named_data( head, oid, strlen( oid ),
                                        (unsigned char *) data,

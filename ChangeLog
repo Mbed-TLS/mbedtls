@@ -7,10 +7,11 @@ Bugfix
       MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
     * Fix a bug in the update function for SSL ticket keys which previously
       invalidated keys of a lifetime of less than a 1s. Fixes #1968.
-   * According to rfc1779, commas in strings should be either in quotes,
-     or preceded by escape character.
-     Add the escape character and the quotes into the certificate itself.
-     Raised in #769 by cwtios
+    * According to RFC 1779, commas in strings should be either in quotes,
+      or preceded by escape character. Change mbedtls_x509_dn_gets() to add a '\'
+      character before a comma, in case it is part of the tag value. In addition,
+      modify mbedtls_x509_string_to_names() to ignore commas as seperators
+      in case they are within a quoted string. Raised in #769 by cwtios.
 
 Changes
    * Add tests for session resumption in DTLS.

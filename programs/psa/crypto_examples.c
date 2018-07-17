@@ -31,6 +31,19 @@
         }                                                                     \
     } while ( 0 )
 
+#if !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_AES_C) || \
+    !defined(MBEDTLS_CIPHER_MODE_CBC) || !defined(MBEDTLS_CIPHER_MODE_CTR) || \
+    !defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
+int main( void )
+{
+    mbedtls_printf( "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_AES_C and/or "
+                    "MBEDTLS_CIPHER_MODE_CBC and/or MBEDTLS_CIPHER_MODE_CTR "
+                    "and/or MBEDTLS_CIPHER_MODE_WITH_PADDING "
+                    "not defined.\r\n" );
+    return( 0 );
+}
+#else
+
 /* Use key slot 1 for our cipher key. Key slot 0 is reserved as unused. */
 static const psa_key_slot_t key_slot_cipher = 1;
 
@@ -314,3 +327,5 @@ exit:
     mbedtls_psa_crypto_free( );
     return( 0 );
 }
+#endif /* MBEDTLS_PSA_CRYPTO_C && MBEDTLS_AES_C && MBEDTLS_CIPHER_MODE_CBC &&
+          MBEDTLS_CIPHER_MODE_CTR && MBEDTLS_CIPHER_MODE_WITH_PADDING */

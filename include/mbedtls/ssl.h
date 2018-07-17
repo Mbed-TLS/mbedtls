@@ -2090,10 +2090,16 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ss
  *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if used server-side or
  *                 arguments are otherwise invalid.
  *
- * \note           Only the server certificate is copied, and not the chain
- *                 but this is not a problem because the result of the chain
- *                 verification is stored in `verify_result` and can be checked
- *                 with \c mbedtls_ssl_get_verify_result().
+ * \note           Only the server certificate is copied, and not the full chain,
+ *                 so you should not attempt to validate the certificate again
+ *                 by calling \c mbedtls_x509_crt_verify() on it.
+ *                 Instead, you should use the results from the verification
+ *                 in the original handshake by calling \c mbedtls_ssl_get_verify_result()
+ *                 after loading the session again into a new SSL context
+ *                 using \c mbedtls_ssl_set_session().
+ *
+ * \note           Once the session object is not needed anymore, you should
+ *                 free it by calling \c mbedtls_ssl_session_free().
  *
  * \sa             mbedtls_ssl_set_session()
  */
@@ -2328,6 +2334,9 @@ void mbedtls_ssl_session_init( mbedtls_ssl_session *session );
 /**
  * \brief          Free referenced items in an SSL session including the
  *                 peer certificate and clear memory
+ *
+ * \note           A session object can be freed even if the SSL context
+ *                 that was used to retrieve the session is still in use.
  *
  * \param session  SSL session
  */

@@ -113,7 +113,7 @@ int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *na
             s = c + 1;
             in_tag = 0;
             d = data;
-            if( *s == '\"')
+            if( *s == '\"' )
             {
                 in_quot = 1;
                 s++;
@@ -141,6 +141,11 @@ int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *na
         }
         else if( !in_tag &&  !in_quot && ( *c == ',' || c == end ) )
         {
+            if( d - data == 0 )
+            {
+                ret = MBEDTLS_ERR_X509_INVALID_NAME;
+                goto exit;
+            }
             if( mbedtls_asn1_store_named_data( head, oid, strlen( oid ),
                                        (unsigned char *) data,
                                        d - data ) == NULL )
@@ -167,6 +172,12 @@ int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *na
         }
 
         c++;
+    }
+
+    if( in_quot )
+    {
+        ret = MBEDTLS_ERR_X509_INVALID_NAME;
+        goto exit;
     }
 
 exit:

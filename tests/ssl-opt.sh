@@ -420,6 +420,41 @@ detect_dtls() {
     fi
 }
 
+on_target_included_testsuite=".*|"
+on_target_not_included_testsuite="DTLS|"
+
+filter_on_target_test() {
+    test_name="$1"
+    idx=1
+    SKIP_NEXT="YES"
+    while "true"; do
+        v=`echo $on_target_included_testsuite|cut -d"|" -f $idx`
+        if [ "X${v:-X}" = "XX" ]; then
+            break # break on end of list
+        fi
+        if echo $test_name|grep "$v" > /dev/null; then
+            SKIP_NEXT="NO"
+            break
+        fi
+        idx=$(( $idx + 1 ))
+    done
+    if [ $SKIP_NEXT = "YES" ]; then
+        return
+    fi
+    idx=1
+    while "true"; do
+        v=`echo $on_target_not_included_testsuite|cut -d"|" -f $idx`
+        if [ "X${v:-X}" = "XX" ]; then
+            break # break on end of list
+        fi
+        if echo $test_name|grep "$v" > /dev/null; then
+            SKIP_NEXT="YES"
+            break
+        fi
+        idx=$(( $idx + 1 ))
+    done
+}
+
 # Usage: run_test name [-p proxy_cmd] srv_cmd cli_cmd cli_exit [option [...]]
 # Options:  -s pattern  pattern that must be present in server output
 #           -c pattern  pattern that must be present in client output
@@ -439,8 +474,8 @@ run_test() {
         return
     fi
 
-    if [ -n "$ON_TARGET" ]; then :
-        #filter_on_target_test "$NAME"
+    if [ "$ON_TARGET" = "1" ]; then
+        filter_on_target_test "$NAME"
     fi
 
     if [ "$LIST_TESTS" = "1" ]; then

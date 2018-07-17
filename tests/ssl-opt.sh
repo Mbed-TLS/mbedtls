@@ -263,7 +263,6 @@ print_name() {
 # fail <message>
 fail() {
     echo "FAIL"
-    echo "fail error [$1]"
     echo "  ! $1"
 
     mv $SRV_OUT o-srv-${TESTS}.log
@@ -439,7 +438,9 @@ run_test() {
     fi
 
     if [ "$LIST_TESTS" = "1" ]; then
-        echo "$NAME"
+        if [ "$SKIP_NEXT" = "NO" ]; then
+            echo "$NAME"
+        fi
     else
         print_name "$NAME"
     fi
@@ -542,7 +543,6 @@ run_test() {
             TIMES_LEFT=0
         fi
     done
-    echo "Yahan"
 
     # check if the client and server went at least to the handshake stage
     # (useful to avoid tests with only negative assertions and non-zero
@@ -651,7 +651,6 @@ run_test() {
         esac
         shift 2
     done
-    echo "kya yahan fail hai?"
 
     # check valgrind's results
     if [ "$MEMCHECK" -gt 0 ]; then
@@ -664,7 +663,6 @@ run_test() {
             return
         fi
     fi
-    echo "kahan fail hua"
 
     # if we're here, everything is ok
     echo "PASS"

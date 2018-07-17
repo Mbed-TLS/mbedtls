@@ -243,6 +243,12 @@ server_needs_more_time() {
     SRV_DELAY_SECONDS=$1
 }
 
+# Reset mbed platform
+reset_target() {
+    ./scripts/ottserial.py $1 9600
+    sleep 2
+}
+
 # print_name <name>
 print_name() {
     TESTS=$(( $TESTS + 1 ))
@@ -522,6 +528,9 @@ run_test() {
 
         echo "$CLI_CMD" > $CLI_OUT
         echo "$CLI_CMD"
+        if [ "$ON_TARGET" = "1" ]; then
+            reset_target $TARGET_SERIAL
+        fi
         eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
         wait_client_done
 

@@ -1163,6 +1163,8 @@ static void send_args( mbedtls_serialize_context_t * ctx, int args_size, char* a
 {
     char sizebuf[4] = { 0, 0, 0, 0 };
     DBG( "I/O Sending args..." );
+    /* Send start sequence "{{" */
+    mbedtls_serialize_write( ctx, (uint8_t *)"mbed{{", 6);
     if( args_size == 0 )
     {
         // Here sizebuf is filled with zeroes
@@ -1178,6 +1180,7 @@ static void send_args( mbedtls_serialize_context_t * ctx, int args_size, char* a
         sizebuf[3] = args_size & 0xff;
         mbedtls_serialize_write( ctx, (uint8_t *) sizebuf, 4 );
         mbedtls_serialize_write( ctx, (uint8_t *) args, args_size );
+        DBG( "Args written" );
     }
 }
 

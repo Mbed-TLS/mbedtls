@@ -138,8 +138,15 @@ void receive_args( int *argc, char ***argv )
     char *buffer;
     int j;
 
-    printf("here\r\n");
-    fflush(stdout);
+    /* Wait until start sequence "{{" is received from the host */
+    j = 0;
+    while( j < 2 )
+    {
+        if( greentea_getc() == '{' )
+            j++;
+        else
+            j = 0;
+    }
     length = receive_uint32();
     if( length == 0 )
     {
@@ -156,7 +163,9 @@ void receive_args( int *argc, char ***argv )
         {
             buffer[i] = greentea_getc();
             if( buffer[i] == '\0' ) // count NULs along the way to count args
+            {
                 ++*argc;
+            }
         }
 
         *argv = new char* [ *argc ];

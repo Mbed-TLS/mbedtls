@@ -355,6 +355,19 @@ static int port_set_attributes(
 
 #endif // defined(_WIN32) || defined(__MINGW32__)
 
+int send_break(const char * port)
+{
+    int ret;
+    SERIAL_HANDLE handle = open( port,
+        O_RDWR | O_CLOEXEC | O_NOCTTY | O_SYNC );
+    ret = tcsendbreak(handle, 0);
+    if( ret == 0 )
+        mbedtls_net_usleep( 2000000 );
+    //tcflow( handle, TCOON );
+    close( handle );
+    return( ret );
+}
+
 static int port_close( SERIAL_HANDLE handle )
 {
     int result;
@@ -1281,6 +1294,13 @@ int main(int argc, char** argv)
             &sub_args) != 0 )
     {
         fprintf( stderr, "Failed to read arguments\n" );
+        return( 1 );
+    }
+    /* Try and reset mbed device */
+    ret = send_break( serialization_port );
+    if( ret != 0 )
+    {
+        print_last_error( );
         return( 1 );
     }
 

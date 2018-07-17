@@ -243,12 +243,6 @@ server_needs_more_time() {
     SRV_DELAY_SECONDS=$1
 }
 
-# Reset mbed platform
-reset_target() {
-    ./scripts/ottserial.py $1 9600
-    sleep 2
-}
-
 # print_name <name>
 print_name() {
     TESTS=$(( $TESTS + 1 ))
@@ -556,16 +550,11 @@ run_test() {
 
         check_osrv_dtls
         echo "$SRV_CMD" > $SRV_OUT
-        echo "$SRV_CMD"
         provide_input | $SRV_CMD >> $SRV_OUT 2>&1 &
         SRV_PID=$!
         wait_server_start "$SRV_PORT" "$SRV_PID"
 
         echo "$CLI_CMD" > $CLI_OUT
-        echo "$CLI_CMD"
-        if [ "$ON_TARGET" = "1" ]; then
-            reset_target $TARGET_SERIAL
-        fi
         eval "$CLI_CMD" >> $CLI_OUT 2>&1 &
         wait_client_done
 
@@ -583,7 +572,7 @@ run_test() {
         if [ "$ON_TARGET" = "1" ]; then
             # skip tests failed due to unsupported chiphersuite
             if grep 'forced ciphersuite not allowed' $CLI_OUT >/dev/null; then
-                printf "SKIP"
+                echo "SKIP"
                 SKIPS=$(( $SKIPS + 1 ))
                 return
             fi
@@ -616,7 +605,6 @@ run_test() {
         fi
     fi
 
-    echo "$ ? is $?"
     # check server exit code
     if [ $? != 0 ]; then
         fail "server fail"

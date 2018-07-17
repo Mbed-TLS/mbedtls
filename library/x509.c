@@ -771,7 +771,7 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
 
         for( i = 0; i < name->val.len; i++ )
         {
-            if( i >= sizeof( s ) - 1 )
+            if( i + j >= sizeof( s ) - 1 )
                 break;
 
             c = name->val.p[i];

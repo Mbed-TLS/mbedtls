@@ -580,6 +580,15 @@ run_test() {
             wait $PXY_PID
         fi
 
+        if [ "$ON_TARGET" = "1" ]; then
+            # skip tests failed due to unsupported chiphersuite
+            if grep 'forced ciphersuite not allowed' $CLI_OUT >/dev/null; then
+                printf "SKIP"
+                SKIPS=$(( $SKIPS + 1 ))
+                return
+            fi
+        fi
+
         # retry only on timeouts
         if grep '===CLIENT_TIMEOUT===' $CLI_OUT >/dev/null; then
             printf "RETRY "

@@ -717,6 +717,7 @@ int main()
 
             if( opt.force_ciphersuite[0] == 0 )
             {
+                mbedtls_printf( "forced ciphersuite not allowed\n" );
                 ret = 2;
                 goto usage;
             }
@@ -1018,7 +1019,8 @@ int main()
         {
             if( opt.arc4 == MBEDTLS_SSL_ARC4_DISABLED )
             {
-                mbedtls_printf( "forced RC4 ciphersuite with RC4 disabled\n" );
+                mbedtls_printf( "forced ciphersuite not allowed. "
+                                "forced RC4 ciphersuite with RC4 disabled\n" );
                 ret = 2;
                 goto usage;
             }

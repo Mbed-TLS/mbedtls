@@ -3047,8 +3047,15 @@ static psa_status_t psa_generator_hkdf_read( psa_hkdf_generator_t *hkdf,
         output += n;
         output_length -= n;
         hkdf->offset_in_block += n;
-        if( output_length == 0 || hkdf->block_number == 0xff )
+        if( output_length == 0 )
             break;
+        /* We can't be wanting more output after block 0xff, otherwise
+         * the capacity check in psa_generator_read() would have
+         * prevented this call. It could happen only if the generator
+         * object was corrupted or if this function is called directly
+         * inside the library. */
+        if( hkdf->block_number == 0xff )
+            return( PSA_ERROR_BAD_STATE );
 
         /* We need a new block */
         ++hkdf->block_number;

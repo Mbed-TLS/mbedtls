@@ -853,6 +853,14 @@ PSA key derivation: over capacity 42: output 43+1
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 derive_output:PSA_ALG_HKDF(PSA_ALG_SHA_256):"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"000102030405060708090a0b0c":"f0f1f2f3f4f5f6f7f8f9":42:"3cb25f25faacd57a90434f64d0362f2a2d2d0a90cf1a5a4c5db02d56ecc4c5bf34007208d5b887185865ff":"ff"
 
+PSA key derivation: HKDF SHA-256, read maximum capacity minus 1
+depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
+derive_full:PSA_ALG_HKDF(PSA_ALG_SHA_256):"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"000102030405060708090a0b0c":"f0f1f2f3f4f5f6f7f8f9":255 * 32 - 1
+
+PSA key derivation: HKDF SHA-256, read maximum capacity
+depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
+derive_full:PSA_ALG_HKDF(PSA_ALG_SHA_256):"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"000102030405060708090a0b0c":"f0f1f2f3f4f5f6f7f8f9":255 * 32
+
 PSA key derivation: HKDF SHA-256, exercise HMAC-SHA-256
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 derive_key_exercise:PSA_ALG_HKDF(PSA_ALG_SHA_256):"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":"000102030405060708090a0b0c":"f0f1f2f3f4f5f6f7f8f9":PSA_KEY_TYPE_HMAC:256:PSA_KEY_USAGE_SIGN:PSA_ALG_HMAC(PSA_ALG_SHA_256)

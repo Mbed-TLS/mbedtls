@@ -1429,11 +1429,11 @@ static psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data *hmac,
     {
         status = psa_hash_update( &hmac->hash_ctx, key, key_length );
         if( status != PSA_SUCCESS )
-            return( status );
+            goto cleanup;
         status = psa_hash_finish( &hmac->hash_ctx,
                                   ipad, sizeof( ipad ), &key_length );
         if( status != PSA_SUCCESS )
-            return( status );
+            goto cleanup;
     }
     /* A 0-length key is not commonly used in HMAC when used as a MAC,
      * but it is permitted. It is common when HMAC is used in HKDF, for

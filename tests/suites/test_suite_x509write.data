@@ -100,3 +100,12 @@ mbedtls_x509_string_to_names:"C=NL, O=Offspark\a Inc., OU=PolarSSL":"":MBEDTLS_E
 
 X509 String to Names #9 (Escape at end)
 mbedtls_x509_string_to_names:"C=NL, O=Offspark\":"":MBEDTLS_ERR_X509_INVALID_NAME
+
+X509 String to Names #10 (unterminated quote)
+mbedtls_x509_string_to_names:"C=NL, O="Offspark":"":MBEDTLS_ERR_X509_INVALID_NAME
+
+X509 String to Names #10 (empty last name)
+mbedtls_x509_string_to_names:"C=NL, O=":"":MBEDTLS_ERR_X509_INVALID_NAME
+
+509 String to Names #10 (empty name)
+mbedtls_x509_string_to_names:"C=, O=Offspark":"":MBEDTLS_ERR_X509_INVALID_NAME

@@ -784,6 +784,8 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
                  s[i + j] = '?';
             else if( c == ',' )
             {
+                if( i + j + 1 >= sizeof( s ) - 1 )
+                    break;
                 s[i + j] = '\\';
                 j++;
                 s[i + j] = c;

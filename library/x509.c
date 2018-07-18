@@ -753,7 +753,6 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
 
     while( name != NULL )
     {
-        j = 0;
         if( !name->oid.p )
         {
             name = name->next;
@@ -774,6 +773,7 @@ int mbedtls_x509_dn_gets( char *buf, size_t size, const mbedtls_x509_name *dn )
             ret = mbedtls_snprintf( p, n, "\?\?=" );
         MBEDTLS_X509_SAFE_SNPRINTF;
 
+        j = 0;
         for( i = 0; i < name->val.len; i++ )
         {
             if( i + j >= sizeof( s ) - 1 )

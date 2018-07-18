@@ -392,11 +392,10 @@ int main( int argc, char *argv[] )
         mbedtls_des3_context des3;
         mbedtls_des3_init( &des3 );
         ret = mbedtls_des3_set3key_enc( &des3, tmp );
-        if( ret  != 0 )
+        if( ret != 0 )
         {
             mbedtls_printf( HEADER_FORMAT, title );
             PRINT_ERROR;
-
         }
         else
         {
@@ -411,15 +410,15 @@ int main( int argc, char *argv[] )
         mbedtls_des_context des;
         mbedtls_des_init( &des );
         ret = mbedtls_des_setkey_enc( &des, tmp );
-        if( ret  != 0 )
+        if( ret != 0 )
         {
             mbedtls_printf( HEADER_FORMAT, title );
             PRINT_ERROR;
         }
         else
         {
-             TIME_AND_TSC( "DES",
-                     mbedtls_des_crypt_cbc( &des, MBEDTLS_DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
+            TIME_AND_TSC( "DES",
+                    mbedtls_des_crypt_cbc( &des, MBEDTLS_DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
         }
         mbedtls_des_free( &des );
     }
@@ -457,7 +456,7 @@ int main( int argc, char *argv[] )
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
             ret = mbedtls_aes_setkey_enc( &aes, tmp, keysize );
-            if( ret  != 0 )
+            if( ret != 0 )
             {
                 mbedtls_printf( HEADER_FORMAT, title );
                 PRINT_ERROR;
@@ -507,7 +506,7 @@ int main( int argc, char *argv[] )
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
             ret = mbedtls_gcm_setkey( &gcm, MBEDTLS_CIPHER_ID_AES, tmp, keysize );
-            if( ret  != 0 )
+            if( ret != 0 )
             {
                 mbedtls_printf( HEADER_FORMAT, title );
                 PRINT_ERROR;
@@ -536,7 +535,7 @@ int main( int argc, char *argv[] )
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
             ret = mbedtls_ccm_setkey( &ccm, MBEDTLS_CIPHER_ID_AES, tmp, keysize );
-            if( ret  != 0 )
+            if( ret != 0 )
             {
                 mbedtls_printf( HEADER_FORMAT, title );
                 PRINT_ERROR;
@@ -617,7 +616,7 @@ int main( int argc, char *argv[] )
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
             ret = mbedtls_aria_setkey_enc( &aria, tmp, keysize );
-            if( ret  != 0 )
+            if( ret != 0 )
             {
                 mbedtls_printf( HEADER_FORMAT, title );
                 PRINT_ERROR;
@@ -645,7 +644,7 @@ int main( int argc, char *argv[] )
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
             ret = mbedtls_camellia_setkey_enc( &camellia, tmp, keysize );
-            if( ret  != 0 )
+            if( ret != 0 )
             {
                 mbedtls_printf( HEADER_FORMAT, title );
                 PRINT_ERROR;
@@ -688,7 +687,7 @@ int main( int argc, char *argv[] )
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
             ret = mbedtls_blowfish_setkey( &blowfish, tmp, keysize );
-            if( ret  != 0 )
+            if( ret != 0 )
             {
                 mbedtls_printf( HEADER_FORMAT, title );
                 PRINT_ERROR;
@@ -756,7 +755,7 @@ int main( int argc, char *argv[] )
         if( mbedtls_hmac_drbg_seed( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
             mbedtls_exit(1);
         mbedtls_hmac_drbg_set_prediction_resistance( &hmac_drbg,
-                                             MBEDTLS_HMAC_DRBG_PR_ON );
+                                                     MBEDTLS_HMAC_DRBG_PR_ON );
         TIME_AND_TSC( "HMAC_DRBG SHA-1 (PR)",
                 mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) );
         mbedtls_hmac_drbg_free( &hmac_drbg );
@@ -775,7 +774,7 @@ int main( int argc, char *argv[] )
         if( mbedtls_hmac_drbg_seed( &hmac_drbg, md_info, myrand, NULL, NULL, 0 ) != 0 )
             mbedtls_exit(1);
         mbedtls_hmac_drbg_set_prediction_resistance( &hmac_drbg,
-                                             MBEDTLS_HMAC_DRBG_PR_ON );
+                                                     MBEDTLS_HMAC_DRBG_PR_ON );
         TIME_AND_TSC( "HMAC_DRBG SHA-256 (PR)",
                 mbedtls_hmac_drbg_random( &hmac_drbg, buf, BUFSIZE ) );
         mbedtls_hmac_drbg_free( &hmac_drbg );
@@ -794,7 +793,7 @@ int main( int argc, char *argv[] )
 
             mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
             ret = mbedtls_rsa_gen_key( &rsa, myrand, NULL, keysize, 65537 );
-            if( ret  != 0 )
+            if( ret != 0 )
             {
                 mbedtls_printf( HEADER_FORMAT, title );
                 PRINT_ERROR;
@@ -851,7 +850,7 @@ int main( int argc, char *argv[] )
 
             dhm.len = mbedtls_mpi_size( &dhm.P );
             ret = mbedtls_dhm_make_public( &dhm, (int) dhm.len, buf, dhm.len, myrand, NULL );
-            if( ret  != 0 )
+            if( ret != 0 )
             {
                 mbedtls_printf( HEADER_FORMAT, title );
                 PRINT_ERROR;
@@ -892,7 +891,7 @@ int main( int argc, char *argv[] )
             mbedtls_snprintf( title, sizeof( title ), "ECDSA-%s",
                                               curve_info->name );
             ret =  mbedtls_ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL );
-            if( ret  != 0 )
+            if( ret != 0 )
             {
                 mbedtls_printf( HEADER_FORMAT, title );
                 PRINT_ERROR;

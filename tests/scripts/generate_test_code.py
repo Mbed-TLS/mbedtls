@@ -57,10 +57,9 @@ Parameters can be of type string, binary data specified as hex
 string and integer constants specified as integer, macro or
 as an expression. Following is an example test definition:
 
-X509 CRL Unsupported critical extension (issuingDistributionPoint)
-depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_SHA256_C
-mbedtls_x509_crl_parse:"data_files/crl-idp.pem":\
- MBEDTLS_ERR_X509_INVALID_EXTENSIONS + MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
+ AES 128 GCM Encrypt and decrypt 8 bytes
+ depends_on:MBEDTLS_AES_C:MBEDTLS_GCM_C
+ enc_dec_buf:MBEDTLS_CIPHER_AES_128_GCM:"AES-128-GCM":128:8:-1
 
 Test functions:
 ---------------
@@ -965,13 +964,11 @@ def write_test_source_file(template_file, c_file, snippets):
     :return:
     """
     with open(template_file, 'r') as template_f, open(c_file, 'w') as c_f:
-        line_no = 1
-        for line in template_f.readlines():
+        for line_no, line in enumerate(template_f.readlines(), 1):
             # Update line number. +1 as #line directive sets next line number
             snippets['line_no'] = line_no + 1
             code = line.format(**snippets)
             c_f.write(code)
-            line_no += 1
 
 
 def parse_function_file(funcs_file, snippets):

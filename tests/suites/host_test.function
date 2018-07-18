@@ -10,8 +10,8 @@
  */
 int verify_string( char **str )
 {
-    if( (*str)[0] != '"' ||
-        (*str)[strlen( *str ) - 1] != '"' )
+    if( ( *str )[0] != '"' ||
+        ( *str )[strlen( *str ) - 1] != '"' )
     {
         mbedtls_fprintf( stderr,
             "Expected string (with \"\") for parameter and got: %s\n", *str );
@@ -49,7 +49,7 @@ int verify_int( char *str, int *value )
         }
 
         if( ( ( minus && i == 2 ) || ( !minus && i == 1 ) ) &&
-            str[i - 1] == '0' && str[i] == 'x' )
+            str[i - 1] == '0' && ( str[i] == 'x' || str[i] == 'X' ) )
         {
             hex = 1;
             continue;
@@ -87,8 +87,9 @@ int verify_int( char *str, int *value )
 #define USAGE \
     "Usage: %s [OPTIONS] files...\n\n" \
     "   Command line arguments:\n" \
-    "     files...          One or more test data file. If no file is specified\n" \
-    "                       the followimg default test case is used:\n" \
+    "     files...          One or more test data files. If no file is\n" \
+    "                       specified the following default test case\n" \
+    "                       file is used:\n" \
     "                           %s\n\n" \
     "   Options:\n" \
     "     -v | --verbose    Display full information about each test\n" \
@@ -165,7 +166,7 @@ static int parse_arguments( char *buf, size_t len, char **params,
 
     params[cnt++] = cur;
 
-    while( *p != '\0' && p < buf + len )
+    while( *p != '\0' && p < ( buf + len ) )
     {
         if( *p == '\\' )
         {
@@ -195,23 +196,23 @@ static int parse_arguments( char *buf, size_t len, char **params,
 
         while( *p != '\0' )
         {
-            if( *p == '\\' && *(p + 1) == 'n' )
+            if( *p == '\\' && *( p + 1 ) == 'n' )
             {
                 p += 2;
-                *(q++) = '\n';
+                *( q++ ) = '\n';
             }
-            else if( *p == '\\' && *(p + 1) == ':' )
+            else if( *p == '\\' && *( p + 1 ) == ':' )
             {
                 p += 2;
-                *(q++) = ':';
+                *( q++ ) = ':';
             }
-            else if( *p == '\\' && *(p + 1) == '?' )
+            else if( *p == '\\' && *( p + 1 ) == '?' )
             {
                 p += 2;
-                *(q++) = '?';
+                *( q++ ) = '?';
             }
             else
-                *(q++) = *(p++);
+                *( q++ ) = *( p++ );
         }
         *q = '\0';
     }
@@ -231,8 +232,8 @@ static int parse_arguments( char *buf, size_t len, char **params,
  *                               }
  *
  *
- * \param cnt               Input string.
- * \param params            Out array of found strings.
+ * \param cnt               Parameter array count.
+ * \param params            Out array of found parameters.
  * \param int_params_store  Memory for storing processed integer parameters.
  *
  * \return      0 for success else 1
@@ -241,7 +242,7 @@ static int convert_params( size_t cnt , char ** params , int * int_params_store 
 {
     char ** cur = params;
     char ** out = params;
-    int ret = ( DISPATCH_TEST_SUCCESS );
+    int ret = DISPATCH_TEST_SUCCESS;
 
     while ( cur < params + cnt )
     {
@@ -262,7 +263,7 @@ static int convert_params( size_t cnt , char ** params , int * int_params_store 
         }
         else if ( strcmp( type, "int" ) == 0 )
         {
-            if ( verify_int ( val, int_params_store ) == 0 )
+            if ( verify_int( val, int_params_store ) == 0 )
             {
               *out++ = (char *) int_params_store++;
             }
@@ -276,12 +277,7 @@ static int convert_params( size_t cnt , char ** params , int * int_params_store 
         {
             if ( verify_string( &val ) == 0 )
             {
-                int j;
                 *int_params_store = unhexify( (unsigned char *) val, val );
-                printf ("\n");
-                for (j = 0; j < *int_params_store; j++)
-                    printf ("%02x ", (uint8_t)val[j]);
-                printf ("\n len %d\n", *int_params_store);
                 *out++ = val;
                 *out++ = (char *)(int_params_store++);
             }
@@ -401,7 +397,8 @@ int execute_tests( int argc , const char ** argv )
     FILE *file;
     char buf[5000];
     char *params[50];
-    int int_params[50]; // Store for proccessed integer params.
+    /* Store for proccessed integer params. */
+    int int_params[50];
     void *pointer;
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
     int stdout_fd = -1;
@@ -436,10 +433,10 @@ int execute_tests( int argc , const char ** argv )
 
     while( arg_index < argc )
     {
-        next_arg = argv[ arg_index ];
+        next_arg = argv[arg_index];
 
-        if( strcmp(next_arg, "--verbose" ) == 0 ||
-                 strcmp(next_arg, "-v" ) == 0 )
+        if( strcmp( next_arg, "--verbose" ) == 0 ||
+                 strcmp( next_arg, "-v" ) == 0 )
         {
             option_verbose = 1;
         }

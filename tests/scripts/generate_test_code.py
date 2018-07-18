@@ -184,7 +184,7 @@ BEGIN_CASE_REGEX = r'/\*\s*BEGIN_CASE\s*(?P<depends_on>.*?)\s*\*/'
 END_CASE_REGEX = r'/\*\s*END_CASE\s*\*/'
 
 DEPENDENCY_REGEX = r'depends_on:(?P<dependencies>.*)'
-C_IDENTIFIER_REGEX = r'!?[a-z_][a-z0-9_]*'
+C_IDENTIFIER_REGEX = r'!?[a-z_][a-z0-9_]*$'
 TEST_FUNCTION_VALIDATION_REGEX = r'\s*void\s+(?P<func_name>\w+)\s*\('
 INT_CHECK_REGEX = r'int\s+.*'
 CHAR_CHECK_REGEX = r'char\s*\*\s*.*'
@@ -1133,5 +1133,5 @@ if __name__ == "__main__":
     try:
         main()
     except GeneratorInputError as err:
-        print("%s: input error: %s" %
-              (os.path.basename(sys.argv[0]), str(err)))
+        sys.exit("%s: input error: %s" %
+                 (os.path.basename(sys.argv[0]), str(err)))

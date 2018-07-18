@@ -8,12 +8,12 @@ Mbed Crypto is distributed under the Apache License, version 2.0. See the [LICEN
 
 Arm's Platform Security Architecture (PSA) is a holistic set of threat models, security analyses, hardware and firmware architecture specifications, and an open source firmware reference implementation. PSA provides a recipe, based on industry best practice, that allows security to be consistently designed in, at both a hardware and firmware level.
 
-The PSA Cryptography API provides access to a set of cryptographic primitives. It has a dual purpose: it can be used in a PSA-compliant platform to build services such as secure boot, secure storage and secure communication; and it can also be used independently of PSA on any platform.
+The PSA Cryptography API provides access to a set of cryptographic primitives. It has a dual purpose: it can be used in a PSA-compliant platform to build services such as secure boot, secure storage and secure communication; and it can also be used independently of other PSA components on any platform.
 
 The design goals of the PSA Cryptography API include:
 
 * The API distinguishes caller memory from internal memory, which allows the library to be implemented in an isolated space for additional security. Library calls can be implemented as direct function calls if isolation is not desired, and as remote procedure calls if isolation is desired.
-* The structure of internal data is hidden to the application, which allows substituting alternative implementations at build time or run time, in order to take advantage of hardware accelerators.
+* The structure of internal data is hidden to the application, which allows substituting alternative implementations at build time or run time, for example in order to take advantage of hardware accelerators.
 * All access to keys is done via handles, which allows support for external cryptoprocessors that is transparent to applications.
 * The interface to algorithms is generic, favoring algorithm agility.
 * The interface is designed to be easy to use, and hard to accidentally misuse.

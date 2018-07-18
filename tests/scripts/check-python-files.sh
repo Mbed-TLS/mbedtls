@@ -1,10 +1,10 @@
 #! /usr/bin/env sh
 
-# This file is part of mbed TLS (https://tls.mbed.org)
+# This file is part of Mbed TLS (https://tls.mbed.org)
 #
-# Copyright (c) 2018, ARM Limited, All Rights Reserved
+# Copyright (c) 2018, Arm Limited, All Rights Reserved
 #
-# Purpose
+# Purpose:
 #
 # Run 'pylint' on Python files for programming errors and helps enforcing
 # PEP8 coding standards.

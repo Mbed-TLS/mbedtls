@@ -31,11 +31,11 @@ while( 0 )
  * \param len   Length of byte array
  *
  */
-#define ALIGN_32BIT(p, start, len) do           \
-{                                               \
-    uint32_t align = ( - (uintptr_t)( p ) ) % 4;\
-    INCR_ASSERT( ( p ), ( start ), ( len ), align);\
-}                                               \
+#define ALIGN_32BIT(p, start, len) do               \
+{                                                   \
+    uint32_t align = ( - (uintptr_t)( p ) ) % 4;    \
+    INCR_ASSERT( ( p ), ( start ), ( len ), align );\
+}                                                   \
 while( 0 )
 
 
@@ -210,7 +210,7 @@ uint32_t find_hex_count( uint8_t count, uint8_t * data, uint32_t data_len )
  *                    the memory after use.
  */
 void ** parse_parameters( uint8_t count, uint8_t * data, uint32_t data_len,
-                            int * error )
+                          int * error )
 {
     uint32_t i = 0, hex_count = 0;
     char c;
@@ -393,7 +393,7 @@ int execute_tests( int args, const char ** argv )
 
         if ( data )
         {
-            free(data);
+            free( data );
             data = NULL;
         }
 

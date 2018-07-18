@@ -16,7 +16,7 @@
  *      Test suite data     : {test_case_data_file}
  *
  *
- *  This file is part of mbed TLS (https://tls.mbed.org)
+ *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -149,7 +149,7 @@ int dispatch_test( int func_idx, void ** params )
     int ret = 0;
     TestWrapper_t fp = NULL;
 
-    if ( func_idx < (int)( sizeof(test_funcs)/sizeof( TestWrapper_t ) ) )
+    if ( func_idx < (int)( sizeof( test_funcs ) / sizeof( TestWrapper_t ) ) )
     {{
         fp = test_funcs[func_idx];
         if ( fp )

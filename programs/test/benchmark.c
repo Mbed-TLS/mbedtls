@@ -888,17 +888,14 @@ int main( int argc, char *argv[] )
              curve_info++ )
         {
             mbedtls_ecdsa_init( &ecdsa );
-            mbedtls_snprintf( title, sizeof( title ), "ECDSA-%s",
-                                              curve_info->name );
+
             ret =  mbedtls_ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL );
             if( ret != 0 )
-            {
-                mbedtls_printf( HEADER_FORMAT, title );
-                PRINT_ERROR;
-                continue;
-            }
+                mbedtls_exit( 1 );
             ecp_clear_precomputed( &ecdsa.grp );
 
+            mbedtls_snprintf( title, sizeof( title ), "ECDSA-%s",
+                                              curve_info->name );
 
             TIME_PUBLIC( title, "sign",
                     ret = mbedtls_ecdsa_write_signature( &ecdsa, MBEDTLS_MD_SHA256, buf, curve_info->bit_size,
@@ -913,18 +910,16 @@ int main( int argc, char *argv[] )
         {
             mbedtls_ecdsa_init( &ecdsa );
 
-            mbedtls_snprintf( title, sizeof( title ), "ECDSA-%s",
-                                              curve_info->name );
             if( ( ( ret = mbedtls_ecdsa_genkey( &ecdsa, curve_info->grp_id, myrand, NULL ) ) != 0 ) ||
                 ( ( ret = mbedtls_ecdsa_write_signature( &ecdsa, MBEDTLS_MD_SHA256, buf, curve_info->bit_size,
                                                tmp, &sig_len, myrand, NULL ) ) != 0 ) )
             {
-                mbedtls_printf( HEADER_FORMAT, title );
-                PRINT_ERROR;
-                continue;
+                mbedtls_exit( 1 );
             }
             ecp_clear_precomputed( &ecdsa.grp );
 
+            mbedtls_snprintf( title, sizeof( title ), "ECDSA-%s",
+                                               curve_info->name );
             TIME_PUBLIC( title, "verify",
                     ret = mbedtls_ecdsa_read_signature( &ecdsa, buf, curve_info->bit_size,
                                                 tmp, sig_len ) );
@@ -957,19 +952,17 @@ int main( int argc, char *argv[] )
         {
             mbedtls_ecdh_init( &ecdh );
 
-            mbedtls_snprintf( title, sizeof( title ), "ECDHE-%s",
-                                              curve_info->name );
-            if( ( ( ret = mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) ) != 0 ) ||
+             if( ( ( ret = mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) ) != 0 ) ||
                 ( ( ret = mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                   myrand, NULL )  ) != 0 ) ||
                 ( ( ret = mbedtls_ecp_copy( &ecdh.Qp, &ecdh.Q ) != 0 ) ) )
             {
-                mbedtls_printf( HEADER_FORMAT, title );
-                PRINT_ERROR;
-                continue;
+                mbedtls_exit( 1 );
             }
             ecp_clear_precomputed( &ecdh.grp );
 
+            mbedtls_snprintf( title, sizeof( title ), "ECDHE-%s",
+                                               curve_info->name );
             TIME_PUBLIC( title, "handshake",
                     ret |= mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                              myrand, NULL );
@@ -986,17 +979,14 @@ int main( int argc, char *argv[] )
             mbedtls_ecdh_init( &ecdh );
             mbedtls_mpi_init( &z );
 
-            mbedtls_snprintf( title, sizeof(title), "ECDHE-%s",
-                              curve_info->name );
             if( ( ( ret = mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) ) != 0 ) ||
                 ( ( ret = mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp, myrand, NULL ) ) != 0 ) )
             {
-                mbedtls_printf( HEADER_FORMAT, title );
-                PRINT_ERROR;
-                continue;
+                mbedtls_exit( 1 );
             }
 
-
+            mbedtls_snprintf( title, sizeof(title), "ECDHE-%s",
+                              curve_info->name );
             TIME_PUBLIC(  title, "handshake",
                     ret |= mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Q,
                                             myrand, NULL );
@@ -1013,8 +1003,6 @@ int main( int argc, char *argv[] )
         {
             mbedtls_ecdh_init( &ecdh );
 
-            mbedtls_snprintf( title, sizeof( title ), "ECDH-%s",
-                                              curve_info->name );
             if( ( ( ret = mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) ) != 0 ) ||
                 ( ( ret = mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                   myrand, NULL ) ) != 0 ) ||
@@ -1022,12 +1010,12 @@ int main( int argc, char *argv[] )
                 ( ( ret = mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),
                                   myrand, NULL ) ) != 0 ) )
             {
-                mbedtls_printf( HEADER_FORMAT, title );
-                PRINT_ERROR;
-                continue;
+                mbedtls_exit( 1 );
             }
             ecp_clear_precomputed( &ecdh.grp );
 
+            mbedtls_snprintf( title, sizeof( title ), "ECDH-%s",
+                                              curve_info->name );
             TIME_PUBLIC( title, "handshake",
                     ret |= mbedtls_ecdh_calc_secret( &ecdh, &olen, buf, sizeof( buf ),
                                              myrand, NULL ) );

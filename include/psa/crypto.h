@@ -2192,17 +2192,17 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_aead_encrypt( psa_key_slot_t key,
-                               psa_algorithm_t alg,
-                               const uint8_t *nonce,
-                               size_t nonce_length,
-                               const uint8_t *additional_data,
-                               size_t additional_data_length,
-                               const uint8_t *plaintext,
-                               size_t plaintext_length,
-                               uint8_t *ciphertext,
-                               size_t ciphertext_size,
-                               size_t *ciphertext_length );
+psa_status_t psa_aead_encrypt(psa_key_slot_t key,
+                              psa_algorithm_t alg,
+                              const uint8_t *nonce,
+                              size_t nonce_length,
+                              const uint8_t *additional_data,
+                              size_t additional_data_length,
+                              const uint8_t *plaintext,
+                              size_t plaintext_length,
+                              uint8_t *ciphertext,
+                              size_t ciphertext_size,
+                              size_t *ciphertext_length);
 
 /** Process an authenticated decryption operation.
  *
@@ -2245,17 +2245,17 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_aead_decrypt( psa_key_slot_t key,
-                               psa_algorithm_t alg,
-                               const uint8_t *nonce,
-                               size_t nonce_length,
-                               const uint8_t *additional_data,
-                               size_t additional_data_length,
-                               const uint8_t *ciphertext,
-                               size_t ciphertext_length,
-                               uint8_t *plaintext,
-                               size_t plaintext_size,
-                               size_t *plaintext_length );
+psa_status_t psa_aead_decrypt(psa_key_slot_t key,
+                              psa_algorithm_t alg,
+                              const uint8_t *nonce,
+                              size_t nonce_length,
+                              const uint8_t *additional_data,
+                              size_t additional_data_length,
+                              const uint8_t *ciphertext,
+                              size_t ciphertext_length,
+                              uint8_t *plaintext,
+                              size_t plaintext_size,
+                              size_t *plaintext_length);
 
 /**@}*/
 

@@ -48,12 +48,6 @@
 #include <sys/stat.h>
 #endif
 
-#if defined(_WIN32) || defined(__MINGW32__)
-#include <windows.h>
-typedef HANDLE SERIAL_HANDLE;
-#define INVALID_SERIAL_HANDLE INVALID_HANDLE_VALUE
-#define BAUD_RATE 9600
-#else
 #include <termios.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -62,7 +56,6 @@ typedef HANDLE SERIAL_HANDLE;
 typedef int SERIAL_HANDLE;
 #define INVALID_SERIAL_HANDLE -1
 #define BAUD_RATE B9600
-#endif
 
 /* Host-target inactivity timeout in seconds. */
 #define COMM_INACTIVITY_TIMEOUT 10
@@ -242,85 +235,12 @@ static int mbedtls_serialize_read( mbedtls_serialize_context_t *ctx,
     return( 0 );
 }
 
-#if defined(_WIN32) || defined(__MINGW32__)
-
-static char * get_last_err_str( void )
-{
-    DWORD last_error_id = GetLastError( );
-    char *last_error_string;
-    char last_error_id_str[100];
-    if( FormatMessage(
-            FORMAT_MESSAGE_ALLOCATE_BUFFER |
-            FORMAT_MESSAGE_FROM_SYSTEM |
-            FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL,
-            last_error_id,
-            MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),
-            (LPSTR) &last_error_string,
-            0,
-            NULL) )
-    {
-        return( last_error_string );
-    }
-    else
-    {
-        snprintf( last_error_id_str, sizeof( last_error_id_str ), "%d", last_error_id );
-        return( last_error_id_str );
-    }
-}
-
-#else // defined(_WIN32) || defined(__MINGW32__)
 
 static char * get_last_err_str( void )
 {
     return( strerror( errno ) );
 }
 
-#endif // defined(_WIN32) || defined(__MINGW32__)
-
-#if defined(_WIN32) || defined(__MINGW32__)
-
-/** Set the common attributes to the seial interface */
-static int port_set_attributes(
-        SERIAL_HANDLE port,
-        int speed,
-        int parity )
-{
-    DCB parameters = { 0, };
-
-    parameters.DCBlength = sizeof( parameters );
-    if( !GetCommState( port, &parameters ) )
-    {
-        print_last_error( );
-        return( -1 );
-    }
-
-    parameters.BaudRate = speed;
-    parameters.Parity = parity;
-    parameters.ByteSize = 8;
-    parameters.StopBits = ONESTOPBIT;
-    parameters.fOutxCtsFlow = FALSE;         // No CTS output flow control
-    parameters.fOutxDsrFlow = FALSE;         // No DSR output flow control
-    parameters.fDtrControl = DTR_CONTROL_DISABLE; // DTR flow control type
-    parameters.fDsrSensitivity = FALSE;      // DSR sensitivity
-    parameters.fTXContinueOnXoff = TRUE;     // XOFF continues Tx
-    parameters.fOutX = FALSE;                // No XON/XOFF out flow control
-    parameters.fInX = FALSE;                 // No XON/XOFF in flow control
-    parameters.fErrorChar = FALSE;           // Disable error replacement
-    parameters.fNull = FALSE;                // Disable null stripping
-    parameters.fRtsControl = RTS_CONTROL_DISABLE; // RTS flow control
-    parameters.fAbortOnError = FALSE;        // Do not abort reads/writes on error
-
-    if( !SetCommState( port, &parameters ) )
-    {
-        print_last_error( );
-        return( -1 );
-    }
-
-    return( 0 );
-}
-
-#else // defined(_WIN32) || defined(__MINGW32__)
 
 /** Set the common attributes to the seial interface */
 static int port_set_attributes(
@@ -364,7 +284,6 @@ static int port_set_attributes(
     return( 0 );
 }
 
-#endif // defined(_WIN32) || defined(__MINGW32__)
 
 int send_break(const char * port)
 {
@@ -374,7 +293,6 @@ int send_break(const char * port)
     ret = tcsendbreak(handle, 0);
     if( ret == 0 )
         mbedtls_net_usleep( 2000000 );
-    //tcflow( handle, TCOON );
     close( handle );
     return( ret );
 }
@@ -383,11 +301,7 @@ static int port_close( SERIAL_HANDLE handle )
 {
     int result;
 
-#if defined(_WIN32) || defined(__MINGW32__)
-    result = CloseHandle( handle )?0:1;
-#else // defined(_WIN32) || defined(__MINGW32__)
     result = close( handle );
-#endif // defined(_WIN32) || defined(__MINGW32__)
 
     if( result != 0 )
         print_last_error( );
@@ -400,18 +314,7 @@ static SERIAL_HANDLE port_open( char *name )
     SERIAL_HANDLE handle;
 
     DBG( "Opening %s", name );
-#if defined(_WIN32) || defined(__MINGW32__)
-    handle = CreateFile(
-        name,
-        GENERIC_READ|GENERIC_WRITE,
-        0,
-        0,
-        OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL,
-        0 );
-#else // defined(_WIN32) || defined(__MINGW32__)
     handle = open( name, O_RDWR | O_CLOEXEC | O_NOCTTY | O_SYNC );
-#endif // defined(_WIN32) || defined(__MINGW32__)
 
     if( handle == INVALID_SERIAL_HANDLE )
     {
@@ -1155,7 +1058,6 @@ static int mbedtls_serialize_pull( mbedtls_serialize_context_t *ctx )
             ctx->status = MBEDTLS_SERIALIZE_STATUS_DEAD;
             fprintf( stderr, "Bad type for serialized data: 0x%02x '%c'\n", header[0], header[1] );
             return( MBEDTLS_ERR_SERIALIZE_BAD_INPUT );
-            return( 0 );
     }
 }
 

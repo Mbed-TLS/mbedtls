@@ -541,6 +541,43 @@ static psa_status_t prepare_raw_data_slot( psa_key_type_t type,
     return( PSA_SUCCESS );
 }
 
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_PARSE_C)
+static psa_status_t psa_import_rsa_key( mbedtls_pk_context *pk,
+                                        mbedtls_rsa_context **p_rsa )
+{
+    if( mbedtls_pk_get_type( pk ) != MBEDTLS_PK_RSA )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    else
+    {
+        mbedtls_rsa_context *rsa = mbedtls_pk_rsa( *pk );
+        size_t bits = mbedtls_rsa_get_bitlen( rsa );
+        if( bits > PSA_VENDOR_RSA_MAX_KEY_BITS )
+            return( PSA_ERROR_NOT_SUPPORTED );
+        *p_rsa = rsa;
+        return( PSA_SUCCESS );
+    }
+}
+#endif /* defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_PARSE_C) */
+
+#if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_PK_PARSE_C)
+static psa_status_t psa_import_ecp_key( psa_ecc_curve_t expected_curve,
+                                        mbedtls_pk_context *pk,
+                                        mbedtls_ecp_keypair **p_ecp )
+{
+    if( mbedtls_pk_get_type( pk ) != MBEDTLS_PK_ECKEY )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    else
+    {
+        mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( *pk );
+        psa_ecc_curve_t actual_curve = mbedtls_ecc_group_to_psa( ecp->grp.id );
+        if( actual_curve != expected_curve )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        *p_ecp = ecp;
+        return( PSA_SUCCESS );
+    }
+}
+#endif /* defined(MBEDTLS_ECP_C) && defined(MBEDTLS_PK_PARSE_C) */
+
 psa_status_t psa_import_key( psa_key_slot_t key,
                              psa_key_type_t type,
                              const uint8_t *data,
@@ -567,63 +604,38 @@ psa_status_t psa_import_key( psa_key_slot_t key,
     }
     else
 #if defined(MBEDTLS_PK_PARSE_C)
-    if( type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
-        type == PSA_KEY_TYPE_RSA_KEYPAIR ||
-        PSA_KEY_TYPE_IS_ECC( type ) )
+    if( PSA_KEY_TYPE_IS_RSA( type ) || PSA_KEY_TYPE_IS_ECC( type ) )
     {
         int ret;
         mbedtls_pk_context pk;
         mbedtls_pk_init( &pk );
+
+        /* Parse the data. */
         if( PSA_KEY_TYPE_IS_KEYPAIR( type ) )
             ret = mbedtls_pk_parse_key( &pk, data, data_length, NULL, 0 );
         else
             ret = mbedtls_pk_parse_public_key( &pk, data, data_length );
         if( ret != 0 )
             return( mbedtls_to_psa_error( ret ) );
-        switch( mbedtls_pk_get_type( &pk ) )
-        {
+
+        /* We have something that the pkparse module recognizes.
+         * If it has the expected type and passes any type-specific
+         * checks, store it. */
 #if defined(MBEDTLS_RSA_C)
-            case MBEDTLS_PK_RSA:
-                if( type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
-                    type == PSA_KEY_TYPE_RSA_KEYPAIR )
-                {
-                    mbedtls_rsa_context *rsa = mbedtls_pk_rsa( pk );
-                    size_t bits = mbedtls_rsa_get_bitlen( rsa );
-                    if( bits > PSA_VENDOR_RSA_MAX_KEY_BITS )
-                    {
-                        status = PSA_ERROR_NOT_SUPPORTED;
-                        break;
-                    }
-                    slot->data.rsa = rsa;
-                }
-                else
-                    status = PSA_ERROR_INVALID_ARGUMENT;
-                break;
+        if( PSA_KEY_TYPE_IS_RSA( type ) )
+            status = psa_import_rsa_key( &pk, &slot->data.rsa );
+        else
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_ECP_C)
-            case MBEDTLS_PK_ECKEY:
-                if( PSA_KEY_TYPE_IS_ECC( type ) )
-                {
-                    mbedtls_ecp_keypair *ecp = mbedtls_pk_ec( pk );
-                    psa_ecc_curve_t actual_curve =
-                        mbedtls_ecc_group_to_psa( ecp->grp.id );
-                    psa_ecc_curve_t expected_curve =
-                        PSA_KEY_TYPE_GET_CURVE( type );
-                    if( actual_curve != expected_curve )
-                    {
-                        status = PSA_ERROR_INVALID_ARGUMENT;
-                        break;
-                    }
-                    slot->data.ecp = ecp;
-                }
-                else
-                    status = PSA_ERROR_INVALID_ARGUMENT;
-                break;
+        if( PSA_KEY_TYPE_IS_ECC( type ) )
+            status = psa_import_ecp_key( PSA_KEY_TYPE_GET_CURVE( type ),
+                                         &pk, &slot->data.ecp );
+        else
 #endif /* MBEDTLS_ECP_C */
-            default:
-                status = PSA_ERROR_INVALID_ARGUMENT;
-                break;
+        {
+            status = PSA_ERROR_NOT_SUPPORTED;
         }
+
         /* Free the content of the pk object only on error. On success,
          * the content of the object has been stored in the slot. */
         if( status != PSA_SUCCESS )
@@ -662,8 +674,7 @@ psa_status_t psa_destroy_key( psa_key_slot_t key )
     }
     else
 #if defined(MBEDTLS_RSA_C)
-    if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
-        slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
+    if( PSA_KEY_TYPE_IS_RSA( slot->type ) )
     {
         mbedtls_rsa_free( slot->data.rsa );
         mbedtls_free( slot->data.rsa );
@@ -694,8 +705,7 @@ static size_t psa_get_key_bits( const key_slot_t *slot )
     if( key_type_is_raw_bytes( slot->type ) )
         return( slot->data.raw.bytes * 8 );
 #if defined(MBEDTLS_RSA_C)
-    if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
-        slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
+    if( PSA_KEY_TYPE_IS_RSA( slot->type ) )
         return( mbedtls_rsa_get_bitlen( slot->data.rsa ) );
 #endif /* defined(MBEDTLS_RSA_C) */
 #if defined(MBEDTLS_ECP_C)
@@ -769,15 +779,13 @@ static  psa_status_t psa_internal_export_key( psa_key_slot_t key,
     else
     {
 #if defined(MBEDTLS_PK_WRITE_C)
-        if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
-            slot->type == PSA_KEY_TYPE_RSA_KEYPAIR ||
+        if( PSA_KEY_TYPE_IS_RSA( slot->type ) ||
             PSA_KEY_TYPE_IS_ECC( slot->type ) )
         {
             mbedtls_pk_context pk;
             int ret;
             mbedtls_pk_init( &pk );
-            if( slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY ||
-                slot->type == PSA_KEY_TYPE_RSA_KEYPAIR )
+            if( PSA_KEY_TYPE_IS_RSA( slot->type ) )
             {
                 pk.pk_info = &mbedtls_rsa_info;
                 pk.pk_ctx = slot->data.rsa;
@@ -1733,28 +1741,45 @@ cleanup:
 
 #if defined(MBEDTLS_RSA_C)
 /* Decode the hash algorithm from alg and store the mbedtls encoding in
- * md_alg. Verify that the hash length is consistent. */
+ * md_alg. Verify that the hash length is acceptable. */
 static psa_status_t psa_rsa_decode_md_type( psa_algorithm_t alg,
                                             size_t hash_length,
                                             mbedtls_md_type_t *md_alg )
 {
     psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa( hash_alg );
-    *md_alg = hash_alg == 0 ? MBEDTLS_MD_NONE : mbedtls_md_get_type( md_info );
-    if( *md_alg == MBEDTLS_MD_NONE )
-    {
+    *md_alg = mbedtls_md_get_type( md_info );
+
+    /* The Mbed TLS RSA module uses an unsigned int for hash length
+     * parameters. Validate that it fits so that we don't risk an
+     * overflow later. */
 #if SIZE_MAX > UINT_MAX
-        if( hash_length > UINT_MAX )
-            return( PSA_ERROR_INVALID_ARGUMENT );
+    if( hash_length > UINT_MAX )
+        return( PSA_ERROR_INVALID_ARGUMENT );
 #endif
-    }
-    else
+
+#if defined(MBEDTLS_PKCS1_V15)
+    /* For PKCS#1 v1.5 signature, if using a hash, the hash length
+     * must be correct. */
+    if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) &&
+        alg != PSA_ALG_RSA_PKCS1V15_SIGN_RAW )
     {
+        if( md_info == NULL )
+            return( PSA_ERROR_NOT_SUPPORTED );
         if( mbedtls_md_get_size( md_info ) != hash_length )
             return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+#endif /* MBEDTLS_PKCS1_V15 */
+
+#if defined(MBEDTLS_PKCS1_V21)
+    /* PSS requires a hash internally. */
+    if( PSA_ALG_IS_RSA_PSS( alg ) )
+    {
         if( md_info == NULL )
             return( PSA_ERROR_NOT_SUPPORTED );
     }
+#endif /* MBEDTLS_PKCS1_V21 */
+
     return( PSA_SUCCESS );
 }
 
@@ -1774,17 +1799,8 @@ static psa_status_t psa_rsa_sign( mbedtls_rsa_context *rsa,
     if( status != PSA_SUCCESS )
         return( status );
 
-    if( signature_size < rsa->len )
+    if( signature_size < mbedtls_rsa_get_len( rsa ) )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
-
-    /* The Mbed TLS RSA module uses an unsigned int for hash_length. See if
-     * hash_length will fit and return an error if it doesn't. */
-#if defined(MBEDTLS_PKCS1_V15) || defined(MBEDTLS_PKCS1_V21)
-#if SIZE_MAX > UINT_MAX
-    if( hash_length > UINT_MAX )
-        return( PSA_ERROR_NOT_SUPPORTED );
-#endif
-#endif
 
 #if defined(MBEDTLS_PKCS1_V15)
     if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) )
@@ -1810,7 +1826,7 @@ static psa_status_t psa_rsa_sign( mbedtls_rsa_context *rsa,
                                            mbedtls_ctr_drbg_random,
                                            &global_data.ctr_drbg,
                                            MBEDTLS_RSA_PRIVATE,
-                                           md_alg,
+                                           MBEDTLS_MD_NONE,
                                            (unsigned int) hash_length,
                                            hash,
                                            signature );
@@ -1822,7 +1838,7 @@ static psa_status_t psa_rsa_sign( mbedtls_rsa_context *rsa,
     }
 
     if( ret == 0 )
-        *signature_length = rsa->len;
+        *signature_length = mbedtls_rsa_get_len( rsa );
     return( mbedtls_to_psa_error( ret ) );
 }
 
@@ -1841,17 +1857,8 @@ static psa_status_t psa_rsa_verify( mbedtls_rsa_context *rsa,
     if( status != PSA_SUCCESS )
         return( status );
 
-    if( signature_length < rsa->len )
+    if( signature_length < mbedtls_rsa_get_len( rsa ) )
         return( PSA_ERROR_BUFFER_TOO_SMALL );
-
-#if defined(MBEDTLS_PKCS1_V15) || defined(MBEDTLS_PKCS1_V21)
-#if SIZE_MAX > UINT_MAX
-    /* The Mbed TLS RSA module uses an unsigned int for hash_length. See if
-     * hash_length will fit and return an error if it doesn't. */
-    if( hash_length > UINT_MAX )
-        return( PSA_ERROR_NOT_SUPPORTED );
-#endif
-#endif
 
 #if defined(MBEDTLS_PKCS1_V15)
     if( PSA_ALG_IS_RSA_PKCS1V15_SIGN( alg ) )
@@ -1877,7 +1884,7 @@ static psa_status_t psa_rsa_verify( mbedtls_rsa_context *rsa,
                                              mbedtls_ctr_drbg_random,
                                              &global_data.ctr_drbg,
                                              MBEDTLS_RSA_PUBLIC,
-                                             md_alg,
+                                             MBEDTLS_MD_NONE,
                                              (unsigned int) hash_length,
                                              hash,
                                              signature );
@@ -1983,8 +1990,6 @@ psa_status_t psa_asymmetric_sign( psa_key_slot_t key,
                                   psa_algorithm_t alg,
                                   const uint8_t *hash,
                                   size_t hash_length,
-                                  const uint8_t *salt,
-                                  size_t salt_length,
                                   uint8_t *signature,
                                   size_t signature_size,
                                   size_t *signature_length )
@@ -1993,9 +1998,6 @@ psa_status_t psa_asymmetric_sign( psa_key_slot_t key,
     psa_status_t status;
 
     *signature_length = signature_size;
-
-    (void) salt;
-    (void) salt_length;
 
     status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_SIGN, alg );
     if( status != PSA_SUCCESS )
@@ -2058,24 +2060,18 @@ psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
                                     psa_algorithm_t alg,
                                     const uint8_t *hash,
                                     size_t hash_length,
-                                    const uint8_t *salt,
-                                    size_t salt_length,
                                     const uint8_t *signature,
                                     size_t signature_length )
 {
     key_slot_t *slot;
     psa_status_t status;
 
-    (void) salt;
-    (void) salt_length;
-
     status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_VERIFY, alg );
     if( status != PSA_SUCCESS )
         return( status );
 
 #if defined(MBEDTLS_RSA_C)
-    if( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR ||
-        slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY )
+    if( PSA_KEY_TYPE_IS_RSA( slot->type ) )
     {
         return( psa_rsa_verify( slot->data.rsa,
                                 alg,
@@ -2105,6 +2101,17 @@ psa_status_t psa_asymmetric_verify( psa_key_slot_t key,
     }
 }
 
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V21)
+static void psa_rsa_oaep_set_padding_mode( psa_algorithm_t alg,
+                                           mbedtls_rsa_context *rsa )
+{
+    psa_algorithm_t hash_alg = PSA_ALG_RSA_OAEP_GET_HASH( alg );
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_psa( hash_alg );
+    mbedtls_md_type_t md_alg = mbedtls_md_get_type( md_info );
+    mbedtls_rsa_set_padding( rsa, MBEDTLS_RSA_PKCS_V21, md_alg );
+}
+#endif /* defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PKCS1_V21) */
+
 psa_status_t psa_asymmetric_encrypt( psa_key_slot_t key,
                                      psa_algorithm_t alg,
                                      const uint8_t *input,
@@ -2118,23 +2125,24 @@ psa_status_t psa_asymmetric_encrypt( psa_key_slot_t key,
     key_slot_t *slot;
     psa_status_t status;
 
-    (void) salt;
-    (void) salt_length;
     *output_length = 0;
+
+    if( ! PSA_ALG_IS_RSA_OAEP( alg ) && salt_length != 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
     if( status != PSA_SUCCESS )
         return( status );
-    if( ! PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) )
+    if( ! ( PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) ||
+            PSA_KEY_TYPE_IS_KEYPAIR( slot->type ) ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
 #if defined(MBEDTLS_RSA_C)
-    if( slot->type == PSA_KEY_TYPE_RSA_KEYPAIR ||
-        slot->type == PSA_KEY_TYPE_RSA_PUBLIC_KEY )
+    if( PSA_KEY_TYPE_IS_RSA( slot->type ) )
     {
         mbedtls_rsa_context *rsa = slot->data.rsa;
         int ret;
-        if( output_size < rsa->len )
+        if( output_size < mbedtls_rsa_get_len( rsa ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
 #if defined(MBEDTLS_PKCS1_V15)
         if( alg == PSA_ALG_RSA_PKCS1V15_CRYPT )
@@ -2152,7 +2160,15 @@ psa_status_t psa_asymmetric_encrypt( psa_key_slot_t key,
 #if defined(MBEDTLS_PKCS1_V21)
         if( PSA_ALG_IS_RSA_OAEP( alg ) )
         {
-            return( PSA_ERROR_NOT_SUPPORTED );
+            psa_rsa_oaep_set_padding_mode( alg, rsa );
+            ret = mbedtls_rsa_rsaes_oaep_encrypt( rsa,
+                                                  mbedtls_ctr_drbg_random,
+                                                  &global_data.ctr_drbg,
+                                                  MBEDTLS_RSA_PUBLIC,
+                                                  salt, salt_length,
+                                                  input_length,
+                                                  input,
+                                                  output );
         }
         else
 #endif /* MBEDTLS_PKCS1_V21 */
@@ -2160,7 +2176,7 @@ psa_status_t psa_asymmetric_encrypt( psa_key_slot_t key,
             return( PSA_ERROR_INVALID_ARGUMENT );
         }
         if( ret == 0 )
-            *output_length = rsa->len;
+            *output_length = mbedtls_rsa_get_len( rsa );
         return( mbedtls_to_psa_error( ret ) );
     }
     else
@@ -2183,9 +2199,10 @@ psa_status_t psa_asymmetric_decrypt( psa_key_slot_t key,
     key_slot_t *slot;
     psa_status_t status;
 
-    (void) salt;
-    (void) salt_length;
     *output_length = 0;
+
+    if( ! PSA_ALG_IS_RSA_OAEP( alg ) && salt_length != 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_DECRYPT, alg );
     if( status != PSA_SUCCESS )
@@ -2199,7 +2216,7 @@ psa_status_t psa_asymmetric_decrypt( psa_key_slot_t key,
         mbedtls_rsa_context *rsa = slot->data.rsa;
         int ret;
 
-        if( input_length != rsa->len )
+        if( input_length != mbedtls_rsa_get_len( rsa ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
 
 #if defined(MBEDTLS_PKCS1_V15)
@@ -2219,7 +2236,16 @@ psa_status_t psa_asymmetric_decrypt( psa_key_slot_t key,
 #if defined(MBEDTLS_PKCS1_V21)
         if( PSA_ALG_IS_RSA_OAEP( alg ) )
         {
-            return( PSA_ERROR_NOT_SUPPORTED );
+            psa_rsa_oaep_set_padding_mode( alg, rsa );
+            ret = mbedtls_rsa_rsaes_oaep_decrypt( rsa,
+                                                  mbedtls_ctr_drbg_random,
+                                                  &global_data.ctr_drbg,
+                                                  MBEDTLS_RSA_PRIVATE,
+                                                  salt, salt_length,
+                                                  output_length,
+                                                  input,
+                                                  output,
+                                                  output_size );
         }
         else
 #endif /* MBEDTLS_PKCS1_V21 */

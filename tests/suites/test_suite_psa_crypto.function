@@ -285,16 +285,21 @@ static int exercise_signature_key( psa_key_slot_t key,
                                    psa_key_usage_t usage,
                                    psa_algorithm_t alg )
 {
-    unsigned char payload[16] = {1};
-    size_t payload_length = sizeof( payload );
+    unsigned char payload[PSA_HASH_MAX_SIZE] = {1};
+    size_t payload_length = 16;
     unsigned char signature[PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE] = {0};
     size_t signature_length = sizeof( signature );
 
     if( usage & PSA_KEY_USAGE_SIGN )
     {
+        /* Some algorithms require the payload to have the size of
+         * the hash encoded in the algorithm. Use this input size
+         * even for algorithms that allow other input sizes. */
+        psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
+        if( hash_alg != 0 )
+            payload_length = PSA_HASH_SIZE( hash_alg );
         TEST_ASSERT( psa_asymmetric_sign( key, alg,
                                           payload, payload_length,
-                                          NULL, 0,
                                           signature, sizeof( signature ),
                                           &signature_length ) == PSA_SUCCESS );
     }
@@ -307,7 +312,6 @@ static int exercise_signature_key( psa_key_slot_t key,
               PSA_ERROR_INVALID_SIGNATURE );
         TEST_ASSERT( psa_asymmetric_verify( key, alg,
                                             payload, payload_length,
-                                            NULL, 0,
                                             signature, signature_length ) ==
                      verify_status );
     }
@@ -965,7 +969,6 @@ void asymmetric_signature_key_policy( int policy_usage,
 
     status = psa_asymmetric_sign( key_slot, exercise_alg,
                                   payload, payload_length,
-                                  NULL, 0,
                                   signature, sizeof( signature ),
                                   &signature_length );
     if( policy_alg == exercise_alg &&
@@ -977,7 +980,6 @@ void asymmetric_signature_key_policy( int policy_usage,
     memset( signature, 0, sizeof( signature ) );
     status = psa_asymmetric_verify( key_slot, exercise_alg,
                                     payload, payload_length,
-                                    NULL, 0,
                                     signature, sizeof( signature ) );
     if( policy_alg == exercise_alg &&
         ( policy_usage & PSA_KEY_USAGE_VERIFY ) != 0 )
@@ -2011,10 +2013,9 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
     /* Perform the signature. */
     TEST_ASSERT( psa_asymmetric_sign( slot, alg,
                                       input_data->x, input_data->len,
-                                      NULL, 0,
                                       signature, signature_size,
                                       &signature_length ) == PSA_SUCCESS );
-    /* Verify that the signature is correct. */
+    /* Verify that the signature is what is expected. */
     TEST_ASSERT( signature_length == output_data->len );
     TEST_ASSERT( memcmp( signature, output_data->x,
                          output_data->len ) == 0 );
@@ -2061,7 +2062,6 @@ void sign_fail( int key_type_arg, data_t *key_data,
 
     actual_status = psa_asymmetric_sign( slot, alg,
                                          input_data->x, input_data->len,
-                                         NULL, 0,
                                          signature, signature_size,
                                          &signature_length );
     TEST_ASSERT( actual_status == expected_status );
@@ -2070,6 +2070,78 @@ void sign_fail( int key_type_arg, data_t *key_data,
      * if the caller tries to read *signature_length bytes without
      * checking the error code then they don't overflow a buffer. */
     TEST_ASSERT( signature_length <= signature_size );
+
+exit:
+    psa_destroy_key( slot );
+    mbedtls_free( signature );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void sign_verify( int key_type_arg, data_t *key_data,
+                  int alg_arg, data_t *input_data )
+{
+    int slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    size_t key_bits;
+    unsigned char *signature = NULL;
+    size_t signature_size;
+    size_t signature_length = 0xdeadbeef;
+    psa_key_policy_t policy;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy,
+                              PSA_KEY_USAGE_SIGN | PSA_KEY_USAGE_VERIFY,
+                              alg );
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( slot, key_type,
+                                 key_data->x,
+                                 key_data->len ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_get_key_information( slot,
+                                          NULL,
+                                          &key_bits ) == PSA_SUCCESS );
+
+    /* Allocate a buffer which has the size advertized by the
+     * library. */
+    signature_size = PSA_ASYMMETRIC_SIGN_OUTPUT_SIZE( key_type,
+                                                      key_bits, alg );
+    TEST_ASSERT( signature_size != 0 );
+    TEST_ASSERT( signature_size <= PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE );
+    signature = mbedtls_calloc( 1, signature_size );
+    TEST_ASSERT( signature != NULL );
+
+    /* Perform the signature. */
+    TEST_ASSERT( psa_asymmetric_sign( slot, alg,
+                                      input_data->x, input_data->len,
+                                      signature, signature_size,
+                                      &signature_length ) == PSA_SUCCESS );
+    /* Check that the signature length looks sensible. */
+    TEST_ASSERT( signature_length <= signature_size );
+    TEST_ASSERT( signature_length > 0 );
+
+    /* Use the library to verify that the signature is correct. */
+    TEST_ASSERT( psa_asymmetric_verify(
+                     slot, alg,
+                     input_data->x, input_data->len,
+                     signature, signature_length ) == PSA_SUCCESS );
+
+    if( input_data->len != 0 )
+    {
+        /* Flip a bit in the input and verify that the signature is now
+         * detected as invalid. Flip a bit at the beginning, not at the end,
+         * because ECDSA may ignore the last few bits of the input. */
+        input_data->x[0] ^= 1;
+        TEST_ASSERT( psa_asymmetric_verify(
+                         slot, alg,
+                         input_data->x, input_data->len,
+                         signature,
+                         signature_length ) == PSA_ERROR_INVALID_SIGNATURE );
+    }
 
 exit:
     psa_destroy_key( slot );
@@ -2109,7 +2181,6 @@ void asymmetric_verify( int key_type_arg, data_t *key_data,
 
     TEST_ASSERT( psa_asymmetric_verify( slot, alg,
                                         hash_data->x, hash_data->len,
-                                        NULL, 0,
                                         signature_data->x,
                                         signature_data->len ) == PSA_SUCCESS );
 exit:
@@ -2150,7 +2221,6 @@ void asymmetric_verify_fail( int key_type_arg, data_t *key_data,
 
     actual_status = psa_asymmetric_verify( slot, alg,
                                            hash_data->x, hash_data->len,
-                                           NULL, 0,
                                            signature_data->x,
                                            signature_data->len );
 
@@ -2163,31 +2233,98 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void asymmetric_encrypt_decrypt( int key_type_arg, data_t *key_data,
-                                 int alg_arg, data_t *input_data )
+void asymmetric_encrypt( int key_type_arg,
+                         data_t *key_data,
+                         int alg_arg,
+                         data_t *input_data,
+                         data_t *label,
+                         int expected_output_length_arg,
+                         int expected_status_arg )
 {
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
+    size_t expected_output_length = expected_output_length_arg;
+    size_t key_bits;
     unsigned char *output = NULL;
-    size_t output_size = 0;
-    size_t output_length = 0;
+    size_t output_size;
+    size_t output_length = ~0;
+    psa_status_t actual_status;
+    psa_status_t expected_status = expected_status_arg;
+    psa_key_policy_t policy;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    /* Import the key */
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT, alg );
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_import_key( slot, key_type,
+                                 key_data->x,
+                                 key_data->len ) == PSA_SUCCESS );
+
+    /* Determine the maximum output length */
+    TEST_ASSERT( psa_get_key_information( slot,
+                                          NULL,
+                                          &key_bits ) == PSA_SUCCESS );
+    output_size = PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE( key_type, key_bits, alg );
+    output = mbedtls_calloc( 1, output_size );
+    TEST_ASSERT( output != NULL );
+
+    /* Encrypt the input */
+    actual_status = psa_asymmetric_encrypt( slot, alg,
+                                            input_data->x, input_data->len,
+                                            label->x, label->len,
+                                            output, output_size,
+                                            &output_length );
+    TEST_ASSERT( actual_status == expected_status );
+    TEST_ASSERT( output_length == expected_output_length );
+
+    /* If the label is empty, the test framework puts a non-null pointer
+     * in label->x. Test that a null pointer works as well. */
+    if( label->len == 0 )
+    {
+        output_length = ~0;
+        memset( output, 0, output_size );
+        actual_status = psa_asymmetric_encrypt( slot, alg,
+                                                input_data->x, input_data->len,
+                                                NULL, label->len,
+                                                output, output_size,
+                                                &output_length );
+        TEST_ASSERT( actual_status == expected_status );
+        TEST_ASSERT( output_length == expected_output_length );
+    }
+
+exit:
+    psa_destroy_key( slot );
+    mbedtls_free( output );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void asymmetric_encrypt_decrypt( int key_type_arg,
+                                 data_t *key_data,
+                                 int alg_arg,
+                                 data_t *input_data,
+                                 data_t *label )
+{
+    int slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    size_t key_bits;
+    unsigned char *output = NULL;
+    size_t output_size;
+    size_t output_length = ~0;
     unsigned char *output2 = NULL;
-    size_t output2_size = 0;
-    size_t output2_length = 0;
+    size_t output2_size;
+    size_t output2_length = ~0;
     psa_key_policy_t policy;
 
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( input_data != NULL );
     TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key_data->len ) );
     TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input_data->len ) );
-
-    output_size = key_data->len;
-    output2_size = output_size;
-    output = mbedtls_calloc( 1, output_size );
-    TEST_ASSERT( output != NULL );
-    output2 = mbedtls_calloc( 1, output2_size );
-    TEST_ASSERT( output2 != NULL );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
@@ -2201,20 +2338,36 @@ void asymmetric_encrypt_decrypt( int key_type_arg, data_t *key_data,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
 
+
+    /* Determine the maximum ciphertext length */
+    TEST_ASSERT( psa_get_key_information( slot,
+                                          NULL,
+                                          &key_bits ) == PSA_SUCCESS );
+    output_size = PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE( key_type, key_bits, alg );
+    output = mbedtls_calloc( 1, output_size );
+    TEST_ASSERT( output != NULL );
+    output2_size = input_data->len;
+    output2 = mbedtls_calloc( 1, output2_size );
+    TEST_ASSERT( output2 != NULL );
+
     /* We test encryption by checking that encrypt-then-decrypt gives back
      * the original plaintext because of the non-optional random
      * part of encryption process which prevents using fixed vectors. */
     TEST_ASSERT( psa_asymmetric_encrypt( slot, alg,
                                          input_data->x, input_data->len,
-                                         NULL, 0,
+                                         label->x, label->len,
                                          output, output_size,
                                          &output_length ) == PSA_SUCCESS );
+    /* We don't know what ciphertext length to expect, but check that
+     * it looks sensible. */
+    TEST_ASSERT( output_length <= output_size );
 
     TEST_ASSERT( psa_asymmetric_decrypt( slot, alg,
                                          output, output_length,
-                                         NULL, 0,
+                                         label->x, label->len,
                                          output2, output2_size,
                                          &output2_length ) == PSA_SUCCESS );
+    TEST_ASSERT( output2_length == input_data->len );
     TEST_ASSERT( memcmp( input_data->x, output2,
                          input_data->len ) == 0 );
 
@@ -2227,64 +2380,19 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void asymmetric_encrypt_fail( int key_type_arg, data_t *key_data,
-                              int alg_arg, data_t *input_data,
-                              int expected_status_arg )
+void asymmetric_decrypt( int key_type_arg,
+                         data_t *key_data,
+                         int alg_arg,
+                         data_t *input_data,
+                         data_t *label,
+                         data_t *expected_data )
 {
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     unsigned char *output = NULL;
     size_t output_size = 0;
-    size_t output_length = 0;
-    psa_status_t actual_status;
-    psa_status_t expected_status = expected_status_arg;
-    psa_key_policy_t policy;
-
-    TEST_ASSERT( key_data != NULL );
-    TEST_ASSERT( input_data != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input_data->len ) );
-
-    output_size = key_data->len;
-    output = mbedtls_calloc( 1, output_size );
-    TEST_ASSERT( output != NULL );
-
-    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
-
-    psa_key_policy_init( &policy );
-    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
-
-    TEST_ASSERT( psa_import_key( slot, key_type,
-                                 key_data->x,
-                                 key_data->len ) == PSA_SUCCESS );
-
-    actual_status = psa_asymmetric_encrypt( slot, alg,
-                                            input_data->x, input_data->len,
-                                            NULL, 0,
-                                            output, output_size,
-                                            &output_length );
-    TEST_ASSERT( actual_status == expected_status );
-
-exit:
-    psa_destroy_key( slot );
-    mbedtls_free( output );
-    mbedtls_psa_crypto_free( );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void asymmetric_decrypt( int key_type_arg, data_t *key_data,
-                         int alg_arg, data_t *input_data,
-                         data_t *expected_data, int expected_size )
-{
-    int slot = 1;
-    psa_key_type_t key_type = key_type_arg;
-    psa_algorithm_t alg = alg_arg;
-    unsigned char *output = NULL;
-    size_t output_size = 0;
-    size_t output_length = 0;
+    size_t output_length = ~0;
     psa_key_policy_t policy;
 
     TEST_ASSERT( key_data != NULL );
@@ -2310,12 +2418,28 @@ void asymmetric_decrypt( int key_type_arg, data_t *key_data,
 
     TEST_ASSERT( psa_asymmetric_decrypt( slot, alg,
                                          input_data->x, input_data->len,
-                                         NULL, 0,
+                                         label->x, label->len,
                                          output,
                                          output_size,
                                          &output_length ) == PSA_SUCCESS );
-    TEST_ASSERT( (size_t) expected_size == output_length );
+    TEST_ASSERT( expected_data->len == output_length );
     TEST_ASSERT( memcmp( expected_data->x, output, output_length ) == 0 );
+
+    /* If the label is empty, the test framework puts a non-null pointer
+     * in label->x. Test that a null pointer works as well. */
+    if( label->len == 0 )
+    {
+        output_length = ~0;
+        memset( output, 0, output_size );
+        TEST_ASSERT( psa_asymmetric_decrypt( slot, alg,
+                                             input_data->x, input_data->len,
+                                             NULL, label->len,
+                                             output,
+                                             output_size,
+                                             &output_length ) == PSA_SUCCESS );
+        TEST_ASSERT( expected_data->len == output_length );
+        TEST_ASSERT( memcmp( expected_data->x, output, output_length ) == 0 );
+    }
 
 exit:
     psa_destroy_key( slot );
@@ -2325,8 +2449,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void asymmetric_decrypt_fail( int key_type_arg, data_t *key_data,
-                              int alg_arg, data_t *input_data,
+void asymmetric_decrypt_fail( int key_type_arg,
+                              data_t *key_data,
+                              int alg_arg,
+                              data_t *input_data,
+                              data_t *label,
                               int expected_status_arg  )
 {
     int slot = 1;
@@ -2334,7 +2461,7 @@ void asymmetric_decrypt_fail( int key_type_arg, data_t *key_data,
     psa_algorithm_t alg = alg_arg;
     unsigned char *output = NULL;
     size_t output_size = 0;
-    size_t output_length = 0;
+    size_t output_length = ~0;
     psa_status_t actual_status;
     psa_status_t expected_status = expected_status_arg;
     psa_key_policy_t policy;
@@ -2360,10 +2487,26 @@ void asymmetric_decrypt_fail( int key_type_arg, data_t *key_data,
 
     actual_status = psa_asymmetric_decrypt( slot, alg,
                                             input_data->x, input_data->len,
-                                            NULL, 0,
+                                            label->x, label->len,
                                             output, output_size,
                                             &output_length );
     TEST_ASSERT( actual_status == expected_status );
+    TEST_ASSERT( output_length <= output_size );
+
+    /* If the label is empty, the test framework puts a non-null pointer
+     * in label->x. Test that a null pointer works as well. */
+    if( label->len == 0 )
+    {
+        output_length = ~0;
+        memset( output, 0, output_size );
+        actual_status = psa_asymmetric_decrypt( slot, alg,
+                                                input_data->x, input_data->len,
+                                                NULL, label->len,
+                                                output, output_size,
+                                                &output_length );
+        TEST_ASSERT( actual_status == expected_status );
+        TEST_ASSERT( output_length <= output_size );
+    }
 
 exit:
     psa_destroy_key( slot );

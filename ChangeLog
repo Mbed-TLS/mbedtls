@@ -58,6 +58,8 @@ Bugfix
    * Fix compilation warnings with IAR toolchain, on 32 bit platform.
      Reported by rahmanih in #683
    * Fix braces in mbedtls_memory_buffer_alloc_status(). Found by sbranden, #552.
+   * Added length checks to some TLS parsing functions. Found and fixed by
+     Philippe Antoine from Catena cyber. #1663.
 
 Changes
    * Changed CMake defaults for IAR to treat all compiler warnings as errors.
@@ -90,9 +92,6 @@ Changes
    * Support TLS testing in out-of-source builds using cmake. Fixes #1193.
    * Fix redundant declaration of mbedtls_ssl_list_ciphersuites. Raised by
      TrinityTonic. #1359.
-   * Adds of lengths checks in different functions (not a security issue as
-     original buffer is overgrown) thanks to Philippe Antoine from Catena
-     cyber. #1663.
 
 = mbed TLS 2.9.0 branch released 2018-04-30
 

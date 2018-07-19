@@ -116,7 +116,7 @@ hash/generic_sum$(EXEXT): hash/generic_sum.c $(DEP)
 # and it does not link with mbed TLS libraries.
 host/frontend$(EXEXT): host/frontend.c $(DEP) host/frontend-config.h ../include/mbedtls/serialize.h ../include/mbedtls/fsio.h
 	echo '  CC    host/frontend.c ../library/net_sockets.c ../library/fsio.c'
-	$(CC) -I. $(LOCAL_CFLAGS) $(CFLAGS) -DMBEDTLS_CONFIG_FILE="\"host/frontend-config.h\"" host/frontend.c ../library/net_sockets.c ../library/fsio.c $(LDFLAGS) -o $@
+	$(CC) -I. $(LOCAL_CFLAGS) $(CFLAGS) -DMBEDTLS_CONFIG_FILE="\"host/frontend-config.h\"" host/frontend.c ../library/net_sockets.c ../library/fsio.c $(LDFLAGS) -o $@ -lpthread
 
 pkey/dh_client$(EXEXT): pkey/dh_client.c $(DEP)
 	echo "  CC    pkey/dh_client.c"

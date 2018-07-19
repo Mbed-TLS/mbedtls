@@ -399,6 +399,11 @@ wait_client_done() {
     kill $DOG_PID >/dev/null 2>&1
     wait $DOG_PID
 
+    if [ "$ON_TARGET" = "1" ]; then
+        if grep '===FRONTEND_INACTIVE===' $CLI_OUT >/dev/null; then
+            echo "===CLIENT_TIMEOUT===" >> $CLI_OUT
+        fi
+    fi
     echo "EXIT: $CLI_EXIT" >> $CLI_OUT
 
     sleep $SRV_DELAY_SECONDS

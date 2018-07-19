@@ -58,10 +58,14 @@ typedef HANDLE SERIAL_HANDLE;
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <pthread.h>
 typedef int SERIAL_HANDLE;
 #define INVALID_SERIAL_HANDLE -1
 #define BAUD_RATE B9600
 #endif
+
+/* Host-target inactivity timeout in seconds. */
+#define COMM_INACTIVITY_TIMEOUT 10
 
 FILE * fdbg = NULL;
 static int exitcode = 0;
@@ -98,6 +102,8 @@ typedef enum {
     MBEDTLS_SERIALIZE_STATUS_OUT_OF_MEMORY = 2,
     /** An exit command has been received */
     MBEDTLS_SERIALIZE_STATUS_EXITED = 3,
+    /** Inactivity on the communication channel */
+    MBEDTLS_SERIALIZE_STATUS_INACTIVE = 4,
 } mbedtls_serialize_status_t;
 
 /** An input or output to a serialized function.
@@ -173,6 +179,7 @@ typedef struct {
     SERIAL_HANDLE write_fd; /**< File descriptor for output to the target */
     mbedtls_serialize_item_t *stack; /**< Stack of inputs */
     mbedtls_serialize_status_t status; /**< Frontend status */
+    uint8_t inactivity_counter; /**< frontend, target communication status */
 } mbedtls_serialize_context_t;
 
 /** Write data on the serialization channel.
@@ -191,6 +198,7 @@ static int mbedtls_serialize_write( mbedtls_serialize_context_t *ctx,
         length -= result;
         buffer += result;
     } while( length > 0 );
+    ctx->inactivity_counter = 0;
     return( 0 );
 }
 
@@ -217,6 +225,7 @@ static int mbedtls_serialize_read( mbedtls_serialize_context_t *ctx,
             token_count = 0;
             DUMP_CHAR( buffer[0] );
         }
+        ctx->inactivity_counter = 0;
     }
     do {
         n = read( ctx->read_fd, buffer, remaining );
@@ -228,6 +237,8 @@ static int mbedtls_serialize_read( mbedtls_serialize_context_t *ctx,
         remaining -= n;
         buffer += n;
     } while( remaining > 0 );
+
+    ctx->inactivity_counter = 0;
     return( 0 );
 }
 
@@ -1155,6 +1166,8 @@ static int mbedtls_serialize_frontend( mbedtls_serialize_context_t *ctx )
     {
         (void) mbedtls_serialize_pull( ctx );
     }
+    if( ctx->inactivity_counter == COMM_INACTIVITY_TIMEOUT )
+        ctx->status = MBEDTLS_SERIALIZE_STATUS_INACTIVE;
     close( ctx->read_fd );
     close( ctx->write_fd );
     return( ctx->status );
@@ -1276,6 +1289,20 @@ opt_done:
     return( 0 );
 }
 
+void * activity_monitor( void * param )
+{
+    mbedtls_serialize_context_t * ctx_p = (mbedtls_serialize_context_t *) param;
+    while( ctx_p->inactivity_counter < COMM_INACTIVITY_TIMEOUT )
+    {
+        sleep( 1 );
+        ctx_p->inactivity_counter++;
+    }
+    close( ctx_p->read_fd );
+    close( ctx_p->write_fd );
+
+    return( NULL );
+}
+
 
 int main(int argc, char** argv)
 {
@@ -1284,6 +1311,7 @@ int main(int argc, char** argv)
     mbedtls_serialize_context_t serialization_context = {0};
     int sub_args_len = -1;
     char *sub_args = NULL;
+    pthread_t tid;
 
     fdbg = stdout; //fopen("frontend.log", "w");
     if( read_args(
@@ -1305,7 +1333,15 @@ int main(int argc, char** argv)
     }
 
     serialization_context.status = MBEDTLS_SERIALIZE_STATUS_OK;
+    serialization_context.inactivity_counter = 0;
     serialization_context.read_fd = serialization_context.write_fd = port_open( serialization_port );
+
+    ret = pthread_create( &tid, NULL, activity_monitor, (void *)&serialization_context );
+    if( ret != 0 )
+    {
+        print_last_error( );
+        return( 1 );
+    }
 
     send_args(
             &serialization_context,
@@ -1317,7 +1353,20 @@ int main(int argc, char** argv)
 
     port_close( serialization_context.read_fd );
 
-    DBG( "Returning %d", exitcode );
+    /* Indicate reason for exit: inactivity between host and target.
+     * Any script running frontend can utilise this print for taking
+     * appropriate action. */
+    if( serialization_context.status == MBEDTLS_SERIALIZE_STATUS_INACTIVE )
+    {
+        ERR( "===FRONTEND_INACTIVE===" );
+        exitcode = 1;
+    }
+    else
+    {
+        serialization_context.inactivity_counter = COMM_INACTIVITY_TIMEOUT + 1;
+        pthread_join( tid, NULL );
+    }
+
     return( exitcode );
 }
 

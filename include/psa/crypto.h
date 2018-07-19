@@ -285,12 +285,18 @@ typedef int32_t psa_status_t;
  * depend on the validity of the padding. */
 #define PSA_ERROR_INVALID_PADDING       ((psa_status_t)16)
 
+/** The generator has insufficient capacity left.
+ *
+ * Once a function returns this error, attempts to read from the
+ * generator will always return this error. */
+#define PSA_ERROR_INSUFFICIENT_CAPACITY ((psa_status_t)17)
+
 /** An error occurred that does not correspond to any defined
  * failure cause.
  *
  * Implementations may use this error code if none of the other standard
  * error codes are applicable. */
-#define PSA_ERROR_UNKNOWN_ERROR         ((psa_status_t)17)
+#define PSA_ERROR_UNKNOWN_ERROR         ((psa_status_t)18)
 
 /**
  * \brief Library initialization.
@@ -359,6 +365,13 @@ typedef uint32_t psa_key_type_t;
  * This size can be calculated with #PSA_HASH_SIZE(\c alg) where
  * \c alg is the HMAC algorithm or the underlying hash algorithm. */
 #define PSA_KEY_TYPE_HMAC                       ((psa_key_type_t)0x02000001)
+
+/** A secret for key derivation.
+ *
+ * The key policy determines which key derivation algorithm the key
+ * can be used for.
+ */
+#define PSA_KEY_TYPE_DERIVE                     ((psa_key_type_t)0x02000101)
 
 /** Key for an cipher, AEAD or MAC algorithm based on the AES block cipher.
  *
@@ -973,6 +986,36 @@ typedef uint32_t psa_algorithm_t;
      ((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH :      \
      0)
 
+#define PSA_ALG_HKDF_BASE                       ((psa_algorithm_t)0x30000100)
+/** Macro to build an HKDF algorithm.
+ *
+ * For example, `PSA_ALG_HKDF(PSA_ALG_SHA256)` is HKDF using HMAC-SHA-256.
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
+ *
+ * \return              The corresponding HKDF algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      hash algorithm.
+ */
+#define PSA_ALG_HKDF(hash_alg)                                  \
+    (PSA_ALG_HKDF_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+/** Whether the specified algorithm is an HKDF algorithm.
+ *
+ * HKDF is a family of key derivation algorithms that are based on a hash
+ * function and the HMAC construction.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \c alg is an HKDF algorithm, 0 otherwise.
+ *         This macro may return either 0 or 1 if \c alg is not a supported
+ *         key derivation algorithm identifier.
+ */
+#define PSA_ALG_IS_HKDF(alg)                            \
+    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_HKDF_BASE)
+#define PSA_ALG_HKDF_GET_HASH(hkdf_alg)                         \
+    (PSA_ALG_CATEGORY_HASH | ((hkdf_alg) & PSA_ALG_HASH_MASK))
+
 /**@}*/
 
 /** \defgroup key_management Key management
@@ -1208,6 +1251,10 @@ typedef uint32_t psa_key_usage_t;
  * For a key pair, this concerns the public key.
  */
 #define PSA_KEY_USAGE_VERIFY                    ((psa_key_usage_t)0x00000800)
+
+/** Whether the key may be used to derive other keys.
+ */
+#define PSA_KEY_USAGE_DERIVE                    ((psa_key_usage_t)0x00001000)
 
 /** The type of the key policy data structure.
  *
@@ -2166,17 +2213,17 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_aead_encrypt( psa_key_slot_t key,
-                               psa_algorithm_t alg,
-                               const uint8_t *nonce,
-                               size_t nonce_length,
-                               const uint8_t *additional_data,
-                               size_t additional_data_length,
-                               const uint8_t *plaintext,
-                               size_t plaintext_length,
-                               uint8_t *ciphertext,
-                               size_t ciphertext_size,
-                               size_t *ciphertext_length );
+psa_status_t psa_aead_encrypt(psa_key_slot_t key,
+                              psa_algorithm_t alg,
+                              const uint8_t *nonce,
+                              size_t nonce_length,
+                              const uint8_t *additional_data,
+                              size_t additional_data_length,
+                              const uint8_t *plaintext,
+                              size_t plaintext_length,
+                              uint8_t *ciphertext,
+                              size_t ciphertext_size,
+                              size_t *ciphertext_length);
 
 /** Process an authenticated decryption operation.
  *
@@ -2219,17 +2266,17 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_aead_decrypt( psa_key_slot_t key,
-                               psa_algorithm_t alg,
-                               const uint8_t *nonce,
-                               size_t nonce_length,
-                               const uint8_t *additional_data,
-                               size_t additional_data_length,
-                               const uint8_t *ciphertext,
-                               size_t ciphertext_length,
-                               uint8_t *plaintext,
-                               size_t plaintext_size,
-                               size_t *plaintext_length );
+psa_status_t psa_aead_decrypt(psa_key_slot_t key,
+                              psa_algorithm_t alg,
+                              const uint8_t *nonce,
+                              size_t nonce_length,
+                              const uint8_t *additional_data,
+                              size_t additional_data_length,
+                              const uint8_t *ciphertext,
+                              size_t ciphertext_length,
+                              uint8_t *plaintext,
+                              size_t plaintext_size,
+                              size_t *plaintext_length);
 
 /**@}*/
 
@@ -2436,6 +2483,228 @@ psa_status_t psa_asymmetric_decrypt(psa_key_slot_t key,
                                     uint8_t *output,
                                     size_t output_size,
                                     size_t *output_length);
+
+/**@}*/
+
+/** \defgroup generation Generators
+ * @{
+ */
+
+/** The type of the state data structure for generators.
+ *
+ * Before calling any function on a generator, the application must
+ * initialize it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ *   \code
+ *   psa_crypto_generator_t generator;
+ *   memset(&generator, 0, sizeof(generator));
+ *   \endcode
+ * - Initialize the structure to logical zero values, for example:
+ *   \code
+ *   psa_crypto_generator_t generator = {0};
+ *   \endcode
+ * - Initialize the structure to the initializer #PSA_CRYPTO_GENERATOR_INIT,
+ *   for example:
+ *   \code
+ *   psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+ *   \endcode
+ * - Assign the result of the function psa_crypto_generator_init()
+ *   to the structure, for example:
+ *   \code
+ *   psa_crypto_generator_t generator;
+ *   generator = psa_crypto_generator_init();
+ *   \endcode
+ *
+ * This is an implementation-defined \c struct. Applications should not
+ * make any assumptions about the content of this structure except
+ * as directed by the documentation of a specific implementation.
+ */
+typedef struct psa_crypto_generator_s psa_crypto_generator_t;
+
+/** \def PSA_CRYPTO_GENERATOR_INIT
+ *
+ * This macro returns a suitable initializer for a generator object
+ * of type #psa_crypto_generator_t.
+ */
+#ifdef __DOXYGEN_ONLY__
+/* This is an example definition for documentation purposes.
+ * Implementations should define a suitable value in `crypto_struct.h`.
+ */
+#define PSA_CRYPTO_GENERATOR_INIT {0}
+#endif
+
+/** Return an initial value for a generator object.
+ */
+static psa_crypto_generator_t psa_crypto_generator_init(void);
+
+/** Retrieve the current capacity of a generator.
+ *
+ * The capacity of a generator is the maximum number of bytes that it can
+ * return. Reading *N* bytes from a generator reduces its capacity by *N*.
+ *
+ * \param[in] generator     The generator to query.
+ * \param[out] capacity     On success, the capacity of the generator.
+ *
+ * \retval PSA_SUCCESS
+ * \retval PSA_ERROR_BAD_STATE
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ */
+psa_status_t psa_get_generator_capacity(const psa_crypto_generator_t *generator,
+                                        size_t *capacity);
+
+/** Read some data from a generator.
+ *
+ * This function reads and returns a sequence of bytes from a generator.
+ * The data that is read is discarded from the generator. The generator's
+ * capacity is decreased by the number of bytes read.
+ *
+ * \param[in,out] generator The generator object to read from.
+ * \param[out] output       Buffer where the generator output will be
+ *                          written.
+ * \param output_length     Number of bytes to output.
+ *
+ * \retval PSA_SUCCESS
+ * \retval PSA_ERROR_INSUFFICIENT_CAPACITY
+ *                          There were fewer than \p output_length bytes
+ *                          in the generator. Note that in this case, no
+ *                          output is written to the output buffer.
+ *                          The generator's capacity is set to 0, thus
+ *                          subsequent calls to this function will not
+ *                          succeed, even with a smaller output buffer.
+ * \retval PSA_ERROR_BAD_STATE
+ * \retval PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
+                                uint8_t *output,
+                                size_t output_length);
+
+/** Create a symmetric key from data read from a generator.
+ *
+ * This function reads a sequence of bytes from a generator and imports
+ * these bytes as a key.
+ * The data that is read is discarded from the generator. The generator's
+ * capacity is decreased by the number of bytes read.
+ *
+ * This function is equivalent to calling #psa_generator_read and
+ * passing the resulting output to #psa_import_key, but
+ * if the implementation provides an isolation boundary then
+ * the key material is not exposed outside the isolation boundary.
+ *
+ * \param key               Slot where the key will be stored. This must be a
+ *                          valid slot for a key of the chosen type. It must
+ *                          be unoccupied.
+ * \param type              Key type (a \c PSA_KEY_TYPE_XXX value).
+ *                          This must be a symmetric key type.
+ * \param bits              Key size in bits.
+ * \param[in,out] generator The generator object to read from.
+ *
+ * \retval PSA_SUCCESS
+ *         Success.
+ * \retval PSA_ERROR_INSUFFICIENT_CAPACITY
+ *                          There were fewer than \p output_length bytes
+ *                          in the generator. Note that in this case, no
+ *                          output is written to the output buffer.
+ *                          The generator's capacity is set to 0, thus
+ *                          subsequent calls to this function will not
+ *                          succeed, even with a smaller output buffer.
+ * \retval PSA_ERROR_NOT_SUPPORTED
+ *         The key type or key size is not supported, either by the
+ *         implementation in general or in this particular slot.
+ * \retval PSA_ERROR_BAD_STATE
+ * \retval PSA_ERROR_INVALID_ARGUMENT
+ *         The key slot is invalid.
+ * \retval PSA_ERROR_OCCUPIED_SLOT
+ *         There is already a key in the specified slot.
+ * \retval PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval PSA_ERROR_INSUFFICIENT_STORAGE
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_generator_import_key(psa_key_slot_t key,
+                                      psa_key_type_t type,
+                                      size_t bits,
+                                      psa_crypto_generator_t *generator);
+
+/** Abort a generator.
+ *
+ * Once a generator has been aborted, its capacity is zero.
+ * Aborting a generator frees all associated resources except for the
+ * \c generator structure itself.
+ *
+ * This function may be called at any time as long as the generator
+ * object has been initialized to #PSA_CRYPTO_GENERATOR_INIT, to
+ * psa_crypto_generator_init() or a zero value. In particular, it is valid
+ * to call psa_generator_abort() twice, or to call psa_generator_abort()
+ * on a generator that has not been set up.
+ *
+ * Once aborted, the generator object may be called.
+ *
+ * \param[in,out] generator    The generator to abort.
+ *
+ * \retval PSA_SUCCESS
+ * \retval PSA_ERROR_BAD_STATE
+ * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval PSA_ERROR_HARDWARE_FAILURE
+ * \retval PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
+
+/**@}*/
+
+/** \defgroup derivation Key derivation
+ * @{
+ */
+
+/** Set up a key derivation operation.
+ *
+ * A key derivation algorithm takes three inputs: a secret input \p key and
+ * two non-secret inputs \p label and p salt.
+ * The result of this function is a byte generator which can
+ * be used to produce keys and other cryptographic material.
+ *
+ * The role of \p label and \p salt is as follows:
+ * - For HKDF (#PSA_ALG_HKDF), \p salt is the salt used in the "extract" step
+ *   and \p label is the info string used in the "expand" step.
+ *
+ * \param[in,out] generator       The generator object to set up. It must
+ *                                have been initialized to .
+ * \param key                     Slot containing the secret key to use.
+ * \param alg                     The key derivation algorithm to compute
+ *                                (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_KEY_DERIVATION(\p alg) is true).
+ * \param[in] salt                Salt to use.
+ * \param salt_length             Size of the \p salt buffer in bytes.
+ * \param[in] label               Label to use.
+ * \param label_length            Size of the \p label buffer in bytes.
+ * \param capacity                The maximum number of bytes that the
+ *                                generator will be able to provide.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c key is not compatible with \c alg,
+ *         or \p capacity is too large for the specified algorithm and key.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \c alg is not supported or is not a key derivation algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
+                                psa_key_type_t key,
+                                psa_algorithm_t alg,
+                                const uint8_t *salt,
+                                size_t salt_length,
+                                const uint8_t *label,
+                                size_t label_length,
+                                size_t capacity);
 
 /**@}*/
 

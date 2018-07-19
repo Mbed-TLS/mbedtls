@@ -498,8 +498,9 @@ static psa_status_t prepare_raw_data_slot( psa_key_type_t type,
             break;
 #if defined(MBEDTLS_MD_C)
         case PSA_KEY_TYPE_HMAC:
-            break;
 #endif
+        case PSA_KEY_TYPE_DERIVE:
+            break;
 #if defined(MBEDTLS_AES_C)
         case PSA_KEY_TYPE_AES:
             if( bits != 128 && bits != 192 && bits != 256 )
@@ -1026,6 +1027,12 @@ psa_status_t psa_hash_update( psa_hash_operation_t *operation,
                               size_t input_length )
 {
     int ret;
+
+    /* Don't require hash implementations to behave correctly on a
+     * zero-length input, which may have an invalid pointer. */
+    if( input_length == 0 )
+        return( PSA_SUCCESS );
+
     switch( operation->alg )
     {
 #if defined(MBEDTLS_MD2_C)
@@ -1076,6 +1083,7 @@ psa_status_t psa_hash_update( psa_hash_operation_t *operation,
             ret = MBEDTLS_ERR_MD_BAD_INPUT_DATA;
             break;
     }
+
     if( ret != 0 )
         psa_hash_abort( operation );
     return( mbedtls_to_psa_error( ret ) );
@@ -1318,8 +1326,9 @@ static psa_status_t psa_mac_init( psa_mac_operation_t *operation,
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
-        status = psa_hash_setup( &operation->ctx.hmac.hash_ctx,
-                                 PSA_ALG_HMAC_HASH( alg ) );
+        /* We'll set up the hash operation later in psa_hmac_setup_internal. */
+        operation->ctx.hmac.hash_ctx.alg = 0;
+        status = PSA_SUCCESS;
     }
     else
 #endif /* MBEDTLS_MD_C */
@@ -1332,6 +1341,14 @@ static psa_status_t psa_mac_init( psa_mac_operation_t *operation,
         memset( operation, 0, sizeof( *operation ) );
     return( status );
 }
+
+#if defined(MBEDTLS_MD_C)
+static psa_status_t psa_hmac_abort_internal( psa_hmac_internal_data *hmac )
+{
+    mbedtls_zeroize( hmac->opad, sizeof( hmac->opad ) );
+    return( psa_hash_abort( &hmac->hash_ctx ) );
+}
+#endif /* MBEDTLS_MD_C */
 
 psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
 {
@@ -1353,12 +1370,7 @@ psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
-        size_t block_size =
-            psa_get_hash_block_size( PSA_ALG_HMAC_HASH( operation->alg ) );
-        if( block_size == 0 )
-            goto bad_state;
-        psa_hash_abort( &operation->ctx.hmac.hash_ctx );
-        mbedtls_zeroize( operation->ctx.hmac.opad, block_size );
+        psa_hmac_abort_internal( &operation->ctx.hmac );
     }
     else
 #endif /* MBEDTLS_MD_C */
@@ -1408,43 +1420,49 @@ static int psa_cmac_setup( psa_mac_operation_t *operation,
 #endif /* MBEDTLS_CMAC_C */
 
 #if defined(MBEDTLS_MD_C)
-static int psa_hmac_setup( psa_mac_operation_t *operation,
-                           psa_key_type_t key_type,
-                           key_slot_t *slot,
-                           psa_algorithm_t alg )
+static psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data *hmac,
+                                             const uint8_t *key,
+                                             size_t key_length,
+                                             psa_algorithm_t hash_alg )
 {
     unsigned char ipad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
-    unsigned char *opad = operation->ctx.hmac.opad;
     size_t i;
-    size_t block_size =
-        psa_get_hash_block_size( PSA_ALG_HMAC_HASH( alg ) );
-    unsigned int digest_size =
-        PSA_HASH_SIZE( PSA_ALG_HMAC_HASH( alg ) );
-    size_t key_length = slot->data.raw.bytes;
+    size_t hash_size = PSA_HASH_SIZE( hash_alg );
+    size_t block_size = psa_get_hash_block_size( hash_alg );
     psa_status_t status;
 
-    if( block_size == 0 || digest_size == 0 )
+    /* Sanity checks on block_size, to guarantee that there won't be a buffer
+     * overflow below. This should never trigger if the hash algorithm
+     * is implemented correctly. */
+    /* The size checks against the ipad and opad buffers cannot be written
+     * `block_size > sizeof( ipad ) || block_size > sizeof( hmac->opad )`
+     * because that triggers -Wlogical-op on GCC 7.3. */
+    if( block_size > sizeof( ipad ) )
+        return( PSA_ERROR_NOT_SUPPORTED );
+    if( block_size > sizeof( hmac->opad ) )
+        return( PSA_ERROR_NOT_SUPPORTED );
+    if( block_size < hash_size )
         return( PSA_ERROR_NOT_SUPPORTED );
 
-    if( key_type != PSA_KEY_TYPE_HMAC )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
-    operation->mac_size = digest_size;
-
-    /* The hash was started earlier in psa_mac_init. */
     if( key_length > block_size )
     {
-        status = psa_hash_update( &operation->ctx.hmac.hash_ctx,
-                                  slot->data.raw.data, slot->data.raw.bytes );
+        status = psa_hash_setup( &hmac->hash_ctx, hash_alg );
         if( status != PSA_SUCCESS )
-            return( status );
-        status = psa_hash_finish( &operation->ctx.hmac.hash_ctx,
+            goto cleanup;
+        status = psa_hash_update( &hmac->hash_ctx, key, key_length );
+        if( status != PSA_SUCCESS )
+            goto cleanup;
+        status = psa_hash_finish( &hmac->hash_ctx,
                                   ipad, sizeof( ipad ), &key_length );
         if( status != PSA_SUCCESS )
-            return( status );
+            goto cleanup;
     }
-    else
-        memcpy( ipad, slot->data.raw.data, slot->data.raw.bytes );
+    /* A 0-length key is not commonly used in HMAC when used as a MAC,
+     * but it is permitted. It is common when HMAC is used in HKDF, for
+     * example. Don't call `memcpy` in the 0-length because `key` could be
+     * an invalid pointer which would make the behavior undefined. */
+    else if( key_length != 0 )
+        memcpy( ipad, key, key_length );
 
     /* ipad contains the key followed by garbage. Xor and fill with 0x36
      * to create the ipad value. */
@@ -1455,22 +1473,17 @@ static int psa_hmac_setup( psa_mac_operation_t *operation,
     /* Copy the key material from ipad to opad, flipping the requisite bits,
      * and filling the rest of opad with the requisite constant. */
     for( i = 0; i < key_length; i++ )
-        opad[i] = ipad[i] ^ 0x36 ^ 0x5C;
-    memset( opad + key_length, 0x5C, block_size - key_length );
+        hmac->opad[i] = ipad[i] ^ 0x36 ^ 0x5C;
+    memset( hmac->opad + key_length, 0x5C, block_size - key_length );
 
-    status = psa_hash_setup( &operation->ctx.hmac.hash_ctx,
-                             PSA_ALG_HMAC_HASH( alg ) );
+    status = psa_hash_setup( &hmac->hash_ctx, hash_alg );
     if( status != PSA_SUCCESS )
         goto cleanup;
 
-    status = psa_hash_update( &operation->ctx.hmac.hash_ctx, ipad,
-                              block_size );
+    status = psa_hash_update( &hmac->hash_ctx, ipad, block_size );
 
 cleanup:
     mbedtls_zeroize( ipad, key_length );
-    /* opad is in the context. It needs to stay in memory if this function
-     * succeeds, and it will be wiped by psa_mac_abort() called from
-     * psa_mac_setup in the error case. */
 
     return( status );
 }
@@ -1518,7 +1531,32 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HMAC( alg ) )
     {
-        status = psa_hmac_setup( operation, slot->type, slot, alg );
+        psa_algorithm_t hash_alg = PSA_ALG_HMAC_HASH( alg );
+        if( hash_alg == 0 )
+        {
+            status = PSA_ERROR_NOT_SUPPORTED;
+            goto exit;
+        }
+
+        operation->mac_size = PSA_HASH_SIZE( hash_alg );
+        /* Sanity check. This shouldn't fail on a valid configuration. */
+        if( operation->mac_size == 0 ||
+            operation->mac_size > sizeof( operation->ctx.hmac.opad ) )
+        {
+            status = PSA_ERROR_NOT_SUPPORTED;
+            goto exit;
+        }
+
+        if( slot->type != PSA_KEY_TYPE_HMAC )
+        {
+            status = PSA_ERROR_INVALID_ARGUMENT;
+            goto exit;
+        }
+
+        status = psa_hmac_setup_internal( &operation->ctx.hmac,
+                                          slot->data.raw.data,
+                                          slot->data.raw.bytes,
+                                          hash_alg );
     }
     else
 #endif /* MBEDTLS_MD_C */
@@ -1592,12 +1630,46 @@ cleanup:
     return( status );
 }
 
+#if defined(MBEDTLS_MD_C)
+static psa_status_t psa_hmac_finish_internal( psa_hmac_internal_data *hmac,
+                                              uint8_t *mac,
+                                              size_t mac_size )
+{
+    unsigned char tmp[MBEDTLS_MD_MAX_SIZE];
+    psa_algorithm_t hash_alg = hmac->hash_ctx.alg;
+    size_t hash_size = 0;
+    size_t block_size = psa_get_hash_block_size( hash_alg );
+    psa_status_t status;
+
+    status = psa_hash_finish( &hmac->hash_ctx, tmp, sizeof( tmp ), &hash_size );
+    if( status != PSA_SUCCESS )
+        return( status );
+    /* From here on, tmp needs to be wiped. */
+
+    status = psa_hash_setup( &hmac->hash_ctx, hash_alg );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_hash_update( &hmac->hash_ctx, hmac->opad, block_size );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_hash_update( &hmac->hash_ctx, tmp, hash_size );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    status = psa_hash_finish( &hmac->hash_ctx, mac, mac_size, &hash_size );
+
+exit:
+    mbedtls_zeroize( tmp, hash_size );
+    return( status );
+}
+#endif /* MBEDTLS_MD_C */
+
 static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
                                              uint8_t *mac,
                                              size_t mac_size )
 {
-    psa_status_t status;
-
     if( ! operation->key_set )
         return( PSA_ERROR_BAD_STATE );
     if( operation->iv_required && ! operation->iv_set )
@@ -1617,41 +1689,8 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
-        unsigned char tmp[MBEDTLS_MD_MAX_SIZE];
-        unsigned char *opad = operation->ctx.hmac.opad;
-        size_t hash_size = 0;
-        size_t block_size =
-            psa_get_hash_block_size( PSA_ALG_HMAC_HASH( operation->alg ) );
-
-        if( block_size == 0 )
-            return( PSA_ERROR_NOT_SUPPORTED );
-
-        status = psa_hash_finish( &operation->ctx.hmac.hash_ctx, tmp,
-                                  sizeof( tmp ), &hash_size );
-        if( status != PSA_SUCCESS )
-            return( status );
-        /* From here on, tmp needs to be wiped. */
-
-        status = psa_hash_setup( &operation->ctx.hmac.hash_ctx,
-                                 PSA_ALG_HMAC_HASH( operation->alg ) );
-        if( status != PSA_SUCCESS )
-            goto hmac_cleanup;
-
-        status = psa_hash_update( &operation->ctx.hmac.hash_ctx, opad,
-                                  block_size );
-        if( status != PSA_SUCCESS )
-            goto hmac_cleanup;
-
-        status = psa_hash_update( &operation->ctx.hmac.hash_ctx, tmp,
-                                  hash_size );
-        if( status != PSA_SUCCESS )
-            goto hmac_cleanup;
-
-        status = psa_hash_finish( &operation->ctx.hmac.hash_ctx, mac,
-                                  mac_size, &hash_size );
-    hmac_cleanup:
-        mbedtls_zeroize( tmp, hash_size );
-        return( status );
+        return( psa_hmac_finish_internal( &operation->ctx.hmac,
+                                          mac, mac_size ) );
     }
     else
 #endif /* MBEDTLS_MD_C */
@@ -2639,7 +2678,8 @@ psa_status_t psa_set_key_policy( psa_key_slot_t key,
                              PSA_KEY_USAGE_ENCRYPT |
                              PSA_KEY_USAGE_DECRYPT |
                              PSA_KEY_USAGE_SIGN |
-                             PSA_KEY_USAGE_VERIFY ) ) != 0 )
+                             PSA_KEY_USAGE_VERIFY |
+                             PSA_KEY_USAGE_DERIVE ) ) != 0 )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     slot->policy = *policy;
@@ -2976,7 +3016,304 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
 
 
 /****************************************************************/
-/* Key generation */
+/* Generators */
+/****************************************************************/
+
+psa_status_t psa_generator_abort( psa_crypto_generator_t *generator )
+{
+    psa_status_t status = PSA_SUCCESS;
+    if( generator->alg == 0 )
+    {
+        /* The object has (apparently) been initialized but it is not
+         * in use. It's ok to call abort on such an object, and there's
+         * nothing to do. */
+    }
+    else
+#if defined(MBEDTLS_MD_C)
+    if( PSA_ALG_IS_HKDF( generator->alg ) )
+    {
+        mbedtls_free( generator->ctx.hkdf.info );
+        status = psa_hmac_abort_internal( &generator->ctx.hkdf.hmac );
+    }
+    else
+#endif /* MBEDTLS_MD_C */
+    {
+        status = PSA_ERROR_BAD_STATE;
+    }
+    memset( generator, 0, sizeof( *generator ) );
+    return( status );
+}
+
+
+psa_status_t psa_get_generator_capacity(const psa_crypto_generator_t *generator,
+                                        size_t *capacity)
+{
+    *capacity = generator->capacity;
+    return( PSA_SUCCESS );
+}
+
+#if defined(MBEDTLS_MD_C)
+/* Read some bytes from an HKDF-based generator. This performs a chunk
+ * of the expand phase of the HKDF algorithm. */
+static psa_status_t psa_generator_hkdf_read( psa_hkdf_generator_t *hkdf,
+                                             psa_algorithm_t hash_alg,
+                                             uint8_t *output,
+                                             size_t output_length )
+{
+    uint8_t hash_length = PSA_HASH_SIZE( hash_alg );
+    psa_status_t status;
+
+    while( output_length != 0 )
+    {
+        /* Copy what remains of the current block */
+        uint8_t n = hash_length - hkdf->offset_in_block;
+        if( n > output_length )
+            n = (uint8_t) output_length;
+        memcpy( output, hkdf->output_block + hkdf->offset_in_block, n );
+        output += n;
+        output_length -= n;
+        hkdf->offset_in_block += n;
+        if( output_length == 0 )
+            break;
+        /* We can't be wanting more output after block 0xff, otherwise
+         * the capacity check in psa_generator_read() would have
+         * prevented this call. It could happen only if the generator
+         * object was corrupted or if this function is called directly
+         * inside the library. */
+        if( hkdf->block_number == 0xff )
+            return( PSA_ERROR_BAD_STATE );
+
+        /* We need a new block */
+        ++hkdf->block_number;
+        hkdf->offset_in_block = 0;
+        status = psa_hmac_setup_internal( &hkdf->hmac,
+                                          hkdf->prk, hash_length,
+                                          hash_alg );
+        if( status != PSA_SUCCESS )
+            return( status );
+        if( hkdf->block_number != 1 )
+        {
+            status = psa_hash_update( &hkdf->hmac.hash_ctx,
+                                      hkdf->output_block,
+                                      hash_length );
+            if( status != PSA_SUCCESS )
+                return( status );
+        }
+        status = psa_hash_update( &hkdf->hmac.hash_ctx,
+                                  hkdf->info,
+                                  hkdf->info_length );
+        if( status != PSA_SUCCESS )
+            return( status );
+        status = psa_hash_update( &hkdf->hmac.hash_ctx,
+                                  &hkdf->block_number, 1 );
+        if( status != PSA_SUCCESS )
+            return( status );
+        status = psa_hmac_finish_internal( &hkdf->hmac,
+                                           hkdf->output_block,
+                                           sizeof( hkdf->output_block ) );
+        if( status != PSA_SUCCESS )
+            return( status );
+    }
+
+    return( PSA_SUCCESS );
+}
+#endif /* MBEDTLS_MD_C */
+
+psa_status_t psa_generator_read( psa_crypto_generator_t *generator,
+                                 uint8_t *output,
+                                 size_t output_length )
+{
+    psa_status_t status;
+
+    if( output_length > generator->capacity )
+    {
+        generator->capacity = 0;
+        /* Go through the error path to wipe all confidential data now
+         * that the generator object is useless. */
+        status = PSA_ERROR_INSUFFICIENT_CAPACITY;
+        goto exit;
+    }
+    if( output_length == 0 &&
+        generator->capacity == 0 && generator->alg == 0 )
+    {
+        /* Edge case: this is a blank or finished generator, and 0
+         * bytes were requested. The right error in this case could
+         * be either INSUFFICIENT_CAPACITY or BAD_STATE. Return
+         * INSUFFICIENT_CAPACITY, which is right for a finished
+         * generator, for consistency with the case when
+         * output_length > 0. */
+        return( PSA_ERROR_INSUFFICIENT_CAPACITY );
+    }
+    generator->capacity -= output_length;
+
+#if defined(MBEDTLS_MD_C)
+    if( PSA_ALG_IS_HKDF( generator->alg ) )
+    {
+        psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( generator->alg );
+        status = psa_generator_hkdf_read( &generator->ctx.hkdf, hash_alg,
+                                          output, output_length );
+    }
+    else
+#endif /* MBEDTLS_MD_C */
+    {
+        return( PSA_ERROR_BAD_STATE );
+    }
+
+exit:
+    if( status != PSA_SUCCESS )
+    {
+        psa_generator_abort( generator );
+        memset( output, '!', output_length );
+    }
+    return( status );
+}
+
+#if defined(MBEDTLS_DES_C)
+static void psa_des_set_key_parity( uint8_t *data, size_t data_size )
+{
+    if( data_size >= 8 )
+        mbedtls_des_key_set_parity( data );
+    if( data_size >= 16 )
+        mbedtls_des_key_set_parity( data + 8 );
+    if( data_size >= 24 )
+        mbedtls_des_key_set_parity( data + 16 );
+}
+#endif /* MBEDTLS_DES_C */
+
+psa_status_t psa_generator_import_key( psa_key_slot_t key,
+                                       psa_key_type_t type,
+                                       size_t bits,
+                                       psa_crypto_generator_t *generator )
+{
+    uint8_t *data = NULL;
+    size_t bytes = PSA_BITS_TO_BYTES( bits );
+    psa_status_t status;
+
+    if( ! key_type_is_raw_bytes( type ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    if( bits % 8 != 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    data = mbedtls_calloc( 1, bytes );
+    if( data == NULL )
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+    status = psa_generator_read( generator, data, bytes );
+    if( status != PSA_SUCCESS )
+        goto exit;
+#if defined(MBEDTLS_DES_C)
+    if( type == PSA_KEY_TYPE_DES )
+        psa_des_set_key_parity( data, bytes );
+#endif /* MBEDTLS_DES_C */
+    status = psa_import_key( key, type, data, bytes );
+
+exit:
+    mbedtls_free( data );
+    return( status );
+}
+
+
+
+/****************************************************************/
+/* Key derivation */
+/****************************************************************/
+
+/* Set up an HKDF-based generator. This is exactly the extract phase
+ * of the HKDF algorithm. */
+static psa_status_t psa_generator_hkdf_setup( psa_hkdf_generator_t *hkdf,
+                                              key_slot_t *slot,
+                                              psa_algorithm_t hash_alg,
+                                              const uint8_t *salt,
+                                              size_t salt_length,
+                                              const uint8_t *label,
+                                              size_t label_length )
+{
+    psa_status_t status;
+    status = psa_hmac_setup_internal( &hkdf->hmac,
+                                      salt, salt_length,
+                                      PSA_ALG_HMAC_HASH( hash_alg ) );
+    if( status != PSA_SUCCESS )
+        return( status );
+    status = psa_hash_update( &hkdf->hmac.hash_ctx,
+                              slot->data.raw.data,
+                              slot->data.raw.bytes );
+    if( status != PSA_SUCCESS )
+        return( status );
+    status = psa_hmac_finish_internal( &hkdf->hmac,
+                                       hkdf->prk,
+                                       sizeof( hkdf->prk ) );
+    if( status != PSA_SUCCESS )
+        return( status );
+    hkdf->offset_in_block = PSA_HASH_SIZE( hash_alg );
+    hkdf->block_number = 0;
+    hkdf->info_length = label_length;
+    if( label_length != 0 )
+    {
+        hkdf->info = mbedtls_calloc( 1, label_length );
+        if( hkdf->info == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+        memcpy( hkdf->info, label, label_length );
+    }
+    return( PSA_SUCCESS );
+}
+
+psa_status_t psa_key_derivation( psa_crypto_generator_t *generator,
+                                 psa_key_type_t key,
+                                 psa_algorithm_t alg,
+                                 const uint8_t *salt,
+                                 size_t salt_length,
+                                 const uint8_t *label,
+                                 size_t label_length,
+                                 size_t capacity )
+{
+    key_slot_t *slot;
+    psa_status_t status;
+
+    if( generator->alg != 0 )
+        return( PSA_ERROR_BAD_STATE );
+
+    status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_DERIVE, alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+    if( slot->type != PSA_KEY_TYPE_DERIVE )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    if( ! PSA_ALG_IS_KEY_DERIVATION( alg ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+#if defined(MBEDTLS_MD_C)
+    if( PSA_ALG_IS_HKDF( alg ) )
+    {
+        psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( alg );
+        size_t hash_size = PSA_HASH_SIZE( hash_alg );
+        if( hash_size == 0 )
+            return( PSA_ERROR_NOT_SUPPORTED );
+        if( capacity > 255 * hash_size )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        status = psa_generator_hkdf_setup( &generator->ctx.hkdf,
+                                           slot,
+                                           hash_alg,
+                                           salt, salt_length,
+                                           label, label_length );
+    }
+    else
+#endif
+    {
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
+    /* Set generator->alg even on failure so that abort knows what to do. */
+    generator->alg = alg;
+    if( status == PSA_SUCCESS )
+        generator->capacity = capacity;
+    else
+        psa_generator_abort( generator );
+    return( status );
+}
+
+
+
+/****************************************************************/
+/* Random generation */
 /****************************************************************/
 
 psa_status_t psa_generate_random( uint8_t *output,
@@ -3017,13 +3354,8 @@ psa_status_t psa_generate_key( psa_key_slot_t key,
         }
 #if defined(MBEDTLS_DES_C)
         if( type == PSA_KEY_TYPE_DES )
-        {
-            mbedtls_des_key_set_parity( slot->data.raw.data );
-            if( slot->data.raw.bytes >= 16 )
-                mbedtls_des_key_set_parity( slot->data.raw.data + 8 );
-            if( slot->data.raw.bytes == 24 )
-                mbedtls_des_key_set_parity( slot->data.raw.data + 16 );
-        }
+            psa_des_set_key_parity( slot->data.raw.data,
+                                    slot->data.raw.bytes );
 #endif /* MBEDTLS_DES_C */
     }
     else

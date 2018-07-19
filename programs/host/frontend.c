@@ -1272,21 +1272,3 @@ int main(int argc, char** argv)
     return( exitcode );
 }
 
-int old_main( int argc, char **argv )
-{
-    mbedtls_serialize_context_t ctx = { .read_fd = 3, .write_fd = 4,
-                                        .stack = NULL,
-                                        .status = MBEDTLS_SERIALIZE_STATUS_OK};
-    fdbg = stdout; //fopen("frontend.log", "w");
-    /* If forked, parent passes rd/wr pipe descriptors via command line */
-    if ( argc == 3 )
-    {
-        ctx.read_fd = atoi(argv[1]);
-        ctx.write_fd = atoi(argv[2]);
-    }
-    if( getenv( "FRONTEND_DEBUG" ) )
-        debug_verbose = 1;
-    mbedtls_serialize_frontend( &ctx );
-    return( ctx.status != MBEDTLS_SERIALIZE_STATUS_EXITED );
-}
-

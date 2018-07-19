@@ -3142,6 +3142,18 @@ exit:
     return( status );
 }
 
+#if defined(MBEDTLS_DES_C)
+static void psa_des_set_key_parity( uint8_t *data, size_t data_size )
+{
+    if( data_size >= 8 )
+        mbedtls_des_key_set_parity( data );
+    if( data_size >= 16 )
+        mbedtls_des_key_set_parity( data + 8 );
+    if( data_size >= 24 )
+        mbedtls_des_key_set_parity( data + 16 );
+}
+#endif /* MBEDTLS_DES_C */
+
 psa_status_t psa_generator_import_key( psa_key_slot_t key,
                                        psa_key_type_t type,
                                        size_t bits,
@@ -3162,6 +3174,10 @@ psa_status_t psa_generator_import_key( psa_key_slot_t key,
     status = psa_generator_read( generator, data, bytes );
     if( status != PSA_SUCCESS )
         goto exit;
+#if defined(MBEDTLS_DES_C)
+    if( type == PSA_KEY_TYPE_DES )
+        psa_des_set_key_parity( data, bytes );
+#endif /* MBEDTLS_DES_C */
     status = psa_import_key( key, type, data, bytes );
 
 exit:
@@ -3312,13 +3328,8 @@ psa_status_t psa_generate_key( psa_key_slot_t key,
         }
 #if defined(MBEDTLS_DES_C)
         if( type == PSA_KEY_TYPE_DES )
-        {
-            mbedtls_des_key_set_parity( slot->data.raw.data );
-            if( slot->data.raw.bytes >= 16 )
-                mbedtls_des_key_set_parity( slot->data.raw.data + 8 );
-            if( slot->data.raw.bytes == 24 )
-                mbedtls_des_key_set_parity( slot->data.raw.data + 16 );
-        }
+            psa_des_set_key_parity( slot->data.raw.data,
+                                    slot->data.raw.bytes );
 #endif /* MBEDTLS_DES_C */
     }
     else

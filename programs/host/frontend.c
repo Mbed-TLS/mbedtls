@@ -1,12 +1,13 @@
 /*
  *  Host for offloaded functions
  *
- *  This program receives serialized function calls (see library/serialize.c)
- *  and executes them.
+ *  This program is the serialization (see library/serialize.c) agent that
+ *  runs on the host machine and executes serialized network and file system
+ *  calls requested by the target platform. Apart from network and file system
+ *  it also communicates command line arguments to the target. Communication
+ *  interface is serial device based.
  *
- *  See documentation of main() for command line argument details and
- *  program behaviour.
- *
+ *  See documentation of main() for command line argument details.
  *  See library/serialize.c for a description of the serialization format.
  *
  *  Copyright (C) 2017, ARM Limited, All Rights Reserved
@@ -27,11 +28,6 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#include "frontend-config.h"
-
-#include <stdint.h>
-#include <errno.h>
-
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -42,22 +38,60 @@
 #define mbedtls_free      free
 #define mbedtls_fprintf   fprintf
 #include <unistd.h>
+#include <getopt.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #endif
 
-FILE * fdbg = NULL;
+#include <stdint.h>
+#include <errno.h>
+#include <termios.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <pthread.h>
 
-static int debug_verbose = 0;
-#define DBG( fmt, ... ) do {                                                \
-               fprintf( fdbg, "%s:%d:%s: " fmt "\n",                  \
-                        __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__ );  \
-               fflush( fdbg ); \
-} while (0)
+#define USAGE \
+    "\n usage: ./frontend <options>\n"                                      \
+    "\n options:\n"                                                         \
+    "    -p %%s      Serial port. Mutually exclusive with '-r' and '-w'.\n" \
+    "    -b %%s      Baud rate. Required with '-p'.\n"                      \
+    "    -r %%s      Target to host file descriptor. Used for testing.\n"   \
+    "                Usually a pipe to read serialization requests from\n"  \
+    "                a test application.\n"                                 \
+    "    -w %%s      Host to target file descriptor. Used for testing.\n"   \
+    "                Usually a pipe to write serialization response to\n"   \
+    "                the test application. Required when '-r' is present.\n"\
+    "    -d          Optional: enable debug logs.\n"                        \
+    "    -l %%s      Optional: Log file name. Default: stdout\n"            \
 
+#include "frontend-config.h"
 #include "mbedtls/serialize.h"
 #include "mbedtls/net_sockets.h"
 #include "mbedtls/fsio.h"
+
+/** Serial device handle */
+typedef int serial_handle_t;
+#define INVALID_SERIAL_HANDLE -1
+
+FILE * fdbg = NULL;
+static int enable_debugs = 0;
+
+#define PRINT( tag, fmt, ... ) do {                                         \
+               fprintf( fdbg, tag " %s:%d:%s: " fmt "\n",                   \
+                        __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__ );  \
+               fflush( fdbg );                                              \
+} while ( 0 )
+
+#define EXPAND( x ) x
+
+#define DBG( fmt, ... )     do {                            \
+    if( enable_debugs )                                     \
+        EXPAND( PRINT( "Debug:", fmt, ##__VA_ARGS__ ) );    \
+} while ( 0 )
+
+#define ERR( fmt, ... )     EXPAND( PRINT( "Error:", fmt, ##__VA_ARGS__ ) )
+#define PRINT_LAST_ERROR() ERR( "%s", strerror( errno ) )
 
 /** State of the offloading frontend. */
 typedef enum {
@@ -146,8 +180,8 @@ static void set_item_uint32( mbedtls_serialize_item_t *item, uint32_t value )
  * This data structure represents one connection to a target.
  */
 typedef struct {
-    int read_fd; /**< File descriptor for input from the target */
-    int write_fd; /**< File descriptor for output to the target */
+    serial_handle_t read_fd; /**< File descriptor for input from the target */
+    serial_handle_t write_fd; /**< File descriptor for output to the target */
     mbedtls_serialize_item_t *stack; /**< Stack of inputs */
     mbedtls_serialize_status_t status; /**< Frontend status */
 } mbedtls_serialize_context_t;
@@ -518,9 +552,9 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                 ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
                 mode = item_buffer( inputs[0] );
                 path = item_buffer( inputs[1] );
-                DBG( "open file [%s] mode [%s]", path, mode);
+                DBG( "open file [%s] mode [%s]", path, mode );
                 file_id = alloc_file_context();
-                DBG( "allocated file id [%d]", file_id);
+                DBG( "allocated file id [%d]", file_id );
                 if ( file_id != -1 )
                 {
                     FILE * file = mbedtls_fopen( path, mode );
@@ -702,9 +736,9 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
                 ALLOC_OUTPUT( 0, sizeof (int32_t) );
                 ret = MBEDTLS_ERR_SERIALIZE_BAD_OUTPUT;
                 path = item_buffer( inputs[0] );
-                DBG( "open dir [%s]", path);
+                DBG( "open dir [%s]", path );
                 file_id = alloc_file_context();
-                DBG( "allocated dir id [%d]", file_id);
+                DBG( "allocated dir id [%d]", file_id );
                 if ( file_id != -1 )
                 {
                     DIR * dir = mbedtls_opendir( path );
@@ -966,28 +1000,379 @@ static void mbedtls_serialize_frontend( mbedtls_serialize_context_t *ctx )
     close( ctx->write_fd );
 }
 
+/**
+ * Sends the commandline args (except for the argv[0] which depends on the
+ * target program) to the target. The protocol is:
+ * - send the four byte integer value denoting the size of the args buffer
+ * - send the args buffer (if size > 0)
+ * If no arguments have been passed for the target program only the four-byte
+ * zero value is sent.
+ * @param args_size Number of chars stored in the args buffer
+ * @param args A buffer containing the commandline arguments concatenated
+ *             maintaining the NUL characters at the end of each argument
+ *             (including the last one)
+ */
+static void send_args( mbedtls_serialize_context_t * ctx, int args_size,
+                       char* args )
+{
+    char sizebuf[4] = { 0, 0, 0, 0 };
+    DBG( "I/O Sending args..." );
+    if( args_size == 0 )
+    {
+        // Here sizebuf is filled with zeroes
+        mbedtls_serialize_write( ctx, (uint8_t *) sizebuf, 4 );
+    }
+    else
+    {
+        sizebuf[0] = args_size >> 24 & 0xff;
+        sizebuf[1] = args_size >> 16 & 0xff;
+        sizebuf[2] = args_size >> 8 & 0xff;
+        sizebuf[3] = args_size & 0xff;
+        mbedtls_serialize_write( ctx, (uint8_t *) sizebuf, 4 );
+        mbedtls_serialize_write( ctx, (uint8_t *) args, args_size );
+    }
+}
+
+
+/** Set the seial interface attributes */
+static int port_set_attributes(
+        serial_handle_t fd,
+        int speed,
+        int parity )
+{
+    struct termios tty;
+    memset( &tty, 0, sizeof( tty ) );
+
+    if( tcgetattr( fd, &tty ) != 0 )
+    {
+        PRINT_LAST_ERROR( );
+        return( -1 );
+    }
+
+    /* Covert baud rate to constants supported by cfsetospeed */
+    switch( speed )
+    {
+        case 0:
+            speed = B0;
+            break;
+        case 50:
+            speed = B50;
+            break;
+        case 75:
+            speed = B75;
+            break;
+        case 110:
+            speed = B110;
+            break;
+        case 134:
+            speed = B134;
+            break;
+        case 150:
+            speed = B150;
+            break;
+        case 200:
+            speed = B200;
+            break;
+        case 300:
+            speed = B300;
+            break;
+        case 600:
+            speed = B600;
+            break;
+        case 1200:
+            speed = B1200;
+            break;
+        case 1800:
+            speed = B1800;
+            break;
+        case 2400:
+            speed = B2400;
+            break;
+        case 4800:
+            speed = B4800;
+            break;
+        case 9600:
+            speed = B9600;
+            break;
+        case 19200:
+            speed = B19200;
+            break;
+        case 38400:
+            speed = B38400;
+            break;
+        case 57600:
+            speed = B57600;
+            break;
+        case 115200:
+            speed = B115200;
+            break;
+        case 230400:
+            speed = B230400;
+            break;
+        default:
+            ERR( "Invalid baud rate [%d]", speed );
+            break;
+    }
+
+    cfsetospeed( &tty, speed );
+    cfsetispeed( &tty, speed );
+
+    tty.c_cflag = ( tty.c_cflag & ~( tcflag_t )CSIZE ) | CS8;
+
+    tty.c_iflag &= ~IGNBRK; // no break processing
+    tty.c_lflag = 0;        // no signaling chars, echo, canonical processing
+    tty.c_oflag = 0;        // no remapping, delays
+    tty.c_cc[VMIN]  = 1;    // Blocking or not
+    tty.c_cc[VTIME] = 5;    // 0.5 seconds read timeout
+    tty.c_iflag &= ~( IXON | IXOFF | IXANY ); // shut off xon/xoff ctrl
+    tty.c_cflag |= ( CLOCAL | CREAD );        // ignore modem controls,
+                                              // enable reading
+    tty.c_cflag &= ~( PARENB | PARODD );      // shut off parity
+    tty.c_cflag |= parity;
+    tty.c_cflag &= ~CSTOPB;
+    tty.c_cflag &= ~CRTSCTS;
+
+    if( tcsetattr( fd, TCSANOW, &tty ) != 0 )
+    {
+        PRINT_LAST_ERROR( );
+        return( -1 );
+    }
+
+    return( 0 );
+}
+
+/** Close serial port */
+static int port_close( serial_handle_t handle )
+{
+    int result;
+
+    result = close( handle );
+
+    if( result != 0 )
+        PRINT_LAST_ERROR( );
+
+    return( result );
+}
+
+/** Open serial port */
+static serial_handle_t port_open( char *name, int baud_rate )
+{
+    serial_handle_t handle;
+
+    handle = open( name, O_RDWR | O_CLOEXEC | O_NOCTTY | O_SYNC );
+
+    if( handle == INVALID_SERIAL_HANDLE )
+    {
+        PRINT_LAST_ERROR();
+        return( INVALID_SERIAL_HANDLE );
+    }
+    if( port_set_attributes( handle, baud_rate, 0 ) != 0 )
+    {
+        port_close( handle );
+        return( INVALID_SERIAL_HANDLE );
+    }
+
+    if( handle == INVALID_SERIAL_HANDLE )
+        PRINT_LAST_ERROR( );
+
+    return( handle );
+}
+
+/** Command line options */
+typedef struct
+{
+    /** Serial port */
+    char *          serialization_port;
+    /** Baud rate */
+    int             baud_rate;
+    /** Read descriptor */
+    serial_handle_t read_fd;
+    /** Write descriptor */
+    serial_handle_t write_fd;
+    /** Enable debugs. 1 = enabled, 0 = disabled */
+    int             enable_debugs;
+    /** Log file path */
+    char *          log_file;
+} cmd_opts_t;
+
+
+/** Parses command line agruments and fills options
+ *
+ *  This function parses options according to the USAGE.
+ *  It print appropriate message on error and print usage.
+ *
+ *  It returns user supplied options in out parameter opts.
+ */
+static int read_args(
+        int argc,
+        char **argv,
+        cmd_opts_t * opts,
+        int *sub_args_len,
+        char **sub_args )
+{
+    int i;
+    int write_index;
+
+    // Assert input
+    if( argc <= 2 )
+    {
+        fprintf( stderr,
+                "Incorrect argument count\n"
+                "\t Usage: %s <offloading-port> ...",
+                argv[0] );
+        fprintf( stderr, USAGE );
+        return( -1 );
+    }
+
+    opts->serialization_port = NULL;
+    opts->baud_rate = -1;
+    opts->read_fd = -1;
+    opts->write_fd = -1;
+    opts->enable_debugs = 0;
+    opts->log_file = NULL;
+
+    while( 1 )
+    {
+        static struct option long_options[] =
+        {
+            { "Serialization port", required_argument, NULL, 'p'},
+            { "Baud rate", required_argument, NULL, 'b'},
+            { "Read fd (for testing)", required_argument, NULL, 'r'},
+            { "Write fd (for testing)", required_argument, NULL, 'w'},
+            { "Enable debug logs", no_argument, NULL, 'd'},
+            { "Log file (default=stdout)", required_argument, NULL, 'l'},
+            { 0, 0, 0, 0 }
+        };
+        int option_index;
+        int c = getopt_long( argc, argv, "p:b:r:w:l:d", long_options,
+                             &option_index );
+
+        switch( c )
+        {
+        case 'p':
+            opts->serialization_port = optarg;
+            break;
+        case 'b':
+            opts->baud_rate = atoi( optarg );
+            break;
+        case 'r':
+            opts->read_fd = atoi( optarg );
+            break;
+        case 'w':
+            opts->write_fd = atoi( optarg );
+            break;
+        case 'd':
+            opts->enable_debugs = 1;
+            break;
+        case 'l':
+            opts->log_file = optarg;
+            break;
+        case -1:
+            goto opt_done;
+        }
+    }
+opt_done:
+
+    if( opts->serialization_port != NULL )
+    {
+        if( opts->baud_rate == -1 )
+        {
+            fprintf( stderr, "Serial device's baud rate should"
+                     " be supplied with option '-p'\n\n" );
+            fprintf( stderr, USAGE );
+            return( -1 );
+        }
+    }
+    else if( opts->read_fd == -1 || opts->write_fd == -1 )
+    {
+        fprintf( stderr, "In absence of option '-p',"
+                 " option '-r' and '-w' should be supplied.\n\n" );
+        fprintf( stderr, USAGE );
+        return( -1 );
+    }
+
+    /* Arguments for the remote process */
+    *sub_args = NULL;
+    *sub_args_len = 0;
+
+    {
+        /* Compute the arguments' length
+         * (including NUL character for each argument) */
+        *sub_args_len = 0;
+        for( i = optind; i < argc; ++i )
+            *sub_args_len += strlen( argv[i] ) + 1;
+
+        /* Allocate the cumulative buffer for all the arguments */
+        *sub_args = malloc( *sub_args_len );
+
+        /* Copy the arguments one by one */
+        write_index = 0;
+        for( i = optind; i < argc; ++i )
+        {
+            int len = strlen( argv[i] );
+            /* Copy including NUL character */
+            memcpy( *sub_args + write_index, argv[i], len + 1 );
+            /* Advance the write location, including the NUL character */
+            write_index += len + 1;
+        }
+    }
+
+    return( 0 );
+}
+
 /** Process main.
  *
- *  Tries to read serialization channel descriptor from command line.
- *  In absence of command line arguments defaults to file descriptors
- *  3 (target to host) and 4 (host to target).
- *  Opens debug log file frontend.log and starts processing serialized
- *  function calls.
+ *  Processes command line arguments. For normal use it expects serial port
+ *  and baud rate arguments. For testing it can be forked by a parent test
+ *  process and allows passing read and write file descriptors directly.
+ *
+ *  Finally, it starts executing serialized function calls until there is
+ *  an unrecoverable error.
  */
-int main( int argc, char **argv )
+int main( int argc, char** argv )
 {
-    mbedtls_serialize_context_t ctx = { .read_fd = 3, .write_fd = 4,
-                                        .stack = NULL,
-                                        .status = MBEDTLS_SERIALIZE_STATUS_OK};
-    fdbg = fopen("frontend.log", "w");
-    /* If forked, parent passes rd/wr pipe descriptors via command line */
-    if ( argc == 3 )
+    cmd_opts_t opts;
+    mbedtls_serialize_context_t serialization_context = {0};
+    int sub_args_len = -1;
+    char *sub_args = NULL;
+
+    if( read_args(
+            argc,
+            argv,
+            &opts,
+            &sub_args_len,
+            &sub_args ) != 0 )
     {
-        ctx.read_fd = atoi(argv[1]);
-        ctx.write_fd = atoi(argv[2]);
+        return( 1 );
     }
-    if( getenv( "FRONTEND_DEBUG" ) )
-        debug_verbose = 1;
-    mbedtls_serialize_frontend( &ctx );
-    return( ctx.status != MBEDTLS_SERIALIZE_STATUS_EXITED );
+
+    enable_debugs = opts.enable_debugs;
+    if( opts.log_file != NULL )
+        fdbg = fopen( opts.log_file, "w" );
+    else
+        fdbg = stdout;
+
+    serialization_context.status = MBEDTLS_SERIALIZE_STATUS_OK;
+    if( opts.serialization_port != NULL )
+    {
+        serialization_context.write_fd =
+            port_open( opts.serialization_port, opts.baud_rate );
+        serialization_context.read_fd = serialization_context.write_fd;
+
+        send_args(
+                &serialization_context,
+                sub_args_len,
+                sub_args );
+    }
+    else
+    {
+        serialization_context.write_fd = opts.write_fd;
+        serialization_context.read_fd = opts.read_fd;
+    }
+
+    mbedtls_serialize_frontend( &serialization_context );
+
+    port_close( serialization_context.read_fd );
+
+    return( 0 );
 }

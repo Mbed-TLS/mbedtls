@@ -156,7 +156,8 @@ static int mbedtls_serialize_prepare( void )
         close( target_to_host[1] );
 
         /* Pass pipe rd/wr descriptors to child */
-        execl( frontend_exe, frontend_exe, arg1, arg2, NULL );
+        execl( frontend_exe, frontend_exe, "-r", arg1, "-w", arg2,
+              "-d", "-l", "frontend.txt", NULL );
         perror( frontend_exe );
         exit( 126 );
     }

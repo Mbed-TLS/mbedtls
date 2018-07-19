@@ -1161,6 +1161,9 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
          * other_secret already set by the ClientKeyExchange message,
          * and is 48 bytes long
          */
+        if( end - p < 2 )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
         *p++ = 0;
         *p++ = 48;
         p += 48;
@@ -4538,6 +4541,12 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
     while( i < ssl->in_hslen )
     {
+        if ( i + 3 > ssl->in_hslen ) {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
+            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                           MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+            return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
+        }
         if( ssl->in_msg[i] != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );

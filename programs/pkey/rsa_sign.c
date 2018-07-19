@@ -29,10 +29,13 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define mbedtls_fprintf    fprintf
-#define mbedtls_printf     printf
-#define mbedtls_snprintf   snprintf
-#endif
+#include <stdlib.h>
+#define mbedtls_fprintf         fprintf
+#define mbedtls_printf          printf
+#define mbedtls_snprintf        snprintf
+#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
+#endif /* MBEDTLS_PLATFORM_C */
 
 #if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_RSA_C) ||  \
     !defined(MBEDTLS_SHA256_C) || !defined(MBEDTLS_MD_C) || \
@@ -55,7 +58,8 @@ int main( void )
 int main( int argc, char *argv[] )
 {
     FILE *f;
-    int ret;
+    int ret = 1;
+    int exit_code = MBEDTLS_EXIT_FAILURE;
     size_t i;
     mbedtls_rsa_context rsa;
     unsigned char hash[32];
@@ -68,8 +72,6 @@ int main( int argc, char *argv[] )
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &P ); mbedtls_mpi_init( &Q );
     mbedtls_mpi_init( &D ); mbedtls_mpi_init( &E ); mbedtls_mpi_init( &DP );
     mbedtls_mpi_init( &DQ ); mbedtls_mpi_init( &QP );
-
-    ret = 1;
 
     if( argc != 2 )
     {
@@ -87,7 +89,6 @@ int main( int argc, char *argv[] )
 
     if( ( f = fopen( "rsa_priv.txt", "rb" ) ) == NULL )
     {
-        ret = 1;
         mbedtls_printf( " failed\n  ! Could not open rsa_priv.txt\n" \
                 "  ! Please run rsa_genkey first\n\n" );
         goto exit;
@@ -159,7 +160,6 @@ int main( int argc, char *argv[] )
 
     if( ( f = fopen( filename, "wb+" ) ) == NULL )
     {
-        ret = 1;
         mbedtls_printf( " failed\n  ! Could not create %s\n\n", argv[1] );
         goto exit;
     }
@@ -171,6 +171,8 @@ int main( int argc, char *argv[] )
     fclose( f );
 
     mbedtls_printf( "\n  . Done (created \"%s\")\n\n", filename );
+
+    exit_code = MBEDTLS_EXIT_SUCCESS;
 
 exit:
 
@@ -184,7 +186,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( ret );
+    return( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_RSA_C && MBEDTLS_SHA256_C &&
           MBEDTLS_FS_IO */

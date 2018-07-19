@@ -29,9 +29,12 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define mbedtls_snprintf   snprintf
-#define mbedtls_printf     printf
-#endif
+#include <stdlib.h>
+#define mbedtls_snprintf        snprintf
+#define mbedtls_printf          printf
+#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
+#endif /* MBEDTLS_PLATFORM_C */
 
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_X509_CRT_PARSE_C) && \
     defined(MBEDTLS_FS_IO) && defined(MBEDTLS_X509_CRL_PARSE_C)
@@ -80,7 +83,8 @@ const char *client_private_keys[MAX_CLIENT_CERTS] =
 
 int main( void )
 {
-    int ret, i;
+    int ret = 1, i;
+    int exit_code = MBEDTLS_EXIT_FAILURE;
     mbedtls_x509_crt cacert;
     mbedtls_x509_crl crl;
     char buf[10240];
@@ -210,7 +214,6 @@ int main( void )
         if( ! mbedtls_pk_can_do( &clicert.pk, MBEDTLS_PK_RSA ) )
         {
             mbedtls_printf( " failed\n  !  certificate's key is not RSA\n\n" );
-            ret = MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE;
             goto exit;
         }
 
@@ -241,6 +244,8 @@ int main( void )
         mbedtls_pk_free( &pk );
     }
 
+    exit_code = MBEDTLS_EXIT_SUCCESS;
+
 exit:
     mbedtls_x509_crt_free( &cacert );
     mbedtls_x509_crl_free( &crl );
@@ -250,7 +255,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( ret );
+    return( exit_code );
 }
 #endif /* MBEDTLS_RSA_C && MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_FS_IO &&
           MBEDTLS_X509_CRL_PARSE_C */

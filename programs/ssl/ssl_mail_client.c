@@ -30,11 +30,13 @@
 #else
 #include <stdio.h>
 #include <stdlib.h>
-#define mbedtls_time       time
-#define mbedtls_time_t     time_t
-#define mbedtls_fprintf    fprintf
-#define mbedtls_printf     printf
-#endif
+#define mbedtls_time            time
+#define mbedtls_time_t          time_t
+#define mbedtls_fprintf         fprintf
+#define mbedtls_printf          printf
+#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
+#endif /* MBEDTLS_PLATFORM_C */
 
 #if !defined(MBEDTLS_BIGNUM_C) || !defined(MBEDTLS_ENTROPY_C) ||  \
     !defined(MBEDTLS_SSL_TLS_C) || !defined(MBEDTLS_SSL_CLI_C) || \
@@ -346,7 +348,8 @@ static int write_and_get_response( mbedtls_net_context *sock_fd, unsigned char *
 
 int main( int argc, char *argv[] )
 {
-    int ret = 0, len;
+    int ret = 1, len;
+    int exit_code = MBEDTLS_EXIT_FAILURE;
     mbedtls_net_context server_fd;
     unsigned char buf[1024];
 #if defined(MBEDTLS_BASE64_C)
@@ -499,8 +502,8 @@ int main( int argc, char *argv[] )
                               mbedtls_test_cas_pem_len );
 #else
     {
-        ret = 1;
         mbedtls_printf("MBEDTLS_CERTS_C and/or MBEDTLS_PEM_PARSE_C not defined.");
+        goto exit;
     }
 #endif
     if( ret < 0 )
@@ -529,8 +532,8 @@ int main( int argc, char *argv[] )
                               mbedtls_test_cli_crt_len );
 #else
     {
-        ret = -1;
         mbedtls_printf("MBEDTLS_CERTS_C not defined.");
+        goto exit;
     }
 #endif
     if( ret != 0 )
@@ -549,8 +552,8 @@ int main( int argc, char *argv[] )
                 mbedtls_test_cli_key_len, NULL, 0 );
 #else
     {
-        ret = -1;
         mbedtls_printf("MBEDTLS_CERTS_C or MBEDTLS_PEM_PARSE_C not defined.");
+        goto exit;
     }
 #endif
     if( ret != 0 )
@@ -819,6 +822,8 @@ int main( int argc, char *argv[] )
 
     mbedtls_ssl_close_notify( &ssl );
 
+    exit_code = MBEDTLS_EXIT_SUCCESS;
+
 exit:
 
     mbedtls_net_free( &server_fd );
@@ -835,7 +840,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( ret );
+    return( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_SSL_TLS_C &&
           MBEDTLS_SSL_CLI_C && MBEDTLS_NET_C && MBEDTLS_RSA_C **

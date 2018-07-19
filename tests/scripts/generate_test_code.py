@@ -122,7 +122,7 @@ dependency checks, expression evaluation and function dispatch. These
 functions are populated with checks and return codes by this script.
 
 Template file contains "replacement" fields that are formatted
-strings processed by Python str.format() method.
+strings processed by Python string.Template.substitute() method.
 
 This script:
 ============
@@ -132,9 +132,9 @@ code that is generated or read from helpers and platform files.
 This script replaces following fields in the template and generates
 the test source file:
 
-{test_common_helpers}       <-- All common code from helpers.function
+$test_common_helpers        <-- All common code from helpers.function
                                 is substituted here.
-{functions_code}            <-- Test functions are substituted here
+$functions_code             <-- Test functions are substituted here
                                 from the input test_suit_xyz.function
                                 file. C preprocessor checks are generated
                                 for the build dependencies specified
@@ -143,21 +143,21 @@ the test source file:
                                 functions with code to expand the
                                 string parameters read from the data
                                 file.
-{expression_code}           <-- This script enumerates the
+$expression_code            <-- This script enumerates the
                                 expressions in the .data file and
                                 generates code to handle enumerated
                                 expression Ids and return the values.
-{dep_check_code}            <-- This script enumerates all
+$dep_check_code             <-- This script enumerates all
                                 build dependencies and generate
                                 code to handle enumerated build
                                 dependency Id and return status: if
                                 the dependency is defined or not.
-{dispatch_code}             <-- This script enumerates the functions
+$dispatch_code              <-- This script enumerates the functions
                                 specified in the input test data file
                                 and generates the initializer for the
                                 function table in the template
                                 file.
-{platform_code}             <-- Platform specific setup and test
+$platform_code              <-- Platform specific setup and test
                                 dispatch code.
 
 """
@@ -167,6 +167,7 @@ import io
 import os
 import re
 import sys
+import string
 import argparse
 
 
@@ -967,7 +968,7 @@ def write_test_source_file(template_file, c_file, snippets):
         for line_no, line in enumerate(template_f.readlines(), 1):
             # Update line number. +1 as #line directive sets next line number
             snippets['line_no'] = line_no + 1
-            code = line.format(**snippets)
+            code = string.Template(line).substitute(**snippets)
             c_f.write(code)
 
 

@@ -1141,12 +1141,12 @@ static int ssl_parse_supported_point_formats_ext( mbedtls_ssl_context *ssl,
     size_t list_size;
     const unsigned char *p;
 
-    list_size = buf[0];
-    if( list_size + 1 != len )
+    if( len == 0 || (size_t)( buf[0] + 1 ) != len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server hello message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
     }
+    list_size = buf[0];
 
     p = buf + 1;
     while( list_size > 0 )
@@ -2494,7 +2494,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
      * therefore the buffer length at this point must be greater than that
      * regardless of the actual code path.
      */
-    if( ssl->in_hslen <= mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n )
+    if( ssl->in_hslen <= mbedtls_ssl_hs_hdr_len( ssl ) + 3 + n )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );

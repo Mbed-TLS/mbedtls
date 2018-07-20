@@ -31,6 +31,8 @@ Bugfix
      MBEDTLS_CIPHER_NULL_CIPHER is enabled. Found by TrinityTonic in #1719.
    * Fix the inline assembly for the MPI multiply helper function for i386 and
      i386 with SSE2. Found by László Langó. Fixes #1550
+   * Fix namespacing in header files. Remove the `mbedtls` namespacing in
+     the `#include` in the header files. Resolves #857
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.

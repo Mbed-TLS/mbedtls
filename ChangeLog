@@ -34,6 +34,13 @@ Bugfix
      i386 with SSE2. Found by László Langó. Fixes #1550
    * Fix namespacing in header files. Remove the `mbedtls` namespacing in
      the `#include` in the header files. Resolves #857
+   * Fix decryption of zero length messages (all padding) in some circumstances:
+     DTLS 1.0 and 1.2, and CBC ciphersuites using encrypt-then-MAC. Most often
+     seen when communicating with OpenSSL using TLS 1.0. Reported by @kFYatek
+     (#1632) and by Conor Murphy on the forum. Fix contributed by Espressif
+     Systems.
+   * Fail when receiving a TLS alert message with an invalid length, or invalid
+     zero-length messages when using TLS 1.2. Contributed by Espressif Systems.
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.

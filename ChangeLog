@@ -19,6 +19,8 @@ Bugfix
      MBEDTLS_CIPHER_NULL_CIPHER is enabled. Found by TrinityTonic in #1719.
    * Added length checks to some TLS parsing functions. Found and fixed by
      Philippe Antoine from Catena cyber. #1663.
+   * Fix namespacing in header files. Remove the `mbedtls` namespacing in
+     the `#include` in the header files. Resolves #857
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.

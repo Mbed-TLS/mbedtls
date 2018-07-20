@@ -201,18 +201,29 @@ unsigned long mbedtls_timing_hardclock( void )
 #endif /* !HAVE_HARDCLOCK && MBEDTLS_HAVE_ASM &&
           __GNUC__ && __ia64__ */
 
-#if !defined(HAVE_HARDCLOCK) && defined(_MSC_VER) && \
+#if !defined(HAVE_HARDCLOCK) && defined(_MSC_VER) && defined(_M_X64) && \
     !defined(EFIX64) && !defined(EFI32)
 
 #define HAVE_HARDCLOCK
 
 unsigned long mbedtls_timing_hardclock( void )
 {
-    LARGE_INTEGER offset;
+    LARGE_INTEGER tsc;
+    tsc.QuadPart = __rdtsc();
+    return( (unsigned long)tsc.u.LowPart );
+}
+#endif /* !HAVE_HARDCLOCK && _MSC_VER && _M_X64 && !EFIX64 && !EFI32 */
 
-    QueryPerformanceCounter( &offset );
+#if !defined(HAVE_HARDCLOCK) && defined(_MSC_VER) && \
+    !defined(EFIX64) && !defined(EFI32)
 
-    return( (unsigned long)( offset.QuadPart ) );
+#define HAVE_HARDCLOCK
+
+unsigned long mbedtls_timing_hardclock(void)
+{
+    LARGE_INTEGER tsc;
+    QueryPerformanceCounter(&offset);
+    return((unsigned long)tsc.u.LowPart);
 }
 #endif /* !HAVE_HARDCLOCK && _MSC_VER && !EFIX64 && !EFI32 */
 

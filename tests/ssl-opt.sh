@@ -742,7 +742,7 @@ run_test    "Default" \
             "$P_CLI" \
             0 \
             -s "Protocol is TLSv1.2" \
-            -s "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
+            -s "Ciphersuite is TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256" \
             -s "client hello v3, signature_algorithm ext: 6" \
             -s "ECDHE curve: secp521r1" \
             -S "error" \
@@ -753,20 +753,14 @@ run_test    "Default, DTLS" \
             "$P_CLI dtls=1" \
             0 \
             -s "Protocol is DTLSv1.2" \
-            -s "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384"
+            -s "Ciphersuite is TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256"
 
 # Test current time in ServerHello
 requires_config_enabled MBEDTLS_HAVE_TIME
-run_test    "Default, ServerHello contains gmt_unix_time" \
+run_test    "ServerHello contains gmt_unix_time" \
             "$P_SRV debug_level=3" \
             "$P_CLI debug_level=3" \
             0 \
-            -s "Protocol is TLSv1.2" \
-            -s "Ciphersuite is TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384" \
-            -s "client hello v3, signature_algorithm ext: 6" \
-            -s "ECDHE curve: secp521r1" \
-            -S "error" \
-            -C "error" \
             -f "check_server_hello_time" \
             -F "check_server_hello_time"
 

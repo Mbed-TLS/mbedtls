@@ -698,18 +698,32 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     transform->keylen = cipher_info->key_bitlen / 8;
 
     if( cipher_info->mode == MBEDTLS_MODE_GCM ||
-        cipher_info->mode == MBEDTLS_MODE_CCM )
+        cipher_info->mode == MBEDTLS_MODE_CCM ||
+        cipher_info->mode == MBEDTLS_MODE_CHACHAPOLY )
     {
+        size_t taglen, explicit_ivlen;
+
         transform->maclen = 0;
         mac_key_len = 0;
 
+        /* All modes haves 96-bit IVs;
+         * GCM and CCM has 4 implicit and 8 explicit bytes
+         * ChachaPoly has all 12 bytes implicit
+         */
         transform->ivlen = 12;
-        transform->fixed_ivlen = 4;
+        if( cipher_info->mode == MBEDTLS_MODE_CHACHAPOLY )
+            transform->fixed_ivlen = 12;
+        else
+            transform->fixed_ivlen = 4;
 
-        /* Minimum length is expicit IV + tag */
-        transform->minlen = transform->ivlen - transform->fixed_ivlen
-                            + ( transform->ciphersuite_info->flags &
-                                MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16 );
+        /* All modes have 128-bit tags, except CCM_8 (ciphersuite flag) */
+        taglen = transform->ciphersuite_info->flags &
+                  MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16;
+
+
+        /* Minimum length of encrypted record */
+        explicit_ivlen = transform->ivlen - transform->fixed_ivlen;
+        transform->minlen = explicit_ivlen + taglen;
     }
     else
     {
@@ -1407,17 +1421,26 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_ARC4_C || MBEDTLS_CIPHER_NULL_CIPHER */
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)
+#if defined(MBEDTLS_GCM_C) || \
+    defined(MBEDTLS_CCM_C) || \
+    defined(MBEDTLS_CHACHAPOLY_C)
     if( mode == MBEDTLS_MODE_GCM ||
-        mode == MBEDTLS_MODE_CCM )
+        mode == MBEDTLS_MODE_CCM ||
+        mode == MBEDTLS_MODE_CHACHAPOLY )
     {
         int ret;
         size_t enc_msglen, olen;
         unsigned char *enc_msg;
         unsigned char add_data[13];
-        unsigned char taglen = ssl->transform_out->ciphersuite_info->flags &
+        unsigned char iv[12];
+        mbedtls_ssl_transform *transform = ssl->transform_out;
+        unsigned char taglen = transform->ciphersuite_info->flags &
                                MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16;
+        size_t explicit_ivlen = transform->ivlen - transform->fixed_ivlen;
 
+        /*
+         * Prepare additional authenticated data
+         */
         memcpy( add_data, ssl->out_ctr, 8 );
         add_data[8]  = ssl->out_msgtype;
         mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
@@ -1425,44 +1448,57 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
         add_data[11] = ( ssl->out_msglen >> 8 ) & 0xFF;
         add_data[12] = ssl->out_msglen & 0xFF;
 
-        MBEDTLS_SSL_DEBUG_BUF( 4, "additional data used for AEAD",
-                       add_data, 13 );
+        MBEDTLS_SSL_DEBUG_BUF( 4, "additional data for AEAD", add_data, 13 );
 
         /*
          * Generate IV
          */
-        if( ssl->transform_out->ivlen - ssl->transform_out->fixed_ivlen != 8 )
+        if( transform->ivlen == 12 && transform->fixed_ivlen == 4 )
+        {
+            /* GCM and CCM: fixed || explicit (=seqnum) */
+            memcpy( iv, transform->iv_enc, transform->fixed_ivlen );
+            memcpy( iv + transform->fixed_ivlen, ssl->out_ctr, 8 );
+            memcpy( ssl->out_iv, ssl->out_ctr, 8 );
+
+        }
+        else if( transform->ivlen == 12 && transform->fixed_ivlen == 12 )
+        {
+            /* ChachaPoly: fixed XOR sequence number */
+            unsigned char i;
+
+            memcpy( iv, transform->iv_enc, transform->fixed_ivlen );
+
+            for( i = 0; i < 8; i++ )
+                iv[i+4] ^= ssl->out_ctr[i];
+        }
+        else
         {
             /* Reminder if we ever add an AEAD mode with a different size */
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
             return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
-        memcpy( ssl->transform_out->iv_enc + ssl->transform_out->fixed_ivlen,
-                             ssl->out_ctr, 8 );
-        memcpy( ssl->out_iv, ssl->out_ctr, 8 );
-
-        MBEDTLS_SSL_DEBUG_BUF( 4, "IV used", ssl->out_iv,
-                ssl->transform_out->ivlen - ssl->transform_out->fixed_ivlen );
+        MBEDTLS_SSL_DEBUG_BUF( 4, "IV used (internal)",
+                                  iv, transform->ivlen );
+        MBEDTLS_SSL_DEBUG_BUF( 4, "IV used (transmitted)",
+                                  ssl->out_iv, explicit_ivlen );
 
         /*
-         * Fix pointer positions and message length with added IV
+         * Fix message length with added IV
          */
         enc_msg = ssl->out_msg;
         enc_msglen = ssl->out_msglen;
-        ssl->out_msglen += ssl->transform_out->ivlen -
-                           ssl->transform_out->fixed_ivlen;
+        ssl->out_msglen += explicit_ivlen;
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "before encrypt: msglen = %d, "
-                            "including %d bytes of padding",
-                       ssl->out_msglen, 0 ) );
+                                    "including 0 bytes of padding",
+                                    ssl->out_msglen ) );
 
         /*
          * Encrypt and authenticate
          */
-        if( ( ret = mbedtls_cipher_auth_encrypt( &ssl->transform_out->cipher_ctx_enc,
-                                         ssl->transform_out->iv_enc,
-                                         ssl->transform_out->ivlen,
+        if( ( ret = mbedtls_cipher_auth_encrypt( &transform->cipher_ctx_enc,
+                                         iv, transform->ivlen,
                                          add_data, 13,
                                          enc_msg, enc_msglen,
                                          enc_msg, &olen,
@@ -1622,7 +1658,6 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
 
 static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
 {
-    size_t i;
     mbedtls_cipher_mode_t mode;
     int auth_done = 0;
 #if defined(SSL_SOME_MODES_USE_MAC)
@@ -1672,20 +1707,27 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_ARC4_C || MBEDTLS_CIPHER_NULL_CIPHER */
-#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C)
+#if defined(MBEDTLS_GCM_C) || \
+    defined(MBEDTLS_CCM_C) || \
+    defined(MBEDTLS_CHACHAPOLY_C)
     if( mode == MBEDTLS_MODE_GCM ||
-        mode == MBEDTLS_MODE_CCM )
+        mode == MBEDTLS_MODE_CCM ||
+        mode == MBEDTLS_MODE_CHACHAPOLY )
     {
         int ret;
         size_t dec_msglen, olen;
         unsigned char *dec_msg;
         unsigned char *dec_msg_result;
         unsigned char add_data[13];
-        unsigned char taglen = ssl->transform_in->ciphersuite_info->flags &
+        unsigned char iv[12];
+        mbedtls_ssl_transform *transform = ssl->transform_in;
+        unsigned char taglen = transform->ciphersuite_info->flags &
                                MBEDTLS_CIPHERSUITE_SHORT_TAG ? 8 : 16;
-        size_t explicit_iv_len = ssl->transform_in->ivlen -
-                                 ssl->transform_in->fixed_ivlen;
+        size_t explicit_iv_len = transform->ivlen - transform->fixed_ivlen;
 
+        /*
+         * Compute and update sizes
+         */
         if( ssl->in_msglen < explicit_iv_len + taglen )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "msglen (%d) < explicit_iv_len (%d) "
@@ -1699,6 +1741,9 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
         dec_msg_result = ssl->in_msg;
         ssl->in_msglen = dec_msglen;
 
+        /*
+         * Prepare additional authenticated data
+         */
         memcpy( add_data, ssl->in_ctr, 8 );
         add_data[8]  = ssl->in_msgtype;
         mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
@@ -1706,23 +1751,43 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
         add_data[11] = ( ssl->in_msglen >> 8 ) & 0xFF;
         add_data[12] = ssl->in_msglen & 0xFF;
 
-        MBEDTLS_SSL_DEBUG_BUF( 4, "additional data used for AEAD",
-                       add_data, 13 );
+        MBEDTLS_SSL_DEBUG_BUF( 4, "additional data for AEAD", add_data, 13 );
 
-        memcpy( ssl->transform_in->iv_dec + ssl->transform_in->fixed_ivlen,
-                ssl->in_iv,
-                ssl->transform_in->ivlen - ssl->transform_in->fixed_ivlen );
+        /*
+         * Prepare IV
+         */
+        if( transform->ivlen == 12 && transform->fixed_ivlen == 4 )
+        {
+            /* GCM and CCM: fixed || explicit (transmitted) */
+            memcpy( iv, transform->iv_dec, transform->fixed_ivlen );
+            memcpy( iv + transform->fixed_ivlen, ssl->in_iv, 8 );
 
-        MBEDTLS_SSL_DEBUG_BUF( 4, "IV used", ssl->transform_in->iv_dec,
-                                     ssl->transform_in->ivlen );
+        }
+        else if( transform->ivlen == 12 && transform->fixed_ivlen == 12 )
+        {
+            /* ChachaPoly: fixed XOR sequence number */
+            unsigned char i;
+
+            memcpy( iv, transform->iv_dec, transform->fixed_ivlen );
+
+            for( i = 0; i < 8; i++ )
+                iv[i+4] ^= ssl->in_ctr[i];
+        }
+        else
+        {
+            /* Reminder if we ever add an AEAD mode with a different size */
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
+
+        MBEDTLS_SSL_DEBUG_BUF( 4, "IV used", iv, transform->ivlen );
         MBEDTLS_SSL_DEBUG_BUF( 4, "TAG used", dec_msg + dec_msglen, taglen );
 
         /*
          * Decrypt and authenticate
          */
         if( ( ret = mbedtls_cipher_auth_decrypt( &ssl->transform_in->cipher_ctx_dec,
-                                         ssl->transform_in->iv_dec,
-                                         ssl->transform_in->ivlen,
+                                         iv, transform->ivlen,
                                          add_data, 13,
                                          dec_msg, dec_msglen,
                                          dec_msg_result, &olen,
@@ -1840,6 +1905,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
          */
         if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
         {
+            unsigned char i;
             dec_msglen -= ssl->transform_in->ivlen;
             ssl->in_msglen -= ssl->transform_in->ivlen;
 
@@ -1914,6 +1980,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
              */
             size_t pad_count = 0, real_count = 1;
             size_t padding_idx = ssl->in_msglen - padlen - 1;
+            size_t i;
 
             /*
              * Padding is guaranteed to be incorrect if:
@@ -2090,6 +2157,7 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
     else
 #endif
     {
+        unsigned char i;
         for( i = 8; i > ssl_ep_len( ssl ); i-- )
             if( ++ssl->in_ctr[i - 1] != 0 )
                 break;

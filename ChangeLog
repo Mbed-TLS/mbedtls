@@ -4,8 +4,9 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 Features
    * Add new crypto primitives from RFC 7539: stream cipher Chacha20, one-time
-     authenticator Poly1305 and AEAD construct Chacha20-Poly1305. Contributed by
-     Daniel King (#485).
+     authenticator Poly1305 and AEAD construct Chacha20-Poly1305. Contributed
+     by Daniel King (#485).
+   * Add support for CHACHA20-POLY1305 ciphersuites from RFC 7905.
    * Add platform support for the Haiku OS. (https://www.haiku-os.org).
      Contributed by Augustin Cavalier.
    * Make the receive and transmit buffers independent sizes, for situations

@@ -832,9 +832,30 @@
     __asm   mov     s, esi                      \
 
 #endif /* SSE2 */
-#endif /* MSVC */
-
+#endif /* (MSVC && _M_IX86) || __WATCOMC__ */
 #endif /* MBEDTLS_HAVE_ASM */
+
+#if defined(_MSC_VER) && defined(_M_X64)
+
+#include <intrin.h>
+
+#define MULADDC_INIT                         \
+{                                            \
+    mbedtls_mpi_uint r0, r1;                 \
+    unsigned char carry;
+
+#define MULADDC_CORE                         \
+    r0 = _umul128( *(s++), b, &r1 );         \
+    carry = _addcarry_u64( 0, r0, c, &r0 );  \
+    _addcarry_u64( carry, r1, 0, &r1 );      \
+    carry = _addcarry_u64( 0, r0, *d, &r0 ); \
+    _addcarry_u64( carry, r1, 0, &r1 );      \
+    c = r1; *(d++) = r0;
+
+#define MULADDC_STOP                         \
+}
+
+#endif /* _MSC_VER && _M_X64 */
 
 #if !defined(MULADDC_CORE)
 #if defined(MBEDTLS_HAVE_UDBL)

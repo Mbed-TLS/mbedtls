@@ -887,7 +887,7 @@ int main( int argc, char *argv[] )
     const char *alpn_list[ALPN_LIST_SIZE];
 #endif
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-    unsigned char alloc_buf[100000];
+    unsigned char alloc_buf[120000];
 #endif
 
     int i;

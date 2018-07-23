@@ -56,7 +56,7 @@
  * This is done as the number of registers used in the assembly code doesn't
  * work with the -O0 option.
  */
-#if defined(__i386__) && !defined(__OPTIMIZE__)
+#if defined(__i386__) && defined(__OPTIMIZE__)
 
 #define MULADDC_INIT                        \
     asm(                                    \

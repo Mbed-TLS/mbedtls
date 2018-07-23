@@ -68,7 +68,7 @@ As mentioned, tests that show the correctness of the feature or bug fix should b
 
 Mbed TLS includes a comprehensive set of test suites in the `tests/` directory that are dynamically generated to produce the actual test source files (e.g. `test_suite_mpi.c`). These files are generated from a `function file` (e.g. `suites/test_suite_mpi.function`) and a `data file` (e.g. `suites/test_suite_mpi.data`). The function file contains the test functions. The data file contains the test cases, specified as parameters that will be passed to the test function.
 
-[A knowledgebase article describing how to add additional tests is available on the Mbed TLS website](https://tls.mbed.org/kb/development/test_suites).
+[A Knowledge Base article describing how to add additional tests is available on the Mbed TLS website](https://tls.mbed.org/kb/development/test_suites).
 
 A test script `tests/scripts/basic-build-test.sh` is available to show test
 coverage of the library. New code contributions should provide a similar level

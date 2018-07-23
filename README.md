@@ -82,7 +82,7 @@ Please note that setting `CFLAGS` overrides its default value of `-O2` and setti
 
 Depending on your platform, you might run into some issues. Please check the Makefiles in `library/`, `programs/` and `tests/` for options to manually add or remove for specific platforms. You can also check [the Mbed TLS Knowledge Base](https://tls.mbed.org/kb) for articles on your platform or issue.
 
-In case you find that you need to do something else as well, please let us know what, so we can add it to the [Mbed TLS knowledge base](https://tls.mbed.org/kb).
+In case you find that you need to do something else as well, please let us know what, so we can add it to the [Mbed TLS Knowledge Base](https://tls.mbed.org/kb).
 
 ### CMake
 
@@ -192,7 +192,7 @@ We provide some non-standard configurations focused on specific use cases in the
 Porting Mbed TLS
 ----------------
 
-Mbed TLS can be ported to many different architectures, OS's and platforms. Before starting a port, you may find the following knowledge base articles useful:
+Mbed TLS can be ported to many different architectures, OS's and platforms. Before starting a port, you may find the following Knowledge Base articles useful:
 
 -   [Porting Mbed TLS to a new environment or OS](https://tls.mbed.org/kb/how-to/how-do-i-port-mbed-tls-to-a-new-environment-OS)
 -   [What external dependencies does Mbed TLS rely on?](https://tls.mbed.org/kb/development/what-external-dependencies-does-mbedtls-rely-on)

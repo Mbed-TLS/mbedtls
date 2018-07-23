@@ -57,7 +57,7 @@ static int asn1_write_10x( unsigned char **p,
         return( MBEDTLS_ERR_ASN1_INVALID_DATA );
     if( bits <= 8 && x >= 1 << ( bits - 1 ) )
         return( MBEDTLS_ERR_ASN1_INVALID_DATA );
-    if( *p < start || *p - start < (ssize_t) len )
+    if( *p < start || *p - start < (ptrdiff_t) len )
         return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
     *p -= len;
     ( *p )[len-1] = x;
@@ -530,7 +530,7 @@ void import_export( data_t *data,
 
     TEST_ASSERT( data != NULL );
     TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( data->len ) );
-    export_size = (ssize_t) data->len + export_size_delta;
+    export_size = (ptrdiff_t) data->len + export_size_delta;
     exported = mbedtls_calloc( 1, export_size );
     TEST_ASSERT( exported != NULL );
     if( ! canonical_input )
@@ -631,7 +631,7 @@ void import_export_public_key( data_t *data,
 
     TEST_ASSERT( data != NULL );
     TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( data->len ) );
-    export_size = (ssize_t) data->len;
+    export_size = (ptrdiff_t) data->len;
     exported = mbedtls_calloc( 1, export_size );
     TEST_ASSERT( exported != NULL );
 

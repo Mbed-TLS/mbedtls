@@ -29,6 +29,7 @@ pkey/rsa_sign
 pkey/rsa_sign_pss
 pkey/rsa_verify
 pkey/rsa_verify_pss
+psa/crypto_examples
 psa/psa_constant_names
 psa/psa_constant_names_generated.c
 psa/key_ladder_demo

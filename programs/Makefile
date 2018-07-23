@@ -60,6 +60,7 @@ APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 	pkey/rsa_decrypt$(EXEXT)	pkey/rsa_encrypt$(EXEXT)	\
 	pkey/rsa_sign$(EXEXT)		pkey/rsa_verify$(EXEXT)		\
 	pkey/rsa_sign_pss$(EXEXT)	pkey/rsa_verify_pss$(EXEXT)	\
+	psa/crypto_examples$(EXEXT)					\
 	psa/key_ladder_demo$(EXEXT)	psa/psa_constant_names$(EXEXT)	\
 	ssl/dtls_client$(EXEXT)		ssl/dtls_server$(EXEXT)		\
 	ssl/ssl_client1$(EXEXT)		ssl/ssl_client2$(EXEXT)		\
@@ -307,6 +308,10 @@ x509/cert_req$(EXEXT): x509/cert_req.c $(DEP)
 x509/req_app$(EXEXT): x509/req_app.c $(DEP)
 	echo "  CC    x509/req_app.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/req_app.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+psa/crypto_examples$(EXEXT): psa/crypto_examples.c $(DEP)
+	echo "  CC    psa/crypto_examples.c"
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) psa/crypto_examples.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 clean:
 ifndef WINDOWS

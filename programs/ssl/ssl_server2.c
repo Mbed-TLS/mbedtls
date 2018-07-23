@@ -97,6 +97,10 @@ int main( void )
 #include <windows.h>
 #endif
 
+/* Size of memory to be allocated for the heap, when using the library's memory
+ * management and MBEDTLS_MEMORY_BUFFER_ALLOC_C is enabled. */
+#define MEMORY_HEAP_SIZE        120000
+
 #define DFL_SERVER_ADDR         NULL
 #define DFL_SERVER_PORT         "4433"
 #define DFL_RESPONSE_SIZE       -1
@@ -904,7 +908,7 @@ int main( int argc, char *argv[] )
     const char *alpn_list[ALPN_LIST_SIZE];
 #endif
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-    unsigned char alloc_buf[120000];
+    unsigned char alloc_buf[MEMORY_HEAP_SIZE];
 #endif
 
     int i;

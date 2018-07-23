@@ -6,12 +6,13 @@
  *
  *          The network sockets module provides an example integration of the
  *          Mbed TLS library into a BSD sockets implementation. The module is
- *          intended to be both an example of how Mbed TLS can be integrated
- *          into a networking stack, and also act as Mbed TLS's integration on
- *          the supported platforms.
+ *          intended to be an example of how Mbed TLS can be integrated into a
+ *          networking stack, as well as to be Mbed TLS's network integration
+ *          for its supported platforms.
  *
- *          The module is intended only for the use of the Mbed TLS library and
- *          is not intended to be used by third party application software.
+ *          The module is intended only to be used with the Mbed TLS library and
+ *          is not intended to be used by third party application software
+ *          directly.
  *
  *          The supported platforms are as follows:
  *              * Microsoft Windows and Windows CE

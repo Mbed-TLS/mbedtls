@@ -5,12 +5,10 @@ We gratefully accept bug reports and contributions from the community. There are
  - As with any open source project, contributions will be reviewed by the project team and community and may need some modifications to be accepted.
  - The contribution should not break API or ABI, unless there is a real justification for that. If there is an API change, the contribution, if accepted, will be merged only when there will be a major release.
 
-
 Contributor License Agreement (CLA)
 -----------------------------------
 - All contributions, whether large or small, require a Contributor's License Agreement (CLA) to be accepted. This is because source code can possibly fall under copyright law and we need your consent to share in the ownership of the copyright.
 - To accept the Contributor’s License Agreement (CLA), individual contributors can do this by creating an Mbed account and [accepting the online agreement here with a click through](https://developer.mbed.org/contributor_agreement/). Alternatively, for contributions from corporations, or those that do not wish to create an Mbed account, a slightly different agreement can be found [here](https://www.mbed.com/en/about-mbed/contributor-license-agreements/). This agreement should be signed and returned to Arm as described in the instructions given.
-
 
 Coding Standards
 ----------------
@@ -18,7 +16,6 @@ Coding Standards
 - The code should be written in a clean and readable style.
 - The code should be written in a portable generic way, that will benefit the whole community, and not only your own needs.
 - The code should be secure, and will be reviewed from a security point of view as well.
-
 
 Making a Contribution
 ---------------------
@@ -29,20 +26,19 @@ Making a Contribution
 1. For quick merging, the contribution should be short, and concentrated on a single feature or topic. The larger the contribution is, the longer it would take to review it and merge it.
 1. Mbed TLS is released under the Apache license, and as such, all the added files should include the Apache license header.
 
-
 API/ABI Compatibility
 ---------------------
+The project aims to minimise the impact on users upgrading to newer versions of the library and it should not be necessary for a user to make any changes to their own code to work with a newer version of the library. Unless the user has made an active decision to use newer features, a newer generation of the library or a change has been necessary due to a security issue or other significant software defect, no modifications to their own code should be necessary. To achieve this, API compatibility is maintained between different versions of Mbed TLS on the main development branch and in LTS (Long Term Support) branches.
 
-API compatibility is maintained between versions of Mbed TLS on the main development branch. This is to ensure that when users of the library upgrade to a newer version of the library, there will be no API changes that may cause their code to fail to compile and it will not be necessary for them to make any changes to their own code.
+To minimise such disruption to users, where a change to the interface is required, all changes to the ABI or API, even on the main development branch where new features are added, need to be justifiable by either being a significant enhancement, new feature or bug fix which is best resolved by an interface change.
 
-Where changes to the interface are necessary, functions in the public interface which need to be removed or replaced will be marked as 'deprecated', with the preprocessor symbols `MBEDTLS_DEPRECATED_WARNING` and `MBEDTLS_DEPRECATED_REMOVED`. Therefore when a build is made with those symbols defined, a compiler warning will be generated to warn a user that the function will be removed at some point in the future.
+Where changes to an existing interface are necessary, functions in the public interface which need to be changed, are marked as 'deprecated'. This is done with the preprocessor symbols `MBEDTLS_DEPRECATED_WARNING` and `MBEDTLS_DEPRECATED_REMOVED`. Then, a new function with a new name but similar if not identical behaviour to the original function containing the necessary changes should be created alongside the existing deprecated function.
 
-It is also desirable to preserve ABI compatibility on the main development branch, and generally ABI changes need to be justifiable by enhancement and new features, to extend the interface. This is to again minimise the impact on users upgrading to newer versions of the library.
+When a build is made with the deprecation preprocessor symbols defined, a compiler warning will be generated to warn a user that the function will be removed at some point in the future, notifying users that they should change from the older deprecated function to the newer function at their own convenience.
 
-As a consequence, this means there can be no change to the definition of functions in the public API, nor removal of elements in structs that make up part of the public interface. Instead if a function needs to be changed, a new function needs to be created alongside it, with a new name, and whatever change is necessary, such as a new parameter or the addition of a return value.
+Therefore, no changes are permitted to the definition of functions in the public interface which will change the API. Instead the interface can only be changed by its extension. As described above, if a function needs to be changed, a new function needs to be created alongside it, with a new name, and whatever change is necessary, such as a new parameter or the addition of a return value.
 
-Periodically, the library will remove deprecated functions from the library which will be a breaking change in the API, but such changes will be made only in a planned, structured wat that gives sufficient notice to users of the library.
-
+Periodically, the library will remove deprecated functions from the library which will be a breaking change in the API, but such changes will be made only in a planned, structured way that gives sufficient notice to users of the library.
 
 Long Term Support Branches
 --------------------------
@@ -78,17 +74,15 @@ of code coverage to that which already exists for the library.
 
 Sample applications, if needed, should be modified as well.
 
-
 Continuous Integration Tests
 ----------------------------
 Once a PR has been made, the Continuous Integration (CI) tests are triggered and run. You should follow the result of the CI tests, and fix failures.
 
 It is advised to enable the [githooks scripts](https://github.com/ARMmbed/mbedtls/tree/development/tests/git-scripts) prior to pushing your changes, for catching some of the issues as early as possible.
 
-
 Documentation
 -------------
-Mbed TLS should be well documented. If documentation is needed, speak out!
+Mbed TLS is well documented, but if you think documentation is needed, speak out!
 
 1. All interfaces should be documented through Doxygen. New APIs should introduce Doxygen documentation.
 

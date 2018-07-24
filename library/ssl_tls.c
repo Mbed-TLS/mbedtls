@@ -2665,7 +2665,7 @@ int mbedtls_ssl_resend( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= mbedtls_ssl_resend" ) );
 
-    return( 0 );
+    return( ret );
 }
 
 /*

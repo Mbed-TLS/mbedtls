@@ -221,7 +221,7 @@ err_msg()
 check_tools()
 {
     for TOOL in "$@"; do
-        if ! `hash "$TOOL" >/dev/null 2>&1`; then
+        if ! `type "$TOOL" >/dev/null 2>&1`; then
             err_msg "$TOOL not found!"
             exit 1
         fi

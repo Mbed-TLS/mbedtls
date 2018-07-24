@@ -1884,27 +1884,27 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
              * and fake check up to 256 bytes of padding
              */
             size_t pad_count = 0, real_count = 1;
-            size_t padding_idx = ssl->in_msglen - padlen - 1;
+            size_t padding_idx = ssl->in_msglen - padlen;
 
             /*
              * Padding is guaranteed to be incorrect if:
-             *   1. padlen >= ssl->in_msglen
+             *   1. padlen > ssl->in_msglen
              *
-             *   2. padding_idx >= MBEDTLS_SSL_MAX_CONTENT_LEN +
+             *   2. padding_idx > MBEDTLS_SSL_MAX_CONTENT_LEN +
              *                     ssl->transform_in->maclen
              *
              * In both cases we reset padding_idx to a safe value (0) to
              * prevent out-of-buffer reads.
              */
-            correct &= ( ssl->in_msglen >= padlen + 1 );
-            correct &= ( padding_idx < MBEDTLS_SSL_MAX_CONTENT_LEN +
+            correct &= ( padlen <= ssl->in_msglen );
+            correct &= ( padding_idx <= MBEDTLS_SSL_MAX_CONTENT_LEN +
                                        ssl->transform_in->maclen );
 
             padding_idx *= correct;
 
-            for( i = 1; i <= 256; i++ )
+            for( i = 0; i < 256; i++ )
             {
-                real_count &= ( i <= padlen );
+                real_count &= ( i < padlen );
                 pad_count += real_count *
                              ( ssl->in_msg[padding_idx + i] == padlen - 1 );
             }
@@ -2037,6 +2037,16 @@ static int ssl_decrypt_buf( mbedtls_ssl_context *ssl )
 
     if( ssl->in_msglen == 0 )
     {
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3
+            && ssl->in_msgtype != MBEDTLS_SSL_MSG_APPLICATION_DATA )
+        {
+            /* TLS v1.2 explicitly disallows zero-length messages which are not application data */
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid zero-length message type: %d", ssl->in_msgtype ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+        }
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
         ssl->nb_zero++;
 
         /*
@@ -4064,6 +4074,16 @@ read_record_header:
 
     if( ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT )
     {
+        if( ssl->in_msglen != 2 )
+        {
+            /* Note: Standard allows for more than one 2 byte alert
+               to be packed in a single message, but Mbed TLS doesn't
+               currently support this. */
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid alert message, len: %d",
+                           ssl->in_msglen ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+        }
+
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "got an alert message, type: [%d:%d]",
                        ssl->in_msg[0], ssl->in_msg[1] ) );
 

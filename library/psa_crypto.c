@@ -2164,6 +2164,12 @@ psa_status_t psa_asymmetric_encrypt( psa_key_slot_t key,
     key_slot_t *slot;
     psa_status_t status;
 
+    (void) input;
+    (void) input_length;
+    (void) salt;
+    (void) output;
+    (void) output_size;
+
     *output_length = 0;
 
     if( ! PSA_ALG_IS_RSA_OAEP( alg ) && salt_length != 0 )
@@ -2237,6 +2243,12 @@ psa_status_t psa_asymmetric_decrypt( psa_key_slot_t key,
 {
     key_slot_t *slot;
     psa_status_t status;
+
+    (void) input;
+    (void) input_length;
+    (void) salt;
+    (void) output;
+    (void) output_size;
 
     *output_length = 0;
 

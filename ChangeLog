@@ -21,11 +21,12 @@ Bugfix
      Philippe Antoine from Catena cyber. #1663.
    * Fix namespacing in header files. Remove the `mbedtls` namespacing in
      the `#include` in the header files. Resolves #857
-   * Fix decryption of zero length messages (all padding) in some circumstances:
-     DTLS 1.0 and 1.2, and CBC ciphersuites using encrypt-then-MAC. Most often
-     seen when communicating with OpenSSL using TLS 1.0. Reported by @kFYatek
-     (#1632) and by Conor Murphy on the forum. Fix contributed by Espressif
-     Systems.
+   * Fix decryption for zero length messages (which contain all padding) when a
+     CBC based ciphersuite is used together with Encrypt-then-MAC. Previously,
+     such a message was wrongly reported as an invalid record and therefore lead
+     to the connection being terminated. Seen most often with OpenSSL using
+     TLS 1.0. Reported by @kFYatek and by Conor Murphy on the forum. Fix
+     contributed by Espressif Systems. Fixes #1632
    * Fail when receiving a TLS alert message with an invalid length, or invalid
      zero-length messages when using TLS 1.2. Contributed by Espressif Systems.
    * Fix ssl_client2 example to send application data with 0-length content

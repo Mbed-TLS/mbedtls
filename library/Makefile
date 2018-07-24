@@ -76,11 +76,11 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		hkdf.o						\
 		hmac_drbg.o	md.o		md2.o		\
 		md4.o		md5.o		md_wrap.o	\
-		memory_buffer_alloc.o		oid.o		\
-		padlock.o	pem.o		pk.o		\
-		pk_wrap.o	pkcs12.o	pkcs5.o		\
-		pkparse.o	pkwrite.o	platform.o	\
-		platform_util.o	poly1305.o			\
+		memory_buffer_alloc.o		nist_kw.o	\
+		oid.o		padlock.o	pem.o		\
+		pk.o		pk_wrap.o	pkcs12.o	\
+		pkcs5.o		pkparse.o	pkwrite.o	\
+		platform.o	platform_util.o	poly1305.o	\
 		ripemd160.o	rsa_internal.o	rsa.o  		\
 		sha1.o		sha256.o	sha512.o	\
 		threading.o	timing.o	version.o	\

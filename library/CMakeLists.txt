@@ -40,6 +40,7 @@ set(src_crypto
     md5.c
     md_wrap.c
     memory_buffer_alloc.c
+    nist_kw.c
     oid.c
     padlock.c
     pem.c

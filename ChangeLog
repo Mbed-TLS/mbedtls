@@ -14,6 +14,8 @@ Features
      buffer, which can save some RAM. If buffer lengths are kept equal, there
      is no functional difference. Contributed by Angus Gratton, and also
      independently contributed again by Paul Sokolovsky.
+   * Add support for key wrapping modes based on AES as defined by
+     NIST SP 800-38F algorithms KW and KWP and by RFC's 3394 and 5649.
 
 Bugfix
    * Fix the key_app_writer example which was writing a leading zero byte which

@@ -5678,7 +5678,9 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
     /*
      * Prepare base structures
      */
-    ssl->out_buf = NULL; /* Set to NULL in case of an error condition */
+
+    /* Set to NULL in case of an error condition */
+    ssl->out_buf = NULL;
 
     ssl->in_buf = mbedtls_calloc( 1, MBEDTLS_SSL_IN_BUFFER_LEN );
     if( ssl->in_buf == NULL )

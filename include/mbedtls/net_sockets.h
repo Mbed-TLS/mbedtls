@@ -68,7 +68,7 @@ extern "C" {
  * (eg two file descriptors for combined IPv4 + IPv6 support, or additional
  * structures for hand-made UDP demultiplexing).
  */
-typedef struct
+typedef struct mbedtls_net_context
 {
     int fd;             /**< The underlying file descriptor                 */
 }

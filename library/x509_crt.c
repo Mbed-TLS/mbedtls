@@ -559,7 +559,7 @@ static int x509_get_crt_ext( unsigned char **p,
 
         /* Get extension ID */
         if( ( ret = mbedtls_asn1_get_tag( p, end_ext_data, &extn_oid.len,
-				  MBEDTLS_ASN1_OID ) ) != 0 )
+                                          MBEDTLS_ASN1_OID ) ) != 0 )
             return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
 
         extn_oid.tag = MBEDTLS_ASN1_OID;

@@ -29,6 +29,9 @@ Bugfix
      by Brendan Shanks. Part of a fix for #992.
    * Fix compilation error when MBEDTLS_ARC4_C is disabled and
      MBEDTLS_CIPHER_NULL_CIPHER is enabled. Found by TrinityTonic in #1719.
+   * Fix compiler warning of 'use before initialisation' in
+     mbedtls_pk_parse_key(). Found by Martin Boye Petersen and fixed by Dawid
+     Drozd. #1098
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.

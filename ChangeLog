@@ -37,6 +37,16 @@ Bugfix
    * Fix compiler warning of 'use before initialisation' in
      mbedtls_pk_parse_key(). Found by Martin Boye Petersen and fixed by Dawid
      Drozd. #1098
+   * Fix decryption of zero length messages (all padding) in some circumstances:
+     DTLS 1.0 and 1.2, and CBC ciphersuites using encrypt-then-MAC. Most often
+     seen when communicating with OpenSSL using TLS 1.0. Reported by @kFYatek
+     (#1632) and by Conor Murphy on the forum. Fix contributed by Espressif
+     Systems.
+   * Fail when receiving a TLS alert message with an invalid length, or invalid
+     zero-length messages when using TLS 1.2. Contributed by Espressif Systems.
+   * Fix ssl_client2 example to send application data with 0-length content
+     when the request_size argument is set to 0 as stated in the documentation.
+     Fixes #1833.
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.

@@ -21,6 +21,9 @@ Bugfix
      Philippe Antoine from Catena cyber. #1663.
    * Fix namespacing in header files. Remove the `mbedtls` namespacing in
      the `#include` in the header files. Resolves #857
+   * Fix compiler warning of 'use before initialisation' in
+     mbedtls_pk_parse_key(). Found by Martin Boye Petersen and fixed by Dawid
+     Drozd. #1098
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.

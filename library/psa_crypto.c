@@ -411,6 +411,7 @@ static psa_status_t psa_get_key_from_slot( psa_key_slot_t key,
 /* Key management */
 /****************************************************************/
 
+#if defined(MBEDTLS_ECP_C)
 static psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid )
 {
     switch( grpid )
@@ -480,6 +481,7 @@ static mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve )
             return( MBEDTLS_ECP_DP_NONE );
     }
 }
+#endif /* defined(MBEDTLS_ECP_C) */
 
 static psa_status_t prepare_raw_data_slot( psa_key_type_t type,
                                            size_t bits,

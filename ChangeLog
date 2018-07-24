@@ -48,6 +48,9 @@ Bugfix
    * Fix ssl_client2 example to send application data with 0-length content
      when the request_size argument is set to 0 as stated in the documentation.
      Fixes #1833.
+   * Change the default behaviour of mbedtls_hkdf_extract() to return an error
+     when calling with a NULL salt and non-zero salt_len. Contributed by
+     Brian J Murray
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.

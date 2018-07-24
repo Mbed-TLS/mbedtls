@@ -1174,6 +1174,7 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_EMPTY_SLOT
  * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_NOT_SUPPORTED
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED

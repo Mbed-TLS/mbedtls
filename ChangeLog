@@ -2,6 +2,39 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Security
+   * Fix a vulnerability in TLS ciphersuites based on CBC and using SHA-384,
+     in (D)TLS 1.0 to 1.2, that allowed an active network attacker to
+     partially recover the plaintext of messages under some conditions by
+     exploiting timing measurements. With DTLS, the attacker could perform
+     this recovery by sending many messages in the same connection. With TLS
+     or if mbedtls_ssl_conf_dtls_badmac_limit() was used, the attack only
+     worked if the same secret (for example a HTTP Cookie) has been repeatedly
+     sent over connections manipulated by the attacker. Connections using GCM
+     or CCM instead of CBC, using hash sizes other than SHA-384, or using
+     Encrypt-then-Mac (RFC 7366) were not affected. The vulnerability was
+     caused by a miscalculation (for SHA-384) in a countermeasure to the
+     original Lucky 13 attack. Found by Kenny Paterson, Eyal Ronen and Adi
+     Shamir.
+   * Fix a vulnerability in TLS ciphersuites based on CBC, in (D)TLS 1.0 to
+     1.2, that allowed a local attacker, able to execute code on the local
+     machine as well as manipulate network packets, to partially recover the
+     plaintext of messages under some conditions by using a cache attack
+     targetting an internal MD/SHA buffer. With TLS or if
+     mbedtls_ssl_conf_dtls_badmac_limit() was used, the attack only worked if
+     the same secret (for example a HTTP Cookie) has been repeatedly sent over
+     connections manipulated by the attacker. Connections using GCM or CCM
+     instead of CBC or using Encrypt-then-Mac (RFC 7366) were not affected.
+     Found by Kenny Paterson, Eyal Ronen and Adi Shamir.
+   * Add a counter-measure against a vulnerability in TLS ciphersuites based
+     on CBC, in (D)TLS 1.0 to 1.2, that allowed a local attacker, able to
+     execute code on the local machine as well as manipulate network packets,
+     to partially recover the plaintext of messages under some conditions (see
+     previous entry) by using a cache attack targeting the SSL input record
+     buffer. Connections using GCM or CCM instead of CBC or using
+     Encrypt-then-Mac (RFC 7366) were not affected. Found by Kenny Paterson,
+     Eyal Ronen and Adi Shamir.
+
 Features
    * Add new crypto primitives from RFC 7539: stream cipher Chacha20, one-time
      authenticator Poly1305 and AEAD construct Chacha20-Poly1305. Contributed

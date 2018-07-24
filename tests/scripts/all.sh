@@ -336,6 +336,7 @@ $text"
             echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
             echo "${start_red}FAILED: $failure_count${end_color}$failure_summary"
             echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+            exit 1
         elif [ -z "${1-}" ]; then
             echo "SUCCESS :)"
         fi

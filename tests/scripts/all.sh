@@ -659,15 +659,30 @@ if uname -a | grep -F Linux >/dev/null; then
 fi
 
 if uname -a | grep -F x86_64 >/dev/null; then
-    msg "build: i386, make, gcc" # ~ 30s
+    # Build once with -O0, to compile out the i386 specific inline assembly
+    msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
     cleanup
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -m32'
+    cp "$CONFIG_H" "$CONFIG_BAK"
+    scripts/config.pl full
+    make CC=gcc CFLAGS='-O0 -Werror -Wall -Wextra -m32 -fsanitize=address'
 
-    msg "test: i386, make, gcc"
+    msg "test: i386, make, gcc -O0 (ASan build)"
+    make test
+
+    # Build again with -O1, to compile in the i386 specific inline assembly
+    msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
+    cleanup
+    cp "$CONFIG_H" "$CONFIG_BAK"
+    scripts/config.pl full
+    make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address'
+
+    msg "test: i386, make, gcc -O1 (ASan build)"
     make test
 
     msg "build: 64-bit ILP32, make, gcc" # ~ 30s
     cleanup
+    cp "$CONFIG_H" "$CONFIG_BAK"
+    scripts/config.pl full
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32'
 
     msg "test: 64-bit ILP32, make, gcc"

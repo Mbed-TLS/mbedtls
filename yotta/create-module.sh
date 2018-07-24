@@ -20,8 +20,9 @@ fi
 TMP=$DEST-tmp
 rm -rf $TMP
 
-mkdir -p $TMP/mbedtls $TMP/source
+mkdir -p $TMP/mbedtls $TMP/psa $TMP/source
 cp $TREE/include/mbedtls/*.h $TMP/mbedtls
+cp $TREE/include/psa/*.h $TMP/psa
 cp $TREE/library/*.c $TMP/source
 
 # temporary, should depend on external module later

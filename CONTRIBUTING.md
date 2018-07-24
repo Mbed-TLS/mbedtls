@@ -52,8 +52,7 @@ When backporting to these branches please observe the following rules:
 
  3. If a contribution is a new feature or enhancement, no backporting is required. Exceptions to this may be addtional test cases or quality improvements such as changes to build or test scripts.
 
-It would be highly appreciated if contributions are backported to LTS branches
-in addition to the [development branch](https://github.com/ARMmbed/mbedtls/tree/development) by contributors.
+It would be highly appreciated if contributions are backported to LTS branches in addition to the [development branch](https://github.com/ARMmbed/mbedtls/tree/development) by contributors.
 
 Currently maintained LTS branches are:
 
@@ -70,9 +69,7 @@ Mbed TLS includes a comprehensive set of test suites in the `tests/` directory t
 
 [A Knowledge Base article describing how to add additional tests is available on the Mbed TLS website](https://tls.mbed.org/kb/development/test_suites).
 
-A test script `tests/scripts/basic-build-test.sh` is available to show test
-coverage of the library. New code contributions should provide a similar level
-of code coverage to that which already exists for the library.
+A test script `tests/scripts/basic-build-test.sh` is available to show test coverage of the library. New code contributions should provide a similar level of code coverage to that which already exists for the library.
 
 Sample applications, if needed, should be modified as well.
 

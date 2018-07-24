@@ -36,6 +36,7 @@ typedef UINT32 uint32_t;
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <unistd.h>
+#include <strings.h>
 #endif
 
 /*----------------------------------------------------------------------------*/

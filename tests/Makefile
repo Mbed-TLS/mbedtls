@@ -12,6 +12,11 @@ LOCAL_LDFLAGS = -L../library 			\
 		-lmbedx509$(SHARED_SUFFIX)	\
 		-lmbedcrypto$(SHARED_SUFFIX)
 
+# Enable definition of various functions used throughout the testsuite
+# (gethostname, strdup, fileno...) even when compiling with -std=c99. Harmless
+# on non-POSIX platforms.
+LOCAL_CFLAGS += -D_POSIX_C_SOURCE=200809L
+
 ifndef SHARED
 DEP=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
 else

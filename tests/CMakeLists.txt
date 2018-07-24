@@ -15,6 +15,11 @@ if(NOT PERL_FOUND)
     message(FATAL_ERROR "Cannot build test suites without Perl")
 endif()
 
+# Enable definition of various functions used throughout the testsuite
+# (gethostname, strdup, fileno...) even when compiling with -std=c99. Harmless
+# on non-POSIX platforms.
+add_definitions("-D_POSIX_C_SOURCE=200809L")
+
 function(add_test_suite suite_name)
     if(ARGV1)
         set(data_name ${ARGV1})

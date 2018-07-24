@@ -19,6 +19,11 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
+/* Enable definition of gethostname() even when compiling with -std=c99. Must
+ * be set before config.h, which pulls in glibc's features.h indirectly.
+ * Harmless on other platforms. */
+#define _POSIX_C_SOURCE 200112L
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else

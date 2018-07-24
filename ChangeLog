@@ -56,10 +56,14 @@ Bugfix
    * Correct the documentation for `mbedtls_ssl_get_session()`.
      This API has deep copy of the session, and the peer
      certificate is not lost. Fixes #926.
+   * Fix build using -std=c99. Fixed by Nick Wilson.
 
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.
      Contributed by fbrosson.
+   * Allow overriding the time on Windows via the platform-time abstraction.
+     Fixed by Nick Wilson.
+   * Use gmtime_r/gmtime_s for thread-safety. Fixed by Nick Wilson.
 
 = mbed TLS 2.11.0 branch released 2018-06-18
 

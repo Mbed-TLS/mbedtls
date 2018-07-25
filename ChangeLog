@@ -38,7 +38,7 @@ Security
 Features
    * Add new crypto primitives from RFC 7539: stream cipher Chacha20, one-time
      authenticator Poly1305 and AEAD construct Chacha20-Poly1305. Contributed
-     by Daniel King (#485).
+     by Daniel King.
    * Add support for CHACHA20-POLY1305 ciphersuites from RFC 7905.
    * Add platform support for the Haiku OS. (https://www.haiku-os.org).
      Contributed by Augustin Cavalier.
@@ -48,7 +48,7 @@ Features
      is no functional difference. Contributed by Angus Gratton, and also
      independently contributed again by Paul Sokolovsky.
    * Add support for key wrapping modes based on AES as defined by
-     NIST SP 800-38F algorithms KW and KWP and by RFC's 3394 and 5649.
+     NIST SP 800-38F algorithms KW and KWP and by RFC 3394 and RFC 5649.
 
 Bugfix
    * Fix the key_app_writer example which was writing a leading zero byte which
@@ -56,7 +56,7 @@ Bugfix
    * Fix compilation error on C++, because of a variable named new.
      Found and fixed by Hirotaka Niisato in #1783.
    * Fix "no symbols" warning issued by ranlib when building on Mac OS X. Fix
-     contributed by tabascoeye in pull request #1600.
+     contributed by tabascoeye.
    * Clarify documentation for mbedtls_ssl_write() to include 0 as a valid
      return value. Found by @davidwu2000. #839
    * Fix a memory leak in mbedtls_x509_csr_parse(), found by catenacyber,
@@ -65,6 +65,8 @@ Bugfix
      by Brendan Shanks. Part of a fix for #992.
    * Fix compilation error when MBEDTLS_ARC4_C is disabled and
      MBEDTLS_CIPHER_NULL_CIPHER is enabled. Found by TrinityTonic in #1719.
+   * Added length checks to some TLS parsing functions. Found and fixed by
+     Philippe Antoine from Catena cyber. #1663.
    * Fix the inline assembly for the MPI multiply helper function for i386 and
      i386 with SSE2. Found by László Langó. Fixes #1550
    * Fix namespacing in header files. Remove the `mbedtls` namespacing in
@@ -78,20 +80,19 @@ Bugfix
      to the connection being terminated. Seen most often with OpenSSL using
      TLS 1.0. Reported by @kFYatek and by Conor Murphy on the forum. Fix
      contributed by Espressif Systems. Fixes #1632
-   * Fail when receiving a TLS alert message with an invalid length, or invalid
-     zero-length messages when using TLS 1.2. Contributed by Espressif Systems.
    * Fix ssl_client2 example to send application data with 0-length content
      when the request_size argument is set to 0 as stated in the documentation.
      Fixes #1833.
-   * Change the default behaviour of mbedtls_hkdf_extract() to return an error
-     when calling with a NULL salt and non-zero salt_len. Contributed by
-     Brian J Murray
-   * Correct the documentation for `mbedtls_ssl_get_session()`.
-     This API has deep copy of the session, and the peer
-     certificate is not lost. Fixes #926.
+   * Correct the documentation for `mbedtls_ssl_get_session()`. This API has
+     deep copy of the session, and the peer certificate is not lost. Fixes #926.
    * Fix build using -std=c99. Fixed by Nick Wilson.
 
 Changes
+   * Fail when receiving a TLS alert message with an invalid length, or invalid
+     zero-length messages when using TLS 1.2. Contributed by Espressif Systems.
+   * Change the default behaviour of mbedtls_hkdf_extract() to return an error
+     when calling with a NULL salt and non-zero salt_len. Contributed by
+     Brian J Murray
    * Change the shebang line in Perl scripts to look up perl in the PATH.
      Contributed by fbrosson.
    * Allow overriding the time on Windows via the platform-time abstraction.
@@ -120,8 +121,6 @@ Bugfix
    * Fix compilation warnings with IAR toolchain, on 32 bit platform.
      Reported by rahmanih in #683
    * Fix braces in mbedtls_memory_buffer_alloc_status(). Found by sbranden, #552.
-   * Added length checks to some TLS parsing functions. Found and fixed by
-     Philippe Antoine from Catena cyber. #1663.
 
 Changes
    * Changed CMake defaults for IAR to treat all compiler warnings as errors.

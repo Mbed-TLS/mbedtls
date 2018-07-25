@@ -48,6 +48,12 @@
 
 #if defined(MBEDTLS_HAVE_X86_64)
 
+#if defined(_MSC_VER) && defined(_M_X64)
+#define USE_MSVC_X64_INTRINSICS
+#include <intrin.h>
+#define mm_shuffle_epi64(a, b, ctrl) _mm_castpd_si128( _mm_shuffle_pd( _mm_castsi128_pd( a ), _mm_castsi128_pd( b ), ctrl ) )
+#endif
+
 /*
  * AES-NI support detection routine
  */
@@ -58,11 +64,17 @@ int mbedtls_aesni_has_support( unsigned int what )
 
     if( ! done )
     {
+#if defined(USE_MSVC_X64_INTRINSICS)
+        int regs[4]; // eax, ebx, ecx, edx
+        __cpuid( regs, 1 );
+        c = regs[2];
+#else
         asm( "movl  $1, %%eax   \n\t"
              "cpuid             \n\t"
              : "=c" (c)
              :
              : "eax", "ebx", "edx" );
+#endif
         done = 1;
     }
 
@@ -103,6 +115,28 @@ int mbedtls_aesni_crypt_ecb( mbedtls_aes_context *ctx,
                      const unsigned char input[16],
                      unsigned char output[16] )
 {
+#if defined(USE_MSVC_X64_INTRINSICS)
+    __m128i* rk, a;
+    int i;
+
+    rk = (__m128i*)ctx->rk;
+    a = _mm_xor_si128( _mm_loadu_si128( (__m128i*)input ), _mm_loadu_si128( rk++ ) );
+
+    if (mode == MBEDTLS_AES_ENCRYPT)
+    {
+        for (i = ctx->nr - 1; i; --i)
+            a = _mm_aesenc_si128( a, _mm_loadu_si128( rk++ ) );
+        a = _mm_aesenclast_si128( a, _mm_loadu_si128( rk ) );
+    }
+    else
+    {
+        for (i = ctx->nr - 1; i; --i)
+            a = _mm_aesdec_si128( a, _mm_loadu_si128( rk++ ) );
+        a = _mm_aesdeclast_si128( a, _mm_loadu_si128( rk ) );
+    }
+
+    _mm_storeu_si128( (__m128i*)output, a );
+#else
     asm( "movdqu    (%3), %%xmm0    \n\t" // load input
          "movdqu    (%1), %%xmm1    \n\t" // load round key 0
          "pxor      %%xmm1, %%xmm0  \n\t" // round 0
@@ -136,9 +170,69 @@ int mbedtls_aesni_crypt_ecb( mbedtls_aes_context *ctx,
          : "r" (ctx->nr), "r" (ctx->rk), "r" (mode), "r" (input), "r" (output)
          : "memory", "cc", "xmm0", "xmm1" );
 
+#endif
 
     return( 0 );
 }
+
+#if defined(USE_MSVC_X64_INTRINSICS)
+
+static inline void clmul256( __m128i a, __m128i b, __m128i* r0, __m128i* r1 )
+{
+    __m128i c, d, e, f, ef;
+    c = _mm_clmulepi64_si128( a, b, 0x00 );
+    d = _mm_clmulepi64_si128( a, b, 0x11 );
+    e = _mm_clmulepi64_si128( a, b, 0x10 );
+    f = _mm_clmulepi64_si128( a, b, 0x01 );
+
+    // r0 = f0^e0^c1:c0 = c1:c0 ^ f0^e0:0
+    // r1 = d1:f1^e1^d0 = d1:d0 ^ 0:f1^e1
+
+    ef = _mm_xor_si128( e, f );
+    *r0 = _mm_xor_si128( c, _mm_slli_si128( ef, 8 ) );
+    *r1 = _mm_xor_si128( d, _mm_srli_si128( ef, 8 ) );
+}
+
+static inline void sll256( __m128i a0, __m128i a1, __m128i* s0, __m128i* s1 )
+{
+    __m128i l0, l1, r0, r1;
+
+    l0 = _mm_slli_epi64( a0, 1 );
+    l1 = _mm_slli_epi64( a1, 1 );
+
+    r0 = _mm_srli_epi64( a0, 63 );
+    r1 = _mm_srli_epi64( a1, 63 );
+
+    *s0 = _mm_or_si128( l0, _mm_slli_si128( r0, 8 ) );
+    *s1 = _mm_or_si128( _mm_or_si128( l1, _mm_srli_si128( r0, 8 ) ), _mm_slli_si128( r1, 8 ) );
+}
+
+static inline __m128i reducemod128( __m128i x10, __m128i x32 )
+{
+    __m128i a, b, c, dx0, e, f, g, h;
+
+    // (1) left shift x0 by 63, 62 and 57
+    a = _mm_slli_epi64( x10, 63 );
+    b = _mm_slli_epi64( x10, 62 );
+    c = _mm_slli_epi64( x10, 57 );
+
+    // (2) compute D xor'ing a, b, c and x1
+    // d:x0 = [x1:x0] ^ [a^b^c:0]
+    dx0 = _mm_xor_si128( x10, _mm_slli_si128( _mm_xor_si128( _mm_xor_si128( a, b ), c ), 8 ) );
+
+    // (3) right shift [d:x0] by 1, 2, 7
+    e = _mm_or_si128( _mm_srli_epi64( dx0, 1 ), _mm_srli_si128( _mm_slli_epi64( dx0, 63 ), 8 ) );
+    f = _mm_or_si128( _mm_srli_epi64( dx0, 2 ), _mm_srli_si128( _mm_slli_epi64( dx0, 62 ), 8 ) );
+    g = _mm_or_si128( _mm_srli_epi64( dx0, 7 ), _mm_srli_si128( _mm_slli_epi64( dx0, 57 ), 8 ) );
+
+    // (4) compute h = d^e1^f1^g1:x0^e0^f0^g0
+    h = _mm_xor_si128( dx0, _mm_xor_si128( e, _mm_xor_si128( f, g ) ) );
+
+    // result is x3^h1:x2^h0
+    return _mm_xor_si128( x32, h );
+}
+
+#endif
 
 /*
  * GCM multiplication: c = a times b in GF(2^128)
@@ -148,6 +242,22 @@ void mbedtls_aesni_gcm_mult( unsigned char c[16],
                      const unsigned char a[16],
                      const unsigned char b[16] )
 {
+
+#if defined(USE_MSVC_X64_INTRINSICS)
+    __m128i xa, xb, m0, m1, x10, x32, r;
+
+    xa.m128i_u64[1] = _byteswap_uint64( *((unsigned __int64*)a + 0) );
+    xa.m128i_u64[0] = _byteswap_uint64( *((unsigned __int64*)a + 1) );
+    xb.m128i_u64[1] = _byteswap_uint64( *((unsigned __int64*)b + 0) );
+    xb.m128i_u64[0] = _byteswap_uint64( *((unsigned __int64*)b + 1) );
+
+    clmul256( xa, xb, &m0, &m1 );
+    sll256( m0, m1, &x10, &x32 );
+    r = reducemod128( x10, x32 );
+
+    *((unsigned __int64*)c + 0) = _byteswap_uint64( r.m128i_u64[1] );
+    *((unsigned __int64*)c + 1) = _byteswap_uint64( r.m128i_u64[0] );
+#else
     unsigned char aa[16], bb[16], cc[16];
     size_t i;
 
@@ -248,6 +358,7 @@ void mbedtls_aesni_gcm_mult( unsigned char c[16],
     /* Now byte-reverse the outputs */
     for( i = 0; i < 16; i++ )
         c[i] = cc[15 - i];
+#endif
 
     return;
 }
@@ -264,15 +375,79 @@ void mbedtls_aesni_inverse_key( unsigned char *invkey,
     memcpy( ik, fk, 16 );
 
     for( fk -= 16, ik += 16; fk > fwdkey; fk -= 16, ik += 16 )
+#if defined(USE_MSVC_X64_INTRINSICS)
+        _mm_storeu_si128( (__m128i*)ik, _mm_aesimc_si128( _mm_loadu_si128( (__m128i*)fk) ) );
+#else
         asm( "movdqu (%0), %%xmm0       \n\t"
              AESIMC  xmm0_xmm0         "\n\t"
              "movdqu %%xmm0, (%1)       \n\t"
              :
              : "r" (fk), "r" (ik)
              : "memory", "xmm0" );
+#endif
 
     memcpy( ik, fk, 16 );
 }
+
+#if defined(USE_MSVC_X64_INTRINSICS)
+
+// [AES-WP] Part of Fig. 24 (p. 25)
+inline static __m128i aes_key_128_assist( __m128i temp1, __m128i kg )
+{
+    __m128i temp3;
+    temp3 = _mm_slli_si128( temp1, 0x4 );
+    temp1 = _mm_xor_si128( temp1, temp3 );
+    temp3 = _mm_slli_si128( temp3, 0x4 );
+    temp1 = _mm_xor_si128( temp1, temp3 );
+    temp3 = _mm_slli_si128( temp3, 0x4 );
+    temp1 = _mm_xor_si128( temp1, temp3 );
+    temp1 = _mm_xor_si128( temp1, _mm_shuffle_epi32( kg, 0xff ) );
+    return temp1;
+}
+
+// [AES-WP] Part of Fig. 25 (p. 26)
+inline void aes_key_192_assist( __m128i* temp1, __m128i * temp3, __m128i kg )
+{
+    __m128i temp4;
+    temp4 = _mm_slli_si128( *temp1, 0x4 );
+    *temp1 = _mm_xor_si128( *temp1, temp4 );
+    temp4 = _mm_slli_si128( temp4, 0x4 );
+    *temp1 = _mm_xor_si128( *temp1, temp4 );
+    temp4 = _mm_slli_si128( temp4, 0x4 );
+    *temp1 = _mm_xor_si128( *temp1, temp4 );
+    *temp1 = _mm_xor_si128( *temp1, _mm_shuffle_epi32( kg, 0x55 ) );
+    temp4 = _mm_slli_si128( *temp3, 0x4 );
+    *temp3 = _mm_xor_si128( *temp3, temp4 );
+    *temp3 = _mm_xor_si128( *temp3, _mm_shuffle_epi32( *temp1, 0xff ) );
+}
+
+// [AES-WP] Part of Fig. 26 (p. 27)
+inline static void aes_key_256_assist_1( __m128i* temp1, __m128i kg )
+{
+    __m128i temp4;
+    temp4 = _mm_slli_si128( *temp1, 0x4 );
+    *temp1 = _mm_xor_si128( *temp1, temp4 );
+    temp4 = _mm_slli_si128( temp4, 0x4 );
+    *temp1 = _mm_xor_si128( *temp1, temp4 );
+    temp4 = _mm_slli_si128( temp4, 0x4 );
+    *temp1 = _mm_xor_si128( *temp1, temp4 );
+    *temp1 = _mm_xor_si128( *temp1, _mm_shuffle_epi32( kg, 0xff ) );
+}
+
+inline static void aes_key_256_assist_2( __m128i* temp1, __m128i* temp3 )
+{
+    __m128i temp2, temp4;
+    temp4 = _mm_aeskeygenassist_si128( *temp1, 0x0 );
+    temp2 = _mm_shuffle_epi32( temp4, 0xaa );
+    temp4 = _mm_slli_si128( *temp3, 0x4 );
+    *temp3 = _mm_xor_si128( *temp3, temp4 );
+    temp4 = _mm_slli_si128( temp4, 0x4 );
+    *temp3 = _mm_xor_si128( *temp3, temp4 );
+    temp4 = _mm_slli_si128( temp4, 0x4 );
+    *temp3 = _mm_xor_si128( *temp3, temp4 );
+    *temp3 = _mm_xor_si128( *temp3, temp2 );
+}
+#endif /* USE_MSVC_X64_INTRINSICS */
 
 /*
  * Key expansion, 128-bit case
@@ -280,6 +455,31 @@ void mbedtls_aesni_inverse_key( unsigned char *invkey,
 static void aesni_setkey_enc_128( unsigned char *rk,
                                   const unsigned char *key )
 {
+#if defined(USE_MSVC_X64_INTRINSICS)
+
+    __m128i temp;
+
+#define EXPAND_ROUND(index, rcon) \
+        _mm_storeu_si128( (__m128i*)rk + index, temp ); \
+        temp = aes_key_128_assist( temp, _mm_aeskeygenassist_si128( temp, rcon ) )
+
+    temp = _mm_loadu_si128( (__m128i*)key );
+    EXPAND_ROUND( 0, 0x01 );
+    EXPAND_ROUND( 1, 0x02 );
+    EXPAND_ROUND( 2, 0x04 );
+    EXPAND_ROUND( 3, 0x08 );
+    EXPAND_ROUND( 4, 0x10 );
+    EXPAND_ROUND( 5, 0x20 );
+    EXPAND_ROUND( 6, 0x40 );
+    EXPAND_ROUND( 7, 0x80 );
+    EXPAND_ROUND( 8, 0x1b );
+    EXPAND_ROUND( 9, 0x36 );
+    _mm_storeu_si128( (__m128i*)rk + 10, temp );
+
+#undef EXPAND_ROUND
+
+#else
+
     asm( "movdqu (%1), %%xmm0               \n\t" // copy the original key
          "movdqu %%xmm0, (%0)               \n\t" // as round key 0
          "jmp 2f                            \n\t" // skip auxiliary routine
@@ -322,6 +522,7 @@ static void aesni_setkey_enc_128( unsigned char *rk,
          :
          : "r" (rk), "r" (key)
          : "memory", "cc", "0" );
+#endif /* USE_MSVC_X64_INTRINSICS */
 }
 
 /*
@@ -330,6 +531,31 @@ static void aesni_setkey_enc_128( unsigned char *rk,
 static void aesni_setkey_enc_192( unsigned char *rk,
                                   const unsigned char *key )
 {
+#if defined(USE_MSVC_X64_INTRINSICS)
+    __m128i temp1, temp2, temp3;
+    __m128i *key_schedule = (__m128i*)rk;
+
+#define EXPAND_ROUND(index, rcon1, rcon2) \
+    _mm_storeu_si128( key_schedule + index + 0, temp1 ); \
+    temp2 = temp3; \
+    aes_key_192_assist( &temp1, &temp3, _mm_aeskeygenassist_si128( temp3, rcon1 ) ); \
+    _mm_storeu_si128( key_schedule + index + 1, mm_shuffle_epi64( temp2, temp1, 0 ) ); \
+    _mm_storeu_si128( key_schedule + index + 2, mm_shuffle_epi64( temp1, temp3, 1 ) ); \
+    aes_key_192_assist( &temp1, &temp3, _mm_aeskeygenassist_si128( temp3, rcon2 ) )
+
+    temp1 = _mm_loadu_si128( (__m128i*)key );
+    temp3 = _mm_loadu_si128( (__m128i*)(key + 16) );
+
+    EXPAND_ROUND( 0, 0x01, 0x02 );
+    EXPAND_ROUND( 3, 0x04, 0x08 );
+    EXPAND_ROUND( 6, 0x10, 0x20 );
+    EXPAND_ROUND( 9, 0x40, 0x80 );
+
+    _mm_storeu_si128( key_schedule + 12, temp1 );
+
+#undef EXPAND_ROUND
+
+#else
     asm( "movdqu (%1), %%xmm0   \n\t" // copy original round key
          "movdqu %%xmm0, (%0)   \n\t"
          "add $16, %0           \n\t"
@@ -379,6 +605,7 @@ static void aesni_setkey_enc_192( unsigned char *rk,
          :
          : "r" (rk), "r" (key)
          : "memory", "cc", "0" );
+#endif /* USE_MSVC_X64_INTRINSICS */
 }
 
 /*
@@ -387,6 +614,41 @@ static void aesni_setkey_enc_192( unsigned char *rk,
 static void aesni_setkey_enc_256( unsigned char *rk,
                                   const unsigned char *key )
 {
+#if defined(USE_MSVC_X64_INTRINSICS)
+    __m128i temp1, temp3;
+    __m128i *key_schedule = (__m128i*)rk;
+
+#define EXPAND_ROUND1(index, rcon) \
+    aes_key_256_assist_1( &temp1, _mm_aeskeygenassist_si128( temp3, rcon ) ); \
+    _mm_storeu_si128( key_schedule + index, temp1 )
+
+#define EXPAND_ROUND2(index) \
+    aes_key_256_assist_2( &temp1, &temp3 ); \
+    _mm_storeu_si128( key_schedule + index, temp3 )
+
+    temp1 = _mm_loadu_si128( (__m128i*)key );
+    temp3 = _mm_loadu_si128( (__m128i*)(key + 16) );
+
+    _mm_storeu_si128( key_schedule + 0, temp1 );
+    _mm_storeu_si128( key_schedule + 1, temp3 );
+    EXPAND_ROUND1( 2, 0x01 );
+    EXPAND_ROUND2( 3 );
+    EXPAND_ROUND1( 4, 0x02 );
+    EXPAND_ROUND2( 5 );
+    EXPAND_ROUND1( 6, 0x04 );
+    EXPAND_ROUND2( 7 );
+    EXPAND_ROUND1( 8, 0x08 );
+    EXPAND_ROUND2( 9 );
+    EXPAND_ROUND1( 10, 0x10 );
+    EXPAND_ROUND2( 11 );
+    EXPAND_ROUND1( 12, 0x20 );
+    EXPAND_ROUND2( 13 );
+    EXPAND_ROUND1( 14, 0x40 );
+
+#undef EXPAND_ROUND1
+#undef EXPAND_ROUND2
+
+#else
     asm( "movdqu (%1), %%xmm0           \n\t"
          "movdqu %%xmm0, (%0)           \n\t"
          "add $16, %0                   \n\t"
@@ -445,6 +707,7 @@ static void aesni_setkey_enc_256( unsigned char *rk,
          :
          : "r" (rk), "r" (key)
          : "memory", "cc", "0" );
+#endif /* USE_MSVC_X64_INTRINSICS */
 }
 
 /*

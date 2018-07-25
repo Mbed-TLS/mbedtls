@@ -652,15 +652,25 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_MD5                             ((psa_algorithm_t)0x01000003)
 #define PSA_ALG_RIPEMD160                       ((psa_algorithm_t)0x01000004)
 #define PSA_ALG_SHA_1                           ((psa_algorithm_t)0x01000005)
+/** SHA2-224 */
 #define PSA_ALG_SHA_224                         ((psa_algorithm_t)0x01000008)
+/** SHA2-256 */
 #define PSA_ALG_SHA_256                         ((psa_algorithm_t)0x01000009)
+/** SHA2-384 */
 #define PSA_ALG_SHA_384                         ((psa_algorithm_t)0x0100000a)
+/** SHA2-512 */
 #define PSA_ALG_SHA_512                         ((psa_algorithm_t)0x0100000b)
+/** SHA2-512/224 */
 #define PSA_ALG_SHA_512_224                     ((psa_algorithm_t)0x0100000c)
+/** SHA2-512/256 */
 #define PSA_ALG_SHA_512_256                     ((psa_algorithm_t)0x0100000d)
+/** SHA3-224 */
 #define PSA_ALG_SHA3_224                        ((psa_algorithm_t)0x01000010)
+/** SHA3-256 */
 #define PSA_ALG_SHA3_256                        ((psa_algorithm_t)0x01000011)
+/** SHA3-384 */
 #define PSA_ALG_SHA3_384                        ((psa_algorithm_t)0x01000012)
+/** SHA3-512 */
 #define PSA_ALG_SHA3_512                        ((psa_algorithm_t)0x01000013)
 
 #define PSA_ALG_MAC_SUBCATEGORY_MASK            ((psa_algorithm_t)0x00c00000)
@@ -2486,7 +2496,7 @@ psa_status_t psa_asymmetric_decrypt(psa_key_slot_t key,
 
 /**@}*/
 
-/** \defgroup generation Generators
+/** \defgroup generators Generators
  * @{
  */
 
@@ -2708,7 +2718,7 @@ psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
 
 /**@}*/
 
-/** \defgroup generation Key generation
+/** \defgroup random Random generation
  * @{
  */
 
@@ -2740,7 +2750,7 @@ psa_status_t psa_generate_random(uint8_t *output,
  * parameter to psa_generate_key().
  */
 typedef struct {
-    uint32_t e; /**! Public exponent value. Default: 65537. */
+    uint32_t e; /**< Public exponent value. Default: 65537. */
 } psa_generate_key_extra_rsa;
 
 /**

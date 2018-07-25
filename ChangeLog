@@ -63,16 +63,15 @@ Bugfix
      to the connection being terminated. Seen most often with OpenSSL using
      TLS 1.0. Reported by @kFYatek and by Conor Murphy on the forum. Fix
      contributed by Espressif Systems. Fixes #1632
-   * Fail when receiving a TLS alert message with an invalid length, or invalid
-     zero-length messages when using TLS 1.2. Contributed by Espressif Systems.
    * Fix ssl_client2 example to send application data with 0-length content
      when the request_size argument is set to 0 as stated in the documentation.
      Fixes #1833.
-   * Correct the documentation for `mbedtls_ssl_get_session()`.
-     This API has deep copy of the session, and the peer
-     certificate is not lost. Fixes #926.
+   * Correct the documentation for `mbedtls_ssl_get_session()`. This API has
+     deep copy of the session, and the peer certificate is not lost. Fixes #926.
 
 Changes
+   * Fail when receiving a TLS alert message with an invalid length, or invalid
+     zero-length messages when using TLS 1.2. Contributed by Espressif Systems.
    * Change the shebang line in Perl scripts to look up perl in the PATH.
      Contributed by fbrosson in #1533.
 

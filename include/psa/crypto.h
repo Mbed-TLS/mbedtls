@@ -2724,7 +2724,7 @@ psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
 psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
-                                psa_key_type_t key,
+                                psa_key_slot_t key,
                                 psa_algorithm_t alg,
                                 const uint8_t *salt,
                                 size_t salt_length,

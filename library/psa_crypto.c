@@ -3257,7 +3257,7 @@ static psa_status_t psa_generator_hkdf_setup( psa_hkdf_generator_t *hkdf,
 }
 
 psa_status_t psa_key_derivation( psa_crypto_generator_t *generator,
-                                 psa_key_type_t key,
+                                 psa_key_slot_t key,
                                  psa_algorithm_t alg,
                                  const uint8_t *salt,
                                  size_t salt_length,

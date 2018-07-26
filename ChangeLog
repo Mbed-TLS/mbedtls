@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.1.14 branch released 2018-07-25
 
 Security
    * Fix a vulnerability in TLS ciphersuites based on CBC and using SHA-384,

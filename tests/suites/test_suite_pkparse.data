@@ -207,15 +207,15 @@ depends_on:MBEDTLS_ARC4_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_PKCS12_C
 pk_parse_keyfile_rsa:"data_files/rsa_pkcs8_pbe_sha1_4096_rc4_128.pem":"":MBEDTLS_ERR_PK_PASSWORD_REQUIRED
 
 Parse RSA Key #35 (PKCS#8 encrypted SHA1-RC4-128 DER)
-depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS12_C:MBEDTLS_CIPHER_MODE_CBC
+depends_on:MBEDTLS_ARC4_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS12_C:MBEDTLS_CIPHER_MODE_CBC
 pk_parse_keyfile_rsa:"data_files/rsa_pkcs8_pbe_sha1_1024_rc4_128.der":"PolarSSLTest":0
 
 Parse RSA Key #36 (PKCS#8 encrypted SHA1-RC4-128 DER, 2048-bit)
-depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS12_C:MBEDTLS_CIPHER_MODE_CBC
+depends_on:MBEDTLS_ARC4_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS12_C:MBEDTLS_CIPHER_MODE_CBC
 pk_parse_keyfile_rsa:"data_files/rsa_pkcs8_pbe_sha1_2048_rc4_128.der":"PolarSSLTest":0
 
 Parse RSA Key #37 (PKCS#8 encrypted SHA1-RC4-128 DER, 4096-bit)
-depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS12_C:MBEDTLS_CIPHER_MODE_CBC
+depends_on:MBEDTLS_ARC4_C:MBEDTLS_SHA1_C:MBEDTLS_PKCS12_C:MBEDTLS_CIPHER_MODE_CBC
 pk_parse_keyfile_rsa:"data_files/rsa_pkcs8_pbe_sha1_4096_rc4_128.der":"PolarSSLTest":0
 
 Parse RSA Key #38 (PKCS#8 encrypted v2 PBKDF2 3DES)
@@ -1023,11 +1023,11 @@ depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8param.pem":"NULL":0
 
 Parse EC Key #6 (PKCS8 encrypted DER)
-depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+depends_on:MBEDTLS_ARC4_C:MBEDTLS_SHA1_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8.pw.der":"polar":0
 
 Parse EC Key #7 (PKCS8 encrypted PEM)
-depends_on:MBEDTLS_DES_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+depends_on:MBEDTLS_ARC4_C:MBEDTLS_SHA1_C:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_parse_keyfile_ec:"data_files/ec_prv.pk8.pw.pem":"polar":0
 
 Parse EC Key #8 (SEC1 PEM, secp224r1)

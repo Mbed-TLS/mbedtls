@@ -224,11 +224,11 @@ int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
     if( ( ret = mbedtls_cipher_crypt( &cipher_ctx, iv, enc_scheme_params.len,
                               data, datalen, output, &olen ) ) != 0 )
     {
-            /*
-             * PKCS5 supports DES or RC2. RC2 is not supported by Mbed TLS.
-             * if DES mode is not supported by alternative implementation,
-             * return  MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE
-             */
+        /*
+         * PKCS5 supports DES or RC2. RC2 is not supported by Mbed TLS.
+         * if DES mode is not supported by alternative implementation,
+         * return  MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE
+         */
         if( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
             ret = MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE;
         else

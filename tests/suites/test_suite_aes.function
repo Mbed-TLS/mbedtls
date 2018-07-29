@@ -71,10 +71,10 @@ void aes_decrypt_ecb( char *hex_key_string, char *hex_src_string,
     ret = mbedtls_aes_setkey_dec( &ctx, key_str, key_len * 8 );
     if( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE )
         goto exit;
-    TEST_ASSERT(  ret == setkey_result );
+    TEST_ASSERT( ret == setkey_result );
     if( setkey_result == 0 )
     {
-        ret =  mbedtls_aes_crypt_ecb( &ctx, MBEDTLS_AES_DECRYPT, src_str, output );
+        ret = mbedtls_aes_crypt_ecb( &ctx, MBEDTLS_AES_DECRYPT, src_str, output );
         if( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE )
             goto exit;
         TEST_ASSERT( ret == 0 );
@@ -119,7 +119,7 @@ void aes_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
     ret = mbedtls_aes_crypt_cbc( &ctx, MBEDTLS_AES_ENCRYPT, data_len, iv_str, src_str, output );
     if( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE )
         goto exit;
-    TEST_ASSERT(  ret == cbc_result );
+    TEST_ASSERT( ret == cbc_result );
     if( cbc_result == 0 )
     {
         hexify( dst_str, output, data_len );

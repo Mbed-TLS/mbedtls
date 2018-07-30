@@ -2018,7 +2018,7 @@
 /**
  * \def MBEDTLS_CTR_DRBG_C
  *
- * Enable the CTR_DRBG AES-256-based random generator.
+ * Enable the CTR_DRBG AES-256-based(default) or AES-128-based random generator.
  *
  * Module:  library/ctr_drbg.c
  * Caller:
@@ -2029,6 +2029,16 @@
  */
 #define MBEDTLS_CTR_DRBG_C
 
+/**
+ * configure key size for ctr DRBG , either 
+ * MBEDTLS_CTR_DRBG_KEYSIZE_256 (default)
+ * or 
+ * MBEDTLS_CTR_DRBG_KEYSIZE_128
+ * must be set.
+ */
+#if !defined(MBEDTLS_CTR_DRBG_KEY_SIZE_128) 
+#define MBEDTLS_CTR_DRBG_KEY_SIZE_256 1
+#endif
 /**
  * \def MBEDTLS_DEBUG_C
  *

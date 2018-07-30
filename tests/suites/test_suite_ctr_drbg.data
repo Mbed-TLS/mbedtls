@@ -733,3 +733,6 @@ ctr_drbg_special_behaviours:
 CTR_DRBG self test
 ctr_drbg_selftest:
 
+CTR_DRBG NIST Validation (AES-128 use df,True,256,128,0,0) #0
+depends_on:MBEDTLS_CTR_DRBG_KEY_SIZE_128
+ctr_drbg_validate_pr:"d254fcff021e69d229c9cfad85fa486c":"c18081a65d44021619b3f180b1c920026a546f0c7081498b6ea662526d51b1cb583bfad5375ffbc9ff46d219c7223e95459d82e1e7229f633169d26b57474fa337c9981c0bfb91314d55b9e91c5a5ee49392cfc52312d5562c4a6effdc10d068":"":"":"34011656b429008f3563ecb5f2590723"

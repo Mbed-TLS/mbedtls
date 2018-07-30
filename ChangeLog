@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fixes an issue with MBEDTLS_CHACHAPOLY_C which would not compile if
+     MBEDTLS_ARC4_C and MBEDTLS_CIPHER_NULL_CIPHER weren't also defined. #1890
+
 = mbed TLS 2.1.14 branch released 2018-07-25
 
 Security

@@ -2030,13 +2030,13 @@
 #define MBEDTLS_CTR_DRBG_C
 
 /**
- * configure key size for ctr DRBG , either 
+ * configure key size for ctr DRBG , either
  * MBEDTLS_CTR_DRBG_KEYSIZE_256 (default)
- * or 
+ * or
  * MBEDTLS_CTR_DRBG_KEYSIZE_128
  * must be set.
  */
-#if !defined(MBEDTLS_CTR_DRBG_KEY_SIZE_128) 
+#if !defined(MBEDTLS_CTR_DRBG_KEY_SIZE_128)
 #define MBEDTLS_CTR_DRBG_KEY_SIZE_256 1
 #endif
 /**

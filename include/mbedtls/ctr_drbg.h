@@ -8,9 +8,9 @@
  * Recommendation for Random Number Generation Using Deterministic Random
  * Bit Generators</em>.
  *
- * The Mbed TLS implementation of CTR_DRBG uses AES-256 (default) or AES-128 
+ * The Mbed TLS implementation of CTR_DRBG uses AES-256 (default) or AES-128
  * as the underlying block cipher.
- * 
+ *
  *  * \warning   ARC4 is considered a weak cipher and its use constitutes a
  *            security risk. We recommend considering stronger ciphers instead.
  */
@@ -48,14 +48,14 @@
 #define MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR                -0x003A  /**< Read or write error in file. */
 
 #define MBEDTLS_CTR_DRBG_BLOCKSIZE          16 /**< The block size used by the cipher. */
-#if defined(MBEDTLS_CTR_DRBG_KEY_SIZE_256) 
+#if defined(MBEDTLS_CTR_DRBG_KEY_SIZE_256)
 #define MBEDTLS_CTR_DRBG_KEYSIZE            32 /**< The key size used by the cipher. */
-#else 
-#if defined(MBEDTLS_CTR_DRBG_KEY_SIZE_128) 
+#else
+#if defined(MBEDTLS_CTR_DRBG_KEY_SIZE_128)
 #warning Warning: using smaller (128bit) key size for CTR DRBG may reduce the security of some operations.
 #define MBEDTLS_CTR_DRBG_KEYSIZE            16 /**< The key size used by the cipher. */
-#else 
-#error for ctr DRBG either MBEDTLS_CTR_DRBG_KEYSIZE_256 (default) or MBEDTLS_CTR_DRBG_KEYSIZE_128 must be set
+#else
+#error for ctr DRBG either MBEDTLS_CTR_DRBG_KEY_SIZE_256 (default) or MBEDTLS_CTR_DRBG_KEY_SIZE_128 must be set
 #endif
 #endif
 #define MBEDTLS_CTR_DRBG_KEYBITS            ( MBEDTLS_CTR_DRBG_KEYSIZE * 8 ) /**< The key size for the DRBG operation, in bits. */

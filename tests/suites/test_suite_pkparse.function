@@ -31,9 +31,17 @@ void pk_parse_keyfile_rsa( char *key_file, char *password, int result )
         pwd = NULL;
 
     res = mbedtls_pk_parse_keyfile( &ctx, key_file, pwd );
-    if( ( res == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE ) ||
-        ( res == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE ) ||
-        ( res == MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE ) )
+    if( 0
+#if defined(MBEDTLS_AES_C)
+        || ( res == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE )
+#endif
+#if defined(MBEDTLS_DES_C)
+        || ( res == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+#endif
+#if defined(MBEDTLS_PKCS5_C)
+        || ( res == MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE )
+#endif
+        )
         goto exit;
     TEST_ASSERT( res == result );
 
@@ -109,8 +117,10 @@ void pk_parse_keyfile_ec( char *key_file, char *password, int result )
     mbedtls_pk_init( &ctx );
 
     res = mbedtls_pk_parse_keyfile( &ctx, key_file, password );
+#if defined(MBEDTLS_DES_C)
     if( res == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
         goto exit;
+#endif
 
     TEST_ASSERT( res == result );
 

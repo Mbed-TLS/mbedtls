@@ -123,9 +123,14 @@ void mbedtls_cmac_setkey( int cipher_type, int key_size,
     memset( buf, 0x2A, sizeof( buf ) );
     ret = mbedtls_cipher_cmac( cipher_info, key, key_size,
                                             buf, 16, tmp );
-    if( ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE ) ||
-        ( ret == MBEDTLS_ERR_CMAC_FEATURE_UNAVAILABLE ) ||
-        ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE ) )
+    if( ( ret == MBEDTLS_ERR_CMAC_FEATURE_UNAVAILABLE )
+#if defined(MBEDTLS_AES_C)
+        || ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE )
+#endif
+#if defined(MBEDTLS_DES_C)
+        || ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+#endif
+        )
         goto exit;
     TEST_ASSERT( ( result == ret ) != 0 );
 }
@@ -177,8 +182,11 @@ void mbedtls_cmac_multiple_blocks( int cipher_type,
     ret = mbedtls_cipher_cmac_starts( &ctx,
                                       (const unsigned char*)key,
                                        keybits );
-    if( ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE ) ||
-        ( ret == MBEDTLS_ERR_CMAC_FEATURE_UNAVAILABLE ) )
+    if( ( ret == MBEDTLS_ERR_CMAC_FEATURE_UNAVAILABLE )
+#if defined(MBEDTLS_AES_C)
+        || ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE )
+#endif
+      )
         goto exit;
     TEST_ASSERT( ret == 0 );
 
@@ -271,8 +279,11 @@ void mbedtls_cmac_multiple_operations_same_key( int cipher_type,
     ret = mbedtls_cipher_cmac_starts( &ctx,
                                       (const unsigned char*)key,
                                              keybits );
-    if( ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE ) ||
-        ( ret == MBEDTLS_ERR_CMAC_FEATURE_UNAVAILABLE ) )
+    if( ( ret == MBEDTLS_ERR_CMAC_FEATURE_UNAVAILABLE )
+#if defined(MBEDTLS_AES_C)
+        || ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE )
+#endif
+      )
         goto exit;
     TEST_ASSERT( ret == 0 );
 

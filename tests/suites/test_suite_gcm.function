@@ -49,9 +49,14 @@ void gcm_bad_parameters( int cipher_id, int direction,
     add_len = unhexify( add_str, hex_add_string );
 
     ret = mbedtls_gcm_setkey( &ctx, cipher_id, key_str, key_len * 8 );
-    if( ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE ) ||
-        ( ret == MBEDTLS_ERR_GCM_FEATURE_UNAVAILABLE ) ||
-        ( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE ) )
+    if( ( ret == MBEDTLS_ERR_GCM_FEATURE_UNAVAILABLE )
+#if defined(MBEDTLS_AES_C)
+        || ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE )
+#endif
+#if defined(MBEDTLS_CAMELLIA_C)
+        || ( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+#endif
+        )
         goto exit;
     TEST_ASSERT( ret == 0 );
     TEST_ASSERT( mbedtls_gcm_crypt_and_tag( &ctx, direction, pt_len, iv_str, iv_len,
@@ -99,9 +104,14 @@ void gcm_encrypt_and_tag( int cipher_id,
     add_len = unhexify( add_str, hex_add_string );
 
     ret = mbedtls_gcm_setkey( &ctx, cipher_id, key_str, key_len * 8 );
-    if( ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE ) ||
-        ( ret == MBEDTLS_ERR_GCM_FEATURE_UNAVAILABLE ) ||
-        ( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE ) )
+    if( ( ret == MBEDTLS_ERR_GCM_FEATURE_UNAVAILABLE )
+#if defined(MBEDTLS_AES_C)
+        || ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE )
+#endif
+#if defined(MBEDTLS_CAMELLIA_C)
+        || ( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+#endif
+        )
         goto exit;
     TEST_ASSERT( ret == init_result );
     if( init_result == 0 )
@@ -155,9 +165,14 @@ void gcm_decrypt_and_verify( int cipher_id,
     unhexify( tag_str, hex_tag_string );
 
     ret = mbedtls_gcm_setkey( &ctx, cipher_id, key_str, key_len * 8 );
-    if( ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE ) ||
-        ( ret == MBEDTLS_ERR_GCM_FEATURE_UNAVAILABLE ) ||
-        ( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE ) )
+    if( ( ret == MBEDTLS_ERR_GCM_FEATURE_UNAVAILABLE )
+#if defined(MBEDTLS_AES_C)
+        || ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE )
+#endif
+#if defined(MBEDTLS_CAMELLIA_C)
+        || ( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+#endif
+        )
         goto exit;
     TEST_ASSERT( ret == init_result );
     if( init_result == 0 )

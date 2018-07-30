@@ -119,7 +119,6 @@ int main( void )
 #define TIME_AND_TSC( TITLE, CODE )                                     \
 do {                                                                    \
     unsigned long ii, jj, tsc;                                          \
-    int ret = 0;                                                        \
                                                                         \
     mbedtls_printf( HEADER_FORMAT, TITLE );                             \
     fflush( stdout );                                                   \
@@ -171,7 +170,6 @@ do {                                                                    \
 #define TIME_PUBLIC( TITLE, TYPE, CODE )                                \
 do {                                                                    \
     unsigned long ii;                                                   \
-    int ret;                                                            \
     MEMORY_MEASURE_INIT;                                                \
                                                                         \
     mbedtls_printf( HEADER_FORMAT, TITLE );                             \
@@ -254,7 +252,7 @@ typedef struct {
 
 int main( int argc, char *argv[] )
 {
-    int i, ret;
+    int i, ret = 0;
     unsigned char tmp[200];
     char title[TITLE_LEN];
     todo_list todo;

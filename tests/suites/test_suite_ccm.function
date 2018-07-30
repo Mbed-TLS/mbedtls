@@ -37,7 +37,7 @@ void mbedtls_ccm_setkey( int cipher_id, int key_size, int result )
 #if defined(MBEDTLS_AES_C)
         ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE ) ||
 #endif
-#if defined(MBEDTLS_AES_C)
+#if defined(MBEDTLS_CAMELLIA_C)
         ( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE ) ||
 #endif
         ( ret == MBEDTLS_ERR_CCM_FEATURE_UNAVAILABLE ) );

@@ -532,11 +532,11 @@ void import_export( data_t *data,
     TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( data->len ) );
     export_size = (ptrdiff_t) data->len + export_size_delta;
     exported = mbedtls_calloc( 1, export_size );
-    TEST_ASSERT( exported != NULL );
+    TEST_ASSERT( export_size == 0 || exported != NULL );
     if( ! canonical_input )
     {
         reexported = mbedtls_calloc( 1, export_size );
-        TEST_ASSERT( reexported != NULL );
+        TEST_ASSERT( export_size == 0 || reexported != NULL );
     }
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
@@ -2343,7 +2343,7 @@ void asymmetric_encrypt( int key_type_arg,
                                           &key_bits ) == PSA_SUCCESS );
     output_size = PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE( key_type, key_bits, alg );
     output = mbedtls_calloc( 1, output_size );
-    TEST_ASSERT( output != NULL );
+    TEST_ASSERT( output_size == 0 || output != NULL );
 
     /* Encrypt the input */
     actual_status = psa_asymmetric_encrypt( slot, alg,
@@ -2946,7 +2946,7 @@ void generate_random( int bytes_arg )
     unsigned run;
 
     TEST_ASSERT( output != NULL );
-    TEST_ASSERT( changed != NULL );
+    TEST_ASSERT( bytes == 0 || changed != NULL );
     memcpy( output + bytes, trail, sizeof( trail ) );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );

@@ -98,11 +98,11 @@ typedef struct
 struct psa_mac_operation_s
 {
     psa_algorithm_t alg;
-    int key_set : 1;
-    int iv_required : 1;
-    int iv_set : 1;
-    int has_input : 1;
-    int is_sign : 1;
+    unsigned int key_set : 1;
+    unsigned int iv_required : 1;
+    unsigned int iv_set : 1;
+    unsigned int has_input : 1;
+    unsigned int is_sign : 1;
     uint8_t mac_size;
     union
     {
@@ -119,9 +119,9 @@ struct psa_mac_operation_s
 struct psa_cipher_operation_s
 {
     psa_algorithm_t alg;
-    int key_set : 1;
-    int iv_required : 1;
-    int iv_set : 1;
+    unsigned int key_set : 1;
+    unsigned int iv_required : 1;
+    unsigned int iv_set : 1;
     uint8_t iv_size;
     uint8_t block_size;
     union

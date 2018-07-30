@@ -411,6 +411,7 @@ static psa_status_t psa_get_key_from_slot( psa_key_slot_t key,
 /* Key management */
 /****************************************************************/
 
+#if defined(MBEDTLS_ECP_C)
 static psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid )
 {
     switch( grpid )
@@ -480,6 +481,7 @@ static mbedtls_ecp_group_id mbedtls_ecc_group_of_psa( psa_ecc_curve_t curve )
             return( MBEDTLS_ECP_DP_NONE );
     }
 }
+#endif /* defined(MBEDTLS_ECP_C) */
 
 static psa_status_t prepare_raw_data_slot( psa_key_type_t type,
                                            size_t bits,
@@ -785,16 +787,25 @@ static  psa_status_t psa_internal_export_key( psa_key_slot_t key,
         {
             mbedtls_pk_context pk;
             int ret;
-            mbedtls_pk_init( &pk );
             if( PSA_KEY_TYPE_IS_RSA( slot->type ) )
             {
+#if defined(MBEDTLS_RSA_C)
+                mbedtls_pk_init( &pk );
                 pk.pk_info = &mbedtls_rsa_info;
                 pk.pk_ctx = slot->data.rsa;
+#else
+                return( PSA_ERROR_NOT_SUPPORTED );
+#endif
             }
             else
             {
+#if defined(MBEDTLS_ECP_C)
+                mbedtls_pk_init( &pk );
                 pk.pk_info = &mbedtls_eckey_info;
                 pk.pk_ctx = slot->data.ecp;
+#else
+                return( PSA_ERROR_NOT_SUPPORTED );
+#endif
             }
             if( export_public_key || PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) )
                 ret = mbedtls_pk_write_pubkey_der( &pk, data, data_size );
@@ -2164,6 +2175,12 @@ psa_status_t psa_asymmetric_encrypt( psa_key_slot_t key,
     key_slot_t *slot;
     psa_status_t status;
 
+    (void) input;
+    (void) input_length;
+    (void) salt;
+    (void) output;
+    (void) output_size;
+
     *output_length = 0;
 
     if( ! PSA_ALG_IS_RSA_OAEP( alg ) && salt_length != 0 )
@@ -2237,6 +2254,12 @@ psa_status_t psa_asymmetric_decrypt( psa_key_slot_t key,
 {
     key_slot_t *slot;
     psa_status_t status;
+
+    (void) input;
+    (void) input_length;
+    (void) salt;
+    (void) output;
+    (void) output_size;
 
     *output_length = 0;
 

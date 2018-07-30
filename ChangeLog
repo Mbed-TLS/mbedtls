@@ -71,6 +71,8 @@ Features
      independently contributed again by Paul Sokolovsky.
    * Add support for key wrapping modes based on AES as defined by
      NIST SP 800-38F algorithms KW and KWP and by RFC 3394 and RFC 5649.
+   * Add support different keys sizes to CTR_CRBG. Note: using shorter keys
+     than 256 bit may decrease security.
 
 Bugfix
    * Fix the key_app_writer example which was writing a leading zero byte which

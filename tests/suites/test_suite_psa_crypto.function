@@ -496,12 +496,10 @@ void fill_slots( int max_arg )
                                      &exported_size ) == PSA_SUCCESS );
         TEST_ASSERT( exported_size == sizeof( slot ) );
         TEST_ASSERT( memcmp( exported, &slot, sizeof( slot ) ) == 0 );
-        TEST_ASSERT( psa_destroy_key( slot ) == PSA_SUCCESS );
     }
 
 exit:
-    for( slot = 1; slot <= max; slot++ )
-        psa_destroy_key( slot );
+    /* Do not destroy the keys. mbedtls_psa_crypto_free() should do it. */
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

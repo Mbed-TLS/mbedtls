@@ -71,8 +71,8 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
     psa_algorithm_t padding_mode = -1;
     psa_algorithm_t alg_without_padding = alg;
     if (PSA_ALG_IS_CIPHER(alg) && PSA_ALG_IS_BLOCK_CIPHER(alg)) {
-            padding_mode = alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
-            alg_without_padding = alg & ~PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
+        padding_mode = alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
+        alg_without_padding = alg & ~PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
     }
     switch (alg_without_padding) {
     %(algorithm_cases)s

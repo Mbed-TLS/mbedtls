@@ -312,7 +312,10 @@ int main( int argc, char *argv[] )
             else if( strcmp( q, "7919" ) == 0 )
                 opt.std = DHM_PRIMES_RFC_7919;
             else
+            {
+                mbedtls_printf( " Illegal value for argument 'rfc'\n" );
                 goto usage;
+            }
         }
         else if( strcmp( p, "bitsize" ) == 0 )
         {
@@ -322,19 +325,28 @@ int main( int argc, char *argv[] )
                 opt.bitsize != 4096 &&
                 opt.bitsize != 6144 &&
                 opt.bitsize != 8192 )
+            {
+                mbedtls_printf( " Illegal value for argument 'bitsize'\n" );
                 goto usage;
+            }
         }
         else if( strcmp( p, "stepsize" ) == 0 )
         {
             opt.stepsize = atoi( q );
             if( opt.stepsize <= 0 || opt.stepsize > 128 )
+            {
+                mbedtls_printf( " Illegal value for argument 'stepsize'\n" );
                 goto usage;
+            }
         }
         else if( strcmp( p, "thread" ) == 0 )
         {
             opt.thread = atoi( q );
             if( opt.thread > 128 )
+            {
+                mbedtls_printf( " Illegal value for argument 'thread'\n" );
                 goto usage;
+            }
         }
         else if( strcmp( p, "check" ) == 0 )
         {
@@ -347,7 +359,10 @@ int main( int argc, char *argv[] )
             else if( strcmp( q, "canonicity" ) == 0 )
                 opt.check = check_canonicity;
             else
+            {
+                mbedtls_printf( " Illegal value for argument 'check'\n" );
                 goto usage;
+            }
         }
         else
             goto usage;

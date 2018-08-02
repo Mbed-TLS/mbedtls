@@ -89,6 +89,13 @@ typedef int32_t psa_status_t;
 
 #endif /* !defined(PSA_SUCCESS) */
 
+/** An error occurred that does not correspond to any defined
+ * failure cause.
+ *
+ * Implementations may use this error code if none of the other standard
+ * error codes are applicable. */
+#define PSA_ERROR_UNKNOWN_ERROR         ((psa_status_t)1)
+
 /** The requested operation or a parameter is not supported
  * by this implementation.
  *
@@ -96,7 +103,7 @@ typedef int32_t psa_status_t;
  * parameter such as a key type, algorithm, etc. is not recognized.
  * If a combination of parameters is recognized and identified as
  * not valid, return #PSA_ERROR_INVALID_ARGUMENT instead. */
-#define PSA_ERROR_NOT_SUPPORTED         ((psa_status_t)1)
+#define PSA_ERROR_NOT_SUPPORTED         ((psa_status_t)2)
 
 /** The requested action is denied by a policy.
  *
@@ -109,7 +116,7 @@ typedef int32_t psa_status_t;
  * not valid or not supported, it is unspecified whether the function
  * returns #PSA_ERROR_NOT_PERMITTED, #PSA_ERROR_NOT_SUPPORTED or
  * #PSA_ERROR_INVALID_ARGUMENT. */
-#define PSA_ERROR_NOT_PERMITTED         ((psa_status_t)2)
+#define PSA_ERROR_NOT_PERMITTED         ((psa_status_t)3)
 
 /** An output buffer is too small.
  *
@@ -121,7 +128,7 @@ typedef int32_t psa_status_t;
  * buffer would succeed. However implementations may return this
  * error if a function has invalid or unsupported parameters in addition
  * to the parameters that determine the necessary output buffer size. */
-#define PSA_ERROR_BUFFER_TOO_SMALL      ((psa_status_t)3)
+#define PSA_ERROR_BUFFER_TOO_SMALL      ((psa_status_t)4)
 
 /** A slot is occupied, but must be empty to carry out the
  * requested action.
@@ -129,7 +136,7 @@ typedef int32_t psa_status_t;
  * If the slot number is invalid (i.e. the requested action could
  * not be performed even after erasing the slot's content),
  * implementations shall return #PSA_ERROR_INVALID_ARGUMENT instead. */
-#define PSA_ERROR_OCCUPIED_SLOT         ((psa_status_t)4)
+#define PSA_ERROR_OCCUPIED_SLOT         ((psa_status_t)5)
 
 /** A slot is empty, but must be occupied to carry out the
  * requested action.
@@ -137,7 +144,7 @@ typedef int32_t psa_status_t;
  * If the slot number is invalid (i.e. the requested action could
  * not be performed even after creating appropriate content in the slot),
  * implementations shall return #PSA_ERROR_INVALID_ARGUMENT instead. */
-#define PSA_ERROR_EMPTY_SLOT            ((psa_status_t)5)
+#define PSA_ERROR_EMPTY_SLOT            ((psa_status_t)6)
 
 /** The requested action cannot be performed in the current state.
  *
@@ -149,7 +156,7 @@ typedef int32_t psa_status_t;
  * that a key slot is occupied when it needs to be free or vice versa,
  * but shall return #PSA_ERROR_OCCUPIED_SLOT or #PSA_ERROR_EMPTY_SLOT
  * as applicable. */
-#define PSA_ERROR_BAD_STATE             ((psa_status_t)6)
+#define PSA_ERROR_BAD_STATE             ((psa_status_t)7)
 
 /** The parameters passed to the function are invalid.
  *
@@ -160,13 +167,13 @@ typedef int32_t psa_status_t;
  * that a key slot is occupied when it needs to be free or vice versa,
  * but shall return #PSA_ERROR_OCCUPIED_SLOT or #PSA_ERROR_EMPTY_SLOT
  * as applicable. */
-#define PSA_ERROR_INVALID_ARGUMENT      ((psa_status_t)7)
+#define PSA_ERROR_INVALID_ARGUMENT      ((psa_status_t)8)
 
 /** There is not enough runtime memory.
  *
  * If the action is carried out across multiple security realms, this
  * error can refer to available memory in any of the security realms. */
-#define PSA_ERROR_INSUFFICIENT_MEMORY   ((psa_status_t)8)
+#define PSA_ERROR_INSUFFICIENT_MEMORY   ((psa_status_t)9)
 
 /** There is not enough persistent storage.
  *
@@ -175,7 +182,7 @@ typedef int32_t psa_status_t;
  * many functions that do not otherwise access storage may return this
  * error code if the implementation requires a mandatory log entry for
  * the requested action and the log storage space is full. */
-#define PSA_ERROR_INSUFFICIENT_STORAGE  ((psa_status_t)9)
+#define PSA_ERROR_INSUFFICIENT_STORAGE  ((psa_status_t)10)
 
 /** There was a communication failure inside the implementation.
  *
@@ -192,7 +199,7 @@ typedef int32_t psa_status_t;
  * cryptoprocessor but there was a breakdown of communication before
  * the cryptoprocessor could report the status to the application.
  */
-#define PSA_ERROR_COMMUNICATION_FAILURE ((psa_status_t)10)
+#define PSA_ERROR_COMMUNICATION_FAILURE ((psa_status_t)11)
 
 /** There was a storage failure that may have led to data loss.
  *
@@ -217,13 +224,13 @@ typedef int32_t psa_status_t;
  * permanent storage corruption. However application writers should
  * keep in mind that transient errors while reading the storage may be
  * reported using this error code. */
-#define PSA_ERROR_STORAGE_FAILURE       ((psa_status_t)11)
+#define PSA_ERROR_STORAGE_FAILURE       ((psa_status_t)12)
 
 /** A hardware failure was detected.
  *
  * A hardware failure may be transient or permanent depending on the
  * cause. */
-#define PSA_ERROR_HARDWARE_FAILURE      ((psa_status_t)12)
+#define PSA_ERROR_HARDWARE_FAILURE      ((psa_status_t)13)
 
 /** A tampering attempt was detected.
  *
@@ -254,7 +261,7 @@ typedef int32_t psa_status_t;
  * This error indicates an attack against the application. Implementations
  * shall not return this error code as a consequence of the behavior of
  * the application itself. */
-#define PSA_ERROR_TAMPERING_DETECTED    ((psa_status_t)13)
+#define PSA_ERROR_TAMPERING_DETECTED    ((psa_status_t)14)
 
 /** There is not enough entropy to generate random data needed
  * for the requested action.
@@ -273,7 +280,7 @@ typedef int32_t psa_status_t;
  * secure pseudorandom generator (PRNG). However implementations may return
  * this error at any time if a policy requires the PRNG to be reseeded
  * during normal operation. */
-#define PSA_ERROR_INSUFFICIENT_ENTROPY  ((psa_status_t)14)
+#define PSA_ERROR_INSUFFICIENT_ENTROPY  ((psa_status_t)15)
 
 /** The signature, MAC or hash is incorrect.
  *
@@ -283,7 +290,7 @@ typedef int32_t psa_status_t;
  *
  * If the value to verify has an invalid size, implementations may return
  * either #PSA_ERROR_INVALID_ARGUMENT or #PSA_ERROR_INVALID_SIGNATURE. */
-#define PSA_ERROR_INVALID_SIGNATURE     ((psa_status_t)15)
+#define PSA_ERROR_INVALID_SIGNATURE     ((psa_status_t)16)
 
 /** The decrypted padding is incorrect.
  *
@@ -299,20 +306,13 @@ typedef int32_t psa_status_t;
  * as close as possible to indistinguishable to an external observer.
  * In particular, the timing of a decryption operation should not
  * depend on the validity of the padding. */
-#define PSA_ERROR_INVALID_PADDING       ((psa_status_t)16)
+#define PSA_ERROR_INVALID_PADDING       ((psa_status_t)17)
 
 /** The generator has insufficient capacity left.
  *
  * Once a function returns this error, attempts to read from the
  * generator will always return this error. */
-#define PSA_ERROR_INSUFFICIENT_CAPACITY ((psa_status_t)17)
-
-/** An error occurred that does not correspond to any defined
- * failure cause.
- *
- * Implementations may use this error code if none of the other standard
- * error codes are applicable. */
-#define PSA_ERROR_UNKNOWN_ERROR         ((psa_status_t)18)
+#define PSA_ERROR_INSUFFICIENT_CAPACITY ((psa_status_t)18)
 
 /**
  * \brief Library initialization.

@@ -1297,9 +1297,12 @@ static void ssl_mac( mbedtls_md_context_t *md_ctx,
 }
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
-#if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER) ||     \
-    ( defined(MBEDTLS_CIPHER_MODE_CBC) &&                                  \
-      ( defined(MBEDTLS_AES_C) || defined(MBEDTLS_CAMELLIA_C) || defined(MBEDTLS_ARIA_C)) )
+#if defined(MBEDTLS_ARC4_C) || defined(MBEDTLS_CIPHER_NULL_CIPHER) ||   \
+    ( defined(MBEDTLS_CIPHER_MODE_CBC) &&                               \
+      ( defined(MBEDTLS_AES_C)      ||                                  \
+        defined(MBEDTLS_CAMELLIA_C) ||                                  \
+        defined(MBEDTLS_DES_C)      ||                                  \
+        defined(MBEDTLS_ARIA_C) ) )
 #define SSL_SOME_MODES_USE_MAC
 #endif
 

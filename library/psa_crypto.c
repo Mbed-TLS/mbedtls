@@ -82,6 +82,8 @@
 
 
 
+#define ARRAY_LENGTH( array ) ( sizeof( array ) / sizeof( *( array ) ) )
+
 /* Implementation that should never be optimized out by the compiler */
 static void mbedtls_zeroize( void *v, size_t n )
 {
@@ -343,10 +345,13 @@ static psa_status_t mbedtls_to_psa_error( int ret )
 static psa_status_t psa_get_key_slot( psa_key_slot_t key,
                                       key_slot_t **p_slot )
 {
-    if( key == 0 || key > PSA_KEY_SLOT_COUNT )
+    /* 0 is not a valid slot number under any circumstance. This
+     * implementation provides slots number 1 to N where N is the
+     * number of available slots. */
+    if( key == 0 || key > ARRAY_LENGTH( global_data.key_slots ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-    *p_slot = &global_data.key_slots[key];
+    *p_slot = &global_data.key_slots[key - 1];
     return( PSA_SUCCESS );
 }
 
@@ -3471,7 +3476,7 @@ psa_status_t psa_generate_key( psa_key_slot_t key,
 void mbedtls_psa_crypto_free( void )
 {
     psa_key_slot_t key;
-    for( key = 1; key < PSA_KEY_SLOT_COUNT; key++ )
+    for( key = 1; key <= PSA_KEY_SLOT_COUNT; key++ )
         psa_destroy_key( key );
     mbedtls_ctr_drbg_free( &global_data.ctr_drbg );
     mbedtls_entropy_free( &global_data.entropy );

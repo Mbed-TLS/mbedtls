@@ -448,6 +448,63 @@ void init_deinit( )
 /* END_CASE */
 
 /* BEGIN_CASE */
+void fill_slots( int max_arg )
+{
+    /* Fill all the slots until we run out of memory or out of slots,
+     * or until some limit specified in the test data for the sake of
+     * implementations with an essentially unlimited number of slots.
+     * This test assumes that available slots are numbered from 1. */
+
+    psa_key_slot_t slot;
+    psa_key_slot_t max = 0;
+    psa_key_policy_t policy;
+    uint8_t exported[sizeof( max )];
+    size_t exported_size;
+    psa_status_t status;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT, 0 );
+
+    for( max = 1; max <= (size_t) max_arg; max++ )
+    {
+        status = psa_set_key_policy( max, &policy );
+        /* Stop filling slots if we run out of memory or out of
+         * available slots. */
+        TEST_ASSERT( status == PSA_SUCCESS ||
+                     status == PSA_ERROR_INSUFFICIENT_MEMORY ||
+                     status == PSA_ERROR_INVALID_ARGUMENT );
+        if( status != PSA_SUCCESS )
+            break;
+        status = psa_import_key( max, PSA_KEY_TYPE_RAW_DATA,
+                                 (uint8_t*) &max, sizeof( max ) );
+        /* Since psa_set_key_policy succeeded, we know that the slot
+         * number is valid. But we may legitimately run out of memory. */
+        TEST_ASSERT( status == PSA_SUCCESS ||
+                     status == PSA_ERROR_INSUFFICIENT_MEMORY );
+        if( status != PSA_SUCCESS )
+            break;
+    }
+    /* `max` is now the first slot number that wasn't filled. */
+    max -= 1;
+
+    for( slot = 1; slot <= max; slot++ )
+    {
+        TEST_ASSERT( psa_export_key( slot,
+                                     exported, sizeof( exported ),
+                                     &exported_size ) == PSA_SUCCESS );
+        TEST_ASSERT( exported_size == sizeof( slot ) );
+        TEST_ASSERT( memcmp( exported, &slot, sizeof( slot ) ) == 0 );
+    }
+
+exit:
+    /* Do not destroy the keys. mbedtls_psa_crypto_free() should do it. */
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void import( data_t *data, int type, int expected_status_arg )
 {
     int slot = 1;

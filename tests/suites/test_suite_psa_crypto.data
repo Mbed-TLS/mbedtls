@@ -1,6 +1,9 @@
 PSA init/deinit
 init_deinit:
 
+PSA fill 250 slots
+fill_slots:250
+
 PSA import/export raw: 0 bytes
 import_export:"":PSA_KEY_TYPE_RAW_DATA:PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_NONE:PSA_KEY_USAGE_EXPORT:0:0:PSA_SUCCESS:1
 

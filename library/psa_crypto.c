@@ -1110,6 +1110,7 @@ psa_status_t psa_hash_finish( psa_hash_operation_t *operation,
                               size_t hash_size,
                               size_t *hash_length )
 {
+    psa_status_t status;
     int ret;
     size_t actual_hash_length = PSA_HASH_SIZE( operation->alg );
 
@@ -1123,7 +1124,10 @@ psa_status_t psa_hash_finish( psa_hash_operation_t *operation,
         memset( hash, '!', hash_size );
 
     if( hash_size < actual_hash_length )
-        return( PSA_ERROR_BUFFER_TOO_SMALL );
+    {
+        status = PSA_ERROR_BUFFER_TOO_SMALL;
+        goto exit;
+    }
 
     switch( operation->alg )
     {
@@ -1168,8 +1172,10 @@ psa_status_t psa_hash_finish( psa_hash_operation_t *operation,
             ret = MBEDTLS_ERR_MD_BAD_INPUT_DATA;
             break;
     }
+    status = mbedtls_to_psa_error( ret );
 
-    if( ret == 0 )
+exit:
+    if( status == PSA_SUCCESS )
     {
         *hash_length = actual_hash_length;
         return( psa_hash_abort( operation ) );
@@ -1177,7 +1183,7 @@ psa_status_t psa_hash_finish( psa_hash_operation_t *operation,
     else
     {
         psa_hash_abort( operation );
-        return( mbedtls_to_psa_error( ret ) );
+        return( status );
     }
 }
 

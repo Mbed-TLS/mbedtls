@@ -120,16 +120,16 @@ static int psa_snprint_key_usage(char *buffer, size_t buffer_size,
 '''
 
 key_type_from_curve_template = '''if (%(tester)s(type)) {
-        append_with_curve(&buffer, buffer_size, &required_size,
-                          "%(builder)s", %(builder_length)s,
-                          PSA_KEY_TYPE_GET_CURVE(type));
-    } else '''
+            append_with_curve(&buffer, buffer_size, &required_size,
+                              "%(builder)s", %(builder_length)s,
+                              PSA_KEY_TYPE_GET_CURVE(type));
+        } else '''
 
 algorithm_from_hash_template = '''if (%(tester)s(alg_without_padding)) {
-        append_with_hash(&buffer, buffer_size, &required_size,
-                         "%(builder)s", %(builder_length)s,
-                         PSA_ALG_GET_HASH(alg_without_padding));
-    } else '''
+            append_with_hash(&buffer, buffer_size, &required_size,
+                             "%(builder)s", %(builder_length)s,
+                             PSA_ALG_GET_HASH(alg_without_padding));
+        } else '''
 
 bit_test_template = '''\
     if (%(var)s & %(flag)s) {
@@ -244,7 +244,7 @@ class MacroCollector:
     def make_key_type_code(self):
         d = self.key_types_from_curve
         make = self.make_key_type_from_curve_code
-        return '\n        '.join([make(k, d[k]) for k in sorted(d.keys())])
+        return ''.join([make(k, d[k]) for k in sorted(d.keys())])
 
     def make_hash_algorithm_cases(self):
         return '\n    '.join(map(self.make_return_case,
@@ -266,7 +266,7 @@ class MacroCollector:
     def make_algorithm_code(self):
         d = self.algorithms_from_hash
         make = self.make_algorithm_from_hash_code
-        return '\n        '.join([make(k, d[k]) for k in sorted(d.keys())])
+        return ''.join([make(k, d[k]) for k in sorted(d.keys())])
 
     def make_key_usage_code(self):
         return '\n'.join([self.make_bit_test('usage', bit)

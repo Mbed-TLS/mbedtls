@@ -252,7 +252,7 @@ int main( void )
 int main( int argc, char *argv[] )
 {
     int ret = 0;
-    size_t i;
+    unsigned i;
 
     int arg_idx;
     char *p, *q;
@@ -634,7 +634,7 @@ int main( int argc, char *argv[] )
         }
         else
         {
-            mbedtls_printf( "\n  Found offset %lu: %s\n", i,
+            mbedtls_printf( "\n  Found offset %u: %s\n", i,
                             i == test->offset ? "match" : "fail" );
         }
     }

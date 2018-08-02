@@ -5966,6 +5966,9 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
         mbedtls_ssl_session_free( ssl->session );
         mbedtls_free( ssl->session );
         ssl->session = NULL;
+        ssl->session_in = NULL;
+        ssl->session_out = NULL;
+        ssl->session_negotiate = NULL;
     }
 
 #if defined(MBEDTLS_SSL_ALPN)

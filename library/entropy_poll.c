@@ -19,6 +19,11 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
+#if defined(__linux__)
+/* Ensure that syscall() is available even when compiling with -std=c99 */
+#define _GNU_SOURCE
+#endif
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else

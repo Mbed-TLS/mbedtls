@@ -308,6 +308,7 @@
 //#define MBEDTLS_DHM_ALT
 //#define MBEDTLS_ECJPAKE_ALT
 //#define MBEDTLS_GCM_ALT
+//#define MBEDTLS_NIST_KW_ALT
 //#define MBEDTLS_MD2_ALT
 //#define MBEDTLS_MD4_ALT
 //#define MBEDTLS_MD5_ALT
@@ -2249,6 +2250,19 @@
 #define MBEDTLS_HMAC_DRBG_C
 
 /**
+ * \def MBEDTLS_NIST_KW_C
+ *
+ * Enable the Key Wrapping mode for 128-bit block ciphers,
+ * as defined in NIST SP 800-38F. Only KW and KWP modes
+ * are supported. At the moment, only AES is approved by NIST.
+ *
+ * Module:  library/nist_kw.c
+ *
+ * Requires: MBEDTLS_AES_C and MBEDTLS_CIPHER_C
+ */
+//#define MBEDTLS_NIST_KW_C
+
+/**
  * \def MBEDTLS_MD_C
  *
  * Enable the generic message digest layer.
@@ -3072,7 +3086,7 @@
 /* \} name SECTION: Customisation configuration options */
 
 /* Target and application specific configurations */
-//#define YOTTA_CFG_MBEDTLS_TARGET_CONFIG_FILE "mbedtls/target_config.h"
+//#define YOTTA_CFG_MBEDTLS_TARGET_CONFIG_FILE "target_config.h"
 
 #if defined(TARGET_LIKE_MBED) && defined(YOTTA_CFG_MBEDTLS_TARGET_CONFIG_FILE)
 #include YOTTA_CFG_MBEDTLS_TARGET_CONFIG_FILE

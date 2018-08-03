@@ -55,8 +55,45 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ctr_drbg_validate_pr( data_t * add_init, data_t * entropy,
-                           data_t * add1, data_t * add2,
+
+/* BEGIN_CASE */
+void ctr_drbg_validate_no_reseed( char *add_init_string, char *entropy_string,
+                                  char *add1_string, char *add2_string,
+                                  char *result_string )
+{
+    unsigned char entropy[512];
+    unsigned char add_init[512];
+    unsigned char add1[512];
+    unsigned char add2[512];
+    mbedtls_ctr_drbg_context ctx;
+    unsigned char buf[512];
+    unsigned char result[512];
+    size_t entropy_len, add_init_len, add1_len, add2_len, result_len;
+
+    mbedtls_ctr_drbg_init( &ctx );
+
+    entropy_len = unhexify( entropy, entropy_string );
+    add_init_len = unhexify( add_init, add_init_string );
+    add1_len = unhexify( add1, add1_string );
+    add2_len = unhexify( add2, add2_string );
+    result_len = unhexify( result, result_string );
+
+    test_offset_idx = 0;
+    test_max_idx = entropy_len;
+    /* CTR_DRBG_Instantiate(entropy[:entropy_len], nonce, perso, <ignored>)
+     * where nonce||perso = add_init[add_init_len] */
+    TEST_ASSERT( mbedtls_ctr_drbg_seed_entropy_len( &ctx, mbedtls_test_entropy_func, entropy, add_init, add_init_len, entropy_len ) == 0 );
+
+    /* CTR_DRBG_Generate(result_len * 8 bits, add1[:add1_len]) -> buf */
+    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, result_len, add1, add1_len ) == 0 );
+    /* CTR_DRBG_Generate(result_len * 8 bits, add2[:add2_len]) -> buf */
+    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, result_len, add2, add2_len ) == 0 );
+    TEST_ASSERT( memcmp( buf, result, result_len ) == 0 );
+
+exit:
+    mbedtls_ctr_drbg_free( &ctx );
+}
+/* END_CASE */
                            char *result_string )
 {
     mbedtls_ctr_drbg_context ctx;

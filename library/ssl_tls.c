@@ -6852,20 +6852,20 @@ size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
     size_t max_len;
 
     /* Assume mfl_code is correct since it was checked when set */
-    max_len = mfl_code_to_length[ssl->conf->mfl_code];
+    max_len = ssl_mfl_code_to_length( ssl->conf->mfl_code );
 
     /* Check if a smaller max length was negotiated */
     if( ssl->session_out != NULL &&
-        ssl_mfl_code_to_length[ssl->session_out->mfl_code] < max_len )
+        ssl_mfl_code_to_length( ssl->session_out->mfl_code ) < max_len )
     {
-        max_len = ssl_mfl_code_to_length[ssl->session_out->mfl_code];
+        max_len = ssl_mfl_code_to_length( ssl->session_out->mfl_code );
     }
 
     /* During a handshake, use the value being negotiated */
     if( ssl->session_negotiate != NULL &&
-        mfl_code_to_length[ssl->session_negotiate->mfl_code] < max_len )
+        ssl_mfl_code_to_length( ssl->session_negotiate->mfl_code ) < max_len )
     {
-        max_len = mfl_code_to_length[ssl->session_negotiate->mfl_code];
+        max_len = ssl_mfl_code_to_length( ssl->session_negotiate->mfl_code );
     }
 
     return( max_len );

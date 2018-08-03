@@ -298,8 +298,9 @@ struct mbedtls_ssl_handshake_params
 
     uint32_t retransmit_timeout;        /*!<  Current value of timeout       */
     unsigned char retransmit_state;     /*!<  Retransmission state           */
-    mbedtls_ssl_flight_item *flight;            /*!<  Current outgoing flight        */
-    mbedtls_ssl_flight_item *cur_msg;           /*!<  Current message in flight      */
+    mbedtls_ssl_flight_item *flight;    /*!<  Current outgoing flight        */
+    mbedtls_ssl_flight_item *cur_msg;   /*!<  Current message in flight      */
+    unsigned char *cur_msg_p;           /*!<  Position in current message    */
     unsigned int in_flight_start_seq;   /*!<  Minimum message sequence in the
                                               flight being received          */
     mbedtls_ssl_transform *alt_transform_out;   /*!<  Alternative transform for
@@ -559,6 +560,7 @@ void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want );
 
+int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl );
 
@@ -668,6 +670,7 @@ static inline size_t mbedtls_ssl_hs_hdr_len( const mbedtls_ssl_context *ssl )
 void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_recv_flight_completed( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_resend( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl );
 #endif
 
 /* Visible for testing purposes only */

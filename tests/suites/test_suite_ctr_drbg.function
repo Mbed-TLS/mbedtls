@@ -62,12 +62,15 @@ void ctr_drbg_validate_pr( data_t * add_init, data_t * entropy,
 
 
     test_offset_idx = 0;
-    TEST_ASSERT( mbedtls_ctr_drbg_seed_entropy_len( &ctx, mbedtls_test_entropy_func, entropy->x, add_init->x, add_init->len, 32 ) == 0 );
+    /* CTR_DRBG_Instantiate(entropy[:entropy_len/3], nonce, perso, <ignored>)
+     * where nonce||perso = add_init[add_init_len] */
     mbedtls_ctr_drbg_set_prediction_resistance( &ctx, MBEDTLS_CTR_DRBG_PR_ON );
 
-    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add1->x, add1->len ) == 0 );
-    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add2->x, add2->len ) == 0 );
+    /* CTR_DRBG_Generate(result_len * 8 bits, add1[:add1_len]) -> buf */
+    /* Then reseed because of prediction resistance. */
     TEST_ASSERT( hexcmp( buf, result_str->x, 16, result_str->len ) == 0 );
+    /* CTR_DRBG_Generate(result_len * 8 bits, add2[:add2_len]) -> buf */
+    /* Then reseed because of prediction resistance. */
 
 exit:
     mbedtls_ctr_drbg_free( &ctx );
@@ -86,12 +89,14 @@ void ctr_drbg_validate_nopr( data_t * add_init, data_t * entropy,
 
 
     test_offset_idx = 0;
-    TEST_ASSERT( mbedtls_ctr_drbg_seed_entropy_len( &ctx, mbedtls_test_entropy_func, entropy->x, add_init->x, add_init->len, 32 ) == 0 );
+    /* CTR_DRBG_Instantiate(entropy[:entropy_len/2], nonce, perso, <ignored>)
+     * where nonce||perso = add_init[add_init_len] */
 
-    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add1->x, add1->len ) == 0 );
+    /* CTR_DRBG_Generate(16 * 8 bits, add1[:add1_len]) -> buf */
     TEST_ASSERT( mbedtls_ctr_drbg_reseed( &ctx, add_reseed->x, add_reseed->len ) == 0 );
-    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add2->x, add2->len ) == 0 );
+    /* CTR_DRBG_Reseed(entropy[entropy_len/2:entropy_len], add_reseed[:add_reseed_len]) */
     TEST_ASSERT( hexcmp( buf, result_str->x, 16, result_str->len ) == 0 );
+    /* CTR_DRBG_Generate(16 * 8 bits, add2[:add2_len]) -> buf */
 
 exit:
     mbedtls_ctr_drbg_free( &ctx );

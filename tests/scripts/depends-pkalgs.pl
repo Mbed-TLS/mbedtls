@@ -80,10 +80,8 @@ while( my ($alg, $extras) = each %algs ) {
             and abort "Failed to disable $opt\n";
     }
 
-    system( "CFLAGS='-Werror -Wall -Wextra' make lib" )
-        and abort "Failed to build lib: $alg\n";
-    system( "cd tests && make" ) and abort "Failed to build tests: $alg\n";
-    system( "make test" ) and abort "Failed test suite: $alg\n";
+    system( "CFLAGS='-Werror -O1' make" ) and abort "Failed to build: $alg\n";
+    system( "make test" ) and abort "Failed to run tests: $alg\n";
 }
 
 system( "mv $config_h.bak $config_h" ) and die "$config_h not restored\n";

@@ -559,6 +559,10 @@ msg "test/build: depends-hashes.pl (gcc)" # ~ 2 min
 cleanup
 record_status tests/scripts/depends-hashes.pl
 
+msg "test/build: depends-ciphers.pl (gcc)" # ~ 3 min
+cleanup
+record_status tests/scripts/depends-ciphers.pl
+
 msg "test/build: depends-pkalgs.pl (gcc)" # ~ 2 min
 cleanup
 record_status tests/scripts/depends-pkalgs.pl

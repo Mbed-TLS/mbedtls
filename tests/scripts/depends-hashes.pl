@@ -66,10 +66,8 @@ for my $hash (@hashes) {
             and abort "Failed to disable $opt\n";
     }
 
-    system( "CFLAGS='-Werror -Wall -Wextra' make lib" )
-        and abort "Failed to build lib: $hash\n";
-    system( "cd tests && make" ) and abort "Failed to build tests: $hash\n";
-    system( "make test" ) and abort "Failed test suite: $hash\n";
+    system( "CFLAGS='-Werror -O1' make" ) and abort "Failed to build: $hash\n";
+    system( "make test" ) and abort "Failed to run tests: $hash\n";
 }
 
 system( "mv $config_h.bak $config_h" ) and die "$config_h not restored\n";

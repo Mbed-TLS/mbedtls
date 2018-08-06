@@ -2798,8 +2798,8 @@ static void ssl_swap_epochs( mbedtls_ssl_context *ssl )
     ssl->handshake->alt_transform_out = tmp_transform;
 
     /* Swap epoch + sequence_number */
-    memcpy( tmp_out_ctr,                 ssl->out_ctr,                8 );
-    memcpy( ssl->out_ctr,                ssl->handshake->alt_out_ctr, 8 );
+    memcpy( tmp_out_ctr,                 ssl->cur_out_ctr,            8 );
+    memcpy( ssl->cur_out_ctr,            ssl->handshake->alt_out_ctr, 8 );
     memcpy( ssl->handshake->alt_out_ctr, tmp_out_ctr,                 8 );
 
     /* Adjust to the newly activated transform */
@@ -3210,6 +3210,7 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl )
         mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
                            ssl->conf->transport, ssl->out_hdr + 1 );
 
+        memcpy( ssl->out_ctr, ssl->cur_out_ctr, 8 );
         ssl->out_len[0] = (unsigned char)( len >> 8 );
         ssl->out_len[1] = (unsigned char)( len      );
 
@@ -5671,14 +5672,14 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
 
         /* Remember current epoch settings for resending */
         ssl->handshake->alt_transform_out = ssl->transform_out;
-        memcpy( ssl->handshake->alt_out_ctr, ssl->out_ctr, 8 );
+        memcpy( ssl->handshake->alt_out_ctr, ssl->cur_out_ctr, 8 );
 
         /* Set sequence_number to zero */
-        memset( ssl->out_ctr + 2, 0, 6 );
+        memset( ssl->cur_out_ctr + 2, 0, 6 );
 
         /* Increment epoch */
         for( i = 2; i > 0; i-- )
-            if( ++ssl->out_ctr[i - 1] != 0 )
+            if( ++ssl->cur_out_ctr[i - 1] != 0 )
                 break;
 
         /* The loop goes to its end iff the counter is wrapping */
@@ -5690,7 +5691,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
     }
     else
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
-    memset( ssl->out_ctr, 0, 8 );
+    memset( ssl->cur_out_ctr, 0, 8 );
 
     ssl->transform_out = ssl->transform_negotiate;
     ssl->session_out = ssl->session_negotiate;
@@ -6165,6 +6166,8 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
     if( ssl->split_done != MBEDTLS_SSL_CBC_RECORD_SPLITTING_DISABLED )
         ssl->split_done = 0;
 #endif
+
+    memset( ssl->cur_out_ctr, 0, sizeof( ssl->cur_out_ctr ) );
 
     ssl->transform_in = NULL;
     ssl->transform_out = NULL;
@@ -7381,7 +7384,7 @@ static int ssl_check_ctr_renegotiate( mbedtls_ssl_context *ssl )
 
     in_ctr_cmp = memcmp( ssl->in_ctr + ep_len,
                         ssl->conf->renego_period + ep_len, 8 - ep_len );
-    out_ctr_cmp = memcmp( ssl->out_ctr + ep_len,
+    out_ctr_cmp = memcmp( ssl->cur_out_ctr + ep_len,
                           ssl->conf->renego_period + ep_len, 8 - ep_len );
 
     if( in_ctr_cmp <= 0 && out_ctr_cmp <= 0 )

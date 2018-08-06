@@ -1116,6 +1116,8 @@ struct mbedtls_ssl_context
     size_t out_msglen;          /*!< record header: message length    */
     size_t out_left;            /*!< amount of data not yet written   */
 
+    unsigned char cur_out_ctr[8]; /*!<  Outgoing record sequence  number. */
+
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     unsigned char *compress_buf;        /*!<  zlib data buffer        */
 #endif

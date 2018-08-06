@@ -101,6 +101,17 @@ static void ssl_update_out_pointers( mbedtls_ssl_context *ssl,
 static void ssl_update_in_pointers( mbedtls_ssl_context *ssl,
                                     mbedtls_ssl_transform *transform );
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
+
+static uint16_t ssl_get_maximum_datagram_size( mbedtls_ssl_context const *ssl )
+{
+    uint16_t mtu = ssl->conf->mtu;
+
+    if( mtu != 0 && mtu < MBEDTLS_SSL_OUT_BUFFER_LEN )
+        return( (int) mtu );
+
+    return( MBEDTLS_SSL_OUT_BUFFER_LEN );
+}
+
 /*
  * Double the retransmit timeout value, within the allowed range,
  * returning -1 if the maximum value has already been reached.
@@ -2671,8 +2682,7 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "message length: %d, out_left: %d",
                        mbedtls_ssl_hdr_len( ssl ) + ssl->out_msglen, ssl->out_left ) );
 
-        buf = ssl->out_hdr + mbedtls_ssl_hdr_len( ssl ) +
-              ssl->out_msglen - ssl->out_left;
+        buf = ssl->out_hdr - ssl->out_left;
         ret = ssl->f_send( ssl->p_bio, buf, ssl->out_left );
 
         MBEDTLS_SSL_DEBUG_RET( 2, "ssl->f_send", ret );
@@ -2691,6 +2701,17 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
         ssl->out_left -= ret;
     }
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        ssl->out_hdr = ssl->out_buf;
+    }
+    else
+#endif
+    {
+        ssl->out_hdr = ssl->out_buf + 8;
+    }
+    ssl_update_out_pointers( ssl, ssl->transform_out );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= flush output" ) );
 
@@ -3200,6 +3221,9 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
     if( !done )
     {
+        unsigned i;
+        size_t protected_record_size;
+
         ssl->out_hdr[0] = (unsigned char) ssl->out_msgtype;
         mbedtls_ssl_write_version( ssl->major_ver, ssl->minor_ver,
                            ssl->conf->transport, ssl->out_hdr + 1 );
@@ -3221,15 +3245,37 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl )
             ssl->out_len[1] = (unsigned char)( len      );
         }
 
-        ssl->out_left = mbedtls_ssl_hdr_len( ssl ) + ssl->out_msglen;
+        protected_record_size = len + mbedtls_ssl_hdr_len( ssl );
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+        /* In case of DTLS, double-check that we don't exceed
+         * the remaining space in the datagram. */
+        if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+        {
+            ret = ssl_get_maximum_datagram_size( ssl );
+            if( ret < 0 )
+                return( ret );
+
+            if( protected_record_size > (size_t) ret )
+            {
+                /* Should never happen */
+                return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+            }
+        }
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "output record: msgtype = %d, "
-                            "version = [%d:%d], msglen = %d",
-                       ssl->out_hdr[0], ssl->out_hdr[1], ssl->out_hdr[2],
-                     ( ssl->out_len[0] << 8 ) | ssl->out_len[1] ) );
+                    "version = [%d:%d], msglen = %d",
+                    ssl->out_hdr[0], ssl->out_hdr[1], ssl->out_hdr[2], len ) );
+
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "output record sent to network",
-                       ssl->out_hdr, mbedtls_ssl_hdr_len( ssl ) + ssl->out_msglen );
+                       ssl->out_hdr, protected_record_size );
+
+        ssl->out_left += protected_record_size;
+        ssl->out_hdr  += protected_record_size;
+        ssl_update_out_pointers( ssl, ssl->transform_out );
+
         for( i = 8; i > ssl_ep_len( ssl ); i-- )
             if( ++ssl->cur_out_ctr[i - 1] != 0 )
                 break;

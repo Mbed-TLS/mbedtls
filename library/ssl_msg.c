@@ -4855,6 +4855,9 @@ int mbedtls_ssl_send_alert_message( mbedtls_ssl_context *ssl,
     if( ssl == NULL || ssl->conf == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
+    if( ssl->out_left != 0 )
+        return( mbedtls_ssl_flush_output( ssl ) );
+
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> send alert message" ) );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "send alert level=%u message=%u", level, message ));
 
@@ -5713,9 +5716,6 @@ int mbedtls_ssl_close_notify( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write close notify" ) );
-
-    if( ssl->out_left != 0 )
-        return( mbedtls_ssl_flush_output( ssl ) );
 
     if( mbedtls_ssl_is_handshake_over( ssl ) == 1 )
     {

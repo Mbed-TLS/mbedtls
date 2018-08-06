@@ -59,7 +59,7 @@ This subdirectory mostly contains sample programs that illustrate specific featu
 * [`random/gen_entropy.c`](random/gen_entropy.c): shows how to use the default entropy sources to generate random data.  
   Note: most applications should only use the entropy generator to seed a cryptographic pseudorandom generator, as illustrated by `random/gen_random_ctr_drbg.c`.
 
-* [`random/gen_random_ctr_drbg.c`](random/gen_random_ctr_drbg.c): shows how to use the default entropy sources to seed a pseudorandom generator, and using the resulting random generator to generate random data.
+* [`random/gen_random_ctr_drbg.c`](random/gen_random_ctr_drbg.c): shows how to use the default entropy sources to seed a pseudorandom generator, and how to use the resulting random generator to generate random data.
 
 * [`random/gen_random_havege.c`](random/gen_random_havege.c): demonstrates the HAVEGE entropy collector.
 
@@ -81,7 +81,7 @@ This subdirectory mostly contains sample programs that illustrate specific featu
 
 * [`ssl/ssl_pthread_server.c`](ssl/ssl_pthread_server.c): a simple HTTPS server using one thread per client to send a fixed response. This program requires the pthread library.
 
-* [`ssl/ssl_server.c`](ssl/ssl_server.c): a simple HTTPS server that sends a fixed response. This server accepts a single client at a time.
+* [`ssl/ssl_server.c`](ssl/ssl_server.c): a simple HTTPS server that sends a fixed response. It serves a single client at a time.
 
 ### SSL/TLS feature demonstrators
 
@@ -91,7 +91,7 @@ Note: unlike most of the other programs under the `programs/` directory, these t
 
 * [`ssl/ssl_server2.c`](ssl/ssl_server2.c): an HTTPS server that sends a fixed response, with options to select TLS protocol features and Mbed TLS library features.
 
-In addition to providing options for testing client-side features, the `ssl_client2` program has options to exercise certain behaviors in the server (for example, to select ciphersuites, or to force a renegotiation), which are useful to test the corresponding features in a TLS server. Likewise, `ssl_server2` has options to activate certain behaviors that are useful to test a TLS client.
+In addition to providing options for testing client-side features, the `ssl_client2` program has options that allow you to trigger certain behaviors in the server. For example, there are options to select ciphersuites, or to force a renegotiation. These options are useful for testing the corresponding features in a TLS server. Likewise, `ssl_server2` has options to activate certain behaviors that are useful for testing a TLS client.
 
 ## Test utilities
 

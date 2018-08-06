@@ -357,7 +357,7 @@ int main( int argc, char *argv[] )
      * "%s\r\n". Hence, the size of buf should be at least the size of base
      * plus 2 bytes for the \r and \n characters.
      */
-    unsigned char buf[sizeof( base ) + 2];
+    unsigned char buf[ sizeof( base ) + 2 ];
 #else
     unsigned char buf[1024];
 #endif

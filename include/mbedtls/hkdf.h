@@ -99,8 +99,8 @@ int mbedtls_hkdf_extract( const mbedtls_md_info_t *md,
  *
  *  \param  md        A hash function; md.size denotes the length of the hash
  *                    function output in bytes.
- *  \param  prk       A pseudorandom key of at least md.size bytes. \p prk is usually,
- *                    the output from the HKDF extract step.
+ *  \param  prk       A pseudorandom key of at least md.size bytes. \p prk is
+ *                    usually the output from the HKDF extract step.
  *  \param  prk_len   The length in bytes of \p prk.
  *  \param  info      An optional context and application specific information
  *                    string. This can be a zero-length string.

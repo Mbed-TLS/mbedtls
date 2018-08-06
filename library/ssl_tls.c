@@ -2648,7 +2648,7 @@ int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want )
 int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
 {
     int ret;
-    unsigned char *buf, i;
+    unsigned char *buf;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> flush output" ) );
 
@@ -2691,16 +2691,6 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
         ssl->out_left -= ret;
     }
 
-    for( i = 8; i > ssl_ep_len( ssl ); i-- )
-        if( ++ssl->out_ctr[i - 1] != 0 )
-            break;
-
-    /* The loop goes to its end iff the counter is wrapping */
-    if( i == ssl_ep_len( ssl ) )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "outgoing message counter would wrap" ) );
-        return( MBEDTLS_ERR_SSL_COUNTER_WRAPPING );
-    }
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= flush output" ) );
 
@@ -3236,6 +3226,16 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl )
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "output record sent to network",
                        ssl->out_hdr, mbedtls_ssl_hdr_len( ssl ) + ssl->out_msglen );
+        for( i = 8; i > ssl_ep_len( ssl ); i-- )
+            if( ++ssl->cur_out_ctr[i - 1] != 0 )
+                break;
+
+        /* The loop goes to its end iff the counter is wrapping */
+        if( i == ssl_ep_len( ssl ) )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "outgoing message counter would wrap" ) );
+            return( MBEDTLS_ERR_SSL_COUNTER_WRAPPING );
+        }
     }
 
     if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )

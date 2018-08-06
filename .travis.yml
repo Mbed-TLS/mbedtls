@@ -20,6 +20,9 @@ script:
 - tests/scripts/test-ref-configs.pl
 - tests/scripts/curves.pl
 - tests/scripts/key-exchanges.pl
+- tests/scripts/depends-pkalgs.pl
+- tests/scripts/depends-hashes.pl
+- tests/scripts/depends-ciphers.pl
 after_failure:
 - tests/scripts/travis-log-failure.sh
 env:

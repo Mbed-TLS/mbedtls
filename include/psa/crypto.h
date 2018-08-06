@@ -1911,9 +1911,9 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * -# Call psa_cipher_encrypt_setup() to specify the algorithm and key.
  *    The key remains associated with the operation even if the content
  *    of the key slot changes.
- * -# Call either psa_encrypt_generate_iv() or psa_cipher_set_iv() to
+ * -# Call either psa_cipher_generate_iv() or psa_cipher_set_iv() to
  *    generate or set the IV (initialization vector). You should use
- *    psa_encrypt_generate_iv() unless the protocol you are implementing
+ *    psa_cipher_generate_iv() unless the protocol you are implementing
  *    requires a specific IV value.
  * -# Call psa_cipher_update() zero, one or more times, passing a fragment
  *    of the message each time.
@@ -1925,7 +1925,7 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * After a successful call to psa_cipher_encrypt_setup(), the application must
  * eventually terminate the operation. The following events terminate an
  * operation:
- * - A failed call to psa_encrypt_generate_iv(), psa_cipher_set_iv()
+ * - A failed call to psa_cipher_generate_iv(), psa_cipher_set_iv()
  *   or psa_cipher_update().
  * - A call to psa_cipher_finish() or psa_cipher_abort().
  *

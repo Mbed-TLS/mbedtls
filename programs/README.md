@@ -26,25 +26,25 @@ This subdirectory mostly contains sample programs that illustrate specific featu
 
 * [`pkey/key_app_writer.c`](pkey/key_app_writer.c): loads a PEM or DER public key or private key file and writes it to a new PEM or DER file.
 
-* [`pkey/pk_encrypt.c`](pkey/pk_encrypt.c), [`pkey/pk_decrypt.c`](pkey/pk_decrypt.c): load a PEM or DER public/private key file and use the key to encrypt/decrypt a short string through the generic public-key interface.
+* [`pkey/pk_encrypt.c`](pkey/pk_encrypt.c), [`pkey/pk_decrypt.c`](pkey/pk_decrypt.c): loads a PEM or DER public/private key file and uses the key to encrypt/decrypt a short string through the generic public-key interface.
 
-* [`pkey/pk_sign.c`](pkey/pk_sign.c), [`pkey/pk_verify.c`](pkey/pk_verify.c): load a PEM or DER private/public key file and use the key to sign/verify a short string.
+* [`pkey/pk_sign.c`](pkey/pk_sign.c), [`pkey/pk_verify.c`](pkey/pk_verify.c): loads a PEM or DER private/public key file and uses the key to sign/verify a short string.
 
 ### ECDSA and RSA signature examples
 
-* [`pkey/ecdsa.c`](pkey/ecdsa.c): generate an ECDSA key, sign a fixed message and verify the signature.
+* [`pkey/ecdsa.c`](pkey/ecdsa.c): generates an ECDSA key, sign a fixed message and verify the signature.
 
-* [`pkey/rsa_encrypt.c`](pkey/rsa_encrypt.c), [`pkey/rsa_decrypt.c`](pkey/rsa_decrypt.c): load an RSA public/private key and use it to encrypt/decrypt a short string through the low-level RSA interface.
+* [`pkey/rsa_encrypt.c`](pkey/rsa_encrypt.c), [`pkey/rsa_decrypt.c`](pkey/rsa_decrypt.c): loads an RSA public/private key and uses it to encrypt/decrypt a short string through the low-level RSA interface.
 
-* [`pkey/rsa_genkey.c`](pkey/rsa_genkey.c): generate an RSA key and write it to a file that can be used with the other RSA sample programs.
+* [`pkey/rsa_genkey.c`](pkey/rsa_genkey.c): generates an RSA key and writes it to a file that can be used with the other RSA sample programs.
 
-* [`pkey/rsa_sign.c`](pkey/rsa_sign.c), [`pkey/rsa_verify.c`](pkey/rsa_verify.c): load an RSA private/public key and use it to sign/verify a short string with the RSA PKCS#1 v1.5 algorithm.
+* [`pkey/rsa_sign.c`](pkey/rsa_sign.c), [`pkey/rsa_verify.c`](pkey/rsa_verify.c): loads an RSA private/public key and uses it to sign/verify a short string with the RSA PKCS#1 v1.5 algorithm.
 
-* [`pkey/rsa_sign_pss.c`](pkey/rsa_sign_pss.c), [`pkey/rsa_verify_pss.c`](pkey/rsa_verify_pss.c): load an RSA private/public key and use it to sign/verify a short string with the RSASSA-PSS algorithm.
+* [`pkey/rsa_sign_pss.c`](pkey/rsa_sign_pss.c), [`pkey/rsa_verify_pss.c`](pkey/rsa_verify_pss.c): loads an RSA private/public key and use it to sign/verify a short string with the RSASSA-PSS algorithm.
 
 ### Diffie-Hellman key exchange examples
 
-* [`pkey/dh_client.c`](pkey/dh_client.c), [`pkey/dh_server.c`](pkey/dh_server.c): secure channel demonstrators (client, server). Illustrates how to set up a secure channel using RSA for authentication and Diffie-Hellman to generate a shared AES session key.
+* [`pkey/dh_client.c`](pkey/dh_client.c), [`pkey/dh_server.c`](pkey/dh_server.c): secure channel demonstrators (client, server). This pair of programs illustrates how to set up a secure channel using RSA for authentication and Diffie-Hellman to generate a shared AES session key.
 
 * [`pkey/ecdh_curve25519.c`](pkey/ecdh_curve25519.c): demonstration of a elliptic curve Diffie-Hellman (ECDH) key agreement.
 
@@ -115,7 +115,7 @@ In addition to providing options for testing client-side features, the `ssl_clie
 
 * [`x509/cert_req.c`](x509/cert_req.c): generates a certificate signing request (CSR) for a private key.
 
-* [`x509/cert_write.c`](x509/cert_write.c): signs a certificate signing request, or self-sign a certificate.
+* [`x509/cert_write.c`](x509/cert_write.c): signs a certificate signing request, or self-signs a certificate.
 
 * [`x509/crl_app.c`](x509/crl_app.c): loads and dumps a certificate revocation list (CRL).
 

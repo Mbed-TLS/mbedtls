@@ -1413,14 +1413,6 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
     MBEDTLS_SSL_DEBUG_BUF( 4, "before encrypt: output payload",
                       ssl->out_msg, ssl->out_msglen );
 
-    if( ssl->out_msglen > MBEDTLS_SSL_OUT_CONTENT_LEN )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Record content %u too large, maximum %d",
-                                    (unsigned) ssl->out_msglen,
-                                    MBEDTLS_SSL_OUT_CONTENT_LEN ) );
-        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
-    }
-
     /*
      * Add MAC before if needed
      */
@@ -3165,6 +3157,23 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 #endif
+
+    /* Double-check that we did not exceed the bounds
+     * of the outgoing record buffer.
+     * This should never fail as the various message
+     * writing functions must obey the bounds of the
+     * outgoing record buffer, but better be safe.
+     *
+     * Note: We deliberately do not check for the MTU or MFL here.
+     */
+    if( ssl->out_msglen > MBEDTLS_SSL_OUT_CONTENT_LEN )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Record too large: "
+                                    "size %u, maximum %u",
+                                    (unsigned) ssl->out_msglen,
+                                    (unsigned) MBEDTLS_SSL_OUT_CONTENT_LEN ) );
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+    }
 
     /*
      * Fill handshake headers

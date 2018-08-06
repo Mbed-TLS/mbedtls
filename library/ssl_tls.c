@@ -96,6 +96,10 @@ static int ssl_check_timer( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+static void ssl_update_out_pointers( mbedtls_ssl_context *ssl,
+                                     mbedtls_ssl_transform *transform );
+static void ssl_update_in_pointers( mbedtls_ssl_context *ssl,
+                                    mbedtls_ssl_transform *transform );
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 /*
  * Double the retransmit timeout value, within the allowed range,
@@ -2799,14 +2803,7 @@ static void ssl_swap_epochs( mbedtls_ssl_context *ssl )
     memcpy( ssl->handshake->alt_out_ctr, tmp_out_ctr,                 8 );
 
     /* Adjust to the newly activated transform */
-    if( ssl->transform_out != NULL &&
-        ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
-    {
-        ssl->out_msg = ssl->out_iv + ssl->transform_out->ivlen -
-                                     ssl->transform_out->fixed_ivlen;
-    }
-    else
-        ssl->out_msg = ssl->out_iv;
+    ssl_update_out_pointers( ssl, ssl->transform_out );
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_activate != NULL )
@@ -5171,16 +5168,7 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
     memset( ssl->in_ctr, 0, 8 );
 
-    /*
-     * Set the in_msg pointer to the correct location based on IV length
-     */
-    if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
-    {
-        ssl->in_msg = ssl->in_iv + ssl->transform_negotiate->ivlen -
-                      ssl->transform_negotiate->fixed_ivlen;
-    }
-    else
-        ssl->in_msg = ssl->in_iv;
+    ssl_update_in_pointers( ssl, ssl->transform_negotiate );
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_activate != NULL )
@@ -5631,16 +5619,7 @@ int mbedtls_ssl_write_finished( mbedtls_ssl_context *ssl )
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write finished" ) );
 
-    /*
-     * Set the out_msg pointer to the correct location based on IV length
-     */
-    if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
-    {
-        ssl->out_msg = ssl->out_iv + ssl->transform_negotiate->ivlen -
-                       ssl->transform_negotiate->fixed_ivlen;
-    }
-    else
-        ssl->out_msg = ssl->out_iv;
+    ssl_update_out_pointers( ssl, ssl->transform_negotiate );
 
     ssl->handshake->calc_finished( ssl, ssl->out_msg + 4, ssl->conf->endpoint );
 
@@ -5999,6 +5978,78 @@ static int ssl_cookie_check_dummy( void *ctx,
 }
 #endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY && MBEDTLS_SSL_SRV_C */
 
+/* Once ssl->out_hdr as the address of the beginning of the
+ * next outgoing record is set, deduce the other pointers.
+ *
+ * Note: For TLS, we save the implicit record sequence number
+ *       (entering MAC computation) in the 8 bytes before ssl->out_hdr,
+ *       and the caller has to make sure there's space for this.
+ */
+
+static void ssl_update_out_pointers( mbedtls_ssl_context *ssl,
+                                     mbedtls_ssl_transform *transform )
+{
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        ssl->out_ctr = ssl->out_hdr +  3;
+        ssl->out_len = ssl->out_hdr + 11;
+        ssl->out_iv  = ssl->out_hdr + 13;
+    }
+    else
+#endif
+    {
+        ssl->out_ctr = ssl->out_hdr - 8;
+        ssl->out_len = ssl->out_hdr + 3;
+        ssl->out_iv  = ssl->out_hdr + 5;
+    }
+
+    /* Adjust out_msg to make space for explicit IV, if used. */
+    if( transform != NULL &&
+        ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
+    {
+        ssl->out_msg = ssl->out_iv + transform->ivlen - transform->fixed_ivlen;
+    }
+    else
+        ssl->out_msg = ssl->out_iv;
+}
+
+/* Once ssl->in_hdr as the address of the beginning of the
+ * next incoming record is set, deduce the other pointers.
+ *
+ * Note: For TLS, we save the implicit record sequence number
+ *       (entering MAC computation) in the 8 bytes before ssl->in_hdr,
+ *       and the caller has to make sure there's space for this.
+ */
+
+static void ssl_update_in_pointers( mbedtls_ssl_context *ssl,
+                                    mbedtls_ssl_transform *transform )
+{
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        ssl->in_ctr = ssl->in_hdr +  3;
+        ssl->in_len = ssl->in_hdr + 11;
+        ssl->in_iv  = ssl->in_hdr + 13;
+    }
+    else
+#endif
+    {
+        ssl->in_ctr = ssl->in_hdr - 8;
+        ssl->in_len = ssl->in_hdr + 3;
+        ssl->in_iv  = ssl->in_hdr + 5;
+    }
+
+    /* Offset in_msg from in_iv to allow space for explicit IV, if used. */
+    if( transform != NULL &&
+        ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
+    {
+        ssl->in_msg = ssl->in_iv + transform->ivlen - transform->fixed_ivlen;
+    }
+    else
+        ssl->in_msg = ssl->in_iv;
+}
+
 /*
  * Initialize an SSL context
  */
@@ -6036,36 +6087,23 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 
+    /* Set the incoming and outgoing record pointers. */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
     {
         ssl->out_hdr = ssl->out_buf;
-        ssl->out_ctr = ssl->out_buf +  3;
-        ssl->out_len = ssl->out_buf + 11;
-        ssl->out_iv  = ssl->out_buf + 13;
-        ssl->out_msg = ssl->out_buf + 13;
-
-        ssl->in_hdr = ssl->in_buf;
-        ssl->in_ctr = ssl->in_buf +  3;
-        ssl->in_len = ssl->in_buf + 11;
-        ssl->in_iv  = ssl->in_buf + 13;
-        ssl->in_msg = ssl->in_buf + 13;
+        ssl->in_hdr  = ssl->in_buf;
     }
     else
-#endif
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
     {
-        ssl->out_ctr = ssl->out_buf;
-        ssl->out_hdr = ssl->out_buf +  8;
-        ssl->out_len = ssl->out_buf + 11;
-        ssl->out_iv  = ssl->out_buf + 13;
-        ssl->out_msg = ssl->out_buf + 13;
-
-        ssl->in_ctr = ssl->in_buf;
-        ssl->in_hdr = ssl->in_buf +  8;
-        ssl->in_len = ssl->in_buf + 11;
-        ssl->in_iv  = ssl->in_buf + 13;
-        ssl->in_msg = ssl->in_buf + 13;
+        ssl->out_hdr = ssl->out_buf + 8;
+        ssl->in_hdr  = ssl->in_buf  + 8;
     }
+
+    /* Derive other internal pointers. */
+    ssl_update_out_pointers( ssl, NULL /* no transform enabled */ );
+    ssl_update_in_pointers ( ssl, NULL /* no transform enabled */ );
 
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         return( ret );

@@ -2707,6 +2707,9 @@ int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl )
 static int ssl_flight_append( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_flight_item *msg;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> ssl_flight_append" ) );
+    MBEDTLS_SSL_DEBUG_BUF( 4, "message appended to flight",
+                           ssl->out_msg, ssl->out_msglen );
 
     /* Allocate space for current message */
     if( ( msg = mbedtls_calloc( 1, sizeof(  mbedtls_ssl_flight_item ) ) ) == NULL )
@@ -2740,6 +2743,7 @@ static int ssl_flight_append( mbedtls_ssl_context *ssl )
         cur->next = msg;
     }
 
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= ssl_flight_append" ) );
     return( 0 );
 }
 

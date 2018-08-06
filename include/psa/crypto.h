@@ -67,7 +67,7 @@ extern "C" {
  * PSA_SUCCESS. We must not define PSA_SUCCESS ourselves in that case;
  * the other error code names don't clash. Also define psa_status_t as
  * an alias for the type used by PSA IPC. This is a temporary hack
- * until we unify error reporting in PSA IPC and PSA crypo.
+ * until we unify error reporting in PSA IPC and PSA crypto.
  *
  * Note that psa_defs.h must be included before this header!
  */

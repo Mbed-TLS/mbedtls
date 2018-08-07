@@ -5120,7 +5120,7 @@ not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, openssl server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
             "$O_SRV -dtls1 -mtu 768" \
-            "$P_CLI dtls=1 hs_timeout=250-60000 tickets=0" \
+            "$P_CLI dtls=1 hs_timeout=300-60000 tickets=0" \
             0 \
             -c "HTTP/1.0 200 OK"
 

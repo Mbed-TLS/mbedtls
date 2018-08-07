@@ -2084,6 +2084,19 @@ static int mpi_miller_rabin( const mbedtls_mpi *X,
           ( i >=  650 ) ?  4 : ( i >=  350 ) ?  8 :
           ( i >=  250 ) ? 12 : ( i >=  150 ) ? 18 : 27 );
 
+    /*
+     * FIPS 186-4, table C2
+     *
+     * The 512 bit case is omitted deliberately, because the rest of the
+     * generation process is not permitted for 1024 bit modulus size.
+     */
+    switch(i)
+    {
+        case 1024: n = 5; break;
+        case 1536: n = 4; break;
+        default: ;
+    }
+
     for( i = 0; i < n; i++ )
     {
         /*

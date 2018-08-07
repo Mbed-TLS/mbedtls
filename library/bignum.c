@@ -2056,7 +2056,9 @@ cleanup:
 /*
  * Miller-Rabin pseudo-primality test  (HAC 4.24)
  */
-static int mpi_miller_rabin( const mbedtls_mpi *X,
+#define MPI_FIPS_COMPLIANCE     1
+#define MPI_NO_FIPS_COMPLIANCE  0
+static int mpi_miller_rabin( const mbedtls_mpi *X, int fips_flag,
                              int (*f_rng)(void *, unsigned char *, size_t),
                              void *p_rng )
 {
@@ -2084,17 +2086,20 @@ static int mpi_miller_rabin( const mbedtls_mpi *X,
           ( i >=  650 ) ?  4 : ( i >=  350 ) ?  8 :
           ( i >=  250 ) ? 12 : ( i >=  150 ) ? 18 : 27 );
 
-    /*
-     * FIPS 186-4, table C2
-     *
-     * The 512 bit case is omitted deliberately, because the rest of the
-     * generation process is not permitted for 1024 bit modulus size.
-     */
-    switch(i)
+    if( MPI_FIPS_COMPLIANCE == fips_flag )
     {
-        case 1024: n = 5; break;
-        case 1536: n = 4; break;
-        default: ;
+        /*
+         * FIPS 186-4, table C2
+         *
+         * The 512 bit case is omitted deliberately, because the rest of the
+         * generation process is not permitted for 1024 bit modulus size.
+         */
+        switch(i)
+        {
+            case 1024: n = 5; break;
+            case 1536: n = 4; break;
+            default: ;
+        }
     }
 
     for( i = 0; i < n; i++ )
@@ -2173,7 +2178,7 @@ cleanup:
 /*
  * Pseudo-primality test: small factors, then Miller-Rabin
  */
-int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
+static int mbedtls_mpi_is_prime_internal( const mbedtls_mpi *X, int fips_flag,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng )
 {
@@ -2199,7 +2204,18 @@ int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
         return( ret );
     }
 
-    return( mpi_miller_rabin( &XX, f_rng, p_rng ) );
+    return( mpi_miller_rabin( &XX, fips_flag, f_rng, p_rng ) );
+}
+
+/*
+ * Pseudo-primality test
+ */
+int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
+                  int (*f_rng)(void *, unsigned char *, size_t),
+                  void *p_rng )
+{
+    return( mbedtls_mpi_is_prime_internal( X, MPI_NO_FIPS_COMPLIANCE, f_rng,
+                                           p_rng ) );
 }
 
 /*
@@ -2244,7 +2260,8 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int dh_flag,
 
         if( dh_flag == 0 )
         {
-            ret = mbedtls_mpi_is_prime( X, f_rng, p_rng );
+            ret = mbedtls_mpi_is_prime_internal( X, MPI_FIPS_COMPLIANCE, f_rng,
+                                                 p_rng );
 
             if( ret != MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )
                 goto cleanup;
@@ -2277,8 +2294,10 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int dh_flag,
                  */
                 if( ( ret = mpi_check_small_factors(  X         ) ) == 0 &&
                     ( ret = mpi_check_small_factors( &Y         ) ) == 0 &&
-                    ( ret = mpi_miller_rabin(  X, f_rng, p_rng  ) ) == 0 &&
-                    ( ret = mpi_miller_rabin( &Y, f_rng, p_rng  ) ) == 0 )
+                    ( ret = mpi_miller_rabin(  X, MPI_NO_FIPS_COMPLIANCE, f_rng,
+                                               p_rng  ) ) == 0 &&
+                    ( ret = mpi_miller_rabin( &Y, MPI_NO_FIPS_COMPLIANCE, f_rng,
+                                              p_rng  ) ) == 0 )
                     goto cleanup;
 
                 if( ret != MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )

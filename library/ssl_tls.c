@@ -4340,6 +4340,11 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
             return( ret );
         }
 
+        if( ssl->in_iv + rec.data_offset != ssl->in_msg )
+        {
+            /* Should never happen */
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
 
         ssl->in_msglen = rec.data_len;
         ssl->in_len[0] = (unsigned char)( rec.data_len >> 8 );

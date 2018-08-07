@@ -4641,12 +4641,13 @@ static int ssl_prepare_record_content( mbedtls_ssl_context *ssl )
             return( ret );
         }
 
-        MBEDTLS_SSL_DEBUG_BUF( 4, "input payload after decrypt",
-                       ssl->in_msg, ssl->in_msglen );
 
         ssl->in_msglen = rec.data_len;
         ssl->in_len[0] = (unsigned char)( rec.data_len >> 8 );
         ssl->in_len[1] = (unsigned char)( rec.data_len      );
+
+        MBEDTLS_SSL_DEBUG_BUF( 4, "input payload after decrypt",
+                       ssl->in_msg, ssl->in_msglen );
 
         if( ssl->in_msglen > MBEDTLS_SSL_IN_CONTENT_LEN )
         {

@@ -137,12 +137,20 @@
 /**
  * \def MBEDTLS_HAVE_TIME_DATE
  *
- * System has time.h and time(), gmtime() and the clock is correct.
+ * System has time.h and time(), gmtime_s() (Windows), gmtime_r() (POSIX) or
+ * gmtime() and the clock is correct.
  * The time needs to be correct (not necesarily very accurate, but at least
  * the date should be correct). This is used to verify the validity period of
  * X.509 certificates.
  *
  * Comment if your system does not have a correct clock.
+ *
+ * \warning gmtime() is used if the target platform is neither Windows nor
+ * POSIX. Unfortunately, gmtime() is not thread-safe, so a mutex is used when
+ * MBEDTLS_THREADING_C is defined to guarantee sequential usage of gmtime()
+ * across Mbed TLS threads. However, applications must ensure that calls to
+ * gmtime() from outside the library also use the mutex to avoid concurrency
+ * issues.
  */
 #define MBEDTLS_HAVE_TIME_DATE
 

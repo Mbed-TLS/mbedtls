@@ -643,7 +643,7 @@ void import_export( data_t *data,
 
         TEST_ASSERT( psa_import_key( slot2, type,
                                      exported,
-                                     export_size ) == PSA_SUCCESS );
+                                     exported_length ) == PSA_SUCCESS );
         TEST_ASSERT( psa_export_key( slot2,
                                      reexported,
                                      export_size,

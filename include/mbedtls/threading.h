@@ -99,6 +99,15 @@ extern int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t *mutex );
 #if defined(MBEDTLS_FS_IO)
 extern mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex;
 #endif
+#if defined(MBEDTLS_HAVE_TIME_DATE)
+#if !defined(_WIN32) && (defined(__unix__) || \
+    (defined(__APPLE__) && defined(__MACH__)))
+#include <unistd.h>
+#if !defined(_POSIX_VERSION)
+extern mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex;
+#endif /* !_POSIX_VERSION */
+#endif /* !_WIN32 && (__unix__ || (__APPLE__ && __MACH__)) */
+#endif /* MBEDTLS_HAVE_TIME_DATE */
 #endif /* MBEDTLS_THREADING_C */
 
 #ifdef __cplusplus

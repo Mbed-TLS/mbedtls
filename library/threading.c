@@ -33,7 +33,7 @@
     (defined(__APPLE__) && defined(__MACH__)))
 #include <unistd.h>
 #if !defined(_POSIX_VERSION)
-#define MBEDTLS_THREADING_USE_GMTIME
+#define THREADING_USE_GMTIME
 #endif /* !_POSIX_VERSION */
 #endif /* !_WIN32 && (__unix__ || (__APPLE__ && __MACH__)) */
 
@@ -122,7 +122,7 @@ void mbedtls_threading_set_alt( void (*mutex_init)( mbedtls_threading_mutex_t * 
 #if defined(MBEDTLS_FS_IO)
     mbedtls_mutex_init( &mbedtls_threading_readdir_mutex );
 #endif
-#if defined(MBEDTLS_THREADING_USE_GMTIME)
+#if defined(THREADING_USE_GMTIME)
     mbedtls_mutex_init( &mbedtls_threading_gmtime_mutex );
 #endif
 }
@@ -135,7 +135,7 @@ void mbedtls_threading_free_alt( void )
 #if defined(MBEDTLS_FS_IO)
     mbedtls_mutex_free( &mbedtls_threading_readdir_mutex );
 #endif
-#if defined(MBEDTLS_THREADING_USE_GMTIME)
+#if defined(THREADING_USE_GMTIME)
     mbedtls_mutex_free( &mbedtls_threading_gmtime_mutex );
 #endif
 }
@@ -150,7 +150,7 @@ void mbedtls_threading_free_alt( void )
 #if defined(MBEDTLS_FS_IO)
 mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex MUTEX_INIT;
 #endif
-#if defined(MBEDTLS_THREADING_USE_GMTIME)
+#if defined(THREADING_USE_GMTIME)
 mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex MUTEX_INIT;
 #endif
 

@@ -894,7 +894,7 @@ int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name )
     (defined(__APPLE__) && defined(__MACH__)))
 #include <unistd.h>
 #if !defined(_POSIX_VERSION)
-#define MBEDTLS_X509_USE_GMTIME
+#define X509_USE_GMTIME
 #endif /* !_POSIX_VERSION */
 #endif /* !_WIN32 && (__unix__ || (__APPLE__ && __MACH__)) */
 
@@ -910,10 +910,10 @@ static int x509_get_current_time( mbedtls_x509_time *now )
 
     (void)tm_buf;
 
-#if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_X509_USE_GMTIME)
+#if defined(MBEDTLS_THREADING_C) && defined(X509_USE_GMTIME)
     if( mbedtls_mutex_lock( &mbedtls_threading_gmtime_mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif /* MBEDTLS_THREADING_C && MBEDTLS_X509_USE_GMTIME */
+#endif /* MBEDTLS_THREADING_C && X509_USE_GMTIME */
 
     tt = mbedtls_time( NULL );
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
@@ -936,10 +936,10 @@ static int x509_get_current_time( mbedtls_x509_time *now )
         now->sec  = lt->tm_sec;
     }
 
-#if defined(MBEDTLS_THREADING_C) && defined(MBEDTLS_X509_USE_GMTIME)
+#if defined(MBEDTLS_THREADING_C) && defined(X509_USE_GMTIME)
     if( mbedtls_mutex_unlock( &mbedtls_threading_gmtime_mutex ) != 0 )
         return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif /* MBEDTLS_THREADING_C && MBEDTLS_X509_USE_GMTIME */
+#endif /* MBEDTLS_THREADING_C && X509_USE_GMTIME */
 
     return( ret );
 }

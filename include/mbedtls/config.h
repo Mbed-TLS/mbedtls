@@ -2901,9 +2901,20 @@
  * operations to another process or machine.
  *
  * Module:  library/serialize.c
- * Caller:  library/net_sockets/serialize.c
+ * Caller:  library/net_sockets_serialize.c
+ * Caller:  library/fsio.c
  */
 //#define MBEDTLS_SERIALIZE_C
+
+/**
+ * \def MBEDTLS_NET_OFFLOAD_C
+ *
+ * Used on target to offload network communication to the host over serial
+ * serial interface.
+ *
+ * Module:  library/net_sockets_serialize.c
+ */
+//#define MBEDTLS_NET_OFFLOAD_C
 
 /**
  * \def MBEDTLS_SERIALIZE_FORK_FRONTEND_C

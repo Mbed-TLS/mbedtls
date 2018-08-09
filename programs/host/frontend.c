@@ -93,6 +93,11 @@ static int enable_debugs = 0;
 #define ERR( fmt, ... )     EXPAND( PRINT( "Error:", fmt, ##__VA_ARGS__ ) )
 #define PRINT_LAST_ERROR() ERR( "%s", strerror( errno ) )
 
+#define DUMP_CHAR( c ) do {                 \
+               fprintf( fdbg, "%c" , c );   \
+               fflush( fdbg );              \
+} while (0)
+
 /** State of the offloading frontend. */
 typedef enum {
     /** The communication channel is broken */
@@ -210,17 +215,36 @@ static int mbedtls_serialize_write( mbedtls_serialize_context_t *ctx,
 static int mbedtls_serialize_read( mbedtls_serialize_context_t *ctx,
                                    uint8_t *buffer, size_t length )
 {
-    ssize_t result;
-    do {
-        result = read( ctx->read_fd, buffer, length );
-        if( result < 0 )
+    ssize_t n, remaining = length, token_count = 0;
+    while( token_count < 2 )
+    {
+        n = read( ctx->read_fd, buffer, 1 );
+        if( n < 0 )
         {
             perror( "Serialization read error" );
             return( MBEDTLS_ERR_SERIALIZE_RECEIVE );
         }
-        length -= result;
-        buffer += result;
-    } while( length > 0 );
+        if( buffer[0] == '{' )
+        {
+            token_count++;
+        }
+        else
+        {
+            token_count = 0;
+            DUMP_CHAR( buffer[0] );
+        }
+    }
+    do {
+        n = read( ctx->read_fd, buffer, remaining );
+        if( n < 0 )
+        {
+            perror( "Serialization read error" );
+            return( MBEDTLS_ERR_SERIALIZE_RECEIVE );
+        }
+        remaining -= n;
+        buffer += n;
+    } while( remaining > 0 );
+
     return( 0 );
 }
 
@@ -1035,6 +1059,9 @@ static void send_args( mbedtls_serialize_context_t * ctx, int args_size,
 {
     char sizebuf[4] = { 0, 0, 0, 0 };
     DBG( "I/O Sending args..." );
+
+    /* Send start sequence "{{" */
+    mbedtls_serialize_write( ctx, (uint8_t *)"mbed{{", 6);
     if( args_size == 0 )
     {
         // Here sizebuf is filled with zeroes

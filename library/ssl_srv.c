@@ -2595,8 +2595,12 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-    ssl_write_supported_point_formats_ext( ssl, p + 2 + ext_len, &olen );
-    ext_len += olen;
+    if ( mbedtls_ssl_ciphersuite_uses_ec(
+         mbedtls_ssl_ciphersuite_from_id( ssl->session_negotiate->ciphersuite ) ) )
+    {
+        ssl_write_supported_point_formats_ext( ssl, p + 2 + ext_len, &olen );
+        ext_len += olen;
+    }
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)

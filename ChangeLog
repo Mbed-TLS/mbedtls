@@ -7,6 +7,9 @@ Bugfix
      MBEDTLS_ARC4_C and MBEDTLS_CIPHER_NULL_CIPHER weren't also defined. #1890
    * Fix a memory leak in ecp_mul_comb() if ecp_precompute_comb() fails.
      Fix contributed by Espressif Systems.
+   * Add ecc extensions only if an ecc based ciphersuite is used.
+     This improves compliance to RFC 4492, and as a result, solves
+     interoperability issues with BouncyCastle. Raised by milenamil in #1157.
 
 = mbed TLS 2.7.5 branch released 2018-07-25
 

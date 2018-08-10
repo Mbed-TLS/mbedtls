@@ -236,7 +236,8 @@ typedef struct mbedtls_cmac_context_t mbedtls_cmac_context_t;
  * Cipher information. Allows calling cipher functions
  * in a generic way.
  */
-typedef struct {
+typedef struct mbedtls_cipher_info_t
+{
     /** Full cipher identifier. For example,
      * MBEDTLS_CIPHER_AES_256_CBC.
      */
@@ -277,7 +278,8 @@ typedef struct {
 /**
  * Generic cipher context.
  */
-typedef struct {
+typedef struct mbedtls_cipher_context_t
+{
     /** Information about the associated cipher. */
     const mbedtls_cipher_info_t *cipher_info;
 

@@ -393,6 +393,156 @@ exit:
     return( 0 );
 }
 
+int exported_key_sanity_check( psa_key_type_t type, size_t bits,
+                               uint8_t *exported, size_t exported_length )
+{
+    if( key_type_is_raw_bytes( type ) )
+        TEST_ASSERT( exported_length == ( bits + 7 ) / 8 );
+
+#if defined(MBEDTLS_DES_C)
+    if( type == PSA_KEY_TYPE_DES )
+    {
+        /* Check the parity bits. */
+        unsigned i;
+        for( i = 0; i < bits / 8; i++ )
+        {
+            unsigned bit_count = 0;
+            unsigned m;
+            for( m = 1; m <= 0x100; m <<= 1 )
+            {
+                if( exported[i] & m )
+                    ++bit_count;
+            }
+            TEST_ASSERT( bit_count % 2 != 0 );
+        }
+    }
+#endif
+
+#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_PARSE_C)
+    if( type == PSA_KEY_TYPE_RSA_KEYPAIR )
+    {
+        /* Sanity check: does this look like the beginning of a PKCS#8
+         * RSA key pair? Assumes bits is a multiple of 8. */
+        size_t n_bytes = bits / 8 + 1;
+        size_t n_encoded_bytes;
+        unsigned char *n_end;
+        TEST_ASSERT( exported_length >= 7 + ( n_bytes + 3 ) * 9 / 2 );
+        TEST_ASSERT( exported[0] == 0x30 );
+        TEST_ASSERT( exported[1] == 0x82 ); // assumes >=416-bit key
+        TEST_ASSERT( exported[4] == 0x02 );
+        TEST_ASSERT( exported[5] == 0x01 );
+        TEST_ASSERT( exported[6] == 0x00 );
+        TEST_ASSERT( exported[7] == 0x02 );
+        n_encoded_bytes = exported[8];
+        n_end = exported + 9 + n_encoded_bytes;
+        if( n_encoded_bytes & 0x80 )
+        {
+            n_encoded_bytes = ( n_encoded_bytes & 0x7f ) << 7;
+            n_encoded_bytes |= exported[9] & 0x7f;
+            n_end += 1;
+        }
+        /* The encoding of n should start with a 0 byte since it should
+         * have its high bit set. However Mbed TLS is not compliant and
+         * generates an invalid, but widely tolerated, encoding of
+         * positive INTEGERs with a bit size that is a multiple of 8
+         * with no leading 0 byte. Accept this here. */
+        TEST_ASSERT( n_bytes == n_encoded_bytes ||
+                     n_bytes == n_encoded_bytes + 1 );
+        if( n_bytes == n_encoded_bytes )
+            TEST_ASSERT( exported[n_encoded_bytes <= 127 ? 9 : 10] == 0x00 );
+        /* Sanity check: e must be 3 */
+        TEST_ASSERT( n_end[0] == 0x02 );
+        TEST_ASSERT( n_end[1] == 0x03 );
+        TEST_ASSERT( n_end[2] == 0x01 );
+        TEST_ASSERT( n_end[3] == 0x00 );
+        TEST_ASSERT( n_end[4] == 0x01 );
+        TEST_ASSERT( n_end[5] == 0x02 );
+    }
+#endif /* MBEDTLS_RSA_C */
+
+#if defined(MBEDTLS_ECP_C)
+    if( PSA_KEY_TYPE_IS_ECC_KEYPAIR( type ) )
+    {
+        /* Sanity check: does this look like the beginning of a PKCS#8
+         * elliptic curve key pair? */
+        TEST_ASSERT( exported_length >= bits * 3 / 8 + 10 );
+        TEST_ASSERT( exported[0] == 0x30 );
+    }
+#endif /* MBEDTLS_ECP_C */
+
+    return( 0 );
+
+exit:
+    return( 1 );
+}
+
+static int exercise_export_key( psa_key_slot_t slot,
+                                psa_key_usage_t usage )
+{
+    psa_key_type_t type;
+    size_t bits;
+    uint8_t *exported = NULL;
+    size_t exported_size = 0;
+    size_t exported_length = 0;
+    int ok = 0;
+
+    if( ( usage & PSA_KEY_USAGE_EXPORT ) == 0 )
+    {
+        TEST_ASSERT( psa_export_key( slot, NULL, 0, &exported_length ) ==
+                     PSA_ERROR_NOT_PERMITTED );
+        return( 1 );
+    }
+
+    TEST_ASSERT( psa_get_key_information( slot, &type, &bits ) == PSA_SUCCESS );
+    exported_size = PSA_KEY_EXPORT_MAX_SIZE( type, bits );
+    exported = mbedtls_calloc( 1, exported_size );
+    TEST_ASSERT( exported != NULL );
+
+    TEST_ASSERT( psa_export_key( slot,
+                                 exported, exported_size,
+                                 &exported_length ) == PSA_SUCCESS );
+    ok = exported_key_sanity_check( type, bits, exported, exported_length );
+
+exit:
+    mbedtls_free( exported );
+    return( ok );
+}
+
+static int exercise_export_public_key( psa_key_slot_t slot )
+{
+    psa_key_type_t type;
+    psa_key_type_t public_type;
+    size_t bits;
+    uint8_t *exported = NULL;
+    size_t exported_size = 0;
+    size_t exported_length = 0;
+    int ok = 0;
+
+    TEST_ASSERT( psa_get_key_information( slot, &type, &bits ) == PSA_SUCCESS );
+    if( ! PSA_KEY_TYPE_IS_ASYMMETRIC( type ) )
+    {
+        TEST_ASSERT( psa_export_public_key( slot,
+                                            NULL, 0, &exported_length ) ==
+                     PSA_ERROR_INVALID_ARGUMENT );
+        return( 1 );
+    }
+
+    public_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( type );
+    exported_size = PSA_KEY_EXPORT_MAX_SIZE( public_type, bits );
+    exported = mbedtls_calloc( 1, exported_size );
+    TEST_ASSERT( exported != NULL );
+
+    TEST_ASSERT( psa_export_public_key( slot,
+                                        exported, exported_size,
+                                        &exported_length ) == PSA_SUCCESS );
+    ok = exported_key_sanity_check( public_type, bits,
+                                    exported, exported_length );
+
+exit:
+    mbedtls_free( exported );
+    return( ok );
+}
+
 static int exercise_key( psa_key_slot_t slot,
                          psa_key_usage_t usage,
                          psa_algorithm_t alg )
@@ -421,6 +571,10 @@ static int exercise_key( psa_key_slot_t slot,
         test_fail( message, __LINE__, __FILE__ );
         ok = 0;
     }
+
+    ok = ok && exercise_export_key( slot, usage );
+    ok = ok && exercise_export_public_key( slot );
+
     return( ok );
 }
 
@@ -3056,10 +3210,6 @@ void generate_key( int type_arg,
     psa_status_t expected_status = expected_status_arg;
     psa_key_type_t got_type;
     size_t got_bits;
-    unsigned char exported[616] = {0}; /* enough for a 1024-bit RSA key */
-    size_t exported_length;
-    psa_status_t expected_export_status =
-        usage & PSA_KEY_USAGE_EXPORT ? PSA_SUCCESS : PSA_ERROR_NOT_PERMITTED;
     psa_status_t expected_info_status =
         expected_status == PSA_SUCCESS ? PSA_SUCCESS : PSA_ERROR_EMPTY_SLOT;
     psa_key_policy_t policy;
@@ -3082,84 +3232,6 @@ void generate_key( int type_arg,
         goto exit;
     TEST_ASSERT( got_type == type );
     TEST_ASSERT( got_bits == bits );
-
-    /* Export the key */
-    TEST_ASSERT( psa_export_key( slot,
-                                 exported, sizeof( exported ),
-                                 &exported_length ) == expected_export_status );
-    if( expected_export_status == PSA_SUCCESS )
-    {
-        if( key_type_is_raw_bytes( type ) )
-            TEST_ASSERT( exported_length == ( bits + 7 ) / 8 );
-#if defined(MBEDTLS_DES_C)
-        if( type == PSA_KEY_TYPE_DES )
-        {
-            /* Check the parity bits. */
-            unsigned i;
-            for( i = 0; i < bits / 8; i++ )
-            {
-                unsigned bit_count = 0;
-                unsigned m;
-                for( m = 1; m <= 0x100; m <<= 1 )
-                {
-                    if( exported[i] & m )
-                        ++bit_count;
-                }
-                TEST_ASSERT( bit_count % 2 != 0 );
-            }
-        }
-#endif
-#if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_PARSE_C)
-        if( type == PSA_KEY_TYPE_RSA_KEYPAIR )
-        {
-            /* Sanity check: does this look like the beginning of a PKCS#8
-             * RSA key pair? Assumes bits is a multiple of 8. */
-            size_t n_bytes = bits / 8 + 1;
-            size_t n_encoded_bytes;
-            unsigned char *n_end;
-            TEST_ASSERT( exported_length >= 7 + ( n_bytes + 3 ) * 9 / 2 );
-            TEST_ASSERT( exported[0] == 0x30 );
-            TEST_ASSERT( exported[1] == 0x82 ); // assumes >=416-bit key
-            TEST_ASSERT( exported[4] == 0x02 );
-            TEST_ASSERT( exported[5] == 0x01 );
-            TEST_ASSERT( exported[6] == 0x00 );
-            TEST_ASSERT( exported[7] == 0x02 );
-            n_encoded_bytes = exported[8];
-            n_end = exported + 9 + n_encoded_bytes;
-            if( n_encoded_bytes & 0x80 )
-            {
-                n_encoded_bytes = ( n_encoded_bytes & 0x7f ) << 7;
-                n_encoded_bytes |= exported[9] & 0x7f;
-                n_end += 1;
-            }
-            /* The encoding of n should start with a 0 byte since it should
-             * have its high bit set. However Mbed TLS is not compliant and
-             * generates an invalid, but widely tolerated, encoding of
-             * positive INTEGERs with a bit size that is a multiple of 8
-             * with no leading 0 byte. Accept this here. */
-            TEST_ASSERT( n_bytes == n_encoded_bytes ||
-                         n_bytes == n_encoded_bytes + 1 );
-            if( n_bytes == n_encoded_bytes )
-                TEST_ASSERT( exported[n_encoded_bytes <= 127 ? 9 : 10] == 0x00 );
-            /* Sanity check: e must be 3 */
-            TEST_ASSERT( n_end[0] == 0x02 );
-            TEST_ASSERT( n_end[1] == 0x03 );
-            TEST_ASSERT( n_end[2] == 0x01 );
-            TEST_ASSERT( n_end[3] == 0x00 );
-            TEST_ASSERT( n_end[4] == 0x01 );
-            TEST_ASSERT( n_end[5] == 0x02 );
-        }
-#endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECP_C)
-        if( PSA_KEY_TYPE_IS_ECC( type ) )
-        {
-            /* Sanity check: does this look like the beginning of a PKCS#8
-             * elliptic curve key pair? */
-            TEST_ASSERT( exported_length >= bits * 3 / 8 + 10 );
-            TEST_ASSERT( exported[0] == 0x30 );
-        }
-#endif /* MBEDTLS_ECP_C */
-    }
 
     /* Do something with the key according to its type and permitted usage. */
     if( ! exercise_key( slot, usage, alg ) )

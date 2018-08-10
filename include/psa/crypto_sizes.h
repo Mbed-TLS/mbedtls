@@ -412,10 +412,10 @@
  * AlgorithmIdentifier  ::=  SEQUENCE  {
  *      algorithm               OBJECT IDENTIFIER,
  *      parameters              OBJECT IDENTIFIER } -- namedCurve
- * ECPoint ::= OCTET STRING
- *    -- first byte: 0x04;
- *    -- then x_P as a `ceiling(log_{256}(n))`-byte string, big endian;
- *    -- then y_P as a `ceiling(log_{256}(n))`-byte string, big endian,
+ * ECPoint ::= ...
+ *    -- first 8 bits: 0x04;
+ *    -- then x_P as an n-bit string, big endian;
+ *    -- then y_P as a n-bit string, big endian,
  *    -- where n is the order of the curve.
  *
  * - 2 * 4 bytes of SEQUENCE overhead;
@@ -432,10 +432,10 @@
  *   ECPrivateKey ::= SEQUENCE {
  *       version             INTEGER,  -- must be 1
  *       privateKey          OCTET STRING,
- *           -- `ceiling(log_{256}(n))`-byte string, big endian,
+ *           -- `ceiling(log2(n)/8)`-byte string, big endian,
  *           -- where n is the order of the curve.
- *       parameters          ECParameters {{ NamedCurve }},  -- mandatory
- *       publicKey           BIT STRING  -- mandatory
+ *       parameters      [0] IMPLICIT ECParameters {{ NamedCurve }},
+ *       publicKey       [1] IMPLICIT BIT STRING
  *   }
  *
  * - 4 bytes of SEQUENCE overhead;

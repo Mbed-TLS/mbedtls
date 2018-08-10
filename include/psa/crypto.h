@@ -360,17 +360,19 @@ typedef uint32_t psa_key_type_t;
  */
 #define PSA_KEY_TYPE_VENDOR_FLAG                ((psa_key_type_t)0x80000000)
 
-#define PSA_KEY_TYPE_CATEGORY_MASK              ((psa_key_type_t)0x7e000000)
+#define PSA_KEY_TYPE_CATEGORY_MASK              ((psa_key_type_t)0x70000000)
+#define PSA_KEY_TYPE_CATEGORY_SYMMETRIC         ((psa_key_type_t)0x40000000)
+#define PSA_KEY_TYPE_CATEGORY_RAW               ((psa_key_type_t)0x50000000)
+#define PSA_KEY_TYPE_CATEGORY_PUBLIC_KEY        ((psa_key_type_t)0x60000000)
+#define PSA_KEY_TYPE_CATEGORY_KEY_PAIR          ((psa_key_type_t)0x70000000)
+
+#define PSA_KEY_TYPE_CATEGORY_FLAG_PAIR         ((psa_key_type_t)0x10000000)
 
 /** Raw data.
  *
  * A "key" of this type cannot be used for any cryptographic operation.
  * Applications may use this type to store arbitrary data in the keystore. */
-#define PSA_KEY_TYPE_RAW_DATA                   ((psa_key_type_t)0x02000000)
-
-#define PSA_KEY_TYPE_CATEGORY_SYMMETRIC         ((psa_key_type_t)0x04000000)
-#define PSA_KEY_TYPE_CATEGORY_ASYMMETRIC        ((psa_key_type_t)0x06000000)
-#define PSA_KEY_TYPE_PAIR_FLAG                  ((psa_key_type_t)0x01000000)
+#define PSA_KEY_TYPE_RAW_DATA                   ((psa_key_type_t)0x50000001)
 
 /** HMAC key.
  *
@@ -380,21 +382,21 @@ typedef uint32_t psa_key_type_t;
  * HMAC keys should generally have the same size as the underlying hash.
  * This size can be calculated with #PSA_HASH_SIZE(\c alg) where
  * \c alg is the HMAC algorithm or the underlying hash algorithm. */
-#define PSA_KEY_TYPE_HMAC                       ((psa_key_type_t)0x02000001)
+#define PSA_KEY_TYPE_HMAC                       ((psa_key_type_t)0x51000000)
 
 /** A secret for key derivation.
  *
  * The key policy determines which key derivation algorithm the key
  * can be used for.
  */
-#define PSA_KEY_TYPE_DERIVE                     ((psa_key_type_t)0x02000101)
+#define PSA_KEY_TYPE_DERIVE                     ((psa_key_type_t)0x52000000)
 
 /** Key for an cipher, AEAD or MAC algorithm based on the AES block cipher.
  *
  * The size of the key can be 16 bytes (AES-128), 24 bytes (AES-192) or
  * 32 bytes (AES-256).
  */
-#define PSA_KEY_TYPE_AES                        ((psa_key_type_t)0x04000001)
+#define PSA_KEY_TYPE_AES                        ((psa_key_type_t)0x40000001)
 
 /** Key for a cipher or MAC algorithm based on DES or 3DES (Triple-DES).
  *
@@ -405,30 +407,30 @@ typedef uint32_t psa_key_type_t;
  * deprecated and should only be used to decrypt legacy data. 3-key 3DES
  * is weak and deprecated and should only be used in legacy protocols.
  */
-#define PSA_KEY_TYPE_DES                        ((psa_key_type_t)0x04000002)
+#define PSA_KEY_TYPE_DES                        ((psa_key_type_t)0x40000002)
 
 /** Key for an cipher, AEAD or MAC algorithm based on the
  * Camellia block cipher. */
-#define PSA_KEY_TYPE_CAMELLIA                   ((psa_key_type_t)0x04000003)
+#define PSA_KEY_TYPE_CAMELLIA                   ((psa_key_type_t)0x40000003)
 
 /** Key for the RC4 stream cipher.
  *
  * Note that RC4 is weak and deprecated and should only be used in
  * legacy protocols. */
-#define PSA_KEY_TYPE_ARC4                       ((psa_key_type_t)0x04000004)
+#define PSA_KEY_TYPE_ARC4                       ((psa_key_type_t)0x40000004)
 
 /** RSA public key. */
-#define PSA_KEY_TYPE_RSA_PUBLIC_KEY             ((psa_key_type_t)0x06010000)
+#define PSA_KEY_TYPE_RSA_PUBLIC_KEY             ((psa_key_type_t)0x60010000)
 /** RSA key pair (private and public key). */
-#define PSA_KEY_TYPE_RSA_KEYPAIR                ((psa_key_type_t)0x07010000)
+#define PSA_KEY_TYPE_RSA_KEYPAIR                ((psa_key_type_t)0x70010000)
 
 /** DSA public key. */
-#define PSA_KEY_TYPE_DSA_PUBLIC_KEY             ((psa_key_type_t)0x06020000)
+#define PSA_KEY_TYPE_DSA_PUBLIC_KEY             ((psa_key_type_t)0x60020000)
 /** DSA key pair (private and public key). */
-#define PSA_KEY_TYPE_DSA_KEYPAIR                ((psa_key_type_t)0x07020000)
+#define PSA_KEY_TYPE_DSA_KEYPAIR                ((psa_key_type_t)0x70020000)
 
-#define PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE        ((psa_key_type_t)0x06030000)
-#define PSA_KEY_TYPE_ECC_KEYPAIR_BASE           ((psa_key_type_t)0x07030000)
+#define PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE        ((psa_key_type_t)0x60030000)
+#define PSA_KEY_TYPE_ECC_KEYPAIR_BASE           ((psa_key_type_t)0x70030000)
 #define PSA_KEY_TYPE_ECC_CURVE_MASK             ((psa_key_type_t)0x0000ffff)
 /** Elliptic curve key pair. */
 #define PSA_KEY_TYPE_ECC_KEYPAIR(curve)         \
@@ -441,24 +443,50 @@ typedef uint32_t psa_key_type_t;
 #define PSA_KEY_TYPE_IS_VENDOR_DEFINED(type) \
     (((type) & PSA_KEY_TYPE_VENDOR_FLAG) != 0)
 
+/** Whether a key type is an unstructured array of bytes.
+ *
+ * This encompasses both symmetric keys and non-key data.
+ */
+#define PSA_KEY_TYPE_IS_UNSTRUCTURED(type) \
+    (((type) & PSA_KEY_TYPE_CATEGORY_MASK & ~(psa_key_type_t)0x10000000) == \
+     PSA_KEY_TYPE_CATEGORY_SYMMETRIC)
+
 /** Whether a key type is asymmetric: either a key pair or a public key. */
 #define PSA_KEY_TYPE_IS_ASYMMETRIC(type)                                \
-    (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_ASYMMETRIC)
+    (((type) & PSA_KEY_TYPE_CATEGORY_MASK                               \
+      & ~PSA_KEY_TYPE_CATEGORY_FLAG_PAIR) ==                            \
+     PSA_KEY_TYPE_CATEGORY_PUBLIC_KEY)
 /** Whether a key type is the public part of a key pair. */
 #define PSA_KEY_TYPE_IS_PUBLIC_KEY(type)                                \
-    (((type) & (PSA_KEY_TYPE_CATEGORY_MASK | PSA_KEY_TYPE_PAIR_FLAG)) == \
-      PSA_KEY_TYPE_CATEGORY_ASYMMETRIC)
+    (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_PUBLIC_KEY)
 /** Whether a key type is a key pair containing a private part and a public
  * part. */
 #define PSA_KEY_TYPE_IS_KEYPAIR(type)                                   \
-    (((type) & (PSA_KEY_TYPE_CATEGORY_MASK | PSA_KEY_TYPE_PAIR_FLAG)) == \
-     (PSA_KEY_TYPE_CATEGORY_ASYMMETRIC | PSA_KEY_TYPE_PAIR_FLAG))
-/** The key pair type corresponding to a public key type. */
+    (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_KEY_PAIR)
+/** The key pair type corresponding to a public key type.
+ *
+ * You may also pass a key pair type as \p type, it will be left unchanged.
+ *
+ * \param type      A public key type or key pair type.
+ *
+ * \return          The corresponding key pair type.
+ *                  If \p type is not a public key or a key pair,
+ *                  the return value is undefined.
+ */
 #define PSA_KEY_TYPE_KEYPAIR_OF_PUBLIC_KEY(type)        \
-    ((type) | PSA_KEY_TYPE_PAIR_FLAG)
-/** The public key type corresponding to a key pair type. */
+    ((type) | PSA_KEY_TYPE_CATEGORY_FLAG_PAIR)
+/** The public key type corresponding to a key pair type.
+ *
+ * You may also pass a key pair type as \p type, it will be left unchanged.
+ *
+ * \param type      A public key type or key pair type.
+ *
+ * \return          The corresponding public key type.
+ *                  If \p type is not a public key or a key pair,
+ *                  the return value is undefined.
+ */
 #define PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type)        \
-    ((type) & ~PSA_KEY_TYPE_PAIR_FLAG)
+    ((type) & ~PSA_KEY_TYPE_CATEGORY_FLAG_PAIR)
 /** Whether a key type is an RSA key (pair or public-only). */
 #define PSA_KEY_TYPE_IS_RSA(type)                                       \
     (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_RSA_PUBLIC_KEY)

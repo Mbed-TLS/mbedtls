@@ -135,9 +135,7 @@ typedef struct
 
 static int key_type_is_raw_bytes( psa_key_type_t type )
 {
-    psa_key_type_t category = type & PSA_KEY_TYPE_CATEGORY_MASK;
-    return( category == PSA_KEY_TYPE_RAW_DATA ||
-            category == PSA_KEY_TYPE_CATEGORY_SYMMETRIC );
+    return( PSA_KEY_TYPE_IS_UNSTRUCTURED( type ) );
 }
 
 typedef struct

@@ -1187,10 +1187,50 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
  * - For Triple-DES, the format is the concatenation of the
  *   two or three DES keys.
  * - For RSA key pairs (#PSA_KEY_TYPE_RSA_KEYPAIR), the format
- *   is the non-encrypted DER representation defined by PKCS\#1 (RFC 8017)
- *   as RSAPrivateKey.
- * - For RSA public keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY), the format
- *   is the DER representation defined by RFC 5280 as SubjectPublicKeyInfo.
+ *   is the non-encrypted DER encoding of the representation defined by
+ *   PKCS\#1 (RFC 8017) as `RSAPrivateKey`, version 0.
+ *   ```
+ *   RSAPrivateKey ::= SEQUENCE {
+ *       version             Version,  -- 0
+ *       modulus             INTEGER,  -- n
+ *       publicExponent      INTEGER,  -- e
+ *       privateExponent     INTEGER,  -- d
+ *       prime1              INTEGER,  -- p
+ *       prime2              INTEGER,  -- q
+ *       exponent1           INTEGER,  -- d mod (p-1)
+ *       exponent2           INTEGER,  -- d mod (q-1)
+ *       coefficient         INTEGER,  -- (inverse of q) mod p
+ *   }
+ *   ```
+ * - For DSA private keys (#PSA_KEY_TYPE_DSA_KEYPAIR), the format
+ *   is the non-encrypted DER encoding of the representation used by
+ *   OpenSSL and OpenSSH, which the following ASN.1 structure:
+ *   ```
+ *   DSAPrivateKey ::= SEQUENCE {
+ *       version             Version,  -- 0
+ *       prime               INTEGER,  -- p
+ *       subprime            INTEGER,  -- q
+ *       generator           INTEGER,  -- g
+ *       public              INTEGER,  -- y
+ *       private             INTEGER,  -- x
+ *   }
+ *   ```
+ * - For elliptic curve key pairs (key types for which
+ *   #PSA_KEY_TYPE_IS_ECC_KEYPAIR is true), the format is the
+ *   non-encrypted DER encoding of the representation defined by RFC 5915 as
+ *   `ECPrivateKey`, version 1.
+ *   ```
+ *   ECPrivateKey ::= SEQUENCE {
+ *       version             INTEGER,  -- must be 1
+ *       privateKey          OCTET STRING,
+ *           -- `ceiling(log_{256}(n))`-byte string, big endian,
+ *           -- where n is the order of the curve.
+ *       parameters          ECParameters {{ NamedCurve }},  -- mandatory
+ *       publicKey           BIT STRING  -- mandatory
+ *   }
+ *   ```
+ * - For public keys (key types for which #PSA_KEY_TYPE_IS_PUBLIC_KEY is
+ *   true), the format is the same as for psa_export_public_key().
  *
  * \param key               Slot whose content is to be exported. This must
  *                          be an occupied key slot.
@@ -1218,11 +1258,69 @@ psa_status_t psa_export_key(psa_key_slot_t key,
  * The output of this function can be passed to psa_import_key() to
  * create an object that is equivalent to the public key.
  *
- * For standard key types, the output format is as follows:
+ * The format is the DER representation defined by RFC 5280 as
+ * `SubjectPublicKeyInfo`, with the `subjectPublicKey` format
+ * specified below.
+ * ```
+ * SubjectPublicKeyInfo  ::=  SEQUENCE  {
+ *      algorithm          AlgorithmIdentifier,
+ *      subjectPublicKey   BIT STRING  }
+ * AlgorithmIdentifier  ::=  SEQUENCE  {
+ *      algorithm          OBJECT IDENTIFIER,
+ *      parameters         ANY DEFINED BY algorithm OPTIONAL  }
+ * ```
  *
- * - For RSA keys (#PSA_KEY_TYPE_RSA_KEYPAIR or #PSA_KEY_TYPE_RSA_PUBLIC_KEY),
- *   the format is the DER representation of the public key defined by RFC 5280
- *   as SubjectPublicKeyInfo.
+ * - For RSA public keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY),
+ *   the `subjectPublicKey` format is defined by RFC 3279 &sect;2.3.1 as
+ *   `RSAPublicKey`,
+ *   with the OID `rsaEncryption`,
+ *   and with the parameters `NULL`.
+ *   ```
+ *   pkcs-1 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)
+ *                                  rsadsi(113549) pkcs(1) 1 }
+ *   rsaEncryption OBJECT IDENTIFIER ::=  { pkcs-1 1 }
+ *
+ *   RSAPublicKey ::= SEQUENCE {
+ *      modulus            INTEGER,    -- n
+ *      publicExponent     INTEGER  }  -- e
+ *   ```
+ * - For DSA public keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY),
+ *   the `subjectPublicKey` format is defined by RFC 3279 &sect;2.3.2 as
+ *   `DSAPublicKey`,
+ *   with the OID `id-dsa`,
+ *   and with the parameters `DSS-Parms`.
+ *   ```
+ *   id-dsa OBJECT IDENTIFIER ::= {
+ *      iso(1) member-body(2) us(840) x9-57(10040) x9cm(4) 1 }
+ *
+ *   Dss-Parms  ::=  SEQUENCE  {
+ *      p                  INTEGER,
+ *      q                  INTEGER,
+ *      g                  INTEGER  }
+ *   DSAPublicKey ::= INTEGER -- public key, Y
+ *   ```
+ * - For elliptic curve public keys (key types for which
+ *   #PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY is true),
+ *   the `subjectPublicKey` format is defined by RFC 3279 &sect;2.3.5 as
+ *   `ECPoint`, which is an OCTET STRING containing the uncompressed
+ *   representation defined by SEC1 &sect;2.3.3.
+ *   The OID is `id-ecPublicKey`,
+ *   and the parameters must be given as a `namedCurve`.
+ *   ```
+ *   ansi-X9-62 OBJECT IDENTIFIER ::=
+ *                           { iso(1) member-body(2) us(840) 10045 }
+ *   id-public-key-type OBJECT IDENTIFIER  ::= { ansi-X9.62 2 }
+ *   id-ecPublicKey OBJECT IDENTIFIER ::= { id-publicKeyType 1 }
+ *
+ *   ECPoint ::= OCTET STRING
+ *      -- first byte: 0x04;
+ *      -- then x_P as a `ceiling(log_{256}(n))`-byte string, big endian;
+ *      -- then y_P as a `ceiling(log_{256}(n))`-byte string, big endian,
+ *      -- where n is the order of the curve.
+ *
+ *   EcpkParameters ::= CHOICE { -- other choices are not allowed
+ *      namedCurve    OBJECT IDENTIFIER }
+ *   ```
  *
  * \param key               Slot whose content is to be exported. This must
  *                          be an occupied key slot.

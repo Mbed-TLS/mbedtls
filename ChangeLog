@@ -1,5 +1,14 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Security
+   * When writing a private EC key, use a constant size for the private
+     value, as specified in RFC 5915. Previously, the value was written
+     as an ASN.1 INTEGER, which caused the size of the key to leak
+     about 1 bit of information on average and could cause the value to be
+     1 byte too large for the output buffer.
+
 = mbed TLS 2.7.6 branch released 2018-08-31
 
 Security

@@ -27,6 +27,7 @@
 
 #if defined(MBEDTLS_THREADING_C)
 
+#include <stdbool.h>
 #include "mbedtls/threading.h"
 
 #if defined(MBEDTLS_THREADING_PTHREAD)
@@ -35,12 +36,17 @@ static void threading_mutex_init_pthread( mbedtls_threading_mutex_t *mutex )
     if( mutex == NULL )
         return;
 
-    mutex->is_valid = pthread_mutex_init( &mutex->mutex, NULL ) == 0;
+    mutex->is_valid = (pthread_mutex_init( &mutex->mutex, NULL ) == 0) ? 1 : 0;
+}
+
+static bool is_mutex_valid(mbedtls_threading_mutex_t *mutex)
+{
+    return (mutex->is_valid == 1);
 }
 
 static void threading_mutex_free_pthread( mbedtls_threading_mutex_t *mutex )
 {
-    if( mutex == NULL || !mutex->is_valid )
+    if( mutex == NULL || !is_mutex_valid(mutex) )
         return;
 
     (void) pthread_mutex_destroy( &mutex->mutex );
@@ -49,7 +55,7 @@ static void threading_mutex_free_pthread( mbedtls_threading_mutex_t *mutex )
 
 static int threading_mutex_lock_pthread( mbedtls_threading_mutex_t *mutex )
 {
-    if( mutex == NULL || ! mutex->is_valid )
+    if( mutex == NULL || !is_mutex_valid(mutex) )
         return( MBEDTLS_ERR_THREADING_BAD_INPUT_DATA );
 
     if( pthread_mutex_lock( &mutex->mutex ) != 0 )
@@ -60,7 +66,7 @@ static int threading_mutex_lock_pthread( mbedtls_threading_mutex_t *mutex )
 
 static int threading_mutex_unlock_pthread( mbedtls_threading_mutex_t *mutex )
 {
-    if( mutex == NULL || ! mutex->is_valid )
+    if( mutex == NULL || !is_mutex_valid(mutex) )
         return( MBEDTLS_ERR_THREADING_BAD_INPUT_DATA );
 
     if( pthread_mutex_unlock( &mutex->mutex ) != 0 )

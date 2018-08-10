@@ -368,6 +368,58 @@ typedef uint32_t psa_key_type_t;
 
 #define PSA_KEY_TYPE_CATEGORY_FLAG_PAIR         ((psa_key_type_t)0x10000000)
 
+/** Whether a key type is vendor-defined. */
+#define PSA_KEY_TYPE_IS_VENDOR_DEFINED(type) \
+    (((type) & PSA_KEY_TYPE_VENDOR_FLAG) != 0)
+
+/** Whether a key type is an unstructured array of bytes.
+ *
+ * This encompasses both symmetric keys and non-key data.
+ */
+#define PSA_KEY_TYPE_IS_UNSTRUCTURED(type) \
+    (((type) & PSA_KEY_TYPE_CATEGORY_MASK & ~(psa_key_type_t)0x10000000) == \
+     PSA_KEY_TYPE_CATEGORY_SYMMETRIC)
+
+/** Whether a key type is asymmetric: either a key pair or a public key. */
+#define PSA_KEY_TYPE_IS_ASYMMETRIC(type)                                \
+    (((type) & PSA_KEY_TYPE_CATEGORY_MASK                               \
+      & ~PSA_KEY_TYPE_CATEGORY_FLAG_PAIR) ==                            \
+     PSA_KEY_TYPE_CATEGORY_PUBLIC_KEY)
+/** Whether a key type is the public part of a key pair. */
+#define PSA_KEY_TYPE_IS_PUBLIC_KEY(type)                                \
+    (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_PUBLIC_KEY)
+/** Whether a key type is a key pair containing a private part and a public
+ * part. */
+#define PSA_KEY_TYPE_IS_KEYPAIR(type)                                   \
+    (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_KEY_PAIR)
+/** The key pair type corresponding to a public key type.
+ *
+ * You may also pass a key pair type as \p type, it will be left unchanged.
+ *
+ * \param type      A public key type or key pair type.
+ *
+ * \return          The corresponding key pair type.
+ *                  If \p type is not a public key or a key pair,
+ *                  the return value is undefined.
+ */
+#define PSA_KEY_TYPE_KEYPAIR_OF_PUBLIC_KEY(type)        \
+    ((type) | PSA_KEY_TYPE_CATEGORY_FLAG_PAIR)
+/** The public key type corresponding to a key pair type.
+ *
+ * You may also pass a key pair type as \p type, it will be left unchanged.
+ *
+ * \param type      A public key type or key pair type.
+ *
+ * \return          The corresponding public key type.
+ *                  If \p type is not a public key or a key pair,
+ *                  the return value is undefined.
+ */
+#define PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type)        \
+    ((type) & ~PSA_KEY_TYPE_CATEGORY_FLAG_PAIR)
+/** Whether a key type is an RSA key (pair or public-only). */
+#define PSA_KEY_TYPE_IS_RSA(type)                                       \
+    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_RSA_PUBLIC_KEY)
+
 /** Raw data.
  *
  * A "key" of this type cannot be used for any cryptographic operation.
@@ -438,58 +490,6 @@ typedef uint32_t psa_key_type_t;
 /** Elliptic curve public key. */
 #define PSA_KEY_TYPE_ECC_PUBLIC_KEY(curve)              \
     (PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE | (curve))
-
-/** Whether a key type is vendor-defined. */
-#define PSA_KEY_TYPE_IS_VENDOR_DEFINED(type) \
-    (((type) & PSA_KEY_TYPE_VENDOR_FLAG) != 0)
-
-/** Whether a key type is an unstructured array of bytes.
- *
- * This encompasses both symmetric keys and non-key data.
- */
-#define PSA_KEY_TYPE_IS_UNSTRUCTURED(type) \
-    (((type) & PSA_KEY_TYPE_CATEGORY_MASK & ~(psa_key_type_t)0x10000000) == \
-     PSA_KEY_TYPE_CATEGORY_SYMMETRIC)
-
-/** Whether a key type is asymmetric: either a key pair or a public key. */
-#define PSA_KEY_TYPE_IS_ASYMMETRIC(type)                                \
-    (((type) & PSA_KEY_TYPE_CATEGORY_MASK                               \
-      & ~PSA_KEY_TYPE_CATEGORY_FLAG_PAIR) ==                            \
-     PSA_KEY_TYPE_CATEGORY_PUBLIC_KEY)
-/** Whether a key type is the public part of a key pair. */
-#define PSA_KEY_TYPE_IS_PUBLIC_KEY(type)                                \
-    (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_PUBLIC_KEY)
-/** Whether a key type is a key pair containing a private part and a public
- * part. */
-#define PSA_KEY_TYPE_IS_KEYPAIR(type)                                   \
-    (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_KEY_PAIR)
-/** The key pair type corresponding to a public key type.
- *
- * You may also pass a key pair type as \p type, it will be left unchanged.
- *
- * \param type      A public key type or key pair type.
- *
- * \return          The corresponding key pair type.
- *                  If \p type is not a public key or a key pair,
- *                  the return value is undefined.
- */
-#define PSA_KEY_TYPE_KEYPAIR_OF_PUBLIC_KEY(type)        \
-    ((type) | PSA_KEY_TYPE_CATEGORY_FLAG_PAIR)
-/** The public key type corresponding to a key pair type.
- *
- * You may also pass a key pair type as \p type, it will be left unchanged.
- *
- * \param type      A public key type or key pair type.
- *
- * \return          The corresponding public key type.
- *                  If \p type is not a public key or a key pair,
- *                  the return value is undefined.
- */
-#define PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type)        \
-    ((type) & ~PSA_KEY_TYPE_CATEGORY_FLAG_PAIR)
-/** Whether a key type is an RSA key (pair or public-only). */
-#define PSA_KEY_TYPE_IS_RSA(type)                                       \
-    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_RSA_PUBLIC_KEY)
 
 /** Whether a key type is an elliptic curve key (pair or public-only). */
 #define PSA_KEY_TYPE_IS_ECC(type)                                       \

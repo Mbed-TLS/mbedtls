@@ -1191,7 +1191,7 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
  *   PKCS\#1 (RFC 8017) as `RSAPrivateKey`, version 0.
  *   ```
  *   RSAPrivateKey ::= SEQUENCE {
- *       version             Version,  -- 0
+ *       version             INTEGER,  -- must be 0
  *       modulus             INTEGER,  -- n
  *       publicExponent      INTEGER,  -- e
  *       privateExponent     INTEGER,  -- d
@@ -1207,7 +1207,7 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
  *   OpenSSL and OpenSSH, which the following ASN.1 structure:
  *   ```
  *   DSAPrivateKey ::= SEQUENCE {
- *       version             Version,  -- 0
+ *       version             INTEGER,  -- must be 0
  *       prime               INTEGER,  -- p
  *       subprime            INTEGER,  -- q
  *       generator           INTEGER,  -- g
@@ -1218,15 +1218,19 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
  * - For elliptic curve key pairs (key types for which
  *   #PSA_KEY_TYPE_IS_ECC_KEYPAIR is true), the format is the
  *   non-encrypted DER encoding of the representation defined by RFC 5915 as
- *   `ECPrivateKey`, version 1.
+ *   `ECPrivateKey`, version 1. The `ECParameters` field must be a
+ *   `namedCurve` OID as specified in RFC 5480 &sect;2.1.1.1. The public key
+ *   must be present and must be an `ECPoint` in the same format
+ *   (uncompressed variant) an ECC public key of the
+ *   corresponding type exported with psa_export_public_key().
  *   ```
  *   ECPrivateKey ::= SEQUENCE {
  *       version             INTEGER,  -- must be 1
  *       privateKey          OCTET STRING,
- *           -- `ceiling(log_{256}(n))`-byte string, big endian,
+ *           -- `ceiling(log2(n)/8)`-byte string, big endian,
  *           -- where n is the order of the curve.
- *       parameters          ECParameters {{ NamedCurve }},  -- mandatory
- *       publicKey           BIT STRING  -- mandatory
+ *       parameters      [0] IMPLICIT ECParameters {{ namedCurve }},  -- mandatory
+ *       publicKey       [1] IMPLICIT BIT STRING  -- mandatory
  *   }
  *   ```
  * - For public keys (key types for which #PSA_KEY_TYPE_IS_PUBLIC_KEY is
@@ -1308,20 +1312,21 @@ psa_status_t psa_export_key(psa_key_slot_t key,
  * - For elliptic curve public keys (key types for which
  *   #PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY is true),
  *   the `subjectPublicKey` format is defined by RFC 3279 &sect;2.3.5 as
- *   `ECPoint`, which is an OCTET STRING containing the uncompressed
+ *   `ECPoint`, which contains the uncompressed
  *   representation defined by SEC1 &sect;2.3.3.
  *   The OID is `id-ecPublicKey`,
- *   and the parameters must be given as a `namedCurve`.
+ *   and the parameters must be given as a `namedCurve` OID as specified in
+ *   RFC 5480 &sect;2.1.1.1.
  *   ```
  *   ansi-X9-62 OBJECT IDENTIFIER ::=
  *                           { iso(1) member-body(2) us(840) 10045 }
  *   id-public-key-type OBJECT IDENTIFIER  ::= { ansi-X9.62 2 }
  *   id-ecPublicKey OBJECT IDENTIFIER ::= { id-publicKeyType 1 }
  *
- *   ECPoint ::= OCTET STRING
- *      -- first byte: 0x04;
- *      -- then x_P as a `ceiling(log_{256}(n))`-byte string, big endian;
- *      -- then y_P as a `ceiling(log_{256}(n))`-byte string, big endian,
+ *   ECPoint ::= ...
+ *      -- first 8 bits: 0x04;
+ *      -- then x_P as an n-bit string, big endian;
+ *      -- then y_P as a n-bit string, big endian,
  *      -- where n is the order of the curve.
  *
  *   EcpkParameters ::= CHOICE { -- other choices are not allowed

@@ -6304,8 +6304,6 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
     ssl->in_msg = ssl->in_buf + 13;
     ssl->in_msgtype = 0;
     ssl->in_msglen = 0;
-    if( partial == 0 )
-        ssl->in_left = 0;
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     ssl->next_record_offset = 0;
     ssl->in_epoch = 0;
@@ -6337,8 +6335,14 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
     ssl->session_out = NULL;
 
     memset( ssl->out_buf, 0, MBEDTLS_SSL_OUT_BUFFER_LEN );
+
+#if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) && defined(MBEDTLS_SSL_SRV_C)
     if( partial == 0 )
+#endif /* MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE && MBEDTLS_SSL_SRV_C */
+    {
+        ssl->in_left = 0;
         memset( ssl->in_buf, 0, MBEDTLS_SSL_IN_BUFFER_LEN );
+    }
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
     if( mbedtls_ssl_hw_record_reset != NULL )
@@ -6371,7 +6375,9 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
 #endif
 
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
+#if defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE)
     if( partial == 0 )
+#endif
     {
         mbedtls_free( ssl->cli_id );
         ssl->cli_id = NULL;

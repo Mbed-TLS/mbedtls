@@ -7328,6 +7328,11 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl )
     }
 #endif
 
+#if !defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH) &&        \
+    !defined(MBEDTLS_SSL_PROTO_DTLS)
+    ((void) ssl);
+#endif
+
     return( (int) max_len );
 }
 

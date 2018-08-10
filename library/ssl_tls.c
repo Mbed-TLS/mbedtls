@@ -54,6 +54,8 @@
 #include "mbedtls/oid.h"
 #endif
 
+static void ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl );
+
 /* Length of the "epoch" field in the record header */
 static inline size_t ssl_ep_len( const mbedtls_ssl_context *ssl )
 {
@@ -6215,6 +6217,28 @@ void mbedtls_ssl_init( mbedtls_ssl_context *ssl )
 /*
  * Setup an SSL context
  */
+
+static void ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl )
+{
+    /* Set the incoming and outgoing record pointers. */
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    {
+        ssl->out_hdr = ssl->out_buf;
+        ssl->in_hdr  = ssl->in_buf;
+    }
+    else
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+    {
+        ssl->out_hdr = ssl->out_buf + 8;
+        ssl->in_hdr  = ssl->in_buf  + 8;
+    }
+
+    /* Derive other internal pointers. */
+    ssl_update_out_pointers( ssl, NULL /* no transform enabled */ );
+    ssl_update_in_pointers ( ssl, NULL /* no transform enabled */ );
+}
+
 int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
                        const mbedtls_ssl_config *conf )
 {
@@ -6241,23 +6265,7 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
         return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
     }
 
-    /* Set the incoming and outgoing record pointers. */
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
-    {
-        ssl->out_hdr = ssl->out_buf;
-        ssl->in_hdr  = ssl->in_buf;
-    }
-    else
-#endif /* MBEDTLS_SSL_PROTO_DTLS */
-    {
-        ssl->out_hdr = ssl->out_buf + 8;
-        ssl->in_hdr  = ssl->in_buf  + 8;
-    }
-
-    /* Derive other internal pointers. */
-    ssl_update_out_pointers( ssl, NULL /* no transform enabled */ );
-    ssl_update_in_pointers ( ssl, NULL /* no transform enabled */ );
+    ssl_reset_in_out_pointers( ssl );
 
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
         return( ret );

@@ -6284,6 +6284,11 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
 {
     int ret;
 
+#if !defined(MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE) ||     \
+    !defined(MBEDTLS_SSL_SRV_C)
+    ((void) partial);
+#endif
+
     ssl->state = MBEDTLS_SSL_HELLO_REQUEST;
 
     /* Cancel any possibly running timer */

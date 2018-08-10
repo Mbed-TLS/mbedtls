@@ -8,6 +8,10 @@ Bugfix
    * Fix a memory leak in ecp_mul_comb() if ecp_precompute_comb() fails.
      Fix contributed by Espressif Systems.
 
+Changes
+   * Copy headers preserving timestamps when doing a "make install".
+     Contributed by xueruini.
+
 = mbed TLS 2.12.0 branch released 2018-07-25
 
 Security

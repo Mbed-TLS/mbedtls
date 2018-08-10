@@ -678,6 +678,9 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
     unsigned char offer_compress;
     const int *ciphersuites;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
+    int uses_ec = 0;
+#endif
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write client hello" ) );
 
@@ -829,6 +832,10 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %2d",
                        ciphersuites[i] ) );
 
+#if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
+        uses_ec |= mbedtls_ssl_ciphersuite_uses_ec( ciphersuite_info );
+#endif
+
         n++;
         *p++ = (unsigned char)( ciphersuites[i] >> 8 );
         *p++ = (unsigned char)( ciphersuites[i]      );
@@ -919,11 +926,14 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C)
-    ssl_write_supported_elliptic_curves_ext( ssl, p + 2 + ext_len, &olen );
-    ext_len += olen;
+    if( uses_ec )
+    {
+        ssl_write_supported_elliptic_curves_ext( ssl, p + 2 + ext_len, &olen );
+        ext_len += olen;
 
-    ssl_write_supported_point_formats_ext( ssl, p + 2 + ext_len, &olen );
-    ext_len += olen;
+        ssl_write_supported_point_formats_ext( ssl, p + 2 + ext_len, &olen );
+        ext_len += olen;
+    }
 #endif
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)

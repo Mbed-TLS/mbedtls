@@ -1128,7 +1128,7 @@ exit:
 void key_lifetime( int lifetime_arg )
 {
     int key_slot = 1;
-    psa_key_type_t key_type = PSA_ALG_CBC_BASE;
+    psa_key_type_t key_type = PSA_KEY_TYPE_RAW_DATA;
     unsigned char key[32] = {0};
     psa_key_lifetime_t lifetime_set = lifetime_arg;
     psa_key_lifetime_t lifetime_get;

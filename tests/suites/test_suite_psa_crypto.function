@@ -5,7 +5,10 @@
 #include "spm/psa_defs.h"
 #endif
 
+#include "mbedtls/asn1.h"
 #include "mbedtls/asn1write.h"
+#include "mbedtls/oid.h"
+
 #include "psa/crypto.h"
 
 #define ARRAY_LENGTH( array ) ( sizeof( array ) / sizeof( *( array ) ) )
@@ -36,13 +39,6 @@ static int mem_is_zero( void *buffer, size_t size )
             return( 0 );
     }
     return( 1 );
-}
-
-static int key_type_is_raw_bytes( psa_key_type_t type )
-{
-    psa_key_type_t category = type & PSA_KEY_TYPE_CATEGORY_MASK;
-    return( category == PSA_KEY_TYPE_RAW_DATA ||
-            category == PSA_KEY_TYPE_CATEGORY_SYMMETRIC );
 }
 
 /* Write the ASN.1 INTEGER with the value 2^(bits-1)+x backwards from *p. */
@@ -393,11 +389,118 @@ exit:
     return( 0 );
 }
 
-int exported_key_sanity_check( psa_key_type_t type, size_t bits,
-                               uint8_t *exported, size_t exported_length )
+typedef struct
 {
-    if( key_type_is_raw_bytes( type ) )
+    unsigned char length;
+    unsigned char string[];
+} small_byte_string_t;
+#define DECLARE_SMALL_STRING_OF_LITERAL( name, literal )                \
+    static const small_byte_string_t name =                             \
+    { sizeof( literal ) - 1, literal }
+
+#if defined(MBEDTLS_RSA_C)
+DECLARE_SMALL_STRING_OF_LITERAL( key_type_oid_rsa,
+                                 MBEDTLS_OID_PKCS1_RSA );
+#endif
+#if defined(MBEDTLS_ECP_C)
+DECLARE_SMALL_STRING_OF_LITERAL( key_type_oid_ecc,
+                                 MBEDTLS_OID_EC_ALG_UNRESTRICTED );
+#endif
+
+static int is_oid_of_key_type( psa_key_type_t type,
+                               const uint8_t *oid, size_t oid_length )
+{
+    const small_byte_string_t *expected_oid =
+#if defined(MBEDTLS_RSA_C)
+        PSA_KEY_TYPE_IS_RSA( type ) ? &key_type_oid_rsa :
+#endif /* MBEDTLS_RSA_C */
+#if defined(MBEDTLS_ECP_C)
+        PSA_KEY_TYPE_IS_ECC( type ) ? &key_type_oid_ecc :
+#endif /* MBEDTLS_ECP_C */
+        NULL;
+
+    if( expected_oid == NULL )
+    {
+        char message[40];
+        mbedtls_snprintf( message, sizeof( message ),
+                          "OID not known for key type=0x%08lx",
+                          (unsigned long) type );
+        test_fail( message, __LINE__, __FILE__ );
+        return( 0 );
+    }
+
+    TEST_ASSERT( oid_length == expected_oid->length );
+    TEST_ASSERT( memcmp( oid, expected_oid->string, oid_length ) == 0 );
+    return( 1 );
+
+exit:
+    return( 0 );
+}
+
+static int asn1_skip_integer( unsigned char **p, const unsigned char *end,
+                              size_t min_bits, size_t max_bits,
+                              int must_be_odd )
+{
+    size_t len;
+    size_t actual_bits;
+    unsigned char msb;
+    TEST_ASSERT( mbedtls_asn1_get_tag( p, end, &len,
+                                       MBEDTLS_ASN1_INTEGER ) == 0 );
+    /* Tolerate a slight departure from DER encoding:
+     * - 0 may be represented by an empty string or a 1-byte string.
+     * - The sign bit may be used as a value bit. */
+    if( ( len == 1 && ( *p )[0] == 0 ) ||
+        ( len > 1 && ( *p )[0] == 0 && ( ( *p )[1] & 0x80 ) != 0 ) )
+    {
+        ++( *p );
+        --len;
+    }
+    if( min_bits == 0 && len == 0 )
+        return( 1 );
+    msb = ( *p )[0];
+    TEST_ASSERT( msb != 0 );
+    actual_bits = 8 * ( len - 1 );
+    while( msb != 0 )
+    {
+        msb >>= 1;
+        ++actual_bits;
+    }
+    TEST_ASSERT( actual_bits >= min_bits );
+    TEST_ASSERT( actual_bits <= max_bits );
+    if( must_be_odd )
+        TEST_ASSERT( ( ( *p )[len-1] & 1 ) != 0 );
+    *p += len;
+    return( 1 );
+exit:
+    return( 0 );
+}
+
+static int asn1_get_implicit_tag( unsigned char **p, const unsigned char *end,
+                                  size_t *len,
+                                  unsigned char n, unsigned char tag )
+{
+    int ret;
+    ret = mbedtls_asn1_get_tag( p, end, len,
+                                MBEDTLS_ASN1_CONTEXT_SPECIFIC |
+                                MBEDTLS_ASN1_CONSTRUCTED | ( n ) );
+    if( ret != 0 )
+        return( ret );
+    end = *p + *len;
+    ret = mbedtls_asn1_get_tag( p, end, len, tag );
+    if( ret != 0 )
+        return( ret );
+    if( *p + *len != end )
+        return( MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+    return( 0 );
+}
+
+static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
+                                      uint8_t *exported, size_t exported_length )
+{
+    if( PSA_KEY_TYPE_IS_UNSTRUCTURED( type ) )
         TEST_ASSERT( exported_length == ( bits + 7 ) / 8 );
+    else
+        TEST_ASSERT( exported_length <= PSA_KEY_EXPORT_MAX_SIZE( type, bits ) );
 
 #if defined(MBEDTLS_DES_C)
     if( type == PSA_KEY_TYPE_DES )
@@ -416,64 +519,176 @@ int exported_key_sanity_check( psa_key_type_t type, size_t bits,
             TEST_ASSERT( bit_count % 2 != 0 );
         }
     }
+    else
 #endif
 
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_PARSE_C)
     if( type == PSA_KEY_TYPE_RSA_KEYPAIR )
     {
-        /* Sanity check: does this look like the beginning of a PKCS#8
-         * RSA key pair? Assumes bits is a multiple of 8. */
-        size_t n_bytes = bits / 8 + 1;
-        size_t n_encoded_bytes;
-        unsigned char *n_end;
-        TEST_ASSERT( exported_length >= 7 + ( n_bytes + 3 ) * 9 / 2 );
-        TEST_ASSERT( exported[0] == 0x30 );
-        TEST_ASSERT( exported[1] == 0x82 ); // assumes >=416-bit key
-        TEST_ASSERT( exported[4] == 0x02 );
-        TEST_ASSERT( exported[5] == 0x01 );
-        TEST_ASSERT( exported[6] == 0x00 );
-        TEST_ASSERT( exported[7] == 0x02 );
-        n_encoded_bytes = exported[8];
-        n_end = exported + 9 + n_encoded_bytes;
-        if( n_encoded_bytes & 0x80 )
-        {
-            n_encoded_bytes = ( n_encoded_bytes & 0x7f ) << 7;
-            n_encoded_bytes |= exported[9] & 0x7f;
-            n_end += 1;
-        }
-        /* The encoding of n should start with a 0 byte since it should
-         * have its high bit set. However Mbed TLS is not compliant and
-         * generates an invalid, but widely tolerated, encoding of
-         * positive INTEGERs with a bit size that is a multiple of 8
-         * with no leading 0 byte. Accept this here. */
-        TEST_ASSERT( n_bytes == n_encoded_bytes ||
-                     n_bytes == n_encoded_bytes + 1 );
-        if( n_bytes == n_encoded_bytes )
-            TEST_ASSERT( exported[n_encoded_bytes <= 127 ? 9 : 10] == 0x00 );
-        /* Sanity check: e must be 3 */
-        TEST_ASSERT( n_end[0] == 0x02 );
-        TEST_ASSERT( n_end[1] == 0x03 );
-        TEST_ASSERT( n_end[2] == 0x01 );
-        TEST_ASSERT( n_end[3] == 0x00 );
-        TEST_ASSERT( n_end[4] == 0x01 );
-        TEST_ASSERT( n_end[5] == 0x02 );
-    }
+        uint8_t *p = exported;
+        uint8_t *end = exported + exported_length;
+        size_t len;
+        /*   RSAPrivateKey ::= SEQUENCE {
+         *       version             Version,  -- 0
+         *       modulus             INTEGER,  -- n
+         *       publicExponent      INTEGER,  -- e
+         *       privateExponent     INTEGER,  -- d
+         *       prime1              INTEGER,  -- p
+         *       prime2              INTEGER,  -- q
+         *       exponent1           INTEGER,  -- d mod (p-1)
+         *       exponent2           INTEGER,  -- d mod (q-1)
+         *       coefficient         INTEGER,  -- (inverse of q) mod p
+         *   }
+         */
+        TEST_ASSERT( mbedtls_asn1_get_tag( &p, end, &len,
+                                           MBEDTLS_ASN1_SEQUENCE |
+                                           MBEDTLS_ASN1_CONSTRUCTED ) == 0 );
+        TEST_ASSERT( p + len == end );
+        if( ! asn1_skip_integer( &p, end, 0, 0, 0 ) )
+            goto exit;
+        if( ! asn1_skip_integer( &p, end, bits, bits, 1 ) )
+            goto exit;
+        if( ! asn1_skip_integer( &p, end, 2, bits, 1 ) )
+            goto exit;
+        /* Require d to be at least half the size of n. */
+        if( ! asn1_skip_integer( &p, end, bits / 2, bits, 1 ) )
+            goto exit;
+        /* Require p and q to be at most half the size of n, rounded up. */
+        if( ! asn1_skip_integer( &p, end, bits / 2, bits / 2 + 1, 1 ) )
+            goto exit;
+        if( ! asn1_skip_integer( &p, end, bits / 2, bits / 2 + 1, 1 ) )
+            goto exit;
+        if( ! asn1_skip_integer( &p, end, 1, bits / 2 + 1, 0 ) )
+            goto exit;
+        if( ! asn1_skip_integer( &p, end, 1, bits / 2 + 1, 0 ) )
+            goto exit;
+        if( ! asn1_skip_integer( &p, end, 1, bits / 2 + 1, 0 ) )
+            goto exit;
+        TEST_ASSERT( p == end );
+     }
+    else
 #endif /* MBEDTLS_RSA_C */
 
 #if defined(MBEDTLS_ECP_C)
     if( PSA_KEY_TYPE_IS_ECC_KEYPAIR( type ) )
     {
-        /* Sanity check: does this look like the beginning of a PKCS#8
-         * elliptic curve key pair? */
-        TEST_ASSERT( exported_length >= bits * 3 / 8 + 10 );
-        TEST_ASSERT( exported[0] == 0x30 );
-    }
+        uint8_t *p = exported;
+        uint8_t *end = exported + exported_length;
+        size_t len;
+        int version;
+        /*   ECPrivateKey ::= SEQUENCE {
+         *       version             INTEGER,  -- must be 1
+         *       privateKey          OCTET STRING,
+         *           -- `ceiling(log_{256}(n))`-byte string, big endian,
+         *           -- where n is the order of the curve.
+         *       parameters          ECParameters {{ NamedCurve }},  -- mandatory
+         *       publicKey           BIT STRING  -- mandatory
+         *   }
+         */
+        TEST_ASSERT( mbedtls_asn1_get_tag( &p, end, &len,
+                                           MBEDTLS_ASN1_SEQUENCE |
+                                           MBEDTLS_ASN1_CONSTRUCTED ) == 0 );
+        TEST_ASSERT( p + len == end );
+        TEST_ASSERT( mbedtls_asn1_get_int( &p, end, &version ) == 0 );
+        TEST_ASSERT( version == 1 );
+        TEST_ASSERT( mbedtls_asn1_get_tag( &p, end, &len,
+                                           MBEDTLS_ASN1_OCTET_STRING ) == 0 );
+        /* Bug in Mbed TLS: the length of the octet string depends on the value */
+        // TEST_ASSERT( len == PSA_BITS_TO_BYTES( bits ) );
+        p += len;
+        TEST_ASSERT( asn1_get_implicit_tag( &p, end, &len, 0,
+                                            MBEDTLS_ASN1_OID ) == 0 );
+        p += len;
+        TEST_ASSERT( asn1_get_implicit_tag( &p, end, &len, 1,
+                                            MBEDTLS_ASN1_BIT_STRING ) == 0 );
+        TEST_ASSERT( p + len == end );
+        TEST_ASSERT( p[0] == 0 ); /* 0 unused bits in the bit string */
+        ++p;
+        TEST_ASSERT( p + 1 + 2 * PSA_BITS_TO_BYTES( bits ) == end );
+        TEST_ASSERT( p[0] == 4 );
+     }
+    else
 #endif /* MBEDTLS_ECP_C */
 
-    return( 0 );
+    if( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) )
+    {
+        uint8_t *p = exported;
+        uint8_t *end = exported + exported_length;
+        size_t len;
+        mbedtls_asn1_buf alg;
+        mbedtls_asn1_buf params;
+        mbedtls_asn1_bitstring bitstring;
+        /* SubjectPublicKeyInfo  ::=  SEQUENCE  {
+         *      algorithm          AlgorithmIdentifier,
+         *      subjectPublicKey   BIT STRING  }
+         * AlgorithmIdentifier  ::=  SEQUENCE  {
+         *      algorithm          OBJECT IDENTIFIER,
+         *      parameters         ANY DEFINED BY algorithm OPTIONAL  }
+         */
+        TEST_ASSERT( mbedtls_asn1_get_tag( &p, end, &len,
+                                           MBEDTLS_ASN1_SEQUENCE |
+                                           MBEDTLS_ASN1_CONSTRUCTED ) == 0 );
+        TEST_ASSERT( p + len == end );
+        TEST_ASSERT( mbedtls_asn1_get_alg( &p, end, &alg, &params ) == 0 );
+        if( ! is_oid_of_key_type( type, alg.p, alg.len ) )
+            goto exit;
+        TEST_ASSERT( mbedtls_asn1_get_bitstring( &p, end, &bitstring ) == 0 );
+        TEST_ASSERT( p == end );
+        p = bitstring.p;
+#if defined(MBEDTLS_RSA_C)
+        if( type == PSA_KEY_TYPE_RSA_PUBLIC_KEY )
+        {
+            /*   RSAPublicKey ::= SEQUENCE {
+             *      modulus            INTEGER,    -- n
+             *      publicExponent     INTEGER  }  -- e
+             */
+            TEST_ASSERT( bitstring.unused_bits == 0 );
+            TEST_ASSERT( mbedtls_asn1_get_tag( &p, end, &len,
+                                               MBEDTLS_ASN1_SEQUENCE |
+                                               MBEDTLS_ASN1_CONSTRUCTED ) == 0 );
+            TEST_ASSERT( p + len == end );
+            if( ! asn1_skip_integer( &p, end, bits, bits, 1 ) )
+                goto exit;
+            if( ! asn1_skip_integer( &p, end, 2, bits, 1 ) )
+                goto exit;
+            TEST_ASSERT( p == end );
+        }
+        else
+#endif /* MBEDTLS_RSA_C */
+#if defined(MBEDTLS_ECP_C)
+        if( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( type ) )
+        {
+            /*   ECPoint ::= ...
+             *      -- first 8 bits: 0x04;
+             *      -- then x_P as an n-bit string, big endian;
+             *      -- then y_P as a n-bit string, big endian,
+             *      -- where n is the order of the curve.
+             */
+            TEST_ASSERT( bitstring.unused_bits == 0 );
+            TEST_ASSERT( p + 1 + 2 * PSA_BITS_TO_BYTES( bits ) == end );
+            TEST_ASSERT( p[0] == 4 );
+        }
+        else
+#endif /* MBEDTLS_ECP_C */
+        {
+            char message[40];
+            mbedtls_snprintf( message, sizeof( message ),
+                              "No sanity check for public key type=0x%08lx",
+                              (unsigned long) type );
+            test_fail( message, __LINE__, __FILE__ );
+            return( 0 );
+        }
+    }
+    else
+
+    {
+        /* No sanity checks for other types */
+    }
+
+    return( 1 );
 
 exit:
-    return( 1 );
+    return( 0 );
 }
 
 static int exercise_export_key( psa_key_slot_t slot,

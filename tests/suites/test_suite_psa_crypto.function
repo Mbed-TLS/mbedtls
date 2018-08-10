@@ -1001,6 +1001,9 @@ void import_export( data_t *data,
         goto destroy;
     }
 
+    if( ! exercise_export_key( slot, usage_arg ) )
+        goto exit;
+
     if( canonical_input )
     {
         TEST_ASSERT( exported_length == data->len );

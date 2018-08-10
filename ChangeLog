@@ -11,6 +11,10 @@ Bugfix
      This improves compliance to RFC 4492, and as a result, solves
      interoperability issues with BouncyCastle. Raised by milenamil in #1157.
 
+Changes
+   * Improve compatibility with some alternative CCM implementations by using
+     CCM test vectors from RAM.
+
 = mbed TLS 2.7.5 branch released 2018-07-25
 
 Security

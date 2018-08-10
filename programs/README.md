@@ -32,7 +32,7 @@ This subdirectory mostly contains sample programs that illustrate specific featu
 
 ### ECDSA and RSA signature examples
 
-* [`pkey/ecdsa.c`](pkey/ecdsa.c): generates an ECDSA key, sign a fixed message and verify the signature.
+* [`pkey/ecdsa.c`](pkey/ecdsa.c): generates an ECDSA key, signs a fixed message and verifies the signature.
 
 * [`pkey/rsa_encrypt.c`](pkey/rsa_encrypt.c), [`pkey/rsa_decrypt.c`](pkey/rsa_decrypt.c): loads an RSA public/private key and uses it to encrypt/decrypt a short string through the low-level RSA interface.
 
@@ -40,7 +40,7 @@ This subdirectory mostly contains sample programs that illustrate specific featu
 
 * [`pkey/rsa_sign.c`](pkey/rsa_sign.c), [`pkey/rsa_verify.c`](pkey/rsa_verify.c): loads an RSA private/public key and uses it to sign/verify a short string with the RSA PKCS#1 v1.5 algorithm.
 
-* [`pkey/rsa_sign_pss.c`](pkey/rsa_sign_pss.c), [`pkey/rsa_verify_pss.c`](pkey/rsa_verify_pss.c): loads an RSA private/public key and use it to sign/verify a short string with the RSASSA-PSS algorithm.
+* [`pkey/rsa_sign_pss.c`](pkey/rsa_sign_pss.c), [`pkey/rsa_verify_pss.c`](pkey/rsa_verify_pss.c): loads an RSA private/public key and uses it to sign/verify a short string with the RSASSA-PSS algorithm.
 
 ### Diffie-Hellman key exchange examples
 

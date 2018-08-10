@@ -1448,7 +1448,12 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 
 cleanup:
 
-    if( T != NULL && ! p_eq_g )
+    /* There are two cases where T is not stored in grp:
+     * - P != G
+     * - An intermediate operation failed before setting grp->T
+     * In either case, T must be freed.
+     */
+    if( T != NULL && T != grp->T )
     {
         for( i = 0; i < pre_len; i++ )
             mbedtls_ecp_point_free( &T[i] );

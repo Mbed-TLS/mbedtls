@@ -166,6 +166,31 @@ int mbedtls_net_set_nonblock( mbedtls_net_context *ctx )
     return( serialize_set_block( ctx, MBEDTLS_SERIALIZE_BLOCK_NONBLOCK ) );
 }
 
+int mbedtls_net_poll( mbedtls_net_context *ctx, uint32_t rw, uint32_t timeout )
+{
+    int ret;
+    uint32_t flags;
+
+    if( ctx->fd < 0 )
+        return( MBEDTLS_ERR_NET_INVALID_CONTEXT );
+
+    if( rw & ( MBEDTLS_NET_POLL_READ | MBEDTLS_NET_POLL_WRITE ) )
+        return( MBEDTLS_ERR_SERIALIZE_UNSUPPORTED_INPUT );
+
+    if( ( ret = mbedtls_serialize_push_int32( timeout ) ) != 0 )
+        return( ret );
+    if( ( ret = mbedtls_serialize_push_int32( rw ) ) != 0 )
+        return( ret );
+    if( ( ret = mbedtls_serialize_push_int16( ctx->fd ) ) != 0 )
+        return( ret );
+    if( ( ret = mbedtls_serialize_execute( MBEDTLS_SERIALIZE_FUNCTION_POLL ) ) != 0 )
+        return( ret );
+    if( ( ret = mbedtls_serialize_pop_int32( &flags ) ) != 0 )
+        return( ret );
+
+    return( flags );
+}
+
 /*
  * Portable usleep helper
  */

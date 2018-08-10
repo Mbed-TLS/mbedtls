@@ -475,6 +475,24 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
             }
             break;
 
+        case MBEDTLS_SERIALIZE_FUNCTION_POLL:
+            CHECK_ARITY( 3 );
+            CHECK_LENGTH( 0, 2 ); // fd
+            CHECK_LENGTH( 1, 4 ); // rw
+            CHECK_LENGTH( 2, 4 ); // timeout
+            {
+                mbedtls_net_context ctx = { item_uint16( inputs[0] ) };
+                uint32_t rw = item_uint32( inputs[1] );
+                uint32_t timeout = item_uint32( inputs[2] );
+                ALLOC_OUTPUT( 0, sizeof (int32_t) );
+
+                ret = mbedtls_net_poll( &ctx, rw, timeout );
+                set_item_uint32( outputs[0], ret );
+                if( ret > 0 )
+                    ret = 0;
+            }
+            break;
+
         case MBEDTLS_SERIALIZE_FUNCTION_RECV:
             CHECK_ARITY( 3 );
             CHECK_LENGTH( 0, 2 ); // fd

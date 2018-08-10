@@ -71,6 +71,9 @@ extern "C" {
        out: int32 len */
 #define MBEDTLS_SERIALIZE_FUNCTION_SHUTDOWN     0x010510 /**< shutdown (close socket) */
     /* in: int16 fd */
+#define MBEDTLS_SERIALIZE_FUNCTION_POLL         0x010631 /**< net_poll */
+    /* in: int16 fd, int32 rw, int32 timeout
+       out: int32 flags */
 #define MBEDTLS_SERIALIZE_FUNCTION_FOPEN        0x020121 /**< open file */
     /* in: string file path
        in: string file open mode

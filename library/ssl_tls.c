@@ -6300,8 +6300,8 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
     ssl->secure_renegotiation = MBEDTLS_SSL_LEGACY_RENEGOTIATION;
 
     ssl->in_offt = NULL;
+    ssl_reset_in_out_pointers( ssl );
 
-    ssl->in_msg = ssl->in_buf + 13;
     ssl->in_msgtype = 0;
     ssl->in_msglen = 0;
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -6317,7 +6317,6 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
 
     ssl->keep_current_message = 0;
 
-    ssl->out_msg = ssl->out_buf + 13;
     ssl->out_msgtype = 0;
     ssl->out_msglen = 0;
     ssl->out_left = 0;

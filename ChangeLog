@@ -16,6 +16,8 @@ Changes
      Contributed by xueruini.
    * Allow the forward declaration of public structs. Contributed by Dawid
      Drozd. Fixes #1215 raised by randombit.
+   * Improve compatibility with some alternative CCM implementations by using
+     CCM test vectors from RAM.
 
 = mbed TLS 2.12.0 branch released 2018-07-25
 

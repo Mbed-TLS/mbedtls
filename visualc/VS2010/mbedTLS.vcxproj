@@ -269,6 +269,7 @@
     <ClCompile Include="..\..\library\md_wrap.c" />
     <ClCompile Include="..\..\library\memory_buffer_alloc.c" />
     <ClCompile Include="..\..\library\net_sockets.c" />
+    <ClCompile Include="..\..\library\net_sockets_serialize.c" />
     <ClCompile Include="..\..\library\nist_kw.c" />
     <ClCompile Include="..\..\library\oid.c" />
     <ClCompile Include="..\..\library\padlock.c" />

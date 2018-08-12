@@ -186,6 +186,7 @@ typedef struct mbedtls_mpi
 mbedtls_mpi;
 
 // *****************MPI on Stack***************************
+#if defined(__GNUC__)
 size_t mbedtls_used_limbs(const mbedtls_mpi * X);
 void   mbedtls_stack_init(mbedtls_mpi * X, mbedtls_mpi_uint * limbs, size_t num_limbs);
 
@@ -209,10 +210,8 @@ void   mbedtls_stack_init(mbedtls_mpi * X, mbedtls_mpi_uint * limbs, size_t num_
 
 #define FREE_STACK_MPI_ALLOCATION(X)				\
 		if(X.n > MAX_STACK_LIMBS){ mbedtls_mpi_free(&X);}
-
-
 //********************************************************
-
+#endif
 
 /**
  * \brief           Initialize one MPI (make internal references valid)

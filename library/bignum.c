@@ -983,7 +983,9 @@ int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
         return( MBEDTLS_ERR_MPI_NEGATIVE_VALUE );
 
     mbedtls_mpi_init( &TB );
+#if defined(__GNUC__)
 	SET_STACK_MPI(TB, B)
+#endif
 
     if( X == B )
     {
@@ -1008,8 +1010,9 @@ int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     mpi_sub_hlp( n, B->p, X->p );
 
 cleanup:
-
-    //mbedtls_mpi_free( &TB );
+#if !defined(__GNUC__)
+    mbedtls_mpi_free( &TB );
+#endif
 
     return( ret );
 }
@@ -1190,8 +1193,11 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     mbedtls_mpi TA, TB;
 
     mbedtls_mpi_init( &TA ); mbedtls_mpi_init( &TB );
+
+#if defined(__GNUC__)
 	SET_STACK_MPI(TB, B)
 	SET_STACK_MPI(TA, A)
+#endif
 
     if( X == A ) { MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &TA, A ) ); A = &TA; }
     if( X == B ) { MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &TB, B ) ); B = &TB; }
@@ -1213,8 +1219,9 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     X->s = A->s * B->s;
 
 cleanup:
-
-    //mbedtls_mpi_free( &TB ); mbedtls_mpi_free( &TA );
+#if !defined(__GNUC__)
+	mbedtls_mpi_free( &TB ); mbedtls_mpi_free( &TA );
+#endif
 
     return( ret );
 }

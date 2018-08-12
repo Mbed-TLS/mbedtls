@@ -936,10 +936,13 @@ static int ecp_double_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #endif /* MBEDTLS_ECP_DOUBLE_JAC_ALT */
 
     mbedtls_mpi_init( &M ); mbedtls_mpi_init( &S ); mbedtls_mpi_init( &T ); mbedtls_mpi_init( &U );
+
+#if defined(__GNUC__)
   	SET_STACK_MPI_FIX_SIZE(M, MAX_STACK_LIMBS)
 	SET_STACK_MPI_FIX_SIZE(S, MAX_STACK_LIMBS)
 	SET_STACK_MPI_FIX_SIZE(T, MAX_STACK_LIMBS)
 	SET_STACK_MPI_FIX_SIZE(U, MAX_STACK_LIMBS)
+#endif
 
     /* Special case for A = -3 */
     if( grp->A.p == NULL )
@@ -997,10 +1000,16 @@ static int ecp_double_jac( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &R->Z, &U ) );
 
 cleanup:
+#if defined(__GNUC__)
 	FREE_STACK_MPI_ALLOCATION(M)
 	FREE_STACK_MPI_ALLOCATION(S)
 	FREE_STACK_MPI_ALLOCATION(T)
 	FREE_STACK_MPI_ALLOCATION(U)
+#else
+	{
+		 mbedtls_mpi_free( &M ); mbedtls_mpi_free( &S ); mbedtls_mpi_free( &T ); mbedtls_mpi_free( &U );
+	}
+#endif
     return( ret );
 }
 
@@ -1057,6 +1066,7 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     mbedtls_mpi_init( &T1 ); mbedtls_mpi_init( &T2 ); mbedtls_mpi_init( &T3 ); mbedtls_mpi_init( &T4 );
     mbedtls_mpi_init( &X ); mbedtls_mpi_init( &Y ); mbedtls_mpi_init( &Z );
 
+#if defined(__GNUC__)
 	SET_STACK_MPI_FIX_SIZE(T1, MAX_STACK_LIMBS)
 	SET_STACK_MPI_FIX_SIZE(T2, MAX_STACK_LIMBS)
 	SET_STACK_MPI_FIX_SIZE(T3, MAX_STACK_LIMBS)
@@ -1064,6 +1074,7 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 	SET_STACK_MPI_FIX_SIZE(X, MAX_STACK_LIMBS)
 	SET_STACK_MPI_FIX_SIZE(Y, MAX_STACK_LIMBS)
 	SET_STACK_MPI_FIX_SIZE(Z, MAX_STACK_LIMBS)
+#endif
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &T1,  &P->Z,  &P->Z ) );  MOD_MUL( T1 );
     MBEDTLS_MPI_CHK( mbedtls_mpi_mul_mpi( &T2,  &T1,    &P->Z ) );  MOD_MUL( T2 );
@@ -1105,7 +1116,7 @@ static int ecp_add_mixed( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &R->Z, &Z ) );
 
 cleanup:
-
+#if defined(__GNUC__)
 	FREE_STACK_MPI_ALLOCATION(T1)
 	FREE_STACK_MPI_ALLOCATION(T2)
 	FREE_STACK_MPI_ALLOCATION(T3)
@@ -1113,7 +1124,10 @@ cleanup:
 	FREE_STACK_MPI_ALLOCATION(X)
 	FREE_STACK_MPI_ALLOCATION(Y)
 	FREE_STACK_MPI_ALLOCATION(Z)
-
+#else
+	mbedtls_mpi_free( &T1 ); mbedtls_mpi_free( &T2 ); mbedtls_mpi_free( &T3 ); mbedtls_mpi_free( &T4 );
+	mbedtls_mpi_free( &X ); mbedtls_mpi_free( &Y ); mbedtls_mpi_free( &Z );
+#endif
     return( ret );
 }
 

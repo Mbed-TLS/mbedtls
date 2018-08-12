@@ -34,7 +34,8 @@
 extern "C" {
 #endif
 
-#define MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED -0x007A  /**< CMAC hardware accelerator failed. */
+#define MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED     -0x007A  /**< CMAC hardware accelerator failed. */
+#define MBEDTLS_ERR_CMAC_FEATURE_UNAVAILABLE -0x007B  /**< Feature not available. */
 
 #define MBEDTLS_AES_BLOCK_SIZE          16
 #define MBEDTLS_DES3_BLOCK_SIZE         8
@@ -82,6 +83,8 @@ struct mbedtls_cmac_context_t
  *
  * \return              \c 0 on success.
  * \return              A cipher-specific error code on failure.
+ * \return              #MBEDTLS_ERR_CMAC_FEATURE_UNAVAILABLE if the
+ *                      alternative implementation doesn't support the key size or cipher mode.
  */
 int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
                                 const unsigned char *key, size_t keybits );
@@ -160,6 +163,8 @@ int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx );
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_MD_BAD_INPUT_DATA
  *                      if parameter verification fails.
+ * \return              #MBEDTLS_ERR_CMAC_FEATURE_UNAVAILABLE if the
+ *                      alternative implementation doesn't support the key size or cipher mode.
  */
 int mbedtls_cipher_cmac( const mbedtls_cipher_info_t *cipher_info,
                          const unsigned char *key, size_t keylen,
@@ -183,6 +188,8 @@ int mbedtls_cipher_cmac( const mbedtls_cipher_info_t *cipher_info,
  *                  pseudorandom output.
  *
  * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_CMAC_FEATURE_UNAVAILABLE if the
+ *                  alternative implementation doesn't support the key size .
  */
 int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_len,
                               const unsigned char *input, size_t in_len,

@@ -86,6 +86,7 @@
 #define MBEDTLS_ERR_DHM_FILE_IO_ERROR                     -0x3480  /**< Read or write of file failed. */
 #define MBEDTLS_ERR_DHM_HW_ACCEL_FAILED                   -0x3500  /**< DHM hardware accelerator failed. */
 #define MBEDTLS_ERR_DHM_SET_GROUP_FAILED                  -0x3580  /**< Setting the modulus and generator failed. */
+#define MBEDTLS_ERR_DHM_FEATURE_UNAVAILABLE               -0x3600  /**< Feature not available. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -138,6 +139,8 @@ void mbedtls_dhm_init( mbedtls_dhm_context *ctx );
  *
  * \return         \c 0 on success.
  * \return         An \c MBEDTLS_ERR_DHM_XXX error code on failure.
+ * \return         #MBEDTLS_ERR_DHM_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the group.
  */
 int mbedtls_dhm_read_params( mbedtls_dhm_context *ctx,
                      unsigned char **p,
@@ -186,6 +189,8 @@ int mbedtls_dhm_make_params( mbedtls_dhm_context *ctx, int x_size,
  *
  * \return         \c 0 if successful.
  * \return         An \c MBEDTLS_ERR_DHM_XXX error code on failure.
+ * \return         #MBEDTLS_ERR_DHM_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the group.
  */
 int mbedtls_dhm_set_group( mbedtls_dhm_context *ctx,
                            const mbedtls_mpi *P,

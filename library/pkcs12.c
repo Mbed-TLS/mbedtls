@@ -216,7 +216,10 @@ int mbedtls_pkcs12_pbe( mbedtls_asn1_buf *pbe_params, int mode,
     }
 
     if( ( ret = mbedtls_cipher_finish( &cipher_ctx, output + olen, &olen ) ) != 0 )
-        ret = MBEDTLS_ERR_PKCS12_PASSWORD_MISMATCH;
+    {
+        if( ret != MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+            ret = MBEDTLS_ERR_PKCS12_PASSWORD_MISMATCH;
+    }
 
 exit:
     mbedtls_platform_zeroize( key, sizeof( key ) );

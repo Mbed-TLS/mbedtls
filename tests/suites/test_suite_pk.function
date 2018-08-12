@@ -233,6 +233,7 @@ void pk_ec_test_vec( int type, int id, char *key_str,
     mbedtls_ecp_keypair *eckey;
     unsigned char hash[100], sig[500], key[500];
     size_t hash_len, sig_len, key_len;
+    int res;
 
     mbedtls_pk_init( &pk );
 
@@ -249,8 +250,11 @@ void pk_ec_test_vec( int type, int id, char *key_str,
     TEST_ASSERT( mbedtls_ecp_point_read_binary( &eckey->grp, &eckey->Q,
                                         key, key_len ) == 0 );
 
-    TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_NONE,
-                            hash, hash_len, sig, sig_len ) == ret );
+    res = mbedtls_pk_verify( &pk, MBEDTLS_MD_NONE,
+                            hash, hash_len, sig, sig_len );
+    if( res == MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( res == ret );
 
 exit:
     mbedtls_pk_free( &pk );
@@ -263,6 +267,7 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
     mbedtls_pk_context pk;
     unsigned char hash[50], sig[5000];
     size_t sig_len;
+    int ret;
 
     mbedtls_pk_init( &pk );
 
@@ -270,13 +275,22 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
     memset( sig, 0, sizeof sig );
 
     TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( type ) ) == 0 );
-    TEST_ASSERT( pk_genkey( &pk ) == 0 );
+    ret = pk_genkey( &pk );
+    if( ret == MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
 
-    TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, sizeof hash,
-                          sig, &sig_len, rnd_std_rand, NULL ) == sign_ret );
+    ret = mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, sizeof hash,
+                          sig, &sig_len, rnd_std_rand, NULL );
+    if( ret == MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == sign_ret );
 
-    TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_SHA256,
-                            hash, sizeof hash, sig, sig_len ) == verify_ret );
+    ret = mbedtls_pk_verify( &pk, MBEDTLS_MD_SHA256,
+                            hash, sizeof hash, sig, sig_len );
+    if( ret == MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == verify_ret );
 
 exit:
     mbedtls_pk_free( &pk );

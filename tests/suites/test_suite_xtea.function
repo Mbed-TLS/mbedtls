@@ -70,6 +70,7 @@ void xtea_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
     unsigned char output[100];
     size_t len;
     mbedtls_xtea_context ctx;
+    int ret;
 
     memset(key_str, 0x00, 100);
     memset(src_str, 0x00, 100);
@@ -82,8 +83,11 @@ void xtea_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
     len = unhexify( src_str, hex_src_string );
 
     mbedtls_xtea_setup( &ctx, key_str );
-    TEST_ASSERT( mbedtls_xtea_crypt_cbc( &ctx, MBEDTLS_XTEA_ENCRYPT, len, iv_str,
-                                 src_str, output ) == 0 );
+    ret = mbedtls_xtea_crypt_cbc( &ctx, MBEDTLS_XTEA_ENCRYPT, len, iv_str,
+                                 src_str, output );
+    if( ret == MBEDTLS_ERR_XTEA_FEATURE_UNAVAILABLE )
+        return;
+    TEST_ASSERT( ret == 0 );
     hexify( dst_str, output, len );
 
     TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );
@@ -101,6 +105,7 @@ void xtea_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
     unsigned char output[100];
     size_t len;
     mbedtls_xtea_context ctx;
+    int ret;
 
     memset(key_str, 0x00, 100);
     memset(src_str, 0x00, 100);
@@ -113,8 +118,11 @@ void xtea_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
     len = unhexify( src_str, hex_src_string );
 
     mbedtls_xtea_setup( &ctx, key_str );
-    TEST_ASSERT( mbedtls_xtea_crypt_cbc( &ctx, MBEDTLS_XTEA_DECRYPT, len, iv_str,
-                                 src_str, output ) == 0 );
+    ret = mbedtls_xtea_crypt_cbc( &ctx, MBEDTLS_XTEA_DECRYPT, len, iv_str,
+                                 src_str, output );
+    if( ret == MBEDTLS_ERR_XTEA_FEATURE_UNAVAILABLE )
+        return;
+    TEST_ASSERT( ret == 0 );
     hexify( dst_str, output, len );
 
     TEST_ASSERT( strcmp( (char *) dst_str, hex_dst_string ) == 0 );

@@ -2303,42 +2303,57 @@ int mbedtls_rsa_self_test( int verbose )
 
     memcpy( rsa_plaintext, RSA_PT, PT_LEN );
 
-    if( mbedtls_rsa_pkcs1_encrypt( &rsa, myrand, NULL, MBEDTLS_RSA_PUBLIC,
-                                   PT_LEN, rsa_plaintext,
-                                   rsa_ciphertext ) != 0 )
+    ret = mbedtls_rsa_pkcs1_encrypt( &rsa, myrand, NULL, MBEDTLS_RSA_PUBLIC,
+                                     PT_LEN, rsa_plaintext,
+                                     rsa_ciphertext );
+    if( ret != MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
     {
+        if( ret != 0 )
+        {
+            if( verbose != 0 )
+                mbedtls_printf( "failed\n" );
+
+            ret = 1;
+            goto cleanup;
+        }
+
         if( verbose != 0 )
-            mbedtls_printf( "failed\n" );
+            mbedtls_printf( "passed\n  PKCS#1 decryption : " );
 
-        ret = 1;
-        goto cleanup;
-    }
+        ret = mbedtls_rsa_pkcs1_decrypt( &rsa, myrand, NULL, MBEDTLS_RSA_PRIVATE,
+                                     &len, rsa_ciphertext, rsa_decrypted,
+                                     sizeof(rsa_decrypted) );
+        if( ret != MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
+        {
+            if( ret != 0 )
+            {
+                if( verbose != 0 )
+                    mbedtls_printf( "failed\n" );
 
-    if( verbose != 0 )
-        mbedtls_printf( "passed\n  PKCS#1 decryption : " );
+                ret = 1;
+                goto cleanup;
+            }
 
-    if( mbedtls_rsa_pkcs1_decrypt( &rsa, myrand, NULL, MBEDTLS_RSA_PRIVATE,
-                                   &len, rsa_ciphertext, rsa_decrypted,
-                                   sizeof(rsa_decrypted) ) != 0 )
+            if( memcmp( rsa_decrypted, rsa_plaintext, len ) != 0 )
+            {
+                if( verbose != 0 )
+                    mbedtls_printf( "failed\n" );
+
+                ret = 1;
+                goto cleanup;
+            }
+
+            if( verbose != 0 )
+                mbedtls_printf( "passed\n" );
+        } /* mbedtls_rsa_pkcs1_decrypt not supported */
+        else if( verbose != 0 )
+            mbedtls_printf( "skipped\n" );
+    } /* mbedtls_rsa_pkcs1_encrypt not supported */
+    else if( verbose != 0 )
     {
-        if( verbose != 0 )
-            mbedtls_printf( "failed\n" );
-
-        ret = 1;
-        goto cleanup;
+            ret = 0;
+            mbedtls_printf( "skipped\n" );
     }
-
-    if( memcmp( rsa_decrypted, rsa_plaintext, len ) != 0 )
-    {
-        if( verbose != 0 )
-            mbedtls_printf( "failed\n" );
-
-        ret = 1;
-        goto cleanup;
-    }
-
-    if( verbose != 0 )
-        mbedtls_printf( "passed\n" );
 
 #if defined(MBEDTLS_SHA1_C)
     if( verbose != 0 )
@@ -2352,33 +2367,51 @@ int mbedtls_rsa_self_test( int verbose )
         return( 1 );
     }
 
-    if( mbedtls_rsa_pkcs1_sign( &rsa, myrand, NULL,
+    ret = mbedtls_rsa_pkcs1_sign( &rsa, myrand, NULL,
                                 MBEDTLS_RSA_PRIVATE, MBEDTLS_MD_SHA1, 0,
-                                sha1sum, rsa_ciphertext ) != 0 )
+                                sha1sum, rsa_ciphertext );
+    if( ret != MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
     {
+        if( ret != 0 )
+        {
+            if( verbose != 0 )
+                mbedtls_printf( "failed\n" );
+
+            ret = 1;
+            goto cleanup;
+        }
+
         if( verbose != 0 )
-            mbedtls_printf( "failed\n" );
+            mbedtls_printf( "passed\n  PKCS#1 sig. verify: " );
 
-        ret = 1;
-        goto cleanup;
-    }
+        ret = mbedtls_rsa_pkcs1_verify( &rsa, NULL, NULL,
+                                        MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_SHA1, 0,
+                                        sha1sum, rsa_ciphertext );
+        if( ret != MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
+        {
+            if( ret != 0 )
+            {
+                if( verbose != 0 )
+                    mbedtls_printf( "failed\n" );
 
-    if( verbose != 0 )
-        mbedtls_printf( "passed\n  PKCS#1 sig. verify: " );
+                ret = 1;
+                goto cleanup;
+            }
 
-    if( mbedtls_rsa_pkcs1_verify( &rsa, NULL, NULL,
-                                  MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_SHA1, 0,
-                                  sha1sum, rsa_ciphertext ) != 0 )
+            if( verbose != 0 )
+                mbedtls_printf( "passed\n" );
+        } /* mbedtls_rsa_pkcs1_verify not supported */
+        else if( verbose != 0 )
+            {
+                ret = 0;
+                mbedtls_printf( "skipped\n" );
+            }
+    } /* mbedtls_rsa_pkcs1_sign not supported */
+    else if( verbose != 0 )
     {
-        if( verbose != 0 )
-            mbedtls_printf( "failed\n" );
-
-        ret = 1;
-        goto cleanup;
+        ret = 0;
+        mbedtls_printf( "skipped\n" );
     }
-
-    if( verbose != 0 )
-        mbedtls_printf( "passed\n" );
 #endif /* MBEDTLS_SHA1_C */
 
     if( verbose != 0 )

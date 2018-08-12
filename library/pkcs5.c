@@ -38,6 +38,7 @@
 #if defined(MBEDTLS_PKCS5_C)
 
 #include "mbedtls/pkcs5.h"
+#include "mbedtls/des.h"
 
 #if defined(MBEDTLS_ASN1_PARSE_C)
 #include "mbedtls/asn1.h"
@@ -222,7 +223,17 @@ int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
 
     if( ( ret = mbedtls_cipher_crypt( &cipher_ctx, iv, enc_scheme_params.len,
                               data, datalen, output, &olen ) ) != 0 )
-        ret = MBEDTLS_ERR_PKCS5_PASSWORD_MISMATCH;
+    {
+        /*
+         * PKCS5 supports DES or RC2. RC2 is not supported by Mbed TLS.
+         * if DES mode is not supported by alternative implementation,
+         * return  MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE
+         */
+        if( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+            ret = MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE;
+        else
+            ret = MBEDTLS_ERR_PKCS5_PASSWORD_MISMATCH;
+    }
 
 exit:
     mbedtls_md_free( &md_ctx );

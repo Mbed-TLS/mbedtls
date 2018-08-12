@@ -38,7 +38,7 @@
 
 #define MBEDTLS_ERR_XTEA_INVALID_INPUT_LENGTH             -0x0028  /**< The data input has an invalid length. */
 #define MBEDTLS_ERR_XTEA_HW_ACCEL_FAILED                  -0x0029  /**< XTEA hardware accelerator failed. */
-
+#define MBEDTLS_ERR_XTEA_FEATURE_UNAVAILABLE              -0x0041  /**< Feature not available. For example, an unsupported cipher mode. */
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -110,6 +110,8 @@ int mbedtls_xtea_crypt_ecb( mbedtls_xtea_context *ctx,
  *
  * \return         0 if successful,
  *                 MBEDTLS_ERR_XTEA_INVALID_INPUT_LENGTH if the length % 8 != 0
+ * \return         #MBEDTLS_ERR_XTEA_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the cipher mode.
  */
 int mbedtls_xtea_crypt_cbc( mbedtls_xtea_context *ctx,
                     int mode,

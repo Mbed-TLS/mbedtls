@@ -14,6 +14,7 @@ void ecdh_primitive_random( int id )
     mbedtls_ecp_point qA, qB;
     mbedtls_mpi dA, dB, zA, zB;
     rnd_pseudo_info rnd_info;
+    int ret;
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_ecp_point_init( &qA ); mbedtls_ecp_point_init( &qB );
@@ -23,8 +24,10 @@ void ecdh_primitive_random( int id )
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 
-    TEST_ASSERT( mbedtls_ecdh_gen_public( &grp, &dA, &qA, &rnd_pseudo_rand, &rnd_info )
-                 == 0 );
+    ret = mbedtls_ecdh_gen_public( &grp, &dA, &qA, &rnd_pseudo_rand, &rnd_info );
+    if( ret == MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
     TEST_ASSERT( mbedtls_ecdh_gen_public( &grp, &dB, &qB, &rnd_pseudo_rand, &rnd_info )
                  == 0 );
     TEST_ASSERT( mbedtls_ecdh_compute_shared( &grp, &zA, &qB, &dA,
@@ -53,6 +56,7 @@ void ecdh_primitive_testvec( int id, char *dA_str, char *xA_str, char *yA_str,
     unsigned char rnd_buf_A[MBEDTLS_ECP_MAX_BYTES];
     unsigned char rnd_buf_B[MBEDTLS_ECP_MAX_BYTES];
     rnd_buf_info rnd_info_A, rnd_info_B;
+    int ret;
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_ecp_point_init( &qA ); mbedtls_ecp_point_init( &qB );
@@ -93,8 +97,11 @@ void ecdh_primitive_testvec( int id, char *dA_str, char *xA_str, char *yA_str,
         rnd_buf_B[rnd_info_B.length-1] <<= shift;
     }
 
-    TEST_ASSERT( mbedtls_ecdh_gen_public( &grp, &dA, &qA,
-                                  rnd_buffer_rand, &rnd_info_A ) == 0 );
+    ret = mbedtls_ecdh_gen_public( &grp, &dA, &qA,
+                                  rnd_buffer_rand, &rnd_info_A );
+    if( ret == MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
     TEST_ASSERT( ! mbedtls_ecp_is_zero( &qA ) );
     TEST_ASSERT( mbedtls_mpi_read_string( &check, 16, xA_str ) == 0 );
     TEST_ASSERT( mbedtls_mpi_cmp_mpi( &qA.X, &check ) == 0 );
@@ -131,6 +138,7 @@ void ecdh_exchange( int id )
     const unsigned char *vbuf;
     size_t len;
     rnd_pseudo_info rnd_info;
+    int ret;
 
     mbedtls_ecdh_init( &srv );
     mbedtls_ecdh_init( &cli );
@@ -139,8 +147,11 @@ void ecdh_exchange( int id )
     TEST_ASSERT( mbedtls_ecp_group_load( &srv.grp, id ) == 0 );
 
     memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
-    TEST_ASSERT( mbedtls_ecdh_make_params( &srv, &len, buf, 1000,
-                                   &rnd_pseudo_rand, &rnd_info ) == 0 );
+    ret = mbedtls_ecdh_make_params( &srv, &len, buf, 1000,
+                                   &rnd_pseudo_rand, &rnd_info );
+    if( ret == MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
     TEST_ASSERT( mbedtls_ecdh_read_params( &cli, &vbuf, buf + len ) == 0 );
 
     memset( buf, 0x00, sizeof( buf ) );

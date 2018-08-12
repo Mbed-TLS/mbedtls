@@ -1,5 +1,8 @@
 /* BEGIN_HEADER */
 #include "mbedtls/pkcs5.h"
+#if defined(MBEDTLS_DES_C)
+#include "mbedtls/des.h"
+#endif
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -65,6 +68,10 @@ void mbedtls_pkcs5_pbes2( int params_tag, char *params_hex, char *pw_hex,
 
     my_ret = mbedtls_pkcs5_pbes2( &params, MBEDTLS_PKCS5_DECRYPT,
                           pw, pw_len, data, data_len, my_out );
+#if defined(MBEDTLS_DES_C)
+    if( my_ret == MBEDTLS_ERR_PKCS5_FEATURE_UNAVAILABLE )
+        goto exit;
+#endif
     TEST_ASSERT( my_ret == ref_ret );
 
     if( ref_ret == 0 )

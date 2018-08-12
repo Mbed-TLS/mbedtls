@@ -49,6 +49,10 @@ void mbedtls_pem_read_buffer( char *header, char *footer, char *data,
 
     ret = mbedtls_pem_read_buffer( &ctx, header, footer, (unsigned char *)data,
                 (unsigned char *)pwd, pwd_len, &use_len );
+    if( ( ret == MBEDTLS_ERR_AES_FEATURE_UNAVAILABLE ) ||
+        ( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE ) )
+        goto exit;
+
     TEST_ASSERT( ret == res );
 
 exit:

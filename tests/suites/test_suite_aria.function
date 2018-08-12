@@ -25,7 +25,7 @@ void aria_encrypt_ecb( char *hex_key_string, char *hex_src_string,
     unsigned char dst_str[ARIA_MAX_DATA_STR];
     unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
-    int key_len, data_len, i;
+    int key_len, data_len, i, ret;
 
     memset( key_str, 0x00, sizeof( key_str ) );
     memset( src_str, 0x00, sizeof( src_str ) );
@@ -36,8 +36,10 @@ void aria_encrypt_ecb( char *hex_key_string, char *hex_src_string,
     key_len = unhexify( key_str, hex_key_string );
     data_len = unhexify( src_str, hex_src_string );
 
-    TEST_ASSERT( mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 )
-                 == setkey_result );
+    ret = mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 );
+    if( ret == MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == setkey_result );
     if( setkey_result == 0 )
     {
         for( i = 0; i < data_len; i += MBEDTLS_ARIA_BLOCKSIZE )
@@ -64,7 +66,7 @@ void aria_decrypt_ecb( char *hex_key_string, char *hex_src_string,
     unsigned char dst_str[ARIA_MAX_DATA_STR];
     unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
-    int key_len, data_len, i;
+    int key_len, data_len, i, ret;
 
     memset( key_str, 0x00, sizeof( key_str ) );
     memset( src_str, 0x00, sizeof( src_str ) );
@@ -75,8 +77,10 @@ void aria_decrypt_ecb( char *hex_key_string, char *hex_src_string,
     key_len = unhexify( key_str, hex_key_string );
     data_len = unhexify( src_str, hex_src_string );
 
-    TEST_ASSERT( mbedtls_aria_setkey_dec( &ctx, key_str, key_len * 8 )
-                 == setkey_result );
+    ret = mbedtls_aria_setkey_dec( &ctx, key_str, key_len * 8 );
+    if( ret == MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == setkey_result );
     if( setkey_result == 0 )
     {
         for( i = 0; i < data_len; i += MBEDTLS_ARIA_BLOCKSIZE )
@@ -105,7 +109,7 @@ void aria_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
     unsigned char dst_str[ARIA_MAX_DATA_STR];
     unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
-    int key_len, data_len;
+    int key_len, data_len, ret;
 
     memset( key_str, 0x00, sizeof( key_str ) );
     memset( iv_str, 0x00, sizeof( iv_str ) );
@@ -118,10 +122,14 @@ void aria_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
     unhexify( iv_str, hex_iv_string );
     data_len = unhexify( src_str, hex_src_string );
 
-    mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 );
-    TEST_ASSERT( mbedtls_aria_crypt_cbc( &ctx, MBEDTLS_ARIA_ENCRYPT, data_len,
-                                         iv_str, src_str, output )
-                 == cbc_result );
+    ret = mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 );
+    if( ret == MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    ret = mbedtls_aria_crypt_cbc( &ctx, MBEDTLS_ARIA_ENCRYPT, data_len,
+                                         iv_str, src_str, output );
+    if( ret == MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == cbc_result );
     if( cbc_result == 0 )
     {
         hexify( dst_str, output, data_len );
@@ -145,7 +153,7 @@ void aria_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
     unsigned char dst_str[ARIA_MAX_DATA_STR];
     unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
-    int key_len, data_len;
+    int key_len, data_len, ret;
 
     memset( key_str, 0x00, sizeof( key_str ) );
     memset( iv_str, 0x00, sizeof( iv_str ) );
@@ -158,10 +166,14 @@ void aria_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
     unhexify( iv_str, hex_iv_string );
     data_len = unhexify( src_str, hex_src_string );
 
-    mbedtls_aria_setkey_dec( &ctx, key_str, key_len * 8 );
-    TEST_ASSERT( mbedtls_aria_crypt_cbc( &ctx, MBEDTLS_ARIA_DECRYPT, data_len,
-                                         iv_str, src_str, output )
-                 == cbc_result );
+    ret = mbedtls_aria_setkey_dec( &ctx, key_str, key_len * 8 );
+    if( ret == MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    ret = mbedtls_aria_crypt_cbc( &ctx, MBEDTLS_ARIA_DECRYPT, data_len,
+                                         iv_str, src_str, output );
+    if( ret == MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == cbc_result );
     if( cbc_result == 0 )
     {
         hexify( dst_str, output, data_len );
@@ -186,7 +198,7 @@ void aria_encrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
     size_t iv_offset = 0;
-    int key_len, data_len;
+    int key_len, data_len, ret;
 
     memset( key_str, 0x00, sizeof( key_str ) );
     memset( iv_str, 0x00, sizeof( iv_str ) );
@@ -199,11 +211,15 @@ void aria_encrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     unhexify( iv_str, hex_iv_string );
     data_len = unhexify( src_str, hex_src_string );
 
-    mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 );
-    TEST_ASSERT( mbedtls_aria_crypt_cfb128( &ctx, MBEDTLS_ARIA_ENCRYPT,
+    ret = mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 );
+    if( ret == MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    ret = mbedtls_aria_crypt_cfb128( &ctx, MBEDTLS_ARIA_ENCRYPT,
                                             data_len, &iv_offset, iv_str,
-                                            src_str, output )
-                 == result );
+                                            src_str, output );
+    if( ret == MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret  == result );
     hexify( dst_str, output, data_len );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
@@ -225,7 +241,7 @@ void aria_decrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     unsigned char output[ARIA_MAX_DATASIZE];
     mbedtls_aria_context ctx;
     size_t iv_offset = 0;
-    int key_len, data_len;
+    int key_len, data_len, ret;
 
     memset( key_str, 0x00, sizeof( key_str ) );
     memset( iv_str, 0x00, sizeof( iv_str ) );
@@ -238,11 +254,15 @@ void aria_decrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     unhexify( iv_str, hex_iv_string );
     data_len = unhexify( src_str, hex_src_string );
 
-    mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 );
-    TEST_ASSERT( mbedtls_aria_crypt_cfb128( &ctx, MBEDTLS_ARIA_DECRYPT,
+    ret = mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 );
+    if( ret == MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    ret = mbedtls_aria_crypt_cfb128( &ctx, MBEDTLS_ARIA_DECRYPT,
                                             data_len, &iv_offset, iv_str,
-                                            src_str, output )
-                 == result );
+                                            src_str, output );
+    if( ret == MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == result );
     hexify( dst_str, output, data_len );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
@@ -265,7 +285,7 @@ void aria_encrypt_ctr( char *hex_key_string, char *hex_iv_string,
     unsigned char blk[MBEDTLS_ARIA_BLOCKSIZE];
     mbedtls_aria_context ctx;
     size_t iv_offset = 0;
-    int key_len, data_len;
+    int key_len, data_len, ret;
 
     memset( key_str, 0x00, sizeof( key_str ) );
     memset( iv_str, 0x00, sizeof( iv_str ) );
@@ -278,10 +298,14 @@ void aria_encrypt_ctr( char *hex_key_string, char *hex_iv_string,
     unhexify( iv_str, hex_iv_string );
     data_len = unhexify( src_str, hex_src_string );
 
-    mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 );
-    TEST_ASSERT( mbedtls_aria_crypt_ctr( &ctx, data_len, &iv_offset, iv_str,
-                                         blk, src_str, output )
-                 == result );
+    ret = mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 );
+    if( ret == MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    ret = mbedtls_aria_crypt_ctr( &ctx, data_len, &iv_offset, iv_str,
+                                         blk, src_str, output );
+    if( ret == MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret  == result );
     hexify( dst_str, output, data_len );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
@@ -304,7 +328,7 @@ void aria_decrypt_ctr( char *hex_key_string, char *hex_iv_string,
     unsigned char blk[MBEDTLS_ARIA_BLOCKSIZE];
     mbedtls_aria_context ctx;
     size_t iv_offset = 0;
-    int key_len, data_len;
+    int key_len, data_len, ret;
 
     memset( key_str, 0x00, sizeof( key_str ) );
     memset( iv_str, 0x00, sizeof( iv_str ) );
@@ -317,10 +341,12 @@ void aria_decrypt_ctr( char *hex_key_string, char *hex_iv_string,
     unhexify( iv_str, hex_iv_string );
     data_len = unhexify( src_str, hex_src_string );
 
-    mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 );
-    TEST_ASSERT( mbedtls_aria_crypt_ctr( &ctx, data_len, &iv_offset, iv_str,
-                                         blk, src_str, output )
-                 == result );
+    ret = mbedtls_aria_setkey_enc( &ctx, key_str, key_len * 8 );
+    if( ret == MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    ret = mbedtls_aria_crypt_ctr( &ctx, data_len, &iv_offset, iv_str,
+                                         blk, src_str, output );
+    TEST_ASSERT( ret == result );
     hexify( dst_str, output, data_len );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );

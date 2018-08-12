@@ -894,42 +894,63 @@ int mbedtls_des_self_test( int verbose )
         switch( i )
         {
         case 0:
-            mbedtls_des_setkey_dec( &ctx, des3_test_keys );
+            ret = mbedtls_des_setkey_dec( &ctx, des3_test_keys );
             break;
 
         case 1:
-            mbedtls_des_setkey_enc( &ctx, des3_test_keys );
+            ret = mbedtls_des_setkey_enc( &ctx, des3_test_keys );
             break;
 
         case 2:
-            mbedtls_des3_set2key_dec( &ctx3, des3_test_keys );
+            ret = mbedtls_des3_set2key_dec( &ctx3, des3_test_keys );
             break;
 
         case 3:
-            mbedtls_des3_set2key_enc( &ctx3, des3_test_keys );
+            ret = mbedtls_des3_set2key_enc( &ctx3, des3_test_keys );
             break;
 
         case 4:
-            mbedtls_des3_set3key_dec( &ctx3, des3_test_keys );
+            ret = mbedtls_des3_set3key_dec( &ctx3, des3_test_keys );
             break;
 
         case 5:
-            mbedtls_des3_set3key_enc( &ctx3, des3_test_keys );
+            ret = mbedtls_des3_set3key_enc( &ctx3, des3_test_keys );
             break;
 
         default:
             return( 1 );
         }
+        if( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        {
+            if( verbose != 0 )
+                mbedtls_printf( "skipped\n" );
+            continue;
+        }
+        else if ( ret != 0 )
+        {
+            if( verbose != 0 )
+                mbedtls_printf( "failed\n" );
+
+            ret = 1;
+            goto exit;
+        }
 
         for( j = 0; j < 10000; j++ )
         {
             if( u == 0 )
-                mbedtls_des_crypt_ecb( &ctx, buf, buf );
+                ret = mbedtls_des_crypt_ecb( &ctx, buf, buf );
             else
-                mbedtls_des3_crypt_ecb( &ctx3, buf, buf );
+                ret = mbedtls_des3_crypt_ecb( &ctx3, buf, buf );
+        }
+        if( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        {
+            if( verbose != 0 )
+                mbedtls_printf( "skipped\n" );
+            continue;
         }
 
-        if( ( v == MBEDTLS_DES_DECRYPT &&
+        if( ( ret != 0 ) ||
+            ( v == MBEDTLS_DES_DECRYPT &&
                 memcmp( buf, des3_test_ecb_dec[u], 8 ) != 0 ) ||
             ( v != MBEDTLS_DES_DECRYPT &&
                 memcmp( buf, des3_test_ecb_enc[u], 8 ) != 0 ) )
@@ -995,15 +1016,32 @@ int mbedtls_des_self_test( int verbose )
         default:
             return( 1 );
         }
+        if( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        {
+            ret = 0;
+            if( verbose != 0 )
+                mbedtls_printf( "skipped\n" );
+            continue;
+        }
+        else if ( ret != 0 )
+        {
+            if( verbose != 0 )
+                mbedtls_printf( "failed\n" );
+
+            ret = 1;
+            goto exit;
+        }
 
         if( v == MBEDTLS_DES_DECRYPT )
         {
             for( j = 0; j < 10000; j++ )
             {
                 if( u == 0 )
-                    mbedtls_des_crypt_cbc( &ctx, v, 8, iv, buf, buf );
+                    ret = mbedtls_des_crypt_cbc( &ctx, v, 8, iv, buf, buf );
                 else
-                    mbedtls_des3_crypt_cbc( &ctx3, v, 8, iv, buf, buf );
+                    ret = mbedtls_des3_crypt_cbc( &ctx3, v, 8, iv, buf, buf );
+                if ( ret != 0 )
+                    break;
             }
         }
         else
@@ -1013,9 +1051,11 @@ int mbedtls_des_self_test( int verbose )
                 unsigned char tmp[8];
 
                 if( u == 0 )
-                    mbedtls_des_crypt_cbc( &ctx, v, 8, iv, buf, buf );
+                    ret = mbedtls_des_crypt_cbc( &ctx, v, 8, iv, buf, buf );
                 else
-                    mbedtls_des3_crypt_cbc( &ctx3, v, 8, iv, buf, buf );
+                    ret = mbedtls_des3_crypt_cbc( &ctx3, v, 8, iv, buf, buf );
+                if( ret != 0 )
+                    break;
 
                 memcpy( tmp, prv, 8 );
                 memcpy( prv, buf, 8 );
@@ -1024,8 +1064,16 @@ int mbedtls_des_self_test( int verbose )
 
             memcpy( buf, prv, 8 );
         }
+        if( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        {
+            ret = 0;
+            if( verbose != 0 )
+                mbedtls_printf( "skipped\n" );
+            continue;
+        }
 
-        if( ( v == MBEDTLS_DES_DECRYPT &&
+        if( ( ret != 0 ) ||
+            ( v == MBEDTLS_DES_DECRYPT &&
                 memcmp( buf, des3_test_cbc_dec[u], 8 ) != 0 ) ||
             ( v != MBEDTLS_DES_DECRYPT &&
                 memcmp( buf, des3_test_cbc_enc[u], 8 ) != 0 ) )

@@ -43,6 +43,7 @@
 #define MBEDTLS_ERR_GCM_AUTH_FAILED                       -0x0012  /**< Authenticated decryption failed. */
 #define MBEDTLS_ERR_GCM_HW_ACCEL_FAILED                   -0x0013  /**< GCM hardware accelerator failed. */
 #define MBEDTLS_ERR_GCM_BAD_INPUT                         -0x0014  /**< Bad input parameters to function. */
+#define MBEDTLS_ERR_GCM_FEATURE_UNAVAILABLE               -0x0015  /**< Feature not available. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -100,6 +101,8 @@ void mbedtls_gcm_init( mbedtls_gcm_context *ctx );
  *
  * \return          \c 0 on success.
  * \return          A cipher-specific error code on failure.
+ * \return         #MBEDTLS_ERR_GCM_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the key size.
  */
 int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
                         mbedtls_cipher_id_t cipher,

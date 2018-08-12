@@ -90,6 +90,8 @@ extern "C" {
  * \return          \c 0 on success.
  * \return          An \c MBEDTLS_ERR_ECP_XXX
  *                  or \c MBEDTLS_MPI_XXX error code on failure.
+ * \return         #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the ECP group.
  */
 int mbedtls_ecdsa_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
                 const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
@@ -153,6 +155,8 @@ int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi 
  *                  is invalid.
  * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_MPI_XXX
  *                  error code on failure for any other reason.
+ * \return         #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the ECP group.
  */
 int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
                   const unsigned char *buf, size_t blen,
@@ -301,6 +305,8 @@ int mbedtls_ecdsa_read_signature( mbedtls_ecdsa_context *ctx,
  *
  * \return         \c 0 on success.
  * \return         An \c MBEDTLS_ERR_ECP_XXX code on failure.
+ * \return         #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the
+ *                 alternative implementation doesn't support the ECP group.
  */
 int mbedtls_ecdsa_genkey( mbedtls_ecdsa_context *ctx, mbedtls_ecp_group_id gid,
                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );

@@ -16,7 +16,7 @@ void camellia_encrypt_ecb( char *hex_key_string, char *hex_src_string,
     unsigned char dst_str[100];
     unsigned char output[100];
     mbedtls_camellia_context ctx;
-    int key_len;
+    int key_len, ret;
 
     memset(key_str, 0x00, 100);
     memset(src_str, 0x00, 100);
@@ -27,7 +27,10 @@ void camellia_encrypt_ecb( char *hex_key_string, char *hex_src_string,
     key_len = unhexify( key_str, hex_key_string );
     unhexify( src_str, hex_src_string );
 
-    TEST_ASSERT( mbedtls_camellia_setkey_enc( &ctx, key_str, key_len * 8 ) == setkey_result );
+    ret = mbedtls_camellia_setkey_enc( &ctx, key_str, key_len * 8 );
+    if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == setkey_result );
     if( setkey_result == 0 )
     {
         TEST_ASSERT( mbedtls_camellia_crypt_ecb( &ctx, MBEDTLS_CAMELLIA_ENCRYPT, src_str, output ) == 0 );
@@ -50,7 +53,7 @@ void camellia_decrypt_ecb( char *hex_key_string, char *hex_src_string,
     unsigned char dst_str[100];
     unsigned char output[100];
     mbedtls_camellia_context ctx;
-    int key_len;
+    int key_len, ret;
 
     memset(key_str, 0x00, 100);
     memset(src_str, 0x00, 100);
@@ -61,7 +64,10 @@ void camellia_decrypt_ecb( char *hex_key_string, char *hex_src_string,
     key_len = unhexify( key_str, hex_key_string );
     unhexify( src_str, hex_src_string );
 
-    TEST_ASSERT( mbedtls_camellia_setkey_dec( &ctx, key_str, key_len * 8 ) == setkey_result );
+    ret = mbedtls_camellia_setkey_dec( &ctx, key_str, key_len * 8 );
+    if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == setkey_result );
     if( setkey_result == 0 )
     {
         TEST_ASSERT( mbedtls_camellia_crypt_ecb( &ctx, MBEDTLS_CAMELLIA_DECRYPT, src_str, output ) == 0 );
@@ -86,7 +92,7 @@ void camellia_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
     unsigned char dst_str[100];
     unsigned char output[100];
     mbedtls_camellia_context ctx;
-    int key_len, data_len;
+    int key_len, data_len, ret;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -99,8 +105,13 @@ void camellia_encrypt_cbc( char *hex_key_string, char *hex_iv_string,
     unhexify( iv_str, hex_iv_string );
     data_len = unhexify( src_str, hex_src_string );
 
-    mbedtls_camellia_setkey_enc( &ctx, key_str, key_len * 8 );
-    TEST_ASSERT( mbedtls_camellia_crypt_cbc( &ctx, MBEDTLS_CAMELLIA_ENCRYPT, data_len, iv_str, src_str, output) == cbc_result );
+    ret = mbedtls_camellia_setkey_enc( &ctx, key_str, key_len * 8 );
+    if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    ret = mbedtls_camellia_crypt_cbc( &ctx, MBEDTLS_CAMELLIA_ENCRYPT, data_len, iv_str, src_str, output);
+    if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == cbc_result );
     if( cbc_result == 0 )
     {
         hexify( dst_str, output, data_len );
@@ -124,7 +135,7 @@ void camellia_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
     unsigned char dst_str[100];
     unsigned char output[100];
     mbedtls_camellia_context ctx;
-    int key_len, data_len;
+    int key_len, data_len, ret;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -137,8 +148,13 @@ void camellia_decrypt_cbc( char *hex_key_string, char *hex_iv_string,
     unhexify( iv_str, hex_iv_string );
     data_len = unhexify( src_str, hex_src_string );
 
-    mbedtls_camellia_setkey_dec( &ctx, key_str, key_len * 8 );
-    TEST_ASSERT( mbedtls_camellia_crypt_cbc( &ctx, MBEDTLS_CAMELLIA_DECRYPT, data_len, iv_str, src_str, output ) == cbc_result );
+    ret = mbedtls_camellia_setkey_dec( &ctx, key_str, key_len * 8 );
+    if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    ret = mbedtls_camellia_crypt_cbc( &ctx, MBEDTLS_CAMELLIA_DECRYPT, data_len, iv_str, src_str, output );
+    if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == cbc_result );
     if( cbc_result == 0 )
     {
         hexify( dst_str, output, data_len );
@@ -162,7 +178,7 @@ void camellia_encrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     unsigned char output[100];
     mbedtls_camellia_context ctx;
     size_t iv_offset = 0;
-    int key_len;
+    int key_len, ret;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -175,8 +191,13 @@ void camellia_encrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     unhexify( iv_str, hex_iv_string );
     unhexify( src_str, hex_src_string );
 
-    mbedtls_camellia_setkey_enc( &ctx, key_str, key_len * 8 );
-    TEST_ASSERT( mbedtls_camellia_crypt_cfb128( &ctx, MBEDTLS_CAMELLIA_ENCRYPT, 16, &iv_offset, iv_str, src_str, output ) == 0 );
+    ret = mbedtls_camellia_setkey_enc( &ctx, key_str, key_len * 8 );
+    if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    ret = mbedtls_camellia_crypt_cfb128( &ctx, MBEDTLS_CAMELLIA_ENCRYPT, 16, &iv_offset, iv_str, src_str, output );
+    if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
     hexify( dst_str, output, 16 );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );
@@ -197,7 +218,7 @@ void camellia_decrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     unsigned char output[100];
     mbedtls_camellia_context ctx;
     size_t iv_offset = 0;
-    int key_len;
+    int key_len, ret;
 
     memset(key_str, 0x00, 100);
     memset(iv_str, 0x00, 100);
@@ -210,8 +231,13 @@ void camellia_decrypt_cfb128( char *hex_key_string, char *hex_iv_string,
     unhexify( iv_str, hex_iv_string );
     unhexify( src_str, hex_src_string );
 
-    mbedtls_camellia_setkey_enc( &ctx, key_str, key_len * 8 );
-    TEST_ASSERT( mbedtls_camellia_crypt_cfb128( &ctx, MBEDTLS_CAMELLIA_DECRYPT, 16, &iv_offset, iv_str, src_str, output ) == 0 );
+    ret = mbedtls_camellia_setkey_enc( &ctx, key_str, key_len * 8 );
+    if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    ret = mbedtls_camellia_crypt_cfb128( &ctx, MBEDTLS_CAMELLIA_DECRYPT, 16, &iv_offset, iv_str, src_str, output );
+    if( ret == MBEDTLS_ERR_CAMELLIA_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
     hexify( dst_str, output, 16 );
 
     TEST_ASSERT( strcasecmp( (char *) dst_str, hex_dst_string ) == 0 );

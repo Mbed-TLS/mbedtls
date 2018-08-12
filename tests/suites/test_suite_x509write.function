@@ -4,6 +4,7 @@
 #include "mbedtls/pem.h"
 #include "mbedtls/oid.h"
 #include "mbedtls/rsa.h"
+#include "mbedtls/des.h"
 
 #if defined(MBEDTLS_RSA_C)
 int mbedtls_rsa_decrypt_func( void *ctx, int mode, size_t *olen,
@@ -124,11 +125,17 @@ void x509_crt_check( char *subject_key_file, char *subject_pwd,
 
     mbedtls_x509write_crt_init( &crt );
 
-    TEST_ASSERT( mbedtls_pk_parse_keyfile( &subject_key, subject_key_file,
-                                         subject_pwd ) == 0 );
+    ret =  mbedtls_pk_parse_keyfile( &subject_key, subject_key_file,
+                                         subject_pwd );
+    if( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
 
-    TEST_ASSERT( mbedtls_pk_parse_keyfile( &issuer_key, issuer_key_file,
-                                         issuer_pwd ) == 0 );
+    ret = mbedtls_pk_parse_keyfile( &issuer_key, issuer_key_file,
+                                         issuer_pwd );
+    if( ret == MBEDTLS_ERR_DES_FEATURE_UNAVAILABLE )
+        goto exit;
+    TEST_ASSERT( ret == 0 );
 
 #if defined(MBEDTLS_RSA_C)
     /* For RSA PK contexts, create a copy as an alternative RSA context. */

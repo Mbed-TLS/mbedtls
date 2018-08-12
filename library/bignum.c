@@ -984,7 +984,7 @@ int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
 
     mbedtls_mpi_init( &TB );
 #if defined(__GNUC__)
-    SET_STACK_MPI(TB, B)
+    MBEDTLS_SET_STACK_MPI(TB, B)
 #endif
 
     if( X == B )
@@ -1195,8 +1195,8 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
     mbedtls_mpi_init( &TA ); mbedtls_mpi_init( &TB );
 
 #if defined(__GNUC__)
-    SET_STACK_MPI(TB, B)
-    SET_STACK_MPI(TA, A)
+    MBEDTLS_SET_STACK_MPI(TB, B)
+    MBEDTLS_SET_STACK_MPI(TA, A)
 #endif
 
     if( X == A ) { MBEDTLS_MPI_CHK( mbedtls_mpi_copy( &TA, A ) ); A = &TA; }

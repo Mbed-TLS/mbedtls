@@ -2005,7 +2005,7 @@ cleanup:
 
 size_t mbedtls_used_limbs(const mbedtls_mpi * X)
 {
-	int i;
+	size_t i;
 	for( i = X->n - 1; i > 0; i-- )
 	{
 		if( X->p[i] != 0 )

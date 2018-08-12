@@ -2905,6 +2905,9 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
             const size_t frag_len = rem_len > max_hs_fragment_len
                                   ? max_hs_fragment_len : rem_len;
 
+            if( frag_off == 0 && frag_len != hs_len )
+                MBEDTLS_SSL_DEBUG_MSG( 2, ( "fragmenting handshake message" ) );
+
             /* Messages are stored with handshake headers as if not fragmented,
              * copy beginning of headers then fill fragmentation fields.
              * Handshake headers: type(1) len(3) seq(2) f_off(3) f_len(3) */

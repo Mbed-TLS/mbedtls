@@ -1009,7 +1009,7 @@ int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
 
 cleanup:
 
-    mbedtls_mpi_free( &TB );
+    //mbedtls_mpi_free( &TB );
 
     return( ret );
 }
@@ -1214,7 +1214,7 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi
 
 cleanup:
 
-    mbedtls_mpi_free( &TB ); mbedtls_mpi_free( &TA );
+    //mbedtls_mpi_free( &TB ); mbedtls_mpi_free( &TA );
 
     return( ret );
 }

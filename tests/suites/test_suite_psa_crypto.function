@@ -389,37 +389,27 @@ exit:
     return( 0 );
 }
 
-typedef struct
-{
-    unsigned char length;
-    unsigned char string[];
-} small_byte_string_t;
-#define DECLARE_SMALL_STRING_OF_LITERAL( name, literal )                \
-    static const small_byte_string_t name =                             \
-    { sizeof( literal ) - 1, literal }
-
-#if defined(MBEDTLS_RSA_C)
-DECLARE_SMALL_STRING_OF_LITERAL( key_type_oid_rsa,
-                                 MBEDTLS_OID_PKCS1_RSA );
-#endif
-#if defined(MBEDTLS_ECP_C)
-DECLARE_SMALL_STRING_OF_LITERAL( key_type_oid_ecc,
-                                 MBEDTLS_OID_EC_ALG_UNRESTRICTED );
-#endif
-
 static int is_oid_of_key_type( psa_key_type_t type,
                                const uint8_t *oid, size_t oid_length )
 {
-    const small_byte_string_t *expected_oid =
+    const uint8_t *expected_oid = NULL;
+    size_t expected_oid_length = 0;
 #if defined(MBEDTLS_RSA_C)
-        PSA_KEY_TYPE_IS_RSA( type ) ? &key_type_oid_rsa :
+    if( PSA_KEY_TYPE_IS_RSA( type ) )
+    {
+        expected_oid = (uint8_t *) MBEDTLS_OID_PKCS1_RSA;
+        expected_oid_length = sizeof( MBEDTLS_OID_PKCS1_RSA ) - 1;
+    }
+    else
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_ECP_C)
-        PSA_KEY_TYPE_IS_ECC( type ) ? &key_type_oid_ecc :
+    if( PSA_KEY_TYPE_IS_ECC( type ) )
+    {
+        expected_oid = (uint8_t *) MBEDTLS_OID_EC_ALG_UNRESTRICTED;
+        expected_oid_length = sizeof( MBEDTLS_OID_EC_ALG_UNRESTRICTED ) - 1;
+    }
+    else
 #endif /* MBEDTLS_ECP_C */
-        NULL;
-
-    if( expected_oid == NULL )
     {
         char message[40];
         mbedtls_snprintf( message, sizeof( message ),
@@ -429,8 +419,8 @@ static int is_oid_of_key_type( psa_key_type_t type,
         return( 0 );
     }
 
-    TEST_ASSERT( oid_length == expected_oid->length );
-    TEST_ASSERT( memcmp( oid, expected_oid->string, oid_length ) == 0 );
+    TEST_ASSERT( oid_length == expected_oid_length );
+    TEST_ASSERT( memcmp( oid, expected_oid, oid_length ) == 0 );
     return( 1 );
 
 exit:

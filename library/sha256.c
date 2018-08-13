@@ -65,13 +65,13 @@ do {                                                    \
 #endif
 
 #ifndef PUT_UINT32_BE
-#define PUT_UINT32_BE(n,b,i)                            \
-do {                                                    \
-    (b)[(i)    ] = (unsigned char) ( (n) >> 24 );       \
-    (b)[(i) + 1] = (unsigned char) ( (n) >> 16 );       \
-    (b)[(i) + 2] = (unsigned char) ( (n) >>  8 );       \
-    (b)[(i) + 3] = (unsigned char) ( (n)       );       \
-} while( 0 )
+static void PUT_UINT32_BE(uint32_t n, unsigned char* b, uint32_t i)
+{
+    b[(i)    ] = (unsigned char) ( (n) >> 24 );
+    b[(i) + 1] = (unsigned char) ( (n) >> 16 );
+    b[(i) + 2] = (unsigned char) ( (n) >>  8 );
+    b[(i) + 3] = (unsigned char) ( (n)       );
+}
 #endif
 
 void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
@@ -178,17 +178,20 @@ static const uint32_t K[] =
            S0(W[t - 15]) + W[t - 16]            \
 )
 
-#define P(a,b,c,d,e,f,g,h,x,K)                  \
-{                                               \
-    temp1 = h + S3(e) + F1(e,f,g) + K + x;      \
-    temp2 = S2(a) + F0(a,b,c);                  \
-    d += temp1; h = temp1 + temp2;              \
+static void sha256_P_process(uint32_t a,uint32_t b, uint32_t c, uint32_t *d,
+        uint32_t e, uint32_t f, uint32_t g, uint32_t *h, uint32_t x, uint32_t K)
+{
+    uint32_t temp1, temp2;
+    temp1 = *h + S3(e) + F1(e,f,g) + K + x;
+    temp2 = S2(a) + F0(a,b,c);
+    *d += temp1;
+    *h = temp1 + temp2;
 }
 
 int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
                                 const unsigned char data[64] )
 {
-    uint32_t temp1, temp2, W[64];
+    uint32_t W[64];
     uint32_t A[8];
     unsigned int i;
 
@@ -196,17 +199,20 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
         A[i] = ctx->state[i];
 
 #if defined(MBEDTLS_SHA256_SMALLER)
-    for( i = 0; i < 64; i++ )
     {
-        if( i < 16 )
-            GET_UINT32_BE( W[i], data, 4 * i );
-        else
-            R( i );
+    uint32_t temp1;
+        for( i = 0; i < 64; i++ )
+        {
+            if( i < 16 )
+                GET_UINT32_BE( W[i], data, 4 * i );
+            else
+                R( i );
 
-        P( A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], W[i], K[i] );
+            sha256_P_process( A[0], A[1], A[2], &A[3], A[4], A[5], A[6], &A[7], W[i], K[i] );
 
-        temp1 = A[7]; A[7] = A[6]; A[6] = A[5]; A[5] = A[4]; A[4] = A[3];
-        A[3] = A[2]; A[2] = A[1]; A[1] = A[0]; A[0] = temp1;
+            temp1 = A[7]; A[7] = A[6]; A[6] = A[5]; A[5] = A[4]; A[4] = A[3];
+            A[3] = A[2]; A[2] = A[1]; A[1] = A[0]; A[0] = temp1;
+        }
     }
 #else /* MBEDTLS_SHA256_SMALLER */
     for( i = 0; i < 16; i++ )
@@ -214,26 +220,26 @@ int mbedtls_internal_sha256_process( mbedtls_sha256_context *ctx,
 
     for( i = 0; i < 16; i += 8 )
     {
-        P( A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], W[i+0], K[i+0] );
-        P( A[7], A[0], A[1], A[2], A[3], A[4], A[5], A[6], W[i+1], K[i+1] );
-        P( A[6], A[7], A[0], A[1], A[2], A[3], A[4], A[5], W[i+2], K[i+2] );
-        P( A[5], A[6], A[7], A[0], A[1], A[2], A[3], A[4], W[i+3], K[i+3] );
-        P( A[4], A[5], A[6], A[7], A[0], A[1], A[2], A[3], W[i+4], K[i+4] );
-        P( A[3], A[4], A[5], A[6], A[7], A[0], A[1], A[2], W[i+5], K[i+5] );
-        P( A[2], A[3], A[4], A[5], A[6], A[7], A[0], A[1], W[i+6], K[i+6] );
-        P( A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[0], W[i+7], K[i+7] );
+        sha256_P_process( A[0], A[1], A[2], &A[3], A[4], A[5], A[6], &A[7], W[i+0], K[i+0] );
+        sha256_P_process( A[7], A[0], A[1], &A[2], A[3], A[4], A[5], &A[6], W[i+1], K[i+1] );
+        sha256_P_process( A[6], A[7], A[0], &A[1], A[2], A[3], A[4], &A[5], W[i+2], K[i+2] );
+        sha256_P_process( A[5], A[6], A[7], &A[0], A[1], A[2], A[3], &A[4], W[i+3], K[i+3] );
+        sha256_P_process( A[4], A[5], A[6], &A[7], A[0], A[1], A[2], &A[3], W[i+4], K[i+4] );
+        sha256_P_process( A[3], A[4], A[5], &A[6], A[7], A[0], A[1], &A[2], W[i+5], K[i+5] );
+        sha256_P_process( A[2], A[3], A[4], &A[5], A[6], A[7], A[0], &A[1], W[i+6], K[i+6] );
+        sha256_P_process( A[1], A[2], A[3], &A[4], A[5], A[6], A[7], &A[0], W[i+7], K[i+7] );
     }
 
     for( i = 16; i < 64; i += 8 )
     {
-        P( A[0], A[1], A[2], A[3], A[4], A[5], A[6], A[7], R(i+0), K[i+0] );
-        P( A[7], A[0], A[1], A[2], A[3], A[4], A[5], A[6], R(i+1), K[i+1] );
-        P( A[6], A[7], A[0], A[1], A[2], A[3], A[4], A[5], R(i+2), K[i+2] );
-        P( A[5], A[6], A[7], A[0], A[1], A[2], A[3], A[4], R(i+3), K[i+3] );
-        P( A[4], A[5], A[6], A[7], A[0], A[1], A[2], A[3], R(i+4), K[i+4] );
-        P( A[3], A[4], A[5], A[6], A[7], A[0], A[1], A[2], R(i+5), K[i+5] );
-        P( A[2], A[3], A[4], A[5], A[6], A[7], A[0], A[1], R(i+6), K[i+6] );
-        P( A[1], A[2], A[3], A[4], A[5], A[6], A[7], A[0], R(i+7), K[i+7] );
+        sha256_P_process( A[0], A[1], A[2], &A[3], A[4], A[5], A[6], &A[7], R(i+0), K[i+0] );
+        sha256_P_process( A[7], A[0], A[1], &A[2], A[3], A[4], A[5], &A[6], R(i+1), K[i+1] );
+        sha256_P_process( A[6], A[7], A[0], &A[1], A[2], A[3], A[4], &A[5], R(i+2), K[i+2] );
+        sha256_P_process( A[5], A[6], A[7], &A[0], A[1], A[2], A[3], &A[4], R(i+3), K[i+3] );
+        sha256_P_process( A[4], A[5], A[6], &A[7], A[0], A[1], A[2], &A[3], R(i+4), K[i+4] );
+        sha256_P_process( A[3], A[4], A[5], &A[6], A[7], A[0], A[1], &A[2], R(i+5), K[i+5] );
+        sha256_P_process( A[2], A[3], A[4], &A[5], A[6], A[7], A[0], &A[1], R(i+6), K[i+6] );
+        sha256_P_process( A[1], A[2], A[3], &A[4], A[5], A[6], A[7], &A[0], R(i+7), K[i+7] );
     }
 #endif /* MBEDTLS_SHA256_SMALLER */
 

@@ -75,18 +75,36 @@
 #endif /* GET_UINT64_BE */
 
 #ifndef PUT_UINT64_BE
-#define PUT_UINT64_BE(n,b,i)                            \
-{                                                       \
-    (b)[(i)    ] = (unsigned char) ( (n) >> 56 );       \
-    (b)[(i) + 1] = (unsigned char) ( (n) >> 48 );       \
-    (b)[(i) + 2] = (unsigned char) ( (n) >> 40 );       \
-    (b)[(i) + 3] = (unsigned char) ( (n) >> 32 );       \
-    (b)[(i) + 4] = (unsigned char) ( (n) >> 24 );       \
-    (b)[(i) + 5] = (unsigned char) ( (n) >> 16 );       \
-    (b)[(i) + 6] = (unsigned char) ( (n) >>  8 );       \
-    (b)[(i) + 7] = (unsigned char) ( (n)       );       \
+static void PUT_UINT64_BE(uint64_t n, unsigned char * b, uint8_t i )
+{
+    (b)[(i)    ] = (unsigned char) ( (n) >> 56 );
+    (b)[(i) + 1] = (unsigned char) ( (n) >> 48 );
+    (b)[(i) + 2] = (unsigned char) ( (n) >> 40 );
+    (b)[(i) + 3] = (unsigned char) ( (n) >> 32 );
+    (b)[(i) + 4] = (unsigned char) ( (n) >> 24 );
+    (b)[(i) + 5] = (unsigned char) ( (n) >> 16 );
+    (b)[(i) + 6] = (unsigned char) ( (n) >>  8 );
+    (b)[(i) + 7] = (unsigned char) ( (n)       );
 }
 #endif /* PUT_UINT64_BE */
+
+#define SHR(x,n) (x >> n)
+#define ROTR(x,n) (SHR(x,n) | (x << (64 - n)))
+#define S0(x) (ROTR(x, 1) ^ ROTR(x, 8) ^  SHR(x, 7))
+#define S1(x) (ROTR(x,19) ^ ROTR(x,61) ^  SHR(x, 6))
+#define S2(x) (ROTR(x,28) ^ ROTR(x,34) ^ ROTR(x,39))
+#define S3(x) (ROTR(x,14) ^ ROTR(x,18) ^ ROTR(x,41))
+#define F0(x,y,z) ((x & y) | (z & (x | y)))
+#define F1(x,y,z) (z ^ (x & (y ^ z)))
+static void sha512_process(uint64_t a,uint64_t b, uint64_t c, uint64_t *d,
+        uint64_t e, uint64_t f, uint64_t g, uint64_t *h, uint64_t x, uint64_t K)
+{
+    uint64_t temp1, temp2;
+    temp1 = *h + S3(e) + F1(e,f,g) + K + x;
+    temp2 = S2(a) + F0(a,b,c);
+    *d += temp1;
+    *h = temp1 + temp2;
+}
 
 void mbedtls_sha512_init( mbedtls_sha512_context *ctx )
 {
@@ -206,27 +224,8 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
                                      const unsigned char data[128] )
 {
     int i;
-    uint64_t temp1, temp2, W[80];
+    uint64_t W[80];
     uint64_t A, B, C, D, E, F, G, H;
-
-#define  SHR(x,n) (x >> n)
-#define ROTR(x,n) (SHR(x,n) | (x << (64 - n)))
-
-#define S0(x) (ROTR(x, 1) ^ ROTR(x, 8) ^  SHR(x, 7))
-#define S1(x) (ROTR(x,19) ^ ROTR(x,61) ^  SHR(x, 6))
-
-#define S2(x) (ROTR(x,28) ^ ROTR(x,34) ^ ROTR(x,39))
-#define S3(x) (ROTR(x,14) ^ ROTR(x,18) ^ ROTR(x,41))
-
-#define F0(x,y,z) ((x & y) | (z & (x | y)))
-#define F1(x,y,z) (z ^ (x & (y ^ z)))
-
-#define P(a,b,c,d,e,f,g,h,x,K)                  \
-{                                               \
-    temp1 = h + S3(e) + F1(e,f,g) + K + x;      \
-    temp2 = S2(a) + F0(a,b,c);                  \
-    d += temp1; h = temp1 + temp2;              \
-}
 
     for( i = 0; i < 16; i++ )
     {
@@ -251,14 +250,14 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
 
     do
     {
-        P( A, B, C, D, E, F, G, H, W[i], K[i] ); i++;
-        P( H, A, B, C, D, E, F, G, W[i], K[i] ); i++;
-        P( G, H, A, B, C, D, E, F, W[i], K[i] ); i++;
-        P( F, G, H, A, B, C, D, E, W[i], K[i] ); i++;
-        P( E, F, G, H, A, B, C, D, W[i], K[i] ); i++;
-        P( D, E, F, G, H, A, B, C, W[i], K[i] ); i++;
-        P( C, D, E, F, G, H, A, B, W[i], K[i] ); i++;
-        P( B, C, D, E, F, G, H, A, W[i], K[i] ); i++;
+         sha512_process( A, B, C, &D, E, F, G, &H, W[i], K[i] ); i++;
+         sha512_process( H, A, B, &C, D, E, F, &G, W[i], K[i] ); i++;
+         sha512_process( G, H, A, &B, C, D, E, &F, W[i], K[i] ); i++;
+         sha512_process( F, G, H, &A, B, C, D, &E, W[i], K[i] ); i++;
+         sha512_process( E, F, G, &H, A, B, C, &D, W[i], K[i] ); i++;
+         sha512_process( D, E, F, &G, H, A, B, &C, W[i], K[i] ); i++;
+         sha512_process( C, D, E, &F, G, H, A, &B, W[i], K[i] ); i++;
+         sha512_process( B, C, D, &E, F, G, H, &A, W[i], K[i] ); i++;
     }
     while( i < 80 );
 

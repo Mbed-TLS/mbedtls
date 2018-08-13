@@ -1204,7 +1204,7 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
  *   ```
  * - For DSA private keys (#PSA_KEY_TYPE_DSA_KEYPAIR), the format
  *   is the non-encrypted DER encoding of the representation used by
- *   OpenSSL and OpenSSH, which the following ASN.1 structure:
+ *   OpenSSL and OpenSSH, whose structure is described in ASN.1 as follows:
  *   ```
  *   DSAPrivateKey ::= SEQUENCE {
  *       version             INTEGER,  -- must be 0
@@ -1316,7 +1316,7 @@ psa_status_t psa_export_key(psa_key_slot_t key,
  *   representation defined by SEC1 &sect;2.3.3.
  *   The OID is `id-ecPublicKey`,
  *   and the parameters must be given as a `namedCurve` OID as specified in
- *   RFC 5480 &sect;2.1.1.1.
+ *   RFC 5480 &sect;2.1.1.1 or other applicable standards.
  *   ```
  *   ansi-X9-62 OBJECT IDENTIFIER ::=
  *                           { iso(1) member-body(2) us(840) 10045 }

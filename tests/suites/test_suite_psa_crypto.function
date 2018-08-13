@@ -589,6 +589,7 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
         TEST_ASSERT( asn1_get_implicit_tag( &p, end, &len, 0,
                                             MBEDTLS_ASN1_OID ) == 0 );
         p += len;
+        /* publicKey: ECPoint in uncompressed representation (as below) */
         TEST_ASSERT( asn1_get_implicit_tag( &p, end, &len, 1,
                                             MBEDTLS_ASN1_BIT_STRING ) == 0 );
         TEST_ASSERT( p + len == end );
@@ -649,7 +650,7 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
         if( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( type ) )
         {
             /*   ECPoint ::= ...
-             *      -- first 8 bits: 0x04;
+             *      -- first 8 bits: 0x04 (uncompressed representation);
              *      -- then x_P as an n-bit string, big endian;
              *      -- then y_P as a n-bit string, big endian,
              *      -- where n is the order of the curve.

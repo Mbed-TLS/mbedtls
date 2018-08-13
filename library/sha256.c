@@ -179,10 +179,10 @@ static const uint32_t K[] =
 )
 
 static void sha256_P_process(uint32_t a,uint32_t b, uint32_t c, uint32_t *d,
-        uint32_t e, uint32_t f, uint32_t g, uint32_t *h, uint32_t x, uint32_t K)
+        uint32_t e, uint32_t f, uint32_t g, uint32_t *h, uint32_t x, uint32_t _K)
 {
     uint32_t temp1, temp2;
-    temp1 = *h + S3(e) + F1(e,f,g) + K + x;
+    temp1 = *h + S3(e) + F1(e,f,g) + _K + x;
     temp2 = S2(a) + F0(a,b,c);
     *d += temp1;
     *h = temp1 + temp2;

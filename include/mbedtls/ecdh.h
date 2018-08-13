@@ -49,11 +49,38 @@ typedef enum
     MBEDTLS_ECDH_THEIRS, /**< The key of the peer. */
 } mbedtls_ecdh_side;
 
+#if !defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+/**
+ * Defines the ECDH implementation used.
+ */
+typedef enum
+{
+    MBEDTLS_ECDH_VARIANT_NONE = 0, /*!< Implementation not defined. */
+    MBEDTLS_ECDH_VARIANT_MBED,     /*!< The default Mbed TLS implementation */
+} mbedtls_ecdh_variant;
+
+/**
+ * The context used by the default ECDH implementation.
+ */
+typedef struct
+{
+    mbedtls_ecp_group grp;   /*!< The elliptic curve used. */
+    mbedtls_mpi d;           /*!< The private key. */
+    mbedtls_ecp_point Q;     /*!< The public key. */
+    mbedtls_ecp_point Qp;    /*!< The value of the public key of the peer. */
+    mbedtls_mpi z;           /*!< The shared secret. */
+    mbedtls_ecp_point Vi;    /*!< The blinding value. */
+    mbedtls_ecp_point Vf;    /*!< The unblinding value. */
+    mbedtls_mpi _d;          /*!< The previous \p d. */
+} mbedtls_ecdh_context_mbed;
+#endif
+
 /**
  * \brief           The ECDH context structure.
  */
 typedef struct mbedtls_ecdh_context
 {
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     mbedtls_ecp_group grp;   /*!< The elliptic curve used. */
     mbedtls_mpi d;           /*!< The private key. */
     mbedtls_ecp_point Q;     /*!< The public key. */
@@ -63,6 +90,15 @@ typedef struct mbedtls_ecdh_context
     mbedtls_ecp_point Vi;    /*!< The blinding value. */
     mbedtls_ecp_point Vf;    /*!< The unblinding value. */
     mbedtls_mpi _d;          /*!< The previous \p d. */
+#else
+    int point_format;        /*!< The format of point export in TLS messages. */
+    mbedtls_ecp_group_id grp;/*!< The elliptic curve used. */
+    mbedtls_ecdh_variant var;/*!< The ECDH implementation/structure used. */
+    union
+    {
+        mbedtls_ecdh_context_mbed   *mbed_ecdh;
+    } ctx;                   /*!< Implementation specific context. */
+#endif
 }
 mbedtls_ecdh_context;
 

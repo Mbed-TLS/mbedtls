@@ -854,6 +854,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "SERIALIZE - Communication error while receiving data to unserialize" );
     if( use_ret == -(MBEDTLS_ERR_SERIALIZE_ALLOC_FAILED) )
         mbedtls_snprintf( buf, buflen, "SERIALIZE - Out of memory to execute the function" );
+    if( use_ret == -(MBEDTLS_ERR_SERIALIZE_RECV_TIMEOUT) )
+        mbedtls_snprintf( buf, buflen, "SERIALIZE - Receive timeout (raised on host)" );
 #endif /* MBEDTLS_SERIALIZE_C */
 
 #if defined(MBEDTLS_SHA1_C)

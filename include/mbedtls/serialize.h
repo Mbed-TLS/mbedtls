@@ -153,6 +153,7 @@ extern "C" {
 #define MBEDTLS_ERR_SERIALIZE_SEND                  -0x0074 /**< Communication error while sending serialized data */
 #define MBEDTLS_ERR_SERIALIZE_RECEIVE               -0x0075 /**< Communication error while receiving data to unserialize */
 #define MBEDTLS_ERR_SERIALIZE_ALLOC_FAILED          -0x0076 /**< Out of memory to execute the function */
+#define MBEDTLS_ERR_SERIALIZE_RECV_TIMEOUT          -0x0077 /**< Receive timeout (raised on host) */
 
 /* Note that the serialization functions must be called in a specific sequence:
  *

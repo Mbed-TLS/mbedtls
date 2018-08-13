@@ -50,6 +50,12 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+/* Host-target inactivity timeout in seconds. */
+#define COMM_INACTIVITY_TIMEOUT 10
 
 #define USAGE \
     "\n usage: ./frontend <options>\n"                                      \
@@ -104,14 +110,16 @@ static int exitcode = 0;
 /** State of the offloading frontend. */
 typedef enum {
     /** The communication channel is broken */
-    MBEDTLS_SERIALIZE_STATUS_DEAD = 0,
+    MBEDTLS_SERIALIZE_STATUS_DEAD,
     /** All conditions nominal */
-    MBEDTLS_SERIALIZE_STATUS_OK = 1,
+    MBEDTLS_SERIALIZE_STATUS_OK,
     /** Out of memory for a function's parameters.
      * Normal operation can resume after the next stack flush. */
-    MBEDTLS_SERIALIZE_STATUS_OUT_OF_MEMORY = 2,
+    MBEDTLS_SERIALIZE_STATUS_OUT_OF_MEMORY,
     /** An exit command has been received */
-    MBEDTLS_SERIALIZE_STATUS_EXITED = 3,
+    MBEDTLS_SERIALIZE_STATUS_EXITED,
+    /** Inactivity on the communication channel */
+    MBEDTLS_SERIALIZE_STATUS_INACTIVE,
 } mbedtls_serialize_status_t;
 
 /** An input or output to a serialized function.
@@ -213,40 +221,92 @@ static int mbedtls_serialize_write( mbedtls_serialize_context_t *ctx,
     return( 0 );
 }
 
+static int wait_and_read_data( int fd, uint8_t * buffer, size_t len,
+                               uint32_t timeout_secs )
+{
+    int ret;
+    fd_set rfds;
+    struct timeval tv = { timeout_secs, 0 };
+
+    FD_ZERO( &rfds );
+    FD_SET( fd, &rfds );
+
+    ret = select( fd + 1, &rfds, NULL, NULL, &tv );
+    if( ret == -1 )
+    {
+        perror( "select()");
+        ret = MBEDTLS_ERR_SERIALIZE_RECEIVE;
+    }
+    else if ( ret && FD_ISSET( fd, &rfds ) )
+    {
+        ret = read( fd, buffer, len );
+        if( ret < 1 )
+        {
+            perror( "read()" );
+            ret = MBEDTLS_ERR_SERIALIZE_RECEIVE;
+        }
+    }
+    else
+    {
+        printf("No data within %d seconds.\r\n", timeout_secs );
+        ret = MBEDTLS_ERR_SERIALIZE_RECV_TIMEOUT;
+    }
+    return( ret );
+}
+
 /** Read exactly length bytes from the serialization channel.
  * Any errors are fatal. */
 static int mbedtls_serialize_read( mbedtls_serialize_context_t *ctx,
                                    uint8_t *buffer, size_t length )
 {
-    ssize_t n, remaining = length, token_count = 0;
+    ssize_t i, n, remaining = length, token_count = 0;
+
     while( token_count < 2 )
     {
-        n = read( ctx->read_fd, buffer, 1 );
+        n = wait_and_read_data( ctx->read_fd, buffer, length,
+                                COMM_INACTIVITY_TIMEOUT );
         if( n < 0 )
         {
-            perror( "Serialization read error" );
-            return( MBEDTLS_ERR_SERIALIZE_RECEIVE );
+            if( n == MBEDTLS_ERR_SERIALIZE_RECV_TIMEOUT )
+                ctx->status = MBEDTLS_SERIALIZE_STATUS_INACTIVE;
+            else
+                ctx->status = MBEDTLS_SERIALIZE_STATUS_DEAD;
+            return( n );
         }
-        if( buffer[0] == '{' )
+        for( i = 0; i < n && token_count < 2; i++ )
         {
-            token_count++;
-        }
-        else
-        {
-            token_count = 0;
-            DUMP_CHAR( buffer[0] );
+            if( buffer[i] == '{' )
+            {
+                token_count++;
+            }
+            else
+            {
+                token_count = 0;
+                DUMP_CHAR( buffer[0] );
+            }
         }
     }
-    do {
-        n = read( ctx->read_fd, buffer, remaining );
-        if( n < 0 )
+    if( i < n )
+    {
+        memcpy( buffer, &buffer[i], n - i );
+        remaining -= ( n - i );
+        buffer += ( n - i );
+    }
+    while( remaining > 0 )
+    {
+        n = wait_and_read_data( ctx->read_fd, buffer, remaining,
+                                COMM_INACTIVITY_TIMEOUT );
+        if( n <= 0 && errno != EINTR )
         {
-            perror( "Serialization read error" );
-            return( MBEDTLS_ERR_SERIALIZE_RECEIVE );
+            if( n == MBEDTLS_ERR_SERIALIZE_RECV_TIMEOUT )
+                ctx->status = MBEDTLS_SERIALIZE_STATUS_INACTIVE;
+            else
+                ctx->status = MBEDTLS_SERIALIZE_STATUS_DEAD;
+            return( n );
         }
         remaining -= n;
         buffer += n;
-    } while( remaining > 0 );
+    }
 
     return( 0 );
 }
@@ -925,8 +985,7 @@ static int mbedtls_serialize_pull( mbedtls_serialize_context_t *ctx )
     if( ( ret = mbedtls_serialize_read( ctx,
                                         header, sizeof( header ) ) ) != 0 )
     {
-        DBG( "receive failure -> dead" );
-        ctx->status = MBEDTLS_SERIALIZE_STATUS_DEAD;
+        DBG( "receive failure" );
         return( ret );
     }
     switch( header[0] )
@@ -952,8 +1011,7 @@ static int mbedtls_serialize_pull( mbedtls_serialize_context_t *ctx )
                                                             n_read ) ) != 0 )
                         {
                             DBG( "failed to read input with %zu bytes"
-                                 " remaining -> dead", length );
-                            ctx->status = MBEDTLS_SERIALIZE_STATUS_DEAD;
+                                 " remaining", length );
                             return( ret );
                         }
                         length -= n_read;
@@ -964,8 +1022,7 @@ static int mbedtls_serialize_pull( mbedtls_serialize_context_t *ctx )
                                                     item_buffer( item ),
                                                     length ) ) != 0 )
                 {
-                    DBG( "failed to read %zu-byte input -> dead", length );
-                    ctx->status = MBEDTLS_SERIALIZE_STATUS_DEAD;
+                    DBG( "failed to read %zu-byte input", length );
                     return( ret );
                 }
                 DBG( "successfully read %zu-byte input", length );
@@ -1045,6 +1102,10 @@ static void mbedtls_serialize_frontend( mbedtls_serialize_context_t *ctx )
            ctx->status == MBEDTLS_SERIALIZE_STATUS_OUT_OF_MEMORY )
     {
         (void) mbedtls_serialize_pull( ctx );
+    }
+    if( ctx->status != MBEDTLS_SERIALIZE_STATUS_EXITED )
+    {
+        exitcode = ctx->status;
     }
     close( ctx->read_fd );
     close( ctx->write_fd );
@@ -1423,11 +1484,14 @@ int main( int argc, char** argv )
         serialization_context.read_fd = opts.read_fd;
     }
 
-    mbedtls_serialize_frontend( &serialization_context );
-    if( serialization_context.status != MBEDTLS_SERIALIZE_STATUS_EXITED )
-        exitcode = serialization_context.status;
 
-    port_close( serialization_context.read_fd );
+    mbedtls_serialize_frontend( &serialization_context );
+
+    /* Indicate reason for exit: inactivity between host and target.
+     * Any script running frontend can utilise this print for taking
+     * appropriate action. */
+    if( serialization_context.status == MBEDTLS_SERIALIZE_STATUS_INACTIVE )
+        ERR( "===FRONTEND_INACTIVE===" );
 
     return( exitcode );
 }

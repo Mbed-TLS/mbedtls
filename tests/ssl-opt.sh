@@ -55,6 +55,9 @@ SHOW_TEST_NUMBER=0
 RUN_TEST_NUMBER=''
 
 PRESERVE_LOGS=0
+ON_TARGET=0
+TARGET_SERIAL=''
+TARGET_BAUD=''
 
 # Pick a "unique" server port in the range 10000-19999, and a proxy
 # port which is this plus 10000. Each port number may be independently
@@ -74,6 +77,14 @@ print_usage() {
     printf "     --port\tTCP/UDP port (default: randomish 1xxxx)\n"
     printf "     --proxy-port\tTCP/UDP proxy port (default: randomish 2xxxx)\n"
     printf "     --seed\tInteger seed value to use for this test run\n"
+    printf "     --on-target\tIndicates that ssl client runs on target.\n"
+    printf "                \tprogram/host/frontend will be used as the client app.\n"
+    printf "                \tThat handles serialized network and file system calls\n"
+    printf "                \tover the serial connection.\n"
+    printf "     --target-serial\tTarget serial port for program/host/frontend\n"
+    printf "                \tThis option is mandatory with --on-target option\n"
+    printf "     --target-baud\tTarget serial baud rate for program/host/frontend\n"
+    printf "                \tThis option is mandatory with --on-target option\n"
 }
 
 get_options() {
@@ -105,6 +116,15 @@ get_options() {
                 ;;
             --seed)
                 shift; SEED="$1"
+                ;;
+            --on-target)
+                ON_TARGET=1
+                ;;
+            --target-serial)
+                shift; TARGET_SERIAL="$1"
+                ;;
+            --target-baud)
+                shift; TARGET_BAUD="$1"
                 ;;
             -h|--help)
                 print_usage
@@ -652,6 +672,24 @@ cleanup() {
 
 get_options "$@"
 
+# Change client to programs/host/frontend for on target testing
+if [ "$ON_TARGET" = 1 ]; then
+    not_enough_input=0
+    if [ "X${TARGET_SERIAL:-X}" = "XX" ]; then
+        echo "Error: Target serial port not specified in command line options.\n"
+        not_enough_input=1
+    fi
+    if [ "X${TARGET_BAUD:-X}" = "XX" ]; then
+        echo "Error: Target baud rate not specified in command line options.\n"
+        not_enough_input=1
+    fi
+    if [ $not_enough_input = 1 ]; then
+        print_usage
+        exit 1
+    fi
+    P_CLI="../programs/host/frontend -p $TARGET_SERIAL -b $TARGET_BAUD"
+fi
+
 # sanity checks, avoid an avalanche of errors
 P_SRV_BIN="${P_SRV%%[  ]*}"
 P_CLI_BIN="${P_CLI%%[  ]*}"
@@ -695,6 +733,9 @@ MAIN_PID="$$"
 if [ "$MEMCHECK" -gt 0 ]; then
     START_DELAY=6
     DOG_DELAY=60
+elif [ "$ON_TARGET" -gt 0 ]; then
+    START_DELAY=6
+    DOG_DELAY=300
 else
     START_DELAY=2
     DOG_DELAY=20

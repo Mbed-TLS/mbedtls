@@ -36,6 +36,18 @@
 
 #include "ecp.h"
 
+/*
+ * Use a backward compatible ECDH context.
+ *
+ * This flag is always enabled for now and future versions might add a
+ * configuration option that conditionally undefines this flag.
+ * The configuration option in question may have a different name.
+ *
+ * Features undefining this flag, must have a warning in their description in
+ * config.h stating that the feature breaks backward compatibility.
+ */
+#define MBEDTLS_ECDH_LEGACY_CONTEXT
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -49,6 +61,39 @@ typedef enum
     MBEDTLS_ECDH_THEIRS, /**< The key of the peer. */
 } mbedtls_ecdh_side;
 
+#if !defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+/**
+ * Defines the ECDH implementation used.
+ *
+ * Later versions of the library may add new variants, therefore users should
+ * not make any assumptions about them.
+ */
+typedef enum
+{
+    MBEDTLS_ECDH_VARIANT_NONE = 0,   /*!< Implementation not defined. */
+    MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0,/*!< The default Mbed TLS implementation */
+} mbedtls_ecdh_variant;
+
+/**
+ * The context used by the default ECDH implementation.
+ *
+ * Later versions might change the structure of this context, therefore users
+ * should not make any assumptions about the structure of
+ * mbedtls_ecdh_context_mbed.
+ */
+typedef struct mbedtls_ecdh_context_mbed
+{
+    mbedtls_ecp_group grp;   /*!< The elliptic curve used. */
+    mbedtls_mpi d;           /*!< The private key. */
+    mbedtls_ecp_point Q;     /*!< The public key. */
+    mbedtls_ecp_point Qp;    /*!< The value of the public key of the peer. */
+    mbedtls_mpi z;           /*!< The shared secret. */
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    mbedtls_ecp_restart_ctx rs; /*!< The restart context for EC computations. */
+#endif
+} mbedtls_ecdh_context_mbed;
+#endif
+
 /**
  *
  * \warning         Performing multiple operations concurrently on the same
@@ -58,6 +103,7 @@ typedef enum
  */
 typedef struct mbedtls_ecdh_context
 {
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     mbedtls_ecp_group grp;   /*!< The elliptic curve used. */
     mbedtls_mpi d;           /*!< The private key. */
     mbedtls_ecp_point Q;     /*!< The public key. */
@@ -70,7 +116,26 @@ typedef struct mbedtls_ecdh_context
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     int restart_enabled;        /*!< The flag for restartable mode. */
     mbedtls_ecp_restart_ctx rs; /*!< The restart context for EC computations. */
-#endif
+#endif /* MBEDTLS_ECP_RESTARTABLE */
+#else
+    uint8_t point_format;       /*!< The format of point export in TLS messages
+                                  as defined in RFC 4492. */
+    mbedtls_ecp_group_id grp_id;/*!< The elliptic curve used. */
+    mbedtls_ecdh_variant var;   /*!< The ECDH implementation/structure used. */
+    union
+    {
+        mbedtls_ecdh_context_mbed   mbed_ecdh;
+    } ctx;                      /*!< Implementation-specific context. The
+                                  context in use is specified by the \c var
+                                  field. */
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    uint8_t restart_enabled;    /*!< The flag for restartable mode. Functions of
+                                  an alternative implementation not supporting
+                                  restartable mode must return
+                                  MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED error
+                                  if this flag is set. */
+#endif /* MBEDTLS_ECP_RESTARTABLE */
+#endif /* MBEDTLS_ECDH_LEGACY_CONTEXT */
 }
 mbedtls_ecdh_context;
 

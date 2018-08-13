@@ -2056,14 +2056,14 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-#if defined(MBEDTLS_ON_TARGET_PLATFORM)
-    target_free_received_args( argv );
-#endif
-
     // Shell can not handle large exit numbers -> 1 for errors
     if( ret < 0 )
         ret = 1;
 
+#if defined(MBEDTLS_ON_TARGET_PLATFORM)
+    target_free_received_args( argv );
+    mbedtls_serialize_exit( ret );
+#endif
     return( ret );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_SSL_TLS_C &&

@@ -77,6 +77,9 @@ typedef int serial_handle_t;
 FILE * fdbg = NULL;
 static int enable_debugs = 0;
 
+/* Application exit code */
+static int exitcode = 0;
+
 #define PRINT( tag, fmt, ... ) do {                                         \
                fprintf( fdbg, tag " %s:%d:%s: " fmt "\n",                   \
                         __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__ );  \
@@ -375,9 +378,14 @@ static uint32_t mbedtls_serialize_perform( mbedtls_serialize_context_t *ctx_p,
     switch( function )
     {
         case MBEDTLS_SERIALIZE_FUNCTION_EXIT:
-            ret = 0;
-            ctx_p->status = MBEDTLS_SERIALIZE_STATUS_EXITED;
-            break;
+            {
+                CHECK_ARITY( 1 );
+                CHECK_LENGTH( 0, 4 ); // usec
+                ret = 0;
+                exitcode = ( int )item_uint32( inputs[0] );
+                ctx_p->status = MBEDTLS_SERIALIZE_STATUS_EXITED;
+                break;
+            }
 
         case MBEDTLS_SERIALIZE_FUNCTION_ECHO:
             {
@@ -1416,8 +1424,10 @@ int main( int argc, char** argv )
     }
 
     mbedtls_serialize_frontend( &serialization_context );
+    if( serialization_context.status != MBEDTLS_SERIALIZE_STATUS_EXITED )
+        exitcode = serialization_context.status;
 
     port_close( serialization_context.read_fd );
 
-    return( 0 );
+    return( exitcode );
 }

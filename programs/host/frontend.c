@@ -1292,6 +1292,21 @@ static serial_handle_t port_open( char *name, int baud_rate )
     return( handle );
 }
 
+/** Send break on serial channel. Mbed devices interpret serial break as a
+ *  command to reset the device.
+ */
+static int send_break(const char * port)
+{
+    int ret;
+    serial_handle_t handle = open( port,
+        O_RDWR | O_CLOEXEC | O_NOCTTY | O_SYNC );
+    ret = tcsendbreak(handle, 0);
+    if( ret == 0 )
+        mbedtls_net_usleep( 2000000 );
+    close( handle );
+    return( ret );
+}
+
 /** Command line options */
 typedef struct
 {
@@ -1469,6 +1484,16 @@ int main( int argc, char** argv )
     serialization_context.status = MBEDTLS_SERIALIZE_STATUS_OK;
     if( opts.serialization_port != NULL )
     {
+        /* Reset Mbed device to startup state where it can read command line
+         * arguments sent by the frontend. Reset by break signal is mbed device
+         * specific. In future if non-mbed devices are used with the frontend,
+         * this action should be controlled by a command line argument. */
+        if( send_break( opts.serialization_port ) != 0 )
+        {
+            PRINT_LAST_ERROR( );
+            return( 1 );
+        }
+
         serialization_context.write_fd =
             port_open( opts.serialization_port, opts.baud_rate );
         serialization_context.read_fd = serialization_context.write_fd;

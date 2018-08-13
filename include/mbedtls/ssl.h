@@ -2470,7 +2470,7 @@ void mbedtls_ssl_conf_mtu( mbedtls_ssl_config *conf, uint16_t mtu );
  *                 with \c mbedtls_ssl_read()), not handshake messages.
  *                 With DTLS, this affects both ApplicationData and handshake.
  *
- * \note           This sets the maximum length for a record's paylaod,
+ * \note           This sets the maximum length for a record's payload,
  *                 excluding record overhead that will be added to it, see
  *                 \c mbedtls_ssl_get_record_expansion().
  *

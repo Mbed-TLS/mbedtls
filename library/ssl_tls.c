@@ -2923,7 +2923,7 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
 
             MBEDTLS_SSL_DEBUG_BUF( 3, "handshake header", ssl->out_msg, 12 );
 
-            /* Copy the handshame message content and set records fields */
+            /* Copy the handshake message content and set records fields */
             memcpy( ssl->out_msg + 12, p, frag_len );
             ssl->out_msglen = frag_len + 12;
             ssl->out_msgtype = cur->type;

@@ -5973,6 +5973,9 @@ static int ssl_session_reset_int( mbedtls_ssl_context *ssl, int partial )
     ssl->transform_in = NULL;
     ssl->transform_out = NULL;
 
+    ssl->session_in = NULL;
+    ssl->session_out = NULL;
+
     memset( ssl->out_buf, 0, MBEDTLS_SSL_OUT_BUFFER_LEN );
     if( partial == 0 )
         memset( ssl->in_buf, 0, MBEDTLS_SSL_IN_BUFFER_LEN );
@@ -6842,13 +6845,13 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
     size_t transform_expansion;
     const mbedtls_ssl_transform *transform = ssl->transform_out;
 
+    if( transform == NULL )
+        return( (int) mbedtls_ssl_hdr_len( ssl ) );
+
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     if( ssl->session_out->compression != MBEDTLS_SSL_COMPRESS_NULL )
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 #endif
-
-    if( transform == NULL )
-        return( (int) mbedtls_ssl_hdr_len( ssl ) );
 
     switch( mbedtls_cipher_get_cipher_mode( &transform->cipher_ctx_enc ) )
     {

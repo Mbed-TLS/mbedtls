@@ -398,7 +398,7 @@
  *              MBEDTLS_ECDH_COMPUTE_SHARED_ALT for curves which have formally
  *              verified implementation available.
  */
-//#define MBEDTLS_ECDH_LEGACY_CONTEXT
+#define MBEDTLS_ECDH_LEGACY_CONTEXT
 
 /**
  * \def MBEDTLS_ECP_INTERNAL_ALT

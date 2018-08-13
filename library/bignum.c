@@ -2094,11 +2094,11 @@ static int mpi_miller_rabin( const mbedtls_mpi *X, int fips_flag,
          * The 512 bit case is omitted deliberately, because the rest of the
          * generation process is not permitted for 1024 bit modulus size.
          */
-        switch(i)
+        switch( i )
         {
             case 1024: n = 5; break;
             case 1536: n = 4; break;
-            default: ;
+            default: break;
         }
     }
 

@@ -492,7 +492,6 @@
  *
  * \param key_type  A supported key type.
  * \param key_bits  The size of the key in bits.
- * \param alg       The signature algorithm.
  *
  * \return If the parameters are valid and supported, return
  *         a buffer size in bytes that guarantees that

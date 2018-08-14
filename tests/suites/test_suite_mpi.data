@@ -706,7 +706,7 @@ mbedtls_mpi_gen_prime:128:0:0
 
 Test mbedtls_mpi_gen_prime (Safe)
 depends_on:MBEDTLS_GENPRIME
-mbedtls_mpi_gen_prime:128:1:0
+mbedtls_mpi_gen_prime:128:MBEDTLS_MPI_GEN_PRIME_FLAG_DH:0
 
 Test bit getting (Value bit 25)
 mbedtls_mpi_get_bit:10:"49979687":25:1

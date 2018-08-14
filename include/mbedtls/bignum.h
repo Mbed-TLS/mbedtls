@@ -741,12 +741,22 @@ int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
                   void *p_rng );
 
 /**
+ * \brief Flags for mbedtls_mpi_gen_prime()
+ *
+ * Each of these flags is a constraint on the result X returned by
+ * mbedtls_mpi_gen_prime().
+ */
+typedef enum {
+    MBEDTLS_MPI_GEN_PRIME_FLAG_DH = 0x0001,      /**< (X-1)/2 is prime too */
+} mbedtls_mpi_gen_prime_flag_t;
+
+/**
  * \brief          Prime number generation
  *
  * \param X        Destination MPI
  * \param nbits    Required size of X in bits
  *                 ( 3 <= nbits <= MBEDTLS_MPI_MAX_BITS )
- * \param dh_flag  If 1, then (X-1)/2 will be prime too
+ * \param flags    Mask of flags of type #mbedtls_mpi_gen_prime_flag_t
  * \param f_rng    RNG function
  * \param p_rng    RNG parameter
  *
@@ -754,7 +764,7 @@ int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
  *                 MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed,
  *                 MBEDTLS_ERR_MPI_BAD_INPUT_DATA if nbits is < 3
  */
-int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int dh_flag,
+int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int flags,
                    int (*f_rng)(void *, unsigned char *, size_t),
                    void *p_rng );
 

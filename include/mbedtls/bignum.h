@@ -726,7 +726,8 @@ int mbedtls_mpi_gcd( mbedtls_mpi *G, const mbedtls_mpi *A, const mbedtls_mpi *B 
 int mbedtls_mpi_inv_mod( mbedtls_mpi *X, const mbedtls_mpi *A, const mbedtls_mpi *N );
 
 /**
- * \brief          Miller-Rabin primality test
+ * \brief          Miller-Rabin primality test with error probability of
+ *                 2<sup>-80</sup>
  *
  * \param X        MPI to check
  * \param f_rng    RNG function
@@ -747,7 +748,8 @@ int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
  * mbedtls_mpi_gen_prime().
  */
 typedef enum {
-    MBEDTLS_MPI_GEN_PRIME_FLAG_DH = 0x0001,      /**< (X-1)/2 is prime too */
+    MBEDTLS_MPI_GEN_PRIME_FLAG_DH =      0x0001, /**< (X-1)/2 is prime too */
+    MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR = 0x0002, /**< lower error rate from 2<sup>-80</sup> to 2<sup>-128</sup> */
 } mbedtls_mpi_gen_prime_flag_t;
 
 /**

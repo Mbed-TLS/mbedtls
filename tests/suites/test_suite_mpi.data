@@ -708,6 +708,18 @@ Test mbedtls_mpi_gen_prime (Safe)
 depends_on:MBEDTLS_GENPRIME
 mbedtls_mpi_gen_prime:128:MBEDTLS_MPI_GEN_PRIME_FLAG_DH:0
 
+Test mbedtls_mpi_gen_prime (Safe with lower error rate)
+depends_on:MBEDTLS_GENPRIME
+mbedtls_mpi_gen_prime:128:MBEDTLS_MPI_GEN_PRIME_FLAG_DH | MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR:0
+
+Test mbedtls_mpi_gen_prime standard RSA #1 (lower error rate)
+depends_on:MBEDTLS_GENPRIME
+mbedtls_mpi_gen_prime:1024:MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR:0
+
+Test mbedtls_mpi_gen_prime standard RSA #2 (lower error rate)
+depends_on:MBEDTLS_GENPRIME
+mbedtls_mpi_gen_prime:1536:MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR:0
+
 Test bit getting (Value bit 25)
 mbedtls_mpi_get_bit:10:"49979687":25:1
 

@@ -809,14 +809,14 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_GENPRIME */
-void mbedtls_mpi_gen_prime( int bits, int safe, int ref_ret )
+void mbedtls_mpi_gen_prime( int bits, int flags, int ref_ret )
 {
     mbedtls_mpi X;
     int my_ret;
 
     mbedtls_mpi_init( &X );
 
-    my_ret = mbedtls_mpi_gen_prime( &X, bits, safe, rnd_std_rand, NULL );
+    my_ret = mbedtls_mpi_gen_prime( &X, bits, flags, rnd_std_rand, NULL );
     TEST_ASSERT( my_ret == ref_ret );
 
     if( ref_ret == 0 )
@@ -827,7 +827,7 @@ void mbedtls_mpi_gen_prime( int bits, int safe, int ref_ret )
         TEST_ASSERT( actual_bits <= (size_t) bits + 1 );
 
         TEST_ASSERT( mbedtls_mpi_is_prime( &X, rnd_std_rand, NULL ) == 0 );
-        if( safe )
+        if( flags & MBEDTLS_MPI_GEN_PRIME_FLAG_DH )
         {
             /* X = ( X - 1 ) / 2 */
             TEST_ASSERT( mbedtls_mpi_shift_r( &X, 1 ) == 0 );

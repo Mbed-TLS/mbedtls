@@ -2192,11 +2192,11 @@ int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
 /*
  * Prime number generation
  *
- * If dh_flag is 0 and nbits is at least 1024, then the procedure
+ * If flags is 0 and nbits is at least 1024, then the procedure
  * follows the RSA probably-prime generation method of FIPS 186-4.
  * NB. FIPS 186-4 only allows the specific bit lengths of 1024 and 1536.
  */
-int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int dh_flag,
+int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int flags,
                    int (*f_rng)(void *, unsigned char *, size_t),
                    void *p_rng )
 {
@@ -2229,7 +2229,7 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int dh_flag,
         if( k > nbits ) MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( X, k - nbits ) );
         X->p[0] |= 1;
 
-        if( dh_flag == 0 )
+        if( ( flags & MBEDTLS_MPI_GEN_PRIME_FLAG_DH ) == 0 )
         {
             ret = mbedtls_mpi_is_prime( X, f_rng, p_rng );
 

@@ -1102,6 +1102,11 @@ struct mbedtls_ssl_context
     int keep_current_message;   /*!< drop or reuse current message
                                      on next call to record layer? */
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    uint8_t disable_datagram_packing;  /*!< Disable packing multiple records
+                                        *   within a single datagram.  */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
     /*
      * Record layer (outgoing data)
      */
@@ -1763,6 +1768,38 @@ void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limi
 #endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
+
+/**
+ * \brief          Allow or disallow packing of multiple handshake records
+ *                 within a single datagram.
+ *
+ * \param ssl           The SSL context to configure.
+ * \param allow_packing This determines whether datagram packing may
+ *                      be used or not. A value of \c 0 means that every
+ *                      record will be sent in a separate datagram; a
+ *                      value of \c 1 means that, if space permits,
+ *                      multiple handshake messages (including CCS) belonging to
+ *                      a single flight may be packed within a single datagram.
+ *
+ * \note           This is enabled by default and should only be disabled
+ *                 for test purposes, or if datagram packing causes
+ *                 interoperability issues with peers that don't support it.
+ *
+ * \note           Allowing datagram packing reduces the network load since
+ *                 there's less overhead if multiple messages share the same
+ *                 datagram. Also, it increases the handshake efficiency
+ *                 since messages belonging to a single datagram will not
+ *                 be reordered in transit, and so future message buffering
+ *                 or flight retransmission (if no buffering is used) as
+ *                 means to deal with reordering are needed less frequently.
+ *
+ * \note           Application datagrams are not affected by this option and
+ *                 are currently always sent in separate datagrams.
+ *
+ */
+void mbedtls_ssl_conf_datagram_packing( mbedtls_ssl_context *ssl,
+                                        unsigned allow_packing );
+
 /**
  * \brief          Set retransmit timeout values for the DTLS handshake.
  *                 (DTLS only, no effect on TLS.)

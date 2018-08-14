@@ -2923,6 +2923,9 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
         size_t max_frag_len;
         const mbedtls_ssl_flight_item * const cur = ssl->handshake->cur_msg;
 
+        uint8_t const force_flush = ssl->disable_datagram_packing == 1 ?
+            SSL_FORCE_FLUSH : SSL_DONT_FORCE_FLUSH;
+
         /* Swap epochs before sending Finished: we can't do it after
          * sending ChangeCipherSpec, in case write returns WANT_READ.
          * Must be done before copying, may change out_msg pointer */
@@ -3030,8 +3033,7 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
         }
 
         /* Actually send the message out */
-        if( ( ret = mbedtls_ssl_write_record( ssl,
-                                              SSL_DONT_FORCE_FLUSH ) ) != 0 )
+        if( ( ret = mbedtls_ssl_write_record( ssl, force_flush ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
             return( ret );
@@ -6432,7 +6434,15 @@ void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limi
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-void mbedtls_ssl_conf_handshake_timeout( mbedtls_ssl_config *conf, uint32_t min, uint32_t max )
+
+void mbedtls_ssl_conf_datagram_packing( mbedtls_ssl_context *ssl,
+                                        unsigned allow_packing )
+{
+    ssl->disable_datagram_packing = !allow_packing;
+}
+
+void mbedtls_ssl_conf_handshake_timeout( mbedtls_ssl_config *conf,
+                                         uint32_t min, uint32_t max )
 {
     conf->hs_timeout_min = min;
     conf->hs_timeout_max = max;

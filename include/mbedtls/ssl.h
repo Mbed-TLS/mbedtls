@@ -24,6 +24,8 @@
 #ifndef MBEDTLS_SSL_H
 #define MBEDTLS_SSL_H
 
+#define MBEDTLS_SSL_ASYNC_PRIVATE
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
@@ -64,6 +66,7 @@
 #if defined(MBEDTLS_HAVE_TIME)
 #include "platform_time.h"
 #endif
+
 
 /*
  * SSL Error codes

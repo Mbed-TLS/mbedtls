@@ -3131,6 +3131,10 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
     unsigned char *hash_start = hash;
     mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
     unsigned int hashlen;
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+    mbedtls_pk_type_t sig_alg = MBEDTLS_PK_NONE;
+
+#endif
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> write certificate verify" ) );
 
@@ -3230,8 +3234,14 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
             md_alg = MBEDTLS_MD_SHA256;
             ssl->out_msg[4] = MBEDTLS_SSL_HASH_SHA256;
         }
-        ssl->out_msg[5] = mbedtls_ssl_sig_from_pk( mbedtls_ssl_own_key( ssl ) );
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+//Shelly: extract signature type from cipher info (not from private key context)
+        sig_alg = mbedtls_ssl_get_ciphersuite_sig_pk_alg( ciphersuite_info );
+        ssl->out_msg[5] =  mbedtls_ssl_sig_from_pk_alg( sig_alg );//mbedtls_ssl_sig_from_pk( mbedtls_ssl_own_key( ssl ) );
 
+#else
+        ssl->out_msg[5] =  mbedtls_ssl_sig_from_pk( mbedtls_ssl_own_key( ssl ) );
+#endif
         /* Info from md_alg will be used instead */
         hashlen = 0;
         offset = 2;
@@ -3242,7 +3252,33 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
 
+    if( ssl->conf->f_async_sign_start != NULL && ssl->conf->f_async_resume != NULL) // Go to regular flow if async signature pointer does not exist
+    {
+
+            ret = ssl->conf->f_async_sign_start( ssl,
+                                                 mbedtls_ssl_own_cert( ssl ),
+                                                 md_alg, hash_start, hashlen );
+            if( ret != MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS )
+            {
+                    MBEDTLS_SSL_DEBUG_MSG( 1, ( "Acync signature start failed" ) );
+                    return ret;
+
+            }
+            ssl->handshake->async_in_progress = 1;
+            ret = ssl->conf->f_async_resume( ssl, ssl->out_msg + 6 + offset, &n, (MBEDTLS_SSL_MAX_CONTENT_LEN - ( 6 + offset))/*Shelly: I am not sure  i am checking buffer size using right parameters*/ );
+            if( ret != 0 )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "Acync signature resume failed" ) );
+                return ret;
+            }
+
+            ssl->handshake->async_in_progress = 0;
+
+    }
+
+#else
     if( ( ret = mbedtls_pk_sign( mbedtls_ssl_own_key( ssl ), md_alg, hash_start, hashlen,
                          ssl->out_msg + 6 + offset, &n,
                          ssl->conf->f_rng, ssl->conf->p_rng ) ) != 0 )
@@ -3250,6 +3286,7 @@ static int ssl_write_certificate_verify( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_pk_sign", ret );
         return( ret );
     }
+#endif
 
     ssl->out_msg[4 + offset] = (unsigned char)( n >> 8 );
     ssl->out_msg[5 + offset] = (unsigned char)( n      );

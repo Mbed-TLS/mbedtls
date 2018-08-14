@@ -756,6 +756,56 @@ typedef uint32_t psa_algorithm_t;
     (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_MAC_SUBCATEGORY_MASK)) == \
      PSA_ALG_HMAC_BASE)
 
+#define PSA_ALG_MAC_TRUNCATION_MASK             ((psa_algorithm_t)0x00003f00)
+#define PSA_MAC_TRUNCATION_OFFSET 8
+
+/** Macro to build a truncated MAC algorithm.
+ *
+ * A truncated MAC algorithm is identical to the corresponding MAC
+ * algorithm except that the MAC value for the truncated algorithm
+ * consists of only the first \p mac_length bytes of the MAC value
+ * for the untruncated algorithm.
+ *
+ * \note    This macro may allow constructing algorithm identifiers that
+ *          are not valid, either because the specified length is larger
+ *          than the untruncated MAC or because the specified length is
+ *          smaller than permitted by the implementation.
+ *
+ * \note    It is implementation-defined whether a truncated MAC that
+ *          is truncated to the same length as the MAC of the untruncated
+ *          algorithm is considered identical to the untruncated algorithm
+ *          for policy comparison purposes.
+ *
+ * \param alg           A MAC algorithm identifier (value of type
+ *                      #psa_algorithm_t such that #PSA_ALG_IS_MAC(\p alg)
+ *                      is true). This may be a truncated or untruncated
+ *                      MAC algorithm.
+ * \param mac_length    Desired length of the truncated MAC in bytes.
+ *
+ * \return              The corresponding MAC algorithm with the specified
+ *                      length.
+ * \return              Unspecified if \p alg is not a supported
+ *                      MAC algorithm or if \p mac_length is too small or
+ *                      too large for the specified MAC algorithm.
+ */
+#define PSA_ALG_TRUNCATED_MAC(alg, mac_length)                          \
+    (((alg) & ~PSA_ALG_MAC_TRUNCATION_MASK) |                           \
+     ((mac_length) << PSA_MAC_TRUNCATION_OFFSET & PSA_ALG_MAC_TRUNCATION_MASK))
+
+/** Length to which a MAC algorithm is truncated.
+ *
+ * \param alg           A MAC algorithm identifier (value of type
+ *                      #psa_algorithm_t such that #PSA_ALG_IS_MAC(\p alg)
+ *                      is true).
+ *
+ * \return              Length of the truncated MAC in bytes.
+ * \return              0 if \p alg is a non-truncated MAC algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      MAC algorithm.
+ */
+#define PSA_MAC_TRUNCATED_LENGTH(alg)           \
+    (((alg) & PSA_ALG_MAC_TRUNCATION_MASK) >> PSA_MAC_TRUNCATION_OFFSET)
+
 #define PSA_ALG_CIPHER_MAC_BASE                 ((psa_algorithm_t)0x02c00000)
 #define PSA_ALG_CBC_MAC                         ((psa_algorithm_t)0x02c00001)
 #define PSA_ALG_CMAC                            ((psa_algorithm_t)0x02c00002)

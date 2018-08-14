@@ -1523,8 +1523,10 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     size_t key_bits;
     psa_key_usage_t usage =
         is_sign ? PSA_KEY_USAGE_SIGN : PSA_KEY_USAGE_VERIFY;
+    unsigned char truncated = PSA_MAC_TRUNCATED_LENGTH( alg );
+    psa_algorithm_t full_length_alg = alg & ~PSA_ALG_MAC_TRUNCATION_MASK;
 
-    status = psa_mac_init( operation, alg );
+    status = psa_mac_init( operation, full_length_alg );
     if( status != PSA_SUCCESS )
         return( status );
     if( is_sign )
@@ -1536,10 +1538,11 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     key_bits = psa_get_key_bits( slot );
 
 #if defined(MBEDTLS_CMAC_C)
-    if( alg == PSA_ALG_CMAC )
+    if( full_length_alg == PSA_ALG_CMAC )
     {
         const mbedtls_cipher_info_t *cipher_info =
-            mbedtls_cipher_info_from_psa( alg, slot->type, key_bits, NULL );
+            mbedtls_cipher_info_from_psa( full_length_alg,
+                                          slot->type, key_bits, NULL );
         int ret;
         if( cipher_info == NULL )
         {
@@ -1553,7 +1556,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     else
 #endif /* MBEDTLS_CMAC_C */
 #if defined(MBEDTLS_MD_C)
-    if( PSA_ALG_IS_HMAC( alg ) )
+    if( PSA_ALG_IS_HMAC( full_length_alg ) )
     {
         psa_algorithm_t hash_alg = PSA_ALG_HMAC_GET_HASH( alg );
         if( hash_alg == 0 )
@@ -1587,6 +1590,24 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     {
         status = PSA_ERROR_NOT_SUPPORTED;
     }
+
+    if( truncated == 0 )
+    {
+        /* The "normal" case: untruncated algorithm. Nothing to do. */
+    }
+    else if( truncated < 4 )
+    {
+        /* Too small to make any sense. Reject. 4 bytes is too small for
+         * security but ancient protocols with 32-bit MACs do exist. */
+        status = PSA_ERROR_NOT_SUPPORTED;
+    }
+    else if( truncated > operation->mac_size )
+    {
+        /* It's impossible to "truncate" to a larger length. */
+        status = PSA_ERROR_INVALID_ARGUMENT;
+    }
+    else
+        operation->mac_size = truncated;
 
 exit:
     if( status != PSA_SUCCESS )
@@ -1682,7 +1703,11 @@ static psa_status_t psa_hmac_finish_internal( psa_hmac_internal_data *hmac,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    status = psa_hash_finish( &hmac->hash_ctx, mac, mac_size, &hash_size );
+    status = psa_hash_finish( &hmac->hash_ctx, tmp, sizeof( tmp ), &hash_size );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    memcpy( mac, tmp, mac_size );
 
 exit:
     mbedtls_zeroize( tmp, hash_size );
@@ -1705,7 +1730,11 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
 #if defined(MBEDTLS_CMAC_C)
     if( operation->alg == PSA_ALG_CMAC )
     {
-        int ret = mbedtls_cipher_cmac_finish( &operation->ctx.cmac, mac );
+        uint8_t tmp[PSA_MAX_BLOCK_CIPHER_BLOCK_SIZE];
+        int ret = mbedtls_cipher_cmac_finish( &operation->ctx.cmac, tmp );
+        if( ret == 0 )
+            memcpy( mac, tmp, mac_size );
+        mbedtls_zeroize( tmp, sizeof( tmp ) );
         return( mbedtls_to_psa_error( ret ) );
     }
     else
@@ -1714,7 +1743,7 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
         return( psa_hmac_finish_internal( &operation->ctx.hmac,
-                                          mac, mac_size ) );
+                                          mac, operation->mac_size ) );
     }
     else
 #endif /* MBEDTLS_MD_C */
@@ -1792,6 +1821,8 @@ cleanup:
         status = psa_mac_abort( operation );
     else
         psa_mac_abort( operation );
+
+    mbedtls_zeroize( actual_mac, mac_length );
 
     return( status );
 }

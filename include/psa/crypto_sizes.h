@@ -143,7 +143,8 @@
         PSA_VENDOR_ECC_MAX_CURVE_BITS                                   \
         )
 
-
+/** The maximum size of a block cipher supported by the implementation. */
+#define PSA_MAX_BLOCK_CIPHER_BLOCK_SIZE 16
 
 /** The size of the output of psa_mac_sign_finish(), in bytes.
  *
@@ -163,7 +164,8 @@
  *                      with the algorithm.
  */
 #define PSA_MAC_FINAL_SIZE(key_type, key_bits, alg)                     \
-    (PSA_ALG_IS_HMAC(alg) ? PSA_HASH_SIZE(PSA_ALG_HMAC_GET_HASH(alg)) : \
+    ((alg) & PSA_ALG_MAC_TRUNCATION_MASK ? PSA_MAC_TRUNCATED_LENGTH(alg) : \
+     PSA_ALG_IS_HMAC(alg) ? PSA_HASH_SIZE(PSA_ALG_HMAC_GET_HASH(alg)) : \
      PSA_ALG_IS_BLOCK_CIPHER_MAC(alg) ? PSA_BLOCK_CIPHER_BLOCK_SIZE(key_type) : \
      ((void)(key_type), (void)(key_bits), 0))
 

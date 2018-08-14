@@ -912,6 +912,35 @@ run_test    "SHA-256 allowed by default in client certificate" \
             "$P_CLI key_file=data_files/cli-rsa.key crt_file=data_files/cli-rsa-sha256.crt" \
             0
 
+# Tests for datagram packing
+run_test    "DTLS: multiple records in same datagram, client and server" \
+            "$P_SRV dtls=1 dgram_packing=1 debug_level=2" \
+            "$P_CLI dtls=1 dgram_packing=1 debug_level=2" \
+            0 \
+            -c "next record in same datagram" \
+            -s "next record in same datagram"
+
+run_test    "DTLS: multiple records in same datagram, client only" \
+            "$P_SRV dtls=1 dgram_packing=0 debug_level=2" \
+            "$P_CLI dtls=1 dgram_packing=1 debug_level=2" \
+            0 \
+            -s "next record in same datagram" \
+            -C "next record in same datagram"
+
+run_test    "DTLS: multiple records in same datagram, server only" \
+            "$P_SRV dtls=1 dgram_packing=1 debug_level=2" \
+            "$P_CLI dtls=1 dgram_packing=0 debug_level=2" \
+            0 \
+            -S "next record in same datagram" \
+            -c "next record in same datagram"
+
+run_test    "DTLS: multiple records in same datagram, neither client nor server" \
+            "$P_SRV dtls=1 dgram_packing=0 debug_level=2" \
+            "$P_CLI dtls=1 dgram_packing=0 debug_level=2" \
+            0 \
+            -S "next record in same datagram" \
+            -C "next record in same datagram"
+
 # Tests for Truncated HMAC extension
 
 run_test    "Truncated HMAC: client default, server default" \

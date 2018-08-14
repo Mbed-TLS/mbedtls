@@ -5701,6 +5701,16 @@ run_test    "DTLS proxy: inject invalid AD record, badmac_limit 2, exchanges 2"\
             -s "too many records with bad MAC" \
             -s "Verification of the message MAC failed"
 
+run_test    "DTLS proxy: delay ChangeCipherSpec" \
+            -p "$P_PXY delay_ccs=1" \
+            "$P_SRV dtls=1 debug_level=1 dgram_packing=0" \
+            "$P_CLI dtls=1 debug_level=1 dgram_packing=0" \
+            0 \
+            -c "record from another epoch" \
+            -s "record from another epoch" \
+            -s "Extra-header:" \
+            -c "HTTP/1.0 200 OK"
+
 # Tests for "randomly unreliable connection": try a variety of flows and peers
 
 client_needs_more_time 2

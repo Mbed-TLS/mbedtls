@@ -4,6 +4,12 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 Features
    * Add support for fragmentation of outoing DTLS handshake messages.
+   * Add support for packing multiple records within a single datagram,
+     enabled by default.
+
+API Changes
+   * Add function mbedtls_ssl_conf_datagram_packing() to configure
+     the use of datagram packing (enabled by default).
 
 Bugfix
    * Fixes an issue with MBEDTLS_CHACHAPOLY_C which would not compile if

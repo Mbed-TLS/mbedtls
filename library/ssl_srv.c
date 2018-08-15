@@ -3039,8 +3039,8 @@ curve_matching_done:
 
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "ECDHE curve: %s", (*curve)->name ) );
 
-        if( ( ret = mbedtls_ecp_group_load( &ssl->handshake->ecdh_ctx.grp,
-                                       (*curve)->grp_id ) ) != 0 )
+        if( ( ret = mbedtls_ecdh_setup( &ssl->handshake->ecdh_ctx,
+                                        (*curve)->grp_id ) ) != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ecp_group_load", ret );
             return( ret );
@@ -3062,7 +3062,13 @@ curve_matching_done:
 
         ssl->out_msglen += len;
 
-        MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH: Q ", &ssl->handshake->ecdh_ctx.Q );
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+        MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH: Q", &ssl->handshake->ecdh_ctx.Q );
+#else
+        if( ssl->handshake->ecdh_ctx.var == MBEDTLS_ECDH_VARIANT_MBED )
+            MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH: Q",
+                                   &ssl->handshake->ecdh_ctx.ctx.mbed_ecdh->Q );
+#endif
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__ECDHE_ENABLED */
 
@@ -3776,7 +3782,14 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
         }
 
-        MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH: Qp ", &ssl->handshake->ecdh_ctx.Qp );
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+        MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH: Qp", &ssl->handshake->ecdh_ctx.Qp );
+#else
+        if( ssl->handshake->ecdh_ctx.var == MBEDTLS_ECDH_VARIANT_MBED )
+            MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH: Qp",
+                                   &ssl->handshake->ecdh_ctx.ctx.mbed_ecdh
+                                    ->Qp );
+#endif
 
         if( ( ret = mbedtls_ecdh_calc_secret( &ssl->handshake->ecdh_ctx,
                                       &ssl->handshake->pmslen,
@@ -3788,7 +3801,13 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_CS );
         }
 
-        MBEDTLS_SSL_DEBUG_MPI( 3, "ECDH: z  ", &ssl->handshake->ecdh_ctx.z );
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    MBEDTLS_SSL_DEBUG_MPI( 3, "ECDH: z", &ssl->handshake->ecdh_ctx.z );
+#else
+    if( ssl->handshake->ecdh_ctx.var == MBEDTLS_ECDH_VARIANT_MBED )
+        MBEDTLS_SSL_DEBUG_MPI( 3, "ECDH: z",
+                               &ssl->handshake->ecdh_ctx.ctx.mbed_ecdh->z );
+#endif
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED ||
@@ -3901,7 +3920,14 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
             return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_KEY_EXCHANGE_RP );
         }
 
-        MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH: Qp ", &ssl->handshake->ecdh_ctx.Qp );
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+        MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH: Qp", &ssl->handshake->ecdh_ctx.Qp );
+#else
+        if( ssl->handshake->ecdh_ctx.var == MBEDTLS_ECDH_VARIANT_MBED )
+            MBEDTLS_SSL_DEBUG_ECP( 3, "ECDH: Qp",
+                                   &ssl->handshake->ecdh_ctx.ctx.mbed_ecdh
+                                    ->Qp );
+#endif
 
         if( ( ret = mbedtls_ssl_psk_derive_premaster( ssl,
                         ciphersuite_info->key_exchange ) ) != 0 )

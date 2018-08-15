@@ -1224,7 +1224,13 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
         *(p++) = (unsigned char)( zlen      );
         p += zlen;
 
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
         MBEDTLS_SSL_DEBUG_MPI( 3, "ECDH: z", &ssl->handshake->ecdh_ctx.z );
+#else
+        if( ssl->handshake->ecdh_ctx.var == MBEDTLS_ECDH_VARIANT_MBED )
+            MBEDTLS_SSL_DEBUG_MPI( 3, "ECDH: z",
+                                   &ssl->handshake->ecdh_ctx.ctx.mbed_ecdh->z );
+#endif
     }
     else
 #endif /* MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED */

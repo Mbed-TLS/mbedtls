@@ -36,6 +36,9 @@
 
 #include "ecp.h"
 
+#define MBEDTLS_ERR_ECDH_BAD_INPUT_DATA         -0x001B  /**< Feature not available. For example, variant or group is not available. */
+#define MBEDTLS_ERR_ECDH_ALLOC_FAILED           -0x001D  /**< Failed to allocate memory. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -307,6 +307,9 @@ struct mbedtls_ssl_handshake_params
                                               resending messages             */
     unsigned char alt_out_ctr[8];       /*!<  Alternative record epoch/counter
                                               for resending messages         */
+
+    uint8_t seen_ccs;                   /*!< Indicates if a CCS message has
+                                         *   been seen in the current flight. */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     /*

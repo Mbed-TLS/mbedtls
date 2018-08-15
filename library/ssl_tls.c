@@ -3069,6 +3069,9 @@ void mbedtls_ssl_recv_flight_completed( mbedtls_ssl_context *ssl )
     /* The next incoming flight will start with this msg_seq */
     ssl->handshake->in_flight_start_seq = ssl->handshake->in_msg_seq;
 
+    /* We don't want to remember CCS's across flight boundaries. */
+    ssl->handshake->seen_ccs = 0;
+
     /* Cancel timer */
     ssl_set_timer( ssl, 0 );
 
@@ -4138,15 +4141,6 @@ static int ssl_parse_record_header( mbedtls_ssl_context *ssl )
         }
 #endif
 
-        /* Drop unexpected ChangeCipherSpec messages */
-        if( ssl->in_msgtype == MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC &&
-            ssl->state != MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC &&
-            ssl->state != MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "dropping unexpected ChangeCipherSpec" ) );
-            return( MBEDTLS_ERR_SSL_UNEXPECTED_RECORD );
-        }
-
         /* Drop unexpected ApplicationData records,
          * except at the beginning of renegotiations */
         if( ssl->in_msgtype == MBEDTLS_SSL_MSG_APPLICATION_DATA &&
@@ -4390,16 +4384,75 @@ static int ssl_another_record_in_datagram( mbedtls_ssl_context *ssl )
 
 static int ssl_load_buffered_message( mbedtls_ssl_context *ssl )
 {
-    /* No buffering support so far. */
-    ((void) ssl );
-    return( -1 );
+    mbedtls_ssl_handshake_params * const hs = ssl->handshake;
+    int ret = 0;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> ssl_load_buffered_messsage" ) );
+
+    if( hs == NULL )
+        return( -1 );
+
+    if( ssl->state == MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC ||
+        ssl->state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC )
+    {
+        /* Check if we have seen a ChangeCipherSpec before.
+         * If yes, synthesize a CCS record. */
+        if( ! hs->seen_ccs )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "CCS not seen in the current flight" ) );
+            ret = -1;
+            goto exit;
+        }
+
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Inject buffered CCS message" ) );
+        ssl->in_msgtype = MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC;
+        ssl->in_msglen = 1;
+        ssl->in_msg[0] = 1;
+
+        /* As long as they are equal, the exact value doesn't matter. */
+        ssl->in_left            = 0;
+        ssl->next_record_offset = 0;
+
+        hs->seen_ccs = 0;
+        goto exit;
+    }
+    ret = -1;
+
+exit:
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= ssl_load_buffered_message" ) );
+    return( ret );
 }
 
 static int ssl_buffer_message( mbedtls_ssl_context *ssl )
 {
-    /* No buffering support so far. */
-    ((void) ssl );
-    return( 0 );
+    int ret = 0;
+    mbedtls_ssl_handshake_params * const hs = ssl->handshake;
+
+    if( hs == NULL )
+        return( 0 );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> ssl_buffer_message" ) );
+
+    switch( ssl->in_msgtype )
+    {
+        case MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC:
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "Remember CCS message" ) );
+            hs->seen_ccs = 1;
+            break;
+
+        case MBEDTLS_SSL_MSG_HANDSHAKE:
+            /* No support for buffering handshake messages so far. */
+            break;
+
+        default:
+            break;
+    }
+
+exit:
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= ssl_buffer_message" ) );
+    return( ret );
 }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
@@ -4648,6 +4701,24 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
             return( ret );
         }
     }
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    /* Drop unexpected ChangeCipherSpec messages */
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        ssl->in_msgtype == MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC  &&
+        ssl->state != MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC    &&
+        ssl->state != MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC )
+    {
+        if( ssl->handshake == NULL )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "dropping ChangeCipherSpec outside handshake" ) );
+            return( MBEDTLS_ERR_SSL_UNEXPECTED_RECORD );
+        }
+
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "received out-of-order ChangeCipherSpec - remember" ) );
+        return( MBEDTLS_ERR_SSL_EARLY_MESSAGE );
+    }
+#endif
 
     if( ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT )
     {

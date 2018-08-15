@@ -4286,7 +4286,8 @@ static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl );
 
 /* Helper functions for mbedtls_ssl_read_record(). */
 static int ssl_consume_current_message( mbedtls_ssl_context *ssl );
-static int ssl_read_record_layer( mbedtls_ssl_context *ssl );
+static int ssl_get_next_record( mbedtls_ssl_context *ssl );
+static int ssl_record_is_in_progress( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
                              unsigned update_digest )
@@ -4303,14 +4304,17 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
             if( ret != 0 )
                 return( ret );
 
-            ret = ssl_read_record_layer( ssl );
-            if( ret == MBEDTLS_ERR_SSL_CONTINUE_PROCESSING )
-                continue;
-
-            if( ret != 0 )
+            if( ssl_record_is_in_progress( ssl ) == 0 )
             {
-                MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_read_record_layer" ), ret );
-                return( ret );
+                ret = ssl_get_next_record( ssl );
+                if( ret == MBEDTLS_ERR_SSL_CONTINUE_PROCESSING )
+                    continue;
+
+                if( ret != 0 )
+                {
+                    MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_read_record_layer" ), ret );
+                    return( ret );
+                }
             }
 
             ret = mbedtls_ssl_handle_message_type( ssl );
@@ -4428,21 +4432,21 @@ static int ssl_consume_current_message( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-static int ssl_read_record_layer( mbedtls_ssl_context *ssl )
+static int ssl_record_is_in_progress( mbedtls_ssl_context *ssl )
+{
+    if( ssl->in_msglen > 0 )
+        return( 1 );
+
+    return( 0 );
+}
+
+static int ssl_get_next_record( mbedtls_ssl_context *ssl )
 {
     int ret;
 
     /*
-     * Fetch and decode new record if current one is fully consumed.
+     * Fetch and decode new record
      */
-
-    if( ssl->in_msglen > 0 )
-    {
-        /* There's something left to be processed in the current record. */
-        return( 0 );
-    }
-
-    /* Current record either fully processed or to be discarded. */
 
     if( ( ret = mbedtls_ssl_fetch_input( ssl, mbedtls_ssl_hdr_len( ssl ) ) ) != 0 )
     {

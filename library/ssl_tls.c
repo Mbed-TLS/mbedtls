@@ -4294,8 +4294,9 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
     {
         do {
 
-            do ret = mbedtls_ssl_read_record_layer( ssl );
-            while( ret == MBEDTLS_ERR_SSL_CONTINUE_PROCESSING );
+            ret = mbedtls_ssl_read_record_layer( ssl );
+            if( ret == MBEDTLS_ERR_SSL_CONTINUE_PROCESSING )
+                continue;
 
             if( ret != 0 )
             {

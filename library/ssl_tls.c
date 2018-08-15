@@ -3656,6 +3656,14 @@ int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
               ( ssl->state  == MBEDTLS_SSL_HANDSHAKE_OVER &&
                 ssl->in_msg[0] != MBEDTLS_SSL_HS_CLIENT_HELLO ) ) )
         {
+            if( recv_msg_seq > ssl->handshake->in_msg_seq )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 2, ( "received future handshake message of sequence number %u (next %u)",
+                                            recv_msg_seq,
+                                            ssl->handshake->in_msg_seq ) );
+                return( MBEDTLS_ERR_SSL_EARLY_MESSAGE );
+            }
+
             /* Retransmit only on last message from previous flight, to avoid
              * too many retransmissions.
              * Besides, No sane server ever retransmits HelloVerifyRequest */

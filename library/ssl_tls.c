@@ -4289,6 +4289,12 @@ static int ssl_consume_current_message( mbedtls_ssl_context *ssl );
 static int ssl_get_next_record( mbedtls_ssl_context *ssl );
 static int ssl_record_is_in_progress( mbedtls_ssl_context *ssl );
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+static int ssl_load_buffered_message( mbedtls_ssl_context *ssl );
+static int ssl_buffer_message( mbedtls_ssl_context *ssl );
+static int ssl_another_record_in_datagram( mbedtls_ssl_context *ssl );
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
 int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
                              unsigned update_digest )
 {
@@ -4306,18 +4312,46 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
 
             if( ssl_record_is_in_progress( ssl ) == 0 )
             {
-                ret = ssl_get_next_record( ssl );
-                if( ret == MBEDTLS_ERR_SSL_CONTINUE_PROCESSING )
-                    continue;
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+                int have_buffered = 0;
 
-                if( ret != 0 )
+                /* We only check for buffered messages if the
+                 * current datagram is fully consumed. */
+                if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+                    ssl_another_record_in_datagram( ssl ) == 0 )
                 {
-                    MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_read_record_layer" ), ret );
-                    return( ret );
+                    if( ssl_load_buffered_message( ssl ) == 0 )
+                        have_buffered = 1;
+                }
+
+                if( have_buffered == 0 )
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+                {
+                    ret = ssl_get_next_record( ssl );
+                    if( ret == MBEDTLS_ERR_SSL_CONTINUE_PROCESSING )
+                        continue;
+
+                    if( ret != 0 )
+                    {
+                        MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_read_record_layer" ), ret );
+                        return( ret );
+                    }
                 }
             }
 
             ret = mbedtls_ssl_handle_message_type( ssl );
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+            if( ret == MBEDTLS_ERR_SSL_EARLY_MESSAGE )
+            {
+                /* Buffer future message */
+                ret = ssl_buffer_message( ssl );
+                if( ret != 0 )
+                    return( ret );
+
+                ret = MBEDTLS_ERR_SSL_CONTINUE_PROCESSING;
+            }
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
         } while( MBEDTLS_ERR_SSL_NON_FATAL           == ret  ||
                  MBEDTLS_ERR_SSL_CONTINUE_PROCESSING == ret );
@@ -4344,6 +4378,30 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
 
     return( 0 );
 }
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+static int ssl_another_record_in_datagram( mbedtls_ssl_context *ssl )
+{
+    if( ssl->in_left > ssl->next_record_offset )
+        return( 1 );
+
+    return( 0 );
+}
+
+static int ssl_load_buffered_message( mbedtls_ssl_context *ssl )
+{
+    /* No buffering support so far. */
+    ((void) ssl );
+    return( -1 );
+}
+
+static int ssl_buffer_message( mbedtls_ssl_context *ssl )
+{
+    /* No buffering support so far. */
+    ((void) ssl );
+    return( 0 );
+}
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 static int ssl_consume_current_message( mbedtls_ssl_context *ssl )
 {

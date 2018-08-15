@@ -4299,6 +4299,10 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
     {
         do {
 
+            ret = ssl_consume_current_message( ssl );
+            if( ret != 0 )
+                return( ret );
+
             ret = ssl_read_record_layer( ssl );
             if( ret == MBEDTLS_ERR_SSL_CONTINUE_PROCESSING )
                 continue;
@@ -4429,22 +4433,7 @@ static int ssl_read_record_layer( mbedtls_ssl_context *ssl )
     int ret;
 
     /*
-     * Step A
-     *
-     * Consume last content-layer message and potentially
-     * update in_msglen which keeps track of the contents'
-     * consumption state.
-     */
-
-    ret = ssl_consume_current_message( ssl );
-    if( ret != 0 )
-        return( ret );
-
-    /*
-     * Step B
-     *
      * Fetch and decode new record if current one is fully consumed.
-     *
      */
 
     if( ssl->in_msglen > 0 )

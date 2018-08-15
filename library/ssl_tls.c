@@ -4283,6 +4283,8 @@ static void ssl_handshake_wrapup_free_hs_transform( mbedtls_ssl_context *ssl );
  * RFC 6347 4.1.2.7) and continue reading until a valid record is found.
  *
  */
+static int ssl_read_record_layer( mbedtls_ssl_context *ssl );
+
 int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
                              unsigned update_digest )
 {
@@ -4294,7 +4296,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
     {
         do {
 
-            ret = mbedtls_ssl_read_record_layer( ssl );
+            ret = ssl_read_record_layer( ssl );
             if( ret == MBEDTLS_ERR_SSL_CONTINUE_PROCESSING )
                 continue;
 
@@ -4332,7 +4334,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
     return( 0 );
 }
 
-int mbedtls_ssl_read_record_layer( mbedtls_ssl_context *ssl )
+static int ssl_read_record_layer( mbedtls_ssl_context *ssl )
 {
     int ret;
 

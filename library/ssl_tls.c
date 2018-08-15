@@ -4322,7 +4322,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
     }
     else
     {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= reuse previously read message" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "reuse previously read message" ) );
         ssl->keep_current_message = 0;
     }
 

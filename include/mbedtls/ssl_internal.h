@@ -322,6 +322,13 @@ struct mbedtls_ssl_handshake_params
             unsigned char *data;
         } hs[MBEDTLS_SSL_MAX_BUFFERED_HS];
 
+        struct
+        {
+            unsigned char *data;
+            size_t len;
+            unsigned epoch;
+        } future_record;
+
     } buffering;
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 

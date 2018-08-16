@@ -155,6 +155,9 @@
 #define MBEDTLS_SSL_OUT_PAYLOAD_LEN ( MBEDTLS_SSL_PAYLOAD_OVERHEAD + \
                                       ( MBEDTLS_SSL_OUT_CONTENT_LEN ) )
 
+/* The maximum number of buffered handshake messages. */
+#define MBEDTLS_SSL_MAX_BUFFERED_HS 2
+
 /* Maximum length we can advertise as our max content length for
    RFC 6066 max_fragment_length extension negotiation purposes
    (the lesser of both sizes, if they are unequal.)
@@ -313,6 +316,14 @@ struct mbedtls_ssl_handshake_params
         uint8_t seen_ccs;               /*!< Indicates if a CCS message has
                                          *   been seen in the current flight. */
 
+        struct mbedtls_ssl_hs_buffer
+        {
+            uint8_t is_valid      : 1;
+            uint8_t is_fragmented : 1;
+            uint8_t is_complete   : 1;
+            unsigned char *data;
+        } hs[MBEDTLS_SSL_MAX_BUFFERED_HS];
+
     } buffering;
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
@@ -371,6 +382,8 @@ struct mbedtls_ssl_handshake_params
     void *user_async_ctx;
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 };
+
+typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
 
 /*
  * This structure contains a full set of runtime transform parameters

@@ -156,7 +156,7 @@
                                       ( MBEDTLS_SSL_OUT_CONTENT_LEN ) )
 
 /* The maximum number of buffered handshake messages. */
-#define MBEDTLS_SSL_MAX_BUFFERED_HS 2
+#define MBEDTLS_SSL_MAX_BUFFERED_HS 4
 
 /* Maximum length we can advertise as our max content length for
    RFC 6066 max_fragment_length extension negotiation purposes

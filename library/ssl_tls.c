@@ -3426,6 +3426,41 @@ static int ssl_hs_is_proper_fragment( mbedtls_ssl_context *ssl )
     }
     return( 0 );
 }
+
+static uint32_t ssl_get_hs_frag_len( mbedtls_ssl_context *ssl )
+{
+    return( ( ssl->in_msg[9] << 16  ) |
+            ( ssl->in_msg[10] << 8  ) |
+              ssl->in_msg[11] );
+}
+
+static uint32_t ssl_get_hs_frag_off( mbedtls_ssl_context *ssl )
+{
+    return( ( ssl->in_msg[6] << 16 ) |
+            ( ssl->in_msg[7] << 8  ) |
+              ssl->in_msg[8] );
+}
+
+static int ssl_check_hs_header( mbedtls_ssl_context *ssl )
+{
+    uint32_t msg_len, frag_off, frag_len;
+
+    msg_len  = ssl_get_hs_total_len( ssl );
+    frag_off = ssl_get_hs_frag_off( ssl );
+    frag_len = ssl_get_hs_frag_len( ssl );
+
+    if( frag_off > msg_len )
+        return( -1 );
+
+    if( frag_len > msg_len - frag_off )
+        return( -1 );
+
+    if( frag_len + 12 > ssl->in_msglen )
+        return( -1 );
+
+    return( 0 );
+}
+
 /*
  * Mark bits in bitmask (used for DTLS HS reassembly)
  */
@@ -3687,6 +3722,12 @@ int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
     {
         int ret;
         unsigned int recv_msg_seq = ( ssl->in_msg[4] << 8 ) | ssl->in_msg[5];
+
+        if( ssl_check_hs_header( ssl ) != 0 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid handshake header" ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+        }
 
         if( ssl->handshake != NULL &&
             ( ( ssl->state   != MBEDTLS_SSL_HANDSHAKE_OVER &&

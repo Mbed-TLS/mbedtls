@@ -167,6 +167,16 @@ int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
 void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx );
 
 /**
+ * \brief           This function sets up the ECDH context.
+ *
+ * \param ctx       The ECDH context to set up.
+ * \param grp       The group id of the group to set up the context for.
+ *
+ * \return          \c 0 on success.
+ */
+int mbedtls_ecdh_setup( mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp );
+
+/**
  * \brief           This function frees a context.
  *
  * \param ctx       The context to free.

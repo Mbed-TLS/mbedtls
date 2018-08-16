@@ -38,6 +38,13 @@
 
 #include <string.h>
 
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
+#define mbedtls_calloc calloc
+#define mbedtls_free   free
+#endif
+
 #if !defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
 /*
  * Generate public key: simple wrapper around mbedtls_ecp_gen_keypair
@@ -92,6 +99,47 @@ cleanup:
 void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_ecdh_context ) );
+}
+
+/*
+ * Setup context
+ */
+int mbedtls_ecdh_setup( mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp )
+{
+    int ret;
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    mbedtls_ecdh_context *real_ctx;
+
+    if( ctx == NULL )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    real_ctx = ctx;
+#else
+    mbedtls_ecdh_context_mbed *real_ctx;
+
+    if( ctx == NULL || ctx->ctx.mbed_ecdh != NULL )
+        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+
+    ctx->ctx.mbed_ecdh = (mbedtls_ecdh_context_mbed*) mbedtls_calloc ( 1,
+                            sizeof( mbedtls_ecdh_context_mbed ) );
+
+    if( ctx->ctx.mbed_ecdh == NULL )
+        return( MBEDTLS_ERR_ECDH_ALLOC_FAILED );
+
+    ctx->var = MBEDTLS_ECDH_VARIANT_MBED;
+    ctx->grp = grp;
+
+    real_ctx = ctx->ctx.mbed_ecdh;
+#endif
+
+    ret = mbedtls_ecp_group_load( &real_ctx->grp, grp );
+    if( ret != 0 )
+    {
+        mbedtls_ecdh_free( ctx );
+        return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+    }
+
+    return( 0 );
 }
 
 /*
@@ -189,6 +237,7 @@ int mbedtls_ecdh_read_params( mbedtls_ecdh_context *ctx,
                       const unsigned char **buf, const unsigned char *end )
 {
     int ret;
+    mbedtls_ecp_group_id grp_id;
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     mbedtls_ecdh_context *real_ctx;
 
@@ -199,15 +248,22 @@ int mbedtls_ecdh_read_params( mbedtls_ecdh_context *ctx,
 #else
     mbedtls_ecdh_context_mbed *real_ctx;
 
-    if( ctx == NULL || ctx->ctx.mbed_ecdh == NULL )
+    if( ctx == NULL || ctx->ctx.mbed_ecdh != NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
     real_ctx = ctx->ctx.mbed_ecdh;
 #endif
 
-    if( ( ret = mbedtls_ecp_tls_read_group( &real_ctx->grp, buf, end - *buf ) )
+    if( ( ret = mbedtls_ecp_tls_read_group_id( &grp_id, buf, end - *buf ) )
             != 0 )
         return( ret );
+
+    if( ( ret = mbedtls_ecdh_setup( ctx, grp_id ) ) != 0 )
+        return( ret );
+
+#if !defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    real_ctx = ctx->ctx.mbed_ecdh;
+#endif
 
     if( ( ret = mbedtls_ecp_tls_read_point( &real_ctx->grp, &real_ctx->Qp, buf,
                                             end - *buf ) ) != 0 )
@@ -224,23 +280,23 @@ int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx, const mbedtls_ecp_keypai
 {
     int ret;
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    mbedtls_ecdh_context *real_ctx;
+    mbedtls_ecdh_context *real_ctx = ctx;
 
     if( ctx == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-    real_ctx = ctx;
 #else
     mbedtls_ecdh_context_mbed *real_ctx;
 
-    if( ctx == NULL || ctx->ctx.mbed_ecdh == NULL )
+    if( ctx == NULL || ctx->ctx.mbed_ecdh != NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-    real_ctx = ctx->ctx.mbed_ecdh;
 #endif
 
-    if( ( ret = mbedtls_ecp_group_copy( &real_ctx->grp, &key->grp ) ) != 0 )
+    if( ( ret = mbedtls_ecdh_setup( ctx, key->grp.id ) ) != 0 )
         return( ret );
+
+#if !defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    real_ctx = ctx->ctx.mbed_ecdh;
+#endif
 
     /* If it's not our key, just import the public part as Qp */
     if( side == MBEDTLS_ECDH_THEIRS )

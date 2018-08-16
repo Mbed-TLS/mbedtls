@@ -131,12 +131,14 @@ void ecdh_exchange( int id )
     const unsigned char *vbuf;
     size_t len;
     rnd_pseudo_info rnd_info;
+    unsigned char res_buf[1000];
+    size_t res_len;
 
     mbedtls_ecdh_init( &srv );
     mbedtls_ecdh_init( &cli );
     memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
 
-    TEST_ASSERT( mbedtls_ecp_group_load( &srv.grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_ecdh_setup( &srv, id ) == 0 );
 
     memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
     TEST_ASSERT( mbedtls_ecdh_make_params( &srv, &len, buf, 1000,
@@ -150,8 +152,10 @@ void ecdh_exchange( int id )
 
     TEST_ASSERT( mbedtls_ecdh_calc_secret( &srv, &len, buf, 1000,
                                    &rnd_pseudo_rand, &rnd_info ) == 0 );
-    TEST_ASSERT( mbedtls_ecdh_calc_secret( &cli, &len, buf, 1000, NULL, NULL ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &srv.z, &cli.z ) == 0 );
+    TEST_ASSERT( mbedtls_ecdh_calc_secret( &cli, &res_len, res_buf, 1000,
+                                   NULL, NULL ) == 0 );
+    TEST_ASSERT( len == res_len );
+    TEST_ASSERT( memcmp( buf, res_buf, len ) == 0 );
 
 exit:
     mbedtls_ecdh_free( &srv );

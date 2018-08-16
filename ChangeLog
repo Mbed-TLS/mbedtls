@@ -10,6 +10,9 @@ Bugfix
    * Add ecc extensions only if an ecc based ciphersuite is used.
      This improves compliance to RFC 4492, and as a result, solves
      interoperability issues with BouncyCastle. Raised by milenamil in #1157.
+   * Fix overly strict bounds check in ssl_parse_certificate_request()
+     which could lead to valid CertificateRequest messages being rejected.
+     Fixes #1954.
 
 = mbed TLS 2.1.14 branch released 2018-07-25
 

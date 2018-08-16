@@ -3473,6 +3473,7 @@ static int ssl_bitmask_check( unsigned char *mask, size_t len )
 /* msg_len does not include the handshake header */
 static int ssl_prepare_reassembly_buffer( mbedtls_ssl_context *ssl, /* debug */
                                           unsigned msg_len,
+                                          unsigned add_bitmap,
                                           unsigned char **target )
 {
     size_t alloc_len;
@@ -3490,7 +3491,9 @@ static int ssl_prepare_reassembly_buffer( mbedtls_ssl_context *ssl, /* debug */
 
     alloc_len  = 12;                                 /* Handshake header */
     alloc_len += msg_len;                            /* Content buffer   */
-    alloc_len += msg_len / 8 + ( msg_len % 8 != 0 ); /* Bitmap           */
+
+    if( add_bitmap )
+        alloc_len += msg_len / 8 + ( msg_len % 8 != 0 ); /* Bitmap       */
 
     buf = mbedtls_calloc( 1, alloc_len );
     if( buf == NULL )
@@ -3528,7 +3531,8 @@ static int ssl_reassemble_dtls_handshake( mbedtls_ssl_context *ssl )
      */
     if( ssl->handshake->hs_msg == NULL )
     {
-        ret = ssl_prepare_reassembly_buffer( msg_len, &ssl->handshake->hs_msg );
+        ret = ssl_prepare_reassembly_buffer( msg_len, 1,
+                                             &ssl->handshake->hs_msg );
         if( ret != 0 )
             return( ret );
 

@@ -198,6 +198,30 @@
 
 #endif /* AMD64 */
 
+#if defined(__aarch64__)
+
+#define MULADDC_INIT                \
+    asm(
+
+#define MULADDC_CORE                \
+        "ldr x4, [%3], #8   \n\t"   \
+        "ldr x5, [%4]       \n\t"   \
+        "mul x6, x4, %6     \n\t"   \
+        "umulh x7, x4, %6   \n\t"   \
+        "adds x5, x5, x6    \n\t"   \
+        "adc x7, x7, xzr    \n\t"   \
+        "adds x5, x5, %5    \n\t"   \
+        "adc %0, x7, xzr    \n\t"   \
+        "str x5, [%1], #8   \n\t"
+
+#define MULADDC_STOP                            \
+         : "+r" (c),  "=r" (d), "=r" (s)        \
+         : "r" (s), "r" (d), "r" (c), "r" (b)   \
+         : "x4", "x5", "x6", "x7", "cc"         \
+    );
+
+#endif /* Aarch64 */
+
 #if defined(__mc68020__) || defined(__mcpu32__)
 
 #define MULADDC_INIT                    \

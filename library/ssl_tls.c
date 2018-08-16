@@ -3470,6 +3470,39 @@ static int ssl_bitmask_check( unsigned char *mask, size_t len )
     return( 0 );
 }
 
+/* msg_len does not include the handshake header */
+static int ssl_prepare_reassembly_buffer( mbedtls_ssl_context *ssl, /* debug */
+                                          unsigned msg_len,
+                                          unsigned char **target )
+{
+    size_t alloc_len;
+    unsigned char *buf;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "initialize reassembly, total length = %d",
+                                msg_len ) );
+
+    /* NOTE: That should be checked earlier */
+    if( msg_len > MBEDTLS_SSL_IN_CONTENT_LEN )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "handshake message too large" ) );
+        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
+    }
+
+    alloc_len  = 12;                                 /* Handshake header */
+    alloc_len += msg_len;                            /* Content buffer   */
+    alloc_len += msg_len / 8 + ( msg_len % 8 != 0 ); /* Bitmap           */
+
+    buf = mbedtls_calloc( 1, alloc_len );
+    if( buf == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc failed (%d bytes)", alloc_len ) );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+    }
+
+    *target = buf;
+    return( 0 );
+}
+
 /*
  * Reassemble fragmented DTLS handshake messages.
  *
@@ -3495,26 +3528,9 @@ static int ssl_reassemble_dtls_handshake( mbedtls_ssl_context *ssl )
      */
     if( ssl->handshake->hs_msg == NULL )
     {
-        size_t alloc_len;
-
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "initialize reassembly, total length = %d",
-                            msg_len ) );
-
-        if( ssl->in_hslen > MBEDTLS_SSL_IN_CONTENT_LEN )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "handshake message too large" ) );
-            return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-        }
-
-        /* The bitmask needs one bit per byte of message excluding header */
-        alloc_len = 12 + msg_len + msg_len / 8 + ( msg_len % 8 != 0 );
-
-        ssl->handshake->hs_msg = mbedtls_calloc( 1, alloc_len );
-        if( ssl->handshake->hs_msg == NULL )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc failed (%d bytes)", alloc_len ) );
-            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
-        }
+        ret = ssl_prepare_reassembly_buffer( msg_len, &ssl->handshake->hs_msg );
+        if( ret != 0 )
+            return( ret );
 
         /* Prepare final header: copy msg_type, length and message_seq,
          * then add standardised fragment_offset and fragment_length */

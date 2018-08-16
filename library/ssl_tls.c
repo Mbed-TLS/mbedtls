@@ -3409,6 +3409,17 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
 }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
+
+static int ssl_hs_is_proper_fragment( mbedtls_ssl_context *ssl )
+{
+    if( ssl->in_msglen < ssl->in_hslen ||
+        memcmp( ssl->in_msg + 6, "\0\0\0",        3 ) != 0 ||
+        memcmp( ssl->in_msg + 9, ssl->in_msg + 1, 3 ) != 0 )
+    {
+        return( 1 );
+    }
+    return( 0 );
+}
 /*
  * Mark bits in bitmask (used for DTLS HS reassembly)
  */
@@ -3636,15 +3647,13 @@ static int ssl_reassemble_dtls_handshake( mbedtls_ssl_context *ssl )
 
     memcpy( ssl->in_msg, ssl->handshake->hs_msg, ssl->in_hslen );
 
-    mbedtls_free( ssl->handshake->hs_msg );
-    ssl->handshake->hs_msg = NULL;
-
     MBEDTLS_SSL_DEBUG_BUF( 3, "reassembled handshake message",
                    ssl->in_msg, ssl->in_hslen );
 
     return( 0 );
 }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
+
 
 int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
 {
@@ -3713,12 +3722,7 @@ int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
         }
         /* Wait until message completion to increment in_msg_seq */
 
-        /* Reassemble if current message is fragmented or reassembly is
-         * already in progress */
-        if( ssl->in_msglen < ssl->in_hslen ||
-            memcmp( ssl->in_msg + 6, "\0\0\0",        3 ) != 0 ||
-            memcmp( ssl->in_msg + 9, ssl->in_msg + 1, 3 ) != 0 ||
-            ( ssl->handshake != NULL && ssl->handshake->hs_msg != NULL ) )
+        if( ssl_hs_is_proper_fragment( ssl ) == 1 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "found fragmented DTLS handshake message" ) );
 
@@ -3756,6 +3760,13 @@ void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl )
         ssl->handshake != NULL )
     {
         ssl->handshake->in_msg_seq++;
+
+        /* Clear up handshake reassembly structure, if any. */
+        if( ssl->handshake->hs_msg != NULL )
+        {
+            mbedtls_free( ssl->handshake->hs_msg );
+            ssl->handshake->hs_msg = NULL;
+        }
     }
 #endif
 }

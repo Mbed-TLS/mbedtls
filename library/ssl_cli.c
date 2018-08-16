@@ -2504,7 +2504,7 @@ static int ssl_parse_certificate_request( mbedtls_ssl_context *ssl )
      * therefore the buffer length at this point must be greater than that
      * regardless of the actual code path.
      */
-    if( ssl->in_hslen <= mbedtls_ssl_hs_hdr_len( ssl ) + 3 + n )
+    if( ssl->in_hslen <= mbedtls_ssl_hs_hdr_len( ssl ) + 2 + n )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate request message" ) );
         return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE_REQUEST );

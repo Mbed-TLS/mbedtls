@@ -2861,10 +2861,7 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
 
     if( ssl->handshake->retransmit_state != MBEDTLS_SSL_RETRANS_SENDING )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "initialise fligh transmission" ) );
-
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "max handshake fragment length: %u",
-                                    max_hs_fragment_len ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "initialise flight transmission" ) );
 
         ssl->handshake->cur_msg = ssl->handshake->flight;
         ssl->handshake->cur_msg_p = ssl->handshake->flight->p + 12;
@@ -2906,7 +2903,11 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
                                   ? max_hs_fragment_len : rem_len;
 
             if( frag_off == 0 && frag_len != hs_len )
-                MBEDTLS_SSL_DEBUG_MSG( 2, ( "fragmenting handshake message" ) );
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 2, ( "fragmenting handshake message (%u > %u)",
+                                            (unsigned) hs_len,
+                                            (unsigned) max_hs_fragment_len ) );
+            }
 
             /* Messages are stored with handshake headers as if not fragmented,
              * copy beginning of headers then fill fragmentation fields.

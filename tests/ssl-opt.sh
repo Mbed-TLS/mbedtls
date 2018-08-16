@@ -5068,6 +5068,32 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+# This ensures things still work after session_reset(),
+# for example it would have caught #1941.
+# It also exercises the "resumed hanshake" flow.
+# Since we don't support reading fragmented ClientHello yet,
+# up the MTU to 1450 (larger than ClientHello with session ticket,
+# but still smaller than client's Certificate to ensure fragmentation).
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+run_test    "DTLS fragmenting: proxy MTU, resumed handshake" \
+            -p "$P_PXY mtu=1450" \
+            "$P_SRV dtls=1 debug_level=2 auth_mode=required \
+             crt_file=data_files/server7_int-ca.crt \
+             key_file=data_files/server7.key \
+             mtu=1450" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=data_files/server8_int-ca2.crt \
+             key_file=data_files/server8.key \
+             mtu=1450 reconnect=1" \
+            0 \
+            -S "resend" \
+            -C "resend" \
+            -s "found fragmented DTLS handshake message" \
+            -c "found fragmented DTLS handshake message" \
+            -C "error"
+
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C

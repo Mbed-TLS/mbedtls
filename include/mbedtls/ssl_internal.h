@@ -297,8 +297,6 @@ struct mbedtls_ssl_handshake_params
     unsigned char verify_cookie_len;    /*!<  Cli: cookie length
                                               Srv: flag for sending a cookie */
 
-    unsigned char *hs_msg;              /*!<  Reassembled handshake message  */
-
     uint32_t retransmit_timeout;        /*!<  Current value of timeout       */
     unsigned char retransmit_state;     /*!<  Retransmission state           */
     mbedtls_ssl_flight_item *flight;    /*!<  Current outgoing flight        */

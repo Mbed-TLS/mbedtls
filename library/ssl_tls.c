@@ -3558,141 +3558,6 @@ static int ssl_prepare_reassembly_buffer( mbedtls_ssl_context *ssl, /* debug */
     return( 0 );
 }
 
-/*
- * Reassemble fragmented DTLS handshake messages.
- *
- * Use a temporary buffer for reassembly, divided in two parts:
- * - the first holds the reassembled message (including handshake header),
- * - the second holds a bitmask indicating which parts of the message
- *   (excluding headers) have been received so far.
- */
-static int ssl_reassemble_dtls_handshake( mbedtls_ssl_context *ssl )
-{
-    unsigned char *msg, *bitmask;
-    size_t frag_len, frag_off;
-    size_t msg_len = ssl->in_hslen - 12; /* Without headers */
-
-    if( ssl->handshake == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "not supported outside handshake (for now)" ) );
-        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-    }
-
-    /*
-     * For first fragment, check size and allocate buffer
-     */
-    if( ssl->handshake->hs_msg == NULL )
-    {
-        ret = ssl_prepare_reassembly_buffer( msg_len, 1,
-                                             &ssl->handshake->hs_msg );
-        if( ret != 0 )
-            return( ret );
-
-        /* Prepare final header: copy msg_type, length and message_seq,
-         * then add standardised fragment_offset and fragment_length */
-        memcpy( ssl->handshake->hs_msg, ssl->in_msg, 6 );
-        memset( ssl->handshake->hs_msg + 6, 0, 3 );
-        memcpy( ssl->handshake->hs_msg + 9,
-                ssl->handshake->hs_msg + 1, 3 );
-    }
-    else
-    {
-        /* Make sure msg_type and length are consistent */
-        if( memcmp( ssl->handshake->hs_msg, ssl->in_msg, 4 ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "fragment header mismatch" ) );
-            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
-        }
-    }
-
-    msg = ssl->handshake->hs_msg + 12;
-    bitmask = msg + msg_len;
-
-    /*
-     * Check and copy current fragment
-     */
-    frag_off = ( ssl->in_msg[6]  << 16 ) |
-               ( ssl->in_msg[7]  << 8  ) |
-                 ssl->in_msg[8];
-    frag_len = ( ssl->in_msg[9]  << 16 ) |
-               ( ssl->in_msg[10] << 8  ) |
-                 ssl->in_msg[11];
-
-    if( frag_off + frag_len > msg_len )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid fragment offset/len: %d + %d > %d",
-                          frag_off, frag_len, msg_len ) );
-        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
-    }
-
-    if( frag_len + 12 > ssl->in_msglen )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid fragment length: %d + 12 > %d",
-                          frag_len, ssl->in_msglen ) );
-        return( MBEDTLS_ERR_SSL_INVALID_RECORD );
-    }
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "adding fragment, offset = %d, length = %d",
-                        frag_off, frag_len ) );
-
-    memcpy( msg + frag_off, ssl->in_msg + 12, frag_len );
-    ssl_bitmask_set( bitmask, frag_off, frag_len );
-
-    /*
-     * Do we have the complete message by now?
-     * If yes, finalize it, else ask to read the next record.
-     */
-    if( ssl_bitmask_check( bitmask, msg_len ) != 0 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "message is not complete yet" ) );
-        return( MBEDTLS_ERR_SSL_CONTINUE_PROCESSING );
-    }
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "handshake message completed" ) );
-
-    if( frag_len + 12 < ssl->in_msglen )
-    {
-        /*
-         * We'got more handshake messages in the same record.
-         * This case is not handled now because no know implementation does
-         * that and it's hard to test, so we prefer to fail cleanly for now.
-         */
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "last fragment not alone in its record" ) );
-        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-    }
-
-    if( ssl->in_left > ssl->next_record_offset )
-    {
-        /*
-         * We've got more data in the buffer after the current record,
-         * that we don't want to overwrite. Move it before writing the
-         * reassembled message, and adjust in_left and next_record_offset.
-         */
-        unsigned char *cur_remain = ssl->in_hdr + ssl->next_record_offset;
-        unsigned char *new_remain = ssl->in_msg + ssl->in_hslen;
-        size_t remain_len = ssl->in_left - ssl->next_record_offset;
-
-        /* First compute and check new lengths */
-        ssl->next_record_offset = new_remain - ssl->in_hdr;
-        ssl->in_left = ssl->next_record_offset + remain_len;
-
-        if( ssl->in_left > MBEDTLS_SSL_IN_BUFFER_LEN -
-                           (size_t)( ssl->in_hdr - ssl->in_buf ) )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "reassembled message too large for buffer" ) );
-            return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
-        }
-
-        memmove( new_remain, cur_remain, remain_len );
-    }
-
-    memcpy( ssl->in_msg, ssl->handshake->hs_msg, ssl->in_hslen );
-
-    MBEDTLS_SSL_DEBUG_BUF( 3, "reassembled handshake message",
-                   ssl->in_msg, ssl->in_hslen );
-
-    return( 0 );
-}
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context *ssl )
@@ -3772,15 +3637,14 @@ int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
         }
         /* Wait until message completion to increment in_msg_seq */
 
+        /* Message reassembly is handled alongside buffering of future
+         * messages; the commonality is that both handshake fragments and
+         * future messages cannot be forwarded immediately to the handshake
+         * handshake logic layer. */
         if( ssl_hs_is_proper_fragment( ssl ) == 1 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "found fragmented DTLS handshake message" ) );
-
-            if( ( ret = ssl_reassemble_dtls_handshake( ssl ) ) != 0 )
-            {
-                MBEDTLS_SSL_DEBUG_RET( 1, "ssl_reassemble_dtls_handshake", ret );
-                return( ret );
-            }
+            return( MBEDTLS_ERR_SSL_EARLY_MESSAGE );
         }
     }
     else
@@ -3811,13 +3675,6 @@ void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl )
     {
         unsigned offset;
         mbedtls_ssl_hs_buffer *hs_buf;
-
-        /* Clear up handshake reassembly structure, if any. */
-        if( ssl->handshake->hs_msg != NULL )
-        {
-            mbedtls_free( ssl->handshake->hs_msg );
-            ssl->handshake->hs_msg = NULL;
-        }
 
         /* Increment handshake sequence number */
         hs->in_msg_seq++;
@@ -4554,7 +4411,7 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
             break;
 
         case MBEDTLS_SSL_MSG_HANDSHAKE:
-            /* No support for buffering handshake messages so far. */
+            /* TODO: Implement buffering and reassembly here. */
             break;
 
         default:
@@ -8461,7 +8318,6 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     mbedtls_free( handshake->verify_cookie );
-    mbedtls_free( handshake->hs_msg );
     ssl_flight_free( handshake->flight );
     ssl_buffering_free( ssl );
 #endif

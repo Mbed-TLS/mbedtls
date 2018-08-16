@@ -2,6 +2,14 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+API Changes
+   * Extend the platform module with an abstraction mbedtls_platform_gmtime()
+     whose implementation should behave as a thread safe version of gmtime().
+     This allows users to configure such an implementation at compile time when
+     the target system cannot be deduced automatically. At this stage Mbed TLS
+     is only able to configure implementations for Windows and POSIX C
+     libraries.
+
 Bugfix
    * Fixes an issue with MBEDTLS_CHACHAPOLY_C which would not compile if
      MBEDTLS_ARC4_C and MBEDTLS_CIPHER_NULL_CIPHER weren't also defined. #1890

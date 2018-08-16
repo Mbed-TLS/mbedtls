@@ -35,6 +35,7 @@ Changes
      Drozd. Fixes #1215 raised by randombit.
    * Improve compatibility with some alternative CCM implementations by using
      CCM test vectors from RAM.
+   * Add support for buffering of out-of-order handshake messages.
 
 INTERNAL NOTE: need to bump soversion of libmbedtls:
 - added new member 'mtu' to public 'mbedtls_ssl_conf' structure

@@ -40,46 +40,42 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ecdsa_prim_test_vectors( int id, char *d_str, char *xQ_str, char *yQ_str,
-                              char *k_str, char *hash_str, char *r_str,
-                              char *s_str, int result )
+void ecdsa_prim_test_vectors( int id, char * d_str, char * xQ_str,
+                              char * yQ_str, data_t * rnd_buf,
+                              data_t * hash, char * r_str, char * s_str,
+                              int result )
 {
     mbedtls_ecp_group grp;
     mbedtls_ecp_point Q;
     mbedtls_mpi d, r, s, r_check, s_check;
-    unsigned char hash[66], rnd_buf[66];
-    size_t hlen;
     rnd_buf_info rnd_info;
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_ecp_point_init( &Q );
     mbedtls_mpi_init( &d ); mbedtls_mpi_init( &r ); mbedtls_mpi_init( &s );
     mbedtls_mpi_init( &r_check ); mbedtls_mpi_init( &s_check );
-    memset( hash, 0, sizeof( hash ) );
-    memset( rnd_buf, 0, sizeof( rnd_buf ) );
 
     TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
     TEST_ASSERT( mbedtls_ecp_point_read_string( &Q, 16, xQ_str, yQ_str ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &d, 16, d_str ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &r_check, 16, r_str ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &s_check, 16, s_str ) == 0 );
-    hlen = unhexify(hash, hash_str);
-    rnd_info.buf = rnd_buf;
-    rnd_info.length = unhexify( rnd_buf, k_str );
+    rnd_info.buf = rnd_buf->x;
+    rnd_info.length = rnd_buf->len;
 
-    /* Fix rnd_buf by shifting it left if necessary */
+    /* Fix rnd_buf->x by shifting it left if necessary */
     if( grp.nbits % 8 != 0 )
     {
         unsigned char shift = 8 - ( grp.nbits % 8 );
         size_t i;
 
         for( i = 0; i < rnd_info.length - 1; i++ )
-            rnd_buf[i] = rnd_buf[i] << shift | rnd_buf[i+1] >> ( 8 - shift );
+            rnd_buf->x[i] = rnd_buf->x[i] << shift | rnd_buf->x[i+1] >> ( 8 - shift );
 
-        rnd_buf[rnd_info.length-1] <<= shift;
+        rnd_buf->x[rnd_info.length-1] <<= shift;
     }
 
-    TEST_ASSERT( mbedtls_ecdsa_sign( &grp, &r, &s, &d, hash, hlen,
+    TEST_ASSERT( mbedtls_ecdsa_sign( &grp, &r, &s, &d, hash->x, hash->len,
                  rnd_buffer_rand, &rnd_info ) == result );
 
     if ( result == 0)
@@ -87,7 +83,7 @@ void ecdsa_prim_test_vectors( int id, char *d_str, char *xQ_str, char *yQ_str,
         TEST_ASSERT( mbedtls_mpi_cmp_mpi( &r, &r_check ) == 0 );
         TEST_ASSERT( mbedtls_mpi_cmp_mpi( &s, &s_check ) == 0 );
 
-        TEST_ASSERT( mbedtls_ecdsa_verify( &grp, hash, hlen, &Q, &r_check, &s_check ) == 0 );
+        TEST_ASSERT( mbedtls_ecdsa_verify( &grp, hash->x, hash->len, &Q, &r_check, &s_check ) == 0 );
     }
 
 exit:
@@ -99,8 +95,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECDSA_DETERMINISTIC */
-void ecdsa_det_test_vectors( int id, char *d_str, int md_alg,
-                             char *msg, char *r_str, char *s_str )
+void ecdsa_det_test_vectors( int id, char * d_str, int md_alg, char * msg,
+                             char * r_str, char * s_str )
 {
     mbedtls_ecp_group grp;
     mbedtls_mpi d, r, s, r_check, s_check;

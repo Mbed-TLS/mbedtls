@@ -1,4 +1,4 @@
-#line 1 "helpers.function"
+#line 2 "suites/helpers.function"
 /*----------------------------------------------------------------------------*/
 /* Headers */
 
@@ -25,6 +25,8 @@
 
 #ifdef _MSC_VER
 #include <basetsd.h>
+typedef UINT8 uint8_t;
+typedef INT32 int32_t;
 typedef UINT32 uint32_t;
 #define strncasecmp _strnicmp
 #define strcasecmp _stricmp
@@ -39,19 +41,29 @@ typedef UINT32 uint32_t;
 #include <strings.h>
 #endif
 
+/* Type for Hex parameters */
+typedef struct data_tag
+{
+    uint8_t *   x;
+    uint32_t    len;
+} data_t;
+
 /*----------------------------------------------------------------------------*/
-/* Constants */
+/* Status and error constants */
 
-#define DEPENDENCY_SUPPORTED        0
-#define DEPENDENCY_NOT_SUPPORTED    1
+#define DEPENDENCY_SUPPORTED            0   /* Dependency supported by build */
+#define KEY_VALUE_MAPPING_FOUND         0   /* Integer expression found */
+#define DISPATCH_TEST_SUCCESS           0   /* Test dispatch successful */
 
-#define KEY_VALUE_MAPPING_FOUND     0
-#define KEY_VALUE_MAPPING_NOT_FOUND -1
-
-#define DISPATCH_TEST_SUCCESS       0
-#define DISPATCH_TEST_FN_NOT_FOUND  1
-#define DISPATCH_INVALID_TEST_DATA  2
-#define DISPATCH_UNSUPPORTED_SUITE  3
+#define KEY_VALUE_MAPPING_NOT_FOUND     -1  /* Integer expression not found */
+#define DEPENDENCY_NOT_SUPPORTED        -2  /* Dependency not supported */
+#define DISPATCH_TEST_FN_NOT_FOUND      -3  /* Test function not found */
+#define DISPATCH_INVALID_TEST_DATA      -4  /* Invalid test parameter type.
+                                               Only int, string, binary data
+                                               and integer expressions are
+                                               allowed */
+#define DISPATCH_UNSUPPORTED_SUITE      -5  /* Test suite not supported by the
+                                               build */
 
 
 /*----------------------------------------------------------------------------*/
@@ -442,3 +454,23 @@ static void test_fail( const char *test, int line_no, const char* filename )
     test_info.line_no = line_no;
     test_info.filename = filename;
 }
+
+int hexcmp( uint8_t * a, uint8_t * b, uint32_t a_len, uint32_t b_len )
+{
+    int ret = 0;
+    uint32_t i = 0;
+
+    if ( a_len != b_len )
+        return( -1 );
+
+    for( i = 0; i < a_len; i++ )
+    {
+        if ( a[i] != b[i] )
+        {
+            ret = -1;
+            break;
+        }
+    }
+    return ret;
+}
+

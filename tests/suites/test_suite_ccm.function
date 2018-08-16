@@ -8,7 +8,7 @@
  */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST:MBEDTLS_AES_C */
-void mbedtls_ccm_self_test( )
+void mbedtls_ccm_self_test(  )
 {
     TEST_ASSERT( mbedtls_ccm_self_test( 1 ) == 0 );
 }
@@ -116,113 +116,74 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_ccm_encrypt_and_tag( int cipher_id,
-                          char *key_hex, char *msg_hex,
-                          char *iv_hex, char *add_hex,
-                          char *result_hex )
+void mbedtls_ccm_encrypt_and_tag( int cipher_id, data_t * key,
+                                  data_t * msg, data_t * iv,
+                                  data_t * add, data_t * result )
 {
-    unsigned char key[32];
-    unsigned char msg[50];
-    unsigned char iv[13];
-    unsigned char add[32];
-    unsigned char result[50];
     mbedtls_ccm_context ctx;
-    size_t key_len, msg_len, iv_len, add_len, tag_len, result_len;
+    size_t tag_len;
+    uint8_t * msg_n_tag = (uint8_t *)malloc( result->len + 2 );
 
     mbedtls_ccm_init( &ctx );
 
-    memset( key, 0x00, sizeof( key ) );
-    memset( msg, 0x00, sizeof( msg ) );
-    memset( iv, 0x00, sizeof( iv ) );
-    memset( add, 0x00, sizeof( add ) );
-    memset( result, 0x00, sizeof( result ) );
+    memset( msg_n_tag, 0, result->len + 2 );
+    memcpy( msg_n_tag, msg->x, msg->len );
 
-    key_len = unhexify( key, key_hex );
-    msg_len = unhexify( msg, msg_hex );
-    iv_len = unhexify( iv, iv_hex );
-    add_len = unhexify( add, add_hex );
-    result_len = unhexify( result, result_hex );
-    tag_len = result_len - msg_len;
+    tag_len = result->len - msg->len;
 
-    TEST_ASSERT( mbedtls_ccm_setkey( &ctx, cipher_id, key, key_len * 8 ) == 0 );
+    TEST_ASSERT( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ) == 0 );
 
     /* Test with input == output */
-    TEST_ASSERT( mbedtls_ccm_encrypt_and_tag( &ctx, msg_len, iv, iv_len, add, add_len,
-                 msg, msg, msg + msg_len, tag_len ) == 0 );
+    TEST_ASSERT( mbedtls_ccm_encrypt_and_tag( &ctx, msg->len, iv->x, iv->len, add->x, add->len,
+                 msg_n_tag, msg_n_tag, msg_n_tag + msg->len, tag_len ) == 0 );
 
-    TEST_ASSERT( memcmp( msg, result, result_len ) == 0 );
+    TEST_ASSERT( memcmp( msg_n_tag, result->x, result->len ) == 0 );
 
     /* Check we didn't write past the end */
-    TEST_ASSERT( msg[result_len] == 0 && msg[result_len + 1] == 0 );
+    TEST_ASSERT( msg_n_tag[result->len] == 0 && msg_n_tag[result->len + 1] == 0 );
 
 exit:
     mbedtls_ccm_free( &ctx );
+    free( msg_n_tag );
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_ccm_auth_decrypt( int cipher_id,
-                       char *key_hex, char *msg_hex,
-                       char *iv_hex, char *add_hex,
-                       int tag_len, char *result_hex )
+void mbedtls_ccm_auth_decrypt( int cipher_id, data_t * key,
+                               data_t * msg, data_t * iv,
+                               data_t * add, int tag_len, int result,
+                               data_t * hex_msg )
 {
-    unsigned char key[32];
-    unsigned char msg[50];
-    unsigned char iv[13];
-    unsigned char add[32];
     unsigned char tag[16];
-    unsigned char result[50];
     mbedtls_ccm_context ctx;
-    size_t key_len, msg_len, iv_len, add_len, result_len;
-    int ret;
 
     mbedtls_ccm_init( &ctx );
 
-    memset( key, 0x00, sizeof( key ) );
-    memset( msg, 0x00, sizeof( msg ) );
-    memset( iv, 0x00, sizeof( iv ) );
-    memset( add, 0x00, sizeof( add ) );
     memset( tag, 0x00, sizeof( tag ) );
-    memset( result, 0x00, sizeof( result ) );
 
-    key_len = unhexify( key, key_hex );
-    msg_len = unhexify( msg, msg_hex );
-    iv_len = unhexify( iv, iv_hex );
-    add_len = unhexify( add, add_hex );
-    msg_len -= tag_len;
-    memcpy( tag, msg + msg_len, tag_len );
+    msg->len -= tag_len;
+    memcpy( tag, msg->x + msg->len, tag_len );
 
-    if( strcmp( "FAIL", result_hex ) == 0 )
-    {
-        ret = MBEDTLS_ERR_CCM_AUTH_FAILED;
-        result_len = -1;
-    }
-    else
-    {
-        ret = 0;
-        result_len = unhexify( result, result_hex );
-    }
-
-    TEST_ASSERT( mbedtls_ccm_setkey( &ctx, cipher_id, key, key_len * 8 ) == 0 );
+    TEST_ASSERT( mbedtls_ccm_setkey( &ctx, cipher_id, key->x, key->len * 8 ) == 0 );
 
     /* Test with input == output */
-    TEST_ASSERT( mbedtls_ccm_auth_decrypt( &ctx, msg_len, iv, iv_len, add, add_len,
-                 msg, msg, msg + msg_len, tag_len ) == ret );
+    TEST_ASSERT( mbedtls_ccm_auth_decrypt( &ctx, msg->len, iv->x, iv->len, add->x, add->len,
+                 msg->x, msg->x, msg->x + msg->len, tag_len ) == result );
 
-    if( ret == 0 )
+    if( result == 0 )
     {
-        TEST_ASSERT( memcmp( msg, result, result_len ) == 0 );
+        TEST_ASSERT( memcmp( msg->x, hex_msg->x, hex_msg->len ) == 0 );
     }
     else
     {
         size_t i;
 
-        for( i = 0; i < msg_len; i++ )
-            TEST_ASSERT( msg[i] == 0 );
+        for( i = 0; i < msg->len; i++ )
+            TEST_ASSERT( msg->x[i] == 0 );
     }
 
     /* Check we didn't write past the end (where the original tag is) */
-    TEST_ASSERT( memcmp( msg + msg_len, tag, tag_len ) == 0 );
+    TEST_ASSERT( memcmp( msg->x + msg->len, tag, tag_len ) == 0 );
 
 exit:
     mbedtls_ccm_free( &ctx );

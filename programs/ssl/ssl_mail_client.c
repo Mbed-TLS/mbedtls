@@ -356,9 +356,11 @@ int main( int argc, char *argv[] )
     int ret = 1, len;
     int exit_code = MBEDTLS_EXIT_FAILURE;
     mbedtls_net_context server_fd;
-    unsigned char buf[1024];
 #if defined(MBEDTLS_BASE64_C)
     unsigned char base[1024];
+    unsigned char buf[ sizeof( base ) + 2 ];
+#else
+    unsigned char buf[1024];
 #endif
     char hostname[32];
     const char *pers = "ssl_mail_client";

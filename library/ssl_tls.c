@@ -3070,7 +3070,7 @@ void mbedtls_ssl_recv_flight_completed( mbedtls_ssl_context *ssl )
     ssl->handshake->in_flight_start_seq = ssl->handshake->in_msg_seq;
 
     /* We don't want to remember CCS's across flight boundaries. */
-    ssl->handshake->seen_ccs = 0;
+    ssl->handshake->buffering.seen_ccs = 0;
 
     /* Cancel timer */
     ssl_set_timer( ssl, 0 );
@@ -4436,11 +4436,11 @@ static int ssl_load_buffered_message( mbedtls_ssl_context *ssl )
     {
         /* Check if we have seen a ChangeCipherSpec before.
          * If yes, synthesize a CCS record. */
-        if( ! hs->seen_ccs )
+        if( ! hs->buffering.seen_ccs )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "CCS not seen in the current flight" ) );
             ret = -1;
-            goto exit;
+            return( -1 );
         }
 
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "Inject buffered CCS message" ) );
@@ -4452,7 +4452,7 @@ static int ssl_load_buffered_message( mbedtls_ssl_context *ssl )
         ssl->in_left            = 0;
         ssl->next_record_offset = 0;
 
-        hs->seen_ccs = 0;
+        hs->buffering.seen_ccs = 0;
         goto exit;
     }
     ret = -1;
@@ -4477,7 +4477,7 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
     {
         case MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC:
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "Remember CCS message" ) );
-            hs->seen_ccs = 1;
+            hs->buffering.seen_ccs = 1;
             break;
 
         case MBEDTLS_SSL_MSG_HANDSHAKE:

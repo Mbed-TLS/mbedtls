@@ -3091,6 +3091,25 @@
  */
 //#define MBEDTLS_PLATFORM_ZEROIZE_ALT
 
+/**
+ * Uncomment the macro to let Mbed TLS use your alternate implementation of
+ * mbedtls_platform_gmtime(). This replaces the default implementation in
+ * platform_util.c.
+ *
+ * gmtime() is not a thread safe function as defined in the C standard. The
+ * library will try to use safer implementations of this function, such as
+ * gmtime_r() when available. However, if Mbed TLS cannot identify the target
+ * system, the implementation of mbedtls_platform_gmtime() will default to
+ * using the standard gmtime(). In this case, calls from the library to
+ * gmtime() will be guarded by the global mutex mbedtls_threading_gmtime_mutex
+ * if MBEDTLS_THREADING_C is enable. It is advised that calls from outside the
+ * library are also guarded with this mutex to avoid race conditions. However,
+ * if the macro MBEDTLS_PLATFORM_GMTIME_ALT is defined, Mbed TLS will
+ * unconditionally use the implementation for mbedtls_platform_time() supplied
+ * at compile time.
+ */
+//#define MBEDTLS_PLATFORM_GMTIME_ALT
+
 /* \} name SECTION: Customisation configuration options */
 
 /* Target and application specific configurations */

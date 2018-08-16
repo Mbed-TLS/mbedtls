@@ -20,6 +20,12 @@
  *  This file is part of Mbed TLS (https://tls.mbed.org)
  */
 
+/*
+ * Ensure gmtime_r is available even with -std=c99; must be included before
+ * config.h, which pulls in glibc's features.h. Harmless on other platforms.
+ */
+#define _POSIX_C_SOURCE 200112L
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -27,6 +33,7 @@
 #endif
 
 #include "mbedtls/platform_util.h"
+#include "mbedtls/threading.h"
 
 #include <stddef.h>
 #include <string.h>
@@ -65,3 +72,45 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
     memset_func( buf, 0, len );
 }
 #endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT */
+
+#if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_ALT)
+#include <time.h>
+#if !defined(_WIN32) && (defined(__unix__) || \
+    (defined(__APPLE__) && defined(__MACH__)))
+#include <unistd.h>
+#if !defined(_POSIX_VERSION) || _POSIX_C_SOURCE > _POSIX_THREAD_SAFE_FUNCTIONS
+#define PLATFORM_UTIL_USE_GMTIME
+#endif /* !_POSIX_VERSION || _POSIX_C_SOURCE > _POSIX_THREAD_SAFE_FUNCTIONS */
+#endif /* !_WIN32 && (__unix__ || (__APPLE__ && __MACH__)) */
+
+struct tm *mbedtls_platform_gmtime( const mbedtls_time_t *tt,
+                                    struct tm *tm_buf )
+{
+#if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
+    return ( gmtime_s( tm_buf, tt ) == 0 ) ? tm_buf : NULL;
+#elif !defined(PLATFORM_UTIL_USE_GMTIME)
+    return gmtime_r( tt, tm_buf );
+#else
+    struct tm *lt;
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_lock( &mbedtls_threading_gmtime_mutex ) != 0 )
+        return( NULL );
+#endif /* MBEDTLS_THREADING_C */
+
+    lt = gmtime( tt );
+
+    if( lt != NULL )
+    {
+        memcpy( tm_buf, lt, sizeof( struct tm ) );
+    }
+
+#if defined(MBEDTLS_THREADING_C)
+    if( mbedtls_mutex_unlock( &mbedtls_threading_gmtime_mutex ) != 0 )
+        return( NULL );
+#endif /* MBEDTLS_THREADING_C */
+
+    return ( lt == NULL ) ? NULL : tm_buf;
+#endif
+}
+#endif /* MBEDTLS_HAVE_TIME_DATE && MBEDTLS_PLATFORM_GMTIME_ALT */

@@ -29,10 +29,6 @@
  *  http://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
  */
 
-/* Ensure gmtime_r is available even with -std=c99; must be included before
- * config.h, which pulls in glibc's features.h. Harmless on other platforms. */
-#define _POSIX_C_SOURCE 200112L
-
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else
@@ -67,6 +63,7 @@
 #include "mbedtls/platform_time.h"
 #endif
 #if defined(MBEDTLS_HAVE_TIME_DATE)
+#include "mbedtls/platform_util.h"
 #include <time.h>
 #endif
 
@@ -890,14 +887,6 @@ int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name )
 }
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)
-#if !defined(_WIN32) && (defined(__unix__) || \
-    (defined(__APPLE__) && defined(__MACH__)))
-#include <unistd.h>
-#if !defined(_POSIX_VERSION)
-#define X509_USE_GMTIME
-#endif /* !_POSIX_VERSION */
-#endif /* !_WIN32 && (__unix__ || (__APPLE__ && __MACH__)) */
-
 /*
  * Set the time structure to the current time.
  * Return 0 on success, non-zero on failure.
@@ -910,19 +899,8 @@ static int x509_get_current_time( mbedtls_x509_time *now )
 
     (void)tm_buf;
 
-#if defined(MBEDTLS_THREADING_C) && defined(X509_USE_GMTIME)
-    if( mbedtls_mutex_lock( &mbedtls_threading_gmtime_mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif /* MBEDTLS_THREADING_C && X509_USE_GMTIME */
-
     tt = mbedtls_time( NULL );
-#if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
-    lt = gmtime_s( &tm_buf, &tt ) == 0 ? &tm_buf : NULL;
-#elif defined(_POSIX_VERSION)
-    lt = gmtime_r( &tt, &tm_buf );
-#else
-    lt = gmtime( &tt );
-#endif
+    lt = mbedtls_platform_gmtime( &tt, &tm_buf );
 
     if( lt == NULL )
         ret = -1;
@@ -935,11 +913,6 @@ static int x509_get_current_time( mbedtls_x509_time *now )
         now->min  = lt->tm_min;
         now->sec  = lt->tm_sec;
     }
-
-#if defined(MBEDTLS_THREADING_C) && defined(X509_USE_GMTIME)
-    if( mbedtls_mutex_unlock( &mbedtls_threading_gmtime_mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif /* MBEDTLS_THREADING_C && X509_USE_GMTIME */
 
     return( ret );
 }

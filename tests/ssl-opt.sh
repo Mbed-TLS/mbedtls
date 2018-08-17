@@ -5743,29 +5743,71 @@ run_test    "DTLS proxy: delay ChangeCipherSpec" \
 
 # Tests for reordering support with DTLS
 
-run_test    "DTLS reordering: Buffer out-of-order handshake message" \
-            -p "$P_PXY delay=2 seed=1" \
+run_test    "DTLS reordering: Buffer out-of-order handshake message on client" \
+            -p "$P_PXY delay_srv=ServerHello" \
             "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
             0 \
             -c "Buffering HS message" \
-            -c "Next handshake message has been buffered - load"
+            -c "Next handshake message has been buffered - load"\
+            -S "Buffering HS message" \
+            -S "Next handshake message has been buffered - load"\
+            -C "Inject buffered CCS message" \
+            -C "Remember CCS message" \
+            -S "Inject buffered CCS message" \
+            -S "Remember CCS message"
 
-run_test    "DTLS reordering: Buffer record from future epoch" \
-            -p "$P_PXY drop=3 seed=2" \
+run_test    "DTLS reordering: Buffer out-of-order handshake message on server" \
+            -p "$P_PXY delay_cli=Certificate" \
+            "$P_SRV dgram_packing=0 auth_mode=required cookies=0 dtls=1 debug_level=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            0 \
+            -C "Buffering HS message" \
+            -C "Next handshake message has been buffered - load"\
+            -s "Buffering HS message" \
+            -s "Next handshake message has been buffered - load" \
+            -C "Inject buffered CCS message" \
+            -C "Remember CCS message" \
+            -S "Inject buffered CCS message" \
+            -S "Remember CCS message"
+
+run_test    "DTLS reordering: Buffer out-of-order CCS message on client"\
+            -p "$P_PXY delay_srv=NewSessionTicket" \
+            "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            0 \
+            -C "Buffering HS message" \
+            -C "Next handshake message has been buffered - load"\
+            -S "Buffering HS message" \
+            -S "Next handshake message has been buffered - load" \
+            -c "Inject buffered CCS message" \
+            -c "Remember CCS message" \
+            -S "Inject buffered CCS message" \
+            -S "Remember CCS message"
+
+run_test    "DTLS reordering: Buffer out-of-order CCS message on server"\
+            -p "$P_PXY delay_cli=ClientKeyExchange" \
+            "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            0 \
+            -C "Buffering HS message" \
+            -C "Next handshake message has been buffered - load"\
+            -S "Buffering HS message" \
+            -S "Next handshake message has been buffered - load" \
+            -C "Inject buffered CCS message" \
+            -C "Remember CCS message" \
+            -s "Inject buffered CCS message" \
+            -s "Remember CCS message"
+
+run_test    "DTLS reordering: Buffer record from future epoch (client and server)" \
+            -p "$P_PXY delay_ccs=1" \
             "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
             0 \
             -s "Buffer record from epoch 1" \
-            -s "Found buffered record from current epoch - load"
-
-run_test    "DTLS reordering: Buffer out-of-order CCS message"\
-            -p "$P_PXY delay=3 seed=1" \
-            "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
-            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
-            0 \
-            -c "Inject buffered CCS message" \
-            -c "Remember CCS message"
+            -s "Found buffered record from current epoch - load" \
+            -c "Buffer record from epoch 1" \
+            -c "Found buffered record from current epoch - load"
 
 # Tests for "randomly unreliable connection": try a variety of flows and peers
 

@@ -884,8 +884,34 @@ typedef uint32_t psa_algorithm_t;
  */
 #define PSA_ALG_CBC_PKCS7                       ((psa_algorithm_t)0x04600101)
 
-#define PSA_ALG_CCM                             ((psa_algorithm_t)0x06000001)
-#define PSA_ALG_GCM                             ((psa_algorithm_t)0x06000002)
+#define PSA_ALG_CCM                             ((psa_algorithm_t)0x06001001)
+#define PSA_ALG_GCM                             ((psa_algorithm_t)0x06001002)
+
+#define PSA_ALG_AEAD_TAG_LENGTH_MASK            ((psa_algorithm_t)0x00003f00)
+#define PSA_AEAD_TAG_LENGTH_OFFSET 8
+
+/** Macro to build a shortened AEAD algorithm.
+ *
+ * A shortened AEAD algorithm is similar to the corresponding AEAD
+ * algorithm, but has an authentication tag that consists of fewer bytes.
+ * Depending on the algorithm, the tag length may affect the calculation
+ * of the ciphertext.
+ *
+ * \param alg           A AEAD algorithm identifier (value of type
+ *                      #psa_algorithm_t such that #PSA_ALG_IS_AEAD(\p alg)
+ *                      is true).
+ * \param mac_length    Desired length of the authentication tag in bytes.
+ *
+ * \return              The corresponding AEAD algorithm with the specified
+ *                      length.
+ * \return              Unspecified if \p alg is not a supported
+ *                      AEAD algorithm or if \p tag_length is not valid
+ *                      for the specified AEAD algorithm.
+ */
+#define PSA_ALG_AEAD_WITH_TAG_LENGTH(alg, tag_length)                   \
+    (((alg) & ~PSA_ALG_AEAD_TAG_LENGTH_MASK) |                          \
+     ((tag_length) << PSA_AEAD_TAG_LENGTH_OFFSET &                      \
+      PSA_ALG_AEAD_TAG_LENGTH_MASK))
 
 #define PSA_ALG_RSA_PKCS1V15_SIGN_BASE          ((psa_algorithm_t)0x10020000)
 /** RSA PKCS#1 v1.5 signature with hashing.
@@ -2432,9 +2458,9 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  *                            correct size for an AEAD algorithm that it
  *                            recognizes, but does not support.
  */
-#define PSA_AEAD_TAG_SIZE(alg)             \
-    ((alg) == PSA_ALG_GCM ? 16 :           \
-     (alg) == PSA_ALG_CCM ? 16 :           \
+#define PSA_AEAD_TAG_LENGTH(alg)                                        \
+    (PSA_ALG_IS_AEAD(alg) ?                                             \
+     (((alg) & PSA_ALG_AEAD_TAG_LENGTH_MASK) >> PSA_AEAD_TAG_LENGTH_OFFSET) : \
      0)
 
 /** Process an authenticated encryption operation.

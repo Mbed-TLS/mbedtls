@@ -188,9 +188,9 @@
  *                            correct size for an AEAD algorithm that it
  *                            recognizes, but does not support.
  */
-#define PSA_AEAD_ENCRYPT_OUTPUT_SIZE(alg, plaintext_length)     \
-    (PSA_AEAD_TAG_SIZE(alg) != 0 ?                              \
-     (plaintext_length) + PSA_AEAD_TAG_SIZE(alg) :              \
+#define PSA_AEAD_ENCRYPT_OUTPUT_SIZE(alg, plaintext_length)       \
+    (PSA_AEAD_TAG_LENGTH(alg) != 0 ?                              \
+     (plaintext_length) + PSA_AEAD_TAG_LENGTH(alg) :              \
      0)
 
 /** The maximum size of the output of psa_aead_decrypt(), in bytes.
@@ -212,9 +212,9 @@
  *                            correct size for an AEAD algorithm that it
  *                            recognizes, but does not support.
  */
-#define PSA_AEAD_DECRYPT_OUTPUT_SIZE(alg, ciphertext_length)    \
-    (PSA_AEAD_TAG_SIZE(alg) != 0 ?                              \
-     (plaintext_length) - PSA_AEAD_TAG_SIZE(alg) :              \
+#define PSA_AEAD_DECRYPT_OUTPUT_SIZE(alg, ciphertext_length)      \
+    (PSA_AEAD_TAG_LENGTH(alg) != 0 ?                              \
+     (plaintext_length) - PSA_AEAD_TAG_LENGTH(alg) :              \
      0)
 
 /** Safe signature buffer size for psa_asymmetric_sign().

@@ -227,7 +227,7 @@ void aead_algorithm( int alg_arg, int classification_flags,
     algorithm_classification( alg, classification_flags );
 
     /* Tag length */
-    TEST_ASSERT( tag_length == PSA_AEAD_TAG_SIZE( alg ) );
+    TEST_ASSERT( tag_length == PSA_AEAD_TAG_LENGTH( alg ) );
 }
 /* END_CASE */
 

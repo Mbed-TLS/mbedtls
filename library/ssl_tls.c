@@ -3531,6 +3531,11 @@ static int ssl_prepare_reassembly_buffer( mbedtls_ssl_context *ssl, /* debug */
     size_t alloc_len;
     unsigned char *buf;
 
+#if !defined(MBEDTLS_DEBUG_C)
+    /* The SSL context is used for debugging only. */
+    ((void) ssl);
+#endif
+
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "initialize reassembly, total length = %d",
                                 msg_len ) );
 

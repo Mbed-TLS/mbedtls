@@ -5048,6 +5048,7 @@ run_test    "DTLS fragmenting: both (MTU)" \
             -C "error"
 
 # the proxy shouldn't drop or mess up anything, so we shouldn't need to resend
+not_with_valgrind # spurious resend due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -5074,6 +5075,7 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake" \
 # Since we don't support reading fragmented ClientHello yet,
 # up the MTU to 1450 (larger than ClientHello with session ticket,
 # but still smaller than client's Certificate to ensure fragmentation).
+not_with_valgrind # spurious resend due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -5094,6 +5096,7 @@ run_test    "DTLS fragmenting: proxy MTU, resumed handshake" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+not_with_valgrind # spurious resend due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -5121,6 +5124,7 @@ run_test    "DTLS fragmenting: proxy MTU, ChachaPoly renego" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+not_with_valgrind # spurious resend due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -5149,6 +5153,7 @@ run_test    "DTLS fragmenting: proxy MTU, AES-GCM renego" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+not_with_valgrind # spurious resend due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -5177,6 +5182,7 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CCM renego" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+not_with_valgrind # spurious resend due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -5206,6 +5212,7 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CBC EtM renego" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+not_with_valgrind # spurious resend due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C

@@ -41,6 +41,28 @@ G_SRV="$GNUTLS_SERV --x509certfile data_files/server5.crt --x509keyfile data_fil
 G_CLI="echo 'GET / HTTP/1.0' | $GNUTLS_CLI --x509cafile data_files/test-ca_cat12.crt"
 TCP_CLIENT="$PERL scripts/tcp_client.pl"
 
+# alternative versions of OpenSSL and GnuTLS (no default path)
+
+if [ -n "${OPENSSL_LEGACY:-}" ]; then
+    O_LEGACY_SRV="$OPENSSL_LEGACY s_server -www -cert data_files/server5.crt -key data_files/server5.key"
+    O_LEGACY_CLI="echo 'GET / HTTP/1.0' | $OPENSSL_LEGACY s_client"
+else
+    O_LEGACY_SRV=false
+    O_LEGACY_CLI=false
+fi
+
+if [ -n "${GNUTLS_NEXT_SERV}" ]; then
+    G_NEXT_SRV="$GNUTLS_NEXT_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
+else
+    G_NEXT_SRV=false
+fi
+
+if [ -n "${GNUTLS_NEXT_CLI}" ]; then
+    G_NEXT_CLI="echo 'GET / HTTP/1.0' | $GNUTLS_NEXT_CLI --x509cafile data_files/test-ca_cat12.crt"
+else
+    G_NEXT_CLI=false
+fi
+
 TESTS=0
 FAILS=0
 SKIPS=0
@@ -159,6 +181,34 @@ requires_gnutls() {
         fi
     fi
     if [ "$GNUTLS_AVAILABLE" = "NO" ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
+# skip next test if GnuTLS-next isn't available
+requires_gnutls_next() {
+    if [ -z "${GNUTLS_NEXT_AVAILABLE:-}" ]; then
+        if ( which "${GNUTLS_NEXT_CLI:-}" && which "${GNUTLS_NEXT_SERV:-}" ) >/dev/null 2>&1; then
+            GNUTLS_NEXT_AVAILABLE="YES"
+        else
+            GNUTLS_NEXT_AVAILABLE="NO"
+        fi
+    fi
+    if [ "$GNUTLS_NEXT_AVAILABLE" = "NO" ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
+# skip next test if OpenSSL-legacy isn't available
+requires_openssl_legacy() {
+    if [ -z "${OPENSSL_LEGACY_AVAILABLE:-}" ]; then
+        if which "${OPENSSL_LEGACY:-}" >/dev/null 2>&1; then
+            OPENSSL_LEGACY_AVAILABLE="YES"
+        else
+            OPENSSL_LEGACY_AVAILABLE="NO"
+        fi
+    fi
+    if [ "$OPENSSL_LEGACY_AVAILABLE" = "NO" ]; then
         SKIP_NEXT="YES"
     fi
 }
@@ -716,6 +766,19 @@ O_SRV="$O_SRV -accept $SRV_PORT -dhparam data_files/dhparams.pem"
 O_CLI="$O_CLI -connect localhost:+SRV_PORT"
 G_SRV="$G_SRV -p $SRV_PORT"
 G_CLI="$G_CLI -p +SRV_PORT localhost"
+
+if [ -n "${OPENSSL_LEGACY:-}" ]; then
+    O_LEGACY_SRV="$O_LEGACY_SRV -accept $SRV_PORT -dhparam data_files/dhparams.pem"
+    O_LEGACY_CLI="$O_LEGACY_CLI -connect localhost:+SRV_PORT"
+fi
+
+if [ -n "${GNUTLS_NEXT_SERV}" ]; then
+    G_NEXT_SRV="$G_NEXT_SRV -p $SRV_PORT"
+fi
+
+if [ -n "${GNUTLS_NEXT_CLI}" ]; then
+    G_NEXT_CLI="$G_NEXT_CLI -p +SRV_PORT localhost"
+fi
 
 # Allow SHA-1, because many of our test certificates use it
 P_SRV="$P_SRV allow_sha1=1"
@@ -5260,6 +5323,8 @@ run_test    "DTLS fragmenting: proxy MTU + 3d" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+# interop tests for DTLS fragmentating with reliable connection
+#
 # here and below we just want to test that the we fragment in a way that
 # pleases other implementations, so we don't need the peer to fragment
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
@@ -5371,6 +5436,158 @@ run_test    "DTLS fragmenting: openssl client, DTLS 1.0" \
              key_file=data_files/server7.key \
              mtu=512 force_version=dtls1" \
             "$O_CLI -dtls1" \
+            0 \
+            -s "fragmenting handshake message"
+
+# interop tests for DTLS fragmentating with unreliable connection
+#
+# again we just want to test that the we fragment in a way that
+# pleases other implementations, so we don't need the peer to fragment
+requires_gnutls_next
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+client_needs_more_time 2
+run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.2" \
+            -p "$P_PXY drop=8 delay=8 duplicate=8" \
+            "$G_NEXT_SRV -u" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=data_files/server8_int-ca2.crt \
+             key_file=data_files/server8.key \
+             mtu=512 force_version=dtls1_2" \
+            0 \
+            -c "fragmenting handshake message" \
+            -C "error"
+
+requires_gnutls_next
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
+client_needs_more_time 2
+run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
+            -p "$P_PXY drop=8 delay=8 duplicate=8" \
+            "$G_NEXT_SRV -u" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=data_files/server8_int-ca2.crt \
+             key_file=data_files/server8.key \
+             mtu=512 force_version=dtls1_2" \
+            0 \
+            -c "fragmenting handshake message" \
+            -C "error"
+
+## The two tests below are disabled due to a bug in GnuTLS client that causes
+## handshake failures when the NewSessionTicket message is lost, see
+## https://gitlab.com/gnutls/gnutls/issues/543
+## We can re-enable them when a fixed version fo GnuTLS is available
+## and installed in our CI system.
+##
+## # gnutls-cli always tries IPv6 first, and doesn't fall back to IPv4 with DTLS
+## requires_ipv6
+## requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+## requires_config_enabled MBEDTLS_RSA_C
+## requires_config_enabled MBEDTLS_ECDSA_C
+## requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+## client_needs_more_time 2
+## run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
+##             -p "$P_PXY drop=8 delay=8 duplicate=8" \
+##             "$P_SRV dtls=1 debug_level=2 server_addr=::1 \
+##              crt_file=data_files/server7_int-ca.crt \
+##              key_file=data_files/server7.key \
+##              mtu=512 force_version=dtls1_2" \
+##             "$G_CLI -u" \
+##             0 \
+##             -s "fragmenting handshake message"
+##
+## # gnutls-cli always tries IPv6 first, and doesn't fall back to IPv4 with DTLS
+## requires_ipv6
+## requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+## requires_config_enabled MBEDTLS_RSA_C
+## requires_config_enabled MBEDTLS_ECDSA_C
+## requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
+## client_needs_more_time 2
+## run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.0" \
+##             -p "$P_PXY drop=8 delay=8 duplicate=8" \
+##             "$P_SRV dtls=1 debug_level=2 server_addr=::1 \
+##              crt_file=data_files/server7_int-ca.crt \
+##              key_file=data_files/server7.key \
+##              mtu=512 force_version=dtls1" \
+##             "$G_CLI -u" \
+##             0 \
+##             -s "fragmenting handshake message"
+
+## Interop test with OpenSSL might triger a bug in recent versions (that
+## probably won't be fixed before 1.1.1X), so we use an old version that
+## doesn't have this bug, but unfortunately it doesn't have support for DTLS
+## 1.2 either, so the DTLS 1.2 tests are commented for now.
+## Bug report: https://github.com/openssl/openssl/issues/6902
+## They should be re-enabled (and the DTLS 1.0 switched back to a non-legacy
+## version of OpenSSL once a fixed version of OpenSSL is available)
+##
+## requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+## requires_config_enabled MBEDTLS_RSA_C
+## requires_config_enabled MBEDTLS_ECDSA_C
+## requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+## client_needs_more_time 2
+## run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
+##             -p "$P_PXY drop=8 delay=8 duplicate=8" \
+##             "$O_SRV -dtls1_2 -verify 10" \
+##             "$P_CLI dtls=1 debug_level=2 \
+##              crt_file=data_files/server8_int-ca2.crt \
+##              key_file=data_files/server8.key \
+##              mtu=512 force_version=dtls1_2" \
+##             0 \
+##             -c "fragmenting handshake message" \
+##             -C "error"
+
+requires_openssl_legacy
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
+client_needs_more_time 2
+run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.0" \
+            -p "$P_PXY drop=8 delay=8 duplicate=8" \
+            "$O_LEGACY_SRV -dtls1 -verify 10" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=data_files/server8_int-ca2.crt \
+             key_file=data_files/server8.key \
+             mtu=512 force_version=dtls1" \
+            0 \
+            -c "fragmenting handshake message" \
+            -C "error"
+
+## see comment on the previous-previous test
+## requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+## requires_config_enabled MBEDTLS_RSA_C
+## requires_config_enabled MBEDTLS_ECDSA_C
+## requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+## client_needs_more_time 2
+## run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.2" \
+##             -p "$P_PXY drop=8 delay=8 duplicate=8" \
+##             "$P_SRV dtls=1 debug_level=2 \
+##              crt_file=data_files/server7_int-ca.crt \
+##              key_file=data_files/server7.key \
+##              mtu=512 force_version=dtls1_2" \
+##             "$O_CLI -dtls1_2" \
+##             0 \
+##             -s "fragmenting handshake message"
+
+# -nbio is added to prevent s_client from blocking in case of duplicated
+# messages at the end of the handshake
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
+client_needs_more_time 2
+run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.0" \
+            -p "$P_PXY drop=8 delay=8 duplicate=8" \
+            "$P_SRV dtls=1 debug_level=2 \
+             crt_file=data_files/server7_int-ca.crt \
+             key_file=data_files/server7.key \
+             mtu=512 force_version=dtls1" \
+            "$O_LEGACY_CLI -nbio -dtls1" \
             0 \
             -s "fragmenting handshake message"
 

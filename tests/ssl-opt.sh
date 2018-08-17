@@ -51,13 +51,13 @@ else
     O_LEGACY_CLI=false
 fi
 
-if [ -n "${GNUTLS_NEXT_SERV}" ]; then
+if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
     G_NEXT_SRV="$GNUTLS_NEXT_SERV --x509certfile data_files/server5.crt --x509keyfile data_files/server5.key"
 else
     G_NEXT_SRV=false
 fi
 
-if [ -n "${GNUTLS_NEXT_CLI}" ]; then
+if [ -n "${GNUTLS_NEXT_CLI:-}" ]; then
     G_NEXT_CLI="echo 'GET / HTTP/1.0' | $GNUTLS_NEXT_CLI --x509cafile data_files/test-ca_cat12.crt"
 else
     G_NEXT_CLI=false
@@ -772,11 +772,11 @@ if [ -n "${OPENSSL_LEGACY:-}" ]; then
     O_LEGACY_CLI="$O_LEGACY_CLI -connect localhost:+SRV_PORT"
 fi
 
-if [ -n "${GNUTLS_NEXT_SERV}" ]; then
+if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
     G_NEXT_SRV="$G_NEXT_SRV -p $SRV_PORT"
 fi
 
-if [ -n "${GNUTLS_NEXT_CLI}" ]; then
+if [ -n "${GNUTLS_NEXT_CLI:-}" ]; then
     G_NEXT_CLI="$G_NEXT_CLI -p +SRV_PORT localhost"
 fi
 

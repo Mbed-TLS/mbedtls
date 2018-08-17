@@ -5576,6 +5576,7 @@ run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.0" \
 
 # -nbio is added to prevent s_client from blocking in case of duplicated
 # messages at the end of the handshake
+requires_openssl_legacy
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C

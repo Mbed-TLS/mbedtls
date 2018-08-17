@@ -18,6 +18,9 @@ Bugfix
    * Fix a miscalculation of the maximum record expansion in
      mbedtls_ssl_get_record_expansion() in case of ChachaPoly ciphersuites,
      or CBC ciphersuites in (D)TLS versions 1.1 or higher. Fixes #1913, #1914.
+   * Fix overly strict bounds check in ssl_parse_certificate_request()
+     which could lead to valid CertificateRequest messages being rejected.
+     Fixes #1954.
 
 Changes
    * Copy headers preserving timestamps when doing a "make install".

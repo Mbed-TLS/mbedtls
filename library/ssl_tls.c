@@ -2923,15 +2923,17 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
         size_t max_frag_len;
         const mbedtls_ssl_flight_item * const cur = ssl->handshake->cur_msg;
 
+        int const is_finished =
+            ( cur->type == MBEDTLS_SSL_MSG_HANDSHAKE &&
+              cur->p[0] == MBEDTLS_SSL_HS_FINISHED );
+
         uint8_t const force_flush = ssl->disable_datagram_packing == 1 ?
             SSL_FORCE_FLUSH : SSL_DONT_FORCE_FLUSH;
 
         /* Swap epochs before sending Finished: we can't do it after
          * sending ChangeCipherSpec, in case write returns WANT_READ.
          * Must be done before copying, may change out_msg pointer */
-        if( cur->type == MBEDTLS_SSL_MSG_HANDSHAKE &&
-            cur->p[0] == MBEDTLS_SSL_HS_FINISHED   &&
-            ssl->handshake->cur_msg_p == ( cur->p + 12 ) )
+        if( is_finished && ssl->handshake->cur_msg_p == ( cur->p + 12 ) )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "swap epochs to send finished message" ) );
             ssl_swap_epochs( ssl );
@@ -2968,13 +2970,10 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
             const size_t rem_len = hs_len - frag_off;
             size_t cur_hs_frag_len, max_hs_frag_len;
 
-            if( max_frag_len < 12 )
+            if( ( max_frag_len < 12 ) || ( max_frag_len == 12 && hs_len != 0 ) )
             {
-                if( cur->type == MBEDTLS_SSL_MSG_HANDSHAKE &&
-                    cur->p[0] == MBEDTLS_SSL_HS_FINISHED )
-                {
+                if( is_finished )
                     ssl_swap_epochs( ssl );
-                }
 
                 if( ( ret = mbedtls_ssl_flush_output( ssl ) ) != 0 )
                     return( ret );

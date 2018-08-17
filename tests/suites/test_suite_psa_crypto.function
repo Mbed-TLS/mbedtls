@@ -2283,12 +2283,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void aead_encrypt_decrypt( int key_type_arg,
-                           data_t * key_data,
+void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
                            int alg_arg,
-                           data_t * input_data,
-                           data_t * nonce,
-                           data_t * additional_data,
+                           data_t *nonce,
+                           data_t *additional_data,
+                           data_t *input_data,
                            int expected_result_arg )
 {
     int slot = 1;
@@ -2359,10 +2358,12 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void aead_encrypt( int key_type_arg, data_t * key_data,
-                   int alg_arg, data_t * input_data,
-                   data_t * additional_data, data_t * nonce,
-                   data_t * expected_result )
+void aead_encrypt( int key_type_arg, data_t *key_data,
+                   int alg_arg,
+                   data_t *nonce,
+                   data_t *additional_data,
+                   data_t *input_data,
+                   data_t *expected_result )
 {
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;
@@ -2415,10 +2416,13 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void aead_decrypt( int key_type_arg, data_t * key_data,
-                   int alg_arg, data_t * input_data,
-                   data_t * additional_data, data_t * nonce,
-                   data_t * expected_data, int expected_result_arg )
+void aead_decrypt( int key_type_arg, data_t *key_data,
+                   int alg_arg,
+                   data_t *nonce,
+                   data_t *additional_data,
+                   data_t *input_data,
+                   data_t *expected_data,
+                   int expected_result_arg )
 {
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;

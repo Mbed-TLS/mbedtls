@@ -80,7 +80,6 @@
  * CHACHA20  3                  0x0051-0x0055
  * POLY1305  3                  0x0057-0x005B
  * CHACHAPOLY 2 0x0054-0x0056
- * ECDH      1                  0x001B-0x001D
  *
  * High-level module nr (3 bits - 0x0...-0x7...)
  * Name      ID  Nr of Errors

@@ -101,10 +101,6 @@
 #include "mbedtls/dhm.h"
 #endif
 
-#if defined(MBEDTLS_ECDH_C)
-#include "mbedtls/ecdh.h"
-#endif
-
 #if defined(MBEDTLS_ECP_C)
 #include "mbedtls/ecp.h"
 #endif
@@ -730,13 +726,6 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_DES_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "DES - DES hardware accelerator failed" );
 #endif /* MBEDTLS_DES_C */
-
-#if defined(MBEDTLS_ECDH_C)
-    if( use_ret == -(MBEDTLS_ERR_ECDH_BAD_INPUT_DATA) )
-        mbedtls_snprintf( buf, buflen, "ECDH - Feature not available. For example, variant or group is not available" );
-    if( use_ret == -(MBEDTLS_ERR_ECDH_ALLOC_FAILED) )
-        mbedtls_snprintf( buf, buflen, "ECDH - Failed to allocate memory" );
-#endif /* MBEDTLS_ECDH_C */
 
 #if defined(MBEDTLS_ENTROPY_C)
     if( use_ret == -(MBEDTLS_ERR_ENTROPY_SOURCE_FAILED) )

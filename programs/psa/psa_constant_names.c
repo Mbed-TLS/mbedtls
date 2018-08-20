@@ -21,6 +21,16 @@ static void append(char **buffer, size_t buffer_size,
     }
 }
 
+static void append_integer(char **buffer, size_t buffer_size,
+                           size_t *required_size,
+                           const char *format /*printf format for value*/,
+                           unsigned long value)
+{
+    size_t n = snprintf(*buffer, buffer_size - *required_size, format, value);
+    if (n < buffer_size - *required_size) *buffer += n;
+    *required_size += n;
+}
+
 /* The code of these function is automatically generated and included below. */
 static const char *psa_ecc_curve_name(psa_ecc_curve_t curve);
 static const char *psa_hash_algorithm_name(psa_algorithm_t hash_alg);
@@ -37,10 +47,8 @@ static void append_with_curve(char **buffer, size_t buffer_size,
         append(buffer, buffer_size, required_size,
                curve_name, strlen(curve_name));
     } else {
-        size_t n = snprintf(*buffer, buffer_size - *required_size,
-                            "0x%04x", (unsigned) curve);
-        if (n < buffer_size - *required_size) *buffer += n;
-        *required_size += n;
+        append_integer(buffer, buffer_size, required_size,
+                       "0x%04x", curve);
     }
     append(buffer, buffer_size, required_size, ")", 1);
 }
@@ -57,10 +65,8 @@ static void append_with_hash(char **buffer, size_t buffer_size,
         append(buffer, buffer_size, required_size,
                hash_name, strlen(hash_name));
     } else {
-        size_t n = snprintf(*buffer, buffer_size - *required_size,
-                            "0x%08lx", (unsigned long) hash_alg);
-        if (n < buffer_size - *required_size) *buffer += n;
-        *required_size += n;
+        append_integer(buffer, buffer_size, required_size,
+                       "0x%08lx", hash_alg);
     }
     append(buffer, buffer_size, required_size, ")", 1);
 }

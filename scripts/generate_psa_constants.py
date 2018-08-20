@@ -55,8 +55,8 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
     %(algorithm_cases)s
     default:
         %(algorithm_code)s{
-            return snprintf(buffer, buffer_size,
-                            "0x%%08lx", (unsigned long) alg);
+            append_integer(&buffer, buffer_size, &required_size,
+                           "0x%%08lx", (unsigned long) alg);
         }
         break;
     }
@@ -82,8 +82,8 @@ static int psa_snprint_key_usage(char *buffer, size_t buffer_size,
         if (required_size != 0) {
             append(&buffer, buffer_size, &required_size, " | ", 3);
         }
-        required_size += snprintf(buffer, buffer_size - required_size,
-                                  "0x%%08x", usage);
+        append_integer(&buffer, buffer_size, &required_size,
+                       "0x%%08lx", (unsigned long) usage);
     } else {
         buffer[0] = 0;
     }

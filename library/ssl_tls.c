@@ -4387,7 +4387,7 @@ static int ssl_load_buffered_message( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "CCS not seen in the current flight" ) );
             ret = -1;
-            return( -1 );
+            goto exit;
         }
 
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "Inject buffered CCS message" ) );

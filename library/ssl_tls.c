@@ -4730,16 +4730,16 @@ static int ssl_load_buffered_record( mbedtls_ssl_context *ssl )
     if( hs == NULL )
         return( 0 );
 
-    /* Only consider loading future records if the
-     * input buffer is empty. */
-    if( ssl_another_record_in_datagram( ssl ) == 1 )
-        return( 0 );
-
     rec       = hs->buffering.future_record.data;
     rec_len   = hs->buffering.future_record.len;
     rec_epoch = hs->buffering.future_record.epoch;
 
     if( rec == NULL )
+        return( 0 );
+
+    /* Only consider loading future records if the
+     * input buffer is empty. */
+    if( ssl_another_record_in_datagram( ssl ) == 1 )
         return( 0 );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> ssl_load_buffered_record" ) );

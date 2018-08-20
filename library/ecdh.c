@@ -108,21 +108,10 @@ static int mbedtls_ecdh_setup_internal( mbedtls_ecdh_context *ctx,
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     mbedtls_ecdh_context *real_ctx = ctx;
 #else
-    mbedtls_ecdh_context_mbed *real_ctx;
-
-    if( ctx->ctx.mbed_ecdh != NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-    ctx->ctx.mbed_ecdh = (mbedtls_ecdh_context_mbed*) mbedtls_calloc ( 1,
-                            sizeof( mbedtls_ecdh_context_mbed ) );
-
-    if( ctx->ctx.mbed_ecdh == NULL )
-        return( MBEDTLS_ERR_ECDH_ALLOC_FAILED );
+    mbedtls_ecdh_context_mbed *real_ctx = &ctx->ctx.mbed_ecdh;
 
     ctx->var = MBEDTLS_ECDH_VARIANT_MBED;
     ctx->grp = grp;
-
-    real_ctx = ctx->ctx.mbed_ecdh;
 #endif
 
     ret = mbedtls_ecp_group_load( &real_ctx->grp, grp );
@@ -159,12 +148,7 @@ static void mbedtls_ecdh_free_internal( mbedtls_ecdh_context *ctx )
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     mbedtls_ecdh_context *real_ctx = ctx;
 #else
-    mbedtls_ecdh_context_mbed *real_ctx;
-
-    if( ctx->ctx.mbed_ecdh == NULL )
-        return;
-
-    real_ctx = ctx->ctx.mbed_ecdh;
+    mbedtls_ecdh_context_mbed *real_ctx = &ctx->ctx.mbed_ecdh;
 
     ctx->var = MBEDTLS_ECDH_VARIANT_NONE;
     ctx->grp = MBEDTLS_ECP_DP_NONE;
@@ -215,12 +199,7 @@ static int mbedtls_ecdh_make_params_internal( mbedtls_ecdh_context *ctx,
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     mbedtls_ecdh_context *real_ctx = ctx;
 #else
-    mbedtls_ecdh_context_mbed *real_ctx;
-
-    if( ctx->ctx.mbed_ecdh == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-    real_ctx = ctx->ctx.mbed_ecdh;
+    mbedtls_ecdh_context_mbed *real_ctx = &ctx->ctx.mbed_ecdh;
 #endif
 
     if( real_ctx->grp.pbits == 0 )
@@ -283,7 +262,7 @@ static int mbedtls_ecdh_read_params_internal( mbedtls_ecdh_context *ctx,
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     mbedtls_ecdh_context *real_ctx = ctx;
 #else
-    mbedtls_ecdh_context_mbed *real_ctx = ctx->ctx.mbed_ecdh;
+    mbedtls_ecdh_context_mbed *real_ctx = &ctx->ctx.mbed_ecdh;
 #endif
 
     return( mbedtls_ecp_tls_read_point( &real_ctx->grp, &real_ctx->Qp, buf,
@@ -335,7 +314,7 @@ static int mbedtls_ecdh_get_params_internal( mbedtls_ecdh_context *ctx,
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     mbedtls_ecdh_context *real_ctx = ctx;
 #else
-    mbedtls_ecdh_context_mbed *real_ctx = ctx->ctx.mbed_ecdh;
+    mbedtls_ecdh_context_mbed *real_ctx = &ctx->ctx.mbed_ecdh;
 #endif
 
     /* If it's not our key, just import the public part as Qp */
@@ -393,12 +372,7 @@ static int mbedtls_ecdh_make_public_internal( mbedtls_ecdh_context *ctx,
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     mbedtls_ecdh_context *real_ctx = ctx;
 #else
-    mbedtls_ecdh_context_mbed *real_ctx;
-
-    if( ctx->ctx.mbed_ecdh == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-    real_ctx = ctx->ctx.mbed_ecdh;
+    mbedtls_ecdh_context_mbed *real_ctx = &ctx->ctx.mbed_ecdh;
 #endif
 
     if( real_ctx->grp.pbits == 0 )
@@ -447,12 +421,7 @@ static int mbedtls_ecdh_read_public_internal( mbedtls_ecdh_context *ctx,
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     mbedtls_ecdh_context *real_ctx = ctx;
 #else
-    mbedtls_ecdh_context_mbed *real_ctx;
-
-    if( ctx->ctx.mbed_ecdh == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-    real_ctx = ctx->ctx.mbed_ecdh;
+    mbedtls_ecdh_context_mbed *real_ctx = &ctx->ctx.mbed_ecdh;
 #endif
 
     if( ( ret = mbedtls_ecp_tls_read_point( &real_ctx->grp, &real_ctx->Qp, &p,
@@ -499,12 +468,7 @@ static int mbedtls_ecdh_calc_secret_internal( mbedtls_ecdh_context *ctx,
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     mbedtls_ecdh_context *real_ctx = ctx;
 #else
-    mbedtls_ecdh_context_mbed *real_ctx;
-
-    if( ctx->ctx.mbed_ecdh == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
-
-    real_ctx = ctx->ctx.mbed_ecdh;
+    mbedtls_ecdh_context_mbed *real_ctx = &ctx->ctx.mbed_ecdh;
 #endif
 
     if( ( ret = mbedtls_ecdh_compute_shared( &real_ctx->grp, &real_ctx->z,

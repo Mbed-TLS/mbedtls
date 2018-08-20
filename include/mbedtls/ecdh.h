@@ -105,7 +105,7 @@ typedef struct mbedtls_ecdh_context
     mbedtls_ecdh_variant var;/*!< The ECDH implementation/structure used. */
     union
     {
-        mbedtls_ecdh_context_mbed   *mbed_ecdh;
+        mbedtls_ecdh_context_mbed   mbed_ecdh;
     } ctx;                   /*!< Implementation-specific context. The context
                                   in use is specified by the var field.*/
 #endif

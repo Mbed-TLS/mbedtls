@@ -913,6 +913,24 @@ typedef uint32_t psa_algorithm_t;
      ((tag_length) << PSA_AEAD_TAG_LENGTH_OFFSET &                      \
       PSA_ALG_AEAD_TAG_LENGTH_MASK))
 
+/** Calculate the corresponding AEAD algorithm with the default tag length.
+ *
+ * \param alg   An AEAD algorithm (\c PSA_ALG_XXX value such that
+ *              #PSA_ALG_IS_AEAD(\p alg) is true).
+ *
+ * \return      The corresponding AEAD algorithm with the default tag length
+ *              for that algorithm.
+ */
+#define PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH(alg)                       \
+    (                                                                   \
+        PSA__ALG_AEAD_WITH_DEFAULT_TAG_LENGTH__CASE(alg, PSA_ALG_CCM)   \
+        PSA__ALG_AEAD_WITH_DEFAULT_TAG_LENGTH__CASE(alg, PSA_ALG_GCM)   \
+        0)
+#define PSA__ALG_AEAD_WITH_DEFAULT_TAG_LENGTH__CASE(alg, ref) \
+    PSA_ALG_AEAD_WITH_TAG_LENGTH(alg, 0) == \
+    PSA_ALG_AEAD_WITH_TAG_LENGTH(ref, 0) ?  \
+    ref :
+
 #define PSA_ALG_RSA_PKCS1V15_SIGN_BASE          ((psa_algorithm_t)0x10020000)
 /** RSA PKCS#1 v1.5 signature with hashing.
  *

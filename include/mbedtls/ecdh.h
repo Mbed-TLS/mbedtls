@@ -55,6 +55,9 @@ typedef enum
 #if !defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
 /**
  * Defines the ECDH implementation used.
+ *
+ * Later versions of the library may add new variants, therefore users should
+ * not make any assumptions about them.
  */
 typedef enum
 {
@@ -64,6 +67,9 @@ typedef enum
 
 /**
  * The context used by the default ECDH implementation.
+ *
+ * Later versions might change the structure of this context, therefore users
+ * should not make any assumptions about them.
  */
 typedef struct
 {
@@ -100,7 +106,8 @@ typedef struct mbedtls_ecdh_context
     union
     {
         mbedtls_ecdh_context_mbed   *mbed_ecdh;
-    } ctx;                   /*!< Implementation specific context. */
+    } ctx;                   /*!< Implementation-specific context. The context
+                                  in use is specified by the var field.*/
 #endif
 }
 mbedtls_ecdh_context;
@@ -167,7 +174,15 @@ int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
 void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx );
 
 /**
- * \brief           This function sets up the ECDH context.
+ * \brief           This function sets up the ECDH context with the information
+ *                  given.
+ *
+ *                  This function should be called after mbedtls_ecdh_init() but
+ *                  before mbedtls_ecdh_make_params(). There is no need to call
+ *                  this function before mbedtls_ecdh_read_params().
+ *
+ *                  This is the first function used by a TLS server for ECDHE
+ *                  ciphersuites.
  *
  * \param ctx       The ECDH context to set up.
  * \param grp       The group id of the group to set up the context for.
@@ -187,7 +202,7 @@ void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx );
  * \brief           This function generates a public key and a TLS
  *                  ServerKeyExchange payload.
  *
- *                  This is the first function used by a TLS server for ECDHE
+ *                  This is the second function used by a TLS server for ECDHE
  *                  ciphersuites.
  *
  * \note            This function assumes that the ECP group (grp) of the
@@ -280,7 +295,7 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
  * \brief       This function parses and processes a TLS ClientKeyExchange
  *              payload.
  *
- *              This is the second function used by a TLS server for ECDH(E)
+ *              This is the third function used by a TLS server for ECDH(E)
  *              ciphersuites.
  *
  * \see         ecp.h

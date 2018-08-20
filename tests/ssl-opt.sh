@@ -5359,6 +5359,7 @@ run_test    "DTLS fragmenting: proxy MTU + 3d" \
 #
 # here and below we just want to test that the we fragment in a way that
 # pleases other implementations, so we don't need the peer to fragment
+requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -5373,6 +5374,7 @@ run_test    "DTLS fragmenting: gnutls server, DTLS 1.2" \
             -c "fragmenting handshake message" \
             -C "error"
 
+requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C

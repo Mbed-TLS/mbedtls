@@ -113,9 +113,9 @@ static void usage(const char *program_name)
            program_name == NULL ? "psa_constant_names" : program_name);
     printf("Print the symbolic name whose numerical value is VALUE in TYPE.\n");
     printf("Supported types (with = between aliases):\n");
-    printf("  alg=algorithm         Status code (psa_algorithm_t)\n");
+    printf("  alg=algorithm         Algorithm (psa_algorithm_t)\n");
     printf("  curve=ecc_curve       Elliptic curve identifier (psa_ecc_curve_t)\n");
-    printf("  type=key_type         Status code (psa_key_type_t)\n");
+    printf("  type=key_type         Key type (psa_key_type_t)\n");
     printf("  usage=key_usage       Key usage (psa_key_usage_t)\n");
     printf("  error=status          Status code (psa_status_t)\n");
 }

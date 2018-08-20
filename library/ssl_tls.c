@@ -4383,7 +4383,7 @@ static int ssl_load_buffered_message( mbedtls_ssl_context *ssl )
     {
         /* Check if we have seen a ChangeCipherSpec before.
          * If yes, synthesize a CCS record. */
-        if( ! hs->buffering.seen_ccs )
+        if( !hs->buffering.seen_ccs )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "CCS not seen in the current flight" ) );
             ret = -1;
@@ -4513,7 +4513,7 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
             hs_buf = &hs->buffering.hs[ recv_msg_seq_offset ];
 
             /* Check if the buffering for this seq nr has already commenced. */
-            if( ! hs_buf->is_valid )
+            if( !hs_buf->is_valid )
             {
                 hs_buf->is_fragmented =
                     ( ssl_hs_is_proper_fragment( ssl ) == 1 );
@@ -4562,7 +4562,7 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
                 }
             }
 
-            if( ! hs_buf->is_complete )
+            if( !hs_buf->is_complete )
             {
                 size_t frag_len, frag_off;
                 unsigned char * const msg = hs_buf->data + 12;

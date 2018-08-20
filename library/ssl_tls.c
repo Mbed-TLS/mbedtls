@@ -4275,7 +4275,7 @@ static int ssl_another_record_in_datagram( mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
-                             unsigned update_digest )
+                             unsigned update_hs_digest )
 {
     int ret;
 
@@ -4342,7 +4342,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
         }
 
         if( ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
-            update_digest == 1 )
+            update_hs_digest == 1 )
         {
             mbedtls_ssl_update_handshake_status( ssl );
         }

@@ -515,7 +515,10 @@ void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl );
  *              of the logic of (D)TLS from the implementation
  *              of the secure transport.
  *
- * \param  ssl  SSL context to use
+ * \param  ssl              The SSL context to use.
+ * \param  update_hs_digest This indicates if the handshake digest
+ *                          should be automatically updated in case
+ *                          a handshake message is found.
  *
  * \return      0 or non-zero error code.
  *
@@ -581,7 +584,8 @@ void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl );
  *              following the above definition.
  *
  */
-int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl, unsigned update_digest );
+int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
+                             unsigned update_hs_digest );
 int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want );
 
 int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl );

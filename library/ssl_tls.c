@@ -6270,6 +6270,13 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
     ssl->f_recv_timeout = f_recv_timeout;
 }
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu )
+{
+    ssl->mtu = mtu;
+}
+#endif
+
 void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
 {
     conf->read_timeout   = timeout;
@@ -6758,13 +6765,6 @@ void mbedtls_ssl_conf_arc4_support( mbedtls_ssl_config *conf, char arc4 )
 }
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-void mbedtls_ssl_conf_mtu( mbedtls_ssl_config *conf, uint16_t mtu )
-{
-    conf->mtu = mtu;
-}
-#endif
-
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_code )
 {
@@ -7101,9 +7101,9 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->mtu != 0 )
+    if( ssl->mtu != 0 )
     {
-        const size_t mtu = ssl->conf->mtu;
+        const size_t mtu = ssl->mtu;
         const int ret = mbedtls_ssl_get_record_expansion( ssl );
         const size_t overhead = (size_t) ret;
 

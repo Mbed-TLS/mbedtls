@@ -1337,10 +1337,7 @@ int main( int argc, char *argv[] )
     if( opt.hs_to_min != DFL_HS_TO_MIN || opt.hs_to_max != DFL_HS_TO_MAX )
         mbedtls_ssl_conf_handshake_timeout( &conf, opt.hs_to_min,
                                             opt.hs_to_max );
-
-    if( opt.dtls_mtu != DFL_DTLS_MTU )
-        mbedtls_ssl_conf_mtu( &conf, opt.dtls_mtu );
-#endif /* MBEDTLS_SSL_PROTO_DTLS */
+#endif
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     if( ( ret = mbedtls_ssl_conf_max_frag_len( &conf, opt.mfl_code ) ) != 0 )
@@ -1497,6 +1494,11 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_set_bio( &ssl, &server_fd,
                              mbedtls_net_send, mbedtls_net_recv,
                              opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( opt.dtls_mtu != DFL_DTLS_MTU )
+        mbedtls_ssl_set_mtu( &ssl, opt.dtls_mtu );
+#endif
 
 #if defined(MBEDTLS_TIMING_C)
     mbedtls_ssl_set_timer_cb( &ssl, &timer, mbedtls_timing_set_delay,

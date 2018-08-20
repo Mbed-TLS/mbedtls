@@ -7,6 +7,9 @@ Features
      is controlled by the maximum fragment length as set locally or negotiated
      with the peer, as well as by a new per-connection MTU option, set using
      mbedtls_ssl_set_mtu().
+   * Add support for auto-adjustment of MTU to a safe value during the
+     handshake when flights do not get through (RFC 6347, section 4.1.1.1,
+     last paragraph).
 
 Bugfix
    * Fixes an issue with MBEDTLS_CHACHAPOLY_C which would not compile if

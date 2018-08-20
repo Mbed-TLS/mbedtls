@@ -161,14 +161,14 @@ void nist_kw_plaintext_lengths( int in_len, int out_len, int mode, int res )
     if( in_len != 0 )
     {
         plaintext = mbedtls_calloc( 1, in_len );
+        TEST_ASSERT( plaintext != NULL );
     }
-    TEST_ASSERT( in_len == 0 || plaintext != NULL );
 
     if( out_len != 0 )
     {
         ciphertext = mbedtls_calloc( 1, output_len );
+    TEST_ASSERT( ciphertext != NULL );
     }
-    TEST_ASSERT( out_len == 0 || ciphertext != NULL );
 
     memset( plaintext, 0, in_len );
     memset( ciphertext, 0, output_len );
@@ -217,13 +217,13 @@ void nist_kw_ciphertext_lengths( int in_len, int out_len, int mode, int res )
     if( out_len != 0 )
     {
         plaintext = mbedtls_calloc( 1, output_len );
+        TEST_ASSERT( plaintext != NULL );
     }
-    TEST_ASSERT( out_len == 0 || plaintext != NULL );
     if( in_len != 0 )
     {
         ciphertext = mbedtls_calloc( 1, in_len );
+        TEST_ASSERT( ciphertext != NULL );
     }
-    TEST_ASSERT( in_len == 0 || ciphertext != NULL );
 
     memset( plaintext, 0, output_len );
     memset( ciphertext, 0, in_len );

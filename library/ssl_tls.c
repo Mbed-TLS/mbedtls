@@ -1227,7 +1227,7 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
         MBEDTLS_SSL_DEBUG_MPI( 3, "ECDH: z", &ssl->handshake->ecdh_ctx.z );
 #else
-        if( ssl->handshake->ecdh_ctx.var == MBEDTLS_ECDH_VARIANT_MBED )
+        if( ssl->handshake->ecdh_ctx.var == MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0 )
             MBEDTLS_SSL_DEBUG_MPI( 3, "ECDH: z",
                                    &ssl->handshake->ecdh_ctx.ctx.mbed_ecdh->z );
 #endif

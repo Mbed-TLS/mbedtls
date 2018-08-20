@@ -58,8 +58,8 @@ typedef enum
  */
 typedef enum
 {
-    MBEDTLS_ECDH_VARIANT_NONE = 0, /*!< Implementation not defined. */
-    MBEDTLS_ECDH_VARIANT_MBED,     /*!< The default Mbed TLS implementation */
+    MBEDTLS_ECDH_VARIANT_NONE = 0,   /*!< Implementation not defined. */
+    MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0,/*!< The default Mbed TLS implementation */
 } mbedtls_ecdh_variant;
 
 /**

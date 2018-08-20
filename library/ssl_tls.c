@@ -3034,7 +3034,7 @@ void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl )
  *  - ssl->out_msg[0]: the handshake type (ClientHello, ServerHello, etc)
  *  - ssl->out_msg + 4: the handshake message body
  *
- * Ouputs, ie state before passing to flight_append() or write_record():
+ * Outputs, ie state before passing to flight_append() or write_record():
  *   - ssl->out_msglen: the length of the record contents
  *      (including handshake headers but excluding record headers)
  *   - ssl->out_msg: the record contents (handshake headers + content)

@@ -1113,7 +1113,7 @@ struct mbedtls_ssl_context
     size_t out_left;            /*!< amount of data not yet written   */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    uint16_t mtu;               /*!< path mtu, used to fragment outoing messages */
+    uint16_t mtu;               /*!< path mtu, used to fragment outgoing messages */
 #endif
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
@@ -1394,13 +1394,13 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *
  * \note           This only controls the size of the packet we send.
  *                 Client-side, you can request the server to use smaller
- *                 records with \c mbedtls_conf_max_frag_len().
+ *                 records with \c mbedtls_ssl_conf_max_frag_len().
  *
  * \note           If both a MTU and a maximum fragment length have been
  *                 configured (or negotiated with the peer), the lower limit
  *                 is used.
  *
- * \note           Values larger than \c MBEDTLS_SSL_OUT_CONTENT_LEN have no
+ * \note           Values larger than #MBEDTLS_SSL_OUT_CONTENT_LEN have no
  *                 effect. This can only be used to decrease the maximum size
  *                 of datagrams sent. Values lower than record layer expansion
  *                 are ignored.

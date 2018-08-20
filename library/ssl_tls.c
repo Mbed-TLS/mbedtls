@@ -110,7 +110,7 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl,
 
 static uint16_t ssl_get_maximum_datagram_size( mbedtls_ssl_context const *ssl )
 {
-    uint16_t mtu = ssl->conf->mtu;
+    uint16_t mtu = ssl->mtu;
 
     if( mtu != 0 && mtu < MBEDTLS_SSL_OUT_BUFFER_LEN )
         return( (int) mtu );
@@ -3120,7 +3120,7 @@ void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl )
  *  - ssl->out_msg[0]: the handshake type (ClientHello, ServerHello, etc)
  *  - ssl->out_msg + 4: the handshake message body
  *
- * Ouputs, ie state before passing to flight_append() or write_record():
+ * Outputs, ie state before passing to flight_append() or write_record():
  *   - ssl->out_msglen: the length of the record contents
  *      (including handshake headers but excluding record headers)
  *   - ssl->out_msg: the record contents (handshake headers + content)
@@ -6491,6 +6491,13 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
     ssl->f_recv_timeout = f_recv_timeout;
 }
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu )
+{
+    ssl->mtu = mtu;
+}
+#endif
+
 void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
 {
     conf->read_timeout   = timeout;
@@ -6979,13 +6986,6 @@ void mbedtls_ssl_conf_arc4_support( mbedtls_ssl_config *conf, char arc4 )
 }
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-void mbedtls_ssl_conf_mtu( mbedtls_ssl_config *conf, uint16_t mtu )
-{
-    conf->mtu = mtu;
-}
-#endif
-
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_code )
 {
@@ -7322,9 +7322,9 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->mtu != 0 )
+    if( ssl->mtu != 0 )
     {
-        const size_t mtu = ssl->conf->mtu;
+        const size_t mtu = ssl->mtu;
         const int ret = mbedtls_ssl_get_record_expansion( ssl );
         const size_t overhead = (size_t) ret;
 

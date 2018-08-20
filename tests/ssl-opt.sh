@@ -5129,6 +5129,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 run_test    "DTLS fragmenting: both (MTU)" \
+            -p "$P_PXY mtu=512" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
@@ -5345,11 +5346,11 @@ run_test    "DTLS fragmenting: proxy MTU + 3d" \
             "$P_SRV dgram_packing=0 dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
-             mtu=512" \
+             hs_timeout=250-10000 mtu=512" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             mtu=512" \
+             hs_timeout=250-10000 mtu=512" \
             0 \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
@@ -5384,7 +5385,7 @@ run_test    "DTLS fragmenting: gnutls server, DTLS 1.0" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             mtu=512 force_version=dtls1_2" \
+             mtu=512 force_version=dtls1" \
             0 \
             -c "fragmenting handshake message" \
             -C "error"
@@ -5482,14 +5483,14 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-client_needs_more_time 2
+client_needs_more_time 4
 run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.2" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$G_NEXT_SRV -u" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             mtu=512 force_version=dtls1_2" \
+             hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
             0 \
             -c "fragmenting handshake message" \
             -C "error"
@@ -5499,14 +5500,14 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
-client_needs_more_time 2
+client_needs_more_time 4
 run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$G_NEXT_SRV -u" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             mtu=512 force_version=dtls1_2" \
+             hs_timeout=250-60000 mtu=512 force_version=dtls1" \
             0 \
             -c "fragmenting handshake message" \
             -C "error"
@@ -5523,13 +5524,13 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
 ## requires_config_enabled MBEDTLS_RSA_C
 ## requires_config_enabled MBEDTLS_ECDSA_C
 ## requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-## client_needs_more_time 2
+## client_needs_more_time 4
 ## run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
 ##             -p "$P_PXY drop=8 delay=8 duplicate=8" \
 ##             "$P_SRV dtls=1 debug_level=2 server_addr=::1 \
 ##              crt_file=data_files/server7_int-ca.crt \
 ##              key_file=data_files/server7.key \
-##              mtu=512 force_version=dtls1_2" \
+##              hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
 ##             "$G_CLI -u" \
 ##             0 \
 ##             -s "fragmenting handshake message"
@@ -5540,13 +5541,13 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
 ## requires_config_enabled MBEDTLS_RSA_C
 ## requires_config_enabled MBEDTLS_ECDSA_C
 ## requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
-## client_needs_more_time 2
+## client_needs_more_time 4
 ## run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.0" \
 ##             -p "$P_PXY drop=8 delay=8 duplicate=8" \
 ##             "$P_SRV dtls=1 debug_level=2 server_addr=::1 \
 ##              crt_file=data_files/server7_int-ca.crt \
 ##              key_file=data_files/server7.key \
-##              mtu=512 force_version=dtls1" \
+##              hs_timeout=250-60000 mtu=512 force_version=dtls1" \
 ##             "$G_CLI -u" \
 ##             0 \
 ##             -s "fragmenting handshake message"
@@ -5563,14 +5564,14 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
 ## requires_config_enabled MBEDTLS_RSA_C
 ## requires_config_enabled MBEDTLS_ECDSA_C
 ## requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-## client_needs_more_time 2
+## client_needs_more_time 4
 ## run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
 ##             -p "$P_PXY drop=8 delay=8 duplicate=8" \
 ##             "$O_SRV -dtls1_2 -verify 10" \
 ##             "$P_CLI dtls=1 debug_level=2 \
 ##              crt_file=data_files/server8_int-ca2.crt \
 ##              key_file=data_files/server8.key \
-##              mtu=512 force_version=dtls1_2" \
+##              hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
 ##             0 \
 ##             -c "fragmenting handshake message" \
 ##             -C "error"
@@ -5580,14 +5581,14 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
-client_needs_more_time 2
+client_needs_more_time 4
 run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.0" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$O_LEGACY_SRV -dtls1 -verify 10" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             mtu=512 force_version=dtls1" \
+             hs_timeout=250-60000 mtu=512 force_version=dtls1" \
             0 \
             -c "fragmenting handshake message" \
             -C "error"
@@ -5597,13 +5598,13 @@ run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.0" \
 ## requires_config_enabled MBEDTLS_RSA_C
 ## requires_config_enabled MBEDTLS_ECDSA_C
 ## requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-## client_needs_more_time 2
+## client_needs_more_time 4
 ## run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.2" \
 ##             -p "$P_PXY drop=8 delay=8 duplicate=8" \
 ##             "$P_SRV dtls=1 debug_level=2 \
 ##              crt_file=data_files/server7_int-ca.crt \
 ##              key_file=data_files/server7.key \
-##              mtu=512 force_version=dtls1_2" \
+##              hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
 ##             "$O_CLI -dtls1_2" \
 ##             0 \
 ##             -s "fragmenting handshake message"
@@ -5615,13 +5616,13 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
-client_needs_more_time 2
+client_needs_more_time 4
 run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.0" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
             "$P_SRV dgram_packing=0 dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
-             mtu=512 force_version=dtls1" \
+             hs_timeout=250-60000 mtu=512 force_version=dtls1" \
             "$O_LEGACY_CLI -nbio -dtls1" \
             0 \
             -s "fragmenting handshake message"

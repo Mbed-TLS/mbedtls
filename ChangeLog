@@ -10,6 +10,9 @@ Bugfix
    * Add ecc extensions only if an ecc based ciphersuite is used.
      This improves compliance to RFC 4492, and as a result, solves
      interoperability issues with BouncyCastle. Raised by milenamil in #1157.
+   * Remove redundant else statement, which is not readable, and the positive
+     path in the if statement results in exiting the funciton. Raised by irwir
+     in #1776.
 
 Changes
    * Copy headers preserving timestamps when doing a "make install".

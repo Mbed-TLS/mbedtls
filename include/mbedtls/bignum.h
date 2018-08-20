@@ -129,7 +129,8 @@
         defined(__ppc64__) || defined(__powerpc64__)  || \
         defined(__ia64__)  || defined(__alpha__)      || \
         ( defined(__sparc__) && defined(__arch64__) ) || \
-        defined(__s390x__) || defined(__mips64) )
+        defined(__s390x__) || defined(__mips64)       || \
+        defined(__aarch64__) )
         #if !defined(MBEDTLS_HAVE_INT64)
             #define MBEDTLS_HAVE_INT64
         #endif /* MBEDTLS_HAVE_INT64 */
@@ -140,8 +141,9 @@
             typedef unsigned int mbedtls_t_udbl __attribute__((mode(TI)));
             #define MBEDTLS_HAVE_UDBL
         #endif /* !MBEDTLS_NO_UDBL_DIVISION */
-    #elif defined(__aarch64__)
+    #elif defined(__ARMCC_VERSION) && defined(__aarch64__)
         /*
+         * __ARMCC_VERSION is defined for both armcc and armclang and
          * __aarch64__ is only defined by armclang when compiling 64-bit code
          */
         #if !defined(MBEDTLS_HAVE_INT64)

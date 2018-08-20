@@ -4373,10 +4373,10 @@ static int ssl_load_buffered_message( mbedtls_ssl_context *ssl )
     mbedtls_ssl_hs_buffer * hs_buf;
     int ret = 0;
 
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> ssl_load_buffered_messsage" ) );
-
     if( hs == NULL )
         return( -1 );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> ssl_load_buffered_messsage" ) );
 
     if( ssl->state == MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC ||
         ssl->state == MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC )

@@ -2845,19 +2845,7 @@ int mbedtls_ssl_resend( mbedtls_ssl_context *ssl )
  */
 int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
 {
-    const int ret_payload = mbedtls_ssl_get_max_out_record_payload( ssl );
-    const size_t max_record_payload = (size_t) ret_payload;
-    /* DTLS handshake headers are 12 bytes */
-    const size_t max_hs_fragment_len = max_record_payload - 12;
-
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_flight_transmit" ) );
-
-    if( ret_payload < 0 )
-    {
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_get_max_out_record_payload",
-                                  ret_payload );
-        return( ret_payload );
-    }
 
     if( ssl->handshake->retransmit_state != MBEDTLS_SSL_RETRANS_SENDING )
     {
@@ -2895,12 +2883,23 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
         }
         else
         {
+            const int ret_payload = mbedtls_ssl_get_max_out_record_payload( ssl );
+            const size_t max_record_payload = (size_t) ret_payload;
+            /* DTLS handshake headers are 12 bytes */
+            const size_t max_hs_fragment_len = max_record_payload - 12;
             const unsigned char * const p = ssl->handshake->cur_msg_p;
             const size_t hs_len = cur->len - 12;
             const size_t frag_off = p - ( cur->p + 12 );
             const size_t rem_len = hs_len - frag_off;
             const size_t frag_len = rem_len > max_hs_fragment_len
                                   ? max_hs_fragment_len : rem_len;
+
+            if( ret_payload < 0 )
+            {
+                MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_get_max_out_record_payload",
+                                          ret_payload );
+                return( ret_payload );
+            }
 
             if( frag_off == 0 && frag_len != hs_len )
             {

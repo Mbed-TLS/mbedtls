@@ -15,10 +15,12 @@ PYTHON ?= python
 
 APPS := \
 	test_suite_psa_crypto \
+	test_suite_psa_crypto_metadata \
 # Don't delete this line.
 
 # Look up for associated function files
 func.test_suite_psa_crypto := test_suite_psa_crypto
+func.test_suite_psa_crypto_metadata := test_suite_psa_crypto_metadata
 
 .SILENT:
 
@@ -52,6 +54,7 @@ clean:
 	rm -rf data_files/ctr_drbg_seed data_files/hmac_drbg_seed data_files/mpi_write
 
 test: $(APPS)
+	./test_suite_psa_crypto_metadata
 	./test_suite_psa_crypto
 
 # Create separate targets for generating embedded tests.

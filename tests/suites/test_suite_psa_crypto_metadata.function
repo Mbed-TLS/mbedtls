@@ -1,0 +1,18 @@
+/* BEGIN_HEADER */
+/* Test macros that provide metadata about algorithms and key types.
+ * This test suite only contains tests that don't require executing
+ * code. Other test suites validate macros that require creating a key
+ * and using it. */
+
+#if defined(MBEDTLS_PSA_CRYPTO_SPM)
+#include "spm/psa_defs.h"
+#endif
+
+#include "psa/crypto.h"
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_CRYPTO_C
+ * END_DEPENDENCIES
+ */

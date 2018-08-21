@@ -519,7 +519,7 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
         uint8_t *end = exported + exported_length;
         size_t len;
         /*   RSAPrivateKey ::= SEQUENCE {
-         *       version             Version,  -- 0
+         *       version             INTEGER,  -- must be 0
          *       modulus             INTEGER,  -- n
          *       publicExponent      INTEGER,  -- e
          *       privateExponent     INTEGER,  -- d

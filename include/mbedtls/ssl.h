@@ -1392,9 +1392,11 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *                 example when a PMTU estimate becomes available from other
  *                 sources, such as lower (or higher) protocol layers.
  *
- * \note           This only controls the size of the packets we send.
- *                 Client-side, you can request the server to use smaller
- *                 records with \c mbedtls_ssl_conf_max_frag_len().
+ * \note           This setting only controls the size of the packets we send,
+ *                 and does not restrict the size of the datagrams we're
+ *                 willing to receive.  Client-side, you can request the
+ *                 server to use smaller records with \c
+ *                 mbedtls_ssl_conf_max_frag_len().
  *
  * \note           If both a MTU and a maximum fragment length have been
  *                 configured (or negotiated with the peer), the resulting
@@ -1402,7 +1404,8 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *                 on the record content length) is used.
  *
  * \note           This can only be used to decrease the maximum size
- *                 of datagrams sent. It cannot be used to increase the
+ *                 of datagrams (hence records, as records cannot span
+ *                 multiple datagrams) sent. It cannot be used to increase the
  *                 maximum size of records over the limit set by
  *                 #MBEDTLS_SSL_OUT_CONTENT_LEN.
  *

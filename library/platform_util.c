@@ -87,9 +87,9 @@ struct tm *mbedtls_platform_gmtime( const mbedtls_time_t *tt,
                                     struct tm *tm_buf )
 {
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
-    return ( gmtime_s( tm_buf, tt ) == 0 ) ? tm_buf : NULL;
+    return( ( gmtime_s( tm_buf, tt ) == 0 ) ? tm_buf : NULL );
 #elif !defined(PLATFORM_UTIL_USE_GMTIME)
-    return gmtime_r( tt, tm_buf );
+    return( gmtime_r( tt, tm_buf ) );
 #else
     struct tm *lt;
 
@@ -110,7 +110,7 @@ struct tm *mbedtls_platform_gmtime( const mbedtls_time_t *tt,
         return( NULL );
 #endif /* MBEDTLS_THREADING_C */
 
-    return ( lt == NULL ) ? NULL : tm_buf;
-#endif
+    return( ( lt == NULL ) ? NULL : tm_buf );
+#endif /* _WIN32 && !EFIX64 && !EFI32 */
 }
 #endif /* MBEDTLS_HAVE_TIME_DATE && MBEDTLS_PLATFORM_GMTIME_ALT */

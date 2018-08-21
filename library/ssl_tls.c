@@ -4533,6 +4533,12 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
                              (unsigned) hs->buffering.total_bytes_buffered ) );
                         goto exit;
                     }
+                    else
+                    {
+                        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Buffering of future message of size %u would exceed the compile-time limit %u (already %u bytes buffered) -- attempt to make space by freeing buffered future messages\n",
+                             (unsigned) msg_len, MBEDTLS_SSL_DTLS_MAX_BUFFERING,
+                             (unsigned) hs->buffering.total_bytes_buffered ) );
+                    }
 
                     /* We don't have enough space to buffer the next expected
                      * handshake message. Remove buffers used for future msgs

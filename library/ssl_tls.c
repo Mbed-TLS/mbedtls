@@ -3665,7 +3665,10 @@ void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl )
         /* Free first entry */
         hs_buf = &hs->buffering.hs[0];
         if( hs_buf->is_valid )
+        {
+            hs->buffering.total_bytes_buffered -= hs_buf->data_len;
             mbedtls_free( hs_buf->data );
+        }
 
         /* Shift all other entries */
         for( offset = 0; offset + 1 < MBEDTLS_SSL_MAX_BUFFERED_HS;
@@ -4506,18 +4509,49 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
                     goto exit;
                 }
 
+                /* Check if we have enough space to buffer the message. */
+                if( hs->buffering.total_bytes_buffered >
+                    MBEDTLS_SSL_DTLS_MAX_BUFFERING )
+                {
+                    MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+                    return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+                }
+
                 reassembly_buf_sz = ssl_get_reassembly_buffer_size( msg_len,
                                                        hs_buf->is_fragmented );
+
+                if( reassembly_buf_sz > ( MBEDTLS_SSL_DTLS_MAX_BUFFERING -
+                                          hs->buffering.total_bytes_buffered ) )
+                {
+                    if( recv_msg_seq_offset > 0 )
+                    {
+                        /* If we can't buffer a future message because
+                         * of space limitations -- ignore. */
+                        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Buffering of future message of size %u would exceed the compile-time limit %u (already %u bytes buffered) -- ignore\n",
+                             (unsigned) msg_len, MBEDTLS_SSL_DTLS_MAX_BUFFERING,
+                             (unsigned) hs->buffering.total_bytes_buffered ) );
+                        goto exit;
+                    }
+
+                    /* TODO: Remove future messages in the attempt to make
+                     *       space for the current one. */
+                    MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reassembly of next message of size %u would exceed the compile-time limit %u (already %u bytes buffered) -- fail\n",
+                             (unsigned) msg_len, MBEDTLS_SSL_DTLS_MAX_BUFFERING,
+                             (unsigned) hs->buffering.total_bytes_buffered ) );
+                    ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+                    goto exit;
+                }
+
+                MBEDTLS_SSL_DEBUG_MSG( 2, ( "initialize reassembly, total length = %d",
+                                            msg_len ) );
+
                 hs_buf->data = mbedtls_calloc( 1, reassembly_buf_sz );
                 if( hs_buf->data == NULL )
                 {
-                    /* If we run out of RAM trying to buffer a *future*
-                     * message, simply ignore instead of failing. */
-                    MBEDTLS_SSL_DEBUG_MSG( 2, ( "Not enough RAM available to buffer future message - ignore" ) );
+                    ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
                     goto exit;
                 }
-                else if( ret != 0 )
-                    return( ret );
+                hs_buf->data_len = reassembly_buf_sz;
 
                 /* Prepare final header: copy msg_type, length and message_seq,
                  * then add standardised fragment_offset and fragment_length */
@@ -4526,6 +4560,8 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
                 memcpy( hs_buf->data + 9, hs_buf->data + 1, 3 );
 
                 hs_buf->is_valid = 1;
+
+                hs->buffering.total_bytes_buffered += reassembly_buf_sz;
             }
             else
             {

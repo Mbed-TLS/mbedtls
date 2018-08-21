@@ -311,6 +311,9 @@ struct mbedtls_ssl_handshake_params
 
     struct
     {
+        size_t total_bytes_buffered; /*!< Cumulative size of heap allocated
+                                      *   buffers used for message buffering. */
+
         uint8_t seen_ccs;               /*!< Indicates if a CCS message has
                                          *   been seen in the current flight. */
 
@@ -320,6 +323,7 @@ struct mbedtls_ssl_handshake_params
             uint8_t is_fragmented : 1;
             uint8_t is_complete   : 1;
             unsigned char *data;
+            size_t data_len;
         } hs[MBEDTLS_SSL_MAX_BUFFERED_HS];
 
         struct

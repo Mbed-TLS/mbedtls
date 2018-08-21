@@ -5332,6 +5332,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_gnutls
 run_test    "DTLS fragmenting: gnutls server, DTLS 1.2" \
             "$G_SRV -u" \
             "$P_CLI dtls=1 debug_level=2 \
@@ -5346,6 +5347,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
+requires_gnutls
 run_test    "DTLS fragmenting: gnutls server, DTLS 1.0" \
             "$G_SRV -u" \
             "$P_CLI dtls=1 debug_level=2 \
@@ -5362,6 +5364,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+requires_gnutls
 run_test    "DTLS fragmenting: gnutls client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 server_addr=::1 \
              crt_file=data_files/server7_int-ca.crt \
@@ -5377,6 +5380,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
+requires_gnutls
 run_test    "DTLS fragmenting: gnutls client, DTLS 1.0" \
             "$P_SRV dtls=1 debug_level=2 server_addr=::1 \
              crt_file=data_files/server7_int-ca.crt \
@@ -5486,6 +5490,7 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
 ##
 ## # gnutls-cli always tries IPv6 first, and doesn't fall back to IPv4 with DTLS
 ## requires_ipv6
+## requires_gnutls
 ## requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 ## requires_config_enabled MBEDTLS_RSA_C
 ## requires_config_enabled MBEDTLS_ECDSA_C
@@ -5503,6 +5508,7 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
 ##
 ## # gnutls-cli always tries IPv6 first, and doesn't fall back to IPv4 with DTLS
 ## requires_ipv6
+## requires_gnutls
 ## requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 ## requires_config_enabled MBEDTLS_RSA_C
 ## requires_config_enabled MBEDTLS_ECDSA_C

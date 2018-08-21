@@ -4476,6 +4476,7 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
     {
         case MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC:
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "Remember CCS message" ) );
+
             hs->buffering.seen_ccs = 1;
             break;
 
@@ -4986,23 +4987,38 @@ int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl )
         }
     }
 
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    /* Drop unexpected ChangeCipherSpec messages */
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-        ssl->in_msgtype == MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC  &&
-        ssl->state != MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC    &&
-        ssl->state != MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC )
+    if( ssl->in_msgtype == MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC )
     {
-        if( ssl->handshake == NULL )
+        if( ssl->in_msglen != 1 )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "dropping ChangeCipherSpec outside handshake" ) );
-            return( MBEDTLS_ERR_SSL_UNEXPECTED_RECORD );
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid CCS message, len: %d",
+                           ssl->in_msglen ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
         }
 
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "received out-of-order ChangeCipherSpec - remember" ) );
-        return( MBEDTLS_ERR_SSL_EARLY_MESSAGE );
-    }
+        if( ssl->in_msg[0] != 1 )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "invalid CCS message, content: %02x",
+                                        ssl->in_msg[0] ) );
+            return( MBEDTLS_ERR_SSL_INVALID_RECORD );
+        }
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+        if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+            ssl->state != MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC    &&
+            ssl->state != MBEDTLS_SSL_SERVER_CHANGE_CIPHER_SPEC )
+        {
+            if( ssl->handshake == NULL )
+            {
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "dropping ChangeCipherSpec outside handshake" ) );
+                return( MBEDTLS_ERR_SSL_UNEXPECTED_RECORD );
+            }
+
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "received out-of-order ChangeCipherSpec - remember" ) );
+            return( MBEDTLS_ERR_SSL_EARLY_MESSAGE );
+        }
 #endif
+    }
 
     if( ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT )
     {
@@ -5718,13 +5734,8 @@ int mbedtls_ssl_parse_change_cipher_spec( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
     }
 
-    if( ssl->in_msglen != 1 || ssl->in_msg[0] != 1 )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad change cipher spec message" ) );
-        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                        MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
-        return( MBEDTLS_ERR_SSL_BAD_HS_CHANGE_CIPHER_SPEC );
-    }
+    /* CCS records are only accepted if they have length 1 and content '1',
+     * so we don't need to check this here. */
 
     /*
      * Switch to our negotiated transform and session parameters for inbound

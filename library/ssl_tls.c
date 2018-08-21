@@ -3523,28 +3523,10 @@ static int ssl_bitmask_check( unsigned char *mask, size_t len )
 }
 
 /* msg_len does not include the handshake header */
-static int ssl_prepare_reassembly_buffer( mbedtls_ssl_context *ssl, /* debug */
-                                          unsigned msg_len,
-                                          unsigned add_bitmap,
-                                          unsigned char **target )
+static size_t ssl_get_reassembly_buffer_size( unsigned msg_len,
+                                              unsigned add_bitmap )
 {
     size_t alloc_len;
-    unsigned char *buf;
-
-#if !defined(MBEDTLS_DEBUG_C)
-    /* The SSL context is used for debugging only. */
-    ((void) ssl);
-#endif
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "initialize reassembly, total length = %d",
-                                msg_len ) );
-
-    /* NOTE: That should be checked earlier */
-    if( msg_len > MBEDTLS_SSL_IN_CONTENT_LEN )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "handshake message too large" ) );
-        return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-    }
 
     alloc_len  = 12;                                 /* Handshake header */
     alloc_len += msg_len;                            /* Content buffer   */
@@ -3552,15 +3534,7 @@ static int ssl_prepare_reassembly_buffer( mbedtls_ssl_context *ssl, /* debug */
     if( add_bitmap )
         alloc_len += msg_len / 8 + ( msg_len % 8 != 0 ); /* Bitmap       */
 
-    buf = mbedtls_calloc( 1, alloc_len );
-    if( buf == NULL )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc failed (%d bytes)", alloc_len ) );
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
-    }
-
-    *target = buf;
-    return( 0 );
+    return( alloc_len );
 }
 
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
@@ -4516,6 +4490,8 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
             /* Check if the buffering for this seq nr has already commenced. */
             if( !hs_buf->is_valid )
             {
+                size_t reassembly_buf_sz;
+
                 hs_buf->is_fragmented =
                     ( ssl_hs_is_proper_fragment( ssl ) == 1 );
 
@@ -4530,11 +4506,10 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
                     goto exit;
                 }
 
-                ret = ssl_prepare_reassembly_buffer( ssl, msg_len,
-                                                     hs_buf->is_fragmented,
-                                                     &hs_buf->data );
-                if( ret == MBEDTLS_ERR_SSL_ALLOC_FAILED &&
-                    recv_msg_seq_offset > 0 )
+                reassembly_buf_sz = ssl_get_reassembly_buffer_size( msg_len,
+                                                       hs_buf->is_fragmented );
+                hs_buf->data = mbedtls_calloc( 1, reassembly_buf_sz );
+                if( hs_buf->data == NULL )
                 {
                     /* If we run out of RAM trying to buffer a *future*
                      * message, simply ignore instead of failing. */

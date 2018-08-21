@@ -4522,6 +4522,8 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
                 if( reassembly_buf_sz > ( MBEDTLS_SSL_DTLS_MAX_BUFFERING -
                                           hs->buffering.total_bytes_buffered ) )
                 {
+                    int offset;
+
                     if( recv_msg_seq_offset > 0 )
                     {
                         /* If we can't buffer a future message because
@@ -4532,13 +4534,34 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
                         goto exit;
                     }
 
-                    /* TODO: Remove future messages in the attempt to make
-                     *       space for the current one. */
-                    MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reassembly of next message of size %u would exceed the compile-time limit %u (already %u bytes buffered) -- fail\n",
+                    /* We don't have enough space to buffer the next expected
+                     * handshake message. Remove buffers used for future msgs
+                     * to gain space, starting with the most distant one. */
+                    for( offset = MBEDTLS_SSL_MAX_BUFFERED_HS - 1;
+                         offset >= 0; offset-- )
+                    {
+                        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Free buffering slot %d to make space for reassembly of next handshake message",
+                                                    offset ) );
+
+                        ssl_buffering_free_slot( ssl, offset );
+
+                        /* Check if we have enough space available now. */
+                        if( reassembly_buf_sz <=
+                              ( MBEDTLS_SSL_DTLS_MAX_BUFFERING -
+                                hs->buffering.total_bytes_buffered ) )
+                        {
+                            break;
+                        }
+                    }
+
+                    if( offset == -1 )
+                    {
+                        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reassembly of next message of size %u would exceed the compile-time limit %u (already %u bytes buffered) -- fail\n",
                              (unsigned) msg_len, MBEDTLS_SSL_DTLS_MAX_BUFFERING,
                              (unsigned) hs->buffering.total_bytes_buffered ) );
-                    ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
-                    goto exit;
+                        ret = MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
+                        goto exit;
+                    }
                 }
 
                 MBEDTLS_SSL_DEBUG_MSG( 2, ( "initialize reassembly, total length = %d",

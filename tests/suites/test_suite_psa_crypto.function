@@ -794,6 +794,19 @@ static int exercise_key( psa_key_slot_t slot,
  */
 
 /* BEGIN_CASE */
+void static_checks( )
+{
+    size_t max_truncated_mac_size =
+        PSA_ALG_MAC_TRUNCATION_MASK >> PSA_MAC_TRUNCATION_OFFSET;
+
+    /* Check that the length for a truncated MAC always fits in the algorithm
+     * encoding. The shifted mask is the maximum truncated value. The
+     * untruncated algorithm may be one byte larger. */
+    TEST_ASSERT( PSA_MAC_MAX_SIZE <= 1 + max_truncated_mac_size );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void init_deinit( )
 {
     psa_status_t status;

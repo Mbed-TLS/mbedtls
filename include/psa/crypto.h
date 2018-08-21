@@ -756,6 +756,13 @@ typedef uint32_t psa_algorithm_t;
     (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_MAC_SUBCATEGORY_MASK)) == \
      PSA_ALG_HMAC_BASE)
 
+/* In the encoding of a MAC algorithm, the bits corresponding to
+ * PSA_ALG_MAC_TRUNCATION_MASK encode the length to which the MAC is
+ * truncated. As an exception, the value 0 means the untruncated algorithm,
+ * whatever its length is. The length is encoded in 6 bits, so it can
+ * reach up to 63; the largest MAC is 64 bytes so its trivial truncation
+ * to full length is correctly encoded as 0 and any non-trivial truncation
+ * is correctly encoded as a value between 1 and 63. */
 #define PSA_ALG_MAC_TRUNCATION_MASK             ((psa_algorithm_t)0x00003f00)
 #define PSA_MAC_TRUNCATION_OFFSET 8
 
@@ -887,6 +894,10 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_CCM                             ((psa_algorithm_t)0x06001001)
 #define PSA_ALG_GCM                             ((psa_algorithm_t)0x06001002)
 
+/* In the encoding of a AEAD algorithm, the bits corresponding to
+ * PSA_ALG_AEAD_TAG_LENGTH_MASK encode the length of the AEAD tag.
+ * The constants for default lengths follow this encoding.
+ */
 #define PSA_ALG_AEAD_TAG_LENGTH_MASK            ((psa_algorithm_t)0x00003f00)
 #define PSA_AEAD_TAG_LENGTH_OFFSET 8
 

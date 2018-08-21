@@ -79,6 +79,9 @@
  */
 /* All non-HMAC MACs have a maximum size that's smaller than the
  * minimum possible value of PSA_HASH_MAX_SIZE in this implementation. */
+/* Note that the encoding of truncated MAC algorithms limits this value
+ * to 64 bytes.
+ */
 #define PSA_MAC_MAX_SIZE PSA_HASH_MAX_SIZE
 
 /* The maximum size of an RSA key on this implementation, in bits.

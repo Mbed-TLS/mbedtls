@@ -1,3 +1,6 @@
+PSA compile-time sanity checks
+static_checks:
+
 PSA init/deinit
 init_deinit:
 

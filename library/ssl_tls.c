@@ -170,6 +170,9 @@ static int ssl_get_remaining_payload_in_datagram( mbedtls_ssl_context const *ssl
 
 static void ssl_buffering_free( mbedtls_ssl_context *ssl );
 
+static void ssl_buffering_free_slot( mbedtls_ssl_context *ssl,
+                                     uint8_t slot );
+
 /*
  * Double the retransmit timeout value, within the allowed range,
  * returning -1 if the maximum value has already been reached.
@@ -3663,15 +3666,11 @@ void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl )
          */
 
         /* Free first entry */
-        hs_buf = &hs->buffering.hs[0];
-        if( hs_buf->is_valid )
-        {
-            hs->buffering.total_bytes_buffered -= hs_buf->data_len;
-            mbedtls_free( hs_buf->data );
-        }
+        ssl_buffering_free_slot( ssl, 0 );
 
         /* Shift all other entries */
-        for( offset = 0; offset + 1 < MBEDTLS_SSL_MAX_BUFFERED_HS;
+        for( offset = 0, hs_buf = &hs->buffering.hs[0];
+             offset + 1 < MBEDTLS_SSL_MAX_BUFFERED_HS;
              offset++, hs_buf++ )
         {
             *hs_buf = *(hs_buf + 1);
@@ -8564,13 +8563,19 @@ static void ssl_buffering_free( mbedtls_ssl_context *ssl )
         return;
 
     for( offset = 0; offset < MBEDTLS_SSL_MAX_BUFFERED_HS; offset++ )
+        ssl_buffering_free_slot( ssl, offset );
+}
+
+static void ssl_buffering_free_slot( mbedtls_ssl_context *ssl,
+                                     uint8_t slot )
+{
+    mbedtls_ssl_handshake_params * const hs = ssl->handshake;
+    mbedtls_ssl_hs_buffer * const hs_buf = &hs->buffering.hs[slot];
+    if( hs_buf->is_valid == 1 )
     {
-        mbedtls_ssl_hs_buffer *hs_buf = &hs->buffering.hs[offset];
-        if( hs_buf->is_valid == 1 )
-        {
-            mbedtls_free( hs_buf->data );
-            memset( hs_buf, 0, sizeof( mbedtls_ssl_hs_buffer ) );
-        }
+        hs->buffering.total_bytes_buffered -= hs_buf->data_len;
+        mbedtls_free( hs_buf->data );
+        memset( hs_buf, 0, sizeof( mbedtls_ssl_hs_buffer ) );
     }
 }
 

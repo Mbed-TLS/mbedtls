@@ -75,9 +75,6 @@ typedef struct
     mbedtls_ecp_point Q;     /*!< The public key. */
     mbedtls_ecp_point Qp;    /*!< The value of the public key of the peer. */
     mbedtls_mpi z;           /*!< The shared secret. */
-    mbedtls_ecp_point Vi;    /*!< The blinding value. */
-    mbedtls_ecp_point Vf;    /*!< The unblinding value. */
-    mbedtls_mpi _d;          /*!< The previous \p d. */
 } mbedtls_ecdh_context_mbed;
 #endif
 

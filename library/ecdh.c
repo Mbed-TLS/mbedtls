@@ -157,11 +157,8 @@ static void mbedtls_ecdh_free_internal( mbedtls_ecdh_context *ctx )
     mbedtls_ecp_group_free( &real_ctx->grp );
     mbedtls_ecp_point_free( &real_ctx->Q   );
     mbedtls_ecp_point_free( &real_ctx->Qp  );
-    mbedtls_ecp_point_free( &real_ctx->Vi  );
-    mbedtls_ecp_point_free( &real_ctx->Vf  );
     mbedtls_mpi_free( &real_ctx->d  );
     mbedtls_mpi_free( &real_ctx->z  );
-    mbedtls_mpi_free( &real_ctx->_d );
 }
 
 /*

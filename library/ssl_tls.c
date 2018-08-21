@@ -4503,7 +4503,7 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
                  * This is an implementation-specific limitation
                  * and not one from the standard, hence it is not
                  * checked in ssl_check_hs_header(). */
-                if( msg_len > MBEDTLS_SSL_IN_CONTENT_LEN )
+                if( msg_len + 12 > MBEDTLS_SSL_IN_CONTENT_LEN )
                 {
                     /* Ignore message */
                     goto exit;

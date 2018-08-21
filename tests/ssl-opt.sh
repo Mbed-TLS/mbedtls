@@ -5139,6 +5139,8 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake" \
 # Since we don't support reading fragmented ClientHello yet,
 # up the MTU to 1450 (larger than ClientHello with session ticket,
 # but still smaller than client's Certificate to ensure fragmentation).
+# reco_delay avoids races where the client reconnects before the server has
+# resumed listening, which would result in a spurious resend.
 not_with_valgrind # spurious resend due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
@@ -5152,7 +5154,7 @@ run_test    "DTLS fragmenting: proxy MTU, resumed handshake" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             mtu=1450 reconnect=1" \
+             mtu=1450 reconnect=1 reco_delay=1" \
             0 \
             -S "resend" \
             -C "resend" \

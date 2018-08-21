@@ -167,8 +167,7 @@ cipher_example_encrypt_decrypt_aes_cbc_nopad_1_block( void )
         key_bits = 256,
         part_size = block_size,
     };
-    const psa_algorithm_t alg = PSA_ALG_CBC_BASE |
-                                PSA_ALG_BLOCK_CIPHER_PAD_NONE;
+    const psa_algorithm_t alg = PSA_ALG_CBC_NO_PADDING;
 
     psa_status_t status;
     size_t output_len = 0;
@@ -216,8 +215,7 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_cbc_pkcs7_multi( void )
         part_size = 10,
     };
 
-    const psa_algorithm_t alg = PSA_ALG_CBC_BASE |
-                                PSA_ALG_BLOCK_CIPHER_PAD_PKCS7;
+    const psa_algorithm_t alg = PSA_ALG_CBC_PKCS7;
 
     psa_status_t status;
     size_t output_len = 0;

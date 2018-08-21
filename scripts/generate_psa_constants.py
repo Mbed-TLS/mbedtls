@@ -47,34 +47,11 @@ static int psa_snprint_key_type(char *buffer, size_t buffer_size,
     return required_size;
 }
 
-static void append_padding_mode(char **buffer, size_t buffer_size,
-                                size_t *required_size,
-                                psa_algorithm_t padding_mode)
-{
-    size_t n;
-    append(buffer, buffer_size, required_size, " | ", 3);
-    switch (padding_mode) {
-    %(padding_mode_cases)s
-    default:
-        n = snprintf(*buffer, buffer_size - *required_size,
-                     "0x%%08lx", (unsigned long) padding_mode);
-        if (n < buffer_size - *required_size) *buffer += n;
-        *required_size += n;
-        break;
-    }
-}
-
 static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
                                  psa_algorithm_t alg)
 {
     size_t required_size = 0;
-    psa_algorithm_t padding_mode = -1;
-    psa_algorithm_t alg_without_padding = alg;
-    if (PSA_ALG_IS_CIPHER(alg) && PSA_ALG_IS_BLOCK_CIPHER(alg)) {
-        padding_mode = alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
-        alg_without_padding = alg & ~PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
-    }
-    switch (alg_without_padding) {
+    switch (alg) {
     %(algorithm_cases)s
     default:
         %(algorithm_code)s{
@@ -82,9 +59,6 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
                             "0x%%08lx", (unsigned long) alg);
         }
         break;
-    }
-    if (padding_mode != (psa_algorithm_t) -1) {
-        append_padding_mode(&buffer, buffer_size, &required_size, padding_mode);
     }
     buffer[0] = 0;
     return required_size;
@@ -125,10 +99,10 @@ key_type_from_curve_template = '''if (%(tester)s(type)) {
                               PSA_KEY_TYPE_GET_CURVE(type));
         } else '''
 
-algorithm_from_hash_template = '''if (%(tester)s(alg_without_padding)) {
+algorithm_from_hash_template = '''if (%(tester)s(alg)) {
             append_with_hash(&buffer, buffer_size, &required_size,
                              "%(builder)s", %(builder_length)s,
-                             PSA_ALG_GET_HASH(alg_without_padding));
+                             PSA_ALG_GET_HASH(alg));
         } else '''
 
 bit_test_template = '''\
@@ -149,7 +123,6 @@ class MacroCollector:
         self.ecc_curves = set()
         self.algorithms = set()
         self.hash_algorithms = set()
-        self.block_cipher_padding_modes = set()
         self.algorithms_from_hash = {}
         self.key_usages = set()
 
@@ -175,11 +148,8 @@ class MacroCollector:
             self.key_types_from_curve[name] = name[:13] + 'IS_' + name[13:]
         elif name.startswith('PSA_ECC_CURVE_') and not parameter:
             self.ecc_curves.add(name)
-        elif name.startswith('PSA_ALG_BLOCK_CIPHER_PAD_') and not parameter:
-            self.block_cipher_padding_modes.add(name)
         elif name.startswith('PSA_ALG_') and not parameter:
-            if name in ['PSA_ALG_BLOCK_CIPHER_BASE',
-                        'PSA_ALG_ECDSA_BASE',
+            if name in ['PSA_ALG_ECDSA_BASE',
                         'PSA_ALG_RSA_PKCS1V15_SIGN_BASE']:
                 # Ad hoc skipping of duplicate names for some numerical values
                 return
@@ -250,10 +220,6 @@ class MacroCollector:
         return '\n    '.join(map(self.make_return_case,
                                  sorted(self.hash_algorithms)))
 
-    def make_padding_mode_cases(self):
-        return '\n    '.join(map(self.make_inner_append_case,
-                                 sorted(self.block_cipher_padding_modes)))
-
     def make_algorithm_cases(self):
         return '\n    '.join(map(self.make_append_case,
                                  sorted(self.algorithms)))
@@ -279,7 +245,6 @@ class MacroCollector:
         data['key_type_cases'] = self.make_key_type_cases()
         data['key_type_code'] = self.make_key_type_code()
         data['hash_algorithm_cases'] = self.make_hash_algorithm_cases()
-        data['padding_mode_cases'] = self.make_padding_mode_cases()
         data['algorithm_cases'] = self.make_algorithm_cases()
         data['algorithm_code'] = self.make_algorithm_code()
         data['key_usage_code'] = self.make_key_usage_code()

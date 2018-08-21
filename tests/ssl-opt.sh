@@ -5757,6 +5757,20 @@ run_test    "DTLS reordering: Buffer out-of-order handshake message on client" \
             -S "Inject buffered CCS message" \
             -S "Remember CCS message"
 
+run_test    "DTLS reordering: Buffer out-of-order handshake message on client before reassembling next" \
+            -p "$P_PXY delay_srv=Certificate delay_srv=Certificate" \
+            "$P_SRV mtu=512 dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            0 \
+            -c "Buffering HS message" \
+            -c "Next handshake message has been buffered - load"\
+            -S "Buffering HS message" \
+            -S "Next handshake message has been buffered - load"\
+            -C "Inject buffered CCS message" \
+            -C "Remember CCS message" \
+            -S "Inject buffered CCS message" \
+            -S "Remember CCS message"
+
 run_test    "DTLS reordering: Buffer out-of-order handshake message on server" \
             -p "$P_PXY delay_cli=Certificate" \
             "$P_SRV dgram_packing=0 auth_mode=required cookies=0 dtls=1 debug_level=2" \

@@ -1219,6 +1219,71 @@ run_test    "Session resume using tickets: openssl client" \
             -s "session successfully restored from ticket" \
             -s "a session has been resumed"
 
+# Tests for Session Tickets with DTLS
+
+run_test    "Session resume using tickets, DTLS: basic" \
+            "$P_SRV debug_level=3 dtls=1 tickets=1" \
+            "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1" \
+            0 \
+            -c "client hello, adding session ticket extension" \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -c "found session_ticket extension" \
+            -c "parse new session ticket" \
+            -S "session successfully restored from cache" \
+            -s "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+run_test    "Session resume using tickets, DTLS: cache disabled" \
+            "$P_SRV debug_level=3 dtls=1 tickets=1 cache_max=0" \
+            "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1" \
+            0 \
+            -c "client hello, adding session ticket extension" \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -c "found session_ticket extension" \
+            -c "parse new session ticket" \
+            -S "session successfully restored from cache" \
+            -s "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+run_test    "Session resume using tickets, DTLS: timeout" \
+            "$P_SRV debug_level=3 dtls=1 tickets=1 cache_max=0 ticket_timeout=1" \
+            "$P_CLI debug_level=3 dtls=1 tickets=1 reconnect=1 reco_delay=2" \
+            0 \
+            -c "client hello, adding session ticket extension" \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -c "found session_ticket extension" \
+            -c "parse new session ticket" \
+            -S "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -S "a session has been resumed" \
+            -C "a session has been resumed"
+
+run_test    "Session resume using tickets, DTLS: openssl server" \
+            "$O_SRV -dtls1" \
+            "$P_CLI dtls=1 debug_level=3 tickets=1 reconnect=1" \
+            0 \
+            -c "client hello, adding session ticket extension" \
+            -c "found session_ticket extension" \
+            -c "parse new session ticket" \
+            -c "a session has been resumed"
+
+run_test    "Session resume using tickets, DTLS: openssl client" \
+            "$P_SRV dtls=1 debug_level=3 tickets=1" \
+            "( $O_CLI -dtls1 -sess_out $SESSION; \
+               $O_CLI -dtls1 -sess_in $SESSION; \
+               rm -f $SESSION )" \
+            0 \
+            -s "found session ticket extension" \
+            -s "server hello, adding session ticket extension" \
+            -S "session successfully restored from cache" \
+            -s "session successfully restored from ticket" \
+            -s "a session has been resumed"
+
 # Tests for Session Resume based on session-ID and cache
 
 run_test    "Session resume using cache: tickets enabled on client" \
@@ -1309,6 +1374,101 @@ run_test    "Session resume using cache: openssl client" \
 run_test    "Session resume using cache: openssl server" \
             "$O_SRV" \
             "$P_CLI debug_level=3 tickets=0 reconnect=1" \
+            0 \
+            -C "found session_ticket extension" \
+            -C "parse new session ticket" \
+            -c "a session has been resumed"
+
+# Tests for Session Resume based on session-ID and cache, DTLS
+
+run_test    "Session resume using cache, DTLS: tickets enabled on client" \
+            "$P_SRV dtls=1 debug_level=3 tickets=0" \
+            "$P_CLI dtls=1 debug_level=3 tickets=1 reconnect=1" \
+            0 \
+            -c "client hello, adding session ticket extension" \
+            -s "found session ticket extension" \
+            -S "server hello, adding session ticket extension" \
+            -C "found session_ticket extension" \
+            -C "parse new session ticket" \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+run_test    "Session resume using cache, DTLS: tickets enabled on server" \
+            "$P_SRV dtls=1 debug_level=3 tickets=1" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1" \
+            0 \
+            -C "client hello, adding session ticket extension" \
+            -S "found session ticket extension" \
+            -S "server hello, adding session ticket extension" \
+            -C "found session_ticket extension" \
+            -C "parse new session ticket" \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+run_test    "Session resume using cache, DTLS: cache_max=0" \
+            "$P_SRV dtls=1 debug_level=3 tickets=0 cache_max=0" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1" \
+            0 \
+            -S "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -S "a session has been resumed" \
+            -C "a session has been resumed"
+
+run_test    "Session resume using cache, DTLS: cache_max=1" \
+            "$P_SRV dtls=1 debug_level=3 tickets=0 cache_max=1" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1" \
+            0 \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+run_test    "Session resume using cache, DTLS: timeout > delay" \
+            "$P_SRV dtls=1 debug_level=3 tickets=0" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 reco_delay=0" \
+            0 \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+run_test    "Session resume using cache, DTLS: timeout < delay" \
+            "$P_SRV dtls=1 debug_level=3 tickets=0 cache_timeout=1" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 reco_delay=2" \
+            0 \
+            -S "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -S "a session has been resumed" \
+            -C "a session has been resumed"
+
+run_test    "Session resume using cache, DTLS: no timeout" \
+            "$P_SRV dtls=1 debug_level=3 tickets=0 cache_timeout=0" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1 reco_delay=2" \
+            0 \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed" \
+            -c "a session has been resumed"
+
+run_test    "Session resume using cache, DTLS: openssl client" \
+            "$P_SRV dtls=1 debug_level=3 tickets=0" \
+            "( $O_CLI -dtls1 -sess_out $SESSION; \
+               $O_CLI -dtls1 -sess_in $SESSION; \
+               rm -f $SESSION )" \
+            0 \
+            -s "found session ticket extension" \
+            -S "server hello, adding session ticket extension" \
+            -s "session successfully restored from cache" \
+            -S "session successfully restored from ticket" \
+            -s "a session has been resumed"
+
+run_test    "Session resume using cache, DTLS: openssl server" \
+            "$O_SRV -dtls1" \
+            "$P_CLI dtls=1 debug_level=3 tickets=0 reconnect=1" \
             0 \
             -C "found session_ticket extension" \
             -C "parse new session ticket" \

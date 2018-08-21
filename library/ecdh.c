@@ -98,7 +98,13 @@ cleanup:
  */
 void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx )
 {
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    mbedtls_ecp_group_init( &ctx->grp );
+    mbedtls_ecp_point_init( &ctx->Q   );
+    mbedtls_ecp_point_init( &ctx->Qp  );
+#else
     memset( ctx, 0, sizeof( mbedtls_ecdh_context ) );
+#endif
 }
 
 static int mbedtls_ecdh_setup_internal( mbedtls_ecdh_context *ctx,
@@ -112,6 +118,10 @@ static int mbedtls_ecdh_setup_internal( mbedtls_ecdh_context *ctx,
 
     ctx->var = MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0;
     ctx->grp = grp;
+
+    mbedtls_ecp_group_init( &real_ctx->grp );
+    mbedtls_ecp_point_init( &real_ctx->Q   );
+    mbedtls_ecp_point_init( &real_ctx->Qp  );
 #endif
 
     ret = mbedtls_ecp_group_load( &real_ctx->grp, grp );

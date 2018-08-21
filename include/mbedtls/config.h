@@ -137,20 +137,25 @@
 /**
  * \def MBEDTLS_HAVE_TIME_DATE
  *
- * System has time.h and time(), gmtime_s() (Windows), gmtime_r() (POSIX) or
- * gmtime() and the clock is correct.
+ * System has time.h, time(), an implementation for mbedtls_platform_gmtime(),
+ * and the clock is correct.
  * The time needs to be correct (not necesarily very accurate, but at least
  * the date should be correct). This is used to verify the validity period of
  * X.509 certificates.
  *
  * Comment if your system does not have a correct clock.
  *
- * \warning gmtime() is used if the target platform is neither Windows nor
- * POSIX. Unfortunately, gmtime() is not thread-safe, so a mutex is used when
- * MBEDTLS_THREADING_C is defined to guarantee sequential usage of gmtime()
- * across Mbed TLS threads. However, applications must ensure that calls to
- * gmtime() from outside the library also use the mutex to avoid concurrency
- * issues.
+ * \note mbedtls_platform_gmtime() is an abstraction in platform_util.h that
+ * when called behaves similar to the gmtime() function from the C standard,
+ * but is thread safe. Mbed TLS will try to identify the underlying platform
+ * and configure an appropriate underlying implementation (e.g. gmtime_r() for
+ * POSIX and gmtime_s() for Windows). If this is not possible, then gmtime()
+ * will be used. Refer to the documentation for mbedtls_platform_gmtime() for
+ * more information.
+ *
+ * \note It is possible to configure an implementation for
+ * mbedtls_platform_gmtime() at compile-time by using the macro
+ * MBEDTLS_PLATFORM_GMTIME_ALT.
  */
 #define MBEDTLS_HAVE_TIME_DATE
 

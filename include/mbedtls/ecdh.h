@@ -97,7 +97,7 @@ typedef struct mbedtls_ecdh_context
     mbedtls_ecp_point Vf;    /*!< The unblinding value. */
     mbedtls_mpi _d;          /*!< The previous \p d. */
 #else
-    int point_format;        /*!< The format of point export in TLS messages. */
+    uint8_t point_format;        /*!< The format of point export in TLS messages. */
     mbedtls_ecp_group_id grp;/*!< The elliptic curve used. */
     mbedtls_ecdh_variant var;/*!< The ECDH implementation/structure used. */
     union

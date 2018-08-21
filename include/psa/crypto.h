@@ -900,7 +900,7 @@ typedef uint32_t psa_algorithm_t;
  * \param alg           A AEAD algorithm identifier (value of type
  *                      #psa_algorithm_t such that #PSA_ALG_IS_AEAD(\p alg)
  *                      is true).
- * \param mac_length    Desired length of the authentication tag in bytes.
+ * \param tag_length    Desired length of the authentication tag in bytes.
  *
  * \return              The corresponding AEAD algorithm with the specified
  *                      length.

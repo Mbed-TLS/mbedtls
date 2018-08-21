@@ -2844,10 +2844,9 @@ typedef struct
     uint8_t tag_length;
 } aead_operation_t;
 
-static void psa_aead_abort( aead_operation_t *operation,
-                            psa_algorithm_t alg )
+static void psa_aead_abort( aead_operation_t *operation )
 {
-    switch( alg )
+    switch( operation->core_alg )
     {
 #if defined(MBEDTLS_CCM_C)
         case PSA_ALG_CCM:
@@ -2932,7 +2931,7 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
     return( PSA_SUCCESS );
 
 cleanup:
-    psa_aead_abort( operation, alg );
+    psa_aead_abort( operation );
     return( status );
 }
 
@@ -2998,7 +2997,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
         memset( ciphertext, 0, ciphertext_size );
 
 exit:
-    psa_aead_abort( &operation, alg );
+    psa_aead_abort( &operation );
     if( status == PSA_SUCCESS )
         *ciphertext_length = plaintext_length + operation.tag_length;
     return( status );
@@ -3090,7 +3089,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
         memset( plaintext, 0, plaintext_size );
 
 exit:
-    psa_aead_abort( &operation, alg );
+    psa_aead_abort( &operation );
     if( status == PSA_SUCCESS )
         *plaintext_length = ciphertext_length - operation.tag_length;
     return( status );

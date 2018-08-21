@@ -1600,8 +1600,10 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     }
     else if( truncated < 4 )
     {
-        /* Too small to make any sense. Reject. 4 bytes is too small for
-         * security but ancient protocols with 32-bit MACs do exist. */
+        /* A very short MAC is too short for security since it can be
+         * brute-forced. Ancient protocols with 32-bit MACs do exist,
+         * so we make this our minimum, even though 32 bits is still
+         * too small for security. */
         status = PSA_ERROR_NOT_SUPPORTED;
     }
     else if( truncated > operation->mac_size )

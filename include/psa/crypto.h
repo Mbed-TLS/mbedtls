@@ -788,6 +788,10 @@ typedef uint32_t psa_algorithm_t;
  *                      is true). This may be a truncated or untruncated
  *                      MAC algorithm.
  * \param mac_length    Desired length of the truncated MAC in bytes.
+ *                      This must be at most the full length of the MAC
+ *                      and must be at least an implementation-specified
+ *                      minimum. The implementation-specified minimum
+ *                      shall not be zero.
  *
  * \return              The corresponding MAC algorithm with the specified
  *                      length.

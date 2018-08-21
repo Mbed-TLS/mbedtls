@@ -556,11 +556,37 @@ int send_packet( const packet *p, const char *why )
     return( 0 );
 }
 
-static packet prev;
+#define MAX_DELAYED_MSG 5
+static size_t prev_len;
+static packet prev[MAX_DELAYED_MSG];
 
 void clear_pending( void )
 {
     memset( &prev, 0, sizeof( packet ) );
+    prev_len = 0;
+}
+
+void delay_packet( packet *delay )
+{
+    if( prev_len == MAX_DELAYED_MSG )
+        return;
+
+    memcpy( &prev[prev_len++], delay, sizeof( packet ) );
+}
+
+int send_delayed()
+{
+    uint8_t offset;
+    int ret;
+    for( offset = 0; offset < prev_len; offset++ )
+    {
+        ret = send_packet( &prev[offset], "delayed" );
+        if( ret != 0 )
+            return( ret );
+    }
+
+    clear_pending();
+    return( 0 );
 }
 
 /*
@@ -647,7 +673,7 @@ int handle_message( const char *way,
         if( strcmp( delay_list[ delay_idx ], cur.type ) == 0 )
         {
             /* Delay message */
-            memcpy( &prev, &cur, sizeof( packet ) );
+            delay_packet( &cur );
 
             /* Remove entry from list */
             mbedtls_free( delay_list[delay_idx] );
@@ -676,12 +702,11 @@ int handle_message( const char *way,
                strcmp( cur.type, "ApplicationData" ) != 0 &&
                ! ( opt.protect_hvr &&
                    strcmp( cur.type, "HelloVerifyRequest" ) == 0 ) &&
-               prev.dst == NULL &&
                cur.len != (size_t) opt.protect_len &&
                dropped[id] < DROP_MAX &&
                rand() % opt.delay == 0 ) )
     {
-        memcpy( &prev, &cur, sizeof( packet ) );
+        delay_packet( &cur );
     }
     else
     {
@@ -689,14 +714,10 @@ int handle_message( const char *way,
         if( ( ret = send_packet( &cur, "forwarded" ) ) != 0 )
             return( ret );
 
-        /* send previously delayed message if any */
-        if( prev.dst != NULL )
-        {
-            ret = send_packet( &prev, "delayed" );
-            memset( &prev, 0, sizeof( packet ) );
-            if( ret != 0 )
-                return( ret );
-        }
+        /* send previously delayed messages if any */
+        ret = send_delayed();
+        if( ret != 0 )
+            return( ret );
     }
 
     return( 0 );

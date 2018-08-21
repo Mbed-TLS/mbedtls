@@ -1738,7 +1738,7 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
         uint8_t tmp[PSA_MAX_BLOCK_CIPHER_BLOCK_SIZE];
         int ret = mbedtls_cipher_cmac_finish( &operation->ctx.cmac, tmp );
         if( ret == 0 )
-            memcpy( mac, tmp, mac_size );
+            memcpy( mac, tmp, operation->mac_size );
         mbedtls_zeroize( tmp, sizeof( tmp ) );
         return( mbedtls_to_psa_error( ret ) );
     }

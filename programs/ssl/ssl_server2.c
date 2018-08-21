@@ -2193,7 +2193,6 @@ int main( int argc, char *argv[] )
     };
 #endif
 
-
 #if defined(MBEDTLS_SSL_TRUNCATED_HMAC)
     if( opt.trunc_hmac != DFL_TRUNC_HMAC )
         mbedtls_ssl_conf_truncated_hmac( &conf, opt.trunc_hmac );

@@ -167,7 +167,7 @@ void nist_kw_plaintext_lengths( int in_len, int out_len, int mode, int res )
     if( out_len != 0 )
     {
         ciphertext = mbedtls_calloc( 1, output_len );
-    TEST_ASSERT( ciphertext != NULL );
+        TEST_ASSERT( ciphertext != NULL );
     }
 
     memset( plaintext, 0, in_len );

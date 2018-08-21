@@ -4438,12 +4438,22 @@ exit:
     return( ret );
 }
 
+static void ssl_free_buffered_record( mbedtls_ssl_context *ssl );
 static int ssl_buffer_make_space( mbedtls_ssl_context *ssl,
                                   size_t desired )
 {
     int offset;
     mbedtls_ssl_handshake_params * const hs = ssl->handshake;
 
+    /* Get rid of future records epoch first, if such exist. */
+    ssl_free_buffered_record( ssl );
+
+    /* Check if we have enough space available now. */
+    if( desired <= ( MBEDTLS_SSL_DTLS_MAX_BUFFERING -
+                     hs->buffering.total_bytes_buffered ) )
+    {
+        return( 0 );
+    }
 
     /* We don't have enough space to buffer the next expected
      * handshake message. Remove buffers used for future msgs
@@ -4760,8 +4770,14 @@ static void ssl_free_buffered_record( mbedtls_ssl_context *ssl )
     if( hs == NULL )
         return;
 
-    mbedtls_free( hs->buffering.future_record.data );
-    hs->buffering.future_record.data = NULL;
+    if( hs->buffering.future_record.data != NULL )
+    {
+        hs->buffering.total_bytes_buffered -=
+            hs->buffering.future_record.len;
+
+        mbedtls_free( hs->buffering.future_record.data );
+        hs->buffering.future_record.data = NULL;
+    }
 }
 
 static int ssl_load_buffered_record( mbedtls_ssl_context *ssl )
@@ -4822,6 +4838,7 @@ static int ssl_buffer_future_record( mbedtls_ssl_context *ssl )
 {
     mbedtls_ssl_handshake_params * const hs = ssl->handshake;
     size_t const rec_hdr_len = 13;
+    size_t const total_buf_sz = rec_hdr_len + ssl->in_msglen;
 
     /* Don't buffer future records outside handshakes. */
     if( hs == NULL )
@@ -4836,6 +4853,16 @@ static int ssl_buffer_future_record( mbedtls_ssl_context *ssl )
     if( hs->buffering.future_record.data != NULL )
         return( 0 );
 
+    /* Don't buffer record if there's not enough buffering space remaining. */
+    if( total_buf_sz > ( MBEDTLS_SSL_DTLS_MAX_BUFFERING -
+                         hs->buffering.total_bytes_buffered ) )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Buffering of future epoch record of size %u would exceed the compile-time limit %u (already %u bytes buffered) -- ignore\n",
+                        (unsigned) total_buf_sz, MBEDTLS_SSL_DTLS_MAX_BUFFERING,
+                        (unsigned) hs->buffering.total_bytes_buffered ) );
+        return( 0 );
+    }
+
     /* Buffer record */
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "Buffer record from epoch %u",
                                 ssl->in_epoch + 1 ) );
@@ -4845,7 +4872,7 @@ static int ssl_buffer_future_record( mbedtls_ssl_context *ssl )
     /* ssl_parse_record_header() only considers records
      * of the next epoch as candidates for buffering. */
     hs->buffering.future_record.epoch = ssl->in_epoch + 1;
-    hs->buffering.future_record.len   = rec_hdr_len + ssl->in_msglen;
+    hs->buffering.future_record.len   = total_buf_sz;
 
     hs->buffering.future_record.data =
         mbedtls_calloc( 1, hs->buffering.future_record.len );
@@ -4856,9 +4883,9 @@ static int ssl_buffer_future_record( mbedtls_ssl_context *ssl )
         return( 0 );
     }
 
-    memcpy( hs->buffering.future_record.data,
-            ssl->in_hdr, rec_hdr_len + ssl->in_msglen );
+    memcpy( hs->buffering.future_record.data, ssl->in_hdr, total_buf_sz );
 
+    hs->buffering.total_bytes_buffered += total_buf_sz;
     return( 0 );
 }
 

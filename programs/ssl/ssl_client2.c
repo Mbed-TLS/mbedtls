@@ -1353,9 +1353,6 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_conf_handshake_timeout( &conf, opt.hs_to_min,
                                             opt.hs_to_max );
 
-    if( opt.dtls_mtu != DFL_DTLS_MTU )
-        mbedtls_ssl_conf_mtu( &conf, opt.dtls_mtu );
-
     if( opt.dgram_packing != DFL_DGRAM_PACKING )
         mbedtls_ssl_conf_datagram_packing( &ssl, opt.dgram_packing );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
@@ -1515,6 +1512,11 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_set_bio( &ssl, &server_fd,
                              mbedtls_net_send, mbedtls_net_recv,
                              opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( opt.dtls_mtu != DFL_DTLS_MTU )
+        mbedtls_ssl_set_mtu( &ssl, opt.dtls_mtu );
+#endif
 
 #if defined(MBEDTLS_TIMING_C)
     mbedtls_ssl_set_timer_cb( &ssl, &timer, mbedtls_timing_set_delay,

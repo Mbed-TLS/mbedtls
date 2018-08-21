@@ -111,7 +111,7 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl,
 
 static uint16_t ssl_get_maximum_datagram_size( mbedtls_ssl_context const *ssl )
 {
-    uint16_t mtu = ssl->conf->mtu;
+    uint16_t mtu = ssl->mtu;
 
     if( mtu != 0 && mtu < MBEDTLS_SSL_OUT_BUFFER_LEN )
         return( (int) mtu );
@@ -3132,7 +3132,7 @@ void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl )
  *  - ssl->out_msg[0]: the handshake type (ClientHello, ServerHello, etc)
  *  - ssl->out_msg + 4: the handshake message body
  *
- * Ouputs, ie state before passing to flight_append() or write_record():
+ * Outputs, ie state before passing to flight_append() or write_record():
  *   - ssl->out_msglen: the length of the record contents
  *      (including handshake headers but excluding record headers)
  *   - ssl->out_msg: the record contents (handshake headers + content)
@@ -3393,14 +3393,24 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        flush == SSL_DONT_FORCE_FLUSH )
     {
-        size_t remaining = ssl_get_remaining_payload_in_datagram( ssl );
+        size_t remaining;
+        ret = ssl_get_remaining_payload_in_datagram( ssl );
+        if( ret < 0 )
+        {
+            MBEDTLS_SSL_DEBUG_RET( 1, "ssl_get_remaining_payload_in_datagram",
+                                   ret );
+            return( ret );
+        }
+
+        remaining = (size_t) ret;
         if( remaining == 0 )
             flush = SSL_FORCE_FLUSH;
         else
         {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "Stil %u bytes available in current datagram", (unsigned) remaining ) );
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "Still %u bytes available in current datagram", (unsigned) remaining ) );
         }
     }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
@@ -7004,6 +7014,13 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
     ssl->f_recv_timeout = f_recv_timeout;
 }
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu )
+{
+    ssl->mtu = mtu;
+}
+#endif
+
 void mbedtls_ssl_conf_read_timeout( mbedtls_ssl_config *conf, uint32_t timeout )
 {
     conf->read_timeout   = timeout;
@@ -7492,13 +7509,6 @@ void mbedtls_ssl_conf_arc4_support( mbedtls_ssl_config *conf, char arc4 )
 }
 #endif
 
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-void mbedtls_ssl_conf_mtu( mbedtls_ssl_config *conf, uint16_t mtu )
-{
-    conf->mtu = mtu;
-}
-#endif
-
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 int mbedtls_ssl_conf_max_frag_len( mbedtls_ssl_config *conf, unsigned char mfl_code )
 {
@@ -7751,7 +7761,6 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     if( ssl->session_out->compression != MBEDTLS_SSL_COMPRESS_NULL )
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-    }
 #endif
 
     switch( mbedtls_cipher_get_cipher_mode( &transform->cipher_ctx_enc ) )
@@ -7835,9 +7844,9 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->mtu != 0 )
+    if( ssl->mtu != 0 )
     {
-        const size_t mtu = ssl->conf->mtu;
+        const size_t mtu = ssl->mtu;
         const int ret = mbedtls_ssl_get_record_expansion( ssl );
         const size_t overhead = (size_t) ret;
 

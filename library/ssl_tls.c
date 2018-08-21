@@ -7238,7 +7238,6 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     if( ssl->session_out->compression != MBEDTLS_SSL_COMPRESS_NULL )
         return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
-    }
 #endif
 
     switch( mbedtls_cipher_get_cipher_mode( &transform->cipher_ctx_enc ) )

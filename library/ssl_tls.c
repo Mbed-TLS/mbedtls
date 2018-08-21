@@ -3381,7 +3381,8 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
     }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+        flush == SSL_DONT_FORCE_FLUSH )
     {
         size_t remaining;
         ret = ssl_get_remaining_payload_in_datagram( ssl );

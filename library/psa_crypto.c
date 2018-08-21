@@ -1827,7 +1827,7 @@ cleanup:
     else
         psa_mac_abort( operation );
 
-    mbedtls_zeroize( actual_mac, mac_length );
+    mbedtls_zeroize( actual_mac, sizeof( actual_mac ) );
 
     return( status );
 }

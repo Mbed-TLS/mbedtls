@@ -78,7 +78,7 @@
 #define MBEDTLS_SSL_DEBUG_MPI( level, text, X )         do { } while( 0 )
 #define MBEDTLS_SSL_DEBUG_ECP( level, text, X )         do { } while( 0 )
 #define MBEDTLS_SSL_DEBUG_CRT( level, text, crt )       do { } while( 0 )
-#define MBEDTLS_SSL_DEBUG_ECDH( level, text, ecdh, attr ) do { } while( 0 )
+#define MBEDTLS_SSL_DEBUG_ECDH( level, ecdh, attr )     do { } while( 0 )
 
 #endif /* MBEDTLS_DEBUG_C */
 

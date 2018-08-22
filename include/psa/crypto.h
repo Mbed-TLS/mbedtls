@@ -360,17 +360,71 @@ typedef uint32_t psa_key_type_t;
  */
 #define PSA_KEY_TYPE_VENDOR_FLAG                ((psa_key_type_t)0x80000000)
 
-#define PSA_KEY_TYPE_CATEGORY_MASK              ((psa_key_type_t)0x7e000000)
+#define PSA_KEY_TYPE_CATEGORY_MASK              ((psa_key_type_t)0x70000000)
+#define PSA_KEY_TYPE_CATEGORY_SYMMETRIC         ((psa_key_type_t)0x40000000)
+#define PSA_KEY_TYPE_CATEGORY_RAW               ((psa_key_type_t)0x50000000)
+#define PSA_KEY_TYPE_CATEGORY_PUBLIC_KEY        ((psa_key_type_t)0x60000000)
+#define PSA_KEY_TYPE_CATEGORY_KEY_PAIR          ((psa_key_type_t)0x70000000)
+
+#define PSA_KEY_TYPE_CATEGORY_FLAG_PAIR         ((psa_key_type_t)0x10000000)
+
+/** Whether a key type is vendor-defined. */
+#define PSA_KEY_TYPE_IS_VENDOR_DEFINED(type) \
+    (((type) & PSA_KEY_TYPE_VENDOR_FLAG) != 0)
+
+/** Whether a key type is an unstructured array of bytes.
+ *
+ * This encompasses both symmetric keys and non-key data.
+ */
+#define PSA_KEY_TYPE_IS_UNSTRUCTURED(type) \
+    (((type) & PSA_KEY_TYPE_CATEGORY_MASK & ~(psa_key_type_t)0x10000000) == \
+     PSA_KEY_TYPE_CATEGORY_SYMMETRIC)
+
+/** Whether a key type is asymmetric: either a key pair or a public key. */
+#define PSA_KEY_TYPE_IS_ASYMMETRIC(type)                                \
+    (((type) & PSA_KEY_TYPE_CATEGORY_MASK                               \
+      & ~PSA_KEY_TYPE_CATEGORY_FLAG_PAIR) ==                            \
+     PSA_KEY_TYPE_CATEGORY_PUBLIC_KEY)
+/** Whether a key type is the public part of a key pair. */
+#define PSA_KEY_TYPE_IS_PUBLIC_KEY(type)                                \
+    (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_PUBLIC_KEY)
+/** Whether a key type is a key pair containing a private part and a public
+ * part. */
+#define PSA_KEY_TYPE_IS_KEYPAIR(type)                                   \
+    (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_KEY_PAIR)
+/** The key pair type corresponding to a public key type.
+ *
+ * You may also pass a key pair type as \p type, it will be left unchanged.
+ *
+ * \param type      A public key type or key pair type.
+ *
+ * \return          The corresponding key pair type.
+ *                  If \p type is not a public key or a key pair,
+ *                  the return value is undefined.
+ */
+#define PSA_KEY_TYPE_KEYPAIR_OF_PUBLIC_KEY(type)        \
+    ((type) | PSA_KEY_TYPE_CATEGORY_FLAG_PAIR)
+/** The public key type corresponding to a key pair type.
+ *
+ * You may also pass a key pair type as \p type, it will be left unchanged.
+ *
+ * \param type      A public key type or key pair type.
+ *
+ * \return          The corresponding public key type.
+ *                  If \p type is not a public key or a key pair,
+ *                  the return value is undefined.
+ */
+#define PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type)        \
+    ((type) & ~PSA_KEY_TYPE_CATEGORY_FLAG_PAIR)
+/** Whether a key type is an RSA key (pair or public-only). */
+#define PSA_KEY_TYPE_IS_RSA(type)                                       \
+    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_RSA_PUBLIC_KEY)
 
 /** Raw data.
  *
  * A "key" of this type cannot be used for any cryptographic operation.
  * Applications may use this type to store arbitrary data in the keystore. */
-#define PSA_KEY_TYPE_RAW_DATA                   ((psa_key_type_t)0x02000000)
-
-#define PSA_KEY_TYPE_CATEGORY_SYMMETRIC         ((psa_key_type_t)0x04000000)
-#define PSA_KEY_TYPE_CATEGORY_ASYMMETRIC        ((psa_key_type_t)0x06000000)
-#define PSA_KEY_TYPE_PAIR_FLAG                  ((psa_key_type_t)0x01000000)
+#define PSA_KEY_TYPE_RAW_DATA                   ((psa_key_type_t)0x50000001)
 
 /** HMAC key.
  *
@@ -380,21 +434,21 @@ typedef uint32_t psa_key_type_t;
  * HMAC keys should generally have the same size as the underlying hash.
  * This size can be calculated with #PSA_HASH_SIZE(\c alg) where
  * \c alg is the HMAC algorithm or the underlying hash algorithm. */
-#define PSA_KEY_TYPE_HMAC                       ((psa_key_type_t)0x02000001)
+#define PSA_KEY_TYPE_HMAC                       ((psa_key_type_t)0x51000000)
 
 /** A secret for key derivation.
  *
  * The key policy determines which key derivation algorithm the key
  * can be used for.
  */
-#define PSA_KEY_TYPE_DERIVE                     ((psa_key_type_t)0x02000101)
+#define PSA_KEY_TYPE_DERIVE                     ((psa_key_type_t)0x52000000)
 
 /** Key for an cipher, AEAD or MAC algorithm based on the AES block cipher.
  *
  * The size of the key can be 16 bytes (AES-128), 24 bytes (AES-192) or
  * 32 bytes (AES-256).
  */
-#define PSA_KEY_TYPE_AES                        ((psa_key_type_t)0x04000001)
+#define PSA_KEY_TYPE_AES                        ((psa_key_type_t)0x40000001)
 
 /** Key for a cipher or MAC algorithm based on DES or 3DES (Triple-DES).
  *
@@ -405,30 +459,30 @@ typedef uint32_t psa_key_type_t;
  * deprecated and should only be used to decrypt legacy data. 3-key 3DES
  * is weak and deprecated and should only be used in legacy protocols.
  */
-#define PSA_KEY_TYPE_DES                        ((psa_key_type_t)0x04000002)
+#define PSA_KEY_TYPE_DES                        ((psa_key_type_t)0x40000002)
 
 /** Key for an cipher, AEAD or MAC algorithm based on the
  * Camellia block cipher. */
-#define PSA_KEY_TYPE_CAMELLIA                   ((psa_key_type_t)0x04000003)
+#define PSA_KEY_TYPE_CAMELLIA                   ((psa_key_type_t)0x40000003)
 
 /** Key for the RC4 stream cipher.
  *
  * Note that RC4 is weak and deprecated and should only be used in
  * legacy protocols. */
-#define PSA_KEY_TYPE_ARC4                       ((psa_key_type_t)0x04000004)
+#define PSA_KEY_TYPE_ARC4                       ((psa_key_type_t)0x40000004)
 
 /** RSA public key. */
-#define PSA_KEY_TYPE_RSA_PUBLIC_KEY             ((psa_key_type_t)0x06010000)
+#define PSA_KEY_TYPE_RSA_PUBLIC_KEY             ((psa_key_type_t)0x60010000)
 /** RSA key pair (private and public key). */
-#define PSA_KEY_TYPE_RSA_KEYPAIR                ((psa_key_type_t)0x07010000)
+#define PSA_KEY_TYPE_RSA_KEYPAIR                ((psa_key_type_t)0x70010000)
 
 /** DSA public key. */
-#define PSA_KEY_TYPE_DSA_PUBLIC_KEY             ((psa_key_type_t)0x06020000)
+#define PSA_KEY_TYPE_DSA_PUBLIC_KEY             ((psa_key_type_t)0x60020000)
 /** DSA key pair (private and public key). */
-#define PSA_KEY_TYPE_DSA_KEYPAIR                ((psa_key_type_t)0x07020000)
+#define PSA_KEY_TYPE_DSA_KEYPAIR                ((psa_key_type_t)0x70020000)
 
-#define PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE        ((psa_key_type_t)0x06030000)
-#define PSA_KEY_TYPE_ECC_KEYPAIR_BASE           ((psa_key_type_t)0x07030000)
+#define PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE        ((psa_key_type_t)0x60030000)
+#define PSA_KEY_TYPE_ECC_KEYPAIR_BASE           ((psa_key_type_t)0x70030000)
 #define PSA_KEY_TYPE_ECC_CURVE_MASK             ((psa_key_type_t)0x0000ffff)
 /** Elliptic curve key pair. */
 #define PSA_KEY_TYPE_ECC_KEYPAIR(curve)         \
@@ -436,32 +490,6 @@ typedef uint32_t psa_key_type_t;
 /** Elliptic curve public key. */
 #define PSA_KEY_TYPE_ECC_PUBLIC_KEY(curve)              \
     (PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE | (curve))
-
-/** Whether a key type is vendor-defined. */
-#define PSA_KEY_TYPE_IS_VENDOR_DEFINED(type) \
-    (((type) & PSA_KEY_TYPE_VENDOR_FLAG) != 0)
-
-/** Whether a key type is asymmetric: either a key pair or a public key. */
-#define PSA_KEY_TYPE_IS_ASYMMETRIC(type)                                \
-    (((type) & PSA_KEY_TYPE_CATEGORY_MASK) == PSA_KEY_TYPE_CATEGORY_ASYMMETRIC)
-/** Whether a key type is the public part of a key pair. */
-#define PSA_KEY_TYPE_IS_PUBLIC_KEY(type)                                \
-    (((type) & (PSA_KEY_TYPE_CATEGORY_MASK | PSA_KEY_TYPE_PAIR_FLAG)) == \
-      PSA_KEY_TYPE_CATEGORY_ASYMMETRIC)
-/** Whether a key type is a key pair containing a private part and a public
- * part. */
-#define PSA_KEY_TYPE_IS_KEYPAIR(type)                                   \
-    (((type) & (PSA_KEY_TYPE_CATEGORY_MASK | PSA_KEY_TYPE_PAIR_FLAG)) == \
-     (PSA_KEY_TYPE_CATEGORY_ASYMMETRIC | PSA_KEY_TYPE_PAIR_FLAG))
-/** The key pair type corresponding to a public key type. */
-#define PSA_KEY_TYPE_KEYPAIR_OF_PUBLIC_KEY(type)        \
-    ((type) | PSA_KEY_TYPE_PAIR_FLAG)
-/** The public key type corresponding to a key pair type. */
-#define PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type)        \
-    ((type) & ~PSA_KEY_TYPE_PAIR_FLAG)
-/** Whether a key type is an RSA key (pair or public-only). */
-#define PSA_KEY_TYPE_IS_RSA(type)                                       \
-    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_RSA_PUBLIC_KEY)
 
 /** Whether a key type is an elliptic curve key (pair or public-only). */
 #define PSA_KEY_TYPE_IS_ECC(type)                                       \
@@ -1159,10 +1187,54 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
  * - For Triple-DES, the format is the concatenation of the
  *   two or three DES keys.
  * - For RSA key pairs (#PSA_KEY_TYPE_RSA_KEYPAIR), the format
- *   is the non-encrypted DER representation defined by PKCS\#1 (RFC 8017)
- *   as RSAPrivateKey.
- * - For RSA public keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY), the format
- *   is the DER representation defined by RFC 5280 as SubjectPublicKeyInfo.
+ *   is the non-encrypted DER encoding of the representation defined by
+ *   PKCS\#1 (RFC 8017) as `RSAPrivateKey`, version 0.
+ *   ```
+ *   RSAPrivateKey ::= SEQUENCE {
+ *       version             INTEGER,  -- must be 0
+ *       modulus             INTEGER,  -- n
+ *       publicExponent      INTEGER,  -- e
+ *       privateExponent     INTEGER,  -- d
+ *       prime1              INTEGER,  -- p
+ *       prime2              INTEGER,  -- q
+ *       exponent1           INTEGER,  -- d mod (p-1)
+ *       exponent2           INTEGER,  -- d mod (q-1)
+ *       coefficient         INTEGER,  -- (inverse of q) mod p
+ *   }
+ *   ```
+ * - For DSA private keys (#PSA_KEY_TYPE_DSA_KEYPAIR), the format
+ *   is the non-encrypted DER encoding of the representation used by
+ *   OpenSSL and OpenSSH, whose structure is described in ASN.1 as follows:
+ *   ```
+ *   DSAPrivateKey ::= SEQUENCE {
+ *       version             INTEGER,  -- must be 0
+ *       prime               INTEGER,  -- p
+ *       subprime            INTEGER,  -- q
+ *       generator           INTEGER,  -- g
+ *       public              INTEGER,  -- y
+ *       private             INTEGER,  -- x
+ *   }
+ *   ```
+ * - For elliptic curve key pairs (key types for which
+ *   #PSA_KEY_TYPE_IS_ECC_KEYPAIR is true), the format is the
+ *   non-encrypted DER encoding of the representation defined by RFC 5915 as
+ *   `ECPrivateKey`, version 1. The `ECParameters` field must be a
+ *   `namedCurve` OID as specified in RFC 5480 &sect;2.1.1.1. The public key
+ *   must be present and must be an `ECPoint` in the same format
+ *   (uncompressed variant) an ECC public key of the
+ *   corresponding type exported with psa_export_public_key().
+ *   ```
+ *   ECPrivateKey ::= SEQUENCE {
+ *       version             INTEGER,  -- must be 1
+ *       privateKey          OCTET STRING,
+ *           -- `ceiling(log2(n)/8)`-byte string, big endian,
+ *           -- where n is the order of the curve.
+ *       parameters      [0] IMPLICIT ECParameters {{ namedCurve }},  -- mandatory
+ *       publicKey       [1] IMPLICIT BIT STRING  -- mandatory
+ *   }
+ *   ```
+ * - For public keys (key types for which #PSA_KEY_TYPE_IS_PUBLIC_KEY is
+ *   true), the format is the same as for psa_export_public_key().
  *
  * \param key               Slot whose content is to be exported. This must
  *                          be an occupied key slot.
@@ -1175,6 +1247,12 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
  * \retval #PSA_ERROR_EMPTY_SLOT
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p data buffer is too small. You can determine a
+ *         sufficient buffer size by calling
+ *         #PSA_KEY_EXPORT_MAX_SIZE(\c type, \c bits)
+ *         where \c type is the key type
+ *         and \c bits is the key size in bits.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
@@ -1190,11 +1268,70 @@ psa_status_t psa_export_key(psa_key_slot_t key,
  * The output of this function can be passed to psa_import_key() to
  * create an object that is equivalent to the public key.
  *
- * For standard key types, the output format is as follows:
+ * The format is the DER representation defined by RFC 5280 as
+ * `SubjectPublicKeyInfo`, with the `subjectPublicKey` format
+ * specified below.
+ * ```
+ * SubjectPublicKeyInfo  ::=  SEQUENCE  {
+ *      algorithm          AlgorithmIdentifier,
+ *      subjectPublicKey   BIT STRING  }
+ * AlgorithmIdentifier  ::=  SEQUENCE  {
+ *      algorithm          OBJECT IDENTIFIER,
+ *      parameters         ANY DEFINED BY algorithm OPTIONAL  }
+ * ```
  *
- * - For RSA keys (#PSA_KEY_TYPE_RSA_KEYPAIR or #PSA_KEY_TYPE_RSA_PUBLIC_KEY),
- *   the format is the DER representation of the public key defined by RFC 5280
- *   as SubjectPublicKeyInfo.
+ * - For RSA public keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY),
+ *   the `subjectPublicKey` format is defined by RFC 3279 &sect;2.3.1 as
+ *   `RSAPublicKey`,
+ *   with the OID `rsaEncryption`,
+ *   and with the parameters `NULL`.
+ *   ```
+ *   pkcs-1 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)
+ *                                  rsadsi(113549) pkcs(1) 1 }
+ *   rsaEncryption OBJECT IDENTIFIER ::=  { pkcs-1 1 }
+ *
+ *   RSAPublicKey ::= SEQUENCE {
+ *      modulus            INTEGER,    -- n
+ *      publicExponent     INTEGER  }  -- e
+ *   ```
+ * - For DSA public keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY),
+ *   the `subjectPublicKey` format is defined by RFC 3279 &sect;2.3.2 as
+ *   `DSAPublicKey`,
+ *   with the OID `id-dsa`,
+ *   and with the parameters `DSS-Parms`.
+ *   ```
+ *   id-dsa OBJECT IDENTIFIER ::= {
+ *      iso(1) member-body(2) us(840) x9-57(10040) x9cm(4) 1 }
+ *
+ *   Dss-Parms  ::=  SEQUENCE  {
+ *      p                  INTEGER,
+ *      q                  INTEGER,
+ *      g                  INTEGER  }
+ *   DSAPublicKey ::= INTEGER -- public key, Y
+ *   ```
+ * - For elliptic curve public keys (key types for which
+ *   #PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY is true),
+ *   the `subjectPublicKey` format is defined by RFC 3279 &sect;2.3.5 as
+ *   `ECPoint`, which contains the uncompressed
+ *   representation defined by SEC1 &sect;2.3.3.
+ *   The OID is `id-ecPublicKey`,
+ *   and the parameters must be given as a `namedCurve` OID as specified in
+ *   RFC 5480 &sect;2.1.1.1 or other applicable standards.
+ *   ```
+ *   ansi-X9-62 OBJECT IDENTIFIER ::=
+ *                           { iso(1) member-body(2) us(840) 10045 }
+ *   id-public-key-type OBJECT IDENTIFIER  ::= { ansi-X9.62 2 }
+ *   id-ecPublicKey OBJECT IDENTIFIER ::= { id-publicKeyType 1 }
+ *
+ *   ECPoint ::= ...
+ *      -- first 8 bits: 0x04;
+ *      -- then x_P as an n-bit string, big endian;
+ *      -- then y_P as a n-bit string, big endian,
+ *      -- where n is the order of the curve.
+ *
+ *   EcpkParameters ::= CHOICE { -- other choices are not allowed
+ *      namedCurve    OBJECT IDENTIFIER }
+ *   ```
  *
  * \param key               Slot whose content is to be exported. This must
  *                          be an occupied key slot.
@@ -1206,6 +1343,14 @@ psa_status_t psa_export_key(psa_key_slot_t key,
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_EMPTY_SLOT
  * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The key is neither a public key nor a key pair.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p data buffer is too small. You can determine a
+ *         sufficient buffer size by calling
+ *         #PSA_KEY_EXPORT_MAX_SIZE(#PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(\c type), \c bits)
+ *         where \c type is the key type
+ *         and \c bits is the key size in bits.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED

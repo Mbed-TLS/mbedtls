@@ -259,7 +259,7 @@ int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
             return( mbedtls_ecdh_make_params_internal( ctx, olen, buf, blen,
                                                        f_rng, p_rng ) );
         default:
-            return MBEDTLS_ERR_ECDH_BAD_INPUT_DATA;
+            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 #endif
 }
@@ -310,7 +310,7 @@ int mbedtls_ecdh_read_params( mbedtls_ecdh_context *ctx,
         case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
             return( mbedtls_ecdh_read_params_internal( ctx, buf, end ) );
         default:
-            return MBEDTLS_ERR_ECDH_BAD_INPUT_DATA;
+            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 #endif
 }
@@ -364,7 +364,7 @@ int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx,
         case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
             return( mbedtls_ecdh_get_params_internal( ctx, key, side ) );
         default:
-            return MBEDTLS_ERR_ECDH_BAD_INPUT_DATA;
+            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 #endif
 }
@@ -416,7 +416,7 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
             return( mbedtls_ecdh_make_public_internal( ctx, olen, buf, blen,
                                                        f_rng, p_rng ) );
         default:
-            return MBEDTLS_ERR_ECDH_BAD_INPUT_DATA;
+            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 #endif
 }
@@ -460,7 +460,7 @@ int mbedtls_ecdh_read_public( mbedtls_ecdh_context *ctx,
         case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
             return( mbedtls_ecdh_read_public_internal( ctx, buf, blen ) );
         default:
-            return MBEDTLS_ERR_ECDH_BAD_INPUT_DATA;
+            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 #endif
 }
@@ -515,7 +515,7 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
             return( mbedtls_ecdh_calc_secret_internal( ctx, olen, buf, blen,
                                                        f_rng, p_rng ) );
         default:
-            return MBEDTLS_ERR_ECDH_BAD_INPUT_DATA;
+            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
     }
 #endif
 }

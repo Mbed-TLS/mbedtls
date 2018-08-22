@@ -162,7 +162,7 @@
 #define PSA_MAC_FINAL_SIZE(key_type, key_bits, alg)                     \
     (PSA_ALG_IS_HMAC(alg) ? PSA_HASH_SIZE(PSA_ALG_HMAC_GET_HASH(alg)) : \
      PSA_ALG_IS_BLOCK_CIPHER_MAC(alg) ? PSA_BLOCK_CIPHER_BLOCK_SIZE(key_type) : \
-     0)
+     ((void)(key_type), (void)(key_bits), 0))
 
 /** The maximum size of the output of psa_aead_encrypt(), in bytes.
  *

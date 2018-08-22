@@ -3158,11 +3158,19 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
     /*
      * Sanity checks
      */
-    if( ssl->out_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE &&
+    if( ssl->out_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE          &&
         ssl->out_msgtype != MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
-        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        /* In SSLv3, the client might send a NoCertificate alert. */
+#if defined(MBEDTLS_SSL_PROTO_SSL3) && defined(MBEDTLS_SSL_CLI_C)
+        if( ! ( ssl->minor_ver      == MBEDTLS_SSL_MINOR_VERSION_0 &&
+                ssl->out_msgtype    == MBEDTLS_SSL_MSG_ALERT       &&
+                ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT ) )
+#endif /* MBEDTLS_SSL_PROTO_SSL3 && MBEDTLS_SSL_SRV_C */
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "should never happen" ) );
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
+        }
     }
 
     if( ssl->out_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE &&
@@ -3260,7 +3268,8 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
     /* Either send now, or just save to be sent (and resent) later */
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-        hs_type != MBEDTLS_SSL_HS_HELLO_REQUEST )
+        ( ssl->out_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE ||
+          hs_type != MBEDTLS_SSL_HS_HELLO_REQUEST ) )
     {
         if( ( ret = ssl_flight_append( ssl ) ) != 0 )
         {

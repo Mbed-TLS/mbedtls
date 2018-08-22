@@ -109,24 +109,24 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
 static size_t ssl_get_current_mtu( const mbedtls_ssl_context *ssl );
-static uint16_t ssl_get_maximum_datagram_size( mbedtls_ssl_context const *ssl )
+static size_t ssl_get_maximum_datagram_size( mbedtls_ssl_context const *ssl )
 {
-    uint16_t mtu = ssl_get_current_mtu( ssl );
+    size_t mtu = ssl_get_current_mtu( ssl );
 
     if( mtu != 0 && mtu < MBEDTLS_SSL_OUT_BUFFER_LEN )
-        return( (int) mtu );
+        return( mtu );
 
     return( MBEDTLS_SSL_OUT_BUFFER_LEN );
 }
 
 static int ssl_get_remaining_space_in_datagram( mbedtls_ssl_context const *ssl )
 {
-    size_t   const bytes_written = ssl->out_left;
-    uint16_t const mtu           = ssl_get_maximum_datagram_size( ssl );
+    size_t const bytes_written = ssl->out_left;
+    size_t const mtu           = ssl_get_maximum_datagram_size( ssl );
 
     /* Double-check that the write-index hasn't gone
      * past what we can transmit in a single datagram. */
-    if( bytes_written > (size_t) mtu )
+    if( bytes_written > mtu )
     {
         /* Should never happen... */
         return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );

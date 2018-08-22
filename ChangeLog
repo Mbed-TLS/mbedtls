@@ -5,9 +5,11 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Features
    * Add support for fragmentation of outgoing DTLS handshake messages. This
      is controlled by the maximum fragment length as set locally or negotiated
-     with the peer, as well as new per-connection MTU option, set using
+     with the peer, as well as by a new per-connection MTU option, set using
      mbedtls_ssl_set_mtu().
-   * Add support for fragmentation of outoing DTLS handshake messages.
+   * Add support for auto-adjustment of MTU to a safe value during the
+     handshake when flights do not get through (RFC 6347, section 4.1.1.1,
+     last paragraph).
    * Add support for packing multiple records within a single datagram,
      enabled by default.
 

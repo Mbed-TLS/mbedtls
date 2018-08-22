@@ -109,9 +109,10 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
+static size_t ssl_get_current_mtu( const mbedtls_ssl_context *ssl );
 static uint16_t ssl_get_maximum_datagram_size( mbedtls_ssl_context const *ssl )
 {
-    uint16_t mtu = ssl->mtu;
+    uint16_t mtu = ssl_get_current_mtu( ssl );
 
     if( mtu != 0 && mtu < MBEDTLS_SSL_OUT_BUFFER_LEN )
         return( (int) mtu );
@@ -183,6 +184,15 @@ static int ssl_double_retransmit_timeout( mbedtls_ssl_context *ssl )
 
     if( ssl->handshake->retransmit_timeout >= ssl->conf->hs_timeout_max )
         return( -1 );
+
+    /* Implement the final paragraph of RFC 6347 section 4.1.1.1
+     * in the following way: after the initial transmission and a first
+     * retransmission, back off to a temporary estimated MTU of 508 bytes.
+     * This value is guaranteed to be deliverable (if not guaranteed to be
+     * delivered) of any compliant IPv4 (and IPv6) network, and should work
+     * on most non-IP stacks too. */
+    if( ssl->handshake->retransmit_timeout != ssl->conf->hs_timeout_min )
+        ssl->handshake->mtu = 508;
 
     new_timeout = 2 * ssl->handshake->retransmit_timeout;
 
@@ -7832,9 +7842,28 @@ size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
 }
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+static size_t ssl_get_current_mtu( const mbedtls_ssl_context *ssl )
+{
+    if( ssl->handshake == NULL || ssl->handshake->mtu == 0 )
+        return( ssl->mtu );
+
+    if( ssl->mtu == 0 )
+        return( ssl->handshake->mtu );
+
+    return( ssl->mtu < ssl->handshake->mtu ?
+            ssl->mtu : ssl->handshake->mtu );
+}
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
 int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl )
 {
     size_t max_len = MBEDTLS_SSL_OUT_CONTENT_LEN;
+
+#if !defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH) && \
+    !defined(MBEDTLS_SSL_PROTO_DTLS)
+    (void) ssl;
+#endif
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     const size_t mfl = mbedtls_ssl_get_max_frag_len( ssl );
@@ -7844,9 +7873,9 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl )
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( ssl->mtu != 0 )
+    if( ssl_get_current_mtu( ssl ) != 0 )
     {
-        const size_t mtu = ssl->mtu;
+        const size_t mtu = ssl_get_current_mtu( ssl );
         const int ret = mbedtls_ssl_get_record_expansion( ssl );
         const size_t overhead = (size_t) ret;
 
@@ -7862,7 +7891,7 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl )
         if( max_len > mtu - overhead )
             max_len = mtu - overhead;
     }
-#endif
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 #if !defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH) &&        \
     !defined(MBEDTLS_SSL_PROTO_DTLS)

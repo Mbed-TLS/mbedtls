@@ -334,6 +334,8 @@ struct mbedtls_ssl_handshake_params
         } future_record;
 
     } buffering;
+
+    uint16_t mtu;                       /*!<  Handshake mtu, used to fragment outgoing messages */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     /*

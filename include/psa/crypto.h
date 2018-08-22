@@ -761,7 +761,7 @@ typedef uint32_t psa_algorithm_t;
  *         This macro may return either 0 or 1 if \p alg is not a supported
  *         algorithm identifier.
  */
-#define PSA_ALG_IS_CIPHER_MAC(alg)                                      \
+#define PSA_ALG_IS_BLOCK_CIPHER_MAC(alg)                                \
     (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_MAC_SUBCATEGORY_MASK)) == \
      PSA_ALG_CIPHER_MAC_BASE)
 

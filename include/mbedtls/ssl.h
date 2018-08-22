@@ -1398,7 +1398,7 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *
  * \note           This setting only controls the size of the packets we send,
  *                 and does not restrict the size of the datagrams we're
- *                 willing to receive.  Client-side, you can request the
+ *                 willing to receive. Client-side, you can request the
  *                 server to use smaller records with \c
  *                 mbedtls_ssl_conf_max_frag_len().
  *

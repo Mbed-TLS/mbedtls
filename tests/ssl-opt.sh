@@ -5143,6 +5143,25 @@ run_test    "DTLS fragmenting: both (MTU)" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+# Test for automatic MTU reduction on repeated resend
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+run_test    "DTLS fragmenting: proxy MTU: auto-reduction" \
+            -p "$P_PXY mtu=508" \
+            "$P_SRV dtls=1 debug_level=2 auth_mode=required \
+             crt_file=data_files/server7_int-ca.crt \
+             key_file=data_files/server7.key\
+             hs_timeout=100-400" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=data_files/server8_int-ca2.crt \
+             key_file=data_files/server8.key \
+             hs_timeout=100-400" \
+            0 \
+            -s "found fragmented DTLS handshake message" \
+            -c "found fragmented DTLS handshake message" \
+            -C "error"
+
 # the proxy shouldn't drop or mess up anything, so we shouldn't need to resend
 # OTOH the client might resend if the server is to slow to reset after sending
 # a HelloVerifyRequest, so only check for no retransmission server-side

@@ -5112,6 +5112,8 @@ run_test    "DTLS fragmenting: both (MTU)" \
             -C "error"
 
 # the proxy shouldn't drop or mess up anything, so we shouldn't need to resend
+# OTOH the client might resend if the server is to slow to reset after sending
+# a HelloVerifyRequest, so only check for no retransmission server-side
 not_with_valgrind # spurious resend due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
@@ -5128,7 +5130,6 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake" \
              mtu=512" \
             0 \
             -S "resend" \
-            -C "resend" \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
@@ -5157,7 +5158,6 @@ run_test    "DTLS fragmenting: proxy MTU, resumed handshake" \
              mtu=1450 reconnect=1 reco_delay=1" \
             0 \
             -S "resend" \
-            -C "resend" \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
@@ -5185,7 +5185,6 @@ run_test    "DTLS fragmenting: proxy MTU, ChachaPoly renego" \
              mtu=512" \
             0 \
             -S "resend" \
-            -C "resend" \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
@@ -5214,7 +5213,6 @@ run_test    "DTLS fragmenting: proxy MTU, AES-GCM renego" \
              mtu=512" \
             0 \
             -S "resend" \
-            -C "resend" \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
@@ -5243,7 +5241,6 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CCM renego" \
              mtu=512" \
             0 \
             -S "resend" \
-            -C "resend" \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
@@ -5273,7 +5270,6 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CBC EtM renego" \
              mtu=512" \
             0 \
             -S "resend" \
-            -C "resend" \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
@@ -5302,7 +5298,6 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CBC non-EtM renego" \
              mtu=512" \
             0 \
             -S "resend" \
-            -C "resend" \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
             -C "error"

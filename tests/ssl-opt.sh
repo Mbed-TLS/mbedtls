@@ -5134,6 +5134,26 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+not_with_valgrind # spurious resend due to timeout
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio" \
+            -p "$P_PXY mtu=512" \
+            "$P_SRV dtls=1 debug_level=2 auth_mode=required \
+             crt_file=data_files/server7_int-ca.crt \
+             key_file=data_files/server7.key \
+             mtu=512 nbio=2" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=data_files/server8_int-ca2.crt \
+             key_file=data_files/server8.key \
+             mtu=512 nbio=2" \
+            0 \
+            -S "resend" \
+            -s "found fragmented DTLS handshake message" \
+            -c "found fragmented DTLS handshake message" \
+            -C "error"
+
 # This ensures things still work after session_reset(),
 # for example it would have caught #1941.
 # It also exercises the "resumed hanshake" flow.
@@ -5316,6 +5336,25 @@ run_test    "DTLS fragmenting: proxy MTU + 3d" \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
              hs_timeout=250-10000 mtu=512" \
+            0 \
+            -s "found fragmented DTLS handshake message" \
+            -c "found fragmented DTLS handshake message" \
+            -C "error"
+
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+client_needs_more_time 2
+run_test    "DTLS fragmenting: proxy MTU + 3d, nbio" \
+            -p "$P_PXY mtu=512 drop=8 delay=8 duplicate=8" \
+            "$P_SRV dtls=1 debug_level=2 auth_mode=required \
+             crt_file=data_files/server7_int-ca.crt \
+             key_file=data_files/server7.key \
+             hs_timeout=250-10000 mtu=512 nbio=2" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=data_files/server8_int-ca2.crt \
+             key_file=data_files/server8.key \
+             hs_timeout=250-10000 mtu=512 nbio=2" \
             0 \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \

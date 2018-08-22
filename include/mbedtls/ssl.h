@@ -1395,23 +1395,28 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *                 the maximum size datagram the DTLS layer will pass to the
  *                 \c f_send() callback set using \c mbedtls_ssl_set_bio().
  *
+ * \note           The limit on datagram size is converted to a limit on
+ *                 record payload by subtracting the current overhead of
+ *                 encapsulation and encryption/authentication if any.
+ *
  * \note           This can be called at any point during the connection, for
  *                 example when a PMTU estimate becomes available from other
  *                 sources, such as lower (or higher) protocol layers.
  *
- * \note           This only controls the size of the packets we send.
- *                 Client-side, you can request the server to use smaller
- *                 records with \c mbedtls_ssl_conf_max_frag_len().
+ * \note           This setting only controls the size of the packets we send,
+ *                 and does not restrict the size of the datagrams we're
+ *                 willing to receive. Client-side, you can request the
+ *                 server to use smaller records with \c
+ *                 mbedtls_ssl_conf_max_frag_len().
  *
  * \note           If both a MTU and a maximum fragment length have been
  *                 configured (or negotiated with the peer), the resulting
- *                 lower limit (after translating the MTU setting to a limit
- *                 on the record content length) is used.
+ *                 lower limit on record payload (see first note) is used.
  *
  * \note           This can only be used to decrease the maximum size
- *                 of datagrams sent. It cannot be used to increase the
- *                 maximum size of records over the limit set by
- *                 #MBEDTLS_SSL_OUT_CONTENT_LEN.
+ *                 of datagrams (hence records, see first note) sent. It
+ *                 cannot be used to increase the maximum size of records over
+ *                 the limit set by #MBEDTLS_SSL_OUT_CONTENT_LEN.
  *
  * \note           Values lower than the current record layer expansion will
  *                 result in an error when trying to send data.

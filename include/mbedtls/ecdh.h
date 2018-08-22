@@ -197,7 +197,7 @@ void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx );
  *                  ServerKeyExchange payload.
  *
  *                  This is the second function used by a TLS server for ECDHE
- *                  ciphersuites.
+ *                  ciphersuites. (It is called after mbedtls_ecdh_setup().)
  *
  * \note            This function assumes that the ECP group (grp) of the
  *                  \p ctx context has already been properly set,
@@ -290,7 +290,8 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
  *              payload.
  *
  *              This is the third function used by a TLS server for ECDH(E)
- *              ciphersuites.
+ *              ciphersuites. (It is called after mbedtls_ecdh_setup() and
+ *              mbedtls_ecdh_make_params().)
  *
  * \see         ecp.h
  *

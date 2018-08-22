@@ -10,9 +10,241 @@
 
 #include "psa/crypto.h"
 
+/* Flags for algorithm classification macros. There is a flag for every
+ * algorithm classification macro PSA_ALG_IS_xxx except for the
+ * category test macros, which are hard-coded in each
+ * category-specific function. The name of the flag is the name of the
+ * classification macro without the PSA_ prefix. */
+#define ALG_IS_VENDOR_DEFINED           ( 1u << 0 )
+#define ALG_IS_HMAC                     ( 1u << 1 )
+#define ALG_IS_BLOCK_CIPHER_MAC         ( 1u << 2 )
+#define ALG_IS_STREAM_CIPHER            ( 1u << 3 )
+#define ALG_IS_RSA_PKCS1V15_SIGN        ( 1u << 4 )
+#define ALG_IS_RSA_PSS                  ( 1u << 5 )
+#define ALG_IS_DSA                      ( 1u << 6 )
+#define ALG_DSA_IS_DETERMINISTIC        ( 1u << 7 )
+#define ALG_IS_DETERMINISTIC_DSA        ( 1u << 8 )
+#define ALG_IS_RANDOMIZED_DSA           ( 1u << 9 )
+#define ALG_IS_ECDSA                    ( 1u << 10 )
+#define ALG_ECDSA_IS_DETERMINISTIC      ( 1u << 11 )
+#define ALG_IS_DETERMINISTIC_ECDSA      ( 1u << 12 )
+#define ALG_IS_RANDOMIZED_ECDSA         ( 1u << 13 )
+#define ALG_IS_RSA_OAEP                 ( 1u << 14 )
+#define ALG_IS_HKDF                     ( 1u << 15 )
+
+#define TEST_CLASSIFICATION_MACRO( flag, alg, flags )            \
+    TEST_ASSERT( PSA_##flag( alg ) == !! ( ( flags ) & flag ) )
+
+void algorithm_classification( psa_algorithm_t alg, unsigned flags )
+{
+    TEST_CLASSIFICATION_MACRO( ALG_IS_VENDOR_DEFINED, alg, flags );
+    TEST_CLASSIFICATION_MACRO( ALG_IS_HMAC, alg, flags );
+    TEST_CLASSIFICATION_MACRO( ALG_IS_BLOCK_CIPHER_MAC, alg, flags );
+    TEST_CLASSIFICATION_MACRO( ALG_IS_STREAM_CIPHER, alg, flags );
+    TEST_CLASSIFICATION_MACRO( ALG_IS_RSA_PKCS1V15_SIGN, alg, flags );
+    TEST_CLASSIFICATION_MACRO( ALG_IS_RSA_PSS, alg, flags );
+    TEST_CLASSIFICATION_MACRO( ALG_IS_DSA, alg, flags );
+    if ( PSA_ALG_IS_DSA( alg ) )
+        TEST_CLASSIFICATION_MACRO( ALG_DSA_IS_DETERMINISTIC, alg, flags );
+    TEST_CLASSIFICATION_MACRO( ALG_IS_DETERMINISTIC_DSA, alg, flags );
+    TEST_CLASSIFICATION_MACRO( ALG_IS_RANDOMIZED_DSA, alg, flags );
+    TEST_CLASSIFICATION_MACRO( ALG_IS_ECDSA, alg, flags );
+    if ( PSA_ALG_IS_ECDSA( alg ) )
+        TEST_CLASSIFICATION_MACRO( ALG_ECDSA_IS_DETERMINISTIC, alg, flags );
+    TEST_CLASSIFICATION_MACRO( ALG_IS_DETERMINISTIC_ECDSA, alg, flags );
+    TEST_CLASSIFICATION_MACRO( ALG_IS_RANDOMIZED_ECDSA, alg, flags );
+    TEST_CLASSIFICATION_MACRO( ALG_IS_RSA_OAEP, alg, flags );
+    TEST_CLASSIFICATION_MACRO( ALG_IS_HKDF, alg, flags );
+exit: ;
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
  * depends_on:MBEDTLS_PSA_CRYPTO_C
  * END_DEPENDENCIES
  */
+
+/* BEGIN_CASE */
+void hash_algorithm( int alg_arg, int length_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+    size_t length = length_arg;
+    psa_algorithm_t hmac_alg = PSA_ALG_HMAC( alg );
+    psa_algorithm_t rsa_pkcs1v15_sign_alg = PSA_ALG_RSA_PKCS1V15_SIGN( alg );
+    psa_algorithm_t rsa_pss_alg = PSA_ALG_RSA_PSS( alg );
+    psa_algorithm_t dsa_alg = PSA_ALG_DSA( alg );
+    psa_algorithm_t deterministic_dsa_alg = PSA_ALG_DETERMINISTIC_DSA( alg );
+    psa_algorithm_t ecdsa_alg = PSA_ALG_ECDSA( alg );
+    psa_algorithm_t deterministic_ecdsa_alg = PSA_ALG_DETERMINISTIC_ECDSA( alg );
+    psa_algorithm_t rsa_oaep_alg = PSA_ALG_RSA_OAEP( alg );
+    psa_algorithm_t hkdf_alg = PSA_ALG_HKDF( alg );
+
+    /* Algorithm classification */
+    TEST_ASSERT( PSA_ALG_IS_HASH( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_MAC( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_CIPHER( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_AEAD( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_SIGN( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    algorithm_classification( alg, 0 );
+
+    /* Dependent algorithms */
+    TEST_ASSERT( PSA_ALG_HMAC_GET_HASH( hmac_alg ) == alg );
+    TEST_ASSERT( PSA_ALG_SIGN_GET_HASH( rsa_pkcs1v15_sign_alg ) == alg );
+    TEST_ASSERT( PSA_ALG_SIGN_GET_HASH( rsa_pss_alg ) == alg );
+    TEST_ASSERT( PSA_ALG_SIGN_GET_HASH( dsa_alg ) == alg );
+    TEST_ASSERT( PSA_ALG_SIGN_GET_HASH( deterministic_dsa_alg ) == alg );
+    TEST_ASSERT( PSA_ALG_SIGN_GET_HASH( ecdsa_alg ) == alg );
+    TEST_ASSERT( PSA_ALG_SIGN_GET_HASH( deterministic_ecdsa_alg ) == alg );
+    TEST_ASSERT( PSA_ALG_RSA_OAEP_GET_HASH( rsa_oaep_alg ) == alg );
+    TEST_ASSERT( PSA_ALG_HKDF_GET_HASH( hkdf_alg ) == alg );
+
+    /* Hash length and block size */
+    TEST_ASSERT( length == PSA_HASH_SIZE( alg ) );
+    TEST_ASSERT( length <= PSA_HASH_MAX_SIZE );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mac_algorithm( int alg_arg, int classification_flags,
+                    int length_arg,
+                    int key_type_arg, int key_bits_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+    size_t length = length_arg;
+    size_t key_type = key_type_arg;
+    size_t key_bits = key_bits_arg;
+
+    /* Algorithm classification */
+    TEST_ASSERT( ! PSA_ALG_IS_HASH( alg ) );
+    TEST_ASSERT( PSA_ALG_IS_MAC( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_CIPHER( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_AEAD( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_SIGN( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    algorithm_classification( alg, classification_flags );
+
+    /* Length */
+    TEST_ASSERT( length == PSA_MAC_FINAL_SIZE( key_type, key_bits, alg ) );
+    TEST_ASSERT( length <= PSA_MAC_MAX_SIZE );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void cipher_algorithm( int alg_arg, int classification_flags )
+{
+    psa_algorithm_t alg = alg_arg;
+
+    /* Algorithm classification */
+    TEST_ASSERT( ! PSA_ALG_IS_HASH( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_MAC( alg ) );
+    TEST_ASSERT( PSA_ALG_IS_CIPHER( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_AEAD( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_SIGN( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    algorithm_classification( alg, classification_flags );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void aead_algorithm( int alg_arg, int classification_flags,
+                     int tag_length_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+    size_t tag_length = tag_length_arg;
+
+    /* Algorithm classification */
+    TEST_ASSERT( ! PSA_ALG_IS_HASH( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_MAC( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_CIPHER( alg ) );
+    TEST_ASSERT( PSA_ALG_IS_AEAD( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_SIGN( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    algorithm_classification( alg, classification_flags );
+
+    /* Tag length */
+    TEST_ASSERT( tag_length == PSA_AEAD_TAG_SIZE( alg ) );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void asymmetric_signature_algorithm( int alg_arg, int classification_flags )
+{
+    psa_algorithm_t alg = alg_arg;
+
+    /* Algorithm classification */
+    TEST_ASSERT( ! PSA_ALG_IS_HASH( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_MAC( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_CIPHER( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_AEAD( alg ) );
+    TEST_ASSERT( PSA_ALG_IS_SIGN( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    algorithm_classification( alg, classification_flags );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void asymmetric_encryption_algorithm( int alg_arg, int classification_flags )
+{
+    psa_algorithm_t alg = alg_arg;
+
+    /* Algorithm classification */
+    TEST_ASSERT( ! PSA_ALG_IS_HASH( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_MAC( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_CIPHER( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_AEAD( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_SIGN( alg ) );
+    TEST_ASSERT( PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    algorithm_classification( alg, classification_flags );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void key_agreement_algorithm( int alg_arg, int classification_flags )
+{
+    psa_algorithm_t alg = alg_arg;
+
+    /* Algorithm classification */
+    TEST_ASSERT( ! PSA_ALG_IS_HASH( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_MAC( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_CIPHER( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_AEAD( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_SIGN( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
+    TEST_ASSERT( PSA_ALG_IS_KEY_AGREEMENT( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    algorithm_classification( alg, classification_flags );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void key_derivation_algorithm( int alg_arg, int classification_flags )
+{
+    psa_algorithm_t alg = alg_arg;
+
+    /* Algorithm classification */
+    TEST_ASSERT( ! PSA_ALG_IS_HASH( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_MAC( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_CIPHER( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_AEAD( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_SIGN( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
+    TEST_ASSERT( PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    algorithm_classification( alg, classification_flags );
+}
+/* END_CASE */
+

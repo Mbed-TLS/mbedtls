@@ -12,6 +12,11 @@ Bugfix
      interoperability issues with BouncyCastle. Raised by milenamil in #1157.
    * Fix potential use-after-free in mbedtls_ssl_get_max_frag_len()
      and mbedtls_ssl_get_record_expansion() after a session reset. Fixes #1941.
+   * Fix a bug in the update function for SSL ticket keys which previously
+     invalidated keys of a lifetime of less than a 1s. Fixes #1968.
+
+Changes
+   * Add tests for session resumption in DTLS.
 
 = mbed TLS 2.1.14 branch released 2018-07-25
 

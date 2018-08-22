@@ -32,6 +32,18 @@
 #define ALG_IS_RSA_OAEP                 ( 1u << 14 )
 #define ALG_IS_HKDF                     ( 1u << 15 )
 
+/* Flags for key type classification macros. There is a flag for every
+ * key type classification macro PSA_KEY_TYPE_IS_xxx except for some that
+ * are tested as derived from other macros. The name of the flag is
+ * the name of the classification macro without the PSA_ prefix. */
+#define KEY_TYPE_IS_VENDOR_DEFINED      ( 1u << 0 )
+#define KEY_TYPE_IS_UNSTRUCTURED        ( 1u << 1 )
+#define KEY_TYPE_IS_PUBLIC_KEY          ( 1u << 2 )
+#define KEY_TYPE_IS_KEYPAIR             ( 1u << 3 )
+#define KEY_TYPE_IS_RSA                 ( 1u << 4 )
+#define KEY_TYPE_IS_DSA                 ( 1u << 5 )
+#define KEY_TYPE_IS_ECC                 ( 1u << 6 )
+
 #define TEST_CLASSIFICATION_MACRO( flag, alg, flags )            \
     TEST_ASSERT( PSA_##flag( alg ) == !! ( ( flags ) & flag ) )
 
@@ -55,6 +67,30 @@ void algorithm_classification( psa_algorithm_t alg, unsigned flags )
     TEST_CLASSIFICATION_MACRO( ALG_IS_RANDOMIZED_ECDSA, alg, flags );
     TEST_CLASSIFICATION_MACRO( ALG_IS_RSA_OAEP, alg, flags );
     TEST_CLASSIFICATION_MACRO( ALG_IS_HKDF, alg, flags );
+exit: ;
+}
+
+void key_type_classification( psa_key_type_t type, unsigned flags )
+{
+    /* Macros tested based on the test case parameter */
+    TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_VENDOR_DEFINED, type, flags );
+    TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_UNSTRUCTURED, type, flags );
+    TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_PUBLIC_KEY, type, flags );
+    TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_KEYPAIR, type, flags );
+    TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_RSA, type, flags );
+    TEST_CLASSIFICATION_MACRO( KEY_TYPE_IS_ECC, type, flags );
+
+    /* Macros with derived semantics */
+    TEST_ASSERT( PSA_KEY_TYPE_IS_ASYMMETRIC( type ) ==
+                 ( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ||
+                   PSA_KEY_TYPE_IS_KEYPAIR( type ) ) );
+    TEST_ASSERT( PSA_KEY_TYPE_IS_ECC_KEYPAIR( type ) ==
+                 ( PSA_KEY_TYPE_IS_ECC( type ) &&
+                   PSA_KEY_TYPE_IS_KEYPAIR( type ) ) );
+    TEST_ASSERT( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( type ) ==
+                 ( PSA_KEY_TYPE_IS_ECC( type ) &&
+                   PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ) );
+
 exit: ;
 }
 
@@ -248,3 +284,48 @@ void key_derivation_algorithm( int alg_arg, int classification_flags )
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void key_type( int type_arg, int classification_flags )
+{
+    psa_key_type_t type = type_arg;
+
+    key_type_classification( type, classification_flags );
+
+    /* For asymmetric types, check the corresponding pair/public type */
+    if( classification_flags & KEY_TYPE_IS_PUBLIC_KEY )
+    {
+        psa_key_type_t pair_type = PSA_KEY_TYPE_KEYPAIR_OF_PUBLIC_KEY( type );
+        TEST_ASSERT( PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( pair_type ) == type );
+        key_type_classification( pair_type,
+                                 ( classification_flags
+                                   & ~KEY_TYPE_IS_PUBLIC_KEY )
+                                 | KEY_TYPE_IS_KEYPAIR );
+        TEST_ASSERT( PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( type ) == type );
+    }
+    if( classification_flags & KEY_TYPE_IS_KEYPAIR )
+    {
+        psa_key_type_t public_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( type );
+        TEST_ASSERT( PSA_KEY_TYPE_KEYPAIR_OF_PUBLIC_KEY( public_type ) == type );
+        key_type_classification( public_type,
+                                 ( classification_flags
+                                   & ~KEY_TYPE_IS_KEYPAIR )
+                                 | KEY_TYPE_IS_PUBLIC_KEY );
+        TEST_ASSERT( PSA_KEY_TYPE_KEYPAIR_OF_PUBLIC_KEY( type ) == type );
+    }
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void ecc_key_types( int curve_arg )
+{
+    psa_ecc_curve_t curve = curve_arg;
+    psa_key_type_t public_type = PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve );
+    psa_key_type_t pair_type = PSA_KEY_TYPE_ECC_KEYPAIR( curve );
+
+    test_key_type( public_type, KEY_TYPE_IS_ECC | KEY_TYPE_IS_PUBLIC_KEY );
+    test_key_type( pair_type, KEY_TYPE_IS_ECC | KEY_TYPE_IS_KEYPAIR );
+
+    TEST_ASSERT( PSA_KEY_TYPE_GET_CURVE( public_type ) == curve );
+    TEST_ASSERT( PSA_KEY_TYPE_GET_CURVE( pair_type ) == curve );
+}
+/* END_CASE */

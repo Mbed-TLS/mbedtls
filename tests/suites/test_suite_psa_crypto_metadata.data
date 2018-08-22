@@ -181,3 +181,125 @@ asymmetric_encryption_algorithm:PSA_ALG_RSA_OAEP( PSA_ALG_SHA_256 ):ALG_IS_RSA_O
 Key derivation: HKDF using SHA-256
 key_derivation_algorithm:PSA_ALG_HKDF( PSA_ALG_SHA_256 ):ALG_IS_HKDF
 
+Key type: raw data
+key_type:PSA_KEY_TYPE_RAW_DATA:KEY_TYPE_IS_UNSTRUCTURED
+
+Key type: HMAC
+key_type:PSA_KEY_TYPE_HMAC:KEY_TYPE_IS_UNSTRUCTURED
+
+Key type: secret for key derivation
+key_type:PSA_KEY_TYPE_DERIVE:KEY_TYPE_IS_UNSTRUCTURED
+
+Key type: AES
+key_type:PSA_KEY_TYPE_AES:KEY_TYPE_IS_UNSTRUCTURED
+
+Key type: DES
+key_type:PSA_KEY_TYPE_DES:KEY_TYPE_IS_UNSTRUCTURED
+
+Key type: Camellia
+key_type:PSA_KEY_TYPE_CAMELLIA:KEY_TYPE_IS_UNSTRUCTURED
+
+Key type: ARC4
+key_type:PSA_KEY_TYPE_ARC4:KEY_TYPE_IS_UNSTRUCTURED
+
+Key type: RSA public key
+key_type:PSA_KEY_TYPE_RSA_PUBLIC_KEY:KEY_TYPE_IS_PUBLIC_KEY | KEY_TYPE_IS_RSA
+
+Key type: RSA key pair
+key_type:PSA_KEY_TYPE_RSA_KEYPAIR:KEY_TYPE_IS_KEYPAIR | KEY_TYPE_IS_RSA
+
+Key type: DSA public key
+key_type:PSA_KEY_TYPE_DSA_PUBLIC_KEY:KEY_TYPE_IS_PUBLIC_KEY | KEY_TYPE_IS_DSA
+
+Key type: DSA key pair
+key_type:PSA_KEY_TYPE_DSA_KEYPAIR:KEY_TYPE_IS_KEYPAIR | KEY_TYPE_IS_DSA
+
+ECC key types: sect163k1
+ecc_key_types:PSA_ECC_CURVE_SECT163K1
+
+ECC key types: sect163r1
+ecc_key_types:PSA_ECC_CURVE_SECT163R1
+
+ECC key types: sect163r2
+ecc_key_types:PSA_ECC_CURVE_SECT163R2
+
+ECC key types: sect193r1
+ecc_key_types:PSA_ECC_CURVE_SECT193R1
+
+ECC key types: sect193r2
+ecc_key_types:PSA_ECC_CURVE_SECT193R2
+
+ECC key types: sect233k1
+ecc_key_types:PSA_ECC_CURVE_SECT233K1
+
+ECC key types: sect233r1
+ecc_key_types:PSA_ECC_CURVE_SECT233R1
+
+ECC key types: sect239k1
+ecc_key_types:PSA_ECC_CURVE_SECT239K1
+
+ECC key types: sect283k1
+ecc_key_types:PSA_ECC_CURVE_SECT283K1
+
+ECC key types: sect283r1
+ecc_key_types:PSA_ECC_CURVE_SECT283R1
+
+ECC key types: sect409k1
+ecc_key_types:PSA_ECC_CURVE_SECT409K1
+
+ECC key types: sect409r1
+ecc_key_types:PSA_ECC_CURVE_SECT409R1
+
+ECC key types: sect571k1
+ecc_key_types:PSA_ECC_CURVE_SECT571K1
+
+ECC key types: sect571r1
+ecc_key_types:PSA_ECC_CURVE_SECT571R1
+
+ECC key types: secp160k1
+ecc_key_types:PSA_ECC_CURVE_SECP160K1
+
+ECC key types: secp160r1
+ecc_key_types:PSA_ECC_CURVE_SECP160R1
+
+ECC key types: secp160r2
+ecc_key_types:PSA_ECC_CURVE_SECP160R2
+
+ECC key types: secp192k1
+ecc_key_types:PSA_ECC_CURVE_SECP192K1
+
+ECC key types: secp192r1
+ecc_key_types:PSA_ECC_CURVE_SECP192R1
+
+ECC key types: secp224k1
+ecc_key_types:PSA_ECC_CURVE_SECP224K1
+
+ECC key types: secp224r1
+ecc_key_types:PSA_ECC_CURVE_SECP224R1
+
+ECC key types: secp256k1
+ecc_key_types:PSA_ECC_CURVE_SECP256K1
+
+ECC key types: secp256r1
+ecc_key_types:PSA_ECC_CURVE_SECP256R1
+
+ECC key types: secp384r1
+ecc_key_types:PSA_ECC_CURVE_SECP384R1
+
+ECC key types: secp521r1
+ecc_key_types:PSA_ECC_CURVE_SECP521R1
+
+ECC key types: Brainpool P256R1
+ecc_key_types:PSA_ECC_CURVE_BRAINPOOL_P256R1
+
+ECC key types: Brainpool P384R1
+ecc_key_types:PSA_ECC_CURVE_BRAINPOOL_P384R1
+
+ECC key types: Brainpool P512R1
+ecc_key_types:PSA_ECC_CURVE_BRAINPOOL_P512R1
+
+ECC key types: Curve25519
+ecc_key_types:PSA_ECC_CURVE_CURVE25519
+
+ECC key types: Curve448
+ecc_key_types:PSA_ECC_CURVE_CURVE448

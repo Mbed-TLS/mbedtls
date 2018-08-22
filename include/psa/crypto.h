@@ -517,7 +517,7 @@ typedef uint16_t psa_ecc_curve_t;
  * TLS Supported Groups Registry (formerly known as the
  * TLS EC Named Curve Registry)
  * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
- * The values are defined by RFC 4492, RFC 7027 and RFC 7919. */
+ * The values are defined by RFC 8422 and RFC 7027. */
 #define PSA_ECC_CURVE_SECT163K1         ((psa_ecc_curve_t) 0x0001)
 #define PSA_ECC_CURVE_SECT163R1         ((psa_ecc_curve_t) 0x0002)
 #define PSA_ECC_CURVE_SECT163R2         ((psa_ecc_curve_t) 0x0003)
@@ -548,11 +548,6 @@ typedef uint16_t psa_ecc_curve_t;
 #define PSA_ECC_CURVE_BRAINPOOL_P512R1  ((psa_ecc_curve_t) 0x001c)
 #define PSA_ECC_CURVE_CURVE25519        ((psa_ecc_curve_t) 0x001d)
 #define PSA_ECC_CURVE_CURVE448          ((psa_ecc_curve_t) 0x001e)
-#define PSA_ECC_CURVE_FFDHE_2048        ((psa_ecc_curve_t) 0x0100)
-#define PSA_ECC_CURVE_FFDHE_3072        ((psa_ecc_curve_t) 0x0101)
-#define PSA_ECC_CURVE_FFDHE_4096        ((psa_ecc_curve_t) 0x0102)
-#define PSA_ECC_CURVE_FFDHE_6144        ((psa_ecc_curve_t) 0x0103)
-#define PSA_ECC_CURVE_FFDHE_8192        ((psa_ecc_curve_t) 0x0104)
 
 /** The block size of a block cipher.
  *

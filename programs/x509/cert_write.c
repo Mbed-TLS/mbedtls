@@ -164,7 +164,7 @@ struct options
     const char *issuer_key;     /* filename of the issuer key file      */
     const char *subject_pwd;    /* password for the subject key file    */
     const char *issuer_pwd;     /* password for the issuer key file     */
-    const char *output_file;    /* where to store the constructed key file  */
+    const char *output_file;    /* where to store the constructed CRT   */
     const char *subject_name;   /* subject name for certificate         */
     const char *issuer_name;    /* issuer name for certificate          */
     const char *not_before;     /* validity period not before           */
@@ -774,7 +774,7 @@ int main( int argc, char *argv[] )
     }
 
     /*
-     * 1.2. Writing the request
+     * 1.2. Writing the certificate
      */
     mbedtls_printf( "  . Writing the certificate..." );
     fflush( stdout );

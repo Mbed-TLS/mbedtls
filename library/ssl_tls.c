@@ -4493,7 +4493,7 @@ static int ssl_buffer_make_space( mbedtls_ssl_context *ssl,
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "Free buffering slot %d to make space for reassembly of next handshake message",
                                     offset ) );
 
-        ssl_buffering_free_slot( ssl, offset );
+        ssl_buffering_free_slot( ssl, (uint8_t) offset );
 
         /* Check if we have enough space available now. */
         if( desired <= ( MBEDTLS_SSL_DTLS_MAX_BUFFERING -
@@ -8681,6 +8681,10 @@ static void ssl_buffering_free_slot( mbedtls_ssl_context *ssl,
 {
     mbedtls_ssl_handshake_params * const hs = ssl->handshake;
     mbedtls_ssl_hs_buffer * const hs_buf = &hs->buffering.hs[slot];
+
+    if( slot >= MBEDTLS_SSL_MAX_BUFFERED_HS )
+        return;
+
     if( hs_buf->is_valid == 1 )
     {
         hs->buffering.total_bytes_buffered -= hs_buf->data_len;

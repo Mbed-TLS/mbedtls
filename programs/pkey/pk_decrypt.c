@@ -90,11 +90,12 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
-                               (const unsigned char *) pers,
-                               strlen( pers ) ) ) != 0 )
+    if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func,
+                                       &entropy, (const unsigned char *) pers,
+                                       strlen( pers ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned %d\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned %d\n",
+                        ret );
         goto exit;
     }
 
@@ -120,10 +121,11 @@ int main( int argc, char *argv[] )
     }
 
     i = 0;
-
     while( fscanf( f, "%02X", &c ) > 0 &&
            i < (int) sizeof( buf ) )
+    {
         buf[i++] = (unsigned char) c;
+    }
 
     fclose( f );
 
@@ -136,7 +138,8 @@ int main( int argc, char *argv[] )
     if( ( ret = mbedtls_pk_decrypt( &pk, buf, i, result, &olen, sizeof(result),
                             mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_pk_decrypt returned -0x%04x\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_pk_decrypt returned -0x%04x\n",
+                        -ret );
         goto exit;
     }
 
@@ -155,7 +158,7 @@ exit:
 #if defined(MBEDTLS_ERROR_C)
     if( ret != 0 )
     {
-        mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
+        mbedtls_strerror( ret, (char *) buf, sizeof( buf ) );
         mbedtls_printf( "  !  Last error was: %s\n", buf );
     }
 #endif

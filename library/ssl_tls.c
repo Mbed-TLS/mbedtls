@@ -3555,7 +3555,7 @@ static int ssl_bitmask_check( unsigned char *mask, size_t len )
 }
 
 /* msg_len does not include the handshake header */
-static size_t ssl_get_reassembly_buffer_size( unsigned msg_len,
+static size_t ssl_get_reassembly_buffer_size( size_t msg_len,
                                               unsigned add_bitmap )
 {
     size_t alloc_len;

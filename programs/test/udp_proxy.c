@@ -562,7 +562,7 @@ static packet prev[MAX_DELAYED_MSG];
 
 void clear_pending( void )
 {
-    memset( &prev, 0, sizeof( packet ) );
+    memset( &prev, 0, sizeof( prev ) );
     prev_len = 0;
 }
 

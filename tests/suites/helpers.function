@@ -78,6 +78,15 @@ typedef struct data_tag
         }                                           \
     } while( 0 )
 
+#define TEST_ASSUME( TEST )                         \
+    do {                                            \
+        if( ! (TEST) )                              \
+        {                                           \
+            test_skip( #TEST, __LINE__, __FILE__ ); \
+            goto exit;                              \
+        }                                           \
+    } while( 0 )
+
 #define assert(a) if( !( a ) )                                      \
 {                                                                   \
     mbedtls_fprintf( stderr, "Assertion Failed at %s:%d - %s\n",   \
@@ -115,7 +124,7 @@ typedef struct data_tag
 
 static struct
 {
-    int failed;
+    int result; /* 0 on success, 1 on failure, 2 on skip */
     const char *test;
     const char *filename;
     int line_no;
@@ -449,7 +458,15 @@ static int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len )
 
 static void test_fail( const char *test, int line_no, const char* filename )
 {
-    test_info.failed = 1;
+    test_info.result = 1;
+    test_info.test = test;
+    test_info.line_no = line_no;
+    test_info.filename = filename;
+}
+
+static void test_skip( const char *test, int line_no, const char* filename )
+{
+    test_info.result = 2;
     test_info.test = test;
     test_info.line_no = line_no;
     test_info.filename = filename;
@@ -473,4 +490,3 @@ int hexcmp( uint8_t * a, uint8_t * b, uint32_t a_len, uint32_t b_len )
     }
     return ret;
 }
-

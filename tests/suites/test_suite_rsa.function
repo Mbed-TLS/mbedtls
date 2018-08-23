@@ -49,8 +49,7 @@ void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
 
     res = mbedtls_rsa_complete( &ctx );
 #if defined(MBEDTLS_RSA_ALT)
-    if( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
-        goto exit;
+    TEST_ASSUME( res != MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION );
 #endif
     TEST_ASSERT( res == 0 );
 
@@ -140,8 +139,7 @@ void rsa_pkcs1_sign_raw( data_t * hash_result,
 
     res = mbedtls_rsa_complete( &ctx );
 #if defined(MBEDTLS_RSA_ALT)
-    if( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
-        goto exit;
+    TEST_ASSUME( res != MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION );
 #endif
     TEST_ASSERT( res == 0 );
 
@@ -362,8 +360,7 @@ void mbedtls_rsa_pkcs1_decrypt( data_t * message_str, int padding_mode,
 
     res = mbedtls_rsa_complete( &ctx );
 #if defined(MBEDTLS_RSA_ALT)
-    if( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
-        goto exit;
+    TEST_ASSUME( res != MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION );
 #endif
     TEST_ASSERT( res == 0 );
 
@@ -468,8 +465,7 @@ void mbedtls_rsa_private( data_t * message_str, int mod, int radix_P,
 
     res = mbedtls_rsa_complete( &ctx );
 #if defined(MBEDTLS_RSA_ALT)
-    if( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
-        goto exit;
+    TEST_ASSUME( res != MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION );
 #endif
     TEST_ASSERT( res == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
@@ -911,8 +907,7 @@ void mbedtls_rsa_import( int radix_N, char *input_N,
 
     res = mbedtls_rsa_complete( &ctx );
 #if defined(MBEDTLS_RSA_ALT)
-    if( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
-        goto exit;
+    TEST_ASSUME( res != MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION );
 #endif
     TEST_ASSERT( res == res_complete );
 
@@ -1031,8 +1026,7 @@ void mbedtls_rsa_export( int radix_N, char *input_N,
 
     res = mbedtls_rsa_complete( &ctx );
 #if defined(MBEDTLS_RSA_ALT)
-    if( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
-        goto exit;
+    TEST_ASSUME( res != MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION );
 #endif
     TEST_ASSERT( res == 0 );
 
@@ -1194,8 +1188,7 @@ void mbedtls_rsa_export_raw( data_t *input_N, data_t *input_P,
 
     res = mbedtls_rsa_complete( &ctx );
 #if defined(MBEDTLS_RSA_ALT)
-    if( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
-        goto exit;
+    TEST_ASSUME( res != MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION );
 #endif
     TEST_ASSERT( res == 0 );
 
@@ -1337,8 +1330,7 @@ void mbedtls_rsa_import_raw( data_t *input_N,
 
     res = mbedtls_rsa_complete( &ctx );
 #if defined(MBEDTLS_RSA_ALT)
-    if( res == MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION )
-        goto exit;
+    TEST_ASSUME( res != MBEDTLS_ERR_RSA_UNSUPPORTED_OPERATION );
 #endif
     TEST_ASSERT( res == res_complete );
 

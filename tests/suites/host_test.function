@@ -498,7 +498,7 @@ int execute_tests( int argc , const char ** argv )
 
             if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
                 break;
-            mbedtls_fprintf( stdout, "%s%.66s", test_info.failed ? "\n" : "", buf );
+            mbedtls_fprintf( stdout, "%s%.66s", test_info.result ? "\n" : "", buf );
             mbedtls_fprintf( stdout, " " );
             for( i = strlen( buf ) + 1; i < 67; i++ )
                 mbedtls_fprintf( stdout, "." );
@@ -545,7 +545,7 @@ int execute_tests( int argc , const char ** argv )
             // If there are no unmet dependencies execute the test
             if( unmet_dep_count == 0 )
             {
-                test_info.failed = 0;
+                test_info.result = 0;
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
                 /* Suppress all output from the library unless we're verbose
@@ -609,9 +609,17 @@ int execute_tests( int argc , const char ** argv )
             }
             else if( ret == DISPATCH_TEST_SUCCESS )
             {
-                if( test_info.failed == 0 )
+                if( test_info.result == 0 )
                 {
                     mbedtls_fprintf( stdout, "PASS\n" );
+                }
+                else if( test_info.result == 2 )
+                {
+                    total_skipped++;
+                    mbedtls_fprintf( stdout, "SKIP\n" );
+                    mbedtls_fprintf( stdout, "  Unmet assumption: %s\n  at line %d, %s\n",
+                                     test_info.test, test_info.line_no,
+                                     test_info.filename );
                 }
                 else
                 {

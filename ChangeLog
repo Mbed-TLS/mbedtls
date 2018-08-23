@@ -13,8 +13,6 @@ Bugfix
    * Replace printf with mbedtls_printf in aria. Found by TrinityTonic in #1908.
    * Fix potential use-after-free in mbedtls_ssl_get_max_frag_len()
      and mbedtls_ssl_get_record_expansion() after a session reset. Fixes #1941.
-   * Return from various debugging routines immediately if the
-     provided SSL context is unset.
 
 Changes
    * Copy headers preserving timestamps when doing a "make install".
@@ -23,6 +21,8 @@ Changes
      Drozd. Fixes #1215 raised by randombit.
    * Improve compatibility with some alternative CCM implementations by using
      CCM test vectors from RAM.
+   * Return from various debugging routines immediately if the
+     provided SSL context is unset.
 
 = mbed TLS 2.12.0 branch released 2018-07-25
 

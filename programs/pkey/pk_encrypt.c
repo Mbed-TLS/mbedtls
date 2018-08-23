@@ -70,6 +70,8 @@ int main( int argc, char *argv[] )
 
     ret = 1;
     mbedtls_ctr_drbg_init( &ctr_drbg );
+    mbedtls_entropy_init( &entropy );
+    mbedtls_pk_init( &pk );
 
     if( argc != 3 )
     {
@@ -85,7 +87,6 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-    mbedtls_entropy_init( &entropy );
     if( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy,
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
@@ -96,8 +97,6 @@ int main( int argc, char *argv[] )
 
     mbedtls_printf( "\n  . Reading public key from '%s'", argv[1] );
     fflush( stdout );
-
-    mbedtls_pk_init( &pk );
 
     if( ( ret = mbedtls_pk_parse_public_keyfile( &pk, argv[1] ) ) != 0 )
     {
@@ -134,6 +133,7 @@ int main( int argc, char *argv[] )
     {
         ret = 1;
         mbedtls_printf( " failed\n  ! Could not create %s\n\n", "result-enc.txt" );
+        ret = 1;
         goto exit;
     }
 
@@ -146,8 +146,10 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Done (created \"%s\")\n\n", "result-enc.txt" );
 
 exit:
-    mbedtls_ctr_drbg_free( &ctr_drbg );
+
+    mbedtls_pk_free( &pk );
     mbedtls_entropy_free( &entropy );
+    mbedtls_ctr_drbg_free( &ctr_drbg );
 
 #if defined(MBEDTLS_ERROR_C)
     if( ret != 0 )

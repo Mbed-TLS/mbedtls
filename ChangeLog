@@ -12,6 +12,8 @@ Bugfix
      interoperability issues with BouncyCastle. Raised by milenamil in #1157.
    * Fix potential use-after-free in mbedtls_ssl_get_max_frag_len()
      and mbedtls_ssl_get_record_expansion() after a session reset. Fixes #1941.
+
+Changes
    * Return from various debugging routines immediately if the
      provided SSL context is unset.
 

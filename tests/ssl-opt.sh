@@ -156,6 +156,26 @@ requires_config_disabled() {
     fi
 }
 
+requires_config_value_at_least() {
+    NAME="$1"
+    DEF_VAL=$( grep ".*#define.*MBEDTLS_SSL_DTLS_MAX_BUFFERING" ../include/mbedtls/config.h |
+               sed 's/^.*\s\([0-9]*\)$/\1/' )
+    VAL=$( ../scripts/config.pl get $NAME || echo "$DEF_VAL" )
+    if [ "$VAL" -lt "$2" ]; then
+       SKIP_NEXT="YES"
+    fi
+}
+
+requires_config_value_at_most() {
+    NAME="$1"
+    DEF_VAL=$( grep ".*#define.*MBEDTLS_SSL_DTLS_MAX_BUFFERING" ../include/mbedtls/config.h |
+               sed 's/^.*\s\([0-9]*\)$/\1/' )
+    VAL=$( ../scripts/config.pl get $NAME || echo "$DEF_VAL" )
+    if [ "$VAL" -gt "$2" ]; then
+       SKIP_NEXT="YES"
+    fi
+}
+
 # skip next test if OpenSSL doesn't support FALLBACK_SCSV
 requires_openssl_with_fallback_scsv() {
     if [ -z "${OPENSSL_HAS_FBSCSV:-}" ]; then

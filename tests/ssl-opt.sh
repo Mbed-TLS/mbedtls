@@ -5904,13 +5904,39 @@ run_test    "DTLS reordering: Buffer out-of-order handshake message on client" \
             -S "Inject buffered CCS message" \
             -S "Remember CCS message"
 
-run_test    "DTLS reordering: Buffer out-of-order handshake message on client before reassembling next" \
+# The client buffers the ServerKeyExchange before receiving the fragmented
+# Certificate message; at the time of writing, together these are aroudn 1200b
+# in size, so that the bound below ensures that the certificate can be reassembled
+# while keeping the ServerKeyExchange.
+requires_config_value_at_least "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 1300
+run_test    "DTLS reordering: Buffer out-of-order hs msg before reassembling next" \
             -p "$P_PXY delay_srv=Certificate delay_srv=Certificate" \
             "$P_SRV mtu=512 dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
             0 \
             -c "Buffering HS message" \
             -c "Next handshake message has been buffered - load"\
+            -C "attempt to make space by freeing buffered messages" \
+            -S "Buffering HS message" \
+            -S "Next handshake message has been buffered - load"\
+            -C "Inject buffered CCS message" \
+            -C "Remember CCS message" \
+            -S "Inject buffered CCS message" \
+            -S "Remember CCS message"
+
+# The size constraints ensure that the delayed certificate message can't
+# be reassembled while keeping the ServerKeyExchange message, but it can
+# when dropping it first.
+requires_config_value_at_least "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 900
+requires_config_value_at_most "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 1299
+run_test    "DTLS reordering: Buffer out-of-order hs msg before reassembling next, free buffered msg" \
+            -p "$P_PXY delay_srv=Certificate delay_srv=Certificate" \
+            "$P_SRV mtu=512 dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            0 \
+            -c "Buffering HS message" \
+            -c "attempt to make space by freeing buffered future messages" \
+            -c "Enough space available after freeing buffered HS messages" \
             -S "Buffering HS message" \
             -S "Next handshake message has been buffered - load"\
             -C "Inject buffered CCS message" \
@@ -5960,7 +5986,7 @@ run_test    "DTLS reordering: Buffer out-of-order CCS message on server"\
             -s "Inject buffered CCS message" \
             -s "Remember CCS message"
 
-run_test    "DTLS reordering: Buffer record from future epoch (client and server)" \
+run_test    "DTLS reordering: Buffer encrypted Finished message" \
             -p "$P_PXY delay_ccs=1" \
             "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
@@ -5969,6 +5995,34 @@ run_test    "DTLS reordering: Buffer record from future epoch (client and server
             -s "Found buffered record from current epoch - load" \
             -c "Buffer record from epoch 1" \
             -c "Found buffered record from current epoch - load"
+
+# In this test, both the fragmented NewSessionTicket and the ChangeCipherSpec
+# from the server are delayed, so that the encrypted Finished message
+# is received and buffered. When the fragmented NewSessionTicket comes
+# in afterwards, the encrypted Finished message must be freed in order
+# to make space for the NewSessionTicket to be reassembled.
+# This works only in very particular circumstances:
+# - MBEDTLS_SSL_DTLS_MAX_BUFFERING must be large enough to allow buffering
+#   of the NewSessionTicket, but small enough to also allow buffering of
+#   the encrypted Finished message.
+# - The MTU setting on the server must be so small that the NewSessionTicket
+#   needs to be fragmented.
+# - All messages sent by the server must be small enough to be either sent
+#   without fragmentation or be reassembled within the bounds of
+#   MBEDTLS_SSL_DTLS_MAX_BUFFERING. Achieve this by testing with a PSK-based
+#   handshake, omitting CRTs.
+requires_config_value_at_least "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 240
+requires_config_value_at_most "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 280
+run_test    "DTLS reordering: Buffer encrypted Finished message, drop for fragmented NewSessionTicket" \
+            -p "$P_PXY delay_srv=NewSessionTicket delay_srv=NewSessionTicket delay_ccs=1" \
+            "$P_SRV mtu=190 dgram_packing=0 psk=abc123 psk_identity=foo cookies=0 dtls=1 debug_level=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8 psk=abc123 psk_identity=foo" \
+            0 \
+            -s "Buffer record from epoch 1" \
+            -s "Found buffered record from current epoch - load" \
+            -c "Buffer record from epoch 1" \
+            -C "Found buffered record from current epoch - load" \
+            -c "Enough space available after freeing future epoch record"
 
 # Tests for "randomly unreliable connection": try a variety of flows and peers
 

@@ -146,6 +146,20 @@ static int ssl_get_remaining_payload_in_datagram( mbedtls_ssl_context const *ssl
 
     if( max_len > mfl )
         max_len = mfl;
+
+    /* By the standard (RFC 6066 Sect. 4), the MFL extension
+     * only limits the maximum record payload size, so in theory
+     * we would be allowed to pack multiple records of payload size
+     * MFL into a single datagram. However, this would mean that there's
+     * no way to explicitly communicate MTU restrictions to the peer.
+     *
+     * The following reduction of max_len makes sure that we never
+     * write datagrams larger than MFL + Record Expansion Overhead.
+     */
+    if( max_len <= ssl->out_left )
+        return( 0 );
+
+    max_len -= ssl->out_left;
 #endif
 
     ret = ssl_get_remaining_space_in_datagram( ssl );

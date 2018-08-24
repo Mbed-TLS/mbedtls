@@ -3016,7 +3016,7 @@
  * DTLS handshake message reassembly and future message buffering.
  *
  */
-//#define MBEDTLS_SSL_DTLS_MAX_BUFFERING             ( 2 * 16384 )
+//#define MBEDTLS_SSL_DTLS_MAX_BUFFERING             32768
 
 //#define MBEDTLS_SSL_DEFAULT_TICKET_LIFETIME     86400 /**< Lifetime of session tickets (if enabled) */
 //#define MBEDTLS_PSK_MAX_LEN               32 /**< Max size of TLS pre-shared keys, in bytes (default 256 bits) */

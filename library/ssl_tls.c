@@ -6477,8 +6477,8 @@ void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limi
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
-void mbedtls_ssl_conf_datagram_packing( mbedtls_ssl_context *ssl,
-                                        unsigned allow_packing )
+void mbedtls_ssl_set_datagram_packing( mbedtls_ssl_context *ssl,
+                                       unsigned allow_packing )
 {
     ssl->disable_datagram_packing = !allow_packing;
 }

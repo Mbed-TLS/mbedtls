@@ -1842,8 +1842,8 @@ void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limi
  *                 are currently always sent in separate datagrams.
  *
  */
-void mbedtls_ssl_conf_datagram_packing( mbedtls_ssl_context *ssl,
-                                        unsigned allow_packing );
+void mbedtls_ssl_set_datagram_packing( mbedtls_ssl_context *ssl,
+                                       unsigned allow_packing );
 
 /**
  * \brief          Set retransmit timeout values for the DTLS handshake.

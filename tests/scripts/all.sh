@@ -558,6 +558,26 @@ make
 msg "test: small SSL_IN_CONTENT_LEN - ssl-opt.sh MFL tests"
 if_build_succeeded tests/ssl-opt.sh -f "Max fragment"
 
+msg "build: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #0"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_SSL_DTLS_MAX_BUFFERING 1000
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #0 - ssl-opt.sh specific reordering test"
+if_build_succeeded tests/ssl-opt.sh -f "DTLS reordering: Buffer out-of-order hs msg before reassembling next, free buffered msg"
+
+msg "build: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #1"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_SSL_DTLS_MAX_BUFFERING 240
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #1 - ssl-opt.sh specific reordering test"
+if_build_succeeded tests/ssl-opt.sh -f "DTLS reordering: Buffer encrypted Finished message, drop for fragmented NewSessionTicket"
+
 msg "build: cmake, full config, clang" # ~ 50s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"

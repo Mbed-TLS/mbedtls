@@ -177,8 +177,8 @@ int mbedtls_x509_crt_parse_der( mbedtls_x509_crt *chain, const unsigned char *bu
  * \brief          Parse one DER-encoded or one or more concatenated PEM-encoded
  *                 certificates and add them to the chained list.
  *
- *                 For PEM-encoded CRTs, the function parses permissively:
- *                 If at least one certificate can be parsed, the function
+ *                 For CRTs in PEM encoding, the function parses permissively:
+ *                 if at least one certificate can be parsed, the function
  *                 returns the number of certificates for which parsing failed
  *                 (hence \c 0 if all certificates were parsed successfully).
  *                 If no certificate could be parsed, the function returns

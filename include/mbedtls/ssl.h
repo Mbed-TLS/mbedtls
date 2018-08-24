@@ -1843,12 +1843,12 @@ void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limi
  *                 or flight retransmission (if no buffering is used) as
  *                 means to deal with reordering are needed less frequently.
  *
- * \note           Application datagrams are not affected by this option and
+ * \note           Application records are not affected by this option and
  *                 are currently always sent in separate datagrams.
  *
  */
-void mbedtls_ssl_conf_datagram_packing( mbedtls_ssl_context *ssl,
-                                        unsigned allow_packing );
+void mbedtls_ssl_set_datagram_packing( mbedtls_ssl_context *ssl,
+                                       unsigned allow_packing );
 
 /**
  * \brief          Set retransmit timeout values for the DTLS handshake.

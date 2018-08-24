@@ -1354,7 +1354,7 @@ int main( int argc, char *argv[] )
                                             opt.hs_to_max );
 
     if( opt.dgram_packing != DFL_DGRAM_PACKING )
-        mbedtls_ssl_conf_datagram_packing( &ssl, opt.dgram_packing );
+        mbedtls_ssl_set_datagram_packing( &ssl, opt.dgram_packing );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)

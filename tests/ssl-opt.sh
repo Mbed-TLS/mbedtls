@@ -768,7 +768,7 @@ P_PXY="$P_PXY server_addr=127.0.0.1 server_port=$SRV_PORT listen_addr=127.0.0.1 
 O_SRV="$O_SRV -accept $SRV_PORT -dhparam data_files/dhparams.pem"
 O_CLI="$O_CLI -connect localhost:+SRV_PORT"
 G_SRV="$G_SRV -p $SRV_PORT"
-G_CLI="$G_CLI -p +SRV_PORT localhost"
+G_CLI="$G_CLI -p +SRV_PORT"
 
 if [ -n "${OPENSSL_LEGACY:-}" ]; then
     O_LEGACY_SRV="$O_LEGACY_SRV -accept $SRV_PORT -dhparam data_files/dhparams.pem"
@@ -780,7 +780,7 @@ if [ -n "${GNUTLS_NEXT_SERV:-}" ]; then
 fi
 
 if [ -n "${GNUTLS_NEXT_CLI:-}" ]; then
-    G_NEXT_CLI="$G_NEXT_CLI -p +SRV_PORT localhost"
+    G_NEXT_CLI="$G_NEXT_CLI -p +SRV_PORT"
 fi
 
 # Allow SHA-1, because many of our test certificates use it
@@ -2150,7 +2150,7 @@ run_test    "Renego ext: gnutls server unsafe, client break legacy" \
 requires_gnutls
 run_test    "Renego ext: gnutls client strict, server default" \
             "$P_SRV debug_level=3" \
-            "$G_CLI --priority=NORMAL:%SAFE_RENEGOTIATION" \
+            "$G_CLI --priority=NORMAL:%SAFE_RENEGOTIATION localhost" \
             0 \
             -s "received TLS_EMPTY_RENEGOTIATION_INFO\|found renegotiation extension" \
             -s "server hello, secure renegotiation extension"
@@ -2158,7 +2158,7 @@ run_test    "Renego ext: gnutls client strict, server default" \
 requires_gnutls
 run_test    "Renego ext: gnutls client unsafe, server default" \
             "$P_SRV debug_level=3" \
-            "$G_CLI --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_CLI --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION localhost" \
             0 \
             -S "received TLS_EMPTY_RENEGOTIATION_INFO\|found renegotiation extension" \
             -S "server hello, secure renegotiation extension"
@@ -2166,7 +2166,7 @@ run_test    "Renego ext: gnutls client unsafe, server default" \
 requires_gnutls
 run_test    "Renego ext: gnutls client unsafe, server break legacy" \
             "$P_SRV debug_level=3 allow_legacy=-1" \
-            "$G_CLI --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_CLI --priority=NORMAL:%DISABLE_SAFE_RENEGOTIATION localhost" \
             1 \
             -S "received TLS_EMPTY_RENEGOTIATION_INFO\|found renegotiation extension" \
             -S "server hello, secure renegotiation extension"
@@ -2177,7 +2177,7 @@ requires_gnutls
 run_test    "DER format: no trailing bytes" \
             "$P_SRV crt_file=data_files/server5-der0.crt \
              key_file=data_files/server5.key" \
-            "$G_CLI " \
+            "$G_CLI localhost" \
             0 \
             -c "Handshake was completed" \
 
@@ -2185,7 +2185,7 @@ requires_gnutls
 run_test    "DER format: with a trailing zero byte" \
             "$P_SRV crt_file=data_files/server5-der1a.crt \
              key_file=data_files/server5.key" \
-            "$G_CLI " \
+            "$G_CLI localhost" \
             0 \
             -c "Handshake was completed" \
 
@@ -2193,7 +2193,7 @@ requires_gnutls
 run_test    "DER format: with a trailing random byte" \
             "$P_SRV crt_file=data_files/server5-der1b.crt \
              key_file=data_files/server5.key" \
-            "$G_CLI " \
+            "$G_CLI localhost" \
             0 \
             -c "Handshake was completed" \
 
@@ -2201,7 +2201,7 @@ requires_gnutls
 run_test    "DER format: with 2 trailing random bytes" \
             "$P_SRV crt_file=data_files/server5-der2.crt \
              key_file=data_files/server5.key" \
-            "$G_CLI " \
+            "$G_CLI localhost" \
             0 \
             -c "Handshake was completed" \
 
@@ -2209,7 +2209,7 @@ requires_gnutls
 run_test    "DER format: with 4 trailing random bytes" \
             "$P_SRV crt_file=data_files/server5-der4.crt \
              key_file=data_files/server5.key" \
-            "$G_CLI " \
+            "$G_CLI localhost" \
             0 \
             -c "Handshake was completed" \
 
@@ -2217,7 +2217,7 @@ requires_gnutls
 run_test    "DER format: with 8 trailing random bytes" \
             "$P_SRV crt_file=data_files/server5-der8.crt \
              key_file=data_files/server5.key" \
-            "$G_CLI " \
+            "$G_CLI localhost" \
             0 \
             -c "Handshake was completed" \
 
@@ -2225,7 +2225,7 @@ requires_gnutls
 run_test    "DER format: with 9 trailing random bytes" \
             "$P_SRV crt_file=data_files/server5-der9.crt \
              key_file=data_files/server5.key" \
-            "$G_CLI " \
+            "$G_CLI localhost" \
             0 \
             -c "Handshake was completed" \
 
@@ -3790,14 +3790,14 @@ run_test    "Per-version suites: TLS 1.2" \
 requires_gnutls
 run_test    "ClientHello without extensions, SHA-1 allowed" \
             "$P_SRV debug_level=3" \
-            "$G_CLI --priority=NORMAL:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_CLI --priority=NORMAL:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION localhost" \
             0 \
             -s "dumping 'client hello extensions' (0 bytes)"
 
 requires_gnutls
 run_test    "ClientHello without extensions, SHA-1 forbidden in certificates on server" \
             "$P_SRV debug_level=3 key_file=data_files/server2.key crt_file=data_files/server2.crt allow_sha1=0" \
-            "$G_CLI --priority=NORMAL:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION" \
+            "$G_CLI --priority=NORMAL:%NO_EXTENSIONS:%DISABLE_SAFE_RENEGOTIATION localhost" \
             0 \
             -s "dumping 'client hello extensions' (0 bytes)"
 
@@ -5020,6 +5020,10 @@ run_test    "DTLS fragmenting: server only (max_frag_len)" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+# With the MFL extension, the server has no way of forcing
+# the client to not exceed a certain MTU; hence, the following
+# test can't be replicated with an MTU proxy such as the one
+# `client-initiated, server only (max_frag_len)` below.
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -5032,7 +5036,7 @@ run_test    "DTLS fragmenting: server only (more) (max_frag_len)" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             max_frag_len=2048" \
+             max_frag_len=4096" \
             0 \
             -S "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
@@ -5056,11 +5060,63 @@ run_test    "DTLS fragmenting: client-initiated, server only (max_frag_len)" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+# While not required by the standard defining the MFL extension
+# (according to which it only applies to records, not to datagrams),
+# Mbed TLS will never send datagrams larger than MFL + { Max record expansion },
+# as otherwise there wouldn't be any means to communicate MTU restrictions
+# to the peer.
+# The next test checks that no datagrams significantly larger than the
+# negotiated MFL are sent.
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "DTLS fragmenting: client-initiated, server only (max_frag_len), proxy MTU" \
+            -p "$P_PXY mtu=560" \
+            "$P_SRV dtls=1 debug_level=2 auth_mode=none \
+             crt_file=data_files/server7_int-ca.crt \
+             key_file=data_files/server7.key \
+             max_frag_len=2048" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=data_files/server8_int-ca2.crt \
+             key_file=data_files/server8.key \
+             max_frag_len=512" \
+            0 \
+            -S "found fragmented DTLS handshake message" \
+            -c "found fragmented DTLS handshake message" \
+            -C "error"
+
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
 run_test    "DTLS fragmenting: client-initiated, both (max_frag_len)" \
+            "$P_SRV dtls=1 debug_level=2 auth_mode=required \
+             crt_file=data_files/server7_int-ca.crt \
+             key_file=data_files/server7.key \
+             max_frag_len=2048" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=data_files/server8_int-ca2.crt \
+             key_file=data_files/server8.key \
+             max_frag_len=512" \
+            0 \
+            -s "found fragmented DTLS handshake message" \
+            -c "found fragmented DTLS handshake message" \
+            -C "error"
+
+# While not required by the standard defining the MFL extension
+# (according to which it only applies to records, not to datagrams),
+# Mbed TLS will never send datagrams larger than MFL + { Max record expansion },
+# as otherwise there wouldn't be any means to communicate MTU restrictions
+# to the peer.
+# The next test checks that no datagrams significantly larger than the
+# negotiated MFL are sent.
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+run_test    "DTLS fragmenting: client-initiated, both (max_frag_len), proxy MTU" \
+            -p "$P_PXY mtu=560" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
@@ -5459,35 +5515,31 @@ run_test    "DTLS fragmenting: gnutls server, DTLS 1.0" \
             -c "fragmenting handshake message" \
             -C "error"
 
-# gnutls-cli always tries IPv6 first, and doesn't fall back to IPv4 with DTLS
-requires_ipv6
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_gnutls
 run_test    "DTLS fragmenting: gnutls client, DTLS 1.2" \
-            "$P_SRV dtls=1 debug_level=2 server_addr=::1 \
+            "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
              mtu=512 force_version=dtls1_2" \
-            "$G_CLI -u" \
+            "$G_CLI -u --insecure 127.0.0.1" \
             0 \
             -s "fragmenting handshake message"
 
-# gnutls-cli always tries IPv6 first, and doesn't fall back to IPv4 with DTLS
-requires_ipv6
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
 requires_gnutls
 run_test    "DTLS fragmenting: gnutls client, DTLS 1.0" \
-            "$P_SRV dtls=1 debug_level=2 server_addr=::1 \
+            "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
              mtu=512 force_version=dtls1" \
-            "$G_CLI -u" \
+            "$G_CLI -u --insecure 127.0.0.1" \
             0 \
             -s "fragmenting handshake message"
 
@@ -5589,8 +5641,6 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
 ## We can re-enable them when a fixed version fo GnuTLS is available
 ## and installed in our CI system.
 ##
-## # gnutls-cli always tries IPv6 first, and doesn't fall back to IPv4 with DTLS
-## requires_ipv6
 ## requires_gnutls
 ## requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 ## requires_config_enabled MBEDTLS_RSA_C
@@ -5599,16 +5649,14 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
 ## client_needs_more_time 4
 ## run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
 ##             -p "$P_PXY drop=8 delay=8 duplicate=8" \
-##             "$P_SRV dtls=1 debug_level=2 server_addr=::1 \
+##             "$P_SRV dtls=1 debug_level=2 \
 ##              crt_file=data_files/server7_int-ca.crt \
 ##              key_file=data_files/server7.key \
 ##              hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
-##             "$G_CLI -u" \
+##            "$G_CLI -u --insecure 127.0.0.1" \
 ##             0 \
 ##             -s "fragmenting handshake message"
 ##
-## # gnutls-cli always tries IPv6 first, and doesn't fall back to IPv4 with DTLS
-## requires_ipv6
 ## requires_gnutls
 ## requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 ## requires_config_enabled MBEDTLS_RSA_C
@@ -5617,11 +5665,11 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
 ## client_needs_more_time 4
 ## run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.0" \
 ##             -p "$P_PXY drop=8 delay=8 duplicate=8" \
-##             "$P_SRV dtls=1 debug_level=2 server_addr=::1 \
+##             "$P_SRV dtls=1 debug_level=2 \
 ##              crt_file=data_files/server7_int-ca.crt \
 ##              key_file=data_files/server7.key \
 ##              hs_timeout=250-60000 mtu=512 force_version=dtls1" \
-##             "$G_CLI -u" \
+##            "$G_CLI -u --insecure 127.0.0.1" \
 ##             0 \
 ##             -s "fragmenting handshake message"
 

@@ -18,7 +18,7 @@ Features
      in mbedtls/config.h.
 
 API Changes
-   * Add function mbedtls_ssl_conf_datagram_packing() to configure
+   * Add function mbedtls_ssl_set_datagram_packing() to configure
      the use of datagram packing (enabled by default).
 
 Bugfix

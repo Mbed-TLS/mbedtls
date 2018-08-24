@@ -5020,6 +5020,10 @@ run_test    "DTLS fragmenting: server only (max_frag_len)" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+# With the MFL extension, the server has no way of forcing
+# the client to not exceed a certain MTU; hence, the following
+# test can't be replicated with an MTU proxy such as the one
+# `client-initiated, server only (max_frag_len)` below.
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -5032,33 +5036,7 @@ run_test    "DTLS fragmenting: server only (more) (max_frag_len)" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             max_frag_len=2048" \
-            0 \
-            -S "found fragmented DTLS handshake message" \
-            -c "found fragmented DTLS handshake message" \
-            -C "error"
-
-# While not required by the standard defining the MFL extension
-# (according to which it only applies to records, not to datagrams),
-# Mbed TLS will never send datagrams larger than MFL + { Max record expansion },
-# as otherwise there wouldn't be any means to communicate MTU restrictions
-# to the peer.
-# The next test checks that no datagrams significantly larger than the
-# negotiated MFL are sent.
-requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-requires_config_enabled MBEDTLS_RSA_C
-requires_config_enabled MBEDTLS_ECDSA_C
-requires_config_enabled MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-run_test    "DTLS fragmenting: server only (more) (max_frag_len), proxy MTU" \
-            -p "$P_PXY mtu=560" \
-            "$P_SRV dtls=1 debug_level=2 auth_mode=required \
-             crt_file=data_files/server7_int-ca.crt \
-             key_file=data_files/server7.key \
-             max_frag_len=512" \
-            "$P_CLI dtls=1 debug_level=2 \
-             crt_file=data_files/server8_int-ca2.crt \
-             key_file=data_files/server8.key \
-             max_frag_len=2048" \
+             max_frag_len=4096" \
             0 \
             -S "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \

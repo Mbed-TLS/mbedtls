@@ -4487,6 +4487,8 @@ static int ssl_buffer_make_space( mbedtls_ssl_context *ssl,
 {
     int offset;
     mbedtls_ssl_handshake_params * const hs = ssl->handshake;
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "Attempt to free buffered messages to have %u bytes available",
+                                (unsigned) desired ) );
 
     /* Get rid of future records epoch first, if such exist. */
     ssl_free_buffered_record( ssl );
@@ -4495,6 +4497,7 @@ static int ssl_buffer_make_space( mbedtls_ssl_context *ssl,
     if( desired <= ( MBEDTLS_SSL_DTLS_MAX_BUFFERING -
                      hs->buffering.total_bytes_buffered ) )
     {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Enough space available after freeing future epoch record" ) );
         return( 0 );
     }
 
@@ -4513,6 +4516,7 @@ static int ssl_buffer_make_space( mbedtls_ssl_context *ssl,
         if( desired <= ( MBEDTLS_SSL_DTLS_MAX_BUFFERING -
                          hs->buffering.total_bytes_buffered ) )
         {
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "Enough space available after freeing buffered HS messages" ) );
             return( 0 );
         }
     }
@@ -4622,8 +4626,10 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
 
                     if( ssl_buffer_make_space( ssl, reassembly_buf_sz ) != 0 )
                     {
-                        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reassembly of next message of size %u would exceed the compile-time limit %u (already %u bytes buffered) -- fail\n",
-                             (unsigned) msg_len, MBEDTLS_SSL_DTLS_MAX_BUFFERING,
+                        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Reassembly of next message of size %u (%u with bitmap) would exceed the compile-time limit %u (already %u bytes buffered) -- fail\n",
+                             (unsigned) msg_len,
+                             (unsigned) reassembly_buf_sz,
+                             MBEDTLS_SSL_DTLS_MAX_BUFFERING,
                              (unsigned) hs->buffering.total_bytes_buffered ) );
                         ret = MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
                         goto exit;

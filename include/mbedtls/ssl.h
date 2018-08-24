@@ -1838,7 +1838,7 @@ void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limi
  *                 or flight retransmission (if no buffering is used) as
  *                 means to deal with reordering are needed less frequently.
  *
- * \note           Application datagrams are not affected by this option and
+ * \note           Application records are not affected by this option and
  *                 are currently always sent in separate datagrams.
  *
  */

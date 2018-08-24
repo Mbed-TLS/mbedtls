@@ -8672,6 +8672,8 @@ static void ssl_buffering_free( mbedtls_ssl_context *ssl )
     if( hs == NULL )
         return;
 
+    ssl_free_buffered_record( ssl );
+
     for( offset = 0; offset < MBEDTLS_SSL_MAX_BUFFERED_HS; offset++ )
         ssl_buffering_free_slot( ssl, offset );
 }
@@ -8776,7 +8778,6 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
     mbedtls_free( handshake->verify_cookie );
     ssl_flight_free( handshake->flight );
     ssl_buffering_free( ssl );
-    ssl_free_buffered_record( ssl );
 #endif
 
     mbedtls_platform_zeroize( handshake,

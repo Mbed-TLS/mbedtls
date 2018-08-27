@@ -4636,15 +4636,6 @@ run_test    "Force an ECC ciphersuite in the server side" \
             -s "server hello, supported_point_formats extension"
 
 # Test for large server packets
-
-requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
-run_test    "Large server packet SSLv3 BlockCipher" \
-            "$P_SRV response_size=16384 min_version=ssl3" \
-            "$P_CLI force_version=ssl3 recsplit=0 \
-             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
-            0 \
-            -c "Read from server: 16384 bytes read"
-
 requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
 run_test    "Large server packet SSLv3 StreamCipher" \
             "$P_SRV response_size=16384 min_version=ssl3 arc4=1 force_ciphersuite=TLS-RSA-WITH-RC4-128-SHA" \
@@ -4653,7 +4644,17 @@ run_test    "Large server packet SSLv3 StreamCipher" \
             0 \
             -c "Read from server: 16384 bytes read"
 
-# Checking next 2 tests logs for 1n-1 split against BEAST too
+# Checking next 4 tests logs for 1n-1 split against BEAST too
+requires_config_enabled MBEDTLS_SSL_PROTO_SSL3
+run_test    "Large server packet SSLv3 BlockCipher" \
+            "$P_SRV response_size=16384 min_version=ssl3" \
+            "$P_CLI force_version=ssl3 recsplit=0 \
+             force_ciphersuite=TLS-RSA-WITH-AES-256-CBC-SHA" \
+            0 \
+            -c "Read from server: 1 bytes read"\
+            -c "16383 bytes read"\
+            -C "Read from server: 16384 bytes read"
+
 run_test    "Large server packet TLS 1.0 BlockCipher" \
             "$P_SRV response_size=16384" \
             "$P_CLI force_version=tls1 recsplit=0 \

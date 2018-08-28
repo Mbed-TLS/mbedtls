@@ -3402,12 +3402,12 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
         MBEDTLS_SSL_DEBUG_MSG( 3, ( "output record: msgtype = %d, "
-                    "version = [%d:%d], msglen = %d",
-                    ssl->out_hdr[0], ssl->out_hdr[1], ssl->out_hdr[2], len ) );
-
+                                    "version = [%d:%d], msglen = %d",
+                                    ssl->out_hdr[0], ssl->out_hdr[1],
+                                    ssl->out_hdr[2], len ) );
 
         MBEDTLS_SSL_DEBUG_BUF( 4, "output record sent to network",
-                       ssl->out_hdr, protected_record_size );
+                               ssl->out_hdr, protected_record_size );
 
         ssl->out_left += protected_record_size;
         ssl->out_hdr  += protected_record_size;

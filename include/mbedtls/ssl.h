@@ -243,8 +243,12 @@
 #define MBEDTLS_SSL_OUT_CONTENT_LEN MBEDTLS_SSL_MAX_CONTENT_LEN
 #endif
 
+/*
+ * Maximum number of heap-allocated bytes for the purpose of
+ * DTLS handshake message reassembly and future message buffering.
+ */
 #if !defined(MBEDTLS_SSL_DTLS_MAX_BUFFERING)
-#define MBEDTLS_SSL_DTLS_MAX_BUFFERING ( 2 * MBEDTLS_SSL_IN_CONTENT_LEN )
+#define MBEDTLS_SSL_DTLS_MAX_BUFFERING 32768
 #endif
 
 /* \} name SECTION: Module settings */

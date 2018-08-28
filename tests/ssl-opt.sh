@@ -164,21 +164,22 @@ requires_config_disabled() {
     fi
 }
 
-requires_config_value_at_least() {
+get_config_value_or_default() {
     NAME="$1"
     DEF_VAL=$( grep ".*#define.*${NAME}" ../include/mbedtls/config.h |
                sed 's/^.*\s\([0-9]*\)$/\1/' )
-    VAL=$( ../scripts/config.pl get $NAME || echo "$DEF_VAL" )
+    ../scripts/config.pl get $NAME || echo "$DEF_VAL"
+}
+
+requires_config_value_at_least() {
+    VAL=$( get_config_value_or_default "$1" )
     if [ "$VAL" -lt "$2" ]; then
        SKIP_NEXT="YES"
     fi
 }
 
 requires_config_value_at_most() {
-    NAME="$1"
-    DEF_VAL=$( grep ".*#define.*${NAME}" ../include/mbedtls/config.h |
-               sed 's/^.*\s\([0-9]*\)$/\1/' )
-    VAL=$( ../scripts/config.pl get $NAME || echo "$DEF_VAL" )
+    VAL=$( get_config_value_or_default "$1" )
     if [ "$VAL" -gt "$2" ]; then
        SKIP_NEXT="YES"
     fi

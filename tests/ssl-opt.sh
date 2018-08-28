@@ -5916,9 +5916,9 @@ run_test    "DTLS reordering: Buffer out-of-order handshake message on client" \
             -c "Next handshake message has been buffered - load"\
             -S "Buffering HS message" \
             -S "Next handshake message has been buffered - load"\
-            -C "Inject buffered CCS message" \
+            -C "Injecting buffered CCS message" \
             -C "Remember CCS message" \
-            -S "Inject buffered CCS message" \
+            -S "Injecting buffered CCS message" \
             -S "Remember CCS message"
 
 run_test    "DTLS reordering: Buffer out-of-order handshake message fragment on client" \
@@ -5932,9 +5932,9 @@ run_test    "DTLS reordering: Buffer out-of-order handshake message fragment on 
             -c "Next handshake message has been buffered - load"\
             -S "Buffering HS message" \
             -S "Next handshake message has been buffered - load"\
-            -C "Inject buffered CCS message" \
+            -C "Injecting buffered CCS message" \
             -C "Remember CCS message" \
-            -S "Inject buffered CCS message" \
+            -S "Injecting buffered CCS message" \
             -S "Remember CCS message"
 
 # The client buffers the ServerKeyExchange before receiving the fragmented
@@ -5952,9 +5952,9 @@ run_test    "DTLS reordering: Buffer out-of-order hs msg before reassembling nex
             -C "attempt to make space by freeing buffered messages" \
             -S "Buffering HS message" \
             -S "Next handshake message has been buffered - load"\
-            -C "Inject buffered CCS message" \
+            -C "Injecting buffered CCS message" \
             -C "Remember CCS message" \
-            -S "Inject buffered CCS message" \
+            -S "Injecting buffered CCS message" \
             -S "Remember CCS message"
 
 # The size constraints ensure that the delayed certificate message can't
@@ -5972,9 +5972,9 @@ run_test    "DTLS reordering: Buffer out-of-order hs msg before reassembling nex
             -c "Enough space available after freeing buffered HS messages" \
             -S "Buffering HS message" \
             -S "Next handshake message has been buffered - load"\
-            -C "Inject buffered CCS message" \
+            -C "Injecting buffered CCS message" \
             -C "Remember CCS message" \
-            -S "Inject buffered CCS message" \
+            -S "Injecting buffered CCS message" \
             -S "Remember CCS message"
 
 run_test    "DTLS reordering: Buffer out-of-order handshake message on server" \
@@ -5986,9 +5986,9 @@ run_test    "DTLS reordering: Buffer out-of-order handshake message on server" \
             -C "Next handshake message has been buffered - load"\
             -s "Buffering HS message" \
             -s "Next handshake message has been buffered - load" \
-            -C "Inject buffered CCS message" \
+            -C "Injecting buffered CCS message" \
             -C "Remember CCS message" \
-            -S "Inject buffered CCS message" \
+            -S "Injecting buffered CCS message" \
             -S "Remember CCS message"
 
 run_test    "DTLS reordering: Buffer out-of-order CCS message on client"\
@@ -6000,9 +6000,9 @@ run_test    "DTLS reordering: Buffer out-of-order CCS message on client"\
             -C "Next handshake message has been buffered - load"\
             -S "Buffering HS message" \
             -S "Next handshake message has been buffered - load" \
-            -c "Inject buffered CCS message" \
+            -c "Injecting buffered CCS message" \
             -c "Remember CCS message" \
-            -S "Inject buffered CCS message" \
+            -S "Injecting buffered CCS message" \
             -S "Remember CCS message"
 
 run_test    "DTLS reordering: Buffer out-of-order CCS message on server"\
@@ -6014,9 +6014,9 @@ run_test    "DTLS reordering: Buffer out-of-order CCS message on server"\
             -C "Next handshake message has been buffered - load"\
             -S "Buffering HS message" \
             -S "Next handshake message has been buffered - load" \
-            -C "Inject buffered CCS message" \
+            -C "Injecting buffered CCS message" \
             -C "Remember CCS message" \
-            -s "Inject buffered CCS message" \
+            -s "Injecting buffered CCS message" \
             -s "Remember CCS message"
 
 run_test    "DTLS reordering: Buffer encrypted Finished message" \

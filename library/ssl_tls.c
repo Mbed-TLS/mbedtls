@@ -4409,7 +4409,7 @@ static int ssl_load_buffered_message( mbedtls_ssl_context *ssl )
             goto exit;
         }
 
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Inject buffered CCS message" ) );
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "Injecting buffered CCS message" ) );
         ssl->in_msgtype = MBEDTLS_SSL_MSG_CHANGE_CIPHER_SPEC;
         ssl->in_msglen = 1;
         ssl->in_msg[0] = 1;

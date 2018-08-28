@@ -4505,9 +4505,9 @@ static int ssl_buffer_make_space( mbedtls_ssl_context *ssl,
         return( 0 );
     }
 
-    /* We don't have enough space to buffer the next expected
-     * handshake message. Remove buffers used for future msgs
-     * to gain space, starting with the most distant one. */
+    /* We don't have enough space to buffer the next expected handshake
+     * message. Remove buffers used for future messages to gain space,
+     * starting with the most distant one. */
     for( offset = MBEDTLS_SSL_MAX_BUFFERED_HS - 1;
          offset >= 0; offset-- )
     {

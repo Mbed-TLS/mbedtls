@@ -109,6 +109,17 @@ static void ssl_update_in_pointers( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 
+/* Forward declarations for functions related to message buffering. */
+static void ssl_buffering_free( mbedtls_ssl_context *ssl );
+static void ssl_buffering_free_slot( mbedtls_ssl_context *ssl,
+                                     uint8_t slot );
+static void ssl_free_buffered_record( mbedtls_ssl_context *ssl );
+static int ssl_load_buffered_message( mbedtls_ssl_context *ssl );
+static int ssl_load_buffered_record( mbedtls_ssl_context *ssl );
+static int ssl_buffer_message( mbedtls_ssl_context *ssl );
+static int ssl_buffer_future_record( mbedtls_ssl_context *ssl );
+static int ssl_another_record_in_datagram( mbedtls_ssl_context *ssl );
+
 static size_t ssl_get_current_mtu( const mbedtls_ssl_context *ssl );
 static size_t ssl_get_maximum_datagram_size( mbedtls_ssl_context const *ssl )
 {
@@ -182,11 +193,6 @@ static int ssl_get_remaining_payload_in_datagram( mbedtls_ssl_context const *ssl
 
     return( (int) remaining );
 }
-
-static void ssl_buffering_free( mbedtls_ssl_context *ssl );
-
-static void ssl_buffering_free_slot( mbedtls_ssl_context *ssl,
-                                     uint8_t slot );
 
 /*
  * Double the retransmit timeout value, within the allowed range,
@@ -4287,14 +4293,6 @@ static int ssl_consume_current_message( mbedtls_ssl_context *ssl );
 static int ssl_get_next_record( mbedtls_ssl_context *ssl );
 static int ssl_record_is_in_progress( mbedtls_ssl_context *ssl );
 
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-static int ssl_load_buffered_message( mbedtls_ssl_context *ssl );
-static int ssl_load_buffered_record( mbedtls_ssl_context *ssl );
-static int ssl_buffer_message( mbedtls_ssl_context *ssl );
-static int ssl_buffer_future_record( mbedtls_ssl_context *ssl );
-static int ssl_another_record_in_datagram( mbedtls_ssl_context *ssl );
-#endif /* MBEDTLS_SSL_PROTO_DTLS */
-
 int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
                              unsigned update_hs_digest )
 {
@@ -4485,7 +4483,6 @@ exit:
     return( ret );
 }
 
-static void ssl_free_buffered_record( mbedtls_ssl_context *ssl );
 static int ssl_buffer_make_space( mbedtls_ssl_context *ssl,
                                   size_t desired )
 {

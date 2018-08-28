@@ -152,10 +152,10 @@ static struct options
     int delay;                  /* delay 1 packet in N (none if 0)          */
     int delay_ccs;              /* delay ChangeCipherSpec                   */
     char* delay_cli[MAX_DELAYED_HS];  /* handshake types of messages from
-                                      * client that should be delayed.      */
+                                       * client that should be delayed.     */
     uint8_t delay_cli_cnt;      /* Number of entries in delay_cli.          */
     char* delay_srv[MAX_DELAYED_HS];  /* handshake types of messages from
-                                      * server that should be delayed.      */
+                                       * server that should be delayed.     */
     uint8_t delay_srv_cnt;      /* Number of entries in delay_srv.          */
     int drop;                   /* drop 1 packet in N (none if 0)           */
     int mtu;                    /* drop packets larger than this            */

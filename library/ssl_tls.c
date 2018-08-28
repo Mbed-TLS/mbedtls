@@ -3672,7 +3672,7 @@ int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl )
 
         /* Message reassembly is handled alongside buffering of future
          * messages; the commonality is that both handshake fragments and
-         * future messages cannot be forwarded immediately to the handshake
+         * future messages cannot be forwarded immediately to the
          * handshake logic layer. */
         if( ssl_hs_is_proper_fragment( ssl ) == 1 )
         {

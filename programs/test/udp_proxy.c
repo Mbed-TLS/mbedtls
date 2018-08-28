@@ -249,8 +249,8 @@ static void get_options( int argc, char *argv[] )
 
             if( *delay_cnt == MAX_DELAYED_HS )
             {
-                mbedtls_printf( " maximally %d uses of delay_cli argument allowed\n",
-                                MAX_DELAYED_HS );
+                mbedtls_printf( " too many uses of %s: only %d allowed\n",
+                                p, MAX_DELAYED_HS );
                 exit_usage( p, NULL );
             }
 

@@ -204,6 +204,8 @@ API Changes
 Bugfix
    * Fix an issue with MicroBlaze support in bn_mul.h which was causing the
      build to fail. Found by zv-io. Fixes #1651.
+   * Fix undefined shifts with negative values in certificates parsing
+     (found by Catena cyber using oss-fuzz)
 
 Changes
    * Support TLS testing in out-of-source builds using cmake. Fixes #1193.

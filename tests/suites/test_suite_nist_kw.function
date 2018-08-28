@@ -158,19 +158,17 @@ void nist_kw_plaintext_lengths( int in_len, int out_len, int mode, int res )
 
     memset( key, 0, sizeof( key ) );
 
-    if (in_len == 0)
-    {
-        /* mbedtls_calloc can return NULL for zero-length buffers. Make sure we
-         * always have a plaintext buffer, even if the length is 0. */
-        plaintext = mbedtls_calloc( 1, 1 );
-    }
-    else
+    if( in_len != 0 )
     {
         plaintext = mbedtls_calloc( 1, in_len );
+        TEST_ASSERT( plaintext != NULL );
     }
-    TEST_ASSERT( plaintext != NULL );
-    ciphertext = mbedtls_calloc( 1, output_len );
-    TEST_ASSERT( ciphertext != NULL );
+
+    if( out_len != 0 )
+    {
+        ciphertext = mbedtls_calloc( 1, output_len );
+        TEST_ASSERT( ciphertext != NULL );
+    }
 
     memset( plaintext, 0, in_len );
     memset( ciphertext, 0, output_len );
@@ -216,10 +214,16 @@ void nist_kw_ciphertext_lengths( int in_len, int out_len, int mode, int res )
 
     memset( key, 0, sizeof( key ) );
 
-    plaintext = mbedtls_calloc( 1, output_len );
-    TEST_ASSERT( plaintext != NULL );
-    ciphertext = mbedtls_calloc( 1, in_len );
-    TEST_ASSERT( ciphertext != NULL );
+    if( out_len != 0 )
+    {
+        plaintext = mbedtls_calloc( 1, output_len );
+        TEST_ASSERT( plaintext != NULL );
+    }
+    if( in_len != 0 )
+    {
+        ciphertext = mbedtls_calloc( 1, in_len );
+        TEST_ASSERT( ciphertext != NULL );
+    }
 
     memset( plaintext, 0, output_len );
     memset( ciphertext, 0, in_len );

@@ -69,6 +69,27 @@ nist_kw_ciphertext_lengths:32:16:MBEDTLS_KW_MODE_KW:MBEDTLS_ERR_CIPHER_BAD_INPUT
 NIST KW lengths #16 KWP unwrapping output buffer too short
 nist_kw_ciphertext_lengths:24:12:MBEDTLS_KW_MODE_KWP:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
 
+NIST KW lengths #17 KW plaintext NULL (2 to 2^54 - 1 semiblocks)
+nist_kw_plaintext_lengths:0:8:MBEDTLS_KW_MODE_KW:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+
+NIST KW lengths #18 KW wrapping output NULL
+nist_kw_plaintext_lengths:8:0:MBEDTLS_KW_MODE_KW:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+
+NIST KW lengths #19 KWP wrapping output NULL
+nist_kw_plaintext_lengths:8:0:MBEDTLS_KW_MODE_KWP:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+
+NIST KW lengths #20 KW ciphertext NULL
+nist_kw_ciphertext_lengths:0:8:MBEDTLS_KW_MODE_KW:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+
+NIST KW lengths #21 KWP ciphertext NULL
+nist_kw_ciphertext_lengths:0:8:MBEDTLS_KW_MODE_KWP:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+
+NIST KW lengths #15 KW unwrapping output NULL
+nist_kw_ciphertext_lengths:32:0:MBEDTLS_KW_MODE_KW:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+
+NIST KW lengths #16 KWP unwrapping output NULL
+nist_kw_ciphertext_lengths:24:0:MBEDTLS_KW_MODE_KWP:MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+
 NIST KW wrap AES-128 CAVS 17.4 PLAINTEXT LENGTH = 128 count 7
 depends_on:MBEDTLS_AES_C
 mbedtls_nist_kw_wrap:MBEDTLS_CIPHER_ID_AES:MBEDTLS_KW_MODE_KW:"095e293f31e317ba6861114b95c90792":"64349d506ae85ecd84459c7a5c423f55":"97de4425572274bd7fb2d6688d5afd4454d992348d42a643"

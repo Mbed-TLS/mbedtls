@@ -6,6 +6,10 @@ Security
    * Fix a potential memory leak in mbedtls_ssl_setup( ) function. An allocation
      failure could leave an unreleased buffer. A handshake init failure would
      lead to leaving two unreleased buffers.
+   * Fix an issue in the X.509 module which could lead to a buffer overread
+     during certificate extensions parsing. In case of receiving malformed
+     input (extensions length field equal to 0), an illegal read of one byte
+     beyond the input buffer is made. Found and analyzed by Nathan Crandall.
 
 Bugfix
    * Fixes an issue with MBEDTLS_CHACHAPOLY_C which would not compile if

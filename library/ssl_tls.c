@@ -55,7 +55,7 @@
 #endif
 
 static void ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl );
-static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context *ssl );
+static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context const *ssl );
 
 /* Length of the "epoch" field in the record header */
 static inline size_t ssl_ep_len( const mbedtls_ssl_context *ssl )
@@ -3481,21 +3481,21 @@ static int ssl_hs_is_proper_fragment( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
-static uint32_t ssl_get_hs_frag_len( mbedtls_ssl_context *ssl )
+static uint32_t ssl_get_hs_frag_len( mbedtls_ssl_context const *ssl )
 {
     return( ( ssl->in_msg[9] << 16  ) |
             ( ssl->in_msg[10] << 8  ) |
               ssl->in_msg[11] );
 }
 
-static uint32_t ssl_get_hs_frag_off( mbedtls_ssl_context *ssl )
+static uint32_t ssl_get_hs_frag_off( mbedtls_ssl_context const *ssl )
 {
     return( ( ssl->in_msg[6] << 16 ) |
             ( ssl->in_msg[7] << 8  ) |
               ssl->in_msg[8] );
 }
 
-static int ssl_check_hs_header( mbedtls_ssl_context *ssl )
+static int ssl_check_hs_header( mbedtls_ssl_context const *ssl )
 {
     uint32_t msg_len, frag_off, frag_len;
 
@@ -3593,7 +3593,7 @@ static size_t ssl_get_reassembly_buffer_size( size_t msg_len,
 
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context *ssl )
+static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context const *ssl )
 {
     return( ( ssl->in_msg[1] << 16 ) |
             ( ssl->in_msg[2] << 8  ) |

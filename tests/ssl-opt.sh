@@ -142,6 +142,14 @@ get_options() {
     done
 }
 
+# Skip next test; use this macro to skip tests which are legitimate
+# in theory and expected to be re-introduced at some point, but
+# aren't expected to succeed at the moment due to problems outside
+# our control (such as bugs in other TLS implementations).
+skip_next_test() {
+    SKIP_NEXT="YES"
+}
+
 # skip next test if the flag is not enabled in config.h
 requires_config_enabled() {
     if grep "^#define $1" $CONFIG_H > /dev/null; then :; else
@@ -5668,38 +5676,39 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
 ## https://gitlab.com/gnutls/gnutls/issues/543
 ## We can re-enable them when a fixed version fo GnuTLS is available
 ## and installed in our CI system.
-##
-## requires_gnutls
-## requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-## requires_config_enabled MBEDTLS_RSA_C
-## requires_config_enabled MBEDTLS_ECDSA_C
-## requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-## client_needs_more_time 4
-## run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
-##             -p "$P_PXY drop=8 delay=8 duplicate=8" \
-##             "$P_SRV dtls=1 debug_level=2 \
-##              crt_file=data_files/server7_int-ca.crt \
-##              key_file=data_files/server7.key \
-##              hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
-##            "$G_CLI -u --insecure 127.0.0.1" \
-##             0 \
-##             -s "fragmenting handshake message"
-##
-## requires_gnutls
-## requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-## requires_config_enabled MBEDTLS_RSA_C
-## requires_config_enabled MBEDTLS_ECDSA_C
-## requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
-## client_needs_more_time 4
-## run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.0" \
-##             -p "$P_PXY drop=8 delay=8 duplicate=8" \
-##             "$P_SRV dtls=1 debug_level=2 \
-##              crt_file=data_files/server7_int-ca.crt \
-##              key_file=data_files/server7.key \
-##              hs_timeout=250-60000 mtu=512 force_version=dtls1" \
-##            "$G_CLI -u --insecure 127.0.0.1" \
-##             0 \
-##             -s "fragmenting handshake message"
+skip_next_test
+requires_gnutls
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+client_needs_more_time 4
+run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
+            -p "$P_PXY drop=8 delay=8 duplicate=8" \
+            "$P_SRV dtls=1 debug_level=2 \
+             crt_file=data_files/server7_int-ca.crt \
+             key_file=data_files/server7.key \
+             hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
+           "$G_CLI -u --insecure 127.0.0.1" \
+            0 \
+            -s "fragmenting handshake message"
+
+skip_next_test
+requires_gnutls
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
+client_needs_more_time 4
+run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.0" \
+            -p "$P_PXY drop=8 delay=8 duplicate=8" \
+            "$P_SRV dtls=1 debug_level=2 \
+             crt_file=data_files/server7_int-ca.crt \
+             key_file=data_files/server7.key \
+             hs_timeout=250-60000 mtu=512 force_version=dtls1" \
+           "$G_CLI -u --insecure 127.0.0.1" \
+            0 \
+            -s "fragmenting handshake message"
 
 ## Interop test with OpenSSL might triger a bug in recent versions (that
 ## probably won't be fixed before 1.1.1X), so we use an old version that
@@ -5708,22 +5717,22 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
 ## Bug report: https://github.com/openssl/openssl/issues/6902
 ## They should be re-enabled (and the DTLS 1.0 switched back to a non-legacy
 ## version of OpenSSL once a fixed version of OpenSSL is available)
-##
-## requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-## requires_config_enabled MBEDTLS_RSA_C
-## requires_config_enabled MBEDTLS_ECDSA_C
-## requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-## client_needs_more_time 4
-## run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
-##             -p "$P_PXY drop=8 delay=8 duplicate=8" \
-##             "$O_SRV -dtls1_2 -verify 10" \
-##             "$P_CLI dtls=1 debug_level=2 \
-##              crt_file=data_files/server8_int-ca2.crt \
-##              key_file=data_files/server8.key \
-##              hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
-##             0 \
-##             -c "fragmenting handshake message" \
-##             -C "error"
+skip_next_test
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+client_needs_more_time 4
+run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
+            -p "$P_PXY drop=8 delay=8 duplicate=8" \
+            "$O_SRV -dtls1_2 -verify 10" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=data_files/server8_int-ca2.crt \
+             key_file=data_files/server8.key \
+             hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
+            0 \
+            -c "fragmenting handshake message" \
+            -C "error"
 
 requires_openssl_legacy
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS

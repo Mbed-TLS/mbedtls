@@ -20,6 +20,8 @@ Bugfix
      without providing a list of CAs. This was due to an overly strict bounds
      check in parsing the CertificateRequest message,
      introduced in Mbed TLS 2.12.0. Fixes #1954.
+   * Fix undefined shifts with negative values in certificates parsing
+     (found by Catena cyber using oss-fuzz)
 
 = mbed TLS 2.1.14 branch released 2018-07-25
 

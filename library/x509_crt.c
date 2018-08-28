@@ -152,6 +152,9 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb =
 static int x509_profile_check_md_alg( const mbedtls_x509_crt_profile *profile,
                                       mbedtls_md_type_t md_alg )
 {
+    if( md_alg == MBEDTLS_MD_NONE )
+        return( -1 );
+
     if( ( profile->allowed_mds & MBEDTLS_X509_ID_FLAG( md_alg ) ) != 0 )
         return( 0 );
 
@@ -165,6 +168,9 @@ static int x509_profile_check_md_alg( const mbedtls_x509_crt_profile *profile,
 static int x509_profile_check_pk_alg( const mbedtls_x509_crt_profile *profile,
                                       mbedtls_pk_type_t pk_alg )
 {
+    if( pk_alg == MBEDTLS_PK_NONE )
+        return( -1 );
+
     if( ( profile->allowed_pks & MBEDTLS_X509_ID_FLAG( pk_alg ) ) != 0 )
         return( 0 );
 
@@ -195,6 +201,9 @@ static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
         pk_alg == MBEDTLS_PK_ECKEY_DH )
     {
         mbedtls_ecp_group_id gid = mbedtls_pk_ec( *pk )->grp.id;
+
+        if( gid == MBEDTLS_ECP_DP_NONE )
+            return( -1 );
 
         if( ( profile->allowed_curves & MBEDTLS_X509_ID_FLAG( gid ) ) != 0 )
             return( 0 );

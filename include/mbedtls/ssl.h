@@ -1031,14 +1031,14 @@ struct mbedtls_ssl_context
     int renego_records_seen;    /*!< Records since renego request, or with DTLS,
                                   number of retransmissions of request if
                                   renego_max_records is < 0           */
-#endif
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
 
     int major_ver;              /*!< equal to  MBEDTLS_SSL_MAJOR_VERSION_3    */
     int minor_ver;              /*!< either 0 (SSL3) or 1 (TLS1.0)    */
 
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
     unsigned badmac_seen;       /*!< records with a bad MAC received    */
-#endif
+#endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
 
     mbedtls_ssl_send_t *f_send; /*!< Callback for network send */
     mbedtls_ssl_recv_t *f_recv; /*!< Callback for network receive */
@@ -1094,11 +1094,11 @@ struct mbedtls_ssl_context
     uint16_t in_epoch;          /*!< DTLS epoch for incoming records  */
     size_t next_record_offset;  /*!< offset of the next record in datagram
                                      (equal to in_left if none)       */
-#endif
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
     uint64_t in_window_top;     /*!< last validated record seq_num    */
     uint64_t in_window;         /*!< bitmask for replay detection     */
-#endif
+#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 
     size_t in_hslen;            /*!< current handshake message length,
                                      including the handshake header   */
@@ -1130,14 +1130,14 @@ struct mbedtls_ssl_context
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     uint16_t mtu;               /*!< path mtu, used to fragment outgoing messages */
-#endif
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     unsigned char *compress_buf;        /*!<  zlib data buffer        */
-#endif
+#endif /* MBEDTLS_ZLIB_SUPPORT */
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     signed char split_done;     /*!< current record already splitted? */
-#endif
+#endif /* MBEDTLS_SSL_CBC_RECORD_SPLITTING */
 
     /*
      * PKI layer
@@ -1150,11 +1150,11 @@ struct mbedtls_ssl_context
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     char *hostname;             /*!< expected peer CN for verification
                                      (and SNI if available)                 */
-#endif
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_ALPN)
     const char *alpn_chosen;    /*!<  negotiated protocol                   */
-#endif
+#endif /* MBEDTLS_SSL_ALPN */
 
     /*
      * Information for DTLS hello verify
@@ -1162,7 +1162,7 @@ struct mbedtls_ssl_context
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
     unsigned char  *cli_id;         /*!<  transport-level ID of the client  */
     size_t          cli_id_len;     /*!<  length of cli_id                  */
-#endif
+#endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY && MBEDTLS_SSL_SRV_C */
 
     /*
      * Secure renegotiation
@@ -1174,7 +1174,7 @@ struct mbedtls_ssl_context
     size_t verify_data_len;             /*!<  length of verify data stored   */
     char own_verify_data[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
     char peer_verify_data[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
-#endif
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
 };
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)

@@ -2397,7 +2397,7 @@ static int ssl_write_hello_verify_request( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
         return( ret );
     }
-#endif
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write hello verify request" ) );
 
@@ -3385,7 +3385,7 @@ static int ssl_write_server_hello_done( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
         return( ret );
     }
-#endif
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write server hello done" ) );
 
@@ -4264,7 +4264,7 @@ int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl )
         if( ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
             return( ret );
     }
-#endif
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     switch( ssl->state )
     {

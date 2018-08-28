@@ -4433,7 +4433,7 @@ static int ssl_load_buffered_message( mbedtls_ssl_context *ssl )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 2, ( "Future message with sequence number %u %s buffered.",
                             hs->in_msg_seq + offset,
-                            hs_buf->is_complete ? "fully" : "partitially" ) );
+                            hs_buf->is_complete ? "fully" : "partially" ) );
             }
         }
     }

@@ -1582,6 +1582,8 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
         if( auth_done == 0 )
         {
+            unsigned char mac[MBEDTLS_SSL_MAC_ADD];
+
             /*
              * MAC(MAC_write_key, seq_num +
              *     TLSCipherText.type +
@@ -1604,9 +1606,11 @@ static int ssl_encrypt_buf( mbedtls_ssl_context *ssl )
             mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc, pseudo_hdr, 13 );
             mbedtls_md_hmac_update( &ssl->transform_out->md_ctx_enc,
                              ssl->out_iv, ssl->out_msglen );
-            mbedtls_md_hmac_finish( &ssl->transform_out->md_ctx_enc,
-                             ssl->out_iv + ssl->out_msglen );
+            mbedtls_md_hmac_finish( &ssl->transform_out->md_ctx_enc, mac );
             mbedtls_md_hmac_reset( &ssl->transform_out->md_ctx_enc );
+
+            memcpy( ssl->out_iv + ssl->out_msglen, mac,
+                    ssl->transform_out->maclen );
 
             ssl->out_msglen += ssl->transform_out->maclen;
             auth_done++;

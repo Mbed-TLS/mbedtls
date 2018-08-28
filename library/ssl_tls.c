@@ -4710,6 +4710,7 @@ static int ssl_buffer_message( mbedtls_ssl_context *ssl )
         }
 
         default:
+            /* We don't buffer other types of messages. */
             break;
     }
 

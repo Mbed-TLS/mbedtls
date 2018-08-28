@@ -663,6 +663,7 @@ int handle_message( const char *way,
         delay_list     = opt.delay_srv;
         delay_list_len = opt.delay_srv_cnt;
     }
+
     /* Check if message type is in the list of messages
      * that should be delayed */
     for( delay_idx = 0; delay_idx < delay_list_len; delay_idx++ )

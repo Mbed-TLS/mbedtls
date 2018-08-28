@@ -118,7 +118,7 @@ static int ssl_load_buffered_message( mbedtls_ssl_context *ssl );
 static int ssl_load_buffered_record( mbedtls_ssl_context *ssl );
 static int ssl_buffer_message( mbedtls_ssl_context *ssl );
 static int ssl_buffer_future_record( mbedtls_ssl_context *ssl );
-static int ssl_another_record_in_datagram( mbedtls_ssl_context *ssl );
+static int ssl_next_record_is_in_datagram( mbedtls_ssl_context *ssl );
 
 static size_t ssl_get_current_mtu( const mbedtls_ssl_context *ssl );
 static size_t ssl_get_maximum_datagram_size( mbedtls_ssl_context const *ssl )
@@ -4316,7 +4316,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
                 /* We only check for buffered messages if the
                  * current datagram is fully consumed. */
                 if( ssl->conf->transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-                    ssl_another_record_in_datagram( ssl ) == 0 )
+                    ssl_next_record_is_in_datagram( ssl ) == 0 )
                 {
                     if( ssl_load_buffered_message( ssl ) == 0 )
                         have_buffered = 1;
@@ -4378,7 +4378,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
 }
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-static int ssl_another_record_in_datagram( mbedtls_ssl_context *ssl )
+static int ssl_next_record_is_in_datagram( mbedtls_ssl_context *ssl )
 {
     if( ssl->in_left > ssl->next_record_offset )
         return( 1 );
@@ -4853,7 +4853,7 @@ static int ssl_load_buffered_record( mbedtls_ssl_context *ssl )
 
     /* Only consider loading future records if the
      * input buffer is empty. */
-    if( ssl_another_record_in_datagram( ssl ) == 1 )
+    if( ssl_next_record_is_in_datagram( ssl ) == 1 )
         return( 0 );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> ssl_load_buffered_record" ) );

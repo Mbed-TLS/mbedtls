@@ -2,6 +2,12 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Features
+   * Add support for fragmentation of outgoing DTLS handshake messages. This
+     is controlled by the maximum fragment length as set locally or negotiated
+     with the peer, as well as by a new per-connection MTU option, set using
+     mbedtls_ssl_set_mtu().
+
 Bugfix
    * Fixes an issue with MBEDTLS_CHACHAPOLY_C which would not compile if
      MBEDTLS_ARC4_C and MBEDTLS_CIPHER_NULL_CIPHER weren't also defined. #1890
@@ -18,6 +24,14 @@ Bugfix
      without providing a list of CAs. This was due to an overly strict bounds
      check in parsing the CertificateRequest message,
      introduced in Mbed TLS 2.12.0. Fixes #1954.
+   * Fix potential use-after-free in mbedtls_ssl_get_max_frag_len()
+     and mbedtls_ssl_get_record_expansion() after a session reset. Fixes #1941.
+   * Fix a miscalculation of the maximum record expansion in
+     mbedtls_ssl_get_record_expansion() in case of ChachaPoly ciphersuites,
+     or CBC ciphersuites in (D)TLS versions 1.1 or higher. Fixes #1913, #1914.
+   * Fix overly strict bounds check in ssl_parse_certificate_request()
+     which could lead to valid CertificateRequest messages being rejected.
+     Fixes #1954.
 
 Changes
    * Copy headers preserving timestamps when doing a "make install".
@@ -29,6 +43,9 @@ Changes
    * Fix a miscalculation of the maximum record expansion in
      mbedtls_ssl_get_record_expansion() in case of ChachaPoly ciphersuites,
      or CBC ciphersuites in (D)TLS versions 1.1 or higher. Fixes #1913, #1914.
+
+INTERNAL NOTE: need to bump soversion of libmbedtls:
+- added new member 'mtu' to public 'mbedtls_ssl_conf' structure
 
 = mbed TLS 2.12.0 branch released 2018-07-25
 

@@ -307,6 +307,7 @@ struct mbedtls_ssl_handshake_params
                                               resending messages             */
     unsigned char alt_out_ctr[8];       /*!<  Alternative record epoch/counter
                                               for resending messages         */
+    uint16_t mtu;                       /*!<  Handshake mtu, used to fragment outgoing messages */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     /*
@@ -561,7 +562,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want );
 
 int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl );
-int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush );
 int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl );

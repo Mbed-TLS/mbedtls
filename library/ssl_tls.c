@@ -4331,7 +4331,7 @@ int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
 
                     if( ret != 0 )
                     {
-                        MBEDTLS_SSL_DEBUG_RET( 1, ( "mbedtls_ssl_read_record_layer" ), ret );
+                        MBEDTLS_SSL_DEBUG_RET( 1, ( "ssl_get_next_record" ), ret );
                         return( ret );
                     }
                 }
@@ -7725,7 +7725,7 @@ int mbedtls_ssl_check_pending( const mbedtls_ssl_context *ssl )
 
     /*
      * In all other cases, the rest of the message can be dropped.
-     * As in ssl_read_record_layer, this needs to be adapted if
+     * As in ssl_get_next_record, this needs to be adapted if
      * we implement support for multiple alerts in single records.
      */
 

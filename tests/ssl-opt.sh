@@ -166,7 +166,7 @@ requires_config_disabled() {
 
 requires_config_value_at_least() {
     NAME="$1"
-    DEF_VAL=$( grep ".*#define.*MBEDTLS_SSL_DTLS_MAX_BUFFERING" ../include/mbedtls/config.h |
+    DEF_VAL=$( grep ".*#define.*${NAME}" ../include/mbedtls/config.h |
                sed 's/^.*\s\([0-9]*\)$/\1/' )
     VAL=$( ../scripts/config.pl get $NAME || echo "$DEF_VAL" )
     if [ "$VAL" -lt "$2" ]; then
@@ -176,7 +176,7 @@ requires_config_value_at_least() {
 
 requires_config_value_at_most() {
     NAME="$1"
-    DEF_VAL=$( grep ".*#define.*MBEDTLS_SSL_DTLS_MAX_BUFFERING" ../include/mbedtls/config.h |
+    DEF_VAL=$( grep ".*#define.*${NAME}" ../include/mbedtls/config.h |
                sed 's/^.*\s\([0-9]*\)$/\1/' )
     VAL=$( ../scripts/config.pl get $NAME || echo "$DEF_VAL" )
     if [ "$VAL" -gt "$2" ]; then

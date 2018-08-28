@@ -5289,9 +5289,8 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
-# This ensures things still work after session_reset(),
-# for example it would have caught #1941.
-# It also exercises the "resumed hanshake" flow.
+# This ensures things still work after session_reset().
+# It also exercises the "resumed handshake" flow.
 # Since we don't support reading fragmented ClientHello yet,
 # up the MTU to 1450 (larger than ClientHello with session ticket,
 # but still smaller than client's Certificate to ensure fragmentation).

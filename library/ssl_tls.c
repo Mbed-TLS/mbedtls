@@ -3440,7 +3440,9 @@ int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush )
 
         remaining = (size_t) ret;
         if( remaining == 0 )
+        {
             flush = SSL_FORCE_FLUSH;
+        }
         else
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "Still %u bytes available in current datagram", (unsigned) remaining ) );

@@ -5920,6 +5920,22 @@ run_test    "DTLS reordering: Buffer out-of-order handshake message on client" \
             -S "Inject buffered CCS message" \
             -S "Remember CCS message"
 
+run_test    "DTLS reordering: Buffer out-of-order handshake message fragment on client" \
+            -p "$P_PXY delay_srv=ServerHello" \
+            "$P_SRV mtu=512 dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            0 \
+            -c "Buffering HS message" \
+            -c "found fragmented DTLS handshake message"\
+            -c "Next handshake message 1 not or only partially bufffered" \
+            -c "Next handshake message has been buffered - load"\
+            -S "Buffering HS message" \
+            -S "Next handshake message has been buffered - load"\
+            -C "Inject buffered CCS message" \
+            -C "Remember CCS message" \
+            -S "Inject buffered CCS message" \
+            -S "Remember CCS message"
+
 # The client buffers the ServerKeyExchange before receiving the fragmented
 # Certificate message; at the time of writing, together these are aroudn 1200b
 # in size, so that the bound below ensures that the certificate can be reassembled

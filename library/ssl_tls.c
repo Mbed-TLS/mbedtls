@@ -4424,6 +4424,7 @@ static int ssl_load_buffered_message( mbedtls_ssl_context *ssl )
         goto exit;
     }
 
+#if defined(MBEDTLS_DEBUG_C)
     /* Debug only */
     {
         unsigned offset;
@@ -4438,6 +4439,7 @@ static int ssl_load_buffered_message( mbedtls_ssl_context *ssl )
             }
         }
     }
+#endif /* MBEDTLS_DEBUG_C */
 
     /* Check if we have buffered and/or fully reassembled the
      * next handshake message. */

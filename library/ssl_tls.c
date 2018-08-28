@@ -6842,8 +6842,9 @@ const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl )
 
 int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
 {
-    size_t transform_expansion;
+    size_t transform_expansion = 0;
     const mbedtls_ssl_transform *transform = ssl->transform_out;
+    unsigned block_size;
 
     if( transform == NULL )
         return( (int) mbedtls_ssl_hdr_len( ssl ) );
@@ -6857,13 +6858,31 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl )
     {
         case MBEDTLS_MODE_GCM:
         case MBEDTLS_MODE_CCM:
+        case MBEDTLS_MODE_CHACHAPOLY:
         case MBEDTLS_MODE_STREAM:
             transform_expansion = transform->minlen;
             break;
 
         case MBEDTLS_MODE_CBC:
-            transform_expansion = transform->maclen
-                      + mbedtls_cipher_get_block_size( &transform->cipher_ctx_enc );
+
+            block_size = mbedtls_cipher_get_block_size(
+                &transform->cipher_ctx_enc );
+
+            /* Expansion due to the addition of the MAC. */
+            transform_expansion += transform->maclen;
+
+            /* Expansion due to the addition of CBC padding;
+             * Theoretically up to 256 bytes, but we never use
+             * more than the block size of the underlying cipher. */
+            transform_expansion += block_size;
+
+            /* For TLS 1.1 or higher, an explicit IV is added
+             * after the record header. */
+#if defined(MBEDTLS_SSL_PROTO_TLS1_1) || defined(MBEDTLS_SSL_PROTO_TLS1_2)
+            if( ssl->minor_ver >= MBEDTLS_SSL_MINOR_VERSION_2 )
+                transform_expansion += block_size;
+#endif /* MBEDTLS_SSL_PROTO_TLS1_1 || MBEDTLS_SSL_PROTO_TLS1_2 */
+
             break;
 
         default:

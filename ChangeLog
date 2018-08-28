@@ -21,6 +21,9 @@ Changes
      Drozd. Fixes #1215 raised by randombit.
    * Improve compatibility with some alternative CCM implementations by using
      CCM test vectors from RAM.
+   * Fix a miscalculation of the maximum record expansion in
+     mbedtls_ssl_get_record_expansion() in case of ChachaPoly ciphersuites,
+     or CBC ciphersuites in (D)TLS versions 1.1 or higher. Fixes #1913, #1914.
 
 = mbed TLS 2.12.0 branch released 2018-07-25
 

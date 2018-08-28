@@ -2,6 +2,11 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Security
+   * Fix a potential memory leak in mbedtls_ssl_setup( ) function. An allocation
+     failure could leave an unreleased buffer. A handshake init failure would
+     lead to leaving two unreleased buffers.
+
 Features
    * Add support for fragmentation of outgoing DTLS handshake messages. This
      is controlled by the maximum fragment length as set locally or negotiated

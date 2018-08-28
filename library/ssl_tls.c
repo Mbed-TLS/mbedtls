@@ -6293,28 +6293,55 @@ int mbedtls_ssl_setup( mbedtls_ssl_context *ssl,
     /*
      * Prepare base structures
      */
+
+    /* Set to NULL in case of an error condition */
+    ssl->out_buf = NULL;
+
     ssl->in_buf = mbedtls_calloc( 1, MBEDTLS_SSL_IN_BUFFER_LEN );
     if( ssl->in_buf == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed", MBEDTLS_SSL_IN_BUFFER_LEN) );
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto error;
     }
 
     ssl->out_buf = mbedtls_calloc( 1, MBEDTLS_SSL_OUT_BUFFER_LEN );
     if( ssl->out_buf == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed", MBEDTLS_SSL_OUT_BUFFER_LEN) );
-        mbedtls_free( ssl->in_buf );
-        ssl->in_buf = NULL;
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto error;
     }
 
     ssl_reset_in_out_pointers( ssl );
 
     if( ( ret = ssl_handshake_init( ssl ) ) != 0 )
-        return( ret );
+        goto error;
 
     return( 0 );
+
+error:
+    mbedtls_free( ssl->in_buf );
+    mbedtls_free( ssl->out_buf );
+
+    ssl->conf = NULL;
+
+    ssl->in_buf = NULL;
+    ssl->out_buf = NULL;
+
+    ssl->in_hdr = NULL;
+    ssl->in_ctr = NULL;
+    ssl->in_len = NULL;
+    ssl->in_iv = NULL;
+    ssl->in_msg = NULL;
+
+    ssl->out_hdr = NULL;
+    ssl->out_ctr = NULL;
+    ssl->out_len = NULL;
+    ssl->out_iv = NULL;
+    ssl->out_msg = NULL;
+
+    return( ret );
 }
 
 /*

@@ -1409,8 +1409,9 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
  *                 encapsulation and encryption/authentication if any.
  *
  * \note           This can be called at any point during the connection, for
- *                 example when a PMTU estimate becomes available from other
- *                 sources, such as lower (or higher) protocol layers.
+ *                 example when a Path Maximum Transfer Unit (PMTU)
+ *                 estimate becomes available from other sources,
+ *                 such as lower (or higher) protocol layers.
  *
  * \note           This setting only controls the size of the packets we send,
  *                 and does not restrict the size of the datagrams we're

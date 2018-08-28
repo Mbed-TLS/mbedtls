@@ -3280,7 +3280,7 @@ int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl )
         }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
-        /* Update running hashes of hanshake messages seen */
+        /* Update running hashes of handshake messages seen */
         if( hs_type != MBEDTLS_SSL_HS_HELLO_REQUEST )
             ssl->handshake->update_checksum( ssl, ssl->out_msg, ssl->out_msglen );
     }

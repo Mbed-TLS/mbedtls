@@ -5535,6 +5535,13 @@ run_test    "DTLS fragmenting: gnutls server, DTLS 1.0" \
             -c "fragmenting handshake message" \
             -C "error"
 
+# We use --insecure for the GnuTLS client because it expects
+# the hostname / IP it connects to to be the name used in the
+# certificate obtained from the server. Here, however, it
+# connects to 127.0.0.1 while our test certificates use 'localhost'
+# as the server name in the certificate. This will make the
+# certifiate validation fail, but passing --insecure makes
+# GnuTLS continue the connection nonetheless.
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -5549,6 +5556,7 @@ run_test    "DTLS fragmenting: gnutls client, DTLS 1.2" \
             0 \
             -s "fragmenting handshake message"
 
+# See previous test for the reason to use --insecure
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C

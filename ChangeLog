@@ -2,6 +2,11 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Security
+   * Fix a potential memory leak in mbedtls_ssl_setup( ) function. An allocation
+     failure could leave an unreleased buffer. A handshake init failure would
+     lead to leaving two unreleased buffers.
+
 Bugfix
    * Fixes an issue with MBEDTLS_CHACHAPOLY_C which would not compile if
      MBEDTLS_ARC4_C and MBEDTLS_CIPHER_NULL_CIPHER weren't also defined. #1890

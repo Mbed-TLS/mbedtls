@@ -5112,6 +5112,7 @@ run_test    "DTLS fragmenting: both (MTU)" \
             -C "error"
 
 # Test for automatic MTU reduction on repeated resend
+not_with_valgrind
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C

@@ -46,6 +46,7 @@ set(CTR_DRBG_128_BIT_KEY_WARNING "${WARNING_BORDER}"
                          "${CTR_DRBG_128_BIT_KEY_WARN_L3}"
                          "${WARNING_BORDER}")
 
+find_package(PythonInterp)
 find_package(Perl)
 if(PERL_FOUND)
 

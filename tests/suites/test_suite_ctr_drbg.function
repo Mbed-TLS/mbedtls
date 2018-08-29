@@ -23,6 +23,74 @@ static int mbedtls_test_entropy_func( void *data, unsigned char *buf, size_t len
     test_offset_idx += len;
     return( 0 );
 }
+
+static int ctr_drbg_validate_internal( int reseed_mode, data_t * nonce,
+                        int entropy_len_arg, data_t * entropy,
+                        data_t * reseed,
+                        data_t * add1, data_t * add2,
+                        data_t * result )
+{
+    mbedtls_ctr_drbg_context ctx;
+    unsigned char buf[64];
+
+    size_t entropy_chunk_len = (size_t) entropy_len_arg;
+
+    test_offset_idx = 0;
+    mbedtls_ctr_drbg_init( &ctx );
+
+    test_max_idx = entropy->len;
+
+    /* CTR_DRBG_Instantiate(entropy[:entropy_len], nonce, perso, <ignored>)
+     * where nonce||perso = nonce[nonce_len] */
+    TEST_ASSERT( mbedtls_ctr_drbg_seed_entropy_len(
+                     &ctx,
+                     mbedtls_test_entropy_func, entropy->x,
+                     nonce->x, nonce->len,
+                     entropy_chunk_len ) == 0 );
+    if( reseed_mode == RESEED_ALWAYS )
+        mbedtls_ctr_drbg_set_prediction_resistance(
+            &ctx,
+            MBEDTLS_CTR_DRBG_PR_ON );
+
+    if( reseed_mode == RESEED_FIRST )
+    {
+        /* CTR_DRBG_Reseed(entropy[idx:idx+entropy_len],
+         *                 reseed[:reseed_len]) */
+        TEST_ASSERT( mbedtls_ctr_drbg_reseed(
+                         &ctx,
+                         reseed->x, reseed->len ) == 0 );
+    }
+
+    /* CTR_DRBG_Generate(result->len * 8 bits, add1[:add1_len]) -> buf */
+    /* Then reseed if prediction resistance is enabled. */
+    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add(
+                     &ctx,
+                     buf, result->len,
+                     add1->x, add1->len ) == 0 );
+
+
+    if( reseed_mode == RESEED_SECOND )
+    {
+        /* CTR_DRBG_Reseed(entropy[idx:idx+entropy_len],
+         *                 reseed[:reseed_len]) */
+        TEST_ASSERT( mbedtls_ctr_drbg_reseed(
+                         &ctx,
+                         reseed->x, reseed->len ) == 0 );
+    }
+
+    /* CTR_DRBG_Generate(result->len * 8 bits, add2->x[:add2->len]) -> buf */
+    /* Then reseed if prediction resistance is enabled. */
+    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add(
+                     &ctx,
+                     buf, result->len,
+                     add2->x, add2->len ) == 0 );
+    TEST_ASSERT( memcmp( buf, result->x, result->len ) == 0 );
+
+exit:
+    mbedtls_ctr_drbg_free( &ctx );
+    return 0;
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -31,7 +99,7 @@ static int mbedtls_test_entropy_func( void *data, unsigned char *buf, size_t len
  */
 
 /* BEGIN_CASE */
-void ctr_drbg_special_behaviours(  )
+void ctr_drbg_special_behaviours( )
 {
     mbedtls_ctr_drbg_context ctx;
     unsigned char output[512];
@@ -64,120 +132,54 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ctr_drbg_validate( int reseed_mode, char *nonce_string,
-                        int entropy_len_arg, char *entropy_string,
-                        char *reseed_string,
-                        char *add1_string, char *add2_string,
-                        char *result_string )
+void ctr_drbg_validate( int reseed_mode, data_t * nonce,
+                        int entropy_len_arg, data_t * entropy,
+                        data_t * reseed,
+                        data_t * add1, data_t * add2,
+                        data_t * result_string )
 {
-    unsigned char entropy[144];
-    unsigned char nonce[64];
-    unsigned char reseed[32];
-    unsigned char add1[48];
-    unsigned char add2[48];
-    mbedtls_ctr_drbg_context ctx;
-    unsigned char buf[64];
-    unsigned char result[64];
-    size_t entropy_chunk_len = (size_t) entropy_len_arg;
-    size_t nonce_len, reseed_len, add1_len, add2_len, result_len;
-
-    test_offset_idx = 0;
-    mbedtls_ctr_drbg_init( &ctx );
-
-    test_max_idx = unhexify( entropy, entropy_string );
-    nonce_len = unhexify( nonce, nonce_string );
-    reseed_len = unhexify( reseed, reseed_string );
-    add1_len = unhexify( add1, add1_string );
-    add2_len = unhexify( add2, add2_string );
-    result_len = unhexify( result, result_string );
-
-    /* CTR_DRBG_Instantiate(entropy[:entropy_len], nonce, perso, <ignored>)
-     * where nonce||perso = nonce[nonce_len] */
-    TEST_ASSERT( mbedtls_ctr_drbg_seed_entropy_len(
-                     &ctx,
-                     mbedtls_test_entropy_func, entropy,
-                     nonce, nonce_len,
-                     entropy_chunk_len ) == 0 );
-    if( reseed_mode == RESEED_ALWAYS )
-        mbedtls_ctr_drbg_set_prediction_resistance(
-            &ctx,
-            MBEDTLS_CTR_DRBG_PR_ON );
-
-    if( reseed_mode == RESEED_FIRST )
-    {
-        /* CTR_DRBG_Reseed(entropy[idx:idx+entropy_len],
-         *                 reseed[:reseed_len]) */
-        TEST_ASSERT( mbedtls_ctr_drbg_reseed(
-                         &ctx,
-                         reseed, reseed_len ) == 0 );
-    }
-
-    /* CTR_DRBG_Generate(result_len * 8 bits, add1[:add1_len]) -> buf */
-    /* Then reseed if prediction resistance is enabled. */
-    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add(
-                     &ctx,
-                     buf, result_len,
-                     add1, add1_len ) == 0 );
-
-
-    if( reseed_mode == RESEED_SECOND )
-    {
-        /* CTR_DRBG_Reseed(entropy[idx:idx+entropy_len],
-         *                 reseed[:reseed_len]) */
-        TEST_ASSERT( mbedtls_ctr_drbg_reseed(
-                         &ctx,
-                         reseed, reseed_len ) == 0 );
-    }
-
-    /* CTR_DRBG_Generate(result_len * 8 bits, add2[:add2_len]) -> buf */
-    /* Then reseed if prediction resistance is enabled. */
-    TEST_ASSERT( mbedtls_ctr_drbg_random_with_add(
-                     &ctx,
-                     buf, result_len,
-                     add2, add2_len ) == 0 );
-    TEST_ASSERT( memcmp( buf, result, result_len ) == 0 );
-
-exit:
-    mbedtls_ctr_drbg_free( &ctx );
+    TEST_ASSERT( ctr_drbg_validate_internal( reseed_mode, nonce,
+                                             entropy_len_arg, entropy,
+                                             reseed, add1,
+                                             add2, result_string) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ctr_drbg_validate_no_reseed( char *add_init_string, char *entropy_string,
-                                  char *add1_string, char *add2_string,
-                                  char *result_string )
+void ctr_drbg_validate_no_reseed( data_t * add_init, data_t * entropy,
+                                  data_t * add1, data_t * add2,
+                                  data_t * result_string )
 {
-    test_suite_ctr_drbg_validate( RESEED_NEVER, add_init_string,
-                                  strlen( entropy_string ) / 2, entropy_string,
-                                  "", add1_string, add2_string,
-                                  result_string );
-    goto exit;
+    data_t empty = {0};
+    TEST_ASSERT( ctr_drbg_validate_internal( RESEED_NEVER, add_init,
+                                  entropy->len, entropy,
+                                  &empty, add1, add2,
+                                  result_string ) == 0);
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ctr_drbg_validate_pr( char *add_init_string, char *entropy_string,
-                           char *add1_string, char *add2_string,
-                           char *result_string )
+void ctr_drbg_validate_pr( data_t * add_init, data_t * entropy,
+                           data_t * add1, data_t * add2,
+                           data_t * result_string )
 {
-    test_suite_ctr_drbg_validate( RESEED_ALWAYS, add_init_string,
-                                  strlen( entropy_string ) / 6, entropy_string,
-                                  "", add1_string, add2_string,
-                                  result_string );
-    goto exit;
+    data_t empty = {0};
+    TEST_ASSERT( ctr_drbg_validate_internal( RESEED_ALWAYS, add_init,
+                                  entropy->len / 3, entropy,
+                                  &empty, add1, add2,
+                                  result_string ) == 0);
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
 void ctr_drbg_validate_nopr( data_t * add_init, data_t * entropy,
                              data_t * add1, data_t * add_reseed,
-                             char *add2_string, char *result_string )
+                             data_t * add2, data_t * result_string )
 {
-    test_suite_ctr_drbg_validate( RESEED_SECOND, add_init_string,
-                                  strlen( entropy_string ) / 4, entropy_string,
-                                  add_reseed_string, add1_string, add2_string,
-                                  result_string );
-    goto exit;
+    TEST_ASSERT( ctr_drbg_validate_internal( RESEED_SECOND, add_init,
+                                  entropy->len / 2, entropy,
+                                  add_reseed, add1, add2,
+                                  result_string ) == 0);
 }
 /* END_CASE */
 

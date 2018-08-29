@@ -1101,7 +1101,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_flight_transmit", ret );
         return( ret );
     }
-#endif
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= write client hello" ) );
 
@@ -3414,7 +3414,7 @@ int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl )
         if( ( ret = mbedtls_ssl_flight_transmit( ssl ) ) != 0 )
             return( ret );
     }
-#endif
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     /* Change state now, so that it is right in mbedtls_ssl_read_record(), used
      * by DTLS for dropping out-of-sequence ChangeCipherSpec records */

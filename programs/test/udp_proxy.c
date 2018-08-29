@@ -152,10 +152,10 @@ static struct options
     int delay;                  /* delay 1 packet in N (none if 0)          */
     int delay_ccs;              /* delay ChangeCipherSpec                   */
     char* delay_cli[MAX_DELAYED_HS];  /* handshake types of messages from
-                                      * client that should be delayed.      */
+                                       * client that should be delayed.     */
     uint8_t delay_cli_cnt;      /* Number of entries in delay_cli.          */
     char* delay_srv[MAX_DELAYED_HS];  /* handshake types of messages from
-                                      * server that should be delayed.      */
+                                       * server that should be delayed.     */
     uint8_t delay_srv_cnt;      /* Number of entries in delay_srv.          */
     int drop;                   /* drop 1 packet in N (none if 0)           */
     int mtu;                    /* drop packets larger than this            */
@@ -249,8 +249,8 @@ static void get_options( int argc, char *argv[] )
 
             if( *delay_cnt == MAX_DELAYED_HS )
             {
-                mbedtls_printf( " maximally %d uses of delay_cli argument allowed\n",
-                                MAX_DELAYED_HS );
+                mbedtls_printf( " too many uses of %s: only %d allowed\n",
+                                p, MAX_DELAYED_HS );
                 exit_usage( p, NULL );
             }
 
@@ -663,6 +663,7 @@ int handle_message( const char *way,
         delay_list     = opt.delay_srv;
         delay_list_len = opt.delay_srv_cnt;
     }
+
     /* Check if message type is in the list of messages
      * that should be delayed */
     for( delay_idx = 0; delay_idx < delay_list_len; delay_idx++ )

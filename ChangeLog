@@ -12,7 +12,7 @@ Features
      last paragraph).
    * Add support for packing multiple records within a single datagram,
      enabled by default.
-   * Add support for buffering out-of-order handshake messages.
+   * Add support for buffering out-of-order handshake messages in DTLS.
      The maximum amount of RAM used for this can be controlled by the
      compile-time constant MBEDTLS_SSL_DTLS_MAX_BUFFERING defined
      in mbedtls/config.h.

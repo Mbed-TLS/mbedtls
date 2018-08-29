@@ -138,7 +138,7 @@ void ctr_drbg_validate_no_reseed( data_t * add_init, data_t * entropy,
                                   data_t * add1, data_t * add2,
                                   data_t * result_string )
 {
-    data_t empty = {0};
+    data_t empty = { 0, 0 };
     ctr_drbg_validate_internal( RESEED_NEVER, add_init,
                                 entropy->len, entropy,
                                 &empty, add1, add2,
@@ -152,7 +152,7 @@ void ctr_drbg_validate_pr( data_t * add_init, data_t * entropy,
                            data_t * add1, data_t * add2,
                            data_t * result_string )
 {
-    data_t empty = {0};
+    data_t empty = { 0, 0 };
     ctr_drbg_validate_internal( RESEED_ALWAYS, add_init,
                                 entropy->len / 3, entropy,
                                 &empty, add1, add2,

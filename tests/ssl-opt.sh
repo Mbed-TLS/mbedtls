@@ -5216,6 +5216,7 @@ run_test    "DTLS fragmenting: both (MTU)" \
             -C "error"
 
 # Test for automatic MTU reduction on repeated resend
+not_with_valgrind
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -5229,6 +5230,25 @@ run_test    "DTLS fragmenting: proxy MTU: auto-reduction" \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
              hs_timeout=100-400" \
+            0 \
+            -s "found fragmented DTLS handshake message" \
+            -c "found fragmented DTLS handshake message" \
+            -C "error"
+
+only_with_valgrind
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+run_test    "DTLS fragmenting: proxy MTU: auto-reduction" \
+            -p "$P_PXY mtu=508" \
+            "$P_SRV dtls=1 debug_level=2 auth_mode=required \
+             crt_file=data_files/server7_int-ca.crt \
+             key_file=data_files/server7.key\
+             hs_timeout=250-10000" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=data_files/server8_int-ca2.crt \
+             key_file=data_files/server8.key \
+             hs_timeout=250-10000" \
             0 \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \

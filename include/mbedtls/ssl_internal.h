@@ -155,6 +155,9 @@
 #define MBEDTLS_SSL_OUT_PAYLOAD_LEN ( MBEDTLS_SSL_PAYLOAD_OVERHEAD + \
                                       ( MBEDTLS_SSL_OUT_CONTENT_LEN ) )
 
+/* The maximum number of buffered handshake messages. */
+#define MBEDTLS_SSL_MAX_BUFFERED_HS 4
+
 /* Maximum length we can advertise as our max content length for
    RFC 6066 max_fragment_length extension negotiation purposes
    (the lesser of both sizes, if they are unequal.)
@@ -294,8 +297,6 @@ struct mbedtls_ssl_handshake_params
     unsigned char verify_cookie_len;    /*!<  Cli: cookie length
                                               Srv: flag for sending a cookie */
 
-    unsigned char *hs_msg;              /*!<  Reassembled handshake message  */
-
     uint32_t retransmit_timeout;        /*!<  Current value of timeout       */
     unsigned char retransmit_state;     /*!<  Retransmission state           */
     mbedtls_ssl_flight_item *flight;    /*!<  Current outgoing flight        */
@@ -307,6 +308,33 @@ struct mbedtls_ssl_handshake_params
                                               resending messages             */
     unsigned char alt_out_ctr[8];       /*!<  Alternative record epoch/counter
                                               for resending messages         */
+
+    struct
+    {
+        size_t total_bytes_buffered; /*!< Cumulative size of heap allocated
+                                      *   buffers used for message buffering. */
+
+        uint8_t seen_ccs;               /*!< Indicates if a CCS message has
+                                         *   been seen in the current flight. */
+
+        struct mbedtls_ssl_hs_buffer
+        {
+            unsigned is_valid      : 1;
+            unsigned is_fragmented : 1;
+            unsigned is_complete   : 1;
+            unsigned char *data;
+            size_t data_len;
+        } hs[MBEDTLS_SSL_MAX_BUFFERED_HS];
+
+        struct
+        {
+            unsigned char *data;
+            size_t len;
+            unsigned epoch;
+        } future_record;
+
+    } buffering;
+
     uint16_t mtu;                       /*!<  Handshake mtu, used to fragment outgoing messages */
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
@@ -365,6 +393,8 @@ struct mbedtls_ssl_handshake_params
     void *user_async_ctx;
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 };
+
+typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
 
 /*
  * This structure contains a full set of runtime transform parameters
@@ -480,7 +510,6 @@ int mbedtls_ssl_send_fatal_handshake_failure( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl );
 
-int mbedtls_ssl_read_record_layer( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl );
@@ -492,7 +521,10 @@ void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl );
  *              of the logic of (D)TLS from the implementation
  *              of the secure transport.
  *
- * \param  ssl  SSL context to use
+ * \param  ssl              The SSL context to use.
+ * \param  update_hs_digest This indicates if the handshake digest
+ *                          should be automatically updated in case
+ *                          a handshake message is found.
  *
  * \return      0 or non-zero error code.
  *
@@ -558,7 +590,8 @@ void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl );
  *              following the above definition.
  *
  */
-int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
+                             unsigned update_hs_digest );
 int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want );
 
 int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl );

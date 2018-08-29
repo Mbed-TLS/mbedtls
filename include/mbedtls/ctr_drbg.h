@@ -48,15 +48,11 @@
 #define MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR                -0x003A  /**< Read or write error in file. */
 
 #define MBEDTLS_CTR_DRBG_BLOCKSIZE          16 /**< The block size used by the cipher. */
-#if defined(MBEDTLS_CTR_DRBG_KEY_SIZE_256)
+
+#if !defined(MBEDTLS_CTR_DRBG_USE_128_BIT_KEY) /* Use default 256-bit key for CTR_DRBG. */
 #define MBEDTLS_CTR_DRBG_KEYSIZE            32 /**< The key size used by the cipher. */
 #else
-#if defined(MBEDTLS_CTR_DRBG_KEY_SIZE_128)
-#pragma message("Warning: using smaller (128bit) key size for CTR DRBG may reduce the security of some operations.")
 #define MBEDTLS_CTR_DRBG_KEYSIZE            16 /**< The key size used by the cipher. */
-#else
-#error for ctr DRBG either MBEDTLS_CTR_DRBG_KEY_SIZE_256 (default) or MBEDTLS_CTR_DRBG_KEY_SIZE_128 must be set
-#endif
 #endif
 #define MBEDTLS_CTR_DRBG_KEYBITS            ( MBEDTLS_CTR_DRBG_KEYSIZE * 8 ) /**< The key size for the DRBG operation, in bits. */
 #define MBEDTLS_CTR_DRBG_SEEDLEN            ( MBEDTLS_CTR_DRBG_KEYSIZE + MBEDTLS_CTR_DRBG_BLOCKSIZE ) /**< The seed length, calculated as (counter + AES key). */

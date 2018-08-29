@@ -11,8 +11,8 @@
  * The Mbed TLS implementation of CTR_DRBG uses AES-256 (default) or AES-128
  * as the underlying block cipher.
  *
- *  * \warning   ARC4 is considered a weak cipher and its use constitutes a
- *            security risk. We recommend considering stronger ciphers instead.
+ *  \warning Using 128-bit keys for CTR_DRBG limits the security of generated
+ *  keys and operations that use random values generated to 128-bit security.
  */
 /*
  *  Copyright (C) 2006-2018, Arm Limited (or its affiliates), All Rights Reserved

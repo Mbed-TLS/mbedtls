@@ -264,7 +264,7 @@ static DWORD alarmMs;
 
 static void TimerProc( void *TimerContext )
 {
-    (void)TimerContext;
+    (void) TimerContext;
     Sleep( alarmMs );
     mbedtls_timing_alarmed = 1;
     // Implicit call of _endthread() is better (see MS online docs)
@@ -282,7 +282,7 @@ void mbedtls_set_alarm( int seconds )
 
     mbedtls_timing_alarmed = 0;
     alarmMs = seconds * 1000;
-    (void)_beginthread( TimerProc, 0, NULL );
+    (void) _beginthread( TimerProc, 0, NULL );
 }
 
 #else /* _WIN32 && !EFIX64 && !EFI32 */

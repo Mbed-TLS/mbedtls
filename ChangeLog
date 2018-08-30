@@ -21,6 +21,10 @@ Features
      last paragraph).
    * Add support for packing multiple records within a single datagram,
      enabled by default.
+   * Add support for buffering out-of-order handshake messages in DTLS.
+     The maximum amount of RAM used for this can be controlled by the
+     compile-time constant MBEDTLS_SSL_DTLS_MAX_BUFFERING defined
+     in mbedtls/config.h.
 
 API Changes
    * Add function mbedtls_ssl_set_datagram_packing() to configure
@@ -66,6 +70,7 @@ Changes
    * Fix a miscalculation of the maximum record expansion in
      mbedtls_ssl_get_record_expansion() in case of ChachaPoly ciphersuites,
      or CBC ciphersuites in (D)TLS versions 1.1 or higher. Fixes #1913, #1914.
+   * Add support for buffering of out-of-order handshake messages.
 
 INTERNAL NOTE: need to bump soversion of libmbedtls:
 - added new member 'mtu' to public 'mbedtls_ssl_conf' structure

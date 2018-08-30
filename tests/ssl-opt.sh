@@ -142,6 +142,14 @@ get_options() {
     done
 }
 
+# Skip next test; use this macro to skip tests which are legitimate
+# in theory and expected to be re-introduced at some point, but
+# aren't expected to succeed at the moment due to problems outside
+# our control (such as bugs in other TLS implementations).
+skip_next_test() {
+    SKIP_NEXT="YES"
+}
+
 # skip next test if the flag is not enabled in config.h
 requires_config_enabled() {
     if grep "^#define $1" $CONFIG_H > /dev/null; then :; else
@@ -153,6 +161,27 @@ requires_config_enabled() {
 requires_config_disabled() {
     if grep "^#define $1" $CONFIG_H > /dev/null; then
         SKIP_NEXT="YES"
+    fi
+}
+
+get_config_value_or_default() {
+    NAME="$1"
+    DEF_VAL=$( grep ".*#define.*${NAME}" ../include/mbedtls/config.h |
+               sed 's/^.*\s\([0-9]*\)$/\1/' )
+    ../scripts/config.pl get $NAME || echo "$DEF_VAL"
+}
+
+requires_config_value_at_least() {
+    VAL=$( get_config_value_or_default "$1" )
+    if [ "$VAL" -lt "$2" ]; then
+       SKIP_NEXT="YES"
+    fi
+}
+
+requires_config_value_at_most() {
+    VAL=$( get_config_value_or_default "$1" )
+    if [ "$VAL" -gt "$2" ]; then
+       SKIP_NEXT="YES"
     fi
 }
 
@@ -5297,9 +5326,8 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
-# This ensures things still work after session_reset(),
-# for example it would have caught #1941.
-# It also exercises the "resumed hanshake" flow.
+# This ensures things still work after session_reset().
+# It also exercises the "resumed handshake" flow.
 # Since we don't support reading fragmented ClientHello yet,
 # up the MTU to 1450 (larger than ClientHello with session ticket,
 # but still smaller than client's Certificate to ensure fragmentation).
@@ -5551,6 +5579,13 @@ run_test    "DTLS fragmenting: gnutls server, DTLS 1.0" \
             -c "fragmenting handshake message" \
             -C "error"
 
+# We use --insecure for the GnuTLS client because it expects
+# the hostname / IP it connects to to be the name used in the
+# certificate obtained from the server. Here, however, it
+# connects to 127.0.0.1 while our test certificates use 'localhost'
+# as the server name in the certificate. This will make the
+# certifiate validation fail, but passing --insecure makes
+# GnuTLS continue the connection nonetheless.
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -5565,6 +5600,7 @@ run_test    "DTLS fragmenting: gnutls client, DTLS 1.2" \
             0 \
             -s "fragmenting handshake message"
 
+# See previous test for the reason to use --insecure
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -5676,38 +5712,39 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
 ## https://gitlab.com/gnutls/gnutls/issues/543
 ## We can re-enable them when a fixed version fo GnuTLS is available
 ## and installed in our CI system.
-##
-## requires_gnutls
-## requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-## requires_config_enabled MBEDTLS_RSA_C
-## requires_config_enabled MBEDTLS_ECDSA_C
-## requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-## client_needs_more_time 4
-## run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
-##             -p "$P_PXY drop=8 delay=8 duplicate=8" \
-##             "$P_SRV dtls=1 debug_level=2 \
-##              crt_file=data_files/server7_int-ca.crt \
-##              key_file=data_files/server7.key \
-##              hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
-##            "$G_CLI -u --insecure 127.0.0.1" \
-##             0 \
-##             -s "fragmenting handshake message"
-##
-## requires_gnutls
-## requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-## requires_config_enabled MBEDTLS_RSA_C
-## requires_config_enabled MBEDTLS_ECDSA_C
-## requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
-## client_needs_more_time 4
-## run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.0" \
-##             -p "$P_PXY drop=8 delay=8 duplicate=8" \
-##             "$P_SRV dtls=1 debug_level=2 \
-##              crt_file=data_files/server7_int-ca.crt \
-##              key_file=data_files/server7.key \
-##              hs_timeout=250-60000 mtu=512 force_version=dtls1" \
-##            "$G_CLI -u --insecure 127.0.0.1" \
-##             0 \
-##             -s "fragmenting handshake message"
+skip_next_test
+requires_gnutls
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+client_needs_more_time 4
+run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.2" \
+            -p "$P_PXY drop=8 delay=8 duplicate=8" \
+            "$P_SRV dtls=1 debug_level=2 \
+             crt_file=data_files/server7_int-ca.crt \
+             key_file=data_files/server7.key \
+             hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
+           "$G_CLI -u --insecure 127.0.0.1" \
+            0 \
+            -s "fragmenting handshake message"
+
+skip_next_test
+requires_gnutls
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
+client_needs_more_time 4
+run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.0" \
+            -p "$P_PXY drop=8 delay=8 duplicate=8" \
+            "$P_SRV dtls=1 debug_level=2 \
+             crt_file=data_files/server7_int-ca.crt \
+             key_file=data_files/server7.key \
+             hs_timeout=250-60000 mtu=512 force_version=dtls1" \
+           "$G_CLI -u --insecure 127.0.0.1" \
+            0 \
+            -s "fragmenting handshake message"
 
 ## Interop test with OpenSSL might triger a bug in recent versions (that
 ## probably won't be fixed before 1.1.1X), so we use an old version that
@@ -5716,22 +5753,22 @@ run_test    "DTLS fragmenting: 3d, gnutls server, DTLS 1.0" \
 ## Bug report: https://github.com/openssl/openssl/issues/6902
 ## They should be re-enabled (and the DTLS 1.0 switched back to a non-legacy
 ## version of OpenSSL once a fixed version of OpenSSL is available)
-##
-## requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-## requires_config_enabled MBEDTLS_RSA_C
-## requires_config_enabled MBEDTLS_ECDSA_C
-## requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-## client_needs_more_time 4
-## run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
-##             -p "$P_PXY drop=8 delay=8 duplicate=8" \
-##             "$O_SRV -dtls1_2 -verify 10" \
-##             "$P_CLI dtls=1 debug_level=2 \
-##              crt_file=data_files/server8_int-ca2.crt \
-##              key_file=data_files/server8.key \
-##              hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
-##             0 \
-##             -c "fragmenting handshake message" \
-##             -C "error"
+skip_next_test
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+client_needs_more_time 4
+run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
+            -p "$P_PXY drop=8 delay=8 duplicate=8" \
+            "$O_SRV -dtls1_2 -verify 10" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=data_files/server8_int-ca2.crt \
+             key_file=data_files/server8.key \
+             hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
+            0 \
+            -c "fragmenting handshake message" \
+            -C "error"
 
 requires_openssl_legacy
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
@@ -5903,6 +5940,158 @@ run_test    "DTLS proxy: delay ChangeCipherSpec" \
             -s "record from another epoch" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
+
+# Tests for reordering support with DTLS
+
+run_test    "DTLS reordering: Buffer out-of-order handshake message on client" \
+            -p "$P_PXY delay_srv=ServerHello" \
+            "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            0 \
+            -c "Buffering HS message" \
+            -c "Next handshake message has been buffered - load"\
+            -S "Buffering HS message" \
+            -S "Next handshake message has been buffered - load"\
+            -C "Injecting buffered CCS message" \
+            -C "Remember CCS message" \
+            -S "Injecting buffered CCS message" \
+            -S "Remember CCS message"
+
+run_test    "DTLS reordering: Buffer out-of-order handshake message fragment on client" \
+            -p "$P_PXY delay_srv=ServerHello" \
+            "$P_SRV mtu=512 dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            0 \
+            -c "Buffering HS message" \
+            -c "found fragmented DTLS handshake message"\
+            -c "Next handshake message 1 not or only partially bufffered" \
+            -c "Next handshake message has been buffered - load"\
+            -S "Buffering HS message" \
+            -S "Next handshake message has been buffered - load"\
+            -C "Injecting buffered CCS message" \
+            -C "Remember CCS message" \
+            -S "Injecting buffered CCS message" \
+            -S "Remember CCS message"
+
+# The client buffers the ServerKeyExchange before receiving the fragmented
+# Certificate message; at the time of writing, together these are aroudn 1200b
+# in size, so that the bound below ensures that the certificate can be reassembled
+# while keeping the ServerKeyExchange.
+requires_config_value_at_least "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 1300
+run_test    "DTLS reordering: Buffer out-of-order hs msg before reassembling next" \
+            -p "$P_PXY delay_srv=Certificate delay_srv=Certificate" \
+            "$P_SRV mtu=512 dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            0 \
+            -c "Buffering HS message" \
+            -c "Next handshake message has been buffered - load"\
+            -C "attempt to make space by freeing buffered messages" \
+            -S "Buffering HS message" \
+            -S "Next handshake message has been buffered - load"\
+            -C "Injecting buffered CCS message" \
+            -C "Remember CCS message" \
+            -S "Injecting buffered CCS message" \
+            -S "Remember CCS message"
+
+# The size constraints ensure that the delayed certificate message can't
+# be reassembled while keeping the ServerKeyExchange message, but it can
+# when dropping it first.
+requires_config_value_at_least "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 900
+requires_config_value_at_most "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 1299
+run_test    "DTLS reordering: Buffer out-of-order hs msg before reassembling next, free buffered msg" \
+            -p "$P_PXY delay_srv=Certificate delay_srv=Certificate" \
+            "$P_SRV mtu=512 dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            0 \
+            -c "Buffering HS message" \
+            -c "attempt to make space by freeing buffered future messages" \
+            -c "Enough space available after freeing buffered HS messages" \
+            -S "Buffering HS message" \
+            -S "Next handshake message has been buffered - load"\
+            -C "Injecting buffered CCS message" \
+            -C "Remember CCS message" \
+            -S "Injecting buffered CCS message" \
+            -S "Remember CCS message"
+
+run_test    "DTLS reordering: Buffer out-of-order handshake message on server" \
+            -p "$P_PXY delay_cli=Certificate" \
+            "$P_SRV dgram_packing=0 auth_mode=required cookies=0 dtls=1 debug_level=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            0 \
+            -C "Buffering HS message" \
+            -C "Next handshake message has been buffered - load"\
+            -s "Buffering HS message" \
+            -s "Next handshake message has been buffered - load" \
+            -C "Injecting buffered CCS message" \
+            -C "Remember CCS message" \
+            -S "Injecting buffered CCS message" \
+            -S "Remember CCS message"
+
+run_test    "DTLS reordering: Buffer out-of-order CCS message on client"\
+            -p "$P_PXY delay_srv=NewSessionTicket" \
+            "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            0 \
+            -C "Buffering HS message" \
+            -C "Next handshake message has been buffered - load"\
+            -S "Buffering HS message" \
+            -S "Next handshake message has been buffered - load" \
+            -c "Injecting buffered CCS message" \
+            -c "Remember CCS message" \
+            -S "Injecting buffered CCS message" \
+            -S "Remember CCS message"
+
+run_test    "DTLS reordering: Buffer out-of-order CCS message on server"\
+            -p "$P_PXY delay_cli=ClientKeyExchange" \
+            "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            0 \
+            -C "Buffering HS message" \
+            -C "Next handshake message has been buffered - load"\
+            -S "Buffering HS message" \
+            -S "Next handshake message has been buffered - load" \
+            -C "Injecting buffered CCS message" \
+            -C "Remember CCS message" \
+            -s "Injecting buffered CCS message" \
+            -s "Remember CCS message"
+
+run_test    "DTLS reordering: Buffer encrypted Finished message" \
+            -p "$P_PXY delay_ccs=1" \
+            "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            0 \
+            -s "Buffer record from epoch 1" \
+            -s "Found buffered record from current epoch - load" \
+            -c "Buffer record from epoch 1" \
+            -c "Found buffered record from current epoch - load"
+
+# In this test, both the fragmented NewSessionTicket and the ChangeCipherSpec
+# from the server are delayed, so that the encrypted Finished message
+# is received and buffered. When the fragmented NewSessionTicket comes
+# in afterwards, the encrypted Finished message must be freed in order
+# to make space for the NewSessionTicket to be reassembled.
+# This works only in very particular circumstances:
+# - MBEDTLS_SSL_DTLS_MAX_BUFFERING must be large enough to allow buffering
+#   of the NewSessionTicket, but small enough to also allow buffering of
+#   the encrypted Finished message.
+# - The MTU setting on the server must be so small that the NewSessionTicket
+#   needs to be fragmented.
+# - All messages sent by the server must be small enough to be either sent
+#   without fragmentation or be reassembled within the bounds of
+#   MBEDTLS_SSL_DTLS_MAX_BUFFERING. Achieve this by testing with a PSK-based
+#   handshake, omitting CRTs.
+requires_config_value_at_least "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 240
+requires_config_value_at_most "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 280
+run_test    "DTLS reordering: Buffer encrypted Finished message, drop for fragmented NewSessionTicket" \
+            -p "$P_PXY delay_srv=NewSessionTicket delay_srv=NewSessionTicket delay_ccs=1" \
+            "$P_SRV mtu=190 dgram_packing=0 psk=abc123 psk_identity=foo cookies=0 dtls=1 debug_level=2" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8 psk=abc123 psk_identity=foo" \
+            0 \
+            -s "Buffer record from epoch 1" \
+            -s "Found buffered record from current epoch - load" \
+            -c "Buffer record from epoch 1" \
+            -C "Found buffered record from current epoch - load" \
+            -c "Enough space available after freeing future epoch record"
 
 # Tests for "randomly unreliable connection": try a variety of flows and peers
 

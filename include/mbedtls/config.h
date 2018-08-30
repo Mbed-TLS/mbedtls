@@ -387,20 +387,6 @@
 //#define MBEDTLS_ECDSA_GENKEY_ALT
 
 /**
- * \def MBEDTLS_ECDH_LEGACY_CONTEXT
- *
- * Use a backward compatible ECDH context. Disabling this makes Mbed TLS use
- * formally verified implementations for curves where it is available, but in
- * turn breaks the API.
- *
- * \warning     Disabling this option bypasses alternative implementations
- *              enabled by MBEDTLS_ECDH_GEN_PUBLIC_ALT and
- *              MBEDTLS_ECDH_COMPUTE_SHARED_ALT for curves which have formally
- *              verified implementation available.
- */
-#define MBEDTLS_ECDH_LEGACY_CONTEXT
-
-/**
  * \def MBEDTLS_ECP_INTERNAL_ALT
  *
  * Expose a part of the internal interface of the Elliptic Curve Point module.

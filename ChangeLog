@@ -19,6 +19,9 @@ Security
      DTLS client when parsing the Hello Verify Request message.
 
 Bugfix
+   * Add missing limits.h standard C library header to ssl_tls.c and udp_proxy.c
+     which was only including it via check_config.h previously, which may not be
+     included in custom configuration files. Fixes #1803
    * Fix compilation failure when both MBEDTLS_SSL_PROTO_DTLS and
      MBEDTLS_SSL_HW_RECORD_ACCEL are enabled.
    * Fix a function name in a debug message. Contributed by Ercan Ozturk in

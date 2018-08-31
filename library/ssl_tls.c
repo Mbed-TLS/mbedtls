@@ -50,6 +50,7 @@
 #include "mbedtls/platform_util.h"
 #include "mbedtls/version.h"
 
+#include <limits.h>
 #include <string.h>
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

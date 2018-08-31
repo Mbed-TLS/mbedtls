@@ -1,5 +1,6 @@
 /* BEGIN_HEADER */
 #include <stdint.h>
+#include <limits.h>
 
 #include "mbedtls/asn1.h"
 #include "mbedtls/asn1write.h"

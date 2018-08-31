@@ -1,6 +1,8 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ecp.h"
 
+#include <limits.h>
+
 #define ECP_PF_UNKNOWN     -1
 
 #define ECP_PT_RESET( x )           \

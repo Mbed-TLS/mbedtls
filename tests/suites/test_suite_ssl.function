@@ -7,6 +7,8 @@
 #include <mbedtls/timing.h>
 #include <mbedtls/debug.h>
 
+#include <limits.h>
+
 typedef struct log_pattern
 {
     const char *pattern;

@@ -267,7 +267,8 @@ static void TimerProc( void *TimerContext )
     (void) TimerContext;
     Sleep( alarmMs );
     mbedtls_timing_alarmed = 1;
-    // Implicit call of _endthread() is better (see MS online docs)
+    /* _endthread will be called implicitly on return
+     * That ensures execution of thread funcition's epilogue */
 }
 
 void mbedtls_set_alarm( int seconds )

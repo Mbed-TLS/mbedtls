@@ -60,6 +60,7 @@ int main( void )
 #include "mbedtls/ssl.h"
 #include "mbedtls/timing.h"
 
+#include <limits.h>
 #include <string.h>
 
 /* For select() */

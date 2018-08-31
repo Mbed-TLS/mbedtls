@@ -48,6 +48,7 @@
 #include "mbedtls/ssl_internal.h"
 #include "mbedtls/platform_util.h"
 
+#include <limits.h>
 #include <string.h>
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)

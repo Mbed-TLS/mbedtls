@@ -3,9 +3,6 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Security
-   * Fix a potential memory leak in mbedtls_ssl_setup( ) function. An allocation
-     failure could leave an unreleased buffer. A handshake init failure would
-     lead to leaving two unreleased buffers.
    * Fix an issue in the X.509 module which could lead to a buffer overread
      during certificate extensions parsing. In case of receiving malformed
      input (extensions length field equal to 0), an illegal read of one byte
@@ -31,6 +28,8 @@ API Changes
      the use of datagram packing (enabled by default).
 
 Bugfix
+   * Fix a potential memory leak in mbedtls_ssl_setup() function. An allocation
+     failure in the function could lead to other buffers being leaked.
    * Fixes an issue with MBEDTLS_CHACHAPOLY_C which would not compile if
      MBEDTLS_ARC4_C and MBEDTLS_CIPHER_NULL_CIPHER weren't also defined. #1890
    * Fix a memory leak in ecp_mul_comb() if ecp_precompute_comb() fails.
@@ -38,7 +37,8 @@ Bugfix
    * Add ecc extensions only if an ecc based ciphersuite is used.
      This improves compliance to RFC 4492, and as a result, solves
      interoperability issues with BouncyCastle. Raised by milenamil in #1157.
-   * Replace printf with mbedtls_printf in aria. Found by TrinityTonic in #1908.
+   * Replace printf with mbedtls_printf in the ARIA module. Found by
+     TrinityTonic in #1908.
    * Fix potential use-after-free in mbedtls_ssl_get_max_frag_len()
      and mbedtls_ssl_get_record_expansion() after a session reset. Fixes #1941.
    * Fix a bug that caused SSL/TLS clients to incorrectly abort the handshake
@@ -54,11 +54,11 @@ Bugfix
    * Fix overly strict bounds check in ssl_parse_certificate_request()
      which could lead to valid CertificateRequest messages being rejected.
      Fixes #1954.
+   * Fix undefined shifts with negative values in certificates parsing
+     (found by Catena cyber using oss-fuzz)
    * Fix memory leak and free without initialization in pk_encrypt
      and pk_decrypt example programs. Reported by Brace Stout. Fixes #1128.
-   * Remove redundant else statement, which is not readable, and the positive
-     path in the if statement results in exiting the funciton. Raised by irwir
-     in #1776.
+   * Remove redundant else statement. Raised by irwir. Fixes #1776.
 
 Changes
    * Copy headers preserving timestamps when doing a "make install".
@@ -67,15 +67,7 @@ Changes
      Drozd. Fixes #1215 raised by randombit.
    * Improve compatibility with some alternative CCM implementations by using
      CCM test vectors from RAM.
-   * Fix a miscalculation of the maximum record expansion in
-     mbedtls_ssl_get_record_expansion() in case of ChachaPoly ciphersuites,
-     or CBC ciphersuites in (D)TLS versions 1.1 or higher. Fixes #1913, #1914.
    * Add support for buffering of out-of-order handshake messages.
-
-INTERNAL NOTE: need to bump soversion of libmbedtls:
-- added new member 'mtu' to public 'mbedtls_ssl_conf' structure
-
-Changes
    * Add warnings to the documentation of the HKDF module to reduce the risk
      of misusing the mbedtls_hkdf_extract() and mbedtls_hkdf_expand()
      functions. Fixes #1775. Reported by Brian J. Murray.
@@ -228,8 +220,6 @@ API Changes
 Bugfix
    * Fix an issue with MicroBlaze support in bn_mul.h which was causing the
      build to fail. Found by zv-io. Fixes #1651.
-   * Fix undefined shifts with negative values in certificates parsing
-     (found by Catena cyber using oss-fuzz)
 
 Changes
    * Support TLS testing in out-of-source builds using cmake. Fixes #1193.

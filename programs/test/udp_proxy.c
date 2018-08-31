@@ -57,6 +57,7 @@ int main( void )
 #include "mbedtls/error.h"
 #include "mbedtls/ssl.h"
 
+#include <limits.h>
 #include <string.h>
 
 /* For select() */

@@ -37,6 +37,9 @@ Bugfix
      a warning with some compilers. Fix contributed by irwir in #2856.
    * Fix a function name in a debug message. Contributed by Ercan Ozturk in
      #3013.
+   * Add missing limits.h standard C library header to ssl_tls.c and udp_proxy.c
+     which was only including it via check_config.h previously, which may not be
+     included in custom configuration files. Fixes #1803
 
 Changes
    * Mbed Crypto is no longer a Git submodule. The crypto part of the library

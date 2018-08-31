@@ -3,15 +3,14 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Security
-   * Fix a potential memory leak in mbedtls_ssl_setup( ) function. An allocation
-     failure could leave an unreleased buffer. A handshake init failure would
-     lead to leaving two unreleased buffers.
    * Fix an issue in the X.509 module which could lead to a buffer overread
      during certificate extensions parsing. In case of receiving malformed
      input (extensions length field equal to 0), an illegal read of one byte
      beyond the input buffer is made. Found and analyzed by Nathan Crandall.
 
 Bugfix
+   * Fix a potential memory leak in mbedtls_ssl_setup() function. An allocation
+     failure in the function could lead to other buffers being leaked.
    * Fixes an issue with MBEDTLS_CHACHAPOLY_C which would not compile if
      MBEDTLS_ARC4_C and MBEDTLS_CIPHER_NULL_CIPHER weren't also defined. #1890
    * Fix a memory leak in ecp_mul_comb() if ecp_precompute_comb() fails.

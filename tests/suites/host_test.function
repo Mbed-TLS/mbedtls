@@ -557,7 +557,7 @@ int execute_tests( int argc , const char ** argv )
             }
             else if( ret == -3 )
             {
-                mbedtls_fprintf( stderr, "FAILED: FATAL TEST FUNCTION NOT FUND\n" );
+                mbedtls_fprintf( stderr, "FAILED: FATAL TEST FUNCTION NOT FOUND\n" );
                 fclose( file );
                 mbedtls_exit( 2 );
             }

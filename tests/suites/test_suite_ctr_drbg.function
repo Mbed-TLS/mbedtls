@@ -66,7 +66,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ctr_drbg_entropy_usage(  )
+void ctr_drbg_entropy_usage( )
 {
     unsigned char out[16];
     unsigned char add[16];
@@ -161,7 +161,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
-void ctr_drbg_selftest(  )
+void ctr_drbg_selftest( )
 {
     TEST_ASSERT( mbedtls_ctr_drbg_self_test( 0 ) == 0 );
 }

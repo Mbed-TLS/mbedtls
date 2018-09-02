@@ -529,7 +529,8 @@ int execute_tests( int argc , const char ** argv )
                     ret = convert_params( cnt - 1, params + 1, int_params );
                     if ( 0 == ret )
                     {
-                        ret = dispatch_test( function_id, (void **)( params + 1 ) );
+                        ret = dispatch_test( function_id,
+                                             (void **)( params + 1 ) );
                     }
                 }
             }

@@ -8,7 +8,7 @@
  */
 
 /* BEGIN_CASE */
-void mpi_null(  )
+void mpi_null( )
 {
     mbedtls_mpi X, Y, Z;
 
@@ -40,7 +40,8 @@ void mpi_read_write_string( int radix_X, char *input_X, int radix_A,
     TEST_ASSERT( mbedtls_mpi_read_string( &X, radix_X, input_X ) == result_read );
     if( result_read == 0 )
     {
-        TEST_ASSERT( mbedtls_mpi_write_string( &X, radix_A, str, output_size, &len ) == result_write );
+        TEST_ASSERT( mbedtls_mpi_write_string( &X, radix_A, str, output_size,
+                                               &len ) == result_write );
         if( result_write == 0 )
         {
             TEST_ASSERT( strcasecmp( str, input_A ) == 0 );
@@ -63,7 +64,8 @@ void mbedtls_mpi_read_binary( data_t *buf, int radix_A, char *input_A )
 
 
     TEST_ASSERT( mbedtls_mpi_read_binary( &X, buf->x, buf->len ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_write_string( &X, radix_A, (char *) str, sizeof( str ), &len ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_write_string( &X, radix_A, (char *) str,
+                                           sizeof( str ), &len ) == 0 );
     TEST_ASSERT( strcmp( (char *) str, input_A ) == 0 );
 
 exit:
@@ -93,7 +95,6 @@ void mbedtls_mpi_write_binary( int radix_X, char *input_X,
     TEST_ASSERT( mbedtls_mpi_write_binary( &X, buf, buflen ) == result );
     if( result == 0)
     {
-
         TEST_ASSERT( hexcmp( buf, input_A->x, buflen, input_A->len ) == 0 );
     }
 
@@ -871,7 +872,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
-void mpi_selftest(  )
+void mpi_selftest( )
 {
     TEST_ASSERT( mbedtls_mpi_self_test( 0 ) == 0 );
 }

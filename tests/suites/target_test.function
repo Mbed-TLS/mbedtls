@@ -382,7 +382,8 @@ int execute_tests( int args, const char ** argv )
             /* Parse parameters if present */
             if ( count )
             {
-                params = parse_parameters( count, p, data_len - ( p - data ), &ret );
+                params = parse_parameters( count, p, data_len - ( p - data ),
+                                           &ret );
                 if ( ret )
                     break;
             }

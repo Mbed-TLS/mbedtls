@@ -57,7 +57,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void entropy_too_many_sources(  )
+void entropy_too_many_sources( )
 {
     mbedtls_entropy_context ctx;
     size_t i;

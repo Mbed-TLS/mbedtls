@@ -762,7 +762,7 @@ void x509_parse_rsassa_pss_params( data_t *hex_params, int params_tag,
     }
 
 exit:
-    ;;
+    ;
 }
 /* END_CASE */
 

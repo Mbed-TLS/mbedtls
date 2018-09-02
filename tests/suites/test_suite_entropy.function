@@ -125,7 +125,7 @@ static int read_nv_seed( unsigned char *buf, size_t buf_len )
  */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_FS_IO */
-void entropy_seed_file( char * path, int ret )
+void entropy_seed_file( char *path, int ret )
 {
     mbedtls_entropy_context ctx;
 
@@ -194,7 +194,7 @@ void entropy_func_len( int len, int ret )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void entropy_source_fail( char * path )
+void entropy_source_fail( char *path )
 {
     mbedtls_entropy_context ctx;
     int fail = -1;
@@ -302,7 +302,7 @@ void entropy_nv_seed_std_io(  )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_PLATFORM_NV_SEED_ALT:MBEDTLS_ENTROPY_SHA512_ACCUMULATOR */
-void entropy_nv_seed( data_t * read_seed )
+void entropy_nv_seed( data_t *read_seed )
 {
     mbedtls_sha512_context accumulator;
     mbedtls_entropy_context ctx;

@@ -5,7 +5,7 @@
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA1_C */
-void mbedtls_sha1( data_t * src_str, data_t * hex_hash_string )
+void mbedtls_sha1( data_t *src_str, data_t *hex_hash_string )
 {
     unsigned char output[41];
 
@@ -19,7 +19,7 @@ void mbedtls_sha1( data_t * src_str, data_t * hex_hash_string )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
-void sha224( data_t * src_str, data_t * hex_hash_string )
+void sha224( data_t *src_str, data_t *hex_hash_string )
 {
     unsigned char output[57];
 
@@ -33,7 +33,7 @@ void sha224( data_t * src_str, data_t * hex_hash_string )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
-void mbedtls_sha256( data_t * src_str, data_t * hex_hash_string )
+void mbedtls_sha256( data_t *src_str, data_t *hex_hash_string )
 {
     unsigned char output[65];
 
@@ -47,7 +47,7 @@ void mbedtls_sha256( data_t * src_str, data_t * hex_hash_string )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA512_C */
-void sha384( data_t * src_str, data_t * hex_hash_string )
+void sha384( data_t *src_str, data_t *hex_hash_string )
 {
     unsigned char output[97];
 
@@ -61,7 +61,7 @@ void sha384( data_t * src_str, data_t * hex_hash_string )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA512_C */
-void mbedtls_sha512( data_t * src_str, data_t * hex_hash_string )
+void mbedtls_sha512( data_t *src_str, data_t *hex_hash_string )
 {
     unsigned char output[129];
 

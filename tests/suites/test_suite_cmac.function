@@ -9,14 +9,14 @@
  */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
-void mbedtls_cmac_self_test(  )
+void mbedtls_cmac_self_test( )
 {
     TEST_ASSERT( mbedtls_cmac_self_test( 1 ) == 0 );
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_cmac_null_args(  )
+void mbedtls_cmac_null_args( )
 {
     mbedtls_cipher_context_t ctx;
     const mbedtls_cipher_info_t *cipher_info;

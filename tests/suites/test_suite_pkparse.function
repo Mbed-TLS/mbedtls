@@ -125,7 +125,8 @@ void pk_parse_key( data_t *buf, char *result_str, int result )
     memset( output, 0, 2000 );
 
 
-    TEST_ASSERT( mbedtls_pk_parse_key( &pk, buf->x, buf->len, NULL, 0 ) == ( result ) );
+    TEST_ASSERT( mbedtls_pk_parse_key( &pk, buf->x, buf->len, NULL, 0 )
+                 == ( result ) );
     if( ( result ) == 0 )
     {
         TEST_ASSERT( 1 );

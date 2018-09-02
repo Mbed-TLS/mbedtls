@@ -48,7 +48,8 @@ const mbedtls_x509_crt_profile profile_sha512 =
     1024,
 };
 
-int verify_none( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_t *flags )
+int verify_none( void *data, mbedtls_x509_crt *crt, int certificate_depth,
+                 uint32_t *flags )
 {
     ((void) data);
     ((void) crt);
@@ -58,7 +59,8 @@ int verify_none( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint3
     return 0;
 }
 
-int verify_all( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_t *flags )
+int verify_all( void *data, mbedtls_x509_crt *crt, int certificate_depth,
+                uint32_t *flags )
 {
     ((void) data);
     ((void) crt);
@@ -68,7 +70,8 @@ int verify_all( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32
     return 0;
 }
 
-int verify_fatal( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_t *flags )
+int verify_fatal( void *data, mbedtls_x509_crt *crt, int certificate_depth,
+                  uint32_t *flags )
 {
     int *levels = (int *) data;
 
@@ -127,7 +130,8 @@ void verify_print_init( verify_print_context *ctx )
     ctx->p = ctx->buf;
 }
 
-int verify_print( void *data, mbedtls_x509_crt *crt, int certificate_depth, uint32_t *flags )
+int verify_print( void *data, mbedtls_x509_crt *crt, int certificate_depth,
+                  uint32_t *flags )
 {
     int ret;
     verify_print_context *ctx = (verify_print_context *) data;
@@ -309,7 +313,8 @@ void x509_verify( char *crt_file, char *ca_file, char *crl_file,
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &ca, ca_file ) == 0 );
     TEST_ASSERT( mbedtls_x509_crl_parse_file( &crl, crl_file ) == 0 );
 
-    res = mbedtls_x509_crt_verify_with_profile( &crt, &ca, &crl, profile, cn_name, &flags, f_vrfy, NULL );
+    res = mbedtls_x509_crt_verify_with_profile( &crt, &ca, &crl, profile,
+                                                cn_name, &flags, f_vrfy, NULL );
 
     TEST_ASSERT( res == ( result ) );
     TEST_ASSERT( flags == (uint32_t)( flags_result ) );
@@ -450,7 +455,8 @@ void x509parse_crt( data_t *buf, char *result_str, int result )
     memset( output, 0, 2000 );
 
 
-    TEST_ASSERT( mbedtls_x509_crt_parse( &crt, buf->x, buf->len ) == ( result ) );
+    TEST_ASSERT( mbedtls_x509_crt_parse( &crt, buf->x, buf->len )
+                 == ( result ) );
     if( ( result ) == 0 )
     {
         res = mbedtls_x509_crt_info( (char *) output, 2000, "", &crt );
@@ -477,7 +483,8 @@ void x509parse_crl( data_t *buf, char *result_str, int result )
     memset( output, 0, 2000 );
 
 
-    TEST_ASSERT( mbedtls_x509_crl_parse( &crl, buf->x, buf->len ) == ( result ) );
+    TEST_ASSERT( mbedtls_x509_crl_parse( &crl, buf->x, buf->len )
+                 == ( result ) );
     if( ( result ) == 0 )
     {
         res = mbedtls_x509_crl_info( (char *) output, 2000, "", &crl );
@@ -508,7 +515,8 @@ void mbedtls_x509_csr_parse( data_t *csr_der, char *ref_out, int ref_ret )
 
     if( ref_ret == 0 )
     {
-        size_t my_out_len = mbedtls_x509_csr_info( my_out, sizeof( my_out ), "", &csr );
+        size_t my_out_len = mbedtls_x509_csr_info( my_out, sizeof( my_out ),
+                                                   "", &csr );
         TEST_ASSERT( my_out_len == strlen( ref_out ) );
         TEST_ASSERT( strcmp( my_out, ref_out ) == 0 );
     }
@@ -580,9 +588,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
-void mbedtls_x509_crt_verify_chain(  char *chain_paths, char *trusted_ca,
-                                     int flags_result, int result,
-                                     char *profile_name, int vrfy_fatal_lvls )
+void mbedtls_x509_crt_verify_chain( char *chain_paths, char *trusted_ca,
+                                    int flags_result, int result,
+                                    char *profile_name, int vrfy_fatal_lvls )
 {
     char* act;
     uint32_t flags;
@@ -629,8 +637,8 @@ void x509_oid_desc( data_t *buf, char *ref_desc )
 
 
     oid.tag = MBEDTLS_ASN1_OID;
-    oid.p   = buf->x;
-    oid.len   = buf->len;
+    oid.p = buf->x;
+    oid.len = buf->len;
 
     ret = mbedtls_oid_get_extended_key_usage( &oid, &desc );
 
@@ -657,8 +665,8 @@ void x509_oid_numstr( data_t *oid_buf, char *numstr, int blen, int ret )
     memset( num_buf, 0x2a, sizeof num_buf );
 
     oid.tag = MBEDTLS_ASN1_OID;
-    oid.p   = oid_buf->x;
-    oid.len   = oid_buf->len;
+    oid.p = oid_buf->x;
+    oid.len = oid_buf->len;
 
     TEST_ASSERT( (size_t) blen <= sizeof num_buf );
 
@@ -698,7 +706,8 @@ void x509_check_extended_key_usage( char *crt_file, data_t *oid, int ret )
 
     TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_file ) == 0 );
 
-    TEST_ASSERT( mbedtls_x509_crt_check_extended_key_usage( &crt, (const char *)oid->x, oid->len ) == ret );
+    TEST_ASSERT( mbedtls_x509_crt_check_extended_key_usage( &crt,
+                 (const char*) oid->x, oid->len ) == ret );
 
 exit:
     mbedtls_x509_crt_free( &crt );
@@ -767,7 +776,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_SELF_TEST */
-void x509_selftest(  )
+void x509_selftest( )
 {
     TEST_ASSERT( mbedtls_x509_self_test( 1 ) == 0 );
 }

@@ -498,7 +498,8 @@ int execute_tests( int argc , const char ** argv )
 
             if( ( ret = get_line( file, buf, sizeof(buf) ) ) != 0 )
                 break;
-            mbedtls_fprintf( stdout, "%s%.66s", test_info.failed ? "\n" : "", buf );
+            mbedtls_fprintf( stdout, "%s%.66s", test_info.failed ? "\n" : "",
+                             buf );
             mbedtls_fprintf( stdout, " " );
             for( i = strlen( buf ) + 1; i < 67; i++ )
                 mbedtls_fprintf( stdout, "." );
@@ -568,7 +569,8 @@ int execute_tests( int argc , const char ** argv )
                     ret = convert_params( cnt - 1, params + 1, int_params );
                     if ( DISPATCH_TEST_SUCCESS == ret )
                     {
-                        ret = dispatch_test( function_id, (void **)( params + 1 ) );
+                        ret = dispatch_test( function_id,
+                                             (void **)( params + 1 ) );
                     }
                 }
 

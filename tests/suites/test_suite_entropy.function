@@ -140,7 +140,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void entropy_too_many_sources(  )
+void entropy_too_many_sources( )
 {
     mbedtls_entropy_context ctx;
     size_t i;
@@ -261,7 +261,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_FS_IO */
-void nv_seed_file_create(  )
+void nv_seed_file_create( )
 {
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
@@ -272,7 +272,7 @@ void nv_seed_file_create(  )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_NV_SEED:MBEDTLS_FS_IO:MBEDTLS_PLATFORM_NV_SEED_ALT */
-void entropy_nv_seed_std_io(  )
+void entropy_nv_seed_std_io( )
 {
     unsigned char io_seed[MBEDTLS_ENTROPY_BLOCK_SIZE];
     unsigned char check_seed[MBEDTLS_ENTROPY_BLOCK_SIZE];
@@ -369,8 +369,10 @@ void entropy_nv_seed( data_t *read_seed )
     mbedtls_sha512( buf, MBEDTLS_ENTROPY_BLOCK_SIZE, check_entropy, 0 );
 
     // Check result of both NV file and entropy received with the manual calculations
-    TEST_ASSERT( memcmp( check_seed, buffer_seed, MBEDTLS_ENTROPY_BLOCK_SIZE ) == 0 );
-    TEST_ASSERT( memcmp( check_entropy, entropy, MBEDTLS_ENTROPY_BLOCK_SIZE ) == 0 );
+    TEST_ASSERT( memcmp( check_seed, buffer_seed, MBEDTLS_ENTROPY_BLOCK_SIZE )
+                 == 0 );
+    TEST_ASSERT( memcmp( check_entropy, entropy, MBEDTLS_ENTROPY_BLOCK_SIZE )
+                 == 0 );
 
     mbedtls_entropy_free( &ctx );
 }

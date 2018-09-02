@@ -100,7 +100,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
-void dhm_file( char * filename, char * p, char * g, int len )
+void dhm_file( char *filename, char *p, char *g, int len )
 {
     mbedtls_dhm_context ctx;
     mbedtls_mpi P, G;

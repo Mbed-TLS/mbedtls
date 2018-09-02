@@ -8,8 +8,8 @@
  */
 
 /* BEGIN_CASE */
-void pbkdf2_hmac( int hash, data_t * pw_str, data_t * salt_str,
-                  int it_cnt, int key_len, data_t * result_key_string )
+void pbkdf2_hmac( int hash, data_t *pw_str, data_t *salt_str,
+                  int it_cnt, int key_len, data_t *result_key_string )
 {
     mbedtls_md_context_t ctx;
     const mbedtls_md_info_t *info;

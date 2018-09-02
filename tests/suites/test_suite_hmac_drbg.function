@@ -110,7 +110,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO */
-void hmac_drbg_seed_file( int md_alg, char * path, int ret )
+void hmac_drbg_seed_file( int md_alg, char *path, int ret )
 {
     const mbedtls_md_info_t *md_info;
     mbedtls_hmac_drbg_context ctx;
@@ -161,9 +161,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void hmac_drbg_no_reseed( int md_alg, data_t * entropy,
-                          data_t * custom, data_t * add1,
-                          data_t * add2, data_t * output )
+void hmac_drbg_no_reseed( int md_alg, data_t *entropy,
+                          data_t *custom, data_t *add1,
+                          data_t *add2, data_t *output )
 {
     unsigned char data[1024];
     unsigned char my_output[512];
@@ -209,9 +209,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void hmac_drbg_nopr( int md_alg, data_t * entropy, data_t * custom,
-                     data_t * add1, data_t * add2, data_t * add3,
-                     data_t * output )
+void hmac_drbg_nopr( int md_alg, data_t *entropy, data_t *custom,
+                     data_t *add1, data_t *add2, data_t *add3,
+                     data_t *output )
 {
     unsigned char my_output[512];
     entropy_ctx p_entropy;
@@ -242,8 +242,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void hmac_drbg_pr( int md_alg, data_t * entropy, data_t * custom,
-                   data_t * add1, data_t * add2, data_t * output )
+void hmac_drbg_pr( int md_alg, data_t *entropy, data_t *custom,
+                   data_t *add1, data_t *add2, data_t *output )
 {
     unsigned char my_output[512];
     entropy_ctx p_entropy;

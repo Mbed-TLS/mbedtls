@@ -33,10 +33,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void gcm_encrypt_and_tag( int cipher_id, data_t * key_str,
-                          data_t * src_str, data_t * iv_str,
-                          data_t * add_str, data_t * hex_dst_string,
-                          int tag_len_bits, data_t * hex_tag_string,
+void gcm_encrypt_and_tag( int cipher_id, data_t *key_str,
+                          data_t *src_str, data_t *iv_str,
+                          data_t *add_str, data_t *hex_dst_string,
+                          int tag_len_bits, data_t *hex_tag_string,
                           int init_result )
 {
     unsigned char output[128];
@@ -65,11 +65,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void gcm_decrypt_and_verify( int cipher_id, data_t * key_str,
-                             data_t * src_str, data_t * iv_str,
-                             data_t * add_str, int tag_len_bits,
-                             data_t * tag_str, char * result,
-                             data_t * pt_result, int init_result )
+void gcm_decrypt_and_verify( int cipher_id, data_t *key_str,
+                             data_t *src_str, data_t *iv_str,
+                             data_t *add_str, int tag_len_bits,
+                             data_t *tag_str, char *result,
+                             data_t *pt_result, int init_result )
 {
     unsigned char output[128];
     mbedtls_gcm_context ctx;

@@ -92,7 +92,7 @@ void cipher_null_args(  )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void enc_dec_buf( int cipher_id, char * cipher_string, int key_len,
+void enc_dec_buf( int cipher_id, char *cipher_string, int key_len,
                   int length_val, int pad_mode )
 {
     size_t length = length_val, outlen, total_len, i, block_size;
@@ -433,9 +433,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void decrypt_test_vec( int cipher_id, int pad_mode, data_t * key,
-                       data_t * iv, data_t * cipher,
-                       data_t * clear, data_t * ad, data_t * tag,
+void decrypt_test_vec( int cipher_id, int pad_mode, data_t *key,
+                       data_t *iv, data_t *cipher,
+                       data_t *clear, data_t *ad, data_t *tag,
                        int finish_result, int tag_result )
 {
     mbedtls_cipher_context_t ctx;
@@ -491,9 +491,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_AEAD */
-void auth_crypt_tv( int cipher_id, data_t * key, data_t * iv,
-                    data_t * ad, data_t * cipher, data_t * tag,
-                    char * result, data_t * clear )
+void auth_crypt_tv( int cipher_id, data_t *key, data_t *iv,
+                    data_t *ad, data_t *cipher, data_t *tag,
+                    char *result, data_t *clear )
 {
     int ret;
     unsigned char my_tag[20];

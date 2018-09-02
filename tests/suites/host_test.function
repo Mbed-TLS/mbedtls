@@ -238,7 +238,7 @@ static int parse_arguments( char *buf, size_t len, char **params,
  *
  * \return      0 for success else 1
  */
-static int convert_params( size_t cnt , char ** params , int * int_params_store )
+static int convert_params( size_t cnt , char **params , int *int_params_store )
 {
     char ** cur = params;
     char ** out = params;
@@ -246,8 +246,8 @@ static int convert_params( size_t cnt , char ** params , int * int_params_store 
 
     while ( cur < params + cnt )
     {
-        char * type = *cur++;
-        char * val = *cur++;
+        char *type = *cur++;
+        char *val = *cur++;
 
         if ( strcmp( type, "char*" ) == 0 )
         {

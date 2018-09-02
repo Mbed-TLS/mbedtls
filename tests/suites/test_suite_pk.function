@@ -70,7 +70,7 @@ size_t mbedtls_rsa_key_len_func( void *ctx )
  */
 
 /* BEGIN_CASE */
-void pk_utils( int type, int size, int len, char * name )
+void pk_utils( int type, int size, int len, char *name )
 {
     mbedtls_pk_context pk;
 
@@ -91,7 +91,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_FS_IO */
-void mbedtls_pk_check_pair( char * pub_file, char * prv_file, int ret )
+void mbedtls_pk_check_pair( char *pub_file, char *prv_file, int ret )
 {
     mbedtls_pk_context pub, prv, alt;
 
@@ -121,9 +121,9 @@ void mbedtls_pk_check_pair( char * pub_file, char * prv_file, int ret )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
-void pk_rsa_verify_test_vec( data_t * message_str, int digest, int mod,
-                             int radix_N, char * input_N, int radix_E,
-                             char * input_E, data_t * result_str,
+void pk_rsa_verify_test_vec( data_t *message_str, int digest, int mod,
+                             int radix_N, char *input_N, int radix_E,
+                             char *input_E, data_t *result_str,
                              int result )
 {
     unsigned char hash_result[1000];
@@ -154,10 +154,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
-void pk_rsa_verify_ext_test_vec( data_t * message_str, int digest,
-                                 int mod, int radix_N, char * input_N,
-                                 int radix_E, char * input_E,
-                                 data_t * result_str, int pk_type,
+void pk_rsa_verify_ext_test_vec( data_t *message_str, int digest,
+                                 int mod, int radix_N, char *input_N,
+                                 int radix_E, char *input_E,
+                                 data_t *result_str, int pk_type,
                                  int mgf1_hash_id, int salt_len, int result )
 {
     unsigned char hash_result[1000];
@@ -213,8 +213,8 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_ECDSA_C */
-void pk_ec_test_vec( int type, int id, data_t * key, data_t * hash,
-                     data_t * sig, int ret )
+void pk_ec_test_vec( int type, int id, data_t *key, data_t *hash,
+                     data_t *sig, int ret )
 {
     mbedtls_pk_context pk;
     mbedtls_ecp_keypair *eckey;
@@ -266,9 +266,9 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
-void pk_rsa_encrypt_test_vec( data_t * message, int mod, int radix_N,
-                              char * input_N, int radix_E, char * input_E,
-                              data_t * result, int ret )
+void pk_rsa_encrypt_test_vec( data_t *message, int mod, int radix_N,
+                              char *input_N, int radix_E, char *input_E,
+                              data_t *result, int ret )
 {
     unsigned char output[1000];
     rnd_pseudo_info rnd_info;
@@ -300,10 +300,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_RSA_C */
-void pk_rsa_decrypt_test_vec( data_t * cipher, int mod, int radix_P,
-                              char * input_P, int radix_Q, char * input_Q,
-                              int radix_N, char * input_N, int radix_E,
-                              char * input_E, data_t * clear, int ret )
+void pk_rsa_decrypt_test_vec( data_t *cipher, int mod, int radix_P,
+                              char *input_P, int radix_Q, char *input_Q,
+                              int radix_N, char *input_N, int radix_E,
+                              char *input_E, data_t *clear, int ret )
 {
     unsigned char output[1000];
     rnd_pseudo_info rnd_info;

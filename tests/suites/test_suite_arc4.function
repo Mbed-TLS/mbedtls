@@ -8,8 +8,8 @@
  */
 
 /* BEGIN_CASE */
-void mbedtls_arc4_crypt( data_t * src_str, data_t * key_str,
-                         data_t * hex_dst_string )
+void mbedtls_arc4_crypt( data_t *src_str, data_t *key_str,
+                         data_t *hex_dst_string )
 {
     unsigned char dst_str[1000];
     mbedtls_arc4_context ctx;

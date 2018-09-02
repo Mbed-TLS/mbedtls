@@ -6,8 +6,8 @@
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_PEM_WRITE_C */
-void mbedtls_pem_write_buffer( char * start, char * end, data_t * buf,
-                               char * result_str )
+void mbedtls_pem_write_buffer( char *start, char *end, data_t *buf,
+                               char *result_str )
 {
     unsigned char *check_buf = NULL;
     int ret;

@@ -2056,12 +2056,12 @@ cleanup:
 /*
  * Miller-Rabin pseudo-primality test  (HAC 4.24)
  */
-static int mpi_miller_rabin( const mbedtls_mpi *X, int flags,
+static int mpi_miller_rabin( const mbedtls_mpi *X, size_t rounds,
                              int (*f_rng)(void *, unsigned char *, size_t),
                              void *p_rng )
 {
     int ret, count;
-    size_t i, j, k, n, s;
+    size_t i, j, k, s;
     mbedtls_mpi W, R, T, A, RR;
 
     mbedtls_mpi_init( &W ); mbedtls_mpi_init( &R ); mbedtls_mpi_init( &T ); mbedtls_mpi_init( &A );
@@ -2078,28 +2078,7 @@ static int mpi_miller_rabin( const mbedtls_mpi *X, int flags,
 
     i = mbedtls_mpi_bitlen( X );
 
-    if( ( flags & MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR ) == 0 )
-    {
-        /*
-         * 2^-80 error probability, number of rounds chosen per HAC, table 4.4
-         */
-        n = ( ( i >= 1300 ) ?  2 : ( i >=  850 ) ?  3 :
-              ( i >=  650 ) ?  4 : ( i >=  350 ) ?  8 :
-              ( i >=  250 ) ? 12 : ( i >=  150 ) ? 18 : 27 );
-    }
-    else
-    {
-        /*
-         * 2^-100 error probability, number of rounds computed based on HAC,
-         * fact 4.48
-         */
-        n = ( ( i >= 1450 ) ?  4 : ( i >=  1150 ) ?  5 :
-              ( i >= 1000 ) ?  6 : ( i >=   850 ) ?  7 :
-              ( i >=  750 ) ?  8 : ( i >=   500 ) ? 13 :
-              ( i >=  250 ) ? 28 : ( i >=   150 ) ? 40 : 51 );
-    }
-
-    for( i = 0; i < n; i++ )
+    for( i = 0; i < rounds; i++ )
     {
         /*
          * pick a random A, 1 < A < |X| - 1
@@ -2166,7 +2145,7 @@ cleanup:
 /*
  * Pseudo-primality test: small factors, then Miller-Rabin
  */
-int mpi_is_prime_internal( const mbedtls_mpi *X, int flags,
+int mpi_is_prime_internal( const mbedtls_mpi *X, int rounds,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng )
 {
@@ -2192,7 +2171,7 @@ int mpi_is_prime_internal( const mbedtls_mpi *X, int flags,
         return( ret );
     }
 
-    return( mpi_miller_rabin( &XX, flags, f_rng, p_rng ) );
+    return( mpi_miller_rabin( &XX, rounds, f_rng, p_rng ) );
 }
 
 /*
@@ -2202,7 +2181,7 @@ int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng )
 {
-    return mpi_is_prime_internal( X, 0, f_rng, p_rng );
+    return mpi_is_prime_internal( X, 40, f_rng, p_rng );
 }
 
 /*
@@ -2225,6 +2204,7 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int flags,
 #endif
     int ret = MBEDTLS_ERR_MPI_NOT_ACCEPTABLE;
     size_t k, n;
+    int rounds;
     mbedtls_mpi_uint r;
     mbedtls_mpi Y;
 
@@ -2234,6 +2214,27 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int flags,
     mbedtls_mpi_init( &Y );
 
     n = BITS_TO_LIMBS( nbits );
+
+    if( ( flags & MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR ) == 0 )
+    {
+        /*
+         * 2^-80 error probability, number of rounds chosen per HAC, table 4.4
+         */
+        rounds = ( ( nbits >= 1300 ) ?  2 : ( nbits >=  850 ) ?  3 :
+                   ( nbits >=  650 ) ?  4 : ( nbits >=  350 ) ?  8 :
+                   ( nbits >=  250 ) ? 12 : ( nbits >=  150 ) ? 18 : 27 );
+    }
+    else
+    {
+        /*
+         * 2^-100 error probability, number of rounds computed based on HAC,
+         * fact 4.48
+         */
+        rounds = ( ( nbits >= 1450 ) ?  4 : ( nbits >=  1150 ) ?  5 :
+                   ( nbits >= 1000 ) ?  6 : ( nbits >=   850 ) ?  7 :
+                   ( nbits >=  750 ) ?  8 : ( nbits >=   500 ) ? 13 :
+                   ( nbits >=  250 ) ? 28 : ( nbits >=   150 ) ? 40 : 51 );
+    }
 
     while( 1 )
     {
@@ -2247,7 +2248,7 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int flags,
 
         if( ( flags & MBEDTLS_MPI_GEN_PRIME_FLAG_DH ) == 0 )
         {
-            ret = mpi_is_prime_internal( X, flags, f_rng, p_rng );
+            ret = mpi_is_prime_internal( X, rounds, f_rng, p_rng );
 
             if( ret != MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )
                 goto cleanup;
@@ -2280,9 +2281,9 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int flags,
                  */
                 if( ( ret = mpi_check_small_factors(  X         ) ) == 0 &&
                     ( ret = mpi_check_small_factors( &Y         ) ) == 0 &&
-                    ( ret = mpi_miller_rabin(  X, flags, f_rng, p_rng  ) )
+                    ( ret = mpi_miller_rabin(  X, rounds, f_rng, p_rng  ) )
                                                                     == 0 &&
-                    ( ret = mpi_miller_rabin( &Y, flags, f_rng, p_rng  ) )
+                    ( ret = mpi_miller_rabin( &Y, rounds, f_rng, p_rng  ) )
                                                                     == 0 )
                     goto cleanup;
 

@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+includedir=${prefix}/include
+libdir=${exec_prefix}/lib
+
+Name: mbedtls
+Description: mbed TLS open source SSL libary
+Version: 2.12.0
+Cflags: -I${includedir}
+Libs: -L${libdir} -lmbedtls -lmbedx509 -lmbedcrypto

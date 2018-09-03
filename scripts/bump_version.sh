@@ -72,6 +72,10 @@ fi
 sed -e "s/ VERSION [0-9.]\{1,\}/ VERSION $VERSION/g" < library/CMakeLists.txt > tmp
 mv tmp library/CMakeLists.txt
 
+[ $VERBOSE ] && echo "Bumping VERSION in mbedtls.pc.in"
+sed -e "s/Version: [0-9.]\{1,\}/Version: $VERSION/g" < mbedtls.pc.in > tmp
+mv tmp mbedtls.pc.in
+
 if [ "X" != "X$SO_CRYPTO" ];
 then
   [ $VERBOSE ] && echo "Bumping SOVERSION for libmbedcrypto in library/CMakeLists.txt"

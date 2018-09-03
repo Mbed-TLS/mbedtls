@@ -215,3 +215,9 @@ if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/DartConfiguration.tcl
                    ${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl COPYONLY)
 endif()
+
+# Install hint file for programs using pkg-config
+set(PKGCONFIGDIR "${LIB_INSTALL_DIR}/pkgconfig")
+
+configure_file(mbedtls.pc.in mbedtls.pc @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/mbedtls.pc" DESTINATION "${PKGCONFIGDIR}")

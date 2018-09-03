@@ -2027,7 +2027,7 @@
  *
  * Requires: MBEDTLS_AES_C
  *
- * This module provides the CTR_DRBG AES-256 random number generator.
+ * This module provides the CTR_DRBG AES random number generator.
  */
 #define MBEDTLS_CTR_DRBG_C
 

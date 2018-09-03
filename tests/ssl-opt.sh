@@ -6250,6 +6250,12 @@ run_test    "DTLS proxy: 3d, min handshake, server-initiated renego, nbio" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
+## Interop tests with OpenSSL might trigger a bug in recent versions (including
+## all versions installed on the CI machines), reported here:
+## Bug report: https://github.com/openssl/openssl/issues/6902
+## They should be re-enabled once a fixed version of OpenSSL is available
+## (this should happen in some 1.1.1_ release according to the ticket).
+skip_next_test
 client_needs_more_time 6
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, openssl server" \
@@ -6259,6 +6265,7 @@ run_test    "DTLS proxy: 3d, openssl server" \
             0 \
             -c "HTTP/1.0 200 OK"
 
+skip_next_test # see above
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, openssl server, fragmentation" \
@@ -6268,6 +6275,7 @@ run_test    "DTLS proxy: 3d, openssl server, fragmentation" \
             0 \
             -c "HTTP/1.0 200 OK"
 
+skip_next_test # see above
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, openssl server, fragmentation, nbio" \

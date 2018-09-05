@@ -20,7 +20,7 @@
  */
 
 /*
- * Ensure gmtime_r is available even with -std=c99; must be included before
+ * Ensure gmtime_r is available even with -std=c99; must be defined before
  * config.h, which pulls in glibc's features.h. Harmless on other platforms.
  */
 #if !defined(_POSIX_C_SOURCE)

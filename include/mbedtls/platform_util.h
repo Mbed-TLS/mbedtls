@@ -88,7 +88,7 @@ void mbedtls_platform_zeroize( void *buf, size_t len );
  *             mbedtls_platform_gmtime_r() supplied by the user at compile time.
  *
  * \param tt     Pointer to an object containing time (in seconds) since the
- *               Epoc to be converted
+ *               epoch to be converted
  * \param tm_buf Pointer to an object where the results will be stored
  *
  * \return      Pointer to an object of type struct tm on success, otherwise

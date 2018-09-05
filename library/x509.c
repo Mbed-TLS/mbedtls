@@ -898,7 +898,7 @@ static int x509_get_current_time( mbedtls_x509_time *now )
     int ret = 0;
 
     tt = mbedtls_time( NULL );
-    lt = mbedtls_platform_gmtime( &tt, &tm_buf );
+    lt = mbedtls_platform_gmtime_r( &tt, &tm_buf );
 
     if( lt == NULL )
         ret = -1;

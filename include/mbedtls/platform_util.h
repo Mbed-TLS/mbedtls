@@ -68,24 +68,24 @@ void mbedtls_platform_zeroize( void *buf, size_t len );
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 /**
- * \brief       Thread safe implementation of gmtime()
+ * \brief      Thread safe implementation of gmtime()
  *
- *              The function is an abstraction that when called behaves similar
- *              to the gmtime() function from the C standard, but is thread
- *              safe.
+ *             The function is an abstraction that when called behaves similar
+ *             to the gmtime() function from the C standard, but is thread
+ *             safe.
  *
- *              Mbed TLS will try to identify the underlying platform and
- *              configure an appropriate underlying implementation (e.g.
- *              gmtime_r() for POSIX and gmtime_s() for Windows). If this is
- *              not possible, then gmtime() will be used. In this case, calls
- *              from the library to gmtime() will be guarded by the mutex
- *              mbedtls_threading_gmtime_mutex if MBEDTLS_THREADING_C is
- *              enabled. It is recommended that calls from outside the library
- *              are also guarded by this mutex.
+ *             Mbed TLS will try to identify the underlying platform and
+ *             configure an appropriate underlying implementation (e.g.
+ *             gmtime_r() for POSIX and gmtime_s() for Windows). If this is
+ *             not possible, then gmtime() will be used. In this case, calls
+ *             from the library to gmtime() will be guarded by the mutex
+ *             mbedtls_threading_gmtime_mutex if MBEDTLS_THREADING_C is
+ *             enabled. It is recommended that calls from outside the library
+ *             are also guarded by this mutex.
  *
- *              If MBEDTLS_PLATFORM_GMTIME_ALT is defined, then Mbed TLS will
- *              unconditionally use the alternative implementation for
- *              mbedtls_platform_gmtime() supplied by the user at compile time
+ *             If MBEDTLS_PLATFORM_GMTIME_R_ALT is defined, then Mbed TLS will
+ *             unconditionally use the alternative implementation for
+ *             mbedtls_platform_gmtime_r() supplied by the user at compile time.
  *
  * \param tt     Pointer to an object containing time (in seconds) since the
  *               Epoc to be converted
@@ -94,8 +94,8 @@ void mbedtls_platform_zeroize( void *buf, size_t len );
  * \return      Pointer to an object of type struct tm on success, otherwise
  *              NULL
  */
-struct tm *mbedtls_platform_gmtime( const mbedtls_time_t *tt,
-                                    struct tm *tm_buf );
+struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
+                                      struct tm *tm_buf );
 #endif /* MBEDTLS_HAVE_TIME_DATE */
 
 #ifdef __cplusplus

@@ -37,7 +37,7 @@
 
 #include "mbedtls/threading.h"
 
-#if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_ALT)
+#if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
 #if !defined(_WIN32) && (defined(unix) || \
     defined(__unix) || defined(__unix__) || (defined(__APPLE__) && \
     defined(__MACH__)))
@@ -54,7 +54,7 @@
 #endif /* !_POSIX_VERSION || 200112L > _POSIX_THREAD_SAFE_FUNCTIONS */
 #endif /* !_WIN32 && (unix || __unix || __unix__ ||
         * (__APPLE__ && __MACH__)) */
-#endif /* MBEDTLS_HAVE_TIME_DATE && !MBEDTLS_PLATFORM_GMTIME_ALT */
+#endif /* MBEDTLS_HAVE_TIME_DATE && !MBEDTLS_PLATFORM_GMTIME_R_ALT */
 
 #if defined(MBEDTLS_THREADING_PTHREAD)
 static void threading_mutex_init_pthread( mbedtls_threading_mutex_t *mutex )

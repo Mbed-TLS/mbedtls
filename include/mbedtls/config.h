@@ -137,7 +137,7 @@
 /**
  * \def MBEDTLS_HAVE_TIME_DATE
  *
- * System has time.h, time(), an implementation for mbedtls_platform_gmtime()
+ * System has time.h, time(), an implementation for mbedtls_platform_gmtime_r()
  * (see below), and the clock is correct.
  * The time needs to be correct (not necesarily very accurate, but at least
  * the date should be correct). This is used to verify the validity period of
@@ -145,17 +145,17 @@
  *
  * Comment if your system does not have a correct clock.
  *
- * \note mbedtls_platform_gmtime() is an abstraction in platform_util.h that
+ * \note mbedtls_platform_gmtime_r() is an abstraction in platform_util.h that
  * when called behaves similarly to the gmtime() function from the C standard,
  * but is thread safe. Mbed TLS will try to identify the underlying platform
  * and configure an appropriate underlying implementation (e.g. gmtime_r() for
  * POSIX and gmtime_s() for Windows). If this is not possible, then
  * gmtime() will be used. Refer to the documentation for
- * mbedtls_platform_gmtime() for more information.
+ * mbedtls_platform_gmtime_r() for more information.
  *
  * \note It is possible to configure an implementation for
- * mbedtls_platform_gmtime() at compile-time by using the macro
- * MBEDTLS_PLATFORM_GMTIME_ALT.
+ * mbedtls_platform_gmtime_r() at compile-time by using the macro
+ * MBEDTLS_PLATFORM_GMTIME_R_ALT.
  */
 #define MBEDTLS_HAVE_TIME_DATE
 
@@ -3098,22 +3098,22 @@
 
 /**
  * Uncomment the macro to let Mbed TLS use your alternate implementation of
- * mbedtls_platform_gmtime(). This replaces the default implementation in
+ * mbedtls_platform_gmtime_r(). This replaces the default implementation in
  * platform_util.c.
  *
  * gmtime() is not a thread safe function as defined in the C standard. The
  * library will try to use safer implementations of this function, such as
  * gmtime_r() when available. However, if Mbed TLS cannot identify the target
- * system, the implementation of mbedtls_platform_gmtime() will default to
+ * system, the implementation of mbedtls_platform_gmtime_r() will default to
  * using the standard gmtime(). In this case, calls from the library to
  * gmtime() will be guarded by the global mutex mbedtls_threading_gmtime_mutex
  * if MBEDTLS_THREADING_C is enable. It is advised that calls from outside the
  * library are also guarded with this mutex to avoid race conditions. However,
- * if the macro MBEDTLS_PLATFORM_GMTIME_ALT is defined, Mbed TLS will
- * unconditionally use the implementation for mbedtls_platform_time() supplied
- * at compile time.
+ * if the macro MBEDTLS_PLATFORM_GMTIME_R_ALT is defined, Mbed TLS will
+ * unconditionally use the implementation for mbedtls_platform_gmtime_r()
+ * supplied at compile time.
  */
-//#define MBEDTLS_PLATFORM_GMTIME_ALT
+//#define MBEDTLS_PLATFORM_GMTIME_R_ALT
 
 /* \} name SECTION: Customisation configuration options */
 

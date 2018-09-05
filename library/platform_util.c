@@ -75,7 +75,7 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
 }
 #endif /* MBEDTLS_PLATFORM_ZEROIZE_ALT */
 
-#if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_ALT)
+#if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
 #include <time.h>
 #if !defined(_WIN32) && (defined(unix) || \
     defined(__unix) || defined(__unix__) || (defined(__APPLE__) && \
@@ -94,8 +94,8 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
 #endif /* !_WIN32 && (unix || __unix || __unix__ ||
         * (__APPLE__ && __MACH__)) */
 
-struct tm *mbedtls_platform_gmtime( const mbedtls_time_t *tt,
-                                    struct tm *tm_buf )
+struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
+                                      struct tm *tm_buf )
 {
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
     return( ( gmtime_s( tm_buf, tt ) == 0 ) ? tm_buf : NULL );
@@ -124,4 +124,4 @@ struct tm *mbedtls_platform_gmtime( const mbedtls_time_t *tt,
     return( ( lt == NULL ) ? NULL : tm_buf );
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
 }
-#endif /* MBEDTLS_HAVE_TIME_DATE && MBEDTLS_PLATFORM_GMTIME_ALT */
+#endif /* MBEDTLS_HAVE_TIME_DATE && MBEDTLS_PLATFORM_GMTIME_R_ALT */

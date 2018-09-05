@@ -13,8 +13,8 @@ API Changes
 Bugfix
    * Fixes an issue with MBEDTLS_CHACHAPOLY_C which would not compile if
      MBEDTLS_ARC4_C and MBEDTLS_CIPHER_NULL_CIPHER weren't also defined. #1890
-   * Fix build failures on where only gmtime() is available but neither
-     gmtime_r() nor gmtime_s() are present. Fixes #1907.
+   * Fix build failures on platforms where only gmtime() is available but
+     neither gmtime_r() nor gmtime_s() are present. Fixes #1907.
 
 = mbed TLS 2.12.0 branch released 2018-07-25
 

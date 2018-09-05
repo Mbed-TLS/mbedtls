@@ -88,6 +88,8 @@ struct tm *mbedtls_platform_gmtime( const mbedtls_time_t *tt,
 {
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
     return( ( gmtime_s( tm_buf, tt ) == 0 ) ? tm_buf : NULL );
+#elif defined(__IAR_SYSTEMS_ICC__)
+    return( gmtime_s( tt, tm_buf ) );
 #elif !defined(PLATFORM_UTIL_USE_GMTIME)
     return( gmtime_r( tt, tm_buf ) );
 #else

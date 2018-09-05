@@ -77,7 +77,7 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
 
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_ALT)
 #include <time.h>
-#if !defined(_WIN32) && !defined(__IAR_SYSTEMS_ICC__) && (defined(unix) || \
+#if !defined(_WIN32) && (defined(unix) || \
     defined(__unix) || defined(__unix__) || (defined(__APPLE__) && \
     defined(__MACH__)))
 #include <unistd.h>
@@ -91,7 +91,7 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
  */
 #define PLATFORM_UTIL_USE_GMTIME
 #endif /* !_POSIX_VERSION || _POSIX_C_SOURCE > _POSIX_THREAD_SAFE_FUNCTIONS */
-#endif /* !_WIN32 && !__IAR_SYSTEMS_ICC__ && (unix || __unix || __unix__ ||
+#endif /* !_WIN32 && (unix || __unix || __unix__ ||
         * (__APPLE__ && __MACH__)) */
 
 struct tm *mbedtls_platform_gmtime( const mbedtls_time_t *tt,
@@ -99,8 +99,6 @@ struct tm *mbedtls_platform_gmtime( const mbedtls_time_t *tt,
 {
 #if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
     return( ( gmtime_s( tm_buf, tt ) == 0 ) ? tm_buf : NULL );
-#elif defined(__IAR_SYSTEMS_ICC__)
-    return( gmtime_s( tt, tm_buf ) );
 #elif !defined(PLATFORM_UTIL_USE_GMTIME)
     return( gmtime_r( tt, tm_buf ) );
 #else

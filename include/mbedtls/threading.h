@@ -108,7 +108,7 @@ extern int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t *mutex );
 extern mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex;
 #endif
 #if defined(MBEDTLS_HAVE_TIME_DATE)
-#if !defined(_WIN32) && !defined(__IAR_SYSTEMS_ICC__) && (defined(unix) || \
+#if !defined(_WIN32) && (defined(unix) || \
     defined(__unix) || defined(__unix__) || (defined(__APPLE__) && \
     defined(__MACH__)))
 #include <unistd.h>
@@ -120,7 +120,7 @@ extern mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex;
  */
 extern mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex;
 #endif /* !_POSIX_VERSION || 200112L > _POSIX_THREAD_SAFE_FUNCTIONS */
-#endif /* !_WIN32 && !__IAR_SYSTEMS_ICC__ && (unix || __unix || __unix__ ||
+#endif /* !_WIN32 && (unix || __unix || __unix__ ||
         * (__APPLE__ && __MACH__)) */
 #endif /* MBEDTLS_HAVE_TIME_DATE */
 #endif /* MBEDTLS_THREADING_C */

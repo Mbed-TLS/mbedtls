@@ -146,7 +146,7 @@
  * Comment if your system does not have a correct clock.
  *
  * \note mbedtls_platform_gmtime_r() is an abstraction in platform_util.h that
- * when called behaves similarly to the gmtime() function from the C standard,
+ * behaves similarly to the gmtime() function from the C standard,
  * but is thread safe. Mbed TLS will try to identify the underlying platform
  * and configure an appropriate underlying implementation (e.g. gmtime_r() for
  * POSIX and gmtime_s() for Windows). If this is not possible, then

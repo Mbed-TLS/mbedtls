@@ -116,7 +116,7 @@ extern mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex;
 /*
  * The preprocessor conditions above are the same as in platform_utils.c and
  * threading.c. Remember to update the code there when changing the conditions
- * here
+ * here.
  */
 extern mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex;
 #endif /* !_POSIX_VERSION || 200112L > _POSIX_THREAD_SAFE_FUNCTIONS */

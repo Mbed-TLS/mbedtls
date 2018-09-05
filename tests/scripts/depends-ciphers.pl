@@ -71,7 +71,7 @@ for my $cipher (@ciphers) {
 
     system( "CFLAGS='-Werror -Wall -Wextra' make lib" )
         and abort "Failed to build lib: $cipher\n";
-    #system( "cd tests && make" ) and abort "Failed to build tests: $cipher\n";
+    system( "cd tests && make" ) and abort "Failed to build tests: $cipher\n";
     #system( "make test" ) and abort "Failed test suite: $cipher\n";
 }
 

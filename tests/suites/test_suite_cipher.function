@@ -709,7 +709,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC */
 void dec_empty_buf(  )
 {
     unsigned char key[32];

@@ -19,6 +19,12 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
+/*
+ * Ensure gmtime_r is available even with -std=c99; must be included before
+ * config.h, which pulls in glibc's features.h. Harmless on other platforms.
+ */
+#define _POSIX_C_SOURCE 200112L
+
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
 #else

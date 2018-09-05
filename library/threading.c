@@ -44,7 +44,7 @@
  * preprocessor conditions above. Ideally, we could expose this macro in
  * platform_utils.h and simply use it in platform_utils.c, threading.c and
  * threading.h. However, this macro is not part of the Mbed TLS public API, so
- * we keep it private by only definining it in this file
+ * we keep it private by only defining it in this file
  */
 #define THREADING_USE_GMTIME
 #endif /* !_POSIX_VERSION || 200112L > _POSIX_THREAD_SAFE_FUNCTIONS */

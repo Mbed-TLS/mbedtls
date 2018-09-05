@@ -137,8 +137,8 @@
 /**
  * \def MBEDTLS_HAVE_TIME_DATE
  *
- * System has time.h, time(), an implementation for mbedtls_platform_gmtime(),
- * and the clock is correct.
+ * System has time.h, time(), an implementation for mbedtls_platform_gmtime()
+ * (see below), and the clock is correct.
  * The time needs to be correct (not necesarily very accurate, but at least
  * the date should be correct). This is used to verify the validity period of
  * X.509 certificates.

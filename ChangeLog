@@ -4,7 +4,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 API Changes
    * Extend the platform module with an abstraction mbedtls_platform_gmtime_r()
-     whose implementation should behave as a thread safe version of gmtime().
+     whose implementation should behave as a thread-safe version of gmtime().
      This allows users to configure such an implementation at compile time when
      the target system cannot be deduced automatically, by setting the option
      MBEDTLS_PLATFORM_GMTIME_R_ALT. At this stage Mbed TLS is only able to

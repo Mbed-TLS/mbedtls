@@ -147,7 +147,7 @@
  *
  * \note mbedtls_platform_gmtime_r() is an abstraction in platform_util.h that
  * behaves similarly to the gmtime() function from the C standard,
- * but is thread safe. Mbed TLS will try to identify the underlying platform
+ * but is thread-safe. Mbed TLS will try to identify the underlying platform
  * and configure an appropriate underlying implementation (e.g. gmtime_r() for
  * POSIX and gmtime_s() for Windows). If this is not possible, then
  * gmtime() will be used. Refer to the documentation for
@@ -3101,7 +3101,7 @@
  * mbedtls_platform_gmtime_r(). This replaces the default implementation in
  * platform_util.c.
  *
- * gmtime() is not a thread safe function as defined in the C standard. The
+ * gmtime() is not a thread-safe function as defined in the C standard. The
  * library will try to use safer implementations of this function, such as
  * gmtime_r() when available. However, if Mbed TLS cannot identify the target
  * system, the implementation of mbedtls_platform_gmtime_r() will default to

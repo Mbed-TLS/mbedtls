@@ -68,7 +68,7 @@ void mbedtls_platform_zeroize( void *buf, size_t len );
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 /**
- * \brief      Thread safe implementation of gmtime()
+ * \brief      Thread-safe implementation of gmtime()
  *
  *             The function is an abstraction that when called behaves similar
  *             to the gmtime() function from the C standard, but is thread

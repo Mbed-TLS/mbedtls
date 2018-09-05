@@ -7,8 +7,8 @@ API Changes
      whose implementation should behave as a thread safe version of gmtime().
      This allows users to configure such an implementation at compile time when
      the target system cannot be deduced automatically. At this stage Mbed TLS
-     is only able to configure implementations for Windows and POSIX C
-     libraries.
+     is only able to automtically select implementations for Windows and POSIX
+     C libraries.
 
 Bugfix
    * Fixes an issue with MBEDTLS_CHACHAPOLY_C which would not compile if

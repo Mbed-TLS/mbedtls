@@ -41,6 +41,7 @@ my @ciphers = split( /\s+/, `sed -n -e '$sed_cmd' $cipher_h` );
 # we list those reverse-dependencies here to keep check_config.h happy.
 my %revdeps = (
     'MBEDTLS_AES_C'         => ['MBEDTLS_CTR_DRBG_C'],
+    'MBEDTLS_CHACHA20_C'    => ['MBEDTLS_CHACHAPOLY_C'],
 );
 
 system( "cp $config_h $config_h.bak" ) and die;
@@ -68,8 +69,8 @@ for my $cipher (@ciphers) {
         }
     }
 
-    #system( "CFLAGS='-Werror -Wall -Wextra' make lib" )
-    #    and abort "Failed to build lib: $cipher\n";
+    system( "CFLAGS='-Werror -Wall -Wextra' make lib" )
+        and abort "Failed to build lib: $cipher\n";
     #system( "cd tests && make" ) and abort "Failed to build tests: $cipher\n";
     #system( "make test" ) and abort "Failed test suite: $cipher\n";
 }

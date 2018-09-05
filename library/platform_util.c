@@ -85,7 +85,7 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
 /*
  * This is a convenience shorthand macro to avoid checking the long
  * preprocessor conditions above. Ideally, we could expose this macro in
- * platform_utils.h and simply use it in platform_utils.c, threading.c and
+ * platform_util.h and simply use it in platform_util.c, threading.c and
  * threading.h. However, this macro is not part of the Mbed TLS public API, so
  * we keep it private by only defining it in this file
  */

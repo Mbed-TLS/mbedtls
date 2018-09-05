@@ -67,14 +67,13 @@ void mbedtls_platform_zeroize( void *buf, size_t len );
 
 #if defined(MBEDTLS_HAVE_TIME_DATE)
 /**
- * \brief      Thread-safe implementation of gmtime()
+ * \brief      Platform-specific implementation of gmtime_r()
  *
- *             The function is an abstraction that when called behaves similar
- *             to the gmtime() function from the C standard, but is thread
- *             safe.
+ *             The function is a thread-safe abstraction that behaves
+ *             similar to the gmtime_r() function from the C standard.
  *
  *             Mbed TLS will try to identify the underlying platform and
- *             configure an appropriate underlying implementation (e.g.
+ *             make use of an appropriate underlying implementation (e.g.
  *             gmtime_r() for POSIX and gmtime_s() for Windows). If this is
  *             not possible, then gmtime() will be used. In this case, calls
  *             from the library to gmtime() will be guarded by the mutex

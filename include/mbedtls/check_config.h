@@ -70,6 +70,11 @@
 #error "MBEDTLS_AESNI_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_CHACHAPOLY_C) && \
+    (!defined(MBEDTLS_CHACHA20_C) || !defined(MBEDTLS_POLY1305_C))
+#error "MBEDTLS_CHACHAPOLY_C defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_CTR_DRBG_C) && !defined(MBEDTLS_AES_C)
 #error "MBEDTLS_CTR_DRBG_C defined, but not all prerequisites"
 #endif

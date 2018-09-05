@@ -240,7 +240,8 @@ static int get_options( int argc, char *argv[] )
             {
                 mbedtls_printf( " too many uses of %s: only %d allowed\n",
                                 p, MAX_DELAYED_HS );
-                exit_usage( p, NULL );
+                q = NULL;
+                goto usage;
             }
 
             len = strlen( q );

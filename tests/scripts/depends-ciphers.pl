@@ -40,7 +40,7 @@ my @ciphers = split( /\s+/, `sed -n -e '$sed_cmd' $cipher_h` );
 # Some algorithms can't be disabled on their own as others depend on them, so
 # we list those reverse-dependencies here to keep check_config.h happy.
 my %revdeps = (
-    'MBEDTLS_AES_C'         => ['MBEDTLS_CTR_DRBG_C'],
+    'MBEDTLS_AES_C'         => ['MBEDTLS_CTR_DRBG_C', 'MBEDTLS_NIST_KW_C'],
     'MBEDTLS_CHACHA20_C'    => ['MBEDTLS_CHACHAPOLY_C'],
 );
 
@@ -59,6 +59,12 @@ for my $cipher (@ciphers) {
     print "\n******************************************\n";
     print "* Testing without cipher: $cipher\n";
     print "******************************************\n";
+
+    system( "scripts/config.pl full" )
+        and abort "Failed to enable full config\n";
+    # memory backtrace slows down tests too much
+    system( "scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE" )
+        and abort "Failed to disable MBEDTLS_MEMORY_BACKTRACE\n";
 
     system( "scripts/config.pl unset $cipher" )
         and abort "Failed to disable $cipher\n";

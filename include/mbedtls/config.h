@@ -3107,7 +3107,7 @@
  * system, the implementation of mbedtls_platform_gmtime_r() will default to
  * using the standard gmtime(). In this case, calls from the library to
  * gmtime() will be guarded by the global mutex mbedtls_threading_gmtime_mutex
- * if MBEDTLS_THREADING_C is enable. It is advised that calls from outside the
+ * if MBEDTLS_THREADING_C is enabled. It is advised that calls from outside the
  * library are also guarded with this mutex to avoid race conditions. However,
  * if the macro MBEDTLS_PLATFORM_GMTIME_R_ALT is defined, Mbed TLS will
  * unconditionally use the implementation for mbedtls_platform_gmtime_r()

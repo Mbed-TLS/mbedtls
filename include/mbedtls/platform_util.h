@@ -87,9 +87,9 @@ void mbedtls_platform_zeroize( void *buf, size_t len );
  *              unconditionally use the alternative implementation for
  *              mbedtls_platform_gmtime() supplied by the user at compile time
  *
- * \param tt    Pointer to an object containing time (in seconds) since the
- *              Epoc to be converted
- * \param tm    Pointer to an object where the results will be stored
+ * \param tt     Pointer to an object containing time (in seconds) since the
+ *               Epoc to be converted
+ * \param tm_buf Pointer to an object where the results will be stored
  *
  * \return      Pointer to an object of type struct tm on success, otherwise
  *              NULL

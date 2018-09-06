@@ -124,7 +124,10 @@ extern mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex;
  * threading.c. Remember to update the code there when changing the conditions
  * here.
  */
+#if ! ( defined(_WIN32) && !defined(EFIX64) && !defined(EFI32) )
 extern mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex;
+#endif /* ! ( defined(_WIN32) && !defined(EFIX64) && !defined(EFI32) ) */
+
 #endif /* !( ( defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L ) ||     \
              ( defined(_POSIX_THREAD_SAFE_FUNCTIONS ) &&                     \
                 _POSIX_THREAD_SAFE_FUNCTIONS >= 20112L ) ) */

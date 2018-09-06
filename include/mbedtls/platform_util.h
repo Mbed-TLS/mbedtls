@@ -70,7 +70,7 @@ void mbedtls_platform_zeroize( void *buf, size_t len );
  * \brief      Platform-specific implementation of gmtime_r()
  *
  *             The function is a thread-safe abstraction that behaves
- *             similar to the gmtime_r() function from the C standard.
+ *             similarly to the gmtime_r() function from the C standard.
  *
  *             Mbed TLS will try to identify the underlying platform and
  *             make use of an appropriate underlying implementation (e.g.

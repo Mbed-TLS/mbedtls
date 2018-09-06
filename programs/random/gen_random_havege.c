@@ -111,7 +111,7 @@ int main( int argc, char *argv[] )
 exit:
     mbedtls_havege_free( &hs );
     if( f != NULL )
-    	fclose( f );
+        fclose( f );
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_teardown( &platform_ctx );
 #endif

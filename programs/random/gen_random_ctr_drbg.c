@@ -90,7 +90,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
         mbedtls_platform_teardown( &platform_ctx );
 #endif
-		return( exit_code );
+        return( exit_code );
     }
 
     mbedtls_entropy_init( &entropy );

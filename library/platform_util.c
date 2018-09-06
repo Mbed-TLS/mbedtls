@@ -81,7 +81,10 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
     defined(__unix) || defined(__unix__) || (defined(__APPLE__) && \
     defined(__MACH__)))
 #include <unistd.h>
-#if !defined(_POSIX_VERSION) || _POSIX_C_SOURCE > _POSIX_THREAD_SAFE_FUNCTIONS
+
+#if !( ( defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L ) ||     \
+       ( defined(_POSIX_THREAD_SAFE_FUNCTIONS ) &&                     \
+         _POSIX_THREAD_SAFE_FUNCTIONS >= 20112L ) )
 /*
  * This is a convenience shorthand macro to avoid checking the long
  * preprocessor conditions above. Ideally, we could expose this macro in
@@ -90,7 +93,9 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
  * we keep it private by only defining it in this file
  */
 #define PLATFORM_UTIL_USE_GMTIME
-#endif /* !_POSIX_VERSION || _POSIX_C_SOURCE > _POSIX_THREAD_SAFE_FUNCTIONS */
+#endif /* !( ( defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L ) ||     \
+             ( defined(_POSIX_THREAD_SAFE_FUNCTIONS ) &&                     \
+                _POSIX_THREAD_SAFE_FUNCTIONS >= 20112L ) ) */
 #endif /* !_WIN32 && (unix || __unix || __unix__ ||
         * (__APPLE__ && __MACH__)) */
 

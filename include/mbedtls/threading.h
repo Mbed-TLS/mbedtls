@@ -24,14 +24,6 @@
 #ifndef MBEDTLS_THREADING_H
 #define MBEDTLS_THREADING_H
 
-/*
- * Ensure gmtime_r is available even with -std=c99; must be defined before
- * config.h, which pulls in glibc's features.h. Harmless on other platforms.
- */
-#if !defined(_POSIX_C_SOURCE)
-#define _POSIX_C_SOURCE 200112L
-#endif
-
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
 #else
@@ -107,31 +99,17 @@ extern int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t *mutex );
 #if defined(MBEDTLS_FS_IO)
 extern mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex;
 #endif
+
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
-
-#if !defined(_WIN32) && (defined(unix) || \
-    defined(__unix) || defined(__unix__) || (defined(__APPLE__) && \
-    defined(__MACH__)))
-#include <unistd.h>
-#endif /* !_WIN32 && (unix || __unix || __unix__ ||
-        * (__APPLE__ && __MACH__)) */
-
-#if !( ( defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L ) ||     \
-       ( defined(_POSIX_THREAD_SAFE_FUNCTIONS ) &&                     \
-         _POSIX_THREAD_SAFE_FUNCTIONS >= 20112L ) )
-/*
- * The preprocessor conditions above are the same as in platform_util.c and
- * threading.c. Remember to update the code there when changing the conditions
- * here.
- */
-#if ! ( defined(_WIN32) && !defined(EFIX64) && !defined(EFI32) )
+/* This mutex may or may not be used in the default definition of
+ * mbedtls_platform_gmtime_r(), but in order to determine that,
+ * we need to check POSIX features, hence modify _POSIX_C_SOURCE.
+ * With the current approach, this declaration is orphaned, lacking
+ * an accompanying definition, in case mbedtls_platform_gmtime_r()
+ * doesn't need it, but that's not a problem. */
 extern mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex;
-#endif /* ! ( defined(_WIN32) && !defined(EFIX64) && !defined(EFI32) ) */
-
-#endif /* !( ( defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L ) ||     \
-             ( defined(_POSIX_THREAD_SAFE_FUNCTIONS ) &&                     \
-                _POSIX_THREAD_SAFE_FUNCTIONS >= 20112L ) ) */
 #endif /* MBEDTLS_HAVE_TIME_DATE && !MBEDTLS_PLATFORM_GMTIME_R_ALT */
+
 #endif /* MBEDTLS_THREADING_C */
 
 #ifdef __cplusplus

@@ -108,10 +108,14 @@ extern int (*mbedtls_mutex_unlock)( mbedtls_threading_mutex_t *mutex );
 extern mbedtls_threading_mutex_t mbedtls_threading_readdir_mutex;
 #endif
 #if defined(MBEDTLS_HAVE_TIME_DATE) && !defined(MBEDTLS_PLATFORM_GMTIME_R_ALT)
+
 #if !defined(_WIN32) && (defined(unix) || \
     defined(__unix) || defined(__unix__) || (defined(__APPLE__) && \
     defined(__MACH__)))
 #include <unistd.h>
+#endif /* !_WIN32 && (unix || __unix || __unix__ ||
+        * (__APPLE__ && __MACH__)) */
+
 #if !( ( defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L ) ||     \
        ( defined(_POSIX_THREAD_SAFE_FUNCTIONS ) &&                     \
          _POSIX_THREAD_SAFE_FUNCTIONS >= 20112L ) )
@@ -124,8 +128,6 @@ extern mbedtls_threading_mutex_t mbedtls_threading_gmtime_mutex;
 #endif /* !( ( defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L ) ||     \
              ( defined(_POSIX_THREAD_SAFE_FUNCTIONS ) &&                     \
                 _POSIX_THREAD_SAFE_FUNCTIONS >= 20112L ) ) */
-#endif /* !_WIN32 && (unix || __unix || __unix__ ||
-        * (__APPLE__ && __MACH__)) */
 #endif /* MBEDTLS_HAVE_TIME_DATE && !MBEDTLS_PLATFORM_GMTIME_R_ALT */
 #endif /* MBEDTLS_THREADING_C */
 

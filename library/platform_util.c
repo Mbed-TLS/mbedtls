@@ -81,6 +81,8 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
     defined(__unix) || defined(__unix__) || (defined(__APPLE__) && \
     defined(__MACH__)))
 #include <unistd.h>
+#endif /* !_WIN32 && (unix || __unix || __unix__ ||
+        * (__APPLE__ && __MACH__)) */
 
 #if !( ( defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L ) ||     \
        ( defined(_POSIX_THREAD_SAFE_FUNCTIONS ) &&                     \
@@ -96,8 +98,6 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
 #endif /* !( ( defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L ) ||     \
              ( defined(_POSIX_THREAD_SAFE_FUNCTIONS ) &&                     \
                 _POSIX_THREAD_SAFE_FUNCTIONS >= 20112L ) ) */
-#endif /* !_WIN32 && (unix || __unix || __unix__ ||
-        * (__APPLE__ && __MACH__)) */
 
 struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
                                       struct tm *tm_buf )

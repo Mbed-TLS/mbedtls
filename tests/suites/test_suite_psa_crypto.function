@@ -3451,3 +3451,13 @@ exit:
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void validate_module_init_generate_random( )
+{
+    psa_status_t status;
+    uint8_t random[10] = { 0 };
+    status = psa_generate_random( random, sizeof( random ) );
+    TEST_ASSERT( status == PSA_ERROR_BAD_STATE );
+}
+/* END_CASE */

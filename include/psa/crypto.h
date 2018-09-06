@@ -2902,6 +2902,7 @@ psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_generate_random(uint8_t *output,
                                  size_t output_size);

@@ -168,8 +168,8 @@ Changes
    * Improve compatibility with some alternative CCM implementations by using
      CCM test vectors from RAM.
    * Add calls to platform setup and teardown functions to all the example
-     programs for which this is relevant. This change enables the example
-     programs utilizing platform specific cryptographic features.
+     programs for which this is relevant. This change enables the utilization
+     of platform-specific cryptographic features in example programs.
 
 = mbed TLS 2.7.5 branch released 2018-07-25
 

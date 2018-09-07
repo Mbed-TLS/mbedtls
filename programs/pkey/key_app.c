@@ -317,7 +317,7 @@ int main( int argc, char *argv[] )
 cleanup:
 
 #if defined(MBEDTLS_ERROR_C)
-    if( exit_code != MBEDTLS_EXIT_SUCCESS && ret != 0 )
+    if( ret != 0 )
     {
         mbedtls_strerror( ret, buf, sizeof( buf ) );
         mbedtls_printf( "  !  Last error was: %s\n", buf );

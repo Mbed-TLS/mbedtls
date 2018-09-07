@@ -62,6 +62,12 @@ Changes
      mbedtls_ssl_get_record_expansion() in case of ChachaPoly ciphersuites,
      or CBC ciphersuites in (D)TLS versions 1.1 or higher. Fixes #1913, #1914.
    * Add support for buffering of out-of-order handshake messages.
+   * Extend RSASSA-PSS signature to allow slightly a smaller salt size.
+     Previously, PSS signature always used a salt with the same length as the
+     hash, and returned an error if this was not possible. Now the salt size
+     may be up to two bytes shorter. This allows the library to support all
+     hash and signature sizes that comply with FIPS 186-4, including SHA-512
+     with a 1024-bit key.
 
 INTERNAL NOTE: need to bump soversion of libmbedtls:
 - added new member 'mtu' to public 'mbedtls_ssl_conf' structure

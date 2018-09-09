@@ -42,6 +42,7 @@ fi
 : ${GNUTLS_SERV:="gnutls-serv"}
 : ${GNUTLS_LEGACY_CLI:="$GNUTLS_CLI"}
 : ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
+: ${SEED:=1}
 
 # To avoid setting OpenSSL and GnuTLS for each call to compat.sh and ssl-opt.sh
 # we just export the variables they require
@@ -62,6 +63,7 @@ print_usage() {
     printf "  -h|--help\tPrint this help.\n"
     printf "     --line-cov-threshold\tLine coverage test threshold (default 0)\n"
     printf "     --fn-cov-threshold\tLine coverage test threshold (default 0)\n"
+    printf "     --seed\tInteger seed value to use for this test run (default 1)\n"
 }
 
 get_options() {
@@ -72,6 +74,9 @@ get_options() {
                 ;;
             --fn-cov-threshold)
                 shift; FN_COV_THRESHOLD=$1
+                ;;
+            --seed)
+                shift; SEED="$1"
                 ;;
             -h|--help)
                 print_usage
@@ -120,7 +125,7 @@ perl scripts/run-test-suites.pl -v |tee unit-test-$TEST_OUTPUT
 echo
 
 # Step 2b - System Tests
-sh ssl-opt.sh |tee sys-test-$TEST_OUTPUT
+sh ssl-opt.sh --seed $SEED |tee sys-test-$TEST_OUTPUT
 echo
 
 # Step 2c - Compatibility tests

@@ -4,9 +4,11 @@
 
 CFLAGS	?= -O2
 WARNING_CFLAGS ?= -Wall -W -Wdeclaration-after-statement
+WARNING_CXXFLAGS ?= -Wall -W
 LDFLAGS ?=
 
 LOCAL_CFLAGS = $(WARNING_CFLAGS) -I../include -D_FILE_OFFSET_BITS=64
+LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) -I../include -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS = -L../library 			\
 		-lmbedtls$(SHARED_SUFFIX)	\
 		-lmbedx509$(SHARED_SUFFIX)	\
@@ -75,6 +77,10 @@ APPS =	aes/aescrypt2$(EXEXT)		aes/crypt_and_hash$(EXEXT)	\
 
 ifdef PTHREAD
 APPS +=	ssl/ssl_pthread_server$(EXEXT)
+endif
+
+ifdef TEST_CPP
+APPS += test/cpp_dummy_build$(EXEXT)
 endif
 
 .SILENT:
@@ -241,6 +247,10 @@ test/ssl_cert_test$(EXEXT): test/ssl_cert_test.c $(DEP)
 test/benchmark$(EXEXT): test/benchmark.c $(DEP)
 	echo "  CC    test/benchmark.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/benchmark.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
+
+test/cpp_dummy_build$(EXEXT): test/cpp_dummy_build.cpp $(DEP)
+	echo "  CXX   test/cpp_dummy_build.cpp"
+	$(CXX) $(LOCAL_CXXFLAGS) $(CXXFLAGS) test/cpp_dummy_build.cpp   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/selftest$(EXEXT): test/selftest.c $(DEP)
 	echo "  CC    test/selftest.c"

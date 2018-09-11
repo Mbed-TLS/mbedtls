@@ -163,6 +163,9 @@ const mbedtls_x509_crt_profile mbedtls_x509_crt_profile_suiteb =
 static int x509_profile_check_md_alg( const mbedtls_x509_crt_profile *profile,
                                       mbedtls_md_type_t md_alg )
 {
+    if( md_alg == MBEDTLS_MD_NONE )
+        return( -1 );
+
     if( ( profile->allowed_mds & MBEDTLS_X509_ID_FLAG( md_alg ) ) != 0 )
         return( 0 );
 
@@ -176,6 +179,9 @@ static int x509_profile_check_md_alg( const mbedtls_x509_crt_profile *profile,
 static int x509_profile_check_pk_alg( const mbedtls_x509_crt_profile *profile,
                                       mbedtls_pk_type_t pk_alg )
 {
+    if( pk_alg == MBEDTLS_PK_NONE )
+        return( -1 );
+
     if( ( profile->allowed_pks & MBEDTLS_X509_ID_FLAG( pk_alg ) ) != 0 )
         return( 0 );
 
@@ -207,6 +213,9 @@ static int x509_profile_check_key( const mbedtls_x509_crt_profile *profile,
         pk_alg == MBEDTLS_PK_ECKEY_DH )
     {
         const mbedtls_ecp_group_id gid = mbedtls_pk_ec( *pk )->grp.id;
+
+        if( gid == MBEDTLS_ECP_DP_NONE )
+            return( -1 );
 
         if( ( profile->allowed_curves & MBEDTLS_X509_ID_FLAG( gid ) ) != 0 )
             return( 0 );
@@ -587,17 +596,13 @@ static int x509_get_crt_ext( unsigned char **p,
         end_ext_data = *p + len;
 
         /* Get extension ID */
-        extn_oid.tag = **p;
-
-        if( ( ret = mbedtls_asn1_get_tag( p, end, &extn_oid.len, MBEDTLS_ASN1_OID ) ) != 0 )
+        if( ( ret = mbedtls_asn1_get_tag( p, end_ext_data, &extn_oid.len,
+                                          MBEDTLS_ASN1_OID ) ) != 0 )
             return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret );
 
+        extn_oid.tag = MBEDTLS_ASN1_OID;
         extn_oid.p = *p;
         *p += extn_oid.len;
-
-        if( ( end - *p ) < 1 )
-            return( MBEDTLS_ERR_X509_INVALID_EXTENSIONS +
-                    MBEDTLS_ERR_ASN1_OUT_OF_DATA );
 
         /* Get optional critical */
         if( ( ret = mbedtls_asn1_get_bool( p, end_ext_data, &is_critical ) ) != 0 &&

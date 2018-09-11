@@ -35,6 +35,7 @@
 #   * GNU Make
 #   * CMake
 #   * GCC and Clang (recent enough for using ASan with gcc and MemSan with clang, or valgrind)
+#   * G++
 #   * arm-gcc and mingw-gcc
 #   * ArmCC 5 and ArmCC 6, unless invoked with --no-armcc
 #   * Yotta build dependencies, unless invoked with --no-yotta
@@ -220,11 +221,19 @@ err_msg()
 check_tools()
 {
     for TOOL in "$@"; do
-        if ! `hash "$TOOL" >/dev/null 2>&1`; then
+        if ! `type "$TOOL" >/dev/null 2>&1`; then
             err_msg "$TOOL not found!"
             exit 1
         fi
     done
+}
+
+check_headers_in_cpp () {
+    ls include/mbedtls >headers.txt
+    <programs/test/cpp_dummy_build.cpp sed -n 's/"$//; s!^#include "mbedtls/!!p' |
+    sort |
+    diff headers.txt -
+    rm headers.txt
 }
 
 while [ $# -gt 0 ]; do
@@ -339,6 +348,7 @@ $text"
             echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
             echo "${start_red}FAILED: $failure_count${end_color}$failure_summary"
             echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+            exit 1
         elif [ -z "${1-}" ]; then
             echo "SUCCESS :)"
         fi
@@ -355,6 +365,12 @@ if_build_succeeded () {
     if [ $build_status -eq 0 ]; then
         record_status "$@"
     fi
+}
+
+# to be used instead of ! for commands run with
+# record_status or if_build_succeeded
+not() {
+    ! "$@"
 }
 
 msg "info: $0 configuration"
@@ -520,6 +536,48 @@ tests/ssl-opt.sh -f RSA
 msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
 tests/compat.sh -t RSA
 
+msg "build: small SSL_OUT_CONTENT_LEN (ASan build)"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_SSL_IN_CONTENT_LEN 16384
+scripts/config.pl set MBEDTLS_SSL_OUT_CONTENT_LEN 4096
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: small SSL_OUT_CONTENT_LEN - ssl-opt.sh MFL and large packet tests"
+if_build_succeeded tests/ssl-opt.sh -f "Max fragment\|Large packet"
+
+msg "build: small SSL_IN_CONTENT_LEN (ASan build)"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_SSL_IN_CONTENT_LEN 4096
+scripts/config.pl set MBEDTLS_SSL_OUT_CONTENT_LEN 16384
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: small SSL_IN_CONTENT_LEN - ssl-opt.sh MFL tests"
+if_build_succeeded tests/ssl-opt.sh -f "Max fragment"
+
+msg "build: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #0"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_SSL_DTLS_MAX_BUFFERING 1000
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #0 - ssl-opt.sh specific reordering test"
+if_build_succeeded tests/ssl-opt.sh -f "DTLS reordering: Buffer out-of-order hs msg before reassembling next, free buffered msg"
+
+msg "build: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #1"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_SSL_DTLS_MAX_BUFFERING 240
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #1 - ssl-opt.sh specific reordering test"
+if_build_succeeded tests/ssl-opt.sh -f "DTLS reordering: Buffer encrypted Finished message, drop for fragmented NewSessionTicket"
+
 msg "build: cmake, full config, clang" # ~ 50s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
@@ -537,8 +595,26 @@ if_build_succeeded tests/ssl-opt.sh -f 'Default\|ECJPAKE\|SSL async private'
 msg "test: compat.sh RC4, DES & NULL (full config)" # ~ 2 min
 if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
 
-msg "test: compat.sh ARIA"
-if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA'
+msg "test: compat.sh ARIA + ChachaPoly"
+if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
+
+msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl set MBEDTLS_DEPRECATED_WARNING
+# Build with -O -Wextra to catch a maximum of issues.
+make CC=gcc CFLAGS='-O -Werror -Wall -Wextra' lib programs
+make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
+
+msg "build: make, full config + DEPRECATED_REMOVED, clang -O" # ~ 30s
+# No cleanup, just tweak the configuration and rebuild
+make clean
+scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
+scripts/config.pl set MBEDTLS_DEPRECATED_REMOVED
+# Build with -O -Wextra to catch a maximum of issues.
+make CC=clang CFLAGS='-O -Werror -Wall -Wextra' lib programs
+make CC=clang CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
 
 msg "test/build: curves.pl (gcc)" # ~ 4 min
 cleanup
@@ -559,6 +635,12 @@ record_status tests/scripts/key-exchanges.pl
 msg "build: Unix make, -Os (gcc)" # ~ 30s
 cleanup
 make CC=gcc CFLAGS='-Werror -Wall -Wextra -Os'
+
+msg "test: verify header list in cpp_dummy_build.cpp"
+record_status check_headers_in_cpp
+
+msg "build: Unix make, incremental g++"
+make TEST_CPP=1
 
 # Full configuration build, without platform support, file IO and net sockets.
 # This should catch missing mbedtls_printf definitions, and by disabling file
@@ -616,6 +698,7 @@ scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
 scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
 make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0 -std=c99 -pedantic' lib
 
+# Run max fragment length tests with MFL disabled
 msg "build: default config except MFL extension (ASan build)" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
@@ -625,6 +708,18 @@ make
 
 msg "test: ssl-opt.sh, MFL-related tests"
 if_build_succeeded tests/ssl-opt.sh -f "Max fragment length"
+
+msg "build: no MFL extension, small SSL_OUT_CONTENT_LEN (ASan build)"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+scripts/config.pl set MBEDTLS_SSL_IN_CONTENT_LEN 16384
+scripts/config.pl set MBEDTLS_SSL_OUT_CONTENT_LEN 4096
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: MFL tests (disabled MFL extension case) & large packet tests"
+if_build_succeeded tests/ssl-opt.sh -f "Max fragment length\|Large buffer"
 
 msg "build: default config with  MBEDTLS_TEST_NULL_ENTROPY (ASan build)"
 cleanup
@@ -676,15 +771,30 @@ if uname -a | grep -F Linux >/dev/null; then
 fi
 
 if uname -a | grep -F x86_64 >/dev/null; then
-    msg "build: i386, make, gcc" # ~ 30s
+    # Build once with -O0, to compile out the i386 specific inline assembly
+    msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
     cleanup
-    make CC=gcc CFLAGS='-Werror -Wall -Wextra -m32'
+    cp "$CONFIG_H" "$CONFIG_BAK"
+    scripts/config.pl full
+    make CC=gcc CFLAGS='-O0 -Werror -Wall -Wextra -m32 -fsanitize=address'
 
-    msg "test: i386, make, gcc"
+    msg "test: i386, make, gcc -O0 (ASan build)"
+    make test
+
+    # Build again with -O1, to compile in the i386 specific inline assembly
+    msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
+    cleanup
+    cp "$CONFIG_H" "$CONFIG_BAK"
+    scripts/config.pl full
+    make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address'
+
+    msg "test: i386, make, gcc -O1 (ASan build)"
     make test
 
     msg "build: 64-bit ILP32, make, gcc" # ~ 30s
     cleanup
+    cp "$CONFIG_H" "$CONFIG_BAK"
+    scripts/config.pl full
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32'
 
     msg "test: 64-bit ILP32, make, gcc"
@@ -712,6 +822,31 @@ make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
 
 msg "test: gcc, force 64-bit bignum limbs"
 make test
+
+
+msg "build: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
+make CFLAGS='-Werror -O1'
+
+msg "test: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
+make test
+
+
+msg "build: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+scripts/config.pl set MBEDTLS_NO_64BIT_MULTIPLICATION
+make CFLAGS='-Werror -O1'
+
+msg "test: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
+make test
+
 
 msg "build: arm-none-eabi-gcc, make" # ~ 10s
 cleanup
@@ -748,7 +883,27 @@ scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
 scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
 make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
 echo "Checking that software 64-bit division is not required"
-! grep __aeabi_uldiv library/*.o
+if_build_succeeded not grep __aeabi_uldiv library/*.o
+
+msg "build: arm-none-eabi-gcc MBEDTLS_NO_64BIT_MULTIPLICATION, make" # ~ 10s
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset MBEDTLS_NET_C
+scripts/config.pl unset MBEDTLS_TIMING_C
+scripts/config.pl unset MBEDTLS_FS_IO
+scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
+# following things are not in the default config
+scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
+scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
+scripts/config.pl unset MBEDTLS_THREADING_C
+scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
+scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
+scripts/config.pl set MBEDTLS_NO_64BIT_MULTIPLICATION
+make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -O1 -march=armv6-m -mthumb' lib
+echo "Checking that software 64-bit multiplication is not required"
+if_build_succeeded not grep __aeabi_lmul library/*.o
 
 msg "build: ARM Compiler 5, make"
 cleanup
@@ -896,16 +1051,30 @@ cd "$MBEDTLS_ROOT_DIR"
 rm -rf "$OUT_OF_SOURCE_DIR"
 unset MBEDTLS_ROOT_DIR
 
+# Test that the function mbedtls_platform_zeroize() is not optimized away by
+# different combinations of compilers and optimization flags by using an
+# auxiliary GDB script. Unfortunately, GDB does not return error values to the
+# system in all cases that the script fails, so we must manually search the
+# output to check whether the pass string is present and no failure strings
+# were printed.
 for optimization_flag in -O2 -O3 -Ofast -Os; do
     for compiler in clang gcc; do
         msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
         cleanup
-        CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag" make programs
-        gdb -x tests/scripts/test_zeroize.gdb -nw -batch -nx
+        make programs CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag"
+        if_build_succeeded gdb -x tests/scripts/test_zeroize.gdb -nw -batch -nx 2>&1 | tee test_zeroize.log
+        if_build_succeeded [ -s test_zeroize.log ]
+        if_build_succeeded grep "The buffer was correctly zeroized" test_zeroize.log
+        if_build_succeeded not grep -i "error" test_zeroize.log
+        rm -f test_zeroize.log
     done
 done
 
+msg "Lint: Python scripts"
+tests/scripts/check-python-files.sh
 
+msg "uint test: generate_test_code.py"
+./tests/scripts/test_generate_test_code.py
 
 ################################################################
 #### Termination

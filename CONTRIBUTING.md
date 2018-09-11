@@ -26,38 +26,70 @@ Making a Contribution
 1. For quick merging, the contribution should be short, and concentrated on a single feature or topic. The larger the contribution is, the longer it would take to review it and merge it.
 1. Mbed TLS is released under the Apache license, and as such, all the added files should include the Apache license header.
 
-Backports
----------
-Mbed TLS maintains some legacy branches, which are released as LTS versions. Mbed TLS should follow backwards compatibility rules, to fit with existing users. As such, backporting to these branches should be handled according to the following rules:
-  
-1. If the contribution is a new feature or enhancement, no backporting is needed.
-1. Bug fixes should be backported to the legacy branches containing these bugs.
-1. Changes in the API do not require backporting. If a bug fix introduced a new API, such as new error codes, the bug fix should be implemented differently in the legacy branch.
+API/ABI Compatibility
+---------------------
+The project aims to minimise the impact on users upgrading to newer versions of the library and it should not be necessary for a user to make any changes to their own code to work with a newer version of the library. Unless the user has made an active decision to use newer features, a newer generation of the library or a change has been necessary due to a security issue or other significant software defect, no modifications to their own code should be necessary. To achieve this, API compatibility is maintained between different versions of Mbed TLS on the main development branch and in LTS (Long Term Support) branches.
 
-It would be highly appreciated if a contribution would be backported to a legacy branch in addition to the [development branch](https://github.com/ARMmbed/mbedtls/tree/development).
-At the moment, the legacy branches are:
-  
-1. [mbedtls-1.3](https://github.com/ARMmbed/mbedtls/tree/mbedtls-1.3)
+To minimise such disruption to users, where a change to the interface is required, all changes to the ABI or API, even on the main development branch where new features are added, need to be justifiable by either being a significant enhancement, new feature or bug fix which is best resolved by an interface change.
+
+Where changes to an existing interface are necessary, functions in the public interface which need to be changed, are marked as 'deprecated'. This is done with the preprocessor symbols `MBEDTLS_DEPRECATED_WARNING` and `MBEDTLS_DEPRECATED_REMOVED`. Then, a new function with a new name but similar if not identical behaviour to the original function containing the necessary changes should be created alongside the existing deprecated function.
+
+When a build is made with the deprecation preprocessor symbols defined, a compiler warning will be generated to warn a user that the function will be removed at some point in the future, notifying users that they should change from the older deprecated function to the newer function at their own convenience.
+
+Therefore, no changes are permitted to the definition of functions in the public interface which will change the API. Instead the interface can only be changed by its extension. As described above, if a function needs to be changed, a new function needs to be created alongside it, with a new name, and whatever change is necessary, such as a new parameter or the addition of a return value.
+
+Periodically, the library will remove deprecated functions from the library which will be a breaking change in the API, but such changes will be made only in a planned, structured way that gives sufficient notice to users of the library.
+
+Long Term Support Branches
+--------------------------
+Mbed TLS maintains several LTS (Long Term Support) branches, which are maintained continuously for a given period. The LTS branches are provided to allow users of the library to have a maintained, stable version of the library which contains only security fixes and fixes for other defects, without encountering additional features or API extensions which may introduce issues or change the code size or RAM usage, which can be significant considerations on some platforms. To allow users to take advantage of the LTS branches, these branches maintain backwards compatibility for both the public API and ABI.
+
+When backporting to these branches please observe the following rules:
+
+ 1. Any change to the library which changes the API or ABI cannot be backported.
+
+ 2. All bug fixes that correct a defect that is also present in an LTS branch must be backported to that LTS branch. If a bug fix introduces a change to the API such as a new function, the fix should be reworked to avoid the API change. API changes without very strong justification are unlikely to be accepted.
+
+ 3. If a contribution is a new feature or enhancement, no backporting is required. Exceptions to this may be addtional test cases or quality improvements such as changes to build or test scripts.
+
+It would be highly appreciated if contributions are backported to LTS branches in addition to the [development branch](https://github.com/ARMmbed/mbedtls/tree/development) by contributors.
+
+Currently maintained LTS branches are:
+
 1. [mbedtls-2.1](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.1)
+
+2. [mbedtls-2.7](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.7)
+
 
 Tests
 -----
-As mentioned, tests that show the correctness of the feature or bug fix should be added to the pull request, if no such tests exist.  
-Mbed TLS includes an elaborate test suite in `tests/` that initially requires Perl to generate the tests files (e.g. `test_suite_mpi.c`). These files are generated from a `function file` (e.g. `suites/test_suite_mpi.function`) and a `data file` (e.g. `suites/test_suite_mpi.data`). The function file contains the test functions. The data file contains the test cases, specified as parameters that will be passed to the test function.
+As mentioned, tests that show the correctness of the feature or bug fix should be added to the pull request, if no such tests exist.
+
+Mbed TLS includes a comprehensive set of test suites in the `tests/` directory that are dynamically generated to produce the actual test source files (e.g. `test_suite_mpi.c`). These files are generated from a `function file` (e.g. `suites/test_suite_mpi.function`) and a `data file` (e.g. `suites/test_suite_mpi.data`). The function file contains the test functions. The data file contains the test cases, specified as parameters that will be passed to the test function.
+
+[A Knowledge Base article describing how to add additional tests is available on the Mbed TLS website](https://tls.mbed.org/kb/development/test_suites).
+
+A test script `tests/scripts/basic-build-test.sh` is available to show test coverage of the library. New code contributions should provide a similar level of code coverage to that which already exists for the library.
 
 Sample applications, if needed, should be modified as well.
 
 Continuous Integration Tests
 ----------------------------
-Once a PR has been made, the Continuous Integration (CI) tests are triggered and run. You should follow the result of the CI tests, and fix failures. 
+Once a PR has been made, the Continuous Integration (CI) tests are triggered and run. You should follow the result of the CI tests, and fix failures.
+
 It is advised to enable the [githooks scripts](https://github.com/ARMmbed/mbedtls/tree/development/tests/git-scripts) prior to pushing your changes, for catching some of the issues as early as possible.
 
 Documentation
 -------------
-Mbed TLS should be well documented. If documentation is needed, speak out!
+Mbed TLS is well documented, but if you think documentation is needed, speak out!
 
 1. All interfaces should be documented through Doxygen. New APIs should introduce Doxygen documentation.
-1. Complex parts in the code should include comments.
-1. If needed, a Readme file is advised.
-1. If a [Knowledge Base (KB)](https://tls.mbed.org/kb) article should be added, write this as a comment in the PR description.
-1. A [ChangeLog](https://github.com/ARMmbed/mbedtls/blob/development/ChangeLog) entry should be added for this contribution.
+
+2. Complex parts in the code should include comments.
+
+3. If needed, a Readme file is advised.
+
+4. If a [Knowledge Base (KB)](https://tls.mbed.org/kb) article should be added, write this as a comment in the PR description.
+
+5. A [ChangeLog](https://github.com/ARMmbed/mbedtls/blob/development/ChangeLog) entry should be added for this contribution.
+

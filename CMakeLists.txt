@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 2.6)
-project("mbed TLS" C)
+if(TEST_CPP)
+    project("mbed TLS" C CXX)
+else()
+    project("mbed TLS" C)
+endif()
 
 option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library." OFF)
 option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)
@@ -32,6 +36,7 @@ set(NULL_ENTROPY_WARNING "${WARNING_BORDER}"
                          "${NULL_ENTROPY_WARN_L3}"
                          "${WARNING_BORDER}")
 
+find_package(PythonInterp)
 find_package(Perl)
 if(PERL_FOUND)
 

@@ -56,7 +56,7 @@ typedef enum
  *                  should not be shared between multiple threads.
  * \brief           The ECDH context structure.
  */
-typedef struct
+typedef struct mbedtls_ecdh_context
 {
     mbedtls_ecp_group grp;   /*!< The elliptic curve used. */
     mbedtls_mpi d;           /*!< The private key. */

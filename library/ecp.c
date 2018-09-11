@@ -2517,7 +2517,6 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp, const mbedtls_mpi *
             mbedtls_mpi_get_bit( d, 1 ) != 0 ||
             mbedtls_mpi_bitlen( d ) - 1 != grp->nbits ) /* mbedtls_mpi_bitlen is one-based! */
             return( MBEDTLS_ERR_ECP_INVALID_KEY );
-        else
 
         /* see [Curve25519] page 5 */
         if( grp->nbits == 254 && mbedtls_mpi_get_bit( d, 2 ) != 0 )

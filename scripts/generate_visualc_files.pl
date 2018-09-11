@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # Generate main file, individual apps and solution files for MS Visual Studio
 # 2010

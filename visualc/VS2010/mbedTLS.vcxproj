@@ -159,6 +159,8 @@
     <ClInclude Include="..\..\include\mbedtls\camellia.h" />
     <ClInclude Include="..\..\include\mbedtls\ccm.h" />
     <ClInclude Include="..\..\include\mbedtls\certs.h" />
+    <ClInclude Include="..\..\include\mbedtls\chacha20.h" />
+    <ClInclude Include="..\..\include\mbedtls\chachapoly.h" />
     <ClInclude Include="..\..\include\mbedtls\check_config.h" />
     <ClInclude Include="..\..\include\mbedtls\cipher.h" />
     <ClInclude Include="..\..\include\mbedtls\cipher_internal.h" />
@@ -189,6 +191,7 @@
     <ClInclude Include="..\..\include\mbedtls\memory_buffer_alloc.h" />
     <ClInclude Include="..\..\include\mbedtls\net.h" />
     <ClInclude Include="..\..\include\mbedtls\net_sockets.h" />
+    <ClInclude Include="..\..\include\mbedtls\nist_kw.h" />
     <ClInclude Include="..\..\include\mbedtls\oid.h" />
     <ClInclude Include="..\..\include\mbedtls\padlock.h" />
     <ClInclude Include="..\..\include\mbedtls\pem.h" />
@@ -200,6 +203,7 @@
     <ClInclude Include="..\..\include\mbedtls\platform.h" />
     <ClInclude Include="..\..\include\mbedtls\platform_time.h" />
     <ClInclude Include="..\..\include\mbedtls\platform_util.h" />
+    <ClInclude Include="..\..\include\mbedtls\poly1305.h" />
     <ClInclude Include="..\..\include\mbedtls\ripemd160.h" />
     <ClInclude Include="..\..\include\mbedtls\rsa.h" />
     <ClInclude Include="..\..\include\mbedtls\rsa_internal.h" />
@@ -234,6 +238,8 @@
     <ClCompile Include="..\..\library\camellia.c" />
     <ClCompile Include="..\..\library\ccm.c" />
     <ClCompile Include="..\..\library\certs.c" />
+    <ClCompile Include="..\..\library\chacha20.c" />
+    <ClCompile Include="..\..\library\chachapoly.c" />
     <ClCompile Include="..\..\library\cipher.c" />
     <ClCompile Include="..\..\library\cipher_wrap.c" />
     <ClCompile Include="..\..\library\cmac.c" />
@@ -260,6 +266,7 @@
     <ClCompile Include="..\..\library\md_wrap.c" />
     <ClCompile Include="..\..\library\memory_buffer_alloc.c" />
     <ClCompile Include="..\..\library\net_sockets.c" />
+    <ClCompile Include="..\..\library\nist_kw.c" />
     <ClCompile Include="..\..\library\oid.c" />
     <ClCompile Include="..\..\library\padlock.c" />
     <ClCompile Include="..\..\library\pem.c" />
@@ -272,6 +279,7 @@
     <ClCompile Include="..\..\library\pkwrite.c" />
     <ClCompile Include="..\..\library\platform.c" />
     <ClCompile Include="..\..\library\platform_util.c" />
+    <ClCompile Include="..\..\library\poly1305.c" />
     <ClCompile Include="..\..\library\ripemd160.c" />
     <ClCompile Include="..\..\library\rsa.c" />
     <ClCompile Include="..\..\library\rsa_internal.c" />

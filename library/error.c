@@ -73,6 +73,14 @@
 #include "mbedtls/ccm.h"
 #endif
 
+#if defined(MBEDTLS_CHACHA20_C)
+#include "mbedtls/chacha20.h"
+#endif
+
+#if defined(MBEDTLS_CHACHAPOLY_C)
+#include "mbedtls/chachapoly.h"
+#endif
+
 #if defined(MBEDTLS_CIPHER_C)
 #include "mbedtls/cipher.h"
 #endif
@@ -155,6 +163,10 @@
 
 #if defined(MBEDTLS_PKCS5_C)
 #include "mbedtls/pkcs5.h"
+#endif
+
+#if defined(MBEDTLS_POLY1305_C)
+#include "mbedtls/poly1305.h"
 #endif
 
 #if defined(MBEDTLS_RIPEMD160_C)
@@ -505,6 +517,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "SSL - Internal-only message signaling that further message-processing should be done" );
         if( use_ret == -(MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS) )
             mbedtls_snprintf( buf, buflen, "SSL - The asynchronous operation is not completed yet" );
+        if( use_ret == -(MBEDTLS_ERR_SSL_EARLY_MESSAGE) )
+            mbedtls_snprintf( buf, buflen, "SSL - Internal-only message signaling that a message arrived early" );
         if( use_ret == -(MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) )
             mbedtls_snprintf( buf, buflen, "SSL - A cryptographic operation is in progress. Try again later" );
 #endif /* MBEDTLS_SSL_TLS_C */
@@ -680,6 +694,22 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         mbedtls_snprintf( buf, buflen, "CCM - CCM hardware accelerator failed" );
 #endif /* MBEDTLS_CCM_C */
 
+#if defined(MBEDTLS_CHACHA20_C)
+    if( use_ret == -(MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "CHACHA20 - Invalid input parameter(s)" );
+    if( use_ret == -(MBEDTLS_ERR_CHACHA20_FEATURE_UNAVAILABLE) )
+        mbedtls_snprintf( buf, buflen, "CHACHA20 - Feature not available. For example, s part of the API is not implemented" );
+    if( use_ret == -(MBEDTLS_ERR_CHACHA20_HW_ACCEL_FAILED) )
+        mbedtls_snprintf( buf, buflen, "CHACHA20 - Chacha20 hardware accelerator failed" );
+#endif /* MBEDTLS_CHACHA20_C */
+
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    if( use_ret == -(MBEDTLS_ERR_CHACHAPOLY_BAD_STATE) )
+        mbedtls_snprintf( buf, buflen, "CHACHAPOLY - The requested operation is not permitted in the current state" );
+    if( use_ret == -(MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED) )
+        mbedtls_snprintf( buf, buflen, "CHACHAPOLY - Authenticated decryption failed: data was not authentic" );
+#endif /* MBEDTLS_CHACHAPOLY_C */
+
 #if defined(MBEDTLS_CMAC_C)
     if( use_ret == -(MBEDTLS_ERR_CMAC_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "CMAC - CMAC hardware accelerator failed" );
@@ -796,6 +826,15 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_PADLOCK_DATA_MISALIGNED) )
         mbedtls_snprintf( buf, buflen, "PADLOCK - Input data should be aligned" );
 #endif /* MBEDTLS_PADLOCK_C */
+
+#if defined(MBEDTLS_POLY1305_C)
+    if( use_ret == -(MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "POLY1305 - Invalid input parameter(s)" );
+    if( use_ret == -(MBEDTLS_ERR_POLY1305_FEATURE_UNAVAILABLE) )
+        mbedtls_snprintf( buf, buflen, "POLY1305 - Feature not available. For example, s part of the API is not implemented" );
+    if( use_ret == -(MBEDTLS_ERR_POLY1305_HW_ACCEL_FAILED) )
+        mbedtls_snprintf( buf, buflen, "POLY1305 - Poly1305 hardware accelerator failed" );
+#endif /* MBEDTLS_POLY1305_C */
 
 #if defined(MBEDTLS_RIPEMD160_C)
     if( use_ret == -(MBEDTLS_ERR_RIPEMD160_HW_ACCEL_FAILED) )

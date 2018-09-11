@@ -39,6 +39,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_NO_UDBL_DIVISION)
     "MBEDTLS_NO_UDBL_DIVISION",
 #endif /* MBEDTLS_NO_UDBL_DIVISION */
+#if defined(MBEDTLS_NO_64BIT_MULTIPLICATION)
+    "MBEDTLS_NO_64BIT_MULTIPLICATION",
+#endif /* MBEDTLS_NO_64BIT_MULTIPLICATION */
 #if defined(MBEDTLS_HAVE_SSE2)
     "MBEDTLS_HAVE_SSE2",
 #endif /* MBEDTLS_HAVE_SSE2 */
@@ -102,6 +105,12 @@ static const char *features[] = {
 #if defined(MBEDTLS_CCM_ALT)
     "MBEDTLS_CCM_ALT",
 #endif /* MBEDTLS_CCM_ALT */
+#if defined(MBEDTLS_CHACHA20_ALT)
+    "MBEDTLS_CHACHA20_ALT",
+#endif /* MBEDTLS_CHACHA20_ALT */
+#if defined(MBEDTLS_CHACHAPOLY_ALT)
+    "MBEDTLS_CHACHAPOLY_ALT",
+#endif /* MBEDTLS_CHACHAPOLY_ALT */
 #if defined(MBEDTLS_CMAC_ALT)
     "MBEDTLS_CMAC_ALT",
 #endif /* MBEDTLS_CMAC_ALT */
@@ -117,6 +126,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_GCM_ALT)
     "MBEDTLS_GCM_ALT",
 #endif /* MBEDTLS_GCM_ALT */
+#if defined(MBEDTLS_NIST_KW_ALT)
+    "MBEDTLS_NIST_KW_ALT",
+#endif /* MBEDTLS_NIST_KW_ALT */
 #if defined(MBEDTLS_MD2_ALT)
     "MBEDTLS_MD2_ALT",
 #endif /* MBEDTLS_MD2_ALT */
@@ -126,6 +138,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_MD5_ALT)
     "MBEDTLS_MD5_ALT",
 #endif /* MBEDTLS_MD5_ALT */
+#if defined(MBEDTLS_POLY1305_ALT)
+    "MBEDTLS_POLY1305_ALT",
+#endif /* MBEDTLS_POLY1305_ALT */
 #if defined(MBEDTLS_RIPEMD160_ALT)
     "MBEDTLS_RIPEMD160_ALT",
 #endif /* MBEDTLS_RIPEMD160_ALT */
@@ -555,6 +570,12 @@ static const char *features[] = {
 #if defined(MBEDTLS_CERTS_C)
     "MBEDTLS_CERTS_C",
 #endif /* MBEDTLS_CERTS_C */
+#if defined(MBEDTLS_CHACHA20_C)
+    "MBEDTLS_CHACHA20_C",
+#endif /* MBEDTLS_CHACHA20_C */
+#if defined(MBEDTLS_CHACHAPOLY_C)
+    "MBEDTLS_CHACHAPOLY_C",
+#endif /* MBEDTLS_CHACHAPOLY_C */
 #if defined(MBEDTLS_CIPHER_C)
     "MBEDTLS_CIPHER_C",
 #endif /* MBEDTLS_CIPHER_C */
@@ -603,6 +624,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_HMAC_DRBG_C)
     "MBEDTLS_HMAC_DRBG_C",
 #endif /* MBEDTLS_HMAC_DRBG_C */
+#if defined(MBEDTLS_NIST_KW_C)
+    "MBEDTLS_NIST_KW_C",
+#endif /* MBEDTLS_NIST_KW_C */
 #if defined(MBEDTLS_MD_C)
     "MBEDTLS_MD_C",
 #endif /* MBEDTLS_MD_C */
@@ -654,6 +678,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_PLATFORM_C)
     "MBEDTLS_PLATFORM_C",
 #endif /* MBEDTLS_PLATFORM_C */
+#if defined(MBEDTLS_POLY1305_C)
+    "MBEDTLS_POLY1305_C",
+#endif /* MBEDTLS_POLY1305_C */
 #if defined(MBEDTLS_RIPEMD160_C)
     "MBEDTLS_RIPEMD160_C",
 #endif /* MBEDTLS_RIPEMD160_C */

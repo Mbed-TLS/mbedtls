@@ -303,22 +303,36 @@ exit:
     return( ret );
 }
 
-void mbedtls_ctr_drbg_update( mbedtls_ctr_drbg_context *ctx,
-                      const unsigned char *additional, size_t add_len )
+int mbedtls_ctr_drbg_update_ret( mbedtls_ctr_drbg_context *ctx,
+                                 const unsigned char *additional,
+                                 size_t add_len )
 {
     unsigned char add_input[MBEDTLS_CTR_DRBG_SEEDLEN];
+    int ret;
 
-    if( add_len > 0 )
-    {
-        /* MAX_INPUT would be more logical here, but we have to match
-         * block_cipher_df()'s limits since we can't propagate errors */
-        if( add_len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT )
-            add_len = MBEDTLS_CTR_DRBG_MAX_SEED_INPUT;
+    if( add_len == 0 )
+        return( 0 );
 
-        block_cipher_df( add_input, additional, add_len );
-        ctr_drbg_update_internal( ctx, add_input );
-        mbedtls_zeroize( add_input, sizeof( add_input ) );
-    }
+    if( ( ret = block_cipher_df( add_input, additional, add_len ) ) != 0 )
+        goto exit;
+    if( ( ret = ctr_drbg_update_internal( ctx, add_input ) ) != 0 )
+        goto exit;
+
+exit:
+    mbedtls_zeroize( add_input, sizeof( add_input ) );
+    return( ret );
+}
+
+/* Deprecated function, kept for backward compatibility. */
+void mbedtls_ctr_drbg_update( mbedtls_ctr_drbg_context *ctx,
+                              const unsigned char *additional,
+                              size_t add_len )
+{
+    /* MAX_INPUT would be more logical here, but we have to match
+     * block_cipher_df()'s limits since we can't propagate errors */
+    if( add_len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT )
+        add_len = MBEDTLS_CTR_DRBG_MAX_SEED_INPUT;
+    (void) mbedtls_ctr_drbg_update_ret( ctx, additional, add_len );
 }
 
 int mbedtls_ctr_drbg_reseed( mbedtls_ctr_drbg_context *ctx,
@@ -514,7 +528,7 @@ int mbedtls_ctr_drbg_update_seed_file( mbedtls_ctr_drbg_context *ctx, const char
     if( fread( buf, 1, n, f ) != n )
         ret = MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR;
     else
-        mbedtls_ctr_drbg_update( ctx, buf, n );
+        ret = mbedtls_ctr_drbg_update_ret( ctx, buf, n );
 
     fclose( f );
 

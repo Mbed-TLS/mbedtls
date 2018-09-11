@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.1.x branch released xxxx-xx-xx
+
+Security
+   * Wipe sensitive buffers on the stack in the CTR_DRBG and HMAC_DRBG
+     modules.
+
 = mbed TLS 2.1.15 branch released 2018-08-31
 
 Security

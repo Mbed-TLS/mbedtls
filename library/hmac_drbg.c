@@ -139,7 +139,9 @@ int mbedtls_hmac_drbg_seed_buf( mbedtls_hmac_drbg_context *ctx,
      * Use the V memory location, which is currently all 0, to initialize the
      * MD context with an all-zero key. Then set V to its initial value.
      */
-    mbedtls_md_hmac_starts( &ctx->md_ctx, ctx->V, mbedtls_md_get_size( md_info ) );
+    if( ( ret = mbedtls_md_hmac_starts( &ctx->md_ctx, ctx->V,
+                                        mbedtls_md_get_size( md_info ) ) ) != 0 )
+        return( ret );
     memset( ctx->V, 0x01, mbedtls_md_get_size( md_info ) );
 
     if( ( ret = mbedtls_hmac_drbg_update_ret( ctx, data, data_len ) ) != 0 )
@@ -168,7 +170,8 @@ int mbedtls_hmac_drbg_reseed( mbedtls_hmac_drbg_context *ctx,
     memset( seed, 0, MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT );
 
     /* IV. Gather entropy_len bytes of entropy for the seed */
-    if( ctx->f_entropy( ctx->p_entropy, seed, ctx->entropy_len ) != 0 )
+    if( ( ret = ctx->f_entropy( ctx->p_entropy,
+                                seed, ctx->entropy_len ) ) != 0 )
         return( MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED );
 
     seedlen = ctx->entropy_len;
@@ -216,7 +219,8 @@ int mbedtls_hmac_drbg_seed( mbedtls_hmac_drbg_context *ctx,
      * Use the V memory location, which is currently all 0, to initialize the
      * MD context with an all-zero key. Then set V to its initial value.
      */
-    mbedtls_md_hmac_starts( &ctx->md_ctx, ctx->V, md_size );
+    if( ( ret = mbedtls_md_hmac_starts( &ctx->md_ctx, ctx->V, md_size ) ) != 0 )
+        return( ret );
     memset( ctx->V, 0x01, md_size );
 
     ctx->f_entropy = f_entropy;
@@ -320,9 +324,13 @@ int mbedtls_hmac_drbg_random_with_add( void *p_rng,
     {
         size_t use_len = left > md_len ? md_len : left;
 
-        mbedtls_md_hmac_reset( &ctx->md_ctx );
-        mbedtls_md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
-        mbedtls_md_hmac_finish( &ctx->md_ctx, ctx->V );
+        if( ( ret = mbedtls_md_hmac_reset( &ctx->md_ctx ) ) != 0 )
+            goto exit;
+        if( ( ret = mbedtls_md_hmac_update( &ctx->md_ctx,
+                                            ctx->V, md_len ) ) != 0 )
+            goto exit;
+        if( ( ret = mbedtls_md_hmac_finish( &ctx->md_ctx, ctx->V ) ) != 0 )
+            goto exit;
 
         memcpy( out, ctx->V, use_len );
         out += use_len;
@@ -432,6 +440,7 @@ int mbedtls_hmac_drbg_update_seed_file( mbedtls_hmac_drbg_context *ctx, const ch
         ret = MBEDTLS_ERR_HMAC_DRBG_FILE_IO_ERROR;
     else
         ret = mbedtls_hmac_drbg_update_ret( ctx, buf, n );
+
     fclose( f );
 
     mbedtls_zeroize( buf, sizeof( buf ) );

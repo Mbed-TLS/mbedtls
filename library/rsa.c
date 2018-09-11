@@ -1521,7 +1521,7 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
     size_t olen;
     unsigned char *p = sig;
     unsigned char salt[MBEDTLS_MD_MAX_SIZE];
-    unsigned int slen, hlen, offset = 0;
+    size_t slen, hlen, offset = 0;
     int ret;
     size_t msb;
     const mbedtls_md_info_t *md_info;

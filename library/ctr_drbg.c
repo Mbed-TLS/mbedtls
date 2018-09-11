@@ -264,6 +264,7 @@ static int ctr_drbg_update_internal( mbedtls_ctr_drbg_context *ctx,
     mbedtls_aes_setkey_enc( &ctx->aes_ctx, tmp, MBEDTLS_CTR_DRBG_KEYBITS );
     memcpy( ctx->counter, tmp + MBEDTLS_CTR_DRBG_KEYSIZE, MBEDTLS_CTR_DRBG_BLOCKSIZE );
 
+    mbedtls_zeroize( tmp, sizeof( tmp ) );
     return( 0 );
 }
 
@@ -281,6 +282,7 @@ void mbedtls_ctr_drbg_update( mbedtls_ctr_drbg_context *ctx,
 
         block_cipher_df( add_input, additional, add_len );
         ctr_drbg_update_internal( ctx, add_input );
+        mbedtls_zeroize( add_input, sizeof( add_input ) );
     }
 }
 
@@ -327,6 +329,7 @@ int mbedtls_ctr_drbg_reseed( mbedtls_ctr_drbg_context *ctx,
     ctr_drbg_update_internal( ctx, seed );
     ctx->reseed_counter = 1;
 
+    mbedtls_zeroize( seed, sizeof( seed ) );
     return( 0 );
 }
 
@@ -393,6 +396,8 @@ int mbedtls_ctr_drbg_random_with_add( void *p_rng,
 
     ctx->reseed_counter++;
 
+    mbedtls_zeroize( add_input, sizeof( add_input ) );
+    mbedtls_zeroize( tmp, sizeof( tmp ) );
     return( 0 );
 }
 

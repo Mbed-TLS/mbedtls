@@ -93,6 +93,8 @@ void mbedtls_hmac_drbg_update( mbedtls_hmac_drbg_context *ctx,
         mbedtls_md_hmac_update( &ctx->md_ctx, ctx->V, md_len );
         mbedtls_md_hmac_finish( &ctx->md_ctx, ctx->V );
     }
+
+    mbedtls_zeroize( K, sizeof( K ) );
 }
 
 /*
@@ -158,6 +160,7 @@ int mbedtls_hmac_drbg_reseed( mbedtls_hmac_drbg_context *ctx,
     ctx->reseed_counter = 1;
 
     /* 4. Done */
+    mbedtls_zeroize( seed, seedlen );
     return( 0 );
 }
 

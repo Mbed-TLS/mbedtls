@@ -1104,6 +1104,7 @@ typedef uint32_t psa_algorithm_t;
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_import_key(psa_key_slot_t key,
                             psa_key_type_t type,
@@ -1142,6 +1143,7 @@ psa_status_t psa_import_key(psa_key_slot_t key,
  *         An unexpected condition which is not a storage corruption or
  *         a communication failure occurred. The cryptoprocessor may have
  *         been compromised.
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_destroy_key(psa_key_slot_t key);
 
@@ -1162,6 +1164,7 @@ psa_status_t psa_destroy_key(psa_key_slot_t key);
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_get_key_information(psa_key_slot_t key,
                                      psa_key_type_t *type,
@@ -1256,6 +1259,7 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_export_key(psa_key_slot_t key,
                             uint8_t *data,
@@ -1354,6 +1358,7 @@ psa_status_t psa_export_key(psa_key_slot_t key,
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_export_public_key(psa_key_slot_t key,
                                    uint8_t *data,
@@ -1491,6 +1496,7 @@ psa_algorithm_t psa_key_policy_get_algorithm(const psa_key_policy_t *policy);
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_set_key_policy(psa_key_slot_t key,
                                 const psa_key_policy_t *policy);
@@ -1504,6 +1510,7 @@ psa_status_t psa_set_key_policy(psa_key_slot_t key,
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_get_key_policy(psa_key_slot_t key,
                                 psa_key_policy_t *policy);
@@ -1547,6 +1554,7 @@ typedef uint32_t psa_key_lifetime_t;
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
                                   psa_key_lifetime_t *lifetime);
@@ -1574,6 +1582,7 @@ psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
                                   psa_key_lifetime_t lifetime);
@@ -1848,6 +1857,7 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
                                 psa_key_slot_t key,
@@ -1896,6 +1906,7 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_mac_verify_setup(psa_mac_operation_t *operation,
                                   psa_key_slot_t key,
@@ -2092,6 +2103,7 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
                                       psa_key_slot_t key,
@@ -2141,6 +2153,7 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_cipher_decrypt_setup(psa_cipher_operation_t *operation,
                                       psa_key_slot_t key,
@@ -2384,6 +2397,7 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation);
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_aead_encrypt(psa_key_slot_t key,
                               psa_algorithm_t alg,
@@ -2437,6 +2451,7 @@ psa_status_t psa_aead_encrypt(psa_key_slot_t key,
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_aead_decrypt(psa_key_slot_t key,
                               psa_algorithm_t alg,
@@ -2500,6 +2515,7 @@ psa_status_t psa_aead_decrypt(psa_key_slot_t key,
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
                                  psa_algorithm_t alg,
@@ -2539,6 +2555,7 @@ psa_status_t psa_asymmetric_sign(psa_key_slot_t key,
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
                                    psa_algorithm_t alg,
@@ -2593,6 +2610,7 @@ psa_status_t psa_asymmetric_verify(psa_key_slot_t key,
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_asymmetric_encrypt(psa_key_slot_t key,
                                     psa_algorithm_t alg,
@@ -2645,6 +2663,7 @@ psa_status_t psa_asymmetric_encrypt(psa_key_slot_t key,
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
  * \retval #PSA_ERROR_INVALID_PADDING
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_asymmetric_decrypt(psa_key_slot_t key,
                                     psa_algorithm_t alg,
@@ -2795,6 +2814,7 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  * \retval PSA_ERROR_COMMUNICATION_FAILURE
  * \retval PSA_ERROR_HARDWARE_FAILURE
  * \retval PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_generator_import_key(psa_key_slot_t key,
                                       psa_key_type_t type,
@@ -2868,6 +2888,7 @@ psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
                                 psa_key_slot_t key,
@@ -2957,6 +2978,7 @@ typedef struct {
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
  */
 psa_status_t psa_generate_key(psa_key_slot_t key,
                               psa_key_type_t type,

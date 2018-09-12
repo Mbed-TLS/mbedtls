@@ -347,6 +347,8 @@ static psa_status_t mbedtls_to_psa_error( int ret )
 static psa_status_t psa_get_key_slot( psa_key_slot_t key,
                                       key_slot_t **p_slot )
 {
+    GUARD_MODULE_INITIALIZED;
+
     /* 0 is not a valid slot number under any circumstance. This
      * implementation provides slots number 1 to N where N is the
      * number of available slots. */

@@ -140,7 +140,7 @@ int main( void )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", -ret );
+        printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
         return( 1 );
     }
 #endif
@@ -312,7 +312,7 @@ reset:
                     client_ip, cliip_len ) ) != 0 )
     {
         printf( " failed\n  ! "
-                "mbedtls_ssl_set_client_transport_id() returned -0x%x\n\n", -ret );
+                "mbedtls_ssl_set_client_transport_id() returned %d\n\n", ret );
         goto exit;
     }
 
@@ -339,7 +339,7 @@ reset:
     }
     else if( ret != 0 )
     {
-        printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n", -ret );
+        printf( " failed\n  ! mbedtls_ssl_handshake returned %d\n\n", ret );
         goto reset;
     }
 
@@ -372,7 +372,7 @@ reset:
                 goto close_notify;
 
             default:
-                printf( " mbedtls_ssl_read returned -0x%x\n\n", -ret );
+                printf( " mbedtls_ssl_read returned %d\n\n", ret );
                 goto reset;
         }
     }

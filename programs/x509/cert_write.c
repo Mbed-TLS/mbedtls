@@ -253,7 +253,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", -ret );
+        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned -0x%04x\n\n", -ret );
         return( 1 );
     }
 #endif
@@ -505,8 +505,8 @@ int main( int argc, char *argv[] )
                                strlen( pers ) ) ) != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  mbedtls_ctr_drbg_seed returned %d - %s\n",
-                        ret, buf );
+        mbedtls_printf( " failed\n  !  mbedtls_ctr_drbg_seed returned -0x%04x - %s\n",
+                        -ret, buf );
         goto exit;
     }
 

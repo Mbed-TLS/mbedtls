@@ -626,13 +626,12 @@ exit:
     mbedtls_net_free( &client_fd );
     mbedtls_net_free( &server_fd );
     mbedtls_net_free( &listen_fd );
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_platform_teardown( &platform_ctx );
+#endif
 #if defined(_WIN32)
     mbedtls_printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
-#endif
-
-#if defined(MBEDTLS_PLATFORM_C)
-    mbedtls_platform_teardown( &platform_ctx );
 #endif
     return( exit_code );
 }

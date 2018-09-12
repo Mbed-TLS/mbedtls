@@ -98,7 +98,8 @@ typedef struct mbedtls_ecdsa_restart_det mbedtls_ecdsa_restart_det_ctx;
  */
 typedef struct
 {
-    mbedtls_ecp_restart_ctx ecp;        /*!<  base context (admin+ecp info) */
+    mbedtls_ecp_restart_ctx ecp;        /*!<  base context for ECP restart and
+                                              shared administrative info    */
     mbedtls_ecdsa_restart_ver_ctx *ver; /*!<  ecdsa_verify() sub-context    */
     mbedtls_ecdsa_restart_sig_ctx *sig; /*!<  ecdsa_sign() sub-context      */
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)

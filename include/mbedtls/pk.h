@@ -329,7 +329,7 @@ int mbedtls_pk_verify( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  * \param rs_ctx    Restart context (NULL to disable restart)
  *
  * \return          See \c mbedtls_pk_verify(), or
- *                  MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  */
 int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
@@ -420,7 +420,7 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
  * \param rs_ctx    Restart context (NULL to disable restart)
  *
  * \return          See \c mbedtls_pk_sign(), or
- *                  MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  */
 int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,

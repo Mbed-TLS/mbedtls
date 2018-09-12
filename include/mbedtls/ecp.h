@@ -225,8 +225,8 @@ typedef struct
  * \param rs_ctx    Restart context
  * \param ops       Number of basic ops to do
  *
- * \return          0 is doing 'ops' basic ops is still allowed,
- *                  MBEDTLS_ERR_ECP_IN_PROGRESS otherwise.
+ * \return          \c 0 if doing \p ops basic ops is still allowed,
+ * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS otherwise.
  */
 int mbedtls_ecp_check_budget( const mbedtls_ecp_group *grp,
                               mbedtls_ecp_restart_ctx *rs_ctx,
@@ -338,7 +338,7 @@ mbedtls_ecp_keypair;
  * \brief           Set the maximum number of basic operations done in a row.
  *
  *                  If more operations are needed to complete a computation,
- *                  MBEDTLS_ERR_ECP_IN_PROGRESS will be returned by the
+ *                  #MBEDTLS_ERR_ECP_IN_PROGRESS will be returned by the
  *                  function performing the computation. It is then the
  *                  caller's responsibility to either call again with the same
  *                  parameters until it returns 0 or an error code; or to free
@@ -352,7 +352,7 @@ mbedtls_ecp_keypair;
  *
  *                  This only affects functions that accept a pointer to a
  *                  \c mbedtls_ecp_restart_ctx as an argument, and only works
- *                  if that pointer valid (in particular, not NULL).
+ *                  if that pointer is valid (in particular, not NULL).
  *
  * \param max_ops   Maximum number of basic operations done in a row.
  *                  Default: 0 (unlimited).
@@ -379,15 +379,15 @@ mbedtls_ecp_keypair;
  *                  P-384   682     416     320     272     248
  *                  P-521  1364     832     640     544     496
  *
- * \note            This setting is currently ignored by Curve25519
+ * \note            This setting is currently ignored by Curve25519.
  */
 void mbedtls_ecp_set_max_ops( unsigned max_ops );
 
 /**
  * \brief           Check if restart is enabled (max_ops != 0)
  *
- * \return          0 if max_ops == 0 (restart disabled)
- *                  1 otherwise (restart enabled)
+ * \return          \c 0 if \c max_ops == 0 (restart disabled)
+ * \return          \c 1 otherwise (restart enabled)
  */
 int mbedtls_ecp_restart_enabled( void );
 #endif /* MBEDTLS_ECP_RESTARTABLE */
@@ -735,7 +735,7 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  * \brief           This function performs multiplication of a point by
  *                  an integer: \p R = \p m * \p P in a restartable way.
  *
- *                  \c mbedtls_ecp_mul()
+ * \see             mbedtls_ecp_mul()
  *
  * \note            This function does the same as \c mbedtls_ecp_mul(), but
  *                  it can return early and restart according to the limit set
@@ -749,8 +749,11 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  * \param p_rng     The RNG context.
  * \param rs_ctx    The restart context.
  *
- * \return          See \c mbedtls_ecp_mul(), or
- *                  MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_INVALID_KEY if \p m is not a valid private
+ *                  key, or \p P is not a valid public key.
+ * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
+ * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  */
 int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
@@ -787,7 +790,7 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 /**
  * \brief           This function performs multiplication and addition of two
  *                  points by integers: \p R = \p m * \p P + \p n * \p Q in a
- *                  reastartable way.
+ *                  restartable way.
  *
  * \see             \c mbedtls_ecp_muladd()
  *
@@ -863,7 +866,7 @@ int mbedtls_ecp_check_privkey( const mbedtls_ecp_group *grp, const mbedtls_mpi *
  * \brief           This function generates a private key.
  *
  * \param grp       The ECP group.
- * \param d         The Destination MPI (secret part).
+ * \param d         The destination MPI (secret part).
  * \param f_rng     The RNG function.
  * \param p_rng     The RNG parameter.
  *

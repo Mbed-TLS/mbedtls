@@ -683,8 +683,9 @@
  * Enable "non-blocking" ECC operations that can return early and be resumed.
  *
  * This enables \c mbedtls_ecp_set_max_ops() and allows various functions
- * to return \c MBEDTLS_ERR_ECP_IN_PROGRESS when needed, and then be called
- * again later with the same arguments in order to further progress and
+ * to return #MBEDTLS_ERR_ECP_IN_PROGRESS (or, for functions in the SSL
+ * module, #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) when needed, and then be
+ * called again later with the same arguments in order to further progress and
  * eventually complete the operation, see \c mbedtls_ecp_set_max_ops().
  *
  * This is useful in non-threaded environments if you want to avoid blocking

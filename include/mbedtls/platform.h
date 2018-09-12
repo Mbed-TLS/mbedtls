@@ -43,7 +43,7 @@
 #include "platform_time.h"
 #endif
 
-#define MBEDTLS_ERR_PLATFORM_HW_FAILED       -0x0080 /**< Hardware platform function failed. */
+#define MBEDTLS_ERR_PLATFORM_HW_FAILED       -0x0080 /**< Hardware failed platform operation. */
 
 #ifdef __cplusplus
 extern "C" {

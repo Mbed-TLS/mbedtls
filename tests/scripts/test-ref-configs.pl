@@ -26,6 +26,8 @@ my %configs = (
     'config-ccm-psk-tls1_2.h' => {
         'compat' => '-m tls1_2 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
     },
+    'config-montgomery.h' => {
+    },
     'config-thread.h' => {
         'opt' => '-f ECJPAKE.*nolog',
     },

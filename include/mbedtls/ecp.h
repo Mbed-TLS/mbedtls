@@ -606,6 +606,9 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  * \note            In contrast to mbedtls_ecp_mul(), this function does not
  *                  guarantee a constant execution flow and timing.
  *
+ * \note            This function is currently only implemented for
+ *                  Short Weierstrass groups.
+ *
  * \param grp       The ECP group.
  * \param R         The destination point.
  * \param m         The integer by which to multiply \p P.
@@ -618,6 +621,8 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  *                  valid private keys, or \p P or \p Q are not valid public
  *                  keys.
  * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
+ * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if \p grp is not a
+ *                  Short Weierstrass group.
  */
 int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,

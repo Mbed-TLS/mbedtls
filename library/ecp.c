@@ -1769,7 +1769,6 @@ cleanup:
 
     return( ret );
 }
-#endif /* ECP_SHORTWEIERSTRASS */
 
 /*
  * R = m * P with shortcuts for m == 1 and m == -1
@@ -1800,15 +1799,19 @@ static int mbedtls_ecp_mul_shortcuts( mbedtls_ecp_group *grp,
 cleanup:
     return( ret );
 }
+#endif /* ECP_SHORTWEIERSTRASS */
 
 /*
  * Linear combination
- * NOT constant-time
+ * NOT constant-time.
+ * Only implemented for Short Weierstrass, but unconditionally part of the
+ * public API.
  */
 int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
              const mbedtls_mpi *n, const mbedtls_ecp_point *Q )
 {
+#if defined(ECP_SHORTWEIERSTRASS)
     int ret;
     mbedtls_ecp_point mP;
 #if defined(MBEDTLS_ECP_INTERNAL_ALT)
@@ -1845,6 +1848,16 @@ cleanup:
     mbedtls_ecp_point_free( &mP );
 
     return( ret );
+
+#else /* ECP_SHORTWEIERSTRASS */
+    (void) grp;
+    (void) R;
+    (void) m;
+    (void) P;
+    (void) n;
+    (void) Q;
+    return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+#endif /* ECP_SHORTWEIERSTRASS */
 }
 
 

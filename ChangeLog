@@ -50,6 +50,8 @@ Bugfix
    * Remove redundant else statement, which is not readable, and the positive
      path in the if statement results in exiting the funciton. Raised by irwir
      in #1776.
+   * Fix build errors when the only enabled elliptic curves are Montgomery
+     curves. Raised by signpainter in #941 and by Taiki-San in #1412.
 
 Changes
    * Copy headers preserving timestamps when doing a "make install".

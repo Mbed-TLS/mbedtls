@@ -168,9 +168,6 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-#if defined(MBEDTLS_PLATFORM_C)
-    mbedtls_platform_teardown( &platform_ctx );
-#endif
     return( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_RSA_C && MBEDTLS_X509_CSR_PARSE_C &&

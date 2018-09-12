@@ -487,7 +487,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", -ret );
+        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned -0x%x\n\n", -ret );
         return( 1 );
     }
 #endif
@@ -1247,7 +1247,8 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     if( ( ret = mbedtls_ssl_conf_max_frag_len( &conf, opt.mfl_code ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_max_frag_len returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_max_frag_len returned -0x%x\n\n",
+                        -ret );
         goto exit;
     }
 #endif
@@ -1283,7 +1284,8 @@ int main( int argc, char *argv[] )
     if( opt.alpn_string != NULL )
         if( ( ret = mbedtls_ssl_conf_alpn_protocols( &conf, alpn_list ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_alpn_protocols returned %d\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_alpn_protocols returned -0x%x\n\n",
+                            -ret );
             goto exit;
         }
 #endif
@@ -1322,7 +1324,8 @@ int main( int argc, char *argv[] )
     {
         if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &clicert, &pkey ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned -0x%x\n\n",
+                            -ret );
             goto exit;
         }
     }
@@ -1341,7 +1344,8 @@ int main( int argc, char *argv[] )
                              (const unsigned char *) opt.psk_identity,
                              strlen( opt.psk_identity ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_psk returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_psk returned -0x%x\n\n",
+                        -ret );
         goto exit;
     }
 #endif
@@ -1366,7 +1370,8 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     if( ( ret = mbedtls_ssl_set_hostname( &ssl, opt.server_name ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hostname returned -0x%x\n\n",
+                        -ret );
         goto exit;
     }
 #endif
@@ -1378,7 +1383,8 @@ int main( int argc, char *argv[] )
                         (const unsigned char *) opt.ecjpake_pw,
                                         strlen( opt.ecjpake_pw ) ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hs_ecjpake_password returned %d\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_set_hs_ecjpake_password returned -0x%x\n\n",
+                            -ret );
             goto exit;
         }
     }
@@ -1499,7 +1505,8 @@ int main( int argc, char *argv[] )
             if( ret != MBEDTLS_ERR_SSL_WANT_READ &&
                 ret != MBEDTLS_ERR_SSL_WANT_WRITE )
             {
-                mbedtls_printf( " failed\n  ! mbedtls_ssl_renegotiate returned %d\n\n", ret );
+                mbedtls_printf( " failed\n  ! mbedtls_ssl_renegotiate returned -0x%x\n\n",
+                                -ret );
                 goto exit;
             }
         }
@@ -1572,7 +1579,8 @@ send_request:
 
         if( ret < 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned %d\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_write returned -0x%x\n\n",
+                            -ret );
             goto exit;
         }
 
@@ -1764,7 +1772,8 @@ reconnect:
 
         if( ( ret = mbedtls_ssl_set_session( &ssl, &saved_session ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_session returned %d\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_session returned -0x%x\n\n",
+                            -ret );
             goto exit;
         }
 

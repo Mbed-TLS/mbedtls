@@ -48,7 +48,7 @@ int main( void )
 #else
 int main( void )
 {
-    int i, ret;
+    int i, ret = MBEDTLS_EXIT_SUCCESS;
     unsigned char digest[16];
     char str[] = "Hello, world!";
 
@@ -68,8 +68,6 @@ int main( void )
         ret = MBEDTLS_EXIT_FAILURE;
         goto exit;
     }
-    else
-        ret = MBEDTLS_EXIT_SUCCESS;
 
     for( i = 0; i < 16; i++ )
         mbedtls_printf( "%02x", digest[i] );

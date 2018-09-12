@@ -72,7 +72,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_platform_setup returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_platform_setup returned -0x%0x\n\n", -ret );
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 #endif
@@ -102,7 +102,7 @@ int main( int argc, char *argv[] )
     if( ( ret = mbedtls_mpi_read_file( &rsa.N, 16, f ) ) != 0 ||
         ( ret = mbedtls_mpi_read_file( &rsa.E, 16, f ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_mpi_read_file returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_mpi_read_file returned -0x%0x\n\n", -ret );
         fclose( f );
         goto exit;
     }

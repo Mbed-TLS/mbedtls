@@ -114,7 +114,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_platform_setup returned %d\n\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_platform_setup returned %d\n\n", ret );
         return( 1 );
     }
 #endif
@@ -156,7 +156,7 @@ int main( int argc, char *argv[] )
                           mbedtls_test_cas_pem_len );
     if( ret < 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n", -ret );
+        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned %d\n\n", ret );
         goto exit;
     }
 
@@ -232,7 +232,7 @@ int main( int argc, char *argv[] )
 
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned -0x%x\n\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_handshake returned %d\n\n", ret );
         goto exit;
     }
 
@@ -310,7 +310,7 @@ send_request:
                 goto close_notify;
 
             default:
-                mbedtls_printf( " mbedtls_ssl_read returned -0x%x\n\n", -ret );
+                mbedtls_printf( " mbedtls_ssl_read returned %d\n\n", ret );
                 goto exit;
         }
     }

@@ -209,7 +209,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n", -ret );
+        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned -0x%04x\n", -ret );
         return( 1 );
     }
 #endif

@@ -80,7 +80,7 @@ int main( int argc, char *argv[] )
     mbedtls_platform_context platform_ctx;
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", -ret );
+        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
         return( 1 );
     }
 #endif

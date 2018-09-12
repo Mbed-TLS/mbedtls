@@ -242,7 +242,7 @@ static void *handle_ssl_connection( void *data )
         if( ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
             mbedtls_printf( "  [ #%ld ]  failed: mbedtls_ssl_write returned -0x%04x\n",
-                    thread_id, ret );
+                    thread_id, -ret );
             goto thread_exit;
         }
     }
@@ -259,7 +259,7 @@ static void *handle_ssl_connection( void *data )
             ret != MBEDTLS_ERR_SSL_WANT_WRITE )
         {
             mbedtls_printf( "  [ #%ld ]  failed: mbedtls_ssl_close_notify returned -0x%04x\n",
-                    thread_id, ret );
+                    thread_id, -ret );
             goto thread_exit;
         }
     }
@@ -353,7 +353,7 @@ int main( void )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", -ret );
+        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned -0x%04x\n\n", -ret );
         return( 1 );
     }
 #endif
@@ -399,7 +399,7 @@ int main( void )
                           mbedtls_test_srv_crt_len );
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%04x\n\n", -ret );
         goto exit;
     }
 
@@ -407,7 +407,7 @@ int main( void )
                           mbedtls_test_cas_pem_len );
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%04x\n\n", -ret );
         goto exit;
     }
 
@@ -416,7 +416,7 @@ int main( void )
                          mbedtls_test_srv_key_len, NULL, 0 );
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_pk_parse_key returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  !  mbedtls_pk_parse_key returned -0x%04x\n\n", -ret );
         goto exit;
     }
 
@@ -468,7 +468,7 @@ int main( void )
     mbedtls_ssl_conf_ca_chain( &conf, &cachain, NULL );
     if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &srvcert, &pkey ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_own_cert returned -0x%04x\n\n", -ret );
         goto exit;
     }
 
@@ -483,7 +483,7 @@ int main( void )
 
     if( ( ret = mbedtls_net_bind( &listen_fd, NULL, "4433", MBEDTLS_NET_PROTO_TCP ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_net_bind returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_net_bind returned -0x%04x\n\n", -ret );
         goto exit;
     }
 
@@ -507,7 +507,7 @@ reset:
     if( ( ret = mbedtls_net_accept( &listen_fd, &client_fd,
                                     NULL, 0, NULL ) ) != 0 )
     {
-        mbedtls_printf( "  [ main ] failed: mbedtls_net_accept returned -0x%04x\n", ret );
+        mbedtls_printf( "  [ main ] failed: mbedtls_net_accept returned -0x%04x\n", -ret );
         goto exit;
     }
 
@@ -516,7 +516,7 @@ reset:
 
     if( ( ret = thread_create( &client_fd ) ) != 0 )
     {
-        mbedtls_printf( "  [ main ]  failed: thread_create returned %d\n", ret );
+        mbedtls_printf( "  [ main ]  failed: thread_create returned -0x%04x\n", -ret );
         mbedtls_net_free( &client_fd );
         goto reset;
     }

@@ -6,6 +6,13 @@ Security
    * Wipe sensitive buffers on the stack in the CTR_DRBG and HMAC_DRBG
      modules.
 
+API Changes
+   * The new functions mbedtls_ctr_drbg_update_ret() and
+     mbedtls_hmac_drbg_update_ret() are similar to mbedtls_ctr_drbg_update()
+     and mbedtls_hmac_drbg_update() respectively, but the new functions
+     report errors whereas the old functions return void. We recommend that
+     applications use the new functions.
+
 = mbed TLS 2.7.6 branch released 2018-08-31
 
 Security

@@ -155,7 +155,7 @@ static int platform_vsnprintf_uninit( char * s, size_t n,
     ((void) n);
     ((void) format);
     ((void) arg);
-    return( 0 );
+    return( -1 );
 }
 
 #define MBEDTLS_PLATFORM_STD_VSNPRINTF    platform_vsnprintf_uninit

@@ -11,8 +11,7 @@ Security
 Bugfix
    * Fix a potential memory leak in mbedtls_ssl_setup() function. An allocation
      failure in the function could lead to other buffers being leaked.
-   * Fixes an issue with MBEDTLS_CHACHAPOLY_C which would not compile if
-     MBEDTLS_ARC4_C and MBEDTLS_CIPHER_NULL_CIPHER weren't also defined. #1890
+   * Fixes a missing test dependency on MBEDTLS_ARC4_C. #1890
    * Fix a memory leak in ecp_mul_comb() if ecp_precompute_comb() fails.
      Fix contributed by Espressif Systems.
    * Add ecc extensions only if an ecc based ciphersuite is used.
@@ -26,8 +25,8 @@ Bugfix
    * Fix a bug that caused SSL/TLS clients to incorrectly abort the handshake
      with TLS versions 1.1 and earlier when the server requested authentication
      without providing a list of CAs. This was due to an overly strict bounds
-     check in parsing the CertificateRequest message,
-     introduced in Mbed TLS 2.12.0. Fixes #1954.
+     check in parsing the CertificateRequest message, introduced in
+     Mbed TLS 2.12.0. Fixes #1954.
    * Fix undefined shifts with negative values in certificates parsing
      (found by Catena cyber using oss-fuzz)
    * Fix memory leak and free without initialization in pk_encrypt

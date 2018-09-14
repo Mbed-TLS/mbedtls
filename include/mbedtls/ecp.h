@@ -61,6 +61,26 @@
 
 #define MBEDTLS_ERR_ECP_IN_PROGRESS                       -0x4B00  /**< Operation in progress, call again with the same parameters to continue. */
 
+/* Flags indicating whether to include code that is specific to certain
+ * types of curves. These flags are for internal library use only. */
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_BP256R1_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_BP384R1_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+#define MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED
+#endif
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) || \
+    defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+#define MBEDTLS_ECP_MONTGOMERY_ENABLED
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -906,6 +926,7 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
              mbedtls_ecp_restart_ctx *rs_ctx );
 
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /**
  * \brief           This function performs multiplication and addition of two
  *                  points by integers: \p R = \p m * \p P + \p n * \p Q
@@ -914,6 +935,10 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  *
  * \note            In contrast to mbedtls_ecp_mul(), this function does not
  *                  guarantee a constant execution flow and timing.
+ *
+ * \note            This function is only defined for short Weierstrass curves.
+ *                  It may not be included in builds without any short
+ *                  Weierstrass curve.
  *
  * \param grp       The ECP group to use.
  *                  This must be initialized and have group parameters
@@ -933,6 +958,8 @@ int mbedtls_ecp_mul_restartable( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  *                  valid private keys, or \p P or \p Q are not valid public
  *                  keys.
  * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
+ * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if \p grp does not
+ *                  designate a short Weierstrass curve.
  * \return          Another negative error code on other kinds of failure.
  */
 int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
@@ -949,6 +976,10 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  * \note            This function works the same as \c mbedtls_ecp_muladd(),
  *                  but it can return early and restart according to the limit
  *                  set with \c mbedtls_ecp_set_max_ops() to reduce blocking.
+ *
+ * \note            This function is only defined for short Weierstrass curves.
+ *                  It may not be included in builds without any short
+ *                  Weierstrass curve.
  *
  * \param grp       The ECP group to use.
  *                  This must be initialized and have group parameters
@@ -969,6 +1000,8 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  *                  valid private keys, or \p P or \p Q are not valid public
  *                  keys.
  * \return          #MBEDTLS_ERR_MPI_ALLOC_FAILED on memory-allocation failure.
+ * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if \p grp does not
+ *                  designate a short Weierstrass curve.
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  * \return          Another negative error code on other kinds of failure.
@@ -978,6 +1011,7 @@ int mbedtls_ecp_muladd_restartable(
              const mbedtls_mpi *m, const mbedtls_ecp_point *P,
              const mbedtls_mpi *n, const mbedtls_ecp_point *Q,
              mbedtls_ecp_restart_ctx *rs_ctx );
+#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
 /**
  * \brief           This function checks that a point is a valid public key

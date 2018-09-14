@@ -2781,6 +2781,7 @@ cleanup:
 }
 #endif /* ECP_SHORTWEIERSTRASS */
 
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
 /*
  * R = m * P with shortcuts for m == 1 and m == -1
  * NOT constant-time - ONLY for short Weierstrass!
@@ -2926,6 +2927,7 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     ECP_VALIDATE_RET( Q   != NULL );
     return( mbedtls_ecp_muladd_restartable( grp, R, m, P, n, Q, NULL ) );
 }
+#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
 
 #if defined(ECP_MONTGOMERY)
 /*

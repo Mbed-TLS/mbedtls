@@ -94,6 +94,20 @@ extern "C" {
  * parameters. Therefore, only standardized domain parameters from trusted
  * sources should be used. See mbedtls_ecp_group_load().
  */
+/* Note: when adding a new curve:
+ * - Add it at the end of this enum, otherwise you'll break the ABI by
+ *   changing the numerical value for existing curves.
+ * - Increment MBEDTLS_ECP_DP_MAX below.
+ * - Add the corresponding MBEDTLS_ECP_DP_xxx_ENABLED macro definition to
+ *   config.h.
+ * - List the curve as a dependency of MBEDTLS_ECP_C and
+ *   MBEDTLS_ECDSA_C if supported in check_config.h.
+ * - Add the curve to the appropriate curve type macro
+ *   MBEDTLS_ECP_yyy_ENABLED above.
+ * - Add the necessary definitions to ecp_curves.c.
+ * - Add the curve to the ecp_supported_curves array in ecp.c.
+ * - Add the curve to applicable profiles in x509_crt.c if applicable.
+ */
 typedef enum
 {
     MBEDTLS_ECP_DP_NONE = 0,       /*!< Curve not defined. */

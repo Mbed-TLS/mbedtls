@@ -3303,11 +3303,13 @@ int mbedtls_ecp_self_test( int verbose )
     mbedtls_ecp_point R, P;
     mbedtls_mpi m;
     unsigned long add_c_prev, dbl_c_prev, mul_c_prev;
-    /* exponents especially adapted for secp192r1 */
+    /* Exponents especially adapted for secp192k1, which has the lowest
+     * order n of all supported curves (secp192r1 is in a slightly larger
+     * field but the order of its base point is slightly smaller). */
     const char *exponents[] =
     {
         "000000000000000000000000000000000000000000000001", /* one */
-        "FFFFFFFFFFFFFFFFFFFFFFFF99DEF836146BC9B1B4D22830", /* N - 1 */
+        "FFFFFFFFFFFFFFFFFFFFFFFE26F2FC170F69466A74DEFD8C", /* n - 1 */
         "5EA6F389A38B8BC81E767753B15AA5569E1782E30ABE7D25", /* random */
         "400000000000000000000000000000000000000000000000", /* one and zeros */
         "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", /* all ones */

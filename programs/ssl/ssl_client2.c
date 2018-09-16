@@ -106,6 +106,8 @@ int main( void )
 #define DFL_TRANSPORT           MBEDTLS_SSL_TRANSPORT_STREAM
 #define DFL_HS_TO_MIN           0
 #define DFL_HS_TO_MAX           0
+#define DFL_DTLS_MTU            -1
+#define DFL_DGRAM_PACKING        1
 #define DFL_FALLBACK            -1
 #define DFL_EXTENDED_MS         -1
 #define DFL_ETM                 -1
@@ -198,7 +200,11 @@ int main( void )
 #define USAGE_DTLS \
     "    dtls=%%d             default: 0 (TLS)\n"                           \
     "    hs_timeout=%%d-%%d    default: (library default: 1000-60000)\n"    \
-    "                        range of DTLS handshake timeouts in millisecs\n"
+    "                        range of DTLS handshake timeouts in millisecs\n" \
+    "    mtu=%%d              default: (library default: unlimited)\n"  \
+    "    dgram_packing=%%d    default: 1 (allowed)\n"                   \
+    "                        allow or forbid packing of multiple\n" \
+    "                        records within a single datgram.\n"
 #else
 #define USAGE_DTLS ""
 #endif
@@ -345,7 +351,9 @@ struct options
     int transport;              /* TLS or DTLS?                             */
     uint32_t hs_to_min;         /* Initial value of DTLS handshake timer    */
     uint32_t hs_to_max;         /* Max value of DTLS handshake timer        */
+    int dtls_mtu;               /* UDP Maximum tranport unit for DTLS       */
     int fallback;               /* is this a fallback connection?           */
+    int dgram_packing;          /* allow/forbid datagram packing            */
     int extended_ms;            /* negotiate extended master secret?        */
     int etm;                    /* negotiate encrypt then mac?              */
 } opt;
@@ -617,9 +625,11 @@ int main( int argc, char *argv[] )
     opt.transport           = DFL_TRANSPORT;
     opt.hs_to_min           = DFL_HS_TO_MIN;
     opt.hs_to_max           = DFL_HS_TO_MAX;
+    opt.dtls_mtu            = DFL_DTLS_MTU;
     opt.fallback            = DFL_FALLBACK;
     opt.extended_ms         = DFL_EXTENDED_MS;
     opt.etm                 = DFL_ETM;
+    opt.dgram_packing       = DFL_DGRAM_PACKING;
 
     for( i = 1; i < argc; i++ )
     {
@@ -926,6 +936,21 @@ int main( int argc, char *argv[] )
             opt.hs_to_max = atoi( p );
             if( opt.hs_to_min == 0 || opt.hs_to_max < opt.hs_to_min )
                 goto usage;
+        }
+        else if( strcmp( p, "mtu" ) == 0 )
+        {
+            opt.dtls_mtu = atoi( q );
+            if( opt.dtls_mtu < 0 )
+                goto usage;
+        }
+        else if( strcmp( p, "dgram_packing" ) == 0 )
+        {
+            opt.dgram_packing = atoi( q );
+            if( opt.dgram_packing != 0 &&
+                opt.dgram_packing != 1 )
+            {
+                goto usage;
+            }
         }
         else if( strcmp( p, "recsplit" ) == 0 )
         {
@@ -1327,6 +1352,9 @@ int main( int argc, char *argv[] )
     if( opt.hs_to_min != DFL_HS_TO_MIN || opt.hs_to_max != DFL_HS_TO_MAX )
         mbedtls_ssl_conf_handshake_timeout( &conf, opt.hs_to_min,
                                             opt.hs_to_max );
+
+    if( opt.dgram_packing != DFL_DGRAM_PACKING )
+        mbedtls_ssl_set_datagram_packing( &ssl, opt.dgram_packing );
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
@@ -1484,6 +1512,11 @@ int main( int argc, char *argv[] )
         mbedtls_ssl_set_bio( &ssl, &server_fd,
                              mbedtls_net_send, mbedtls_net_recv,
                              opt.nbio == 0 ? mbedtls_net_recv_timeout : NULL );
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    if( opt.dtls_mtu != DFL_DTLS_MTU )
+        mbedtls_ssl_set_mtu( &ssl, opt.dtls_mtu );
+#endif
 
 #if defined(MBEDTLS_TIMING_C)
     mbedtls_ssl_set_timer_cb( &ssl, &timer, mbedtls_timing_set_delay,

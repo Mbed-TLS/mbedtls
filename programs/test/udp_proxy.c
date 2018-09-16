@@ -40,6 +40,8 @@
 #define mbedtls_time            time
 #define mbedtls_time_t          time_t
 #define mbedtls_printf          printf
+#define mbedtls_calloc          calloc
+#define mbedtls_free            free
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -106,6 +108,21 @@ int main( void )
     "    delay=%%d            default: 0 (no delayed packets)\n"            \
     "                        delay about 1:N packets randomly\n"            \
     "    delay_ccs=0/1       default: 0 (don't delay ChangeCipherSpec)\n"   \
+    "    delay_cli=%%s        Handshake message from client that should be\n"\
+    "                        delayed. Possible values are 'ClientHello',\n" \
+    "                        'Certificate', 'CertificateVerify', and\n"     \
+    "                        'ClientKeyExchange'.\n"                        \
+    "                        May be used multiple times, even for the same\n"\
+    "                        message, in which case the respective message\n"\
+    "                        gets delayed multiple times.\n"                 \
+    "    delay_srv=%%s        Handshake message from server that should be\n"\
+    "                        delayed. Possible values are 'HelloRequest',\n"\
+    "                        'ServerHello', 'ServerHelloDone', 'Certificate'\n"\
+    "                        'ServerKeyExchange', 'NewSessionTicket',\n"\
+    "                        'HelloVerifyRequest' and ''CertificateRequest'.\n"\
+    "                        May be used multiple times, even for the same\n"\
+    "                        message, in which case the respective message\n"\
+    "                        gets delayed multiple times.\n"                 \
     "    drop=%%d             default: 0 (no dropped packets)\n"            \
     "                        drop about 1:N packets randomly\n"             \
     "    mtu=%%d              default: 0 (unlimited)\n"                     \
@@ -121,6 +138,9 @@ int main( void )
 /*
  * global options
  */
+
+#define MAX_DELAYED_HS 10
+
 static struct options
 {
     const char *server_addr;    /* address to forward packets to            */
@@ -131,6 +151,12 @@ static struct options
     int duplicate;              /* duplicate 1 in N packets (none if 0)     */
     int delay;                  /* delay 1 packet in N (none if 0)          */
     int delay_ccs;              /* delay ChangeCipherSpec                   */
+    char* delay_cli[MAX_DELAYED_HS];  /* handshake types of messages from
+                                       * client that should be delayed.     */
+    uint8_t delay_cli_cnt;      /* Number of entries in delay_cli.          */
+    char* delay_srv[MAX_DELAYED_HS];  /* handshake types of messages from
+                                       * server that should be delayed.     */
+    uint8_t delay_srv_cnt;      /* Number of entries in delay_srv.          */
     int drop;                   /* drop 1 packet in N (none if 0)           */
     int mtu;                    /* drop packets larger than this            */
     int bad_ad;                 /* inject corrupted ApplicationData record  */
@@ -164,6 +190,11 @@ static void get_options( int argc, char *argv[] )
     opt.pack           = DFL_PACK;
     /* Other members default to 0 */
 
+    opt.delay_cli_cnt = 0;
+    opt.delay_srv_cnt = 0;
+    memset( opt.delay_cli, 0, sizeof( opt.delay_cli ) );
+    memset( opt.delay_srv, 0, sizeof( opt.delay_srv ) );
+
     for( i = 1; i < argc; i++ )
     {
         p = argv[i];
@@ -196,6 +227,43 @@ static void get_options( int argc, char *argv[] )
             opt.delay_ccs = atoi( q );
             if( opt.delay_ccs < 0 || opt.delay_ccs > 1 )
                 exit_usage( p, q );
+        }
+        else if( strcmp( p, "delay_cli" ) == 0 ||
+                 strcmp( p, "delay_srv" ) == 0 )
+        {
+            uint8_t *delay_cnt;
+            char **delay_list;
+            size_t len;
+            char *buf;
+
+            if( strcmp( p, "delay_cli" ) == 0 )
+            {
+                delay_cnt  = &opt.delay_cli_cnt;
+                delay_list = opt.delay_cli;
+            }
+            else
+            {
+                delay_cnt  = &opt.delay_srv_cnt;
+                delay_list = opt.delay_srv;
+            }
+
+            if( *delay_cnt == MAX_DELAYED_HS )
+            {
+                mbedtls_printf( " too many uses of %s: only %d allowed\n",
+                                p, MAX_DELAYED_HS );
+                exit_usage( p, NULL );
+            }
+
+            len = strlen( q );
+            buf = mbedtls_calloc( 1, len + 1 );
+            if( buf == NULL )
+            {
+                mbedtls_printf( " Allocation failure\n" );
+                exit( 1 );
+            }
+            memcpy( buf, q, len + 1 );
+
+            delay_list[ (*delay_cnt)++ ] = buf;
         }
         else if( strcmp( p, "drop" ) == 0 )
         {
@@ -488,11 +556,37 @@ int send_packet( const packet *p, const char *why )
     return( 0 );
 }
 
-static packet prev;
+#define MAX_DELAYED_MSG 5
+static size_t prev_len;
+static packet prev[MAX_DELAYED_MSG];
 
 void clear_pending( void )
 {
-    memset( &prev, 0, sizeof( packet ) );
+    memset( &prev, 0, sizeof( prev ) );
+    prev_len = 0;
+}
+
+void delay_packet( packet *delay )
+{
+    if( prev_len == MAX_DELAYED_MSG )
+        return;
+
+    memcpy( &prev[prev_len++], delay, sizeof( packet ) );
+}
+
+int send_delayed()
+{
+    uint8_t offset;
+    int ret;
+    for( offset = 0; offset < prev_len; offset++ )
+    {
+        ret = send_packet( &prev[offset], "delayed" );
+        if( ret != 0 )
+            return( ret );
+    }
+
+    clear_pending();
+    return( 0 );
 }
 
 /*
@@ -540,6 +634,10 @@ int handle_message( const char *way,
     packet cur;
     size_t id;
 
+    uint8_t delay_idx;
+    char ** delay_list;
+    uint8_t delay_list_len;
+
     /* receive packet */
     if( ( ret = mbedtls_net_recv( src, cur.buf, sizeof( cur.buf ) ) ) <= 0 )
     {
@@ -554,6 +652,37 @@ int handle_message( const char *way,
     print_packet( &cur, NULL );
 
     id = cur.len % sizeof( dropped );
+
+    if( strcmp( way, "S <- C" ) == 0 )
+    {
+        delay_list     = opt.delay_cli;
+        delay_list_len = opt.delay_cli_cnt;
+    }
+    else
+    {
+        delay_list     = opt.delay_srv;
+        delay_list_len = opt.delay_srv_cnt;
+    }
+
+    /* Check if message type is in the list of messages
+     * that should be delayed */
+    for( delay_idx = 0; delay_idx < delay_list_len; delay_idx++ )
+    {
+        if( delay_list[ delay_idx ] == NULL )
+            continue;
+
+        if( strcmp( delay_list[ delay_idx ], cur.type ) == 0 )
+        {
+            /* Delay message */
+            delay_packet( &cur );
+
+            /* Remove entry from list */
+            mbedtls_free( delay_list[delay_idx] );
+            delay_list[delay_idx] = NULL;
+
+            return( 0 );
+        }
+    }
 
     /* do we want to drop, delay, or forward it? */
     if( ( opt.mtu != 0 &&
@@ -574,12 +703,11 @@ int handle_message( const char *way,
                strcmp( cur.type, "ApplicationData" ) != 0 &&
                ! ( opt.protect_hvr &&
                    strcmp( cur.type, "HelloVerifyRequest" ) == 0 ) &&
-               prev.dst == NULL &&
                cur.len != (size_t) opt.protect_len &&
                dropped[id] < DROP_MAX &&
                rand() % opt.delay == 0 ) )
     {
-        memcpy( &prev, &cur, sizeof( packet ) );
+        delay_packet( &cur );
     }
     else
     {
@@ -587,14 +715,10 @@ int handle_message( const char *way,
         if( ( ret = send_packet( &cur, "forwarded" ) ) != 0 )
             return( ret );
 
-        /* send previously delayed message if any */
-        if( prev.dst != NULL )
-        {
-            ret = send_packet( &prev, "delayed" );
-            memset( &prev, 0, sizeof( packet ) );
-            if( ret != 0 )
-                return( ret );
-        }
+        /* send previously delayed messages if any */
+        ret = send_delayed();
+        if( ret != 0 )
+            return( ret );
     }
 
     return( 0 );
@@ -604,6 +728,7 @@ int main( int argc, char *argv[] )
 {
     int ret = 1;
     int exit_code = MBEDTLS_EXIT_FAILURE;
+    uint8_t delay_idx;
 
     mbedtls_net_context listen_fd, client_fd, server_fd;
 
@@ -797,6 +922,12 @@ exit:
         fflush( stdout );
     }
 #endif
+
+    for( delay_idx = 0; delay_idx < MAX_DELAYED_HS; delay_idx++ )
+    {
+        mbedtls_free( opt.delay_cli + delay_idx );
+        mbedtls_free( opt.delay_srv + delay_idx );
+    }
 
     mbedtls_net_free( &client_fd );
     mbedtls_net_free( &server_fd );

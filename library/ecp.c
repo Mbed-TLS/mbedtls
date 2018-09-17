@@ -3292,6 +3292,39 @@ cleanup:
 
 #if defined(MBEDTLS_SELF_TEST)
 
+static int self_test_adjust_exponent( const mbedtls_ecp_group *grp,
+                                      mbedtls_mpi *m )
+{
+    int ret = 0;
+    switch( grp->id )
+    {
+        /* If Curve25519 is available, then that's what we use for the
+         * Montgomery test, so we don't need the adjustment code. */
+#if ! defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+#if defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+        case MBEDTLS_ECP_DP_CURVE448:
+            /* Move highest bit from 254 to N-1. Setting bit N-1 is
+             * necessary to enforce the highest-bit-set constraint. */
+            MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( m, 254, 0 ) );
+            MBEDTLS_MPI_CHK( mbedtls_mpi_set_bit( m, grp->nbits, 1 ) );
+            /* Copy second-highest bit from 253 to N-2. This is not
+             * necessary but improves the test variety a bit. */
+            MBEDTLS_MPI_CHK(
+                mbedtls_mpi_set_bit( m, grp->nbits - 1,
+                                     mbedtls_mpi_get_bit( m, 253 ) ) );
+            break;
+#endif
+#endif /* ! defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED) */
+        default:
+            /* Non-Montgomery curves and Curve25519 need no adjustment. */
+            (void) grp;
+            (void) m;
+            goto cleanup;
+    }
+cleanup:
+    return( ret );
+}
+
 static int self_test_point( int verbose,
                             mbedtls_ecp_group *grp,
                             mbedtls_ecp_point *R,
@@ -3306,7 +3339,9 @@ static int self_test_point( int verbose,
     add_count = 0;
     dbl_count = 0;
     mul_count = 0;
+
     MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( m, 16, exponents[0] ) );
+    MBEDTLS_MPI_CHK( self_test_adjust_exponent( grp, m ) );
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R, m, P, NULL, NULL ) );
 
     for( i = 1; i < n_exponents; i++ )
@@ -3319,6 +3354,7 @@ static int self_test_point( int verbose,
         mul_count = 0;
 
         MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( m, 16, exponents[i] ) );
+        MBEDTLS_MPI_CHK( self_test_adjust_exponent( grp, m ) );
         MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R, m, P, NULL, NULL ) );
 
         if( add_count != add_c_prev ||

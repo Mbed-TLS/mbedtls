@@ -148,6 +148,10 @@ typedef struct
 
 static psa_global_data_t global_data;
 
+#define GUARD_MODULE_INITIALIZED        \
+    if( global_data.initialized == 0 )  \
+        return( PSA_ERROR_BAD_STATE );
+
 static psa_status_t mbedtls_to_psa_error( int ret )
 {
     /* If there's both a high-level code and low-level code, dispatch on
@@ -343,6 +347,8 @@ static psa_status_t mbedtls_to_psa_error( int ret )
 static psa_status_t psa_get_key_slot( psa_key_slot_t key,
                                       key_slot_t **p_slot )
 {
+    GUARD_MODULE_INITIALIZED;
+
     /* 0 is not a valid slot number under any circumstance. This
      * implementation provides slots number 1 to N where N is the
      * number of available slots. */
@@ -3360,8 +3366,10 @@ psa_status_t psa_key_derivation( psa_crypto_generator_t *generator,
 psa_status_t psa_generate_random( uint8_t *output,
                                   size_t output_size )
 {
-    int ret = mbedtls_ctr_drbg_random( &global_data.ctr_drbg,
-                                       output, output_size );
+    int ret;
+    GUARD_MODULE_INITIALIZED;
+
+    ret = mbedtls_ctr_drbg_random( &global_data.ctr_drbg, output, output_size );
     return( mbedtls_to_psa_error( ret ) );
 }
 

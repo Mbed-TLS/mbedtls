@@ -335,9 +335,10 @@ void key_type( int type_arg, int classification_flags )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void ecc_key_types( int curve_arg )
+void ecc_key_types( int curve_arg, int curve_bits_arg )
 {
     psa_ecc_curve_t curve = curve_arg;
+    size_t curve_bits = curve_bits_arg;
     psa_key_type_t public_type = PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve );
     psa_key_type_t pair_type = PSA_KEY_TYPE_ECC_KEYPAIR( curve );
 
@@ -346,5 +347,10 @@ void ecc_key_types( int curve_arg )
 
     TEST_ASSERT( PSA_KEY_TYPE_GET_CURVE( public_type ) == curve );
     TEST_ASSERT( PSA_KEY_TYPE_GET_CURVE( pair_type ) == curve );
+
+    /* Validate that the bit size is less than the maximum ECC bit size
+     * in this implementation. There's no parameter that should be equal
+     * to curve_bits and can be validated without creating a key. */
+    TEST_ASSERT( curve_bits <= PSA_VENDOR_ECC_MAX_CURVE_BITS );
 }
 /* END_CASE */

@@ -3292,17 +3292,64 @@ cleanup:
 
 #if defined(MBEDTLS_SELF_TEST)
 
+static int self_test_point( int verbose,
+                            mbedtls_ecp_group *grp,
+                            mbedtls_ecp_point *R,
+                            mbedtls_mpi *m,
+                            mbedtls_ecp_point *P,
+                            const char *const *exponents,
+                            size_t n_exponents )
+{
+    int ret = 0;
+    size_t i;
+    unsigned long add_c_prev, dbl_c_prev, mul_c_prev;
+    add_count = 0;
+    dbl_count = 0;
+    mul_count = 0;
+    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( m, 16, exponents[0] ) );
+    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R, m, P, NULL, NULL ) );
+
+    for( i = 1; i < n_exponents; i++ )
+    {
+        add_c_prev = add_count;
+        dbl_c_prev = dbl_count;
+        mul_c_prev = mul_count;
+        add_count = 0;
+        dbl_count = 0;
+        mul_count = 0;
+
+        MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( m, 16, exponents[i] ) );
+        MBEDTLS_MPI_CHK( mbedtls_ecp_mul( grp, R, m, P, NULL, NULL ) );
+
+        if( add_count != add_c_prev ||
+            dbl_count != dbl_c_prev ||
+            mul_count != mul_c_prev )
+        {
+            ret = 1;
+            break;
+        }
+    }
+
+cleanup:
+    if( verbose != 0 )
+    {
+        if( ret != 0 )
+            mbedtls_printf( "failed (%u)\n", (unsigned int) i );
+        else
+            mbedtls_printf( "passed\n" );
+    }
+    return( ret );
+}
+
 /*
  * Checkup routine
  */
 int mbedtls_ecp_self_test( int verbose )
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    size_t i;
     mbedtls_ecp_group grp;
     mbedtls_ecp_point R, P;
     mbedtls_mpi m;
-    unsigned long add_c_prev, dbl_c_prev, mul_c_prev;
     /* Exponents especially adapted for secp192k1, which has the lowest
      * order n of all supported curves (secp192r1 is in a slightly larger
      * field but the order of its base point is slightly smaller). */
@@ -3330,80 +3377,23 @@ int mbedtls_ecp_self_test( int verbose )
 
     if( verbose != 0 )
         mbedtls_printf( "  ECP test #1 (constant op_count, base point G): " );
-
     /* Do a dummy multiplication first to trigger precomputation */
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &m, 2 ) );
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &grp, &P, &m, &grp.G, NULL, NULL ) );
-
-    add_count = 0;
-    dbl_count = 0;
-    mul_count = 0;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &m, 16, exponents[0] ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &grp, &R, &m, &grp.G, NULL, NULL ) );
-
-    for( i = 1; i < sizeof( exponents ) / sizeof( exponents[0] ); i++ )
-    {
-        add_c_prev = add_count;
-        dbl_c_prev = dbl_count;
-        mul_c_prev = mul_count;
-        add_count = 0;
-        dbl_count = 0;
-        mul_count = 0;
-
-        MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &m, 16, exponents[i] ) );
-        MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &grp, &R, &m, &grp.G, NULL, NULL ) );
-
-        if( add_count != add_c_prev ||
-            dbl_count != dbl_c_prev ||
-            mul_count != mul_c_prev )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "failed (%u)\n", (unsigned int) i );
-
-            ret = 1;
-            goto cleanup;
-        }
-    }
-
-    if( verbose != 0 )
-        mbedtls_printf( "passed\n" );
+    ret = self_test_point( verbose,
+                           &grp, &R, &m, &grp.G,
+                           exponents,
+                           sizeof( exponents ) / sizeof( exponents[0] ));
+    if( ret != 0 )
+        goto cleanup;
 
     if( verbose != 0 )
         mbedtls_printf( "  ECP test #2 (constant op_count, other point): " );
     /* We computed P = 2G last time, use it */
-
-    add_count = 0;
-    dbl_count = 0;
-    mul_count = 0;
-    MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &m, 16, exponents[0] ) );
-    MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &grp, &R, &m, &P, NULL, NULL ) );
-
-    for( i = 1; i < sizeof( exponents ) / sizeof( exponents[0] ); i++ )
-    {
-        add_c_prev = add_count;
-        dbl_c_prev = dbl_count;
-        mul_c_prev = mul_count;
-        add_count = 0;
-        dbl_count = 0;
-        mul_count = 0;
-
-        MBEDTLS_MPI_CHK( mbedtls_mpi_read_string( &m, 16, exponents[i] ) );
-        MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &grp, &R, &m, &P, NULL, NULL ) );
-
-        if( add_count != add_c_prev ||
-            dbl_count != dbl_c_prev ||
-            mul_count != mul_c_prev )
-        {
-            if( verbose != 0 )
-                mbedtls_printf( "failed (%u)\n", (unsigned int) i );
-
-            ret = 1;
-            goto cleanup;
-        }
-    }
-
-    if( verbose != 0 )
-        mbedtls_printf( "passed\n" );
+    ret = self_test_point( verbose,
+                           &grp, &R, &m, &P,
+                           exponents,
+                           sizeof( exponents ) / sizeof( exponents[0] ));
 
 cleanup:
 

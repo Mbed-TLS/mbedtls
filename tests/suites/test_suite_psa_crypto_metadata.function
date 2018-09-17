@@ -138,7 +138,7 @@ void hash_algorithm( int alg_arg, int length_arg )
     TEST_ASSERT( PSA_ALG_RSA_OAEP_GET_HASH( rsa_oaep_alg ) == alg );
     TEST_ASSERT( PSA_ALG_HKDF_GET_HASH( hkdf_alg ) == alg );
 
-    /* Hash length and block size */
+    /* Hash length */
     TEST_ASSERT( length == PSA_HASH_SIZE( alg ) );
     TEST_ASSERT( length <= PSA_HASH_MAX_SIZE );
 }
@@ -168,6 +168,25 @@ void mac_algorithm( int alg_arg, int classification_flags,
     /* Length */
     TEST_ASSERT( length == PSA_MAC_FINAL_SIZE( key_type, key_bits, alg ) );
     TEST_ASSERT( length <= PSA_MAC_MAX_SIZE );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void hmac_algorithm( int alg_arg,
+                     int length_arg,
+                     int block_size_arg )
+{
+    psa_algorithm_t alg = alg_arg;
+    psa_algorithm_t hash_alg = PSA_ALG_HMAC_GET_HASH( alg );
+    size_t block_size = block_size_arg;
+
+    TEST_ASSERT( PSA_ALG_IS_HASH( hash_alg ) );
+    TEST_ASSERT( PSA_ALG_HMAC( hash_alg ) == alg );
+
+    TEST_ASSERT( block_size <= PSA_HMAC_MAX_HASH_BLOCK_SIZE );
+
+    test_mac_algorithm( alg_arg, ALG_IS_HMAC, length_arg,
+                        PSA_KEY_TYPE_HMAC, PSA_BYTES_TO_BITS( length_arg ) );
 }
 /* END_CASE */
 

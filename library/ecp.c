@@ -3301,7 +3301,7 @@ static int self_test_point( int verbose,
                             size_t n_exponents )
 {
     int ret = 0;
-    size_t i;
+    size_t i = 0;
     unsigned long add_c_prev, dbl_c_prev, mul_c_prev;
     add_count = 0;
     dbl_count = 0;
@@ -3350,10 +3350,12 @@ int mbedtls_ecp_self_test( int verbose )
     mbedtls_ecp_group grp;
     mbedtls_ecp_point R, P;
     mbedtls_mpi m;
+
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
     /* Exponents especially adapted for secp192k1, which has the lowest
      * order n of all supported curves (secp192r1 is in a slightly larger
      * field but the order of its base point is slightly smaller). */
-    const char *exponents[] =
+    const char *sw_exponents[] =
     {
         "000000000000000000000000000000000000000000000001", /* one */
         "FFFFFFFFFFFFFFFFFFFFFFFE26F2FC170F69466A74DEFD8C", /* n - 1 */
@@ -3362,12 +3364,25 @@ int mbedtls_ecp_self_test( int verbose )
         "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", /* all ones */
         "555555555555555555555555555555555555555555555555", /* 101010... */
     };
+#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
+    const char *m_exponents[] =
+    {
+        "4000000000000000000000000000000000000000000000000000000000000000",
+        "5C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C3C30",
+        "5715ECCE24583F7A7023C24164390586842E816D7280A49EF6DF4EAE6B280BF8",
+        "41A2B017516F6D254E1F002BCCBADD54BE30F8CEC737A0E912B4963B6BA74460",
+        "5555555555555555555555555555555555555555555555555555555555555550",
+        "7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8",
+    };
+#endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
 
     mbedtls_ecp_group_init( &grp );
     mbedtls_ecp_point_init( &R );
     mbedtls_ecp_point_init( &P );
     mbedtls_mpi_init( &m );
 
+#if defined(MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED)
     /* Use secp192r1 if available, or any available curve */
 #if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
     MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &grp, MBEDTLS_ECP_DP_SECP192R1 ) );
@@ -3376,24 +3391,48 @@ int mbedtls_ecp_self_test( int verbose )
 #endif
 
     if( verbose != 0 )
-        mbedtls_printf( "  ECP test #1 (constant op_count, base point G): " );
+        mbedtls_printf( "  ECP SW test #1 (constant op_count, base point G): " );
     /* Do a dummy multiplication first to trigger precomputation */
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &m, 2 ) );
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul( &grp, &P, &m, &grp.G, NULL, NULL ) );
     ret = self_test_point( verbose,
                            &grp, &R, &m, &grp.G,
-                           exponents,
-                           sizeof( exponents ) / sizeof( exponents[0] ));
+                           sw_exponents,
+                           sizeof( sw_exponents ) / sizeof( sw_exponents[0] ));
     if( ret != 0 )
         goto cleanup;
 
     if( verbose != 0 )
-        mbedtls_printf( "  ECP test #2 (constant op_count, other point): " );
+        mbedtls_printf( "  ECP SW test #2 (constant op_count, other point): " );
     /* We computed P = 2G last time, use it */
     ret = self_test_point( verbose,
                            &grp, &R, &m, &P,
-                           exponents,
-                           sizeof( exponents ) / sizeof( exponents[0] ));
+                           sw_exponents,
+                           sizeof( sw_exponents ) / sizeof( sw_exponents[0] ));
+    if( ret != 0 )
+        goto cleanup;
+
+    mbedtls_ecp_group_free( &grp );
+    mbedtls_ecp_point_free( &R );
+#endif /* MBEDTLS_ECP_SHORT_WEIERSTRASS_ENABLED */
+
+#if defined(MBEDTLS_ECP_MONTGOMERY_ENABLED)
+    if( verbose != 0 )
+        mbedtls_printf( "  ECP Montgomery test (constant op_count): " );
+#if defined(MBEDTLS_ECP_DP_CURVE25519_ENABLED)
+    MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &grp, MBEDTLS_ECP_DP_CURVE25519 ) );
+#elif defined(MBEDTLS_ECP_DP_CURVE448_ENABLED)
+    MBEDTLS_MPI_CHK( mbedtls_ecp_group_load( &grp, MBEDTLS_ECP_DP_CURVE448 ) );
+#else
+#error "MBEDTLS_ECP_MONTGOMERY_ENABLED is defined, but no curve is supported for self-test"
+#endif
+    ret = self_test_point( verbose,
+                           &grp, &R, &m, &grp.G,
+                           m_exponents,
+                           sizeof( m_exponents ) / sizeof( m_exponents[0] ));
+    if( ret != 0 )
+        goto cleanup;
+#endif /* MBEDTLS_ECP_MONTGOMERY_ENABLED */
 
 cleanup:
 

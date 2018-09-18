@@ -3792,6 +3792,87 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void key_agreement_capacity( int alg_arg,
+                             int our_key_type_arg, data_t *our_key_data,
+                             data_t *peer_key_data,
+                             int expected_capacity_arg )
+{
+    psa_key_slot_t our_key = 1;
+    psa_algorithm_t alg = alg_arg;
+    psa_key_type_t our_key_type = our_key_type_arg;
+    psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+    psa_key_policy_t policy;
+    size_t actual_capacity;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
+    TEST_ASSERT( psa_set_key_policy( our_key, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_import_key( our_key, our_key_type,
+                                 our_key_data->x,
+                                 our_key_data->len ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_key_agreement( &generator,
+                                    our_key,
+                                    peer_key_data->x, peer_key_data->len,
+                                    alg ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_get_generator_capacity(
+                     &generator, &actual_capacity ) == PSA_SUCCESS );
+    TEST_ASSERT( actual_capacity == (size_t) expected_capacity_arg );
+
+exit:
+    psa_generator_abort( &generator );
+    psa_destroy_key( our_key );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void key_agreement_output( int alg_arg,
+                           int our_key_type_arg, data_t *our_key_data,
+                           data_t *peer_key_data,
+                           data_t *expected_output )
+{
+    psa_key_slot_t our_key = 1;
+    psa_algorithm_t alg = alg_arg;
+    psa_key_type_t our_key_type = our_key_type_arg;
+    psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+    psa_key_policy_t policy;
+    uint8_t *actual_output = mbedtls_calloc( 1, expected_output->len );
+
+    TEST_ASSERT( actual_output != NULL );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
+    TEST_ASSERT( psa_set_key_policy( our_key, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_import_key( our_key, our_key_type,
+                                 our_key_data->x,
+                                 our_key_data->len ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_key_agreement( &generator,
+                                    our_key,
+                                    peer_key_data->x, peer_key_data->len,
+                                    alg ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_generator_read( &generator,
+                                     actual_output,
+                                     expected_output->len ) == PSA_SUCCESS );
+    TEST_ASSERT( memcmp( actual_output, expected_output->x,
+                         expected_output->len ) == 0 );
+
+exit:
+    psa_generator_abort( &generator );
+    psa_destroy_key( our_key );
+    mbedtls_psa_crypto_free( );
+    mbedtls_free( actual_output );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void generate_random( int bytes_arg )
 {
     size_t bytes = bytes_arg;

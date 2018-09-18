@@ -843,7 +843,7 @@ void mbedtls_mpi_is_prime( int radix_X, char * input_X, int div_result )
     mbedtls_mpi_init( &X );
 
     TEST_ASSERT( mbedtls_mpi_read_string( &X, radix_X, input_X ) == 0 );
-    res = mbedtls_mpi_is_prime( &X, rnd_std_rand, NULL );
+    res = mbedtls_mpi_is_prime_ext( &X, 40, rnd_std_rand, NULL );
     TEST_ASSERT( res == div_result );
 
 exit:
@@ -853,7 +853,7 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_GENPRIME */
 void mbedtls_mpi_is_prime_det( data_t * input_X, data_t * witnesses,
-                               int chunk_len, int div_result )
+                               int chunk_len, int rounds, int div_result )
 {
     mbedtls_mpi X;
     int res;
@@ -865,7 +865,8 @@ void mbedtls_mpi_is_prime_det( data_t * input_X, data_t * witnesses,
     rand.chunk_len = chunk_len;
 
     TEST_ASSERT( mbedtls_mpi_read_binary( &X, input_X->x, input_X->len ) == 0 );
-    res = mbedtls_mpi_is_prime( &X, mbedtls_test_mpi_miller_rabin_determinizer,
+    res = mbedtls_mpi_is_prime_ext( &X, rounds,
+                                    mbedtls_test_mpi_miller_rabin_determinizer,
                                     &rand );
     TEST_ASSERT( res == div_result );
 
@@ -892,12 +893,14 @@ void mbedtls_mpi_gen_prime( int bits, int flags, int ref_ret )
         TEST_ASSERT( actual_bits >= (size_t) bits );
         TEST_ASSERT( actual_bits <= (size_t) bits + 1 );
 
-        TEST_ASSERT( mbedtls_mpi_is_prime( &X, rnd_std_rand, NULL ) == 0 );
+        TEST_ASSERT( mbedtls_mpi_is_prime_ext( &X, 40, rnd_std_rand, NULL )
+                     == 0 );
         if( flags & MBEDTLS_MPI_GEN_PRIME_FLAG_DH )
         {
             /* X = ( X - 1 ) / 2 */
             TEST_ASSERT( mbedtls_mpi_shift_r( &X, 1 ) == 0 );
-            TEST_ASSERT( mbedtls_mpi_is_prime( &X, rnd_std_rand, NULL ) == 0 );
+            TEST_ASSERT( mbedtls_mpi_is_prime_ext( &X, 40, rnd_std_rand, NULL )
+                         == 0 );
         }
     }
 

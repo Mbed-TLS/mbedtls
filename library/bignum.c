@@ -2145,9 +2145,9 @@ cleanup:
 /*
  * Pseudo-primality test: small factors, then Miller-Rabin
  */
-int mpi_is_prime_internal( const mbedtls_mpi *X, int rounds,
-                  int (*f_rng)(void *, unsigned char *, size_t),
-                  void *p_rng )
+int mbedtls_mpi_is_prime_ext( const mbedtls_mpi *X, int rounds,
+                              int (*f_rng)(void *, unsigned char *, size_t),
+                              void *p_rng )
 {
     int ret;
     mbedtls_mpi XX;
@@ -2174,6 +2174,7 @@ int mpi_is_prime_internal( const mbedtls_mpi *X, int rounds,
     return( mpi_miller_rabin( &XX, rounds, f_rng, p_rng ) );
 }
 
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 /*
  * Pseudo-primality test, error probability 2^-80
  */
@@ -2181,8 +2182,14 @@ int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng )
 {
-    return mpi_is_prime_internal( X, 40, f_rng, p_rng );
+    /*
+     * In the past our key generation aimed for an error rate of at most
+     * 2^-80. Since this function is deprecated, aim for the same certainty
+     * here as well.
+     */
+    return mbedtls_mpi_is_prime_ext( X, 40, f_rng, p_rng );
 }
+#endif
 
 /*
  * Prime number generation
@@ -2248,7 +2255,7 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int flags,
 
         if( ( flags & MBEDTLS_MPI_GEN_PRIME_FLAG_DH ) == 0 )
         {
-            ret = mpi_is_prime_internal( X, rounds, f_rng, p_rng );
+            ret = mbedtls_mpi_is_prime_ext( X, rounds, f_rng, p_rng );
 
             if( ret != MBEDTLS_ERR_MPI_NOT_ACCEPTABLE )
                 goto cleanup;

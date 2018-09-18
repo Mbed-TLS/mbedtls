@@ -3040,7 +3040,10 @@ psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
  *   and \p label is the info string used in the "expand" step.
  *
  * \param[in,out] generator       The generator object to set up. It must
- *                                have been initialized to .
+ *                                have been initialized to all-bits-zero,
+ *                                a logical zero (`{0}`),
+ *                                \c PSA_CRYPTO_GENERATOR_INIT or
+ *                                psa_crypto_generator_init().
  * \param key                     Slot containing the secret key to use.
  * \param alg                     The key derivation algorithm to compute
  *                                (\c PSA_ALG_XXX value such that

@@ -3539,6 +3539,8 @@ static psa_status_t psa_key_derivation_internal(
 
     if( capacity <= max_capacity )
         generator->capacity = capacity;
+    else if( capacity == PSA_GENERATOR_UNBRIDLED_CAPACITY )
+        generator->capacity = max_capacity;
     else
         return( PSA_ERROR_INVALID_ARGUMENT );
 

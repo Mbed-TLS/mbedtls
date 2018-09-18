@@ -3122,6 +3122,15 @@ psa_status_t psa_generator_import_key(psa_key_slot_t key,
  */
 psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
 
+/** Use the maximum possible capacity for a generator.
+ *
+ * Use this value as the capacity argument when setting up a generator
+ * to indicate that the generator should have the maximum possible capacity.
+ * The value of the maximum possible capacity depends on the generator
+ * algorithm.
+ */
+#define PSA_GENERATOR_UNBRIDLED_CAPACITY ((size_t)(-1))
+
 /**@}*/
 
 /** \defgroup derivation Key derivation

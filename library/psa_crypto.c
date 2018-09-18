@@ -62,6 +62,7 @@
 #include "mbedtls/cmac.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/des.h"
+#include "mbedtls/ecdh.h"
 #include "mbedtls/ecp.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/error.h"
@@ -3593,6 +3594,48 @@ psa_status_t psa_key_derivation( psa_crypto_generator_t *generator,
 /* Key agreement */
 /****************************************************************/
 
+static psa_status_t psa_key_agreement_ecdh( const uint8_t *peer_key,
+                                            size_t peer_key_length,
+                                            const mbedtls_ecp_keypair *our_key,
+                                            uint8_t *shared_secret,
+                                            size_t shared_secret_size,
+                                            size_t *shared_secret_length )
+{
+    mbedtls_pk_context pk;
+    mbedtls_ecp_keypair *their_key = NULL;
+    mbedtls_ecdh_context ecdh;
+    int ret;
+    mbedtls_ecdh_init( &ecdh );
+    mbedtls_pk_init( &pk );
+
+    ret = mbedtls_pk_parse_public_key( &pk, peer_key, peer_key_length );
+    if( ret != 0 )
+        goto exit;
+    if( mbedtls_pk_get_type( &pk ) != MBEDTLS_PK_ECKEY )
+    {
+        ret = MBEDTLS_ERR_ECP_INVALID_KEY;
+        goto exit;
+    }
+    their_key = mbedtls_pk_ec( pk );
+    ret = mbedtls_ecdh_get_params( &ecdh, their_key, MBEDTLS_ECDH_THEIRS );
+    if( ret != 0 )
+        goto exit;
+    ret = mbedtls_ecdh_get_params( &ecdh, our_key, MBEDTLS_ECDH_OURS );
+    if( ret != 0 )
+        goto exit;
+
+    ret = mbedtls_ecdh_calc_secret( &ecdh,
+                                    shared_secret_length,
+                                    shared_secret, shared_secret_size,
+                                    mbedtls_ctr_drbg_random,
+                                    &global_data.ctr_drbg );
+
+exit:
+    mbedtls_pk_free( &pk );
+    mbedtls_ecdh_free( &ecdh );
+    return( mbedtls_to_psa_error( ret ) );
+}
+
 #define PSA_KEY_AGREEMENT_MAX_SHARED_SECRET_SIZE MBEDTLS_ECP_MAX_BYTES
 
 static psa_status_t psa_key_agreement_internal( psa_crypto_generator_t *generator,
@@ -3609,6 +3652,17 @@ static psa_status_t psa_key_agreement_internal( psa_crypto_generator_t *generato
      * secret. */
     switch( PSA_ALG_KEY_AGREEMENT_GET_BASE( alg ) )
     {
+#if defined(MBEDTLS_ECDH_C)
+        case PSA_ALG_ECDH_BASE:
+            if( ! PSA_KEY_TYPE_IS_ECC_KEYPAIR( private_key->type ) )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+            status = psa_key_agreement_ecdh( peer_key, peer_key_length,
+                                             private_key->data.ecp,
+                                             shared_secret,
+                                             sizeof( shared_secret ),
+                                             &shared_secret_length );
+            break;
+#endif /* MBEDTLS_ECDH_C */
         default:
             return( PSA_ERROR_NOT_SUPPORTED );
     }

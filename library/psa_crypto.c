@@ -3590,6 +3590,66 @@ psa_status_t psa_key_derivation( psa_crypto_generator_t *generator,
 
 
 /****************************************************************/
+/* Key agreement */
+/****************************************************************/
+
+#define PSA_KEY_AGREEMENT_MAX_SHARED_SECRET_SIZE MBEDTLS_ECP_MAX_BYTES
+
+static psa_status_t psa_key_agreement_internal( psa_crypto_generator_t *generator,
+                                                key_slot_t *private_key,
+                                                const uint8_t *peer_key,
+                                                size_t peer_key_length,
+                                                psa_algorithm_t alg )
+{
+    psa_status_t status;
+    uint8_t shared_secret[PSA_KEY_AGREEMENT_MAX_SHARED_SECRET_SIZE];
+    size_t shared_secret_length = 0;
+
+    /* Step 1: run the secret agreement algorithm to generate the shared
+     * secret. */
+    switch( PSA_ALG_KEY_AGREEMENT_GET_BASE( alg ) )
+    {
+        default:
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    /* Step 2: set up the key derivation to generate key material from
+     * the shared secret. */
+    status = psa_key_derivation_internal( generator,
+                                          shared_secret, shared_secret_length,
+                                          PSA_ALG_KEY_AGREEMENT_GET_KDF( alg ),
+                                          NULL, 0, NULL, 0,
+                                          PSA_GENERATOR_UNBRIDLED_CAPACITY );
+exit:
+    mbedtls_zeroize( shared_secret, shared_secret_length );
+    return( status );
+}
+
+psa_status_t psa_key_agreement( psa_crypto_generator_t *generator,
+                                psa_key_slot_t private_key,
+                                const uint8_t *peer_key,
+                                size_t peer_key_length,
+                                psa_algorithm_t alg )
+{
+    key_slot_t *slot;
+    psa_status_t status;
+    if( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    status = psa_get_key_from_slot( private_key, &slot,
+                                    PSA_KEY_USAGE_DERIVE, alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+    return( psa_key_agreement_internal( generator,
+                                        slot,
+                                        peer_key, peer_key_length,
+                                        alg ) );
+}
+
+
+
+/****************************************************************/
 /* Random generation */
 /****************************************************************/
 

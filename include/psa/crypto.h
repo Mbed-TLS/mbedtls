@@ -3191,6 +3191,46 @@ psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
                                 size_t label_length,
                                 size_t capacity);
 
+/** Set up a key agreement operation.
+ *
+ * A key agreement algorithm takes two inputs: a private key \p private_key
+ * a public key \p peer_key.
+ * The result of this function is a byte generator which can
+ * be used to produce keys and other cryptographic material.
+ *
+ * \param[in,out] generator       The generator object to set up. It must
+ *                                have been initialized to all-bits-zero,
+ *                                a logical zero (`{0}`),
+ *                                \c PSA_CRYPTO_GENERATOR_INIT or
+ *                                psa_crypto_generator_init().
+ * \param private_key             Slot containing the private key to use.
+ * \param[in] peer_key            Public key of the peer.
+ * \param peer_key_length         Size of \p peer_key in bytes.
+ * \param alg                     The key agreement algorithm to compute
+ *                                (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_KEY_AGREEMENT(\p alg) is true).
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c private_key is not compatible with \c alg,
+ *         or \p peer_key is not valid for \c alg or not compatible with
+ *         \c private_key.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \c alg is not supported or is not a key derivation algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_key_agreement(psa_crypto_generator_t *generator,
+                               psa_key_slot_t private_key,
+                               const uint8_t *peer_key,
+                               size_t peer_key_length,
+                               psa_algorithm_t alg);
+
 /**@}*/
 
 /** \defgroup random Random generation

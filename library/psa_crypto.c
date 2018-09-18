@@ -3432,7 +3432,8 @@ exit:
 /* Set up an HKDF-based generator. This is exactly the extract phase
  * of the HKDF algorithm. */
 static psa_status_t psa_generator_hkdf_setup( psa_hkdf_generator_t *hkdf,
-                                              key_slot_t *slot,
+                                              const uint8_t *secret,
+                                              size_t secret_length,
                                               psa_algorithm_t hash_alg,
                                               const uint8_t *salt,
                                               size_t salt_length,
@@ -3445,9 +3446,7 @@ static psa_status_t psa_generator_hkdf_setup( psa_hkdf_generator_t *hkdf,
                                       PSA_ALG_HMAC_GET_HASH( hash_alg ) );
     if( status != PSA_SUCCESS )
         return( status );
-    status = psa_hash_update( &hkdf->hmac.hash_ctx,
-                              slot->data.raw.data,
-                              slot->data.raw.bytes );
+    status = psa_hash_update( &hkdf->hmac.hash_ctx, secret, secret_length );
     if( status != PSA_SUCCESS )
         return( status );
     status = psa_hmac_finish_internal( &hkdf->hmac,
@@ -3468,6 +3467,51 @@ static psa_status_t psa_generator_hkdf_setup( psa_hkdf_generator_t *hkdf,
     return( PSA_SUCCESS );
 }
 
+static psa_status_t psa_key_derivation_internal(
+    psa_crypto_generator_t *generator,
+    const uint8_t *secret, size_t secret_length,
+    psa_algorithm_t alg,
+    const uint8_t *salt, size_t salt_length,
+    const uint8_t *label, size_t label_length,
+    size_t capacity )
+{
+    psa_status_t status;
+    size_t max_capacity;
+
+    /* Set generator->alg even on failure so that abort knows what to do. */
+    generator->alg = alg;
+
+#if defined(MBEDTLS_MD_C)
+    if( PSA_ALG_IS_HKDF( alg ) )
+    {
+        psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( alg );
+        size_t hash_size = PSA_HASH_SIZE( hash_alg );
+        if( hash_size == 0 )
+            return( PSA_ERROR_NOT_SUPPORTED );
+        max_capacity = 255 * hash_size;
+        status = psa_generator_hkdf_setup( &generator->ctx.hkdf,
+                                           secret, secret_length,
+                                           hash_alg,
+                                           salt, salt_length,
+                                           label, label_length );
+    }
+    else
+#endif
+    {
+        return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    if( capacity <= max_capacity )
+        generator->capacity = capacity;
+    else
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    return( PSA_SUCCESS );
+}
+
 psa_status_t psa_key_derivation( psa_crypto_generator_t *generator,
                                  psa_key_slot_t key,
                                  psa_algorithm_t alg,
@@ -3483,41 +3527,27 @@ psa_status_t psa_key_derivation( psa_crypto_generator_t *generator,
     if( generator->alg != 0 )
         return( PSA_ERROR_BAD_STATE );
 
-    status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_DERIVE, alg );
-    if( status != PSA_SUCCESS )
-        return( status );
-    if( slot->type != PSA_KEY_TYPE_DERIVE )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
+    /* Make sure that alg is a key derivation algorithm. This prevents
+     * key selection algorithms, which psa_key_derivation_internal
+     * accepts for the sake of key agreement. */
     if( ! PSA_ALG_IS_KEY_DERIVATION( alg ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
-#if defined(MBEDTLS_MD_C)
-    if( PSA_ALG_IS_HKDF( alg ) )
-    {
-        psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( alg );
-        size_t hash_size = PSA_HASH_SIZE( hash_alg );
-        if( hash_size == 0 )
-            return( PSA_ERROR_NOT_SUPPORTED );
-        if( capacity > 255 * hash_size )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-        status = psa_generator_hkdf_setup( &generator->ctx.hkdf,
-                                           slot,
-                                           hash_alg,
-                                           salt, salt_length,
-                                           label, label_length );
-    }
-    else
-#endif
-    {
-        return( PSA_ERROR_NOT_SUPPORTED );
-    }
+    status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_DERIVE, alg );
+    if( status != PSA_SUCCESS )
+        return( status );
 
-    /* Set generator->alg even on failure so that abort knows what to do. */
-    generator->alg = alg;
-    if( status == PSA_SUCCESS )
-        generator->capacity = capacity;
-    else
+    if( slot->type != PSA_KEY_TYPE_DERIVE )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    status = psa_key_derivation_internal( generator,
+                                          slot->data.raw.data,
+                                          slot->data.raw.bytes,
+                                          alg,
+                                          salt, salt_length,
+                                          label, label_length,
+                                          capacity );
+    if( status != PSA_SUCCESS )
         psa_generator_abort( generator );
     return( status );
 }

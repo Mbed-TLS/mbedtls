@@ -1377,7 +1377,11 @@ PSA key derivation: bad key type
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 derive_setup:PSA_KEY_TYPE_RAW_DATA:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":PSA_ALG_HKDF(PSA_ALG_SHA_256):"":"":42:PSA_ERROR_INVALID_ARGUMENT
 
-PSA key derivation: not a key derivation algorithm
+PSA key derivation: not a key derivation algorithm (selection)
+depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
+derive_setup:PSA_KEY_TYPE_DERIVE:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":PSA_ALG_SELECT_RAW:"":"":42:PSA_ERROR_INVALID_ARGUMENT
+
+PSA key derivation: not a key derivation algorithm (HMAC)
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 derive_setup:PSA_KEY_TYPE_DERIVE:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":PSA_ALG_HMAC(PSA_ALG_SHA_256):"":"":42:PSA_ERROR_INVALID_ARGUMENT
 

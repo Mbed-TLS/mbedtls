@@ -603,6 +603,7 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_CATEGORY_ASYMMETRIC_ENCRYPTION  ((psa_algorithm_t)0x12000000)
 #define PSA_ALG_CATEGORY_KEY_AGREEMENT          ((psa_algorithm_t)0x22000000)
 #define PSA_ALG_CATEGORY_KEY_DERIVATION         ((psa_algorithm_t)0x30000000)
+#define PSA_ALG_CATEGORY_KEY_SELECTION          ((psa_algorithm_t)0x31000000)
 
 #define PSA_ALG_IS_VENDOR_DEFINED(alg)                                  \
     (((alg) & PSA_ALG_VENDOR_FLAG) != 0)
@@ -674,6 +675,7 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_IS_ASYMMETRIC_ENCRYPTION(alg)                           \
     (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_ASYMMETRIC_ENCRYPTION)
 
+#define PSA_ALG_KEY_SELECTION_FLAG              ((psa_algorithm_t)0x01000000)
 /** Whether the specified algorithm is a key agreement algorithm.
  *
  * \param alg An algorithm identifier (value of type #psa_algorithm_t).
@@ -683,7 +685,8 @@ typedef uint32_t psa_algorithm_t;
  *         algorithm identifier.
  */
 #define PSA_ALG_IS_KEY_AGREEMENT(alg)                                   \
-    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_KEY_AGREEMENT)
+    (((alg) & PSA_ALG_CATEGORY_MASK & ~PSA_ALG_KEY_SELECTION_FLAG) ==   \
+     PSA_ALG_CATEGORY_KEY_AGREEMENT)
 
 /** Whether the specified algorithm is a key derivation algorithm.
  *
@@ -695,6 +698,17 @@ typedef uint32_t psa_algorithm_t;
  */
 #define PSA_ALG_IS_KEY_DERIVATION(alg)                                  \
     (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_KEY_DERIVATION)
+
+/** Whether the specified algorithm is a key selection algorithm.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \p alg is a key selection algorithm, 0 otherwise.
+ *         This macro may return either 0 or 1 if \p alg is not a supported
+ *         algorithm identifier.
+ */
+#define PSA_ALG_IS_KEY_SELECTION(alg)                                   \
+    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_KEY_SELECTION)
 
 #define PSA_ALG_HASH_MASK                       ((psa_algorithm_t)0x000000ff)
 #define PSA_ALG_MD2                             ((psa_algorithm_t)0x01000001)
@@ -1185,6 +1199,25 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_HKDF_GET_HASH(hkdf_alg)                         \
     (PSA_ALG_CATEGORY_HASH | ((hkdf_alg) & PSA_ALG_HASH_MASK))
 
+#define PSA_ALG_KEY_DERIVATION_MASK             ((psa_algorithm_t)0x010fffff)
+
+/** Use a shared secret as is.
+ *
+ * Specify this algorithm as the selection component of a key agreement
+ * to use the raw result of the key agreement as key material.
+ *
+ * \warning The raw result of a key agreement algorithm such as finite-field
+ * Diffie-Hellman or elliptic curve Diffie-Hellman has biases and should
+ * not be used directly as key material. It can however be used as the secret
+ * input in a key derivation algorithm.
+ */
+#define PSA_ALG_SELECT_RAW                      ((psa_algorithm_t)0x31000001)
+
+#define PSA_ALG_KEY_AGREEMENT_GET_KDF(alg)                              \
+    (((alg) & PSA_ALG_KEY_DERIVATION_MASK) | PSA_ALG_CATEGORY_KEY_DERIVATION)
+
+#define PSA_ALG_KEY_AGREEMENT_GET_BASE(alg)                              \
+    ((alg) & ~PSA_ALG_KEY_DERIVATION_MASK)
 /**@}*/
 
 /** \defgroup key_management Key management

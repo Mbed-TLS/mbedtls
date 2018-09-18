@@ -3241,6 +3241,16 @@ psa_status_t psa_generator_abort( psa_crypto_generator_t *generator )
          * nothing to do. */
     }
     else
+    if( generator->alg == PSA_ALG_SELECT_RAW )
+    {
+        if( generator->ctx.buffer.data != NULL )
+        {
+            mbedtls_zeroize( generator->ctx.buffer.data,
+                             generator->ctx.buffer.size );
+            mbedtls_free( generator->ctx.buffer.data );
+        }
+    }
+    else
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HKDF( generator->alg ) )
     {
@@ -3358,6 +3368,14 @@ psa_status_t psa_generator_read( psa_crypto_generator_t *generator,
     }
     generator->capacity -= output_length;
 
+    if( generator->alg == PSA_ALG_SELECT_RAW )
+    {
+        size_t offset =
+            generator->ctx.buffer.size - generator->capacity - output_length;
+        memcpy( output, generator->ctx.buffer.data + offset, output_length );
+        status = PSA_SUCCESS;
+    }
+    else
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HKDF( generator->alg ) )
     {
@@ -3481,6 +3499,21 @@ static psa_status_t psa_key_derivation_internal(
     /* Set generator->alg even on failure so that abort knows what to do. */
     generator->alg = alg;
 
+    if( alg == PSA_ALG_SELECT_RAW )
+    {
+        if( salt_length != 0 )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        if( label_length != 0 )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        generator->ctx.buffer.data = mbedtls_calloc( 1, secret_length );
+        if( generator->ctx.buffer.data == NULL )
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+        memcpy( generator->ctx.buffer.data, secret, secret_length );
+        generator->ctx.buffer.size = secret_length;
+        max_capacity = secret_length;
+        status = PSA_SUCCESS;
+    }
+    else
 #if defined(MBEDTLS_MD_C)
     if( PSA_ALG_IS_HKDF( alg ) )
     {

@@ -1218,6 +1218,73 @@ typedef uint32_t psa_algorithm_t;
 
 #define PSA_ALG_KEY_AGREEMENT_GET_BASE(alg)                              \
     ((alg) & ~PSA_ALG_KEY_DERIVATION_MASK)
+
+#define PSA_ALG_FFDH_BASE                       ((psa_algorithm_t)0x22100000)
+/** The Diffie-Hellman key agreement algorithm.
+ *
+ * This algorithm combines the finite-field Diffie-Hellman-Merkle key
+ * agreement to produce a shared secret from a private key and the peer's
+ * public key, with a key selection or key derivation algorithm to produce
+ * one or more shared keys and other shared cryptographic material.
+ *
+ * \param kdf_alg       A key derivation algorithm (\c PSA_ALG_XXX value such
+ *                      that #PSA_ALG_IS_KEY_DERIVATION(\p hash_alg) is true)
+ *                      or a key selection algorithm (\c PSA_ALG_XXX value such
+ *                      that #PSA_ALG_IS_SELECTION(\p hash_alg) is true).
+ *
+ * \return              The Diffie-Hellman algorithm with the specified
+ *                      selection or derivation algorithm.
+ */
+#define PSA_ALG_FFDH(kdf_alg) \
+    (PSA_ALG_FFDH_BASE | ((kdf_alg) & PSA_ALG_KEY_DERIVATION_MASK))
+/** Whether the specified algorithm is a finite field Diffie-Hellman algorithm.
+ *
+ * This includes every supported key selection or key agreement algorithm
+ * for the output of the Diffie-Hellman calculation.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \c alg is a finite field Diffie-Hellman algorithm, 0 otherwise.
+ *         This macro may return either 0 or 1 if \c alg is not a supported
+ *         key agreement algorithm identifier.
+ */
+#define PSA_ALG_IS_FFDH(alg) \
+    (PSA_ALG_KEY_AGREEMENT_GET_BASE(alg) == PSA_ALG_FFDH_BASE)
+
+#define PSA_ALG_ECDH_BASE                       ((psa_algorithm_t)0x22200000)
+/** The elliptic curve Diffie-Hellman key agreement algorithm.
+ *
+ * This algorithm combines the elliptic curve Diffie-Hellman key
+ * agreement to produce a shared secret from a private key and the peer's
+ * public key, with a key selection or key derivation algorithm to produce
+ * one or more shared keys and other shared cryptographic material.
+ *
+ * \param kdf_alg       A key derivation algorithm (\c PSA_ALG_XXX value such
+ *                      that #PSA_ALG_IS_KEY_DERIVATION(\p hash_alg) is true)
+ *                      or a selection algorithm (\c PSA_ALG_XXX value such
+ *                      that #PSA_ALG_IS_KEY_SELECTION(\p hash_alg) is true).
+ *
+ * \return              The Diffie-Hellman algorithm with the specified
+ *                      selection or derivation algorithm.
+ */
+#define PSA_ALG_ECDH(kdf_alg) \
+    (PSA_ALG_ECDH_BASE | ((kdf_alg) & PSA_ALG_KEY_DERIVATION_MASK))
+/** Whether the specified algorithm is an elliptic curve Diffie-Hellman
+ * algorithm.
+ *
+ * This includes every supported key selection or key agreement algorithm
+ * for the output of the Diffie-Hellman calculation.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \c alg is an elliptic curve Diffie-Hellman algorithm,
+ *         0 otherwise.
+ *         This macro may return either 0 or 1 if \c alg is not a supported
+ *         key agreement algorithm identifier.
+ */
+#define PSA_ALG_IS_ECDH(alg) \
+    (PSA_ALG_KEY_AGREEMENT_GET_BASE(alg) == PSA_ALG_ECDH_BASE)
+
 /**@}*/
 
 /** \defgroup key_management Key management

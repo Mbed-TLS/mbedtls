@@ -42,7 +42,7 @@ typedef struct {
 
 #define ADD_STRLEN( s )     s, sizeof( s ) - 1
 
-// note: preset tag types as proposed in rfc3280 and widely used
+// note: preset tag types as proposed in RFC3280 and widely used
 static const x509_attr_descriptor_t x509_attrs[] =
 {
     { ADD_STRLEN( "CN" ),                       MBEDTLS_OID_AT_CN,              MBEDTLS_ASN1_UTF8_STRING },
@@ -76,7 +76,7 @@ static const x509_attr_descriptor_t x509_attrs[] =
     { NULL, 0, NULL, MBEDTLS_ASN1_NULL }
 };
 
-static const x509_attr_descriptor_t *x509_at_oid_from_name( const char *name, size_t name_len )
+static const x509_attr_descriptor_t *x509_attr_descr_from_name( const char *name, size_t name_len )
 {
     const x509_attr_descriptor_t *cur;
 
@@ -97,7 +97,7 @@ int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *na
     const char *s = name, *c = s;
     const char *end = s + strlen( s );
     const char *oid = NULL;
-    const x509_attr_descriptor_t* oid_attr = NULL;
+    const x509_attr_descriptor_t* attr_descr = NULL;
     int in_tag = 1;
     char data[MBEDTLS_X509_MAX_DN_NAME_SIZE];
     char *d = data;
@@ -109,13 +109,13 @@ int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *na
     {
         if( in_tag && *c == '=' )
         {
-            if( ( oid_attr = x509_at_oid_from_name( s, c - s ) ) == NULL )
+            if( ( attr_descr = x509_attr_descr_from_name( s, c - s ) ) == NULL )
             {
                 ret = MBEDTLS_ERR_X509_UNKNOWN_OID;
                 goto exit;
             }
 
-            oid = oid_attr->oid;
+            oid = attr_descr->oid;
             s = c + 1;
             in_tag = 0;
             d = data;
@@ -144,7 +144,7 @@ int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *na
             }
 
             // set tagType
-            cur->val.tag = oid_attr->tag;
+            cur->val.tag = attr_descr->tag;
 
             while( c < end && *(c + 1) == ' ' )
                 c++;
@@ -214,7 +214,7 @@ static int x509_write_name( unsigned char **p, unsigned char *start, mbedtls_asn
     size_t name_len             = cur_name->val.len;
 
     // Write correct string tag and value
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_any_string( p, start, cur_name->val.tag,
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tagged_string( p, start, cur_name->val.tag,
                                                                 (const char *) name,
                                                                 name_len ) );
     // Write OID

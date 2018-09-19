@@ -165,7 +165,7 @@ int mbedtls_asn1_write_int( unsigned char **p, unsigned char *start, int val );
  *
  * \return          the length written or a negative error code
  */
-int mbedtls_asn1_write_any_string( unsigned char **p, unsigned char *start,
+int mbedtls_asn1_write_tagged_string( unsigned char **p, unsigned char *start,
                                  int tag, const char *text, size_t text_len );
 /**
  * \brief           Write a printable string tag (MBEDTLS_ASN1_PRINTABLE_STRING) and

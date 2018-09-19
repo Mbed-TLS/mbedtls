@@ -32,6 +32,7 @@
 #define mbedtls_printf     printf
 #define mbedtls_snprintf   snprintf
 #define mbedtls_free       free
+#define mbedtls_exit       exit
 #endif
 
 #if !defined(MBEDTLS_TIMING_C)

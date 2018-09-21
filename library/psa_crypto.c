@@ -1226,27 +1226,25 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
 
     if( PSA_ALG_IS_CIPHER( alg ) || PSA_ALG_IS_AEAD( alg ) )
     {
-        if( PSA_ALG_IS_BLOCK_CIPHER( alg ) )
-        {
-            alg &= ~PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
-        }
-
         switch( alg )
         {
-            case PSA_ALG_STREAM_CIPHER_BASE:
+            case PSA_ALG_ARC4:
                 mode = MBEDTLS_MODE_STREAM;
-                break;
-            case PSA_ALG_CBC_BASE:
-                mode = MBEDTLS_MODE_CBC;
-                break;
-            case PSA_ALG_CFB_BASE:
-                mode = MBEDTLS_MODE_CFB;
-                break;
-            case PSA_ALG_OFB_BASE:
-                mode = MBEDTLS_MODE_OFB;
                 break;
             case PSA_ALG_CTR:
                 mode = MBEDTLS_MODE_CTR;
+                break;
+            case PSA_ALG_CFB:
+                mode = MBEDTLS_MODE_CFB;
+                break;
+            case PSA_ALG_OFB:
+                mode = MBEDTLS_MODE_OFB;
+                break;
+            case PSA_ALG_CBC_NO_PADDING:
+                mode = MBEDTLS_MODE_CBC;
+                break;
+            case PSA_ALG_CBC_PKCS7:
+                mode = MBEDTLS_MODE_CBC;
                 break;
             case PSA_ALG_CCM:
                 mode = MBEDTLS_MODE_CCM;
@@ -2425,37 +2423,32 @@ static psa_status_t psa_cipher_setup( psa_cipher_operation_t *operation,
     }
 
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
-    if( ( alg & ~PSA_ALG_BLOCK_CIPHER_PADDING_MASK ) == PSA_ALG_CBC_BASE )
+    switch( alg )
     {
-        psa_algorithm_t padding_mode = alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
-        mbedtls_cipher_padding_t mode;
-
-        switch ( padding_mode )
-        {
-            case PSA_ALG_BLOCK_CIPHER_PAD_PKCS7:
-                mode = MBEDTLS_PADDING_PKCS7;
-                break;
-            case PSA_ALG_BLOCK_CIPHER_PAD_NONE:
-                mode = MBEDTLS_PADDING_NONE;
-                break;
-            default:
-                psa_cipher_abort( operation );
-                return( PSA_ERROR_INVALID_ARGUMENT );
-        }
-        ret = mbedtls_cipher_set_padding_mode( &operation->ctx.cipher, mode );
-        if( ret != 0 )
-        {
-            psa_cipher_abort( operation );
-            return( mbedtls_to_psa_error( ret ) );
-        }
+        case PSA_ALG_CBC_NO_PADDING:
+            ret = mbedtls_cipher_set_padding_mode( &operation->ctx.cipher,
+                                                   MBEDTLS_PADDING_NONE );
+            break;
+        case PSA_ALG_CBC_PKCS7:
+            ret = mbedtls_cipher_set_padding_mode( &operation->ctx.cipher,
+                                                   MBEDTLS_PADDING_PKCS7 );
+            break;
+        default:
+            /* The algorithm doesn't involve padding. */
+            ret = 0;
+            break;
+    }
+    if( ret != 0 )
+    {
+        psa_cipher_abort( operation );
+        return( mbedtls_to_psa_error( ret ) );
     }
 #endif //MBEDTLS_CIPHER_MODE_WITH_PADDING
 
     operation->key_set = 1;
-    operation->block_size = ( PSA_ALG_IS_BLOCK_CIPHER( alg ) ?
-                              PSA_BLOCK_CIPHER_BLOCK_SIZE( slot->type ) :
-                              1 );
-    if( PSA_ALG_IS_BLOCK_CIPHER( alg ) || alg == PSA_ALG_CTR )
+    operation->block_size = ( PSA_ALG_IS_STREAM_CIPHER( alg ) ? 1 :
+                              PSA_BLOCK_CIPHER_BLOCK_SIZE( slot->type ) );
+    if( alg & PSA_ALG_CIPHER_FROM_BLOCK_FLAG )
     {
         operation->iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( slot->type );
     }
@@ -2547,7 +2540,7 @@ psa_status_t psa_cipher_update( psa_cipher_operation_t *operation,
     psa_status_t status;
     int ret;
     size_t expected_output_size;
-    if( PSA_ALG_IS_BLOCK_CIPHER( operation->alg ) )
+    if( ! PSA_ALG_IS_STREAM_CIPHER( operation->alg ) )
     {
         /* Take the unprocessed partial block left over from previous
          * update calls, if any, plus the input to this call. Remove
@@ -2596,24 +2589,13 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
         status = PSA_ERROR_BAD_STATE;
         goto error;
     }
+
     if( operation->ctx.cipher.operation == MBEDTLS_ENCRYPT &&
-        PSA_ALG_IS_BLOCK_CIPHER( operation->alg ) )
+        operation->alg == PSA_ALG_CBC_NO_PADDING &&
+        operation->ctx.cipher.unprocessed_len != 0 )
     {
-        psa_algorithm_t padding_mode =
-            operation->alg & PSA_ALG_BLOCK_CIPHER_PADDING_MASK;
-        if( operation->ctx.cipher.unprocessed_len >= operation->block_size )
-        {
-            status = PSA_ERROR_TAMPERING_DETECTED;
+            status = PSA_ERROR_INVALID_ARGUMENT;
             goto error;
-        }
-        if( padding_mode == PSA_ALG_BLOCK_CIPHER_PAD_NONE )
-        {
-            if( operation->ctx.cipher.unprocessed_len != 0 )
-            {
-                status = PSA_ERROR_INVALID_ARGUMENT;
-                goto error;
-            }
-        }
     }
 
     cipher_ret = mbedtls_cipher_finish( &operation->ctx.cipher,

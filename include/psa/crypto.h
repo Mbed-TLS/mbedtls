@@ -775,65 +775,8 @@ typedef uint32_t psa_algorithm_t;
     (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_MAC_SUBCATEGORY_MASK)) == \
      PSA_ALG_CIPHER_MAC_BASE)
 
-#define PSA_ALG_CIPHER_SUBCATEGORY_MASK         ((psa_algorithm_t)0x00c00000)
-#define PSA_ALG_BLOCK_CIPHER_BASE               ((psa_algorithm_t)0x04000000)
-#define PSA_ALG_BLOCK_CIPHER_MODE_MASK          ((psa_algorithm_t)0x000000ff)
-#define PSA_ALG_BLOCK_CIPHER_PADDING_MASK       ((psa_algorithm_t)0x003f0000)
-
-/** Use a block cipher mode without padding.
- *
- * This padding mode may only be used with messages whose lengths are a
- * whole number of blocks for the chosen block cipher.
- */
-#define PSA_ALG_BLOCK_CIPHER_PAD_NONE           ((psa_algorithm_t)0x00000000)
-
-#define PSA_ALG_BLOCK_CIPHER_PAD_PKCS7          ((psa_algorithm_t)0x00010000)
-
-/** Whether the specified algorithm is a block cipher.
- *
- * A block cipher is a symmetric cipher that encrypts or decrypts messages
- * by chopping them into fixed-size blocks. Processing a message requires
- * applying a _padding mode_ to transform the message into one whose
- * length is a whole number of blocks. To construct an algorithm
- * identifier for a block cipher, apply a bitwise-or between the block
- * cipher mode and the padding mode. For example, CBC with PKCS#7 padding
- * is `PSA_ALG_CBC_BASE | PSA_ALG_BLOCK_CIPHER_PAD_PKCS7`.
- *
- * The transformation applied to each block is determined by the key type.
- * For example, to use AES-128-CBC-PKCS7, use the algorithm above with
- * a key of type #PSA_KEY_TYPE_AES and a length of 128 bits (16 bytes).
- *
- * \param alg An algorithm identifier (value of type #psa_algorithm_t).
- *
- * \return 1 if \p alg is a block cipher algorithm, 0 otherwise.
- *         This macro may return either 0 or 1 if \p alg is not a supported
- *         algorithm identifier or if it is not a symmetric cipher algorithm.
- */
-#define PSA_ALG_IS_BLOCK_CIPHER(alg)            \
-    (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_CIPHER_SUBCATEGORY_MASK)) == \
-        PSA_ALG_BLOCK_CIPHER_BASE)
-
-/** The CBC block cipher mode.
- */
-#define PSA_ALG_CBC_BASE                        ((psa_algorithm_t)0x04000001)
-#define PSA_ALG_CFB_BASE                        ((psa_algorithm_t)0x04000002)
-#define PSA_ALG_OFB_BASE                        ((psa_algorithm_t)0x04000003)
-#define PSA_ALG_XTS_BASE                        ((psa_algorithm_t)0x04000004)
-
-#define PSA_ALG_STREAM_CIPHER_BASE              ((psa_algorithm_t)0x04800000)
-
-/** The CTR stream cipher mode.
- *
- * CTR is a stream cipher which is built from a block cipher. The
- * underlying block cipher is determined by the key type. For example,
- * to use AES-128-CTR, use this algorithm with
- * a key of type #PSA_KEY_TYPE_AES and a length of 128 bits (16 bytes).
- */
-#define PSA_ALG_CTR                             ((psa_algorithm_t)0x04800001)
-
-/** The ARC4 stream cipher algorithm.
- */
-#define PSA_ALG_ARC4                            ((psa_algorithm_t)0x04800002)
+#define PSA_ALG_CIPHER_STREAM_FLAG              ((psa_algorithm_t)0x00800000)
+#define PSA_ALG_CIPHER_FROM_BLOCK_FLAG          ((psa_algorithm_t)0x00400000)
 
 /** Whether the specified algorithm is a stream cipher.
  *
@@ -848,8 +791,50 @@ typedef uint32_t psa_algorithm_t;
  *         algorithm identifier or if it is not a symmetric cipher algorithm.
  */
 #define PSA_ALG_IS_STREAM_CIPHER(alg)            \
-    (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_CIPHER_SUBCATEGORY_MASK)) == \
-        PSA_ALG_STREAM_CIPHER_BASE)
+    (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_CIPHER_STREAM_FLAG)) == \
+        (PSA_ALG_CATEGORY_CIPHER | PSA_ALG_CIPHER_STREAM_FLAG))
+
+/** The ARC4 stream cipher algorithm.
+ */
+#define PSA_ALG_ARC4                            ((psa_algorithm_t)0x04800001)
+
+/** The CTR stream cipher mode.
+ *
+ * CTR is a stream cipher which is built from a block cipher.
+ * The underlying block cipher is determined by the key type.
+ * For example, to use AES-128-CTR, use this algorithm with
+ * a key of type #PSA_KEY_TYPE_AES and a length of 128 bits (16 bytes).
+ */
+#define PSA_ALG_CTR                             ((psa_algorithm_t)0x04c00001)
+
+#define PSA_ALG_CFB                             ((psa_algorithm_t)0x04c00002)
+
+#define PSA_ALG_OFB                             ((psa_algorithm_t)0x04c00003)
+
+/** The XTS cipher mode.
+ *
+ * XTS is a cipher mode which is built from a block cipher. It requires at
+ * least one full block of input, but beyond this minimum the input
+ * does not need to be a whole number of blocks.
+ */
+#define PSA_ALG_XTS                             ((psa_algorithm_t)0x044000ff)
+
+/** The CBC block cipher chaining mode, with no padding.
+ *
+ * The underlying block cipher is determined by the key type.
+ *
+ * This symmetric cipher mode can only be used with messages whose lengths
+ * are whole number of blocks for the chosen block cipher.
+ */
+#define PSA_ALG_CBC_NO_PADDING                  ((psa_algorithm_t)0x04600100)
+
+/** The CBC block cipher chaining mode with PKCS#7 padding.
+ *
+ * The underlying block cipher is determined by the key type.
+ *
+ * This is the padding method defined by PKCS#7 (RFC 2315) &sect;10.3.
+ */
+#define PSA_ALG_CBC_PKCS7                       ((psa_algorithm_t)0x04600101)
 
 #define PSA_ALG_CCM                             ((psa_algorithm_t)0x06000001)
 #define PSA_ALG_GCM                             ((psa_algorithm_t)0x06000002)

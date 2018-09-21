@@ -1957,6 +1957,12 @@ static psa_status_t psa_rsa_verify( mbedtls_rsa_context *rsa,
     {
         return( PSA_ERROR_INVALID_ARGUMENT );
     }
+
+    /* Mbed TLS distinguishes "invalid padding" from "valid padding but
+     * the rest of the signature is invalid". This has little use in
+     * practice and PSA doesn't report this distinction. */
+    if( ret == MBEDTLS_ERR_RSA_INVALID_PADDING )
+        return( PSA_ERROR_INVALID_SIGNATURE );
     return( mbedtls_to_psa_error( ret ) );
 }
 #endif /* MBEDTLS_RSA_C */

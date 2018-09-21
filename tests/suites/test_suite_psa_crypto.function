@@ -692,14 +692,16 @@ static int exercise_export_key( psa_key_slot_t slot,
     size_t exported_length = 0;
     int ok = 0;
 
-    if( ( usage & PSA_KEY_USAGE_EXPORT ) == 0 )
+    TEST_ASSERT( psa_get_key_information( slot, &type, &bits ) == PSA_SUCCESS );
+
+    if( ( usage & PSA_KEY_USAGE_EXPORT ) == 0 &&
+        ! PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) )
     {
         TEST_ASSERT( psa_export_key( slot, NULL, 0, &exported_length ) ==
                      PSA_ERROR_NOT_PERMITTED );
         return( 1 );
     }
 
-    TEST_ASSERT( psa_get_key_information( slot, &type, &bits ) == PSA_SUCCESS );
     exported_size = PSA_KEY_EXPORT_MAX_SIZE( type, bits );
     exported = mbedtls_calloc( 1, exported_size );
     TEST_ASSERT( exported != NULL );

@@ -264,9 +264,9 @@ extern int (*mbedtls_vsnprintf)( char * s, size_t n, const char * format, va_lis
 /**
  * \brief   Set your own snprintf function pointer
  *
- * \param vsnprintf_func   the snprintf function implementation
+ * \param   vsnprintf_func   The \c vsnprintf function implementation
  *
- * \return              0
+ * \return  \c 0
  */
 int mbedtls_platform_set_vsnprintf( int (*vsnprintf_func)( char * s, size_t n,
                                                  const char * format, va_list arg ) );

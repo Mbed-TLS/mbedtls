@@ -22,9 +22,9 @@ Bugfix
 Changes
    * Change the shebang line in Perl scripts to look up perl in the PATH.
      Contributed by fbrosson.
-   * Provide Mbed TLS wrapper for vsnprintf used in debug.c. Based on
-     contributions by Joris Aerts in #761 and Nathaniel Wesley Filardo in
-     #1381.
+   * Provide an abstraction of vsnprintf to allow alternative implementations
+     for platforms that don't provide it. Based on contributions by Joris Aerts
+     and Nathaniel Wesley Filardo.
 
 = mbed TLS 2.11.0 branch released 2018-06-18
 

@@ -64,10 +64,6 @@ extern "C" {
 #define MBEDTLS_PLATFORM_HAS_NON_CONFORMING_VSNPRINTF
 #endif
 
-#if defined(__MINGW32__) && !defined(__USE_MINGW_ANSI_STDIO)
-#define __USE_MINGW_ANSI_STDIO 1
-#endif
-
 #if !defined(MBEDTLS_PLATFORM_NO_STD_FUNCTIONS)
 #include <stdio.h>
 #include <stdlib.h>

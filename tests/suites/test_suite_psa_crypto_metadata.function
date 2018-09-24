@@ -94,6 +94,47 @@ void key_type_classification( psa_key_type_t type, unsigned flags )
 exit: ;
 }
 
+void mac_algorithm_core( psa_algorithm_t alg, int classification_flags,
+                         psa_key_type_t key_type, size_t key_bits,
+                         size_t length )
+{
+    /* Algorithm classification */
+    TEST_ASSERT( ! PSA_ALG_IS_HASH( alg ) );
+    TEST_ASSERT( PSA_ALG_IS_MAC( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_CIPHER( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_AEAD( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_SIGN( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    algorithm_classification( alg, classification_flags );
+
+    /* Length */
+    TEST_ASSERT( length == PSA_MAC_FINAL_SIZE( key_type, key_bits, alg ) );
+
+exit: ;
+}
+
+void aead_algorithm_core( psa_algorithm_t alg, int classification_flags,
+                          size_t tag_length )
+{
+    /* Algorithm classification */
+    TEST_ASSERT( ! PSA_ALG_IS_HASH( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_MAC( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_CIPHER( alg ) );
+    TEST_ASSERT( PSA_ALG_IS_AEAD( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_SIGN( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
+    TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
+    algorithm_classification( alg, classification_flags );
+
+    /* Tag length */
+    TEST_ASSERT( tag_length == PSA_AEAD_TAG_LENGTH( alg ) );
+
+exit: ;
+}
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -151,23 +192,30 @@ void mac_algorithm( int alg_arg, int classification_flags,
 {
     psa_algorithm_t alg = alg_arg;
     size_t length = length_arg;
+    size_t n;
     size_t key_type = key_type_arg;
     size_t key_bits = key_bits_arg;
 
-    /* Algorithm classification */
-    TEST_ASSERT( ! PSA_ALG_IS_HASH( alg ) );
-    TEST_ASSERT( PSA_ALG_IS_MAC( alg ) );
-    TEST_ASSERT( ! PSA_ALG_IS_CIPHER( alg ) );
-    TEST_ASSERT( ! PSA_ALG_IS_AEAD( alg ) );
-    TEST_ASSERT( ! PSA_ALG_IS_SIGN( alg ) );
-    TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
-    TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
-    TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
-    algorithm_classification( alg, classification_flags );
-
-    /* Length */
-    TEST_ASSERT( length == PSA_MAC_FINAL_SIZE( key_type, key_bits, alg ) );
+    mac_algorithm_core( alg, classification_flags,
+                        key_type, key_bits, length );
     TEST_ASSERT( length <= PSA_MAC_MAX_SIZE );
+
+    /* Truncated versions */
+    for( n = 1; n <= length; n++ )
+    {
+        psa_algorithm_t truncated_alg = PSA_ALG_TRUNCATED_MAC( alg, n );
+        mac_algorithm_core( truncated_alg, classification_flags,
+                            key_type, key_bits, n );
+        /* Check that calling PSA_ALG_TRUNCATED_MAC twice gives the length
+         * of the outer truncation (even if the outer length is smaller than
+         * the inner length). */
+        TEST_ASSERT( PSA_ALG_TRUNCATED_MAC( truncated_alg, 1 ) ==
+                     PSA_ALG_TRUNCATED_MAC( alg, 1 ) );
+        TEST_ASSERT( PSA_ALG_TRUNCATED_MAC( truncated_alg, length - 1 ) ==
+                     PSA_ALG_TRUNCATED_MAC( alg, length - 1) );
+        TEST_ASSERT( PSA_ALG_TRUNCATED_MAC( truncated_alg, length ) ==
+                     PSA_ALG_TRUNCATED_MAC( alg, length ) );
+    }
 }
 /* END_CASE */
 
@@ -179,14 +227,22 @@ void hmac_algorithm( int alg_arg,
     psa_algorithm_t alg = alg_arg;
     psa_algorithm_t hash_alg = PSA_ALG_HMAC_GET_HASH( alg );
     size_t block_size = block_size_arg;
+    size_t length = length_arg;
+    size_t n;
 
     TEST_ASSERT( PSA_ALG_IS_HASH( hash_alg ) );
     TEST_ASSERT( PSA_ALG_HMAC( hash_alg ) == alg );
 
     TEST_ASSERT( block_size <= PSA_HMAC_MAX_HASH_BLOCK_SIZE );
 
-    test_mac_algorithm( alg_arg, ALG_IS_HMAC, length_arg,
-                        PSA_KEY_TYPE_HMAC, PSA_BYTES_TO_BITS( length_arg ) );
+    test_mac_algorithm( alg_arg, ALG_IS_HMAC, length,
+                        PSA_KEY_TYPE_HMAC, PSA_BYTES_TO_BITS( length ) );
+
+    for( n = 1; n <= length; n++ )
+    {
+        psa_algorithm_t truncated_alg = PSA_ALG_TRUNCATED_MAC( alg, n );
+        TEST_ASSERT( PSA_ALG_HMAC_GET_HASH( truncated_alg ) == hash_alg );
+    }
 }
 /* END_CASE */
 
@@ -214,20 +270,30 @@ void aead_algorithm( int alg_arg, int classification_flags,
 {
     psa_algorithm_t alg = alg_arg;
     size_t tag_length = tag_length_arg;
+    size_t n;
 
-    /* Algorithm classification */
-    TEST_ASSERT( ! PSA_ALG_IS_HASH( alg ) );
-    TEST_ASSERT( ! PSA_ALG_IS_MAC( alg ) );
-    TEST_ASSERT( ! PSA_ALG_IS_CIPHER( alg ) );
-    TEST_ASSERT( PSA_ALG_IS_AEAD( alg ) );
-    TEST_ASSERT( ! PSA_ALG_IS_SIGN( alg ) );
-    TEST_ASSERT( ! PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) );
-    TEST_ASSERT( ! PSA_ALG_IS_KEY_AGREEMENT( alg ) );
-    TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
-    algorithm_classification( alg, classification_flags );
+    aead_algorithm_core( alg, classification_flags, tag_length );
 
-    /* Tag length */
-    TEST_ASSERT( tag_length == PSA_AEAD_TAG_LENGTH( alg ) );
+    /* Truncated versions */
+    for( n = 1; n <= tag_length; n++ )
+    {
+        psa_algorithm_t truncated_alg = PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, n );
+        aead_algorithm_core( truncated_alg, classification_flags, n );
+        TEST_ASSERT(
+            PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH( truncated_alg ) == alg );
+        /* Check that calling PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH twice gives
+         * the length of the outer truncation (even if the outer length is
+         * smaller than the inner length). */
+        TEST_ASSERT(
+            PSA_ALG_AEAD_WITH_TAG_LENGTH( truncated_alg, 1 ) ==
+            PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, 1 ) );
+        TEST_ASSERT(
+            PSA_ALG_AEAD_WITH_TAG_LENGTH( truncated_alg, tag_length - 1 ) ==
+            PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, tag_length - 1) );
+        TEST_ASSERT(
+            PSA_ALG_AEAD_WITH_TAG_LENGTH( truncated_alg, tag_length ) ==
+            PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, tag_length ) );
+    }
 }
 /* END_CASE */
 

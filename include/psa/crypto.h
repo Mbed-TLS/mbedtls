@@ -424,9 +424,6 @@ typedef uint32_t psa_key_type_t;
  */
 #define PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type)        \
     ((type) & ~PSA_KEY_TYPE_CATEGORY_FLAG_PAIR)
-/** Whether a key type is an RSA key (pair or public-only). */
-#define PSA_KEY_TYPE_IS_RSA(type)                                       \
-    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_RSA_PUBLIC_KEY)
 
 /** Raw data.
  *
@@ -483,11 +480,17 @@ typedef uint32_t psa_key_type_t;
 #define PSA_KEY_TYPE_RSA_PUBLIC_KEY             ((psa_key_type_t)0x60010000)
 /** RSA key pair (private and public key). */
 #define PSA_KEY_TYPE_RSA_KEYPAIR                ((psa_key_type_t)0x70010000)
+/** Whether a key type is an RSA key (pair or public-only). */
+#define PSA_KEY_TYPE_IS_RSA(type)                                       \
+    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_RSA_PUBLIC_KEY)
 
 /** DSA public key. */
 #define PSA_KEY_TYPE_DSA_PUBLIC_KEY             ((psa_key_type_t)0x60020000)
 /** DSA key pair (private and public key). */
 #define PSA_KEY_TYPE_DSA_KEYPAIR                ((psa_key_type_t)0x70020000)
+/** Whether a key type is an DSA key (pair or public-only). */
+#define PSA_KEY_TYPE_IS_DSA(type)                                       \
+    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_DSA_PUBLIC_KEY)
 
 #define PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE        ((psa_key_type_t)0x60030000)
 #define PSA_KEY_TYPE_ECC_KEYPAIR_BASE           ((psa_key_type_t)0x70030000)
@@ -522,7 +525,7 @@ typedef uint16_t psa_ecc_curve_t;
  * TLS Supported Groups Registry (formerly known as the
  * TLS EC Named Curve Registry)
  * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
- * The values are defined by RFC 4492, RFC 7027 and RFC 7919. */
+ * The values are defined by RFC 8422 and RFC 7027. */
 #define PSA_ECC_CURVE_SECT163K1         ((psa_ecc_curve_t) 0x0001)
 #define PSA_ECC_CURVE_SECT163R1         ((psa_ecc_curve_t) 0x0002)
 #define PSA_ECC_CURVE_SECT163R2         ((psa_ecc_curve_t) 0x0003)
@@ -553,11 +556,6 @@ typedef uint16_t psa_ecc_curve_t;
 #define PSA_ECC_CURVE_BRAINPOOL_P512R1  ((psa_ecc_curve_t) 0x001c)
 #define PSA_ECC_CURVE_CURVE25519        ((psa_ecc_curve_t) 0x001d)
 #define PSA_ECC_CURVE_CURVE448          ((psa_ecc_curve_t) 0x001e)
-#define PSA_ECC_CURVE_FFDHE_2048        ((psa_ecc_curve_t) 0x0100)
-#define PSA_ECC_CURVE_FFDHE_3072        ((psa_ecc_curve_t) 0x0101)
-#define PSA_ECC_CURVE_FFDHE_4096        ((psa_ecc_curve_t) 0x0102)
-#define PSA_ECC_CURVE_FFDHE_6144        ((psa_ecc_curve_t) 0x0103)
-#define PSA_ECC_CURVE_FFDHE_8192        ((psa_ecc_curve_t) 0x0104)
 
 /** The block size of a block cipher.
  *
@@ -741,7 +739,7 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_HMAC(hash_alg)                                  \
     (PSA_ALG_HMAC_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
 
-#define PSA_ALG_HMAC_HASH(hmac_alg)                             \
+#define PSA_ALG_HMAC_GET_HASH(hmac_alg)                             \
     (PSA_ALG_CATEGORY_HASH | ((hmac_alg) & PSA_ALG_HASH_MASK))
 
 /** Whether the specified algorithm is an HMAC algorithm.
@@ -771,7 +769,7 @@ typedef uint32_t psa_algorithm_t;
  *         This macro may return either 0 or 1 if \p alg is not a supported
  *         algorithm identifier.
  */
-#define PSA_ALG_IS_CIPHER_MAC(alg)                                      \
+#define PSA_ALG_IS_BLOCK_CIPHER_MAC(alg)                                \
     (((alg) & (PSA_ALG_CATEGORY_MASK | PSA_ALG_MAC_SUBCATEGORY_MASK)) == \
      PSA_ALG_CIPHER_MAC_BASE)
 
@@ -1636,21 +1634,21 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  */
 #define PSA_HASH_SIZE(alg)                                      \
     (                                                           \
-        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_MD2 ? 16 :            \
-        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_MD4 ? 16 :            \
-        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_MD5 ? 16 :            \
-        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_RIPEMD160 ? 20 :      \
-        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_1 ? 20 :          \
-        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_224 ? 28 :        \
-        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_256 ? 32 :        \
-        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_384 ? 48 :        \
-        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_512 ? 64 :        \
-        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_512_224 ? 28 :    \
-        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA_512_256 ? 32 :    \
-        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA3_224 ? 28 :       \
-        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA3_256 ? 32 :       \
-        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA3_384 ? 48 :       \
-        PSA_ALG_HMAC_HASH(alg) == PSA_ALG_SHA3_512 ? 64 :       \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_MD2 ? 16 :            \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_MD4 ? 16 :            \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_MD5 ? 16 :            \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_RIPEMD160 ? 20 :      \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_1 ? 20 :          \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_224 ? 28 :        \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_256 ? 32 :        \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_384 ? 48 :        \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_512 ? 64 :        \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_512_224 ? 28 :    \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_512_256 ? 32 :    \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_224 ? 28 :       \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_256 ? 32 :       \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_384 ? 48 :       \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_512 ? 64 :       \
         0)
 
 /** Start a multipart hash operation.

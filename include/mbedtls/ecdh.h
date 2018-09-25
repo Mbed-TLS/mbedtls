@@ -81,7 +81,7 @@ typedef enum
  * should not make any assumptions about the structure of
  * mbedtls_ecdh_context_mbed.
  */
-typedef struct
+typedef struct mbedtls_ecdh_context_mbed
 {
     mbedtls_ecp_group grp;   /*!< The elliptic curve used. */
     mbedtls_mpi d;           /*!< The private key. */

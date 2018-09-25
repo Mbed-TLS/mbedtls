@@ -209,8 +209,8 @@ uint32_t find_hex_count( uint8_t count, uint8_t *data, uint32_t data_len )
  *              Note: Caller has the responsibility to delete
  *                    the memory after use.
  */
-void ** parse_parameters( uint8_t count, uint8_t *data, uint32_t data_len,
-                          int *error )
+void **parse_parameters( uint8_t count, uint8_t *data, uint32_t data_len,
+                         int *error )
 {
     uint32_t i = 0, hex_count = 0;
     char c;

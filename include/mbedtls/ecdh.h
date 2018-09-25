@@ -36,12 +36,15 @@
 
 #include "ecp.h"
 
-/**
+/*
  * Use a backward compatible ECDH context.
  *
- * If a feature disables this flag, the corresponding description in config.h
- * must contain a warning stating that the feature breaks backward
- * compatibility.
+ * This flag is always enabled for now and future versions might add a
+ * configuration option that conditionally undefines this flag.
+ * The configuration option in question may have a different name.
+ *
+ * Features undefining this flag, must have a warning in their description in
+ * config.h stating that the feature breaks backward compatibility.
  */
 #define MBEDTLS_ECDH_LEGACY_CONTEXT
 
@@ -75,7 +78,8 @@ typedef enum
  * The context used by the default ECDH implementation.
  *
  * Later versions might change the structure of this context, therefore users
- * should not make any assumptions about them.
+ * should not make any assumptions about the structure of
+ * mbedtls_ecdh_context_mbed.
  */
 typedef struct
 {
@@ -103,14 +107,15 @@ typedef struct mbedtls_ecdh_context
     mbedtls_ecp_point Vf;    /*!< The unblinding value. */
     mbedtls_mpi _d;          /*!< The previous \p d. */
 #else
-    uint8_t point_format;        /*!< The format of point export in TLS messages. */
+    uint8_t point_format;    /*!< The format of point export in TLS messages as
+                                  defined in RFC 4492. */
     mbedtls_ecp_group_id grp;/*!< The elliptic curve used. */
     mbedtls_ecdh_variant var;/*!< The ECDH implementation/structure used. */
     union
     {
         mbedtls_ecdh_context_mbed   mbed_ecdh;
     } ctx;                   /*!< Implementation-specific context. The context
-                                  in use is specified by the var field.*/
+                                  in use is specified by the var field. */
 #endif
 }
 mbedtls_ecdh_context;

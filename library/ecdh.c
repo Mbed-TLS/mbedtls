@@ -515,7 +515,7 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
             return( mbedtls_ecdh_calc_secret_internal( ctx, olen, buf, blen,
                                                        f_rng, p_rng ) );
         default:
-            return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+            return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
     }
 #endif
 }

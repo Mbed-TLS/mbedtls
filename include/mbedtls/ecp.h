@@ -483,8 +483,8 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp, mbedtls_ecp_poi
 /**
  * \brief           This function imports a point from a TLS ECPoint record.
  *
- * \note            On function return, \p buf is updated to point to immediately
- *                  after the ECPoint record.
+ * \note            On function return, \p *buf is updated to point to
+ *                  immediately after the ECPoint record.
  *
  * \param grp       The ECP group used.
  * \param pt        The destination point.
@@ -492,7 +492,8 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp, mbedtls_ecp_poi
  * \param len       The length of the buffer.
  *
  * \return          \c 0 on success.
- * \return          An \c MBEDTLS_ERR_MPI_XXX error code on initialization failure.
+ * \return          An \c MBEDTLS_ERR_MPI_XXX error code on initialization
+ *                  failure.
  * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if input is invalid.
  */
 int mbedtls_ecp_tls_read_point( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt,

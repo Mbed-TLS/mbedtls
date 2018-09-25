@@ -38,8 +38,9 @@ void pkcs1_rsaes_oaep_encrypt( int mod, int radix_N, char *input_N,
                     output ) == result );
     if( result == 0 )
     {
-
-        TEST_ASSERT( hexcmp( output, result_hex_str->x, ctx.len, result_hex_str->len ) == 0 );
+        TEST_ASSERT( result_hex_str->len == ctx.len );
+        TEST_ASSERT( memcmp( output, result_hex_str->x,
+                             result_hex_str->len ) == 0 );
     }
 
 exit:
@@ -87,8 +88,9 @@ void pkcs1_rsaes_oaep_decrypt( int mod, int radix_P, char *input_P,
                     output, 1000 ) == result );
     if( result == 0 )
     {
-
-        TEST_ASSERT( hexcmp( output, result_hex_str->x, output_len, result_hex_str->len ) == 0 );
+        TEST_ASSERT( result_hex_str->len == output_len );
+        TEST_ASSERT( memcmp( output, result_hex_str->x,
+                             result_hex_str->len ) == 0 );
     }
 
 exit:
@@ -142,8 +144,9 @@ void pkcs1_rsassa_pss_sign( int mod, int radix_P, char *input_P, int radix_Q,
                                          hash_result, output ) == result );
     if( result == 0 )
     {
-
-        TEST_ASSERT( hexcmp( output, result_hex_str->x, ctx.len, result_hex_str->len ) == 0 );
+        TEST_ASSERT( result_hex_str->len == ctx.len );
+        TEST_ASSERT( memcmp( output, result_hex_str->x,
+                             result_hex_str->len ) == 0 );
     }
 
 exit:

@@ -25,7 +25,9 @@ void blowfish_encrypt_ecb( data_t *key_str, data_t *src_str,
         TEST_ASSERT( mbedtls_blowfish_crypt_ecb( &ctx, MBEDTLS_BLOWFISH_ENCRYPT,
                                                  src_str->x, output ) == 0 );
 
-        TEST_ASSERT( hexcmp( output, hex_dst_string->x, 8, hex_dst_string->len ) == 0 );
+        TEST_ASSERT( hex_dst_string->len == 8 );
+        TEST_ASSERT( memcmp( output, hex_dst_string->x, hex_dst_string->len )
+                     == 0 );
     }
 
 exit:
@@ -51,7 +53,9 @@ void blowfish_decrypt_ecb( data_t *key_str, data_t *src_str,
         TEST_ASSERT( mbedtls_blowfish_crypt_ecb( &ctx, MBEDTLS_BLOWFISH_DECRYPT,
                                                  src_str->x, output ) == 0 );
 
-        TEST_ASSERT( hexcmp( output, hex_dst_string->x, 8, hex_dst_string->len ) == 0 );
+        TEST_ASSERT( hex_dst_string->len == 8 );
+        TEST_ASSERT( memcmp( output, hex_dst_string->x, hex_dst_string->len )
+                     == 0 );
     }
 
 exit:
@@ -78,8 +82,9 @@ void blowfish_encrypt_cbc( data_t *key_str, data_t *iv_str,
                                              src_str->x, output ) == cbc_result );
     if( cbc_result == 0 )
     {
-
-        TEST_ASSERT( hexcmp( output, hex_dst_string->x, src_str->len, hex_dst_string->len ) == 0 );
+        TEST_ASSERT( hex_dst_string->len == src_str->len );
+        TEST_ASSERT( memcmp( output, hex_dst_string->x, hex_dst_string->len )
+                     == 0 );
     }
 
 exit:
@@ -105,8 +110,9 @@ void blowfish_decrypt_cbc( data_t *key_str, data_t *iv_str,
                                              src_str->x, output ) == cbc_result );
     if( cbc_result == 0)
     {
-
-        TEST_ASSERT( hexcmp( output, hex_dst_string->x, src_str->len, hex_dst_string->len ) == 0 );
+        TEST_ASSERT( hex_dst_string->len == src_str->len );
+        TEST_ASSERT( memcmp( output, hex_dst_string->x, hex_dst_string->len )
+                     == 0 );
     }
 
 exit:
@@ -132,7 +138,9 @@ void blowfish_encrypt_cfb64( data_t *key_str, data_t *iv_str,
                                                iv_str->x, src_str->x,
                                                output ) == 0 );
 
-    TEST_ASSERT( hexcmp( output, hex_dst_string->x, src_str->len, hex_dst_string->len ) == 0 );
+    TEST_ASSERT( hex_dst_string->len == src_str->len );
+    TEST_ASSERT( memcmp( output, hex_dst_string->x,
+                         hex_dst_string->len ) == 0 );
 
 exit:
     mbedtls_blowfish_free( &ctx );
@@ -157,7 +165,9 @@ void blowfish_decrypt_cfb64( data_t *key_str, data_t *iv_str,
                                                iv_str->x, src_str->x,
                                                output ) == 0 );
 
-    TEST_ASSERT( hexcmp( output, hex_dst_string->x, src_str->len, hex_dst_string->len ) == 0 );
+    TEST_ASSERT( hex_dst_string->len == src_str->len );
+    TEST_ASSERT( memcmp( output, hex_dst_string->x,
+                         hex_dst_string->len ) == 0 );
 
 exit:
     mbedtls_blowfish_free( &ctx );
@@ -183,7 +193,9 @@ void blowfish_encrypt_ctr( data_t *key_str, data_t *iv_str,
                                              iv_str->x, stream_str, src_str->x,
                                              output ) == 0 );
 
-    TEST_ASSERT( hexcmp( output, hex_dst_string->x, src_str->len, hex_dst_string->len ) == 0 );
+    TEST_ASSERT( hex_dst_string->len == src_str->len );
+    TEST_ASSERT( memcmp( output, hex_dst_string->x,
+                         hex_dst_string->len ) == 0 );
 
 exit:
     mbedtls_blowfish_free( &ctx );

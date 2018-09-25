@@ -67,7 +67,8 @@ void ctr_drbg_validate_pr( data_t *add_init, data_t *entropy,
 
     TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add1->x, add1->len ) == 0 );
     TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add2->x, add2->len ) == 0 );
-    TEST_ASSERT( hexcmp( buf, result_str->x, 16, result_str->len ) == 0 );
+    TEST_ASSERT( result_str->len == 16 );
+    TEST_ASSERT( memcmp( buf, result_str->x, result_str->len ) == 0 );
 
 exit:
     mbedtls_ctr_drbg_free( &ctx );
@@ -91,7 +92,8 @@ void ctr_drbg_validate_nopr( data_t *add_init, data_t *entropy,
     TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add1->x, add1->len ) == 0 );
     TEST_ASSERT( mbedtls_ctr_drbg_reseed( &ctx, add_reseed->x, add_reseed->len ) == 0 );
     TEST_ASSERT( mbedtls_ctr_drbg_random_with_add( &ctx, buf, 16, add2->x, add2->len ) == 0 );
-    TEST_ASSERT( hexcmp( buf, result_str->x, 16, result_str->len ) == 0 );
+    TEST_ASSERT( result_str->len == 16 );
+    TEST_ASSERT( memcmp( buf, result_str->x, result_str->len ) == 0 );
 
 exit:
     mbedtls_ctr_drbg_free( &ctx );

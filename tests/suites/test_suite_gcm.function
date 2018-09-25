@@ -65,8 +65,12 @@ void gcm_encrypt_and_tag( int cipher_id, data_t *key_str,
                                                 output, tag_len,
                                                 tag_output ) == 0 );
 
-        TEST_ASSERT( hexcmp( output, hex_dst_string->x, src_str->len, hex_dst_string->len ) == 0 );
-        TEST_ASSERT( hexcmp( tag_output, hex_tag_string->x, tag_len, hex_tag_string->len ) == 0 );
+        TEST_ASSERT( hex_dst_string->len == src_str->len );
+        TEST_ASSERT( memcmp( output, hex_dst_string->x,
+                             hex_dst_string->len ) == 0 );
+        TEST_ASSERT( hex_tag_string->len == tag_len );
+        TEST_ASSERT( memcmp( tag_output, hex_tag_string->x,
+                             hex_tag_string->len ) == 0 );
     }
 
 exit:
@@ -108,7 +112,8 @@ void gcm_decrypt_and_verify( int cipher_id, data_t *key_str,
         {
             TEST_ASSERT( ret == 0 );
 
-            TEST_ASSERT( hexcmp( output, pt_result->x, src_str->len, pt_result->len ) == 0 );
+            TEST_ASSERT( pt_result->len == src_str->len );
+            TEST_ASSERT( memcmp( output, pt_result->x, pt_result->len ) == 0 );
         }
     }
 

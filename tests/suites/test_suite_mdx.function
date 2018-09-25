@@ -18,7 +18,9 @@ void md2_text( char *text_src_string, data_t *hex_hash_string )
 
     mbedtls_md2( src_str, strlen( (char *) src_str ), output );
 
-    TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof  output, hex_hash_string->len ) == 0 );
+    TEST_ASSERT( hex_hash_string->len == sizeof( output ) );
+    TEST_ASSERT( memcmp( output, hex_hash_string->x,
+                         hex_hash_string->len ) == 0 );
 }
 /* END_CASE */
 
@@ -35,7 +37,9 @@ void md4_text( char *text_src_string, data_t *hex_hash_string )
 
     mbedtls_md4( src_str, strlen( (char *) src_str ), output );
 
-    TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof  output, hex_hash_string->len ) == 0 );
+    TEST_ASSERT( hex_hash_string->len == sizeof( output ) );
+    TEST_ASSERT( memcmp( output, hex_hash_string->x,
+                         hex_hash_string->len ) == 0 );
 }
 /* END_CASE */
 
@@ -52,7 +56,9 @@ void md5_text( char *text_src_string, data_t *hex_hash_string )
 
     mbedtls_md5( src_str, strlen( (char *) src_str ), output );
 
-    TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof  output, hex_hash_string->len ) == 0 );
+    TEST_ASSERT( sizeof( output ) == hex_hash_string->len );
+    TEST_ASSERT( memcmp( output, hex_hash_string->x,
+                         hex_hash_string->len ) == 0 );
 }
 /* END_CASE */
 
@@ -69,7 +75,9 @@ void ripemd160_text( char *text_src_string, data_t *hex_hash_string )
 
     mbedtls_ripemd160( src_str, strlen( (char *) src_str ), output );
 
-    TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof output, hex_hash_string->len ) == 0 );
+    TEST_ASSERT( hex_hash_string->len == sizeof( output ) );
+    TEST_ASSERT( memcmp( output, hex_hash_string->x,
+                         hex_hash_string->len ) == 0 );
 }
 /* END_CASE */
 

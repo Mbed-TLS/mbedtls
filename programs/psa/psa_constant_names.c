@@ -138,7 +138,7 @@ static int psa_snprint_ecc_curve(char *buffer, size_t buffer_size,
 
 static void usage(const char *program_name)
 {
-    printf("Usage: %s TYPE VALUE\n",
+    printf("Usage: %s TYPE VALUE [VALUE...]\n",
            program_name == NULL ? "psa_constant_names" : program_name);
     printf("Print the symbolic name whose numerical value is VALUE in TYPE.\n");
     printf("Supported types (with = between aliases):\n");
@@ -149,11 +149,18 @@ static void usage(const char *program_name)
     printf("  error=status          Status code (psa_status_t)\n");
 }
 
+typedef enum {
+    TYPE_STATUS,
+    TYPE_ALGORITHM,
+    TYPE_ECC_CURVE,
+    TYPE_KEY_TYPE,
+    TYPE_KEY_USAGE,
+} value_type;
+
 int main(int argc, char *argv[])
 {
-    char buffer[200];
-    unsigned long value;
-    char *end;
+    value_type type;
+    int i;
 
     if (argc <= 1 ||
         !strcmp(argv[1], "help") ||
@@ -162,31 +169,55 @@ int main(int argc, char *argv[])
         usage(argv[0]);
         return EXIT_FAILURE;
     }
-    if (argc != 3) {
-        usage(argv[0]);
-        return EXIT_FAILURE;
-    }
-    value = strtoul(argv[2], &end, 0);
-    if (*end) {
-        printf("Non-numeric value: %s\n", argv[2]);
-        return EXIT_FAILURE;
-    }
 
-    if (!strcmp(argv[1], "error") || !strcmp(argv[1], "status"))
-        psa_snprint_status(buffer, sizeof(buffer), (psa_status_t) value);
-    else if (!strcmp(argv[1], "alg") || !strcmp(argv[1], "algorithm"))
-        psa_snprint_algorithm(buffer, sizeof(buffer), (psa_algorithm_t) value);
-    else if (!strcmp(argv[1], "curve") || !strcmp(argv[1], "ecc_curve"))
-        psa_snprint_ecc_curve(buffer, sizeof(buffer), (psa_ecc_curve_t) value);
-    else if (!strcmp(argv[1], "type") || !strcmp(argv[1], "key_type"))
-        psa_snprint_key_type(buffer, sizeof(buffer), (psa_key_type_t) value);
-    else if (!strcmp(argv[1], "usage") || !strcmp(argv[1], "key_usage"))
-        psa_snprint_key_usage(buffer, sizeof(buffer), (psa_key_usage_t) value);
-    else {
+    if (!strcmp(argv[1], "error") || !strcmp(argv[1], "status")) {
+        type = TYPE_STATUS;
+    } else if (!strcmp(argv[1], "alg") || !strcmp(argv[1], "algorithm")) {
+        type = TYPE_ALGORITHM;
+    } else if (!strcmp(argv[1], "curve") || !strcmp(argv[1], "ecc_curve")) {
+        type = TYPE_ECC_CURVE;
+    } else if (!strcmp(argv[1], "type") || !strcmp(argv[1], "key_type")) {
+        type = TYPE_KEY_TYPE;
+    } else if (!strcmp(argv[1], "usage") || !strcmp(argv[1], "key_usage")) {
+        type = TYPE_KEY_USAGE;
+    } else {
         printf("Unknown type: %s\n", argv[1]);
         return EXIT_FAILURE;
     }
 
-    puts(buffer);
+    for (i = 2; i < argc; i++) {
+        char buffer[200];
+        char *end;
+        unsigned long value = strtoul(argv[i], &end, 0);
+        if (*end) {
+            printf("Non-numeric value: %s\n", argv[i]);
+            return EXIT_FAILURE;
+        }
+
+        switch (type) {
+            case TYPE_STATUS:
+                psa_snprint_status(buffer, sizeof(buffer),
+                                   (psa_status_t) value);
+                break;
+            case TYPE_ALGORITHM:
+                psa_snprint_algorithm(buffer, sizeof(buffer),
+                                      (psa_algorithm_t) value);
+                break;
+            case TYPE_ECC_CURVE:
+                psa_snprint_ecc_curve(buffer, sizeof(buffer),
+                                      (psa_ecc_curve_t) value);
+                break;
+            case TYPE_KEY_TYPE:
+                psa_snprint_key_type(buffer, sizeof(buffer),
+                                     (psa_key_type_t) value);
+                break;
+            case TYPE_KEY_USAGE:
+                psa_snprint_key_usage(buffer, sizeof(buffer),
+                                      (psa_key_usage_t) value);
+                break;
+        }
+        puts(buffer);
+    }
+
     return EXIT_SUCCESS;
 }

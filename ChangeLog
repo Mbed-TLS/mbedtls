@@ -10,6 +10,9 @@ Bugfix
 
 Changes
    * Add tests for session resumption in DTLS.
+   * Close a test gap in (D)TLS between the client side and the server side:
+     test the handling of large packets and small packets on the client side
+     in the same way as on the server side.
 
 = mbed TLS 2.1.15 branch released 2018-08-31
 

@@ -1367,7 +1367,8 @@ void asymmetric_encryption_key_policy( int policy_usage,
     else
         TEST_ASSERT( status == PSA_ERROR_NOT_PERMITTED );
 
-    memset( buffer, 0, buffer_length );
+    if( buffer_length != 0 )
+        memset( buffer, 0, buffer_length );
     status = psa_asymmetric_decrypt( key_slot, exercise_alg,
                                      buffer, buffer_length,
                                      NULL, 0,
@@ -2741,7 +2742,8 @@ void asymmetric_encrypt( int key_type_arg,
     if( label->len == 0 )
     {
         output_length = ~0;
-        memset( output, 0, output_size );
+        if( output_size != 0 )
+            memset( output, 0, output_size );
         actual_status = psa_asymmetric_encrypt( slot, alg,
                                                 input_data->x, input_data->len,
                                                 NULL, label->len,
@@ -2882,7 +2884,8 @@ void asymmetric_decrypt( int key_type_arg,
     if( label->len == 0 )
     {
         output_length = ~0;
-        memset( output, 0, output_size );
+        if( output_size != 0 )
+            memset( output, 0, output_size );
         TEST_ASSERT( psa_asymmetric_decrypt( slot, alg,
                                              input_data->x, input_data->len,
                                              NULL, label->len,
@@ -2949,7 +2952,8 @@ void asymmetric_decrypt_fail( int key_type_arg,
     if( label->len == 0 )
     {
         output_length = ~0;
-        memset( output, 0, output_size );
+        if( output_size != 0 )
+            memset( output, 0, output_size );
         actual_status = psa_asymmetric_decrypt( slot, alg,
                                                 input_data->x, input_data->len,
                                                 NULL, label->len,
@@ -3332,7 +3336,8 @@ void generate_random( int bytes_arg )
      * (2^(-8*number_of_runs)). */
     for( run = 0; run < 10; run++ )
     {
-        memset( output, 0, bytes );
+        if( bytes != 0 )
+            memset( output, 0, bytes );
         TEST_ASSERT( psa_generate_random( output, bytes ) == PSA_SUCCESS );
 
         /* Check that no more than bytes have been overwritten */

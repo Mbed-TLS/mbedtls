@@ -774,7 +774,16 @@ server1.v1.crt.openssl: server1.key server1.csr $(test_ca_crt) $(test_ca_key_fil
 server1.v1.der.openssl: server1.v1.crt.openssl
 	$(OPENSSL) x509 -inform PEM -in $< -outform DER -out $@
 
-server1_all: server1.csr server1.crt server1.noauthid.crt server1.crt.openssl server1.v1.crt server1.v1.crt.openssl server1.key_usage.crt server1.key_usage_noauthid.crt server1.key_usage.crt.openssl server1.cert_type.crt server1.cert_type_noauthid.crt server1.cert_type.crt.openssl server1.der server1.der.openssl server1.v1.der server1.v1.der.openssl server1.key_usage.der server1.key_usage.der.openssl server1.cert_type.der server1.cert_type.der.openssl
+server1.req.key_usage: server1.key server1_csr.opensslconf
+	$(OPENSSL) req -keyform PEM -key server1.key -config server1_csr.opensslconf -out $@ -new -reqexts v3_req_ku -sha1
+
+server1.req.ku-ct: server1.key server1_csr.opensslconf
+	$(OPENSSL) req -keyform PEM -key server1.key -config server1_csr.opensslconf -out $@ -new -reqexts v3_req_ku_ct -sha1
+
+server1.req.cert_type: server1.key server1_csr.opensslconf
+	$(OPENSSL) req -keyform PEM -key server1.key -config server1_csr.opensslconf -out $@ -new -reqexts v3_req_ct -sha1
+
+server1_all: server1.csr server1.crt server1.noauthid.crt server1.crt.openssl server1.v1.crt server1.v1.crt.openssl server1.key_usage.crt server1.key_usage_noauthid.crt server1.key_usage.crt.openssl server1.cert_type.crt server1.cert_type_noauthid.crt server1.cert_type.crt.openssl server1.der server1.der.openssl server1.v1.der server1.v1.der.openssl server1.key_usage.der server1.key_usage.der.openssl server1.cert_type.der server1.cert_type.der.openssl server1.req.key_usage server1.req.ku-ct server1.req.cert_type
 
 
 

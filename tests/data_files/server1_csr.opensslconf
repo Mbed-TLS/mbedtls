@@ -4,6 +4,19 @@ prompt             = no
 # Restrict to non-UTF8 PrintableStrings.
 string_mask        = nombstr
 
+[ v3_req_ku ]
+keyUsage           = digitalSignature, nonRepudiation, keyEncipherment
+
+[ v3_req_ku_ct ]
+keyUsage           = digitalSignature, nonRepudiation, keyEncipherment
+nsCertType         = server
+
+[ v3_req_ct ]
+nsCertType         = server
+
+[ v3_req_s5_ku ]
+keyUsage           = digitalSignature, nonRepudiation
+
 [ req_distinguished_name ]
 C  = NL
 O  = PolarSSL

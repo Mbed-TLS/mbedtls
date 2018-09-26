@@ -1,5 +1,10 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Changes
+   * Removed support for Yotta as a build tool.
+
 = mbed TLS 2.13.1 branch released 2018-09-06
 
 API Changes

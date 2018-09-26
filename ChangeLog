@@ -24,6 +24,12 @@ Bugfix
    * Remove the mbedtls namespacing from the header file, to fix a "file not found"
      build error. Fixed by Haijun Gu #2319.
    * Fix returning the value 1 when mbedtls_ecdsa_genkey failed.
+   * Ensure that unused bits are zero when writing ASN.1 bitstrings when using
+     mbedtls_asn1_write_bitstring().
+   * Fix issue when writing the named bitstrings in KeyUsage and NsCertType
+     extensions in CSRs and CRTs that caused these bitstrings to not be encoded
+     correctly as trailing zeroes were not accounted for as unused bits in the
+     leading content octet. Fixes #1610.
 
 Changes
    * Include configuration file in all header files that use configuration,

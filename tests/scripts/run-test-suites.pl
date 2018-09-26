@@ -16,6 +16,7 @@
 # Options :
 #   -v|--verbose    - Provide a pass/fail/skip breakdown per test suite and
 #                     in total
+#   -d|--debug      - Print debug output when a test suite fails
 #
 
 use warnings;
@@ -28,9 +29,15 @@ use constant FALSE => 0;
 use constant TRUE => 1;
 
 my $verbose;
+my $debug;
 my $switch = shift;
-if ( defined($switch) && ( $switch eq "-v" || $switch eq "--verbose" ) ) {
-    $verbose = TRUE;
+if ( defined($switch) ) {
+    if ( $switch eq "-v" || $switch eq "--verbose" ) {
+        $verbose = TRUE;
+    }
+    if ( $switch eq "-d" || $switch eq "--debug" ) {
+        $debug = TRUE;
+    }
 }
 
 # All test suites = executable files, excluding source files, debug
@@ -63,6 +70,12 @@ for my $suite (@suites)
     } else {
         $failed_suites++;
         print "FAIL\n";
+        if( $debug ) {
+            my $debug_info = `$prefix$suite -v`;
+            while( $debug_info =~ /(.*FAILED(.*\n){3})/g ) {
+                print "\n$1\n";
+            }
+        }
     }
 
     my ($passed, $tests, $skipped) = $result =~ /([0-9]*) \/ ([0-9]*) tests.*?([0-9]*) skipped/;

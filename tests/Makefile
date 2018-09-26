@@ -114,7 +114,7 @@ endif
 endif
 
 check: $(BINARIES)
-	perl scripts/run-test-suites.pl
+	perl scripts/run-test-suites.pl -d
 
 test: check
 

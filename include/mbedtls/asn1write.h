@@ -204,9 +204,10 @@ int mbedtls_asn1_write_bitstring( unsigned char **p, unsigned char *start,
                           const unsigned char *buf, size_t bits );
 
 /**
- * \brief           Write an octet string tag (MBEDTLS_ASN1_OCTET_STRING) and
- *                  value in ASN.1 format
- *                  Note: function works backwards in data buffer
+ * \brief           Write an octet string tag (#MBEDTLS_ASN1_OCTET_STRING)
+ *                  and value in ASN.1 format.
+ *
+ * \note            This function works backwards in data buffer.
  *
  * \param p         reference to current position pointer
  * \param start     start of the buffer (for bounds-checking)

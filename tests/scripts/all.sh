@@ -436,25 +436,25 @@ OPENSSL="$OPENSSL" OPENSSL_LEGACY="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_CLI" \
     ARMC6_CC="$ARMC6_CC" RUN_ARMCC="$RUN_ARMCC" scripts/output_env.sh
 
 msg "test: recursion.pl" # < 1s
-tests/scripts/recursion.pl library/*.c
+record_status tests/scripts/recursion.pl library/*.c
 
 msg "test: freshness of generated source files" # < 1s
-tests/scripts/check-generated-files.sh
+record_status tests/scripts/check-generated-files.sh
 
 msg "test: doxygen markup outside doxygen blocks" # < 1s
-tests/scripts/check-doxy-blocks.pl
+record_status tests/scripts/check-doxy-blocks.pl
 
 msg "test: check-files.py" # < 1s
 cleanup
-tests/scripts/check-files.py
+record_status tests/scripts/check-files.py
 
 msg "test/build: declared and exported names" # < 3s
 cleanup
-tests/scripts/check-names.sh
+record_status tests/scripts/check-names.sh
 
 msg "test: doxygen warnings" # ~ 3s
 cleanup
-tests/scripts/doxygen.sh
+record_status tests/scripts/doxygen.sh
 
 
 
@@ -1071,10 +1071,10 @@ for optimization_flag in -O2 -O3 -Ofast -Os; do
 done
 
 msg "Lint: Python scripts"
-tests/scripts/check-python-files.sh
+record_status tests/scripts/check-python-files.sh
 
 msg "uint test: generate_test_code.py"
-./tests/scripts/test_generate_test_code.py
+record_status ./tests/scripts/test_generate_test_code.py
 
 ################################################################
 #### Termination

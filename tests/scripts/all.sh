@@ -384,21 +384,21 @@ fi
 # Indicative running times are given for reference.
 
 msg "test: recursion.pl" # < 1s
-tests/scripts/recursion.pl library/*.c
+record_status tests/scripts/recursion.pl library/*.c
 
 msg "test: freshness of generated source files" # < 1s
-tests/scripts/check-generated-files.sh
+record_status tests/scripts/check-generated-files.sh
 
 msg "test: doxygen markup outside doxygen blocks" # < 1s
-tests/scripts/check-doxy-blocks.pl
+record_status tests/scripts/check-doxy-blocks.pl
 
 msg "test: check-files.py" # < 1s
 cleanup
-tests/scripts/check-files.py
+record_status tests/scripts/check-files.py
 
 msg "test/build: declared and exported names" # < 3s
 cleanup
-tests/scripts/check-names.sh
+record_status tests/scripts/check-names.sh
 
 
 

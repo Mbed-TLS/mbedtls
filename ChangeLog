@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+    * Fix failure in hmac_drbg in the benchmark sample application, when
+      MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
+
 = mbed TLS 2.1.15 branch released 2018-08-31
 
 Security

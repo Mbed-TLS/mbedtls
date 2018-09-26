@@ -5,6 +5,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Fix failure in hmac_drbg in the benchmark sample application, when
      MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
+   * Fix a bug in the update function for SSL ticket keys which previously
+     invalidated keys of a lifetime of less than a 1s. Fixes #1968.
 
 = mbed TLS 2.7.6 branch released 2018-08-31
 
@@ -41,6 +43,7 @@ Bugfix
 Changes
    * Improve compatibility with some alternative CCM implementations by using
      CCM test vectors from RAM.
+   * Add tests for session resumption in DTLS.
 
 = mbed TLS 2.7.5 branch released 2018-07-25
 

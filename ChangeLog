@@ -31,6 +31,12 @@ Bugfix
      Fixes #2190.
    * Fix false failure in all.sh when backup files exist in include/mbedtls
      (e.g. config.h.bak). Fixed by Peter Kolbus (Garmin) #2407.
+   * Ensure that unused bits are zero when writing ASN.1 bitstrings when using
+     mbedtls_asn1_write_bitstring().
+   * Fix issue when writing the named bitstrings in KeyUsage and NsCertType
+     extensions in CSRs and CRTs that caused these bitstrings to not be encoded
+     correctly as trailing zeroes were not accounted for as unused bits in the
+     leading content octet. Fixes #1610.
 
 Changes
    * Reduce RAM consumption during session renegotiation by not storing
@@ -65,6 +71,8 @@ Features
      function to see for which parameter values it is defined. This feature is
      disabled by default. See its API documentation in config.h for additional
      steps you have to take when enabling it.
+   * Add a new function mbedtls_asn1_write_named_bitstring() to write ASN.1
+     named bitstring in DER as required by RFC 5280 Appendix B.
 
 API Changes
    * The following functions in the random generator modules have been

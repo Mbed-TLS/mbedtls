@@ -1071,7 +1071,6 @@ for optimization_flag in -O2 -O3 -Ofast -Os; do
         cleanup
         make programs CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag"
         if_build_succeeded gdb -x tests/scripts/test_zeroize.gdb -nw -batch -nx 2>&1 | tee test_zeroize.log
-        if_build_succeeded [ -s test_zeroize.log ]
         if_build_succeeded grep "The buffer was correctly zeroized" test_zeroize.log
         if_build_succeeded not grep -i "error" test_zeroize.log
         rm -f test_zeroize.log

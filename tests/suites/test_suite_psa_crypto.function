@@ -419,8 +419,7 @@ static int is_oid_of_key_type( psa_key_type_t type,
         return( 0 );
     }
 
-    TEST_ASSERT( oid_length == expected_oid_length );
-    TEST_ASSERT( memcmp( oid, expected_oid, oid_length ) == 0 );
+    ASSERT_COMPARE( expected_oid, expected_oid_length, oid, oid_length );
     return( 1 );
 
 exit:
@@ -854,8 +853,7 @@ void fill_slots( int max_arg )
         TEST_ASSERT( psa_export_key( slot,
                                      exported, sizeof( exported ),
                                      &exported_size ) == PSA_SUCCESS );
-        TEST_ASSERT( exported_size == sizeof( slot ) );
-        TEST_ASSERT( memcmp( exported, &slot, sizeof( slot ) ) == 0 );
+        ASSERT_COMPARE( &slot, sizeof( slot ), exported, exported_size );
     }
 
 exit:
@@ -992,10 +990,7 @@ void import_export( data_t *data,
         goto exit;
 
     if( canonical_input )
-    {
-        TEST_ASSERT( exported_length == data->len );
-        TEST_ASSERT( memcmp( exported, data->x, data->len ) == 0 );
-    }
+        ASSERT_COMPARE( data->x, data->len, exported, exported_length );
     else
     {
         TEST_ASSERT( psa_set_key_policy( slot2, &policy ) == PSA_SUCCESS );
@@ -1007,9 +1002,8 @@ void import_export( data_t *data,
                                      reexported,
                                      export_size,
                                      &reexported_length ) == PSA_SUCCESS );
-        TEST_ASSERT( reexported_length == exported_length );
-        TEST_ASSERT( memcmp( reexported, exported,
-                             exported_length ) == 0 );
+        ASSERT_COMPARE( exported, exported_length,
+                        reexported, reexported_length );
     }
 
 destroy:
@@ -1580,9 +1574,8 @@ void hash_finish( int alg_arg, data_t *input, data_t *expected_hash )
     TEST_ASSERT( psa_hash_finish( &operation,
                                   actual_hash, sizeof( actual_hash ),
                                   &actual_hash_length ) == PSA_SUCCESS );
-    TEST_ASSERT( actual_hash_length == expected_hash->len );
-    TEST_ASSERT( memcmp( expected_hash->x, actual_hash,
-                         expected_hash->len ) == 0 );
+    ASSERT_COMPARE( expected_hash->x, expected_hash->len,
+                    actual_hash, actual_hash_length );
 
 exit:
     mbedtls_psa_crypto_free( );
@@ -1795,9 +1788,8 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
     if( expected_status == PSA_SUCCESS )
     {
         TEST_ASSERT( psa_cipher_abort( &operation ) == PSA_SUCCESS );
-        TEST_ASSERT( total_output_length == expected_output->len );
-        TEST_ASSERT( memcmp( expected_output->x, output,
-                             expected_output->len ) == 0 );
+        ASSERT_COMPARE( expected_output->x, expected_output->len,
+                        output, total_output_length );
     }
 
 exit:
@@ -1872,9 +1864,8 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
     total_output_length += function_output_length;
     TEST_ASSERT( psa_cipher_abort( &operation ) == PSA_SUCCESS );
 
-    TEST_ASSERT( total_output_length == expected_output->len );
-    TEST_ASSERT( memcmp( expected_output->x, output,
-                         expected_output->len ) == 0 );
+    ASSERT_COMPARE( expected_output->x, expected_output->len,
+                    output, total_output_length );
 
 exit:
     mbedtls_free( output );
@@ -1951,9 +1942,8 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
     total_output_length += function_output_length;
     TEST_ASSERT( psa_cipher_abort( &operation ) == PSA_SUCCESS );
 
-    TEST_ASSERT( total_output_length == expected_output->len );
-    TEST_ASSERT( memcmp( expected_output->x, output,
-                         expected_output->len ) == 0 );
+    ASSERT_COMPARE( expected_output->x, expected_output->len,
+                    output, total_output_length );
 
 exit:
     mbedtls_free( output );
@@ -2026,9 +2016,8 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     if( expected_status == PSA_SUCCESS )
     {
         TEST_ASSERT( psa_cipher_abort( &operation ) == PSA_SUCCESS );
-        TEST_ASSERT( total_output_length == expected_output->len );
-        TEST_ASSERT( memcmp( expected_output->x, output,
-                             expected_output->len ) == 0 );
+        ASSERT_COMPARE( expected_output->x, expected_output->len,
+                        output, total_output_length );
     }
 
 exit:
@@ -2115,8 +2104,7 @@ void cipher_verify_output( int alg_arg, int key_type_arg,
 
     TEST_ASSERT( psa_cipher_abort( &operation2 ) == PSA_SUCCESS );
 
-    TEST_ASSERT( input->len == output2_length );
-    TEST_ASSERT( memcmp( input->x, output2, input->len ) == 0 );
+    ASSERT_COMPARE( input->x, input->len, output2, output2_length );
 
 exit:
     mbedtls_free( output1 );
@@ -2224,8 +2212,7 @@ void cipher_verify_output_multipart( int alg_arg,
 
     TEST_ASSERT( psa_cipher_abort( &operation2 ) == PSA_SUCCESS );
 
-    TEST_ASSERT( input->len == output2_length );
-    TEST_ASSERT( memcmp( input->x, output2, input->len ) == 0 );
+    ASSERT_COMPARE( input->x, input->len, output2, output2_length );
 
 exit:
     mbedtls_free( output1 );
@@ -2299,8 +2286,8 @@ void aead_encrypt_decrypt( int key_type_arg,
                                        output_data2, output_length,
                                        &output_length2 ) == expected_result );
 
-        TEST_ASSERT( memcmp( input_data->x, output_data2,
-                             input_data->len ) == 0 );
+        ASSERT_COMPARE( input_data->x, input_data->len,
+                        output_data2, output_length2 );
     }
 
 exit:
@@ -2357,8 +2344,8 @@ void aead_encrypt( int key_type_arg, data_t * key_data,
                                    output_data, output_size,
                                    &output_length ) == PSA_SUCCESS );
 
-    TEST_ASSERT( memcmp( output_data, expected_result->x,
-                         output_length ) == 0 );
+    ASSERT_COMPARE( expected_result->x, expected_result->len,
+                    output_data, output_length );
 
 exit:
     psa_destroy_key( slot );
@@ -2416,10 +2403,8 @@ void aead_decrypt( int key_type_arg, data_t * key_data,
                                    &output_length ) == expected_result );
 
     if( expected_result == PSA_SUCCESS )
-    {
-        TEST_ASSERT( memcmp( output_data, expected_data->x,
-                             output_length ) == 0 );
-    }
+        ASSERT_COMPARE( expected_data->x, expected_data->len,
+                        output_data, output_length );
 
 exit:
     psa_destroy_key( slot );
@@ -2491,9 +2476,8 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
                                       signature, signature_size,
                                       &signature_length ) == PSA_SUCCESS );
     /* Verify that the signature is what is expected. */
-    TEST_ASSERT( signature_length == output_data->len );
-    TEST_ASSERT( memcmp( signature, output_data->x,
-                         output_data->len ) == 0 );
+    ASSERT_COMPARE( output_data->x, output_data->len,
+                    signature, signature_length );
 
 exit:
     psa_destroy_key( slot );
@@ -2837,9 +2821,8 @@ void asymmetric_encrypt_decrypt( int key_type_arg,
                                          label->x, label->len,
                                          output2, output2_size,
                                          &output2_length ) == PSA_SUCCESS );
-    TEST_ASSERT( output2_length == input_data->len );
-    TEST_ASSERT( memcmp( input_data->x, output2,
-                         input_data->len ) == 0 );
+    ASSERT_COMPARE( input_data->x, input_data->len,
+                    output2, output2_length );
 
 exit:
     psa_destroy_key( slot );
@@ -2891,8 +2874,8 @@ void asymmetric_decrypt( int key_type_arg,
                                          output,
                                          output_size,
                                          &output_length ) == PSA_SUCCESS );
-    TEST_ASSERT( expected_data->len == output_length );
-    TEST_ASSERT( memcmp( expected_data->x, output, output_length ) == 0 );
+    ASSERT_COMPARE( expected_data->x, expected_data->len,
+                    output, output_length );
 
     /* If the label is empty, the test framework puts a non-null pointer
      * in label->x. Test that a null pointer works as well. */
@@ -2906,8 +2889,8 @@ void asymmetric_decrypt( int key_type_arg,
                                              output,
                                              output_size,
                                              &output_length ) == PSA_SUCCESS );
-        TEST_ASSERT( expected_data->len == output_length );
-        TEST_ASSERT( memcmp( expected_data->x, output, output_length ) == 0 );
+        ASSERT_COMPARE( expected_data->x, expected_data->len,
+                        output, output_length );
     }
 
 exit:

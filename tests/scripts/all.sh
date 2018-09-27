@@ -511,10 +511,10 @@ msg "test: RSA_NO_CRT - main suites (inc. selftests) (ASan build)" # ~ 50s
 make test
 
 msg "test: RSA_NO_CRT - RSA-related part of ssl-opt.sh (ASan build)" # ~ 5s
-tests/ssl-opt.sh -f RSA
+if_build_succeeded tests/ssl-opt.sh -f RSA
 
 msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
-tests/compat.sh -t RSA
+if_build_succeeded tests/compat.sh -t RSA
 
 msg "build: cmake, full config, clang" # ~ 50s
 cleanup

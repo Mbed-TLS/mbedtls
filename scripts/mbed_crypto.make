@@ -213,7 +213,7 @@ crypto/%: %
 	$(call rename_mbedcrypto,$@)
 
 crypto/VERSION.txt: FORCE
-	@git describe --tags --abbrev=12 --dirty > $@
+	@git describe --tags --abbrev=12 --dirty --always > $@
 
 mbedcrypto.tar.gz: $(LIB_FILES) $(INC_FILES) $(TEST_FILES) $(OTHER_FILES)
 	@echo $@

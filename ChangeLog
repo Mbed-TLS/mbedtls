@@ -1,5 +1,14 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix a bug in the update function for SSL ticket keys which previously
+     invalidated keys of a lifetime of less than a 1s. Fixes #1968.
+
+Changes
+   * Add tests for session resumption in DTLS.
+
 = mbed TLS 2.13.1 branch released 2018-09-06
 
 API Changes

@@ -69,6 +69,18 @@ typedef struct data_tag
 /*----------------------------------------------------------------------------*/
 /* Macros */
 
+/** Evaluate an expression and fail the test case if it is false.
+ *
+ * Failing the test means:
+ * - Mark this test case as failed.
+ * - Print a message identifying the failure.
+ * - Jump to the \c exit label.
+ *
+ * This macro expands to an instruction, not an expression.
+ * It may jump to the \c exit label.
+ *
+ * \param TEST      The expression to evaluate.
+ */
 #define TEST_ASSERT( TEST )                         \
     do {                                            \
         if( ! (TEST) )                              \

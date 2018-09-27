@@ -121,6 +121,27 @@ typedef struct data_tag
     }                                                           \
     while( 0 )
 
+/** Compare two buffers and fail the test case if they differ.
+ *
+ * This macro expands to an instruction, not an expression.
+ * It may jump to the \c exit label.
+ *
+ * \param p1        Pointer to the start of the first buffer.
+ * \param size1     Size of the first buffer in bytes.
+ *                  This expression may be evaluated multiple times.
+ * \param p2        Pointer to the start of the second buffer.
+ * \param size2     Size of the second buffer in bytes.
+ *                  This expression may be evaluated multiple times.
+ */
+#define ASSERT_COMPARE( p1, size1, p2, size2 )                          \
+    do                                                                  \
+    {                                                                   \
+        TEST_ASSERT( ( size1 ) == ( size2 ) );                          \
+        if( ( size1 ) != 0 )                                            \
+            TEST_ASSERT( memcmp( ( p1 ), ( p2 ), ( size1 ) ) == 0 );    \
+    }                                                                   \
+    while( 0 )
+
 #define assert(a) if( !( a ) )                                      \
 {                                                                   \
     mbedtls_fprintf( stderr, "Assertion Failed at %s:%d - %s\n",   \

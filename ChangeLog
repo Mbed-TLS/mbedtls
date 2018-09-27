@@ -5,6 +5,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Fix a bug in the update function for SSL ticket keys which previously
      invalidated keys of a lifetime of less than a 1s. Fixes #1968.
+   * Fix failure in hmac_drbg in the benchmark sample application, when
+     MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
 
 Changes
    * Add tests for session resumption in DTLS.

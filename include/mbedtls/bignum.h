@@ -45,6 +45,7 @@
 #define MBEDTLS_ERR_MPI_DIVISION_BY_ZERO                  -0x000C  /**< The input argument for division is zero, which is not allowed. */
 #define MBEDTLS_ERR_MPI_NOT_ACCEPTABLE                    -0x000E  /**< The input arguments are not acceptable. */
 #define MBEDTLS_ERR_MPI_ALLOC_FAILED                      -0x0010  /**< Memory allocation failed. */
+#define MBEDTLS_ERR_MPI_TRNG_POSSIBLY_FAULTY              -0x0012  /**< Memory allocation failed. */
 
 #define MBEDTLS_MPI_CHK(f) do { if( ( ret = f ) != 0 ) goto cleanup; } while( 0 )
 
@@ -747,7 +748,8 @@ int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
  * mbedtls_mpi_gen_prime().
  */
 typedef enum {
-    MBEDTLS_MPI_GEN_PRIME_FLAG_DH = 0x0001,      /**< (X-1)/2 is prime too */
+    MBEDTLS_MPI_GEN_PRIME_FLAG_DH = 0x0001,     /**< (X-1)/2 is prime too */
+    MBEDTLS_MPI_GEN_PRIME_CHECK_TRNG = 0x0004   /**< check trng validity Note: 1% false positive probability */
 } mbedtls_mpi_gen_prime_flag_t;
 
 /**

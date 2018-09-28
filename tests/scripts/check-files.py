@@ -155,6 +155,12 @@ class IntegrityChecker(object):
             ".c", ".h", ".sh", ".pl", ".py", ".md", ".function", ".data",
             "Makefile", "CMakeLists.txt", "ChangeLog"
         )
+        self.excluded_directories = ['.git', 'mbed-os']
+        self.excluded_paths = list(map(os.path.normpath, [
+            'cov-int',
+            'examples',
+            'yotta/module'
+        ]))
         self.issues_to_check = [
             PermissionIssueTracker(),
             EndOfFileNewlineIssueTracker(),
@@ -179,12 +185,19 @@ class IntegrityChecker(object):
             console = logging.StreamHandler()
             self.logger.addHandler(console)
 
+    def prune_branch(self, root, d):
+        if d in self.excluded_directories:
+            return True
+        if os.path.normpath(os.path.join(root, d)) in self.excluded_paths:
+            return True
+        return False
+
     def check_files(self):
-        for root, dirs, files in sorted(os.walk(".")):
+        for root, dirs, files in os.walk("."):
+            dirs[:] = sorted(d for d in dirs if not self.prune_branch(root, d))
             for filename in sorted(files):
                 filepath = os.path.join(root, filename)
-                if (os.path.join("yotta", "module") in filepath or
-                        not filepath.endswith(self.files_to_check)):
+                if not filepath.endswith(self.files_to_check):
                     continue
                 for issue_to_check in self.issues_to_check:
                     if issue_to_check.should_check_file(filepath):

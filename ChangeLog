@@ -13,6 +13,8 @@ Changes
    * Close a test gap in (D)TLS between the client side and the server side:
      test the handling of large packets and small packets on the client side
      in the same way as on the server side.
+   * Add support for alternative CSR headers, as used by Microsoft and defined
+     in RFC 7468. Found by Michael Ernst. Fixes #767.
 
 = mbed TLS 2.13.1 branch released 2018-09-06
 

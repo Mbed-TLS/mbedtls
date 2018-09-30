@@ -23,9 +23,15 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#include "mbedtls/pkcs11.h"
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "mbedtls/config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
+#include "mbedtls/check_config.h"
 
 #if defined(MBEDTLS_PKCS11_C)
+#include "mbedtls/pkcs11.h"
 
 #include "mbedtls/md.h"
 #include "mbedtls/oid.h"

@@ -7,6 +7,9 @@ Bugfix
      MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
    * Fix a bug in the update function for SSL ticket keys which previously
      invalidated keys of a lifetime of less than a 1s. Fixes #1968.
+   * Fix for Clang, which was reporting a warning for the bignum.c inline
+     assembly for AMD64 targets creating string literals greater than those
+     permitted by the ISO C99 standard. Found by Aaron Jones. Fixes #482.
 
 Changes
    * Add tests for session resumption in DTLS.

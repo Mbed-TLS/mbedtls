@@ -24,6 +24,7 @@
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
+#include "mbedtls/check_config.h"
 
 #if defined(MBEDTLS_ECDH_C) && defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
 

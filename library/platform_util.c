@@ -33,6 +33,7 @@
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
+#include "mbedtls/check_config.h"
 
 #include "mbedtls/platform_util.h"
 #include "mbedtls/platform.h"

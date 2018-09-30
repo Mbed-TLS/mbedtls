@@ -29,6 +29,7 @@
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
+#include "mbedtls/check_config.h"
 
 #if defined(MBEDTLS_SHA512_C)
 

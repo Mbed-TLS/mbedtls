@@ -46,6 +46,7 @@
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
+#include "mbedtls/check_config.h"
 
 /**
  * \brief Function level alternative implementation.

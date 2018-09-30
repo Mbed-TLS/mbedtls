@@ -24,6 +24,7 @@
 #else
 #include "mbedtls/config.h"
 #endif
+#include "mbedtls/check_config.h"
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
 

@@ -24,6 +24,7 @@
 #else
 #include MBEDTLS_CONFIG_FILE
 #endif
+#include "mbedtls/check_config.h"
 
 #if defined(MBEDTLS_ERROR_STRERROR_DUMMY)
 #include <string.h>

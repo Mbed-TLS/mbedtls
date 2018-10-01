@@ -3137,7 +3137,7 @@
  * RtlSecureZeroMemory when compiling for Windows. Refer to platform_utils.h
  * for more information.
  */
-//#define MBEDTLS_PLATFORM_ZEROIZE_MACRO( buf, len )    memset( buf, 0, len )
+//#define MBEDTLS_PLATFORM_ZEROIZE_MACRO( buf, len )    memset_s( buf, len, 0, len )
 
 /* \} name SECTION: Customisation configuration options */
 

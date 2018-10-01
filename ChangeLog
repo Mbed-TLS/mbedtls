@@ -2,6 +2,13 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Changes
+   * Change the use of Windows threading to use Microsoft Visual C++ runtime
+     calls, rather than Win32 API calls directly. This is necessary to avoid
+     conflict with C runtime usage. Found and fixed by irwir.
+
+= mbed TLS 2.11.0 branch released 2018-06-18
+
 Bugfix
    * Fix failure in hmac_drbg in the benchmark sample application, when
      MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095

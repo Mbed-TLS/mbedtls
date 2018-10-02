@@ -246,7 +246,7 @@ typedef enum
  * \param file      file the error has occurred in
  * \param line      line number the error has occurred in
  * \param ecdh      the ECDH context
- * \param attr  the identifier of the attribute being output
+ * \param attr      the identifier of the attribute being output
  *
  * \attention       This function is intended for INTERNAL usage within the
  *                  library only.

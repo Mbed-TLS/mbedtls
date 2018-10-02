@@ -25,7 +25,6 @@ int mbedtls_test_random_determinizer_fixed( void *state, unsigned char *buf,
         return ( -1 );
     }
 
-    memset( buf, 0, len );
     memcpy( buf , random->data->x, len );
 
     return 0;

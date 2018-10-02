@@ -5948,11 +5948,11 @@ run_test    "DTLS fragmenting: proxy MTU: auto-reduction" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key\
-             hs_timeout=100-400" \
+             hs_timeout=100-600" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             hs_timeout=100-400" \
+             hs_timeout=100-600" \
             0 \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
@@ -6009,11 +6009,13 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
-             mtu=1024 nbio=2" \
+             mtu=1024 nbio=2 \
+             hs_timeout=2000-5000" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             mtu=1024 nbio=2" \
+             mtu=1024 nbio=2 \
+             hs_timeout=2000-5000" \
             0 \
             -S "resend" \
             -s "found fragmented DTLS handshake message" \

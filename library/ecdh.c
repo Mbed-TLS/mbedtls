@@ -144,6 +144,9 @@ int mbedtls_ecdh_setup( mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id gid )
             ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
             ctx->var = MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0;
             ctx->gid = gid;
+            mbedtls_ecp_group_init( &ctx->ctx.mbed_ecdh.grp );
+            mbedtls_ecp_point_init( &ctx->ctx.mbed_ecdh.Q   );
+            mbedtls_ecp_point_init( &ctx->ctx.mbed_ecdh.Qp  );
             return( mbedtls_ecdh_setup_internal( &ctx->ctx.mbed_ecdh, gid ) );
     }
 #endif
@@ -167,6 +170,9 @@ void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx )
         return;
 
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    mbedtls_ecp_point_free( &ctx->Vi );
+    mbedtls_ecp_point_free( &ctx->Vf );
+    mbedtls_mpi_free( &ctx->_d );
     mbedtls_ecdh_free_internal( ctx );
 #else
     switch( ctx->var )

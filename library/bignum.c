@@ -2211,7 +2211,7 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int flags,
     size_t k, n;
     mbedtls_mpi_uint r;
     mbedtls_mpi Y;
-    unsigned int trng_validity_counter = 0;
+    unsigned int rng_validity_counter = 0;
 
     if( nbits < 3 || nbits > MBEDTLS_MPI_MAX_BITS )
         return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
@@ -2280,18 +2280,18 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int flags,
                 MBEDTLS_MPI_CHK( mbedtls_mpi_add_int( &Y, &Y, 6  ) );
             }
         }
-        /* check for TRNG vailidity if flag is set (Note: this has a false
-        positive probability of %1). if more than 5 * nlen/2
+        /* check for RNG validity if flag is set (Note: this has a false
+        positive probability of %1). If more than 5 * nlen/2
         (nlen/2 is the size of the random buffer in bits) generations fail
-        return an error indicating a possible issue with TRNG.
+        return an error indicating a possible issue with RNG.
         */
-        if( ( flags & MBEDTLS_MPI_GEN_PRIME_CHECK_TRNG ) ==
-            MBEDTLS_MPI_GEN_PRIME_CHECK_TRNG )
+        if( ( flags & MBEDTLS_MPI_GEN_PRIME_CHECK_RNG ) ==
+            MBEDTLS_MPI_GEN_PRIME_CHECK_RNG )
         {
-            trng_validity_counter++;
-            if (trng_validity_counter > 5 * nbits)
+            rng_validity_counter++;
+            if ( rng_validity_counter > 5 * nbits )
             {
-                ret = MBEDTLS_ERR_MPI_TRNG_POSSIBLY_FAULTY;
+                ret = MBEDTLS_ERR_MPI_RNG_POSSIBLY_FAULTY;
                 goto cleanup;
             }
         }

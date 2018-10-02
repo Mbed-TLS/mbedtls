@@ -920,7 +920,7 @@ void mbedtls_mpi_bad_trng_check_test( data_t * input_X )
     int bits = 256;
     mbedtls_test_mpi_random rand;
 
-    int flags_check = MBEDTLS_MPI_GEN_PRIME_CHECK_TRNG;
+    int flags_check = MBEDTLS_MPI_GEN_PRIME_CHECK_RNG;
 
     mbedtls_mpi_init( &X );
 

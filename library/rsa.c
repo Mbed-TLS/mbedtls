@@ -955,6 +955,37 @@ cleanup:
 #endif /* MBEDTLS_PKCS1_V21 */
 
 #if defined(MBEDTLS_PKCS1_V15)
+/** Turn zero-or-nonzero into zero-or-all-bits-one, without branches.
+ *
+ * \param value     The value to analyze.
+ * \return          \c 0 if \p value is zero, otherwise \c 0xff.
+ */
+static unsigned unsigned_all_or_nothing( unsigned value )
+{
+    /* MSVC has a warning about unary minus on unsigned, but this is
+     * well-defined and precisely what we want to do here */
+#if defined(_MSC_VER)
+#pragma warning( push )
+#pragma warning( disable : 4146 )
+#endif
+    return( - ( ( value | - value ) >> ( sizeof( value ) * 8 - 1 ) ) );
+#if defined(_MSC_VER)
+#pragma warning( pop )
+#endif
+}
+
+/** Choose between two integer values, without branches.
+ *
+ * \param mask      Either \c 0 or \c ~0.
+ * \param if0       Value to use if \p mask = \c 0.
+ * \param if1       Value to use if \p mask = \c ~0.
+ * \return          \c if1 if \p value is zero, otherwise \c if0.
+ */
+static unsigned choose_int_from_mask( unsigned mask, unsigned if1, unsigned if0 )
+{
+    return( ( mask & if1 ) | (~mask & if0 ) );
+}
+
 /*
  * Implementation of the PKCS#1 v2.1 RSAES-PKCS1-V1_5-DECRYPT function
  */
@@ -972,6 +1003,10 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     size_t i;
     unsigned bad = 0;
     unsigned char pad_done = 0;
+    size_t plaintext_size = 0;
+    size_t plaintext_max_size = ( output_max_len > ilen - 11 ?
+                                  ilen - 11 :
+                                  output_max_len );
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     unsigned char *p = buf;
 
@@ -1025,23 +1060,58 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
         bad |= *p++; /* Must be zero */
     }
 
+    /* There must be at least 8 bytes of padding. */
     bad |= ( pad_count < 8 );
 
-    if( bad )
-    {
-        ret = MBEDTLS_ERR_RSA_INVALID_PADDING;
-        goto cleanup;
-    }
+    /* Set bad to zero if the padding is valid and
+     * all-bits-one otherwise. The whole calculation of bad
+     * is done in such a way to avoid branches. */
+    bad = unsigned_all_or_nothing( bad );
 
-    if( ilen - ( p - buf ) > output_max_len )
+    /* If the padding is valid, set plaintext_size to the number of
+     * remaining bytes after stripping the padding. If the padding
+     * is invalid, avoid leaking this fact through the size of the
+     * output: use the maximum message size that fits in the output
+     * buffer. Do it without branches to avoid leaking the padding
+     * validity through timing. RSA keys are small enough that all the
+     * size_t values involved fit in unsigned int. */
+    plaintext_size = choose_int_from_mask( bad,
+                                           (unsigned) plaintext_max_size,
+                                           (unsigned) ( ilen - ( p - buf ) ) );
+
+    /* Check if the decrypted plaintext fits in the output buffer.
+     * If the padding is bad, this will always be the case,
+     * thus we don't leak the padding validity by trying to produce
+     * a larger output than what the caller expects. */
+    if( plaintext_size > output_max_len )
     {
         ret = MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE;
         goto cleanup;
     }
 
-    *olen = ilen - (p - buf);
-    memcpy( output, p, *olen );
-    ret = 0;
+    /* Set ret to INVALID_PADDING if the padding is bad and to 0
+     * otherwise. At this point, the variable bad is zero if
+     * the padding is good and can be any nonzero value otherwise.
+     * Do this without branches to avoid timing attacks. */
+    ret = - ( bad & ( - MBEDTLS_ERR_RSA_INVALID_PADDING ) );
+
+    /* If the padding is bad, zero the data that we're about to copy
+     * to the output buffer. We need to copy the same amount of data
+     * from the same buffer whether the padding is good or not to
+     * avoid leaking the padding validity through overall timing or
+     * through memory or cache access patterns. */
+    for( i = 11; i < ilen; i++ )
+        buf[i] &= ~bad;
+
+    /* Copy the decrypted plaintext from the end of the buffer. */
+    memcpy( output, buf + ilen - plaintext_size, plaintext_size );
+
+    /* Report the amount of data we copied to the output buffer.
+     * When the padding is invalid, the value of *olen when this
+     * function returns is not specified. Making it equivalent to
+     * the good-padding case limits the risks of leaking the
+     * padding validity. */
+    *olen = plaintext_size;
 
 cleanup:
     mbedtls_zeroize( buf, sizeof( buf ) );

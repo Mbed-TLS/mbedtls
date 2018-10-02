@@ -853,7 +853,7 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_GENPRIME */
 void mbedtls_mpi_is_prime_det( data_t * input_X, data_t * witnesses,
-                               int chunk_len, int rounds, int div_result )
+                               int chunk_len, int rounds )
 {
     mbedtls_mpi X;
     int res;
@@ -865,10 +865,19 @@ void mbedtls_mpi_is_prime_det( data_t * input_X, data_t * witnesses,
     rand.chunk_len = chunk_len;
 
     TEST_ASSERT( mbedtls_mpi_read_binary( &X, input_X->x, input_X->len ) == 0 );
+    res = mbedtls_mpi_is_prime_ext( &X, rounds - 1,
+                                    mbedtls_test_mpi_miller_rabin_determinizer,
+                                    &rand );
+    TEST_ASSERT( res == 0 );
+
+    rand.data = witnesses;
+    rand.pos = 0;
+    rand.chunk_len = chunk_len;
+
     res = mbedtls_mpi_is_prime_ext( &X, rounds,
                                     mbedtls_test_mpi_miller_rabin_determinizer,
                                     &rand );
-    TEST_ASSERT( res == div_result );
+    TEST_ASSERT( res == MBEDTLS_ERR_MPI_NOT_ACCEPTABLE );
 
 exit:
     mbedtls_mpi_free( &X );

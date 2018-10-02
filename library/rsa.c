@@ -1373,17 +1373,19 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
                                  int mode, size_t *olen,
                                  const unsigned char *input,
                                  unsigned char *output,
-                                 size_t output_max_len)
+                                 size_t output_max_len )
 {
     int ret;
-    size_t ilen, pad_count = 0, i;
-    unsigned char *p, bad, pad_done = 0;
+    size_t ilen = ctx->len;
+    size_t pad_count = 0;
+    size_t i;
+    unsigned bad = 0;
+    unsigned char pad_done = 0;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
+    unsigned char *p = buf;
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-
-    ilen = ctx->len;
 
     if( ilen < 16 || ilen > sizeof( buf ) )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -1394,9 +1396,6 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
 
     if( ret != 0 )
         goto cleanup;
-
-    p = buf;
-    bad = 0;
 
     /*
      * Check and get padding len in "constant-time"

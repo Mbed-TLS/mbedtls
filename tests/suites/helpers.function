@@ -69,6 +69,18 @@ typedef struct data_tag
 /*----------------------------------------------------------------------------*/
 /* Macros */
 
+/** Evaluate an expression and fail the test case if it is false.
+ *
+ * Failing the test means:
+ * - Mark this test case as failed.
+ * - Print a message identifying the failure.
+ * - Jump to the \c exit label.
+ *
+ * This macro expands to an instruction, not an expression.
+ * It may jump to the \c exit label.
+ *
+ * \param TEST      The expression to evaluate.
+ */
 #define TEST_ASSERT( TEST )                         \
     do {                                            \
         if( ! (TEST) )                              \
@@ -77,6 +89,58 @@ typedef struct data_tag
             goto exit;                              \
         }                                           \
     } while( 0 )
+
+/** Allocate memory dynamically and fail the test case if this fails.
+ *
+ * You must set \p pointer to \c NULL before calling this macro and
+ * put `mbedtls_free( pointer )` in the test's cleanup code.
+ *
+ * If \p size is zero, the resulting \p pointer will be \c NULL.
+ * This is usually what we want in tests since API functions are
+ * supposed to accept null pointers when a buffer size is zero.
+ *
+ * This macro expands to an instruction, not an expression.
+ * It may jump to the \c exit label.
+ *
+ * \param pointer   An lvalue where the address of the allocated buffer
+ *                  will be stored.
+ *                  This expression may be evaluated multiple times.
+ * \param size      Buffer size to allocate in bytes.
+ *                  This expression may be evaluated multiple times.
+ *
+ */
+#define ASSERT_ALLOC( pointer, size )                           \
+    do                                                          \
+    {                                                           \
+        TEST_ASSERT( ( pointer ) == NULL );                     \
+        if( ( size ) != 0 )                                     \
+        {                                                       \
+            ( pointer ) = mbedtls_calloc( 1, ( size ) );        \
+            TEST_ASSERT( ( pointer ) != NULL );                 \
+        }                                                       \
+    }                                                           \
+    while( 0 )
+
+/** Compare two buffers and fail the test case if they differ.
+ *
+ * This macro expands to an instruction, not an expression.
+ * It may jump to the \c exit label.
+ *
+ * \param p1        Pointer to the start of the first buffer.
+ * \param size1     Size of the first buffer in bytes.
+ *                  This expression may be evaluated multiple times.
+ * \param p2        Pointer to the start of the second buffer.
+ * \param size2     Size of the second buffer in bytes.
+ *                  This expression may be evaluated multiple times.
+ */
+#define ASSERT_COMPARE( p1, size1, p2, size2 )                          \
+    do                                                                  \
+    {                                                                   \
+        TEST_ASSERT( ( size1 ) == ( size2 ) );                          \
+        if( ( size1 ) != 0 )                                            \
+            TEST_ASSERT( memcmp( ( p1 ), ( p2 ), ( size1 ) ) == 0 );    \
+    }                                                                   \
+    while( 0 )
 
 #define assert(a) if( !( a ) )                                      \
 {                                                                   \

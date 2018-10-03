@@ -1,5 +1,13 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.xx.x branch released xxxx-xx-xx
+
+Security
+   * Fix a timing variation in RSA PKCS#1 v1.5 decryption that could
+     lead to a Bleichenbacher-style attack. In TLS, this affects
+     RSA-based ciphersuites without DHE or ECDHE. Reported by Yuval Yarom,
+     Eyal Ronen, Adi Shamir, David Wong and Daniel Genkin.
+
 = mbed TLS 2.13.1 branch released 2018-09-06
 
 API Changes

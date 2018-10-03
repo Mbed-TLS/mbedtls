@@ -43,7 +43,6 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/platform_util.h"
 
-#include <stdio.h>
 #include <string.h>
 
 #if defined(MBEDTLS_PEM_PARSE_C)
@@ -53,6 +52,7 @@
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
+#include <stdio.h>
 #include <stdlib.h>
 #define mbedtls_free       free
 #define mbedtls_calloc    calloc

@@ -212,7 +212,10 @@ static int ssl_double_retransmit_timeout( mbedtls_ssl_context *ssl )
      * delivered) of any compliant IPv4 (and IPv6) network, and should work
      * on most non-IP stacks too. */
     if( ssl->handshake->retransmit_timeout != ssl->conf->hs_timeout_min )
+    {
         ssl->handshake->mtu = 508;
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "mtu autoreduction to %d bytes", ssl->handshake->mtu ) );
+    }
 
     new_timeout = 2 * ssl->handshake->retransmit_timeout;
 
@@ -2945,6 +2948,7 @@ int mbedtls_ssl_resend( mbedtls_ssl_context *ssl )
 int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
 {
     int ret;
+    uint16_t mtu_temp = 0;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_flight_transmit" ) );
 
     if( ssl->handshake->retransmit_state != MBEDTLS_SSL_RETRANS_SENDING )
@@ -2977,6 +2981,15 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "swap epochs to send finished message" ) );
             ssl_swap_epochs( ssl );
+        }
+
+        /* Disable handshake mtu for client hello message to avoid fragmentation.
+         * Setting it back after calling mbedtls_ssl_write_record */
+        if( ssl->out_msg[0] == MBEDTLS_SSL_HS_CLIENT_HELLO )
+        {
+            mtu_temp = ssl->handshake->mtu;
+            ssl->handshake->mtu = 0;
+            MBEDTLS_SSL_DEBUG_MSG( 2, ( "disabling fragmentation of ClientHello message" ) );
         }
 
         ret = ssl_get_remaining_payload_in_datagram( ssl );
@@ -3076,6 +3089,12 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
             return( ret );
+        }
+
+        if( mtu_temp != 0 )
+        {
+            ssl->handshake->mtu = mtu_temp;
+            mtu_temp = 0;
         }
     }
 

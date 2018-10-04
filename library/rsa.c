@@ -1434,6 +1434,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     size_t plaintext_max_size = ( output_max_len > ilen - 11 ?
                                   ilen - 11 :
                                   output_max_len );
+    unsigned output_too_large;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
     unsigned char *p = buf;
 
@@ -1490,11 +1491,6 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     /* There must be at least 8 bytes of padding. */
     bad |= ( pad_count < 8 );
 
-    /* Set bad to zero if the padding is valid and
-     * all-bits-one otherwise. The whole calculation of bad
-     * is done in such a way to avoid branches. */
-    bad = all_or_nothing_int( bad );
-
     /* If the padding is valid, set plaintext_size to the number of
      * remaining bytes after stripping the padding. If the padding
      * is invalid, avoid leaking this fact through the size of the
@@ -1506,38 +1502,53 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
                              (unsigned) plaintext_max_size,
                              (unsigned) ( ilen - ( p - buf ) ) );
 
-    /* Check if the decrypted plaintext fits in the output buffer.
-     * If the padding is bad, this will always be the case,
-     * thus we don't leak the padding validity by trying to produce
-     * a larger output than what the caller expects. */
-    if( plaintext_size > output_max_len )
-    {
-        ret = MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE;
-        goto cleanup;
-    }
+    /* Set output_too_large to 0 if the plaintext fits in the output
+     * buffer and to 1 otherwise. This is the sign bit (1 for negative)
+     * of (output_max_len - plaintext_size). */
+    output_too_large = ( ( output_max_len - plaintext_size ) >>
+                         ( ( sizeof( output_max_len ) * 8 - 1 ) ) );
 
-    /* Set ret to INVALID_PADDING if the padding is bad and to 0
-     * otherwise. At this point, the variable bad is zero if
-     * the padding is good and can be any nonzero value otherwise.
-     * Do this without branches to avoid timing attacks. */
-    ret = - ( bad & ( - MBEDTLS_ERR_RSA_INVALID_PADDING ) );
+    /* Set ret without branches to avoid timing attacks. Return:
+     * - INVALID_PADDING if the padding is bad (bad != 0).
+     * - OUTPUT_TOO_LARGE if the padding is good but the decrypted
+     *   plaintext does not fit in the output buffer.
+     * - 0 if the padding is correct. */
+    ret = - if_int( bad, - MBEDTLS_ERR_RSA_INVALID_PADDING,
+            if_int( output_too_large, - MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE,
+                    0 ) );
 
-    /* If the padding is bad, zero the data that we're about to copy
-     * to the output buffer. We need to copy the same amount of data
+    /* If the padding is bad or the plaintext is too large, zero the
+     * data that we're about to copy to the output buffer.
+     * We need to copy the same amount of data
      * from the same buffer whether the padding is good or not to
      * avoid leaking the padding validity through overall timing or
      * through memory or cache access patterns. */
     for( i = 11; i < ilen; i++ )
-        buf[i] &= ~bad;
+        buf[i] &= ~( bad | output_too_large );
 
-    /* Copy the decrypted plaintext from the end of the buffer. */
-    memcpy( output, buf + ilen - plaintext_size, plaintext_size );
+    /* If the plaintext is too large, truncate it to the buffer size.
+     * Copy anyway to avoid revealing the length through timing, because
+     * revealing the length is as bad as revealing the padding validity
+     * for a Bleichenbacher attack. */
+    plaintext_size = if_int( output_too_large,
+                             (unsigned) plaintext_max_size,
+                             (unsigned) plaintext_size );
 
-    /* Report the amount of data we copied to the output buffer.
-     * When the padding is invalid, the value of *olen when this
-     * function returns is not specified. Making it equivalent to
-     * the good-padding case limits the risks of leaking the
-     * padding validity. */
+    /* Move the plaintext to the beginning of the working buffer so that
+     * its position no longer depends on the padding and we have enough
+     * room from the beginning of the plaintext to copy a number of bytes
+     * that does not depend on the padding.  */
+    /* FIXME: we need a constant-time, constant-trace memmove here. */
+    memmove( buf, p, plaintext_size );
+
+    /* Finally copy the decrypted plaintext plus trailing data
+     * into the output buffer. */
+    memcpy( output, buf, plaintext_max_size );
+
+    /* Report the amount of data we copied to the output buffer. In case
+     * of errors (bad padding or output too large), the value of *olen
+     * when this function returns is not specified. Making it equivalent
+     * to the good case limits the risks of leaking the padding validity. */
     *olen = plaintext_size;
 
 cleanup:

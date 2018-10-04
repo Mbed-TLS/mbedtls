@@ -115,7 +115,7 @@ typedef struct mbedtls_ecdh_context
     {
         mbedtls_ecdh_context_mbed   mbed_ecdh;
     } ctx;                   /*!< Implementation-specific context. The context
-                                  in use is specified by the var field. */
+                                  in use is specified by the \c var field. */
 #endif
 }
 mbedtls_ecdh_context;

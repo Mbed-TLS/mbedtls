@@ -37,6 +37,7 @@
 
 #include <stddef.h>
 
+/* MBEDTLS_ERR_MD2_HW_ACCEL_FAILED is deprecated and should not be used. */
 #define MBEDTLS_ERR_MD2_HW_ACCEL_FAILED                   -0x002B  /**< MD2 hardware accelerator failed */
 
 #ifdef __cplusplus

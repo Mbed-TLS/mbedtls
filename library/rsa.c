@@ -1397,6 +1397,22 @@ static unsigned all_or_nothing_int( unsigned value )
 #endif
 }
 
+/** Check whether a size is out of bounds, without branches.
+ *
+ * This is equivalent to `size > max`, but is likely to be compiled to
+ * to code using bitwise operation rather than a branch.
+ *
+ * \param size      Size to check.
+ * \param max       Maximum desired value for \p size.
+ * \return          \c 0 if `size <= max`.
+ * \return          \c 1 if `size > max`.
+ */
+static unsigned size_greater_than( size_t size, size_t max )
+{
+    /* Return the sign bit (1 for negative) of (max - size). */
+    return( ( max - size ) >> ( sizeof( size_t ) * 8 - 1 ) );
+}
+
 /** Choose between two integer values, without branches.
  *
  * This is equivalent to `cond ? if1 : if0`, but is likely to be compiled
@@ -1411,6 +1427,42 @@ static unsigned if_int( unsigned cond, unsigned if1, unsigned if0 )
 {
     unsigned mask = all_or_nothing_int( cond );
     return( ( mask & if1 ) | (~mask & if0 ) );
+}
+
+/** Shift some data towards the left inside a buffer without leaking
+ * the length of the data through side channels.
+ *
+ * `mem_move_to_left(start, total, offset)` is functionally equivalent to
+ * ```
+ * memmove(start, start + offset, total - offset);
+ * memset(start + offset, 0, total - offset);
+ * ```
+ * but it strives to use a memory access pattern (and thus total timing)
+ * that does not depend on \p offset. This timing independence comes at
+ * the expense of performance.
+ *
+ * \param start     Pointer to the start of the buffer.
+ * \param total     Total size of the buffer.
+ * \param offset    Offset from which to copy \p total - \p offset bytes.
+ */
+static void mem_move_to_left( void *start,
+                              size_t total,
+                              size_t offset )
+{
+    volatile unsigned char *buf = start;
+    size_t i, n;
+    if( total == 0 )
+        return;
+    for( i = 0; i < total; i++ )
+    {
+        unsigned no_op = size_greater_than( total - offset, i );
+        /* The first `total - offset` passes are a no-op. The last
+         * `offset` passes shift the data one byte to the left and
+         * zero out the last byte. */
+        for( n = 0; n < total - 1; n++ )
+            buf[n] = if_int( no_op, buf[n], buf[n+1] );
+        buf[total-1] = if_int( no_op, buf[total-1], 0 );
+    }
 }
 
 /*
@@ -1538,8 +1590,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
      * its position no longer depends on the padding and we have enough
      * room from the beginning of the plaintext to copy a number of bytes
      * that does not depend on the padding.  */
-    /* FIXME: we need a constant-time, constant-trace memmove here. */
-    memmove( buf, p, plaintext_size );
+    mem_move_to_left( buf, ilen, ilen - plaintext_size );
 
     /* Finally copy the decrypted plaintext plus trailing data
      * into the output buffer. */

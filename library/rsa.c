@@ -1367,9 +1367,9 @@ cleanup:
 /** Turn zero-or-nonzero into zero-or-all-bits-one, without branches.
  *
  * \param value     The value to analyze.
- * \return          \c 0 if \p value is zero, otherwise \c 0xff.
+ * \return          Zero if \p value is zero, otherwise all-bits-one.
  */
-static unsigned unsigned_all_or_nothing( unsigned value )
+static unsigned all_or_nothing_int( unsigned value )
 {
     /* MSVC has a warning about unary minus on unsigned, but this is
      * well-defined and precisely what we want to do here */
@@ -1385,13 +1385,17 @@ static unsigned unsigned_all_or_nothing( unsigned value )
 
 /** Choose between two integer values, without branches.
  *
- * \param mask      Either \c 0 or \c ~0.
- * \param if0       Value to use if \p mask = \c 0.
- * \param if1       Value to use if \p mask = \c ~0.
- * \return          \c if1 if \p value is zero, otherwise \c if0.
+ * This is equivalent to `cond ? if1 : if0`, but is likely to be compiled
+ * to code using bitwise operation rather than a branch.
+ *
+ * \param cond      Condition to test.
+ * \param if1       Value to use if \p cond is nonzero.
+ * \param if0       Value to use if \p cond is zero.
+ * \return          \c if1 if \p cond is nonzero, otherwise \c if0.
  */
-static unsigned choose_int_from_mask( unsigned mask, unsigned if1, unsigned if0 )
+static unsigned if_int( unsigned cond, unsigned if1, unsigned if0 )
 {
+    unsigned mask = all_or_nothing_int( cond );
     return( ( mask & if1 ) | (~mask & if0 ) );
 }
 
@@ -1475,7 +1479,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     /* Set bad to zero if the padding is valid and
      * all-bits-one otherwise. The whole calculation of bad
      * is done in such a way to avoid branches. */
-    bad = unsigned_all_or_nothing( bad );
+    bad = all_or_nothing_int( bad );
 
     /* If the padding is valid, set plaintext_size to the number of
      * remaining bytes after stripping the padding. If the padding
@@ -1484,9 +1488,9 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
      * buffer. Do it without branches to avoid leaking the padding
      * validity through timing. RSA keys are small enough that all the
      * size_t values involved fit in unsigned int. */
-    plaintext_size = choose_int_from_mask( bad,
-                                           (unsigned) plaintext_max_size,
-                                           (unsigned) ( ilen - ( p - buf ) ) );
+    plaintext_size = if_int( bad,
+                             (unsigned) plaintext_max_size,
+                             (unsigned) ( ilen - ( p - buf ) ) );
 
     /* Check if the decrypted plaintext fits in the output buffer.
      * If the padding is bad, this will always be the case,

@@ -37,3 +37,8 @@ ecdh_exchange:MBEDTLS_ECP_DP_SECP192R1
 ECDH exchange #2
 depends_on:MBEDTLS_ECP_DP_SECP521R1_ENABLED
 ecdh_exchange:MBEDTLS_ECP_DP_SECP521R1
+
+ECDH exchange legacy context
+depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
+ecdh_exchange_legacy:MBEDTLS_ECP_DP_SECP192R1
+

@@ -1571,15 +1571,19 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
                              (unsigned) plaintext_max_size,
                              (unsigned) plaintext_size );
 
-    /* Move the plaintext to the beginning of the working buffer so that
-     * its position no longer depends on the padding and we have enough
-     * room from the beginning of the plaintext to copy a number of bytes
-     * that does not depend on the padding.  */
-    mem_move_to_left( buf, ilen, ilen - plaintext_size );
+    /* Move the plaintext to the leftmost position where it can start in
+     * the working buffer, i.e. make it start plaintext_max_size from
+     * the end of the buffer. Do this with a memory access trace that
+     * does not depend on the plaintext size. After this move, the
+     * starting location of the plaintext is no longer sensitive
+     * information. */
+    p = buf + ilen - plaintext_max_size;
+    mem_move_to_left( p, plaintext_max_size,
+                      plaintext_max_size - plaintext_size );
 
-    /* Finally copy the decrypted plaintext plus trailing data
+    /* Finally copy the decrypted plaintext plus trailing zeros
      * into the output buffer. */
-    memcpy( output, buf, plaintext_max_size );
+    memcpy( output, p, plaintext_max_size );
 
     /* Report the amount of data we copied to the output buffer. In case
      * of errors (bad padding or output too large), the value of *olen

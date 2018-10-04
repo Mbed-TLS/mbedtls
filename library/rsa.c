@@ -1527,7 +1527,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     }
 
     /* There must be at least 8 bytes of padding. */
-    bad |= ( pad_count < 8 );
+    bad |= size_greater_than( 8, pad_count );
 
     /* If the padding is valid, set plaintext_size to the number of
      * remaining bytes after stripping the padding. If the padding
@@ -1541,10 +1541,9 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
                              (unsigned) ( ilen - ( p - buf ) ) );
 
     /* Set output_too_large to 0 if the plaintext fits in the output
-     * buffer and to 1 otherwise. This is the sign bit (1 for negative)
-     * of (output_max_len - plaintext_size). */
-    output_too_large = ( ( output_max_len - plaintext_size ) >>
-                         ( ( sizeof( output_max_len ) * 8 - 1 ) ) );
+     * buffer and to 1 otherwise. */
+    output_too_large = size_greater_than( plaintext_size,
+                                          plaintext_max_size );
 
     /* Set ret without branches to avoid timing attacks. Return:
      * - INVALID_PADDING if the padding is bad (bad != 0).

@@ -2281,7 +2281,7 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int flags,
             }
         }
         /* check for RNG validity if flag is set (Note: this has a false
-        positive probability of %1). If more than 5 * nlen/2
+        positive probability of %0.07). If more than 5 * nlen/2
         (nlen/2 is the size of the random buffer in bits) generations fail
         return an error indicating a possible issue with RNG.
         */

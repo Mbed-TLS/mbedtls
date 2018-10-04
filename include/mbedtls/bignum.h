@@ -749,7 +749,7 @@ int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
  */
 typedef enum {
     MBEDTLS_MPI_GEN_PRIME_FLAG_DH = 0x0001,     /**< (X-1)/2 is prime too */
-    MBEDTLS_MPI_GEN_PRIME_CHECK_RNG = 0x0004   /**< check RNG validity (by number of iterations required for prime generation) Note: 1% false positive probability*/
+    MBEDTLS_MPI_GEN_PRIME_CHECK_RNG = 0x0004   /**< check RNG validity (by number of iterations required for prime generation) Note: 0.07% false positive probability*/
 } mbedtls_mpi_gen_prime_flag_t;
 
 /**

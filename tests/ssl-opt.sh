@@ -5731,10 +5731,12 @@ run_test    "DTLS fragmenting: none (for reference)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             hs_timeout=2500-60000 \
              max_frag_len=4096" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             hs_timeout=2500-60000 \
              max_frag_len=4096" \
             0 \
             -S "found fragmented DTLS handshake message" \
@@ -5749,10 +5751,12 @@ run_test    "DTLS fragmenting: server only (max_frag_len)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             hs_timeout=2500-60000 \
              max_frag_len=1024" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             hs_timeout=2500-60000 \
              max_frag_len=2048" \
             0 \
             -S "found fragmented DTLS handshake message" \
@@ -5771,10 +5775,12 @@ run_test    "DTLS fragmenting: server only (more) (max_frag_len)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             hs_timeout=2500-60000 \
              max_frag_len=512" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             hs_timeout=2500-60000 \
              max_frag_len=4096" \
             0 \
             -S "found fragmented DTLS handshake message" \
@@ -5789,10 +5795,12 @@ run_test    "DTLS fragmenting: client-initiated, server only (max_frag_len)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=none \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             hs_timeout=2500-60000 \
              max_frag_len=2048" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             hs_timeout=2500-60000 \
              max_frag_len=1024" \
              0 \
             -S "found fragmented DTLS handshake message" \
@@ -5815,10 +5823,12 @@ run_test    "DTLS fragmenting: client-initiated, server only (max_frag_len), pro
             "$P_SRV dtls=1 debug_level=2 auth_mode=none \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             hs_timeout=2500-60000 \
              max_frag_len=2048" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             hs_timeout=2500-60000 \
              max_frag_len=1024" \
             0 \
             -S "found fragmented DTLS handshake message" \
@@ -5833,10 +5843,12 @@ run_test    "DTLS fragmenting: client-initiated, both (max_frag_len)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             hs_timeout=2500-60000 \
              max_frag_len=2048" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             hs_timeout=2500-60000 \
              max_frag_len=1024" \
             0 \
             -s "found fragmented DTLS handshake message" \
@@ -5859,10 +5871,12 @@ run_test    "DTLS fragmenting: client-initiated, both (max_frag_len), proxy MTU"
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             hs_timeout=2500-60000 \
              max_frag_len=2048" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             hs_timeout=2500-60000 \
              max_frag_len=1024" \
             0 \
             -s "found fragmented DTLS handshake message" \
@@ -5876,10 +5890,12 @@ run_test    "DTLS fragmenting: none (for reference) (MTU)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             hs_timeout=2500-60000 \
              mtu=4096" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             hs_timeout=2500-60000 \
              mtu=4096" \
             0 \
             -S "found fragmented DTLS handshake message" \
@@ -5893,10 +5909,12 @@ run_test    "DTLS fragmenting: client (MTU)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             hs_timeout=2500-60000 \
              mtu=4096" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             hs_timeout=2500-60000 \
              mtu=1024" \
             0 \
             -s "found fragmented DTLS handshake message" \
@@ -5910,10 +5928,12 @@ run_test    "DTLS fragmenting: server (MTU)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             hs_timeout=2500-60000 \
              mtu=512" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             hs_timeout=2500-60000 \
              mtu=2048" \
             0 \
             -S "found fragmented DTLS handshake message" \
@@ -5928,10 +5948,12 @@ run_test    "DTLS fragmenting: both (MTU)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             hs_timeout=2500-60000 \
              mtu=512" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             hs_timeout=2500-60000 \
              mtu=1024" \
             0 \
             -s "found fragmented DTLS handshake message" \
@@ -5948,11 +5970,11 @@ run_test    "DTLS fragmenting: proxy MTU: auto-reduction" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key\
-             hs_timeout=100-600" \
+             hs_timeout=100-10000" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             hs_timeout=100-600" \
+             hs_timeout=100-10000" \
             0 \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
@@ -5989,10 +6011,12 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             hs_timeout=10000-60000 \
              mtu=1024" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             hs_timeout=10000-60000 \
              mtu=1024" \
             0 \
             -S "resend" \
@@ -6010,12 +6034,12 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio" \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
              mtu=1024 nbio=2 \
-             hs_timeout=2000-5000" \
+             hs_timeout=15000-60000" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
              mtu=1024 nbio=2 \
-             hs_timeout=2000-5000" \
+             hs_timeout=15000-60000" \
             0 \
             -S "resend" \
             -s "found fragmented DTLS handshake message" \
@@ -6040,10 +6064,12 @@ run_test    "DTLS fragmenting: proxy MTU, resumed handshake" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
+             hs_timeout=10000-60000 \
              mtu=1650" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             hs_timeout=10000-60000 \
              mtu=1650 reconnect=1 reco_delay=1" \
             0 \
             -S "resend" \
@@ -6068,11 +6094,13 @@ run_test    "DTLS fragmenting: proxy MTU, ChachaPoly renego" \
              key_file=data_files/server7.key \
              exchanges=2 renegotiation=1 \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256 \
+             hs_timeout=10000-60000 \
              mtu=1024" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
              exchanges=2 renegotiation=1 renegotiate=1 \
+             hs_timeout=10000-60000 \
              mtu=1024" \
             0 \
             -S "resend" \
@@ -6098,11 +6126,13 @@ run_test    "DTLS fragmenting: proxy MTU, AES-GCM renego" \
              key_file=data_files/server7.key \
              exchanges=2 renegotiation=1 \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             hs_timeout=10000-60000 \
              mtu=1024" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
              exchanges=2 renegotiation=1 renegotiate=1 \
+             hs_timeout=10000-60000 \
              mtu=1024" \
             0 \
             -S "resend" \
@@ -6128,11 +6158,13 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CCM renego" \
              key_file=data_files/server7.key \
              exchanges=2 renegotiation=1 \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8 \
+             hs_timeout=10000-60000 \
              mtu=1024" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
              exchanges=2 renegotiation=1 renegotiate=1 \
+             hs_timeout=10000-60000 \
              mtu=1024" \
             0 \
             -S "resend" \
@@ -6159,11 +6191,13 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CBC EtM renego" \
              key_file=data_files/server7.key \
              exchanges=2 renegotiation=1 \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256 \
+             hs_timeout=10000-60000 \
              mtu=1024" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
              exchanges=2 renegotiation=1 renegotiate=1 \
+             hs_timeout=10000-60000 \
              mtu=1024" \
             0 \
             -S "resend" \
@@ -6189,11 +6223,13 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CBC non-EtM renego" \
              key_file=data_files/server7.key \
              exchanges=2 renegotiation=1 \
              force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256 etm=0 \
+             hs_timeout=10000-60000 \
              mtu=1024" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
              exchanges=2 renegotiation=1 renegotiate=1 \
+             hs_timeout=10000-60000 \
              mtu=1024" \
             0 \
             -S "resend" \

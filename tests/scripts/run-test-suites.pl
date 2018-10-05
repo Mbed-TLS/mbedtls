@@ -24,14 +24,10 @@ use strict;
 use utf8;
 use open qw(:std utf8);
 
-use constant FALSE => 0;
-use constant TRUE => 1;
+use Getopt::Long;
 
 my $verbose;
-my $switch = shift;
-if ( defined($switch) && ( $switch eq "-v" || $switch eq "--verbose" ) ) {
-    $verbose = TRUE;
-}
+GetOptions( "verbose|v" => \$verbose );
 
 # All test suites = executable files, excluding source files, debug
 # and profiling information, etc. We can't just grep {! /\./} because

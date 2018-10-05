@@ -5909,12 +5909,12 @@ run_test    "DTLS fragmenting: client (MTU)" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
-             hs_timeout=2500-60000 \
+             hs_timeout=3500-60000 \
              mtu=4096" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             hs_timeout=2500-60000 \
+             hs_timeout=3500-60000 \
              mtu=1024" \
             0 \
             -s "found fragmented DTLS handshake message" \
@@ -6677,8 +6677,10 @@ run_test    "DTLS proxy: delay ChangeCipherSpec" \
 
 run_test    "DTLS reordering: Buffer out-of-order handshake message on client" \
             -p "$P_PXY delay_srv=ServerHello" \
-            "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
-            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2 \
+            hs_timeout=2500-60000" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
+            hs_timeout=2500-60000" \
             0 \
             -c "Buffering HS message" \
             -c "Next handshake message has been buffered - load"\
@@ -6691,8 +6693,10 @@ run_test    "DTLS reordering: Buffer out-of-order handshake message on client" \
 
 run_test    "DTLS reordering: Buffer out-of-order handshake message fragment on client" \
             -p "$P_PXY delay_srv=ServerHello" \
-            "$P_SRV mtu=512 dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
-            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            "$P_SRV mtu=512 dgram_packing=0 cookies=0 dtls=1 debug_level=2 \
+            hs_timeout=2500-60000" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
+            hs_timeout=2500-60000" \
             0 \
             -c "Buffering HS message" \
             -c "found fragmented DTLS handshake message"\
@@ -6712,8 +6716,10 @@ run_test    "DTLS reordering: Buffer out-of-order handshake message fragment on 
 requires_config_value_at_least "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 1300
 run_test    "DTLS reordering: Buffer out-of-order hs msg before reassembling next" \
             -p "$P_PXY delay_srv=Certificate delay_srv=Certificate" \
-            "$P_SRV mtu=512 dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
-            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            "$P_SRV mtu=512 dgram_packing=0 cookies=0 dtls=1 debug_level=2 \
+            hs_timeout=2500-60000" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
+            hs_timeout=2500-60000" \
             0 \
             -c "Buffering HS message" \
             -c "Next handshake message has been buffered - load"\
@@ -6732,8 +6738,10 @@ requires_config_value_at_least "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 900
 requires_config_value_at_most "MBEDTLS_SSL_DTLS_MAX_BUFFERING" 1299
 run_test    "DTLS reordering: Buffer out-of-order hs msg before reassembling next, free buffered msg" \
             -p "$P_PXY delay_srv=Certificate delay_srv=Certificate" \
-            "$P_SRV mtu=512 dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
-            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            "$P_SRV mtu=512 dgram_packing=0 cookies=0 dtls=1 debug_level=2 \
+            hs_timeout=2500-60000" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
+            hs_timeout=2500-60000" \
             0 \
             -c "Buffering HS message" \
             -c "attempt to make space by freeing buffered future messages" \
@@ -6747,8 +6755,10 @@ run_test    "DTLS reordering: Buffer out-of-order hs msg before reassembling nex
 
 run_test    "DTLS reordering: Buffer out-of-order handshake message on server" \
             -p "$P_PXY delay_cli=Certificate" \
-            "$P_SRV dgram_packing=0 auth_mode=required cookies=0 dtls=1 debug_level=2" \
-            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            "$P_SRV dgram_packing=0 auth_mode=required cookies=0 dtls=1 debug_level=2 \
+            hs_timeout=2500-60000" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
+            hs_timeout=2500-60000" \
             0 \
             -C "Buffering HS message" \
             -C "Next handshake message has been buffered - load"\
@@ -6761,8 +6771,10 @@ run_test    "DTLS reordering: Buffer out-of-order handshake message on server" \
 
 run_test    "DTLS reordering: Buffer out-of-order CCS message on client"\
             -p "$P_PXY delay_srv=NewSessionTicket" \
-            "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
-            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2 \
+            hs_timeout=2500-60000" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
+            hs_timeout=2500-60000" \
             0 \
             -C "Buffering HS message" \
             -C "Next handshake message has been buffered - load"\
@@ -6775,8 +6787,10 @@ run_test    "DTLS reordering: Buffer out-of-order CCS message on client"\
 
 run_test    "DTLS reordering: Buffer out-of-order CCS message on server"\
             -p "$P_PXY delay_cli=ClientKeyExchange" \
-            "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
-            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2 \
+            hs_timeout=2500-60000" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
+            hs_timeout=2500-60000" \
             0 \
             -C "Buffering HS message" \
             -C "Next handshake message has been buffered - load"\
@@ -6789,8 +6803,10 @@ run_test    "DTLS reordering: Buffer out-of-order CCS message on server"\
 
 run_test    "DTLS reordering: Buffer encrypted Finished message" \
             -p "$P_PXY delay_ccs=1" \
-            "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2" \
-            "$P_CLI dgram_packing=0 dtls=1 debug_level=2" \
+            "$P_SRV dgram_packing=0 cookies=0 dtls=1 debug_level=2 \
+            hs_timeout=2500-60000" \
+            "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
+            hs_timeout=2500-60000" \
             0 \
             -s "Buffer record from epoch 1" \
             -s "Found buffered record from current epoch - load" \
@@ -6830,9 +6846,9 @@ run_test    "DTLS reordering: Buffer encrypted Finished message, drop for fragme
 client_needs_more_time 2
 run_test    "DTLS proxy: 3d (drop, delay, duplicate), \"short\" PSK handshake" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
-            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 auth_mode=none \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
              psk=abc123" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 psk=abc123 \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=abc123 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
             0 \
             -s "Extra-header:" \
@@ -6841,8 +6857,8 @@ run_test    "DTLS proxy: 3d (drop, delay, duplicate), \"short\" PSK handshake" \
 client_needs_more_time 2
 run_test    "DTLS proxy: 3d, \"short\" RSA handshake" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
-            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 auth_mode=none" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 \
              force_ciphersuite=TLS-RSA-WITH-AES-128-CBC-SHA" \
             0 \
             -s "Extra-header:" \
@@ -6851,8 +6867,8 @@ run_test    "DTLS proxy: 3d, \"short\" RSA handshake" \
 client_needs_more_time 2
 run_test    "DTLS proxy: 3d, \"short\" (no ticket, no cli_auth) FS handshake" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
-            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 auth_mode=none" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0" \
             0 \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
@@ -6860,8 +6876,8 @@ run_test    "DTLS proxy: 3d, \"short\" (no ticket, no cli_auth) FS handshake" \
 client_needs_more_time 2
 run_test    "DTLS proxy: 3d, FS, client auth" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
-            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 auth_mode=required" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=required" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0" \
             0 \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
@@ -6869,8 +6885,8 @@ run_test    "DTLS proxy: 3d, FS, client auth" \
 client_needs_more_time 2
 run_test    "DTLS proxy: 3d, FS, ticket" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
-            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=1 auth_mode=none" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=1" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=1 auth_mode=none" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=1" \
             0 \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
@@ -6878,8 +6894,8 @@ run_test    "DTLS proxy: 3d, FS, ticket" \
 client_needs_more_time 2
 run_test    "DTLS proxy: 3d, max handshake (FS, ticket + client auth)" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
-            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=1 auth_mode=required" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=1" \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=1 auth_mode=required" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=1" \
             0 \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
@@ -6887,9 +6903,9 @@ run_test    "DTLS proxy: 3d, max handshake (FS, ticket + client auth)" \
 client_needs_more_time 2
 run_test    "DTLS proxy: 3d, max handshake, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
-            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=250-10000 nbio=2 tickets=1 \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 nbio=2 tickets=1 \
              auth_mode=required" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=250-10000 nbio=2 tickets=1" \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 nbio=2 tickets=1" \
             0 \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
@@ -6897,9 +6913,9 @@ run_test    "DTLS proxy: 3d, max handshake, nbio" \
 client_needs_more_time 4
 run_test    "DTLS proxy: 3d, min handshake, resumption" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
-            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 auth_mode=none \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
              psk=abc123 debug_level=3" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 psk=abc123 \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=abc123 \
              debug_level=3 reconnect=1 read_timeout=1000 max_resend=10 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
             0 \
@@ -6911,9 +6927,9 @@ run_test    "DTLS proxy: 3d, min handshake, resumption" \
 client_needs_more_time 4
 run_test    "DTLS proxy: 3d, min handshake, resumption, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
-            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 auth_mode=none \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
              psk=abc123 debug_level=3 nbio=2" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 psk=abc123 \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=abc123 \
              debug_level=3 reconnect=1 read_timeout=1000 max_resend=10 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8 nbio=2" \
             0 \
@@ -6926,9 +6942,9 @@ client_needs_more_time 4
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS proxy: 3d, min handshake, client-initiated renego" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
-            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 auth_mode=none \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
              psk=abc123 renegotiation=1 debug_level=2" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 psk=abc123 \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=abc123 \
              renegotiate=1 debug_level=2 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
             0 \
@@ -6941,9 +6957,9 @@ client_needs_more_time 4
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS proxy: 3d, min handshake, client-initiated renego, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
-            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 auth_mode=none \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
              psk=abc123 renegotiation=1 debug_level=2" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 psk=abc123 \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=abc123 \
              renegotiate=1 debug_level=2 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
             0 \
@@ -6956,10 +6972,10 @@ client_needs_more_time 4
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS proxy: 3d, min handshake, server-initiated renego" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
-            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 auth_mode=none \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
              psk=abc123 renegotiate=1 renegotiation=1 exchanges=4 \
              debug_level=2" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 psk=abc123 \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=abc123 \
              renegotiation=1 exchanges=4 debug_level=2 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
             0 \
@@ -6972,10 +6988,10 @@ client_needs_more_time 4
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 run_test    "DTLS proxy: 3d, min handshake, server-initiated renego, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
-            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 auth_mode=none \
+            "$P_SRV dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 auth_mode=none \
              psk=abc123 renegotiate=1 renegotiation=1 exchanges=4 \
              debug_level=2 nbio=2" \
-            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=250-10000 tickets=0 psk=abc123 \
+            "$P_CLI dtls=1 dgram_packing=0 hs_timeout=500-10000 tickets=0 psk=abc123 \
              renegotiation=1 exchanges=4 debug_level=2 nbio=2 \
              force_ciphersuite=TLS-PSK-WITH-AES-128-CCM-8" \
             0 \
@@ -6989,7 +7005,7 @@ not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, openssl server" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
             "$O_SRV -dtls1 -mtu 2048" \
-            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=250-60000 tickets=0" \
+            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 tickets=0" \
             0 \
             -c "HTTP/1.0 200 OK"
 
@@ -6998,7 +7014,7 @@ not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, openssl server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
             "$O_SRV -dtls1 -mtu 768" \
-            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=250-60000 tickets=0" \
+            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 tickets=0" \
             0 \
             -c "HTTP/1.0 200 OK"
 
@@ -7007,7 +7023,7 @@ not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, openssl server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5 protect_hvr=1" \
             "$O_SRV -dtls1 -mtu 768" \
-            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=250-60000 nbio=2 tickets=0" \
+            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 nbio=2 tickets=0" \
             0 \
             -c "HTTP/1.0 200 OK"
 
@@ -7017,7 +7033,7 @@ not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, gnutls server" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$G_SRV -u --mtu 2048 -a" \
-            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=250-60000" \
+            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000" \
             0 \
             -s "Extra-header:" \
             -c "Extra-header:"
@@ -7028,7 +7044,7 @@ not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$G_SRV -u --mtu 512" \
-            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=250-60000" \
+            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000" \
             0 \
             -s "Extra-header:" \
             -c "Extra-header:"
@@ -7039,7 +7055,7 @@ not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, gnutls server, fragmentation, nbio" \
             -p "$P_PXY drop=5 delay=5 duplicate=5" \
             "$G_SRV -u --mtu 512" \
-            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=250-60000 nbio=2" \
+            "$P_CLI dgram_packing=0 dtls=1 hs_timeout=500-60000 nbio=2" \
             0 \
             -s "Extra-header:" \
             -c "Extra-header:"

@@ -107,15 +107,16 @@ typedef struct mbedtls_ecdh_context
     mbedtls_ecp_point Vf;    /*!< The unblinding value. */
     mbedtls_mpi _d;          /*!< The previous \p d. */
 #else
-    uint8_t point_format;    /*!< The format of point export in TLS messages as
-                                  defined in RFC 4492. */
-    mbedtls_ecp_group_id gid;/*!< The elliptic curve used. */
-    mbedtls_ecdh_variant var;/*!< The ECDH implementation/structure used. */
+    uint8_t point_format;       /*!< The format of point export in TLS messages
+                                  as defined in RFC 4492. */
+    mbedtls_ecp_group_id grp_id;/*!< The elliptic curve used. */
+    mbedtls_ecdh_variant var;   /*!< The ECDH implementation/structure used. */
     union
     {
         mbedtls_ecdh_context_mbed   mbed_ecdh;
-    } ctx;                   /*!< Implementation-specific context. The context
-                                  in use is specified by the \c var field. */
+    } ctx;                      /*!< Implementation-specific context. The
+                                  context in use is specified by the \c var
+                                  field. */
 #endif
 }
 mbedtls_ecdh_context;
@@ -193,11 +194,11 @@ void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx );
  *                  ciphersuites.
  *
  * \param ctx       The ECDH context to set up.
- * \param gid       The group id of the group to set up the context for.
+ * \param grp_id       The group id of the group to set up the context for.
  *
  * \return          \c 0 on success.
  */
-int mbedtls_ecdh_setup( mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id gid );
+int mbedtls_ecdh_setup( mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp_id );
 
 /**
  * \brief           This function frees a context.

@@ -106,11 +106,11 @@ void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx )
 }
 
 static int mbedtls_ecdh_setup_internal( mbedtls_ecdh_context_mbed *ctx,
-                                        mbedtls_ecp_group_id gid )
+                                        mbedtls_ecp_group_id grp_id )
 {
     int ret;
 
-    ret = mbedtls_ecp_group_load( &ctx->grp, gid );
+    ret = mbedtls_ecp_group_load( &ctx->grp, grp_id );
     if( ret != 0 )
     {
         return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
@@ -122,21 +122,22 @@ static int mbedtls_ecdh_setup_internal( mbedtls_ecdh_context_mbed *ctx,
 /*
  * Setup context
  */
-int mbedtls_ecdh_setup( mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id gid )
+int mbedtls_ecdh_setup( mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp_id )
 {
     if( ctx == NULL )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
-    return( mbedtls_ecdh_setup_internal( ctx, gid ) );
+    return( mbedtls_ecdh_setup_internal( ctx, grp_id ) );
 #else
-    switch( gid )
+    switch( grp_id )
     {
         default:
             ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
             ctx->var = MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0;
-            ctx->gid = gid;
-            return( mbedtls_ecdh_setup_internal( &ctx->ctx.mbed_ecdh, gid ) );
+            ctx->grp_id = grp_id;
+            return( mbedtls_ecdh_setup_internal( &ctx->ctx.mbed_ecdh,
+                                                 grp_id ) );
     }
 #endif
 }
@@ -175,7 +176,7 @@ void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx )
 
     ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
     ctx->var = MBEDTLS_ECDH_VARIANT_NONE;
-    ctx->gid = MBEDTLS_ECP_DP_NONE;
+    ctx->grp_id = MBEDTLS_ECP_DP_NONE;
 #endif
 }
 

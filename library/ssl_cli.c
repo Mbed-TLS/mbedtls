@@ -2014,7 +2014,7 @@ static int ssl_check_server_ecdh_params( const mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
     grp_id = ssl->handshake->ecdh_ctx.grp.id;
 #else
-    grp_id = ssl->handshake->ecdh_ctx.gid;
+    grp_id = ssl->handshake->ecdh_ctx.grp_id;
 #endif
 
     curve_info = mbedtls_ecp_curve_info_from_grp_id( grp_id );

@@ -1478,17 +1478,26 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
 {
     int ret;
     size_t ilen = ctx->len;
-    size_t pad_count = 0;
     size_t i;
-    unsigned bad = 0;
-    unsigned char pad_done = 0;
-    size_t plaintext_size = 0;
     size_t plaintext_max_size = ( output_max_len > ilen - 11 ?
                                   ilen - 11 :
                                   output_max_len );
-    unsigned output_too_large;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
-    unsigned char *p = buf;
+    /* The following variables take sensitive values: their value must
+     * not leak into the observable behavior of the function other than
+     * the designated outputs (output, olen, return value). Otherwise
+     * this would open the execution of the function to
+     * side-channel-based variants of the Bleichenbacher padding oracle
+     * attack. Potential side channels include overall timing, memory
+     * access patterns (especially visible to an adversary who has access
+     * to a shared memory cache), and branches (especially visible to
+     * an adversary who has access to a shared code cache or to a shared
+     * branch predictor). */
+    size_t pad_count = 0;
+    unsigned bad = 0;
+    unsigned char pad_done = 0;
+    size_t plaintext_size = 0;
+    unsigned output_too_large;
 
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
@@ -1506,38 +1515,35 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     /*
      * Check and get padding len in "constant-time"
      */
-    bad |= *p++; /* First byte must be 0 */
+    bad |= buf[0]; /* First byte must be 0 */
 
     /* This test does not depend on secret data */
     if( mode == MBEDTLS_RSA_PRIVATE )
     {
-        bad |= *p++ ^ MBEDTLS_RSA_CRYPT;
+        bad |= buf[1] ^ MBEDTLS_RSA_CRYPT;
 
         /* Get padding len, but always read till end of buffer
          * (minus one, for the 00 byte) */
-        for( i = 0; i < ilen - 3; i++ )
+        for( i = 2; i < ilen - 1; i++ )
         {
-            pad_done  |= ((p[i] | (unsigned char)-p[i]) >> 7) ^ 1;
+            pad_done  |= ((buf[i] | (unsigned char)-buf[i]) >> 7) ^ 1;
             pad_count += ((pad_done | (unsigned char)-pad_done) >> 7) ^ 1;
         }
 
-        p += pad_count;
-        bad |= *p++; /* Must be zero */
+        bad |= buf[pad_count + 2];
     }
     else
     {
-        bad |= *p++ ^ MBEDTLS_RSA_SIGN;
+        bad |= buf[1] ^ MBEDTLS_RSA_SIGN;
 
         /* Get padding len, but always read till end of buffer
          * (minus one, for the 00 byte) */
-        for( i = 0; i < ilen - 3; i++ )
+        for( i = 2; i < ilen - 1; i++ )
         {
-            pad_done |= ( p[i] != 0xFF );
+            pad_done |= ( buf[i] != 0xFF );
             pad_count += ( pad_done == 0 );
         }
-
-        p += pad_count;
-        bad |= *p++; /* Must be zero */
+        bad |= buf[pad_count + 2];
     }
 
     /* There must be at least 8 bytes of padding. */
@@ -1552,7 +1558,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
      * size_t values involved fit in unsigned int. */
     plaintext_size = if_int( bad,
                              (unsigned) plaintext_max_size,
-                             (unsigned) ( ilen - ( p - buf ) ) );
+                             (unsigned) ( ilen - pad_count - 3 ) );
 
     /* Set output_too_large to 0 if the plaintext fits in the output
      * buffer and to 1 otherwise. */
@@ -1591,13 +1597,13 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
      * does not depend on the plaintext size. After this move, the
      * starting location of the plaintext is no longer sensitive
      * information. */
-    p = buf + ilen - plaintext_max_size;
-    mem_move_to_left( p, plaintext_max_size,
+    mem_move_to_left( buf + ilen - plaintext_max_size,
+                      plaintext_max_size,
                       plaintext_max_size - plaintext_size );
 
     /* Finally copy the decrypted plaintext plus trailing zeros
      * into the output buffer. */
-    memcpy( output, p, plaintext_max_size );
+    memcpy( output, buf + ilen - plaintext_max_size, plaintext_max_size );
 
     /* Report the amount of data we copied to the output buffer. In case
      * of errors (bad padding or output too large), the value of *olen

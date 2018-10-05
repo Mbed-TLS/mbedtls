@@ -7,6 +7,10 @@ Bugfix
      MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
    * Fix a bug in the update function for SSL ticket keys which previously
      invalidated keys of a lifetime of less than a 1s. Fixes #1968.
+   * Add compile time guard around internal function derive_mpi() in
+     library/ecdsa.c to avoid unused function compiler warning configurations
+     where this function is not needed. Raised by HenrikRosenquistAnderson.
+     Fixes #1590.
 
 Changes
    * Add tests for session resumption in DTLS.

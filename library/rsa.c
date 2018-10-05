@@ -1089,14 +1089,14 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
     if( ret != 0 )
         goto cleanup;
 
-    /*
-     * Check and get padding len in "constant-time"
-     */
-    bad |= buf[0]; /* First byte must be 0 */
+    /* Check and get padding length in constant time and constant
+     * memory trace. The first byte must be 0. */
+    bad |= buf[0];
 
-    /* This test does not depend on secret data */
     if( mode == MBEDTLS_RSA_PRIVATE )
     {
+        /* Decode EME-PKCS1-v1_5 padding: 0x00 || 0x02 || PS || 0x00
+         * where PS must be at least 8 nonzero bytes. */
         bad |= buf[1] ^ MBEDTLS_RSA_CRYPT;
 
         /* Get padding len, but always read till end of buffer
@@ -1106,22 +1106,25 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
             pad_done  |= ((buf[i] | (unsigned char)-buf[i]) >> 7) ^ 1;
             pad_count += ((pad_done | (unsigned char)-pad_done) >> 7) ^ 1;
         }
-
-        bad |= buf[pad_count + 2];
     }
     else
     {
+        /* Decode EMSA-PKCS1-v1_5 padding: 0x00 || 0x01 || PS || 0x00
+         * where PS must be at least 8 bytes with the value 0xFF. */
         bad |= buf[1] ^ MBEDTLS_RSA_SIGN;
 
         /* Get padding len, but always read till end of buffer
          * (minus one, for the 00 byte) */
         for( i = 2; i < ilen - 1; i++ )
         {
-            pad_done |= ( buf[i] != 0xFF );
-            pad_count += ( pad_done == 0 );
+            pad_done |= if_int( buf[i], 0, 1 );
+            pad_count += if_int( pad_done, 0, 1 );
+            bad |= if_int( pad_done, 0, buf[i] ^ 0xFF );
         }
-        bad |= buf[pad_count + 2];
     }
+
+    /* If pad_done is still zero, there's no data, only unfinished padding. */
+    bad |= if_int( pad_done, 0, 1 );
 
     /* There must be at least 8 bytes of padding. */
     bad |= size_greater_than( 8, pad_count );
@@ -1157,8 +1160,9 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
      * from the same buffer whether the padding is good or not to
      * avoid leaking the padding validity through overall timing or
      * through memory or cache access patterns. */
+    bad = all_or_nothing_int( bad | output_too_large );
     for( i = 11; i < ilen; i++ )
-        buf[i] &= ~( bad | output_too_large );
+        buf[i] &= ~bad;
 
     /* If the plaintext is too large, truncate it to the buffer size.
      * Copy anyway to avoid revealing the length through timing, because

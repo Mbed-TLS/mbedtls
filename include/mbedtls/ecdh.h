@@ -46,7 +46,7 @@
  * Features undefining this flag, must have a warning in their description in
  * config.h stating that the feature breaks backward compatibility.
  */
-#define MBEDTLS_ECDH_LEGACY_CONTEXT
+//#define MBEDTLS_ECDH_LEGACY_CONTEXT
 
 #ifdef __cplusplus
 extern "C" {

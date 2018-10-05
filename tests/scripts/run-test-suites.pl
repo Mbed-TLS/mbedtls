@@ -50,10 +50,20 @@ my ($failed_suites, $total_tests_run, $failed, $suite_cases_passed,
     $suite_cases_failed, $suite_cases_skipped, $total_cases_passed,
     $total_cases_failed, $total_cases_skipped );
 
+sub pad_print_center {
+    my( $width, $padchar, $string ) = @_;
+    my $padlen = ( $width - length( $string ) - 2 ) / 2;
+    print $padchar x( $padlen ), " $string ", $padchar x( $padlen ), "\n";
+}
+
 for my $suite (@suites)
 {
     print "$suite ", "." x ( 72 - length($suite) - 2 - 4 ), " ";
-    my $result = `$prefix$suite`;
+    my $command = "$prefix$suite";
+    if( $verbose ) {
+        $command .= ' -v';
+    }
+    my $result = `$command`;
 
     $suite_cases_passed = () = $result =~ /.. PASS/g;
     $suite_cases_failed = () = $result =~ /.. FAILED/g;
@@ -64,6 +74,11 @@ for my $suite (@suites)
     } else {
         $failed_suites++;
         print "FAIL\n";
+        if( $verbose ) {
+            pad_print_center( 72, '-', "Begin $suite" );
+            print $result;
+            pad_print_center( 72, '-', "End $suite" );
+        }
     }
 
     my ($passed, $tests, $skipped) = $result =~ /([0-9]*) \/ ([0-9]*) tests.*?([0-9]*) skipped/;

@@ -26,8 +26,8 @@ use open qw(:std utf8);
 
 use Getopt::Long;
 
-my $verbose;
-GetOptions( "verbose|v" => \$verbose );
+my $verbose = 0;
+GetOptions( "verbose|v:1" => \$verbose );
 
 # All test suites = executable files, excluding source files, debug
 # and profiling information, etc. We can't just grep {! /\./} because
@@ -67,6 +67,11 @@ for my $suite (@suites)
 
     if( $result =~ /PASSED/ ) {
         print "PASS\n";
+        if( $verbose > 2 ) {
+            pad_print_center( 72, '-', "Begin $suite" );
+            print $result;
+            pad_print_center( 72, '-', "End $suite" );
+        }
     } else {
         $failed_suites++;
         print "FAIL\n";
@@ -80,7 +85,7 @@ for my $suite (@suites)
     my ($passed, $tests, $skipped) = $result =~ /([0-9]*) \/ ([0-9]*) tests.*?([0-9]*) skipped/;
     $total_tests_run += $tests - $skipped;
 
-    if ( $verbose ) {
+    if( $verbose > 1 ) {
         print "(test cases passed:", $suite_cases_passed,
                 " failed:", $suite_cases_failed,
                 " skipped:", $suite_cases_skipped,
@@ -98,7 +103,7 @@ print "-" x 72, "\n";
 print $failed_suites ? "FAILED" : "PASSED";
 printf " (%d suites, %d tests run)\n", scalar @suites, $total_tests_run;
 
-if ( $verbose ) {
+if( $verbose > 1 ) {
     print "  test cases passed :", $total_cases_passed, "\n";
     print "             failed :", $total_cases_failed, "\n";
     print "            skipped :", $total_cases_skipped, "\n";

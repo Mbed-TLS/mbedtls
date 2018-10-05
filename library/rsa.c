@@ -1099,9 +1099,9 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
          * where PS must be at least 8 nonzero bytes. */
         bad |= buf[1] ^ MBEDTLS_RSA_CRYPT;
 
-        /* Get padding len, but always read till end of buffer
-         * (minus one, for the 00 byte) */
-        for( i = 2; i < ilen - 1; i++ )
+        /* Read the whole buffer. Set pad_done to nonzero if we find
+         * the 0x00 byte and remember the padding length in pad_count. */
+        for( i = 2; i < ilen; i++ )
         {
             pad_done  |= ((buf[i] | (unsigned char)-buf[i]) >> 7) ^ 1;
             pad_count += ((pad_done | (unsigned char)-pad_done) >> 7) ^ 1;
@@ -1113,9 +1113,10 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
          * where PS must be at least 8 bytes with the value 0xFF. */
         bad |= buf[1] ^ MBEDTLS_RSA_SIGN;
 
-        /* Get padding len, but always read till end of buffer
-         * (minus one, for the 00 byte) */
-        for( i = 2; i < ilen - 1; i++ )
+        /* Read the whole buffer. Set pad_done to nonzero if we find
+         * the 0x00 byte and remember the padding length in pad_count.
+         * If there's a non-0xff byte in the padding, the padding is bad. */
+        for( i = 2; i < ilen; i++ )
         {
             pad_done |= if_int( buf[i], 0, 1 );
             pad_count += if_int( pad_done, 0, 1 );

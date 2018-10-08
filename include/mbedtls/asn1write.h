@@ -153,64 +153,75 @@ int mbedtls_asn1_write_bool( unsigned char **p, unsigned char *start, int boolea
 int mbedtls_asn1_write_int( unsigned char **p, unsigned char *start, int val );
 
 /**
- * \brief           Write a given string tag and
- *                  value in ASN.1 format
+ * \brief           Write a string in ASN.1 format using a specific
+ *                  string encoding tag.
  *                  Note: function works backwards in data buffer
  *
- * \param p         reference to current position pointer
- * \param start     start of the buffer (for bounds-checking)
- * \param tag       the tag to write
- * \param text      the text to write
- * \param text_len  length of the text
+ * \param p         The reference to the current position pointer.
+ * \param start     The start of the buffer (for bounds-checking).
+ * \param tag       The string encoding tag to write, e.g.
+ *                  #MBEDTLS_ASN1_UTF8_STRING.
+ * \param text      The string to write.
+ * \param text_len  The length of \p text in bytes (which might
+ *                  be strictly larger than the number of characters).
  *
- * \return          the length written or a negative error code
+ * \return          The number of bytes written to \p p on success.
+ * \return          A negative error code on failure.
  */
 int mbedtls_asn1_write_tagged_string( unsigned char **p, unsigned char *start,
                                  int tag, const char *text, size_t text_len );
-/**
- * \brief           Write a printable string tag (MBEDTLS_ASN1_PRINTABLE_STRING) and
- *                  value in ASN.1 format
- *                  Note: function works backwards in data buffer
- *
- * \param p         reference to current position pointer
- * \param start     start of the buffer (for bounds-checking)
- * \param text      the text to write
- * \param text_len  length of the text
- *
- * \return          the length written or a negative error code
- */
-int mbedtls_asn1_write_printable_string( unsigned char **p, unsigned char *start,
-                                 const char *text, size_t text_len );
 
 /**
- * \brief           Write a UTF8 string tag (MBEDTLS_ASN1_UTF8_STRING) and
- *                  value in ASN.1 format
- *                  Note: function works backwards in data buffer
+ * \brief           Write a string in ASN.1 format using the PrintableString
+ *                  string encoding tag (#MBEDTLS_ASN1_PRINTABLE_STRING).
+ *                  Note: The function works backwards in data buffer.
  *
- * \param p         reference to current position pointer
- * \param start     start of the buffer (for bounds-checking)
- * \param text      the text to write
- * \param text_len  length of the text
+ * \param p         The reference to the current position pointer.
+ * \param start     The start of the buffer (for bounds-checking).
+ * \param text      The string to write.
+ * \param text_len  The length of \p text in bytes (which might
+ *                  be strictly larger than the number of characters).
  *
- * \return          the length written or a negative error code
+ * \return          The number of bytes written to \p p on success.
+ * \return          A negative error code on failure.
+ */
+int mbedtls_asn1_write_printable_string( unsigned char **p,
+                                         unsigned char *start,
+                                         const char *text, size_t text_len );
+
+/**
+ * \brief           Write a UTF8 string in ASN.1 format using the UTF8String
+ *                  string encoding tag (#MBEDTLS_ASN1_PRINTABLE_STRING).
+ *                  Note: The function works backwards in data buffer.
+ *
+ * \param p         The reference to the current position pointer.
+ * \param start     The start of the buffer (for bounds-checking).
+ * \param text      The string to write.
+ * \param text_len  The length of \p text in bytes (which might
+ *                  be strictly larger than the number of characters).
+ *
+ * \return          The number of bytes written to \p p on success.
+ * \return          A negative error code on failure.
  */
 int mbedtls_asn1_write_utf8_string( unsigned char **p, unsigned char *start,
-                                 const char *text, size_t text_len );
+                                    const char *text, size_t text_len );
 
 /**
- * \brief           Write an IA5 string tag (MBEDTLS_ASN1_IA5_STRING) and
- *                  value in ASN.1 format
- *                  Note: function works backwards in data buffer
+ * \brief           Write a string in ASN.1 format using the IA5tring
+ *                  string encoding tag (#MBEDTLS_ASN1_IA5_STRING).
+ *                  Note: The function works backwards in data buffer.
  *
- * \param p         reference to current position pointer
- * \param start     start of the buffer (for bounds-checking)
- * \param text      the text to write
- * \param text_len  length of the text
+ * \param p         The reference to the current position pointer.
+ * \param start     The start of the buffer (for bounds-checking).
+ * \param text      The string to write.
+ * \param text_len  The length of \p text in bytes (which might
+ *                  be strictly larger than the number of characters).
  *
- * \return          the length written or a negative error code
+ * \return          The number of bytes written to \p p on success.
+ * \return          A negative error code on failure.
  */
 int mbedtls_asn1_write_ia5_string( unsigned char **p, unsigned char *start,
-                           const char *text, size_t text_len );
+                                   const char *text, size_t text_len );
 
 /**
  * \brief           Write a bitstring tag (MBEDTLS_ASN1_BIT_STRING) and

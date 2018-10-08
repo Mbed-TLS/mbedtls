@@ -41,7 +41,7 @@ typedef struct {
    size_t name_len;  /* Length of \c name, without trailing \c 0 byte. */
    const char *oid;  /* String representation of OID of AttributeType,
                       * as per RFC 5280, Appendix A.1. */
-   int tag;          /* The default character encoding used for the
+   int default_tag;  /* The default character encoding used for the
                       * given attribute type, e.g.
                       * #MBEDTLS_ASN1_UTF8_STRING for UTF-8. */
 } x509_attr_descriptor_t;
@@ -150,7 +150,7 @@ int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *na
             }
 
             // set tagType
-            cur->val.tag = attr_descr->tag;
+            cur->val.tag = attr_descr->default_tag;
 
             while( c < end && *(c + 1) == ' ' )
                 c++;

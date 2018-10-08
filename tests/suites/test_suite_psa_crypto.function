@@ -1684,6 +1684,7 @@ void derive_key_policy( int policy_usage,
         TEST_ASSERT( status == PSA_ERROR_NOT_PERMITTED );
 
 exit:
+    mbedtls_free( public_key );
     psa_generator_abort( &generator );
     psa_destroy_key( key_slot );
     mbedtls_psa_crypto_free( );

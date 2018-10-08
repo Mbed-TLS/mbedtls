@@ -61,6 +61,7 @@ int main( void )
 #define DFL_SUBJECT_NAME        "CN=Cert,O=mbed TLS,C=UK"
 #define DFL_KEY_USAGE           0
 #define DFL_NS_CERT_TYPE        0
+#define DFL_MD_ALG              MBEDTLS_MD_SHA256
 
 #define USAGE \
     "\n usage: cert_req param=<>...\n"                  \
@@ -87,6 +88,11 @@ int main( void )
     "                          ssl_ca\n"                \
     "                          email_ca\n"              \
     "                          object_signing_ca\n"     \
+    "    md=%%s               default: SHA256\n"       \
+    "                          possible values:\n"     \
+    "                          MD4, MD5, SHA1\n"       \
+    "                          SHA224, SHA256\n"       \
+    "                          SHA384, SHA512\n"       \
     "\n"
 
 /*
@@ -100,6 +106,7 @@ struct options
     const char *subject_name;   /* subject name for certificate request */
     unsigned char key_usage;    /* key usage flags                      */
     unsigned char ns_cert_type; /* NS cert type                         */
+    mbedtls_md_type_t md_alg;   /* Hash algorithm used for signature.   */
 } opt;
 
 int write_certificate_request( mbedtls_x509write_csr *req, const char *output_file,
@@ -147,7 +154,6 @@ int main( int argc, char *argv[] )
      * Set to sane values
      */
     mbedtls_x509write_csr_init( &req );
-    mbedtls_x509write_csr_set_md_alg( &req, MBEDTLS_MD_SHA256 );
     mbedtls_pk_init( &key );
     mbedtls_ctr_drbg_init( &ctr_drbg );
     memset( buf, 0, sizeof( buf ) );
@@ -166,6 +172,7 @@ int main( int argc, char *argv[] )
     opt.subject_name        = DFL_SUBJECT_NAME;
     opt.key_usage           = DFL_KEY_USAGE;
     opt.ns_cert_type        = DFL_NS_CERT_TYPE;
+    opt.md_alg              = DFL_MD_ALG;
 
     for( i = 1; i < argc; i++ )
     {
@@ -188,6 +195,54 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "subject_name" ) == 0 )
         {
             opt.subject_name = q;
+        }
+        else if( strcmp( p, "md" ) == 0 )
+        {
+            if( strcmp( q, "SHA256" ) == 0 )
+            {
+                opt.md_alg = MBEDTLS_MD_SHA256;
+            }
+            else if( strcmp( q, "SHA224" ) == 0 )
+            {
+                opt.md_alg = MBEDTLS_MD_SHA224;
+            }
+            else
+#if defined(MBEDTLS_MD5_C)
+            if( strcmp( q, "MD5" ) == 0 )
+            {
+                opt.md_alg = MBEDTLS_MD_MD5;
+            }
+            else
+#endif /* MBEDTLS_MD5_C */
+#if defined(MBEDTLS_MD4_C)
+            if( strcmp( q, "MD4" ) == 0 )
+            {
+                opt.md_alg = MBEDTLS_MD_MD4;
+            }
+            else
+#endif /* MBEDTLS_MD5_C */
+#if defined(MBEDTLS_SHA1_C)
+            if( strcmp( q, "SHA1" ) == 0 )
+            {
+                opt.md_alg = MBEDTLS_MD_SHA1;
+            }
+            else
+#endif /* MBEDTLS_SHA1_C */
+#if defined(MBEDTLS_SHA512_C)
+            if( strcmp( q, "SHA384" ) == 0 )
+            {
+                opt.md_alg = MBEDTLS_MD_SHA384;
+            }
+            else
+            if( strcmp( q, "SHA512" ) == 0 )
+            {
+                opt.md_alg = MBEDTLS_MD_SHA512;
+            }
+            else
+#endif /* MBEDTLS_SHA512_C */
+            {
+                goto usage;
+            }
         }
         else if( strcmp( p, "key_usage" ) == 0 )
         {
@@ -246,6 +301,8 @@ int main( int argc, char *argv[] )
         else
             goto usage;
     }
+
+    mbedtls_x509write_csr_set_md_alg( &req, opt.md_alg );
 
     if( opt.key_usage )
         mbedtls_x509write_csr_set_key_usage( &req, opt.key_usage );

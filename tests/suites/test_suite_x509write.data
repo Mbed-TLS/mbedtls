@@ -30,9 +30,21 @@ Certificate Request check Server1 key_usage
 depends_on:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check:"data_files/server1.key":"data_files/server1.req.key_usage":MBEDTLS_MD_SHA1:MBEDTLS_X509_KU_DIGITAL_SIGNATURE | MBEDTLS_X509_KU_NON_REPUDIATION | MBEDTLS_X509_KU_KEY_ENCIPHERMENT:0
 
+Certificate Request check Server1 key_usage encipherOnly
+depends_on:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+x509_csr_check:"data_files/server1.key":"data_files/server1.req.key_usage_encipher_only":MBEDTLS_MD_SHA1:MBEDTLS_X509_KU_ENCIPHER_ONLY:0
+
+Certificate Request check Server1 key_usage empty
+depends_on:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+x509_csr_check:"data_files/server1.key":"data_files/server1.req.key_usage_empty":MBEDTLS_MD_SHA1:0x80000000:0
+
 Certificate Request check Server1 ns_cert_type
 depends_on:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
 x509_csr_check:"data_files/server1.key":"data_files/server1.req.cert_type":MBEDTLS_MD_SHA1:0:MBEDTLS_X509_NS_CERT_TYPE_SSL_SERVER
+
+Certificate Request check Server1 ns_cert_type empty
+depends_on:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+x509_csr_check:"data_files/server1.key":"data_files/server1.req.cert_type_empty":MBEDTLS_MD_SHA1:0:0x80000000
 
 Certificate Request check Server1 key_usage + ns_cert_type
 depends_on:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
@@ -49,6 +61,10 @@ x509_crt_check:"data_files/server1.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1
 Certificate write check Server1 SHA1, key_usage
 depends_on:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_DES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_MD5_C
 x509_crt_check:"data_files/server1.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1":"data_files/test-ca.key":"PolarSSLTest":"C=NL,O=PolarSSL,CN=PolarSSL Test CA":"1":"20110212144406":"20210212144406":MBEDTLS_MD_SHA1:MBEDTLS_X509_KU_DIGITAL_SIGNATURE | MBEDTLS_X509_KU_NON_REPUDIATION | MBEDTLS_X509_KU_KEY_ENCIPHERMENT:0:1:-1:"data_files/server1.key_usage.crt":0
+
+Certificate write check Server1 SHA1, key_usage decipherOnly
+depends_on:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_DES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_MD5_C
+x509_crt_check:"data_files/server1.key":"":"C=NL,O=PolarSSL,CN=PolarSSL Server 1":"data_files/test-ca.key":"PolarSSLTest":"C=NL,O=PolarSSL,CN=PolarSSL Test CA":"1":"20110212144406":"20210212144406":MBEDTLS_MD_SHA1:MBEDTLS_X509_KU_DECIPHER_ONLY:0:1:-1:"data_files/server1.key_usage_decipher_only.crt":0
 
 Certificate write check Server1 SHA1, ns_cert_type
 depends_on:MBEDTLS_SHA1_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15:MBEDTLS_DES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_MD5_C

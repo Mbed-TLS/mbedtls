@@ -7,6 +7,9 @@ string_mask        = nombstr
 [ v3_req_ku ]
 keyUsage           = digitalSignature, nonRepudiation, keyEncipherment
 
+[ v3_req_ku_encipher_only ]
+keyUsage           = encipherOnly
+
 [ v3_req_ku_ct ]
 keyUsage           = digitalSignature, nonRepudiation, keyEncipherment
 nsCertType         = server

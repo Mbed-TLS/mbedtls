@@ -48,7 +48,7 @@ typedef struct {
 
 #define ADD_STRLEN( s )     s, sizeof( s ) - 1
 
-// note: preset tag types as proposed in RFC3280 and widely used
+/* X.509 DN attributes from RFC 5280, Appendix A.1. */
 static const x509_attr_descriptor_t x509_attrs[] =
 {
     { ADD_STRLEN( "CN" ),                       MBEDTLS_OID_AT_CN,              MBEDTLS_ASN1_UTF8_STRING },

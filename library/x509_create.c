@@ -33,11 +33,17 @@
 
 #include <string.h>
 
+/* Structure linking OIDs for X.509 DN AttributeTypes to their
+ * string representations and default string encodings used by Mbed TLS. */
 typedef struct {
-    const char *name;
-    size_t name_len;
-    const char*oid;
-    int        tag;
+   const char *name; /* String representation of AttributeType, e.g.
+                      * "CN" or "emailAddress". */
+   size_t name_len;  /* Length of \c name, without trailing \c 0 byte. */
+   const char *oid;  /* String representation of OID of AttributeType,
+                      * as per RFC 5280, Appendix A.1. */
+   int tag;          /* The default character encoding used for the
+                      * given attribute type, e.g.
+                      * #MBEDTLS_ASN1_UTF8_STRING for UTF-8. */
 } x509_attr_descriptor_t;
 
 #define ADD_STRLEN( s )     s, sizeof( s ) - 1
@@ -87,7 +93,7 @@ static const x509_attr_descriptor_t *x509_attr_descr_from_name( const char *name
 
     if ( cur->name == NULL )
         return( NULL );
-        
+
     return( cur );
 }
 

@@ -220,26 +220,30 @@ static int x509_write_name( unsigned char **p, unsigned char *start, mbedtls_asn
     size_t name_len             = cur_name->val.len;
 
     // Write correct string tag and value
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tagged_string( p, start, cur_name->val.tag,
-                                                                (const char *) name,
-                                                                name_len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tagged_string( p, start,
+                                                       cur_name->val.tag,
+                                                       (const char *) name,
+                                                       name_len ) );
     // Write OID
     //
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_oid( p, start, oid, oid_len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_oid( p, start, oid,
+                                                       oid_len ) );
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start, MBEDTLS_ASN1_CONSTRUCTED |
-                                                 MBEDTLS_ASN1_SEQUENCE ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start,
+                                                    MBEDTLS_ASN1_CONSTRUCTED |
+                                                    MBEDTLS_ASN1_SEQUENCE ) );
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start, MBEDTLS_ASN1_CONSTRUCTED |
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start,
+                                                 MBEDTLS_ASN1_CONSTRUCTED |
                                                  MBEDTLS_ASN1_SET ) );
 
     return( (int) len );
 }
 
 int mbedtls_x509_write_names( unsigned char **p, unsigned char *start,
-                      mbedtls_asn1_named_data *first )
+                              mbedtls_asn1_named_data *first )
 {
     int ret;
     size_t len = 0;

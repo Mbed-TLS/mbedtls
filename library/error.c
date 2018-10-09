@@ -785,11 +785,11 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 
 #if defined(MBEDTLS_KECCAK_SPONGE_C)
     if( use_ret == -(MBEDTLS_ERR_KECCAK_SPONGE_BAD_INPUT_DATA) )
-        mbedtls_snprintf( buf, buflen, "KECCAK_SPONGE - Invalid input parameter(s)" );
+        mbedtls_snprintf( buf, buflen, "KECCAK_SPONGE - Bad input parameters to function" );
     if( use_ret == -(MBEDTLS_ERR_KECCAK_SPONGE_NOT_SETUP) )
         mbedtls_snprintf( buf, buflen, "KECCAK_SPONGE - mbedtls_keccak_sponge_starts has not been called" );
     if( use_ret == -(MBEDTLS_ERR_KECCAK_SPONGE_BAD_STATE) )
-        mbedtls_snprintf( buf, buflen, "KECCAK_SPONGE - Requested operation cannot be performed with the current context state" );
+        mbedtls_snprintf( buf, buflen, "KECCAK_SPONGE - The requested operation cannot be performed with the current context state" );
 #endif /* MBEDTLS_KECCAK_SPONGE_C */
 
 #if defined(MBEDTLS_KECCAKF_C)

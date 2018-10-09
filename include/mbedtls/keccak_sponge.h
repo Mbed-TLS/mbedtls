@@ -1,8 +1,8 @@
 /**
  * \file keccak_sponge.h
  *
- * \brief Sponge cryptographic construction built on the Keccak-f[1600]
- *        permutation
+ * \brief The sponge cryptographic construction built on the Keccak-f[1600]
+ *        permutation.
  *
  * \author Daniel King <damaki.gh@gmail.com>
  */
@@ -38,21 +38,21 @@
 extern "C" {
 #endif
 
-#define MBEDTLS_ERR_KECCAK_SPONGE_BAD_INPUT_DATA -0x001B /**< Invalid input parameter(s). */
+#define MBEDTLS_ERR_KECCAK_SPONGE_BAD_INPUT_DATA -0x001B /**< Bad input parameters to function. */
 #define MBEDTLS_ERR_KECCAK_SPONGE_NOT_SETUP      -0x001D /**< mbedtls_keccak_sponge_starts has not been called. */
-#define MBEDTLS_ERR_KECCAK_SPONGE_BAD_STATE      -0x001F /**< Requested operation cannot be performed with the current context state. */
+#define MBEDTLS_ERR_KECCAK_SPONGE_BAD_STATE      -0x001F /**< The requested operation cannot be performed with the current context state. */
 
 #if !defined(MBEDTLS_KECCAK_SPONGE_ALT)
 
 typedef struct
 {
     mbedtls_keccakf_context keccakf_ctx;
-    unsigned char queue[1600 / 8]; /** store partial block data (absorbing) or pending output data (squeezing) */
-    size_t queue_len;              /** queue length (in bits) */
-    size_t rate;                   /** sponge rate (in bits) */
-    size_t suffix_len;             /** length of the suffix (in bits) (range 0..8) */
-    int state;                     /** Current state (absorbing/ready to squeeze/squeezing) */
-    unsigned char suffix;          /** suffix bits appended to message, before padding */
+    unsigned char queue[1600 / 8]; /* store partial block data (absorbing) or pending output data (squeezing) */
+    size_t queue_len;              /* queue length (in bits) */
+    size_t rate;                   /* sponge rate (in bits) */
+    size_t suffix_len;             /* length of the suffix (in bits) (range 0..8) */
+    int state;                     /* Current state (absorbing/ready to squeeze/squeezing) */
+    unsigned char suffix;          /* suffix bits appended to message, before padding */
 }
 mbedtls_keccak_sponge_context;
 
@@ -61,24 +61,24 @@ mbedtls_keccak_sponge_context;
 #endif /* MBEDTLS_KECCAK_SPONGE_ALT */
 
 /**
- * \brief               Initialize a Keccak sponge context
+ * \brief               Initialize a Keccak sponge context.
  *
- * \param ctx           Context to be initialized
+ * \param ctx           The context to initialize.
  */
 void mbedtls_keccak_sponge_init( mbedtls_keccak_sponge_context *ctx );
 
 /**
- * \brief               Clean a Keccak sponge context
+ * \brief               Clean a Keccak sponge context.
  *
- * \param ctx           Context to be cleared.
+ * \param ctx           The context to clean.
  */
 void mbedtls_keccak_sponge_free( mbedtls_keccak_sponge_context *ctx );
 
 /**
- * \brief               Clone (the state of) a Keccak Sponge context
+ * \brief               Clone (the state of) a Keccak Sponge context.
  *
- * \param dst           The destination context
- * \param src           The context to be cloned
+ * \param dst           The destination context.
+ * \param src           The context to clone.
  */
 void mbedtls_keccak_sponge_clone( mbedtls_keccak_sponge_context *dst,
                                   const mbedtls_keccak_sponge_context *src );
@@ -86,18 +86,18 @@ void mbedtls_keccak_sponge_clone( mbedtls_keccak_sponge_context *dst,
 /**
  * \brief               Comfigure the sponge context to start streaming.
  *
- * \note                This function can only be called after
- *                      mbedtls_keccak_sponge_init and before the absorb or
- *                      squeeze functions. Otherwise, MBEDTLS_ERR_KECCAK_SPONGE_BAD_STATE
- *                      is returned.
+ * \note                You must call mbedtls_keccak_sponge_init() before
+ *                      calling this function, and you may no longer call
+ *                      it after calling mbedtls_keccak_sponge_absorb() or
+ *                      mbedtls_keccak_sponge_squeeze().
  *
  * \note                This function \b MUST be called after calling
- *                      mbedtls_keccak_sponge_init and before calling the
+ *                      mbedtls_keccak_sponge_init() and before calling the
  *                      absorb or squeeze functions. If this function has not
  *                      been called then the absorb/squeeze functions will
- *                      return MBEDTLS_ERR_KECCAK_SPONGE_NOT_SETUP.
+ *                      return #MBEDTLS_ERR_KECCAK_SPONGE_NOT_SETUP.
  *
- * \param ctx           The sponge context to setup.
+ * \param ctx           The sponge context to set up.
  * \param capacity      The sponge's capacity parameter. This determines the
  *                      security of the sponge. The capacity should be double
  *                      the required security (in bits). For example, if 128 bits
@@ -106,15 +106,19 @@ void mbedtls_keccak_sponge_clone( mbedtls_keccak_sponge_context *dst,
  *                      1600.
  * \param suffix        A byte containing the suffix bits that are absorbed
  *                      before the padding rule is applied.
- * \param suffix_len    The length (in bits) of the suffix. 8 is the maximum value.
+ * \param suffix_len    The length (in bits) of the suffix.
+ *                      8 is the maximum value.
  *
- * \return              MBEDTLS_ERR_KECCAK_SPONGE_BAD_INPUT_DATA is returned if
- *                      ctx is NULL, capacity is too big/small or is not a multiple
- *                      of 8, or if suffix_len is greater than 8.
- *                      MBEDTLS_ERR_KECCAK_SPONGE_BAD_STATE is returned if the
- *                      sponge has not been initialized, or has not been
- *                      re-initialized since it was last used.
- *                      Otherwise, 0 is returned to indicate success.
+ * \retval 0            Success.
+ * \retval #MBEDTLS_ERR_KECCAK_SPONGE_BAD_INPUT_DATA
+ *                      \p ctx is \c NULL,
+ *                      or \p capacity is out of range or not a multiple of 8,
+ *                      or \p suffix_len is greater than 8.
+ * \retval #MBEDTLS_ERR_KECCAK_SPONGE_BAD_STATE
+ *                      This function was called without a prior call to
+ *                      mbedtls_keccak_sponge_init() or after calling
+ *                      mbedtls_keccak_sponge_absorb() or
+ *                      mbedtls_keccak_sponge_squeeze(),
  */
 int mbedtls_keccak_sponge_starts( mbedtls_keccak_sponge_context *ctx,
                                   size_t capacity,
@@ -131,16 +135,18 @@ int mbedtls_keccak_sponge_starts( mbedtls_keccak_sponge_context *ctx,
  * \param data          The buffer containing the bits to input into the sponge.
  * \param size          The number of bytes to input.
  *
- * \return              MBEDTLS_ERR_KECCAK_SPONGE_BAD_INPUT_DATA is returned if
- *                      ctx or data is NULL.
- *                      MBEDTLS_ERR_KECCAK_SPONGE_BAD_STATE is returned if the
- *                      sponge can no longer accept data for absorption. This
- *                      occurs when mbedtls_keccak_sponge_squeeze has been previously
- *                      called.
- *                      MBEDTLS_ERR_KECCAK_SPONGE_NOT_SETUP is returned if
- *                      mbedtls_keccak_sponge_starts has not yet been called to
- *                      configure the context.
- *                      Otherwise, 0 is returned to indicate success.
+ * \retval 0            Success.
+ * \retval #MBEDTLS_ERR_KECCAK_SPONGE_BAD_INPUT_DATA
+ *                      \p ctx or \p data is \c NULL.
+ * \retval #MBEDTLS_ERR_KECCAK_SPONGE_NOT_SETUP
+ *                      mbedtls_keccak_sponge_starts() has not been called
+ *                      on \p ctx.
+ * \retval #MBEDTLS_ERR_KECCAK_SPONGE_BAD_STATE
+ *                      The sponge can no longer accept data for absorption.
+ *                      This occurs when mbedtls_keccak_sponge_squeeze() has
+ *                      been previously called.
+ *                      Alternatively, mbedtls_keccak_sponge_starts() has
+ *                      not yet been called to set up the context.
  */
 int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
         const unsigned char* data,
@@ -159,17 +165,42 @@ int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
  * \param data          The buffer to where output bytes are stored.
  * \param size          The number of output bytes to produce.
  *
- * \return              MBEDTLS_ERR_KECCAK_SPONGE_BAD_INPUT_DATA is returned if
- *                      ctx or data is NULL.
- *                      MBEDTLS_ERR_KECCAK_SPONGE_NOT_SETUP is returned if
- *                      mbedtls_keccak_sponge_starts has not yet been called to
- *                      configure the context.
- *                      Otherwise, 0 is returned to indicate success.
+ * \retval 0            Success.
+ * \retval #MBEDTLS_ERR_KECCAK_SPONGE_BAD_INPUT_DATA
+ *                      \p ctx or \p data is \c NULL.
+ * \retval #MBEDTLS_ERR_KECCAK_SPONGE_NOT_SETUP
+ *                      mbedtls_keccak_sponge_starts() has not been called
+ *                      on \p ctx.
+ * \retval #MBEDTLS_ERR_KECCAK_SPONGE_BAD_STATE
+ *                      mbedtls_keccak_sponge_starts() has not yet been called
+ *                      to set up the context.
  */
 int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
         unsigned char* data,
         size_t size );
 
+/**
+ * \brief               Absorb data through the sponge to capacity.
+ *                      For internal use only.
+ *
+ * \note                You must call mbedtls_keccak_sponge_starts() before
+ *                      calling this function. You must not call this function
+ *                      after calling mbedtls_keccak_sponge_squeeze().
+ *
+ * \warning             This function does not protect against being called
+ *                      in an invalid state. If in doubt, call
+ *                      mbedtls_keccak_sponge_absorb() instead.
+ *
+ * \param ctx           The sponge context.
+ * \param input         The buffer containing bytes to absorb. This function
+ *                      reads 1600 - c bits (200 - ceiling(c/8) bytes) where
+ *                      where c is the capacity set by
+ *                      mbedtls_keccak_sponge_starts().
+ *
+ * \retval 0            Success.
+ * \retval #MBEDTLS_ERR_KECCAK_SPONGE_BAD_INPUT_DATA
+ *                      \p ctx or \p input is \c NULL.
+ */
 int mbedtls_keccak_sponge_process( mbedtls_keccak_sponge_context *ctx,
                                    const unsigned char *input );
 

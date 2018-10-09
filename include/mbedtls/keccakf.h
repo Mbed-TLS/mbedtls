@@ -1,7 +1,7 @@
 /**
  * \file keccakf.h
  *
- * \brief Keccak-f[1600] permutation.
+ * \brief The Keccak-f[1600] permutation.
  *
  * \author Daniel King <damaki.gh@gmail.com>
  */
@@ -46,6 +46,15 @@ extern "C" {
 
 #if !defined(MBEDTLS_KECCAKF_ALT)
 
+/**
+ * \brief               The context structure for Keccak-f[1600] operations.
+ *
+ * \note                This structure may change in future versions of the
+ *                      library. Hardware-accelerated implementations may
+ *                      use different structures. Therefore applications
+ *                      should not access the context directly, but instead
+ *                      should use the functions in this module.
+ */
 typedef struct
 {
     uint64_t state[5][5];
@@ -59,35 +68,41 @@ mbedtls_keccakf_context;
 
 /**
  * \brief               Initialize a Keccak-f[1600] context.
- *                      This should always be called first.
- *                      Prepares the context for other mbedtls_keccakf_* functions.
  *
- *                      By default the Keccak state is zeroed.
+ *                      This function should always be called first.
+ *                      It prepares the context for other
+ *                      mbedtls_keccakf_xxx functions.
+ *
+ * \param ctx           The Keccak-f[1600] context to initialize.
  */
 void mbedtls_keccakf_init( mbedtls_keccakf_context *ctx );
-
 /**
- * \brief               Free and clear the internal structures of ctx.
- *                      Can be called at any time after mbedtls_keccakf_init().
+ * \brief               Free and clear the internal structures of \p ctx.
+ *
+ *                      This function can be called at any time after
+ *                      mbedtls_keccakf_init().
+ *
+ * \param ctx           The Keccak-f[1600] context to clear.
  */
 void mbedtls_keccakf_free( mbedtls_keccakf_context *ctx );
 
 /**
- * \brief               Clone (the state of) a Keccak-f[1600] context
+ * \brief               Clone (the state of) a Keccak-f[1600] context.
  *
- * \param dst           The destination context
- * \param src           The context to be cloned
+ * \param dst           The destination context.
+ * \param src           The context to clone.
  */
 void mbedtls_keccakf_clone( mbedtls_keccakf_context *dst,
                             const mbedtls_keccakf_context *src );
 
 /**
- * \brief               Apply the Keccak permutation to the ctx.
+ * \brief               Apply the Keccak permutation.
  *
  * \param ctx           The Keccak-f[1600] context to permute.
  *
- * \returns             MBEDTLS_ERR_KECCAKF_BAD_INPUT_DATA if the ctx is NULL.
- *                      Otherwise 0 is returned for success.
+ * \retval 0            Success.
+ * \retval #MBEDTLS_ERR_KECCAKF_BAD_INPUT_DATA
+ *                      \p ctx is \c NULL.
  */
 int mbedtls_keccakf_permute( mbedtls_keccakf_context *ctx );
 
@@ -101,9 +116,10 @@ int mbedtls_keccakf_permute( mbedtls_keccakf_context *ctx );
  * \param data          Buffer containing the bytes to XOR into the Keccak state.
  * \param size_bits     The number of bits to XOR into the state.
  *
- * \return              MBEDTLS_ERR_KECCAKF_BAD_INPUT_DATA is returned if \p ctx
- *                      or \p data are NULL, or if size_bits is larger than 1600.
- *                      Otherwise, 0 is returned for success.
+ * \retval 0            Success.
+ * \retval #MBEDTLS_ERR_KECCAKF_BAD_INPUT_DATA
+ *                      \p ctx or \p data is \c NULL,
+ *                      or \p size_bits is larger than 1600.
  */
 int mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
                                 const unsigned char *data,
@@ -116,12 +132,13 @@ int mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
  *                      Keccak state.
  *
  * \param ctx           The Keccak-f[1600] context.
- * \param data          The bytes are written to this buffer.
+ * \param data          Output buffer.
  * \param size          The number of bytes to read from the Keccak state.
  *
- * \return              MBEDTLS_ERR_KECCAKF_BAD_INPUT_DATA is returned if \p ctx
- *                      or \p data are NULL, or if size is larger than 200.
- *                      Otherwise, 0 is returned for success.
+ * \retval 0            Success.
+ * \retval #MBEDTLS_ERR_KECCAKF_BAD_INPUT_DATA
+ *                      \p ctx or \p data is \c NULL,
+ *                      or \p size is larger than 20.
  */
 int mbedtls_keccakf_read_binary( mbedtls_keccakf_context *ctx,
                                  unsigned char *data,

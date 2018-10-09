@@ -5551,21 +5551,21 @@ run_test    "DTLS cookie: enabled, nbio" \
 
 # Tests for client reconnecting from the same port with DTLS
 
-not_with_valgrind # spurious resend
+not_with_valgrind # spurious autoreduction
 run_test    "DTLS client reconnect from same port: reference" \
             "$P_SRV dtls=1 exchanges=2 read_timeout=1000" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000" \
             0 \
-            -C "resend" \
+            -C "autoreduction" \
             -S "The operation timed out" \
             -S "Client initiated reconnection from same port"
 
-not_with_valgrind # spurious resend
+not_with_valgrind # spurious autoreduction
 run_test    "DTLS client reconnect from same port: reconnect" \
             "$P_SRV dtls=1 exchanges=2 read_timeout=1000" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000 reconnect_hard=1" \
             0 \
-            -C "resend" \
+            -C "autoreduction" \
             -S "The operation timed out" \
             -s "Client initiated reconnection from same port"
 
@@ -6002,7 +6002,7 @@ run_test    "DTLS fragmenting: proxy MTU: auto-reduction" \
 # the proxy shouldn't drop or mess up anything, so we shouldn't need to resend
 # OTOH the client might resend if the server is to slow to reset after sending
 # a HelloVerifyRequest, so only check for no retransmission server-side
-not_with_valgrind # spurious resend due to timeout
+not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -6019,12 +6019,12 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake" \
              hs_timeout=10000-60000 \
              mtu=1024" \
             0 \
-            -S "resend" \
+            -S "autoreduction" \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
-not_with_valgrind # spurious resend due to timeout
+not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -6041,7 +6041,7 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio" \
              mtu=1024 nbio=2 \
              hs_timeout=15000-60000" \
             0 \
-            -S "resend" \
+            -S "autoreduction" \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
@@ -6051,11 +6051,11 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio" \
 # Since we don't support reading fragmented ClientHello yet,
 # up the MTU to 1450 (larger than ClientHello with session ticket,
 # but still smaller than client's Certificate to ensure fragmentation).
-# A resend on the client-side might happen if the server is
-# slow to reset, therefore omitting '-C "resend"' below.
+# An autoreduction on the client-side might happen if the server is
+# slow to reset, therefore omitting '-C "autoreduction"' below.
 # reco_delay avoids races where the client reconnects before the server has
-# resumed listening, which would result in a spurious resend.
-not_with_valgrind # spurious resend due to timeout
+# resumed listening, which would result in a spurious autoreduction.
+not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -6072,14 +6072,14 @@ run_test    "DTLS fragmenting: proxy MTU, resumed handshake" \
              hs_timeout=10000-60000 \
              mtu=1650 reconnect=1 reco_delay=1" \
             0 \
-            -S "resend" \
+            -S "autoreduction" \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
-# A resend on the client-side might happen if the server is
-# slow to reset, therefore omitting '-C "resend"' below.
-not_with_valgrind # spurious resend due to timeout
+# An autoreduction on the client-side might happen if the server is
+# slow to reset, therefore omitting '-C "autoreduction"' below.
+not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -6103,14 +6103,14 @@ run_test    "DTLS fragmenting: proxy MTU, ChachaPoly renego" \
              hs_timeout=10000-60000 \
              mtu=1024" \
             0 \
-            -S "resend" \
+            -S "autoreduction" \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
-# A resend on the client-side might happen if the server is
-# slow to reset, therefore omitting '-C "resend"' below.
-not_with_valgrind # spurious resend due to timeout
+# An autoreduction on the client-side might happen if the server is
+# slow to reset, therefore omitting '-C "autoreduction"' below.
+not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -6135,14 +6135,14 @@ run_test    "DTLS fragmenting: proxy MTU, AES-GCM renego" \
              hs_timeout=10000-60000 \
              mtu=1024" \
             0 \
-            -S "resend" \
+            -S "autoreduction" \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
-# A resend on the client-side might happen if the server is
-# slow to reset, therefore omitting '-C "resend"' below.
-not_with_valgrind # spurious resend due to timeout
+# An autoreduction on the client-side might happen if the server is
+# slow to reset, therefore omitting '-C "autoreduction"' below.
+not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -6167,14 +6167,14 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CCM renego" \
              hs_timeout=10000-60000 \
              mtu=1024" \
             0 \
-            -S "resend" \
+            -S "autoreduction" \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
-# A resend on the client-side might happen if the server is
-# slow to reset, therefore omitting '-C "resend"' below.
-not_with_valgrind # spurious resend due to timeout
+# An autoreduction on the client-side might happen if the server is
+# slow to reset, therefore omitting '-C "autoreduction"' below.
+not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -6200,14 +6200,14 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CBC EtM renego" \
              hs_timeout=10000-60000 \
              mtu=1024" \
             0 \
-            -S "resend" \
+            -S "autoreduction" \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
-# A resend on the client-side might happen if the server is
-# slow to reset, therefore omitting '-C "resend"' below.
-not_with_valgrind # spurious resend due to timeout
+# An autoreduction on the client-side might happen if the server is
+# slow to reset, therefore omitting '-C "autoreduction"' below.
+not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -6232,7 +6232,7 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CBC non-EtM renego" \
              hs_timeout=10000-60000 \
              mtu=1024" \
             0 \
-            -S "resend" \
+            -S "autoreduction" \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
@@ -6555,7 +6555,7 @@ run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.0" \
 
 # Tests for specific things with "unreliable" UDP connection
 
-not_with_valgrind # spurious resend due to timeout
+not_with_valgrind # spurious autoreduction due to timeout
 run_test    "DTLS proxy: reference" \
             -p "$P_PXY" \
             "$P_SRV dtls=1 debug_level=2" \
@@ -6567,11 +6567,11 @@ run_test    "DTLS proxy: reference" \
             -S "record from another epoch" \
             -C "discarding invalid record" \
             -S "discarding invalid record" \
-            -S "resend" \
+            -S "autoreduction" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-not_with_valgrind # spurious resend due to timeout
+not_with_valgrind # spurious autoreduction due to timeout
 run_test    "DTLS proxy: duplicate every packet" \
             -p "$P_PXY duplicate=1" \
             "$P_SRV dtls=1 dgram_packing=0 debug_level=2" \
@@ -6581,7 +6581,7 @@ run_test    "DTLS proxy: duplicate every packet" \
             -s "replayed record" \
             -c "record from another epoch" \
             -s "record from another epoch" \
-            -S "resend" \
+            -S "autoreduction" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 

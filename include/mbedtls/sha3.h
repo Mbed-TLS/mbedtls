@@ -42,18 +42,30 @@ extern "C" {
 #define MBEDTLS_ERR_SHA3_BAD_NOT_STARTED  -0x0063 /**< mbedtls_keccak_sponge_starts has not been called. */
 #define MBEDTLS_ERR_SHA3_BAD_STATE        -0x0065 /**< Requested operation cannot be performed with the current context state. */
 
+/**
+ * \brief Designators for algorithms in the SHA-3 family.
+ */
 typedef enum
 {
-    MBEDTLS_SHA3_224,
-    MBEDTLS_SHA3_256,
-    MBEDTLS_SHA3_384,
-    MBEDTLS_SHA3_512
+    MBEDTLS_SHA3_224, /**< SHA3-224 */
+    MBEDTLS_SHA3_256, /**< SHA3-256 */
+    MBEDTLS_SHA3_384, /**< SHA3-384 */
+    MBEDTLS_SHA3_512  /**< SHA3-512 */
 }
 mbedtls_sha3_type_t;
 
 #if !defined(MBEDTLS_SHA3_ALT)
 // Regular implementation
 
+/**
+ * \brief               The context structure for SHA-3 operations.
+ *
+ * \note                This structure may change in future versions of the
+ *                      library. Hardware-accelerated implementations may
+ *                      use different structures. Therefore applications
+ *                      should not access the context directly, but instead
+ *                      should use the functions in this module.
+ */
 typedef struct
 {
     mbedtls_keccak_sponge_context sponge_ctx;
@@ -67,51 +79,63 @@ mbedtls_sha3_context;
 #endif /* MBEDTLS_SHA3_ALT */
 
 /**
- * \brief          Initialize a SHA-3 context
+ * \brief          Initialize a SHA-3 context.
  *
- * \param ctx      SHA-3 context to be initialized.
+ * \param ctx      The SHA-3 context to initialize.
  */
 void mbedtls_sha3_init( mbedtls_sha3_context *ctx );
 
 /**
- * \brief          Clear a SHA-3 context
+ * \brief          Clear a SHA-3 context.
  *
- * \param ctx      SHA-3 context to be cleared.
+ * \param ctx      The SHA-3 context to clear.
  */
 void mbedtls_sha3_free( mbedtls_sha3_context *ctx );
 
 /**
- * \brief          Clone (the state of) a SHA-3 context
+ * \brief          Clone (the state of) a SHA-3 context.
  *
- * \param dst      The destination context
- * \param src      The context to be cloned
+ * \param dst      The destination context.
+ * \param src      The context to clone.
  */
 void mbedtls_sha3_clone( mbedtls_sha3_context *dst,
                          const mbedtls_sha3_context *src );
 
 /**
- * \brief          Context setup.
+ * \brief          Start a SHA-3 calculation.
  *
  * \param ctx      The SHA-3 context to setup.
- * \param type     Selects the SHA-3 variant (SHA3-224, SHA3-256, SHA3-384,
- *                 or SHA3-512).
+ * \param type     The SHA-3 variant to select
+ *                 (SHA3-224, SHA3-256, SHA3-384, or SHA3-512).
  *
- * \return         0 on success, otherwise an error code is returned.
+ * \retval 0       Success.
+ * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
+ *                 \p ctx is \c NULL,
+ *                 or \p type is invalid,
+ *                 or this function was called without a prior call to
+ *                 mbedtls_sha3_init() or after calling
+ *                 mbedtls_sha3_update() or mbedtls_shake_process() or
+ *                 mbedtls_sha3_finish(),
  */
-int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_type_t type );
+int mbedtls_sha3_starts( mbedtls_sha3_context *ctx,
+                         mbedtls_sha3_type_t type );
 
 /**
- * \brief          Process a buffer with SHA-3
+ * \brief          Feed a buffer into an ongoing SHA-3 calculation.
  *
  * \param ctx      The SHA-3 context.
  * \param input    The buffer to process.
  * \param size     The number of bytes to process from \p data.
  *
- * \return         0 on success, otherwise an error code is returned.
+ * \retval 0       Success.
+ * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
+ *                 \p ctx is \c NULL,
+ *                 or mbedtls_sha3_starts() has not been called previously,
+ *                 or mbedtls_sha3_output() has been called on \p ctx.
  */
 int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
-        const unsigned char* input,
-        size_t size );
+                         const unsigned char* input,
+                         size_t size );
 
 /**
  * \brief          Generate the SHA-3 hash.
@@ -125,15 +149,36 @@ int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
  *                  * SHA3-384: 48 bytes
  *                  * SHA3-512: 64 bytes
  *
- * \return         0 on success, otherwise an error code is returned.
+ * \retval 0       Success.
+ * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
+ *                 \p ctx or \p output is \c NULL,
+ *                 or mbedtls_shake_starts() has not been called previously,
  */
-int mbedtls_sha3_finish( mbedtls_sha3_context *ctx, unsigned char* output );
+int mbedtls_sha3_finish( mbedtls_sha3_context *ctx,
+                         unsigned char* output );
 
+/**
+ * \brief          Process a data block with SHA-3. For internal use only.
+ *
+ * \param ctx      The SHA-3 context.
+ * \param input    The buffer containing bytes to process. The size of this
+ *                 buffer is:
+ *                 - 172 bytes for SHA3-224.
+ *                 - 168 bytes for SHA3-256.
+ *                 - 152 bytes for SHA3-384.
+ *                 - 136 bytes for SHA3-512.
+ *
+ * \retval 0       Success.
+ * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
+ *                 \p ctx or \p output is \c NULL,
+ *                 or mbedtls_sha3_starts() has not been called previously,
+ *                 or mbedtls_sha3_output() has been called on \p ctx.
+ */
 int mbedtls_sha3_process( mbedtls_sha3_context *ctx,
                           const unsigned char* input );
 
 /**
- * \brief          Generate the SHA-3 hash of a buffer.
+ * \brief          Calculate the SHA-3 hash of a buffer.
  *
  * \param input    The buffer to process.
  * \param ilen     The length (in bytes) of the input buffer.
@@ -147,7 +192,9 @@ int mbedtls_sha3_process( mbedtls_sha3_context *ctx,
  *                  * SHA3-384: 48 bytes
  *                  * SHA3-512: 64 bytes
  *
- * \return         0 on success, otherwise an error code is returned.
+ * \retval 0       Success.
+ * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
+ *                 \p ctx or \p output is \c NULL.
  */
 int mbedtls_sha3( const unsigned char* input,
                   size_t ilen,

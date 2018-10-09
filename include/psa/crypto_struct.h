@@ -144,6 +144,35 @@ typedef struct
     uint8_t block_number;
 } psa_hkdf_generator_t;
 
+typedef struct psa_tls12_prf_generator_s
+{
+    /* The TLS 1.2 PRF uses the key for each HMAC iteration,
+     * hence we must store it for the lifetime of the generator.
+     * This is different from HKDF, where the key is only used
+     * in the extraction phase, but not during expansion. */
+    unsigned char *key;
+    size_t key_len;
+
+    /* `A(i) + seed` in the notation of RFC 5246, Sect. 5 */
+    uint8_t Ai_with_seed[PSA_HASH_MAX_SIZE + 64];
+    size_t seed_length;
+
+    /* `HMAC_hash( prk, A(i) + seed )` in the notation of RFC 5246, Sect. 5. */
+    uint8_t output_block[PSA_HASH_MAX_SIZE];
+
+#if PSA_HASH_MAX_SIZE > 0xff
+#error "PSA_HASH_MAX_SIZE does not fit in uint8_t"
+#endif
+
+    /* Indicates how many bytes in the current HMAC block have
+     * already been read by the user. */
+    uint8_t offset_in_block;
+
+    /* The 1-based number of the block. */
+    uint8_t block_number;
+
+} psa_tls12_prf_generator_t;
+
 struct psa_crypto_generator_s
 {
     psa_algorithm_t alg;
@@ -157,6 +186,7 @@ struct psa_crypto_generator_s
         } buffer;
 #if defined(MBEDTLS_MD_C)
         psa_hkdf_generator_t hkdf;
+        psa_tls12_prf_generator_t tls12_prf;
 #endif
     } ctx;
 };

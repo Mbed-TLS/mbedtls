@@ -382,8 +382,8 @@ int mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
 }
 
 int mbedtls_keccakf_read_binary( mbedtls_keccakf_context *ctx,
-        unsigned char *data,
-        size_t size )
+                                 unsigned char *data,
+                                 size_t size )
 {
     size_t x = 0U;
     size_t y = 0U;

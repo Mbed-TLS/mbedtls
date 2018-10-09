@@ -102,40 +102,40 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_type_t type )
 
     switch( type )
     {
-    case MBEDTLS_SHA3_224:
-        ctx->digest_size = 224U / 8U;
-        ctx->block_size  = MBEDTLS_KECCAKF_STATE_SIZE_BYTES - ( 28U * 2U );
-        sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx, 224U * 2U, 0x02U, 2U );
-        break;
+        case MBEDTLS_SHA3_224:
+            ctx->digest_size = 224U / 8U;
+            ctx->block_size  = MBEDTLS_KECCAKF_STATE_SIZE_BYTES - ( 28U * 2U );
+            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx, 224U * 2U, 0x02U, 2U );
+            break;
 
-    case MBEDTLS_SHA3_256:
-        ctx->digest_size = 256U / 8U;
-        ctx->block_size  = MBEDTLS_KECCAKF_STATE_SIZE_BYTES - ( 32U * 2U );
-        sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx, 256U * 2U, 0x02U, 2U );
-        break;
+        case MBEDTLS_SHA3_256:
+            ctx->digest_size = 256U / 8U;
+            ctx->block_size  = MBEDTLS_KECCAKF_STATE_SIZE_BYTES - ( 32U * 2U );
+            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx, 256U * 2U, 0x02U, 2U );
+            break;
 
-    case MBEDTLS_SHA3_384:
-        ctx->digest_size = 384U / 8U;
-        ctx->block_size  = MBEDTLS_KECCAKF_STATE_SIZE_BYTES - ( 48U * 2U );
-        sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx, 384U * 2U, 0x02U, 2U );
+        case MBEDTLS_SHA3_384:
+            ctx->digest_size = 384U / 8U;
+            ctx->block_size  = MBEDTLS_KECCAKF_STATE_SIZE_BYTES - ( 48U * 2U );
+            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx, 384U * 2U, 0x02U, 2U );
 
-        break;
-    case MBEDTLS_SHA3_512:
-        ctx->digest_size = 512U / 8U;
-        ctx->block_size  = MBEDTLS_KECCAKF_STATE_SIZE_BYTES - ( 64U * 2U );
-        sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx, 512U * 2U, 0x02U, 2U );
-        break;
+            break;
+        case MBEDTLS_SHA3_512:
+            ctx->digest_size = 512U / 8U;
+            ctx->block_size  = MBEDTLS_KECCAKF_STATE_SIZE_BYTES - ( 64U * 2U );
+            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx, 512U * 2U, 0x02U, 2U );
+            break;
 
-    default:
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+        default:
+            return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
     }
 
     return( mbedtls_convert_sponge_result( sponge_ret ) );
 }
 
 int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
-        const unsigned char* input,
-        size_t size )
+                         const unsigned char* input,
+                         size_t size )
 {
     int sponge_ret;
 

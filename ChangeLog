@@ -7,6 +7,10 @@ Bugfix
      invalidated keys of a lifetime of less than a 1s. Fixes #1968.
    * Fix failure in hmac_drbg in the benchmark sample application, when
      MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
+   * Fix wrong order of freeing in programs/ssl/ssl_server2 example
+     application leading to a memory leak in case both
+     MBEDTLS_MEMORY_BUFFER_ALLOC_C and MBEDTLS_MEMORY_BACKTRACE are set.
+     Fixes #2069.
 
 Changes
    * Add tests for session resumption in DTLS.

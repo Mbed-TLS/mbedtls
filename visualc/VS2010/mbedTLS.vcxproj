@@ -183,6 +183,8 @@
     <ClInclude Include="..\..\include\mbedtls\havege.h" />
     <ClInclude Include="..\..\include\mbedtls\hkdf.h" />
     <ClInclude Include="..\..\include\mbedtls\hmac_drbg.h" />
+    <ClInclude Include="..\..\include\mbedtls\keccak_sponge.h" />
+    <ClInclude Include="..\..\include\mbedtls\keccakf.h" />
     <ClInclude Include="..\..\include\mbedtls\md.h" />
     <ClInclude Include="..\..\include\mbedtls\md2.h" />
     <ClInclude Include="..\..\include\mbedtls\md4.h" />
@@ -209,7 +211,9 @@
     <ClInclude Include="..\..\include\mbedtls\rsa_internal.h" />
     <ClInclude Include="..\..\include\mbedtls\sha1.h" />
     <ClInclude Include="..\..\include\mbedtls\sha256.h" />
+    <ClInclude Include="..\..\include\mbedtls\sha3.h" />
     <ClInclude Include="..\..\include\mbedtls\sha512.h" />
+    <ClInclude Include="..\..\include\mbedtls\shake.h" />
     <ClInclude Include="..\..\include\mbedtls\ssl.h" />
     <ClInclude Include="..\..\include\mbedtls\ssl_cache.h" />
     <ClInclude Include="..\..\include\mbedtls\ssl_ciphersuites.h" />
@@ -259,6 +263,8 @@
     <ClCompile Include="..\..\library\havege.c" />
     <ClCompile Include="..\..\library\hkdf.c" />
     <ClCompile Include="..\..\library\hmac_drbg.c" />
+    <ClCompile Include="..\..\library\keccak_sponge.c" />
+    <ClCompile Include="..\..\library\keccakf.c" />
     <ClCompile Include="..\..\library\md.c" />
     <ClCompile Include="..\..\library\md2.c" />
     <ClCompile Include="..\..\library\md4.c" />
@@ -285,7 +291,9 @@
     <ClCompile Include="..\..\library\rsa_internal.c" />
     <ClCompile Include="..\..\library\sha1.c" />
     <ClCompile Include="..\..\library\sha256.c" />
+    <ClCompile Include="..\..\library\sha3.c" />
     <ClCompile Include="..\..\library\sha512.c" />
+    <ClCompile Include="..\..\library\shake.c" />
     <ClCompile Include="..\..\library\ssl_cache.c" />
     <ClCompile Include="..\..\library\ssl_ciphersuites.c" />
     <ClCompile Include="..\..\library\ssl_cli.c" />

@@ -271,7 +271,7 @@ static inline void mbedtls_keccakf_chi_iota( uint64_t in_state[5][5],
 
 void mbedtls_keccakf_init( mbedtls_keccakf_context *ctx )
 {
-    if ( ctx != NULL )
+    if( ctx != NULL )
     {
         mbedtls_zeroize( &ctx->state, sizeof( ctx->state ) );
         mbedtls_zeroize( &ctx->temp, sizeof( ctx->temp ) );
@@ -280,7 +280,7 @@ void mbedtls_keccakf_init( mbedtls_keccakf_context *ctx )
 
 void mbedtls_keccakf_free( mbedtls_keccakf_context *ctx )
 {
-    if ( ctx != NULL )
+    if( ctx != NULL )
     {
         mbedtls_zeroize( &ctx->state, sizeof( ctx->state ) );
         mbedtls_zeroize( &ctx->temp, sizeof( ctx->temp ) );
@@ -297,12 +297,12 @@ int mbedtls_keccakf_permute( mbedtls_keccakf_context *ctx )
 {
     size_t i;
 
-    if ( ctx == NULL )
+    if( ctx == NULL )
     {
         return( MBEDTLS_ERR_KECCAKF_BAD_INPUT_DATA );
     }
 
-    for ( i = 0U; i < 24U; i++ )
+    for( i = 0U; i < 24U; i++ )
     {
         mbedtls_keccakf_theta   ( ctx->state, ctx->temp );
         mbedtls_keccakf_rho     ( ctx->temp , ctx->state );
@@ -322,13 +322,13 @@ int mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
     size_t remaining_bits = size_bits;
     size_t data_offset = 0U;
 
-    if ( ( ctx == NULL ) || ( data == NULL ) || ( size_bits > MBEDTLS_KECCAKF_STATE_SIZE_BITS ) )
+    if( ( ctx == NULL ) || ( data == NULL ) || ( size_bits > MBEDTLS_KECCAKF_STATE_SIZE_BITS ) )
     {
         return( MBEDTLS_ERR_KECCAKF_BAD_INPUT_DATA );
     }
 
     /* process whole lanes */
-    while ( remaining_bits >= 64U )
+    while( remaining_bits >= 64U )
     {
         ctx->state[x][y] ^= (uint64_t) data[data_offset]
                             | (uint64_t) ( (uint64_t) data[data_offset + 1U] << 8U  )
@@ -340,7 +340,7 @@ int mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
                             | (uint64_t) ( (uint64_t) data[data_offset + 7U] << 56U );
 
         x = ( x + 1U ) % 5U;
-        if ( x == 0U )
+        if( x == 0U )
         {
             y = y + 1U;
         }
@@ -350,13 +350,13 @@ int mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
     }
 
     /* process last (partial) lane */
-    if ( remaining_bits > 0U )
+    if( remaining_bits > 0U )
     {
         uint64_t lane = ctx->state[x][y];
         uint64_t shift = 0U;
 
         /* whole bytes */
-        while ( remaining_bits >= 8U )
+        while( remaining_bits >= 8U )
         {
             lane ^= (uint64_t) ( (uint64_t) data[data_offset] << shift );
 
@@ -366,10 +366,10 @@ int mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
         }
 
         /* final bits */
-        if ( remaining_bits > 0U )
+        if( remaining_bits > 0U )
         {
             /* mask away higher bits to avoid accidentally XORIng them */
-            unsigned char mask = ((uint64_t) (1U << remaining_bits) - 1U);
+            unsigned char mask = ( (uint64_t) ( 1U << remaining_bits ) - 1U );
             unsigned char byte = data[data_offset] & mask;
 
             lane ^= (uint64_t) ( (uint64_t) byte << ( shift * 8U ) );
@@ -391,13 +391,13 @@ int mbedtls_keccakf_read_binary( mbedtls_keccakf_context *ctx,
     size_t remaining_bytes = size;
     size_t data_offset = 0U;
 
-    if ( ( ctx == NULL ) || ( data == NULL ) || ( size > MBEDTLS_KECCAKF_STATE_SIZE_BYTES ) )
+    if( ( ctx == NULL ) || ( data == NULL ) || ( size > MBEDTLS_KECCAKF_STATE_SIZE_BYTES ) )
     {
         return( MBEDTLS_ERR_KECCAKF_BAD_INPUT_DATA );
     }
 
     /* process whole lanes */
-    while ( remaining_bytes >= 8U )
+    while( remaining_bytes >= 8U )
     {
         const uint64_t lane = ctx->state[x][y];
 
@@ -411,7 +411,7 @@ int mbedtls_keccakf_read_binary( mbedtls_keccakf_context *ctx,
         data[data_offset + 7U] = (uint8_t) ( lane >> 56U );
 
         x = ( x + 1U ) % 5U;
-        if ( x == 0U )
+        if( x == 0U )
         {
             y = y + 1U;
         }
@@ -421,11 +421,11 @@ int mbedtls_keccakf_read_binary( mbedtls_keccakf_context *ctx,
     }
 
     /* Process last (partial) lane */
-    if ( remaining_bytes > 0U )
+    if( remaining_bytes > 0U )
     {
         const uint64_t lane = ctx->state[x][y];
 
-        for ( i = 0U; i < remaining_bytes; i++ )
+        for( i = 0U; i < remaining_bytes; i++ )
         {
             data[data_offset + i] = (uint8_t) ( lane >> ( i * 8U ) );
         }

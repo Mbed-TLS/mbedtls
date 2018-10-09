@@ -48,7 +48,7 @@
 
 static int mbedtls_convert_sponge_result( int sponge_ret )
 {
-    switch ( sponge_ret )
+    switch( sponge_ret )
     {
         case 0:
             return( 0 );
@@ -67,7 +67,7 @@ static int mbedtls_convert_sponge_result( int sponge_ret )
 
 void mbedtls_shake_init( mbedtls_shake_context *ctx )
 {
-    if ( ctx != NULL )
+    if( ctx != NULL )
     {
         mbedtls_keccak_sponge_init( &ctx->sponge_ctx );
     }
@@ -75,7 +75,7 @@ void mbedtls_shake_init( mbedtls_shake_context *ctx )
 
 void mbedtls_shake_free( mbedtls_shake_context *ctx )
 {
-    if ( ctx != NULL )
+    if( ctx != NULL )
     {
         mbedtls_keccak_sponge_free( &ctx->sponge_ctx );
     }
@@ -91,12 +91,12 @@ int mbedtls_shake_starts( mbedtls_shake_context *ctx, mbedtls_shake_type_t type 
 {
     int sponge_ret;
 
-    if ( ctx == NULL )
+    if( ctx == NULL )
     {
         return( MBEDTLS_ERR_SHAKE_BAD_INPUT_DATA );
     }
 
-    switch (type)
+    switch( type )
     {
     case MBEDTLS_SHAKE128:
         ctx->block_size  = MBEDTLS_KECCAKF_STATE_SIZE_BYTES - 32U;
@@ -121,7 +121,7 @@ int mbedtls_shake_update( mbedtls_shake_context *ctx,
 {
     int sponge_ret;
 
-    if ( ctx == NULL )
+    if( ctx == NULL )
     {
         return( MBEDTLS_ERR_SHAKE_BAD_INPUT_DATA );
     }
@@ -137,7 +137,7 @@ int mbedtls_shake_output( mbedtls_shake_context *ctx,
 {
     int sponge_ret;
 
-    if ( ( ctx == NULL ) || ( output == NULL ) )
+    if( ( ctx == NULL ) || ( output == NULL ) )
     {
         return( MBEDTLS_ERR_SHAKE_BAD_INPUT_DATA );
     }
@@ -151,7 +151,7 @@ int mbedtls_shake_process( mbedtls_shake_context *ctx, const unsigned char* inpu
 {
     int sponge_ret;
 
-    if ( ( ctx == NULL ) || ( input == NULL ) )
+    if( ( ctx == NULL ) || ( input == NULL ) )
     {
         return( MBEDTLS_ERR_SHAKE_BAD_INPUT_DATA );
     }
@@ -175,13 +175,13 @@ int mbedtls_shake( const unsigned char* input,
     mbedtls_shake_init( &ctx );
 
     result = mbedtls_shake_starts( &ctx, type );
-    if ( 0 != result )
+    if( 0 != result )
     {
         goto cleanup;
     }
 
     result = mbedtls_shake_update( &ctx, input, ilen );
-    if ( 0 != result )
+    if( 0 != result )
     {
         goto cleanup;
     }
@@ -258,9 +258,9 @@ int mbedtls_shake_self_test( int verbose )
     size_t i;
     int result;
 
-    for ( i = 0U; i < 2U; i++ )
+    for( i = 0U; i < 2U; i++ )
     {
-        if ( verbose != 0 )
+        if( verbose != 0 )
         {
             mbedtls_printf( "  SHAKE128 test %zi ", i );
         }
@@ -268,24 +268,24 @@ int mbedtls_shake_self_test( int verbose )
         result = mbedtls_shake( shake128_test_input[i], 16U,
                                 MBEDTLS_SHAKE128,
                                 output, 16U );
-        if ( result != 0 )
+        if( result != 0 )
         {
-            if ( verbose != 0 )
+            if( verbose != 0 )
             {
                 mbedtls_printf( "error code: %i\n", result );
             }
             return( -1 );
         }
-        if ( 0 != memcmp(shake128_test_output[i], output, 16U ) )
+        if( 0 != memcmp( shake128_test_output[i], output, 16U ) )
         {
-            if ( verbose != 0 )
+            if( verbose != 0 )
             {
                 mbedtls_printf( "failed\n" );
             }
             return( -1 );
         }
 
-        if ( verbose != 0 )
+        if( verbose != 0 )
         {
             mbedtls_printf( "passed\n" );
             mbedtls_printf( "  SHAKE256 test %zi ", i );
@@ -294,30 +294,30 @@ int mbedtls_shake_self_test( int verbose )
         result = mbedtls_shake( shake256_test_input[i], 32U,
                                 MBEDTLS_SHAKE256,
                                 output, 32U );
-        if ( result != 0 )
+        if( result != 0 )
         {
-            if ( verbose != 0 )
+            if( verbose != 0 )
             {
                 mbedtls_printf( "error code: %i\n", result );
             }
             return( -1 );
         }
-        if ( 0 != memcmp(shake256_test_output[i], output, 32U ) )
+        if( 0 != memcmp( shake256_test_output[i], output, 32U ) )
         {
-            if ( verbose != 0 )
+            if( verbose != 0 )
             {
                 mbedtls_printf( "failed\n" );
             }
             return( -1 );
         }
 
-        if ( verbose != 0 )
+        if( verbose != 0 )
         {
             mbedtls_printf( "passed\n" );
         }
     }
 
-    if ( verbose != 0 )
+    if( verbose != 0 )
     {
         mbedtls_printf( "\n" );
     }

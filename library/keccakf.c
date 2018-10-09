@@ -29,8 +29,9 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "mbedtls/keccakf.h"
 #include <stddef.h>
+#include "mbedtls/keccakf.h"
+#include "mbedtls/platform_util.h"
 
 #if defined(MBEDTLS_KECCAKF_C)
 
@@ -66,11 +67,6 @@ static const uint64_t round_constants[24] =
     0x0000000080000001ULL,
     0x8000000080008008ULL
 };
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 /**
  * \brief               Keccak Theta round operation.
@@ -285,8 +281,8 @@ void mbedtls_keccakf_init( mbedtls_keccakf_context *ctx )
 {
     if( ctx != NULL )
     {
-        mbedtls_zeroize( &ctx->state, sizeof( ctx->state ) );
-        mbedtls_zeroize( &ctx->temp, sizeof( ctx->temp ) );
+        mbedtls_platform_zeroize( &ctx->state, sizeof( ctx->state ) );
+        mbedtls_platform_zeroize( &ctx->temp, sizeof( ctx->temp ) );
     }
 }
 
@@ -294,8 +290,8 @@ void mbedtls_keccakf_free( mbedtls_keccakf_context *ctx )
 {
     if( ctx != NULL )
     {
-        mbedtls_zeroize( &ctx->state, sizeof( ctx->state ) );
-        mbedtls_zeroize( &ctx->temp, sizeof( ctx->temp ) );
+        mbedtls_platform_zeroize( &ctx->state, sizeof( ctx->state ) );
+        mbedtls_platform_zeroize( &ctx->temp, sizeof( ctx->temp ) );
     }
 }
 

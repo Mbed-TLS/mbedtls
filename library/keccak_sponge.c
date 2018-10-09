@@ -34,6 +34,7 @@
 #if !defined(MBEDTLS_KECCAK_SPONGE_ALT)
 
 #include "mbedtls/keccak_sponge.h"
+#include "mbedtls/platform_util.h"
 
 #include <stddef.h>
 #include <string.h>
@@ -42,12 +43,6 @@
 #define SPONGE_STATE_ABSORBING        ( 1 )
 #define SPONGE_STATE_READY_TO_SQUEEZE ( 2 )
 #define SPONGE_STATE_SQUEEZING        ( 3 )
-
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n ) {
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 /**
  * \brief       Absorbs the suffix bits into the context.
@@ -161,7 +156,7 @@ void mbedtls_keccak_sponge_init( mbedtls_keccak_sponge_context *ctx )
     if( ctx != NULL )
     {
         mbedtls_keccakf_init( &ctx->keccakf_ctx );
-        mbedtls_zeroize( ctx->queue, sizeof( ctx->queue ) );
+        mbedtls_platform_zeroize( ctx->queue, sizeof( ctx->queue ) );
         ctx->queue_len  = 0U;
         ctx->rate       = 0U;
         ctx->suffix_len = 0U;
@@ -175,7 +170,7 @@ void mbedtls_keccak_sponge_free( mbedtls_keccak_sponge_context *ctx )
     if( ctx != NULL )
     {
         mbedtls_keccakf_free( &ctx->keccakf_ctx );
-        mbedtls_zeroize( ctx->queue, sizeof( ctx->queue ) );
+        mbedtls_platform_zeroize( ctx->queue, sizeof( ctx->queue ) );
         ctx->queue_len  = 0U;
         ctx->rate       = 0U;
         ctx->suffix_len = 0U;

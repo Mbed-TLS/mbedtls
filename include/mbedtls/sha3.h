@@ -1,7 +1,8 @@
 /**
  * \file sha3.h
  *
- * \brief SHA-3 cryptographic hash functions (SHA3-224, SHA3-256, SHA3-384, SHA3-512)
+ * \brief SHA-3 cryptographic hash functions
+          (SHA3-224, SHA3-256, SHA3-384, SHA3-512)
  *
  * \author Daniel King <damaki.gh@gmail.com>
  *
@@ -88,7 +89,8 @@ void mbedtls_sha3_clone( mbedtls_sha3_context *dst,
  * \brief          Context setup.
  *
  * \param ctx      The SHA-3 context to setup.
- * \param type     Selects the SHA-3 variant (SHA3-224, SHA3-256, SHA3-384, or SHA3-512).
+ * \param type     Selects the SHA-3 variant (SHA3-224, SHA3-256, SHA3-384,
+ *                 or SHA3-512).
  *
  * \return         0 on success, otherwise an error code is returned.
  */
@@ -112,8 +114,8 @@ int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
  *
  * \param ctx      The SHA-3 context.
  * \param output   Pointer to the buffer to where the hash is written.
- *                 The required length of this buffer depends on the chosen SHA-3
- *                 variant:
+ *                 The required length of this buffer depends on the chosen
+ *                 SHA-3 variant:
  *                  * SHA3-224: 28 bytes
  *                  * SHA3-256: 32 bytes
  *                  * SHA3-384: 48 bytes
@@ -123,7 +125,8 @@ int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
  */
 int mbedtls_sha3_finish( mbedtls_sha3_context *ctx, unsigned char* output );
 
-int mbedtls_sha3_process( mbedtls_sha3_context *ctx, const unsigned char* input );
+int mbedtls_sha3_process( mbedtls_sha3_context *ctx,
+                          const unsigned char* input );
 
 #ifdef __cplusplus
 }
@@ -142,10 +145,11 @@ extern "C" {
  *
  * \param input    The buffer to process.
  * \param ilen     The length (in bytes) of the input buffer.
- * \param type     Selects the SHA-3 variant (SHA3-224, SHA3-256, SHA3-384, or SHA3-512).
+ * \param type     Selects the SHA-3 variant (SHA3-224, SHA3-256, SHA3-384,
+ *                 or SHA3-512).
  * \param output   Pointer to the buffer to where the hash is written.
- *                 The required length of this buffer depends on the chosen SHA-3
- *                 variant:
+ *                 The required length of this buffer depends on the chosen
+ *                 SHA-3 variant:
  *                  * SHA3-224: 28 bytes
  *                  * SHA3-256: 32 bytes
  *                  * SHA3-384: 48 bytes

@@ -87,7 +87,8 @@ void mbedtls_shake_clone( mbedtls_shake_context *dst,
     mbedtls_keccak_sponge_clone( &dst->sponge_ctx, &src->sponge_ctx );
 }
 
-int mbedtls_shake_starts( mbedtls_shake_context *ctx, mbedtls_shake_type_t type )
+int mbedtls_shake_starts( mbedtls_shake_context *ctx,
+                          mbedtls_shake_type_t type )
 {
     int sponge_ret;
 
@@ -100,12 +101,14 @@ int mbedtls_shake_starts( mbedtls_shake_context *ctx, mbedtls_shake_type_t type 
     {
         case MBEDTLS_SHAKE128:
             ctx->block_size  = MBEDTLS_KECCAKF_STATE_SIZE_BYTES - 32U;
-            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx, 256U, 0x0FU, 4U );
+            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
+                                                       256U, 0x0FU, 4U );
             break;
 
         case MBEDTLS_SHAKE256:
             ctx->block_size  = MBEDTLS_KECCAKF_STATE_SIZE_BYTES - 64U;
-            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx, 512U, 0x0FU, 4U );
+            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
+                                                       512U, 0x0FU, 4U );
             break;
 
         default:
@@ -126,7 +129,8 @@ int mbedtls_shake_update( mbedtls_shake_context *ctx,
         return( MBEDTLS_ERR_SHAKE_BAD_INPUT_DATA );
     }
 
-    sponge_ret = mbedtls_keccak_sponge_absorb( &ctx->sponge_ctx, input, size );
+    sponge_ret = mbedtls_keccak_sponge_absorb( &ctx->sponge_ctx,
+                                               input, size );
 
     return( mbedtls_convert_sponge_result( sponge_ret ) );
 }
@@ -142,12 +146,14 @@ int mbedtls_shake_output( mbedtls_shake_context *ctx,
         return( MBEDTLS_ERR_SHAKE_BAD_INPUT_DATA );
     }
 
-    sponge_ret = mbedtls_keccak_sponge_squeeze( &ctx->sponge_ctx, output, olen );
+    sponge_ret = mbedtls_keccak_sponge_squeeze( &ctx->sponge_ctx,
+                                                output, olen );
 
     return( mbedtls_convert_sponge_result( sponge_ret ) );
 }
 
-int mbedtls_shake_process( mbedtls_shake_context *ctx, const unsigned char* input )
+int mbedtls_shake_process( mbedtls_shake_context *ctx,
+                           const unsigned char* input )
 {
     int sponge_ret;
 

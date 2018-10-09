@@ -1,7 +1,8 @@
 /**
  * \file sha3.c
  *
- * \brief SHA-3 cryptographic hash functions (SHA3-224, SHA3-256, SHA3-384, SHA3-512)
+ * \brief SHA-3 cryptographic hash functions
+ *        (SHA3-224, SHA3-256, SHA3-384, SHA3-512)
  *
  * \author Daniel King <damaki.gh@gmail.com>
  *
@@ -105,25 +106,29 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_type_t type )
         case MBEDTLS_SHA3_224:
             ctx->digest_size = 224U / 8U;
             ctx->block_size  = MBEDTLS_KECCAKF_STATE_SIZE_BYTES - ( 28U * 2U );
-            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx, 224U * 2U, 0x02U, 2U );
+            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
+                                                       224U * 2U, 0x02U, 2U );
             break;
 
         case MBEDTLS_SHA3_256:
             ctx->digest_size = 256U / 8U;
             ctx->block_size  = MBEDTLS_KECCAKF_STATE_SIZE_BYTES - ( 32U * 2U );
-            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx, 256U * 2U, 0x02U, 2U );
+            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
+                                                       256U * 2U, 0x02U, 2U );
             break;
 
         case MBEDTLS_SHA3_384:
             ctx->digest_size = 384U / 8U;
             ctx->block_size  = MBEDTLS_KECCAKF_STATE_SIZE_BYTES - ( 48U * 2U );
-            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx, 384U * 2U, 0x02U, 2U );
+            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
+                                                       384U * 2U, 0x02U, 2U );
 
             break;
         case MBEDTLS_SHA3_512:
             ctx->digest_size = 512U / 8U;
             ctx->block_size  = MBEDTLS_KECCAKF_STATE_SIZE_BYTES - ( 64U * 2U );
-            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx, 512U * 2U, 0x02U, 2U );
+            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
+                                                       512U * 2U, 0x02U, 2U );
             break;
 
         default:
@@ -158,12 +163,14 @@ int mbedtls_sha3_finish( mbedtls_sha3_context *ctx, unsigned char* output )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
     }
 
-    sponge_ret = mbedtls_keccak_sponge_squeeze( &ctx->sponge_ctx, output, ctx->digest_size );
+    sponge_ret = mbedtls_keccak_sponge_squeeze( &ctx->sponge_ctx,
+                                                output, ctx->digest_size );
 
     return( mbedtls_convert_sponge_result( sponge_ret ) );
 }
 
-int mbedtls_sha3_process( mbedtls_sha3_context *ctx, const unsigned char* input )
+int mbedtls_sha3_process( mbedtls_sha3_context *ctx,
+                          const unsigned char* input )
 {
     int sponge_ret;
 
@@ -345,7 +352,8 @@ static int mbedtls_sha3_kat_test( int verbose,
     uint8_t hash[64];
     int result;
 
-    result = mbedtls_sha3( test_data[test_num], test_data_len[test_num], type, hash );
+    result = mbedtls_sha3( test_data[test_num], test_data_len[test_num],
+                           type, hash );
     if( result != 0 )
     {
         if( verbose != 0 )
@@ -486,30 +494,38 @@ int mbedtls_sha3_self_test( int verbose )
     /* Known Answer Tests (KAT) */
     for( i = 0U; i < 2U; i++ )
     {
-        if( 0 != mbedtls_sha3_kat_test( verbose, "SHA3-224", MBEDTLS_SHA3_224, i ) )
+        if( 0 != mbedtls_sha3_kat_test( verbose,
+                                        "SHA3-224", MBEDTLS_SHA3_224, i ) )
             return( -1 );
 
-        if( 0 != mbedtls_sha3_kat_test( verbose, "SHA3-256", MBEDTLS_SHA3_256, i ) )
+        if( 0 != mbedtls_sha3_kat_test( verbose,
+                                        "SHA3-256", MBEDTLS_SHA3_256, i ) )
             return( -1 );
 
-        if( 0 != mbedtls_sha3_kat_test( verbose, "SHA3-384", MBEDTLS_SHA3_384, i ) )
+        if( 0 != mbedtls_sha3_kat_test( verbose,
+                                        "SHA3-384", MBEDTLS_SHA3_384, i ) )
             return( -1 );
 
-        if( 0 != mbedtls_sha3_kat_test( verbose, "SHA3-512", MBEDTLS_SHA3_512, i ) )
+        if( 0 != mbedtls_sha3_kat_test( verbose,
+                                        "SHA3-512", MBEDTLS_SHA3_512, i ) )
             return( -1 );
     }
 
     /* Long KAT tests */
-    if( 0 != mbedtls_sha3_long_kat_test( verbose, "SHA3-224", MBEDTLS_SHA3_224 ) )
+    if( 0 != mbedtls_sha3_long_kat_test( verbose,
+                                         "SHA3-224", MBEDTLS_SHA3_224 ) )
         return( -1 );
 
-    if( 0 != mbedtls_sha3_long_kat_test( verbose, "SHA3-256", MBEDTLS_SHA3_256 ) )
+    if( 0 != mbedtls_sha3_long_kat_test( verbose,
+                                         "SHA3-256", MBEDTLS_SHA3_256 ) )
         return( -1 );
 
-    if( 0 != mbedtls_sha3_long_kat_test( verbose, "SHA3-384", MBEDTLS_SHA3_384 ) )
+    if( 0 != mbedtls_sha3_long_kat_test( verbose,
+                                         "SHA3-384", MBEDTLS_SHA3_384 ) )
         return( -1 );
 
-    if( 0 != mbedtls_sha3_long_kat_test( verbose, "SHA3-512", MBEDTLS_SHA3_512 ) )
+    if( 0 != mbedtls_sha3_long_kat_test( verbose,
+                                         "SHA3-512", MBEDTLS_SHA3_512 ) )
         return( -1 );
 
     if( verbose != 0 )

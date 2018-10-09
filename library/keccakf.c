@@ -36,7 +36,8 @@
 
 #if !defined(MBEDTLS_KECCAKF_ALT)
 
-#define ROTL64( x, amount ) ( (uint64_t) ( x << amount) | ( x >> ( 64 - amount ) ) )
+#define ROTL64( x, amount ) \
+    ( (uint64_t) ( x << amount) | ( x >> ( 64 - amount ) ) )
 
 static const uint64_t round_constants[24] =
 {
@@ -87,8 +88,10 @@ static inline void mbedtls_keccakf_theta( uint64_t in_state[5][5],
     uint64_t cr;
     uint64_t d;
 
-    cl = in_state[4][0] ^ in_state[4][1] ^ in_state[4][2] ^ in_state[4][3] ^ in_state[4][4];
-    cr = in_state[1][0] ^ in_state[1][1] ^ in_state[1][2] ^ in_state[1][3] ^ in_state[1][4];
+    cl = ( in_state[4][0] ^ in_state[4][1] ^ in_state[4][2] ^
+           in_state[4][3] ^ in_state[4][4] );
+    cr = ( in_state[1][0] ^ in_state[1][1] ^ in_state[1][2] ^
+           in_state[1][3] ^ in_state[1][4] );
     d = cl ^ ROTL64( cr, 1 );
     out_state[0][0] = in_state[0][0] ^ d;
     out_state[0][1] = in_state[0][1] ^ d;
@@ -96,8 +99,10 @@ static inline void mbedtls_keccakf_theta( uint64_t in_state[5][5],
     out_state[0][3] = in_state[0][3] ^ d;
     out_state[0][4] = in_state[0][4] ^ d;
 
-    cl = in_state[0][0] ^ in_state[0][1] ^ in_state[0][2] ^ in_state[0][3] ^ in_state[0][4];
-    cr = in_state[2][0] ^ in_state[2][1] ^ in_state[2][2] ^ in_state[2][3] ^ in_state[2][4];
+    cl = ( in_state[0][0] ^ in_state[0][1] ^ in_state[0][2] ^
+           in_state[0][3] ^ in_state[0][4] );
+    cr = ( in_state[2][0] ^ in_state[2][1] ^ in_state[2][2] ^
+           in_state[2][3] ^ in_state[2][4] );
     d = cl ^ ROTL64( cr, 1 );
     out_state[1][0] = in_state[1][0] ^ d;
     out_state[1][1] = in_state[1][1] ^ d;
@@ -105,8 +110,10 @@ static inline void mbedtls_keccakf_theta( uint64_t in_state[5][5],
     out_state[1][3] = in_state[1][3] ^ d;
     out_state[1][4] = in_state[1][4] ^ d;
 
-    cl = in_state[1][0] ^ in_state[1][1] ^ in_state[1][2] ^ in_state[1][3] ^ in_state[1][4];
-    cr = in_state[3][0] ^ in_state[3][1] ^ in_state[3][2] ^ in_state[3][3] ^ in_state[3][4];
+    cl = ( in_state[1][0] ^ in_state[1][1] ^ in_state[1][2] ^
+           in_state[1][3] ^ in_state[1][4] );
+    cr = ( in_state[3][0] ^ in_state[3][1] ^ in_state[3][2] ^
+           in_state[3][3] ^ in_state[3][4] );
     d = cl ^ ROTL64( cr, 1 );
     out_state[2][0] = in_state[2][0] ^ d;
     out_state[2][1] = in_state[2][1] ^ d;
@@ -114,8 +121,10 @@ static inline void mbedtls_keccakf_theta( uint64_t in_state[5][5],
     out_state[2][3] = in_state[2][3] ^ d;
     out_state[2][4] = in_state[2][4] ^ d;
 
-    cl = in_state[2][0] ^ in_state[2][1] ^ in_state[2][2] ^ in_state[2][3] ^ in_state[2][4];
-    cr = in_state[4][0] ^ in_state[4][1] ^ in_state[4][2] ^ in_state[4][3] ^ in_state[4][4];
+    cl = ( in_state[2][0] ^ in_state[2][1] ^ in_state[2][2] ^
+           in_state[2][3] ^ in_state[2][4] );
+    cr = ( in_state[4][0] ^ in_state[4][1] ^ in_state[4][2] ^
+           in_state[4][3] ^ in_state[4][4] );
     d = cl ^ ROTL64( cr, 1 );
     out_state[3][0] = in_state[3][0] ^ d;
     out_state[3][1] = in_state[3][1] ^ d;
@@ -123,8 +132,10 @@ static inline void mbedtls_keccakf_theta( uint64_t in_state[5][5],
     out_state[3][3] = in_state[3][3] ^ d;
     out_state[3][4] = in_state[3][4] ^ d;
 
-    cl = in_state[3][0] ^ in_state[3][1] ^ in_state[3][2] ^ in_state[3][3] ^ in_state[3][4];
-    cr = in_state[0][0] ^ in_state[0][1] ^ in_state[0][2] ^ in_state[0][3] ^ in_state[0][4];
+    cl = ( in_state[3][0] ^ in_state[3][1] ^ in_state[3][2] ^
+           in_state[3][3] ^ in_state[3][4] );
+    cr = ( in_state[0][0] ^ in_state[0][1] ^ in_state[0][2] ^
+           in_state[0][3] ^ in_state[0][4] );
     d = cl ^ ROTL64( cr, 1 );
     out_state[4][0] = in_state[4][0] ^ d;
     out_state[4][1] = in_state[4][1] ^ d;
@@ -236,8 +247,9 @@ static inline void mbedtls_keccakf_chi_iota( uint64_t in_state[5][5],
                                              uint64_t out_state[5][5],
                                              size_t round_index )
 {
+    /* iota step */
     out_state[0][0] = in_state[0][0] ^ ( ( ~in_state[1][0] ) & in_state[2][0] )
-            ^ round_constants[ round_index ]; /* iota step */
+                                     ^ round_constants[ round_index ];
 
     out_state[0][1] = in_state[0][1] ^ ( ( ~in_state[1][1] ) & in_state[2][1] );
     out_state[0][2] = in_state[0][2] ^ ( ( ~in_state[1][2] ) & in_state[2][2] );
@@ -322,7 +334,8 @@ int mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
     size_t remaining_bits = size_bits;
     size_t data_offset = 0U;
 
-    if( ( ctx == NULL ) || ( data == NULL ) || ( size_bits > MBEDTLS_KECCAKF_STATE_SIZE_BITS ) )
+    if( ( ctx == NULL ) || ( data == NULL ) ||
+        ( size_bits > MBEDTLS_KECCAKF_STATE_SIZE_BITS ) )
     {
         return( MBEDTLS_ERR_KECCAKF_BAD_INPUT_DATA );
     }
@@ -330,14 +343,15 @@ int mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
     /* process whole lanes */
     while( remaining_bits >= 64U )
     {
-        ctx->state[x][y] ^= (uint64_t) data[data_offset]
-                            | (uint64_t) ( (uint64_t) data[data_offset + 1U] << 8U  )
-                            | (uint64_t) ( (uint64_t) data[data_offset + 2U] << 16U )
-                            | (uint64_t) ( (uint64_t) data[data_offset + 3U] << 24U )
-                            | (uint64_t) ( (uint64_t) data[data_offset + 4U] << 32U )
-                            | (uint64_t) ( (uint64_t) data[data_offset + 5U] << 40U )
-                            | (uint64_t) ( (uint64_t) data[data_offset + 6U] << 48U )
-                            | (uint64_t) ( (uint64_t) data[data_offset + 7U] << 56U );
+        ctx->state[x][y] ^=
+            (uint64_t)              data[data_offset]               |
+            (uint64_t) ( (uint64_t) data[data_offset + 1U] << 8U  ) |
+            (uint64_t) ( (uint64_t) data[data_offset + 2U] << 16U ) |
+            (uint64_t) ( (uint64_t) data[data_offset + 3U] << 24U ) |
+            (uint64_t) ( (uint64_t) data[data_offset + 4U] << 32U ) |
+            (uint64_t) ( (uint64_t) data[data_offset + 5U] << 40U ) |
+            (uint64_t) ( (uint64_t) data[data_offset + 6U] << 48U ) |
+            (uint64_t) ( (uint64_t) data[data_offset + 7U] << 56U );
 
         x = ( x + 1U ) % 5U;
         if( x == 0U )
@@ -391,7 +405,8 @@ int mbedtls_keccakf_read_binary( mbedtls_keccakf_context *ctx,
     size_t remaining_bytes = size;
     size_t data_offset = 0U;
 
-    if( ( ctx == NULL ) || ( data == NULL ) || ( size > MBEDTLS_KECCAKF_STATE_SIZE_BYTES ) )
+    if( ( ctx == NULL ) || ( data == NULL ) ||
+        ( size > MBEDTLS_KECCAKF_STATE_SIZE_BYTES ) )
     {
         return( MBEDTLS_ERR_KECCAKF_BAD_INPUT_DATA );
     }

@@ -1,7 +1,8 @@
 /**
  * \file keccak_sponge.h
  *
- * \brief Sponge cryptographic construction built on the Keccak-f[1600] permutation
+ * \brief Sponge cryptographic construction built on the Keccak-f[1600]
+ *        permutation
  *
  * \author Daniel King <damaki.gh@gmail.com>
  *

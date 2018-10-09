@@ -89,7 +89,8 @@ void mbedtls_shake_clone( mbedtls_shake_context *dst,
  *
  * \return         0 on success, otherwise an error code is returned.
  */
-int mbedtls_shake_starts( mbedtls_shake_context *ctx, mbedtls_shake_type_t type );
+int mbedtls_shake_starts( mbedtls_shake_context *ctx,
+                          mbedtls_shake_type_t type );
 
 /**
  * \brief          Process a buffer with SHAKE
@@ -120,7 +121,8 @@ int mbedtls_shake_output( mbedtls_shake_context *ctx,
                           unsigned char* output,
                           size_t olen );
 
-int mbedtls_shake_process( mbedtls_shake_context *ctx, const unsigned char* input );
+int mbedtls_shake_process( mbedtls_shake_context *ctx,
+                           const unsigned char* input );
 
 #ifdef __cplusplus
 }
@@ -141,7 +143,8 @@ extern "C" {
  * \param ilen     The length (in bytes) of the input buffer.
  * \param type     Selects the SHAKE variant (SHAKE128, or SHAKE256).
  * \param output   Pointer to the buffer to where the output data is written.
- * \param olen     The number of output bytes to generate and write to \p output.
+ * \param olen     The number of output bytes to generate and write to
+ *                 \p output.
  *
  * \return         0 on success, otherwise an error code is returned.
  */

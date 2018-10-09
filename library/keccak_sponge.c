@@ -1,7 +1,8 @@
 /**
  * \file keccak_sponge.c
  *
- * \brief Sponge cryptographic construction built on the Keccak-f[1600] permutation
+ * \brief Sponge cryptographic construction built on the Keccak-f[1600]
+ *        permutation
  *
  * \author Daniel King <damaki.gh@gmail.com>
  *
@@ -59,7 +60,8 @@ static void mbedtls_zeroize( void *v, size_t n ) {
  *
  * \param ctx   The sponge context. Must not be NULL.
  */
-static void mbedtls_keccak_sponge_absorb_suffix( mbedtls_keccak_sponge_context *ctx )
+static void mbedtls_keccak_sponge_absorb_suffix(
+    mbedtls_keccak_sponge_context *ctx )
 {
     if( ctx->suffix_len > 0U )
     {
@@ -71,7 +73,8 @@ static void mbedtls_keccak_sponge_absorb_suffix( mbedtls_keccak_sponge_context *
     {
         ctx->queue_len = 0U;
 
-        (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx, ctx->queue, ctx->rate );
+        (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
+                                           ctx->queue, ctx->rate );
         (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
     }
 }
@@ -91,7 +94,8 @@ static void mbedtls_keccak_sponge_absorb_suffix( mbedtls_keccak_sponge_context *
  *
  * \param ctx   The sponge context. Must not be NULL.
  */
-static void mbedtls_keccak_sponge_finalize( mbedtls_keccak_sponge_context *ctx )
+static void mbedtls_keccak_sponge_finalize(
+    mbedtls_keccak_sponge_context *ctx )
 {
     size_t bits_free_in_queue;
 
@@ -100,14 +104,16 @@ static void mbedtls_keccak_sponge_finalize( mbedtls_keccak_sponge_context *ctx )
     bits_free_in_queue = ctx->rate - ctx->queue_len;
 
     /* Add padding (pad10*1 rule). This adds at least 2 bits */
-    /* Note that there might only be 1 bit free if there was 1 byte free in the
-     * queue before the suffix was added, and the suffix length is 7 bits.
+    /* Note that there might only be 1 bit free if there was 1 byte free in
+     * the queue before the suffix was added, and the suffix length is 7 bits.
      */
     if( bits_free_in_queue >= 2U )
     {
         /* Set first bit */
-        ctx->queue[ctx->queue_len / 8U] &= ( (unsigned char) ( 1U << ( ctx->queue_len % 8U ) ) ) - 1U;
-        ctx->queue[ctx->queue_len / 8U] |= (unsigned char) ( 1U << ( ctx->queue_len % 8U ) );
+        ctx->queue[ctx->queue_len / 8U] &=
+            ( (unsigned char) ( 1U << ( ctx->queue_len % 8U ) ) ) - 1U;
+        ctx->queue[ctx->queue_len / 8U] |=
+            (unsigned char) ( 1U << ( ctx->queue_len % 8U ) );
 
         /* Add zeroes (if necessary) */
         if( bits_free_in_queue >= 8U )
@@ -122,14 +128,15 @@ static void mbedtls_keccak_sponge_finalize( mbedtls_keccak_sponge_context *ctx )
     }
     else
     {
-        /* Only 1 free bit in the block, but we need to add 2 bits, so the second
-         * bit spills over to another block.
+        /* Only 1 free bit in the block, but we need to add 2 bits, so the
+         * second bit spills over to another block.
          */
 
         /* Add first bit to complete the first block */
         ctx->queue[ctx->queue_len / 8U] |= 0x80U;
 
-        (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx, ctx->queue, ctx->rate );
+        (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
+                                           ctx->queue, ctx->rate );
         (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
 
         /* Set the next block to complete the padding */
@@ -137,13 +144,15 @@ static void mbedtls_keccak_sponge_finalize( mbedtls_keccak_sponge_context *ctx )
         ctx->queue[( ctx->rate - 1U ) / 8U] |= 0x80U;
     }
 
-    (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx, ctx->queue, ctx->rate );
+    (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
+                                       ctx->queue, ctx->rate );
     (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
 
     ctx->state = SPONGE_STATE_SQUEEZING;
 
     /* Get initial output data into the queue */
-    (void) mbedtls_keccakf_read_binary( &ctx->keccakf_ctx, ctx->queue, ctx->rate / 8U );
+    (void) mbedtls_keccakf_read_binary( &ctx->keccakf_ctx,
+                                        ctx->queue, ctx->rate / 8U );
     ctx->queue_len = ctx->rate;
 }
 
@@ -206,9 +215,10 @@ int mbedtls_keccak_sponge_starts( mbedtls_keccak_sponge_context *ctx,
     }
     else
     {
-        ctx->rate       = MBEDTLS_KECCAKF_STATE_SIZE_BITS - capacity;
+        ctx->rate = MBEDTLS_KECCAKF_STATE_SIZE_BITS - capacity;
         ctx->suffix_len = suffix_len;
-        ctx->suffix     = suffix & ( (unsigned char) ( 1U << suffix_len ) - 1U );
+        ctx->suffix =
+            suffix & ( (unsigned char) ( 1U << suffix_len ) - 1U );
     }
 
     return( 0 );
@@ -239,7 +249,8 @@ int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
     {
         rate_bytes = ctx->rate / 8U;
 
-        /* Check if there are leftover bytes in the queue from previous invocations */
+        /* Check if there are leftover bytes in the queue from previous
+         * invocations */
         if( ctx->queue_len > 0U )
         {
             size_t queue_free_bytes = ( ctx->rate - ctx->queue_len ) / 8U;
@@ -256,7 +267,8 @@ int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
                 data_offset     += queue_free_bytes;
                 remaining_bytes -= queue_free_bytes;
 
-                (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx, ctx->queue, ctx->rate );
+                (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
+                                                   ctx->queue, ctx->rate );
                 (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
             }
             else
@@ -276,7 +288,8 @@ int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
         /* Process whole blocks */
         while( remaining_bytes >= rate_bytes )
         {
-            (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx, &data[data_offset], ctx->rate );
+            (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
+                                               &data[data_offset], ctx->rate );
             (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
 
             data_offset     += rate_bytes;

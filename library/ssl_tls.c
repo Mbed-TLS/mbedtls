@@ -2948,7 +2948,6 @@ int mbedtls_ssl_resend( mbedtls_ssl_context *ssl )
 int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
 {
     int ret;
-    uint16_t mtu_temp = 0;
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> mbedtls_ssl_flight_transmit" ) );
 
     if( ssl->handshake->retransmit_state != MBEDTLS_SSL_RETRANS_SENDING )
@@ -2981,15 +2980,6 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "swap epochs to send finished message" ) );
             ssl_swap_epochs( ssl );
-        }
-
-        /* Disable handshake mtu for client hello message to avoid fragmentation.
-         * Setting it back after calling mbedtls_ssl_write_record */
-        if( ssl->out_msg[0] == MBEDTLS_SSL_HS_CLIENT_HELLO )
-        {
-            mtu_temp = ssl->handshake->mtu;
-            ssl->handshake->mtu = 0;
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "disabling fragmentation of ClientHello message" ) );
         }
 
         ret = ssl_get_remaining_payload_in_datagram( ssl );
@@ -3089,12 +3079,6 @@ int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_write_record", ret );
             return( ret );
-        }
-
-        if( mtu_temp != 0 )
-        {
-            ssl->handshake->mtu = mtu_temp;
-            mtu_temp = 0;
         }
     }
 
@@ -7924,6 +7908,12 @@ size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 static size_t ssl_get_current_mtu( const mbedtls_ssl_context *ssl )
 {
+    /* Return unlimited mtu for client hello messages to avoid fragmentation. */
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+        ( ssl->state == MBEDTLS_SSL_CLIENT_HELLO ||
+          ssl->state == MBEDTLS_SSL_SERVER_HELLO ) )
+        return ( 0 );
+
     if( ssl->handshake == NULL || ssl->handshake->mtu == 0 )
         return( ssl->mtu );
 

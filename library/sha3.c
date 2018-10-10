@@ -53,8 +53,8 @@
 
 /**************** Keccak-f[1600] permutation ****************/
 
-#define KECCAKF_STATE_SIZE_BITS  ( 1600U )
-#define KECCAKF_STATE_SIZE_BYTES ( 1600U / 8U )
+#define KECCAKF_STATE_SIZE_BITS  ( 1600 )
+#define KECCAKF_STATE_SIZE_BYTES ( 1600 / 8 )
 
 #define ROTL64( x, amount ) \
     ( (uint64_t) ( x ) << ( amount ) | (uint64_t) ( x ) >> ( 64 - ( amount ) ) )
@@ -264,7 +264,7 @@ static inline void mbedtls_keccakf_chi_iota( uint64_t in_state[5][5],
 {
     /* iota step */
     out_state[0][0] = in_state[0][0] ^ ( ( ~in_state[1][0] ) & in_state[2][0] )
-                                     ^ round_constants[ round_index ];
+                                     ^ round_constants[round_index];
 
     out_state[0][1] = in_state[0][1] ^ ( ( ~in_state[1][1] ) & in_state[2][1] );
     out_state[0][2] = in_state[0][2] ^ ( ( ~in_state[1][2] ) & in_state[2][2] );
@@ -338,7 +338,7 @@ static void mbedtls_keccakf_free( mbedtls_keccakf_context *ctx )
 static int mbedtls_keccakf_permute( mbedtls_keccakf_context *ctx )
 {
     size_t i;
-    for( i = 0U; i < 24U; i++ )
+    for( i = 0; i < 24; i++ )
     {
         mbedtls_keccakf_theta   ( ctx->state, ctx->temp );
         mbedtls_keccakf_rho     ( ctx->temp , ctx->state );
@@ -367,61 +367,60 @@ static int mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
                                        const unsigned char *data,
                                        size_t size_bits )
 {
-    size_t x = 0U;
-    size_t y = 0U;
+    size_t x = 0;
+    size_t y = 0;
     size_t remaining_bits = size_bits;
-    size_t data_offset = 0U;
+    size_t data_offset = 0;
 
     if( size_bits > KECCAKF_STATE_SIZE_BITS )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
 
     /* process whole lanes */
-    while( remaining_bits >= 64U )
+    while( remaining_bits >= 64 )
     {
-        ctx->state[x][y] ^=
-            (uint64_t)              data[data_offset]               |
-            (uint64_t) ( (uint64_t) data[data_offset + 1U] << 8U  ) |
-            (uint64_t) ( (uint64_t) data[data_offset + 2U] << 16U ) |
-            (uint64_t) ( (uint64_t) data[data_offset + 3U] << 24U ) |
-            (uint64_t) ( (uint64_t) data[data_offset + 4U] << 32U ) |
-            (uint64_t) ( (uint64_t) data[data_offset + 5U] << 40U ) |
-            (uint64_t) ( (uint64_t) data[data_offset + 6U] << 48U ) |
-            (uint64_t) ( (uint64_t) data[data_offset + 7U] << 56U );
+        ctx->state[x][y] ^= ( (uint64_t) data[data_offset] |
+                              (uint64_t) data[data_offset + 1] << 8  |
+                              (uint64_t) data[data_offset + 2] << 16 |
+                              (uint64_t) data[data_offset + 3] << 24 |
+                              (uint64_t) data[data_offset + 4] << 32 |
+                              (uint64_t) data[data_offset + 5] << 40 |
+                              (uint64_t) data[data_offset + 6] << 48 |
+                              (uint64_t) data[data_offset + 7] << 56 );
 
-        x = ( x + 1U ) % 5U;
-        if( x == 0U )
+        x = ( x + 1 ) % 5;
+        if( x == 0 )
         {
-            y = y + 1U;
+            y = y + 1;
         }
 
-        data_offset    += 8U;
-        remaining_bits -= 64U;
+        data_offset    += 8;
+        remaining_bits -= 64;
     }
 
     /* process last (partial) lane */
-    if( remaining_bits > 0U )
+    if( remaining_bits > 0 )
     {
         uint64_t lane = ctx->state[x][y];
-        uint64_t shift = 0U;
+        uint64_t shift = 0;
 
         /* whole bytes */
-        while( remaining_bits >= 8U )
+        while( remaining_bits >= 8 )
         {
-            lane ^= (uint64_t) ( (uint64_t) data[data_offset] << shift );
+            lane ^= (uint64_t) data[data_offset] << shift;
 
             data_offset++;
-            shift          += 8U;
-            remaining_bits -= 8U;
+            shift          += 8;
+            remaining_bits -= 8;
         }
 
         /* final bits */
-        if( remaining_bits > 0U )
+        if( remaining_bits > 0 )
         {
             /* mask away higher bits to avoid accidentally XORIng them */
-            unsigned char mask = ( (uint64_t) ( 1U << remaining_bits ) - 1U );
+            unsigned char mask = ( 1 << remaining_bits ) - 1;
             unsigned char byte = data[data_offset] & mask;
 
-            lane ^= (uint64_t) ( (uint64_t) byte << ( shift * 8U ) );
+            lane ^= (uint64_t) byte << ( shift * 8 );
         }
 
         ctx->state[x][y] = lane;
@@ -448,47 +447,47 @@ static int mbedtls_keccakf_read_binary( mbedtls_keccakf_context *ctx,
                                         unsigned char *data,
                                         size_t size )
 {
-    size_t x = 0U;
-    size_t y = 0U;
+    size_t x = 0;
+    size_t y = 0;
     size_t i;
     size_t remaining_bytes = size;
-    size_t data_offset = 0U;
+    size_t data_offset = 0;
 
     if( size > KECCAKF_STATE_SIZE_BYTES )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
 
     /* process whole lanes */
-    while( remaining_bytes >= 8U )
+    while( remaining_bytes >= 8 )
     {
         const uint64_t lane = ctx->state[x][y];
 
-        data[data_offset     ] = (uint8_t) lane;
-        data[data_offset + 1U] = (uint8_t) ( lane >> 8U  );
-        data[data_offset + 2U] = (uint8_t) ( lane >> 16U );
-        data[data_offset + 3U] = (uint8_t) ( lane >> 24U );
-        data[data_offset + 4U] = (uint8_t) ( lane >> 32U );
-        data[data_offset + 5U] = (uint8_t) ( lane >> 40U );
-        data[data_offset + 6U] = (uint8_t) ( lane >> 48U );
-        data[data_offset + 7U] = (uint8_t) ( lane >> 56U );
+        data[data_offset    ] = (uint8_t) lane;
+        data[data_offset + 1] = (uint8_t) ( lane >> 8 );
+        data[data_offset + 2] = (uint8_t) ( lane >> 16 );
+        data[data_offset + 3] = (uint8_t) ( lane >> 24 );
+        data[data_offset + 4] = (uint8_t) ( lane >> 32 );
+        data[data_offset + 5] = (uint8_t) ( lane >> 40 );
+        data[data_offset + 6] = (uint8_t) ( lane >> 48 );
+        data[data_offset + 7] = (uint8_t) ( lane >> 56 );
 
-        x = ( x + 1U ) % 5U;
-        if( x == 0U )
+        x = ( x + 1 ) % 5;
+        if( x == 0 )
         {
-            y = y + 1U;
+            y = y + 1;
         }
 
-        data_offset     += 8U;
-        remaining_bytes -= 8U;
+        data_offset     += 8;
+        remaining_bytes -= 8;
     }
 
     /* Process last (partial) lane */
-    if( remaining_bytes > 0U )
+    if( remaining_bytes > 0 )
     {
         const uint64_t lane = ctx->state[x][y];
 
-        for( i = 0U; i < remaining_bytes; i++ )
+        for( i = 0; i < remaining_bytes; i++ )
         {
-            data[data_offset + i] = (uint8_t) ( lane >> ( i * 8U ) );
+            data[data_offset + i] = (uint8_t) ( lane >> ( i * 8 ) );
         }
     }
 
@@ -518,15 +517,15 @@ static int mbedtls_keccakf_read_binary( mbedtls_keccakf_context *ctx,
 static void mbedtls_keccak_sponge_absorb_suffix(
     mbedtls_keccak_sponge_context *ctx )
 {
-    if( ctx->suffix_len > 0U )
+    if( ctx->suffix_len > 0 )
     {
-        ctx->queue[ctx->queue_len / 8U] = ctx->suffix;
+        ctx->queue[ctx->queue_len / 8] = ctx->suffix;
         ctx->queue_len += ctx->suffix_len;
     }
 
     if( ctx->queue_len >= ctx->rate )
     {
-        ctx->queue_len = 0U;
+        ctx->queue_len = 0;
 
         (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
                                            ctx->queue, ctx->rate );
@@ -562,24 +561,24 @@ static void mbedtls_keccak_sponge_finalize(
     /* Note that there might only be 1 bit free if there was 1 byte free in
      * the queue before the suffix was added, and the suffix length is 7 bits.
      */
-    if( bits_free_in_queue >= 2U )
+    if( bits_free_in_queue >= 2 )
     {
         /* Set first bit */
-        ctx->queue[ctx->queue_len / 8U] &=
-            ( (unsigned char) ( 1U << ( ctx->queue_len % 8U ) ) ) - 1U;
-        ctx->queue[ctx->queue_len / 8U] |=
-            (unsigned char) ( 1U << ( ctx->queue_len % 8U ) );
+        ctx->queue[ctx->queue_len / 8] &=
+            ( (unsigned char) ( 1 << ( ctx->queue_len % 8 ) ) ) - 1;
+        ctx->queue[ctx->queue_len / 8] |=
+            (unsigned char) ( 1 << ( ctx->queue_len % 8 ) );
 
         /* Add zeroes (if necessary) */
-        if( bits_free_in_queue >= 8U )
+        if( bits_free_in_queue >= 8 )
         {
-            memset( &ctx->queue[( ctx->queue_len / 8U ) + 1U],
+            memset( &ctx->queue[( ctx->queue_len / 8 ) + 1],
                     0,
-                    ( ctx->rate - ctx->queue_len ) / 8U );
+                    ( ctx->rate - ctx->queue_len ) / 8 );
         }
 
         /* Add last bit */
-        ctx->queue[( ctx->rate - 1U ) / 8U] |= 0x80U;
+        ctx->queue[( ctx->rate - 1 ) / 8] |= 0x80U;
     }
     else
     {
@@ -588,15 +587,15 @@ static void mbedtls_keccak_sponge_finalize(
          */
 
         /* Add first bit to complete the first block */
-        ctx->queue[ctx->queue_len / 8U] |= 0x80U;
+        ctx->queue[ctx->queue_len / 8] |= 0x80U;
 
         (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
                                            ctx->queue, ctx->rate );
         (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
 
         /* Set the next block to complete the padding */
-        memset( ctx->queue, 0, ctx->rate / 8U );
-        ctx->queue[( ctx->rate - 1U ) / 8U] |= 0x80U;
+        memset( ctx->queue, 0, ctx->rate / 8 );
+        ctx->queue[( ctx->rate - 1 ) / 8] |= 0x80U;
     }
 
     (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
@@ -607,7 +606,7 @@ static void mbedtls_keccak_sponge_finalize(
 
     /* Get initial output data into the queue */
     (void) mbedtls_keccakf_read_binary( &ctx->keccakf_ctx,
-                                        ctx->queue, ctx->rate / 8U );
+                                        ctx->queue, ctx->rate / 8 );
     ctx->queue_len = ctx->rate;
 }
 
@@ -620,11 +619,11 @@ static void mbedtls_keccak_sponge_init( mbedtls_keccak_sponge_context *ctx )
 {
     mbedtls_keccakf_init( &ctx->keccakf_ctx );
     mbedtls_platform_zeroize( ctx->queue, sizeof( ctx->queue ) );
-    ctx->queue_len  = 0U;
-    ctx->rate       = 0U;
-    ctx->suffix_len = 0U;
+    ctx->queue_len  = 0;
+    ctx->rate       = 0;
+    ctx->suffix_len = 0;
     ctx->state      = SPONGE_STATE_UNINIT;
-    ctx->suffix     = 0U;
+    ctx->suffix     = 0;
 }
 
 /**
@@ -638,11 +637,11 @@ static void mbedtls_keccak_sponge_free( mbedtls_keccak_sponge_context *ctx )
     {
         mbedtls_keccakf_free( &ctx->keccakf_ctx );
         mbedtls_platform_zeroize( ctx->queue, sizeof( ctx->queue ) );
-        ctx->queue_len  = 0U;
-        ctx->rate       = 0U;
-        ctx->suffix_len = 0U;
+        ctx->queue_len  = 0;
+        ctx->rate       = 0;
+        ctx->suffix_len = 0;
         ctx->state      = SPONGE_STATE_UNINIT;
-        ctx->suffix     = 0U;
+        ctx->suffix     = 0;
     }
 }
 
@@ -700,13 +699,13 @@ static int mbedtls_keccak_sponge_starts( mbedtls_keccak_sponge_context *ctx,
                                          unsigned char suffix,
                                          size_t suffix_len  )
 {
-    if( ( capacity == 0U ) ||
+    if( ( capacity == 0 ) ||
         ( capacity >= KECCAKF_STATE_SIZE_BITS ) ||
-        ( ( capacity % 8U ) != 0U ) )
+        ( ( capacity % 8 ) != 0 ) )
     {
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
     }
-    else if( suffix_len > 8U )
+    else if( suffix_len > 8 )
     {
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
     }
@@ -719,7 +718,7 @@ static int mbedtls_keccak_sponge_starts( mbedtls_keccak_sponge_context *ctx,
         ctx->rate = KECCAKF_STATE_SIZE_BITS - capacity;
         ctx->suffix_len = suffix_len;
         ctx->suffix =
-            suffix & ( (unsigned char) ( 1U << suffix_len ) - 1U );
+            suffix & ( (unsigned char) ( 1 << suffix_len ) - 1 );
     }
 
     return( 0 );
@@ -750,11 +749,11 @@ static int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
                                          const unsigned char* data,
                                          size_t size )
 {
-    size_t data_offset = 0U;
+    size_t data_offset = 0;
     size_t remaining_bytes = size;
     size_t rate_bytes;
 
-    if( ctx->rate == 0U )
+    if( ctx->rate == 0 )
     {
         return( MBEDTLS_ERR_SHA3_BAD_STATE );
     }
@@ -763,24 +762,24 @@ static int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
         return( MBEDTLS_ERR_SHA3_BAD_STATE );
     }
 
-    if( remaining_bytes > 0U )
+    if( remaining_bytes > 0 )
     {
-        rate_bytes = ctx->rate / 8U;
+        rate_bytes = ctx->rate / 8;
 
         /* Check if there are leftover bytes in the queue from previous
          * invocations */
-        if( ctx->queue_len > 0U )
+        if( ctx->queue_len > 0 )
         {
-            size_t queue_free_bytes = ( ctx->rate - ctx->queue_len ) / 8U;
+            size_t queue_free_bytes = ( ctx->rate - ctx->queue_len ) / 8;
 
             if( remaining_bytes >= queue_free_bytes )
             {
                 /* Enough data to fill the queue */
-                memcpy( &ctx->queue[ctx->queue_len / 8U],
+                memcpy( &ctx->queue[ctx->queue_len / 8],
                         data,
                         queue_free_bytes );
 
-                ctx->queue_len = 0U;
+                ctx->queue_len = 0;
 
                 data_offset     += queue_free_bytes;
                 remaining_bytes -= queue_free_bytes;
@@ -794,12 +793,12 @@ static int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
                 /* Not enough data to completely fill the queue.
                  * Store this data with the other leftovers
                  */
-                memcpy( &ctx->queue[ctx->queue_len / 8U],
+                memcpy( &ctx->queue[ctx->queue_len / 8],
                         data,
                         remaining_bytes );
 
-                ctx->queue_len += remaining_bytes * 8U;
-                remaining_bytes = 0U;
+                ctx->queue_len += remaining_bytes * 8;
+                remaining_bytes = 0;
             }
         }
 
@@ -815,10 +814,10 @@ static int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
         }
 
         /* Store leftovers in the queue */
-        if( remaining_bytes > 0U )
+        if( remaining_bytes > 0 )
         {
             memcpy( ctx->queue, &data[data_offset], remaining_bytes );
-            ctx->queue_len = remaining_bytes * 8U;
+            ctx->queue_len = remaining_bytes * 8;
         }
     }
 
@@ -851,11 +850,11 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
                                           size_t size )
 {
     size_t queue_offset;
-    size_t data_offset = 0U;
+    size_t data_offset = 0;
     size_t queue_len_bytes;
     size_t rate_bytes;
 
-    if( ctx->rate == 0U )
+    if( ctx->rate == 0 )
     {
         return( MBEDTLS_ERR_SHA3_BAD_STATE );
     }
@@ -869,11 +868,11 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
         mbedtls_keccak_sponge_finalize( ctx );
     }
 
-    if( size > 0U )
+    if( size > 0 )
     {
-        rate_bytes      = ctx->rate / 8U;
-        queue_offset    = ( ctx->rate - ctx->queue_len ) / 8U;
-        queue_len_bytes = ctx->queue_len / 8U;
+        rate_bytes      = ctx->rate / 8;
+        queue_offset    = ( ctx->rate - ctx->queue_len ) / 8;
+        queue_len_bytes = ctx->queue_len / 8;
 
         /* Consume data from the queue */
         if( size < queue_len_bytes )
@@ -881,8 +880,8 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
             /* Not enough output requested to empty the queue */
             memcpy( data, &ctx->queue[queue_offset], size );
 
-            ctx->queue_len -= size * 8U;
-            size = 0U;
+            ctx->queue_len -= size * 8;
+            size = 0;
         }
         else
         {
@@ -893,7 +892,7 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
             data_offset += queue_len_bytes;
             size        -= queue_len_bytes;
 
-            ctx->queue_len = 0U;
+            ctx->queue_len = 0;
         }
 
         /* Process whole blocks */
@@ -909,7 +908,7 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
         }
 
         /* Process last (partial) block */
-        if( size > 0U )
+        if( size > 0 )
         {
             (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
             (void) mbedtls_keccakf_read_binary( &ctx->keccakf_ctx,
@@ -918,10 +917,10 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
 
             memcpy( &data[data_offset], ctx->queue, size );
 
-            ctx->queue_len = ctx->rate - ( size  * 8U );
+            ctx->queue_len = ctx->rate - ( size  * 8 );
         }
 
-        if( ctx->queue_len == 0U )
+        if( ctx->queue_len == 0 )
         {
             /* Generate next block of output for future calls */
             (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
@@ -979,7 +978,7 @@ void mbedtls_sha3_init( mbedtls_sha3_context *ctx )
     if( ctx != NULL )
     {
         mbedtls_keccak_sponge_init( &ctx->sponge_ctx );
-        ctx->digest_size = 0U;
+        ctx->digest_size = 0;
     }
 }
 
@@ -988,7 +987,7 @@ void mbedtls_sha3_free( mbedtls_sha3_context *ctx )
     if( ctx != NULL )
     {
         mbedtls_keccak_sponge_free( &ctx->sponge_ctx );
-        ctx->digest_size = 0U;
+        ctx->digest_size = 0;
     }
 }
 
@@ -1012,31 +1011,31 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_type_t type )
     switch( type )
     {
         case MBEDTLS_SHA3_224:
-            ctx->digest_size = 224U / 8U;
-            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - ( 28U * 2U );
+            ctx->digest_size = 224 / 8;
+            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - ( 28 * 2 );
             sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
-                                                       224U * 2U, 0x02U, 2U );
+                                                       224 * 2, 0x02U, 2 );
             break;
 
         case MBEDTLS_SHA3_256:
-            ctx->digest_size = 256U / 8U;
-            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - ( 32U * 2U );
+            ctx->digest_size = 256 / 8;
+            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - ( 32 * 2 );
             sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
-                                                       256U * 2U, 0x02U, 2U );
+                                                       256 * 2, 0x02U, 2 );
             break;
 
         case MBEDTLS_SHA3_384:
-            ctx->digest_size = 384U / 8U;
-            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - ( 48U * 2U );
+            ctx->digest_size = 384 / 8;
+            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - ( 48 * 2 );
             sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
-                                                       384U * 2U, 0x02U, 2U );
+                                                       384 * 2, 0x02U, 2 );
 
             break;
         case MBEDTLS_SHA3_512:
-            ctx->digest_size = 512U / 8U;
-            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - ( 64U * 2U );
+            ctx->digest_size = 512 / 8;
+            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - ( 64 * 2 );
             sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
-                                                       512U * 2U, 0x02U, 2U );
+                                                       512 * 2, 0x02U, 2 );
             break;
 
         default:
@@ -1132,15 +1131,15 @@ int mbedtls_shake_starts( mbedtls_shake_context *ctx,
     switch( type )
     {
         case MBEDTLS_SHAKE128:
-            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - 32U;
+            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - 32;
             sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
-                                                       256U, 0x0FU, 4U );
+                                                       256, 0x0FU, 4 );
             break;
 
         case MBEDTLS_SHAKE256:
-            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - 64U;
+            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - 64;
             sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
-                                                       512U, 0x0FU, 4U );
+                                                       512, 0x0FU, 4 );
             break;
 
         default:
@@ -1280,8 +1279,8 @@ static const unsigned char test_data[2][4] =
 
 static const size_t test_data_len[2] =
 {
-    0U, /* "" */
-    3U  /* "abc" */
+    0, /* "" */
+    3  /* "abc" */
 };
 
 static const unsigned char test_hash_sha3_224[2][28] =
@@ -1422,16 +1421,16 @@ static int mbedtls_sha3_kat_test( int verbose,
     switch( type )
     {
         case MBEDTLS_SHA3_224:
-            result = memcmp( hash, test_hash_sha3_224[test_num], 28U );
+            result = memcmp( hash, test_hash_sha3_224[test_num], 28 );
             break;
         case MBEDTLS_SHA3_256:
-            result = memcmp( hash, test_hash_sha3_256[test_num], 32U );
+            result = memcmp( hash, test_hash_sha3_256[test_num], 32 );
             break;
         case MBEDTLS_SHA3_384:
-            result = memcmp( hash, test_hash_sha3_384[test_num], 48U );
+            result = memcmp( hash, test_hash_sha3_384[test_num], 48 );
             break;
         case MBEDTLS_SHA3_512:
-            result = memcmp( hash, test_hash_sha3_512[test_num], 64U );
+            result = memcmp( hash, test_hash_sha3_512[test_num], 64 );
             break;
     }
 
@@ -1463,7 +1462,7 @@ static int mbedtls_sha3_long_kat_test( int verbose,
     int i;
     int result = 0;
 
-    memset( buffer, 'a', 1000U );
+    memset( buffer, 'a', 1000 );
 
     if( verbose != 0 )
     {
@@ -1484,7 +1483,7 @@ static int mbedtls_sha3_long_kat_test( int verbose,
     /* Process 1,000,000 (one million) 'a' characters */
     for( i = 0; i < 1000; i++ )
     {
-        result = mbedtls_sha3_update( &ctx, buffer, 1000U );
+        result = mbedtls_sha3_update( &ctx, buffer, 1000 );
         if( result != 0 )
         {
             if( verbose != 0 )
@@ -1510,16 +1509,16 @@ static int mbedtls_sha3_long_kat_test( int verbose,
     switch( type )
     {
         case MBEDTLS_SHA3_224:
-            result = memcmp( hash, long_kat_hash_sha3_224, 28U );
+            result = memcmp( hash, long_kat_hash_sha3_224, 28 );
             break;
         case MBEDTLS_SHA3_256:
-            result = memcmp( hash, long_kat_hash_sha3_256, 32U );
+            result = memcmp( hash, long_kat_hash_sha3_256, 32 );
             break;
         case MBEDTLS_SHA3_384:
-            result = memcmp( hash, long_kat_hash_sha3_384, 48U );
+            result = memcmp( hash, long_kat_hash_sha3_384, 48 );
             break;
         case MBEDTLS_SHA3_512:
-            result = memcmp( hash, long_kat_hash_sha3_512, 64U );
+            result = memcmp( hash, long_kat_hash_sha3_512, 64 );
             break;
     }
 
@@ -1659,9 +1658,9 @@ int mbedtls_shake_self_test( int verbose )
             mbedtls_printf( "  SHAKE128 test %d ", i );
         }
 
-        result = mbedtls_shake( shake128_test_input[i], 16U,
+        result = mbedtls_shake( shake128_test_input[i], 16,
                                 MBEDTLS_SHAKE128,
-                                output, 16U );
+                                output, 16 );
         if( result != 0 )
         {
             if( verbose != 0 )
@@ -1670,7 +1669,7 @@ int mbedtls_shake_self_test( int verbose )
             }
             return( -1 );
         }
-        if( 0 != memcmp( shake128_test_output[i], output, 16U ) )
+        if( 0 != memcmp( shake128_test_output[i], output, 16 ) )
         {
             if( verbose != 0 )
             {
@@ -1685,9 +1684,9 @@ int mbedtls_shake_self_test( int verbose )
             mbedtls_printf( "  SHAKE256 test %d ", i );
         }
 
-        result = mbedtls_shake( shake256_test_input[i], 32U,
+        result = mbedtls_shake( shake256_test_input[i], 32,
                                 MBEDTLS_SHAKE256,
-                                output, 32U );
+                                output, 32 );
         if( result != 0 )
         {
             if( verbose != 0 )
@@ -1696,7 +1695,7 @@ int mbedtls_shake_self_test( int verbose )
             }
             return( -1 );
         }
-        if( 0 != memcmp( shake256_test_output[i], output, 32U ) )
+        if( 0 != memcmp( shake256_test_output[i], output, 32 ) )
         {
             if( verbose != 0 )
             {

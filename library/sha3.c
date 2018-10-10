@@ -332,8 +332,10 @@ static void mbedtls_keccakf_free( mbedtls_keccakf_context *ctx )
 /**
  * \brief               Apply the Keccak permutation.
  *
- * \param ctx           The Keccak-f[1600] context to permute.
+ *                      This function implements the algorithm specified in
+ *                      Section 3.3 of NIST FIPS PUB 202.
  *
+ * \param ctx           The Keccak-f[1600] context to permute.
  */
 static void mbedtls_keccakf_permute( mbedtls_keccakf_context *ctx )
 {
@@ -643,6 +645,21 @@ static void mbedtls_keccak_sponge_clone(
 
 /**
  * \brief               Comfigure the sponge context to start streaming.
+ *
+ *                      This function prepares the context to calculate
+ *                      Keccak[_c_](_M_ || _S_, _d_) where:
+ *                      - The capacity _c_ is specified as \p capacity.
+ *                      - The message _M_ will be fed piecewise through
+ *                        later successive calls to
+ *                        mbedtls_keccak_sponge_absorb().
+ *                      - The suffix _S_ consists of the \p suffix_len
+ *                        low-order bits of \p suffix (the first bit of _S_
+ *                        `suffix & 1`, the second bit `suffix >> 1 & 1`,
+ *                        etc.).
+ *                      - The output length _d_ is the total size
+ *                        of the output that will be extracted through
+ *                        later successive calls to
+ *                        mbedtls_keccak_sponge_squeeze().
  *
  * \note                You must call mbedtls_keccak_sponge_init() before
  *                      calling this function, and you may no longer call

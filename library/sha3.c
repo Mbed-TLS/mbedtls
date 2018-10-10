@@ -1119,6 +1119,7 @@ int mbedtls_sha3_finish( mbedtls_sha3_context *ctx, unsigned char* output )
 
     sponge_ret = mbedtls_keccak_sponge_squeeze( &ctx->sponge_ctx,
                                                 output, ctx->digest_size );
+    mbedtls_keccak_sponge_free( &ctx->sponge_ctx );
 
     return( mbedtls_convert_sponge_result( sponge_ret ) );
 }

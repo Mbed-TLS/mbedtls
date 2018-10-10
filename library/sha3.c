@@ -307,11 +307,8 @@ static inline void mbedtls_keccakf_chi_iota( uint64_t in_state[5][5],
  */
 static void mbedtls_keccakf_init( mbedtls_keccakf_context *ctx )
 {
-    if( ctx != NULL )
-    {
-        mbedtls_platform_zeroize( &ctx->state, sizeof( ctx->state ) );
-        mbedtls_platform_zeroize( &ctx->temp, sizeof( ctx->temp ) );
-    }
+    mbedtls_platform_zeroize( &ctx->state, sizeof( ctx->state ) );
+    mbedtls_platform_zeroize( &ctx->temp, sizeof( ctx->temp ) );
 }
 
 /**
@@ -337,18 +334,10 @@ static void mbedtls_keccakf_free( mbedtls_keccakf_context *ctx )
  * \param ctx           The Keccak-f[1600] context to permute.
  *
  * \retval 0            Success.
- * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
- *                      \p ctx is \c NULL.
  */
 static int mbedtls_keccakf_permute( mbedtls_keccakf_context *ctx )
 {
     size_t i;
-
-    if( ctx == NULL )
-    {
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    }
-
     for( i = 0U; i < 24U; i++ )
     {
         mbedtls_keccakf_theta   ( ctx->state, ctx->temp );
@@ -372,8 +361,7 @@ static int mbedtls_keccakf_permute( mbedtls_keccakf_context *ctx )
  *
  * \retval 0            Success.
  * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
- *                      \p ctx or \p data is \c NULL,
- *                      or \p size_bits is larger than 1600.
+ *                      \p size_bits is larger than 1600.
  */
 static int mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
                                        const unsigned char *data,
@@ -384,11 +372,8 @@ static int mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
     size_t remaining_bits = size_bits;
     size_t data_offset = 0U;
 
-    if( ( ctx == NULL ) || ( data == NULL ) ||
-        ( size_bits > KECCAKF_STATE_SIZE_BITS ) )
-    {
+    if( size_bits > KECCAKF_STATE_SIZE_BITS )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    }
 
     /* process whole lanes */
     while( remaining_bits >= 64U )
@@ -457,8 +442,7 @@ static int mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
  *
  * \retval 0            Success.
  * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
- *                      \p ctx or \p data is \c NULL,
- *                      or \p size is larger than 20.
+ *                      \p size is larger than 20.
  */
 static int mbedtls_keccakf_read_binary( mbedtls_keccakf_context *ctx,
                                         unsigned char *data,
@@ -470,11 +454,8 @@ static int mbedtls_keccakf_read_binary( mbedtls_keccakf_context *ctx,
     size_t remaining_bytes = size;
     size_t data_offset = 0U;
 
-    if( ( ctx == NULL ) || ( data == NULL ) ||
-        ( size > KECCAKF_STATE_SIZE_BYTES ) )
-    {
+    if( size > KECCAKF_STATE_SIZE_BYTES )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    }
 
     /* process whole lanes */
     while( remaining_bytes >= 8U )
@@ -637,16 +618,13 @@ static void mbedtls_keccak_sponge_finalize(
  */
 static void mbedtls_keccak_sponge_init( mbedtls_keccak_sponge_context *ctx )
 {
-    if( ctx != NULL )
-    {
-        mbedtls_keccakf_init( &ctx->keccakf_ctx );
-        mbedtls_platform_zeroize( ctx->queue, sizeof( ctx->queue ) );
-        ctx->queue_len  = 0U;
-        ctx->rate       = 0U;
-        ctx->suffix_len = 0U;
-        ctx->state      = SPONGE_STATE_UNINIT;
-        ctx->suffix     = 0U;
-    }
+    mbedtls_keccakf_init( &ctx->keccakf_ctx );
+    mbedtls_platform_zeroize( ctx->queue, sizeof( ctx->queue ) );
+    ctx->queue_len  = 0U;
+    ctx->rate       = 0U;
+    ctx->suffix_len = 0U;
+    ctx->state      = SPONGE_STATE_UNINIT;
+    ctx->suffix     = 0U;
 }
 
 /**
@@ -709,8 +687,7 @@ static void mbedtls_keccak_sponge_clone(
  *
  * \retval 0            Success.
  * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
- *                      \p ctx is \c NULL,
- *                      or \p capacity is out of range or not a multiple of 8,
+ *                      \p capacity is out of range or not a multiple of 8,
  *                      or \p suffix_len is greater than 8.
  * \retval #MBEDTLS_ERR_SHA3_BAD_STATE
  *                      This function was called without a prior call to
@@ -723,13 +700,9 @@ static int mbedtls_keccak_sponge_starts( mbedtls_keccak_sponge_context *ctx,
                                          unsigned char suffix,
                                          size_t suffix_len  )
 {
-    if( ctx == NULL )
-    {
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    }
-    else if( ( capacity == 0U ) ||
-             ( capacity >= KECCAKF_STATE_SIZE_BITS ) ||
-             ( ( capacity % 8U ) != 0U ) )
+    if( ( capacity == 0U ) ||
+        ( capacity >= KECCAKF_STATE_SIZE_BITS ) ||
+        ( ( capacity % 8U ) != 0U ) )
     {
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
     }
@@ -763,8 +736,6 @@ static int mbedtls_keccak_sponge_starts( mbedtls_keccak_sponge_context *ctx,
  * \param size          The number of bytes to input.
  *
  * \retval 0            Success.
- * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
- *                      \p ctx or \p data is \c NULL.
  * \retval #MBEDTLS_ERR_SHA3_BAD_STATE
  *                      mbedtls_keccak_sponge_starts() has not been called
  *                      on \p ctx.
@@ -783,11 +754,7 @@ static int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
     size_t remaining_bytes = size;
     size_t rate_bytes;
 
-    if( ( ctx == NULL ) || ( data == NULL ) )
-    {
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    }
-    else if( ctx->rate == 0U )
+    if( ctx->rate == 0U )
     {
         return( MBEDTLS_ERR_SHA3_BAD_STATE );
     }
@@ -872,8 +839,6 @@ static int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
  * \param size          The number of output bytes to produce.
  *
  * \retval 0            Success.
- * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
- *                      \p ctx or \p data is \c NULL.
  * \retval #MBEDTLS_ERR_SHA3_BAD_STATE
  *                      mbedtls_keccak_sponge_starts() has not been called
  *                      on \p ctx.
@@ -890,11 +855,7 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
     size_t queue_len_bytes;
     size_t rate_bytes;
 
-    if( ( ctx == NULL ) || ( data == NULL ) )
-    {
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    }
-    else if( ctx->rate == 0U )
+    if( ctx->rate == 0U )
     {
         return( MBEDTLS_ERR_SHA3_BAD_STATE );
     }
@@ -994,17 +955,10 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
  *                      mbedtls_keccak_sponge_starts().
  *
  * \retval 0            Success.
- * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
- *                      \p ctx or \p input is \c NULL.
  */
 static int mbedtls_keccak_sponge_process( mbedtls_keccak_sponge_context *ctx,
-                                   const unsigned char *input )
+                                          const unsigned char *input )
 {
-    if( ( ctx == NULL ) || ( input == NULL ) )
-    {
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    }
-
     (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx, input, ctx->rate );
     (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
 

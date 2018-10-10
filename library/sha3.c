@@ -334,9 +334,8 @@ static void mbedtls_keccakf_free( mbedtls_keccakf_context *ctx )
  *
  * \param ctx           The Keccak-f[1600] context to permute.
  *
- * \retval 0            Success.
  */
-static int mbedtls_keccakf_permute( mbedtls_keccakf_context *ctx )
+static void mbedtls_keccakf_permute( mbedtls_keccakf_context *ctx )
 {
     size_t i;
     for( i = 0; i < 24; i++ )
@@ -346,8 +345,6 @@ static int mbedtls_keccakf_permute( mbedtls_keccakf_context *ctx )
         mbedtls_keccakf_pi      ( ctx->state, ctx->temp );
         mbedtls_keccakf_chi_iota( ctx->temp , ctx->state, i );
     }
-
-    return( 0 );
 }
 
 /**
@@ -530,7 +527,7 @@ static void mbedtls_keccak_sponge_absorb_suffix(
 
         (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
                                            ctx->queue, ctx->rate );
-        (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
+        mbedtls_keccakf_permute( &ctx->keccakf_ctx );
     }
 }
 
@@ -592,7 +589,7 @@ static void mbedtls_keccak_sponge_finalize(
 
         (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
                                            ctx->queue, ctx->rate );
-        (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
+        mbedtls_keccakf_permute( &ctx->keccakf_ctx );
 
         /* Set the next block to complete the padding */
         memset( ctx->queue, 0, ctx->rate / 8 );
@@ -601,7 +598,7 @@ static void mbedtls_keccak_sponge_finalize(
 
     (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
                                        ctx->queue, ctx->rate );
-    (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
+    mbedtls_keccakf_permute( &ctx->keccakf_ctx );
 
     ctx->state = SPONGE_STATE_SQUEEZING;
 
@@ -787,7 +784,7 @@ static int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
 
                 (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
                                                    ctx->queue, ctx->rate );
-                (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
+                mbedtls_keccakf_permute( &ctx->keccakf_ctx );
             }
             else
             {
@@ -808,7 +805,7 @@ static int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
         {
             (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
                                                &data[data_offset], ctx->rate );
-            (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
+            mbedtls_keccakf_permute( &ctx->keccakf_ctx );
 
             data_offset     += rate_bytes;
             remaining_bytes -= rate_bytes;
@@ -899,7 +896,7 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
         /* Process whole blocks */
         while( size >= rate_bytes )
         {
-            (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
+            mbedtls_keccakf_permute( &ctx->keccakf_ctx );
             (void) mbedtls_keccakf_read_binary( &ctx->keccakf_ctx,
                                                 &data[data_offset],
                                                 rate_bytes );
@@ -911,7 +908,7 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
         /* Process last (partial) block */
         if( size > 0 )
         {
-            (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
+            mbedtls_keccakf_permute( &ctx->keccakf_ctx );
             (void) mbedtls_keccakf_read_binary( &ctx->keccakf_ctx,
                                                 ctx->queue,
                                                 rate_bytes );
@@ -924,7 +921,7 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
         if( ctx->queue_len == 0 )
         {
             /* Generate next block of output for future calls */
-            (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
+            mbedtls_keccakf_permute( &ctx->keccakf_ctx );
             (void) mbedtls_keccakf_read_binary( &ctx->keccakf_ctx,
                                                 ctx->queue,
                                                 rate_bytes );
@@ -960,7 +957,7 @@ static int mbedtls_keccak_sponge_process( mbedtls_keccak_sponge_context *ctx,
                                           const unsigned char *input )
 {
     (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx, input, ctx->rate );
-    (void) mbedtls_keccakf_permute( &ctx->keccakf_ctx );
+    mbedtls_keccakf_permute( &ctx->keccakf_ctx );
 
     return( 0 );
 }

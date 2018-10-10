@@ -57,7 +57,7 @@
 #define KECCAKF_STATE_SIZE_BYTES ( 1600U / 8U )
 
 #define ROTL64( x, amount ) \
-    ( (uint64_t) ( x << amount) | ( x >> ( 64 - amount ) ) )
+    ( (uint64_t) ( x ) << ( amount ) | (uint64_t) ( x ) >> ( 64 - ( amount ) ) )
 
 static const uint64_t round_constants[24] =
 {

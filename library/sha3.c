@@ -96,8 +96,8 @@ static const uint64_t round_constants[24] =
  * \param in_state      The Keccak state to transform.
  * \param out_state     The transformed state is written here.
  */
-static inline void mbedtls_keccakf_theta( uint64_t in_state[5][5],
-                                          uint64_t out_state[5][5] )
+static void mbedtls_keccakf_theta( uint64_t in_state[5][5],
+                                   uint64_t out_state[5][5] )
 {
     uint64_t cl;
     uint64_t cr;
@@ -168,8 +168,8 @@ static inline void mbedtls_keccakf_theta( uint64_t in_state[5][5],
  * \param in_state      The Keccak state to transform.
  * \param out_state     The transformed state is written here.
  */
-static inline void mbedtls_keccakf_rho( uint64_t in_state[5][5],
-                                        uint64_t out_state[5][5] )
+static void mbedtls_keccakf_rho( uint64_t in_state[5][5],
+                                 uint64_t out_state[5][5] )
 {
     out_state[0][0] =         in_state[0][0];
     out_state[0][1] = ROTL64( in_state[0][1], 36 );
@@ -211,8 +211,8 @@ static inline void mbedtls_keccakf_rho( uint64_t in_state[5][5],
  * \param in_state      The Keccak state to transform.
  * \param out_state     The transformed state is written here.
  */
-static inline void mbedtls_keccakf_pi( uint64_t in_state[5][5],
-                                       uint64_t out_state[5][5] )
+static void mbedtls_keccakf_pi( uint64_t in_state[5][5],
+                                uint64_t out_state[5][5] )
 {
     out_state[0][0] = in_state[0][0];
     out_state[0][1] = in_state[3][0];
@@ -258,9 +258,9 @@ static inline void mbedtls_keccakf_pi( uint64_t in_state[5][5],
  * \param out_state     The transformed state is written here.
  * \param round_index   The index of the current round in the interval [0,23].
  */
-static inline void mbedtls_keccakf_chi_iota( uint64_t in_state[5][5],
-                                             uint64_t out_state[5][5],
-                                             size_t round_index )
+static void mbedtls_keccakf_chi_iota( uint64_t in_state[5][5],
+                                      uint64_t out_state[5][5],
+                                      size_t round_index )
 {
     /* iota step */
     out_state[0][0] = in_state[0][0] ^ ( ~in_state[1][0] & in_state[2][0] )

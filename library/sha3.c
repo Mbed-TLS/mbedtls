@@ -263,37 +263,38 @@ static inline void mbedtls_keccakf_chi_iota( uint64_t in_state[5][5],
                                              size_t round_index )
 {
     /* iota step */
-    out_state[0][0] = in_state[0][0] ^ ( ( ~in_state[1][0] ) & in_state[2][0] )
+    out_state[0][0] = in_state[0][0] ^ ( ~in_state[1][0] & in_state[2][0] )
                                      ^ round_constants[round_index];
 
-    out_state[0][1] = in_state[0][1] ^ ( ( ~in_state[1][1] ) & in_state[2][1] );
-    out_state[0][2] = in_state[0][2] ^ ( ( ~in_state[1][2] ) & in_state[2][2] );
-    out_state[0][3] = in_state[0][3] ^ ( ( ~in_state[1][3] ) & in_state[2][3] );
-    out_state[0][4] = in_state[0][4] ^ ( ( ~in_state[1][4] ) & in_state[2][4] );
+    /* chi step */
+    out_state[0][1] = in_state[0][1] ^ ( ~in_state[1][1] & in_state[2][1] );
+    out_state[0][2] = in_state[0][2] ^ ( ~in_state[1][2] & in_state[2][2] );
+    out_state[0][3] = in_state[0][3] ^ ( ~in_state[1][3] & in_state[2][3] );
+    out_state[0][4] = in_state[0][4] ^ ( ~in_state[1][4] & in_state[2][4] );
 
-    out_state[2][0] = in_state[2][0] ^ ( ( ~in_state[3][0] ) & in_state[4][0] );
-    out_state[2][1] = in_state[2][1] ^ ( ( ~in_state[3][1] ) & in_state[4][1] );
-    out_state[2][2] = in_state[2][2] ^ ( ( ~in_state[3][2] ) & in_state[4][2] );
-    out_state[2][3] = in_state[2][3] ^ ( ( ~in_state[3][3] ) & in_state[4][3] );
-    out_state[2][4] = in_state[2][4] ^ ( ( ~in_state[3][4] ) & in_state[4][4] );
+    out_state[2][0] = in_state[2][0] ^ ( ~in_state[3][0] & in_state[4][0] );
+    out_state[2][1] = in_state[2][1] ^ ( ~in_state[3][1] & in_state[4][1] );
+    out_state[2][2] = in_state[2][2] ^ ( ~in_state[3][2] & in_state[4][2] );
+    out_state[2][3] = in_state[2][3] ^ ( ~in_state[3][3] & in_state[4][3] );
+    out_state[2][4] = in_state[2][4] ^ ( ~in_state[3][4] & in_state[4][4] );
 
-    out_state[4][0] = in_state[4][0] ^ ( ( ~in_state[0][0] ) & in_state[1][0] );
-    out_state[4][1] = in_state[4][1] ^ ( ( ~in_state[0][1] ) & in_state[1][1] );
-    out_state[4][2] = in_state[4][2] ^ ( ( ~in_state[0][2] ) & in_state[1][2] );
-    out_state[4][3] = in_state[4][3] ^ ( ( ~in_state[0][3] ) & in_state[1][3] );
-    out_state[4][4] = in_state[4][4] ^ ( ( ~in_state[0][4] ) & in_state[1][4] );
+    out_state[4][0] = in_state[4][0] ^ ( ~in_state[0][0] & in_state[1][0] );
+    out_state[4][1] = in_state[4][1] ^ ( ~in_state[0][1] & in_state[1][1] );
+    out_state[4][2] = in_state[4][2] ^ ( ~in_state[0][2] & in_state[1][2] );
+    out_state[4][3] = in_state[4][3] ^ ( ~in_state[0][3] & in_state[1][3] );
+    out_state[4][4] = in_state[4][4] ^ ( ~in_state[0][4] & in_state[1][4] );
 
-    out_state[1][0] = in_state[1][0] ^ ( ( ~in_state[2][0] ) & in_state[3][0] );
-    out_state[1][1] = in_state[1][1] ^ ( ( ~in_state[2][1] ) & in_state[3][1] );
-    out_state[1][2] = in_state[1][2] ^ ( ( ~in_state[2][2] ) & in_state[3][2] );
-    out_state[1][3] = in_state[1][3] ^ ( ( ~in_state[2][3] ) & in_state[3][3] );
-    out_state[1][4] = in_state[1][4] ^ ( ( ~in_state[2][4] ) & in_state[3][4] );
+    out_state[1][0] = in_state[1][0] ^ ( ~in_state[2][0] & in_state[3][0] );
+    out_state[1][1] = in_state[1][1] ^ ( ~in_state[2][1] & in_state[3][1] );
+    out_state[1][2] = in_state[1][2] ^ ( ~in_state[2][2] & in_state[3][2] );
+    out_state[1][3] = in_state[1][3] ^ ( ~in_state[2][3] & in_state[3][3] );
+    out_state[1][4] = in_state[1][4] ^ ( ~in_state[2][4] & in_state[3][4] );
 
-    out_state[3][0] = in_state[3][0] ^ ( ( ~in_state[4][0] ) & in_state[0][0] );
-    out_state[3][1] = in_state[3][1] ^ ( ( ~in_state[4][1] ) & in_state[0][1] );
-    out_state[3][2] = in_state[3][2] ^ ( ( ~in_state[4][2] ) & in_state[0][2] );
-    out_state[3][3] = in_state[3][3] ^ ( ( ~in_state[4][3] ) & in_state[0][3] );
-    out_state[3][4] = in_state[3][4] ^ ( ( ~in_state[4][4] ) & in_state[0][4] );
+    out_state[3][0] = in_state[3][0] ^ ( ~in_state[4][0] & in_state[0][0] );
+    out_state[3][1] = in_state[3][1] ^ ( ~in_state[4][1] & in_state[0][1] );
+    out_state[3][2] = in_state[3][2] ^ ( ~in_state[4][2] & in_state[0][2] );
+    out_state[3][3] = in_state[3][3] ^ ( ~in_state[4][3] & in_state[0][3] );
+    out_state[3][4] = in_state[3][4] ^ ( ~in_state[4][4] & in_state[0][4] );
 }
 
 /**
@@ -699,9 +700,9 @@ static int mbedtls_keccak_sponge_starts( mbedtls_keccak_sponge_context *ctx,
                                          unsigned char suffix,
                                          size_t suffix_len  )
 {
-    if( ( capacity == 0 ) ||
-        ( capacity >= KECCAKF_STATE_SIZE_BITS ) ||
-        ( ( capacity % 8 ) != 0 ) )
+    if( capacity == 0 ||
+        capacity >= KECCAKF_STATE_SIZE_BITS ||
+        capacity % 8 != 0 )
     {
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
     }
@@ -1065,7 +1066,7 @@ int mbedtls_sha3_finish( mbedtls_sha3_context *ctx, unsigned char* output )
 {
     int sponge_ret;
 
-    if( ( ctx == NULL ) || ( output == NULL ) )
+    if( ctx == NULL || output == NULL )
     {
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
     }
@@ -1082,7 +1083,7 @@ int mbedtls_sha3_process( mbedtls_sha3_context *ctx,
 {
     int sponge_ret;
 
-    if( ( ctx == NULL ) || ( input == NULL ) )
+    if( ctx == NULL || input == NULL )
     {
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
     }
@@ -1172,7 +1173,7 @@ int mbedtls_shake_output( mbedtls_shake_context *ctx,
 {
     int sponge_ret;
 
-    if( ( ctx == NULL ) || ( output == NULL ) )
+    if( ctx == NULL || output == NULL )
     {
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
     }
@@ -1188,7 +1189,7 @@ int mbedtls_shake_process( mbedtls_shake_context *ctx,
 {
     int sponge_ret;
 
-    if( ( ctx == NULL ) || ( input == NULL ) )
+    if( ctx == NULL || input == NULL )
     {
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
     }

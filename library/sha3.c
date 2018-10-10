@@ -308,8 +308,8 @@ static inline void mbedtls_keccakf_chi_iota( uint64_t in_state[5][5],
  */
 static void mbedtls_keccakf_init( mbedtls_keccakf_context *ctx )
 {
-    mbedtls_platform_zeroize( &ctx->state, sizeof( ctx->state ) );
-    mbedtls_platform_zeroize( &ctx->temp, sizeof( ctx->temp ) );
+    memset( &ctx->state, 0, sizeof( ctx->state ) );
+    memset( &ctx->temp, 0, sizeof( ctx->temp ) );
 }
 
 /**
@@ -601,7 +601,7 @@ static void mbedtls_keccak_sponge_finalize(
 static void mbedtls_keccak_sponge_init( mbedtls_keccak_sponge_context *ctx )
 {
     mbedtls_keccakf_init( &ctx->keccakf_ctx );
-    mbedtls_platform_zeroize( ctx->queue, sizeof( ctx->queue ) );
+    memset( ctx->queue, 0, sizeof( ctx->queue ) );
     ctx->queue_len  = 0;
     ctx->rate       = 0;
     ctx->suffix_len = 0;

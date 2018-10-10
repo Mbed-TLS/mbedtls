@@ -41,7 +41,6 @@
 #include "mbedtls/sha256.h"
 #include "mbedtls/sha3.h"
 #include "mbedtls/sha512.h"
-#include "mbedtls/shake.h"
 #include "mbedtls/arc4.h"
 #include "mbedtls/des.h"
 #include "mbedtls/aes.h"

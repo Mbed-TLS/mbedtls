@@ -1,5 +1,5 @@
 /* BEGIN_HEADER */
-#include "mbedtls/shake.h"
+#include "mbedtls/sha3.h"
 /* END_HEADER */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHAKE_C */

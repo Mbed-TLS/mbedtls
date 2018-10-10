@@ -34,8 +34,6 @@ set(src_crypto
     havege.c
     hkdf.c
     hmac_drbg.c
-    keccak_sponge.c
-    keccakf.c
     md.c
     md2.c
     md4.c
@@ -62,7 +60,6 @@ set(src_crypto
     sha256.c
     sha3.c
     sha512.c
-    shake.c
     threading.c
     timing.c
     version.c

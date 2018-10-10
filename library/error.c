@@ -854,10 +854,10 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 #if defined(MBEDTLS_SHA3_C)
     if( use_ret == -(MBEDTLS_ERR_SHA3_BAD_INPUT_DATA) )
         mbedtls_snprintf( buf, buflen, "SHA3 - Invalid input parameter(s)" );
-    if( use_ret == -(MBEDTLS_ERR_SHA3_BAD_NOT_STARTED) )
-        mbedtls_snprintf( buf, buflen, "SHA3 - mbedtls_keccak_sponge_starts has not been called" );
     if( use_ret == -(MBEDTLS_ERR_SHA3_BAD_STATE) )
-        mbedtls_snprintf( buf, buflen, "SHA3 - Requested operation cannot be performed with the current context state" );
+        mbedtls_snprintf( buf, buflen, "SHA3 - The requested operation cannot be performed in the current context state" );
+    if( use_ret == -(MBEDTLS_ERR_SHA3_HW_ACCEL_FAILED) )
+        mbedtls_snprintf( buf, buflen, "SHA3 - SHA3 hardware accelerator failed" );
 #endif /* MBEDTLS_SHA3_C */
 
 #if defined(MBEDTLS_SHA512_C)

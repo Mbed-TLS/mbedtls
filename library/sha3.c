@@ -693,7 +693,7 @@ static void mbedtls_keccak_sponge_clone(
  *                      mbedtls_keccak_sponge_init() and before calling the
  *                      absorb or squeeze functions. If this function has not
  *                      been called then the absorb/squeeze functions will
- *                      return #MBEDTLS_ERR_SHA3_BAD_NOT_STARTED.
+ *                      return #MBEDTLS_ERR_SHA3_BAD_STATE.
  *
  * \param ctx           The sponge context to set up.
  * \param capacity      The sponge's capacity parameter. This determines the
@@ -765,7 +765,7 @@ static int mbedtls_keccak_sponge_starts( mbedtls_keccak_sponge_context *ctx,
  * \retval 0            Success.
  * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
  *                      \p ctx or \p data is \c NULL.
- * \retval #MBEDTLS_ERR_SHA3_BAD_NOT_STARTED
+ * \retval #MBEDTLS_ERR_SHA3_BAD_STATE
  *                      mbedtls_keccak_sponge_starts() has not been called
  *                      on \p ctx.
  * \retval #MBEDTLS_ERR_SHA3_BAD_STATE
@@ -789,7 +789,7 @@ static int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
     }
     else if( ctx->rate == 0U )
     {
-        return( MBEDTLS_ERR_SHA3_BAD_NOT_STARTED );
+        return( MBEDTLS_ERR_SHA3_BAD_STATE );
     }
     else if( ctx->state > SPONGE_STATE_ABSORBING )
     {
@@ -874,7 +874,7 @@ static int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
  * \retval 0            Success.
  * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
  *                      \p ctx or \p data is \c NULL.
- * \retval #MBEDTLS_ERR_SHA3_BAD_NOT_STARTED
+ * \retval #MBEDTLS_ERR_SHA3_BAD_STATE
  *                      mbedtls_keccak_sponge_starts() has not been called
  *                      on \p ctx.
  * \retval #MBEDTLS_ERR_SHA3_BAD_STATE
@@ -896,7 +896,7 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
     }
     else if( ctx->rate == 0U )
     {
-        return( MBEDTLS_ERR_SHA3_BAD_NOT_STARTED );
+        return( MBEDTLS_ERR_SHA3_BAD_STATE );
     }
     else if( ctx->state > SPONGE_STATE_SQUEEZING )
     {

@@ -357,21 +357,16 @@ static void mbedtls_keccakf_permute( mbedtls_keccakf_context *ctx )
  * \param data          Buffer containing the bytes to XOR into the Keccak state.
  * \param size_bits     The number of bits to XOR into the state.
  *
- * \retval 0            Success.
- * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
- *                      \p size_bits is larger than 1600.
+ * \pre size <= KECCAKF_STATE_SIZE_BITS
  */
-static int mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
-                                       const unsigned char *data,
-                                       size_t size_bits )
+static void mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
+                                        const unsigned char *data,
+                                        size_t size_bits )
 {
     size_t x = 0;
     size_t y = 0;
     size_t remaining_bits = size_bits;
     size_t data_offset = 0;
-
-    if( size_bits > KECCAKF_STATE_SIZE_BITS )
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
 
     /* process whole lanes */
     while( remaining_bits >= 64 )
@@ -423,8 +418,6 @@ static int mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
 
         ctx->state[x][y] = lane;
     }
-
-    return( 0 );
 }
 
 /**
@@ -437,22 +430,17 @@ static int mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
  * \param data          Output buffer.
  * \param size          The number of bytes to read from the Keccak state.
  *
- * \retval 0            Success.
- * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
- *                      \p size is larger than 20.
+ * \pre size <= KECCAKF_STATE_SIZE_BYTES
  */
-static int mbedtls_keccakf_read_binary( mbedtls_keccakf_context *ctx,
-                                        unsigned char *data,
-                                        size_t size )
+static void mbedtls_keccakf_read_binary( mbedtls_keccakf_context *ctx,
+                                         unsigned char *data,
+                                         size_t size )
 {
     size_t x = 0;
     size_t y = 0;
     size_t i;
     size_t remaining_bytes = size;
     size_t data_offset = 0;
-
-    if( size > KECCAKF_STATE_SIZE_BYTES )
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
 
     /* process whole lanes */
     while( remaining_bytes >= 8 )
@@ -488,8 +476,6 @@ static int mbedtls_keccakf_read_binary( mbedtls_keccakf_context *ctx,
             data[data_offset + i] = (uint8_t) ( lane >> ( i * 8 ) );
         }
     }
-
-    return( 0 );
 }
 
 
@@ -506,6 +492,7 @@ static int mbedtls_keccakf_read_binary( mbedtls_keccakf_context *ctx,
  *
  * \pre         ctx                != NULL
  * \pre         ctx->queue_len     <  ctx->rate
+ * \pre         ctx->rate          < KECCAKF_STATE_SIZE_BITS
  * \pre         ctx->queue_len % 8 == 0
  * \pre         ctx->rate % 8      == 0
  * \pre         ctx->suffix_len    <= 8
@@ -525,8 +512,7 @@ static void mbedtls_keccak_sponge_absorb_suffix(
     {
         ctx->queue_len = 0;
 
-        (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
-                                           ctx->queue, ctx->rate );
+        mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx, ctx->queue, ctx->rate );
         mbedtls_keccakf_permute( &ctx->keccakf_ctx );
     }
 }
@@ -540,6 +526,7 @@ static void mbedtls_keccak_sponge_absorb_suffix(
  *
  * \pre         ctx                != NULL
  * \pre         ctx->queue_len     <  ctx->rate
+ * \pre         ctx->rate          < KECCAKF_STATE_SIZE_BITS
  * \pre         ctx->queue_len % 8 == 0
  * \pre         ctx->rate % 8      == 0
  * \pre         ctx->suffix_len    <= 8
@@ -587,8 +574,7 @@ static void mbedtls_keccak_sponge_finalize(
         /* Add first bit to complete the first block */
         ctx->queue[ctx->queue_len / 8] |= 0x80U;
 
-        (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
-                                           ctx->queue, ctx->rate );
+        mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx, ctx->queue, ctx->rate );
         mbedtls_keccakf_permute( &ctx->keccakf_ctx );
 
         /* Set the next block to complete the padding */
@@ -596,15 +582,14 @@ static void mbedtls_keccak_sponge_finalize(
         ctx->queue[( ctx->rate - 1 ) / 8] |= 0x80U;
     }
 
-    (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
-                                       ctx->queue, ctx->rate );
+    mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx, ctx->queue, ctx->rate );
     mbedtls_keccakf_permute( &ctx->keccakf_ctx );
 
     ctx->state = SPONGE_STATE_SQUEEZING;
 
     /* Get initial output data into the queue */
-    (void) mbedtls_keccakf_read_binary( &ctx->keccakf_ctx,
-                                        ctx->queue, ctx->rate / 8 );
+    mbedtls_keccakf_read_binary( &ctx->keccakf_ctx,
+                                 ctx->queue, ctx->rate / 8 );
     ctx->queue_len = ctx->rate;
 }
 
@@ -751,7 +736,7 @@ static int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
     size_t remaining_bytes = size;
     size_t rate_bytes;
 
-    if( ctx->rate == 0 )
+    if( ctx->rate == 0 || ctx->rate >= KECCAKF_STATE_SIZE_BITS )
     {
         return( MBEDTLS_ERR_SHA3_BAD_STATE );
     }
@@ -782,8 +767,8 @@ static int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
                 data_offset     += queue_free_bytes;
                 remaining_bytes -= queue_free_bytes;
 
-                (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
-                                                   ctx->queue, ctx->rate );
+                mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
+                                            ctx->queue, ctx->rate );
                 mbedtls_keccakf_permute( &ctx->keccakf_ctx );
             }
             else
@@ -803,8 +788,8 @@ static int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
         /* Process whole blocks */
         while( remaining_bytes >= rate_bytes )
         {
-            (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
-                                               &data[data_offset], ctx->rate );
+            mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx,
+                                        &data[data_offset], ctx->rate );
             mbedtls_keccakf_permute( &ctx->keccakf_ctx );
 
             data_offset     += rate_bytes;
@@ -852,7 +837,7 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
     size_t queue_len_bytes;
     size_t rate_bytes;
 
-    if( ctx->rate == 0 )
+    if( ctx->rate == 0 || ctx->rate >= KECCAKF_STATE_SIZE_BITS )
     {
         return( MBEDTLS_ERR_SHA3_BAD_STATE );
     }
@@ -897,9 +882,8 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
         while( size >= rate_bytes )
         {
             mbedtls_keccakf_permute( &ctx->keccakf_ctx );
-            (void) mbedtls_keccakf_read_binary( &ctx->keccakf_ctx,
-                                                &data[data_offset],
-                                                rate_bytes );
+            mbedtls_keccakf_read_binary( &ctx->keccakf_ctx,
+                                         &data[data_offset], rate_bytes );
 
             data_offset += rate_bytes;
             size        -= rate_bytes;
@@ -909,9 +893,8 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
         if( size > 0 )
         {
             mbedtls_keccakf_permute( &ctx->keccakf_ctx );
-            (void) mbedtls_keccakf_read_binary( &ctx->keccakf_ctx,
-                                                ctx->queue,
-                                                rate_bytes );
+            mbedtls_keccakf_read_binary( &ctx->keccakf_ctx,
+                                         ctx->queue, rate_bytes );
 
             memcpy( &data[data_offset], ctx->queue, size );
 
@@ -922,9 +905,8 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
         {
             /* Generate next block of output for future calls */
             mbedtls_keccakf_permute( &ctx->keccakf_ctx );
-            (void) mbedtls_keccakf_read_binary( &ctx->keccakf_ctx,
-                                                ctx->queue,
-                                                rate_bytes );
+            mbedtls_keccakf_read_binary( &ctx->keccakf_ctx,
+                                         ctx->queue, rate_bytes );
 
             ctx->queue_len = ctx->rate;
         }
@@ -956,7 +938,7 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
 static int mbedtls_keccak_sponge_process( mbedtls_keccak_sponge_context *ctx,
                                           const unsigned char *input )
 {
-    (void) mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx, input, ctx->rate );
+    mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx, input, ctx->rate );
     mbedtls_keccakf_permute( &ctx->keccakf_ctx );
 
     return( 0 );

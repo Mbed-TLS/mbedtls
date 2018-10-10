@@ -275,12 +275,14 @@ int mbedtls_sha3( const unsigned char* input,
                   mbedtls_sha3_type_t type,
                   unsigned char* output );
 
+#if defined(MBEDTLS_SELF_TEST)
 /**
- * \brief          Checkup routine
+ * \brief          Checkup routine for SHA-3.
  *
- * \return         0 if successful, or 1 if the test failed
+ * \return         0 if successful, or 1 if the test failed.
  */
 int mbedtls_sha3_self_test( int verbose );
+#endif /* MBEDTLS_SELF_TEST */
 
 /**
  * \brief          Initialize a SHAKE context.
@@ -408,12 +410,14 @@ int mbedtls_shake( const unsigned char* input,
                    unsigned char* output,
                    size_t olen );
 
+#if defined(MBEDTLS_SELF_TEST)
 /**
- * \brief          Checkup routine
+ * \brief          Checkup routine for SHAKE.
  *
- * \return         0 if successful, or 1 if the test failed
+ * \return         0 if successful, or 1 if the test failed.
  */
 int mbedtls_shake_self_test( int verbose );
+#endif /* MBEDTLS_SELF_TEST */
 
 #ifdef __cplusplus
 }

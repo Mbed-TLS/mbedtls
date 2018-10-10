@@ -97,10 +97,11 @@ typedef struct
 {
     mbedtls_keccakf_context keccakf_ctx;
     unsigned char queue[1600 / 8]; /* store partial block data (absorbing) or pending output data (squeezing) */
-    size_t queue_len;              /* queue length (in bits) */
-    size_t rate;                   /* sponge rate (in bits) */
-    size_t suffix_len;             /* length of the suffix (in bits) (range 0..8) */
-    int state;                     /* Current state (absorbing/ready to squeeze/squeezing) */
+    unsigned short queue_len;      /* queue length (in bits) (0..rate-1,
+                                    * temporarily up to 2*rate-1) */
+    unsigned short rate;           /* sponge rate (in bits) (1..1600-1) */
+    unsigned char suffix_len;      /* length of the suffix (in bits) (0..8) */
+    unsigned char state;           /* Current state (absorbing/ready to squeeze/squeezing) */
     unsigned char suffix;          /* suffix bits appended to message, before padding */
 }
 mbedtls_keccak_sponge_context;
@@ -117,8 +118,8 @@ mbedtls_keccak_sponge_context;
 typedef struct
 {
     mbedtls_keccak_sponge_context sponge_ctx;
-    size_t digest_size; /* digest size in bytes */
-    size_t block_size;  /* block size in bytes */
+    unsigned char digest_size; /* digest size in bytes */
+    unsigned char block_size;  /* block size in bytes */
 }
 mbedtls_sha3_context;
 

@@ -1447,7 +1447,7 @@ static const unsigned char long_kat_hash_sha3_512[64] =
 static int mbedtls_sha3_kat_test( int verbose,
                                   const char* type_name,
                                   mbedtls_sha3_type_t type,
-                                  size_t test_num )
+                                  int test_num )
 {
     uint8_t hash[64];
     int result;
@@ -1458,7 +1458,7 @@ static int mbedtls_sha3_kat_test( int verbose,
     {
         if( verbose != 0 )
         {
-            mbedtls_printf( "  %s test %zi error code: %i\n",
+            mbedtls_printf( "  %s test %d error code: %d\n",
                             type_name, test_num, result );
         }
 
@@ -1485,7 +1485,7 @@ static int mbedtls_sha3_kat_test( int verbose,
     {
         if( verbose != 0 )
         {
-            mbedtls_printf( "  %s test %zi failed\n", type_name, test_num );
+            mbedtls_printf( "  %s test %d failed\n", type_name, test_num );
         }
 
         return( -1 );
@@ -1493,7 +1493,7 @@ static int mbedtls_sha3_kat_test( int verbose,
 
     if( verbose != 0 )
     {
-        mbedtls_printf( "  %s test %zi passed\n", type_name, test_num );
+        mbedtls_printf( "  %s test %d passed\n", type_name, test_num );
     }
 
     return( 0 );
@@ -1506,7 +1506,7 @@ static int mbedtls_sha3_long_kat_test( int verbose,
     mbedtls_sha3_context ctx;
     unsigned char buffer[1000];
     unsigned char hash[64];
-    size_t i;
+    int i;
     int result = 0;
 
     memset( buffer, 'a', 1000U );
@@ -1528,7 +1528,7 @@ static int mbedtls_sha3_long_kat_test( int verbose,
     }
 
     /* Process 1,000,000 (one million) 'a' characters */
-    for( i = 0U; i < 1000; i++ )
+    for( i = 0; i < 1000; i++ )
     {
         result = mbedtls_sha3_update( &ctx, buffer, 1000U );
         if( result != 0 )
@@ -1547,7 +1547,7 @@ static int mbedtls_sha3_long_kat_test( int verbose,
     {
         if( verbose != 0 )
         {
-            mbedtls_printf( "finish error code: %i\n", result );
+            mbedtls_printf( "finish error code: %d\n", result );
         }
 
         goto cleanup;
@@ -1589,10 +1589,10 @@ cleanup:
 
 int mbedtls_sha3_self_test( int verbose )
 {
-    size_t i;
+    int i;
 
     /* Known Answer Tests (KAT) */
-    for( i = 0U; i < 2U; i++ )
+    for( i = 0; i < 2; i++ )
     {
         if( 0 != mbedtls_sha3_kat_test( verbose,
                                         "SHA3-224", MBEDTLS_SHA3_224, i ) )
@@ -1695,14 +1695,14 @@ static const unsigned char shake256_test_output[2][32] =
 int mbedtls_shake_self_test( int verbose )
 {
     uint8_t output[32];
-    size_t i;
+    int i;
     int result;
 
-    for( i = 0U; i < 2U; i++ )
+    for( i = 0; i < 2; i++ )
     {
         if( verbose != 0 )
         {
-            mbedtls_printf( "  SHAKE128 test %zi ", i );
+            mbedtls_printf( "  SHAKE128 test %d ", i );
         }
 
         result = mbedtls_shake( shake128_test_input[i], 16U,
@@ -1712,7 +1712,7 @@ int mbedtls_shake_self_test( int verbose )
         {
             if( verbose != 0 )
             {
-                mbedtls_printf( "error code: %i\n", result );
+                mbedtls_printf( "error code: %d\n", result );
             }
             return( -1 );
         }
@@ -1728,7 +1728,7 @@ int mbedtls_shake_self_test( int verbose )
         if( verbose != 0 )
         {
             mbedtls_printf( "passed\n" );
-            mbedtls_printf( "  SHAKE256 test %zi ", i );
+            mbedtls_printf( "  SHAKE256 test %d ", i );
         }
 
         result = mbedtls_shake( shake256_test_input[i], 32U,
@@ -1738,7 +1738,7 @@ int mbedtls_shake_self_test( int verbose )
         {
             if( verbose != 0 )
             {
-                mbedtls_printf( "error code: %i\n", result );
+                mbedtls_printf( "error code: %d\n", result );
             }
             return( -1 );
         }

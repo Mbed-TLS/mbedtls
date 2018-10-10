@@ -1893,7 +1893,7 @@ static int ssl_parse_server_psk_hint( mbedtls_ssl_context *ssl,
     len = (*p)[0] << 8 | (*p)[1];
     *p += 2;
 
-    if( end - (*p) < len )
+    if( end - (*p) < (int) len )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad server key exchange message "
                                     "(psk_identity_hint length)" ) );

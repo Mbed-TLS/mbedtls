@@ -20,6 +20,9 @@ md2_text:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":"da33d
 mbedtls_md2 Test vector RFC1319 #7
 md2_text:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"d5976f79d83d3a0dc9806c3c66f3efd8"
 
+MD2 context reuse
+md2_reuse:"41":"08e2a3810d8426443ecacaf47aeedd17":"42":"a01efacc3980b2e9d81b36316595cc18"
+
 mbedtls_md4 Test vector RFC1320 #1
 md4_text:"":"31d6cfe0d16ae931b73c59d7e0c089c0"
 
@@ -41,6 +44,9 @@ md4_text:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":"043f8
 mbedtls_md4 Test vector RFC1320 #7
 md4_text:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"e33b4ddc9c38f2199c3e7b164fcc0536"
 
+MD4 context reuse
+md4_reuse:"41":"d5ef20eeb3f75679f86cf57f93ed0ffe":"42":"63f25285053ec0fc8109fabb069de17f"
+
 mbedtls_md5 Test vector RFC1321 #1
 md5_text:"":"d41d8cd98f00b204e9800998ecf8427e"
 
@@ -61,6 +67,9 @@ md5_text:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":"d174a
 
 mbedtls_md5 Test vector RFC1321 #7
 md5_text:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"57edf4a22be3c955ac49da2e2107b67a"
+
+MD5 context reuse
+md5_reuse:"41":"7fc56270e7a70fa81a5935b72eacbe29":"42":"9d5ed678fe57bcca610140957afab571"
 
 mbedtls_ripemd160 Test vector from paper #1
 ripemd160_text:"":"9c1185a5c5e9fc54612808977ee8f548b2258d31"
@@ -85,6 +94,9 @@ ripemd160_text:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":
 
 mbedtls_ripemd160 Test vector from paper #8
 ripemd160_text:"12345678901234567890123456789012345678901234567890123456789012345678901234567890":"9b752e45573d4b39f4dbd3323cab82bf63326bfb"
+
+RIPEMD160 context reuse
+ripemd160_reuse:"41":"ddadef707ba62c166051b9e3cd0294c27515f2bc":"42":"8a29274026e1ddfdc2f497325b8c29e2625cbfae"
 
 MD2 Selftest
 md2_selftest:

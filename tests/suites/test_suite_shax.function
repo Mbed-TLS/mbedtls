@@ -19,6 +19,35 @@ void mbedtls_sha1( data_t * src_str, data_t * hex_hash_string )
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SHA1_C */
+void sha1_reuse( data_t *input1, data_t *hash1,
+                 data_t *input2, data_t *hash2 )
+{
+    unsigned char output[20];
+    mbedtls_sha1_context ctx;
+
+    mbedtls_sha1_init( &ctx );
+    TEST_ASSERT( hash1->len == sizeof( output ) );
+
+    /* Round 1 */
+    TEST_ASSERT( mbedtls_sha1_starts_ret( &ctx ) == 0 );
+    TEST_ASSERT( mbedtls_sha1_update_ret( &ctx,
+                                          input1->x, input1->len ) == 0 );
+    TEST_ASSERT( mbedtls_sha1_finish_ret( &ctx, output ) == 0 );
+    TEST_ASSERT( memcmp( output, hash1->x, hash1->len ) == 0 );
+
+    /* Round 2 */
+    TEST_ASSERT( mbedtls_sha1_starts_ret( &ctx ) == 0 );
+    TEST_ASSERT( mbedtls_sha1_update_ret( &ctx,
+                                          input2->x, input2->len ) == 0 );
+    TEST_ASSERT( mbedtls_sha1_finish_ret( &ctx, output ) == 0 );
+    TEST_ASSERT( memcmp( output, hash2->x, hash2->len ) == 0 );
+
+exit:
+    mbedtls_sha1_free( &ctx );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
 void sha224( data_t * src_str, data_t * hex_hash_string )
 {
@@ -47,6 +76,38 @@ void mbedtls_sha256( data_t * src_str, data_t * hex_hash_string )
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+void sha256_reuse( data_t *input1, data_t *hash1,
+                   data_t *input2, data_t *hash2 )
+{
+    unsigned char output[32];
+    mbedtls_sha256_context ctx;
+    int is224_1 = hash1->len == 28;
+    int is224_2 = hash2->len == 28;
+
+    mbedtls_sha256_init( &ctx );
+    TEST_ASSERT( hash1->len == 28 || hash1->len == 32 );
+    TEST_ASSERT( hash2->len == 28 || hash2->len == 32 );
+
+    /* Round 1 */
+    TEST_ASSERT( mbedtls_sha256_starts_ret( &ctx, is224_1 ) == 0 );
+    TEST_ASSERT( mbedtls_sha256_update_ret( &ctx,
+                                            input1->x, input1->len ) == 0 );
+    TEST_ASSERT( mbedtls_sha256_finish_ret( &ctx, output ) == 0 );
+    TEST_ASSERT( memcmp( output, hash1->x, hash1->len ) == 0 );
+
+    /* Round 2 */
+    TEST_ASSERT( mbedtls_sha256_starts_ret( &ctx, is224_2 ) == 0 );
+    TEST_ASSERT( mbedtls_sha256_update_ret( &ctx,
+                                            input2->x, input2->len ) == 0 );
+    TEST_ASSERT( mbedtls_sha256_finish_ret( &ctx, output ) == 0 );
+    TEST_ASSERT( memcmp( output, hash2->x, hash2->len ) == 0 );
+
+exit:
+    mbedtls_sha256_free( &ctx );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SHA512_C */
 void sha384( data_t * src_str, data_t * hex_hash_string )
 {
@@ -72,6 +133,38 @@ void mbedtls_sha512( data_t * src_str, data_t * hex_hash_string )
     TEST_ASSERT( mbedtls_sha512_ret( src_str->x, src_str->len, output, 0 ) == 0 );
 
     TEST_ASSERT( hexcmp( output, hex_hash_string->x, 64, hex_hash_string->len ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SHA512_C */
+void sha512_reuse( data_t *input1, data_t *hash1,
+                   data_t *input2, data_t *hash2 )
+ {
+    unsigned char output[64];
+    mbedtls_sha512_context ctx;
+    int is384_1 = hash1->len == 48;
+    int is384_2 = hash2->len == 48;
+
+    mbedtls_sha512_init( &ctx );
+    TEST_ASSERT( hash1->len == 48 || hash1->len == 64 );
+    TEST_ASSERT( hash2->len == 48 || hash2->len == 64 );
+
+    /* Round 1 */
+    TEST_ASSERT( mbedtls_sha512_starts_ret( &ctx, is384_1 ) == 0 );
+    TEST_ASSERT( mbedtls_sha512_update_ret( &ctx,
+                                            input1->x, input1->len ) == 0 );
+    TEST_ASSERT( mbedtls_sha512_finish_ret( &ctx, output ) == 0 );
+    TEST_ASSERT( memcmp( output, hash1->x, hash1->len ) == 0 );
+
+    /* Round 2 */
+    TEST_ASSERT( mbedtls_sha512_starts_ret( &ctx, is384_2 ) == 0 );
+    TEST_ASSERT( mbedtls_sha512_update_ret( &ctx,
+                                            input2->x, input2->len ) == 0 );
+    TEST_ASSERT( mbedtls_sha512_finish_ret( &ctx, output ) == 0 );
+    TEST_ASSERT( memcmp( output, hash2->x, hash2->len ) == 0 );
+
+exit:
+    mbedtls_sha512_free( &ctx );
 }
 /* END_CASE */
 
@@ -130,6 +223,49 @@ void sha3_streaming( int type, data_t *input )
         mbedtls_sha3_free( &ctx );
         TEST_ASSERT( memcmp( hash, reference_hash, hash_length ) == 0 );
     }
+
+exit:
+    mbedtls_sha3_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SHA3_C */
+void sha3_reuse( data_t *input1, data_t *hash1,
+                 data_t *input2, data_t *hash2 )
+{
+    unsigned char output[64];
+    mbedtls_sha3_context ctx;
+    mbedtls_sha3_type_t type1, type2;
+
+    mbedtls_sha3_init( &ctx );
+    switch( hash1->len )
+    {
+        case 28: type1 = MBEDTLS_SHA3_224; break;
+        case 32: type1 = MBEDTLS_SHA3_256; break;
+        case 48: type1 = MBEDTLS_SHA3_384; break;
+        case 64: type1 = MBEDTLS_SHA3_512; break;
+        default: TEST_ASSERT( ! "hash1->len validity" ); break;
+    }
+    switch( hash2->len )
+    {
+        case 28: type2 = MBEDTLS_SHA3_224; break;
+        case 32: type2 = MBEDTLS_SHA3_256; break;
+        case 48: type2 = MBEDTLS_SHA3_384; break;
+        case 64: type2 = MBEDTLS_SHA3_512; break;
+        default: TEST_ASSERT( ! "hash2->len validity" ); break;
+    }
+
+    /* Round 1 */
+    TEST_ASSERT( mbedtls_sha3_starts( &ctx, type1 ) == 0 );
+    TEST_ASSERT( mbedtls_sha3_update( &ctx, input1->x, input1->len ) == 0 );
+    TEST_ASSERT( mbedtls_sha3_finish( &ctx, output ) == 0 );
+    TEST_ASSERT( memcmp( output, hash1->x, hash1->len ) == 0 );
+
+    /* Round 2 */
+    TEST_ASSERT( mbedtls_sha3_starts( &ctx, type2 ) == 0 );
+    TEST_ASSERT( mbedtls_sha3_update( &ctx, input2->x, input2->len ) == 0 );
+    TEST_ASSERT( mbedtls_sha3_finish( &ctx, output ) == 0 );
+    TEST_ASSERT( memcmp( output, hash2->x, hash2->len ) == 0 );
 
 exit:
     mbedtls_sha3_free( &ctx );

@@ -24,6 +24,33 @@ void md2_text( char * text_src_string, data_t * hex_hash_string )
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_MD2_C */
+void md2_reuse( data_t *input1, data_t *hash1,
+                data_t *input2, data_t *hash2 )
+{
+    unsigned char output[16];
+    mbedtls_md2_context ctx;
+
+    mbedtls_md2_init( &ctx );
+    TEST_ASSERT( hash1->len == sizeof( output ) );
+
+    /* Round 1 */
+    TEST_ASSERT( mbedtls_md2_starts_ret( &ctx ) == 0 );
+    TEST_ASSERT( mbedtls_md2_update_ret( &ctx, input1->x, input1->len ) == 0 );
+    TEST_ASSERT( mbedtls_md2_finish_ret( &ctx, output ) == 0 );
+    TEST_ASSERT( memcmp( output, hash1->x, hash1->len ) == 0 );
+
+    /* Round 2 */
+    TEST_ASSERT( mbedtls_md2_starts_ret( &ctx ) == 0 );
+    TEST_ASSERT( mbedtls_md2_update_ret( &ctx, input2->x, input2->len ) == 0 );
+    TEST_ASSERT( mbedtls_md2_finish_ret( &ctx, output ) == 0 );
+    TEST_ASSERT( memcmp( output, hash2->x, hash2->len ) == 0 );
+
+exit:
+    mbedtls_md2_free( &ctx );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_MD4_C */
 void md4_text( char * text_src_string, data_t * hex_hash_string )
 {
@@ -40,6 +67,33 @@ void md4_text( char * text_src_string, data_t * hex_hash_string )
     TEST_ASSERT( ret == 0 );
 
     TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof  output, hex_hash_string->len ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_MD4_C */
+void md4_reuse( data_t *input1, data_t *hash1,
+                data_t *input2, data_t *hash2 )
+{
+    unsigned char output[16];
+    mbedtls_md4_context ctx;
+
+    mbedtls_md4_init( &ctx );
+    TEST_ASSERT( hash1->len == sizeof( output ) );
+
+    /* Round 1 */
+    TEST_ASSERT( mbedtls_md4_starts_ret( &ctx ) == 0 );
+    TEST_ASSERT( mbedtls_md4_update_ret( &ctx, input1->x, input1->len ) == 0 );
+    TEST_ASSERT( mbedtls_md4_finish_ret( &ctx, output ) == 0 );
+    TEST_ASSERT( memcmp( output, hash1->x, hash1->len ) == 0 );
+
+    /* Round 2 */
+    TEST_ASSERT( mbedtls_md4_starts_ret( &ctx ) == 0 );
+    TEST_ASSERT( mbedtls_md4_update_ret( &ctx, input2->x, input2->len ) == 0 );
+    TEST_ASSERT( mbedtls_md4_finish_ret( &ctx, output ) == 0 );
+    TEST_ASSERT( memcmp( output, hash2->x, hash2->len ) == 0 );
+
+exit:
+    mbedtls_md4_free( &ctx );
 }
 /* END_CASE */
 
@@ -62,6 +116,33 @@ void md5_text( char * text_src_string, data_t * hex_hash_string )
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_MD5_C */
+void md5_reuse( data_t *input1, data_t *hash1,
+                data_t *input2, data_t *hash2 )
+{
+    unsigned char output[16];
+    mbedtls_md5_context ctx;
+
+    mbedtls_md5_init( &ctx );
+    TEST_ASSERT( hash1->len == sizeof( output ) );
+
+    /* Round 1 */
+    TEST_ASSERT( mbedtls_md5_starts_ret( &ctx ) == 0 );
+    TEST_ASSERT( mbedtls_md5_update_ret( &ctx, input1->x, input1->len ) == 0 );
+    TEST_ASSERT( mbedtls_md5_finish_ret( &ctx, output ) == 0 );
+    TEST_ASSERT( memcmp( output, hash1->x, hash1->len ) == 0 );
+
+    /* Round 2 */
+    TEST_ASSERT( mbedtls_md5_starts_ret( &ctx ) == 0 );
+    TEST_ASSERT( mbedtls_md5_update_ret( &ctx, input2->x, input2->len ) == 0 );
+    TEST_ASSERT( mbedtls_md5_finish_ret( &ctx, output ) == 0 );
+    TEST_ASSERT( memcmp( output, hash2->x, hash2->len ) == 0 );
+
+exit:
+    mbedtls_md5_free( &ctx );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_RIPEMD160_C */
 void ripemd160_text( char * text_src_string, data_t * hex_hash_string )
 {
@@ -78,6 +159,37 @@ void ripemd160_text( char * text_src_string, data_t * hex_hash_string )
     TEST_ASSERT( ret == 0 );
 
     TEST_ASSERT( hexcmp( output, hex_hash_string->x, sizeof output, hex_hash_string->len ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_RIPEMD160_C */
+void ripemd160_reuse( data_t *input1, data_t *hash1,
+                      data_t *input2, data_t *hash2 )
+{
+    unsigned char output[20];
+    mbedtls_ripemd160_context ctx;
+
+    mbedtls_ripemd160_init( &ctx );
+    TEST_ASSERT( hash1->len == sizeof( output ) );
+
+    /* Round 1 */
+    TEST_ASSERT( mbedtls_ripemd160_starts_ret( &ctx ) == 0 );
+    TEST_ASSERT( mbedtls_ripemd160_update_ret( &ctx,
+                                               input1->x,
+                                               input1->len ) == 0 );
+    TEST_ASSERT( mbedtls_ripemd160_finish_ret( &ctx, output ) == 0 );
+    TEST_ASSERT( memcmp( output, hash1->x, hash1->len ) == 0 );
+
+    /* Round 2 */
+    TEST_ASSERT( mbedtls_ripemd160_starts_ret( &ctx ) == 0 );
+    TEST_ASSERT( mbedtls_ripemd160_update_ret( &ctx,
+                                               input2->x,
+                                               input2->len ) == 0 );
+    TEST_ASSERT( mbedtls_ripemd160_finish_ret( &ctx, output ) == 0 );
+    TEST_ASSERT( memcmp( output, hash2->x, hash2->len ) == 0 );
+
+exit:
+    mbedtls_ripemd160_free( &ctx );
 }
 /* END_CASE */
 

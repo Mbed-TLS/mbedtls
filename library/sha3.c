@@ -1266,7 +1266,7 @@ cleanup:
 
 /**************** Self-tests ****************/
 
-#ifdef MBEDTLS_SELF_TEST
+#if defined(MBEDTLS_SELF_TEST)
 
 static const unsigned char test_data[2][4] =
 {

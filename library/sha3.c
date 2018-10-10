@@ -961,11 +961,6 @@ static int mbedtls_keccak_sponge_process( mbedtls_keccak_sponge_context *ctx,
     return( 0 );
 }
 
-static int mbedtls_convert_sponge_result( int ret )
-{
-    return( ret );
-}
-
 
 
 /**************** SHA-3 hash functions ****************/
@@ -998,95 +993,60 @@ void mbedtls_sha3_clone( mbedtls_sha3_context *dst,
 
 int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_type_t type )
 {
-    int sponge_ret;
-
+    unsigned bits;
     if( ctx == NULL )
-    {
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    }
 
     switch( type )
     {
         case MBEDTLS_SHA3_224:
-            ctx->digest_size = 224 / 8;
-            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - ( 28 * 2 );
-            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
-                                                       224 * 2, 0x02U, 2 );
+            bits = 224;
             break;
-
         case MBEDTLS_SHA3_256:
-            ctx->digest_size = 256 / 8;
-            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - ( 32 * 2 );
-            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
-                                                       256 * 2, 0x02U, 2 );
+            bits = 256;
             break;
-
         case MBEDTLS_SHA3_384:
-            ctx->digest_size = 384 / 8;
-            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - ( 48 * 2 );
-            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
-                                                       384 * 2, 0x02U, 2 );
-
+            bits = 384;
             break;
         case MBEDTLS_SHA3_512:
-            ctx->digest_size = 512 / 8;
-            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - ( 64 * 2 );
-            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
-                                                       512 * 2, 0x02U, 2 );
+            bits = 512;
             break;
-
         default:
             return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
     }
 
-    return( mbedtls_convert_sponge_result( sponge_ret ) );
+    ctx->digest_size = bits / 8;
+    ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - ( ctx->digest_size * 2 );
+    return( mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
+                                          bits * 2, 0x02U, 2 ) );
 }
 
 int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
                          const unsigned char* input,
                          size_t size )
 {
-    int sponge_ret;
-
     if( ctx == NULL )
-    {
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    }
-
-    sponge_ret = mbedtls_keccak_sponge_absorb( &ctx->sponge_ctx, input, size );
-
-    return( mbedtls_convert_sponge_result( sponge_ret ) );
+    return( mbedtls_keccak_sponge_absorb( &ctx->sponge_ctx, input, size ) );
 }
 
 int mbedtls_sha3_finish( mbedtls_sha3_context *ctx, unsigned char* output )
 {
-    int sponge_ret;
-
+    int ret;
     if( ctx == NULL || output == NULL )
-    {
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    }
-
-    sponge_ret = mbedtls_keccak_sponge_squeeze( &ctx->sponge_ctx,
-                                                output, ctx->digest_size );
+    ret = mbedtls_keccak_sponge_squeeze( &ctx->sponge_ctx,
+                                         output, ctx->digest_size );
     mbedtls_keccak_sponge_free( &ctx->sponge_ctx );
-
-    return( mbedtls_convert_sponge_result( sponge_ret ) );
+    return( ret );
 }
 
 int mbedtls_sha3_process( mbedtls_sha3_context *ctx,
                           const unsigned char* input )
 {
-    int sponge_ret;
-
     if( ctx == NULL || input == NULL )
-    {
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    }
-
-    sponge_ret = mbedtls_keccak_sponge_process( &ctx->sponge_ctx, input );
-
-    return( mbedtls_convert_sponge_result( sponge_ret ) );
+    return( mbedtls_keccak_sponge_process( &ctx->sponge_ctx, input ) );
 }
 
 
@@ -1096,17 +1056,13 @@ int mbedtls_sha3_process( mbedtls_sha3_context *ctx,
 void mbedtls_shake_init( mbedtls_shake_context *ctx )
 {
     if( ctx != NULL )
-    {
         mbedtls_keccak_sponge_init( &ctx->sponge_ctx );
-    }
 }
 
 void mbedtls_shake_free( mbedtls_shake_context *ctx )
 {
     if( ctx != NULL )
-    {
         mbedtls_keccak_sponge_free( &ctx->sponge_ctx );
-    }
 }
 
 void mbedtls_shake_clone( mbedtls_shake_context *dst,
@@ -1118,82 +1074,54 @@ void mbedtls_shake_clone( mbedtls_shake_context *dst,
 int mbedtls_shake_starts( mbedtls_shake_context *ctx,
                           mbedtls_shake_type_t type )
 {
-    int sponge_ret;
-
+    unsigned bits;
     if( ctx == NULL )
-    {
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    }
 
     switch( type )
     {
         case MBEDTLS_SHAKE128:
-            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - 32;
-            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
-                                                       256, 0x0FU, 4 );
+            bits = 128;
             break;
-
         case MBEDTLS_SHAKE256:
-            ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - 64;
-            sponge_ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
-                                                       512, 0x0FU, 4 );
+            bits = 256;
             break;
-
         default:
             return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
     }
 
-    return( mbedtls_convert_sponge_result( sponge_ret ) );
+    ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - bits / 4;
+    return( mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
+                                          bits * 2, 0x0FU, 4 ) );
 }
 
 int mbedtls_shake_update( mbedtls_shake_context *ctx,
                           const unsigned char* input,
                           size_t size )
 {
-    int sponge_ret;
-
     if( ctx == NULL )
-    {
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    }
-
-    sponge_ret = mbedtls_keccak_sponge_absorb( &ctx->sponge_ctx,
-                                               input, size );
-
-    return( mbedtls_convert_sponge_result( sponge_ret ) );
+    return( mbedtls_keccak_sponge_absorb( &ctx->sponge_ctx, input, size ) );
 }
 
 int mbedtls_shake_output( mbedtls_shake_context *ctx,
                           unsigned char* output,
                           size_t olen )
 {
-    int sponge_ret;
-
     if( ctx == NULL || output == NULL )
-    {
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    }
-
-    sponge_ret = mbedtls_keccak_sponge_squeeze( &ctx->sponge_ctx,
-                                                output, olen );
-
-    return( mbedtls_convert_sponge_result( sponge_ret ) );
+    return( mbedtls_keccak_sponge_squeeze( &ctx->sponge_ctx, output, olen ) );
 }
 
 int mbedtls_shake_process( mbedtls_shake_context *ctx,
                            const unsigned char* input )
 {
-    int sponge_ret;
-
     if( ctx == NULL || input == NULL )
-    {
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    }
-
-    sponge_ret = mbedtls_keccak_sponge_process( &ctx->sponge_ctx, input );
-
-    return( mbedtls_convert_sponge_result( sponge_ret ) );
+    return( mbedtls_keccak_sponge_process( &ctx->sponge_ctx, input ) );
 }
+
+
 
 
 

@@ -363,12 +363,12 @@ static void mbedtls_keccakf_permute( mbedtls_keccakf_context *ctx )
  */
 static void mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
                                         const unsigned char *data,
-                                        size_t size_bits )
+                                        unsigned size_bits )
 {
-    size_t x = 0;
-    size_t y = 0;
-    size_t remaining_bits = size_bits;
-    size_t data_offset = 0;
+    unsigned char x = 0;
+    unsigned char y = 0;
+    unsigned remaining_bits = size_bits;
+    unsigned data_offset = 0;
 
     /* process whole lanes */
     while( remaining_bits >= 64 )
@@ -396,7 +396,7 @@ static void mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
     if( remaining_bits > 0 )
     {
         uint64_t lane = ctx->state[x][y];
-        uint64_t shift = 0;
+        unsigned char shift = 0;
 
         /* whole bytes */
         while( remaining_bits >= 8 )
@@ -434,15 +434,15 @@ static void mbedtls_keccakf_xor_binary( mbedtls_keccakf_context *ctx,
  *
  * \pre size <= KECCAKF_STATE_SIZE_BYTES
  */
-static void mbedtls_keccakf_read_binary( mbedtls_keccakf_context *ctx,
+static void mbedtls_keccakf_read_binary( const mbedtls_keccakf_context *ctx,
                                          unsigned char *data,
-                                         size_t size )
+                                         unsigned size )
 {
-    size_t x = 0;
-    size_t y = 0;
-    size_t i;
-    size_t remaining_bytes = size;
-    size_t data_offset = 0;
+    unsigned char x = 0;
+    unsigned char y = 0;
+    unsigned i;
+    unsigned remaining_bytes = size;
+    unsigned data_offset = 0;
 
     /* process whole lanes */
     while( remaining_bytes >= 8 )
@@ -538,7 +538,7 @@ static void mbedtls_keccak_sponge_absorb_suffix(
 static void mbedtls_keccak_sponge_finalize(
     mbedtls_keccak_sponge_context *ctx )
 {
-    size_t bits_free_in_queue;
+    unsigned bits_free_in_queue;
 
     mbedtls_keccak_sponge_absorb_suffix( ctx );
 

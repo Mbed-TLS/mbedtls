@@ -5960,6 +5960,7 @@ run_test    "DTLS fragmenting: both (MTU=1024)" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+# Forcing ciphersuite for this test to fit the MTU of 512 with full config.
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -5986,6 +5987,7 @@ run_test    "DTLS fragmenting: both (MTU=512)" \
             -C "error"
 
 # Test for automatic MTU reduction on repeated resend.
+# Forcing ciphersuite for this test to fit the MTU of 508 with full config.
 # The ratio of max/min timeout should ideally equal 4 to accept two
 # retransmissions, but in some cases (like both the server and client using
 # fragmentation and auto-reduction) an extra retransmission might occur,
@@ -6013,6 +6015,7 @@ run_test    "DTLS fragmenting: proxy MTU: auto-reduction" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+# Forcing ciphersuite for this test to fit the MTU of 508 with full config.
 only_with_valgrind
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
@@ -6061,6 +6064,7 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake (MTU=1024)" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+# Forcing ciphersuite for this test to fit the MTU of 512 with full config.
 # the proxy shouldn't drop or mess up anything, so we shouldn't need to resend
 # OTOH the client might resend if the server is to slow to reset after sending
 # a HelloVerifyRequest, so only check for no retransmission server-side
@@ -6112,6 +6116,7 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio (MTU=1024)" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+# Forcing ciphersuite for this test to fit the MTU of 512 with full config.
 not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
@@ -6138,6 +6143,7 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio (MTU=512)" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+# Forcing ciphersuite for this test to fit the MTU of 1450 with full config.
 # This ensures things still work after session_reset().
 # It also exercises the "resumed handshake" flow.
 # Since we don't support reading fragmented ClientHello yet,
@@ -6333,6 +6339,7 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CBC non-EtM renego" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+# Forcing ciphersuite for this test to fit the MTU of 512 with full config.
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -6356,6 +6363,7 @@ run_test    "DTLS fragmenting: proxy MTU + 3d" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+# Forcing ciphersuite for this test to fit the MTU of 512 with full config.
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C

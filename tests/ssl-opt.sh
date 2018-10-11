@@ -5943,7 +5943,7 @@ run_test    "DTLS fragmenting: server (MTU)" \
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
-run_test    "DTLS fragmenting: both (MTU)" \
+run_test    "DTLS fragmenting: both (MTU=1024)" \
             -p "$P_PXY mtu=1024" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
@@ -5960,21 +5960,54 @@ run_test    "DTLS fragmenting: both (MTU)" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
-# Test for automatic MTU reduction on repeated resend
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SHA256_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
+requires_config_enabled MBEDTLS_AES_C
+requires_config_enabled MBEDTLS_GCM_C
+run_test    "DTLS fragmenting: both (MTU=512)" \
+            -p "$P_PXY mtu=512" \
+            "$P_SRV dtls=1 debug_level=2 auth_mode=required \
+             crt_file=data_files/server7_int-ca.crt \
+             key_file=data_files/server7.key \
+             hs_timeout=2500-60000 \
+             mtu=512" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=data_files/server8_int-ca2.crt \
+             key_file=data_files/server8.key \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             hs_timeout=2500-60000 \
+             mtu=512" \
+            0 \
+            -s "found fragmented DTLS handshake message" \
+            -c "found fragmented DTLS handshake message" \
+            -C "error"
+
+# Test for automatic MTU reduction on repeated resend.
+# The ratio of max/min timeout should ideally equal 4 to accept two
+# retransmissions, but in some cases (like both the server and client using
+# fragmentation and auto-reduction) an extra retransmission might occur,
+# hence the ratio of 8.
 not_with_valgrind
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
+requires_config_enabled MBEDTLS_AES_C
+requires_config_enabled MBEDTLS_GCM_C
 run_test    "DTLS fragmenting: proxy MTU: auto-reduction" \
-            -p "$P_PXY mtu=1024" \
+            -p "$P_PXY mtu=508" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
-             key_file=data_files/server7.key\
-             hs_timeout=100-10000" \
+             key_file=data_files/server7.key \
+             hs_timeout=400-3200" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             hs_timeout=100-10000" \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             hs_timeout=400-3200" \
             0 \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
@@ -5984,15 +6017,19 @@ only_with_valgrind
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
+requires_config_enabled MBEDTLS_AES_C
+requires_config_enabled MBEDTLS_GCM_C
 run_test    "DTLS fragmenting: proxy MTU: auto-reduction" \
             -p "$P_PXY mtu=508" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
-             key_file=data_files/server7.key\
+             key_file=data_files/server7.key \
              hs_timeout=250-10000" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              hs_timeout=250-10000" \
             0 \
             -s "found fragmented DTLS handshake message" \
@@ -6006,7 +6043,7 @@ not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
-run_test    "DTLS fragmenting: proxy MTU, simple handshake" \
+run_test    "DTLS fragmenting: proxy MTU, simple handshake (MTU=1024)" \
             -p "$P_PXY mtu=1024" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
@@ -6024,22 +6061,77 @@ run_test    "DTLS fragmenting: proxy MTU, simple handshake" \
             -c "found fragmented DTLS handshake message" \
             -C "error"
 
+# the proxy shouldn't drop or mess up anything, so we shouldn't need to resend
+# OTOH the client might resend if the server is to slow to reset after sending
+# a HelloVerifyRequest, so only check for no retransmission server-side
 not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
-run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio" \
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
+requires_config_enabled MBEDTLS_AES_C
+requires_config_enabled MBEDTLS_GCM_C
+run_test    "DTLS fragmenting: proxy MTU, simple handshake (MTU=512)" \
+            -p "$P_PXY mtu=512" \
+            "$P_SRV dtls=1 debug_level=2 auth_mode=required \
+             crt_file=data_files/server7_int-ca.crt \
+             key_file=data_files/server7.key \
+             hs_timeout=10000-60000 \
+             mtu=512" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=data_files/server8_int-ca2.crt \
+             key_file=data_files/server8.key \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             hs_timeout=10000-60000 \
+             mtu=512" \
+            0 \
+            -S "autoreduction" \
+            -s "found fragmented DTLS handshake message" \
+            -c "found fragmented DTLS handshake message" \
+            -C "error"
+
+not_with_valgrind # spurious autoreduction due to timeout
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio (MTU=1024)" \
             -p "$P_PXY mtu=1024" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
-             mtu=1024 nbio=2 \
-             hs_timeout=15000-60000" \
+             hs_timeout=10000-60000 \
+             mtu=1024 nbio=2" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             mtu=1024 nbio=2 \
-             hs_timeout=15000-60000" \
+             hs_timeout=10000-60000 \
+             mtu=1024 nbio=2" \
+            0 \
+            -S "autoreduction" \
+            -s "found fragmented DTLS handshake message" \
+            -c "found fragmented DTLS handshake message" \
+            -C "error"
+
+not_with_valgrind # spurious autoreduction due to timeout
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
+requires_config_enabled MBEDTLS_AES_C
+requires_config_enabled MBEDTLS_GCM_C
+run_test    "DTLS fragmenting: proxy MTU, simple handshake, nbio (MTU=512)" \
+            -p "$P_PXY mtu=512" \
+            "$P_SRV dtls=1 debug_level=2 auth_mode=required \
+             crt_file=data_files/server7_int-ca.crt \
+             key_file=data_files/server7.key \
+             hs_timeout=10000-60000 \
+             mtu=512 nbio=2" \
+            "$P_CLI dtls=1 debug_level=2 \
+             crt_file=data_files/server8_int-ca2.crt \
+             key_file=data_files/server8.key \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             hs_timeout=10000-60000 \
+             mtu=512 nbio=2" \
             0 \
             -S "autoreduction" \
             -s "found fragmented DTLS handshake message" \
@@ -6059,18 +6151,22 @@ not_with_valgrind # spurious autoreduction due to timeout
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
+requires_config_enabled MBEDTLS_AES_C
+requires_config_enabled MBEDTLS_GCM_C
 run_test    "DTLS fragmenting: proxy MTU, resumed handshake" \
-            -p "$P_PXY mtu=1650" \
+            -p "$P_PXY mtu=1450" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
              hs_timeout=10000-60000 \
-             mtu=1650" \
+             mtu=1450" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
              hs_timeout=10000-60000 \
-             mtu=1650 reconnect=1 reco_delay=1" \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             mtu=1450 reconnect=1 reco_delay=1" \
             0 \
             -S "autoreduction" \
             -s "found fragmented DTLS handshake message" \
@@ -6088,20 +6184,20 @@ requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
 requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_CHACHAPOLY_C
 run_test    "DTLS fragmenting: proxy MTU, ChachaPoly renego" \
-            -p "$P_PXY mtu=1024" \
+            -p "$P_PXY mtu=512" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
              exchanges=2 renegotiation=1 \
-             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-CHACHA20-POLY1305-SHA256 \
              hs_timeout=10000-60000 \
-             mtu=1024" \
+             mtu=512" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
              exchanges=2 renegotiation=1 renegotiate=1 \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              hs_timeout=10000-60000 \
-             mtu=1024" \
+             mtu=512" \
             0 \
             -S "autoreduction" \
             -s "found fragmented DTLS handshake message" \
@@ -6120,20 +6216,20 @@ requires_config_enabled MBEDTLS_SSL_RENEGOTIATION
 requires_config_enabled MBEDTLS_AES_C
 requires_config_enabled MBEDTLS_GCM_C
 run_test    "DTLS fragmenting: proxy MTU, AES-GCM renego" \
-            -p "$P_PXY mtu=1024" \
+            -p "$P_PXY mtu=512" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
              exchanges=2 renegotiation=1 \
-             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              hs_timeout=10000-60000 \
-             mtu=1024" \
+             mtu=512" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
              exchanges=2 renegotiation=1 renegotiate=1 \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
              hs_timeout=10000-60000 \
-             mtu=1024" \
+             mtu=512" \
             0 \
             -S "autoreduction" \
             -s "found fragmented DTLS handshake message" \
@@ -6240,17 +6336,21 @@ run_test    "DTLS fragmenting: proxy MTU, AES-CBC non-EtM renego" \
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
+requires_config_enabled MBEDTLS_AES_C
+requires_config_enabled MBEDTLS_GCM_C
 client_needs_more_time 2
 run_test    "DTLS fragmenting: proxy MTU + 3d" \
-            -p "$P_PXY mtu=1024 drop=8 delay=8 duplicate=8" \
+            -p "$P_PXY mtu=512 drop=8 delay=8 duplicate=8" \
             "$P_SRV dgram_packing=0 dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
-             hs_timeout=250-10000 mtu=1024" \
+             hs_timeout=250-10000 mtu=512" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             hs_timeout=250-10000 mtu=1024" \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             hs_timeout=250-10000 mtu=512" \
             0 \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \
@@ -6259,17 +6359,21 @@ run_test    "DTLS fragmenting: proxy MTU + 3d" \
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA
+requires_config_enabled MBEDTLS_AES_C
+requires_config_enabled MBEDTLS_GCM_C
 client_needs_more_time 2
 run_test    "DTLS fragmenting: proxy MTU + 3d, nbio" \
-            -p "$P_PXY mtu=1024 drop=8 delay=8 duplicate=8" \
+            -p "$P_PXY mtu=512 drop=8 delay=8 duplicate=8" \
             "$P_SRV dtls=1 debug_level=2 auth_mode=required \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
-             hs_timeout=250-10000 mtu=1024 nbio=2" \
+             hs_timeout=250-10000 mtu=512 nbio=2" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
-             hs_timeout=250-10000 mtu=1024 nbio=2" \
+             force_ciphersuite=TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256 \
+             hs_timeout=250-10000 mtu=512 nbio=2" \
             0 \
             -s "found fragmented DTLS handshake message" \
             -c "found fragmented DTLS handshake message" \

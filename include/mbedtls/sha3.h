@@ -118,8 +118,6 @@ mbedtls_keccak_sponge_context;
 typedef struct
 {
     mbedtls_keccak_sponge_context sponge_ctx;
-    unsigned char digest_size; /* digest size in bytes */
-    unsigned char block_size;  /* block size in bytes */
 }
 mbedtls_sha3_context;
 
@@ -135,7 +133,6 @@ mbedtls_sha3_context;
 typedef struct
 {
     mbedtls_keccak_sponge_context sponge_ctx;
-    size_t block_size;  /* block size in bytes */
 }
 mbedtls_shake_context;
 

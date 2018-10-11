@@ -970,7 +970,6 @@ void mbedtls_sha3_init( mbedtls_sha3_context *ctx )
     if( ctx != NULL )
     {
         mbedtls_keccak_sponge_init( &ctx->sponge_ctx );
-        ctx->digest_size = 0;
     }
 }
 
@@ -979,7 +978,6 @@ void mbedtls_sha3_free( mbedtls_sha3_context *ctx )
     if( ctx != NULL )
     {
         mbedtls_keccak_sponge_free( &ctx->sponge_ctx );
-        ctx->digest_size = 0;
     }
 }
 
@@ -987,8 +985,6 @@ void mbedtls_sha3_clone( mbedtls_sha3_context *dst,
                          const mbedtls_sha3_context *src )
 {
     mbedtls_keccak_sponge_clone( &dst->sponge_ctx, &src->sponge_ctx );
-    dst->digest_size = src->digest_size;
-    dst->block_size  = src->block_size;
 }
 
 int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_type_t type )
@@ -1015,8 +1011,6 @@ int mbedtls_sha3_starts( mbedtls_sha3_context *ctx, mbedtls_sha3_type_t type )
             return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
     }
 
-    ctx->digest_size = bits / 8;
-    ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - ( ctx->digest_size * 2 );
     return( mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
                                           bits * 2, 0x02U, 2 ) );
 }
@@ -1033,10 +1027,12 @@ int mbedtls_sha3_update( mbedtls_sha3_context *ctx,
 int mbedtls_sha3_finish( mbedtls_sha3_context *ctx, unsigned char* output )
 {
     int ret;
+    unsigned short capacity;
     if( ctx == NULL || output == NULL )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+    capacity = KECCAKF_STATE_SIZE_BITS - ctx->sponge_ctx.rate;
     ret = mbedtls_keccak_sponge_squeeze( &ctx->sponge_ctx,
-                                         output, ctx->digest_size );
+                                         output, capacity / 16 );
     mbedtls_keccak_sponge_free( &ctx->sponge_ctx );
     return( ret );
 }
@@ -1090,7 +1086,6 @@ int mbedtls_shake_starts( mbedtls_shake_context *ctx,
             return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
     }
 
-    ctx->block_size  = KECCAKF_STATE_SIZE_BYTES - bits / 4;
     return( mbedtls_keccak_sponge_starts( &ctx->sponge_ctx,
                                           bits * 2, 0x0FU, 4 ) );
 }

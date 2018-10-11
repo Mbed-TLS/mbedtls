@@ -172,6 +172,46 @@ void mbedtls_aes_xts_free( mbedtls_aes_xts_context *ctx );
 int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keybits );
 
+
+#if defined(MBEDTLS_CIPHER_HASH)
+/**
+ * \brief          This optional function sets the encryption key and
+ *                 hash function for crypt-and-hash.
+ *
+ * \param ctx               The AES context to which the key should be bound.
+ * \param key               The encryption key.
+ * \param keybits           The size of data passed in bits. Valid options are:
+ *                          <ul><li>128 bits</li>
+ *                          <li>192 bits</li>
+ *                          <li>256 bits</li></ul>
+ * \param md_info           hash to use for the crypt-and-hash
+ * \param hash_of_plaintext determines whether to hash plaintext or ciphertext.
+ *                          if 0 ciphertext will be hashed otherwise plaintext will be.
+ * \param is_enc_mode       1 in case opration is ecrypt, 0 if it is decrypt
+ *                          required as AES-CRT always calls setkey_enc
+ *
+ * \return         \c 0 on success.
+ * \return         #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH on failure.
+ */
+int mbedtls_aes_setkey_enc_and_hash( mbedtls_aes_context *ctx,
+                                     const unsigned char *key,
+                                     unsigned int keybits,
+                                     const mbedtls_md_info_t *md_info,
+                                     int hash_of_plaintext,
+                                     int is_enc_mode);
+
+/**
+ * \brief          This optional function returns the hash values computed for
+ *                 for crypt-and-hash operations. Should only be called after
+ *                 completing the crypt operation.
+ *
+ * \param ctx               The AES context which was used for crypt-and-hash.
+ * \param output            buffer for hash output.
+ *
+ * \return         \c 0 on success.
+ */
+int mbedtls_aes_get_hash( mbedtls_aes_context *ctx, unsigned char *output );
+#endif //MBEDTLS_CIPHER_HASH
 /**
  * \brief          This function sets the decryption key.
  *
@@ -187,7 +227,30 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
  */
 int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
                     unsigned int keybits );
-
+#if defined(MBEDTLS_CIPHER_HASH)
+/**
+ * \brief          This optional function sets the encryption key and
+ *                 hash function for crypt-and-hash.
+ *
+ * \param ctx               The AES context to which the key should be bound.
+ * \param key               The encryption key.
+ * \param keybits           The size of data passed in bits. Valid options are:
+ *                          <ul><li>128 bits</li>
+ *                          <li>192 bits</li>
+ *                          <li>256 bits</li></ul>
+ * \param md_info           hash to use for the crypt-and-hash
+ * \param hash_of_plaintext determines whether to hash plaintext or ciphertext.
+ *                          if 0 ciphertext will be hashed otherwise plaintext will be.
+ *
+ * \return         \c 0 on success.
+ * \return         #MBEDTLS_ERR_AES_INVALID_KEY_LENGTH on failure.
+ */
+int mbedtls_aes_setkey_dec_and_hash( mbedtls_aes_context *ctx,
+                                     const unsigned char *key,
+                                     unsigned int keybits,
+                                     const mbedtls_md_info_t *md_info,
+                                     int hash_of_plaintext);
+#endif //MBEDTLS_CIPHER_HASH
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
 /**
  * \brief          This function prepares an XTS context for encryption and

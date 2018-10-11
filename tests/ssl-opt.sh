@@ -5964,7 +5964,7 @@ run_test    "DTLS fragmenting: both (MTU=1024)" \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
              hs_timeout=2500-60000 \
-             mtu=512" \
+             mtu=1024" \
             "$P_CLI dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \

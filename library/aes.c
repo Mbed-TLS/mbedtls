@@ -1146,7 +1146,7 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
     if( length < 16 )
         return MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH;
 
-    /* NIST SP 80-38E disallows data units larger than 2**20 blocks. */
+    /* NIST SP 800-38E disallows data units larger than 2**20 blocks. */
     if( length > ( 1 << 20 ) * 16 )
         return MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH;
 

@@ -7,6 +7,10 @@ Bugfix
       MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
     * Fix a bug in the update function for SSL ticket keys which previously
       invalidated keys of a lifetime of less than a 1s. Fixes #1968.
+    * Fix compilation failure for configurations which use compile time
+      replacements of standard calloc/free functions through the macros
+      MBEDTLS_PLATFORM_CALLOC_MACRO and MBEDTLS_PLATFORM_FREE_MACRO.
+      Reported by ole-de and ddhome2006. Fixes #882, #1642 and #1706.
 
 Changes
    * Add tests for session resumption in DTLS.

@@ -2909,6 +2909,9 @@
  * \{
  */
 
+/* Crypt and Hash option */
+//#define MBEDTLS_CIPHER_HASH              /**< Enable crypt and hash. */
+
 /* MPI / BIGNUM options */
 //#define MBEDTLS_MPI_WINDOW_SIZE            6 /**< Maximum windows size used. */
 //#define MBEDTLS_MPI_MAX_SIZE            1024 /**< Maximum number of bytes for usable MPIs. */

@@ -50,6 +50,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#if defined(MBEDTLS_CIPHER_HASH)
+#include "md.h"
+#endif
+
 /* padlock.c and aesni.c rely on these values! */
 #define MBEDTLS_AES_ENCRYPT     1 /**< AES encryption. */
 #define MBEDTLS_AES_DECRYPT     0 /**< AES decryption. */
@@ -91,6 +95,11 @@ typedef struct mbedtls_aes_context
                                      <li>Simplifying key expansion in the 256-bit
                                          case by generating an extra round key.
                                          </li></ul> */
+#if defined(MBEDTLS_CIPHER_HASH)
+    mbedtls_md_context_t *md_ctx;
+    int hash_of_plaintext;
+    int is_enc_mode;
+#endif
 }
 mbedtls_aes_context;
 

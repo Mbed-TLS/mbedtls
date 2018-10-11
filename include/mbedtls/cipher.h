@@ -37,6 +37,10 @@
 
 #include <stddef.h>
 
+#if defined(MBEDTLS_CIPHER_HASH)
+#include "md.h"
+#endif
+
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
 #define MBEDTLS_CIPHER_MODE_AEAD
 #endif
@@ -290,6 +294,11 @@ typedef struct mbedtls_cipher_context_t
      * initialized for.
      */
     mbedtls_operation_t operation;
+
+#if defined(MBEDTLS_CIPHER_HASH)
+    const mbedtls_md_info_t *md_info;
+    int hash_of_plaintext;
+#endif
 
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
     /** Padding functions to use, if relevant for

@@ -5551,21 +5551,21 @@ run_test    "DTLS cookie: enabled, nbio" \
 
 # Tests for client reconnecting from the same port with DTLS
 
-not_with_valgrind # spurious autoreduction
+not_with_valgrind # spurious resend
 run_test    "DTLS client reconnect from same port: reference" \
             "$P_SRV dtls=1 exchanges=2 read_timeout=1000" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000" \
             0 \
-            -C "autoreduction" \
+            -C "resend" \
             -S "The operation timed out" \
             -S "Client initiated reconnection from same port"
 
-not_with_valgrind # spurious autoreduction
+not_with_valgrind # spurious resend
 run_test    "DTLS client reconnect from same port: reconnect" \
             "$P_SRV dtls=1 exchanges=2 read_timeout=1000" \
             "$P_CLI dtls=1 exchanges=2 debug_level=2 hs_timeout=500-1000 reconnect_hard=1" \
             0 \
-            -C "autoreduction" \
+            -C "resend" \
             -S "The operation timed out" \
             -s "Client initiated reconnection from same port"
 
@@ -6659,7 +6659,7 @@ run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.0" \
 
 # Tests for specific things with "unreliable" UDP connection
 
-not_with_valgrind # spurious autoreduction due to timeout
+not_with_valgrind # spurious resend due to timeout
 run_test    "DTLS proxy: reference" \
             -p "$P_PXY" \
             "$P_SRV dtls=1 debug_level=2" \
@@ -6671,11 +6671,11 @@ run_test    "DTLS proxy: reference" \
             -S "record from another epoch" \
             -C "discarding invalid record" \
             -S "discarding invalid record" \
-            -S "autoreduction" \
+            -S "resend" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
-not_with_valgrind # spurious autoreduction due to timeout
+not_with_valgrind # spurious resend due to timeout
 run_test    "DTLS proxy: duplicate every packet" \
             -p "$P_PXY duplicate=1" \
             "$P_SRV dtls=1 dgram_packing=0 debug_level=2" \
@@ -6685,7 +6685,7 @@ run_test    "DTLS proxy: duplicate every packet" \
             -s "replayed record" \
             -c "record from another epoch" \
             -s "record from another epoch" \
-            -S "autoreduction" \
+            -S "resend" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 

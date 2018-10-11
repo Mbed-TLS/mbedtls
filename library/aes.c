@@ -1142,7 +1142,7 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
     unsigned char prev_tweak[16];
     unsigned char tmp[16];
 
-    /* Sectors must be at least 16 bytes. */
+    /* Data units must be at least 16 bytes long. */
     if( length < 16 )
         return MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH;
 

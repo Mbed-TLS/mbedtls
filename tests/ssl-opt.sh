@@ -262,6 +262,21 @@ requires_ipv6() {
     fi
 }
 
+# skip next test if it's i686 or uname is not available
+requires_not_i686() {
+    if [ -z "${IS_I686:-}" ]; then
+        IS_I686="YES"
+        if which "uname" >/dev/null 2>&1; then
+            if [ -z "$(uname -a | grep i686)" ]; then
+                IS_I686="NO"
+            fi
+        fi
+    fi
+    if [ "$IS_I686" = "YES" ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
 # Calculate the input & output maximum content lengths set in the config
 MAX_CONTENT_LEN=$( ../scripts/config.pl get MBEDTLS_SSL_MAX_CONTENT_LEN || echo "16384")
 MAX_IN_LEN=$( ../scripts/config.pl get MBEDTLS_SSL_IN_CONTENT_LEN || echo "$MAX_CONTENT_LEN")
@@ -6391,7 +6406,6 @@ run_test    "DTLS fragmenting: proxy MTU + 3d, nbio" \
 #
 # here and below we just want to test that the we fragment in a way that
 # pleases other implementations, so we don't need the peer to fragment
-requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -6407,7 +6421,6 @@ run_test    "DTLS fragmenting: gnutls server, DTLS 1.2" \
             -c "fragmenting handshake message" \
             -C "error"
 
-requires_gnutls
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -6435,6 +6448,7 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
 requires_gnutls
+requires_not_i686
 run_test    "DTLS fragmenting: gnutls client, DTLS 1.2" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \
@@ -6450,6 +6464,7 @@ requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
 requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
 requires_gnutls
+requires_not_i686
 run_test    "DTLS fragmenting: gnutls client, DTLS 1.0" \
             "$P_SRV dtls=1 debug_level=2 \
              crt_file=data_files/server7_int-ca.crt \

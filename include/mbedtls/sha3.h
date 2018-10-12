@@ -255,10 +255,10 @@ int mbedtls_sha3_process( mbedtls_sha3_context *ctx,
 /**
  * \brief          Calculate the SHA-3 hash of a buffer.
  *
- * \param input    The buffer to process.
- * \param ilen     The length (in bytes) of the input buffer.
  * \param type     Selects the SHA-3 variant (SHA3-224, SHA3-256, SHA3-384,
  *                 or SHA3-512).
+ * \param input    The buffer to process.
+ * \param ilen     The length (in bytes) of the input buffer.
  * \param output   Pointer to the buffer to where the hash is written.
  *                 The required length of this buffer depends on the chosen
  *                 SHA-3 variant:
@@ -273,9 +273,9 @@ int mbedtls_sha3_process( mbedtls_sha3_context *ctx,
  * \retval #MBEDTLS_ERR_SHA3_HW_ACCEL_FAILED
  *                 Failure reported by a hardware accelerator.
  */
-int mbedtls_sha3( const unsigned char* input,
+int mbedtls_sha3( mbedtls_sha3_type_t type,
+                  const unsigned char* input,
                   size_t ilen,
-                  mbedtls_sha3_type_t type,
                   unsigned char* output );
 
 #if defined(MBEDTLS_SELF_TEST)
@@ -380,9 +380,9 @@ int mbedtls_shake_output( mbedtls_shake_context *ctx,
 /**
  * \brief          Generate SHAKE output from some input bytes.
  *
+ * \param type     The SHAKE variant to calculate (SHAKE128 or SHAKE256).
  * \param input    The buffer to process.
  * \param ilen     The length (in bytes) of the input buffer.
- * \param type     The SHAKE variant to calculate (SHAKE128 or SHAKE256).
  * \param output   Pointer to the buffer to where the output data is written.
  * \param olen     The number of output bytes to generate and write to
  *                 \p output.
@@ -394,9 +394,9 @@ int mbedtls_shake_output( mbedtls_shake_context *ctx,
  * \retval #MBEDTLS_ERR_SHA3_HW_ACCEL_FAILED
  *                 Failure reported by a hardware accelerator.
  */
-int mbedtls_shake( const unsigned char* input,
+int mbedtls_shake( mbedtls_shake_type_t type,
+                   const unsigned char* input,
                    size_t ilen,
-                   mbedtls_shake_type_t type,
                    unsigned char* output,
                    size_t olen );
 

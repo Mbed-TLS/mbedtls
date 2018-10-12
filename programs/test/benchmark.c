@@ -389,13 +389,13 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_SHA3_C)
     if ( todo.sha3_224 )
-        TIME_AND_TSC( "SHA3-224", mbedtls_sha3( buf, BUFSIZE, MBEDTLS_SHA3_224, tmp ) );
+        TIME_AND_TSC( "SHA3-224", mbedtls_sha3( MBEDTLS_SHA3_224, buf, BUFSIZE, tmp ) );
     if ( todo.sha3_256 )
-        TIME_AND_TSC( "SHA3-256", mbedtls_sha3( buf, BUFSIZE, MBEDTLS_SHA3_256, tmp ) );
+        TIME_AND_TSC( "SHA3-256", mbedtls_sha3( MBEDTLS_SHA3_256, buf, BUFSIZE, tmp ) );
     if ( todo.sha3_384 )
-        TIME_AND_TSC( "SHA3-384", mbedtls_sha3( buf, BUFSIZE, MBEDTLS_SHA3_384, tmp ) );
+        TIME_AND_TSC( "SHA3-384", mbedtls_sha3( MBEDTLS_SHA3_384, buf, BUFSIZE, tmp ) );
     if ( todo.sha3_512 )
-        TIME_AND_TSC( "SHA3-512", mbedtls_sha3( buf, BUFSIZE, MBEDTLS_SHA3_512, tmp ) );
+        TIME_AND_TSC( "SHA3-512", mbedtls_sha3( MBEDTLS_SHA3_512, buf, BUFSIZE, tmp ) );
 #endif
 
 #if defined(MBEDTLS_ARC4_C)

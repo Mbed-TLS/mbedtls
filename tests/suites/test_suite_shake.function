@@ -15,7 +15,7 @@ void shake( int type, data_t *input, data_t *expected_output )
     unsigned char *actual_output = mbedtls_calloc( 1, expected_output->len );
     TEST_ASSERT( actual_output != NULL );
     TEST_ASSERT(
-        mbedtls_shake( input->x, input->len, type,
+        mbedtls_shake( type, input->x, input->len,
                        actual_output, expected_output->len ) == 0 );
     TEST_ASSERT( memcmp( actual_output, expected_output->x,
                          expected_output->len ) == 0 );

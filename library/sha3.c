@@ -1244,9 +1244,9 @@ int mbedtls_cshake_starts( mbedtls_shake_context *ctx,
 
 #endif /* MBEDTLS_SHA3_ALT */
 
-int mbedtls_sha3( const unsigned char* input,
+int mbedtls_sha3( mbedtls_sha3_type_t type,
+                  const unsigned char* input,
                   size_t ilen,
-                  mbedtls_sha3_type_t type,
                   unsigned char* output )
 {
     mbedtls_sha3_context ctx;
@@ -1274,9 +1274,9 @@ cleanup:
     return( result );
 }
 
-int mbedtls_shake( const unsigned char* input,
+int mbedtls_shake( mbedtls_shake_type_t type,
+                   const unsigned char* input,
                    size_t ilen,
-                   mbedtls_shake_type_t type,
                    unsigned char* output,
                    size_t olen )
 {
@@ -1477,8 +1477,9 @@ static int mbedtls_sha3_kat_test( int verbose,
     uint8_t hash[64];
     int result;
 
-    result = mbedtls_sha3( test_data[test_num], test_data_len[test_num],
-                           type, hash );
+    result = mbedtls_sha3( type,
+                           test_data[test_num], test_data_len[test_num],
+                           hash );
     if( result != 0 )
     {
         if( verbose != 0 )
@@ -1730,8 +1731,8 @@ int mbedtls_shake_self_test( int verbose )
             mbedtls_printf( "  SHAKE128 test %d ", i );
         }
 
-        result = mbedtls_shake( shake128_test_input[i], 16,
-                                MBEDTLS_SHAKE128,
+        result = mbedtls_shake( MBEDTLS_SHAKE128,
+                                shake128_test_input[i], 16,
                                 output, 16 );
         if( result != 0 )
         {
@@ -1756,8 +1757,8 @@ int mbedtls_shake_self_test( int verbose )
             mbedtls_printf( "  SHAKE256 test %d ", i );
         }
 
-        result = mbedtls_shake( shake256_test_input[i], 32,
-                                MBEDTLS_SHAKE256,
+        result = mbedtls_shake( MBEDTLS_SHAKE256,
+                                shake256_test_input[i], 32,
                                 output, 32 );
         if( result != 0 )
         {

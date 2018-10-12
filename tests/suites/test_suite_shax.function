@@ -173,7 +173,7 @@ void sha3( int type, data_t *input, data_t *answer )
 {
     unsigned char output[64];
     memset( output, 0, sizeof( output ) );
-    TEST_ASSERT( mbedtls_sha3( input->x, input->len, type, output ) == 0 );
+    TEST_ASSERT( mbedtls_sha3( type, input->x, input->len, output ) == 0 );
     TEST_ASSERT( memcmp( output, answer->x, answer->len ) == 0 );
 }
 /* END_CASE */
@@ -197,7 +197,7 @@ void sha3_streaming( int type, data_t *input )
     TEST_ASSERT( hash_length != 0 );
 
     /* Generate a reference hash */
-    mbedtls_sha3( input->x, input->len, type, reference_hash );
+    mbedtls_sha3( type, input->x, input->len, reference_hash );
 
     /* Repeat each test with increasingly-sized data chunks
      * E.g. start by processing bytes individual bytes, then 2-byte chunks,

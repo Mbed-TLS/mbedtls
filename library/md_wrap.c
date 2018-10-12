@@ -598,7 +598,7 @@ static int sha3_224_starts_wrap( void *ctx )
 static int sha3_224_wrap( const unsigned char *input, size_t ilen,
                           unsigned char *output )
 {
-    return( mbedtls_sha3( input, ilen, MBEDTLS_SHA3_224, output ) );
+    return( mbedtls_sha3( MBEDTLS_SHA3_224, input, ilen, output ) );
 }
 
 static int sha3_256_starts_wrap( void *ctx )
@@ -610,7 +610,7 @@ static int sha3_256_starts_wrap( void *ctx )
 static int sha3_256_wrap( const unsigned char *input, size_t ilen,
                           unsigned char *output )
 {
-    return( mbedtls_sha3( input, ilen, MBEDTLS_SHA3_256, output ) );
+    return( mbedtls_sha3( MBEDTLS_SHA3_256, input, ilen, output ) );
 }
 
 static int sha3_384_starts_wrap( void *ctx )
@@ -622,7 +622,7 @@ static int sha3_384_starts_wrap( void *ctx )
 static int sha3_384_wrap( const unsigned char *input, size_t ilen,
                           unsigned char *output )
 {
-    return( mbedtls_sha3( input, ilen, MBEDTLS_SHA3_384, output ) );
+    return( mbedtls_sha3( MBEDTLS_SHA3_384, input, ilen, output ) );
 }
 
 static int sha3_512_starts_wrap( void *ctx )
@@ -634,7 +634,7 @@ static int sha3_512_starts_wrap( void *ctx )
 static int sha3_512_wrap( const unsigned char *input, size_t ilen,
                           unsigned char *output )
 {
-    return( mbedtls_sha3( input, ilen, MBEDTLS_SHA3_512, output ) );
+    return( mbedtls_sha3( MBEDTLS_SHA3_512, input, ilen, output ) );
 }
 
 static int sha3_update_wrap( void *ctx, const unsigned char *input,

@@ -10,46 +10,47 @@
  */
 
 /* BEGIN_CASE */
-void mbedtls_shake128( char *hex_src_string, char *hex_output_string )
+void shake( int type, data_t *input, data_t *expected_output )
 {
-    unsigned char src_str[10000];
-    unsigned char output_str[10000];
-    unsigned char output[400];
-    size_t src_len;
-    size_t output_len = strlen( hex_output_string ) / 2;
-
-    memset( src_str,    0x00, 10000 );
-    memset( output_str, 0x00, 10000 );
-    memset( output,     0x00, 400 );
-
-    src_len = unhexify( src_str, hex_src_string );
-
-    mbedtls_shake( src_str, src_len, MBEDTLS_SHAKE128, output, output_len );
-    hexify( output_str, output, output_len );
-
-    TEST_ASSERT( strcmp( (char *) output_str, hex_output_string ) == 0 );
+    unsigned char *actual_output = mbedtls_calloc( 1, expected_output->len );
+    TEST_ASSERT( actual_output != NULL );
+    TEST_ASSERT(
+        mbedtls_shake( input->x, input->len, type,
+                       actual_output, expected_output->len ) == 0 );
+    TEST_ASSERT( memcmp( actual_output, expected_output->x,
+                         expected_output->len ) == 0 );
+exit:
+    mbedtls_free( actual_output );
 }
 /* END_CASE */
 
 /* BEGIN_CASE */
-void mbedtls_shake256( char *hex_src_string, char *hex_output_string )
+void shake_multi( int type,
+                  data_t *input1, data_t *input2,
+                  data_t *output1, data_t *output2 )
 {
-    unsigned char src_str[10000];
-    unsigned char output_str[10000];
-    unsigned char output[400];
-    size_t src_len;
-    size_t output_len = strlen( hex_output_string ) / 2;
+    mbedtls_shake_context ctx;
+    unsigned char *output = NULL;
 
-    memset( src_str,    0x00, 10000 );
-    memset( output_str, 0x00, 10000 );
-    memset( output,     0x00, 400 );
+    mbedtls_shake_init( &ctx );
+    output = mbedtls_calloc( 1, MAX( output1->len, output2->len ) );
+    TEST_ASSERT( output != NULL );
 
-    src_len = unhexify( src_str, hex_src_string );
+    TEST_ASSERT( mbedtls_shake_starts( &ctx, type ) == 0 );
 
-    mbedtls_shake( src_str, src_len, MBEDTLS_SHAKE256, output, output_len );
-    hexify( output_str, output, output_len );
+    TEST_ASSERT( mbedtls_shake_update( &ctx, input1->x, input1->len ) == 0 );
+    TEST_ASSERT( mbedtls_shake_update( &ctx, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_shake_update( &ctx, input2->x, input2->len ) == 0 );
 
-    TEST_ASSERT( strcmp( (char *) output_str, hex_output_string ) == 0 );
+    TEST_ASSERT( mbedtls_shake_output( &ctx, output, output1->len ) == 0 );
+    TEST_ASSERT( memcmp( output, output1->x, output1->len ) == 0 );
+    TEST_ASSERT( mbedtls_shake_output( &ctx, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_shake_output( &ctx, output, output2->len ) == 0 );
+    TEST_ASSERT( memcmp( output, output2->x, output2->len ) == 0 );
+
+exit:
+    mbedtls_free( output );
+    mbedtls_shake_free( &ctx );
 }
 /* END_CASE */
 

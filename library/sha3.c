@@ -740,8 +740,8 @@ static int mbedtls_keccak_sponge_starts( mbedtls_keccak_sponge_context *ctx,
     }
     else
     {
-        ctx->rate = KECCAKF_STATE_SIZE_BITS - capacity;
-        ctx->suffix_len = suffix_len;
+        ctx->rate = KECCAKF_STATE_SIZE_BITS - (unsigned short) capacity;
+        ctx->suffix_len = (unsigned char) suffix_len;
         ctx->suffix =
             suffix & ( (unsigned char) ( 1 << suffix_len ) - 1 );
     }
@@ -822,7 +822,7 @@ static int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
                         data,
                         remaining_bytes );
 
-                ctx->queue_len += remaining_bytes * 8;
+                ctx->queue_len += (unsigned short) remaining_bytes * 8;
                 remaining_bytes = 0;
             }
         }
@@ -842,7 +842,7 @@ static int mbedtls_keccak_sponge_absorb( mbedtls_keccak_sponge_context *ctx,
         if( remaining_bytes > 0 )
         {
             memcpy( ctx->queue, &data[data_offset], remaining_bytes );
-            ctx->queue_len = remaining_bytes * 8;
+            ctx->queue_len = (unsigned short) remaining_bytes * 8;
         }
     }
 
@@ -876,8 +876,8 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
 {
     size_t queue_offset;
     size_t data_offset = 0;
-    size_t queue_len_bytes;
-    size_t rate_bytes;
+    unsigned short queue_len_bytes;
+    unsigned short rate_bytes;
 
     if( ctx->rate == 0 || ctx->rate >= KECCAKF_STATE_SIZE_BITS )
     {
@@ -905,7 +905,7 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
             /* Not enough output requested to empty the queue */
             memcpy( data, &ctx->queue[queue_offset], size );
 
-            ctx->queue_len -= size * 8;
+            ctx->queue_len -= (unsigned short) size * 8;
             size = 0;
         }
         else
@@ -940,7 +940,7 @@ static int mbedtls_keccak_sponge_squeeze( mbedtls_keccak_sponge_context *ctx,
 
             memcpy( &data[data_offset], ctx->queue, size );
 
-            ctx->queue_len = ctx->rate - ( size  * 8 );
+            ctx->queue_len = ctx->rate - ( (unsigned short) size  * 8 );
         }
 
         if( ctx->queue_len == 0 )

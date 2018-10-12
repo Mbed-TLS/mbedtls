@@ -1446,7 +1446,11 @@ static void mem_move_to_left( void *start,
          * `offset` passes shift the data one byte to the left and
          * zero out the last byte. */
         for( n = 0; n < total - 1; n++ )
-            buf[n] = if_int( no_op, buf[n], buf[n+1] );
+        {
+            unsigned char current = buf[n];
+            unsigned char next = buf[n+1];
+            buf[n] = if_int( no_op, current, next );
+        }
         buf[total-1] = if_int( no_op, buf[total-1], 0 );
     }
 }

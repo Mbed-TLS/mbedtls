@@ -1564,9 +1564,9 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
      * - OUTPUT_TOO_LARGE if the padding is good but the decrypted
      *   plaintext does not fit in the output buffer.
      * - 0 if the padding is correct. */
-    ret = - if_int( bad, - MBEDTLS_ERR_RSA_INVALID_PADDING,
-            if_int( output_too_large, - MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE,
-                    0 ) );
+    ret = - (int) if_int( bad, - MBEDTLS_ERR_RSA_INVALID_PADDING,
+                  if_int( output_too_large, - MBEDTLS_ERR_RSA_OUTPUT_TOO_LARGE,
+                          0 ) );
 
     /* If the padding is bad or the plaintext is too large, zero the
      * data that we're about to copy to the output buffer.

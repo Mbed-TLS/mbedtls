@@ -1028,7 +1028,7 @@ int mbedtls_sha3_finish( mbedtls_sha3_context *ctx, unsigned char* output )
 {
     int ret;
     unsigned short capacity;
-    if( ctx == NULL || output == NULL )
+    if( ctx == NULL )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
     capacity = KECCAKF_STATE_SIZE_BITS - ctx->sponge_ctx.rate;
     ret = mbedtls_keccak_sponge_squeeze( &ctx->sponge_ctx,
@@ -1103,7 +1103,7 @@ int mbedtls_shake_output( mbedtls_shake_context *ctx,
                           unsigned char* output,
                           size_t olen )
 {
-    if( ctx == NULL || output == NULL )
+    if( ctx == NULL )
         return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
     return( mbedtls_keccak_sponge_squeeze( &ctx->sponge_ctx, output, olen ) );
 }

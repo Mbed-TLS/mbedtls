@@ -4,12 +4,18 @@
  * \brief SHA-3 cryptographic hash functions
  *        (SHA3-224, SHA3-256, SHA3-384, SHA3-512)
  *        and associated extendable-output functions (XOF)
- *        (SHAKE128, SHAKE256).
+ *        (SHAKE128, SHAKE256, cSHAKE128, cSHAKE256).
  *
- * Reference: National Institute of Standards and Technology (NIST).
- * _SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions._
- * FIPS PUB 202. August 2015.
- * https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf
+ * References:
+ *
+ * - National Institute of Standards and Technology (NIST).
+ *   _SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions._
+ *   FIPS PUB 202. August 2015.
+ *   https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf
+ * - National Institute of Standards and Technology (NIST).
+ *   _SHA-3 Derived Functions: cSHAKE, KMAC, TupleHash and ParallelHash.
+ *   NIST Special Publication 800-185. December 2016.
+ *   https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-185.pdf
  *
  * \author Daniel King <damaki.gh@gmail.com>
  */
@@ -122,7 +128,7 @@ typedef struct
 mbedtls_sha3_context;
 
 /**
- * \brief               The context structure for SHAKE operations.
+ * \brief               The context structure for SHAKE or cSHAKE operations.
  *
  * \note                This structure may change in future versions of the
  *                      library. Hardware-accelerated implementations may
@@ -307,7 +313,15 @@ void mbedtls_shake_clone( mbedtls_shake_context *dst,
 /**
  * \brief          Start a SHAKE calculation.
  *
- * \param ctx      The SHAKE context to set up.
+ * You must call mbedtls_shake_init() before calling this function.
+ * After a successful call to mbedtls_shake_starts(), call
+ * mbedtls_shake_update() any number of times to provide input,
+ * then mbedtls_shake_output() any number of times to obtain output,
+ * and finally mbedtls_shake_free() to free any resources associated
+ * with the operation.
+ *
+ * \param ctx      The SHAKE context to set up. It must have been
+ *                 previously initialized with mbedtls_shake_init().
  * \param type     The SHAKE variant to select (SHAKE128 or SHAKE256).
  *
  * \retval 0       Success.
@@ -385,6 +399,88 @@ int mbedtls_shake( const unsigned char* input,
                    mbedtls_shake_type_t type,
                    unsigned char* output,
                    size_t olen );
+
+/**
+ * \brief          Start a cSHAKE calculation.
+ *
+ * You must call mbedtls_shake_init() before calling this function.
+ * After a successful call to mbedtls_cshake_starts(), call
+ * mbedtls_shake_update() any number of times to provide input,
+ * then mbedtls_shake_output() any number of times to obtain output,
+ * and finally mbedtls_shake_free() to free any resources associated
+ * with the operation.
+ *
+ * \param ctx                   The SHAKE context to set up.
+ *                              It must have been previously
+ *                              initialized with mbedtls_shake_init().
+ * \param type                  The cSHAKE variant to select
+ *                              (cSHAKE128 or cSHAKE256).
+ * \param function_name         The name of the derived function.
+ *                              This may be null if and only if
+ *                              \p function_name_len is zero.
+ * \param function_name_len     Length of \p function_name in bytes.
+ * \param customization         The customization string.
+ *                              This library only supports customization
+ *                              bit strings whose length is a multiple of
+ *                              8, expressed in 8-bit bytes.
+ *                              This may be null if and only if
+ *                              \p function_name_len is zero.
+ * \param customization_len     Length of \p customization in bytes.
+ *
+ * \retval 0       Success.
+ * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
+ *                 \p ctx is \c NULL,
+ *                 or \p type is invalid,
+ *                 or this function was called without a prior call to
+ *                 mbedtls_shake_init() or after calling
+ *                 mbedtls_shake_update() or mbedtls_shake_ouput(),
+ * \retval #MBEDTLS_ERR_SHA3_HW_ACCEL_FAILED
+ *                 Failure reported by a hardware accelerator.
+ */
+int mbedtls_cshake_starts( mbedtls_shake_context *ctx,
+                           mbedtls_shake_type_t type,
+                           const unsigned char *function_name,
+                           size_t function_name_len,
+                           const unsigned char *customization,
+                           size_t customization_len );
+
+/**
+ * \brief          Generate cSHAKE output from some input bytes.
+ *
+ * \param type     The SHAKE variant to calculate (SHAKE128 or SHAKE256).
+ * \param function_name         The name of the derived function.
+ *                              This may be null if and only if
+ *                              \p function_name_len is zero.
+ * \param function_name_len     Length of \p function_name in bytes.
+ * \param customization         The customization string.
+ *                              This library only supports customization
+ *                              bit strings whose length is a multiple of
+ *                              8, expressed in 8-bit bytes.
+ *                              This may be null if and only if
+ *                              \p function_name_len is zero.
+ * \param customization_len     Length of \p customization in bytes.
+ * \param input    The buffer to process.
+ * \param ilen     The length (in bytes) of the input buffer.
+ * \param output   Pointer to the buffer to where the output data is written.
+ * \param olen     The number of output bytes to generate and write to
+ *                 \p output.
+ *
+ * \retval 0       Success.
+ * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
+ *                 \p output is \c NULL,
+ *                 or \c type is invalid.
+ * \retval #MBEDTLS_ERR_SHA3_HW_ACCEL_FAILED
+ *                 Failure reported by a hardware accelerator.
+ */
+int mbedtls_cshake( mbedtls_shake_type_t type,
+                    const unsigned char *function_name,
+                    size_t function_name_len,
+                    const unsigned char *customization,
+                    size_t customization_len,
+                    const unsigned char* input,
+                    size_t ilen,
+                    unsigned char* output,
+                    size_t olen );
 
 #if defined(MBEDTLS_SELF_TEST)
 /**

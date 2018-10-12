@@ -489,6 +489,31 @@ static void mbedtls_keccakf_read_binary( const mbedtls_keccakf_context *ctx,
 #define SPONGE_STATE_READY_TO_SQUEEZE ( 2 )
 #define SPONGE_STATE_SQUEEZING        ( 3 )
 
+/** Pad the queue with zeros.
+ *
+ * Fill in the queue with 0 or more 0-valued bits and mix it into the
+ * Keccak-f state. This is equivalent to padding the input with zeros
+ * to reach the next block boundary.
+ *
+ * \pre         ctx                != NULL
+ * \pre         ctx->queue_len     <  ctx->rate
+ * \pre         ctx->rate          < KECCAKF_STATE_SIZE_BITS
+ * \pre         ctx->queue_len % 8 == 0
+ * \pre         ctx->rate % 8      == 0
+ * \pre         ctx->suffix_len    <= 8
+ */
+static void mbedtls_keccak_sponge_pad( mbedtls_keccak_sponge_context *ctx )
+{
+    if( ctx->queue_len > 0 )
+    {
+        size_t queue_free_bytes = ( ctx->rate - ctx->queue_len ) / 8;
+        memset( &ctx->queue[ctx->queue_len / 8], 0, queue_free_bytes );
+        ctx->queue_len = 0;
+        mbedtls_keccakf_xor_binary( &ctx->keccakf_ctx, ctx->queue, ctx->rate );
+        mbedtls_keccakf_permute( &ctx->keccakf_ctx );
+    }
+}
+
 /**
  * \brief       Absorbs the suffix bits into the context.
  *
@@ -1110,6 +1135,111 @@ int mbedtls_shake_output( mbedtls_shake_context *ctx,
 
 
 
+/**************** cSHAKE generalized XOF family ****************/
+
+/** \brief Apply the encode_string function from SP800-185 and
+ *         feed the result to a cSHAKE context.
+ *
+ * This function feeds encode_string(S) = left_encode(len(S)) || S
+ * to the cSHAKE context.
+ *
+ * \param ctx           The cSHAKE context.
+ * \param string        The byte string S to encode.
+ * \param byte_len      The length of \p input in bytes.
+ *
+ * \retval 0            Success.
+ */
+static int mbedtls_cshake_encode_string( mbedtls_shake_context *ctx,
+                                         const unsigned char *string,
+                                         size_t byte_len )
+{
+    int ret;
+    unsigned char encoded_len[sizeof( byte_len ) + 1];
+    if( byte_len == 0 )
+    {
+        encoded_len[0] = 1;
+        encoded_len[1] = 0;
+    }
+    else
+    {
+        size_t x_remaining, i;
+        /* Calculate n: byte size of x where x is the bit length of
+         * string. x = byte_len * 8, but don't do this calculation
+         * explicitly because it might overflow. */
+        encoded_len[0] = 1;
+        for( x_remaining = byte_len >> 5; x_remaining != 0; x_remaining >>= 8 )
+            encoded_len[0] += 1;
+        /* x_n is the least significant digit of x in base 256. */
+        encoded_len[encoded_len[0]] = 0xff & ( byte_len << 3 );
+        /* Calculate the other base-256 digits of x (the ones that can
+         * be extracted from byte_len = x / 8). */
+        for( i = 1; i < encoded_len[0]; i++ )
+            encoded_len[encoded_len[0] - i] =
+                0xff & ( byte_len >> ( 8 * i - 3 ) );
+    }
+    ret = mbedtls_keccak_sponge_absorb( &ctx->sponge_ctx,
+                                        encoded_len, encoded_len[0] + 1 );
+    if( ret != 0 )
+        return( ret );
+    return( mbedtls_keccak_sponge_absorb( &ctx->sponge_ctx, string, byte_len ) );
+}
+
+int mbedtls_cshake_starts( mbedtls_shake_context *ctx,
+                           mbedtls_shake_type_t type,
+                           const unsigned char *function_name,
+                           size_t function_name_len,
+                           const unsigned char *customization,
+                           size_t customization_len )
+{
+    int ret;
+    unsigned bits;
+    unsigned char prefix[2]; /* left_encode(w) */
+
+    if( ctx == NULL )
+        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+
+    if( function_name_len == 0 && customization_len == 0 )
+        return( mbedtls_shake_starts( ctx, type ) );
+
+    switch( type )
+    {
+        case MBEDTLS_SHAKE128:
+            bits = 128;
+            break;
+        case MBEDTLS_SHAKE256:
+            bits = 256;
+            break;
+        default:
+            return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
+    }
+
+    ret = mbedtls_keccak_sponge_starts( &ctx->sponge_ctx, bits * 2, 0U, 2 );
+    if( ret != 0 )
+        return( ret );
+
+    /* Input left_encode(w) where w = padding width = byte rate */
+    prefix[0] = 1;
+    prefix[1] = KECCAKF_STATE_SIZE_BYTES - bits / 4;
+    ret = mbedtls_keccak_sponge_absorb( &ctx->sponge_ctx, prefix, 2 );
+    if( ret != 0 )
+        return( ret );
+
+    /* Input left-encoded function name */
+    ret = mbedtls_cshake_encode_string( ctx, function_name, function_name_len );
+    if( ret != 0 )
+        return( ret );
+
+    /* Input left-encoded customization string */
+    ret = mbedtls_cshake_encode_string( ctx, customization, customization_len );
+    if( ret != 0 )
+        return( ret );
+
+    mbedtls_keccak_sponge_pad( &ctx->sponge_ctx );
+    return( 0 );
+}
+
+
+
 /**************** Derived functions ****************/
 
 #endif /* MBEDTLS_SHA3_ALT */
@@ -1173,6 +1303,38 @@ cleanup:
     mbedtls_shake_free( &ctx );
 
     return( result );
+}
+
+int mbedtls_cshake( mbedtls_shake_type_t type,
+                    const unsigned char *function_name,
+                    size_t function_name_len,
+                    const unsigned char *customization,
+                    size_t customization_len,
+                    const unsigned char* input,
+                    size_t ilen,
+                    unsigned char* output,
+                    size_t olen )
+{
+    mbedtls_shake_context ctx;
+    int res;
+
+    mbedtls_shake_init( &ctx );
+
+    res = mbedtls_cshake_starts( &ctx, type,
+                                 function_name, function_name_len,
+                                 customization, customization_len );
+    if( res != 0 )
+        goto cleanup;
+
+    res = mbedtls_shake_update( &ctx, input, ilen );
+    if( res != 0 )
+        goto cleanup;
+
+    res = mbedtls_shake_output( &ctx, output, olen );
+
+cleanup:
+    mbedtls_shake_free( &ctx );
+    return( res );
 }
 
 

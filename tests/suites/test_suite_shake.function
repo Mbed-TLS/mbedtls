@@ -1,5 +1,7 @@
 /* BEGIN_HEADER */
 #include "mbedtls/sha3.h"
+
+#define MAX( x, y ) ( ( x ) > ( y ) ? ( x ) : ( y ) )
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -48,6 +50,58 @@ void mbedtls_shake256( char *hex_src_string, char *hex_output_string )
     hexify( output_str, output, output_len );
 
     TEST_ASSERT( strcmp( (char *) output_str, hex_output_string ) == 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void cshake( int type, data_t *function_name, data_t *customization,
+             data_t *input, data_t *expected_output )
+{
+    unsigned char *actual_output = mbedtls_calloc( 1, expected_output->len );
+    TEST_ASSERT( actual_output != NULL );
+    TEST_ASSERT(
+        mbedtls_cshake( type,
+                        function_name->x, function_name->len,
+                        customization->x, customization->len,
+                        input->x, input->len,
+                        actual_output, expected_output->len ) == 0 );
+    TEST_ASSERT( memcmp( actual_output, expected_output->x,
+                         expected_output->len ) == 0 );
+exit:
+    mbedtls_free( actual_output );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void cshake_multi( int type, data_t *function_name, data_t *customization,
+                   data_t *input1, data_t *input2,
+                   data_t *output1, data_t *output2 )
+{
+    mbedtls_shake_context ctx;
+    unsigned char *output = NULL;
+
+    mbedtls_shake_init( &ctx );
+    output = mbedtls_calloc( 1, MAX( output1->len, output2->len ) );
+    TEST_ASSERT( output != NULL );
+
+    TEST_ASSERT(
+        mbedtls_cshake_starts( &ctx, type,
+                               function_name->x, function_name->len,
+                               customization->x, customization->len ) == 0 );
+
+    TEST_ASSERT( mbedtls_shake_update( &ctx, input1->x, input1->len ) == 0 );
+    TEST_ASSERT( mbedtls_shake_update( &ctx, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_shake_update( &ctx, input2->x, input2->len ) == 0 );
+
+    TEST_ASSERT( mbedtls_shake_output( &ctx, output, output1->len ) == 0 );
+    TEST_ASSERT( memcmp( output, output1->x, output1->len ) == 0 );
+    TEST_ASSERT( mbedtls_shake_output( &ctx, NULL, 0 ) == 0 );
+    TEST_ASSERT( mbedtls_shake_output( &ctx, output, output2->len ) == 0 );
+    TEST_ASSERT( memcmp( output, output2->x, output2->len ) == 0 );
+
+exit:
+    mbedtls_free( output );
+    mbedtls_shake_free( &ctx );
 }
 /* END_CASE */
 

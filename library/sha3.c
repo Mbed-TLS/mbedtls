@@ -1108,16 +1108,6 @@ int mbedtls_shake_output( mbedtls_shake_context *ctx,
     return( mbedtls_keccak_sponge_squeeze( &ctx->sponge_ctx, output, olen ) );
 }
 
-int mbedtls_shake_process( mbedtls_shake_context *ctx,
-                           const unsigned char* input )
-{
-    if( ctx == NULL || input == NULL )
-        return( MBEDTLS_ERR_SHA3_BAD_INPUT_DATA );
-    return( mbedtls_keccak_sponge_process( &ctx->sponge_ctx, input ) );
-}
-
-
-
 
 
 /**************** Derived functions ****************/

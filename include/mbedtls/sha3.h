@@ -176,8 +176,7 @@ void mbedtls_sha3_clone( mbedtls_sha3_context *dst,
  *                 or \p type is invalid,
  *                 or this function was called without a prior call to
  *                 mbedtls_sha3_init() or after calling
- *                 mbedtls_sha3_update() or mbedtls_shake_process() or
- *                 mbedtls_sha3_finish(),
+ *                 mbedtls_sha3_update() or mbedtls_sha3_finish(),
  * \retval #MBEDTLS_ERR_SHA3_HW_ACCEL_FAILED
  *                 Failure reported by a hardware accelerator.
  */
@@ -317,8 +316,7 @@ void mbedtls_shake_clone( mbedtls_shake_context *dst,
  *                 or \p type is invalid,
  *                 or this function was called without a prior call to
  *                 mbedtls_shake_init() or after calling
- *                 mbedtls_shake_update() or mbedtls_shake_process() or
- *                 mbedtls_shake_ouput(),
+ *                 mbedtls_shake_update() or mbedtls_shake_ouput(),
  * \retval #MBEDTLS_ERR_SHA3_HW_ACCEL_FAILED
  *                 Failure reported by a hardware accelerator.
  */
@@ -364,26 +362,6 @@ int mbedtls_shake_update( mbedtls_shake_context *ctx,
 int mbedtls_shake_output( mbedtls_shake_context *ctx,
                           unsigned char* output,
                           size_t olen );
-
-/**
- * \brief          Process a data block with SHAKE. For internal use only.
- *
- * \param ctx      The SHAKE context.
- * \param input    The buffer containing bytes to process. The size of this
- *                 buffer is:
- *                 - 168 bytes for SHAKE128.
- *                 - 136 bytes for SHAKE256.
- *
- * \retval 0       Success.
- * \retval #MBEDTLS_ERR_SHA3_BAD_INPUT_DATA
- *                 \p ctx or \p output is \c NULL.
- *                 or mbedtls_shake_starts() has not been called previously,
- *                 or mbedtls_shake_output() has been called on \p ctx.
- * \retval #MBEDTLS_ERR_SHA3_HW_ACCEL_FAILED
- *                 Failure reported by a hardware accelerator.
- */
-int mbedtls_shake_process( mbedtls_shake_context *ctx,
-                           const unsigned char* input );
 
 /**
  * \brief          Generate SHAKE output from some input bytes.

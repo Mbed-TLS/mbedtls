@@ -131,6 +131,22 @@
 #define PSA_VENDOR_ECC_MAX_CURVE_BITS 0
 #endif
 
+/** \def PSA_ALG_TLS12_PSK_TO_MS_MAX_PSK_LEN
+ *
+ * This macro returns the maximum length of the PSK supported
+ * by the TLS-1.2 PSK-to-MS key derivation.
+ *
+ * Quoting RFC 4279, Sect 5.3:
+ * TLS implementations supporting these ciphersuites MUST support
+ * arbitrary PSK identities up to 128 octets in length, and arbitrary
+ * PSKs up to 64 octets in length.  Supporting longer identities and
+ * keys is RECOMMENDED.
+ *
+ * Therefore, no implementation should define a value smaller than 64
+ * for #PSA_ALG_TLS12_PSK_TO_MS_MAX_PSK_LEN.
+ */
+#define PSA_ALG_TLS12_PSK_TO_MS_MAX_PSK_LEN 128
+
 /** \def PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE
  *
  * Maximum size of an asymmetric signature.

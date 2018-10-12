@@ -1232,6 +1232,45 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_TLS12_PRF_GET_HASH(hkdf_alg)                         \
     (PSA_ALG_CATEGORY_HASH | ((hkdf_alg) & PSA_ALG_HASH_MASK))
 
+#define PSA_ALG_TLS12_PSK_TO_MS_BASE ((psa_algorithm_t)0x30000300)
+/** Macro to build a TLS-1.2 PSK-to-MasterSecret algorithm.
+ *
+ * For example, `PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA256)` represents the
+ * TLS-1.2 PSK to MasterSecret derivation PRF using HMAC-SHA-256.
+ *
+ * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
+ *
+ * \return              The corresponding TLS-1.2 PSK to MS algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      hash algorithm.
+ */
+#define PSA_ALG_TLS12_PSK_TO_MS(hash_alg)                                  \
+    (PSA_ALG_TLS12_PSK_TO_MS_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
+
+/** Whether the specified algorithm is a TLS-1.2 PSK to MS algorithm.
+ *
+ * In a pure-PSK handshake in TLS 1.2, the master secret is derived
+ * from the PreSharedKey (PSK) through the application of padding and
+ * the TLS-1.2 PRF (see below). The latter is based on HMAC and can
+ * be used with either SHA-256 or SHA-384.
+ *
+ * For the application to TLS-1.2, the salt passed to psa_key_derivation()
+ * (and forwarded to the TLS-1.2 PRF) is the concatenation of the
+ * ClientHello.Random + ServerHello.Random, while the label is "master secret".
+ * See RFC 5246, Section 8.1, Computing the Master Secret.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \c alg is a TLS-1.2 PSK to MS algorithm, 0 otherwise.
+ *         This macro may return either 0 or 1 if \c alg is not a supported
+ *         key derivation algorithm identifier.
+ */
+#define PSA_ALG_IS_TLS12_PSK_TO_MS(alg)                                    \
+    (((alg) & ~PSA_ALG_HASH_MASK) == PSA_ALG_TLS12_PSK_TO_MS_BASE)
+#define PSA_ALG_TLS12_PSK_TO_MS_GET_HASH(hkdf_alg)                         \
+    (PSA_ALG_CATEGORY_HASH | ((hkdf_alg) & PSA_ALG_HASH_MASK))
+
 #define PSA_ALG_KEY_DERIVATION_MASK             ((psa_algorithm_t)0x010fffff)
 
 /** Use a shared secret as is.

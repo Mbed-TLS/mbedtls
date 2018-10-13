@@ -141,33 +141,48 @@ endif()
 
 if(USE_STATIC_MBEDTLS_LIBRARY)
     add_library(${mbedcrypto_static_target} STATIC ${src_crypto})
+    target_include_directories(${mbedcrypto_static_target} INTERFACE $<INSTALL_INTERFACE:include>)
     set_target_properties(${mbedcrypto_static_target} PROPERTIES OUTPUT_NAME mbedcrypto)
     target_link_libraries(${mbedcrypto_static_target} ${libs})
 
     add_library(${mbedx509_static_target} STATIC ${src_x509})
+    target_include_directories(${mbedx509_static_target} INTERFACE $<INSTALL_INTERFACE:include>)
     set_target_properties(${mbedx509_static_target} PROPERTIES OUTPUT_NAME mbedx509)
     target_link_libraries(${mbedx509_static_target} ${libs} ${mbedcrypto_static_target})
 
     add_library(${mbedtls_static_target} STATIC ${src_tls})
+    target_include_directories(${mbedtls_static_target} INTERFACE $<INSTALL_INTERFACE:include>)
     set_target_properties(${mbedtls_static_target} PROPERTIES OUTPUT_NAME mbedtls)
     target_link_libraries(${mbedtls_static_target} ${libs} ${mbedx509_static_target})
 
     install(TARGETS ${mbedtls_static_target} ${mbedx509_static_target} ${mbedcrypto_static_target}
+            EXPORT mbedtls-target
             DESTINATION ${LIB_INSTALL_DIR}
             PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+
+    export(TARGETS mbedtls
+        APPEND FILE ${PROJECT_BINARY_DIR}/mbedtls-target.cmake)
+
+    install(EXPORT mbedtls-target
+        FILE mbedtls-target.cmake
+        DESTINATION "${CMAKE_EXPORT_DIR}")
+        
 endif(USE_STATIC_MBEDTLS_LIBRARY)
 
 if(USE_SHARED_MBEDTLS_LIBRARY)
     add_library(mbedcrypto SHARED ${src_crypto})
-    set_target_properties(mbedcrypto PROPERTIES VERSION 2.13.1 SOVERSION 3)
+    target_include_directories(mbedcrypto INTERFACE $<INSTALL_INTERFACE:include>)
+    set_target_properties(mbedcrypto PROPERTIES VERSION ${MBEDTLS_VERSION} SOVERSION 3)
     target_link_libraries(mbedcrypto ${libs})
 
     add_library(mbedx509 SHARED ${src_x509})
-    set_target_properties(mbedx509 PROPERTIES VERSION 2.13.1 SOVERSION 0)
+    target_include_directories(mbedx509 INTERFACE $<INSTALL_INTERFACE:include>)
+    set_target_properties(mbedx509 PROPERTIES VERSION ${MBEDTLS_VERSION} SOVERSION 0)
     target_link_libraries(mbedx509 ${libs} mbedcrypto)
 
     add_library(mbedtls SHARED ${src_tls})
-    set_target_properties(mbedtls PROPERTIES VERSION 2.13.1 SOVERSION 12)
+    target_include_directories(mbedtls INTERFACE $<INSTALL_INTERFACE:include>)
+    set_target_properties(mbedtls PROPERTIES VERSION ${MBEDTLS_VERSION} SOVERSION 12)
     target_link_libraries(mbedtls ${libs} mbedx509)
 
     install(TARGETS mbedtls mbedx509 mbedcrypto

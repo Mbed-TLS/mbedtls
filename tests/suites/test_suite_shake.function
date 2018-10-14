@@ -105,10 +105,3 @@ exit:
     mbedtls_shake_free( &ctx );
 }
 /* END_CASE */
-
-/* BEGIN_CASE depends_on:MBEDTLS_SELF_TEST */
-void shake_selftest()
-{
-    TEST_ASSERT( mbedtls_shake_self_test( 0 ) == 0 );
-}
-/* END_CASE */

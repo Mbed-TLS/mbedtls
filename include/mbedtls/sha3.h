@@ -277,15 +277,6 @@ int mbedtls_sha3( mbedtls_sha3_type_t type,
                   size_t ilen,
                   unsigned char* output );
 
-#if defined(MBEDTLS_SELF_TEST)
-/**
- * \brief          Checkup routine for SHA-3.
- *
- * \return         0 if successful, or 1 if the test failed.
- */
-int mbedtls_sha3_self_test( int verbose );
-#endif /* MBEDTLS_SELF_TEST */
-
 /**
  * \brief          Initialize a SHAKE context.
  *
@@ -483,11 +474,13 @@ int mbedtls_cshake( mbedtls_shake_type_t type,
 
 #if defined(MBEDTLS_SELF_TEST)
 /**
- * \brief          Checkup routine for SHAKE.
+ * \brief          Checkup routine for the algorithms implemented
+ *                 by this module: SHA3-224, SHA3-256, SHA3-384, SHA3-512,
+ *                 SHAKE128, SHAKE256, cSHAKE128 and cSHAKE256.
  *
  * \return         0 if successful, or 1 if the test failed.
  */
-int mbedtls_shake_self_test( int verbose );
+int mbedtls_sha3_self_test( int verbose );
 #endif /* MBEDTLS_SELF_TEST */
 
 #ifdef __cplusplus

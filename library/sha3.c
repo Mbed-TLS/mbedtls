@@ -1861,37 +1861,37 @@ int mbedtls_sha3_self_test( int verbose )
     {
         if( 0 != mbedtls_sha3_kat_test( verbose,
                                         "SHA3-224", MBEDTLS_SHA3_224, i ) )
-            return( -1 );
+            return( 1 );
 
         if( 0 != mbedtls_sha3_kat_test( verbose,
                                         "SHA3-256", MBEDTLS_SHA3_256, i ) )
-            return( -1 );
+            return( 1 );
 
         if( 0 != mbedtls_sha3_kat_test( verbose,
                                         "SHA3-384", MBEDTLS_SHA3_384, i ) )
-            return( -1 );
+            return( 1 );
 
         if( 0 != mbedtls_sha3_kat_test( verbose,
                                         "SHA3-512", MBEDTLS_SHA3_512, i ) )
-            return( -1 );
+            return( 1 );
     }
 
     /* SHA3 long KAT tests */
     if( 0 != mbedtls_sha3_long_kat_test( verbose,
                                          "SHA3-224", MBEDTLS_SHA3_224 ) )
-        return( -1 );
+        return( 1 );
 
     if( 0 != mbedtls_sha3_long_kat_test( verbose,
                                          "SHA3-256", MBEDTLS_SHA3_256 ) )
-        return( -1 );
+        return( 1 );
 
     if( 0 != mbedtls_sha3_long_kat_test( verbose,
                                          "SHA3-384", MBEDTLS_SHA3_384 ) )
-        return( -1 );
+        return( 1 );
 
     if( 0 != mbedtls_sha3_long_kat_test( verbose,
                                          "SHA3-512", MBEDTLS_SHA3_512 ) )
-        return( -1 );
+        return( 1 );
 
     if( verbose != 0 )
     {
@@ -1900,9 +1900,9 @@ int mbedtls_sha3_self_test( int verbose )
 
     /* SHAKE and cSHAKE tests */
     if( 0 != mbedtls_shake_self_test( verbose ) )
-        return( -1 );
+        return( 1 );
     if( 0 != mbedtls_cshake_self_test( verbose ) )
-        return( -1 );
+        return( 1 );
 
     return( 0 );
 }

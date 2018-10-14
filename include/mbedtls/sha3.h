@@ -90,7 +90,6 @@ mbedtls_shake_type_t;
 typedef struct
 {
     uint64_t state[5][5]; /* bit(z, state[x][y]) = A[x,y,z] */
-    uint64_t temp[5][5];
 }
 mbedtls_keccakf_context;
 

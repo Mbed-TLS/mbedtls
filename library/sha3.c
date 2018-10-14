@@ -309,7 +309,6 @@ static void mbedtls_keccakf_chi_iota( uint64_t in_state[5][5],
 static void mbedtls_keccakf_init( mbedtls_keccakf_context *ctx )
 {
     memset( &ctx->state, 0, sizeof( ctx->state ) );
-    memset( &ctx->temp, 0, sizeof( ctx->temp ) );
 }
 
 /**
@@ -325,7 +324,6 @@ static void mbedtls_keccakf_free( mbedtls_keccakf_context *ctx )
     if( ctx != NULL )
     {
         mbedtls_platform_zeroize( &ctx->state, sizeof( ctx->state ) );
-        mbedtls_platform_zeroize( &ctx->temp, sizeof( ctx->temp ) );
     }
 }
 
@@ -340,13 +338,15 @@ static void mbedtls_keccakf_free( mbedtls_keccakf_context *ctx )
 static void mbedtls_keccakf_permute( mbedtls_keccakf_context *ctx )
 {
     size_t i;
+    uint64_t temp[5][5];
     for( i = 0; i < 24; i++ )
     {
-        mbedtls_keccakf_theta   ( ctx->state, ctx->temp );
-        mbedtls_keccakf_rho     ( ctx->temp , ctx->state );
-        mbedtls_keccakf_pi      ( ctx->state, ctx->temp );
-        mbedtls_keccakf_chi_iota( ctx->temp , ctx->state, i );
+        mbedtls_keccakf_theta   ( ctx->state, temp );
+        mbedtls_keccakf_rho     ( temp , ctx->state );
+        mbedtls_keccakf_pi      ( ctx->state, temp );
+        mbedtls_keccakf_chi_iota( temp , ctx->state, i );
     }
+    mbedtls_platform_zeroize( temp, sizeof( temp ) );
 }
 
 /**

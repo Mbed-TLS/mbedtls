@@ -43,7 +43,7 @@
 #include "platform_time.h"
 #endif
 
-#define MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED       -0x0070 /**< Hardware failed platform operation. */
+#define MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED       -0x0070 /**< Hardware accelerator failed */
 
 #ifdef __cplusplus
 extern "C" {

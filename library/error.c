@@ -827,7 +827,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 
 #if defined(MBEDTLS_PLATFORM_C)
     if( use_ret == -(MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED) )
-        mbedtls_snprintf( buf, buflen, "PLATFORM - Hardware failed platform operation" );
+        mbedtls_snprintf( buf, buflen, "PLATFORM - Hardware accelerator failed" );
 #endif /* MBEDTLS_PLATFORM_C */
 
 #if defined(MBEDTLS_POLY1305_C)

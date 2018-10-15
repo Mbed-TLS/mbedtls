@@ -32,11 +32,11 @@ void pkcs1_rsaes_oaep_encrypt( int mod, int radix_N, char * input_N,
     TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( ( mod + 7 ) / 8 ) );
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
 
-
+    if( message_str->len == 0 )
+        message_str->x = NULL;
     TEST_ASSERT( mbedtls_rsa_pkcs1_encrypt( &ctx, &rnd_buffer_rand, &info, MBEDTLS_RSA_PUBLIC, message_str->len, message_str->x, output ) == result );
     if( result == 0 )
     {
-
         TEST_ASSERT( hexcmp( output, result_hex_str->x, ctx.len, result_hex_str->len ) == 0 );
     }
 
@@ -79,12 +79,17 @@ void pkcs1_rsaes_oaep_decrypt( int mod, int radix_P, char * input_P,
     TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
-
-    TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx, &rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PRIVATE, &output_len, message_str->x, output, 1000 ) == result );
-    if( result == 0 )
+    if( result_hex_str->len == 0 )
     {
-
-        TEST_ASSERT( hexcmp( output, result_hex_str->x, output_len, result_hex_str->len ) == 0 );
+        TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx, &rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PRIVATE, &output_len, message_str->x, NULL, 0 ) == result );
+    }
+    else
+    {
+        TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx, &rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PRIVATE, &output_len, message_str->x, output, 1000 ) == result );
+        if( result == 0 )
+        {
+            TEST_ASSERT( hexcmp( output, result_hex_str->x, output_len, result_hex_str->len ) == 0 );
+        }
     }
 
 exit:

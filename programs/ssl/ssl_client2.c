@@ -1570,8 +1570,8 @@ int main( int argc, char *argv[] )
         }
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
-            if( ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
-                continue;
+        if( ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
+            continue;
 #endif
 
         /* For event-driven IO, wait for socket to become available */
@@ -1673,6 +1673,11 @@ int main( int argc, char *argv[] )
                                 ret );
                 goto exit;
             }
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+            if( ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
+                continue;
+#endif
 
             /* For event-driven IO, wait for socket to become available */
             if( opt.event == 1 /* level triggered IO */ )

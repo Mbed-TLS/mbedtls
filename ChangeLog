@@ -10,6 +10,18 @@ Features
      functions in ECDH and SSL (currently only implemented client-side, for
      ECDHE-ECDSA ciphersuites with TLS 1.2, including client authentication).
 
+Bugfix
+   * Fix a bug in the update function for SSL ticket keys which previously
+     invalidated keys of a lifetime of less than a 1s. Fixes #1968.
+   * Fix failure in hmac_drbg in the benchmark sample application, when
+     MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
+
+Changes
+   * Add tests for session resumption in DTLS.
+   * Close a test gap in (D)TLS between the client side and the server side:
+     test the handling of large packets and small packets on the client side
+     in the same way as on the server side.
+
 = mbed TLS 2.13.1 branch released 2018-09-06
 
 API Changes

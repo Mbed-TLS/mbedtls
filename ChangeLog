@@ -19,6 +19,10 @@ Bugfix
      in X.509 module. Fixes #2212.
    * Reduce stack usage of `mpi_write_hlp()` by eliminating recursion.
      Fixes #2190.
+   * Add missing parentheses around parameters in the definition of the
+     public macro MBEDTLS_X509_ID_FLAG. This could lead to invalid evaluation
+     in case operators binding less strongly than subtraction were used
+     for the parameter.
 
 Changes
    * Include configuration file in all header files that use configuration,

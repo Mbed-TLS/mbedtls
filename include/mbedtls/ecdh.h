@@ -91,8 +91,6 @@ mbedtls_ecdh_context;
  * \param p_rng     The RNG context.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
- *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  * \return          Another \c MBEDTLS_ERR_ECP_XXX or
  *                  \c MBEDTLS_MPI_XXX error code on failure.
  */
@@ -121,8 +119,6 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
  * \param p_rng     The RNG context.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
- *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  * \return          Another \c MBEDTLS_ERR_ECP_XXX or
  *                  \c MBEDTLS_MPI_XXX error code on failure.
  */
@@ -210,8 +206,6 @@ int mbedtls_ecdh_read_params( mbedtls_ecdh_context *ctx,
  *                  0: The key of the peer.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
- *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
  * \return          Another \c MBEDTLS_ERR_ECP_XXX error code on failure.
  *
  */

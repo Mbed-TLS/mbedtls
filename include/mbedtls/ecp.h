@@ -350,9 +350,19 @@ mbedtls_ecp_keypair;
  *                  same; they must not be used until the function finally
  *                  returns 0.
  *
- *                  This only affects functions that accept a pointer to a
- *                  \c mbedtls_ecp_restart_ctx as an argument, and only works
- *                  if that pointer is valid (in particular, not NULL).
+ *                  This only applies to functions whose documentation
+ *                  mentions they may return #MBEDTLS_ERR_ECP_IN_PROGRESS (or
+ *                  #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS for functions in the
+ *                  SSL module). For functions that accept a "restart context"
+ *                  argument, passing NULL disables restart and makes the
+ *                  function equivalent to the function with the same name
+ *                  with \c _restartable removed. For functions in the ECDH
+ *                  module, restart is disabled unless the function accepts
+ *                  an "ECDH context" argument and
+ *                  mbedtls_ecdh_enable_restart() was previously called on
+ *                  that context. For function in the SSL module, restart is
+ *                  only enabled for specific sides and key exchanges
+ *                  (currently only for clients and ECDHE-ECDSA).
  *
  * \param max_ops   Maximum number of basic operations done in a row.
  *                  Default: 0 (unlimited).

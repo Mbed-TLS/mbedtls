@@ -200,7 +200,7 @@ int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
 #endif
 
     if( ( ret = ecdh_gen_public_restartable( &ctx->grp, &ctx->d, &ctx->Q,
-                    f_rng, p_rng, rs_ctx ) ) != 0 )
+                                             f_rng, p_rng, rs_ctx ) ) != 0 )
         return( ret );
 
     if( ( ret = mbedtls_ecp_tls_write_group( &ctx->grp, &grp_len, buf, blen ) )
@@ -211,7 +211,7 @@ int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
     blen -= grp_len;
 
     if( ( ret = mbedtls_ecp_tls_write_point( &ctx->grp, &ctx->Q, ctx->point_format,
-                                     &pt_len, buf, blen ) ) != 0 )
+                                             &pt_len, buf, blen ) ) != 0 )
         return( ret );
 
     *olen = grp_len + pt_len;

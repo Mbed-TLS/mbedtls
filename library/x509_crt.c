@@ -2727,7 +2727,6 @@ void mbedtls_x509_crt_restart_free( mbedtls_x509_crt_restart_ctx *ctx )
         return;
 
     mbedtls_pk_restart_free( &ctx->pk );
-
     mbedtls_x509_crt_restart_init( ctx );
 }
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */

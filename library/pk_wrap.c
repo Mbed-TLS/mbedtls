@@ -337,7 +337,7 @@ static int eckey_verify_rs_wrap( void *ctx, mbedtls_md_type_t md_alg,
     if( rs == NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    /* set up our own sub-context if needed */
+    /* set up our own sub-context if needed (that is, on first run) */
     if( rs->ecdsa_ctx.grp.pbits == 0 )
         MBEDTLS_MPI_CHK( mbedtls_ecdsa_from_keypair( &rs->ecdsa_ctx, ctx ) );
 
@@ -362,7 +362,7 @@ static int eckey_sign_rs_wrap( void *ctx, mbedtls_md_type_t md_alg,
     if( rs == NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    /* set up our own sub-context if needed */
+    /* set up our own sub-context if needed (that is, on first run) */
     if( rs->ecdsa_ctx.grp.pbits == 0 )
         MBEDTLS_MPI_CHK( mbedtls_ecdsa_from_keypair( &rs->ecdsa_ctx, ctx ) );
 

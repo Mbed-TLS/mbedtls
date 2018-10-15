@@ -1428,7 +1428,7 @@ cleanup:
  *
  * - For the sake of compactness, only the seven low-order bits of x[i]
  *   are used to represent its absolute value (K_i in the paper), and the msb
- *   of x[i] encodes the the sign (s_i in the paper): it is set if and only if
+ *   of x[i] encodes the sign (s_i in the paper): it is set if and only if
  *   if s_i == -1;
  *
  * Calling conventions:
@@ -1480,10 +1480,10 @@ static void ecp_comb_recode_core( unsigned char x[], size_t d,
  *
  * Note: Even comb values (those where P would be omitted from the
  *       sum defining T[i] above) are not needed in our adaption
- *       the the comb method. See ecp_comb_recode_core().
+ *       the comb method. See ecp_comb_recode_core().
  *
  * This function currently works in four steps:
- * (1) [dbl]      Computation of intermediate T[i] for 2-powers values of i
+ * (1) [dbl]      Computation of intermediate T[i] for 2-power values of i
  * (2) [norm_dbl] Normalization of coordinates of these T[i]
  * (3) [add]      Computation of all T[i]
  * (4) [norm_add] Normalization of all T[i]
@@ -1513,10 +1513,6 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
     const unsigned char T_size = 1U << ( w - 1 );
     mbedtls_ecp_point *cur, *TT[COMB_MAX_PRE - 1];
 
-#if !defined(MBEDTLS_ECP_RESTARTABLE)
-    (void) rs_ctx;
-#endif
-
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
     {
@@ -1529,12 +1525,10 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
         if( rs_ctx->rsm->state == ecp_rsm_pre_norm_add )
             goto norm_add;
     }
+#else
+    (void) rs_ctx;
 #endif
 
-    /*
-     * Set T[0] = P and
-     * T[2^{l-1}] = 2^{dl} P for l = 1 .. w-1 (this is not the final value)
-     */
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
     {
@@ -1546,7 +1540,10 @@ static int ecp_precompute_comb( const mbedtls_ecp_group *grp,
 
 dbl:
 #endif
-
+    /*
+     * Set T[0] = P and
+     * T[2^{l-1}] = 2^{dl} P for l = 1 .. w-1 (this is not the final value)
+     */
     MBEDTLS_MPI_CHK( mbedtls_ecp_copy( &T[0], P ) );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
@@ -1569,17 +1566,16 @@ dbl:
         MBEDTLS_MPI_CHK( ecp_double_jac( grp, cur, cur ) );
     }
 
-    /*
-     * Normalize current elements in T. As T has holes,
-     * use an auxiliary array of pointers to elements in T.
-     */
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
         rs_ctx->rsm->state = ecp_rsm_pre_norm_dbl;
 
 norm_dbl:
 #endif
-
+    /*
+     * Normalize current elements in T. As T has holes,
+     * use an auxiliary array of pointers to elements in T.
+     */
     j = 0;
     for( i = 1; i < T_size; i <<= 1 )
         TT[j++] = T + i;
@@ -1588,17 +1584,16 @@ norm_dbl:
 
     MBEDTLS_MPI_CHK( ecp_normalize_jac_many( grp, TT, j ) );
 
-    /*
-     * Compute the remaining ones using the minimal number of additions
-     * Be careful to update T[2^l] only after using it!
-     */
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
         rs_ctx->rsm->state = ecp_rsm_pre_add;
 
 add:
 #endif
-
+    /*
+     * Compute the remaining ones using the minimal number of additions
+     * Be careful to update T[2^l] only after using it!
+     */
     MBEDTLS_ECP_BUDGET( ( T_size - 1 ) * MBEDTLS_ECP_OPS_ADD );
 
     for( i = 1; i < T_size; i <<= 1 )
@@ -1608,18 +1603,17 @@ add:
             MBEDTLS_MPI_CHK( ecp_add_mixed( grp, &T[i + j], &T[j], &T[i] ) );
     }
 
-    /*
-     * Normalize final elements in T. Even though there are no holes now,
-     * we still need the auxiliary array for homogeneity with last time.
-     * Also, skip T[0] which is already normalised, being a copy of P.
-     */
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->rsm != NULL )
         rs_ctx->rsm->state = ecp_rsm_pre_norm_add;
 
 norm_add:
 #endif
-
+    /*
+     * Normalize final elements in T. Even though there are no holes now,
+     * we still need the auxiliary array for homogeneity with last time.
+     * Also, skip T[0] which is already normalised, being a copy of P.
+     */
     for( j = 0; j + 1 < T_size; j++ )
         TT[j] = T + j + 1;
 
@@ -1965,7 +1959,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         if( p_eq_g )
         {
             /* almost transfer ownership of T to the group, but keep a copy of
-             * the pointer to use for caling the next function more easily */
+             * the pointer to use for calling the next function more easily */
             grp->T = T;
             grp->T_size = T_size;
         }

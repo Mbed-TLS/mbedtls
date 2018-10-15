@@ -3,12 +3,16 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Features
-   * Add support for restartable ECC operations, enabled by
-     MBEDTLS_ECP_RESTARTABLE (disabled by default) at compile time and
-     mbedtls_ecp_set_max_ops() at runtime, using new xxx_restartable functions
-     in ECP, ECDSA, PK and X509 (CRL not supported yet), and using existing
-     functions in ECDH and SSL (currently only implemented client-side, for
-     ECDHE-ECDSA ciphersuites with TLS 1.2, including client authentication).
+   * Add support for temporarily suspending expensive ECC computations after
+     some configurable amount of operations, to be used in single-threaded
+     constrained systems where ECC is time consuming and blocking until
+     completion cannot be tolerated. This is enabled by
+     MBEDTLS_ECP_RESTARTABLE at compile time (disabled by default) and
+     configured by mbedtls_ecp_set_max_ops() at runtime. It applies to new
+     xxx_restartable functions in ECP, ECDSA, PK and X.509 (CRL not supported
+     yet), and to existing functions in ECDH and SSL (currently only
+     implemented client-side, for ECDHE-ECDSA ciphersuites in TLS 1.2,
+     including client authentication).
 
 Bugfix
    * Fix a bug in the update function for SSL ticket keys which previously

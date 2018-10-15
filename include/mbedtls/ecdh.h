@@ -91,10 +91,10 @@ mbedtls_ecdh_context;
  * \param p_rng     The RNG context.
  *
  * \return          \c 0 on success.
- * \return          An \c MBEDTLS_ERR_ECP_XXX or
- *                  \c MBEDTLS_MPI_XXX error code on failure.
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
+ * \return          Another \c MBEDTLS_ERR_ECP_XXX or
+ *                  \c MBEDTLS_MPI_XXX error code on failure.
  */
 int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp_point *Q,
                      int (*f_rng)(void *, unsigned char *, size_t),
@@ -121,10 +121,10 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
  * \param p_rng     The RNG context.
  *
  * \return          \c 0 on success.
- * \return          An \c MBEDTLS_ERR_ECP_XXX or
- *                  \c MBEDTLS_MPI_XXX error code on failure.
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
+ * \return          Another \c MBEDTLS_ERR_ECP_XXX or
+ *                  \c MBEDTLS_MPI_XXX error code on failure.
  */
 int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
                          const mbedtls_ecp_point *Q, const mbedtls_mpi *d,
@@ -166,9 +166,9 @@ void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx );
  * \param p_rng     The RNG context.
  *
  * \return          \c 0 on success.
- * \return          An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
+ * \return          Another \c MBEDTLS_ERR_ECP_XXX error code on failure.
  */
 int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
                       unsigned char *buf, size_t blen,
@@ -210,9 +210,9 @@ int mbedtls_ecdh_read_params( mbedtls_ecdh_context *ctx,
  *                  0: The key of the peer.
  *
  * \return          \c 0 on success.
- * \return          An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
+ * \return          Another \c MBEDTLS_ERR_ECP_XXX error code on failure.
  *
  */
 int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx, const mbedtls_ecp_keypair *key,
@@ -235,9 +235,9 @@ int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx, const mbedtls_ecp_keypai
  * \param p_rng     The RNG context.
  *
  * \return          \c 0 on success.
- * \return          An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
+ * \return          Another \c MBEDTLS_ERR_ECP_XXX error code on failure.
  */
 int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
                       unsigned char *buf, size_t blen,
@@ -283,9 +283,9 @@ int mbedtls_ecdh_read_public( mbedtls_ecdh_context *ctx,
  * \param p_rng     The RNG context.
  *
  * \return          \c 0 on success.
- * \return          An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
+ * \return          Another \c MBEDTLS_ERR_ECP_XXX error code on failure.
  */
 int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
                       unsigned char *buf, size_t blen,

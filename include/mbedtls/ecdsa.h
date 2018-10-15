@@ -73,7 +73,7 @@ typedef mbedtls_ecp_keypair mbedtls_ecdsa_context;
 /**
  * \brief           Internal restart context for ecdsa_verify()
  *
- * \note            Opaque struct
+ * \note            Opaque struct, defined in ecdsa.c
  */
 typedef struct mbedtls_ecdsa_restart_ver mbedtls_ecdsa_restart_ver_ctx;
 
@@ -273,13 +273,13 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
  * \param slen      The length of the signature written.
  * \param f_rng     The RNG function.
  * \param p_rng     The RNG context.
- * \param rs_ctx    The restart context.
+ * \param rs_ctx    The restart context (NULL disables restart).
  *
  * \return          \c 0 on success.
- * \return          An \c MBEDTLS_ERR_ECP_XXX, \c MBEDTLS_ERR_MPI_XXX or
- *                  \c MBEDTLS_ERR_ASN1_XXX error code on failure.
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
+ * \return          Another \c MBEDTLS_ERR_ECP_XXX, \c MBEDTLS_ERR_MPI_XXX or
+ *                  \c MBEDTLS_ERR_ASN1_XXX error code on failure.
  */
 int mbedtls_ecdsa_write_signature_restartable( mbedtls_ecdsa_context *ctx,
                            mbedtls_md_type_t md_alg,
@@ -387,16 +387,16 @@ int mbedtls_ecdsa_read_signature( mbedtls_ecdsa_context *ctx,
  * \param hlen      The size of the hash.
  * \param sig       The signature to read and verify.
  * \param slen      The size of \p sig.
- * \param rs_ctx    The restart context
+ * \param rs_ctx    The restart context (NULL disables restart).
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if signature is invalid.
  * \return          #MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH if there is a valid
  *                  signature in \p sig, but its length is less than \p siglen.
- * \return          An \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_ERR_MPI_XXX
- *                  error code on failure for any other reason.
  * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
  *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
+ * \return          Another \c MBEDTLS_ERR_ECP_XXX or \c MBEDTLS_ERR_MPI_XXX
+ *                  error code on failure for any other reason.
  */
 int mbedtls_ecdsa_read_signature_restartable( mbedtls_ecdsa_context *ctx,
                           const unsigned char *hash, size_t hlen,

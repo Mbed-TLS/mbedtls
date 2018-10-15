@@ -50,7 +50,7 @@
 #define MBEDTLS_ERR_ECP_INVALID_KEY                       -0x4C80  /**< Invalid private or public key. */
 #define MBEDTLS_ERR_ECP_SIG_LEN_MISMATCH                  -0x4C00  /**< The buffer contains a valid signature followed by more data. */
 #define MBEDTLS_ERR_ECP_HW_ACCEL_FAILED                   -0x4B80  /**< The ECP hardware accelerator failed. */
-#define MBEDTLS_ERR_ECP_IN_PROGRESS                       -0x4B00  /**< Operation in progress, try again with the same parameters. */
+#define MBEDTLS_ERR_ECP_IN_PROGRESS                       -0x4B00  /**< Operation in progress, call again with the same parameters to continue. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -747,7 +747,7 @@ int mbedtls_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  * \param P         The point to multiply.
  * \param f_rng     The RNG function.
  * \param p_rng     The RNG context.
- * \param rs_ctx    The restart context.
+ * \param rs_ctx    The restart context (NULL disables restart).
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_ECP_INVALID_KEY if \p m is not a valid private
@@ -804,7 +804,7 @@ int mbedtls_ecp_muladd( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
  * \param P         The point to multiply by \p m.
  * \param n         The integer by which to multiply \p Q.
  * \param Q         The point to be multiplied by \p n.
- * \param rs_ctx    The restart context.
+ * \param rs_ctx    The restart context (NULL disables restart).
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_ECP_INVALID_KEY if \p m or \p n are not

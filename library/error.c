@@ -290,7 +290,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
         if( use_ret == -(MBEDTLS_ERR_ECP_HW_ACCEL_FAILED) )
             mbedtls_snprintf( buf, buflen, "ECP - The ECP hardware accelerator failed" );
         if( use_ret == -(MBEDTLS_ERR_ECP_IN_PROGRESS) )
-            mbedtls_snprintf( buf, buflen, "ECP - Operation in progress, try again with the same parameters" );
+            mbedtls_snprintf( buf, buflen, "ECP - Operation in progress, call again with the same parameters to continue" );
 #endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_MD_C)

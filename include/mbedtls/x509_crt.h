@@ -426,7 +426,7 @@ int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
  * \param flags    result of the verification
  * \param f_vrfy   verification function
  * \param p_vrfy   verification parameter
- * \param rs_ctx   restart context
+ * \param rs_ctx   restart context (NULL to disable restart)
  *
  * \return         See \c mbedtls_crt_verify_with_profile(), or
  * \return         #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of

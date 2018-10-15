@@ -7,6 +7,10 @@ Bugfix
      MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
    * Fix a bug in the update function for SSL ticket keys which previously
      invalidated keys of a lifetime of less than a 1s. Fixes #1968.
+   * Add missing parentheses around parameters in the definition of the
+     public macro MBEDTLS_X509_ID_FLAG. This could lead to invalid evaluation
+     in case operators binding less strongly than subtraction were used
+     for the parameter.
 
 Changes
    * Add tests for session resumption in DTLS.

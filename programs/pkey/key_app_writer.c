@@ -84,10 +84,12 @@
     USAGE_OUT                                           \
     "\n"
 
-#if !defined(MBEDTLS_PK_WRITE_C) || !defined(MBEDTLS_FS_IO)
+#if !defined(MBEDTLS_PK_PARSE_C) || \
+    !defined(MBEDTLS_PK_WRITE_C) || \
+    !defined(MBEDTLS_FS_IO)
 int main( void )
 {
-    mbedtls_printf( "MBEDTLS_PK_WRITE_C and/or MBEDTLS_FS_IO not defined.\n" );
+    mbedtls_printf( "MBEDTLS_PK_PARSE_C and/or MBEDTLS_PK_WRITE_C and/or MBEDTLS_FS_IO not defined.\n" );
     return( 0 );
 }
 #else
@@ -403,4 +405,4 @@ exit:
 
     return( ret );
 }
-#endif /* MBEDTLS_PK_WRITE_C && MBEDTLS_FS_IO */
+#endif /* MBEDTLS_PK_PARSE_C && MBEDTLS_PK_WRITE_C && MBEDTLS_FS_IO */

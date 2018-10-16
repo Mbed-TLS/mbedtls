@@ -1711,9 +1711,11 @@ static int ecp_mul_comb_core( const mbedtls_ecp_group *grp, mbedtls_ecp_point *R
             MBEDTLS_MPI_CHK( ecp_randomize_jac( grp, R, f_rng, p_rng ) );
     }
 
-    while( i-- != 0 )
+    while( i != 0 )
     {
         MBEDTLS_ECP_BUDGET( MBEDTLS_ECP_OPS_DBL + MBEDTLS_ECP_OPS_ADD );
+        --i;
+
         MBEDTLS_MPI_CHK( ecp_double_jac( grp, R, R ) );
         MBEDTLS_MPI_CHK( ecp_select_comb( grp, &Txi, T, T_size, x[i] ) );
         MBEDTLS_MPI_CHK( ecp_add_mixed( grp, R, R, &Txi ) );
@@ -1727,8 +1729,7 @@ cleanup:
     if( rs_ctx != NULL && rs_ctx->rsm != NULL &&
         ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
     {
-        /* was decreased before actually doing it */
-        rs_ctx->rsm->i = i + 1;
+        rs_ctx->rsm->i = i;
         /* no need to save R, already pointing to rs_ctx->rsm->R */
     }
 #endif

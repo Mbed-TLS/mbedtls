@@ -2142,7 +2142,7 @@ cleanup:
 /*
  * Pseudo-primality test: small factors, then Miller-Rabin
  */
-int mpi_is_prime_internal( const mbedtls_mpi *X, int rounds,
+static int mpi_is_prime_internal( const mbedtls_mpi *X, int rounds,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng )
 {

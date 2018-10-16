@@ -1933,6 +1933,7 @@ static int ecp_mul_comb( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
         rs_ctx->rsm->T = NULL;
         rs_ctx->rsm->T_size = 0;
 
+        /* This effectively jumps to the call to mul_comb_after_precomp() */
         T_ok = rs_ctx->rsm->state >= ecp_rsm_comb_core;
     }
     else

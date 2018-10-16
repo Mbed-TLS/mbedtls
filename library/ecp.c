@@ -260,36 +260,36 @@ int mbedtls_ecp_check_budget( const mbedtls_ecp_group *grp,
 }
 
 /* Call this when entering a function that needs its own sub-context */
-#define ECP_RS_ENTER( SUB )   do {                                 \
-    /* reset ops count for this call if top-level */                 \
-    if( rs_ctx != NULL && rs_ctx->depth++ == 0 )                 \
-        rs_ctx->ops_done = 0;                                    \
-                                                                     \
-    /* set up our own sub-context if needed */                       \
-    if( mbedtls_ecp_restart_is_enabled() &&                          \
-        rs_ctx != NULL && rs_ctx->SUB == NULL )                      \
-    {                                                                \
-        rs_ctx->SUB = mbedtls_calloc( 1, sizeof( *rs_ctx->SUB ) );   \
-        if( rs_ctx->SUB == NULL )                                    \
-            return( MBEDTLS_ERR_ECP_ALLOC_FAILED );                  \
-                                                                     \
-        ecp_restart_## SUB ##_init( rs_ctx->SUB );                 \
-    }                                                                \
+#define ECP_RS_ENTER( SUB )   do {                                      \
+    /* reset ops count for this call if top-level */                    \
+    if( rs_ctx != NULL && rs_ctx->depth++ == 0 )                        \
+        rs_ctx->ops_done = 0;                                           \
+                                                                        \
+    /* set up our own sub-context if needed */                          \
+    if( mbedtls_ecp_restart_is_enabled() &&                             \
+        rs_ctx != NULL && rs_ctx->SUB == NULL )                         \
+    {                                                                   \
+        rs_ctx->SUB = mbedtls_calloc( 1, sizeof( *rs_ctx->SUB ) );      \
+        if( rs_ctx->SUB == NULL )                                       \
+            return( MBEDTLS_ERR_ECP_ALLOC_FAILED );                     \
+                                                                        \
+        ecp_restart_## SUB ##_init( rs_ctx->SUB );                      \
+    }                                                                   \
 } while( 0 )
 
 /* Call this when leaving a function that needs its own sub-context */
-#define ECP_RS_LEAVE( SUB )   do {                                 \
-    /* clear our sub-context when not in progress (done or error) */ \
-    if( rs_ctx != NULL && rs_ctx->SUB != NULL &&                     \
-        ret != MBEDTLS_ERR_ECP_IN_PROGRESS )                         \
-    {                                                                \
-        ecp_restart_## SUB ##_free( rs_ctx->SUB );                 \
-        mbedtls_free( rs_ctx->SUB );                                 \
-        rs_ctx->SUB = NULL;                                          \
-    }                                                                \
-                                                                     \
-    if( rs_ctx != NULL )                                             \
-        rs_ctx->depth--;                                         \
+#define ECP_RS_LEAVE( SUB )   do {                                      \
+    /* clear our sub-context when not in progress (done or error) */    \
+    if( rs_ctx != NULL && rs_ctx->SUB != NULL &&                        \
+        ret != MBEDTLS_ERR_ECP_IN_PROGRESS )                            \
+    {                                                                   \
+        ecp_restart_## SUB ##_free( rs_ctx->SUB );                      \
+        mbedtls_free( rs_ctx->SUB );                                    \
+        rs_ctx->SUB = NULL;                                             \
+    }                                                                   \
+                                                                        \
+    if( rs_ctx != NULL )                                                \
+        rs_ctx->depth--;                                                \
 } while( 0 )
 
 #else /* MBEDTLS_ECP_RESTARTABLE */

@@ -65,5 +65,6 @@ check()
 }
 
 check scripts/generate_errors.pl library/error.c
+check scripts/generate_query_config.pl programs/ssl/query_config.c
 check scripts/generate_features.pl library/version_features.c
 check scripts/generate_visualc_files.pl visualc/VS2010

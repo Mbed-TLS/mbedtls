@@ -41,6 +41,10 @@
 #if !defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
 /*
  * Generate public key (restartable version)
+ *
+ * Note: this internal function relies on its caller preserving the value of
+ * the output parameter 'd' accross continuation calls. This would not be
+ * acceptable for a public function but is OK here as we control call sites.
  */
 static int ecdh_gen_public_restartable( mbedtls_ecp_group *grp,
                     mbedtls_mpi *d, mbedtls_ecp_point *Q,

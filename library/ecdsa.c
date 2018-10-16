@@ -126,8 +126,6 @@ static void ecdsa_restart_sig_free( mbedtls_ecdsa_restart_sig_ctx *ctx )
 
     mbedtls_mpi_free( &ctx->k );
     mbedtls_mpi_free( &ctx->r );
-
-    ecdsa_restart_sig_init( ctx );
 }
 
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)

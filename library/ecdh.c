@@ -161,8 +161,6 @@ void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx )
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     mbedtls_ecp_restart_free( &ctx->rs );
 #endif
-
-    mbedtls_ecdh_init( ctx );
 }
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)

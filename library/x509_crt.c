@@ -2182,8 +2182,8 @@ static int x509_crt_find_parent(
     /* extra precaution against mistakes in the caller */
     if( parent == NULL )
     {
-        parent_is_trusted = 0;
-        signature_is_good = 0;
+        *parent_is_trusted = 0;
+        *signature_is_good = 0;
     }
 
     return( 0 );

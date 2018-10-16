@@ -1460,7 +1460,7 @@ int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
 }
 #endif /* MBEDTLS_PKCS1_V21 */
 
-#if defined(MBEDTLS_PKCS1_V15)
+#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_ASN1PARSE_C)
 /*
  * Implementation of the PKCS#1 v2.1 RSASSA-PKCS1-v1_5-VERIFY function
  */
@@ -1589,7 +1589,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
 
     return( 0 );
 }
-#endif /* MBEDTLS_PKCS1_V15 */
+#endif /* MBEDTLS_PKCS1_V15 && MBEDTLS_ASN1PARSE_C */
 
 /*
  * Do an RSA operation and check the message digest
@@ -1605,7 +1605,7 @@ int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
 {
     switch( ctx->padding )
     {
-#if defined(MBEDTLS_PKCS1_V15)
+#if defined(MBEDTLS_PKCS1_V15) && defined(MBEDTLS_ASN1PARSE_C)
         case MBEDTLS_RSA_PKCS_V15:
             return mbedtls_rsa_rsassa_pkcs1_v15_verify( ctx, f_rng, p_rng, mode, md_alg,
                                                 hashlen, hash, sig );

@@ -35,6 +35,8 @@ Changes
      produced by some optimizing compilers, showing up as failures in
      e.g. RSA or ECC signature operations. Reported in #1722, fix suggested
      by Aurelien Jarno and submitted by Jeffrey Martin.
+   * Fix configuration queries in ssl-opt.h. #2030
+   * Ensure that ssl-opt.h can be run in OS X. #2029
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

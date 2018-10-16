@@ -2946,7 +2946,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
         if( ssl->handshake->ecrs_enabled )
         {
-            if( ssl->handshake->ecrs_state == ssl_ecrs_ske_ecdh_calc_secret )
+            if( ssl->handshake->ecrs_state == ssl_ecrs_cke_ecdh_calc_secret )
                 goto ecdh_calc_secret;
 
             mbedtls_ecdh_enable_restart( &ssl->handshake->ecdh_ctx );
@@ -2973,7 +2973,7 @@ static int ssl_write_client_key_exchange( mbedtls_ssl_context *ssl )
         if( ssl->handshake->ecrs_enabled )
         {
             ssl->handshake->ecrs_n = n;
-            ssl->handshake->ecrs_state = ssl_ecrs_ske_ecdh_calc_secret;
+            ssl->handshake->ecrs_state = ssl_ecrs_cke_ecdh_calc_secret;
         }
 
 ecdh_calc_secret:

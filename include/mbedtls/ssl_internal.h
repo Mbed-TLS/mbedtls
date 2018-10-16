@@ -301,8 +301,8 @@ struct mbedtls_ssl_handshake_params
     enum { /* this complements ssl->state with info on intra-state operations */
         ssl_ecrs_none = 0,              /*!< nothing going on (yet)         */
         ssl_ecrs_crt_verify,            /*!< Certificate: crt_verify()      */
-        ssl_ecrs_ske_start_processing,  /*!< ServerKeyExchange: step 1      */
-        ssl_ecrs_ske_ecdh_calc_secret,  /*!< ServerKeyExchange: ECDH step 2 */
+        ssl_ecrs_ske_start_processing,  /*!< ServerKeyExchange: pk_verify() */
+        ssl_ecrs_cke_ecdh_calc_secret,  /*!< ClientKeyExchange: ECDH step 2 */
         ssl_ecrs_crt_vrfy_sign,         /*!< CertificateVerify: pk_sign()   */
     } ecrs_state;                       /*!< current (or last) operation    */
     size_t ecrs_n;                      /*!< place for saving a length      */

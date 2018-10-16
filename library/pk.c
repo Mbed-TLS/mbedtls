@@ -239,7 +239,7 @@ int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     /* optimization: use non-restartable version if restart disabled */
     if( rs_ctx != NULL &&
-        mbedtls_ecp_restart_enabled() &&
+        mbedtls_ecp_restart_is_enabled() &&
         ctx->pk_info->verify_rs_func != NULL )
     {
         int ret;
@@ -352,7 +352,7 @@ int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     /* optimization: use non-restartable version if restart disabled */
     if( rs_ctx != NULL &&
-        mbedtls_ecp_restart_enabled() &&
+        mbedtls_ecp_restart_is_enabled() &&
         ctx->pk_info->sign_rs_func != NULL )
     {
         int ret;

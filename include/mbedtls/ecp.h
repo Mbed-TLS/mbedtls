@@ -399,7 +399,7 @@ void mbedtls_ecp_set_max_ops( unsigned max_ops );
  * \return          \c 0 if \c max_ops == 0 (restart disabled)
  * \return          \c 1 otherwise (restart enabled)
  */
-int mbedtls_ecp_restart_enabled( void );
+int mbedtls_ecp_restart_is_enabled( void );
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
 /**

@@ -177,7 +177,7 @@ static void ecdsa_restart_det_free( mbedtls_ecdsa_restart_det_ctx *ctx )
         rs_ctx->ecp.ops_done = 0;                                    \
                                                                      \
     /* set up our own sub-context if needed */                       \
-    if( mbedtls_ecp_restart_enabled() &&                             \
+    if( mbedtls_ecp_restart_is_enabled() &&                          \
         rs_ctx != NULL && rs_ctx->SUB == NULL )                      \
     {                                                                \
         rs_ctx->SUB = mbedtls_calloc( 1, sizeof( *rs_ctx->SUB ) );   \

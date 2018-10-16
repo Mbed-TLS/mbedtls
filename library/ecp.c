@@ -106,7 +106,7 @@ void mbedtls_ecp_set_max_ops( unsigned max_ops )
 /*
  * Check if restart is enabled
  */
-int mbedtls_ecp_restart_enabled( void )
+int mbedtls_ecp_restart_is_enabled( void )
 {
     return( ecp_max_ops != 0 );
 }
@@ -266,7 +266,7 @@ int mbedtls_ecp_check_budget( const mbedtls_ecp_group *grp,
         rs_ctx->ops_done = 0;                                    \
                                                                      \
     /* set up our own sub-context if needed */                       \
-    if( mbedtls_ecp_restart_enabled() &&                             \
+    if( mbedtls_ecp_restart_is_enabled() &&                          \
         rs_ctx != NULL && rs_ctx->SUB == NULL )                      \
     {                                                                \
         rs_ctx->SUB = mbedtls_calloc( 1, sizeof( *rs_ctx->SUB ) );   \

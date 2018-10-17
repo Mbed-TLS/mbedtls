@@ -62,6 +62,8 @@ Bugfix
      replacements of standard calloc/free functions through the macros
      MBEDTLS_PLATFORM_CALLOC_MACRO and MBEDTLS_PLATFORM_FREE_MACRO.
      Reported by ole-de and ddhome2006. Fixes #882, #1642 and #1706.
+   * Fix potential memory leak in X.509 self test. Found and fixed by
+     Junhwan Park, #2106.
 
 Changes
    * Removed support for Yotta as a build tool.

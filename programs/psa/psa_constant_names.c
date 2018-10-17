@@ -83,9 +83,9 @@ static int psa_snprint_status(char *buffer, size_t buffer_size,
         size_t length = strlen(name);
         if (length < buffer_size) {
             memcpy(buffer, name, length + 1);
-            return length;
+            return (int) length;
         } else {
-            return buffer_size;
+            return (int) buffer_size;
         }
     }
 }
@@ -100,9 +100,9 @@ static int psa_snprint_ecc_curve(char *buffer, size_t buffer_size,
         size_t length = strlen(name);
         if (length < buffer_size) {
             memcpy(buffer, name, length + 1);
-            return length;
+            return (int) length;
         } else {
-            return buffer_size;
+            return (int) buffer_size;
         }
     }
 }
@@ -144,15 +144,15 @@ int main(int argc, char *argv[])
     }
 
     if (!strcmp(argv[1], "error") || !strcmp(argv[1], "status"))
-        psa_snprint_status(buffer, sizeof(buffer), value);
+        psa_snprint_status(buffer, sizeof(buffer), (psa_status_t) value);
     else if (!strcmp(argv[1], "alg") || !strcmp(argv[1], "algorithm"))
-        psa_snprint_algorithm(buffer, sizeof(buffer), value);
+        psa_snprint_algorithm(buffer, sizeof(buffer), (psa_algorithm_t) value);
     else if (!strcmp(argv[1], "curve") || !strcmp(argv[1], "ecc_curve"))
-        psa_snprint_ecc_curve(buffer, sizeof(buffer), value);
+        psa_snprint_ecc_curve(buffer, sizeof(buffer), (psa_ecc_curve_t) value);
     else if (!strcmp(argv[1], "type") || !strcmp(argv[1], "key_type"))
-        psa_snprint_key_type(buffer, sizeof(buffer), value);
+        psa_snprint_key_type(buffer, sizeof(buffer), (psa_key_type_t) value);
     else if (!strcmp(argv[1], "usage") || !strcmp(argv[1], "key_usage"))
-        psa_snprint_key_usage(buffer, sizeof(buffer), value);
+        psa_snprint_key_usage(buffer, sizeof(buffer), (psa_key_usage_t) value);
     else {
         printf("Unknown type: %s\n", argv[1]);
         return EXIT_FAILURE;

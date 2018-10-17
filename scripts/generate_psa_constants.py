@@ -44,7 +44,7 @@ static int psa_snprint_key_type(char *buffer, size_t buffer_size,
         break;
     }
     buffer[0] = 0;
-    return required_size;
+    return (int) required_size;
 }
 
 static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
@@ -84,7 +84,7 @@ static int psa_snprint_algorithm(char *buffer, size_t buffer_size,
         append(&buffer, buffer_size, &required_size, ")", 1);
     }
     buffer[0] = 0;
-    return required_size;
+    return (int) required_size;
 }
 
 static int psa_snprint_key_usage(char *buffer, size_t buffer_size,
@@ -110,7 +110,7 @@ static int psa_snprint_key_usage(char *buffer, size_t buffer_size,
     } else {
         buffer[0] = 0;
     }
-    return required_size;
+    return (int) required_size;
 }
 
 /* End of automatically generated file. */

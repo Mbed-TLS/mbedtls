@@ -96,7 +96,12 @@ all: $(APPS)
 $(DEP):
 	$(MAKE) -C ../library
 
+ifdef WINDOWS
+EXTRA_GENERATED += psa\psa_constant_names_generated.c
+else
 EXTRA_GENERATED += psa/psa_constant_names_generated.c
+endif
+
 psa/psa_constant_names$(EXEXT): psa/psa_constant_names_generated.c
 psa/psa_constant_names_generated.c: ../scripts/generate_psa_constants.py ../include/psa/crypto.h
 	../scripts/generate_psa_constants.py

@@ -1527,7 +1527,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     psa_key_usage_t usage =
         is_sign ? PSA_KEY_USAGE_SIGN : PSA_KEY_USAGE_VERIFY;
     unsigned char truncated = PSA_MAC_TRUNCATED_LENGTH( alg );
-    psa_algorithm_t full_length_alg = alg & ~PSA_ALG_MAC_TRUNCATION_MASK;
+    psa_algorithm_t full_length_alg = PSA_ALG_FULL_LENGTH_MAC( alg );
 
     status = psa_mac_init( operation, full_length_alg );
     if( status != PSA_SUCCESS )

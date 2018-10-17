@@ -198,6 +198,7 @@ void mac_algorithm( int alg_arg, int classification_flags,
 
     mac_algorithm_core( alg, classification_flags,
                         key_type, key_bits, length );
+    TEST_ASSERT( PSA_ALG_FULL_LENGTH_MAC( alg ) == alg );
     TEST_ASSERT( length <= PSA_MAC_MAX_SIZE );
 
     /* Truncated versions */
@@ -206,6 +207,7 @@ void mac_algorithm( int alg_arg, int classification_flags,
         psa_algorithm_t truncated_alg = PSA_ALG_TRUNCATED_MAC( alg, n );
         mac_algorithm_core( truncated_alg, classification_flags,
                             key_type, key_bits, n );
+        TEST_ASSERT( PSA_ALG_FULL_LENGTH_MAC( truncated_alg ) == alg );
         /* Check that calling PSA_ALG_TRUNCATED_MAC twice gives the length
          * of the outer truncation (even if the outer length is smaller than
          * the inner length). */

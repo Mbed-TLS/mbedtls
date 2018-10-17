@@ -803,6 +803,21 @@ typedef uint32_t psa_algorithm_t;
     (((alg) & ~PSA_ALG_MAC_TRUNCATION_MASK) |                           \
      ((mac_length) << PSA_MAC_TRUNCATION_OFFSET & PSA_ALG_MAC_TRUNCATION_MASK))
 
+/** Macro to build the base MAC algorithm corresponding to a truncated
+ * MAC algorithm.
+ *
+ * \param alg           A MAC algorithm identifier (value of type
+ *                      #psa_algorithm_t such that #PSA_ALG_IS_MAC(\p alg)
+ *                      is true). This may be a truncated or untruncated
+ *                      MAC algorithm.
+ *
+ * \return              The corresponding base MAC algorithm.
+ * \return              Unspecified if \p alg is not a supported
+ *                      MAC algorithm.
+ */
+#define PSA_ALG_FULL_LENGTH_MAC(alg)            \
+    ((alg) & ~PSA_ALG_MAC_TRUNCATION_MASK)
+
 /** Length to which a MAC algorithm is truncated.
  *
  * \param alg           A MAC algorithm identifier (value of type

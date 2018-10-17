@@ -322,7 +322,9 @@ clean:
 ifndef WINDOWS
 	rm -f $(APPS) $(EXTRA_GENERATED)
 else
-	del /S /Q /F *.o *.exe $(EXTRA_GENERATED)
+	if exist *.o del /S /Q /F *.o
+	if exist *.exe del /S /Q /F *.exe
+	if exist $(EXTRA_GENERATED) del /S /Q /F $(EXTRA_GENERATED)
 endif
 
 list:

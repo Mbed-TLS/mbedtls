@@ -1225,7 +1225,7 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     mbedtls_cipher_id_t cipher_id_tmp;
 
     if( PSA_ALG_IS_AEAD( alg ) )
-        alg &= ~PSA_ALG_AEAD_TAG_LENGTH_MASK;
+        alg = PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, 0 );
 
     if( PSA_ALG_IS_CIPHER( alg ) || PSA_ALG_IS_AEAD( alg ) )
     {
@@ -1249,10 +1249,10 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
             case PSA_ALG_CBC_PKCS7:
                 mode = MBEDTLS_MODE_CBC;
                 break;
-            case PSA_ALG_CCM & ~PSA_ALG_AEAD_TAG_LENGTH_MASK:
+            case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_CCM, 0 ):
                 mode = MBEDTLS_MODE_CCM;
                 break;
-            case PSA_ALG_GCM & ~PSA_ALG_AEAD_TAG_LENGTH_MASK:
+            case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, 0 ):
                 mode = MBEDTLS_MODE_GCM;
                 break;
             default:

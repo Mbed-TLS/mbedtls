@@ -7,6 +7,9 @@ Bugfix
      invalidated keys of a lifetime of less than a 1s. Fixes #1968.
    * Fix failure in hmac_drbg in the benchmark sample application, when
      MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
+   * Fix a bug in the record decryption routine ssl_decrypt_buf()
+     which lead to accepting properly authenticated but improperly
+     padded records in case of CBC ciphersuites using Encrypt-then-MAC.
 
 Changes
    * Add tests for session resumption in DTLS.

@@ -121,7 +121,8 @@ void ecdsa_det_test_vectors( int id, char *d_str, int md_alg,
     md_info = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md_info != NULL );
     hlen = mbedtls_md_get_size( md_info );
-    mbedtls_md( md_info, (const unsigned char *) msg, strlen( msg ), hash );
+    TEST_ASSERT( mbedtls_md( md_info, (const unsigned char *) msg,
+                 strlen( msg ), hash ) == 0 );
 
     TEST_ASSERT( mbedtls_ecdsa_sign_det( &grp, &r, &s, &d, hash, hlen, md_alg ) == 0 );
 

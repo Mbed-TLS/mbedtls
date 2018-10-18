@@ -18,6 +18,9 @@ Bugfix
      program programs/x509/cert_write. Fixes #1422.
    * Ignore iv in mbedtls_cipher_set_iv() when the cipher mode is MBEDTLS_MODE_ECB
      Fix for #1091 raised by ezdevelop
+   * Fix runtime error in `mbedtls_platform_entropy_poll()` when run
+     through qemu user emulation. Reported and fix suggested by randombit
+     in #1212. Fixes #1212.
 
 Changes
    * Add tests for session resumption in DTLS.

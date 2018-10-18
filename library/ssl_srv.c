@@ -50,6 +50,22 @@
 #include "mbedtls/platform_time.h"
 #endif
 
+/* The printf conversion specifier %zu for values of type size_t was
+ * only introduced in C99, but we currently still promise to build with
+ * C89 compilers. Until then, we use the %llu conversion specifier alongside
+ * an explicit cast to unsigned long long whenever we want to print values
+ * of type size_t.
+ *
+ * To allow changing and eventually removing this, we use dedicated
+ * macros #FMTZU and #FMT_ZU_CAST for the conversion specifier and type cast.
+ *
+ * Warning: These macros are internal and can be changed or removed at any time!
+ */
+/* #define FMT_ZU "%zu" */
+/* #define FMT_ZU_CAST( X ) X */
+#define FMT_ZU "%llu"
+#define FMT_ZU_CAST( X ) (unsigned long long)( X )
+
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY)
 int mbedtls_ssl_set_client_transport_id( mbedtls_ssl_context *ssl,
                                  const unsigned char *info,
@@ -524,7 +540,8 @@ static int ssl_parse_session_ticket_ext( mbedtls_ssl_context *ssl,
     /* Remember the client asked us to send a new ticket */
     ssl->handshake->new_session_ticket = 1;
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket length: %d", len ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "ticket length: " FMT_ZU,
+                                FMT_ZU_CAST( len ) ) );
 
     if( len == 0 )
         return( 0 );
@@ -2457,7 +2474,8 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     *p++ = (unsigned char)( t >>  8 );
     *p++ = (unsigned char)( t       );
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, current time: %lu", t ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, current time: %llu",
+                                (unsigned long long) t ) );
 #else
     if( ( ret = ssl->conf->f_rng( ssl->conf->p_rng, p, 4 ) ) != 0 )
         return( ret );
@@ -2545,7 +2563,8 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     memcpy( p, ssl->session_negotiate->id, ssl->session_negotiate->id_len );
     p += ssl->session_negotiate->id_len;
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, session id len.: %d", n ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, session id len.: " FMT_ZU,
+                                FMT_ZU_CAST( n ) ) );
     MBEDTLS_SSL_DEBUG_BUF( 3,   "server hello, session id", buf + 39, n );
     MBEDTLS_SSL_DEBUG_MSG( 3, ( "%s session has been resumed",
                    ssl->handshake->resume ? "a" : "no" ) );
@@ -2616,7 +2635,8 @@ static int ssl_write_server_hello( mbedtls_ssl_context *ssl )
     ext_len += olen;
 #endif
 
-    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, total extension length: %d", ext_len ) );
+    MBEDTLS_SSL_DEBUG_MSG( 3, ( "server hello, total extension length: " FMT_ZU,
+                                FMT_ZU_CAST( ext_len ) ) );
 
     if( ext_len > 0 )
     {

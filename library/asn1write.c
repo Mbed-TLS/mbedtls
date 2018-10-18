@@ -234,30 +234,33 @@ int mbedtls_asn1_write_bool( unsigned char **p, unsigned char *start, int boolea
 int mbedtls_asn1_write_int( unsigned char **p, unsigned char *start, int val )
 {
     int ret;
+    size_t len;
+#if __BYTE_ORDER == __LITTLE_ENDIAN
     unsigned i;
     unsigned char *c;
-    size_t len = 0;
+#endif
 
-    if( *p - start < 1 )
+    if( *p - start < (unsigned)sizeof(int) )
         return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 
+#if __BYTE_ORDER == __LITTLE_ENDIAN
     c = (unsigned char *)&val;
-
-    // assume that little-endian
     for( i = 0 ; i < sizeof(int) ; i++ )
     {
         *--(*p) = c[i];
-        len += 1;
     }
+#else
+    (*p) -= sizeof(int);
+    *((int *)(*p)) = val;
+#endif
 
-    for( i = 0; i < sizeof(int)-1 ; i++ )
+    for( len = sizeof(int) ; len > 0 ; len-- )
     {
        if( mbedtls_check_shortest_asn1_integer( *p, len ) == 0 )
        {
            break;
        }
        ++(*p);
-       len -= 1;
     }
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );

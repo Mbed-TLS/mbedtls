@@ -62,7 +62,7 @@ void mbedtls_param_failed( const char *failure_condition,
 
 int main( void )
 {
-    int i, ret = MBEDTLS_EXIT_SUCCESS;
+    int i, ret;
     unsigned char digest[16];
     char str[] = "Hello, world!";
 
@@ -78,10 +78,7 @@ int main( void )
     mbedtls_printf( "\n  MD5('%s') = ", str );
 
     if( ( ret = mbedtls_md5_ret( (unsigned char *) str, 13, digest ) ) != 0 )
-    {
-        ret = MBEDTLS_EXIT_FAILURE;
         goto exit;
-    }
 
     for( i = 0; i < 16; i++ )
         mbedtls_printf( "%02x", digest[i] );
@@ -96,6 +93,9 @@ exit:
     mbedtls_printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
-    return( ret );
+    if( ret == 0 )
+        return( MBEDTLS_EXIT_SUCCESS );
+    else
+        return( MBEDTLS_EXIT_FAILURE );
 }
 #endif /* MBEDTLS_MD5_C */

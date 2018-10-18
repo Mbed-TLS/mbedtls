@@ -77,7 +77,7 @@ typedef psa_status_t (*pcd_mac_opaque_update_t)(void *p_context,
 /** \brief a function that completes a previously started MAC operation by
  * returning the resulting MAC using an opaque key
  * 
- * \param[in] p_context         A hardware-specific structure for the 
+ * \param[in,out] p_context     A hardware-specific structure for the 
  *                              previously started MAC operation to be 
  *                              finished
  * \param[out] p_mac            A buffer where the generated MAC will be
@@ -85,7 +85,7 @@ typedef psa_status_t (*pcd_mac_opaque_update_t)(void *p_context,
  * \param[in] mac_size          The size in bytes of the buffer that has been
  *                              allocated for the `output` buffer
  * \param[out] p_mac_length     After completion, will contain the number of
- *                              bytes placed in the `p_output` buffer
+ *                              bytes placed in the `p_mac` buffer
  * 
  * \retval PSA_SUCCESS
  *          Success.
@@ -98,7 +98,7 @@ typedef psa_status_t (*pcd_mac_opaque_finish_t)(void *p_context,
 /** \brief A function that completes a previously started MAC operation by
  * comparing the resulting MAC against a known value using an opaque key
  * 
- * \param[in] p_context     A hardware-specific structure for the previously
+ * \param[in,out] p_context A hardware-specific structure for the previously
  *                          started MAC operation to be fiinished
  * \param[in] p_mac         The MAC value against which the resulting MAC will
  *                          be compared against
@@ -117,7 +117,7 @@ typedef psa_status_t (*pcd_mac_opaque_finish_verify_t)(void *p_context,
 
 /** \brief A function that aborts a previous started opaque-key MAC operation
 
- * \param[in] p_context     A hardware-specific structure for the previously
+ * \param[in,out] p_context A hardware-specific structure for the previously
  *                          started MAC operation to be aborted
  */
 typedef psa_status_t (*pcd_mac_opaque_abort_t)(void *p_context);
@@ -126,9 +126,9 @@ typedef psa_status_t (*pcd_mac_opaque_abort_t)(void *p_context);
  * the calculated MAC using an opaque key
  * 
  * \param[in] p_input           A buffer containing the message to be MACed
- * \param[in] input_length      The size in bytes of `input`
+ * \param[in] input_length      The size in bytes of `p_input`
  * \param[in] key_slot          The slot of the key to be used
- * \param[in] alg               The algorithm to be used to underlie the MA
+ * \param[in] alg               The algorithm to be used to underlie the MAC
  *                              operation
  * \param[out] p_mac            A buffer where the generated MAC will be
  *                              placed
@@ -285,7 +285,7 @@ typedef psa_status_t (*pcd_mac_transparent_update_t)(struct pcd_mac_transparent_
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
  * 
- * \param[in] p_context         A hardware-specific structure for the
+ * \param[in,out] p_context     A hardware-specific structure for the
  *                              previously started MAC operation to be
  *                              finished
  * \param[out] p_mac            A buffer where the generated MAC will be placed
@@ -310,9 +310,9 @@ typedef psa_status_t (*pcd_mac_transparent_finish_t)(struct pcd_mac_transparent_
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
  * 
- * \param[in] p_context         A hardware-specific structure for the
+ * \param[in,out] p_context     A hardware-specific structure for the
  *                              previously started MAC operation to be
- *                              fiinished
+ *                              verified and finished
  * \param[in] p_mac             A buffer containing the MAC that will be used
  *                              for verification
  * \param[in] mac_length        The size in bytes of the data in the `p_mac`
@@ -336,9 +336,9 @@ typedef psa_status_t (*pcd_mac_transparent_verify_finish_t)(struct pcd_mac_trans
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
  * 
- * \param[in] p_context         A hardware-specific structure for the
+ * \param[in,out] p_context     A hardware-specific structure for the
  *                              previously started MAC operation to be
- *                              fiinished
+ *                              aborted
  * 
  */
 typedef psa_status_t (*pcd_mac_transparent_abort_t)(struct pcd_mac_transparent_context_t *p_context);
@@ -475,9 +475,9 @@ typedef psa_status_t (*pcd_cipher_opaque_update_t)(void *p_context,
 /** \brief A function that completes a previously started opaque-key cipher
  * operation
  *
- * \param[in] p_context         A hardware-specific structure for the
+ * \param[in,out] p_context     A hardware-specific structure for the
  *                              previously started cipher operation
- * \param[out] p_output         The caller-callocated buffer where the output
+ * \param[out] p_output         The caller-allocated buffer where the output
  *                              will be placed
  * \param[in] output_size       The allocated size in bytes of the `p_output`
  *                              buffer
@@ -494,7 +494,7 @@ typedef psa_status_t (*pcd_cipher_opaque_finish_t)(void *p_context,
 /** \brief A function that aborts a previously started opaque-key cipher
  * operation
  *
- * \param[in] p_context         A hardware-specific structure for the
+ * \param[in,out] p_context     A hardware-specific structure for the
  *                              previously started cipher operation
  */
 typedef psa_status_t (*pcd_cipher_opaque_abort_t)(void *p_context);
@@ -513,7 +513,7 @@ typedef psa_status_t (*pcd_cipher_opaque_abort_t)(void *p_context);
  *                          encrypted/decrypted
  * \param[in] input_size    The size in bytes of the buffer pointed to by
  *                          `p_input`
- * \param[out] p_output     The caller-allocated byffer where the output will
+ * \param[out] p_output     The caller-allocated buffer where the output will
  *                          be placed
  * \param[in] output_size   The allocated size in bytes of the `p_output`
  *                          buffer
@@ -672,7 +672,7 @@ typedef psa_status_t (*pcd_cipher_transparent_update_t)(struct pcd_cipher_transp
  * - `CIPHER_NAME` is the name of the underlying block cipher (i.e. AES or DES)
  * - `MODE` is the block mode of the cipher operation (i.e. CBC or CTR)
  *
- * \param[in] p_context         A hardware-specific structure for the
+ * \param[in,out] p_context     A hardware-specific structure for the
  *                              previously started cipher operation
  * \param[out] p_output         A caller-allocated buffer where the generated
  *                              output will be placed
@@ -699,7 +699,7 @@ typedef psa_status_t (*pcd_cipher_transparent_finish_t)(struct pcd_cipher_transp
  * - `CIPHER_NAME` is the name of the underlying block cipher (i.e. AES or DES)
  * - `MODE` is the block mode of the cipher operation (i.e. CBC or CTR)
  * 
- * \param[in] p_context         A hardware-specific structure for the
+ * \param[in,out] p_context     A hardware-specific structure for the
  *                              previously started cipher operation
  * 
  * \retval PSA_SUCCESS
@@ -768,20 +768,23 @@ typedef psa_status_t (*pcd_hash_update_t)(struct pcd_hash_context_t *p_context,
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm
  * 
- * \param[in] p_context         A hardware-specific structure for the
+ * \param[in,out] p_context     A hardware-specific structure for the
  *                              previously started hash operation to be
  *                              fiinished
  * \param[out] p_output         A buffer where the generated digest will be
  *                              placed
  * \param[in] output_size       The size in bytes of the buffer that has been
  *                              allocated for the `p_output` buffer
+ * \param[out] p_output_length  The number of bytes placed in `p_output` after
+ *                              success
  * 
  * \retval PSA_SUCCESS
  *          Success.
  */
 typedef psa_status_t (*pcd_hash_finish_t)(struct pcd_hash_context_t *p_context,
                                           uint8_t *p_output,
-                                          size_t output_size);
+                                          size_t output_size,
+                                          size_t *p_output_length);
 
 /** \brief The function prototype for the abort operation of a hash (message
  * digest) operation
@@ -793,7 +796,7 @@ typedef psa_status_t (*pcd_hash_finish_t)(struct pcd_hash_context_t *p_context,
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm
  * 
- * \param[in] p_context     A hardware-specific structure for the previously
+ * \param[in,out] p_context A hardware-specific structure for the previously
  *                          started hash operation to be aborted
  */
 typedef void (*pcd_hash_abort_t)(struct pcd_hash_context_t *p_context);
@@ -814,7 +817,7 @@ typedef void (*pcd_hash_abort_t)(struct pcd_hash_context_t *p_context);
  * \param[in] p_hash                The hash or message to sign
  * \param[in] hash_length           Size of the `p_hash` buffer in bytes
  * \param[out] p_signature          Buffer where the signature is to be written
- * \param signature_size            Size of the `p_signature` buffer in bytes
+ * \param[in] signature_size        Size of the `p_signature` buffer in bytes
  * \param[out] p_signature_length   On success, the number of bytes
  *                                  that make up the returned signature value
  *

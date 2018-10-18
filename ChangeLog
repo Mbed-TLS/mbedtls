@@ -7,6 +7,8 @@ Bugfix
      invalidated keys of a lifetime of less than a 1s. Fixes #1968.
    * Fix failure in hmac_drbg in the benchmark sample application, when
      MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
+   * Remove usage of %d printf conversion specifier to print
+     values of type size_t. Fixes #1534.
 
 Changes
    * Add tests for session resumption in DTLS.

@@ -7,6 +7,9 @@ Bugfix
      invalidated keys of a lifetime of less than a 1s. Fixes #1968.
    * Fix failure in hmac_drbg in the benchmark sample application, when
      MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
+   * Fix runtime error in `mbedtls_platform_entropy_poll()` when run
+     through qemu user emulation. Reported and fix suggested by randombit
+     in #1212. Fixes #1212.
 
 Changes
    * Add tests for session resumption in DTLS.

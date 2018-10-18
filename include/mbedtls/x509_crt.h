@@ -223,6 +223,20 @@ int mbedtls_x509_crt_parse_file( mbedtls_x509_crt *chain, const char *path );
 int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path );
 #endif /* MBEDTLS_FS_IO */
 
+#if defined(MBEDTLS_PEM_WRITE_C)
+/**
+ * \brief           Write a single certificate to a X509 PEM string
+ *
+ * \param crt       certificate to write away
+ * \param buf       buffer to write to
+ * \param size      size of the buffer
+ *
+ * \return          The length of the string written (including the
+ *                  terminated nul byte), or a negative error code.
+ */
+int mbedtls_x509_crt_pem( mbedtls_x509_crt *crt, char *buf, size_t size );
+#endif /* MBEDTLS_PEM_WRITE_C */
+
 /**
  * \brief          Returns an informational string about the
  *                 certificate.

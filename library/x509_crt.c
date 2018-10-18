@@ -1273,6 +1273,26 @@ static int x509_info_ext_key_usage( char **buf, size_t *size,
     return( 0 );
 }
 
+#if defined(MBEDTLS_PEM_WRITE_C)
+/*
+ * Write a single certificate to a X509 PEM string
+ */
+int mbedtls_x509_crt_pem( mbedtls_x509_crt *crt, char *buf, size_t size )
+{
+    int ret;
+    size_t olen;
+
+    if( ( ret = mbedtls_pem_write_buffer( "-----BEGIN CERTIFICATE-----\n",
+            "-----END CERTIFICATE-----\n", crt->raw.p, crt->raw.len,
+            (unsigned char *) buf, size, &olen ) ) != 0 )
+    {
+        return ret;
+    }
+
+    return( (int) olen );
+}
+#endif /* MBEDTLS_PEM_WRITE_C */
+
 /*
  * Return an informational string about the certificate.
  */

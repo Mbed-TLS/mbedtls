@@ -44,6 +44,14 @@
 #include "mbedtls/pem.h"
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
+#include <stdio.h>
+#define mbedtls_free       free
+#define mbedtls_calloc    calloc
+#endif
+
 void mbedtls_x509write_csr_init( mbedtls_x509write_csr *ctx )
 {
     memset( ctx, 0, sizeof( mbedtls_x509write_csr ) );
@@ -53,6 +61,12 @@ void mbedtls_x509write_csr_free( mbedtls_x509write_csr *ctx )
 {
     mbedtls_asn1_free_named_data_list( &ctx->subject );
     mbedtls_asn1_free_named_data_list( &ctx->extensions );
+
+    if( ctx->challenge.p != NULL )
+    {
+        mbedtls_platform_zeroize( ctx->challenge.p, ctx->challenge.len );
+        mbedtls_free( ctx->challenge.p );
+    }
 
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_x509write_csr ) );
 }
@@ -122,6 +136,44 @@ int mbedtls_x509write_csr_set_ns_cert_type( mbedtls_x509write_csr *ctx,
     return( 0 );
 }
 
+int mbedtls_x509write_csr_set_challenge_password( mbedtls_x509write_csr *ctx,
+                                    const char *challenge )
+{
+    const unsigned char *i, *iend;
+
+    if( ctx->challenge.p != NULL )
+    {
+        mbedtls_platform_zeroize( ctx->challenge.p, ctx->challenge.len );
+        mbedtls_free( ctx->challenge.p );
+        ctx->challenge.tag = 0;
+        ctx->challenge.p = NULL;
+        ctx->challenge.len = 0;
+    }
+
+    if( challenge == NULL )
+        return 0;
+
+    ctx->challenge.len = strlen(challenge);
+    ctx->challenge.p = mbedtls_calloc( 1, ctx->challenge.len );
+    if( ctx->challenge.p == NULL )
+        return( MBEDTLS_ERR_X509_ALLOC_FAILED );
+
+    memcpy( ctx->challenge.p, challenge, ctx->challenge.len );
+
+    // Scan for non-printable characters (according to spec)
+    i = (const unsigned char *)challenge;
+    iend = i + ctx->challenge.len;
+    while( i < iend && (*i == ' ' || *i == '\'' || *i == '(' || *i == ')' || (*i >= '+' && *i <= ':') || *i == '=' || *i == '?' || (*i >= 'A' && *i <= 'Z') || (*i >= 'a' && *i <= 'z')) )
+        i++;
+
+    if( i == iend )
+        ctx->challenge.tag = MBEDTLS_ASN1_PRINTABLE_STRING;
+    else
+        ctx->challenge.tag = MBEDTLS_ASN1_UTF8_STRING;
+
+    return( 0 );
+}
+
 int mbedtls_x509write_csr_der( mbedtls_x509write_csr *ctx, unsigned char *buf, size_t size,
                        int (*f_rng)(void *, unsigned char *, size_t),
                        void *p_rng )
@@ -134,7 +186,7 @@ int mbedtls_x509write_csr_der( mbedtls_x509write_csr *ctx, unsigned char *buf, s
     unsigned char sig[MBEDTLS_MPI_MAX_SIZE];
     unsigned char tmp_buf[2048];
     size_t pub_len = 0, sig_and_oid_len = 0, sig_len;
-    size_t len = 0;
+    size_t ch_len = 0, len = 0;
     mbedtls_pk_type_t pk_alg;
 
     /*
@@ -160,6 +212,27 @@ int mbedtls_x509write_csr_der( mbedtls_x509write_csr *ctx, unsigned char *buf, s
         MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, tmp_buf, len ) );
         MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, tmp_buf, MBEDTLS_ASN1_CONSTRUCTED |
                                                         MBEDTLS_ASN1_SEQUENCE ) );
+    }
+
+    if( ctx->challenge.p != NULL )
+    {
+        MBEDTLS_ASN1_CHK_ADD( ch_len, mbedtls_asn1_write_raw_buffer( &c, tmp_buf,
+                                                        ctx->challenge.p, ctx->challenge.len ) );
+        MBEDTLS_ASN1_CHK_ADD( ch_len, mbedtls_asn1_write_len( &c, tmp_buf, ctx->challenge.len ) );
+        MBEDTLS_ASN1_CHK_ADD( ch_len, mbedtls_asn1_write_tag( &c, tmp_buf, ctx->challenge.tag ) );
+
+        MBEDTLS_ASN1_CHK_ADD( ch_len, mbedtls_asn1_write_len( &c, tmp_buf, ch_len ) );
+        MBEDTLS_ASN1_CHK_ADD( ch_len, mbedtls_asn1_write_tag( &c, tmp_buf, MBEDTLS_ASN1_CONSTRUCTED |
+                                                        MBEDTLS_ASN1_SET ) );
+
+        MBEDTLS_ASN1_CHK_ADD( ch_len, mbedtls_asn1_write_oid( &c, tmp_buf, MBEDTLS_OID_PKCS9_CHALLENGE_PASSWORD,
+                                          MBEDTLS_OID_SIZE( MBEDTLS_OID_PKCS9_CHALLENGE_PASSWORD ) ) );
+
+        MBEDTLS_ASN1_CHK_ADD( ch_len, mbedtls_asn1_write_len( &c, tmp_buf, ch_len ) );
+        MBEDTLS_ASN1_CHK_ADD( ch_len, mbedtls_asn1_write_tag( &c, tmp_buf, MBEDTLS_ASN1_CONSTRUCTED |
+                                                        MBEDTLS_ASN1_SEQUENCE ) );
+
+        len += ch_len;
     }
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, tmp_buf, len ) );

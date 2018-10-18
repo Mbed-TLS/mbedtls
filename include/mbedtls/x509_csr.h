@@ -60,6 +60,11 @@ typedef struct mbedtls_x509_csr
 
     mbedtls_pk_context pk;          /**< Container for the public key context. */
 
+    mbedtls_x509_buf ext_req;            /**< Optional extension request.  */
+    mbedtls_x509_sequence subject_alt_names;    /**< Optional list of Subject Alternative Names (Only rfc822Name, dNSName and uniformResourceIdentifier supported). */
+    mbedtls_x509_buf challenge; /**< Optional challenge password */
+    int ext_types;              /**< Bit string containing detected extensions */
+
     mbedtls_x509_buf sig_oid;
     mbedtls_x509_buf sig;
     mbedtls_md_type_t sig_md;       /**< Internal representation of the MD algorithm of the signature algorithm, e.g. MBEDTLS_MD_SHA256 */
@@ -77,6 +82,7 @@ typedef struct mbedtls_x509write_csr
     mbedtls_asn1_named_data *subject;
     mbedtls_md_type_t md_alg;
     mbedtls_asn1_named_data *extensions;
+    mbedtls_x509_buf challenge;
 }
 mbedtls_x509write_csr;
 
@@ -235,6 +241,18 @@ int mbedtls_x509write_csr_set_ns_cert_type( mbedtls_x509write_csr *ctx,
 int mbedtls_x509write_csr_set_extension( mbedtls_x509write_csr *ctx,
                                  const char *oid, size_t oid_len,
                                  const unsigned char *val, size_t val_len );
+
+/**
+ * \brief           Set the optional challenge password for a CSR
+ *
+ * \param ctx           CSR context to use
+ * \param challenge     challenge password to set
+ *
+ * \return          0 if the challenge was set successfully, or
+ *                  a specific error code
+ */
+int mbedtls_x509write_csr_set_challenge_password( mbedtls_x509write_csr *ctx,
+                                    const char *challenge );
 
 /**
  * \brief           Free the contents of a CSR context

@@ -1629,6 +1629,62 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void hash_bad_paths(  )
+{
+    psa_algorithm_t alg = PSA_ALG_SHA_256;
+    unsigned char hash[PSA_HASH_MAX_SIZE] = { 0 };
+    size_t expected_size = PSA_HASH_SIZE( alg );
+    unsigned char input[] = "input";
+    psa_hash_operation_t operation;
+    size_t hash_len;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    /* psa_hash_update without calling psa_hash_setup beforehand */
+    memset( &operation, 0, sizeof( operation ) );
+    TEST_ASSERT( psa_hash_update( &operation,
+                                  input, sizeof( input ) ) ==
+                                  PSA_ERROR_INVALID_ARGUMENT );
+
+    /* psa_hash_finish without calling psa_hash_setup beforehand */
+    memset( &operation, 0, sizeof( operation ) );
+    TEST_ASSERT( psa_hash_finish( &operation,
+                                  hash, expected_size,
+                                  &hash_len ) == PSA_ERROR_INVALID_ARGUMENT );
+
+    /* psa_hash_verify without calling psa_hash_setup beforehand */
+    memset( &operation, 0, sizeof( operation ) );
+    TEST_ASSERT( psa_hash_verify( &operation,
+                                  hash, expected_size ) ==
+                                  PSA_ERROR_INVALID_ARGUMENT );
+
+    /* psa_hash_finish with a smaller hash buffer than expected */
+    TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_hash_finish( &operation,
+                                  hash, expected_size - 1,
+                                  &hash_len ) == PSA_ERROR_BUFFER_TOO_SMALL );
+
+
+    /* psa_hash_verify with a smaller hash buffer than expected */
+    TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_hash_verify( &operation,
+                                  hash, expected_size - 1 ) ==
+                                  PSA_ERROR_INVALID_SIGNATURE );
+
+    /* psa_hash_verify with a non-matching hash buffer */
+    TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_hash_update( &operation,
+                                  input, sizeof( input ) ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_hash_verify( &operation,
+                                  hash, expected_size ) ==
+                                  PSA_ERROR_INVALID_SIGNATURE );
+
+exit:
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mac_setup( int key_type_arg,
                 data_t *key,
                 int alg_arg,

@@ -510,6 +510,71 @@ int mbedtls_pk_write_key_pem( mbedtls_pk_context *key, unsigned char *buf, size_
 
     return( 0 );
 }
+
+int mbedtls_pk_write_key_enc_pem( mbedtls_pk_context *key, unsigned char *buf,
+                                  size_t buf_len, const unsigned char *pwd,
+                                  size_t pwd_len, unsigned char *iv,
+                                  size_t iv_len, mbedtls_cipher_type_t enc_alg )
+{
+    int ret;
+    unsigned char output_buf[PRV_DER_MAX_BYTES];
+    unsigned char block_size, padding, i;
+    const char *begin, *end;
+    size_t olen = 0;
+
+#if defined(MBEDTLS_DES_C)
+    if( enc_alg == MBEDTLS_CIPHER_DES_EDE3_CBC || enc_alg == MBEDTLS_CIPHER_DES_CBC ) {
+        block_size = 8;
+    }
+#endif /* MBEDTLS_DES_C */
+#if defined(MBEDTLS_AES_C)
+    else if( enc_alg == MBEDTLS_CIPHER_AES_128_CBC ||
+                enc_alg == MBEDTLS_CIPHER_AES_192_CBC ||
+                enc_alg == MBEDTLS_CIPHER_AES_256_CBC ) {
+        block_size = 16;
+    }
+#endif /* MBEDTLS_AES_C */
+    else
+        return( MBEDTLS_ERR_PEM_UNKNOWN_ENC_ALG );
+
+    if( ( ret = mbedtls_pk_write_key_der( key, output_buf, (PRV_DER_MAX_BYTES) - block_size ) ) < 0 )
+        return( ret );
+
+    /* PKCS#7 padding */
+    padding = block_size - ret % block_size;
+    for( i = 0; i < padding; i++ )
+    {
+        output_buf[(PRV_DER_MAX_BYTES) - block_size + i] = padding;
+    }
+
+#if defined(MBEDTLS_RSA_C)
+    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_RSA )
+    {
+        begin = PEM_BEGIN_PRIVATE_KEY_RSA;
+        end = PEM_END_PRIVATE_KEY_RSA;
+    }
+    else
+#endif
+#if defined(MBEDTLS_ECP_C)
+    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECKEY )
+    {
+        begin = PEM_BEGIN_PRIVATE_KEY_EC;
+        end = PEM_END_PRIVATE_KEY_EC;
+    }
+    else
+#endif
+        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+
+    if( ( ret = mbedtls_pem_write_enc_buffer( begin, end,
+                                  output_buf + (PRV_DER_MAX_BYTES) - block_size - ret,
+                                  ret + padding, buf, buf_len, pwd, pwd_len, iv,
+                                  iv_len, enc_alg, &olen ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    return( 0 );
+}
 #endif /* MBEDTLS_PEM_WRITE_C */
 
 #endif /* MBEDTLS_PK_WRITE_C */

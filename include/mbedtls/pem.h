@@ -26,6 +26,16 @@
 
 #include <stddef.h>
 
+#if defined(MBEDTLS_PEM_WRITE_C) && defined(MBEDTLS_MD5_C) && \
+    defined(MBEDTLS_CIPHER_MODE_CBC) && \
+    ( defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C) )
+
+#include "cipher.h"
+
+#endif /* defined(MBEDTLS_PEM_WRITE_C) && defined(MBEDTLS_MD5_C) && \
+    defined(MBEDTLS_CIPHER_MODE_CBC) && \
+    ( defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C) ) */
+
 /**
  * \name PEM Error codes
  * These error codes are returned in case of errors reading the
@@ -35,7 +45,7 @@
 #define MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT          -0x1080  /**< No PEM header or footer found. */
 #define MBEDTLS_ERR_PEM_INVALID_DATA                      -0x1100  /**< PEM string is not as expected. */
 #define MBEDTLS_ERR_PEM_ALLOC_FAILED                      -0x1180  /**< Failed to allocate memory. */
-#define MBEDTLS_ERR_PEM_INVALID_ENC_IV                    -0x1200  /**< RSA IV is not in hex-format. */
+#define MBEDTLS_ERR_PEM_INVALID_ENC_IV                    -0x1200  /**< RSA IV is not in hex-format (decoding) or too short (encoding). */
 #define MBEDTLS_ERR_PEM_UNKNOWN_ENC_ALG                   -0x1280  /**< Unsupported key encryption algorithm. */
 #define MBEDTLS_ERR_PEM_PASSWORD_REQUIRED                 -0x1300  /**< Private key password can't be empty. */
 #define MBEDTLS_ERR_PEM_PASSWORD_MISMATCH                 -0x1380  /**< Given private key password does not allow for correct decryption. */
@@ -121,6 +131,39 @@ void mbedtls_pem_free( mbedtls_pem_context *ctx );
 int mbedtls_pem_write_buffer( const char *header, const char *footer,
                       const unsigned char *der_data, size_t der_len,
                       unsigned char *buf, size_t buf_len, size_t *olen );
+
+#if defined(MBEDTLS_MD5_C) && defined(MBEDTLS_CIPHER_MODE_CBC) && \
+    ( defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C) )
+/**
+ * \brief           Write a buffer of encrypted PEM information from a DER
+ *                  encoded buffer. The buffer must be properly padded.
+ *
+ * \param header    header string to write
+ * \param footer    footer string to write
+ * \param der_data  DER data to write
+ * \param der_len   length of the DER data
+ * \param buf       buffer to write to
+ * \param buf_len   length of output buffer
+ * \param pwd       password for decryption
+ * \param pwd_len   length of password
+ * \param iv        initialization vector for the encryption algorithm
+ * \param iv_len    length of initialization vector
+ * \param enc_alg   encryption algorithm
+ * \param olen      total length written / required (if buf_len is not enough)
+ *
+ * \return          0 on success, or a specific PEM or BASE64 error code. On
+ *                  MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL olen is the required
+ *                  size.
+ */
+int mbedtls_pem_write_enc_buffer( const char *header, const char *footer,
+                          const unsigned char *der_data, size_t der_len,
+                          unsigned char *buf, size_t buf_len,
+                          const unsigned char *pwd, size_t pwd_len,
+                          const unsigned char *iv, size_t iv_len,
+                          mbedtls_cipher_type_t enc_alg, size_t *olen );
+#endif /* MBEDTLS_MD5_C && MBEDTLS_CIPHER_MODE_CBC && \
+          ( MBEDTLS_AES_C || MBEDTLS_DES_C ) */
+
 #endif /* MBEDTLS_PEM_WRITE_C */
 
 #ifdef __cplusplus

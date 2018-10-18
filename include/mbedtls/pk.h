@@ -45,6 +45,16 @@
 #include "ecdsa.h"
 #endif
 
+#if defined(MBEDTLS_PEM_WRITE_C) && defined(MBEDTLS_MD5_C) && \
+    defined(MBEDTLS_CIPHER_MODE_CBC) && \
+    ( defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C) )
+
+#include "cipher.h"
+
+#endif /* defined(MBEDTLS_PEM_WRITE_C) && defined(MBEDTLS_MD5_C) && \
+    defined(MBEDTLS_CIPHER_MODE_CBC) && \
+    ( defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C) ) */
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -566,6 +576,29 @@ int mbedtls_pk_write_pubkey_pem( mbedtls_pk_context *ctx, unsigned char *buf, si
  * \return          0 if successful, or a specific error code
  */
 int mbedtls_pk_write_key_pem( mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
+
+#if defined(MBEDTLS_MD5_C) && defined(MBEDTLS_CIPHER_MODE_CBC) && \
+    ( defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C) )
+/**
+ * \brief           Write a private key to an encrypted PKCS#1 PEM string
+ *
+ * \param ctx       private to write away
+ * \param buf       buffer to write to
+ * \param buf_len   size of the buffer
+ * \param pwd       password for encryption
+ * \param pwd_len   size of the password
+ * \param iv        initialization vector
+ * \param iv_len    size of the initialization vector
+ * \param enc_alg   encryption algorithm
+ *
+ * \return          0 if successful, or a specific error code
+ */
+int mbedtls_pk_write_key_enc_pem( mbedtls_pk_context *ctx, unsigned char *buf,
+                                 size_t buf_len, const unsigned char *pwd,
+                                 size_t pwd_len, unsigned char *iv,
+                                 size_t iv_len, mbedtls_cipher_type_t enc_alg );
+#endif /* defined(MBEDTLS_MD5_C) && defined(MBEDTLS_CIPHER_MODE_CBC) && \
+    ( defined(MBEDTLS_DES_C) || defined(MBEDTLS_AES_C) ) */
 #endif /* MBEDTLS_PEM_WRITE_C */
 #endif /* MBEDTLS_PK_WRITE_C */
 

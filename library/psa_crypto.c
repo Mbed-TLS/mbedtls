@@ -242,7 +242,7 @@ static psa_status_t mbedtls_to_psa_error( int ret )
         case MBEDTLS_ERR_GCM_AUTH_FAILED:
             return( PSA_ERROR_INVALID_SIGNATURE );
         case MBEDTLS_ERR_GCM_BAD_INPUT:
-            return( PSA_ERROR_NOT_SUPPORTED );
+            return( PSA_ERROR_INVALID_ARGUMENT );
         case MBEDTLS_ERR_GCM_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );
 
@@ -1224,6 +1224,9 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
     mbedtls_cipher_mode_t mode;
     mbedtls_cipher_id_t cipher_id_tmp;
 
+    if( PSA_ALG_IS_AEAD( alg ) )
+        alg = PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, 0 );
+
     if( PSA_ALG_IS_CIPHER( alg ) || PSA_ALG_IS_AEAD( alg ) )
     {
         switch( alg )
@@ -1246,10 +1249,10 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
             case PSA_ALG_CBC_PKCS7:
                 mode = MBEDTLS_MODE_CBC;
                 break;
-            case PSA_ALG_CCM:
+            case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_CCM, 0 ):
                 mode = MBEDTLS_MODE_CCM;
                 break;
-            case PSA_ALG_GCM:
+            case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, 0 ):
                 mode = MBEDTLS_MODE_GCM;
                 break;
             default:
@@ -1523,8 +1526,10 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     size_t key_bits;
     psa_key_usage_t usage =
         is_sign ? PSA_KEY_USAGE_SIGN : PSA_KEY_USAGE_VERIFY;
+    unsigned char truncated = PSA_MAC_TRUNCATED_LENGTH( alg );
+    psa_algorithm_t full_length_alg = PSA_ALG_FULL_LENGTH_MAC( alg );
 
-    status = psa_mac_init( operation, alg );
+    status = psa_mac_init( operation, full_length_alg );
     if( status != PSA_SUCCESS )
         return( status );
     if( is_sign )
@@ -1536,10 +1541,11 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     key_bits = psa_get_key_bits( slot );
 
 #if defined(MBEDTLS_CMAC_C)
-    if( alg == PSA_ALG_CMAC )
+    if( full_length_alg == PSA_ALG_CMAC )
     {
         const mbedtls_cipher_info_t *cipher_info =
-            mbedtls_cipher_info_from_psa( alg, slot->type, key_bits, NULL );
+            mbedtls_cipher_info_from_psa( full_length_alg,
+                                          slot->type, key_bits, NULL );
         int ret;
         if( cipher_info == NULL )
         {
@@ -1553,7 +1559,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     else
 #endif /* MBEDTLS_CMAC_C */
 #if defined(MBEDTLS_MD_C)
-    if( PSA_ALG_IS_HMAC( alg ) )
+    if( PSA_ALG_IS_HMAC( full_length_alg ) )
     {
         psa_algorithm_t hash_alg = PSA_ALG_HMAC_GET_HASH( alg );
         if( hash_alg == 0 )
@@ -1587,6 +1593,26 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     {
         status = PSA_ERROR_NOT_SUPPORTED;
     }
+
+    if( truncated == 0 )
+    {
+        /* The "normal" case: untruncated algorithm. Nothing to do. */
+    }
+    else if( truncated < 4 )
+    {
+        /* A very short MAC is too short for security since it can be
+         * brute-forced. Ancient protocols with 32-bit MACs do exist,
+         * so we make this our minimum, even though 32 bits is still
+         * too small for security. */
+        status = PSA_ERROR_NOT_SUPPORTED;
+    }
+    else if( truncated > operation->mac_size )
+    {
+        /* It's impossible to "truncate" to a larger length. */
+        status = PSA_ERROR_INVALID_ARGUMENT;
+    }
+    else
+        operation->mac_size = truncated;
 
 exit:
     if( status != PSA_SUCCESS )
@@ -1682,7 +1708,11 @@ static psa_status_t psa_hmac_finish_internal( psa_hmac_internal_data *hmac,
     if( status != PSA_SUCCESS )
         goto exit;
 
-    status = psa_hash_finish( &hmac->hash_ctx, mac, mac_size, &hash_size );
+    status = psa_hash_finish( &hmac->hash_ctx, tmp, sizeof( tmp ), &hash_size );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    memcpy( mac, tmp, mac_size );
 
 exit:
     mbedtls_zeroize( tmp, hash_size );
@@ -1705,7 +1735,11 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
 #if defined(MBEDTLS_CMAC_C)
     if( operation->alg == PSA_ALG_CMAC )
     {
-        int ret = mbedtls_cipher_cmac_finish( &operation->ctx.cmac, mac );
+        uint8_t tmp[PSA_MAX_BLOCK_CIPHER_BLOCK_SIZE];
+        int ret = mbedtls_cipher_cmac_finish( &operation->ctx.cmac, tmp );
+        if( ret == 0 )
+            memcpy( mac, tmp, operation->mac_size );
+        mbedtls_zeroize( tmp, sizeof( tmp ) );
         return( mbedtls_to_psa_error( ret ) );
     }
     else
@@ -1714,7 +1748,7 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
     if( PSA_ALG_IS_HMAC( operation->alg ) )
     {
         return( psa_hmac_finish_internal( &operation->ctx.hmac,
-                                          mac, mac_size ) );
+                                          mac, operation->mac_size ) );
     }
     else
 #endif /* MBEDTLS_MD_C */
@@ -1792,6 +1826,8 @@ cleanup:
         status = psa_mac_abort( operation );
     else
         psa_mac_abort( operation );
+
+    mbedtls_zeroize( actual_mac, sizeof( actual_mac ) );
 
     return( status );
 }
@@ -2790,6 +2826,115 @@ psa_status_t psa_set_key_lifetime( psa_key_slot_t key,
 /* AEAD */
 /****************************************************************/
 
+typedef struct
+{
+    key_slot_t *slot;
+    const mbedtls_cipher_info_t *cipher_info;
+    union
+    {
+#if defined(MBEDTLS_CCM_C)
+        mbedtls_ccm_context ccm;
+#endif /* MBEDTLS_CCM_C */
+#if defined(MBEDTLS_GCM_C)
+        mbedtls_gcm_context gcm;
+#endif /* MBEDTLS_GCM_C */
+    } ctx;
+    psa_algorithm_t core_alg;
+    uint8_t full_tag_length;
+    uint8_t tag_length;
+} aead_operation_t;
+
+static void psa_aead_abort( aead_operation_t *operation )
+{
+    switch( operation->core_alg )
+    {
+#if defined(MBEDTLS_CCM_C)
+        case PSA_ALG_CCM:
+            mbedtls_ccm_free( &operation->ctx.ccm );
+            break;
+#endif /* MBEDTLS_CCM_C */
+#if defined(MBEDTLS_CCM_C)
+        case PSA_ALG_GCM:
+            mbedtls_gcm_free( &operation->ctx.gcm );
+            break;
+#endif /* MBEDTLS_GCM_C */
+    }
+}
+
+static psa_status_t psa_aead_setup( aead_operation_t *operation,
+                                    psa_key_slot_t key,
+                                    psa_key_usage_t usage,
+                                    psa_algorithm_t alg )
+{
+    psa_status_t status;
+    size_t key_bits;
+    mbedtls_cipher_id_t cipher_id;
+
+    status = psa_get_key_from_slot( key, &operation->slot, usage, alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    key_bits = psa_get_key_bits( operation->slot );
+
+    operation->cipher_info =
+        mbedtls_cipher_info_from_psa( alg, operation->slot->type, key_bits,
+                                      &cipher_id );
+    if( operation->cipher_info == NULL )
+        return( PSA_ERROR_NOT_SUPPORTED );
+
+    switch( PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, 0 ) )
+    {
+#if defined(MBEDTLS_CCM_C)
+        case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_CCM, 0 ):
+            operation->core_alg = PSA_ALG_CCM;
+            operation->full_tag_length = 16;
+            if( PSA_BLOCK_CIPHER_BLOCK_SIZE( operation->slot->type ) != 16 )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+            mbedtls_ccm_init( &operation->ctx.ccm );
+            status = mbedtls_to_psa_error(
+                mbedtls_ccm_setkey( &operation->ctx.ccm, cipher_id,
+                                    operation->slot->data.raw.data,
+                                    (unsigned int) key_bits ) );
+            if( status != 0 )
+                goto cleanup;
+            break;
+#endif /* MBEDTLS_CCM_C */
+
+#if defined(MBEDTLS_GCM_C)
+        case PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, 0 ):
+            operation->core_alg = PSA_ALG_GCM;
+            operation->full_tag_length = 16;
+            if( PSA_BLOCK_CIPHER_BLOCK_SIZE( operation->slot->type ) != 16 )
+                return( PSA_ERROR_INVALID_ARGUMENT );
+            mbedtls_gcm_init( &operation->ctx.gcm );
+            status = mbedtls_to_psa_error(
+                mbedtls_gcm_setkey( &operation->ctx.gcm, cipher_id,
+                                    operation->slot->data.raw.data,
+                                    (unsigned int) key_bits ) );
+            break;
+#endif /* MBEDTLS_GCM_C */
+
+        default:
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
+    if( PSA_AEAD_TAG_LENGTH( alg ) > operation->full_tag_length )
+    {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto cleanup;
+    }
+    operation->tag_length = PSA_AEAD_TAG_LENGTH( alg );
+    /* CCM allows the following tag lengths: 4, 6, 8, 10, 12, 14, 16.
+     * GCM allows the following tag lengths: 4, 8, 12, 13, 14, 15, 16.
+     * In both cases, mbedtls_xxx will validate the tag length below. */
+
+    return( PSA_SUCCESS );
+
+cleanup:
+    psa_aead_abort( operation );
+    return( status );
+}
+
 psa_status_t psa_aead_encrypt( psa_key_slot_t key,
                                psa_algorithm_t alg,
                                const uint8_t *nonce,
@@ -2802,113 +2947,60 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
                                size_t ciphertext_size,
                                size_t *ciphertext_length )
 {
-    int ret;
     psa_status_t status;
-    key_slot_t *slot;
-    size_t key_bits;
+    aead_operation_t operation;
     uint8_t *tag;
-    size_t tag_length;
-    mbedtls_cipher_id_t cipher_id;
-    const mbedtls_cipher_info_t *cipher_info = NULL;
 
     *ciphertext_length = 0;
 
-    status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_ENCRYPT, alg );
+    status = psa_aead_setup( &operation, key, PSA_KEY_USAGE_ENCRYPT, alg );
     if( status != PSA_SUCCESS )
         return( status );
-    key_bits = psa_get_key_bits( slot );
 
-    cipher_info = mbedtls_cipher_info_from_psa( alg, slot->type,
-                                                key_bits, &cipher_id );
-    if( cipher_info == NULL )
-        return( PSA_ERROR_NOT_SUPPORTED );
-
-    if( ( slot->type & PSA_KEY_TYPE_CATEGORY_MASK ) !=
-        PSA_KEY_TYPE_CATEGORY_SYMMETRIC )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
-    if( alg == PSA_ALG_GCM )
+    /* For all currently supported modes, the tag is at the end of the
+     * ciphertext. */
+    if( ciphertext_size < ( plaintext_length + operation.tag_length ) )
     {
-        mbedtls_gcm_context gcm;
-        tag_length = 16;
-
-        if( PSA_BLOCK_CIPHER_BLOCK_SIZE( slot->type ) != 16 )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-
-        //make sure we have place to hold the tag in the ciphertext buffer
-        if( ciphertext_size < ( plaintext_length + tag_length ) )
-            return( PSA_ERROR_BUFFER_TOO_SMALL );
-
-        //update the tag pointer to point to the end of the ciphertext_length
-        tag = ciphertext + plaintext_length;
-
-        mbedtls_gcm_init( &gcm );
-        ret = mbedtls_gcm_setkey( &gcm, cipher_id,
-                                  slot->data.raw.data,
-                                  (unsigned int) key_bits );
-        if( ret != 0 )
-        {
-            mbedtls_gcm_free( &gcm );
-            return( mbedtls_to_psa_error( ret ) );
-        }
-        ret = mbedtls_gcm_crypt_and_tag( &gcm, MBEDTLS_GCM_ENCRYPT,
-                                         plaintext_length, nonce,
-                                         nonce_length, additional_data,
-                                         additional_data_length, plaintext,
-                                         ciphertext, tag_length, tag );
-        mbedtls_gcm_free( &gcm );
+        status = PSA_ERROR_BUFFER_TOO_SMALL;
+        goto exit;
     }
-    else if( alg == PSA_ALG_CCM )
+    tag = ciphertext + plaintext_length;
+
+    if( operation.core_alg == PSA_ALG_GCM )
     {
-        mbedtls_ccm_context ccm;
-        tag_length = 16;
-
-        if( PSA_BLOCK_CIPHER_BLOCK_SIZE( slot->type ) != 16 )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-
-        if( nonce_length < 7 || nonce_length > 13 )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-
-        //make sure we have place to hold the tag in the ciphertext buffer
-        if( ciphertext_size < ( plaintext_length + tag_length ) )
-            return( PSA_ERROR_BUFFER_TOO_SMALL );
-
-        //update the tag pointer to point to the end of the ciphertext_length
-        tag = ciphertext + plaintext_length;
-
-        mbedtls_ccm_init( &ccm );
-        ret = mbedtls_ccm_setkey( &ccm, cipher_id,
-                                  slot->data.raw.data,
-                                  (unsigned int) key_bits );
-        if( ret != 0 )
-        {
-            mbedtls_ccm_free( &ccm );
-            return( mbedtls_to_psa_error( ret ) );
-        }
-        ret = mbedtls_ccm_encrypt_and_tag( &ccm, plaintext_length,
-                                           nonce, nonce_length,
-                                           additional_data,
-                                           additional_data_length,
-                                           plaintext, ciphertext,
-                                           tag, tag_length );
-        mbedtls_ccm_free( &ccm );
+        status = mbedtls_to_psa_error(
+            mbedtls_gcm_crypt_and_tag( &operation.ctx.gcm,
+                                       MBEDTLS_GCM_ENCRYPT,
+                                       plaintext_length,
+                                       nonce, nonce_length,
+                                       additional_data, additional_data_length,
+                                       plaintext, ciphertext,
+                                       operation.tag_length, tag ) );
+    }
+    else if( operation.core_alg == PSA_ALG_CCM )
+    {
+        status = mbedtls_to_psa_error(
+            mbedtls_ccm_encrypt_and_tag( &operation.ctx.ccm,
+                                         plaintext_length,
+                                         nonce, nonce_length,
+                                         additional_data,
+                                         additional_data_length,
+                                         plaintext, ciphertext,
+                                         tag, operation.tag_length ) );
     }
     else
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }
 
-    if( ret != 0 )
-    {
-        /* If ciphertext_size is 0 then ciphertext may be NULL and then the
-         * call to memset would have undefined behavior. */
-        if( ciphertext_size != 0 )
-            memset( ciphertext, 0, ciphertext_size );
-        return( mbedtls_to_psa_error( ret ) );
-    }
+    if( status != PSA_SUCCESS && ciphertext_size != 0 )
+        memset( ciphertext, 0, ciphertext_size );
 
-    *ciphertext_length = plaintext_length + tag_length;
-    return( PSA_SUCCESS );
+exit:
+    psa_aead_abort( &operation );
+    if( status == PSA_SUCCESS )
+        *ciphertext_length = plaintext_length + operation.tag_length;
+    return( status );
 }
 
 /* Locate the tag in a ciphertext buffer containing the encrypted data
@@ -2944,108 +3036,63 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
                                size_t plaintext_size,
                                size_t *plaintext_length )
 {
-    int ret;
     psa_status_t status;
-    key_slot_t *slot;
-    size_t key_bits;
-    const uint8_t *tag;
-    size_t tag_length;
-    mbedtls_cipher_id_t cipher_id;
-    const mbedtls_cipher_info_t *cipher_info = NULL;
+    aead_operation_t operation;
+    const uint8_t *tag = NULL;
 
     *plaintext_length = 0;
 
-    status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_DECRYPT, alg );
+    status = psa_aead_setup( &operation, key, PSA_KEY_USAGE_DECRYPT, alg );
     if( status != PSA_SUCCESS )
         return( status );
-    key_bits = psa_get_key_bits( slot );
 
-    cipher_info = mbedtls_cipher_info_from_psa( alg, slot->type,
-                                                key_bits, &cipher_id );
-    if( cipher_info == NULL )
-        return( PSA_ERROR_NOT_SUPPORTED );
-
-    if( ( slot->type & PSA_KEY_TYPE_CATEGORY_MASK ) !=
-        PSA_KEY_TYPE_CATEGORY_SYMMETRIC )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
-    if( alg == PSA_ALG_GCM )
+    if( operation.core_alg == PSA_ALG_GCM )
     {
-        mbedtls_gcm_context gcm;
-
-        tag_length = 16;
-        status = psa_aead_unpadded_locate_tag( tag_length,
+        status = psa_aead_unpadded_locate_tag( operation.tag_length,
                                                ciphertext, ciphertext_length,
                                                plaintext_size, &tag );
         if( status != PSA_SUCCESS )
-            return( status );
+            goto exit;
 
-        mbedtls_gcm_init( &gcm );
-        ret = mbedtls_gcm_setkey( &gcm, cipher_id,
-                                  slot->data.raw.data,
-                                  (unsigned int) key_bits );
-        if( ret != 0 )
-        {
-            mbedtls_gcm_free( &gcm );
-            return( mbedtls_to_psa_error( ret ) );
-        }
-
-        ret = mbedtls_gcm_auth_decrypt( &gcm,
-                                        ciphertext_length - tag_length,
-                                        nonce, nonce_length,
-                                        additional_data,
-                                        additional_data_length,
-                                        tag, tag_length,
-                                        ciphertext, plaintext );
-        mbedtls_gcm_free( &gcm );
+        status = mbedtls_to_psa_error(
+            mbedtls_gcm_auth_decrypt( &operation.ctx.gcm,
+                                      ciphertext_length - operation.tag_length,
+                                      nonce, nonce_length,
+                                      additional_data,
+                                      additional_data_length,
+                                      tag, operation.tag_length,
+                                      ciphertext, plaintext ) );
     }
-    else if( alg == PSA_ALG_CCM )
+    else if( operation.core_alg == PSA_ALG_CCM )
     {
-        mbedtls_ccm_context ccm;
-
-        if( nonce_length < 7 || nonce_length > 13 )
-            return( PSA_ERROR_INVALID_ARGUMENT );
-
-        tag_length = 16;
-        status = psa_aead_unpadded_locate_tag( tag_length,
+        status = psa_aead_unpadded_locate_tag( operation.tag_length,
                                                ciphertext, ciphertext_length,
                                                plaintext_size, &tag );
         if( status != PSA_SUCCESS )
-            return( status );
+            goto exit;
 
-        mbedtls_ccm_init( &ccm );
-        ret = mbedtls_ccm_setkey( &ccm, cipher_id,
-                                  slot->data.raw.data,
-                                  (unsigned int) key_bits );
-        if( ret != 0 )
-        {
-            mbedtls_ccm_free( &ccm );
-            return( mbedtls_to_psa_error( ret ) );
-        }
-        ret = mbedtls_ccm_auth_decrypt( &ccm, ciphertext_length - tag_length,
-                                        nonce, nonce_length,
-                                        additional_data,
-                                        additional_data_length,
-                                        ciphertext, plaintext,
-                                        tag, tag_length );
-        mbedtls_ccm_free( &ccm );
+        status = mbedtls_to_psa_error(
+            mbedtls_ccm_auth_decrypt( &operation.ctx.ccm,
+                                      ciphertext_length - operation.tag_length,
+                                      nonce, nonce_length,
+                                      additional_data,
+                                      additional_data_length,
+                                      ciphertext, plaintext,
+                                      tag, operation.tag_length ) );
     }
     else
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }
 
-    if( ret != 0 )
-    {
-        /* If plaintext_size is 0 then plaintext may be NULL and then the
-         * call to memset has undefined behavior. */
-        if( plaintext_size != 0 )
-            memset( plaintext, 0, plaintext_size );
-    }
-    else
-        *plaintext_length = ciphertext_length - tag_length;
+    if( status != PSA_SUCCESS && plaintext_size != 0 )
+        memset( plaintext, 0, plaintext_size );
 
-    return( mbedtls_to_psa_error( ret ) );
+exit:
+    psa_aead_abort( &operation );
+    if( status == PSA_SUCCESS )
+        *plaintext_length = ciphertext_length - operation.tag_length;
+    return( status );
 }
 
 

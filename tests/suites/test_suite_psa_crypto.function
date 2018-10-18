@@ -22,20 +22,23 @@
 /** An invalid export length that will never be set by psa_export_key(). */
 static const size_t INVALID_EXPORT_LENGTH = ~0U;
 
-/** Test if a buffer is all-bits zero.
+/** Test if a buffer contains a constant byte value.
+ *
+ * `mem_is_char(buffer, c, size)` is true after `memset(buffer, c, size)`.
  *
  * \param buffer    Pointer to the beginning of the buffer.
+ * \param c         Expected value of every byte.
  * \param size      Size of the buffer in bytes.
  *
  * \return          1 if the buffer is all-bits-zero.
  * \return          0 if there is at least one nonzero byte.
  */
-static int mem_is_zero( void *buffer, size_t size )
+static int mem_is_char( void *buffer, unsigned char c, size_t size )
 {
     size_t i;
     for( i = 0; i < size; i++ )
     {
-        if( ( (unsigned char *) buffer )[i] != 0 )
+        if( ( (unsigned char *) buffer )[i] != c )
             return( 0 );
     }
     return( 1 );
@@ -791,6 +794,19 @@ static int exercise_key( psa_key_slot_t slot,
  */
 
 /* BEGIN_CASE */
+void static_checks( )
+{
+    size_t max_truncated_mac_size =
+        PSA_ALG_MAC_TRUNCATION_MASK >> PSA_MAC_TRUNCATION_OFFSET;
+
+    /* Check that the length for a truncated MAC always fits in the algorithm
+     * encoding. The shifted mask is the maximum truncated value. The
+     * untruncated algorithm may be one byte larger. */
+    TEST_ASSERT( PSA_MAC_MAX_SIZE <= 1 + max_truncated_mac_size );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void init_deinit( )
 {
     psa_status_t status;
@@ -978,7 +994,7 @@ void import_export( data_t *data,
     TEST_ASSERT( status == PSA_SUCCESS || exported_length == 0 );
     TEST_ASSERT( exported_length <= export_size );
 
-    TEST_ASSERT( mem_is_zero( exported + exported_length,
+    TEST_ASSERT( mem_is_char( exported + exported_length, 0,
                               export_size - exported_length ) );
     if( status != PSA_SUCCESS )
     {
@@ -1067,7 +1083,7 @@ void import_export_public_key( data_t *data,
                                     &exported_length );
     TEST_ASSERT( status == expected_export_status );
     TEST_ASSERT( exported_length == (size_t) public_key_expected_length );
-    TEST_ASSERT( mem_is_zero( exported + exported_length,
+    TEST_ASSERT( mem_is_char( exported + exported_length, 0,
                               export_size - exported_length ) );
     if( status != PSA_SUCCESS )
         goto destroy;
@@ -1640,6 +1656,62 @@ void mac_setup( int key_type_arg,
     status = psa_mac_sign_setup( &operation, key_slot, alg );
     psa_mac_abort( &operation );
     TEST_ASSERT( status == expected_status );
+
+exit:
+    psa_destroy_key( key_slot );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void mac_sign( int key_type_arg,
+               data_t *key,
+               int alg_arg,
+               data_t *input,
+               data_t *expected_mac )
+{
+    int key_slot = 1;
+    psa_key_type_t key_type = key_type_arg;
+    psa_algorithm_t alg = alg_arg;
+    psa_mac_operation_t operation;
+    psa_key_policy_t policy;
+    /* Leave a little extra room in the output buffer. At the end of the
+     * test, we'll check that the implementation didn't overwrite onto
+     * this extra room. */
+    uint8_t actual_mac[PSA_MAC_MAX_SIZE + 10];
+    size_t mac_buffer_size =
+        PSA_MAC_FINAL_SIZE( key_type, PSA_BYTES_TO_BITS( key->len ), alg );
+    size_t mac_length = 0;
+
+    memset( actual_mac, '+', sizeof( actual_mac ) );
+    TEST_ASSERT( mac_buffer_size <= PSA_MAC_MAX_SIZE );
+    TEST_ASSERT( expected_mac->len <= mac_buffer_size );
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_SIGN, alg );
+    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( key_slot, key_type,
+                                 key->x, key->len ) == PSA_SUCCESS );
+
+    /* Calculate the MAC. */
+    TEST_ASSERT( psa_mac_sign_setup( &operation,
+                                     key_slot, alg ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_mac_update( &operation,
+                                 input->x, input->len ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_mac_sign_finish( &operation,
+                                      actual_mac, mac_buffer_size,
+                                      &mac_length ) == PSA_SUCCESS );
+
+    /* Compare with the expected value. */
+    TEST_ASSERT( mac_length == expected_mac->len );
+    TEST_ASSERT( memcmp( actual_mac, expected_mac->x, mac_length ) == 0 );
+
+    /* Verify that the end of the buffer is untouched. */
+    TEST_ASSERT( mem_is_char( actual_mac + mac_length, '+',
+                              sizeof( actual_mac ) - mac_length ) );
 
 exit:
     psa_destroy_key( key_slot );
@@ -2224,12 +2296,11 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void aead_encrypt_decrypt( int key_type_arg,
-                           data_t * key_data,
+void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
                            int alg_arg,
-                           data_t * input_data,
-                           data_t * nonce,
-                           data_t * additional_data,
+                           data_t *nonce,
+                           data_t *additional_data,
+                           data_t *input_data,
                            int expected_result_arg )
 {
     int slot = 1;
@@ -2300,10 +2371,12 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void aead_encrypt( int key_type_arg, data_t * key_data,
-                   int alg_arg, data_t * input_data,
-                   data_t * additional_data, data_t * nonce,
-                   data_t * expected_result )
+void aead_encrypt( int key_type_arg, data_t *key_data,
+                   int alg_arg,
+                   data_t *nonce,
+                   data_t *additional_data,
+                   data_t *input_data,
+                   data_t *expected_result )
 {
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;
@@ -2356,10 +2429,13 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void aead_decrypt( int key_type_arg, data_t * key_data,
-                   int alg_arg, data_t * input_data,
-                   data_t * additional_data, data_t * nonce,
-                   data_t * expected_data, int expected_result_arg )
+void aead_decrypt( int key_type_arg, data_t *key_data,
+                   int alg_arg,
+                   data_t *nonce,
+                   data_t *additional_data,
+                   data_t *input_data,
+                   data_t *expected_data,
+                   int expected_result_arg )
 {
     int slot = 1;
     psa_key_type_t key_type = key_type_arg;

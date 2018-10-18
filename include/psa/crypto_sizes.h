@@ -79,6 +79,9 @@
  */
 /* All non-HMAC MACs have a maximum size that's smaller than the
  * minimum possible value of PSA_HASH_MAX_SIZE in this implementation. */
+/* Note that the encoding of truncated MAC algorithms limits this value
+ * to 64 bytes.
+ */
 #define PSA_MAC_MAX_SIZE PSA_HASH_MAX_SIZE
 
 /* The maximum size of an RSA key on this implementation, in bits.
@@ -143,7 +146,8 @@
         PSA_VENDOR_ECC_MAX_CURVE_BITS                                   \
         )
 
-
+/** The maximum size of a block cipher supported by the implementation. */
+#define PSA_MAX_BLOCK_CIPHER_BLOCK_SIZE 16
 
 /** The size of the output of psa_mac_sign_finish(), in bytes.
  *
@@ -163,7 +167,8 @@
  *                      with the algorithm.
  */
 #define PSA_MAC_FINAL_SIZE(key_type, key_bits, alg)                     \
-    (PSA_ALG_IS_HMAC(alg) ? PSA_HASH_SIZE(PSA_ALG_HMAC_GET_HASH(alg)) : \
+    ((alg) & PSA_ALG_MAC_TRUNCATION_MASK ? PSA_MAC_TRUNCATED_LENGTH(alg) : \
+     PSA_ALG_IS_HMAC(alg) ? PSA_HASH_SIZE(PSA_ALG_HMAC_GET_HASH(alg)) : \
      PSA_ALG_IS_BLOCK_CIPHER_MAC(alg) ? PSA_BLOCK_CIPHER_BLOCK_SIZE(key_type) : \
      ((void)(key_type), (void)(key_bits), 0))
 
@@ -186,9 +191,9 @@
  *                            correct size for an AEAD algorithm that it
  *                            recognizes, but does not support.
  */
-#define PSA_AEAD_ENCRYPT_OUTPUT_SIZE(alg, plaintext_length)     \
-    (PSA_AEAD_TAG_SIZE(alg) != 0 ?                              \
-     (plaintext_length) + PSA_AEAD_TAG_SIZE(alg) :              \
+#define PSA_AEAD_ENCRYPT_OUTPUT_SIZE(alg, plaintext_length)       \
+    (PSA_AEAD_TAG_LENGTH(alg) != 0 ?                              \
+     (plaintext_length) + PSA_AEAD_TAG_LENGTH(alg) :              \
      0)
 
 /** The maximum size of the output of psa_aead_decrypt(), in bytes.
@@ -210,9 +215,9 @@
  *                            correct size for an AEAD algorithm that it
  *                            recognizes, but does not support.
  */
-#define PSA_AEAD_DECRYPT_OUTPUT_SIZE(alg, ciphertext_length)    \
-    (PSA_AEAD_TAG_SIZE(alg) != 0 ?                              \
-     (plaintext_length) - PSA_AEAD_TAG_SIZE(alg) :              \
+#define PSA_AEAD_DECRYPT_OUTPUT_SIZE(alg, ciphertext_length)      \
+    (PSA_AEAD_TAG_LENGTH(alg) != 0 ?                              \
+     (plaintext_length) - PSA_AEAD_TAG_LENGTH(alg) :              \
      0)
 
 /** Safe signature buffer size for psa_asymmetric_sign().

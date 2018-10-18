@@ -312,9 +312,41 @@ key_lifetime_set_fail:1:PSA_KEY_LIFETIME_WRITE_ONCE:PSA_ERROR_NOT_SUPPORTED
 PSA key lifetime set: invalid key lifetime value
 key_lifetime_set_fail:1:PSA_KEY_LIFETIME_PERSISTENT+1:PSA_ERROR_INVALID_ARGUMENT
 
+PSA hash setup: good, SHA-1
+depends_on:MBEDTLS_SHA1_C
+hash_setup:PSA_ALG_SHA_1:PSA_SUCCESS
+
+PSA hash setup: good, SHA-224
+depends_on:MBEDTLS_SHA256_C
+hash_setup:PSA_ALG_SHA_224:PSA_SUCCESS
+
 PSA hash setup: good, SHA-256
 depends_on:MBEDTLS_SHA256_C
 hash_setup:PSA_ALG_SHA_256:PSA_SUCCESS
+
+PSA hash setup: good, SHA-384
+depends_on:MBEDTLS_SHA512_C
+hash_setup:PSA_ALG_SHA_384:PSA_SUCCESS
+
+PSA hash setup: good, SHA-512
+depends_on:MBEDTLS_SHA512_C
+hash_setup:PSA_ALG_SHA_512:PSA_SUCCESS
+
+PSA hash setup: good, MD-2
+depends_on:MBEDTLS_MD2_C
+hash_setup:PSA_ALG_MD2:PSA_SUCCESS
+
+PSA hash setup: good, MD-4
+depends_on:MBEDTLS_MD4_C
+hash_setup:PSA_ALG_MD4:PSA_SUCCESS
+
+PSA hash setup: good, MD-5
+depends_on:MBEDTLS_MD5_C
+hash_setup:PSA_ALG_MD5:PSA_SUCCESS
+
+PSA hash setup: good, RIPEMD160
+depends_on:MBEDTLS_RIPEMD160_C
+hash_setup:PSA_ALG_RIPEMD160:PSA_SUCCESS
 
 PSA hash setup: bad (unknown hash algorithm)
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
@@ -324,13 +356,77 @@ PSA hash setup: bad (not a hash algorithm)
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 hash_setup:PSA_ALG_HMAC(PSA_ALG_SHA_256):PSA_ERROR_INVALID_ARGUMENT
 
+PSA hash finish: SHA-1
+depends_on:MBEDTLS_SHA1_C
+hash_finish:PSA_ALG_SHA_1:"bd":"9034aaf45143996a2b14465c352ab0c6fa26b221"
+
+PSA hash finish: SHA-224
+depends_on:MBEDTLS_SHA256_C
+hash_finish:PSA_ALG_SHA_224:"bd":"b1e46bb9efe45af554363449c6945a0d6169fc3a5a396a56cb97cb57"
+
 PSA hash finish: SHA-256
 depends_on:MBEDTLS_SHA256_C
 hash_finish:PSA_ALG_SHA_256:"bd":"68325720aabd7c82f30f554b313d0570c95accbb7dc4b5aae11204c08ffe732b"
 
+PSA hash finish: SHA-384
+depends_on:MBEDTLS_SHA512_C
+hash_finish:PSA_ALG_SHA_384:"bd":"4372e38a92a28b5d2c391e62452a86d50e0267228be176c77d2402effe9fa50de407bbb851b37d5904aba2dede74da2a"
+
+PSA hash finish: SHA-512
+depends_on:MBEDTLS_SHA512_C
+hash_finish:PSA_ALG_SHA_512:"bd":"296e2267d74c278daaaa940d17b0cfb74a5083f8e069726d8c841cbe596e0431cb7741a5b50f71666cfd54bacb7b00aea891499cf4ef6a03c8a83fe37c3f7baf"
+
+PSA hash finish: MD-2
+depends_on:MBEDTLS_MD2_C
+hash_finish:PSA_ALG_MD2:"bd":"8c9c17665d25b35fc413c41805c679cf"
+
+PSA hash finish: MD-4
+depends_on:MBEDTLS_MD4_C
+hash_finish:PSA_ALG_MD4:"bd":"18c33f97297efe5f8a732258289fda25"
+
+PSA hash finish: MD-5
+depends_on:MBEDTLS_MD5_C
+hash_finish:PSA_ALG_MD5:"bd":"abae57cb562ecf295b4a37a76efe61fb"
+
+PSA hash finish: RIPEMD160
+depends_on:MBEDTLS_RIPEMD160_C
+hash_finish:PSA_ALG_RIPEMD160:"bd":"5089265ee5d9af75d12dbf7ea2f27dbdee435b37"
+
+PSA hash verify: SHA-1
+depends_on:MBEDTLS_SHA1_C
+hash_verify:PSA_ALG_SHA_1:"bd":"9034aaf45143996a2b14465c352ab0c6fa26b221"
+
+PSA hash verify: SHA-224
+depends_on:MBEDTLS_SHA256_C
+hash_verify:PSA_ALG_SHA_224:"bd":"b1e46bb9efe45af554363449c6945a0d6169fc3a5a396a56cb97cb57"
+
 PSA hash verify: SHA-256
 depends_on:MBEDTLS_SHA256_C
 hash_verify:PSA_ALG_SHA_256:"bd":"68325720aabd7c82f30f554b313d0570c95accbb7dc4b5aae11204c08ffe732b"
+
+PSA hash verify: SHA-384
+depends_on:MBEDTLS_SHA512_C
+hash_verify:PSA_ALG_SHA_384:"bd":"4372e38a92a28b5d2c391e62452a86d50e0267228be176c77d2402effe9fa50de407bbb851b37d5904aba2dede74da2a"
+
+PSA hash verify: SHA-512
+depends_on:MBEDTLS_SHA512_C
+hash_verify:PSA_ALG_SHA_512:"bd":"296e2267d74c278daaaa940d17b0cfb74a5083f8e069726d8c841cbe596e0431cb7741a5b50f71666cfd54bacb7b00aea891499cf4ef6a03c8a83fe37c3f7baf"
+
+PSA hash verify: MD-2
+depends_on:MBEDTLS_MD2_C
+hash_verify:PSA_ALG_MD2:"bd":"8c9c17665d25b35fc413c41805c679cf"
+
+PSA hash verify: MD-4
+depends_on:MBEDTLS_MD4_C
+hash_verify:PSA_ALG_MD4:"bd":"18c33f97297efe5f8a732258289fda25"
+
+PSA hash verify: MD-5
+depends_on:MBEDTLS_MD5_C
+hash_verify:PSA_ALG_MD5:"bd":"abae57cb562ecf295b4a37a76efe61fb"
+
+PSA hash verify: RIPEMD160
+depends_on:MBEDTLS_RIPEMD160_C
+hash_verify:PSA_ALG_RIPEMD160:"bd":"5089265ee5d9af75d12dbf7ea2f27dbdee435b37"
 
 PSA MAC setup: good, HMAC-SHA-256
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C

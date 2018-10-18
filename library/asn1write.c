@@ -287,6 +287,21 @@ int mbedtls_asn1_write_ia5_string( unsigned char **p, unsigned char *start,
     return( (int) len );
 }
 
+int mbedtls_asn1_write_utf8_string( unsigned char **p, unsigned char *start,
+                           const char *text, size_t text_len )
+{
+    int ret;
+    size_t len = 0;
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_raw_buffer( p, start,
+                  (const unsigned char *) text, text_len ) );
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start, MBEDTLS_ASN1_UTF8_STRING ) );
+
+    return( (int) len );
+}
+
 int mbedtls_asn1_write_bitstring( unsigned char **p, unsigned char *start,
                           const unsigned char *buf, size_t bits )
 {

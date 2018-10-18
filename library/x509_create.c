@@ -194,25 +194,54 @@ int mbedtls_x509_set_extension( mbedtls_asn1_named_data **head, const char *oid,
  */
 static int x509_write_name( unsigned char **p, unsigned char *start,
                             const char *oid, size_t oid_len,
-                            const unsigned char *name, size_t name_len )
+                            const unsigned char *name, size_t name_len, int tag )
 {
     int ret;
     size_t len = 0;
 
-    // Write PrintableString for all except MBEDTLS_OID_PKCS9_EMAIL
-    //
-    if( MBEDTLS_OID_SIZE( MBEDTLS_OID_PKCS9_EMAIL ) == oid_len &&
-        memcmp( oid, MBEDTLS_OID_PKCS9_EMAIL, oid_len ) == 0 )
+    // Tag not explicitly set or unsupported?
+    if( tag != MBEDTLS_ASN1_UTF8_STRING && tag != MBEDTLS_ASN1_PRINTABLE_STRING && tag != MBEDTLS_ASN1_IA5_STRING && tag != MBEDTLS_ASN1_BIT_STRING )
     {
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_ia5_string( p, start,
-                                                  (const char *) name,
-                                                  name_len ) );
+        // Write PrintableString or UTF8String for all except MBEDTLS_OID_PKCS9_EMAIL
+        //
+        if( MBEDTLS_OID_SIZE( MBEDTLS_OID_PKCS9_EMAIL ) == oid_len &&
+            memcmp( oid, MBEDTLS_OID_PKCS9_EMAIL, oid_len ) == 0 )
+        {
+            tag = MBEDTLS_ASN1_IA5_STRING;
+        }
+        else
+        {
+            // Scan for non-printable characters (according to spec)
+            const unsigned char *i = name;
+            const unsigned char *iend = name + name_len;
+            while( i < iend && (*i == ' ' || *i == '\'' || *i == '(' || *i == ')' || (*i >= '+' && *i <= ':') || *i == '=' || *i == '?' || (*i >= 'A' && *i <= 'Z') || (*i >= 'a' && *i <= 'z')) )
+                i++;
+
+            if( i == iend )
+                tag = MBEDTLS_ASN1_PRINTABLE_STRING;
+            else
+                tag = MBEDTLS_ASN1_UTF8_STRING;
+        }
     }
-    else
+
+    switch( tag )
     {
-        MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_printable_string( p, start,
-                                                        (const char *) name,
-                                                        name_len ) );
+        case MBEDTLS_ASN1_UTF8_STRING:
+            MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_utf8_string(
+                p, start, (const char *) name, name_len ) );
+            break;
+        case MBEDTLS_ASN1_PRINTABLE_STRING:
+            MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_printable_string(
+                p, start, (const char *) name, name_len ) );
+            break;
+        case MBEDTLS_ASN1_IA5_STRING:
+            MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_ia5_string(
+                p, start, (const char *) name, name_len ) );
+            break;
+        case MBEDTLS_ASN1_BIT_STRING:
+            MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_bitstring(
+                p, start, name, name_len * 8 ) );
+            break;
     }
 
     // Write OID
@@ -241,7 +270,7 @@ int mbedtls_x509_write_names( unsigned char **p, unsigned char *start,
     {
         MBEDTLS_ASN1_CHK_ADD( len, x509_write_name( p, start, (char *) cur->oid.p,
                                             cur->oid.len,
-                                            cur->val.p, cur->val.len ) );
+                                            cur->val.p, cur->val.len, cur->val.tag ) );
         cur = cur->next;
     }
 

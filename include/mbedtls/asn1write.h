@@ -183,6 +183,21 @@ int mbedtls_asn1_write_ia5_string( unsigned char **p, unsigned char *start,
                            const char *text, size_t text_len );
 
 /**
+ * \brief           Write an UTF8 string tag (MBEDTLS_ASN1_UTF8_STRING) and
+ *                  value in ASN.1 format
+ *                  Note: function works backwards in data buffer
+ *
+ * \param p         reference to current position pointer
+ * \param start     start of the buffer (for bounds-checking)
+ * \param text      the text to write
+ * \param text_len  length of the text
+ *
+ * \return          the length written or a negative error code
+ */
+int mbedtls_asn1_write_utf8_string( unsigned char **p, unsigned char *start,
+                           const char *text, size_t text_len );
+
+/**
  * \brief           Write a bitstring tag (MBEDTLS_ASN1_BIT_STRING) and
  *                  value in ASN.1 format
  *                  Note: function works backwards in data buffer

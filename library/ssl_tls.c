@@ -1733,7 +1733,7 @@ static void ssl_mac( mbedtls_md_context_t *md_ctx,
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
 /* The function below is only used in the Lucky 13 counter-measure in
- * ssl_decrypt_buf(). These are the defines that guard the call site. */
+ * mbedtls_ssl_decrypt_buf(). These are the defines that guard the call site. */
 #if defined(MBEDTLS_SSL_SOME_MODES_USE_MAC) && \
     ( defined(MBEDTLS_SSL_PROTO_TLS1) || \
       defined(MBEDTLS_SSL_PROTO_TLS1_1) || \

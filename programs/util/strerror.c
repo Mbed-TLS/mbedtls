@@ -59,8 +59,7 @@ int main( int argc, char *argv[] )
     if( argc != 2 )
     {
         mbedtls_printf( USAGE );
-        val = 0;
-        goto exit;
+        return( 0 );
     }
 
     val = strtol( argv[1], &end, 10 );
@@ -70,8 +69,7 @@ int main( int argc, char *argv[] )
         if( *end != '\0' )
         {
             mbedtls_printf( USAGE );
-            val = 0;
-            goto exit;
+            return( 0 );
         }
     }
     if( val > 0 )
@@ -84,11 +82,11 @@ int main( int argc, char *argv[] )
         mbedtls_printf("Last error was: -0x%04x - %s\n\n", (int) -val, error_buf );
     }
 
-exit:
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
+
     return( val );
 }
 #endif /* MBEDTLS_ERROR_C */

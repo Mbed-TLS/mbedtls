@@ -167,7 +167,18 @@ static struct options
     unsigned int seed;          /* seed for "random" events                 */
 } opt;
 
-static int get_options( int argc, char *argv[] )
+static void exit_usage( const char *name, const char *value )
+{
+    if( value == NULL )
+        mbedtls_printf( " unknown option or missing value: %s\n", name );
+    else
+        mbedtls_printf( " option %s: illegal value: %s\n", name, value );
+
+    mbedtls_printf( USAGE );
+    exit( 1 );
+}
+
+static void get_options( int argc, char *argv[] )
 {
     int i;
     char *p, *q;
@@ -188,7 +199,7 @@ static int get_options( int argc, char *argv[] )
     {
         p = argv[i];
         if( ( q = strchr( p, '=' ) ) == NULL )
-            goto usage;
+            exit_usage( p, NULL );
         *q++ = '\0';
 
         if( strcmp( p, "server_addr" ) == 0 )
@@ -203,19 +214,19 @@ static int get_options( int argc, char *argv[] )
         {
             opt.duplicate = atoi( q );
             if( opt.duplicate < 0 || opt.duplicate > 20 )
-                goto usage;
+                exit_usage( p, q );
         }
         else if( strcmp( p, "delay" ) == 0 )
         {
             opt.delay = atoi( q );
             if( opt.delay < 0 || opt.delay > 20 || opt.delay == 1 )
-                goto usage;
+                exit_usage( p, q );
         }
         else if( strcmp( p, "delay_ccs" ) == 0 )
         {
             opt.delay_ccs = atoi( q );
             if( opt.delay_ccs < 0 || opt.delay_ccs > 1 )
-                goto usage;
+                exit_usage( p, q );
         }
         else if( strcmp( p, "delay_cli" ) == 0 ||
                  strcmp( p, "delay_srv" ) == 0 )
@@ -240,8 +251,7 @@ static int get_options( int argc, char *argv[] )
             {
                 mbedtls_printf( " too many uses of %s: only %d allowed\n",
                                 p, MAX_DELAYED_HS );
-                q = NULL;
-                goto usage;
+                exit_usage( p, NULL );
             }
 
             len = strlen( q );
@@ -259,7 +269,7 @@ static int get_options( int argc, char *argv[] )
         {
             opt.drop = atoi( q );
             if( opt.drop < 0 || opt.drop > 20 || opt.drop == 1 )
-                goto usage;
+                exit_usage( p, q );
         }
         else if( strcmp( p, "pack" ) == 0 )
         {
@@ -267,56 +277,42 @@ static int get_options( int argc, char *argv[] )
             opt.pack = (unsigned) atoi( q );
 #else
             mbedtls_printf( " option pack only defined if MBEDTLS_TIMING_C is enabled\n" );
-            return( 1 );
+            exit( 1 );
 #endif
         }
         else if( strcmp( p, "mtu" ) == 0 )
         {
             opt.mtu = atoi( q );
             if( opt.mtu < 0 || opt.mtu > MAX_MSG_SIZE )
-                goto usage;
+                exit_usage( p, q );
         }
         else if( strcmp( p, "bad_ad" ) == 0 )
         {
             opt.bad_ad = atoi( q );
             if( opt.bad_ad < 0 || opt.bad_ad > 1 )
-                goto usage;
+                exit_usage( p, q );
         }
         else if( strcmp( p, "protect_hvr" ) == 0 )
         {
             opt.protect_hvr = atoi( q );
             if( opt.protect_hvr < 0 || opt.protect_hvr > 1 )
-                goto usage;
+                exit_usage( p, q );
         }
         else if( strcmp( p, "protect_len" ) == 0 )
         {
             opt.protect_len = atoi( q );
             if( opt.protect_len < 0 )
-                goto usage;
+                exit_usage( p, q );
         }
         else if( strcmp( p, "seed" ) == 0 )
         {
             opt.seed = atoi( q );
             if( opt.seed == 0 )
-                goto usage;
+                exit_usage( p, q );
         }
         else
-        {
-            q = NULL;
-            goto usage;
-        }
+            exit_usage( p, NULL );
     }
-
-    return( 0 );
-
-usage:
-    if( q == NULL )
-        mbedtls_printf( " unknown option or missing value: %s\n", p );
-    else
-        mbedtls_printf( " option %s: illegal value: %s\n", p, q );
-
-    mbedtls_printf( USAGE );
-    return( 1 );
 }
 
 static const char *msg_type( unsigned char *msg, size_t len )
@@ -735,9 +731,6 @@ int main( int argc, char *argv[] )
     uint8_t delay_idx;
 
     mbedtls_net_context listen_fd, client_fd, server_fd;
-#if defined(MBEDTLS_PLATFORM_C)
-    mbedtls_platform_context platform_ctx;
-#endif
 
 #if defined( MBEDTLS_TIMING_C )
     struct timeval tm;
@@ -748,20 +741,11 @@ int main( int argc, char *argv[] )
     int nb_fds;
     fd_set read_fds;
 
-#if defined(MBEDTLS_PLATFORM_C)
-    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
-        return( MBEDTLS_EXIT_FAILURE );
-    }
-#endif
-
     mbedtls_net_init( &listen_fd );
     mbedtls_net_init( &client_fd );
     mbedtls_net_init( &server_fd );
 
-    if( ( ret = get_options( argc, argv ) ) != 0 )
-        goto exit;
+    get_options( argc, argv );
 
     /*
      * Decisions to drop/delay/duplicate packets are pseudo-random: dropping
@@ -948,13 +932,12 @@ exit:
     mbedtls_net_free( &client_fd );
     mbedtls_net_free( &server_fd );
     mbedtls_net_free( &listen_fd );
-#if defined(MBEDTLS_PLATFORM_C)
-    mbedtls_platform_teardown( &platform_ctx );
-#endif
+
 #if defined(_WIN32)
     mbedtls_printf( "  Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
+
     return( exit_code );
 }
 

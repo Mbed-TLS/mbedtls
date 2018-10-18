@@ -351,6 +351,34 @@ void mbedtls_asn1_free_named_data( mbedtls_asn1_named_data *entry );
  */
 void mbedtls_asn1_free_named_data_list( mbedtls_asn1_named_data **head );
 
+/**
+ * \brief       Verify that the integer is the smallest possible number
+ *              of octets
+ *
+ * \param p     The position in the ASN.1 data
+ * \param len   ASN1 length, in octets.
+ */
+static inline int mbedtls_check_shortest_asn1_integer( unsigned char *p, size_t len )
+{
+    if( len < 2 )
+        return 0;
+
+    if( *(p+1) & 0x80 )
+    {
+        if( *p == 0xff )
+        {
+            return ( MBEDTLS_ERR_ASN1_INVALID_DATA );
+        }
+    }
+    else
+    {
+        if( *p == 0 )
+        {
+            return ( MBEDTLS_ERR_ASN1_INVALID_DATA );
+        }
+    }
+    return 0;
+}
 #ifdef __cplusplus
 }
 #endif

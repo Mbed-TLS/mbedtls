@@ -82,7 +82,8 @@ static int pem_get_iv( const unsigned char *s, unsigned char *iv,
 /*
  * Write a hex string from binary
  */
-static void pem_write_iv( char *t, const unsigned char *iv, size_t iv_len )
+static void pem_write_iv( char *t, const unsigned char *iv,
+                          size_t iv_len )
 {
     size_t i;
     char c;
@@ -191,24 +192,30 @@ exit:
 /*
  * Ecnrypt with DES-CBC, using PBKDF1 for key derivation
  */
-static void pem_des_encrypt( unsigned char des_iv[8],
-                               const unsigned char *data, size_t data_len,
-                               const unsigned char *pwd, size_t pwd_len,
-                               unsigned char *enc_data )
+static int pem_des_encrypt( unsigned char des_iv[8],
+                            const unsigned char *data, size_t data_len,
+                            const unsigned char *pwd, size_t pwd_len,
+                            unsigned char *enc_data )
 {
     mbedtls_des_context des_ctx;
     unsigned char des_key[8];
+    int ret;
 
     mbedtls_des_init( &des_ctx );
 
-    pem_pbkdf1( des_key, 8, des_iv, pwd, pwd_len );
+    if( ( ret = pem_pbkdf1( des_key, 8, des_iv, pwd, pwd_len ) ) != 0 )
+        goto exit;
 
-    mbedtls_des_setkey_enc( &des_ctx, des_key );
-    mbedtls_des_crypt_cbc( &des_ctx, MBEDTLS_DES_ENCRYPT, data_len,
+    if( ( ret = mbedtls_des_setkey_enc( &des_ctx, des_key ) ) != 0 )
+        goto exit;
+    ret = mbedtls_des_crypt_cbc( &des_ctx, MBEDTLS_DES_ENCRYPT, data_len,
                      des_iv, data, enc_data );
 
+exit:
     mbedtls_des_free( &des_ctx );
     mbedtls_platform_zeroize( des_key, 8 );
+
+    return( ret );
 }
 #endif /* MBEDTLS_PEM_WRITE_C */
 
@@ -244,24 +251,30 @@ exit:
 /*
  * Encrypt with 3DES-CBC, using PBKDF1 for key derivation
  */
-static void pem_des3_encrypt( unsigned char des3_iv[8],
-                                const unsigned char *data, size_t data_len,
-                                const unsigned char *pwd, size_t pwd_len,
-                                unsigned char *enc_data )
+static int pem_des3_encrypt( unsigned char des3_iv[8],
+                             const unsigned char *data, size_t data_len,
+                             const unsigned char *pwd, size_t pwd_len,
+                             unsigned char *enc_data )
 {
     mbedtls_des3_context des3_ctx;
     unsigned char des3_key[24];
+    int ret;
 
     mbedtls_des3_init( &des3_ctx );
 
-    pem_pbkdf1( des3_key, 24, des3_iv, pwd, pwd_len );
+    if( ( ret = pem_pbkdf1( des3_key, 24, des3_iv, pwd, pwd_len ) ) != 0 )
+        goto exit;
 
-    mbedtls_des3_set3key_enc( &des3_ctx, des3_key );
-    mbedtls_des3_crypt_cbc( &des3_ctx, MBEDTLS_DES_ENCRYPT, data_len,
+    if( ( ret = mbedtls_des3_set3key_enc( &des3_ctx, des3_key ) ) != 0 )
+        goto exit;
+    ret = mbedtls_des3_crypt_cbc( &des3_ctx, MBEDTLS_DES_ENCRYPT, data_len,
                      des3_iv, data, enc_data );
 
+exit:
     mbedtls_des3_free( &des3_ctx );
     mbedtls_platform_zeroize( des3_key, 24 );
+
+    return( ret );
 }
 #endif /* MBEDTLS_PEM_WRITE_C */
 #endif /* MBEDTLS_DES_C */
@@ -299,24 +312,30 @@ exit:
 /*
  * Encrypt with AES-XXX-CBC, using PBKDF1 for key derivation
  */
-static void pem_aes_encrypt( unsigned char aes_iv[16], unsigned int key_len,
-                                const unsigned char *data, size_t data_len,
-                                const unsigned char *pwd, size_t pwd_len,
-                                unsigned char *enc_data )
+static int pem_aes_encrypt( unsigned char aes_iv[16], unsigned int key_len,
+                            const unsigned char *data, size_t data_len,
+                            const unsigned char *pwd, size_t pwd_len,
+                            unsigned char *enc_data )
 {
     mbedtls_aes_context aes_ctx;
     unsigned char aes_key[32];
+    int ret;
 
     mbedtls_aes_init( &aes_ctx );
 
-    pem_pbkdf1( aes_key, key_len, aes_iv, pwd, pwd_len );
+    if( ( ret = pem_pbkdf1( aes_key, key_len, aes_iv, pwd, pwd_len ) ) != 0 )
+        goto exit;
 
-    mbedtls_aes_setkey_enc( &aes_ctx, aes_key, key_len * 8 );
-    mbedtls_aes_crypt_cbc( &aes_ctx, MBEDTLS_AES_ENCRYPT, data_len,
+    if( ( ret = mbedtls_aes_setkey_enc( &aes_ctx, aes_key, key_len * 8 ) ) != 0 )
+        goto exit;
+    ret = mbedtls_aes_crypt_cbc( &aes_ctx, MBEDTLS_AES_ENCRYPT, data_len,
                      aes_iv, data, enc_data );
 
+exit:
     mbedtls_aes_free( &aes_ctx );
     mbedtls_platform_zeroize( aes_key, key_len );
+
+    return( ret );
 }
 #endif /* MBEDTLS_PEM_WRITE_C */
 #endif /* MBEDTLS_AES_C */
@@ -591,11 +610,11 @@ int mbedtls_pem_write_enc_buffer( const char *header, const char *footer,
                           const unsigned char *iv, size_t iv_len,
                           mbedtls_cipher_type_t enc_alg, size_t *olen )
 {
+    int ret;
     const char *cipher_dek_info;
-    size_t cipher_dek_info_len;
+    size_t cipher_dek_info_len, full_header_len;
     char *xheader, *p;
     unsigned char *enc_data;
-    int r;
 
     size_t header_len = strlen( header );
     size_t footer_len = strlen( footer );
@@ -659,7 +678,8 @@ int mbedtls_pem_write_enc_buffer( const char *header, const char *footer,
         return( MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL );
     }
 
-    if( ( xheader = mbedtls_calloc( 1, header_len + cipher_dek_info_len + iv_len * 2 + 36 ) ) == NULL )
+    full_header_len = header_len + cipher_dek_info_len + iv_len * 2 + 36;
+    if( ( xheader = mbedtls_calloc( 1, full_header_len ) ) == NULL )
         return( MBEDTLS_ERR_PEM_ALLOC_FAILED );
 
     if( ( enc_data = mbedtls_calloc( 1, der_len ) ) == NULL )
@@ -669,49 +689,59 @@ int mbedtls_pem_write_enc_buffer( const char *header, const char *footer,
     if( enc_alg == MBEDTLS_CIPHER_DES_EDE3_CBC ) {
         unsigned char des3_iv[8];
         memcpy( des3_iv, iv, sizeof(des3_iv) );
-        pem_des3_encrypt( des3_iv, der_data, der_len, pwd, pwd_len, enc_data );
+        ret = pem_des3_encrypt( des3_iv, der_data, der_len, pwd, pwd_len, enc_data );
+        mbedtls_platform_zeroize( des3_iv, sizeof( des3_iv ) );
     }
     else if( enc_alg == MBEDTLS_CIPHER_DES_CBC ) {
         unsigned char des_iv[8];
         memcpy( des_iv, iv, sizeof(des_iv) );
-        pem_des_encrypt( des_iv, der_data, der_len, pwd, pwd_len, enc_data );
+        ret = pem_des_encrypt( des_iv, der_data, der_len, pwd, pwd_len, enc_data );
+        mbedtls_platform_zeroize( des_iv, sizeof( des_iv ) );
     }
 #endif /* MBEDTLS_DES_C */
 #if defined(MBEDTLS_AES_C)
     else if( enc_alg == MBEDTLS_CIPHER_AES_128_CBC ) {
         unsigned char aes_iv[16];
         memcpy( aes_iv, iv, sizeof(aes_iv) );
-        pem_aes_encrypt( aes_iv, 16, der_data, der_len, pwd, pwd_len, enc_data );
+        ret = pem_aes_encrypt( aes_iv, 16, der_data, der_len, pwd, pwd_len, enc_data );
+        mbedtls_platform_zeroize( aes_iv, sizeof( aes_iv ) );
     }
     else if( enc_alg == MBEDTLS_CIPHER_AES_192_CBC ) {
         unsigned char aes_iv[16];
         memcpy( aes_iv, iv, sizeof(aes_iv) );
-        pem_aes_encrypt( aes_iv, 24, der_data, der_len, pwd, pwd_len, enc_data );
+        ret = pem_aes_encrypt( aes_iv, 24, der_data, der_len, pwd, pwd_len, enc_data );
+        mbedtls_platform_zeroize( aes_iv, sizeof( aes_iv ) );
     }
     else if( enc_alg == MBEDTLS_CIPHER_AES_256_CBC ) {
         unsigned char aes_iv[16];
         memcpy( aes_iv, iv, sizeof(aes_iv) );
-        pem_aes_encrypt( aes_iv, 32, der_data, der_len, pwd, pwd_len, enc_data );
+        ret = pem_aes_encrypt( aes_iv, 32, der_data, der_len, pwd, pwd_len, enc_data );
+        mbedtls_platform_zeroize( aes_iv, sizeof( aes_iv ) );
     }
 #endif /* MBEDTLS_AES_C */
 
-    p = xheader;
-    memcpy( p, header, header_len );
-    p += header_len;
-    memcpy( p, "Proc-Type: 4,ENCRYPTED\nDEK-Info: ", 33 );
-    p += 33;
-    memcpy( p, cipher_dek_info, cipher_dek_info_len );
-    p += cipher_dek_info_len;
-    *p++ = ',';
-    pem_write_iv( p, iv, iv_len );
-    p += iv_len * 2;
-    *p++ = '\n';
-    *p++ = '\n';
+    if ( ret == 0 ) {
+        p = xheader;
+        memcpy( p, header, header_len );
+        p += header_len;
+        memcpy( p, "Proc-Type: 4,ENCRYPTED\nDEK-Info: ", 33 );
+        p += 33;
+        memcpy( p, cipher_dek_info, cipher_dek_info_len );
+        p += cipher_dek_info_len;
+        *p++ = ',';
+        pem_write_iv( p, iv, iv_len );
+        p += iv_len * 2;
+        *p++ = '\n';
+        *p++ = '\n';
 
-    r = mbedtls_pem_write_buffer( xheader, footer, enc_data, der_len, buf, buf_len, olen );
+        ret = mbedtls_pem_write_buffer( xheader, footer, enc_data, der_len, buf, buf_len, olen );
+    }
+
+    mbedtls_platform_zeroize( xheader, full_header_len );
     mbedtls_free( xheader );
+    mbedtls_platform_zeroize( enc_data, der_len );
     mbedtls_free( enc_data );
-    return r;
+    return( ret );
 }
 #endif /* MBEDTLS_MD5_C && MBEDTLS_CIPHER_MODE_CBC && \
           ( MBEDTLS_AES_C || MBEDTLS_DES_C ) */

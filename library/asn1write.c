@@ -240,7 +240,7 @@ int mbedtls_asn1_write_int( unsigned char **p, unsigned char *start, int val )
     unsigned char *c;
 #endif
 
-    if( *p - start < (unsigned)sizeof(int) )
+    if( *p < start || (size_t)( *p - start ) < sizeof(int) )
         return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN

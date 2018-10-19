@@ -181,7 +181,7 @@ def remove_file_if_exists(filename):
     except:
         pass
 
-def run_c(options, names):
+def run_c(options, type, names):
     '''Generate and run a program to print out numerical values for names.'''
     c_name = None
     exe_name = None
@@ -208,7 +208,11 @@ int main(void)
         subprocess.check_call([cc] +
                               ['-I' + dir for dir in options.include] +
                               ['-o', exe_name, c_name])
-        os.remove(c_name)
+        if options.keep_c:
+            sys.stderr.write('List of {} tests kept at {}\n'
+                             .format(type, c_name))
+        else:
+            os.remove(c_name)
         output = subprocess.check_output([exe_name])
         return output.decode('ascii').strip().split('\n')
     finally:
@@ -226,7 +230,7 @@ def do_test(options, inputs, type, names):
 Run program on names.
 Use inputs to figure out what arguments to pass to macros that take arguments.'''
     names = sorted(itertools.chain(*map(inputs.distribute_arguments, names)))
-    values = run_c(options, names)
+    values = run_c(options, type, names)
     output = subprocess.check_output([options.program, type] + values)
     outputs = output.decode('ascii').strip().split('\n')
     errors = [(type, name, value, output)
@@ -265,6 +269,12 @@ if __name__ == '__main__':
     parser.add_argument('--program',
                         default='programs/psa/psa_constant_names',
                         help='Program to test')
+    parser.add_argument('--keep-c',
+                        action='store_true', dest='keep_c', default=False,
+                        help='Keep the intermediate C file')
+    parser.add_argument('--no-keep-c',
+                        action='store_false', dest='keep_c',
+                        help='Don\'t keep the intermediate C file (default)')
     options = parser.parse_args()
     headers = [os.path.join(options.include[0], 'psa/crypto.h')]
     test_suites = ['tests/suites/test_suite_psa_crypto_metadata.data']

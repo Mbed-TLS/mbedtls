@@ -78,6 +78,7 @@ static int pem_get_iv( const unsigned char *s, unsigned char *iv,
     return( 0 );
 }
 
+#if defined(MBEDTLS_PEM_WRITE_C)
 /*
  * Write a hex string from binary
  */
@@ -97,6 +98,7 @@ static void pem_write_iv( char *t, const unsigned char *iv, size_t iv_len )
         else *t++ = '7' + c;
     }
 }
+#endif /* MBEDTLS_PEM_WRITE_C */
 
 static int pem_pbkdf1( unsigned char *key, size_t keylen,
                        const unsigned char *iv,
@@ -185,6 +187,7 @@ exit:
     return( ret );
 }
 
+#if defined(MBEDTLS_PEM_WRITE_C)
 /*
  * Ecnrypt with DES-CBC, using PBKDF1 for key derivation
  */
@@ -207,6 +210,7 @@ static void pem_des_encrypt( unsigned char des_iv[8],
     mbedtls_des_free( &des_ctx );
     mbedtls_platform_zeroize( des_key, 8 );
 }
+#endif /* MBEDTLS_PEM_WRITE_C */
 
 /*
  * Decrypt with 3DES-CBC, using PBKDF1 for key derivation
@@ -236,6 +240,7 @@ exit:
     return( ret );
 }
 
+#if defined(MBEDTLS_PEM_WRITE_C)
 /*
  * Encrypt with 3DES-CBC, using PBKDF1 for key derivation
  */
@@ -258,6 +263,7 @@ static void pem_des3_encrypt( unsigned char des3_iv[8],
     mbedtls_des3_free( &des3_ctx );
     mbedtls_platform_zeroize( des3_key, 24 );
 }
+#endif /* MBEDTLS_PEM_WRITE_C */
 #endif /* MBEDTLS_DES_C */
 
 #if defined(MBEDTLS_AES_C)
@@ -289,6 +295,7 @@ exit:
     return( ret );
 }
 
+#if defined(MBEDTLS_PEM_WRITE_C)
 /*
  * Encrypt with AES-XXX-CBC, using PBKDF1 for key derivation
  */
@@ -311,6 +318,7 @@ static void pem_aes_encrypt( unsigned char aes_iv[16], unsigned int key_len,
     mbedtls_aes_free( &aes_ctx );
     mbedtls_platform_zeroize( aes_key, key_len );
 }
+#endif /* MBEDTLS_PEM_WRITE_C */
 #endif /* MBEDTLS_AES_C */
 
 #endif /* MBEDTLS_MD5_C && MBEDTLS_CIPHER_MODE_CBC &&

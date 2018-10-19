@@ -60,8 +60,13 @@ when applicable.'''
         self.ecc_curves = set(['0xffff'])
         self.key_types = set(['0xffffffff'])
         self.key_usage_flags = set(['0x80000000'])
-        # Hard-coded value for an unknown hash algorithm
+        # Hard-coded value for unknown algorithms
         self.hash_algorithms = set(['0x010000ff'])
+        self.mac_algorithms = set(['0x02ff00ff'])
+        # For AEAD algorithms, the only variability is over the tag length,
+        # and this only applies to known algorithms, so don't test an
+        # unknown algorithm.
+        self.aead_algorithms = set()
         # Identifier prefixes
         self.table_by_prefix = {
             'ERROR': self.statuses,
@@ -73,12 +78,17 @@ when applicable.'''
         # macro name -> list of argument names
         self.argspecs = {}
         # argument name -> list of values
-        self.arguments_for = {}
+        self.arguments_for = {
+            'mac_length': ['1', '63'],
+            'tag_length': ['1', '63'],
+        }
 
     def gather_arguments(self):
         '''Populate the list of values for macro arguments.
 Call this after parsing all the inputs.'''
         self.arguments_for['hash_alg'] = sorted(self.hash_algorithms)
+        self.arguments_for['mac_alg'] = sorted(self.mac_algorithms)
+        self.arguments_for['aead_alg'] = sorted(self.aead_algorithms)
         self.arguments_for['curve'] = sorted(self.ecc_curves)
 
     def format_arguments(self, name, arguments):
@@ -145,6 +155,10 @@ where each argument takes each possible value at least once.'''
             self.algorithms.add(argument)
             if function == 'hash_algorithm':
                 self.hash_algorithms.add(argument)
+            elif function in ['mac_algorithm', 'hmac_algorithm']:
+                self.mac_algorithms.add(argument)
+            elif function == 'aead_algorithm':
+                self.aead_algorithms.add(argument)
         elif function == 'key_type':
             self.key_types.add(argument)
         elif function == 'ecc_key_types':

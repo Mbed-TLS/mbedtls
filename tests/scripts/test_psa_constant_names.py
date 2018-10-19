@@ -15,6 +15,40 @@ import subprocess
 import sys
 import tempfile
 
+class ReadFileLineException(Exception):
+    def __init__(self, filename, line_number):
+        message = 'in {} at {}'.format(filename, line_number)
+        super(ReadFileLineException, self).__init__(message)
+        self.filename = filename
+        self.line_number = line_number
+
+class read_file_lines:
+    '''Context manager to read a text file line by line.
+with read_file_lines(filename) as lines:
+    for line in lines:
+        process(line)
+is equivalent to
+with open(filename, 'r') as input_file:
+    for line in input_file:
+        process(line)
+except that if process(line) raises an exception, then the read_file_lines
+snippet annotates the exception with the file name and line number.'''
+    def __init__(self, filename):
+        self.filename = filename
+        self.line_number = 'entry'
+    def __enter__(self):
+        self.generator = enumerate(open(self.filename, 'r'))
+        return self
+    def __iter__(self):
+        for line_number, content in self.generator:
+            self.line_number = line_number
+            yield content
+        self.line_number = 'exit'
+    def __exit__(self, type, value, traceback):
+        if type is not None:
+            raise ReadFileLineException(self.filename, self.line_number) \
+                from value
+
 class Inputs:
     '''Accumulate information about macros to test.
 This includes macro names as well as information about their arguments
@@ -56,21 +90,24 @@ Call this after parsing all the inputs.'''
 If name is a macro without arguments, just yield "name".
 If name is a macro with arguments, yield a series of "name(arg1,...,argN)"
 where each argument takes each possible value at least once.'''
-        if name not in self.argspecs:
-            yield name
-            return
-        argspec = self.argspecs[name]
-        if argspec == []:
-            yield name + '()'
-            return
-        argument_lists = [self.arguments_for[arg] for arg in argspec]
-        arguments = [values[0] for values in argument_lists]
-        yield self.format_arguments(name, arguments)
-        for i in range(len(arguments)):
-            for value in argument_lists[i][1:]:
-                arguments[i] = value
-                yield self.format_arguments(name, arguments)
-            arguments[i] = argument_lists[0]
+        try:
+            if name not in self.argspecs:
+                yield name
+                return
+            argspec = self.argspecs[name]
+            if argspec == []:
+                yield name + '()'
+                return
+            argument_lists = [self.arguments_for[arg] for arg in argspec]
+            arguments = [values[0] for values in argument_lists]
+            yield self.format_arguments(name, arguments)
+            for i in range(len(arguments)):
+                for value in argument_lists[i][1:]:
+                    arguments[i] = value
+                    yield self.format_arguments(name, arguments)
+                arguments[i] = argument_lists[0]
+        except BaseException as e:
+            raise Exception('distribute_arguments({})'.format(name)) from e
 
     # Regex for interesting header lines.
     # Groups: 1=macro name, 2=type, 3=argument list (optional).
@@ -98,8 +135,8 @@ where each argument takes each possible value at least once.'''
 
     def parse_header(self, filename):
         '''Parse a C header file, looking for "#define PSA_xxx".'''
-        with open(filename, 'r') as input:
-            for line in input:
+        with read_file_lines(filename) as lines:
+            for line in lines:
                 self.parse_header_line(line)
 
     def add_test_case_line(self, function, argument):
@@ -119,8 +156,8 @@ where each argument takes each possible value at least once.'''
     test_case_line_re = re.compile('(?!depends_on:)(\w+):([^\n :][^:\n]*)')
     def parse_test_cases(self, filename):
         '''Parse a test case file (*.data), looking for algorithm metadata tests.'''
-        with open(filename, 'r') as input:
-            for line in input:
+        with read_file_lines(filename) as lines:
+            for line in lines:
                 m = re.match(self.test_case_line_re, line)
                 if m:
                     self.add_test_case_line(m.group(1), m.group(2))

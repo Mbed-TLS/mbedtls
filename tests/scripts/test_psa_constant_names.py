@@ -105,7 +105,7 @@ where each argument takes each possible value at least once.'''
                 for value in argument_lists[i][1:]:
                     arguments[i] = value
                     yield self.format_arguments(name, arguments)
-                arguments[i] = argument_lists[0]
+                arguments[i] = argument_lists[0][0]
         except BaseException as e:
             raise Exception('distribute_arguments({})'.format(name)) from e
 

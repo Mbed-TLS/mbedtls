@@ -127,6 +127,9 @@ where each argument takes each possible value at least once.'''
                    r'(?:\(([^\n()]*)\))?')
     # Regex of macro names to exclude.
     excluded_name_re = re.compile('_(?:GET|IS|OF)_|_(?:BASE|FLAG|MASK)\Z')
+    # Additional excluded macros.
+    excluded_names = set(['PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH',
+                          'PSA_ALG_FULL_LENGTH_MAC'])
     argument_split_re = re.compile(r' *, *')
     def parse_header_line(self, line):
         '''Parse a C header line, looking for "#define PSA_xxx".'''
@@ -134,7 +137,8 @@ where each argument takes each possible value at least once.'''
         if not m:
             return
         name = m.group(1)
-        if re.search(self.excluded_name_re, name):
+        if re.search(self.excluded_name_re, name) or \
+           name in self.excluded_names:
             return
         dest = self.table_by_prefix.get(m.group(2))
         if dest is None:

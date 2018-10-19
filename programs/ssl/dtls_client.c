@@ -368,18 +368,19 @@ exit:
     mbedtls_ctr_drbg_free( &ctr_drbg );
     mbedtls_entropy_free( &entropy );
 
-    /* Shell can not handle large exit numbers -> 1 for errors */
-    if( ret < 0 )
-        ret = 1;
-
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_teardown( &platform_ctx );
 #endif
+
 #if defined(_WIN32)
     mbedtls_printf( "  + Press Enter to exit this program.\n" );
     fflush( stdout ); getchar();
 #endif
-    return( ret );
+
+    if( ret == 0 )
+        return( MBEDTLS_EXIT_SUCCESS );
+    else
+        return( MBEDTLS_EXIT_FAILURE );
 }
 #endif /* MBEDTLS_SSL_CLI_C && MBEDTLS_SSL_PROTO_DTLS && MBEDTLS_NET_C &&
           MBEDTLD_TIMING_C && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C &&

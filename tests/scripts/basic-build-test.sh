@@ -230,6 +230,11 @@ echo "Total exec'd tests : $TOTAL_EXED"
 echo "Total avail tests  : $TOTAL_AVAIL"
 echo
 
+# Set exitcode if any tests failed
+if [ $(echo "$TOTAL_FAIL > 0" | bc) = "1" ]; then
+    EXITCODE=1
+fi
+
 
 # Step 4e - Coverage
 echo "Coverage"

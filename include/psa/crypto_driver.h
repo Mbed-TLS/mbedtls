@@ -41,6 +41,20 @@ typedef uint32_t psa_key_slot_t;
 typedef uint32_t psa_key_type_t;
 
 /** \defgroup opaque_mac Opaque Message Authentication Code
+ * Generation and authentication of Message Authentication Codes (MACs) using
+ * opaque keys can be done either as a single function call (via the 
+ * `pcd_mac_opaque_generate_t` or `psa_mac_opaque_verify_t` functions), or in
+ * parts using the following sequence:
+ * - `psa_mac_opaque_setup_t`
+ * - `psa_mac_opaque_update_t`
+ * - `psa_mac_opaque_update_t`
+ * - ...
+ * - `psa_mac_opaque_finish_t` or `psa_mac_opaque_finish_verify_t`
+ * 
+ * If a previously started Opaque MAC operation needs to be terminated, it 
+ * should be done so by the `psa_mac_opaque_abort_t`. Failure to do so may
+ * result in allocated resources not being freed or in other undefined
+ * behavior.
  */
 /**@{*/
 /** \brief A function that starts a MAC operation for a PSA Crypto Driver 
@@ -179,8 +193,8 @@ typedef psa_status_t (*pcd_mac_opaque_verify_t)(const uint8_t *p_input,
  * PSA Crypto API implementations should populate the table as appropriate
  * upon startup.
  *
- * If one of the functions is not implemented (such as `pcd_mac_opaque_t`),
- * it should be set to NULL.
+ * If one of the functions is not implemented (such as
+ * `pcd_mac_opaque_generate_t`), it should be set to NULL.
  * 
  * Driver implementers should ensure that they implement all of the functions
  * that make sense for their hardware, and that they provide a full solution
@@ -217,10 +231,26 @@ struct pcd_mac_opaque_t {
 /**@}*/
 
 /** \defgroup transparent_mac Transparent Message Authentication Code
+ * Generation and authentication of Message Authentication Codes (MACs) using
+ * transparent keys can be done either as a single function call (via the 
+ * `pcd_mac_transparent_generate_t` or `psa_mac_transparent_verify_t`
+ * functions), or in parts using the following sequence:
+ * - `psa_mac_transparent_setup_t`
+ * - `psa_mac_transparent_update_t`
+ * - `psa_mac_transparent_update_t`
+ * - ...
+ * - `psa_mac_transparent_finish_t` or `psa_mac_transparent_finish_verify_t`
+ * 
+ * If a previously started Transparent MAC operation needs to be terminated, it 
+ * should be done so by the `psa_mac_transparent_abort_t`. Failure to do so may
+ * result in allocated resources not being freed or in other undefined
+ * behavior.
+ * 
  */
 /**@{*/
 
 /** \brief The hardware-specific transparent-key MAC context structure
+ *
  * The contents of this structure are implementation dependent and are
  * therefore not described here.
  */
@@ -321,7 +351,7 @@ typedef psa_status_t (*pcd_mac_transparent_finish_t)(struct pcd_mac_transparent_
  * \retval PSA_SUCCESS
  *          The operation completed successfully and the comparison matched
  */
-typedef psa_status_t (*pcd_mac_transparent_verify_finish_t)(struct pcd_mac_transparent_context_t *p_context,
+typedef psa_status_t (*pcd_mac_transparent_finish_verify_t)(struct pcd_mac_transparent_context_t *p_context,
                                                             const uint8_t *p_mac,
                                                             size_t mac_length);
 
@@ -405,6 +435,24 @@ typedef psa_status_t (*pcd_mac_transparent_verify_t)(const uint8_t *p_input,
 /**@}*/
 
 /** \defgroup opaque_cipher Opaque Symmetric Ciphers
+ * 
+ * Encryption and Decryption using opaque keys in block modes other than ECB
+ * must be done in multiple parts, using the following flow:
+ * - `pcd_cipher_opaque_setup_t`
+ * - `pcd_cipher_opaque_set_iv_t` (optional depending upon block mode)
+ * - `pcd_cipher_opaque_update_t`
+ * - ...
+ * - `pcd_cipher_opaque_finish_t`
+
+ * If a previously started Opaque Cipher operation needs to be terminated, it 
+ * should be done so by the `psa_cipher_opaque_abort_t`. Failure to do so may
+ * result in allocated resources not being freed or in other undefined
+ * behavior.
+ * 
+ * In situations where a PSA Cryptographic API implementation is using a block
+ * mode not-supported by the underlying hardware or driver, it can construct
+ * the block mode itself, while calling the `pcd_cipher_opaque_ecb_t` function
+ * pointer for the cipher operations.
  */
 /**@{*/
 
@@ -431,10 +479,10 @@ typedef psa_status_t (*pcd_cipher_opaque_setup_t)(void *p_context,
 /** \brief A function pointer that sets the initialization vector (if
  * necessary) for an opaque cipher operation
  * 
- * Rationale: that the psa_cipher_* function set has two IV functions: one to
- * set the IV, and one to generate it internally. the generate function is not
- * necessary for the driver API as the PSA Crypto implementation can do the
- * generation using its RNG features.
+ * Rationale: The `psa_cipher_*` function in the PSA Cryptographif API has two
+ * IV functions: one to set the IV, and one to generate it internally. The
+ * generate function is not necessary for the driver API as the PSA Crypto
+ * implementation can do the generation using its RNG features.
  * 
  * \param[in,out] p_context     A structure that contains the previously set up
  *                              hardware-specific cipher context
@@ -564,11 +612,24 @@ struct pcd_cipher_opaque_t {
 /**@}*/
 
 /** \defgroup transparent_cipher Transparent Block Cipher
+ * Encryption and Decryption using transparent keys in block modes other than
+ * ECB must be done in multiple parts, using the following flow:
+ * - `pcd_cipher_transparent_setup_t`
+ * - `pcd_cipher_transparent_set_iv_t` (optional depending upon block mode)
+ * - `pcd_cipher_transparent_update_t`
+ * - ...
+ * - `pcd_cipher_transparent_finish_t`
+
+ * If a previously started Transparent Cipher operation needs to be terminated,
+ * it should be done so by the `psa_cipher_transparent_abort_t`. Failure to do
+ * so may result in allocated resources not being freed or in other undefined
+ * behavior.
  */
 /**@{*/
 
 /** \brief The hardware-specific transparent-key Cipher context structure
- *  The contents of this structure are implementation dependent and are
+ * 
+ * The contents of this structure are implementation dependent and are
  * therefore not described here.
  */
 struct pcd_cipher_transparent_context_t {
@@ -709,10 +770,23 @@ typedef psa_status_t (*pcd_cipher_transparent_abort_t)(struct pcd_cipher_transpa
 /**@}*/
 
 /** \defgroup driver_digest Message Digests
+ * 
+ * Generation and authentication of Message Digests (aka hashes) must be done
+ * in parts using the following sequence:
+ * - `psa_hash_setup_t`
+ * - `psa_hash_update_t`
+ * - ...
+ * - `psa_hash_finish_t`
+ * 
+ * If a previously started Message Digest operation needs to be terminated
+ * before the `psa_hash_finish_t` operation is complete, it should be aborted
+ * by the `psa_hash_abort_t`. Failure to do so may result in allocated
+ * resources not being freed or in other undefined behavior.
  */
 /**@{*/
 
 /** \brief The hardware-specific hash context structure
+ * 
  * The contents of this structure are implementation dependent and are
  * therefore not described here
  */
@@ -805,6 +879,10 @@ typedef void (*pcd_hash_abort_t)(struct pcd_hash_context_t *p_context);
 
 
 /** \defgroup opaque_asymmetric Opaque Asymmetric Cryptography
+ * 
+ * Since the amount of data that can (or should) be encrypted or signed using
+ * asymmetric keys is limited by the key size, asymmetric key operations using
+ * opaque keys must be done in single function calls.
  */
 /**@{*/
 
@@ -814,7 +892,7 @@ typedef void (*pcd_hash_abort_t)(struct pcd_hash_context_t *p_context);
  * \param[in] key_slot              Key slot of an asymmetric key pair
  * \param[in] alg                   A signature algorithm that is compatible
  *                                  with the type of `key`
- * \param[in] p_hash                The hash or message to sign
+ * \param[in] p_hash                The hash to sign
  * \param[in] hash_length           Size of the `p_hash` buffer in bytes
  * \param[out] p_signature          Buffer where the signature is to be written
  * \param[in] signature_size        Size of the `p_signature` buffer in bytes
@@ -833,14 +911,13 @@ typedef psa_status_t (*pcd_asymmetric_opaque_sign_t)(psa_key_slot_t key_slot,
 
 /**
  * \brief A function that verifies the signature a hash or short message using
- * a public key
+ * an asymmetric public key
  *
  * \param[in] key_slot          Key slot of a public key or an asymmetric key
  *                              pair
  * \param[in] alg               A signature algorithm that is compatible with
  *                              the type of `key`
- * \param[in] p_hash            The hash or message whose signature is to be
- *                              verified
+ * \param[in] p_hash            The hash whose signature is to be verified
  * \param[in] hash_length       Size of the `p_hash` buffer in bytes
  * \param[in] p_signature       Buffer containing the signature to verify
  * \param[in] signature_length  Size of the `p_signature` buffer in bytes
@@ -856,7 +933,8 @@ typedef psa_status_t (*pcd_asymmetric_opaque_verify_t)(psa_key_slot_t key_slot,
                                                        size_t signature_length);
 
 /**
- * \brief A function that encrypts a short message with a public key
+ * \brief A function that encrypts a short message with an asymmetric public
+ * key
  *
  * \param[in] key_slot          Key slot of a public key or an asymmetric key
  *                              pair
@@ -894,7 +972,7 @@ typedef psa_status_t (*pcd_asymmetric_opaque_encrypt_t)(psa_key_slot_t key_slot,
                                                         size_t *p_output_length);
 
 /**
- * \brief Decrypt a short message with a private key.
+ * \brief Decrypt a short message with an asymmetric private key.
  *
  * \param[in] key_slot          Key slot of an asymmetric key pair
  * \param[in] alg               An asymmetric encryption algorithm that is
@@ -953,13 +1031,17 @@ struct pcd_asymmetric_opaque_t {
 /**@}*/
 
 /** \defgroup transparent_asymmetric Transparent Asymmetric Cryptography
+ *
+ * Since the amount of data that can (or should) be encrypted or signed using
+ * asymmetric keys is limited by the key size, asymmetric key operations using
+ * transparent keys must be done in single function calls.
  */
 /**@{*/
 
 
 /**
  * \brief A function that signs a hash or short message with a transparent
- * private key
+ * asymmetric private key
  * 
  * Functions that implement the prototype should be named in the following
  * convention:
@@ -993,7 +1075,7 @@ typedef psa_status_t (*pcd_asymmetric_transparent_sign_t)(const uint8_t *p_key,
 
 /**
  * \brief A function that verifies the signature a hash or short message using
- * a transparent public key
+ * a transparent asymmetric public key
  *
  * Functions that implement the prototype should be named in the following
  * convention:
@@ -1024,8 +1106,8 @@ typedef psa_status_t (*pcd_asymmetric_transparent_verify_t)(const uint8_t *p_key
                                                             size_t signature_length);
 
 /**
- * \brief A function that encrypts a short message with a transparent public
- * key
+ * \brief A function that encrypts a short message with a transparent
+ * asymmetric public key
  *
  * Functions that implement the prototype should be named in the following
  * convention:
@@ -1071,7 +1153,7 @@ typedef psa_status_t (*pcd_asymmetric_transparent_encrypt_t)(const uint8_t *p_ke
                                                              size_t *p_output_length);
 
 /**
- * \brief Decrypt a short message with a transparent private key
+ * \brief Decrypt a short message with a transparent asymmetric private key
  *
  * Functions that implement the prototype should be named in the following
  * convention:
@@ -1119,6 +1201,11 @@ typedef psa_status_t (*pcd_asymmetric_transparent_decrypt_t)(const uint8_t *p_ke
 /**@}*/
 
 /** \defgroup aead_opaque AEAD Opaque
+ * Authenticated Encryption with Additional Data (AEAD) operations with opaque
+ * keys must be done in one function call. While this creates a burden for 
+ * implementers as there must be sufficient space in memory for the entire
+ * message, it prevents decrypted data from being made available before the
+ * authentication operation is complete and the data is known to be authentic.
  */
 /**@{*/
 
@@ -1221,10 +1308,17 @@ struct psa_aead_opaque_t {
 /**@}*/
 
 /** \defgroup aead_transparent AEAD Transparent
+ * 
+ * Authenticated Encryption with Additional Data (AEAD) operations with
+ * transparent keys must be done in one function call. While this creates a
+ * burden for implementers as there must be sufficient space in memory for the
+ * entire message, it prevents decrypted data from being made available before
+ * the authentication operation is complete and the data is known to be
+ * authentic.
  */
 /**@{*/
 
-/** Process an authenticated encryption operation.
+/** Process an authenticated encryption operation using an opaque key.
  * 
  * Functions that implement the prototype should be named in the following
  * convention:
@@ -1277,7 +1371,7 @@ typedef psa_status_t (*psa_aead_transparent_encrypt_t)(const uint8_t *p_key,
                                                        size_t ciphertext_size,
                                                        size_t *ciphertext_length);
 
-/** Process an authenticated decryption operation.
+/** Process an authenticated decryption operation using an opaque key.
  * 
  * Functions that implement the prototype should be named in the following
  * convention:
@@ -1402,6 +1496,10 @@ struct pcd_entropy_t {
 /**@}*/
 
 /** \defgroup driver_key_management Key Management
+ * Currently, key management is limited to importing keys in the clear,
+ * destroying keys, and exporting keys in the clear.
+ * Whether a key may be exported is determined by the key policies in place
+ * on the key slot.
  */
 /**@{*/
 
@@ -1537,10 +1635,6 @@ struct pcd_key_management_t {
 /**@}*/
 
 /** \defgroup driver_derivation Key Derivation and Agreement
- */
-/**@{*/
-
-/**
  * Key derivation is the process of generating new key material using an
  * existing key and additional parameters, iterating through a basic
  * cryptographic function, such as a hash.
@@ -1587,7 +1681,13 @@ struct pcd_key_management_t {
  *                           &session_key_length);
  * ~~~~~~~~~~~~~
  */
+/**@{*/
 
+/** \brief The hardware-specific key derivation context structure
+ * 
+ * The contents of this structure are implementation dependent and are
+ * therefore not described here
+ */
 struct pcd_key_derivation_context_t {
     // Implementation specific
 };

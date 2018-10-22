@@ -139,6 +139,29 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info )
     return( 0 );
 }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/*
+ * Initialise a PSA-wrapping context
+ */
+int mbedtls_pk_setup_psa( mbedtls_pk_context *ctx, const psa_key_slot_t key )
+{
+    const mbedtls_pk_info_t * const info = &mbedtls_pk_opaque_psa_info;
+
+    if( ctx == NULL || ctx->pk_info != NULL )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    if( ( ctx->pk_ctx = info->ctx_alloc_func() ) == NULL )
+        return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+
+    /* coming soon: remember key */
+    (void) key;
+
+    ctx->pk_info = info;
+
+    return( 0 );
+}
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /*
  * Initialize an RSA-alt context

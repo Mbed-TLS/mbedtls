@@ -716,4 +716,31 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 
 #endif /* MBEDTLS_PK_RSA_ALT_SUPPORT */
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+
+const mbedtls_pk_info_t mbedtls_pk_opaque_psa_info = {
+    MBEDTLS_PK_OPAQUE_PSA,
+    "Opaque (PSA)",
+    NULL, /* coming soon: bitlen */
+    NULL, /* coming soon: can_do */
+    NULL, /* verify - will be done later */
+    NULL, /* coming soon: sign */
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    NULL, /* restartable verify - not relevant */
+    NULL, /* restartable sign - not relevant */
+#endif
+    NULL, /* decrypt - will be done later */
+    NULL, /* encrypt - will be done later */
+    NULL, /* check_pair - could be done later or left NULL */
+    NULL, /* coming soon: alloc */
+    NULL, /* coming soon: free */
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    NULL, /* restart alloc - not relevant */
+    NULL, /* restart free - not relevant */
+#endif
+    NULL, /* debug - could be done later, or even left NULL */
+};
+
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #endif /* MBEDTLS_PK_C */

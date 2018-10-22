@@ -6440,13 +6440,11 @@ run_test    "DTLS fragmenting: 3d, gnutls client, DTLS 1.0" \
             0 \
             -s "fragmenting handshake message"
 
-## Interop test with OpenSSL might triger a bug in recent versions (that
-## probably won't be fixed before 1.1.1X), so we use an old version that
-## doesn't have this bug, but unfortunately it doesn't have support for DTLS
-## 1.2 either, so the DTLS 1.2 tests are commented for now.
+## Interop test with OpenSSL might trigger a bug in recent versions (including
+## all versions installed on the CI machines), reported here:
 ## Bug report: https://github.com/openssl/openssl/issues/6902
-## They should be re-enabled (and the DTLS 1.0 switched back to a non-legacy
-## version of OpenSSL once a fixed version of OpenSSL is available)
+## They should be re-enabled once a fixed version of OpenSSL is available
+## (this should happen in some 1.1.1_ release according to the ticket).
 skip_next_test
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
@@ -6464,7 +6462,7 @@ run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.2" \
             -c "fragmenting handshake message" \
             -C "error"
 
-requires_openssl_legacy
+skip_next_test
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -6472,7 +6470,7 @@ requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_1
 client_needs_more_time 4
 run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.0" \
             -p "$P_PXY drop=8 delay=8 duplicate=8" \
-            "$O_LEGACY_SRV -dtls1 -verify 10" \
+            "$O_SRV -dtls1 -verify 10" \
             "$P_CLI dgram_packing=0 dtls=1 debug_level=2 \
              crt_file=data_files/server8_int-ca2.crt \
              key_file=data_files/server8.key \
@@ -6481,25 +6479,25 @@ run_test    "DTLS fragmenting: 3d, openssl server, DTLS 1.0" \
             -c "fragmenting handshake message" \
             -C "error"
 
-## see comment on the previous-previous test
-## requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
-## requires_config_enabled MBEDTLS_RSA_C
-## requires_config_enabled MBEDTLS_ECDSA_C
-## requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
-## client_needs_more_time 4
-## run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.2" \
-##             -p "$P_PXY drop=8 delay=8 duplicate=8" \
-##             "$P_SRV dtls=1 debug_level=2 \
-##              crt_file=data_files/server7_int-ca.crt \
-##              key_file=data_files/server7.key \
-##              hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
-##             "$O_CLI -dtls1_2" \
-##             0 \
-##             -s "fragmenting handshake message"
+skip_next_test
+requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
+requires_config_enabled MBEDTLS_RSA_C
+requires_config_enabled MBEDTLS_ECDSA_C
+requires_config_enabled MBEDTLS_SSL_PROTO_TLS1_2
+client_needs_more_time 4
+run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.2" \
+            -p "$P_PXY drop=8 delay=8 duplicate=8" \
+            "$P_SRV dtls=1 debug_level=2 \
+             crt_file=data_files/server7_int-ca.crt \
+             key_file=data_files/server7.key \
+             hs_timeout=250-60000 mtu=512 force_version=dtls1_2" \
+            "$O_CLI -dtls1_2" \
+            0 \
+            -s "fragmenting handshake message"
 
 # -nbio is added to prevent s_client from blocking in case of duplicated
 # messages at the end of the handshake
-requires_openssl_legacy
+skip_next_test
 requires_config_enabled MBEDTLS_SSL_PROTO_DTLS
 requires_config_enabled MBEDTLS_RSA_C
 requires_config_enabled MBEDTLS_ECDSA_C
@@ -6511,7 +6509,7 @@ run_test    "DTLS fragmenting: 3d, openssl client, DTLS 1.0" \
              crt_file=data_files/server7_int-ca.crt \
              key_file=data_files/server7.key \
              hs_timeout=250-60000 mtu=512 force_version=dtls1" \
-            "$O_LEGACY_CLI -nbio -dtls1" \
+            "$O_CLI -nbio -dtls1" \
             0 \
             -s "fragmenting handshake message"
 
@@ -6946,6 +6944,12 @@ run_test    "DTLS proxy: 3d, min handshake, server-initiated renego, nbio" \
             -s "Extra-header:" \
             -c "HTTP/1.0 200 OK"
 
+## Interop tests with OpenSSL might trigger a bug in recent versions (including
+## all versions installed on the CI machines), reported here:
+## Bug report: https://github.com/openssl/openssl/issues/6902
+## They should be re-enabled once a fixed version of OpenSSL is available
+## (this should happen in some 1.1.1_ release according to the ticket).
+skip_next_test
 client_needs_more_time 6
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, openssl server" \
@@ -6955,6 +6959,7 @@ run_test    "DTLS proxy: 3d, openssl server" \
             0 \
             -c "HTTP/1.0 200 OK"
 
+skip_next_test # see above
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, openssl server, fragmentation" \
@@ -6964,6 +6969,7 @@ run_test    "DTLS proxy: 3d, openssl server, fragmentation" \
             0 \
             -c "HTTP/1.0 200 OK"
 
+skip_next_test # see above
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
 run_test    "DTLS proxy: 3d, openssl server, fragmentation, nbio" \

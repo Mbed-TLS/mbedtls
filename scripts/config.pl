@@ -36,6 +36,8 @@
 #       - this could be enabled if the respective tests were adapted
 #   MBEDTLS_ZLIB_SUPPORT
 #   MBEDTLS_PKCS11_C
+#   MBEDTLS_USE_PSA_CRYPTO
+#       - experimental, and more an alternative implementation than a feature
 #   and any symbol beginning _ALT
 #
 
@@ -99,6 +101,7 @@ MBEDTLS_NO_64BIT_MULTIPLICATION
 MBEDTLS_PSA_CRYPTO_SPM
 MBEDTLS_PSA_HAS_ITS_IO
 MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
+MBEDTLS_USE_PSA_CRYPTO
 _ALT\s*$
 );
 

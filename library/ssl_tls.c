@@ -151,7 +151,7 @@ static int ssl_get_remaining_payload_in_datagram( mbedtls_ssl_context const *ssl
 {
     int ret;
     size_t remaining, expansion;
-    size_t max_len = MBEDTLS_SSL_MAX_CONTENT_LEN;
+    size_t max_len = MBEDTLS_SSL_OUT_CONTENT_LEN;
 
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
     const size_t mfl = mbedtls_ssl_get_max_frag_len( ssl );
@@ -212,7 +212,10 @@ static int ssl_double_retransmit_timeout( mbedtls_ssl_context *ssl )
      * delivered) of any compliant IPv4 (and IPv6) network, and should work
      * on most non-IP stacks too. */
     if( ssl->handshake->retransmit_timeout != ssl->conf->hs_timeout_min )
+    {
         ssl->handshake->mtu = 508;
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "mtu autoreduction to %d bytes", ssl->handshake->mtu ) );
+    }
 
     new_timeout = 2 * ssl->handshake->retransmit_timeout;
 
@@ -7905,6 +7908,12 @@ size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 static size_t ssl_get_current_mtu( const mbedtls_ssl_context *ssl )
 {
+    /* Return unlimited mtu for client hello messages to avoid fragmentation. */
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+        ( ssl->state == MBEDTLS_SSL_CLIENT_HELLO ||
+          ssl->state == MBEDTLS_SSL_SERVER_HELLO ) )
+        return ( 0 );
+
     if( ssl->handshake == NULL || ssl->handshake->mtu == 0 )
         return( ssl->mtu );
 

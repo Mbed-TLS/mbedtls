@@ -45,6 +45,10 @@
 #include "ecdsa.h"
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#endif
+
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \
     !defined(inline) && !defined(__cplusplus)
 #define inline __inline
@@ -83,6 +87,7 @@ typedef enum {
     MBEDTLS_PK_ECDSA,
     MBEDTLS_PK_RSA_ALT,
     MBEDTLS_PK_RSASSA_PSS,
+    MBEDTLS_PK_OPAQUE_PSA,
 } mbedtls_pk_type_t;
 
 /**
@@ -233,6 +238,24 @@ void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx );
  *                  \c mbedtls_pk_setup_rsa_alt() instead.
  */
 int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/**
+ * \brief           Initialize a PK context to wrap a PSA key slot.
+ *
+ * \param ctx       Context to initialize. Must be empty (type NONE).
+ * \param key       PSA key slot to wrap.
+ *
+ * \return          0 on success,
+ *                  MBEDTLS_ERR_PK_BAD_INPUT_DATA on invalid input,
+ *                  MBEDTLS_ERR_PK_ALLOC_FAILED on allocation failure.
+ *
+ * \note            This function replaces mbedtls_pk_setup() for contexts
+ *                  that wrap a (possibly opaque) PSA key slot instead of
+ *                  storing and manipulating the key material directly.
+ */
+int mbedtls_pk_setup_psa( mbedtls_pk_context *ctx, const psa_key_slot_t key );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 /**

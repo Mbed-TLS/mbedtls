@@ -59,7 +59,7 @@ extern "C" {
  * implementations of some standard library functions, including snprintf
  * and vsnprintf. This affects MSVC and MinGW builds.
  */
-#if defined(_MSC_VER) && _MSC_VER <= 1900
+#if defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER <= 1900)
 #define MBEDTLS_PLATFORM_HAS_NON_CONFORMING_SNPRINTF
 #define MBEDTLS_PLATFORM_HAS_NON_CONFORMING_VSNPRINTF
 #endif

@@ -65,6 +65,10 @@
 #include "platform_time.h"
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 /*
  * SSL Error codes
  */
@@ -923,19 +927,37 @@ struct mbedtls_ssl_config
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    unsigned char *psk;             /*!< pre-shared key. This field should
-                                         only be set via
-                                         mbedtls_ssl_conf_psk() */
-    size_t         psk_len;         /*!< length of the pre-shared key. This
-                                         field should only be set via
-                                         mbedtls_ssl_conf_psk() */
-    unsigned char *psk_identity;    /*!< identity for PSK negotiation. This
-                                         field should only be set via
-                                         mbedtls_ssl_conf_psk() */
-    size_t         psk_identity_len;/*!< length of identity. This field should
-                                         only be set via
-                                         mbedtls_ssl_conf_psk() */
-#endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_key_slot_t psk_opaque; /*!< PSA key slot holding opaque PSK.
+                                *   This field should only be set via
+                                *   mbedtls_ssl_conf_psk_opaque().
+                                *   If either no PSK or a raw PSK have
+                                *   been configured, this has value \c 0. */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    unsigned char *psk;      /*!< The raw pre-shared key. This field should
+                              *   only be set via mbedtls_ssl_conf_psk().
+                              *   If either no PSK or an opaque PSK
+                              *   have been configured, this has value NULL. */
+    size_t         psk_len;  /*!< The length of the raw pre-shared key.
+                              *   This field should only be set via
+                              *   mbedtls_ssl_conf_psk().
+                              *   Its value is non-zero if and only if
+                              *   \c psk is not \c NULL. */
+
+    unsigned char *psk_identity;    /*!< The PSK identity for PSK negotiation.
+                                     *   This field should only be set via
+                                     *   mbedtls_ssl_conf_psk().
+                                     *   This is set if and only if either
+                                     *   \c psk or \c psk_opaque are set. */
+    size_t         psk_identity_len;/*!< The length of PSK identity.
+                                     *   This field should only be set via
+                                     *   mbedtls_ssl_conf_psk().
+                                     *   Its value is non-zero if and only if
+                                     *   \c psk is not \c NULL or \c psk_opaque
+                                     *   is not \c 0. */
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
 #if defined(MBEDTLS_SSL_ALPN)
     const char **alpn_list;         /*!< ordered list of protocols          */

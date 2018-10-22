@@ -3086,6 +3086,29 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void test_derive_invalid_generator()
+{
+    psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+    psa_key_slot_t base_key = 1;
+    psa_algorithm_t alg = PSA_ALG_HKDF(PSA_ALG_SHA_256);
+    data_t salt;
+    data_t label;
+    size_t capacity = 0;
+    salt.x = NULL;
+    salt.len = 0;
+    label.x = NULL;
+    label.len = 0;
+
+    generator.alg = alg;
+    /* invalid generator.alg */
+    TEST_ASSERT(  psa_key_derivation( &generator, base_key, alg,
+                                     salt.x, salt.len,
+                                     label.x, label.len,
+                                     capacity ) == PSA_ERROR_BAD_STATE );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void derive_output( int alg_arg,
                     data_t *key_data,
                     data_t *salt,

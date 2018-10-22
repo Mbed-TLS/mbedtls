@@ -2057,68 +2057,146 @@ int mbedtls_ssl_conf_own_cert( mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 /**
- * \brief          Set the Pre Shared Key (PSK) and the expected identity name
+ * \brief          Configure a pre-shared key (PSK) and identity
+ *                 to be used in PSK-based ciphersuites.
  *
  * \note           This is mainly useful for clients. Servers will usually
  *                 want to use \c mbedtls_ssl_conf_psk_cb() instead.
  *
- * \note           Currently clients can only register one pre-shared key.
- *                 In other words, the servers' identity hint is ignored.
+ * \warning        Currently, clients can only register a single pre-shared key.
+ *                 Calling this function or mbedtls_ssl_conf_opaque_psk() more
+ *                 than once will overwrite values configured in previous calls.
  *                 Support for setting multiple PSKs on clients and selecting
- *                 one based on the identity hint is not a planned feature but
- *                 feedback is welcomed.
+ *                 one based on the identity hint is not a planned feature,
+ *                 but feedback is welcomed.
  *
- * \param conf     SSL configuration
- * \param psk      pointer to the pre-shared key
- * \param psk_len  pre-shared key length
- * \param psk_identity      pointer to the pre-shared key identity
- * \param psk_identity_len  identity key length
+ * \param conf     The SSL configuration to register the PSK with.
+ * \param psk      The pointer to the pre-shared key to use.
+ * \param psk_len  The length of the pre-shared key in bytes.
+ * \param psk_identity      The pointer to the pre-shared key identity.
+ * \param psk_identity_len  The length of the pre-shared key identity
+ *                          in bytes.
  *
- * \return         0 if successful or MBEDTLS_ERR_SSL_ALLOC_FAILED
+ * \note           The PSK and its identity are copied internally and
+ *                 hence need not be preserved by the caller for the lifetime
+ *                 of the SSL configuration.
+ *
+ * \return         \c 0 if successful.
+ * \return         An \c MBEDTLS_ERR_SSL_XXX error code on failure.
  */
 int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
                 const unsigned char *psk, size_t psk_len,
                 const unsigned char *psk_identity, size_t psk_identity_len );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/**
+ * \brief          Configure an opaque pre-shared key (PSK) and identity
+ *                 to be used in PSK-based ciphersuites.
+ *
+ * \note           This is mainly useful for clients. Servers will usually
+ *                 want to use \c mbedtls_ssl_conf_psk_cb() instead.
+ *
+ * \warning        Currently, clients can only register a single pre-shared key.
+ *                 Calling this function or mbedtls_ssl_conf_psk() more than
+ *                 once will overwrite values configured in previous calls.
+ *                 Support for setting multiple PSKs on clients and selecting
+ *                 one based on the identity hint is not a planned feature,
+ *                 but feedback is welcomed.
+ *
+ * \param conf     The SSL configuration to register the PSK with.
+ * \param psk      The identifier of the key slot holding the PSK.
+ *                 Until \p conf is destroyed or this function is successfully
+ *                 again, the key slot \p psk must be populated with a key of
+ *                 type #PSA_ALG_CATEGORY_KEY_DERIVATION whose policy allows
+ *                 its use for the key derivation algorithm applied in the
+ *                 handshake.
+ * \param psk_identity      The pointer to the pre-shared key identity.
+ * \param psk_identity_len  The length of the pre-shared key identity
+ *                          in bytes.
+ *
+ * \note           The PSK identity hint is copied internally and hence need
+ *                 not be preserved by the caller for the lifetime of the
+ *                 SSL configuration.
+ *
+ * \return         \c 0 if successful.
+ * \return         An \c MBEDTLS_ERR_SSL_XXX error code on failure.
+ */
+int mbedtls_ssl_conf_psk_opaque( mbedtls_ssl_config *conf,
+                                 psa_key_slot_t psk,
+                                 const unsigned char *psk_identity,
+                                 size_t psk_identity_len );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /**
- * \brief          Set the Pre Shared Key (PSK) for the current handshake
+ * \brief          Set the pre-shared Key (PSK) for the current handshake.
  *
  * \note           This should only be called inside the PSK callback,
- *                 ie the function passed to \c mbedtls_ssl_conf_psk_cb().
+ *                 i.e. the function passed to \c mbedtls_ssl_conf_psk_cb().
  *
- * \param ssl      SSL context
- * \param psk      pointer to the pre-shared key
- * \param psk_len  pre-shared key length
+ * \param ssl      The SSL context to configure a PSK for.
+ * \param psk      The pointer to the pre-shared key.
+ * \param psk_len  The length of the pre-shared key in bytes.
  *
- * \return         0 if successful or MBEDTLS_ERR_SSL_ALLOC_FAILED
+ * \return         \c 0 if successful.
+ * \return         An \c MBEDTLS_ERR_SSL_XXX error code on failure.
  */
 int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
                             const unsigned char *psk, size_t psk_len );
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/**
+ * \brief          Set an opaque pre-shared Key (PSK) for the current handshake.
+ *
+ * \note           This should only be called inside the PSK callback,
+ *                 i.e. the function passed to \c mbedtls_ssl_conf_psk_cb().
+ *
+ * \param ssl      The SSL context to configure a PSK for.
+ * \param psk      The identifier of the key slot holding the PSK.
+ *                 For the duration of the current handshake, the key slot
+ *                 must be populated with a key of type
+ *                 #PSA_ALG_CATEGORY_KEY_DERIVATION whose policy allows its
+ *                 use for the key derivation algorithm
+ *                 applied in the handshake.
+  *
+ * \return         \c 0 if successful.
+ * \return         An \c MBEDTLS_ERR_SSL_XXX error code on failure.
+ */
+int mbedtls_ssl_set_hs_psk_opaque( mbedtls_ssl_context *ssl,
+                                   psa_key_slot_t psk );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /**
  * \brief          Set the PSK callback (server-side only).
  *
  *                 If set, the PSK callback is called for each
- *                 handshake where a PSK ciphersuite was negotiated.
+ *                 handshake where a PSK-based ciphersuite was negotiated.
  *                 The caller provides the identity received and wants to
  *                 receive the actual PSK data and length.
  *
- *                 The callback has the following parameters: (void *parameter,
- *                 mbedtls_ssl_context *ssl, const unsigned char *psk_identity,
- *                 size_t identity_len)
+ *                 The callback has the following parameters:
+ *                 - \c void*: The opaque pointer \p p_psk.
+ *                 - \c mbedtls_ssl_context*: The SSL context to which
+ *                                            the operation applies.
+ *                 - \c const unsigned char*: The PSK identity
+ *                                            selected by the client.
+ *                 - \c size_t: The length of the PSK identity
+ *                              selected by the client.
+ *
  *                 If a valid PSK identity is found, the callback should use
- *                 \c mbedtls_ssl_set_hs_psk() on the ssl context to set the
- *                 correct PSK and return 0.
+ *                 \c mbedtls_ssl_set_hs_psk() or
+ *                 \c mbedtls_ssl_set_hs_psk_opaque()
+ *                 on the SSL context to set the correct PSK and return \c 0.
  *                 Any other return value will result in a denied PSK identity.
  *
  * \note           If you set a PSK callback using this function, then you
  *                 don't need to set a PSK key and identity using
  *                 \c mbedtls_ssl_conf_psk().
  *
- * \param conf     SSL configuration
- * \param f_psk    PSK identity function
- * \param p_psk    PSK identity parameter
+ * \param conf     The SSL configuration to register the callback with.
+ * \param f_psk    The callback for selecting and setting the PSK based
+ *                 in the PSK identity chosen by the client.
+ * \param p_psk    A pointer to an opaque structure to be passed to
+ *                 the callback, for example a PSK store.
  */
 void mbedtls_ssl_conf_psk_cb( mbedtls_ssl_config *conf,
                      int (*f_psk)(void *, mbedtls_ssl_context *, const unsigned char *,

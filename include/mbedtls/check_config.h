@@ -648,6 +648,10 @@
 #endif
 #undef MBEDTLS_THREADING_IMPL
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#error "MBEDTLS_USE_PSA_CRYPTO defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_VERSION_FEATURES) && !defined(MBEDTLS_VERSION_C)
 #error "MBEDTLS_VERSION_FEATURES defined, but not all prerequisites"
 #endif

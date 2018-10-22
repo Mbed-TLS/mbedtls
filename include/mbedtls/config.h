@@ -1597,6 +1597,20 @@
 //#define MBEDTLS_THREADING_PTHREAD
 
 /**
+ * \def MBEDTLS_USE_PSA_CRYPTO
+ *
+ * Make the X.509 and TLS library use PSA for cryptographic operations, see
+ * #MBEDTLS_PSA_CRYPTO_C.
+ *
+ * Note: this option is still in progress, the full X.509 and TLS modules are
+ * not covered yet, but parts that are not ported to PSA yet will still work
+ * as usual, so enabling this option should not break backwards compatibility.
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C.
+ */
+//#define MBEDTLS_USE_PSA_CRYPTO
+
+/**
  * \def MBEDTLS_VERSION_FEATURES
  *
  * Allow run-time checking of compile-time enabled features. Thus allowing users

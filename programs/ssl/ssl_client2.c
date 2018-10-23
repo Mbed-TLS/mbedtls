@@ -85,6 +85,7 @@ int main( void )
 #define DFL_CRT_FILE            ""
 #define DFL_KEY_FILE            ""
 #define DFL_PSK                 ""
+#define DFL_PSK_SLOT            0
 #define DFL_PSK_IDENTITY        "Client_identity"
 #define DFL_ECJPAKE_PW          NULL
 #define DFL_EC_MAX_OPS          -1
@@ -139,9 +140,23 @@ int main( void )
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-#define USAGE_PSK                                                   \
+#define USAGE_PSK_RAW                                               \
     "    psk=%%s              default: \"\" (in hex, without 0x)\n" \
     "    psk_identity=%%s     default: \"Client_identity\"\n"
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#define USAGE_PSK_SLOT                          \
+    "    psk_slot=%%d         default: 0\n"     \
+    "                          An empty key slot identifier to be used to hold the PSK.\n"            \
+    "                          Note: Currently only supported in conjunction with\n"                  \
+    "                          the use of min_version to force TLS 1.2 and force_ciphersuite \n"      \
+    "                          to force a particular PSK-only ciphersuite.\n"                         \
+    "                          Note: This is to test integration of PSA-based opaque PSKs with\n"     \
+    "                          Mbed TLS only. Production systems are likely to configure Mbed TLS\n"  \
+    "                          with prepopulated key slots instead of importing raw key material.\n"
+#else
+#define USAGE_PSK_SLOT ""
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+#define USAGE_PSK USAGE_PSK_RAW USAGE_PSK_SLOT
 #else
 #define USAGE_PSK ""
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
@@ -337,6 +352,9 @@ struct options
     const char *ca_path;        /* the path with the CA certificate(s) reside */
     const char *crt_file;       /* the file with the client certificate     */
     const char *key_file;       /* the file with the client key             */
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    int psk_slot;
+#endif
     const char *psk;            /* the pre-shared key                       */
     const char *psk_identity;   /* the pre-shared key identity              */
     const char *ecjpake_pw;     /* the EC J-PAKE password                   */
@@ -540,6 +558,13 @@ int main( int argc, char *argv[] )
 
     const char *pers = "ssl_client2";
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_key_slot_t slot;
+    psa_algorithm_t alg = 0;
+    psa_key_policy_t policy;
+    psa_status_t status;
+#endif
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_x509_crt_profile crt_profile_for_test = mbedtls_x509_crt_profile_default;
 #endif
@@ -559,9 +584,6 @@ int main( int argc, char *argv[] )
 #endif
     char *p, *q;
     const int *list;
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_status_t status;
-#endif
 
     /*
      * Make sure memory references are valid.
@@ -628,6 +650,9 @@ int main( int argc, char *argv[] )
     opt.crt_file            = DFL_CRT_FILE;
     opt.key_file            = DFL_KEY_FILE;
     opt.psk                 = DFL_PSK;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    opt.psk_slot            = DFL_PSK_SLOT;
+#endif
     opt.psk_identity        = DFL_PSK_IDENTITY;
     opt.ecjpake_pw          = DFL_ECJPAKE_PW;
     opt.ec_max_ops          = DFL_EC_MAX_OPS;
@@ -728,6 +753,10 @@ int main( int argc, char *argv[] )
             opt.key_file = q;
         else if( strcmp( p, "psk" ) == 0 )
             opt.psk = q;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        else if( strcmp( p, "psk_slot" ) == 0 )
+            opt.psk_slot = atoi( q );
+#endif
         else if( strcmp( p, "psk_identity" ) == 0 )
             opt.psk_identity = q;
         else if( strcmp( p, "ecjpake_pw" ) == 0 )
@@ -1012,57 +1041,6 @@ int main( int argc, char *argv[] )
     mbedtls_debug_set_threshold( opt.debug_level );
 #endif
 
-    if( opt.force_ciphersuite[0] > 0 )
-    {
-        const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
-        ciphersuite_info =
-            mbedtls_ssl_ciphersuite_from_id( opt.force_ciphersuite[0] );
-
-        if( opt.max_version != -1 &&
-            ciphersuite_info->min_minor_ver > opt.max_version )
-        {
-            mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
-            ret = 2;
-            goto usage;
-        }
-        if( opt.min_version != -1 &&
-            ciphersuite_info->max_minor_ver < opt.min_version )
-        {
-            mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
-            ret = 2;
-            goto usage;
-        }
-
-        /* If the server selects a version that's not supported by
-         * this suite, then there will be no common ciphersuite... */
-        if( opt.max_version == -1 ||
-            opt.max_version > ciphersuite_info->max_minor_ver )
-        {
-            opt.max_version = ciphersuite_info->max_minor_ver;
-        }
-        if( opt.min_version < ciphersuite_info->min_minor_ver )
-        {
-            opt.min_version = ciphersuite_info->min_minor_ver;
-            /* DTLS starts with TLS 1.1 */
-            if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
-                opt.min_version < MBEDTLS_SSL_MINOR_VERSION_2 )
-                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
-        }
-
-        /* Enable RC4 if needed and not explicitly disabled */
-        if( ciphersuite_info->cipher == MBEDTLS_CIPHER_ARC4_128 )
-        {
-            if( opt.arc4 == MBEDTLS_SSL_ARC4_DISABLED )
-            {
-                mbedtls_printf( "forced RC4 ciphersuite with RC4 disabled\n" );
-                ret = 2;
-                goto usage;
-            }
-
-            opt.arc4 = MBEDTLS_SSL_ARC4_ENABLED;
-        }
-    }
-
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     /*
      * Unhexify the pre-shared key if any is given
@@ -1112,6 +1090,101 @@ int main( int argc, char *argv[] )
         }
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( opt.psk_slot != 0 )
+    {
+        if( opt.psk == NULL )
+        {
+            mbedtls_printf( "psk_slot set but no psk to be imported specified.\n" );
+            ret = 2;
+            goto usage;
+        }
+
+        if( opt.force_ciphersuite[0] <= 0 )
+        {
+            mbedtls_printf( "opaque PSKs are only supported in conjunction with forcing TLS 1.2 and a PSK-only ciphersuite through the 'force_ciphersuite' option.\n" );
+            ret = 2;
+            goto usage;
+        }
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    if( opt.force_ciphersuite[0] > 0 )
+    {
+        const mbedtls_ssl_ciphersuite_t *ciphersuite_info;
+        ciphersuite_info =
+            mbedtls_ssl_ciphersuite_from_id( opt.force_ciphersuite[0] );
+
+        if( opt.max_version != -1 &&
+            ciphersuite_info->min_minor_ver > opt.max_version )
+        {
+            mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
+            ret = 2;
+            goto usage;
+        }
+        if( opt.min_version != -1 &&
+            ciphersuite_info->max_minor_ver < opt.min_version )
+        {
+            mbedtls_printf( "forced ciphersuite not allowed with this protocol version\n" );
+            ret = 2;
+            goto usage;
+        }
+
+        /* If the server selects a version that's not supported by
+         * this suite, then there will be no common ciphersuite... */
+        if( opt.max_version == -1 ||
+            opt.max_version > ciphersuite_info->max_minor_ver )
+        {
+            opt.max_version = ciphersuite_info->max_minor_ver;
+        }
+        if( opt.min_version < ciphersuite_info->min_minor_ver )
+        {
+            opt.min_version = ciphersuite_info->min_minor_ver;
+            /* DTLS starts with TLS 1.1 */
+            if( opt.transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM &&
+                opt.min_version < MBEDTLS_SSL_MINOR_VERSION_2 )
+                opt.min_version = MBEDTLS_SSL_MINOR_VERSION_2;
+        }
+
+        /* Enable RC4 if needed and not explicitly disabled */
+        if( ciphersuite_info->cipher == MBEDTLS_CIPHER_ARC4_128 )
+        {
+            if( opt.arc4 == MBEDTLS_SSL_ARC4_DISABLED )
+            {
+                mbedtls_printf( "forced RC4 ciphersuite with RC4 disabled\n" );
+                ret = 2;
+                goto usage;
+            }
+
+            opt.arc4 = MBEDTLS_SSL_ARC4_ENABLED;
+        }
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        if( opt.psk_slot != 0 )
+        {
+            /* Ensure that the chosen ciphersuite is PSK-only; we must know
+             * the ciphersuite in advance to set the correct policy for the
+             * PSK key slot. This limitation might go away in the future. */
+            if( ciphersuite_info->key_exchange != MBEDTLS_KEY_EXCHANGE_PSK ||
+                opt.min_version != MBEDTLS_SSL_MINOR_VERSION_3 )
+            {
+                mbedtls_printf( "opaque PSKs are only supported in conjunction with forcing TLS 1.2 and a PSK-only ciphersuite through the 'force_ciphersuite' option.\n" );
+                ret = 2;
+                goto usage;
+            }
+
+            /* Determine KDF algorithm the opaque PSK will be used in. */
+#if defined(MBEDTLS_SHA512_C)
+            if( ciphersuite_info->mac == MBEDTLS_MD_SHA384 )
+                alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_384);
+            else
+#endif /* MBEDTLS_SHA512_C */
+                alg = PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256);
+        }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+    }
 
 #if defined(MBEDTLS_ECP_C)
     if( opt.curves != NULL )
@@ -1484,6 +1557,40 @@ int main( int argc, char *argv[] )
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( opt.psk_slot != 0 )
+    {
+        /* The algorithm has already been determined earlier. */
+        slot = (psa_key_slot_t) opt.psk_slot;
+
+        psa_key_policy_init( &policy );
+        psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
+
+        status = psa_set_key_policy( slot, &policy );
+        if( status != PSA_SUCCESS )
+        {
+            ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+            goto exit;
+        }
+
+        status = psa_import_key( slot, PSA_KEY_TYPE_DERIVE, psk, psk_len );
+        if( status != PSA_SUCCESS )
+        {
+            ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+            goto exit;
+        }
+
+        if( ( ret = mbedtls_ssl_conf_psk_opaque( &conf, slot,
+                                  (const unsigned char *) opt.psk_identity,
+                                                 strlen( opt.psk_identity ) ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_psk_opaque returned %d\n\n",
+                            ret );
+            goto exit;
+        }
+    }
+    else
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     if( ( ret = mbedtls_ssl_conf_psk( &conf, psk, psk_len,
                              (const unsigned char *) opt.psk_identity,
                              strlen( opt.psk_identity ) ) ) != 0 )
@@ -1492,7 +1599,7 @@ int main( int argc, char *argv[] )
                         ret );
         goto exit;
     }
-#endif
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
     if( opt.min_version != DFL_MIN_VERSION )
         mbedtls_ssl_conf_min_version( &conf, MBEDTLS_SSL_MAJOR_VERSION_3,

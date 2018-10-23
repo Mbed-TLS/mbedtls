@@ -39,6 +39,7 @@ typedef uint32_t psa_algorithm_t;
 typedef uint8_t encrypt_or_decrypt_t;
 typedef uint32_t psa_key_slot_t;
 typedef uint32_t psa_key_type_t;
+typedef uint32_t psa_key_usage_t;
 
 /** \defgroup opaque_mac Opaque Message Authentication Code
  * Generation and authentication of Message Authentication Codes (MACs) using
@@ -136,7 +137,7 @@ typedef psa_status_t (*pcd_mac_opaque_finish_verify_t)(void *p_context,
  */
 typedef psa_status_t (*pcd_mac_opaque_abort_t)(void *p_context);
 
-/** \brief A funciton that performs a MAC operation in one command and return
+/** \brief A function that performs a MAC operation in one command and returns
  * the calculated MAC using an opaque key
  * 
  * \param[in] p_input           A buffer containing the message to be MACed
@@ -146,7 +147,7 @@ typedef psa_status_t (*pcd_mac_opaque_abort_t)(void *p_context);
  *                              operation
  * \param[out] p_mac            A buffer where the generated MAC will be
  *                              placed
- * \param[in] mac_size          The size in bytes of the `output` buffer
+ * \param[in] mac_size          The size in bytes of the `p_mac` buffer
  * \param[out] p_mac_length     After completion, will contain the number of
  *                              bytes placed in the `output` buffer
  * 
@@ -254,9 +255,7 @@ struct pcd_mac_opaque_t {
  * The contents of this structure are implementation dependent and are
  * therefore not described here.
  */
-struct pcd_mac_transparent_context_t {
-    // Implementation specific
-};
+typedef struct pcd_mac_transparent_context_s pcd_mac_transparent_context_t;
 
 /** \brief The function prototype for the setup operation of a
  * transparent-key MAC operation
@@ -278,7 +277,7 @@ struct pcd_mac_transparent_context_t {
  * \retval  PSA_SUCCESS
  *          Success.
  */
-typedef psa_status_t (*pcd_mac_transparent_setup_t)(struct pcd_mac_transparent_context_t *p_context,
+typedef psa_status_t (*pcd_mac_transparent_setup_t)(pcd_mac_transparent_context_t *p_context,
                                                     const uint8_t *p_key,
                                                     size_t key_length);
 
@@ -300,7 +299,7 @@ typedef psa_status_t (*pcd_mac_transparent_setup_t)(struct pcd_mac_transparent_c
  *                              to the MAC operation
  * \param[in] input_length      The size in bytes of the input message buffer
  */
-typedef psa_status_t (*pcd_mac_transparent_update_t)(struct pcd_mac_transparent_context_t *p_context,
+typedef psa_status_t (*pcd_mac_transparent_update_t)(pcd_mac_transparent_context_t *p_context,
                                                      const uint8_t *p_input,
                                                      size_t input_length);
 
@@ -325,7 +324,7 @@ typedef psa_status_t (*pcd_mac_transparent_update_t)(struct pcd_mac_transparent_
  * \retval PSA_SUCCESS
  *          Success.
  */
-typedef psa_status_t (*pcd_mac_transparent_finish_t)(struct pcd_mac_transparent_context_t *p_context,
+typedef psa_status_t (*pcd_mac_transparent_finish_t)(pcd_mac_transparent_context_t *p_context,
                                                      uint8_t *p_mac,
                                                      size_t mac_length);
 
@@ -351,7 +350,7 @@ typedef psa_status_t (*pcd_mac_transparent_finish_t)(struct pcd_mac_transparent_
  * \retval PSA_SUCCESS
  *          The operation completed successfully and the comparison matched
  */
-typedef psa_status_t (*pcd_mac_transparent_finish_verify_t)(struct pcd_mac_transparent_context_t *p_context,
+typedef psa_status_t (*pcd_mac_transparent_finish_verify_t)(pcd_mac_transparent_context_t *p_context,
                                                             const uint8_t *p_mac,
                                                             size_t mac_length);
 
@@ -371,7 +370,7 @@ typedef psa_status_t (*pcd_mac_transparent_finish_verify_t)(struct pcd_mac_trans
  *                              aborted
  * 
  */
-typedef psa_status_t (*pcd_mac_transparent_abort_t)(struct pcd_mac_transparent_context_t *p_context);
+typedef psa_status_t (*pcd_mac_transparent_abort_t)(pcd_mac_transparent_context_t *p_context);
 
 /** \brief The function prototype for a one-shot operation of a transparent-key
  * MAC operation
@@ -479,7 +478,7 @@ typedef psa_status_t (*pcd_cipher_opaque_setup_t)(void *p_context,
 /** \brief A function pointer that sets the initialization vector (if
  * necessary) for an opaque cipher operation
  * 
- * Rationale: The `psa_cipher_*` function in the PSA Cryptographif API has two
+ * Rationale: The `psa_cipher_*` function in the PSA Cryptographic API has two
  * IV functions: one to set the IV, and one to generate it internally. The
  * generate function is not necessary for the driver API as the PSA Crypto
  * implementation can do the generation using its RNG features.
@@ -632,9 +631,7 @@ struct pcd_cipher_opaque_t {
  * The contents of this structure are implementation dependent and are
  * therefore not described here.
  */
-struct pcd_cipher_transparent_context_t {
-    // Implementation specific
-};
+typedef struct pcd_cipher_transparent_context_s pcd_cipher_transparent_context_t;
 
 /** \brief The function prototype for the setup operation of transparent-key
  * block cipher operations.
@@ -662,7 +659,7 @@ struct pcd_cipher_transparent_context_t {
  * 
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_cipher_transparent_setup_t)(struct pcd_cipher_transparent_context_t *p_context,
+typedef psa_status_t (*pcd_cipher_transparent_setup_t)(pcd_cipher_transparent_context_t *p_context,
                                                        encrypt_or_decrypt_t direction,
                                                        const uint8_t *p_key_data,
                                                        size_t key_data_size);
@@ -685,7 +682,7 @@ typedef psa_status_t (*pcd_cipher_transparent_setup_t)(struct pcd_cipher_transpa
  * 
  * \retval PSA_SUCCESS
 */
-typedef psa_status_t (*pcd_cipher_transparent_set_iv_t)(struct pcd_cipher_transparent_context_t *p_context,
+typedef psa_status_t (*pcd_cipher_transparent_set_iv_t)(pcd_cipher_transparent_context_t *p_context,
                                                         const uint8_t *p_iv,
                                                         size_t iv_length);
 
@@ -714,7 +711,7 @@ typedef psa_status_t (*pcd_cipher_transparent_set_iv_t)(struct pcd_cipher_transp
  * 
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_cipher_transparent_update_t)(struct pcd_cipher_transparent_context_t *p_context,
+typedef psa_status_t (*pcd_cipher_transparent_update_t)(pcd_cipher_transparent_context_t *p_context,
                                                         const uint8_t *p_input,
                                                         size_t input_size,
                                                         uint8_t *p_output,
@@ -743,7 +740,7 @@ typedef psa_status_t (*pcd_cipher_transparent_update_t)(struct pcd_cipher_transp
  * 
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_cipher_transparent_finish_t)(struct pcd_cipher_transparent_context_t *p_context,
+typedef psa_status_t (*pcd_cipher_transparent_finish_t)(pcd_cipher_transparent_context_t *p_context,
                                                         uint8_t *p_output,
                                                         size_t output_size,
                                                         size_t *p_output_length);
@@ -765,7 +762,7 @@ typedef psa_status_t (*pcd_cipher_transparent_finish_t)(struct pcd_cipher_transp
  * 
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_cipher_transparent_abort_t)(struct pcd_cipher_transparent_context_t *p_context);
+typedef psa_status_t (*pcd_cipher_transparent_abort_t)(pcd_cipher_transparent_context_t *p_context);
 
 /**@}*/
 
@@ -790,9 +787,7 @@ typedef psa_status_t (*pcd_cipher_transparent_abort_t)(struct pcd_cipher_transpa
  * The contents of this structure are implementation dependent and are
  * therefore not described here
  */
-struct pcd_hash_context_t {
-    // Implementation specific
-};
+typedef struct pcd_hash_context_s pcd_hash_context_t;
 
 /** \brief The function prototype for the start operation of a hash (message
  * digest) operation
@@ -809,7 +804,7 @@ struct pcd_hash_context_t {
  * 
  * \retval  PSA_SUCCESS     Success.
  */
-typedef psa_status_t (*pcd_hash_setup_t)(struct pcd_hash_context_t *p_context);
+typedef psa_status_t (*pcd_hash_setup_t)(pcd_hash_context_t *p_context);
 
 /** \brief The function prototype for the update operation of a hash (message
  * digest) operation
@@ -828,7 +823,7 @@ typedef psa_status_t (*pcd_hash_setup_t)(struct pcd_hash_context_t *p_context);
  *                              to the hash operation
  * \param[in] input_length      The size in bytes of the input message buffer
  */
-typedef psa_status_t (*pcd_hash_update_t)(struct pcd_hash_context_t *p_context,
+typedef psa_status_t (*pcd_hash_update_t)(pcd_hash_context_t *p_context,
                                           const uint8_t *p_input,
                                           size_t input_length);
 
@@ -855,7 +850,7 @@ typedef psa_status_t (*pcd_hash_update_t)(struct pcd_hash_context_t *p_context,
  * \retval PSA_SUCCESS
  *          Success.
  */
-typedef psa_status_t (*pcd_hash_finish_t)(struct pcd_hash_context_t *p_context,
+typedef psa_status_t (*pcd_hash_finish_t)(pcd_hash_context_t *p_context,
                                           uint8_t *p_output,
                                           size_t output_size,
                                           size_t *p_output_length);
@@ -873,7 +868,7 @@ typedef psa_status_t (*pcd_hash_finish_t)(struct pcd_hash_context_t *p_context,
  * \param[in,out] p_context A hardware-specific structure for the previously
  *                          started hash operation to be aborted
  */
-typedef void (*pcd_hash_abort_t)(struct pcd_hash_context_t *p_context);
+typedef void (*pcd_hash_abort_t)(pcd_hash_context_t *p_context);
 
 /**@}*/
 
@@ -1431,9 +1426,7 @@ typedef psa_status_t (*psa_aead_transparent_decrypt_t)(const uint8_t *p_key,
 
 /** \brief A hardware-specific structure for a entropy providing hardware
  */
-struct pcd_entropy_context_t {
-    // Implementation specific
-};
+typedef struct pcd_entropy_context_s pcd_entropy_context_t;
 
 /** \brief Initialize an entropy driver
  *
@@ -1444,7 +1437,7 @@ struct pcd_entropy_context_t {
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_entropy_init_t)(struct pcd_entropy_context_t *p_context);
+typedef psa_status_t (*pcd_entropy_init_t)(pcd_entropy_context_t *p_context);
 
 /** \brief Get a specified number of bytes from the entropy source
  * 
@@ -1472,7 +1465,7 @@ typedef psa_status_t (*pcd_entropy_init_t)(struct pcd_entropy_context_t *p_conte
  * 
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_entropy_get_bytes_t)(struct pcd_entropy_context_t *p_context,
+typedef psa_status_t (*pcd_entropy_get_bytes_t)(pcd_entropy_context_t *p_context,
                                                 uint8_t *p_buffer,
                                                 uint32_t buffer_size,
                                                 uint32_t *p_received_entropy_bytes);
@@ -1508,18 +1501,22 @@ struct pcd_entropy_t {
  * This function can support any output from psa_export_key(). Refer to the
  * documentation of psa_export_key() for the format for each key type.
  *
- * \param[in] key_slot      Slot where the key will be stored. This must be a
- *                          valid slot for a key of the chosen type. It must
- *                          be unoccupied.
- * \param[in] type          Key type (a \c PSA_KEY_TYPE_XXX value).
- * \param[in] p_data        Buffer containing the key data.
- * \param[in] data_length   Size of the `data` buffer in bytes.
+ * \param[in] key_slot      Slot where the key will be stored
+ *                          This must be a valid slot for a key of the chosen
+ *                          type. It must be unoccupied.
+ * \param[in] type          Key type (a \c PSA_KEY_TYPE_XXX value)
+ * \param[in] algorithm     Key algorithm (a \c PSA_ALG_XXX value)
+ * \param[in] usage         The allowed uses of the key
+ * \param[in] p_data        Buffer containing the key data
+ * \param[in] data_length   Size of the `data` buffer in bytes
  *
  * \retval #PSA_SUCCESS
  *         Success.
  */
 typedef psa_status_t (*pcd_opaque_import_key_t)(psa_key_slot_t key_slot,
                                                 psa_key_type_t type,
+                                                psa_algorithm_t algorithm,
+                                                psa_key_usage_t usage,
                                                 const uint8_t *p_data,
                                                 size_t data_length);
 
@@ -1688,9 +1685,7 @@ struct pcd_key_management_t {
  * The contents of this structure are implementation dependent and are
  * therefore not described here
  */
-struct pcd_key_derivation_context_t {
-    // Implementation specific
-};
+typedef struct pcd_key_derivation_context_s pcd_key_derivation_context_t;
 
 /** \brief Set up a key derivation operation by specifying the algorithm and
  * the source key sot
@@ -1703,7 +1698,7 @@ struct pcd_key_derivation_context_t {
  * 
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_key_derivation_setup_t)(struct pcd_key_derivation_context_t *p_context,
+typedef psa_status_t (*pcd_key_derivation_setup_t)(pcd_key_derivation_context_t *p_context,
                                                    psa_algorithm_t kdf_alg,
                                                    psa_key_slot_t source_key);
 
@@ -1722,9 +1717,9 @@ typedef psa_status_t (*pcd_key_derivation_setup_t)(struct pcd_key_derivation_con
  * 
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_key_derivation_collateral_t)(struct pcd_key_derivation_context_t *p_context,
+typedef psa_status_t (*pcd_key_derivation_collateral_t)(pcd_key_derivation_context_t *p_context,
                                                          uint32_t collateral_id,
-                                                         const uint8_t p_collateral,
+                                                         const uint8_t *p_collateral,
                                                          size_t collateral_size);
 
 /** \brief Perform the final key derivation step and place the generated key
@@ -1736,7 +1731,7 @@ typedef psa_status_t (*pcd_key_derivation_collateral_t)(struct pcd_key_derivatio
  * 
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_key_derivation_derive_t)(struct pcd_key_derivation_context_t *p_context,
+typedef psa_status_t (*pcd_key_derivation_derive_t)(pcd_key_derivation_context_t *p_context,
                                                     psa_key_slot_t dest_key);
 
 /** \brief Perform the final step of a key agreement and place the generated

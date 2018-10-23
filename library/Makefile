@@ -200,5 +200,6 @@ clean:
 ifndef WINDOWS
 	rm -f *.o libmbed*
 else
-	del /Q /F *.o libmbed*
+	if exist *.o del /Q /F *.o
+	if exist libmbed* del /Q /F libmbed*
 endif

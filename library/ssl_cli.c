@@ -51,6 +51,27 @@
 #include "mbedtls/platform_util.h"
 #endif
 
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+static int ssl_conf_has_psk( mbedtls_ssl_config const *conf )
+{
+    if( conf->psk_identity     == NULL ||
+        conf->psk_identity_len == 0     )
+    {
+        return( 0 );
+    }
+
+    if( conf->psk != NULL && conf->psk_len != 0 )
+        return( 1 );
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( conf->psk_opaque != 0 )
+        return( 1 );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    return( 0 );
+}
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
+
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 static void ssl_write_hostname_ext( mbedtls_ssl_context *ssl,
                                     unsigned char *buf,
@@ -753,6 +774,15 @@ static int ssl_validate_ciphersuite( const mbedtls_ssl_ciphersuite_t * suite_inf
             mbedtls_ecjpake_check( &ssl->handshake->ecjpake_ctx ) != 0 )
         return( 1 );
 #endif
+
+    /* Don't suggest PSK-based ciphersuite if no PSK is available. */
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+    if( mbedtls_ssl_ciphersuite_uses_psk( suite_info ) &&
+        ssl_conf_has_psk( ssl ) == 0 )
+    {
+        return( 1 );
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 
     return( 0 );
 }
@@ -3007,10 +3037,12 @@ ecdh_calc_secret:
         /*
          * opaque psk_identity<0..2^16-1>;
          */
-        if( ssl->conf->psk == NULL || ssl->conf->psk_identity == NULL )
+        if( ssl_conf_has_psk( ssl ) == 0 )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no private key for PSK" ) );
-            return( MBEDTLS_ERR_SSL_PRIVATE_KEY_REQUIRED );
+            /* We don't offer PSK suites if we don't have a PSK,
+             * and we check that the server's choice is among the
+             * ciphersuites we offered, so this should never happen. */
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
         i = 4;

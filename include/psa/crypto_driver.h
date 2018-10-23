@@ -41,6 +41,9 @@ typedef uint32_t psa_key_slot_t;
 typedef uint32_t psa_key_type_t;
 typedef uint32_t psa_key_usage_t;
 
+#define PSA_CRYPTO_DRIVER_ENCRYPT 1
+#define PSA_CRYPTO_DRIVER_DECRYPT 0
+
 /** \defgroup opaque_mac Opaque Message Authentication Code
  * Generation and authentication of Message Authentication Codes (MACs) using
  * opaque keys can be done either as a single function call (via the 
@@ -1439,7 +1442,7 @@ typedef struct pcd_entropy_context_s pcd_entropy_context_t;
  */
 typedef psa_status_t (*pcd_entropy_init_t)(pcd_entropy_context_t *p_context);
 
-/** \brief Get a specified number of bytes from the entropy source
+/** \brief Get a specified number of bits from the entropy source
  * 
  * It retrives `buffer_size` bytes of data from the entropy source. The entropy
  * source will always fill the provided buffer to its full size, however, most
@@ -1458,17 +1461,17 @@ typedef psa_status_t (*pcd_entropy_init_t)(pcd_entropy_context_t *p_context);
  *                                          containing any context information
  *                                          for the implementation
  * \param[out] p_buffer                     A caller-allocated buffer for the
- *                                          retrieved bytes to be placed in
+ *                                          retrieved entropy to be placed in
  * \param[in] buffer_size                   The allocated size of `p_buffer`
- * \param[out] p_received_entropy_bytes     The amount of entropy (in bytes)
+ * \param[out] p_received_entropy_bits      The amount of entropy (in bits)
  *                                          actually provided in `p_buffer`
  * 
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_entropy_get_bytes_t)(pcd_entropy_context_t *p_context,
-                                                uint8_t *p_buffer,
-                                                uint32_t buffer_size,
-                                                uint32_t *p_received_entropy_bytes);
+typedef psa_status_t (*pcd_entropy_get_bits_t)(pcd_entropy_context_t *p_context,
+                                               uint8_t *p_buffer,
+                                               uint32_t buffer_size,
+                                               uint32_t *p_received_entropy_bits);
 
 /**
  * \brief A struct containing all of the function pointers needed to interface
@@ -1482,9 +1485,9 @@ typedef psa_status_t (*pcd_entropy_get_bytes_t)(pcd_entropy_context_t *p_context
 struct pcd_entropy_t {
     /** Function that performs initialization for the entropy source */
     pcd_entropy_init_t *p_init;
-    /** Function that performs the get_bytes operation for the entropy source
+    /** Function that performs the get_bits operation for the entropy source
     */
-    pcd_entropy_get_bytes_t *p_get_bytes;
+    pcd_entropy_get_bits_t *p_get_bits;
 };
 /**@}*/
 

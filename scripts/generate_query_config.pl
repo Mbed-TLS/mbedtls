@@ -47,7 +47,7 @@ while (my $line = <CONFIG_FILE>) {
     }
 }
 
-# Read the fill format file into a string
+# Read the full format file into a string
 local $/;
 open(FORMAT_FILE, "$query_config_format_file") or die "Opening query config format file '$query_config_format_file': $!";
 my $query_config_format = <FORMAT_FILE>;

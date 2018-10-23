@@ -1610,9 +1610,9 @@ add:
 norm_add:
 #endif
     /*
-     * Normalize final elements in T. Even though there are no holes now,
-     * we still need the auxiliary array for homogeneity with last time.
-     * Also, skip T[0] which is already normalised, being a copy of P.
+     * Normalize final elements in T. Even though there are no holes now, we
+     * still need the auxiliary array for homogeneity with the previous
+     * call. Also, skip T[0] which is already normalised, being a copy of P.
      */
     for( j = 0; j + 1 < T_size; j++ )
         TT[j] = T + j + 1;

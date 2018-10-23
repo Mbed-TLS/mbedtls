@@ -2916,7 +2916,7 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_SSL_WANT_READ or #MBEDTLS_ERR_SSL_WANT_WRITE
- *                 in the handshake is incomplete but or waiting for data to
+ *                 if the handshake is incomplete and waiting for data to
  *                 be available for reading from or writing to the underlying
  *                 transport - in this case you must call this function again
  *                 when the underlying transport is ready for the operation.
@@ -3018,10 +3018,10 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl );
  * \param len      maximum number of bytes to read
  *
  * \return         The (positive) number of bytes read if successful.
- * \return         \c 0 is the read end of the underlying transport was closed
+ * \return         \c 0 if the read end of the underlying transport was closed
  *                 - in this case you must stop using the context (see below).
  * \return         #MBEDTLS_ERR_SSL_WANT_READ or #MBEDTLS_ERR_SSL_WANT_WRITE
- *                 in the handshake is incomplete but or waiting for data to
+ *                 if the handshake is incomplete and waiting for data to
  *                 be available for reading from or writing to the underlying
  *                 transport - in this case you must call this function again
  *                 when the underlying transport is ready for the operation.
@@ -3098,7 +3098,7 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
  * \return         The (non-negative) number of bytes actually written if
  *                 successful (may be less than \p len).
  * \return         #MBEDTLS_ERR_SSL_WANT_READ or #MBEDTLS_ERR_SSL_WANT_WRITE
- *                 in the handshake is incomplete but or waiting for data to
+ *                 if the handshake is incomplete and waiting for data to
  *                 be available for reading from or writing to the underlying
  *                 transport - in this case you must call this function again
  *                 when the underlying transport is ready for the operation.

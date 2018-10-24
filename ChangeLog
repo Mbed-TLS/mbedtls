@@ -7,6 +7,9 @@ Bugfix
      MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
    * Fix a bug in the update function for SSL ticket keys which previously
      invalidated keys of a lifetime of less than a 1s. Fixes #1968.
+   * Fix an unsafe bounds check when restoring an SSL session from a ticket.
+     This could lead to a buffer overflow, but only in case ticket authentication
+     was broken. Reported and fix suggested by Guido Vranken in #659.
 
 Changes
    * Add tests for session resumption in DTLS.

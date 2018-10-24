@@ -215,14 +215,14 @@ static int ssl_load_session( mbedtls_ssl_session *session,
     size_t cert_len;
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
-    if( p + sizeof( mbedtls_ssl_session ) > end )
+    if( sizeof( mbedtls_ssl_session ) > (size_t)( end - p ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     memcpy( session, p, sizeof( mbedtls_ssl_session ) );
     p += sizeof( mbedtls_ssl_session );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-    if( p + 3 > end )
+    if( 3 > (size_t)( end - p ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     cert_len = ( p[0] << 16 ) | ( p[1] << 8 ) | p[2];
@@ -236,7 +236,7 @@ static int ssl_load_session( mbedtls_ssl_session *session,
     {
         int ret;
 
-        if( p + cert_len > end )
+        if( cert_len > (size_t)( end - p ) )
             return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
         session->peer_cert = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );

@@ -1575,14 +1575,6 @@ void hash_finish( int alg_arg, data_t *input, data_t *expected_hash )
     size_t actual_hash_length;
     psa_hash_operation_t operation;
 
-    TEST_ASSERT( expected_hash->len == PSA_HASH_SIZE( alg ) );
-    TEST_ASSERT( expected_hash->len <= PSA_HASH_MAX_SIZE );
-
-    TEST_ASSERT( input != NULL );
-    TEST_ASSERT( expected_hash != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( expected_hash->len ) );
-
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
@@ -1604,14 +1596,6 @@ void hash_verify( int alg_arg, data_t *input, data_t *expected_hash )
 {
     psa_algorithm_t alg = alg_arg;
     psa_hash_operation_t operation;
-
-    TEST_ASSERT( expected_hash->len == PSA_HASH_SIZE( alg ) );
-    TEST_ASSERT( expected_hash->len <= PSA_HASH_MAX_SIZE );
-
-    TEST_ASSERT( input != NULL );
-    TEST_ASSERT( expected_hash != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( expected_hash->len ) );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
@@ -1783,14 +1767,6 @@ void hash_multi_part( int alg_arg, data_t *input, data_t *expected_hash )
     size_t actual_hash_length;
     psa_hash_operation_t operation;
     uint32_t halfway;
-
-    TEST_ASSERT( expected_hash->len == PSA_HASH_SIZE( alg ) );
-    TEST_ASSERT( expected_hash->len <= PSA_HASH_MAX_SIZE );
-
-    TEST_ASSERT( input != NULL );
-    TEST_ASSERT( expected_hash != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( expected_hash->len ) );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 

@@ -251,7 +251,7 @@ static int ssl_load_session( mbedtls_ssl_session *session,
         mbedtls_x509_crt_init( session->peer_cert );
 
         if( ( ret = mbedtls_x509_crt_parse_der( session->peer_cert,
-                                        p, cert_len ) ) != 0 )
+                                                p, cert_len ) ) != 0 )
         {
             mbedtls_x509_crt_free( session->peer_cert );
             mbedtls_free( session->peer_cert );

@@ -188,9 +188,9 @@ static int ssl_save_session( const mbedtls_ssl_session *session,
     if( left < 3 + cert_len )
         return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
-    *p++ = (unsigned char)( cert_len >> 16 & 0xFF );
-    *p++ = (unsigned char)( cert_len >>  8 & 0xFF );
-    *p++ = (unsigned char)( cert_len       & 0xFF );
+    *p++ = (unsigned char)( ( cert_len >> 16 ) & 0xFF );
+    *p++ = (unsigned char)( ( cert_len >>  8 ) & 0xFF );
+    *p++ = (unsigned char)( ( cert_len       ) & 0xFF );
 
     if( session->peer_cert != NULL )
         memcpy( p, session->peer_cert->raw.p, cert_len );

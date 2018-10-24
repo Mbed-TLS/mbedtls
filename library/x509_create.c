@@ -168,9 +168,10 @@ int mbedtls_x509_string_to_names( mbedtls_asn1_named_data **head, const char *na
         }
         else if( !in_tag && ( *c == ',' || c == end ) )
         {
-            mbedtls_asn1_named_data* cur = mbedtls_asn1_store_named_data( head, oid, strlen( oid ),
-                                                                (unsigned char *) data,
-                                                                d - data );
+            mbedtls_asn1_named_data* cur =
+                mbedtls_asn1_store_named_data( head, oid, strlen( oid ),
+                                               (unsigned char *) data,
+                                               d - data );
 
             if(cur == NULL )
             {

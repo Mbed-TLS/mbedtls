@@ -150,6 +150,8 @@ TEST_FILES := \
 	tests/suites/target_test.function \
 	tests/suites/test_suite_psa_crypto.data \
 	tests/suites/test_suite_psa_crypto.function \
+	tests/suites/test_suite_psa_crypto_hash.data \
+	tests/suites/test_suite_psa_crypto_hash.function \
 	tests/suites/test_suite_psa_crypto_metadata.data \
 	tests/suites/test_suite_psa_crypto_metadata.function \
 # Don't delete this line.

@@ -1568,52 +1568,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void hash_finish( int alg_arg, data_t *input, data_t *expected_hash )
-{
-    psa_algorithm_t alg = alg_arg;
-    unsigned char actual_hash[PSA_HASH_MAX_SIZE];
-    size_t actual_hash_length;
-    psa_hash_operation_t operation;
-
-    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
-
-    TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_hash_update( &operation,
-                                  input->x, input->len ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_hash_finish( &operation,
-                                  actual_hash, sizeof( actual_hash ),
-                                  &actual_hash_length ) == PSA_SUCCESS );
-    ASSERT_COMPARE( expected_hash->x, expected_hash->len,
-                    actual_hash, actual_hash_length );
-
-exit:
-    mbedtls_psa_crypto_free( );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void hash_verify( int alg_arg, data_t *input, data_t *expected_hash )
-{
-    psa_algorithm_t alg = alg_arg;
-    psa_hash_operation_t operation;
-
-    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
-
-    TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_hash_update( &operation,
-                                  input->x,
-                                  input->len ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_hash_verify( &operation,
-                                  expected_hash->x,
-                                  expected_hash->len ) == PSA_SUCCESS );
-
-exit:
-    mbedtls_psa_crypto_free( );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void hash_bad_paths(  )
+void hash_bad_paths( )
 {
     psa_algorithm_t alg = PSA_ALG_SHA_256;
     unsigned char hash[PSA_HASH_MAX_SIZE] = { 0 };
@@ -1755,39 +1710,6 @@ void mac_sign( int key_type_arg,
 
 exit:
     psa_destroy_key( key_slot );
-    mbedtls_psa_crypto_free( );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void hash_multi_part( int alg_arg, data_t *input, data_t *expected_hash )
-{
-    psa_algorithm_t alg = alg_arg;
-    unsigned char actual_hash[PSA_HASH_MAX_SIZE] = { 0 };
-    size_t actual_hash_length;
-    psa_hash_operation_t operation;
-    uint32_t halfway;
-
-    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
-
-    TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
-
-    halfway = input->len / 2;
-    TEST_ASSERT( psa_hash_update( &operation,
-                                  input->x,
-                                  halfway ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_hash_update( &operation,
-                                  input->x + halfway,
-                                  input->len - halfway ) == PSA_SUCCESS );
-
-    TEST_ASSERT( psa_hash_finish( &operation,
-                                  actual_hash, sizeof( actual_hash ),
-                                  &actual_hash_length ) == PSA_SUCCESS );
-
-    ASSERT_COMPARE( expected_hash->x, expected_hash->len,
-                    actual_hash, actual_hash_length );
-
-exit:
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

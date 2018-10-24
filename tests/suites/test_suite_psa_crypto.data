@@ -332,15 +332,15 @@ PSA hash setup: good, SHA-512
 depends_on:MBEDTLS_SHA512_C
 hash_setup:PSA_ALG_SHA_512:PSA_SUCCESS
 
-PSA hash setup: good, MD-2
+PSA hash setup: good, MD2
 depends_on:MBEDTLS_MD2_C
 hash_setup:PSA_ALG_MD2:PSA_SUCCESS
 
-PSA hash setup: good, MD-4
+PSA hash setup: good, MD4
 depends_on:MBEDTLS_MD4_C
 hash_setup:PSA_ALG_MD4:PSA_SUCCESS
 
-PSA hash setup: good, MD-5
+PSA hash setup: good, MD5
 depends_on:MBEDTLS_MD5_C
 hash_setup:PSA_ALG_MD5:PSA_SUCCESS
 

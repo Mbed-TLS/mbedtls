@@ -1604,13 +1604,13 @@ void hash_bad_paths( )
                                   &hash_len ) == PSA_ERROR_BUFFER_TOO_SMALL );
 
 
-    /* psa_hash_verify with a smaller hash buffer than expected */
+    /* psa_hash_verify with a smaller hash digest than expected */
     TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
     TEST_ASSERT( psa_hash_verify( &operation,
                                   hash, expected_size - 1 ) ==
                                   PSA_ERROR_INVALID_SIGNATURE );
 
-    /* psa_hash_verify with a non-matching hash buffer */
+    /* psa_hash_verify with a non-matching hash digest */
     TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
     TEST_ASSERT( psa_hash_update( &operation,
                                   input, sizeof( input ) ) == PSA_SUCCESS );

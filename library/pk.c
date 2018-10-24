@@ -456,11 +456,13 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
 int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv )
 {
     if( pub == NULL || pub->pk_info == NULL ||
-        prv == NULL || prv->pk_info == NULL ||
-        prv->pk_info->check_pair_func == NULL )
+        prv == NULL || prv->pk_info == NULL )
     {
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
     }
+
+    if( prv->pk_info->check_pair_func == NULL )
+        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 
     if( prv->pk_info->type == MBEDTLS_PK_RSA_ALT )
     {

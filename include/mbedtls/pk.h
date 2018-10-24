@@ -503,7 +503,11 @@ int mbedtls_pk_encrypt( mbedtls_pk_context *ctx,
  * \param pub       Context holding a public key.
  * \param prv       Context holding a private (and public) key.
  *
- * \return          0 on success or MBEDTLS_ERR_PK_BAD_INPUT_DATA
+ * \return          \c 0 on success (keys were checked and match each other).
+ * \return          #MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE if the keys could not
+ *                  be checked - in that case they may or may not match.
+ * \return          #MBEDTLS_ERR_PK_BAD_INPUT_DATA if a context is invalid.
+ * \return          Another non-zero value if the keys do not match.
  */
 int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_context *prv );
 

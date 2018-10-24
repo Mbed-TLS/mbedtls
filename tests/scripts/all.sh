@@ -400,6 +400,12 @@ msg "test/build: declared and exported names" # < 3s
 cleanup
 tests/scripts/check-names.sh
 
+if which doxygen >/dev/null; then
+    msg "test: doxygen warnings" # ~ 3s
+    cleanup
+    tests/scripts/doxygen.sh
+fi
+
 
 
 ################################################################

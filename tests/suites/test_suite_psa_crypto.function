@@ -1577,6 +1577,15 @@ void hash_bad_paths( )
     psa_hash_operation_t operation;
     size_t hash_len;
 
+    /* SHA-256 hash digest of the string 'input' with 2 extra bytes appended at
+     * the end */
+    unsigned char extra_length_digest[] =
+    {
+        0x3a, 0x28, 0x92, 0x32, 0x39, 0x9a, 0x20, 0x75, 0x09, 0xf4, 0xfa, 0x9d,
+        0x70, 0xfa, 0x6f, 0x68, 0x81, 0x7c, 0xe6, 0xa6, 0x6f, 0x21, 0x50, 0xff,
+        0x08, 0x23, 0x36, 0x31, 0x1f, 0x4e, 0x55, 0xfe, 0xaa, 0xbb
+    };
+
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
     /* psa_hash_update without calling psa_hash_setup beforehand */
@@ -1616,6 +1625,18 @@ void hash_bad_paths( )
                                   input, sizeof( input ) ) == PSA_SUCCESS );
     TEST_ASSERT( psa_hash_verify( &operation,
                                   hash, expected_size ) ==
+                                  PSA_ERROR_INVALID_SIGNATURE );
+
+    /* psa_hash_verify with a hash digest longer than expected, where the first
+     * 32 bytes match the expected digest but 2 extra bytes are appended at the
+     * end of the digest */
+    memset( hash, 0, sizeof( hash ) );
+    TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_hash_update( &operation,
+                                  input, sizeof( input ) ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_hash_verify( &operation,
+                                  extra_length_digest,
+                                  sizeof( extra_length_digest ) ) ==
                                   PSA_ERROR_INVALID_SIGNATURE );
 
 exit:

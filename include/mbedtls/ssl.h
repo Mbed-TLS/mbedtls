@@ -2304,20 +2304,22 @@ void mbedtls_ssl_free( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_config_init( mbedtls_ssl_config *conf );
 
 /**
- * \brief          Load reasonnable default SSL configuration values.
- *                 (You need to call mbedtls_ssl_config_init() first.)
+ * \brief           Load reasonable default SSL configuration values.
+ *                  (You need to call mbedtls_ssl_config_init() first.)
  *
- * \param conf     SSL configuration context
- * \param endpoint MBEDTLS_SSL_IS_CLIENT or MBEDTLS_SSL_IS_SERVER
- * \param transport MBEDTLS_SSL_TRANSPORT_STREAM for TLS, or
- *                  MBEDTLS_SSL_TRANSPORT_DATAGRAM for DTLS
- * \param preset   a MBEDTLS_SSL_PRESET_XXX value
- *                 (currently unused).
+ * \param conf      The SSL configuration context.
+ * \param endpoint  The type of the endpoint:
+ *                  #MBEDTLS_SSL_IS_CLIENT for servers, or
+ *                  #MBEDTLS_SSL_IS_SERVER for clients.
+ * \param transport The type of the underlying transport:
+ *                  #MBEDTLS_SSL_TRANSPORT_STREAM for stream transports.
+ *                  #MBEDTLS_SSL_TRANSPORT_DATAGRAM for datagram transports.
+ * \param preset    An #MBEDTLS_SSL_PRESET_XXX value.
  *
- * \note           See \c mbedtls_ssl_conf_transport() for notes on DTLS.
+ * \note            See \c mbedtls_ssl_conf_transport() for notes on DTLS.
  *
- * \return         0 if successful, or
- *                 MBEDTLS_ERR_XXX_ALLOC_FAILED on memory allocation error.
+ * \return          \c 0 if successful.
+ * \return          #MBEDTLS_ERR_XXX_ALLOC_FAILED on a memory allocation error.
  */
 int mbedtls_ssl_config_defaults( mbedtls_ssl_config *conf,
                                  int endpoint, int transport, int preset );

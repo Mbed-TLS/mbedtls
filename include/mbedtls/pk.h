@@ -127,9 +127,23 @@ typedef struct mbedtls_pk_info_t mbedtls_pk_info_t;
  */
 typedef struct mbedtls_pk_context
 {
-    const mbedtls_pk_info_t *   pk_info; /**< Public key informations        */
+    const mbedtls_pk_info_t *   pk_info; /**< Public key information         */
     void *                      pk_ctx;  /**< Underlying public key context  */
 } mbedtls_pk_context;
+
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+/**
+ * \brief           Context for resuming operations
+ */
+typedef struct
+{
+    const mbedtls_pk_info_t *   pk_info; /**< Public key information         */
+    void *                      rs_ctx;  /**< Underlying restart context     */
+} mbedtls_pk_restart_ctx;
+#else /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
+/* Now we can declare functions that take a pointer to that */
+typedef void mbedtls_pk_restart_ctx;
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
 #if defined(MBEDTLS_RSA_C)
 /**
@@ -189,6 +203,18 @@ void mbedtls_pk_init( mbedtls_pk_context *ctx );
  * \brief           Free a mbedtls_pk_context
  */
 void mbedtls_pk_free( mbedtls_pk_context *ctx );
+
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+/**
+ * \brief           Initialize a restart context
+ */
+void mbedtls_pk_restart_init( mbedtls_pk_restart_ctx *ctx );
+
+/**
+ * \brief           Free the components of a restart context
+ */
+void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx );
+#endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */
 
 /**
  * \brief           Initialize a PK context with the information given
@@ -287,6 +313,32 @@ int mbedtls_pk_verify( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
                const unsigned char *sig, size_t sig_len );
 
 /**
+ * \brief           Restartable version of \c mbedtls_pk_verify()
+ *
+ * \note            Performs the same job as \c mbedtls_pk_verify(), but can
+ *                  return early and restart according to the limit set with
+ *                  \c mbedtls_ecp_set_max_ops() to reduce blocking for ECC
+ *                  operations. For RSA, same as \c mbedtls_pk_verify().
+ *
+ * \param ctx       PK context to use
+ * \param md_alg    Hash algorithm used (see notes)
+ * \param hash      Hash of the message to sign
+ * \param hash_len  Hash length or 0 (see notes)
+ * \param sig       Signature to verify
+ * \param sig_len   Signature length
+ * \param rs_ctx    Restart context (NULL to disable restart)
+ *
+ * \return          See \c mbedtls_pk_verify(), or
+ * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
+ */
+int mbedtls_pk_verify_restartable( mbedtls_pk_context *ctx,
+               mbedtls_md_type_t md_alg,
+               const unsigned char *hash, size_t hash_len,
+               const unsigned char *sig, size_t sig_len,
+               mbedtls_pk_restart_ctx *rs_ctx );
+
+/**
  * \brief           Verify signature, with options.
  *                  (Includes verification of the padding depending on type.)
  *
@@ -348,6 +400,35 @@ int mbedtls_pk_sign( mbedtls_pk_context *ctx, mbedtls_md_type_t md_alg,
              const unsigned char *hash, size_t hash_len,
              unsigned char *sig, size_t *sig_len,
              int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
+
+/**
+ * \brief           Restartable version of \c mbedtls_pk_sign()
+ *
+ * \note            Performs the same job as \c mbedtls_pk_sign(), but can
+ *                  return early and restart according to the limit set with
+ *                  \c mbedtls_ecp_set_max_ops() to reduce blocking for ECC
+ *                  operations. For RSA, same as \c mbedtls_pk_sign().
+ *
+ * \param ctx       PK context to use - must hold a private key
+ * \param md_alg    Hash algorithm used (see notes)
+ * \param hash      Hash of the message to sign
+ * \param hash_len  Hash length or 0 (see notes)
+ * \param sig       Place to write the signature
+ * \param sig_len   Number of bytes written
+ * \param f_rng     RNG function
+ * \param p_rng     RNG parameter
+ * \param rs_ctx    Restart context (NULL to disable restart)
+ *
+ * \return          See \c mbedtls_pk_sign(), or
+ * \return          #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
+ *                  operations was reached: see \c mbedtls_ecp_set_max_ops().
+ */
+int mbedtls_pk_sign_restartable( mbedtls_pk_context *ctx,
+             mbedtls_md_type_t md_alg,
+             const unsigned char *hash, size_t hash_len,
+             unsigned char *sig, size_t *sig_len,
+             int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
+             mbedtls_pk_restart_ctx *rs_ctx );
 
 /**
  * \brief           Decrypt message (including padding if relevant).

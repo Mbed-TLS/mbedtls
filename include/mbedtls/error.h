@@ -90,12 +90,12 @@
  * DHM       3   11
  * PK        3   15 (Started from top)
  * RSA       4   11
- * ECP       4   9 (Started from top)
+ * ECP       4   10 (Started from top)
  * MD        5   5
  * HKDF      5   1 (Started from top)
  * CIPHER    6   8
- * SSL       6   22 (Started from top)
- * SSL       7   31
+ * SSL       6   23 (Started from top)
+ * SSL       7   32
  *
  * Module dependent error code (5 bits 0x.00.-0x.F8.)
  */

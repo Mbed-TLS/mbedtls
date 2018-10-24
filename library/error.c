@@ -289,6 +289,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "ECP - The buffer contains a valid signature followed by more data" );
         if( use_ret == -(MBEDTLS_ERR_ECP_HW_ACCEL_FAILED) )
             mbedtls_snprintf( buf, buflen, "ECP - The ECP hardware accelerator failed" );
+        if( use_ret == -(MBEDTLS_ERR_ECP_IN_PROGRESS) )
+            mbedtls_snprintf( buf, buflen, "ECP - Operation in progress, call again with the same parameters to continue" );
 #endif /* MBEDTLS_ECP_C */
 
 #if defined(MBEDTLS_MD_C)
@@ -517,6 +519,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
             mbedtls_snprintf( buf, buflen, "SSL - The asynchronous operation is not completed yet" );
         if( use_ret == -(MBEDTLS_ERR_SSL_EARLY_MESSAGE) )
             mbedtls_snprintf( buf, buflen, "SSL - Internal-only message signaling that a message arrived early" );
+        if( use_ret == -(MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) )
+            mbedtls_snprintf( buf, buflen, "SSL - A cryptographic operation is in progress. Try again later" );
 #endif /* MBEDTLS_SSL_TLS_C */
 
 #if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)

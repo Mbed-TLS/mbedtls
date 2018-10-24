@@ -1877,3 +1877,91 @@ x509_get_time:MBEDTLS_ASN1_GENERALIZED_TIME:"20000229000000Z":0:2000:2:29:0:0:0
 X509 Get time (Generalized Time invalid leap year not multiple of 4, 100 or 400)
 depends_on:MBEDTLS_X509_USE_C
 x509_get_time:MBEDTLS_ASN1_GENERALIZED_TIME:"19910229000000Z":MBEDTLS_ERR_X509_INVALID_DATE:0:0:0:0:0:0
+
+X509 cert verify restart: trusted EE, max_ops=0 (disabled)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+x509_verify_restart:"data_files/server5-selfsigned.crt":"data_files/server5-selfsigned.crt":0:0:0:0:0
+
+X509 cert verify restart: trusted EE, max_ops=1
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
+x509_verify_restart:"data_files/server5-selfsigned.crt":"data_files/server5-selfsigned.crt":0:0:1:0:0
+
+X509 cert verify restart: no intermediate, max_ops=0 (disabled)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+x509_verify_restart:"data_files/server5.crt":"data_files/test-ca2.crt":0:0:0:0:0
+
+X509 cert verify restart: no intermediate, max_ops=1
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+x509_verify_restart:"data_files/server5.crt":"data_files/test-ca2.crt":0:0:1:100:10000
+
+X509 cert verify restart: no intermediate, max_ops=40000
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+x509_verify_restart:"data_files/server5.crt":"data_files/test-ca2.crt":0:0:40000:0:0
+
+X509 cert verify restart: no intermediate, max_ops=500
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+x509_verify_restart:"data_files/server5.crt":"data_files/test-ca2.crt":0:0:500:20:80
+
+X509 cert verify restart: no intermediate, badsign, max_ops=0 (disabled)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+x509_verify_restart:"data_files/server5-badsign.crt":"data_files/test-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:0:0:0
+
+X509 cert verify restart: no intermediate, badsign, max_ops=1
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+x509_verify_restart:"data_files/server5-badsign.crt":"data_files/test-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:1:100:10000
+
+X509 cert verify restart: no intermediate, badsign, max_ops=40000
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+x509_verify_restart:"data_files/server5-badsign.crt":"data_files/test-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:40000:0:0
+
+X509 cert verify restart: no intermediate, badsign, max_ops=500
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED
+x509_verify_restart:"data_files/server5-badsign.crt":"data_files/test-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:500:20:80
+
+X509 cert verify restart: one int, max_ops=0 (disabled)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C
+x509_verify_restart:"data_files/server10_int3_int-ca2.crt":"data_files/test-int-ca2.crt":0:0:0:0:0
+
+X509 cert verify restart: one int, max_ops=1
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C
+x509_verify_restart:"data_files/server10_int3_int-ca2.crt":"data_files/test-int-ca2.crt":0:0:1:100:10000
+
+X509 cert verify restart: one int, max_ops=30000
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C
+x509_verify_restart:"data_files/server10_int3_int-ca2.crt":"data_files/test-int-ca2.crt":0:0:30000:0:0
+
+X509 cert verify restart: one int, max_ops=500
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C
+x509_verify_restart:"data_files/server10_int3_int-ca2.crt":"data_files/test-int-ca2.crt":0:0:500:25:100
+
+X509 cert verify restart: one int, EE badsign, max_ops=0 (disabled)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C
+x509_verify_restart:"data_files/server10-bs_int3.pem":"data_files/test-int-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:0:0:0
+
+X509 cert verify restart: one int, EE badsign, max_ops=1
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C
+x509_verify_restart:"data_files/server10-bs_int3.pem":"data_files/test-int-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:1:100:10000
+
+X509 cert verify restart: one int, EE badsign, max_ops=30000
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C
+x509_verify_restart:"data_files/server10-bs_int3.pem":"data_files/test-int-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:30000:0:0
+
+X509 cert verify restart: one int, EE badsign, max_ops=500
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C
+x509_verify_restart:"data_files/server10-bs_int3.pem":"data_files/test-int-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:500:25:100
+
+X509 cert verify restart: one int, int badsign, max_ops=0 (disabled)
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C
+x509_verify_restart:"data_files/server10_int3-bs.pem":"data_files/test-int-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:0:0:0
+
+X509 cert verify restart: one int, int badsign, max_ops=1
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C
+x509_verify_restart:"data_files/server10_int3-bs.pem":"data_files/test-int-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:1:100:10000
+
+X509 cert verify restart: one int, int badsign, max_ops=30000
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C
+x509_verify_restart:"data_files/server10_int3-bs.pem":"data_files/test-int-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:30000:0:0
+
+X509 cert verify restart: one int, int badsign, max_ops=500
+depends_on:MBEDTLS_PEM_PARSE_C:MBEDTLS_ECDSA_C:MBEDTLS_SHA256_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECP_DP_SECP384R1_ENABLED:MBEDTLS_RSA_C
+x509_verify_restart:"data_files/server10_int3-bs.pem":"data_files/test-int-ca2.crt":MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:MBEDTLS_X509_BADCERT_NOT_TRUSTED:500:25:100

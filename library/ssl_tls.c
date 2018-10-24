@@ -5432,59 +5432,15 @@ write_msg:
     return( ret );
 }
 
-int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
+/*
+ * Once the certificate message is read, parse it into a cert chain and
+ * perform basic checks, but leave actual verification to the caller
+ */
+static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
 {
-    int ret = MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+    int ret;
     size_t i, n;
-    const mbedtls_ssl_ciphersuite_t *ciphersuite_info = ssl->transform_negotiate->ciphersuite_info;
-    int authmode = ssl->conf->authmode;
     uint8_t alert;
-
-    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
-
-    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
-        ssl->state++;
-        return( 0 );
-    }
-
-#if defined(MBEDTLS_SSL_SRV_C)
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
-        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
-    {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
-        ssl->state++;
-        return( 0 );
-    }
-
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    if( ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET )
-        authmode = ssl->handshake->sni_authmode;
-#endif
-
-    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
-        authmode == MBEDTLS_SSL_VERIFY_NONE )
-    {
-        ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_SKIP_VERIFY;
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
-        ssl->state++;
-        return( 0 );
-    }
-#endif
-
-    if( ( ret = mbedtls_ssl_read_record( ssl, 1 ) ) != 0 )
-    {
-        /* mbedtls_ssl_read_record may have sent an alert already. We
-           let it decide whether to alert. */
-        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
-        return( ret );
-    }
-
-    ssl->state++;
 
 #if defined(MBEDTLS_SSL_SRV_C)
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
@@ -5505,10 +5461,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
                one. The client should know what's going on, so we
                don't send an alert. */
             ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING;
-            if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
-                return( 0 );
-            else
-                return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
+            return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
         }
     }
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
@@ -5529,10 +5482,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
                one. The client should know what's going on, so we
                don't send an alert. */
             ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING;
-            if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
-                return( 0 );
-            else
-                return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
+            return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
         }
     }
 #endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
@@ -5682,6 +5632,94 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_SSL_RENEGOTIATION && MBEDTLS_SSL_CLI_C */
 
+    return( 0 );
+}
+
+int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
+{
+    int ret;
+    const mbedtls_ssl_ciphersuite_t * const ciphersuite_info =
+          ssl->transform_negotiate->ciphersuite_info;
+#if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    const int authmode = ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET
+                       ? ssl->handshake->sni_authmode
+                       : ssl->conf->authmode;
+#else
+    const int authmode = ssl->conf->authmode;
+#endif
+    void *rs_ctx = NULL;
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
+
+    if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK ||
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_DHE_PSK ||
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECDHE_PSK ||
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
+        ssl->state++;
+        return( 0 );
+    }
+
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+        ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
+        ssl->state++;
+        return( 0 );
+    }
+
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
+        authmode == MBEDTLS_SSL_VERIFY_NONE )
+    {
+        ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_SKIP_VERIFY;
+        MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
+
+        ssl->state++;
+        return( 0 );
+    }
+#endif
+
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    if( ssl->handshake->ecrs_enabled &&
+        ssl->handshake->ecrs_state == ssl_ecrs_crt_verify )
+    {
+        goto crt_verify;
+    }
+#endif
+
+    if( ( ret = mbedtls_ssl_read_record( ssl, 1 ) ) != 0 )
+    {
+        /* mbedtls_ssl_read_record may have sent an alert already. We
+           let it decide whether to alert. */
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
+        return( ret );
+    }
+
+    if( ( ret = ssl_parse_certificate_chain( ssl ) ) != 0 )
+    {
+#if defined(MBEDTLS_SSL_SRV_C)
+        if( ret == MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE &&
+            authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
+        {
+            ret = 0;
+        }
+#endif
+
+        ssl->state++;
+        return( ret );
+    }
+
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    if( ssl->handshake->ecrs_enabled)
+        ssl->handshake->ecrs_state = ssl_ecrs_crt_verify;
+
+crt_verify:
+    if( ssl->handshake->ecrs_enabled)
+        rs_ctx = &ssl->handshake->ecrs_ctx;
+#endif
+
     if( authmode != MBEDTLS_SSL_VERIFY_NONE )
     {
         mbedtls_x509_crt *ca_chain;
@@ -5703,18 +5741,23 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         /*
          * Main check: verify certificate
          */
-        ret = mbedtls_x509_crt_verify_with_profile(
+        ret = mbedtls_x509_crt_verify_restartable(
                                 ssl->session_negotiate->peer_cert,
                                 ca_chain, ca_crl,
                                 ssl->conf->cert_profile,
                                 ssl->hostname,
                                &ssl->session_negotiate->verify_result,
-                                ssl->conf->f_vrfy, ssl->conf->p_vrfy );
+                                ssl->conf->f_vrfy, ssl->conf->p_vrfy, rs_ctx );
 
         if( ret != 0 )
         {
             MBEDTLS_SSL_DEBUG_RET( 1, "x509_verify_cert", ret );
         }
+
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+            return( MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS );
+#endif
 
         /*
          * Secondary checks: always done, but change 'ret' only if it was 0
@@ -5768,6 +5811,8 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 
         if( ret != 0 )
         {
+            uint8_t alert;
+
             /* The certificate may have been rejected for several reasons.
                Pick one and send the corresponding alert. Which alert to send
                may be a subject of debate in some cases. */
@@ -5809,6 +5854,8 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         }
 #endif /* MBEDTLS_DEBUG_C */
     }
+
+    ssl->state++;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );
 
@@ -6585,6 +6632,10 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
     handshake->ecjpake_cache = NULL;
     handshake->ecjpake_cache_len = 0;
 #endif
+#endif
+
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    mbedtls_x509_crt_restart_init( &handshake->ecrs_ctx );
 #endif
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
@@ -8833,6 +8884,10 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
         }
     }
 #endif /* MBEDTLS_X509_CRT_PARSE_C && MBEDTLS_SSL_SERVER_NAME_INDICATION */
+
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    mbedtls_x509_crt_restart_free( &handshake->ecrs_ctx );
+#endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     mbedtls_free( handshake->verify_cookie );

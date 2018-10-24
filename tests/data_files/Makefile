@@ -113,7 +113,7 @@ server7-future.crt: server7.csr $(test_ca_int_rsa1)
 	$(FAKETIME) -f +3653d $(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA $(test_ca_int_rsa1) -CAkey test-int-ca.key -set_serial 16 -days 3653 -sha256 -in server7.csr | cat - $(test_ca_int_rsa1) > $@
 all_final += server7-future.crt
 server7-badsign.crt: server7.crt $(test_ca_int_rsa1)
-	{ head -n-2 server7.crt; tail -n-2 server7.crt | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; cat test-int-ca.crt; } > server7-badsign.crt
+	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; cat $(test_ca_int_rsa1); } > $@
 all_final += server7-badsign.crt
 server7_int-ca-exp.crt: server7.crt test-int-ca-exp.crt
 	cat server7.crt test-int-ca-exp.crt > $@
@@ -127,6 +127,19 @@ all_final += server5-ss-expired.crt
 server5-ss-forgeca.crt: server5.key
 	$(FAKETIME) '2015-09-01 14:08:43' $(OPENSSL) req -x509 -new -subj "/C=UK/O=mbed TLS/CN=mbed TLS Test intermediate CA 3" -set_serial 77 -config $(test_ca_config_file) -extensions noext_ca -days 3650 -sha256 -key $< -out $@
 all_final += server5-ss-forgeca.crt
+
+server10-badsign.crt: server10.crt
+	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
+all_final += server10-badsign.crt
+server10-bs_int3.pem: server10-badsign.crt test-int-ca3.crt
+	cat server10-badsign.crt test-int-ca3.crt > $@
+all_final += server10-bs_int3.pem
+test-int-ca3-badsign.crt: test-int-ca3.crt
+	{ head -n-2 $<; tail -n-2 $< | sed -e '1s/0\(=*\)$$/_\1/' -e '1s/[^_=]\(=*\)$$/0\1/' -e '1s/_/1/'; } > $@
+all_final += test-int-ca3-badsign.crt
+server10_int3-bs.pem: server10.crt test-int-ca3-badsign.crt
+	cat server10.crt test-int-ca3-badsign.crt > $@
+all_final += server10-bs_int3-bs.pem
 
 rsa_pkcs1_2048_public.pem: server8.key
 	$(OPENSSL)  rsa -in $< -outform PEM -RSAPublicKey_out -out $@

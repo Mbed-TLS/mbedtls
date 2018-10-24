@@ -678,6 +678,26 @@
 #define MBEDTLS_ECP_NIST_OPTIM
 
 /**
+ * \def MBEDTLS_ECP_RESTARTABLE
+ *
+ * Enable "non-blocking" ECC operations that can return early and be resumed.
+ *
+ * This allows various functions to pause by returning
+ * #MBEDTLS_ERR_ECP_IN_PROGRESS (or, for functions in the SSL module,
+ * #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS) and then be called later again in
+ * order to further progress and eventually complete their operation. This is
+ * controlled through mbedtls_ecp_set_max_ops() which limits the maximum
+ * number of ECC operations a function may perform before pausing; see
+ * mbedtls_ecp_set_max_ops() for more information.
+ *
+ * This is useful in non-threaded environments if you want to avoid blocking
+ * for too long on ECC (and, hence, X.509 or SSL/TLS) operations.
+ *
+ * Uncomment this macro to enable restartable ECC computations.
+ */
+//#define MBEDTLS_ECP_RESTARTABLE
+
+/**
  * \def MBEDTLS_ECDSA_DETERMINISTIC
  *
  * Enable deterministic ECDSA (RFC 6979).

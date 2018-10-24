@@ -122,6 +122,7 @@
 #define MBEDTLS_ERR_SSL_CONTINUE_PROCESSING               -0x6580  /**< Internal-only message signaling that further message-processing should be done */
 #define MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS                 -0x6500  /**< The asynchronous operation is not completed yet. */
 #define MBEDTLS_ERR_SSL_EARLY_MESSAGE                     -0x6480  /**< Internal-only message signaling that a message arrived early. */
+#define MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS                -0x7000  /**< A cryptographic operation is in progress. Try again later. */
 
 /*
  * Various constants
@@ -2913,35 +2914,50 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session
  *
  * \param ssl      SSL context
  *
- * \return         0 if successful, or
- *                 MBEDTLS_ERR_SSL_WANT_READ or MBEDTLS_ERR_SSL_WANT_WRITE, or
- *                 MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED (see below), or
- *                 a specific SSL error code.
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_SSL_WANT_READ or #MBEDTLS_ERR_SSL_WANT_WRITE
+ *                 if the handshake is incomplete and waiting for data to
+ *                 be available for reading from or writing to the underlying
+ *                 transport - in this case you must call this function again
+ *                 when the underlying transport is ready for the operation.
+ * \return         #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if an asynchronous
+ *                 operation is in progress (see
+ *                 mbedtls_ssl_conf_async_private_cb()) - in this case you
+ *                 must call this function again when the operation is ready.
+ * \return         #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS if a cryptographic
+ *                 operation is in progress (see mbedtls_ecp_set_max_ops()) -
+ *                 in this case you must call this function again to complete
+ *                 the handshake when you're done attending other tasks.
+ * \return         #MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED if DTLS is in use
+ *                 and the client did not demonstrate reachability yet - in
+ *                 this case you must stop using the context (see below).
+ * \return         Another SSL error code - in this case you must stop using
+ *                 the context (see below).
  *
- *                 If this function returns MBEDTLS_ERR_SSL_WANT_READ, the
- *                 handshake is unfinished and no further data is available
- *                 from the underlying transport. In this case, you must call
- *                 the function again at some later stage.
+ * \warning        If this function returns something other than
+ *                 \c 0,
+ *                 #MBEDTLS_ERR_SSL_WANT_READ,
+ *                 #MBEDTLS_ERR_SSL_WANT_WRITE,
+ *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS,
+ *                 you must stop using the SSL context for reading or writing,
+ *                 and either free it or call \c mbedtls_ssl_session_reset()
+ *                 on it before re-using it for a new connection; the current
+ *                 connection must be closed.
+ *
+ * \note           If DTLS is in use, then you may choose to handle
+ *                 #MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED specially for logging
+ *                 purposes, as it is an expected return value rather than an
+ *                 actual error, but you still need to reset/free the context.
  *
  * \note           Remarks regarding event-driven DTLS:
- *                 If the function returns MBEDTLS_ERR_SSL_WANT_READ, no datagram
+ *                 If the function returns #MBEDTLS_ERR_SSL_WANT_READ, no datagram
  *                 from the underlying transport layer is currently being processed,
  *                 and it is safe to idle until the timer or the underlying transport
  *                 signal a new event. This is not true for a successful handshake,
  *                 in which case the datagram of the underlying transport that is
  *                 currently being processed might or might not contain further
  *                 DTLS records.
- *
- * \note           If this function returns something other than 0 or
- *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, you must stop using
- *                 the SSL context for reading or writing, and either free it or
- *                 call \c mbedtls_ssl_session_reset() on it before re-using it
- *                 for a new connection; the current connection must be closed.
- *
- * \note           If DTLS is in use, then you may choose to handle
- *                 MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED specially for logging
- *                 purposes, as it is an expected return value rather than an
- *                 actual error, but you still need to reset/free the context.
  */
 int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl );
 
@@ -2949,20 +2965,21 @@ int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl );
  * \brief          Perform a single step of the SSL handshake
  *
  * \note           The state of the context (ssl->state) will be at
- *                 the next state after execution of this function. Do not
+ *                 the next state after this function returns \c 0. Do not
  *                 call this function if state is MBEDTLS_SSL_HANDSHAKE_OVER.
- *
- * \note           If this function returns something other than 0 or
- *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, you must stop using
- *                 the SSL context for reading or writing, and either free it or
- *                 call \c mbedtls_ssl_session_reset() on it before re-using it
- *                 for a new connection; the current connection must be closed.
  *
  * \param ssl      SSL context
  *
- * \return         0 if successful, or
- *                 MBEDTLS_ERR_SSL_WANT_READ or MBEDTLS_ERR_SSL_WANT_WRITE, or
- *                 a specific SSL error code.
+ * \return         See mbedtls_ssl_handshake().
+ *
+ * \warning        If this function returns something other than \c 0,
+ *                 #MBEDTLS_ERR_SSL_WANT_READ, #MBEDTLS_ERR_SSL_WANT_WRITE,
+ *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS, you must stop using
+ *                 the SSL context for reading or writing, and either free it
+ *                 or call \c mbedtls_ssl_session_reset() on it before
+ *                 re-using it for a new connection; the current connection
+ *                 must be closed.
  */
 int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl );
 
@@ -2977,13 +2994,18 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl );
  * \param ssl      SSL context
  *
  * \return         0 if successful, or any mbedtls_ssl_handshake() return
- *                 value.
+ *                 value except #MBEDTLS_ERR_SSL_CLIENT_RECONNECT that can't
+ *                 happen during a renegotiation.
  *
- * \note           If this function returns something other than 0 or
- *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, you must stop using
- *                 the SSL context for reading or writing, and either free it or
- *                 call \c mbedtls_ssl_session_reset() on it before re-using it
- *                 for a new connection; the current connection must be closed.
+ * \warning        If this function returns something other than \c 0,
+ *                 #MBEDTLS_ERR_SSL_WANT_READ, #MBEDTLS_ERR_SSL_WANT_WRITE,
+ *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS, you must stop using
+ *                 the SSL context for reading or writing, and either free it
+ *                 or call \c mbedtls_ssl_session_reset() on it before
+ *                 re-using it for a new connection; the current connection
+ *                 must be closed.
+ *
  */
 int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
@@ -2995,42 +3017,56 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl );
  * \param buf      buffer that will hold the data
  * \param len      maximum number of bytes to read
  *
- * \return         One of the following:
- *                 - 0 if the read end of the underlying transport was closed,
- *                 - the (positive) number of bytes read, or
- *                 - a negative error code on failure.
+ * \return         The (positive) number of bytes read if successful.
+ * \return         \c 0 if the read end of the underlying transport was closed
+ *                 - in this case you must stop using the context (see below).
+ * \return         #MBEDTLS_ERR_SSL_WANT_READ or #MBEDTLS_ERR_SSL_WANT_WRITE
+ *                 if the handshake is incomplete and waiting for data to
+ *                 be available for reading from or writing to the underlying
+ *                 transport - in this case you must call this function again
+ *                 when the underlying transport is ready for the operation.
+ * \return         #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if an asynchronous
+ *                 operation is in progress (see
+ *                 mbedtls_ssl_conf_async_private_cb()) - in this case you
+ *                 must call this function again when the operation is ready.
+ * \return         #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS if a cryptographic
+ *                 operation is in progress (see mbedtls_ecp_set_max_ops()) -
+ *                 in this case you must call this function again to complete
+ *                 the handshake when you're done attending other tasks.
+ * \return         #MBEDTLS_ERR_SSL_CLIENT_RECONNECT if we're at the server
+ *                 side of a DTLS connection and the client is initiating a
+ *                 new connection using the same source port. See below.
+ * \return         Another SSL error code - in this case you must stop using
+ *                 the context (see below).
  *
- *                 If MBEDTLS_ERR_SSL_WANT_READ is returned, no application data
- *                 is available from the underlying transport. In this case,
- *                 the function needs to be called again at some later stage.
+ * \warning        If this function returns something other than
+ *                 a positive value,
+ *                 #MBEDTLS_ERR_SSL_WANT_READ,
+ *                 #MBEDTLS_ERR_SSL_WANT_WRITE,
+ *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS,
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_CLIENT_RECONNECT,
+ *                 you must stop using the SSL context for reading or writing,
+ *                 and either free it or call \c mbedtls_ssl_session_reset()
+ *                 on it before re-using it for a new connection; the current
+ *                 connection must be closed.
  *
- *                 If MBEDTLS_ERR_SSL_WANT_WRITE is returned, a write is pending
- *                 but the underlying transport isn't available for writing. In this
- *                 case, the function needs to be called again at some later stage.
- *
- *                 When this function return MBEDTLS_ERR_SSL_CLIENT_RECONNECT
+ * \note           When this function returns #MBEDTLS_ERR_SSL_CLIENT_RECONNECT
  *                 (which can only happen server-side), it means that a client
  *                 is initiating a new connection using the same source port.
  *                 You can either treat that as a connection close and wait
  *                 for the client to resend a ClientHello, or directly
  *                 continue with \c mbedtls_ssl_handshake() with the same
- *                 context (as it has beeen reset internally). Either way, you
- *                 should make sure this is seen by the application as a new
+ *                 context (as it has been reset internally). Either way, you
+ *                 must make sure this is seen by the application as a new
  *                 connection: application state, if any, should be reset, and
  *                 most importantly the identity of the client must be checked
  *                 again. WARNING: not validating the identity of the client
  *                 again, or not transmitting the new identity to the
  *                 application layer, would allow authentication bypass!
  *
- * \note           If this function returns something other than a positive value
- *                 or MBEDTLS_ERR_SSL_WANT_READ/WRITE or MBEDTLS_ERR_SSL_CLIENT_RECONNECT,
- *                 you must stop using the SSL context for reading or writing,
- *                 and either free it or call \c mbedtls_ssl_session_reset() on it
- *                 before re-using it for a new connection; the current connection
- *                 must be closed.
- *
  * \note           Remarks regarding event-driven DTLS:
- *                 - If the function returns MBEDTLS_ERR_SSL_WANT_READ, no datagram
+ *                 - If the function returns #MBEDTLS_ERR_SSL_WANT_READ, no datagram
  *                   from the underlying transport layer is currently being processed,
  *                   and it is safe to idle until the timer or the underlying transport
  *                   signal a new event.
@@ -3059,21 +3095,39 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
  * \param buf      buffer holding the data
  * \param len      how many bytes must be written
  *
- * \return         the number of bytes actually written (may be less than len),
- *                 or MBEDTLS_ERR_SSL_WANT_WRITE or MBEDTLS_ERR_SSL_WANT_READ,
- *                 or another negative error code.
+ * \return         The (non-negative) number of bytes actually written if
+ *                 successful (may be less than \p len).
+ * \return         #MBEDTLS_ERR_SSL_WANT_READ or #MBEDTLS_ERR_SSL_WANT_WRITE
+ *                 if the handshake is incomplete and waiting for data to
+ *                 be available for reading from or writing to the underlying
+ *                 transport - in this case you must call this function again
+ *                 when the underlying transport is ready for the operation.
+ * \return         #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if an asynchronous
+ *                 operation is in progress (see
+ *                 mbedtls_ssl_conf_async_private_cb()) - in this case you
+ *                 must call this function again when the operation is ready.
+ * \return         #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS if a cryptographic
+ *                 operation is in progress (see mbedtls_ecp_set_max_ops()) -
+ *                 in this case you must call this function again to complete
+ *                 the handshake when you're done attending other tasks.
+ * \return         Another SSL error code - in this case you must stop using
+ *                 the context (see below).
  *
- * \note           If this function returns something other than 0, a positive
- *                 value or MBEDTLS_ERR_SSL_WANT_READ/WRITE, you must stop
- *                 using the SSL context for reading or writing, and either
- *                 free it or call \c mbedtls_ssl_session_reset() on it before
- *                 re-using it for a new connection; the current connection
- *                 must be closed.
+ * \warning        If this function returns something other than
+ *                 a non-negative value,
+ *                 #MBEDTLS_ERR_SSL_WANT_READ,
+ *                 #MBEDTLS_ERR_SSL_WANT_WRITE,
+ *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS,
+ *                 you must stop using the SSL context for reading or writing,
+ *                 and either free it or call \c mbedtls_ssl_session_reset()
+ *                 on it before re-using it for a new connection; the current
+ *                 connection must be closed.
  *
- * \note           When this function returns MBEDTLS_ERR_SSL_WANT_WRITE/READ,
+ * \note           When this function returns #MBEDTLS_ERR_SSL_WANT_WRITE/READ,
  *                 it must be called later with the *same* arguments,
  *                 until it returns a value greater that or equal to 0. When
- *                 the function returns MBEDTLS_ERR_SSL_WANT_WRITE there may be
+ *                 the function returns #MBEDTLS_ERR_SSL_WANT_WRITE there may be
  *                 some partial data in the output buffer, however this is not
  *                 yet sent.
  *

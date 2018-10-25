@@ -3620,10 +3620,14 @@ static psa_status_t psa_key_agreement_ecdh( const uint8_t *peer_key,
     ret = mbedtls_pk_parse_public_key( &pk, peer_key, peer_key_length );
     if( ret != 0 )
         goto exit;
-    if( mbedtls_pk_get_type( &pk ) != MBEDTLS_PK_ECKEY )
+    switch( mbedtls_pk_get_type( &pk ) )
     {
-        ret = MBEDTLS_ERR_ECP_INVALID_KEY;
-        goto exit;
+        case MBEDTLS_PK_ECKEY:
+        case MBEDTLS_PK_ECKEY_DH:
+            break;
+        default:
+            ret = MBEDTLS_ERR_ECP_INVALID_KEY;
+            goto exit;
     }
     their_key = mbedtls_pk_ec( pk );
     ret = mbedtls_ecdh_get_params( &ecdh, their_key, MBEDTLS_ECDH_THEIRS );

@@ -718,10 +718,8 @@ cleanup:
 
 /* Convert a big-endian byte array aligned to the size of mbedtls_mpi_uint
  * into the storage form used by mbedtls_mpi. */
-static int mpi_bigendian_to_host( unsigned char * const buf, size_t size )
+static void mpi_bigendian_to_host( mbedtls_mpi_uint * const p, size_t limbs )
 {
-    mbedtls_mpi_uint * const p = (mbedtls_mpi_uint *) buf;
-    size_t const limbs = size / ciL;
     size_t i;
 
     unsigned char *cur_byte_left;
@@ -732,8 +730,8 @@ static int mpi_bigendian_to_host( unsigned char * const buf, size_t size )
 
     mbedtls_mpi_uint tmp_left, tmp_right;
 
-    if( size % ciL != 0 || limbs == 0 )
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
+    if( limbs == 0 )
+        return;
 
     /*
      * Traverse limbs and
@@ -767,7 +765,7 @@ static int mpi_bigendian_to_host( unsigned char * const buf, size_t size )
         *cur_limb_left  = tmp_right;
     }
 
-    return( 0 );
+    return;
 }
 
 /*
@@ -795,7 +793,7 @@ int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf, size_t bu
     Xp = (unsigned char*) X->p;
     memcpy( Xp + overhead, buf, buflen );
 
-    MBEDTLS_MPI_CHK( mpi_bigendian_to_host( Xp, limbs * ciL ) );
+    mpi_bigendian_to_host( X->p, limbs );
 
 cleanup:
 
@@ -2084,7 +2082,7 @@ int mbedtls_mpi_fill_random( mbedtls_mpi *X, size_t size,
     Xp = (unsigned char*) X->p;
     f_rng( p_rng, Xp + overhead, size );
 
-    MBEDTLS_MPI_CHK( mpi_bigendian_to_host( Xp, limbs * ciL ) );
+    mpi_bigendian_to_host( X->p, limbs );
 
 cleanup:
     return( ret );

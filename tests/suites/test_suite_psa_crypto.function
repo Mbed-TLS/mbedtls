@@ -11,6 +11,8 @@
 
 #include "psa/crypto.h"
 
+#define MAX( x, y ) ( ( x ) > ( y ) ? ( x ) : ( y ) )
+
 #define ARRAY_LENGTH( array ) ( sizeof( array ) / sizeof( *( array ) ) )
 
 #if(UINT32_MAX > SIZE_MAX)
@@ -415,7 +417,7 @@ static int exercise_key_agreement_key( psa_key_slot_t key,
         public_key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( key_type );
         public_key_length = PSA_KEY_EXPORT_MAX_SIZE( public_key_type,
                                                      key_bits );
-        public_key = mbedtls_calloc( 1, public_key_length );
+        ASSERT_ALLOC( public_key, public_key_length );
         TEST_ASSERT( public_key != NULL );
         TEST_ASSERT(
             psa_export_public_key( key,
@@ -1724,7 +1726,7 @@ void agreement_key_policy( int policy_usage,
                                           &key_bits ) == PSA_SUCCESS );
     public_key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( key_type );
     public_key_length = PSA_KEY_EXPORT_MAX_SIZE( public_key_type, key_bits );
-    public_key = mbedtls_calloc( 1, public_key_length );
+    ASSERT_ALLOC( public_key, public_key_length );
     TEST_ASSERT( public_key != NULL );
     TEST_ASSERT( psa_export_public_key( key_slot,
                                         public_key, public_key_length,

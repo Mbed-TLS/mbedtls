@@ -356,9 +356,17 @@ PSA hash setup: bad (not a hash algorithm)
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 hash_setup:PSA_ALG_HMAC(PSA_ALG_SHA_256):PSA_ERROR_INVALID_ARGUMENT
 
-PSA hash: bad paths
+PSA hash verify: bad paths
 depends_on:MBEDTLS_SHA256_C
-hash_bad_paths:
+hash_verify_bad_paths:
+
+PSA hash update: bad paths
+depends_on:MBEDTLS_SHA256_C
+hash_update_bad_paths:
+
+PSA hash finish: bad paths
+depends_on:MBEDTLS_SHA256_C
+hash_finish_bad_paths:
 
 PSA MAC setup: good, HMAC-SHA-256
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C

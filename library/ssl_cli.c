@@ -51,11 +51,15 @@
 #include "mbedtls/platform_util.h"
 #endif
 
-/* The printf conversion specifier %zu for values of type size_t was
- * only introduced in C99, but we currently still promise to build with
- * C89 compilers. Until then, we use the %llu conversion specifier alongside
- * an explicit cast to unsigned long long whenever we want to print values
- * of type size_t.
+/* The printf conversion specifier %zu was officially introduced in C99
+ * but is not yet widely supported; for example, Visual Studio supports it
+ * from VS2013 onwards only.
+ * As a remedy, we fall back to using explicit casts to `unsigned long long`
+ * and the corresponding format specifier %llu, provided the presence of this
+ * type is indicated through ULLONG_MAX being defined (in theory, it could still
+ * be that `unsigned long long` is defined, but %llu isn't, but we assume this
+ * doesn't happen). If `unsigned long long` is not present, we fall back to
+ * using `unsigned long` and %lu.
  *
  * To allow changing and eventually removing this, we use dedicated
  * macros #FMTZU and #FMT_ZU_CAST for the conversion specifier and type cast.
@@ -64,8 +68,15 @@
  */
 /* #define FMT_ZU "%zu" */
 /* #define FMT_ZU_CAST( X ) X */
+
+#include <limits.h>
+#if defined(ULLONG_MAX)
 #define FMT_ZU "%llu"
 #define FMT_ZU_CAST( X ) (unsigned long long)( X )
+#else
+#define FMT_ZU "%lu"
+#define FMT_ZU_CAST( X ) (unsigned long)( X )
+#endif
 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
 static void ssl_write_hostname_ext( mbedtls_ssl_context *ssl,

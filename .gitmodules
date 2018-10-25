@@ -1,0 +1,4 @@
+[submodule "crypto"]
+	path = crypto
+	url = git@github.com:ARMmbed/mbedtls-psa.git
+	branch = feature-psa

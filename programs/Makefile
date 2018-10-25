@@ -14,6 +14,10 @@ LOCAL_LDFLAGS = -L../library 			\
 		-lmbedx509$(SHARED_SUFFIX)	\
 		-lmbedcrypto$(SHARED_SUFFIX)
 
+ifdef USE_CRYPTO_SUBMODULE
+LOCAL_LDFLAGS += -L../crypto/library
+endif
+
 ifndef SHARED
 DEP=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
 else

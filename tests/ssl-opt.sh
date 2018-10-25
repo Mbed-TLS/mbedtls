@@ -5242,7 +5242,6 @@ run_test    "EC restart: TLS, max_ops=1000, ECDHE-PSK" \
             -C "mbedtls_pk_verify.*4b00" \
             -C "mbedtls_ecdh_make_public.*4b00" \
             -C "mbedtls_pk_sign.*4b00"
-=======
 
 # Tests of asynchronous private key support in SSL
 

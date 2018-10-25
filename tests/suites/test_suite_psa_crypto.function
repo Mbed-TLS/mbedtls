@@ -3867,16 +3867,17 @@ exit:
 void key_agreement_output( int alg_arg,
                            int our_key_type_arg, data_t *our_key_data,
                            data_t *peer_key_data,
-                           data_t *expected_output )
+                           data_t *expected_output1, data_t *expected_output2 )
 {
     psa_key_slot_t our_key = 1;
     psa_algorithm_t alg = alg_arg;
     psa_key_type_t our_key_type = our_key_type_arg;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
     psa_key_policy_t policy;
-    uint8_t *actual_output = mbedtls_calloc( 1, expected_output->len );
+    uint8_t *actual_output = NULL;
 
-    TEST_ASSERT( actual_output != NULL );
+    ASSERT_ALLOC( actual_output, MAX( expected_output1->len,
+                                      expected_output2->len ) );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
@@ -3892,11 +3893,21 @@ void key_agreement_output( int alg_arg,
                                     peer_key_data->x, peer_key_data->len,
                                     alg ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_generator_read( &generator,
-                                     actual_output,
-                                     expected_output->len ) == PSA_SUCCESS );
-    TEST_ASSERT( memcmp( actual_output, expected_output->x,
-                         expected_output->len ) == 0 );
+    TEST_ASSERT(
+        psa_generator_read( &generator,
+                            actual_output,
+                            expected_output1->len ) == PSA_SUCCESS );
+    TEST_ASSERT( memcmp( actual_output, expected_output1->x,
+                         expected_output1->len ) == 0 );
+    if( expected_output2->len != 0 )
+    {
+        TEST_ASSERT(
+            psa_generator_read( &generator,
+                                actual_output,
+                                expected_output2->len ) == PSA_SUCCESS );
+        TEST_ASSERT( memcmp( actual_output, expected_output2->x,
+                             expected_output2->len ) == 0 );
+    }
 
 exit:
     psa_generator_abort( &generator );

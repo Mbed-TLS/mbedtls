@@ -1222,8 +1222,9 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_FFDH_BASE                       ((psa_algorithm_t)0x22100000)
 /** The Diffie-Hellman key agreement algorithm.
  *
- * This algorithm combines the finite-field Diffie-Hellman-Merkle key
- * agreement to produce a shared secret from a private key and the peer's
+ * This algorithm combines the finite-field Diffie-Hellman (DH) key
+ * agreement, also known as Diffie-Hellman-Merkle (DHM) key agreement,
+ * to produce a shared secret from a private key and the peer's
  * public key, with a key selection or key derivation algorithm to produce
  * one or more shared keys and other shared cryptographic material.
  *
@@ -1252,7 +1253,7 @@ typedef uint32_t psa_algorithm_t;
     (PSA_ALG_KEY_AGREEMENT_GET_BASE(alg) == PSA_ALG_FFDH_BASE)
 
 #define PSA_ALG_ECDH_BASE                       ((psa_algorithm_t)0x22200000)
-/** The elliptic curve Diffie-Hellman key agreement algorithm.
+/** The elliptic curve Diffie-Hellman (ECDH) key agreement algorithm.
  *
  * This algorithm combines the elliptic curve Diffie-Hellman key
  * agreement to produce a shared secret from a private key and the peer's

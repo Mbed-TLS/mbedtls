@@ -97,7 +97,7 @@ int main( void )
 /*
  * Size to use for the alloc buffer if MEMORY_BUFFER_ALLOC_C is defined.
  */
-#define HEAP_SIZE       (1u << 16)  // 64k
+#define HEAP_SIZE       (1u << 16)  /* 64k */
 
 #define BUFSIZE         1024
 #define HEADER_FORMAT   "  %-24s :  "
@@ -995,6 +995,51 @@ int main( int argc, char *argv[] )
 
             mbedtls_ecdh_free( &ecdh );
             mbedtls_mpi_free( &z );
+        }
+    }
+#endif
+
+#if defined(MBEDTLS_ECDH_C) && !defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    if( todo.ecdh )
+    {
+        mbedtls_ecdh_context ecdh_srv, ecdh_cli;
+        unsigned char buf_srv[BUFSIZE], buf_cli[BUFSIZE];
+        const mbedtls_ecp_curve_info * curve_list = mbedtls_ecp_curve_list();
+        const mbedtls_ecp_curve_info *curve_info;
+        size_t olen;
+
+        for( curve_info = curve_list;
+            curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
+            curve_info++ )
+        {
+            mbedtls_ecdh_init( &ecdh_srv );
+            mbedtls_ecdh_init( &ecdh_cli );
+            mbedtls_ecdh_setup( &ecdh_srv, curve_info->grp_id );
+            mbedtls_ecdh_setup( &ecdh_cli, curve_info->grp_id );
+
+            if( ecdh_srv.var == MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0 && (
+                mbedtls_ecp_group_load( &ecdh_srv.ctx.mbed_ecdh.grp, curve_info->grp_id ) != 0 ||
+                mbedtls_ecdh_gen_public( &ecdh_srv.ctx.mbed_ecdh.grp,
+                                         &ecdh_srv.ctx.mbed_ecdh.d,
+                                         &ecdh_srv.ctx.mbed_ecdh.Q, myrand, NULL ) != 0 ))
+                mbedtls_exit( 1 );
+
+            mbedtls_snprintf( title, sizeof( title ), "ECDHE-%s", curve_info->name );
+            TIME_PUBLIC( title, "handshake",
+                const unsigned char * p_srv = buf_srv;
+                ret |= mbedtls_ecdh_make_params( &ecdh_srv, &olen, buf_srv, sizeof( buf_srv ), myrand, NULL );
+
+                ret |= mbedtls_ecdh_read_params( &ecdh_cli, &p_srv, p_srv + olen );
+                ret |= mbedtls_ecdh_make_public( &ecdh_cli, &olen, buf_cli, sizeof( buf_cli ), myrand, NULL );
+
+                ret |= mbedtls_ecdh_read_public( &ecdh_srv, buf_cli, olen );
+                ret |= mbedtls_ecdh_calc_secret( &ecdh_srv, &olen, buf_srv, sizeof( buf_srv ), myrand, NULL );
+
+                ret |= mbedtls_ecdh_calc_secret( &ecdh_cli, &olen, buf_cli, sizeof( buf_cli ), myrand, NULL );
+            );
+
+            mbedtls_ecdh_free( &ecdh_srv );
+            mbedtls_ecdh_free( &ecdh_cli );
         }
     }
 #endif

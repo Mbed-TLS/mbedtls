@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.xx.x branch released xxxx-xx-xx
+
+Bugfix
+   * Reduce the stack consumption of mbedtls_mpi_fill_random() which could
+     previously lead to a stack overflow on constrained targets.
+
 = mbed TLS 2.16.0 branch released 2018-12-21
 
 Features

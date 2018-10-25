@@ -3821,6 +3821,7 @@ void key_agreement_capacity( int alg_arg,
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
     psa_key_policy_t policy;
     size_t actual_capacity;
+    unsigned char output[16];
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
@@ -3836,9 +3837,24 @@ void key_agreement_capacity( int alg_arg,
                                     peer_key_data->x, peer_key_data->len,
                                     alg ) == PSA_SUCCESS );
 
+    /* Test the advertized capacity. */
     TEST_ASSERT( psa_get_generator_capacity(
                      &generator, &actual_capacity ) == PSA_SUCCESS );
     TEST_ASSERT( actual_capacity == (size_t) expected_capacity_arg );
+
+    /* Test the actual capacity by reading the output. */
+    while( actual_capacity > sizeof( output ) )
+    {
+        TEST_ASSERT( psa_generator_read( &generator,
+                                         output, sizeof( output ) ) ==
+                     PSA_SUCCESS );
+        actual_capacity -= sizeof( output );
+    }
+    TEST_ASSERT( psa_generator_read( &generator,
+                                     output, actual_capacity ) ==
+                 PSA_SUCCESS );
+    TEST_ASSERT( psa_generator_read( &generator, output, 1 ) ==
+                 PSA_ERROR_INSUFFICIENT_CAPACITY );
 
 exit:
     psa_generator_abort( &generator );

@@ -1209,9 +1209,13 @@ PSA key derivation: unsupported key derivation algorithm
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 derive_setup:PSA_KEY_TYPE_DERIVE:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":PSA_ALG_CATEGORY_KEY_DERIVATION:"":"":42:PSA_ERROR_NOT_SUPPORTED
 
-PSA key derivation: bad arguments test
+PSA key derivation: invalid generator state ( double generate + read past capacity )
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
-test_derive_invalid_generator:
+test_derive_invalid_generator_state:PSA_KEY_TYPE_DERIVE:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b"
+
+PSA key derivation:  invalid generator state ( call read/get_capacity after init and abort )
+depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
+test_derive_invalid_generator_tests:
 
 PSA key derivation: HKDF SHA-256, RFC5869 #1, output 42+0
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C

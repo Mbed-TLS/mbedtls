@@ -2989,7 +2989,7 @@
  *
  * \note When using a value less than the default of 16KB on the client, it is
  *       recommended to use the Maximum Fragment Length (MFL) extension to
- *       to inform the server about this limitation. On the server, there
+ *       inform the server about this limitation. On the server, there
  *       is no supported, standardized way of informing the client about
  *       restriction on the maximum size of incoming messages, and unless
  *       the limitation has been communicated by other means, it is recommended
@@ -3014,7 +3014,7 @@
  *
  * \note When using a value less than the default of 16KB on the client, it is
  *       recommended to use the Maximum Fragment Length (MFL) extension to
- *       to inform the server about this limitation. On the server, there
+ *       inform the server about this limitation. On the server, there
  *       is no supported, standardized way of informing the client about
  *       restriction on the maximum size of incoming messages, and unless
  *       the limitation has been communicated by other means, it is recommended

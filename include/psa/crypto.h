@@ -3206,6 +3206,9 @@ psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
  * The result of this function is a byte generator which can
  * be used to produce keys and other cryptographic material.
  *
+ * The resulting generator always has the maximum capacity permitted by
+ * the algorithm.
+ *
  * \param[in,out] generator       The generator object to set up. It must
  *                                have been initialized to all-bits-zero,
  *                                a logical zero (`{0}`),

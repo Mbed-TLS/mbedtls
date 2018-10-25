@@ -3371,6 +3371,15 @@ psa_status_t psa_generator_read( psa_crypto_generator_t *generator,
 
     if( generator->alg == PSA_ALG_SELECT_RAW )
     {
+        /* Initially, the capacity of a selection generator is always
+         * the size of the buffer, i.e. `generator->ctx.buffer.size`,
+         * abbreviated in this comment as `size`. When the remaining
+         * capacity is `c`, the next bytes to serve start `c` bytes
+         * from the end of the buffer, i.e. `size - c` from the
+         * beginning of the buffer. Since `generator->capacity` was just
+         * decremented above, we need to serve the bytes from
+         * `size - generator->capacity - output_length` to
+         * `size - generator->capacity`. */
         size_t offset =
             generator->ctx.buffer.size - generator->capacity - output_length;
         memcpy( output, generator->ctx.buffer.data + offset, output_length );

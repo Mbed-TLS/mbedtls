@@ -802,6 +802,33 @@ static int exercise_key( psa_key_slot_t slot,
     return( ok );
 }
 
+static psa_key_usage_t usage_to_exercise( psa_key_type_t type,
+                                          psa_algorithm_t alg )
+{
+    if( PSA_ALG_IS_MAC( alg ) || PSA_ALG_IS_SIGN( alg ) )
+    {
+        return( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ?
+                PSA_KEY_USAGE_VERIFY :
+                PSA_KEY_USAGE_SIGN | PSA_KEY_USAGE_VERIFY );
+    }
+    else if( PSA_ALG_IS_CIPHER( alg ) || PSA_ALG_IS_AEAD( alg ) ||
+             PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) )
+    {
+        return( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ?
+                PSA_KEY_USAGE_ENCRYPT :
+                PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT );
+    }
+    else if( PSA_ALG_IS_KEY_DERIVATION( alg ) ||
+             PSA_ALG_IS_KEY_AGREEMENT( alg ) )
+    {
+        return( PSA_KEY_USAGE_DERIVE );
+    }
+    else
+    {
+        return( 0 );
+    }
+
+}
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -1309,19 +1336,7 @@ void import_and_exercise_key( data_t *data,
     psa_key_type_t type = type_arg;
     size_t bits = bits_arg;
     psa_algorithm_t alg = alg_arg;
-    psa_key_usage_t usage =
-        ( PSA_ALG_IS_MAC( alg ) || PSA_ALG_IS_SIGN( alg ) ?
-          ( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ?
-            PSA_KEY_USAGE_VERIFY :
-            PSA_KEY_USAGE_SIGN | PSA_KEY_USAGE_VERIFY ) :
-          PSA_ALG_IS_CIPHER( alg ) || PSA_ALG_IS_AEAD( alg ) ||
-          PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) ?
-          ( PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) ?
-            PSA_KEY_USAGE_ENCRYPT :
-            PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT ) :
-          PSA_ALG_IS_KEY_DERIVATION( alg ) ? PSA_KEY_USAGE_DERIVE :
-          PSA_ALG_IS_KEY_AGREEMENT( alg ) ? PSA_KEY_USAGE_DERIVE :
-          0 );
+    psa_key_usage_t usage = usage_to_exercise( type, alg );
     psa_key_policy_t policy;
     psa_key_type_t got_type;
     size_t got_bits;

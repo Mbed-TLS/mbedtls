@@ -20,6 +20,8 @@ Bugfix
      program programs/x509/cert_write. Fixes #1422.
    * Ignore iv in mbedtls_cipher_set_iv() when the cipher mode is MBEDTLS_MODE_ECB
      Fix for #1091 raised by ezdevelop
+   * Clarify documentation of mbedtls_ssl_set_own_cert() regarding the absence
+     of check for certificate/key matching. Reported by Attila Molnar, #507.
 
 Changes
    * "make apidoc" now generates the documentation for the current

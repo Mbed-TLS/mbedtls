@@ -3,12 +3,18 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Bugfix
-    * Fix failure in hmac_drbg in the benchmark sample application, when
-      MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
-    * Fix a bug in the update function for SSL ticket keys which previously
-      invalidated keys of a lifetime of less than a 1s. Fixes #1968.
+   * Fix failure in hmac_drbg in the benchmark sample application, when
+     MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
+   * Fix a bug in the update function for SSL ticket keys which previously
+     invalidated keys of a lifetime of less than a 1s. Fixes #1968.
+   * Fix potential build failures related to the 'apidoc' target, introduced
+     in the previous patch release. Found by Robert Scheck. #390 #391
 
 Changes
+   * "make apidoc" now generates the documentation for the current
+     configuration. Run "scripts/apidoc_full.sh" to generate the full
+     documentation. This aligns the behavior with Mbed TLS versions 2.2 and
+     later and reverts it back to how it behaved in version 2.1.3.
    * Add tests for session resumption in DTLS.
    * Close a test gap in (D)TLS between the client side and the server side:
      test the handling of large packets and small packets on the client side
@@ -45,13 +51,6 @@ Bugfix
      (found by Catena cyber using oss-fuzz)
    * Fix memory leak and free without initialization in pk_encrypt
      and pk_decrypt example programs. Reported by Brace Stout. Fixes #1128.
-   * Fix potential build failures related to the 'apidoc' target, introduced
-     in the previous patch release. Found by Robert Scheck. #390 #391
-
-Changes
-   * "make apidoc" now generates the documentation for the current
-     configuration. Run "scripts/apidoc_full.sh" to generate the full
-     documentation. This aligns the behavior with Mbed TLS 2.2+.
 
 = mbed TLS 2.1.14 branch released 2018-07-25
 

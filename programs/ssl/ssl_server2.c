@@ -220,8 +220,11 @@ int main( void )
 #endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-#define USAGE_PSK                                                   \
-    "    psk=%%s              default: \"\" (in hex, without 0x)\n" \
+#define USAGE_PSK                                                       \
+    "    psk=%%s              default: \"\" (in hex, without 0x)\n"     \
+    "    psk_list=%%s         default: \"\"\n"                          \
+    "                          A list of (PSK identity, PSK value) pairs in (hex format, without 0x)\n" \
+    "                          id1,psk1[,id2,psk2[,...]]\n"             \
     "    psk_identity=%%s     default: \"Client_identity\"\n"
 #else
 #define USAGE_PSK ""

@@ -263,8 +263,10 @@ static int ecdsa_sign_restartable( mbedtls_ecp_group *grp,
     mbedtls_mpi *pk = &k, *pr = r;
 
     /* Fail cleanly on curves such as Curve25519 that can't be used for ECDSA */
-    if( grp->N.p == NULL )
-        return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
+    if( grp->id == MBEDTLS_ECP_DP_CURVE25519 ||
+        grp->id == MBEDTLS_ECP_DP_CURVE448 ||
+        grp->N.p == NULL )
+        return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
 
     /* Make sure d is in range 1..n-1 */
     if( mbedtls_mpi_cmp_int( d, 1 ) < 0 || mbedtls_mpi_cmp_mpi( d, &grp->N ) >= 0 )

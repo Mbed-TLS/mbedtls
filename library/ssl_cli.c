@@ -52,7 +52,7 @@
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-static int ssl_conf_has_psk( mbedtls_ssl_config const *conf )
+static int ssl_conf_has_static_psk( mbedtls_ssl_config const *conf )
 {
     if( conf->psk_identity     == NULL ||
         conf->psk_identity_len == 0     )
@@ -72,7 +72,7 @@ static int ssl_conf_has_psk( mbedtls_ssl_config const *conf )
 }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-static int ssl_conf_has_raw_psk( mbedtls_ssl_config const *conf )
+static int ssl_conf_has_static_raw_psk( mbedtls_ssl_config const *conf )
 {
     if( conf->psk_identity     == NULL ||
         conf->psk_identity_len == 0     )
@@ -795,7 +795,7 @@ static int ssl_validate_ciphersuite( const mbedtls_ssl_ciphersuite_t * suite_inf
     /* Don't suggest PSK-based ciphersuite if no PSK is available. */
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
     if( mbedtls_ssl_ciphersuite_uses_psk( suite_info ) &&
-        ssl_conf_has_psk( ssl->conf ) == 0 )
+        ssl_conf_has_static_psk( ssl->conf ) == 0 )
     {
         return( 1 );
     }
@@ -3054,7 +3054,7 @@ ecdh_calc_secret:
         /*
          * opaque psk_identity<0..2^16-1>;
          */
-        if( ssl_conf_has_psk( ssl->conf ) == 0 )
+        if( ssl_conf_has_static_psk( ssl->conf ) == 0 )
         {
             /* We don't offer PSK suites if we don't have a PSK,
              * and we check that the server's choice is among the
@@ -3090,7 +3090,7 @@ ecdh_calc_secret:
         {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
             /* Opaque PSKs are currently only supported for PSK-only suites. */
-            if( ssl_conf_has_raw_psk( ssl->conf ) == 0 )
+            if( ssl_conf_has_static_raw_psk( ssl->conf ) == 0 )
                 return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
@@ -3104,7 +3104,7 @@ ecdh_calc_secret:
         {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
             /* Opaque PSKs are currently only supported for PSK-only suites. */
-            if( ssl_conf_has_raw_psk( ssl->conf ) == 0 )
+            if( ssl_conf_has_static_raw_psk( ssl->conf ) == 0 )
                 return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
@@ -3140,7 +3140,7 @@ ecdh_calc_secret:
         {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
             /* Opaque PSKs are currently only supported for PSK-only suites. */
-            if( ssl_conf_has_raw_psk( ssl->conf ) == 0 )
+            if( ssl_conf_has_static_raw_psk( ssl->conf ) == 0 )
                 return( MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
@@ -3169,7 +3169,7 @@ ecdh_calc_secret:
     defined(MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
         if( ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_PSK &&
             ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_3 &&
-            ssl_conf_has_raw_psk( ssl->conf ) == 0 )
+            ssl_conf_has_static_raw_psk( ssl->conf ) == 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "skip PMS generation for opaque PSK" ) );
         }

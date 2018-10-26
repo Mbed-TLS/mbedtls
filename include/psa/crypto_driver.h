@@ -37,7 +37,7 @@
  */
 typedef uint32_t psa_status_t;
 typedef uint32_t psa_algorithm_t;
-typedef uint8_t encrypt_or_decrypt_t;
+typedef uint8_t psa_encrypt_or_decrypt_t;
 typedef uint32_t psa_key_slot_t;
 typedef uint32_t psa_key_type_t;
 typedef uint32_t psa_key_usage_t;
@@ -477,7 +477,7 @@ typedef psa_status_t (*psa_drv_mac_transparent_verify_t)(const uint8_t *p_input,
 typedef psa_status_t (*psa_drv_cipher_opaque_setup_t)(void *p_context,
                                                       psa_key_slot_t key_slot,
                                                       psa_algorithm_t algorithm,
-                                                      encrypt_or_decrypt_t direction);
+                                                      psa_encrypt_or_decrypt_t direction);
 
 /** \brief A function pointer that sets the initialization vector (if
  * necessary) for an opaque cipher operation
@@ -574,7 +574,7 @@ typedef psa_status_t (*psa_drv_cipher_opaque_abort_t)(void *p_context);
  */
 typedef psa_status_t (*psa_drv_cipher_opaque_ecb_t)(psa_key_slot_t key_slot,
                                                     psa_algorithm_t algorithm,
-                                                    encrypt_or_decrypt_t direction,
+                                                    psa_encrypt_or_decrypt_t direction,
                                                     const uint8_t *p_input,
                                                     size_t input_size,
                                                     uint8_t *p_output,
@@ -664,7 +664,7 @@ typedef struct psa_drv_cipher_transparent_context_s psa_drv_cipher_transparent_c
  * \retval PSA_SUCCESS
  */
 typedef psa_status_t (*psa_drv_cipher_transparent_setup_t)(psa_drv_cipher_transparent_context_t *p_context,
-                                                           encrypt_or_decrypt_t direction,
+                                                           psa_encrypt_or_decrypt_t direction,
                                                            const uint8_t *p_key_data,
                                                            size_t key_data_size);
 

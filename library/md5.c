@@ -142,7 +142,7 @@ int mbedtls_internal_md5_process( mbedtls_md5_context *ctx,
 #define P(a,b,c,d,k,s,t)                                        \
     do                                                          \
     {                                                           \
-        (a) += F((b),(c),(d)) + X[k] + (t);                     \
+        (a) += F((b),(c),(d)) + X[(k)] + (t);                   \
         (a) = S((a),(s)) + (b);                                 \
     } while( 0 )
 

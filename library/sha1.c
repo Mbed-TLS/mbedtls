@@ -164,8 +164,8 @@ int mbedtls_internal_sha1_process( mbedtls_sha1_context *ctx,
 #define P(a,b,c,d,e,x)                                          \
     do                                                          \
     {                                                           \
-        (e) += S(a,5) + F(b,c,d) + K + (x);                     \
-        (b) = S(b,30);                                          \
+        (e) += S((a),5) + F((b),(c),(d)) + K + (x);             \
+        (b) = S((b),30);                                        \
     } while( 0 )
 
     A = ctx->state[0];

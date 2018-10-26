@@ -42,9 +42,9 @@ typedef enum
 /**
  * \brief           Initialize an MPS allocator context.
  *
- * \param ctx        The allocator context to initialize.
- * \param l1_len     The length of the buffers passed to the
- *                   read- and write-sides of MPS Layer 1.
+ * \param ctx       The allocator context to initialize.
+ * \param l1_len    The length of the buffers passed to the
+ *                  read- and write-sides of MPS Layer 1.
  *
  * \return          \c 0 on success.
  * \return          A negative error code on failure.

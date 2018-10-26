@@ -148,8 +148,8 @@ int mbedtls_internal_md4_process( mbedtls_md4_context *ctx,
 #define P(a,b,c,d,x,s)         \
     do                         \
     {                          \
-        (a) += F(b,c,d) + (x); \
-        (a) = S(a,s);          \
+        (a) += F((b),(c),(d)) + (x);             \
+        (a) = S((a),(s));                        \
     } while( 0 )
 
 

@@ -193,8 +193,8 @@ static const uint32_t K[] =
 #define P(a,b,c,d,e,f,g,h,x,K)                          \
     do                                                  \
     {                                                   \
-        temp1 = (h) + S3(e) + F1(e,f,g) + (K) + (x);    \
-        temp2 = S2(a) + F0(a,b,c);                      \
+        temp1 = (h) + S3(e) + F1((e),(f),(g)) + (K) + (x);      \
+        temp2 = S2(a) + F0((a),(b),(c));                        \
         (d) += temp1; (h) = temp1 + temp2;              \
     } while( 0 )
 

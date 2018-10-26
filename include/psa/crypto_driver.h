@@ -1236,7 +1236,7 @@ typedef psa_status_t (*pcd_asymmetric_transparent_decrypt_t)(const uint8_t *p_ke
  * \retval #PSA_SUCCESS
  *         Success.
  */
-typedef psa_status_t (*psa_aead_opaque_encrypt_t)(psa_key_slot_t key_slot,
+typedef psa_status_t (*pcd_aead_opaque_encrypt_t)(psa_key_slot_t key_slot,
                                                   psa_algorithm_t algorithm,
                                                   const uint8_t *p_nonce,
                                                   size_t nonce_length,
@@ -1276,7 +1276,7 @@ typedef psa_status_t (*psa_aead_opaque_encrypt_t)(psa_key_slot_t key_slot,
  * \retval #PSA_SUCCESS
  *         Success.
  */
-typedef psa_status_t (*psa_aead_opaque_decrypt_t)(psa_key_slot_t key_slot,
+typedef psa_status_t (*pcd_aead_opaque_decrypt_t)(psa_key_slot_t key_slot,
                                                   psa_algorithm_t algorithm,
                                                   const uint8_t *p_nonce,
                                                   size_t nonce_length,
@@ -1297,11 +1297,11 @@ typedef psa_status_t (*psa_aead_opaque_decrypt_t)(psa_key_slot_t key_slot,
  *
  * If one of the functions is not implemented, it should be set to NULL.
  */
-struct psa_aead_opaque_t {
+struct pcd_aead_opaque_t {
     /** Function that performs the AEAD encrypt operation */
-    psa_aead_opaque_encrypt_t *p_encrypt;
+    pcd_aead_opaque_encrypt_t *p_encrypt;
     /** Function that performs the AEAD decrypt operation */
-    psa_aead_opaque_decrypt_t *p_decrypt;
+    pcd_aead_opaque_decrypt_t *p_decrypt;
 };
 /**@}*/
 
@@ -1356,7 +1356,7 @@ struct psa_aead_opaque_t {
  * \retval #PSA_SUCCESS
 
  */
-typedef psa_status_t (*psa_aead_transparent_encrypt_t)(const uint8_t *p_key,
+typedef psa_status_t (*pcd_aead_transparent_encrypt_t)(const uint8_t *p_key,
                                                        size_t key_length,
                                                        psa_algorithm_t alg,
                                                        const uint8_t *nonce,
@@ -1407,7 +1407,7 @@ typedef psa_status_t (*psa_aead_transparent_encrypt_t)(const uint8_t *p_key,
  * \retval #PSA_SUCCESS
  *         Success.
  */
-typedef psa_status_t (*psa_aead_transparent_decrypt_t)(const uint8_t *p_key,
+typedef psa_status_t (*pcd_aead_transparent_decrypt_t)(const uint8_t *p_key,
                                                        size_t key_length,
                                                        psa_algorithm_t alg,
                                                        const uint8_t *nonce,

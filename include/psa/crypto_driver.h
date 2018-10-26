@@ -1,7 +1,7 @@
 /**
  * \file psa/crypto_driver.h
  * \brief Platform Security Architecture cryptographic driver module
- * 
+ *
  * This file describes an API for driver developers to implement to enable
  * hardware to be called in a standardized way by a PSA Cryptographic API
  * implementation. The API described is not intended to be called by
@@ -31,7 +31,7 @@
 #include <stdint.h>
 
 /** The following types are redefinitions from the psa/crypto.h file.
- * It is intended that these will be moved to a new common header file to 
+ * It is intended that these will be moved to a new common header file to
  * avoid duplication. They are included here for expediency in publication.
  */
 typedef uint32_t psa_status_t;
@@ -46,7 +46,7 @@ typedef uint32_t psa_key_usage_t;
 
 /** \defgroup opaque_mac Opaque Message Authentication Code
  * Generation and authentication of Message Authentication Codes (MACs) using
- * opaque keys can be done either as a single function call (via the 
+ * opaque keys can be done either as a single function call (via the
  * `pcd_mac_opaque_generate_t` or `psa_mac_opaque_verify_t` functions), or in
  * parts using the following sequence:
  * - `psa_mac_opaque_setup_t`
@@ -54,23 +54,23 @@ typedef uint32_t psa_key_usage_t;
  * - `psa_mac_opaque_update_t`
  * - ...
  * - `psa_mac_opaque_finish_t` or `psa_mac_opaque_finish_verify_t`
- * 
- * If a previously started Opaque MAC operation needs to be terminated, it 
+ *
+ * If a previously started Opaque MAC operation needs to be terminated, it
  * should be done so by the `psa_mac_opaque_abort_t`. Failure to do so may
  * result in allocated resources not being freed or in other undefined
  * behavior.
  */
 /**@{*/
-/** \brief A function that starts a MAC operation for a PSA Crypto Driver 
+/** \brief A function that starts a MAC operation for a PSA Crypto Driver
  * implementation using an opaque key
- * 
- * \param[in,out] p_context     A structure that will contain the 
+ *
+ * \param[in,out] p_context     A structure that will contain the
  *                              hardware-specific MAC context
  * \param[in] key_slot          The slot of the key to be used for the
  *                              operation
- * \param[in] algorithm         The algorithm to be used to underly the MAC 
+ * \param[in] algorithm         The algorithm to be used to underly the MAC
  *                              operation
- * 
+ *
  * \retval  PSA_SUCCESS
  *          Success.
  */
@@ -80,7 +80,7 @@ typedef psa_status_t (*pcd_mac_opaque_setup_t)(void *p_context,
 
 /** \brief A function that continues a previously started MAC operation using
  * an opaque key
- * 
+ *
  * \param[in,out] p_context     A hardware-specific structure for the
  *                              previously-established MAC operation to be
  *                              continued
@@ -94,9 +94,9 @@ typedef psa_status_t (*pcd_mac_opaque_update_t)(void *p_context,
 
 /** \brief a function that completes a previously started MAC operation by
  * returning the resulting MAC using an opaque key
- * 
- * \param[in,out] p_context     A hardware-specific structure for the 
- *                              previously started MAC operation to be 
+ *
+ * \param[in,out] p_context     A hardware-specific structure for the
+ *                              previously started MAC operation to be
  *                              finished
  * \param[out] p_mac            A buffer where the generated MAC will be
  *                              placed
@@ -104,7 +104,7 @@ typedef psa_status_t (*pcd_mac_opaque_update_t)(void *p_context,
  *                              allocated for the `output` buffer
  * \param[out] p_mac_length     After completion, will contain the number of
  *                              bytes placed in the `p_mac` buffer
- * 
+ *
  * \retval PSA_SUCCESS
  *          Success.
  */
@@ -115,13 +115,13 @@ typedef psa_status_t (*pcd_mac_opaque_finish_t)(void *p_context,
 
 /** \brief A function that completes a previously started MAC operation by
  * comparing the resulting MAC against a known value using an opaque key
- * 
+ *
  * \param[in,out] p_context A hardware-specific structure for the previously
  *                          started MAC operation to be fiinished
  * \param[in] p_mac         The MAC value against which the resulting MAC will
  *                          be compared against
  * \param[in] mac_length    The size in bytes of the value stored in `p_mac`
- * 
+ *
  * \retval PSA_SUCCESS
  *         The operation completed successfully and the MACs matched each
  *         other
@@ -142,7 +142,7 @@ typedef psa_status_t (*pcd_mac_opaque_abort_t)(void *p_context);
 
 /** \brief A function that performs a MAC operation in one command and returns
  * the calculated MAC using an opaque key
- * 
+ *
  * \param[in] p_input           A buffer containing the message to be MACed
  * \param[in] input_length      The size in bytes of `p_input`
  * \param[in] key_slot          The slot of the key to be used
@@ -153,7 +153,7 @@ typedef psa_status_t (*pcd_mac_opaque_abort_t)(void *p_context);
  * \param[in] mac_size          The size in bytes of the `p_mac` buffer
  * \param[out] p_mac_length     After completion, will contain the number of
  *                              bytes placed in the `output` buffer
- * 
+ *
  * \retval PSA_SUCCESS
  *         Success.
  */
@@ -167,7 +167,7 @@ typedef psa_status_t (*pcd_mac_opaque_generate_t)(const uint8_t *p_input,
 
 /** \brief A function that performs an MAC operation in one command and
  * compare the resulting MAC against a known value using an opaque key
- * 
+ *
  * \param[in] p_input       A buffer containing the message to be MACed
  * \param[in] input_length  The size in bytes of `input`
  * \param[in] key_slot      The slot of the key to be used
@@ -176,7 +176,7 @@ typedef psa_status_t (*pcd_mac_opaque_generate_t)(const uint8_t *p_input,
  * \param[in] p_mac         The MAC value against which the resulting MAC will
  *                          be compared against
  * \param[in] mac_length   The size in bytes of `mac`
- * 
+ *
  * \retval PSA_SUCCESS
  *         The operation completed successfully and the MACs matched each
  *         other
@@ -193,18 +193,18 @@ typedef psa_status_t (*pcd_mac_opaque_verify_t)(const uint8_t *p_input,
 
 /** \brief A struct containing all of the function pointers needed to
  * implement MAC operations using opaque keys.
- * 
+ *
  * PSA Crypto API implementations should populate the table as appropriate
  * upon startup.
  *
  * If one of the functions is not implemented (such as
  * `pcd_mac_opaque_generate_t`), it should be set to NULL.
- * 
+ *
  * Driver implementers should ensure that they implement all of the functions
  * that make sense for their hardware, and that they provide a full solution
  * (for example, if they support `p_setup`, they should also support
  * `p_update` and at least one of `p_finish` or `p_finish_verify`).
- * 
+ *
  */
 struct pcd_mac_opaque_t {
     /**The size in bytes of the hardware-specific Opaque-MAC Context structure
@@ -236,7 +236,7 @@ struct pcd_mac_opaque_t {
 
 /** \defgroup transparent_mac Transparent Message Authentication Code
  * Generation and authentication of Message Authentication Codes (MACs) using
- * transparent keys can be done either as a single function call (via the 
+ * transparent keys can be done either as a single function call (via the
  * `pcd_mac_transparent_generate_t` or `psa_mac_transparent_verify_t`
  * functions), or in parts using the following sequence:
  * - `psa_mac_transparent_setup_t`
@@ -244,12 +244,12 @@ struct pcd_mac_opaque_t {
  * - `psa_mac_transparent_update_t`
  * - ...
  * - `psa_mac_transparent_finish_t` or `psa_mac_transparent_finish_verify_t`
- * 
- * If a previously started Transparent MAC operation needs to be terminated, it 
+ *
+ * If a previously started Transparent MAC operation needs to be terminated, it
  * should be done so by the `psa_mac_transparent_abort_t`. Failure to do so may
  * result in allocated resources not being freed or in other undefined
  * behavior.
- * 
+ *
  */
 /**@{*/
 
@@ -262,7 +262,7 @@ typedef struct pcd_mac_transparent_context_s pcd_mac_transparent_context_t;
 
 /** \brief The function prototype for the setup operation of a
  * transparent-key MAC operation
- * 
+ *
  *  Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
@@ -270,13 +270,13 @@ typedef struct pcd_mac_transparent_context_s pcd_mac_transparent_context_t;
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying primitive, and `MAC_VARIANT`
  * is the specific variant of a MAC operation (such as HMAC or CMAC)
- * 
- * \param[in,out] p_context     A structure that will contain the 
+ *
+ * \param[in,out] p_context     A structure that will contain the
  *                              hardware-specific MAC context
  * \param[in] p_key             A buffer containing the cleartext key material
  *                              to be used in the operation
  * \param[in] key_length        The size in bytes of the key material
- * 
+ *
  * \retval  PSA_SUCCESS
  *          Success.
  */
@@ -294,7 +294,7 @@ typedef psa_status_t (*pcd_mac_transparent_setup_t)(pcd_mac_transparent_context_
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT`
  * is the specific variant of a MAC operation (such as HMAC or CMAC)
- * 
+ *
  * \param[in,out] p_context     A hardware-specific structure for the
  *                              previously-established MAC operation to be
  *                              continued
@@ -308,7 +308,7 @@ typedef psa_status_t (*pcd_mac_transparent_update_t)(pcd_mac_transparent_context
 
 /** \brief  The function prototype for the finish operation of a
  * transparent-key MAC operation
- * 
+ *
  * Functions that implement the prototype should be named in the following
  *  convention:
  * ~~~~~~~~~~~~~{.c}
@@ -316,14 +316,14 @@ typedef psa_status_t (*pcd_mac_transparent_update_t)(pcd_mac_transparent_context
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
- * 
+ *
  * \param[in,out] p_context     A hardware-specific structure for the
  *                              previously started MAC operation to be
  *                              finished
  * \param[out] p_mac            A buffer where the generated MAC will be placed
  * \param[in] mac_length        The size in bytes of the buffer that has been
  *                              allocated for the `p_mac` buffer
- * 
+ *
  * \retval PSA_SUCCESS
  *          Success.
  */
@@ -333,7 +333,7 @@ typedef psa_status_t (*pcd_mac_transparent_finish_t)(pcd_mac_transparent_context
 
 /** \brief The function prototype for the finish and verify operation of a
  * transparent-key MAC operation
- * 
+ *
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
@@ -341,7 +341,7 @@ typedef psa_status_t (*pcd_mac_transparent_finish_t)(pcd_mac_transparent_context
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
- * 
+ *
  * \param[in,out] p_context     A hardware-specific structure for the
  *                              previously started MAC operation to be
  *                              verified and finished
@@ -349,7 +349,7 @@ typedef psa_status_t (*pcd_mac_transparent_finish_t)(pcd_mac_transparent_context
  *                              for verification
  * \param[in] mac_length        The size in bytes of the data in the `p_mac`
  *                              buffer
- * 
+ *
  * \retval PSA_SUCCESS
  *          The operation completed successfully and the comparison matched
  */
@@ -359,7 +359,7 @@ typedef psa_status_t (*pcd_mac_transparent_finish_verify_t)(pcd_mac_transparent_
 
 /** \brief The function prototype for the abort operation for a previously
  * started transparent-key MAC operation
- * 
+ *
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
@@ -367,25 +367,25 @@ typedef psa_status_t (*pcd_mac_transparent_finish_verify_t)(pcd_mac_transparent_
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
- * 
+ *
  * \param[in,out] p_context     A hardware-specific structure for the
  *                              previously started MAC operation to be
  *                              aborted
- * 
+ *
  */
 typedef psa_status_t (*pcd_mac_transparent_abort_t)(pcd_mac_transparent_context_t *p_context);
 
 /** \brief The function prototype for a one-shot operation of a transparent-key
  * MAC operation
- * 
+ *
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
  * pcd_mac_transparent_<ALGO>_<MAC_VARIANT>
  * ~~~~~~~~~~~~~
- * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is 
+ * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
- * 
+ *
  * \param[in] p_input        A buffer containing the data to be MACed
  * \param[in] input_length   The length in bytes of the `p_input` data
  * \param[in] p_key          A buffer containing the key material to be used
@@ -406,7 +406,7 @@ typedef psa_status_t (*pcd_mac_transparent_t)(const uint8_t *p_input,
 
 /** \brief The function prototype for a one-shot operation of a transparent-key
  * MAC Verify operation
- * 
+ *
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
@@ -414,7 +414,7 @@ typedef psa_status_t (*pcd_mac_transparent_t)(const uint8_t *p_input,
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
- * 
+ *
  * \param[in] p_input        A buffer containing the data to be MACed
  * \param[in] input_length   The length in bytes of the `p_input` data
  * \param[in] p_key          A buffer containing the key material to be used
@@ -423,7 +423,7 @@ typedef psa_status_t (*pcd_mac_transparent_t)(const uint8_t *p_input,
  * \param[in] alg            The algorithm to be performed
  * \param[in] p_mac          The MAC data to be compared
  * \param[in] mac_length     The length in bytes of the `p_mac` buffer
- * 
+ *
  * \retval PSA_SUCCESS
  *  The operation completed successfully and the comparison matched
  */
@@ -437,7 +437,7 @@ typedef psa_status_t (*pcd_mac_transparent_verify_t)(const uint8_t *p_input,
 /**@}*/
 
 /** \defgroup opaque_cipher Opaque Symmetric Ciphers
- * 
+ *
  * Encryption and Decryption using opaque keys in block modes other than ECB
  * must be done in multiple parts, using the following flow:
  * - `pcd_cipher_opaque_setup_t`
@@ -446,11 +446,11 @@ typedef psa_status_t (*pcd_mac_transparent_verify_t)(const uint8_t *p_input,
  * - ...
  * - `pcd_cipher_opaque_finish_t`
 
- * If a previously started Opaque Cipher operation needs to be terminated, it 
+ * If a previously started Opaque Cipher operation needs to be terminated, it
  * should be done so by the `psa_cipher_opaque_abort_t`. Failure to do so may
  * result in allocated resources not being freed or in other undefined
  * behavior.
- * 
+ *
  * In situations where a PSA Cryptographic API implementation is using a block
  * mode not-supported by the underlying hardware or driver, it can construct
  * the block mode itself, while calling the `pcd_cipher_opaque_ecb_t` function
@@ -469,7 +469,7 @@ typedef psa_status_t (*pcd_mac_transparent_verify_t)(const uint8_t *p_input,
  *                              operation
  * \param[in] direction         Indicates whether the operation is an encrypt
  *                              or decrypt
- * 
+ *
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_NOT_SUPPORTED
  */
@@ -480,17 +480,17 @@ typedef psa_status_t (*pcd_cipher_opaque_setup_t)(void *p_context,
 
 /** \brief A function pointer that sets the initialization vector (if
  * necessary) for an opaque cipher operation
- * 
+ *
  * Rationale: The `psa_cipher_*` function in the PSA Cryptographic API has two
  * IV functions: one to set the IV, and one to generate it internally. The
  * generate function is not necessary for the driver API as the PSA Crypto
  * implementation can do the generation using its RNG features.
- * 
+ *
  * \param[in,out] p_context     A structure that contains the previously set up
  *                              hardware-specific cipher context
  * \param[in] p_iv              A buffer containing the initialization vector
  * \param[in] iv_length         The size (in bytes) of the `p_iv` buffer
- * 
+ *
  * \retval PSA_SUCCESS
  */
 typedef psa_status_t (*pcd_cipher_opaque_set_iv_t)(void *p_context,
@@ -499,7 +499,7 @@ typedef psa_status_t (*pcd_cipher_opaque_set_iv_t)(void *p_context,
 
 /** \brief A function that continues a previously started opaque-key cipher
  * operation
- * 
+ *
  * \param[in,out] p_context         A hardware-specific structure for the
  *                                  previously started cipher operation
  * \param[in] p_input               A buffer containing the data to be
@@ -512,7 +512,7 @@ typedef psa_status_t (*pcd_cipher_opaque_set_iv_t)(void *p_context,
  *                                  `p_output` buffer
  * \param[out] p_output_length      After completion, will contain the number
  *                                  of bytes placed in the `p_output` buffer
- * 
+ *
  * \retval PSA_SUCCESS
  */
 typedef psa_status_t (*pcd_cipher_opaque_update_t)(void *p_context,
@@ -533,7 +533,7 @@ typedef psa_status_t (*pcd_cipher_opaque_update_t)(void *p_context,
  *                              buffer
  * \param[out] p_output_length  After completion, will contain the number of
  *                              bytes placed in the `p_output` buffer
- * 
+ *
  * \retval PSA_SUCCESS
  */
 typedef psa_status_t (*pcd_cipher_opaque_finish_t)(void *p_context,
@@ -551,10 +551,10 @@ typedef psa_status_t (*pcd_cipher_opaque_abort_t)(void *p_context);
 
 /** \brief A function that performs the ECB block mode for opaque-key cipher
  * operations
- * 
+ *
  * Note: this function should only be used with implementations that do not
  * provide a needed higher-level operation.
- * 
+ *
  * \param[in] key_slot      The slot of the key to be used for the operation
  * \param[in] algorithm     The algorithm to be used in the cipher operation
  * \param[in] direction     Indicates whether the operation is an encrypt or
@@ -567,7 +567,7 @@ typedef psa_status_t (*pcd_cipher_opaque_abort_t)(void *p_context);
  *                          be placed
  * \param[in] output_size   The allocated size in bytes of the `p_output`
  *                          buffer
- * 
+ *
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_NOT_SUPPORTED
  */
@@ -582,10 +582,10 @@ typedef psa_status_t (*pcd_cipher_opaque_ecb_t)(psa_key_slot_t key_slot,
 /**
  * \brief A struct containing all of the function pointers needed to implement
  * cipher operations using opaque keys.
- * 
+ *
  * PSA Crypto API implementations should populate instances of the table as
  * appropriate upon startup.
- * 
+ *
  * If one of the functions is not implemented (such as
  * `pcd_cipher_opaque_ecb_t`), it should be set to NULL.
  */
@@ -630,7 +630,7 @@ struct pcd_cipher_opaque_t {
 /**@{*/
 
 /** \brief The hardware-specific transparent-key Cipher context structure
- * 
+ *
  * The contents of this structure are implementation dependent and are
  * therefore not described here.
  */
@@ -651,7 +651,7 @@ typedef struct pcd_cipher_transparent_context_s pcd_cipher_transparent_context_t
  * pcd_cipher_transparent_setup_<CIPHER_NAME>
  * ~~~~~~~~~~~~~
  * Where `CIPHER_NAME` is the name of a stream cipher (i.e. RC4)
- * 
+ *
  * \param[in,out] p_context     A structure that will contain the
  *                              hardware-specific cipher context
  * \param[in] direction         Indicates if the operation is an encrypt or a
@@ -659,7 +659,7 @@ typedef struct pcd_cipher_transparent_context_s pcd_cipher_transparent_context_t
  * \param[in] p_key_data        A buffer containing the cleartext key material
  *                              to be used in the operation
  * \param[in] key_data_size     The size in bytes of the key material
- * 
+ *
  * \retval PSA_SUCCESS
  */
 typedef psa_status_t (*pcd_cipher_transparent_setup_t)(pcd_cipher_transparent_context_t *p_context,
@@ -677,12 +677,12 @@ typedef psa_status_t (*pcd_cipher_transparent_setup_t)(pcd_cipher_transparent_co
  * Where
  * - `CIPHER_NAME` is the name of the underlying block cipher (i.e. AES or DES)
  * - `MODE` is the block mode of the cipher operation (i.e. CBC or CTR)
- * 
+ *
  * \param[in,out] p_context     A structure that contains the previously setup
  *                              hardware-specific cipher context
  * \param[in] p_iv              A buffer containing the initialization vecotr
  * \param[in] iv_length         The size in bytes of the contents of `p_iv`
- * 
+ *
  * \retval PSA_SUCCESS
 */
 typedef psa_status_t (*pcd_cipher_transparent_set_iv_t)(pcd_cipher_transparent_context_t *p_context,
@@ -700,7 +700,7 @@ typedef psa_status_t (*pcd_cipher_transparent_set_iv_t)(pcd_cipher_transparent_c
  * Where
  * - `CIPHER_NAME` is the name of the underlying block cipher (i.e. AES or DES)
  * - `MODE` is the block mode of the cipher operation (i.e. CBC or CTR)
- * 
+ *
  * \param[in,out] p_context         A hardware-specific structure for the
  *                                  previously started cipher operation
  * \param[in] p_input               A buffer containing the data to be
@@ -711,7 +711,7 @@ typedef psa_status_t (*pcd_cipher_transparent_set_iv_t)(pcd_cipher_transparent_c
  * \param[in] output_size           The size in bytes of the `p_output` buffer
  * \param[out] p_output_length      After completion, will contain the number
  *                                  of bytes placed in the `p_output` buffer
- * 
+ *
  * \retval PSA_SUCCESS
  */
 typedef psa_status_t (*pcd_cipher_transparent_update_t)(pcd_cipher_transparent_context_t *p_context,
@@ -740,7 +740,7 @@ typedef psa_status_t (*pcd_cipher_transparent_update_t)(pcd_cipher_transparent_c
  * \param[in] output_size       The size in bytes of the `p_output` buffer
  * \param[out] p_output_length  After completion, will contain the number of
  *                              bytes placed in the `p_output` buffer
- * 
+ *
  * \retval PSA_SUCCESS
  */
 typedef psa_status_t (*pcd_cipher_transparent_finish_t)(pcd_cipher_transparent_context_t *p_context,
@@ -750,7 +750,7 @@ typedef psa_status_t (*pcd_cipher_transparent_finish_t)(pcd_cipher_transparent_c
 
 /** \brief The function prototype for the abort operation of transparent-key
  * block cipher operations.
- * 
+ *
  *  Functions that implement the following prototype should be named in the
  * following convention:
  * ~~~~~~~~~~~~~{.c}
@@ -759,10 +759,10 @@ typedef psa_status_t (*pcd_cipher_transparent_finish_t)(pcd_cipher_transparent_c
  * Where
  * - `CIPHER_NAME` is the name of the underlying block cipher (i.e. AES or DES)
  * - `MODE` is the block mode of the cipher operation (i.e. CBC or CTR)
- * 
+ *
  * \param[in,out] p_context     A hardware-specific structure for the
  *                              previously started cipher operation
- * 
+ *
  * \retval PSA_SUCCESS
  */
 typedef psa_status_t (*pcd_cipher_transparent_abort_t)(pcd_cipher_transparent_context_t *p_context);
@@ -770,14 +770,14 @@ typedef psa_status_t (*pcd_cipher_transparent_abort_t)(pcd_cipher_transparent_co
 /**@}*/
 
 /** \defgroup driver_digest Message Digests
- * 
+ *
  * Generation and authentication of Message Digests (aka hashes) must be done
  * in parts using the following sequence:
  * - `psa_hash_setup_t`
  * - `psa_hash_update_t`
  * - ...
  * - `psa_hash_finish_t`
- * 
+ *
  * If a previously started Message Digest operation needs to be terminated
  * before the `psa_hash_finish_t` operation is complete, it should be aborted
  * by the `psa_hash_abort_t`. Failure to do so may result in allocated
@@ -786,7 +786,7 @@ typedef psa_status_t (*pcd_cipher_transparent_abort_t)(pcd_cipher_transparent_co
 /**@{*/
 
 /** \brief The hardware-specific hash context structure
- * 
+ *
  * The contents of this structure are implementation dependent and are
  * therefore not described here
  */
@@ -794,17 +794,17 @@ typedef struct pcd_hash_context_s pcd_hash_context_t;
 
 /** \brief The function prototype for the start operation of a hash (message
  * digest) operation
- * 
+ *
  *  Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
  * pcd_hash_<ALGO>_setup
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying hash function
- * 
+ *
  * \param[in,out] p_context     A structure that will contain the
  * hardware-specific hash context
- * 
+ *
  * \retval  PSA_SUCCESS     Success.
  */
 typedef psa_status_t (*pcd_hash_setup_t)(pcd_hash_context_t *p_context);
@@ -818,7 +818,7 @@ typedef psa_status_t (*pcd_hash_setup_t)(pcd_hash_context_t *p_context);
  * pcd_hash_<ALGO>_update
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm
- * 
+ *
  * \param[in,out] p_context     A hardware-specific structure for the
  *                              previously-established hash operation to be
  *                              continued
@@ -832,14 +832,14 @@ typedef psa_status_t (*pcd_hash_update_t)(pcd_hash_context_t *p_context,
 
 /** \brief  The prototype for the finish operation of a hash (message digest)
  * operation
- * 
+ *
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
  * pcd_hash_<ALGO>_finish
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm
- * 
+ *
  * \param[in,out] p_context     A hardware-specific structure for the
  *                              previously started hash operation to be
  *                              fiinished
@@ -849,7 +849,7 @@ typedef psa_status_t (*pcd_hash_update_t)(pcd_hash_context_t *p_context,
  *                              allocated for the `p_output` buffer
  * \param[out] p_output_length  The number of bytes placed in `p_output` after
  *                              success
- * 
+ *
  * \retval PSA_SUCCESS
  *          Success.
  */
@@ -860,14 +860,14 @@ typedef psa_status_t (*pcd_hash_finish_t)(pcd_hash_context_t *p_context,
 
 /** \brief The function prototype for the abort operation of a hash (message
  * digest) operation
- * 
+ *
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
  * pcd_hash_<ALGO>_abort
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm
- * 
+ *
  * \param[in,out] p_context A hardware-specific structure for the previously
  *                          started hash operation to be aborted
  */
@@ -877,7 +877,7 @@ typedef void (*pcd_hash_abort_t)(pcd_hash_context_t *p_context);
 
 
 /** \defgroup opaque_asymmetric Opaque Asymmetric Cryptography
- * 
+ *
  * Since the amount of data that can (or should) be encrypted or signed using
  * asymmetric keys is limited by the key size, asymmetric key operations using
  * opaque keys must be done in single function calls.
@@ -1009,10 +1009,10 @@ typedef psa_status_t (*pcd_asymmetric_opaque_decrypt_t)(psa_key_slot_t key_slot,
 /**
  * \brief A struct containing all of the function pointers needed to implement
  * asymmetric cryptographic operations using opaque keys.
- * 
+ *
  * PSA Crypto API implementations should populate instances of the table as
  * appropriate upon startup.
- * 
+ *
  * If one of the functions is not implemented, it should be set to NULL.
  */
 struct pcd_asymmetric_opaque_t {
@@ -1040,14 +1040,14 @@ struct pcd_asymmetric_opaque_t {
 /**
  * \brief A function that signs a hash or short message with a transparent
  * asymmetric private key
- * 
+ *
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
  * pcd_asymmetric_<ALGO>_sign
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the signing algorithm
- * 
+ *
  * \param[in] p_key                 A buffer containing the private key
  *                                  material
  * \param[in] key_size              The size in bytes of the `p_key` data
@@ -1080,8 +1080,8 @@ typedef psa_status_t (*pcd_asymmetric_transparent_sign_t)(const uint8_t *p_key,
  * ~~~~~~~~~~~~~{.c}
  * pcd_asymmetric_<ALGO>_verify
  * ~~~~~~~~~~~~~
- * Where `ALGO` is the name of the signing algorithm 
- * 
+ * Where `ALGO` is the name of the signing algorithm
+ *
  * \param[in] p_key             A buffer containing the public key material
  * \param[in] key_size          The size in bytes of the `p_key` data
  * \param[in] alg               A signature algorithm that is compatible with
@@ -1113,7 +1113,7 @@ typedef psa_status_t (*pcd_asymmetric_transparent_verify_t)(const uint8_t *p_key
  * pcd_asymmetric_<ALGO>_encrypt
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the encryption algorithm
- * 
+ *
  * \param[in] p_key             A buffer containing the public key material
  * \param[in] key_size          The size in bytes of the `p_key` data
  * \param[in] alg               An asymmetric encryption algorithm that is
@@ -1159,7 +1159,7 @@ typedef psa_status_t (*pcd_asymmetric_transparent_encrypt_t)(const uint8_t *p_ke
  * pcd_asymmetric_<ALGO>_decrypt
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the encryption algorithm
- * 
+ *
  * \param[in] p_key             A buffer containing the private key material
  * \param[in] key_size          The size in bytes of the `p_key` data
  * \param[in] alg               An asymmetric encryption algorithm that is
@@ -1200,7 +1200,7 @@ typedef psa_status_t (*pcd_asymmetric_transparent_decrypt_t)(const uint8_t *p_ke
 
 /** \defgroup aead_opaque AEAD Opaque
  * Authenticated Encryption with Additional Data (AEAD) operations with opaque
- * keys must be done in one function call. While this creates a burden for 
+ * keys must be done in one function call. While this creates a burden for
  * implementers as there must be sufficient space in memory for the entire
  * message, it prevents decrypted data from being made available before the
  * authentication operation is complete and the data is known to be authentic.
@@ -1291,10 +1291,10 @@ typedef psa_status_t (*psa_aead_opaque_decrypt_t)(psa_key_slot_t key_slot,
 /**
  * \brief A struct containing all of the function pointers needed to implement
  * Authenticated Encryption with Additional Data operations using opaque keys
- * 
+ *
  * PSA Crypto API implementations should populate instances of the table as
  * appropriate upon startup.
- * 
+ *
  * If one of the functions is not implemented, it should be set to NULL.
  */
 struct psa_aead_opaque_t {
@@ -1306,7 +1306,7 @@ struct psa_aead_opaque_t {
 /**@}*/
 
 /** \defgroup aead_transparent AEAD Transparent
- * 
+ *
  * Authenticated Encryption with Additional Data (AEAD) operations with
  * transparent keys must be done in one function call. While this creates a
  * burden for implementers as there must be sufficient space in memory for the
@@ -1317,7 +1317,7 @@ struct psa_aead_opaque_t {
 /**@{*/
 
 /** Process an authenticated encryption operation using an opaque key.
- * 
+ *
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
@@ -1354,7 +1354,7 @@ struct psa_aead_opaque_t {
  *                                      the `ciphertext` buffer
  *
  * \retval #PSA_SUCCESS
- 
+
  */
 typedef psa_status_t (*psa_aead_transparent_encrypt_t)(const uint8_t *p_key,
                                                        size_t key_length,
@@ -1370,7 +1370,7 @@ typedef psa_status_t (*psa_aead_transparent_encrypt_t)(const uint8_t *p_key,
                                                        size_t *ciphertext_length);
 
 /** Process an authenticated decryption operation using an opaque key.
- * 
+ *
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
@@ -1433,7 +1433,7 @@ typedef struct pcd_entropy_context_s pcd_entropy_context_t;
 
 /** \brief Initialize an entropy driver
  *
- * 
+ *
  * \param[in,out] p_context             A hardware-specific structure
  *                                      containing any context information for
  *                                      the implementation
@@ -1443,7 +1443,7 @@ typedef struct pcd_entropy_context_s pcd_entropy_context_t;
 typedef psa_status_t (*pcd_entropy_init_t)(pcd_entropy_context_t *p_context);
 
 /** \brief Get a specified number of bits from the entropy source
- * 
+ *
  * It retrives `buffer_size` bytes of data from the entropy source. The entropy
  * source will always fill the provided buffer to its full size, however, most
  * entropy sources have biases, and the actual amount of entropy contained in
@@ -1456,7 +1456,7 @@ typedef psa_status_t (*pcd_entropy_init_t)(pcd_entropy_context_t *p_context);
  * To accomplish this, the PSA Crypto implementation should be designed to call
  * this function multiple times until it has received the required amount of
  * entropy from the entropy source.
- * 
+ *
  * \param[in,out] p_context                 A hardware-specific structure
  *                                          containing any context information
  *                                          for the implementation
@@ -1465,7 +1465,7 @@ typedef psa_status_t (*pcd_entropy_init_t)(pcd_entropy_context_t *p_context);
  * \param[in] buffer_size                   The allocated size of `p_buffer`
  * \param[out] p_received_entropy_bits      The amount of entropy (in bits)
  *                                          actually provided in `p_buffer`
- * 
+ *
  * \retval PSA_SUCCESS
  */
 typedef psa_status_t (*pcd_entropy_get_bits_t)(pcd_entropy_context_t *p_context,
@@ -1476,10 +1476,10 @@ typedef psa_status_t (*pcd_entropy_get_bits_t)(pcd_entropy_context_t *p_context,
 /**
  * \brief A struct containing all of the function pointers needed to interface
  * to an entropy source
- * 
+ *
  * PSA Crypto API implementations should populate instances of the table as
  * appropriate upon startup.
- * 
+ *
  * If one of the functions is not implemented, it should be set to NULL.
  */
 struct pcd_entropy_t {
@@ -1615,10 +1615,10 @@ typedef psa_status_t (*pcd_export_public_key_t)(psa_key_slot_t key,
 /**
  * \brief A struct containing all of the function pointers needed to for key
  * management using opaque keys
- * 
+ *
  * PSA Crypto API implementations should populate instances of the table as
  * appropriate upon startup.
- * 
+ *
  * If one of the functions is not implemented, it should be set to NULL.
  */
 struct pcd_key_management_t {
@@ -1643,14 +1643,14 @@ struct pcd_key_management_t {
  * material.
  * The flows are similar, and the PSA Crypto Driver API uses the same functions
  * for both of the flows.
- * 
+ *
  * There are two different final functions for the flows,
  * `pcd_key_derivation_derive` and `pcd_key_derivation_export`.
  * `pcd_key_derivation_derive` is used when the key material should be placed
  * in a slot on the hardware and not exposed to the caller.
  * `pcd_key_derivation_export` is used when the key material should be returned
  * to the PSA Cryptographic API implementation.
- * 
+ *
  * Different key derivation algorithms require a different number of inputs.
  * Instead of having an API that takes as input variable length arrays, which
  * can be problemmatic to manage on embedded platforms, the inputs are passed
@@ -1671,7 +1671,7 @@ struct pcd_key_management_t {
  *                               collateral_2_size);
  * pcd_key_derivation_derive();
  * ~~~~~~~~~~~~~
- * 
+ *
  * key agreement example:
  * ~~~~~~~~~~~~~{.c}
  * pcd_key_derivation_setup(alg, source_key. dest_key_size_bytes);
@@ -1684,7 +1684,7 @@ struct pcd_key_management_t {
 /**@{*/
 
 /** \brief The hardware-specific key derivation context structure
- * 
+ *
  * The contents of this structure are implementation dependent and are
  * therefore not described here
  */
@@ -1692,13 +1692,13 @@ typedef struct pcd_key_derivation_context_s pcd_key_derivation_context_t;
 
 /** \brief Set up a key derivation operation by specifying the algorithm and
  * the source key sot
- * 
+ *
  * \param[in,out] p_context A hardware-specific structure containing any
  *                          context information for the implementation
  * \param[in] kdf_alg       The algorithm to be used for the key derivation
  * \param[in] souce_key     The key to be used as the source material for the
  *                          key derivation
- * 
+ *
  * \retval PSA_SUCCESS
  */
 typedef psa_status_t (*pcd_key_derivation_setup_t)(pcd_key_derivation_context_t *p_context,
@@ -1707,17 +1707,17 @@ typedef psa_status_t (*pcd_key_derivation_setup_t)(pcd_key_derivation_context_t 
 
 /** \brief Provide collateral (parameters) needed for a key derivation or key
  * agreement operation
- * 
+ *
  * Since many key derivation algorithms require multiple parameters, it is
  * expeced that this function may be called multiple times for the same
  * operation, each with a different algorithm-specific `collateral_id`
- * 
+ *
  * \param[in,out] p_context     A hardware-specific structure containing any
  *                              context information for the implementation
  * \param[in] collateral_id     An ID for the collateral being provided
  * \param[in] p_collateral      A buffer containing the collateral data
  * \param[in] collateral_size   The size in bytes of the collateral
- * 
+ *
  * \retval PSA_SUCCESS
  */
 typedef psa_status_t (*pcd_key_derivation_collateral_t)(pcd_key_derivation_context_t *p_context,
@@ -1731,7 +1731,7 @@ typedef psa_status_t (*pcd_key_derivation_collateral_t)(pcd_key_derivation_conte
  *                              context information for the implementation
  * \param[in] dest_key          The slot where the generated key material
  *                              should be placed
- * 
+ *
  * \retval PSA_SUCCESS
  */
 typedef psa_status_t (*pcd_key_derivation_derive_t)(pcd_key_derivation_context_t *p_context,
@@ -1739,13 +1739,13 @@ typedef psa_status_t (*pcd_key_derivation_derive_t)(pcd_key_derivation_context_t
 
 /** \brief Perform the final step of a key agreement and place the generated
  * key material in a buffer
- * 
+ *
  * \param[out] p_output         Buffer in which to place the generated key
  *                              material
  * \param[in] output_size       The size in bytes of `p_output`
  * \param[out] p_output_length  Upon success, contains the number of bytes of
  *                              key material placed in `p_output`
- * 
+ *
  * \retval PSA_SUCCESS
  */
 typedef psa_status_t (*pcd_key_derivation_export_t)(uint8_t *p_output,
@@ -1755,10 +1755,10 @@ typedef psa_status_t (*pcd_key_derivation_export_t)(uint8_t *p_output,
 /**
  * \brief A struct containing all of the function pointers needed to for key
  * derivation and agreement
- * 
+ *
  * PSA Crypto API implementations should populate instances of the table as
  * appropriate upon startup.
- * 
+ *
  * If one of the functions is not implemented, it should be set to NULL.
  */
 struct pcd_key_derivation_t {

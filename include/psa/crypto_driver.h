@@ -52,16 +52,16 @@ typedef uint32_t psa_key_usage_t;
 /** \defgroup opaque_mac Opaque Message Authentication Code
  * Generation and authentication of Message Authentication Codes (MACs) using
  * opaque keys can be done either as a single function call (via the
- * `psa_drv_mac_opaque_generate_t` or `psa_mac_opaque_verify_t` functions), or in
+ * `psa_drv_mac_opaque_generate_t` or `psa_drv_mac_opaque_verify_t` functions), or in
  * parts using the following sequence:
- * - `psa_mac_opaque_setup_t`
- * - `psa_mac_opaque_update_t`
- * - `psa_mac_opaque_update_t`
+ * - `psa_drv_mac_opaque_setup_t`
+ * - `psa_drv_mac_opaque_update_t`
+ * - `psa_drv_mac_opaque_update_t`
  * - ...
- * - `psa_mac_opaque_finish_t` or `psa_mac_opaque_finish_verify_t`
+ * - `psa_drv_mac_opaque_finish_t` or `psa_drv_mac_opaque_finish_verify_t`
  *
  * If a previously started Opaque MAC operation needs to be terminated, it
- * should be done so by the `psa_mac_opaque_abort_t`. Failure to do so may
+ * should be done so by the `psa_drv_mac_opaque_abort_t`. Failure to do so may
  * result in allocated resources not being freed or in other undefined
  * behavior.
  */
@@ -242,16 +242,16 @@ typedef struct {
 /** \defgroup transparent_mac Transparent Message Authentication Code
  * Generation and authentication of Message Authentication Codes (MACs) using
  * transparent keys can be done either as a single function call (via the
- * `psa_drv_mac_transparent_generate_t` or `psa_mac_transparent_verify_t`
+ * `psa_drv_mac_transparent_generate_t` or `psa_drv_mac_transparent_verify_t`
  * functions), or in parts using the following sequence:
- * - `psa_mac_transparent_setup_t`
- * - `psa_mac_transparent_update_t`
- * - `psa_mac_transparent_update_t`
+ * - `psa_drv_mac_transparent_setup_t`
+ * - `psa_drv_mac_transparent_update_t`
+ * - `psa_drv_mac_transparent_update_t`
  * - ...
- * - `psa_mac_transparent_finish_t` or `psa_mac_transparent_finish_verify_t`
+ * - `psa_drv_mac_transparent_finish_t` or `psa_drv_mac_transparent_finish_verify_t`
  *
  * If a previously started Transparent MAC operation needs to be terminated, it
- * should be done so by the `psa_mac_transparent_abort_t`. Failure to do so may
+ * should be done so by the `psa_drv_mac_transparent_abort_t`. Failure to do so may
  * result in allocated resources not being freed or in other undefined
  * behavior.
  *
@@ -452,7 +452,7 @@ typedef psa_status_t (*psa_drv_mac_transparent_verify_t)(const uint8_t *p_input,
  * - `psa_drv_cipher_opaque_finish_t`
 
  * If a previously started Opaque Cipher operation needs to be terminated, it
- * should be done so by the `psa_cipher_opaque_abort_t`. Failure to do so may
+ * should be done so by the `psa_drv_cipher_opaque_abort_t`. Failure to do so may
  * result in allocated resources not being freed or in other undefined
  * behavior.
  *
@@ -628,7 +628,7 @@ typedef struct {
  * - `psa_drv_cipher_transparent_finish_t`
 
  * If a previously started Transparent Cipher operation needs to be terminated,
- * it should be done so by the `psa_cipher_transparent_abort_t`. Failure to do
+ * it should be done so by the `psa_drv_cipher_transparent_abort_t`. Failure to do
  * so may result in allocated resources not being freed or in other undefined
  * behavior.
  */
@@ -778,14 +778,14 @@ typedef psa_status_t (*psa_drv_cipher_transparent_abort_t)(psa_drv_cipher_transp
  *
  * Generation and authentication of Message Digests (aka hashes) must be done
  * in parts using the following sequence:
- * - `psa_hash_setup_t`
- * - `psa_hash_update_t`
+ * - `psa_drv_hash_setup_t`
+ * - `psa_drv_hash_update_t`
  * - ...
- * - `psa_hash_finish_t`
+ * - `psa_drv_hash_finish_t`
  *
  * If a previously started Message Digest operation needs to be terminated
- * before the `psa_hash_finish_t` operation is complete, it should be aborted
- * by the `psa_hash_abort_t`. Failure to do so may result in allocated
+ * before the `psa_drv_hash_finish_t` operation is complete, it should be aborted
+ * by the `psa_drv_hash_abort_t`. Failure to do so may result in allocated
  * resources not being freed or in other undefined behavior.
  */
 /**@{*/

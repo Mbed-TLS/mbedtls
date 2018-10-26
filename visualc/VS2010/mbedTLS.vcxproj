@@ -225,6 +225,7 @@
     <ClInclude Include="..\..\include\mbedtls\x509_csr.h" />
     <ClInclude Include="..\..\include\mbedtls\xtea.h" />
     <ClInclude Include="..\..\include\psa\crypto.h" />
+    <ClInclude Include="..\..\include\psa\crypto_driver.h" />
     <ClInclude Include="..\..\include\psa\crypto_extra.h" />
     <ClInclude Include="..\..\include\psa\crypto_platform.h" />
     <ClInclude Include="..\..\include\psa\crypto_sizes.h" />

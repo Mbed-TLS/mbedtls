@@ -223,7 +223,8 @@ int main( void )
 #define USAGE_PSK                                                       \
     "    psk=%%s              default: \"\" (in hex, without 0x)\n"     \
     "    psk_list=%%s         default: \"\"\n"                          \
-    "                          A list of (PSK identity, PSK value) pairs in (hex format, without 0x)\n" \
+    "                          A list of (PSK identity, PSK value) pairs.\n" \
+    "                          The PSK values are in hex, without 0x.\n" \
     "                          id1,psk1[,id2,psk2[,...]]\n"             \
     "    psk_identity=%%s     default: \"Client_identity\"\n"
 #else

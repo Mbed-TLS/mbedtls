@@ -207,7 +207,7 @@ typedef psa_status_t (*psa_drv_mac_opaque_verify_t)(const uint8_t *p_input,
  * `p_update` and at least one of `p_finish` or `p_finish_verify`).
  *
  */
-struct psa_drv_mac_opaque_t {
+typedef struct {
     /**The size in bytes of the hardware-specific Opaque-MAC Context structure
     */
     size_t                              context_size;
@@ -232,7 +232,7 @@ struct psa_drv_mac_opaque_t {
     /** Function that performs the MAC and verify operation in one call
      */
     psa_drv_mac_opaque_verify_t         *p_mac_verify;
-};
+} psa_drv_mac_opaque_t;
 /**@}*/
 
 /** \defgroup transparent_mac Transparent Message Authentication Code
@@ -590,7 +590,7 @@ typedef psa_status_t (*psa_drv_cipher_opaque_ecb_t)(psa_key_slot_t key_slot,
  * If one of the functions is not implemented (such as
  * `psa_drv_cipher_opaque_ecb_t`), it should be set to NULL.
  */
-struct psa_drv_cipher_opaque_t {
+typedef struct {
     /** The size in bytes of the hardware-specific Opaque Cipher context
      * structure
      */
@@ -610,7 +610,7 @@ struct psa_drv_cipher_opaque_t {
      * Crypto Client API)
      */
     psa_drv_cipher_opaque_ecb_t    *p_ecb;
-};
+} psa_drv_cipher_opaque_t;
 
 /**@}*/
 
@@ -1016,7 +1016,7 @@ typedef psa_status_t (*psa_drv_asymmetric_opaque_decrypt_t)(psa_key_slot_t key_s
  *
  * If one of the functions is not implemented, it should be set to NULL.
  */
-struct psa_drv_asymmetric_opaque_t {
+typedef struct {
     /** Function that performs the asymmetric sign operation */
     psa_drv_asymmetric_opaque_sign_t    *p_sign;
     /** Function that performs the asymmetric verify operation */
@@ -1025,7 +1025,7 @@ struct psa_drv_asymmetric_opaque_t {
     psa_drv_asymmetric_opaque_encrypt_t *p_encrypt;
     /** Function that performs the asymmetric decrypt operation */
     psa_drv_asymmetric_opaque_decrypt_t *p_decrypt;
-};
+} psa_drv_asymmetric_opaque_t;
 
 /**@}*/
 
@@ -1298,12 +1298,12 @@ typedef psa_status_t (*psa_drv_aead_opaque_decrypt_t)(psa_key_slot_t key_slot,
  *
  * If one of the functions is not implemented, it should be set to NULL.
  */
-struct psa_drv_aead_opaque_t {
+typedef struct {
     /** Function that performs the AEAD encrypt operation */
     psa_drv_aead_opaque_encrypt_t *p_encrypt;
     /** Function that performs the AEAD decrypt operation */
     psa_drv_aead_opaque_decrypt_t *p_decrypt;
-};
+} psa_drv_aead_opaque_t;
 /**@}*/
 
 /** \defgroup aead_transparent AEAD Transparent
@@ -1483,13 +1483,13 @@ typedef psa_status_t (*psa_drv_entropy_get_bits_t)(psa_drv_entropy_context_t *p_
  *
  * If one of the functions is not implemented, it should be set to NULL.
  */
-struct psa_drv_entropy_t {
+typedef struct {
     /** Function that performs initialization for the entropy source */
     psa_drv_entropy_init_t *p_init;
     /** Function that performs the get_bits operation for the entropy source
     */
     psa_drv_entropy_get_bits_t *p_get_bits;
-};
+} psa_drv_entropy_t;
 /**@}*/
 
 /** \defgroup driver_key_management Key Management
@@ -1622,7 +1622,7 @@ typedef psa_status_t (*psa_drv_export_public_key_t)(psa_key_slot_t key,
  *
  * If one of the functions is not implemented, it should be set to NULL.
  */
-struct psa_drv_key_management_t {
+typedef struct {
     /** Function that performs the key import operation */
     psa_drv_opaque_import_key_t *p_import;
     /** Function that performs the key destroy operation */
@@ -1631,7 +1631,7 @@ struct psa_drv_key_management_t {
     psa_drv_export_key_t        *p_export;
     /** Function that perforsm the public key export operation */
     psa_drv_export_public_key_t *p_export_public;
-};
+} psa_drv_key_management_t;
 
 /**@}*/
 
@@ -1762,7 +1762,7 @@ typedef psa_status_t (*psa_drv_key_derivation_export_t)(uint8_t *p_output,
  *
  * If one of the functions is not implemented, it should be set to NULL.
  */
-struct psa_drv_key_derivation_t {
+typedef struct {
     /** Function that performs the key derivation setup */
     psa_drv_key_derivation_setup_t      *p_setup;
     /** Function that sets the key derivation collateral */
@@ -1772,7 +1772,7 @@ struct psa_drv_key_derivation_t {
     /** Function that perforsm the final key derivation or agreement and
      * exports the key */
     psa_drv_key_derivation_export_t     *p_export;
-};
+} psa_drv_key_derivation_t;
 
 /**@}*/
 

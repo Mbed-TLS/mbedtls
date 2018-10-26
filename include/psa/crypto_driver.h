@@ -684,7 +684,7 @@ typedef psa_status_t (*pcd_cipher_transparent_setup_t)(pcd_cipher_transparent_co
  * \param[in] iv_length         The size in bytes of the contents of `p_iv`
  *
  * \retval PSA_SUCCESS
-*/
+ */
 typedef psa_status_t (*pcd_cipher_transparent_set_iv_t)(pcd_cipher_transparent_context_t *p_context,
                                                         const uint8_t *p_iv,
                                                         size_t iv_length);
@@ -723,7 +723,7 @@ typedef psa_status_t (*pcd_cipher_transparent_update_t)(pcd_cipher_transparent_c
 
 /** \brief The function prototype for the finish operation of transparent-key
  * block cipher operations.
-*
+ *
  *  Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}

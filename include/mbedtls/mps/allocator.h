@@ -25,16 +25,13 @@
 #ifndef MBEDTLS_MPS_ALLOCATOR_H
 #define MBEDTLS_MPS_ALLOCATOR_H
 
+#include "error.h"
+
 #include <stdio.h>
 #include <stdint.h>
 
 struct mps_alloc;
 typedef struct mps_alloc mps_alloc;
-
-/* TODO: Integrate MPS error codes with rest of the library. */
-#define MPS_ERR_ALLOC_OUT_OF_SPACE    0x1
-#define MPS_ERR_ALLOC_NOT_ALLOCATED   0x2
-#define MPS_ERR_ALLOC_INVALID_PURPOSE 0x3
 
 typedef enum
 {

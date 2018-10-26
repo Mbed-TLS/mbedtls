@@ -25,8 +25,11 @@
 #define MBEDTLS_MPS_RECORD_LAYER_H
 
 #include "layer1.h"
+
 #include "reader.h"
 #include "writer.h"
+
+#include "error.h"
 #include "transform.h"
 
 #include <stdint.h>
@@ -49,34 +52,6 @@
 
 #define MPS_L2_EPOCH_WINDOW_SIZE 2 /* 2 should be sufficient -- test and reduce! */
 
-/*
- * Layer 2 specific error codes
- */
-
-#define MPS_ERR_ALLOC_FAILED           -0x1a /*!< A request for dynamic memory
-                                              *  allocation failed.           */
-#define MPS_ERR_UNEXPECTED_OPERATION   -0x17 /*!< The requested operation cannot
-                                              *  be performed in the current
-                                              *  state of the Layer 2 context.*/
-#define MPS_ERR_INVALID_CONTENT_MERGE  -0x52
-#define MPS_ERR_TYPE_CANT_BE_PAUSED    -0x1b
-#define MPS_ERR_PAUSE_REFUSED          -0x18
-#define MPS_ERR_MULTIPLE_PAUSING       -0x19
-#define MPS_ERR_COUNTER_WRAP           -0x15 /*!< The record sequence number be increased
-                                              *   because it would wrap.                   */
-#define MPS_ERR_REPLAYED_RECORD        -0x17
-#define MPS_ERR_INVALID_ARGS           -0x28 /*!< The parameter validation failed.         */
-#define MPS_ERR_INVALID_RECORD         -0x321  /*!< The record header is invalid.            */
-#define MPS_ERR_INVALID_MAC            -0x33  /*!< The record MAC is invalid.               */
-#define MPS_ERR_INVALID_EPOCH          -0x42  /*!< The record header is invalid.            */
-#define MPS_ERR_EPOCH_CHANGE_REJECTED  -0x6  /*!< The current epoch couldn't be changed.   */
-#define MPS_ERR_EPOCH_ALREADY_SET      -0x7  /*!< The epoch under consideration has already
-                                              *   been configured.                         */
-#define MPS_ERR_EPOCH_WINDOW_EXCEEDED  -0x7  /*!< The epoch under consideration exceeds the
-                                              *   current epoch window.                    */
-#define MPS_ERR_EPOCH_OVERFLOW         -0xa  /*!< The epoch under consideration exceeds the
-                                              *   current epoch window.                    */
-#define MPS_ERR_CONTINUE_PROCESSING    -0x123
 
 /*
  * Compile-time configuration for Layer 2

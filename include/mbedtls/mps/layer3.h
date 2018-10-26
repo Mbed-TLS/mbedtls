@@ -25,9 +25,14 @@
 #define MBEDTLS_MPS_MESSAGE_EXTRACTION_LAYER_H
 
 #include <stdint.h>
+
 #include "reader.h"
 #include "writer.h"
+
 #include "layer2.h"
+
+#include "transform.h"
+#include "error.h"
 
 /*
  * Layer 3 compile-time configuration
@@ -53,28 +58,6 @@
 #define MPS_L3_MODE_STREAM   MBEDTLS_SSL_TRANSPORT_STREAM
 /** The mode for Layer 3 contexts implementing the DTLS protocol.  */
 #define MPS_L3_MODE_DATAGRAM MBEDTLS_SSL_TRANSPORT_DATAGRAM
-
-/*
- * Layer 3 specific error codes
- */
-
-#define MPS_ERR_INCONSISTENT_ARGS -0x123 /*!< The handshake parameters don't
-                                          *   match those from the currently
-                                          *   paused outgoing handshake
-                                          *   message.                       */
-#define MPS_ERR_NO_INTERLEAVING   -0x124 /*!< A request was made to send
-                                          *   non-handshake data while an
-                                          *   an outgoing handshake message
-                                          *   was paused.                    */
-#define MPS_ERR_UNFINISHED_HS_MSG -0x112 /*!< A request was made to finish
-                                          *   the writing of a handshake
-                                          *   message before as much data had
-                                          *   been written to it as indicated
-                                          *   in the handshake message length
-                                          *   specified in the initial call
-                                          *   to mps_l3_write_handshake().   */
-#define MPS_ERR_BAD_MSG           -0x124 /*!< A handshake message with invalid
-                                              handshake header was received. */
 
 typedef uint8_t mps_hs_type;
 

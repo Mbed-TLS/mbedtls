@@ -28,6 +28,7 @@
 #include <stdint.h>
 
 #include "allocator.h"
+#include "error.h"
 
 /*
  * External interface to layer 0
@@ -499,27 +500,6 @@ typedef struct mps_l1 mps_l1;
 #define MPS_L1_ALLOC_ID_MASK      0x1
 #define MPS_L1_ALLOC_BUFFER_READ  0
 #define MPS_L1_ALLOC_BUFFER_WRITE 1
-
-/*
- * Error codes
- */
-
-#define MPS_ERR_EOF                   -0x01
-#define MPS_ERR_WANT_READ             -0x02 /*!< The underlying transport
-                                             *   does not have enough incoming
-                                             *   data available to perform the
-                                             *   requested read operation.    */
-#define MPS_ERR_WANT_WRITE            -0x03 /*!< The underlying transport is
-                                             *   unavailable perform the
-                                             *   request send operation.      */
-#define MPS_ERR_NO_DATA               -0x7
-#define MPS_ERR_UNSUPPORTED_FEATURE   -0x12
-#define MPS_ERR_BUFFER_TOO_SMALL      -0x13
-#define MPS_ERR_INTERNAL_ERROR        -0x14
-#define MPS_ERR_REQUEST_OUT_OF_BOUNDS -0x15
-#define MPS_ERR_INVALID_PARAMS        -0x16
-#define MPS_ERR_UNEXPECTED_OPERATION  -0x17
-#define MPS_ERR_INCONSISTENT_READ     -0x18
 
 /*
  * Maintenance

@@ -26,45 +26,12 @@
 
 #include "transport.h"
 #include "transform.h"
+#include "error.h"
 #include "reader.h"
 #include "writer.h"
 #include "layer3.h"
 
 #include "../timing.h"
-
-/**
- * MPS-specific error codes
- */
-/* TODO: Put proper error code constants in here. */
-#define MBEDTLS_ERR_MPS_RETRY_ON_CONDITION    -0x01
-#define MBEDTLS_ERR_MPS_NO_FORWARD            -0x02
-#define MBEDTLS_ERR_MPS_WRITE_PORT_ACTIVE     -0x03
-#define MBEDTLS_ERR_MPS_BLOCKED               -0x04
-#define MBEDTLS_ERR_MPS_TIMEOUT               -0x05
-#define MBEDTLS_ERR_MPS_INVALID_ALERT         -0x06
-#define MBEDTLS_ERR_MPS_FATAL_ALERT           -0x07
-#define MBEDTLS_ERR_MPS_INTERNAL_ERROR        -0x08
-#define MBEDTLS_ERR_MPS_PORT_NOT_ACTIVE       -0x09
-#define MBEDTLS_ERR_MPS_REQUEST_TOO_LARGE     -0x09
-#define MBEDTLS_ERR_MPS_DOUBLE_REQUEST        -0x0a
-#define MBEDTLS_ERR_MPS_OPERATION_UNSUPPORTED -0x0b
-#define MBEDTLS_ERR_MPS_OPTION_UNSUPPORTED    -0x0c
-#define MBEDTLS_ERR_MPS_OPTION_SET            -0x0d
-#define MBEDTLS_ERR_MPS_PARAM_MISSING         -0x0e
-#define MBEDTLS_ERR_MPS_PARAM_MISMATCH        -0x0f
-#define MBEDTLS_ERR_MPS_UNEXPECTED_FLIGHT     -0x10
-#define MBEDTLS_ERR_MPS_NO_PROGRESS           -0x11
-#define MBEDTLS_ERR_MPS_NOT_BLOCKED           -0x12
-#define MBEDTLS_ERR_MPS_UNTRACKED_DIGEST      -0x13
-#define MBEDTLS_ERR_MPS_CLOSE_NOTIFY          -0x14
-#define MBEDTLS_ERR_MPS_FATAL_ALERT_RECEIVED  -0x15
-#define MBEDTLS_ERR_MPS_BAD_EPOCH             -0x16
-#define MBEDTLS_ERR_MPS_BAD_FRAGMENTATION     -0x1b
-#define MBEDTLS_ERR_MPS_FLIGHT_RETRANSMISSION -0x17
-#define MBEDTLS_ERR_MPS_FLIGHT_TOO_LONG       -0x18
-#define MBEDTLS_ERR_MPS_COUNTER_WRAP          -0x1a
-#define MBEDTLS_ERR_MPS_OUT_OF_MEMORY         -0x19
-#define MBEDTLS_ERR_MPS_REASSEMBLY_PENDING    -0x1b
 
 #define MBEDTLS_MPS_MODE_STREAM   MBEDTLS_SSL_TRANSPORT_STREAM
 #define MBEDTLS_MPS_MODE_DATAGRAM MBEDTLS_SSL_TRANSPORT_DATAGRAM

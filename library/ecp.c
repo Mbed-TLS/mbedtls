@@ -248,9 +248,16 @@ int mbedtls_ecp_check_budget( const mbedtls_ecp_group *grp,
         else if( grp->pbits >= 384 )
             ops *= 2;
 
-        /* avoid infinite loops: always allow first step */
-        if( rs_ctx->ops_done != 0 && rs_ctx->ops_done + ops > ecp_max_ops )
+        /* Avoid infinite loops: always allow first step.
+         * Because of that, however, it's not generally true
+         * that ops_done <= ecp_max_ops, so the check
+         * ops_done > ecp_max_ops below is mandatory. */
+        if( ( rs_ctx->ops_done != 0 ) &&
+            ( rs_ctx->ops_done > ecp_max_ops ||
+              ops > ecp_max_ops - rs_ctx->ops_done ) )
+        {
             return( MBEDTLS_ERR_ECP_IN_PROGRESS );
+        }
 
         /* update running count */
         rs_ctx->ops_done += ops;

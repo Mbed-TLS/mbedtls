@@ -42,7 +42,6 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/bignum.h"
-#include "mbedtls/x509.h"
 #include "mbedtls/rsa.h"
 
 #include <stdio.h>

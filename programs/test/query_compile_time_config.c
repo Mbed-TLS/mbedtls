@@ -35,7 +35,7 @@
 #endif
 
 #define USAGE                                                                \
-    "usage: %s <MBEDTLS_CONFIG>\n\n"                                           \
+    "usage: %s <MBEDTLS_CONFIG>\n\n"                                         \
     "This program takes one command line argument which corresponds to\n"    \
     "the string representation of a Mbed TLS compile time configuration.\n"  \
     "The value 0 will be returned if this configuration is defined in the\n" \

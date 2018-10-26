@@ -25,8 +25,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-#ifndef __PSA_CRYPTO_DRIVER_H__
-#define __PSA_CRYPTO_DRIVER_H__
+#ifndef PSA_CRYPTO_DRIVER_H
+#define PSA_CRYPTO_DRIVER_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -1776,4 +1776,4 @@ struct psa_drv_key_derivation_t {
 
 /**@}*/
 
-#endif // __PSA_CRYPTO_DRIVER_H__
+#endif /* PSA_CRYPTO_DRIVER_H */

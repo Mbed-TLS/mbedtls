@@ -48,7 +48,7 @@ typedef uint32_t psa_key_usage_t;
 /** \defgroup opaque_mac Opaque Message Authentication Code
  * Generation and authentication of Message Authentication Codes (MACs) using
  * opaque keys can be done either as a single function call (via the
- * `pcd_mac_opaque_generate_t` or `psa_mac_opaque_verify_t` functions), or in
+ * `psa_drv_mac_opaque_generate_t` or `psa_mac_opaque_verify_t` functions), or in
  * parts using the following sequence:
  * - `psa_mac_opaque_setup_t`
  * - `psa_mac_opaque_update_t`
@@ -75,9 +75,9 @@ typedef uint32_t psa_key_usage_t;
  * \retval  PSA_SUCCESS
  *          Success.
  */
-typedef psa_status_t (*pcd_mac_opaque_setup_t)(void *p_context,
-                                               psa_key_slot_t key_slot,
-                                               psa_algorithm_t algorithm);
+typedef psa_status_t (*psa_drv_mac_opaque_setup_t)(void *p_context,
+                                                   psa_key_slot_t key_slot,
+                                                   psa_algorithm_t algorithm);
 
 /** \brief A function that continues a previously started MAC operation using
  * an opaque key
@@ -89,9 +89,9 @@ typedef psa_status_t (*pcd_mac_opaque_setup_t)(void *p_context,
  *                              to the MAC operation
  * \param[in] input_length  The size in bytes of the input message buffer
  */
-typedef psa_status_t (*pcd_mac_opaque_update_t)(void *p_context,
-                                                const uint8_t *p_input,
-                                                size_t input_length);
+typedef psa_status_t (*psa_drv_mac_opaque_update_t)(void *p_context,
+                                                    const uint8_t *p_input,
+                                                    size_t input_length);
 
 /** \brief a function that completes a previously started MAC operation by
  * returning the resulting MAC using an opaque key
@@ -109,10 +109,10 @@ typedef psa_status_t (*pcd_mac_opaque_update_t)(void *p_context,
  * \retval PSA_SUCCESS
  *          Success.
  */
-typedef psa_status_t (*pcd_mac_opaque_finish_t)(void *p_context,
-                                                uint8_t *p_mac,
-                                                size_t mac_size,
-                                                size_t *p_mac_length);
+typedef psa_status_t (*psa_drv_mac_opaque_finish_t)(void *p_context,
+                                                    uint8_t *p_mac,
+                                                    size_t mac_size,
+                                                    size_t *p_mac_length);
 
 /** \brief A function that completes a previously started MAC operation by
  * comparing the resulting MAC against a known value using an opaque key
@@ -130,16 +130,16 @@ typedef psa_status_t (*pcd_mac_opaque_finish_t)(void *p_context,
  *         The operation completed successfully, but the calculated MAC did
  *         not match the provided MAC
  */
-typedef psa_status_t (*pcd_mac_opaque_finish_verify_t)(void *p_context,
-                                                       const uint8_t *p_mac,
-                                                       size_t mac_length);
+typedef psa_status_t (*psa_drv_mac_opaque_finish_verify_t)(void *p_context,
+                                                           const uint8_t *p_mac,
+                                                           size_t mac_length);
 
 /** \brief A function that aborts a previous started opaque-key MAC operation
 
  * \param[in,out] p_context A hardware-specific structure for the previously
  *                          started MAC operation to be aborted
  */
-typedef psa_status_t (*pcd_mac_opaque_abort_t)(void *p_context);
+typedef psa_status_t (*psa_drv_mac_opaque_abort_t)(void *p_context);
 
 /** \brief A function that performs a MAC operation in one command and returns
  * the calculated MAC using an opaque key
@@ -158,13 +158,13 @@ typedef psa_status_t (*pcd_mac_opaque_abort_t)(void *p_context);
  * \retval PSA_SUCCESS
  *         Success.
  */
-typedef psa_status_t (*pcd_mac_opaque_generate_t)(const uint8_t *p_input,
-                                                  size_t input_length,
-                                                  psa_key_slot_t key_slot,
-                                                  psa_algorithm_t alg,
-                                                  uint8_t *p_mac,
-                                                  size_t mac_size,
-                                                  size_t *p_mac_length);
+typedef psa_status_t (*psa_drv_mac_opaque_generate_t)(const uint8_t *p_input,
+                                                      size_t input_length,
+                                                      psa_key_slot_t key_slot,
+                                                      psa_algorithm_t alg,
+                                                      uint8_t *p_mac,
+                                                      size_t mac_size,
+                                                      size_t *p_mac_length);
 
 /** \brief A function that performs an MAC operation in one command and
  * compare the resulting MAC against a known value using an opaque key
@@ -185,12 +185,12 @@ typedef psa_status_t (*pcd_mac_opaque_generate_t)(const uint8_t *p_input,
  *         The operation completed successfully, but the calculated MAC did
  *         not match the provided MAC
  */
-typedef psa_status_t (*pcd_mac_opaque_verify_t)(const uint8_t *p_input,
-                                                size_t input_length,
-                                                psa_key_slot_t key_slot,
-                                                psa_algorithm_t alg,
-                                                const uint8_t *p_mac,
-                                                size_t mac_length);
+typedef psa_status_t (*psa_drv_mac_opaque_verify_t)(const uint8_t *p_input,
+                                                    size_t input_length,
+                                                    psa_key_slot_t key_slot,
+                                                    psa_algorithm_t alg,
+                                                    const uint8_t *p_mac,
+                                                    size_t mac_length);
 
 /** \brief A struct containing all of the function pointers needed to
  * implement MAC operations using opaque keys.
@@ -199,7 +199,7 @@ typedef psa_status_t (*pcd_mac_opaque_verify_t)(const uint8_t *p_input,
  * upon startup.
  *
  * If one of the functions is not implemented (such as
- * `pcd_mac_opaque_generate_t`), it should be set to NULL.
+ * `psa_drv_mac_opaque_generate_t`), it should be set to NULL.
  *
  * Driver implementers should ensure that they implement all of the functions
  * that make sense for their hardware, and that they provide a full solution
@@ -207,38 +207,38 @@ typedef psa_status_t (*pcd_mac_opaque_verify_t)(const uint8_t *p_input,
  * `p_update` and at least one of `p_finish` or `p_finish_verify`).
  *
  */
-struct pcd_mac_opaque_t {
+struct psa_drv_mac_opaque_t {
     /**The size in bytes of the hardware-specific Opaque-MAC Context structure
     */
-    size_t                          context_size;
+    size_t                              context_size;
     /** Function that performs the setup operation
      */
-    pcd_mac_opaque_setup_t          *p_setup;
+    psa_drv_mac_opaque_setup_t          *p_setup;
     /** Function that performs the update operation
      */
-    pcd_mac_opaque_update_t         *p_update;
+    psa_drv_mac_opaque_update_t         *p_update;
     /** Function that completes the operation
      */
-    pcd_mac_opaque_finish_t         *p_finish;
+    psa_drv_mac_opaque_finish_t         *p_finish;
     /** Function that completed a MAC operation with a verify check
      */
-    pcd_mac_opaque_finish_verify_t  *p_finish_verify;
+    psa_drv_mac_opaque_finish_verify_t  *p_finish_verify;
     /** Function that aborts a previoustly started operation
      */
-    pcd_mac_opaque_abort_t          *p_abort;
+    psa_drv_mac_opaque_abort_t          *p_abort;
     /** Function that performs the MAC operation in one call
      */
-    pcd_mac_opaque_generate_t       *p_mac;
+    psa_drv_mac_opaque_generate_t       *p_mac;
     /** Function that performs the MAC and verify operation in one call
      */
-    pcd_mac_opaque_verify_t         *p_mac_verify;
+    psa_drv_mac_opaque_verify_t         *p_mac_verify;
 };
 /**@}*/
 
 /** \defgroup transparent_mac Transparent Message Authentication Code
  * Generation and authentication of Message Authentication Codes (MACs) using
  * transparent keys can be done either as a single function call (via the
- * `pcd_mac_transparent_generate_t` or `psa_mac_transparent_verify_t`
+ * `psa_drv_mac_transparent_generate_t` or `psa_mac_transparent_verify_t`
  * functions), or in parts using the following sequence:
  * - `psa_mac_transparent_setup_t`
  * - `psa_mac_transparent_update_t`
@@ -259,7 +259,7 @@ struct pcd_mac_opaque_t {
  * The contents of this structure are implementation dependent and are
  * therefore not described here.
  */
-typedef struct pcd_mac_transparent_context_s pcd_mac_transparent_context_t;
+typedef struct psa_drv_mac_transparent_context_s psa_drv_mac_transparent_context_t;
 
 /** \brief The function prototype for the setup operation of a
  * transparent-key MAC operation
@@ -267,7 +267,7 @@ typedef struct pcd_mac_transparent_context_s pcd_mac_transparent_context_t;
  *  Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_mac_transparent_<ALGO>_<MAC_VARIANT>_setup
+ * psa_drv_mac_transparent_<ALGO>_<MAC_VARIANT>_setup
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying primitive, and `MAC_VARIANT`
  * is the specific variant of a MAC operation (such as HMAC or CMAC)
@@ -281,9 +281,9 @@ typedef struct pcd_mac_transparent_context_s pcd_mac_transparent_context_t;
  * \retval  PSA_SUCCESS
  *          Success.
  */
-typedef psa_status_t (*pcd_mac_transparent_setup_t)(pcd_mac_transparent_context_t *p_context,
-                                                    const uint8_t *p_key,
-                                                    size_t key_length);
+typedef psa_status_t (*psa_drv_mac_transparent_setup_t)(psa_drv_mac_transparent_context_t *p_context,
+                                                        const uint8_t *p_key,
+                                                        size_t key_length);
 
 /** \brief The function prototype for the update operation of a
  * transparent-key MAC operation
@@ -291,7 +291,7 @@ typedef psa_status_t (*pcd_mac_transparent_setup_t)(pcd_mac_transparent_context_
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_mac_transparent_<ALGO>_<MAC_VARIANT>_update
+ * psa_drv_mac_transparent_<ALGO>_<MAC_VARIANT>_update
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT`
  * is the specific variant of a MAC operation (such as HMAC or CMAC)
@@ -303,9 +303,9 @@ typedef psa_status_t (*pcd_mac_transparent_setup_t)(pcd_mac_transparent_context_
  *                              to the MAC operation
  * \param[in] input_length      The size in bytes of the input message buffer
  */
-typedef psa_status_t (*pcd_mac_transparent_update_t)(pcd_mac_transparent_context_t *p_context,
-                                                     const uint8_t *p_input,
-                                                     size_t input_length);
+typedef psa_status_t (*psa_drv_mac_transparent_update_t)(psa_drv_mac_transparent_context_t *p_context,
+                                                         const uint8_t *p_input,
+                                                         size_t input_length);
 
 /** \brief  The function prototype for the finish operation of a
  * transparent-key MAC operation
@@ -313,7 +313,7 @@ typedef psa_status_t (*pcd_mac_transparent_update_t)(pcd_mac_transparent_context
  * Functions that implement the prototype should be named in the following
  *  convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_mac_transparent_<ALGO>_<MAC_VARIANT>_finish
+ * psa_drv_mac_transparent_<ALGO>_<MAC_VARIANT>_finish
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
@@ -328,9 +328,9 @@ typedef psa_status_t (*pcd_mac_transparent_update_t)(pcd_mac_transparent_context
  * \retval PSA_SUCCESS
  *          Success.
  */
-typedef psa_status_t (*pcd_mac_transparent_finish_t)(pcd_mac_transparent_context_t *p_context,
-                                                     uint8_t *p_mac,
-                                                     size_t mac_length);
+typedef psa_status_t (*psa_drv_mac_transparent_finish_t)(psa_drv_mac_transparent_context_t *p_context,
+                                                         uint8_t *p_mac,
+                                                         size_t mac_length);
 
 /** \brief The function prototype for the finish and verify operation of a
  * transparent-key MAC operation
@@ -338,7 +338,7 @@ typedef psa_status_t (*pcd_mac_transparent_finish_t)(pcd_mac_transparent_context
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_mac_transparent_<ALGO>_<MAC_VARIANT>_finish_verify
+ * psa_drv_mac_transparent_<ALGO>_<MAC_VARIANT>_finish_verify
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
@@ -354,9 +354,9 @@ typedef psa_status_t (*pcd_mac_transparent_finish_t)(pcd_mac_transparent_context
  * \retval PSA_SUCCESS
  *          The operation completed successfully and the comparison matched
  */
-typedef psa_status_t (*pcd_mac_transparent_finish_verify_t)(pcd_mac_transparent_context_t *p_context,
-                                                            const uint8_t *p_mac,
-                                                            size_t mac_length);
+typedef psa_status_t (*psa_drv_mac_transparent_finish_verify_t)(psa_drv_mac_transparent_context_t *p_context,
+                                                                const uint8_t *p_mac,
+                                                                size_t mac_length);
 
 /** \brief The function prototype for the abort operation for a previously
  * started transparent-key MAC operation
@@ -364,7 +364,7 @@ typedef psa_status_t (*pcd_mac_transparent_finish_verify_t)(pcd_mac_transparent_
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_mac_transparent_<ALGO>_<MAC_VARIANT>_abort
+ * psa_drv_mac_transparent_<ALGO>_<MAC_VARIANT>_abort
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
@@ -374,7 +374,7 @@ typedef psa_status_t (*pcd_mac_transparent_finish_verify_t)(pcd_mac_transparent_
  *                              aborted
  *
  */
-typedef psa_status_t (*pcd_mac_transparent_abort_t)(pcd_mac_transparent_context_t *p_context);
+typedef psa_status_t (*psa_drv_mac_transparent_abort_t)(psa_drv_mac_transparent_context_t *p_context);
 
 /** \brief The function prototype for a one-shot operation of a transparent-key
  * MAC operation
@@ -382,7 +382,7 @@ typedef psa_status_t (*pcd_mac_transparent_abort_t)(pcd_mac_transparent_context_
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_mac_transparent_<ALGO>_<MAC_VARIANT>
+ * psa_drv_mac_transparent_<ALGO>_<MAC_VARIANT>
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
@@ -397,13 +397,13 @@ typedef psa_status_t (*pcd_mac_transparent_abort_t)(pcd_mac_transparent_context_
  *                           upon success
  * \param[in] mac_length     The length in bytes of the `p_mac` buffer
  */
-typedef psa_status_t (*pcd_mac_transparent_t)(const uint8_t *p_input,
-                                              size_t input_length,
-                                              const uint8_t *p_key,
-                                              size_t key_length,
-                                              psa_algorithm_t alg,
-                                              uint8_t *p_mac,
-                                              size_t mac_length);
+typedef psa_status_t (*psa_drv_mac_transparent_t)(const uint8_t *p_input,
+                                                  size_t input_length,
+                                                  const uint8_t *p_key,
+                                                  size_t key_length,
+                                                  psa_algorithm_t alg,
+                                                  uint8_t *p_mac,
+                                                  size_t mac_length);
 
 /** \brief The function prototype for a one-shot operation of a transparent-key
  * MAC Verify operation
@@ -411,7 +411,7 @@ typedef psa_status_t (*pcd_mac_transparent_t)(const uint8_t *p_input,
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_mac_transparent_<ALGO>_<MAC_VARIANT>_verify
+ * psa_drv_mac_transparent_<ALGO>_<MAC_VARIANT>_verify
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm, and `MAC_VARIANT` is
  * the specific variant of a MAC operation (such as HMAC or CMAC)
@@ -428,24 +428,24 @@ typedef psa_status_t (*pcd_mac_transparent_t)(const uint8_t *p_input,
  * \retval PSA_SUCCESS
  *  The operation completed successfully and the comparison matched
  */
-typedef psa_status_t (*pcd_mac_transparent_verify_t)(const uint8_t *p_input,
-                                                     size_t input_length,
-                                                     const uint8_t *p_key,
-                                                     size_t key_length,
-                                                     psa_algorithm_t alg,
-                                                     const uint8_t *p_mac,
-                                                     size_t mac_length);
+typedef psa_status_t (*psa_drv_mac_transparent_verify_t)(const uint8_t *p_input,
+                                                         size_t input_length,
+                                                         const uint8_t *p_key,
+                                                         size_t key_length,
+                                                         psa_algorithm_t alg,
+                                                         const uint8_t *p_mac,
+                                                         size_t mac_length);
 /**@}*/
 
 /** \defgroup opaque_cipher Opaque Symmetric Ciphers
  *
  * Encryption and Decryption using opaque keys in block modes other than ECB
  * must be done in multiple parts, using the following flow:
- * - `pcd_cipher_opaque_setup_t`
- * - `pcd_cipher_opaque_set_iv_t` (optional depending upon block mode)
- * - `pcd_cipher_opaque_update_t`
+ * - `psa_drv_cipher_opaque_setup_t`
+ * - `psa_drv_cipher_opaque_set_iv_t` (optional depending upon block mode)
+ * - `psa_drv_cipher_opaque_update_t`
  * - ...
- * - `pcd_cipher_opaque_finish_t`
+ * - `psa_drv_cipher_opaque_finish_t`
 
  * If a previously started Opaque Cipher operation needs to be terminated, it
  * should be done so by the `psa_cipher_opaque_abort_t`. Failure to do so may
@@ -454,7 +454,7 @@ typedef psa_status_t (*pcd_mac_transparent_verify_t)(const uint8_t *p_input,
  *
  * In situations where a PSA Cryptographic API implementation is using a block
  * mode not-supported by the underlying hardware or driver, it can construct
- * the block mode itself, while calling the `pcd_cipher_opaque_ecb_t` function
+ * the block mode itself, while calling the `psa_drv_cipher_opaque_ecb_t` function
  * pointer for the cipher operations.
  */
 /**@{*/
@@ -474,10 +474,10 @@ typedef psa_status_t (*pcd_mac_transparent_verify_t)(const uint8_t *p_input,
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_NOT_SUPPORTED
  */
-typedef psa_status_t (*pcd_cipher_opaque_setup_t)(void *p_context,
-                                                  psa_key_slot_t key_slot,
-                                                  psa_algorithm_t algorithm,
-                                                  encrypt_or_decrypt_t direction);
+typedef psa_status_t (*psa_drv_cipher_opaque_setup_t)(void *p_context,
+                                                      psa_key_slot_t key_slot,
+                                                      psa_algorithm_t algorithm,
+                                                      encrypt_or_decrypt_t direction);
 
 /** \brief A function pointer that sets the initialization vector (if
  * necessary) for an opaque cipher operation
@@ -494,9 +494,9 @@ typedef psa_status_t (*pcd_cipher_opaque_setup_t)(void *p_context,
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_cipher_opaque_set_iv_t)(void *p_context,
-                                                   const uint8_t *p_iv,
-                                                   size_t iv_length);
+typedef psa_status_t (*psa_drv_cipher_opaque_set_iv_t)(void *p_context,
+                                                       const uint8_t *p_iv,
+                                                       size_t iv_length);
 
 /** \brief A function that continues a previously started opaque-key cipher
  * operation
@@ -516,12 +516,12 @@ typedef psa_status_t (*pcd_cipher_opaque_set_iv_t)(void *p_context,
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_cipher_opaque_update_t)(void *p_context,
-                                                   const uint8_t *p_input,
-                                                   size_t input_size,
-                                                   uint8_t *p_output,
-                                                   size_t output_size,
-                                                   size_t *p_output_length);
+typedef psa_status_t (*psa_drv_cipher_opaque_update_t)(void *p_context,
+                                                       const uint8_t *p_input,
+                                                       size_t input_size,
+                                                       uint8_t *p_output,
+                                                       size_t output_size,
+                                                       size_t *p_output_length);
 
 /** \brief A function that completes a previously started opaque-key cipher
  * operation
@@ -537,10 +537,10 @@ typedef psa_status_t (*pcd_cipher_opaque_update_t)(void *p_context,
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_cipher_opaque_finish_t)(void *p_context,
-                                                   uint8_t *p_output,
-                                                   size_t output_size,
-                                                   size_t *p_output_length);
+typedef psa_status_t (*psa_drv_cipher_opaque_finish_t)(void *p_context,
+                                                       uint8_t *p_output,
+                                                       size_t output_size,
+                                                       size_t *p_output_length);
 
 /** \brief A function that aborts a previously started opaque-key cipher
  * operation
@@ -548,7 +548,7 @@ typedef psa_status_t (*pcd_cipher_opaque_finish_t)(void *p_context,
  * \param[in,out] p_context     A hardware-specific structure for the
  *                              previously started cipher operation
  */
-typedef psa_status_t (*pcd_cipher_opaque_abort_t)(void *p_context);
+typedef psa_status_t (*psa_drv_cipher_opaque_abort_t)(void *p_context);
 
 /** \brief A function that performs the ECB block mode for opaque-key cipher
  * operations
@@ -572,13 +572,13 @@ typedef psa_status_t (*pcd_cipher_opaque_abort_t)(void *p_context);
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_NOT_SUPPORTED
  */
-typedef psa_status_t (*pcd_cipher_opaque_ecb_t)(psa_key_slot_t key_slot,
-                                                psa_algorithm_t algorithm,
-                                                encrypt_or_decrypt_t direction,
-                                                const uint8_t *p_input,
-                                                size_t input_size,
-                                                uint8_t *p_output,
-                                                size_t output_size);
+typedef psa_status_t (*psa_drv_cipher_opaque_ecb_t)(psa_key_slot_t key_slot,
+                                                    psa_algorithm_t algorithm,
+                                                    encrypt_or_decrypt_t direction,
+                                                    const uint8_t *p_input,
+                                                    size_t input_size,
+                                                    uint8_t *p_output,
+                                                    size_t output_size);
 
 /**
  * \brief A struct containing all of the function pointers needed to implement
@@ -588,28 +588,28 @@ typedef psa_status_t (*pcd_cipher_opaque_ecb_t)(psa_key_slot_t key_slot,
  * appropriate upon startup.
  *
  * If one of the functions is not implemented (such as
- * `pcd_cipher_opaque_ecb_t`), it should be set to NULL.
+ * `psa_drv_cipher_opaque_ecb_t`), it should be set to NULL.
  */
-struct pcd_cipher_opaque_t {
+struct psa_drv_cipher_opaque_t {
     /** The size in bytes of the hardware-specific Opaque Cipher context
      * structure
      */
-    size_t                      size;
+    size_t                         size;
     /** Function that performs the setup operation */
-    pcd_cipher_opaque_setup_t  *p_setup;
+    psa_drv_cipher_opaque_setup_t  *p_setup;
     /** Function that sets the IV (if necessary) */
-    pcd_cipher_opaque_set_iv_t *p_set_iv;
+    psa_drv_cipher_opaque_set_iv_t *p_set_iv;
     /** Function that performs the update operation */
-    pcd_cipher_opaque_update_t *p_update;
+    psa_drv_cipher_opaque_update_t *p_update;
     /** Function that completes the operation */
-    pcd_cipher_opaque_finish_t *p_finish;
+    psa_drv_cipher_opaque_finish_t *p_finish;
     /** Function that aborts the operation */
-    pcd_cipher_opaque_abort_t  *p_abort;
+    psa_drv_cipher_opaque_abort_t  *p_abort;
     /** Function that performs ECB mode for the cipher
      * (Danger: ECB mode should not be used directly by clients of the PSA
      * Crypto Client API)
      */
-    pcd_cipher_opaque_ecb_t    *p_ecb;
+    psa_drv_cipher_opaque_ecb_t    *p_ecb;
 };
 
 /**@}*/
@@ -617,11 +617,11 @@ struct pcd_cipher_opaque_t {
 /** \defgroup transparent_cipher Transparent Block Cipher
  * Encryption and Decryption using transparent keys in block modes other than
  * ECB must be done in multiple parts, using the following flow:
- * - `pcd_cipher_transparent_setup_t`
- * - `pcd_cipher_transparent_set_iv_t` (optional depending upon block mode)
- * - `pcd_cipher_transparent_update_t`
+ * - `psa_drv_cipher_transparent_setup_t`
+ * - `psa_drv_cipher_transparent_set_iv_t` (optional depending upon block mode)
+ * - `psa_drv_cipher_transparent_update_t`
  * - ...
- * - `pcd_cipher_transparent_finish_t`
+ * - `psa_drv_cipher_transparent_finish_t`
 
  * If a previously started Transparent Cipher operation needs to be terminated,
  * it should be done so by the `psa_cipher_transparent_abort_t`. Failure to do
@@ -635,21 +635,21 @@ struct pcd_cipher_opaque_t {
  * The contents of this structure are implementation dependent and are
  * therefore not described here.
  */
-typedef struct pcd_cipher_transparent_context_s pcd_cipher_transparent_context_t;
+typedef struct psa_drv_cipher_transparent_context_s psa_drv_cipher_transparent_context_t;
 
 /** \brief The function prototype for the setup operation of transparent-key
  * block cipher operations.
  *  Functions that implement the prototype should be named in the following
  * conventions:
  * ~~~~~~~~~~~~~{.c}
- * pcd_cipher_transparent_setup_<CIPHER_NAME>_<MODE>
+ * psa_drv_cipher_transparent_setup_<CIPHER_NAME>_<MODE>
  * ~~~~~~~~~~~~~
  * Where
  * - `CIPHER_NAME` is the name of the underlying block cipher (i.e. AES or DES)
  * - `MODE` is the block mode of the cipher operation (i.e. CBC or CTR)
  * or for stream ciphers:
  * ~~~~~~~~~~~~~{.c}
- * pcd_cipher_transparent_setup_<CIPHER_NAME>
+ * psa_drv_cipher_transparent_setup_<CIPHER_NAME>
  * ~~~~~~~~~~~~~
  * Where `CIPHER_NAME` is the name of a stream cipher (i.e. RC4)
  *
@@ -663,17 +663,17 @@ typedef struct pcd_cipher_transparent_context_s pcd_cipher_transparent_context_t
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_cipher_transparent_setup_t)(pcd_cipher_transparent_context_t *p_context,
-                                                       encrypt_or_decrypt_t direction,
-                                                       const uint8_t *p_key_data,
-                                                       size_t key_data_size);
+typedef psa_status_t (*psa_drv_cipher_transparent_setup_t)(psa_drv_cipher_transparent_context_t *p_context,
+                                                           encrypt_or_decrypt_t direction,
+                                                           const uint8_t *p_key_data,
+                                                           size_t key_data_size);
 
 /** \brief The function prototype for the set initialization vector operation
  * of transparent-key block cipher operations
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_cipher_transparent_set_iv_<CIPHER_NAME>_<MODE>
+ * psa_drv_cipher_transparent_set_iv_<CIPHER_NAME>_<MODE>
  * ~~~~~~~~~~~~~
  * Where
  * - `CIPHER_NAME` is the name of the underlying block cipher (i.e. AES or DES)
@@ -686,9 +686,9 @@ typedef psa_status_t (*pcd_cipher_transparent_setup_t)(pcd_cipher_transparent_co
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_cipher_transparent_set_iv_t)(pcd_cipher_transparent_context_t *p_context,
-                                                        const uint8_t *p_iv,
-                                                        size_t iv_length);
+typedef psa_status_t (*psa_drv_cipher_transparent_set_iv_t)(psa_drv_cipher_transparent_context_t *p_context,
+                                                            const uint8_t *p_iv,
+                                                            size_t iv_length);
 
 /** \brief The function prototype for the update operation of transparent-key
  * block cipher operations.
@@ -696,7 +696,7 @@ typedef psa_status_t (*pcd_cipher_transparent_set_iv_t)(pcd_cipher_transparent_c
  *  Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_cipher_transparent_update_<CIPHER_NAME>_<MODE>
+ * psa_drv_cipher_transparent_update_<CIPHER_NAME>_<MODE>
  * ~~~~~~~~~~~~~
  * Where
  * - `CIPHER_NAME` is the name of the underlying block cipher (i.e. AES or DES)
@@ -715,12 +715,12 @@ typedef psa_status_t (*pcd_cipher_transparent_set_iv_t)(pcd_cipher_transparent_c
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_cipher_transparent_update_t)(pcd_cipher_transparent_context_t *p_context,
-                                                        const uint8_t *p_input,
-                                                        size_t input_size,
-                                                        uint8_t *p_output,
-                                                        size_t output_size,
-                                                        size_t *p_output_length);
+typedef psa_status_t (*psa_drv_cipher_transparent_update_t)(psa_drv_cipher_transparent_context_t *p_context,
+                                                            const uint8_t *p_input,
+                                                            size_t input_size,
+                                                            uint8_t *p_output,
+                                                            size_t output_size,
+                                                            size_t *p_output_length);
 
 /** \brief The function prototype for the finish operation of transparent-key
  * block cipher operations.
@@ -728,7 +728,7 @@ typedef psa_status_t (*pcd_cipher_transparent_update_t)(pcd_cipher_transparent_c
  *  Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_cipher_transparent_finish_<CIPHER_NAME>_<MODE>
+ * psa_drv_cipher_transparent_finish_<CIPHER_NAME>_<MODE>
  * ~~~~~~~~~~~~~
  * Where
  * - `CIPHER_NAME` is the name of the underlying block cipher (i.e. AES or DES)
@@ -744,10 +744,10 @@ typedef psa_status_t (*pcd_cipher_transparent_update_t)(pcd_cipher_transparent_c
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_cipher_transparent_finish_t)(pcd_cipher_transparent_context_t *p_context,
-                                                        uint8_t *p_output,
-                                                        size_t output_size,
-                                                        size_t *p_output_length);
+typedef psa_status_t (*psa_drv_cipher_transparent_finish_t)(psa_drv_cipher_transparent_context_t *p_context,
+                                                            uint8_t *p_output,
+                                                            size_t output_size,
+                                                            size_t *p_output_length);
 
 /** \brief The function prototype for the abort operation of transparent-key
  * block cipher operations.
@@ -755,7 +755,7 @@ typedef psa_status_t (*pcd_cipher_transparent_finish_t)(pcd_cipher_transparent_c
  *  Functions that implement the following prototype should be named in the
  * following convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_cipher_transparent_abort_<CIPHER_NAME>_<MODE>
+ * psa_drv_cipher_transparent_abort_<CIPHER_NAME>_<MODE>
  * ~~~~~~~~~~~~~
  * Where
  * - `CIPHER_NAME` is the name of the underlying block cipher (i.e. AES or DES)
@@ -766,7 +766,7 @@ typedef psa_status_t (*pcd_cipher_transparent_finish_t)(pcd_cipher_transparent_c
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_cipher_transparent_abort_t)(pcd_cipher_transparent_context_t *p_context);
+typedef psa_status_t (*psa_drv_cipher_transparent_abort_t)(psa_drv_cipher_transparent_context_t *p_context);
 
 /**@}*/
 
@@ -791,7 +791,7 @@ typedef psa_status_t (*pcd_cipher_transparent_abort_t)(pcd_cipher_transparent_co
  * The contents of this structure are implementation dependent and are
  * therefore not described here
  */
-typedef struct pcd_hash_context_s pcd_hash_context_t;
+typedef struct psa_drv_hash_context_s psa_drv_hash_context_t;
 
 /** \brief The function prototype for the start operation of a hash (message
  * digest) operation
@@ -799,7 +799,7 @@ typedef struct pcd_hash_context_s pcd_hash_context_t;
  *  Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_hash_<ALGO>_setup
+ * psa_drv_hash_<ALGO>_setup
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying hash function
  *
@@ -808,7 +808,7 @@ typedef struct pcd_hash_context_s pcd_hash_context_t;
  *
  * \retval  PSA_SUCCESS     Success.
  */
-typedef psa_status_t (*pcd_hash_setup_t)(pcd_hash_context_t *p_context);
+typedef psa_status_t (*psa_drv_hash_setup_t)(psa_drv_hash_context_t *p_context);
 
 /** \brief The function prototype for the update operation of a hash (message
  * digest) operation
@@ -816,7 +816,7 @@ typedef psa_status_t (*pcd_hash_setup_t)(pcd_hash_context_t *p_context);
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_hash_<ALGO>_update
+ * psa_drv_hash_<ALGO>_update
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm
  *
@@ -827,9 +827,9 @@ typedef psa_status_t (*pcd_hash_setup_t)(pcd_hash_context_t *p_context);
  *                              to the hash operation
  * \param[in] input_length      The size in bytes of the input message buffer
  */
-typedef psa_status_t (*pcd_hash_update_t)(pcd_hash_context_t *p_context,
-                                          const uint8_t *p_input,
-                                          size_t input_length);
+typedef psa_status_t (*psa_drv_hash_update_t)(psa_drv_hash_context_t *p_context,
+                                              const uint8_t *p_input,
+                                              size_t input_length);
 
 /** \brief  The prototype for the finish operation of a hash (message digest)
  * operation
@@ -837,7 +837,7 @@ typedef psa_status_t (*pcd_hash_update_t)(pcd_hash_context_t *p_context,
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_hash_<ALGO>_finish
+ * psa_drv_hash_<ALGO>_finish
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm
  *
@@ -854,10 +854,10 @@ typedef psa_status_t (*pcd_hash_update_t)(pcd_hash_context_t *p_context,
  * \retval PSA_SUCCESS
  *          Success.
  */
-typedef psa_status_t (*pcd_hash_finish_t)(pcd_hash_context_t *p_context,
-                                          uint8_t *p_output,
-                                          size_t output_size,
-                                          size_t *p_output_length);
+typedef psa_status_t (*psa_drv_hash_finish_t)(psa_drv_hash_context_t *p_context,
+                                              uint8_t *p_output,
+                                              size_t output_size,
+                                              size_t *p_output_length);
 
 /** \brief The function prototype for the abort operation of a hash (message
  * digest) operation
@@ -865,14 +865,14 @@ typedef psa_status_t (*pcd_hash_finish_t)(pcd_hash_context_t *p_context,
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_hash_<ALGO>_abort
+ * psa_drv_hash_<ALGO>_abort
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the underlying algorithm
  *
  * \param[in,out] p_context A hardware-specific structure for the previously
  *                          started hash operation to be aborted
  */
-typedef void (*pcd_hash_abort_t)(pcd_hash_context_t *p_context);
+typedef void (*psa_drv_hash_abort_t)(psa_drv_hash_context_t *p_context);
 
 /**@}*/
 
@@ -900,13 +900,13 @@ typedef void (*pcd_hash_abort_t)(pcd_hash_context_t *p_context);
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_asymmetric_opaque_sign_t)(psa_key_slot_t key_slot,
-                                                     psa_algorithm_t alg,
-                                                     const uint8_t *p_hash,
-                                                     size_t hash_length,
-                                                     uint8_t *p_signature,
-                                                     size_t signature_size,
-                                                     size_t *p_signature_length);
+typedef psa_status_t (*psa_drv_asymmetric_opaque_sign_t)(psa_key_slot_t key_slot,
+                                                         psa_algorithm_t alg,
+                                                         const uint8_t *p_hash,
+                                                         size_t hash_length,
+                                                         uint8_t *p_signature,
+                                                         size_t signature_size,
+                                                         size_t *p_signature_length);
 
 /**
  * \brief A function that verifies the signature a hash or short message using
@@ -924,12 +924,12 @@ typedef psa_status_t (*pcd_asymmetric_opaque_sign_t)(psa_key_slot_t key_slot,
  * \retval PSA_SUCCESS
  *         The signature is valid.
  */
-typedef psa_status_t (*pcd_asymmetric_opaque_verify_t)(psa_key_slot_t key_slot,
-                                                       psa_algorithm_t alg,
-                                                       const uint8_t *p_hash,
-                                                       size_t hash_length,
-                                                       const uint8_t *p_signature,
-                                                       size_t signature_length);
+typedef psa_status_t (*psa_drv_asymmetric_opaque_verify_t)(psa_key_slot_t key_slot,
+                                                           psa_algorithm_t alg,
+                                                           const uint8_t *p_hash,
+                                                           size_t hash_length,
+                                                           const uint8_t *p_signature,
+                                                           size_t signature_length);
 
 /**
  * \brief A function that encrypts a short message with an asymmetric public
@@ -960,15 +960,15 @@ typedef psa_status_t (*pcd_asymmetric_opaque_verify_t)(psa_key_slot_t key_slot,
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_asymmetric_opaque_encrypt_t)(psa_key_slot_t key_slot,
-                                                        psa_algorithm_t alg,
-                                                        const uint8_t *p_input,
-                                                        size_t input_length,
-                                                        const uint8_t *p_salt,
-                                                        size_t salt_length,
-                                                        uint8_t *p_output,
-                                                        size_t output_size,
-                                                        size_t *p_output_length);
+typedef psa_status_t (*psa_drv_asymmetric_opaque_encrypt_t)(psa_key_slot_t key_slot,
+                                                            psa_algorithm_t alg,
+                                                            const uint8_t *p_input,
+                                                            size_t input_length,
+                                                            const uint8_t *p_salt,
+                                                            size_t salt_length,
+                                                            uint8_t *p_output,
+                                                            size_t output_size,
+                                                            size_t *p_output_length);
 
 /**
  * \brief Decrypt a short message with an asymmetric private key.
@@ -997,15 +997,15 @@ typedef psa_status_t (*pcd_asymmetric_opaque_encrypt_t)(psa_key_slot_t key_slot,
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_asymmetric_opaque_decrypt_t)(psa_key_slot_t key_slot,
-                                                        psa_algorithm_t alg,
-                                                        const uint8_t *p_input,
-                                                        size_t input_length,
-                                                        const uint8_t *p_salt,
-                                                        size_t salt_length,
-                                                        uint8_t *p_output,
-                                                        size_t output_size,
-                                                        size_t *p_output_length);
+typedef psa_status_t (*psa_drv_asymmetric_opaque_decrypt_t)(psa_key_slot_t key_slot,
+                                                            psa_algorithm_t alg,
+                                                            const uint8_t *p_input,
+                                                            size_t input_length,
+                                                            const uint8_t *p_salt,
+                                                            size_t salt_length,
+                                                            uint8_t *p_output,
+                                                            size_t output_size,
+                                                            size_t *p_output_length);
 
 /**
  * \brief A struct containing all of the function pointers needed to implement
@@ -1016,15 +1016,15 @@ typedef psa_status_t (*pcd_asymmetric_opaque_decrypt_t)(psa_key_slot_t key_slot,
  *
  * If one of the functions is not implemented, it should be set to NULL.
  */
-struct pcd_asymmetric_opaque_t {
+struct psa_drv_asymmetric_opaque_t {
     /** Function that performs the asymmetric sign operation */
-    pcd_asymmetric_opaque_sign_t    *p_sign;
+    psa_drv_asymmetric_opaque_sign_t    *p_sign;
     /** Function that performs the asymmetric verify operation */
-    pcd_asymmetric_opaque_verify_t  *p_verify;
+    psa_drv_asymmetric_opaque_verify_t  *p_verify;
     /** Function that performs the asymmetric encrypt operation */
-    pcd_asymmetric_opaque_encrypt_t *p_encrypt;
+    psa_drv_asymmetric_opaque_encrypt_t *p_encrypt;
     /** Function that performs the asymmetric decrypt operation */
-    pcd_asymmetric_opaque_decrypt_t *p_decrypt;
+    psa_drv_asymmetric_opaque_decrypt_t *p_decrypt;
 };
 
 /**@}*/
@@ -1045,7 +1045,7 @@ struct pcd_asymmetric_opaque_t {
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_asymmetric_<ALGO>_sign
+ * psa_drv_asymmetric_<ALGO>_sign
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the signing algorithm
  *
@@ -1063,14 +1063,14 @@ struct pcd_asymmetric_opaque_t {
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_asymmetric_transparent_sign_t)(const uint8_t *p_key,
-                                                          size_t key_size,
-                                                          psa_algorithm_t alg,
-                                                          const uint8_t *p_hash,
-                                                          size_t hash_length,
-                                                          uint8_t *p_signature,
-                                                          size_t signature_size,
-                                                          size_t *p_signature_length);
+typedef psa_status_t (*psa_drv_asymmetric_transparent_sign_t)(const uint8_t *p_key,
+                                                              size_t key_size,
+                                                              psa_algorithm_t alg,
+                                                              const uint8_t *p_hash,
+                                                              size_t hash_length,
+                                                              uint8_t *p_signature,
+                                                              size_t signature_size,
+                                                              size_t *p_signature_length);
 
 /**
  * \brief A function that verifies the signature a hash or short message using
@@ -1079,7 +1079,7 @@ typedef psa_status_t (*pcd_asymmetric_transparent_sign_t)(const uint8_t *p_key,
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_asymmetric_<ALGO>_verify
+ * psa_drv_asymmetric_<ALGO>_verify
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the signing algorithm
  *
@@ -1096,13 +1096,13 @@ typedef psa_status_t (*pcd_asymmetric_transparent_sign_t)(const uint8_t *p_key,
  * \retval PSA_SUCCESS
  *         The signature is valid.
  */
-typedef psa_status_t (*pcd_asymmetric_transparent_verify_t)(const uint8_t *p_key,
-                                                            size_t key_size,
-                                                            psa_algorithm_t alg,
-                                                            const uint8_t *p_hash,
-                                                            size_t hash_length,
-                                                            const uint8_t *p_signature,
-                                                            size_t signature_length);
+typedef psa_status_t (*psa_drv_asymmetric_transparent_verify_t)(const uint8_t *p_key,
+                                                                size_t key_size,
+                                                                psa_algorithm_t alg,
+                                                                const uint8_t *p_hash,
+                                                                size_t hash_length,
+                                                                const uint8_t *p_signature,
+                                                                size_t signature_length);
 
 /**
  * \brief A function that encrypts a short message with a transparent
@@ -1111,7 +1111,7 @@ typedef psa_status_t (*pcd_asymmetric_transparent_verify_t)(const uint8_t *p_key
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_asymmetric_<ALGO>_encrypt
+ * psa_drv_asymmetric_<ALGO>_encrypt
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the encryption algorithm
  *
@@ -1140,16 +1140,16 @@ typedef psa_status_t (*pcd_asymmetric_transparent_verify_t)(const uint8_t *p_key
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_asymmetric_transparent_encrypt_t)(const uint8_t *p_key,
-                                                             size_t key_size,
-                                                             psa_algorithm_t alg,
-                                                             const uint8_t *p_input,
-                                                             size_t input_length,
-                                                             const uint8_t *p_salt,
-                                                             size_t salt_length,
-                                                             uint8_t *p_output,
-                                                             size_t output_size,
-                                                             size_t *p_output_length);
+typedef psa_status_t (*psa_drv_asymmetric_transparent_encrypt_t)(const uint8_t *p_key,
+                                                                 size_t key_size,
+                                                                 psa_algorithm_t alg,
+                                                                 const uint8_t *p_input,
+                                                                 size_t input_length,
+                                                                 const uint8_t *p_salt,
+                                                                 size_t salt_length,
+                                                                 uint8_t *p_output,
+                                                                 size_t output_size,
+                                                                 size_t *p_output_length);
 
 /**
  * \brief Decrypt a short message with a transparent asymmetric private key
@@ -1157,7 +1157,7 @@ typedef psa_status_t (*pcd_asymmetric_transparent_encrypt_t)(const uint8_t *p_ke
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_asymmetric_<ALGO>_decrypt
+ * psa_drv_asymmetric_<ALGO>_decrypt
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the encryption algorithm
  *
@@ -1186,16 +1186,16 @@ typedef psa_status_t (*pcd_asymmetric_transparent_encrypt_t)(const uint8_t *p_ke
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_asymmetric_transparent_decrypt_t)(const uint8_t *p_key,
-                                                             size_t key_size,
-                                                             psa_algorithm_t alg,
-                                                             const uint8_t *p_input,
-                                                             size_t input_length,
-                                                             const uint8_t *p_salt,
-                                                             size_t salt_length,
-                                                             uint8_t *p_output,
-                                                             size_t output_size,
-                                                             size_t *p_output_length);
+typedef psa_status_t (*psa_drv_asymmetric_transparent_decrypt_t)(const uint8_t *p_key,
+                                                                 size_t key_size,
+                                                                 psa_algorithm_t alg,
+                                                                 const uint8_t *p_input,
+                                                                 size_t input_length,
+                                                                 const uint8_t *p_salt,
+                                                                 size_t salt_length,
+                                                                 uint8_t *p_output,
+                                                                 size_t output_size,
+                                                                 size_t *p_output_length);
 
 /**@}*/
 
@@ -1237,17 +1237,17 @@ typedef psa_status_t (*pcd_asymmetric_transparent_decrypt_t)(const uint8_t *p_ke
  * \retval #PSA_SUCCESS
  *         Success.
  */
-typedef psa_status_t (*pcd_aead_opaque_encrypt_t)(psa_key_slot_t key_slot,
-                                                  psa_algorithm_t algorithm,
-                                                  const uint8_t *p_nonce,
-                                                  size_t nonce_length,
-                                                  const uint8_t *p_additional_data,
-                                                  size_t additional_data_length,
-                                                  const uint8_t *p_plaintext,
-                                                  size_t plaintext_length,
-                                                  uint8_t *p_ciphertext,
-                                                  size_t ciphertext_size,
-                                                  size_t *p_ciphertext_length);
+typedef psa_status_t (*psa_drv_aead_opaque_encrypt_t)(psa_key_slot_t key_slot,
+                                                      psa_algorithm_t algorithm,
+                                                      const uint8_t *p_nonce,
+                                                      size_t nonce_length,
+                                                      const uint8_t *p_additional_data,
+                                                      size_t additional_data_length,
+                                                      const uint8_t *p_plaintext,
+                                                      size_t plaintext_length,
+                                                      uint8_t *p_ciphertext,
+                                                      size_t ciphertext_size,
+                                                      size_t *p_ciphertext_length);
 
 /** Process an authenticated decryption operation using an opaque key
  *
@@ -1277,17 +1277,17 @@ typedef psa_status_t (*pcd_aead_opaque_encrypt_t)(psa_key_slot_t key_slot,
  * \retval #PSA_SUCCESS
  *         Success.
  */
-typedef psa_status_t (*pcd_aead_opaque_decrypt_t)(psa_key_slot_t key_slot,
-                                                  psa_algorithm_t algorithm,
-                                                  const uint8_t *p_nonce,
-                                                  size_t nonce_length,
-                                                  const uint8_t *p_additional_data,
-                                                  size_t additional_data_length,
-                                                  const uint8_t *p_ciphertext,
-                                                  size_t ciphertext_length,
-                                                  uint8_t *p_plaintext,
-                                                  size_t plaintext_size,
-                                                  size_t *p_plaintext_length);
+typedef psa_status_t (*psa_drv_aead_opaque_decrypt_t)(psa_key_slot_t key_slot,
+                                                      psa_algorithm_t algorithm,
+                                                      const uint8_t *p_nonce,
+                                                      size_t nonce_length,
+                                                      const uint8_t *p_additional_data,
+                                                      size_t additional_data_length,
+                                                      const uint8_t *p_ciphertext,
+                                                      size_t ciphertext_length,
+                                                      uint8_t *p_plaintext,
+                                                      size_t plaintext_size,
+                                                      size_t *p_plaintext_length);
 
 /**
  * \brief A struct containing all of the function pointers needed to implement
@@ -1298,11 +1298,11 @@ typedef psa_status_t (*pcd_aead_opaque_decrypt_t)(psa_key_slot_t key_slot,
  *
  * If one of the functions is not implemented, it should be set to NULL.
  */
-struct pcd_aead_opaque_t {
+struct psa_drv_aead_opaque_t {
     /** Function that performs the AEAD encrypt operation */
-    pcd_aead_opaque_encrypt_t *p_encrypt;
+    psa_drv_aead_opaque_encrypt_t *p_encrypt;
     /** Function that performs the AEAD decrypt operation */
-    pcd_aead_opaque_decrypt_t *p_decrypt;
+    psa_drv_aead_opaque_decrypt_t *p_decrypt;
 };
 /**@}*/
 
@@ -1322,7 +1322,7 @@ struct pcd_aead_opaque_t {
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_aead_<ALGO>_encrypt
+ * psa_drv_aead_<ALGO>_encrypt
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the AEAD algorithm
  *
@@ -1357,25 +1357,25 @@ struct pcd_aead_opaque_t {
  * \retval #PSA_SUCCESS
 
  */
-typedef psa_status_t (*pcd_aead_transparent_encrypt_t)(const uint8_t *p_key,
-                                                       size_t key_length,
-                                                       psa_algorithm_t alg,
-                                                       const uint8_t *nonce,
-                                                       size_t nonce_length,
-                                                       const uint8_t *additional_data,
-                                                       size_t additional_data_length,
-                                                       const uint8_t *plaintext,
-                                                       size_t plaintext_length,
-                                                       uint8_t *ciphertext,
-                                                       size_t ciphertext_size,
-                                                       size_t *ciphertext_length);
+typedef psa_status_t (*psa_drv_aead_transparent_encrypt_t)(const uint8_t *p_key,
+                                                           size_t key_length,
+                                                           psa_algorithm_t alg,
+                                                           const uint8_t *nonce,
+                                                           size_t nonce_length,
+                                                           const uint8_t *additional_data,
+                                                           size_t additional_data_length,
+                                                           const uint8_t *plaintext,
+                                                           size_t plaintext_length,
+                                                           uint8_t *ciphertext,
+                                                           size_t ciphertext_size,
+                                                           size_t *ciphertext_length);
 
 /** Process an authenticated decryption operation using an opaque key.
  *
  * Functions that implement the prototype should be named in the following
  * convention:
  * ~~~~~~~~~~~~~{.c}
- * pcd_aead_<ALGO>_decrypt
+ * psa_drv_aead_<ALGO>_decrypt
  * ~~~~~~~~~~~~~
  * Where `ALGO` is the name of the AEAD algorithm
  * \param[in] p_key                     A pointer to the key material
@@ -1408,18 +1408,18 @@ typedef psa_status_t (*pcd_aead_transparent_encrypt_t)(const uint8_t *p_key,
  * \retval #PSA_SUCCESS
  *         Success.
  */
-typedef psa_status_t (*pcd_aead_transparent_decrypt_t)(const uint8_t *p_key,
-                                                       size_t key_length,
-                                                       psa_algorithm_t alg,
-                                                       const uint8_t *nonce,
-                                                       size_t nonce_length,
-                                                       const uint8_t *additional_data,
-                                                       size_t additional_data_length,
-                                                       const uint8_t *ciphertext,
-                                                       size_t ciphertext_length,
-                                                       uint8_t *plaintext,
-                                                       size_t plaintext_size,
-                                                       size_t *plaintext_length);
+typedef psa_status_t (*psa_drv_aead_transparent_decrypt_t)(const uint8_t *p_key,
+                                                           size_t key_length,
+                                                           psa_algorithm_t alg,
+                                                           const uint8_t *nonce,
+                                                           size_t nonce_length,
+                                                           const uint8_t *additional_data,
+                                                           size_t additional_data_length,
+                                                           const uint8_t *ciphertext,
+                                                           size_t ciphertext_length,
+                                                           uint8_t *plaintext,
+                                                           size_t plaintext_size,
+                                                           size_t *plaintext_length);
 
 /**@}*/
 
@@ -1430,7 +1430,7 @@ typedef psa_status_t (*pcd_aead_transparent_decrypt_t)(const uint8_t *p_key,
 
 /** \brief A hardware-specific structure for a entropy providing hardware
  */
-typedef struct pcd_entropy_context_s pcd_entropy_context_t;
+typedef struct psa_drv_entropy_context_s psa_drv_entropy_context_t;
 
 /** \brief Initialize an entropy driver
  *
@@ -1441,7 +1441,7 @@ typedef struct pcd_entropy_context_s pcd_entropy_context_t;
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_entropy_init_t)(pcd_entropy_context_t *p_context);
+typedef psa_status_t (*psa_drv_entropy_init_t)(psa_drv_entropy_context_t *p_context);
 
 /** \brief Get a specified number of bits from the entropy source
  *
@@ -1469,10 +1469,10 @@ typedef psa_status_t (*pcd_entropy_init_t)(pcd_entropy_context_t *p_context);
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_entropy_get_bits_t)(pcd_entropy_context_t *p_context,
-                                               uint8_t *p_buffer,
-                                               uint32_t buffer_size,
-                                               uint32_t *p_received_entropy_bits);
+typedef psa_status_t (*psa_drv_entropy_get_bits_t)(psa_drv_entropy_context_t *p_context,
+                                                   uint8_t *p_buffer,
+                                                   uint32_t buffer_size,
+                                                   uint32_t *p_received_entropy_bits);
 
 /**
  * \brief A struct containing all of the function pointers needed to interface
@@ -1483,12 +1483,12 @@ typedef psa_status_t (*pcd_entropy_get_bits_t)(pcd_entropy_context_t *p_context,
  *
  * If one of the functions is not implemented, it should be set to NULL.
  */
-struct pcd_entropy_t {
+struct psa_drv_entropy_t {
     /** Function that performs initialization for the entropy source */
-    pcd_entropy_init_t *p_init;
+    psa_drv_entropy_init_t *p_init;
     /** Function that performs the get_bits operation for the entropy source
     */
-    pcd_entropy_get_bits_t *p_get_bits;
+    psa_drv_entropy_get_bits_t *p_get_bits;
 };
 /**@}*/
 
@@ -1517,12 +1517,12 @@ struct pcd_entropy_t {
  * \retval #PSA_SUCCESS
  *         Success.
  */
-typedef psa_status_t (*pcd_opaque_import_key_t)(psa_key_slot_t key_slot,
-                                                psa_key_type_t type,
-                                                psa_algorithm_t algorithm,
-                                                psa_key_usage_t usage,
-                                                const uint8_t *p_data,
-                                                size_t data_length);
+typedef psa_status_t (*psa_drv_opaque_import_key_t)(psa_key_slot_t key_slot,
+                                                    psa_key_type_t type,
+                                                    psa_algorithm_t algorithm,
+                                                    psa_key_usage_t usage,
+                                                    const uint8_t *p_data,
+                                                    size_t data_length);
 
 /**
  * \brief Destroy a key and restore the slot to its default state
@@ -1540,7 +1540,7 @@ typedef psa_status_t (*pcd_opaque_import_key_t)(psa_key_slot_t key_slot,
  * \retval #PSA_SUCCESS
  *         The slot's content, if any, has been erased.
  */
-typedef psa_status_t (*pcd_destroy_key_t)(psa_key_slot_t key);
+typedef psa_status_t (*psa_drv_destroy_key_t)(psa_key_slot_t key);
 
 /**
  * \brief Export a key in binary format
@@ -1582,10 +1582,10 @@ typedef psa_status_t (*pcd_destroy_key_t)(psa_key_slot_t key);
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
-typedef psa_status_t (*pcd_export_key_t)(psa_key_slot_t key,
-                                         uint8_t *p_data,
-                                         size_t data_size,
-                                         size_t *p_data_length);
+typedef psa_status_t (*psa_drv_export_key_t)(psa_key_slot_t key,
+                                             uint8_t *p_data,
+                                             size_t data_size,
+                                             size_t *p_data_length);
 
 /**
  * \brief Export a public key or the public part of a key pair in binary format
@@ -1608,10 +1608,10 @@ typedef psa_status_t (*pcd_export_key_t)(psa_key_slot_t key,
  *
  * \retval #PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_export_public_key_t)(psa_key_slot_t key,
-                                                uint8_t *p_data,
-                                                size_t data_size,
-                                                size_t *p_data_length);
+typedef psa_status_t (*psa_drv_export_public_key_t)(psa_key_slot_t key,
+                                                    uint8_t *p_data,
+                                                    size_t data_size,
+                                                    size_t *p_data_length);
 
 /**
  * \brief A struct containing all of the function pointers needed to for key
@@ -1622,15 +1622,15 @@ typedef psa_status_t (*pcd_export_public_key_t)(psa_key_slot_t key,
  *
  * If one of the functions is not implemented, it should be set to NULL.
  */
-struct pcd_key_management_t {
+struct psa_drv_key_management_t {
     /** Function that performs the key import operation */
-    pcd_opaque_import_key_t *p_import;
+    psa_drv_opaque_import_key_t *p_import;
     /** Function that performs the key destroy operation */
-    pcd_destroy_key_t       *p_destroy;
+    psa_drv_destroy_key_t       *p_destroy;
     /** Function that performs the key export operation */
-    pcd_export_key_t        *p_export;
+    psa_drv_export_key_t        *p_export;
     /** Function that perforsm the public key export operation */
-    pcd_export_public_key_t *p_export_public;
+    psa_drv_export_public_key_t *p_export_public;
 };
 
 /**@}*/
@@ -1646,40 +1646,40 @@ struct pcd_key_management_t {
  * for both of the flows.
  *
  * There are two different final functions for the flows,
- * `pcd_key_derivation_derive` and `pcd_key_derivation_export`.
- * `pcd_key_derivation_derive` is used when the key material should be placed
+ * `psa_drv_key_derivation_derive` and `psa_drv_key_derivation_export`.
+ * `psa_drv_key_derivation_derive` is used when the key material should be placed
  * in a slot on the hardware and not exposed to the caller.
- * `pcd_key_derivation_export` is used when the key material should be returned
+ * `psa_drv_key_derivation_export` is used when the key material should be returned
  * to the PSA Cryptographic API implementation.
  *
  * Different key derivation algorithms require a different number of inputs.
  * Instead of having an API that takes as input variable length arrays, which
  * can be problemmatic to manage on embedded platforms, the inputs are passed
- * to the driver via a function, `pcd_key_derivation_collateral`, that is
+ * to the driver via a function, `psa_drv_key_derivation_collateral`, that is
  * called multiple times with different `collateral_id`s. Thus, for a key
  * derivation algorithm that required 3 paramter inputs, the flow would look
  * something like:
  * ~~~~~~~~~~~~~{.c}
- * pcd_key_derivation_setup(kdf_algorithm, source_key, dest_key_size_bytes);
- * pcd_key_derivation_collateral(kdf_algorithm_collateral_id_0,
- *                               p_collateral_0,
- *                               collateral_0_size);
- * pcd_key_derivation_collateral(kdf_algorithm_collateral_id_1,
- *                               p_collateral_1,
- *                               collateral_1_size);
- * pcd_key_derivation_collateral(kdf_algorithm_collateral_id_2,
- *                               p_collateral_2,
- *                               collateral_2_size);
- * pcd_key_derivation_derive();
+ * psa_drv_key_derivation_setup(kdf_algorithm, source_key, dest_key_size_bytes);
+ * psa_drv_key_derivation_collateral(kdf_algorithm_collateral_id_0,
+ *                                   p_collateral_0,
+ *                                   collateral_0_size);
+ * psa_drv_key_derivation_collateral(kdf_algorithm_collateral_id_1,
+ *                                   p_collateral_1,
+ *                                   collateral_1_size);
+ * psa_drv_key_derivation_collateral(kdf_algorithm_collateral_id_2,
+ *                                   p_collateral_2,
+ *                                   collateral_2_size);
+ * psa_drv_key_derivation_derive();
  * ~~~~~~~~~~~~~
  *
  * key agreement example:
  * ~~~~~~~~~~~~~{.c}
- * pcd_key_derivation_setup(alg, source_key. dest_key_size_bytes);
- * pcd_key_derivation_collateral(DHE_PUBKEY, p_pubkey, pubkey_size);
- * pcd_key_derivation_export(p_session_key,
- *                           session_key_size,
- *                           &session_key_length);
+ * psa_drv_key_derivation_setup(alg, source_key. dest_key_size_bytes);
+ * psa_drv_key_derivation_collateral(DHE_PUBKEY, p_pubkey, pubkey_size);
+ * psa_drv_key_derivation_export(p_session_key,
+ *                               session_key_size,
+ *                               &session_key_length);
  * ~~~~~~~~~~~~~
  */
 /**@{*/
@@ -1689,7 +1689,7 @@ struct pcd_key_management_t {
  * The contents of this structure are implementation dependent and are
  * therefore not described here
  */
-typedef struct pcd_key_derivation_context_s pcd_key_derivation_context_t;
+typedef struct psa_drv_key_derivation_context_s psa_drv_key_derivation_context_t;
 
 /** \brief Set up a key derivation operation by specifying the algorithm and
  * the source key sot
@@ -1702,9 +1702,9 @@ typedef struct pcd_key_derivation_context_s pcd_key_derivation_context_t;
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_key_derivation_setup_t)(pcd_key_derivation_context_t *p_context,
-                                                   psa_algorithm_t kdf_alg,
-                                                   psa_key_slot_t source_key);
+typedef psa_status_t (*psa_drv_key_derivation_setup_t)(psa_drv_key_derivation_context_t *p_context,
+                                                       psa_algorithm_t kdf_alg,
+                                                       psa_key_slot_t source_key);
 
 /** \brief Provide collateral (parameters) needed for a key derivation or key
  * agreement operation
@@ -1721,10 +1721,10 @@ typedef psa_status_t (*pcd_key_derivation_setup_t)(pcd_key_derivation_context_t 
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_key_derivation_collateral_t)(pcd_key_derivation_context_t *p_context,
-                                                         uint32_t collateral_id,
-                                                         const uint8_t *p_collateral,
-                                                         size_t collateral_size);
+typedef psa_status_t (*psa_drv_key_derivation_collateral_t)(psa_drv_key_derivation_context_t *p_context,
+                                                            uint32_t collateral_id,
+                                                            const uint8_t *p_collateral,
+                                                            size_t collateral_size);
 
 /** \brief Perform the final key derivation step and place the generated key
  * material in a slot
@@ -1735,8 +1735,8 @@ typedef psa_status_t (*pcd_key_derivation_collateral_t)(pcd_key_derivation_conte
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_key_derivation_derive_t)(pcd_key_derivation_context_t *p_context,
-                                                    psa_key_slot_t dest_key);
+typedef psa_status_t (*psa_drv_key_derivation_derive_t)(psa_drv_key_derivation_context_t *p_context,
+                                                        psa_key_slot_t dest_key);
 
 /** \brief Perform the final step of a key agreement and place the generated
  * key material in a buffer
@@ -1749,9 +1749,9 @@ typedef psa_status_t (*pcd_key_derivation_derive_t)(pcd_key_derivation_context_t
  *
  * \retval PSA_SUCCESS
  */
-typedef psa_status_t (*pcd_key_derivation_export_t)(uint8_t *p_output,
-                                                    size_t output_size,
-                                                    size_t *p_output_length);
+typedef psa_status_t (*psa_drv_key_derivation_export_t)(uint8_t *p_output,
+                                                        size_t output_size,
+                                                        size_t *p_output_length);
 
 /**
  * \brief A struct containing all of the function pointers needed to for key
@@ -1762,16 +1762,16 @@ typedef psa_status_t (*pcd_key_derivation_export_t)(uint8_t *p_output,
  *
  * If one of the functions is not implemented, it should be set to NULL.
  */
-struct pcd_key_derivation_t {
+struct psa_drv_key_derivation_t {
     /** Function that performs the key derivation setup */
-    pcd_key_derivation_setup_t      *p_setup;
+    psa_drv_key_derivation_setup_t      *p_setup;
     /** Function that sets the key derivation collateral */
-    pcd_key_derivation_collateral_t *p_collateral;
+    psa_drv_key_derivation_collateral_t *p_collateral;
     /** Function that performs the final key derivation step */
-    pcd_key_derivation_derive_t     *p_derive;
+    psa_drv_key_derivation_derive_t     *p_derive;
     /** Function that perforsm the final key derivation or agreement and
      * exports the key */
-    pcd_key_derivation_export_t     *p_export;
+    psa_drv_key_derivation_export_t     *p_export;
 };
 
 /**@}*/

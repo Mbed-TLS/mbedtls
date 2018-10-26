@@ -31,6 +31,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** The following types are redefinitions from the psa/crypto.h file.
  * It is intended that these will be moved to a new common header file to
  * avoid duplication. They are included here for expediency in publication.
@@ -1775,5 +1779,9 @@ typedef struct {
 } psa_drv_key_derivation_t;
 
 /**@}*/
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* PSA_CRYPTO_DRIVER_H */

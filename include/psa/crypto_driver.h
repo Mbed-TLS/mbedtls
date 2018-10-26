@@ -2,10 +2,11 @@
  * \file psa/crypto_driver.h
  * \brief Platform Security Architecture cryptographic driver module
  *
- * This file describes an API for driver developers to implement to enable
- * hardware to be called in a standardized way by a PSA Cryptographic API
- * implementation. The API described is not intended to be called by
- * application developers.
+ * This file describes the PSA Crypto Driver Model, containing functions for
+ * driver developers to implement to enable hardware to be called in a
+ * standardized way by a PSA Cryptographic API implementation. The functions
+ * comprising the driver model, which driver authors implement, are not
+ * intended to be called by application developers.
  */
 
 /*
@@ -483,8 +484,8 @@ typedef psa_status_t (*pcd_cipher_opaque_setup_t)(void *p_context,
  *
  * Rationale: The `psa_cipher_*` function in the PSA Cryptographic API has two
  * IV functions: one to set the IV, and one to generate it internally. The
- * generate function is not necessary for the driver API as the PSA Crypto
- * implementation can do the generation using its RNG features.
+ * generate function is not necessary for the drivers to implement as the PSA
+ * Crypto implementation can do the generation using its RNG features.
  *
  * \param[in,out] p_context     A structure that contains the previously set up
  *                              hardware-specific cipher context
@@ -1641,7 +1642,7 @@ struct pcd_key_management_t {
  * Key agreement is a part of cryptographic protocols that allows two parties
  * to agree on the same key value, but starting from different original key
  * material.
- * The flows are similar, and the PSA Crypto Driver API uses the same functions
+ * The flows are similar, and the PSA Crypto Driver Model uses the same functions
  * for both of the flows.
  *
  * There are two different final functions for the flows,

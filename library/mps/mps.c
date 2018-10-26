@@ -34,21 +34,6 @@
 #define mbedtls_free      free
 #endif
 
-#define MPS_INTERNAL_FAILURE_HANDLER                    \
-    exit:                                               \
-    RETURN( ret );
-
-#define MPS_API_BOUNDARY_FAILURE_HANDLER        \
-    exit:                                       \
-    mps_generic_failure_handler( mps, ret );    \
-    RETURN( ret );                              \
-
-static int trace_id = TRACE_ID_LAYER_4;
-
-#define MPS_DTLS_FRAG_OUT_START_USE_L3     0
-#define MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY 1
-#define MPS_DTLS_FRAG_OUT_START_FROM_QUEUE 2
-
 #define MPS_L4_WRITE_UINT16_LE( dst, src )                              \
     do                                                                  \
     {                                                                   \
@@ -56,9 +41,26 @@ static int trace_id = TRACE_ID_LAYER_4;
         *( (uint8_t*) ( dst ) + 1 ) = ( *( src ) >>  0 ) & 0xFF;        \
     } while( 0 )
 
+/* Debugging related */
+static int trace_id = TRACE_ID_LAYER_4;
+
 /*
  * Error state handling
  */
+
+/* Convenience macro for the failure handling
+ * within internal functions. */
+#define MPS_INTERNAL_FAILURE_HANDLER                    \
+    exit:                                               \
+    RETURN( ret );
+
+/* Convenience macro for the failure handling
+ * within functions at MPS-API boundary, which
+ * should block the MPS on most errors. */
+#define MPS_API_BOUNDARY_FAILURE_HANDLER        \
+    exit:                                       \
+    mps_generic_failure_handler( mps, ret );    \
+    RETURN( ret );                              \
 
 /* Check if the MPS will serve read resp. write API calls.             */
 static int mps_check_read ( mbedtls_mps const *mps );
@@ -119,6 +121,11 @@ static int mps_handle_pending_alert( mbedtls_mps *mps );
  *     In this case, \c queue specifies the message contents.
  *     This mode is used for retransmission of messages via raw backups.
  */
+
+#define MPS_DTLS_FRAG_OUT_START_USE_L3     0
+#define MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY 1
+#define MPS_DTLS_FRAG_OUT_START_FROM_QUEUE 2
+
 static int mps_dtls_frag_out_start( mbedtls_mps *mps,
                                     mbedtls_mps_handshake_out *hs,
                                     unsigned char *queue,

@@ -1,7 +1,7 @@
 /**
  * \file transform.h
  *
- * \brief The record layer implementation of the message processing stack.
+ * \brief Abstraction layer for record protection.
  *
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -27,10 +27,13 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+/*
+ * \brief   Opaque representation of record protection mechanisms.
+ */
 struct mbedtls_mps_transform_t;
 typedef struct mbedtls_mps_transform_t mbedtls_mps_transform_t;
 
-/**
+/*
  * \brief         Structure representing an inclusion of two buffers.
  */
 typedef struct
@@ -46,7 +49,7 @@ typedef struct
                          *   documentation of ::mps_l2.               */
 } mps_l2_bufpair;
 
-/**
+/*
  * \brief Structure representing protected and unprotected (D)TLS records.
  */
 typedef struct
@@ -62,10 +65,54 @@ typedef struct
 } mps_rec;
 
 extern int transform_free( mbedtls_mps_transform_t *transform );
+
+/*
+ * \brief Encrypt a record using a particular protection mechanism.
+ *
+ * \param transform   The protection mechanism to use to encrypt the record.
+ * \param rec         The plaintext record to protect. The margin around the
+ *                    plaintext buffer must be large enough to hold the
+ *                    record expansion, or otherwise the encryption will fail.
+ * \param f_rng       A secure PRNG if needed by the protection mechanism.
+ * \param p_rng       A context to be passed to \p f_rng.
+ *
+ * \return            \c 0 on success.
+ * \return            A negative error code on failure.
+ */
 extern int transform_encrypt( mbedtls_mps_transform_t *transform, mps_rec *rec,
                               int (*f_rng)(void *, unsigned char *, size_t),
                               void *p_rng );
-extern int transform_decrypt( mbedtls_mps_transform_t *transform, mps_rec *rec );
+
+/*
+ * \brief Decrypt a record using a particular protection mechanism.
+ *
+ * \param transform   The protection mechanism to use to decrypt the record.
+ * \param rec         The ciphertext record to protect.
+ * \param f_rng       A secure PRNG if needed by the protection mechanism.
+ * \param p_rng       A context to be passed to \p f_rng.
+ *
+ * \return            \c 0 on success.
+ * \return            A negative error code on failure.
+ */
+extern int transform_decrypt( mbedtls_mps_transform_t *transform,
+                              mps_rec *rec );
+
+/*
+ * \brief Obtain the encryption expansion for a record protection mechanism.
+ *
+ * \param transform   The protection mechanism to use.
+ * \param pre_exp     The address at which to store the pre-expansion during
+ *                    encryption. The pre-expansion must be known in advance
+ *                    and be independent of the record that's encrypted.
+ * \param post_exp    The address at which to store the maximum post-expansion
+ *                    during encryption. The post-expansion may vary from record
+ *                    to record, and the value returned by this function must
+ *                    be such that encryption always succeeds if at least the
+ *                    returned amount of space is available.
+ *
+ * \return            \c 0 on success.
+ * \return            A negative error code on failure.
+ */
 extern int transform_get_expansion( mbedtls_mps_transform_t *transform,
                                     size_t *pre_exp, size_t *post_exp );
 

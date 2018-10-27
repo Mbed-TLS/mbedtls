@@ -105,7 +105,7 @@ $(BINARIES): %$(EXEXT): %.c $(DEP)
 
 clean:
 ifndef WINDOWS
-	rm -rf $(APPS) *.c *.datax TESTS
+	rm -rf $(BINARIES) *.c *.datax TESTS
 else
 	del /Q /F *.c *.exe *.datax
 ifneq ($(wildcard TESTS/.*),)

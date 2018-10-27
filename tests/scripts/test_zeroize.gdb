@@ -41,6 +41,9 @@
 # number does not need to be updated often.
 
 set confirm off
+# We don't need to turn off ASLR, so don't try.
+set disable-randomization off
+
 file ./programs/test/zeroize
 break zeroize.c:100
 

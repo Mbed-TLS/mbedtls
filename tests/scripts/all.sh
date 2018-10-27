@@ -384,21 +384,21 @@ fi
 # Indicative running times are given for reference.
 
 msg "test: recursion.pl" # < 1s
-tests/scripts/recursion.pl library/*.c
+record_status tests/scripts/recursion.pl library/*.c
 
 msg "test: freshness of generated source files" # < 1s
-tests/scripts/check-generated-files.sh
+record_status tests/scripts/check-generated-files.sh
 
 msg "test: doxygen markup outside doxygen blocks" # < 1s
-tests/scripts/check-doxy-blocks.pl
+record_status tests/scripts/check-doxy-blocks.pl
 
 msg "test: check-files.py" # < 1s
 cleanup
-tests/scripts/check-files.py
+record_status tests/scripts/check-files.py
 
 msg "test/build: declared and exported names" # < 3s
 cleanup
-tests/scripts/check-names.sh
+record_status tests/scripts/check-names.sh
 
 if which doxygen >/dev/null; then
     msg "test: doxygen warnings" # ~ 3s
@@ -446,7 +446,7 @@ CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
 make
 
 msg "test: ssl-opt.sh, MFL-related tests"
-tests/ssl-opt.sh -f "Max fragment length"
+if_build_succeeded tests/ssl-opt.sh -f "Max fragment length"
 
 msg "build: Default + SSLv3 (ASan build)" # ~ 6 min
 cleanup
@@ -490,10 +490,10 @@ msg "test: RSA_NO_CRT - main suites (inc. selftests) (ASan build)" # ~ 50s
 make test
 
 msg "test: RSA_NO_CRT - RSA-related part of ssl-opt.sh (ASan build)" # ~ 5s
-tests/ssl-opt.sh -f RSA
+if_build_succeeded tests/ssl-opt.sh -f RSA
 
 msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
-tests/compat.sh -t RSA
+if_build_succeeded tests/compat.sh -t RSA
 
 
 msg "build: cmake, full config, clang" # ~ 50s

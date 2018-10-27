@@ -233,7 +233,9 @@ int mbedtls_ecp_check_budget( const mbedtls_ecp_group *grp,
                               unsigned ops );
 
 /* Utility macro for checking and updating ops budget */
-#define MBEDTLS_ECP_BUDGET( ops )   MBEDTLS_MPI_CHK( mbedtls_ecp_check_budget( grp, rs_ctx, ops ) );
+#define MBEDTLS_ECP_BUDGET( ops )   \
+    MBEDTLS_MPI_CHK( mbedtls_ecp_check_budget( grp, rs_ctx, \
+                                               (unsigned) (ops) ) );
 
 #else /* MBEDTLS_ECP_RESTARTABLE */
 

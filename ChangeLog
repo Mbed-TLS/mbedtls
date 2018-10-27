@@ -21,6 +21,7 @@ Bugfix
      MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
 
 Changes
+   * Removed support for Yotta as a build tool.
    * Add tests for session resumption in DTLS.
    * Close a test gap in (D)TLS between the client side and the server side:
      test the handling of large packets and small packets on the client side

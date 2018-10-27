@@ -3150,23 +3150,12 @@
 
 /* \} name SECTION: Customisation configuration options */
 
-/* Target and application specific configurations */
-//#define YOTTA_CFG_MBEDTLS_TARGET_CONFIG_FILE "target_config.h"
-
-#if defined(TARGET_LIKE_MBED) && defined(YOTTA_CFG_MBEDTLS_TARGET_CONFIG_FILE)
-#include YOTTA_CFG_MBEDTLS_TARGET_CONFIG_FILE
-#endif
-
-/*
+/* Target and application specific configurations
+ *
  * Allow user to override any previous default.
  *
- * Use two macro names for that, as:
- * - with yotta the prefix YOTTA_CFG_ is forced
- * - without yotta is looks weird to have a YOTTA prefix.
  */
-#if defined(YOTTA_CFG_MBEDTLS_USER_CONFIG_FILE)
-#include YOTTA_CFG_MBEDTLS_USER_CONFIG_FILE
-#elif defined(MBEDTLS_USER_CONFIG_FILE)
+#if defined(MBEDTLS_USER_CONFIG_FILE)
 #include MBEDTLS_USER_CONFIG_FILE
 #endif
 

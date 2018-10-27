@@ -565,9 +565,8 @@
 #endif /* TriCore */
 
 /*
- * gcc -O0 by default uses r7 for the frame pointer, so it complains about our
- * use of r7 below, unless -fomit-frame-pointer is passed. Unfortunately,
- * passing that option is not easy when building with yotta.
+ * Note, gcc -O0 by default uses r7 for the frame pointer, so it complains about
+ * our use of r7 below, unless -fomit-frame-pointer is passed.
  *
  * On the other hand, -fomit-frame-pointer is implied by any -Ox options with
  * x !=0, which we can detect using __OPTIMIZE__ (which is also defined by

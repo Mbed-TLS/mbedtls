@@ -16,6 +16,8 @@ Bugfix
      Fixes #2069.
    * Fix memory leak and freeing without initialization in the example
      program programs/x509/cert_write. Fixes #1422.
+   * Ignore iv in mbedtls_cipher_set_iv() when the cipher mode is MBEDTLS_MODE_ECB
+     Fix for #1091 raised by ezdevelop
 
 Changes
    * Add tests for session resumption in DTLS.

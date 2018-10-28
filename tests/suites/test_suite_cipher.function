@@ -98,16 +98,19 @@ void cipher_special_behaviours( )
     mbedtls_cipher_context_t ctx;
     unsigned char input[32];
     unsigned char output[32];
+#if defined (MBEDTLS_CIPHER_MODE_CBC)
     unsigned char iv[32];
+#endif
     size_t olen = 0;
 
     mbedtls_cipher_init( &ctx );
     memset( input, 0, sizeof( input ) );
     memset( output, 0, sizeof( output ) );
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
     memset( iv, 0, sizeof( iv ) );
 
     /* Check and get info structures */
-    cipher_info = mbedtls_cipher_info_from_type( MBEDTLS_CIPHER_AES_128_ECB );
+    cipher_info = mbedtls_cipher_info_from_type( MBEDTLS_CIPHER_AES_128_CBC );
     TEST_ASSERT( NULL != cipher_info );
 
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx, cipher_info ) );
@@ -119,6 +122,14 @@ void cipher_special_behaviours( )
     /* IV too small */
     TEST_ASSERT( mbedtls_cipher_set_iv( &ctx, iv, 0 )
                  == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+    mbedtls_cipher_free( &ctx );
+    mbedtls_cipher_init( &ctx );
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
+    cipher_info = mbedtls_cipher_info_from_type( MBEDTLS_CIPHER_AES_128_ECB );
+    TEST_ASSERT( NULL != cipher_info );
+
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx, cipher_info ) );
 
     /* Update ECB with partial block */
     TEST_ASSERT( mbedtls_cipher_update( &ctx, input, 1, output, &olen )
@@ -684,6 +695,55 @@ void test_vec_ecb( int cipher_id, int operation, char *hex_key,
     if( 0 == finish_result )
         TEST_ASSERT( 0 == memcmp( output, result,
                                   mbedtls_cipher_get_block_size( &ctx ) ) );
+
+exit:
+    mbedtls_cipher_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_WITH_PADDING */
+void test_vec_crypt( int cipher_id, int operation, char *hex_key,
+                   char *hex_iv, char *hex_input, char *hex_result,
+                   int finish_result )
+{
+    unsigned char key[50];
+    unsigned char input[16];
+    unsigned char result[16];
+    unsigned char iv[16];
+    size_t key_len, iv_len, inputlen, resultlen;
+    mbedtls_cipher_context_t ctx;
+    unsigned char output[32];
+    size_t outlen;
+
+    mbedtls_cipher_init( &ctx );
+
+    memset( key, 0x00, sizeof( key ) );
+    memset( input, 0x00, sizeof( input ) );
+    memset( result, 0x00, sizeof( result ) );
+    memset( output, 0x00, sizeof( output ) );
+    memset( iv, 0x00, sizeof( iv ) );
+
+    /* Prepare context */
+    TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
+                                       mbedtls_cipher_info_from_type( cipher_id ) ) );
+
+    key_len = unhexify( key, hex_key );
+    inputlen =  unhexify( input, hex_input );
+    resultlen = unhexify( result, hex_result );
+
+    TEST_ASSERT( 0 == mbedtls_cipher_setkey( &ctx, key, 8 * key_len, operation ) );
+    if( MBEDTLS_MODE_CBC == ctx.cipher_info->mode )
+        TEST_ASSERT( 0 == mbedtls_cipher_set_padding_mode( &ctx, MBEDTLS_PADDING_NONE ) );
+
+    iv_len = unhexify( iv, hex_iv );
+
+    TEST_ASSERT( finish_result == mbedtls_cipher_crypt( &ctx, iv_len ? iv : NULL,
+                                                        iv_len, input, inputlen,
+                                                        output, &outlen ) );
+    TEST_ASSERT( resultlen == outlen );
+    /* check plaintext only if everything went fine */
+    if( 0 == finish_result )
+        TEST_ASSERT( 0 == memcmp( output, result, outlen ) );
 
 exit:
     mbedtls_cipher_free( &ctx );

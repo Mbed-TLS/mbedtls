@@ -26,6 +26,8 @@ Bugfix
    * Fix a bug in the record decryption routine ssl_decrypt_buf()
      which lead to accepting properly authenticated but improperly
      padded records in case of CBC ciphersuites using Encrypt-then-MAC.
+   * Fix memory leak and freeing without initialization in the example
+     program programs/x509/cert_write. Fixes #1422.
 
 Changes
    * Removed support for Yotta as a build tool.

@@ -229,6 +229,7 @@ int main( void )
 
     memset( buf, 0, sizeof( buf ) );
 
+    n = dhm.len;
     if( ( ret = mbedtls_net_recv( &client_fd, buf, n ) ) != (int) n )
     {
         mbedtls_printf( " failed\n  ! mbedtls_net_recv returned %d\n\n", ret );

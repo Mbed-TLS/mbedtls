@@ -10,6 +10,10 @@ Bugfix
    * Fix a bug in the record decryption routine ssl_decrypt_buf()
      which lead to accepting properly authenticated but improperly
      padded records in case of CBC ciphersuites using Encrypt-then-MAC.
+   * Fix wrong order of freeing in programs/ssl/ssl_server2 example
+     application leading to a memory leak in case both
+     MBEDTLS_MEMORY_BUFFER_ALLOC_C and MBEDTLS_MEMORY_BACKTRACE are set.
+     Fixes #2069.
 
 Changes
    * Add tests for session resumption in DTLS.

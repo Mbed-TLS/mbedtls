@@ -3146,6 +3146,8 @@ exit:
     mbedtls_ssl_cookie_free( &cookie_ctx );
 #endif
 
+    mbedtls_free( buf );
+
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #if defined(MBEDTLS_MEMORY_DEBUG)
     mbedtls_memory_buffer_alloc_status();
@@ -3153,7 +3155,6 @@ exit:
     mbedtls_memory_buffer_alloc_free();
 #endif
 
-    mbedtls_free( buf );
     mbedtls_printf( " done.\n" );
 
 #if defined(_WIN32)

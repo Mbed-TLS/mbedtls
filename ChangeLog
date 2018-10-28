@@ -13,6 +13,10 @@ Features
      yet), and to existing functions in ECDH and SSL (currently only
      implemented client-side, for ECDHE-ECDSA ciphersuites in TLS 1.2,
      including client authentication).
+   * Fix wrong order of freeing in programs/ssl/ssl_server2 example
+     application leading to a memory leak in case both
+     MBEDTLS_MEMORY_BUFFER_ALLOC_C and MBEDTLS_MEMORY_BACKTRACE are set.
+     Fixes #2069.
 
 Bugfix
    * Fix a bug in the update function for SSL ticket keys which previously

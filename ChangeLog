@@ -14,6 +14,8 @@ Bugfix
      application leading to a memory leak in case both
      MBEDTLS_MEMORY_BUFFER_ALLOC_C and MBEDTLS_MEMORY_BACKTRACE are set.
      Fixes #2069.
+   * Fix memory leak and freeing without initialization in the example
+     program programs/x509/cert_write. Fixes #1422.
 
 Changes
    * Add tests for session resumption in DTLS.

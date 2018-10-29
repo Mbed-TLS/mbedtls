@@ -1039,9 +1039,9 @@ exit:
 void import_export_public_key( data_t *data,
                                int type_arg,
                                int alg_arg,
-                               int expected_bits,
-                               int public_key_expected_length,
-                               int expected_export_status_arg )
+                               int export_size_delta,
+                               int expected_export_status_arg,
+                               data_t *expected_public_key )
 {
     int slot = 1;
     psa_key_type_t type = type_arg;
@@ -1049,16 +1049,9 @@ void import_export_public_key( data_t *data,
     psa_status_t expected_export_status = expected_export_status_arg;
     psa_status_t status;
     unsigned char *exported = NULL;
-    size_t export_size;
+    size_t export_size = expected_public_key->len + export_size_delta;
     size_t exported_length = INVALID_EXPORT_LENGTH;
-    psa_key_type_t got_type;
-    size_t got_bits;
     psa_key_policy_t policy;
-
-    TEST_ASSERT( data != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( data->len ) );
-    export_size = (ptrdiff_t) data->len;
-    ASSERT_ALLOC( exported, export_size );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
@@ -1070,32 +1063,19 @@ void import_export_public_key( data_t *data,
     TEST_ASSERT( psa_import_key( slot, type,
                                  data->x, data->len ) == PSA_SUCCESS );
 
-    /* Test the key information */
-    TEST_ASSERT( psa_get_key_information( slot,
-                                          &got_type,
-                                          &got_bits ) == PSA_SUCCESS );
-    TEST_ASSERT( got_type == type );
-    TEST_ASSERT( got_bits == (size_t) expected_bits );
-
-    /* Export the key */
+    /* Export the public key */
+    ASSERT_ALLOC( exported, export_size );
     status = psa_export_public_key( slot,
                                     exported, export_size,
                                     &exported_length );
     TEST_ASSERT( status == expected_export_status );
-    TEST_ASSERT( exported_length == (size_t) public_key_expected_length );
-    TEST_ASSERT( mem_is_char( exported + exported_length, 0,
-                              export_size - exported_length ) );
-    if( status != PSA_SUCCESS )
-        goto destroy;
-
-destroy:
-    /* Destroy the key */
-    TEST_ASSERT( psa_destroy_key( slot ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_get_key_information(
-                     slot, NULL, NULL ) == PSA_ERROR_EMPTY_SLOT );
+    if( status == PSA_SUCCESS )
+        ASSERT_COMPARE( expected_public_key->x, expected_public_key->len,
+                        exported, exported_length );
 
 exit:
     mbedtls_free( exported );
+    psa_destroy_key( slot );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

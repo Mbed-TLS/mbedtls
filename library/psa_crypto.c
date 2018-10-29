@@ -864,8 +864,12 @@ static  psa_status_t psa_internal_export_key( psa_key_slot_t key,
     {
         if( slot->data.raw.bytes > data_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
-        if( slot->data.raw.bytes != 0 )
+        if( data_size != 0 )
+        {
             memcpy( data, slot->data.raw.data, slot->data.raw.bytes );
+            memset( data + slot->data.raw.bytes, 0,
+                    data_size - slot->data.raw.bytes );
+        }
         *data_length = slot->data.raw.bytes;
         return( PSA_SUCCESS );
     }

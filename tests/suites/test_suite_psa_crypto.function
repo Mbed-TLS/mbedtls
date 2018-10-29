@@ -564,42 +564,9 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
 #if defined(MBEDTLS_ECP_C)
     if( PSA_KEY_TYPE_IS_ECC_KEYPAIR( type ) )
     {
-        uint8_t *p = exported;
-        uint8_t *end = exported + exported_length;
-        size_t len;
-        int version;
-        /*   ECPrivateKey ::= SEQUENCE {
-         *       version             INTEGER,  -- must be 1
-         *       privateKey          OCTET STRING,
-         *           -- `ceiling(log_{256}(n))`-byte string, big endian,
-         *           -- where n is the order of the curve.
-         *       parameters          ECParameters {{ NamedCurve }},  -- mandatory
-         *       publicKey           BIT STRING  -- mandatory
-         *   }
-         */
-        TEST_ASSERT( mbedtls_asn1_get_tag( &p, end, &len,
-                                           MBEDTLS_ASN1_SEQUENCE |
-                                           MBEDTLS_ASN1_CONSTRUCTED ) == 0 );
-        TEST_ASSERT( p + len == end );
-        TEST_ASSERT( mbedtls_asn1_get_int( &p, end, &version ) == 0 );
-        TEST_ASSERT( version == 1 );
-        TEST_ASSERT( mbedtls_asn1_get_tag( &p, end, &len,
-                                           MBEDTLS_ASN1_OCTET_STRING ) == 0 );
-        /* Bug in Mbed TLS: the length of the octet string depends on the value */
-        // TEST_ASSERT( len == PSA_BITS_TO_BYTES( bits ) );
-        p += len;
-        TEST_ASSERT( asn1_get_implicit_tag( &p, end, &len, 0,
-                                            MBEDTLS_ASN1_OID ) == 0 );
-        p += len;
-        /* publicKey: ECPoint in uncompressed representation (as below) */
-        TEST_ASSERT( asn1_get_implicit_tag( &p, end, &len, 1,
-                                            MBEDTLS_ASN1_BIT_STRING ) == 0 );
-        TEST_ASSERT( p + len == end );
-        TEST_ASSERT( p[0] == 0 ); /* 0 unused bits in the bit string */
-        ++p;
-        TEST_ASSERT( p + 1 + 2 * PSA_BITS_TO_BYTES( bits ) == end );
-        TEST_ASSERT( p[0] == 4 );
-     }
+        /* Just the secret value */
+        TEST_ASSERT( exported_length == PSA_BITS_TO_BYTES( bits ) );
+    }
     else
 #endif /* MBEDTLS_ECP_C */
 

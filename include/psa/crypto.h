@@ -1343,23 +1343,11 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
  *   }
  *   ```
  * - For elliptic curve key pairs (key types for which
- *   #PSA_KEY_TYPE_IS_ECC_KEYPAIR is true), the format is the
- *   non-encrypted DER encoding of the representation defined by RFC 5915 as
- *   `ECPrivateKey`, version 1. The `ECParameters` field must be a
- *   `namedCurve` OID as specified in RFC 5480 &sect;2.1.1.1. The public key
- *   must be present and must be an `ECPoint` in the same format
- *   (uncompressed variant) an ECC public key of the
- *   corresponding type exported with psa_export_public_key().
- *   ```
- *   ECPrivateKey ::= SEQUENCE {
- *       version             INTEGER,  -- must be 1
- *       privateKey          OCTET STRING,
- *           -- `ceiling(log2(n)/8)`-byte string, big endian,
- *           -- where n is the order of the curve.
- *       parameters      [0] IMPLICIT ECParameters {{ namedCurve }},  -- mandatory
- *       publicKey       [1] IMPLICIT BIT STRING  -- mandatory
- *   }
- *   ```
+ *   #PSA_KEY_TYPE_IS_ECC_KEYPAIR is true), the format is
+ *   a big-endian representation of the private point as a
+ *   `ceiling(log2(n)/8)`-byte string where `n` is the order of the curve.
+ *   This is the content of the `privateKey` field of the `ECPrivateKey`
+ *   format defined by RFC 5915.
  * - For public keys (key types for which #PSA_KEY_TYPE_IS_PUBLIC_KEY is
  *   true), the format is the same as for psa_export_public_key().
  *

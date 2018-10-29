@@ -1021,6 +1021,7 @@ void import_export( data_t *data,
         ASSERT_COMPARE( exported, exported_length,
                         reexported, reexported_length );
     }
+    TEST_ASSERT( exported_length <= PSA_KEY_EXPORT_MAX_SIZE( type, got_bits ) );
 
 destroy:
     /* Destroy the key */
@@ -1070,8 +1071,16 @@ void import_export_public_key( data_t *data,
                                     &exported_length );
     TEST_ASSERT( status == expected_export_status );
     if( status == PSA_SUCCESS )
+    {
+        psa_key_type_t public_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( type );
+        size_t bits;
+        TEST_ASSERT( psa_get_key_information( slot, NULL, &bits ) ==
+                     PSA_SUCCESS );
+        TEST_ASSERT( expected_public_key->len <=
+                     PSA_KEY_EXPORT_MAX_SIZE( public_type, bits ) );
         ASSERT_COMPARE( expected_public_key->x, expected_public_key->len,
                         exported, exported_length );
+    }
 
 exit:
     mbedtls_free( exported );

@@ -48,3 +48,36 @@ mbedtls_asn1_write_ia5_string:"ABC":"":3:MBEDTLS_ERR_ASN1_BUF_TOO_SMALL
 
 ASN.1 Write IA5 String #5 (Buffer too small for string)
 mbedtls_asn1_write_ia5_string:"ABC":"":2:MBEDTLS_ERR_ASN1_BUF_TOO_SMALL
+
+ASN.1 Write Bitstring / Unused bits #0
+test_asn1_write_bitstrings:"FF":8:"030200FF":4
+
+ASN.1 Write Bitstring / Unused bits #1
+test_asn1_write_bitstrings:"FF":7:"030201FE":4
+
+ASN.1 Write Bitstring / Unused bits #2
+test_asn1_write_bitstrings:"FF":6:"030202FC":4
+
+ASN.1 Write Bitstring / Unused bits #3
+test_asn1_write_bitstrings:"FF":5:"030203F8":4
+
+ASN.1 Write Bitstring / Unused bits #4
+test_asn1_write_bitstrings:"FF":4:"030204F0":4
+
+ASN.1 Write Bitstring / Unused bits #5
+test_asn1_write_bitstrings:"FF":3:"030205E0":4
+
+ASN.1 Write Bitstring / Unused bits #6
+test_asn1_write_bitstrings:"FF":2:"030206C0":4
+
+ASN.1 Write Bitstring / Unused bits #7
+test_asn1_write_bitstrings:"FF":1:"03020780":4
+
+ASN.1 Write Bitstring / 1 trailing bit (bits 15)
+test_asn1_write_bitstrings:"0003":15:"0303010002":5
+
+ASN.1 Write Bitstring / 0 bits
+test_asn1_write_bitstrings:"":0:"030100":3
+
+ASN.1 Write Bitstring / long string all bits unset except trailing bits
+test_asn1_write_bitstrings:"000000000007":45:"030703000000000000":9

@@ -20,6 +20,8 @@ Bugfix
      program programs/x509/cert_write. Fixes #1422.
    * Ignore iv in mbedtls_cipher_set_iv() when the cipher mode is MBEDTLS_MODE_ECB
      Fix for #1091 raised by ezdevelop
+   * Ensure that unused bits are zero when writing ASN.1 bitstrings when using
+     mbedtls_asn1_write_bitstring().
 
 Changes
    * "make apidoc" now generates the documentation for the current

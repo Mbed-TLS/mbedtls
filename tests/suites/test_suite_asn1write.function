@@ -82,3 +82,39 @@ void mbedtls_asn1_write_ia5_string( char *str, char *hex_asn1,
     }
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void test_asn1_write_bitstrings( char *bitstring, int bits,
+                                 char *expected_asn1, int result )
+{
+    int ret;
+    size_t i;
+    unsigned char in_bitstring[150];
+    unsigned char exp_bitstring[150];
+    size_t exp_bitstring_len;
+    unsigned char buf[150];
+    unsigned char *p;
+
+    exp_bitstring_len = unhexify( exp_bitstring, expected_asn1 );
+    unhexify( in_bitstring, bitstring );
+
+    memset( buf, GUARD_VAL, sizeof( buf ) );
+
+    p = buf + GUARD_LEN + exp_bitstring_len;
+
+    ret = mbedtls_asn1_write_bitstring( &p, buf, in_bitstring, (size_t) bits );
+    TEST_ASSERT( ret == result );
+
+    /* Check for buffer overwrite on both sides */
+    for( i = 0; i < GUARD_LEN; i++ )
+    {
+        TEST_ASSERT( buf[i] == GUARD_VAL );
+        TEST_ASSERT( buf[GUARD_LEN + exp_bitstring_len + i] == GUARD_VAL );
+    }
+
+    if ( result >= 0 )
+    {
+        TEST_ASSERT( memcmp( p, exp_bitstring, exp_bitstring_len ) == 0 );
+    }
+}
+/* END_CASE */

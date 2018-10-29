@@ -1,5 +1,5 @@
 /*
- *  Query configuration information
+ *  Query Mbed TLS compile time configurations from config.h
  *
  *  Copyright (C) 2018, Arm Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
@@ -32,7 +32,10 @@
 #define mbedtls_printf printf
 #endif /* MBEDTLS_PLATFORM_C */
 
-/* Include all the headers with public APIs in case they modify any configs */
+/*
+ * Include all the headers with public APIs in case they define a macro to its
+ * default value when that configuration is not set in the config.h.
+ */
 #include "mbedtls/aes.h"
 #include "mbedtls/aesni.h"
 #include "mbedtls/arc4.h"
@@ -2461,5 +2464,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_PLATFORM_GMTIME_R_ALT */
 
+    /* If the symbol is not found, return an error */
     return( 1 );
 }

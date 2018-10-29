@@ -143,14 +143,17 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
     add_library(${mbedcrypto_static_target} STATIC ${src_crypto})
     set_target_properties(${mbedcrypto_static_target} PROPERTIES OUTPUT_NAME mbedcrypto)
     target_link_libraries(${mbedcrypto_static_target} ${libs})
+    target_include_directories(${mbedcrypto_static_target} PUBLIC ${CMAKE_SOURCE_DIR}/include/)
 
     add_library(${mbedx509_static_target} STATIC ${src_x509})
     set_target_properties(${mbedx509_static_target} PROPERTIES OUTPUT_NAME mbedx509)
     target_link_libraries(${mbedx509_static_target} ${libs} ${mbedcrypto_static_target})
+    target_include_directories(${mbedx509_static_target} PUBLIC ${CMAKE_SOURCE_DIR}/include/)
 
     add_library(${mbedtls_static_target} STATIC ${src_tls})
     set_target_properties(${mbedtls_static_target} PROPERTIES OUTPUT_NAME mbedtls)
     target_link_libraries(${mbedtls_static_target} ${libs} ${mbedx509_static_target})
+    target_include_directories(${mbedtls_static_target} PUBLIC ${CMAKE_SOURCE_DIR}/include/)
 
     install(TARGETS ${mbedtls_static_target} ${mbedx509_static_target} ${mbedcrypto_static_target}
             DESTINATION ${LIB_INSTALL_DIR}
@@ -161,14 +164,17 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
     add_library(mbedcrypto SHARED ${src_crypto})
     set_target_properties(mbedcrypto PROPERTIES VERSION 2.14.0 SOVERSION 3)
     target_link_libraries(mbedcrypto ${libs})
+    target_include_directories(mbedcrypto PUBLIC ${CMAKE_SOURCE_DIR}/include/)
 
     add_library(mbedx509 SHARED ${src_x509})
     set_target_properties(mbedx509 PROPERTIES VERSION 2.14.0 SOVERSION 0)
     target_link_libraries(mbedx509 ${libs} mbedcrypto)
+    target_include_directories(mbedx509 PUBLIC ${CMAKE_SOURCE_DIR}/include/)
 
     add_library(mbedtls SHARED ${src_tls})
     set_target_properties(mbedtls PROPERTIES VERSION 2.14.0 SOVERSION 12)
     target_link_libraries(mbedtls ${libs} mbedx509)
+    target_include_directories(mbedtls PUBLIC ${CMAKE_SOURCE_DIR}/include/)
 
     install(TARGETS mbedtls mbedx509 mbedcrypto
             DESTINATION ${LIB_INSTALL_DIR}

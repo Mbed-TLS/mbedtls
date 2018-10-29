@@ -167,8 +167,6 @@ else()
     set(LIB_INSTALL_DIR lib)
 endif()
 
-include_directories(include/)
-
 if(ENABLE_ZLIB_SUPPORT)
     find_package(ZLIB)
 

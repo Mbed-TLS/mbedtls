@@ -869,6 +869,21 @@ static  psa_status_t psa_internal_export_key( psa_key_slot_t key,
         *data_length = slot->data.raw.bytes;
         return( PSA_SUCCESS );
     }
+#if defined(MBEDTLS_ECP_C)
+    if( PSA_KEY_TYPE_IS_ECC_KEYPAIR( slot->type ) && !export_public_key )
+    {
+        size_t bytes = PSA_BITS_TO_BYTES( psa_get_key_bits( slot ) );
+        if( bytes > data_size )
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
+        status = mbedtls_to_psa_error(
+            mbedtls_mpi_write_binary( &slot->data.ecp->d, data, bytes ) );
+        if( status != PSA_SUCCESS )
+            return( status );
+        memset( data + bytes, 0, data_size - bytes );
+        *data_length = bytes;
+        return( PSA_SUCCESS );
+    }
+#endif
     else
     {
 #if defined(MBEDTLS_PK_WRITE_C)

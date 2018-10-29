@@ -28,6 +28,7 @@
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
+#include <stdio.h>
 #define mbedtls_printf printf
 #endif /* MBEDTLS_PLATFORM_C */
 
@@ -100,7 +101,6 @@
 #include "mbedtls/x509_csr.h"
 #include "mbedtls/xtea.h"
 
-#include <stdio.h>
 #include <string.h>
 
 /* Helper macros to convert a macro or its expansion into a string */

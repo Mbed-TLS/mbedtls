@@ -1,187 +1,66 @@
-README for Mbed TLS
-===================
+# Mbed Crypto library
 
-Configuration
--------------
+The Mbed cryptography library is a reference implementation of the cryptography interface of the Arm Platform Security Architecture (PSA). This is a preview release of Mbed Crypto, provided for evaluation purposes only.
 
-Mbed TLS should build out of the box on most systems. Some platform specific options are available in the fully documented configuration file `include/mbedtls/config.h`, which is also the place where features can be selected. This file can be edited manually, or in a more programmatic way using the Perl script `scripts/config.pl` (use `--help` for usage instructions).
+Mbed Crypto is distributed under the Apache License, version 2.0. See the [LICENSE](LICENSE) file for the full text of the license.
 
-Compiler options can be set using conventional environment variables such as `CC` and `CFLAGS` when using the Make and CMake build system (see below).
+## PSA cryptography API
 
-Compiling
----------
+Arm's Platform Security Architecture (PSA) is a holistic set of threat models, security analyses, hardware and firmware architecture specifications, and an open source firmware reference implementation. PSA provides a recipe, based on industry best practice, that allows security to be consistently designed in, at both a hardware and firmware level.
 
-There are currently three active build systems used within Mbed TLS releases:
+The PSA cryptography API provides access to a set of cryptographic primitives. It has a dual purpose. First, it can be used in a PSA-compliant platform to build services, such as secure boot, secure storage and secure communication. Second, it can also be used independently of other PSA components on any platform.
 
--   GNU Make
--   CMake
--   Microsoft Visual Studio (Microsoft Visual Studio 2010 or later)
+The design goals of the PSA cryptography API include:
 
-The main systems used for development are CMake and GNU Make. Those systems are always complete and up-to-date. The others should reflect all changes present in the CMake and Make build system, although features may not be ported there automatically.
+* The API distinguishes caller memory from internal memory, which allows the library to be implemented in an isolated space for additional security. Library calls can be implemented as direct function calls if isolation is not desired, and as remote procedure calls if isolation is desired.
+* The structure of internal data is hidden to the application, which allows substituting alternative implementations at build time or run time, for example, in order to take advantage of hardware accelerators.
+* All access to the keys happens through handles, which allows support for external cryptoprocessors that is transparent to applications.
+* The interface to algorithms is generic, favoring algorithm agility.
+* The interface is designed to be easy to use and hard to accidentally misuse.
 
-The Make and CMake build systems create three libraries: libmbedcrypto, libmbedx509, and libmbedtls. Note that libmbedtls depends on libmbedx509 and libmbedcrypto, and libmbedx509 depends on libmbedcrypto. As a result, some linkers will expect flags to be in a specific order, for example the GNU linker wants `-lmbedtls -lmbedx509 -lmbedcrypto`. Also, when loading shared libraries using dlopen(), you'll need to load libmbedcrypto first, then libmbedx509, before you can load libmbedtls.
+## Mbed Crypto implementation
 
-### Make
+Mbed Crypto is a reference implementation of the PSA cryptography API. It is written in portable C.
 
-We require GNU Make. To build the library and the sample programs, GNU Make and a C compiler are sufficient. Some of the more advanced build targets require some Unix/Linux tools.
+## Documentation
 
-We intentionally only use a minimum of functionality in the makefiles in order to keep them as simple and independent of different toolchains as possible, to allow users to more easily move between different platforms. Users who need more features are recommended to use CMake.
+Since the Mbed Crypto library is a reference implementation of the PSA cryptography API, the library's API documentation is the PSA cryptography API specification. The PSA cryptography API specification consists of the following documents:
 
-In order to build from the source code using GNU Make, just enter at the command line:
+* The [PSA Cryptography API overview](docs/PSA_Crypto_API_Overview.pdf).
+* The [PSA Cryptography API detailed function reference](docs/PSA_Crypto_API_Reference.pdf), which you can also browse in [HTML format](docs/html/modules.html).
 
-    make
+## Compiling
 
-In order to run the tests, enter:
+You need the following tools to build the library with the provided makefiles:
 
-    make check
+* GNU Make.
+* A C toolchain (compiler, linker, archiver).
+* Python 2 or Python 3 (either will work) to generate the test code.
+* Perl to run the tests.
 
-The tests need Perl to be built and run. If you don't have Perl installed, you can skip building the tests with:
+If you have a C compiler, such as GCC or Clang, just run `make` in the top-level directory to build the library, a set of unit tests and some sample programs.
 
-    make no_test
+To select a different compiler, set the `CC` variable to the name or path of the compiler and linker (default: `cc`), and set `AR` to a compatible archiver (default: `ar`). For example:
+```
+make CC=arm-linux-gnueabi-gcc AR=arm-linux-gnueabi-ar
+```
+The provided makefiles pass options to the compiler that assume a GCC-like command-line syntax. To use a different compiler, you may need to pass different values for `CFLAGS`, `WARNINGS_CFLAGS` and `LDFLAGS`.
 
-You'll still be able to run a much smaller set of tests with:
+To run the unit tests on the host machine, run `make test` from the top-level directory. If you are cross-compiling, copy the test executable from the `tests` directory to the target machine.
 
-    programs/test/selftest
+## Example programs
 
-In order to build for a Windows platform, you should use `WINDOWS_BUILD=1` if the target is Windows but the build environment is Unix-like (for instance when cross-compiling, or compiling from an MSYS shell), and `WINDOWS=1` if the build environment is a Windows shell (for instance using mingw32-make) (in that case some targets will not be available).
+The `programs/` subdirectory contains sample programs that use the library. Please note that the goal of these sample programs is to demonstrate specific features of the library, and the code may need to be adapted to build a real-world application.
 
-Setting the variable `SHARED` in your environment will build shared libraries in addition to the static libraries. Setting `DEBUG` gives you a debug build. You can override `CFLAGS` and `LDFLAGS` by setting them in your environment or on the make command line; compiler warning options may be overridden separately using `WARNING_CFLAGS`. Some directory-specific options (for example, `-I` directives) are still preserved.
+## Upcoming features
 
-Please note that setting `CFLAGS` overrides its default value of `-O2` and setting `WARNING_CFLAGS` overrides its default value (starting with `-Wall -W`), so if you just want to add some warning options to the default ones, you can do so by setting `CFLAGS=-O2 -Werror` for example. Setting `WARNING_CFLAGS` is useful when you want to get rid of its default content (for example because your compiler doesn't accept `-Wall` as an option). Directory-specific options cannot be overriden from the command line.
+Future releases of this library will include:
 
-Depending on your platform, you might run into some issues. Please check the Makefiles in `library/`, `programs/` and `tests/` for options to manually add or remove for specific platforms. You can also check [the Mbed TLS Knowledge Base](https://tls.mbed.org/kb) for articles on your platform or issue.
+* A driver programming interface, which makes it possible to use hardware accelerators instead of the default software implementation for chosen algorithms.
+* Support for external keys to be stored and manipulated exclusively in a separate cryptoprocessor.
+* A configuration mechanism to compile only the algorithms you need for your application.
+* A wider set of cryptographic algorithms.
 
-In case you find that you need to do something else as well, please let us know what, so we can add it to the [Mbed TLS Knowledge Base](https://tls.mbed.org/kb).
+## Feedback welcome
 
-### CMake
-
-In order to build the source using CMake in a separate directory (recommended), just enter at the command line:
-
-    mkdir /path/to/build_dir && cd /path/to/build_dir
-    cmake /path/to/mbedtls_source
-    make
-
-In order to run the tests, enter:
-
-    make test
-
-The test suites need Perl to be built. If you don't have Perl installed, you'll want to disable the test suites with:
-
-    cmake -DENABLE_TESTING=Off /path/to/mbedtls_source
-
-If you disabled the test suites, but kept the programs enabled, you can still run a much smaller set of tests with:
-
-    programs/test/selftest
-
-To configure CMake for building shared libraries, use:
-
-    cmake -DUSE_SHARED_MBEDTLS_LIBRARY=On /path/to/mbedtls_source
-
-There are many different build modes available within the CMake buildsystem. Most of them are available for gcc and clang, though some are compiler-specific:
-
--   `Release`. This generates the default code without any unnecessary information in the binary files.
--   `Debug`. This generates debug information and disables optimization of the code.
--   `Coverage`. This generates code coverage information in addition to debug information.
--   `ASan`. This instruments the code with AddressSanitizer to check for memory errors. (This includes LeakSanitizer, with recent version of gcc and clang.) (With recent version of clang, this mode also instruments the code with UndefinedSanitizer to check for undefined behaviour.)
--   `ASanDbg`. Same as ASan but slower, with debug information and better stack traces.
--   `MemSan`. This instruments the code with MemorySanitizer to check for uninitialised memory reads. Experimental, needs recent clang on Linux/x86\_64.
--   `MemSanDbg`. Same as MemSan but slower, with debug information, better stack traces and origin tracking.
--   `Check`. This activates the compiler warnings that depend on optimization and treats all warnings as errors.
-
-Switching build modes in CMake is simple. For debug mode, enter at the command line:
-
-    cmake -D CMAKE_BUILD_TYPE=Debug /path/to/mbedtls_source
-
-To list other available CMake options, use:
-
-    cmake -LH
-
-Note that, with CMake, you can't adjust the compiler or its flags after the
-initial invocation of cmake. This means that `CC=your_cc make` and `make
-CC=your_cc` will *not* work (similarly with `CFLAGS` and other variables).
-These variables need to be adjusted when invoking cmake for the first time,
-for example:
-
-    CC=your_cc cmake /path/to/mbedtls_source
-
-If you already invoked cmake and want to change those settings, you need to
-remove the build directory and create it again.
-
-Note that it is possible to build in-place; this will however overwrite the
-provided Makefiles (see `scripts/tmp_ignore_makefiles.sh` if you want to
-prevent `git status` from showing them as modified). In order to do so, from
-the Mbed TLS source directory, use:
-
-    cmake .
-    make
-
-If you want to change `CC` or `CFLAGS` afterwards, you will need to remove the
-CMake cache. This can be done with the following command using GNU find:
-
-    find . -iname '*cmake*' -not -name CMakeLists.txt -exec rm -rf {} +
-
-You can now make the desired change:
-
-    CC=your_cc cmake .
-    make
-
-Regarding variables, also note that if you set CFLAGS when invoking cmake,
-your value of CFLAGS doesn't override the content provided by cmake (depending
-on the build mode as seen above), it's merely prepended to it.
-
-### Microsoft Visual Studio
-
-The build files for Microsoft Visual Studio are generated for Visual Studio 2010.
-
-The solution file `mbedTLS.sln` contains all the basic projects needed to build the library and all the programs. The files in tests are not generated and compiled, as these need a perl environment as well. However, the selftest program in `programs/test/` is still available.
-
-Example programs
-----------------
-
-We've included example programs for a lot of different features and uses in [`programs/`](programs/README.md). Most programs only focus on a single feature or usage scenario, so keep that in mind when copying parts of the code.
-
-Tests
------
-
-Mbed TLS includes an elaborate test suite in `tests/` that initially requires Perl to generate the tests files (e.g. `test\_suite\_mpi.c`). These files are generated from a `function file` (e.g. `suites/test\_suite\_mpi.function`) and a `data file` (e.g. `suites/test\_suite\_mpi.data`). The `function file` contains the test functions. The `data file` contains the test cases, specified as parameters that will be passed to the test function.
-
-For machines with a Unix shell and OpenSSL (and optionally GnuTLS) installed, additional test scripts are available:
-
--   `tests/ssl-opt.sh` runs integration tests for various TLS options (renegotiation, resumption, etc.) and tests interoperability of these options with other implementations.
--   `tests/compat.sh` tests interoperability of every ciphersuite with other implementations.
--   `tests/scripts/test-ref-configs.pl` test builds in various reduced configurations.
--   `tests/scripts/key-exchanges.pl` test builds in configurations with a single key exchange enabled
--   `tests/scripts/all.sh` runs a combination of the above tests, plus some more, with various build options (such as ASan, full `config.h`, etc).
-
-Configurations
---------------
-
-We provide some non-standard configurations focused on specific use cases in the `configs/` directory. You can read more about those in `configs/README.txt`
-
-Porting Mbed TLS
-----------------
-
-Mbed TLS can be ported to many different architectures, OS's and platforms. Before starting a port, you may find the following Knowledge Base articles useful:
-
--   [Porting Mbed TLS to a new environment or OS](https://tls.mbed.org/kb/how-to/how-do-i-port-mbed-tls-to-a-new-environment-OS)
--   [What external dependencies does Mbed TLS rely on?](https://tls.mbed.org/kb/development/what-external-dependencies-does-mbedtls-rely-on)
--   [How do I configure Mbed TLS](https://tls.mbed.org/kb/compiling-and-building/how-do-i-configure-mbedtls)
-
-Contributing
-------------
-
-We gratefully accept bug reports and contributions from the community. There are some requirements we need to fulfill in order to be able to integrate contributions:
-
--   All contributions, whether large or small require a Contributor's License Agreement (CLA) to be accepted. This is because source code can possibly fall under copyright law and we need your consent to share in the ownership of the copyright.
--   We would ask that contributions conform to [our coding standards](https://tls.mbed.org/kb/development/mbedtls-coding-standards), and that contributions should be fully tested before submission.
--   As with any open source project, contributions will be reviewed by the project team and community and may need some modifications to be accepted.
-
-To accept the Contributor’s Licence Agreement (CLA), individual contributors can do this by creating an Mbed account and [accepting the online agreement here with a click through](https://os.mbed.com/contributor_agreement/). Alternatively, for contributions from corporations, or those that do not wish to create an Mbed account, a slightly different agreement can be found [here](https://www.mbed.com/en/about-mbed/contributor-license-agreements/). This agreement should be signed and returned to Arm as described in the instructions given.
-
-### Making a Contribution
-
-1.  [Check for open issues](https://github.com/ARMmbed/mbedtls/issues) or [start a discussion](https://forums.mbed.com/c/mbed-tls) around a feature idea or a bug.
-2.  Fork the [Mbed TLS repository on GitHub](https://github.com/ARMmbed/mbedtls) to start making your changes. As a general rule, you should use the "development" branch as a basis.
-3.  Write a test which shows that the bug was fixed or that the feature works as expected.
-4.  Send a pull request and bug us until it gets merged and published. Contributions may need some modifications, so work with us to get your change accepted. We will include your name in the ChangeLog :)
-
+Arm welcomes feedback on the design of the API. If you think something could be improved, please open an issue on our Github repository. Alternatively, if you prefer to provide your feedback privately, please email us at [`mbed-crypto@arm.com`](mailto:mbed-crypto@arm.com). All feedback received by email is treated confidentially.

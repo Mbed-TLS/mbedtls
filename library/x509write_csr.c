@@ -106,6 +106,10 @@ int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned ch
     int expected_len;
     int ret;
 
+    /* We currently only support 7 bits, from 0x80 to 0x02 */
+    if( ( key_usage & ~0xfe ) != 0 )
+        return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
+
     unused_bits = csr_get_unused_bits_for_named_bitstring( key_usage, 1 );
     expected_len = ( unused_bits == 8 ) ? 3 : 4;
     c = buf + expected_len;

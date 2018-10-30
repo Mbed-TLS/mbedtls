@@ -591,12 +591,6 @@ int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *
  * \param key_usage key usage flags to set
  *
  * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
- *
- * \note            This function does not count trailing zeroes as part of the
- *                  unsed bits in the ASN.1 encoding of named bitstrings as
- *                  specified in RFC 5280. Therefore, the extension will always
- *                  be encoded as a fixed length bitstring regardless of the
- *                  flags set in the extension.
  */
 int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx,
                                          unsigned int key_usage );
@@ -609,12 +603,6 @@ int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx,
  * \param ns_cert_type  Netscape Cert Type flags to set
  *
  * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
- *
- * \note            This function does not count trailing zeroes as part of the
- *                  unsed bits in the ASN.1 encoding of named bitstrings as
- *                  specified in RFC 5280. Therefore, the extension will always
- *                  be encoded as a fixed length bitstring regardless of the
- *                  flags set in the extension.
  */
 int mbedtls_x509write_crt_set_ns_cert_type( mbedtls_x509write_cert *ctx,
                                     unsigned char ns_cert_type );

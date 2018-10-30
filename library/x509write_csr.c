@@ -85,20 +85,40 @@ int mbedtls_x509write_csr_set_extension( mbedtls_x509write_csr *ctx,
                                0, val, val_len );
 }
 
+static size_t csr_get_unused_bits_for_named_bitstring( unsigned char bitstring,
+                                                       size_t bit_offset )
+{
+    size_t unused_bits;
+
+    /* Count the unused bits removing trailing 0s */
+    for( unused_bits = bit_offset ; unused_bits < 8; unused_bits++ )
+        if( ( ( bitstring >> unused_bits ) & 0x1 ) != 0 )
+            break;
+
+    return( unused_bits );
+}
+
 int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned char key_usage )
 {
     unsigned char buf[4];
     unsigned char *c;
+    size_t unused_bits;
+    int expected_len;
     int ret;
 
-    c = buf + 4;
+    unused_bits = csr_get_unused_bits_for_named_bitstring( key_usage, 1 );
+    expected_len = ( unused_bits == 8 ) ? 3 : 4;
+    c = buf + expected_len;
 
-    if( ( ret = mbedtls_asn1_write_bitstring( &c, buf, &key_usage, 7 ) ) != 4 )
+    ret = mbedtls_asn1_write_bitstring( &c, buf, &key_usage, 8 - unused_bits );
+    if( ret < 0 )
         return( ret );
+    else if( ret != expected_len )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT );
 
     ret = mbedtls_x509write_csr_set_extension( ctx, MBEDTLS_OID_KEY_USAGE,
                                        MBEDTLS_OID_SIZE( MBEDTLS_OID_KEY_USAGE ),
-                                       buf, 4 );
+                                       buf, (size_t)expected_len );
     if( ret != 0 )
         return( ret );
 
@@ -110,16 +130,26 @@ int mbedtls_x509write_csr_set_ns_cert_type( mbedtls_x509write_csr *ctx,
 {
     unsigned char buf[4];
     unsigned char *c;
+    size_t unused_bits;
+    int expected_len;
     int ret;
 
-    c = buf + 4;
+    unused_bits = csr_get_unused_bits_for_named_bitstring( ns_cert_type, 0 );
+    expected_len = ( unused_bits == 8 ) ? 3 : 4;
+    c = buf + expected_len;
 
-    if( ( ret = mbedtls_asn1_write_bitstring( &c, buf, &ns_cert_type, 8 ) ) != 4 )
+    ret = mbedtls_asn1_write_bitstring( &c,
+                                        buf,
+                                        &ns_cert_type,
+                                        8 - unused_bits );
+    if( ret < 0 )
         return( ret );
+    else if( ret != expected_len )
+        return( MBEDTLS_ERR_X509_INVALID_FORMAT );
 
     ret = mbedtls_x509write_csr_set_extension( ctx, MBEDTLS_OID_NS_CERT_TYPE,
                                        MBEDTLS_OID_SIZE( MBEDTLS_OID_NS_CERT_TYPE ),
-                                       buf, 4 );
+                                       buf, (size_t)expected_len );
     if( ret != 0 )
         return( ret );
 

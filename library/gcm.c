@@ -560,7 +560,7 @@ void mbedtls_gcm_free( mbedtls_gcm_context *ctx )
 static const int key_index[MAX_TESTS] =
     { 0, 0, 1, 1, 1, 1 };
 
-static const unsigned char key[MAX_TESTS][32] =
+static const unsigned char key_test_data[MAX_TESTS][32] =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -572,13 +572,13 @@ static const unsigned char key[MAX_TESTS][32] =
       0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08 },
 };
 
-static const size_t iv_len[MAX_TESTS] =
+static const size_t iv_len_test_data[MAX_TESTS] =
     { 12, 12, 12, 12, 8, 60 };
 
 static const int iv_index[MAX_TESTS] =
     { 0, 0, 1, 1, 1, 2 };
 
-static const unsigned char iv[MAX_TESTS][64] =
+static const unsigned char iv_test_data[MAX_TESTS][64] =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00 },
@@ -594,7 +594,7 @@ static const unsigned char iv[MAX_TESTS][64] =
       0xa6, 0x37, 0xb3, 0x9b },
 };
 
-static const size_t add_len[MAX_TESTS] =
+static const size_t add_len_test_data[MAX_TESTS] =
     { 0, 0, 0, 20, 20, 20 };
 
 static const int add_index[MAX_TESTS] =
@@ -737,7 +737,7 @@ static const unsigned char ct[MAX_TESTS * 3][64] =
       0x44, 0xae, 0x7e, 0x3f },
 };
 
-static const unsigned char tag[MAX_TESTS * 3][16] =
+static const unsigned char tag_test_data[MAX_TESTS * 3][16] =
 {
     { 0x58, 0xe2, 0xfc, 0xce, 0xfa, 0x7e, 0x30, 0x61,
       0x36, 0x7f, 0x1d, 0x57, 0xa4, 0xe7, 0x45, 0x5a },
@@ -797,7 +797,7 @@ int mbedtls_gcm_self_test( int verbose )
                 mbedtls_printf( "  AES-GCM-%3d #%d (%s): ",
                                 key_len, i, "enc" );
 
-            ret = mbedtls_gcm_setkey( &ctx, cipher, key[key_index[i]],
+            ret = mbedtls_gcm_setkey( &ctx, cipher, key_test_data[key_index[i]],
                                       key_len );
             /*
              * AES-192 is an optional feature that may be unavailable when
@@ -816,14 +816,14 @@ int mbedtls_gcm_self_test( int verbose )
 
             ret = mbedtls_gcm_crypt_and_tag( &ctx, MBEDTLS_GCM_ENCRYPT,
                                         pt_len[i],
-                                        iv[iv_index[i]], iv_len[i],
-                                        additional[add_index[i]], add_len[i],
+                                        iv_test_data[iv_index[i]], iv_len_test_data[i],
+                                        additional[add_index[i]], add_len_test_data[i],
                                         pt[pt_index[i]], buf, 16, tag_buf );
             if( ret != 0 )
                 goto exit;
 
             if ( memcmp( buf, ct[j * 6 + i], pt_len[i] ) != 0 ||
-                 memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
+                 memcmp( tag_buf, tag_test_data[j * 6 + i], 16 ) != 0 )
             {
                 ret = 1;
                 goto exit;
@@ -840,22 +840,22 @@ int mbedtls_gcm_self_test( int verbose )
                 mbedtls_printf( "  AES-GCM-%3d #%d (%s): ",
                                 key_len, i, "dec" );
 
-            ret = mbedtls_gcm_setkey( &ctx, cipher, key[key_index[i]],
+            ret = mbedtls_gcm_setkey( &ctx, cipher, key_test_data[key_index[i]],
                                       key_len );
             if( ret != 0 )
                 goto exit;
 
             ret = mbedtls_gcm_crypt_and_tag( &ctx, MBEDTLS_GCM_DECRYPT,
                                         pt_len[i],
-                                        iv[iv_index[i]], iv_len[i],
-                                        additional[add_index[i]], add_len[i],
+                                        iv_test_data[iv_index[i]], iv_len_test_data[i],
+                                        additional[add_index[i]], add_len_test_data[i],
                                         ct[j * 6 + i], buf, 16, tag_buf );
 
             if( ret != 0 )
                 goto exit;
 
             if( memcmp( buf, pt[pt_index[i]], pt_len[i] ) != 0 ||
-                memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
+                memcmp( tag_buf, tag_test_data[j * 6 + i], 16 ) != 0 )
             {
                 ret = 1;
                 goto exit;
@@ -872,14 +872,14 @@ int mbedtls_gcm_self_test( int verbose )
                 mbedtls_printf( "  AES-GCM-%3d #%d split (%s): ",
                                 key_len, i, "enc" );
 
-            ret = mbedtls_gcm_setkey( &ctx, cipher, key[key_index[i]],
+            ret = mbedtls_gcm_setkey( &ctx, cipher, key_test_data[key_index[i]],
                                       key_len );
             if( ret != 0 )
                 goto exit;
 
             ret = mbedtls_gcm_starts( &ctx, MBEDTLS_GCM_ENCRYPT,
-                                      iv[iv_index[i]], iv_len[i],
-                                      additional[add_index[i]], add_len[i] );
+                                      iv_test_data[iv_index[i]], iv_len_test_data[i],
+                                      additional[add_index[i]], add_len_test_data[i] );
             if( ret != 0 )
                 goto exit;
 
@@ -907,7 +907,7 @@ int mbedtls_gcm_self_test( int verbose )
                 goto exit;
 
             if( memcmp( buf, ct[j * 6 + i], pt_len[i] ) != 0 ||
-                memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
+                memcmp( tag_buf, tag_test_data[j * 6 + i], 16 ) != 0 )
             {
                 ret = 1;
                 goto exit;
@@ -924,14 +924,14 @@ int mbedtls_gcm_self_test( int verbose )
                 mbedtls_printf( "  AES-GCM-%3d #%d split (%s): ",
                                 key_len, i, "dec" );
 
-            ret = mbedtls_gcm_setkey( &ctx, cipher, key[key_index[i]],
+            ret = mbedtls_gcm_setkey( &ctx, cipher, key_test_data[key_index[i]],
                                       key_len );
             if( ret != 0 )
                 goto exit;
 
             ret = mbedtls_gcm_starts( &ctx, MBEDTLS_GCM_DECRYPT,
-                              iv[iv_index[i]], iv_len[i],
-                              additional[add_index[i]], add_len[i] );
+                              iv_test_data[iv_index[i]], iv_len_test_data[i],
+                              additional[add_index[i]], add_len_test_data[i] );
             if( ret != 0 )
                 goto exit;
 
@@ -960,7 +960,7 @@ int mbedtls_gcm_self_test( int verbose )
                 goto exit;
 
             if( memcmp( buf, pt[pt_index[i]], pt_len[i] ) != 0 ||
-                memcmp( tag_buf, tag[j * 6 + i], 16 ) != 0 )
+                memcmp( tag_buf, tag_test_data[j * 6 + i], 16 ) != 0 )
             {
                 ret = 1;
                 goto exit;

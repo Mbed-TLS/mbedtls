@@ -304,10 +304,10 @@ int mbedtls_pkcs5_self_test( int verbose )
 
 #define MAX_TESTS   6
 
-static const size_t plen[MAX_TESTS] =
+static const size_t plen_test_data[MAX_TESTS] =
     { 8, 8, 8, 24, 9 };
 
-static const unsigned char password[MAX_TESTS][32] =
+static const unsigned char password_test_data[MAX_TESTS][32] =
 {
     "password",
     "password",
@@ -316,10 +316,10 @@ static const unsigned char password[MAX_TESTS][32] =
     "pass\0word",
 };
 
-static const size_t slen[MAX_TESTS] =
+static const size_t slen_test_data[MAX_TESTS] =
     { 4, 4, 4, 36, 5 };
 
-static const unsigned char salt[MAX_TESTS][40] =
+static const unsigned char salt_test_data[MAX_TESTS][40] =
 {
     "salt",
     "salt",
@@ -380,8 +380,8 @@ int mbedtls_pkcs5_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  PBKDF2 (SHA1) #%d: ", i );
 
-        ret = mbedtls_pkcs5_pbkdf2_hmac( &sha1_ctx, password[i], plen[i], salt[i],
-                                  slen[i], it_cnt[i], key_len[i], key );
+        ret = mbedtls_pkcs5_pbkdf2_hmac( &sha1_ctx, password_test_data[i], plen_test_data[i], salt_test_data[i],
+                                  slen_test_data[i], it_cnt[i], key_len[i], key );
         if( ret != 0 ||
             memcmp( result_key[i], key, key_len[i] ) != 0 )
         {

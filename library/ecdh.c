@@ -146,6 +146,23 @@ void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx )
 }
 
 /*
+ * Setup context
+ */
+int mbedtls_ecdh_setup( mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp_id )
+{
+    int ret;
+
+    ret = mbedtls_ecp_group_load( &ctx->grp, grp_id );
+    if( ret != 0 )
+    {
+        mbedtls_ecdh_free( ctx );
+        return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
+    }
+
+    return( 0 );
+}
+
+/*
  * Free context
  */
 void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx )
@@ -240,12 +257,17 @@ int mbedtls_ecdh_read_params( mbedtls_ecdh_context *ctx,
                       const unsigned char **buf, const unsigned char *end )
 {
     int ret;
+    mbedtls_ecp_group_id grp_id;
 
-    if( ( ret = mbedtls_ecp_tls_read_group( &ctx->grp, buf, end - *buf ) ) != 0 )
+    if( ( ret = mbedtls_ecp_tls_read_group_id( &grp_id, buf, end - *buf ) )
+            != 0 )
         return( ret );
 
-    if( ( ret = mbedtls_ecp_tls_read_point( &ctx->grp, &ctx->Qp, buf, end - *buf ) )
-                != 0 )
+    if( ( ret = mbedtls_ecdh_setup( ctx, grp_id ) ) != 0 )
+        return( ret );
+
+    if( ( ret = mbedtls_ecp_tls_read_point( &ctx->grp, &ctx->Qp, buf,
+                                            end - *buf ) ) != 0 )
         return( ret );
 
     return( 0 );
@@ -259,7 +281,7 @@ int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx, const mbedtls_ecp_keypai
 {
     int ret;
 
-    if( ( ret = mbedtls_ecp_group_copy( &ctx->grp, &key->grp ) ) != 0 )
+    if( ( ret = mbedtls_ecdh_setup( ctx, key->grp.id ) ) != 0 )
         return( ret );
 
     /* If it's not our key, just import the public part as Qp */

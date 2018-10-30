@@ -135,6 +135,24 @@ int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
 void mbedtls_ecdh_init( mbedtls_ecdh_context *ctx );
 
 /**
+ * \brief           This function sets up the ECDH context with the information
+ *                  given.
+ *
+ *                  This function should be called after mbedtls_ecdh_init() but
+ *                  before mbedtls_ecdh_make_params(). There is no need to call
+ *                  this function before mbedtls_ecdh_read_params().
+ *
+ *                  This is the first function used by a TLS server for ECDHE
+ *                  ciphersuites.
+ *
+ * \param ctx       The ECDH context to set up.
+ * \param grp_id    The group id of the group to set up the context for.
+ *
+ * \return          \c 0 on success.
+ */
+int mbedtls_ecdh_setup( mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp_id );
+
+/**
  * \brief           This function frees a context.
  *
  * \param ctx       The context to free.
@@ -145,8 +163,8 @@ void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx );
  * \brief           This function generates a public key and a TLS
  *                  ServerKeyExchange payload.
  *
- *                  This is the first function used by a TLS server for ECDHE
- *                  ciphersuites.
+ *                  This is the second function used by a TLS server for ECDHE
+ *                  ciphersuites. (It is called after mbedtls_ecdh_setup().)
  *
  * \note            This function assumes that the ECP group (grp) of the
  *                  \p ctx context has already been properly set,
@@ -242,8 +260,9 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
  * \brief       This function parses and processes a TLS ClientKeyExchange
  *              payload.
  *
- *              This is the second function used by a TLS server for ECDH(E)
- *              ciphersuites.
+ *              This is the third function used by a TLS server for ECDH(E)
+ *              ciphersuites. (It is called after mbedtls_ecdh_setup() and
+ *              mbedtls_ecdh_make_params().)
  *
  * \see         ecp.h
  *

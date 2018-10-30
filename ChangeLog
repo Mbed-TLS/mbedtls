@@ -22,6 +22,10 @@ Bugfix
      Fix for #1091 raised by ezdevelop
    * Ensure that unused bits are zero when writing ASN.1 bitstrings when using
      mbedtls_asn1_write_bitstring().
+   * Fix issue when writing the named bitstrings in KeyUsage and NsCertType
+     extensions in CSRs and CRTs that caused these bitstrings to not be encoded
+     correctly as trailing zeroes were not accounted for as unused bits in the
+     leading content octet. Fixes #1610.
 
 Changes
    * "make apidoc" now generates the documentation for the current

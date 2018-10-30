@@ -225,7 +225,7 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
     SHA512_VALIDATE_RET( (const unsigned char *)data != NULL );
 
 #define  SHR(x,n) ((x) >> (n))
-#define ROTR(x,n) (SHR(x,n) | ((x) << (64 - (n))))
+#define ROTR(x,n) (SHR((x),(n)) | ((x) << (64 - (n))))
 
 #define S0(x) (ROTR(x, 1) ^ ROTR(x, 8) ^  SHR(x, 7))
 #define S1(x) (ROTR(x,19) ^ ROTR(x,61) ^  SHR(x, 6))
@@ -236,12 +236,12 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
 #define F0(x,y,z) (((x) & (y)) | ((z) & ((x) | (y))))
 #define F1(x,y,z) ((z) ^ ((x) & ((y) ^ (z))))
 
-#define P(a,b,c,d,e,f,g,h,x,K)                          \
-    do                                                  \
-    {                                                   \
+#define P(a,b,c,d,e,f,g,h,x,K)                                  \
+    do                                                          \
+    {                                                           \
         temp1 = (h) + S3(e) + F1((e),(f),(g)) + (K) + (x);      \
         temp2 = S2(a) + F0((a),(b),(c));                        \
-        (d) += temp1; (h) = temp1 + temp2;              \
+        (d) += temp1; (h) = temp1 + temp2;                      \
     } while( 0 )
 
     for( i = 0; i < 16; i++ )

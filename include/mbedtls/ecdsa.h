@@ -215,8 +215,7 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
                            unsigned char *sig, size_t *slen,
                            int (*f_rng)(void *, unsigned char *, size_t),
                            void *p_rng );
-
-int mbedtls_ecdsa_sm2_write_signature(mbedtls_ecdsa_context *ctx, mbedtls_md_type_t md_alg, const unsigned char *hash, size_t hlen, unsigned char *sig, size_t *slen, void *p_rng);
+int mbedtls_ecdsa_sm2_write_signature(mbedtls_ecdsa_context *ctx, mbedtls_md_type_t md_alg, const unsigned char *hash, size_t hlen, unsigned char *sig, size_t *slen, int(*f_rng)(void *, unsigned char *, size_t), void *p_rng);
 
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 #if ! defined(MBEDTLS_DEPRECATED_REMOVED)

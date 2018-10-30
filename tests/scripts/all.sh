@@ -582,6 +582,36 @@ if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_
 msg "test: compat.sh ARIA + ChachaPoly"
 if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 
+
+# USE_PSA: run the same set of tests as basic-build-test.sh
+msg "build: cmake, full config + USE_PSA, ASan"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+scripts/config.pl set MBEDTLS_USE_PSA_CRYPTO
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: main suites (USE_PSA)"
+make test
+
+msg "test: ssl-opt.sh (USE_PSA)"
+if_build_succeeded tests/ssl-opt.sh
+
+msg "test: compat.sh default (USE_PSA)"
+if_build_succeeded tests/compat.sh
+
+msg "test: compat.sh ssl3 (USE_PSA)"
+if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
+
+msg "test: compat.sh RC4, DES & NULL (USE_PSA)"
+if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
+
+msg "test: compat.sh ARIA + ChachaPoly (USE_PSA)"
+if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
+
+
 msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"

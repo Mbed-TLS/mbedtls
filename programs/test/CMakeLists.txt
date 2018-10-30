@@ -30,7 +30,8 @@ target_link_libraries(udp_proxy ${libs})
 add_executable(zeroize zeroize.c)
 target_link_libraries(zeroize ${libs})
 
-add_executable(query_compile_time_config query_compile_time_config.c ../ssl/query_config.c)
+add_executable(query_compile_time_config query_compile_time_config.c)
+target_sources(query_compile_time_config PUBLIC ../ssl/query_config.c)
 target_link_libraries(query_compile_time_config ${libs})
 
 install(TARGETS selftest benchmark ssl_cert_test udp_proxy query_compile_time_config

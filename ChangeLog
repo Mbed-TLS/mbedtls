@@ -13,16 +13,16 @@ Features
      yet), and to existing functions in ECDH and SSL (currently only
      implemented client-side, for ECDHE-ECDSA ciphersuites in TLS 1.2,
      including client authentication).
-   * Fix wrong order of freeing in programs/ssl/ssl_server2 example
-     application leading to a memory leak in case both
-     MBEDTLS_MEMORY_BUFFER_ALLOC_C and MBEDTLS_MEMORY_BACKTRACE are set.
-     Fixes #2069.
    * Add support for Arm CPU DSP extensions to accelerate asymmetric key
      operations. On CPUs where the extensions are available, they can accelerate
      MPI multiplications used in ECC and RSA cryptography. Contributed by
      Aurelien Jarno.
 
 Bugfix
+   * Fix wrong order of freeing in programs/ssl/ssl_server2 example
+     application leading to a memory leak in case both
+     MBEDTLS_MEMORY_BUFFER_ALLOC_C and MBEDTLS_MEMORY_BACKTRACE are set.
+     Fixes #2069.
    * Fix a bug in the update function for SSL ticket keys which previously
      invalidated keys of a lifetime of less than a 1s. Fixes #1968.
    * Fix failure in hmac_drbg in the benchmark sample application, when
@@ -32,7 +32,7 @@ Bugfix
      padded records in case of CBC ciphersuites using Encrypt-then-MAC.
    * Fix memory leak and freeing without initialization in the example
      program programs/x509/cert_write. Fixes #1422.
-   * Ignore iv in mbedtls_cipher_set_iv() when the cipher mode is MBEDTLS_MODE_ECB
+   * Ignore IV in mbedtls_cipher_set_iv() when the cipher mode is MBEDTLS_MODE_ECB
      Fix for #1091 raised by ezdevelop
 
 Changes

@@ -26,6 +26,8 @@ Changes
      in the same way as on the server side.
    * Change the dtls_client and dtls_server samples to work by default over
      IPv6 and optionally by a build option over IPv4.
+   * Improve documentation of mbedtls_ssl_get_verify_result().
+     Fixes #517 reported by github-monoculture.
 
 = mbed TLS 2.7.6 branch released 2018-08-31
 

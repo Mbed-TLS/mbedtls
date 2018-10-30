@@ -591,6 +591,10 @@ int mbedtls_x509write_crt_set_authority_key_identifier( mbedtls_x509write_cert *
  * \param key_usage key usage flags to set
  *
  * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
+ *
+ * \note            This function does not support writing the
+ *                  <code>encipherOnly</code> flag (i.e
+ *                  #MBEDTLS_X509_KU_ENCIPHER_ONLY).
  */
 int mbedtls_x509write_crt_set_key_usage( mbedtls_x509write_cert *ctx,
                                          unsigned int key_usage );

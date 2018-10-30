@@ -207,11 +207,9 @@ void mbedtls_x509write_csr_set_md_alg( mbedtls_x509write_csr *ctx, mbedtls_md_ty
  *                  #MBEDTLS_X509_KU_DECIPHER_ONLY) cannot be set using this
  *                  function.
  *
- * \note            This function does not count trailing zeroes as part of the
- *                  unsed bits in the ASN.1 encoding of named bitstrings as
- *                  specified in RFC 5280. Therefore, the extension will always
- *                  be encoded as a fixed length bitstring regardless of the
- *                  flags set in the extension.
+ * \note            This function does not support writing the
+ *                  <code>encipherOnly</code> flag (i.e
+ *                  #MBEDTLS_X509_KU_ENCIPHER_ONLY).
  */
 int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned char key_usage );
 
@@ -223,12 +221,6 @@ int mbedtls_x509write_csr_set_key_usage( mbedtls_x509write_csr *ctx, unsigned ch
  * \param ns_cert_type  Netscape Cert Type flags to set
  *
  * \return          0 if successful, or MBEDTLS_ERR_X509_ALLOC_FAILED
- *
- * \note            This function does not count trailing zeroes as part of the
- *                  unsed bits in the ASN.1 encoding of named bitstrings as
- *                  specified in RFC 5280. Therefore, the extension will always
- *                  be encoded as a fixed length bitstring regardless of the
- *                  flags set in the extension.
  */
 int mbedtls_x509write_csr_set_ns_cert_type( mbedtls_x509write_csr *ctx,
                                     unsigned char ns_cert_type );

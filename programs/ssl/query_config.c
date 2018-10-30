@@ -107,8 +107,12 @@
 #include <string.h>
 
 /* Helper macros to convert a macro or its expansion into a string */
+#if defined(_MSC_VER)
+#define MACRO_EXPANSION_TO_STR(macro)   strlen( #macro ) > 0 ? #macro "\n" : ""
+#else
 #define MACRO_EXPANSION_TO_STR(macro)   MACRO_NAME_TO_STR(macro)
 #define MACRO_NAME_TO_STR(macro)        strlen( #macro ) > 0 ? #macro "\n" : ""
+#endif /* _MSC_VER */
 
 int query_config( const char *config )
 {

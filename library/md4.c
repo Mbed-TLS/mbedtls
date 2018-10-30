@@ -145,9 +145,9 @@ int mbedtls_internal_md4_process( mbedtls_md4_context *ctx,
     D = ctx->state[3];
 
 #define F(x, y, z) (((x) & (y)) | ((~(x)) & (z)))
-#define P(a,b,c,d,x,s)         \
-    do                         \
-    {                          \
+#define P(a,b,c,d,x,s)                           \
+    do                                           \
+    {                                            \
         (a) += F((b),(c),(d)) + (x);             \
         (a) = S((a),(s));                        \
     } while( 0 )
@@ -177,8 +177,8 @@ int mbedtls_internal_md4_process( mbedtls_md4_context *ctx,
 #define P(a,b,c,d,x,s)                          \
     do                                          \
     {                                           \
-        (a) += F(b,c,d) + (x) + 0x5A827999;     \
-        (a) = S(a,s);                           \
+        (a) += F((b),(c),(d)) + (x) + 0x5A827999;       \
+        (a) = S((a),(s));                               \
     } while( 0 )
 
     P( A, B, C, D, X[ 0],  3 );
@@ -202,11 +202,11 @@ int mbedtls_internal_md4_process( mbedtls_md4_context *ctx,
 #undef F
 
 #define F(x,y,z) ((x) ^ (y) ^ (z))
-#define P(a,b,c,d,x,s)                      \
-    do                                      \
-    {                                       \
-        (a) += F(b,c,d) + (x) + 0x6ED9EBA1; \
-        (a) = S(a,s);                       \
+#define P(a,b,c,d,x,s)                                  \
+    do                                                  \
+    {                                                   \
+        (a) += F((b),(c),(d)) + (x) + 0x6ED9EBA1;       \
+        (a) = S((a),(s));                               \
     } while( 0 )
 
     P( A, B, C, D, X[ 0],  3 );

@@ -147,9 +147,17 @@ int mbedtls_pk_setup_psa( mbedtls_pk_context *ctx, const psa_key_slot_t key )
 {
     const mbedtls_pk_info_t * const info = &mbedtls_pk_opaque_psa_info;
     psa_key_slot_t *pk_ctx;
+    psa_key_type_t type;
 
     if( ctx == NULL || ctx->pk_info != NULL )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    if( PSA_SUCCESS != psa_get_key_information( key, &type, NULL ) )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    /* Current implementation of can_do() relies on this. */
+    if( ! PSA_KEY_TYPE_IS_ECC_KEYPAIR( type ) )
+        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE) ;
 
     if( ( ctx->pk_ctx = info->ctx_alloc_func() ) == NULL )
         return( MBEDTLS_ERR_PK_ALLOC_FAILED );

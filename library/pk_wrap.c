@@ -744,11 +744,20 @@ static size_t pk_psa_get_bitlen( const void *ctx )
     return( bits );
 }
 
+static int pk_psa_can_do( mbedtls_pk_type_t type )
+{
+    /* For now opaque PSA keys can only wrap ECC keypairs,
+     * as checked by setup_psa().
+     * Also, ECKEY_DH does not really make sense with the current API. */
+    return( type == MBEDTLS_PK_ECKEY ||
+            type == MBEDTLS_PK_ECDSA );
+}
+
 const mbedtls_pk_info_t mbedtls_pk_opaque_psa_info = {
     MBEDTLS_PK_OPAQUE_PSA,
     "Opaque (PSA)",
     pk_psa_get_bitlen,
-    NULL, /* coming soon: can_do */
+    pk_psa_can_do,
     NULL, /* verify - will be done later */
     NULL, /* coming soon: sign */
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)

@@ -31,7 +31,6 @@
 #include <stdlib.h>
 #define mbedtls_exit       exit
 #define mbedtls_printf     printf
-#define mbedtls_snprintf   snprintf
 #define mbedtls_free       free
 #endif
 

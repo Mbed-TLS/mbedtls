@@ -208,6 +208,11 @@ void mbedtls_pk_init( mbedtls_pk_context *ctx );
 
 /**
  * \brief           Free a mbedtls_pk_context
+ *
+ * \note            For contexts that have been set up with
+ *                  mbedtls_pk_setup_psa(), this does not free the underlying
+ *                  key slot and you still need to call psa_destroy_key()
+ *                  independently if you want to destroy that key.
  */
 void mbedtls_pk_free( mbedtls_pk_context *ctx );
 
@@ -245,6 +250,12 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
  *
  * \param ctx       Context to initialize. Must be empty (type NONE).
  * \param key       PSA key slot to wrap.
+ *
+ * \note            The wrapped key slot must remain valid as long as the
+ *                  wrapping PK context is in use, that is at least between
+ *                  the point this function is called and the point
+ *                  mbedtls_pk_free() is called on this context. The wrapped
+ *                  key slot might then be independently used or destroyed.
  *
  * \return          0 on success,
  *                  MBEDTLS_ERR_PK_BAD_INPUT_DATA on invalid input,

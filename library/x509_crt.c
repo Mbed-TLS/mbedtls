@@ -49,6 +49,11 @@
 #include "mbedtls/pem.h"
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#include "mbedtls/psa_util.h"
+#endif
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -1892,16 +1897,37 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
                                      mbedtls_x509_crt *parent,
                                      mbedtls_x509_crt_restart_ctx *rs_ctx )
 {
-    const mbedtls_md_info_t *md_info;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
-
+    size_t hash_len;
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+    const mbedtls_md_info_t *md_info;
     md_info = mbedtls_md_info_from_type( child->sig_md );
+    hash_len = mbedtls_md_get_size( md_info );
+    
+    /* Note: hash errors can happen only after an internal error */
     if( mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash ) != 0 )
+        return( -1 );
+#else
+    psa_hash_operation_t hash_operation;
+    psa_algorithm_t hash_alg = mbedtls_psa_translate_md( child->sig_md );
+
+    if( psa_hash_setup( &hash_operation, hash_alg ) != PSA_SUCCESS )
+        return( -1 );
+
+    if( psa_hash_update( &hash_operation, child->tbs.p, child->tbs.len )
+        != PSA_SUCCESS )
     {
-        /* Note: this can't happen except after an internal error */
+        psa_hash_abort( &hash_operation );
         return( -1 );
     }
 
+    if( psa_hash_finish( &hash_operation, hash, sizeof( hash ), &hash_len )
+        != PSA_SUCCESS )
+    {
+        psa_hash_abort( &hash_operation );
+        return( -1 );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     /* Skip expensive computation on obvious mismatch */
     if( ! mbedtls_pk_can_do( &parent->pk, child->sig_pk ) )
         return( -1 );
@@ -1910,7 +1936,7 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
     if( rs_ctx != NULL && child->sig_pk == MBEDTLS_PK_ECDSA )
     {
         return( mbedtls_pk_verify_restartable( &parent->pk,
-                    child->sig_md, hash, mbedtls_md_get_size( md_info ),
+                    child->sig_md, hash, hash_len,
                     child->sig.p, child->sig.len, &rs_ctx->pk ) );
     }
 #else
@@ -1918,7 +1944,7 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
 #endif
 
     return( mbedtls_pk_verify_ext( child->sig_pk, child->sig_opts, &parent->pk,
-                child->sig_md, hash, mbedtls_md_get_size( md_info ),
+                child->sig_md, hash, hash_len,
                 child->sig.p, child->sig.len ) );
 }
 

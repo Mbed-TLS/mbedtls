@@ -100,13 +100,19 @@ psa_key_slot_t pk_psa_genkey( void )
 /* BEGIN_CASE depends_on:MBEDTLS_USE_PSA_CRYPTO:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED */
 void pk_psa_utils(  )
 {
-    mbedtls_pk_context pk;
+    mbedtls_pk_context pk, pk2;
     psa_key_slot_t key;
 
     const char * const name = "Opaque (PSA)";
     const size_t bitlen = 256; /* harcoded in genkey() */
 
+    mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
+    unsigned char b1[1], b2[1];
+    size_t len;
+    mbedtls_pk_debug_item dbg;
+
     mbedtls_pk_init( &pk );
+    mbedtls_pk_init( &pk2 );
 
     TEST_ASSERT( mbedtls_pk_setup_psa( &pk, 0 ) ==
                  MBEDTLS_ERR_PK_BAD_INPUT_DATA );
@@ -129,12 +135,34 @@ void pk_psa_utils(  )
     TEST_ASSERT( mbedtls_pk_can_do( &pk, MBEDTLS_PK_ECDSA ) == 1 );
     TEST_ASSERT( mbedtls_pk_can_do( &pk, MBEDTLS_PK_RSA ) == 0 );
 
+    /* unsupported operations: verify, decrypt, encrypt */
+    TEST_ASSERT( mbedtls_pk_verify( &pk, md_alg,
+                                    b1, sizeof( b1), b2, sizeof( b2 ) )
+                 == MBEDTLS_ERR_PK_TYPE_MISMATCH );
+    TEST_ASSERT( mbedtls_pk_decrypt( &pk, b1, sizeof( b1 ),
+                                     b2, &len, sizeof( b2 ),
+                                     NULL, NULL )
+                 == MBEDTLS_ERR_PK_TYPE_MISMATCH );
+    TEST_ASSERT( mbedtls_pk_encrypt( &pk, b1, sizeof( b1 ),
+                                     b2, &len, sizeof( b2 ),
+                                     NULL, NULL )
+                 == MBEDTLS_ERR_PK_TYPE_MISMATCH );
+
+    /* unsupported functions: check_pair, debug */
+    TEST_ASSERT( mbedtls_pk_setup( &pk2,
+                 mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY ) ) == 0 );
+    TEST_ASSERT( mbedtls_pk_check_pair( &pk, &pk2 )
+                 == MBEDTLS_ERR_PK_TYPE_MISMATCH );
+    TEST_ASSERT( mbedtls_pk_debug( &pk, &dbg )
+                 == MBEDTLS_ERR_PK_TYPE_MISMATCH );
+
     /* test that freeing the context does not destroy the key */
     mbedtls_pk_free( &pk );
     TEST_ASSERT( PSA_SUCCESS == psa_destroy_key( key ) );
 
 exit:
     mbedtls_pk_free( &pk ); /* redundant except upon error */
+    mbedtls_pk_free( &pk2 );
 }
 /* END_CASE */
 

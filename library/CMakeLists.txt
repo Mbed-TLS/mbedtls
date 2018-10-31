@@ -98,6 +98,18 @@ if(CMAKE_COMPILER_IS_CLANG)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-declarations -Wmissing-prototypes -Wdocumentation -Wno-documentation-deprecated-sync -Wunreachable-code")
 endif(CMAKE_COMPILER_IS_CLANG)
 
+if(CMAKE_COMPILER_IS_MSVC)
+    option(MSVC_STATIC_RUNTIME "Build the libraries with /MT compiler flag" OFF)
+    if(MSVC_STATIC_RUNTIME)
+        foreach(flag_var
+            CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+            CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
+            CMAKE_C_FLAGS_CHECK)
+            string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+        endforeach(flag_var)
+    endif()
+endif()
+
 if(WIN32)
     set(libs ${libs} ws2_32)
 endif(WIN32)

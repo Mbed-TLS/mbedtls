@@ -3086,10 +3086,10 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void test_derive_invalid_generator_state( int key_type_arg, data_t *key_data)
+void test_derive_invalid_generator_state( data_t *key_data )
 {
     psa_key_slot_t base_key = 1;
-    size_t key_type = key_type_arg;
+    size_t key_type = PSA_KEY_TYPE_DERIVE;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
     psa_algorithm_t alg = PSA_ALG_HKDF(PSA_ALG_SHA_256);
     size_t capacity = 42;

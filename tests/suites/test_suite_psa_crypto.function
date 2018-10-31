@@ -3141,18 +3141,18 @@ void test_derive_invalid_generator_tests( )
     size_t capacity = 0;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
 
-    TEST_ASSERT( psa_generator_read( &generator, output_buffer, buffer_size)
+    TEST_ASSERT( psa_generator_read( &generator, output_buffer, buffer_size )
                  == PSA_ERROR_INSUFFICIENT_CAPACITY );
 
     TEST_ASSERT( psa_get_generator_capacity( &generator, &capacity )
                  == PSA_ERROR_BAD_STATE );
 
-    TEST_ASSERT( psa_generator_abort(&generator) == PSA_SUCCESS );
+    TEST_ASSERT( psa_generator_abort( &generator ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_generator_read( &generator, output_buffer, buffer_size)
+    TEST_ASSERT( psa_generator_read( &generator, output_buffer, buffer_size )
                  == PSA_ERROR_INSUFFICIENT_CAPACITY );
 
-    TEST_ASSERT( psa_get_generator_capacity( &generator, &capacity)
+    TEST_ASSERT( psa_get_generator_capacity( &generator, &capacity )
                  == PSA_ERROR_BAD_STATE );
 
 exit:

@@ -101,8 +101,10 @@ psa_key_slot_t pk_psa_genkey( void )
 void pk_psa_utils(  )
 {
     mbedtls_pk_context pk;
-    const char * const name = "Opaque (PSA)";
     psa_key_slot_t key;
+
+    const char * const name = "Opaque (PSA)";
+    const size_t bitlen = 256; /* harcoded in genkey() */
 
     mbedtls_pk_init( &pk );
 
@@ -113,6 +115,9 @@ void pk_psa_utils(  )
 
     TEST_ASSERT( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_OPAQUE_PSA );
     TEST_ASSERT( strcmp( mbedtls_pk_get_name( &pk), name ) == 0 );
+
+    TEST_ASSERT( mbedtls_pk_get_bitlen( &pk ) == bitlen );
+    TEST_ASSERT( mbedtls_pk_get_len( &pk ) == bitlen / 8 );
 
     /* test that freeing the context does not destroy the key */
     mbedtls_pk_free( &pk );

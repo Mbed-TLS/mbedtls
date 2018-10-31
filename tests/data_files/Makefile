@@ -39,14 +39,20 @@ test_ca_key_file_rsa = test-ca.key
 test_ca_pwd_rsa = PolarSSLTest
 test_ca_config_file = test-ca.opensslconf
 
-test-ca.csr: $(test_ca_key_file_rsa) $(test_ca_config_file)
-	$(OPENSSL) req -new -config $(test_ca_config_file) -key $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -subj "/C=NL/O=PolarSSL/CN=PolarSSL Test CA" -out $@
-all_intermediate += test-ca.csr
-test-ca-sha1.crt: $(test_ca_key_file_rsa) $(test_ca_config_file) test-ca.csr
-	$(OPENSSL) req -x509 -config $(test_ca_config_file) -key $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 0 -days 3653 -sha1 -in test-ca.csr -out $@
+test-ca.req.sha256: $(test_ca_key_file_rsa)
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$(test_ca_key_file_rsa) password=$(test_ca_pwd_rsa) subject_name="C=NL,O=PolarSSL,CN=PolarSSL Test CA" md=SHA256
+all_intermediate += test-ca.req.sha256
+
+test-ca.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
+	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=3 request_file=test-ca.req.sha256 selfsign=1 issuer_name="C=NL,O=PolarSSL,CN=PolarSSL Test CA" issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20110212144400 not_after=20210212144400 md=SHA1 version=3 output_file=$@
+all_final += test-ca.crt
+
+test-ca-sha1.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
+	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=3 request_file=test-ca.req.sha256 selfsign=1 issuer_name="C=NL,O=PolarSSL,CN=PolarSSL Test CA" issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20110212144400 not_after=20210212144400 md=SHA1 version=3 output_file=$@
 all_final += test-ca-sha1.crt
-test-ca-sha256.crt: $(test_ca_key_file_rsa) $(test_ca_config_file) test-ca.csr
-	$(OPENSSL) req -x509 -config $(test_ca_config_file) -key $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 0 -days 3653 -sha256 -in test-ca.csr -out $@
+
+test-ca-sha256.crt: $(test_ca_key_file_rsa) test-ca.req.sha256
+	$(MBEDTLS_CERT_WRITE) is_ca=1 serial=3 request_file=test-ca.req.sha256 selfsign=1 issuer_name="C=NL,O=PolarSSL,CN=PolarSSL Test CA" issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20110212144400 not_after=20210212144400 md=SHA256 version=3 output_file=$@
 all_final += test-ca-sha256.crt
 
 test_ca_key_file_rsa_alt = test-ca-alt.key

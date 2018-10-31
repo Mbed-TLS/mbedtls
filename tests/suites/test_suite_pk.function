@@ -108,6 +108,12 @@ void pk_psa_utils(  )
 
     mbedtls_pk_init( &pk );
 
+    TEST_ASSERT( mbedtls_pk_setup_psa( &pk, 0 ) ==
+                 MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    mbedtls_pk_free( &pk );
+    mbedtls_pk_init( &pk );
+
     key = pk_psa_genkey();
     TEST_ASSERT( key != 0 );
 
@@ -118,6 +124,10 @@ void pk_psa_utils(  )
 
     TEST_ASSERT( mbedtls_pk_get_bitlen( &pk ) == bitlen );
     TEST_ASSERT( mbedtls_pk_get_len( &pk ) == bitlen / 8 );
+
+    TEST_ASSERT( mbedtls_pk_can_do( &pk, MBEDTLS_PK_ECKEY ) == 1 );
+    TEST_ASSERT( mbedtls_pk_can_do( &pk, MBEDTLS_PK_ECDSA ) == 1 );
+    TEST_ASSERT( mbedtls_pk_can_do( &pk, MBEDTLS_PK_RSA ) == 0 );
 
     /* test that freeing the context does not destroy the key */
     mbedtls_pk_free( &pk );

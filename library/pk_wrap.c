@@ -733,10 +733,21 @@ static void pk_psa_free_wrap( void *ctx )
     mbedtls_free( ctx );
 }
 
+static size_t pk_psa_get_bitlen( const void *ctx )
+{
+    const psa_key_slot_t *key = (const psa_key_slot_t *) ctx;
+    size_t bits;
+
+    if( PSA_SUCCESS != psa_get_key_information( *key, NULL, &bits ) )
+        return( 0 );
+
+    return( bits );
+}
+
 const mbedtls_pk_info_t mbedtls_pk_opaque_psa_info = {
     MBEDTLS_PK_OPAQUE_PSA,
     "Opaque (PSA)",
-    NULL, /* coming soon: bitlen */
+    pk_psa_get_bitlen,
     NULL, /* coming soon: can_do */
     NULL, /* verify - will be done later */
     NULL, /* coming soon: sign */

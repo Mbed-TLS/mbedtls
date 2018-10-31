@@ -102,13 +102,6 @@ cli-rsa-sha256.crt: $(cli_crt_key_file_rsa) test-ca-sha256.crt cli-rsa.csr
 	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA test-ca-sha256.crt -CAkey $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 4 -days 3653 -sha256 -in cli-rsa.csr -out $@
 all_final += cli-rsa-sha256.crt
 
-server2-rsa.csr: server2.key
-	$(OPENSSL) req -new -key server2.key -passin "pass:$(test_ca_pwd_rsa)" -subj "/C=NL/O=PolarSSL/CN=localhost" -out $@
-all_intermediate += server2-rsa.csr
-server2-sha256.crt: server2-rsa.csr
-	$(OPENSSL) x509 -req -extfile $(cli_crt_extensions_file) -extensions cli-rsa -CA test-ca-sha256.crt -CAkey $(test_ca_key_file_rsa) -passin "pass:$(test_ca_pwd_rsa)" -set_serial 4 -days 3653 -sha256 -in server2-rsa.csr -out $@
-all_final += server2-sha256.crt
-
 test_ca_int_rsa1 = test-int-ca.crt
 
 server7.csr: server7.key
@@ -766,6 +759,12 @@ server1.req.ku-ct: server1.key
 	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< key_usage=digital_signature,non_repudiation,key_encipherment ns_cert_type=ssl_server subject_name="C=NL,O=PolarSSL,CN=PolarSSL Server 1" md=SHA1
 all_final += server1.req.ku-ct
 
+# server2*
+
+server2.req.sha256: server2.key
+	$(MBEDTLS_CERT_REQ) output_file=$@ filename=$< subject_name="C=NL,O=PolarSSL,CN=localhost" md=SHA256
+all_intermediate += server2.req.sha256
+
 ################################################################
 ### Generate certificates for CRT write check tests
 ################################################################
@@ -838,6 +837,16 @@ server1.v1.der.openssl: server1.v1.crt.openssl
 	$(OPENSSL) x509 -inform PEM -in $< -outform DER -out $@
 
 server1_all: server1.crt server1.noauthid.crt server1.crt.openssl server1.v1.crt server1.v1.crt.openssl server1.key_usage.crt server1.key_usage_noauthid.crt server1.key_usage.crt.openssl server1.cert_type.crt server1.cert_type_noauthid.crt server1.cert_type.crt.openssl server1.der server1.der.openssl server1.v1.der server1.v1.der.openssl server1.key_usage.der server1.key_usage.der.openssl server1.cert_type.der server1.cert_type.der.openssl
+
+# server2*
+
+server2.crt: server2.req.sha256
+	$(MBEDTLS_CERT_WRITE) request_file=server2.req.sha256 serial=2 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20110212144406 not_after=20210212144406 md=SHA1 version=3 output_file=$@
+all_final += server2.crt
+
+server2-sha256.crt: server2.req.sha256
+	$(MBEDTLS_CERT_WRITE) request_file=server2.req.sha256 serial=2 issuer_crt=$(test_ca_crt) issuer_key=$(test_ca_key_file_rsa) issuer_pwd=$(test_ca_pwd_rsa) not_before=20110212144406 not_after=20210212144406 md=SHA256 version=3 output_file=$@
+all_final += server2-sha256.crt
 
 
 

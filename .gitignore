@@ -26,17 +26,3 @@ massif-*
 
 # CMake generates *.dir/ folders for in-tree builds (used by MSVC projects), ignore all of those:
 *.dir/
-
-# Exported Mbed Crypto files
-crypto/LICENSE
-crypto/VERSION.txt
-crypto/include/mbedcrypto/*.h
-crypto/include/psa/*.h
-crypto/library/*.c
-crypto/programs/psa/*.c
-crypto/programs/psa/*.sh
-crypto/scripts
-crypto/tests/scripts
-crypto/tests/suites/*.data
-crypto/tests/suites/*.function
-mbedcrypto.tar.gz

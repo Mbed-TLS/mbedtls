@@ -440,15 +440,6 @@ msg "test: doxygen warnings" # ~ 3s
 cleanup
 record_status tests/scripts/doxygen.sh
 
-msg "test: Mbed Crypto exporter " # ~ 30s
-cleanup
-make -f scripts/mbed_crypto.make
-cd crypto
-make test
-make clean
-cd ..
-make -f scripts/mbed_crypto.make clean
-
 
 ################################################################
 #### Build and test many configurations and targets

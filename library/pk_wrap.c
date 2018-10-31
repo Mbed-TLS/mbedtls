@@ -41,8 +41,16 @@
 #include "mbedtls/ecdsa.h"
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "mbedtls/asn1write.h"
+#endif
+
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)
 #include "mbedtls/platform_util.h"
+#endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "mbedtls/psa_util.h"
 #endif
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -753,13 +761,116 @@ static int pk_psa_can_do( mbedtls_pk_type_t type )
             type == MBEDTLS_PK_ECDSA );
 }
 
+/* Like mbedtls_asn1_write_mpi, but from a buffer */
+static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
+                              const unsigned char *src, size_t slen )
+{
+    int ret;
+    size_t len = 0;
+
+    if( (size_t)( *p - start ) < slen )
+        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+    len = slen;
+    *p -= len;
+    memcpy( *p, src, len );
+
+    if( **p & 0x80 )
+    {
+        if( *p - start < 1 )
+            return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+        *--(*p) = 0x00;
+        len += 1;
+    }
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start, MBEDTLS_ASN1_INTEGER ) );
+
+    return( (int) len );
+}
+
+/* Transcode signature from PSA format to ASN.1 sequence.
+ * See ecdsa_signature_to_asn1 in ecdsa.c.
+ *
+ * [in] sig: the signature in PSA format
+ * [in/out] sig_len: signature length pre- and post-transcoding
+ * [out] dst: the signature in ASN.1 format
+ */
+static int pk_ecdsa_sig_asn1_from_psa( const unsigned char *sig, size_t *sig_len,
+                                       unsigned char *dst )
+{
+    int ret;
+    unsigned char buf[MBEDTLS_ECDSA_MAX_LEN];
+    unsigned char *p = buf + sizeof( buf );
+    size_t len = 0;
+    const size_t mpi_len = *sig_len / 2;
+
+    MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, buf, sig + mpi_len, mpi_len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, buf, sig, mpi_len ) );
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, buf, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf,
+                                       MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
+
+    memcpy( dst, p, len );
+    *sig_len = len;
+
+    return( 0 );
+}
+
+static int pk_psa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t *sig_len,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    const psa_key_slot_t *key = (const psa_key_slot_t *) ctx;
+    psa_status_t status;
+    psa_algorithm_t alg = PSA_ALG_ECDSA( mbedtls_psa_translate_md( md_alg ) );
+    /* PSA needs a buffer of know size */
+    unsigned char buf[2 * MBEDTLS_ECP_MAX_BYTES];
+    const size_t buf_len = sizeof( buf );
+
+    /* PSA has its own RNG */
+    (void) f_rng;
+    (void) p_rng;
+
+    status = psa_asymmetric_sign( *key, alg, hash, hash_len,
+                                        buf, buf_len, sig_len );
+
+    /* translate errors to best approximation */
+    switch( status )
+    {
+        case PSA_SUCCESS:
+            break; /* don't return now */
+        case PSA_ERROR_NOT_SUPPORTED:
+            return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+        case PSA_ERROR_INSUFFICIENT_MEMORY:
+            return( MBEDTLS_ERR_PK_ALLOC_FAILED );
+        case PSA_ERROR_COMMUNICATION_FAILURE:
+        case PSA_ERROR_HARDWARE_FAILURE:
+        case PSA_ERROR_TAMPERING_DETECTED:
+            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+        case PSA_ERROR_INSUFFICIENT_ENTROPY:
+            return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
+        case PSA_ERROR_BAD_STATE:
+            return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+        default: /* should never happen */
+            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+    }
+
+    pk_ecdsa_sig_asn1_from_psa( buf, sig_len, sig );
+
+    return( 0 );
+}
+
 const mbedtls_pk_info_t mbedtls_pk_opaque_psa_info = {
     MBEDTLS_PK_OPAQUE_PSA,
     "Opaque (PSA)",
     pk_psa_get_bitlen,
     pk_psa_can_do,
     NULL, /* verify - will be done later */
-    NULL, /* coming soon: sign */
+    pk_psa_sign_wrap,
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     NULL, /* restartable verify - not relevant */
     NULL, /* restartable sign - not relevant */

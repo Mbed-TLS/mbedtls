@@ -328,13 +328,13 @@ static const unsigned char salt_test_data[MAX_TESTS][40] =
     "sa\0lt",
 };
 
-static const uint32_t it_cnt[MAX_TESTS] =
+static const uint32_t it_cnt_test_data[MAX_TESTS] =
     { 1, 2, 4096, 4096, 4096 };
 
-static const uint32_t key_len[MAX_TESTS] =
+static const uint32_t key_len_test_data[MAX_TESTS] =
     { 20, 20, 20, 25, 16 };
 
-static const unsigned char result_key[MAX_TESTS][32] =
+static const unsigned char result_key_test_data[MAX_TESTS][32] =
 {
     { 0x0c, 0x60, 0xc8, 0x0f, 0x96, 0x1f, 0x0e, 0x71,
       0xf3, 0xa9, 0xb5, 0x24, 0xaf, 0x60, 0x12, 0x06,
@@ -380,10 +380,12 @@ int mbedtls_pkcs5_self_test( int verbose )
         if( verbose != 0 )
             mbedtls_printf( "  PBKDF2 (SHA1) #%d: ", i );
 
-        ret = mbedtls_pkcs5_pbkdf2_hmac( &sha1_ctx, password_test_data[i], plen_test_data[i], salt_test_data[i],
-                                  slen_test_data[i], it_cnt[i], key_len[i], key );
+        ret = mbedtls_pkcs5_pbkdf2_hmac( &sha1_ctx, password_test_data[i],
+                                         plen_test_data[i], salt_test_data[i],
+                                         slen_test_data[i], it_cnt_test_data[i],
+                                         key_len_test_data[i], key );
         if( ret != 0 ||
-            memcmp( result_key[i], key, key_len[i] ) != 0 )
+            memcmp( result_key_test_data[i], key, key_len_test_data[i] ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );

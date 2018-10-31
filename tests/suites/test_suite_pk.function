@@ -69,6 +69,25 @@ size_t mbedtls_rsa_key_len_func( void *ctx )
  * END_DEPENDENCIES
  */
 
+/* BEGIN_CASE depends_on:MBEDTLS_USE_PSA_CRYPTO */
+void pk_psa_utils(  )
+{
+    mbedtls_pk_context pk;
+    const char * const name = "Opaque (PSA)";
+
+    mbedtls_pk_init( &pk );
+
+    TEST_ASSERT( mbedtls_pk_setup_psa( &pk, 0 ) == 0 );
+
+    TEST_ASSERT( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_OPAQUE_PSA );
+    TEST_ASSERT( strcmp( mbedtls_pk_get_name( &pk), name ) == 0 );
+
+exit:
+    mbedtls_pk_free( &pk );
+}
+/* END_CASE */
+
+
 /* BEGIN_CASE */
 void pk_utils( int type, int size, int len, char * name )
 {

@@ -718,6 +718,21 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 
+static void *pk_psa_alloc_wrap( void )
+{
+    void *ctx = mbedtls_calloc( 1, sizeof( psa_key_slot_t ) );
+
+    /* no _init() function to call, an calloc() already zeroized */
+
+    return( ctx );
+}
+
+static void pk_psa_free_wrap( void *ctx )
+{
+    mbedtls_platform_zeroize( ctx, sizeof( psa_key_slot_t ) );
+    mbedtls_free( ctx );
+}
+
 const mbedtls_pk_info_t mbedtls_pk_opaque_psa_info = {
     MBEDTLS_PK_OPAQUE_PSA,
     "Opaque (PSA)",
@@ -732,8 +747,8 @@ const mbedtls_pk_info_t mbedtls_pk_opaque_psa_info = {
     NULL, /* decrypt - will be done later */
     NULL, /* encrypt - will be done later */
     NULL, /* check_pair - could be done later or left NULL */
-    NULL, /* coming soon: alloc */
-    NULL, /* coming soon: free */
+    pk_psa_alloc_wrap,
+    pk_psa_free_wrap,
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
     NULL, /* restart alloc - not relevant */
     NULL, /* restart free - not relevant */

@@ -242,18 +242,6 @@ if(MBEDTLS_FATAL_WARNINGS)
     endif(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
 endif(MBEDTLS_FATAL_WARNINGS)
 
-if(MSVC)
-    option(BUILD_WITH_STATIC_RUNTIME "Build the libraries with /MT compiler flag" OFF)
-    if(BUILD_WITH_STATIC_RUNTIME)
-        foreach(flag_var
-            CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
-            CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
-            CMAKE_C_FLAGS_CHECK)
-            string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-        endforeach(flag_var)
-    endif()
-endif()
-
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
     if(CMAKE_COMPILER_IS_GNU OR CMAKE_COMPILER_IS_CLANG)
         set(CMAKE_SHARED_LINKER_FLAGS "--coverage")

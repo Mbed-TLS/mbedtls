@@ -14,7 +14,7 @@ Changes
      test the handling of large packets and small packets on the client side
      in the same way as on the server side.
    * Add a CMake option that enables static linking of the runtime library
-     in Microsoft Visual C++ compiler. Provided by Microplankton in #674.
+     in Microsoft Visual C++ compiler. Contributed by Microplankton.
 
 = mbed TLS 2.13.1 branch released 2018-09-06
 

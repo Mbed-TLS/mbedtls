@@ -160,6 +160,7 @@ typedef enum {
 int main(int argc, char *argv[])
 {
     value_type type;
+    unsigned long max;
     int i;
 
     if (argc <= 1 ||
@@ -172,14 +173,19 @@ int main(int argc, char *argv[])
 
     if (!strcmp(argv[1], "error") || !strcmp(argv[1], "status")) {
         type = TYPE_STATUS;
+        max = 0x7fffffff; /* hard-coded because psa_status_t is signed */
     } else if (!strcmp(argv[1], "alg") || !strcmp(argv[1], "algorithm")) {
         type = TYPE_ALGORITHM;
+        max = (psa_algorithm_t)( -1 );
     } else if (!strcmp(argv[1], "curve") || !strcmp(argv[1], "ecc_curve")) {
         type = TYPE_ECC_CURVE;
+        max = (psa_ecc_curve_t)( -1 );
     } else if (!strcmp(argv[1], "type") || !strcmp(argv[1], "key_type")) {
         type = TYPE_KEY_TYPE;
+        max = (psa_key_type_t)( -1 );
     } else if (!strcmp(argv[1], "usage") || !strcmp(argv[1], "key_usage")) {
         type = TYPE_KEY_USAGE;
+        max = (psa_key_usage_t)( -1 );
     } else {
         printf("Unknown type: %s\n", argv[1]);
         return EXIT_FAILURE;
@@ -191,6 +197,10 @@ int main(int argc, char *argv[])
         unsigned long value = strtoul(argv[i], &end, 0);
         if (*end) {
             printf("Non-numeric value: %s\n", argv[i]);
+            return EXIT_FAILURE;
+        }
+        if (value > max) {
+            printf("Value out of range: %s\n", argv[i]);
             return EXIT_FAILURE;
         }
 

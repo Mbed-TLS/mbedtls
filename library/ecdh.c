@@ -198,7 +198,7 @@ int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
     if( ctx == NULL || ctx->grp.pbits == 0 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECP_RESTARTABLE) && !defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
     if( ctx->restart_enabled )
         rs_ctx = &ctx->rs;
 #endif
@@ -293,7 +293,7 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
     if( ctx == NULL || ctx->grp.pbits == 0 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECP_RESTARTABLE) && !defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
     if( ctx->restart_enabled )
         rs_ctx = &ctx->rs;
 #endif
@@ -349,7 +349,7 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
     if( ctx == NULL || ctx->grp.pbits == 0 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if defined(MBEDTLS_ECP_RESTARTABLE) && !defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
     if( ctx->restart_enabled )
         rs_ctx = &ctx->rs;
 #endif

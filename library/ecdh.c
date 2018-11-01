@@ -76,7 +76,7 @@ int mbedtls_ecdh_gen_public( mbedtls_ecp_group *grp, mbedtls_mpi *d, mbedtls_ecp
 {
     return( ecdh_gen_public_restartable( grp, d, Q, f_rng, p_rng, NULL ) );
 }
-#endif /* MBEDTLS_ECDH_GEN_PUBLIC_ALT */
+#endif /* !MBEDTLS_ECDH_GEN_PUBLIC_ALT */
 
 #if !defined(MBEDTLS_ECDH_COMPUTE_SHARED_ALT)
 /*
@@ -122,7 +122,7 @@ int mbedtls_ecdh_compute_shared( mbedtls_ecp_group *grp, mbedtls_mpi *z,
     return( ecdh_compute_shared_restartable( grp, z, Q, d,
                                              f_rng, p_rng, NULL ) );
 }
-#endif /* MBEDTLS_ECDH_COMPUTE_SHARED_ALT */
+#endif /* !MBEDTLS_ECDH_COMPUTE_SHARED_ALT */
 
 /*
  * Initialize context
@@ -191,7 +191,9 @@ int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
 {
     int ret;
     size_t grp_len, pt_len;
+#if !defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
     mbedtls_ecp_restart_ctx *rs_ctx = NULL;
+#endif
 
     if( ctx == NULL || ctx->grp.pbits == 0 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
@@ -210,7 +212,7 @@ int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
     if( ( ret = ecdh_gen_public_restartable( &ctx->grp, &ctx->d, &ctx->Q,
                                              f_rng, p_rng, rs_ctx ) ) != 0 )
         return( ret );
-#endif
+#endif /* MBEDTLS_ECDH_GEN_PUBLIC_ALT */
 
     if( ( ret = mbedtls_ecp_tls_write_group( &ctx->grp, &grp_len, buf, blen ) )
                 != 0 )
@@ -284,7 +286,9 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
                       void *p_rng )
 {
     int ret;
+#if !defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
     mbedtls_ecp_restart_ctx *rs_ctx = NULL;
+#endif
 
     if( ctx == NULL || ctx->grp.pbits == 0 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
@@ -302,7 +306,7 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
     if( ( ret = ecdh_gen_public_restartable( &ctx->grp, &ctx->d, &ctx->Q,
                     f_rng, p_rng, rs_ctx ) ) != 0 )
         return( ret );
-#endif
+#endif /* MBEDTLS_ECDH_GEN_PUBLIC_ALT */
 
     return mbedtls_ecp_tls_write_point( &ctx->grp, &ctx->Q, ctx->point_format,
                                 olen, buf, blen );
@@ -338,7 +342,9 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
                       void *p_rng )
 {
     int ret;
+#if !defined(MBEDTLS_ECDH_COMPUTE_SHARED_ALT)
     mbedtls_ecp_restart_ctx *rs_ctx = NULL;
+#endif
 
     if( ctx == NULL || ctx->grp.pbits == 0 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
@@ -360,7 +366,7 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
     {
         return( ret );
     }
-#endif
+#endif /* MBEDTLS_ECDH_COMPUTE_SHARED_ALT */
 
     if( mbedtls_mpi_size( &ctx->z ) > blen )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );

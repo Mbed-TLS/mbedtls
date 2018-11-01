@@ -237,7 +237,6 @@ cleanup:
     return( ret );
 }
 
-#if !defined(MBEDTLS_ECDSA_SIGN_ALT)
 /*
  * Compute ECDSA signature of a hashed message (SEC1 4.1.3)
  * Obviously, compared to SEC1 4.1.3, we skip step 4 (hash message)
@@ -369,8 +368,8 @@ cleanup:
 
     return( ret );
 }
-#endif /* MBEDTLS_ECDSA_SIGN_ALT */
 
+#if !defined(MBEDTLS_ECDSA_SIGN_ALT)
 /*
  * Compute ECDSA signature of a hashed message
  */
@@ -381,6 +380,7 @@ int mbedtls_ecdsa_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
     return( ecdsa_sign_restartable( grp, r, s, d, buf, blen,
                                     f_rng, p_rng, NULL ) );
 }
+#endif /* MBEDTLS_ECDSA_SIGN_ALT */
 
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
 /*
@@ -432,8 +432,13 @@ static int ecdsa_sign_det_restartable( mbedtls_ecp_group *grp,
 
 sign:
 #endif
+#if defined(MBEDTLS_ECDSA_SIGN_ALT)
+    ret = mbedtls_ecdsa_sign( grp, r, s, d, buf, blen,
+                              mbedtls_hmac_drbg_random, p_rng );
+#else
     ret = ecdsa_sign_restartable( grp, r, s, d, buf, blen,
                       mbedtls_hmac_drbg_random, p_rng, rs_ctx );
+#endif
 
 cleanup:
     mbedtls_hmac_drbg_free( &rng_ctx );
@@ -455,7 +460,6 @@ int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi 
 }
 #endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
-#if !defined(MBEDTLS_ECDSA_VERIFY_ALT)
 /*
  * Verify ECDSA signature of hashed message (SEC1 4.1.4)
  * Obviously, compared to SEC1 4.1.3, we skip step 2 (hash message)
@@ -564,8 +568,8 @@ cleanup:
 
     return( ret );
 }
-#endif /* MBEDTLS_ECDSA_VERIFY_ALT */
 
+#if !defined(MBEDTLS_ECDSA_VERIFY_ALT)
 /*
  * Verify ECDSA signature of hashed message
  */
@@ -575,6 +579,7 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
 {
     return( ecdsa_verify_restartable( grp, buf, blen, Q, r, s, NULL ) );
 }
+#endif /* MBEDTLS_ECDSA_VERIFY_ALT */
 
 /*
  * Convert a signature (given by context) to ASN.1
@@ -626,8 +631,13 @@ int mbedtls_ecdsa_write_signature_restartable( mbedtls_ecdsa_context *ctx,
 #else
     (void) md_alg;
 
+#if defined(MBEDTLS_ECDSA_SIGN_ALT)
+    MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign( &ctx->grp, &r, &s, &ctx->d,
+                         hash, hlen, f_rng, p_rng ) );
+#else
     MBEDTLS_MPI_CHK( ecdsa_sign_restartable( &ctx->grp, &r, &s, &ctx->d,
                          hash, hlen, f_rng, p_rng, rs_ctx ) );
+#endif
 #endif
 
     MBEDTLS_MPI_CHK( ecdsa_signature_to_asn1( &r, &s, sig, slen ) );
@@ -712,10 +722,15 @@ int mbedtls_ecdsa_read_signature_restartable( mbedtls_ecdsa_context *ctx,
         ret += MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
         goto cleanup;
     }
-
+#if defined(MBEDTLS_ECDSA_VERIFY_ALT)
+    if( ( ret = mbedtls_ecdsa_verify( &ctx->grp, hash, hlen,
+                                      &ctx->Q, &r, &s ) ) != 0 )
+        goto cleanup;
+#else
     if( ( ret = ecdsa_verify_restartable( &ctx->grp, hash, hlen,
                               &ctx->Q, &r, &s, rs_ctx ) ) != 0 )
         goto cleanup;
+#endif
 
     /* At this point we know that the buffer starts with a valid signature.
      * Return 0 if the buffer just contains the signature, and a specific

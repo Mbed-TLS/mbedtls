@@ -3086,7 +3086,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void test_derive_invalid_generator_state( data_t *key_data )
+void test_derive_invalid_generator_state( )
 {
     psa_key_slot_t base_key = 1;
     size_t key_type = PSA_KEY_TYPE_DERIVE;
@@ -3094,6 +3094,9 @@ void test_derive_invalid_generator_state( data_t *key_data )
     psa_algorithm_t alg = PSA_ALG_HKDF(PSA_ALG_SHA_256);
     size_t capacity = 42;
     uint8_t buffer[42];
+    const uint8_t key_data[22] = { 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
+                                   0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
+                                   0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b};
     psa_key_policy_t policy;
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
@@ -3103,8 +3106,8 @@ void test_derive_invalid_generator_state( data_t *key_data )
     TEST_ASSERT( psa_set_key_policy( base_key, &policy ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( base_key, key_type,
-                                 key_data->x,
-                                 key_data->len ) == PSA_SUCCESS );
+                                 key_data,
+                                 sizeof(key_data) ) == PSA_SUCCESS );
 
     /* valid key derivation */
     TEST_ASSERT(  psa_key_derivation( &generator, base_key, alg,

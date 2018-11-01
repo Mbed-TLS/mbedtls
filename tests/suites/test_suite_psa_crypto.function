@@ -1568,6 +1568,43 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void hash_bad_order( )
+{
+    unsigned char input[] = "";
+    /* SHA-256 hash of an empty string */
+    unsigned char hash[] = {
+        0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8,
+        0x99, 0x6f, 0xb9, 0x24, 0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c,
+        0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55 };
+    size_t hash_len;
+    psa_hash_operation_t operation;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    /* psa_hash_update without calling psa_hash_setup beforehand */
+    memset( &operation, 0, sizeof( operation ) );
+    TEST_ASSERT( psa_hash_update( &operation,
+                                  input, sizeof( input ) ) ==
+                                  PSA_ERROR_INVALID_ARGUMENT );
+
+    /* psa_hash_verify without calling psa_hash_setup beforehand */
+    memset( &operation, 0, sizeof( operation ) );
+    TEST_ASSERT( psa_hash_verify( &operation,
+                                  hash, sizeof( hash ) ) ==
+                                  PSA_ERROR_INVALID_ARGUMENT );
+
+    /* psa_hash_finish without calling psa_hash_setup beforehand */
+    memset( &operation, 0, sizeof( operation ) );
+    TEST_ASSERT( psa_hash_finish( &operation,
+                                  hash, sizeof( hash ), &hash_len ) ==
+                                  PSA_ERROR_INVALID_ARGUMENT );
+
+exit:
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void hash_verify_bad_paths( )
 {
     psa_algorithm_t alg = PSA_ALG_SHA_256;
@@ -1586,12 +1623,6 @@ void hash_verify_bad_paths( )
     };
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
-
-    /* psa_hash_verify without calling psa_hash_setup beforehand */
-    memset( &operation, 0, sizeof( operation ) );
-    TEST_ASSERT( psa_hash_verify( &operation,
-                                  hash, expected_size ) ==
-                                  PSA_ERROR_INVALID_ARGUMENT );
 
     /* psa_hash_verify with a smaller hash digest than expected */
     TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
@@ -1625,25 +1656,6 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void hash_update_bad_paths( )
-{
-    unsigned char input[] = "input";
-    psa_hash_operation_t operation;
-
-    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
-
-    /* psa_hash_update without calling psa_hash_setup beforehand */
-    memset( &operation, 0, sizeof( operation ) );
-    TEST_ASSERT( psa_hash_update( &operation,
-                                  input, sizeof( input ) ) ==
-                                  PSA_ERROR_INVALID_ARGUMENT );
-
-exit:
-    mbedtls_psa_crypto_free( );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
 void hash_finish_bad_paths( )
 {
     psa_algorithm_t alg = PSA_ALG_SHA_256;
@@ -1653,12 +1665,6 @@ void hash_finish_bad_paths( )
     size_t hash_len;
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
-
-    /* psa_hash_finish without calling psa_hash_setup beforehand */
-    memset( &operation, 0, sizeof( operation ) );
-    TEST_ASSERT( psa_hash_finish( &operation,
-                                  hash, expected_size,
-                                  &hash_len ) == PSA_ERROR_INVALID_ARGUMENT );
 
     /* psa_hash_finish with a smaller hash buffer than expected */
     TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );

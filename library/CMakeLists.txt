@@ -146,6 +146,9 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
     add_library(${mbedcrypto_static_target} STATIC ${src_crypto})
     set_target_properties(${mbedcrypto_static_target} PROPERTIES OUTPUT_NAME mbedcrypto)
     target_link_libraries(${mbedcrypto_static_target} ${libs})
+    target_include_directories(${mbedcrypto_static_target}
+        PUBLIC ${CMAKE_SOURCE_DIR}/include/
+        PUBLIC ${CMAKE_SOURCE_DIR}/crypto/include/)
 
     if(USE_CRYPTO_SUBMODULE)
         install(TARGETS ${mbedcrypto_static_target}
@@ -170,6 +173,9 @@ if(USE_SHARED_MBEDTLS_LIBRARY)
     add_library(mbedcrypto SHARED ${src_crypto})
     set_target_properties(mbedcrypto PROPERTIES VERSION 2.14.0 SOVERSION 3)
     target_link_libraries(mbedcrypto ${libs})
+    target_include_directories(mbedcrypto
+        PUBLIC ${CMAKE_SOURCE_DIR}/include/
+        PUBLIC ${CMAKE_SOURCE_DIR}/crypto/include/)
 
     if(USE_CRYPTO_SUBMODULE)
         install(TARGETS mbedcrypto

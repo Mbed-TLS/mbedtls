@@ -1604,50 +1604,37 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
-void hash_verify_bad_paths( )
+/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+void hash_verify_bad_args( )
 {
     psa_algorithm_t alg = PSA_ALG_SHA_256;
-    unsigned char hash[PSA_HASH_MAX_SIZE] = { 0 };
+    /* SHA-256 hash of an empty string with 2 extra bytes (0xaa and 0xbb)
+     * appended to it */
+    unsigned char hash[] = {
+        0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8,
+        0x99, 0x6f, 0xb9, 0x24, 0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c,
+        0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55, 0xaa, 0xbb };
     size_t expected_size = PSA_HASH_SIZE( alg );
-    unsigned char input[] = "input";
     psa_hash_operation_t operation;
-
-    /* SHA-256 hash digest of the string 'input' with 2 extra bytes appended at
-     * the end */
-    unsigned char extra_length_digest[] =
-    {
-        0x3a, 0x28, 0x92, 0x32, 0x39, 0x9a, 0x20, 0x75, 0x09, 0xf4, 0xfa, 0x9d,
-        0x70, 0xfa, 0x6f, 0x68, 0x81, 0x7c, 0xe6, 0xa6, 0x6f, 0x21, 0x50, 0xff,
-        0x08, 0x23, 0x36, 0x31, 0x1f, 0x4e, 0x55, 0xfe, 0xaa, 0xbb
-    };
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
-    /* psa_hash_verify with a smaller hash digest than expected */
+    /* psa_hash_verify with a smaller hash than expected */
     TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
     TEST_ASSERT( psa_hash_verify( &operation,
                                   hash, expected_size - 1 ) ==
                                   PSA_ERROR_INVALID_SIGNATURE );
 
-    /* psa_hash_verify with a non-matching hash digest */
+    /* psa_hash_verify with a non-matching hash */
     TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_hash_update( &operation,
-                                  input, sizeof( input ) ) == PSA_SUCCESS );
     TEST_ASSERT( psa_hash_verify( &operation,
-                                  hash, expected_size ) ==
+                                  hash + 1, expected_size ) ==
                                   PSA_ERROR_INVALID_SIGNATURE );
 
-    /* psa_hash_verify with a hash digest longer than expected, where the first
-     * 32 bytes match the expected digest but 2 extra bytes are appended at the
-     * end of the digest */
-    memset( hash, 0, sizeof( hash ) );
+    /* psa_hash_verify with a hash longer than expected */
     TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_hash_update( &operation,
-                                  input, sizeof( input ) ) == PSA_SUCCESS );
     TEST_ASSERT( psa_hash_verify( &operation,
-                                  extra_length_digest,
-                                  sizeof( extra_length_digest ) ) ==
+                                  hash, sizeof( hash ) ) ==
                                   PSA_ERROR_INVALID_SIGNATURE );
 
 exit:

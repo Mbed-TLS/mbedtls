@@ -359,9 +359,8 @@ hash_setup:PSA_ALG_HMAC(PSA_ALG_SHA_256):PSA_ERROR_INVALID_ARGUMENT
 PSA hash: bad order function calls
 hash_bad_order:
 
-PSA hash verify: bad paths
-depends_on:MBEDTLS_SHA256_C
-hash_verify_bad_paths:
+PSA hash verify: bad arguments
+hash_verify_bad_args:
 
 PSA hash finish: bad arguments
 hash_finish_bad_args:

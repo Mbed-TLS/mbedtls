@@ -1655,11 +1655,11 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
-void hash_finish_bad_paths( )
+/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+void hash_finish_bad_args( )
 {
     psa_algorithm_t alg = PSA_ALG_SHA_256;
-    unsigned char hash[PSA_HASH_MAX_SIZE] = { 0 };
+    unsigned char hash[PSA_HASH_MAX_SIZE];
     size_t expected_size = PSA_HASH_SIZE( alg );
     psa_hash_operation_t operation;
     size_t hash_len;

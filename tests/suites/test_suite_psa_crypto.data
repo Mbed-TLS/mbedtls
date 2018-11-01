@@ -363,9 +363,8 @@ PSA hash verify: bad paths
 depends_on:MBEDTLS_SHA256_C
 hash_verify_bad_paths:
 
-PSA hash finish: bad paths
-depends_on:MBEDTLS_SHA256_C
-hash_finish_bad_paths:
+PSA hash finish: bad arguments
+hash_finish_bad_args:
 
 PSA MAC setup: good, HMAC-SHA-256
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C

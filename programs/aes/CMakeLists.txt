@@ -1,8 +1,8 @@
 add_executable(aescrypt2 aescrypt2.c)
-target_link_libraries(aescrypt2 mbedtls)
+target_link_libraries(aescrypt2 mbedcrypto)
 
 add_executable(crypt_and_hash crypt_and_hash.c)
-target_link_libraries(crypt_and_hash mbedtls)
+target_link_libraries(crypt_and_hash mbedcrypto)
 
 install(TARGETS aescrypt2 crypt_and_hash
         DESTINATION "bin"

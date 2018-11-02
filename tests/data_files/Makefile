@@ -14,6 +14,12 @@
 OPENSSL ?= openssl
 FAKETIME ?= faketime
 
+# Tools from Mbed TLS
+# Mbed Crypto depends on Mbed TLS programs to generate its test certificates.
+# These programs can be installed from Mbed TLS.
+MBEDTLS_CERT_WRITE ?= mbedtls_cert_write
+MBEDTLS_CERT_REQ ?= mbedtls_cert_req
+
 
 ## Build the generated test data. Note that since the final outputs
 ## are committed to the repository, this target should do nothing on a

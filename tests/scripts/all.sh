@@ -88,6 +88,11 @@ elif [ -d library -a -d include -a -d tests ]; then :; else
     exit 1
 fi
 
+if ! [ -f crypto/Makefile ]; then
+    echo "Please initialize the crypto submodule" >&2
+    exit 1
+fi
+
 CONFIG_H='include/mbedtls/config.h'
 CONFIG_BAK="$CONFIG_H.bak"
 
@@ -154,6 +159,9 @@ cleanup()
     fi
 
     command make clean
+    cd crypto
+    command make clean
+    cd ..
 
     # Remove CMake artefacts
     find . -name .git -prune -o \
@@ -165,6 +173,11 @@ cleanup()
     rm -f include/Makefile include/mbedtls/Makefile programs/*/Makefile
     git update-index --no-skip-worktree Makefile library/Makefile programs/Makefile tests/Makefile
     git checkout -- Makefile library/Makefile programs/Makefile tests/Makefile
+    cd crypto
+    rm -f include/Makefile include/mbedtls/Makefile programs/*/Makefile
+    git update-index --no-skip-worktree Makefile library/Makefile programs/Makefile tests/Makefile
+    git checkout -- Makefile library/Makefile programs/Makefile tests/Makefile
+    cd ..
 
     if [ -f "$CONFIG_BAK" ]; then
         mv "$CONFIG_BAK" "$CONFIG_H"
@@ -573,6 +586,43 @@ if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_
 
 msg "test: compat.sh ARIA + ChachaPoly"
 if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
+
+# USE_CRYPTO_SUBMODULE: check that the build works with CMake
+msg "build: cmake, full config + USE_CRYPTO_SUBMODULE, gcc+debug"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full # enables md4 and submodule doesn't enable md4
+scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+CC=gcc cmake -D USE_CRYPTO_SUBMODULE=1 -D CMAKE_BUILD_TYPE=Debug .
+make
+msg "test: top-level libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, cmake)"
+if_build_succeeded not test -f library/libmbedcrypto.a
+msg "test: libmbedcrypto symbols are from crypto files (USE_CRYPTO_SUBMODULE, cmake)"
+if_build_succeeded objdump -g crypto/library/libmbedcrypto.a | grep -E 'crypto/library$' > /dev/null
+msg "test: libmbedcrypto uses top-level config (USE_CRYPTO_SUBMODULE, cmake)"
+if_build_succeeded objdump -g crypto/library/libmbedcrypto.a | grep 'md4.c' > /dev/null
+msg "test: main suites (USE_CRYPTO_SUBMODULE, cmake)"
+make test
+msg "test: ssl-opt.sh (USE_CRYPTO_SUBMODULE, cmake)"
+if_build_succeeded tests/ssl-opt.sh
+
+# USE_CRYPTO_SUBMODULE: check that the build works with make
+msg "build: make, full config + USE_CRYPTO_SUBMODULE, gcc+debug"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full # enables md4 and submodule doesn't enable md4
+scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+make CC=gcc CFLAGS='-g' USE_CRYPTO_SUBMODULE=1
+msg "test: top-level libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, make)"
+if_build_succeeded not test -f library/libmbedcrypto.a
+msg "test: libmbedcrypto symbols are from crypto files (USE_CRYPTO_SUBMODULE, make)"
+if_build_succeeded objdump -g crypto/library/libmbedcrypto.a | grep -E 'crypto/library$' > /dev/null
+msg "test: libmbedcrypto uses top-level config (USE_CRYPTO_SUBMODULE, make)"
+if_build_succeeded objdump -g crypto/library/libmbedcrypto.a | grep 'md4.c' > /dev/null
+msg "test: main suites (USE_CRYPTO_SUBMODULE, make)"
+make CC=gcc USE_CRYPTO_SUBMODULE=1 test
+msg "test: ssl-opt.sh (USE_CRYPTO_SUBMODULE, make)"
+if_build_succeeded tests/ssl-opt.sh
 
 msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
 cleanup

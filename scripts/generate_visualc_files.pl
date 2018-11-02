@@ -33,7 +33,7 @@ my $crypto_dir = 'crypto';
 
 # Need windows line endings!
 my $include_directories = <<EOT;
-../../include\r
+../../include:../../library\r
 EOT
 
 if ($include_crypto) {

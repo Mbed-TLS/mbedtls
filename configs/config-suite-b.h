@@ -22,7 +22,8 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 /*
- * Minimal configuration for TLS NSA Suite B Profile (RFC 6460)
+ * Minimal configuration for the crypto required for TLS NSA Suite B Profile
+ * (RFC 6460)
  *
  * Distinguishing features:
  * - no RSA or classic DH, fully based on ECC
@@ -45,8 +46,6 @@
 /* mbed TLS feature support */
 #define MBEDTLS_ECP_DP_SECP256R1_ENABLED
 #define MBEDTLS_ECP_DP_SECP384R1_ENABLED
-#define MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-#define MBEDTLS_SSL_PROTO_TLS1_2
 
 /* mbed TLS modules */
 #define MBEDTLS_AES_C
@@ -67,9 +66,6 @@
 #define MBEDTLS_PK_PARSE_C
 #define MBEDTLS_SHA256_C
 #define MBEDTLS_SHA512_C
-#define MBEDTLS_SSL_CLI_C
-#define MBEDTLS_SSL_SRV_C
-#define MBEDTLS_SSL_TLS_C
 #define MBEDTLS_X509_CRT_PARSE_C
 #define MBEDTLS_X509_USE_C
 
@@ -98,19 +94,6 @@
  * Minimum is 2 for the entropy test suite.
  */
 #define MBEDTLS_ENTROPY_MAX_SOURCES 2
-
-/* Save ROM and a few bytes of RAM by specifying our own ciphersuite list */
-#define MBEDTLS_SSL_CIPHERSUITES                        \
-    MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,    \
-    MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
-
-/*
- * Save RAM at the expense of interoperability: do this only if you control
- * both ends of the connection!  (See coments in "mbedtls/ssl.h".)
- * The minimum size here depends on the certificate chain used as well as the
- * typical size of records.
- */
-#define MBEDTLS_SSL_MAX_CONTENT_LEN             1024
 
 #include "mbedtls/check_config.h"
 

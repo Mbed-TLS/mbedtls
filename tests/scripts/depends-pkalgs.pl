@@ -35,26 +35,14 @@ my $config_h = 'include/mbedtls/config.h';
 # Some algorithms can't be disabled on their own as others depend on them, so
 # we list those reverse-dependencies here to keep check_config.h happy.
 my %algs = (
-    'MBEDTLS_ECDSA_C'   => ['MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED'],
+    'MBEDTLS_ECDSA_C'   => [],
     'MBEDTLS_ECP_C'     => ['MBEDTLS_ECDSA_C',
                             'MBEDTLS_ECDH_C',
-                            'MBEDTLS_ECJPAKE_C',
-                            'MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
-                            'MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED',
-                            'MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED',
-                            'MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED',
-                            'MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED'],
+                            'MBEDTLS_ECJPAKE_C'],
     'MBEDTLS_X509_RSASSA_PSS_SUPPORT'   => [],
     'MBEDTLS_PKCS1_V21' => ['MBEDTLS_X509_RSASSA_PSS_SUPPORT'],
-    'MBEDTLS_PKCS1_V15' => ['MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED',
-                            'MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED',
-                            'MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED',
-                            'MBEDTLS_KEY_EXCHANGE_RSA_ENABLED'],
-    'MBEDTLS_RSA_C'     => ['MBEDTLS_X509_RSASSA_PSS_SUPPORT',
-                            'MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED',
-                            'MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED',
-                            'MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED',
-                            'MBEDTLS_KEY_EXCHANGE_RSA_ENABLED'],
+    'MBEDTLS_PKCS1_V15' => [],
+    'MBEDTLS_RSA_C'     => ['MBEDTLS_X509_RSASSA_PSS_SUPPORT'],
 );
 
 system( "cp $config_h $config_h.bak" ) and die;

@@ -62,7 +62,6 @@ doit()
     fi
 
     {
-        scripts/config.pl unset MBEDTLS_NET_C || true
         scripts/config.pl unset MBEDTLS_TIMING_C || true
         scripts/config.pl unset MBEDTLS_FS_IO || true
         scripts/config.pl --force set MBEDTLS_NO_PLATFORM_ENTROPY || true

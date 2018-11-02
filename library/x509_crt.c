@@ -1772,9 +1772,7 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
     while( crl_list != NULL )
     {
         if( crl_list->version == 0 ||
-            crl_list->issuer_raw.len != ca->subject_raw.len ||
-            memcmp( crl_list->issuer_raw.p, ca->subject_raw.p,
-                    crl_list->issuer_raw.len ) != 0 )
+            x509_name_cmp( &crl_list->issuer, &ca->subject ) != 0 )
         {
             crl_list = crl_list->next;
             continue;
@@ -1784,7 +1782,8 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
          * Check if the CA is configured to sign CRLs
          */
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
-        if( mbedtls_x509_crt_check_key_usage( ca, MBEDTLS_X509_KU_CRL_SIGN ) != 0 )
+        if( mbedtls_x509_crt_check_key_usage( ca,
+                                              MBEDTLS_X509_KU_CRL_SIGN ) != 0 )
         {
             flags |= MBEDTLS_X509_BADCRL_NOT_TRUSTED;
             break;

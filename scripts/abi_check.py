@@ -64,7 +64,7 @@ class AbiChecker(object):
         )
         git_worktree_path = tempfile.mkdtemp()
         worktree_process = subprocess.Popen(
-            [self.git_command, "worktree", "add", git_worktree_path, git_rev],
+            [self.git_command, "worktree", "add", "--detach", git_worktree_path, git_rev],
             cwd=self.repo_path,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT

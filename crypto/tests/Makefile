@@ -1,4 +1,4 @@
-CFLAGS ?= -O2 -I../include
+CFLAGS ?= -O2 -I../include -I../library
 WARNING_CFLAGS ?= \
 	-Werror -Wall -Wextra \
 	-Wno-unused-function \

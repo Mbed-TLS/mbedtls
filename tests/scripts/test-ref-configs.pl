@@ -9,7 +9,7 @@
 # Purpose
 #
 # For each reference configuration file in the configs directory, build the
-# configuration, run the test suites and compat.sh
+# configuration and run the test suites.
 #
 # Usage: tests/scripts/test-ref-configs.pl [config-name [...]]
 
@@ -18,20 +18,14 @@ use strict;
 
 my %configs = (
     'config-default.h' => {
-        'opt' => '-f Default',
-        'compat' => '-m tls1_2 -V NO',
     },
     'config-mini-tls1_1.h' => {
-        'compat' => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'',
     },
     'config-suite-b.h' => {
-        'compat' => "-m tls1_2 -f 'ECDHE-ECDSA.*AES.*GCM' -p mbedTLS",
     },
     'config-ccm-psk-tls1_2.h' => {
-        'compat' => '-m tls1_2 -f \'^TLS-PSK-WITH-AES-...-CCM-8\'',
     },
     'config-thread.h' => {
-        'opt' => '-f ECJPAKE.*nolog',
     },
 );
 
@@ -75,30 +69,6 @@ while( my ($conf, $data) = each %configs ) {
 
     system( "CFLAGS='-Os -Werror -Wall -Wextra' make" ) and abort "Failed to build: $conf\n";
     system( "make test" ) and abort "Failed test suite: $conf\n";
-
-    my $compat = $data->{'compat'};
-    if( $compat )
-    {
-        print "\nrunning compat.sh $compat\n";
-        system( "tests/compat.sh $compat" )
-            and abort "Failed compat.sh: $conf\n";
-    }
-    else
-    {
-        print "\nskipping compat.sh\n";
-    }
-
-    my $opt = $data->{'opt'};
-    if( $opt )
-    {
-        print "\nrunning ssl-opt.sh $opt\n";
-        system( "tests/ssl-opt.sh $opt" )
-            and abort "Failed ssl-opt.sh: $conf\n";
-    }
-    else
-    {
-        print "\nskipping ssl-opt.sh\n";
-    }
 }
 
 system( "mv $config_h.bak $config_h" ) and warn "$config_h not restored\n";

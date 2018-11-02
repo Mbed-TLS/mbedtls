@@ -15,7 +15,6 @@
 #   - type and version of the operating system
 #   - version of armcc, clang, gcc-arm and gcc compilers
 #   - version of libc, clang, asan and valgrind if installed
-#   - version of gnuTLS and OpenSSL
 
 print_version()
 {
@@ -73,42 +72,6 @@ echo
 
 print_version "valgrind" "--version" "valgrind not found!"
 echo
-
-: ${OPENSSL:=openssl}
-print_version "$OPENSSL" "version" "openssl not found!"
-echo
-
-if [ -n "${OPENSSL_LEGACY+set}" ]; then
-    print_version "$OPENSSL_LEGACY" "version" "openssl legacy version not found!"
-    echo
-fi
-
-if [ -n "${OPENSSL_NEXT+set}" ]; then
-    print_version "$OPENSSL_NEXT" "version" "openssl next version not found!"
-    echo
-fi
-
-: ${GNUTLS_CLI:=gnutls-cli}
-print_version "$GNUTLS_CLI" "--version" "gnuTLS client not found!" "head -n 1"
-echo
-
-: ${GNUTLS_SERV:=gnutls-serv}
-print_version "$GNUTLS_SERV" "--version" "gnuTLS server not found!" "head -n 1"
-echo
-
-if [ -n "${GNUTLS_LEGACY_CLI+set}" ]; then
-    print_version "$GNUTLS_LEGACY_CLI" "--version" \
-        "gnuTLS client legacy version not found!"  \
-        "head -n 1"
-    echo
-fi
-
-if [ -n "${GNUTLS_LEGACY_SERV+set}" ]; then
-    print_version "$GNUTLS_LEGACY_SERV" "--version" \
-        "gnuTLS server legacy version not found!"   \
-        "head -n 1"
-    echo
-fi
 
 if `hash dpkg > /dev/null 2>&1`; then
     echo "* asan:"

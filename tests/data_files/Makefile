@@ -13,8 +13,6 @@
 ## Tools
 OPENSSL ?= openssl
 FAKETIME ?= faketime
-MBEDTLS_CERT_WRITE ?= $(PWD)/../../programs/x509/cert_write
-MBEDTLS_CERT_REQ ?= $(PWD)/../../programs/x509/cert_req
 
 
 ## Build the generated test data. Note that since the final outputs

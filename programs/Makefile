@@ -67,35 +67,16 @@ APPS = \
 	psa/crypto_examples$(EXEXT) \
 	psa/key_ladder_demo$(EXEXT) \
 	psa/psa_constant_names$(EXEXT) \
-	ssl/dtls_client$(EXEXT) \
-	ssl/dtls_server$(EXEXT) \
-	ssl/ssl_client1$(EXEXT) \
-	ssl/ssl_client2$(EXEXT) \
-	ssl/ssl_server$(EXEXT) \
-	ssl/ssl_server2$(EXEXT) \
-	ssl/ssl_fork_server$(EXEXT) \
-	ssl/mini_client$(EXEXT) \
-	ssl/ssl_mail_client$(EXEXT) \
 	random/gen_entropy$(EXEXT) \
 	random/gen_random_havege$(EXEXT) \
 	random/gen_random_ctr_drbg$(EXEXT) \
 	test/benchmark$(EXEXT) \
 	test/selftest$(EXEXT) \
-	test/udp_proxy$(EXEXT) \
 	test/zeroize$(EXEXT) \
 	test/query_compile_time_config$(EXEXT) \
 	util/pem2der$(EXEXT) \
 	util/strerror$(EXEXT) \
-	x509/cert_app$(EXEXT) \
-	x509/crl_app$(EXEXT) \
-	x509/cert_req$(EXEXT) \
-	x509/cert_write$(EXEXT) \
-	x509/req_app$(EXEXT) \
 # End of APPS
-
-ifdef PTHREAD
-APPS +=	ssl/ssl_pthread_server$(EXEXT)
-endif
 
 ifdef TEST_CPP
 APPS += test/cpp_dummy_build$(EXEXT)
@@ -230,46 +211,6 @@ random/gen_random_ctr_drbg$(EXEXT): random/gen_random_ctr_drbg.c $(DEP)
 	echo "  CC    random/gen_random_ctr_drbg.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) random/gen_random_ctr_drbg.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-ssl/dtls_client$(EXEXT): ssl/dtls_client.c $(DEP)
-	echo "  CC    ssl/dtls_client.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/dtls_client.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-ssl/dtls_server$(EXEXT): ssl/dtls_server.c $(DEP)
-	echo "  CC    ssl/dtls_server.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/dtls_server.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-ssl/ssl_client1$(EXEXT): ssl/ssl_client1.c $(DEP)
-	echo "  CC    ssl/ssl_client1.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_client1.c  $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-ssl/ssl_client2$(EXEXT): ssl/ssl_client2.c test/query_config.c $(DEP)
-	echo "  CC    ssl/ssl_client2.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_client2.c test/query_config.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-ssl/ssl_server$(EXEXT): ssl/ssl_server.c $(DEP)
-	echo "  CC    ssl/ssl_server.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-ssl/ssl_server2$(EXEXT): ssl/ssl_server2.c test/query_config.c $(DEP)
-	echo "  CC    ssl/ssl_server2.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_server2.c test/query_config.c $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-ssl/ssl_fork_server$(EXEXT): ssl/ssl_fork_server.c $(DEP)
-	echo "  CC    ssl/ssl_fork_server.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_fork_server.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-ssl/ssl_pthread_server$(EXEXT): ssl/ssl_pthread_server.c $(DEP)
-	echo "  CC    ssl/ssl_pthread_server.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_pthread_server.c   $(LOCAL_LDFLAGS) -lpthread  $(LDFLAGS) -o $@
-
-ssl/ssl_mail_client$(EXEXT): ssl/ssl_mail_client.c $(DEP)
-	echo "  CC    ssl/ssl_mail_client.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/ssl_mail_client.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-ssl/mini_client$(EXEXT): ssl/mini_client.c $(DEP)
-	echo "  CC    ssl/mini_client.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) ssl/mini_client.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
 test/benchmark$(EXEXT): test/benchmark.c $(DEP)
 	echo "  CC    test/benchmark.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/benchmark.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
@@ -281,10 +222,6 @@ test/cpp_dummy_build$(EXEXT): test/cpp_dummy_build.cpp $(DEP)
 test/selftest$(EXEXT): test/selftest.c $(DEP)
 	echo "  CC    test/selftest.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/selftest.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test/udp_proxy$(EXEXT): test/udp_proxy.c $(DEP)
-	echo "  CC    test/udp_proxy.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/udp_proxy.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 test/zeroize$(EXEXT): test/zeroize.c $(DEP)
 	echo "  CC    test/zeroize.c"
@@ -301,26 +238,6 @@ util/pem2der$(EXEXT): util/pem2der.c $(DEP)
 util/strerror$(EXEXT): util/strerror.c $(DEP)
 	echo "  CC    util/strerror.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) util/strerror.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-x509/cert_app$(EXEXT): x509/cert_app.c $(DEP)
-	echo "  CC    x509/cert_app.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/cert_app.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-x509/cert_write$(EXEXT): x509/cert_write.c $(DEP)
-	echo "  CC    x509/cert_write.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/cert_write.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-x509/crl_app$(EXEXT): x509/crl_app.c $(DEP)
-	echo "  CC    x509/crl_app.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/crl_app.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-x509/cert_req$(EXEXT): x509/cert_req.c $(DEP)
-	echo "  CC    x509/cert_req.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/cert_req.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-x509/req_app$(EXEXT): x509/req_app.c $(DEP)
-	echo "  CC    x509/req_app.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) x509/req_app.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 psa/crypto_examples$(EXEXT): psa/crypto_examples.c $(DEP)
 	echo "  CC    psa/crypto_examples.c"

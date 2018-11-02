@@ -49,7 +49,14 @@
 /* armcc5 --gnu defines __GNUC__ but doesn't support GNU's extended asm */
 #if defined(__GNUC__) && \
     ( !defined(__ARMCC_VERSION) || __ARMCC_VERSION >= 6000000 )
-#if defined(__i386__)
+
+/*
+ * Disable use of the i386 assembly code below if option -O0, to disable all
+ * compiler optimisations, is passed, detected with __OPTIMIZE__
+ * This is done as the number of registers used in the assembly code doesn't
+ * work with the -O0 option.
+ */
+#if defined(__i386__) && defined(__OPTIMIZE__)
 
 #define MULADDC_INIT                        \
     asm(                                    \
@@ -142,7 +149,7 @@
         "movl   %%esi, %3       \n\t"   \
         : "=m" (t), "=m" (c), "=m" (d), "=m" (s)        \
         : "m" (t), "m" (s), "m" (d), "m" (c), "m" (b)   \
-        : "eax", "ecx", "edx", "esi", "edi"             \
+        : "eax", "ebx", "ecx", "edx", "esi", "edi"      \
     );
 
 #else
@@ -154,7 +161,7 @@
         "movl   %%esi, %3       \n\t"   \
         : "=m" (t), "=m" (c), "=m" (d), "=m" (s)        \
         : "m" (t), "m" (s), "m" (d), "m" (c), "m" (b)   \
-        : "eax", "ecx", "edx", "esi", "edi"             \
+        : "eax", "ebx", "ecx", "edx", "esi", "edi"      \
     );
 #endif /* SSE2 */
 #endif /* i386 */
@@ -521,7 +528,7 @@
         "swi   r3,   %2         \n\t"   \
         : "=m" (c), "=m" (d), "=m" (s)              \
         : "m" (s), "m" (d), "m" (c), "m" (b)        \
-        : "r3", "r4"  "r5", "r6", "r7", "r8",       \
+        : "r3", "r4", "r5", "r6", "r7", "r8",       \
           "r9", "r10", "r11", "r12", "r13"          \
     );
 
@@ -558,9 +565,8 @@
 #endif /* TriCore */
 
 /*
- * gcc -O0 by default uses r7 for the frame pointer, so it complains about our
- * use of r7 below, unless -fomit-frame-pointer is passed. Unfortunately,
- * passing that option is not easy when building with yotta.
+ * Note, gcc -O0 by default uses r7 for the frame pointer, so it complains about
+ * our use of r7 below, unless -fomit-frame-pointer is passed.
  *
  * On the other hand, -fomit-frame-pointer is implied by any -Ox options with
  * x !=0, which we can detect using __OPTIMIZE__ (which is also defined by
@@ -628,6 +634,23 @@
          : "m" (s), "m" (d), "m" (c), "m" (b)   \
          : "r0", "r1", "r2", "r3", "r4", "r5",  \
            "r6", "r7", "r8", "r9", "cc"         \
+         );
+
+#elif defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)
+
+#define MULADDC_INIT                            \
+    asm(
+
+#define MULADDC_CORE                            \
+            "ldr    r0, [%0], #4        \n\t"   \
+            "ldr    r1, [%1]            \n\t"   \
+            "umaal  r1, %2, %3, r0      \n\t"   \
+            "str    r1, [%1], #4        \n\t"
+
+#define MULADDC_STOP                            \
+         : "=r" (s),  "=r" (d), "=r" (c)        \
+         : "r" (b), "0" (s), "1" (d), "2" (c)   \
+         : "r0", "r1", "memory"                 \
          );
 
 #else

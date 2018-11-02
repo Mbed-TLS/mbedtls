@@ -21,6 +21,10 @@ endif
 # if were running on Windows build for Windows
 ifdef WINDOWS
 WINDOWS_BUILD=1
+else ifeq ($(shell uname -s),Darwin)
+ifeq ($(AR),ar)
+APPLE_BUILD ?= 1
+endif
 endif
 
 # To compile as a shared library:
@@ -31,42 +35,56 @@ LOCAL_CFLAGS += -fPIC -fpic
 endif
 endif
 
-SOEXT_TLS=so.10
+SOEXT_TLS=so.12
 SOEXT_X509=so.0
-SOEXT_CRYPTO=so.2
-
-# Set DLEXT=dylib to compile as a shared library for Mac OS X
-DLEXT ?= so
+SOEXT_CRYPTO=so.3
 
 # Set AR_DASH= (empty string) to use an ar implentation that does not accept
 # the - prefix for command line options (e.g. llvm-ar)
 AR_DASH ?= -
 
-# Windows shared library extension:
+ARFLAGS = $(AR_DASH)src
+ifdef APPLE_BUILD
+ifneq ($(APPLE_BUILD),0)
+ARFLAGS = $(AR_DASH)Src
+RLFLAGS = -no_warning_for_no_symbols -c
+RL ?= ranlib
+endif
+endif
+
+DLEXT ?= so
 ifdef WINDOWS_BUILD
-DLEXT=dll
+# Windows shared library extension:
+DLEXT = dll
+else ifdef APPLE_BUILD
+ifneq ($(APPLE_BUILD),0)
+# Mac OS X shared library extension:
+DLEXT = dylib
+endif
 endif
 
 OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
-		asn1parse.o	asn1write.o	base64.o	\
-		bignum.o	blowfish.o	camellia.o	\
-		ccm.o		cipher.o	cipher_wrap.o	\
+		aria.o		asn1parse.o	asn1write.o	\
+		base64.o	bignum.o	blowfish.o	\
+		camellia.o	ccm.o		chacha20.o	\
+		chachapoly.o	cipher.o	cipher_wrap.o	\
 		cmac.o		ctr_drbg.o	des.o		\
 		dhm.o		ecdh.o		ecdsa.o		\
 		ecjpake.o	ecp.o				\
 		ecp_curves.o	entropy.o	entropy_poll.o	\
 		error.o		gcm.o		havege.o	\
+		hkdf.o						\
 		hmac_drbg.o	md.o		md2.o		\
 		md4.o		md5.o		md_wrap.o	\
-		memory_buffer_alloc.o		oid.o		\
-		padlock.o	pem.o		pk.o		\
-		pk_wrap.o	pkcs12.o	pkcs5.o		\
-		pkparse.o	pkwrite.o	platform.o	\
-		platform_util.o	ripemd160.o	rsa_internal.o	\
-		rsa.o 		sha1.o		sha256.o	\
-		sha512.o	threading.o	timing.o	\
-		version.o	version_features.o		\
-		xtea.o
+		memory_buffer_alloc.o		nist_kw.o	\
+		oid.o		padlock.o	pem.o		\
+		pk.o		pk_wrap.o	pkcs12.o	\
+		pkcs5.o		pkparse.o	pkwrite.o	\
+		platform.o	platform_util.o	poly1305.o	\
+		ripemd160.o	rsa_internal.o	rsa.o  		\
+		sha1.o		sha256.o	sha512.o	\
+		threading.o	timing.o	version.o	\
+		version_features.o		xtea.o
 
 OBJS_X509=	certs.o		pkcs11.o	x509.o		\
 		x509_create.o	x509_crl.o	x509_crt.o	\
@@ -95,9 +113,13 @@ shared: libmbedcrypto.$(DLEXT) libmbedx509.$(DLEXT) libmbedtls.$(DLEXT)
 # tls
 libmbedtls.a: $(OBJS_TLS)
 	echo "  AR    $@"
-	$(AR) $(AR_DASH)rc $@ $(OBJS_TLS)
+	$(AR) $(ARFLAGS) $@ $(OBJS_TLS)
+ifdef APPLE_BUILD
+ifneq ($(APPLE_BUILD),0)
 	echo "  RL    $@"
-	$(AR) $(AR_DASH)s $@
+	$(RL) $(RLFLAGS) $@
+endif
+endif
 
 libmbedtls.$(SOEXT_TLS): $(OBJS_TLS) libmbedx509.so
 	echo "  LD    $@"
@@ -118,9 +140,13 @@ libmbedtls.dll: $(OBJS_TLS) libmbedx509.dll
 # x509
 libmbedx509.a: $(OBJS_X509)
 	echo "  AR    $@"
-	$(AR) $(AR_DASH)rc $@ $(OBJS_X509)
+	$(AR) $(ARFLAGS) $@ $(OBJS_X509)
+ifdef APPLE_BUILD
+ifneq ($(APPLE_BUILD),0)
 	echo "  RL    $@"
-	$(AR) $(AR_DASH)s $@
+	$(RL) $(RLFLAGS) $@
+endif
+endif
 
 libmbedx509.$(SOEXT_X509): $(OBJS_X509) libmbedcrypto.so
 	echo "  LD    $@"
@@ -141,9 +167,13 @@ libmbedx509.dll: $(OBJS_X509) libmbedcrypto.dll
 # crypto
 libmbedcrypto.a: $(OBJS_CRYPTO)
 	echo "  AR    $@"
-	$(AR) $(AR_DASH)rc $@ $(OBJS_CRYPTO)
+	$(AR) $(ARFLAGS) $@ $(OBJS_CRYPTO)
+ifdef APPLE_BUILD
+ifneq ($(APPLE_BUILD),0)
 	echo "  RL    $@"
-	$(AR) $(AR_DASH)s $@
+	$(RL) $(RLFLAGS) $@
+endif
+endif
 
 libmbedcrypto.$(SOEXT_CRYPTO): $(OBJS_CRYPTO)
 	echo "  LD    $@"

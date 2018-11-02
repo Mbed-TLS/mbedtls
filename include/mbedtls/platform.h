@@ -40,8 +40,10 @@
 #endif
 
 #if defined(MBEDTLS_HAVE_TIME)
-#include "mbedtls/platform_time.h"
+#include "platform_time.h"
 #endif
+
+#define MBEDTLS_ERR_PLATFORM_HW_ACCEL_FAILED       -0x0070 /**< Hardware accelerator failed */
 
 #ifdef __cplusplus
 extern "C" {
@@ -121,8 +123,8 @@ extern "C" {
 #else
 /* For size_t */
 #include <stddef.h>
-extern void * (*mbedtls_calloc)( size_t n, size_t size );
-extern void (*mbedtls_free)( void *ptr );
+extern void *mbedtls_calloc( size_t n, size_t size );
+extern void mbedtls_free( void *ptr );
 
 /**
  * \brief               This function dynamically sets the memory-management
@@ -315,7 +317,8 @@ int mbedtls_platform_set_nv_seed(
  * \note    This structure may be used to assist platform-specific
  *          setup or teardown operations.
  */
-typedef struct {
+typedef struct mbedtls_platform_context
+{
     char dummy; /**< A placeholder member, as empty structs are not portable. */
 }
 mbedtls_platform_context;

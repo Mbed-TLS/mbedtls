@@ -15,6 +15,11 @@ if(NOT PERL_FOUND)
     message(FATAL_ERROR "Cannot build test suites without Perl")
 endif()
 
+# Enable definition of various functions used throughout the testsuite
+# (gethostname, strdup, fileno...) even when compiling with -std=c99. Harmless
+# on non-POSIX platforms.
+add_definitions("-D_POSIX_C_SOURCE=200809L")
+
 function(add_test_suite suite_name)
     if(ARGV1)
         set(data_name ${ARGV1})
@@ -24,8 +29,8 @@ function(add_test_suite suite_name)
 
     add_custom_command(
         OUTPUT test_suite_${data_name}.c
-        COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_code.pl ${CMAKE_CURRENT_SOURCE_DIR}/suites test_suite_${suite_name} test_suite_${data_name}
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_code.pl mbedtls suites/helpers.function suites/main_test.function suites/test_suite_${suite_name}.function suites/test_suite_${data_name}.data
+        COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_test_code.py -f ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${suite_name}.function -d ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${data_name}.data -t ${CMAKE_CURRENT_SOURCE_DIR}/suites/main_test.function -p ${CMAKE_CURRENT_SOURCE_DIR}/suites/host_test.function -s ${CMAKE_CURRENT_SOURCE_DIR}/suites --helpers-file ${CMAKE_CURRENT_SOURCE_DIR}/suites/helpers.function -o .
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_test_code.py mbedtls ${CMAKE_CURRENT_SOURCE_DIR}/suites/helpers.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/main_test.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/host_test.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${suite_name}.function ${CMAKE_CURRENT_SOURCE_DIR}/suites/test_suite_${data_name}.data
     )
 
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
@@ -48,17 +53,23 @@ add_test_suite(aes aes.ecb)
 add_test_suite(aes aes.cbc)
 add_test_suite(aes aes.cfb)
 add_test_suite(aes aes.rest)
+add_test_suite(aes aes.xts)
 add_test_suite(arc4)
+add_test_suite(aria)
 add_test_suite(asn1write)
 add_test_suite(base64)
 add_test_suite(blowfish)
 add_test_suite(camellia)
 add_test_suite(ccm)
+add_test_suite(chacha20)
+add_test_suite(chachapoly)
 add_test_suite(cipher cipher.aes)
 add_test_suite(cipher cipher.arc4)
 add_test_suite(cipher cipher.blowfish)
 add_test_suite(cipher cipher.camellia)
 add_test_suite(cipher cipher.ccm)
+add_test_suite(cipher cipher.chacha20)
+add_test_suite(cipher cipher.chachapoly)
 add_test_suite(cipher cipher.des)
 add_test_suite(cipher cipher.gcm)
 add_test_suite(cipher cipher.null)
@@ -81,6 +92,7 @@ add_test_suite(gcm gcm.aes128_de)
 add_test_suite(gcm gcm.aes192_de)
 add_test_suite(gcm gcm.aes256_de)
 add_test_suite(gcm gcm.camellia)
+add_test_suite(hkdf)
 add_test_suite(hmac_drbg hmac_drbg.misc)
 add_test_suite(hmac_drbg hmac_drbg.no_reseed)
 add_test_suite(hmac_drbg hmac_drbg.nopr)
@@ -89,6 +101,7 @@ add_test_suite(md)
 add_test_suite(mdx)
 add_test_suite(memory_buffer_alloc)
 add_test_suite(mpi)
+add_test_suite(nist_kw)
 add_test_suite(pem)
 add_test_suite(pkcs1_v15)
 add_test_suite(pkcs1_v21)
@@ -96,6 +109,7 @@ add_test_suite(pkcs5)
 add_test_suite(pk)
 add_test_suite(pkparse)
 add_test_suite(pkwrite)
+add_test_suite(poly1305)
 add_test_suite(shax)
 add_test_suite(ssl)
 add_test_suite(timing)
@@ -105,26 +119,11 @@ add_test_suite(xtea)
 add_test_suite(x509parse)
 add_test_suite(x509write)
 
-# Make data_files available in an out-of-source build
+# Make scripts and data files needed for testing available in an
+# out-of-source build.
 if (NOT ${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
-    # Get OS dependent path to use in `execute_process`
-    file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/data_files" link)
-    file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/data_files" target)
-
-    if (NOT EXISTS ${link})
-        if (CMAKE_HOST_UNIX)
-            set(command ln -s ${target} ${link})
-        else()
-            set(command cmd.exe /c mklink /j ${link} ${target})
-        endif()
-
-        execute_process(COMMAND ${command}
-                        RESULT_VARIABLE result
-                        ERROR_VARIABLE output)
-
-        if (NOT ${result} EQUAL 0)
-            message(FATAL_ERROR "Could not create symbolic link for: ${target} --> ${output}")
-        endif()
-    endif()
+    link_to_source(compat.sh)
+    link_to_source(data_files)
+    link_to_source(scripts)
+    link_to_source(ssl-opt.sh)
 endif()
-

@@ -62,7 +62,7 @@
 #endif
 
 #if defined(MBEDTLS_HAVE_TIME)
-#include "mbedtls/platform_time.h"
+#include "platform_time.h"
 #endif
 
 /*
@@ -120,6 +120,9 @@
 #define MBEDTLS_ERR_SSL_NON_FATAL                         -0x6680  /**< The alert message received indicates a non-fatal error. */
 #define MBEDTLS_ERR_SSL_INVALID_VERIFY_HASH               -0x6600  /**< Couldn't set the hash for verifying CertificateVerify */
 #define MBEDTLS_ERR_SSL_CONTINUE_PROCESSING               -0x6580  /**< Internal-only message signaling that further message-processing should be done */
+#define MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS                 -0x6500  /**< The asynchronous operation is not completed yet. */
+#define MBEDTLS_ERR_SSL_EARLY_MESSAGE                     -0x6480  /**< Internal-only message signaling that a message arrived early. */
+#define MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS                -0x7000  /**< A cryptographic operation is in progress. Try again later. */
 
 /*
  * Various constants
@@ -219,7 +222,7 @@
 #endif
 
 /*
- * Maxium fragment length in bytes,
+ * Maximum fragment length in bytes,
  * determines the size of each of the two internal I/O buffers.
  *
  * Note: the RFC defines the default size of SSL / TLS messages. If you
@@ -231,6 +234,22 @@
  */
 #if !defined(MBEDTLS_SSL_MAX_CONTENT_LEN)
 #define MBEDTLS_SSL_MAX_CONTENT_LEN         16384   /**< Size of the input / output buffer */
+#endif
+
+#if !defined(MBEDTLS_SSL_IN_CONTENT_LEN)
+#define MBEDTLS_SSL_IN_CONTENT_LEN MBEDTLS_SSL_MAX_CONTENT_LEN
+#endif
+
+#if !defined(MBEDTLS_SSL_OUT_CONTENT_LEN)
+#define MBEDTLS_SSL_OUT_CONTENT_LEN MBEDTLS_SSL_MAX_CONTENT_LEN
+#endif
+
+/*
+ * Maximum number of heap-allocated bytes for the purpose of
+ * DTLS handshake message reassembly and future message buffering.
+ */
+#if !defined(MBEDTLS_SSL_DTLS_MAX_BUFFERING)
+#define MBEDTLS_SSL_DTLS_MAX_BUFFERING 32768
 #endif
 
 /* \} name SECTION: Module settings */
@@ -536,7 +555,6 @@ typedef void mbedtls_ssl_set_timer_t( void * ctx,
  */
 typedef int mbedtls_ssl_get_timer_t( void * ctx );
 
-
 /* Defined below */
 typedef struct mbedtls_ssl_session mbedtls_ssl_session;
 typedef struct mbedtls_ssl_context mbedtls_ssl_context;
@@ -552,6 +570,218 @@ typedef struct mbedtls_ssl_key_cert mbedtls_ssl_key_cert;
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
 typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
 #endif
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+/**
+ * \brief           Callback type: start external signature operation.
+ *
+ *                  This callback is called during an SSL handshake to start
+ *                  a signature decryption operation using an
+ *                  external processor. The parameter \p cert contains
+ *                  the public key; it is up to the callback function to
+ *                  determine how to access the associated private key.
+ *
+ *                  This function typically sends or enqueues a request, and
+ *                  does not wait for the operation to complete. This allows
+ *                  the handshake step to be non-blocking.
+ *
+ *                  The parameters \p ssl and \p cert are guaranteed to remain
+ *                  valid throughout the handshake. On the other hand, this
+ *                  function must save the contents of \p hash if the value
+ *                  is needed for later processing, because the \p hash buffer
+ *                  is no longer valid after this function returns.
+ *
+ *                  This function may call mbedtls_ssl_set_async_operation_data()
+ *                  to store an operation context for later retrieval
+ *                  by the resume or cancel callback.
+ *
+ * \note            For RSA signatures, this function must produce output
+ *                  that is consistent with PKCS#1 v1.5 in the same way as
+ *                  mbedtls_rsa_pkcs1_sign(). Before the private key operation,
+ *                  apply the padding steps described in RFC 8017, section 9.2
+ *                  "EMSA-PKCS1-v1_5" as follows.
+ *                  - If \p md_alg is #MBEDTLS_MD_NONE, apply the PKCS#1 v1.5
+ *                    encoding, treating \p hash as the DigestInfo to be
+ *                    padded. In other words, apply EMSA-PKCS1-v1_5 starting
+ *                    from step 3, with `T = hash` and `tLen = hash_len`.
+ *                  - If `md_alg != MBEDTLS_MD_NONE`, apply the PKCS#1 v1.5
+ *                    encoding, treating \p hash as the hash to be encoded and
+ *                    padded. In other words, apply EMSA-PKCS1-v1_5 starting
+ *                    from step 2, with `digestAlgorithm` obtained by calling
+ *                    mbedtls_oid_get_oid_by_md() on \p md_alg.
+ *
+ * \note            For ECDSA signatures, the output format is the DER encoding
+ *                  `Ecdsa-Sig-Value` defined in
+ *                  [RFC 4492 section 5.4](https://tools.ietf.org/html/rfc4492#section-5.4).
+ *
+ * \param ssl             The SSL connection instance. It should not be
+ *                        modified other than via
+ *                        mbedtls_ssl_set_async_operation_data().
+ * \param cert            Certificate containing the public key.
+ *                        In simple cases, this is one of the pointers passed to
+ *                        mbedtls_ssl_conf_own_cert() when configuring the SSL
+ *                        connection. However, if other callbacks are used, this
+ *                        property may not hold. For example, if an SNI callback
+ *                        is registered with mbedtls_ssl_conf_sni(), then
+ *                        this callback determines what certificate is used.
+ * \param md_alg          Hash algorithm.
+ * \param hash            Buffer containing the hash. This buffer is
+ *                        no longer valid when the function returns.
+ * \param hash_len        Size of the \c hash buffer in bytes.
+ *
+ * \return          0 if the operation was started successfully and the SSL
+ *                  stack should call the resume callback immediately.
+ * \return          #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if the operation
+ *                  was started successfully and the SSL stack should return
+ *                  immediately without calling the resume callback yet.
+ * \return          #MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH if the external
+ *                  processor does not support this key. The SSL stack will
+ *                  use the private key object instead.
+ * \return          Any other error indicates a fatal failure and is
+ *                  propagated up the call chain. The callback should
+ *                  use \c MBEDTLS_ERR_PK_xxx error codes, and <b>must not</b>
+ *                  use \c MBEDTLS_ERR_SSL_xxx error codes except as
+ *                  directed in the documentation of this callback.
+ */
+typedef int mbedtls_ssl_async_sign_t( mbedtls_ssl_context *ssl,
+                                      mbedtls_x509_crt *cert,
+                                      mbedtls_md_type_t md_alg,
+                                      const unsigned char *hash,
+                                      size_t hash_len );
+
+/**
+ * \brief           Callback type: start external decryption operation.
+ *
+ *                  This callback is called during an SSL handshake to start
+ *                  an RSA decryption operation using an
+ *                  external processor. The parameter \p cert contains
+ *                  the public key; it is up to the callback function to
+ *                  determine how to access the associated private key.
+ *
+ *                  This function typically sends or enqueues a request, and
+ *                  does not wait for the operation to complete. This allows
+ *                  the handshake step to be non-blocking.
+ *
+ *                  The parameters \p ssl and \p cert are guaranteed to remain
+ *                  valid throughout the handshake. On the other hand, this
+ *                  function must save the contents of \p input if the value
+ *                  is needed for later processing, because the \p input buffer
+ *                  is no longer valid after this function returns.
+ *
+ *                  This function may call mbedtls_ssl_set_async_operation_data()
+ *                  to store an operation context for later retrieval
+ *                  by the resume or cancel callback.
+ *
+ * \warning         RSA decryption as used in TLS is subject to a potential
+ *                  timing side channel attack first discovered by Bleichenbacher
+ *                  in 1998. This attack can be remotely exploitable
+ *                  in practice. To avoid this attack, you must ensure that
+ *                  if the callback performs an RSA decryption, the time it
+ *                  takes to execute and return the result does not depend
+ *                  on whether the RSA decryption succeeded or reported
+ *                  invalid padding.
+ *
+ * \param ssl             The SSL connection instance. It should not be
+ *                        modified other than via
+ *                        mbedtls_ssl_set_async_operation_data().
+ * \param cert            Certificate containing the public key.
+ *                        In simple cases, this is one of the pointers passed to
+ *                        mbedtls_ssl_conf_own_cert() when configuring the SSL
+ *                        connection. However, if other callbacks are used, this
+ *                        property may not hold. For example, if an SNI callback
+ *                        is registered with mbedtls_ssl_conf_sni(), then
+ *                        this callback determines what certificate is used.
+ * \param input           Buffer containing the input ciphertext. This buffer
+ *                        is no longer valid when the function returns.
+ * \param input_len       Size of the \p input buffer in bytes.
+ *
+ * \return          0 if the operation was started successfully and the SSL
+ *                  stack should call the resume callback immediately.
+ * \return          #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if the operation
+ *                  was started successfully and the SSL stack should return
+ *                  immediately without calling the resume callback yet.
+ * \return          #MBEDTLS_ERR_SSL_HW_ACCEL_FALLTHROUGH if the external
+ *                  processor does not support this key. The SSL stack will
+ *                  use the private key object instead.
+ * \return          Any other error indicates a fatal failure and is
+ *                  propagated up the call chain. The callback should
+ *                  use \c MBEDTLS_ERR_PK_xxx error codes, and <b>must not</b>
+ *                  use \c MBEDTLS_ERR_SSL_xxx error codes except as
+ *                  directed in the documentation of this callback.
+ */
+typedef int mbedtls_ssl_async_decrypt_t( mbedtls_ssl_context *ssl,
+                                         mbedtls_x509_crt *cert,
+                                         const unsigned char *input,
+                                         size_t input_len );
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+/**
+ * \brief           Callback type: resume external operation.
+ *
+ *                  This callback is called during an SSL handshake to resume
+ *                  an external operation started by the
+ *                  ::mbedtls_ssl_async_sign_t or
+ *                  ::mbedtls_ssl_async_decrypt_t callback.
+ *
+ *                  This function typically checks the status of a pending
+ *                  request or causes the request queue to make progress, and
+ *                  does not wait for the operation to complete. This allows
+ *                  the handshake step to be non-blocking.
+ *
+ *                  This function may call mbedtls_ssl_get_async_operation_data()
+ *                  to retrieve an operation context set by the start callback.
+ *                  It may call mbedtls_ssl_set_async_operation_data() to modify
+ *                  this context.
+ *
+ *                  Note that when this function returns a status other than
+ *                  #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS, it must free any
+ *                  resources associated with the operation.
+ *
+ * \param ssl             The SSL connection instance. It should not be
+ *                        modified other than via
+ *                        mbedtls_ssl_set_async_operation_data().
+ * \param output          Buffer containing the output (signature or decrypted
+ *                        data) on success.
+ * \param output_len      On success, number of bytes written to \p output.
+ * \param output_size     Size of the \p output buffer in bytes.
+ *
+ * \return          0 if output of the operation is available in the
+ *                  \p output buffer.
+ * \return          #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if the operation
+ *                  is still in progress. Subsequent requests for progress
+ *                  on the SSL connection will call the resume callback
+ *                  again.
+ * \return          Any other error means that the operation is aborted.
+ *                  The SSL handshake is aborted. The callback should
+ *                  use \c MBEDTLS_ERR_PK_xxx error codes, and <b>must not</b>
+ *                  use \c MBEDTLS_ERR_SSL_xxx error codes except as
+ *                  directed in the documentation of this callback.
+ */
+typedef int mbedtls_ssl_async_resume_t( mbedtls_ssl_context *ssl,
+                                        unsigned char *output,
+                                        size_t *output_len,
+                                        size_t output_size );
+
+/**
+ * \brief           Callback type: cancel external operation.
+ *
+ *                  This callback is called if an SSL connection is closed
+ *                  while an asynchronous operation is in progress. Note that
+ *                  this callback is not called if the
+ *                  ::mbedtls_ssl_async_resume_t callback has run and has
+ *                  returned a value other than
+ *                  #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS, since in that case
+ *                  the asynchronous operation has already completed.
+ *
+ *                  This function may call mbedtls_ssl_get_async_operation_data()
+ *                  to retrieve an operation context set by the start callback.
+ *
+ * \param ssl             The SSL connection instance. It should not be
+ *                        modified.
+ */
+typedef void mbedtls_ssl_async_cancel_t( mbedtls_ssl_context *ssl );
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 /*
  * This structure is used for storing current session data.
@@ -668,6 +898,16 @@ struct mbedtls_ssl_config
     mbedtls_x509_crt *ca_chain;     /*!< trusted CAs                        */
     mbedtls_x509_crl *ca_crl;       /*!< trusted CAs CRLs                   */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    mbedtls_ssl_async_sign_t *f_async_sign_start; /*!< start asynchronous signature operation */
+    mbedtls_ssl_async_decrypt_t *f_async_decrypt_start; /*!< start asynchronous decryption operation */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+    mbedtls_ssl_async_resume_t *f_async_resume; /*!< resume asynchronous operation */
+    mbedtls_ssl_async_cancel_t *f_async_cancel; /*!< cancel asynchronous operation */
+    void *p_async_config_data; /*!< Configuration data set by mbedtls_ssl_conf_async_private_cb(). */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 
 #if defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
     const int *sig_hashes;          /*!< allowed signature hashes           */
@@ -792,14 +1032,14 @@ struct mbedtls_ssl_context
     int renego_records_seen;    /*!< Records since renego request, or with DTLS,
                                   number of retransmissions of request if
                                   renego_max_records is < 0           */
-#endif
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
 
     int major_ver;              /*!< equal to  MBEDTLS_SSL_MAJOR_VERSION_3    */
     int minor_ver;              /*!< either 0 (SSL3) or 1 (TLS1.0)    */
 
 #if defined(MBEDTLS_SSL_DTLS_BADMAC_LIMIT)
     unsigned badmac_seen;       /*!< records with a bad MAC received    */
-#endif
+#endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
 
     mbedtls_ssl_send_t *f_send; /*!< Callback for network send */
     mbedtls_ssl_recv_t *f_recv; /*!< Callback for network receive */
@@ -855,11 +1095,11 @@ struct mbedtls_ssl_context
     uint16_t in_epoch;          /*!< DTLS epoch for incoming records  */
     size_t next_record_offset;  /*!< offset of the next record in datagram
                                      (equal to in_left if none)       */
-#endif
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 #if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
     uint64_t in_window_top;     /*!< last validated record seq_num    */
     uint64_t in_window;         /*!< bitmask for replay detection     */
-#endif
+#endif /* MBEDTLS_SSL_DTLS_ANTI_REPLAY */
 
     size_t in_hslen;            /*!< current handshake message length,
                                      including the handshake header   */
@@ -867,6 +1107,11 @@ struct mbedtls_ssl_context
 
     int keep_current_message;   /*!< drop or reuse current message
                                      on next call to record layer? */
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    uint8_t disable_datagram_packing;  /*!< Disable packing multiple records
+                                        *   within a single datagram.  */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     /*
      * Record layer (outgoing data)
@@ -882,12 +1127,18 @@ struct mbedtls_ssl_context
     size_t out_msglen;          /*!< record header: message length    */
     size_t out_left;            /*!< amount of data not yet written   */
 
+    unsigned char cur_out_ctr[8]; /*!<  Outgoing record sequence  number. */
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    uint16_t mtu;               /*!< path mtu, used to fragment outgoing messages */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
 #if defined(MBEDTLS_ZLIB_SUPPORT)
     unsigned char *compress_buf;        /*!<  zlib data buffer        */
-#endif
+#endif /* MBEDTLS_ZLIB_SUPPORT */
 #if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
     signed char split_done;     /*!< current record already splitted? */
-#endif
+#endif /* MBEDTLS_SSL_CBC_RECORD_SPLITTING */
 
     /*
      * PKI layer
@@ -900,11 +1151,11 @@ struct mbedtls_ssl_context
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     char *hostname;             /*!< expected peer CN for verification
                                      (and SNI if available)                 */
-#endif
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_ALPN)
     const char *alpn_chosen;    /*!<  negotiated protocol                   */
-#endif
+#endif /* MBEDTLS_SSL_ALPN */
 
     /*
      * Information for DTLS hello verify
@@ -912,7 +1163,7 @@ struct mbedtls_ssl_context
 #if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
     unsigned char  *cli_id;         /*!<  transport-level ID of the client  */
     size_t          cli_id_len;     /*!<  length of cli_id                  */
-#endif
+#endif /* MBEDTLS_SSL_DTLS_HELLO_VERIFY && MBEDTLS_SSL_SRV_C */
 
     /*
      * Secure renegotiation
@@ -924,7 +1175,7 @@ struct mbedtls_ssl_context
     size_t verify_data_len;             /*!<  length of verify data stored   */
     char own_verify_data[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
     char peer_verify_data[MBEDTLS_SSL_VERIFY_DATA_MAX_LEN]; /*!<  previous handshake verify data */
-#endif
+#endif /* MBEDTLS_SSL_RENEGOTIATION */
 };
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
@@ -945,14 +1196,6 @@ extern int (*mbedtls_ssl_hw_record_write)(mbedtls_ssl_context *ssl);
 extern int (*mbedtls_ssl_hw_record_read)(mbedtls_ssl_context *ssl);
 extern int (*mbedtls_ssl_hw_record_finish)(mbedtls_ssl_context *ssl);
 #endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
-
-/**
- * \brief Returns the list of ciphersuites supported by the SSL/TLS module.
- *
- * \return              a statically allocated array of ciphersuites, the last
- *                      entry is 0.
- */
-const int *mbedtls_ssl_list_ciphersuites( void );
 
 /**
  * \brief               Return the name of the ciphersuite associated with the
@@ -1152,6 +1395,52 @@ void mbedtls_ssl_set_bio( mbedtls_ssl_context *ssl,
                           mbedtls_ssl_recv_t *f_recv,
                           mbedtls_ssl_recv_timeout_t *f_recv_timeout );
 
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+/**
+ * \brief          Set the Maximum Tranport Unit (MTU).
+ *                 Special value: 0 means unset (no limit).
+ *                 This represents the maximum size of a datagram payload
+ *                 handled by the transport layer (usually UDP) as determined
+ *                 by the network link and stack. In practice, this controls
+ *                 the maximum size datagram the DTLS layer will pass to the
+ *                 \c f_send() callback set using \c mbedtls_ssl_set_bio().
+ *
+ * \note           The limit on datagram size is converted to a limit on
+ *                 record payload by subtracting the current overhead of
+ *                 encapsulation and encryption/authentication if any.
+ *
+ * \note           This can be called at any point during the connection, for
+ *                 example when a Path Maximum Transfer Unit (PMTU)
+ *                 estimate becomes available from other sources,
+ *                 such as lower (or higher) protocol layers.
+ *
+ * \note           This setting only controls the size of the packets we send,
+ *                 and does not restrict the size of the datagrams we're
+ *                 willing to receive. Client-side, you can request the
+ *                 server to use smaller records with \c
+ *                 mbedtls_ssl_conf_max_frag_len().
+ *
+ * \note           If both a MTU and a maximum fragment length have been
+ *                 configured (or negotiated with the peer), the resulting
+ *                 lower limit on record payload (see first note) is used.
+ *
+ * \note           This can only be used to decrease the maximum size
+ *                 of datagrams (hence records, see first note) sent. It
+ *                 cannot be used to increase the maximum size of records over
+ *                 the limit set by #MBEDTLS_SSL_OUT_CONTENT_LEN.
+ *
+ * \note           Values lower than the current record layer expansion will
+ *                 result in an error when trying to send data.
+ *
+ * \note           Using record compression together with a non-zero MTU value
+ *                 will result in an error when trying to send data.
+ *
+ * \param ssl      SSL context
+ * \param mtu      Value of the path MTU in bytes
+ */
+void mbedtls_ssl_set_mtu( mbedtls_ssl_context *ssl, uint16_t mtu );
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
+
 /**
  * \brief          Set the timeout period for mbedtls_ssl_read()
  *                 (Default: no timeout.)
@@ -1315,6 +1604,85 @@ void mbedtls_ssl_conf_export_keys_cb( mbedtls_ssl_config *conf,
         void *p_export_keys );
 #endif /* MBEDTLS_SSL_EXPORT_KEYS */
 
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+/**
+ * \brief           Configure asynchronous private key operation callbacks.
+ *
+ * \param conf              SSL configuration context
+ * \param f_async_sign      Callback to start a signature operation. See
+ *                          the description of ::mbedtls_ssl_async_sign_t
+ *                          for more information. This may be \c NULL if the
+ *                          external processor does not support any signature
+ *                          operation; in this case the private key object
+ *                          associated with the certificate will be used.
+ * \param f_async_decrypt   Callback to start a decryption operation. See
+ *                          the description of ::mbedtls_ssl_async_decrypt_t
+ *                          for more information. This may be \c NULL if the
+ *                          external processor does not support any decryption
+ *                          operation; in this case the private key object
+ *                          associated with the certificate will be used.
+ * \param f_async_resume    Callback to resume an asynchronous operation. See
+ *                          the description of ::mbedtls_ssl_async_resume_t
+ *                          for more information. This may not be \c NULL unless
+ *                          \p f_async_sign and \p f_async_decrypt are both
+ *                          \c NULL.
+ * \param f_async_cancel    Callback to cancel an asynchronous operation. See
+ *                          the description of ::mbedtls_ssl_async_cancel_t
+ *                          for more information. This may be \c NULL if
+ *                          no cleanup is needed.
+ * \param config_data       A pointer to configuration data which can be
+ *                          retrieved with
+ *                          mbedtls_ssl_conf_get_async_config_data(). The
+ *                          library stores this value without dereferencing it.
+ */
+void mbedtls_ssl_conf_async_private_cb( mbedtls_ssl_config *conf,
+                                        mbedtls_ssl_async_sign_t *f_async_sign,
+                                        mbedtls_ssl_async_decrypt_t *f_async_decrypt,
+                                        mbedtls_ssl_async_resume_t *f_async_resume,
+                                        mbedtls_ssl_async_cancel_t *f_async_cancel,
+                                        void *config_data );
+
+/**
+ * \brief           Retrieve the configuration data set by
+ *                  mbedtls_ssl_conf_async_private_cb().
+ *
+ * \param conf      SSL configuration context
+ * \return          The configuration data set by
+ *                  mbedtls_ssl_conf_async_private_cb().
+ */
+void *mbedtls_ssl_conf_get_async_config_data( const mbedtls_ssl_config *conf );
+
+/**
+ * \brief           Retrieve the asynchronous operation user context.
+ *
+ * \note            This function may only be called while a handshake
+ *                  is in progress.
+ *
+ * \param ssl       The SSL context to access.
+ *
+ * \return          The asynchronous operation user context that was last
+ *                  set during the current handshake. If
+ *                  mbedtls_ssl_set_async_operation_data() has not yet been
+ *                  called during the current handshake, this function returns
+ *                  \c NULL.
+ */
+void *mbedtls_ssl_get_async_operation_data( const mbedtls_ssl_context *ssl );
+
+/**
+ * \brief           Retrieve the asynchronous operation user context.
+ *
+ * \note            This function may only be called while a handshake
+ *                  is in progress.
+ *
+ * \param ssl       The SSL context to access.
+ * \param ctx       The new value of the asynchronous operation user context.
+ *                  Call mbedtls_ssl_get_async_operation_data() later during the
+ *                  same handshake to retrieve this value.
+ */
+void mbedtls_ssl_set_async_operation_data( mbedtls_ssl_context *ssl,
+                                 void *ctx );
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+
 /**
  * \brief          Callback type: generate a cookie
  *
@@ -1456,6 +1824,38 @@ void mbedtls_ssl_conf_dtls_badmac_limit( mbedtls_ssl_config *conf, unsigned limi
 #endif /* MBEDTLS_SSL_DTLS_BADMAC_LIMIT */
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
+
+/**
+ * \brief          Allow or disallow packing of multiple handshake records
+ *                 within a single datagram.
+ *
+ * \param ssl           The SSL context to configure.
+ * \param allow_packing This determines whether datagram packing may
+ *                      be used or not. A value of \c 0 means that every
+ *                      record will be sent in a separate datagram; a
+ *                      value of \c 1 means that, if space permits,
+ *                      multiple handshake messages (including CCS) belonging to
+ *                      a single flight may be packed within a single datagram.
+ *
+ * \note           This is enabled by default and should only be disabled
+ *                 for test purposes, or if datagram packing causes
+ *                 interoperability issues with peers that don't support it.
+ *
+ * \note           Allowing datagram packing reduces the network load since
+ *                 there's less overhead if multiple messages share the same
+ *                 datagram. Also, it increases the handshake efficiency
+ *                 since messages belonging to a single datagram will not
+ *                 be reordered in transit, and so future message buffering
+ *                 or flight retransmission (if no buffering is used) as
+ *                 means to deal with reordering are needed less frequently.
+ *
+ * \note           Application records are not affected by this option and
+ *                 are currently always sent in separate datagrams.
+ *
+ */
+void mbedtls_ssl_set_datagram_packing( mbedtls_ssl_context *ssl,
+                                       unsigned allow_packing );
+
 /**
  * \brief          Set retransmit timeout values for the DTLS handshake.
  *                 (DTLS only, no effect on TLS.)
@@ -2125,11 +2525,24 @@ void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 /**
  * \brief          Set the maximum fragment length to emit and/or negotiate
- *                 (Default: MBEDTLS_SSL_MAX_CONTENT_LEN, usually 2^14 bytes)
+ *                 (Default: the smaller of MBEDTLS_SSL_IN_CONTENT_LEN and
+ *                 MBEDTLS_SSL_OUT_CONTENT_LEN, usually 2^14 bytes)
  *                 (Server: set maximum fragment length to emit,
  *                 usually negotiated by the client during handshake
  *                 (Client: set maximum fragment length to emit *and*
  *                 negotiate with the server during handshake)
+ *
+ * \note           With TLS, this currently only affects ApplicationData (sent
+ *                 with \c mbedtls_ssl_read()), not handshake messages.
+ *                 With DTLS, this affects both ApplicationData and handshake.
+ *
+ * \note           This sets the maximum length for a record's payload,
+ *                 excluding record overhead that will be added to it, see
+ *                 \c mbedtls_ssl_get_record_expansion().
+ *
+ * \note           For DTLS, it is also possible to set a limit for the total
+ *                 size of daragrams passed to the transport layer, including
+ *                 record overhead, see \c mbedtls_ssl_set_mtu().
  *
  * \param conf     SSL configuration
  * \param mfl_code Code for maximum fragment length (allowed values:
@@ -2393,6 +2806,9 @@ const char *mbedtls_ssl_get_version( const mbedtls_ssl_context *ssl );
  * \brief          Return the (maximum) number of bytes added by the record
  *                 layer: header + encryption/MAC overhead (inc. padding)
  *
+ * \note           This function is not available (always returns an error)
+ *                 when record compression is enabled.
+ *
  * \param ssl      SSL context
  *
  * \return         Current maximum record expansion in bytes, or
@@ -2407,12 +2823,8 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl );
  *                 This is the value negotiated with peer if any,
  *                 or the locally configured value.
  *
- * \note           With DTLS, \c mbedtls_ssl_write() will return an error if
- *                 called with a larger length value.
- *                 With TLS, \c mbedtls_ssl_write() will fragment the input if
- *                 necessary and return the number of bytes written; it is up
- *                 to the caller to call \c mbedtls_ssl_write() again in
- *                 order to send the remaining bytes if any.
+ * \sa             mbedtls_ssl_conf_max_frag_len()
+ * \sa             mbedtls_ssl_get_max_record_payload()
  *
  * \param ssl      SSL context
  *
@@ -2420,6 +2832,34 @@ int mbedtls_ssl_get_record_expansion( const mbedtls_ssl_context *ssl );
  */
 size_t mbedtls_ssl_get_max_frag_len( const mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_SSL_MAX_FRAGMENT_LENGTH */
+
+/**
+ * \brief          Return the current maximum outgoing record payload in bytes.
+ *                 This takes into account the config.h setting \c
+ *                 MBEDTLS_SSL_OUT_CONTENT_LEN, the configured and negotiated
+ *                 max fragment length extension if used, and for DTLS the
+ *                 path MTU as configured and current record expansion.
+ *
+ * \note           With DTLS, \c mbedtls_ssl_write() will return an error if
+ *                 called with a larger length value.
+ *                 With TLS, \c mbedtls_ssl_write() will fragment the input if
+ *                 necessary and return the number of bytes written; it is up
+ *                 to the caller to call \c mbedtls_ssl_write() again in
+ *                 order to send the remaining bytes if any.
+ *
+ * \note           This function is not available (always returns an error)
+ *                 when record compression is enabled.
+ *
+ * \sa             mbedtls_ssl_set_mtu()
+ * \sa             mbedtls_ssl_get_max_frag_len()
+ * \sa             mbedtls_ssl_get_record_expansion()
+ *
+ * \param ssl      SSL context
+ *
+ * \return         Current maximum payload for an outgoing record,
+ *                 or a negative error code.
+ */
+int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl );
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 /**
@@ -2444,7 +2884,6 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ss
  * \brief          Save session in order to resume it later (client-side only)
  *                 Session data is copied to presented session structure.
  *
- * \warning        Currently, peer certificate is lost in the operation.
  *
  * \param ssl      SSL context
  * \param session  session context
@@ -2452,7 +2891,18 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ss
  * \return         0 if successful,
  *                 MBEDTLS_ERR_SSL_ALLOC_FAILED if memory allocation failed,
  *                 MBEDTLS_ERR_SSL_BAD_INPUT_DATA if used server-side or
- *                 arguments are otherwise invalid
+ *                 arguments are otherwise invalid.
+ *
+ * \note           Only the server certificate is copied, and not the full chain,
+ *                 so you should not attempt to validate the certificate again
+ *                 by calling \c mbedtls_x509_crt_verify() on it.
+ *                 Instead, you should use the results from the verification
+ *                 in the original handshake by calling \c mbedtls_ssl_get_verify_result()
+ *                 after loading the session again into a new SSL context
+ *                 using \c mbedtls_ssl_set_session().
+ *
+ * \note           Once the session object is not needed anymore, you should
+ *                 free it by calling \c mbedtls_ssl_session_free().
  *
  * \sa             mbedtls_ssl_set_session()
  */
@@ -2464,35 +2914,50 @@ int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session
  *
  * \param ssl      SSL context
  *
- * \return         0 if successful, or
- *                 MBEDTLS_ERR_SSL_WANT_READ or MBEDTLS_ERR_SSL_WANT_WRITE, or
- *                 MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED (see below), or
- *                 a specific SSL error code.
+ * \return         \c 0 if successful.
+ * \return         #MBEDTLS_ERR_SSL_WANT_READ or #MBEDTLS_ERR_SSL_WANT_WRITE
+ *                 if the handshake is incomplete and waiting for data to
+ *                 be available for reading from or writing to the underlying
+ *                 transport - in this case you must call this function again
+ *                 when the underlying transport is ready for the operation.
+ * \return         #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if an asynchronous
+ *                 operation is in progress (see
+ *                 mbedtls_ssl_conf_async_private_cb()) - in this case you
+ *                 must call this function again when the operation is ready.
+ * \return         #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS if a cryptographic
+ *                 operation is in progress (see mbedtls_ecp_set_max_ops()) -
+ *                 in this case you must call this function again to complete
+ *                 the handshake when you're done attending other tasks.
+ * \return         #MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED if DTLS is in use
+ *                 and the client did not demonstrate reachability yet - in
+ *                 this case you must stop using the context (see below).
+ * \return         Another SSL error code - in this case you must stop using
+ *                 the context (see below).
  *
- *                 If this function returns MBEDTLS_ERR_SSL_WANT_READ, the
- *                 handshake is unfinished and no further data is available
- *                 from the underlying transport. In this case, you must call
- *                 the function again at some later stage.
+ * \warning        If this function returns something other than
+ *                 \c 0,
+ *                 #MBEDTLS_ERR_SSL_WANT_READ,
+ *                 #MBEDTLS_ERR_SSL_WANT_WRITE,
+ *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS,
+ *                 you must stop using the SSL context for reading or writing,
+ *                 and either free it or call \c mbedtls_ssl_session_reset()
+ *                 on it before re-using it for a new connection; the current
+ *                 connection must be closed.
+ *
+ * \note           If DTLS is in use, then you may choose to handle
+ *                 #MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED specially for logging
+ *                 purposes, as it is an expected return value rather than an
+ *                 actual error, but you still need to reset/free the context.
  *
  * \note           Remarks regarding event-driven DTLS:
- *                 If the function returns MBEDTLS_ERR_SSL_WANT_READ, no datagram
+ *                 If the function returns #MBEDTLS_ERR_SSL_WANT_READ, no datagram
  *                 from the underlying transport layer is currently being processed,
  *                 and it is safe to idle until the timer or the underlying transport
  *                 signal a new event. This is not true for a successful handshake,
  *                 in which case the datagram of the underlying transport that is
  *                 currently being processed might or might not contain further
  *                 DTLS records.
- *
- * \note           If this function returns something other than 0 or
- *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, you must stop using
- *                 the SSL context for reading or writing, and either free it or
- *                 call \c mbedtls_ssl_session_reset() on it before re-using it
- *                 for a new connection; the current connection must be closed.
- *
- * \note           If DTLS is in use, then you may choose to handle
- *                 MBEDTLS_ERR_SSL_HELLO_VERIFY_REQUIRED specially for logging
- *                 purposes, as it is an expected return value rather than an
- *                 actual error, but you still need to reset/free the context.
  */
 int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl );
 
@@ -2500,20 +2965,21 @@ int mbedtls_ssl_handshake( mbedtls_ssl_context *ssl );
  * \brief          Perform a single step of the SSL handshake
  *
  * \note           The state of the context (ssl->state) will be at
- *                 the next state after execution of this function. Do not
+ *                 the next state after this function returns \c 0. Do not
  *                 call this function if state is MBEDTLS_SSL_HANDSHAKE_OVER.
- *
- * \note           If this function returns something other than 0 or
- *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, you must stop using
- *                 the SSL context for reading or writing, and either free it or
- *                 call \c mbedtls_ssl_session_reset() on it before re-using it
- *                 for a new connection; the current connection must be closed.
  *
  * \param ssl      SSL context
  *
- * \return         0 if successful, or
- *                 MBEDTLS_ERR_SSL_WANT_READ or MBEDTLS_ERR_SSL_WANT_WRITE, or
- *                 a specific SSL error code.
+ * \return         See mbedtls_ssl_handshake().
+ *
+ * \warning        If this function returns something other than \c 0,
+ *                 #MBEDTLS_ERR_SSL_WANT_READ, #MBEDTLS_ERR_SSL_WANT_WRITE,
+ *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS, you must stop using
+ *                 the SSL context for reading or writing, and either free it
+ *                 or call \c mbedtls_ssl_session_reset() on it before
+ *                 re-using it for a new connection; the current connection
+ *                 must be closed.
  */
 int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl );
 
@@ -2528,13 +2994,18 @@ int mbedtls_ssl_handshake_step( mbedtls_ssl_context *ssl );
  * \param ssl      SSL context
  *
  * \return         0 if successful, or any mbedtls_ssl_handshake() return
- *                 value.
+ *                 value except #MBEDTLS_ERR_SSL_CLIENT_RECONNECT that can't
+ *                 happen during a renegotiation.
  *
- * \note           If this function returns something other than 0 or
- *                 MBEDTLS_ERR_SSL_WANT_READ/WRITE, you must stop using
- *                 the SSL context for reading or writing, and either free it or
- *                 call \c mbedtls_ssl_session_reset() on it before re-using it
- *                 for a new connection; the current connection must be closed.
+ * \warning        If this function returns something other than \c 0,
+ *                 #MBEDTLS_ERR_SSL_WANT_READ, #MBEDTLS_ERR_SSL_WANT_WRITE,
+ *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS, you must stop using
+ *                 the SSL context for reading or writing, and either free it
+ *                 or call \c mbedtls_ssl_session_reset() on it before
+ *                 re-using it for a new connection; the current connection
+ *                 must be closed.
+ *
  */
 int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl );
 #endif /* MBEDTLS_SSL_RENEGOTIATION */
@@ -2546,42 +3017,56 @@ int mbedtls_ssl_renegotiate( mbedtls_ssl_context *ssl );
  * \param buf      buffer that will hold the data
  * \param len      maximum number of bytes to read
  *
- * \return         One of the following:
- *                 - 0 if the read end of the underlying transport was closed,
- *                 - the (positive) number of bytes read, or
- *                 - a negative error code on failure.
+ * \return         The (positive) number of bytes read if successful.
+ * \return         \c 0 if the read end of the underlying transport was closed
+ *                 - in this case you must stop using the context (see below).
+ * \return         #MBEDTLS_ERR_SSL_WANT_READ or #MBEDTLS_ERR_SSL_WANT_WRITE
+ *                 if the handshake is incomplete and waiting for data to
+ *                 be available for reading from or writing to the underlying
+ *                 transport - in this case you must call this function again
+ *                 when the underlying transport is ready for the operation.
+ * \return         #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if an asynchronous
+ *                 operation is in progress (see
+ *                 mbedtls_ssl_conf_async_private_cb()) - in this case you
+ *                 must call this function again when the operation is ready.
+ * \return         #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS if a cryptographic
+ *                 operation is in progress (see mbedtls_ecp_set_max_ops()) -
+ *                 in this case you must call this function again to complete
+ *                 the handshake when you're done attending other tasks.
+ * \return         #MBEDTLS_ERR_SSL_CLIENT_RECONNECT if we're at the server
+ *                 side of a DTLS connection and the client is initiating a
+ *                 new connection using the same source port. See below.
+ * \return         Another SSL error code - in this case you must stop using
+ *                 the context (see below).
  *
- *                 If MBEDTLS_ERR_SSL_WANT_READ is returned, no application data
- *                 is available from the underlying transport. In this case,
- *                 the function needs to be called again at some later stage.
+ * \warning        If this function returns something other than
+ *                 a positive value,
+ *                 #MBEDTLS_ERR_SSL_WANT_READ,
+ *                 #MBEDTLS_ERR_SSL_WANT_WRITE,
+ *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS,
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_CLIENT_RECONNECT,
+ *                 you must stop using the SSL context for reading or writing,
+ *                 and either free it or call \c mbedtls_ssl_session_reset()
+ *                 on it before re-using it for a new connection; the current
+ *                 connection must be closed.
  *
- *                 If MBEDTLS_ERR_SSL_WANT_WRITE is returned, a write is pending
- *                 but the underlying transport isn't available for writing. In this
- *                 case, the function needs to be called again at some later stage.
- *
- *                 When this function return MBEDTLS_ERR_SSL_CLIENT_RECONNECT
+ * \note           When this function returns #MBEDTLS_ERR_SSL_CLIENT_RECONNECT
  *                 (which can only happen server-side), it means that a client
  *                 is initiating a new connection using the same source port.
  *                 You can either treat that as a connection close and wait
  *                 for the client to resend a ClientHello, or directly
  *                 continue with \c mbedtls_ssl_handshake() with the same
- *                 context (as it has beeen reset internally). Either way, you
- *                 should make sure this is seen by the application as a new
+ *                 context (as it has been reset internally). Either way, you
+ *                 must make sure this is seen by the application as a new
  *                 connection: application state, if any, should be reset, and
  *                 most importantly the identity of the client must be checked
  *                 again. WARNING: not validating the identity of the client
  *                 again, or not transmitting the new identity to the
  *                 application layer, would allow authentication bypass!
  *
- * \note           If this function returns something other than a positive value
- *                 or MBEDTLS_ERR_SSL_WANT_READ/WRITE or MBEDTLS_ERR_SSL_CLIENT_RECONNECT,
- *                 you must stop using the SSL context for reading or writing,
- *                 and either free it or call \c mbedtls_ssl_session_reset() on it
- *                 before re-using it for a new connection; the current connection
- *                 must be closed.
- *
  * \note           Remarks regarding event-driven DTLS:
- *                 - If the function returns MBEDTLS_ERR_SSL_WANT_READ, no datagram
+ *                 - If the function returns #MBEDTLS_ERR_SSL_WANT_READ, no datagram
  *                   from the underlying transport layer is currently being processed,
  *                   and it is safe to idle until the timer or the underlying transport
  *                   signal a new event.
@@ -2610,21 +3095,41 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
  * \param buf      buffer holding the data
  * \param len      how many bytes must be written
  *
- * \return         the number of bytes actually written (may be less than len),
- *                 or MBEDTLS_ERR_SSL_WANT_WRITE or MBEDTLS_ERR_SSL_WANT_READ,
- *                 or another negative error code.
+ * \return         The (non-negative) number of bytes actually written if
+ *                 successful (may be less than \p len).
+ * \return         #MBEDTLS_ERR_SSL_WANT_READ or #MBEDTLS_ERR_SSL_WANT_WRITE
+ *                 if the handshake is incomplete and waiting for data to
+ *                 be available for reading from or writing to the underlying
+ *                 transport - in this case you must call this function again
+ *                 when the underlying transport is ready for the operation.
+ * \return         #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS if an asynchronous
+ *                 operation is in progress (see
+ *                 mbedtls_ssl_conf_async_private_cb()) - in this case you
+ *                 must call this function again when the operation is ready.
+ * \return         #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS if a cryptographic
+ *                 operation is in progress (see mbedtls_ecp_set_max_ops()) -
+ *                 in this case you must call this function again to complete
+ *                 the handshake when you're done attending other tasks.
+ * \return         Another SSL error code - in this case you must stop using
+ *                 the context (see below).
  *
- * \note           If this function returns something other than a positive value
- *                 or MBEDTLS_ERR_SSL_WANT_READ/WRITE, you must stop using
- *                 the SSL context for reading or writing, and either free it or
- *                 call \c mbedtls_ssl_session_reset() on it before re-using it
- *                 for a new connection; the current connection must be closed.
+ * \warning        If this function returns something other than
+ *                 a non-negative value,
+ *                 #MBEDTLS_ERR_SSL_WANT_READ,
+ *                 #MBEDTLS_ERR_SSL_WANT_WRITE,
+ *                 #MBEDTLS_ERR_SSL_ASYNC_IN_PROGRESS or
+ *                 #MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS,
+ *                 you must stop using the SSL context for reading or writing,
+ *                 and either free it or call \c mbedtls_ssl_session_reset()
+ *                 on it before re-using it for a new connection; the current
+ *                 connection must be closed.
  *
- * \note           When this function returns MBEDTLS_ERR_SSL_WANT_WRITE/READ,
+ * \note           When this function returns #MBEDTLS_ERR_SSL_WANT_WRITE/READ,
  *                 it must be called later with the *same* arguments,
- *                 until it returns a positive value. When the function returns
- *                 MBEDTLS_ERR_SSL_WANT_WRITE there may be some partial
- *                 data in the output buffer, however this is not yet sent.
+ *                 until it returns a value greater that or equal to 0. When
+ *                 the function returns #MBEDTLS_ERR_SSL_WANT_WRITE there may be
+ *                 some partial data in the output buffer, however this is not
+ *                 yet sent.
  *
  * \note           If the requested length is greater than the maximum
  *                 fragment length (either the built-in limit or the one set
@@ -2633,6 +3138,9 @@ int mbedtls_ssl_read( mbedtls_ssl_context *ssl, unsigned char *buf, size_t len )
  *                 - with DTLS, MBEDTLS_ERR_SSL_BAD_INPUT_DATA is returned.
  *                 \c mbedtls_ssl_get_max_frag_len() may be used to query the
  *                 active maximum fragment length.
+ *
+ * \note           Attempting to write 0 bytes will result in an empty TLS
+ *                 application record being sent.
  */
 int mbedtls_ssl_write( mbedtls_ssl_context *ssl, const unsigned char *buf, size_t len );
 
@@ -2724,6 +3232,9 @@ void mbedtls_ssl_session_init( mbedtls_ssl_session *session );
 /**
  * \brief          Free referenced items in an SSL session including the
  *                 peer certificate and clear memory
+ *
+ * \note           A session object can be freed even if the SSL context
+ *                 that was used to retrieve the session is still in use.
  *
  * \param session  SSL session
  */

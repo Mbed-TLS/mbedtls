@@ -16,11 +16,13 @@ The files test-ca_cat12 and test-ca_cat21 contain them concatenated both ways.
 Two intermediate CAs are signed by them:
 - test-int-ca.crt "C=NL, O=PolarSSL, CN=PolarSSL Test Intermediate CA"
   uses RSA-4096, signed by test-ca2
+    - test-int-ca-exp.crt is a copy that is expired
 - test-int-ca2.crt "C=NL, O=PolarSSL, CN=PolarSSL Test Intermediate EC CA"
-  uses an EC key with NIST P-256, signed by test-ca
+  uses an EC key with NIST P-384, signed by test-ca
 
 A third intermediate CA is signed by test-int-ca2.crt:
 - test-int-ca3.crt "C=UK, O=mbed TLS, CN=mbed TLS Test intermediate CA 3"
+  uses an EC key with NIST P-256, signed by test-int-ca2
 
 Finally, other CAs for specific purposes:
 - enco-ca-prstr.pem: has its CN encoded as a printable string, but child cert
@@ -65,21 +67,41 @@ List of certificates:
 - server2*.crt: 1 R L: misc
 - server3.crt: 1 E L: EC cert signed by RSA CA
 - server4.crt: 2 R L: RSA cert signed by EC CA
-- server5*.crt: 2* E L: misc *(except server5-selfsigned)
+- server5*.crt: 2* E L: misc *(except -selfsigned and -ss-*)
     -sha*: hashes
-    -eku*: extendeKeyUsage (cli/srv = www client/server, cs = codesign, etc)
-    -ku*: keyUsage (ds = signatures, ke/ka = key exchange/agreement)
+    .eku*: extendeKeyUsage (cli/srv = www client/server, cs = codesign, etc)
+    .ku*: keyUsage (ds = signatures, ke/ka = key exchange/agreement)
+    .req*: CSR, not certificate
+    -der*: trailing bytes in der (?)
+    -badsign.crt: S5 with corrupted signature
+    -expired.crt: S5 with "not after" date in the past
+    -future.crt: S5 with "not before" date in the future
+    -selfsigned.crt: Self-signed cert with S5 key
+    -ss-expired.crt: Self-signed cert with S5 key, expired
+    -ss-forgeca.crt: Copy of test-int-ca3 self-signed with S5 key
 - server6-ss-child.crt: O E: "child" of non-CA server5-selfsigned
 - server6.crt, server6.pem: 2 E L C: revoked
-- server7*.crt: I1 E L P1*: EC signed by RSA signed by EC
-    *P1 except 7.crt, P2 _int-ca_ca2.crt
-    *_space: with PEM error(s)
-    _spurious: has spurious cert in its chain (S7 + I2 + I1)
+- server7.crt: I1 E L P1(usually): EC signed by RSA signed by EC
+    -badsign.crt: S7 with corrupted signature + I1
+    -expired.crt: S7 with "not after" date in the past + I1
+    -future.crt: S7 with "not before" date in the future + I1
+    _int-ca-exp.crt: S7 + expired I1
+    _int-ca.crt: S7 + I1
+    _int-ca_ca2.crt: S7 + I1 + 2
+    _all_space.crt: S7 + I1 both with misplaced spaces (invalid PEM)
+    _pem_space.crt: S7 with misplace space (invalid PEM) + I1
+    _trailing_space.crt: S7 + I1 both with trainling space (valid PEM)
+    _spurious_int-ca.crt: S7 + I2(spurious) + I1
 - server8*.crt: I2 R L: RSA signed by EC signed by RSA (P1 for _int-ca2)
 - server9*.crt: 1 R C* L P1*: signed using RSASSA-PSS
     *CRL for: 9.crt, -badsign, -with-ca (P1)
-- server10*.crt: I3 E L P2/P3
-    _spurious: S10 + I3 + I1(spurious) + I2
+- server10.crt: I3 E L
+    -badsign.crt: S10 with corrupted signature
+    -bs_int3.pem: S10-badsign + I3
+    _int3-bs.pem: S10 + I3-badsign
+    _int3_int-ca2.crt: S10 + I3 + I2
+    _int3_int-ca2_ca.crt: S10 + I3 + I2 + 1
+    _int3_spurious_int-ca2.crt: S10 + I3 + I1(spurious) + I2
 
 Certificate revocation lists
 ----------------------------

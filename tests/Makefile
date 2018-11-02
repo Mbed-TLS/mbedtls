@@ -16,9 +16,9 @@ LOCAL_LDFLAGS = -L../library			\
 LOCAL_CFLAGS += -D_POSIX_C_SOURCE=200809L
 
 ifndef SHARED
-DEP=../library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a
+DEP=../library/libmbedcrypto.a
 else
-DEP=../library/libmbedcrypto.$(DLEXT) ../library/libmbedx509.$(DLEXT) ../library/libmbedtls.$(DLEXT)
+DEP=../library/libmbedcrypto.$(DLEXT)
 endif
 
 ifdef DEBUG

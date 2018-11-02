@@ -51,8 +51,6 @@
 #define MBEDTLS_PKCS1_V21
 #define MBEDTLS_SELF_TEST
 #define MBEDTLS_VERSION_FEATURES
-#define MBEDTLS_X509_CHECK_KEY_USAGE
-#define MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE
 
 /* mbed TLS modules */
 #define MBEDTLS_AES_C
@@ -78,9 +76,6 @@
 #define MBEDTLS_SHA256_C
 #define MBEDTLS_SHA512_C
 #define MBEDTLS_VERSION_C
-#define MBEDTLS_X509_USE_C
-#define MBEDTLS_X509_CRT_PARSE_C
-#define MBEDTLS_X509_CRL_PARSE_C
 //#define MBEDTLS_CMAC_C
 
 /* Miscellaneous options */

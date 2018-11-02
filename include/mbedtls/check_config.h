@@ -255,10 +255,6 @@
 #error "MBEDTLS_PK_WRITE_C defined, but not all prerequisites"
 #endif
 
-#if defined(MBEDTLS_PKCS11_C) && !defined(MBEDTLS_PK_C)
-#error "MBEDTLS_PKCS11_C defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_PLATFORM_EXIT_ALT) && !defined(MBEDTLS_PLATFORM_C)
 #error "MBEDTLS_PLATFORM_EXIT_ALT defined, but not all prerequisites"
 #endif
@@ -493,11 +489,6 @@
 #error "MBEDTLS_RSA_C defined, but none of the PKCS1 versions enabled"
 #endif
 
-#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT) &&                        \
-    ( !defined(MBEDTLS_RSA_C) || !defined(MBEDTLS_PKCS1_V21) )
-#error "MBEDTLS_X509_RSASSA_PSS_SUPPORT defined, but not all prerequisites"
-#endif
-
 #if defined(MBEDTLS_THREADING_PTHREAD)
 #if !defined(MBEDTLS_THREADING_C) || defined(MBEDTLS_THREADING_IMPL)
 #error "MBEDTLS_THREADING_PTHREAD defined, but not all prerequisites"
@@ -523,38 +514,6 @@
 
 #if defined(MBEDTLS_VERSION_FEATURES) && !defined(MBEDTLS_VERSION_C)
 #error "MBEDTLS_VERSION_FEATURES defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_X509_USE_C) && ( !defined(MBEDTLS_BIGNUM_C) ||  \
-    !defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_PARSE_C) ||      \
-    !defined(MBEDTLS_PK_PARSE_C) )
-#error "MBEDTLS_X509_USE_C defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_X509_CREATE_C) && ( !defined(MBEDTLS_BIGNUM_C) ||  \
-    !defined(MBEDTLS_OID_C) || !defined(MBEDTLS_ASN1_WRITE_C) ||       \
-    !defined(MBEDTLS_PK_WRITE_C) )
-#error "MBEDTLS_X509_CREATE_C defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_X509_CRT_PARSE_C) && ( !defined(MBEDTLS_X509_USE_C) )
-#error "MBEDTLS_X509_CRT_PARSE_C defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_X509_CRL_PARSE_C) && ( !defined(MBEDTLS_X509_USE_C) )
-#error "MBEDTLS_X509_CRL_PARSE_C defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_X509_CSR_PARSE_C) && ( !defined(MBEDTLS_X509_USE_C) )
-#error "MBEDTLS_X509_CSR_PARSE_C defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_X509_CRT_WRITE_C) && ( !defined(MBEDTLS_X509_CREATE_C) )
-#error "MBEDTLS_X509_CRT_WRITE_C defined, but not all prerequisites"
-#endif
-
-#if defined(MBEDTLS_X509_CSR_WRITE_C) && ( !defined(MBEDTLS_X509_CREATE_C) )
-#error "MBEDTLS_X509_CSR_WRITE_C defined, but not all prerequisites"
 #endif
 
 #if defined(MBEDTLS_HAVE_INT32) && defined(MBEDTLS_HAVE_INT64)

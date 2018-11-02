@@ -39,10 +39,9 @@ my %algs = (
     'MBEDTLS_ECP_C'     => ['MBEDTLS_ECDSA_C',
                             'MBEDTLS_ECDH_C',
                             'MBEDTLS_ECJPAKE_C'],
-    'MBEDTLS_X509_RSASSA_PSS_SUPPORT'   => [],
-    'MBEDTLS_PKCS1_V21' => ['MBEDTLS_X509_RSASSA_PSS_SUPPORT'],
+    'MBEDTLS_PKCS1_V21' => [],
     'MBEDTLS_PKCS1_V15' => [],
-    'MBEDTLS_RSA_C'     => ['MBEDTLS_X509_RSASSA_PSS_SUPPORT'],
+    'MBEDTLS_RSA_C'     => [],
 );
 
 system( "cp $config_h $config_h.bak" ) and die;

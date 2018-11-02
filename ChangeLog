@@ -2,6 +2,15 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
+Security
+   * Fix overly strict DN comparison when looking for CRLs
+     belonging to a particular CA. This previously lead to
+     ignoring CRLs when the CRL's issuer name and the CA's
+     subject name differed in their string encoding (e.g.,
+     one using PrintableString and the other UTF8String) or
+     in the choice of upper and lower case. Reported by
+     HenrikRosenquistAndersson in #1784.
+
 Features
    * Add support for temporarily suspending expensive ECC computations after
      some configurable amount of operations, to be used in single-threaded

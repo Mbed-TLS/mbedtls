@@ -48,6 +48,23 @@ The provided makefiles pass options to the compiler that assume a GCC-like comma
 
 To run the unit tests on the host machine, run `make test` from the top-level directory. If you are cross-compiling, copy the test executable from the `tests` directory to the target machine.
 
+### Compiling as a subproject
+
+Mbed Crypto supports being built as a subproject of Mbed TLS. Mbed TLS can use Mbed Crypto for its cryptography implementation by using Mbed Crypto as a subproject.
+
+From the Mbed TLS project repository, CMake can be invoked as follows to build Mbed TLS using Mbed Crypto's `libmbedcrypto`.
+```
+mkdir cmake
+cd cmake
+cmake .. -DUSE_CRYPTO_SUBMODULE=1
+make -j
+make test
+```
+
+When building Mbed Crypto as a subproject of Mbed TLS, the Mbed TLS
+configuration file (config.h) is used, and not the Mbed Crypto configuration
+file.
+
 ## Example programs
 
 The `programs/` subdirectory contains sample programs that use the library. Please note that the goal of these sample programs is to demonstrate specific features of the library, and the code may need to be adapted to build a real-world application.

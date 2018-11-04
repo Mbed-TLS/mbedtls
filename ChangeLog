@@ -29,6 +29,9 @@ Changes
      in the same way as on the server side.
    * Change the dtls_client and dtls_server samples to work by default over
      IPv6 and optionally by a build option over IPv4.
+   * Change the use of Windows threading to use Microsoft Visual C++ runtime
+     calls, rather than Win32 API calls directly. This is necessary to avoid
+     conflict with C runtime usage. Found and fixed by irwir.
 
 = mbed TLS 2.7.6 branch released 2018-08-31
 

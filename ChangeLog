@@ -17,6 +17,12 @@ Features
      operations. On CPUs where the extensions are available, they can accelerate
      MPI multiplications used in ECC and RSA cryptography. Contributed by
      Aurelien Jarno.
+   * Extend RSASSA-PSS signature to allow slightly a smaller salt size.
+     Previously, PSS signature always used a salt with the same length as the
+     hash, and returned an error if this was not possible. Now the salt size
+     may be up to two bytes shorter. This allows the library to support all
+     hash and signature sizes that comply with FIPS 186-4, including SHA-512
+     with a 1024-bit key.
 
 Bugfix
    * Fix wrong order of freeing in programs/ssl/ssl_server2 example

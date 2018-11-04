@@ -34,6 +34,10 @@ Bugfix
      program programs/x509/cert_write. Fixes #1422.
    * Ignore IV in mbedtls_cipher_set_iv() when the cipher mode is MBEDTLS_MODE_ECB
      Fix for #1091 raised by ezdevelop
+   * Zeroize memory used for buffering or reassembling handshake messages
+     after use.
+   * Use `mbedtls_platform_zeroize()` instead of `memset()` for zeroization
+     of sensitive data in the example programs aescrypt2 and crypt_and_hash.
 
 Changes
    * Removed support for Yotta as a build tool.

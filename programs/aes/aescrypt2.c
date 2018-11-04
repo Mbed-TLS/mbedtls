@@ -72,6 +72,12 @@ int main( void )
     return( 0 );
 }
 #else
+
+/* Implementation that should never be optimized out by the compiler */
+static void mbedtls_zeroize( void *v, size_t n ) {
+    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
+}
+
 int main( int argc, char *argv[] )
 {
     int ret = 0;
@@ -445,13 +451,13 @@ exit:
        the case when the user has missed or reordered some,
        in which case the key might not be in argv[4]. */
     for( i = 0; i < (unsigned int) argc; i++ )
-        memset( argv[i], 0, strlen( argv[i] ) );
+        mbedtls_zeroize( argv[i], strlen( argv[i] ) );
 
-    memset( IV,     0, sizeof( IV ) );
-    memset( key,    0, sizeof( key ) );
-    memset( tmp,    0, sizeof( tmp ) );
-    memset( buffer, 0, sizeof( buffer ) );
-    memset( digest, 0, sizeof( digest ) );
+    mbedtls_zeroize( IV,     sizeof( IV ) );
+    mbedtls_zeroize( key,    sizeof( key ) );
+    mbedtls_zeroize( tmp,    sizeof( tmp ) );
+    mbedtls_zeroize( buffer, sizeof( buffer ) );
+    mbedtls_zeroize( digest, sizeof( digest ) );
 
     mbedtls_aes_free( &aes_ctx );
     mbedtls_md_free( &sha_ctx );

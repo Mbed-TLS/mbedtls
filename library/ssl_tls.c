@@ -3235,6 +3235,7 @@ static int ssl_reassemble_dtls_handshake( mbedtls_ssl_context *ssl )
 
     memcpy( ssl->in_msg, ssl->handshake->hs_msg, ssl->in_hslen );
 
+    mbedtls_zeroize( ssl->handshake->hs_msg, ssl->in_hslen );
     mbedtls_free( ssl->handshake->hs_msg );
     ssl->handshake->hs_msg = NULL;
 

@@ -643,6 +643,10 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     const mbedtls_cipher_info_t *cipher_info;
     const mbedtls_md_info_t *md_info;
 
+    /* cf. RFC 5246, Section 8.1:
+     * "The master secret is always exactly 48 bytes in length." */
+    size_t const master_secret_len = 48;
+
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     unsigned char session_hash[48];
 #endif /* MBEDTLS_SSL_EXTENDED_MASTER_SECRET */
@@ -807,14 +811,15 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
                                          salt, salt_len,
                                          (unsigned char const *) lbl,
                                          (size_t) strlen( lbl ),
-                                         48 );
+                                         master_secret_len );
             if( status != PSA_SUCCESS )
             {
                 psa_generator_abort( &generator );
                 return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
             }
 
-            status = psa_generator_read( &generator, session->master, 48 );
+            status = psa_generator_read( &generator, session->master,
+                                         master_secret_len );
             if( status != PSA_SUCCESS )
             {
                 psa_generator_abort( &generator );
@@ -830,7 +835,8 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         {
             ret = handshake->tls_prf( handshake->premaster, handshake->pmslen,
                                       lbl, salt, salt_len,
-                                      session->master, 48 );
+                                      session->master,
+                                      master_secret_len );
             if( ret != 0 )
             {
                 MBEDTLS_SSL_DEBUG_RET( 1, "prf", ret );

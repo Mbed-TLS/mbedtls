@@ -185,7 +185,7 @@ class MbedTlsTest(BaseHostTest):
         binary_path = self.get_config_item('image_path')
         script_dir = os.path.split(os.path.abspath(__file__))[0]
         suite_name = os.path.splitext(os.path.basename(binary_path))[0]
-        data_file = ".".join((suite_name, 'data'))
+        data_file = ".".join((suite_name, 'datax'))
         data_file = os.path.join(script_dir, '..', 'mbedtls',
                                  suite_name, data_file)
         if os.path.exists(data_file):

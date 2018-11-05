@@ -117,7 +117,7 @@ int mbedtls_platform_entropy_poll( void *data,
         return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
     /* Fall through if the system call isn't known. */
 #else
-    ((void) ret;
+    ((void) ret);
 #endif /* HAVE_GETRANDOM */
 
     *olen = 0;

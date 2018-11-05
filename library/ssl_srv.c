@@ -3869,7 +3869,7 @@ static int ssl_parse_client_key_exchange( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         /* For opaque PSKs, we perform the PSK-to-MS derivation atomatically
          * and skip the intermediate PMS. */
-        if( ssl_use_opaque_psk( ssl ) )
+        if( ssl_use_opaque_psk( ssl ) == 1 )
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "skip PMS generation for opaque PSK" ) );
         else
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

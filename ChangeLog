@@ -44,6 +44,9 @@ Bugfix
      after use.
    * Use `mbedtls_platform_zeroize()` instead of `memset()` for zeroization
      of sensitive data in the example programs aescrypt2 and crypt_and_hash.
+   * Add explicit integer to enumeration type casts to example program
+     programs/pkey/gen_key which previously led to compilation failure
+     on some toolchains. Reported by phoenixmcallister. Fixes #2170.
 
 Changes
    * Removed support for Yotta as a build tool.

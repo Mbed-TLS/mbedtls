@@ -93,6 +93,9 @@ OPENSSL_CMD="$OPENSSL_LEGACY"                                       \
     GNUTLS_SERV="$GNUTLS_LEGACY_SERV"                               \
     sh compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR' | \
     tee -a compat-test-$TEST_OUTPUT
+OPENSSL_CMD="$OPENSSL_NEXT"                     \
+    sh compat.sh -e '^$' -f 'ARIA\|CHACHA' |    \
+    tee -a compat-test-$TEST_OUTPUT
 echo
 
 # Step 3 - Process the coverage report

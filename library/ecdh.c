@@ -191,7 +191,7 @@ int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
 {
     int ret;
     size_t grp_len, pt_len;
-#if !defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     mbedtls_ecp_restart_ctx *rs_ctx = NULL;
 #endif
 
@@ -204,15 +204,15 @@ int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
 #endif
 
 
-#if defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
-    if( ( ret = mbedtls_ecdh_gen_public( &ctx->grp, &ctx->d, &ctx->Q,
-                                         f_rng, p_rng ) ) != 0 )
-        return( ret );
-#else
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( ( ret = ecdh_gen_public_restartable( &ctx->grp, &ctx->d, &ctx->Q,
                                              f_rng, p_rng, rs_ctx ) ) != 0 )
         return( ret );
-#endif /* !MBEDTLS_ECDH_GEN_PUBLIC_ALT */
+#else
+    if( ( ret = mbedtls_ecdh_gen_public( &ctx->grp, &ctx->d, &ctx->Q,
+                                         f_rng, p_rng ) ) != 0 )
+        return( ret );
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
     if( ( ret = mbedtls_ecp_tls_write_group( &ctx->grp, &grp_len, buf, blen ) )
                 != 0 )
@@ -286,7 +286,7 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
                       void *p_rng )
 {
     int ret;
-#if !defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     mbedtls_ecp_restart_ctx *rs_ctx = NULL;
 #endif
 
@@ -298,15 +298,15 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
         rs_ctx = &ctx->rs;
 #endif
 
-#if defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
-    if( ( ret = mbedtls_ecdh_gen_public( &ctx->grp, &ctx->d, &ctx->Q,
-                                         f_rng, p_rng ) ) != 0 )
-        return( ret );
-#else
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( ( ret = ecdh_gen_public_restartable( &ctx->grp, &ctx->d, &ctx->Q,
                     f_rng, p_rng, rs_ctx ) ) != 0 )
         return( ret );
-#endif /* MBEDTLS_ECDH_GEN_PUBLIC_ALT */
+#else
+    if( ( ret = mbedtls_ecdh_gen_public( &ctx->grp, &ctx->d, &ctx->Q,
+                                         f_rng, p_rng ) ) != 0 )
+        return( ret );
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
     return mbedtls_ecp_tls_write_point( &ctx->grp, &ctx->Q, ctx->point_format,
                                 olen, buf, blen );
@@ -342,7 +342,7 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
                       void *p_rng )
 {
     int ret;
-#if !defined(MBEDTLS_ECDH_COMPUTE_SHARED_ALT)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     mbedtls_ecp_restart_ctx *rs_ctx = NULL;
 #endif
 
@@ -354,19 +354,19 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
         rs_ctx = &ctx->rs;
 #endif
 
-#if defined(MBEDTLS_ECDH_COMPUTE_SHARED_ALT)
-    if( ( ret = mbedtls_ecdh_compute_shared( &ctx->grp, &ctx->z, &ctx->Qp,
-                                             &ctx->d, f_rng, p_rng ) ) != 0 )
-    {
-        return( ret );
-    }
-#else
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( ( ret = ecdh_compute_shared_restartable( &ctx->grp,
                     &ctx->z, &ctx->Qp, &ctx->d, f_rng, p_rng, rs_ctx ) ) != 0 )
     {
         return( ret );
     }
-#endif /* MBEDTLS_ECDH_COMPUTE_SHARED_ALT */
+#else
+    if( ( ret = mbedtls_ecdh_compute_shared( &ctx->grp, &ctx->z, &ctx->Qp,
+                                             &ctx->d, f_rng, p_rng ) ) != 0 )
+    {
+        return( ret );
+    }
+#endif /* MBEDTLS_ECP_RESTARTABLE */
 
     if( mbedtls_mpi_size( &ctx->z ) > blen )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );

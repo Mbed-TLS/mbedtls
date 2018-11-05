@@ -191,14 +191,14 @@ int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
 {
     int ret;
     size_t grp_len, pt_len;
-#if !defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     mbedtls_ecp_restart_ctx *rs_ctx = NULL;
 #endif
 
     if( ctx == NULL || ctx->grp.pbits == 0 )
         return( MBEDTLS_ERR_ECP_BAD_INPUT_DATA );
 
-#if defined(MBEDTLS_ECP_RESTARTABLE) && !defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
+#if defined(MBEDTLS_ECP_RESTARTABLE)
     if( ctx->restart_enabled )
         rs_ctx = &ctx->rs;
 #endif

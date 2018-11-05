@@ -695,8 +695,9 @@
  *
  * Uncomment this macro to enable restartable ECC computations.
  *
- * \note  MBEDTLS_ECP_RESTARTABLE cannot be defined if there is an alternative
- *        implementation for one of the ECP, ECDSA or ECDH functions. *
+ * \note  This option only works with the default software implementation of
+ *        elliptic curve functionality. It is incompatible with
+ *        MBEDTLS_ECP_ALT, MBEDTLS_ECDH_xxx_ALT and MBEDTLS_ECDSA_xxx_ALT.
  */
 //#define MBEDTLS_ECP_RESTARTABLE
 

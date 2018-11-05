@@ -638,7 +638,7 @@ int mbedtls_ecdsa_write_signature_restartable( mbedtls_ecdsa_context *ctx,
     MBEDTLS_MPI_CHK( ecdsa_sign_restartable( &ctx->grp, &r, &s, &ctx->d,
                          hash, hlen, f_rng, p_rng, rs_ctx ) );
 #endif /* MBEDTLS_ECDSA_SIGN_ALT */
-#endif
+#endif /* MBEDTLS_ECDSA_DETERMINISTIC */
 
     MBEDTLS_MPI_CHK( ecdsa_signature_to_asn1( &r, &s, sig, slen ) );
 
@@ -662,7 +662,7 @@ int mbedtls_ecdsa_write_signature( mbedtls_ecdsa_context *ctx, mbedtls_md_type_t
                 ctx, md_alg, hash, hlen, sig, slen, f_rng, p_rng, NULL ) );
 }
 
-#if ! defined(MBEDTLS_DEPRECATED_REMOVED) && \
+#if !defined(MBEDTLS_DEPRECATED_REMOVED) && \
     defined(MBEDTLS_ECDSA_DETERMINISTIC)
 int mbedtls_ecdsa_write_signature_det( mbedtls_ecdsa_context *ctx,
                                const unsigned char *hash, size_t hlen,

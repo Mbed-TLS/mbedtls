@@ -694,6 +694,9 @@
  * for too long on ECC (and, hence, X.509 or SSL/TLS) operations.
  *
  * Uncomment this macro to enable restartable ECC computations.
+ *
+ * \note  MBEDTLS_ECP_RESTARTABLE cannot be defined if there is an alternative
+ *        implementation for one of the ECP, ECDSA or ECDH functions. *
  */
 //#define MBEDTLS_ECP_RESTARTABLE
 

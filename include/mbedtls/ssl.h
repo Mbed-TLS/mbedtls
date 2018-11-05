@@ -2128,10 +2128,10 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
  * \param conf     The SSL configuration to register the PSK with.
  * \param psk      The identifier of the key slot holding the PSK.
  *                 Until \p conf is destroyed or this function is successfully
- *                 again, the key slot \p psk must be populated with a key of
- *                 type #PSA_ALG_CATEGORY_KEY_DERIVATION whose policy allows
- *                 its use for the key derivation algorithm applied in the
- *                 handshake.
+ *                 called again, the key slot \p psk must be populated with a
+ *                 key of type #PSA_ALG_CATEGORY_KEY_DERIVATION whose policy
+ *                 allows its use for the key derivation algorithm applied
+ *                 in the handshake.
  * \param psk_identity      The pointer to the pre-shared key identity.
  * \param psk_identity_len  The length of the pre-shared key identity
  *                          in bytes.

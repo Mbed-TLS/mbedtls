@@ -7426,7 +7426,11 @@ static void ssl_conf_remove_psk( mbedtls_ssl_config *conf )
          * user's responsibility. */
         conf->psk_opaque = 0;
     }
-    else
+    /* This and the following branch should never
+     * be taken simultaenously as we maintain the
+     * invariant that raw and opaque PSKs are never
+     * configured simultaneously. As a safeguard,
+     * though, `else` is omitted here. */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     if( conf->psk != NULL )
     {

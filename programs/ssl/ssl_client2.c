@@ -1582,7 +1582,7 @@ int main( int argc, char *argv[] )
 
         if( ( ret = mbedtls_ssl_conf_psk_opaque( &conf, slot,
                                   (const unsigned char *) opt.psk_identity,
-                                                 strlen( opt.psk_identity ) ) ) != 0 )
+                                  strlen( opt.psk_identity ) ) ) != 0 )
         {
             mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_psk_opaque returned %d\n\n",
                             ret );

@@ -815,16 +815,30 @@ struct _psk_entry
 /*
  * Free a list of psk_entry's
  */
-void psk_free( psk_entry *head )
+int psk_free( psk_entry *head )
 {
     psk_entry *next;
 
     while( head != NULL )
     {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+        psa_status_t status;
+        psa_key_slot_t const slot = head->slot;
+
+        if( slot != 0 )
+        {
+            status = psa_destroy_key( slot );
+            if( status != PSA_SUCCESS )
+                return( status );
+        }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
         next = head->next;
         mbedtls_free( head );
         head = next;
     }
+
+    return( 0 );
 }
 
 /*
@@ -3332,11 +3346,30 @@ exit:
     sni_free( sni_info );
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
-    psk_free( psk_info );
+    if( ( ret = psk_free( psk_info ) ) != 0 )
+        mbedtls_printf( "Failed to list of opaque PSKs - error was %d\n", ret );
 #endif
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_FS_IO)
     mbedtls_dhm_free( &dhm );
 #endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED) && \
+    defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( opt.psk_slot != 0 )
+    {
+        /* This is ok even if the slot hasn't been
+         * initialized (we might have jumed here
+         * immediately because of bad cmd line params,
+         * for example). */
+        status = psa_destroy_key( opt.psk_slot );
+        if( status != PSA_SUCCESS )
+        {
+            mbedtls_printf( "Failed to destroy key slot %u - error was %d",
+                            (unsigned) opt.psk_slot, (int) status );
+        }
+    }
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED &&
+          MBEDTLS_USE_PSA_CRYPTO */
 
     mbedtls_ssl_free( &ssl );
     mbedtls_ssl_config_free( &conf );

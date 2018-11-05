@@ -860,13 +860,13 @@ void mbedtls_mpi_is_prime_det( char *input_X, char *witnesses,
     mbedtls_mpi X;
     int res;
     mbedtls_test_mpi_random rand;
-    uint8_t witness_buf[1000];
-    uint8_t input_buf[1000];
+    uint8_t *witness_buf = NULL;
+    uint8_t *input_buf = NULL;
     size_t witness_len;
     size_t input_len;
 
-    witness_len = unhexify( witness_buf, witnesses );
-    input_len = unhexify( input_buf, input_X );
+    witness_buf = unhexify_alloc( witnesses, &witness_len );
+    input_buf = unhexify_alloc( input_X, &input_len );
 
     mbedtls_mpi_init( &X );
     rand.data = witness_buf;
@@ -881,6 +881,8 @@ void mbedtls_mpi_is_prime_det( char *input_X, char *witnesses,
 
 exit:
     mbedtls_mpi_free( &X );
+    mbedtls_free( witness_buf );
+    mbedtls_free( input_buf );
 }
 /* END_CASE */
 

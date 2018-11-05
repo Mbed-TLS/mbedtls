@@ -191,7 +191,7 @@ int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
 {
     int ret;
     size_t grp_len, pt_len;
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if !defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
     mbedtls_ecp_restart_ctx *rs_ctx = NULL;
 #endif
 
@@ -286,7 +286,7 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
                       void *p_rng )
 {
     int ret;
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if !defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT)
     mbedtls_ecp_restart_ctx *rs_ctx = NULL;
 #endif
 
@@ -342,7 +342,7 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
                       void *p_rng )
 {
     int ret;
-#if defined(MBEDTLS_ECP_RESTARTABLE)
+#if !defined(MBEDTLS_ECDH_COMPUTE_SHARED_ALT)
     mbedtls_ecp_restart_ctx *rs_ctx = NULL;
 #endif
 

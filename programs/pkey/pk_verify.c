@@ -33,6 +33,7 @@
 #define mbedtls_snprintf        snprintf
 #define mbedtls_printf          printf
 #define mbedtls_exit            exit
+#define mbedtls_fprintf         fprintf
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -85,7 +86,8 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_platform_setup returned %d\n", -ret );
+        mbedtls_fprintf(
+            stderr, "platform_setup returned -0x%04x\n", -ret );
         return( 1 );
     }
 #endif
@@ -161,7 +163,7 @@ exit:
     if( exit_code != MBEDTLS_EXIT_SUCCESS && ret != 0 )
     {
         mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
-        mbedtls_printf( "  !  Last error was: %s\n", buf );
+        mbedtls_fprintf( stderr, "  !  Last error was: %s\n", buf );
     }
 #endif
 

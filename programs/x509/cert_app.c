@@ -182,7 +182,8 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned -0x%x\n\n", -ret );
+        mbedtls_fprintf(
+            stderr, "mbedtls_platform_setup returned -0x%x\n\n", -ret );
         return( 1 );
     }
 #endif
@@ -280,7 +281,7 @@ int main( int argc, char *argv[] )
     {
         if( ( ret = mbedtls_x509_crt_parse_path( &cacert, opt.ca_path ) ) < 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse_path returned -0x%x\n\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse_path returned -0x%x\n\n", -ret );
             goto exit;
         }
 
@@ -290,7 +291,7 @@ int main( int argc, char *argv[] )
     {
         if( ( ret = mbedtls_x509_crt_parse_file( &cacert, opt.ca_file ) ) < 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse_file returned -0x%x\n\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse_file returned -0x%x\n\n", -ret );
             goto exit;
         }
 
@@ -304,7 +305,7 @@ int main( int argc, char *argv[] )
     {
         if( ( ret = mbedtls_x509_crl_parse_file( &cacrl, opt.crl_file ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_x509_crl_parse returned -0x%x\n\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_x509_crl_parse returned -0x%x\n\n", -ret );
             goto exit;
         }
 
@@ -328,14 +329,14 @@ int main( int argc, char *argv[] )
 
         if( ret < 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse_file returned -0x%x\n\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse_file returned -0x%x\n\n", -ret );
             mbedtls_x509_crt_free( &crt );
             goto exit;
         }
 
         if( opt.permissive == 0 && ret > 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse failed to parse %d certificates\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse failed to parse %d certificates\n\n", ret );
             mbedtls_x509_crt_free( &crt );
             goto exit;
         }
@@ -352,7 +353,7 @@ int main( int argc, char *argv[] )
                                  cur );
             if( ret == -1 )
             {
-                mbedtls_printf( " failed\n  !  mbedtls_x509_crt_info returned -0x%x\n\n", -ret );
+                mbedtls_printf( " failed\n  ! mbedtls_x509_crt_info returned -0x%x\n\n", -ret );
                 mbedtls_x509_crt_free( &crt );
                 goto exit;
             }
@@ -483,7 +484,7 @@ int main( int argc, char *argv[] )
                              ssl.session->peer_cert );
         if( ret == -1 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_info returned -0x%x\n\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_x509_crt_info returned -0x%x\n\n", -ret );
             goto ssl_exit;
         }
 

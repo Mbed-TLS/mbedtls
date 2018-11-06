@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #define mbedtls_printf          printf
 #define mbedtls_exit            exit
+#define mbedtls_fprintf         fprintf
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -115,7 +116,8 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n", -ret );
+        mbedtls_fprintf(
+            stderr, "platform_setup returned -0x%04x\n", -ret );
         return( 1 );
     }
 #endif
@@ -172,7 +174,8 @@ int main( int argc, char *argv[] )
     {
         if( strlen( opt.password ) && strlen( opt.password_file ) )
         {
-            mbedtls_printf( "Error: cannot have both password and password_file\n" );
+            mbedtls_fprintf( stderr,
+                "Error: cannot have both password and password_file\n" );
             goto usage;
         }
 
@@ -183,7 +186,7 @@ int main( int argc, char *argv[] )
             mbedtls_printf( "\n  . Loading the password file ..." );
             if( ( f = fopen( opt.password_file, "rb" ) ) == NULL )
             {
-                mbedtls_printf( " failed\n  !  fopen returned NULL\n" );
+                mbedtls_printf( " failed\n  ! fopen returned NULL\n" );
                 goto cleanup;
             }
             if( fgets( buf, sizeof(buf), f ) == NULL )
@@ -210,7 +213,7 @@ int main( int argc, char *argv[] )
 
         if( ret != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%04x\n", -ret );
+            mbedtls_printf( " failed\n  ! mbedtls_pk_parse_keyfile returned -0x%04x\n", -ret );
             goto cleanup;
         }
 
@@ -255,7 +258,8 @@ int main( int argc, char *argv[] )
         else
 #endif
         {
-            mbedtls_printf("Do not know how to print key information for this type\n" );
+            mbedtls_fprintf( stderr,
+                "Do not know how to print key information for this type\n" );
             goto cleanup;
         }
     }
@@ -271,7 +275,9 @@ int main( int argc, char *argv[] )
 
         if( ret != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_public_keyfile returned -0x%04x\n", -ret );
+            mbedtls_printf(
+                " failed\n  ! mbedtls_pk_parse_public_keyfile returned -0x%04x\n",
+                -ret );
             goto cleanup;
         }
 

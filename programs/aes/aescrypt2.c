@@ -129,7 +129,8 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( "  ! mbedtls_platform_setup() returned -0x%04x\n", -ret );
+        mbedtls_fprintf(
+            stderr, "mbedtls_platform_setup() returned -0x%04x\n", -ret );
         return( 1 );
     }
 #endif
@@ -140,7 +141,8 @@ int main( int argc, char *argv[] )
     ret = mbedtls_md_setup( &sha_ctx, mbedtls_md_info_from_type( MBEDTLS_MD_SHA256 ), 1 );
     if( ret != 0 )
     {
-        mbedtls_printf( "  ! mbedtls_md_setup() returned -0x%04x\n", -ret );
+        mbedtls_fprintf(
+            stderr, "mbedtls_md_setup() returned -0x%04x\n", -ret );
         goto exit;
     }
 

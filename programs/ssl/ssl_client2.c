@@ -621,7 +621,8 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned -0x%x\n\n", -ret );
+        mbedtls_fprintf(
+            stderr,"platform_setup returned -0x%x\n\n", -ret );
         return( 1 );
     }
 #endif
@@ -1098,7 +1099,7 @@ int main( int argc, char *argv[] )
 
         if( strlen( opt.psk ) % 2 != 0 )
         {
-            mbedtls_printf( "pre-shared key not valid hex\n" );
+            mbedtls_fprintf( stderr, "pre-shared key not valid hex\n" );
             goto exit;
         }
 
@@ -1115,7 +1116,7 @@ int main( int argc, char *argv[] )
                 c -= 'A' - 10;
             else
             {
-                mbedtls_printf( "pre-shared key not valid hex\n" );
+                mbedtls_fprintf( stderr, "pre-shared key not valid hex\n" );
                 goto exit;
             }
             psk[ j / 2 ] = c << 4;
@@ -1129,7 +1130,7 @@ int main( int argc, char *argv[] )
                 c -= 'A' - 10;
             else
             {
-                mbedtls_printf( "pre-shared key not valid hex\n" );
+                mbedtls_fprintf( stderr, "pre-shared key not valid hex\n" );
                 goto exit;
             }
             psk[ j / 2 ] |= c;
@@ -1261,15 +1262,15 @@ int main( int argc, char *argv[] )
                 }
                 else
                 {
-                    mbedtls_printf( "unknown curve %s\n", q );
-                    mbedtls_printf( "supported curves: " );
+                    mbedtls_fprintf( stderr, "unknown curve %s\n", q );
+                    mbedtls_fprintf( stderr, "supported curves: " );
                     for( curve_cur = mbedtls_ecp_curve_list();
                          curve_cur->grp_id != MBEDTLS_ECP_DP_NONE;
                          curve_cur++ )
                     {
-                        mbedtls_printf( "%s ", curve_cur->name );
+                        mbedtls_fprintf( stderr, "%s ", curve_cur->name );
                     }
-                    mbedtls_printf( "\n" );
+                    mbedtls_fprintf( stderr, "\n" );
                     goto exit;
                 }
             }
@@ -1278,7 +1279,7 @@ int main( int argc, char *argv[] )
 
             if( i == CURVE_LIST_SIZE - 1 && *p != '\0' )
             {
-                mbedtls_printf( "curves list too long, maximum %d",
+                mbedtls_fprintf( stderr, "curves list too long, maximum %d",
                                 CURVE_LIST_SIZE - 1 );
                 goto exit;
             }
@@ -1358,12 +1359,12 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        mbedtls_printf( "MBEDTLS_CERTS_C not defined." );
+        mbedtls_fprintf( stderr, "MBEDTLS_CERTS_C not defined." );
     }
 #endif
     if( ret < 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n",
+        mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse returned -0x%x\n\n",
                         -ret );
         goto exit;
     }
@@ -1393,12 +1394,12 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        mbedtls_printf("MBEDTLS_CERTS_C not defined.");
+        mbedtls_fprintf( stderr, "MBEDTLS_CERTS_C not defined." );
     }
 #endif
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n",
+        mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse returned -0x%x\n\n",
                         -ret );
         goto exit;
     }
@@ -1418,12 +1419,12 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        mbedtls_printf("MBEDTLS_CERTS_C not defined.");
+        mbedtls_fprintf( stderr, "MBEDTLS_CERTS_C not defined." );
     }
 #endif
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_pk_parse_key returned -0x%x\n\n",
+        mbedtls_printf( " failed\n  ! mbedtls_pk_parse_key returned -0x%x\n\n",
                         -ret );
         goto exit;
     }
@@ -2277,7 +2278,8 @@ exit:
     {
         char error_buf[100];
         mbedtls_strerror( ret, error_buf, 100 );
-        mbedtls_printf("Last error was: -0x%X - %s\n\n", -ret, error_buf );
+        mbedtls_fprintf(
+            stderr, "Last error was: -0x%X - %s\n\n", -ret, error_buf );
     }
 #endif
 

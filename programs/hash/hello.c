@@ -32,6 +32,7 @@
 #include <stdio.h>
 #define mbedtls_printf       printf
 #define mbedtls_exit         exit
+#define mbedtls_fprintf      fprintf
 #define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
@@ -70,7 +71,8 @@ int main( void )
     mbedtls_platform_context platform_ctx;
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", -ret );
+        mbedtls_fprintf(
+            stderr, "platform_setup returned %d\n\n", -ret );
         return( MBEDTLS_EXIT_FAILURE );
     }
 #endif

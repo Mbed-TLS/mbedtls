@@ -33,6 +33,7 @@
 #define mbedtls_snprintf        snprintf
 #define mbedtls_printf          printf
 #define mbedtls_exit            exit
+#define mbedtls_fprintf         fprintf
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -108,7 +109,8 @@ int main( void )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
+        mbedtls_fprintf(
+            stderr, "mbedtls_platform_setup returned %d\n\n", ret );
         return( 1 );
     }
 #endif
@@ -129,7 +131,7 @@ int main( void )
     ret = mbedtls_x509_crt_parse_file( &cacert, "ssl/test-ca/test-ca.crt" );
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse_file returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse_file returned %d\n\n", ret );
         goto exit;
     }
 
@@ -147,7 +149,7 @@ int main( void )
     ret = mbedtls_x509_crl_parse_file( &crl, "ssl/test-ca/crl.pem" );
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_x509_crl_parse_file returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_x509_crl_parse_file returned %d\n\n", ret );
         goto exit;
     }
 
@@ -177,7 +179,7 @@ int main( void )
         ret = mbedtls_x509_crt_parse_file( &clicert, name );
         if( ret != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse_file returned %d\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse_file returned %d\n\n", ret );
             goto exit;
         }
 
@@ -203,7 +205,7 @@ int main( void )
              }
              else
              {
-                mbedtls_printf( " failed\n  !  mbedtls_x509_crt_verify returned %d\n\n", ret );
+                mbedtls_printf( " failed\n  ! mbedtls_x509_crt_verify returned %d\n\n", ret );
                 goto exit;
             }
         }
@@ -221,7 +223,7 @@ int main( void )
         ret = mbedtls_pk_parse_keyfile( &pk, name, NULL );
         if( ret != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned %d\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_pk_parse_keyfile returned %d\n\n", ret );
             goto exit;
         }
 
@@ -237,28 +239,28 @@ int main( void )
         /* EC NOT IMPLEMENTED YET */
         if( ! mbedtls_pk_can_do( &clicert.pk, MBEDTLS_PK_RSA ) )
         {
-            mbedtls_printf( " failed\n  !  certificate's key is not RSA\n\n" );
+            mbedtls_printf( " failed\n  ! certificate's key is not RSA\n\n" );
             goto exit;
         }
 
         ret = mbedtls_mpi_cmp_mpi(&mbedtls_pk_rsa( pk )->N, &mbedtls_pk_rsa( clicert.pk )->N);
         if( ret != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_mpi_cmp_mpi for N returned %d\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_mpi_cmp_mpi for N returned %d\n\n", ret );
             goto exit;
         }
 
         ret = mbedtls_mpi_cmp_mpi(&mbedtls_pk_rsa( pk )->E, &mbedtls_pk_rsa( clicert.pk )->E);
         if( ret != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_mpi_cmp_mpi for E returned %d\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_mpi_cmp_mpi for E returned %d\n\n", ret );
             goto exit;
         }
 
         ret = mbedtls_rsa_check_privkey( mbedtls_pk_rsa( pk ) );
         if( ret != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_rsa_check_privkey returned %d\n\n", ret );
+            mbedtls_printf( " failed\n  ! mbedtls_rsa_check_privkey returned %d\n\n", ret );
             goto exit;
         }
 

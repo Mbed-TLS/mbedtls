@@ -87,7 +87,7 @@ typedef enum {
     MBEDTLS_PK_ECDSA,
     MBEDTLS_PK_RSA_ALT,
     MBEDTLS_PK_RSASSA_PSS,
-    MBEDTLS_PK_OPAQUE_PSA,
+    MBEDTLS_PK_OPAQUE,
 } mbedtls_pk_type_t;
 
 /**
@@ -210,7 +210,7 @@ void mbedtls_pk_init( mbedtls_pk_context *ctx );
  * \brief           Free a mbedtls_pk_context
  *
  * \note            For contexts that have been set up with
- *                  mbedtls_pk_setup_psa(), this does not free the underlying
+ *                  mbedtls_pk_setup_opaque(), this does not free the underlying
  *                  key slot and you still need to call psa_destroy_key()
  *                  independently if you want to destroy that key.
  */
@@ -271,7 +271,7 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
  * \note            This function is currently only available for ECC keypair.
  *                  Support for other key types will be added later.
  */
-int mbedtls_pk_setup_psa( mbedtls_pk_context *ctx, const psa_key_slot_t key );
+int mbedtls_pk_setup_opaque( mbedtls_pk_context *ctx, const psa_key_slot_t key );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_PK_RSA_ALT_SUPPORT)

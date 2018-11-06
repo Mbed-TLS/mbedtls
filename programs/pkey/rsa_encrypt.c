@@ -75,6 +75,15 @@ int main( int argc, char *argv[] )
     const char *pers = "rsa_encrypt";
     mbedtls_mpi N, E;
 
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_platform_setup returned %d\n",
+                        ret );
+        return( MBEDTLS_EXIT_FAILURE );
+    }
+#endif
+
     if( argc != 2 )
     {
         mbedtls_printf( "usage: rsa_encrypt <string of max 100 characters>\n" );
@@ -87,14 +96,6 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-#if defined(MBEDTLS_PLATFORM_C)
-    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_platform_setup returned %d\n",
-                        ret );
-        return( MBEDTLS_EXIT_FAILURE );
-    }
-#endif
     mbedtls_mpi_init( &N ); mbedtls_mpi_init( &E );
     mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
     mbedtls_ctr_drbg_init( &ctr_drbg );

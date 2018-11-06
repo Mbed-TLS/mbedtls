@@ -184,7 +184,6 @@ int main( void )
     mbedtls_ctr_drbg_context ctr_drbg;
     mbedtls_ssl_context ssl;
     mbedtls_ssl_config conf;
-    mbedtls_ctr_drbg_init( &ctr_drbg );
 
     /*
      * 0. Initialize and setup stuff
@@ -196,6 +195,7 @@ int main( void )
         return( 1 );
     }
 #endif
+    mbedtls_ctr_drbg_init( &ctr_drbg );
     mbedtls_net_init( &server_fd );
     mbedtls_ssl_init( &ssl );
     mbedtls_ssl_config_init( &conf );

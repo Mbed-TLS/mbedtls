@@ -65,7 +65,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
-        mbedtls_printf( "Failed to initialize platform.\n" );
+        mbedtls_fprintf( stderr, "Failed to initialize platform.\n" );
         return( 1 );
     }
 #endif
@@ -78,7 +78,8 @@ int main( int argc, char *argv[] )
 
     if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
     {
-        mbedtls_printf( "failed to open '%s' for writing.\n", argv[1] );
+        mbedtls_fprintf(
+            stderr, "failed to open '%s' for writing.\n", argv[1] );
         return( 1 );
     }
 
@@ -90,8 +91,7 @@ int main( int argc, char *argv[] )
     {
         if( ( ret = mbedtls_havege_random( &hs, buf, sizeof( buf ) ) ) != 0 )
         {
-            mbedtls_printf( " failed\n  !  mbedtls_havege_random returned -0x%04X",
-                            -ret );
+            mbedtls_fprintf( "havege_random returned -0x%04X", -ret );
             goto exit;
         }
 

@@ -48,7 +48,8 @@
 #include "mbedtls/platform.h"
 #else
 #include <stdio.h>
-#define mbedtls_printf printf
+#define mbedtls_printf  printf
+#define mbedtls_fprintf fprintf
 #endif
 
 int main( void )
@@ -191,7 +192,7 @@ int main( void )
 #if defined(MBEDTLS_PLATFORM_C)
     if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
-        mbedtls_printf( "Failed initializing platform.\n" );
+        mbedtls_fprintf( stderr, "Failed initializing platform.\n" );
         return( 1 );
     }
 #endif

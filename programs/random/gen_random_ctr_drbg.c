@@ -67,7 +67,8 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
+        mbedtls_fprintf(
+            stderr, "mbedtls_platform_setup returned %d\n\n", ret );
         return( 1 );
     }
 #endif
@@ -85,7 +86,8 @@ int main( int argc, char *argv[] )
 
     if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
     {
-        mbedtls_printf( "failed to open '%s' for writing.\n", argv[1] );
+        mbedtls_fprintf(
+            stderr, "failed to open '%s' for writing.\n", argv[1] );
         mbedtls_ctr_drbg_free( &ctr_drbg );
 #if defined(MBEDTLS_PLATFORM_C)
         mbedtls_platform_teardown( &platform_ctx );
@@ -97,7 +99,7 @@ int main( int argc, char *argv[] )
     ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *) "RANDOM_GEN", 10 );
     if( ret != 0 )
     {
-        mbedtls_printf( "failed in mbedtls_ctr_drbg_seed: %d\n", ret );
+        mbedtls_fprintf( stderr, "failed in mbedtls_ctr_drbg_seed: %d\n", ret );
         goto cleanup;
     }
     mbedtls_ctr_drbg_set_prediction_resistance( &ctr_drbg, MBEDTLS_CTR_DRBG_PR_OFF );
@@ -107,17 +109,19 @@ int main( int argc, char *argv[] )
 
     if( ret == MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR )
     {
-        mbedtls_printf( "Failed to open seedfile. Generating one.\n" );
+        mbedtls_fprintf( stderr, "Failed to open seedfile. Generating one.\n" );
         ret = mbedtls_ctr_drbg_write_seed_file( &ctr_drbg, "seedfile" );
         if( ret != 0 )
         {
-            mbedtls_printf( "failed in mbedtls_ctr_drbg_write_seed_file: %d\n", ret );
+            mbedtls_fprintf( stderr,
+                "failed in mbedtls_ctr_drbg_write_seed_file: %d\n", ret );
             goto cleanup;
         }
     }
     else if( ret != 0 )
     {
-        mbedtls_printf( "failed in mbedtls_ctr_drbg_update_seed_file: %d\n", ret );
+        mbedtls_fprintf( stderr,
+            "failed in mbedtls_ctr_drbg_update_seed_file: %d\n", ret );
         goto cleanup;
     }
 #endif
@@ -127,7 +131,7 @@ int main( int argc, char *argv[] )
         ret = mbedtls_ctr_drbg_random( &ctr_drbg, buf, sizeof( buf ) );
         if( ret != 0 )
         {
-            mbedtls_printf("failed!\n");
+            mbedtls_fprintf( stderr, "failed!\n" );
             goto cleanup;
         }
 

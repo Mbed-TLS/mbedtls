@@ -108,7 +108,8 @@ int main( void )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
+        mbedtls_fprintf(
+            stderr, "platform_setup returned %d\n\n", ret );
         return( 1 );
     }
 #endif
@@ -142,7 +143,7 @@ int main( void )
                           mbedtls_test_cas_pem_len );
     if( ret < 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse returned %d\n\n", ret );
         goto exit;
     }
 
@@ -303,7 +304,8 @@ exit:
     {
         char error_buf[100];
         mbedtls_strerror( ret, error_buf, 100 );
-        mbedtls_printf("Last error was: %d - %s\n\n", ret, error_buf );
+        mbedtls_fprintf(
+            stderr, "Last error was: %d - %s\n\n", ret, error_buf );
     }
 #endif
 

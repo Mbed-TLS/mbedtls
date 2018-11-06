@@ -63,7 +63,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
-        mbedtls_printf( "Platform initialization failed!\n" );
+        mbedtls_fprintf( stderr, "Platform initialization failed!\n" );
         return( 1 );
     }
 #endif
@@ -76,7 +76,8 @@ int main( int argc, char *argv[] )
 
     if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
     {
-        mbedtls_printf( "failed to open '%s' for writing.\n", argv[1] );
+        mbedtls_fprintf(
+            stderr, "failed to open '%s' for writing.\n", argv[1] );
         return( 1 );
     }
 
@@ -87,8 +88,8 @@ int main( int argc, char *argv[] )
         ret = mbedtls_entropy_func( &entropy, buf, sizeof( buf ) );
         if( ret != 0 )
         {
-            mbedtls_printf( "  failed\n  !  mbedtls_entropy_func returned -%04X\n",
-                            ret );
+            mbedtls_fprintf( stderr,
+                "  failed\n  ! mbedtls_entropy_func returned -%04X\n", ret );
             goto cleanup;
         }
 

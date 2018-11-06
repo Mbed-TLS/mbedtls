@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define mbedtls_printf          printf
+#define mbedtls_fprintf         fprintf
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -153,7 +154,8 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
+        mbedtls_fprintf(
+            stderr, "mbedtls_platform_setup returned %d\n\n", ret );
         return( 1 );
     }
 #endif
@@ -278,7 +280,7 @@ int main( int argc, char *argv[] )
                                (const unsigned char *) pers,
                                strlen( pers ) ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_ctr_drbg_seed returned %d", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned %d", ret );
         goto exit;
     }
 
@@ -292,7 +294,7 @@ int main( int argc, char *argv[] )
 
     if( ( ret = mbedtls_x509write_csr_set_subject_name( &req, opt.subject_name ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_x509write_csr_set_subject_name returned %d", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_x509write_csr_set_subject_name returned %d", ret );
         goto exit;
     }
 
@@ -308,7 +310,7 @@ int main( int argc, char *argv[] )
 
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned %d", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_pk_parse_keyfile returned %d", ret );
         goto exit;
     }
 
@@ -325,7 +327,7 @@ int main( int argc, char *argv[] )
     if( ( ret = write_certificate_request( &req, opt.output_file,
                                            mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  write_certifcate_request %d", ret );
+        mbedtls_printf( " failed\n  ! write_certifcate_request %d", ret );
         goto exit;
     }
 
@@ -339,7 +341,7 @@ exit:
     {
 #ifdef MBEDTLS_ERROR_C
         mbedtls_strerror( ret, buf, sizeof( buf ) );
-        mbedtls_printf( " - %s\n", buf );
+        mbedtls_fprintf( stderr, " - %s\n", buf );
 #else
         mbedtls_printf("\n");
 #endif

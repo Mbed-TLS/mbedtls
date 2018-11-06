@@ -30,6 +30,7 @@
 #else
 #include <stdio.h>
 #define mbedtls_printf     printf
+#define mbedtls_fprintf    fprintf
 #define mbedtls_snprintf   snprintf
 #define mbedtls_free       free
 #define mbedtls_exit       exit
@@ -250,7 +251,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
-        mbedtls_printf( "Failed initializing platform.\n" );
+        mbedtls_fprintf( stderr, "Failed initializing platform.\n" );
         return( 1 );
     }
 #endif
@@ -313,8 +314,8 @@ int main( int argc, char *argv[] )
                 todo.ecdh = 1;
             else
             {
-                mbedtls_printf( "Unrecognized option: %s\n", argv[i] );
-                mbedtls_printf( "Available options: " OPTIONS );
+                mbedtls_fprintf( stderr, "Unrecognized option: %s\n", argv[i] );
+                mbedtls_fprintf( stderr, "Available options: " OPTIONS );
             }
         }
     }

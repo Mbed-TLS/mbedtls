@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define mbedtls_printf          printf
+#define mbedtls_fprintf         fprintf
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -80,7 +81,8 @@ int main( int argc, char *argv[] )
     mbedtls_platform_context platform_ctx;
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
+        mbedtls_fprintf(
+            stderr, "mbedtls_platform_setup returned %d\n\n", ret );
         return( 1 );
     }
 #endif
@@ -122,7 +124,7 @@ int main( int argc, char *argv[] )
 
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_x509_csr_parse_file returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_x509_csr_parse_file returned %d\n\n", ret );
         mbedtls_x509_csr_free( &csr );
         goto exit;
     }
@@ -136,7 +138,7 @@ int main( int argc, char *argv[] )
     ret = mbedtls_x509_csr_info( (char *) buf, sizeof( buf ) - 1, "      ", &csr );
     if( ret == -1 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_x509_csr_info returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_x509_csr_info returned %d\n\n", ret );
         mbedtls_x509_csr_free( &csr );
         goto exit;
     }

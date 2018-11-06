@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define mbedtls_printf          printf
+#define mbedtls_fprintf         fprintf
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -209,7 +210,8 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned -0x%04x\n", -ret );
+        mbedtls_fprintf(
+            stderr, "platform_setup returned -0x%04x\n", -ret );
         return( 1 );
     }
 #endif
@@ -284,13 +286,15 @@ int main( int argc, char *argv[] )
 
     if( opt.mode == MODE_NONE && opt.output_mode != OUTPUT_MODE_NONE )
     {
-        mbedtls_printf( "\nCannot output a key without reading one.\n");
+        mbedtls_fprintf(
+            stderr, "\nCannot output a key without reading one.\n");
         goto exit;
     }
 
     if( opt.mode == MODE_PUBLIC && opt.output_mode == OUTPUT_MODE_PRIVATE )
     {
-        mbedtls_printf( "\nCannot output a private key from a public key.\n");
+        mbedtls_fprintf(
+            stderr, "\nCannot output a private key from a public key.\n");
         goto exit;
     }
 
@@ -307,7 +311,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile returned -0x%04x - %s\n\n", -ret, buf );
+            mbedtls_printf( " failed\n  ! mbedtls_pk_parse_keyfile returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -352,7 +356,7 @@ int main( int argc, char *argv[] )
         }
         else
 #endif
-            mbedtls_printf("key type not supported yet\n");
+            mbedtls_fprintf( stderr, "key type not supported yet\n" );
 
     }
     else if( opt.mode == MODE_PUBLIC )
@@ -368,7 +372,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_strerror( ret, (char *) buf, sizeof(buf) );
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_public_key returned -0x%04x - %s\n\n", -ret, buf );
+            mbedtls_printf( " failed\n  ! mbedtls_pk_parse_public_key returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
 
@@ -405,7 +409,7 @@ int main( int argc, char *argv[] )
         }
         else
 #endif
-            mbedtls_printf("key type not supported yet\n");
+            mbedtls_fprintf( stderr, "key type not supported yet\n" );
     }
     else
         goto usage;
@@ -427,9 +431,9 @@ exit:
     {
 #ifdef MBEDTLS_ERROR_C
         mbedtls_strerror( ret, buf, sizeof( buf ) );
-        mbedtls_printf( " - %s\n", buf );
+        mbedtls_fprintf( stderr, " - %s\n", buf );
 #else
-        mbedtls_printf("\n");
+        mbedtls_fprintf( stderr, "\n" );
 #endif
     }
 

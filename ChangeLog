@@ -29,17 +29,19 @@ Bugfix
      program programs/x509/cert_write. Fixes #1422.
    * Ignore iv in mbedtls_cipher_set_iv() when the cipher mode is MBEDTLS_MODE_ECB
      Fix for #1091 raised by ezdevelop
-    * Fix failure in hmac_drbg in the benchmark sample application, when
-      MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
-    * Fix a bug in the update function for SSL ticket keys which previously
-      invalidated keys of a lifetime of less than a 1s. Fixes #1968.
-    * Zeroize memory used for reassembling handshake messages after use.
-    * Use `mbedtls_zeroize()` instead of `memset()` for zeroization of
-      sensitive data in the example programs aescrypt2 and crypt_and_hash.
-    * Fix compilation failure for configurations which use compile time
-      replacements of standard calloc/free functions through the macros
-      MBEDTLS_PLATFORM_CALLOC_MACRO and MBEDTLS_PLATFORM_FREE_MACRO.
-      Reported by ole-de and ddhome2006. Fixes #882, #1642 and #1706.
+   * Fix failure in hmac_drbg in the benchmark sample application, when
+     MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
+   * Fix a bug in the update function for SSL ticket keys which previously
+     invalidated keys of a lifetime of less than a 1s. Fixes #1968.
+   * Zeroize memory used for reassembling handshake messages after use.
+   * Use `mbedtls_zeroize()` instead of `memset()` for zeroization of
+     sensitive data in the example programs aescrypt2 and crypt_and_hash.
+   * Fix compilation failure for configurations which use compile time
+     replacements of standard calloc/free functions through the macros
+     MBEDTLS_PLATFORM_CALLOC_MACRO and MBEDTLS_PLATFORM_FREE_MACRO.
+     Reported by ole-de and ddhome2006. Fixes #882, #1642 and #1706.
+   * Fix programs/pkey/dh_server.c so that it actually works with dh_client.c.
+     Found and fixed by Martijn de Milliano.
 
 Changes
    * "make apidoc" now generates the documentation for the current
@@ -531,8 +533,6 @@ Bugfix
      Vranken.
    * Fix a numerical underflow leading to stack overflow in mpi_read_file()
      that was triggered uppon reading an empty line. Found by Guido Vranken.
-   * Fix programs/pkey/dh_server.c so that it actually works with dh_client.c.
-     Found and fixed by Martijn de Milliano.
 
 Changes
    * Clarify ECDSA documentation and improve the sample code to avoid

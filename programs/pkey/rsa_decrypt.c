@@ -92,6 +92,15 @@ int main( int argc, char *argv[] )
 
     memset(result, 0, sizeof( result ) );
 
+#if defined(MBEDTLS_PLATFORM_C)
+    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
+    {
+        mbedtls_printf( " failed\n  ! mbedtls_platofrm_setup returned %d\n",
+                        ret );
+        return( MBEDTLS_EXIT_FAILURE );
+    }
+#endif
+
     if( argc != 1 )
     {
         mbedtls_printf( "usage: rsa_decrypt\n" );
@@ -104,14 +113,6 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Seeding the random number generator..." );
     fflush( stdout );
 
-#if defined(MBEDTLS_PLATFORM_C)
-    if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
-    {
-        mbedtls_printf( " failed\n  ! mbedtls_platofrm_setup returned %d\n",
-                        ret );
-        return( MBEDTLS_EXIT_FAILURE );
-    }
-#endif
     mbedtls_rsa_init( &rsa, MBEDTLS_RSA_PKCS_V15, 0 );
     mbedtls_ctr_drbg_init( &ctr_drbg );
     mbedtls_entropy_init( &entropy );

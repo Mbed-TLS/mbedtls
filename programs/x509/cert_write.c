@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #define mbedtls_printf          printf
 #define mbedtls_exit            exit
+#define mbedtls_fprintf         fprintf
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -253,7 +254,8 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned -0x%04x\n\n", -ret );
+        mbedtls_fprintf(
+            stderr, "mbedtls_platform_setup returned -0x%04x\n\n", -ret );
         return( 1 );
     }
 #endif
@@ -351,7 +353,8 @@ int main( int argc, char *argv[] )
             if( opt.authority_identifier != 0 &&
                 opt.authority_identifier != 1 )
             {
-                mbedtls_printf( "Invalid argument for option %s\n", p );
+                mbedtls_fprintf(
+                    stderr, "Invalid argument for option %s\n", p );
                 goto usage;
             }
         }
@@ -361,7 +364,8 @@ int main( int argc, char *argv[] )
             if( opt.subject_identifier != 0 &&
                 opt.subject_identifier != 1 )
             {
-                mbedtls_printf( "Invalid argument for option %s\n", p );
+                mbedtls_fprintf(
+                    stderr, "Invalid argument for option %s\n", p );
                 goto usage;
             }
         }
@@ -371,7 +375,8 @@ int main( int argc, char *argv[] )
             if( opt.basic_constraints != 0 &&
                 opt.basic_constraints != 1 )
             {
-                mbedtls_printf( "Invalid argument for option %s\n", p );
+                mbedtls_fprintf(
+                    stderr, "Invalid argument for option %s\n", p );
                 goto usage;
             }
         }
@@ -387,7 +392,8 @@ int main( int argc, char *argv[] )
                 opt.md = MBEDTLS_MD_MD5;
             else
             {
-                mbedtls_printf( "Invalid argument for option %s\n", p );
+                mbedtls_fprintf(
+                    stderr, "Invalid argument for option %s\n", p );
                 goto usage;
             }
         }
@@ -396,7 +402,8 @@ int main( int argc, char *argv[] )
             opt.version = atoi( q );
             if( opt.version < 1 || opt.version > 3 )
             {
-                mbedtls_printf( "Invalid argument for option %s\n", p );
+                mbedtls_fprintf(
+                    stderr, "Invalid argument for option %s\n", p );
                 goto usage;
             }
             opt.version--;
@@ -406,7 +413,8 @@ int main( int argc, char *argv[] )
             opt.selfsign = atoi( q );
             if( opt.selfsign < 0 || opt.selfsign > 1 )
             {
-                mbedtls_printf( "Invalid argument for option %s\n", p );
+                mbedtls_fprintf(
+                    stderr, "Invalid argument for option %s\n", p );
                 goto usage;
             }
         }
@@ -415,7 +423,8 @@ int main( int argc, char *argv[] )
             opt.is_ca = atoi( q );
             if( opt.is_ca < 0 || opt.is_ca > 1 )
             {
-                mbedtls_printf( "Invalid argument for option %s\n", p );
+                mbedtls_fprintf(
+                    stderr, "Invalid argument for option %s\n", p );
                 goto usage;
             }
         }
@@ -424,7 +433,8 @@ int main( int argc, char *argv[] )
             opt.max_pathlen = atoi( q );
             if( opt.max_pathlen < -1 || opt.max_pathlen > 127 )
             {
-                mbedtls_printf( "Invalid argument for option %s\n", p );
+                mbedtls_fprintf(
+                    stderr, "Invalid argument for option %s\n", p );
                 goto usage;
             }
         }
@@ -451,7 +461,8 @@ int main( int argc, char *argv[] )
                     opt.key_usage |= MBEDTLS_X509_KU_CRL_SIGN;
                 else
                 {
-                    mbedtls_printf( "Invalid argument for option %s\n", p );
+                    mbedtls_fprintf(
+                        stderr, "Invalid argument for option %s\n", p );
                     goto usage;
                 }
 
@@ -481,7 +492,8 @@ int main( int argc, char *argv[] )
                     opt.ns_cert_type |= MBEDTLS_X509_NS_CERT_TYPE_OBJECT_SIGNING_CA;
                 else
                 {
-                    mbedtls_printf( "Invalid argument for option %s\n", p );
+                    mbedtls_fprintf(
+                        stderr, "Invalid argument for option %s\n", p );
                     goto usage;
                 }
 
@@ -505,7 +517,7 @@ int main( int argc, char *argv[] )
                                strlen( pers ) ) ) != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  mbedtls_ctr_drbg_seed returned -0x%04x - %s\n",
+        mbedtls_printf( " failed\n  ! mbedtls_ctr_drbg_seed returned -0x%04x - %s\n",
                         -ret, buf );
         goto exit;
     }
@@ -520,7 +532,7 @@ int main( int argc, char *argv[] )
     if( ( ret = mbedtls_mpi_read_string( &serial, 10, opt.serial ) ) != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  mbedtls_mpi_read_string "
+        mbedtls_printf( " failed\n  ! mbedtls_mpi_read_string "
                         "returned -0x%04x - %s\n\n", -ret, buf );
         goto exit;
     }
@@ -540,7 +552,7 @@ int main( int argc, char *argv[] )
         if( ( ret = mbedtls_x509_crt_parse_file( &issuer_crt, opt.issuer_crt ) ) != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse_file "
+            mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse_file "
                             "returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
@@ -550,7 +562,7 @@ int main( int argc, char *argv[] )
         if( ret < 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_x509_dn_gets "
+            mbedtls_printf( " failed\n  ! mbedtls_x509_dn_gets "
                             "returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
@@ -574,7 +586,7 @@ int main( int argc, char *argv[] )
         if( ( ret = mbedtls_x509_csr_parse_file( &csr, opt.request_file ) ) != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_x509_csr_parse_file "
+            mbedtls_printf( " failed\n  ! mbedtls_x509_csr_parse_file "
                             "returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
@@ -584,7 +596,7 @@ int main( int argc, char *argv[] )
         if( ret < 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_x509_dn_gets "
+            mbedtls_printf( " failed\n  ! mbedtls_x509_dn_gets "
                             "returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
@@ -609,7 +621,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile "
+            mbedtls_printf( " failed\n  ! mbedtls_pk_parse_keyfile "
                             "returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
@@ -625,7 +637,7 @@ int main( int argc, char *argv[] )
     if( ret != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  mbedtls_pk_parse_keyfile "
+        mbedtls_printf( " failed\n  ! mbedtls_pk_parse_keyfile "
                         "returned -x%02x - %s\n\n", -ret, buf );
         goto exit;
     }
@@ -636,7 +648,7 @@ int main( int argc, char *argv[] )
     {
         if( mbedtls_pk_check_pair( &issuer_crt.pk, issuer_key ) != 0 )
         {
-            mbedtls_printf( " failed\n  !  issuer_key does not match "
+            mbedtls_printf( " failed\n  ! issuer_key does not match "
                             "issuer certificate\n\n" );
             goto exit;
         }
@@ -659,7 +671,7 @@ int main( int argc, char *argv[] )
     if( ( ret = mbedtls_x509write_crt_set_subject_name( &crt, opt.subject_name ) ) != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_subject_name "
+        mbedtls_printf( " failed\n  ! mbedtls_x509write_crt_set_subject_name "
                         "returned -0x%04x - %s\n\n", -ret, buf );
         goto exit;
     }
@@ -667,7 +679,7 @@ int main( int argc, char *argv[] )
     if( ( ret = mbedtls_x509write_crt_set_issuer_name( &crt, opt.issuer_name ) ) != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_issuer_name "
+        mbedtls_printf( " failed\n  ! mbedtls_x509write_crt_set_issuer_name "
                         "returned -0x%04x - %s\n\n", -ret, buf );
         goto exit;
     }
@@ -682,7 +694,7 @@ int main( int argc, char *argv[] )
     if( ret != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_serial "
+        mbedtls_printf( " failed\n  ! mbedtls_x509write_crt_set_serial "
                         "returned -0x%04x - %s\n\n", -ret, buf );
         goto exit;
     }
@@ -691,7 +703,7 @@ int main( int argc, char *argv[] )
     if( ret != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_validity "
+        mbedtls_printf( " failed\n  ! mbedtls_x509write_crt_set_validity "
                         "returned -0x%04x - %s\n\n", -ret, buf );
         goto exit;
     }
@@ -709,7 +721,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  x509write_crt_set_basic_contraints "
+            mbedtls_printf( " failed\n  ! x509write_crt_set_basic_contraints "
                             "returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
@@ -728,7 +740,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_subject"
+            mbedtls_printf( " failed\n  ! mbedtls_x509write_crt_set_subject"
                             "_key_identifier returned -0x%04x - %s\n\n",
                             -ret, buf );
             goto exit;
@@ -747,7 +759,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_authority_"
+            mbedtls_printf( " failed\n  ! mbedtls_x509write_crt_set_authority_"
                             "key_identifier returned -0x%04x - %s\n\n",
                             -ret, buf );
             goto exit;
@@ -767,7 +779,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_key_usage "
+            mbedtls_printf( " failed\n  ! mbedtls_x509write_crt_set_key_usage "
                             "returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
@@ -785,7 +797,7 @@ int main( int argc, char *argv[] )
         if( ret != 0 )
         {
             mbedtls_strerror( ret, buf, 1024 );
-            mbedtls_printf( " failed\n  !  mbedtls_x509write_crt_set_ns_cert_type "
+            mbedtls_printf( " failed\n  ! mbedtls_x509write_crt_set_ns_cert_type "
                             "returned -0x%04x - %s\n\n", -ret, buf );
             goto exit;
         }
@@ -803,7 +815,7 @@ int main( int argc, char *argv[] )
                                    mbedtls_ctr_drbg_random, &ctr_drbg ) ) != 0 )
     {
         mbedtls_strerror( ret, buf, 1024 );
-        mbedtls_printf( " failed\n  !  write_certificate -0x%04x - %s\n\n",
+        mbedtls_printf( " failed\n  ! write_certificate -0x%04x - %s\n\n",
                         -ret, buf );
         goto exit;
     }

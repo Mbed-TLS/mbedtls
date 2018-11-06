@@ -92,7 +92,8 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  ! mbedtls_platform_setup returned -0x%04x\n", -ret );
+        mbedtls_fprintf(
+            stderr, "platform_setup returned -0x%04x\n", -ret );
         return( 1 );
     }
 #endif
@@ -135,7 +136,7 @@ int main( int argc, char *argv[] )
 
     if( strlen( argv[2] ) > 100 )
     {
-        mbedtls_printf( " Input data larger than 100 characters.\n\n" );
+        mbedtls_fprintf( stderr, " Input data larger than 100 characters.\n\n" );
         goto exit;
     }
 
@@ -189,7 +190,7 @@ exit:
     if( exit_code != MBEDTLS_EXIT_SUCCESS && ret != 0 )
     {
         mbedtls_strerror( ret, (char *) buf, sizeof( buf ) );
-        mbedtls_printf( "  !  Last error was: %s\n", buf );
+        mbedtls_fprintf( stderr, "  !  Last error was: %s\n", buf );
     }
 #endif
 

@@ -353,7 +353,8 @@ int main( void )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned -0x%04x\n\n", -ret );
+        mbedtls_fprintf(
+            stderr, "mbedtls_platform_setup returned -0x%04x\n\n", -ret );
         return( 1 );
     }
 #endif
@@ -399,7 +400,7 @@ int main( void )
                           mbedtls_test_srv_crt_len );
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%04x\n\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse returned -0x%04x\n\n", -ret );
         goto exit;
     }
 
@@ -407,7 +408,7 @@ int main( void )
                           mbedtls_test_cas_pem_len );
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%04x\n\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse returned -0x%04x\n\n", -ret );
         goto exit;
     }
 
@@ -416,7 +417,7 @@ int main( void )
                          mbedtls_test_srv_key_len, NULL, 0 );
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_pk_parse_key returned -0x%04x\n\n", -ret );
+        mbedtls_printf( " failed\n  ! mbedtls_pk_parse_key returned -0x%04x\n\n", -ret );
         goto exit;
     }
 
@@ -495,7 +496,8 @@ reset:
     {
         char error_buf[100];
         mbedtls_strerror( ret, error_buf, 100 );
-        mbedtls_printf( "  [ main ]  Last error was: -0x%04x - %s\n", -ret, error_buf );
+        mbedtls_fprintf( stderr,
+            "  [ main ]  Last error was: -0x%04x - %s\n", -ret, error_buf );
     }
 #endif
 

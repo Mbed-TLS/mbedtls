@@ -67,6 +67,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define mbedtls_printf     printf
+#define mbedtls_fprintf    fprintf
 #define mbedtls_snprintf   snprintf
 #define mbedtls_exit       exit
 #define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
@@ -310,7 +311,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
-        mbedtls_printf( "Failed initializing platform.\n" );
+        mbedtls_fprintf( stderr, "Failed initializing platform.\n" );
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 #endif
@@ -323,7 +324,7 @@ int main( int argc, char *argv[] )
     memset( &pointer, 0, sizeof( void * ) );
     if( pointer != NULL )
     {
-        mbedtls_printf( "all-bits-zero is not a NULL pointer\n" );
+        mbedtls_fprintf( stderr, "all-bits-zero is not a NULL pointer\n" );
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 
@@ -332,7 +333,7 @@ int main( int argc, char *argv[] )
      */
     if( run_test_snprintf() != 0 )
     {
-        mbedtls_printf( "the snprintf implementation is broken\n" );
+        mbedtls_fprintf( stderr, "the snprintf implementation is broken\n" );
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 
@@ -380,7 +381,9 @@ int main( int argc, char *argv[] )
             }
             if( test->name == NULL )
             {
-                mbedtls_printf( "  Test suite %s not available -> failed\n\n", *argp );
+                mbedtls_fprintf(
+                    stderr, "  Test suite %s not available -> failed\n\n",
+                    *argp );
                 suites_failed++;
             }
         }

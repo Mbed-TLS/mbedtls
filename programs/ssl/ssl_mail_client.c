@@ -400,7 +400,8 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_platform_setup returned %d\n\n", ret );
+        mbedtls_fprintf(
+            stderr, "platform_setup returned %d\n\n", ret );
         return( 1 );
     }
 #endif
@@ -543,7 +544,7 @@ int main( int argc, char *argv[] )
 #endif
     if( ret < 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse returned %d\n\n", ret );
         goto exit;
     }
 
@@ -567,13 +568,13 @@ int main( int argc, char *argv[] )
                               mbedtls_test_cli_crt_len );
 #else
     {
-        mbedtls_printf("MBEDTLS_CERTS_C not defined.");
+        mbedtls_fprintf( stderr, "MBEDTLS_CERTS_C not defined." );
         goto exit;
     }
 #endif
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_x509_crt_parse returned %d\n\n", ret );
         goto exit;
     }
 
@@ -587,13 +588,14 @@ int main( int argc, char *argv[] )
                 mbedtls_test_cli_key_len, NULL, 0 );
 #else
     {
-        mbedtls_printf("MBEDTLS_CERTS_C or MBEDTLS_PEM_PARSE_C not defined.");
+        mbedtls_fprintf(
+            stderr, "MBEDTLS_CERTS_C or MBEDTLS_PEM_PARSE_C not defined.");
         goto exit;
     }
 #endif
     if( ret != 0 )
     {
-        mbedtls_printf( " failed\n  !  mbedtls_pk_parse_key returned %d\n\n", ret );
+        mbedtls_printf( " failed\n  ! mbedtls_pk_parse_key returned %d\n\n", ret );
         goto exit;
     }
 

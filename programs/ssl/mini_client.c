@@ -55,6 +55,14 @@
     !defined(MBEDTLS_NET_C) || !defined(MBEDTLS_SSL_CLI_C) || \
     !defined(UNIX)
 
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
+#include <stdio.h>
+#define mbedtls_printf  printf
+#define mbedtls_fprintf fprintf
+#endif
+
 int main( void )
 {
     mbedtls_printf( "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_ENTROPY_C and/or "
@@ -201,7 +209,7 @@ int main( void )
 #if defined(MBEDTLS_PLATFORM_C)
     if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
-        mbedtls_printf( "Failed initializing platform.\n" );
+        mbedtls_fprintf( stderr, "Failed initializing platform.\n" );
         return( 1 );
     }
 #endif

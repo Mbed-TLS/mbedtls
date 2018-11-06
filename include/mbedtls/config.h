@@ -694,6 +694,10 @@
  * for too long on ECC (and, hence, X.509 or SSL/TLS) operations.
  *
  * Uncomment this macro to enable restartable ECC computations.
+ *
+ * \note  This option only works with the default software implementation of
+ *        elliptic curve functionality. It is incompatible with
+ *        MBEDTLS_ECP_ALT, MBEDTLS_ECDH_XXX_ALT and MBEDTLS_ECDSA_XXX_ALT.
  */
 //#define MBEDTLS_ECP_RESTARTABLE
 

@@ -1195,13 +1195,27 @@ typedef uint32_t psa_algorithm_t;
  * \brief Import a key in binary format.
  *
  * This function supports any output from psa_export_key(). Refer to the
- * documentation of psa_export_key() for the format for each key type.
+ * documentation of psa_export_public_key() for the format of public keys
+ * and to the documentation of psa_export_key() for the format for
+ * other key types.
+ *
+ * This specification supports a single format for each key type.
+ * Implementations may support other formats as long as the standard
+ * format is supported. Implementations that support other formats
+ * should ensure that the formats are clearly unambiguous so as to
+ * minimize the risk that an invalid input is accidentally interpreted
+ * according to a different format.
  *
  * \param key         Slot where the key will be stored. This must be a
  *                    valid slot for a key of the chosen type. It must
  *                    be unoccupied.
- * \param type        Key type (a \c PSA_KEY_TYPE_XXX value).
- * \param[in] data    Buffer containing the key data.
+ * \param type        Key type (a \c PSA_KEY_TYPE_XXX value). On a successful
+ *                    import, the key slot will contain a key of this type.
+ * \param[in] data    Buffer containing the key data. The content of this
+ *                    buffer is interpreted according to \p type. It must
+ *                    contain the format described in the documentation
+ *                    of psa_export_key() or psa_export_public_key() for
+ *                    the chosen type.
  * \param data_length Size of the \p data buffer in bytes.
  *
  * \retval #PSA_SUCCESS
@@ -1300,10 +1314,10 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
  * The output of this function can be passed to psa_import_key() to
  * create an equivalent object.
  *
- * If a key is created with psa_import_key() and then exported with
- * this function, it is not guaranteed that the resulting data is
- * identical: the implementation may choose a different representation
- * of the same key if the format permits it.
+ * If the implementation of psa_import_key() supports other formats
+ * beyond the format specified here, the output from psa_export_key()
+ * must use the representation specified here, not the original
+ * representation.
  *
  * For standard key types, the output format is as follows:
  *
@@ -1343,23 +1357,11 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
  *   }
  *   ```
  * - For elliptic curve key pairs (key types for which
- *   #PSA_KEY_TYPE_IS_ECC_KEYPAIR is true), the format is the
- *   non-encrypted DER encoding of the representation defined by RFC 5915 as
- *   `ECPrivateKey`, version 1. The `ECParameters` field must be a
- *   `namedCurve` OID as specified in RFC 5480 &sect;2.1.1.1. The public key
- *   must be present and must be an `ECPoint` in the same format
- *   (uncompressed variant) an ECC public key of the
- *   corresponding type exported with psa_export_public_key().
- *   ```
- *   ECPrivateKey ::= SEQUENCE {
- *       version             INTEGER,  -- must be 1
- *       privateKey          OCTET STRING,
- *           -- `ceiling(log2(n)/8)`-byte string, big endian,
- *           -- where n is the order of the curve.
- *       parameters      [0] IMPLICIT ECParameters {{ namedCurve }},  -- mandatory
- *       publicKey       [1] IMPLICIT BIT STRING  -- mandatory
- *   }
- *   ```
+ *   #PSA_KEY_TYPE_IS_ECC_KEYPAIR is true), the format is
+ *   a big-endian representation of the private point as a
+ *   `ceiling(log2(n)/8)`-byte string where `n` is the order of the curve.
+ *   This is the content of the `privateKey` field of the `ECPrivateKey`
+ *   format defined by RFC 5915.
  * - For public keys (key types for which #PSA_KEY_TYPE_IS_PUBLIC_KEY is
  *   true), the format is the same as for psa_export_public_key().
  *

@@ -437,23 +437,10 @@
 
 /* Maximum size of the export encoding of an ECC key pair.
  *
- *   ECPrivateKey ::= SEQUENCE {
- *       version             INTEGER,  -- must be 1
- *       privateKey          OCTET STRING,
- *           -- `ceiling(log2(n)/8)`-byte string, big endian,
- *           -- where n is the order of the curve.
- *       parameters      [0] IMPLICIT ECParameters {{ NamedCurve }},
- *       publicKey       [1] IMPLICIT BIT STRING
- *   }
- *
- * - 4 bytes of SEQUENCE overhead;
- * - 1 * point size in privateKey
- * - 1 + 1 + 12 bytes of namedCurve OID;
- * - 4 bytes of BIT STRING overhead;
- * - public key as for #PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE.
+ * An ECC key pair is represented by the secret value.
  */
 #define PSA_KEY_EXPORT_ECC_KEYPAIR_MAX_SIZE(key_bits)   \
-    (3 * PSA_BITS_TO_BYTES(key_bits) + 56)
+    (PSA_BITS_TO_BYTES(key_bits))
 
 /** Safe output buffer size for psa_export_key() or psa_export_public_key().
  *

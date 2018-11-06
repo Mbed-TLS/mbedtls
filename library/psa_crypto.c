@@ -262,6 +262,23 @@ static psa_status_t mbedtls_to_psa_error( int ret )
         case MBEDTLS_ERR_MD_HW_ACCEL_FAILED:
             return( PSA_ERROR_HARDWARE_FAILURE );
 
+        case MBEDTLS_ERR_MPI_FILE_IO_ERROR:
+            return( PSA_ERROR_STORAGE_FAILURE );
+        case MBEDTLS_ERR_MPI_BAD_INPUT_DATA:
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        case MBEDTLS_ERR_MPI_INVALID_CHARACTER:
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        case MBEDTLS_ERR_MPI_BUFFER_TOO_SMALL:
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
+        case MBEDTLS_ERR_MPI_NEGATIVE_VALUE:
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        case MBEDTLS_ERR_MPI_DIVISION_BY_ZERO:
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        case MBEDTLS_ERR_MPI_NOT_ACCEPTABLE:
+            return( PSA_ERROR_INVALID_ARGUMENT );
+        case MBEDTLS_ERR_MPI_ALLOC_FAILED:
+            return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
         case MBEDTLS_ERR_PK_ALLOC_FAILED:
             return( PSA_ERROR_INSUFFICIENT_MEMORY );
         case MBEDTLS_ERR_PK_TYPE_MISMATCH:
@@ -572,6 +589,7 @@ static psa_status_t psa_import_rsa_key( mbedtls_pk_context *pk,
 #endif /* defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_PARSE_C) */
 
 #if defined(MBEDTLS_ECP_C) && defined(MBEDTLS_PK_PARSE_C)
+/* Import an elliptic curve parsed by the mbedtls pk module. */
 static psa_status_t psa_import_ecp_key( psa_ecc_curve_t expected_curve,
                                         mbedtls_pk_context *pk,
                                         mbedtls_ecp_keypair **p_ecp )
@@ -589,6 +607,58 @@ static psa_status_t psa_import_ecp_key( psa_ecc_curve_t expected_curve,
     }
 }
 #endif /* defined(MBEDTLS_ECP_C) && defined(MBEDTLS_PK_PARSE_C) */
+
+#if defined(MBEDTLS_ECP_C)
+/* Import a private key given as a byte string which is the private value
+ * in big-endian order. */
+static psa_status_t psa_import_ec_private_key( psa_ecc_curve_t curve,
+                                               const uint8_t *data,
+                                               size_t data_length,
+                                               mbedtls_ecp_keypair **p_ecp )
+{
+    psa_status_t status = PSA_ERROR_TAMPERING_DETECTED;
+    mbedtls_ecp_keypair *ecp = NULL;
+    mbedtls_ecp_group_id grp_id = mbedtls_ecc_group_of_psa( curve );
+
+    *p_ecp = NULL;
+    ecp = mbedtls_calloc( 1, sizeof( mbedtls_ecp_keypair ) );
+    if( ecp == NULL )
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+
+    /* Load the group. */
+    status = mbedtls_to_psa_error(
+        mbedtls_ecp_group_load( &ecp->grp, grp_id ) );
+    if( status != PSA_SUCCESS )
+        goto exit;
+    /* Load the secret value. */
+    status = mbedtls_to_psa_error(
+        mbedtls_mpi_read_binary( &ecp->d, data, data_length ) );
+    if( status != PSA_SUCCESS )
+        goto exit;
+    /* Validate the private key. */
+    status = mbedtls_to_psa_error(
+        mbedtls_ecp_check_privkey( &ecp->grp, &ecp->d ) );
+    if( status != PSA_SUCCESS )
+        goto exit;
+    /* Calculate the public key from the private key. */
+    status = mbedtls_to_psa_error(
+        mbedtls_ecp_mul( &ecp->grp, &ecp->Q, &ecp->d, &ecp->grp.G,
+                         mbedtls_ctr_drbg_random, &global_data.ctr_drbg ) );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    *p_ecp = ecp;
+    return( PSA_SUCCESS );
+
+exit:
+    if( ecp != NULL )
+    {
+        mbedtls_ecp_keypair_free( ecp );
+        mbedtls_free( ecp );
+    }
+    return( status );
+}
+#endif /* defined(MBEDTLS_ECP_C) */
 
 psa_status_t psa_import_key( psa_key_slot_t key,
                              psa_key_type_t type,
@@ -615,6 +685,17 @@ psa_status_t psa_import_key( psa_key_slot_t key,
             memcpy( slot->data.raw.data, data, data_length );
     }
     else
+#if defined(MBEDTLS_ECP_C)
+    if( PSA_KEY_TYPE_IS_ECC_KEYPAIR( type ) )
+    {
+        status = psa_import_ec_private_key( PSA_KEY_TYPE_GET_CURVE( type ),
+                                            data, data_length,
+                                            &slot->data.ecp );
+        if( status != PSA_SUCCESS )
+            return( status );
+    }
+    else
+#endif /* MBEDTLS_ECP_C */
 #if defined(MBEDTLS_PK_PARSE_C)
     if( PSA_KEY_TYPE_IS_RSA( type ) || PSA_KEY_TYPE_IS_ECC( type ) )
     {
@@ -783,11 +864,30 @@ static  psa_status_t psa_internal_export_key( psa_key_slot_t key,
     {
         if( slot->data.raw.bytes > data_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
-        if( slot->data.raw.bytes != 0 )
+        if( data_size != 0 )
+        {
             memcpy( data, slot->data.raw.data, slot->data.raw.bytes );
+            memset( data + slot->data.raw.bytes, 0,
+                    data_size - slot->data.raw.bytes );
+        }
         *data_length = slot->data.raw.bytes;
         return( PSA_SUCCESS );
     }
+#if defined(MBEDTLS_ECP_C)
+    if( PSA_KEY_TYPE_IS_ECC_KEYPAIR( slot->type ) && !export_public_key )
+    {
+        size_t bytes = PSA_BITS_TO_BYTES( psa_get_key_bits( slot ) );
+        if( bytes > data_size )
+            return( PSA_ERROR_BUFFER_TOO_SMALL );
+        status = mbedtls_to_psa_error(
+            mbedtls_mpi_write_binary( &slot->data.ecp->d, data, bytes ) );
+        if( status != PSA_SUCCESS )
+            return( status );
+        memset( data + bytes, 0, data_size - bytes );
+        *data_length = bytes;
+        return( PSA_SUCCESS );
+    }
+#endif
     else
     {
 #if defined(MBEDTLS_PK_WRITE_C)

@@ -564,42 +564,9 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
 #if defined(MBEDTLS_ECP_C)
     if( PSA_KEY_TYPE_IS_ECC_KEYPAIR( type ) )
     {
-        uint8_t *p = exported;
-        uint8_t *end = exported + exported_length;
-        size_t len;
-        int version;
-        /*   ECPrivateKey ::= SEQUENCE {
-         *       version             INTEGER,  -- must be 1
-         *       privateKey          OCTET STRING,
-         *           -- `ceiling(log_{256}(n))`-byte string, big endian,
-         *           -- where n is the order of the curve.
-         *       parameters          ECParameters {{ NamedCurve }},  -- mandatory
-         *       publicKey           BIT STRING  -- mandatory
-         *   }
-         */
-        TEST_ASSERT( mbedtls_asn1_get_tag( &p, end, &len,
-                                           MBEDTLS_ASN1_SEQUENCE |
-                                           MBEDTLS_ASN1_CONSTRUCTED ) == 0 );
-        TEST_ASSERT( p + len == end );
-        TEST_ASSERT( mbedtls_asn1_get_int( &p, end, &version ) == 0 );
-        TEST_ASSERT( version == 1 );
-        TEST_ASSERT( mbedtls_asn1_get_tag( &p, end, &len,
-                                           MBEDTLS_ASN1_OCTET_STRING ) == 0 );
-        /* Bug in Mbed TLS: the length of the octet string depends on the value */
-        // TEST_ASSERT( len == PSA_BITS_TO_BYTES( bits ) );
-        p += len;
-        TEST_ASSERT( asn1_get_implicit_tag( &p, end, &len, 0,
-                                            MBEDTLS_ASN1_OID ) == 0 );
-        p += len;
-        /* publicKey: ECPoint in uncompressed representation (as below) */
-        TEST_ASSERT( asn1_get_implicit_tag( &p, end, &len, 1,
-                                            MBEDTLS_ASN1_BIT_STRING ) == 0 );
-        TEST_ASSERT( p + len == end );
-        TEST_ASSERT( p[0] == 0 ); /* 0 unused bits in the bit string */
-        ++p;
-        TEST_ASSERT( p + 1 + 2 * PSA_BITS_TO_BYTES( bits ) == end );
-        TEST_ASSERT( p[0] == 4 );
-     }
+        /* Just the secret value */
+        TEST_ASSERT( exported_length == PSA_BITS_TO_BYTES( bits ) );
+    }
     else
 #endif /* MBEDTLS_ECP_C */
 
@@ -1021,6 +988,7 @@ void import_export( data_t *data,
         ASSERT_COMPARE( exported, exported_length,
                         reexported, reexported_length );
     }
+    TEST_ASSERT( exported_length <= PSA_KEY_EXPORT_MAX_SIZE( type, got_bits ) );
 
 destroy:
     /* Destroy the key */
@@ -1039,9 +1007,9 @@ exit:
 void import_export_public_key( data_t *data,
                                int type_arg,
                                int alg_arg,
-                               int expected_bits,
-                               int public_key_expected_length,
-                               int expected_export_status_arg )
+                               int export_size_delta,
+                               int expected_export_status_arg,
+                               data_t *expected_public_key )
 {
     int slot = 1;
     psa_key_type_t type = type_arg;
@@ -1049,16 +1017,9 @@ void import_export_public_key( data_t *data,
     psa_status_t expected_export_status = expected_export_status_arg;
     psa_status_t status;
     unsigned char *exported = NULL;
-    size_t export_size;
+    size_t export_size = expected_public_key->len + export_size_delta;
     size_t exported_length = INVALID_EXPORT_LENGTH;
-    psa_key_type_t got_type;
-    size_t got_bits;
     psa_key_policy_t policy;
-
-    TEST_ASSERT( data != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( data->len ) );
-    export_size = (ptrdiff_t) data->len;
-    ASSERT_ALLOC( exported, export_size );
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
@@ -1070,32 +1031,27 @@ void import_export_public_key( data_t *data,
     TEST_ASSERT( psa_import_key( slot, type,
                                  data->x, data->len ) == PSA_SUCCESS );
 
-    /* Test the key information */
-    TEST_ASSERT( psa_get_key_information( slot,
-                                          &got_type,
-                                          &got_bits ) == PSA_SUCCESS );
-    TEST_ASSERT( got_type == type );
-    TEST_ASSERT( got_bits == (size_t) expected_bits );
-
-    /* Export the key */
+    /* Export the public key */
+    ASSERT_ALLOC( exported, export_size );
     status = psa_export_public_key( slot,
                                     exported, export_size,
                                     &exported_length );
     TEST_ASSERT( status == expected_export_status );
-    TEST_ASSERT( exported_length == (size_t) public_key_expected_length );
-    TEST_ASSERT( mem_is_char( exported + exported_length, 0,
-                              export_size - exported_length ) );
-    if( status != PSA_SUCCESS )
-        goto destroy;
-
-destroy:
-    /* Destroy the key */
-    TEST_ASSERT( psa_destroy_key( slot ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_get_key_information(
-                     slot, NULL, NULL ) == PSA_ERROR_EMPTY_SLOT );
+    if( status == PSA_SUCCESS )
+    {
+        psa_key_type_t public_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( type );
+        size_t bits;
+        TEST_ASSERT( psa_get_key_information( slot, NULL, &bits ) ==
+                     PSA_SUCCESS );
+        TEST_ASSERT( expected_public_key->len <=
+                     PSA_KEY_EXPORT_MAX_SIZE( public_type, bits ) );
+        ASSERT_COMPARE( expected_public_key->x, expected_public_key->len,
+                        exported, exported_length );
+    }
 
 exit:
     mbedtls_free( exported );
+    psa_destroy_key( slot );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

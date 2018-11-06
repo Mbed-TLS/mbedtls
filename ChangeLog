@@ -43,6 +43,11 @@ Bugfix
      program programs/x509/cert_write. Fixes #1422.
    * Ignore IV in mbedtls_cipher_set_iv() when the cipher mode is MBEDTLS_MODE_ECB
      Fix for #1091 raised by ezdevelop
+   * Change the default string format used for various X.509 DN attributes to
+     UTF8String. Previously, the use of the PrintableString format led to
+     wildcards and non-ASCII characters being unusable in some DN attributes.
+     Reported by raprepo in #1860 and by kevinpt in #468.
+     Fix contributed by Thomas-Dee in #1641.
 
 Changes
    * Removed support for Yotta as a build tool.
@@ -52,6 +57,14 @@ Changes
      in the same way as on the server side.
    * Change the dtls_client and dtls_server samples to work by default over
      IPv6 and optionally by a build option over IPv4.
+   * Remember the string format of X.509 DN attributes when replicating X.509 DNs.
+     Previously, DN attributes were always written in their default string format
+     (mostly PrintableString), which could lead to CRTs being created which used
+     PrintableStrings in the issuer field even though the signing CA used
+     UTF8Strings in its subject field; while X.509 compliant, such CRTs were
+     rejected in some applications, e.g. some versions of Firefox, curl
+     and GnuTLS. Reported in #1033 by Moschn. Fix contributed by
+     Thomas-Dee in #1641.
 
 = mbed TLS 2.13.1 branch released 2018-09-06
 

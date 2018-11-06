@@ -136,7 +136,7 @@ extern const mbedtls_pk_info_t mbedtls_rsa_alt_info;
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-extern const mbedtls_pk_info_t mbedtls_pk_opaque_psa_info;
+extern const mbedtls_pk_info_t mbedtls_pk_opaque_info;
 #endif
 
 #endif /* MBEDTLS_PK_WRAP_H */

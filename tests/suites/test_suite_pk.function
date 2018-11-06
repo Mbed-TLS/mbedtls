@@ -114,7 +114,7 @@ void pk_psa_utils(  )
     mbedtls_pk_context pk, pk2;
     psa_key_slot_t key;
 
-    const char * const name = "Opaque (PSA)";
+    const char * const name = "Opaque";
     const size_t bitlen = 256; /* harcoded in genkey() */
 
     mbedtls_md_type_t md_alg = MBEDTLS_MD_NONE;
@@ -125,7 +125,7 @@ void pk_psa_utils(  )
     mbedtls_pk_init( &pk );
     mbedtls_pk_init( &pk2 );
 
-    TEST_ASSERT( mbedtls_pk_setup_psa( &pk, 0 ) ==
+    TEST_ASSERT( mbedtls_pk_setup_opaque( &pk, 0 ) ==
                  MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     mbedtls_pk_free( &pk );
@@ -134,9 +134,9 @@ void pk_psa_utils(  )
     key = pk_psa_genkey();
     TEST_ASSERT( key != 0 );
 
-    TEST_ASSERT( mbedtls_pk_setup_psa( &pk, key ) == 0 );
+    TEST_ASSERT( mbedtls_pk_setup_opaque( &pk, key ) == 0 );
 
-    TEST_ASSERT( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_OPAQUE_PSA );
+    TEST_ASSERT( mbedtls_pk_get_type( &pk ) == MBEDTLS_PK_OPAQUE );
     TEST_ASSERT( strcmp( mbedtls_pk_get_name( &pk), name ) == 0 );
 
     TEST_ASSERT( mbedtls_pk_get_bitlen( &pk ) == bitlen );
@@ -797,7 +797,7 @@ void pk_psa_sign(  )
     key = pk_psa_genkey();
     TEST_ASSERT( key != 0 );
 
-    TEST_ASSERT( mbedtls_pk_setup_psa( &pk, key ) == 0 );
+    TEST_ASSERT( mbedtls_pk_setup_opaque( &pk, key ) == 0 );
 
     TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256,
                  hash, sizeof hash, sig, &sig_len,

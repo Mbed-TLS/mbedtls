@@ -1290,6 +1290,10 @@ PSA key derivation: HKDF-SHA-256, good case
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 derive_setup:PSA_KEY_TYPE_DERIVE:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":PSA_ALG_HKDF(PSA_ALG_SHA_256):"":"":42:PSA_SUCCESS
 
+PSA key derivation: HKDF-SHA-512, good case
+depends_on:MBEDTLS_MD_C:MBEDTLS_SHA512_C
+derive_setup:PSA_KEY_TYPE_DERIVE:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":PSA_ALG_HKDF(PSA_ALG_SHA_512):"":"":42:PSA_SUCCESS
+
 PSA key derivation: bad key type
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 derive_setup:PSA_KEY_TYPE_RAW_DATA:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":PSA_ALG_HKDF(PSA_ALG_SHA_256):"":"":42:PSA_ERROR_INVALID_ARGUMENT
@@ -1301,6 +1305,18 @@ derive_setup:PSA_KEY_TYPE_DERIVE:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":
 PSA key derivation: unsupported key derivation algorithm
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 derive_setup:PSA_KEY_TYPE_DERIVE:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":PSA_ALG_HKDF(PSA_ALG_CATEGORY_HASH):"":"":42:PSA_ERROR_NOT_SUPPORTED
+
+PSA key derivation: unsupported key derivation algorithm
+depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
+derive_setup:PSA_KEY_TYPE_DERIVE:"0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b":PSA_ALG_CATEGORY_KEY_DERIVATION:"":"":42:PSA_ERROR_NOT_SUPPORTED
+
+PSA key derivation: invalid generator state ( double generate + read past capacity )
+depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
+test_derive_invalid_generator_state:
+
+PSA key derivation:  invalid generator state ( call read/get_capacity after init and abort )
+depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
+test_derive_invalid_generator_tests:
 
 PSA key derivation: HKDF SHA-256, RFC5869 #1, output 42+0
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C

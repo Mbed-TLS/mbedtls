@@ -3078,6 +3078,84 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void test_derive_invalid_generator_state( )
+{
+    psa_key_slot_t base_key = 1;
+    size_t key_type = PSA_KEY_TYPE_DERIVE;
+    psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+    psa_algorithm_t alg = PSA_ALG_HKDF( PSA_ALG_SHA_256 );
+    uint8_t buffer[42];
+    size_t capacity = sizeof( buffer );
+    const uint8_t key_data[22] = { 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
+                                   0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
+                                   0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b};
+    psa_key_policy_t policy;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
+    TEST_ASSERT( psa_set_key_policy( base_key, &policy ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_import_key( base_key, key_type,
+                                 key_data,
+                                 sizeof( key_data ) ) == PSA_SUCCESS );
+
+    /* valid key derivation */
+    TEST_ASSERT(  psa_key_derivation( &generator, base_key, alg,
+                                      NULL, 0,
+                                      NULL, 0,
+                                      capacity ) == PSA_SUCCESS );
+
+    /* state of generator shouldn't allow additional generation */
+    TEST_ASSERT(  psa_key_derivation( &generator, base_key, alg,
+                                      NULL, 0,
+                                      NULL, 0,
+                                      capacity ) == PSA_ERROR_BAD_STATE );
+
+    TEST_ASSERT( psa_generator_read( &generator, buffer, capacity )
+                 == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_generator_read( &generator, buffer, capacity )
+                 == PSA_ERROR_INSUFFICIENT_CAPACITY );
+
+
+exit:
+    psa_generator_abort( &generator );
+    psa_destroy_key( base_key );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE */
+void test_derive_invalid_generator_tests( )
+{
+    uint8_t output_buffer[16];
+    size_t buffer_size = 16;
+    size_t capacity = 0;
+    psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+
+    TEST_ASSERT( psa_generator_read( &generator, output_buffer, buffer_size )
+                 == PSA_ERROR_INSUFFICIENT_CAPACITY ); // should be PSA_ERROR_BAD_STATE:#183
+
+    TEST_ASSERT( psa_get_generator_capacity( &generator, &capacity )
+                 == PSA_SUCCESS ); // should be PSA_ERROR_BAD_STATE:#183
+
+    TEST_ASSERT( psa_generator_abort( &generator ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_generator_read( &generator, output_buffer, buffer_size )
+                 == PSA_ERROR_INSUFFICIENT_CAPACITY ); // should be PSA_ERROR_BAD_STATE:#183
+
+    TEST_ASSERT( psa_get_generator_capacity( &generator, &capacity )
+                 == PSA_SUCCESS );// should be PSA_ERROR_BAD_STATE:#183
+
+exit:
+    psa_generator_abort( &generator );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void derive_output( int alg_arg,
                     data_t *key_data,
                     data_t *salt,

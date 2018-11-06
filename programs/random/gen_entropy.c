@@ -74,6 +74,14 @@ int main( int argc, char *argv[] )
     mbedtls_entropy_context entropy;
     unsigned char buf[MBEDTLS_ENTROPY_BLOCK_SIZE];
 
+#if defined(MBEDTLS_PLATFORM_C)
+    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
+    {
+        mbedtls_printf( "Platform initialization failed!\n" );
+        return( 1 );
+    }
+#endif
+
     if( argc < 2 )
     {
         mbedtls_fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
@@ -86,13 +94,6 @@ int main( int argc, char *argv[] )
         return( 1 );
     }
 
-#if defined(MBEDTLS_PLATFORM_C)
-    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
-    {
-        mbedtls_printf( "Platform initialization failed!\n" );
-        return( 1 );
-    }
-#endif
     mbedtls_entropy_init( &entropy );
 
     for( i = 0, k = 768; i < k; i++ )

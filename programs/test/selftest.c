@@ -307,6 +307,14 @@ int main( int argc, char *argv[] )
     mbedtls_platform_context platform_ctx;
 #endif
 
+#if defined(MBEDTLS_PLATFORM_C)
+    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
+    {
+        mbedtls_printf( "Failed initializing platform.\n" );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+    }
+#endif
+
     /*
      * The C standard doesn't guarantee that all-bits-0 is the representation
      * of a NULL pointer. We do however use that in our code for initializing
@@ -349,13 +357,6 @@ int main( int argc, char *argv[] )
 
 #if defined(MBEDTLS_SELF_TEST)
 
-#if defined(MBEDTLS_PLATFORM_C)
-    if( mbedtls_platform_setup( &platform_ctx ) != 0 )
-    {
-        mbedtls_printf( "Failed initializing platform.\n" );
-        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
-    }
-#endif
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
     mbedtls_memory_buffer_alloc_init( buf, sizeof(buf) );
 #endif

@@ -312,9 +312,41 @@ key_lifetime_set_fail:1:PSA_KEY_LIFETIME_WRITE_ONCE:PSA_ERROR_NOT_SUPPORTED
 PSA key lifetime set: invalid key lifetime value
 key_lifetime_set_fail:1:PSA_KEY_LIFETIME_PERSISTENT+1:PSA_ERROR_INVALID_ARGUMENT
 
+PSA hash setup: good, SHA-1
+depends_on:MBEDTLS_SHA1_C
+hash_setup:PSA_ALG_SHA_1:PSA_SUCCESS
+
+PSA hash setup: good, SHA-224
+depends_on:MBEDTLS_SHA256_C
+hash_setup:PSA_ALG_SHA_224:PSA_SUCCESS
+
 PSA hash setup: good, SHA-256
 depends_on:MBEDTLS_SHA256_C
 hash_setup:PSA_ALG_SHA_256:PSA_SUCCESS
+
+PSA hash setup: good, SHA-384
+depends_on:MBEDTLS_SHA512_C
+hash_setup:PSA_ALG_SHA_384:PSA_SUCCESS
+
+PSA hash setup: good, SHA-512
+depends_on:MBEDTLS_SHA512_C
+hash_setup:PSA_ALG_SHA_512:PSA_SUCCESS
+
+PSA hash setup: good, MD2
+depends_on:MBEDTLS_MD2_C
+hash_setup:PSA_ALG_MD2:PSA_SUCCESS
+
+PSA hash setup: good, MD4
+depends_on:MBEDTLS_MD4_C
+hash_setup:PSA_ALG_MD4:PSA_SUCCESS
+
+PSA hash setup: good, MD5
+depends_on:MBEDTLS_MD5_C
+hash_setup:PSA_ALG_MD5:PSA_SUCCESS
+
+PSA hash setup: good, RIPEMD160
+depends_on:MBEDTLS_RIPEMD160_C
+hash_setup:PSA_ALG_RIPEMD160:PSA_SUCCESS
 
 PSA hash setup: bad (unknown hash algorithm)
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
@@ -324,13 +356,14 @@ PSA hash setup: bad (not a hash algorithm)
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 hash_setup:PSA_ALG_HMAC(PSA_ALG_SHA_256):PSA_ERROR_INVALID_ARGUMENT
 
-PSA hash finish: SHA-256
-depends_on:MBEDTLS_SHA256_C
-hash_finish:PSA_ALG_SHA_256:"bd":"68325720aabd7c82f30f554b313d0570c95accbb7dc4b5aae11204c08ffe732b"
+PSA hash: bad order function calls
+hash_bad_order:
 
-PSA hash verify: SHA-256
-depends_on:MBEDTLS_SHA256_C
-hash_verify:PSA_ALG_SHA_256:"bd":"68325720aabd7c82f30f554b313d0570c95accbb7dc4b5aae11204c08ffe732b"
+PSA hash verify: bad arguments
+hash_verify_bad_args:
+
+PSA hash finish: bad arguments
+hash_finish_bad_args:
 
 PSA MAC setup: good, HMAC-SHA-256
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C

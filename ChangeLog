@@ -41,6 +41,8 @@ Changes
    * Change the use of Windows threading to use Microsoft Visual C++ runtime
      calls, rather than Win32 API calls directly. This is necessary to avoid
      conflict with C runtime usage. Found and fixed by irwir.
+   * Improve documentation of mbedtls_ssl_get_verify_result().
+     Fixes #517 reported by github-monoculture.
 
 = mbed TLS 2.7.6 branch released 2018-08-31
 

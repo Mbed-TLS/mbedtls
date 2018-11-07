@@ -31,6 +31,7 @@
 #include <stdio.h>
 #define mbedtls_printf     printf
 #define mbedtls_fprintf    fprintf
+#define mbedtls_exit       exit    
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif
@@ -47,7 +48,7 @@ int main( void )
             "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
             "MBEDTLS_X509_CRT_PARSE_C and/or MBEDTLS_RSA_C and/or "
             "MBEDTLS_CERTS_C and/or MBEDTLS_PEM_PARSE_C not defined.\n" );
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -118,7 +119,7 @@ int main( int argc, char *argv[] )
     {
         mbedtls_fprintf(
             stderr, "platform_setup returned %d\n\n", ret );
-        return( 1 );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 #endif
 
@@ -366,9 +367,9 @@ exit:
 #endif
 
     if( ret == 0 )
-        return( MBEDTLS_EXIT_SUCCESS );
+        mbedtls_exit( MBEDTLS_EXIT_SUCCESS );
     else
-        return( MBEDTLS_EXIT_FAILURE );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
 }
 #endif /* MBEDTLS_SSL_CLI_C && MBEDTLS_SSL_PROTO_DTLS && MBEDTLS_NET_C &&
           MBEDTLD_TIMING_C && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C &&

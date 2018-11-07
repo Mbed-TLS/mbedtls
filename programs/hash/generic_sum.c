@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #define mbedtls_fprintf         fprintf
 #define mbedtls_printf          printf
+#define mbedtls_exit            exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -47,7 +48,7 @@
 int main( void )
 {
     mbedtls_printf("MBEDTLS_MD_C and/or MBEDTLS_FS_IO not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 static int generic_wrapper( const mbedtls_md_info_t *md_info, char *filename, unsigned char *sum )
@@ -181,7 +182,7 @@ int main( int argc, char *argv[] )
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
         mbedtls_fprintf( stderr, "Failed initializing platform\n" );
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
 #endif
     mbedtls_md_init( &md_ctx );
@@ -243,6 +244,6 @@ exit:
     mbedtls_platform_teardown( &platform_ctx );
 #endif
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_MD_C && MBEDTLS_FS_IO */

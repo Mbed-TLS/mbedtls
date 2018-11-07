@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #define mbedtls_printf          printf
 #define mbedtls_fprintf         fprintf
+#define mbedtls_exit            exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -71,7 +72,7 @@ int main( void )
 {
     mbedtls_printf("MBEDTLS_BIGNUM_C and/or "
            "MBEDTLS_PK_PARSE_C and/or MBEDTLS_FS_IO not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 /*
@@ -104,7 +105,7 @@ int main( int argc, char *argv[] )
     {
         mbedtls_fprintf(
             stderr, "platform_setup returned -0x%04x\n", -ret );
-        return( 1 );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 #endif
 
@@ -328,6 +329,6 @@ cleanup:
     fflush( stdout ); getchar();
 #endif
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_PK_PARSE_C && MBEDTLS_FS_IO */

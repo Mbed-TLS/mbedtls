@@ -50,6 +50,9 @@
 #include <stdio.h>
 #define mbedtls_printf  printf
 #define mbedtls_fprintf fprintf
+#define mbedtls_exit       exit
+#define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
 
 int main( void )
@@ -57,7 +60,7 @@ int main( void )
     mbedtls_printf( "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_ENTROPY_C and/or "
             "MBEDTLS_NET_C and/or MBEDTLS_SSL_CLI_C and/or UNIX "
             "not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -193,7 +196,7 @@ int main( void )
     if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
         mbedtls_fprintf( stderr, "Failed initializing platform.\n" );
-        return( 1 );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 #endif
     mbedtls_ctr_drbg_init( &ctr_drbg );
@@ -311,6 +314,9 @@ exit:
     mbedtls_platform_teardown( &platform_ctx );
 #endif
 
-    return( ret );
+    if( ret == 0 )
+        mbedtls_exit( MBEDTLS_EXIT_SUCCESS );
+    else
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
 }
 #endif

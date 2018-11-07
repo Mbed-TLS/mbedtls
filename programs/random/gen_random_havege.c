@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #define mbedtls_fprintf         fprintf
 #define mbedtls_printf          printf
+#define mbedtls_exit            exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -47,7 +48,7 @@
 int main( void )
 {
     mbedtls_printf("MBEDTLS_HAVEGE_C not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 int main( int argc, char *argv[] )
@@ -66,21 +67,21 @@ int main( int argc, char *argv[] )
     if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
         mbedtls_fprintf( stderr, "Failed to initialize platform.\n" );
-        return( 1 );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 #endif
 
     if( argc < 2 )
     {
         mbedtls_fprintf( stderr, "usage: %s <output filename>\n", argv[0] );
-        return( 1 );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 
     if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
     {
         mbedtls_fprintf(
             stderr, "failed to open '%s' for writing.\n", argv[1] );
-        return( 1 );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 
     mbedtls_havege_init( &hs );
@@ -116,6 +117,6 @@ exit:
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_teardown( &platform_ctx );
 #endif
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_HAVEGE_C */

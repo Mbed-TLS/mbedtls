@@ -415,6 +415,6 @@ int main( int argc, char *argv[] )
         mbedtls_exit( MBEDTLS_EXIT_FAILURE );
 
     /* return() is here to prevent compiler warnings */
-    return( MBEDTLS_EXIT_SUCCESS );
+    mbedtls_exit( MBEDTLS_EXIT_SUCCESS );
 }
 

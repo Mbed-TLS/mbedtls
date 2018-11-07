@@ -33,6 +33,7 @@
 #define mbedtls_fprintf    fprintf
 #define mbedtls_printf     printf
 #define mbedtls_snprintf   snprintf
+#define mbedtls_exit       exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif
@@ -52,7 +53,7 @@ int main( void )
            "MBEDTLS_CTR_DRBG_C and/or MBEDTLS_X509_CRT_PARSE_C and/or "
            "MBEDTLS_THREADING_C and/or MBEDTLS_THREADING_PTHREAD "
            "and/or MBEDTLS_PEM_PARSE_C not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -341,7 +342,7 @@ int main( void )
     {
         mbedtls_fprintf(
             stderr, "mbedtls_platform_setup returned -0x%04x\n\n", -ret );
-        return( 1 );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 #endif
 
@@ -538,9 +539,9 @@ exit:
 #endif
 
     if( ret == 0 )
-        return( MBEDTLS_EXIT_SUCCESS );
+        mbedtls_exit( MBEDTLS_EXIT_SUCCESS );
     else
-        return( MBEDTLS_EXIT_FAILURE );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
 }
 
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_CERTS_C && MBEDTLS_ENTROPY_C &&

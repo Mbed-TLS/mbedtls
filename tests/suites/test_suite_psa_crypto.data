@@ -31,6 +31,19 @@ PSA import/export AES-256
 depends_on:MBEDTLS_AES_C
 import_export:"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef":PSA_KEY_TYPE_AES:PSA_ALG_CTR:PSA_KEY_USAGE_EXPORT:256:0:PSA_SUCCESS:1
 
+PSA import to non empty key slot
+depends_on:MBEDTLS_AES_C
+import_key_nonempty_slot
+
+PSA export empty key slot
+export_invalid_slot:1:PSA_ERROR_EMPTY_SLOT
+
+PSA export out of range key slot - lower bound
+export_invalid_slot:0:PSA_ERROR_INVALID_ARGUMENT
+
+PSA export out of range key slot - upper bound
+export_invalid_slot:(psa_key_slot_t)(-1):PSA_ERROR_INVALID_ARGUMENT
+
 PSA import AES: bad key size
 depends_on:MBEDTLS_AES_C
 import:"0123456789abcdef":PSA_KEY_TYPE_AES:PSA_ERROR_INVALID_ARGUMENT

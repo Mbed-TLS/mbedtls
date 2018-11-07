@@ -1076,6 +1076,30 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void cipher_with_no_key_activity( )
+{
+    int slot = 1;
+    psa_status_t status;
+    psa_key_policy_t policy;
+    psa_cipher_operation_t operation;
+    int exercise_alg = PSA_ALG_CTR;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT, exercise_alg );
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+
+    status = psa_cipher_encrypt_setup( &operation, slot, exercise_alg );
+    TEST_ASSERT( status == PSA_ERROR_EMPTY_SLOT );
+
+exit:
+    psa_cipher_abort( &operation );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void export_after_import_failure( data_t *data, int type_arg,
                                   int expected_import_status_arg )
 {
@@ -1101,6 +1125,33 @@ void export_after_import_failure( data_t *data, int type_arg,
     TEST_ASSERT( status == PSA_ERROR_EMPTY_SLOT );
 
 exit:
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void cipher_after_import_failure( data_t *data, int type_arg,
+                                  int expected_import_status_arg )
+{
+    int slot = 1;
+    psa_cipher_operation_t operation;
+    psa_key_type_t type = type_arg;
+    psa_status_t status;
+    psa_status_t expected_import_status = expected_import_status_arg;
+    int exercise_alg = PSA_ALG_CTR;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    /* Import the key - expect failure */
+    status = psa_import_key( slot, type,
+                                 data->x, data->len );
+    TEST_ASSERT( status == expected_import_status );
+
+    status = psa_cipher_encrypt_setup( &operation, slot, exercise_alg );
+    TEST_ASSERT( status == PSA_ERROR_EMPTY_SLOT );
+
+exit:
+    psa_cipher_abort( &operation );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

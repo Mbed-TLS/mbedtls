@@ -47,6 +47,9 @@ export_invalid_slot:(psa_key_slot_t)(-1):PSA_ERROR_INVALID_ARGUMENT
 PSA export a slot where there was some activity but no key material creation
 export_with_no_key_activity
 
+PSA setup cipher where there was some activity on key but no key material creation
+cipher_with_no_key_activity
+
 PSA export a slot after a failed import of a AES key
 depends_on:MBEDTLS_AES_C
 export_after_import_failure:"0123456789abcdef":PSA_KEY_TYPE_AES:PSA_ERROR_INVALID_ARGUMENT
@@ -58,6 +61,10 @@ export_after_import_failure:"30819f300d06092a864886f70d010101050003818d003081890
 PSA export a slot after a failed import of an EC keypair: public key
 depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED
 export_after_import_failure:"3059301306072a8648ce3d020106082a8648ce3d03010703420004dea5e45d0ea37fc566232a508f4ad20ea13d47e4bf5fa4d54a57a0ba012042087097496efc583fed8b24a5b9be9a51de063f5a00a8b698a16fd7f29b5485f320":PSA_KEY_TYPE_ECC_KEYPAIR(PSA_ECC_CURVE_SECP384R1):PSA_ERROR_INVALID_ARGUMENT
+
+PSA setup cipher after a failed import of a AES key
+depends_on:MBEDTLS_AES_C
+cipher_after_import_failure:"0123456789abcdef":PSA_KEY_TYPE_AES:PSA_ERROR_INVALID_ARGUMENT
 
 PSA export RSA public key from a slot where there was an import followed by destroy.
 depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_RSA_C

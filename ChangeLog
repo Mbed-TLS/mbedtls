@@ -53,6 +53,11 @@ Bugfix
      after use.
    * Use `mbedtls_platform_zeroize()` instead of `memset()` for zeroization
      of sensitive data in the example programs aescrypt2 and crypt_and_hash.
+   * Change the default string format used for various X.509 DN attributes to
+     UTF8String. Previously, the use of the PrintableString format led to
+     wildcards and non-ASCII characters being unusable in some DN attributes.
+     Reported by raprepo in #1860 and by kevinpt in #468.
+     Fix contributed by Thomas-Dee in #1641.
 
 Changes
    * Removed support for Yotta as a build tool.
@@ -65,6 +70,14 @@ Changes
    * Change the use of Windows threading to use Microsoft Visual C++ runtime
      calls, rather than Win32 API calls directly. This is necessary to avoid
      conflict with C runtime usage. Found and fixed by irwir.
+   * Remember the string format of X.509 DN attributes when replicating X.509 DNs.
+     Previously, DN attributes were always written in their default string format
+     (mostly PrintableString), which could lead to CRTs being created which used
+     PrintableStrings in the issuer field even though the signing CA used
+     UTF8Strings in its subject field; while X.509 compliant, such CRTs were
+     rejected in some applications, e.g. some versions of Firefox, curl
+     and GnuTLS. Reported in #1033 by Moschn. Fix contributed by
+     Thomas-Dee in #1641.
 
 = mbed TLS 2.13.1 branch released 2018-09-06
 

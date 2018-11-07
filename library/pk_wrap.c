@@ -677,6 +677,9 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     psa_algorithm_t psa_sig_md = PSA_ALG_ECDSA( translate_md_to_psa( md_alg ) );
     psa_ecc_curve_t curve = mbedtls_ecc_group_to_psa ( ( (mbedtls_ecdsa_context *) ctx )->grp.id );
 
+    if( curve == 0 )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
     memset( &signature, 0, sizeof( mbedtls_asn1_buf ) );
     key.pk_info = &pk_info;
     key.pk_ctx = ctx;

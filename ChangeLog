@@ -2,6 +2,14 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.x.x branch released xxxx-xx-xx
 
+Security
+   * Make mbedtls_ecdh_get_params return an error if the second key
+     belongs to a different group from the first. Before, if an application
+     passed keys that belonged to different group, the first key's data was
+     interpreted according to the second group, which could lead to either
+     an error or a meaningless output from mbedtls_ecdh_get_params. In the
+     latter case, this could expose at most 5 bits of the private key.
+
 Bugfix
    * Fix a compilation issue with mbedtls_ecp_restart_ctx not being defined
      when MBEDTLS_ECP_ALT is defined. Reported by jwhui. Fixes #2242.

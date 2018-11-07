@@ -394,16 +394,46 @@ exit:
     return( 0 );
 }
 
+/* We need two keys to exercise key agreement. Exercise the
+ * private key against its own public key. */
+static psa_status_t key_agreement_with_self( psa_crypto_generator_t *generator,
+                                             psa_key_type_t key_slot,
+                                             psa_algorithm_t alg )
+{
+    psa_key_type_t private_key_type;
+    psa_key_type_t public_key_type;
+    size_t key_bits;
+    uint8_t *public_key = NULL;
+    size_t public_key_length;
+    /* Return UNKNOWN_ERROR if something other than the final call to
+     * psa_key_agreement fails. This isn't fully satisfactory, but it's
+     * good enough: callers will report it as a failed test anyway. */
+    psa_status_t status = PSA_ERROR_UNKNOWN_ERROR;
+
+    TEST_ASSERT( psa_get_key_information( key_slot,
+                                          &private_key_type,
+                                          &key_bits ) == PSA_SUCCESS );
+    public_key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( private_key_type );
+    public_key_length = PSA_KEY_EXPORT_MAX_SIZE( public_key_type, key_bits );
+    ASSERT_ALLOC( public_key, public_key_length );
+    TEST_ASSERT( public_key != NULL );
+    TEST_ASSERT( psa_export_public_key( key_slot,
+                                        public_key, public_key_length,
+                                        &public_key_length ) == PSA_SUCCESS );
+
+    status = psa_key_agreement( generator, key_slot,
+                                public_key, public_key_length,
+                                alg );
+exit:
+    mbedtls_free( public_key );
+    return( status );
+}
+
 static int exercise_key_agreement_key( psa_key_slot_t key,
                                        psa_key_usage_t usage,
                                        psa_algorithm_t alg )
 {
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
-    psa_key_type_t key_type;
-    psa_key_type_t public_key_type;
-    size_t key_bits;
-    uint8_t *public_key = NULL;
-    size_t public_key_length;
     unsigned char output[1];
     int ok = 0;
 
@@ -411,22 +441,8 @@ static int exercise_key_agreement_key( psa_key_slot_t key,
     {
         /* We need two keys to exercise key agreement. Exercise the
          * private key against its own public key. */
-        TEST_ASSERT( psa_get_key_information( key,
-                                              &key_type,
-                                              &key_bits ) == PSA_SUCCESS );
-        public_key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( key_type );
-        public_key_length = PSA_KEY_EXPORT_MAX_SIZE( public_key_type,
-                                                     key_bits );
-        ASSERT_ALLOC( public_key, public_key_length );
-        TEST_ASSERT( public_key != NULL );
-        TEST_ASSERT(
-            psa_export_public_key( key,
-                                   public_key, public_key_length,
-                                   &public_key_length ) == PSA_SUCCESS );
-        TEST_ASSERT( psa_key_agreement( &generator,
-                                        key,
-                                        public_key, public_key_length,
-                                        alg ) == PSA_SUCCESS );
+        TEST_ASSERT( key_agreement_with_self( &generator, key, alg ) ==
+                     PSA_SUCCESS );
         TEST_ASSERT( psa_generator_read( &generator,
                                          output,
                                          sizeof( output ) ) == PSA_SUCCESS );
@@ -435,7 +451,6 @@ static int exercise_key_agreement_key( psa_key_slot_t key,
     ok = 1;
 
 exit:
-    mbedtls_free( public_key );
     return( ok );
 }
 
@@ -1701,7 +1716,6 @@ void derive_key_policy( int policy_usage,
         TEST_ASSERT( status == PSA_ERROR_NOT_PERMITTED );
 
 exit:
-    mbedtls_free( public_key );
     psa_generator_abort( &generator );
     psa_destroy_key( key_slot );
     mbedtls_psa_crypto_free( );
@@ -1718,10 +1732,6 @@ void agreement_key_policy( int policy_usage,
     int key_slot = 1;
     psa_key_policy_t policy;
     psa_key_type_t key_type = key_type_arg;
-    psa_key_type_t public_key_type;
-    size_t key_bits;
-    uint8_t *public_key = NULL;
-    size_t public_key_length;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
     psa_status_t status;
 
@@ -1734,22 +1744,8 @@ void agreement_key_policy( int policy_usage,
     TEST_ASSERT( psa_import_key( key_slot, key_type,
                                  key_data->x, key_data->len ) == PSA_SUCCESS );
 
-    /* We need two keys to exercise key agreement. Exercise the
-     * private key against its own public key. */
-    TEST_ASSERT( psa_get_key_information( key_slot,
-                                          &key_type,
-                                          &key_bits ) == PSA_SUCCESS );
-    public_key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( key_type );
-    public_key_length = PSA_KEY_EXPORT_MAX_SIZE( public_key_type, key_bits );
-    ASSERT_ALLOC( public_key, public_key_length );
-    TEST_ASSERT( public_key != NULL );
-    TEST_ASSERT( psa_export_public_key( key_slot,
-                                        public_key, public_key_length,
-                                        &public_key_length ) == PSA_SUCCESS );
+    status = key_agreement_with_self( &generator, key_slot, exercise_alg );
 
-    status = psa_key_agreement( &generator, key_slot,
-                                public_key, public_key_length,
-                                exercise_alg );
     if( policy_alg == exercise_alg &&
         ( policy_usage & PSA_KEY_USAGE_DERIVE ) != 0 )
         TEST_ASSERT( status == PSA_SUCCESS );

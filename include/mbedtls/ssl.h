@@ -2774,13 +2774,14 @@ size_t mbedtls_ssl_get_bytes_avail( const mbedtls_ssl_context *ssl );
 /**
  * \brief          Return the result of the certificate verification
  *
- * \param ssl      SSL context
+ * \param ssl      The SSL context to use.
  *
- * \return         0 if successful,
- *                 -1 if result is not available (eg because the handshake was
- *                 aborted too early), or
- *                 a combination of BADCERT_xxx and BADCRL_xxx flags, see
- *                 x509.h
+ * \return         \c 0 if the certificate verification was successful.
+ * \return         \c -1u if the result is not available. This may happen
+ *                 e.g. if the handshake aborts early, or a verification
+ *                 callback returned a fatal error.
+ * \return         A bitwise combination of \c MBEDTLS_X509_BADCERT_XXX
+ *                 and \c MBEDTLS_X509_BADCRL_XXX failure flags; see x509.h.
  */
 uint32_t mbedtls_ssl_get_verify_result( const mbedtls_ssl_context *ssl );
 

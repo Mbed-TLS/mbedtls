@@ -78,6 +78,8 @@ Changes
      rejected in some applications, e.g. some versions of Firefox, curl
      and GnuTLS. Reported in #1033 by Moschn. Fix contributed by
      Thomas-Dee in #1641.
+   * Improve documentation of mbedtls_ssl_get_verify_result().
+     Fixes #517 reported by github-monoculture.
 
 = mbed TLS 2.13.1 branch released 2018-09-06
 

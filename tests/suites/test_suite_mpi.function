@@ -1,5 +1,49 @@
 /* BEGIN_HEADER */
 #include "mbedtls/bignum.h"
+
+typedef struct mbedtls_test_mpi_random
+{
+    uint8_t     *data;
+    uint32_t    data_len;
+    size_t      pos;
+    size_t      chunk_len;
+} mbedtls_test_mpi_random;
+
+/*
+ * This function is called by the Miller-Rabin primality test each time it
+ * chooses a random witness. The witnesses (or non-witnesses as provided by the
+ * test) are stored in the data member of the state structure. Each number is in
+ * the format that mbedtls_mpi_read_string understands and is chunk_len long.
+ */
+int mbedtls_test_mpi_miller_rabin_determinizer( void* state,
+                                                unsigned char* buf,
+                                                size_t len )
+{
+    mbedtls_test_mpi_random *random = (mbedtls_test_mpi_random*) state;
+
+    if( random == NULL || random->data == NULL || buf == NULL )
+        return( -1 );
+
+    if( random->pos + random->chunk_len > random->data_len
+            || random->chunk_len > len )
+    {
+        return( -1 );
+    }
+
+    memset( buf, 0, len );
+
+    /* The witness is written to the end of the buffer, since the buffer is
+     * used as big endian, unsigned binary data in mbedtls_mpi_read_binary.
+     * Writing the witness to the start of the buffer would result in the
+     * buffer being 'witness 000...000', which would be treated as
+     * witness * 2^n for some n. */
+    memcpy( buf + len - random->chunk_len, &random->data[random->pos],
+            random->chunk_len );
+
+    random->pos += random->chunk_len;
+
+    return( 0 );
+}
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -806,6 +850,39 @@ void mbedtls_mpi_is_prime( int radix_X, char *input_X, int div_result )
 
 exit:
     mbedtls_mpi_free( &X );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_GENPRIME */
+void mbedtls_mpi_is_prime_det( char *input_X, char *witnesses,
+                               int chunk_len, int div_result )
+{
+    mbedtls_mpi X;
+    int res;
+    mbedtls_test_mpi_random rand;
+    uint8_t *witness_buf = NULL;
+    uint8_t *input_buf = NULL;
+    size_t witness_len;
+    size_t input_len;
+
+    witness_buf = unhexify_alloc( witnesses, &witness_len );
+    input_buf = unhexify_alloc( input_X, &input_len );
+
+    mbedtls_mpi_init( &X );
+    rand.data = witness_buf;
+    rand.data_len = witness_len;
+    rand.pos = 0;
+    rand.chunk_len = chunk_len;
+
+    TEST_ASSERT( mbedtls_mpi_read_binary( &X, input_buf, input_len ) == 0 );
+    res = mbedtls_mpi_is_prime( &X, mbedtls_test_mpi_miller_rabin_determinizer,
+                                    &rand );
+    TEST_ASSERT( res == div_result );
+
+exit:
+    mbedtls_mpi_free( &X );
+    mbedtls_free( witness_buf );
+    mbedtls_free( input_buf );
 }
 /* END_CASE */
 

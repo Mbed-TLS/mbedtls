@@ -1263,9 +1263,10 @@ typedef uint32_t psa_algorithm_t;
  * public key, with a key selection or key derivation algorithm to produce
  * one or more shared keys and other shared cryptographic material.
  *
- * The input to \p kdf_alg is the shared secret `d_A Q_B = d_B Q_A` in
- * big-endian format. It is `ceiling(n / 8)` bytes long where `n` is the
- * curve size in bits.
+ * The input to \p kdf_alg is the x-coordinate of the shared secret
+ * `d_A Q_B = d_B Q_A` in big-endian format. It has the same size of
+ * the order of the curve, i.e. `ceiling(n / 8)` bytes where `n` is
+ * the size of the order of the curve.
  *
  * \param kdf_alg       A key derivation algorithm (\c PSA_ALG_XXX value such
  *                      that #PSA_ALG_IS_KEY_DERIVATION(\p hash_alg) is true)

@@ -34,7 +34,7 @@
 #define mbedtls_fprintf    fprintf
 #define mbedtls_snprintf   snprintf
 #define mbedtls_free       free
-#define mbedtls_exit            exit
+#define mbedtls_exit       exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif
@@ -43,7 +43,7 @@
 int main( void )
 {
     mbedtls_printf("MBEDTLS_TIMING_C not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -287,7 +287,7 @@ int main( int argc, char *argv[] )
     if( mbedtls_platform_setup( &platform_ctx ) != 0 )
     {
         mbedtls_fprintf( stderr, "Failed initializing platform.\n" );
-        return( 1 );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 #endif
 
@@ -1027,7 +1027,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 
 #endif /* MBEDTLS_TIMING_C */

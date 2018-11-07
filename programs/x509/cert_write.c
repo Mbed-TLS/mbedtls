@@ -33,6 +33,7 @@
 #define mbedtls_printf          printf
 #define mbedtls_exit            exit
 #define mbedtls_fprintf         fprintf
+#define mbedtls_exit            exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -48,7 +49,7 @@ int main( void )
             "MBEDTLS_FS_IO and/or MBEDTLS_SHA256_C and/or "
             "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
             "MBEDTLS_ERROR_C not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -256,7 +257,7 @@ int main( int argc, char *argv[] )
     {
         mbedtls_fprintf(
             stderr, "mbedtls_platform_setup returned -0x%04x\n\n", -ret );
-        return( 1 );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 #endif
 
@@ -843,7 +844,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_X509_CRT_WRITE_C && MBEDTLS_X509_CRT_PARSE_C &&
           MBEDTLS_FS_IO && MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C &&

@@ -55,7 +55,7 @@ int main( void )
     mbedtls_printf("MBEDTLS_BIGNUM_C and/or MBEDTLS_RSA_C and/or "
            "MBEDTLS_ENTROPY_C and/or MBEDTLS_FS_IO and/or "
            "MBEDTLS_CTR_DRBG_C not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -93,7 +93,7 @@ int main( int argc, char *argv[] )
     {
         mbedtls_fprintf(
             stderr, "mbedtls_platform_setup returned %d\n", ret );
-        return( MBEDTLS_EXIT_FAILURE );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 #endif
 
@@ -208,7 +208,7 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_RSA_C && MBEDTLS_ENTROPY_C &&
           MBEDTLS_FS_IO && MBEDTLS_CTR_DRBG_C */

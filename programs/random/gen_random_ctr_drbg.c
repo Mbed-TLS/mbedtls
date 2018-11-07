@@ -50,7 +50,7 @@
 int main( void )
 {
     mbedtls_printf("MBEDTLS_CTR_DRBG_C and/or MBEDTLS_ENTROPY_C and/or MBEDTLS_FS_IO not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -83,7 +83,7 @@ int main( int argc, char *argv[] )
     {
         mbedtls_fprintf(
             stderr, "mbedtls_platform_setup returned %d\n\n", ret );
-        return( 1 );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 #endif
     mbedtls_ctr_drbg_init( &ctr_drbg );
@@ -95,7 +95,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
         mbedtls_platform_teardown( &platform_ctx );
 #endif
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
 
     if( ( f = fopen( argv[1], "wb+" ) ) == NULL )
@@ -106,7 +106,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_PLATFORM_C)
         mbedtls_platform_teardown( &platform_ctx );
 #endif
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
 
     mbedtls_entropy_init( &entropy );
@@ -167,6 +167,6 @@ cleanup:
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_teardown( &platform_ctx );
 #endif
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_CTR_DRBG_C && MBEDTLS_ENTROPY_C */

@@ -557,3 +557,50 @@ exit:
     mbedtls_ecp_keypair_free( &their_key );
 }
 /* END_CASE */
+
+/* BEGIN_CASE */
+void ecdh_exchange_get_params_fail( int our_grp_id,
+                                    data_t *our_private_key,
+                                    int their_grp_id,
+                                    data_t *their_point,
+                                    int ours_first,
+                                    int expected_ret )
+{
+    rnd_pseudo_info rnd_info;
+    mbedtls_ecp_keypair our_key;
+    mbedtls_ecp_keypair their_key;
+    mbedtls_ecdh_context ecdh;
+
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+    mbedtls_ecdh_init( &ecdh );
+    mbedtls_ecp_keypair_init( &our_key );
+    mbedtls_ecp_keypair_init( &their_key );
+
+    if( ! load_private_key( our_grp_id, our_private_key, &our_key, &rnd_info ) )
+        goto exit;
+    if( ! load_public_key( their_grp_id, their_point, &their_key ) )
+        goto exit;
+
+    if( ours_first )
+    {
+        TEST_ASSERT( mbedtls_ecdh_get_params(
+                         &ecdh, &our_key, MBEDTLS_ECDH_OURS ) == 0 );
+        TEST_ASSERT( mbedtls_ecdh_get_params(
+                         &ecdh, &their_key, MBEDTLS_ECDH_THEIRS ) ==
+                     expected_ret );
+    }
+    else
+    {
+        TEST_ASSERT( mbedtls_ecdh_get_params(
+                         &ecdh, &their_key, MBEDTLS_ECDH_THEIRS ) == 0 );
+        TEST_ASSERT( mbedtls_ecdh_get_params(
+                         &ecdh, &our_key, MBEDTLS_ECDH_OURS ) ==
+                     expected_ret );
+    }
+
+exit:
+    mbedtls_ecdh_free( &ecdh );
+    mbedtls_ecp_keypair_free( &our_key );
+    mbedtls_ecp_keypair_free( &their_key );
+}
+/* END_CASE */

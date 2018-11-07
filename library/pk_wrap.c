@@ -542,10 +542,9 @@ static psa_algorithm_t translate_md_to_psa( mbedtls_md_type_t md_alg )
 static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
                               mbedtls_asn1_buf *sig )
 {
-    int ret;
-    size_t len_signature;
-    size_t len_partial;
-    int tag_type;
+    int ret, tag_type;
+    size_t len_signature, len_partial;
+
     if( ( end - *p ) < 1 )
     {
         return( MBEDTLS_ERR_X509_INVALID_SIGNATURE +
@@ -589,6 +588,10 @@ static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
         ( *p )++;
         len_partial--;
     }
+
+    // Check if both parts are of the same size
+    if( len_partial != len_signature )
+    	return( MBEDTLS_ERR_X509_INVALID_SIGNATURE );
 
     memcpy( sig->p + len_partial, *p, len_partial );
     len_signature += len_partial;

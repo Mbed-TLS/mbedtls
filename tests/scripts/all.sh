@@ -156,7 +156,7 @@ cleanup()
     command make clean
 
     # Remove CMake artefacts
-    find . -name .git -prune \
+    find . -name .git -prune -o \
            -iname CMakeFiles -exec rm -rf {} \+ -o \
            \( -iname cmake_install.cmake -o \
               -iname CTestTestfile.cmake -o \

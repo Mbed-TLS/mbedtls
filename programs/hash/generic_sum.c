@@ -48,7 +48,7 @@
 int main( void )
 {
     mbedtls_printf("MBEDTLS_MD_C and/or MBEDTLS_FS_IO not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -195,7 +195,7 @@ int main( int argc, char *argv[] )
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
         mbedtls_fprintf( stderr, "Failed initializing platform\n" );
-        return( exit_code );
+        mbedtls_exit( exit_code );
     }
 #endif
     mbedtls_md_init( &md_ctx );
@@ -257,6 +257,6 @@ exit:
     mbedtls_platform_teardown( &platform_ctx );
 #endif
 
-    return( exit_code );
+    mbedtls_exit( exit_code );
 }
 #endif /* MBEDTLS_MD_C && MBEDTLS_FS_IO */

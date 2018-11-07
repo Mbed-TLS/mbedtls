@@ -48,7 +48,7 @@ int main( void )
     mbedtls_printf("MBEDTLS_ENTROPY_C and/or "
            "MBEDTLS_SSL_TLS_C and/or MBEDTLS_SSL_CLI_C and/or "
            "MBEDTLS_NET_C and/or MBEDTLS_CTR_DRBG_C and/or not defined.\n");
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -579,7 +579,7 @@ int main( int argc, char *argv[] )
     {
         mbedtls_fprintf(
             stderr,"platform_setup returned -0x%x\n\n", -ret );
-        return( 1 );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 #endif
 
@@ -2153,10 +2153,6 @@ exit:
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED &&
           MBEDTLS_USE_PSA_CRYPTO */
 
-    // Shell can not handle large exit numbers -> 1 for errors
-    if( ret < 0 )
-        ret = 1;
-
 #if defined(MBEDTLS_PLATFORM_C)
     mbedtls_platform_teardown( &platform_ctx );
 #endif
@@ -2165,7 +2161,10 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    return( ret );
+    if( ret == 0 )
+        mbedtls_exit( MBEDTLS_EXIT_SUCCESS );
+    else
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
 }
 #endif /* MBEDTLS_BIGNUM_C && MBEDTLS_ENTROPY_C && MBEDTLS_SSL_TLS_C &&
           MBEDTLS_SSL_CLI_C && MBEDTLS_NET_C && MBEDTLS_RSA_C &&

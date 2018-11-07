@@ -61,7 +61,7 @@ int main( void )
             "MBEDTLS_X509_CRT_PARSE_C and/or MBEDTLS_RSA_C and/or "
             "MBEDTLS_CERTS_C and/or MBEDTLS_PEM_PARSE_C and/or "
             "MBEDTLS_TIMING_C not defined.\n" );
-    return( 0 );
+    mbedtls_exit( 0 );
 }
 #else
 
@@ -141,7 +141,7 @@ int main( void )
     if( ( ret = mbedtls_platform_setup( &platform_ctx ) ) != 0 )
     {
         mbedtls_fprintf( stderr, "platform_setup returned %d\n\n", ret );
-        return( 1 );
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
     }
 #endif
     mbedtls_net_init( &listen_fd );
@@ -451,11 +451,10 @@ exit:
     fflush( stdout ); getchar();
 #endif
 
-    /* Shell can not handle large exit numbers -> 1 for errors */
-    if( ret < 0 )
-        ret = 1;
-
-    return( ret );
+    if( ret == 0 )
+        mbedtls_exit( MBEDTLS_EXIT_SUCCESS );
+    else
+        mbedtls_exit( MBEDTLS_EXIT_FAILURE );
 }
 #endif /* MBEDTLS_SSL_SRV_C && MBEDTLS_SSL_PROTO_DTLS &&
           MBEDTLS_SSL_COOKIE_C && MBEDTLS_NET_C && MBEDTLS_ENTROPY_C &&

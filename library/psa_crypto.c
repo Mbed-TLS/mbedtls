@@ -1107,6 +1107,37 @@ psa_status_t psa_export_public_key( psa_key_slot_t key,
                                      data_length, 1 ) );
 }
 
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+static psa_status_t psa_save_generated_persistent_key( psa_key_slot_t key,
+                                                       key_slot_t *slot,
+                                                       size_t bits )
+{
+    psa_status_t status;
+    uint8_t *data;
+    size_t key_length;
+    size_t data_size = PSA_KEY_EXPORT_MAX_SIZE( slot->type, bits );
+    data = mbedtls_calloc( 1, data_size );
+    /* Get key data in export format */
+    status = psa_internal_export_key( slot, data, data_size, &key_length, 0 );
+    if( status != PSA_SUCCESS )
+    {
+        slot->type = PSA_KEY_TYPE_NONE;
+        goto exit;
+    }
+    /* Store in file location */
+    status = psa_save_persistent_key( key, slot->type, &slot->policy,
+                                      data, key_length );
+    if( status != PSA_SUCCESS )
+    {
+        slot->type = PSA_KEY_TYPE_NONE;
+    }
+exit:
+    mbedtls_zeroize( data, key_length );
+    mbedtls_free( data );
+    return( status );
+}
+#endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+
 
 
 /****************************************************************/
@@ -4309,7 +4340,15 @@ psa_status_t psa_generate_key( psa_key_slot_t key,
         return( PSA_ERROR_NOT_SUPPORTED );
 
     slot->type = type;
-    return( PSA_SUCCESS );
+
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
+    if( slot->lifetime == PSA_KEY_LIFETIME_PERSISTENT )
+    {
+        return( psa_save_generated_persistent_key( key, slot, bits ) );
+    }
+#endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+
+    return( status );
 }
 
 

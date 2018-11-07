@@ -16,6 +16,7 @@ typedef struct {
     uint8_t data_len[4];
     uint8_t key_data[];
 } psa_persistent_key_storage_format;
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES

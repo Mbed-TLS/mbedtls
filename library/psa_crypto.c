@@ -953,30 +953,14 @@ psa_status_t psa_get_key_information( psa_key_slot_t key,
     return( PSA_SUCCESS );
 }
 
-static  psa_status_t psa_internal_export_key( psa_key_slot_t key,
+static  psa_status_t psa_internal_export_key( key_slot_t *slot,
                                               uint8_t *data,
                                               size_t data_size,
                                               size_t *data_length,
                                               int export_public_key )
 {
-    key_slot_t *slot;
-    psa_status_t status;
-    /* Exporting a public key doesn't require a usage flag. If we're
-     * called by psa_export_public_key(), don't require the EXPORT flag.
-     * If we're called by psa_export_key(), do require the EXPORT flag;
-     * if the key turns out to be public key object, psa_get_key_from_slot()
-     * will ignore this flag. */
-    psa_key_usage_t usage = export_public_key ? 0 : PSA_KEY_USAGE_EXPORT;
-
-    /* Set the key to empty now, so that even when there are errors, we always
-     * set data_length to a value between 0 and data_size. On error, setting
-     * the key to empty is a good choice because an empty key representation is
-     * unlikely to be accepted anywhere. */
     *data_length = 0;
 
-    status = psa_get_key_from_slot( key, &slot, usage, 0 );
-    if( status != PSA_SUCCESS )
-        return( status );
     if( export_public_key && ! PSA_KEY_TYPE_IS_ASYMMETRIC( slot->type ) )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
@@ -996,6 +980,8 @@ static  psa_status_t psa_internal_export_key( psa_key_slot_t key,
 #if defined(MBEDTLS_ECP_C)
     if( PSA_KEY_TYPE_IS_ECC_KEYPAIR( slot->type ) && !export_public_key )
     {
+        psa_status_t status;
+
         size_t bytes = PSA_BITS_TO_BYTES( psa_get_key_bits( slot ) );
         if( bytes > data_size )
             return( PSA_ERROR_BUFFER_TOO_SMALL );
@@ -1080,7 +1066,22 @@ psa_status_t psa_export_key( psa_key_slot_t key,
                              size_t data_size,
                              size_t *data_length )
 {
-    return( psa_internal_export_key( key, data, data_size,
+    key_slot_t *slot;
+    psa_status_t status;
+
+    /* Set the key to empty now, so that even when there are errors, we always
+     * set data_length to a value between 0 and data_size. On error, setting
+     * the key to empty is a good choice because an empty key representation is
+     * unlikely to be accepted anywhere. */
+    *data_length = 0;
+
+    /* Export requires the EXPORT flag. There is an exception for public keys,
+     * which don't require any flag, but psa_get_key_from_slot takes
+     * care of this. */
+    status = psa_get_key_from_slot( key, &slot, PSA_KEY_USAGE_EXPORT, 0 );
+    if( status != PSA_SUCCESS )
+        return( status );
+    return( psa_internal_export_key( slot, data, data_size,
                                      data_length, 0 ) );
 }
 
@@ -1089,7 +1090,20 @@ psa_status_t psa_export_public_key( psa_key_slot_t key,
                                     size_t data_size,
                                     size_t *data_length )
 {
-    return( psa_internal_export_key( key, data, data_size,
+    key_slot_t *slot;
+    psa_status_t status;
+
+    /* Set the key to empty now, so that even when there are errors, we always
+     * set data_length to a value between 0 and data_size. On error, setting
+     * the key to empty is a good choice because an empty key representation is
+     * unlikely to be accepted anywhere. */
+    *data_length = 0;
+
+    /* Exporting a public key doesn't require a usage flag. */
+    status = psa_get_key_from_slot( key, &slot, 0, 0 );
+    if( status != PSA_SUCCESS )
+        return( status );
+    return( psa_internal_export_key( slot, data, data_size,
                                      data_length, 1 ) );
 }
 

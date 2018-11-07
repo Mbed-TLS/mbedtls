@@ -60,6 +60,20 @@ Changes
    * Improve documentation of mbedtls_ssl_get_verify_result().
      Fixes #517 reported by github-monoculture.
 
+Security
+   * Fix mbedtls_mpi_is_prime() to use more rounds of probabilistic testing. The
+     previous settings for the number of rounds made it practical for an
+     adversary to construct non-primes that would be erroneously accepted as
+     primes with high probability. This does not have an impact on the
+     security of TLS, but can matter in other contexts with potentially
+     adversarially-chosen numbers that should be prime and can be validated.
+     For example, the number of rounds was enough to securely generate RSA key
+     pairs or Diffie-Hellman parameters, but was insufficient to validate
+     Diffie-Hellman parameters properly.
+     See "Prime and Prejudice" by by Martin R. Albrecht and Jake Massimo and
+     Kenneth G. Paterson and Juraj Somorovsky.
+
+
 = mbed TLS 2.1.15 branch released 2018-08-31
 
 Security

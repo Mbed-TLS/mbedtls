@@ -576,10 +576,11 @@ static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
     memcpy( sig->p, *p, len_partial );
     len_signature = len_partial;
     ( *p ) += len_partial;
-    if( ( ret = mbedtls_asn1_get_tag( p, end, &len_partial, MBEDTLS_ASN1_INTEGER ) )
-         != 0 )
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &len_partial,
+                                      MBEDTLS_ASN1_INTEGER ) ) != 0 )
     {
         mbedtls_free( sig->p );
+        sig->p = NULL;
         return( ret );
     }
 
@@ -684,10 +685,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     psa_type = PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve );
 
     if( extract_ecdsa_sig( &p, p + sig_len, &signature ) != 0 )
-    {
-        ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-        goto cleanup;
-    }
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
     key_len = mbedtls_pk_write_pubkey_der( &key, buf, buf_len );
     if( key_len <= 0 )

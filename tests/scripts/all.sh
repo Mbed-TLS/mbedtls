@@ -624,6 +624,29 @@ make CC=gcc USE_CRYPTO_SUBMODULE=1 test
 msg "test: ssl-opt.sh (USE_CRYPTO_SUBMODULE, make)"
 if_build_succeeded tests/ssl-opt.sh
 
+# Don't USE_CRYPTO_SUBMODULE: check that the submodule is not used with make
+msg "build: make, full config - USE_CRYPTO_SUBMODULE, gcc+debug"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+make CC=gcc CFLAGS='-g'
+msg "test: submodule libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, make)"
+if_build_succeeded not test -f crypto/library/libmbedcrypto.a
+msg "test: libmbedcrypto symbols are from library files (USE_CRYPTO_SUBMODULE, make)"
+if_build_succeeded objdump -g library/libmbedcrypto.a | grep -E 'library$' | not grep 'crypto' > /dev/null
+
+# Don't USE_CRYPTO_SUBMODULE: check that the submodule is not used with CMake
+msg "build: cmake, full config - USE_CRYPTO_SUBMODULE, gcc+debug"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full
+CC=gcc cmake -D CMAKE_BUILD_TYPE=Debug .
+make
+msg "test: submodule libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, cmake)"
+if_build_succeeded not test -f crypto/library/libmbedcrypto.a
+msg "test: libmbedcrypto symbols are from library files (USE_CRYPTO_SUBMODULE, cmake)"
+if_build_succeeded objdump -g library/libmbedcrypto.a | grep -E 'library$' | not grep 'crypto' > /dev/null
+
 msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"

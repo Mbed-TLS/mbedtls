@@ -103,6 +103,7 @@ int main( void )
 #define DFL_CRT_FILE            ""
 #define DFL_KEY_FILE            ""
 #define DFL_KEY_OPAQUE          0
+#define DFL_KEY_PWD             ""
 #define DFL_PSK                 ""
 #define DFL_PSK_OPAQUE          0
 #define DFL_PSK_IDENTITY        "Client_identity"
@@ -487,6 +488,7 @@ struct options
 #if defined(MBEDTLS_X509_TRUSTED_CERTIFICATE_CALLBACK)
     int ca_callback;            /* Use callback for trusted certificate list */
 #endif
+    const char *key_pwd;        /* the password for the client key          */
     const char *psk;            /* the pre-shared key                       */
     const char *psk_identity;   /* the pre-shared key identity              */
     const char *ecjpake_pw;     /* the EC J-PAKE password                   */
@@ -1251,6 +1253,7 @@ int main( int argc, char *argv[] )
     opt.crt_file            = DFL_CRT_FILE;
     opt.key_file            = DFL_KEY_FILE;
     opt.key_opaque          = DFL_KEY_OPAQUE;
+    opt.key_pwd             = DFL_KEY_PWD;
     opt.psk                 = DFL_PSK;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     opt.psk_opaque          = DFL_PSK_OPAQUE;
@@ -1396,6 +1399,8 @@ int main( int argc, char *argv[] )
             opt.cid_val_renego = q;
         }
 #endif /* MBEDTLS_SSL_DTLS_CONNECTION_ID */
+        else if( strcmp( p, "key_pwd" ) == 0 )
+            opt.key_pwd = q;
         else if( strcmp( p, "psk" ) == 0 )
             opt.psk = q;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
@@ -2079,7 +2084,7 @@ int main( int argc, char *argv[] )
     else
 #if defined(MBEDTLS_FS_IO)
     if( strlen( opt.key_file ) )
-        ret = mbedtls_pk_parse_keyfile( &pkey, opt.key_file, "" );
+        ret = mbedtls_pk_parse_keyfile( &pkey, opt.key_file, opt.key_pwd );
     else
 #endif
 #if defined(MBEDTLS_CERTS_C)

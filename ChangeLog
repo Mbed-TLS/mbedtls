@@ -3,13 +3,12 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Security
-   * Fix overly strict DN comparison when looking for CRLs
-     belonging to a particular CA. This previously lead to
-     ignoring CRLs when the CRL's issuer name and the CA's
-     subject name differed in their string encoding (e.g.,
-     one using PrintableString and the other UTF8String) or
-     in the choice of upper and lower case. Reported by
-     HenrikRosenquistAndersson in #1784.
+   * Fix overly strict DN comparison when looking for CRLs belonging to a
+     particular CA. This previously lead to ignoring CRLs when the CRL's issuer
+     name and the CA's subject name differed in their string encoding (e.g.,
+     one using PrintableString and the other UTF8String) or in the choice of
+     upper and lower case. Reported by Henrik Andersson of Bosch GmbH in issue
+     #1784.
    * Fix a flawed bounds check in server PSK hint parsing. In case the
      incoming message buffer was placed within the first 64KB of address
      space and a PSK-(EC)DHE ciphersuite was used, this allowed an attacker
@@ -19,8 +18,8 @@ Security
      previous settings for the number of rounds made it practical for an
      adversary to construct non-primes that would be erroneously accepted as
      primes with high probability. This does not have an impact on the
-     security of TLS, but can matter in other contexts with potentially
-     adversarially-chosen numbers that should be prime and can be validated.
+     security of TLS, but can matter in other contexts with numbers chosen
+     potentially by an adversary that should be prime and can be validated.
      For example, the number of rounds was enough to securely generate RSA key
      pairs or Diffie-Hellman parameters, but was insufficient to validate
      Diffie-Hellman parameters properly.
@@ -62,7 +61,7 @@ New deprecations
      MBEDTLS_ERR_XXX_FEATURE_UNAVAILABLE that indicate a feature is not
      supported are deprecated and are now replaced by the new equivalent
      platform error.
-   * All module specific generic hardware accelaration errors following the
+   * All module specific generic hardware acceleration errors following the
      form MBEDTLS_ERR_XXX_HW_ACCEL_FAILED that are deprecated and are replaced
      by the equivalent plaform error.
    * Deprecate the function mbedtls_mpi_is_prime() in favor of
@@ -83,8 +82,8 @@ Bugfix
      padded records in case of CBC ciphersuites using Encrypt-then-MAC.
    * Fix memory leak and freeing without initialization in the example
      program programs/x509/cert_write. Fixes #1422.
-   * Ignore IV in mbedtls_cipher_set_iv() when the cipher mode is MBEDTLS_MODE_ECB
-     Fix for #1091 raised by ezdevelop
+   * Ignore IV in mbedtls_cipher_set_iv() when the cipher mode is
+     MBEDTLS_MODE_ECB. Found by ezdevelop. Fixes #1091.
    * Zeroize memory used for buffering or reassembling handshake messages
      after use.
    * Use `mbedtls_platform_zeroize()` instead of `memset()` for zeroization
@@ -92,8 +91,8 @@ Bugfix
    * Change the default string format used for various X.509 DN attributes to
      UTF8String. Previously, the use of the PrintableString format led to
      wildcards and non-ASCII characters being unusable in some DN attributes.
-     Reported by raprepo in #1860 and by kevinpt in #468.
-     Fix contributed by Thomas-Dee in #1641.
+     Reported by raprepo in #1860 and by kevinpt in #468. Fix contributed by
+     Thomas-Dee.
    * Fix compilation failure for configurations which use compile time
      replacements of standard calloc/free functions through the macros
      MBEDTLS_PLATFORM_CALLOC_MACRO and MBEDTLS_PLATFORM_FREE_MACRO.
@@ -110,14 +109,14 @@ Changes
    * Change the use of Windows threading to use Microsoft Visual C++ runtime
      calls, rather than Win32 API calls directly. This is necessary to avoid
      conflict with C runtime usage. Found and fixed by irwir.
-   * Remember the string format of X.509 DN attributes when replicating X.509 DNs.
-     Previously, DN attributes were always written in their default string format
-     (mostly PrintableString), which could lead to CRTs being created which used
-     PrintableStrings in the issuer field even though the signing CA used
-     UTF8Strings in its subject field; while X.509 compliant, such CRTs were
-     rejected in some applications, e.g. some versions of Firefox, curl
-     and GnuTLS. Reported in #1033 by Moschn. Fix contributed by
-     Thomas-Dee in #1641.
+   * Remember the string format of X.509 DN attributes when replicating
+     X.509 DNs. Previously, DN attributes were always written in their default
+     string format (mostly PrintableString), which could lead to CRTs being
+     created which used PrintableStrings in the issuer field even though the
+     signing CA used UTF8Strings in its subject field; while X.509 compliant,
+     such CRTs were rejected in some applications, e.g. some versions of
+     Firefox, curl and GnuTLS. Reported in #1033 by Moschn. Fix contributed by
+     Thomas-Dee.
    * Improve documentation of mbedtls_ssl_get_verify_result().
      Fixes #517 reported by github-monoculture.
    * Add MBEDTLS_MPI_GEN_PRIME_FLAG_LOW_ERR flag to mbedtls_mpi_gen_prime() and

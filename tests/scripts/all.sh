@@ -652,6 +652,18 @@ make
 msg "test: MBEDTLS_TEST_NULL_ENTROPY - main suites (inc. selftests) (ASan build)"
 make test
 
+msg "build: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_PLATFORM_MEMORY
+scripts/config.pl set MBEDTLS_PLATFORM_CALLOC_MACRO calloc
+scripts/config.pl set MBEDTLS_PLATFORM_FREE_MACRO   free
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
+make test
+
 if uname -a | grep -F Linux >/dev/null; then
     msg "build/test: make shared" # ~ 40s
     cleanup

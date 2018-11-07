@@ -30,6 +30,10 @@ Bugfix
    * Zeroize memory used for reassembling handshake messages after use.
    * Use `mbedtls_zeroize()` instead of `memset()` for zeroization of
      sensitive data in the example programs aescrypt2 and crypt_and_hash.
+   * Fix compilation failure for configurations which use compile time
+     replacements of standard calloc/free functions through the macros
+     MBEDTLS_PLATFORM_CALLOC_MACRO and MBEDTLS_PLATFORM_FREE_MACRO.
+     Reported by ole-de and ddhome2006. Fixes #882, #1642 and #1706.
 
 Changes
    * Add tests for session resumption in DTLS.

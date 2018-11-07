@@ -10,6 +10,11 @@ Security
      one using PrintableString and the other UTF8String) or
      in the choice of upper and lower case. Reported by
      HenrikRosenquistAndersson in #1784.
+   * Fix a flawed bounds check in server PSK hint parsing. In case the
+     incoming message buffer was placed within the first 64KB of address
+     space and a PSK-(EC)DHE ciphersuite was used, this allowed an attacker
+     to trigger a memory access up to 64KB beyond the incoming message buffer,
+     potentially leading to application crash or information disclosure.
    * Fix mbedtls_mpi_is_prime() to use more rounds of probabilistic testing. The
      previous settings for the number of rounds made it practical for an
      adversary to construct non-primes that would be erroneously accepted as

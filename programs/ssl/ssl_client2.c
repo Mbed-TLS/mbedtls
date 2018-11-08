@@ -566,6 +566,9 @@ int main( int argc, char *argv[] )
     mbedtls_x509_crt cacert;
     mbedtls_x509_crt clicert;
     mbedtls_pk_context pkey;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_key_slot_t key_slot = 0; /* invalid key slot */
+#endif
 #endif
     char *p, *q;
     const int *list;
@@ -1327,11 +1330,17 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( opt.key_opaque != 0 )
     {
-        /* coming soon: load key to key slot */
+        if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot,
+                                               PSA_ALG_SHA_256 ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  !  "
+                            "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", -ret );
+            goto exit;
+        }
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-    mbedtls_printf( " ok\n" );
+    mbedtls_printf( " ok (key type: %s)\n", mbedtls_pk_get_name( &pkey ) );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     /*
@@ -2138,6 +2147,9 @@ exit:
     mbedtls_x509_crt_free( &clicert );
     mbedtls_x509_crt_free( &cacert );
     mbedtls_pk_free( &pkey );
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_destroy_key( key_slot );
+#endif
 #endif
     mbedtls_ssl_session_free( &saved_session );
     mbedtls_ssl_free( &ssl );

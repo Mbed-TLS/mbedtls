@@ -677,12 +677,16 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     unsigned char buf[buf_len];
     unsigned char *p = (unsigned char*) sig;
     mbedtls_pk_info_t pk_info = mbedtls_eckey_info;
-    psa_algorithm_t psa_sig_md = PSA_ALG_ECDSA( translate_md_to_psa( md_alg ) );
+    psa_algorithm_t psa_sig_md = translate_md_to_psa( md_alg );
     psa_ecc_curve_t curve = mbedtls_ecc_group_to_psa ( ( (mbedtls_ecdsa_context *) ctx )->grp.id );
 
     if( curve == 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
+    if( psa_sig_md == 0 )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    psa_sig_md = PSA_ALG_ECDSA( psa_sig_md );
     memset( &signature, 0, sizeof( mbedtls_asn1_buf ) );
     key.pk_info = &pk_info;
     key.pk_ctx = ctx;

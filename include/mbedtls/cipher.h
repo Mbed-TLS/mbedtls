@@ -179,16 +179,16 @@ typedef enum {
 
 /** Supported cipher modes. */
 typedef enum {
-    MBEDTLS_MODE_NONE = 0,               /**< None. */
-    MBEDTLS_MODE_ECB,                    /**< The ECB cipher mode. */
-    MBEDTLS_MODE_CBC,                    /**< The CBC cipher mode. */
-    MBEDTLS_MODE_CFB,                    /**< The CFB cipher mode. */
-    MBEDTLS_MODE_OFB,                    /**< The OFB cipher mode. */
-    MBEDTLS_MODE_CTR,                    /**< The CTR cipher mode. */
-    MBEDTLS_MODE_GCM,                    /**< The GCM cipher mode. */
-    MBEDTLS_MODE_STREAM,                 /**< The stream cipher mode. */
-    MBEDTLS_MODE_CCM,                    /**< The CCM cipher mode. */
-    MBEDTLS_MODE_XTS,                    /**< The XTS cipher mode. */
+    MBEDTLS_MODE_NONE = 0,               /**< None.                        */
+    MBEDTLS_MODE_ECB,                    /**< The ECB cipher mode.         */
+    MBEDTLS_MODE_CBC,                    /**< The CBC cipher mode.         */
+    MBEDTLS_MODE_CFB,                    /**< The CFB cipher mode.         */
+    MBEDTLS_MODE_OFB,                    /**< The OFB cipher mode.         */
+    MBEDTLS_MODE_CTR,                    /**< The CTR cipher mode.         */
+    MBEDTLS_MODE_GCM,                    /**< The GCM cipher mode.         */
+    MBEDTLS_MODE_STREAM,                 /**< The stream cipher mode.      */
+    MBEDTLS_MODE_CCM,                    /**< The CCM cipher mode.         */
+    MBEDTLS_MODE_XTS,                    /**< The XTS cipher mode.         */
     MBEDTLS_MODE_CHACHAPOLY,             /**< The ChaCha-Poly cipher mode. */
 } mbedtls_cipher_mode_t;
 

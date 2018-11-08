@@ -631,7 +631,7 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
         else
 #endif /* MBEDTLS_ECP_C */
         {
-            char message[40];
+            char message[47];
             mbedtls_snprintf( message, sizeof( message ),
                               "No sanity check for public key type=0x%08lx",
                               (unsigned long) type );

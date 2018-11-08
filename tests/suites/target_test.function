@@ -375,6 +375,7 @@ int execute_tests( int args, const char ** argv )
     {
         ret = 0;
         test_info.failed = 0;
+        test_info.skipped = 0;
         data_len = 0;
 
         data = receive_data( &data_len );
@@ -431,6 +432,8 @@ int execute_tests( int args, const char ** argv )
 
         if ( ret )
             send_failure( ret );
+        else if ( test_info.skipped == 1)
+            send_failure( FEATURE_UNSUPPORTED );
         else
             send_status( test_info.failed );
     }

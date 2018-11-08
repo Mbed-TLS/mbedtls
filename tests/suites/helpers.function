@@ -69,6 +69,8 @@ typedef struct data_tag
                                                allowed */
 #define DISPATCH_UNSUPPORTED_SUITE      -5  /* Test suite not supported by the
                                                build */
+#define FEATURE_UNSUPPORTED             -6  /* Feature not supported by the
+                                               platform */
 
 typedef enum
 {
@@ -116,21 +118,21 @@ typedef enum
        }                                                    \
     } while( 0 )
 
-#define TEST_ASSERT_RET( TEST, EXP_RET )                          \
-    do {                                                          \
-        int ret = (TEST);                                         \
-        if( ret != EXP_RET )                                      \
-        {                                                         \
-            if( ret & MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )  \
-            {                                                     \
-                test_skip( #TEST, __LINE__, __FILE__ );           \
-            }                                                     \
-            else                                                  \
-            {                                                     \
-                test_fail( #TEST, __LINE__, __FILE__ );           \
-            }                                                     \
-            goto exit;                                            \
-        }                                                         \
+#define TEST_ASSERT_RET( TEST, EXP_RET )                                              \
+    do {                                                                              \
+        int ret = (TEST);                                                             \
+        if( ret != ( EXP_RET ) )                                                      \
+        {                                                                             \
+            if( ( -ret & ~0xFF80 ) == -( MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) ) \
+            {                                                                         \
+                test_skip( #TEST, __LINE__, __FILE__ );                               \
+            }                                                                         \
+            else                                                                      \
+            {                                                                         \
+                test_fail( #TEST, __LINE__, __FILE__ );                               \
+            }                                                                         \
+            goto exit;                                                                \
+        }                                                                             \
     } while( 0 )
 
 /**

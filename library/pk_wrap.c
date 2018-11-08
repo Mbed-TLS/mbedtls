@@ -591,7 +591,7 @@ static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
 
     // Check if both parts are of the same size
     if( len_partial != len_signature )
-    	return( MBEDTLS_ERR_X509_INVALID_SIGNATURE );
+        return( MBEDTLS_ERR_X509_INVALID_SIGNATURE );
 
     memcpy( sig->p + len_partial, *p, len_partial );
     len_signature += len_partial;
@@ -696,15 +696,16 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     key_len = mbedtls_pk_write_pubkey_der( &key, buf, buf_len );
     if( key_len <= 0 )
     {
-        ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
-        goto cleanup;
+        mbedtls_free( signature.p );
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
     }
 
     if( mbedtls_psa_get_free_key_slot( &key_slot ) != PSA_SUCCESS )
     {
-        ret = MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE;
-        goto cleanup;
+        mbedtls_free( signature.p );
+        return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
     }
+
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_VERIFY, psa_sig_md );
     if( psa_set_key_policy( key_slot, &policy ) != PSA_SUCCESS )
@@ -725,14 +726,13 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                                signature.p, signature.len )
          != PSA_SUCCESS )
     {
-         psa_destroy_key( key_slot );
          ret = MBEDTLS_ERR_ECP_VERIFY_FAILED;
          goto cleanup;
     }
     ret = 0;
-    psa_destroy_key( key_slot );
 
     cleanup:
+    psa_destroy_key( key_slot );
     mbedtls_free( signature.p );
     return( ret );
 }

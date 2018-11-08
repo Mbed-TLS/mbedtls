@@ -718,18 +718,59 @@ cleanup:
 
 /* Convert a big-endian byte array aligned to the size of mbedtls_mpi_uint
  * into the storage form used by mbedtls_mpi. */
+
+static mbedtls_mpi_uint mpi_uint_bigendian_to_host_c( mbedtls_mpi_uint x )
+{
+    uint8_t i;
+    mbedtls_mpi_uint tmp = 0;
+    /* This works regardless of the endianness. */
+    for( i = 0; i < ciL; i++, x >>= 8 )
+        tmp |= ( x & 0xFF ) << ( ( ciL - 1 - i ) << 3 );
+    return( tmp );
+}
+
+static mbedtls_mpi_uint mpi_uint_bigendian_to_host( mbedtls_mpi_uint x )
+{
+#if defined(__BYTE_ORDER__)
+
+/* Nothing to do on bigendian systems. */
+#if ( __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ )
+    return( x );
+#endif /* __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__ */
+
+#if ( __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ )
+
+/* For GCC and Clang, have builtins for byte swapping. */
+#if( defined(__GNUC__) && __GNUC_PREREQ(4,3) )
+#define have_bswap
+#elif defined(__clang__)                &&               \
+      defined(__has_builtin)            &&               \
+      __has_builtin(__builtin_bswap32)  &&               \
+      __has_builtin(__builtin_bswap64)
+#define have_bswap
+#endif
+#if defined(have_bswap)
+    /* The compiler is hopefully able to statically evaluate this! */
+    switch( sizeof(mbedtls_mpi_uint) )
+    {
+        case 4:
+            return( __builtin_bswap32(x) );
+        case 8:
+            return( __builtin_bswap64(x) );
+    }
+#endif
+#endif /* __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ */
+#endif /* __BYTE_ORDER__ */
+
+    /* Fall back to C-based reordering if we don't know the byte order
+     * or we couldn't use a compiler-specific builtin. */
+    return( mpi_uint_bigendian_to_host_c( x ) );
+}
+
 static void mpi_bigendian_to_host( mbedtls_mpi_uint * const p, size_t limbs )
 {
-    size_t i;
-
-    unsigned char *cur_byte_left;
-    unsigned char *cur_byte_right;
-
     mbedtls_mpi_uint *cur_limb_left;
     mbedtls_mpi_uint *cur_limb_right;
-
-    mbedtls_mpi_uint tmp_left, tmp_right;
-
     if( limbs == 0 )
         return;
 
@@ -742,30 +783,17 @@ static void mpi_bigendian_to_host( mbedtls_mpi_uint * const p, size_t limbs )
      * than the right index (it's not a problem if limbs is odd and the
      * indices coincide in the last iteration).
      */
-
     for( cur_limb_left = p, cur_limb_right = p + ( limbs - 1 );
          cur_limb_left <= cur_limb_right;
          cur_limb_left++, cur_limb_right-- )
     {
-        cur_byte_left  = (unsigned char*) cur_limb_left;
-        cur_byte_right = (unsigned char*) cur_limb_right;
-
-        tmp_left  = 0;
-        tmp_right = 0;
-
-        for( i = 0; i < ciL; i++ )
-        {
-            tmp_left  |= ( (mbedtls_mpi_uint) *cur_byte_left++ )
-                         << ( ( ciL - 1 - i ) << 3 );
-            tmp_right |= ( (mbedtls_mpi_uint) *cur_byte_right++ )
-                         << ( ( ciL - 1 - i ) << 3 );
-        }
-
-        *cur_limb_right = tmp_left;
-        *cur_limb_left  = tmp_right;
+        mbedtls_mpi_uint tmp;
+        /* Note that if cur_limb_left == cur_limb_right,
+         * this code effectively swaps the bytes only once. */
+        tmp             = mpi_uint_bigendian_to_host( *cur_limb_left  );
+        *cur_limb_left  = mpi_uint_bigendian_to_host( *cur_limb_right );
+        *cur_limb_right = tmp;
     }
-
-    return;
 }
 
 /*

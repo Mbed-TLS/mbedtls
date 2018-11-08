@@ -324,11 +324,17 @@ typedef struct mbedtls_cipher_context_t
 } mbedtls_cipher_context_t;
 
 /**
- * \brief This function retrieves the list of ciphers supported by the generic
- * cipher module.
+ * \brief This function retrieves the list of ciphers supported
+ *        by the generic cipher module.
  *
- * \return      A statically-allocated array of ciphers. The last entry
- *              is zero.
+ *        For any cipher identifier in the returned list, you can
+ *        obtain the corresponding generic cipher information structure
+ *        via mbedtls_cipher_info_from_type(), which can then be used
+ *        to prepare a cipher context via mbedtls_cipher_setup().
+ *
+ *
+ * \return      A statically-allocated array of cipher identifiers
+ *              of type cipher_type_t. The last entry is zero.
  */
 const int *mbedtls_cipher_list( void );
 

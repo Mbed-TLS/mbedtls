@@ -34,7 +34,7 @@ Since the Mbed Crypto library is a reference implementation of the PSA cryptogra
 You need the following tools to build the library with the provided makefiles:
 
 * GNU Make.
-* A C toolchain (compiler, linker, archiver).
+* A C99 toolchain (compiler, linker, archiver).
 * Python 2 or Python 3 (either will work) to generate the test code.
 * Perl to run the tests.
 

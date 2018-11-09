@@ -33,6 +33,16 @@ Features
      hash and signature sizes that comply with FIPS 186-4, including SHA-512
      with a 1024-bit key.
 
+API Changes
+   * Add a common error code for a feature that is not supported by the
+     underlying alternative implementations.
+
+New deprecations
+   * All the current module specific errors that mean a feature is not available
+     are deprecated, so the platform error should be used.
+   * All the module specific generic hardware accelaration errors that existed
+     are deprecated, so the platform error should be used.
+
 Bugfix
    * Fix wrong order of freeing in programs/ssl/ssl_server2 example
      application leading to a memory leak in case both

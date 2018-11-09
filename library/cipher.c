@@ -169,7 +169,19 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ctx->psa_enabled == 1 )
     {
-        /* TODO: Add free'ing of PSA-specific context. */
+        if( ctx->cipher_ctx != NULL )
+        {
+            mbedtls_cipher_context_psa * const cipher_psa =
+                (mbedtls_cipher_context_psa *) ctx->cipher_ctx;
+
+            if( cipher_psa->slot_state == 1 )
+            {
+                /* TODO: Destroy PSA key */
+            }
+
+            mbedtls_platform_zeroize( cipher_psa, sizeof( *cipher_psa ) );
+            mbedtls_free( cipher_psa );
+        }
 
         mbedtls_platform_zeroize( ctx, sizeof(mbedtls_cipher_context_t) );
         return;
@@ -225,6 +237,10 @@ int mbedtls_cipher_setup_psa( mbedtls_cipher_context_t *ctx,
     if( NULL == cipher_info || NULL == ctx )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+    ctx->cipher_ctx = mbedtls_calloc( 1, sizeof(mbedtls_cipher_context_psa ) );
+    if( ctx->cipher_ctx == NULL )
+        return( MBEDTLS_ERR_CIPHER_ALLOC_FAILED );
+
     memset( ctx, 0, sizeof( mbedtls_cipher_context_t ) );
 
     ctx->cipher_info = cipher_info;
@@ -244,7 +260,7 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ctx->psa_enabled == 1 )
     {
-        /* TODO */
+        /* TODO: Allocate and setup PSA key slot from raw key material. */
         return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

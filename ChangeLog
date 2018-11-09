@@ -34,14 +34,19 @@ Features
      with a 1024-bit key.
 
 API Changes
-   * Add a common error code for a feature that is not supported by the
-     underlying alternative implementations.
+   * Add a common error code of `MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED` for
+     a feature that is not supported by underlying alternative
+     implementations implementing cryptographic primitives. This is useful for
+     hardware accelerators that don't implement all options or features.
 
 New deprecations
-   * All the current module specific errors that mean a feature is not available
-     are deprecated, so the platform error should be used.
-   * All the module specific generic hardware accelaration errors that existed
-     are deprecated, so the platform error should be used.
+   * All module specific errors following the form
+     MBEDTLS_ERR_XXX_FEATURE_UNAVAILABLE that indicate a feature is not
+     supported are deprecated and are now replaced by the new equivalent
+     platform error.
+   * All module specific generic hardware accelaration errors following the
+     form MBEDTLS_ERR_XXX_HW_ACCEL_FAILED that are deprecated and are replaced
+     by the equivalent plaform error.
 
 Bugfix
    * Fix wrong order of freeing in programs/ssl/ssl_server2 example

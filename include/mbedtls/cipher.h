@@ -394,9 +394,8 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx );
 
 
 /**
- * \brief               This function initializes and fills the cipher-context
- *                      structure with the appropriate values. It also clears
- *                      the structure.
+ * \brief               This function initializes a cipher context for
+ *                      use with the given cipher primitive.
  *
  * \param ctx           The context to initialize. May not be NULL.
  * \param cipher_info   The cipher to use.

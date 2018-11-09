@@ -166,6 +166,16 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx )
     if( ctx == NULL )
         return;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( ctx->psa_enabled == 1 )
+    {
+        /* TODO: Add free'ing of PSA-specific context. */
+
+        mbedtls_platform_zeroize( ctx, sizeof(mbedtls_cipher_context_t) );
+        return;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #if defined(MBEDTLS_CMAC_C)
     if( ctx->cmac_ctx )
     {
@@ -212,7 +222,14 @@ int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx,
 int mbedtls_cipher_setup_psa( mbedtls_cipher_context_t *ctx,
                               const mbedtls_cipher_info_t *cipher_info )
 {
-    return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+    if( NULL == cipher_info || NULL == ctx )
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+    memset( ctx, 0, sizeof( mbedtls_cipher_context_t ) );
+
+    ctx->cipher_info = cipher_info;
+    ctx->psa_enabled = 1;
+    return( 0 );
 }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
@@ -223,6 +240,14 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( ctx->psa_enabled == 1 )
+    {
+        /* TODO */
+        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if( ( ctx->cipher_info->flags & MBEDTLS_CIPHER_VARIABLE_KEY_LEN ) == 0 &&
         (int) ctx->cipher_info->key_bitlen != key_bitlen )
@@ -261,6 +286,16 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     else if( NULL == iv && iv_len != 0  )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( ctx->psa_enabled == 1 )
+    {
+        /* While PSA Crypto has an API for multipart
+         * operations, we currently don't make it
+         * accessible through the cipher layer. */
+        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     if( NULL == iv && iv_len == 0 )
         ctx->iv_size = 0;
@@ -306,6 +341,15 @@ int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx )
     if( NULL == ctx || NULL == ctx->cipher_info )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( ctx->psa_enabled == 1 )
+    {
+        /* We don't support resetting PSA-based
+         * cipher contexts, yet. */
+        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     ctx->unprocessed_len = 0;
 
     return( 0 );
@@ -317,6 +361,16 @@ int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( ctx->psa_enabled == 1 )
+    {
+        /* While PSA Crypto has an API for multipart
+         * operations, we currently don't make it
+         * accessible through the cipher layer. */
+        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
@@ -361,6 +415,16 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
     {
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     }
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( ctx->psa_enabled == 1 )
+    {
+        /* While PSA Crypto has an API for multipart
+         * operations, we currently don't make it
+         * accessible through the cipher layer. */
+        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     *olen = 0;
     block_size = mbedtls_cipher_get_block_size( ctx );
@@ -768,6 +832,16 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
     if( NULL == ctx || NULL == ctx->cipher_info || NULL == olen )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( ctx->psa_enabled == 1 )
+    {
+        /* While PSA Crypto has an API for multipart
+         * operations, we currently don't make it
+         * accessible through the cipher layer. */
+        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     *olen = 0;
 
     if( MBEDTLS_MODE_CFB == ctx->cipher_info->mode ||
@@ -859,6 +933,19 @@ int mbedtls_cipher_set_padding_mode( mbedtls_cipher_context_t *ctx,
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( ctx->psa_enabled == 1 )
+    {
+        /* While PSA Crypto knows about CBC padding
+         * schemes, we currently don't make them
+         * accessible through the cipher layer. */
+        if( mode != MBEDTLS_PADDING_NONE )
+            return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+
+        return( 0 );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     switch( mode )
     {
 #if defined(MBEDTLS_CIPHER_PADDING_PKCS7)
@@ -908,6 +995,18 @@ int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
     if( MBEDTLS_ENCRYPT != ctx->operation )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( ctx->psa_enabled == 1 )
+    {
+        /* While PSA Crypto has an API for multipart
+         * operations, we currently don't make it
+         * accessible through the cipher layer. */
+        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+
+        return( 0 );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
         return( mbedtls_gcm_finish( (mbedtls_gcm_context *) ctx->cipher_ctx,
@@ -940,6 +1039,16 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
     {
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     }
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( ctx->psa_enabled == 1 )
+    {
+        /* While PSA Crypto has an API for multipart
+         * operations, we currently don't make it
+         * accessible through the cipher layer. */
+        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
@@ -999,6 +1108,14 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
     int ret;
     size_t finish_olen;
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( ctx->psa_enabled == 1 )
+    {
+        /* TODO */
+        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     if( ( ret = mbedtls_cipher_set_iv( ctx, iv, iv_len ) ) != 0 )
         return( ret );
 
@@ -1029,6 +1146,14 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
                          unsigned char *output, size_t *olen,
                          unsigned char *tag, size_t tag_len )
 {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( ctx->psa_enabled == 1 )
+    {
+        /* TODO */
+        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
     {
@@ -1076,6 +1201,14 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
                          unsigned char *output, size_t *olen,
                          const unsigned char *tag, size_t tag_len )
 {
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( ctx->psa_enabled == 1 )
+    {
+        /* TODO */
+        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
     {

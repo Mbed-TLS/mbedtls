@@ -71,7 +71,8 @@
  * a non-zero value.
  * This is currently only used by GCM and ChaCha20+Poly1305.
  */
-static int mbedtls_constant_time_memcmp( const void *v1, const void *v2, size_t len )
+static int mbedtls_constant_time_memcmp( const void *v1, const void *v2,
+                                         size_t len )
 {
     const unsigned char *p1 = (const unsigned char*) v1;
     const unsigned char *p2 = (const unsigned char*) v2;
@@ -108,7 +109,8 @@ const int *mbedtls_cipher_list( void )
     return( mbedtls_cipher_supported );
 }
 
-const mbedtls_cipher_info_t *mbedtls_cipher_info_from_type( const mbedtls_cipher_type_t cipher_type )
+const mbedtls_cipher_info_t *mbedtls_cipher_info_from_type(
+    const mbedtls_cipher_type_t cipher_type )
 {
     const mbedtls_cipher_definition_t *def;
 
@@ -119,7 +121,8 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_type( const mbedtls_cipher
     return( NULL );
 }
 
-const mbedtls_cipher_info_t *mbedtls_cipher_info_from_string( const char *cipher_name )
+const mbedtls_cipher_info_t *mbedtls_cipher_info_from_string(
+    const char *cipher_name )
 {
     const mbedtls_cipher_definition_t *def;
 
@@ -133,9 +136,10 @@ const mbedtls_cipher_info_t *mbedtls_cipher_info_from_string( const char *cipher
     return( NULL );
 }
 
-const mbedtls_cipher_info_t *mbedtls_cipher_info_from_values( const mbedtls_cipher_id_t cipher_id,
-                                              int key_bitlen,
-                                              const mbedtls_cipher_mode_t mode )
+const mbedtls_cipher_info_t *mbedtls_cipher_info_from_values(
+    const mbedtls_cipher_id_t cipher_id,
+    int key_bitlen,
+    const mbedtls_cipher_mode_t mode )
 {
     const mbedtls_cipher_definition_t *def;
 
@@ -173,7 +177,8 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx )
     mbedtls_platform_zeroize( ctx, sizeof(mbedtls_cipher_context_t) );
 }
 
-int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx, const mbedtls_cipher_info_t *cipher_info )
+int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx,
+                          const mbedtls_cipher_info_t *cipher_info )
 {
     if( NULL == cipher_info || NULL == ctx )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
@@ -199,8 +204,10 @@ int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx, const mbedtls_cipher_in
     return( 0 );
 }
 
-int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx, const unsigned char *key,
-        int key_bitlen, const mbedtls_operation_t operation )
+int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
+                           const unsigned char *key,
+                           int key_bitlen,
+                           const mbedtls_operation_t operation )
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
@@ -223,12 +230,13 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx, const unsigned char *k
         MBEDTLS_MODE_CTR == ctx->cipher_info->mode )
     {
         return ctx->cipher_info->base->setkey_enc_func( ctx->cipher_ctx, key,
-                ctx->key_bitlen );
+                                                        ctx->key_bitlen );
     }
 
     if( MBEDTLS_DECRYPT == operation )
         return ctx->cipher_info->base->setkey_dec_func( ctx->cipher_ctx, key,
-                ctx->key_bitlen );
+                                                        ctx->key_bitlen );
+
 
     return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 }
@@ -830,7 +838,8 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
 }
 
 #if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
-int mbedtls_cipher_set_padding_mode( mbedtls_cipher_context_t *ctx, mbedtls_cipher_padding_t mode )
+int mbedtls_cipher_set_padding_mode( mbedtls_cipher_context_t *ctx,
+                                     mbedtls_cipher_padding_t mode )
 {
     if( NULL == ctx ||
         MBEDTLS_MODE_CBC != ctx->cipher_info->mode )
@@ -889,7 +898,8 @@ int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
 
 #if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
-        return mbedtls_gcm_finish( (mbedtls_gcm_context *) ctx->cipher_ctx, tag, tag_len );
+        return( mbedtls_gcm_finish( (mbedtls_gcm_context *) ctx->cipher_ctx,
+                                    tag, tag_len ) );
 #endif
 
 #if defined(MBEDTLS_CHACHAPOLY_C)
@@ -899,8 +909,8 @@ int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
         if ( tag_len != 16U )
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-        return mbedtls_chachapoly_finish( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
-                                                      tag );
+        return( mbedtls_chachapoly_finish(
+                    (mbedtls_chachapoly_context*) ctx->cipher_ctx, tag ) );
     }
 #endif
 
@@ -925,8 +935,9 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
         if( tag_len > sizeof( check_tag ) )
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-        if( 0 != ( ret = mbedtls_gcm_finish( (mbedtls_gcm_context *) ctx->cipher_ctx,
-                                     check_tag, tag_len ) ) )
+        if( 0 != ( ret = mbedtls_gcm_finish(
+                       (mbedtls_gcm_context *) ctx->cipher_ctx,
+                       check_tag, tag_len ) ) )
         {
             return( ret );
         }
@@ -946,8 +957,8 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
         if ( tag_len != sizeof( check_tag ) )
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-        ret = mbedtls_chachapoly_finish( (mbedtls_chachapoly_context*) ctx->cipher_ctx,
-                                                     check_tag );
+        ret = mbedtls_chachapoly_finish(
+            (mbedtls_chachapoly_context*) ctx->cipher_ctx, check_tag );
         if ( ret != 0 )
         {
             return( ret );
@@ -982,10 +993,12 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
     if( ( ret = mbedtls_cipher_reset( ctx ) ) != 0 )
         return( ret );
 
-    if( ( ret = mbedtls_cipher_update( ctx, input, ilen, output, olen ) ) != 0 )
+    if( ( ret = mbedtls_cipher_update( ctx, input, ilen,
+                                       output, olen ) ) != 0 )
         return( ret );
 
-    if( ( ret = mbedtls_cipher_finish( ctx, output + *olen, &finish_olen ) ) != 0 )
+    if( ( ret = mbedtls_cipher_finish( ctx, output + *olen,
+                                       &finish_olen ) ) != 0 )
         return( ret );
 
     *olen += finish_olen;
@@ -1008,9 +1021,9 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
     {
         *olen = ilen;
-        return( mbedtls_gcm_crypt_and_tag( ctx->cipher_ctx, MBEDTLS_GCM_ENCRYPT, ilen,
-                                   iv, iv_len, ad, ad_len, input, output,
-                                   tag_len, tag ) );
+        return( mbedtls_gcm_crypt_and_tag( ctx->cipher_ctx, MBEDTLS_GCM_ENCRYPT,
+                                           ilen, iv, iv_len, ad, ad_len,
+                                           input, output, tag_len, tag ) );
     }
 #endif /* MBEDTLS_GCM_C */
 #if defined(MBEDTLS_CCM_C)

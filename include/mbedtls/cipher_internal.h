@@ -34,6 +34,10 @@
 
 #include "cipher.h"
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -113,6 +117,17 @@ typedef struct
     mbedtls_cipher_type_t type;
     const mbedtls_cipher_info_t *info;
 } mbedtls_cipher_definition_t;
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+typedef struct
+{
+    psa_key_slot_t slot;
+    unsigned char slot_state; /*!< 0: The slot is unset.
+                               *   1: The slot is set and we own it.
+                               *   2: The slot is set but we don't own it. */
+
+} mbedtls_cipher_context_psa;
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 extern const mbedtls_cipher_definition_t mbedtls_cipher_definitions[];
 

@@ -58,6 +58,10 @@
 #include "mbedtls/cmac.h"
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
 #else
@@ -203,6 +207,14 @@ int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx,
 
     return( 0 );
 }
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+int mbedtls_cipher_setup_psa( mbedtls_cipher_context_t *ctx,
+                              const mbedtls_cipher_info_t *cipher_info )
+{
+    return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+}
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
                            const unsigned char *key,

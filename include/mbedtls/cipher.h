@@ -413,6 +413,26 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx );
 int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx,
                           const mbedtls_cipher_info_t *cipher_info );
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/**
+ * \brief               This function initializes a cipher context for
+ *                      PSA-based use with the given cipher primitive.
+ *
+ * \note                See #MBEDTLS_USE_PSA_CRYPTO for information on PSA.
+ *
+ * \param ctx           The context to initialize. May not be \c NULL.
+ * \param cipher_info   The cipher to use.
+ *
+ * \return              \c 0 on success.
+ * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
+ *                      parameter-verification failure.
+ * \return              #MBEDTLS_ERR_CIPHER_ALLOC_FAILED if allocation of the
+ *                      cipher-specific context fails.
+ */
+int mbedtls_cipher_setup_psa( mbedtls_cipher_context_t *ctx,
+                              const mbedtls_cipher_info_t *cipher_info );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 /**
  * \brief        This function returns the block size of the given cipher.
  *

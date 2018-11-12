@@ -16,7 +16,6 @@ static int rnd_std_rand( void *rng_state, unsigned char *output, size_t len );
 static int pk_genkey( mbedtls_pk_context *pk, int size )
 {
     ((void) pk);
-    ((void) size);
 
 #if defined(MBEDTLS_RSA_C) && defined(MBEDTLS_GENPRIME)
     if( mbedtls_pk_get_type( pk ) == MBEDTLS_PK_RSA )

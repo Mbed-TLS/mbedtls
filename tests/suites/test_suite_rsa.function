@@ -44,8 +44,7 @@ void mbedtls_rsa_pkcs1_sign( data_t * message_str, int padding_mode,
     TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, &P, &Q, NULL, &E ) == 0 );
-    TEST_ASSERT( mbedtls_rsa_get_bitlen( &ctx ) == (size_t) mod );
-    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod + 7 ) / 8 );
+    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
     TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
@@ -87,8 +86,7 @@ void mbedtls_rsa_pkcs1_verify( data_t * message_str, int padding_mode,
     TEST_ASSERT( mbedtls_mpi_read_string( &N, radix_N, input_N ) == 0 );
     TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, NULL, NULL, NULL, &E ) == 0 );
-    TEST_ASSERT( mbedtls_rsa_get_bitlen( &ctx ) == (size_t) mod );
-    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod + 7 ) / 8 );
+    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
 
 
@@ -129,8 +127,7 @@ void rsa_pkcs1_sign_raw( data_t * hash_result,
     TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, &P, &Q, NULL, &E ) == 0 );
-    TEST_ASSERT( mbedtls_rsa_get_bitlen( &ctx ) == (size_t) mod );
-    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod + 7 ) / 8 );
+    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
     TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
@@ -195,8 +192,7 @@ void rsa_pkcs1_verify_raw( data_t * hash_result,
     TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, NULL, NULL, NULL, &E ) == 0 );
-    TEST_ASSERT( mbedtls_rsa_get_bitlen( &ctx ) == (size_t) mod );
-    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod + 7 ) / 8 );
+    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
 
 
@@ -260,8 +256,7 @@ void mbedtls_rsa_pkcs1_encrypt( data_t * message_str, int padding_mode,
     TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, NULL, NULL, NULL, &E ) == 0 );
-    TEST_ASSERT( mbedtls_rsa_get_bitlen( &ctx ) == (size_t) mod );
-    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod + 7 ) / 8 );
+    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
 
 
@@ -299,8 +294,7 @@ void rsa_pkcs1_encrypt_bad_rng( data_t * message_str, int padding_mode,
     TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, NULL, NULL, NULL, &E ) == 0 );
-    TEST_ASSERT( mbedtls_rsa_get_bitlen( &ctx ) == (size_t) mod );
-    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod + 7 ) / 8 );
+    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
 
 
@@ -348,8 +342,7 @@ void mbedtls_rsa_pkcs1_decrypt( data_t * message_str, int padding_mode,
     TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, &P, &Q, NULL, &E ) == 0 );
-    TEST_ASSERT( mbedtls_rsa_get_bitlen( &ctx ) == (size_t) mod );
-    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod + 7 ) / 8 );
+    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
     TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
@@ -388,8 +381,7 @@ void mbedtls_rsa_public( data_t * message_str, int mod, int radix_N,
     TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, NULL, NULL, NULL, &E ) == 0 );
-    TEST_ASSERT( mbedtls_rsa_get_bitlen( &ctx ) == (size_t) mod );
-    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod + 7 ) / 8 );
+    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
     TEST_ASSERT( mbedtls_rsa_check_pubkey( &ctx ) == 0 );
 
 
@@ -448,8 +440,7 @@ void mbedtls_rsa_private( data_t * message_str, int mod, int radix_P,
     TEST_ASSERT( mbedtls_mpi_read_string( &E, radix_E, input_E ) == 0 );
 
     TEST_ASSERT( mbedtls_rsa_import( &ctx, &N, &P, &Q, NULL, &E ) == 0 );
-    TEST_ASSERT( mbedtls_rsa_get_bitlen( &ctx ) == (size_t) mod );
-    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod + 7 ) / 8 );
+    TEST_ASSERT( mbedtls_rsa_get_len( &ctx ) == (size_t) ( mod / 8 ) );
     TEST_ASSERT( mbedtls_rsa_complete( &ctx ) == 0 );
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 

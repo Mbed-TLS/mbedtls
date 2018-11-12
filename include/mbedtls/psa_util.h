@@ -41,6 +41,8 @@
 #include "ecp.h"
 #include "md.h"
 
+/* Slot allocation */
+
 static psa_status_t mbedtls_psa_get_free_key_slot( psa_key_slot_t *key )
 {
     for( psa_key_slot_t slot = 1; slot <= 32; slot++ )
@@ -54,7 +56,74 @@ static psa_status_t mbedtls_psa_get_free_key_slot( psa_key_slot_t *key )
     return( PSA_ERROR_INSUFFICIENT_MEMORY );
 }
 
-static psa_algorithm_t mbedtls_psa_translate_md( mbedtls_md_type_t md_alg )
+/* Translations for symmetric crypto. */
+
+static psa_key_type_t mbedtls_psa_translate_cipher_type(
+    mbedtls_cipher_type_t cipher )
+{
+    switch( cipher )
+    {
+        case MBEDTLS_CIPHER_AES_128_CCM:
+        case MBEDTLS_CIPHER_AES_192_CCM:
+        case MBEDTLS_CIPHER_AES_256_CCM:
+        case MBEDTLS_CIPHER_AES_128_GCM:
+        case MBEDTLS_CIPHER_AES_192_GCM:
+        case MBEDTLS_CIPHER_AES_256_GCM:
+        case MBEDTLS_CIPHER_AES_128_CBC:
+        case MBEDTLS_CIPHER_AES_192_CBC:
+        case MBEDTLS_CIPHER_AES_256_CBC:
+            return( PSA_KEY_TYPE_AES );
+
+        /* ARIA not yet supported in PSA. */
+        /* case MBEDTLS_CIPHER_ARIA_128_CCM:
+           case MBEDTLS_CIPHER_ARIA_192_CCM:
+           case MBEDTLS_CIPHER_ARIA_256_CCM:
+           case MBEDTLS_CIPHER_ARIA_128_GCM:
+           case MBEDTLS_CIPHER_ARIA_192_GCM:
+           case MBEDTLS_CIPHER_ARIA_256_GCM:
+           case MBEDTLS_CIPHER_ARIA_128_CBC:
+           case MBEDTLS_CIPHER_ARIA_192_CBC:
+           case MBEDTLS_CIPHER_ARIA_256_CBC:
+               return( PSA_KEY_TYPE_ARIA ); */
+
+        default:
+            return( 0 );
+    }
+}
+
+static psa_algorithm_t mbedtls_psa_translate_cipher_mode(
+    mbedtls_cipher_mode_t mode )
+{
+    switch( mode )
+    {
+        case MBEDTLS_MODE_GCM:
+            return( PSA_ALG_GCM );
+        case MBEDTLS_MODE_CCM:
+            return( PSA_ALG_CCM );
+        case MBEDTLS_MODE_CBC:
+            return( PSA_ALG_CBC_NO_PADDING );
+        default:
+            return( 0 );
+    }
+}
+
+static psa_key_usage_t mbedtls_psa_translate_cipher_operation(
+    mbedtls_cipher_operation_t op )
+{
+    switch( op )
+    {
+        case MBEDTLS_ENCRYPT:
+            return( PSA_KEY_USAGE_ENCRYPT );
+        case MBEDTLS_DECRYPT:
+            return( PSA_KEY_USAGE_DECRYPT );
+        default:
+            return( 0 );
+    }
+}
+
+/* Translations for hashing. */
+
+psa_algorithm_t mbedtls_psa_translate_md( mbedtls_md_type_t md_alg )
 {
     switch( md_alg )
     {
@@ -95,6 +164,8 @@ static psa_algorithm_t mbedtls_psa_translate_md( mbedtls_md_type_t md_alg )
         return( 0 );
     }
 }
+
+/* Translations for ECC. */
 
 static psa_ecc_curve_t mbedtls_psa_translate_ecc_group( mbedtls_ecp_group_id grpid )
 {

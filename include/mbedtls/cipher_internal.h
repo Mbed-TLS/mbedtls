@@ -121,6 +121,7 @@ typedef struct
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 typedef struct
 {
+    psa_algorithm_t alg;
     psa_key_slot_t slot;
     unsigned char slot_state; /*!< 0: The slot is unset.
                                *   1: The slot is set and we own it.

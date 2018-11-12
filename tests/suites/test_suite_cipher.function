@@ -648,8 +648,8 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_CIPHER_MODE_WITH_PADDING */
 void test_vec_crypt( int cipher_id, int operation, char *hex_key,
-                   char *hex_iv, char *hex_input, char *hex_result,
-                   int finish_result )
+                     char *hex_iv, char *hex_input, char *hex_result,
+                     int finish_result, int use_psa )
 {
     unsigned char key[50];
     unsigned char input[16];
@@ -669,8 +669,18 @@ void test_vec_crypt( int cipher_id, int operation, char *hex_key,
     memset( iv, 0x00, sizeof( iv ) );
 
     /* Prepare context */
+#if !defined(MBEDTLS_USE_PSA_CRYPTO)
+    (void) use_psa;
+#else
+    if( use_psa == 1 )
+    {
+        TEST_ASSERT( 0 == mbedtls_cipher_setup_psa( &ctx,
+                               mbedtls_cipher_info_from_type( cipher_id ) ) );
+    }
+    else
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     TEST_ASSERT( 0 == mbedtls_cipher_setup( &ctx,
-                                       mbedtls_cipher_info_from_type( cipher_id ) ) );
+                               mbedtls_cipher_info_from_type( cipher_id ) ) );
 
     key_len = unhexify( key, hex_key );
     inputlen =  unhexify( input, hex_input );

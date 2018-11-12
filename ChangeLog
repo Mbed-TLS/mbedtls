@@ -1,5 +1,90 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Security
+   * Fix overly strict DN comparison when looking for CRLs
+     belonging to a particular CA. This previously lead to
+     ignoring CRLs when the CRL's issuer name and the CA's
+     subject name differed in their string encoding (e.g.,
+     one using PrintableString and the other UTF8String) or
+     in the choice of upper and lower case. Reported by
+     HenrikRosenquistAndersson in #1784.
+
+Features
+   * Add support for temporarily suspending expensive ECC computations after
+     some configurable amount of operations, to be used in single-threaded
+     constrained systems where ECC is time consuming and blocking until
+     completion cannot be tolerated. This is enabled by
+     MBEDTLS_ECP_RESTARTABLE at compile time (disabled by default) and
+     configured by mbedtls_ecp_set_max_ops() at runtime. It applies to new
+     xxx_restartable functions in ECP, ECDSA, PK and X.509 (CRL not supported
+     yet), and to existing functions in ECDH and SSL (currently only
+     implemented client-side, for ECDHE-ECDSA ciphersuites in TLS 1.2,
+     including client authentication).
+   * Add support for Arm CPU DSP extensions to accelerate asymmetric key
+     operations. On CPUs where the extensions are available, they can accelerate
+     MPI multiplications used in ECC and RSA cryptography. Contributed by
+     Aurelien Jarno.
+   * Extend RSASSA-PSS signature to allow slightly a smaller salt size.
+     Previously, PSS signature always used a salt with the same length as the
+     hash, and returned an error if this was not possible. Now the salt size
+     may be up to two bytes shorter. This allows the library to support all
+     hash and signature sizes that comply with FIPS 186-4, including SHA-512
+     with a 1024-bit key.
+
+Bugfix
+   * Fix wrong order of freeing in programs/ssl/ssl_server2 example
+     application leading to a memory leak in case both
+     MBEDTLS_MEMORY_BUFFER_ALLOC_C and MBEDTLS_MEMORY_BACKTRACE are set.
+     Fixes #2069.
+   * Fix a bug in the update function for SSL ticket keys which previously
+     invalidated keys of a lifetime of less than a 1s. Fixes #1968.
+   * Fix failure in hmac_drbg in the benchmark sample application, when
+     MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
+   * Fix a bug in the record decryption routine ssl_decrypt_buf()
+     which lead to accepting properly authenticated but improperly
+     padded records in case of CBC ciphersuites using Encrypt-then-MAC.
+   * Fix memory leak and freeing without initialization in the example
+     program programs/x509/cert_write. Fixes #1422.
+   * Ignore IV in mbedtls_cipher_set_iv() when the cipher mode is MBEDTLS_MODE_ECB
+     Fix for #1091 raised by ezdevelop
+   * Zeroize memory used for buffering or reassembling handshake messages
+     after use.
+   * Use `mbedtls_platform_zeroize()` instead of `memset()` for zeroization
+     of sensitive data in the example programs aescrypt2 and crypt_and_hash.
+   * Change the default string format used for various X.509 DN attributes to
+     UTF8String. Previously, the use of the PrintableString format led to
+     wildcards and non-ASCII characters being unusable in some DN attributes.
+     Reported by raprepo in #1860 and by kevinpt in #468.
+     Fix contributed by Thomas-Dee in #1641.
+   * Fix compilation failure for configurations which use compile time
+     replacements of standard calloc/free functions through the macros
+     MBEDTLS_PLATFORM_CALLOC_MACRO and MBEDTLS_PLATFORM_FREE_MACRO.
+     Reported by ole-de and ddhome2006. Fixes #882, #1642 and #1706.
+
+Changes
+   * Removed support for Yotta as a build tool.
+   * Add tests for session resumption in DTLS.
+   * Close a test gap in (D)TLS between the client side and the server side:
+     test the handling of large packets and small packets on the client side
+     in the same way as on the server side.
+   * Change the dtls_client and dtls_server samples to work by default over
+     IPv6 and optionally by a build option over IPv4.
+   * Change the use of Windows threading to use Microsoft Visual C++ runtime
+     calls, rather than Win32 API calls directly. This is necessary to avoid
+     conflict with C runtime usage. Found and fixed by irwir.
+   * Remember the string format of X.509 DN attributes when replicating X.509 DNs.
+     Previously, DN attributes were always written in their default string format
+     (mostly PrintableString), which could lead to CRTs being created which used
+     PrintableStrings in the issuer field even though the signing CA used
+     UTF8Strings in its subject field; while X.509 compliant, such CRTs were
+     rejected in some applications, e.g. some versions of Firefox, curl
+     and GnuTLS. Reported in #1033 by Moschn. Fix contributed by
+     Thomas-Dee in #1641.
+   * Improve documentation of mbedtls_ssl_get_verify_result().
+     Fixes #517 reported by github-monoculture.
+
 = mbed TLS 2.13.1 branch released 2018-09-06
 
 API Changes
@@ -130,6 +215,8 @@ Features
      independently contributed again by Paul Sokolovsky.
    * Add support for key wrapping modes based on AES as defined by
      NIST SP 800-38F algorithms KW and KWP and by RFC 3394 and RFC 5649.
+   * Add support for 128-bit keys in CTR_DRBG. Note that using keys shorter
+     than 256 bits limits the security of generated material to 128 bits.
 
 Bugfix
    * Fix the key_app_writer example which was writing a leading zero byte which

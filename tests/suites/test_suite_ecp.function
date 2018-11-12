@@ -2,6 +2,10 @@
 #include "mbedtls/ecp.h"
 
 #define ECP_PF_UNKNOWN     -1
+
+#define ECP_PT_RESET( x )           \
+    mbedtls_ecp_point_free( x );    \
+    mbedtls_ecp_point_init( x );
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -49,6 +53,173 @@ void ecp_check_pub( int grp_id, char * x_hex, char * y_hex, char * z_hex,
 exit:
     mbedtls_ecp_group_free( &grp );
     mbedtls_ecp_point_free( &P );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
+void ecp_test_vect_restart( int id,
+                            char *dA_str, char *xA_str, char *yA_str,
+                            char *dB_str,  char *xZ_str, char *yZ_str,
+                            int max_ops, int min_restarts, int max_restarts )
+{
+    /*
+     * Test for early restart. Based on test vectors like ecp_test_vect(),
+     * but for the sake of simplicity only does half of each side. It's
+     * important to test both base point and random point, though, as memory
+     * management is different in each case.
+     *
+     * Don't try using too precise bounds for restarts as the exact number
+     * will depend on settings such as MBEDTLS_ECP_FIXED_POINT_OPTIM and
+     * MBEDTLS_ECP_WINDOW_SIZE, as well as implementation details that may
+     * change in the future. A factor 2 is a minimum safety margin.
+     *
+     * For reference, with mbed TLS 2.4 and default settings, for P-256:
+     * - Random point mult:     ~3250M
+     * - Cold base point mult:  ~3300M
+     * - Hot base point mult:   ~1100M
+     * With MBEDTLS_ECP_WINDOW_SIZE set to 2 (minimum):
+     * - Random point mult:     ~3850M
+     */
+    mbedtls_ecp_restart_ctx ctx;
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_point R, P;
+    mbedtls_mpi dA, xA, yA, dB, xZ, yZ;
+    int cnt_restarts;
+    int ret;
+
+    mbedtls_ecp_restart_init( &ctx );
+    mbedtls_ecp_group_init( &grp );
+    mbedtls_ecp_point_init( &R ); mbedtls_ecp_point_init( &P );
+    mbedtls_mpi_init( &dA ); mbedtls_mpi_init( &xA ); mbedtls_mpi_init( &yA );
+    mbedtls_mpi_init( &dB ); mbedtls_mpi_init( &xZ ); mbedtls_mpi_init( &yZ );
+
+    TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_read_string( &dA, 16, dA_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &xA, 16, xA_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &yA, 16, yA_str ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_read_string( &dB, 16, dB_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &xZ, 16, xZ_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &yZ, 16, yZ_str ) == 0 );
+
+    mbedtls_ecp_set_max_ops( (unsigned) max_ops );
+
+    /* Base point case */
+    cnt_restarts = 0;
+    do {
+        ECP_PT_RESET( &R );
+        ret = mbedtls_ecp_mul_restartable( &grp, &R, &dA, &grp.G, NULL, NULL, &ctx );
+    } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restarts );
+
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.X, &xA ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.Y, &yA ) == 0 );
+
+    TEST_ASSERT( cnt_restarts >= min_restarts );
+    TEST_ASSERT( cnt_restarts <= max_restarts );
+
+    /* Non-base point case */
+    mbedtls_ecp_copy( &P, &R );
+    cnt_restarts = 0;
+    do {
+        ECP_PT_RESET( &R );
+        ret = mbedtls_ecp_mul_restartable( &grp, &R, &dB, &P, NULL, NULL, &ctx );
+    } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restarts );
+
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.X, &xZ ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.Y, &yZ ) == 0 );
+
+    TEST_ASSERT( cnt_restarts >= min_restarts );
+    TEST_ASSERT( cnt_restarts <= max_restarts );
+
+    /* Do we leak memory when aborting an operation?
+     * This test only makes sense when we actually restart */
+    if( min_restarts > 0 )
+    {
+        ret = mbedtls_ecp_mul_restartable( &grp, &R, &dB, &P, NULL, NULL, &ctx );
+        TEST_ASSERT( ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    }
+
+exit:
+    mbedtls_ecp_restart_free( &ctx );
+    mbedtls_ecp_group_free( &grp );
+    mbedtls_ecp_point_free( &R ); mbedtls_ecp_point_free( &P );
+    mbedtls_mpi_free( &dA ); mbedtls_mpi_free( &xA ); mbedtls_mpi_free( &yA );
+    mbedtls_mpi_free( &dB ); mbedtls_mpi_free( &xZ ); mbedtls_mpi_free( &yZ );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
+void ecp_muladd_restart( int id, char *xR_str, char *yR_str,
+                         char *u1_str, char *u2_str,
+                         char *xQ_str, char *yQ_str,
+                         int max_ops, int min_restarts, int max_restarts )
+{
+    /*
+     * Compute R = u1 * G + u2 * Q
+     * (test vectors mostly taken from ECDSA intermediate results)
+     *
+     * See comments at the top of ecp_test_vect_restart()
+     */
+    mbedtls_ecp_restart_ctx ctx;
+    mbedtls_ecp_group grp;
+    mbedtls_ecp_point R, Q;
+    mbedtls_mpi u1, u2, xR, yR;
+    int cnt_restarts;
+    int ret;
+
+    mbedtls_ecp_restart_init( &ctx );
+    mbedtls_ecp_group_init( &grp );
+    mbedtls_ecp_point_init( &R );
+    mbedtls_ecp_point_init( &Q );
+    mbedtls_mpi_init( &u1 ); mbedtls_mpi_init( &u2 );
+    mbedtls_mpi_init( &xR ); mbedtls_mpi_init( &yR );
+
+    TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_read_string( &u1, 16, u1_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &u2, 16, u2_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &xR, 16, xR_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &yR, 16, yR_str ) == 0 );
+
+    TEST_ASSERT( mbedtls_mpi_read_string( &Q.X, 16, xQ_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &Q.Y, 16, yQ_str ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_lset( &Q.Z, 1 ) == 0 );
+
+    mbedtls_ecp_set_max_ops( (unsigned) max_ops );
+
+    cnt_restarts = 0;
+    do {
+        ECP_PT_RESET( &R );
+        ret = mbedtls_ecp_muladd_restartable( &grp, &R,
+                                              &u1, &grp.G, &u2, &Q, &ctx );
+    } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restarts );
+
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.X, &xR ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &R.Y, &yR ) == 0 );
+
+    TEST_ASSERT( cnt_restarts >= min_restarts );
+    TEST_ASSERT( cnt_restarts <= max_restarts );
+
+    /* Do we leak memory when aborting an operation?
+     * This test only makes sense when we actually restart */
+    if( min_restarts > 0 )
+    {
+        ret = mbedtls_ecp_muladd_restartable( &grp, &R,
+                                              &u1, &grp.G, &u2, &Q, &ctx );
+        TEST_ASSERT( ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    }
+
+exit:
+    mbedtls_ecp_restart_free( &ctx );
+    mbedtls_ecp_group_free( &grp );
+    mbedtls_ecp_point_free( &R );
+    mbedtls_ecp_point_free( &Q );
+    mbedtls_mpi_free( &u1 ); mbedtls_mpi_free( &u2 );
+    mbedtls_mpi_free( &xR ); mbedtls_mpi_free( &yR );
 }
 /* END_CASE */
 

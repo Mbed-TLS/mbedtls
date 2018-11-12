@@ -32,7 +32,7 @@ my $error_format_file = $data_dir.'/error.fmt';
 my @low_level_modules = qw( AES ARC4 ARIA ASN1 BASE64 BIGNUM BLOWFISH
                             CAMELLIA CCM CHACHA20 CHACHAPOLY CMAC CTR_DRBG DES
                             ENTROPY GCM HKDF HMAC_DRBG MD2 MD4 MD5
-                            NET OID PADLOCK PBKDF2 POLY1305 RIPEMD160
+                            NET OID PADLOCK PBKDF2 PLATFORM POLY1305 RIPEMD160
                             SHA1 SHA256 SHA512 THREADING XTEA );
 my @high_level_modules = qw( CIPHER DHM ECP MD
                              PEM PK PKCS12 PKCS5

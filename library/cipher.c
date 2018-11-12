@@ -310,7 +310,13 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
 
         /* Setup policy for the new key slot. */
         psa_key_policy_init( &key_policy );
-        key_usage = mbedtls_psa_translate_cipher_operation( operation );
+
+        /* Mbed TLS' cipher layer doesn't enforce the mode of operation
+         * (encrypt vs. decrypt): it is possible to setup a key for encryption
+         * and use it for AEAD decryption. Until tests relying on this
+         * are changed, allow any usage in PSA. */
+        /* key_usage = mbedtls_psa_translate_cipher_operation( operation ); */
+        key_usage = PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT;
         psa_key_policy_set_usage( &key_policy, key_usage, cipher_psa->alg );
         status = psa_set_key_policy( cipher_psa->slot, &key_policy );
         if( status != PSA_SUCCESS )

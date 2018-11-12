@@ -579,7 +579,11 @@ static psa_status_t psa_import_rsa_key( mbedtls_pk_context *pk,
     else
     {
         mbedtls_rsa_context *rsa = mbedtls_pk_rsa( *pk );
-        size_t bits = mbedtls_rsa_get_bitlen( rsa );
+        /* The size of an RSA key doesn't have to be a multiple of 8.
+         * Mbed TLS supports non-byte-aligned key sizes, but not well.
+         * For example, mbedtls_rsa_get_len() returns the key size in
+         * bytes, not in bits. */
+        size_t bits = PSA_BYTES_TO_BITS( mbedtls_rsa_get_len( rsa ) );
         if( bits > PSA_VENDOR_RSA_MAX_KEY_BITS )
             return( PSA_ERROR_NOT_SUPPORTED );
         *p_rsa = rsa;
@@ -799,7 +803,7 @@ static size_t psa_get_key_bits( const key_slot_t *slot )
         return( slot->data.raw.bytes * 8 );
 #if defined(MBEDTLS_RSA_C)
     if( PSA_KEY_TYPE_IS_RSA( slot->type ) )
-        return( mbedtls_rsa_get_bitlen( slot->data.rsa ) );
+        return( PSA_BYTES_TO_BITS( mbedtls_rsa_get_len( slot->data.rsa ) ) );
 #endif /* defined(MBEDTLS_RSA_C) */
 #if defined(MBEDTLS_ECP_C)
     if( PSA_KEY_TYPE_IS_ECC( slot->type ) )

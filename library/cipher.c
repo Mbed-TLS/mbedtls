@@ -1289,8 +1289,32 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ctx->psa_enabled == 1 )
     {
-        /* TODO */
-        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+        /* As in the non-PSA case, we don't check that
+         * a key has been set. If not, the key slot will
+         * still be in its default state of 0, which is
+         * guaranteed to be invalid, hence the PSA-call
+         * below will gracefully fail. */
+        mbedtls_cipher_context_psa * const cipher_psa =
+            (mbedtls_cipher_context_psa *) ctx->cipher_ctx;
+
+        psa_status_t status;
+
+        /* PSA Crypto API always writes the authentication tag
+         * at the end of the encrypted message. */
+        if( tag != output + ilen )
+            return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+
+        status = psa_aead_encrypt( cipher_psa->slot,
+                                   cipher_psa->alg,
+                                   iv, iv_len,
+                                   ad, ad_len,
+                                   input, ilen,
+                                   output, ilen + tag_len, olen );
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+
+        *olen -= tag_len;
+        return( 0 );
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
@@ -1344,8 +1368,33 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ctx->psa_enabled == 1 )
     {
-        /* TODO */
-        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+        /* As in the non-PSA case, we don't check that
+         * a key has been set. If not, the key slot will
+         * still be in its default state of 0, which is
+         * guaranteed to be invalid, hence the PSA-call
+         * below will gracefully fail. */
+        mbedtls_cipher_context_psa * const cipher_psa =
+            (mbedtls_cipher_context_psa *) ctx->cipher_ctx;
+
+        psa_status_t status;
+
+        /* PSA Crypto API always writes the authentication tag
+         * at the end of the encrypted message. */
+        if( tag != input + ilen )
+            return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+
+        status = psa_aead_decrypt( cipher_psa->slot,
+                                   cipher_psa->alg,
+                                   iv, iv_len,
+                                   ad, ad_len,
+                                   input, ilen + tag_len,
+                                   output, ilen, olen );
+        if( status == PSA_ERROR_INVALID_SIGNATURE )
+            return( MBEDTLS_ERR_CIPHER_AUTH_FAILED );
+        else if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+
+        return( 0 );
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

@@ -1194,8 +1194,58 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ctx->psa_enabled == 1 )
     {
-        /* TODO */
-        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+        /* As in the non-PSA case, we don't check that
+         * a key has been set. If not, the key slot will
+         * still be in its default state of 0, which is
+         * guaranteed to be invalid, hence the PSA-call
+         * below will gracefully fail. */
+        mbedtls_cipher_context_psa * const cipher_psa =
+            (mbedtls_cipher_context_psa *) ctx->cipher_ctx;
+
+        psa_status_t status;
+        psa_cipher_operation_t cipher_op;
+        size_t part_len;
+
+        if( ctx->operation == MBEDTLS_DECRYPT )
+        {
+            status = psa_cipher_decrypt_setup( &cipher_op,
+                                               cipher_psa->slot,
+                                               cipher_psa->alg );
+        }
+        else if( ctx->operation == MBEDTLS_ENCRYPT )
+        {
+            status = psa_cipher_encrypt_setup( &cipher_op,
+                                               cipher_psa->slot,
+                                               cipher_psa->alg );
+        }
+        else
+            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+        /* In the following, we can immediately return on an error,
+         * because the PSA Crypto API guarantees that cipher operations
+         * are terminated by unsuccessful calls to psa_cipher_update(),
+         * and by any call to psa_cipher_finish(). */
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+
+        status = psa_cipher_set_iv( &cipher_op, iv, iv_len );
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+
+        status = psa_cipher_update( &cipher_op,
+                                    input, ilen,
+                                    output, ilen, olen );
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+
+        status = psa_cipher_finish( &cipher_op,
+                                    output + *olen, ilen - *olen,
+                                    &part_len );
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+
+        *olen += part_len;
+        return( 0 );
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

@@ -234,7 +234,8 @@ int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx,
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 int mbedtls_cipher_setup_psa( mbedtls_cipher_context_t *ctx,
-                              const mbedtls_cipher_info_t *cipher_info )
+                              const mbedtls_cipher_info_t *cipher_info,
+                              size_t taglen )
 {
     psa_algorithm_t alg;
     mbedtls_cipher_context_psa *cipher_psa;
@@ -242,7 +243,7 @@ int mbedtls_cipher_setup_psa( mbedtls_cipher_context_t *ctx,
     if( NULL == cipher_info || NULL == ctx )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-    alg = mbedtls_psa_translate_cipher_mode( cipher_info->mode );
+    alg = mbedtls_psa_translate_cipher_mode( cipher_info->mode, taglen );
     if( alg == 0)
         return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
 

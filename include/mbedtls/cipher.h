@@ -434,6 +434,12 @@ int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx,
  *
  * \param ctx           The context to initialize. May not be \c NULL.
  * \param cipher_info   The cipher to use.
+ * \param taglen        For AEAD ciphers, the length in bytes of the
+ *                      authentication tag to use. Subsequent uses of
+ *                      mbedtls_cipher_auth_encrypt() or
+ *                      mbedtls_cipher_auth_decrypt() must provide
+ *                      the same tag length.
+ *                      For non-AEAD ciphers, the value must be \c 0.
  *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
@@ -442,7 +448,8 @@ int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx,
  *                      cipher-specific context fails.
  */
 int mbedtls_cipher_setup_psa( mbedtls_cipher_context_t *ctx,
-                              const mbedtls_cipher_info_t *cipher_info );
+                              const mbedtls_cipher_info_t *cipher_info,
+                              size_t taglen );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /**

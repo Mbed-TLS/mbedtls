@@ -60,6 +60,7 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
+#include "mbedtls/psa_util.h"
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -176,7 +177,8 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx )
 
             if( cipher_psa->slot_state == 1 )
             {
-                /* TODO: Destroy PSA key */
+                /* xxx_free() doesn't allow to return failures. */
+                (void) psa_destroy_key( cipher_psa->slot );
             }
 
             mbedtls_platform_zeroize( cipher_psa, sizeof( *cipher_psa ) );
@@ -234,15 +236,23 @@ int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx,
 int mbedtls_cipher_setup_psa( mbedtls_cipher_context_t *ctx,
                               const mbedtls_cipher_info_t *cipher_info )
 {
+    psa_algorithm_t alg;
+    mbedtls_cipher_context_psa *cipher_psa;
+
     if( NULL == cipher_info || NULL == ctx )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-    ctx->cipher_ctx = mbedtls_calloc( 1, sizeof(mbedtls_cipher_context_psa ) );
-    if( ctx->cipher_ctx == NULL )
-        return( MBEDTLS_ERR_CIPHER_ALLOC_FAILED );
+    alg = mbedtls_psa_translate_cipher_mode( cipher_info->mode );
+    if( alg == 0)
+        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
 
     memset( ctx, 0, sizeof( mbedtls_cipher_context_t ) );
 
+    cipher_psa = mbedtls_calloc( 1, sizeof(mbedtls_cipher_context_psa ) );
+    if( cipher_psa == NULL )
+        return( MBEDTLS_ERR_CIPHER_ALLOC_FAILED );
+    cipher_psa->alg  = alg;
+    ctx->cipher_ctx  = cipher_psa;
     ctx->cipher_info = cipher_info;
     ctx->psa_enabled = 1;
     return( 0 );
@@ -254,14 +264,71 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
                            int key_bitlen,
                            const mbedtls_operation_t operation )
 {
-    if( NULL == ctx || NULL == ctx->cipher_info )
+    if( NULL == ctx || NULL == ctx->cipher_info ||
+        NULL == ctx->cipher_ctx )
+    {
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    }
+
+    if( operation != MBEDTLS_DECRYPT &&
+        operation != MBEDTLS_ENCRYPT )
+    {
+        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ctx->psa_enabled == 1 )
     {
-        /* TODO: Allocate and setup PSA key slot from raw key material. */
-        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+        mbedtls_cipher_context_psa * const cipher_psa =
+            (mbedtls_cipher_context_psa *) ctx->cipher_ctx;
+
+        size_t const key_bytelen = ( (size_t) key_bitlen + 7 ) / 8;
+
+        psa_status_t status;
+        psa_key_type_t key_type;
+        psa_key_usage_t key_usage;
+        psa_key_policy_t key_policy;
+
+        /* PSA Crypto API only accepts byte-aligned keys. */
+        if( key_bitlen % 8 != 0 )
+            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+        /* Don't allow keys to be set multiple times. */
+        if( cipher_psa->slot_state != 0 )
+            return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+        /* Find a fresh key slot to use. */
+        status = mbedtls_psa_get_free_key_slot( &cipher_psa->slot );
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+        cipher_psa->slot_state = 1; /* Indicate that we own the key slot. */
+
+        /* From that point on, the responsibility for destroying the
+         * key slot is on mbedtls_cipher_free(). This includes the case
+         * where the policy setup or key import below fail, as
+         * mbedtls_cipher_free() needs to be called in any case. */
+
+        /* Setup policy for the new key slot. */
+        psa_key_policy_init( &key_policy );
+        key_usage = mbedtls_psa_translate_cipher_operation( operation );
+        psa_key_policy_set_usage( &key_policy, key_usage, cipher_psa->alg );
+        status = psa_set_key_policy( cipher_psa->slot, &key_policy );
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+
+        /* Populate new key slot. */
+        key_type = mbedtls_psa_translate_cipher_type(
+            ctx->cipher_info->type );
+        if( key_type == 0 )
+            return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+        status = psa_import_key( cipher_psa->slot,
+                                 key_type, key, key_bytelen );
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+
+        ctx->key_bitlen = key_bitlen;
+        ctx->operation = operation;
+        return( 0 );
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

@@ -25,6 +25,9 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /*----------------------------------------------------------------------------*/
 /* Common helper code */
@@ -221,8 +224,22 @@ int main( int argc, const char *argv[] )
                          ret );
         return( -1 );
     }
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    {
+        psa_status_t status;
+        status = psa_crypto_init();
+        if( status != PSA_SUCCESS )
+        {
+            mbedtls_fprintf( stderr,
+                          "FATAL: Failed to initialize PSA Crypto - error %d\n",
+                          status );
+            return( -1 );
+        }
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
     ret = execute_tests( argc, argv );
     platform_teardown();
     return( ret );
 }
-

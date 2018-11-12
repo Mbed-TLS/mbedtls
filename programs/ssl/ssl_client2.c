@@ -59,6 +59,10 @@ int main( void )
 #include "mbedtls/debug.h"
 #include "mbedtls/timing.h"
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -555,6 +559,9 @@ int main( int argc, char *argv[] )
 #endif
     char *p, *q;
     const int *list;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_status_t status;
+#endif
 
     /*
      * Make sure memory references are valid.
@@ -571,6 +578,17 @@ int main( int argc, char *argv[] )
 #endif
 #if defined(MBEDTLS_SSL_ALPN)
     memset( (void * ) alpn_list, 0, sizeof( alpn_list ) );
+#endif
+
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    status = psa_crypto_init();
+    if( status != PSA_SUCCESS )
+    {
+        mbedtls_fprintf( stderr, "Failed to initialize PSA Crypto implementation: %d\n",
+                         (int) status );
+        ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+        goto exit;
+    }
 #endif
 
     if( argc == 0 )

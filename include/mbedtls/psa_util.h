@@ -43,7 +43,7 @@
 
 /* Slot allocation */
 
-static psa_status_t mbedtls_psa_get_free_key_slot( psa_key_slot_t *key )
+static inline psa_status_t mbedtls_psa_get_free_key_slot( psa_key_slot_t *key )
 {
     for( psa_key_slot_t slot = 1; slot <= 32; slot++ )
     {
@@ -58,7 +58,7 @@ static psa_status_t mbedtls_psa_get_free_key_slot( psa_key_slot_t *key )
 
 /* Translations for symmetric crypto. */
 
-static psa_key_type_t mbedtls_psa_translate_cipher_type(
+static inline psa_key_type_t mbedtls_psa_translate_cipher_type(
     mbedtls_cipher_type_t cipher )
 {
     switch( cipher )
@@ -91,7 +91,7 @@ static psa_key_type_t mbedtls_psa_translate_cipher_type(
     }
 }
 
-static psa_algorithm_t mbedtls_psa_translate_cipher_mode(
+static inline psa_algorithm_t mbedtls_psa_translate_cipher_mode(
     mbedtls_cipher_mode_t mode )
 {
     switch( mode )
@@ -107,8 +107,8 @@ static psa_algorithm_t mbedtls_psa_translate_cipher_mode(
     }
 }
 
-static psa_key_usage_t mbedtls_psa_translate_cipher_operation(
-    mbedtls_cipher_operation_t op )
+static inline psa_key_usage_t mbedtls_psa_translate_cipher_operation(
+    mbedtls_operation_t op )
 {
     switch( op )
     {
@@ -123,7 +123,7 @@ static psa_key_usage_t mbedtls_psa_translate_cipher_operation(
 
 /* Translations for hashing. */
 
-psa_algorithm_t mbedtls_psa_translate_md( mbedtls_md_type_t md_alg )
+static inline psa_algorithm_t mbedtls_psa_translate_md( mbedtls_md_type_t md_alg )
 {
     switch( md_alg )
     {
@@ -167,7 +167,7 @@ psa_algorithm_t mbedtls_psa_translate_md( mbedtls_md_type_t md_alg )
 
 /* Translations for ECC. */
 
-static psa_ecc_curve_t mbedtls_psa_translate_ecc_group( mbedtls_ecp_group_id grpid )
+static inline psa_ecc_curve_t mbedtls_psa_translate_ecc_group( mbedtls_ecp_group_id grpid )
 {
     switch( grpid )
     {

@@ -14,12 +14,12 @@ void test_hkdf( int md_alg, char *hex_ikm_string, char *hex_salt_string,
 {
     int ret;
     size_t ikm_len, salt_len, info_len, okm_len;
-    unsigned char ikm[1024] = { '\0' };
-    unsigned char salt[1024] = { '\0' };
-    unsigned char info[1024] = { '\0' };
-    unsigned char expected_okm[1024] = { '\0' };
-    unsigned char okm[1024] = { '\0' };
-    unsigned char okm_string[1000] = { '\0' };
+    unsigned char ikm[128] = { '\0' };
+    unsigned char salt[128] = { '\0' };
+    unsigned char info[128] = { '\0' };
+    unsigned char expected_okm[256] = { '\0' };
+    unsigned char okm[256] = { '\0' };
+    unsigned char okm_string[200] = { '\0' };
 
     const mbedtls_md_info_t *md = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md != NULL );

@@ -3372,6 +3372,9 @@ static psa_status_t psa_generator_tls12_prf_generate_next_block(
     psa_hmac_internal_data hmac;
     psa_status_t status, cleanup_status;
 
+    unsigned char *Ai;
+    size_t Ai_len;
+
     /* We can't be wanting more output after block 0xff, otherwise
      * the capacity check in psa_generator_read() would have
      * prevented this call. It could happen only if the generator
@@ -3415,50 +3418,33 @@ static psa_status_t psa_generator_tls12_prf_generate_next_block(
      * length than the other A(i). */
     if( tls12_prf->block_number == 1 )
     {
-        /* Compute A(1) = HMAC_hash(secret, label + seed) */
-        status = psa_hmac_setup_internal( &hmac,
-                                          tls12_prf->key,
-                                          tls12_prf->key_len,
-                                          hash_alg );
-        if( status != PSA_SUCCESS )
-            goto cleanup;
-
-        status = psa_hash_update( &hmac.hash_ctx,
-                                  /* This omits the (so far undefined)
-                                   * first hash_length bytes. */
-                                  tls12_prf->Ai_with_seed + hash_length,
-                                  tls12_prf->Ai_with_seed_len - hash_length );
-        if( status != PSA_SUCCESS )
-            goto cleanup;
-        status = psa_hmac_finish_internal( &hmac,
-                                           tls12_prf->Ai_with_seed,
-                                           hash_length );
-        if( status != PSA_SUCCESS )
-            goto cleanup;
+        Ai     = tls12_prf->Ai_with_seed + hash_length;
+        Ai_len = tls12_prf->Ai_with_seed_len - hash_length;
     }
     else
     {
-        /* Compute A(i+1) = HMAC_hash(secret, A(i)) */
-        status = psa_hmac_setup_internal( &hmac,
-                                          tls12_prf->key,
-                                          tls12_prf->key_len,
-                                          hash_alg );
-        if( status != PSA_SUCCESS )
-            goto cleanup;
-
-        status = psa_hash_update( &hmac.hash_ctx,
-                                  tls12_prf->Ai_with_seed,
-                                  /* This omits the seed part of A(i) */
-                                  hash_length );
-        if( status != PSA_SUCCESS )
-            goto cleanup;
-
-        status = psa_hmac_finish_internal( &hmac,
-                                           tls12_prf->Ai_with_seed,
-                                           hash_length );
-        if( status != PSA_SUCCESS )
-            goto cleanup;
+        Ai     = tls12_prf->Ai_with_seed;
+        Ai_len = hash_length;
     }
+
+    /* Compute A(i+1) = HMAC_hash(secret, A(i)) */
+    status = psa_hmac_setup_internal( &hmac,
+                                      tls12_prf->key,
+                                      tls12_prf->key_len,
+                                      hash_alg );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+
+    status = psa_hash_update( &hmac.hash_ctx,
+                              Ai, Ai_len );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+
+    status = psa_hmac_finish_internal( &hmac,
+                                       tls12_prf->Ai_with_seed,
+                                       hash_length );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
 
     /* Compute the next block `HMAC_hash(secret, A(i+1) + seed)`. */
     status = psa_hmac_setup_internal( &hmac,

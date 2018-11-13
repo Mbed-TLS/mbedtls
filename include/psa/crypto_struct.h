@@ -154,8 +154,8 @@ typedef struct psa_tls12_prf_generator_s
     size_t key_len;
 
     /* `A(i) + seed` in the notation of RFC 5246, Sect. 5 */
-    uint8_t Ai_with_seed[PSA_HASH_MAX_SIZE + 64];
-    size_t seed_length;
+    uint8_t *Ai_with_seed;
+    size_t Ai_with_seed_len;
 
     /* `HMAC_hash( prk, A(i) + seed )` in the notation of RFC 5246, Sect. 5. */
     uint8_t output_block[PSA_HASH_MAX_SIZE];

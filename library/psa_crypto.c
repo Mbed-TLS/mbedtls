@@ -3272,6 +3272,13 @@ psa_status_t psa_generator_abort( psa_crypto_generator_t *generator )
                              generator->ctx.tls12_prf.key_len );
             mbedtls_free( generator->ctx.tls12_prf.key );
         }
+
+        if( generator->ctx.tls12_prf.Ai_with_seed != NULL )
+        {
+            mbedtls_zeroize( generator->ctx.tls12_prf.Ai_with_seed,
+                             generator->ctx.tls12_prf.Ai_with_seed_len );
+            mbedtls_free( generator->ctx.tls12_prf.Ai_with_seed );
+        }
     }
     else
 #endif /* MBEDTLS_MD_C */
@@ -3420,7 +3427,7 @@ static psa_status_t psa_generator_tls12_prf_generate_next_block(
                                   /* This omits the (so far undefined)
                                    * first hash_length bytes. */
                                   tls12_prf->Ai_with_seed + hash_length,
-                                  tls12_prf->seed_length );
+                                  tls12_prf->Ai_with_seed_len - hash_length );
         if( status != PSA_SUCCESS )
             goto cleanup;
         status = psa_hmac_finish_internal( &hmac,
@@ -3463,7 +3470,7 @@ static psa_status_t psa_generator_tls12_prf_generate_next_block(
 
     status = psa_hash_update( &hmac.hash_ctx,
                               tls12_prf->Ai_with_seed,
-                              hash_length + tls12_prf->seed_length );
+                              tls12_prf->Ai_with_seed_len );
     if( status != PSA_SUCCESS )
         goto cleanup;
 
@@ -3694,6 +3701,8 @@ static psa_status_t psa_generator_tls12_prf_setup(
     size_t label_length )
 {
     uint8_t hash_length = PSA_HASH_SIZE( hash_alg );
+    size_t Ai_with_seed_len = hash_length + salt_length + label_length;
+    int overflow;
 
     tls12_prf->key = mbedtls_calloc( 1, key_len );
     if( tls12_prf->key == NULL )
@@ -3701,13 +3710,21 @@ static psa_status_t psa_generator_tls12_prf_setup(
     tls12_prf->key_len = key_len;
     memcpy( tls12_prf->key, key, key_len );
 
+    overflow = ( salt_length + label_length               < salt_length ) ||
+               ( salt_length + label_length + hash_length < hash_length );
+    if( overflow )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    tls12_prf->Ai_with_seed = mbedtls_calloc( 1, Ai_with_seed_len );
+    if( tls12_prf->Ai_with_seed == NULL )
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+    tls12_prf->Ai_with_seed_len = Ai_with_seed_len;
+
     /* Write `label + seed' at the end of the `A(i) + seed` buffer,
      * leaving the initial `hash_length` bytes unspecified for now. */
     memcpy( tls12_prf->Ai_with_seed + hash_length, label, label_length );
     memcpy( tls12_prf->Ai_with_seed + hash_length + label_length,
             salt, salt_length );
-
-    tls12_prf->seed_length = label_length + salt_length;
 
     /* The first block gets generated when
      * psa_generator_read() is called. */

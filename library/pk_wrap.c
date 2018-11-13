@@ -66,7 +66,7 @@ static int rsa_can_do( mbedtls_pk_type_t type )
 static size_t rsa_get_bitlen( const void *ctx )
 {
     const mbedtls_rsa_context * rsa = (const mbedtls_rsa_context *) ctx;
-    return( mbedtls_rsa_get_bitlen( rsa ) );
+    return( 8 * mbedtls_rsa_get_len( rsa ) );
 }
 
 static int rsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,

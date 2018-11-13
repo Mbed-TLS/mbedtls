@@ -761,88 +761,13 @@ static int pk_opaque_can_do( mbedtls_pk_type_t type )
             type == MBEDTLS_PK_ECDSA );
 }
 
-/* Like mbedtls_asn1_write_mpi, but from a buffer */
-static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
-                              const unsigned char *src, size_t slen )
+/* translate PSA errors to best PK approximation */
+static int pk_err_from_psa( psa_status_t status )
 {
-    int ret;
-    size_t len = 0;
-
-    if( (size_t)( *p - start ) < slen )
-        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
-
-    len = slen;
-    *p -= len;
-    memcpy( *p, src, len );
-
-    if( **p & 0x80 )
-    {
-        if( *p - start < 1 )
-            return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
-
-        *--(*p) = 0x00;
-        len += 1;
-    }
-
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start, MBEDTLS_ASN1_INTEGER ) );
-
-    return( (int) len );
-}
-
-/* Transcode signature from PSA format to ASN.1 sequence.
- * See ecdsa_signature_to_asn1 in ecdsa.c.
- *
- * [in] sig: the signature in PSA format
- * [in/out] sig_len: signature length pre- and post-transcoding
- * [out] dst: the signature in ASN.1 format
- */
-static int pk_ecdsa_sig_asn1_from_psa( const unsigned char *sig, size_t *sig_len,
-                                       unsigned char *dst )
-{
-    int ret;
-    unsigned char buf[MBEDTLS_ECDSA_MAX_LEN];
-    unsigned char *p = buf + sizeof( buf );
-    size_t len = 0;
-    const size_t mpi_len = *sig_len / 2;
-
-    MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, buf, sig + mpi_len, mpi_len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, buf, sig, mpi_len ) );
-
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, buf, len ) );
-    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, buf,
-                                       MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
-
-    memcpy( dst, p, len );
-    *sig_len = len;
-
-    return( 0 );
-}
-
-static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
-                   const unsigned char *hash, size_t hash_len,
-                   unsigned char *sig, size_t *sig_len,
-                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
-{
-    const psa_key_slot_t *key = (const psa_key_slot_t *) ctx;
-    psa_status_t status;
-    psa_algorithm_t alg = PSA_ALG_ECDSA( mbedtls_psa_translate_md( md_alg ) );
-    /* PSA needs a buffer of know size */
-    unsigned char buf[2 * MBEDTLS_ECP_MAX_BYTES];
-    const size_t buf_len = sizeof( buf );
-
-    /* PSA has its own RNG */
-    (void) f_rng;
-    (void) p_rng;
-
-    status = psa_asymmetric_sign( *key, alg, hash, hash_len,
-                                        buf, buf_len, sig_len );
-
-    /* translate errors to best approximation */
     switch( status )
     {
         case PSA_SUCCESS:
-            break; /* don't return now */
+            return( 0 );
         case PSA_ERROR_NOT_SUPPORTED:
             return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
         case PSA_ERROR_INSUFFICIENT_MEMORY:
@@ -858,10 +783,107 @@ static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
         default: /* should never happen */
             return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
     }
+}
 
-    pk_ecdsa_sig_asn1_from_psa( buf, sig_len, sig );
+/*
+ * Like mbedtls_asn1_write_mpi(), but from a buffer.
+ *
+ * p: pointer to the end of the output buffer
+ * start: start of the output buffer, and also of the mpi to write at the end
+ * n_len: length ot the mpi to read from start
+ */
+static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
+                              size_t n_len )
+{
+    int ret;
+    size_t len = 0;
+
+    if( (size_t)( *p - start ) < n_len )
+        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+    len = n_len;
+    *p -= len;
+    memmove( *p, start, len );
+
+    /* if the msb is 1, ASN.1 requires that we prepend a 0.
+     * we're never called with n_len == 0, so we can always read back a byte */
+    if( **p & 0x80 )
+    {
+        if( *p - start < 1 )
+            return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+        *--(*p) = 0x00;
+        len += 1;
+    }
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( p, start,
+                                                MBEDTLS_ASN1_INTEGER ) );
+
+    return( (int) len );
+}
+
+/* Transcode signature from PSA format to ASN.1 sequence.
+ * See ecdsa_signature_to_asn1 in ecdsa.c, but with byte buffers instead of
+ * MPIs, and in-place.
+ *
+ * [in/out] sig: the signature pre- and post-transcoding
+ * [in/out] sig_len: signature length pre- and post-transcoding
+ * [int] buf_len: the available size the in/out buffer
+ */
+static int pk_ecdsa_sig_asn1_from_psa( unsigned char *sig, size_t *sig_len,
+                                       size_t buf_len )
+{
+    int ret;
+    size_t len = 0;
+    const size_t rs_len = *sig_len / 2;
+    unsigned char *p = sig + buf_len;
+
+    MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, sig + rs_len, rs_len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, asn1_write_mpibuf( &p, sig, rs_len ) );
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &p, sig, len ) );
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &p, sig,
+                          MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) );
+
+    memmove( sig, p, len );
+    *sig_len = len;
 
     return( 0 );
+}
+
+static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                   const unsigned char *hash, size_t hash_len,
+                   unsigned char *sig, size_t *sig_len,
+                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
+{
+    const psa_key_slot_t *key = (const psa_key_slot_t *) ctx;
+    psa_algorithm_t alg = PSA_ALG_ECDSA( mbedtls_psa_translate_md( md_alg ) );
+    size_t bits, buf_len;
+    psa_status_t status;
+
+    /* PSA has its own RNG */
+    (void) f_rng;
+    (void) p_rng;
+
+    /* PSA needs an output buffer of known size, but our API doesn't provide
+     * that information. Assume that the buffer is large enough for a
+     * maximal-length signature with that key (otherwise the application is
+     * buggy anyway). */
+    status = psa_get_key_information( *key, NULL, &bits );
+    if( status != PSA_SUCCESS )
+        return( pk_err_from_psa( status ) );
+
+    buf_len = MBEDTLS_ECDSA_MAX_SIG_LEN( bits );
+
+    /* make the signature */
+    status = psa_asymmetric_sign( *key, alg, hash, hash_len,
+                                        sig, buf_len, sig_len );
+    if( status != PSA_SUCCESS )
+        return( pk_err_from_psa( status ) );
+
+    /* transcode it to ASN.1 sequence */
+    return( pk_ecdsa_sig_asn1_from_psa( sig, sig_len, buf_len ) );
 }
 
 const mbedtls_pk_info_t mbedtls_pk_opaque_info = {

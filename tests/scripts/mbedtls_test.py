@@ -163,6 +163,7 @@ class MbedTlsTest(BaseHostTest):
         self.tests = []
         self.test_index = -1
         self.dep_index = 0
+        self.suite_passed = True
         self.error_str = dict()
         self.error_str[self.DEPENDENCY_SUPPORTED] = \
             'DEPENDENCY_SUPPORTED'
@@ -293,7 +294,7 @@ class MbedTlsTest(BaseHostTest):
             name, function_id, dependencies, args = self.tests[self.test_index]
             self.run_test(name, function_id, dependencies, args)
         else:
-            self.notify_complete(True)
+            self.notify_complete(self.suite_passed)
 
     def run_test(self, name, function_id, dependencies, args):
         """
@@ -353,6 +354,8 @@ class MbedTlsTest(BaseHostTest):
         self.log('{{__testcase_start;%s}}' % name)
         self.log('{{__testcase_finish;%s;%d;%d}}' % (name, int_val == 0,
                                                      int_val != 0))
+        if int_val != 0:
+            self.suite_passed = False
         self.run_next_test()
 
     @event_callback("F")

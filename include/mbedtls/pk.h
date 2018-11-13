@@ -248,8 +248,13 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
 /**
  * \brief           Initialize a PK context to wrap a PSA key slot.
  *
- * \param ctx       Context to initialize. Must be empty (type NONE).
- * \param key       PSA key slot to wrap - must hold an ECC keypair.
+ * \note            This function replaces mbedtls_pk_setup() for contexts
+ *                  that wrap a (possibly opaque) PSA key slot instead of
+ *                  storing and manipulating the key material directly.
+ *
+ * \param ctx       The context to initialize. It must be empty (type NONE).
+ * \param key       The PSA key slot to wrap, which must hold an ECC key pair
+ *                  (see notes below).
  *
  * \note            The wrapped key slot must remain valid as long as the
  *                  wrapping PK context is in use, that is at least between
@@ -257,19 +262,16 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info );
  *                  mbedtls_pk_free() is called on this context. The wrapped
  *                  key slot might then be independently used or destroyed.
  *
- * \return          \c 0 on success,
+ * \note            This function is currently only available for ECC key
+ *                  pairs (that is, ECC keys containing private key material).
+ *                  Support for other key types may be added later.
+ *
+ * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_PK_BAD_INPUT_DATA on invalid input
- *                  (context already used, invalid key slot)
+ *                  (context already used, invalid key slot).
  * \return          #MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE if the key is not an
- *                  ECC keypair,
+ *                  ECC key pair.
  * \return          #MBEDTLS_ERR_PK_ALLOC_FAILED on allocation failure.
- *
- * \note            This function replaces mbedtls_pk_setup() for contexts
- *                  that wrap a (possibly opaque) PSA key slot instead of
- *                  storing and manipulating the key material directly.
- *
- * \note            This function is currently only available for ECC keypair.
- *                  Support for other key types will be added later.
  */
 int mbedtls_pk_setup_opaque( mbedtls_pk_context *ctx, const psa_key_slot_t key );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

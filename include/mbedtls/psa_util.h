@@ -1,5 +1,5 @@
 /**
- * \file psa_compat.h
+ * \file psa_util.h
  *
  * \brief Utility functions for the use of the PSA Crypto library.
  *

@@ -1263,10 +1263,29 @@ typedef uint32_t psa_algorithm_t;
  * public key, with a key selection or key derivation algorithm to produce
  * one or more shared keys and other shared cryptographic material.
  *
- * The input to \p kdf_alg is the x-coordinate of the shared secret
- * `d_A Q_B = d_B Q_A` in big-endian format. It has the same size of
- * the order of the curve, i.e. `ceiling(n / 8)` bytes where `n` is
- * the size of the order of the curve.
+ * The shared secret produced by key agreement and passed as input to the
+ * derivation or selection algorithm \p kdf_alg is the x-coordinate of
+ * the shared secret point. It is always `ceiling(q / 8)` bytes long where
+ * `q` is the bit size associated with the curve, i.e. the bit size of the
+ * order of the curve's coordinate field. When `q` is not a multiple of 8,
+ * the byte containing the most significant bit of the shared secret
+ * is padded with zero bits. The byte order is either little-endian
+ * or big-endian depending on the curve type.
+ *
+ * - For Montgomery curves (curve types `PSA_ECC_CURVE_CURVEXXX`),
+ *   the shared secret is the x-coordinate of `d_A Q_B = d_B Q_A`
+ *   in little-endian byte order.
+ *   The bit size is 448 for Curve448 and 255 for Curve25519.
+ * - For Weierstrass curves over prime fields (curve types
+ *   `PSA_ECC_CURVE_SECPXXX` and `PSA_ECC_CURVE_BRAINPOOL_PXXX`),
+ *   the shared secret is the x-coordinate of `d_A Q_B = d_B Q_A`
+ *   in big-endian byte order.
+ *   The bit size is `q = ceiling(log_2(p))` for the field `F_p`.
+ * - For Weierstrass curves over binary fields (curve types
+ *   `PSA_ECC_CURVE_SECTXXX`),
+ *   the shared secret is the x-coordinate of `d_A Q_B = d_B Q_A`
+ *   in big-endian byte order.
+ *   The bit size is `q = m` for the field `F_{2^m}`.
  *
  * \param kdf_alg       A key derivation algorithm (\c PSA_ALG_XXX value such
  *                      that #PSA_ALG_IS_KEY_DERIVATION(\p hash_alg) is true)
@@ -1567,9 +1586,10 @@ psa_status_t psa_export_key(psa_key_slot_t key,
  *
  *   ECPoint ::= ...
  *      -- first 8 bits: 0x04;
- *      -- then x_P as an n-bit string, big endian;
- *      -- then y_P as a n-bit string, big endian,
- *      -- where n is the order of the curve.
+ *      -- then x_P as a `ceiling(n/8)`-byte string, big endian;
+ *      -- then y_P as a `ceiling(n/8)`-byte string, big endian;
+ *      -- where `n` is the bit size associated with the curve,
+ *      --       i.e. the bit size of `q` for a curve over `F_q`.
  *
  *   EcpkParameters ::= CHOICE { -- other choices are not allowed
  *      namedCurve    OBJECT IDENTIFIER }

@@ -17,9 +17,9 @@ void test_hkdf( int md_alg, char *hex_ikm_string, char *hex_salt_string,
     unsigned char ikm[128] = { '\0' };
     unsigned char salt[128] = { '\0' };
     unsigned char info[128] = { '\0' };
-    unsigned char expected_okm[256] = { '\0' };
-    unsigned char okm[256] = { '\0' };
-    unsigned char okm_string[200] = { '\0' };
+    unsigned char expected_okm[128] = { '\0' };
+    unsigned char okm[128] = { '\0' };
+    unsigned char okm_string[256] = { '\0' };
 
     const mbedtls_md_info_t *md = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md != NULL );

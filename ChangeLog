@@ -32,6 +32,7 @@ Features
      may be up to two bytes shorter. This allows the library to support all
      hash and signature sizes that comply with FIPS 186-4, including SHA-512
      with a 1024-bit key.
+   * Added parsing of x509 v3 extension subject key identifier.
 
 Bugfix
    * Fix wrong order of freeing in programs/ssl/ssl_server2 example

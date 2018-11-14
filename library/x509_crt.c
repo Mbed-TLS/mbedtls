@@ -802,16 +802,16 @@ static int x509_get_crt_ext( unsigned char **p,
 
         case MBEDTLS_X509_EXT_SUBJECT_KEY_IDENTIFIER:
             if( ( ret = mbedtls_asn1_get_tag( p, end_ext_data, &len,
-                MBEDTLS_ASN1_OCTET_STRING ) ) == 0 )
+                MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
             {
-                crt->subject_key_id.len = len;
-                crt->subject_key_id.tag =  MBEDTLS_ASN1_OCTET_STRING;
-                crt->subject_key_id.p = *p;
-                *p +=len;
+                return( ret );
             }
             else
             {
-                return( ret );
+                crt->subject_key_id.len = len;
+                crt->subject_key_id.tag = MBEDTLS_ASN1_OCTET_STRING;
+                crt->subject_key_id.p = *p;
+                *p += len;
             }
             break;
 

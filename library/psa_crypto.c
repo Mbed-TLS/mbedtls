@@ -3630,6 +3630,12 @@ static psa_status_t psa_key_agreement_ecdh( const uint8_t *peer_key,
             goto exit;
     }
     their_key = mbedtls_pk_ec( pk );
+    if( their_key->grp.id != our_key->grp.id )
+    {
+        ret = MBEDTLS_ERR_ECP_INVALID_KEY;
+        goto exit;
+    }
+
     ret = mbedtls_ecdh_get_params( &ecdh, their_key, MBEDTLS_ECDH_THEIRS );
     if( ret != 0 )
         goto exit;

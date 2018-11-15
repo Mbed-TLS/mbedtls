@@ -93,16 +93,18 @@ static inline psa_key_type_t mbedtls_psa_translate_cipher_type(
 }
 
 static inline psa_algorithm_t mbedtls_psa_translate_cipher_mode(
-    mbedtls_cipher_mode_t mode )
+    mbedtls_cipher_mode_t mode, size_t taglen )
 {
     switch( mode )
     {
         case MBEDTLS_MODE_GCM:
-            return( PSA_ALG_GCM );
+            return( PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_GCM, taglen ) );
         case MBEDTLS_MODE_CCM:
-            return( PSA_ALG_CCM );
+            return( PSA_ALG_AEAD_WITH_TAG_LENGTH( PSA_ALG_CCM, taglen ) );
         case MBEDTLS_MODE_CBC:
-            return( PSA_ALG_CBC_NO_PADDING );
+            if( taglen == 0 )
+                return( PSA_ALG_CBC_NO_PADDING );
+            /* Intentional fallthrough for taglen != 0 */
         default:
             return( 0 );
     }

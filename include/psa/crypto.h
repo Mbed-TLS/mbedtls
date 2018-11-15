@@ -3241,7 +3241,11 @@ psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
  *                                \c PSA_CRYPTO_GENERATOR_INIT or
  *                                psa_crypto_generator_init().
  * \param private_key             Slot containing the private key to use.
- * \param[in] peer_key            Public key of the peer.
+ * \param[in] peer_key            Public key of the peer. It must be
+ *                                in the same format that psa_import_key()
+ *                                accepts. The standard formats for public
+ *                                keys are documented in the documentation
+ *                                of psa_export_public_key().
  * \param peer_key_length         Size of \p peer_key in bytes.
  * \param alg                     The key agreement algorithm to compute
  *                                (\c PSA_ALG_XXX value such that

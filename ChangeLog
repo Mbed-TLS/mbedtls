@@ -56,6 +56,8 @@ Changes
      test CRTs are available because MBEDTLS_PEM_PARSE_C is disabled.
      Fixes #2254.
    * Replace multiple uses of MD2 by SHA-256 in X.509 test suite. Fixes #821.
+   * Add unit tests for AES-GCM when called through mbedtls_cipher_auth_xxx()
+     from the cipher abstraction layer. Fixes #2198.
 
 = mbed TLS 2.7.10 branch released 2019-03-19
 

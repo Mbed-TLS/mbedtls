@@ -773,6 +773,42 @@ static psa_status_t psa_get_key_from_slot( psa_key_slot_t key,
     return( PSA_SUCCESS );
 }
 
+static psa_status_t psa_remove_key_data_from_memory( key_slot_t *slot )
+{
+    if( slot->type == PSA_KEY_TYPE_NONE )
+    {
+        /* No key material to clean. */
+    }
+    else if( key_type_is_raw_bytes( slot->type ) )
+    {
+        mbedtls_free( slot->data.raw.data );
+    }
+    else
+#if defined(MBEDTLS_RSA_C)
+    if( PSA_KEY_TYPE_IS_RSA( slot->type ) )
+    {
+        mbedtls_rsa_free( slot->data.rsa );
+        mbedtls_free( slot->data.rsa );
+    }
+    else
+#endif /* defined(MBEDTLS_RSA_C) */
+#if defined(MBEDTLS_ECP_C)
+    if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
+    {
+        mbedtls_ecp_keypair_free( slot->data.ecp );
+        mbedtls_free( slot->data.ecp );
+    }
+    else
+#endif /* defined(MBEDTLS_ECP_C) */
+    {
+        /* Shouldn't happen: the key type is not any type that we
+         * put in. */
+        return( PSA_ERROR_TAMPERING_DETECTED );
+    }
+
+    return( PSA_SUCCESS );
+}
+
 psa_status_t psa_import_key( psa_key_slot_t key,
                              psa_key_type_t type,
                              const uint8_t *data,
@@ -805,41 +841,7 @@ psa_status_t psa_destroy_key( psa_key_slot_t key )
     status = psa_get_key_slot( key, &slot );
     if( status != PSA_SUCCESS )
         return( status );
-
-    if( slot->type == PSA_KEY_TYPE_NONE )
-    {
-        /* No key material to clean, but do zeroize the slot below to wipe
-         * metadata such as policies. */
-    }
-    else if( key_type_is_raw_bytes( slot->type ) )
-    {
-        mbedtls_free( slot->data.raw.data );
-    }
-    else
-#if defined(MBEDTLS_RSA_C)
-    if( PSA_KEY_TYPE_IS_RSA( slot->type ) )
-    {
-        mbedtls_rsa_free( slot->data.rsa );
-        mbedtls_free( slot->data.rsa );
-    }
-    else
-#endif /* defined(MBEDTLS_RSA_C) */
-#if defined(MBEDTLS_ECP_C)
-    if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
-    {
-        mbedtls_ecp_keypair_free( slot->data.ecp );
-        mbedtls_free( slot->data.ecp );
-    }
-    else
-#endif /* defined(MBEDTLS_ECP_C) */
-    {
-        /* Shouldn't happen: the key type is not any type that we
-         * put in. */
-        return( PSA_ERROR_TAMPERING_DETECTED );
-    }
-
-    mbedtls_zeroize( slot, sizeof( *slot ) );
-    return( PSA_SUCCESS );
+    return( psa_remove_key_from_memory( slot ) );
 }
 
 /* Return the size of the key in the given slot, in bits. */
@@ -4231,8 +4233,18 @@ psa_status_t psa_generate_key( psa_key_slot_t key,
 void mbedtls_psa_crypto_free( void )
 {
     psa_key_slot_t key;
+    key_slot_t *slot;
+    psa_status_t status;
+
     for( key = 1; key <= PSA_KEY_SLOT_COUNT; key++ )
-        psa_destroy_key( key );
+    {
+        status = psa_get_key_slot( key, &slot );
+        if( status != PSA_SUCCESS )
+            continue;
+        psa_remove_key_data_from_memory( slot );
+        /* Zeroize the slot to wipe metadata such as policies. */
+        mbedtls_zeroize( slot, sizeof( *slot ) );
+    }
     mbedtls_ctr_drbg_free( &global_data.ctr_drbg );
     mbedtls_entropy_free( &global_data.entropy );
     mbedtls_zeroize( &global_data, sizeof( global_data ) );

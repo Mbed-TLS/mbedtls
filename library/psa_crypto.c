@@ -3708,9 +3708,17 @@ static psa_status_t psa_generator_tls12_prf_setup(
 
     /* Write `label + seed' at the end of the `A(i) + seed` buffer,
      * leaving the initial `hash_length` bytes unspecified for now. */
-    memcpy( tls12_prf->Ai_with_seed + hash_length, label, label_length );
-    memcpy( tls12_prf->Ai_with_seed + hash_length + label_length,
-            salt, salt_length );
+    if( label_length != 0 )
+    {
+        memcpy( tls12_prf->Ai_with_seed + hash_length,
+                label, label_length );
+    }
+
+    if( salt_length != 0 )
+    {
+        memcpy( tls12_prf->Ai_with_seed + hash_length + label_length,
+                salt, salt_length );
+    }
 
     /* The first block gets generated when
      * psa_generator_read() is called. */

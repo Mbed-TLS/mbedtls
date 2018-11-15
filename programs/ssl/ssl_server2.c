@@ -62,6 +62,7 @@ int main( void )
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
+#include "mbedtls/psa_util.h"
 #endif
 
 #include <stdio.h>
@@ -123,8 +124,8 @@ int main( void )
 #define DFL_ASYNC_PRIVATE_DELAY2 ( -1 )
 #define DFL_ASYNC_PRIVATE_ERROR  ( 0 )
 #define DFL_PSK                 ""
-#define DFL_PSK_SLOT            0
-#define DFL_PSK_LIST_SLOT       0
+#define DFL_PSK_OPAQUE          0
+#define DFL_PSK_LIST_OPAQUE     0
 #define DFL_PSK_IDENTITY        "Client_identity"
 #define DFL_ECJPAKE_PW          NULL
 #define DFL_PSK_LIST            NULL
@@ -234,20 +235,18 @@ int main( void )
     "                          id1,psk1[,id2,psk2[,...]]\n"
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #define USAGE_PSK_SLOT                          \
-    "    psk_slot=%%d         default: 0 (don't use key slots)\n"     \
-    "                          An empty key slot identifier to be used to hold the static PSK\n" \
-    "                          configured through the psk parameter.\n"\
+    "    psk_opaque=%%d       default: 0 (don't use opaque static PSK)\n"     \
+    "                          Enable this to store the PSK configured through command line\n" \
+    "                          parameter `psk` in a PSA-based key slot.\n" \
     "                          Note: Currently only supported in conjunction with\n"                  \
     "                          the use of min_version to force TLS 1.2 and force_ciphersuite \n"      \
     "                          to force a particular PSK-only ciphersuite.\n"                         \
     "                          Note: This is to test integration of PSA-based opaque PSKs with\n"     \
     "                          Mbed TLS only. Production systems are likely to configure Mbed TLS\n"  \
     "                          with prepopulated key slots instead of importing raw key material.\n" \
-    "    psk_list_slot=%%d    default: 0 (don't use key slots)\n"     \
-    "                          The base of a consecutive list of empty key slot identifiers to be used\n" \
-    "                          to hold the dynamic PSKs configured through the psk_list parameter;\n" \
-    "                          for example, if you specify a list of 3 dynamic PSKs through the psk_list\n"\
-    "                          parameter, then the slots psk_slot, .., psk_slot+3 must be empty.\n" \
+    "    psk_list_opaque=%%d  default: 0 (don't use opaque dynamic PSKs)\n"     \
+    "                          Enable this to store the list of dynamically chosen PSKs configured\n" \
+    "                          through the command line parameter `psk_list` in PSA-based key slots.\n" \
     "                          Note: Currently only supported in conjunction with\n" \
     "                          the use of min_version to force TLS 1.2 and force_ciphersuite \n" \
     "                          to force a particular PSK-only ciphersuite.\n" \
@@ -485,8 +484,8 @@ struct options
     int async_private_delay2;   /* number of times f_async_resume needs to be called for key 2, or -1 for no async */
     int async_private_error;    /* inject error in async private callback */
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    int psk_slot;
-    int psk_list_slot;
+    int psk_opaque;
+    int psk_list_opaque;
 #endif
     const char *psk;            /* the pre-shared key                       */
     const char *psk_identity;   /* the pre-shared key identity              */
@@ -871,11 +870,6 @@ psk_entry *psk_parse( char *psk_string )
         if( unhexify( new->key, key_hex, &new->key_len ) != 0 )
             goto error;
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-        if( opt.psk_list_slot != 0 )
-            new->slot = opt.psk_list_slot++;
-#endif /* MBEDTLS_USE_PSA_CRYPTO */
-
         new->next = cur;
         cur = new;
     }
@@ -1250,11 +1244,17 @@ static psa_status_t psa_setup_psk_key_slot( psa_key_slot_t slot,
 
     status = psa_set_key_policy( slot, &policy );
     if( status != PSA_SUCCESS )
+    {
+        fprintf( stderr, "POLICY\n" );
         return( status );
+    }
 
     status = psa_import_key( slot, PSA_KEY_TYPE_DERIVE, psk, psk_len );
     if( status != PSA_SUCCESS )
+    {
+        fprintf( stderr, "IMPORT\n" );
         return( status );
+    }
 
     return( PSA_SUCCESS );
 }
@@ -1268,6 +1268,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_algorithm_t alg = 0;
+    psa_key_slot_t psk_slot = 0;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     unsigned char psk[MBEDTLS_PSK_MAX_LEN];
     size_t psk_len = 0;
@@ -1432,8 +1433,8 @@ int main( int argc, char *argv[] )
     opt.async_private_error = DFL_ASYNC_PRIVATE_ERROR;
     opt.psk                 = DFL_PSK;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    opt.psk_slot            = DFL_PSK_SLOT;
-    opt.psk_list_slot       = DFL_PSK_LIST_SLOT;
+    opt.psk_opaque          = DFL_PSK_OPAQUE;
+    opt.psk_list_opaque     = DFL_PSK_LIST_OPAQUE;
 #endif
     opt.psk_identity        = DFL_PSK_IDENTITY;
     opt.psk_list            = DFL_PSK_LIST;
@@ -1564,10 +1565,10 @@ int main( int argc, char *argv[] )
         else if( strcmp( p, "psk" ) == 0 )
             opt.psk = q;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        else if( strcmp( p, "psk_slot" ) == 0 )
-            opt.psk_slot = atoi( q );
-        else if( strcmp( p, "psk_list_slot" ) == 0 )
-            opt.psk_list_slot = atoi( q );
+        else if( strcmp( p, "psk_opaque" ) == 0 )
+            opt.psk_opaque = atoi( q );
+        else if( strcmp( p, "psk_list_opaque" ) == 0 )
+            opt.psk_list_opaque = atoi( q );
 #endif
         else if( strcmp( p, "psk_identity" ) == 0 )
             opt.psk_identity = q;
@@ -1879,11 +1880,11 @@ int main( int argc, char *argv[] )
     }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( opt.psk_slot != 0 )
+    if( opt.psk_opaque != 0 )
     {
         if( strlen( opt.psk ) == 0 )
         {
-            mbedtls_printf( "psk_slot set but no psk to be imported specified.\n" );
+            mbedtls_printf( "psk_opaque set but no psk to be imported specified.\n" );
             ret = 2;
             goto usage;
         }
@@ -1896,7 +1897,7 @@ int main( int argc, char *argv[] )
         }
     }
 
-    if( opt.psk_list_slot != 0 )
+    if( opt.psk_list_opaque != 0 )
     {
         if( opt.psk_list == NULL )
         {
@@ -1965,7 +1966,7 @@ int main( int argc, char *argv[] )
         }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        if( opt.psk_slot != 0 || opt.psk_list_slot != 0 )
+        if( opt.psk_opaque != 0 || opt.psk_list_opaque != 0 )
         {
             /* Ensure that the chosen ciphersuite is PSK-only; we must know
              * the ciphersuite in advance to set the correct policy for the
@@ -2664,20 +2665,27 @@ int main( int argc, char *argv[] )
     if( strlen( opt.psk ) != 0 && strlen( opt.psk_identity ) != 0 )
     {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        if( opt.psk_slot != 0 )
+        if( opt.psk_opaque != 0 )
         {
-            /* The algorithm has already been determined earlier. */
-            status = psa_setup_psk_key_slot( opt.psk_slot, alg,
-                                             psk, psk_len );
+            status = mbedtls_psa_get_free_key_slot( &psk_slot );
             if( status != PSA_SUCCESS )
             {
+                fprintf( stderr, "ALLOC FAIL\n" );
                 ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
                 goto exit;
             }
 
-            if( ( ret = mbedtls_ssl_conf_psk_opaque( &conf, opt.psk_slot,
-                                                     (const unsigned char *) opt.psk_identity,
-                                                     strlen( opt.psk_identity ) ) ) != 0 )
+            /* The algorithm has already been determined earlier. */
+            status = psa_setup_psk_key_slot( psk_slot, alg, psk, psk_len );
+            if( status != PSA_SUCCESS )
+            {
+                fprintf( stderr, "SETUP FAIL\n" );
+                ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+                goto exit;
+            }
+            if( ( ret = mbedtls_ssl_conf_psk_opaque( &conf, psk_slot,
+                             (const unsigned char *) opt.psk_identity,
+                             strlen( opt.psk_identity ) ) ) != 0 )
             {
                 mbedtls_printf( " failed\n  ! mbedtls_ssl_conf_psk_opaque returned %d\n\n",
                                 ret );
@@ -2698,24 +2706,30 @@ int main( int argc, char *argv[] )
     if( opt.psk_list != NULL )
     {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-        if( opt.psk_list_slot != 0 )
+        if( opt.psk_list_opaque != 0 )
         {
             psk_entry *cur_psk;
             for( cur_psk = psk_info; cur_psk != NULL; cur_psk = cur_psk->next )
             {
-                fprintf( stderr, "REGISTER KEY SLOT %d\n", (int) cur_psk->slot );
+                status = mbedtls_psa_get_free_key_slot( &cur_psk->slot );
+                if( status != PSA_SUCCESS )
+                {
+                    ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
+                    goto exit;
+                }
+
                 status = psa_setup_psk_key_slot( cur_psk->slot, alg,
                                                  cur_psk->key,
                                                  cur_psk->key_len );
                 if( status != PSA_SUCCESS )
                 {
-                    fprintf( stderr, "REGISTER KEY SLOT\n" );
                     ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
                     goto exit;
                 }
             }
         }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
+
         mbedtls_ssl_conf_psk_cb( &conf, psk_callback, psk_info );
     }
 #endif
@@ -3355,17 +3369,17 @@ exit:
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED) && \
     defined(MBEDTLS_USE_PSA_CRYPTO)
-    if( opt.psk_slot != 0 )
+    if( opt.psk_opaque != 0 )
     {
         /* This is ok even if the slot hasn't been
          * initialized (we might have jumed here
          * immediately because of bad cmd line params,
          * for example). */
-        status = psa_destroy_key( opt.psk_slot );
+        status = psa_destroy_key( psk_slot );
         if( status != PSA_SUCCESS )
         {
             mbedtls_printf( "Failed to destroy key slot %u - error was %d",
-                            (unsigned) opt.psk_slot, (int) status );
+                            (unsigned) psk_slot, (int) status );
         }
     }
 #endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED &&

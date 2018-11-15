@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.xx.x branch released xxxx-xx-xx
+
+Changes
+   * Add unit tests for AES-GCM when called through mbedtls_cipher_auth_xxx()
+     from the cipher abstraction layer. Fixes #2198.
+
 = mbed TLS 2.16.0 branch released 2018-12-21
 
 Features

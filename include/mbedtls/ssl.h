@@ -2086,7 +2086,7 @@ int mbedtls_ssl_conf_own_cert( mbedtls_ssl_config *conf,
  *                 want to use \c mbedtls_ssl_conf_psk_cb() instead.
  *
  * \warning        Currently, clients can only register a single pre-shared key.
- *                 Calling this function or mbedtls_ssl_conf_opaque_psk() more
+ *                 Calling this function or mbedtls_ssl_conf_psk_opaque() more
  *                 than once will overwrite values configured in previous calls.
  *                 Support for setting multiple PSKs on clients and selecting
  *                 one based on the identity hint is not a planned feature,

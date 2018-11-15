@@ -786,11 +786,13 @@ static int pk_err_from_psa( psa_status_t status )
 }
 
 /*
- * Like mbedtls_asn1_write_mpi(), but from a buffer.
+ * Simultaneously convert and move raw MPI from the beginning of a buffer
+ * to an ASN.1 MPI at the end of the buffer.
+ * See also mbedtls_asn1_write_mpi().
  *
  * p: pointer to the end of the output buffer
  * start: start of the output buffer, and also of the mpi to write at the end
- * n_len: length ot the mpi to read from start
+ * n_len: length of the mpi to read from start
  */
 static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
                               size_t n_len )

@@ -1265,9 +1265,9 @@ typedef uint32_t psa_algorithm_t;
  *
  * The shared secret produced by key agreement and passed as input to the
  * derivation or selection algorithm \p kdf_alg is the x-coordinate of
- * the shared secret point. It is always `ceiling(q / 8)` bytes long where
- * `q` is the bit size associated with the curve, i.e. the bit size of the
- * order of the curve's coordinate field. When `q` is not a multiple of 8,
+ * the shared secret point. It is always `ceiling(m / 8)` bytes long where
+ * `m` is the bit size associated with the curve, i.e. the bit size of the
+ * order of the curve's coordinate field. When `m` is not a multiple of 8,
  * the byte containing the most significant bit of the shared secret
  * is padded with zero bits. The byte order is either little-endian
  * or big-endian depending on the curve type.
@@ -1280,12 +1280,12 @@ typedef uint32_t psa_algorithm_t;
  *   `PSA_ECC_CURVE_SECPXXX` and `PSA_ECC_CURVE_BRAINPOOL_PXXX`),
  *   the shared secret is the x-coordinate of `d_A Q_B = d_B Q_A`
  *   in big-endian byte order.
- *   The bit size is `q = ceiling(log_2(p))` for the field `F_p`.
+ *   The bit size is `m = ceiling(log_2(p))` for the field `F_p`.
  * - For Weierstrass curves over binary fields (curve types
  *   `PSA_ECC_CURVE_SECTXXX`),
  *   the shared secret is the x-coordinate of `d_A Q_B = d_B Q_A`
  *   in big-endian byte order.
- *   The bit size is `q = m` for the field `F_{2^m}`.
+ *   The bit size is `m` for the field `F_{2^m}`.
  *
  * \param kdf_alg       A key derivation algorithm (\c PSA_ALG_XXX value such
  *                      that #PSA_ALG_IS_KEY_DERIVATION(\p hash_alg) is true)
@@ -1486,8 +1486,13 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
  *   ```
  * - For elliptic curve key pairs (key types for which
  *   #PSA_KEY_TYPE_IS_ECC_KEYPAIR is true), the format is
- *   a big-endian representation of the private point as a
- *   `ceiling(log2(n)/8)`-byte string where `n` is the order of the curve.
+ *   a representation of the private value as a `ceiling(m/8)`-byte string
+ *   where `m` is the bit size associated with the curve, i.e. the bit size
+ *   of the order of the curve's coordinate field. This byte string is
+ *   in little-endian order for Montgomery curves (curve types
+ *   `PSA_ECC_CURVE_CURVEXXX`), and in big-endian order for Weierstrass
+ *   curves (curve types `PSA_ECC_CURVE_SECTXXX`, `PSA_ECC_CURVE_SECPXXX`
+ *   and `PSA_ECC_CURVE_BRAINPOOL_PXXX`).
  *   This is the content of the `privateKey` field of the `ECPrivateKey`
  *   format defined by RFC 5915.
  * - For public keys (key types for which #PSA_KEY_TYPE_IS_PUBLIC_KEY is
@@ -1586,9 +1591,9 @@ psa_status_t psa_export_key(psa_key_slot_t key,
  *
  *   ECPoint ::= ...
  *      -- first 8 bits: 0x04;
- *      -- then x_P as a `ceiling(n/8)`-byte string, big endian;
- *      -- then y_P as a `ceiling(n/8)`-byte string, big endian;
- *      -- where `n` is the bit size associated with the curve,
+ *      -- then x_P as a `ceiling(m/8)`-byte string, big endian;
+ *      -- then y_P as a `ceiling(m/8)`-byte string, big endian;
+ *      -- where `m` is the bit size associated with the curve,
  *      --       i.e. the bit size of `q` for a curve over `F_q`.
  *
  *   EcpkParameters ::= CHOICE { -- other choices are not allowed

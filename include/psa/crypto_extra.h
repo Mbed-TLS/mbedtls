@@ -50,21 +50,60 @@ void mbedtls_psa_crypto_free( void );
 
 #if ( defined(MBEDTLS_ENTROPY_NV_SEED) && defined(MBEDTLS_PSA_HAS_ITS_IO) )
 /**
- * \brief Inject initial entropy seed into persistent storage for random capabilities.
+ * \brief Inject an initial entropy seed for the random generator.
+ *
+ * This function injects data to be used as a seed for the random generator
+ * used by the PSA Crypto implementation. On devices that lack a trusted
+ * entropy source (preferably a hardware random number generator),
+ * the Mbed PSA Crypto implementation uses this value to seed its
+ * random generator.
+ *
+ * On devices without a trusted entropy source, this function must be
+ * called exactly once in the lifetime of the device. On devices with
+ * a trusted entropy source, calling this function is optional.
+ * In all cases, this function may only be called before calling any
+ * other function in the PSA Crypto API, including psa_crypto_init().
+ *
+ * When this function returns successfully, it populates a file in
+ * persistent storage. Once the file has been created, this function
+ * can no longer succeed.
+ * If any error occurs, the file is not created, and you may call this
+ * function again after correcting the reason for the error.
  *
  * \warning This function **can** fail! Callers MUST check the return status.
  *
- * \note    To use this function both mbedtls_nv_seed_read and mbedtls_nv_seed_write
- *          must be defined.
+ * \warning If you use this function, you should use it as part of a
+ *          factory provisioning process. The value of the injected seed
+ *          is critical to the security of the device. It must be
+ *          *secret*, *unpredictable* and (statistically) *unique per device*.
+ *          You should be generate it randomly using a cryptographically
+ *          secure random generator seeded from trusted entropy sources.
+ *          You should transmit it securely to the device and ensure
+ *          that its value is not leaked or stored anywhere beyond the
+ *          needs of transmitting it from the point of generation to
+ *          the call of this function, and erase all copies of the value
+ *          once this function returns.
  *
- * \param seed[in]            Buffer storing the seed value to inject.
- * \param seed_size[in]       Size of the \p seed buffer. The minimum size of the seed is MBEDTLS_ENTROPY_MIN_PLATFORM
+ * This is an Mbed TLS extension.
+ *
+ * \param seed[in]      Buffer containing the seed value to inject.
+ * \param seed_size     Size of the \p seed buffer.
+ *                      The minimum size of the seed is
+ *                      #MBEDTLS_ENTROPY_MIN_PLATFORM.
  *
  * \retval #PSA_SUCCESS
+ *         The seed value was injected successfully. The random generator
+ *         of the PSA Crypto implementation is now ready for use.
+ *         You may now call psa_crypto_init() and use the PSA Crypto
+ *         implementation.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p seed_size is not large enough.
  * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval `PSA_ITS_ERROR_XXX`
+ *         There was a failure reading or writing from storage.
  * \retval #PSA_ERROR_NOT_PERMITTED
- * \retval #PSA_ERROR_BAD_STATE
+ *         The library has already been initialized. It is no longer
+ *         possible to call this function.
  */
 psa_status_t mbedtls_psa_inject_entropy(const unsigned char *seed,
                                         size_t seed_size);

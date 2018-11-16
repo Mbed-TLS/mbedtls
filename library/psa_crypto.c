@@ -3967,6 +3967,9 @@ static psa_status_t psa_key_agreement_internal( psa_crypto_generator_t *generato
             break;
 #endif /* MBEDTLS_ECDH_C */
         default:
+            (void) private_key;
+            (void) peer_key;
+            (void) peer_key_length;
             return( PSA_ERROR_NOT_SUPPORTED );
     }
     if( status != PSA_SUCCESS )

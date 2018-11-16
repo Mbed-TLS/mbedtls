@@ -807,8 +807,16 @@ static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
     *p -= len;
     memmove( *p, start, len );
 
+    /* ASN.1 DER encoding requires minimal length, so skip leading 0s.
+     * Neither r nor s can be 0, so we can assume len > 0 at all times. */
+    while( **p == 0x00 )
+    {
+        ++(*p);
+        --len;
+    }
+
     /* if the msb is 1, ASN.1 requires that we prepend a 0.
-     * we're never called with n_len == 0, so we can always read back a byte */
+     * Neither r nor s can be 0, so we can assume len > 0 at all times. */
     if( **p & 0x80 )
     {
         if( *p - start < 1 )

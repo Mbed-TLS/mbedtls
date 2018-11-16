@@ -40,6 +40,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/* MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED is deprecated and should not be used. */
 #define MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED                  -0x0035  /**< SHA-1 hardware accelerator failed */
 
 #ifdef __cplusplus

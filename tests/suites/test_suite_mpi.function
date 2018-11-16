@@ -1,5 +1,48 @@
 /* BEGIN_HEADER */
 #include "mbedtls/bignum.h"
+
+typedef struct mbedtls_test_mpi_random
+{
+    data_t *data;
+    size_t  pos;
+    size_t  chunk_len;
+} mbedtls_test_mpi_random;
+
+/*
+ * This function is called by the Miller-Rabin primality test each time it
+ * chooses a random witness. The witnesses (or non-witnesses as provided by the
+ * test) are stored in the data member of the state structure. Each number is in
+ * the format that mbedtls_mpi_read_string understands and is chunk_len long.
+ */
+int mbedtls_test_mpi_miller_rabin_determinizer( void* state,
+                                                unsigned char* buf,
+                                                size_t len )
+{
+    mbedtls_test_mpi_random *random = (mbedtls_test_mpi_random*) state;
+
+    if( random == NULL || random->data->x == NULL || buf == NULL )
+        return( -1 );
+
+    if( random->pos + random->chunk_len > random->data->len
+            || random->chunk_len > len )
+    {
+        return( -1 );
+    }
+
+    memset( buf, 0, len );
+
+    /* The witness is written to the end of the buffer, since the buffer is
+     * used as big endian, unsigned binary data in mbedtls_mpi_read_binary.
+     * Writing the witness to the start of the buffer would result in the
+     * buffer being 'witness 000...000', which would be treated as
+     * witness * 2^n for some n. */
+    memcpy( buf + len - random->chunk_len, &random->data->x[random->pos],
+            random->chunk_len );
+
+    random->pos += random->chunk_len;
+
+    return( 0 );
+}
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -800,7 +843,7 @@ void mbedtls_mpi_is_prime( int radix_X, char * input_X, int div_result )
     mbedtls_mpi_init( &X );
 
     TEST_ASSERT( mbedtls_mpi_read_string( &X, radix_X, input_X ) == 0 );
-    res = mbedtls_mpi_is_prime( &X, rnd_std_rand, NULL );
+    res = mbedtls_mpi_is_prime_ext( &X, 40, rnd_std_rand, NULL );
     TEST_ASSERT( res == div_result );
 
 exit:
@@ -809,14 +852,47 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_GENPRIME */
-void mbedtls_mpi_gen_prime( int bits, int safe, int ref_ret )
+void mbedtls_mpi_is_prime_det( data_t * input_X, data_t * witnesses,
+                               int chunk_len, int rounds )
+{
+    mbedtls_mpi X;
+    int res;
+    mbedtls_test_mpi_random rand;
+
+    mbedtls_mpi_init( &X );
+    rand.data = witnesses;
+    rand.pos = 0;
+    rand.chunk_len = chunk_len;
+
+    TEST_ASSERT( mbedtls_mpi_read_binary( &X, input_X->x, input_X->len ) == 0 );
+    res = mbedtls_mpi_is_prime_ext( &X, rounds - 1,
+                                    mbedtls_test_mpi_miller_rabin_determinizer,
+                                    &rand );
+    TEST_ASSERT( res == 0 );
+
+    rand.data = witnesses;
+    rand.pos = 0;
+    rand.chunk_len = chunk_len;
+
+    res = mbedtls_mpi_is_prime_ext( &X, rounds,
+                                    mbedtls_test_mpi_miller_rabin_determinizer,
+                                    &rand );
+    TEST_ASSERT( res == MBEDTLS_ERR_MPI_NOT_ACCEPTABLE );
+
+exit:
+    mbedtls_mpi_free( &X );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_GENPRIME */
+void mbedtls_mpi_gen_prime( int bits, int flags, int ref_ret )
 {
     mbedtls_mpi X;
     int my_ret;
 
     mbedtls_mpi_init( &X );
 
-    my_ret = mbedtls_mpi_gen_prime( &X, bits, safe, rnd_std_rand, NULL );
+    my_ret = mbedtls_mpi_gen_prime( &X, bits, flags, rnd_std_rand, NULL );
     TEST_ASSERT( my_ret == ref_ret );
 
     if( ref_ret == 0 )
@@ -826,12 +902,14 @@ void mbedtls_mpi_gen_prime( int bits, int safe, int ref_ret )
         TEST_ASSERT( actual_bits >= (size_t) bits );
         TEST_ASSERT( actual_bits <= (size_t) bits + 1 );
 
-        TEST_ASSERT( mbedtls_mpi_is_prime( &X, rnd_std_rand, NULL ) == 0 );
-        if( safe )
+        TEST_ASSERT( mbedtls_mpi_is_prime_ext( &X, 40, rnd_std_rand, NULL )
+                     == 0 );
+        if( flags & MBEDTLS_MPI_GEN_PRIME_FLAG_DH )
         {
             /* X = ( X - 1 ) / 2 */
             TEST_ASSERT( mbedtls_mpi_shift_r( &X, 1 ) == 0 );
-            TEST_ASSERT( mbedtls_mpi_is_prime( &X, rnd_std_rand, NULL ) == 0 );
+            TEST_ASSERT( mbedtls_mpi_is_prime_ext( &X, 40, rnd_std_rand, NULL )
+                         == 0 );
         }
     }
 

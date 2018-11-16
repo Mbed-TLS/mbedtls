@@ -784,12 +784,17 @@ static int asn1_write_mpibuf( unsigned char **p, unsigned char *start,
     memmove( *p, start, len );
 
     /* ASN.1 DER encoding requires minimal length, so skip leading 0s.
-     * Neither r nor s can be 0, so we can assume len > 0 at all times. */
-    while( **p == 0x00 )
+     * Neither r nor s should be 0, but as a failsafe measure, still detect
+     * that rather than overflowing the buffer in case of a PSA error. */
+    while( len > 0 && **p == 0x00 )
     {
         ++(*p);
         --len;
     }
+
+    /* this is only reached if the signature was invalid */
+    if( len == 0 )
+        return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
 
     /* if the msb is 1, ASN.1 requires that we prepend a 0.
      * Neither r nor s can be 0, so we can assume len > 0 at all times. */

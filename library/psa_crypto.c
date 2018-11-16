@@ -3650,7 +3650,11 @@ exit:
 
 #if defined(MBEDTLS_MD_C)
 /* Set up an HKDF-based generator. This is exactly the extract phase
- * of the HKDF algorithm. */
+ * of the HKDF algorithm.
+ *
+ * Note that if this function fails, you must call psa_generator_abort()
+ * to potentially free embedded data structures and wipe confidential data.
+ */
 static psa_status_t psa_generator_hkdf_setup( psa_hkdf_generator_t *hkdf,
                                               const uint8_t *secret,
                                               size_t secret_length,
@@ -3689,7 +3693,11 @@ static psa_status_t psa_generator_hkdf_setup( psa_hkdf_generator_t *hkdf,
 #endif /* MBEDTLS_MD_C */
 
 #if defined(MBEDTLS_MD_C)
-/* Set up a TLS-1.2-prf-based generator (see RFC 5246, Section 5). */
+/* Set up a TLS-1.2-prf-based generator (see RFC 5246, Section 5).
+ *
+ * Note that if this function fails, you must call psa_generator_abort()
+ * to potentially free embedded data structures and wipe confidential data.
+ */
 static psa_status_t psa_generator_tls12_prf_setup(
     psa_tls12_prf_generator_t *tls12_prf,
     const unsigned char *key,
@@ -3743,6 +3751,9 @@ static psa_status_t psa_generator_tls12_prf_setup(
 }
 #endif /* MBEDTLS_MD_C */
 
+/* Note that if this function fails, you must call psa_generator_abort()
+ * to potentially free embedded data structures and wipe confidential data.
+ */
 static psa_status_t psa_key_derivation_internal(
     psa_crypto_generator_t *generator,
     const uint8_t *secret, size_t secret_length,
@@ -3927,6 +3938,9 @@ exit:
 
 #define PSA_KEY_AGREEMENT_MAX_SHARED_SECRET_SIZE MBEDTLS_ECP_MAX_BYTES
 
+/* Note that if this function fails, you must call psa_generator_abort()
+ * to potentially free embedded data structures and wipe confidential data.
+ */
 static psa_status_t psa_key_agreement_internal( psa_crypto_generator_t *generator,
                                                 key_slot_t *private_key,
                                                 const uint8_t *peer_key,
@@ -3984,10 +3998,13 @@ psa_status_t psa_key_agreement( psa_crypto_generator_t *generator,
                                     PSA_KEY_USAGE_DERIVE, alg );
     if( status != PSA_SUCCESS )
         return( status );
-    return( psa_key_agreement_internal( generator,
-                                        slot,
-                                        peer_key, peer_key_length,
-                                        alg ) );
+    status = psa_key_agreement_internal( generator,
+                                         slot,
+                                         peer_key, peer_key_length,
+                                         alg );
+    if( status != PSA_SUCCESS )
+        psa_generator_abort( generator );
+    return( status );
 }
 
 

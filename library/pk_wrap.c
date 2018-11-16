@@ -761,30 +761,6 @@ static int pk_opaque_can_do( mbedtls_pk_type_t type )
             type == MBEDTLS_PK_ECDSA );
 }
 
-/* translate PSA errors to best PK approximation */
-static int pk_err_from_psa( psa_status_t status )
-{
-    switch( status )
-    {
-        case PSA_SUCCESS:
-            return( 0 );
-        case PSA_ERROR_NOT_SUPPORTED:
-            return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
-        case PSA_ERROR_INSUFFICIENT_MEMORY:
-            return( MBEDTLS_ERR_PK_ALLOC_FAILED );
-        case PSA_ERROR_COMMUNICATION_FAILURE:
-        case PSA_ERROR_HARDWARE_FAILURE:
-        case PSA_ERROR_TAMPERING_DETECTED:
-            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
-        case PSA_ERROR_INSUFFICIENT_ENTROPY:
-            return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
-        case PSA_ERROR_BAD_STATE:
-            return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-        default: /* should never happen */
-            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
-    }
-}
-
 /*
  * Simultaneously convert and move raw MPI from the beginning of a buffer
  * to an ASN.1 MPI at the end of the buffer.
@@ -882,7 +858,7 @@ static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
      * buggy anyway). */
     status = psa_get_key_information( *key, NULL, &bits );
     if( status != PSA_SUCCESS )
-        return( pk_err_from_psa( status ) );
+        return( mbedtls_psa_err_translate_pk( status ) );
 
     buf_len = MBEDTLS_ECDSA_MAX_SIG_LEN( bits );
 
@@ -890,7 +866,7 @@ static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
     status = psa_asymmetric_sign( *key, alg, hash, hash_len,
                                         sig, buf_len, sig_len );
     if( status != PSA_SUCCESS )
-        return( pk_err_from_psa( status ) );
+        return( mbedtls_psa_err_translate_pk( status ) );
 
     /* transcode it to ASN.1 sequence */
     return( pk_ecdsa_sig_asn1_from_psa( sig, sig_len, buf_len ) );

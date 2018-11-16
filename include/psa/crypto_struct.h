@@ -85,7 +85,7 @@ struct psa_hash_operation_s
     } ctx;
 };
 
-
+#if defined(MBEDTLS_MD_C)
 typedef struct
 {
         /** The hash context. */
@@ -93,7 +93,7 @@ typedef struct
         /** The HMAC part of the context. */
         uint8_t opad[PSA_HMAC_MAX_HASH_BLOCK_SIZE];
 } psa_hmac_internal_data;
-
+#endif /* MBEDTLS_MD_C */
 
 struct psa_mac_operation_s
 {
@@ -130,6 +130,7 @@ struct psa_cipher_operation_s
     } ctx;
 };
 
+#if defined(MBEDTLS_MD_C)
 typedef struct
 {
     uint8_t *info;
@@ -143,7 +144,9 @@ typedef struct
     uint8_t offset_in_block;
     uint8_t block_number;
 } psa_hkdf_generator_t;
+#endif /* MBEDTLS_MD_C */
 
+#if defined(MBEDTLS_MD_C)
 typedef struct psa_tls12_prf_generator_s
 {
     /* The TLS 1.2 PRF uses the key for each HMAC iteration,
@@ -172,6 +175,7 @@ typedef struct psa_tls12_prf_generator_s
     uint8_t block_number;
 
 } psa_tls12_prf_generator_t;
+#endif /* MBEDTLS_MD_C */
 
 struct psa_crypto_generator_s
 {

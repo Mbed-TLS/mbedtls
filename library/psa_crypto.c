@@ -1431,6 +1431,7 @@ static const mbedtls_cipher_info_t *mbedtls_cipher_info_from_psa(
                                              (int) key_bits, mode ) );
 }
 
+#if defined(MBEDTLS_MD_C)
 static size_t psa_get_hash_block_size( psa_algorithm_t alg )
 {
     switch( alg )
@@ -1457,6 +1458,7 @@ static size_t psa_get_hash_block_size( psa_algorithm_t alg )
             return( 0 );
     }
 }
+#endif /* MBEDTLS_MD_C */
 
 /* Initialize the MAC operation structure. Once this function has been
  * called, psa_mac_abort can run and will do the right thing. */
@@ -2164,6 +2166,7 @@ static psa_status_t psa_ecdsa_sign( mbedtls_ecp_keypair *ecp,
         goto cleanup;
     }
 
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
     if( PSA_ALG_DSA_IS_DETERMINISTIC( alg ) )
     {
         psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
@@ -2174,7 +2177,9 @@ static psa_status_t psa_ecdsa_sign( mbedtls_ecp_keypair *ecp,
                                                  md_alg ) );
     }
     else
+#endif /* MBEDTLS_ECDSA_DETERMINISTIC */
     {
+        (void) alg;
         MBEDTLS_MPI_CHK( mbedtls_ecdsa_sign( &ecp->grp, &r, &s, &ecp->d,
                                              hash, hash_length,
                                              mbedtls_ctr_drbg_random,
@@ -2265,7 +2270,13 @@ psa_status_t psa_asymmetric_sign( psa_key_slot_t key,
     if( PSA_KEY_TYPE_IS_ECC( slot->type ) )
     {
 #if defined(MBEDTLS_ECDSA_C)
-        if( PSA_ALG_IS_ECDSA( alg ) )
+        if(
+#if defined(MBEDTLS_ECDSA_DETERMINISTIC)
+            PSA_ALG_IS_ECDSA( alg )
+#else
+            PSA_ALG_IS_RANDOMIZED_ECDSA( alg )
+#endif
+            )
             status = psa_ecdsa_sign( slot->data.ecp,
                                      alg,
                                      hash, hash_length,
@@ -3637,6 +3648,7 @@ exit:
 /* Key derivation */
 /****************************************************************/
 
+#if defined(MBEDTLS_MD_C)
 /* Set up an HKDF-based generator. This is exactly the extract phase
  * of the HKDF algorithm. */
 static psa_status_t psa_generator_hkdf_setup( psa_hkdf_generator_t *hkdf,
@@ -3674,7 +3686,9 @@ static psa_status_t psa_generator_hkdf_setup( psa_hkdf_generator_t *hkdf,
     }
     return( PSA_SUCCESS );
 }
+#endif /* MBEDTLS_MD_C */
 
+#if defined(MBEDTLS_MD_C)
 /* Set up a TLS-1.2-prf-based generator (see RFC 5246, Section 5). */
 static psa_status_t psa_generator_tls12_prf_setup(
     psa_tls12_prf_generator_t *tls12_prf,
@@ -3727,6 +3741,7 @@ static psa_status_t psa_generator_tls12_prf_setup(
 
     return( PSA_SUCCESS );
 }
+#endif /* MBEDTLS_MD_C */
 
 static psa_status_t psa_key_derivation_internal(
     psa_crypto_generator_t *generator,
@@ -3744,8 +3759,10 @@ static psa_status_t psa_key_derivation_internal(
 
     if( alg == PSA_ALG_SELECT_RAW )
     {
+        (void) salt;
         if( salt_length != 0 )
             return( PSA_ERROR_INVALID_ARGUMENT );
+        (void) label;
         if( label_length != 0 )
             return( PSA_ERROR_INVALID_ARGUMENT );
         generator->ctx.buffer.data = mbedtls_calloc( 1, secret_length );
@@ -3854,6 +3871,7 @@ psa_status_t psa_key_derivation( psa_crypto_generator_t *generator,
 /* Key agreement */
 /****************************************************************/
 
+#if defined(MBEDTLS_ECDH_C)
 static psa_status_t psa_key_agreement_ecdh( const uint8_t *peer_key,
                                             size_t peer_key_length,
                                             const mbedtls_ecp_keypair *our_key,
@@ -3905,6 +3923,7 @@ exit:
     mbedtls_ecdh_free( &ecdh );
     return( mbedtls_to_psa_error( ret ) );
 }
+#endif /* MBEDTLS_ECDH_C */
 
 #define PSA_KEY_AGREEMENT_MAX_SHARED_SECRET_SIZE MBEDTLS_ECP_MAX_BYTES
 

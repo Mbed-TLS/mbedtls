@@ -618,6 +618,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     unsigned char *mac_dec;
     size_t mac_key_len;
     size_t iv_copy_len;
+    size_t taglen = 0;
     const mbedtls_cipher_info_t *cipher_info;
     const mbedtls_md_info_t *md_info;
 
@@ -810,7 +811,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         cipher_info->mode == MBEDTLS_MODE_CCM ||
         cipher_info->mode == MBEDTLS_MODE_CHACHAPOLY )
     {
-        size_t taglen, explicit_ivlen;
+        size_t explicit_ivlen;
 
         transform->maclen = 0;
         mac_key_len = 0;
@@ -1030,6 +1031,22 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
     }
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    ret = mbedtls_cipher_setup_psa( &transform->cipher_ctx_enc,
+                                    cipher_info, taglen );
+    if( ret != 0 && ret != MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup_psa", ret );
+        return( ret );
+    }
+
+    if( ret == 0 )
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Successfully setup PSA-based encryption cipher context" ) );
+    else
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Failed to setup PSA-based cipher context for record encryption - fall through to default setup." ) );
+
+    if( ret != 0 )
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_enc,
                                  cipher_info ) ) != 0 )
     {
@@ -1037,6 +1054,23 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    ret = mbedtls_cipher_setup_psa( &transform->cipher_ctx_dec,
+                                    cipher_info, taglen );
+
+    if( ret != 0 && ret != MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_cipher_setup_psa", ret );
+        return( ret );
+    }
+
+    if( ret == 0 )
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Successfully setup PSA-based decryption cipher context" ) );
+    else
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "Failed to setup PSA-based cipher context for record decryption - fall through to default setup." ) );
+
+    if( ret != 0 )
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     if( ( ret = mbedtls_cipher_setup( &transform->cipher_ctx_dec,
                                  cipher_info ) ) != 0 )
     {

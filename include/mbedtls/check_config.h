@@ -547,6 +547,11 @@
 #error "MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C defined, but not all prerequisites"
 #endif
 
+#if defined(MBEDTLS_PSA_ITS_FILE_C) && \
+    !defined(MBEDTLS_FS_IO)
+#error "MBEDTLS_PSA_ITS_FILE_C defined, but not all prerequisites"
+#endif
+
 #if defined(MBEDTLS_RSA_C) && ( !defined(MBEDTLS_BIGNUM_C) ||         \
     !defined(MBEDTLS_OID_C) )
 #error "MBEDTLS_RSA_C defined, but not all prerequisites"

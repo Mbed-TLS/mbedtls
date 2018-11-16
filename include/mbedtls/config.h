@@ -2795,6 +2795,18 @@
 //#define MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
 
 /**
+ * \def MBEDTLS_PSA_ITS_FILE_C
+ *
+ * Enable the emulation of the Platform Security Architecture
+ * Internal Trusted Storage (PSA ITS) over files.
+ *
+ * Module:  library/psa_its_file.c
+ *
+ * Requires: MBEDTLS_FS_IO
+ */
+#define MBEDTLS_PSA_ITS_FILE_C
+
+/**
  * \def MBEDTLS_RIPEMD160_C
  *
  * Enable the RIPEMD-160 hash algorithm.

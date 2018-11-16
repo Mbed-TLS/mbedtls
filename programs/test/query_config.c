@@ -1962,6 +1962,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C */
 
+#if defined(MBEDTLS_PSA_ITS_FILE_C)
+    if( strcmp( "MBEDTLS_PSA_ITS_FILE_C", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_PSA_ITS_FILE_C );
+        return( 0 );
+    }
+#endif /* MBEDTLS_PSA_ITS_FILE_C */
+
 #if defined(MBEDTLS_RIPEMD160_C)
     if( strcmp( "MBEDTLS_RIPEMD160_C", config ) == 0 )
     {

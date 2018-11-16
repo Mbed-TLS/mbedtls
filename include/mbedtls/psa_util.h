@@ -243,15 +243,18 @@ static inline int mbedtls_psa_err_translate_pk( psa_status_t status )
             return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
         case PSA_ERROR_INSUFFICIENT_MEMORY:
             return( MBEDTLS_ERR_PK_ALLOC_FAILED );
-        case PSA_ERROR_COMMUNICATION_FAILURE:
-        case PSA_ERROR_HARDWARE_FAILURE:
-        case PSA_ERROR_TAMPERING_DETECTED:
-            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
         case PSA_ERROR_INSUFFICIENT_ENTROPY:
             return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
         case PSA_ERROR_BAD_STATE:
             return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-        default: /* should never happen */
+        /* All other failures */
+        case PSA_ERROR_COMMUNICATION_FAILURE:
+        case PSA_ERROR_HARDWARE_FAILURE:
+        case PSA_ERROR_TAMPERING_DETECTED:
+            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+        default: /* We return the same as for the 'other failures',
+                  * but list them separately nonetheless to indicate
+                  * which failure conditions we have considered. */
             return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
     }
 }

@@ -422,9 +422,9 @@
  *      parameters              OBJECT IDENTIFIER } -- namedCurve
  * ECPoint ::= ...
  *    -- first 8 bits: 0x04;
- *    -- then x_P as an n-bit string, big endian;
- *    -- then y_P as a n-bit string, big endian,
- *    -- where n is the order of the curve.
+ *    -- then x_P as a `ceiling(m/8)`-byte string, big endian;
+ *    -- then y_P as a `ceiling(m/8)`-byte string, big endian;
+ *    -- where `m` is the bit size associated with the curve.
  *
  * - 2 * 4 bytes of SEQUENCE overhead;
  * - 1 + 1 + 7 bytes of algorithm (id-ecPublicKey OID);

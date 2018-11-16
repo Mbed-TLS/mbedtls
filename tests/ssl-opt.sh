@@ -185,6 +185,12 @@ requires_config_value_at_most() {
     fi
 }
 
+requires_ciphersuite_enabled() {
+    if [ -z "$($P_CLI --help | grep "$1")" ]; then
+        SKIP_NEXT="YES"
+    fi
+}
+
 # skip next test if OpenSSL doesn't support FALLBACK_SCSV
 requires_openssl_with_fallback_scsv() {
     if [ -z "${OPENSSL_HAS_FBSCSV:-}" ]; then
@@ -519,14 +525,6 @@ run_test() {
         SKIP_NEXT="YES"
     fi
 
-    # should we skip?
-    if [ "X$SKIP_NEXT" = "XYES" ]; then
-        SKIP_NEXT="NO"
-        echo "SKIP"
-        SKIPS=$(( $SKIPS + 1 ))
-        return
-    fi
-
     # does this test use a proxy?
     if [ "X$1" = "X-p" ]; then
         PXY_CMD="$2"
@@ -540,6 +538,26 @@ run_test() {
     CLI_CMD="$2"
     CLI_EXPECT="$3"
     shift 3
+
+    # Check if server forces ciphersuite
+    FORCE_CIPHERSUITE=$(echo "$SRV_CMD" | sed -n 's/^.*force_ciphersuite=\([a-zA-Z0-9\-]*\).*$/\1/p')
+    if [ ! -z "$FORCE_CIPHERSUITE" ]; then
+       requires_ciphersuite_enabled $FORCE_CIPHERSUITE
+    fi
+
+    # Check if client forces ciphersuite
+    FORCE_CIPHERSUITE=$(echo "$CLI_CMD" | sed -n 's/^.*force_ciphersuite=\([a-zA-Z0-9\-]*\).*$/\1/p')
+    if [ ! -z "$FORCE_CIPHERSUITE" ]; then
+       requires_ciphersuite_enabled $FORCE_CIPHERSUITE
+    fi
+
+    # should we skip?
+    if [ "X$SKIP_NEXT" = "XYES" ]; then
+        SKIP_NEXT="NO"
+        echo "SKIP"
+        SKIPS=$(( $SKIPS + 1 ))
+        return
+    fi
 
     # fix client port
     if [ -n "$PXY_CMD" ]; then

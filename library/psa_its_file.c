@@ -133,7 +133,7 @@ psa_status_t psa_its_get( psa_storage_uid_t uid,
     status = psa_its_read_file( uid, &info, &stream );
     if( status != PSA_SUCCESS )
         goto exit;
-    status = PSA_ERROR_DATA_CORRUPT;
+    status = PSA_ERROR_INVALID_ARGUMENT;
     if( data_offset + data_length < data_offset )
         goto exit;
 #if SIZE_MAX < 0xffffffff
@@ -143,7 +143,7 @@ psa_status_t psa_its_get( psa_storage_uid_t uid,
     if( data_offset + data_length > info.size )
         goto exit;
 
-    status = PSA_ERROR_DATA_CORRUPT;
+    status = PSA_ERROR_STORAGE_FAILURE;
 #if LONG_MAX < 0xffffffff
     while( data_offset > LONG_MAX )
     {

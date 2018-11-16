@@ -752,6 +752,23 @@ run_test() {
     rm -f $SRV_OUT $CLI_OUT $PXY_OUT
 }
 
+run_test_psa() {
+    requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
+    run_test    "Default, PSA ($1)" \
+                "$P_SRV debug_level=1 force_version=tls1_2" \
+                "$P_CLI debug_level=1 force_version=tls1_2 force_ciphersuite=$1" \
+                0 \
+                -c "Successfully setup PSA-based decryption cipher context" \
+                -c "Successfully setup PSA-based encryption cipher context" \
+                -s "Successfully setup PSA-based decryption cipher context" \
+                -s "Successfully setup PSA-based encryption cipher context" \
+                -C "Failed to setup PSA-based cipher context"\
+                -S "Failed to setup PSA-based cipher context"\
+                -s "Protocol is TLSv1.2" \
+                -S "error" \
+                -C "error"
+}
+
 cleanup() {
     rm -f $CLI_OUT $SRV_OUT $PXY_OUT $SESSION
     test -n "${SRV_PID:-}" && kill $SRV_PID >/dev/null 2>&1
@@ -882,6 +899,18 @@ run_test    "Default, DTLS" \
             0 \
             -s "Protocol is DTLSv1.2" \
             -s "Ciphersuite is TLS-ECDHE-RSA-WITH-CHACHA20-POLY1305-SHA256"
+
+# Test ciphersuites which we expect to be fully supported by PSA Crypto
+# and check that we don't fall back to Mbed TLS' internal crypto primitives.
+run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CCM
+run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CCM-8
+run_test_psa TLS-ECDHE-ECDSA-WITH-AES-256-CCM
+run_test_psa TLS-ECDHE-ECDSA-WITH-AES-256-CCM-8
+run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-GCM-SHA256
+run_test_psa TLS-ECDHE-ECDSA-WITH-AES-256-GCM-SHA384
+run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA
+run_test_psa TLS-ECDHE-ECDSA-WITH-AES-128-CBC-SHA256
+run_test_psa TLS-ECDHE-ECDSA-WITH-AES-256-CBC-SHA384
 
 # Test current time in ServerHello
 requires_config_enabled MBEDTLS_HAVE_TIME

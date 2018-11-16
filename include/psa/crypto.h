@@ -1270,7 +1270,7 @@ typedef uint32_t psa_algorithm_t;
  * \param kdf_alg       A key derivation algorithm (\c PSA_ALG_XXX value such
  *                      that #PSA_ALG_IS_KEY_DERIVATION(\p hash_alg) is true)
  *                      or a key selection algorithm (\c PSA_ALG_XXX value such
- *                      that #PSA_ALG_IS_SELECTION(\p hash_alg) is true).
+ *                      that #PSA_ALG_IS_KEY_SELECTION(\p hash_alg) is true).
  *
  * \return              The Diffie-Hellman algorithm with the specified
  *                      selection or derivation algorithm.

@@ -43,6 +43,7 @@
 
 #include "mbedtls/aes.h"
 #include "mbedtls/md.h"
+#include "mbedtls/platform_util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -450,13 +451,13 @@ exit:
        the case when the user has missed or reordered some,
        in which case the key might not be in argv[4]. */
     for( i = 0; i < (unsigned int) argc; i++ )
-        memset( argv[i], 0, strlen( argv[i] ) );
+        mbedtls_platform_zeroize( argv[i], strlen( argv[i] ) );
 
-    memset( IV,     0, sizeof( IV ) );
-    memset( key,    0, sizeof( key ) );
-    memset( tmp,    0, sizeof( tmp ) );
-    memset( buffer, 0, sizeof( buffer ) );
-    memset( digest, 0, sizeof( digest ) );
+    mbedtls_platform_zeroize( IV,     sizeof( IV ) );
+    mbedtls_platform_zeroize( key,    sizeof( key ) );
+    mbedtls_platform_zeroize( tmp,    sizeof( tmp ) );
+    mbedtls_platform_zeroize( buffer, sizeof( buffer ) );
+    mbedtls_platform_zeroize( digest, sizeof( digest ) );
 
     mbedtls_aes_free( &aes_ctx );
     mbedtls_md_free( &sha_ctx );

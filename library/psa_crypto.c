@@ -1506,6 +1506,12 @@ static psa_status_t psa_hmac_abort_internal( psa_hmac_internal_data *hmac )
     mbedtls_zeroize( hmac->opad, sizeof( hmac->opad ) );
     return( psa_hash_abort( &hmac->hash_ctx ) );
 }
+
+static void psa_hmac_init_internal( psa_hmac_internal_data *hmac )
+{
+    /* Instances of psa_hash_operation_s can be initialized by zeroization. */
+    memset( hmac, 0, sizeof( *hmac ) );
+}
 #endif /* MBEDTLS_MD_C */
 
 psa_status_t psa_mac_abort( psa_mac_operation_t *operation )
@@ -3258,6 +3264,22 @@ psa_status_t psa_generator_abort( psa_crypto_generator_t *generator )
         mbedtls_free( generator->ctx.hkdf.info );
         status = psa_hmac_abort_internal( &generator->ctx.hkdf.hmac );
     }
+    else if( PSA_ALG_IS_TLS12_PRF( generator->alg ) )
+    {
+        if( generator->ctx.tls12_prf.key != NULL )
+        {
+            mbedtls_zeroize( generator->ctx.tls12_prf.key,
+                             generator->ctx.tls12_prf.key_len );
+            mbedtls_free( generator->ctx.tls12_prf.key );
+        }
+
+        if( generator->ctx.tls12_prf.Ai_with_seed != NULL )
+        {
+            mbedtls_zeroize( generator->ctx.tls12_prf.Ai_with_seed,
+                             generator->ctx.tls12_prf.Ai_with_seed_len );
+            mbedtls_free( generator->ctx.tls12_prf.Ai_with_seed );
+        }
+    }
     else
 #endif /* MBEDTLS_MD_C */
     {
@@ -3340,6 +3362,158 @@ static psa_status_t psa_generator_hkdf_read( psa_hkdf_generator_t *hkdf,
 
     return( PSA_SUCCESS );
 }
+
+static psa_status_t psa_generator_tls12_prf_generate_next_block(
+    psa_tls12_prf_generator_t *tls12_prf,
+    psa_algorithm_t alg )
+{
+    psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( alg );
+    uint8_t hash_length = PSA_HASH_SIZE( hash_alg );
+    psa_hmac_internal_data hmac;
+    psa_status_t status, cleanup_status;
+
+    unsigned char *Ai;
+    size_t Ai_len;
+
+    /* We can't be wanting more output after block 0xff, otherwise
+     * the capacity check in psa_generator_read() would have
+     * prevented this call. It could happen only if the generator
+     * object was corrupted or if this function is called directly
+     * inside the library. */
+    if( tls12_prf->block_number == 0xff )
+        return( PSA_ERROR_BAD_STATE );
+
+    /* We need a new block */
+    ++tls12_prf->block_number;
+    tls12_prf->offset_in_block = 0;
+
+    /* Recall the definition of the TLS-1.2-PRF from RFC 5246:
+     *
+     * PRF(secret, label, seed) = P_<hash>(secret, label + seed)
+     *
+     * P_hash(secret, seed) = HMAC_hash(secret, A(1) + seed) +
+     *                        HMAC_hash(secret, A(2) + seed) +
+     *                        HMAC_hash(secret, A(3) + seed) + ...
+     *
+     * A(0) = seed
+     * A(i) = HMAC_hash( secret, A(i-1) )
+     *
+     * The `psa_tls12_prf_generator` structures saves the block
+     * `HMAC_hash(secret, A(i) + seed)` from which the output
+     * is currently extracted as `output_block`, while
+     * `A(i) + seed` is stored in `Ai_with_seed`.
+     *
+     * Generating a new block means recalculating `Ai_with_seed`
+     * from the A(i)-part of it, and afterwards recalculating
+     * `output_block`.
+     *
+     * A(0) is computed at setup time.
+     *
+     */
+
+    psa_hmac_init_internal( &hmac );
+
+    /* We must distinguish the calculation of A(1) from those
+     * of A(2) and higher, because A(0)=seed has a different
+     * length than the other A(i). */
+    if( tls12_prf->block_number == 1 )
+    {
+        Ai     = tls12_prf->Ai_with_seed + hash_length;
+        Ai_len = tls12_prf->Ai_with_seed_len - hash_length;
+    }
+    else
+    {
+        Ai     = tls12_prf->Ai_with_seed;
+        Ai_len = hash_length;
+    }
+
+    /* Compute A(i+1) = HMAC_hash(secret, A(i)) */
+    status = psa_hmac_setup_internal( &hmac,
+                                      tls12_prf->key,
+                                      tls12_prf->key_len,
+                                      hash_alg );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+
+    status = psa_hash_update( &hmac.hash_ctx,
+                              Ai, Ai_len );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+
+    status = psa_hmac_finish_internal( &hmac,
+                                       tls12_prf->Ai_with_seed,
+                                       hash_length );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+
+    /* Compute the next block `HMAC_hash(secret, A(i+1) + seed)`. */
+    status = psa_hmac_setup_internal( &hmac,
+                                      tls12_prf->key,
+                                      tls12_prf->key_len,
+                                      hash_alg );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+
+    status = psa_hash_update( &hmac.hash_ctx,
+                              tls12_prf->Ai_with_seed,
+                              tls12_prf->Ai_with_seed_len );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+
+    status = psa_hmac_finish_internal( &hmac,
+                                       tls12_prf->output_block,
+                                       hash_length );
+    if( status != PSA_SUCCESS )
+        goto cleanup;
+
+cleanup:
+
+    cleanup_status = psa_hmac_abort_internal( &hmac );
+    if( status == PSA_SUCCESS && cleanup_status != PSA_SUCCESS )
+        status = cleanup_status;
+
+    return( status );
+}
+
+/* Read some bytes from an TLS-1.2-PRF-based generator.
+ * See Section 5 of RFC 5246. */
+static psa_status_t psa_generator_tls12_prf_read(
+                                        psa_tls12_prf_generator_t *tls12_prf,
+                                        psa_algorithm_t alg,
+                                        uint8_t *output,
+                                        size_t output_length )
+{
+    psa_algorithm_t hash_alg = PSA_ALG_TLS12_PRF_GET_HASH( alg );
+    uint8_t hash_length = PSA_HASH_SIZE( hash_alg );
+    psa_status_t status;
+
+    while( output_length != 0 )
+    {
+        /* Copy what remains of the current block */
+        uint8_t n = hash_length - tls12_prf->offset_in_block;
+
+        /* Check if we have fully processed the current block. */
+        if( n == 0 )
+        {
+            status = psa_generator_tls12_prf_generate_next_block( tls12_prf,
+                                                                  alg );
+            if( status != PSA_SUCCESS )
+                return( status );
+
+            continue;
+        }
+
+        if( n > output_length )
+            n = (uint8_t) output_length;
+        memcpy( output, tls12_prf->output_block + tls12_prf->offset_in_block,
+                n );
+        output += n;
+        output_length -= n;
+        tls12_prf->offset_in_block += n;
+    }
+
+    return( PSA_SUCCESS );
+}
 #endif /* MBEDTLS_MD_C */
 
 psa_status_t psa_generator_read( psa_crypto_generator_t *generator,
@@ -3392,6 +3566,12 @@ psa_status_t psa_generator_read( psa_crypto_generator_t *generator,
         psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( generator->alg );
         status = psa_generator_hkdf_read( &generator->ctx.hkdf, hash_alg,
                                           output, output_length );
+    }
+    else if( PSA_ALG_IS_TLS12_PRF( generator->alg ) )
+    {
+        status = psa_generator_tls12_prf_read( &generator->ctx.tls12_prf,
+                                               generator->alg, output,
+                                               output_length );
     }
     else
 #endif /* MBEDTLS_MD_C */
@@ -3495,6 +3675,59 @@ static psa_status_t psa_generator_hkdf_setup( psa_hkdf_generator_t *hkdf,
     return( PSA_SUCCESS );
 }
 
+/* Set up a TLS-1.2-prf-based generator (see RFC 5246, Section 5). */
+static psa_status_t psa_generator_tls12_prf_setup(
+    psa_tls12_prf_generator_t *tls12_prf,
+    const unsigned char *key,
+    size_t key_len,
+    psa_algorithm_t hash_alg,
+    const uint8_t *salt,
+    size_t salt_length,
+    const uint8_t *label,
+    size_t label_length )
+{
+    uint8_t hash_length = PSA_HASH_SIZE( hash_alg );
+    size_t Ai_with_seed_len = hash_length + salt_length + label_length;
+    int overflow;
+
+    tls12_prf->key = mbedtls_calloc( 1, key_len );
+    if( tls12_prf->key == NULL )
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+    tls12_prf->key_len = key_len;
+    memcpy( tls12_prf->key, key, key_len );
+
+    overflow = ( salt_length + label_length               < salt_length ) ||
+               ( salt_length + label_length + hash_length < hash_length );
+    if( overflow )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    tls12_prf->Ai_with_seed = mbedtls_calloc( 1, Ai_with_seed_len );
+    if( tls12_prf->Ai_with_seed == NULL )
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
+    tls12_prf->Ai_with_seed_len = Ai_with_seed_len;
+
+    /* Write `label + seed' at the end of the `A(i) + seed` buffer,
+     * leaving the initial `hash_length` bytes unspecified for now. */
+    if( label_length != 0 )
+    {
+        memcpy( tls12_prf->Ai_with_seed + hash_length,
+                label, label_length );
+    }
+
+    if( salt_length != 0 )
+    {
+        memcpy( tls12_prf->Ai_with_seed + hash_length + label_length,
+                salt, salt_length );
+    }
+
+    /* The first block gets generated when
+     * psa_generator_read() is called. */
+    tls12_prf->block_number    = 0;
+    tls12_prf->offset_in_block = hash_length;
+
+    return( PSA_SUCCESS );
+}
+
 static psa_status_t psa_key_derivation_internal(
     psa_crypto_generator_t *generator,
     const uint8_t *secret, size_t secret_length,
@@ -3537,6 +3770,24 @@ static psa_status_t psa_key_derivation_internal(
                                            hash_alg,
                                            salt, salt_length,
                                            label, label_length );
+    }
+    else if( PSA_ALG_IS_TLS12_PRF( alg ) )
+    {
+        psa_algorithm_t hash_alg = PSA_ALG_TLS12_PRF_GET_HASH( alg );
+        size_t hash_size = PSA_HASH_SIZE( hash_alg );
+
+        /* TLS-1.2 PRF supports only SHA-256 and SHA-384. */
+        if( hash_alg != PSA_ALG_SHA_256 &&
+            hash_alg != PSA_ALG_SHA_384 )
+        {
+            return( PSA_ERROR_NOT_SUPPORTED );
+        }
+
+        max_capacity = 255 * hash_size;
+        status = psa_generator_tls12_prf_setup( &generator->ctx.tls12_prf,
+                                                secret, secret_length,
+                                                hash_alg, salt, salt_length,
+                                                label, label_length );
     }
     else
 #endif

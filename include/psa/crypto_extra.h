@@ -50,7 +50,8 @@ void mbedtls_psa_crypto_free( void );
 
 #if ( defined(MBEDTLS_ENTROPY_NV_SEED) && defined(MBEDTLS_PSA_HAS_ITS_IO) )
 /**
- * \brief Inject an initial entropy seed for the random generator.
+ * \brief Inject an initial entropy seed for the random generator into
+ *        secure storage.
  *
  * This function injects data to be used as a seed for the random generator
  * used by the PSA Crypto implementation. On devices that lack a trusted
@@ -67,8 +68,10 @@ void mbedtls_psa_crypto_free( void );
  * When this function returns successfully, it populates a file in
  * persistent storage. Once the file has been created, this function
  * can no longer succeed.
- * If any error occurs, the file is not created, and you may call this
- * function again after correcting the reason for the error.
+ *
+ * If any error occurs, this function does not change the system state.
+ * You can call this function again after correcting the reason for the
+ * error if possible.
  *
  * \warning This function **can** fail! Callers MUST check the return status.
  *
@@ -88,8 +91,9 @@ void mbedtls_psa_crypto_free( void );
  *
  * \param seed[in]      Buffer containing the seed value to inject.
  * \param seed_size     Size of the \p seed buffer.
- *                      The minimum size of the seed is
- *                      #MBEDTLS_ENTROPY_MIN_PLATFORM.
+ *                      The size of the seed must be
+ *                      at least #MBEDTLS_ENTROPY_MIN_PLATFORM bytes
+ *                      and at most #MBEDTLS_ENTROPY_MAX_SEED_SIZE bytes.
  *
  * \retval #PSA_SUCCESS
  *         The seed value was injected successfully. The random generator
@@ -97,7 +101,7 @@ void mbedtls_psa_crypto_free( void );
  *         You may now call psa_crypto_init() and use the PSA Crypto
  *         implementation.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p seed_size is not large enough.
+ *         \p seed_size is out of range.
  * \retval #PSA_ERROR_STORAGE_FAILURE
  * \retval `PSA_ITS_ERROR_XXX`
  *         There was a failure reading or writing from storage.

@@ -1202,6 +1202,16 @@ typedef uint32_t psa_algorithm_t;
 #define PSA_ALG_TLS12_PRF_BASE                     ((psa_algorithm_t)0x30000200)
 /** Macro to build a TLS-1.2 PRF algorithm.
  *
+ * TLS 1.2 uses a custom pseudorandom function (PRF) for key schedule,
+ * specified in Section 5 of RFC 5246. It is based on HMAC and can be
+ * used with either SHA-256 or SHA-384.
+ *
+ * For the application to TLS-1.2, the salt and label arguments passed
+ * to psa_key_derivation() are what's called 'seed' and 'label' in RFC 5246,
+ * respectively. For example, for TLS key expansion, the salt is the
+ * concatenation of ServerHello.Random + ClientHello.Random,
+ * while the label is "key expansion".
+ *
  * For example, `PSA_ALG_TLS12_PRF(PSA_ALG_SHA256)` represents the
  * TLS 1.2 PRF using HMAC-SHA-256.
  *
@@ -1217,10 +1227,6 @@ typedef uint32_t psa_algorithm_t;
 
 /** Whether the specified algorithm is a TLS-1.2 PRF algorithm.
  *
- * TLS 1.2 uses a custom pseudorandom function (PRF) for key schedule,
- * specified in Section 5 of RFC 5246. It is based on HMAC and can be
- * used with either SHA-256 or SHA-384.
- *
  * \param alg An algorithm identifier (value of type #psa_algorithm_t).
  *
  * \return 1 if \c alg is a TLS-1.2 PRF algorithm, 0 otherwise.
@@ -1234,6 +1240,17 @@ typedef uint32_t psa_algorithm_t;
 
 #define PSA_ALG_TLS12_PSK_TO_MS_BASE ((psa_algorithm_t)0x30000300)
 /** Macro to build a TLS-1.2 PSK-to-MasterSecret algorithm.
+ *
+ * In a pure-PSK handshake in TLS 1.2, the master secret is derived
+ * from the PreSharedKey (PSK) through the application of padding
+ * (RFC 4279, Section 2) and the TLS-1.2 PRF (RFC 5246, Section 5).
+ * The latter is based on HMAC and can be used with either SHA-256
+ * or SHA-384.
+ *
+ * For the application to TLS-1.2, the salt passed to psa_key_derivation()
+ * (and forwarded to the TLS-1.2 PRF) is the concatenation of the
+ * ClientHello.Random + ServerHello.Random, while the label is "master secret"
+ * or "extended master secret".
  *
  * For example, `PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA256)` represents the
  * TLS-1.2 PSK to MasterSecret derivation PRF using HMAC-SHA-256.
@@ -1249,16 +1266,6 @@ typedef uint32_t psa_algorithm_t;
     (PSA_ALG_TLS12_PSK_TO_MS_BASE | ((hash_alg) & PSA_ALG_HASH_MASK))
 
 /** Whether the specified algorithm is a TLS-1.2 PSK to MS algorithm.
- *
- * In a pure-PSK handshake in TLS 1.2, the master secret is derived
- * from the PreSharedKey (PSK) through the application of padding and
- * the TLS-1.2 PRF (see below). The latter is based on HMAC and can
- * be used with either SHA-256 or SHA-384.
- *
- * For the application to TLS-1.2, the salt passed to psa_key_derivation()
- * (and forwarded to the TLS-1.2 PRF) is the concatenation of the
- * ClientHello.Random + ServerHello.Random, while the label is "master secret".
- * See RFC 5246, Section 8.1, Computing the Master Secret.
  *
  * \param alg An algorithm identifier (value of type #psa_algorithm_t).
  *

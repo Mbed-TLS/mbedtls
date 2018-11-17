@@ -243,8 +243,12 @@ int mbedtls_cipher_setup_psa( mbedtls_cipher_context_t *ctx,
     if( NULL == cipher_info || NULL == ctx )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
+    /* Check that the underlying cipher mode and cipher type are
+     * supported by the underlying PSA Crypto implementation. */
     alg = mbedtls_psa_translate_cipher_mode( cipher_info->mode, taglen );
-    if( alg == 0)
+    if( alg == 0 )
+        return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+    if( mbedtls_psa_translate_cipher_type( cipher_info->type ) == 0 )
         return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
 
     memset( ctx, 0, sizeof( mbedtls_cipher_context_t ) );

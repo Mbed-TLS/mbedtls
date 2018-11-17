@@ -175,7 +175,7 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx )
             mbedtls_cipher_context_psa * const cipher_psa =
                 (mbedtls_cipher_context_psa *) ctx->cipher_ctx;
 
-            if( cipher_psa->slot_state == 1 )
+            if( cipher_psa->slot_state == MBEDTLS_CIPHER_PSA_KEY_OWNED )
             {
                 /* xxx_free() doesn't allow to return failures. */
                 (void) psa_destroy_key( cipher_psa->slot );
@@ -299,14 +299,16 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
         /* Don't allow keys to be set multiple times. */
-        if( cipher_psa->slot_state != 0 )
+        if( cipher_psa->slot_state != MBEDTLS_CIPHER_PSA_KEY_UNSET )
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
         /* Find a fresh key slot to use. */
         status = mbedtls_psa_get_free_key_slot( &cipher_psa->slot );
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
-        cipher_psa->slot_state = 1; /* Indicate that we own the key slot. */
+         /* Indicate that we own the key slot and need to
+          * destroy it in mbedtls_cipher_free(). */
+        cipher_psa->slot_state = MBEDTLS_CIPHER_PSA_KEY_OWNED;
 
         /* From that point on, the responsibility for destroying the
          * key slot is on mbedtls_cipher_free(). This includes the case

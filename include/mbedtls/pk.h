@@ -740,6 +740,31 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
 int mbedtls_pk_load_file( const char *path, unsigned char **buf, size_t *n );
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/**
+ * \brief           Turn an EC key into an Opaque one
+ *
+ * \warning         This is a temporary utility function for tests. It might
+ *                  change or be removed at any time without notice.
+ *
+ * \note            Only ECDSA keys are supported so far. Signing with the
+ *                  specified hash is the only allowed use of that key.
+ *
+ * \param pk        Input: the EC key to transfer to a PSA key slot.
+ *                  Output: a PK context wrapping that PSA key slot.
+ * \param slot      Output: the chosen slot for storing the key.
+ *                  It's the caller's responsibility to destroy that slot
+ *                  after calling mbedtls_pk_free() on the PK context.
+ * \param hash_alg  The hash algorithm to allow for use with that key.
+ *
+ * \return          \c 0 if successful.
+ * \return          An Mbed TLS error code otherwise.
+ */
+int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
+                               psa_key_slot_t *slot,
+                               psa_algorithm_t hash_alg );
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
 #ifdef __cplusplus
 }
 #endif

@@ -202,15 +202,12 @@ int mbedtls_x509write_csr_der( mbedtls_x509write_csr *ctx, unsigned char *buf, s
     if( psa_hash_setup( &hash_operation, hash_alg ) != PSA_SUCCESS )
         return( MBEDTLS_ERR_X509_FATAL_ERROR );
 
-    if( psa_hash_update( &hash_operation, c, len) != PSA_SUCCESS )
-    {
-        psa_hash_abort( &hash_operation );
+    if( psa_hash_update( &hash_operation, c, len ) != PSA_SUCCESS )
         return( MBEDTLS_ERR_X509_FATAL_ERROR );
-    }
+
     if( psa_hash_finish( &hash_operation, hash, sizeof( hash ), &hash_len )
         != PSA_SUCCESS )
     {
-        psa_hash_abort( &hash_operation );
         return( MBEDTLS_ERR_X509_FATAL_ERROR );
     }
 #else /* MBEDTLS_USE_PSA_CRYPTO */

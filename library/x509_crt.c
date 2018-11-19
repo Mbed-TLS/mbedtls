@@ -1917,14 +1917,12 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
     if( psa_hash_update( &hash_operation, child->tbs.p, child->tbs.len )
         != PSA_SUCCESS )
     {
-        psa_hash_abort( &hash_operation );
         return( -1 );
     }
 
     if( psa_hash_finish( &hash_operation, hash, sizeof( hash ), &hash_len )
         != PSA_SUCCESS )
     {
-        psa_hash_abort( &hash_operation );
         return( -1 );
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

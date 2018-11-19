@@ -1,30 +1,30 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS x.x.x branch released xxxx-xx-xx
+= mbed TLS 2.1.16 branch released 2018-11-19
 
 Security
    * Fix overly strict DN comparison when looking for CRLs belonging to a
-     particular CA. This previously lead to ignoring CRLs when the CRL's issuer
+     particular CA. This previously led to ignoring CRLs when the CRL's issuer
      name and the CA's subject name differed in their string encoding (e.g.,
      one using PrintableString and the other UTF8String) or in the choice of
      upper and lower case. Reported by Henrik Andersson of Bosch GmbH in issue
      #1784.
+   * Fix a flawed bounds check in server PSK hint parsing. In case the
+     incoming message buffer was placed within the first 64KiB of address
+     space and a PSK-(EC)DHE ciphersuite was used, this allowed an attacker
+     to trigger a memory access up to 64KiB beyond the incoming message buffer,
+     potentially leading to application crash or information disclosure.
    * Fix mbedtls_mpi_is_prime() to use more rounds of probabilistic testing. The
      previous settings for the number of rounds made it practical for an
      adversary to construct non-primes that would be erroneously accepted as
      primes with high probability. This does not have an impact on the
-     security of TLS, but can matter in other contexts with potentially
-     adversarially-chosen numbers that should be prime and can be validated.
+     security of TLS, but can matter in other contexts with numbers chosen
+     potentially by an adversary that should be prime and can be validated.
      For example, the number of rounds was enough to securely generate RSA key
      pairs or Diffie-Hellman parameters, but was insufficient to validate
      Diffie-Hellman parameters properly.
      See "Prime and Prejudice" by by Martin R. Albrecht and Jake Massimo and
      Kenneth G. Paterson and Juraj Somorovsky.
-   * Fix a flawed bounds check in server PSK hint parsing. In case the
-     incoming message buffer was placed within the first 64KB of address
-     space and a PSK-(EC)DHE ciphersuite was used, this allowed an attacker
-     to trigger a memory access up to 64KB beyond the incoming message buffer,
-     potentially leading to application crash or information disclosure.
 
 Bugfix
    * Fix failure in hmac_drbg in the benchmark sample application, when
@@ -34,7 +34,7 @@ Bugfix
    * Fix potential build failures related to the 'apidoc' target, introduced
      in the previous patch release. Found by Robert Scheck. #390 #391
    * Fix a bug in the record decryption routine ssl_decrypt_buf()
-     which lead to accepting properly authenticated but improperly
+     which led to accepting properly authenticated but improperly
      padded records in case of CBC ciphersuites using Encrypt-then-MAC.
    * Fix wrong order of freeing in programs/ssl/ssl_server2 example
      application leading to a memory leak in case both
@@ -44,10 +44,6 @@ Bugfix
      program programs/x509/cert_write. Fixes #1422.
    * Ignore IV in mbedtls_cipher_set_iv() when the cipher mode is
      MBEDTLS_MODE_ECB. Found by ezdevelop, Fixes #1091.
-   * Fix failure in hmac_drbg in the benchmark sample application, when
-     MBEDTLS_THREADING_C is defined. Found by TrinityTonic, #1095
-   * Fix a bug in the update function for SSL ticket keys which previously
-     invalidated keys of a lifetime of less than a 1s. Fixes #1968.
    * Zeroize memory used for reassembling handshake messages after use.
    * Use `mbedtls_zeroize()` instead of `memset()` for zeroization of
      sensitive data in the example programs aescrypt2 and crypt_and_hash.

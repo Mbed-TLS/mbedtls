@@ -647,8 +647,8 @@ if_build_succeeded not test -f crypto/library/libmbedcrypto.a
 msg "test: libmbedcrypto symbols are from library files (USE_CRYPTO_SUBMODULE, cmake)"
 if_build_succeeded objdump -g library/libmbedcrypto.a | grep -E 'library$' | not grep 'crypto' > /dev/null
 
-# USE_PSA: run the same set of tests as basic-build-test.sh
-msg "build: cmake, full config + USE_PSA, ASan"
+# MBEDTLS_USE_PSA_CRYPTO: run the same set of tests as basic-build-test.sh
+msg "build: cmake, full config + MBEDTLS_USE_PSA_CRYPTO, ASan"
 cleanup
 cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full
@@ -658,22 +658,22 @@ scripts/config.pl set MBEDTLS_USE_PSA_CRYPTO
 CC=gcc cmake -D USE_CRYPTO_SUBMODULE -D CMAKE_BUILD_TYPE:String=Asan .
 make
 
-msg "test: main suites (USE_PSA)"
+msg "test: main suites (MBEDTLS_USE_PSA_CRYPTO)"
 make test
 
-msg "test: ssl-opt.sh (USE_PSA)"
+msg "test: ssl-opt.sh (MBEDTLS_USE_PSA_CRYPTO)"
 if_build_succeeded tests/ssl-opt.sh
 
-msg "test: compat.sh default (USE_PSA)"
+msg "test: compat.sh default (MBEDTLS_USE_PSA_CRYPTO)"
 if_build_succeeded tests/compat.sh
 
-msg "test: compat.sh ssl3 (USE_PSA)"
+msg "test: compat.sh ssl3 (MBEDTLS_USE_PSA_CRYPTO)"
 if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
 
-msg "test: compat.sh RC4, DES & NULL (USE_PSA)"
+msg "test: compat.sh RC4, DES & NULL (MBEDTLS_USE_PSA_CRYPTO)"
 if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
 
-msg "test: compat.sh ARIA + ChachaPoly (USE_PSA)"
+msg "test: compat.sh ARIA + ChachaPoly (MBEDTLS_USE_PSA_CRYPTO)"
 if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 
 msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s

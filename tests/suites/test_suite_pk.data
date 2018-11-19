@@ -14,7 +14,7 @@ PK utils: ECDSA
 depends_on:MBEDTLS_ECDSA_C:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 pk_utils:MBEDTLS_PK_ECDSA:192:24:"ECDSA"
 
-PK PSA utils
+PK PSA utilities: setup/free, info functions, unsupported operations
 pk_psa_utils:
 
 RSA verify test vector #1 (good)

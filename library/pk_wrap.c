@@ -47,7 +47,7 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
-#include "mbedtls/x509.h"
+#include "mbedtls/psa_util.h"
 #include "mbedtls/asn1.h"
 #endif
 
@@ -479,61 +479,6 @@ static int ecdsa_can_do( mbedtls_pk_type_t type )
 }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-static psa_status_t mbedtls_psa_get_free_key_slot( psa_key_slot_t *key )
-{
-    for( psa_key_slot_t slot = 1; slot <= 32; slot++ )
-    {
-        if( psa_get_key_information( slot, NULL, NULL )  == PSA_ERROR_EMPTY_SLOT )
-        {
-            *key = slot;
-            return( PSA_SUCCESS );
-        }
-    }
-    return( PSA_ERROR_INSUFFICIENT_MEMORY );
-}
-
-static psa_algorithm_t translate_md_to_psa( mbedtls_md_type_t md_alg )
-{
-    switch( md_alg )
-    {
-#if defined(MBEDTLS_MD2_C)
-    case MBEDTLS_MD_MD2:
-        return( PSA_ALG_MD2 );
-#endif
-#if defined(MBEDTLS_MD4_C)
-    case MBEDTLS_MD_MD4:
-        return( PSA_ALG_MD4 );
-#endif
-#if defined(MBEDTLS_MD5_C)
-    case MBEDTLS_MD_MD5:
-        return( PSA_ALG_MD5 );
-#endif
-#if defined(MBEDTLS_SHA1_C)
-    case MBEDTLS_MD_SHA1:
-        return( PSA_ALG_SHA_1 );
-#endif
-#if defined(MBEDTLS_SHA256_C)
-    case MBEDTLS_MD_SHA224:
-        return( PSA_ALG_SHA_224 );
-    case MBEDTLS_MD_SHA256:
-        return( PSA_ALG_SHA_256 );
-#endif
-#if defined(MBEDTLS_SHA512_C)
-    case MBEDTLS_MD_SHA384:
-        return( PSA_ALG_SHA_384 );
-    case MBEDTLS_MD_SHA512:
-        return( PSA_ALG_SHA_512 );
-#endif
-#if defined(MBEDTLS_RIPEMD160_C)
-    case MBEDTLS_MD_RIPEMD160:
-        return( PSA_ALG_RIPEMD160 );
-#endif
-    case MBEDTLS_MD_NONE:  // Intentional fallthrough
-    default:
-        return( 0 );
-    }
-}
-
 /*
  * Convert a signature from an ASN.1 sequence of two integers
  * to a raw {r,s} buffer. Note: upon a successful call, the caller
@@ -677,7 +622,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     unsigned char buf[buf_len];
     unsigned char *p = (unsigned char*) sig;
     mbedtls_pk_info_t pk_info = mbedtls_eckey_info;
-    psa_algorithm_t psa_sig_md = translate_md_to_psa( md_alg );
+    psa_algorithm_t psa_sig_md = mbedtls_psa_translate_md( md_alg );
     psa_ecc_curve_t curve = mbedtls_ecc_group_to_psa ( ( (mbedtls_ecdsa_context *) ctx )->grp.id );
 
     if( curve == 0 )
@@ -690,7 +635,6 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     memset( &signature, 0, sizeof( mbedtls_asn1_buf ) );
     key.pk_info = &pk_info;
     key.pk_ctx = ctx;
-    psa_crypto_init();
 
     psa_type = PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve );
 

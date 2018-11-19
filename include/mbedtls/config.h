@@ -1104,6 +1104,16 @@
 //#define MBEDTLS_ENTROPY_NV_SEED
 
 /**
+ * \def MBEDTLS_PSA_HAS_ITS_IO
+ *
+ * Enable the non-volatile secure storage usage.
+ *
+ * This is crucial on systems that do not have a HW TRNG support.
+ *
+ */
+//#define MBEDTLS_PSA_HAS_ITS_IO
+
+/**
  * \def MBEDTLS_MEMORY_DEBUG
  *
  * Enable debugging of buffer allocator memory issues. Automatically prints

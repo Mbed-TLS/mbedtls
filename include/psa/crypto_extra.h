@@ -34,6 +34,9 @@
 extern "C" {
 #endif
 
+/* UID for secure storage seed */
+#define MBED_RANDOM_SEED_ITS_UID 0xFFFFFF52
+
 /**
  * \brief Library deinitialization.
  *
@@ -43,6 +46,30 @@ extern "C" {
  * This is an Mbed TLS extension.
  */
 void mbedtls_psa_crypto_free( void );
+
+
+#if ( defined(MBEDTLS_ENTROPY_NV_SEED) && defined(MBEDTLS_PSA_HAS_ITS_IO) )
+/**
+ * \brief Inject initial entropy seed into persistent storage for random capabilities.
+ *
+ * \warning This function **can** fail! Callers MUST check the return status.
+ *
+ * \note    To use this function both mbedtls_nv_seed_read and mbedtls_nv_seed_write
+ *          must be defined.
+ *
+ * \param seed[in]            Buffer storing the seed value to inject.
+ * \param seed_size[in]       Size of the \p seed buffer. The minimum size of the seed is MBEDTLS_ENTROPY_MIN_PLATFORM
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_BAD_STATE
+ */
+psa_status_t mbedtls_psa_inject_entropy(const unsigned char *seed,
+                                        size_t seed_size);
+
+#endif
 
 #ifdef __cplusplus
 }

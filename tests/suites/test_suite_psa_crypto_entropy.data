@@ -1,0 +1,14 @@
+PSA validate entropy injection: good, minimum size
+validate_entropy_seed_injection:MBEDTLS_ENTROPY_MIN_PLATFORM:PSA_SUCCESS:MBEDTLS_ENTROPY_MIN_PLATFORM:PSA_ERROR_NOT_PERMITTED
+
+PSA validate entropy injection: good, max size
+validate_entropy_seed_injection:MBEDTLS_ENTROPY_MAX_SEED_SIZE:PSA_SUCCESS:MBEDTLS_ENTROPY_MAX_SEED_SIZE:PSA_ERROR_NOT_PERMITTED
+
+PSA validate entropy injection: bad, too big
+validate_entropy_seed_injection:MBEDTLS_ENTROPY_MAX_SEED_SIZE+1:PSA_ERROR_INVALID_ARGUMENT:MBEDTLS_ENTROPY_MIN_PLATFORM:PSA_SUCCESS
+
+PSA validate entropy injection: bad, too small
+validate_entropy_seed_injection:MBEDTLS_ENTROPY_MIN_PLATFORM-1:PSA_ERROR_INVALID_ARGUMENT:MBEDTLS_ENTROPY_MIN_PLATFORM:PSA_SUCCESS
+
+PSA validate entropy injection: before and after crypto_init
+run_entropy_inject_with_crypto_init:

@@ -168,11 +168,11 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
     if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_OPAQUE )
     {
         size_t buffer_size = *p - start;
-        psa_key_slot_t* key_slot = ( psa_key_slot_t* ) key->pk_ctx;
+        psa_key_slot_t* key_slot = (psa_key_slot_t*) key->pk_ctx;
         if ( psa_export_public_key( *key_slot, start, buffer_size, &len )
              != PSA_SUCCESS )
         {
-            return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+            return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
         }
         else
         {

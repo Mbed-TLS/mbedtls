@@ -45,12 +45,17 @@ static int x509_crt_verifycsr( const unsigned char *buf, size_t buflen )
 
     md_info = mbedtls_md_info_from_type( csr.sig_md );
     if( mbedtls_md( md_info, csr.cri.p, csr.cri.len, hash ) != 0 )
-        return ( MBEDTLS_ERR_X509_BAD_INPUT_DATA );/* Note: this can't happen except after an internal error */
+    {
+        /* Note: this can't happen except after an internal error */
+        return( MBEDTLS_ERR_X509_BAD_INPUT_DATA );
+    }
 
     if( mbedtls_pk_verify_ext( csr.sig_pk, csr.sig_opts, &csr.pk,
                        csr.sig_md, hash, mbedtls_md_get_size( md_info ),
                        csr.sig.p, csr.sig.len ) != 0 )
+    {
         return( MBEDTLS_ERR_X509_CERT_VERIFY_FAILED );
+    }
 
     return( 0 );
 }
@@ -156,13 +161,13 @@ void x509_csr_check_opaque( char *key_file, int md_type, int key_usage,
     if( cert_type != 0 )
         TEST_ASSERT( mbedtls_x509write_csr_set_ns_cert_type( &req, cert_type ) == 0 );
 
-    ret = mbedtls_x509write_csr_pem( &req, buf, sizeof( buf ),
+    ret = mbedtls_x509write_csr_pem( &req, buf, sizeof( buf ) - 1,
                              rnd_pseudo_rand, &rnd_info );
     TEST_ASSERT( ret == 0 );
 
     pem_len = strlen( (char *) buf );
     buf[pem_len] = '\0';
-    TEST_ASSERT( x509_crt_verifycsr( buf, pem_len+1 ) == 0 );
+    TEST_ASSERT( x509_crt_verifycsr( buf, pem_len + 1 ) == 0 );
 
 exit:
     mbedtls_x509write_csr_free( &req );

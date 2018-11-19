@@ -519,8 +519,8 @@ static int extract_ecdsa_sig_part( unsigned char **from, const unsigned char *en
 
 /*
  * Convert a signature from an ASN.1 sequence of two integers
- * to a raw {r,s} buffer. Note: upon a successful call, the caller
- * takes ownership of the sig->p buffer.
+ * to a raw {r,s} buffer. Note: the provided sig buffer should be at least
+ * twice as big as int_size.
  */
 static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
                               mbedtls_asn1_buf *sig, size_t int_size )
@@ -532,9 +532,8 @@ static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
         return( MBEDTLS_ERR_ASN1_OUT_OF_DATA );
     }
 
-    sig->p = mbedtls_calloc( 2, int_size );
     if( sig->p == NULL )
-        return( MBEDTLS_ERR_ASN1_ALLOC_FAILED );
+        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 
     sig->tag = **p;
 
@@ -561,8 +560,6 @@ static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
     return( 0 );
 
 cleanup:
-    mbedtls_free( sig->p );
-    sig->p = NULL;
     sig->len = 0;
     sig->tag = 0;
     return( ret );
@@ -640,12 +637,13 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     mbedtls_pk_context key;
     mbedtls_asn1_buf signature;
     int key_len;
-    const int buf_len = 30 + 2 * MBEDTLS_ECP_MAX_BYTES; // Equivalent of ECP_PUB_DER_MAX_BYTES
+    const unsigned buf_len = 30 + 2 * MBEDTLS_ECP_MAX_BYTES; // Equivalent of ECP_PUB_DER_MAX_BYTES
     unsigned char buf[buf_len];
     unsigned char *p = (unsigned char*) sig;
     mbedtls_pk_info_t pk_info = mbedtls_eckey_info;
     psa_algorithm_t psa_sig_md = mbedtls_psa_translate_md( md_alg );
     psa_ecc_curve_t curve = mbedtls_ecc_group_to_psa ( ( (mbedtls_ecdsa_context *) ctx )->grp.id );
+    size_t signature_part_size = ( ( (mbedtls_ecdsa_context *) ctx ) ->grp.nbits + 7 ) / 8;
 
     if( curve == 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
@@ -660,22 +658,12 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
     psa_type = PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve );
 
-    if( ( ret = extract_ecdsa_sig( &p, p + sig_len, &signature,
-                   ( ( (mbedtls_ecdsa_context *) ctx )->grp.nbits + 7) / 8 ) ) != 0 )
-        return( ret );
-
     key_len = mbedtls_pk_write_pubkey_der( &key, buf, buf_len );
     if( key_len <= 0 )
-    {
-        mbedtls_free( signature.p );
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
-    }
 
     if( ( ret = mbedtls_psa_get_free_key_slot( &key_slot ) ) != PSA_SUCCESS )
-    {
-        mbedtls_free( signature.p );
         return( mbedtls_psa_err_translate_pk( ret ) );
-    }
 
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_VERIFY, psa_sig_md );
@@ -692,6 +680,20 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
         goto cleanup;
     }
 
+    /* Reuse the buffer of an already imported key */
+    if( 2 * signature_part_size > buf_len )
+    {
+        ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+    signature.p = buf;
+
+    if( ( ret = extract_ecdsa_sig( &p, p + sig_len, &signature,
+                                   signature_part_size ) ) != 0 )
+    {
+        goto cleanup;
+    }
+
     if( psa_asymmetric_verify( key_slot, psa_sig_md,
                                hash, hash_len,
                                signature.p, signature.len )
@@ -704,7 +706,6 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
 cleanup:
     psa_destroy_key( key_slot );
-    mbedtls_free( signature.p );
     return( ret );
 }
 #else /* MBEDTLS_USE_PSA_CRYPTO */

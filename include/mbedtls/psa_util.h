@@ -25,8 +25,8 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
-#if !defined(MBEDTLS_PSA_COMPAT_H)
-#define MBEDTLS_PSA_COMPAT_H
+#ifndef MBEDTLS_PSA_UTIL_H
+#define MBEDTLS_PSA_UTIL_H
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "config.h"
@@ -261,4 +261,4 @@ static inline int mbedtls_psa_err_translate_pk( psa_status_t status )
 
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
-#endif /* MBEDTLS_PSA_COMPAT_H */
+#endif /* MBEDTLS_PSA_UTIL_H */

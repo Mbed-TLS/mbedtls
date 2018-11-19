@@ -561,7 +561,7 @@ int main( int argc, char *argv[] )
     const char *pers = "ssl_client2";
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_slot_t slot;
+    psa_key_slot_t slot = 0;
     psa_algorithm_t alg = 0;
     psa_key_policy_t policy;
     psa_status_t status;

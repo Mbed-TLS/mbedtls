@@ -62,24 +62,24 @@ void run_entropy_inject_with_crypto_init( )
     psa_its_status_t its_status;
     psa_status_t status;
     int i;
-    uint8_t seed[MBEDTLS_ENTROPY_MIN_PLATFORM] = {0};
+    uint8_t seed[MBEDTLS_ENTROPY_BLOCK_SIZE] = {0};
     /* fill seed in some data */
-    for( i = 0; i < MBEDTLS_ENTROPY_MIN_PLATFORM; ++i)
+    for( i = 0; i < MBEDTLS_ENTROPY_BLOCK_SIZE; ++i)
     {
         seed[i] = i;
     }
     its_status =  psa_its_remove(MBED_RANDOM_SEED_ITS_UID);
     TEST_ASSERT( (its_status == PSA_ITS_SUCCESS) || (its_status == PSA_ITS_ERROR_KEY_NOT_FOUND) );
-    status = mbedtls_psa_inject_entropy( seed, MBEDTLS_ENTROPY_MIN_PLATFORM );
+    status = mbedtls_psa_inject_entropy( seed, MBEDTLS_ENTROPY_BLOCK_SIZE );
     TEST_ASSERT( status == PSA_SUCCESS );
     its_status =  psa_its_remove(MBED_RANDOM_SEED_ITS_UID);
     TEST_ASSERT( its_status == PSA_ITS_SUCCESS );
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
-    status = mbedtls_psa_inject_entropy( seed, MBEDTLS_ENTROPY_MIN_PLATFORM );
+    status = mbedtls_psa_inject_entropy( seed, MBEDTLS_ENTROPY_BLOCK_SIZE );
     TEST_ASSERT( status == PSA_ERROR_NOT_PERMITTED );
     mbedtls_psa_crypto_free( );
     /* The seed is written by nv_seed callback functions therefore the injection will fail */
-    status = mbedtls_psa_inject_entropy( seed, MBEDTLS_ENTROPY_MIN_PLATFORM );
+    status = mbedtls_psa_inject_entropy( seed, MBEDTLS_ENTROPY_BLOCK_SIZE );
     TEST_ASSERT( status == PSA_ERROR_NOT_PERMITTED );
 exit:
     psa_its_remove(MBED_RANDOM_SEED_ITS_UID);

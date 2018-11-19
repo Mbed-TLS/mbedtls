@@ -4234,8 +4234,12 @@ psa_status_t mbedtls_psa_inject_entropy( const unsigned char *seed,
     struct psa_its_info_t p_info;
     if( global_data.initialized )
         return( PSA_ERROR_NOT_PERMITTED );
-    if( ( seed_size < MBEDTLS_ENTROPY_MIN_PLATFORM ) || ( seed_size > MBEDTLS_ENTROPY_MAX_SEED_SIZE ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    if( ( ( seed_size < MBEDTLS_ENTROPY_MIN_PLATFORM ) ||
+          ( seed_size < MBEDTLS_ENTROPY_BLOCK_SIZE ) ) ||
+          ( seed_size > MBEDTLS_ENTROPY_MAX_SEED_SIZE ) )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+
     status = psa_its_get_info( MBED_RANDOM_SEED_ITS_UID, &p_info );
     if( PSA_ITS_ERROR_KEY_NOT_FOUND == status ) /* No seed exists */
     {

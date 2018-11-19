@@ -91,8 +91,10 @@ void mbedtls_psa_crypto_free( void );
  *
  * \param seed[in]      Buffer containing the seed value to inject.
  * \param seed_size     Size of the \p seed buffer.
- *                      The size of the seed must be
- *                      at least #MBEDTLS_ENTROPY_MIN_PLATFORM bytes
+ *                      The size of the seed must be equal or larger than any
+ *                      of the values defined both in
+ *                      #MBEDTLS_ENTROPY_MIN_PLATFORM
+ *                      and in the #MBEDTLS_ENTROPY_BLOCK_SIZE defines
  *                      and at most #MBEDTLS_ENTROPY_MAX_SEED_SIZE bytes.
  *
  * \retval #PSA_SUCCESS

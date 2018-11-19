@@ -480,69 +480,92 @@ static int ecdsa_can_do( mbedtls_pk_type_t type )
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 /*
+ * Extract one signature part of an ASN.1 integer type to a given buffer
+ * and adjust padding according to part_size.
+ */
+static int extract_ecdsa_sig_part( unsigned char **from, const unsigned char *end,
+                                   unsigned char *to, size_t part_size )
+{
+    int ret;
+    size_t len_total, len_partial, zero_padding;
+
+    if( ( ret = mbedtls_asn1_get_tag( from, end, &len_partial,
+                                      MBEDTLS_ASN1_INTEGER ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    while( **from == '\0' && len_partial > 0 )
+    {
+        ( *from )++;
+        len_partial--;
+    }
+
+    if( len_partial > part_size || len_partial == 0 )
+        return( MBEDTLS_ERR_PK_SIG_LEN_MISMATCH );
+
+    zero_padding = part_size - len_partial;
+    memcpy( to + zero_padding, *from, len_partial );
+    len_total = len_partial + zero_padding;
+    while( zero_padding > 0 )
+    {
+        zero_padding--;
+        to[zero_padding] = 0;
+    }
+
+    ( *from ) += len_partial;
+    return len_total;
+}
+
+/*
  * Convert a signature from an ASN.1 sequence of two integers
  * to a raw {r,s} buffer. Note: upon a successful call, the caller
  * takes ownership of the sig->p buffer.
  */
 static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
-                              mbedtls_asn1_buf *sig )
+                              mbedtls_asn1_buf *sig, size_t int_size )
 {
-    int ret, tag_type;
-    size_t len_signature, len_partial;
+    int ret;
 
     if( ( end - *p ) < 1 )
     {
         return( MBEDTLS_ERR_ASN1_OUT_OF_DATA );
     }
-    tag_type = **p;
 
-    if( ( ret = mbedtls_asn1_get_tag( p, end, &len_partial,
-                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
-    {
-        return( ret );
-    }
-
-    if( ( ret = mbedtls_asn1_get_tag( p, end, &len_partial, MBEDTLS_ASN1_INTEGER ) )
-            != 0 )
-        return( ret );
-
-    if( **p == '\0' )
-    {
-        ( *p )++;
-        len_partial--;
-    }
-
-    sig->p = mbedtls_calloc( 2, len_partial );
+    sig->p = mbedtls_calloc( 2, int_size );
     if( sig->p == NULL )
         return( MBEDTLS_ERR_ASN1_ALLOC_FAILED );
 
-    memcpy( sig->p, *p, len_partial );
-    len_signature = len_partial;
-    ( *p ) += len_partial;
-    if( ( ret = mbedtls_asn1_get_tag( p, end, &len_partial,
-                                      MBEDTLS_ASN1_INTEGER ) ) != 0 )
+    sig->tag = **p;
+
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &sig->len,
+                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
     {
-        mbedtls_free( sig->p );
-        sig->p = NULL;
-        return( ret );
+        goto cleanup;
     }
 
-    if( **p == '\0' )
+    /* Extract r */
+    if( ( ret = extract_ecdsa_sig_part( p, end, sig->p, int_size ) ) < 0)
     {
-        ( *p )++;
-        len_partial--;
+        goto cleanup;
     }
+    sig->len = ret;
 
-    // Check if both parts are of the same size
-    if( len_partial != len_signature )
-        return( MBEDTLS_ERR_PK_SIG_LEN_MISMATCH );
+    /* Extract s */
+    if( ( ret = extract_ecdsa_sig_part( p, end, sig->p + sig->len, int_size ) ) < 0)
+    {
+        goto cleanup;
+    }
+    sig->len += ret;
 
-    memcpy( sig->p + len_partial, *p, len_partial );
-    len_signature += len_partial;
-    sig->tag = tag_type;
-    sig->len = len_signature;
-    ( *p ) += len_partial;
     return( 0 );
+
+cleanup:
+    mbedtls_free( sig->p );
+    sig->p = NULL;
+    sig->len = 0;
+    sig->tag = 0;
+    return( ret );
 }
 
 static psa_ecc_curve_t mbedtls_ecc_group_to_psa( mbedtls_ecp_group_id grpid )
@@ -637,7 +660,8 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
     psa_type = PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve );
 
-    if( ( ret = extract_ecdsa_sig( &p, p + sig_len, &signature ) ) != 0 )
+    if( ( ret = extract_ecdsa_sig( &p, p + sig_len, &signature,
+                   ( ( (mbedtls_ecdsa_context *) ctx )->grp.nbits + 7) / 8 ) ) != 0 )
         return( ret );
 
     key_len = mbedtls_pk_write_pubkey_der( &key, buf, buf_len );
@@ -678,7 +702,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     }
     ret = 0;
 
-    cleanup:
+cleanup:
     psa_destroy_key( key_slot );
     mbedtls_free( signature.p );
     return( ret );

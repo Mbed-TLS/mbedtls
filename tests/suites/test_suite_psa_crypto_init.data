@@ -24,3 +24,18 @@ custom_entropy_sources:0x0000ffff:PSA_SUCCESS
 
 Custom entropy sources: none
 custom_entropy_sources:0:PSA_ERROR_INSUFFICIENT_ENTROPY
+
+Fake entropy: never returns anything
+fake_entropy_source:MBEDTLS_ENTROPY_BLOCK_SIZE:0:0:0:0:PSA_ERROR_INSUFFICIENT_ENTROPY
+
+Fake entropy: less than the block size
+fake_entropy_source:MBEDTLS_ENTROPY_BLOCK_SIZE:MBEDTLS_ENTROPY_BLOCK_SIZE - 1:-1:-1:-1:PSA_ERROR_INSUFFICIENT_ENTROPY
+
+Fake entropy: one block eventually
+fake_entropy_source:MBEDTLS_ENTROPY_BLOCK_SIZE:0:0:0:MBEDTLS_ENTROPY_BLOCK_SIZE:PSA_SUCCESS
+
+Fake entropy: one block in two steps
+fake_entropy_source:MBEDTLS_ENTROPY_BLOCK_SIZE:MBEDTLS_ENTROPY_BLOCK_SIZE - 1:1:-1:-1:PSA_SUCCESS
+
+Fake entropy: more than one block in two steps
+fake_entropy_source:MBEDTLS_ENTROPY_BLOCK_SIZE:MBEDTLS_ENTROPY_BLOCK_SIZE - 1:MBEDTLS_ENTROPY_BLOCK_SIZE - 1:-1:-1:PSA_SUCCESS

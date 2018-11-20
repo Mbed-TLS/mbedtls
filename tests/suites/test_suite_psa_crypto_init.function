@@ -12,12 +12,41 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
 
+#define MIN( x, y ) ( ( x ) < ( y ) ? ( x ) : ( y ) )
+
+typedef struct
+{
+    size_t threshold; /* Minimum bytes to make mbedtls_entropy_func happy */
+    size_t max_steps;
+    size_t *length_sequence;
+    size_t step;
+} fake_entropy_state_t;
+static int fake_entropy_source( void *state_arg,
+                                unsigned char *output, size_t len,
+                                size_t *olen )
+{
+    fake_entropy_state_t *state = state_arg;
+    size_t i;
+
+    if( state->step >= state->max_steps )
+        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+
+    *olen = MIN( len, state->length_sequence[state->step] );
+    for( i = 0; i < *olen; i++ )
+        output[i] = i;
+    ++state->step;
+    return( 0 );
+};
+
 #define ENTROPY_SOURCE_PLATFORM                 0x00000001
 #define ENTROPY_SOURCE_TIMING                   0x00000002
 #define ENTROPY_SOURCE_HAVEGE                   0x00000004
 #define ENTROPY_SOURCE_HARDWARE                 0x00000008
 #define ENTROPY_SOURCE_NV_SEED                  0x00000010
+#define ENTROPY_SOURCE_FAKE                     0x40000000
+
 static uint32_t custom_entropy_sources_mask;
+static fake_entropy_state_t fake_entropy_state;
 
 /* This is a modified version of mbedtls_entropy_init() from entropy.c
  * which chooses entropy sources dynamically. */
@@ -71,6 +100,12 @@ static void custom_entropy_init( mbedtls_entropy_context *ctx )
                                     MBEDTLS_ENTROPY_SOURCE_STRONG );
     ctx->initial_entropy_run = 0;
 #endif
+
+    if( custom_entropy_sources_mask & ENTROPY_SOURCE_FAKE )
+        mbedtls_entropy_add_source( ctx,
+                                    fake_entropy_source, &fake_entropy_state,
+                                    fake_entropy_state.threshold,
+                                    MBEDTLS_ENTROPY_SOURCE_STRONG );
 }
 
 /* END_HEADER */
@@ -147,7 +182,6 @@ void validate_module_init_key_based( int count )
 void custom_entropy_sources( int sources_arg, int expected_init_status_arg )
 {
     psa_status_t expected_init_status = expected_init_status_arg;
-    int inited = 0;
     uint8_t random[10] = { 0 };
 
     custom_entropy_sources_mask = sources_arg;
@@ -158,13 +192,53 @@ void custom_entropy_sources( int sources_arg, int expected_init_status_arg )
     TEST_ASSERT( psa_crypto_init( ) == expected_init_status );
     if( expected_init_status != PSA_SUCCESS )
         goto exit;
-    inited = 1;
 
     TEST_ASSERT( psa_generate_random( random, sizeof( random ) ) ==
                  PSA_SUCCESS );
 
 exit:
-    if( inited )
-        mbedtls_psa_crypto_free( );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void fake_entropy_source( int threshold,
+                          int amount1,
+                          int amount2,
+                          int amount3,
+                          int amount4,
+                          int expected_init_status_arg )
+{
+    psa_status_t expected_init_status = expected_init_status_arg;
+    uint8_t random[10] = { 0 };
+    size_t lengths[4];
+
+    fake_entropy_state.threshold = threshold;
+    fake_entropy_state.step = 0;
+    fake_entropy_state.max_steps = 0;
+    if( amount1 >= 0 )
+        lengths[fake_entropy_state.max_steps++] = amount1;
+    if( amount2 >= 0 )
+        lengths[fake_entropy_state.max_steps++] = amount2;
+    if( amount3 >= 0 )
+        lengths[fake_entropy_state.max_steps++] = amount3;
+    if( amount4 >= 0 )
+        lengths[fake_entropy_state.max_steps++] = amount4;
+    fake_entropy_state.length_sequence = lengths;
+
+    custom_entropy_sources_mask = ENTROPY_SOURCE_FAKE;
+    TEST_ASSERT( mbedtls_psa_crypto_configure_entropy_sources(
+                     custom_entropy_init, mbedtls_entropy_free ) ==
+                 PSA_SUCCESS );
+
+    TEST_ASSERT( psa_crypto_init( ) == expected_init_status );
+    if( expected_init_status != PSA_SUCCESS )
+        goto exit;
+
+    TEST_ASSERT( psa_generate_random( random, sizeof( random ) ) ==
+                 PSA_SUCCESS );
+
+exit:
+    mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

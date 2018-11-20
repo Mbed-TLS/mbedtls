@@ -30,6 +30,19 @@ void init_deinit( int count )
 /* END_CASE */
 
 /* BEGIN_CASE */
+void deinit_without_init( int count )
+{
+    int i;
+    for( i = 0; i < count; i++ )
+    {
+        TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+        mbedtls_psa_crypto_free( );
+    }
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void validate_module_init_generate_random( int count )
 {
     psa_status_t status;

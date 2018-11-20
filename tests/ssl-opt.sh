@@ -186,7 +186,7 @@ requires_config_value_at_most() {
 }
 
 requires_ciphersuite_enabled() {
-    if [ -z "$($P_CLI --help | grep "$1")" ]; then
+    if [ -z "$($P_CLI --help | grep $1)" ]; then
         SKIP_NEXT="YES"
     fi
 }

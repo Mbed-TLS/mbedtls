@@ -754,7 +754,7 @@ run_test() {
 
 run_test_psa() {
     requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
-    run_test    "Default, PSA ($1)" \
+    run_test    "PSA-supported ciphersuite: $1" \
                 "$P_SRV debug_level=1 force_version=tls1_2" \
                 "$P_CLI debug_level=1 force_version=tls1_2 force_ciphersuite=$1" \
                 0 \

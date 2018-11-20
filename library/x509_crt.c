@@ -368,7 +368,7 @@ static void x509_crt_verify_chain_reset(
     for( i = 0; i < MBEDTLS_X509_MAX_VERIFY_CHAIN_SIZE; i++ )
     {
         ver_chain->items[i].crt = NULL;
-        ver_chain->items[i].flags = -1;
+        ver_chain->items[i].flags = -1u;
     }
 
     ver_chain->len = 0;

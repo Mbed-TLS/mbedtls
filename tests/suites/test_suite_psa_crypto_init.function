@@ -127,6 +127,14 @@ static void custom_entropy_init( mbedtls_entropy_context *ctx )
  * END_DEPENDENCIES
  */
 
+/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_NV_SEED */
+void create_nv_seed( )
+{
+    static unsigned char seed[ENTROPY_MIN_NV_SEED_SIZE];
+    TEST_ASSERT( mbedtls_nv_seed_write( seed, sizeof( seed ) ) >= 0 );
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void init_deinit( int count )
 {

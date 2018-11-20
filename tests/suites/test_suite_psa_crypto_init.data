@@ -1,3 +1,6 @@
+Create NV seed file
+create_nv_seed:
+
 PSA init/deinit
 init_deinit:2
 
@@ -48,3 +51,6 @@ entropy_from_nv_seed:MBEDTLS_ENTROPY_BLOCK_SIZE - 1:PSA_ERROR_INSUFFICIENT_ENTRO
 
 NV seed only: just enough
 entropy_from_nv_seed:ENTROPY_MIN_NV_SEED_SIZE:PSA_SUCCESS
+
+Recreate NV seed file
+create_nv_seed:

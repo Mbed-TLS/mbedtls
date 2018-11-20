@@ -605,12 +605,6 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
         goto cleanup;
     }
 
-    if( p != sig + sig_len )
-    {
-        ret = MBEDTLS_ERR_PK_SIG_LEN_MISMATCH;
-        goto cleanup;
-    }
-
     if( psa_asymmetric_verify( key_slot, psa_sig_md,
                                hash, hash_len,
                                buf, 2 * signature_part_size )
@@ -618,6 +612,12 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     {
          ret = MBEDTLS_ERR_ECP_VERIFY_FAILED;
          goto cleanup;
+    }
+
+    if( p != sig + sig_len )
+    {
+        ret = MBEDTLS_ERR_PK_SIG_LEN_MISMATCH;
+        goto cleanup;
     }
     ret = 0;
 

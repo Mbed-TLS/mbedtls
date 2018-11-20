@@ -333,7 +333,7 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
         key_type = mbedtls_psa_translate_cipher_type(
             ctx->cipher_info->type );
         if( key_type == 0 )
-            return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+            return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
         status = psa_import_key( cipher_psa->slot,
                                  key_type, key, key_bytelen );
         if( status != PSA_SUCCESS )

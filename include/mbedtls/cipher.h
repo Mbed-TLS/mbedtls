@@ -326,8 +326,8 @@ typedef struct mbedtls_cipher_context_t
     /** Indicates whether the cipher operations should be performed
      *  by Mbed TLS' own crypto library or an external implementation
      *  of the PSA Crypto API.
-     *  This is unset if the cipher context is established through
-     *  mbedtls_cipher_setup(), and set if it is established through
+     *  This is unset if the cipher context was established through
+     *  mbedtls_cipher_setup(), and set if it was established through
      *  mbedtls_cipher_setup_psa().
      */
     unsigned char psa_enabled;

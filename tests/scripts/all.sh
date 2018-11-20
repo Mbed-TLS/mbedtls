@@ -38,7 +38,6 @@
 #   * G++
 #   * arm-gcc and mingw-gcc
 #   * ArmCC 5 and ArmCC 6, unless invoked with --no-armcc
-#   * Yotta build dependencies, unless invoked with --no-yotta
 #   * OpenSSL and GnuTLS command line tools, recent enough for the
 #     interoperability tests. If they don't support SSLv3 then a legacy
 #     version of these tools must be present as well (search for LEGACY
@@ -96,7 +95,6 @@ MEMORY=0
 FORCE=0
 KEEP_GOING=0
 RUN_ARMCC=1
-YOTTA=1
 
 # Default commands, can be overriden by the environment
 : ${OPENSSL:="openssl"}
@@ -130,12 +128,10 @@ General options:
      --no-force         Refuse to overwrite modified files (default).
      --no-keep-going    Stop at the first error (default).
      --no-memory        No additional memory tests (default).
-     --no-yotta         Skip yotta module build.
      --out-of-source-dir=<path>  Directory used for CMake out-of-source build tests.
      --random-seed      Use a random seed value for randomized tests (default).
   -r|--release-test     Run this script in release mode. This fixes the seed value to 1.
   -s|--seed             Integer seed value to use for this test run.
-     --yotta            Build yotta module (on by default).
 
 Tool path options:
      --armc5-bin-dir=<ARMC5_bin_dir_path>       ARM Compiler 5 bin directory.
@@ -160,7 +156,7 @@ cleanup()
     command make clean
 
     # Remove CMake artefacts
-    find . -name .git -prune -o -name yotta -prune -o \
+    find . -name .git -prune \
            -iname CMakeFiles -exec rm -rf {} \+ -o \
            \( -iname cmake_install.cmake -o \
               -iname CTestTestfile.cmake -o \
@@ -253,7 +249,6 @@ while [ $# -gt 0 ]; do
         --no-force) FORCE=0;;
         --no-keep-going) KEEP_GOING=0;;
         --no-memory) MEMORY=0;;
-        --no-yotta) YOTTA=0;;
         --openssl) shift; OPENSSL="$1";;
         --openssl-legacy) shift; OPENSSL_LEGACY="$1";;
         --openssl-next) shift; OPENSSL_NEXT="$1";;
@@ -261,7 +256,6 @@ while [ $# -gt 0 ]; do
         --random-seed) unset SEED;;
         --release-test|-r) SEED=1;;
         --seed|-s) shift; SEED="$1";;
-        --yotta) YOTTA=1;;
         *)
             echo >&2 "Unknown option: $1"
             echo >&2 "Run $0 --help for usage."
@@ -272,19 +266,9 @@ while [ $# -gt 0 ]; do
 done
 
 if [ $FORCE -eq 1 ]; then
-    if [ $YOTTA -eq 1 ]; then
-        rm -rf yotta/module "$OUT_OF_SOURCE_DIR"
-    fi
     git checkout-index -f -q $CONFIG_H
     cleanup
 else
-
-    if [ $YOTTA -ne 0 ] && [ -d yotta/module ]; then
-        err_msg "Warning - there is an existing yotta module in the directory 'yotta/module'"
-        echo "You can either delete your work and retry, or force the test to overwrite the"
-        echo "test by rerunning the script as: $0 --force"
-        exit 1
-    fi
 
     if [ -d "$OUT_OF_SOURCE_DIR" ]; then
         echo "Warning - there is an existing directory at '$OUT_OF_SOURCE_DIR'" >&2
@@ -469,14 +453,6 @@ make -f scripts/mbed_crypto.make clean
 ################################################################
 #### Build and test many configurations and targets
 ################################################################
-
-if [ $RUN_ARMCC -ne 0 ] && [ $YOTTA -ne 0 ]; then
-    # Note - use of yotta is deprecated, and yotta also requires armcc to be on the
-    # path, and uses whatever version of armcc it finds there.
-    msg "build: create and build yotta module" # ~ 30s
-    cleanup
-    record_status tests/scripts/yotta-build.sh
-fi
 
 msg "build: cmake, gcc, ASan" # ~ 1 min 50s
 cleanup
@@ -742,6 +718,18 @@ CC=gcc cmake  -D UNSAFE_BUILD=ON -D CMAKE_C_FLAGS:String="-fsanitize=address -fn
 make
 
 msg "test: MBEDTLS_TEST_NULL_ENTROPY - main suites (inc. selftests) (ASan build)"
+make test
+
+msg "build: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl set MBEDTLS_PLATFORM_MEMORY
+scripts/config.pl set MBEDTLS_PLATFORM_CALLOC_MACRO calloc
+scripts/config.pl set MBEDTLS_PLATFORM_FREE_MACRO   free
+CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+make
+
+msg "test: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
 make test
 
 msg "build: default config with AES_FEWER_TABLES enabled"

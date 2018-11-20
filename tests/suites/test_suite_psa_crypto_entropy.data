@@ -7,7 +7,10 @@ validate_entropy_seed_injection:MBEDTLS_ENTROPY_MAX_SEED_SIZE:PSA_SUCCESS:MBEDTL
 PSA validate entropy injection: bad, too big
 validate_entropy_seed_injection:MBEDTLS_ENTROPY_MAX_SEED_SIZE+1:PSA_ERROR_INVALID_ARGUMENT:MBEDTLS_ENTROPY_BLOCK_SIZE:PSA_SUCCESS
 
-PSA validate entropy injection: bad, too small
+PSA validate entropy injection: bad, too small using MBEDTLS_ENTROPY_MIN_PLATFORM
+validate_entropy_seed_injection:MBEDTLS_ENTROPY_MIN_PLATFORM-1:PSA_ERROR_INVALID_ARGUMENT:MBEDTLS_ENTROPY_BLOCK_SIZE:PSA_SUCCESS
+
+PSA validate entropy injection: bad, too small using MBEDTLS_ENTROPY_BLOCK_SIZE
 validate_entropy_seed_injection:MBEDTLS_ENTROPY_BLOCK_SIZE-1:PSA_ERROR_INVALID_ARGUMENT:MBEDTLS_ENTROPY_BLOCK_SIZE:PSA_SUCCESS
 
 PSA validate entropy injection: before and after crypto_init

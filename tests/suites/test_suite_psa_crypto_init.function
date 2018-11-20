@@ -11,8 +11,13 @@
 
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
+#include "mbedtls/platform.h"
 
 #define MIN( x, y ) ( ( x ) < ( y ) ? ( x ) : ( y ) )
+#define MAX( x, y ) ( ( x ) > ( y ) ? ( x ) : ( y ) )
+
+#define ENTROPY_MIN_NV_SEED_SIZE                                        \
+    MAX(MBEDTLS_ENTROPY_MIN_PLATFORM, MBEDTLS_ENTROPY_BLOCK_SIZE)
 
 typedef struct
 {
@@ -246,6 +251,36 @@ void fake_entropy_source( int threshold,
                  PSA_SUCCESS );
 
 exit:
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ENTROPY_NV_SEED */
+void entropy_from_nv_seed( int seed_size_arg,
+                           int expected_init_status_arg )
+{
+    psa_status_t expected_init_status = expected_init_status_arg;
+    uint8_t random[10] = { 0 };
+    uint8_t *seed = NULL;
+    size_t seed_size = seed_size_arg;
+
+    ASSERT_ALLOC( seed, seed_size );
+    TEST_ASSERT( mbedtls_nv_seed_write( seed, seed_size ) >= 0 );
+
+    custom_entropy_sources_mask = ENTROPY_SOURCE_NV_SEED;
+    TEST_ASSERT( mbedtls_psa_crypto_configure_entropy_sources(
+                     custom_entropy_init, mbedtls_entropy_free ) ==
+                 PSA_SUCCESS );
+
+    TEST_ASSERT( psa_crypto_init( ) == expected_init_status );
+    if( expected_init_status != PSA_SUCCESS )
+        goto exit;
+
+    TEST_ASSERT( psa_generate_random( random, sizeof( random ) ) ==
+                 PSA_SUCCESS );
+
+exit:
+    mbedtls_free( seed );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

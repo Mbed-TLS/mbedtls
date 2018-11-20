@@ -39,3 +39,12 @@ fake_entropy_source:MBEDTLS_ENTROPY_BLOCK_SIZE:MBEDTLS_ENTROPY_BLOCK_SIZE - 1:1:
 
 Fake entropy: more than one block in two steps
 fake_entropy_source:MBEDTLS_ENTROPY_BLOCK_SIZE:MBEDTLS_ENTROPY_BLOCK_SIZE - 1:MBEDTLS_ENTROPY_BLOCK_SIZE - 1:-1:-1:PSA_SUCCESS
+
+NV seed only: less than minimum
+entropy_from_nv_seed:MBEDTLS_ENTROPY_MIN_PLATFORM - 1:PSA_ERROR_INSUFFICIENT_ENTROPY
+
+NV seed only: less than one block
+entropy_from_nv_seed:MBEDTLS_ENTROPY_BLOCK_SIZE - 1:PSA_ERROR_INSUFFICIENT_ENTROPY
+
+NV seed only: just enough
+entropy_from_nv_seed:ENTROPY_MIN_NV_SEED_SIZE:PSA_SUCCESS

@@ -505,10 +505,9 @@ static int extract_ecdsa_sig_int( unsigned char **from, const unsigned char *end
         return( MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
 
     padding_len = to_len - unpadded_len;
+    memset( to, 0x00, padding_len );
     memcpy( to + padding_len, *from, unpadded_len );
     ( *from ) += unpadded_len;
-
-    memset( to, 0x00, padding_len );
 
     return( 0 );
 }
@@ -561,7 +560,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     unsigned char *p = (unsigned char*) sig;
     mbedtls_pk_info_t pk_info = mbedtls_eckey_info;
     psa_algorithm_t psa_sig_md, psa_md;
-    psa_ecc_curve_t curve = mbedtls_psa_translate_ecc_group (
+    psa_ecc_curve_t curve = mbedtls_psa_translate_ecc_group(
                             ( (mbedtls_ecdsa_context *) ctx )->grp.id );
     size_t signature_part_size = ( ( (mbedtls_ecdsa_context *) ctx ) ->grp.nbits + 7 ) / 8;
 

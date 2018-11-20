@@ -18,3 +18,9 @@ validate_module_init_generate_random:1
 
 No key slot access after deinit
 validate_module_init_key_based:1
+
+Custom entropy sources: all standard
+custom_entropy_sources:0x0000ffff:PSA_SUCCESS
+
+Custom entropy sources: none
+custom_entropy_sources:0:PSA_ERROR_INSUFFICIENT_ENTROPY

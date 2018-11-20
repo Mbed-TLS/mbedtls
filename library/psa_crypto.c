@@ -43,6 +43,7 @@
 
 #include "psa/crypto.h"
 
+#include "psa_crypto_invasive.h"
 /* Include internal declarations that are useful for implementing persistently
  * stored keys. */
 #include "psa_crypto_storage.h"
@@ -155,6 +156,8 @@ enum rng_state
 
 typedef struct
 {
+    void (* entropy_init )( mbedtls_entropy_context *ctx );
+    void (* entropy_free )( mbedtls_entropy_context *ctx );
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     key_slot_t key_slots[PSA_KEY_SLOT_COUNT];
@@ -4437,6 +4440,17 @@ psa_status_t psa_generate_key( psa_key_slot_t key,
 /* Module setup */
 /****************************************************************/
 
+psa_status_t mbedtls_psa_crypto_configure_entropy_sources(
+    void (* entropy_init )( mbedtls_entropy_context *ctx ),
+    void (* entropy_free )( mbedtls_entropy_context *ctx ) )
+{
+    if( global_data.rng_state != RNG_NOT_INITIALIZED )
+        return( PSA_ERROR_BAD_STATE );
+    global_data.entropy_init = entropy_init;
+    global_data.entropy_free = entropy_free;
+    return( PSA_SUCCESS );
+}
+
 void mbedtls_psa_crypto_free( void )
 {
     psa_key_slot_t key;
@@ -4457,7 +4471,7 @@ void mbedtls_psa_crypto_free( void )
     if( global_data.rng_state != RNG_NOT_INITIALIZED )
     {
         mbedtls_ctr_drbg_free( &global_data.ctr_drbg );
-        mbedtls_entropy_free( &global_data.entropy );
+        global_data.entropy_free( &global_data.entropy );
     }
     /* Wipe all remaining data, including configuration.
      * In particular, this sets all state indicator to the value
@@ -4474,10 +4488,15 @@ psa_status_t psa_crypto_init( void )
     if( global_data.initialized != 0 )
         return( PSA_SUCCESS );
 
-    mbedtls_zeroize( &global_data, sizeof( global_data ) );
+    /* Set default configuration if
+     * mbedtls_psa_crypto_configure_entropy_sources() hasn't been called. */
+    if( global_data.entropy_init == NULL )
+        global_data.entropy_init = mbedtls_entropy_init;
+    if( global_data.entropy_free == NULL )
+        global_data.entropy_free = mbedtls_entropy_free;
 
     /* Initialize the random generator. */
-    mbedtls_entropy_init( &global_data.entropy );
+    global_data.entropy_init( &global_data.entropy );
     mbedtls_ctr_drbg_init( &global_data.ctr_drbg );
     global_data.rng_state = RNG_INITIALIZED;
     ret = mbedtls_ctr_drbg_seed( &global_data.ctr_drbg,

@@ -523,14 +523,6 @@ static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
     int ret;
     size_t tmp_size;
 
-    if( ( end - *p ) < 1 )
-    {
-        return( MBEDTLS_ERR_ASN1_OUT_OF_DATA );
-    }
-
-    if( sig == NULL )
-        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
-
     if( ( ret = mbedtls_asn1_get_tag( p, end, &tmp_size,
                 MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
         return( ret );
@@ -562,7 +554,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     psa_algorithm_t psa_sig_md, psa_md;
     psa_ecc_curve_t curve = mbedtls_psa_translate_ecc_group(
                             ( (mbedtls_ecdsa_context *) ctx )->grp.id );
-    size_t signature_part_size = ( ( (mbedtls_ecdsa_context *) ctx ) ->grp.nbits + 7 ) / 8;
+    const size_t signature_part_size = ( ( (mbedtls_ecdsa_context *) ctx )->grp.nbits + 7 ) / 8;
 
     if( curve == 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
@@ -599,16 +591,23 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
         goto cleanup;
     }
 
-    /* Reuse the buffer of an already imported key */
+    /* We don't need the exported key anymore and can
+     * reuse its buffer for signature extraction. */
     if( 2 * signature_part_size > sizeof( buf ) )
     {
         ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
         goto cleanup;
     }
 
-    if( ( ret = extract_ecdsa_sig( &p, p + sig_len, buf,
+    if( ( ret = extract_ecdsa_sig( &p, sig + sig_len, buf,
                                    signature_part_size ) ) != 0 )
     {
+        goto cleanup;
+    }
+
+    if( p != sig + sig_len )
+    {
+        ret = MBEDTLS_ERR_PK_SIG_LEN_MISMATCH;
         goto cleanup;
     }
 

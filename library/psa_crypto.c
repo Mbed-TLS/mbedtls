@@ -4240,10 +4240,10 @@ psa_status_t mbedtls_psa_inject_entropy( const unsigned char *seed,
           ( seed_size > MBEDTLS_ENTROPY_MAX_SEED_SIZE ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
 
-    status = psa_its_get_info( MBED_RANDOM_SEED_ITS_UID, &p_info );
+    status = psa_its_get_info( MBEDTLS_RANDOM_SEED_ITS_UID, &p_info );
     if( PSA_ITS_ERROR_KEY_NOT_FOUND == status ) /* No seed exists */
     {
-        status = psa_its_set( MBED_RANDOM_SEED_ITS_UID, seed_size, seed, 0 );
+        status = psa_its_set( MBEDTLS_RANDOM_SEED_ITS_UID, seed_size, seed, 0 );
     }
     else if( PSA_ITS_SUCCESS == status )
     {

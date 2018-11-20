@@ -35,7 +35,7 @@ extern "C" {
 #endif
 
 /* UID for secure storage seed */
-#define MBED_RANDOM_SEED_ITS_UID 0xFFFFFF52
+#define MBEDTLS_RANDOM_SEED_ITS_UID 0xFFFFFF52
 
 /**
  * \brief Library deinitialization.
@@ -91,11 +91,11 @@ void mbedtls_psa_crypto_free( void );
  *
  * \param seed[in]      Buffer containing the seed value to inject.
  * \param seed_size     Size of the \p seed buffer.
- *                      The size of the seed must be equal or larger than any
- *                      of the values defined both in
- *                      #MBEDTLS_ENTROPY_MIN_PLATFORM
- *                      and in the #MBEDTLS_ENTROPY_BLOCK_SIZE defines
- *                      and at most #MBEDTLS_ENTROPY_MAX_SEED_SIZE bytes.
+ *                      The size of the seed in bytes must be greater
+ *                      or equal to both #MBEDTLS_ENTROPY_MIN_PLATFORM
+ *                      and #MBEDTLS_ENTROPY_BLOCK_SIZE.
+ *                      It must be less or equal to
+ *                      #MBEDTLS_ENTROPY_MAX_SEED_SIZE.
  *
  * \retval #PSA_SUCCESS
  *         The seed value was injected successfully. The random generator

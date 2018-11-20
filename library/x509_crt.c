@@ -1903,7 +1903,7 @@ static int x509_crt_check_signature( const mbedtls_x509_crt *child,
     const mbedtls_md_info_t *md_info;
     md_info = mbedtls_md_info_from_type( child->sig_md );
     hash_len = mbedtls_md_get_size( md_info );
-    
+
     /* Note: hash errors can happen only after an internal error */
     if( mbedtls_md( md_info, child->tbs.p, child->tbs.len, hash ) != 0 )
         return( -1 );

@@ -173,7 +173,7 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
         if ( *p < start )
             return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-        buffer_size = *p - start;
+        buffer_size = (size_t)( *p - start );
         if ( psa_export_public_key( *key_slot, start, buffer_size, &len )
              != PSA_SUCCESS )
         {

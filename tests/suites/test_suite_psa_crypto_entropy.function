@@ -6,6 +6,14 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
 
+/* MAX value support macro */
+#if !defined(MAX)
+#define MAX(a,b) (((a)>(b))?(a):(b))
+#endif
+
+/* Calculating the minimum allowed entropy size in bytes */
+#define MBEDTLS_PSA_INJECT_ENTROPY_MIN_SIZE MAX(MBEDTLS_ENTROPY_MIN_PLATFORM, MBEDTLS_ENTROPY_BLOCK_SIZE)
+
 /* END_HEADER */
 
 /* BEGIN_DEPENDENCIES
@@ -26,7 +34,7 @@ void validate_entropy_seed_injection( int seed_length_a,
     uint8_t *seed = NULL;
     int i;
     int seed_size;
-    if( seed_length_a > seed_length_b)
+    if( seed_length_a > seed_length_b )
     {
         seed_size = seed_length_a;
     }
@@ -35,23 +43,25 @@ void validate_entropy_seed_injection( int seed_length_a,
         seed_size = seed_length_b;
     }
     ASSERT_ALLOC( seed, seed_size );
-    /* fill seed in some data */
-    for( i = 0; i < seed_size; ++i)
+    /* fill seed with some data */
+    for( i = 0; i < seed_size; ++i )
     {
         seed[i] = i;
     }
-    its_status =  psa_its_remove(MBEDTLS_RANDOM_SEED_ITS_UID);
-    TEST_ASSERT( (its_status == PSA_ITS_SUCCESS) || (its_status == PSA_ITS_ERROR_KEY_NOT_FOUND) );
+    its_status =  psa_its_remove( MBEDTLS_RANDOM_SEED_ITS_UID );
+    TEST_ASSERT( ( its_status == PSA_ITS_SUCCESS ) ||
+                 ( its_status == PSA_ITS_ERROR_KEY_NOT_FOUND ) );
     status = mbedtls_psa_inject_entropy( seed, seed_length_a );
     TEST_ASSERT( status == expected_status_a );
     status = mbedtls_psa_inject_entropy( seed, seed_length_b );
     TEST_ASSERT( status == expected_status_b );
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_generate_random( output, sizeof( output ) ) == PSA_SUCCESS );
-    TEST_ASSERT( memcmp( output , zeros, sizeof( output ) ) != 0 );
+    TEST_ASSERT( psa_generate_random( output,
+                                      sizeof( output ) ) == PSA_SUCCESS );
+    TEST_ASSERT( memcmp( output, zeros, sizeof( output ) ) != 0 );
 exit:
     mbedtls_free( seed );
-    psa_its_remove(MBEDTLS_RANDOM_SEED_ITS_UID);
+    psa_its_remove( MBEDTLS_RANDOM_SEED_ITS_UID );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -62,27 +72,31 @@ void run_entropy_inject_with_crypto_init( )
     psa_its_status_t its_status;
     psa_status_t status;
     int i;
-    uint8_t seed[MBEDTLS_ENTROPY_BLOCK_SIZE] = {0};
-    /* fill seed in some data */
-    for( i = 0; i < MBEDTLS_ENTROPY_BLOCK_SIZE; ++i)
+    uint8_t seed[MBEDTLS_PSA_INJECT_ENTROPY_MIN_SIZE] = { 0 };
+    /* fill seed with some data */
+    for( i = 0; i < sizeof( seed ); ++i )
     {
         seed[i] = i;
     }
-    its_status =  psa_its_remove(MBEDTLS_RANDOM_SEED_ITS_UID);
-    TEST_ASSERT( (its_status == PSA_ITS_SUCCESS) || (its_status == PSA_ITS_ERROR_KEY_NOT_FOUND) );
-    status = mbedtls_psa_inject_entropy( seed, MBEDTLS_ENTROPY_BLOCK_SIZE );
+    its_status =  psa_its_remove( MBEDTLS_RANDOM_SEED_ITS_UID );
+    TEST_ASSERT( ( its_status == PSA_ITS_SUCCESS ) ||
+                 ( its_status == PSA_ITS_ERROR_KEY_NOT_FOUND ) );
+    status = mbedtls_psa_inject_entropy( seed, sizeof( seed ) );
     TEST_ASSERT( status == PSA_SUCCESS );
-    its_status =  psa_its_remove(MBEDTLS_RANDOM_SEED_ITS_UID);
+    its_status =  psa_its_remove( MBEDTLS_RANDOM_SEED_ITS_UID );
     TEST_ASSERT( its_status == PSA_ITS_SUCCESS );
-    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
-    status = mbedtls_psa_inject_entropy( seed, MBEDTLS_ENTROPY_BLOCK_SIZE );
-    TEST_ASSERT( status == PSA_ERROR_NOT_PERMITTED );
+    status = psa_crypto_init( );
+    TEST_ASSERT( status == PSA_ERROR_INSUFFICIENT_ENTROPY );
+    status = mbedtls_psa_inject_entropy( seed, sizeof( seed ) );
+    TEST_ASSERT( status == PSA_SUCCESS );
+    status = psa_crypto_init( );
+    TEST_ASSERT( status == PSA_SUCCESS );
     mbedtls_psa_crypto_free( );
     /* The seed is written by nv_seed callback functions therefore the injection will fail */
-    status = mbedtls_psa_inject_entropy( seed, MBEDTLS_ENTROPY_BLOCK_SIZE );
+    status = mbedtls_psa_inject_entropy( seed, sizeof( seed ) );
     TEST_ASSERT( status == PSA_ERROR_NOT_PERMITTED );
 exit:
-    psa_its_remove(MBEDTLS_RANDOM_SEED_ITS_UID);
+    psa_its_remove( MBEDTLS_RANDOM_SEED_ITS_UID );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

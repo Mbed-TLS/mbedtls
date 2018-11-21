@@ -27,42 +27,26 @@ static int trace_id = 4;
 
 #include <string.h>
 
-static mbedtls_writer const writer_zero =
-        { .state = MBEDTLS_WRITER_PROVIDING,
+void mbedtls_writer_init( mbedtls_writer *wr,
+                          unsigned char *queue,
+                          mbedtls_mps_size_t queue_len )
+{
+    mbedtls_writer dst =  { .state = MBEDTLS_WRITER_PROVIDING,
           .out   = NULL,
-          .queue = NULL,
+          .queue = queue,
           .out_len   = 0,
-          .queue_len = 0,
+          .queue_len = queue_len,
           .commit = 0,
           .end    = 0,
           .queue_next      = 0,
           .queue_remaining = 0 };
 
-static mbedtls_writer_ext const writer_ext_zero =
-        { .wr = NULL,
-          .grp_end = { 0 },
-          .cur_grp = 0,
-          .ofs_fetch = 0,
-          .passthrough = MBEDTLS_WRITER_EXT_PASS };
-
-int mbedtls_writer_init( mbedtls_writer *wr,
-                         unsigned char *queue,
-                         mbedtls_mps_size_t queue_len )
-{
-    TRACE_INIT( "writer_init, queue_len %u", (unsigned) queue_len );
-
-    *wr = writer_zero;
-    wr->queue = queue;
-    wr->queue_len = queue_len;
-    RETURN( 0 );
+    *wr = dst;
 }
 
-int mbedtls_writer_free( mbedtls_writer *wr )
+void mbedtls_writer_free( mbedtls_writer *wr )
 {
-    TRACE_INIT( "writer_free" );
-
-    *wr = writer_zero;
-    RETURN( 0 );
+    mbedtls_writer_init( wr, NULL, 0 );
 }
 
 int mbedtls_writer_feed( mbedtls_writer *wr,
@@ -419,20 +403,23 @@ int mbedtls_writer_commit_partial( mbedtls_writer *wr,
 
 /* TODO: Consider making (some of) these functions inline. */
 
-int mbedtls_writer_init_ext( mbedtls_writer_ext *wr_ext,
-                             mbedtls_mps_size_t size )
+void mbedtls_writer_init_ext( mbedtls_writer_ext *wr_ext,
+                              mbedtls_mps_size_t size )
 {
-    TRACE_INIT( "writer_init_ext, size %u", (unsigned) size );
+    mbedtls_writer_ext const writer_ext_zero =
+        { .wr = NULL,
+          .grp_end = { 0 },
+          .cur_grp = 0,
+          .ofs_fetch = 0,
+          .passthrough = MBEDTLS_WRITER_EXT_PASS };
+
     *wr_ext = writer_ext_zero;
     wr_ext->grp_end[0] = size;
-    RETURN( 0 );
 }
 
-int mbedtls_writer_free_ext( mbedtls_writer_ext *rd )
+void mbedtls_writer_free_ext( mbedtls_writer_ext *wr_ext )
 {
-    TRACE_INIT( "writer_free_ext" );
-    *rd = writer_ext_zero;
-    RETURN( 0 );
+    mbedtls_writer_init_ext( wr_ext, 0 );
 }
 
 int mbedtls_writer_get_ext( mbedtls_writer_ext *wr_ext,

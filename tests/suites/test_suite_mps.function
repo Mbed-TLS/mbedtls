@@ -35,7 +35,7 @@ void mbedtls_mps_reader_feed_empty( int option )
         buf[i] = (unsigned char) i;
 
     /* Preparation (lower layer) */
-    TEST_ASSERT( mbedtls_reader_init( &rd, NULL, 0 ) == 0 );
+    mbedtls_reader_init( &rd, NULL, 0 );
     switch( option )
     {
         case 0: /* NULL buffer */
@@ -57,7 +57,7 @@ void mbedtls_mps_reader_feed_empty( int option )
 
     /* Wrapup */
     TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
-    TEST_ASSERT( mbedtls_reader_free( &rd ) == 0 );
+    mbedtls_reader_free( &rd );
 }
 /* END_CASE */
 
@@ -75,9 +75,9 @@ void mbedtls_mps_reader_no_pausing_single_step_single_round( int with_acc )
 
     /* Preparation (lower layer) */
     if( with_acc == 0 )
-        TEST_ASSERT( mbedtls_reader_init( &rd, NULL, 0 ) == 0 );
+        mbedtls_reader_init( &rd, NULL, 0 );
     else
-        TEST_ASSERT( mbedtls_reader_init( &rd, acc, sizeof( acc ) ) == 0 );
+        mbedtls_reader_init( &rd, acc, sizeof( acc ) );
     TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) == 0 );
     /* Consumption (upper layer) */
     /* Consume exactly what's available */
@@ -86,7 +86,7 @@ void mbedtls_mps_reader_no_pausing_single_step_single_round( int with_acc )
     TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
     /* Wrapup (lower layer) */
     TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
-    TEST_ASSERT( mbedtls_reader_free( &rd ) == 0 );
+    mbedtls_reader_free( &rd );
 }
 /* END_CASE */
 
@@ -106,9 +106,9 @@ void mbedtls_mps_reader_no_pausing_single_step_multiple_rounds( int with_acc )
 
     /* Preparation (lower layer) */
     if( with_acc == 0 )
-        TEST_ASSERT( mbedtls_reader_init( &rd, NULL, 0 ) == 0 );
+        mbedtls_reader_init( &rd, NULL, 0 );
     else
-        TEST_ASSERT( mbedtls_reader_init( &rd, acc, sizeof( acc ) ) == 0 );
+        mbedtls_reader_init( &rd, acc, sizeof( acc ) );
     TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) == 0 );
     /* Consumption (upper layer) */
     /* Consume exactly what's available */
@@ -124,7 +124,7 @@ void mbedtls_mps_reader_no_pausing_single_step_multiple_rounds( int with_acc )
     TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
     /* Wrapup (lower layer) */
     TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
-    TEST_ASSERT( mbedtls_reader_free( &rd ) == 0 );
+    mbedtls_reader_free( &rd );
 }
 /* END_CASE */
 
@@ -143,9 +143,9 @@ void mbedtls_mps_reader_no_pausing_multiple_steps_single_round( int with_acc )
 
     /* Preparation (lower layer) */
     if( with_acc == 0 )
-        TEST_ASSERT( mbedtls_reader_init( &rd, NULL, 0 ) == 0 );
+        mbedtls_reader_init( &rd, NULL, 0 );
     else
-        TEST_ASSERT( mbedtls_reader_init( &rd, acc, sizeof( acc ) ) == 0 );
+        mbedtls_reader_init( &rd, acc, sizeof( acc ) );
     TEST_ASSERT( mbedtls_reader_feed( &rd, buf, sizeof( buf ) ) == 0 );
     /* Consumption (upper layer) */
     TEST_ASSERT( mbedtls_reader_get( &rd, 10, &tmp, NULL ) == 0 );
@@ -158,7 +158,7 @@ void mbedtls_mps_reader_no_pausing_multiple_steps_single_round( int with_acc )
     TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
     /* Wrapup (lower layer) */
     TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
-    TEST_ASSERT( mbedtls_reader_free( &rd ) == 0 );
+    mbedtls_reader_free( &rd );
 }
 /* END_CASE */
 
@@ -179,9 +179,9 @@ void mbedtls_mps_reader_no_pausing_multiple_steps_multiple_rounds( int with_acc 
 
     /* Preparation (lower layer) */
     if( with_acc == 0 )
-        TEST_ASSERT( mbedtls_reader_init( &rd, NULL, 0 ) == 0 );
+        mbedtls_reader_init( &rd, NULL, 0 );
     else
-        TEST_ASSERT( mbedtls_reader_init( &rd, acc, sizeof( acc ) ) == 0 );
+        mbedtls_reader_init( &rd, acc, sizeof( acc ) );
     TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) == 0 );
     /* Consumption (upper layer) */
     TEST_ASSERT( mbedtls_reader_get( &rd, 10, &tmp, NULL ) == 0 );
@@ -201,7 +201,7 @@ void mbedtls_mps_reader_no_pausing_multiple_steps_multiple_rounds( int with_acc 
     TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
     /* Wrapup */
     TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
-    TEST_ASSERT( mbedtls_reader_free( &rd ) == 0 );
+    mbedtls_reader_free( &rd );
 }
 /* END_CASE */
 
@@ -217,7 +217,7 @@ void mbedtls_mps_reader_pausing_needed_disabled()
         buf[i] = (unsigned char) i;
 
     /* Preparation (lower layer) */
-    TEST_ASSERT( mbedtls_reader_init( &rd, NULL, 0 ) == 0 );
+    mbedtls_reader_init( &rd, NULL, 0 );
     TEST_ASSERT( mbedtls_reader_feed( &rd, buf, sizeof( buf ) ) == 0 );
     /* Consumption (upper layer) */
     TEST_ASSERT( mbedtls_reader_get( &rd, 50, &tmp, NULL ) == 0 );
@@ -228,7 +228,7 @@ void mbedtls_mps_reader_pausing_needed_disabled()
     /* Wrapup (lower layer) */
     TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) ==
                  MBEDTLS_ERR_READER_NEED_ACCUMULATOR );
-    TEST_ASSERT( mbedtls_reader_free( &rd ) == 0 );
+    mbedtls_reader_free( &rd );
 }
 /* END_CASE */
 
@@ -246,7 +246,7 @@ void mbedtls_mps_reader_pausing_needed_buffer_too_small()
         buf[i] = (unsigned char) i;
 
     /* Preparation (lower layer) */
-    TEST_ASSERT( mbedtls_reader_init( &rd, acc, sizeof( acc ) ) == 0 );
+    mbedtls_reader_init( &rd, acc, sizeof( acc ) );
     TEST_ASSERT( mbedtls_reader_feed( &rd, buf, sizeof( buf ) ) == 0 );
     /* Consumption (upper layer) */
     TEST_ASSERT( mbedtls_reader_get( &rd, 50, &tmp, NULL ) == 0 );
@@ -257,7 +257,7 @@ void mbedtls_mps_reader_pausing_needed_buffer_too_small()
     /* Wrapup (lower layer) */
     TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) ==
                  MBEDTLS_ERR_READER_ACCUMULATOR_TOO_SMALL );
-    TEST_ASSERT( mbedtls_reader_free( &rd ) == 0 );
+    mbedtls_reader_free( &rd );
 }
 /* END_CASE */
 
@@ -277,7 +277,7 @@ void mbedtls_mps_reader_multiple_pausing( int option )
         bufC[i] = ~ ((unsigned char) i);
 
     /* Preparation (lower layer) */
-    TEST_ASSERT( mbedtls_reader_init( &rd, acc, sizeof( acc ) ) == 0 );
+    mbedtls_reader_init( &rd, acc, sizeof( acc ) );
     TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) == 0 );
 
     /* Consumption (upper layer) */
@@ -381,7 +381,7 @@ void mbedtls_mps_reader_multiple_pausing( int option )
             break;
     }
 
-    TEST_ASSERT( mbedtls_reader_free( &rd ) == 0 );
+    mbedtls_reader_free( &rd );
 }
 /* END_CASE */
 
@@ -397,7 +397,7 @@ void mbedtls_mps_reader_reclaim_data_left( int option )
         buf[i] = (unsigned char) i;
 
     /* Preparation (lower layer) */
-    TEST_ASSERT( mbedtls_reader_init( &rd, NULL, 0 ) == 0 );
+    mbedtls_reader_init( &rd, NULL, 0 );
     TEST_ASSERT( mbedtls_reader_feed( &rd, buf, sizeof( buf ) ) == 0 );
 
     /* Consumption (upper layer) */
@@ -438,7 +438,7 @@ void mbedtls_mps_reader_reclaim_data_left( int option )
     /* Wrapup */
     TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) ==
                  MBEDTLS_ERR_READER_DATA_LEFT );
-    TEST_ASSERT( mbedtls_reader_free( &rd ) == 0 );
+    mbedtls_reader_free( &rd );
 }
 /* END_CASE */
 
@@ -456,7 +456,7 @@ void mbedtls_mps_reader_reclaim_data_left_retry()
         buf[i] = (unsigned char) i;
 
     /* Preparation (lower layer) */
-    TEST_ASSERT( mbedtls_reader_init( &rd, NULL, 0 ) == 0 );
+    mbedtls_reader_init( &rd, NULL, 0 );
     TEST_ASSERT( mbedtls_reader_feed( &rd, buf, sizeof( buf ) ) == 0 );
     /* Consumption (upper layer) */
     TEST_ASSERT( mbedtls_reader_get( &rd, 50, &tmp, NULL ) == 0 );
@@ -473,7 +473,7 @@ void mbedtls_mps_reader_reclaim_data_left_retry()
     TEST_ASSERT( mbedtls_reader_commit( &rd ) == 0 );
     /* Wrapup */
     TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
-    TEST_ASSERT( mbedtls_reader_free( &rd ) == 0 );
+    mbedtls_reader_free( &rd );
 }
 /* END_CASE */
 
@@ -490,7 +490,7 @@ void mbedtls_mps_reader_pausing( int option )
         bufB[i] = ~ ((unsigned char) i);
 
     /* Preparation (lower layer) */
-    TEST_ASSERT( mbedtls_reader_init( &rd, acc, sizeof( acc ) ) == 0 );
+    mbedtls_reader_init( &rd, acc, sizeof( acc ) );
     TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) == 0 );
 
     /* Consumption (upper layer) */
@@ -579,7 +579,7 @@ void mbedtls_mps_reader_pausing( int option )
 
     /* Wrapup */
     TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
-    TEST_ASSERT( mbedtls_reader_free( &rd ) == 0 );
+    mbedtls_reader_free( &rd );
 }
 /* END_CASE */
 
@@ -597,7 +597,7 @@ void mbedtls_mps_reader_pausing_multiple_feeds( int option )
         bufB[i] = ~ ((unsigned char) i);
 
     /* Preparation (lower layer) */
-    TEST_ASSERT( mbedtls_reader_init( &rd, acc, sizeof( acc ) ) == 0 );
+    mbedtls_reader_init( &rd, acc, sizeof( acc ) );
     TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) == 0 );
 
     /* Consumption (upper layer) */
@@ -671,7 +671,7 @@ void mbedtls_mps_reader_pausing_multiple_feeds( int option )
 
     /* Wrapup */
     TEST_ASSERT( mbedtls_reader_reclaim( &rd, NULL ) == 0 );
-    TEST_ASSERT( mbedtls_reader_free( &rd ) == 0 );
+    mbedtls_reader_free( &rd );
 }
 /* END_CASE */
 
@@ -688,7 +688,7 @@ void mbedtls_mps_reader_commit_in_old()
         bufB[i] = ~ ((unsigned char) i);
 
     /* Preparation (lower layer) */
-    TEST_ASSERT( mbedtls_reader_init( &rd, acc, sizeof( acc ) ) == 0 );
+    mbedtls_reader_init( &rd, acc, sizeof( acc ) );
     TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) == 0 );
     TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) ==
                  MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
@@ -720,7 +720,7 @@ void mbedtls_mps_reader_commit_in_old()
     TEST_ASSERT( memcmp( tmp, bufA + 90, 10 ) == 0 );
     TEST_ASSERT( memcmp( tmp + 10, bufB, 10 ) == 0 );
     /* Wrapup */
-    TEST_ASSERT( mbedtls_reader_free( &rd ) == 0 );
+    mbedtls_reader_free( &rd );
 }
 /* END_CASE */
 
@@ -738,7 +738,7 @@ void mbedtls_reader_inconsistent_usage( int option)
         bufB[i] = ~ ((unsigned char) i);
 
     /* Preparation (lower layer) */
-    TEST_ASSERT( mbedtls_reader_init( &rd, acc, sizeof( acc ) ) == 0 );
+    mbedtls_reader_init( &rd, acc, sizeof( acc ) );
     TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) == 0 );
     /* Consumption (upper layer) */
     TEST_ASSERT( mbedtls_reader_get( &rd, 80, &tmp, NULL ) == 0 );
@@ -855,7 +855,7 @@ void mbedtls_reader_inconsistent_usage( int option)
     }
 
     /* Wrapup */
-    TEST_ASSERT( mbedtls_reader_free( &rd ) == 0 );
+    mbedtls_reader_free( &rd );
 }
 /* END_CASE */
 
@@ -918,7 +918,7 @@ void mbedtls_mps_reader_random_usage( int num_out_chunks,
     TEST_ASSERT( outgoing != NULL );
     TEST_ASSERT( incoming != NULL );
 
-    TEST_ASSERT( mbedtls_reader_init( &rd, acc, acc_size ) == 0 );
+    mbedtls_reader_init( &rd, acc, acc_size );
 
     cur_out_chunk = 0;
     in_commit = 0;
@@ -1038,7 +1038,7 @@ void mbedtls_mps_reader_random_usage( int num_out_chunks,
     }
 
     /* Cleanup */
-    TEST_ASSERT( mbedtls_reader_free( &rd ) == 0 );
+    mbedtls_reader_free( &rd );
     free( incoming );
     free( outgoing );
     free( acc );
@@ -1060,7 +1060,7 @@ void mbedtls_mps_reader_ext_basic( )
 
     /* Initialize reader and extended reader separately. */
     TEST_ASSERT( mbedtls_reader_init_ext( &rd_ext, 100 ) == 0 );
-    TEST_ASSERT( mbedtls_reader_init( &rd, NULL, 0 ) == 0 );
+    mbedtls_reader_init( &rd, NULL, 0 );
     for( size_t idx=0; idx < sizeof( buf ); idx++ )
         buf[idx] = (unsigned char) idx;
 
@@ -1116,7 +1116,7 @@ void mbedtls_mps_reader_ext_group_open_close( )
 
     /* Initialize reader and extended reader separately. */
     TEST_ASSERT( mbedtls_reader_init_ext( &rd_ext, 100 ) == 0 );
-    TEST_ASSERT( mbedtls_reader_init( &rd, NULL, 0 ) == 0 );
+    mbedtls_reader_init( &rd, NULL, 0 );
     for( size_t idx=0; idx < sizeof( buf ); idx++ )
         buf[idx] = (unsigned char) idx;
 
@@ -1179,7 +1179,7 @@ void mbedtls_mps_reader_ext_many_groups( )
 
     /* Initialize reader and extended reader separately. */
     TEST_ASSERT( mbedtls_reader_init_ext( &rd_ext, 100 ) == 0 );
-    TEST_ASSERT( mbedtls_reader_init( &rd, NULL, 0 ) == 0 );
+    mbedtls_reader_init( &rd, NULL, 0 );
     for( size_t idx=0; idx < sizeof( buf ); idx++ )
         buf[idx] = (unsigned char) idx;
 
@@ -1221,7 +1221,7 @@ void mbedtls_mps_writer_feed_empty( int option )
         buf[i] = (unsigned char) i;
 
     /* Provisioning (lower layer) */
-    TEST_ASSERT( mbedtls_writer_init( &wr, NULL, 0 ) == 0 );
+    mbedtls_writer_init( &wr, NULL, 0 );
     switch( option )
     {
         case 0: /* NULL buffer */
@@ -1241,7 +1241,7 @@ void mbedtls_mps_writer_feed_empty( int option )
     TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
     /* Wrapup */
     TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
-    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    mbedtls_writer_free( &wr );
 }
 /* END_CASE */
 
@@ -1262,9 +1262,9 @@ void mbedtls_mps_writer_no_queueing_single_step_single_round( int with_queue )
 
     /* Provisioning (lower layer) */
     if( with_queue == 0 )
-        TEST_ASSERT( mbedtls_writer_init( &wr, NULL, 0 ) == 0 );
+        mbedtls_writer_init( &wr, NULL, 0 );
     else
-        TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+        mbedtls_writer_init( &wr, queue, sizeof( queue ) );
     /* Can't reclaim as long as nothing's provided. */
     TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) ==
                  MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
@@ -1281,7 +1281,7 @@ void mbedtls_mps_writer_no_queueing_single_step_single_round( int with_queue )
 
     /* Wrapup (lower layer) */
     TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
-    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    mbedtls_writer_free( &wr );
 
     TEST_ASSERT( memcmp( buf, out, 100 ) == 0 );
 }
@@ -1306,7 +1306,7 @@ void mbedtls_mps_writer_unexpected_operations()
         outB[i] = ~ (unsigned char) i;
 
     /* Provisioning (lower layer) */
-    TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    mbedtls_writer_init( &wr, queue, sizeof( queue ) );
     /* Can't reclaim as long as nothing's provided. */
     TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) ==
                  MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
@@ -1345,7 +1345,7 @@ void mbedtls_mps_writer_unexpected_operations()
     /* Wrapup */
     TEST_ASSERT( mbedtls_writer_reclaim( &wr, &olen, NULL, 0 ) == 0 );
     TEST_ASSERT( olen == 100 );
-    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    mbedtls_writer_free( &wr );
 
     TEST_ASSERT( memcmp( bufA, outA, 100 ) == 0 );
     TEST_ASSERT( memcmp( bufB, outB, 100 ) == 0 );
@@ -1370,9 +1370,9 @@ void mbedtls_mps_writer_no_queueing_single_step_multiple_rounds( int with_queue 
 
     /* Provisioning (lower layer) */
     if( with_queue == 0 )
-        TEST_ASSERT( mbedtls_writer_init( &wr, NULL, 0 ) == 0 );
+        mbedtls_writer_init( &wr, NULL, 0 );
     else
-        TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+        mbedtls_writer_init( &wr, queue, sizeof( queue ) );
     TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
     /* Producing (upper layer) */
     /* Consume exactly what's available */
@@ -1388,7 +1388,7 @@ void mbedtls_mps_writer_no_queueing_single_step_multiple_rounds( int with_queue 
     TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
     /* Wrapup (lower layer) */
     TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
-    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    mbedtls_writer_free( &wr );
 
     TEST_ASSERT( memcmp( bufA, outA, 100 ) == 0 );
     TEST_ASSERT( memcmp( bufB, outB, 100 ) == 0 );
@@ -1411,9 +1411,9 @@ void mbedtls_mps_writer_no_queueing_multiple_steps_single_round( int with_queue 
 
     /* Provisioning (lower layer) */
     if( with_queue == 0 )
-        TEST_ASSERT( mbedtls_writer_init( &wr, NULL, 0 ) == 0 );
+        mbedtls_writer_init( &wr, NULL, 0 );
     else
-        TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+        mbedtls_writer_init( &wr, queue, sizeof( queue ) );
     TEST_ASSERT( mbedtls_writer_feed( &wr, buf, sizeof( buf ) ) == 0 );
     /* Producing (upper layer) */
     TEST_ASSERT( mbedtls_writer_get( &wr, 10, &tmp, NULL ) == 0 );
@@ -1426,7 +1426,7 @@ void mbedtls_mps_writer_no_queueing_multiple_steps_single_round( int with_queue 
     TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
     /* Wrapup (lower layer) */
     TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
-    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    mbedtls_writer_free( &wr );
 
     TEST_ASSERT( memcmp( buf, out, 100 ) == 0 );
 }
@@ -1450,9 +1450,9 @@ void mbedtls_mps_writer_no_queueing_multiple_steps_multiple_rounds( int with_que
 
     /* Provisioning (lower layer) */
     if( with_queue == 0 )
-        TEST_ASSERT( mbedtls_writer_init( &wr, NULL, 0 ) == 0 );
+        mbedtls_writer_init( &wr, NULL, 0 );
     else
-        TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+        mbedtls_writer_init( &wr, queue, sizeof( queue ) );
     TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
     /* Producing (upper layer) */
     TEST_ASSERT( mbedtls_writer_get( &wr, 10, &tmp, NULL ) == 0 );
@@ -1472,7 +1472,7 @@ void mbedtls_mps_writer_no_queueing_multiple_steps_multiple_rounds( int with_que
     TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
     /* Wrapup */
     TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
-    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    mbedtls_writer_free( &wr );
 
     TEST_ASSERT( memcmp( outA, bufA, 100 ) == 0 );
     TEST_ASSERT( memcmp( outB, bufB, 100 ) == 0 );
@@ -1497,9 +1497,9 @@ void mbedtls_mps_writer_no_queueing_multiple_steps_multiple_rounds_partial_commi
 
     /* Provisioning (lower layer) */
     if( with_queue == 0 )
-        TEST_ASSERT( mbedtls_writer_init( &wr, NULL, 0 ) == 0 );
+        mbedtls_writer_init( &wr, NULL, 0 );
     else
-        TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+        mbedtls_writer_init( &wr, queue, sizeof( queue ) );
     TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
     /* Producing (upper layer) */
     TEST_ASSERT( mbedtls_writer_get( &wr, 10, &tmp, NULL ) == 0 );
@@ -1519,7 +1519,7 @@ void mbedtls_mps_writer_no_queueing_multiple_steps_multiple_rounds_partial_commi
     TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
     /* Wrapup */
     TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
-    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    mbedtls_writer_free( &wr );
 
     TEST_ASSERT( memcmp( outA, bufA, 80  ) == 0 );
     TEST_ASSERT( memcmp( outB, bufB, 100 ) == 0 );
@@ -1539,7 +1539,7 @@ void mbedtls_mps_writer_queue_needed_disabled()
         out[i] = (unsigned char) i;
 
     /* Preparation (lower layer) */
-    TEST_ASSERT( mbedtls_writer_init( &wr, NULL, 0 ) == 0 );
+    mbedtls_writer_init( &wr, NULL, 0 );
     TEST_ASSERT( mbedtls_writer_feed( &wr, buf, sizeof( buf ) ) == 0 );
     /* Consumption (upper layer) */
     TEST_ASSERT( mbedtls_writer_get( &wr, 50, &tmp, NULL ) == 0 );
@@ -1550,7 +1550,7 @@ void mbedtls_mps_writer_queue_needed_disabled()
     /* Wrapup (lower layer) */
     TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) ==
                  MBEDTLS_ERR_WRITER_DATA_LEFT );
-    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    mbedtls_writer_free( &wr );
     TEST_ASSERT( memcmp( buf, out, 50 ) == 0 );
 }
 /* END_CASE */
@@ -1569,7 +1569,7 @@ void mbedtls_mps_writer_queue_needed_too_small()
         out[i] = (unsigned char) i;
 
     /* Provisioning (lower layer) */
-    TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    mbedtls_writer_init( &wr, queue, sizeof( queue ) );
     TEST_ASSERT( mbedtls_writer_feed( &wr, buf, sizeof( buf ) ) == 0 );
     /* Producing (upper layer) */
     TEST_ASSERT( mbedtls_writer_get( &wr, 50, &tmp, NULL ) == 0 );
@@ -1580,7 +1580,7 @@ void mbedtls_mps_writer_queue_needed_too_small()
     /* Wrapup (lower layer) */
     TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) ==
                  MBEDTLS_ERR_WRITER_DATA_LEFT );
-    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    mbedtls_writer_free( &wr );
     TEST_ASSERT( memcmp( buf, out, 50 ) == 0 );
 }
 /* END_CASE */
@@ -1599,7 +1599,7 @@ void mbedtls_mps_writer_queue_basic( int commit )
         outB[i] = ~ ((unsigned char) i);
 
     /* Provisioning (lower layer) */
-    TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    mbedtls_writer_init( &wr, queue, sizeof( queue ) );
     TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
     /* Producing (upper layer) */
     TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) == 0 );
@@ -1621,7 +1621,7 @@ void mbedtls_mps_writer_queue_basic( int commit )
     TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
     /* Wrapup (lower layer) */
     TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
-    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    mbedtls_writer_free( &wr );
     TEST_ASSERT( memcmp( bufA, outA, 100 ) == 0 );
     TEST_ASSERT( memcmp( bufB, outB, 100 ) == 0 );
 }
@@ -1651,7 +1651,7 @@ void mbedtls_mps_writer_queue_boundary()
         outB[i] = ~ ((unsigned char) i);
 
     /* Provisioning (lower layer) */
-    TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    mbedtls_writer_init( &wr, queue, sizeof( queue ) );
     TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
     /* Producing (upper layer) */
     TEST_ASSERT( mbedtls_writer_get( &wr, sizeof( bufA ), &tmp, NULL ) == 0 );
@@ -1669,7 +1669,7 @@ void mbedtls_mps_writer_queue_boundary()
     TEST_ASSERT( mbedtls_writer_feed( &wr, bufB, sizeof( bufB ) ) == 0 );
     /* Wrapup (lower layer) */
     TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 1 ) == 0 );
-    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    mbedtls_writer_free( &wr );
     TEST_ASSERT( memcmp( bufA, outA, sizeof( bufA ) ) == 0 );
     TEST_ASSERT( memcmp( bufB, outB, sizeof( queue ) ) == 0 );
 }
@@ -1692,7 +1692,7 @@ void mbedtls_mps_writer_queue_multiple_requests( int commit )
         outB[i] = ~ ((unsigned char) i);
 
     /* Provisioning (lower layer) */
-    TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    mbedtls_writer_init( &wr, queue, sizeof( queue ) );
     TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
     /* Producing (upper layer) */
     TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) == 0 );
@@ -1717,7 +1717,7 @@ void mbedtls_mps_writer_queue_multiple_requests( int commit )
     TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
     /* Wrapup (lower layer) */
     TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
-    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    mbedtls_writer_free( &wr );
     TEST_ASSERT( memcmp( bufA, outA, 100 ) == 0 );
     TEST_ASSERT( memcmp( bufB, outB, 100 ) == 0 );
 }
@@ -1745,7 +1745,7 @@ void mbedtls_mps_writer_queue_multiple_refeed()
     }
 
     /* Provisioning (lower layer) */
-    TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    mbedtls_writer_init( &wr, queue, sizeof( queue ) );
     TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
     /* Producing (upper layer) */
     TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) == 0 );
@@ -1776,7 +1776,7 @@ void mbedtls_mps_writer_queue_multiple_refeed()
     TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
     /* Wrapup (lower layer) */
     TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
-    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    mbedtls_writer_free( &wr );
     TEST_ASSERT( memcmp( bufA, outA, 100 ) == 0 );
     TEST_ASSERT( memcmp( bufB, outB, 100 ) == 0 );
 }
@@ -1799,7 +1799,7 @@ void mbedtls_mps_writer_queue_multiple_rounds()
         outC[i] = (unsigned char)( 128 + i );
 
     /* Provisioning (lower layer) */
-    TEST_ASSERT( mbedtls_writer_init( &wr, queue, sizeof( queue ) ) == 0 );
+    mbedtls_writer_init( &wr, queue, sizeof( queue ) );
     TEST_ASSERT( mbedtls_writer_feed( &wr, bufA, sizeof( bufA ) ) == 0 );
     /* Producing (upper layer) */
     TEST_ASSERT( mbedtls_writer_get( &wr, 90, &tmp, NULL ) == 0 );
@@ -1833,7 +1833,7 @@ void mbedtls_mps_writer_queue_multiple_rounds()
     TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
     /* Wrapup (lower layer) */
     TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
-    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    mbedtls_writer_free( &wr );
     TEST_ASSERT( memcmp( bufA, outA, 100 ) == 0 );
     TEST_ASSERT( memcmp( bufB, outB, 100 ) == 0 );
     TEST_ASSERT( memcmp( bufC, outC, 100 ) == 0 );
@@ -1904,7 +1904,7 @@ void mbedtls_mps_writer_random_usage( int data_amount,
     TEST_ASSERT( outgoing != NULL );
     TEST_ASSERT( incoming != NULL );
 
-    TEST_ASSERT( mbedtls_writer_init( &wr, queue, queue_size ) == 0 );
+    mbedtls_writer_init( &wr, queue, queue_size );
 
     cur_out_chunk_size = 0;
     in_commit = 0;
@@ -2063,7 +2063,7 @@ void mbedtls_mps_writer_random_usage( int data_amount,
     TEST_ASSERT( memcmp( outgoing, incoming, data_amount ) == 0 );
 
     /* Cleanup */
-    TEST_ASSERT( mbedtls_writer_free( &wr ) == 0 );
+    mbedtls_writer_free( &wr );
     free( incoming );
     free( outgoing );
     free( queue );

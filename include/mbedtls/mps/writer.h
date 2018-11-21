@@ -460,7 +460,7 @@ int mbedtls_writer_feed( mbedtls_writer *writer,
  *
  * \param writer    The writer context to be used.
  * \param queued    The address at which to store the amount of
- *                  outgoing data that has been queued. May be NULL
+ *                  outgoing data that has been queued. May be \c NULL
  *                  if this information is not required.
  * \param force     Indicates whether the output buffer should
  *                  be reclaimed even if there's space left.
@@ -589,7 +589,7 @@ int mbedtls_writer_commit_partial( mbedtls_writer *writer,
  *                  size of the outgoing data buffer on success.
  *                  May be \c NULL (see below).
  *
- * \note            If \p buflen is NULL, the function fails
+ * \note            If \p buflen is \c NULL, the function fails
  *                  if it cannot provide an outgoing data buffer
  *                  of the requested size \p desired.
  *
@@ -664,7 +664,7 @@ int mbedtls_writer_free_ext( mbedtls_writer_ext *writer );
  *                  of the outgoing data buffer on success.
  * \param buflen    The address at which to store the actual
  *                  size of the outgoing data buffer on success.
- *                  May be NULL (see below).
+ *                  May be \c NULL (see below).
  *
  * \note            If \p buflen is \c NULL, the function fails
  *                  if it cannot provide an outgoing data buffer

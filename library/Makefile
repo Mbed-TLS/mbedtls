@@ -164,6 +164,9 @@ OBJS_TLS= \
 	  ssl_ticket.o \
 	  ssl_tls.o \
 	  ssl_tls13_keys.o \
+	  mps/reader.o \
+	  mps/writer.o \
+	  mps/trace.o  \
 	  # This line is intentionally left blank
 
 .SILENT:

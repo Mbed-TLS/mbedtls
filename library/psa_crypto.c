@@ -4276,12 +4276,12 @@ psa_status_t mbedtls_psa_inject_entropy( const unsigned char *seed,
           ( seed_size > MBEDTLS_ENTROPY_MAX_SEED_SIZE ) )
             return( PSA_ERROR_INVALID_ARGUMENT );
 
-    its_status = psa_its_get_info( MBEDTLS_RANDOM_SEED_ITS_UID, &p_info );
+    its_status = psa_its_get_info( PSA_CRYPTO_ITS_RANDOM_SEED_UID, &p_info );
     status = its_to_psa_error( its_status );
 
     if( PSA_ITS_ERROR_KEY_NOT_FOUND == its_status ) /* No seed exists */
     {
-        its_status = psa_its_set( MBEDTLS_RANDOM_SEED_ITS_UID, seed_size, seed, 0 );
+        its_status = psa_its_set( PSA_CRYPTO_ITS_RANDOM_SEED_UID, seed_size, seed, 0 );
         status = its_to_psa_error( its_status );
     }
     else if( PSA_ITS_SUCCESS == its_status )

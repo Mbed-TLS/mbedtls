@@ -48,7 +48,7 @@ void validate_entropy_seed_injection( int seed_length_a,
     {
         seed[i] = i;
     }
-    its_status =  psa_its_remove( MBEDTLS_RANDOM_SEED_ITS_UID );
+    its_status =  psa_its_remove( PSA_CRYPTO_ITS_RANDOM_SEED_UID );
     TEST_ASSERT( ( its_status == PSA_ITS_SUCCESS ) ||
                  ( its_status == PSA_ITS_ERROR_KEY_NOT_FOUND ) );
     status = mbedtls_psa_inject_entropy( seed, seed_length_a );
@@ -61,7 +61,7 @@ void validate_entropy_seed_injection( int seed_length_a,
     TEST_ASSERT( memcmp( output, zeros, sizeof( output ) ) != 0 );
 exit:
     mbedtls_free( seed );
-    psa_its_remove( MBEDTLS_RANDOM_SEED_ITS_UID );
+    psa_its_remove( PSA_CRYPTO_ITS_RANDOM_SEED_UID );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -78,12 +78,12 @@ void run_entropy_inject_with_crypto_init( )
     {
         seed[i] = i;
     }
-    its_status =  psa_its_remove( MBEDTLS_RANDOM_SEED_ITS_UID );
+    its_status =  psa_its_remove( PSA_CRYPTO_ITS_RANDOM_SEED_UID );
     TEST_ASSERT( ( its_status == PSA_ITS_SUCCESS ) ||
                  ( its_status == PSA_ITS_ERROR_KEY_NOT_FOUND ) );
     status = mbedtls_psa_inject_entropy( seed, sizeof( seed ) );
     TEST_ASSERT( status == PSA_SUCCESS );
-    its_status =  psa_its_remove( MBEDTLS_RANDOM_SEED_ITS_UID );
+    its_status =  psa_its_remove( PSA_CRYPTO_ITS_RANDOM_SEED_UID );
     TEST_ASSERT( its_status == PSA_ITS_SUCCESS );
     status = psa_crypto_init( );
     TEST_ASSERT( status == PSA_ERROR_INSUFFICIENT_ENTROPY );
@@ -96,7 +96,7 @@ void run_entropy_inject_with_crypto_init( )
     status = mbedtls_psa_inject_entropy( seed, sizeof( seed ) );
     TEST_ASSERT( status == PSA_ERROR_NOT_PERMITTED );
 exit:
-    psa_its_remove( MBEDTLS_RANDOM_SEED_ITS_UID );
+    psa_its_remove( PSA_CRYPTO_ITS_RANDOM_SEED_UID );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

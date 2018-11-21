@@ -81,6 +81,7 @@
 #define MBEDTLS_WRITER_H
 
 #include <stdio.h>
+#include <stdint.h>
 
 struct mbedtls_writer;
 typedef struct mbedtls_writer mbedtls_writer;
@@ -130,21 +131,22 @@ typedef struct mbedtls_writer_ext mbedtls_writer_ext;
  *  in an extended writer.                                    */
 #define MBEDTLS_WRITER_MAX_GROUPS 5
 
-/** The initial state: The writer awaits buffers for holding outgoing
- *  data to be assigned to it via mbedtls_writer_feed(). */
-#define MBEDTLS_WRITER_PROVIDING 0
-/** The writer has buffers to serve write requests from. */
-#define MBEDTLS_WRITER_CONSUMING 1
+/** \brief The type of states for the reader.
+ *
+ *  Possible values are:
+ *  - #MBEDTLS_WRITER_PROVIDING (initial state)
+ *    The writer awaits buffers for holding outgoing
+ *    data to be assigned to it via mbedtls_writer_feed().
+ *  - #MBEDTLS_WRITER_PRODUCING
+ *    The writer has buffers to serve write requests from.
+ **/
+typedef unsigned char mbedtls_writer_state_t;
+#define MBEDTLS_WRITER_PROVIDING ( (mbedtls_writer_state_t) 0)
+#define MBEDTLS_WRITER_CONSUMING ( (mbedtls_writer_state_t) 1)
+
 
 struct mbedtls_writer
 {
-    unsigned char state; /*!< This indicates whether the writer is currently
-                          *   in 'providing' (awaiting output buffers)
-                          *   or in 'producing' mode (awaiting outgoing data);
-                          *   see the top of this file for more information.
-                          *   Possible values are:
-                          *   - #MBEDTLS_WRITER_PROVIDING
-                          *   - #MBEDTLS_WRITER_PRODUCING.                   */
     unsigned char *out;  /*!< The current buffer to hold outgoing data.      */
     size_t out_len;      /*!< The size in bytes of the outgoing data buffer. */
 
@@ -190,6 +192,8 @@ struct mbedtls_writer
                              *   providing mode, and if the writer uses a
                              *   queue (queue != \c NULL), and in this case its
                              *   value is at most queue_len - queue_next.    */
+    /** The writer's state. See ::mbedtls_writer_state_t. */
+    mbedtls_writer_state_t state;
 };
 
 /*

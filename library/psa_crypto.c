@@ -4289,7 +4289,6 @@ psa_status_t mbedtls_psa_inject_entropy( const unsigned char *seed,
         /* You should not be here. Seed needs to be injected only once */
         status = PSA_ERROR_NOT_PERMITTED;
     }
-    
     return( status );
 }
 #endif

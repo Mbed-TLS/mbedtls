@@ -376,9 +376,6 @@ struct mbedtls_writer_ext
  *                  buffer provided via mbedtls_writer_feed()
  *                  isn't sufficient.
  * \param queue_len The size of the \p queue buffer.
- *
- * \return          \c 0 on success.
- * \return          A negative error code \c MBEDTLS_ERR_WRITER_XXX on failure.
  */
 /*@
   requires \valid( writer );
@@ -388,22 +385,19 @@ struct mbedtls_writer_ext
                  ==> \valid( queue + i ) ) );
   WRITER_INV_ENSURES(writer)
   @*/
-int mbedtls_writer_init( mbedtls_writer *writer,
-                         unsigned char *queue,
-                         mbedtls_mps_size_t queue_len );
+void mbedtls_writer_init( mbedtls_writer *writer,
+                          unsigned char *queue,
+                          mbedtls_mps_size_t queue_len );
 
 /**
  * \brief           Free a writer object
  *
  * \param writer    The writer to be freed.
- *
- * \return          \c 0 on success.
- * \return          A negative error code \c MBEDTLS_ERR_WRITER_XXX on failure.
  */
 /*@
   WRITER_INV_REQUIRES(writer)
   @*/
-int mbedtls_writer_free( mbedtls_writer *writer );
+void mbedtls_writer_free( mbedtls_writer *writer );
 
 /**
  * \brief           Pass output buffer to the writer.
@@ -623,31 +617,24 @@ int mbedtls_writer_get( mbedtls_writer *writer,
  * \param size      The total size of the logical buffer to
  *                  be managed by the extended writer.
  *
- * \return          \c 0 on success.
- * \return          A negative error code \c MBEDTLS_ERR_WRITER_XXX on failure.
- *
  */
 
 /*@
   requires \valid( writer );
   WRITER_EXT_INV_ENSURES( writer )
   @*/
-int mbedtls_writer_init_ext( mbedtls_writer_ext *writer,
-                             mbedtls_mps_size_t size );
+void mbedtls_writer_init_ext( mbedtls_writer_ext *writer,
+                              mbedtls_mps_size_t size );
 
 /**
  * \brief           Free an extended writer object
  *
  * \param writer    The extended writer context to be freed.
- *
- * \return          \c 0 on success.
- * \return          A negative error code \c MBEDTLS_ERR_WRITER_XXX on failure.
- *
  */
 /*@
   WRITER_EXT_INV_REQUIRES( writer )
   @*/
-int mbedtls_writer_free_ext( mbedtls_writer_ext *writer );
+void mbedtls_writer_free_ext( mbedtls_writer_ext *writer );
 
 /**
  * \brief           Request buffer to hold outbound data.

@@ -94,7 +94,9 @@ OBJS_TLS=	debug.o		net_sockets.o		\
 		ssl_cache.o	ssl_ciphersuites.o	\
 		ssl_cli.o	ssl_cookie.o		\
 		ssl_srv.o	ssl_ticket.o		\
-		ssl_tls.o
+		ssl_tls.o                               \
+                mps/reader.o    mps/writer.o            \
+		mps/trace.o
 
 .SILENT:
 
@@ -193,11 +195,11 @@ libmbedcrypto.dll: $(OBJS_CRYPTO)
 
 .c.o:
 	echo "  CC    $<"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -c $<
+	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) -c $< -o $@
 
 clean:
 ifndef WINDOWS
-	rm -f *.o libmbed*
+	rm -f $(OBJS_X509) $(OBJS_CRYPTO) $(OBJS_TLS) libmbed*
 else
-	del /Q /F *.o libmbed*
+	del /Q /F $(OBJS_X509) $(OBJS_CRYPTO) $(OBJS_TLS) libmbed*
 endif

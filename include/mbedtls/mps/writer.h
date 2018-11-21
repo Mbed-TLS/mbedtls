@@ -144,13 +144,15 @@ typedef unsigned char mbedtls_writer_state_t;
 
 struct mbedtls_writer
 {
-    /** The writer's state. See ::mbedtls_writer_state_t. */
-    mbedtls_writer_state_t state;
-
     /** The current buffer to hold outgoing data.      */
     unsigned char *out;
-    /** The size in bytes of the outgoing data buffer. */
+    /** The queue buffer from which to serve write requests that would
+     *  exceed the current outgoing data buffer's bounds. May be \c NULL. */
+    unsigned char *queue;
+    /** The size in bytes of the outgoing data buffer \c out. */
     mbedtls_mps_stored_size_t out_len;
+    /** The length of the queue buffer \c queue. */
+    mbedtls_mps_stored_size_t queue_len;
 
     /** The offset from the beginning of the outgoing data buffer indicating
      *  the amount of data that the user has already finished writing.
@@ -178,12 +180,6 @@ struct mbedtls_writer
      */
     mbedtls_mps_stored_size_t end;
 
-    /** The queue buffer from which to serve write requests that would
-     *  exceed the current outgoing data buffer's bounds. May be \c NULL. */
-    unsigned char *queue;
-    /** The length of the queue. */
-    mbedtls_mps_stored_size_t queue_len;
-
     /** In consuming mode, this denotes the size of the overlap between the
      *  queue and the current out buffer, once <code>end > out_len</code>.
      *  If <code>end < out_len</code>, its value is \c 0.
@@ -197,6 +193,8 @@ struct mbedtls_writer
      *  case its value is at most <code>queue_len - queue_next</code>.
      */
     mbedtls_mps_stored_size_t queue_remaining;
+    /** The writer's state. See ::mbedtls_writer_state_t. */
+    mbedtls_writer_state_t state;
 };
 
 /*
@@ -319,25 +317,21 @@ typedef unsigned char mbedtls_writer_ext_grp_index_t;
 
 struct mbedtls_writer_ext
 {
-    /** The 0-based index of the currently active group.
-     *  The group of index 0 always exists and represents
-     *  the entire logical message buffer. */
-    mbedtls_writer_ext_grp_index_t cur_grp;
-
+    /** The underlying writer object - may be \c NULL. */
+    mbedtls_writer *wr;
     /** The offsets marking the ends of the currently active groups.
      *  The first <code>cur_grp + 1</code> entries are valid and always
      *  weakly descending (subsequent groups are subgroups of their
      *  predecessors ones).  */
     mbedtls_mps_stored_size_t grp_end[MBEDTLS_WRITER_MAX_GROUPS];
-
-    /** The underlying writer object - may be \c NULL. */
-    mbedtls_writer *wr;
-
     /** The offset of the first byte of the next chunk.  */
     mbedtls_mps_stored_size_t ofs_fetch;
     /**< The offset of first byte beyond the last committed chunk. */
     mbedtls_mps_stored_size_t ofs_commit;
-
+    /** The 0-based index of the currently active group.
+     *  The group of index 0 always exists and represents
+     *  the entire logical message buffer. */
+    mbedtls_writer_ext_grp_index_t cur_grp;
     /** Indicates whether commits should be passed to the underlying writer.
      *  See ::mbedtls_writer_ext_passthrough_t. */
     mbedtls_writer_ext_passthrough_t passthrough;

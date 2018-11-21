@@ -1,50 +1,63 @@
 /**
  * \file writer.h
  *
- * \brief This file defines writer objects, which together with
- *        their sibling reader objects form the basis for the communication
+ * \brief This file defines writer objects, which together with their
+ *        sibling reader objects form the basis for the communication
  *        between the various layers of the Mbed TLS messaging stack,
  *        as well as the communication between the messaging stack and
  *        the (D)TLS handshake protocol implementation.
  *
- * Writers provide a means of communication between an
- * entity (the 'provider' in the following) providing buffers
- * to which outgoing data can be written, and an entity
- * (the 'consumer' in the following) consuming them by writing
- * the actual data into it.
- * Both the size of the data buffers the provider prepares
- * and the size of chunks in which the consumer writes the
- * data are variable and may be different.
- * It is the writer's responsibility to do the
- * necessary copying and pointer arithmetic.
+ * Writers provide a means of communication between
+ * - a 'provider' supplying buffers to hold outgoing data, and
+ * - a 'consumer' writing data into these buffers.
+ * Both the size of the data buffers the provider prepares and the size of
+ * chunks in which the consumer writes the data are variable and may be
+ * different. It is the writer's responsibility to do the necessary copying
+ * and pointer arithmetic.
  *
- * The basic flow of operation is that the provider feeds
- * an outgoing data buffer to the writer, transferring it from
- * 'providing' to 'consuming' mode. The consumer subsequently
- * fetches parts of the buffer and writes data to them.
- * Once that's done, the provider revokes the writer's access
- * to the outgoing data buffer, putting the writer back to
- * providing mode; the provider may then continue processing
- * (e.g. dispatching) the data provided in the outgoing data buffer.
- * After that, the provider feeds another outgoing data buffer
- * to the writer and the cycle starts again.
- * In the event that a consumer's request cannot be fulfilled
- * on the basis of the outgoing data buffer provided by the
- * provider, the writer may provide a temporary 'queue' buffer
- * instead. In this case, the queue buffer will be copied to the
- * outgoing data buffers when the provider subsequently provides
- * them. The details of this are opaque to the consumer and the
- * provider, but it means that if the provider feeds an outgoing
- * data buffer to the writer, the writer might entirely fill it
- * immediately on the basis of what has been queued internally.
+ * For example, the provider might be the [D]TLS record layer, offering
+ * to protect and transport data in records of varying size (depending
+ * on the current configuration and the amount of data left in the current
+ * datagram, for example), while the consumer would be the handshake logic
+ * layer which needs to write handshake messages. The size of handshake
+ * messages are entirely independent of the size of records used to transport
+ * them, and the writer helps to both split large handshake messages across
+ * multiple records, and to pack multiple small handshake messages into
+ * a single record. This example will be elaborated upon in the next paragraph.
  *
- * From the perspective of the consumer, the state of the
- * writer is a potentially empty list of output buffers that
- * the writer has provided to the consumer.
- * New buffers can be requested through calls to mbedtls_writer_get(),
- * while previously obtained output buffers can be marked processed
- * through calls to mbedtls_writer_commit(), emptying the list of
- * output buffers and invalidating them from the consumer's perspective.
+ * Basic flow of operation:
+ * First, the provider feeds an outgoing data buffer to the writer, transferring
+ * it from 'providing' to 'consuming' mode; in the example, that would be record
+ * layer providing the plaintext buffer for the next outgoing record. The
+ * consumer subsequently fetches parts of the buffer and writes data to them,
+ * which might happen multiple times; in the example, the handshake logic
+ * layer might request and fill a buffer for each handshake message in the
+ * current outgoing flight, and these requests would be served from successive
+ * chunks in the same record plaintext buffer if size permits. Once the consumer
+ * is done, the provider revokes the writer's access to the data buffer,
+ * putting the writer back to providing mode, and processes the data provided
+ * in the outgoing data buffer; in the example, that would be the record layer
+ * encrypting the record and dispatching it to the underlying transport.
+ * Afterwards, the provider feeds another outgoing data buffer to the writer
+ * and the cycle starts again.
+ * In the event that a consumer's request cannot be fulfilled on the basis of
+ * the outgoing data buffer provided by the provider (in the example,
+ * the handshake layer might attempt to send a 4KB CRT chain but the current
+ * record size offers only 2KB), the writer transparently offers a temporary
+ * 'queue' buffer to hold the data to the consumer. The contents of this queue
+ * buffer will be gradually split among the next outgoing data buffers when
+ * the provider subsequently provides them; in the example, the CRT chain would
+ * be split amont multiple records when the record layer hands more plaintext
+ * buffers to the writer. The details of this process are left to the writer
+ * and are opaque both to the consumer and the provider.
+ *
+ * Abstract models:
+ * From the perspective of the consumer, the state of the writer is a
+ * potentially empty list of output buffers that the writer has provided
+ * to the consumer. New buffers can be requested through calls to
+ * mbedtls_writer_get(), while previously obtained output buffers can be
+ * marked processed through calls to mbedtls_writer_commit(), emptying the
+ * list of output buffers and invalidating them from the consumer's perspective.
  *
  *  Copyright (C) 2006-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0

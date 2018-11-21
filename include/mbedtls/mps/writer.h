@@ -285,9 +285,17 @@ struct mbedtls_writer
     requires WRITER_INV_QUEUE_AVAIL_BOUND( p );             \
     requires WRITER_INV_QUEUE_REMAINING( p );
 
-#define MBEDTLS_WRITER_EXT_PASS   0
-#define MBEDTLS_WRITER_EXT_HOLD   1
-#define MBEDTLS_WRITER_EXT_BLOCK  2
+/** Configures whether commits to the extended writer should be passed
+ *  through to the underlying writer or not. Possible values are:
+ *  - #MBEDTLS_WRITER_EXT_PASS
+ *  - #MBEDTLS_WRITER_EXT_HOLD
+ *  - #MBEDTLS_WRITER_EXT_BLOCK.
+ */
+typedef unsigned char mbedtls_writer_ext_passthrough_t;
+#define MBEDTLS_WRITER_EXT_PASS   ( (mbedtls_writer_ext_passthrough_t) 0 )
+#define MBEDTLS_WRITER_EXT_HOLD   ( (mbedtls_writer_ext_passthrough_t) 1 )
+#define MBEDTLS_WRITER_EXT_BLOCK  ( (mbedtls_writer_ext_passthrough_t) 2 )
+
 /** The type of indices for groups in extended writers. */
 typedef unsigned char mbedtls_writer_ext_grp_index_t;
 
@@ -314,17 +322,14 @@ struct mbedtls_writer_ext
     size_t ofs_fetch;   /*!< The offset of the first byte of the next chunk.  */
     size_t ofs_commit;  /*!< The offset of first byte beyond
                          *   the last committed chunk .*/
-    int passthrough; /*!< Indicates if commits should be passed
-                      *   through to the underlying writer or not.
-                      *   Possible values are:
-                      *   - #MBEDTLS_WRITER_EXT_PASS
-                      *   - #MBEDTLS_WRITER_EXT_HOLD
-                      *   - #MBEDTLS_WRITER_EXT_BLOCK                         */
     /** The 0-based index of the currently active group.
      *  The group of index 0 always exists and represents
      *  the entire logical message buffer. */
     mbedtls_writer_ext_grp_index_t cur_grp;
 
+    /** Indicates whether commits should be passed to the underlying writer.
+     *  See ::mbedtls_writer_ext_passthrough_t. */
+    mbedtls_writer_ext_passthrough_t passthrough;
 };
 
 #define WRITER_EXT_INV_CUR_GRP_VALID( p )               \

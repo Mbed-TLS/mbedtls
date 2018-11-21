@@ -1,5 +1,14 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.xx.x branch released xxxx-xx-xx
+
+Features
+   * Add an experimental build option, USE_CRYPTO_SUBMODULE, to enable use of
+     Mbed Crypto as the source of the cryptography implementation.
+   * Add an experimental configuration option, MBEDTLS_PSA_CRYPTO_C, to enable
+     the PSA Crypto API from Mbed Crypto when additionally used with the
+     USE_CRYPTO_SUBMODULE build option.
+
 = mbed TLS 2.14.0 branch released 2018-11-19
 
 Security

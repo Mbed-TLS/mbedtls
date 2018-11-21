@@ -41,8 +41,8 @@ my @suites = grep { -x $_ || /\.exe$/ } glob 'test_suite_*';
 die "$0: no test suite found\n" unless @suites;
 
 # in case test suites are linked dynamically
-$ENV{'LD_LIBRARY_PATH'} = '../library';
-$ENV{'DYLD_LIBRARY_PATH'} = '../library';
+$ENV{'LD_LIBRARY_PATH'} = '../library:../crypto/library';
+$ENV{'DYLD_LIBRARY_PATH'} = '../library:../crypto/library';
 
 my $prefix = $^O eq "MSWin32" ? '' : './';
 

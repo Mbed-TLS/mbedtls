@@ -127,10 +127,6 @@ typedef struct mbedtls_writer_ext mbedtls_writer_ext;
  *  buffer has been fully used up.                            */
 #define MBEDTLS_WRITER_RECLAIM_NO_FORCE 0
 
-/** The maximum number of nested groups that can be opened
- *  in an extended writer.                                    */
-#define MBEDTLS_WRITER_MAX_GROUPS 5
-
 /** \brief The type of states for the reader.
  *
  *  Possible values are:
@@ -292,12 +288,22 @@ struct mbedtls_writer
 #define MBEDTLS_WRITER_EXT_PASS   0
 #define MBEDTLS_WRITER_EXT_HOLD   1
 #define MBEDTLS_WRITER_EXT_BLOCK  2
+/** The type of indices for groups in extended writers. */
+typedef unsigned char mbedtls_writer_ext_grp_index_t;
+
+/* INTERNAL NOTE:
+ *
+ * The value for MBEDTLS_WRITER_MAX_GROUPS needs to be revisited once
+ * writers are comprehensively used in the message writing functions
+ * used by the handshake logic layer. Reducing this value saves a few
+ * bytes in ::mbedtls_writer_ext.
+ */
+/** The maximum number of nested groups that can be opened in an
+ *  extended writer. */
+#define MBEDTLS_WRITER_MAX_GROUPS ( (mbedtls_writer_ext_grp_index_t) 5 )
 
 struct mbedtls_writer_ext
 {
-    unsigned cur_grp; /*!< The 0-based index of the currently active group.
-                       *   The group of index 0 always exists and represents
-                       *   the entire logical message buffer.                 */
     size_t grp_end[MBEDTLS_WRITER_MAX_GROUPS];
                       /*!< The offsets marking the ends of the currently
                        *   active groups. The first cur_grp + 1 entries are
@@ -314,6 +320,11 @@ struct mbedtls_writer_ext
                       *   - #MBEDTLS_WRITER_EXT_PASS
                       *   - #MBEDTLS_WRITER_EXT_HOLD
                       *   - #MBEDTLS_WRITER_EXT_BLOCK                         */
+    /** The 0-based index of the currently active group.
+     *  The group of index 0 always exists and represents
+     *  the entire logical message buffer. */
+    mbedtls_writer_ext_grp_index_t cur_grp;
+
 };
 
 #define WRITER_EXT_INV_CUR_GRP_VALID( p )               \

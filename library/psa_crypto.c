@@ -1117,6 +1117,8 @@ static psa_status_t psa_save_generated_persistent_key( psa_key_slot_t key,
     size_t key_length;
     size_t data_size = PSA_KEY_EXPORT_MAX_SIZE( slot->type, bits );
     data = mbedtls_calloc( 1, data_size );
+    if( data == NULL )
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
     /* Get key data in export format */
     status = psa_internal_export_key( slot, data, data_size, &key_length, 0 );
     if( status != PSA_SUCCESS )

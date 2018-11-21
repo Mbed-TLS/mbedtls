@@ -27,10 +27,23 @@ static int trace_id = 4;
 
 #include <string.h>
 
-static mbedtls_writer const writer_zero     = { MBEDTLS_WRITER_PROVIDING,
-                                                NULL, 0, 0, 0, NULL, 0, 0, 0, };
-static mbedtls_writer_ext const writer_ext_zero = { 0, { 0 }, NULL, 0, 0,
-                                                    MBEDTLS_WRITER_EXT_PASS, };
+static mbedtls_writer const writer_zero =
+        { .state = MBEDTLS_WRITER_PROVIDING,
+          .out   = NULL,
+          .queue = NULL,
+          .out_len   = 0,
+          .queue_len = 0,
+          .commit = 0,
+          .end    = 0,
+          .queue_next      = 0,
+          .queue_remaining = 0 };
+
+static mbedtls_writer_ext const writer_ext_zero =
+        { .wr = NULL,
+          .grp_end = { 0 },
+          .cur_grp = 0,
+          .ofs_fetch = 0,
+          .passthrough = MBEDTLS_WRITER_EXT_PASS };
 
 int mbedtls_writer_init( mbedtls_writer *wr,
                          unsigned char *queue,

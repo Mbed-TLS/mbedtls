@@ -117,8 +117,21 @@ typedef struct mbedtls_writer_ext mbedtls_writer_ext;
  *  in an extended writer.                                    */
 #define MBEDTLS_WRITER_MAX_GROUPS 5
 
+/** The initial state: The writer awaits buffers for holding outgoing
+ *  data to be assigned to it via mbedtls_writer_feed(). */
+#define MBEDTLS_WRITER_PROVIDING 0
+/** The writer has buffers to serve write requests from. */
+#define MBEDTLS_WRITER_CONSUMING 1
+
 struct mbedtls_writer
 {
+    unsigned char state; /*!< This indicates whether the writer is currently
+                          *   in 'providing' (awaiting output buffers)
+                          *   or in 'producing' mode (awaiting outgoing data);
+                          *   see the top of this file for more information.
+                          *   Possible values are:
+                          *   - #MBEDTLS_WRITER_PROVIDING
+                          *   - #MBEDTLS_WRITER_PRODUCING.                   */
     unsigned char *out;  /*!< The current buffer to hold outgoing data.      */
     size_t out_len;      /*!< The size in bytes of the outgoing data buffer. */
 

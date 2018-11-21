@@ -1297,7 +1297,7 @@ void mbedtls_mps_writer_unexpected_operations()
     unsigned char outA[100], outB[100];
     unsigned char queue[20];
     unsigned char *tmp;
-    size_t olen;
+    mbedtls_mps_size_t olen;
     mbedtls_writer wr;
 
     for( int i=0; (unsigned) i < 100; i++ )
@@ -1404,7 +1404,7 @@ void mbedtls_mps_writer_no_queueing_multiple_steps_single_round( int with_queue 
     unsigned char out[100];
     unsigned char queue[10];
     unsigned char *tmp;
-    size_t tmp_len;
+    mbedtls_mps_size_t tmp_len;
     mbedtls_writer wr;
     for( int i=0; (unsigned) i < sizeof( out ); i++ )
         out[i] = (unsigned char) i;
@@ -1441,7 +1441,7 @@ void mbedtls_mps_writer_no_queueing_multiple_steps_multiple_rounds( int with_que
     unsigned char outA[100], outB[100];
     unsigned char queue[10];
     unsigned char *tmp;
-    size_t tmp_len;
+    mbedtls_mps_size_t tmp_len;
     mbedtls_writer wr;
     for( int i=0; (unsigned) i < sizeof( outA ); i++ )
         outA[i] = (unsigned char) i;
@@ -1488,7 +1488,7 @@ void mbedtls_mps_writer_no_queueing_multiple_steps_multiple_rounds_partial_commi
     unsigned char outA[100], outB[100];
     unsigned char queue[10];
     unsigned char *tmp;
-    size_t tmp_len;
+    mbedtls_mps_size_t tmp_len;
     mbedtls_writer wr;
     for( int i=0; (unsigned) i < sizeof( outA ); i++ )
         outA[i] = (unsigned char) i;
@@ -1871,7 +1871,7 @@ void mbedtls_mps_writer_random_usage( int data_amount,
     unsigned char *queue = NULL;
     unsigned char *outgoing, *incoming;
     unsigned char *cur_chunk = NULL;
-    size_t cur_out_chunk_size, out_pos, in_commit, in_fetch;
+    mbedtls_mps_size_t cur_out_chunk_size, out_pos, in_commit, in_fetch;
     int rand_op;  /* Lower layer:
                    * - Reclaim (0)
                    * - Feed (1)
@@ -1919,7 +1919,7 @@ void mbedtls_mps_writer_random_usage( int data_amount,
 
             if( rand_op == 0 || rand_op == 1 )
             {
-                size_t out_committed;
+                mbedtls_mps_size_t out_committed;
 
                 /* Reclaim */
 
@@ -1958,7 +1958,7 @@ void mbedtls_mps_writer_random_usage( int data_amount,
             {
                 /* Feed writer another outgoing data chunk */
                 unsigned char *tmp;
-                size_t tmp_size;
+                mbedtls_mps_size_t tmp_size;
 
                 tmp_size = ( rand() % max_chunk_size ) + 1;
                 tmp = malloc( tmp_size );
@@ -2000,7 +2000,7 @@ void mbedtls_mps_writer_random_usage( int data_amount,
             rand_op = rand() % 3;
             if( rand_op == 0 || rand_op == 1 )
             {
-                size_t get_size, real_size;
+                mbedtls_mps_size_t get_size, real_size;
                 unsigned char *chunk_get;
                 get_size = ( rand() % max_request ) + 1;
                 if( get_size > data_amount - ( in_commit + in_fetch ) )
@@ -2026,13 +2026,13 @@ void mbedtls_mps_writer_random_usage( int data_amount,
                 }
                 else if( ret == MBEDTLS_ERR_WRITER_OUT_OF_DATA )
                 {
-                    TEST_ASSERT( in_commit + in_fetch + get_size >
-                                 (unsigned) queue_size );
+                    TEST_ASSERT( (mbedtls_mps_size_t)( in_commit + in_fetch + get_size ) >
+                                 (mbedtls_mps_size_t) queue_size );
                 }
             }
             else if( rand_op == 2 ) /* Commit */
             {
-                size_t omit=0;
+                mbedtls_mps_size_t omit=0;
 
                 /* Leave a change to omit more than what was
                  * fetched since the last commit. */

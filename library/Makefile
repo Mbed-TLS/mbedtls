@@ -82,6 +82,8 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		pkcs5.o		pkparse.o	pkwrite.o	\
 		platform.o	platform_util.o	poly1305.o	\
 		psa_crypto.o					\
+		psa_crypto_storage.o				\
+		psa_crypto_storage_file.o			\
 		ripemd160.o	rsa_internal.o	rsa.o  		\
 		sha1.o		sha256.o	sha512.o	\
 		threading.o	timing.o	version.o	\

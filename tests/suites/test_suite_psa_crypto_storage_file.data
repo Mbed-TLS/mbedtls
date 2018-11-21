@@ -1,0 +1,43 @@
+PSA Storage Load verify loaded file
+depends_on:MBEDTLS_FS_IO
+load_data_from_file:1:"deadbeef":1:4:PSA_SUCCESS
+
+PSA Storage Load check slots dont share state
+depends_on:MBEDTLS_FS_IO
+load_data_from_file:2:"deadbeef":1:4:PSA_ERROR_STORAGE_FAILURE
+
+PSA Storage Load zero length file
+depends_on:MBEDTLS_FS_IO
+load_data_from_file:1:"":1:1:PSA_SUCCESS
+
+PSA Storage Load less than capacity of data buffer
+depends_on:MBEDTLS_FS_IO
+load_data_from_file:1:"deadbeef":1:5:PSA_SUCCESS
+
+PSA Storage Load nonexistent file location, should fail
+depends_on:MBEDTLS_FS_IO
+load_data_from_file:1:"deadbeef":0:4:PSA_ERROR_STORAGE_FAILURE
+
+PSA Storage Store verify stored file
+depends_on:MBEDTLS_FS_IO
+write_data_to_file:"deadbeef":PSA_SUCCESS
+
+PSA Storage Store into preexisting location, should fail
+depends_on:MBEDTLS_FS_IO
+write_data_to_prexisting_file:"psa_key_slot_1":"deadbeef":PSA_ERROR_OCCUPIED_SLOT
+
+PSA Storage Store, preexisting temp_location file, should succeed
+depends_on:MBEDTLS_FS_IO
+write_data_to_prexisting_file:"psa_key_slot_0":"deadbeef":PSA_SUCCESS
+
+PSA Storage Get data size verify data size
+depends_on:MBEDTLS_FS_IO
+get_file_size:"deadbeef":4:PSA_SUCCESS:1
+
+PSA Storage Get data size verify data size zero length file
+depends_on:MBEDTLS_FS_IO
+get_file_size:"":0:PSA_SUCCESS:1
+
+PSA Storage Get data size nonexistent file location, should fail
+depends_on:MBEDTLS_FS_IO
+get_file_size:"deadbeef":4:PSA_ERROR_EMPTY_SLOT:0

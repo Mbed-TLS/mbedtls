@@ -133,10 +133,11 @@ sub gen_entry_list {
 }
 
 sub gen_main_file {
-    my ($mbedtls_headers, $psa_headers, $sources, $hdr_tpl, $src_tpl, $main_tpl, $main_out) = @_;
+    my ($mbedtls_headers, $psa_headers, $source_headers, $sources, $hdr_tpl, $src_tpl, $main_tpl, $main_out) = @_;
 
     my $header_entries = gen_entry_list( $hdr_tpl, @$mbedtls_headers );
     $header_entries .= gen_entry_list( $hdr_tpl, @$psa_headers );
+    $header_entries .= gen_entry_list( $hdr_tpl, @$source_headers );
     my $source_entries = gen_entry_list( $src_tpl, @$sources );
 
     my $out = slurp_file( $main_tpl );
@@ -192,6 +193,7 @@ sub main {
     my @app_list = get_app_list();
     my @mbedtls_headers = <$mbedtls_header_dir/*.h>;
     my @psa_headers = <$psa_header_dir/*.h>;
+    my @source_headers = <$source_dir/*.h>;
     my @sources = <$source_dir/*.c>;
     map { s!/!\\!g } @mbedtls_headers;
     map { s!/!\\!g } @psa_headers;
@@ -199,8 +201,8 @@ sub main {
 
     gen_app_files( @app_list );
 
-    gen_main_file( \@mbedtls_headers, \@psa_headers, \@sources,
-                   $vsx_hdr_tpl, $vsx_src_tpl,
+    gen_main_file( \@mbedtls_headers, \@psa_headers, \@source_headers,
+                   \@sources, $vsx_hdr_tpl, $vsx_src_tpl,
                    $vsx_main_tpl_file, $vsx_main_file );
 
     gen_vsx_solution( @app_list );

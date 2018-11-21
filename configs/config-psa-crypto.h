@@ -1523,6 +1523,31 @@
 #define MBEDTLS_PSA_CRYPTO_C
 
 /**
+ * \def MBEDTLS_PSA_CRYPTO_STORAGE_C
+ *
+ * Enable the Platform Security Architecture persistent key storage.
+ *
+ * Module:  library/psa_crypto_storage.c
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C, MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C
+ *
+ */
+#define MBEDTLS_PSA_CRYPTO_STORAGE_C
+
+/**
+ * \def MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C
+ *
+ * Enable persistent key storage over files for the
+ * Platform Security Architecture cryptography API.
+ *
+ * Module:  library/psa_crypto_storage_file.c
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C, MBEDTLS_FS_IO
+ *
+ */
+#define MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C
+
+/**
  * \def MBEDTLS_RIPEMD160_C
  *
  * Enable the RIPEMD-160 hash algorithm.

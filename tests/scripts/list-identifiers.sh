@@ -7,7 +7,7 @@ if [ -d include/mbedtls ]; then :; else
     exit 1
 fi
 
-HEADERS=$( ls include/mbedtls/*.h include/psa/*.h | egrep -v 'compat-1\.3\.h|bn_mul' )
+HEADERS=$( ls include/mbedtls/*.h include/psa/*.h library/*.h | egrep -v 'compat-1\.3\.h|bn_mul' )
 
 rm -f identifiers
 

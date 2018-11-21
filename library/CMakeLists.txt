@@ -54,6 +54,8 @@ set(src_crypto
     platform_util.c
     poly1305.c
     psa_crypto.c
+    psa_crypto_storage.c
+    psa_crypto_storage_file.c
     ripemd160.c
     rsa.c
     rsa_internal.c

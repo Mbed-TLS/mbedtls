@@ -291,6 +291,7 @@
     <ClCompile Include="..\..\library\psa_crypto.c" />
     <ClCompile Include="..\..\library\psa_crypto_storage.c" />
     <ClCompile Include="..\..\library\psa_crypto_storage_file.c" />
+    <ClCompile Include="..\..\library\psa_crypto_storage_its.c" />
     <ClCompile Include="..\..\library\ripemd160.c" />
     <ClCompile Include="..\..\library\rsa.c" />
     <ClCompile Include="..\..\library\rsa_internal.c" />

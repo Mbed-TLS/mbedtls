@@ -711,6 +711,16 @@
 //#define MBEDTLS_PSA_CRYPTO_SPM
 
 /**
+ * \def MBEDTLS_PSA_HAS_ITS_IO
+ *
+ * Enable the non-volatile secure storage usage.
+ *
+ * This is crucial on systems that do not have a HW TRNG support.
+ *
+ */
+//#define MBEDTLS_PSA_HAS_ITS_IO
+
+/**
  * \def MBEDTLS_RSA_NO_CRT
  *
  * Do not use the Chinese Remainder Theorem for the RSA private operation.
@@ -1529,7 +1539,9 @@
  *
  * Module:  library/psa_crypto_storage.c
  *
- * Requires: MBEDTLS_PSA_CRYPTO_C, MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C
+ * Requires: MBEDTLS_PSA_CRYPTO_C and one of either
+ * MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C or MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
+ * (but not both)
  *
  */
 #define MBEDTLS_PSA_CRYPTO_STORAGE_C
@@ -1546,6 +1558,19 @@
  *
  */
 #define MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C
+
+/**
+ * \def MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
+ *
+ * Enable persistent key storage over PSA ITS for the
+ * Platform Security Architecture cryptography API.
+ *
+ * Module:  library/psa_crypto_storage_its.c
+ *
+ * Requires: MBEDTLS_PSA_CRYPTO_C, MBEDTLS_PSA_HAS_ITS_IO
+ *
+ */
+//#define MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C
 
 /**
  * \def MBEDTLS_RIPEMD160_C

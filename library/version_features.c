@@ -420,6 +420,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_PSA_CRYPTO_SPM)
     "MBEDTLS_PSA_CRYPTO_SPM",
 #endif /* MBEDTLS_PSA_CRYPTO_SPM */
+#if defined(MBEDTLS_PSA_HAS_ITS_IO)
+    "MBEDTLS_PSA_HAS_ITS_IO",
+#endif /* MBEDTLS_PSA_HAS_ITS_IO */
 #if defined(MBEDTLS_RSA_NO_CRT)
     "MBEDTLS_RSA_NO_CRT",
 #endif /* MBEDTLS_RSA_NO_CRT */
@@ -693,6 +696,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C)
     "MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C",
 #endif /* MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C */
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C)
+    "MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C",
+#endif /* MBEDTLS_PSA_CRYPTO_STORAGE_ITS_C */
 #if defined(MBEDTLS_RIPEMD160_C)
     "MBEDTLS_RIPEMD160_C",
 #endif /* MBEDTLS_RIPEMD160_C */

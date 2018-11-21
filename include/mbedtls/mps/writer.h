@@ -83,6 +83,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "common.h"
+
 struct mbedtls_writer;
 typedef struct mbedtls_writer mbedtls_writer;
 
@@ -140,56 +142,61 @@ typedef unsigned char mbedtls_writer_state_t;
 #define MBEDTLS_WRITER_PROVIDING ( (mbedtls_writer_state_t) 0)
 #define MBEDTLS_WRITER_CONSUMING ( (mbedtls_writer_state_t) 1)
 
-
 struct mbedtls_writer
 {
-    unsigned char *out;  /*!< The current buffer to hold outgoing data.      */
-    size_t out_len;      /*!< The size in bytes of the outgoing data buffer. */
-
-    size_t commit;       /*!< The offset from the beginning of the outgoing
-                          *   data buffer indicating the amount of data that
-                          *   the user has already finished writing.
-                          *   Note: When a queue buffer is in use, this may
-                          *   be larger than the length of the outgoing data
-                          *   buffer, and is computed as if the outgoing data
-                          *   buffer was immediately followed by the queue
-                          *   buffer.
-                          *   This is only used when the writer is in consuming
-                          *   mode, i.e. out != \c NULL; in this case, its value
-                          *   is smaller or equal to out_len + queue_len.    */
-    size_t end;          /*!< The offset from the beginning of the outgoing
-                          *   data buffer of the end of the last fragment
-                          *   handed to the user.
-                          *   Note: When a queue buffer is in use, this may
-                          *   be larger than the length of the outgoing data
-                          *   buffer, and is computed as if the outgoing data
-                          *   buffer was immediately followed by the queue
-                          *   buffer.
-                          *   This is only used when the writer is in consuming
-                          *   mode, i.e. out != \c NULL; in this case, its value
-                          *   is smaller or equal to out_len + queue_len.    */
-
-    unsigned char *queue;  /*!< The queue buffer from which to serve write
-                            *   requests that would exceed the current
-                            *   outgoing data buffer's bounds.
-                            *   May be \c NULL.                              */
-    size_t queue_len;      /*!< The length of the queue.                     */
-
-    size_t queue_next;      /*!< In consuming mode, this denotes the size of the
-                             *   overlap between the queue and the current out
-                             *   buffer, once end > out_len. If end < out_len,
-                             *   its value is 0.
-                             *   In providing mode, this denotes the amount of
-                             *   data from the queue that has already been
-                             *   copied to some outgoing data buffer.        */
-    size_t queue_remaining; /*!< The amount of data within the queue buffer
-                             *   that hasn't been copied to some outgoing
-                             *   data buffer yet. This is only used in
-                             *   providing mode, and if the writer uses a
-                             *   queue (queue != \c NULL), and in this case its
-                             *   value is at most queue_len - queue_next.    */
     /** The writer's state. See ::mbedtls_writer_state_t. */
     mbedtls_writer_state_t state;
+
+    /** The current buffer to hold outgoing data.      */
+    unsigned char *out;
+    /** The size in bytes of the outgoing data buffer. */
+    mbedtls_mps_stored_size_t out_len;
+
+    /** The offset from the beginning of the outgoing data buffer indicating
+     *  the amount of data that the user has already finished writing.
+     *
+     *  Note: When a queue buffer is in use, this may be larger than the length
+     *        of the outgoing data buffer, and is computed as if the outgoing
+     *        data buffer was immediately followed by the queue buffer.
+     *
+     * This is only used when the writer is in consuming mode, i.e.
+     * <code>state == MBEDTLS_WRITER_CONSUMING</code>; in this case, its value
+     * is smaller or equal to <code>out_len + queue_len</code>.
+     */
+    mbedtls_mps_stored_size_t commit;
+
+    /** The offset from the beginning of the outgoing data buffer of the
+     *  end of the last fragment handed to the user.
+     *
+     *  Note: When a queue buffer is in use, this may be larger than the
+     *  length of the outgoing data buffer, and is computed as if the outgoing
+     *  data buffer was immediately followed by the queue buffer.
+     *
+     *  This is only used when the writer is in consuming mode,
+     *  i.e. <code>state == MBEDTLS_WRITER_CONSUMING</code>; in this case,
+     *  its value is smaller or equal to <code>out_len + queue_len</code>.
+     */
+    mbedtls_mps_stored_size_t end;
+
+    /** The queue buffer from which to serve write requests that would
+     *  exceed the current outgoing data buffer's bounds. May be \c NULL. */
+    unsigned char *queue;
+    /** The length of the queue. */
+    mbedtls_mps_stored_size_t queue_len;
+
+    /** In consuming mode, this denotes the size of the overlap between the
+     *  queue and the current out buffer, once <code>end > out_len</code>.
+     *  If <code>end < out_len</code>, its value is \c 0.
+     *  In providing mode, this denotes the amount of data from the queue that
+     *  has already been copied to some outgoing data buffer.
+     */
+    mbedtls_mps_stored_size_t queue_next;
+    /** The amount of data within the queue buffer that hasn't been copied to
+     *  some outgoing data buffer yet. This is only used in providing mode, and
+     *  if the writer uses a queue (<code>queue != NULL</code>), and in this
+     *  case its value is at most <code>queue_len - queue_next</code>.
+     */
+    mbedtls_mps_stored_size_t queue_remaining;
 };
 
 /*
@@ -312,20 +319,24 @@ typedef unsigned char mbedtls_writer_ext_grp_index_t;
 
 struct mbedtls_writer_ext
 {
-    size_t grp_end[MBEDTLS_WRITER_MAX_GROUPS];
-                      /*!< The offsets marking the ends of the currently
-                       *   active groups. The first cur_grp + 1 entries are
-                       *   valid and always weakly descending (subsequent
-                       *   groups are subgroups of their predecessors ones).  */
-
-    mbedtls_writer *wr; /*!< The underlying writer object - may be NULL.      */
-    size_t ofs_fetch;   /*!< The offset of the first byte of the next chunk.  */
-    size_t ofs_commit;  /*!< The offset of first byte beyond
-                         *   the last committed chunk .*/
     /** The 0-based index of the currently active group.
      *  The group of index 0 always exists and represents
      *  the entire logical message buffer. */
     mbedtls_writer_ext_grp_index_t cur_grp;
+
+    /** The offsets marking the ends of the currently active groups.
+     *  The first <code>cur_grp + 1</code> entries are valid and always
+     *  weakly descending (subsequent groups are subgroups of their
+     *  predecessors ones).  */
+    mbedtls_mps_stored_size_t grp_end[MBEDTLS_WRITER_MAX_GROUPS];
+
+    /** The underlying writer object - may be \c NULL. */
+    mbedtls_writer *wr;
+
+    /** The offset of the first byte of the next chunk.  */
+    mbedtls_mps_stored_size_t ofs_fetch;
+    /**< The offset of first byte beyond the last committed chunk. */
+    mbedtls_mps_stored_size_t ofs_commit;
 
     /** Indicates whether commits should be passed to the underlying writer.
      *  See ::mbedtls_writer_ext_passthrough_t. */
@@ -384,7 +395,8 @@ struct mbedtls_writer_ext
   WRITER_INV_ENSURES(writer)
   @*/
 int mbedtls_writer_init( mbedtls_writer *writer,
-                         unsigned char *queue, size_t queue_len );
+                         unsigned char *queue,
+                         mbedtls_mps_size_t queue_len );
 
 /**
  * \brief           Free a writer object
@@ -437,7 +449,8 @@ int mbedtls_writer_free( mbedtls_writer *writer );
   WRITER_INV_ENSURES(writer)
   @*/
 int mbedtls_writer_feed( mbedtls_writer *writer,
-                         unsigned char *buf, size_t buflen );
+                         unsigned char *buf,
+                         mbedtls_mps_size_t buflen );
 
 /**
  * \brief           Attempt to reclaim output buffer from writer,
@@ -476,8 +489,10 @@ int mbedtls_writer_feed( mbedtls_writer *writer,
   WRITER_INV_REQUIRES(writer)
   WRITER_INV_ENSURES(writer)
   @*/
-int mbedtls_writer_reclaim( mbedtls_writer *writer, size_t *queued,
-                            size_t *written, int force );
+int mbedtls_writer_reclaim( mbedtls_writer *writer,
+                            mbedtls_mps_size_t *queued,
+                            mbedtls_mps_size_t *written,
+                            int force );
 
 /**
  * \brief           Check how many bytes have already been written
@@ -490,7 +505,8 @@ int mbedtls_writer_reclaim( mbedtls_writer *writer, size_t *queued,
  * \return          A negative error code \c MBEDTLS_ERR_WRITER_XXX on failure.
  *
  */
-int mbedtls_writer_bytes_written( mbedtls_writer *writer, size_t *written );
+int mbedtls_writer_bytes_written( mbedtls_writer *writer,
+                                  mbedtls_mps_size_t *written );
 
 /**
  * \brief           Signal that all output buffers previously obtained
@@ -556,7 +572,8 @@ int mbedtls_writer_commit( mbedtls_writer *writer );
   WRITER_INV_REQUIRES(writer)
   WRITER_INV_ENSURES(writer)
   @*/
-int mbedtls_writer_commit_partial( mbedtls_writer *writer, size_t omit );
+int mbedtls_writer_commit_partial( mbedtls_writer *writer,
+                                   mbedtls_mps_size_t omit );
 
 /**
  * \brief           Request buffer to hold outbound data.
@@ -600,8 +617,10 @@ int mbedtls_writer_commit_partial( mbedtls_writer *writer, size_t omit );
   WRITER_INV_REQUIRES(writer)
   WRITER_INV_ENSURES(writer)
   @*/
-int mbedtls_writer_get( mbedtls_writer *writer, size_t desired,
-                        unsigned char **buffer, size_t *buflen );
+int mbedtls_writer_get( mbedtls_writer *writer,
+                        mbedtls_mps_size_t desired,
+                        unsigned char **buffer,
+                        mbedtls_mps_size_t *buflen );
 
 /**
  * \brief           Initialize an extended writer object
@@ -620,7 +639,7 @@ int mbedtls_writer_get( mbedtls_writer *writer, size_t desired,
   WRITER_EXT_INV_ENSURES( writer )
   @*/
 int mbedtls_writer_init_ext( mbedtls_writer_ext *writer,
-                             size_t size );
+                             mbedtls_mps_size_t size );
 
 /**
  * \brief           Free an extended writer object
@@ -666,8 +685,10 @@ int mbedtls_writer_free_ext( mbedtls_writer_ext *writer );
   WRITER_EXT_INV_REQUIRES(writer)
   WRITER_EXT_INV_ENSURES(writer)
   @*/
-int mbedtls_writer_get_ext( mbedtls_writer_ext *writer, size_t desired,
-                            unsigned char **buffer, size_t *buflen );
+int mbedtls_writer_get_ext( mbedtls_writer_ext *writer,
+                            mbedtls_mps_size_t desired,
+                            unsigned char **buffer,
+                            mbedtls_mps_size_t *buflen );
 
 /**
  * \brief           Signal that all output buffers previously obtained
@@ -723,7 +744,8 @@ int mbedtls_writer_commit_ext( mbedtls_writer_ext *writer );
   WRITER_INV_REQUIRES(writer)
   WRITER_INV_ENSURES(writer)
   @*/
-int mbedtls_writer_commit_partial_ext( mbedtls_writer_ext *writer, size_t omit );
+int mbedtls_writer_commit_partial_ext( mbedtls_writer_ext *writer,
+                                       mbedtls_mps_size_t omit );
 
 /**
  * \brief            Open a new logical subbuffer.
@@ -749,7 +771,7 @@ int mbedtls_writer_commit_partial_ext( mbedtls_writer_ext *writer, size_t omit )
   WRITER_EXT_INV_ENSURES(writer)
   @*/
 int mbedtls_writer_group_open( mbedtls_writer_ext *writer,
-                               size_t group_size );
+                               mbedtls_mps_size_t group_size );
 
 /**
  * \brief            Close the most recently opened logical subbuffer.
@@ -827,8 +849,8 @@ int mbedtls_writer_attach( mbedtls_writer_ext *wr_ext,
   WRITER_EXT_INV_ENSURES(wr_ext)
   @*/
 int mbedtls_writer_detach( mbedtls_writer_ext *wr_ext,
-                           size_t *committed,
-                           size_t *uncommitted );
+                           mbedtls_mps_size_t *committed,
+                           mbedtls_mps_size_t *uncommitted );
 
 /**
  * \brief            Check if the extended writer is finished processing

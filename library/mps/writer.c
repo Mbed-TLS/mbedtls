@@ -33,7 +33,8 @@ static mbedtls_writer_ext const writer_ext_zero = { 0, { 0 }, NULL, 0, 0,
                                                     MBEDTLS_WRITER_EXT_PASS, };
 
 int mbedtls_writer_init( mbedtls_writer *wr,
-                         unsigned char *queue, size_t queue_len )
+                         unsigned char *queue,
+                         mbedtls_mps_size_t queue_len )
 {
     TRACE_INIT( "writer_init, queue_len %u", (unsigned) queue_len );
 
@@ -52,11 +53,12 @@ int mbedtls_writer_free( mbedtls_writer *wr )
 }
 
 int mbedtls_writer_feed( mbedtls_writer *wr,
-                         unsigned char *buf, size_t buf_len )
+                         unsigned char *buf,
+                         mbedtls_mps_size_t buf_len )
 {
     unsigned char *queue;
     unsigned char state;
-    size_t copy_from_queue;
+    mbedtls_mps_size_t copy_from_queue;
     TRACE_INIT( "writer_feed, buflen %u",
                 (unsigned) buf_len );
 
@@ -76,7 +78,7 @@ int mbedtls_writer_feed( mbedtls_writer *wr,
     copy_from_queue = 0;
     if( queue != NULL )
     {
-        size_t qa, qr;
+        mbedtls_mps_size_t qa, qr;
         qr = wr->queue_remaining;
         qa = wr->queue_next;
         TRACE( trace_comment, "Queue data pending to be dispatched: %u",
@@ -89,7 +91,7 @@ int mbedtls_writer_feed( mbedtls_writer *wr,
             copy_from_queue = buf_len;
         queue += qa;
         memcpy( buf, queue, copy_from_queue );
-        for( size_t idx = 0; idx < copy_from_queue; idx++ )
+        for( mbedtls_mps_size_t idx = 0; idx < copy_from_queue; idx++ )
         {
             TRACE( trace_comment, "Byte copied from queue %u: %u",
                     (unsigned) idx, queue[idx] );
@@ -130,10 +132,12 @@ int mbedtls_writer_feed( mbedtls_writer *wr,
     RETURN( 0 );
 }
 
-int mbedtls_writer_reclaim( mbedtls_writer *wr, size_t *olen,
-                            size_t *queued, int force )
+int mbedtls_writer_reclaim( mbedtls_writer *wr,
+                            mbedtls_mps_size_t *olen,
+                            mbedtls_mps_size_t *queued,
+                            int force )
 {
-    size_t commit, ol;
+    mbedtls_mps_size_t commit, ol;
     unsigned char state;
     TRACE_INIT( "writer_reclaim, force %u", (unsigned) force );
 
@@ -181,7 +185,7 @@ int mbedtls_writer_reclaim( mbedtls_writer *wr, size_t *olen,
 
     if( queued != NULL )
     {
-        size_t qr = wr->queue_remaining;
+        mbedtls_mps_size_t qr = wr->queue_remaining;
         TRACE( trace_comment, "queue remaining %u",
                 (unsigned) wr->queue_remaining );
         *queued = qr;
@@ -195,9 +199,10 @@ int mbedtls_writer_reclaim( mbedtls_writer *wr, size_t *olen,
     RETURN( 0 );
 }
 
-int mbedtls_writer_bytes_written( mbedtls_writer *wr, size_t *written )
+int mbedtls_writer_bytes_written( mbedtls_writer *wr,
+                                  mbedtls_mps_size_t *written )
 {
-    size_t commit;
+    mbedtls_mps_size_t commit;
     unsigned char state;
     TRACE_INIT( "writer_bytes_written" );
 
@@ -211,12 +216,14 @@ int mbedtls_writer_bytes_written( mbedtls_writer *wr, size_t *written )
     RETURN( 0 );
 }
 
-int mbedtls_writer_get( mbedtls_writer *wr, size_t desired,
-                        unsigned char **buffer, size_t *buflen )
+int mbedtls_writer_get( mbedtls_writer *wr,
+                        mbedtls_mps_size_t desired,
+                        unsigned char **buffer,
+                        mbedtls_mps_size_t *buflen )
 {
     unsigned char *out, *queue;
     unsigned char state;
-    size_t end, ol, or, ql, qn, qo;
+    mbedtls_mps_size_t end, ol, or, ql, qn, qo;
     TRACE_INIT( "writer_get, desired %u", (unsigned) desired );
 
     state = wr->state;
@@ -335,10 +342,10 @@ int mbedtls_writer_commit( mbedtls_writer *wr )
 }
 
 int mbedtls_writer_commit_partial( mbedtls_writer *wr,
-                                   size_t omit )
+                                   mbedtls_mps_size_t omit )
 {
-    size_t to_be_committed, commit, end, queue_overlap;
-    size_t out_len, copy_from_queue;
+    mbedtls_mps_size_t to_be_committed, commit, end, queue_overlap;
+    mbedtls_mps_size_t out_len, copy_from_queue;
     unsigned char *out, *queue;
     unsigned char state;
     TRACE_INIT( "writer_commit_partial" );
@@ -399,7 +406,8 @@ int mbedtls_writer_commit_partial( mbedtls_writer *wr,
 
 /* TODO: Consider making (some of) these functions inline. */
 
-int mbedtls_writer_init_ext( mbedtls_writer_ext *wr_ext, size_t size )
+int mbedtls_writer_init_ext( mbedtls_writer_ext *wr_ext,
+                             mbedtls_mps_size_t size )
 {
     TRACE_INIT( "writer_init_ext, size %u", (unsigned) size );
     *wr_ext = writer_ext_zero;
@@ -414,11 +422,13 @@ int mbedtls_writer_free_ext( mbedtls_writer_ext *rd )
     RETURN( 0 );
 }
 
-int mbedtls_writer_get_ext( mbedtls_writer_ext *wr_ext, size_t desired,
-                            unsigned char **buffer, size_t *buflen )
+int mbedtls_writer_get_ext( mbedtls_writer_ext *wr_ext,
+                            mbedtls_mps_size_t desired,
+                            unsigned char **buffer,
+                            mbedtls_mps_size_t *buflen )
 {
     int ret;
-    size_t logic_avail;
+    mbedtls_mps_size_t logic_avail;
     TRACE_INIT( "writer_get_ext: desired %u", (unsigned) desired );
 
     if( wr_ext->wr == NULL )
@@ -463,7 +473,7 @@ int mbedtls_writer_commit_ext( mbedtls_writer_ext *wr )
 }
 
 int mbedtls_writer_commit_partial_ext( mbedtls_writer_ext *wr,
-                                       size_t omit )
+                                       mbedtls_mps_size_t omit )
 {
     int ret;
     TRACE_INIT( "writer_commit_ext" );
@@ -493,10 +503,10 @@ int mbedtls_writer_commit_partial_ext( mbedtls_writer_ext *wr,
 }
 
 int mbedtls_writer_group_open( mbedtls_writer_ext *wr_ext,
-                               size_t group_size )
+                               mbedtls_mps_size_t group_size )
 {
     /* Check how much space is left in the current group */
-    size_t const logic_avail =
+    mbedtls_mps_size_t const logic_avail =
         wr_ext->grp_end[wr_ext->cur_grp] - wr_ext->ofs_fetch;
     TRACE_INIT( "writer_group_open, size %u", (unsigned) group_size );
 
@@ -517,7 +527,7 @@ int mbedtls_writer_group_open( mbedtls_writer_ext *wr_ext,
 int mbedtls_writer_group_close( mbedtls_writer_ext *wr_ext )
 {
     /* Check how much space is left in the current group */
-    size_t const logic_avail =
+    mbedtls_mps_size_t const logic_avail =
         wr_ext->grp_end[wr_ext->cur_grp] - wr_ext->ofs_fetch;
     TRACE_INIT( "writer_group_close" );
 
@@ -546,8 +556,8 @@ int mbedtls_writer_attach( mbedtls_writer_ext *wr_ext,
 }
 
 int mbedtls_writer_detach( mbedtls_writer_ext *wr_ext,
-                           size_t *committed,
-                           size_t *uncommitted )
+                           mbedtls_mps_size_t *committed,
+                           mbedtls_mps_size_t *uncommitted )
 {
     TRACE_INIT( "writer_check_detach" );
     if( wr_ext->wr == NULL )
@@ -574,7 +584,7 @@ int mbedtls_writer_check_done( mbedtls_writer_ext *wr_ext )
         RETURN( MBEDTLS_ERR_WRITER_BOUNDS_VIOLATION );
     }
 
-    if( wr_ext->grp_end[0] != (size_t) -1 &&
+    if( wr_ext->grp_end[0] != MBEDTLS_MPS_OFFSET_MAX &&
         wr_ext->ofs_commit != wr_ext->grp_end[0] )
     {
         RETURN( MBEDTLS_ERR_WRITER_BOUNDS_VIOLATION );

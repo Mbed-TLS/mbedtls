@@ -2007,7 +2007,7 @@ int main( int argc, char *argv[] )
     if( key_cert_init2 )
         if( ( ret = mbedtls_ssl_conf_own_cert( &conf, &srvcert2, &pkey2 ) ) != 0 )
         {
-            mbedtls_printf( stderr,
+            mbedtls_fprintf( stderr,
                 " failed\n  ! mbedtls_ssl_conf_own_cert returned -0x%04X\n\n",
                 -ret );
             goto exit;

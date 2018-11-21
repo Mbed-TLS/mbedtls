@@ -402,6 +402,9 @@ static const char *features[] = {
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
     "MBEDTLS_ENTROPY_NV_SEED",
 #endif /* MBEDTLS_ENTROPY_NV_SEED */
+#if defined(MBEDTLS_PSA_HAS_ITS_IO)
+    "MBEDTLS_PSA_HAS_ITS_IO",
+#endif /* MBEDTLS_PSA_HAS_ITS_IO */
 #if defined(MBEDTLS_MEMORY_DEBUG)
     "MBEDTLS_MEMORY_DEBUG",
 #endif /* MBEDTLS_MEMORY_DEBUG */

@@ -69,6 +69,7 @@
 #include "mbedtls/ecdh.h"
 #include "mbedtls/ecp.h"
 #include "mbedtls/entropy.h"
+#include "mbedtls/entropy_poll.h"
 #include "mbedtls/error.h"
 #include "mbedtls/gcm.h"
 #include "mbedtls/md2.h"
@@ -85,7 +86,9 @@
 #include "mbedtls/sha512.h"
 #include "mbedtls/xtea.h"
 
-
+#if ( defined(MBEDTLS_ENTROPY_NV_SEED) && defined(MBEDTLS_PSA_HAS_ITS_IO) )
+#include "psa_prot_internal_storage.h"
+#endif
 
 #define ARRAY_LENGTH( array ) ( sizeof( array ) / sizeof( *( array ) ) )
 
@@ -4224,6 +4227,73 @@ psa_status_t psa_generate_random( uint8_t *output,
     ret = mbedtls_ctr_drbg_random( &global_data.ctr_drbg, output, output_size );
     return( mbedtls_to_psa_error( ret ) );
 }
+
+#if ( defined(MBEDTLS_ENTROPY_NV_SEED) && defined(MBEDTLS_PSA_HAS_ITS_IO) )
+
+/* Support function for error conversion between psa_its error codes to psa crypto */
+static psa_status_t its_to_psa_error( psa_its_status_t ret )
+{
+    switch( ret )
+    {
+        case PSA_ITS_SUCCESS:
+            return( PSA_SUCCESS );
+
+        case PSA_ITS_ERROR_KEY_NOT_FOUND:
+            return( PSA_ERROR_EMPTY_SLOT );
+
+        case PSA_ITS_ERROR_STORAGE_FAILURE:
+            return( PSA_ERROR_STORAGE_FAILURE );
+
+        case PSA_ITS_ERROR_INSUFFICIENT_SPACE:
+            return( PSA_ERROR_INSUFFICIENT_STORAGE );
+
+        case PSA_ITS_ERROR_INVALID_KEY:
+        case PSA_PS_ERROR_OFFSET_INVALID:
+        case PSA_ITS_ERROR_INCORRECT_SIZE:
+        case PSA_ITS_ERROR_BAD_POINTER:
+            return( PSA_ERROR_INVALID_ARGUMENT );
+
+        case PSA_ITS_ERROR_FLAGS_NOT_SUPPORTED:
+            return( PSA_ERROR_NOT_SUPPORTED );
+
+        case PSA_ITS_ERROR_WRITE_ONCE:
+            return( PSA_ERROR_OCCUPIED_SLOT );
+
+        default:
+            return( PSA_ERROR_UNKNOWN_ERROR );
+    }
+}
+
+psa_status_t mbedtls_psa_inject_entropy( const unsigned char *seed,
+                                         size_t seed_size )
+{
+    psa_status_t status;
+    psa_its_status_t its_status;
+    struct psa_its_info_t p_info;
+    if( global_data.initialized )
+        return( PSA_ERROR_NOT_PERMITTED );
+
+    if( ( ( seed_size < MBEDTLS_ENTROPY_MIN_PLATFORM ) ||
+          ( seed_size < MBEDTLS_ENTROPY_BLOCK_SIZE ) ) ||
+          ( seed_size > MBEDTLS_ENTROPY_MAX_SEED_SIZE ) )
+            return( PSA_ERROR_INVALID_ARGUMENT );
+
+    its_status = psa_its_get_info( PSA_CRYPTO_ITS_RANDOM_SEED_UID, &p_info );
+    status = its_to_psa_error( its_status );
+
+    if( PSA_ITS_ERROR_KEY_NOT_FOUND == its_status ) /* No seed exists */
+    {
+        its_status = psa_its_set( PSA_CRYPTO_ITS_RANDOM_SEED_UID, seed_size, seed, 0 );
+        status = its_to_psa_error( its_status );
+    }
+    else if( PSA_ITS_SUCCESS == its_status )
+    {
+        /* You should not be here. Seed needs to be injected only once */
+        status = PSA_ERROR_NOT_PERMITTED;
+    }
+    return( status );
+}
+#endif
 
 psa_status_t psa_generate_key( psa_key_slot_t key,
                                psa_key_type_t type,

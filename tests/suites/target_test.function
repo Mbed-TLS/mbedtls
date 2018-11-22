@@ -368,7 +368,7 @@ int execute_tests( int args, const char ** argv )
     void ** params = NULL;
     uint8_t * data = NULL, * p = NULL;
 
-    GREENTEA_SETUP( 180, "mbedtls_test" );
+    GREENTEA_SETUP( 800, "mbedtls_test" );
     greentea_send_kv( "GO", " " );
 
     while ( 1 )

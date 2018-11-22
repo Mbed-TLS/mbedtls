@@ -48,7 +48,6 @@ extern "C" {
 void mbedtls_psa_crypto_free( void );
 
 
-#if ( defined(MBEDTLS_ENTROPY_NV_SEED) && defined(MBEDTLS_PSA_HAS_ITS_IO) )
 /**
  * \brief Inject an initial entropy seed for the random generator into
  *        secure storage.
@@ -89,6 +88,13 @@ void mbedtls_psa_crypto_free( void );
  *
  * This is an Mbed TLS extension.
  *
+ * \note This function is only available on the following platforms:
+ * * If the compile-time options MBEDTLS_ENTROPY_NV_SEED and 
+ *   MBEDTLS_PSA_HAS_ITS_IO are both enabled. Note that you 
+ *   must provide compatible implementations of mbedtls_nv_seed_read 
+ *   and mbedtls_nv_seed_write.
+ * * In a client-server integration of PSA Cryptography, on the client side, 
+ *   if the server supports this feature.
  * \param seed[in]      Buffer containing the seed value to inject.
  * \param seed_size     Size of the \p seed buffer.
  *                      The size of the seed in bytes must be greater
@@ -114,7 +120,6 @@ void mbedtls_psa_crypto_free( void );
 psa_status_t mbedtls_psa_inject_entropy(const unsigned char *seed,
                                         size_t seed_size);
 
-#endif
 
 #ifdef __cplusplus
 }

@@ -95,13 +95,13 @@ void mbedtls_psa_crypto_free( void );
  *   and mbedtls_nv_seed_write.
  * * In a client-server integration of PSA Cryptography, on the client side,
  *   if the server supports this feature.
- * \param[in] seed      Buffer containing the seed value to inject.
+ * \param[in] seed          Buffer containing the seed value to inject.
  * \param[in] seed_size     Size of the \p seed buffer.
- *                      The size of the seed in bytes must be greater
- *                      or equal to both #MBEDTLS_ENTROPY_MIN_PLATFORM
- *                      and #MBEDTLS_ENTROPY_BLOCK_SIZE.
- *                      It must be less or equal to
- *                      #MBEDTLS_ENTROPY_MAX_SEED_SIZE.
+ *                          The size of the seed in bytes must be greater
+ *                          or equal to both #MBEDTLS_ENTROPY_MIN_PLATFORM
+ *                          and #MBEDTLS_ENTROPY_BLOCK_SIZE.
+ *                          It must be less or equal to
+ *                          #MBEDTLS_ENTROPY_MAX_SEED_SIZE.
  *
  * \retval #PSA_SUCCESS
  *         The seed value was injected successfully. The random generator

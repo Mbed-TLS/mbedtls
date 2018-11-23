@@ -283,9 +283,12 @@ struct mbedtls_ssl_handshake_params
     const mbedtls_ecp_curve_info **curves;      /*!<  Supported elliptic curves */
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_key_slot_t psk_opaque;          /*!< Opaque PSK from the callback   */
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
     unsigned char *psk;                 /*!<  PSK from the callback         */
     size_t psk_len;                     /*!<  Length of PSK from callback   */
-#endif
+#endif /* MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     mbedtls_ssl_key_cert *key_cert;     /*!< chosen key/cert pair (server)  */
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)

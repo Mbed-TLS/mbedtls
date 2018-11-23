@@ -135,6 +135,27 @@ class TabIssueTracker(IssueTracker):
         return b"\t" in line
 
 
+class MergeArtifactIssueTracker(IssueTracker):
+
+    def __init__(self):
+        super().__init__()
+        self.heading = "Merge artifact:"
+
+    def issue_with_line(self, filepath, line):
+        # Detect leftover git conflict markers.
+        if line.startswith(b'<<<<<<< ') or line.startswith(b'>>>>>>> '):
+            return True
+        if line.startswith(b'||||||| '): # from merge.conflictStyle=diff3
+            return True
+        if line.rstrip(b'\r\n') == b'=======' and \
+           not filepath.endswith('.md'):
+            return True
+        return False
+
+    def check_file_line(self, filepath, line, line_number):
+        if self.issue_with_line(filepath, line):
+            self.record_issue(filepath, line_number)
+
 class TodoIssueTracker(IssueTracker):
 
     def __init__(self):
@@ -170,6 +191,7 @@ class IntegrityChecker(object):
             LineEndingIssueTracker(),
             TrailingWhitespaceIssueTracker(),
             TabIssueTracker(),
+            MergeArtifactIssueTracker(),
             TodoIssueTracker(),
         ]
 

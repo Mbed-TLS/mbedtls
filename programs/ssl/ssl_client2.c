@@ -84,6 +84,7 @@ int main( void )
 #define DFL_CA_PATH             ""
 #define DFL_CRT_FILE            ""
 #define DFL_KEY_FILE            ""
+#define DFL_KEY_OPAQUE          0
 #define DFL_PSK                 ""
 #define DFL_PSK_IDENTITY        "Client_identity"
 #define DFL_ECJPAKE_PW          NULL
@@ -134,9 +135,16 @@ int main( void )
 #define USAGE_IO \
     "    No file operations available (MBEDTLS_FS_IO not defined)\n"
 #endif /* MBEDTLS_FS_IO */
-#else
+#else /* MBEDTLS_X509_CRT_PARSE_C */
 #define USAGE_IO ""
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_X509_CRT_PARSE_C)
+#define USAGE_KEY_OPAQUE \
+    "    key_opaque=%%d       Handle your private key as if it were opaque\n" \
+    "                        default: 0 (disabled)\n"
+#else
+#define USAGE_KEY_OPAQUE ""
+#endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 #define USAGE_PSK                                                   \
@@ -283,6 +291,7 @@ int main( void )
     "    auth_mode=%%s        default: (library default: none)\n" \
     "                        options: none, optional, required\n" \
     USAGE_IO                                                \
+    USAGE_KEY_OPAQUE                                        \
     "\n"                                                    \
     USAGE_PSK                                               \
     USAGE_ECJPAKE                                           \
@@ -337,6 +346,7 @@ struct options
     const char *ca_path;        /* the path with the CA certificate(s) reside */
     const char *crt_file;       /* the file with the client certificate     */
     const char *key_file;       /* the file with the client key             */
+    int key_opaque;             /* handle private key as if it were opaque  */
     const char *psk;            /* the pre-shared key                       */
     const char *psk_identity;   /* the pre-shared key identity              */
     const char *ecjpake_pw;     /* the EC J-PAKE password                   */
@@ -556,6 +566,9 @@ int main( int argc, char *argv[] )
     mbedtls_x509_crt cacert;
     mbedtls_x509_crt clicert;
     mbedtls_pk_context pkey;
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_key_slot_t key_slot = 0; /* invalid key slot */
+#endif
 #endif
     char *p, *q;
     const int *list;
@@ -627,6 +640,7 @@ int main( int argc, char *argv[] )
     opt.ca_path             = DFL_CA_PATH;
     opt.crt_file            = DFL_CRT_FILE;
     opt.key_file            = DFL_KEY_FILE;
+    opt.key_opaque          = DFL_KEY_OPAQUE;
     opt.psk                 = DFL_PSK;
     opt.psk_identity        = DFL_PSK_IDENTITY;
     opt.ecjpake_pw          = DFL_ECJPAKE_PW;
@@ -726,6 +740,10 @@ int main( int argc, char *argv[] )
             opt.crt_file = q;
         else if( strcmp( p, "key_file" ) == 0 )
             opt.key_file = q;
+#if defined(MBEDTLS_USE_PSA_CRYPTO) && defined(MBEDTLS_X509_CRT_PARSE_C)
+        else if( strcmp( p, "key_opaque" ) == 0 )
+            opt.key_opaque = atoi( q );
+#endif
         else if( strcmp( p, "psk" ) == 0 )
             opt.psk = q;
         else if( strcmp( p, "psk_identity" ) == 0 )
@@ -1309,7 +1327,20 @@ int main( int argc, char *argv[] )
         goto exit;
     }
 
-    mbedtls_printf( " ok\n" );
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( opt.key_opaque != 0 )
+    {
+        if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot,
+                                               PSA_ALG_SHA_256 ) ) != 0 )
+        {
+            mbedtls_printf( " failed\n  !  "
+                            "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", -ret );
+            goto exit;
+        }
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    mbedtls_printf( " ok (key type: %s)\n", mbedtls_pk_get_name( &pkey ) );
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     /*
@@ -2116,6 +2147,9 @@ exit:
     mbedtls_x509_crt_free( &clicert );
     mbedtls_x509_crt_free( &cacert );
     mbedtls_pk_free( &pkey );
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_destroy_key( key_slot );
+#endif
 #endif
     mbedtls_ssl_session_free( &saved_session );
     mbedtls_ssl_free( &ssl );

@@ -43,11 +43,14 @@ class IssueTracker(object):
             for i, line in enumerate(iter(f.readline, b"")):
                 self.check_file_line(filepath, line, i + 1)
 
+    def record_issue(self, filepath, line_number):
+        if filepath not in self.files_with_issues.keys():
+            self.files_with_issues[filepath] = []
+        self.files_with_issues[filepath].append(line_number)
+
     def check_file_line(self, filepath, line, line_number):
         if self.issue_with_line(line):
-            if filepath not in self.files_with_issues.keys():
-                self.files_with_issues[filepath] = []
-            self.files_with_issues[filepath].append(line_number)
+            self.record_issue(filepath, line_number)
 
     def output_file_issues(self, logger):
         if self.files_with_issues.values():

@@ -1869,6 +1869,7 @@ static psa_status_t psa_mac_setup( psa_mac_operation_t *operation,
     else
 #endif /* MBEDTLS_MD_C */
     {
+        (void) key_bits;
         status = PSA_ERROR_NOT_SUPPORTED;
     }
 

@@ -655,7 +655,7 @@ scripts/config.pl full
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
 scripts/config.pl set MBEDTLS_PSA_CRYPTO_C
 scripts/config.pl set MBEDTLS_USE_PSA_CRYPTO
-CC=gcc cmake -D USE_CRYPTO_SUBMODULE -D CMAKE_BUILD_TYPE:String=Asan .
+CC=gcc cmake -D USE_CRYPTO_SUBMODULE=1 -D CMAKE_BUILD_TYPE:String=Asan .
 make
 
 msg "test: main suites (MBEDTLS_USE_PSA_CRYPTO)"

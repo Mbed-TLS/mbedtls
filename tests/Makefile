@@ -14,6 +14,7 @@ LOCAL_LDFLAGS = -L../library			\
 
 ifdef USE_CRYPTO_SUBMODULE
 LOCAL_LDFLAGS += -L../crypto/library
+LOCAL_CFLAGS += -I../crypto/include
 CRYPTO := ../crypto/library/
 else
 CRYPTO := ../library/

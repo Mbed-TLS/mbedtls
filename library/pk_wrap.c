@@ -50,7 +50,9 @@
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
 #include "mbedtls/psa_util.h"
+#include "mbedtls/asn1.h"
 #endif
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -480,6 +482,154 @@ static int ecdsa_can_do( mbedtls_pk_type_t type )
     return( type == MBEDTLS_PK_ECDSA );
 }
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+/*
+ * An ASN.1 encoded signature is a sequence of two ASN.1 integers. Parse one of
+ * those integers and convert it to the fixed-length encoding expected by PSA.
+ */
+static int extract_ecdsa_sig_int( unsigned char **from, const unsigned char *end,
+                                  unsigned char *to, size_t to_len )
+{
+    int ret;
+    size_t unpadded_len, padding_len;
+
+    if( ( ret = mbedtls_asn1_get_tag( from, end, &unpadded_len,
+                                      MBEDTLS_ASN1_INTEGER ) ) != 0 )
+    {
+        return( ret );
+    }
+
+    while( unpadded_len > 0 && **from == 0x00 )
+    {
+        ( *from )++;
+        unpadded_len--;
+    }
+
+    if( unpadded_len > to_len || unpadded_len == 0 )
+        return( MBEDTLS_ERR_ASN1_LENGTH_MISMATCH );
+
+    padding_len = to_len - unpadded_len;
+    memset( to, 0x00, padding_len );
+    memcpy( to + padding_len, *from, unpadded_len );
+    ( *from ) += unpadded_len;
+
+    return( 0 );
+}
+
+/*
+ * Convert a signature from an ASN.1 sequence of two integers
+ * to a raw {r,s} buffer. Note: the provided sig buffer must be at least
+ * twice as big as int_size.
+ */
+static int extract_ecdsa_sig( unsigned char **p, const unsigned char *end,
+                              unsigned char *sig, size_t int_size )
+{
+    int ret;
+    size_t tmp_size;
+
+    if( ( ret = mbedtls_asn1_get_tag( p, end, &tmp_size,
+                MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE ) ) != 0 )
+        return( ret );
+
+    /* Extract r */
+    if( ( ret = extract_ecdsa_sig_int( p, end, sig, int_size ) ) != 0 )
+        return( ret );
+    /* Extract s */
+    if( ( ret = extract_ecdsa_sig_int( p, end, sig + int_size, int_size ) ) != 0 )
+        return( ret );
+
+    return( 0 );
+}
+
+static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
+                       const unsigned char *hash, size_t hash_len,
+                       const unsigned char *sig, size_t sig_len )
+{
+    int ret;
+    psa_key_slot_t key_slot;
+    psa_key_policy_t policy;
+    psa_key_type_t psa_type;
+    mbedtls_pk_context key;
+    int key_len;
+    /* see ECP_PUB_DER_MAX_BYTES in pkwrite.c */
+    unsigned char buf[30 + 2 * MBEDTLS_ECP_MAX_BYTES];
+    unsigned char *p = (unsigned char*) sig;
+    mbedtls_pk_info_t pk_info = mbedtls_eckey_info;
+    psa_algorithm_t psa_sig_md, psa_md;
+    psa_ecc_curve_t curve = mbedtls_psa_translate_ecc_group(
+                            ( (mbedtls_ecdsa_context *) ctx )->grp.id );
+    const size_t signature_part_size = ( ( (mbedtls_ecdsa_context *) ctx )->grp.nbits + 7 ) / 8;
+
+    if( curve == 0 )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    /* mbedlts_pk_write_pubkey_der() expects a full PK context,
+     * re-construct one to make it happy */
+    key.pk_info = &pk_info;
+    key.pk_ctx = ctx;
+    key_len = mbedtls_pk_write_pubkey_der( &key, buf, sizeof( buf ) );
+    if( key_len <= 0 )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+
+    if( ( ret = mbedtls_psa_get_free_key_slot( &key_slot ) ) != PSA_SUCCESS )
+        return( mbedtls_psa_err_translate_pk( ret ) );
+
+    psa_md = mbedtls_psa_translate_md( md_alg );
+    if( psa_md == 0 )
+        return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+    psa_sig_md = PSA_ALG_ECDSA( psa_md );
+    psa_type = PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_VERIFY, psa_sig_md );
+    if( ( ret = psa_set_key_policy( key_slot, &policy ) ) != PSA_SUCCESS )
+    {
+        ret = mbedtls_psa_err_translate_pk( ret );
+        goto cleanup;
+    }
+
+    if( psa_import_key( key_slot, psa_type, buf + sizeof( buf ) - key_len, key_len )
+         != PSA_SUCCESS )
+    {
+        ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+
+    /* We don't need the exported key anymore and can
+     * reuse its buffer for signature extraction. */
+    if( 2 * signature_part_size > sizeof( buf ) )
+    {
+        ret = MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+        goto cleanup;
+    }
+
+    if( ( ret = extract_ecdsa_sig( &p, sig + sig_len, buf,
+                                   signature_part_size ) ) != 0 )
+    {
+        goto cleanup;
+    }
+
+    if( psa_asymmetric_verify( key_slot, psa_sig_md,
+                               hash, hash_len,
+                               buf, 2 * signature_part_size )
+         != PSA_SUCCESS )
+    {
+         ret = MBEDTLS_ERR_ECP_VERIFY_FAILED;
+         goto cleanup;
+    }
+
+    if( p != sig + sig_len )
+    {
+        ret = MBEDTLS_ERR_PK_SIG_LEN_MISMATCH;
+        goto cleanup;
+    }
+    ret = 0;
+
+cleanup:
+    psa_destroy_key( key_slot );
+    return( ret );
+}
+#else /* MBEDTLS_USE_PSA_CRYPTO */
 static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                        const unsigned char *hash, size_t hash_len,
                        const unsigned char *sig, size_t sig_len )
@@ -495,6 +645,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
 
     return( ret );
 }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 static int ecdsa_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    const unsigned char *hash, size_t hash_len,

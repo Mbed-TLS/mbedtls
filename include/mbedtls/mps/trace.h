@@ -14,50 +14,52 @@
 #define TRACE_ENABLE_WRITER
 
 /*
- * This shouldn't be touched.
+ * To use the existing trace module, only change
+ * TRACE_ENABLE_XXX above, but don't modify the
+ * rest of this file.
  */
 
 __attribute__((unused)) static int trace_id;
 
 typedef enum
 {
-    trace_comment=0,
+    trace_comment,
     trace_call,
     trace_error
 } trace_type;
 
-#define TRACE_ID_LAYER_1 1
-#define TRACE_ID_LAYER_2 2
-#define TRACE_ID_LAYER_3 3
-#define TRACE_ID_WRITER  4
-#define TRACE_ID_READER  5
+#define TRACE_BIT_LAYER_1 1
+#define TRACE_BIT_LAYER_2 2
+#define TRACE_BIT_LAYER_3 3
+#define TRACE_BIT_WRITER  4
+#define TRACE_BIT_READER  5
 
 #if defined(TRACE_ENABLE_LAYER_1)
-#define TRACE_MASK_LAYER_1 (1u << TRACE_ID_LAYER_1 )
+#define TRACE_MASK_LAYER_1 (1u << TRACE_BIT_LAYER_1 )
 #else
 #define TRACE_MASK_LAYER_1 0
 #endif
 
 #if defined(TRACE_ENABLE_LAYER_2)
-#define TRACE_MASK_LAYER_2 (1u << TRACE_ID_LAYER_2 )
+#define TRACE_MASK_LAYER_2 (1u << TRACE_BIT_LAYER_2 )
 #else
 #define TRACE_MASK_LAYER_2 0
 #endif
 
 #if defined(TRACE_ENABLE_LAYER_3)
-#define TRACE_MASK_LAYER_3 (1u << TRACE_ID_LAYER_3 )
+#define TRACE_MASK_LAYER_3 (1u << TRACE_BIT_LAYER_3 )
 #else
 #define TRACE_MASK_LAYER_3 0
 #endif
 
 #if defined(TRACE_ENABLE_READER)
-#define TRACE_MASK_READER (1u << TRACE_ID_READER )
+#define TRACE_MASK_READER (1u << TRACE_BIT_READER )
 #else
 #define TRACE_MASK_READER 0
 #endif
 
 #if defined(TRACE_ENABLE_WRITER)
-#define TRACE_MASK_WRITER (1u << TRACE_ID_WRITER )
+#define TRACE_MASK_WRITER (1u << TRACE_BIT_WRITER )
 #else
 #define TRACE_MASK_WRITER 0
 #endif

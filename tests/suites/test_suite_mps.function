@@ -725,7 +725,7 @@ void mbedtls_mps_reader_commit_in_old()
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_READER */
-void mbedtls_reader_inconsistent_usage( int option)
+void mbedtls_reader_inconsistent_usage( int option )
 {
     unsigned char bufA[100], bufB[100];
     unsigned char *tmp;
@@ -1785,7 +1785,7 @@ void mbedtls_mps_writer_queue_multiple_refeed()
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
 void mbedtls_mps_writer_queue_multiple_rounds()
 {
-    /* Exercise three rounds of feed-get-commit-reclaim, with queueing*/
+    /* Exercise three rounds of feed-get-commit-reclaim, with queueing. */
     unsigned char bufA[100], bufB[100], bufC[100];
     unsigned char outA[100], outB[100], outC[100];
     unsigned char queue[20];

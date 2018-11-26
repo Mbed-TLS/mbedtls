@@ -144,6 +144,7 @@ static int redirect_output( FILE** out_stream, const char* path )
 
     if( *out_stream == NULL )
     {
+        close( stdout_fd );
         return -1;
     }
 

@@ -92,40 +92,47 @@ static int mps_handle_pending_alert( mbedtls_mps *mps );
 
 /* The API between outgoing fragmentation and the rest of the MPS code. */
 
-/* Start a new outgoing handshake message.
+#define MPS_DTLS_FRAG_OUT_START_USE_L3     0
+#define MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY 1
+#define MPS_DTLS_FRAG_OUT_START_FROM_QUEUE 2
+
+/*
+ * Start a new outgoing handshake message.
+ *
  * - The handshake parameters are provided in \c hs and \c seq_nr.
- * - The queue to be used for the writer through which the writing will
- *   happen is provided in \c queue.
- * - The mode flag \c mode indicates if the outgoing data is already
- *   available, and to what extend Layer 3 shoudl be involved.
+ *
+ * - The queue to be used for the underlying writer is provided in \c queue.
+ *
+ * - The write-mode flag \c mode indicates if the handshake data is already
+ *   available and how Layer 3 should be involved when writing the message.
+ *
  *   More precisely, the supported values are the following:
+ *
  *   - #MPS_DTLS_FRAG_OUT_START_USE_L3
  *     In this mode, the writer operates on a buffer obtained from
- *     Layer 3, and only resorts to the queue if necessary (and available).
+ *     Layer 3, and only resorts to the queue if necessary and available.
  *     This mode is used for messages which don't need to be backed
  *     up for the purpose of retransmission (e.g. because a retransmission
  *     callback is registered for them); for those, it is desirable to work
  *     in place on the buffer(s) obtained from Layer 3 as much as possible.
+ *
  *   - #MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY
- *     In this mode, the writer operates on the queue only, and
- *     gradual copying and dispatching to fragment buffers from Layer 3
- *     happens only after message completion.
+ *     In this mode, the writer operates on the queue only. Gradual copying
+ *     and dispatching to fragment buffers from Layer 3 happens only
+ *     after message completion.
  *     This mode is used to write messages that need to be backed up for
  *     retransmission; in this case, the backup buffer functions as the
  *     queue, so that the user writing the message directly writes it
  *     it into the backup buffer, avoiding an unnecessary copy.
+ *
  *   - #MPS_DTLS_FRAG_OUT_START_FROM_QUEUE
  *     This mode is used if an entire message is already present
  *     in a contiguous buffer and solely needs to be dispatched
  *     to Layer 3, without any prior interaction with the user.
  *     In this case, \c queue specifies the message contents.
  *     This mode is used for retransmission of messages via raw backups.
+ *
  */
-
-#define MPS_DTLS_FRAG_OUT_START_USE_L3     0
-#define MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY 1
-#define MPS_DTLS_FRAG_OUT_START_FROM_QUEUE 2
-
 static int mps_dtls_frag_out_start( mbedtls_mps *mps,
                                     mbedtls_mps_handshake_out *hs,
                                     unsigned char *queue,
@@ -2436,7 +2443,7 @@ static int mps_dtls_frag_out_start( mbedtls_mps *mps,
     mps->dtls.hs.offset = 0;
 
     /* See the declaration of mps_dtls_frag_out_start() for
-     * mroe information on the meaning of the various modes. */
+     * more information on the meaning of the various modes. */
     if( mode == MPS_DTLS_FRAG_OUT_START_USE_L3 )
     {
         TRACE( trace_comment, "Request handshake fragment from Layer 3 to allow in-place writing." );

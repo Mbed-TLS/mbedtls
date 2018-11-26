@@ -211,14 +211,18 @@ typedef enum mps_hs_state
     MPS_HS_PAUSED
 } mps_hs_state;
 
-/* Structure representing an outgoing handshake message.
+/*
+ * \brief Internal structure representing an outgoing handshake message.
+ *
  * This is usually a 'fresh' message requested by the handshake
  * logic layer, but can also be the retransmission of an old message,
- * triggered by the retransmission state machine. */
+ * triggered by the retransmission state machine.
+ *
+ */
 typedef struct
 {
     mps_hs_state state;     /*!< Indicates if the handshake message is
-                             *   currently being paused or not. */
+                             *   currently being paused or not.               */
 
     /*
      * Static information about the message.

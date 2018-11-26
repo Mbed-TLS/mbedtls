@@ -1095,7 +1095,9 @@ int mps_l4_dummy_callback( mbedtls_mps_write_cb_ctx_t const *ctx,
     unsigned char *chunk;
     size_t idx;
 
-    printf( "DUMMY CALLBACK CALLED!\n" );
+    printf( "Dummy callback called - state %u / %u\n",
+            (unsigned) dummy_ctx->cur_chunk,
+            (unsigned) dummy_ctx->num_chunks );
 
     ret = mbedtls_writer_get_ext( writer, dummy_ctx->bytes_per_chunk,
                                   &chunk, NULL );
@@ -1117,10 +1119,12 @@ int mps_l4_dummy_callback( mbedtls_mps_write_cb_ctx_t const *ctx,
     dummy_ctx->cur_chunk++;
     if( dummy_ctx->cur_chunk == dummy_ctx->num_chunks )
     {
+        printf( "Callback done.\n" );
         dummy_ctx->cur_chunk = 0;
         return( 0 );
     }
 
+    printf( "Callback not yet done -- need to be called again.\n" );
     return( MBEDTLS_MPS_RETRANSMISSION_CALLBACK_PAUSE );
 }
 

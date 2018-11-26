@@ -165,7 +165,7 @@ struct mbedtls_writer
      * <code>state == MBEDTLS_WRITER_CONSUMING</code>; in this case, its value
      * is smaller or equal to <code>out_len + queue_len</code>.
      */
-    mbedtls_mps_stored_size_t commit;
+    mbedtls_mps_stored_size_t committed;
 
     /** The offset from the beginning of the outgoing data buffer of the
      *  end of the last fragment handed to the user.

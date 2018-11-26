@@ -36,8 +36,8 @@ void mbedtls_writer_init( mbedtls_writer *wr,
           .queue = queue,
           .out_len   = 0,
           .queue_len = queue_len,
-          .commit = 0,
-          .end    = 0,
+          .committed = 0,
+          .end       = 0,
           .queue_next      = 0,
           .queue_remaining = 0 };
 
@@ -123,7 +123,7 @@ int mbedtls_writer_feed( mbedtls_writer *wr,
 
     wr->out = buf;
     wr->out_len = buf_len;
-    wr->commit = copy_from_queue;
+    wr->committed = copy_from_queue;
     wr->end = copy_from_queue;
     wr->state = MBEDTLS_WRITER_CONSUMING;
     RETURN( 0 );
@@ -147,7 +147,7 @@ int mbedtls_writer_reclaim( mbedtls_writer *wr,
     }
 
     /* Check if there's space left unused. */
-    commit = wr->commit;
+    commit = wr->committed;
     ol = wr->out_len;
     TRACE( trace_comment, "commit %u, buflen %u",
            (unsigned) commit, (unsigned) ol );
@@ -189,7 +189,7 @@ int mbedtls_writer_reclaim( mbedtls_writer *wr,
     }
 
     wr->end = 0;
-    wr->commit = 0;
+    wr->committed = 0;
     wr->out = NULL;
     wr->out_len = 0;
     wr->state = MBEDTLS_WRITER_PROVIDING;
@@ -207,7 +207,7 @@ int mbedtls_writer_bytes_written( mbedtls_writer *wr,
     if( state != MBEDTLS_WRITER_PROVIDING )
         RETURN( MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
 
-    commit = wr->commit;
+    commit = wr->committed;
     *written = commit;
 
     RETURN( 0 );
@@ -357,7 +357,7 @@ int mbedtls_writer_commit_partial( mbedtls_writer *wr,
 
     out           = wr->out;
     queue_overlap = wr->queue_next;
-    commit        = wr->commit;
+    commit        = wr->committed;
     end           = wr->end;
     out_len       = wr->out_len;
 
@@ -391,8 +391,8 @@ int mbedtls_writer_commit_partial( mbedtls_writer *wr,
     if( to_be_committed < out_len )
         wr->queue_next = 0;
 
-    wr->end    = to_be_committed;
-    wr->commit = to_be_committed;
+    wr->end       = to_be_committed;
+    wr->committed = to_be_committed;
 
     RETURN( 0 );
 }

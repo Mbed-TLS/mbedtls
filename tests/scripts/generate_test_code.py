@@ -184,7 +184,7 @@ BEGIN_CASE_REGEX = r'/\*\s*BEGIN_CASE\s*(?P<depends_on>.*?)\s*\*/'
 END_CASE_REGEX = r'/\*\s*END_CASE\s*\*/'
 
 DEPENDENCY_REGEX = r'depends_on:(?P<dependencies>.*)'
-C_IDENTIFIER_REGEX = r'!?[a-z_][a-z0-9_]*$'
+C_IDENTIFIER_REGEX = r'!?[a-z_][a-z0-9_]*(([<>]=?|==)[0-9]*)?$'
 TEST_FUNCTION_VALIDATION_REGEX = r'\s*void\s+(?P<func_name>\w+)\s*\('
 INT_CHECK_REGEX = r'int\s+.*'
 CHAR_CHECK_REGEX = r'char\s*\*\s*.*'
@@ -255,6 +255,7 @@ class FileWrapper(io.FileIO, object):
 def split_dep(dep):
     """
     Split NOT character '!' from dependency. Used by gen_dependencies()
+    Determine condition MACRO and definition MACRO.
 
     :param dep: Dependency list
     :return: string tuple. Ex: ('!', MACRO) for !MACRO and ('', MACRO) for
@@ -731,18 +732,19 @@ def gen_dep_check(dep_id, dep):
         raise GeneratorInputError("Dependency Id should be a positive "
                                   "integer.")
     _not, dep = ('!', dep[1:]) if dep[0] == '!' else ('', dep)
+    _defined = '' if re.search(r'(<=?|>=?|==)', dep) else 'defined'
     if not dep:
         raise GeneratorInputError("Dependency should not be an empty string.")
     dep_check = '''
         case {id}:
             {{
-#if {_not}defined({macro})
+#if {_not}{_defined}({macro})
                 ret = DEPENDENCY_SUPPORTED;
 #else
                 ret = DEPENDENCY_NOT_SUPPORTED;
 #endif
             }}
-            break;'''.format(_not=_not, macro=dep, id=dep_id)
+            break;'''.format(_not=_not, _defined=_defined, macro=dep, id=dep_id)
     return dep_check
 
 

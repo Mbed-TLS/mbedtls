@@ -476,7 +476,7 @@ int mbedtls_writer_commit_partial_ext( mbedtls_writer_ext *wr,
                                        mbedtls_mps_size_t omit )
 {
     int ret;
-    TRACE_INIT( "writer_commit_ext" );
+    TRACE_INIT( "writer_commit_partial_ext" );
 
     if( wr->wr == NULL ||
         wr->passthrough == MBEDTLS_WRITER_EXT_BLOCK )
@@ -550,7 +550,7 @@ int mbedtls_writer_attach( mbedtls_writer_ext *wr_ext,
         RETURN( MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
 
     wr_ext->passthrough = pass;
-    wr_ext->wr   = wr;
+    wr_ext->wr = wr;
 
     RETURN( 0 );
 }

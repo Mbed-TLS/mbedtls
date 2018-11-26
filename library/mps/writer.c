@@ -23,7 +23,7 @@
  *       This one is just to make flycheck happy */
 #include "../../include/mbedtls/mps/writer.h"
 #include "../../include/mbedtls/mps/trace.h"
-static int trace_id = 4;
+static int trace_id = TRACE_BIT_WRITER;
 
 #include <string.h>
 

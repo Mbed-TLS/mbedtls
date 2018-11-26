@@ -59,7 +59,7 @@ int mbedtls_writer_feed( mbedtls_writer *wr,
     TRACE_INIT( "writer_feed, buflen %u",
                 (unsigned) buf_len );
 
-    /* Feeding is only possible in providing mode. */
+    /* Feeding is only possible in providing state. */
     state = wr->state;
     if( state != MBEDTLS_WRITER_PROVIDING )
     {

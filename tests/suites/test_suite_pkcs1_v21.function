@@ -80,7 +80,9 @@ void pkcs1_rsaes_oaep_decrypt( int mod, int radix_P, char * input_P,
     TEST_ASSERT( mbedtls_rsa_check_privkey( &ctx ) == 0 );
 
 
-    TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx, &rnd_pseudo_rand, &rnd_info, MBEDTLS_RSA_PRIVATE, &output_len, message_str->x, output, 1000 ) == result );
+    TEST_ASSERT( mbedtls_rsa_pkcs1_decrypt( &ctx, &rnd_pseudo_rand, &rnd_info,
+                 MBEDTLS_RSA_PRIVATE, &output_len, message_str->x, output,
+                 sizeof( output ) ) == result );
     if( result == 0 )
     {
 

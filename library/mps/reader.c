@@ -76,6 +76,9 @@ int mbedtls_reader_free( mbedtls_reader *rd )
     mbedtls_reader const zero = { NULL, 0, 0, 0, 0, NULL, 0, 0, { 0 } };
     TRACE_INIT( "reader_free" );
     *rd = zero;
+    /* TODO: Use reliable way of zeroization, provided
+     * zeroization is necessary in the first place. If so,
+     * consider also zeroizing the accumulator buffer. */
     RETURN( 0 );
 }
 

@@ -4,7 +4,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 Features
    * Add MBEDTLS_REMOVE_3DES_CIPHERSUITES to allow removing 3DES ciphersuites
-     from the default list (inactive by default).
+     from the default list (enabled by default). See
+     https://sweet32.info/SWEET32_CCS16.pdf.
 
 Bugfix
    * Fix a compilation issue with mbedtls_ecp_restart_ctx not being defined

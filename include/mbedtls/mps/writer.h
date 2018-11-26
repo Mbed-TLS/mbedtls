@@ -378,7 +378,7 @@ struct mbedtls_writer_ext
  * \param queue     The buffer to be used as dispatch queue if
  *                  buffer provided via mbedtls_writer_feed()
  *                  isn't sufficient.
- * \param queue_len The size of the \p queue buffer.
+ * \param queue_len The size in Bytes of \p queue.
  */
 /*@
   requires \valid( writer );
@@ -837,7 +837,7 @@ int mbedtls_writer_detach( mbedtls_writer_ext *wr_ext,
                            mbedtls_mps_size_t *uncommitted );
 
 /**
- * \brief            Check if the extended writer is finished processing
+ * \brief            Check if the extended writer has finished processing
  *                   the logical buffer it was setup with.
  *
  * \param wr_ext     The extended writer context to use.

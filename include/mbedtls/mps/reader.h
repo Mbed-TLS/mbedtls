@@ -415,7 +415,7 @@ int mbedtls_reader_free( mbedtls_reader *reader );
  *
  * \param reader    The reader context to use.
  * \param buf       The buffer to be managed by the reader.
- * \param buflen    The length of \p buffer
+ * \param buflen    The size in Bytes of \p buffer.
  *
  * \return          \c 0 on success.
  * \return          A negative \c MBEDTLS_ERR_READER_XXX error code on failure.
@@ -423,8 +423,10 @@ int mbedtls_reader_free( mbedtls_reader *reader );
 
 /*@
   READER_INV_REQUIRES(reader)
-  requires ( \forall integer i; 0 <= i < buflen
-                 ==> \valid( buf + i ) );
+  requires ( buf != NULL ==>
+             ( buflen > 0 &&
+               \forall integer i; 0 <= i < buflen
+                 ==> \valid( buf + i ) ) );
 
   READER_INV_ENSURES(reader)
   @*/
@@ -482,6 +484,8 @@ int mbedtls_reader_reclaim( mbedtls_reader *reader, size_t *paused );
  *                  afterwards.
  */
 
+/* TODO: Add ACSL annotation asserting the validity of
+ *       *buffer and *buflen on success. */
 /*@
   requires \valid( buffer );
   requires ( buflen == NULL ) || \valid( buflen );
@@ -641,7 +645,7 @@ int mbedtls_reader_commit_ext( mbedtls_reader_ext *reader );
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_READER_BOUNDS_VIOLATION if
- *                  the new  group is not contained in the
+ *                  the new group is not contained in the
  *                  current group. In this case, the extended
  *                  reader is unchanged and hence remains intact.
  *                  This is a very important error condition that
@@ -699,11 +703,7 @@ int mbedtls_reader_group_close( mbedtls_reader_ext *reader );
  * \param rd         The reader to bind to the extended reader \p rd_ext.
  *
  * \return           \c 0 on succes.
- * \return           #MBEDTLS_ERR_READER_DATA_LEFT if there is data
- *                   left uncommitted in the current group.
- * \return           #MBEDTLS_ERR_READER_NO_GROUP if there is no
- *                   group opened currently.
- * \return           Another negative error code for different kinds of failure.
+ * \return           Another negative error code on failure.
  *
  */
 
@@ -720,8 +720,8 @@ int mbedtls_reader_attach( mbedtls_reader_ext *rd_ext,
  *
  * \param rd_ext    The extended reader context to use.
  *
- * \return          \c 0 on success.
- * \return          A negative \c MBEDTLS_ERR_READER_XXX error code on failure.
+ * \return          \c 0 on succes.
+ * \return          Another negative error code on failure.
  *
  */
 

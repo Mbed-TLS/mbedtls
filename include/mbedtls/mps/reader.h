@@ -90,6 +90,9 @@
  *     feed, need more data to serve
  *     previous consumer request
  *
+ */
+
+/*
  *
  *  Copyright (C) 2006-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0

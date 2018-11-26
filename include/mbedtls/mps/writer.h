@@ -59,6 +59,9 @@
  * marked processed through calls to mbedtls_writer_commit(), emptying the
  * list of output buffers and invalidating them from the consumer's perspective.
  *
+ */
+
+/*
  *  Copyright (C) 2006-2018, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *

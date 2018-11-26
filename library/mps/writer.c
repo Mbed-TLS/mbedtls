@@ -88,11 +88,6 @@ int mbedtls_writer_feed( mbedtls_writer *wr,
             copy_from_queue = buf_len;
         queue += qa;
         memcpy( buf, queue, copy_from_queue );
-        for( mbedtls_mps_size_t idx = 0; idx < copy_from_queue; idx++ )
-        {
-            TRACE( trace_comment, "Byte copied from queue %u: %u",
-                    (unsigned) idx, queue[idx] );
-        }
 
         /* Check if, after the last copy, the entire
          * queue has been dispatched. */

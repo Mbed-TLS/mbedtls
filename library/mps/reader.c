@@ -93,9 +93,6 @@ int mbedtls_reader_feed( mbedtls_reader *rd, unsigned char *new_frag,
     if( new_frag == NULL )
         RETURN( MBEDTLS_ERR_READER_INVALID_ARG );
 
-    for( size_t idx=0; idx < new_frag_len; idx++ )
-        TRACE( trace_comment, "Data[%u] = %02x", (unsigned) idx, (unsigned) new_frag[idx] );
-
     /* Feeding is only possible in producing mode, i.e.
      * if no fragment is currently being processed. */
     frag = rd->frag;
@@ -119,11 +116,6 @@ int mbedtls_reader_feed( mbedtls_reader *rd, unsigned char *new_frag,
 
         TRACE( trace_comment, "Copy new data of size %u of %u into accumulator at offset %u",
                 (unsigned) copy_to_acc, (unsigned) new_frag_len, (unsigned) aa );
-        for( size_t idx=0; idx < copy_to_acc; idx++ )
-        {
-            TRACE( trace_comment, "copy[%u] = %u", (unsigned) idx,
-                   (unsigned) new_frag[idx] );
-        }
 
         /* Check if, with the new fragment, we have enough data. */
         ar -= copy_to_acc;

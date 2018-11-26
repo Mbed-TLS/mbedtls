@@ -27,7 +27,7 @@
  *
  * Basic flow of operation:
  * First, the provider feeds an outgoing data buffer to the writer, transferring
- * it from 'providing' to 'consuming' mode; in the example, that would be record
+ * it from 'providing' to 'consuming' state; in the example, that would be record
  * layer providing the plaintext buffer for the next outgoing record. The
  * consumer subsequently fetches parts of the buffer and writes data to them,
  * which might happen multiple times; in the example, the handshake logic
@@ -35,7 +35,7 @@
  * current outgoing flight, and these requests would be served from successive
  * chunks in the same record plaintext buffer if size permits. Once the consumer
  * is done, the provider revokes the writer's access to the data buffer,
- * putting the writer back to providing mode, and processes the data provided
+ * putting the writer back to providing state, and processes the data provided
  * in the outgoing data buffer; in the example, that would be the record layer
  * encrypting the record and dispatching it to the underlying transport.
  * Afterwards, the provider feeds another outgoing data buffer to the writer
@@ -161,7 +161,7 @@ struct mbedtls_writer
      *        of the outgoing data buffer, and is computed as if the outgoing
      *        data buffer was immediately followed by the queue buffer.
      *
-     * This is only used when the writer is in consuming mode, i.e.
+     * This is only used when the writer is in consuming state, i.e.
      * <code>state == MBEDTLS_WRITER_CONSUMING</code>; in this case, its value
      * is smaller or equal to <code>out_len + queue_len</code>.
      */
@@ -174,21 +174,21 @@ struct mbedtls_writer
      *  length of the outgoing data buffer, and is computed as if the outgoing
      *  data buffer was immediately followed by the queue buffer.
      *
-     *  This is only used when the writer is in consuming mode,
+     *  This is only used when the writer is in consuming state,
      *  i.e. <code>state == MBEDTLS_WRITER_CONSUMING</code>; in this case,
      *  its value is smaller or equal to <code>out_len + queue_len</code>.
      */
     mbedtls_mps_stored_size_t end;
 
-    /** In consuming mode, this denotes the size of the overlap between the
+    /** In consuming state, this denotes the size of the overlap between the
      *  queue and the current out buffer, once <code>end > out_len</code>.
      *  If <code>end < out_len</code>, its value is \c 0.
-     *  In providing mode, this denotes the amount of data from the queue that
+     *  In providing state, this denotes the amount of data from the queue that
      *  has already been copied to some outgoing data buffer.
      */
     mbedtls_mps_stored_size_t queue_next;
     /** The amount of data within the queue buffer that hasn't been copied to
-     *  some outgoing data buffer yet. This is only used in providing mode, and
+     *  some outgoing data buffer yet. This is only used in providing state, and
      *  if the writer uses a queue (<code>queue != NULL</code>), and in this
      *  case its value is at most <code>queue_len - queue_next</code>.
      */
@@ -403,7 +403,7 @@ void mbedtls_writer_free( mbedtls_writer *writer );
  * \brief           Pass output buffer to the writer.
  *
  *                  This function is used to transition the writer
- *                  from providing to consuming mode.
+ *                  from providing to consuming state.
  *
  * \param writer    The writer context to be used.
  * \param buf       The buffer that outgoing data can be written to
@@ -411,15 +411,15 @@ void mbedtls_writer_free( mbedtls_writer *writer );
  * \param buflen    The length of the outgoing data buffer.
  *
  * \return          \c 0 on success. In this case, the writer is
- *                  in consuming mode afterwards.
+ *                  in consuming state afterwards.
  * \return          #MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION if
- *                  the writer is not in providing mode. In this case,
+ *                  the writer is not in providing state. In this case,
  *                  the writer is unmodified and can still be used.
- *                  In particular, the writer stays in consuming mode.
+ *                  In particular, the writer stays in consuming state.
  * \return          #MBEDTLS_ERR_WRITER_NEED_MORE if the provided
  *                  outgoing data buffer was completely filled by data
  *                  that had been internally queued in the writer.
- *                  In this case, the writer stays in consuming mode,
+ *                  In this case, the writer stays in consuming state,
  *                  but the content of the output buffer is ready to be
  *                  dispatched in the same way as after a cycle of calls
  *                  to mbedtls_writer_feed(), mbedtls_writer_get(),
@@ -444,7 +444,7 @@ int mbedtls_writer_feed( mbedtls_writer *writer,
  * \brief           Attempt to reclaim output buffer from writer,
  *
  *                  This function is used to transition the writer
- *                  from consuming to providing mode.
+ *                  from consuming to providing state.
  *
  * \param writer    The writer context to be used.
  * \param queued    The address at which to store the amount of
@@ -456,14 +456,14 @@ int mbedtls_writer_feed( mbedtls_writer *writer,
  *                  or #MBEDTLS_WRITER_RECLAIM_NO_FORCE.
  *
  * \return          \c 0 on success. In this case, the writer is in
- *                  providing mode afterwards.
+ *                  providing state afterwards.
  * \return          #MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION if
- *                  the writer is not in consuming mode. In this case,
+ *                  the writer is not in consuming state. In this case,
  *                  the writer is unmodified and can still be used.
- *                  In particular, the writer stays in providing mode.
+ *                  In particular, the writer stays in providing state.
  * \return          #MBEDTLS_ERR_WRITER_DATA_LEFT if there is space
  *                  left to be written in the output buffer.
- *                  In this case, the writer stays in consuming mode.
+ *                  In this case, the writer stays in consuming state.
  * \return          Another negative error code otherwise. In this case,
  *                  the state of the writer is unspecified and it must
  *                  not be used anymore.
@@ -501,7 +501,7 @@ int mbedtls_writer_bytes_written( mbedtls_writer *writer,
  *                  from mbedtls_writer_get() are ready to be dispatched.
  *
  *                  This function must only be called when the writer
- *                  is in consuming mode.
+ *                  is in consuming state.
  *
  * \param writer    The writer context to use.
  *
@@ -511,9 +511,9 @@ int mbedtls_writer_bytes_written( mbedtls_writer *writer,
  *                  be used anymore.
  *
  * \return          \c 0 on success. In this case, the writer
- *                  stays in consuming mode.
+ *                  stays in consuming state.
  * \return          #MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION
- *                  if the writer is not in consuming mode.
+ *                  if the writer is not in consuming state.
  *                  In this case, the writer is unchanged and
  *                  can still be used.
  * \return          Another negative error code otherwise. In this case,
@@ -532,7 +532,7 @@ int mbedtls_writer_commit( mbedtls_writer *writer );
  *                  from mbedtls_writer_get() are ready to be dispatched.
  *
  *                  This function must only be called when the writer
- *                  is in consuming mode.
+ *                  is in consuming state.
  *
  * \param writer    The writer context to use.
  * \param omit      The number of bytes at the end of the last output
@@ -545,9 +545,9 @@ int mbedtls_writer_commit( mbedtls_writer *writer );
  *                  be used anymore.
  *
  * \return          \c 0 on success. In this case, the writer
- *                  stays in consuming mode.
+ *                  stays in consuming state.
  * \return          #MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION
- *                  if the writer is not in consuming mode.
+ *                  if the writer is not in consuming state.
  *                  In this case, the writer is unchanged and
  *                  can still be used.
  * \return          Another negative error code otherwise. In this case,
@@ -567,7 +567,7 @@ int mbedtls_writer_commit_partial( mbedtls_writer *writer,
  * \brief           Request buffer to hold outbound data.
  *
  *                  This function must only be called when the writer
- *                  is in consuming mode.
+ *                  is in consuming state.
  *
  * \param writer    The writer context to use.
  * \param desired   The desired size of the outgoing data buffer.
@@ -582,9 +582,9 @@ int mbedtls_writer_commit_partial( mbedtls_writer *writer,
  *                  of the requested size \p desired.
  *
  * \return          \c 0 on success. In this case, the writer
- *                  stays in consuming mode.
+ *                  stays in consuming state.
  * \return          #MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION
- *                  if the writer is not in consuming mode.
+ *                  if the writer is not in consuming state.
  *                  In this case, the writer is unchanged and
  *                  can still be used.
  * \return          #MBEDTLS_ERR_WRITER_OUT_OF_SPACE if there is not
@@ -697,7 +697,7 @@ int mbedtls_writer_commit_ext( mbedtls_writer_ext *writer );
  *                  from mbedtls_writer_get_ext() are ready to be dispatched.
  *
  *                  This function must only be called when the writer
- *                  is in consuming mode.
+ *                  is in consuming state.
  *
  * \param writer    The writer context to use.
  * \param omit      The number of bytes at the end of the last output
@@ -710,9 +710,9 @@ int mbedtls_writer_commit_ext( mbedtls_writer_ext *writer );
  *                  be used anymore.
  *
  * \return          \c 0 on success. In this case, the writer
- *                  stays in consuming mode.
+ *                  stays in consuming state.
  * \return          #MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION
- *                  if the writer is not in consuming mode.
+ *                  if the writer is not in consuming state.
  *                  In this case, the writer is unchanged and
  *                  can still be used.
  * \return          Another negative error code otherwise. In this case,

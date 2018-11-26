@@ -376,6 +376,10 @@ struct mbedtls_reader_ext
  * \brief           Initialize a reader object
  *
  * \param reader    The reader to be initialized.
+ * \param acc       The buffer to be used as a temporary accumulator
+ *                  in case read requests through mbedtls_reader_get()
+ *                  exceed the buffer provided by mbedtls_reader_feed().
+ * \param acc_len   The size in Bytes of \p acc.
  *
  * \return          \c 0 on success.
  * \return          A negative \c MBEDTLS_ERR_READER_XXX error code on failure.

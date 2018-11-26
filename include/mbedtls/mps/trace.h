@@ -10,8 +10,8 @@
 #define TRACE_ENABLE_LAYER_1
 #define TRACE_ENABLE_LAYER_2
 #define TRACE_ENABLE_LAYER_3
-#define TRACE_ENABLE_READER
-#define TRACE_ENABLE_WRITER
+//#define TRACE_ENABLE_READER
+//#define TRACE_ENABLE_WRITER
 
 /*
  * To use the existing trace module, only change

@@ -105,6 +105,7 @@ pre_initialize_variables () {
     CONFIG_BAK="$CONFIG_H.bak"
 
     COMPONENTS=
+    ALL_EXCEPT=0
     MEMORY=0
     FORCE=0
     INTROSPECTION_MODE=
@@ -129,6 +130,19 @@ pre_initialize_variables () {
     fi
 }
 
+# Test whether $1 is excluded via $COMPONENTS (a space-separated list of
+# wildcard patterns).
+component_is_excluded()
+{
+    set -f
+    for pattern in $COMPONENTS; do
+        set +f
+        case ${1#component_} in $pattern) return 0;; esac
+    done
+    set +f
+    return 1
+}
+
 usage()
 {
     cat <<EOF
@@ -145,6 +159,11 @@ General options:
   -k|--keep-going       Run all tests and report errors at the end.
   -m|--memory           Additional optional memory tests.
      --armcc            Run ARM Compiler builds (on by default).
+     --except           If some components are passed on the command line,
+                        run all the tests except for these components. In
+                        this mode, you can pass shell wildcard patterns as
+                        component names, e.g. "$0 --except 'test_*'" to
+                        exclude all components that run tests.
      --no-armcc         Skip ARM Compiler builds.
      --no-force         Refuse to overwrite modified files (default).
      --no-keep-going    Stop at the first error (default).
@@ -257,6 +276,7 @@ pre_parse_command_line () {
               --armcc) RUN_ARMCC=1;;
               --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
               --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
+              --except) ALL_EXCEPT=1;;
               --force|-f) FORCE=1;;
               --gnutls-cli) shift; GNUTLS_CLI="$1";;
               --gnutls-legacy-cli) shift; GNUTLS_LEGACY_CLI="$1";;
@@ -1215,6 +1235,9 @@ run_all_components () {
 
 # Run one component and clean up afterwards.
 run_component () {
+    if [ $ALL_EXCEPT -ne 0 ] && component_is_excluded "$1"; then
+        return
+    fi
     "$@"
     cleanup
 }
@@ -1251,7 +1274,7 @@ case "$INTROSPECTION_MODE" in
         ;;
 esac
 
-if [ -n "$COMPONENTS" ]; then
+if [ -n "$COMPONENTS" ] && [ $ALL_EXCEPT -eq 0 ]; then
     for component in $COMPONENTS; do
           run_component "component_$component"
     done

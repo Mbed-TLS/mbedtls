@@ -106,6 +106,7 @@ pre_initialize_variables () {
 
     MEMORY=0
     FORCE=0
+    INTROSPECTION_MODE=
     KEEP_GOING=0
     RUN_ARMCC=1
 
@@ -131,7 +132,11 @@ usage()
 {
     cat <<EOF
 Usage: $0 [OPTION]...
-  -h|--help             Print this help.
+Run mbedtls release validation tests.
+
+Special options:
+  -h|--help             Print this help and exit.
+  --list-components     List available test components and exit.
 
 General options:
   -f|--force            Force the tests to overwrite any modified files.
@@ -257,6 +262,7 @@ pre_parse_command_line () {
               --gnutls-serv) shift; GNUTLS_SERV="$1";;
               --help|-h) usage; exit;;
               --keep-going|-k) KEEP_GOING=1;;
+              --list-components) INTROSPECTION_MODE=list_components;;
               --memory|-m) MEMORY=1;;
               --no-armcc) RUN_ARMCC=0;;
               --no-force) FORCE=0;;
@@ -1143,19 +1149,33 @@ run_component () {
 pre_check_environment
 pre_initialize_variables
 pre_parse_command_line "$@"
-pre_check_git
-build_status=0
-if [ $KEEP_GOING -eq 1 ]; then
-    pre_setup_keep_going
-else
-    record_status () {
-        "$@"
-    }
-fi
-pre_print_configuration
-pre_check_tools
-pre_print_tools
-cleanup
+
+case "$INTROSPECTION_MODE" in
+    list_components)
+        components=
+        newline='
+'
+        run_component () {
+            components="${components}${newline}${1}"
+        }
+        ;;
+
+    *)
+        pre_check_git
+        build_status=0
+        if [ $KEEP_GOING -eq 1 ]; then
+            pre_setup_keep_going
+        else
+            record_status () {
+                "$@"
+            }
+        fi
+        pre_print_configuration
+        pre_check_tools
+        pre_print_tools
+        cleanup
+        ;;
+esac
 
 # Small things
 run_component component_check_recursion
@@ -1226,4 +1246,11 @@ run_component component_check_python_files
 run_component component_check_generate_test_code
 
 # We're done.
-post_report
+case "$INTROSPECTION_MODE" in
+    list_components)
+        echo "$components" | sort
+        ;;
+    *)
+        post_report
+        ;;
+esac

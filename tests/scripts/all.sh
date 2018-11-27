@@ -104,6 +104,7 @@ pre_initialize_variables () {
     CONFIG_H='include/mbedtls/config.h'
     CONFIG_BAK="$CONFIG_H.bak"
 
+    COMPONENTS=
     MEMORY=0
     FORCE=0
     INTROSPECTION_MODE=
@@ -131,8 +132,9 @@ pre_initialize_variables () {
 usage()
 {
     cat <<EOF
-Usage: $0 [OPTION]...
+Usage: $0 [OPTION]... [COMPONENT]...
 Run mbedtls release validation tests.
+By default, run all tests. With one or more COMPONENT, run only those.
 
 Special options:
   -h|--help             Print this help and exit.
@@ -275,11 +277,13 @@ pre_parse_command_line () {
               --random-seed) unset SEED;;
               --release-test|-r) SEED=1;;
               --seed|-s) shift; SEED="$1";;
-              *)
+              -*)
                   echo >&2 "Unknown option: $1"
                   echo >&2 "Run $0 --help for usage."
                   exit 120
                   ;;
+              *)
+                  COMPONENTS="$COMPONENTS $1";;
           esac
           shift
     done
@@ -1139,6 +1143,76 @@ post_report () {
 #### Run all the things
 ################################################################
 
+run_all_components () {
+    # Small things
+    run_component component_check_recursion
+    run_component component_check_generated_files
+    run_component component_check_doxy_blocks
+    run_component component_check_files
+    run_component component_check_names
+    run_component component_check_doxygen_warnings
+
+    # Test many different configurations
+    run_component component_test_default_cmake_gcc_asan
+    run_component component_test_ref_configs
+    run_component component_test_sslv3
+    run_component component_test_no_renegotiation
+    run_component component_test_rsa_no_crt
+    run_component component_test_small_ssl_out_content_len
+    run_component component_test_small_ssl_in_content_len
+    run_component component_test_small_ssl_dtls_max_buffering
+    run_component component_test_small_mbedtls_ssl_dtls_max_buffering
+    run_component component_test_full_cmake_clang
+    run_component component_build_deprecated
+    run_component component_test_depends_curves
+    run_component component_test_depends_hashes
+    run_component component_test_depends_pkalgs
+    run_component component_build_key_exchanges
+    run_component component_build_default_make_gcc_and_cxx
+    run_component component_test_no_platform
+    run_component component_build_no_std_function
+    run_component component_build_no_ssl_srv
+    run_component component_build_no_ssl_cli
+    run_component component_build_no_sockets
+    run_component component_test_no_max_fragment_length
+    run_component component_test_no_max_fragment_length_small_ssl_out_content_len
+    run_component component_test_null_entropy
+    run_component component_test_platform_calloc_macro
+    run_component component_test_aes_fewer_tables
+    run_component component_test_aes_rom_tables
+    run_component component_test_aes_fewer_tables_and_rom_tables
+    if uname -a | grep -F Linux >/dev/null; then
+        run_component component_test_make_shared
+    fi
+    if uname -a | grep -F x86_64 >/dev/null; then
+        run_component component_test_m32_o0
+        run_component component_test_m32_o1
+        run_component component_test_mx32
+    fi
+    run_component component_test_have_int32
+    run_component component_test_have_int64
+    run_component component_test_no_udbl_division
+    run_component component_test_no_64bit_multiplication
+    run_component component_build_arm_none_eabi_gcc
+    run_component component_build_arm_none_eabi_gcc_no_udbl_division
+    run_component component_build_arm_none_eabi_gcc_no_64bit_multiplication
+    run_component component_build_armcc
+    run_component component_test_allow_sha1
+    run_component component_build_mingw
+    # MemSan currently only available on Linux 64 bits
+    if uname -a | grep 'Linux.*x86_64' >/dev/null; then
+        run_component component_test_memsan
+    else # no MemSan
+        run_component component_test_memcheck
+    fi
+    run_component component_test_cmake_out_of_source
+
+    # More small things
+    run_component component_test_zeroize
+    run_component component_check_python_files
+    run_component component_check_generate_test_code
+}
+
 # Run one component and clean up afterwards.
 run_component () {
     "$@"
@@ -1156,7 +1230,7 @@ case "$INTROSPECTION_MODE" in
         newline='
 '
         run_component () {
-            components="${components}${newline}${1}"
+            components="${components}${newline}${1#component_}"
         }
         ;;
 
@@ -1177,73 +1251,13 @@ case "$INTROSPECTION_MODE" in
         ;;
 esac
 
-# Small things
-run_component component_check_recursion
-run_component component_check_generated_files
-run_component component_check_doxy_blocks
-run_component component_check_files
-run_component component_check_names
-run_component component_check_doxygen_warnings
-
-# Test many different configurations
-run_component component_test_default_cmake_gcc_asan
-run_component component_test_ref_configs
-run_component component_test_sslv3
-run_component component_test_no_renegotiation
-run_component component_test_rsa_no_crt
-run_component component_test_small_ssl_out_content_len
-run_component component_test_small_ssl_in_content_len
-run_component component_test_small_ssl_dtls_max_buffering
-run_component component_test_small_mbedtls_ssl_dtls_max_buffering
-run_component component_test_full_cmake_clang
-run_component component_build_deprecated
-run_component component_test_depends_curves
-run_component component_test_depends_hashes
-run_component component_test_depends_pkalgs
-run_component component_build_key_exchanges
-run_component component_build_default_make_gcc_and_cxx
-run_component component_test_no_platform
-run_component component_build_no_std_function
-run_component component_build_no_ssl_srv
-run_component component_build_no_ssl_cli
-run_component component_build_no_sockets
-run_component component_test_no_max_fragment_length
-run_component component_test_no_max_fragment_length_small_ssl_out_content_len
-run_component component_test_null_entropy
-run_component component_test_platform_calloc_macro
-run_component component_test_aes_fewer_tables
-run_component component_test_aes_rom_tables
-run_component component_test_aes_fewer_tables_and_rom_tables
-if uname -a | grep -F Linux >/dev/null; then
-    run_component component_test_make_shared
+if [ -n "$COMPONENTS" ]; then
+    for component in $COMPONENTS; do
+          run_component "component_$component"
+    done
+else
+    run_all_components
 fi
-if uname -a | grep -F x86_64 >/dev/null; then
-    run_component component_test_m32_o0
-    run_component component_test_m32_o1
-    run_component component_test_mx32
-fi
-run_component component_test_have_int32
-run_component component_test_have_int64
-run_component component_test_no_udbl_division
-run_component component_test_no_64bit_multiplication
-run_component component_build_arm_none_eabi_gcc
-run_component component_build_arm_none_eabi_gcc_no_udbl_division
-run_component component_build_arm_none_eabi_gcc_no_64bit_multiplication
-run_component component_build_armcc
-run_component component_test_allow_sha1
-run_component component_build_mingw
-# MemSan currently only available on Linux 64 bits
-if uname -a | grep 'Linux.*x86_64' >/dev/null; then
-    run_component component_test_memsan
-else # no MemSan
-    run_component component_test_memcheck
-fi
-run_component component_test_cmake_out_of_source
-
-# More small things
-run_component component_test_zeroize
-run_component component_check_python_files
-run_component component_check_generate_test_code
 
 # We're done.
 case "$INTROSPECTION_MODE" in

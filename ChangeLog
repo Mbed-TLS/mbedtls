@@ -194,6 +194,7 @@ Bugfix
      replacements of standard calloc/free functions through the macros
      MBEDTLS_PLATFORM_CALLOC_MACRO and MBEDTLS_PLATFORM_FREE_MACRO.
      Reported by ole-de and ddhome2006. Fixes #882, #1642 and #1706.
+   * Reduce stack usage of hkdf tests. Fixes #2195.
 
 Changes
    * Removed support for Yotta as a build tool.

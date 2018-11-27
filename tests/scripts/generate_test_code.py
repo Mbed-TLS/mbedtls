@@ -184,7 +184,13 @@ BEGIN_CASE_REGEX = r'/\*\s*BEGIN_CASE\s*(?P<depends_on>.*?)\s*\*/'
 END_CASE_REGEX = r'/\*\s*END_CASE\s*\*/'
 
 DEPENDENCY_REGEX = r'depends_on:(?P<dependencies>.*)'
-C_IDENTIFIER_REGEX = r'!?[a-z_][a-z0-9_]*(([<>]=?|==)[0-9]*)?$'
+C_IDENTIFIER_REGEX = r'!?[a-z_][a-z0-9_]*'
+CONDITION_OPERATOR_REGEX = r'[!=]=|[<>]=?'
+# forbid 0ddd which might be accidentally octal or accidentally decimal
+CONDITION_VALUE_REGEX = r'[-+]?(0x[0-9a-f]+|0|[1-9][0-9]*)'
+CONDITION_REGEX = r'({})(?:\s*({})\s*({}))?$'.format(C_IDENTIFIER_REGEX,
+                                                     CONDITION_OPERATOR_REGEX,
+                                                     CONDITION_VALUE_REGEX)
 TEST_FUNCTION_VALIDATION_REGEX = r'\s*void\s+(?P<func_name>\w+)\s*\('
 INT_CHECK_REGEX = r'int\s+.*'
 CHAR_CHECK_REGEX = r'char\s*\*\s*.*'
@@ -255,7 +261,6 @@ class FileWrapper(io.FileIO, object):
 def split_dep(dep):
     """
     Split NOT character '!' from dependency. Used by gen_dependencies()
-    Determine condition MACRO and definition MACRO.
 
     :param dep: Dependency list
     :return: string tuple. Ex: ('!', MACRO) for !MACRO and ('', MACRO) for
@@ -384,7 +389,7 @@ def validate_dependency(dependency):
     :return: input dependency stripped of leading & trailing white spaces.
     """
     dependency = dependency.strip()
-    if not re.match(C_IDENTIFIER_REGEX, dependency, re.I):
+    if not re.match(CONDITION_REGEX, dependency, re.I):
         raise GeneratorInputError('Invalid dependency %s' % dependency)
     return dependency
 
@@ -732,19 +737,29 @@ def gen_dep_check(dep_id, dep):
         raise GeneratorInputError("Dependency Id should be a positive "
                                   "integer.")
     _not, dep = ('!', dep[1:]) if dep[0] == '!' else ('', dep)
-    _defined = '' if re.search(r'(<=?|>=?|==)', dep) else 'defined'
     if not dep:
         raise GeneratorInputError("Dependency should not be an empty string.")
+
+    dependency = re.match(CONDITION_REGEX, dep, re.I)
+    if not dependency:
+        raise GeneratorInputError('Invalid dependency %s' % dep)
+
+    _defined = '' if dependency.group(2) else 'defined'
+    _cond = dependency.group(2) if dependency.group(2) else ''
+    _value = dependency.group(3) if dependency.group(3) else ''
+
     dep_check = '''
         case {id}:
             {{
-#if {_not}{_defined}({macro})
+#if {_not}{_defined}({macro}{_cond}{_value})
                 ret = DEPENDENCY_SUPPORTED;
 #else
                 ret = DEPENDENCY_NOT_SUPPORTED;
 #endif
             }}
-            break;'''.format(_not=_not, _defined=_defined, macro=dep, id=dep_id)
+            break;'''.format(_not=_not, _defined=_defined,
+                             macro=dependency.group(1), id=dep_id,
+                             _cond=_cond, _value=_value)
     return dep_check
 
 

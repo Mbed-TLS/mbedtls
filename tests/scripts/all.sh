@@ -483,14 +483,14 @@ component_test_default_cmake_gcc_asan () {
     msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
     if_build_succeeded tests/ssl-opt.sh
 
-    msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
-    record_status tests/scripts/test-ref-configs.pl
-
-    msg "build: with ASan (rebuild after ref-configs)" # ~ 1 min
-    make
-
     msg "test: compat.sh (ASan build)" # ~ 6 min
     if_build_succeeded tests/compat.sh
+}
+
+component_test_ref_configs () {
+    msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    record_status tests/scripts/test-ref-configs.pl
 }
 
 component_test_sslv3 () {
@@ -1167,6 +1167,7 @@ run_component component_check_doxygen_warnings
 
 # Test many different configurations
 run_component component_test_default_cmake_gcc_asan
+run_component component_test_ref_configs
 run_component component_test_sslv3
 run_component component_test_no_renegotiation
 run_component component_test_rsa_no_crt

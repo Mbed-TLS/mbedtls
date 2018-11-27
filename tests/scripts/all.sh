@@ -453,19 +453,16 @@ component_check_doxy_blocks () {
 
 component_check_files () {
     msg "test: check-files.py" # < 1s
-    cleanup
     record_status tests/scripts/check-files.py
 }
 
 component_check_names () {
     msg "test/build: declared and exported names" # < 3s
-    cleanup
     record_status tests/scripts/check-names.sh
 }
 
 component_check_doxygen_warnings () {
     msg "test: doxygen warnings" # ~ 3s
-    cleanup
     record_status tests/scripts/doxygen.sh
 }
 
@@ -477,7 +474,6 @@ component_check_doxygen_warnings () {
 
 component_test_default_cmake_gcc_asan () {
     msg "build: cmake, gcc, ASan" # ~ 1 min 50s
-    cleanup
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
@@ -499,7 +495,6 @@ component_test_default_cmake_gcc_asan () {
 
 component_test_sslv3 () {
     msg "build: Default + SSLv3 (ASan build)" # ~ 6 min
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl set MBEDTLS_SSL_PROTO_SSL3
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
@@ -518,7 +513,6 @@ component_test_sslv3 () {
 
 component_test_no_renegotiation () {
     msg "build: Default + !MBEDTLS_SSL_RENEGOTIATION (ASan build)" # ~ 6 min
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl unset MBEDTLS_SSL_RENEGOTIATION
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
@@ -533,7 +527,6 @@ component_test_no_renegotiation () {
 
 component_test_rsa_no_crt () {
     msg "build: Default + RSA_NO_CRT (ASan build)" # ~ 6 min
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl set MBEDTLS_RSA_NO_CRT
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
@@ -551,7 +544,6 @@ component_test_rsa_no_crt () {
 
 component_test_small_ssl_out_content_len () {
     msg "build: small SSL_OUT_CONTENT_LEN (ASan build)"
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl set MBEDTLS_SSL_IN_CONTENT_LEN 16384
     scripts/config.pl set MBEDTLS_SSL_OUT_CONTENT_LEN 4096
@@ -564,7 +556,6 @@ component_test_small_ssl_out_content_len () {
 
 component_test_small_ssl_in_content_len () {
     msg "build: small SSL_IN_CONTENT_LEN (ASan build)"
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl set MBEDTLS_SSL_IN_CONTENT_LEN 4096
     scripts/config.pl set MBEDTLS_SSL_OUT_CONTENT_LEN 16384
@@ -577,7 +568,6 @@ component_test_small_ssl_in_content_len () {
 
 component_test_small_ssl_dtls_max_buffering () {
     msg "build: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #0"
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl set MBEDTLS_SSL_DTLS_MAX_BUFFERING 1000
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
@@ -589,7 +579,6 @@ component_test_small_ssl_dtls_max_buffering () {
 
 component_test_small_mbedtls_ssl_dtls_max_buffering () {
     msg "build: small MBEDTLS_SSL_DTLS_MAX_BUFFERING #1"
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl set MBEDTLS_SSL_DTLS_MAX_BUFFERING 240
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
@@ -601,7 +590,6 @@ component_test_small_mbedtls_ssl_dtls_max_buffering () {
 
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
@@ -623,7 +611,6 @@ component_test_full_cmake_clang () {
 
 component_build_deprecated () {
     msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl set MBEDTLS_DEPRECATED_WARNING
@@ -644,31 +631,26 @@ component_build_deprecated () {
 
 component_test_depends_curves () {
     msg "test/build: curves.pl (gcc)" # ~ 4 min
-    cleanup
     record_status tests/scripts/curves.pl
 }
 
 component_test_depends_hashes () {
     msg "test/build: depends-hashes.pl (gcc)" # ~ 2 min
-    cleanup
     record_status tests/scripts/depends-hashes.pl
 }
 
 component_test_depends_pkalgs () {
     msg "test/build: depends-pkalgs.pl (gcc)" # ~ 2 min
-    cleanup
     record_status tests/scripts/depends-pkalgs.pl
 }
 
 component_build_key_exchanges () {
     msg "test/build: key-exchanges (gcc)" # ~ 1 min
-    cleanup
     record_status tests/scripts/key-exchanges.pl
 }
 
 component_build_default_make_gcc_and_cxx () {
     msg "build: Unix make, -Os (gcc)" # ~ 30s
-    cleanup
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -Os'
 
     msg "test: verify header list in cpp_dummy_build.cpp"
@@ -683,7 +665,6 @@ component_test_no_platform () {
     # This should catch missing mbedtls_printf definitions, and by disabling file
     # IO, it should catch missing '#include <stdio.h>'
     msg "build: full config except platform/fsio/net, make, gcc, C99" # ~ 30s
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_PLATFORM_C
@@ -706,7 +687,6 @@ component_test_no_platform () {
 component_build_no_std_function () {
     # catch compile bugs in _uninit functions
     msg "build: full config with NO_STD_FUNCTION, make, gcc" # ~ 30s
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
@@ -716,7 +696,6 @@ component_build_no_std_function () {
 
 component_build_no_ssl_srv () {
     msg "build: full config except ssl_srv.c, make, gcc" # ~ 30s
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_SSL_SRV_C
@@ -725,7 +704,6 @@ component_build_no_ssl_srv () {
 
 component_build_no_ssl_cli () {
     msg "build: full config except ssl_cli.c, make, gcc" # ~ 30s
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_SSL_CLI_C
@@ -736,7 +714,6 @@ component_build_no_sockets () {
     # Note, C99 compliance can also be tested with the sockets support disabled,
     # as that requires a POSIX platform (which isn't the same as C99).
     msg "build: full config except net_sockets.c, make, gcc -std=c99 -pedantic" # ~ 30s
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
@@ -747,7 +724,6 @@ component_build_no_sockets () {
 component_test_no_max_fragment_length () {
     # Run max fragment length tests with MFL disabled
     msg "build: default config except MFL extension (ASan build)" # ~ 30s
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
@@ -759,7 +735,6 @@ component_test_no_max_fragment_length () {
 
 component_test_no_max_fragment_length_small_ssl_out_content_len () {
     msg "build: no MFL extension, small SSL_OUT_CONTENT_LEN (ASan build)"
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
     scripts/config.pl set MBEDTLS_SSL_IN_CONTENT_LEN 16384
@@ -773,7 +748,6 @@ component_test_no_max_fragment_length_small_ssl_out_content_len () {
 
 component_test_null_entropy () {
     msg "build: default config with  MBEDTLS_TEST_NULL_ENTROPY (ASan build)"
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl set MBEDTLS_TEST_NULL_ENTROPY
     scripts/config.pl set MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
@@ -790,7 +764,6 @@ component_test_null_entropy () {
 
 component_test_platform_calloc_macro () {
     msg "build: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl set MBEDTLS_PLATFORM_MEMORY
     scripts/config.pl set MBEDTLS_PLATFORM_CALLOC_MACRO calloc
@@ -804,7 +777,6 @@ component_test_platform_calloc_macro () {
 
 component_test_aes_fewer_tables () {
     msg "build: default config with AES_FEWER_TABLES enabled"
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl set MBEDTLS_AES_FEWER_TABLES
     make CC=gcc CFLAGS='-Werror -Wall -Wextra'
@@ -815,7 +787,6 @@ component_test_aes_fewer_tables () {
 
 component_test_aes_rom_tables () {
     msg "build: default config with AES_ROM_TABLES enabled"
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl set MBEDTLS_AES_ROM_TABLES
     make CC=gcc CFLAGS='-Werror -Wall -Wextra'
@@ -826,7 +797,6 @@ component_test_aes_rom_tables () {
 
 component_test_aes_fewer_tables_and_rom_tables () {
     msg "build: default config with AES_ROM_TABLES and AES_FEWER_TABLES enabled"
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl set MBEDTLS_AES_FEWER_TABLES
     scripts/config.pl set MBEDTLS_AES_ROM_TABLES
@@ -838,14 +808,12 @@ component_test_aes_fewer_tables_and_rom_tables () {
 
 component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
-    cleanup
     make SHARED=1 all check
 }
 
 component_test_m32_o0 () {
     # Build once with -O0, to compile out the i386 specific inline assembly
     msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     make CC=gcc CFLAGS='-O0 -Werror -Wall -Wextra -m32 -fsanitize=address'
@@ -857,7 +825,6 @@ component_test_m32_o0 () {
 component_test_m32_o1 () {
     # Build again with -O1, to compile in the i386 specific inline assembly
     msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address'
@@ -868,7 +835,6 @@ component_test_m32_o1 () {
 
 component_test_mx32 () {
     msg "build: 64-bit ILP32, make, gcc" # ~ 30s
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32'
@@ -879,7 +845,6 @@ component_test_mx32 () {
 
 component_test_have_int32 () {
     msg "build: gcc, force 32-bit bignum limbs"
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl unset MBEDTLS_HAVE_ASM
     scripts/config.pl unset MBEDTLS_AESNI_C
@@ -892,7 +857,6 @@ component_test_have_int32 () {
 
 component_test_have_int64 () {
     msg "build: gcc, force 64-bit bignum limbs"
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl unset MBEDTLS_HAVE_ASM
     scripts/config.pl unset MBEDTLS_AESNI_C
@@ -905,7 +869,6 @@ component_test_have_int64 () {
 
 component_test_no_udbl_division () {
     msg "build: MBEDTLS_NO_UDBL_DIVISION native" # ~ 10s
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
@@ -918,7 +881,6 @@ component_test_no_udbl_division () {
 
 component_test_no_64bit_multiplication () {
     msg "build: MBEDTLS_NO_64BIT_MULTIPLICATION native" # ~ 10s
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
@@ -931,7 +893,6 @@ component_test_no_64bit_multiplication () {
 
 component_build_arm_none_eabi_gcc () {
     msg "build: arm-none-eabi-gcc, make" # ~ 10s
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_NET_C
@@ -950,7 +911,6 @@ component_build_arm_none_eabi_gcc () {
 
 component_build_arm_none_eabi_gcc_no_udbl_division () {
     msg "build: arm-none-eabi-gcc -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_NET_C
@@ -972,7 +932,6 @@ component_build_arm_none_eabi_gcc_no_udbl_division () {
 
 component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
     msg "build: arm-none-eabi-gcc MBEDTLS_NO_64BIT_MULTIPLICATION, make" # ~ 10s
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_NET_C
@@ -994,7 +953,6 @@ component_build_arm_none_eabi_gcc_no_64bit_multiplication () {
 
 component_build_armcc () {
     msg "build: ARM Compiler 5, make"
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_NET_C
@@ -1036,7 +994,6 @@ component_build_armcc () {
 
 component_test_allow_sha1 () {
     msg "build: allow SHA1 in certificates by default"
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl set MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
     make CFLAGS='-Werror -Wall -Wextra'
@@ -1047,7 +1004,6 @@ component_test_allow_sha1 () {
 
 component_build_mingw () {
     msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
-    cleanup
     make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs
 
     # note Make tests only builds the tests, but doesn't run them
@@ -1062,7 +1018,6 @@ component_build_mingw () {
 
 component_test_memsan () {
     msg "build: MSan (clang)" # ~ 1 min 20s
-    cleanup
     cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl unset MBEDTLS_AESNI_C # memsan doesn't grok asm
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
@@ -1084,7 +1039,6 @@ component_test_memsan () {
 
 component_test_memcheck () {
     msg "build: Release (clang)"
-    cleanup
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
     make
 
@@ -1108,7 +1062,6 @@ component_test_memcheck () {
 
 component_test_cmake_out_of_source () {
     msg "build: cmake 'out-of-source' build"
-    cleanup
     MBEDTLS_ROOT_DIR="$PWD"
     mkdir "$OUT_OF_SOURCE_DIR"
     cd "$OUT_OF_SOURCE_DIR"
@@ -1143,12 +1096,12 @@ component_test_zeroize () {
     for optimization_flag in -O2 -O3 -Ofast -Os; do
           for compiler in clang gcc; do
                 msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
-                cleanup
                 make programs CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag"
                 if_build_succeeded gdb -x tests/scripts/test_zeroize.gdb -nw -batch -nx 2>&1 | tee test_zeroize.log
                 if_build_succeeded grep "The buffer was correctly zeroized" test_zeroize.log
                 if_build_succeeded not grep -i "error" test_zeroize.log
                 rm -f test_zeroize.log
+                make clean
           done
     done
 }
@@ -1180,9 +1133,10 @@ post_report () {
 #### Run all the things
 ################################################################
 
-# Run one component. Currently trivial.
+# Run one component and clean up afterwards.
 run_component () {
     "$@"
+    cleanup
 }
 
 # Preliminary setup
@@ -1201,6 +1155,7 @@ fi
 pre_print_configuration
 pre_check_tools
 pre_print_tools
+cleanup
 
 # Small things
 run_component component_check_recursion

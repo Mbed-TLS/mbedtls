@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.xx.x branch released xxxx-xx-xx
+
+Bugfix
+   * Reduce stack usage of `mpi_write_hlp()` by eliminating recursion.
+     Fixes #2190.
+
 = mbed TLS 2.14.0 branch released 2018-11-19
 
 Security

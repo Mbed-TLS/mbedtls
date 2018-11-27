@@ -94,7 +94,7 @@ pre_initialize_variables () {
     CONFIG_H='include/mbedtls/config.h'
     CONFIG_BAK="$CONFIG_H.bak"
 
-    COMPONENTS=
+    ALL_EXCEPT=0
     MEMORY=0
     FORCE=0
     KEEP_GOING=0
@@ -124,6 +124,19 @@ pre_initialize_variables () {
     ALL_COMPONENTS=$(sed -n 's/^ *component_\([0-9A-Z_a-z]*\) *().*/\1/p' <"$0")
 }
 
+# Test whether $1 is excluded via $COMPONENTS (a space-separated list of
+# wildcard patterns).
+is_component_excluded()
+{
+    set -f
+    for pattern in $COMPONENTS; do
+        set +f
+        case ${1#component_} in $pattern) return 0;; esac
+    done
+    set +f
+    return 1
+}
+
 usage()
 {
     cat <<EOF
@@ -139,6 +152,11 @@ General options:
   -k|--keep-going       Run all tests and report errors at the end.
   -m|--memory           Additional optional memory tests.
      --armcc            Run ARM Compiler builds (on by default).
+     --except           If some components are passed on the command line,
+                        run all the tests except for these components. In
+                        this mode, you can pass shell wildcard patterns as
+                        component names, e.g. "$0 --except 'test_*'" to
+                        exclude all components that run tests.
      --no-armcc         Skip ARM Compiler builds.
      --no-force         Refuse to overwrite modified files (default).
      --no-keep-going    Stop at the first error (default).
@@ -239,11 +257,14 @@ check_tools()
 }
 
 pre_parse_command_line () {
+    COMPONENTS=
+
     while [ $# -gt 0 ]; do
         case "$1" in
             --armcc) RUN_ARMCC=1;;
             --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
             --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
+            --except) ALL_EXCEPT=1;;
             --force|-f) FORCE=1;;
             --gnutls-cli) shift; GNUTLS_CLI="$1";;
             --gnutls-legacy-cli) shift; GNUTLS_LEGACY_CLI="$1";;
@@ -275,8 +296,17 @@ pre_parse_command_line () {
         shift
     done
 
-    if [ -z "$COMPONENTS" ]; then
-        COMPONENTS="$ALL_COMPONENTS"
+    if [ $ALL_EXCEPT -ne 0 ]; then
+        RUN_COMPONENTS=
+        for component in $ALL_COMPONENTS; do
+            if ! is_component_excluded "$component"; then
+                RUN_COMPONENTS="$RUN_COMPONENTS $component"
+            fi
+        done
+    elif [ -z "$COMPONENTS" ]; then
+        RUN_COMPONENTS="$ALL_COMPONENTS"
+    else
+        RUN_COMPONENTS="$COMPONENTS"
     fi
 }
 
@@ -1010,7 +1040,7 @@ pre_check_tools
 cleanup
 
 # Run all the test components.
-for component in $COMPONENTS; do
+for component in $RUN_COMPONENTS; do
     run_component "component_$component"
 done
 

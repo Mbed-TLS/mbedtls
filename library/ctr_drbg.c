@@ -226,6 +226,10 @@ static int block_cipher_df( unsigned char *output,
 
     mbedtls_aes_free( &aes_ctx );
 
+    mbedtls_zeroize( buf, sizeof( buf ) );
+    mbedtls_zeroize( tmp, sizeof( tmp ) );
+    mbedtls_zeroize( key, sizeof( key ) );
+    mbedtls_zeroize( chain, sizeof( chain ) );
     return( 0 );
 }
 

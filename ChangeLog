@@ -96,6 +96,9 @@ Bugfix
      replacements of standard calloc/free functions through the macros
      MBEDTLS_PLATFORM_CALLOC_MACRO and MBEDTLS_PLATFORM_FREE_MACRO.
      Reported by ole-de and ddhome2006. Fixes #882, #1642 and #1706.
+   * Fix compilation on MINGW32/MINGW64 with deactivated option
+     `MBEDTLS_HAVE_ASM` in config file (@merlokk).
+   
 
 Changes
    * Removed support for Yotta as a build tool.

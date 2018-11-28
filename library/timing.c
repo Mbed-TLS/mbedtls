@@ -234,7 +234,7 @@ unsigned long mbedtls_timing_hardclock( void )
         mingw_gettimeofday( &tv_init, NULL );
 #else
         gettimeofday( &tv_init, NULL );
-#endif
+#endif /* __MINGW32__ */
         hardclock_init = 1;
     }
 
@@ -242,7 +242,7 @@ unsigned long mbedtls_timing_hardclock( void )
     mingw_gettimeofday( &tv_cur, NULL );
 #else
     gettimeofday( &tv_cur, NULL );
-#endif
+#endif /* __MINGW32__ */
     return( ( tv_cur.tv_sec  - tv_init.tv_sec  ) * 1000000
           + ( tv_cur.tv_usec - tv_init.tv_usec ) );
 }

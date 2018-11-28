@@ -263,6 +263,62 @@ void x509_verify_info( int flags, char * prefix, char * result_str )
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_X509_CRL_PARSE_C:MBEDTLS_ECP_RESTARTABLE:MBEDTLS_ECDSA_C */
+void x509_verify_restart( char *crt_file, char *ca_file,
+                          int result, int flags_result,
+                          int max_ops, int min_restart, int max_restart )
+{
+    int ret, cnt_restart;
+    mbedtls_x509_crt_restart_ctx rs_ctx;
+    mbedtls_x509_crt crt;
+    mbedtls_x509_crt ca;
+    uint32_t flags = 0;
+
+    /*
+     * See comments on ecp_test_vect_restart() for op count precision.
+     *
+     * For reference, with mbed TLS 2.6 and default settings:
+     * - ecdsa_verify() for P-256:  ~  6700
+     * - ecdsa_verify() for P-384:  ~ 18800
+     * - x509_verify() for server5 -> test-ca2:             ~ 18800
+     * - x509_verify() for server10 -> int-ca3 -> int-ca2:  ~ 25500
+     */
+
+    mbedtls_x509_crt_restart_init( &rs_ctx );
+    mbedtls_x509_crt_init( &crt );
+    mbedtls_x509_crt_init( &ca );
+
+    TEST_ASSERT( mbedtls_x509_crt_parse_file( &crt, crt_file ) == 0 );
+    TEST_ASSERT( mbedtls_x509_crt_parse_file( &ca, ca_file ) == 0 );
+
+    mbedtls_ecp_set_max_ops( max_ops );
+
+    cnt_restart = 0;
+    do {
+        ret = mbedtls_x509_crt_verify_restartable( &crt, &ca, NULL,
+                &mbedtls_x509_crt_profile_default, NULL, &flags,
+                NULL, NULL, &rs_ctx );
+    } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restart );
+
+    TEST_ASSERT( ret == result );
+    TEST_ASSERT( flags == (uint32_t) flags_result );
+
+    TEST_ASSERT( cnt_restart >= min_restart );
+    TEST_ASSERT( cnt_restart <= max_restart );
+
+    /* Do we leak memory when aborting? */
+    ret = mbedtls_x509_crt_verify_restartable( &crt, &ca, NULL,
+            &mbedtls_x509_crt_profile_default, NULL, &flags,
+            NULL, NULL, &rs_ctx );
+    TEST_ASSERT( ret == result || ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+
+exit:
+    mbedtls_x509_crt_restart_free( &rs_ctx );
+    mbedtls_x509_crt_free( &crt );
+    mbedtls_x509_crt_free( &ca );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_X509_CRL_PARSE_C */
 void x509_verify( char *crt_file, char *ca_file, char *crl_file,
                   char *cn_name_str, int result, int flags_result,

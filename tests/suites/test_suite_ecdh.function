@@ -156,3 +156,120 @@ exit:
     mbedtls_ecdh_free( &cli );
 }
 /* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE */
+void ecdh_restart( int id, char *dA_str, char *dB_str, char *z_str,
+                   int enable, int max_ops, int min_restart, int max_restart )
+{
+    int ret;
+    mbedtls_ecdh_context srv, cli;
+    unsigned char buf[1000];
+    const unsigned char *vbuf;
+    size_t len;
+    unsigned char z[MBEDTLS_ECP_MAX_BYTES];
+    size_t z_len;
+    unsigned char rnd_buf_A[MBEDTLS_ECP_MAX_BYTES];
+    unsigned char rnd_buf_B[MBEDTLS_ECP_MAX_BYTES];
+    rnd_buf_info rnd_info_A, rnd_info_B;
+    int cnt_restart;
+
+    mbedtls_ecdh_init( &srv );
+    mbedtls_ecdh_init( &cli );
+
+    z_len = unhexify( z, z_str );
+
+    rnd_info_A.buf = rnd_buf_A;
+    rnd_info_A.length = unhexify( rnd_buf_A, dA_str );
+
+    rnd_info_B.buf = rnd_buf_B;
+    rnd_info_B.length = unhexify( rnd_buf_B, dB_str );
+
+    TEST_ASSERT( mbedtls_ecp_group_load( &srv.grp, id ) == 0 );
+
+    /* otherwise we would have to fix the random buffer,
+     * as in ecdh_primitive_test_vec */
+    TEST_ASSERT( srv.grp.nbits % 8 == 0 );
+
+    /* set up restart parameters */
+    mbedtls_ecp_set_max_ops( max_ops );
+
+    if( enable)
+    {
+        mbedtls_ecdh_enable_restart( &srv );
+        mbedtls_ecdh_enable_restart( &cli );
+    }
+
+    /* server writes its paramaters */
+    memset( buf, 0x00, sizeof( buf ) );
+    len = 0;
+
+    cnt_restart = 0;
+    do {
+        ret = mbedtls_ecdh_make_params( &srv, &len, buf, sizeof( buf ),
+                                        rnd_buffer_rand, &rnd_info_A );
+    } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restart );
+
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( cnt_restart >= min_restart );
+    TEST_ASSERT( cnt_restart <= max_restart );
+
+    /* client read server params */
+    vbuf = buf;
+    TEST_ASSERT( mbedtls_ecdh_read_params( &cli, &vbuf, buf + len ) == 0 );
+
+    /* client writes its key share */
+    memset( buf, 0x00, sizeof( buf ) );
+    len = 0;
+
+    cnt_restart = 0;
+    do {
+        ret = mbedtls_ecdh_make_public( &cli, &len, buf, sizeof( buf ),
+                                        rnd_buffer_rand, &rnd_info_B );
+    } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restart );
+
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( cnt_restart >= min_restart );
+    TEST_ASSERT( cnt_restart <= max_restart );
+
+    /* server reads client key share */
+    TEST_ASSERT( mbedtls_ecdh_read_public( &srv, buf, len ) == 0 );
+
+    /* server computes shared secret */
+    memset( buf, 0, sizeof( buf ) );
+    len = 0;
+
+    cnt_restart = 0;
+    do {
+        ret = mbedtls_ecdh_calc_secret( &srv, &len, buf, sizeof( buf ),
+                                              NULL, NULL );
+    } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restart );
+
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( cnt_restart >= min_restart );
+    TEST_ASSERT( cnt_restart <= max_restart );
+
+    TEST_ASSERT( len == z_len );
+    TEST_ASSERT( memcmp( buf, z, len ) == 0 );
+
+    /* client computes shared secret */
+    memset( buf, 0, sizeof( buf ) );
+    len = 0;
+
+    cnt_restart = 0;
+    do {
+        ret = mbedtls_ecdh_calc_secret( &cli, &len, buf, sizeof( buf ),
+                                              NULL, NULL );
+    } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restart );
+
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( cnt_restart >= min_restart );
+    TEST_ASSERT( cnt_restart <= max_restart );
+
+    TEST_ASSERT( len == z_len );
+    TEST_ASSERT( memcmp( buf, z, len ) == 0 );
+
+exit:
+    mbedtls_ecdh_free( &srv );
+    mbedtls_ecdh_free( &cli );
+}
+/* END_CASE */

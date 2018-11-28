@@ -60,9 +60,18 @@ int main( void )
 #include "mbedtls/certs.h"
 #include "mbedtls/timing.h"
 
+/* Uncomment out the following line to default to IPv4 and disable IPv6 */
+//#define FORCE_IPV4
+
 #define SERVER_PORT "4433"
 #define SERVER_NAME "localhost"
-#define SERVER_ADDR "127.0.0.1" /* forces IPv4 */
+
+#ifdef FORCE_IPV4
+#define SERVER_ADDR "127.0.0.1"     /* Forces IPv4 */
+#else
+#define SERVER_ADDR "::1"
+#endif
+
 #define MESSAGE     "Echo this"
 
 #define READ_TIMEOUT_MS 1000

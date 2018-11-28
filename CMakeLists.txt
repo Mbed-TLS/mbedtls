@@ -36,9 +36,26 @@ set(NULL_ENTROPY_WARNING "${WARNING_BORDER}"
                          "${NULL_ENTROPY_WARN_L3}"
                          "${WARNING_BORDER}")
 
+set(CTR_DRBG_128_BIT_KEY_WARN_L1 "****  WARNING!  MBEDTLS_CTR_DRBG_USE_128_BIT_KEY defined!\n")
+set(CTR_DRBG_128_BIT_KEY_WARN_L2 "****  Using 128-bit keys for CTR_DRBG limits the security of generated\n")
+set(CTR_DRBG_128_BIT_KEY_WARN_L3 "****  keys and operations that use random values generated to 128-bit security\n")
+
+set(CTR_DRBG_128_BIT_KEY_WARNING "${WARNING_BORDER}"
+                         "${CTR_DRBG_128_BIT_KEY_WARN_L1}"
+                         "${CTR_DRBG_128_BIT_KEY_WARN_L2}"
+                         "${CTR_DRBG_128_BIT_KEY_WARN_L3}"
+                         "${WARNING_BORDER}")
+
 find_package(PythonInterp)
 find_package(Perl)
 if(PERL_FOUND)
+
+    # If 128-bit keys are configured for CTR_DRBG, display an appropriate warning
+    execute_process(COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.pl -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/config.h get MBEDTLS_CTR_DRBG_USE_128_BIT_KEY
+                        RESULT_VARIABLE result)
+    if(${result} EQUAL 0)
+        message(WARNING ${CTR_DRBG_128_BIT_KEY_WARNING})
+    endif()
 
     # If NULL Entropy is configured, display an appropriate warning
     execute_process(COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/config.pl -f ${CMAKE_CURRENT_SOURCE_DIR}/include/mbedtls/config.h get MBEDTLS_TEST_NULL_ENTROPY

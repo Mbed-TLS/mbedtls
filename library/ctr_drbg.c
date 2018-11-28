@@ -66,6 +66,18 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx )
  * Non-public function wrapped by mbedtls_ctr_drbg_seed(). Necessary to allow
  * NIST tests to succeed (which require known length fixed entropy)
  */
+/* CTR_DRBG_Instantiate with derivation function (SP 800-90A &sect;10.2.1.3.2)
+ * mbedtls_ctr_drbg_seed_entropy_len(ctx, f_entropy, p_entropy,
+ *                                   custom, len, entropy_len)
+ * implements
+ * CTR_DRBG_Instantiate(entropy_input, nonce, personalization_string,
+ *                      security_strength) -> initial_working_state
+ * with inputs
+ *   custom[:len] = nonce || personalization_string
+ * where entropy_input comes from f_entropy for entropy_len bytes
+ * and with outputs
+ *   ctx = initial_working_state
+ */
 int mbedtls_ctr_drbg_seed_entropy_len(
                    mbedtls_ctr_drbg_context *ctx,
                    int (*f_entropy)(void *, unsigned char *, size_t),
@@ -256,6 +268,14 @@ exit:
     return( ret );
 }
 
+/* CTR_DRBG_Update (SP 800-90A &sect;10.2.1.2)
+ * ctr_drbg_update_internal(ctx, provided_data)
+ * implements
+ * CTR_DRBG_Update(provided_data, Key, V)
+ * with inputs and outputs
+ *   ctx->aes_ctx = Key
+ *   ctx->counter = V
+ */
 static int ctr_drbg_update_internal( mbedtls_ctr_drbg_context *ctx,
                               const unsigned char data[MBEDTLS_CTR_DRBG_SEEDLEN] )
 {
@@ -301,6 +321,18 @@ static int ctr_drbg_update_internal( mbedtls_ctr_drbg_context *ctx,
     return( 0 );
 }
 
+/* CTR_DRBG_Instantiate with derivation function (SP 800-90A &sect;10.2.1.3.2)
+ * mbedtls_ctr_drbg_update(ctx, additional, add_len)
+ * implements
+ * CTR_DRBG_Instantiate(entropy_input, nonce, personalization_string,
+ *                      security_strength) -> initial_working_state
+ * with inputs
+ *   ctx->counter = all-bits-0
+ *   ctx->aes_ctx = context from all-bits-0 key
+ *   additional[:add_len] = entropy_input || nonce || personalization_string
+ * and with outputs
+ *   ctx = initial_working_state
+ */
 void mbedtls_ctr_drbg_update( mbedtls_ctr_drbg_context *ctx,
                       const unsigned char *additional, size_t add_len )
 {
@@ -318,6 +350,18 @@ void mbedtls_ctr_drbg_update( mbedtls_ctr_drbg_context *ctx,
     }
 }
 
+/* CTR_DRBG_Reseed with derivation function (SP 800-90A &sect;10.2.1.4.2)
+ * mbedtls_ctr_drbg_reseed(ctx, additional, len)
+ * implements
+ * CTR_DRBG_Reseed(working_state, entropy_input, additional_input)
+ *                -> new_working_state
+ * with inputs
+ *   ctx contains working_state
+ *   additional[:len] = additional_input
+ * and entropy_input comes from calling ctx->f_entropy
+ * and with output
+ *   ctx contains new_working_state
+ */
 int mbedtls_ctr_drbg_reseed( mbedtls_ctr_drbg_context *ctx,
                      const unsigned char *additional, size_t len )
 {
@@ -371,6 +415,25 @@ int mbedtls_ctr_drbg_reseed( mbedtls_ctr_drbg_context *ctx,
     return( 0 );
 }
 
+/* CTR_DRBG_Generate with derivation function (SP 800-90A &sect;10.2.1.5.2)
+ * mbedtls_ctr_drbg_random_with_add(ctx, output, output_len, additional, add_len)
+ * implements
+ * CTR_DRBG_Reseed(working_state, entropy_input, additional[:add_len])
+ *                -> working_state_after_reseed
+ *                if required, then
+ * CTR_DRBG_Generate(working_state_after_reseed,
+ *                   requested_number_of_bits, additional_input)
+ *                -> status, returned_bits, new_working_state
+ * with inputs
+ *   ctx contains working_state
+ *   requested_number_of_bits = 8 * output_len
+ *   additional[:add_len] = additional_input
+ * and entropy_input comes from calling ctx->f_entropy
+ * and with outputs
+ *   status = SUCCESS (this function does the reseed internally)
+ *   returned_bits = output[:output_len]
+ *   ctx contains new_working_state
+ */
 int mbedtls_ctr_drbg_random_with_add( void *p_rng,
                               unsigned char *output, size_t output_len,
                               const unsigned char *additional, size_t add_len )

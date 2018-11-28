@@ -40,7 +40,7 @@ diff macros identifiers | sed -n -e 's/< //p' > actual-macros
 for THING in actual-macros enum-consts; do
     printf "Names of $THING: "
     test -r $THING
-    BAD=$( grep -v '^MBEDTLS_[0-9A-Z_]*[0-9A-Z]$\|^YOTTA_[0-9A-Z_]*[0-9A-Z]$' $THING || true )
+    BAD=$( grep -v '^MBEDTLS_[0-9A-Z_]*[0-9A-Z]$' $THING || true )
     if [ "x$BAD" = "x" ]; then
         echo "PASS"
     else

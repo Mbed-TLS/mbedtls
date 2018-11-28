@@ -129,6 +129,15 @@ void pk_rsa_verify_test_vec( data_t * message_str, int digest, int mod,
     unsigned char hash_result[1000];
     mbedtls_rsa_context *rsa;
     mbedtls_pk_context pk;
+    mbedtls_pk_restart_ctx *rs_ctx = NULL;
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    mbedtls_pk_restart_ctx ctx;
+
+    rs_ctx = &ctx;
+    mbedtls_pk_restart_init( rs_ctx );
+    // this setting would ensure restart would happen if ECC was used
+    mbedtls_ecp_set_max_ops( 1 );
+#endif
 
     mbedtls_pk_init( &pk );
 
@@ -148,7 +157,13 @@ void pk_rsa_verify_test_vec( data_t * message_str, int digest, int mod,
     TEST_ASSERT( mbedtls_pk_verify( &pk, digest, hash_result, 0,
                             result_str->x, mbedtls_pk_get_len( &pk ) ) == result );
 
+    TEST_ASSERT( mbedtls_pk_verify_restartable( &pk, digest, hash_result, 0,
+                    result_str->x, mbedtls_pk_get_len( &pk ), rs_ctx ) == result );
+
 exit:
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    mbedtls_pk_restart_free( rs_ctx );
+#endif
     mbedtls_pk_free( &pk );
 }
 /* END_CASE */
@@ -239,12 +254,125 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_ECP_RESTARTABLE:MBEDTLS_ECDSA_C:MBEDTLS_ECDSA_DETERMINISTIC */
+void pk_sign_verify_restart( int pk_type, int grp_id, char *d_str,
+                              char *QX_str, char *QY_str,
+                              int md_alg, char *msg, char *sig_str,
+                              int max_ops, int min_restart, int max_restart )
+{
+    int ret, cnt_restart;
+    mbedtls_pk_restart_ctx rs_ctx;
+    mbedtls_pk_context prv, pub;
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
+    unsigned char sig[MBEDTLS_ECDSA_MAX_LEN];
+    unsigned char sig_check[MBEDTLS_ECDSA_MAX_LEN];
+    size_t hlen, slen, slen_check;
+    const mbedtls_md_info_t *md_info;
+
+    mbedtls_pk_restart_init( &rs_ctx );
+    mbedtls_pk_init( &prv );
+    mbedtls_pk_init( &pub );
+    memset( hash, 0, sizeof( hash ) );
+    memset( sig, 0, sizeof( sig ) );
+    memset( sig_check, 0, sizeof( sig_check ) );
+
+    TEST_ASSERT( mbedtls_pk_setup( &prv, mbedtls_pk_info_from_type( pk_type ) ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_group_load( &mbedtls_pk_ec( prv )->grp, grp_id ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_read_string( &mbedtls_pk_ec( prv )->d, 16, d_str ) == 0 );
+
+    TEST_ASSERT( mbedtls_pk_setup( &pub, mbedtls_pk_info_from_type( pk_type ) ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_group_load( &mbedtls_pk_ec( pub )->grp, grp_id ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_point_read_string( &mbedtls_pk_ec( pub )->Q, 16, QX_str, QY_str ) == 0 );
+
+    slen_check = unhexify( sig_check, sig_str );
+
+    md_info = mbedtls_md_info_from_type( md_alg );
+    TEST_ASSERT( md_info != NULL );
+
+    hlen = mbedtls_md_get_size( md_info );
+    mbedtls_md( md_info, (const unsigned char *) msg, strlen( msg ), hash );
+
+    mbedtls_ecp_set_max_ops( max_ops );
+
+    slen = sizeof( sig );
+    cnt_restart = 0;
+    do {
+        ret = mbedtls_pk_sign_restartable( &prv, md_alg, hash, hlen,
+                                            sig, &slen, NULL, NULL, &rs_ctx );
+    } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restart );
+
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( slen == slen_check );
+    TEST_ASSERT( memcmp( sig, sig_check, slen ) == 0 );
+
+    TEST_ASSERT( cnt_restart >= min_restart );
+    TEST_ASSERT( cnt_restart <= max_restart );
+
+    cnt_restart = 0;
+    do {
+        ret = mbedtls_pk_verify_restartable( &pub, md_alg,
+                                 hash, hlen, sig, slen, &rs_ctx );
+    } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS && ++cnt_restart );
+
+    TEST_ASSERT( ret == 0 );
+    TEST_ASSERT( cnt_restart >= min_restart );
+    TEST_ASSERT( cnt_restart <= max_restart );
+
+    hash[0]++;
+    do {
+        ret = mbedtls_pk_verify_restartable( &pub, md_alg,
+                                 hash, hlen, sig, slen, &rs_ctx );
+    } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    TEST_ASSERT( ret != 0 );
+    hash[0]--;
+
+    sig[0]++;
+    do {
+        ret = mbedtls_pk_verify_restartable( &pub, md_alg,
+                                 hash, hlen, sig, slen, &rs_ctx );
+    } while( ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    TEST_ASSERT( ret != 0 );
+    sig[0]--;
+
+    /* Do we leak memory when aborting? try verify then sign
+     * This test only makes sense when we actually restart */
+    if( min_restart > 0 )
+    {
+        ret = mbedtls_pk_verify_restartable( &pub, md_alg,
+                                 hash, hlen, sig, slen, &rs_ctx );
+        TEST_ASSERT( ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+        mbedtls_pk_restart_free( &rs_ctx );
+
+        slen = sizeof( sig );
+        ret = mbedtls_pk_sign_restartable( &prv, md_alg, hash, hlen,
+                                            sig, &slen, NULL, NULL, &rs_ctx );
+        TEST_ASSERT( ret == MBEDTLS_ERR_ECP_IN_PROGRESS );
+    }
+
+exit:
+    mbedtls_pk_restart_free( &rs_ctx );
+    mbedtls_pk_free( &prv );
+    mbedtls_pk_free( &pub );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
 void pk_sign_verify( int type, int sign_ret, int verify_ret )
 {
     mbedtls_pk_context pk;
     unsigned char hash[50], sig[5000];
     size_t sig_len;
+    void *rs_ctx = NULL;
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    mbedtls_pk_restart_ctx ctx;
+
+    rs_ctx = &ctx;
+    mbedtls_pk_restart_init( rs_ctx );
+    /* This value is large enough that the operation will complete in one run.
+     * See comments at the top of ecp_test_vect_restart in
+     * test_suite_ecp.function for estimates of operation counts. */
+    mbedtls_ecp_set_max_ops( 42000 );
+#endif
 
     mbedtls_pk_init( &pk );
 
@@ -254,13 +382,49 @@ void pk_sign_verify( int type, int sign_ret, int verify_ret )
     TEST_ASSERT( mbedtls_pk_setup( &pk, mbedtls_pk_info_from_type( type ) ) == 0 );
     TEST_ASSERT( pk_genkey( &pk ) == 0 );
 
-    TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, sizeof hash,
-                          sig, &sig_len, rnd_std_rand, NULL ) == sign_ret );
+    TEST_ASSERT( mbedtls_pk_sign_restartable( &pk, MBEDTLS_MD_SHA256,
+                 hash, sizeof hash, sig, &sig_len,
+                 rnd_std_rand, NULL, rs_ctx ) == sign_ret );
 
     TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_SHA256,
                             hash, sizeof hash, sig, sig_len ) == verify_ret );
 
+    if( verify_ret == 0 )
+    {
+        hash[0]++;
+        TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_SHA256,
+                                hash, sizeof hash, sig, sig_len ) != 0 );
+        hash[0]--;
+
+        sig[0]++;
+        TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_SHA256,
+                                hash, sizeof hash, sig, sig_len ) != 0 );
+        sig[0]--;
+    }
+
+    TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256, hash, sizeof hash,
+                          sig, &sig_len, rnd_std_rand, NULL ) == sign_ret );
+
+    TEST_ASSERT( mbedtls_pk_verify_restartable( &pk, MBEDTLS_MD_SHA256,
+                 hash, sizeof hash, sig, sig_len, rs_ctx ) == verify_ret );
+
+    if( verify_ret == 0 )
+    {
+        hash[0]++;
+        TEST_ASSERT( mbedtls_pk_verify_restartable( &pk, MBEDTLS_MD_SHA256,
+                     hash, sizeof hash, sig, sig_len, rs_ctx ) != 0 );
+        hash[0]--;
+
+        sig[0]++;
+        TEST_ASSERT( mbedtls_pk_verify_restartable( &pk, MBEDTLS_MD_SHA256,
+                     hash, sizeof hash, sig, sig_len, rs_ctx ) != 0 );
+        sig[0]--;
+    }
+
 exit:
+#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
+    mbedtls_pk_restart_free( rs_ctx );
+#endif
     mbedtls_pk_free( &pk );
 }
 /* END_CASE */

@@ -3146,7 +3146,7 @@ static void psa_aead_abort( aead_operation_t *operation )
             mbedtls_ccm_free( &operation->ctx.ccm );
             break;
 #endif /* MBEDTLS_CCM_C */
-#if defined(MBEDTLS_CCM_C)
+#if defined(MBEDTLS_GCM_C)
         case PSA_ALG_GCM:
             mbedtls_gcm_free( &operation->ctx.gcm );
             break;
@@ -3259,6 +3259,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
     }
     tag = ciphertext + plaintext_length;
 
+#if defined(MBEDTLS_GCM_C)
     if( operation.core_alg == PSA_ALG_GCM )
     {
         status = mbedtls_to_psa_error(
@@ -3270,7 +3271,10 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
                                        plaintext, ciphertext,
                                        operation.tag_length, tag ) );
     }
-    else if( operation.core_alg == PSA_ALG_CCM )
+    else
+#endif /* MBEDTLS_GCM_C */
+#if defined(MBEDTLS_CCM_C)
+    if( operation.core_alg == PSA_ALG_CCM )
     {
         status = mbedtls_to_psa_error(
             mbedtls_ccm_encrypt_and_tag( &operation.ctx.ccm,
@@ -3282,6 +3286,7 @@ psa_status_t psa_aead_encrypt( psa_key_slot_t key,
                                          tag, operation.tag_length ) );
     }
     else
+#endif /* MBEDTLS_CCM_C */
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }
@@ -3339,6 +3344,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
     if( status != PSA_SUCCESS )
         return( status );
 
+#if defined(MBEDTLS_GCM_C)
     if( operation.core_alg == PSA_ALG_GCM )
     {
         status = psa_aead_unpadded_locate_tag( operation.tag_length,
@@ -3356,7 +3362,10 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
                                       tag, operation.tag_length,
                                       ciphertext, plaintext ) );
     }
-    else if( operation.core_alg == PSA_ALG_CCM )
+    else
+#endif /* MBEDTLS_GCM_C */
+#if defined(MBEDTLS_CCM_C)
+    if( operation.core_alg == PSA_ALG_CCM )
     {
         status = psa_aead_unpadded_locate_tag( operation.tag_length,
                                                ciphertext, ciphertext_length,
@@ -3374,6 +3383,7 @@ psa_status_t psa_aead_decrypt( psa_key_slot_t key,
                                       tag, operation.tag_length ) );
     }
     else
+#endif /* MBEDTLS_CCM_C */
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }

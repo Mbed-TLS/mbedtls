@@ -9,6 +9,9 @@ Bugfix
    * Remove a duplicate #include in a sample program. Fixed by Masashi Honma #2326.
    * Reduce stack usage of `mpi_write_hlp()` by eliminating recursion.
      Fixes #2190.
+   * Fix private key DER output in the key_app_writer example. File contents
+     were shifted by one byte, creating an invalid ASN.1 tag. Fixed by
+     Christian Walther in #2239.
 
 Changes
    * Include configuration file in all header files that use configuration,

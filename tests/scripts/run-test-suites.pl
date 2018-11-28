@@ -3,8 +3,18 @@
 use warnings;
 use strict;
 
+use Getopt::Long;
+
 use utf8;
 use open qw(:std utf8);
+
+# The --verbose option is recognized for compatibility with other branches,
+# but it does nothing in Mbed TLS 2.1.
+my $verbose;
+
+GetOptions(
+    'verbose|v' => \$verbose,
+) or die "Command line option not recognized";
 
 my @suites = grep { ! /\.(?:c|gcno)$/ } glob 'test_suite_*';
 die "$0: no test suite found\n" unless @suites;

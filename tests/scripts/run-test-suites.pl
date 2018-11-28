@@ -21,17 +21,16 @@
 use warnings;
 use strict;
 
+use Getopt::Long;
+
 use utf8;
 use open qw(:std utf8);
 
-use constant FALSE => 0;
-use constant TRUE => 1;
-
 my $verbose;
-my $switch = shift;
-if ( defined($switch) && ( $switch eq "-v" || $switch eq "--verbose" ) ) {
-    $verbose = TRUE;
-}
+
+GetOptions(
+    'verbose|v' => \$verbose,
+) or die "Command line option not recognized";
 
 # All test suites = executable files, excluding source files, debug
 # and profiling information, etc. We can't just grep {! /\./} because

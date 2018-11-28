@@ -7,6 +7,7 @@ endif()
 
 include(CMakePackageConfigHelpers)
 
+# cmake export script installation directory
 set(CMAKE_EXPORT_DIR "lib/cmake/mbedtls")
 
 file(READ "${CMAKE_SOURCE_DIR}/include/mbedtls/version.h" MBEDTLS_VERSION_H)
@@ -14,7 +15,7 @@ string(REGEX REPLACE ".*#define[\t ]+MBEDTLS_VERSION_MAJOR[\t ]+([0-9]+).*" "\\1
 string(REGEX REPLACE ".*#define[\t ]+MBEDTLS_VERSION_MINOR[\t ]+([0-9]+).*" "\\1" MBEDTLS_VERSION_MINOR "${MBEDTLS_VERSION_H}")
 string(REGEX REPLACE ".*#define[\t ]+MBEDTLS_VERSION_PATCH[\t ]+([0-9]+).*" "\\1" MBEDTLS_VERSION_PATCH "${MBEDTLS_VERSION_H}")
 set(MBEDTLS_VERSION "${MBEDTLS_VERSION_MAJOR}.${MBEDTLS_VERSION_MINOR}.${MBEDTLS_VERSION_PATCH}")
-message(STATUS "mbed TLS version ${MBEDTLS_VERSION}")
+message(STATUS "Mbed TLS version ${MBEDTLS_VERSION}")
 
 option(USE_PKCS11_HELPER_LIBRARY "Build mbed TLS with the pkcs11-helper library." OFF)
 option(ENABLE_ZLIB_SUPPORT "Build mbed TLS with zlib library." OFF)

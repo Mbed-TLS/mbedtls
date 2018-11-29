@@ -16,6 +16,8 @@ Security
      plaintexts and forge RSA signatures. Other asymmetric algorithms may
      have been similarly vulnerable. Reported by Eyal Ronen, Robert Gillham,
      Daniel Genkin, Adi Shamir, David Wong and Yuval Yarom.
+   * Wipe sensitive buffers on the stack in the CTR_DRBG and HMAC_DRBG
+     modules.
 
 = mbed TLS 2.1.16 branch released 2018-11-19
 

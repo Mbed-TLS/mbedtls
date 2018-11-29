@@ -5,9 +5,17 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Security
    * Fix timing variations and memory access variations in RSA PKCS#1 v1.5
      decryption that could lead to a Bleichenbacher-style padding oracle
-     attack. In TLS, this affects RSA-based ciphersuites without DHE or
-     ECDHE. Reported by Yuval Yarom, Eyal Ronen, Adi Shamir, David Wong and
-     Daniel Genkin.
+     attack. In TLS, this affects servers that accept ciphersuites based on
+     RSA decryption (i.e. ciphersuites whose name contains RSA but not
+     (EC)DH(E)). Reported by Eyal Ronen, Robert Gillham, Daniel Genkin, Adi
+     Shamir, David Wong and Yuval Yarom. CVE-2018-19608
+   * In mbedtls_mpi_write_binary(), don't leak the exact size of the number
+     via branching and memory access patterns. An attacker who could submit
+     a plaintext for RSA PKCS#1 v1.5 decryption but only observe the timing
+     of the decryption and not its result could nonetheless decrypt RSA
+     plaintexts and forge RSA signatures. Other asymmetric algorithms may
+     have been similarly vulnerable. Reported by Eyal Ronen, Robert Gillham,
+     Daniel Genkin, Adi Shamir, David Wong and Yuval Yarom.
 
 = mbed TLS 2.14.0 branch released 2018-11-19
 

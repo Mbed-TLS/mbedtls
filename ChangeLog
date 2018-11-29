@@ -1,5 +1,14 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.7.x branch released xxxx-xx-xx
+
+Security
+   * Fix timing variations and memory access variations in RSA PKCS#1 v1.5
+     decryption that could lead to a Bleichenbacher-style padding oracle
+     attack. In TLS, this affects RSA-based ciphersuites without DHE or
+     ECDHE. Reported by Yuval Yarom, Eyal Ronen, Adi Shamir, David Wong and
+     Daniel Genkin.
+
 = mbed TLS 2.7.7 branch released 2018-11-19
 
 Security

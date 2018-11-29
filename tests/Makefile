@@ -113,8 +113,9 @@ ifneq ($(wildcard TESTS/.*),)
 endif
 endif
 
+# Test suites caught by SKIP_TEST_SUITES are built but not executed.
 check: $(BINARIES)
-	perl scripts/run-test-suites.pl
+	perl scripts/run-test-suites.pl --skip=$(SKIP_TEST_SUITES)
 
 test: check
 

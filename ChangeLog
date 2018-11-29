@@ -5,6 +5,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 New deprecations
    * Deprecate MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO that enables parsing
      SSLv2 ClientHello messages.
+   * Deprecate MBEDTLS_SSL_PROTO_SSL3 that enables support for SSLv3.
 
 Bugfix
    * Allow loading symlinked certificates. Fixes #3005. Reported and fixed

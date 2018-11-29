@@ -1605,6 +1605,9 @@
  * Requires: MBEDTLS_MD5_C
  *           MBEDTLS_SHA1_C
  *
+ * \deprecated This option is deprecated and will likely be removed in a
+ *             future version of Mbed TLS.
+ *
  * Comment this macro to disable support for SSL 3.0
  */
 //#define MBEDTLS_SSL_PROTO_SSL3

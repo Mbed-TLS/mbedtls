@@ -872,22 +872,6 @@ void static_checks( )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void init_deinit( )
-{
-    psa_status_t status;
-    int i;
-    for( i = 0; i <= 1; i++ )
-    {
-        status = psa_crypto_init( );
-        TEST_ASSERT( status == PSA_SUCCESS );
-        status = psa_crypto_init( );
-        TEST_ASSERT( status == PSA_SUCCESS );
-        mbedtls_psa_crypto_free( );
-    }
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
 void fill_slots( int max_arg )
 {
     /* Fill all the slots until we run out of memory or out of slots,
@@ -4015,26 +3999,6 @@ void generate_key( int type_arg,
 exit:
     psa_destroy_key( slot );
     mbedtls_psa_crypto_free( );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void validate_module_init_generate_random( )
-{
-    psa_status_t status;
-    uint8_t random[10] = { 0 };
-    status = psa_generate_random( random, sizeof( random ) );
-    TEST_ASSERT( status == PSA_ERROR_BAD_STATE );
-}
-/* END_CASE */
-
-/* BEGIN_CASE */
-void validate_module_init_key_based( )
-{
-    psa_status_t status;
-    uint8_t data[10] = { 0 };
-    status = psa_import_key( 1, PSA_KEY_TYPE_RAW_DATA, data, sizeof( data ) );
-    TEST_ASSERT( status == PSA_ERROR_BAD_STATE );
 }
 /* END_CASE */
 

@@ -43,6 +43,7 @@
 
 #include "psa/crypto.h"
 
+#include "psa_crypto_invasive.h"
 /* Include internal declarations that are useful for implementing persistently
  * stored keys. */
 #include "psa_crypto_storage.h"
@@ -146,12 +147,23 @@ static int key_type_is_raw_bytes( psa_key_type_t type )
     return( PSA_KEY_TYPE_IS_UNSTRUCTURED( type ) );
 }
 
+enum rng_state
+{
+    RNG_NOT_INITIALIZED = 0,
+    RNG_INITIALIZED,
+    RNG_SEEDED,
+};
+
 typedef struct
 {
-    int initialized;
+    void (* entropy_init )( mbedtls_entropy_context *ctx );
+    void (* entropy_free )( mbedtls_entropy_context *ctx );
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
     key_slot_t key_slots[PSA_KEY_SLOT_COUNT];
+    unsigned initialized : 1;
+    enum rng_state rng_state : 2;
+    unsigned key_slots_initialized : 1;
 } psa_global_data_t;
 
 static psa_global_data_t global_data;
@@ -4439,23 +4451,42 @@ psa_status_t psa_generate_key( psa_key_slot_t key,
 /* Module setup */
 /****************************************************************/
 
+psa_status_t mbedtls_psa_crypto_configure_entropy_sources(
+    void (* entropy_init )( mbedtls_entropy_context *ctx ),
+    void (* entropy_free )( mbedtls_entropy_context *ctx ) )
+{
+    if( global_data.rng_state != RNG_NOT_INITIALIZED )
+        return( PSA_ERROR_BAD_STATE );
+    global_data.entropy_init = entropy_init;
+    global_data.entropy_free = entropy_free;
+    return( PSA_SUCCESS );
+}
+
 void mbedtls_psa_crypto_free( void )
 {
     psa_key_slot_t key;
     key_slot_t *slot;
     psa_status_t status;
-
-    for( key = 1; key <= PSA_KEY_SLOT_COUNT; key++ )
+    if( global_data.key_slots_initialized )
     {
-        status = psa_get_key_slot( key, &slot );
-        if( status != PSA_SUCCESS )
-            continue;
-        psa_remove_key_data_from_memory( slot );
-        /* Zeroize the slot to wipe metadata such as policies. */
-        mbedtls_zeroize( slot, sizeof( *slot ) );
+        for( key = 1; key <= PSA_KEY_SLOT_COUNT; key++ )
+        {
+            status = psa_get_key_slot( key, &slot );
+            if( status != PSA_SUCCESS )
+                continue;
+            psa_remove_key_data_from_memory( slot );
+            /* Zeroize the slot to wipe metadata such as policies. */
+            mbedtls_zeroize( slot, sizeof( *slot ) );
+        }
     }
-    mbedtls_ctr_drbg_free( &global_data.ctr_drbg );
-    mbedtls_entropy_free( &global_data.entropy );
+    if( global_data.rng_state != RNG_NOT_INITIALIZED )
+    {
+        mbedtls_ctr_drbg_free( &global_data.ctr_drbg );
+        global_data.entropy_free( &global_data.entropy );
+    }
+    /* Wipe all remaining data, including configuration.
+     * In particular, this sets all state indicator to the value
+     * indicating "uninitialized". */
     mbedtls_zeroize( &global_data, sizeof( global_data ) );
 }
 
@@ -4464,20 +4495,35 @@ psa_status_t psa_crypto_init( void )
     int ret;
     const unsigned char drbg_seed[] = "PSA";
 
+    /* Double initialization is explicitly allowed. */
     if( global_data.initialized != 0 )
         return( PSA_SUCCESS );
 
-    mbedtls_zeroize( &global_data, sizeof( global_data ) );
-    mbedtls_entropy_init( &global_data.entropy );
-    mbedtls_ctr_drbg_init( &global_data.ctr_drbg );
+    /* Set default configuration if
+     * mbedtls_psa_crypto_configure_entropy_sources() hasn't been called. */
+    if( global_data.entropy_init == NULL )
+        global_data.entropy_init = mbedtls_entropy_init;
+    if( global_data.entropy_free == NULL )
+        global_data.entropy_free = mbedtls_entropy_free;
 
+    /* Initialize the random generator. */
+    global_data.entropy_init( &global_data.entropy );
+    mbedtls_ctr_drbg_init( &global_data.ctr_drbg );
+    global_data.rng_state = RNG_INITIALIZED;
     ret = mbedtls_ctr_drbg_seed( &global_data.ctr_drbg,
                                  mbedtls_entropy_func,
                                  &global_data.entropy,
                                  drbg_seed, sizeof( drbg_seed ) - 1 );
     if( ret != 0 )
         goto exit;
+    global_data.rng_state = RNG_SEEDED;
 
+    /* Initialize the key slots. Zero-initialization has made all key
+     * slots empty, so there is nothing to do. In a future version we will
+     * load data from storage. */
+    global_data.key_slots_initialized = 1;
+
+    /* All done. */
     global_data.initialized = 1;
 
 exit:

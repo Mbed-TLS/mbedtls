@@ -314,6 +314,10 @@ typedef int32_t psa_status_t;
  * generator will always return this error. */
 #define PSA_ERROR_INSUFFICIENT_CAPACITY ((psa_status_t)18)
 
+/** The key handle is not valid.
+ */
+#define PSA_ERROR_INVALID_HANDLE        ((psa_status_t)19)
+
 /**
  * \brief Library initialization.
  *
@@ -1486,6 +1490,127 @@ psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
  */
 psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
                                   psa_key_lifetime_t lifetime);
+
+/** Allocate a key slot for a transient key, i.e. a key which is only stored
+ * in volatile memory.
+ *
+ * The allocated key slot and its handle remain valid until the
+ * application calls psa_close_key() or psa_destroy_key() or until the
+ * application terminates.
+ *
+ * This function takes a key type and maximum size as arguments so that
+ * the implementation can reserve a corresponding amount of memory.
+ * Implementations are not required to enforce this limit: if the application
+ * later tries to create a larger key or a key of a different type, it
+ * is implementation-defined whether this may succeed.
+ *
+ * \param type          The type of key that the slot will contain.
+ * \param max_bits      The maximum key size that the slot will contain.
+ * \param[out] handle   On success, a handle to a volatile key slot.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success. The application can now use the value of `*handle`
+ *         to access the newly allocated key slot.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ *         There was not enough memory, or the maximum number of key slots
+ *         has been reached.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         This implementation does not support this key type.
+ */
+
+psa_status_t psa_allocate_key(psa_key_type_t type,
+                              size_t max_bits,
+                              psa_key_handle_t *handle);
+
+/** Open a handle to an existing persistent key.
+ *
+ * Open a handle to a key which was previously created with psa_create_key().
+ *
+ * \param lifetime      The lifetime of the key. This designates a storage
+ *                      area where the key material is stored. This must not
+ *                      be #PSA_KEY_LIFETIME_VOLATILE.
+ * \param id            The persistent identifier of the key.
+ * \param[out] handle   On success, a handle to a key slot which contains
+ *                      the data and metadata loaded from the specified
+ *                      persistent location.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success. The application can now use the value of `*handle`
+ *         to access the newly allocated key slot.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p lifetime is invalid, for example #PSA_KEY_LIFETIME_VOLATILE.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p id is invalid for the specified lifetime.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p lifetime is not supported.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The specified key exists, but the application does not have the
+ *         permission to access it. Note that this specification does not
+ *         define any way to create such a key, but it may be possible
+ *         through implementation-specific means.
+ */
+psa_status_t psa_open_key(psa_key_lifetime_t lifetime,
+                          psa_key_id_t id,
+                          psa_key_handle_t *handle);
+
+/** Create a new persistent key slot.
+ *
+ * Create a new persistent key slot and return a handle to it. The handle
+ * remains valid until the application calls psa_close_key() or terminates.
+ * The application can open the key again with psa_open_key() until it
+ * removes the key by calling psa_destroy_key().
+ *
+ * \param lifetime      The lifetime of the key. This designates a storage
+ *                      area where the key material is stored. This must not
+ *                      be #PSA_KEY_LIFETIME_VOLATILE.
+ * \param id            The persistent identifier of the key.
+ * \param type          The type of key that the slot will contain.
+ * \param max_bits      The maximum key size that the slot will contain.
+ * \param[out] handle   On success, a handle to the newly created key slot.
+ *                      When key material is later created in this key slot,
+ *                      it will be saved to the specified persistent location.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success. The application can now use the value of `*handle`
+ *         to access the newly allocated key slot.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
+ * \retval #PSA_ERROR_OCCUPIED_SLOT
+ *         There is already a key with the identifier \p id in the storage
+ *         area designated by \p lifetime.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p lifetime is invalid, for example #PSA_KEY_LIFETIME_VOLATILE.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p id is invalid for the specified lifetime.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p lifetime is not supported.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         \p lifetime is valid, but the application does not have the
+ *         permission to create a key there.
+ */
+psa_status_t psa_create_key(psa_key_lifetime_t lifetime,
+                            psa_key_id_t id,
+                            psa_key_type_t type,
+                            size_t max_bits,
+                            psa_key_handle_t *handle);
+
+/** Close a key handle.
+ *
+ * If the handle designates a volatile key, destroy the key material and
+ * free all associated resources, just like psa_destroy_key().
+ *
+ * If the handle designates a persistent key, free all resources associated
+ * with the key in volatile memory. The key slot in persistent storage is
+ * not affected and can be opened again later with psa_open_key().
+ *
+ * \param handle        The key handle to close.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ */
+psa_status_t psa_close_key(psa_key_handle_t handle);
 
 /**@}*/
 

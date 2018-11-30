@@ -126,6 +126,7 @@ typedef struct
     psa_key_type_t type;
     psa_key_policy_t policy;
     psa_key_lifetime_t lifetime;
+    psa_key_id_t persistent_storage_id;
     union
     {
         struct raw_data
@@ -720,14 +721,14 @@ static psa_status_t psa_import_key_into_slot( key_slot_t *slot,
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t key,
-                                                       key_slot_t *p_slot )
+static psa_status_t psa_load_persistent_key_into_slot( key_slot_t *p_slot )
 {
     psa_status_t status = PSA_SUCCESS;
     uint8_t *key_data = NULL;
     size_t key_data_length = 0;
 
-    status = psa_load_persistent_key( key, &( p_slot )->type,
+    status = psa_load_persistent_key( p_slot->persistent_storage_id,
+                                      &( p_slot )->type,
                                       &( p_slot )->policy, &key_data,
                                       &key_data_length );
     if( status != PSA_SUCCESS )
@@ -763,7 +764,7 @@ static psa_status_t psa_get_key_slot( psa_key_slot_t key,
         if( ( *p_slot )->type == PSA_KEY_TYPE_NONE )
         {
             psa_status_t status = PSA_SUCCESS;
-            status = psa_load_persistent_key_into_slot( key, *p_slot );
+            status = psa_load_persistent_key_into_slot( *p_slot );
             if( status != PSA_ERROR_EMPTY_SLOT )
                 return( status );
         }
@@ -889,7 +890,8 @@ psa_status_t psa_import_key( psa_key_slot_t key,
     if( slot->lifetime == PSA_KEY_LIFETIME_PERSISTENT )
     {
         /* Store in file location */
-        status = psa_save_persistent_key( key, slot->type, &slot->policy, data,
+        status = psa_save_persistent_key( slot->persistent_storage_id,
+                                          slot->type, &slot->policy, data,
                                           data_length );
         if( status != PSA_SUCCESS )
         {
@@ -914,7 +916,8 @@ psa_status_t psa_destroy_key( psa_key_slot_t key )
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     if( slot->lifetime == PSA_KEY_LIFETIME_PERSISTENT )
     {
-        storage_status = psa_destroy_persistent_key( key );
+        storage_status =
+            psa_destroy_persistent_key( slot->persistent_storage_id );
     }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
     status = psa_remove_key_data_from_memory( slot );
@@ -1121,8 +1124,7 @@ psa_status_t psa_export_public_key( psa_key_slot_t key,
 }
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-static psa_status_t psa_save_generated_persistent_key( psa_key_slot_t key,
-                                                       key_slot_t *slot,
+static psa_status_t psa_save_generated_persistent_key( key_slot_t *slot,
                                                        size_t bits )
 {
     psa_status_t status;
@@ -1140,7 +1142,8 @@ static psa_status_t psa_save_generated_persistent_key( psa_key_slot_t key,
         goto exit;
     }
     /* Store in file location */
-    status = psa_save_persistent_key( key, slot->type, &slot->policy,
+    status = psa_save_persistent_key( slot->persistent_storage_id,
+                                      slot->type, &slot->policy,
                                       data, key_length );
     if( status != PSA_SUCCESS )
     {
@@ -3119,6 +3122,7 @@ psa_status_t psa_set_key_lifetime( psa_key_slot_t key,
 #endif
 
     slot->lifetime = lifetime;
+    slot->persistent_storage_id = key;
 
     return( PSA_SUCCESS );
 }
@@ -4437,7 +4441,7 @@ psa_status_t psa_generate_key( psa_key_slot_t key,
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     if( slot->lifetime == PSA_KEY_LIFETIME_PERSISTENT )
     {
-        return( psa_save_generated_persistent_key( key, slot, bits ) );
+        return( psa_save_generated_persistent_key( slot, bits ) );
     }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 

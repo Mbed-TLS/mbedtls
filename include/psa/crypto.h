@@ -1401,6 +1401,98 @@ typedef uint32_t psa_algorithm_t;
  * @{
  */
 
+/** Encoding of key lifetimes.
+ */
+typedef uint32_t psa_key_lifetime_t;
+
+/** Encoding of identifiers of persistent keys.
+ */
+typedef uint32_t psa_key_id_t;
+
+/** A volatile key slot retains its content as long as the application is
+ * running. It is guaranteed to be erased on a power reset.
+ */
+#define PSA_KEY_LIFETIME_VOLATILE               ((psa_key_lifetime_t)0x00000000)
+
+/** A persistent key slot retains its content as long as it is not explicitly
+ * destroyed.
+ */
+#define PSA_KEY_LIFETIME_PERSISTENT             ((psa_key_lifetime_t)0x00000001)
+
+/** A write-once key slot may not be modified once a key has been set.
+ * It will retain its content as long as the device remains operational.
+ */
+#define PSA_KEY_LIFETIME_WRITE_ONCE             ((psa_key_lifetime_t)0x7fffffff)
+
+/** \brief Retrieve the lifetime of a key slot.
+ *
+ * The assignment of lifetimes to slots is implementation-dependent.
+ *
+ * \param key           Slot to query.
+ * \param[out] lifetime On success, the lifetime value.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The key slot is invalid.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
+                                  psa_key_lifetime_t *lifetime);
+
+/** \brief Change the lifetime of a key slot.
+ *
+ * Whether the lifetime of a key slot can be changed at all, and if so
+ * whether the lifetime of an occupied key slot can be changed, is
+ * implementation-dependent.
+ *
+ * When creating a persistent key, you must call this function before creating
+ * the key material with psa_import_key(), psa_generate_key() or
+ * psa_generator_import_key(). To open an existing persistent key, you must
+ * call this function with the correct lifetime value before using the slot
+ * for a cryptographic operation. Once a slot's lifetime has been set,
+ * the lifetime remains associated with the slot until a subsequent call to
+ * psa_set_key_lifetime(), until the key is wiped with psa_destroy_key or
+ * until the application terminates (or disconnects from the cryptography
+ * service, if the implementation offers such a possibility).
+ *
+ * \param key           Slot whose lifetime is to be changed.
+ * \param lifetime      The lifetime value to set for the given key slot.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The key slot is invalid,
+ *         or the lifetime value is invalid.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The implementation does not support the specified lifetime value,
+ *         at least for the specified key slot.
+ * \retval #PSA_ERROR_OCCUPIED_SLOT
+ *         The slot contains a key, and the implementation does not support
+ *         changing the lifetime of an occupied slot.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
+                                  psa_key_lifetime_t lifetime);
+
+/**@}*/
+
+/** \defgroup import_export Key import and export
+ * @{
+ */
+
 /**
  * \brief Import a key in binary format.
  *
@@ -1869,94 +1961,6 @@ psa_status_t psa_set_key_policy(psa_key_slot_t key,
  */
 psa_status_t psa_get_key_policy(psa_key_slot_t key,
                                 psa_key_policy_t *policy);
-
-/**@}*/
-
-/** \defgroup persistence Key lifetime
- * @{
- */
-
-/** Encoding of key lifetimes.
- */
-typedef uint32_t psa_key_lifetime_t;
-
-/** A volatile key slot retains its content as long as the application is
- * running. It is guaranteed to be erased on a power reset.
- */
-#define PSA_KEY_LIFETIME_VOLATILE               ((psa_key_lifetime_t)0x00000000)
-
-/** A persistent key slot retains its content as long as it is not explicitly
- * destroyed.
- */
-#define PSA_KEY_LIFETIME_PERSISTENT             ((psa_key_lifetime_t)0x00000001)
-
-/** A write-once key slot may not be modified once a key has been set.
- * It will retain its content as long as the device remains operational.
- */
-#define PSA_KEY_LIFETIME_WRITE_ONCE             ((psa_key_lifetime_t)0x7fffffff)
-
-/** \brief Retrieve the lifetime of a key slot.
- *
- * The assignment of lifetimes to slots is implementation-dependent.
- *
- * \param key           Slot to query.
- * \param[out] lifetime On success, the lifetime value.
- *
- * \retval #PSA_SUCCESS
- *         Success.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The key slot is invalid.
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
-                                  psa_key_lifetime_t *lifetime);
-
-/** \brief Change the lifetime of a key slot.
- *
- * Whether the lifetime of a key slot can be changed at all, and if so
- * whether the lifetime of an occupied key slot can be changed, is
- * implementation-dependent.
- *
- * When creating a persistent key, you must call this function before creating
- * the key material with psa_import_key(), psa_generate_key() or
- * psa_generator_import_key(). To open an existing persistent key, you must
- * call this function with the correct lifetime value before using the slot
- * for a cryptographic operation. Once a slot's lifetime has been set,
- * the lifetime remains associated with the slot until a subsequent call to
- * psa_set_key_lifetime(), until the key is wiped with psa_destroy_key or
- * until the application terminates (or disconnects from the cryptography
- * service, if the implementation offers such a possibility).
- *
- * \param key           Slot whose lifetime is to be changed.
- * \param lifetime      The lifetime value to set for the given key slot.
- *
- * \retval #PSA_SUCCESS
- *         Success.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The key slot is invalid,
- *         or the lifetime value is invalid.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         The implementation does not support the specified lifetime value,
- *         at least for the specified key slot.
- * \retval #PSA_ERROR_OCCUPIED_SLOT
- *         The slot contains a key, and the implementation does not support
- *         changing the lifetime of an occupied slot.
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
-                                  psa_key_lifetime_t lifetime);
 
 /**@}*/
 

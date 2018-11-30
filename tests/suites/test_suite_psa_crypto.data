@@ -39,7 +39,10 @@ PSA export out of range key slot - lower bound
 export_invalid_slot:0:PSA_ERROR_INVALID_ARGUMENT
 
 PSA export out of range key slot - upper bound
-export_invalid_slot:(psa_key_slot_t)(-1):PSA_ERROR_INVALID_ARGUMENT
+# Hard-code the upper bound of slots that are directly accessible because the
+# API does not expose this value. This is temporary: directly-accessible
+# slots are about to be removed.
+export_invalid_slot:32767:PSA_ERROR_INVALID_ARGUMENT
 
 PSA export a slot where there was some activity but no key material creation
 export_with_no_key_activity

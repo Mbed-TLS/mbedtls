@@ -44,6 +44,7 @@
 #include "psa/crypto.h"
 
 #include "psa_crypto_invasive.h"
+#include "psa_crypto_slot_management.h"
 /* Include internal declarations that are useful for implementing persistently
  * stored keys. */
 #include "psa_crypto_storage.h"
@@ -117,16 +118,13 @@ static inline int safer_memcmp( const uint8_t *a, const uint8_t *b, size_t n )
 /* Global data, support functions and library management */
 /****************************************************************/
 
-/* Number of key slots (plus one because 0 is not used).
- * The value is a compile-time constant for now, for simplicity. */
-#define PSA_KEY_SLOT_COUNT 32
-
 typedef struct
 {
     psa_key_type_t type;
     psa_key_policy_t policy;
     psa_key_lifetime_t lifetime;
     psa_key_id_t persistent_storage_id;
+    unsigned allocated : 1;
     union
     {
         struct raw_data
@@ -742,21 +740,34 @@ exit:
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
 /* Retrieve a key slot, occupied or not. */
-static psa_status_t psa_get_key_slot( psa_key_slot_t key,
+static psa_status_t psa_get_key_slot( psa_key_slot_t key_or_handle,
                                       key_slot_t **p_slot )
 {
+    psa_key_slot_t key = key_or_handle & ~PSA_KEY_HANDLE_ALLOCATED_FLAG;
+    int is_handle = ( key_or_handle & PSA_KEY_HANDLE_ALLOCATED_FLAG ) != 0;
+    psa_status_t error_if_invalid =
+        ( is_handle ?
+          PSA_ERROR_INVALID_HANDLE :
+          PSA_ERROR_INVALID_ARGUMENT );
+
     GUARD_MODULE_INITIALIZED;
 
     /* 0 is not a valid slot number under any circumstance. This
      * implementation provides slots number 1 to N where N is the
      * number of available slots. */
     if( key == 0 || key > ARRAY_LENGTH( global_data.key_slots ) )
-        return( PSA_ERROR_INVALID_ARGUMENT );
+        return( error_if_invalid );
 
     *p_slot = &global_data.key_slots[key - 1];
 
+    /* Allocated slots must only be accessed via a handle.
+     * Unallocated slots must only be accessed directly. */
+    if( ( *p_slot )->allocated != is_handle )
+        return( error_if_invalid );
+
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    if( ( *p_slot )->lifetime == PSA_KEY_LIFETIME_PERSISTENT )
+    if( ! ( *p_slot )->allocated &&
+        ( *p_slot )->lifetime == PSA_KEY_LIFETIME_PERSISTENT )
     {
         /* There are two circumstances this can occur: the key material has
          * not yet been created, or the key exists in storage but has not yet
@@ -863,6 +874,88 @@ static psa_status_t psa_remove_key_data_from_memory( key_slot_t *slot )
     }
 
     return( PSA_SUCCESS );
+}
+
+/* A slot is available if nothing has been set in it: default lifetime
+ * and policy, no key type. */
+static int psa_internal_is_slot_available( key_slot_t *slot )
+{
+    if( slot->allocated )
+        return( 0 );
+    if( slot->type != PSA_KEY_TYPE_NONE )
+        return( 0 );
+    if( slot->lifetime != PSA_KEY_LIFETIME_VOLATILE )
+        return( 0 );
+    if( slot->policy.usage != 0 || slot->policy.alg != 0 )
+        return( 0 );
+    return( 1 );
+}
+
+psa_status_t psa_internal_allocate_key_slot( psa_key_handle_t *handle )
+{
+    psa_key_slot_t key;
+    for( key = PSA_KEY_SLOT_COUNT; key != 0; --( key ) )
+    {
+        key_slot_t *slot = &global_data.key_slots[key - 1];
+        if( psa_internal_is_slot_available( slot ) )
+        {
+            slot->allocated = 1;
+            *handle = key | PSA_KEY_HANDLE_ALLOCATED_FLAG;
+            return( PSA_SUCCESS );
+        }
+    }
+    return( PSA_ERROR_INSUFFICIENT_MEMORY );
+}
+
+psa_status_t psa_internal_make_key_persistent( psa_key_handle_t handle,
+                                               psa_key_id_t id )
+{
+    key_slot_t *slot;
+    psa_status_t status;
+
+    /* Reject id=0 because by general library conventions, 0 is an invalid
+     * value wherever possible. */
+    if( id == 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    /* Reject high values because the file names are reserved for the
+     * library's internal use. */
+    if( id >= 0xffff0000 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    /* Reject values that don't fit in the key slot number type.
+     * This is a temporary limitation due to the library's internal
+     * plumbing. */
+    if( id > (psa_key_slot_t)( -1 ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+
+    status = psa_get_key_slot( handle, &slot );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    slot->lifetime = PSA_KEY_LIFETIME_PERSISTENT;
+    slot->persistent_storage_id = id;
+    status = psa_load_persistent_key_into_slot( slot );
+
+    return( status );
+}
+
+psa_status_t psa_internal_release_key_slot( psa_key_handle_t handle )
+{
+    psa_key_slot_t key;
+    key_slot_t *slot;
+    psa_status_t status;
+    /* Don't call psa_get_key_slot() so as not to trigger its automatic
+     * loading of persistent key data. */
+    if( ( handle & PSA_KEY_HANDLE_ALLOCATED_FLAG ) == 0 )
+        return( PSA_ERROR_INVALID_HANDLE );
+    key = handle & ~PSA_KEY_HANDLE_ALLOCATED_FLAG;
+    if( key == 0 || key > ARRAY_LENGTH( global_data.key_slots ) )
+        return( PSA_ERROR_INVALID_HANDLE );
+    slot = &global_data.key_slots[key - 1];
+    if( ! slot->allocated )
+        return( PSA_ERROR_INVALID_HANDLE );
+    status = psa_remove_key_data_from_memory( slot );
+    memset( slot, 0, sizeof( *slot ) );
+    return( status );
 }
 
 psa_status_t psa_import_key( psa_key_slot_t key,

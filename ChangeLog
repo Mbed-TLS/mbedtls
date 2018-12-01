@@ -1,5 +1,10 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS 2.15.1 branch released 2018-11-30
+
+Changes
+   * Update the Mbed Crypto submodule to version 0.1.0b2.
+
 = mbed TLS 2.15.0 branch released 2018-11-23
 
 Features

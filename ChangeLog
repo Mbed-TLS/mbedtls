@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.xx.x branch released xxxx-xx-xx
+= mbed TLS 2.14.1 branch released 2018-11-30
 
 Security
    * Fix timing variations and memory access variations in RSA PKCS#1 v1.5

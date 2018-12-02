@@ -6,6 +6,11 @@ for more information, see the [git documentation](https://git-scm.com/docs/githo
 
 The mbed TLS git hooks are located in `<mbed TLS root>/tests/git-scripts` directory, and one must create a soft link from `<mbed TLS root>/.git/hooks` to `<mbed TLS root>/tesst/git-scripts`, in order to make the hook scripts successfully work.
 
+Prerequisites for running the scripts:
+* python
+* perl
+* pylint (installed with `pip install pylint`)
+
 Example:
 
 Execute the following command to create a link on linux from the mbed TLS `.git/hooks` directory:  

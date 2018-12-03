@@ -1419,11 +1419,6 @@ typedef uint32_t psa_key_id_t;
  */
 #define PSA_KEY_LIFETIME_PERSISTENT             ((psa_key_lifetime_t)0x00000001)
 
-/** A write-once key slot may not be modified once a key has been set.
- * It will retain its content as long as the device remains operational.
- */
-#define PSA_KEY_LIFETIME_WRITE_ONCE             ((psa_key_lifetime_t)0x7fffffff)
-
 /** \brief Retrieve the lifetime of an open key.
  *
  * \param handle        Handle to query.
@@ -1443,46 +1438,6 @@ typedef uint32_t psa_key_id_t;
 psa_status_t psa_get_key_lifetime(psa_key_handle_t handle,
                                   psa_key_lifetime_t *lifetime);
 
-/** \brief Change the lifetime of a key slot.
- *
- * Whether the lifetime of a key slot can be changed at all, and if so
- * whether the lifetime of an occupied key slot can be changed, is
- * implementation-dependent.
- *
- * When creating a persistent key, you must call this function before creating
- * the key material with psa_import_key(), psa_generate_key() or
- * psa_generator_import_key(). To open an existing persistent key, you must
- * call this function with the correct lifetime value before using the slot
- * for a cryptographic operation. Once a slot's lifetime has been set,
- * the lifetime remains associated with the slot until a subsequent call to
- * psa_set_key_lifetime(), until the key is wiped with psa_destroy_key or
- * until the application terminates (or disconnects from the cryptography
- * service, if the implementation offers such a possibility).
- *
- * \param key           Slot whose lifetime is to be changed.
- * \param lifetime      The lifetime value to set for the given key slot.
- *
- * \retval #PSA_SUCCESS
- *         Success.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The key slot is invalid,
- *         or the lifetime value is invalid.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         The implementation does not support the specified lifetime value,
- *         at least for the specified key slot.
- * \retval #PSA_ERROR_OCCUPIED_SLOT
- *         The slot contains a key, and the implementation does not support
- *         changing the lifetime of an occupied slot.
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t psa_set_key_lifetime(psa_key_handle_t key,
-                                  psa_key_lifetime_t lifetime);
 
 /** Allocate a key slot for a transient key, i.e. a key which is only stored
  * in volatile memory.

@@ -3206,35 +3206,6 @@ psa_status_t psa_get_key_lifetime( psa_key_slot_t key,
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_set_key_lifetime( psa_key_slot_t key,
-                                   psa_key_lifetime_t lifetime )
-{
-    key_slot_t *slot;
-    psa_status_t status;
-
-    if( lifetime != PSA_KEY_LIFETIME_VOLATILE &&
-        lifetime != PSA_KEY_LIFETIME_PERSISTENT &&
-        lifetime != PSA_KEY_LIFETIME_WRITE_ONCE )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
-    status = psa_get_empty_key_slot( key, &slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    if( lifetime == PSA_KEY_LIFETIME_WRITE_ONCE )
-        return( PSA_ERROR_NOT_SUPPORTED );
-
-#if !defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    if( lifetime == PSA_KEY_LIFETIME_PERSISTENT )
-        return( PSA_ERROR_NOT_SUPPORTED );
-#endif
-
-    slot->lifetime = lifetime;
-    slot->persistent_storage_id = key;
-
-    return( PSA_SUCCESS );
-}
-
 
 
 /****************************************************************/

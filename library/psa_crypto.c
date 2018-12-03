@@ -637,6 +637,9 @@ exit:
 }
 #endif /* defined(MBEDTLS_ECP_C) */
 
+/** Import key data into a slot. `slot->type` must have been set
+ * previously. This function assumes that the slot does not contain
+ * any key material yet. On failure, the slot content is unchanged. */
 static psa_status_t psa_import_key_into_slot( key_slot_t *slot,
                                               const uint8_t *data,
                                               size_t data_length )
@@ -840,6 +843,7 @@ static psa_status_t psa_get_key_from_slot( psa_key_slot_t key,
     return( PSA_SUCCESS );
 }
 
+/** Wipe key data from a slot. Preserve metadata such as the policy. */
 static psa_status_t psa_remove_key_data_from_memory( key_slot_t *slot )
 {
     if( slot->type == PSA_KEY_TYPE_NONE )
@@ -874,6 +878,18 @@ static psa_status_t psa_remove_key_data_from_memory( key_slot_t *slot )
     }
 
     return( PSA_SUCCESS );
+}
+
+/** Completely wipe a slot in memory, including its policy.
+ * Persistent storage is not affected. */
+static psa_status_t psa_wipe_key_slot( key_slot_t *slot )
+{
+    psa_status_t status = psa_remove_key_data_from_memory( slot );
+    /* At this point, key material and other type-specific content has
+     * been wiped. Clear remaining metadata. We can call memset and not
+     * zeroize because the metadata is not particularly sensitive. */
+    memset( slot, 0, sizeof( *slot ) );
+    return( status );
 }
 
 /* A slot is available if nothing has been set in it: default lifetime
@@ -942,7 +958,6 @@ psa_status_t psa_internal_release_key_slot( psa_key_handle_t handle )
 {
     psa_key_slot_t key;
     key_slot_t *slot;
-    psa_status_t status;
     /* Don't call psa_get_key_slot() so as not to trigger its automatic
      * loading of persistent key data. */
     if( ( handle & PSA_KEY_HANDLE_ALLOCATED_FLAG ) == 0 )
@@ -953,9 +968,7 @@ psa_status_t psa_internal_release_key_slot( psa_key_handle_t handle )
     slot = &global_data.key_slots[key - 1];
     if( ! slot->allocated )
         return( PSA_ERROR_INVALID_HANDLE );
-    status = psa_remove_key_data_from_memory( slot );
-    memset( slot, 0, sizeof( *slot ) );
-    return( status );
+    return( psa_wipe_key_slot( slot ) );
 }
 
 psa_status_t psa_import_key( psa_key_slot_t key,
@@ -1013,9 +1026,7 @@ psa_status_t psa_destroy_key( psa_key_slot_t key )
             psa_destroy_persistent_key( slot->persistent_storage_id );
     }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
-    status = psa_remove_key_data_from_memory( slot );
-    /* Zeroize the slot to wipe metadata such as policies. */
-    mbedtls_zeroize( slot, sizeof( *slot ) );
+    status = psa_wipe_key_slot( slot );
     if( status != PSA_SUCCESS )
         return( status );
     return( storage_status );
@@ -4565,9 +4576,7 @@ void mbedtls_psa_crypto_free( void )
         for( key = 1; key <= PSA_KEY_SLOT_COUNT; key++ )
         {
             key_slot_t *slot = &global_data.key_slots[key - 1];
-            (void) psa_remove_key_data_from_memory( slot );
-            /* Zeroize the slot to wipe metadata such as policies. */
-            mbedtls_zeroize( slot, sizeof( *slot ) );
+            (void) psa_wipe_key_slot( slot );
         }
     }
     if( global_data.rng_state != RNG_NOT_INITIALIZED )

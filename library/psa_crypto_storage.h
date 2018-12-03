@@ -56,20 +56,20 @@ extern "C" {
  * already occupied non-persistent key, as well as validating the key data.
  *
  *
- * \param key           Slot number of the key to be stored. This must be a
- *                      valid slot for a key of the chosen type. This should be
- *                      an occupied key slot with an unoccupied corresponding
- *                      storage location.
+ * \param key           Persistent identifier of the key to be stored. This
+ *                      should be an unoccupied storage location.
  * \param type          Key type (a \c PSA_KEY_TYPE_XXX value).
  * \param[in] policy    The key policy to save.
  * \param[in] data      Buffer containing the key data.
  * \param data_length   The number of bytes that make up the key data.
  *
  * \retval PSA_SUCCESS
+ * \retval PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval PSA_ERROR_INSUFFICIENT_STORAGE
  * \retval PSA_ERROR_STORAGE_FAILURE
+ * \retval PSA_ERROR_OCCUPIED_SLOT
  */
-psa_status_t psa_save_persistent_key( const psa_key_slot_t key,
+psa_status_t psa_save_persistent_key( const psa_key_id_t key,
                                       const psa_key_type_t type,
                                       const psa_key_policy_t *policy,
                                       const uint8_t *data,
@@ -87,10 +87,8 @@ psa_status_t psa_save_persistent_key( const psa_key_slot_t key,
  * this function to zeroize and free this buffer, regardless of whether this
  * function succeeds or fails.
  *
- * \param key               Slot number whose content is to be loaded. This
- *                          must be an unoccupied key slot with an occupied
- *                          corresponding storage location. The key slot
- *                          lifetime must be set to persistent.
+ * \param key               Persistent identifier of the key to be loaded. This
+ *                          should be an occupied storage location.
  * \param[out] type         On success, the key type (a \c PSA_KEY_TYPE_XXX
  *                          value).
  * \param[out] policy       On success, the key's policy.
@@ -100,8 +98,9 @@ psa_status_t psa_save_persistent_key( const psa_key_slot_t key,
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval PSA_ERROR_STORAGE_FAILURE
+ * \retval PSA_ERROR_EMPTY_SLOT
  */
-psa_status_t psa_load_persistent_key( psa_key_slot_t key,
+psa_status_t psa_load_persistent_key( psa_key_id_t key,
                                       psa_key_type_t *type,
                                       psa_key_policy_t *policy,
                                       uint8_t **data,
@@ -110,16 +109,18 @@ psa_status_t psa_load_persistent_key( psa_key_slot_t key,
 /**
  * \brief Remove persistent data for the given key slot number.
  *
- * \param key           Slot number whose content is to be removed
+ * \param key           Persistent identifier of the key to remove
  *                      from persistent storage.
  *
  * \retval PSA_SUCCESS
+ *         The key was successfully removed,
+ *         or the key did not exist.
  * \retval PSA_ERROR_STORAGE_FAILURE
  */
-psa_status_t psa_destroy_persistent_key( const psa_key_slot_t key );
+psa_status_t psa_destroy_persistent_key( const psa_key_id_t key );
 
 /**
- * \brief Zeroizes and frees the given buffer.
+ * \brief Free the temporary buffer allocated by psa_load_persistent_key().
  *
  * This function must be called at some point after psa_load_persistent_key()
  * to zeroize and free the memory allocated to the buffer in that function.

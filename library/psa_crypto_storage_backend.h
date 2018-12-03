@@ -47,15 +47,16 @@ extern "C" {
  * This function reads data from a storage backend and returns the data in a
  * buffer.
  *
- * \param key              Slot number whose content is to be loaded. This must
- *                         be a key slot whose lifetime is set to persistent.
- * \param[out] data        Buffer where the data is to be written.
- * \param data_size        Size of the \c data buffer in bytes.
+ * \param key               Persistent identifier of the key to be loaded. This
+ *                          should be an occupied storage location.
+ * \param[out] data         Buffer where the data is to be written.
+ * \param data_size         Size of the \c data buffer in bytes.
  *
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_STORAGE_FAILURE
+ * \retval PSA_ERROR_EMPTY_SLOT
  */
-psa_status_t psa_crypto_storage_load( const psa_key_slot_t key, uint8_t *data,
+psa_status_t psa_crypto_storage_load( const psa_key_id_t key, uint8_t *data,
                                       size_t data_size );
 
 /**
@@ -63,7 +64,8 @@ psa_status_t psa_crypto_storage_load( const psa_key_slot_t key, uint8_t *data,
  *
  * This function stores the given data buffer to a persistent storage.
  *
- * \param key           Slot number whose content is to be stored.
+ * \param key           Persistent identifier of the key to be stored. This
+ *                      should be an unoccupied storage location.
  * \param[in] data      Buffer containing the data to be stored.
  * \param data_length   The number of bytes
  *                      that make up the data.
@@ -71,8 +73,9 @@ psa_status_t psa_crypto_storage_load( const psa_key_slot_t key, uint8_t *data,
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_INSUFFICIENT_STORAGE
  * \retval PSA_ERROR_STORAGE_FAILURE
+ * \retval PSA_ERROR_OCCUPIED_SLOT
  */
-psa_status_t psa_crypto_storage_store( const psa_key_slot_t key,
+psa_status_t psa_crypto_storage_store( const psa_key_id_t key,
                                        const uint8_t *data,
                                        size_t data_length );
 
@@ -82,26 +85,26 @@ psa_status_t psa_crypto_storage_store( const psa_key_slot_t key,
  * This function checks if any key data or metadata exists for the key slot in
  * the persistent storage.
  *
- * \param key           Slot number whose content is to be checked.
+ * \param key           Persistent identifier to check.
  *
  * \retval 0
  *         No persistent data present for slot number
  * \retval 1
  *         Persistent data present for slot number
  */
-int psa_is_key_present_in_storage( const psa_key_slot_t key );
+int psa_is_key_present_in_storage( const psa_key_id_t key );
 
 /**
  * \brief Get data length for given key slot number.
  *
- * \param key              Slot number whose stored data length is to be obtained.
- * \param[out] data_length The number of bytes
- *                         that make up the data.
+ * \param key               Persistent identifier whose stored data length
+ *                          is to be obtained.
+ * \param[out] data_length  The number of bytes that make up the data.
  *
  * \retval PSA_SUCCESS
  * \retval PSA_ERROR_STORAGE_FAILURE
  */
-psa_status_t psa_crypto_storage_get_data_length( const psa_key_slot_t key,
+psa_status_t psa_crypto_storage_get_data_length( const psa_key_id_t key,
                                                  size_t *data_length );
 
 

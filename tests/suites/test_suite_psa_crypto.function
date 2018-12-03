@@ -130,7 +130,7 @@ static int construct_fake_rsa_key( unsigned char *buffer,
     return( len );
 }
 
-static int exercise_mac_key( psa_key_slot_t key,
+static int exercise_mac_key( psa_key_handle_t handle,
                              psa_key_usage_t usage,
                              psa_algorithm_t alg )
 {
@@ -142,7 +142,7 @@ static int exercise_mac_key( psa_key_slot_t key,
     if( usage & PSA_KEY_USAGE_SIGN )
     {
         TEST_ASSERT( psa_mac_sign_setup( &operation,
-                                         key, alg ) == PSA_SUCCESS );
+                                         handle, alg ) == PSA_SUCCESS );
         TEST_ASSERT( psa_mac_update( &operation,
                                      input, sizeof( input ) ) == PSA_SUCCESS );
         TEST_ASSERT( psa_mac_sign_finish( &operation,
@@ -157,7 +157,7 @@ static int exercise_mac_key( psa_key_slot_t key,
               PSA_SUCCESS :
               PSA_ERROR_INVALID_SIGNATURE );
         TEST_ASSERT( psa_mac_verify_setup( &operation,
-                                           key, alg ) == PSA_SUCCESS );
+                                           handle, alg ) == PSA_SUCCESS );
         TEST_ASSERT( psa_mac_update( &operation,
                                      input, sizeof( input ) ) == PSA_SUCCESS );
         TEST_ASSERT( psa_mac_verify_finish( &operation,
@@ -172,7 +172,7 @@ exit:
     return( 0 );
 }
 
-static int exercise_cipher_key( psa_key_slot_t key,
+static int exercise_cipher_key( psa_key_handle_t handle,
                                 psa_key_usage_t usage,
                                 psa_algorithm_t alg )
 {
@@ -188,7 +188,7 @@ static int exercise_cipher_key( psa_key_slot_t key,
     if( usage & PSA_KEY_USAGE_ENCRYPT )
     {
         TEST_ASSERT( psa_cipher_encrypt_setup( &operation,
-                                               key, alg ) == PSA_SUCCESS );
+                                               handle, alg ) == PSA_SUCCESS );
         TEST_ASSERT( psa_cipher_generate_iv( &operation,
                                              iv, sizeof( iv ),
                                              &iv_length ) == PSA_SUCCESS );
@@ -210,11 +210,11 @@ static int exercise_cipher_key( psa_key_slot_t key,
         if( ! ( usage & PSA_KEY_USAGE_ENCRYPT ) )
         {
             size_t bits;
-            TEST_ASSERT( psa_get_key_information( key, &type, &bits ) );
+            TEST_ASSERT( psa_get_key_information( handle, &type, &bits ) );
             iv_length = PSA_BLOCK_CIPHER_BLOCK_SIZE( type );
         }
         TEST_ASSERT( psa_cipher_decrypt_setup( &operation,
-                                               key, alg ) == PSA_SUCCESS );
+                                               handle, alg ) == PSA_SUCCESS );
         TEST_ASSERT( psa_cipher_set_iv( &operation,
                                         iv, iv_length ) == PSA_SUCCESS );
         TEST_ASSERT( psa_cipher_update( &operation,
@@ -243,7 +243,7 @@ exit:
     return( 0 );
 }
 
-static int exercise_aead_key( psa_key_slot_t key,
+static int exercise_aead_key( psa_key_handle_t handle,
                               psa_key_usage_t usage,
                               psa_algorithm_t alg )
 {
@@ -256,7 +256,7 @@ static int exercise_aead_key( psa_key_slot_t key,
 
     if( usage & PSA_KEY_USAGE_ENCRYPT )
     {
-        TEST_ASSERT( psa_aead_encrypt( key, alg,
+        TEST_ASSERT( psa_aead_encrypt( handle, alg,
                                        nonce, nonce_length,
                                        NULL, 0,
                                        plaintext, sizeof( plaintext ),
@@ -270,7 +270,7 @@ static int exercise_aead_key( psa_key_slot_t key,
             ( usage & PSA_KEY_USAGE_ENCRYPT ?
               PSA_SUCCESS :
               PSA_ERROR_INVALID_SIGNATURE );
-        TEST_ASSERT( psa_aead_decrypt( key, alg,
+        TEST_ASSERT( psa_aead_decrypt( handle, alg,
                                        nonce, nonce_length,
                                        NULL, 0,
                                        ciphertext, ciphertext_length,
@@ -284,7 +284,7 @@ exit:
     return( 0 );
 }
 
-static int exercise_signature_key( psa_key_slot_t key,
+static int exercise_signature_key( psa_key_handle_t handle,
                                    psa_key_usage_t usage,
                                    psa_algorithm_t alg )
 {
@@ -301,7 +301,7 @@ static int exercise_signature_key( psa_key_slot_t key,
         psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
         if( hash_alg != 0 )
             payload_length = PSA_HASH_SIZE( hash_alg );
-        TEST_ASSERT( psa_asymmetric_sign( key, alg,
+        TEST_ASSERT( psa_asymmetric_sign( handle, alg,
                                           payload, payload_length,
                                           signature, sizeof( signature ),
                                           &signature_length ) == PSA_SUCCESS );
@@ -313,7 +313,7 @@ static int exercise_signature_key( psa_key_slot_t key,
             ( usage & PSA_KEY_USAGE_SIGN ?
               PSA_SUCCESS :
               PSA_ERROR_INVALID_SIGNATURE );
-        TEST_ASSERT( psa_asymmetric_verify( key, alg,
+        TEST_ASSERT( psa_asymmetric_verify( handle, alg,
                                             payload, payload_length,
                                             signature, signature_length ) ==
                      verify_status );
@@ -325,7 +325,7 @@ exit:
     return( 0 );
 }
 
-static int exercise_asymmetric_encryption_key( psa_key_slot_t key,
+static int exercise_asymmetric_encryption_key( psa_key_handle_t handle,
                                                psa_key_usage_t usage,
                                                psa_algorithm_t alg )
 {
@@ -337,7 +337,7 @@ static int exercise_asymmetric_encryption_key( psa_key_slot_t key,
     if( usage & PSA_KEY_USAGE_ENCRYPT )
     {
         TEST_ASSERT(
-            psa_asymmetric_encrypt( key, alg,
+            psa_asymmetric_encrypt( handle, alg,
                                     plaintext, plaintext_length,
                                     NULL, 0,
                                     ciphertext, sizeof( ciphertext ),
@@ -347,7 +347,7 @@ static int exercise_asymmetric_encryption_key( psa_key_slot_t key,
     if( usage & PSA_KEY_USAGE_DECRYPT )
     {
         psa_status_t status =
-            psa_asymmetric_decrypt( key, alg,
+            psa_asymmetric_decrypt( handle, alg,
                                     ciphertext, ciphertext_length,
                                     NULL, 0,
                                     plaintext, sizeof( plaintext ),
@@ -364,7 +364,7 @@ exit:
     return( 0 );
 }
 
-static int exercise_key_derivation_key( psa_key_slot_t key,
+static int exercise_key_derivation_key( psa_key_handle_t handle,
                                         psa_key_usage_t usage,
                                         psa_algorithm_t alg )
 {
@@ -378,7 +378,7 @@ static int exercise_key_derivation_key( psa_key_slot_t key,
     if( usage & PSA_KEY_USAGE_DERIVE )
     {
         TEST_ASSERT( psa_key_derivation( &generator,
-                                         key, alg,
+                                         handle, alg,
                                          label, label_length,
                                          seed, seed_length,
                                          sizeof( output ) ) == PSA_SUCCESS );
@@ -397,7 +397,7 @@ exit:
 /* We need two keys to exercise key agreement. Exercise the
  * private key against its own public key. */
 static psa_status_t key_agreement_with_self( psa_crypto_generator_t *generator,
-                                             psa_key_type_t key_slot,
+                                             psa_key_handle_t handle,
                                              psa_algorithm_t alg )
 {
     psa_key_type_t private_key_type;
@@ -410,18 +410,18 @@ static psa_status_t key_agreement_with_self( psa_crypto_generator_t *generator,
      * good enough: callers will report it as a failed test anyway. */
     psa_status_t status = PSA_ERROR_UNKNOWN_ERROR;
 
-    TEST_ASSERT( psa_get_key_information( key_slot,
+    TEST_ASSERT( psa_get_key_information( handle,
                                           &private_key_type,
                                           &key_bits ) == PSA_SUCCESS );
     public_key_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( private_key_type );
     public_key_length = PSA_KEY_EXPORT_MAX_SIZE( public_key_type, key_bits );
     ASSERT_ALLOC( public_key, public_key_length );
     TEST_ASSERT( public_key != NULL );
-    TEST_ASSERT( psa_export_public_key( key_slot,
+    TEST_ASSERT( psa_export_public_key( handle,
                                         public_key, public_key_length,
                                         &public_key_length ) == PSA_SUCCESS );
 
-    status = psa_key_agreement( generator, key_slot,
+    status = psa_key_agreement( generator, handle,
                                 public_key, public_key_length,
                                 alg );
 exit:
@@ -429,7 +429,7 @@ exit:
     return( status );
 }
 
-static int exercise_key_agreement_key( psa_key_slot_t key,
+static int exercise_key_agreement_key( psa_key_handle_t handle,
                                        psa_key_usage_t usage,
                                        psa_algorithm_t alg )
 {
@@ -441,7 +441,7 @@ static int exercise_key_agreement_key( psa_key_slot_t key,
     {
         /* We need two keys to exercise key agreement. Exercise the
          * private key against its own public key. */
-        TEST_ASSERT( key_agreement_with_self( &generator, key, alg ) ==
+        TEST_ASSERT( key_agreement_with_self( &generator, handle, alg ) ==
                      PSA_SUCCESS );
         TEST_ASSERT( psa_generator_read( &generator,
                                          output,
@@ -713,7 +713,7 @@ exit:
     return( 0 );
 }
 
-static int exercise_export_key( psa_key_slot_t slot,
+static int exercise_export_key( psa_key_handle_t handle,
                                 psa_key_usage_t usage )
 {
     psa_key_type_t type;
@@ -723,12 +723,12 @@ static int exercise_export_key( psa_key_slot_t slot,
     size_t exported_length = 0;
     int ok = 0;
 
-    TEST_ASSERT( psa_get_key_information( slot, &type, &bits ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_get_key_information( handle, &type, &bits ) == PSA_SUCCESS );
 
     if( ( usage & PSA_KEY_USAGE_EXPORT ) == 0 &&
         ! PSA_KEY_TYPE_IS_PUBLIC_KEY( type ) )
     {
-        TEST_ASSERT( psa_export_key( slot, NULL, 0, &exported_length ) ==
+        TEST_ASSERT( psa_export_key( handle, NULL, 0, &exported_length ) ==
                      PSA_ERROR_NOT_PERMITTED );
         return( 1 );
     }
@@ -736,7 +736,7 @@ static int exercise_export_key( psa_key_slot_t slot,
     exported_size = PSA_KEY_EXPORT_MAX_SIZE( type, bits );
     ASSERT_ALLOC( exported, exported_size );
 
-    TEST_ASSERT( psa_export_key( slot,
+    TEST_ASSERT( psa_export_key( handle,
                                  exported, exported_size,
                                  &exported_length ) == PSA_SUCCESS );
     ok = exported_key_sanity_check( type, bits, exported, exported_length );
@@ -746,7 +746,7 @@ exit:
     return( ok );
 }
 
-static int exercise_export_public_key( psa_key_slot_t slot )
+static int exercise_export_public_key( psa_key_handle_t handle )
 {
     psa_key_type_t type;
     psa_key_type_t public_type;
@@ -756,10 +756,10 @@ static int exercise_export_public_key( psa_key_slot_t slot )
     size_t exported_length = 0;
     int ok = 0;
 
-    TEST_ASSERT( psa_get_key_information( slot, &type, &bits ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_get_key_information( handle, &type, &bits ) == PSA_SUCCESS );
     if( ! PSA_KEY_TYPE_IS_ASYMMETRIC( type ) )
     {
-        TEST_ASSERT( psa_export_public_key( slot,
+        TEST_ASSERT( psa_export_public_key( handle,
                                             NULL, 0, &exported_length ) ==
                      PSA_ERROR_INVALID_ARGUMENT );
         return( 1 );
@@ -769,7 +769,7 @@ static int exercise_export_public_key( psa_key_slot_t slot )
     exported_size = PSA_KEY_EXPORT_MAX_SIZE( public_type, bits );
     ASSERT_ALLOC( exported, exported_size );
 
-    TEST_ASSERT( psa_export_public_key( slot,
+    TEST_ASSERT( psa_export_public_key( handle,
                                         exported, exported_size,
                                         &exported_length ) == PSA_SUCCESS );
     ok = exported_key_sanity_check( public_type, bits,
@@ -780,7 +780,7 @@ exit:
     return( ok );
 }
 
-static int exercise_key( psa_key_slot_t slot,
+static int exercise_key( psa_key_handle_t handle,
                          psa_key_usage_t usage,
                          psa_algorithm_t alg )
 {
@@ -788,19 +788,19 @@ static int exercise_key( psa_key_slot_t slot,
     if( alg == 0 )
         ok = 1; /* If no algorihm, do nothing (used for raw data "keys"). */
     else if( PSA_ALG_IS_MAC( alg ) )
-        ok = exercise_mac_key( slot, usage, alg );
+        ok = exercise_mac_key( handle, usage, alg );
     else if( PSA_ALG_IS_CIPHER( alg ) )
-        ok = exercise_cipher_key( slot, usage, alg );
+        ok = exercise_cipher_key( handle, usage, alg );
     else if( PSA_ALG_IS_AEAD( alg ) )
-        ok = exercise_aead_key( slot, usage, alg );
+        ok = exercise_aead_key( handle, usage, alg );
     else if( PSA_ALG_IS_SIGN( alg ) )
-        ok = exercise_signature_key( slot, usage, alg );
+        ok = exercise_signature_key( handle, usage, alg );
     else if( PSA_ALG_IS_ASYMMETRIC_ENCRYPTION( alg ) )
-        ok = exercise_asymmetric_encryption_key( slot, usage, alg );
+        ok = exercise_asymmetric_encryption_key( handle, usage, alg );
     else if( PSA_ALG_IS_KEY_DERIVATION( alg ) )
-        ok = exercise_key_derivation_key( slot, usage, alg );
+        ok = exercise_key_derivation_key( handle, usage, alg );
     else if( PSA_ALG_IS_KEY_AGREEMENT( alg ) )
-        ok = exercise_key_agreement_key( slot, usage, alg );
+        ok = exercise_key_agreement_key( handle, usage, alg );
     else
     {
         char message[40];
@@ -811,8 +811,8 @@ static int exercise_key( psa_key_slot_t slot,
         ok = 0;
     }
 
-    ok = ok && exercise_export_key( slot, usage );
-    ok = ok && exercise_export_public_key( slot );
+    ok = ok && exercise_export_key( handle, usage );
+    ok = ok && exercise_export_public_key( handle );
 
     return( ok );
 }
@@ -845,6 +845,13 @@ static psa_key_usage_t usage_to_exercise( psa_key_type_t type,
 
 }
 
+/* An overapproximation of the amount of storage needed for a key of the
+ * given type and with the given content. The API doesn't make it easy
+ * to find a good value for the size. The current implementation doesn't
+ * care about the value anyway. */
+#define KEY_BITS_FROM_DATA( type, data )        \
+    ( data )->len
+
 typedef enum {
     IMPORT_KEY = 0,
     GENERATE_KEY = 1,
@@ -874,7 +881,7 @@ void static_checks( )
 /* BEGIN_CASE */
 void import( data_t *data, int type, int expected_status_arg )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_status_t expected_status = expected_status_arg;
     psa_status_t status;
 
@@ -882,10 +889,12 @@ void import( data_t *data, int type, int expected_status_arg )
     TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( data->len ) );
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
-    status = psa_import_key( slot, type, data->x, data->len );
+    TEST_ASSERT( psa_allocate_key( type, KEY_BITS_FROM_DATA( type, data ),
+                                   &handle ) == PSA_SUCCESS );
+    status = psa_import_key( handle, type, data->x, data->len );
     TEST_ASSERT( status == expected_status );
     if( status == PSA_SUCCESS )
-        TEST_ASSERT( psa_destroy_key( slot ) == PSA_SUCCESS );
+        TEST_ASSERT( psa_destroy_key( handle ) == PSA_SUCCESS );
 
 exit:
     mbedtls_psa_crypto_free( );
@@ -899,7 +908,7 @@ void import_twice( int alg_arg, int usage_arg,
                    int type2_arg, data_t *data2,
                    int expected_import2_status_arg )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_algorithm_t alg = alg_arg;
     psa_key_usage_t usage = usage_arg;
     psa_key_type_t type1 = type1_arg;
@@ -911,19 +920,23 @@ void import_twice( int alg_arg, int usage_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( type1,
+                                   MAX( KEY_BITS_FROM_DATA( type1, data1 ),
+                                        KEY_BITS_FROM_DATA( type2, data2 ) ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, usage, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    status = psa_import_key( slot, type1, data1->x, data1->len );
+    status = psa_import_key( handle, type1, data1->x, data1->len );
     TEST_ASSERT( status == expected_import1_status );
-    status = psa_import_key( slot, type2, data2->x, data2->len );
+    status = psa_import_key( handle, type2, data2->x, data2->len );
     TEST_ASSERT( status == expected_import2_status );
 
     if( expected_import1_status == PSA_SUCCESS ||
         expected_import2_status == PSA_SUCCESS )
     {
-        TEST_ASSERT( exercise_key( slot, usage, alg ) );
+        TEST_ASSERT( exercise_key( handle, usage, alg ) );
     }
 
 exit:
@@ -934,7 +947,7 @@ exit:
 /* BEGIN_CASE */
 void import_rsa_made_up( int bits_arg, int keypair, int expected_status_arg )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     size_t bits = bits_arg;
     psa_status_t expected_status = expected_status_arg;
     psa_status_t status;
@@ -955,10 +968,11 @@ void import_rsa_made_up( int bits_arg, int keypair, int expected_status_arg )
     length = ret;
 
     /* Try importing the key */
-    status = psa_import_key( slot, type, p, length );
+    TEST_ASSERT( psa_allocate_key( type, bits, &handle ) == PSA_SUCCESS );
+    status = psa_import_key( handle, type, p, length );
     TEST_ASSERT( status == expected_status );
     if( status == PSA_SUCCESS )
-        TEST_ASSERT( psa_destroy_key( slot ) == PSA_SUCCESS );
+        TEST_ASSERT( psa_destroy_key( handle ) == PSA_SUCCESS );
 
 exit:
     mbedtls_free( buffer );
@@ -976,8 +990,7 @@ void import_export( data_t *data,
                     int expected_export_status_arg,
                     int canonical_input )
 {
-    int slot = 1;
-    int slot2 = slot + 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t type = type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_export_status = expected_export_status_arg;
@@ -999,23 +1012,28 @@ void import_export( data_t *data,
         ASSERT_ALLOC( reexported, export_size );
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( type, expected_bits, &handle ) ==
+                 PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, usage_arg, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
+
+    TEST_ASSERT( psa_get_key_information(
+                     handle, NULL, NULL ) == PSA_ERROR_EMPTY_SLOT );
 
     /* Import the key */
-    TEST_ASSERT( psa_import_key( slot, type,
+    TEST_ASSERT( psa_import_key( handle, type,
                                  data->x, data->len ) == PSA_SUCCESS );
 
     /* Test the key information */
-    TEST_ASSERT( psa_get_key_information( slot,
+    TEST_ASSERT( psa_get_key_information( handle,
                                           &got_type,
                                           &got_bits ) == PSA_SUCCESS );
     TEST_ASSERT( got_type == type );
     TEST_ASSERT( got_bits == (size_t) expected_bits );
 
     /* Export the key */
-    status = psa_export_key( slot,
+    status = psa_export_key( handle,
                              exported, export_size,
                              &exported_length );
     TEST_ASSERT( status == expected_export_status );
@@ -1034,32 +1052,36 @@ void import_export( data_t *data,
         goto destroy;
     }
 
-    if( ! exercise_export_key( slot, usage_arg ) )
+    if( ! exercise_export_key( handle, usage_arg ) )
         goto exit;
 
     if( canonical_input )
         ASSERT_COMPARE( data->x, data->len, exported, exported_length );
     else
     {
-        TEST_ASSERT( psa_set_key_policy( slot2, &policy ) == PSA_SUCCESS );
+        psa_key_handle_t handle2;
+        TEST_ASSERT( psa_allocate_key( type, expected_bits, &handle2 ) ==
+                     PSA_SUCCESS );
+        TEST_ASSERT( psa_set_key_policy( handle2, &policy ) == PSA_SUCCESS );
 
-        TEST_ASSERT( psa_import_key( slot2, type,
+        TEST_ASSERT( psa_import_key( handle2, type,
                                      exported,
                                      exported_length ) == PSA_SUCCESS );
-        TEST_ASSERT( psa_export_key( slot2,
+        TEST_ASSERT( psa_export_key( handle2,
                                      reexported,
                                      export_size,
                                      &reexported_length ) == PSA_SUCCESS );
         ASSERT_COMPARE( exported, exported_length,
                         reexported, reexported_length );
+        TEST_ASSERT( psa_close_key( handle2 ) == PSA_SUCCESS );
     }
     TEST_ASSERT( exported_length <= PSA_KEY_EXPORT_MAX_SIZE( type, got_bits ) );
 
 destroy:
     /* Destroy the key */
-    TEST_ASSERT( psa_destroy_key( slot ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_destroy_key( handle ) == PSA_SUCCESS );
     TEST_ASSERT( psa_get_key_information(
-                     slot, NULL, NULL ) == PSA_ERROR_EMPTY_SLOT );
+                     handle, NULL, NULL ) == PSA_ERROR_INVALID_HANDLE );
 
 exit:
     mbedtls_free( exported );
@@ -1071,18 +1093,21 @@ exit:
 /* BEGIN_CASE */
 void import_key_nonempty_slot( )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t type = PSA_KEY_TYPE_RAW_DATA;
     psa_status_t status;
     const uint8_t data[] = { 0x1, 0x2, 0x3, 0x4, 0x5 };
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( type, PSA_BYTES_TO_BITS( sizeof( data ) ),
+                                   &handle ) == PSA_SUCCESS );
+
     /* Import the key */
-    TEST_ASSERT( psa_import_key( slot, type,
+    TEST_ASSERT( psa_import_key( handle, type,
                                  data, sizeof( data ) ) == PSA_SUCCESS );
 
     /* Import the key again */
-    status = psa_import_key( slot, type, data, sizeof( data ) );
+    status = psa_import_key( handle, type, data, sizeof( data ) );
     TEST_ASSERT( status == PSA_ERROR_OCCUPIED_SLOT );
 
 exit:
@@ -1091,7 +1116,7 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
-void export_invalid_slot( int slot, int expected_export_status_arg )
+void export_invalid_handle( int handle, int expected_export_status_arg )
 {
     psa_status_t status;
     unsigned char *exported = NULL;
@@ -1102,7 +1127,7 @@ void export_invalid_slot( int slot, int expected_export_status_arg )
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
     /* Export the key */
-    status = psa_export_key( slot,
+    status = psa_export_key( (psa_key_handle_t) handle,
                              exported, export_size,
                              &exported_length );
     TEST_ASSERT( status == expected_export_status );
@@ -1115,7 +1140,7 @@ exit:
 /* BEGIN_CASE */
 void export_with_no_key_activity( )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_algorithm_t alg = PSA_ALG_CTR;
     psa_status_t status;
     psa_key_policy_t policy;
@@ -1125,12 +1150,14 @@ void export_with_no_key_activity( )
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( PSA_KEY_TYPE_RAW_DATA, 0,
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
     /* Export the key */
-    status = psa_export_key( slot,
+    status = psa_export_key( handle,
                              exported, export_size,
                              &exported_length );
     TEST_ASSERT( status == PSA_ERROR_EMPTY_SLOT );
@@ -1143,7 +1170,7 @@ exit:
 /* BEGIN_CASE */
 void cipher_with_no_key_activity( )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_status_t status;
     psa_key_policy_t policy;
     psa_cipher_operation_t operation;
@@ -1151,11 +1178,13 @@ void cipher_with_no_key_activity( )
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( PSA_KEY_TYPE_RAW_DATA, 0,
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT, exercise_alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    status = psa_cipher_encrypt_setup( &operation, slot, exercise_alg );
+    status = psa_cipher_encrypt_setup( &operation, handle, exercise_alg );
     TEST_ASSERT( status == PSA_ERROR_EMPTY_SLOT );
 
 exit:
@@ -1168,7 +1197,7 @@ exit:
 void export_after_import_failure( data_t *data, int type_arg,
                                   int expected_import_status_arg )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t type = type_arg;
     psa_status_t status;
     unsigned char *exported = NULL;
@@ -1178,13 +1207,16 @@ void export_after_import_failure( data_t *data, int type_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( type, KEY_BITS_FROM_DATA( type, data ),
+                                   &handle ) == PSA_SUCCESS );
+
     /* Import the key - expect failure */
-    status = psa_import_key( slot, type,
+    status = psa_import_key( handle, type,
                                  data->x, data->len );
     TEST_ASSERT( status == expected_import_status );
 
     /* Export the key */
-    status = psa_export_key( slot,
+    status = psa_export_key( handle,
                              exported, export_size,
                              &exported_length );
     TEST_ASSERT( status == PSA_ERROR_EMPTY_SLOT );
@@ -1198,7 +1230,7 @@ exit:
 void cipher_after_import_failure( data_t *data, int type_arg,
                                   int expected_import_status_arg )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_cipher_operation_t operation;
     psa_key_type_t type = type_arg;
     psa_status_t status;
@@ -1207,12 +1239,15 @@ void cipher_after_import_failure( data_t *data, int type_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( type, KEY_BITS_FROM_DATA( type, data ),
+                                   &handle ) == PSA_SUCCESS );
+
     /* Import the key - expect failure */
-    status = psa_import_key( slot, type,
+    status = psa_import_key( handle, type,
                                  data->x, data->len );
     TEST_ASSERT( status == expected_import_status );
 
-    status = psa_cipher_encrypt_setup( &operation, slot, exercise_alg );
+    status = psa_cipher_encrypt_setup( &operation, handle, exercise_alg );
     TEST_ASSERT( status == PSA_ERROR_EMPTY_SLOT );
 
 exit:
@@ -1224,7 +1259,7 @@ exit:
 /* BEGIN_CASE */
 void export_after_destroy_key( data_t *data, int type_arg )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t type = type_arg;
     psa_status_t status;
     psa_key_policy_t policy;
@@ -1235,26 +1270,28 @@ void export_after_destroy_key( data_t *data, int type_arg )
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( type, KEY_BITS_FROM_DATA( type, data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
     export_size = (ptrdiff_t) data->len;
     ASSERT_ALLOC( exported, export_size );
 
     /* Import the key */
-    TEST_ASSERT( psa_import_key( slot, type,
+    TEST_ASSERT( psa_import_key( handle, type,
                                  data->x, data->len ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_export_key( slot, exported, export_size,
+    TEST_ASSERT( psa_export_key( handle, exported, export_size,
                                  &exported_length ) == PSA_SUCCESS );
 
     /* Destroy the key */
-    TEST_ASSERT( psa_destroy_key( slot ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_destroy_key( handle ) == PSA_SUCCESS );
 
     /* Export the key */
-    status = psa_export_key( slot, exported, export_size,
+    status = psa_export_key( handle, exported, export_size,
                              &exported_length );
-    TEST_ASSERT( status == PSA_ERROR_EMPTY_SLOT );
+    TEST_ASSERT( status == PSA_ERROR_INVALID_HANDLE );
 
 exit:
     mbedtls_free( exported );
@@ -1270,7 +1307,7 @@ void import_export_public_key( data_t *data,
                                int expected_export_status_arg,
                                data_t *expected_public_key )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t type = type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_export_status = expected_export_status_arg;
@@ -1282,17 +1319,19 @@ void import_export_public_key( data_t *data,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( type, KEY_BITS_FROM_DATA( type, data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
     /* Import the key */
-    TEST_ASSERT( psa_import_key( slot, type,
+    TEST_ASSERT( psa_import_key( handle, type,
                                  data->x, data->len ) == PSA_SUCCESS );
 
     /* Export the public key */
     ASSERT_ALLOC( exported, export_size );
-    status = psa_export_public_key( slot,
+    status = psa_export_public_key( handle,
                                     exported, export_size,
                                     &exported_length );
     TEST_ASSERT( status == expected_export_status );
@@ -1300,7 +1339,7 @@ void import_export_public_key( data_t *data,
     {
         psa_key_type_t public_type = PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR( type );
         size_t bits;
-        TEST_ASSERT( psa_get_key_information( slot, NULL, &bits ) ==
+        TEST_ASSERT( psa_get_key_information( handle, NULL, &bits ) ==
                      PSA_SUCCESS );
         TEST_ASSERT( expected_public_key->len <=
                      PSA_KEY_EXPORT_MAX_SIZE( public_type, bits ) );
@@ -1310,7 +1349,7 @@ void import_export_public_key( data_t *data,
 
 exit:
     mbedtls_free( exported );
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -1321,7 +1360,7 @@ void import_and_exercise_key( data_t *data,
                               int bits_arg,
                               int alg_arg )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t type = type_arg;
     size_t bits = bits_arg;
     psa_algorithm_t alg = alg_arg;
@@ -1333,27 +1372,29 @@ void import_and_exercise_key( data_t *data,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( type, KEY_BITS_FROM_DATA( type, data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, usage, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
     /* Import the key */
-    status = psa_import_key( slot, type, data->x, data->len );
+    status = psa_import_key( handle, type, data->x, data->len );
     TEST_ASSERT( status == PSA_SUCCESS );
 
     /* Test the key information */
-    TEST_ASSERT( psa_get_key_information( slot,
+    TEST_ASSERT( psa_get_key_information( handle,
                                           &got_type,
                                           &got_bits ) == PSA_SUCCESS );
     TEST_ASSERT( got_type == type );
     TEST_ASSERT( got_bits == bits );
 
     /* Do something with the key according to its type and permitted usage. */
-    if( ! exercise_key( slot, usage, alg ) )
+    if( ! exercise_key( handle, usage, alg ) )
         goto exit;
 
 exit:
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -1361,7 +1402,7 @@ exit:
 /* BEGIN_CASE */
 void key_policy( int usage_arg, int alg_arg )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
     psa_algorithm_t alg = alg_arg;
     psa_key_usage_t usage = usage_arg;
     psa_key_type_t key_type = PSA_KEY_TYPE_AES;
@@ -1373,25 +1414,26 @@ void key_policy( int usage_arg, int alg_arg )
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type, PSA_BYTES_TO_BITS( sizeof( key ) ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy_set );
     psa_key_policy_init( &policy_get );
-
     psa_key_policy_set_usage( &policy_set, usage, alg );
 
     TEST_ASSERT( psa_key_policy_get_usage( &policy_set ) == usage );
     TEST_ASSERT( psa_key_policy_get_algorithm( &policy_set ) == alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy_set ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy_set ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key, sizeof( key ) ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_get_key_policy( key_slot, &policy_get ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_get_key_policy( handle, &policy_get ) == PSA_SUCCESS );
 
     TEST_ASSERT( policy_get.usage == policy_set.usage );
     TEST_ASSERT( policy_get.alg == policy_set.alg );
 
 exit:
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -1403,7 +1445,7 @@ void mac_key_policy( int policy_usage,
                      data_t *key_data,
                      int exercise_alg )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_policy_t policy;
     psa_mac_operation_t operation;
     psa_status_t status;
@@ -1411,14 +1453,17 @@ void mac_key_policy( int policy_usage,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type,
+                                   KEY_BITS_FROM_DATA( key_type, key_data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, policy_usage, policy_alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x, key_data->len ) == PSA_SUCCESS );
 
-    status = psa_mac_sign_setup( &operation, key_slot, exercise_alg );
+    status = psa_mac_sign_setup( &operation, handle, exercise_alg );
     if( policy_alg == exercise_alg &&
         ( policy_usage & PSA_KEY_USAGE_SIGN ) != 0 )
         TEST_ASSERT( status == PSA_SUCCESS );
@@ -1427,7 +1472,7 @@ void mac_key_policy( int policy_usage,
     psa_mac_abort( &operation );
 
     memset( mac, 0, sizeof( mac ) );
-    status = psa_mac_verify_setup( &operation, key_slot, exercise_alg );
+    status = psa_mac_verify_setup( &operation, handle, exercise_alg );
     if( policy_alg == exercise_alg &&
         ( policy_usage & PSA_KEY_USAGE_VERIFY ) != 0 )
         TEST_ASSERT( status == PSA_SUCCESS );
@@ -1436,7 +1481,7 @@ void mac_key_policy( int policy_usage,
 
 exit:
     psa_mac_abort( &operation );
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -1448,21 +1493,24 @@ void cipher_key_policy( int policy_usage,
                         data_t *key_data,
                         int exercise_alg )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_policy_t policy;
     psa_cipher_operation_t operation;
     psa_status_t status;
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type,
+                                   KEY_BITS_FROM_DATA( key_type, key_data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, policy_usage, policy_alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x, key_data->len ) == PSA_SUCCESS );
 
-    status = psa_cipher_encrypt_setup( &operation, key_slot, exercise_alg );
+    status = psa_cipher_encrypt_setup( &operation, handle, exercise_alg );
     if( policy_alg == exercise_alg &&
         ( policy_usage & PSA_KEY_USAGE_ENCRYPT ) != 0 )
         TEST_ASSERT( status == PSA_SUCCESS );
@@ -1470,7 +1518,7 @@ void cipher_key_policy( int policy_usage,
         TEST_ASSERT( status == PSA_ERROR_NOT_PERMITTED );
     psa_cipher_abort( &operation );
 
-    status = psa_cipher_decrypt_setup( &operation, key_slot, exercise_alg );
+    status = psa_cipher_decrypt_setup( &operation, handle, exercise_alg );
     if( policy_alg == exercise_alg &&
         ( policy_usage & PSA_KEY_USAGE_DECRYPT ) != 0 )
         TEST_ASSERT( status == PSA_SUCCESS );
@@ -1479,7 +1527,7 @@ void cipher_key_policy( int policy_usage,
 
 exit:
     psa_cipher_abort( &operation );
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -1493,7 +1541,7 @@ void aead_key_policy( int policy_usage,
                       int tag_length_arg,
                       int exercise_alg )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_policy_t policy;
     psa_status_t status;
     unsigned char nonce[16] = {0};
@@ -1507,14 +1555,17 @@ void aead_key_policy( int policy_usage,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type,
+                                   KEY_BITS_FROM_DATA( key_type, key_data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, policy_usage, policy_alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x, key_data->len ) == PSA_SUCCESS );
 
-    status = psa_aead_encrypt( key_slot, exercise_alg,
+    status = psa_aead_encrypt( handle, exercise_alg,
                                nonce, nonce_length,
                                NULL, 0,
                                NULL, 0,
@@ -1527,7 +1578,7 @@ void aead_key_policy( int policy_usage,
         TEST_ASSERT( status == PSA_ERROR_NOT_PERMITTED );
 
     memset( tag, 0, sizeof( tag ) );
-    status = psa_aead_decrypt( key_slot, exercise_alg,
+    status = psa_aead_decrypt( handle, exercise_alg,
                                nonce, nonce_length,
                                NULL, 0,
                                tag, tag_length,
@@ -1540,7 +1591,7 @@ void aead_key_policy( int policy_usage,
         TEST_ASSERT( status == PSA_ERROR_NOT_PERMITTED );
 
 exit:
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -1552,7 +1603,7 @@ void asymmetric_encryption_key_policy( int policy_usage,
                                        data_t *key_data,
                                        int exercise_alg )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_policy_t policy;
     psa_status_t status;
     size_t key_bits;
@@ -1562,21 +1613,24 @@ void asymmetric_encryption_key_policy( int policy_usage,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type,
+                                   KEY_BITS_FROM_DATA( key_type, key_data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, policy_usage, policy_alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x, key_data->len ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_get_key_information( key_slot,
+    TEST_ASSERT( psa_get_key_information( handle,
                                           NULL,
                                           &key_bits ) == PSA_SUCCESS );
     buffer_length = PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE( key_type, key_bits,
                                                         exercise_alg );
     ASSERT_ALLOC( buffer, buffer_length );
 
-    status = psa_asymmetric_encrypt( key_slot, exercise_alg,
+    status = psa_asymmetric_encrypt( handle, exercise_alg,
                                      NULL, 0,
                                      NULL, 0,
                                      buffer, buffer_length,
@@ -1589,7 +1643,7 @@ void asymmetric_encryption_key_policy( int policy_usage,
 
     if( buffer_length != 0 )
         memset( buffer, 0, buffer_length );
-    status = psa_asymmetric_decrypt( key_slot, exercise_alg,
+    status = psa_asymmetric_decrypt( handle, exercise_alg,
                                      buffer, buffer_length,
                                      NULL, 0,
                                      buffer, buffer_length,
@@ -1601,7 +1655,7 @@ void asymmetric_encryption_key_policy( int policy_usage,
         TEST_ASSERT( status == PSA_ERROR_NOT_PERMITTED );
 
 exit:
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
     mbedtls_free( buffer );
 }
@@ -1614,7 +1668,7 @@ void asymmetric_signature_key_policy( int policy_usage,
                                       data_t *key_data,
                                       int exercise_alg )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_policy_t policy;
     psa_status_t status;
     unsigned char payload[16] = {1};
@@ -1624,14 +1678,17 @@ void asymmetric_signature_key_policy( int policy_usage,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type,
+                                   KEY_BITS_FROM_DATA( key_type, key_data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, policy_usage, policy_alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x, key_data->len ) == PSA_SUCCESS );
 
-    status = psa_asymmetric_sign( key_slot, exercise_alg,
+    status = psa_asymmetric_sign( handle, exercise_alg,
                                   payload, payload_length,
                                   signature, sizeof( signature ),
                                   &signature_length );
@@ -1642,7 +1699,7 @@ void asymmetric_signature_key_policy( int policy_usage,
         TEST_ASSERT( status == PSA_ERROR_NOT_PERMITTED );
 
     memset( signature, 0, sizeof( signature ) );
-    status = psa_asymmetric_verify( key_slot, exercise_alg,
+    status = psa_asymmetric_verify( handle, exercise_alg,
                                     payload, payload_length,
                                     signature, sizeof( signature ) );
     if( policy_alg == exercise_alg &&
@@ -1652,7 +1709,7 @@ void asymmetric_signature_key_policy( int policy_usage,
         TEST_ASSERT( status == PSA_ERROR_NOT_PERMITTED );
 
 exit:
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -1664,21 +1721,24 @@ void derive_key_policy( int policy_usage,
                         data_t *key_data,
                         int exercise_alg )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_policy_t policy;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
     psa_status_t status;
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type,
+                                   KEY_BITS_FROM_DATA( key_type, key_data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, policy_usage, policy_alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x, key_data->len ) == PSA_SUCCESS );
 
-    status = psa_key_derivation( &generator, key_slot,
+    status = psa_key_derivation( &generator, handle,
                                  exercise_alg,
                                  NULL, 0,
                                  NULL, 0,
@@ -1691,7 +1751,7 @@ void derive_key_policy( int policy_usage,
 
 exit:
     psa_generator_abort( &generator );
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -1703,7 +1763,7 @@ void agreement_key_policy( int policy_usage,
                            data_t *key_data,
                            int exercise_alg )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_policy_t policy;
     psa_key_type_t key_type = key_type_arg;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
@@ -1711,14 +1771,17 @@ void agreement_key_policy( int policy_usage,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type,
+                                   KEY_BITS_FROM_DATA( key_type, key_data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, policy_usage, policy_alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x, key_data->len ) == PSA_SUCCESS );
 
-    status = key_agreement_with_self( &generator, key_slot, exercise_alg );
+    status = key_agreement_with_self( &generator, handle, exercise_alg );
 
     if( policy_alg == exercise_alg &&
         ( policy_usage & PSA_KEY_USAGE_DERIVE ) != 0 )
@@ -1728,7 +1791,7 @@ void agreement_key_policy( int policy_usage,
 
 exit:
     psa_generator_abort( &generator );
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -1856,7 +1919,7 @@ void mac_setup( int key_type_arg,
                 int alg_arg,
                 int expected_status_arg )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_status = expected_status_arg;
@@ -1866,21 +1929,23 @@ void mac_setup( int key_type_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type, PSA_BYTES_TO_BITS( key->len ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy,
                               PSA_KEY_USAGE_SIGN | PSA_KEY_USAGE_VERIFY,
                               alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );
 
-    status = psa_mac_sign_setup( &operation, key_slot, alg );
+    status = psa_mac_sign_setup( &operation, handle, alg );
     psa_mac_abort( &operation );
     TEST_ASSERT( status == expected_status );
 
 exit:
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -1892,7 +1957,7 @@ void mac_sign( int key_type_arg,
                data_t *input,
                data_t *expected_mac )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_mac_operation_t operation;
@@ -1911,16 +1976,18 @@ void mac_sign( int key_type_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type, PSA_BYTES_TO_BITS( key->len ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_SIGN, alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );
 
     /* Calculate the MAC. */
     TEST_ASSERT( psa_mac_sign_setup( &operation,
-                                     key_slot, alg ) == PSA_SUCCESS );
+                                     handle, alg ) == PSA_SUCCESS );
     TEST_ASSERT( psa_mac_update( &operation,
                                  input->x, input->len ) == PSA_SUCCESS );
     TEST_ASSERT( psa_mac_sign_finish( &operation,
@@ -1936,7 +2003,7 @@ void mac_sign( int key_type_arg,
                               sizeof( actual_mac ) - mac_length ) );
 
 exit:
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -1948,7 +2015,7 @@ void mac_verify( int key_type_arg,
                  data_t *input,
                  data_t *expected_mac )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_mac_operation_t operation;
@@ -1965,16 +2032,18 @@ void mac_verify( int key_type_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type, PSA_BYTES_TO_BITS( key->len ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_VERIFY, alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_mac_verify_setup( &operation,
-                                       key_slot, alg ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_destroy_key( key_slot ) == PSA_SUCCESS );
+                                       handle, alg ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_destroy_key( handle ) == PSA_SUCCESS );
     TEST_ASSERT( psa_mac_update( &operation,
                                  input->x, input->len ) == PSA_SUCCESS );
     TEST_ASSERT( psa_mac_verify_finish( &operation,
@@ -1982,7 +2051,7 @@ void mac_verify( int key_type_arg,
                                         expected_mac->len ) == PSA_SUCCESS );
 
 exit:
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -1993,7 +2062,7 @@ void cipher_setup( int key_type_arg,
                    int alg_arg,
                    int expected_status_arg )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_status = expected_status_arg;
@@ -2003,19 +2072,21 @@ void cipher_setup( int key_type_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type, PSA_BYTES_TO_BITS( key->len ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT, alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );
 
-    status = psa_cipher_encrypt_setup( &operation, key_slot, alg );
+    status = psa_cipher_encrypt_setup( &operation, handle, alg );
     psa_cipher_abort( &operation );
     TEST_ASSERT( status == expected_status );
 
 exit:
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -2026,7 +2097,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
                      data_t *input, data_t *expected_output,
                      int expected_status_arg )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
     psa_status_t status;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
@@ -2052,15 +2123,17 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type, PSA_BYTES_TO_BITS( key->len ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT, alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_cipher_encrypt_setup( &operation,
-                                           key_slot, alg ) == PSA_SUCCESS );
+                                           handle, alg ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_cipher_set_iv( &operation,
                                     iv, iv_size ) == PSA_SUCCESS );
@@ -2089,7 +2162,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
 
 exit:
     mbedtls_free( output );
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -2101,7 +2174,7 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
                                int first_part_size,
                                data_t *expected_output )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     unsigned char iv[16] = {0};
@@ -2125,15 +2198,17 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type, PSA_BYTES_TO_BITS( key->len ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT, alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_cipher_encrypt_setup( &operation,
-                                           key_slot, alg ) == PSA_SUCCESS );
+                                           handle, alg ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_cipher_set_iv( &operation,
                                     iv, sizeof( iv ) ) == PSA_SUCCESS );
@@ -2164,7 +2239,7 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
 
 exit:
     mbedtls_free( output );
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -2176,7 +2251,7 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
                                int first_part_size,
                                data_t *expected_output )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
 
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
@@ -2201,15 +2276,17 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type, PSA_BYTES_TO_BITS( key->len ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DECRYPT, alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_cipher_decrypt_setup( &operation,
-                                           key_slot, alg ) == PSA_SUCCESS );
+                                           handle, alg ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_cipher_set_iv( &operation,
                                     iv, sizeof( iv ) ) == PSA_SUCCESS );
@@ -2242,7 +2319,7 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
 
 exit:
     mbedtls_free( output );
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -2253,7 +2330,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
                      data_t *input, data_t *expected_output,
                      int expected_status_arg )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
     psa_status_t status;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
@@ -2279,15 +2356,17 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type, PSA_BYTES_TO_BITS( key->len ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DECRYPT, alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_cipher_decrypt_setup( &operation,
-                                           key_slot, alg ) == PSA_SUCCESS );
+                                           handle, alg ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_cipher_set_iv( &operation,
                                     iv, iv_size ) == PSA_SUCCESS );
@@ -2317,7 +2396,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
 
 exit:
     mbedtls_free( output );
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -2327,7 +2406,7 @@ void cipher_verify_output( int alg_arg, int key_type_arg,
                            data_t *key,
                            data_t *input )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     unsigned char iv[16] = {0};
@@ -2351,17 +2430,19 @@ void cipher_verify_output( int alg_arg, int key_type_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type, PSA_BYTES_TO_BITS( key->len ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT, alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_cipher_encrypt_setup( &operation1,
-                                           key_slot, alg ) == PSA_SUCCESS );
+                                           handle, alg ) == PSA_SUCCESS );
     TEST_ASSERT( psa_cipher_decrypt_setup( &operation2,
-                                           key_slot, alg ) == PSA_SUCCESS );
+                                           handle, alg ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_cipher_generate_iv( &operation1,
                                          iv, iv_size,
@@ -2404,7 +2485,7 @@ void cipher_verify_output( int alg_arg, int key_type_arg,
 exit:
     mbedtls_free( output1 );
     mbedtls_free( output2 );
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -2416,7 +2497,7 @@ void cipher_verify_output_multipart( int alg_arg,
                                      data_t *input,
                                      int first_part_size )
 {
-    int key_slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     unsigned char iv[16] = {0};
@@ -2440,17 +2521,19 @@ void cipher_verify_output_multipart( int alg_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type, PSA_BYTES_TO_BITS( key->len ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT, alg );
-    TEST_ASSERT( psa_set_key_policy( key_slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( key_slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key->x, key->len ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_cipher_encrypt_setup( &operation1,
-                                           key_slot, alg ) == PSA_SUCCESS );
+                                           handle, alg ) == PSA_SUCCESS );
     TEST_ASSERT( psa_cipher_decrypt_setup( &operation2,
-                                           key_slot, alg ) == PSA_SUCCESS );
+                                           handle, alg ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_cipher_generate_iv( &operation1,
                                          iv, iv_size,
@@ -2512,7 +2595,7 @@ void cipher_verify_output_multipart( int alg_arg,
 exit:
     mbedtls_free( output1 );
     mbedtls_free( output2 );
-    psa_destroy_key( key_slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -2525,7 +2608,7 @@ void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
                            data_t *input_data,
                            int expected_result_arg )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     unsigned char *output_data = NULL;
@@ -2551,16 +2634,18 @@ void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type, PSA_BYTES_TO_BITS( key_data->len ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy,
                               PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT,
                               alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x, key_data->len ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_aead_encrypt( slot, alg,
+    TEST_ASSERT( psa_aead_encrypt( handle, alg,
                                    nonce->x, nonce->len,
                                    additional_data->x,
                                    additional_data->len,
@@ -2572,7 +2657,7 @@ void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
     {
         ASSERT_ALLOC( output_data2, output_length );
 
-        TEST_ASSERT( psa_aead_decrypt( slot, alg,
+        TEST_ASSERT( psa_aead_decrypt( handle, alg,
                                        nonce->x, nonce->len,
                                        additional_data->x,
                                        additional_data->len,
@@ -2585,7 +2670,7 @@ void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
     }
 
 exit:
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_free( output_data );
     mbedtls_free( output_data2 );
     mbedtls_psa_crypto_free( );
@@ -2600,7 +2685,7 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
                    data_t *input_data,
                    data_t *expected_result )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     unsigned char *output_data = NULL;
@@ -2625,15 +2710,17 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type, PSA_BYTES_TO_BITS( key_data->len ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT , alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_aead_encrypt( slot, alg,
+    TEST_ASSERT( psa_aead_encrypt( handle, alg,
                                    nonce->x, nonce->len,
                                    additional_data->x, additional_data->len,
                                    input_data->x, input_data->len,
@@ -2644,7 +2731,7 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
                     output_data, output_length );
 
 exit:
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_free( output_data );
     mbedtls_psa_crypto_free( );
 }
@@ -2659,7 +2746,7 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
                    data_t *expected_data,
                    int expected_result_arg )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     unsigned char *output_data = NULL;
@@ -2685,15 +2772,17 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type, PSA_BYTES_TO_BITS( key_data->len ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DECRYPT , alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_aead_decrypt( slot, alg,
+    TEST_ASSERT( psa_aead_decrypt( handle, alg,
                                    nonce->x, nonce->len,
                                    additional_data->x,
                                    additional_data->len,
@@ -2706,7 +2795,7 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
                         output_data, output_length );
 
 exit:
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_free( output_data );
     mbedtls_psa_crypto_free( );
 }
@@ -2732,7 +2821,7 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
                          int alg_arg, data_t *input_data,
                          data_t *output_data )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     size_t key_bits;
@@ -2750,14 +2839,17 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type,
+                                   KEY_BITS_FROM_DATA( key_type, key_data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_SIGN, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_get_key_information( slot,
+    TEST_ASSERT( psa_get_key_information( handle,
                                           NULL,
                                           &key_bits ) == PSA_SUCCESS );
 
@@ -2770,7 +2862,7 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
     ASSERT_ALLOC( signature, signature_size );
 
     /* Perform the signature. */
-    TEST_ASSERT( psa_asymmetric_sign( slot, alg,
+    TEST_ASSERT( psa_asymmetric_sign( handle, alg,
                                       input_data->x, input_data->len,
                                       signature, signature_size,
                                       &signature_length ) == PSA_SUCCESS );
@@ -2779,7 +2871,7 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
                     signature, signature_length );
 
 exit:
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_free( signature );
     mbedtls_psa_crypto_free( );
 }
@@ -2790,7 +2882,7 @@ void sign_fail( int key_type_arg, data_t *key_data,
                 int alg_arg, data_t *input_data,
                 int signature_size_arg, int expected_status_arg )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     size_t signature_size = signature_size_arg;
@@ -2809,15 +2901,18 @@ void sign_fail( int key_type_arg, data_t *key_data,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type,
+                                   KEY_BITS_FROM_DATA( key_type, key_data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_SIGN, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
 
-    actual_status = psa_asymmetric_sign( slot, alg,
+    actual_status = psa_asymmetric_sign( handle, alg,
                                          input_data->x, input_data->len,
                                          signature, signature_size,
                                          &signature_length );
@@ -2829,7 +2924,7 @@ void sign_fail( int key_type_arg, data_t *key_data,
     TEST_ASSERT( signature_length <= signature_size );
 
 exit:
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_free( signature );
     mbedtls_psa_crypto_free( );
 }
@@ -2839,7 +2934,7 @@ exit:
 void sign_verify( int key_type_arg, data_t *key_data,
                   int alg_arg, data_t *input_data )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     size_t key_bits;
@@ -2850,16 +2945,19 @@ void sign_verify( int key_type_arg, data_t *key_data,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type,
+                                   KEY_BITS_FROM_DATA( key_type, key_data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy,
                               PSA_KEY_USAGE_SIGN | PSA_KEY_USAGE_VERIFY,
                               alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_get_key_information( slot,
+    TEST_ASSERT( psa_get_key_information( handle,
                                           NULL,
                                           &key_bits ) == PSA_SUCCESS );
 
@@ -2872,7 +2970,7 @@ void sign_verify( int key_type_arg, data_t *key_data,
     ASSERT_ALLOC( signature, signature_size );
 
     /* Perform the signature. */
-    TEST_ASSERT( psa_asymmetric_sign( slot, alg,
+    TEST_ASSERT( psa_asymmetric_sign( handle, alg,
                                       input_data->x, input_data->len,
                                       signature, signature_size,
                                       &signature_length ) == PSA_SUCCESS );
@@ -2882,7 +2980,7 @@ void sign_verify( int key_type_arg, data_t *key_data,
 
     /* Use the library to verify that the signature is correct. */
     TEST_ASSERT( psa_asymmetric_verify(
-                     slot, alg,
+                     handle, alg,
                      input_data->x, input_data->len,
                      signature, signature_length ) == PSA_SUCCESS );
 
@@ -2893,14 +2991,14 @@ void sign_verify( int key_type_arg, data_t *key_data,
          * because ECDSA may ignore the last few bits of the input. */
         input_data->x[0] ^= 1;
         TEST_ASSERT( psa_asymmetric_verify(
-                         slot, alg,
+                         handle, alg,
                          input_data->x, input_data->len,
                          signature,
                          signature_length ) == PSA_ERROR_INVALID_SIGNATURE );
     }
 
 exit:
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_free( signature );
     mbedtls_psa_crypto_free( );
 }
@@ -2911,7 +3009,7 @@ void asymmetric_verify( int key_type_arg, data_t *key_data,
                         int alg_arg, data_t *hash_data,
                         data_t *signature_data )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_key_policy_t policy;
@@ -2927,20 +3025,23 @@ void asymmetric_verify( int key_type_arg, data_t *key_data,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type,
+                                   KEY_BITS_FROM_DATA( key_type, key_data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_VERIFY, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_asymmetric_verify( slot, alg,
+    TEST_ASSERT( psa_asymmetric_verify( handle, alg,
                                         hash_data->x, hash_data->len,
                                         signature_data->x,
                                         signature_data->len ) == PSA_SUCCESS );
 exit:
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -2951,7 +3052,7 @@ void asymmetric_verify_fail( int key_type_arg, data_t *key_data,
                              data_t *signature_data,
                              int expected_status_arg )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_status_t actual_status;
@@ -2967,15 +3068,18 @@ void asymmetric_verify_fail( int key_type_arg, data_t *key_data,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type,
+                                   KEY_BITS_FROM_DATA( key_type, key_data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_VERIFY, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
 
-    actual_status = psa_asymmetric_verify( slot, alg,
+    actual_status = psa_asymmetric_verify( handle, alg,
                                            hash_data->x, hash_data->len,
                                            signature_data->x,
                                            signature_data->len );
@@ -2983,7 +3087,7 @@ void asymmetric_verify_fail( int key_type_arg, data_t *key_data,
     TEST_ASSERT( actual_status == expected_status );
 
 exit:
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -2997,7 +3101,7 @@ void asymmetric_encrypt( int key_type_arg,
                          int expected_output_length_arg,
                          int expected_status_arg )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     size_t expected_output_length = expected_output_length_arg;
@@ -3011,23 +3115,27 @@ void asymmetric_encrypt( int key_type_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+
     /* Import the key */
+    TEST_ASSERT( psa_allocate_key( key_type,
+                                   KEY_BITS_FROM_DATA( key_type, key_data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_ENCRYPT, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_import_key( slot, key_type,
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
 
     /* Determine the maximum output length */
-    TEST_ASSERT( psa_get_key_information( slot,
+    TEST_ASSERT( psa_get_key_information( handle,
                                           NULL,
                                           &key_bits ) == PSA_SUCCESS );
     output_size = PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE( key_type, key_bits, alg );
     ASSERT_ALLOC( output, output_size );
 
     /* Encrypt the input */
-    actual_status = psa_asymmetric_encrypt( slot, alg,
+    actual_status = psa_asymmetric_encrypt( handle, alg,
                                             input_data->x, input_data->len,
                                             label->x, label->len,
                                             output, output_size,
@@ -3042,7 +3150,7 @@ void asymmetric_encrypt( int key_type_arg,
         output_length = ~0;
         if( output_size != 0 )
             memset( output, 0, output_size );
-        actual_status = psa_asymmetric_encrypt( slot, alg,
+        actual_status = psa_asymmetric_encrypt( handle, alg,
                                                 input_data->x, input_data->len,
                                                 NULL, label->len,
                                                 output, output_size,
@@ -3052,7 +3160,7 @@ void asymmetric_encrypt( int key_type_arg,
     }
 
 exit:
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_free( output );
     mbedtls_psa_crypto_free( );
 }
@@ -3065,7 +3173,7 @@ void asymmetric_encrypt_decrypt( int key_type_arg,
                                  data_t *input_data,
                                  data_t *label )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     size_t key_bits;
@@ -3084,19 +3192,22 @@ void asymmetric_encrypt_decrypt( int key_type_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type,
+                                   KEY_BITS_FROM_DATA( key_type, key_data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy,
                               PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT,
                               alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
 
 
     /* Determine the maximum ciphertext length */
-    TEST_ASSERT( psa_get_key_information( slot,
+    TEST_ASSERT( psa_get_key_information( handle,
                                           NULL,
                                           &key_bits ) == PSA_SUCCESS );
     output_size = PSA_ASYMMETRIC_ENCRYPT_OUTPUT_SIZE( key_type, key_bits, alg );
@@ -3107,7 +3218,7 @@ void asymmetric_encrypt_decrypt( int key_type_arg,
     /* We test encryption by checking that encrypt-then-decrypt gives back
      * the original plaintext because of the non-optional random
      * part of encryption process which prevents using fixed vectors. */
-    TEST_ASSERT( psa_asymmetric_encrypt( slot, alg,
+    TEST_ASSERT( psa_asymmetric_encrypt( handle, alg,
                                          input_data->x, input_data->len,
                                          label->x, label->len,
                                          output, output_size,
@@ -3116,7 +3227,7 @@ void asymmetric_encrypt_decrypt( int key_type_arg,
      * it looks sensible. */
     TEST_ASSERT( output_length <= output_size );
 
-    TEST_ASSERT( psa_asymmetric_decrypt( slot, alg,
+    TEST_ASSERT( psa_asymmetric_decrypt( handle, alg,
                                          output, output_length,
                                          label->x, label->len,
                                          output2, output2_size,
@@ -3125,7 +3236,7 @@ void asymmetric_encrypt_decrypt( int key_type_arg,
                     output2, output2_length );
 
 exit:
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_free( output );
     mbedtls_free( output2 );
     mbedtls_psa_crypto_free( );
@@ -3140,7 +3251,7 @@ void asymmetric_decrypt( int key_type_arg,
                          data_t *label,
                          data_t *expected_data )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     unsigned char *output = NULL;
@@ -3160,15 +3271,18 @@ void asymmetric_decrypt( int key_type_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type,
+                                   KEY_BITS_FROM_DATA( key_type, key_data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DECRYPT, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_asymmetric_decrypt( slot, alg,
+    TEST_ASSERT( psa_asymmetric_decrypt( handle, alg,
                                          input_data->x, input_data->len,
                                          label->x, label->len,
                                          output,
@@ -3184,7 +3298,7 @@ void asymmetric_decrypt( int key_type_arg,
         output_length = ~0;
         if( output_size != 0 )
             memset( output, 0, output_size );
-        TEST_ASSERT( psa_asymmetric_decrypt( slot, alg,
+        TEST_ASSERT( psa_asymmetric_decrypt( handle, alg,
                                              input_data->x, input_data->len,
                                              NULL, label->len,
                                              output,
@@ -3195,7 +3309,7 @@ void asymmetric_decrypt( int key_type_arg,
     }
 
 exit:
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_free( output );
     mbedtls_psa_crypto_free( );
 }
@@ -3209,7 +3323,7 @@ void asymmetric_decrypt_fail( int key_type_arg,
                               data_t *label,
                               int expected_status_arg  )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     unsigned char *output = NULL;
@@ -3229,15 +3343,18 @@ void asymmetric_decrypt_fail( int key_type_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type,
+                                   KEY_BITS_FROM_DATA( key_type, key_data ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DECRYPT, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
 
-    actual_status = psa_asymmetric_decrypt( slot, alg,
+    actual_status = psa_asymmetric_decrypt( handle, alg,
                                             input_data->x, input_data->len,
                                             label->x, label->len,
                                             output, output_size,
@@ -3252,7 +3369,7 @@ void asymmetric_decrypt_fail( int key_type_arg,
         output_length = ~0;
         if( output_size != 0 )
             memset( output, 0, output_size );
-        actual_status = psa_asymmetric_decrypt( slot, alg,
+        actual_status = psa_asymmetric_decrypt( handle, alg,
                                                 input_data->x, input_data->len,
                                                 NULL, label->len,
                                                 output, output_size,
@@ -3262,7 +3379,7 @@ void asymmetric_decrypt_fail( int key_type_arg,
     }
 
 exit:
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_free( output );
     mbedtls_psa_crypto_free( );
 }
@@ -3277,7 +3394,7 @@ void derive_setup( int key_type_arg,
                    int requested_capacity_arg,
                    int expected_status_arg )
 {
-    psa_key_slot_t slot = 1;
+    psa_key_handle_t handle = 0;
     size_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     size_t requested_capacity = requested_capacity_arg;
@@ -3287,22 +3404,24 @@ void derive_setup( int key_type_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type, PSA_BYTES_TO_BITS( key_data->len ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( slot, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_key_derivation( &generator, slot, alg,
+    TEST_ASSERT( psa_key_derivation( &generator, handle, alg,
                                      salt->x, salt->len,
                                      label->x, label->len,
                                      requested_capacity ) == expected_status );
 
 exit:
     psa_generator_abort( &generator );
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -3310,7 +3429,7 @@ exit:
 /* BEGIN_CASE */
 void test_derive_invalid_generator_state( )
 {
-    psa_key_slot_t base_key = 1;
+    psa_key_handle_t handle = 0;
     size_t key_type = PSA_KEY_TYPE_DERIVE;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
     psa_algorithm_t alg = PSA_ALG_HKDF( PSA_ALG_SHA_256 );
@@ -3323,22 +3442,25 @@ void test_derive_invalid_generator_state( )
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( key_type,
+                                   PSA_BYTES_TO_BITS( sizeof( key_data ) ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
-    TEST_ASSERT( psa_set_key_policy( base_key, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( base_key, key_type,
+    TEST_ASSERT( psa_import_key( handle, key_type,
                                  key_data,
                                  sizeof( key_data ) ) == PSA_SUCCESS );
 
     /* valid key derivation */
-    TEST_ASSERT(  psa_key_derivation( &generator, base_key, alg,
+    TEST_ASSERT(  psa_key_derivation( &generator, handle, alg,
                                       NULL, 0,
                                       NULL, 0,
                                       capacity ) == PSA_SUCCESS );
 
     /* state of generator shouldn't allow additional generation */
-    TEST_ASSERT(  psa_key_derivation( &generator, base_key, alg,
+    TEST_ASSERT(  psa_key_derivation( &generator, handle, alg,
                                       NULL, 0,
                                       NULL, 0,
                                       capacity ) == PSA_ERROR_BAD_STATE );
@@ -3352,7 +3474,7 @@ void test_derive_invalid_generator_state( )
 
 exit:
     psa_generator_abort( &generator );
-    psa_destroy_key( base_key );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -3394,7 +3516,7 @@ void derive_output( int alg_arg,
                     data_t *expected_output1,
                     data_t *expected_output2 )
 {
-    psa_key_slot_t slot = 1;
+    psa_key_handle_t handle = 0;
     psa_algorithm_t alg = alg_arg;
     size_t requested_capacity = requested_capacity_arg;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
@@ -3420,16 +3542,19 @@ void derive_output( int alg_arg,
     ASSERT_ALLOC( output_buffer, output_buffer_size );
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( PSA_KEY_TYPE_DERIVE,
+                                   PSA_BYTES_TO_BITS( key_data->len ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( slot, PSA_KEY_TYPE_DERIVE,
+    TEST_ASSERT( psa_import_key( handle, PSA_KEY_TYPE_DERIVE,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
 
     /* Extraction phase. */
-    TEST_ASSERT( psa_key_derivation( &generator, slot, alg,
+    TEST_ASSERT( psa_key_derivation( &generator, handle, alg,
                                      salt->x, salt->len,
                                      label->x, label->len,
                                      requested_capacity ) == PSA_SUCCESS );
@@ -3477,7 +3602,7 @@ void derive_output( int alg_arg,
 exit:
     mbedtls_free( output_buffer );
     psa_generator_abort( &generator );
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -3489,7 +3614,7 @@ void derive_full( int alg_arg,
                   data_t *label,
                   int requested_capacity_arg )
 {
-    psa_key_slot_t slot = 1;
+    psa_key_handle_t handle = 0;
     psa_algorithm_t alg = alg_arg;
     size_t requested_capacity = requested_capacity_arg;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
@@ -3500,16 +3625,19 @@ void derive_full( int alg_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( PSA_KEY_TYPE_DERIVE,
+                                   PSA_BYTES_TO_BITS( key_data->len ),
+                                   &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_import_key( slot, PSA_KEY_TYPE_DERIVE,
+    TEST_ASSERT( psa_import_key( handle, PSA_KEY_TYPE_DERIVE,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
 
     /* Extraction phase. */
-    TEST_ASSERT( psa_key_derivation( &generator, slot, alg,
+    TEST_ASSERT( psa_key_derivation( &generator, handle, alg,
                                      salt->x, salt->len,
                                      label->x, label->len,
                                      requested_capacity ) == PSA_SUCCESS );
@@ -3543,7 +3671,7 @@ void derive_full( int alg_arg,
 
 exit:
     psa_generator_abort( &generator );
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -3558,8 +3686,8 @@ void derive_key_exercise( int alg_arg,
                           int derived_usage_arg,
                           int derived_alg_arg )
 {
-    psa_key_slot_t base_key = 1;
-    psa_key_slot_t derived_key = 2;
+    psa_key_handle_t base_handle = 0;
+    psa_key_handle_t derived_handle = 0;
     psa_algorithm_t alg = alg_arg;
     psa_key_type_t derived_type = derived_type_arg;
     size_t derived_bits = derived_bits_arg;
@@ -3573,40 +3701,45 @@ void derive_key_exercise( int alg_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( PSA_KEY_TYPE_DERIVE,
+                                   PSA_BYTES_TO_BITS( key_data->len ),
+                                   &base_handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
-    TEST_ASSERT( psa_set_key_policy( base_key, &policy ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_import_key( base_key, PSA_KEY_TYPE_DERIVE,
+    TEST_ASSERT( psa_set_key_policy( base_handle, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_import_key( base_handle, PSA_KEY_TYPE_DERIVE,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
 
     /* Derive a key. */
-    TEST_ASSERT( psa_key_derivation( &generator, base_key, alg,
+    TEST_ASSERT( psa_key_derivation( &generator, base_handle, alg,
                                      salt->x, salt->len,
                                      label->x, label->len,
                                      capacity ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_allocate_key( derived_type, derived_bits,
+                                   &derived_handle ) == PSA_SUCCESS );
     psa_key_policy_set_usage( &policy, derived_usage, derived_alg );
-    TEST_ASSERT( psa_set_key_policy( derived_key, &policy ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_generator_import_key( derived_key,
+    TEST_ASSERT( psa_set_key_policy( derived_handle, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_generator_import_key( derived_handle,
                                            derived_type,
                                            derived_bits,
                                            &generator ) == PSA_SUCCESS );
 
     /* Test the key information */
-    TEST_ASSERT( psa_get_key_information( derived_key,
+    TEST_ASSERT( psa_get_key_information( derived_handle,
                                           &got_type,
                                           &got_bits ) == PSA_SUCCESS );
     TEST_ASSERT( got_type == derived_type );
     TEST_ASSERT( got_bits == derived_bits );
 
     /* Exercise the derived key. */
-    if( ! exercise_key( derived_key, derived_usage, derived_alg ) )
+    if( ! exercise_key( derived_handle, derived_usage, derived_alg ) )
         goto exit;
 
 exit:
     psa_generator_abort( &generator );
-    psa_destroy_key( base_key );
-    psa_destroy_key( derived_key );
+    psa_destroy_key( base_handle );
+    psa_destroy_key( derived_handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -3619,10 +3752,11 @@ void derive_key_export( int alg_arg,
                         int bytes1_arg,
                         int bytes2_arg )
 {
-    psa_key_slot_t base_key = 1;
-    psa_key_slot_t derived_key = 2;
+    psa_key_handle_t base_handle = 0;
+    psa_key_handle_t derived_handle = 0;
     psa_algorithm_t alg = alg_arg;
     size_t bytes1 = bytes1_arg;
+    size_t derived_bits = PSA_BYTES_TO_BITS( bytes1 );
     size_t bytes2 = bytes2_arg;
     size_t capacity = bytes1 + bytes2;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
@@ -3635,15 +3769,18 @@ void derive_key_export( int alg_arg,
     ASSERT_ALLOC( export_buffer, capacity );
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( PSA_KEY_TYPE_DERIVE,
+                                   PSA_BYTES_TO_BITS( key_data->len ),
+                                   &base_handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
-    TEST_ASSERT( psa_set_key_policy( base_key, &policy ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_import_key( base_key, PSA_KEY_TYPE_DERIVE,
+    TEST_ASSERT( psa_set_key_policy( base_handle, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_import_key( base_handle, PSA_KEY_TYPE_DERIVE,
                                  key_data->x,
                                  key_data->len ) == PSA_SUCCESS );
 
     /* Derive some material and output it. */
-    TEST_ASSERT( psa_key_derivation( &generator, base_key, alg,
+    TEST_ASSERT( psa_key_derivation( &generator, base_handle, alg,
                                      salt->x, salt->len,
                                      label->x, label->len,
                                      capacity ) == PSA_SUCCESS );
@@ -3653,27 +3790,32 @@ void derive_key_export( int alg_arg,
     TEST_ASSERT( psa_generator_abort( &generator ) == PSA_SUCCESS );
 
     /* Derive the same output again, but this time store it in key objects. */
-    TEST_ASSERT( psa_key_derivation( &generator, base_key, alg,
+    TEST_ASSERT( psa_key_derivation( &generator, base_handle, alg,
                                      salt->x, salt->len,
                                      label->x, label->len,
                                      capacity ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_allocate_key( PSA_KEY_TYPE_RAW_DATA, derived_bits,
+                                   &derived_handle ) == PSA_SUCCESS );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT, 0 );
-    TEST_ASSERT( psa_set_key_policy( derived_key, &policy ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_generator_import_key( derived_key,
+    TEST_ASSERT( psa_set_key_policy( derived_handle, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_generator_import_key( derived_handle,
                                            PSA_KEY_TYPE_RAW_DATA,
-                                           PSA_BYTES_TO_BITS( bytes1 ),
+                                           derived_bits,
                                            &generator ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_export_key( derived_key,
+    TEST_ASSERT( psa_export_key( derived_handle,
                                  export_buffer, bytes1,
                                  &length ) == PSA_SUCCESS );
     TEST_ASSERT( length == bytes1 );
-    TEST_ASSERT( psa_destroy_key( derived_key ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_set_key_policy( derived_key, &policy ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_generator_import_key( derived_key,
+    TEST_ASSERT( psa_destroy_key( derived_handle ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_allocate_key( PSA_KEY_TYPE_RAW_DATA,
+                                   PSA_BYTES_TO_BITS( bytes2 ),
+                                   &derived_handle ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( derived_handle, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_generator_import_key( derived_handle,
                                            PSA_KEY_TYPE_RAW_DATA,
                                            PSA_BYTES_TO_BITS( bytes2 ),
                                            &generator ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_export_key( derived_key,
+    TEST_ASSERT( psa_export_key( derived_handle,
                                  export_buffer + bytes1, bytes2,
                                  &length ) == PSA_SUCCESS );
     TEST_ASSERT( length == bytes2 );
@@ -3685,8 +3827,8 @@ exit:
     mbedtls_free( output_buffer );
     mbedtls_free( export_buffer );
     psa_generator_abort( &generator );
-    psa_destroy_key( base_key );
-    psa_destroy_key( derived_key );
+    psa_destroy_key( base_handle );
+    psa_destroy_key( derived_handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -3697,7 +3839,7 @@ void key_agreement_setup( int alg_arg,
                           data_t *peer_key_data,
                           int expected_status_arg )
 {
-    psa_key_slot_t our_key = 1;
+    psa_key_handle_t our_key = 0;
     psa_algorithm_t alg = alg_arg;
     psa_key_type_t our_key_type = our_key_type_arg;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
@@ -3705,6 +3847,10 @@ void key_agreement_setup( int alg_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( our_key_type,
+                                   KEY_BITS_FROM_DATA( our_key_type,
+                                                       our_key_data ),
+                                   &our_key ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
     TEST_ASSERT( psa_set_key_policy( our_key, &policy ) == PSA_SUCCESS );
@@ -3730,7 +3876,7 @@ void key_agreement_capacity( int alg_arg,
                              data_t *peer_key_data,
                              int expected_capacity_arg )
 {
-    psa_key_slot_t our_key = 1;
+    psa_key_handle_t our_key = 0;
     psa_algorithm_t alg = alg_arg;
     psa_key_type_t our_key_type = our_key_type_arg;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
@@ -3740,6 +3886,10 @@ void key_agreement_capacity( int alg_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( our_key_type,
+                                   KEY_BITS_FROM_DATA( our_key_type,
+                                                       our_key_data ),
+                                   &our_key ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
     TEST_ASSERT( psa_set_key_policy( our_key, &policy ) == PSA_SUCCESS );
@@ -3784,7 +3934,7 @@ void key_agreement_output( int alg_arg,
                            data_t *peer_key_data,
                            data_t *expected_output1, data_t *expected_output2 )
 {
-    psa_key_slot_t our_key = 1;
+    psa_key_handle_t our_key = 0;
     psa_algorithm_t alg = alg_arg;
     psa_key_type_t our_key_type = our_key_type_arg;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
@@ -3796,6 +3946,10 @@ void key_agreement_output( int alg_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( our_key_type,
+                                   KEY_BITS_FROM_DATA( our_key_type,
+                                                       our_key_data ),
+                                   &our_key ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
     TEST_ASSERT( psa_set_key_policy( our_key, &policy ) == PSA_SUCCESS );
@@ -3889,7 +4043,7 @@ void generate_key( int type_arg,
                    int alg_arg,
                    int expected_status_arg )
 {
-    int slot = 1;
+    psa_key_handle_t handle = 0;
     psa_key_type_t type = type_arg;
     psa_key_usage_t usage = usage_arg;
     size_t bits = bits_arg;
@@ -3903,16 +4057,17 @@ void generate_key( int type_arg,
 
     TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
 
+    TEST_ASSERT( psa_allocate_key( type, bits, &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, usage, alg );
-    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy ) == PSA_SUCCESS );
 
     /* Generate a key */
-    TEST_ASSERT( psa_generate_key( slot, type, bits,
+    TEST_ASSERT( psa_generate_key( handle, type, bits,
                                    NULL, 0 ) == expected_status );
 
     /* Test the key information */
-    TEST_ASSERT( psa_get_key_information( slot,
+    TEST_ASSERT( psa_get_key_information( handle,
                                           &got_type,
                                           &got_bits ) == expected_info_status );
     if( expected_info_status != PSA_SUCCESS )
@@ -3921,11 +4076,11 @@ void generate_key( int type_arg,
     TEST_ASSERT( got_bits == bits );
 
     /* Do something with the key according to its type and permitted usage. */
-    if( ! exercise_key( slot, usage, alg ) )
+    if( ! exercise_key( handle, usage, alg ) )
         goto exit;
 
 exit:
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */
@@ -3936,8 +4091,8 @@ void persistent_key_load_key_from_storage( data_t *data, int type_arg,
                                            int alg_arg, int generation_method,
                                            int export_status )
 {
-    psa_key_slot_t slot = 1;
-    psa_key_slot_t base_key = 2;
+    psa_key_handle_t handle = 0;
+    psa_key_handle_t base_key;
     psa_key_type_t type = (psa_key_type_t) type_arg;
     psa_key_type_t type_get;
     size_t bits_get;
@@ -3959,33 +4114,34 @@ void persistent_key_load_key_from_storage( data_t *data, int type_arg,
 
     TEST_ASSERT( psa_crypto_init() == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_set_key_lifetime(
-        slot, PSA_KEY_LIFETIME_PERSISTENT ) == PSA_SUCCESS );
-
+    TEST_ASSERT( psa_create_key( PSA_KEY_LIFETIME_PERSISTENT, 1,
+                                 type, bits,
+                                 &handle ) == PSA_SUCCESS );
     psa_key_policy_init( &policy_set );
-
     psa_key_policy_set_usage( &policy_set, policy_usage,
                               policy_alg );
+    TEST_ASSERT( psa_set_key_policy( handle, &policy_set ) == PSA_SUCCESS );
 
-    TEST_ASSERT( psa_set_key_policy( slot, &policy_set ) == PSA_SUCCESS );
     switch( generation_method )
     {
         case IMPORT_KEY:
             /* Import the key */
-            TEST_ASSERT( psa_import_key( slot, type,
+            TEST_ASSERT( psa_import_key( handle, type,
                                          data->x, data->len ) == PSA_SUCCESS );
             break;
 
         case GENERATE_KEY:
             /* Generate a key */
-            TEST_ASSERT( psa_generate_key( slot, type, bits,
+            TEST_ASSERT( psa_generate_key( handle, type, bits,
                                            NULL, 0 ) == PSA_SUCCESS );
             break;
 
         case DERIVE_KEY:
             /* Create base key */
+            TEST_ASSERT( psa_allocate_key( PSA_KEY_TYPE_DERIVE,
+                                           PSA_BYTES_TO_BITS( data->len ),
+                                           &base_key ) == PSA_SUCCESS );
             psa_key_policy_init( &base_policy_set );
-
             psa_key_policy_set_usage( &base_policy_set, PSA_KEY_USAGE_DERIVE,
                                       base_policy_alg );
             TEST_ASSERT( psa_set_key_policy(
@@ -3998,38 +4154,35 @@ void persistent_key_load_key_from_storage( data_t *data, int type_arg,
                                              NULL, 0, NULL, 0,
                                              export_size ) == PSA_SUCCESS );
             TEST_ASSERT( psa_generator_import_key(
-                slot, PSA_KEY_TYPE_RAW_DATA,
+                handle, PSA_KEY_TYPE_RAW_DATA,
                 bits, &generator ) == PSA_SUCCESS );
             break;
     }
 
     /* Export the key */
-    TEST_ASSERT( psa_export_key( slot, first_export, export_size,
+    TEST_ASSERT( psa_export_key( handle, first_export, export_size,
                                  &first_exported_length ) == export_status );
 
     /* Shutdown and restart */
     mbedtls_psa_crypto_free();
-
     TEST_ASSERT( psa_crypto_init() == PSA_SUCCESS );
 
-    /* Mark slot as persistent again */
-    TEST_ASSERT( psa_set_key_lifetime(
-        slot, PSA_KEY_LIFETIME_PERSISTENT ) == PSA_SUCCESS );
-
     /* Check key slot still contains key data */
+    TEST_ASSERT( psa_open_key( PSA_KEY_LIFETIME_PERSISTENT, 1,
+                               &handle ) == PSA_SUCCESS );
     TEST_ASSERT( psa_get_key_information(
-        slot, &type_get, &bits_get ) == PSA_SUCCESS );
+        handle, &type_get, &bits_get ) == PSA_SUCCESS );
     TEST_ASSERT( type_get == type );
     TEST_ASSERT( bits_get == (size_t) bits );
 
-    TEST_ASSERT( psa_get_key_policy( slot, &policy_get ) == PSA_SUCCESS );
+    TEST_ASSERT( psa_get_key_policy( handle, &policy_get ) == PSA_SUCCESS );
     TEST_ASSERT( psa_key_policy_get_usage(
         &policy_get ) == policy_usage );
     TEST_ASSERT( psa_key_policy_get_algorithm(
         &policy_get ) == policy_alg );
 
     /* Export the key again */
-    TEST_ASSERT( psa_export_key( slot, second_export, export_size,
+    TEST_ASSERT( psa_export_key( handle, second_export, export_size,
                                  &second_exported_length ) == export_status );
 
     if( export_status == PSA_SUCCESS )
@@ -4049,13 +4202,13 @@ void persistent_key_load_key_from_storage( data_t *data, int type_arg,
     }
 
     /* Do something with the key according to its type and permitted usage. */
-    if( ! exercise_key( slot, policy_usage, policy_alg ) )
+    if( ! exercise_key( handle, policy_usage, policy_alg ) )
         goto exit;
 
 exit:
     mbedtls_free( first_export );
     mbedtls_free( second_export );
-    psa_destroy_key( slot );
+    psa_destroy_key( handle );
     mbedtls_psa_crypto_free();
 }
 /* END_CASE */

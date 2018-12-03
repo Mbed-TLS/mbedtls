@@ -4559,17 +4559,13 @@ psa_status_t mbedtls_psa_crypto_configure_entropy_sources(
 
 void mbedtls_psa_crypto_free( void )
 {
-    psa_key_slot_t key;
-    key_slot_t *slot;
-    psa_status_t status;
     if( global_data.key_slots_initialized )
     {
+        psa_key_slot_t key;
         for( key = 1; key <= PSA_KEY_SLOT_COUNT; key++ )
         {
-            status = psa_get_key_slot( key, &slot );
-            if( status != PSA_SUCCESS )
-                continue;
-            psa_remove_key_data_from_memory( slot );
+            key_slot_t *slot = &global_data.key_slots[key - 1];
+            (void) psa_remove_key_data_from_memory( slot );
             /* Zeroize the slot to wipe metadata such as policies. */
             mbedtls_zeroize( slot, sizeof( *slot ) );
         }

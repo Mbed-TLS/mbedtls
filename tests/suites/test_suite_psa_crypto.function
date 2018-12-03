@@ -949,6 +949,45 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void import_twice( int alg_arg, int usage_arg,
+                   int type1_arg, data_t *data1,
+                   int expected_import1_status_arg,
+                   int type2_arg, data_t *data2,
+                   int expected_import2_status_arg )
+{
+    int slot = 1;
+    psa_algorithm_t alg = alg_arg;
+    psa_key_usage_t usage = usage_arg;
+    psa_key_type_t type1 = type1_arg;
+    psa_status_t expected_import1_status = expected_import1_status_arg;
+    psa_key_type_t type2 = type2_arg;
+    psa_status_t expected_import2_status = expected_import2_status_arg;
+    psa_key_policy_t policy;
+    psa_status_t status;
+
+    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy, usage, alg );
+    TEST_ASSERT( psa_set_key_policy( slot, &policy ) == PSA_SUCCESS );
+
+    status = psa_import_key( slot, type1, data1->x, data1->len );
+    TEST_ASSERT( status == expected_import1_status );
+    status = psa_import_key( slot, type2, data2->x, data2->len );
+    TEST_ASSERT( status == expected_import2_status );
+
+    if( expected_import1_status == PSA_SUCCESS ||
+        expected_import2_status == PSA_SUCCESS )
+    {
+        TEST_ASSERT( exercise_key( slot, usage, alg ) );
+    }
+
+exit:
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void import_rsa_made_up( int bits_arg, int keypair, int expected_status_arg )
 {
     int slot = 1;

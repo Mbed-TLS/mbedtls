@@ -888,6 +888,7 @@ psa_status_t psa_internal_allocate_key_slot( psa_key_handle_t *handle )
 psa_status_t psa_internal_make_key_persistent( psa_key_handle_t handle,
                                                psa_key_id_t id )
 {
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     key_slot_t *slot;
     psa_status_t status;
 
@@ -909,6 +910,12 @@ psa_status_t psa_internal_make_key_persistent( psa_key_handle_t handle,
     status = psa_load_persistent_key_into_slot( slot );
 
     return( status );
+
+#else /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
+    (void) handle;
+    (void) id;
+    return( PSA_ERROR_NOT_SUPPORTED );
+#endif /* !MBEDTLS_PSA_CRYPTO_STORAGE_C */
 }
 
 psa_status_t psa_internal_release_key_slot( psa_key_handle_t handle )

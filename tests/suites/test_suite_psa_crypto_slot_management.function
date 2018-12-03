@@ -29,6 +29,7 @@ typedef enum
  * identifier, and must call psa_purge_key_storage() in their cleanup
  * code. */
 
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
 /* There is no API to purge all keys. For this test suite, require that
  * all key IDs be less than a certain maximum. */
 #define MAX_KEY_ID_FOR_TEST 32
@@ -43,6 +44,9 @@ void psa_purge_key_storage( void )
     for( i = 0; i <= MAX_KEY_ID_FOR_TEST; i++ )
         psa_destroy_persistent_key( i );
 }
+#else
+#define TEST_MAX_KEY_ID( key_id ) ( (void) ( key_id ) )
+#endif /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
 
 static int psa_key_policy_equal( psa_key_policy_t *p1,
                                  psa_key_policy_t *p2 )
@@ -109,7 +113,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C */
 void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
                                 int type_arg, int max_bits_arg,
                                 int alg_arg, int usage_arg,
@@ -188,7 +192,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C */
 void create_existent( int lifetime_arg, int id_arg,
                       int new_type_arg,
                       int reopen_policy_arg )
@@ -293,7 +297,9 @@ void create_fail( int lifetime_arg, int id_arg,
 
 exit:
     mbedtls_psa_crypto_free( );
+#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
     psa_purge_key_storage( );
+#endif
 }
 /* END_CASE */
 

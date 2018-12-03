@@ -321,10 +321,7 @@ void invalid_handle( )
     TEST_ASSERT( psa_close_key( 0 ) == PSA_ERROR_INVALID_HANDLE );
     TEST_ASSERT( psa_close_key( handle1 - 1 ) == PSA_ERROR_INVALID_HANDLE );
     TEST_ASSERT( psa_close_key( handle1 + 1 ) == PSA_ERROR_INVALID_HANDLE );
-    /* At the moment the implementation returns INVALID_ARGUMENT for 0
-     * because of the transitional support for non-allocated slot numbers.
-     * When this is removed, the error will switch to INVALID_HANDLE. */
-    TEST_ASSERT( psa_destroy_key( 0 ) == PSA_ERROR_INVALID_ARGUMENT );
+    TEST_ASSERT( psa_destroy_key( 0 ) == PSA_ERROR_INVALID_HANDLE );
     TEST_ASSERT( psa_destroy_key( handle1 - 1 ) == PSA_ERROR_INVALID_HANDLE );
     TEST_ASSERT( psa_destroy_key( handle1 + 1 ) == PSA_ERROR_INVALID_HANDLE );
 

@@ -30,11 +30,10 @@ depends_on:MBEDTLS_AES_C
 import_key_nonempty_slot
 
 PSA export invalid handle (0)
-export_invalid_handle:0:PSA_ERROR_INVALID_ARGUMENT
+export_invalid_handle:0:PSA_ERROR_INVALID_HANDLE
 
 PSA export invalid handle (smallest plausible handle)
-# EMPTY_SLOT is temporary, because this valie is treated as a numbered slot, not as a handle
-export_invalid_handle:1:PSA_ERROR_EMPTY_SLOT
+export_invalid_handle:1:PSA_ERROR_INVALID_HANDLE
 
 PSA export invalid handle (largest plausible handle)
 export_invalid_handle:-1:PSA_ERROR_INVALID_HANDLE

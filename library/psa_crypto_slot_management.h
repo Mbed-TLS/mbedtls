@@ -26,9 +26,6 @@
  * The value is a compile-time constant for now, for simplicity. */
 #define PSA_KEY_SLOT_COUNT 32
 
-/* All dynamically allocated handles have this bit set. */
-#define PSA_KEY_HANDLE_ALLOCATED_FLAG ( (psa_key_handle_t) 0x8000 )
-
 /** \defgroup core_slot_management Internal functions exposed by the core
  * @{
  */

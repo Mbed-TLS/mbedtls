@@ -43,6 +43,10 @@
 
 #include "psa/crypto.h"
 
+/* Transitional definition while moving away from directly-accessible key
+ * slots and to a handle-only interface. */
+typedef psa_key_handle_t psa_key_slot_t;
+
 #include "psa_crypto_invasive.h"
 #include "psa_crypto_slot_management.h"
 /* Include internal declarations that are useful for implementing persistently

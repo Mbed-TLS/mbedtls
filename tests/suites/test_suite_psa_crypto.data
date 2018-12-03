@@ -471,18 +471,6 @@ PSA key policy: agreement, wrong algorithm
 depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECDH_C
 agreement_key_policy:PSA_KEY_USAGE_DERIVE:PSA_ALG_ECDH(PSA_ALG_SELECT_RAW):PSA_KEY_TYPE_ECC_KEYPAIR(PSA_ECC_CURVE_SECP256R1):"49c9a8c18c4b885638c431cf1df1c994131609b580d4fd43a0cab17db2f13eee":PSA_ALG_FFDH(PSA_ALG_SELECT_RAW)
 
-PSA key lifetime: set and get volatile
-key_lifetime:PSA_KEY_LIFETIME_VOLATILE
-
-PSA key lifetime set: invalid key slot
-key_lifetime_set_fail:0:PSA_KEY_LIFETIME_VOLATILE:PSA_ERROR_INVALID_ARGUMENT
-
-PSA key lifetime set: cannot change write_once lifetime
-key_lifetime_set_fail:1:PSA_KEY_LIFETIME_WRITE_ONCE:PSA_ERROR_NOT_SUPPORTED
-
-PSA key lifetime set: invalid key lifetime value
-key_lifetime_set_fail:1:PSA_KEY_LIFETIME_PERSISTENT+1:PSA_ERROR_INVALID_ARGUMENT
-
 PSA hash setup: good, SHA-1
 depends_on:MBEDTLS_SHA1_C
 hash_setup:PSA_ALG_SHA_1:PSA_SUCCESS

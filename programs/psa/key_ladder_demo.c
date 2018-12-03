@@ -167,15 +167,6 @@ typedef struct
     uint8_t iv[WRAPPING_IV_SIZE];
 } wrapped_data_header_t;
 
-/* This program uses three key slots: one for the master key, one to
- * derive intermediate keys, and one for the wrapping key. We use a
- * single slot for all the intermediate keys because they are only
- * needed successively, so each time we derive an intermediate key,
- * we destroy the previous one. */
-static const psa_key_slot_t master_key_slot = 1;
-static const psa_key_slot_t derived_key_slot = 2;
-static const psa_key_slot_t wrapping_key_slot = 3;
-
 /* The modes that this program can operate in (see usage). */
 enum program_mode
 {
@@ -187,7 +178,7 @@ enum program_mode
 
 /* Save a key to a file. In the real world, you may want to export a derived
  * key sometimes, to share it with another party. */
-static psa_status_t save_key( psa_key_slot_t key_slot,
+static psa_status_t save_key( psa_key_handle_t key_handle,
                               const char *output_file_name )
 {
     psa_status_t status = PSA_SUCCESS;
@@ -195,7 +186,7 @@ static psa_status_t save_key( psa_key_slot_t key_slot,
     size_t key_size;
     FILE *key_file = NULL;
 
-    PSA_CHECK( psa_export_key( key_slot,
+    PSA_CHECK( psa_export_key( key_handle,
                                key_data, sizeof( key_data ),
                                &key_size ) );
     SYS_CHECK( ( key_file = fopen( output_file_name, "wb" ) ) != NULL );
@@ -217,22 +208,27 @@ exit:
 static psa_status_t generate( const char *key_file_name )
 {
     psa_status_t status = PSA_SUCCESS;
+    psa_key_handle_t key_handle = 0;
     psa_key_policy_t policy;
 
+    PSA_CHECK( psa_allocate_key( PSA_KEY_TYPE_DERIVE,
+                                 PSA_BYTES_TO_BITS( KEY_SIZE_BYTES ),
+                                 &key_handle ) );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy,
                               PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT,
                               KDF_ALG );
-    PSA_CHECK( psa_set_key_policy( master_key_slot, &policy ) );
+    PSA_CHECK( psa_set_key_policy( key_handle, &policy ) );
 
-    PSA_CHECK( psa_generate_key( master_key_slot,
+    PSA_CHECK( psa_generate_key( key_handle,
                                  PSA_KEY_TYPE_DERIVE,
                                  PSA_BYTES_TO_BITS( KEY_SIZE_BYTES ),
                                  NULL, 0 ) );
 
-    PSA_CHECK( save_key( master_key_slot, key_file_name ) );
+    PSA_CHECK( save_key( key_handle, key_file_name ) );
 
 exit:
+    (void) psa_destroy_key( key_handle );
     return( status );
 }
 
@@ -241,10 +237,10 @@ exit:
  * In the real world, this master key would be stored in an internal memory
  * and the storage would be managed by the keystore capability of the PSA
  * crypto library. */
-static psa_status_t import_key_from_file( psa_key_slot_t key_slot,
-                                          psa_key_usage_t usage,
+static psa_status_t import_key_from_file( psa_key_usage_t usage,
                                           psa_algorithm_t alg,
-                                          const char *key_file_name )
+                                          const char *key_file_name,
+                                          psa_key_handle_t *master_key_handle )
 {
     psa_status_t status = PSA_SUCCESS;
     psa_key_policy_t policy;
@@ -252,6 +248,8 @@ static psa_status_t import_key_from_file( psa_key_slot_t key_slot,
     size_t key_size;
     FILE *key_file = NULL;
     unsigned char extra_byte;
+
+    *master_key_handle = 0;
 
     SYS_CHECK( ( key_file = fopen( key_file_name, "rb" ) ) != NULL );
     SYS_CHECK( ( key_size = fread( key_data, 1, sizeof( key_data ),
@@ -266,30 +264,41 @@ static psa_status_t import_key_from_file( psa_key_slot_t key_slot,
     SYS_CHECK( fclose( key_file ) == 0 );
     key_file = NULL;
 
+    PSA_CHECK( psa_allocate_key( PSA_KEY_TYPE_DERIVE,
+                                 PSA_BYTES_TO_BITS( key_size ),
+                                 master_key_handle ) );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, usage, alg );
-    PSA_CHECK( psa_set_key_policy( key_slot, &policy ) );
-    PSA_CHECK( psa_import_key( key_slot,
+    PSA_CHECK( psa_set_key_policy( *master_key_handle, &policy ) );
+    PSA_CHECK( psa_import_key( *master_key_handle,
                                PSA_KEY_TYPE_DERIVE,
                                key_data, key_size ) );
 exit:
     if( key_file != NULL )
         fclose( key_file );
     mbedtls_platform_zeroize( key_data, sizeof( key_data ) );
+    if( status != PSA_SUCCESS )
+    {
+        /* If psa_allocate_key hasn't been called yet or has failed,
+         * *master_key_handle is 0. psa_destroy_key(0) is guaranteed to do
+         * nothing and return PSA_ERROR_INVALID_HANDLE. */
+        (void) psa_destroy_key( *master_key_handle );
+        *master_key_handle = 0;
+    }
     return( status );
 }
 
 /* Derive the intermediate keys, using the list of labels provided on
- * the command line. */
+ * the command line. On input, *key_handle is a handle to the master key.
+ * This function closes the master key. On successful output, *key_handle
+ * is a handle to the final derived key. */
 static psa_status_t derive_key_ladder( const char *ladder[],
-                                       size_t ladder_depth )
+                                       size_t ladder_depth,
+                                       psa_key_handle_t *key_handle )
 {
     psa_status_t status = PSA_SUCCESS;
     psa_key_policy_t policy;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
-    /* We'll derive the first intermediate key from the master key, then
-     * each subsequent intemediate key from the previous intemediate key. */
-    psa_key_slot_t parent_key_slot = master_key_slot;
     size_t i;
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy,
@@ -303,63 +312,81 @@ static psa_status_t derive_key_ladder( const char *ladder[],
          * the current intermediate key (if i>0). */
         PSA_CHECK( psa_key_derivation(
                        &generator,
-                       parent_key_slot,
+                       *key_handle,
                        KDF_ALG,
                        DERIVE_KEY_SALT, DERIVE_KEY_SALT_LENGTH,
                        (uint8_t*) ladder[i], strlen( ladder[i] ),
                        KEY_SIZE_BYTES ) );
         /* When the parent key is not the master key, destroy it,
          * since it is no longer needed. */
-        if( i != 0 )
-            PSA_CHECK( psa_destroy_key( derived_key_slot ) );
-        PSA_CHECK( psa_set_key_policy( derived_key_slot, &policy ) );
+        PSA_CHECK( psa_close_key( *key_handle ) );
+        *key_handle = 0;
+        PSA_CHECK( psa_allocate_key( PSA_KEY_TYPE_DERIVE,
+                                     PSA_BYTES_TO_BITS( KEY_SIZE_BYTES ),
+                                     key_handle ) );
+        PSA_CHECK( psa_set_key_policy( *key_handle, &policy ) );
         /* Use the generator obtained from the parent key to create
          * the next intermediate key. */
         PSA_CHECK( psa_generator_import_key(
-                       derived_key_slot,
+                       *key_handle,
                        PSA_KEY_TYPE_DERIVE,
                        PSA_BYTES_TO_BITS( KEY_SIZE_BYTES ),
                        &generator ) );
         PSA_CHECK( psa_generator_abort( &generator ) );
-        parent_key_slot = derived_key_slot;
     }
 
 exit:
     psa_generator_abort( &generator );
+    if( status != PSA_SUCCESS )
+    {
+        psa_close_key( *key_handle );
+        *key_handle = 0;
+    }
     return( status );
 }
 
 /* Derive a wrapping key from the last intermediate key. */
-static psa_status_t derive_wrapping_key( psa_key_usage_t usage )
+static psa_status_t derive_wrapping_key( psa_key_usage_t usage,
+                                         psa_key_handle_t derived_key_handle,
+                                         psa_key_handle_t *wrapping_key_handle )
 {
     psa_status_t status = PSA_SUCCESS;
     psa_key_policy_t policy;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
 
+    *wrapping_key_handle = 0;
+    PSA_CHECK( psa_allocate_key( PSA_KEY_TYPE_AES, WRAPPING_KEY_BITS,
+                                 wrapping_key_handle ) );
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, usage, WRAPPING_ALG );
-    PSA_CHECK( psa_set_key_policy( wrapping_key_slot, &policy ) );
+    PSA_CHECK( psa_set_key_policy( *wrapping_key_handle, &policy ) );
 
     PSA_CHECK( psa_key_derivation(
                    &generator,
-                   derived_key_slot,
+                   derived_key_handle,
                    KDF_ALG,
                    WRAPPING_KEY_SALT, WRAPPING_KEY_SALT_LENGTH,
                    NULL, 0,
                    PSA_BITS_TO_BYTES( WRAPPING_KEY_BITS ) ) );
     PSA_CHECK( psa_generator_import_key(
-                   wrapping_key_slot,
+                   *wrapping_key_handle,
                    PSA_KEY_TYPE_AES,
                    WRAPPING_KEY_BITS,
                    &generator ) );
 
 exit:
     psa_generator_abort( &generator );
+    if( status != PSA_SUCCESS )
+    {
+        psa_close_key( *wrapping_key_handle );
+        *wrapping_key_handle = 0;
+    }
     return( status );
 }
 
 static psa_status_t wrap_data( const char *input_file_name,
-                               const char *output_file_name )
+                               const char *output_file_name,
+                               psa_key_handle_t wrapping_key_handle )
 {
     psa_status_t status;
     FILE *input_file = NULL;
@@ -407,7 +434,7 @@ static psa_status_t wrap_data( const char *input_file_name,
 
     /* Wrap the data. */
     PSA_CHECK( psa_generate_random( header.iv, WRAPPING_IV_SIZE ) );
-    PSA_CHECK( psa_aead_encrypt( wrapping_key_slot, WRAPPING_ALG,
+    PSA_CHECK( psa_aead_encrypt( wrapping_key_handle, WRAPPING_ALG,
                                  header.iv, WRAPPING_IV_SIZE,
                                  (uint8_t *) &header, sizeof( header ),
                                  buffer, input_size,
@@ -435,7 +462,8 @@ exit:
 }
 
 static psa_status_t unwrap_data( const char *input_file_name,
-                                 const char *output_file_name )
+                                 const char *output_file_name,
+                                 psa_key_handle_t wrapping_key_handle )
 {
     psa_status_t status;
     FILE *input_file = NULL;
@@ -487,7 +515,7 @@ static psa_status_t unwrap_data( const char *input_file_name,
     input_file = NULL;
 
     /* Unwrap the data. */
-    PSA_CHECK( psa_aead_decrypt( wrapping_key_slot, WRAPPING_ALG,
+    PSA_CHECK( psa_aead_decrypt( wrapping_key_handle, WRAPPING_ALG,
                                  header.iv, WRAPPING_IV_SIZE,
                                  (uint8_t *) &header, sizeof( header ),
                                  buffer, ciphertext_size,
@@ -525,6 +553,8 @@ static psa_status_t run( enum program_mode mode,
                          const char *output_file_name )
 {
     psa_status_t status = PSA_SUCCESS;
+    psa_key_handle_t derivation_key_handle = 0;
+    psa_key_handle_t wrapping_key_handle = 0;
 
     /* Initialize the PSA crypto library. */
     PSA_CHECK( psa_crypto_init( ) );
@@ -534,26 +564,33 @@ static psa_status_t run( enum program_mode mode,
         return( generate( key_file_name ) );
 
     /* Read the master key. */
-    PSA_CHECK( import_key_from_file( master_key_slot,
-                                     PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT,
+    PSA_CHECK( import_key_from_file( PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT,
                                      KDF_ALG,
-                                     key_file_name ) );
+                                     key_file_name,
+                                     &derivation_key_handle ) );
 
     /* Calculate the derived key for this session. */
-    PSA_CHECK( derive_key_ladder( ladder, ladder_depth ) );
+    PSA_CHECK( derive_key_ladder( ladder, ladder_depth,
+                                  &derivation_key_handle ) );
 
     switch( mode )
     {
         case MODE_SAVE:
-            PSA_CHECK( save_key( derived_key_slot, output_file_name ) );
+            PSA_CHECK( save_key( derivation_key_handle, output_file_name ) );
             break;
         case MODE_UNWRAP:
-            PSA_CHECK( derive_wrapping_key( PSA_KEY_USAGE_DECRYPT ) );
-            PSA_CHECK( unwrap_data( input_file_name, output_file_name ) );
+            PSA_CHECK( derive_wrapping_key( PSA_KEY_USAGE_DECRYPT,
+                                            derivation_key_handle,
+                                            &wrapping_key_handle ) );
+            PSA_CHECK( unwrap_data( input_file_name, output_file_name,
+                                    wrapping_key_handle ) );
             break;
         case MODE_WRAP:
-            PSA_CHECK( derive_wrapping_key( PSA_KEY_USAGE_ENCRYPT ) );
-            PSA_CHECK( wrap_data( input_file_name, output_file_name ) );
+            PSA_CHECK( derive_wrapping_key( PSA_KEY_USAGE_ENCRYPT,
+                                            derivation_key_handle,
+                                            &wrapping_key_handle ) );
+            PSA_CHECK( wrap_data( input_file_name, output_file_name,
+                                  wrapping_key_handle ) );
             break;
         default:
             /* Unreachable but some compilers don't realize it. */
@@ -561,6 +598,11 @@ static psa_status_t run( enum program_mode mode,
     }
 
 exit:
+    /* Close any remaining key. Deinitializing the crypto library would do
+     * this anyway, but explicitly closing handles makes the code easier
+     * to reuse. */
+    (void) psa_close_key( derivation_key_handle );
+    (void) psa_close_key( wrapping_key_handle );
     /* Deinitialize the PSA crypto library. */
     mbedtls_psa_crypto_free( );
     return( status );

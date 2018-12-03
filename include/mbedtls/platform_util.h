@@ -43,7 +43,8 @@ extern "C" {
 
 #if defined( MBEDTLS_CHECK_PARAMS ) && defined(MBEDTLS_PLATFORM_C) && \
     !defined(MBEDTLS_PARAM_FAILED)
-#define MBEDTLS_PARAM_FAILED( cond )    mbedtls_param_failed( #cond )
+#define MBEDTLS_PARAM_FAILED( cond, file, line )                               \
+                                        mbedtls_param_failed( cond, file, line )
 
 /**
  * \brief       User supplied callback function for parameter validation failure.
@@ -64,9 +65,9 @@ extern "C" {
  *              alternatively, through use of setjmp()/longjmp() can resume
  *              execution in the application code.
  */
-void mbedtls_param_failed( char* failure_condition );
+void mbedtls_param_failed( char* failure_condition, char* file, int line );
 
-#endif
+#endif /* MBEDTLS_CHECK_PARAMS && MBEDTLS_PLATFORM_C && !MBEDTLS_PARAM_FAILED */
 
 /**
  * \brief       Securely zeroize a buffer

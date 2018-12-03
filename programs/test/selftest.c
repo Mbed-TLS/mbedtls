@@ -77,6 +77,14 @@
 #include "mbedtls/memory_buffer_alloc.h"
 #endif
 
+#if defined( MBEDTLS_CHECK_PARAMS ) && defined(MBEDTLS_PLATFORM_C)
+void mbedtls_param_failed( char* failure_condition, char* file, int line )
+{
+    mbedtls_printf("%s:%i: Input param failed - %sn", file, line,                           failure_condition );
+    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+}
+#endif
+
 static int test_snprintf( size_t n, const char ref_buf[10], int ref_ret )
 {
     int ret;

@@ -74,7 +74,7 @@ typedef struct data_tag
 /*----------------------------------------------------------------------------*/
 /* Macros */
 
-#if defined(MBEDTLS_CHECK_PARAMS) && !defined(MBEDTLS_DEBUG_INVALID_PARAMS)
+#if defined(MBEDTLS_CHECK_PARAMS)
 
 /**
  * \brief   This macro tests the expression passed to it as a test step or
@@ -319,10 +319,12 @@ static void platform_teardown()
 #endif /* MBEDTLS_PLATFORM_C */
 }
 
-#if defined(MBEDTLS_CHECK_PARAMS) && !defined(MBEDTLS_DEBUG_INVALID_PARAMS)
-void mbedtls_param_failed( char* failure_condition )
+#if defined(MBEDTLS_CHECK_PARAMS)
+void mbedtls_param_failed( char* failure_condition, char* file, int line )
 {
     (void)failure_condition;
+    (void)file;
+    (void)line;
 
     longjmp( param_fail_jmp, 1 );
 }

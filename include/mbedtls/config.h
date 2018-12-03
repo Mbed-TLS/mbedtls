@@ -275,15 +275,6 @@
  */
 #define MBEDTLS_CHECK_PARAMS
 
-/**
- * \def  MBEDTLS_DEBUG_INVALID_PARAMS
- *
- * This configuration controls whether the library will output debug
- * informattion to stdout if a paramater validation check fails.
- *
- */
-//#define MBEDTLS_DEBUG_INVALID_PARAMS
-
 /* \} name SECTION: System support */
 
 /**

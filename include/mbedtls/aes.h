@@ -68,14 +68,18 @@
 #define MBEDTLS_ERR_AES_HW_ACCEL_FAILED                   -0x0025  /**< AES hardware accelerator failed. */
 
 #if defined( MBEDTLS_CHECK_PARAMS )
-#define MBEDTLS_AES_VALIDATE_RET( cond )  do{ if( !(cond)  ) { \
-                                            MBEDTLS_PARAM_FAILED( cond ); \
-                                            return MBEDTLS_ERR_AES_BAD_INPUT_DATA;}  \
+#define MBEDTLS_AES_VALIDATE_RET( cond )  do{ if( !(cond)  ) {                 \
+                                            MBEDTLS_PARAM_FAILED( #cond,       \
+                                                                  __FILE__,    \
+                                                                  __LINE__ );  \
+                                            return MBEDTLS_ERR_AES_BAD_INPUT_DATA;} \
                                           } while(0);
 
-#define MBEDTLS_AES_VALIDATE( cond )      do{ if( !(cond)  ) { \
-                                            MBEDTLS_PARAM_FAILED( cond ); \
-                                            return; } \
+#define MBEDTLS_AES_VALIDATE( cond )      do{ if( !(cond)  ) {                 \
+                                            MBEDTLS_PARAM_FAILED( #cond,       \
+                                                                  __FILE__,    \
+                                                                  __LINE__ );  \
+                                            return; }                          \
                                           } while(0);
 #else
 /* No validation of parameters will be performed */

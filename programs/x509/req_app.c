@@ -60,6 +60,14 @@ int main( void )
     "    filename=%%s         default: cert.req\n"      \
     "\n"
 
+#if defined( MBEDTLS_CHECK_PARAMS ) && defined(MBEDTLS_PLATFORM_C)
+void mbedtls_param_failed( char* failure_condition, char* file, int line )
+{
+    mbedtls_printf("%s:%i: Input param failed - %sn", file, line,                           failure_condition );
+    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+}
+#endif
+
 /*
  * global options
  */

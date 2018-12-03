@@ -11,9 +11,11 @@
  */
 
 /* BEGIN_CASE */
-void load_data_from_file( int slot_to_load, data_t *data, int should_make_file,
+void load_data_from_file( int id_to_load_arg,
+                          data_t *data, int should_make_file,
                           int capacity_arg, int expected_status )
 {
+    psa_key_id_t id_to_load = id_to_load_arg;
     char slot_location[] = "psa_key_slot_1";
     psa_status_t status;
     int ret;
@@ -36,8 +38,7 @@ void load_data_from_file( int slot_to_load, data_t *data, int should_make_file,
     /* Read from the file with psa_crypto_storage_load. */
     loaded_data = mbedtls_calloc( 1, capacity );
     TEST_ASSERT( loaded_data != NULL );
-    status = psa_crypto_storage_load( (psa_key_slot_t) slot_to_load, loaded_data,
-                                   file_size );
+    status = psa_crypto_storage_load( id_to_load, loaded_data, file_size );
 
     /* Check we get the expected status. */
     TEST_ASSERT( status == expected_status );

@@ -53,7 +53,8 @@ static void key_id_to_location( const psa_key_id_t key,
                                 size_t location_size )
 {
     mbedtls_snprintf( location, location_size,
-                      CRYPTO_STORAGE_FILE_LOCATION "psa_key_slot_%d", key );
+                      CRYPTO_STORAGE_FILE_LOCATION "psa_key_slot_%lu",
+                      (unsigned long) key );
 }
 
 psa_status_t psa_crypto_storage_load( const psa_key_id_t key, uint8_t *data,

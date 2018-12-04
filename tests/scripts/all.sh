@@ -229,12 +229,16 @@ trap 'fatal_signal TERM' TERM
 
 msg()
 {
+    if [ -n "${current_component:-}" ]; then
+        current_section="${current_component#component_}: $1"
+    else
+        current_section="$1"
+    fi
     echo ""
     echo "******************************************************************"
-    echo "* $1 "
+    echo "* $current_section "
     printf "* "; date
     echo "******************************************************************"
-    current_section=$1
 }
 
 armc6_build_test()
@@ -1238,6 +1242,7 @@ run_component () {
     if [ $ALL_EXCEPT -ne 0 ] && component_is_excluded "$1"; then
         return
     fi
+    current_component="$1"
     "$@"
     cleanup
 }

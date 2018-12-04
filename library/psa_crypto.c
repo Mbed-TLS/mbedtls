@@ -147,12 +147,10 @@ static int key_type_is_raw_bytes( psa_key_type_t type )
     return( PSA_KEY_TYPE_IS_UNSTRUCTURED( type ) );
 }
 
-enum rng_state
-{
-    RNG_NOT_INITIALIZED = 0,
-    RNG_INITIALIZED,
-    RNG_SEEDED,
-};
+/* Values for psa_global_data_t::rng_state */
+#define RNG_NOT_INITIALIZED 0
+#define RNG_INITIALIZED 1
+#define RNG_SEEDED 2
 
 typedef struct
 {
@@ -162,7 +160,7 @@ typedef struct
     mbedtls_ctr_drbg_context ctr_drbg;
     key_slot_t key_slots[PSA_KEY_SLOT_COUNT];
     unsigned initialized : 1;
-    enum rng_state rng_state : 2;
+    unsigned rng_state : 2;
     unsigned key_slots_initialized : 1;
 } psa_global_data_t;
 

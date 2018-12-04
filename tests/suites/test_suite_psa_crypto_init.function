@@ -11,7 +11,6 @@
 
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
-#include "mbedtls/platform.h"
 
 #define MIN( x, y ) ( ( x ) < ( y ) ? ( x ) : ( y ) )
 #define MAX( x, y ) ( ( x ) > ( y ) ? ( x ) : ( y ) )
@@ -41,7 +40,7 @@ static int fake_entropy_source( void *state_arg,
         output[i] = i;
     ++state->step;
     return( 0 );
-};
+}
 
 #define ENTROPY_SOURCE_PLATFORM                 0x00000001
 #define ENTROPY_SOURCE_TIMING                   0x00000002

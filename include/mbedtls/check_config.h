@@ -774,6 +774,14 @@
 #error "MBEDTLS_HAVE_INT32/MBEDTLS_HAVE_INT64 and MBEDTLS_HAVE_ASM cannot be defined simultaneously"
 #endif /* (MBEDTLS_HAVE_INT32 || MBEDTLS_HAVE_INT64) && MBEDTLS_HAVE_ASM */
 
+#if defined(MBEDTLS_PKCS11_C)
+#if defined(MBEDTLS_DEPRECATED_REMOVED)
+#error "MBEDTLS_PKCS11_C is deprecated and will likely be removed in a future version of Mbed TLS"
+#elif defined(MBEDTLS_DEPRECATED_WARNING)
+#warning "MBEDTLS_PKCS11_C is deprecated and will likely be removed in a future version of Mbed TLS"
+#endif
+#endif /* MBEDTLS_PKCS11_C */
+
 /*
  * Avoid warning from -pedantic. This is a convenient place for this
  * workaround since this is included by every single file before the

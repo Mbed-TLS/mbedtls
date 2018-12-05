@@ -2369,7 +2369,7 @@ int main( int argc, char *argv[] )
 #else
     {
         ret = 1;
-        mbedtls_printf("MBEDTLS_CERTS_C not defined.");
+        mbedtls_printf( "MBEDTLS_CERTS_C not defined." );
     }
 #endif /* MBEDTLS_CERTS_C */
     if( ret < 0 )

@@ -1326,18 +1326,34 @@ struct mbedtls_ssl_context
 #define MBEDTLS_SSL_CHANNEL_OUTBOUND    0
 #define MBEDTLS_SSL_CHANNEL_INBOUND     1
 
-extern int (*mbedtls_ssl_hw_record_init)(mbedtls_ssl_context *ssl,
-                const unsigned char *key_enc, const unsigned char *key_dec,
-                size_t keylen,
-                const unsigned char *iv_enc,  const unsigned char *iv_dec,
-                size_t ivlen,
-                const unsigned char *mac_enc, const unsigned char *mac_dec,
-                size_t maclen);
-extern int (*mbedtls_ssl_hw_record_activate)(mbedtls_ssl_context *ssl, int direction);
-extern int (*mbedtls_ssl_hw_record_reset)(mbedtls_ssl_context *ssl);
-extern int (*mbedtls_ssl_hw_record_write)(mbedtls_ssl_context *ssl);
-extern int (*mbedtls_ssl_hw_record_read)(mbedtls_ssl_context *ssl);
-extern int (*mbedtls_ssl_hw_record_finish)(mbedtls_ssl_context *ssl);
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED      __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
+
+MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_init)(
+                    mbedtls_ssl_context *ssl,
+                    const unsigned char *key_enc, const unsigned char *key_dec,
+                    size_t keylen,
+                    const unsigned char *iv_enc,  const unsigned char *iv_dec,
+                    size_t ivlen,
+                    const unsigned char *mac_enc, const unsigned char *mac_dec,
+                    size_t maclen);
+MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_activate)(
+                                                    mbedtls_ssl_context *ssl,
+                                                    int direction );
+MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_reset)(
+                                                    mbedtls_ssl_context *ssl );
+MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_write)(
+                                                    mbedtls_ssl_context *ssl );
+MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_read)(
+                                                    mbedtls_ssl_context *ssl );
+MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_finish)(
+                                                    mbedtls_ssl_context *ssl );
+
+#undef MBEDTLS_DEPRECATED
+
 #endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
 
 /**

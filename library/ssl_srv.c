@@ -847,7 +847,7 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
             MBEDTLS_SSL_DEBUG_MSG( 3, ( "found srtp profile: %s", profile_info->name ) );
         }
         /* check if suggested profile is in our list */
-        for( i=0; i < ssl->conf->dtls_srtp_profile_list_len; i++)
+        for( i = 0; i < ssl->conf->dtls_srtp_profile_list_len; i++)
         {
             if( client_protection == ssl->conf->dtls_srtp_profile_list[i] )
             {
@@ -860,7 +860,7 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
             break;
     }
     if( ( ssl->conf->dtls_srtp_mki_support == MBEDTLS_SSL_DTLS_SRTP_MKI_SUPPORTED ) &&
-          ( len > ( profile_length + 2 ) ) )
+        ( len > ( profile_length + 2 ) ) )
     {
         ssl->dtls_srtp_info.mki_len = buf[profile_length + 2];
         if( ssl->dtls_srtp_info.mki_len > MBEDTLS_DTLS_SRTP_MAX_MKI_LENGTH )
@@ -3056,7 +3056,8 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
      * force verify mode to be at least OPTIONAL
      */
     if ( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE &&
-         ssl->conf->authmode == MBEDTLS_SSL_VERIFY_NONE ) {
+         ssl->conf->authmode == MBEDTLS_SSL_VERIFY_NONE )
+    {
         authmode = MBEDTLS_SSL_VERIFY_OPTIONAL;
     }
     else
@@ -3067,8 +3068,9 @@ static int ssl_write_certificate_request( mbedtls_ssl_context *ssl )
         authmode == MBEDTLS_SSL_VERIFY_NONE )
     {
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
-    /* check if we have a chosen srtp protection profile */
-        if ( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE ) {
+        /* check if we have a chosen srtp protection profile */
+        if ( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE )
+        {
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "should not happen" ) );
             return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
         }

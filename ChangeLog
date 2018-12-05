@@ -731,8 +731,8 @@ Changes
      they are enabled.
 
 Features
-   * Add support for DTLS-SRTP as defined in RFC 5764. Based on contribution done
-     by Johan Pascal in #361.
+   * Add support for DTLS-SRTP as defined in RFC 5764. Based on #361 contributed
+     by Johan Pascal.
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

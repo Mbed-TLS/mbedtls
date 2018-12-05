@@ -873,10 +873,11 @@ static int ssl_populate_transform( mbedtls_ssl_transform *transform,
 
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
     /* check if we have a chosen srtp protection profile */
-    if( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE ) {
+    if ( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE )
+    {
         /* derive key material for srtp session RFC5764 section 4.2
          * master key and master salt are respectively 128 bits and 112 bits
-         * for all currently available modes :
+         * for all currently available modes:
          * SRTP_AES128_CM_HMAC_SHA1_80, SRTP_AES128_CM_HMAC_SHA1_32
          * SRTP_NULL_HMAC_SHA1_80, SRTP_NULL_HMAC_SHA1_32
          * So we must export 2*(128 + 112) = 480 bits
@@ -2114,7 +2115,8 @@ int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
     {
 #if defined(MBEDTLS_SSL_DTLS_SRTP)
         /* check if we have a chosen srtp protection profile */
-        if( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE ) {
+        if( ssl->dtls_srtp_info.chosen_dtls_srtp_profile != MBEDTLS_SRTP_UNSET_PROFILE )
+	{
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
         }
         else
@@ -4773,14 +4775,18 @@ int mbedtls_ssl_dtls_srtp_set_mki_value( mbedtls_ssl_context *ssl,
                                          size_t mki_len )
 {
     if ( mki_len > MBEDTLS_DTLS_SRTP_MAX_MKI_LENGTH )
+    {
         return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    }
 
     if( ssl->conf->dtls_srtp_mki_support == MBEDTLS_SSL_DTLS_SRTP_MKI_UNSUPPORTED )
+    {
         return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+    }
 
     memcpy( ssl->dtls_srtp_info.mki_value, mki_value, mki_len );
     ssl->dtls_srtp_info.mki_len = mki_len;
-    return 0;
+    return( 0 );
 }
 
 int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
@@ -4788,14 +4794,19 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
                                                     size_t profiles_number )
 {
     size_t i;
-    /* check in put validity : must be a list of profiles from enumeration */
-    /* maximum length is 4 as only 4 protection profiles are defined */
-    if( profiles_number > 4 ) {
-        return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+    /*
+     * Check input validity : must be a list of profiles from enumeration.
+     * Maximum length is 4 as only 4 protection profiles are defined.
+     */
+    if( profiles_number > 4 )
+    {
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
     }
 
     mbedtls_free( conf->dtls_srtp_profile_list );
-    conf->dtls_srtp_profile_list = (mbedtls_ssl_srtp_profile*)mbedtls_calloc(1, profiles_number * sizeof( mbedtls_ssl_srtp_profile ) );
+    conf->dtls_srtp_profile_list =
+            (mbedtls_ssl_srtp_profile*)mbedtls_calloc(1,
+             profiles_number * sizeof( mbedtls_ssl_srtp_profile ) );
 
     for( i=0; i < profiles_number; i++ ) {
         switch( profiles[i] ) {
@@ -4809,7 +4820,7 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
                 mbedtls_free( conf->dtls_srtp_profile_list );
                 conf->dtls_srtp_profile_list = NULL;
                 conf->dtls_srtp_profile_list_len = 0;
-                return MBEDTLS_ERR_SSL_BAD_INPUT_DATA;
+                return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
         }
     }
 
@@ -4819,25 +4830,28 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
     return( 0 );
 }
 
-mbedtls_ssl_srtp_profile mbedtls_ssl_get_dtls_srtp_protection_profile( const mbedtls_ssl_context *ssl )
+mbedtls_ssl_srtp_profile
+     mbedtls_ssl_get_dtls_srtp_protection_profile( const mbedtls_ssl_context *ssl )
 {
     return( ssl->dtls_srtp_info.chosen_dtls_srtp_profile );
 }
 
 int mbedtls_ssl_get_dtls_srtp_key_material( const mbedtls_ssl_context *ssl,
                                             unsigned char *key,
-                                            size_t *key_len ) {
+                                            size_t *key_len )
+{
 
     /* check output buffer size */
-    if( *key_len < ssl->dtls_srtp_info.dtls_srtp_keys_len ) {
-        return MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL;
+    if( *key_len < ssl->dtls_srtp_info.dtls_srtp_keys_len )
+    {
+        return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
     }
 
     memcpy( key, ssl->dtls_srtp_info.dtls_srtp_keys,
             ssl->dtls_srtp_info.dtls_srtp_keys_len );
     *key_len = ssl->dtls_srtp_info.dtls_srtp_keys_len;
 
-    return 0;
+    return( 0 );
 }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 

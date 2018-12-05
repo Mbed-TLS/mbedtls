@@ -68,6 +68,9 @@ Changes
      Found by Coverity, reported and fixed by Peter Kolbus (Garmin). Fixes #2309.
    * Add test for minimal value of MBEDTLS_MPI_WINDOW_SIZE to all.sh.
      Contributed by Peter Kolbus (Garmin).
+   * Add DER-encoded test CRTs to library/certs.c, allowing
+     the example programs ssl_server2 and ssl_client2 to be run
+     if MBEDTLS_FS_IO and MBEDTLS_PEM_PARSE_C are unset. Fixes #2254.
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

@@ -1,5 +1,11 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix compilation failure when both MBEDTLS_SSL_PROTO_DTLS and
+     MBEDTLS_SSL_HW_RECORD_ACCEL are enabled.
+
 = mbed TLS 2.16.5 branch released 2020-02-20
 
 Security

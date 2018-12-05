@@ -2,6 +2,10 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS X.X.X branch released XXXX-XX-XX
 
+New deprecations
+   * Deprecate MBEDTLS_PKCS11_C that enables the wrapper for PKCS#11 smartcard
+     support.
+
 Bugfix
    * Allow loading symlinked certificates. Fixes #3005. Reported and fixed
      by Jonathan Bennett <JBennett@incomsystems.biz> via #3008.

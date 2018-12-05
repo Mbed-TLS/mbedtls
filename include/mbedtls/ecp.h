@@ -159,6 +159,10 @@ mbedtls_ecp_point;
  * additions or subtractions. Therefore, it is only an approximative modular
  * reduction. It must return 0 on success and non-zero on failure.
  *
+ * \note        Alternative implementations must keep the group IDs distinct. If
+ *              two group structures have the same ID, then they must be
+ *              identical.
+ *
  */
 typedef struct mbedtls_ecp_group
 {

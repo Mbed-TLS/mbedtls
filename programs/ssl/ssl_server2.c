@@ -2109,17 +2109,31 @@ int main( int argc, char *argv[] )
         goto exit;
 #else
 #if defined(MBEDTLS_RSA_C)
+
+#if defined(MBEDTLS_PEM_PARSE_C)
+#define TEST_CRT1 mbedtls_test_srv_crt_rsa
+#define TEST_KEY1 mbedtls_test_srv_key_rsa
+#define TEST_CRT1_LEN mbedtls_test_srv_crt_rsa_len
+#define TEST_KEY1_LEN mbedtls_test_srv_key_rsa_len
+#else
+#define TEST_CRT1 mbedtls_test_srv_crt_rsa_der
+#define TEST_KEY1 mbedtls_test_srv_key_rsa_der
+#define TEST_CRT1_LEN mbedtls_test_srv_crt_rsa_der_len
+#define TEST_KEY1_LEN mbedtls_test_srv_key_rsa_der_len
+#endif
+
         if( ( ret = mbedtls_x509_crt_parse( &srvcert,
-                                    (const unsigned char *) mbedtls_test_srv_crt_rsa,
-                                    mbedtls_test_srv_crt_rsa_len ) ) != 0 )
+                                            (const unsigned char *) TEST_CRT1,
+                                            TEST_CRT1_LEN ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n",
                             -ret );
             goto exit;
         }
+
         if( ( ret = mbedtls_pk_parse_key( &pkey,
-                                  (const unsigned char *) mbedtls_test_srv_key_rsa,
-                                  mbedtls_test_srv_key_rsa_len, NULL, 0 ) ) != 0 )
+                                          (const unsigned char *) TEST_KEY1,
+                                          TEST_KEY1_LEN, NULL, 0 ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_pk_parse_key returned -0x%x\n\n",
                             -ret );
@@ -2128,17 +2142,30 @@ int main( int argc, char *argv[] )
         key_cert_init = 2;
 #endif /* MBEDTLS_RSA_C */
 #if defined(MBEDTLS_ECDSA_C)
+
+#if defined(MBEDTLS_PEM_PARSE_C)
+#define TEST_CRT2 mbedtls_test_srv_crt_ec
+#define TEST_KEY2 mbedtls_test_srv_key_ec
+#define TEST_CRT2_LEN mbedtls_test_srv_crt_ec_len
+#define TEST_KEY2_LEN mbedtls_test_srv_key_ec_len
+#else
+#define TEST_CRT2 mbedtls_test_srv_crt_ec_der
+#define TEST_KEY2 mbedtls_test_srv_key_ec_der
+#define TEST_CRT2_LEN mbedtls_test_srv_crt_ec_der_len
+#define TEST_KEY2_LEN mbedtls_test_srv_key_ec_der_len
+#endif
+
         if( ( ret = mbedtls_x509_crt_parse( &srvcert2,
-                                    (const unsigned char *) mbedtls_test_srv_crt_ec,
-                                    mbedtls_test_srv_crt_ec_len ) ) != 0 )
+                                    (const unsigned char *) TEST_CRT2,
+                                    TEST_CRT2_LEN ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  x509_crt_parse2 returned -0x%x\n\n",
                             -ret );
             goto exit;
         }
         if( ( ret = mbedtls_pk_parse_key( &pkey2,
-                                  (const unsigned char *) mbedtls_test_srv_key_ec,
-                                  mbedtls_test_srv_key_ec_len, NULL, 0 ) ) != 0 )
+                                  (const unsigned char *) TEST_KEY2,
+                                  TEST_KEY2_LEN, NULL, 0 ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  pk_parse_key2 returned -0x%x\n\n",
                             -ret );

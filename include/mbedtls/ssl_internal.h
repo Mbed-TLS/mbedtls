@@ -1095,6 +1095,54 @@ int mbedtls_ssl_check_sig_hash( const mbedtls_ssl_context *ssl,
                                 mbedtls_md_type_t md );
 #endif
 
+#if defined(MBEDTLS_SSL_DTLS_SRTP)
+static inline uint16_t mbedtls_ssl_get_srtp_profile_iana_value
+                                            ( mbedtls_ssl_srtp_profile profile )
+{
+    uint16_t profile_value = 0xffff;
+    switch( profile )
+    {
+        case MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80:
+            profile_value = MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80_IANA_VALUE;
+            break;
+        case MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32:
+            profile_value = MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32_IANA_VALUE;
+            break;
+        case MBEDTLS_SRTP_NULL_HMAC_SHA1_80:
+            profile_value = MBEDTLS_SRTP_NULL_HMAC_SHA1_80_IANA_VALUE;
+            break;
+        case MBEDTLS_SRTP_NULL_HMAC_SHA1_32:
+            profile_value = MBEDTLS_SRTP_NULL_HMAC_SHA1_32_IANA_VALUE;
+            break;
+        default: break;
+    }
+    return( profile_value );
+}
+
+static inline mbedtls_ssl_srtp_profile mbedtls_ssl_get_srtp_profile_value
+                                                    ( uint16_t srtp_iana_value )
+{
+    mbedtls_ssl_srtp_profile profile_value = MBEDTLS_SRTP_UNSET_PROFILE;
+    switch( srtp_iana_value )
+    {
+        case MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80_IANA_VALUE:
+            profile_value = MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80;
+            break;
+        case MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32_IANA_VALUE:
+            profile_value = MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32;
+            break;
+        case MBEDTLS_SRTP_NULL_HMAC_SHA1_80_IANA_VALUE:
+            profile_value = MBEDTLS_SRTP_NULL_HMAC_SHA1_80;
+            break;
+        case MBEDTLS_SRTP_NULL_HMAC_SHA1_32_IANA_VALUE:
+            profile_value = MBEDTLS_SRTP_NULL_HMAC_SHA1_32;
+            break;
+        default: break;
+    }
+    return( profile_value );
+}
+#endif
+
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
 static inline mbedtls_pk_context *mbedtls_ssl_own_key( mbedtls_ssl_context *ssl )
 {

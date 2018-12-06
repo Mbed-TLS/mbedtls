@@ -3257,15 +3257,16 @@ mbedtls_ssl_srtp_profile mbedtls_ssl_get_dtls_srtp_protection_profile
  *
  * \param ssl              SSL context tobe used.
  * \param key              Buffer to hold the generated key material.
- * \param key_len          [in/out] key buffer size. outputs the actual number
- *                         of bytes written.
+ * \param key_buffer_len   Key buffer size.
+ * \param olen             the actual number of bytes written to key.
  *
  * \return                 0 on success, #MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL if
  *                         the key buffer is too small to hold the generated key.
  */
 int mbedtls_ssl_get_dtls_srtp_key_material( const mbedtls_ssl_context *ssl,
                                             unsigned char *key,
-                                            size_t *key_len );
+                                            size_t key_buffer_len,
+                                            size_t *olen );
 
 /**
  * \brief                  Utility function to get information on DTLS-SRTP profile.

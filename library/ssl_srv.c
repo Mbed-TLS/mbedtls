@@ -822,25 +822,8 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
     {
         /* + 2 to skip the length field */
         uint16_t protection_profile_value = buf[j + 2] << 8 | buf[j+3];
+        client_protection = mbedtls_ssl_get_srtp_profile_value( protection_profile_value );
 
-        switch ( protection_profile_value )
-        {
-            case MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80_IANA_VALUE:
-                client_protection = MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80;
-                break;
-            case MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32_IANA_VALUE:
-                client_protection = MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32;
-                break;
-            case MBEDTLS_SRTP_NULL_HMAC_SHA1_80_IANA_VALUE:
-                client_protection = MBEDTLS_SRTP_NULL_HMAC_SHA1_80;
-                break;
-            case MBEDTLS_SRTP_NULL_HMAC_SHA1_32_IANA_VALUE:
-                client_protection = MBEDTLS_SRTP_NULL_HMAC_SHA1_32;
-                break;
-            default:
-                client_protection = MBEDTLS_SRTP_UNSET_PROFILE;
-                break;
-        }
         profile_info = mbedtls_ssl_dtls_srtp_profile_info_from_id( client_protection );
         if( profile_info != NULL )
         {
@@ -2624,6 +2607,7 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
                                     size_t *olen )
 {
     size_t mki_len = 0, ext_len = 0, i;
+    uint16_t profile_value = 0;
 
     if( ssl->dtls_srtp_info.chosen_dtls_srtp_profile == MBEDTLS_SRTP_UNSET_PROFILE )
     {
@@ -2653,34 +2637,16 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
     /* protection profile length: 2 */
     buf[4] = 0x00;
     buf[5] = 0x02;
-    switch (ssl->dtls_srtp_info.chosen_dtls_srtp_profile) {
-        case MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80:
-            buf[6] = (unsigned char)( ( MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80_IANA_VALUE >> 8 )
-                                      & 0xFF );
-            buf[7] = (unsigned char)( ( MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_80_IANA_VALUE     )
-                                      & 0xFF );
-            break;
-        case MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32:
-            buf[6] = (unsigned char)( ( MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32_IANA_VALUE >> 8 )
-                                      & 0xFF );
-            buf[7] = (unsigned char)( ( MBEDTLS_SRTP_AES128_CM_HMAC_SHA1_32_IANA_VALUE      )
-                                      & 0xFF );
-            break;
-        case MBEDTLS_SRTP_NULL_HMAC_SHA1_80:
-            buf[6] = (unsigned char)( ( MBEDTLS_SRTP_NULL_HMAC_SHA1_80_IANA_VALUE >> 8 )
-                                      & 0xFF );
-            buf[7] = (unsigned char)( ( MBEDTLS_SRTP_NULL_HMAC_SHA1_80_IANA_VALUE      )
-                                      & 0xFF );
-            break;
-        case MBEDTLS_SRTP_NULL_HMAC_SHA1_32:
-            buf[6] = (unsigned char)( ( MBEDTLS_SRTP_NULL_HMAC_SHA1_32_IANA_VALUE >> 8 )
-                                      & 0xFF );
-            buf[7] = (unsigned char)( ( MBEDTLS_SRTP_NULL_HMAC_SHA1_32_IANA_VALUE      )
-                                      & 0xFF );
-            break;
-        default:
-            *olen = 0;
-            return;
+    profile_value = mbedtls_ssl_get_srtp_profile_iana_value( ssl->dtls_srtp_info.chosen_dtls_srtp_profile );
+    if( profile_value != 0xFFFF )
+    {
+        buf[6] = (unsigned char)( ( profile_value >> 8 ) & 0xFF );
+        buf[7] = (unsigned char)( profile_value & 0xFF );
+    }
+    else
+    {
+        *olen = 0;
+        return;
     }
 
     buf[8] = mki_len & 0xFF;

@@ -762,7 +762,7 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
 {
     unsigned char *p = buf;
     size_t protection_profiles_index = 0;
-    size_t mki_len = 0, i;
+    size_t mki_len = 0;
     size_t ext_len = 0;
     uint16_t profile_value = 0;
 
@@ -836,10 +836,7 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
 
     if( mki_len != 0 )
     {
-        for( i=0; i < mki_len; i++ )
-        {
-            *p++ = ssl->dtls_srtp_info.mki_value[i];
-        }
+        memcpy( p, ssl->dtls_srtp_info.mki_value, mki_len );
         MBEDTLS_SSL_DEBUG_BUF( 3, "sending mki",  ssl->dtls_srtp_info.mki_value,
                                ssl->dtls_srtp_info.mki_len );
     }

@@ -2606,7 +2606,7 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
                                     unsigned char *buf,
                                     size_t *olen )
 {
-    size_t mki_len = 0, ext_len = 0, i;
+    size_t mki_len = 0, ext_len = 0;
     uint16_t profile_value = 0;
 
     if( ssl->dtls_srtp_info.chosen_dtls_srtp_profile == MBEDTLS_SRTP_UNSET_PROFILE )
@@ -2650,10 +2650,7 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
     }
 
     buf[8] = mki_len & 0xFF;
-    for( i=0; i < mki_len; i++ )
-    {
-        buf[9 + i] = ssl->dtls_srtp_info.mki_value[i];
-    }
+    memcpy( &buf[9], ssl->dtls_srtp_info.mki_value, mki_len );
 
     *olen = 9 + mki_len;
 }

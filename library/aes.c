@@ -511,6 +511,8 @@ static void aes_gen_tables( void )
 
 void mbedtls_aes_init( mbedtls_aes_context *ctx )
 {
+    MBEDTLS_AES_VALIDATE( ctx != NULL );
+
     memset( ctx, 0, sizeof( mbedtls_aes_context ) );
 }
 
@@ -525,12 +527,16 @@ void mbedtls_aes_free( mbedtls_aes_context *ctx )
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
 void mbedtls_aes_xts_init( mbedtls_aes_xts_context *ctx )
 {
+    MBEDTLS_AES_VALIDATE( ctx != NULL );
+
     mbedtls_aes_init( &ctx->crypt );
     mbedtls_aes_init( &ctx->tweak );
 }
 
 void mbedtls_aes_xts_free( mbedtls_aes_xts_context *ctx )
 {
+    MBEDTLS_AES_VALIDATE( ctx != NULL );
+
     mbedtls_aes_free( &ctx->crypt );
     mbedtls_aes_free( &ctx->tweak );
 }
@@ -546,14 +552,7 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     unsigned int i;
     uint32_t *RK;
 
-#if !defined(MBEDTLS_AES_ROM_TABLES)
-    if( aes_init_done == 0 )
-    {
-        aes_gen_tables();
-        aes_init_done = 1;
-
-    }
-#endif
+    MBEDTLS_AES_VALIDATE_RET( ctx != NULL && key != NULL );
 
     switch( keybits )
     {
@@ -562,6 +561,15 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
         case 256: ctx->nr = 14; break;
         default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
     }
+
+#if !defined(MBEDTLS_AES_ROM_TABLES)
+    if( aes_init_done == 0 )
+    {
+        aes_gen_tables();
+        aes_init_done = 1;
+
+    }
+#endif
 
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_PADLOCK_ALIGN16)
     if( aes_padlock_ace == -1 )
@@ -661,6 +669,8 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
     mbedtls_aes_context cty;
     uint32_t *RK;
     uint32_t *SK;
+
+    MBEDTLS_AES_VALIDATE_RET( ctx != NULL && key != NULL );
 
     mbedtls_aes_init( &cty );
 

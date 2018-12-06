@@ -12,6 +12,9 @@ Bugfix
    * Fix an unsafe bounds check when restoring an SSL session from a ticket.
      This could lead to a buffer overflow, but only in case ticket authentication
      was broken. Reported and fix suggested by Guido Vranken in #659.
+   * Add explicit integer to enumeration type casts to example program
+     programs/pkey/gen_key which previously led to compilation failure
+     on some toolchains. Reported by phoenixmcallister. Fixes #2170.
 
 = mbed TLS 2.7.8 branch released 2018-11-30
 

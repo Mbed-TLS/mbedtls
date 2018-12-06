@@ -9,6 +9,9 @@ Bugfix
    * Fix runtime error in `mbedtls_platform_entropy_poll()` when run
      through qemu user emulation. Reported and fix suggested by randombit
      in #1212. Fixes #1212.
+   * Fix an unsafe bounds check when restoring an SSL session from a ticket.
+     This could lead to a buffer overflow, but only in case ticket authentication
+     was broken. Reported and fix suggested by Guido Vranken in #659.
 
 = mbed TLS 2.1.17 branch released 2018-11-30
 

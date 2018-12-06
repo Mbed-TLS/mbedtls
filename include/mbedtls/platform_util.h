@@ -41,6 +41,34 @@
 extern "C" {
 #endif
 
+#if defined( MBEDTLS_CHECK_PARAMS ) && defined(MBEDTLS_PLATFORM_C) && \
+    !defined(MBEDTLS_PARAM_FAILED)
+#define MBEDTLS_PARAM_FAILED( cond, file, line )                               \
+                                        mbedtls_param_failed( cond, file, line )
+
+/**
+ * \brief       User supplied callback function for parameter validation failure.
+ *
+ *              When the MBEDTLS_CHECK_PARAMS option is enabled, the library
+ *              provides additional validation of all input parameters to
+ *              confirm that they conform to what the interface can accept.
+ *              For example - NULL paramater checks.
+ *
+ *              These checks are designed to check programmatic issues in the
+ *              application software using Mbed TLS, or catch other runtime
+ *              errors which may be due to issues in the application software.
+ *
+ *              This function will be called unless an alternative function is
+ *              defined through the MBEDTLS_PARAM_FAILURE function.
+ *
+ *              This function can return, and the operation will be aborted, or
+ *              alternatively, through use of setjmp()/longjmp() can resume
+ *              execution in the application code.
+ */
+void mbedtls_param_failed( char* failure_condition, char* file, int line );
+
+#endif /* MBEDTLS_CHECK_PARAMS && MBEDTLS_PLATFORM_C && !MBEDTLS_PARAM_FAILED */
+
 /**
  * \brief       Securely zeroize a buffer
  *

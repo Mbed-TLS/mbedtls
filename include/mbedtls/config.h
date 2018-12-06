@@ -256,6 +256,25 @@
  */
 //#define MBEDTLS_DEPRECATED_REMOVED
 
+/**
+ * \def MBEDTLS_CHECK_PARAMS
+ *
+ * This configuration controls whether the library validates parameters passed
+ * to it.
+ *
+ * Application code that deals with 3rd party input may wish to enable such
+ * validation, whilst code on closed systems, such as embedded systems, where
+ * the input is controlled and predictable, may wish to disable it entirely to
+ * reduce the code size of the library.
+ *
+ * When the symbol is not defined, no parameter validation except that required
+ * to ensure the integrity or security of the library are performed.
+ *
+ * When the symbol is defined, all parameters will be validated, and an error
+ * code returned where appropriate.
+ */
+#define MBEDTLS_CHECK_PARAMS
+
 /* \} name SECTION: System support */
 
 /**
@@ -2995,6 +3014,9 @@
 //#define MBEDTLS_PLATFORM_SNPRINTF_MACRO    snprintf /**< Default snprintf macro to use, can be undefined */
 //#define MBEDTLS_PLATFORM_NV_SEED_READ_MACRO   mbedtls_platform_std_nv_seed_read /**< Default nv_seed_read function to use, can be undefined */
 //#define MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO  mbedtls_platform_std_nv_seed_write /**< Default nv_seed_write function to use, can be undefined */
+
+//#define MBEDTLS_PARAM_FAILED(x)               mbedtls_param_failed( #x ) /**< Default parameter validation callback to use. Can be undefined */
+
 
 /* SSL Cache options */
 //#define MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */

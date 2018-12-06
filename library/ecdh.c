@@ -222,8 +222,8 @@ int mbedtls_ecdh_setup( mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp_id )
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECP_DP_CURVE25519:
             return( mbedtls_everest_setup( ctx, grp_id ) );
-#endif
             break;
+#endif
         default:
             ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
             ctx->var = MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0;

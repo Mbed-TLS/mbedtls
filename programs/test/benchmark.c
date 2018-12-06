@@ -1025,7 +1025,7 @@ int main( int argc, char *argv[] )
                 mbedtls_exit( 1 );
 
             mbedtls_snprintf( title, sizeof( title ), "ECDHE-%s", curve_info->name );
-            TIME_PUBLIC( title, "handshake",
+            TIME_PUBLIC( title, "full handshake",
                 const unsigned char * p_srv = buf_srv;
                 ret |= mbedtls_ecdh_make_params( &ecdh_srv, &olen, buf_srv, sizeof( buf_srv ), myrand, NULL );
 

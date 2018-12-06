@@ -6,6 +6,7 @@
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
+#include "mbedtls/platform_util.h"
 #else
 #include <stdio.h>
 #define mbedtls_fprintf    fprintf
@@ -21,6 +22,11 @@
 
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
 #include "mbedtls/memory_buffer_alloc.h"
+#endif
+
+#if defined(MBEDTLS_CHECK_PARAMS)
+#include <setjmp.h>
+jmp_buf param_fail_jmp;
 #endif
 
 #ifdef _MSC_VER
@@ -69,6 +75,136 @@ typedef struct data_tag
 /*----------------------------------------------------------------------------*/
 /* Macros */
 
+#if defined( MBEDTLS_CHECK_PARAMS )
+
+/**
+ * \brief   This macro tests the expression passed to it as a test step or
+ *          individual test in a test case.
+ *
+ *          It allows a library function to return a value and return an error
+ *          code that can be tested.
+ *
+ *          When MBEDTLS_CHECK_PARAMS is enabled, calls to the parameter failure
+ *          callback, MBEDTLS_PARAM_FAIL, will be assumed to be a test failure.
+ *
+ *          This macro is not suitable for negative parameter validation tests,
+ *          as it assumes the test step will not create an error.
+ *
+ * \param   TEST    The test expression to be tested.
+ */
+#define TEST_ASSERT( TEST )                             \
+    do {                                                \
+        if ( setjmp( param_fail_jmp ) == 0 )            \
+        {                                               \
+            if( ! (TEST) )                              \
+            {                                           \
+                test_fail( #TEST, __LINE__, __FILE__ ); \
+                goto exit;                              \
+            }                                           \
+        }                                               \
+        else                                            \
+        {                                               \
+            test_fail( #TEST, __LINE__, __FILE__ );     \
+            goto exit;                                  \
+        }                                               \
+        memset( param_fail_jmp, 0, sizeof(jmp_buf) );   \
+    } while( 0 )
+
+/**
+ * \brief   This macro tests and individual function call as a test step or
+ *          individual test in a test case.
+ *
+ *          It does not require a library function to return a value, and cannot
+            tets a return error code that can be tested.
+ *
+ *          When MBEDTLS_CHECK_PARAMS is enabled, calls to the parameter failure
+ *          callback, MBEDTLS_PARAM_FAIL, will be assumed to be a test failure.
+ *
+ *          This macro is not suitable for negative parameter validation tests
+ *          as it assumes the test step will not create an error.
+ *
+ * \param   TEST    The test statement to be executed.
+ */
+#define TEST_FN( TEST )                                 \
+    do {                                                \
+        if ( setjmp( param_fail_jmp ) == 0 )            \
+        {                                               \
+            TEST;                                       \
+        }                                               \
+        else                                            \
+        {                                               \
+            test_fail( #TEST, __LINE__, __FILE__ );     \
+            goto exit;                                  \
+        }                                               \
+        memset( param_fail_jmp, 0, sizeof(jmp_buf) );   \
+    } while( 0 )
+
+/**
+ * \brief   This macro tests the statement passed to it as a test step or
+ *          individual test in a test case. The macro assumes the test will fail
+ *          and will generate an error.
+ *
+ *          It allows a library function to return a value and tests the return
+ *          code on return to confirm the given error code was returned.
+ *
+ *          When MBEDTLS_CHECK_PARAMS is enabled, calls to the parameter failure
+ *          callback, MBEDTLS_PARAM_FAIL, are assumed to indicate the
+ *          expected failure, and the test will pass.
+ *
+ *          This macro is intended for negative parameter validation tests,
+ *          where the failing function may return an error value or call
+ *          MBEDTLS_PARAM_FAIL to indicate the error.
+ *
+ * \param   PARAM_ERROR_VALUE   The expected error code.
+ *
+ * \param   TEST                The test expression to be tested.
+ */
+#define TEST_INVALID_PARAM_RET( PARAM_ERR_VALUE, TEST ) \
+    do {                                                \
+        if ( setjmp( param_fail_jmp ) == 0 )            \
+        {                                               \
+            if( (TEST) != PARAM_ERR_VALUE)              \
+            {                                           \
+                test_fail( #TEST, __LINE__, __FILE__ ); \
+                goto exit;                              \
+            }                                           \
+        }                                               \
+        memset( param_fail_jmp, 0, sizeof(jmp_buf) );   \
+    } while( 0 )
+
+/**
+ * \brief   This macro tests the statement passed to it as a test step or
+ *          individual test in a test case. The macro assumes the test will fail
+ *          and will generate an error.
+ *
+ *          It assumes the library function under test cannot return a value and
+ *          assumes errors can only be indicated byt calls to
+ *          MBEDTLS_PARAM_FAIL.
+ *
+ *          When MBEDTLS_CHECK_PARAMS is enabled, calls to the parameter failure
+ *          callback, MBEDTLS_PARAM_FAIL, are assumed to indicate the
+ *          expected failure. If MBEDTLS_CHECK_PARAMS is not enabled, no test
+ *          can be made.
+ *
+ *          This macro is intended for negative parameter validation tests,
+ *          where the failing function can only return an error by calling
+ *          MBEDTLS_PARAM_FAIL to indicate the error.
+ *
+ * \param   TEST                The test expression to be tested.
+ */
+#define TEST_INVALID_PARAM( TEST )                      \
+    do {                                                \
+        if ( setjmp( param_fail_jmp ) == 0 )            \
+        {                                               \
+            TEST;                                       \
+            test_fail( #TEST, __LINE__, __FILE__ );     \
+            goto exit;                                  \
+        }                                               \
+        memset( param_fail_jmp, 0, sizeof(jmp_buf) );   \
+    } while( 0 )
+
+#else /* MBEDTLS_CHECK_PARAMS */
+
 #define TEST_ASSERT( TEST )                         \
     do {                                            \
         if( ! (TEST) )                              \
@@ -78,17 +214,11 @@ typedef struct data_tag
         }                                           \
     } while( 0 )
 
-#define assert(a) if( !( a ) )                                      \
-{                                                                   \
-    mbedtls_fprintf( stderr, "Assertion Failed at %s:%d - %s\n",   \
-                             __FILE__, __LINE__, #a );              \
-    mbedtls_exit( 1 );                                             \
-}
-
-#define TEST_FN( TEST )                                 \
-    do {                                                \
-            TEST;                                       \
+#define TEST_FN( TEST )                         \
+    do {                                        \
+        TEST;                                   \
     } while( 0 )
+
 #define TEST_INVALID_PARAM_RET( PARAM_ERR_VALUE, TEST ) \
     do {                                                \
         if( (TEST) != (PARAM_ERR_VALUE) )               \
@@ -96,11 +226,21 @@ typedef struct data_tag
             test_fail( #TEST, __LINE__, __FILE__ );     \
             goto exit;                                  \
         }                                               \
-   } while( 0 )
-#define TEST_INVALID_PARAM( TEST )     \
-    do {                                                \
-        TEST;                                           \
     } while( 0 )
+
+#define TEST_INVALID_PARAM( TEST )              \
+    do {                                        \
+        TEST;                                   \
+    } while( 0 )
+
+#endif /* MBEDTLS_CHECK_PARAMS */
+
+#define assert(a) if( !( a ) )                                      \
+{                                                                   \
+    mbedtls_fprintf( stderr, "Assertion Failed at %s:%d - %s\n",   \
+                             __FILE__, __LINE__, #a );              \
+    mbedtls_exit( 1 );                                             \
+}
 
 /*
  * 32-bit integer manipulation macros (big endian)
@@ -175,6 +315,19 @@ static void platform_teardown()
     mbedtls_platform_teardown( &platform_ctx );
 #endif /* MBEDTLS_PLATFORM_C */
 }
+
+#if defined(MBEDTLS_CHECK_PARAMS)
+void mbedtls_jump_param_failed( const char* failure_condition,
+                                const char* file,
+                                int line )
+{
+    (void)failure_condition;
+    (void)file;
+    (void)line;
+
+    longjmp( param_fail_jmp, 1 );
+}
+#endif
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 static int redirect_output( FILE** out_stream, const char* path )

@@ -2,7 +2,11 @@
 # To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
 # To compile with PKCS11: add "-lpkcs11-helper" to LDFLAGS
 
-CFLAGS	?= -O2
+# The optimizations must be disabled as long as setjmp/longjmp are used int the
+# test suites. Otherwise, some local variables trigger clobbering warnings. This
+# is most probably due to the optimizer storing some variables in registers,
+# that get their values overwritten upon jumps.
+CFLAGS	?= -O0
 WARNING_CFLAGS ?= -Wall -W -Wdeclaration-after-statement -Wno-unused-function -Wno-unused-value
 LDFLAGS ?=
 
@@ -135,4 +139,3 @@ $(EMBEDDED_TESTS): embedded_%: suites/$$(firstword $$(subst ., ,$$*)).function s
 		-o ./TESTS/mbedtls/$*
 
 generate-target-tests: $(EMBEDDED_TESTS)
-

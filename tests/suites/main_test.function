@@ -221,8 +221,10 @@ int main( int argc, const char *argv[] )
                          ret );
         return( -1 );
     }
+#if defined(MBEDTLS_CHECK_PARAMS) && defined(MBEDTLS_PARAM_FAILED_CALLBACK)
+    mbedtls_set_param_failed( mbedtls_jump_param_failed );
+#endif
     ret = execute_tests( argc, argv );
     platform_teardown();
     return( ret );
 }
-

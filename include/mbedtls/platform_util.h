@@ -41,6 +41,39 @@
 extern "C" {
 #endif
 
+#if defined(MBEDTLS_PARAM_FAILED_CALLBACK)
+
+/**
+ * \brief       Callback function for parameter validation failure.
+ *
+ *              When the MBEDTLS_CHECK_PARAMS option is enabled, the library
+ *              provides additional validation of all input parameters to
+ *              confirm that they conform to what the interface can accept.
+ *              For example - NULL paramater checks.
+ *
+ *              These checks are designed to check programmatic issues in the
+ *              application software using Mbed TLS, or catch other runtime
+ *              errors which may be due to issues in the application software.
+ *
+ *              The function this points to will be called upon parameter
+ *              validation failure if the MBEDTLS_PARAM_FAILED_CALLBACK option
+ *              has been enabled.
+ */
+extern void (*mbedtls_param_failed)( const char *, const char *, int );
+
+/**
+ * \brief       This function dynamically sets the parameter validation failure
+ *              callback to be used if the appropriate configuration options
+ *              have been set.
+ *
+ * \param       param_failed_func The parameter validation failure callback
+                                  implementation
+ */
+int mbedtls_set_param_failed(
+    void (*param_failed_func)( const char *, const char *, int ) );
+
+#endif /* MBEDTLS_PARAM_FAILED_CALLBACK */
+
 /**
  * \brief       Securely zeroize a buffer
  *

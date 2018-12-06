@@ -35,6 +35,7 @@
 #endif
 
 #include "mbedtls/platform_util.h"
+#include "mbedtls/platform.h"
 #include "mbedtls/threading.h"
 
 #include <stddef.h>
@@ -83,6 +84,33 @@ void mbedtls_platform_zeroize( void *buf, size_t len )
 #include <unistd.h>
 #endif /* !_WIN32 && (unix || __unix || __unix__ ||
         * (__APPLE__ && __MACH__)) */
+
+#if defined(MBEDTLS_PARAM_FAILED_CALLBACK)
+
+static void mbedtls_param_failed_default( const char *failure_condition,
+                                          const char *file,
+                                          int line )
+{
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_printf(
+        "%s:%i: Input param failed - %s\n", file, line, failure_condition );
+#else
+    (void)failure_condition;
+    (void)file;
+    (void)line;
+#endif /* MBEDTLS_PLATFORM_C */
+}
+void (*mbedtls_param_failed)( const char *, const char *, int ) =
+    mbedtls_param_failed_default;
+
+int mbedtls_set_param_failed(
+    void (*param_failed_func)( const char *, const char *, int ) )
+{
+    mbedtls_param_failed = param_failed_func;
+    return( 0 );
+}
+
+#endif /* MBEDTLS_PARAM_FAILED_CALLBACK */
 
 #if !( ( defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L ) ||     \
        ( defined(_POSIX_THREAD_SAFE_FUNCTIONS ) &&                     \

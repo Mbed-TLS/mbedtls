@@ -6,6 +6,9 @@ Bugfix
    * Fix for Clang, which was reporting a warning for the bignum.c inline
      assembly for AMD64 targets creating string literals greater than those
      permitted by the ISO C99 standard. Found by Aaron Jones. Fixes #482.
+   * Fix runtime error in `mbedtls_platform_entropy_poll()` when run
+     through qemu user emulation. Reported and fix suggested by randombit
+     in #1212. Fixes #1212.
 
 = mbed TLS 2.7.8 branch released 2018-11-30
 

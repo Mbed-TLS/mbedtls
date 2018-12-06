@@ -313,7 +313,8 @@ int main( int argc, char *argv[] )
     mbedtls_printf( "\n  . Generating the private key ..." );
     fflush( stdout );
 
-    if( ( ret = mbedtls_pk_setup( &key, mbedtls_pk_info_from_type( opt.type ) ) ) != 0 )
+    if( ( ret = mbedtls_pk_setup( &key,
+            mbedtls_pk_info_from_type( (mbedtls_pk_type_t) opt.type ) ) ) != 0 )
     {
         mbedtls_printf( " failed\n  !  mbedtls_pk_setup returned -0x%04x", -ret );
         goto exit;
@@ -335,8 +336,9 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_ECP_C)
     if( opt.type == MBEDTLS_PK_ECKEY )
     {
-        ret = mbedtls_ecp_gen_key( opt.ec_curve, mbedtls_pk_ec( key ),
-                          mbedtls_ctr_drbg_random, &ctr_drbg );
+        ret = mbedtls_ecp_gen_key( (mbedtls_ecp_group_id) opt.ec_curve,
+                                   mbedtls_pk_ec( key ),
+                                   mbedtls_ctr_drbg_random, &ctr_drbg );
         if( ret != 0 )
         {
             mbedtls_printf( " failed\n  !  mbedtls_rsa_gen_key returned -0x%04x", -ret );
@@ -422,4 +424,3 @@ exit:
 }
 #endif /* MBEDTLS_PK_WRITE_C && MBEDTLS_PEM_WRITE_C && MBEDTLS_FS_IO &&
         * MBEDTLS_ENTROPY_C && MBEDTLS_CTR_DRBG_C */
-

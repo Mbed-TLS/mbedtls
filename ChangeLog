@@ -36,6 +36,11 @@ New deprecations
    * Deprecate mbedtls_ctr_drbg_update and mbedtls_hmac_drbg_update
      in favor of functions that can return an error code.
 
+Bugfix
+   * Fix for Clang, which was reporting a warning for the bignum.c inline
+     assembly for AMD64 targets creating string literals greater than those
+     permitted by the ISO C99 standard. Found by Aaron Jones. Fixes #482.
+
 = mbed TLS 2.14.0 branch released 2018-11-19
 
 Security

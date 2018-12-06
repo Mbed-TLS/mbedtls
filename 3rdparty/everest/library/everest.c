@@ -70,35 +70,10 @@ int mbedtls_everest_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
                                  int( *f_rng )( void *, unsigned char *, size_t ),
                                  void *p_rng )
 {
-    int ret = 0;
-    size_t grp_len;
-    mbedtls_ecp_group grp;
     mbedtls_ecdh_context_everest *everest_ctx = &ctx->ctx.everest_ecdh;
     mbedtls_x25519_context *x25519_ctx = ( mbedtls_x25519_context* )everest_ctx->ctx;
-
-    if( ctx->var != MBEDTLS_ECDH_VARIANT_EVEREST )
-        return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
-
-    mbedtls_ecp_group_init( &grp );
-
-    if( ( ret = mbedtls_x25519_make_params( x25519_ctx, olen, buf, blen, f_rng, p_rng ) ) != 0 )
-        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-
-    mbedtls_ecp_group_load( &grp, MBEDTLS_ECP_DP_CURVE25519 );
-    ret = mbedtls_ecp_tls_write_group( &grp, &grp_len, buf, blen );
-    mbedtls_ecp_group_free( &grp );
-    if (ret != 0)
-        return( ret );
-
-    buf += grp_len;
-    blen -= grp_len;
-
-    if( blen < 32 )
-        return MBEDTLS_ERR_ECP_BUFFER_TOO_SMALL;
-
-    memcpy( x25519_ctx->peer_point, buf, 32 );
-    *olen = grp_len + 1 + 32;
-    return( ret );
+    if( ctx->var != MBEDTLS_ECDH_VARIANT_EVEREST ) return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+    return mbedtls_x25519_make_params( x25519_ctx, olen, buf, blen, f_rng, p_rng );
 }
 
 int mbedtls_everest_read_params( mbedtls_ecdh_context *ctx,

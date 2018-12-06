@@ -511,6 +511,8 @@ static void aes_gen_tables( void )
 
 void mbedtls_aes_init( mbedtls_aes_context *ctx )
 {
+    MBEDTLS_AES_VALIDATE( ctx != NULL );
+
     memset( ctx, 0, sizeof( mbedtls_aes_context ) );
 }
 
@@ -545,6 +547,8 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
 {
     unsigned int i;
     uint32_t *RK;
+
+    MBEDTLS_AES_VALIDATE_RET( ctx != NULL && key != NULL );
 
 #if !defined(MBEDTLS_AES_ROM_TABLES)
     if( aes_init_done == 0 )
@@ -661,6 +665,8 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
     mbedtls_aes_context cty;
     uint32_t *RK;
     uint32_t *SK;
+
+    MBEDTLS_AES_VALIDATE_RET( ctx != NULL && key != NULL );
 
     mbedtls_aes_init( &cty );
 

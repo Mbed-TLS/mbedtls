@@ -129,27 +129,31 @@ void ecdh_exchange( int id )
     const unsigned char *vbuf;
     size_t len;
     rnd_pseudo_info rnd_info;
+    unsigned char res_buf[1000];
+    size_t res_len;
 
     mbedtls_ecdh_init( &srv );
     mbedtls_ecdh_init( &cli );
     memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
 
-    TEST_ASSERT( mbedtls_ecp_group_load( &srv.grp, id ) == 0 );
+    TEST_ASSERT( mbedtls_ecdh_setup( &srv, id ) == 0 );
 
     memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
     TEST_ASSERT( mbedtls_ecdh_make_params( &srv, &len, buf, 1000,
-                                   &rnd_pseudo_rand, &rnd_info ) == 0 );
+                                           &rnd_pseudo_rand, &rnd_info ) == 0 );
     TEST_ASSERT( mbedtls_ecdh_read_params( &cli, &vbuf, buf + len ) == 0 );
 
     memset( buf, 0x00, sizeof( buf ) );
     TEST_ASSERT( mbedtls_ecdh_make_public( &cli, &len, buf, 1000,
-                                   &rnd_pseudo_rand, &rnd_info ) == 0 );
+                                           &rnd_pseudo_rand, &rnd_info ) == 0 );
     TEST_ASSERT( mbedtls_ecdh_read_public( &srv, buf, len ) == 0 );
 
     TEST_ASSERT( mbedtls_ecdh_calc_secret( &srv, &len, buf, 1000,
-                                   &rnd_pseudo_rand, &rnd_info ) == 0 );
-    TEST_ASSERT( mbedtls_ecdh_calc_secret( &cli, &len, buf, 1000, NULL, NULL ) == 0 );
-    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &srv.z, &cli.z ) == 0 );
+                                           &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( mbedtls_ecdh_calc_secret( &cli, &res_len, res_buf, 1000,
+                                           NULL, NULL ) == 0 );
+    TEST_ASSERT( len == res_len );
+    TEST_ASSERT( memcmp( buf, res_buf, len ) == 0 );
 
 exit:
     mbedtls_ecdh_free( &srv );
@@ -172,7 +176,9 @@ void ecdh_restart( int id, char *dA_str, char *dB_str, char *z_str,
     unsigned char rnd_buf_B[MBEDTLS_ECP_MAX_BYTES];
     rnd_buf_info rnd_info_A, rnd_info_B;
     int cnt_restart;
+    mbedtls_ecp_group grp;
 
+    mbedtls_ecp_group_init( &grp );
     mbedtls_ecdh_init( &srv );
     mbedtls_ecdh_init( &cli );
 
@@ -184,16 +190,20 @@ void ecdh_restart( int id, char *dA_str, char *dB_str, char *z_str,
     rnd_info_B.buf = rnd_buf_B;
     rnd_info_B.length = unhexify( rnd_buf_B, dB_str );
 
-    TEST_ASSERT( mbedtls_ecp_group_load( &srv.grp, id ) == 0 );
+    /* The ECDH context is not guaranteed ot have an mbedtls_ecp_group structure
+     * in every configuration, therefore we load it separately. */
+    TEST_ASSERT( mbedtls_ecp_group_load( &grp, id ) == 0 );
 
-    /* otherwise we would have to fix the random buffer,
-     * as in ecdh_primitive_test_vec */
-    TEST_ASSERT( srv.grp.nbits % 8 == 0 );
+    /* Otherwise we would have to fix the random buffer,
+     * as in ecdh_primitive_testvec. */
+    TEST_ASSERT( grp.nbits % 8 == 0 );
+
+    TEST_ASSERT( mbedtls_ecdh_setup( &srv, id ) == 0 );
 
     /* set up restart parameters */
     mbedtls_ecp_set_max_ops( max_ops );
 
-    if( enable)
+    if( enable )
     {
         mbedtls_ecdh_enable_restart( &srv );
         mbedtls_ecdh_enable_restart( &cli );
@@ -267,6 +277,45 @@ void ecdh_restart( int id, char *dA_str, char *dB_str, char *z_str,
 
     TEST_ASSERT( len == z_len );
     TEST_ASSERT( memcmp( buf, z, len ) == 0 );
+
+exit:
+    mbedtls_ecp_group_free( &grp );
+    mbedtls_ecdh_free( &srv );
+    mbedtls_ecdh_free( &cli );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_ECDH_LEGACY_CONTEXT */
+void ecdh_exchange_legacy( int id )
+{
+    mbedtls_ecdh_context srv, cli;
+    unsigned char buf[1000];
+    const unsigned char *vbuf;
+    size_t len;
+
+    rnd_pseudo_info rnd_info;
+
+    mbedtls_ecdh_init( &srv );
+    mbedtls_ecdh_init( &cli );
+    memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
+
+    TEST_ASSERT( mbedtls_ecp_group_load( &srv.grp, id ) == 0 );
+
+    memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
+    TEST_ASSERT( mbedtls_ecdh_make_params( &srv, &len, buf, 1000,
+                                   &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( mbedtls_ecdh_read_params( &cli, &vbuf, buf + len ) == 0 );
+
+    memset( buf, 0x00, sizeof( buf ) );
+    TEST_ASSERT( mbedtls_ecdh_make_public( &cli, &len, buf, 1000,
+                                           &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( mbedtls_ecdh_read_public( &srv, buf, len ) == 0 );
+
+    TEST_ASSERT( mbedtls_ecdh_calc_secret( &srv, &len, buf, 1000,
+                                           &rnd_pseudo_rand, &rnd_info ) == 0 );
+    TEST_ASSERT( mbedtls_ecdh_calc_secret( &cli, &len, buf, 1000, NULL,
+                                           NULL ) == 0 );
+    TEST_ASSERT( mbedtls_mpi_cmp_mpi( &srv.z, &cli.z ) == 0 );
 
 exit:
     mbedtls_ecdh_free( &srv );

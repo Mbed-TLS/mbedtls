@@ -96,7 +96,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>
-../../include;../../crypto/include
+../../include;../../crypto/include;../../crypto/3rdparty/everest/include/;../../crypto/3rdparty/everest/include/everest;../../crypto/3rdparty/everest/include/everest/vs2010;../../crypto/3rdparty/everest/include/everest/kremlib
       </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -118,7 +118,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>
-../../include;../../crypto/include
+../../include;../../crypto/include;../../crypto/3rdparty/everest/include/;../../crypto/3rdparty/everest/include/everest;../../crypto/3rdparty/everest/include/everest/vs2010;../../crypto/3rdparty/everest/include/everest/kremlib
       </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -142,7 +142,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>
-../../include;../../crypto/include
+../../include;../../crypto/include;../../crypto/3rdparty/everest/include/;../../crypto/3rdparty/everest/include/everest;../../crypto/3rdparty/everest/include/everest/vs2010;../../crypto/3rdparty/everest/include/everest/kremlib
       </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -164,7 +164,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>
-../../include;../../crypto/include
+../../include;../../crypto/include;../../crypto/3rdparty/everest/include/;../../crypto/3rdparty/everest/include/everest;../../crypto/3rdparty/everest/include/everest/vs2010;../../crypto/3rdparty/everest/include/everest/kremlib
       </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>

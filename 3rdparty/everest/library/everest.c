@@ -39,6 +39,8 @@
 #define mbedtls_free   free
 #endif
 
+#if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
+
 int mbedtls_everest_setup( mbedtls_ecdh_context *ctx, int grp )
 {
     if( grp != MBEDTLS_ECP_DP_CURVE25519 )
@@ -124,3 +126,5 @@ int mbedtls_everest_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
     if( ctx->var != MBEDTLS_ECDH_VARIANT_EVEREST ) return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
     return mbedtls_x25519_calc_secret( x25519_ctx, olen, buf, blen, f_rng, p_rng );
 }
+
+#endif /* MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED */

@@ -67,9 +67,10 @@ mbedtls_arc4_context;
 #endif /* MBEDTLS_ARC4_ALT */
 
 /**
- * \brief          Initialize ARC4 context
+ * \brief          Initialize an ARC4 context.
  *
- * \param ctx      ARC4 context to be initialized
+ * \param ctx      The ARC4 context to be initialized.
+ *                 Must not be \c NULL.
  *
  * \warning        ARC4 is considered a weak cipher and its use constitutes a
  *                 security risk. We recommend considering stronger ciphers
@@ -79,9 +80,10 @@ mbedtls_arc4_context;
 void mbedtls_arc4_init( mbedtls_arc4_context *ctx );
 
 /**
- * \brief          Clear ARC4 context
+ * \brief          Clear an ARC4 context.
  *
- * \param ctx      ARC4 context to be cleared
+ * \param ctx      The ARC4 context to be cleared. May be \c NULL,
+ *                 in which case this function is a no-op.
  *
  * \warning        ARC4 is considered a weak cipher and its use constitutes a
  *                 security risk. We recommend considering stronger ciphers
@@ -91,37 +93,44 @@ void mbedtls_arc4_init( mbedtls_arc4_context *ctx );
 void mbedtls_arc4_free( mbedtls_arc4_context *ctx );
 
 /**
- * \brief          ARC4 key schedule
+ * \brief          Perform an ARC4 key schedule.
  *
- * \param ctx      ARC4 context to be setup
- * \param key      the secret key
- * \param keylen   length of the key, in bytes
+ * \param ctx      The ARC4 context to be setup.
+ *                 Must not be \c NULL.
+ * \param key      The secret key buffer.
+ *                 Must be a readable buffer of length \p key Bytes.
+ * \param keylen   The length of the secret key \p key in Bytes.
+ *                 Must be in the range from 40 Bits - 2048 Bits.
  *
  * \warning        ARC4 is considered a weak cipher and its use constitutes a
  *                 security risk. We recommend considering stronger ciphers
  *                 instead.
  *
  */
-void mbedtls_arc4_setup( mbedtls_arc4_context *ctx, const unsigned char *key,
-                 unsigned int keylen );
+void mbedtls_arc4_setup( mbedtls_arc4_context *ctx,
+                         const unsigned char *key,
+                         unsigned int keylen );
 
 /**
- * \brief          ARC4 cipher function
+ * \brief          Perform an ARC4 encryption/decryption operation.
  *
- * \param ctx      ARC4 context
- * \param length   length of the input data
- * \param input    buffer holding the input data
- * \param output   buffer for the output data
+ * \param ctx      The ARC4 context to use.
+ * \param length   The length of the input data in Bytes.
+ * \param input    The buffer holding the input data.
+ *                 Must be a readable buffer of length \p length Bytes.
+ * \param output   The buffer for the output data.
+ *                 Must be a writable buffer of length \p length Bytes.
  *
- * \return         0 if successful
+ * \return         \c 0 if successful.
  *
  * \warning        ARC4 is considered a weak cipher and its use constitutes a
  *                 security risk. We recommend considering stronger ciphers
  *                 instead.
  *
  */
-int mbedtls_arc4_crypt( mbedtls_arc4_context *ctx, size_t length, const unsigned char *input,
-                unsigned char *output );
+int mbedtls_arc4_crypt( mbedtls_arc4_context *ctx, size_t length,
+                        const unsigned char *input,
+                        unsigned char *output );
 
 /**
  * \brief          Checkup routine

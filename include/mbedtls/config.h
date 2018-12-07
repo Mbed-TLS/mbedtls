@@ -414,11 +414,11 @@
  *      unsigned char mbedtls_internal_ecp_grp_capable(
  *          const mbedtls_ecp_group *grp )
  *      int  mbedtls_internal_ecp_init( const mbedtls_ecp_group *grp )
- *      void mbedtls_internal_ecp_deinit( const mbedtls_ecp_group *grp )
+ *      void mbedtls_internal_ecp_free( const mbedtls_ecp_group *grp )
  * The mbedtls_internal_ecp_grp_capable function should return 1 if the
  * replacement functions implement arithmetic for the given group and 0
  * otherwise.
- * The functions mbedtls_internal_ecp_init and mbedtls_internal_ecp_deinit are
+ * The functions mbedtls_internal_ecp_init and mbedtls_internal_ecp_free are
  * called before and after each point operation and provide an opportunity to
  * implement optimized set up and tear down instructions.
  *

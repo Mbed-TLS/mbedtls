@@ -47,6 +47,35 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+/**
+ * \brief Function level alternative implementation.
+ *
+ * The MBEDTLS_ECP_INTERNAL_ALT macro enables alternative implementations to
+ * replace certain functions in this module. The alternative implementations are
+ * typically hardware accelerators and need to activate the hardware before the
+ * computation starts and deactivate it after it finishes. The
+ * mbedtls_internal_ecp_init() and mbedtls_internal_ecp_free() functions serve
+ * this purpose.
+ *
+ * To preserve the correct functionality the following conditions must hold:
+ *
+ * - The alternative implementation must be activated by
+ *   mbedtls_internal_ecp_init() before any of the replaceable functions is
+ *   called.
+ * - mbedtls_internal_ecp_free() must \b only be called when the alternative
+ *   implementation is activated.
+ * - mbedtls_internal_ecp_init() must \b not be called when the alternative
+ *   implementation is activated.
+ * - Public functions must not return while the alternative implementation is
+ *   activated.
+ * - Replaceable functions are guarded by \c MBEDTLS_ECP_XXX_ALT macros and
+ *   before calling them an \code if( mbedtls_internal_ecp_grp_capable( grp ) )
+ *   \endcode ensures that the alternative implementation supports the current
+ *   group.
+ */
+#if defined(MBEDTLS_ECP_INTERNAL_ALT)
+#endif
+
 #if defined(MBEDTLS_ECP_C)
 
 #include "mbedtls/ecp.h"
@@ -2412,11 +2441,6 @@ int mbedtls_ecp_muladd_restartable(
 
     mbedtls_ecp_point_init( &mP );
 
-#if defined(MBEDTLS_ECP_INTERNAL_ALT)
-    if( ( is_grp_capable = mbedtls_internal_ecp_grp_capable( grp ) ) )
-        MBEDTLS_MPI_CHK( mbedtls_internal_ecp_init( grp ) );
-#endif /* MBEDTLS_ECP_INTERNAL_ALT */
-
     ECP_RS_ENTER( ma );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
@@ -2444,6 +2468,12 @@ int mbedtls_ecp_muladd_restartable(
 mul2:
 #endif
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, pR,  n, Q, rs_ctx ) );
+
+#if defined(MBEDTLS_ECP_INTERNAL_ALT)
+    if( ( is_grp_capable = mbedtls_internal_ecp_grp_capable( grp ) ) )
+        MBEDTLS_MPI_CHK( mbedtls_internal_ecp_init( grp ) );
+#endif /* MBEDTLS_ECP_INTERNAL_ALT */
+
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->ma != NULL )
         rs_ctx->ma->state = ecp_rsma_add;

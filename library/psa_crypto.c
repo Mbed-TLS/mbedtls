@@ -81,6 +81,7 @@
 #include "mbedtls/md_internal.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/pk_internal.h"
+#include "mbedtls/platform_util.h"
 #include "mbedtls/ripemd160.h"
 #include "mbedtls/rsa.h"
 #include "mbedtls/sha1.h"
@@ -93,12 +94,6 @@
 #endif
 
 #define ARRAY_LENGTH( array ) ( sizeof( array ) / sizeof( *( array ) ) )
-
-/* Implementation that should never be optimized out by the compiler */
-static void mbedtls_zeroize( void *v, size_t n )
-{
-    volatile unsigned char *p = v; while( n-- ) *p++ = 0;
-}
 
 /* constant-time buffer comparison */
 static inline int safer_memcmp( const uint8_t *a, const uint8_t *b, size_t n )
@@ -1215,7 +1210,7 @@ static psa_status_t psa_save_generated_persistent_key( psa_key_slot_t *slot,
         slot->type = PSA_KEY_TYPE_NONE;
     }
 exit:
-    mbedtls_zeroize( data, key_length );
+    mbedtls_platform_zeroize( data, key_length );
     mbedtls_free( data );
     return( status );
 }
@@ -1722,7 +1717,7 @@ static psa_status_t psa_mac_init( psa_mac_operation_t *operation,
 #if defined(MBEDTLS_MD_C)
 static psa_status_t psa_hmac_abort_internal( psa_hmac_internal_data *hmac )
 {
-    mbedtls_zeroize( hmac->opad, sizeof( hmac->opad ) );
+    mbedtls_platform_zeroize( hmac->opad, sizeof( hmac->opad ) );
     return( psa_hash_abort( &hmac->hash_ctx ) );
 }
 
@@ -1866,7 +1861,7 @@ static psa_status_t psa_hmac_setup_internal( psa_hmac_internal_data *hmac,
     status = psa_hash_update( &hmac->hash_ctx, ipad, block_size );
 
 cleanup:
-    mbedtls_zeroize( ipad, key_length );
+    mbedtls_platform_zeroize( ipad, key_length );
 
     return( status );
 }
@@ -2072,7 +2067,7 @@ static psa_status_t psa_hmac_finish_internal( psa_hmac_internal_data *hmac,
     memcpy( mac, tmp, mac_size );
 
 exit:
-    mbedtls_zeroize( tmp, hash_size );
+    mbedtls_platform_zeroize( tmp, hash_size );
     return( status );
 }
 #endif /* MBEDTLS_MD_C */
@@ -2096,7 +2091,7 @@ static psa_status_t psa_mac_finish_internal( psa_mac_operation_t *operation,
         int ret = mbedtls_cipher_cmac_finish( &operation->ctx.cmac, tmp );
         if( ret == 0 )
             memcpy( mac, tmp, operation->mac_size );
-        mbedtls_zeroize( tmp, sizeof( tmp ) );
+        mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
         return( mbedtls_to_psa_error( ret ) );
     }
     else
@@ -2184,7 +2179,7 @@ cleanup:
     else
         psa_mac_abort( operation );
 
-    mbedtls_zeroize( actual_mac, sizeof( actual_mac ) );
+    mbedtls_platform_zeroize( actual_mac, sizeof( actual_mac ) );
 
     return( status );
 }
@@ -3025,7 +3020,7 @@ psa_status_t psa_cipher_finish( psa_cipher_operation_t *operation,
         goto error;
     }
 
-    mbedtls_zeroize( temp_output_buffer, sizeof( temp_output_buffer ) );
+    mbedtls_platform_zeroize( temp_output_buffer, sizeof( temp_output_buffer ) );
     status = psa_cipher_abort( operation );
 
     return( status );
@@ -3034,7 +3029,7 @@ error:
 
     *output_length = 0;
 
-    mbedtls_zeroize( temp_output_buffer, sizeof( temp_output_buffer ) );
+    mbedtls_platform_zeroize( temp_output_buffer, sizeof( temp_output_buffer ) );
     (void) psa_cipher_abort( operation );
 
     return( status );
@@ -3468,7 +3463,7 @@ psa_status_t psa_generator_abort( psa_crypto_generator_t *generator )
     {
         if( generator->ctx.buffer.data != NULL )
         {
-            mbedtls_zeroize( generator->ctx.buffer.data,
+            mbedtls_platform_zeroize( generator->ctx.buffer.data,
                              generator->ctx.buffer.size );
             mbedtls_free( generator->ctx.buffer.data );
         }
@@ -3486,14 +3481,14 @@ psa_status_t psa_generator_abort( psa_crypto_generator_t *generator )
     {
         if( generator->ctx.tls12_prf.key != NULL )
         {
-            mbedtls_zeroize( generator->ctx.tls12_prf.key,
+            mbedtls_platform_zeroize( generator->ctx.tls12_prf.key,
                              generator->ctx.tls12_prf.key_len );
             mbedtls_free( generator->ctx.tls12_prf.key );
         }
 
         if( generator->ctx.tls12_prf.Ai_with_seed != NULL )
         {
-            mbedtls_zeroize( generator->ctx.tls12_prf.Ai_with_seed,
+            mbedtls_platform_zeroize( generator->ctx.tls12_prf.Ai_with_seed,
                              generator->ctx.tls12_prf.Ai_with_seed_len );
             mbedtls_free( generator->ctx.tls12_prf.Ai_with_seed );
         }
@@ -3995,7 +3990,7 @@ static psa_status_t psa_generator_tls12_psk_to_ms_setup(
                                             salt, salt_length,
                                             label, label_length );
 
-    mbedtls_zeroize( pms, sizeof( pms ) );
+    mbedtls_platform_zeroize( pms, sizeof( pms ) );
     return( status );
 }
 #endif /* MBEDTLS_MD_C */
@@ -4246,7 +4241,7 @@ static psa_status_t psa_key_agreement_internal( psa_crypto_generator_t *generato
                                           NULL, 0, NULL, 0,
                                           PSA_GENERATOR_UNBRIDLED_CAPACITY );
 exit:
-    mbedtls_zeroize( shared_secret, shared_secret_length );
+    mbedtls_platform_zeroize( shared_secret, shared_secret_length );
     return( status );
 }
 
@@ -4519,7 +4514,7 @@ void mbedtls_psa_crypto_free( void )
     /* Wipe all remaining data, including configuration.
      * In particular, this sets all state indicator to the value
      * indicating "uninitialized". */
-    mbedtls_zeroize( &global_data, sizeof( global_data ) );
+    mbedtls_platform_zeroize( &global_data, sizeof( global_data ) );
 }
 
 psa_status_t psa_crypto_init( void )

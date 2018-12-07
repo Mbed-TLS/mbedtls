@@ -56,6 +56,12 @@
 
 #if !defined(MBEDTLS_AES_ALT)
 
+#define MBEDTLS_AES_VALIDATE_RET( cond ) \
+    MBEDTLS_VALIDATE_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA, cond )
+
+#define MBEDTLS_AES_VALIDATE( cond ) \
+    MBEDTLS_VALIDATE( cond )
+
 /*
  * 32-bit integer manipulation macros (little endian)
  */

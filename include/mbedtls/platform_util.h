@@ -41,10 +41,12 @@
 extern "C" {
 #endif
 
-#if defined( MBEDTLS_CHECK_PARAMS ) && defined(MBEDTLS_PLATFORM_C) && \
-    !defined(MBEDTLS_PARAM_FAILED)
-#define MBEDTLS_PARAM_FAILED( cond, file, line )                               \
-                                        mbedtls_param_failed( cond, file, line )
+#if defined(MBEDTLS_CHECK_PARAMS)
+
+#if !defined(MBEDTLS_PARAM_FAILED)
+
+#define MBEDTLS_PARAM_FAILED( cond, file, line ) \
+    mbedtls_param_failed( cond, file, line )
 
 /**
  * \brief       User supplied callback function for parameter validation failure.
@@ -67,7 +69,38 @@ extern "C" {
  */
 void mbedtls_param_failed( char* failure_condition, char* file, int line );
 
-#endif /* MBEDTLS_CHECK_PARAMS && MBEDTLS_PLATFORM_C && !MBEDTLS_PARAM_FAILED */
+#endif /* !defined(MBEDTLS_PARAM_FAILED) */
+
+#define MBEDTLS_VALIDATE_RET( error, cond )                             \
+    do                                                                  \
+    {                                                                   \
+        if( !(cond)  )                                                  \
+        {                                                               \
+            MBEDTLS_PARAM_FAILED( #cond,                                \
+                                 __FILE__,                              \
+                                 __LINE__ );                            \
+            return( error );                                            \
+        }                                                               \
+   } while( 0 )
+
+#define MBEDTLS_VALIDATE( cond )                                        \
+    do                                                                  \
+    {                                                                   \
+        if( !(cond)  )                                                  \
+        {                                                               \
+            MBEDTLS_PARAM_FAILED( #cond,                                \
+                                 __FILE__,                              \
+                                 __LINE__ );                            \
+            return;                                                     \
+        }                                                               \
+   } while( 0 )
+
+#else /* MBEDTLS_CHECK_PARAMS */
+
+#define MBEDTLS_VALIDATE_RET( error, cond )
+#define MBEDTLS_VALIDATE( cond )
+
+#endif /* MBEDTLS_CHECK_PARAMS */
 
 /**
  * \brief       Securely zeroize a buffer

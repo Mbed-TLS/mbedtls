@@ -76,7 +76,7 @@ TEST_OUTPUT=out_${PPID}
 cd tests
 
 # Step 2a - Unit Tests
-perl scripts/run-test-suites.pl -v |tee unit-test-$TEST_OUTPUT
+perl scripts/run-test-suites.pl -v 2 |tee unit-test-$TEST_OUTPUT
 echo
 
 # Step 2b - System Tests

@@ -2393,11 +2393,6 @@ int mbedtls_ecp_muladd_restartable(
 
     mbedtls_ecp_point_init( &mP );
 
-#if defined(MBEDTLS_ECP_INTERNAL_ALT)
-    if( ( is_grp_capable = mbedtls_internal_ecp_grp_capable( grp ) ) )
-        MBEDTLS_MPI_CHK( mbedtls_internal_ecp_init( grp ) );
-#endif /* MBEDTLS_ECP_INTERNAL_ALT */
-
     ECP_RS_ENTER( ma );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
@@ -2425,6 +2420,12 @@ int mbedtls_ecp_muladd_restartable(
 mul2:
 #endif
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, pR,  n, Q, rs_ctx ) );
+
+#if defined(MBEDTLS_ECP_INTERNAL_ALT)
+    if( ( is_grp_capable = mbedtls_internal_ecp_grp_capable( grp ) ) )
+        MBEDTLS_MPI_CHK( mbedtls_internal_ecp_init( grp ) );
+#endif /* MBEDTLS_ECP_INTERNAL_ALT */
+
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->ma != NULL )
         rs_ctx->ma->state = ecp_rsma_add;

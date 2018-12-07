@@ -320,7 +320,8 @@ static void platform_teardown()
 }
 
 #if defined(MBEDTLS_CHECK_PARAMS)
-void mbedtls_param_failed( char* failure_condition, char* file, int line )
+void mbedtls_param_failed( const char* failure_condition, const char* file,
+                           int line )
 {
     (void)failure_condition;
     (void)file;
@@ -644,4 +645,3 @@ int hexcmp( uint8_t * a, uint8_t * b, uint32_t a_len, uint32_t b_len )
     }
     return ret;
 }
-

@@ -135,11 +135,13 @@ struct tm *mbedtls_platform_gmtime_r( const mbedtls_time_t *tt,
 }
 #endif /* MBEDTLS_HAVE_TIME_DATE && MBEDTLS_PLATFORM_GMTIME_R_ALT */
 
-#if defined( MBEDTLS_CHECK_PARAMS ) && defined(MBEDTLS_PLATFORM_C) && \
-    defined(MBEDTLS_DEBUG_INVALID_PARAMS)
-void mbedtls_param_failed( char* failure_condition )
+#if defined(MBEDTLS_CHECK_PARAMS) && defined(MBEDTLS_DEBUG_INVALID_PARAMS)
+void mbedtls_param_failed( const char* failure_condition, const char* file,
+                           int line )
 {
-    mbedtls_printf("%s:%i: Input param failed - %s\n", __FILE__, __LINE__,                           failure_condition );
-}
+#if defined(MBEDTLS_PLATFORM_C)
+    mbedtls_printf("%s:%i: Input param failed - %s\n", __FILE__, __LINE__,
+                   failure_condition );
 #endif
-
+}
+#endif /* MBEDTLS_CHECK_PARAMS && MBEDTLS_DEBUG_INVALID_PARAMS */

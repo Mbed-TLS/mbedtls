@@ -67,7 +67,8 @@ extern "C" {
  *              alternatively, through use of setjmp()/longjmp() can resume
  *              execution in the application code.
  */
-void mbedtls_param_failed( char* failure_condition, char* file, int line );
+void mbedtls_param_failed( const char* failure_condition, const char* file,
+                           int line );
 
 #endif /* !defined(MBEDTLS_PARAM_FAILED) */
 

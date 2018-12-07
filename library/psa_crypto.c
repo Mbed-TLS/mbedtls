@@ -43,6 +43,7 @@
 
 #include "psa/crypto.h"
 
+#include "psa_crypto_core.h"
 #include "psa_crypto_invasive.h"
 #include "psa_crypto_slot_management.h"
 /* Include internal declarations that are useful for implementing persistently
@@ -112,29 +113,6 @@ static inline int safer_memcmp( const uint8_t *a, const uint8_t *b, size_t n )
 /****************************************************************/
 /* Global data, support functions and library management */
 /****************************************************************/
-
-typedef struct
-{
-    psa_key_type_t type;
-    psa_key_policy_t policy;
-    psa_key_lifetime_t lifetime;
-    psa_key_id_t persistent_storage_id;
-    unsigned allocated : 1;
-    union
-    {
-        struct raw_data
-        {
-            uint8_t *data;
-            size_t bytes;
-        } raw;
-#if defined(MBEDTLS_RSA_C)
-        mbedtls_rsa_context *rsa;
-#endif /* MBEDTLS_RSA_C */
-#if defined(MBEDTLS_ECP_C)
-        mbedtls_ecp_keypair *ecp;
-#endif /* MBEDTLS_ECP_C */
-    } data;
-} psa_key_slot_t;
 
 static int key_type_is_raw_bytes( psa_key_type_t type )
 {

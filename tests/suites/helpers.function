@@ -26,7 +26,12 @@
 #if defined(MBEDTLS_CHECK_PARAMS)
 #include <setjmp.h>
 #define MBEDTLS_PARAM_FAILED(x)    mbedtls_param_failed( #x )
+
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wno-uninitialized"
 #endif
+
+#endif /* MBEDTLS_CHECK_PARAMS */
 
 #ifdef _MSC_VER
 #include <basetsd.h>

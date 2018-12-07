@@ -78,7 +78,7 @@ void mbedtls_asn1_write_ia5_string( char * str, data_t * asn1,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_ASN1PARSE_C */
 void mbedtls_asn1_write_len( int len, data_t * asn1, int buf_len,
                              int result )
 {

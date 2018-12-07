@@ -4551,8 +4551,7 @@ psa_status_t psa_crypto_init( void )
     global_data.rng_state = RNG_SEEDED;
 
     /* Initialize the key slots. Zero-initialization has made all key
-     * slots empty, so there is nothing to do. In a future version we will
-     * load data from storage. */
+     * slots empty, so there is nothing to do. */
     global_data.key_slots_initialized = 1;
 
     /* All done. */

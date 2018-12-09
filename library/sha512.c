@@ -88,8 +88,14 @@
 }
 #endif /* PUT_UINT64_BE */
 
+#define MBEDTLS_SHA512_VALIDATE_RET(cond)                           \
+    MBEDTLS_VALIDATE_RET( MBEDTLS_ERR_SHA512_BAD_INPUT_DATA, cond )
+#define MBEDTLS_SHA512_VALIDATE(cond)               MBEDTLS_VALIDATE( cond )
+
 void mbedtls_sha512_init( mbedtls_sha512_context *ctx )
 {
+    MBEDTLS_SHA512_VALIDATE( ctx != NULL );
+
     memset( ctx, 0, sizeof( mbedtls_sha512_context ) );
 }
 
@@ -104,6 +110,9 @@ void mbedtls_sha512_free( mbedtls_sha512_context *ctx )
 void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
                            const mbedtls_sha512_context *src )
 {
+    MBEDTLS_SHA512_VALIDATE( dst != NULL );
+    MBEDTLS_SHA512_VALIDATE( src != NULL );
+
     *dst = *src;
 }
 
@@ -112,6 +121,8 @@ void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
  */
 int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 )
 {
+    MBEDTLS_SHA512_VALIDATE_RET( ctx != NULL );
+
     ctx->total[0] = 0;
     ctx->total[1] = 0;
 
@@ -209,6 +220,9 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
     uint64_t temp1, temp2, W[80];
     uint64_t A, B, C, D, E, F, G, H;
 
+    MBEDTLS_SHA512_VALIDATE_RET( ctx != NULL );
+    MBEDTLS_SHA512_VALIDATE_RET( (const unsigned char *)data != NULL );
+
 #define  SHR(x,n) (x >> n)
 #define ROTR(x,n) (SHR(x,n) | (x << (64 - n)))
 
@@ -297,6 +311,9 @@ int mbedtls_sha512_update_ret( mbedtls_sha512_context *ctx,
     if( ilen == 0 )
         return( 0 );
 
+    MBEDTLS_SHA512_VALIDATE_RET( ctx != NULL );
+    MBEDTLS_SHA512_VALIDATE_RET( input != NULL );
+
     left = (unsigned int) (ctx->total[0] & 0x7F);
     fill = 128 - left;
 
@@ -350,6 +367,9 @@ int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
     int ret;
     unsigned used;
     uint64_t high, low;
+
+    MBEDTLS_SHA512_VALIDATE_RET( ctx != NULL );
+    MBEDTLS_SHA512_VALIDATE_RET( (unsigned char *)output != NULL );
 
     /*
      * Add padding: 0x80 then 0x00 until 16 bytes remain for the length
@@ -426,6 +446,9 @@ int mbedtls_sha512_ret( const unsigned char *input,
 {
     int ret;
     mbedtls_sha512_context ctx;
+
+    MBEDTLS_SHA512_VALIDATE_RET( ilen == 0 || input != NULL );
+    MBEDTLS_SHA512_VALIDATE_RET( (unsigned char *)output != NULL );
 
     mbedtls_sha512_init( &ctx );
 

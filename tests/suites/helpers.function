@@ -27,10 +27,6 @@
 #include <setjmp.h>
 #define MBEDTLS_PARAM_FAILED(x)    mbedtls_param_failed( #x )
 
-#if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC diagnostic ignored "-Wno-uninitialized"
-#endif
-
 #endif /* MBEDTLS_CHECK_PARAMS */
 
 #ifdef _MSC_VER
@@ -75,11 +71,18 @@ typedef struct data_tag
 #define DISPATCH_UNSUPPORTED_SUITE      -5  /* Test suite not supported by the
                                                build */
 
+typedef enum
+{
+    PARAMFAIL_TESTSTATE_IDLE = 0,           /* No parameter failure call test */
+    PARAMFAIL_TESTSTATE_PENDING,            /* Test call to the parameter failure
+                                             * is pending */
+    PARAMFAIL_TESTSTATE_CALLED              /* The test call to the parameter
+                                             * failure function has been made */
+} paramfail_test_state_t;
+
 
 /*----------------------------------------------------------------------------*/
 /* Macros */
-
-#if defined(MBEDTLS_CHECK_PARAMS)
 
 /**
  * \brief   This macro tests the expression passed to it as a test step or
@@ -96,53 +99,17 @@ typedef struct data_tag
  *
  * \param   TEST    The test expression to be tested.
  */
-#define TEST_ASSERT( TEST )                             \
-    do {                                                \
-        if ( setjmp( param_fail_jmp ) == 0 )            \
-        {                                               \
-            if( ! (TEST) )                              \
-            {                                           \
-                test_fail( #TEST, __LINE__, __FILE__ ); \
-                goto exit;                              \
-            }                                           \
-        }                                               \
-        else                                            \
-        {                                               \
-            test_fail( #TEST, __LINE__, __FILE__ );     \
-            goto exit;                                  \
-        }                                               \
-       memset( param_fail_jmp, 0, sizeof(jmp_buf) );    \
+
+#define TEST_ASSERT( TEST )                                 \
+    do {                                                    \
+       if( ! (TEST) )                                       \
+       {                                                    \
+          test_fail( #TEST, __LINE__, __FILE__ );           \
+          goto exit;                                        \
+       }                                                    \
     } while( 0 )
 
-/**
- * \brief   This macro tests and individual function call as a test step or
- *          individual test in a test case.
- *
- *          It does not require a library function to return a value, and cannot
-            tets a return error code that can be tested.
- *
- *          When MBEDTLS_CHECK_PARAMS is enabled, calls to the parameter failure
- *          callback, MBEDTLS_PARAM_FAIL, will be assumed to be a test failure.
- *
- *          This macro is not suitable for negative parameter validation tests
- *          as it assumes the test step will not create an error.
- *
- * \param   TEST    The test statement to be executed.
- */
-#define TEST_FN( TEST )                                 \
-    do {                                                \
-        if ( setjmp( param_fail_jmp ) == 0 )            \
-        {                                               \
-            TEST;                                       \
-        }                                               \
-        else                                            \
-        {                                               \
-            test_fail( #TEST, __LINE__, __FILE__ );     \
-            goto exit;                                  \
-        }                                               \
-       memset( param_fail_jmp, 0, sizeof(jmp_buf) );    \
-    } while( 0 )
-
+#if defined(MBEDTLS_CHECK_PARAMS)
 /**
  * \brief   This macro tests the statement passed to it as a test step or
  *          individual test in a test case. The macro assumes the test will fail
@@ -163,18 +130,16 @@ typedef struct data_tag
  *
  * \param   TEST                The test expression to be tested.
  */
-#define TEST_INVALID_PARAM_RET( PARAM_ERR_VALUE, TEST ) \
-    do {                                                \
-        if ( setjmp( param_fail_jmp ) == 0 )            \
-        {                                               \
-            if( (TEST) != PARAM_ERR_VALUE)              \
-            {                                           \
-                test_fail( #TEST, __LINE__, __FILE__ ); \
-                goto exit;                              \
-            }                                           \
-       }                                                \
-       memset( param_fail_jmp, 0, sizeof(jmp_buf) );    \
-    } while( 0 )
+#define TEST_INVALID_PARAM_RET( PARAM_ERR_VALUE, TEST )                     \
+    do {                                                                    \
+        test_info.paramfail_test_state = PARAMFAIL_TESTSTATE_PENDING;       \
+        if( (TEST) != (PARAM_ERR_VALUE) &&                                  \
+            test_info.paramfail_test_state != PARAMFAIL_TESTSTATE_CALLED )  \
+        {                                                                   \
+            test_fail( #TEST, __LINE__, __FILE__ );                         \
+            goto exit;                                                      \
+        }                                                                   \
+   } while( 0 )
 
 /**
  * \brief   This macro tests the statement passed to it as a test step or
@@ -196,32 +161,19 @@ typedef struct data_tag
  *
  * \param   TEST                The test expression to be tested.
  */
-#define TEST_INVALID_PARAM( TEST ) \
-    do {                                                \
-        if ( setjmp( param_fail_jmp ) == 0 )            \
-        {                                               \
-            TEST;                                       \
-            test_fail( #TEST, __LINE__, __FILE__ );     \
-            goto exit;                                  \
-       }                                                \
-       memset( param_fail_jmp, 0, sizeof(jmp_buf) );    \
+#define TEST_INVALID_PARAM( TEST )                                          \
+    do {                                                                    \
+        memcpy(jmp_tmp, param_fail_jmp, sizeof(jmp_buf));                   \
+        if ( setjmp( param_fail_jmp ) == 0 )                                \
+        {                                                                   \
+            TEST;                                                           \
+            test_fail( #TEST, __LINE__, __FILE__ );                         \
+            goto exit;                                                      \
+        }                                                                   \
+        memcpy(param_fail_jmp, jmp_tmp, sizeof(jmp_buf));                   \
     } while( 0 )
 
 #else
-
-#define TEST_ASSERT( TEST )                             \
-    do {                                                \
-        if( ! (TEST) )                                  \
-        {                                               \
-            test_fail( #TEST, __LINE__, __FILE__ );     \
-            goto exit;                                  \
-        }                                               \
-    } while( 0 )
-
-#define TEST_FN( TEST )                                 \
-    do {                                                \
-            TEST;                                       \
-    } while( 0 )
 
 #define TEST_INVALID_PARAM_RET( PARAM_ERR_VALUE, TEST ) \
     do {                                                \
@@ -273,9 +225,9 @@ typedef struct data_tag
 /*----------------------------------------------------------------------------*/
 /* Global variables */
 
-
 static struct
 {
+    paramfail_test_state_t paramfail_test_state;
     int failed;
     const char *test;
     const char *filename;
@@ -289,6 +241,7 @@ mbedtls_platform_context platform_ctx;
 
 #if defined(MBEDTLS_CHECK_PARAMS)
 jmp_buf param_fail_jmp;
+jmp_buf jmp_tmp;
 #endif
 
 /*----------------------------------------------------------------------------*/
@@ -308,6 +261,15 @@ jmp_buf param_fail_jmp;
 
 /*----------------------------------------------------------------------------*/
 /* Helper Functions */
+
+static void test_fail( const char *test, int line_no, const char* filename )
+{
+    test_info.failed = 1;
+    test_info.test = test;
+    test_info.line_no = line_no;
+    test_info.filename = filename;
+}
+
 static int platform_setup()
 {
     int ret = 0;
@@ -327,11 +289,22 @@ static void platform_teardown()
 #if defined(MBEDTLS_CHECK_PARAMS)
 void mbedtls_param_failed( char* failure_condition, char* file, int line )
 {
-    (void)failure_condition;
-    (void)file;
-    (void)line;
+    /* If we are testing the callback function...  */
+    if ( test_info.paramfail_test_state == PARAMFAIL_TESTSTATE_PENDING )
+    {
+        test_info.paramfail_test_state = PARAMFAIL_TESTSTATE_CALLED;
+    }
+    else
+    {
+        /* ...else we treat this as an error */
 
-    longjmp( param_fail_jmp, 1 );
+        /* Record the location of the failure, but not as a failure yet, in case
+         * it was part of the test */
+        test_fail( failure_condition, line, file );
+        test_info.failed = 0;
+
+        longjmp( param_fail_jmp, 1 );
+    }
 }
 #endif
 
@@ -621,14 +594,6 @@ static int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len )
     }
 
     return( 0 );
-}
-
-static void test_fail( const char *test, int line_no, const char* filename )
-{
-    test_info.failed = 1;
-    test_info.test = test;
-    test_info.line_no = line_no;
-    test_info.filename = filename;
 }
 
 int hexcmp( uint8_t * a, uint8_t * b, uint32_t a_len, uint32_t b_len )

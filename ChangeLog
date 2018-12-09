@@ -41,6 +41,8 @@ API Changes
      mbedtls_ctr_drbg_update() -> mbedtls_ctr_drbg_update_ret()
      mbedtls_hmac_drbg_update() -> mbedtls_hmac_drbg_update_ret()
    * Extend ECDH interface to enable alternative implementations.
+   * Add validation checks for input parameters to functions in the SHA-256
+     module.
 
 New deprecations
    * Deprecate mbedtls_ctr_drbg_update and mbedtls_hmac_drbg_update

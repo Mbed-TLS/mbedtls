@@ -83,9 +83,10 @@ mbedtls_des3_context;
 #endif /* MBEDTLS_DES_ALT */
 
 /**
- * \brief          Initialize DES context
+ * \brief          Initialize a DES context.
  *
- * \param ctx      DES context to be initialized
+ * \param ctx      The DES context to be initialized.
+ *                 Must not be \c NULL.
  *
  * \warning        DES is considered a weak cipher and its use constitutes a
  *                 security risk. We recommend considering stronger ciphers
@@ -94,9 +95,11 @@ mbedtls_des3_context;
 void mbedtls_des_init( mbedtls_des_context *ctx );
 
 /**
- * \brief          Clear DES context
+ * \brief          Clear a DES context.
  *
- * \param ctx      DES context to be cleared
+ * \param ctx      The DES context to be cleared. May be \c NULL,
+ *                 in which case this function is a no-op.
+ *
  *
  * \warning        DES is considered a weak cipher and its use constitutes a
  *                 security risk. We recommend considering stronger ciphers
@@ -105,26 +108,29 @@ void mbedtls_des_init( mbedtls_des_context *ctx );
 void mbedtls_des_free( mbedtls_des_context *ctx );
 
 /**
- * \brief          Initialize Triple-DES context
+ * \brief          Initialize a Triple-DES context.
  *
- * \param ctx      DES3 context to be initialized
+ * \param ctx      The DES3 context to be initialized.
+ *                 Must not be \c NULL.
  */
 void mbedtls_des3_init( mbedtls_des3_context *ctx );
 
 /**
- * \brief          Clear Triple-DES context
+ * \brief          Clear a Triple-DES context
  *
- * \param ctx      DES3 context to be cleared
+ * \param ctx      The DES3 context to be cleared. May be \c NULL,
+ *                 in which case this function is a no-op.
  */
 void mbedtls_des3_free( mbedtls_des3_context *ctx );
 
 /**
- * \brief          Set key parity on the given key to odd.
+ * \brief          Set the key parity on the given key to odd.
  *
  *                 DES keys are 56 bits long, but each byte is padded with
  *                 a parity bit to allow verification.
  *
- * \param key      8-byte secret key
+ * \param key      The secret key.
+ *                 Must be a R/W buffer of length 8 Bytes.
  *
  * \warning        DES is considered a weak cipher and its use constitutes a
  *                 security risk. We recommend considering stronger ciphers
@@ -133,14 +139,16 @@ void mbedtls_des3_free( mbedtls_des3_context *ctx );
 void mbedtls_des_key_set_parity( unsigned char key[MBEDTLS_DES_KEY_SIZE] );
 
 /**
- * \brief          Check that key parity on the given key is odd.
+ * \brief          Check that the key parity on the given key is odd.
  *
  *                 DES keys are 56 bits long, but each byte is padded with
  *                 a parity bit to allow verification.
  *
- * \param key      8-byte secret key
+ * \param key      The secret key.
+ *                 Must be a readable buffer of length 8 Bytes.
  *
- * \return         0 is parity was ok, 1 if parity was not correct.
+ * \return         \c 0 if the parity was ok.
+ * \return         \c 1 if the parity was not correct.
  *
  * \warning        DES is considered a weak cipher and its use constitutes a
  *                 security risk. We recommend considering stronger ciphers
@@ -151,9 +159,11 @@ int mbedtls_des_key_check_key_parity( const unsigned char key[MBEDTLS_DES_KEY_SI
 /**
  * \brief          Check that key is not a weak or semi-weak DES key
  *
- * \param key      8-byte secret key
+ * \param key      The secret key.
+ *                 Must be a readable buffer of length 8 Bytes.
  *
- * \return         0 if no weak key was found, 1 if a weak key was identified.
+ * \return         \c 0 if no weakness was found in the key.
+ * \return         \c 1 if a weak key was identified.
  *
  * \warning        DES is considered a weak cipher and its use constitutes a
  *                 security risk. We recommend considering stronger ciphers
@@ -162,85 +172,112 @@ int mbedtls_des_key_check_key_parity( const unsigned char key[MBEDTLS_DES_KEY_SI
 int mbedtls_des_key_check_weak( const unsigned char key[MBEDTLS_DES_KEY_SIZE] );
 
 /**
- * \brief          DES key schedule (56-bit, encryption)
+ * \brief          Perform a DES key schedule (56-bit, encryption).
  *
- * \param ctx      DES context to be initialized
- * \param key      8-byte secret key
+ * \param ctx      The DES context to be initialized.
+ *                 Must not be \c NULL.
+ * \param key      The secret key.
+ *                 Must be a readable buffer of length 8 Bytes.
  *
- * \return         0
- *
- * \warning        DES is considered a weak cipher and its use constitutes a
- *                 security risk. We recommend considering stronger ciphers
- *                 instead.
- */
-int mbedtls_des_setkey_enc( mbedtls_des_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE] );
-
-/**
- * \brief          DES key schedule (56-bit, decryption)
- *
- * \param ctx      DES context to be initialized
- * \param key      8-byte secret key
- *
- * \return         0
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
  *
  * \warning        DES is considered a weak cipher and its use constitutes a
  *                 security risk. We recommend considering stronger ciphers
  *                 instead.
  */
-int mbedtls_des_setkey_dec( mbedtls_des_context *ctx, const unsigned char key[MBEDTLS_DES_KEY_SIZE] );
+int mbedtls_des_setkey_enc( mbedtls_des_context *ctx,
+                            const unsigned char key[MBEDTLS_DES_KEY_SIZE] );
 
 /**
- * \brief          Triple-DES key schedule (112-bit, encryption)
+ * \brief          Perform a DES key schedule (56-bit, decryption).
  *
- * \param ctx      3DES context to be initialized
- * \param key      16-byte secret key
+ * \param ctx      The DES context to be initialized.
+ *                 Must not be \c NULL.
+ * \param key      The secret key.
+ *                 Must be a readable buffer of length 8 Bytes.
  *
- * \return         0
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
+ *
+ * \warning        DES is considered a weak cipher and its use constitutes a
+ *                 security risk. We recommend considering stronger ciphers
+ *                 instead.
+ */
+int mbedtls_des_setkey_dec( mbedtls_des_context *ctx,
+                            const unsigned char key[MBEDTLS_DES_KEY_SIZE] );
+
+/**
+ * \brief          Perform a Triple-DES key schedule (112-bit, encryption).
+ *
+ * \param ctx      The 3DES context to be initialized.
+ *                 Must not be \c NULL.
+ * \param key      The secret key.
+ *                 Must be a readable buffer of length 16 Bytes.
+ *
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
+ *
  */
 int mbedtls_des3_set2key_enc( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 2] );
 
 /**
- * \brief          Triple-DES key schedule (112-bit, decryption)
+ * \brief          Perform a Triple-DES key schedule (112-bit, decryption).
  *
- * \param ctx      3DES context to be initialized
- * \param key      16-byte secret key
+ * \param ctx      The 3DES context to be initialized.
+ *                 Must not be \c NULL.
+ * \param key      The secret key.
+ *                 Must be a readable buffer of length 16 Bytes.
  *
- * \return         0
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
+ *
  */
 int mbedtls_des3_set2key_dec( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 2] );
 
 /**
- * \brief          Triple-DES key schedule (168-bit, encryption)
+ * \brief          Perform a Triple-DES key schedule (168-bit, encryption).
  *
- * \param ctx      3DES context to be initialized
- * \param key      24-byte secret key
+ * \param ctx      The 3DES context to be initialized.
+ *                 Must not be \c NULL.
+ * \param key      The secret key.
+ *                 Must be a readable buffer of length 24 Bytes.
  *
- * \return         0
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
+ *
  */
 int mbedtls_des3_set3key_enc( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 3] );
 
 /**
- * \brief          Triple-DES key schedule (168-bit, decryption)
+ * \brief          Perform a Triple-DES key schedule (168-bit, decryption).
  *
- * \param ctx      3DES context to be initialized
- * \param key      24-byte secret key
+ * \param ctx      The 3DES context to be initialized.
+ *                 Must not be \c NULL.
+ * \param key      The secret key.
+ *                 Must be a readable buffer of length 24 Bytes.
  *
- * \return         0
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
+ *
  */
 int mbedtls_des3_set3key_dec( mbedtls_des3_context *ctx,
                       const unsigned char key[MBEDTLS_DES_KEY_SIZE * 3] );
 
 /**
- * \brief          DES-ECB block encryption/decryption
+ * \brief          Perform a DES-ECB block encryption/decryption.
  *
- * \param ctx      DES context
- * \param input    64-bit input block
- * \param output   64-bit output block
+ * \param ctx      The DES context to use.
+ * \param input    The input block.
+ *                 Must be a readable buffer of length 8 Bytes.
+ * \param output   The output block.
+ *                 Must be a writable buffer of length 8 Bytes.
  *
- * \return         0 if successful
+ * \return         \c 0 if successful.
+ * \return         A negative error code on failure.
  *
  * \warning        DES is considered a weak cipher and its use constitutes a
  *                 security risk. We recommend considering stronger ciphers
@@ -252,7 +289,7 @@ int mbedtls_des_crypt_ecb( mbedtls_des_context *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 /**
- * \brief          DES-CBC buffer encryption/decryption
+ * \brief          Perform a DES-CBC buffer encryption/decryption.
  *
  * \note           Upon exit, the content of the IV is updated so that you can
  *                 call the function same function again on the following
@@ -262,12 +299,20 @@ int mbedtls_des_crypt_ecb( mbedtls_des_context *ctx,
  *                 IV, you should either save it manually or use the cipher
  *                 module instead.
  *
- * \param ctx      DES context
- * \param mode     MBEDTLS_DES_ENCRYPT or MBEDTLS_DES_DECRYPT
- * \param length   length of the input data
- * \param iv       initialization vector (updated after use)
- * \param input    buffer holding the input data
- * \param output   buffer holding the output data
+ * \param ctx      The DES context to use.
+ * \param mode     The mode to use:
+ *                 #MBEDTLS_DES_ENCRYPT for encryption, or
+ *                 #MBEDTLS_DES_DECRYPT for decryption.
+ * \param length   The length of the input data \p input.
+ * \param iv       The initialization vector (updated after use).
+ *                 Must point to a R/W buffer of length 8 Bytes.
+ * \param input    The buffer holding the input data.
+ *                 Must be a readable buffer of length \p length Bytes.
+ * \param output   The buffer to hold the output data.
+ *                 Must be a writable buffer of length \p length Bytes.
+ *
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
  *
  * \warning        DES is considered a weak cipher and its use constitutes a
  *                 security risk. We recommend considering stronger ciphers
@@ -282,13 +327,16 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
 /**
- * \brief          3DES-ECB block encryption/decryption
+ * \brief          Perform a 3DES-ECB block encryption/decryption.
  *
- * \param ctx      3DES context
- * \param input    64-bit input block
- * \param output   64-bit output block
+ * \param ctx      The 3DES context to use.
+ * \param input    The input block.
+ *                 Must be a readable buffer of length 8 Bytes.
+ * \param output   The output block.
+ *                 Must be a writable buffer of length 8 Bytes.
  *
- * \return         0 if successful
+ * \return         \c 0 on success.
+ * \return         A negative error code on failure.
  */
 int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
                      const unsigned char input[8],
@@ -296,7 +344,7 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 /**
- * \brief          3DES-CBC buffer encryption/decryption
+ * \brief          Perform a 3DES-CBC buffer encryption/decryption.
  *
  * \note           Upon exit, the content of the IV is updated so that you can
  *                 call the function same function again on the following
@@ -306,14 +354,20 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
  *                 IV, you should either save it manually or use the cipher
  *                 module instead.
  *
- * \param ctx      3DES context
- * \param mode     MBEDTLS_DES_ENCRYPT or MBEDTLS_DES_DECRYPT
- * \param length   length of the input data
- * \param iv       initialization vector (updated after use)
- * \param input    buffer holding the input data
- * \param output   buffer holding the output data
+ * \param ctx      The 3DES context to use.
+ * \param mode     The mode of operation:
+ *                 #MBEDTLS_DES_ENCRYPT for encryption, or
+ *                 #MBEDTLS_DES_DECRYPT for decryption.
+ * \param length   The length of the input data \p input.
+ * \param iv       The initialization vector (updated after use).
+ *                 Must be a R/W buffer of length 8 Bytes.
+ * \param input    The buffer holding the input data.
+ *                 Must be a readable buffer of length \p length Bytes.
+ * \param output   The buffer to hold the output data.
+ *                 Must be a writable buffer of length \p length Bytes.
  *
- * \return         0 if successful, or MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH
+ * \return         \c 0 if successful.
+ * \return         A negative error code on failure.
  */
 int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
                      int mode,

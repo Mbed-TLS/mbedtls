@@ -69,16 +69,12 @@
 
 #if defined( MBEDTLS_CHECK_PARAMS )
 #define MBEDTLS_AES_VALIDATE_RET( cond )  do{ if( !(cond)  ) {                 \
-                                            MBEDTLS_PARAM_FAILED( #cond,       \
-                                                                  __FILE__,    \
-                                                                  __LINE__ );  \
+                                            MBEDTLS_PARAM_FAILED( #cond );      \
                                             return MBEDTLS_ERR_AES_BAD_INPUT_DATA;} \
                                           } while(0);
 
 #define MBEDTLS_AES_VALIDATE( cond )      do{ if( !(cond)  ) {                 \
-                                            MBEDTLS_PARAM_FAILED( #cond,       \
-                                                                  __FILE__,    \
-                                                                  __LINE__ );  \
+                                            MBEDTLS_PARAM_FAILED( #cond );     \
                                             return; }                          \
                                           } while(0);
 #else

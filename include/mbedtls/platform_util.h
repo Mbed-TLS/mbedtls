@@ -42,8 +42,8 @@ extern "C" {
 #endif
 
 #if defined( MBEDTLS_CHECK_PARAMS ) && !defined(MBEDTLS_PARAM_FAILED)
-#define MBEDTLS_PARAM_FAILED( cond, file, line )                               \
-                                        mbedtls_param_failed( cond, file, line )
+#define MBEDTLS_PARAM_FAILED( cond ) \
+    mbedtls_param_failed( cond, __FILE__, __LINE__ )
 
 /**
  * \brief       User supplied callback function for parameter validation failure.
@@ -65,7 +65,6 @@ extern "C" {
  *              execution in the application code.
  */
 void mbedtls_param_failed( char* failure_condition, char* file, int line );
-
 #endif /* MBEDTLS_CHECK_PARAMS && !MBEDTLS_PARAM_FAILED */
 
 /**

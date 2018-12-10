@@ -81,6 +81,33 @@ void mbedtls_param_failed( const char *failure_condition,
                            const char *file,
                            int line );
 #endif /* MBEDTLS_PARAM_FAILED */
+
+/* Internal macro meant to be called only from within the library. */
+#define MBEDTLS_INTERNAL_VALIDATE_RET( cond, ret )  \
+    do {                                            \
+        if( !(cond) )                               \
+        {                                           \
+            MBEDTLS_PARAM_FAILED( #cond );          \
+            return( ret );                          \
+        }                                           \
+    } while( 0 )
+
+/* Internal macro meant to be called only from within the library. */
+#define MBEDTLS_INTERNAL_VALIDATE( cond )           \
+    do {                                            \
+        if( !(cond) )                               \
+        {                                           \
+            MBEDTLS_PARAM_FAILED( #cond );          \
+            return;                                 \
+        }                                           \
+    } while( 0 )
+
+#else /* MBEDTLS_CHECK_PARAMS */
+
+/* Internal macros meant to be called only from within the library. */
+#define MBEDTLS_INTERNAL_VALIDATE_RET( cond, ret )  do { } while( 0 )
+#define MBEDTLS_INTERNAL_VALIDATE( cond )           do { } while( 0 )
+
 #endif /* MBEDTLS_CHECK_PARAMS */
 
 /**

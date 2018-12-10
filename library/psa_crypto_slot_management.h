@@ -26,18 +26,20 @@
  * The value is a compile-time constant for now, for simplicity. */
 #define PSA_KEY_SLOT_COUNT 32
 
+/** Access a key slot at the given handle. */
+psa_status_t psa_get_key_slot( psa_key_handle_t handle,
+                               psa_key_slot_t **p_slot );
+
+/** Initialize the key slot structures. */
+psa_status_t psa_initialize_key_slots( void );
+
+/** Delete all data from key slots in memory. This does not affect persistent
+ * storage. */
+void psa_wipe_all_key_slots( void );
+
 /** \defgroup core_slot_management Internal functions exposed by the core
  * @{
  */
-
-/** Find a free key slot and mark it as in use.
- *
- * \param[out] handle   On success, a slot number that is not in use.
- *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- */
-psa_status_t psa_internal_allocate_key_slot( psa_key_handle_t *handle );
 
 /** Wipe an a key slot and mark it as available.
  *

@@ -130,10 +130,8 @@ typedef struct
     void (* entropy_free )( mbedtls_entropy_context *ctx );
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
-    psa_key_slot_t key_slots[PSA_KEY_SLOT_COUNT];
     unsigned initialized : 1;
     unsigned rng_state : 2;
-    unsigned key_slots_initialized : 1;
 } psa_global_data_t;
 
 static psa_global_data_t global_data;
@@ -715,31 +713,6 @@ exit:
 }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
-/* Access a key slot at the given handle. The handle of a key slot is
- * the index of the slot in the global slot array, plus one so that handles
- * start at 1 and not 0. */
-static psa_status_t psa_get_key_slot( psa_key_handle_t handle,
-                                      psa_key_slot_t **p_slot )
-{
-    psa_key_slot_t *slot = NULL;
-
-    GUARD_MODULE_INITIALIZED;
-
-    /* 0 is not a valid handle under any circumstance. This
-     * implementation provides slots number 1 to N where N is the
-     * number of available slots. */
-    if( handle == 0 || handle > ARRAY_LENGTH( global_data.key_slots ) )
-        return( PSA_ERROR_INVALID_HANDLE );
-    slot = &global_data.key_slots[handle - 1];
-
-    /* If the slot hasn't been allocated, the handle is invalid. */
-    if( ! slot->allocated )
-        return( PSA_ERROR_INVALID_HANDLE );
-
-    *p_slot = slot;
-    return( PSA_SUCCESS );
-}
-
 /* Retrieve an empty key slot (slot with no key data, but possibly
  * with some metadata such as a policy). */
 static psa_status_t psa_get_empty_key_slot( psa_key_handle_t handle,
@@ -834,7 +807,7 @@ static psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot )
 
 /** Completely wipe a slot in memory, including its policy.
  * Persistent storage is not affected. */
-static psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
+psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
 {
     psa_status_t status = psa_remove_key_data_from_memory( slot );
     /* At this point, key material and other type-specific content has
@@ -842,20 +815,6 @@ static psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
      * zeroize because the metadata is not particularly sensitive. */
     memset( slot, 0, sizeof( *slot ) );
     return( status );
-}
-
-psa_status_t psa_internal_allocate_key_slot( psa_key_handle_t *handle )
-{
-    for( *handle = PSA_KEY_SLOT_COUNT; *handle != 0; --( *handle ) )
-    {
-        psa_key_slot_t *slot = &global_data.key_slots[*handle - 1];
-        if( ! slot->allocated )
-        {
-            slot->allocated = 1;
-            return( PSA_SUCCESS );
-        }
-    }
-    return( PSA_ERROR_INSUFFICIENT_MEMORY );
 }
 
 psa_status_t psa_internal_make_key_persistent( psa_key_handle_t handle,
@@ -4473,15 +4432,7 @@ psa_status_t mbedtls_psa_crypto_configure_entropy_sources(
 
 void mbedtls_psa_crypto_free( void )
 {
-    if( global_data.key_slots_initialized )
-    {
-        psa_key_handle_t key;
-        for( key = 1; key <= PSA_KEY_SLOT_COUNT; key++ )
-        {
-            psa_key_slot_t *slot = &global_data.key_slots[key - 1];
-            (void) psa_wipe_key_slot( slot );
-        }
-    }
+    psa_wipe_all_key_slots( );
     if( global_data.rng_state != RNG_NOT_INITIALIZED )
     {
         mbedtls_ctr_drbg_free( &global_data.ctr_drbg );
@@ -4495,7 +4446,7 @@ void mbedtls_psa_crypto_free( void )
 
 psa_status_t psa_crypto_init( void )
 {
-    int ret;
+    psa_status_t status;
     const unsigned char drbg_seed[] = "PSA";
 
     /* Double initialization is explicitly allowed. */
@@ -4513,25 +4464,26 @@ psa_status_t psa_crypto_init( void )
     global_data.entropy_init( &global_data.entropy );
     mbedtls_ctr_drbg_init( &global_data.ctr_drbg );
     global_data.rng_state = RNG_INITIALIZED;
-    ret = mbedtls_ctr_drbg_seed( &global_data.ctr_drbg,
-                                 mbedtls_entropy_func,
-                                 &global_data.entropy,
-                                 drbg_seed, sizeof( drbg_seed ) - 1 );
-    if( ret != 0 )
+    status = mbedtls_to_psa_error(
+        mbedtls_ctr_drbg_seed( &global_data.ctr_drbg,
+                               mbedtls_entropy_func,
+                               &global_data.entropy,
+                               drbg_seed, sizeof( drbg_seed ) - 1 ) );
+    if( status != PSA_SUCCESS )
         goto exit;
     global_data.rng_state = RNG_SEEDED;
 
-    /* Initialize the key slots. Zero-initialization has made all key
-     * slots empty, so there is nothing to do. */
-    global_data.key_slots_initialized = 1;
+    status = psa_initialize_key_slots( );
+    if( status != PSA_SUCCESS )
+        goto exit;
 
     /* All done. */
     global_data.initialized = 1;
 
 exit:
-    if( ret != 0 )
+    if( status != PSA_SUCCESS )
         mbedtls_psa_crypto_free( );
-    return( mbedtls_to_psa_error( ret ) );
+    return( status );
 }
 
 #endif /* MBEDTLS_PSA_CRYPTO_C */

@@ -29,6 +29,7 @@
 
 #include "psa/crypto.h"
 
+#include "psa_crypto_core.h"
 #include "psa_crypto_slot_management.h"
 #include "psa_crypto_storage.h"
 
@@ -42,6 +43,81 @@
 #endif
 
 #define ARRAY_LENGTH( array ) ( sizeof( array ) / sizeof( *( array ) ) )
+
+typedef struct
+{
+    psa_key_slot_t key_slots[PSA_KEY_SLOT_COUNT];
+    unsigned key_slots_initialized : 1;
+} psa_global_data_t;
+
+psa_global_data_t global_data;
+
+/* Access a key slot at the given handle. The handle of a key slot is
+ * the index of the slot in the global slot array, plus one so that handles
+ * start at 1 and not 0. */
+psa_status_t psa_get_key_slot( psa_key_handle_t handle,
+                               psa_key_slot_t **p_slot )
+{
+    psa_key_slot_t *slot = NULL;
+
+    if( ! global_data.key_slots_initialized )
+        return( PSA_ERROR_BAD_STATE );
+
+    /* 0 is not a valid handle under any circumstance. This
+     * implementation provides slots number 1 to N where N is the
+     * number of available slots. */
+    if( handle == 0 || handle > ARRAY_LENGTH( global_data.key_slots ) )
+        return( PSA_ERROR_INVALID_HANDLE );
+    slot = &global_data.key_slots[handle - 1];
+
+    /* If the slot hasn't been allocated, the handle is invalid. */
+    if( ! slot->allocated )
+        return( PSA_ERROR_INVALID_HANDLE );
+
+    *p_slot = slot;
+    return( PSA_SUCCESS );
+}
+
+psa_status_t psa_initialize_key_slots( void )
+{
+    /* Nothing to do: program startup and psa_wipe_all_key_slots() both
+     * guarantee that the key slots are initialized to all-zero, which
+     * means that all the key slots are in a valid, empty state. */
+    global_data.key_slots_initialized = 1;
+    return( PSA_SUCCESS );
+}
+
+void psa_wipe_all_key_slots( void )
+{
+    psa_key_handle_t key;
+    for( key = 1; key <= PSA_KEY_SLOT_COUNT; key++ )
+    {
+        psa_key_slot_t *slot = &global_data.key_slots[key - 1];
+        (void) psa_wipe_key_slot( slot );
+    }
+    global_data.key_slots_initialized = 0;
+}
+
+/** Find a free key slot and mark it as in use.
+ *
+ * \param[out] handle   On success, a slot number that is not in use.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ */
+static psa_status_t psa_internal_allocate_key_slot( psa_key_handle_t *handle )
+{
+    for( *handle = PSA_KEY_SLOT_COUNT; *handle != 0; --( *handle ) )
+    {
+        psa_key_slot_t *slot = &global_data.key_slots[*handle - 1];
+        if( ! slot->allocated )
+        {
+            slot->allocated = 1;
+            return( PSA_SUCCESS );
+        }
+    }
+    return( PSA_ERROR_INSUFFICIENT_MEMORY );
+}
 
 psa_status_t psa_allocate_key( psa_key_type_t type,
                                size_t max_bits,

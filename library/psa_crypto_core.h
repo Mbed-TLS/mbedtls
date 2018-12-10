@@ -59,4 +59,8 @@ typedef struct
     } data;
 } psa_key_slot_t;
 
+/** Completely wipe a slot in memory, including its policy.
+ * Persistent storage is not affected. */
+psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot );
+
 #endif /* PSA_CRYPTO_CORE_H */

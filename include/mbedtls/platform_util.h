@@ -41,7 +41,16 @@
 extern "C" {
 #endif
 
-#if defined( MBEDTLS_CHECK_PARAMS ) && !defined(MBEDTLS_PARAM_FAILED)
+#if defined( MBEDTLS_CHECK_PARAMS )
+
+#if defined(MBEDTLS_PARAM_FAILED)
+/** An alternative definition of MBEDTLS_PARAM_FAILED has been set in config.h.
+ *
+ * This flag can be used to check whether it is safe to assume that
+ * MBEDTLS_PARAM_FAILED() will expand to a call to mbedtls_param_failed().
+ */
+#define MBEDTLS_PARAM_FAILED_ALT
+#else
 #define MBEDTLS_PARAM_FAILED( cond ) \
     mbedtls_param_failed( cond, __FILE__, __LINE__ )
 
@@ -67,7 +76,8 @@ extern "C" {
 void mbedtls_param_failed( const char* failure_condition,
                            const char* file,
                            int line );
-#endif /* MBEDTLS_CHECK_PARAMS && !MBEDTLS_PARAM_FAILED */
+#endif /* MBEDTLS_PARAM_FAILED */
+#endif /* MBEDTLS_CHECK_PARAMS */
 
 /**
  * \brief       Securely zeroize a buffer

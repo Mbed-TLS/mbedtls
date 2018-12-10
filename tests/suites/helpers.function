@@ -24,10 +24,9 @@
 #endif
 
 #if defined(MBEDTLS_CHECK_PARAMS)
+#include "mbedtls/platform_util.h"
 #include <setjmp.h>
-#define MBEDTLS_PARAM_FAILED(x)    mbedtls_param_failed( #x, __FILE__, __LINE__ )
-
-#endif /* MBEDTLS_CHECK_PARAMS */
+#endif
 
 #ifdef _MSC_VER
 #include <basetsd.h>
@@ -92,7 +91,8 @@ typedef enum
  *          code that can be tested.
  *
  *          When MBEDTLS_CHECK_PARAMS is enabled, calls to the parameter failure
- *          callback, MBEDTLS_PARAM_FAIL, will be assumed to be a test failure.
+ *          callback, MBEDTLS_PARAM_FAILED(), will be assumed to be a test
+ *          failure.
  *
  *          This macro is not suitable for negative parameter validation tests,
  *          as it assumes the test step will not create an error.
@@ -109,7 +109,7 @@ typedef enum
        }                                                    \
     } while( 0 )
 
-#if defined(MBEDTLS_CHECK_PARAMS)
+#if defined(MBEDTLS_CHECK_PARAMS) && !defined(MBEDTLS_PARAM_FAILED_ALT)
 /**
  * \brief   This macro tests the statement passed to it as a test step or
  *          individual test in a test case. The macro assumes the test will fail
@@ -119,12 +119,12 @@ typedef enum
  *          code on return to confirm the given error code was returned.
  *
  *          When MBEDTLS_CHECK_PARAMS is enabled, calls to the parameter failure
- *          callback, MBEDTLS_PARAM_FAIL, are assumed to indicate the
+ *          callback, MBEDTLS_PARAM_FAILED(), are assumed to indicate the
  *          expected failure, and the test will pass.
  *
  *          This macro is intended for negative parameter validation tests,
  *          where the failing function may return an error value or call
- *          MBEDTLS_PARAM_FAIL to indicate the error.
+ *          MBEDTLS_PARAM_FAILED() to indicate the error.
  *
  * \param   PARAM_ERROR_VALUE   The expected error code.
  *
@@ -148,16 +148,16 @@ typedef enum
  *
  *          It assumes the library function under test cannot return a value and
  *          assumes errors can only be indicated byt calls to
- *          MBEDTLS_PARAM_FAIL.
+ *          MBEDTLS_PARAM_FAILED().
  *
  *          When MBEDTLS_CHECK_PARAMS is enabled, calls to the parameter failure
- *          callback, MBEDTLS_PARAM_FAIL, are assumed to indicate the
+ *          callback, MBEDTLS_PARAM_FAILED(), are assumed to indicate the
  *          expected failure. If MBEDTLS_CHECK_PARAMS is not enabled, no test
  *          can be made.
  *
  *          This macro is intended for negative parameter validation tests,
  *          where the failing function can only return an error by calling
- *          MBEDTLS_PARAM_FAIL to indicate the error.
+ *          MBEDTLS_PARAM_FAILED() to indicate the error.
  *
  * \param   TEST                The test expression to be tested.
  */
@@ -173,23 +173,7 @@ typedef enum
         memcpy(param_fail_jmp, jmp_tmp, sizeof(jmp_buf));                   \
     } while( 0 )
 
-#else
-
-#define TEST_INVALID_PARAM_RET( PARAM_ERR_VALUE, TEST ) \
-    do {                                                \
-        if( (TEST) != (PARAM_ERR_VALUE) )               \
-        {                                               \
-            test_fail( #TEST, __LINE__, __FILE__ );     \
-            goto exit;                                  \
-        }                                               \
-   } while( 0 )
-
-#define TEST_INVALID_PARAM( TEST )     \
-    do {                                                \
-        TEST;                                           \
-    } while( 0 )
-
-#endif /* !defined( MBEDTLS_CHECK_PARAMS ) */
+#endif /* MBEDTLS_CHECK_PARAMS && !MBEDTLS_PARAM_FAILED_ALT */
 
 #define assert(a) if( !( a ) )                                      \
 {                                                                   \

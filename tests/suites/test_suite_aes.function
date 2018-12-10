@@ -371,7 +371,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
 void aes_invalid_param( )
 {
     mbedtls_aes_context dummy_ctx;

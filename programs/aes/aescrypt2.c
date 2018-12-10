@@ -119,7 +119,6 @@ int main( int argc, char *argv[] )
       off_t filesize, offset;
 #endif
 
-    mbedtls_aes_init( NULL );
     mbedtls_aes_init( &aes_ctx );
     mbedtls_md_init( &sha_ctx );
 

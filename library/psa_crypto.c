@@ -899,8 +899,6 @@ psa_status_t psa_internal_release_key_slot( psa_key_handle_t handle )
     status = psa_get_key_slot( handle, &slot );
     if( status != PSA_SUCCESS )
         return( status );
-    if( ! slot->allocated )
-        return( PSA_ERROR_INVALID_HANDLE );
 
     return( psa_wipe_key_slot( slot ) );
 }

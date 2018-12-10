@@ -4807,6 +4807,8 @@ int mbedtls_ssl_conf_dtls_srtp_protection_profiles( mbedtls_ssl_config *conf,
     conf->dtls_srtp_profile_list =
             (mbedtls_ssl_srtp_profile*)mbedtls_calloc(1,
              profiles_number * sizeof( mbedtls_ssl_srtp_profile ) );
+    if( conf->dtls_srtp_profile_list == NULL )
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
 
     for( i=0; i < profiles_number; i++ ) {
         switch( profiles[i] ) {

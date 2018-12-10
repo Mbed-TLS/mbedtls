@@ -785,6 +785,8 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
     size_t i,j;
     size_t profile_length;
     const mbedtls_ssl_srtp_profile_info *profile_info;
+    /*! 2 bytes for profile length and 1 byte for mki len */
+    const size_t size_of_lengths = 3;
 
     /* If use_srtp is not configured, just ignore the extension */
     if( ssl->conf->dtls_srtp_profile_list == NULL ||
@@ -806,14 +808,24 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
      * Min length is 5: at least one protection profile(2 bytes)
      *                  and length(2 bytes) + srtp_mki length(1 byte)
      */
-    if( len < 5 )
+    if( len < size_of_lengths + 2 )
+    {
+        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                        MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
         return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
 
    ssl->dtls_srtp_info.chosen_dtls_srtp_profile = MBEDTLS_SRTP_UNSET_PROFILE;
 
     /* first 2 bytes are protection profile length(in bytes) */
     profile_length = ( buf[0] << 8 ) | buf[1];
 
+    if( profile_length > len - size_of_lengths )
+    {
+        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                        MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
+        return( MBEDTLS_ERR_SSL_BAD_HS_CLIENT_HELLO );
+    }
     /*
      * parse the extension list values are defined in
      * http://www.iana.org/assignments/srtp-protection/srtp-protection.xhtml
@@ -846,7 +858,8 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
         ( len > ( profile_length + 2 ) ) )
     {
         ssl->dtls_srtp_info.mki_len = buf[profile_length + 2];
-        if( ssl->dtls_srtp_info.mki_len > MBEDTLS_DTLS_SRTP_MAX_MKI_LENGTH )
+        if( ssl->dtls_srtp_info.mki_len > MBEDTLS_DTLS_SRTP_MAX_MKI_LENGTH ||
+            ssl->dtls_srtp_info.mki_len + profile_length + size_of_lengths != len )
         {
             mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                             MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
@@ -854,7 +867,6 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
             return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
         }
 
-        ssl->dtls_srtp_info.mki_len = buf[profile_length + 2];
         for( i=0; i < ssl->dtls_srtp_info.mki_len; i++ )
         {
             ssl->dtls_srtp_info.mki_value[i] = buf[profile_length + 2 + 1 + i];

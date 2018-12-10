@@ -837,6 +837,10 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
     if( mki_len != 0 )
     {
         memcpy( p, ssl->dtls_srtp_info.mki_value, mki_len );
+        /*
+         * Increment p to point to the current position.
+         */
+        p += mki_len;
         MBEDTLS_SSL_DEBUG_BUF( 3, "sending mki",  ssl->dtls_srtp_info.mki_value,
                                ssl->dtls_srtp_info.mki_len );
     }
@@ -847,8 +851,9 @@ static void ssl_write_use_srtp_ext( mbedtls_ssl_context *ssl,
      *                         + protection profile length (2 bytes)
      *                         + 2 * number of protection profiles
      *                         + srtp_mki vector length(1 byte)
+     *                         + mki value
      */
-    *olen = 2 + 2 + 2 + 2 * ( ssl->conf->dtls_srtp_profile_list_len ) + 1 + mki_len;
+    *olen = p - buf;
 }
 #endif /* MBEDTLS_SSL_DTLS_SRTP */
 
@@ -1848,7 +1853,8 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
 
     /*
      * Length is 5 and optional mki_value : one protection profile(2 bytes)
-     *                                      + length(2 bytes) and srtp_mki
+     *                                      + length(2 bytes) + mki_len(1 byte)
+     *                                      and optional srtp_mki
      */
     if( ( len != 5 ) && ( len != ( 5 + mki_len ) ) )
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
@@ -1862,9 +1868,7 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
      * one protection profile in server Hello
      */
     if( (  buf[0] != 0 ) || ( buf[1] != 2 ) )
-    {
         return( MBEDTLS_ERR_SSL_BAD_HS_SERVER_HELLO );
-    }
 
     server_protection_profile_value = ( buf[2] << 8 ) | buf[3];
     server_protection = mbedtls_ssl_get_srtp_profile_value( server_protection_profile_value );
@@ -1901,8 +1905,8 @@ static int ssl_parse_use_srtp_ext( mbedtls_ssl_context *ssl,
      *  that is different than the one the client offered, then the client
      *  MUST abort the handshake and SHOULD send an invalid_parameter alert.
      */
-    if( len > 5  &&
-        ( memcmp( ssl->dtls_srtp_info.mki_value, &buf[5], mki_len ) ) )
+    if( len > 5  && ( buf[4] != mki_len ||
+        ( memcmp( ssl->dtls_srtp_info.mki_value, &buf[5], mki_len ) ) ) )
     {
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_ILLEGAL_PARAMETER );

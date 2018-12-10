@@ -259,19 +259,41 @@
 /**
  * \def MBEDTLS_CHECK_PARAMS
  *
- * This configuration controls whether the library validates parameters passed
- * to it.
+ * This configuration controls whether the library validates more of the
+ * parameters passed to it.
  *
- * Application code that deals with 3rd party input may wish to enable such
- * validation, whilst code on closed systems, such as embedded systems, where
- * the input is controlled and predictable, may wish to disable it entirely to
- * reduce the code size of the library.
+ * When this flag is not defined, the library only attempts to validate input
+ * parameter if: (1) they may come from the outside world (such as the
+ * network, the filesystem, etc.) or (2) not validating them could result in
+ * internal memory errors such as overflowing a buffer controlled by the
+ * library. On the other hand, it doesn't attempt to validate parameters whose
+ * values are fully controlled by the application (such as pointers).
  *
- * When the symbol is not defined, no parameter validation except that required
- * to ensure the integrity or security of the library are performed.
+ * When this flag is defined, the library additionally attempts to validate
+ * parameters that are fully controlled by the application, and should always
+ * be valid if the application code is fully correct and trusted.
  *
- * When the symbol is defined, all parameters will be validated, and an error
- * code returned where appropriate.
+ * For example, when a function accepts a input a pointer to a buffer than may
+ * contain untrusted data, and its documentation mentions that this pointer
+ * must not be NULL:
+ * - the pointer is checked to be non-NULL only if this option is enabled
+ * - the content of the buffer is always validated
+ *
+ * When this flag is defined, if a library function receives a parameter that
+ * is invalid, it will:
+ * - invoke the macro MBEDTLS_PARAM_FAILED() which by default expands to a
+ *   call to the function mbedtls_param_failed()
+ * - immediately return (with a specific error code unless the function
+ *   returns void and can't communicate an error).
+ *
+ * When defining this flag, you also need to:
+ * - either provide a definition of the function mbedtls_param_failed() in
+ *   your application (see platform_util.h for its prototype) as the library
+ *   calls that function, but does not provide a default definition for it,
+ * - or provide a different definition of the macro MBEDTLS_PARAM_FAILED()
+ *   below if the above mechanism is not enough flexible to suit your needs.
+ *
+ * Uncomment to enable validation of application-controlled parameters.
  */
 #define MBEDTLS_CHECK_PARAMS
 
@@ -3015,7 +3037,26 @@
 //#define MBEDTLS_PLATFORM_NV_SEED_READ_MACRO   mbedtls_platform_std_nv_seed_read /**< Default nv_seed_read function to use, can be undefined */
 //#define MBEDTLS_PLATFORM_NV_SEED_WRITE_MACRO  mbedtls_platform_std_nv_seed_write /**< Default nv_seed_write function to use, can be undefined */
 
-//#define MBEDTLS_PARAM_FAILED(x)               mbedtls_param_failed( #x, __FILE__, __LINE__ ) /**< Default parameter validation callback to use. Can be undefined */
+/**
+ * \brief       This macro is invoked by the library when an invalid parameter
+ *              is detected that is only checked with MBEDTLS_CHECK_PARAMS
+ *              (see the document of the flag for context).
+ *
+ *              When you leave this undefined here, a default definition is
+ *              provided the invokes the function mbedtls_param_failed(),
+ *              which is declared in platform_util.h for the benefit of the
+ *              library, but that you need to define in your application.
+ *
+ *              When you define this here, this replaces the default
+ *              definition in platform_util.h (which no longer declares the
+ *              function mbedtls_param_failed()) and it is your responsability
+ *              to make sure this macro expands to something suitable (in
+ *              particular, that all the necessary declarations are visible
+ *              from within the library).
+ *
+ * \param cond  The expression that should evaluate to true, but doesn't.
+ */
+//#define MBEDTLS_PARAM_FAILED( cond )               assert( cond )
 
 
 /* SSL Cache options */

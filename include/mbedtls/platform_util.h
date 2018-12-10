@@ -52,7 +52,7 @@ extern "C" {
 #define MBEDTLS_PARAM_FAILED_ALT
 #else
 #define MBEDTLS_PARAM_FAILED( cond ) \
-    mbedtls_param_failed( cond, __FILE__, __LINE__ )
+    mbedtls_param_failed( #cond, __FILE__, __LINE__ )
 
 /**
  * \brief       User supplied callback function for parameter validation failure.
@@ -66,15 +66,19 @@ extern "C" {
  *              application software using Mbed TLS, or catch other runtime
  *              errors which may be due to issues in the application software.
  *
- *              This function will be called unless an alternative function is
- *              defined through the MBEDTLS_PARAM_FAILURE function.
+ *              This function will be called unless an alternative treatement
+ *              is defined through the MBEDTLS_PARAM_FAILURE() macro.
  *
  *              This function can return, and the operation will be aborted, or
  *              alternatively, through use of setjmp()/longjmp() can resume
  *              execution in the application code.
+ *
+ * \param failure_condition The assertion that didn't hold.
+ * \param file  The file where the assertion failed.
+ * \param line  The line in the file where the assertion failed.
  */
-void mbedtls_param_failed( const char* failure_condition,
-                           const char* file,
+void mbedtls_param_failed( const char *failure_condition,
+                           const char *file,
                            int line );
 #endif /* MBEDTLS_PARAM_FAILED */
 #endif /* MBEDTLS_CHECK_PARAMS */

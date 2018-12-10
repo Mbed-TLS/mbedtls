@@ -121,14 +121,14 @@ typedef struct mbedtls_aes_xts_context
  *                 It must be the first API called before using
  *                 the context.
  *
- * \param ctx      The AES context to initialize.
+ * \param ctx      The AES context to initialize. Must not be NULL.
  */
 void mbedtls_aes_init( mbedtls_aes_context *ctx );
 
 /**
  * \brief          This function releases and clears the specified AES context.
  *
- * \param ctx      The AES context to clear.
+ * \param ctx      The AES context to clear. If NULL, no action is taken.
  */
 void mbedtls_aes_free( mbedtls_aes_context *ctx );
 
@@ -139,14 +139,14 @@ void mbedtls_aes_free( mbedtls_aes_context *ctx );
  *                 It must be the first API called before using
  *                 the context.
  *
- * \param ctx      The AES XTS context to initialize.
+ * \param ctx      The AES XTS context to initialize. Must not be NULL.
  */
 void mbedtls_aes_xts_init( mbedtls_aes_xts_context *ctx );
 
 /**
  * \brief          This function releases and clears the specified AES XTS context.
  *
- * \param ctx      The AES XTS context to clear.
+ * \param ctx      The AES XTS context to clear. If NULL, no action is taken.
  */
 void mbedtls_aes_xts_free( mbedtls_aes_xts_context *ctx );
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
@@ -154,8 +154,9 @@ void mbedtls_aes_xts_free( mbedtls_aes_xts_context *ctx );
 /**
  * \brief          This function sets the encryption key.
  *
- * \param ctx      The AES context to which the key should be bound.
- * \param key      The encryption key.
+ * \param ctx      The AES context to which the key should be bound. Must not
+ *                 be NULL.
+ * \param key      The encryption key. Must not be NULL.
  * \param keybits  The size of data passed in bits. Valid options are:
  *                 <ul><li>128 bits</li>
  *                 <li>192 bits</li>
@@ -170,8 +171,9 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
 /**
  * \brief          This function sets the decryption key.
  *
- * \param ctx      The AES context to which the key should be bound.
- * \param key      The decryption key.
+ * \param ctx      The AES context to which the key should be bound. Must not
+ *                 be NULL.
+ * \param key      The decryption key. Must not be NULL.
  * \param keybits  The size of data passed. Valid options are:
  *                 <ul><li>128 bits</li>
  *                 <li>192 bits</li>

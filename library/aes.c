@@ -58,7 +58,7 @@
 
 /* Parameter validation macros based on platform_util.h */
 #define AES_VALIDATE_RET( cond )    \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_AES_BAD_INPUT_DATA)
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_AES_BAD_INPUT_DATA )
 #define AES_VALIDATE( cond )        \
     MBEDTLS_INTERNAL_VALIDATE( cond )
 
@@ -541,7 +541,8 @@ void mbedtls_aes_xts_init( mbedtls_aes_xts_context *ctx )
 
 void mbedtls_aes_xts_free( mbedtls_aes_xts_context *ctx )
 {
-    AES_VALIDATE( ctx != NULL );
+    if( ctx == NULL )
+        return;
 
     mbedtls_aes_free( &ctx->crypt );
     mbedtls_aes_free( &ctx->tweak );
@@ -558,7 +559,8 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     unsigned int i;
     uint32_t *RK;
 
-    AES_VALIDATE_RET( ctx != NULL && key != NULL );
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( key != NULL );
 
     switch( keybits )
     {
@@ -676,7 +678,8 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
     uint32_t *RK;
     uint32_t *SK;
 
-    AES_VALIDATE_RET( ctx != NULL && key != NULL );
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( key != NULL );
 
     mbedtls_aes_init( &cty );
 

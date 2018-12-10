@@ -287,7 +287,9 @@ static void platform_teardown()
 }
 
 #if defined(MBEDTLS_CHECK_PARAMS)
-void mbedtls_param_failed( char* failure_condition, char* file, int line )
+void mbedtls_param_failed( const char *failure_condition,
+                           const char *file,
+                           int line )
 {
     /* If we are testing the callback function...  */
     if ( test_info.paramfail_test_state == PARAMFAIL_TESTSTATE_PENDING )

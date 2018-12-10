@@ -1822,9 +1822,9 @@
  *
  * Requires: MBEDTLS_SSL_PROTO_DTLS
  *
- * Comment this to disable support for DTLS-SRTP.
+ * Uncomment this to enable support for use_srtp extension.
  */
-#define MBEDTLS_SSL_DTLS_SRTP
+//#define MBEDTLS_SSL_DTLS_SRTP
 
 /**
  * \def MBEDTLS_SSL_DTLS_CLIENT_PORT_REUSE

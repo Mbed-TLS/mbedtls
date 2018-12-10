@@ -44,6 +44,23 @@ extern "C" {
  * inadvertently store an obscene amount of data) */
 #define PSA_CRYPTO_MAX_STORAGE_SIZE ( 30 * 1024 )
 
+/** The maximum permitted persistent slot number.
+ *
+ * In Mbed Crypto 0.1.0b:
+ * - Using the file backend, all key ids are ok except 0.
+ * - Using the ITS backend, all key ids are ok except 0xFFFFFF52
+ *   (#PSA_CRYPTO_ITS_RANDOM_SEED_UID) for which the file contains the
+ *   device's random seed (if this feature is enabled).
+ * - Only key ids from 1 to #PSA_KEY_SLOT_COUNT are actually used.
+ *
+ * Since we need to preserve the random seed, avoid using that key slot.
+ * Reserve a whole range of key slots just in case something else comes up.
+ *
+ * This limitation will probably become moot when we implement client
+ * separation for key storage.
+ */
+#define PSA_MAX_PERSISTENT_KEY_IDENTIFIER 0xffff0000
+
 /**
  * \brief Format key data and metadata and save to a location for given key
  *        slot.

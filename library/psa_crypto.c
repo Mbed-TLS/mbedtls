@@ -871,7 +871,7 @@ psa_status_t psa_internal_make_key_persistent( psa_key_handle_t handle,
         return( PSA_ERROR_INVALID_ARGUMENT );
     /* Reject high values because the file names are reserved for the
      * library's internal use. */
-    if( id >= 0xffff0000 )
+    if( id >= PSA_MAX_PERSISTENT_KEY_IDENTIFIER )
         return( PSA_ERROR_INVALID_ARGUMENT );
 
     status = psa_get_key_slot( handle, &slot );

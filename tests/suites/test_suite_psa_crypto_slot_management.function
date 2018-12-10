@@ -31,10 +31,14 @@ typedef enum
 
 #if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
 /* There is no API to purge all keys. For this test suite, require that
- * all key IDs be less than a certain maximum. */
+ * all key IDs be less than a certain maximum, or a well-known value
+ * which corresponds to a file that does not contain a key. */
 #define MAX_KEY_ID_FOR_TEST 32
+#define KEY_ID_IS_WELL_KNOWN( key_id )                  \
+    ( ( key_id ) == PSA_CRYPTO_ITS_RANDOM_SEED_UID )
 #define TEST_MAX_KEY_ID( key_id )                       \
-    TEST_ASSERT( ( key_id ) <= MAX_KEY_ID_FOR_TEST )
+    TEST_ASSERT( ( key_id ) <= MAX_KEY_ID_FOR_TEST ||   \
+                 KEY_ID_IS_WELL_KNOWN( key_id ) )
 void psa_purge_key_storage( void )
 {
     psa_key_id_t i;

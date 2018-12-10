@@ -37,7 +37,7 @@
 
 /* MBEDTLS_ERR_SHA512_HW_ACCEL_FAILED is deprecated and should not be used. */
 #define MBEDTLS_ERR_SHA512_HW_ACCEL_FAILED                -0x0039  /**< SHA-512 hardware accelerator failed */
-#define MBEDTLS_ERR_SHA512_BAD_INPUT_DATA                 -0x0075  /**< Invalid input data. */
+#define MBEDTLS_ERR_SHA512_BAD_INPUT_DATA                 -0x0075  /**< SHA-512 input data was malformed. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,6 +72,7 @@ mbedtls_sha512_context;
  * \brief          This function initializes a SHA-512 context.
  *
  * \param ctx      The SHA-512 context to initialize.
+ *                 Must not be \c NULL.
  */
 void mbedtls_sha512_init( mbedtls_sha512_context *ctx );
 
@@ -86,7 +87,9 @@ void mbedtls_sha512_free( mbedtls_sha512_context *ctx );
  * \brief          This function clones the state of a SHA-512 context.
  *
  * \param dst      The destination context.
+ *                 Must not be \c NULL.
  * \param src      The context to clone.
+ *                 Must not be \c NULL.
  */
 void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
                            const mbedtls_sha512_context *src );
@@ -96,6 +99,7 @@ void mbedtls_sha512_clone( mbedtls_sha512_context *dst,
  *                 calculation.
  *
  * \param ctx      The SHA-512 context to initialize.
+ *                 Must not be \c NULL.
  * \param is384    Determines which function to use:
  *                 0: Use SHA-512, or 1: Use SHA-384.
  *
@@ -108,7 +112,9 @@ int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 );
  *                 SHA-512 checksum calculation.
  *
  * \param ctx      The SHA-512 context.
+ *                 Must not be \c NULL.
  * \param input    The buffer holding the input data.
+ *                 Must not be \c NULL if \p ilen is greater than 0.
  * \param ilen     The length of the input data.
  *
  * \return         \c 0 on success.
@@ -123,7 +129,9 @@ int mbedtls_sha512_update_ret( mbedtls_sha512_context *ctx,
  *                 internal use only.
  *
  * \param ctx      The SHA-512 context.
+ *                 Must not be \c NULL.
  * \param output   The SHA-384 or SHA-512 checksum result.
+ *                 Must not be \c NULL.
  *
  * \return         \c 0 on success.
  */
@@ -135,7 +143,9 @@ int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
  *                 the ongoing SHA-512 computation.
  *
  * \param ctx      The SHA-512 context.
+ *                 Must not be \c NULL.
  * \param data     The buffer holding one block of data.
+ *                 Must not be \c NULL.
  *
  * \return         \c 0 on success.
  */
@@ -154,6 +164,7 @@ int mbedtls_internal_sha512_process( mbedtls_sha512_context *ctx,
  * \deprecated     Superseded by mbedtls_sha512_starts_ret() in 2.7.0
  *
  * \param ctx      The SHA-512 context to initialize.
+ *                 Must not be \c NULL.
  * \param is384    Determines which function to use:
  *                 0: Use SHA-512, or 1: Use SHA-384.
  */
@@ -167,7 +178,9 @@ MBEDTLS_DEPRECATED void mbedtls_sha512_starts( mbedtls_sha512_context *ctx,
  * \deprecated     Superseded by mbedtls_sha512_update_ret() in 2.7.0.
  *
  * \param ctx      The SHA-512 context.
+ *                 Must not be \c NULL.
  * \param input    The buffer holding the data.
+ *                 Must not be \c NULL if \p ilen is greater than 0.
  * \param ilen     The length of the input data.
  */
 MBEDTLS_DEPRECATED void mbedtls_sha512_update( mbedtls_sha512_context *ctx,
@@ -181,7 +194,9 @@ MBEDTLS_DEPRECATED void mbedtls_sha512_update( mbedtls_sha512_context *ctx,
  * \deprecated     Superseded by mbedtls_sha512_finish_ret() in 2.7.0.
  *
  * \param ctx      The SHA-512 context.
+ *                 Must not be \c NULL.
  * \param output   The SHA-384 or SHA-512 checksum result.
+ *                 Must not be \c NULL.
  */
 MBEDTLS_DEPRECATED void mbedtls_sha512_finish( mbedtls_sha512_context *ctx,
                                                unsigned char output[64] );
@@ -194,7 +209,9 @@ MBEDTLS_DEPRECATED void mbedtls_sha512_finish( mbedtls_sha512_context *ctx,
  * \deprecated     Superseded by mbedtls_internal_sha512_process() in 2.7.0.
  *
  * \param ctx      The SHA-512 context.
+ *                 Must not be \c NULL.
  * \param data     The buffer holding one block of data.
+ *                 Must not be \c NULL.
  */
 MBEDTLS_DEPRECATED void mbedtls_sha512_process(
                                             mbedtls_sha512_context *ctx,
@@ -214,8 +231,10 @@ MBEDTLS_DEPRECATED void mbedtls_sha512_process(
  *                 output = SHA-512(input buffer).
  *
  * \param input    The buffer holding the input data.
+ *                 Must not be \c NULL if \p ilen is greater than 0.
  * \param ilen     The length of the input data.
  * \param output   The SHA-384 or SHA-512 checksum result.
+ *                 Must not be \c NULL.
  * \param is384    Determines which function to use:
  *                 0: Use SHA-512, or 1: Use SHA-384.
  *
@@ -245,8 +264,10 @@ int mbedtls_sha512_ret( const unsigned char *input,
  * \deprecated     Superseded by mbedtls_sha512_ret() in 2.7.0
  *
  * \param input    The buffer holding the data.
+ *                 Must not be \c NULL if \p ilen is greater than 0.
  * \param ilen     The length of the input data.
  * \param output   The SHA-384 or SHA-512 checksum result.
+ *                 Must not be \c NULL.
  * \param is384    Determines which function to use:
  *                 0: Use SHA-512, or 1: Use SHA-384.
  */

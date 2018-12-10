@@ -611,9 +611,9 @@ exit:
 /** Import key data into a slot. `slot->type` must have been set
  * previously. This function assumes that the slot does not contain
  * any key material yet. On failure, the slot content is unchanged. */
-static psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
-                                              const uint8_t *data,
-                                              size_t data_length )
+psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
+                                       const uint8_t *data,
+                                       size_t data_length )
 {
     psa_status_t status = PSA_SUCCESS;
 
@@ -691,27 +691,6 @@ static psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
     }
     return( PSA_SUCCESS );
 }
-
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-static psa_status_t psa_load_persistent_key_into_slot( psa_key_slot_t *p_slot )
-{
-    psa_status_t status = PSA_SUCCESS;
-    uint8_t *key_data = NULL;
-    size_t key_data_length = 0;
-
-    status = psa_load_persistent_key( p_slot->persistent_storage_id,
-                                      &( p_slot )->type,
-                                      &( p_slot )->policy, &key_data,
-                                      &key_data_length );
-    if( status != PSA_SUCCESS )
-        goto exit;
-    status = psa_import_key_into_slot( p_slot,
-                                       key_data, key_data_length );
-exit:
-    psa_free_persistent_key_data( key_data, key_data_length );
-    return( status );
-}
-#endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
 
 /* Retrieve an empty key slot (slot with no key data, but possibly
  * with some metadata such as a policy). */
@@ -815,51 +794,6 @@ psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
      * zeroize because the metadata is not particularly sensitive. */
     memset( slot, 0, sizeof( *slot ) );
     return( status );
-}
-
-psa_status_t psa_internal_make_key_persistent( psa_key_handle_t handle,
-                                               psa_key_id_t id )
-{
-#if defined(MBEDTLS_PSA_CRYPTO_STORAGE_C)
-    psa_key_slot_t *slot;
-    psa_status_t status;
-
-    /* Reject id=0 because by general library conventions, 0 is an invalid
-     * value wherever possible. */
-    if( id == 0 )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-    /* Reject high values because the file names are reserved for the
-     * library's internal use. */
-    if( id >= PSA_MAX_PERSISTENT_KEY_IDENTIFIER )
-        return( PSA_ERROR_INVALID_ARGUMENT );
-
-    status = psa_get_key_slot( handle, &slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    slot->lifetime = PSA_KEY_LIFETIME_PERSISTENT;
-    slot->persistent_storage_id = id;
-    status = psa_load_persistent_key_into_slot( slot );
-
-    return( status );
-
-#else /* MBEDTLS_PSA_CRYPTO_STORAGE_C */
-    (void) handle;
-    (void) id;
-    return( PSA_ERROR_NOT_SUPPORTED );
-#endif /* !MBEDTLS_PSA_CRYPTO_STORAGE_C */
-}
-
-psa_status_t psa_internal_release_key_slot( psa_key_handle_t handle )
-{
-    psa_key_slot_t *slot;
-    psa_status_t status;
-
-    status = psa_get_key_slot( handle, &slot );
-    if( status != PSA_SUCCESS )
-        return( status );
-
-    return( psa_wipe_key_slot( slot ) );
 }
 
 psa_status_t psa_import_key( psa_key_handle_t handle,

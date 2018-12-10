@@ -63,4 +63,11 @@ typedef struct
  * Persistent storage is not affected. */
 psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot );
 
+/** Import key data into a slot. `slot->type` must have been set
+ * previously. This function assumes that the slot does not contain
+ * any key material yet. On failure, the slot content is unchanged. */
+psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
+                                       const uint8_t *data,
+                                       size_t data_length );
+
 #endif /* PSA_CRYPTO_CORE_H */

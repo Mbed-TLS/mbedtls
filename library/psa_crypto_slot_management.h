@@ -37,43 +37,4 @@ psa_status_t psa_initialize_key_slots( void );
  * storage. */
 void psa_wipe_all_key_slots( void );
 
-/** \defgroup core_slot_management Internal functions exposed by the core
- * @{
- */
-
-/** Wipe an a key slot and mark it as available.
- *
- * This does not affect persistent storage.
- *
- * \param handle        The key slot number to release.
- *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- * \retval #PSA_ERROR_TAMPERING_DETECTED
- */
-psa_status_t psa_internal_release_key_slot( psa_key_handle_t handle );
-
-/** Declare a slot as persistent and load it from storage.
- *
- * This function may only be called immediately after a successful call
- * to psa_internal_allocate_key_slot().
- *
- * \param handle        A handle to a key slot freshly allocated with
- *                      psa_internal_allocate_key_slot().
- *
- * \retval #PSA_SUCCESS
- *         The slot content was loaded successfully.
- * \retval #PSA_ERROR_EMPTY_SLOT
- *         There is no content for this slot in persistent storage.
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p id is not acceptable.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_STORAGE_FAILURE
- */
-psa_status_t psa_internal_make_key_persistent( psa_key_handle_t handle,
-                                               psa_key_id_t id );
-
-/**@}*/
-
 #endif /* PSA_CRYPTO_SLOT_MANAGEMENT_H */

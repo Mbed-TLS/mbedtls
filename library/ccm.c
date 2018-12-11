@@ -397,6 +397,13 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
                       const unsigned char *input, unsigned char *output,
                       const unsigned char *tag, size_t tag_len )
 {
+    CCM_VALIDATE_RET( ctx != NULL );
+    CCM_VALIDATE_RET( iv != NULL );
+    CCM_VALIDATE_RET( add_len == 0 || add != NULL );
+    CCM_VALIDATE_RET( length == 0 || input != NULL );
+    CCM_VALIDATE_RET( length == 0 || output != NULL );
+    CCM_VALIDATE_RET( tag != NULL );
+
     if( tag_len == 0 )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
 

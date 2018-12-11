@@ -529,9 +529,12 @@ static unsigned char peer_crt_info[1024];
 static int my_verify( void *data, mbedtls_x509_crt *crt,
                       int depth, uint32_t *flags )
 {
+#if defined(MBEDTLS_X509_INFO)
     char buf[1024];
+#endif
     ((void) data);
 
+#if defined(MBEDTLS_X509_INFO)
     mbedtls_x509_crt_info( buf, sizeof( buf ) - 1, "", crt );
     if( depth == 0 )
         memcpy( peer_crt_info, buf, sizeof( buf ) );
@@ -541,13 +544,19 @@ static int my_verify( void *data, mbedtls_x509_crt *crt,
 
     mbedtls_printf( "\nVerify requested for (Depth %d):\n", depth );
     mbedtls_printf( "%s", buf );
+#else
+    ((void) crt);
+    ((void) depth);
+#endif
 
     if ( ( *flags ) == 0 )
         mbedtls_printf( "  This certificate has no flags\n" );
     else
     {
+#if defined(MBEDTLS_X509_INFO)
         mbedtls_x509_crt_verify_info( buf, sizeof( buf ), "  ! ", *flags );
         mbedtls_printf( "%s\n", buf );
+#endif
     }
 
     return( 0 );
@@ -2275,14 +2284,18 @@ int main( int argc, char *argv[] )
 
     if( ( flags = mbedtls_ssl_get_verify_result( &ssl ) ) != 0 )
     {
+#if defined(MBEDTLS_X509_INFO)
         char vrfy_buf[512];
+#endif
 
         mbedtls_printf( " failed\n" );
 
+#if defined(MBEDTLS_X509_INFO)
         mbedtls_x509_crt_verify_info( vrfy_buf, sizeof( vrfy_buf ),
                                       "  ! ", flags );
 
         mbedtls_printf( "%s\n", vrfy_buf );
+#endif
     }
     else
         mbedtls_printf( " ok\n" );

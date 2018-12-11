@@ -1763,6 +1763,57 @@ static int x509_get_other_name( const mbedtls_x509_buf *subject_alt_name,
     return( 0 );
 }
 
+int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
+                                         mbedtls_x509_subject_alternative_name *san )
+{
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    switch( san_buf->tag &
+            ( MBEDTLS_ASN1_TAG_CLASS_MASK |
+              MBEDTLS_ASN1_TAG_VALUE_MASK ) )
+    {
+        /*
+         * otherName
+         */
+        case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_OTHER_NAME ):
+        {
+            mbedtls_x509_san_other_name other_name;
+
+            ret = x509_get_other_name( san_buf, &other_name );
+            if( ret != 0 )
+                return( ret );
+
+            memset( san, 0, sizeof( mbedtls_x509_subject_alternative_name ) );
+            san->type = MBEDTLS_X509_SAN_OTHER_NAME;
+            memcpy( &san->san.other_name,
+                    &other_name, sizeof( other_name ) );
+
+        }
+        break;
+
+        /*
+         * dNSName
+         */
+        case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_DNS_NAME ):
+        {
+            memset( san, 0, sizeof( mbedtls_x509_subject_alternative_name ) );
+            san->type = MBEDTLS_X509_SAN_DNS_NAME;
+
+            memcpy( &san->san.unstructured_name,
+                    san_buf, sizeof( *san_buf ) );
+
+        }
+        break;
+
+        /*
+         * Type not supported
+         */
+        default:
+            return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
+    }
+    return( 0 );
+}
+
+#if !defined(MBEDTLS_X509_REMOVE_INFO)
 static int x509_info_subject_alt_name( char **buf, size_t *size,
                                        const mbedtls_x509_sequence
                                                     *subject_alt_name,
@@ -1873,56 +1924,6 @@ static int x509_info_subject_alt_name( char **buf, size_t *size,
     *size = n;
     *buf = p;
 
-    return( 0 );
-}
-
-int mbedtls_x509_parse_subject_alt_name( const mbedtls_x509_buf *san_buf,
-                                         mbedtls_x509_subject_alternative_name *san )
-{
-    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    switch( san_buf->tag &
-            ( MBEDTLS_ASN1_TAG_CLASS_MASK |
-              MBEDTLS_ASN1_TAG_VALUE_MASK ) )
-    {
-        /*
-         * otherName
-         */
-        case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_OTHER_NAME ):
-        {
-            mbedtls_x509_san_other_name other_name;
-
-            ret = x509_get_other_name( san_buf, &other_name );
-            if( ret != 0 )
-                return( ret );
-
-            memset( san, 0, sizeof( mbedtls_x509_subject_alternative_name ) );
-            san->type = MBEDTLS_X509_SAN_OTHER_NAME;
-            memcpy( &san->san.other_name,
-                    &other_name, sizeof( other_name ) );
-
-        }
-        break;
-
-        /*
-         * dNSName
-         */
-        case( MBEDTLS_ASN1_CONTEXT_SPECIFIC | MBEDTLS_X509_SAN_DNS_NAME ):
-        {
-            memset( san, 0, sizeof( mbedtls_x509_subject_alternative_name ) );
-            san->type = MBEDTLS_X509_SAN_DNS_NAME;
-
-            memcpy( &san->san.unstructured_name,
-                    san_buf, sizeof( *san_buf ) );
-
-        }
-        break;
-
-        /*
-         * Type not supported
-         */
-        default:
-            return( MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE );
-    }
     return( 0 );
 }
 
@@ -2250,6 +2251,7 @@ int mbedtls_x509_crt_verify_info( char *buf, size_t size, const char *prefix,
 
     return( (int) ( size - n ) );
 }
+#endif /* MBEDTLS_X509_INFO */
 
 #if defined(MBEDTLS_X509_CHECK_KEY_USAGE)
 int mbedtls_x509_crt_check_key_usage( const mbedtls_x509_crt *crt,

@@ -398,6 +398,7 @@ int parse_crt_ext_cb( void *p_ctx, mbedtls_x509_crt const *crt, mbedtls_x509_buf
  * END_DEPENDENCIES
  */
 
+
 /* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
 void x509_parse_san( char * crt_file, char * result_str )
 {
@@ -438,7 +439,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_INFO:MBEDTLS_X509_CRT_PARSE_C */
 void x509_cert_info( char * crt_file, char * result_str )
 {
     mbedtls_x509_crt   crt;
@@ -461,7 +462,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRL_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRL_PARSE_C:MBEDTLS_X509_INFO */
 void mbedtls_x509_crl_info( char * crl_file, char * result_str )
 {
     mbedtls_x509_crl   crl;
@@ -500,7 +501,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CSR_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CSR_PARSE_C:MBEDTLS_X509_INFO */
 void mbedtls_x509_csr_info( char * csr_file, char * result_str )
 {
     mbedtls_x509_csr   csr;
@@ -523,7 +524,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_X509_INFO */
 void x509_verify_info( int flags, char * prefix, char * result_str )
 {
     char buf[2000];
@@ -738,7 +739,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_FS_IO:MBEDTLS_X509_CRT_PARSE_C:MBEDTLS_X509_INFO */
 void mbedtls_x509_dn_gets( char * crt_file, char * entity, char * result_str )
 {
     mbedtls_x509_crt   crt;
@@ -826,30 +827,37 @@ exit:
 void x509parse_crt( data_t * buf, char * result_str, int result )
 {
     mbedtls_x509_crt   crt;
+#if defined(MBEDTLS_X509_INFO)
     unsigned char output[2000];
     int res;
+#endif
 
     mbedtls_x509_crt_init( &crt );
-    memset( output, 0, 2000 );
 
     TEST_ASSERT( mbedtls_x509_crt_parse_der( &crt, buf->x, buf->len ) == ( result ) );
+#if defined(MBEDTLS_X509_INFO)
     if( ( result ) == 0 )
     {
         res = mbedtls_x509_crt_info( (char *) output, 2000, "", &crt );
-
         TEST_ASSERT( res != -1 );
         TEST_ASSERT( res != -2 );
 
         TEST_ASSERT( strcmp( (char *) output, result_str ) == 0 );
     }
+#endif
 
     mbedtls_x509_crt_free( &crt );
     mbedtls_x509_crt_init( &crt );
+#if defined(MBEDTLS_X509_INFO)
     memset( output, 0, 2000 );
+#endif
 
     TEST_ASSERT( mbedtls_x509_crt_parse_der_nocopy( &crt, buf->x, buf->len ) == ( result ) );
+#if defined(MBEDTLS_X509_INFO)
     if( ( result ) == 0 )
     {
+        memset( output, 0, 2000 );
+
         res = mbedtls_x509_crt_info( (char *) output, 2000, "", &crt );
 
         TEST_ASSERT( res != -1 );
@@ -857,6 +865,9 @@ void x509parse_crt( data_t * buf, char * result_str, int result )
 
         TEST_ASSERT( strcmp( (char *) output, result_str ) == 0 );
     }
+#else
+    ((void)result_str);
+#endif
 
     mbedtls_x509_crt_free( &crt );
     mbedtls_x509_crt_init( &crt );
@@ -939,7 +950,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CRL_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CRL_PARSE_C:MBEDTLS_X509_INFO */
 void x509parse_crl( data_t * buf, char * result_str, int result )
 {
     mbedtls_x509_crl   crl;
@@ -966,7 +977,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_CSR_PARSE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_CSR_PARSE_C:MBEDTLS_X509_INFO */
 void mbedtls_x509_csr_parse( data_t * csr_der, char * ref_out, int ref_ret )
 {
     mbedtls_x509_csr csr;
@@ -1099,7 +1110,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C */
+/* BEGIN_CASE depends_on:MBEDTLS_X509_USE_C:MBEDTLS_X509_INFO */
 void x509_oid_desc( data_t * buf, char * ref_desc )
 {
     mbedtls_x509_buf oid;

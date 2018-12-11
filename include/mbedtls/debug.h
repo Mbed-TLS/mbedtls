@@ -59,9 +59,13 @@
 #endif
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_INFO)
 #define MBEDTLS_SSL_DEBUG_CRT( level, text, crt )                \
     mbedtls_debug_print_crt( ssl, level, __FILE__, __LINE__, text, crt )
-#endif
+#else
+#define MBEDTLS_SSL_DEBUG_CRT( level, text, crt )       do { } while( 0 )
+#endif /* MBEDTLS_X509_INFO */
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_ECDH_C)
 #define MBEDTLS_SSL_DEBUG_ECDH( level, ecdh, attr )               \
@@ -248,7 +252,7 @@ void mbedtls_debug_print_ecp( const mbedtls_ssl_context *ssl, int level,
                       const char *text, const mbedtls_ecp_point *X );
 #endif
 
-#if defined(MBEDTLS_X509_CRT_PARSE_C)
+#if defined(MBEDTLS_X509_CRT_PARSE_C) && defined(MBEDTLS_X509_INFO)
 /**
  * \brief   Print a X.509 certificate structure to the debug output. This
  *          function is always used through the MBEDTLS_SSL_DEBUG_CRT() macro,

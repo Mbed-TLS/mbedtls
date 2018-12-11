@@ -1643,6 +1643,14 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE */
 
+#if defined(MBEDTLS_X509_INFO)
+    if( strcmp( "MBEDTLS_X509_INFO", config ) == 0 )
+    {
+        MACRO_EXPANSION_TO_STR( MBEDTLS_X509_INFO );
+        return( 0 );
+    }
+#endif /* MBEDTLS_X509_INFO */
+
 #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     if( strcmp( "MBEDTLS_X509_RSASSA_PSS_SUPPORT", config ) == 0 )
     {

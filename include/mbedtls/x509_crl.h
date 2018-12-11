@@ -136,6 +136,7 @@ int mbedtls_x509_crl_parse( mbedtls_x509_crl *chain, const unsigned char *buf, s
 int mbedtls_x509_crl_parse_file( mbedtls_x509_crl *chain, const char *path );
 #endif /* MBEDTLS_FS_IO */
 
+#if defined(MBEDTLS_X509_INFO)
 /**
  * \brief          Returns an informational string about the CRL.
  *
@@ -149,6 +150,7 @@ int mbedtls_x509_crl_parse_file( mbedtls_x509_crl *chain, const char *path );
  */
 int mbedtls_x509_crl_info( char *buf, size_t size, const char *prefix,
                    const mbedtls_x509_crl *crl );
+#endif
 
 /**
  * \brief          Initialize a CRL (chain)

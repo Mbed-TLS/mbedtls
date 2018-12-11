@@ -616,7 +616,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_ARC4_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "ARC4 - ARC4 hardware accelerator failed" );
     if( use_ret == -(MBEDTLS_ERR_ARC4_BAD_INPUT_DATA) )
-        mbedtls_snprintf( buf, buflen, "ARC4 - Invalid input data.              " );
+        mbedtls_snprintf( buf, buflen, "ARC4 - Invalid input data" );
 #endif /* MBEDTLS_ARC4_C */
 
 #if defined(MBEDTLS_ARIA_C)
@@ -736,9 +736,9 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH) )
         mbedtls_snprintf( buf, buflen, "DES - The data input has an invalid length" );
     if( use_ret == -(MBEDTLS_ERR_DES_HW_ACCEL_FAILED) )
-        mbedtls_snprintf( buf, buflen, "DES - DES hardware accelerator failed.     " );
+        mbedtls_snprintf( buf, buflen, "DES - DES hardware accelerator failed" );
     if( use_ret == -(MBEDTLS_ERR_DES_BAD_INPUT_DATA) )
-        mbedtls_snprintf( buf, buflen, "DES - Invalid input data.                  " );
+        mbedtls_snprintf( buf, buflen, "DES - Invalid input data" );
 #endif /* MBEDTLS_DES_C */
 
 #if defined(MBEDTLS_ENTROPY_C)

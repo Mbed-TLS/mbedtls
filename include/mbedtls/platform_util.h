@@ -87,7 +87,7 @@ void mbedtls_param_failed( const char *failure_condition,
     do {                                            \
         if( !(cond) )                               \
         {                                           \
-            MBEDTLS_PARAM_FAILED( #cond );          \
+            MBEDTLS_PARAM_FAILED( cond );           \
             return( ret );                          \
         }                                           \
     } while( 0 )
@@ -97,7 +97,7 @@ void mbedtls_param_failed( const char *failure_condition,
     do {                                            \
         if( !(cond) )                               \
         {                                           \
-            MBEDTLS_PARAM_FAILED( #cond );          \
+            MBEDTLS_PARAM_FAILED( cond );           \
             return;                                 \
         }                                           \
     } while( 0 )

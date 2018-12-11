@@ -67,7 +67,7 @@ extern "C" {
  *              errors which may be due to issues in the application software.
  *
  *              This function will be called unless an alternative treatement
- *              is defined through the MBEDTLS_PARAM_FAILURE() macro.
+ *              is defined through the MBEDTLS_PARAM_FAILED() macro.
  *
  *              This function can return, and the operation will be aborted, or
  *              alternatively, through use of setjmp()/longjmp() can resume

@@ -3266,9 +3266,9 @@ static psa_crypto_generator_t psa_crypto_generator_init(void);
  * \param[in] generator     The generator to query.
  * \param[out] capacity     On success, the capacity of the generator.
  *
- * \retval PSA_SUCCESS
- * \retval PSA_ERROR_BAD_STATE
- * \retval PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_BAD_STATE
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  */
 psa_status_t psa_get_generator_capacity(const psa_crypto_generator_t *generator,
                                         size_t *capacity);
@@ -3284,19 +3284,19 @@ psa_status_t psa_get_generator_capacity(const psa_crypto_generator_t *generator,
  *                          written.
  * \param output_length     Number of bytes to output.
  *
- * \retval PSA_SUCCESS
- * \retval PSA_ERROR_INSUFFICIENT_CAPACITY
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INSUFFICIENT_CAPACITY
  *                          There were fewer than \p output_length bytes
  *                          in the generator. Note that in this case, no
  *                          output is written to the output buffer.
  *                          The generator's capacity is set to 0, thus
  *                          subsequent calls to this function will not
  *                          succeed, even with a smaller output buffer.
- * \retval PSA_ERROR_BAD_STATE
- * \retval PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval PSA_ERROR_COMMUNICATION_FAILURE
- * \retval PSA_ERROR_HARDWARE_FAILURE
- * \retval PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
 psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
                                 uint8_t *output,
@@ -3322,28 +3322,28 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  * \param bits              Key size in bits.
  * \param[in,out] generator The generator object to read from.
  *
- * \retval PSA_SUCCESS
+ * \retval #PSA_SUCCESS
  *         Success.
- * \retval PSA_ERROR_INSUFFICIENT_CAPACITY
+ * \retval #PSA_ERROR_INSUFFICIENT_CAPACITY
  *                          There were fewer than \p output_length bytes
  *                          in the generator. Note that in this case, no
  *                          output is written to the output buffer.
  *                          The generator's capacity is set to 0, thus
  *                          subsequent calls to this function will not
  *                          succeed, even with a smaller output buffer.
- * \retval PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The key type or key size is not supported, either by the
  *         implementation in general or in this particular slot.
- * \retval PSA_ERROR_BAD_STATE
- * \retval PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_ERROR_BAD_STATE
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The key slot is invalid.
- * \retval PSA_ERROR_OCCUPIED_SLOT
+ * \retval #PSA_ERROR_OCCUPIED_SLOT
  *         There is already a key in the specified slot.
- * \retval PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval PSA_ERROR_INSUFFICIENT_STORAGE
- * \retval PSA_ERROR_COMMUNICATION_FAILURE
- * \retval PSA_ERROR_HARDWARE_FAILURE
- * \retval PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
@@ -3370,11 +3370,11 @@ psa_status_t psa_generator_import_key(psa_key_slot_t key,
  *
  * \param[in,out] generator    The generator to abort.
  *
- * \retval PSA_SUCCESS
- * \retval PSA_ERROR_BAD_STATE
- * \retval PSA_ERROR_COMMUNICATION_FAILURE
- * \retval PSA_ERROR_HARDWARE_FAILURE
- * \retval PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_BAD_STATE
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
 psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
 

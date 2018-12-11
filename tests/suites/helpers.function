@@ -133,7 +133,7 @@ typedef enum
 #define TEST_INVALID_PARAM_RET( PARAM_ERR_VALUE, TEST )                     \
     do {                                                                    \
         test_info.paramfail_test_state = PARAMFAIL_TESTSTATE_PENDING;       \
-        if( (TEST) != (PARAM_ERR_VALUE) &&                                  \
+        if( (TEST) != (PARAM_ERR_VALUE) ||                                  \
             test_info.paramfail_test_state != PARAMFAIL_TESTSTATE_CALLED )  \
         {                                                                   \
             test_fail( #TEST, __LINE__, __FILE__ );                         \

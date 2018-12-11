@@ -109,7 +109,9 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
  * \brief   This function releases and clears the specified CCM context
  *          and underlying cipher sub-context.
  *
- * \param ctx       The CCM context to clear. Must not be \c NULL.
+ * \param ctx       The CCM context to clear.
+ *
+ * \note            If ctx is \c NULL, the function has no effect.
  */
 void mbedtls_ccm_free( mbedtls_ccm_context *ctx );
 

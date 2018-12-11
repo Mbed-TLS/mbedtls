@@ -106,7 +106,8 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
  */
 void mbedtls_ccm_free( mbedtls_ccm_context *ctx )
 {
-    CCM_VALIDATE( ctx != NULL );
+    if( ctx == NULL )
+        return;
     mbedtls_cipher_free( &ctx->cipher_ctx );
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_ccm_context ) );
 }

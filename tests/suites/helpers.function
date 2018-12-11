@@ -114,6 +114,22 @@ typedef enum
           test_fail( #TEST, __LINE__, __FILE__ );           \
           goto exit;                                        \
        }                                                    \
+
+#define TEST_ASSERT_RET( TEST, EXP_RET )                          \
+    do {                                                          \
+        int ret = (TEST);                                         \
+        if( ret != EXP_RET )                                      \
+        {                                                         \
+            if( ret & MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )  \
+            {                                                     \
+                test_skip( #TEST, __LINE__, __FILE__ );           \
+            }                                                     \
+            else                                                  \
+            {                                                     \
+                test_fail( #TEST, __LINE__, __FILE__ );           \
+            }                                                     \
+            goto exit;                                            \
+        }                                                         \
     } while( 0 )
 
 /**
@@ -278,6 +294,7 @@ static struct
     const char *test;
     const char *filename;
     int line_no;
+    int skipped;
 }
 test_info;
 
@@ -651,6 +668,24 @@ int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len )
     }
 
     return( 0 );
+}
+
+static void test_skip( const char *test, int line_no, const char* filename )
+{
+    test_info.failed = 0;
+    test_info.test = test;
+    test_info.line_no = line_no;
+    test_info.filename = filename;
+    test_info.skipped = 1;
+}
+
+static void test_fail( const char *test, int line_no, const char* filename )
+{
+    test_info.failed = 1;
+    test_info.test = test;
+    test_info.line_no = line_no;
+    test_info.filename = filename;
+    test_info.skipped = 0;
 }
 
 int hexcmp( uint8_t * a, uint8_t * b, uint32_t a_len, uint32_t b_len )

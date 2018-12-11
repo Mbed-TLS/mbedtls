@@ -101,7 +101,6 @@ void mbedtls_des_init( mbedtls_des_context *ctx );
  * \param ctx      The DES context to be cleared. May be \c NULL,
  *                 in which case this function is a no-op.
  *
- *
  * \warning        DES is considered a weak cipher and its use constitutes a
  *                 security risk. We recommend considering stronger ciphers
  *                 instead.
@@ -175,8 +174,7 @@ int mbedtls_des_key_check_weak( const unsigned char key[MBEDTLS_DES_KEY_SIZE] );
 /**
  * \brief          Perform a DES key schedule (56-bit, encryption).
  *
- * \param ctx      The DES context to be initialized.
- *                 Must not be \c NULL.
+ * \param ctx      The DES context to use. Must be initialized.
  * \param key      The secret key.
  *                 Must be a readable buffer of length 8 Bytes.
  *
@@ -193,8 +191,7 @@ int mbedtls_des_setkey_enc( mbedtls_des_context *ctx,
 /**
  * \brief          Perform a DES key schedule (56-bit, decryption).
  *
- * \param ctx      The DES context to be initialized.
- *                 Must not be \c NULL.
+ * \param ctx      The DES context to use. Must be initialized.
  * \param key      The secret key.
  *                 Must be a readable buffer of length 8 Bytes.
  *
@@ -211,8 +208,7 @@ int mbedtls_des_setkey_dec( mbedtls_des_context *ctx,
 /**
  * \brief          Perform a Triple-DES key schedule (112-bit, encryption).
  *
- * \param ctx      The 3DES context to be initialized.
- *                 Must not be \c NULL.
+ * \param ctx      The 3DES context to use. Must be initialized.
  * \param key      The secret key.
  *                 Must be a readable buffer of length 16 Bytes.
  *
@@ -226,8 +222,7 @@ int mbedtls_des3_set2key_enc( mbedtls_des3_context *ctx,
 /**
  * \brief          Perform a Triple-DES key schedule (112-bit, decryption).
  *
- * \param ctx      The 3DES context to be initialized.
- *                 Must not be \c NULL.
+ * \param ctx      The 3DES context to use. Must be initialized.
  * \param key      The secret key.
  *                 Must be a readable buffer of length 16 Bytes.
  *
@@ -241,8 +236,7 @@ int mbedtls_des3_set2key_dec( mbedtls_des3_context *ctx,
 /**
  * \brief          Perform a Triple-DES key schedule (168-bit, encryption).
  *
- * \param ctx      The 3DES context to be initialized.
- *                 Must not be \c NULL.
+ * \param ctx      The 3DES context to use. Must be initialized.
  * \param key      The secret key.
  *                 Must be a readable buffer of length 24 Bytes.
  *
@@ -256,8 +250,7 @@ int mbedtls_des3_set3key_enc( mbedtls_des3_context *ctx,
 /**
  * \brief          Perform a Triple-DES key schedule (168-bit, decryption).
  *
- * \param ctx      The 3DES context to be initialized.
- *                 Must not be \c NULL.
+ * \param ctx      The 3DES context to use. Must be initialized.
  * \param key      The secret key.
  *                 Must be a readable buffer of length 24 Bytes.
  *
@@ -271,7 +264,7 @@ int mbedtls_des3_set3key_dec( mbedtls_des3_context *ctx,
 /**
  * \brief          Perform a DES-ECB block encryption/decryption.
  *
- * \param ctx      The DES context to use.
+ * \param ctx      The DES context to use. Must be initialized.
  * \param input    The input block.
  *                 Must be a readable buffer of length 8 Bytes.
  * \param output   The output block.
@@ -300,7 +293,7 @@ int mbedtls_des_crypt_ecb( mbedtls_des_context *ctx,
  *                 IV, you should either save it manually or use the cipher
  *                 module instead.
  *
- * \param ctx      The DES context to use.
+ * \param ctx      The DES context to use. Must be initialized.
  * \param mode     The mode to use:
  *                 #MBEDTLS_DES_ENCRYPT for encryption, or
  *                 #MBEDTLS_DES_DECRYPT for decryption.
@@ -330,7 +323,7 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
 /**
  * \brief          Perform a 3DES-ECB block encryption/decryption.
  *
- * \param ctx      The 3DES context to use.
+ * \param ctx      The 3DES context to use. Must be initialized.
  * \param input    The input block.
  *                 Must be a readable buffer of length 8 Bytes.
  * \param output   The output block.
@@ -355,7 +348,7 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
  *                 IV, you should either save it manually or use the cipher
  *                 module instead.
  *
- * \param ctx      The 3DES context to use.
+ * \param ctx      The 3DES context to use. Must be initialized.
  * \param mode     The mode of operation:
  *                 #MBEDTLS_DES_ENCRYPT for encryption, or
  *                 #MBEDTLS_DES_DECRYPT for decryption.

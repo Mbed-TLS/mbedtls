@@ -1,3 +1,6 @@
+Parameter validation
+mpi_invalid_param:
+
 Arguments with no value
 mpi_null:
 

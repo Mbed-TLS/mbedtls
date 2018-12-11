@@ -7,7 +7,7 @@
  * END_DEPENDENCIES
  */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS */
+/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
 void mbedtls_arc4_invalid_param( )
 {
     mbedtls_arc4_context ctx;

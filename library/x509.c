@@ -1025,7 +1025,14 @@ int mbedtls_x509_self_test( int verbose )
 
     ret = mbedtls_x509_crt_parse( &clicert, (const unsigned char *) mbedtls_test_cli_crt,
                            mbedtls_test_cli_crt_len );
-    if( ret != 0 )
+    if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "skipped\n" );
+        ret = 0;
+        goto cleanup;
+    }
+    else if( ret != 0 )
     {
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
@@ -1035,7 +1042,14 @@ int mbedtls_x509_self_test( int verbose )
 
     ret = mbedtls_x509_crt_parse( &cacert, (const unsigned char *) mbedtls_test_ca_crt,
                           mbedtls_test_ca_crt_len );
-    if( ret != 0 )
+    if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "skipped\n" );
+        ret = 0;
+        goto cleanup;
+    }
+    else if( ret != 0 )
     {
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
@@ -1047,7 +1061,15 @@ int mbedtls_x509_self_test( int verbose )
         mbedtls_printf( "passed\n  X.509 signature verify: ");
 
     ret = mbedtls_x509_crt_verify( &clicert, &cacert, NULL, NULL, &flags, NULL, NULL );
-    if( ret != 0 )
+    if( flags & ( MBEDTLS_X509_BADCERT_ALG_NOT_SUPPORTED |
+                  MBEDTLS_X509_BADCRL_ALG_NOT_SUPPORTED ) )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "skipped\n" );
+        ret = 0;
+        goto cleanup;
+    }
+    else if( ret != 0 )
     {
         if( verbose != 0 )
             mbedtls_printf( "failed\n" );
@@ -1061,6 +1083,7 @@ int mbedtls_x509_self_test( int verbose )
 cleanup:
     mbedtls_x509_crt_free( &cacert  );
     mbedtls_x509_crt_free( &clicert );
+
 #else
     ((void) verbose);
 #endif /* MBEDTLS_CERTS_C && MBEDTLS_SHA1_C */

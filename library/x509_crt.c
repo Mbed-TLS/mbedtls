@@ -1472,6 +1472,11 @@ int mbedtls_x509_crt_parse( mbedtls_x509_crt *chain,
                  */
                 if( ret == MBEDTLS_ERR_X509_ALLOC_FAILED )
                     return( ret );
+                /*
+                 * Quit parsing on a feature not suppoprted by HW error.
+                 */
+                if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
+                    return( ret );
 
                 if( first_error == 0 )
                     first_error = ret;
@@ -1565,7 +1570,15 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
         }
 
         w_ret = mbedtls_x509_crt_parse_file( chain, filename );
-        if( w_ret < 0 )
+        /*
+         * Quit parsing on a feature not suppoprted by HW error.
+         */
+        if( w_ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
+        {
+            ret = w_ret;
+            goto cleanup;
+        }
+        else if( w_ret < 0 )
             ret++;
         else
             ret += w_ret;
@@ -1618,7 +1631,15 @@ cleanup:
         // Ignore parse errors
         //
         t_ret = mbedtls_x509_crt_parse_file( chain, entry_name );
-        if( t_ret < 0 )
+        /*
+         * Quit parsing on a feature not suppoprted by HW error.
+         */
+        if( t_ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
+        {
+            ret = t_ret;
+            goto cleanup;
+        }
+        else if( t_ret < 0 )
             ret++;
         else
             ret += t_ret;
@@ -2311,6 +2332,8 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
     int flags = 0;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
     const mbedtls_md_info_t *md_info;
+    int ret = 0;
+
 
     if( ca == NULL )
         return( flags );
@@ -2346,9 +2369,18 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
             flags |= MBEDTLS_X509_BADCRL_BAD_PK;
 
         md_info = mbedtls_md_info_from_type( crl_list->sig_md );
-        if( mbedtls_md( md_info, crl_list->tbs.p, crl_list->tbs.len, hash ) != 0 )
+        if( ( ret = mbedtls_md( md_info, crl_list->tbs.p,
+                                crl_list->tbs.len, hash ) ) != 0 )
         {
-            /* Note: this can't happen except after an internal error */
+            if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
+            {
+                flags |= MBEDTLS_X509_BADCRL_ALG_NOT_SUPPORTED;
+            }
+            /*
+             * Add the MBEDTLS_X509_BADCRL_NOT_TRUSTED flag because the CRL
+             * couldn't be verified.Otherwise, this can't happen except after an
+             * internal error
+             */
             flags |= MBEDTLS_X509_BADCRL_NOT_TRUSTED;
             break;
         }
@@ -2356,10 +2388,18 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
         if( x509_profile_check_key( profile, &ca->pk ) != 0 )
             flags |= MBEDTLS_X509_BADCERT_BAD_KEY;
 
-        if( mbedtls_pk_verify_ext( crl_list->sig_pk, crl_list->sig_opts, &ca->pk,
+        if( ( ret = mbedtls_pk_verify_ext( crl_list->sig_pk, crl_list->sig_opts, &ca->pk,
                            crl_list->sig_md, hash, mbedtls_md_get_size( md_info ),
-                           crl_list->sig.p, crl_list->sig.len ) != 0 )
+                           crl_list->sig.p, crl_list->sig.len ) ) != 0 )
         {
+            if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
+            {
+                flags |= MBEDTLS_X509_BADCRL_ALG_NOT_SUPPORTED;
+            }
+            /*
+             * Add the MBEDTLS_X509_BADCRL_NOT_TRUSTED flag because the CRL
+             * couldn't be verified.
+             */
             flags |= MBEDTLS_X509_BADCRL_NOT_TRUSTED;
             break;
         }
@@ -2580,6 +2620,9 @@ check_signature:
 #endif
         ret = x509_crt_check_signature( child, parent, rs_ctx );
 
+        if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
+            return( ret );
+
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
         if( rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
         {
@@ -2679,6 +2722,8 @@ static int x509_crt_find_parent(
                                        parent, signature_is_good,
                                        *parent_is_trusted,
                                        path_cnt, self_cnt, rs_ctx );
+        if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
+            return( ret );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
         if( rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
@@ -2888,6 +2933,8 @@ find_parent:
         ret = x509_crt_find_parent( child, cur_trust_ca, &parent,
                                        &parent_is_trusted, &signature_is_good,
                                        ver_chain->len - 1, self_cnt, rs_ctx );
+        if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
+            *flags |= MBEDTLS_X509_BADCERT_ALG_NOT_SUPPORTED;
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
         if( rs_ctx != NULL && ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
@@ -2902,10 +2949,13 @@ find_parent:
 #else
         (void) ret;
 #endif
-
         /* No parent? We're done here */
         if( parent == NULL )
         {
+            /*
+             * Add the MBEDTLS_X509_BADCERT_NOT_TRUSTED flag because
+             * the certificate couldn't be verified.
+             */
             *flags |= MBEDTLS_X509_BADCERT_NOT_TRUSTED;
             return( 0 );
         }

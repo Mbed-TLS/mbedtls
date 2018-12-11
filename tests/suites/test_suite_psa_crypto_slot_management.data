@@ -50,19 +50,15 @@ depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
 open_fail:PSA_KEY_LIFETIME_PERSISTENT:1:PSA_ERROR_EMPTY_SLOT
 
 Open failure: volatile lifetime
-depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
 open_fail:PSA_KEY_LIFETIME_VOLATILE:1:PSA_ERROR_INVALID_ARGUMENT
 
 Open failure: invalid lifetime
-depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
 open_fail:0x7fffffff:0:PSA_ERROR_INVALID_ARGUMENT
 
 Create failure: volatile lifetime
-depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
 create_fail:PSA_KEY_LIFETIME_VOLATILE:1:PSA_KEY_TYPE_RAW_DATA:8:PSA_ERROR_INVALID_ARGUMENT
 
 Create failure: invalid lifetime
-depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C
 create_fail:0x7fffffff:0:PSA_KEY_TYPE_RAW_DATA:8:PSA_ERROR_INVALID_ARGUMENT
 
 Create failure: invalid key id (0)

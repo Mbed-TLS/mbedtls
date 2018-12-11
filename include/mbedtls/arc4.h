@@ -96,10 +96,9 @@ void mbedtls_arc4_free( mbedtls_arc4_context *ctx );
 /**
  * \brief          Perform an ARC4 key schedule.
  *
- * \param ctx      The ARC4 context to be setup.
- *                 Must not be \c NULL.
+ * \param ctx      The ARC4 context to be setup. Must be initialized.
  * \param key      The secret key buffer.
- *                 Must be a readable buffer of length \p key Bytes.
+ *                 Must be a readable buffer of length \p keylen Bytes.
  * \param keylen   The length of the secret key \p key in Bytes.
  *                 Must be in the range from 40 Bits - 2048 Bits.
  *
@@ -115,7 +114,7 @@ void mbedtls_arc4_setup( mbedtls_arc4_context *ctx,
 /**
  * \brief          Perform an ARC4 encryption/decryption operation.
  *
- * \param ctx      The ARC4 context to use.
+ * \param ctx      The ARC4 context to use. Must be initialized.
  * \param length   The length of the input data in Bytes.
  * \param input    The buffer holding the input data.
  *                 Must be a readable buffer of length \p length Bytes.

@@ -100,7 +100,8 @@ void psa_wipe_all_key_slots( void )
 
 /** Find a free key slot and mark it as in use.
  *
- * \param[out] handle   On success, a slot number that is not in use.
+ * \param[out] handle   On success, a slot number that is not in use. This
+ *                      value can be used as a handle to the slot.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -123,7 +124,7 @@ static psa_status_t psa_internal_allocate_key_slot( psa_key_handle_t *handle )
  *
  * This does not affect persistent storage.
  *
- * \param handle        The key slot number to release.
+ * \param handle        The handle to the key slot to release.
  *
  * \retval #PSA_SUCCESS
  * \retval #PSA_ERROR_INVALID_ARGUMENT

@@ -41,8 +41,8 @@
  * This type represents open handles to keys. It must be an unsigned integral
  * type. The choice of type is implementation-dependent.
  *
- * 0 is not a valid key slot number. The meaning of other values is
- * implementation dependent.
+ * 0 is not a valid key handle. How other handle values are assigned is
+ * implementation-dependent.
  */
 typedef _unsigned_integral_type_ psa_key_handle_t;
 
@@ -129,17 +129,17 @@ typedef int32_t psa_status_t;
 /** A slot is occupied, but must be empty to carry out the
  * requested action.
  *
- * If the slot number is invalid (i.e. the requested action could
- * not be performed even after erasing the slot's content),
- * implementations shall return #PSA_ERROR_INVALID_ARGUMENT instead. */
+ * If a handle is invalid, it does not designate an occupied slot.
+ * The error for an invalid handle is #PSA_ERROR_INVALID_HANDLE.
+ */
 #define PSA_ERROR_OCCUPIED_SLOT         ((psa_status_t)5)
 
 /** A slot is empty, but must be occupied to carry out the
  * requested action.
  *
- * If the slot number is invalid (i.e. the requested action could
- * not be performed even after creating appropriate content in the slot),
- * implementations shall return #PSA_ERROR_INVALID_ARGUMENT instead. */
+ * If a handle is invalid, it does not designate an empty slot.
+ * The error for an invalid handle is #PSA_ERROR_INVALID_HANDLE.
+ */
 #define PSA_ERROR_EMPTY_SLOT            ((psa_status_t)6)
 
 /** The requested action cannot be performed in the current state.
@@ -162,7 +162,12 @@ typedef int32_t psa_status_t;
  * Implementations shall not return this error code to indicate
  * that a key slot is occupied when it needs to be free or vice versa,
  * but shall return #PSA_ERROR_OCCUPIED_SLOT or #PSA_ERROR_EMPTY_SLOT
- * as applicable. */
+ * as applicable.
+ *
+ * Implementation shall not return this error code to indicate that a
+ * key handle is invalid, but shall return #PSA_ERROR_INVALID_HANDLE
+ * instead.
+ */
 #define PSA_ERROR_INVALID_ARGUMENT      ((psa_status_t)8)
 
 /** There is not enough runtime memory.
@@ -1409,13 +1414,22 @@ typedef uint32_t psa_key_lifetime_t;
  */
 typedef uint32_t psa_key_id_t;
 
-/** A volatile key slot retains its content as long as the application is
- * running. It is guaranteed to be erased on a power reset.
+/** A volatile key only exists as long as the handle to it is not closed.
+ * The key material is guaranteed to be erased on a power reset.
  */
 #define PSA_KEY_LIFETIME_VOLATILE               ((psa_key_lifetime_t)0x00000000)
 
-/** A persistent key slot retains its content as long as it is not explicitly
- * destroyed.
+/** The default storage area for persistent keys.
+ *
+ * A persistent key remains in storage until it is explicitly destroyed or
+ * until the corresponding storage area is wiped. This specification does
+ * not define any mechanism to wipe a storage area, but implementations may
+ * provide their own mechanism (for example to perform a factory reset,
+ * to prepare for device refurbishment, or to uninstall an application).
+ *
+ * This lifetime value is the default storage area for the calling
+ * application. Implementations may offer other storage areas designated
+ * by other lifetime values as implementation-specific extensions.
  */
 #define PSA_KEY_LIFETIME_PERSISTENT             ((psa_key_lifetime_t)0x00000001)
 
@@ -1599,6 +1613,8 @@ psa_status_t psa_close_key(psa_key_handle_t handle);
  *
  * \retval #PSA_SUCCESS
  *         Success.
+ *         If the key is persistent, the key material and the key's metadata
+ *         have been saved to persistent storage.
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         The key type or key size is not supported, either by the
@@ -2009,6 +2025,10 @@ psa_algorithm_t psa_key_policy_get_algorithm(const psa_key_policy_t *policy);
  * \param[in] policy    The policy object to query.
  *
  * \retval #PSA_SUCCESS
+ *         Success.
+ *         If the key is persistent, it is implementation-defined whether
+ *         the policy has been saved to persistent storage. Implementations
+ *         may defer saving the policy until the key material is created.
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_OCCUPIED_SLOT
  * \retval #PSA_ERROR_NOT_SUPPORTED
@@ -3292,6 +3312,8 @@ psa_status_t psa_generator_read(psa_crypto_generator_t *generator,
  *
  * \retval #PSA_SUCCESS
  *         Success.
+ *         If the key is persistent, the key material and the key's metadata
+ *         have been saved to persistent storage.
  * \retval #PSA_ERROR_INSUFFICIENT_CAPACITY
  *                          There were fewer than \p output_length bytes
  *                          in the generator. Note that in this case, no
@@ -3542,6 +3564,9 @@ typedef struct {
  *                          \c NULL then \p extra_size must be zero.
  *
  * \retval #PSA_SUCCESS
+ *         Success.
+ *         If the key is persistent, the key material and the key's metadata
+ *         have been saved to persistent storage.
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_OCCUPIED_SLOT
  *         There is already a key in the specified slot.

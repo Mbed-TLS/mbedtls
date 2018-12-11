@@ -3040,16 +3040,16 @@
 /**
  * \brief       This macro is invoked by the library when an invalid parameter
  *              is detected that is only checked with MBEDTLS_CHECK_PARAMS
- *              (see the document of the flag for context).
+ *              (see the documentation of that option for context).
  *
  *              When you leave this undefined here, a default definition is
- *              provided the invokes the function mbedtls_param_failed(),
+ *              provided that invokes the function mbedtls_param_failed(),
  *              which is declared in platform_util.h for the benefit of the
  *              library, but that you need to define in your application.
  *
  *              When you define this here, this replaces the default
  *              definition in platform_util.h (which no longer declares the
- *              function mbedtls_param_failed()) and it is your responsability
+ *              function mbedtls_param_failed()) and it is your responsibility
  *              to make sure this macro expands to something suitable (in
  *              particular, that all the necessary declarations are visible
  *              from within the library).

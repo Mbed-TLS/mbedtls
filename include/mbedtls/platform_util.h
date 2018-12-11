@@ -56,18 +56,10 @@ extern "C" {
 
 /**
  * \brief       User supplied callback function for parameter validation failure.
- *
- *              When the MBEDTLS_CHECK_PARAMS option is enabled, the library
- *              provides additional validation of all input parameters to
- *              confirm that they conform to what the interface can accept.
- *              For example - NULL paramater checks.
- *
- *              These checks are designed to check programmatic issues in the
- *              application software using Mbed TLS, or catch other runtime
- *              errors which may be due to issues in the application software.
+ *              See #MBEDTLS_CHECK_PARAMS for context.
  *
  *              This function will be called unless an alternative treatement
- *              is defined through the MBEDTLS_PARAM_FAILED() macro.
+ *              is defined through the #MBEDTLS_PARAM_FAILED macro.
  *
  *              This function can return, and the operation will be aborted, or
  *              alternatively, through use of setjmp()/longjmp() can resume

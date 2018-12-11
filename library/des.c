@@ -539,10 +539,6 @@ static void des3_set2key( uint32_t esk[96],
                           const unsigned char key[MBEDTLS_DES_KEY_SIZE*2] )
 {
     int i;
-    DES_VALIDATE( esk != NULL );
-    DES_VALIDATE( dsk != NULL );
-    DES_VALIDATE( key != NULL );
-
     mbedtls_des_setkey( esk, key );
     mbedtls_des_setkey( dsk + 32, key + 8 );
 
@@ -599,10 +595,6 @@ static void des3_set3key( uint32_t esk[96],
                           const unsigned char key[24] )
 {
     int i;
-    DES_VALIDATE( esk != NULL );
-    DES_VALIDATE( dsk != NULL );
-    DES_VALIDATE( key != NULL );
-
     mbedtls_des_setkey( esk, key );
     mbedtls_des_setkey( dsk + 32, key +  8 );
     mbedtls_des_setkey( esk + 64, key + 16 );

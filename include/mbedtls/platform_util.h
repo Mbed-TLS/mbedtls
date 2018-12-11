@@ -41,7 +41,7 @@
 extern "C" {
 #endif
 
-#if defined( MBEDTLS_CHECK_PARAMS )
+#if defined(MBEDTLS_CHECK_PARAMS)
 
 #if defined(MBEDTLS_PARAM_FAILED)
 /** An alternative definition of MBEDTLS_PARAM_FAILED has been set in config.h.
@@ -50,7 +50,7 @@ extern "C" {
  * MBEDTLS_PARAM_FAILED() will expand to a call to mbedtls_param_failed().
  */
 #define MBEDTLS_PARAM_FAILED_ALT
-#else
+#else /* MBEDTLS_PARAM_FAILED */
 #define MBEDTLS_PARAM_FAILED( cond ) \
     mbedtls_param_failed( #cond, __FILE__, __LINE__ )
 

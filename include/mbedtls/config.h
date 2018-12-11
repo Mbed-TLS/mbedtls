@@ -3058,7 +3058,6 @@
  */
 //#define MBEDTLS_PARAM_FAILED( cond )               assert( cond )
 
-
 /* SSL Cache options */
 //#define MBEDTLS_SSL_CACHE_DEFAULT_TIMEOUT       86400 /**< 1 day  */
 //#define MBEDTLS_SSL_CACHE_DEFAULT_MAX_ENTRIES      50 /**< Maximum entries in cache */

@@ -99,7 +99,6 @@ typedef enum
  *
  * \param   TEST    The test expression to be tested.
  */
-
 #define TEST_ASSERT( TEST )                                 \
     do {                                                    \
        if( ! (TEST) )                                       \

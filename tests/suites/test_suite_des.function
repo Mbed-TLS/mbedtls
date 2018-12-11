@@ -14,7 +14,7 @@ void des_check_weak( data_t * key, int ret )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS */
+/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
 void des_invalid_params( )
 {
     mbedtls_des_context  ctx_des;

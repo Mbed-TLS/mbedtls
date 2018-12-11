@@ -525,9 +525,6 @@ void ccm_invalid_param( )
                                        valid_buffer, valid_buffer,
                                        NULL, valid_len ) );
 
-    /* mbedtls_ccm_free() */
-    TEST_INVALID_PARAM( mbedtls_ccm_free( NULL ) );
-
 exit:
     mbedtls_ccm_free( &ctx );
     return;

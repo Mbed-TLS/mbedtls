@@ -446,9 +446,11 @@
 #define PSA_KEY_TYPE_IS_ECC(type)                                       \
     ((PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) &                        \
       ~PSA_KEY_TYPE_ECC_CURVE_MASK) == PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE)
+/** Whether a key type is an elliptic curve key pair. */
 #define PSA_KEY_TYPE_IS_ECC_KEYPAIR(type)                               \
     (((type) & ~PSA_KEY_TYPE_ECC_CURVE_MASK) ==                         \
      PSA_KEY_TYPE_ECC_KEYPAIR_BASE)
+/** Whether a key type is an elliptic curve public key. */
 #define PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY(type)                            \
     (((type) & ~PSA_KEY_TYPE_ECC_CURVE_MASK) ==                         \
      PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE)

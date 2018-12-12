@@ -1,9 +1,6 @@
 PSA compile-time sanity checks
 static_checks:
 
-PSA fill 250 slots
-fill_slots:250
-
 PSA import/export raw: 0 bytes
 import_export:"":PSA_KEY_TYPE_RAW_DATA:0:PSA_KEY_USAGE_EXPORT:0:0:PSA_SUCCESS:1
 
@@ -32,14 +29,14 @@ PSA import to non empty key slot
 depends_on:MBEDTLS_AES_C
 import_key_nonempty_slot
 
-PSA export empty key slot
-export_invalid_slot:1:PSA_ERROR_EMPTY_SLOT
+PSA export invalid handle (0)
+export_invalid_handle:0:PSA_ERROR_INVALID_HANDLE
 
-PSA export out of range key slot - lower bound
-export_invalid_slot:0:PSA_ERROR_INVALID_ARGUMENT
+PSA export invalid handle (smallest plausible handle)
+export_invalid_handle:1:PSA_ERROR_INVALID_HANDLE
 
-PSA export out of range key slot - upper bound
-export_invalid_slot:(psa_key_slot_t)(-1):PSA_ERROR_INVALID_ARGUMENT
+PSA export invalid handle (largest plausible handle)
+export_invalid_handle:-1:PSA_ERROR_INVALID_HANDLE
 
 PSA export a slot where there was some activity but no key material creation
 export_with_no_key_activity
@@ -320,6 +317,10 @@ PSA import EC keypair: valid key but RSA
 depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_BP512R1_ENABLED:MBEDTLS_RSA_C
 import:"3082013b020100024100ee2b131d6b1818a94ca8e91c42387eb15a7c271f57b89e7336b144d4535b16c83097ecdefbbb92d1b5313b5a37214d0e8f25922dca778b424b25295fc8a1a7070203010001024100978ac8eadb0dc6035347d6aba8671215ff21283385396f7897c04baf5e2a835f3b53ef80a82ed36ae687a925380b55a0c73eb85656e989dcf0ed7fb4887024e1022100fdad8e1c6853563f8b921d2d112462ae7d6b176082d2ba43e87e1a37fc1a8b33022100f0592cf4c55ba44307b18981bcdbda376c51e590ffa5345ba866f6962dca94dd02201995f1a967d44ff4a4cd1de837bc65bf97a2bf7eda730a9a62cea53254591105022027f96cf4b8ee68ff8d04062ec1ce7f18c0b74e4b3379b29f9bfea3fc8e592731022100cefa6d220496b43feb83194255d8fb930afcf46f36606e3aa0eb7a93ad88c10c":PSA_KEY_TYPE_ECC_KEYPAIR(PSA_ECC_CURVE_BRAINPOOL_P512R1):PSA_ERROR_INVALID_ARGUMENT
 
+PSA import failure preserves policy
+depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_RSA_C:MBEDTLS_PKCS1_V15
+import_twice:PSA_ALG_RSA_PKCS1V15_SIGN_RAW:PSA_KEY_USAGE_VERIFY:PSA_KEY_TYPE_RSA_PUBLIC_KEY:"":PSA_ERROR_INVALID_ARGUMENT:PSA_KEY_TYPE_RSA_PUBLIC_KEY:"30819f300d06092a864886f70d010101050003818d0030818902818100af057d396ee84fb75fdbb5c2b13c7fe5a654aa8aa2470b541ee1feb0b12d25c79711531249e1129628042dbbb6c120d1443524ef4c0e6e1d8956eeb2077af12349ddeee54483bc06c2c61948cd02b202e796aebd94d3a7cbf859c2c1819c324cb82b9cd34ede263a2abffe4733f077869e8660f7d6834da53d690ef7985f6bc30203010001":PSA_SUCCESS
+
 PSA import RSA key pair: maximum size exceeded
 depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_RSA_C
 import_rsa_made_up:PSA_VENDOR_RSA_MAX_KEY_BITS+8:1:PSA_ERROR_NOT_SUPPORTED
@@ -466,18 +467,6 @@ agreement_key_policy:0:PSA_ALG_ECDH(PSA_ALG_SELECT_RAW):PSA_KEY_TYPE_ECC_KEYPAIR
 PSA key policy: agreement, wrong algorithm
 depends_on:MBEDTLS_PK_PARSE_C:MBEDTLS_ECP_C:MBEDTLS_ECP_DP_SECP256R1_ENABLED:MBEDTLS_ECDH_C
 agreement_key_policy:PSA_KEY_USAGE_DERIVE:PSA_ALG_ECDH(PSA_ALG_SELECT_RAW):PSA_KEY_TYPE_ECC_KEYPAIR(PSA_ECC_CURVE_SECP256R1):"49c9a8c18c4b885638c431cf1df1c994131609b580d4fd43a0cab17db2f13eee":PSA_ALG_FFDH(PSA_ALG_SELECT_RAW)
-
-PSA key lifetime: set and get volatile
-key_lifetime:PSA_KEY_LIFETIME_VOLATILE
-
-PSA key lifetime set: invalid key slot
-key_lifetime_set_fail:0:PSA_KEY_LIFETIME_VOLATILE:PSA_ERROR_INVALID_ARGUMENT
-
-PSA key lifetime set: cannot change write_once lifetime
-key_lifetime_set_fail:1:PSA_KEY_LIFETIME_WRITE_ONCE:PSA_ERROR_NOT_SUPPORTED
-
-PSA key lifetime set: invalid key lifetime value
-key_lifetime_set_fail:1:PSA_KEY_LIFETIME_PERSISTENT+1:PSA_ERROR_INVALID_ARGUMENT
 
 PSA hash setup: good, SHA-1
 depends_on:MBEDTLS_SHA1_C

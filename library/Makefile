@@ -83,6 +83,7 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 		pkcs5.o		pkparse.o	pkwrite.o	\
 		platform.o	platform_util.o	poly1305.o	\
 		psa_crypto.o					\
+		psa_crypto_slot_management.o			\
 		psa_crypto_storage.o				\
 		psa_crypto_storage_file.o			\
 		psa_crypto_storage_its.o			\

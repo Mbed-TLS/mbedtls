@@ -465,7 +465,7 @@ int mbedtls_mpi_read_string( mbedtls_mpi *X, int radix, const char *s )
     MPI_VALIDATE_RET( s != NULL );
 
     if( radix < 2 || radix > 16 )
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );;
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
     mbedtls_mpi_init( &T );
 
@@ -568,7 +568,7 @@ int mbedtls_mpi_write_string( const mbedtls_mpi *X, int radix,
     MPI_VALIDATE_RET( buflen == 0 || buf != NULL );
 
     if( radix < 2 || radix > 16 )
-        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );;
+        return( MBEDTLS_ERR_MPI_BAD_INPUT_DATA );
 
     n = mbedtls_mpi_bitlen( X );
     if( radix >=  4 ) n >>= 1;

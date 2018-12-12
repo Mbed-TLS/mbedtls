@@ -219,9 +219,10 @@ void mpi_invalid_param( )
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
                             mbedtls_mpi_inv_mod( NULL, &X, &X ) );
 
+    mbedtls_mpi_free( NULL );
+
 exit:
     return;
-
 }
 /* END_CASE */
 

@@ -191,7 +191,7 @@ mbedtls_mpi;
  *                  This makes the MPI ready to be set or freed,
  *                  but does not define a value for the MPI.
  *
- * \param X         The MPI context to initialize. Must not be \c NULL.
+ * \param X         The MPI context to initialize. This must not be \c NULL.
  */
 void mbedtls_mpi_init( mbedtls_mpi *X );
 
@@ -199,7 +199,8 @@ void mbedtls_mpi_init( mbedtls_mpi *X );
  * \brief          Clear an MPI context.
  *
  * \param X        The MPI context to be cleared. May be \c NULL,
- *                 in which case this function is a no-op.
+ *                 in which case this function is a no-op. If it is
+ *                 not \c NULL, it must point to an initialized MPI.
  */
 void mbedtls_mpi_free( mbedtls_mpi *X );
 
@@ -209,7 +210,7 @@ void mbedtls_mpi_free( mbedtls_mpi *X );
  * \note           This function does nothing if the MPI is
  *                 already large enough.
  *
- * \param X        The MPI to grow. Must point to an initialized MPI.
+ * \param X        The MPI to grow. It must be initialized.
  * \param nblimbs  The target number of limbs.
  *
  * \return         \c 0 if successful.
@@ -224,7 +225,7 @@ int mbedtls_mpi_grow( mbedtls_mpi *X, size_t nblimbs );
  *                 If \c X is smaller than \c nblimbs, it is resized up
  *                 instead.
  *
- * \param X        The MPI to shrink. Must point to an initialized MPI.
+ * \param X        The MPI to shrink. This must point to an initialized MPI.
  * \param nblimbs  The minimum number of limbs to keep.
  *
  * \return         \c 0 if successful.
@@ -237,8 +238,8 @@ int mbedtls_mpi_shrink( mbedtls_mpi *X, size_t nblimbs );
 /**
  * \brief          Make a copy of an MPI.
  *
- * \param X        The destination MPI. Must point to an initialized MPI.
- * \param Y        The source MPI.
+ * \param X        The destination MPI. This must point to an initialized MPI.
+ * \param Y        The source MPI. This must point to an initialized MPI.
  *
  * \note           The limb-buffer in the destination MPI is enlarged
  *                 if necessary to hold the value in the source MPI.
@@ -252,8 +253,8 @@ int mbedtls_mpi_copy( mbedtls_mpi *X, const mbedtls_mpi *Y );
 /**
  * \brief          Swap the contents of two MPIs.
  *
- * \param X        The first MPI. Must not be \c NULL.
- * \param Y        The second MPI. Must not be \c NULL.
+ * \param X        The first MPI. It must be initialized.
+ * \param Y        The second MPI. It must be initialized.
  */
 void mbedtls_mpi_swap( mbedtls_mpi *X, mbedtls_mpi *Y );
 
@@ -261,8 +262,10 @@ void mbedtls_mpi_swap( mbedtls_mpi *X, mbedtls_mpi *Y );
  * \brief          Safe conditional copy of MPI which doesn't
  *                 reveal whether the conditional was true or not.
  *
- * \param X        The MPI to conditionally assign to.
- * \param Y        The MPI to be assigned from.
+ * \param X        The MPI to conditionally assign to. This must point
+ *                 to an initialized MPI.
+ * \param Y        The MPI to be assigned from. This must point to an
+ *                 initialized MPI.
  * \param assign   The conditional deciding whether to perform the
  *                 assignment or not. Possible values:
  *                 * \c 1: Perform the assignment `X = Y`.
@@ -285,10 +288,10 @@ int mbedtls_mpi_safe_cond_assign( mbedtls_mpi *X, const mbedtls_mpi *Y, unsigned
  * \brief          Safe conditional swap which doesn't
  *                 reveal whether the conditional was true or not.
  *
- * \param X        The first MPI.
- * \param Y        The second MPI.
+ * \param X        The first MPI. This must be initialized.
+ * \param Y        The second MPI. This must be initialized.
  * \param assign   The conditional deciding whether to perform
- *                 the swap or not Possible values:
+ *                 the swap or not. Possible values:
  *                 * \c 1: Swap the values of \p X and \p Y.
  *                 * \c 0: Keep the original values of \p X and \p Y.
  *
@@ -309,7 +312,7 @@ int mbedtls_mpi_safe_cond_swap( mbedtls_mpi *X, mbedtls_mpi *Y, unsigned char as
 /**
  * \brief          Store integer value in MPI.
  *
- * \param X        The MPI to set.
+ * \param X        The MPI to set. This must be initialized.
  * \param z        The value to use.
  *
  * \return         \c 0 if successful.
@@ -321,11 +324,11 @@ int mbedtls_mpi_lset( mbedtls_mpi *X, mbedtls_mpi_sint z );
 /**
  * \brief          Get a specific bit from an MPI.
  *
- * \param X        The MPI to query.
+ * \param X        The MPI to query. This must be initialized.
  * \param pos      Zero-based index of the bit to query.
  *
  * \return         \c 0 or \c 1 on success, depending on whether bit \c pos
- *                 of \c X is unset resp. set.
+ *                 of \c X is unset or set.
  * \return         A negative error code on failure.
  */
 int mbedtls_mpi_get_bit( const mbedtls_mpi *X, size_t pos );
@@ -337,7 +340,7 @@ int mbedtls_mpi_get_bit( const mbedtls_mpi *X, size_t pos );
  *                 bit to \c 1 in a not yet existing limb. It will not grow if
  *                 the bit should be set to \c 0.
  *
- * \param X        The MPI to modify.
+ * \param X        The MPI to modify. This must be initialized.
  * \param pos      Zero-based index of the bit to modify.
  * \param val      The desired value of bit \c pos: \c 0 or \c 1.
  *
@@ -349,7 +352,7 @@ int mbedtls_mpi_set_bit( mbedtls_mpi *X, size_t pos, unsigned char val );
 
 /**
  * \brief          Return the number of zero-bits before the
- *                 least significant 1-bit
+ *                 least significant '1' bit
  *
  * \note           This is the same as the zero-based index of
  *                 the least significant '1' bit.
@@ -357,28 +360,28 @@ int mbedtls_mpi_set_bit( mbedtls_mpi *X, size_t pos, unsigned char val );
  * \param X        The MPI to query.
  *
  * \return         The number of zero-bits before the least significant
- *                 1-bit in \p X.
+ *                 '1' bit in \p X.
  */
 size_t mbedtls_mpi_lsb( const mbedtls_mpi *X );
 
 /**
  * \brief          Return the number of bits up to and including the most
- *                 significant 1-bit.
+ *                 significant '1' bit.
  *
  * * \note         This is same as the one-based index of the most
- *                 significant 1-bit.
+ *                 significant '1' bit.
  *
- * \param X        The MPI to query. Must point to an initialized MPI.
+ * \param X        The MPI to query. This must point to an initialized MPI.
  *
  * \return         The number of bits up to and including the most
- *                 significant 1-bit.
+ *                 significant '1' bit.
  */
 size_t mbedtls_mpi_bitlen( const mbedtls_mpi *X );
 
 /**
  * \brief          Return the total size an MPI value in bytes.
  *
- * \param X        The MPI to use. Must point to an initialized MPI.
+ * \param X        The MPI to use. This must point to an initialized MPI.
  *
  * \note           The value returned by this function may be less than
  *                 the number of bytes used to store \p X internally.
@@ -392,7 +395,7 @@ size_t mbedtls_mpi_size( const mbedtls_mpi *X );
 /**
  * \brief          Import an MPI from an ASCII string.
  *
- * \param X        The destination MPI. Must point to an initialized MPI.
+ * \param X        The destination MPI. This must point to an initialized MPI.
  * \param radix    The numeric base of the input string.
  * \param s        Null-terminated string buffer.
  *
@@ -404,13 +407,13 @@ int mbedtls_mpi_read_string( mbedtls_mpi *X, int radix, const char *s );
 /**
  * \brief          Export an MPI into an ASCII string.
  *
- * \param X        The source MPI. Must point to an initialized MPI.
+ * \param X        The source MPI. This must point to an initialized MPI.
  * \param radix    The numeric base of the output string.
  * \param buf      Buffer to write the string to. Must be writable of
  *                 length \p buflen Bytes. May be \c NULL if `buflen == 0`.
  * \param buflen   The available size in Bytes of \p buf.
  * \param olen     Address at which to store the length of the string written,
- *                 including final \c NULL byte. Must not be \c NULL.
+ *                 including final \c NULL byte. This must not be \c NULL.
  *
  * \note           Call this function with `buflen == 0` to obtain the
  *                 minimum required buffer size in `*olen`.
@@ -429,10 +432,10 @@ int mbedtls_mpi_write_string( const mbedtls_mpi *X, int radix,
 /**
  * \brief          Read an MPI from a line in an opened file.
  *
- * \param X        The destination MPI. Must point to an initialized MPI.
+ * \param X        The destination MPI. This must point to an initialized MPI.
  * \param radix    The numeric base of the string representation used
  *                 in the source line.
- * \param fin      The input file handle to use. Must not be \c NULL.
+ * \param fin      The input file handle to use. This must not be \c NULL.
  *
  * \note           On success, this function advances the file stream
  *                 to the end of the current line or to EOF.
@@ -456,7 +459,7 @@ int mbedtls_mpi_read_file( mbedtls_mpi *X, int radix, FILE *fin );
  *                 For example, this might be a label, or "0x" when
  *                 printing in base 16. May be \c NULL if no prefix
  *                 is needed.
- * \param X        The source MPI. Must point to an initialized MPI.
+ * \param X        The source MPI. This must point to an initialized MPI.
  * \param radix    The numeric base to be used in the emitted string.
  * \param fout     The output file handle. May be \c NULL, in which case
  *                 the output is written to `stdout`.
@@ -471,7 +474,7 @@ int mbedtls_mpi_write_file( const char *p, const mbedtls_mpi *X,
 /**
  * \brief          Import an MPI from unsigned big endian binary data.
  *
- * \param X        The destination MPI. Must point to an initialized MPI.
+ * \param X        The destination MPI. This must point to an initialized MPI.
  * \param buf      The input buffer. Must be a readable buffer of length
  *                 \p buflen Bytes.
  * \param buflen   The length of the input buffer \p p in Bytes.
@@ -487,7 +490,7 @@ int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf,
  * \brief          Export an MPI into unsigned big endian binary data
  *                 of fixed size.
  *
- * \param X        The source MPI. Must point to an initialized MPI.
+ * \param X        The source MPI. This must point to an initialized MPI.
  * \param buf      The output buffer. Must be a writable buffer of length
  *                 \p buflen Bytes.
  * \param buflen   The size of the output buffer \p buf in Bytes.
@@ -503,7 +506,7 @@ int mbedtls_mpi_write_binary( const mbedtls_mpi *X, unsigned char *buf,
 /**
  * \brief          Perform a left-shift on an MPI: X <<= count
  *
- * \param X        The MPI to shift. Must point to an initialized MPI.
+ * \param X        The MPI to shift. This must point to an initialized MPI.
  * \param count    The amount to shift, in bits.
  *
  * \return         \c 0 if successful.
@@ -515,7 +518,7 @@ int mbedtls_mpi_shift_l( mbedtls_mpi *X, size_t count );
 /**
  * \brief          Perform a right-shift on an MPI: X >>= count
  *
- * \param X        The MPI to shift. Must point to an initialized MPI.
+ * \param X        The MPI to shift. This must point to an initialized MPI.
  * \param count    The amount to shift, in bits.
  *
  * \return         \c 0 if successful.
@@ -527,8 +530,8 @@ int mbedtls_mpi_shift_r( mbedtls_mpi *X, size_t count );
 /**
  * \brief          Compare the absolute values of two MPIs.
  *
- * \param X        The left-hand MPI. Must point to an initialized MPI.
- * \param Y        The right-hand MPI. Must point to an initialized MPI.
+ * \param X        The left-hand MPI. This must point to an initialized MPI.
+ * \param Y        The right-hand MPI. This must point to an initialized MPI.
  *
  * \return         \c 1 if `|X|` is greater than `|Y|`.
  * \return         \c -1 if `|X|` is lesser than `|Y|`.
@@ -539,8 +542,8 @@ int mbedtls_mpi_cmp_abs( const mbedtls_mpi *X, const mbedtls_mpi *Y );
 /**
  * \brief          Compare two MPIs.
  *
- * \param X        The left-hand MPI. Must point to an initialized MPI.
- * \param Y        The right-hand MPI. Must point to an initialized MPI.
+ * \param X        The left-hand MPI. This must point to an initialized MPI.
+ * \param Y        The right-hand MPI. This must point to an initialized MPI.
  *
  * \return         \c 1 if `X` is greater than `Y`.
  * \return         \c -1 if `X` is lesser than `Y`.
@@ -551,7 +554,7 @@ int mbedtls_mpi_cmp_mpi( const mbedtls_mpi *X, const mbedtls_mpi *Y );
 /**
  * \brief          Compare an MPI with an integer.
  *
- * \param X        The left-hand MPI. Must point to an initialized MPI.
+ * \param X        The left-hand MPI. This must point to an initialized MPI.
  * \param z        The integer value to compare \p X to.
  *
  * \return         \c 1 if `X` is greater than `z`.
@@ -563,9 +566,9 @@ int mbedtls_mpi_cmp_int( const mbedtls_mpi *X, mbedtls_mpi_sint z );
 /**
  * \brief          Perform an unsigned addition of MPIs: X = |A| + |B|
  *
- * \param X        The destination MPI. Must point to an initialized MPI.
- * \param A        The first summand. Must point to an initialized MPI.
- * \param B        The second summand. Must point to an initialized MPI.
+ * \param X        The destination MPI. This must point to an initialized MPI.
+ * \param A        The first summand. This must point to an initialized MPI.
+ * \param B        The second summand. This must point to an initialized MPI.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
@@ -577,9 +580,9 @@ int mbedtls_mpi_add_abs( mbedtls_mpi *X, const mbedtls_mpi *A,
 /**
  * \brief          Perform an unsigned subtraction of MPIs: X = |A| - |B|
  *
- * \param X        The destination MPI. Must point to an initialized MPI.
- * \param A        The minuend. Must point to an initialized MPI.
- * \param B        The subtrahend. Must point to an initialized MPI.
+ * \param X        The destination MPI. This must point to an initialized MPI.
+ * \param A        The minuend. This must point to an initialized MPI.
+ * \param B        The subtrahend. This must point to an initialized MPI.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_MPI_NEGATIVE_VALUE if \p B is greater than \p A.
@@ -592,9 +595,9 @@ int mbedtls_mpi_sub_abs( mbedtls_mpi *X, const mbedtls_mpi *A,
 /**
  * \brief          Perform a signed addition of MPIs: X = A + B
  *
- * \param X        The destination MPI. Must point to an initialized MPI.
- * \param A        The first summand. Must point to an initialized MPI.
- * \param B        The second summand. Must point to an initialized MPI.
+ * \param X        The destination MPI. This must point to an initialized MPI.
+ * \param A        The first summand. This must point to an initialized MPI.
+ * \param B        The second summand. This must point to an initialized MPI.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
@@ -606,9 +609,9 @@ int mbedtls_mpi_add_mpi( mbedtls_mpi *X, const mbedtls_mpi *A,
 /**
  * \brief          Perform a signed subtraction of MPIs: X = A - B
  *
- * \param X        The destination MPI. Must point to an initialized MPI.
- * \param A        The minuend. Must point to an initialized MPI.
- * \param B        The subtrahend. Must point to an initialized MPI.
+ * \param X        The destination MPI. This must point to an initialized MPI.
+ * \param A        The minuend. This must point to an initialized MPI.
+ * \param B        The subtrahend. This must point to an initialized MPI.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
@@ -620,8 +623,8 @@ int mbedtls_mpi_sub_mpi( mbedtls_mpi *X, const mbedtls_mpi *A,
 /**
  * \brief          Perform a signed addition of an MPI and an integer: X = A + b
  *
- * \param X        The destination MPI. Must point to an initialized MPI.
- * \param A        The first summand. Must point to an initialized MPI.
+ * \param X        The destination MPI. This must point to an initialized MPI.
+ * \param A        The first summand. This must point to an initialized MPI.
  * \param b        The second summand.
  *
  * \return         \c 0 if successful.
@@ -635,8 +638,8 @@ int mbedtls_mpi_add_int( mbedtls_mpi *X, const mbedtls_mpi *A,
  * \brief          Perform a signed subtraction of an MPI and an integer:
  *                 X = A - b
  *
- * \param X        The destination MPI. Must point to an initialized MPI.
- * \param A        The minuend. Must point to an initialized MPI.
+ * \param X        The destination MPI. This must point to an initialized MPI.
+ * \param A        The minuend. This must point to an initialized MPI.
  * \param B        The subtrahend.
  *
  * \return         \c 0 if successful.
@@ -649,9 +652,9 @@ int mbedtls_mpi_sub_int( mbedtls_mpi *X, const mbedtls_mpi *A,
 /**
  * \brief          Perform a multiplication of two MPIs: X = A * B
  *
- * \param X        The destination MPI. Must point to an initialized MPI.
- * \param A        The first factor. Must point to an initialized MPI.
- * \param B        The second factor. Must point to an initialized MPI.
+ * \param X        The destination MPI. This must point to an initialized MPI.
+ * \param A        The first factor. This must point to an initialized MPI.
+ * \param B        The second factor. This must point to an initialized MPI.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
@@ -665,8 +668,8 @@ int mbedtls_mpi_mul_mpi( mbedtls_mpi *X, const mbedtls_mpi *A,
  * \brief          Perform a multiplication of an MPI with an unsigned integer:
  *                 X = A * b
  *
- * \param X        The destination MPI. Must point to an initialized MPI.
- * \param A        The first factor. Must point to an initialized MPI.
+ * \param X        The destination MPI. This must point to an initialized MPI.
+ * \param A        The first factor. This must point to an initialized MPI.
  * \param b        The second factor.
  *
  * \return         \c 0 if successful.
@@ -685,8 +688,8 @@ int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A,
  *                 May be \c NULL is the value of the quotient is not needed.
  * \param R        The destination MPI for the remainder value.
  *                 May be \c NULL if the value of the remainder is not needed.
- * \param A        The divident. Must point to an initialized MPi.
- * \param B        The divisor. Must point to an initialized MPI.
+ * \param A        The divident. This must point to an initialized MPi.
+ * \param B        The divisor. This must point to an initialized MPI.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if memory allocation failed.
@@ -704,7 +707,7 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
  *                 May be \c NULL is the value of the quotient is not needed.
  * \param R        The destination MPI for the remainder value.
  *                 May be \c NULL if the value of the remainder is not needed.
- * \param A        The divident. Must point to an initialized MPi.
+ * \param A        The divident. This must point to an initialized MPi.
  * \param b        The divisor.
  *
  * \return         \c 0 if successful.
@@ -719,11 +722,11 @@ int mbedtls_mpi_div_int( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
  * \brief          Perform a modular reduction. R = A mod B
  *
  * \param R        The destination MPI for the residue value.
- *                 Must point to an initialized MPI.
+ *                 This must point to an initialized MPI.
  * \param A        The MPI to compute the residue of.
- *                 Must point to an initialized MPI.
+ *                 This must point to an initialized MPI.
  * \param B        The base of the modular reduction.
- *                 Must point to an initialized MPI.
+ *                 This must point to an initialized MPI.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
@@ -740,9 +743,9 @@ int mbedtls_mpi_mod_mpi( mbedtls_mpi *R, const mbedtls_mpi *A,
  *                 r = A mod b
  *
  * \param r        The address at which to store the residue.
- *                 Must not be \c NULL.
+ *                 This must not be \c NULL.
  * \param A        The MPI to compute the residue of.
- *                 Must point to an initialized MPi.
+ *                 This must point to an initialized MPi.
  * \param b        The integer base of the modular reduction.
  *
  * \return         \c 0 if successful.
@@ -757,11 +760,11 @@ int mbedtls_mpi_mod_int( mbedtls_mpi_uint *r, const mbedtls_mpi *A,
 /**
  * \brief          Perform a sliding-window exponentiation: X = A^E mod N
  *
- * \param X        The destination MPI. Must point to an initialized MPI.
+ * \param X        The destination MPI. This must point to an initialized MPI.
  * \param A        The base of the exponentiation.
- *                 Must point to an initialized MPI.
- * \param E        The exponent MPI. Must point to an initialized MPI.
- * \param N        The base for the modular reduction. Must point to an
+ *                 This must point to an initialized MPI.
+ * \param E        The exponent MPI. This must point to an initialized MPI.
+ * \param N        The base for the modular reduction. This must point to an
  *                 initialized MPI.
  * \param _RR      A helper MPI depending solely on \p N which can be used to
  *                 speed-up multiple modular exponentiations for the same value
@@ -787,9 +790,9 @@ int mbedtls_mpi_exp_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
 /**
  * \brief          Fill an MPI with a number of random bytes.
  *
- * \param X        The destination MPI. Must point to an initialized MPI.
+ * \param X        The destination MPI. This must point to an initialized MPI.
  * \param size     The number of random bytes to generate.
- * \param f_rng    The RNG function to use. Must not be \c NULL.
+ * \param f_rng    The RNG function to use. This must not be \c NULL.
  * \param p_rng    The RNG parameter to be passed to \p f_rng. May be \c NULL
  *                 if \p f_rng doesn't need a context argument.
  *
@@ -808,9 +811,9 @@ int mbedtls_mpi_fill_random( mbedtls_mpi *X, size_t size,
 /**
  * \brief          Compute the greatest common divisor: G = gcd(A, B)
  *
- * \param G        The destination MPI. Must point to an initialized MPI.
- * \param A        The first operand. Must point to an initialized MPI.
- * \param A        The second operand. Must point to an initialized MPI.
+ * \param G        The destination MPI. This must point to an initialized MPI.
+ * \param A        The first operand. This must point to an initialized MPI.
+ * \param A        The second operand. This must point to an initialized MPI.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
@@ -822,10 +825,10 @@ int mbedtls_mpi_gcd( mbedtls_mpi *G, const mbedtls_mpi *A,
 /**
  * \brief          Compute the modular inverse: X = A^-1 mod N
  *
- * \param X        The destination MPI. Must point to an initialized MPI.
- * \param A        The MPI to calculate the modular inverse of. Must point
+ * \param X        The destination MPI. This must point to an initialized MPI.
+ * \param A        The MPI to calculate the modular inverse of. This must point
  *                 to an initialized MPI.
- * \param N        The base of the modular inversion. Must point to an
+ * \param N        The base of the modular inversion. This must point to an
  *                 initialized MPI.
  *
  * \return         \c 0 if successful.
@@ -851,8 +854,8 @@ int mbedtls_mpi_inv_mod( mbedtls_mpi *X, const mbedtls_mpi *A,
  *                 specifying the number of Miller-Rabin rounds.
  *
  * \param X        The MPI to check for primality.
- *                 Must point to an initialized MPI.
- * \param f_rng    The RNG function to use. Must not be \c NULL.
+ *                 This must point to an initialized MPI.
+ * \param f_rng    The RNG function to use. This must not be \c NULL.
  * \param p_rng    The RNG parameter to be passed to \p f_rng.
  *                 May be \c NULL if \p f_rng doesn't use a context parameter.
  *
@@ -880,11 +883,11 @@ MBEDTLS_DEPRECATED int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
  *                 \p rounds can be much lower.
  *
  * \param X        The MPI to check for primality.
- *                 Must point to an initialized MPI.
+ *                 This must point to an initialized MPI.
  * \param rounds   The number of bases to perform the Miller-Rabin primality
  *                 test for. The probability of returning 0 on a composite is
  *                 at most 2<sup>-2*\p rounds</sup>.
- * \param f_rng    The RNG function to use. Must not be \c NULL.
+ * \param f_rng    The RNG function to use. This must not be \c NULL.
  * \param p_rng    The RNG parameter to be passed to \p f_rng.
  *                 May be \c NULL if \p f_rng doesn't use a context parameter.
  *
@@ -911,11 +914,11 @@ typedef enum {
  * \brief          Generate a prime number.
  *
  * \param X        The destination MPI to store the generated prime in.
- *                 Must point to an initialized MPi.
+ *                 This must point to an initialized MPi.
  * \param nbits    The required size of the destination MPI in bits.
  *                 Must be between \c 3 and #MBEDTLS_MPI_MAX_BITS.
  * \param flags    A mask of flags of type #mbedtls_mpi_gen_prime_flag_t.
- * \param f_rng    The RNG function to use. Must not be \c NULL.
+ * \param f_rng    The RNG function to use. This must not be \c NULL.
  * \param p_rng    The RNG parameter to be passed to \p f_rng.
  *                 May be \c NULL if \p f_rng doesn't use a context parameter.
  *

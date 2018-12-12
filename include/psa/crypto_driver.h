@@ -35,19 +35,23 @@
 extern "C" {
 #endif
 
-/** The following types are redefinitions from the psa/crypto.h file.
- * It is intended that these will be moved to a new common header file to
- * avoid duplication. They are included here for expediency in publication.
- */
-typedef uint32_t psa_status_t;
-typedef uint32_t psa_algorithm_t;
-typedef uint8_t psa_encrypt_or_decrypt_t;
-typedef uint32_t psa_key_slot_t;
-typedef uint32_t psa_key_type_t;
-typedef uint32_t psa_key_usage_t;
+/* Include type definitions (psa_status_t, psa_algorithm_t,
+ * psa_key_type_t, etc.) and macros to build and analyze values
+ * of these types. */
+#include "crypto_types.h"
+#include "crypto_values.h"
 
-#define PSA_CRYPTO_DRIVER_ENCRYPT 1
-#define PSA_CRYPTO_DRIVER_DECRYPT 0
+/** An internal designation of a key slot between the core part of the
+ * PSA Crypto implementation and the driver. The meaning of this value
+ * is driver-dependent. */
+typedef uint32_t psa_key_slot_t;
+
+/** For encrypt-decrypt functions, whether the operation is an encryption
+ * or a decryption. */
+typedef enum {
+    PSA_CRYPTO_DRIVER_DECRYPT,
+    PSA_CRYPTO_DRIVER_ENCRYPT
+} psa_encrypt_or_decrypt_t;
 
 /** \defgroup opaque_mac Opaque Message Authentication Code
  * Generation and authentication of Message Authentication Codes (MACs) using

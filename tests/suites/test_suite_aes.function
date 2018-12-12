@@ -394,13 +394,15 @@ void aes_invalid_param( )
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
                             mbedtls_aes_setkey_dec( &dummy_ctx, NULL, 128 ) );
+}
+/* END_CASE */
 
+/* BEGIN_CASE */
+void aes_valid_param( )
+{
     /* These calls accept NULL */
     TEST_VALID_PARAM( mbedtls_aes_free( NULL ) );
     TEST_VALID_PARAM( mbedtls_aes_xts_free( NULL ) );
-
-exit:
-    return;
 }
 /* END_CASE */
 

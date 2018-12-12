@@ -13,6 +13,9 @@ aes_decrypt_cbc:"000000000000000000000000000000000000000000000000000000000000000
 AES - Invalid parameters
 aes_invalid_param:
 
+AES - Valid parameters
+aes_valid_param:
+
 AES Selftest
 depends_on:MBEDTLS_SELF_TEST
 aes_selftest:

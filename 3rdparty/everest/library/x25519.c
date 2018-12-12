@@ -27,6 +27,8 @@
 
 #if defined(MBEDTLS_ECDH_C)
 
+#include <mbedtls/ecdh.h>
+
 #include <Hacl_Curve25519.h>
 #include <mbedtls/platform_util.h>
 
@@ -100,16 +102,16 @@ int mbedtls_x25519_read_params( mbedtls_x25519_context *ctx,
 }
 
 int mbedtls_x25519_get_params( mbedtls_x25519_context *ctx, const mbedtls_ecp_keypair *key,
-                        int side )
+                               mbedtls_x25519_ecdh_side side )
 {
     size_t olen = 0;
 
     switch( side ) {
-    case MBEDTLS_ECDH_THEIRS:
+    case MBEDTLS_X25519_ECDH_THEIRS:
         mbedtls_ecp_point_write_binary( &key->grp, &key->Q, MBEDTLS_ECP_PF_COMPRESSED, &olen, ctx->peer_point, 32 );
         /* untested; defensively throw an error for now. */
         return(MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE);
-    case MBEDTLS_ECDH_OURS:
+    case MBEDTLS_X25519_ECDH_OURS:
         mbedtls_mpi_write_binary( &key->d, ctx->our_secret, 32 );
         /* CMW: key->Q = key->d * base; do we need to set up ctx.peer_point here? */
         /* untested; defensively throw an error for now. */

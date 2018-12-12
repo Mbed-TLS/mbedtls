@@ -41,89 +41,69 @@
 
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
 
-int mbedtls_everest_setup( mbedtls_ecdh_context *ctx, int grp )
+int mbedtls_everest_setup( mbedtls_ecdh_context_everest *ctx, int grp_id )
 {
-    if( grp != MBEDTLS_ECP_DP_CURVE25519 )
+    if( grp_id != MBEDTLS_ECP_DP_CURVE25519 )
         return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
-
-    ctx->var = MBEDTLS_ECDH_VARIANT_EVEREST;
-    ctx->grp_id = grp;
-
-    ctx->ctx.everest_ecdh.ctx = mbedtls_calloc( 1, sizeof( mbedtls_x25519_context ) );
-    mbedtls_x25519_init( ctx->ctx.everest_ecdh.ctx );
-
+    mbedtls_x25519_init( &ctx->ctx );
     return 0;
 }
 
-void mbedtls_everest_free( mbedtls_ecdh_context *ctx )
+void mbedtls_everest_free( mbedtls_ecdh_context_everest *ctx )
 {
-    mbedtls_ecdh_context_everest *everest_ctx = &ctx->ctx.everest_ecdh;
-    mbedtls_x25519_context *x25519_ctx = ( mbedtls_x25519_context* )everest_ctx->ctx;
-
-    mbedtls_x25519_free( x25519_ctx );
-    mbedtls_free( x25519_ctx );
-
-    ctx->var = MBEDTLS_ECDH_VARIANT_NONE;
-    ctx->grp_id = MBEDTLS_ECP_DP_NONE;
+    mbedtls_x25519_free( &ctx->ctx );
 }
 
-int mbedtls_everest_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
+int mbedtls_everest_make_params( mbedtls_ecdh_context_everest *ctx, size_t *olen,
                                  unsigned char *buf, size_t blen,
                                  int( *f_rng )( void *, unsigned char *, size_t ),
                                  void *p_rng )
 {
-    mbedtls_ecdh_context_everest *everest_ctx = &ctx->ctx.everest_ecdh;
-    mbedtls_x25519_context *x25519_ctx = ( mbedtls_x25519_context* )everest_ctx->ctx;
-    if( ctx->var != MBEDTLS_ECDH_VARIANT_EVEREST ) return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+    mbedtls_x25519_context *x25519_ctx = &ctx->ctx;
     return mbedtls_x25519_make_params( x25519_ctx, olen, buf, blen, f_rng, p_rng );
 }
 
-int mbedtls_everest_read_params( mbedtls_ecdh_context *ctx,
-                                 const unsigned char **buf, const unsigned char *end )
+int mbedtls_everest_read_params( mbedtls_ecdh_context_everest *ctx,
+                                 const unsigned char **buf,
+                                 const unsigned char *end )
 {
-    mbedtls_ecdh_context_everest *everest_ctx = &ctx->ctx.everest_ecdh;
-    mbedtls_x25519_context *x25519_ctx = ( mbedtls_x25519_context* )everest_ctx->ctx;
-    if( ctx->var != MBEDTLS_ECDH_VARIANT_EVEREST ) return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+    mbedtls_x25519_context *x25519_ctx = &ctx->ctx;
     return mbedtls_x25519_read_params( x25519_ctx, buf, end );
 }
 
-int mbedtls_everest_get_params( mbedtls_ecdh_context *ctx, const mbedtls_ecp_keypair *key,
-    int side )
+int mbedtls_everest_get_params( mbedtls_ecdh_context_everest *ctx,
+                                const mbedtls_ecp_keypair *key,
+                                mbedtls_everest_ecdh_side side )
 {
-    mbedtls_ecdh_context_everest *everest_ctx = &ctx->ctx.everest_ecdh;
-    mbedtls_x25519_context *x25519_ctx = ( mbedtls_x25519_context* )everest_ctx->ctx;
-    if( ctx->var != MBEDTLS_ECDH_VARIANT_EVEREST ) return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
-    return mbedtls_x25519_get_params( x25519_ctx, key, side );
+    mbedtls_x25519_context *x25519_ctx = &ctx->ctx;
+    mbedtls_x25519_ecdh_side s = side == MBEDTLS_EVEREST_ECDH_OURS ?
+                                            MBEDTLS_X25519_ECDH_OURS :
+                                            MBEDTLS_X25519_ECDH_THEIRS;
+    return mbedtls_x25519_get_params( x25519_ctx, key, s );
 }
 
-int mbedtls_everest_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
+int mbedtls_everest_make_public( mbedtls_ecdh_context_everest *ctx, size_t *olen,
                                  unsigned char *buf, size_t blen,
                                  int( *f_rng )( void *, unsigned char *, size_t ),
                                  void *p_rng )
 {
-    mbedtls_ecdh_context_everest *everest_ctx = &ctx->ctx.everest_ecdh;
-    mbedtls_x25519_context *x25519_ctx = ( mbedtls_x25519_context* )everest_ctx->ctx;
-    if( ctx->var != MBEDTLS_ECDH_VARIANT_EVEREST ) return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+    mbedtls_x25519_context *x25519_ctx = &ctx->ctx;
     return mbedtls_x25519_make_public( x25519_ctx, olen, buf, blen, f_rng, p_rng );
 }
 
-int mbedtls_everest_read_public( mbedtls_ecdh_context *ctx,
+int mbedtls_everest_read_public( mbedtls_ecdh_context_everest *ctx,
                                  const unsigned char *buf, size_t blen )
 {
-    mbedtls_ecdh_context_everest *everest_ctx = &ctx->ctx.everest_ecdh;
-    mbedtls_x25519_context *x25519_ctx = ( mbedtls_x25519_context* )everest_ctx->ctx;
-    if( ctx->var != MBEDTLS_ECDH_VARIANT_EVEREST ) return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+    mbedtls_x25519_context *x25519_ctx = &ctx->ctx;
     return mbedtls_x25519_read_public ( x25519_ctx, buf, blen );
 }
 
-int mbedtls_everest_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
+int mbedtls_everest_calc_secret( mbedtls_ecdh_context_everest *ctx, size_t *olen,
                                  unsigned char *buf, size_t blen,
                                  int( *f_rng )( void *, unsigned char *, size_t ),
                                  void *p_rng )
 {
-    mbedtls_ecdh_context_everest *everest_ctx = &ctx->ctx.everest_ecdh;
-    mbedtls_x25519_context *x25519_ctx = ( mbedtls_x25519_context* )everest_ctx->ctx;
-    if( ctx->var != MBEDTLS_ECDH_VARIANT_EVEREST ) return MBEDTLS_ERR_MPI_BAD_INPUT_DATA;
+    mbedtls_x25519_context *x25519_ctx = &ctx->ctx;
     return mbedtls_x25519_calc_secret( x25519_ctx, olen, buf, blen, f_rng, p_rng );
 }
 

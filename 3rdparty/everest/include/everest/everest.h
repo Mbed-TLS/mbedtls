@@ -22,17 +22,23 @@
 #ifndef MBEDTLS_EVEREST_H
 #define MBEDTLS_EVEREST_H
 
+#include "everest/x25519.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct mbedtls_ecdh_context;
-typedef struct mbedtls_ecdh_context mbedtls_ecdh_context;
-
-struct mbedtls_x25519_context_;
+/**
+ * Defines the source of the imported EC key.
+ */
+typedef enum
+{
+    MBEDTLS_EVEREST_ECDH_OURS,   /**< Our key. */
+    MBEDTLS_EVEREST_ECDH_THEIRS, /**< The key of the peer. */
+} mbedtls_everest_ecdh_side;
 
 typedef struct {
-    struct mbedtls_x25519_context_ *ctx;
+    mbedtls_x25519_context ctx;
 } mbedtls_ecdh_context_everest;
 
 
@@ -48,18 +54,18 @@ typedef struct {
  *                  ciphersuites.
  *
  * \param ctx       The ECDH context to set up.
- * \param grp       The group id of the group to set up the context for.
+ * \param grp_id    The group id of the group to set up the context for.
  *
  * \return          \c 0 on success.
  */
-int mbedtls_everest_setup( mbedtls_ecdh_context *ctx, int grp );
+int mbedtls_everest_setup( mbedtls_ecdh_context_everest *ctx, int grp_id );
 
 /**
  * \brief           This function frees a context.
  *
  * \param ctx       The context to free.
  */
-void mbedtls_everest_free( mbedtls_ecdh_context *ctx );
+void mbedtls_everest_free( mbedtls_ecdh_context_everest *ctx );
 
 /**
  * \brief           This function generates a public key and a TLS
@@ -84,7 +90,7 @@ void mbedtls_everest_free( mbedtls_ecdh_context *ctx );
  * \return          \c 0 on success.
  * \return          An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  */
-int mbedtls_everest_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
+int mbedtls_everest_make_params( mbedtls_ecdh_context_everest *ctx, size_t *olen,
                                  unsigned char *buf, size_t blen,
                                  int( *f_rng )( void *, unsigned char *, size_t ),
                                  void *p_rng );
@@ -106,7 +112,7 @@ int mbedtls_everest_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
  * \return          An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  *
  */
-int mbedtls_everest_read_params( mbedtls_ecdh_context *ctx,
+int mbedtls_everest_read_params( mbedtls_ecdh_context_everest *ctx,
                                  const unsigned char **buf, const unsigned char *end );
 
 /**
@@ -126,7 +132,7 @@ int mbedtls_everest_read_params( mbedtls_ecdh_context *ctx,
  * \return          An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  *
  */
-int mbedtls_everest_read_params( mbedtls_ecdh_context *ctx,
+int mbedtls_everest_read_params( mbedtls_ecdh_context_everest *ctx,
                                  const unsigned char **buf, const unsigned char *end );
 
 /**
@@ -147,8 +153,8 @@ int mbedtls_everest_read_params( mbedtls_ecdh_context *ctx,
  * \return          An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  *
  */
-int mbedtls_everest_get_params( mbedtls_ecdh_context *ctx, const mbedtls_ecp_keypair *key,
-                                int side );
+int mbedtls_everest_get_params( mbedtls_ecdh_context_everest *ctx, const mbedtls_ecp_keypair *key,
+                                mbedtls_everest_ecdh_side side );
 
 /**
  * \brief           This function generates a public key and a TLS
@@ -169,7 +175,7 @@ int mbedtls_everest_get_params( mbedtls_ecdh_context *ctx, const mbedtls_ecp_key
  * \return          \c 0 on success.
  * \return          An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  */
-int mbedtls_everest_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
+int mbedtls_everest_make_public( mbedtls_ecdh_context_everest *ctx, size_t *olen,
                                  unsigned char *buf, size_t blen,
                                  int( *f_rng )( void *, unsigned char *, size_t ),
                                  void *p_rng );
@@ -191,7 +197,7 @@ int mbedtls_everest_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
  * \return      \c 0 on success.
  * \return      An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  */
-int mbedtls_everest_read_public( mbedtls_ecdh_context *ctx,
+int mbedtls_everest_read_public( mbedtls_ecdh_context_everest *ctx,
                                  const unsigned char *buf, size_t blen );
 
 /**
@@ -216,7 +222,7 @@ int mbedtls_everest_read_public( mbedtls_ecdh_context *ctx,
  * \return          \c 0 on success.
  * \return          An \c MBEDTLS_ERR_ECP_XXX error code on failure.
  */
-int mbedtls_everest_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
+int mbedtls_everest_calc_secret( mbedtls_ecdh_context_everest *ctx, size_t *olen,
                                  unsigned char *buf, size_t blen,
                                  int( *f_rng )( void *, unsigned char *, size_t ),
                                  void *p_rng );

@@ -275,7 +275,7 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
  *         mbedtls_aes_setkey_enc() or mbedtls_aes_setkey_dec() must be called
  *         before the first call to this API with the same context.
  *
- * \note   This function operates on aligned blocks, that is, the input size
+ * \note   This function operates on full blocks, that is, the input size
  *         must be a multiple of the AES block size of 16 Bytes.
  *
  * \note   Upon exit, the content of the IV is updated so that you can
@@ -287,13 +287,17 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
  *
  *
  * \param ctx      The AES context to use for encryption or decryption.
+ *                 It must be initialized and bound to a key.
  * \param mode     The AES operation: #MBEDTLS_AES_ENCRYPT or
  *                 #MBEDTLS_AES_DECRYPT.
  * \param length   The length of the input data in Bytes. This must be a
  *                 multiple of the block size (16 Bytes).
  * \param iv       Initialization vector (updated after use).
+ *                 It must be a readable and writeable buffer of 16 Bytes.
  * \param input    The buffer holding the input data.
+ *                 It must be readable and of size \p length.
  * \param output   The buffer holding the output data.
+ *                 It must be writeable and of size \p length.
  *
  * \return         \c 0 on success.
  * \return         #MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH

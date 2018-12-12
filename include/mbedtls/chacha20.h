@@ -82,7 +82,8 @@ mbedtls_chacha20_context;
  *                  to \c mbedtls_chacha20_update(), and finally to
  *                  \c mbedtls_chacha20_free().
  *
- * \param ctx       The ChaCha20 context to initialize. Must not be \c NULL.
+ * \param ctx       The ChaCha20 context to initialize.
+ *                  This must not be \c NULL.
  */
 void mbedtls_chacha20_init( mbedtls_chacha20_context *ctx );
 
@@ -90,7 +91,9 @@ void mbedtls_chacha20_init( mbedtls_chacha20_context *ctx );
  * \brief           This function releases and clears the specified ChaCha20 context.
  *
  * \param ctx       The ChaCha20 context to clear. May be \c NULL,
- *                  in which case this function is a no-op.
+ *                  in which case this function is a no-op. If it is not
+ *                  \c NULL, it must point to an initialized context.
+ *
  */
 void mbedtls_chacha20_free( mbedtls_chacha20_context *ctx );
 
@@ -103,7 +106,7 @@ void mbedtls_chacha20_free( mbedtls_chacha20_context *ctx );
  *                  \c mbedtls_chacha_update().
  *
  * \param ctx       The ChaCha20 context to which the key should be bound.
- *                  Must be initialized.
+ *                  It must be initialized.
  * \param key       The encryption/decryption key. Must be 32 bytes in length.
  *
  * \return          \c 0 on success.
@@ -123,7 +126,7 @@ int mbedtls_chacha20_setkey( mbedtls_chacha20_context *ctx,
  *                  messages encrypted with the same nonce and key.
  *
  * \param ctx       The ChaCha20 context to which the nonce should be bound.
- *                  Must be initialized.
+ *                  It must be initialized and bound to a key.
  * \param nonce     The nonce. Must be 12 bytes in size.
  * \param counter   The initial counter value. This is usually 0.
  *
@@ -153,7 +156,7 @@ int mbedtls_chacha20_starts( mbedtls_chacha20_context* ctx,
  *                  key and nonce.
  *
  * \param ctx       The ChaCha20 context to use for encryption or decryption.
- *                  Must be initialized.
+ *                  It must be initialized and bound to a key and nonce.
  * \param size      The length of the input data in bytes.
  * \param input     The buffer holding the input data.
  *                  This pointer can be \c NULL if `size == 0`.

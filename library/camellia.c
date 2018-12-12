@@ -49,6 +49,12 @@
 
 #if !defined(MBEDTLS_CAMELLIA_ALT)
 
+/* Parameter validation macros */
+#define CAMELLIA_VALIDATE_RET( cond )                                       \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA )
+#define CAMELLIA_VALIDATE( cond )                                           \
+    MBEDTLS_INTERNAL_VALIDATE( cond )
+
 /*
  * 32-bit integer manipulation macros (big endian)
  */
@@ -321,6 +327,7 @@ static void camellia_feistel( const uint32_t x[2], const uint32_t k[2],
 
 void mbedtls_camellia_init( mbedtls_camellia_context *ctx )
 {
+    CAMELLIA_VALIDATE( ctx != NULL );
     memset( ctx, 0, sizeof( mbedtls_camellia_context ) );
 }
 
@@ -335,8 +342,9 @@ void mbedtls_camellia_free( mbedtls_camellia_context *ctx )
 /*
  * Camellia key schedule (encryption)
  */
-int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx, const unsigned char *key,
-                         unsigned int keybits )
+int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx,
+                                 const unsigned char *key,
+                                 unsigned int keybits )
 {
     int idx;
     size_t i;
@@ -345,6 +353,9 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx, const unsigned c
     uint32_t SIGMA[6][2];
     uint32_t KC[16];
     uint32_t TK[20];
+    CAMELLIA_VALIDATE_RET( ctx != NULL );
+    CAMELLIA_VALIDATE_RET( key != NULL );
+    CAMELLIA_VALIDATE_RET( keybits == 128 || keybits == 192 || keybits == 256 );
 
     RK = ctx->rk;
 
@@ -440,14 +451,18 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx, const unsigned c
 /*
  * Camellia key schedule (decryption)
  */
-int mbedtls_camellia_setkey_dec( mbedtls_camellia_context *ctx, const unsigned char *key,
-                         unsigned int keybits )
+int mbedtls_camellia_setkey_dec( mbedtls_camellia_context *ctx,
+                                 const unsigned char *key,
+                                 unsigned int keybits )
 {
     int idx, ret;
     size_t i;
     mbedtls_camellia_context cty;
     uint32_t *RK;
     uint32_t *SK;
+    CAMELLIA_VALIDATE_RET( ctx != NULL );
+    CAMELLIA_VALIDATE_RET( key != NULL );
+    CAMELLIA_VALIDATE_RET( keybits == 128 || keybits == 192 || keybits == 256 );
 
     mbedtls_camellia_init( &cty );
 
@@ -495,6 +510,11 @@ int mbedtls_camellia_crypt_ecb( mbedtls_camellia_context *ctx,
 {
     int NR;
     uint32_t *RK, X[4];
+    CAMELLIA_VALIDATE_RET( ctx != NULL );
+    CAMELLIA_VALIDATE_RET( mode == MBEDTLS_CAMELLIA_ENCRYPT ||
+                           mode == MBEDTLS_CAMELLIA_DECRYPT );
+    CAMELLIA_VALIDATE_RET( input  != NULL );
+    CAMELLIA_VALIDATE_RET( output != NULL );
 
     ( (void) mode );
 
@@ -560,6 +580,12 @@ int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
 {
     int i;
     unsigned char temp[16];
+    CAMELLIA_VALIDATE_RET( ctx != NULL );
+    CAMELLIA_VALIDATE_RET( mode == MBEDTLS_CAMELLIA_ENCRYPT ||
+                           mode == MBEDTLS_CAMELLIA_DECRYPT );
+    CAMELLIA_VALIDATE_RET( iv != NULL );
+    CAMELLIA_VALIDATE_RET( length == 0 || input  != NULL );
+    CAMELLIA_VALIDATE_RET( length == 0 || output != NULL );
 
     if( length % 16 )
         return( MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH );
@@ -614,7 +640,18 @@ int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
                        unsigned char *output )
 {
     int c;
-    size_t n = *iv_off;
+    size_t n;
+    CAMELLIA_VALIDATE_RET( ctx != NULL );
+    CAMELLIA_VALIDATE_RET( mode == MBEDTLS_CAMELLIA_ENCRYPT ||
+                           mode == MBEDTLS_CAMELLIA_DECRYPT );
+    CAMELLIA_VALIDATE_RET( iv     != NULL );
+    CAMELLIA_VALIDATE_RET( iv_off != NULL );
+    CAMELLIA_VALIDATE_RET( length == 0 || input  != NULL );
+    CAMELLIA_VALIDATE_RET( length == 0 || output != NULL );
+
+    n = *iv_off;
+    if( n >= 16 )
+        return( MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA );
 
     if( mode == MBEDTLS_CAMELLIA_DECRYPT )
     {
@@ -662,7 +699,17 @@ int mbedtls_camellia_crypt_ctr( mbedtls_camellia_context *ctx,
                        unsigned char *output )
 {
     int c, i;
-    size_t n = *nc_off;
+    size_t n;
+    CAMELLIA_VALIDATE_RET( ctx != NULL );
+    CAMELLIA_VALIDATE_RET( nonce_counter != NULL );
+    CAMELLIA_VALIDATE_RET( stream_block  != NULL );
+    CAMELLIA_VALIDATE_RET( nc_off != NULL );
+    CAMELLIA_VALIDATE_RET( length == 0 || input  != NULL );
+    CAMELLIA_VALIDATE_RET( length == 0 || output != NULL );
+
+    n = *nc_off;
+    if( n >= 16 )
+        return( MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA );
 
     while( length-- )
     {

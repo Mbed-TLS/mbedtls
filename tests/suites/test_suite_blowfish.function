@@ -7,6 +7,154 @@
  * END_DEPENDENCIES
  */
 
+/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+void blowfish_invalid_param( )
+{
+    mbedtls_blowfish_context ctx;
+    unsigned char buf[16] = { 0 };
+    size_t off;
+    ((void) off);
+
+    TEST_INVALID_PARAM( mbedtls_blowfish_init( NULL ) );
+    TEST_VALID_PARAM( mbedtls_blowfish_free( NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_setkey( NULL,
+                                                     buf,
+                                                     128 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_setkey( &ctx,
+                                                     NULL,
+                                                     128 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_ecb( NULL,
+                                                     MBEDTLS_BLOWFISH_ENCRYPT,
+                                                     buf, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_ecb( &ctx,
+                                                        42,
+                                                        buf, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_ecb( &ctx,
+                                                        MBEDTLS_BLOWFISH_ENCRYPT,
+                                                        NULL, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_ecb( &ctx,
+                                                        MBEDTLS_BLOWFISH_ENCRYPT,
+                                                        buf, NULL ) );
+
+#if defined(MBEDTLS_CIPHER_MODE_CBC)
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_cbc( NULL,
+                                                        MBEDTLS_BLOWFISH_ENCRYPT,
+                                                        sizeof( buf ),
+                                                        buf, buf, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_cbc( &ctx,
+                                                        42,
+                                                        sizeof( buf ),
+                                                        buf, buf, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_cbc( &ctx,
+                                                        MBEDTLS_BLOWFISH_ENCRYPT,
+                                                        sizeof( buf ),
+                                                        NULL, buf, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_cbc( &ctx,
+                                                        MBEDTLS_BLOWFISH_ENCRYPT,
+                                                        sizeof( buf ),
+                                                        buf, NULL, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_cbc( &ctx,
+                                                        MBEDTLS_BLOWFISH_ENCRYPT,
+                                                        sizeof( buf ),
+                                                        buf, buf, NULL ) );
+#endif /* MBEDTLS_CIPHER_MODE_CBC */
+
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_cfb64( NULL,
+                                                          MBEDTLS_BLOWFISH_ENCRYPT,
+                                                          sizeof( buf ),
+                                                          &off, buf,
+                                                          buf, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_cfb64( &ctx,
+                                                          42,
+                                                          sizeof( buf ),
+                                                          &off, buf,
+                                                          buf, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_cfb64( &ctx,
+                                                          MBEDTLS_BLOWFISH_ENCRYPT,
+                                                          sizeof( buf ),
+                                                          NULL, buf,
+                                                          buf, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_cfb64( &ctx,
+                                                          MBEDTLS_BLOWFISH_ENCRYPT,
+                                                          sizeof( buf ),
+                                                          &off, NULL,
+                                                          buf, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_cfb64( &ctx,
+                                                          MBEDTLS_BLOWFISH_ENCRYPT,
+                                                          sizeof( buf ),
+                                                          &off, buf,
+                                                          NULL, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_cfb64( &ctx,
+                                                          MBEDTLS_BLOWFISH_ENCRYPT,
+                                                          sizeof( buf ),
+                                                          &off, buf,
+                                                          buf, NULL ) );
+#endif /* MBEDTLS_CIPHER_MODE_CFB */
+
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_ctr( NULL,
+                                                        sizeof( buf ),
+                                                        &off,
+                                                        buf, buf,
+                                                        buf, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_ctr( &ctx,
+                                                        sizeof( buf ),
+                                                        NULL,
+                                                        buf, buf,
+                                                        buf, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_ctr( &ctx,
+                                                        sizeof( buf ),
+                                                        &off,
+                                                        NULL, buf,
+                                                        buf, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_ctr( &ctx,
+                                                        sizeof( buf ),
+                                                        &off,
+                                                        buf, NULL,
+                                                        buf, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_ctr( &ctx,
+                                                        sizeof( buf ),
+                                                        &off,
+                                                        buf, buf,
+                                                        NULL, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA,
+                            mbedtls_blowfish_crypt_ctr( &ctx,
+                                                        sizeof( buf ),
+                                                        &off,
+                                                        buf, buf,
+                                                        buf, NULL ) );
+#endif /* MBEDTLS_CIPHER_MODE_CTR */
+
+exit:
+    return;
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void blowfish_encrypt_ecb( data_t * key_str, data_t * src_str,
                            data_t * hex_dst_string, int setkey_result )

@@ -285,5 +285,5 @@ def generate_psa_constants(header_file_name, output_file_name):
 if __name__ == '__main__':
     if not os.path.isdir('programs') and os.path.isdir('../programs'):
         os.chdir('..')
-    generate_psa_constants('include/psa/crypto.h',
+    generate_psa_constants('include/psa/crypto_values.h',
                            'programs/psa/psa_constant_names_generated.c')

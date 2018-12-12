@@ -379,6 +379,8 @@ void aes_invalid_param( )
     mbedtls_aes_xts_context xts_ctx;
 #endif
     const unsigned char key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+    const unsigned char in[16] = { 0 };
+    unsigned char out[16];
 
     TEST_INVALID_PARAM( mbedtls_aes_init( NULL ) );
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
@@ -406,6 +408,20 @@ void aes_invalid_param( )
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
                             mbedtls_aes_xts_setkey_dec( &xts_ctx, NULL, 128 ) );
 #endif
+
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_ecb( NULL,
+                                                   MBEDTLS_AES_ENCRYPT, in, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_ecb( &aes_ctx,
+                                                   42, in, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_ecb( &aes_ctx,
+                                                   MBEDTLS_AES_ENCRYPT, NULL, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_ecb( &aes_ctx,
+                                                   MBEDTLS_AES_ENCRYPT, in, NULL ) );
 }
 /* END_CASE */
 

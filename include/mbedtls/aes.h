@@ -246,10 +246,13 @@ int mbedtls_aes_xts_setkey_dec( mbedtls_aes_xts_context *ctx,
  *                 call to this API with the same context.
  *
  * \param ctx      The AES context to use for encryption or decryption.
+ *                 It must be initialized and bound to a key.
  * \param mode     The AES operation: #MBEDTLS_AES_ENCRYPT or
  *                 #MBEDTLS_AES_DECRYPT.
- * \param input    The 16-Byte buffer holding the input data.
- * \param output   The 16-Byte buffer holding the output data.
+ * \param input    The buffer holding the input data.
+ *                 It must be readable and at least 16 Bytes long.
+ * \param output   The buffer where the output data will be written.
+ *                 It must be writeable and at least 16 Bytes long.
 
  * \return         \c 0 on success.
  */

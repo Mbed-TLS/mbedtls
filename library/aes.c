@@ -1006,6 +1006,12 @@ int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
                     const unsigned char input[16],
                     unsigned char output[16] )
 {
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( input != NULL );
+    AES_VALIDATE_RET( output != NULL );
+    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
+                      mode == MBEDTLS_AES_DECRYPT );
+
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     if( mbedtls_aesni_has_support( MBEDTLS_AESNI_AES ) )
         return( mbedtls_aesni_crypt_ecb( ctx, mode, input, output ) );

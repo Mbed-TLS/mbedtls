@@ -87,8 +87,14 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
 # to the corresponding path in the source directory.
 function(link_to_source base_name)
     # Get OS dependent path to use in `execute_process`
-    file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${base_name}" link)
-    file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}" target)
+    # with respect to the CMake bug: https://gitlab.kitware.com/cmake/cmake/issues/5939
+    if(MINGW)
+        string(REPLACE "/" "\\" link "${CMAKE_CURRENT_BINARY_DIR}/${base_name}")
+        string(REPLACE "/" "\\" target "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}")
+    else()
+        file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${base_name}" link)
+        file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${base_name}" target)
+    endif()
 
     if (NOT EXISTS ${link})
         if (CMAKE_HOST_UNIX)

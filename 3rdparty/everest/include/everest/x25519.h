@@ -22,13 +22,20 @@
 #ifndef MBEDTLS_X25519_H
 #define MBEDTLS_X25519_H
 
-#include <mbedtls/ecdh.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #define MBEDTLS_ECP_TLS_CURVE25519 0x1d
+
+/**
+ * Defines the source of the imported EC key.
+ */
+typedef enum
+{
+    MBEDTLS_X25519_ECDH_OURS,   /**< Our key. */
+    MBEDTLS_X25519_ECDH_THEIRS, /**< The key of the peer. */
+} mbedtls_x25519_ecdh_side;
 
 /**
  * \brief           The x25519 context structure.
@@ -109,7 +116,7 @@ int mbedtls_x25519_read_params( mbedtls_x25519_context *ctx,
  *
  */
 int mbedtls_x25519_get_params( mbedtls_x25519_context *ctx, const mbedtls_ecp_keypair *key,
-                        int side );
+                               mbedtls_x25519_ecdh_side side );
 
 /**
  * \brief           This function derives and exports the shared secret.

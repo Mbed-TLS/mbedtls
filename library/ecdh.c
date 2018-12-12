@@ -221,8 +221,12 @@ int mbedtls_ecdh_setup( mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp_id )
     {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECP_DP_CURVE25519:
-            return( mbedtls_everest_setup( ctx, grp_id ) );
-            break;
+        {
+            ctx->point_format = MBEDTLS_ECP_PF_COMPRESSED;
+            ctx->var = MBEDTLS_ECDH_VARIANT_EVEREST;
+            ctx->grp_id = grp_id;
+            return( mbedtls_everest_setup( &ctx->ctx.everest_ecdh, grp_id ) );
+        }
 #endif
         default:
             ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
@@ -277,7 +281,9 @@ void mbedtls_ecdh_free( mbedtls_ecdh_context *ctx )
     {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
-            mbedtls_everest_free( ctx );
+            mbedtls_everest_free( &ctx->ctx.everest_ecdh );
+            ctx->var = MBEDTLS_ECDH_VARIANT_NONE;
+            ctx->grp_id = MBEDTLS_ECP_DP_NONE;
             break;
 #endif
         case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
@@ -376,7 +382,8 @@ int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
     {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
-            return( mbedtls_everest_make_params( ctx, olen, buf, blen, f_rng, p_rng ) );
+            return( mbedtls_everest_make_params( &ctx->ctx.everest_ecdh, olen,
+                                                 buf, blen, f_rng, p_rng ) );
 #endif
         case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
             return( ecdh_make_params_internal( &ctx->ctx.mbed_ecdh, olen,
@@ -429,7 +436,8 @@ int mbedtls_ecdh_read_params( mbedtls_ecdh_context *ctx,
     {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
-            return( mbedtls_everest_read_params( ctx, buf, end) );
+            return( mbedtls_everest_read_params( &ctx->ctx.everest_ecdh,
+                                                 buf, end) );
 #endif
         case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
             return( ecdh_read_params_internal( &ctx->ctx.mbed_ecdh,
@@ -497,7 +505,13 @@ int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx,
     {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
-            return( mbedtls_everest_get_params( ctx, key, side ) );
+        {
+            mbedtls_x25519_ecdh_side s = side == MBEDTLS_ECDH_OURS ?
+                                                   MBEDTLS_EVEREST_ECDH_OURS :
+                                                   MBEDTLS_EVEREST_ECDH_THEIRS;
+            return( mbedtls_everest_get_params( &ctx->ctx.everest_ecdh,
+                                                key, s) );
+        }
 #endif
         case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
             return( ecdh_get_params_internal( &ctx->ctx.mbed_ecdh,
@@ -572,7 +586,8 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
     {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
-            return( mbedtls_everest_make_public( ctx, olen, buf, blen, f_rng, p_rng ) );
+            return( mbedtls_everest_make_public( &ctx->ctx.everest_ecdh, olen,
+                                                 buf, blen, f_rng, p_rng ) );
 #endif
         case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
             return( ecdh_make_public_internal( &ctx->ctx.mbed_ecdh, olen,
@@ -617,7 +632,8 @@ int mbedtls_ecdh_read_public( mbedtls_ecdh_context *ctx,
     {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
-            return( mbedtls_everest_read_public( ctx, buf, blen ) );
+            return( mbedtls_everest_read_public( &ctx->ctx.everest_ecdh,
+                                                 buf, blen ) );
 #endif
         case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
             return( ecdh_read_public_internal( &ctx->ctx.mbed_ecdh,
@@ -703,7 +719,8 @@ int mbedtls_ecdh_calc_secret( mbedtls_ecdh_context *ctx, size_t *olen,
     {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
-            return( mbedtls_everest_calc_secret( ctx, olen, buf, blen, f_rng, p_rng ) );
+            return( mbedtls_everest_calc_secret( &ctx->ctx.everest_ecdh, olen,
+                                                 buf, blen, f_rng, p_rng ) );
 #endif
         case MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0:
             return( ecdh_calc_secret_internal( &ctx->ctx.mbed_ecdh, olen, buf,

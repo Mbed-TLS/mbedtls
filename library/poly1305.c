@@ -289,7 +289,7 @@ void mbedtls_poly1305_init( mbedtls_poly1305_context *ctx )
 
 void mbedtls_poly1305_free( mbedtls_poly1305_context *ctx )
 {
-    if( ctx != NULL )
+    if( ctx == NULL )
         return;
 
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_poly1305_context ) );

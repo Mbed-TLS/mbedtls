@@ -108,7 +108,7 @@ void mbedtls_chachapoly_init( mbedtls_chachapoly_context *ctx )
 
 void mbedtls_chachapoly_free( mbedtls_chachapoly_context *ctx )
 {
-    if( ctx != NULL )
+    if( ctx == NULL )
         return;
 
     mbedtls_chacha20_free( &ctx->chacha20_ctx );

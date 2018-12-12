@@ -94,6 +94,7 @@ void chacha20_bad_params()
     mbedtls_chacha20_context ctx;
 
     TEST_INVALID_PARAM( mbedtls_chacha20_init( NULL ) );
+    TEST_VALID_PARAM( mbedtls_chacha20_free( NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
                             mbedtls_chacha20_setkey( NULL, key ) );

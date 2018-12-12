@@ -98,6 +98,7 @@ void poly1305_bad_params()
     mbedtls_poly1305_context ctx;
 
     TEST_INVALID_PARAM( mbedtls_poly1305_init( NULL ) );
+    TEST_VALID_PARAM( mbedtls_poly1305_free( NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
                  mbedtls_poly1305_starts( NULL, key ) );

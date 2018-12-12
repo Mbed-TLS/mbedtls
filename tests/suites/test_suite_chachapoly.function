@@ -139,6 +139,7 @@ void chachapoly_bad_params()
     memset( mac,    0x00, sizeof( mac ) );
 
     TEST_INVALID_PARAM( mbedtls_chachapoly_init( NULL ) );
+    TEST_VALID_PARAM( mbedtls_chachapoly_free( NULL ) );
 
     /* setkey */
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,

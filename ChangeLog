@@ -24,8 +24,8 @@ Security
 
 Features
    * Add new config.h flag MBEDTLS_CHECK_PARAMS that enables validation of
-     more of the parameters by public API functions (see its documentation for
-     details). Disabled by default - requires users to provide an
+     more of the parameters by public API functions (see its documentation in
+     config.h for details). Disabled by default - requires users to provide an
      implementation of the callback function or macro.
 
 New deprecations

@@ -259,11 +259,11 @@
 /**
  * \def MBEDTLS_CHECK_PARAMS
  *
- * This configuration controls whether the library validates more of the
- * parameters passed to it.
+ * This configuration option controls whether the library validates more of
+ * the parameters passed to it.
  *
- * When this flag is not defined, the library only attempts to validate input
- * parameter if: (1) they may come from the outside world (such as the
+ * When this flag is not defined, the library only attempts to validate an
+ * input parameter if: (1) they may come from the outside world (such as the
  * network, the filesystem, etc.) or (2) not validating them could result in
  * internal memory errors such as overflowing a buffer controlled by the
  * library. On the other hand, it doesn't attempt to validate parameters whose
@@ -273,7 +273,7 @@
  * parameters that are fully controlled by the application, and should always
  * be valid if the application code is fully correct and trusted.
  *
- * For example, when a function accepts a input a pointer to a buffer than may
+ * For example, when a function accepts as input a pointer to a buffer that may
  * contain untrusted data, and its documentation mentions that this pointer
  * must not be NULL:
  * - the pointer is checked to be non-NULL only if this option is enabled
@@ -291,7 +291,7 @@
  *   your application (see platform_util.h for its prototype) as the library
  *   calls that function, but does not provide a default definition for it,
  * - or provide a different definition of the macro MBEDTLS_PARAM_FAILED()
- *   below if the above mechanism is not enough flexible to suit your needs.
+ *   below if the above mechanism is not flexible enough to suit your needs.
  *
  * Uncomment to enable validation of application-controlled parameters.
  */
@@ -3052,7 +3052,8 @@
  *              function mbedtls_param_failed()) and it is your responsibility
  *              to make sure this macro expands to something suitable (in
  *              particular, that all the necessary declarations are visible
- *              from within the library).
+ *              from within the library - you can ensure that by providing
+ *              them in this file next to the macro definition).
  *
  * \param cond  The expression that should evaluate to true, but doesn't.
  */

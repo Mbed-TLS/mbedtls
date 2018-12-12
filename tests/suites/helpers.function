@@ -185,10 +185,10 @@ typedef enum
  *          expected failure. If MBEDTLS_CHECK_PARAMS is not enabled, no test
  *          can be made.
  *
- *          This macro is intended to test that function that return void
+ *          This macro is intended to test that functions returning void
  *          accept all of the parameter values they're supposed to accept - eg
  *          that they don't call MBEDTLS_PARAM_FAILED() when a parameter
- *          that's allowed to be NULL happends to be NULL.
+ *          that's allowed to be NULL happens to be NULL.
  *
  *          Note: for functions that return something other that void,
  *          checking that they accept all the parameters they're supposed to

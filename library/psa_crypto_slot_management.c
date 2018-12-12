@@ -50,7 +50,7 @@ typedef struct
     unsigned key_slots_initialized : 1;
 } psa_global_data_t;
 
-psa_global_data_t global_data;
+static psa_global_data_t global_data;
 
 /* Access a key slot at the given handle. The handle of a key slot is
  * the index of the slot in the global slot array, plus one so that handles

@@ -197,8 +197,10 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
  *                 sets the encryption key.
  *
  * \param ctx      The AES XTS context to which the key should be bound.
+ *                 It must be initialized.
  * \param key      The encryption key. This is comprised of the XTS key1
  *                 concatenated with the XTS key2.
+ *                 This must be a readable buffer of size \p keybits bits.
  * \param keybits  The size of \p key passed in bits. Valid options are:
  *                 <ul><li>256 bits (each of key1 and key2 is a 128-bit key)</li>
  *                 <li>512 bits (each of key1 and key2 is a 256-bit key)</li></ul>
@@ -215,8 +217,10 @@ int mbedtls_aes_xts_setkey_enc( mbedtls_aes_xts_context *ctx,
  *                 sets the decryption key.
  *
  * \param ctx      The AES XTS context to which the key should be bound.
+ *                 It must be initialized.
  * \param key      The decryption key. This is comprised of the XTS key1
  *                 concatenated with the XTS key2.
+ *                 This must be a readable buffer of size \p keybits bits.
  * \param keybits  The size of \p key passed in bits. Valid options are:
  *                 <ul><li>256 bits (each of key1 and key2 is a 128-bit key)</li>
  *                 <li>512 bits (each of key1 and key2 is a 256-bit key)</li></ul>

@@ -771,6 +771,9 @@ int mbedtls_aes_xts_setkey_enc( mbedtls_aes_xts_context *ctx,
     const unsigned char *key1, *key2;
     unsigned int key1bits, key2bits;
 
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( key != NULL );
+
     ret = mbedtls_aes_xts_decode_keys( key, keybits, &key1, &key1bits,
                                        &key2, &key2bits );
     if( ret != 0 )
@@ -792,6 +795,9 @@ int mbedtls_aes_xts_setkey_dec( mbedtls_aes_xts_context *ctx,
     int ret;
     const unsigned char *key1, *key2;
     unsigned int key1bits, key2bits;
+
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( key != NULL );
 
     ret = mbedtls_aes_xts_decode_keys( key, keybits, &key1, &key1bits,
                                        &key2, &key2bits );

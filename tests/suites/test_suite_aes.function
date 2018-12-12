@@ -215,7 +215,7 @@ void aes_crypt_xts_size( int size, int retval )
 void aes_crypt_xts_keysize( int size, int retval )
 {
     mbedtls_aes_xts_context ctx;
-    const unsigned char *key = NULL;
+    const unsigned char key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
     size_t key_len = size;
 
     mbedtls_aes_xts_init( &ctx );
@@ -374,26 +374,38 @@ exit:
 /* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
 void aes_invalid_param( )
 {
-    mbedtls_aes_context dummy_ctx;
+    mbedtls_aes_context aes_ctx;
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
+    mbedtls_aes_xts_context xts_ctx;
+#endif
     const unsigned char key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
 
     TEST_INVALID_PARAM( mbedtls_aes_init( NULL ) );
-
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
     TEST_INVALID_PARAM( mbedtls_aes_xts_init( NULL ) );
+#endif
 
-    /* mbedtls_aes_setkey_enc() */
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
                             mbedtls_aes_setkey_enc( NULL, key, 128 ) );
-
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
-                            mbedtls_aes_setkey_enc( &dummy_ctx, NULL, 128 ) );
+                            mbedtls_aes_setkey_enc( &aes_ctx, NULL, 128 ) );
 
-    /* mbedtls_aes_setkey_dec() */
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
                             mbedtls_aes_setkey_dec( NULL, key, 128 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_setkey_dec( &aes_ctx, NULL, 128 ) );
+
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_xts_setkey_enc( NULL, key, 128 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_xts_setkey_enc( &xts_ctx, NULL, 128 ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
-                            mbedtls_aes_setkey_dec( &dummy_ctx, NULL, 128 ) );
+                            mbedtls_aes_xts_setkey_dec( NULL, key, 128 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_xts_setkey_dec( &xts_ctx, NULL, 128 ) );
+#endif
 }
 /* END_CASE */
 

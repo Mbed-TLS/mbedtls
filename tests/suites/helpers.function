@@ -163,7 +163,7 @@ typedef enum
 #define TEST_INVALID_PARAM( TEST )                                          \
     do {                                                                    \
         memcpy(jmp_tmp, param_fail_jmp, sizeof(jmp_buf));                   \
-        if ( setjmp( param_fail_jmp ) == 0 )                                \
+        if( setjmp( param_fail_jmp ) == 0 )                                 \
         {                                                                   \
             TEST;                                                           \
             test_fail( #TEST, __LINE__, __FILE__ );                         \
@@ -302,7 +302,7 @@ void mbedtls_param_failed( const char *failure_condition,
                            int line )
 {
     /* If we are testing the callback function...  */
-    if ( test_info.paramfail_test_state == PARAMFAIL_TESTSTATE_PENDING )
+    if( test_info.paramfail_test_state == PARAMFAIL_TESTSTATE_PENDING )
     {
         test_info.paramfail_test_state = PARAMFAIL_TESTSTATE_CALLED;
     }
@@ -613,12 +613,12 @@ int hexcmp( uint8_t * a, uint8_t * b, uint32_t a_len, uint32_t b_len )
     int ret = 0;
     uint32_t i = 0;
 
-    if ( a_len != b_len )
+    if( a_len != b_len )
         return( -1 );
 
     for( i = 0; i < a_len; i++ )
     {
-        if ( a[i] != b[i] )
+        if( a[i] != b[i] )
         {
             ret = -1;
             break;

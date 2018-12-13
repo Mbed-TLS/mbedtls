@@ -325,6 +325,7 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
  *             returns #MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH.
  *
  * \param ctx          The AES XTS context to use for AES XTS operations.
+ *                     It must be initialized and bound to a key.
  * \param mode         The AES operation: #MBEDTLS_AES_ENCRYPT or
  *                     #MBEDTLS_AES_DECRYPT.
  * \param length       The length of a data unit in bytes. This can be any

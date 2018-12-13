@@ -355,7 +355,6 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx,
     uint32_t TK[20];
     CAMELLIA_VALIDATE_RET( ctx != NULL );
     CAMELLIA_VALIDATE_RET( key != NULL );
-    CAMELLIA_VALIDATE_RET( keybits == 128 || keybits == 192 || keybits == 256 );
 
     RK = ctx->rk;
 
@@ -462,7 +461,6 @@ int mbedtls_camellia_setkey_dec( mbedtls_camellia_context *ctx,
     uint32_t *SK;
     CAMELLIA_VALIDATE_RET( ctx != NULL );
     CAMELLIA_VALIDATE_RET( key != NULL );
-    CAMELLIA_VALIDATE_RET( keybits == 128 || keybits == 192 || keybits == 256 );
 
     mbedtls_camellia_init( &cty );
 

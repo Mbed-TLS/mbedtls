@@ -13,7 +13,6 @@ void camellia_invalid_param( )
     mbedtls_camellia_context ctx;
     unsigned char buf[16] = { 0 };
     const size_t valid_keybits   = 128;
-    const size_t invalid_keybits = 42;
     const int invalid_mode = 42;
     const int valid_mode = MBEDTLS_CAMELLIA_ENCRYPT;
     size_t off;
@@ -30,10 +29,6 @@ void camellia_invalid_param( )
                             mbedtls_camellia_setkey_enc( &ctx,
                                                          NULL,
                                                          valid_keybits ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA,
-                            mbedtls_camellia_setkey_enc( &ctx,
-                                                         buf,
-                                                         invalid_keybits ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA,
                             mbedtls_camellia_setkey_dec( NULL,
@@ -43,10 +38,6 @@ void camellia_invalid_param( )
                             mbedtls_camellia_setkey_dec( &ctx,
                                                          NULL,
                                                          valid_keybits ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA,
-                            mbedtls_camellia_setkey_dec( &ctx,
-                                                         buf,
-                                                         invalid_keybits ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA,
                             mbedtls_camellia_crypt_ecb( NULL,

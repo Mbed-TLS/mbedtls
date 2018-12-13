@@ -161,7 +161,7 @@ mbedtls_rsa_context;
  * \param ctx      The RSA context to initialize. This must not be \c NULL.
  * \param padding  The padding mode to use. This must be either
  *                 #MBEDTLS_RSA_PKCS_V15 or #MBEDTLS_RSA_PKCS_V21.
- * \param hash_id  The hash identifier of ::bedtls_md_type_t type, if
+ * \param hash_id  The hash identifier of ::mbedtls_md_type_t type, if
  *                 \p padding is #MBEDTLS_RSA_PKCS_V21. It is unused
  *                 otherwise.
  */
@@ -515,11 +515,11 @@ int mbedtls_rsa_check_pub_priv( const mbedtls_rsa_context *pub,
  *
  * \param ctx      The initialized RSA context to use.
  * \param input    The input buffer. This must be a readable buffer
- *                 of length \c ctx->len Bytes. For example, \c 128 Bytes
- *                 for an 1024-bit RSA modulus.
+ *                 of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                 for an 2048-bit RSA modulus.
  * \param output   The output buffer. This must be a writable buffer
- *                 of length \c ctx->len Bytes. For example, \c 128 Bytes
- *                 for an 1024-bit RSA modulus.
+ *                 of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                 for an 2048-bit RSA modulus.
  *
  * \note           This function does not handle message padding.
  *
@@ -554,11 +554,11 @@ int mbedtls_rsa_public( mbedtls_rsa_context *ctx,
  * \param p_rng    The RNG context to pass to \p f_rng. This may be \c NULL
  *                 if \p f_rng is \c NULL or if \p f_rng doesn't need a context.
  * \param input    The input buffer. This must be a readable buffer
- *                 of length \c ctx->len Bytes. For example, \c 128 Bytes
- *                 for an 1024-bit RSA modulus.
+ *                 of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                 for an 2048-bit RSA modulus.
  * \param output   The output buffer. This must be a writable buffer
- *                 of length \c ctx->len Bytes. For example, \c 128 Bytes
- *                 for an 1024-bit RSA modulus.
+ *                 of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                 for an 2048-bit RSA modulus.
  *
  * \return         \c 0 on success.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -594,14 +594,14 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
  *                 \c NULL if \p f_rng is \c NULL or if \p f_rng doesn't
  *                 need a context argument.
  * \param mode     The mode of operation. This must be either
- *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE.
+ *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE (deprecated).
  * \param ilen     The length of the plaintext in Bytes.
  * \param input    The input data to encrypt. This must be a readable
  *                 buffer of size \p ilen Bytes. It may be \c NULL if
  *                 `ilen == 0`.
  * \param output   The output buffer. This must be a writable buffer
- *                 of length \c ctx->len Bytes. For example, \c 128 Bytes
- *                 for an 1024-bit RSA modulus.
+ *                 of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                 for an 2048-bit RSA modulus.
  *
  * \return         \c 0 on success.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -633,14 +633,14 @@ int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
  *                 be \c NULL if \p f_rng is \c NULL or if \p f_rng
  *                 doesn't need a context argument.
  * \param mode     The mode of operation. This must be either
- *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE.
+ *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE (deprecated).
  * \param ilen     The length of the plaintext in Bytes.
  * \param input    The input data to encrypt. This must be a readable
  *                 buffer of size \p ilen Bytes. It may be \c NULL if
  *                 `ilen == 0`.
  * \param output   The output buffer. This must be a writable buffer
- *                 of length \c ctx->len Bytes. For example, \c 128 Bytes
- *                 for an 1024-bit RSA modulus.
+ *                 of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                 for an 2048-bit RSA modulus.
  *
  * \return         \c 0 on success.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -675,7 +675,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
  *                   be \c NULL if \p f_rng is \c NULL or if \p f_rng
  *                   doesn't need a context argument.
  * \param mode       The mode of operation. This must be either
- *                   #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE.
+ *                   #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE (deprecated).
  * \param label      The buffer holding the custom label to use.
  *                   This must be a readable buffer of length \p label_len
  *                   Bytes. It may be \c NULL if \p label_len is \c 0.
@@ -685,8 +685,8 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
  *                   buffer of size \p ilen Bytes. It may be \c NULL if
  *                   `ilen == 0`.
  * \param output     The output buffer. This must be a writable buffer
- *                   of length \c ctx->len Bytes. For example, \c 128 Bytes
- *                   for an 1024-bit RSA modulus.
+ *                   of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                   for an 2048-bit RSA modulus.
  *
  * \return           \c 0 on success.
  * \return           An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -728,12 +728,12 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be
  *                 \c NULL if \p f_rng is \c NULL or doesn't need a context.
  * \param mode     The mode of operation. This must be either
- *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE.
+ *                 #MBEDTLS_RSA_PRIVATE or #MBEDTLS_RSA_PUBLIC (deprecated).
  * \param olen     The address at which to store the length of
  *                 the plaintext. This must not be \c NULL.
  * \param input    The ciphertext buffer. This must be a readable buffer
- *                 of length \c ctx->len Bytes. For example, \c 128 Bytes
- *                 for an 1024-bit RSA modulus.
+ *                 of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                 for an 2048-bit RSA modulus.
  * \param output   The buffer used to hold the plaintext. This must
  *                 be a writable buffer of length \p output_max_len Bytes.
  * \param output_max_len The maximum length of the output buffer.
@@ -774,12 +774,12 @@ int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be
  *                 \c NULL if \p f_rng is \c NULL or doesn't need a context.
  * \param mode     The mode of operation. This must be either
- *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE.
+ *                 #MBEDTLS_RSA_PRIVATE or #MBEDTLS_RSA_PUBLIC (deprecated).
  * \param olen     The address at which to store the length of
  *                 the plaintext. This must not be \c NULL.
  * \param input    The ciphertext buffer. This must be a readable buffer
- *                 of length \c ctx->len Bytes. For example, \c 128 Bytes
- *                 for an 1024-bit RSA modulus.
+ *                 of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                 for an 2048-bit RSA modulus.
  * \param output   The buffer used to hold the plaintext. This must
  *                 be a writable buffer of length \p output_max_len Bytes.
  * \param output_max_len The maximum length of the output buffer.
@@ -822,7 +822,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
  * \param p_rng      The RNG context to be passed to \p f_rng. This may be
  *                   \c NULL if \p f_rng is \c NULL or doesn't need a context.
  * \param mode       The mode of operation. This must be either
- *                   #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE.
+ *                   #MBEDTLS_RSA_PRIVATE or #MBEDTLS_RSA_PUBLIC (deprecated).
  * \param label      The buffer holding the custom label to use.
  *                   This must be a readable buffer of length \p label_len
  *                   Bytes. It may be \c NULL if \p label_len is \c 0.
@@ -830,8 +830,8 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
  * \param olen       The address at which to store the length of
  *                   the plaintext. This must not be \c NULL.
  * \param input      The ciphertext buffer. This must be a readable buffer
- *                   of length \c ctx->len Bytes. For example, \c 128 Bytes
- *                   for an 1024-bit RSA modulus.
+ *                   of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                   for an 2048-bit RSA modulus.
  * \param output     The buffer used to hold the plaintext. This must
  *                   be a writable buffer of length \p output_max_len Bytes.
  * \param output_max_len The maximum length of the output buffer.
@@ -878,7 +878,7 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be \c NULL
  *                 if \p f_rng is \c NULL or doesn't need a context argument.
  * \param mode     The mode of operation. This must be either
- *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE.
+ *                 #MBEDTLS_RSA_PRIVATE or #MBEDTLS_RSA_PUBLIC (deprecated).
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
  * \param hashlen  The length of the message digest.
@@ -889,8 +889,8 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
  *                 #MBEDTLS_MD_NONE, it must be a readable buffer of length
  *                 the size of the hash corresponding to \p md_alg.
  * \param sig      The buffer to hold the signature. This must be a writable
- *                 buffer of length \c ctx->len Bytes. For example, \c 128 Bytes
- *                 for an 1024-bit RSA modulus.
+ *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                 for an 2048-bit RSA modulus.
  *
  * \return         \c 0 if the signing operation was successful.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -923,7 +923,7 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be \c NULL
  *                 if \p f_rng is \c NULL or doesn't need a context argument.
  * \param mode     The mode of operation. This must be either
- *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE.
+ *                 #MBEDTLS_RSA_PRIVATE or #MBEDTLS_RSA_PUBLIC (deprecated).
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
  * \param hashlen  The length of the message digest.
@@ -934,8 +934,8 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
  *                 #MBEDTLS_MD_NONE, it must be a readable buffer of length
  *                 the size of the hash corresponding to \p md_alg.
  * \param sig      The buffer to hold the signature. This must be a writable
- *                 buffer of length \c ctx->len Bytes. For example, \c 128 Bytes
- *                 for an 1024-bit RSA modulus.
+ *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                 for an 2048-bit RSA modulus.
  *
  * \return         \c 0 if the signing operation was successful.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -984,7 +984,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be \c NULL
  *                 if \p f_rng doesn't need a context argument.
  * \param mode     The mode of operation. This must be either
- *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE.
+ *                 #MBEDTLS_RSA_PRIVATE or #MBEDTLS_RSA_PUBLIC (deprecated).
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
  * \param hashlen  The length of the message digest.
@@ -995,8 +995,8 @@ int mbedtls_rsa_rsassa_pkcs1_v15_sign( mbedtls_rsa_context *ctx,
  *                 #MBEDTLS_MD_NONE, it must be a readable buffer of length
  *                 the size of the hash corresponding to \p md_alg.
  * \param sig      The buffer to hold the signature. This must be a writable
- *                 buffer of length \c ctx->len Bytes. For example, \c 128 Bytes
- *                 for an 1024-bit RSA modulus.
+ *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                 for an 2048-bit RSA modulus.
  *
  * \return         \c 0 if the signing operation was successful.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -1036,7 +1036,7 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be
  *                 \c NULL if \p f_rng is \c NULL or doesn't need a context.
  * \param mode     The mode of operation. This must be either
- *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE.
+ *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE (deprecated).
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
  * \param hashlen  The length of the message digest.
@@ -1047,8 +1047,8 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
  *                 #MBEDTLS_MD_NONE, it must be a readable buffer of length
  *                 the size of the hash corresponding to \p md_alg.
  * \param sig      The buffer holding the signature. This must be a readable
- *                 buffer of length \c ctx->len Bytes. For example, \c 128 Bytes
- *                 for an 1024-bit RSA modulus.
+ *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                 for an 2048-bit RSA modulus.
  *
  * \return         \c 0 if the verify operation was successful.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -1081,7 +1081,7 @@ int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be
  *                 \c NULL if \p f_rng is \c NULL or doesn't need a context.
  * \param mode     The mode of operation. This must be either
- *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE.
+ *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE (deprecated).
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
  * \param hashlen  The length of the message digest.
@@ -1092,8 +1092,8 @@ int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
  *                 #MBEDTLS_MD_NONE, it must be a readable buffer of length
  *                 the size of the hash corresponding to \p md_alg.
  * \param sig      The buffer holding the signature. This must be a readable
- *                 buffer of length \c ctx->len Bytes. For example, \c 128 Bytes
- *                 for an 1024-bit RSA modulus.
+ *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                 for an 2048-bit RSA modulus.
  *
  * \return         \c 0 if the verify operation was successful.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -1137,7 +1137,7 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be
  *                 \c NULL if \p f_rng is \c NULL or doesn't need a context.
  * \param mode     The mode of operation. This must be either
- *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE.
+ *                 #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE (deprecated).
  * \param md_alg   The message-digest algorithm used to hash the original data.
  *                 Use #MBEDTLS_MD_NONE for signing raw data.
  * \param hashlen  The length of the message digest.
@@ -1148,8 +1148,8 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
  *                 #MBEDTLS_MD_NONE, it must be a readable buffer of length
  *                 the size of the hash corresponding to \p md_alg.
  * \param sig      The buffer holding the signature. This must be a readable
- *                 buffer of length \c ctx->len Bytes. For example, \c 128 Bytes
- *                 for an 1024-bit RSA modulus.
+ *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                 for an 2048-bit RSA modulus.
  *
  * \return         \c 0 if the verify operation was successful.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -1195,8 +1195,8 @@ int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
  * \param expected_salt_len The length of the salt used in padding. Use
  *                          #MBEDTLS_RSA_SALT_LEN_ANY to accept any salt length.
  * \param sig      The buffer holding the signature. This must be a readable
- *                 buffer of length \c ctx->len Bytes. For example, \c 128 Bytes
- *                 for an 1024-bit RSA modulus.
+ *                 buffer of length \c ctx->len Bytes. For example, \c 256 Bytes
+ *                 for an 2048-bit RSA modulus.
  *
  * \return         \c 0 if the verify operation was successful.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -1228,7 +1228,7 @@ int mbedtls_rsa_copy( mbedtls_rsa_context *dst, const mbedtls_rsa_context *src )
  *
  * \param ctx      The RSA context to free. May be \c NULL, in which case
  *                 this function is a no-op. If it is not \c NULL, it must
- *                 point to an initialized MPI.
+ *                 point to an initialized RSA context.
  */
 void mbedtls_rsa_free( mbedtls_rsa_context *ctx );
 

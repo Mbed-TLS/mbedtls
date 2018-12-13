@@ -96,7 +96,7 @@ void mbedtls_camellia_free( mbedtls_camellia_context *ctx );
  *
  * \param ctx      The CAMELLIA context to use. This must be initialized.
  * \param key      The encryption key to use. This must be a readable buffer
- *                 of size \p keybits bits.
+ *                 of size \p keybits Bits.
  * \param keybits  The length of \p key in Bits. This must be either \c 128,
  *                 \c 192 or \c 256.
  *
@@ -112,7 +112,7 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx,
  *
  * \param ctx      The CAMELLIA context to use. This must be initialized.
  * \param key      The decryption key. This must be a readable buffer
- *                 of size \p keybits bits.
+ *                 of size \p keybits Bits.
  * \param keybits  The length of \p key in Bits. This must be either \c 128,
  *                 \c 192 or \c 256.
  *
@@ -157,7 +157,7 @@ int mbedtls_camellia_crypt_ecb( mbedtls_camellia_context *ctx,
  *
  * \param ctx      The CAMELLIA context to use. This must be initialized
  *                 and bound to a key.
- * \param mode     The mode of operation. Possible values are
+ * \param mode     The mode of operation. This must be either
  *                 #MBEDTLS_CAMELLIA_ENCRYPT or #MBEDTLS_CAMELLIA_DECRYPT.
  * \param length   The length in Bytes of the input data.
  *                 Must be a multiple of \c 16.
@@ -202,7 +202,7 @@ int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
  *
  * \param ctx      The CAMELLIA context to use. This must be initialized
  *                 and bound to a key.
- * \param mode     The mode of operation. Possible values are
+ * \param mode     The mode of operation. This must be either
  *                 #MBEDTLS_CAMELLIA_ENCRYPT or #MBEDTLS_CAMELLIA_DECRYPT.
  * \param length   The length of the input data. Any value is allowed.
  * \param iv_off   The current offset in the IV. This must be smaller

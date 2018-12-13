@@ -13,6 +13,8 @@ void mbedtls_arc4_invalid_param( )
     mbedtls_arc4_context ctx;
     unsigned char key[128] = { 0 };
 
+    TEST_VALID_PARAM( mbedtls_arc4_free( NULL ) );
+
     /* Check that parameter validation detect NULL parameters. */
     TEST_INVALID_PARAM( mbedtls_arc4_init( NULL ) );
     TEST_INVALID_PARAM( mbedtls_arc4_setup( NULL, key, sizeof( key ) ) );

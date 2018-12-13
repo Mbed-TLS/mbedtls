@@ -25,6 +25,9 @@ void des_invalid_params( )
     unsigned char output[8] = { 0 };
     unsigned char iv[8] = { 0 };
 
+    TEST_VALID_PARAM( mbedtls_des_free( NULL ) );
+    TEST_VALID_PARAM( mbedtls_des3_free( NULL ) );
+
     TEST_INVALID_PARAM( mbedtls_des_init( NULL ) );
     TEST_INVALID_PARAM( mbedtls_des3_init( NULL ) );
     TEST_INVALID_PARAM( mbedtls_des_key_set_parity( NULL ) );

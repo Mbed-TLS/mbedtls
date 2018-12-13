@@ -85,7 +85,7 @@ void mbedtls_camellia_init( mbedtls_camellia_context *ctx );
 /**
  * \brief          Clear a CAMELLIA context.
  *
- * \param ctx      The CAMELLIA context to be cleared. May be \c NULL,
+ * \param ctx      The CAMELLIA context to be cleared. This may be \c NULL,
  *                 in which case this function is a no-op. If it is not
  *                 \c NULL, it must be initialized.
  */
@@ -95,9 +95,9 @@ void mbedtls_camellia_free( mbedtls_camellia_context *ctx );
  * \brief          Perform a CAMELLIA key schedule (encryption).
  *
  * \param ctx      The CAMELLIA context to use. This must be initialized.
- * \param key      The encryption key to use. Must be a readable buffer
+ * \param key      The encryption key to use. This must be a readable buffer
  *                 of size \p keybits bits.
- * \param keybits  The length of \p key in Bits. Must be either \c 128,
+ * \param keybits  The length of \p key in Bits. This must be either \c 128,
  *                 \c 192 or \c 256.
  *
  * \return         \c 0 if successful.
@@ -111,9 +111,9 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx,
  * \brief          Perform a CAMELLIA key schedule (decryption).
  *
  * \param ctx      The CAMELLIA context to use. This must be initialized.
- * \param key      The decryption key. Must be a readable buffer
+ * \param key      The decryption key. This must be a readable buffer
  *                 of size \p keybits bits.
- * \param keybits  The length of \p key in Bits. Must be either \c 128,
+ * \param keybits  The length of \p key in Bits. This must be either \c 128,
  *                 \c 192 or \c 256.
  *
  * \return         \c 0 if successful.
@@ -126,13 +126,13 @@ int mbedtls_camellia_setkey_dec( mbedtls_camellia_context *ctx,
 /**
  * \brief          Perform a CAMELLIA-ECB block encryption/decryption.
  *
- * \param ctx      The CAMELLIA context to use. Must be initialized
+ * \param ctx      The CAMELLIA context to use. This must be initialized
  *                 and bound to a key.
- * \param mode     The mode of operation. Must be either
+ * \param mode     The mode of operation. This must be either
  *                 #MBEDTLS_CAMELLIA_ENCRYPT or #MBEDTLS_CAMELLIA_DECRYPT.
- * \param input    The input block. Must be a readable buffer
+ * \param input    The input block. This must be a readable buffer
  *                 of size \c 16 Bytes.
- * \param output   The output block. Must be a writable buffer
+ * \param output   The output block. This must be a writable buffer
  *                 of size \c 16 Bytes.
  *
  * \return         \c 0 if successful.
@@ -155,7 +155,7 @@ int mbedtls_camellia_crypt_ecb( mbedtls_camellia_context *ctx,
  *                 IV, you should either save it manually or use the cipher
  *                 module instead.
  *
- * \param ctx      The CAMELLIA context to use. Must be initialized
+ * \param ctx      The CAMELLIA context to use. This must be initialized
  *                 and bound to a key.
  * \param mode     The mode of operation. Possible values are
  *                 #MBEDTLS_CAMELLIA_ENCRYPT or #MBEDTLS_CAMELLIA_DECRYPT.
@@ -164,12 +164,12 @@ int mbedtls_camellia_crypt_ecb( mbedtls_camellia_context *ctx,
  * \param iv       The initialization vector. This must be RW buffer
  *                 of length \c 16 Bytes. It is updated to allow streaming
  *                 use as explained above.
- * \param input    The buffer holding the input data. Must point to a readable
- *                 buffer of length \p length Bytes. May be \c NULL if
- *                 `length == 0`.
- * \param input    The buffer holding the output data. Must point to a writable
- *                 buffer of length \p length Bytes. May be \c NULL if
- *                 `length == 0`.
+ * \param input    The buffer holding the input data. This must point to a
+ *                 readable buffer of length \p length Bytes. This may be
+ *                 \c NULL if `length == 0`.
+ * \param input    The buffer holding the output data. This must point to a
+ *                 writable buffer of length \p length Bytes. This may be
+ *                 \c NULL if `length == 0`.
  *
  * \return         \c 0 if successful.
  * \return         A negative error code on failure.
@@ -200,7 +200,7 @@ int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
  *                 IV, you should either save it manually or use the cipher
  *                 module instead.
  *
- * \param ctx      The CAMELLIA context to use. Must be initialized
+ * \param ctx      The CAMELLIA context to use. This must be initialized
  *                 and bound to a key.
  * \param mode     The mode of operation. Possible values are
  *                 #MBEDTLS_CAMELLIA_ENCRYPT or #MBEDTLS_CAMELLIA_DECRYPT.
@@ -208,14 +208,14 @@ int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
  * \param iv_off   The current offset in the IV. This must be smaller
  *                 than \c 16. It is updated after this call to allow
  *                 the aforementioned streaming usage.
- * \param iv       The initialization vector. Must be an RW buffer of
+ * \param iv       The initialization vector. This must be an RW buffer of
  *                 length \c 16 Bytes. It is updated after this call to
  *                 allow the aforementioned streaming usage.
- * \param input    The buffer holding the input data. Must be a readable
- *                 buffer of size \p length Bytes. May be \c NULL if
+ * \param input    The buffer holding the input data. This must be a readable
+ *                 buffer of size \p length Bytes. This may be \c NULL if
  *                 \p length is \c 0.
- * \param output   The buffer to hold the output data. Must be a writable
- *                 buffer of length \p length Bytes. May be \c NULL if
+ * \param output   The buffer to hold the output data. This must be a writable
+ *                 buffer of length \p length Bytes. This may be \c NULL if
  *                 \p length is \c 0.
  *
  * \return         \c 0 if successful.
@@ -271,7 +271,7 @@ int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
  *
  *             The per-message nonce (or information sufficient to reconstruct
  *             it) needs to be communicated with the ciphertext and must be unique.
- *             The recommended way to ensure uniqueness is to use a message
+ *             unique. The recommended way to ensure uniqueness is to use a message
  *             counter. An alternative is to generate random nonces, but this
  *             limits the number of messages that can be securely encrypted:
  *             for example, with 96-bit random nonces, you should not encrypt
@@ -290,16 +290,16 @@ int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
  *                      within current cipher stream). The offset pointer to
  *                      should be \c 0 at the start of a stream. It is updated
  *                      at the end of this call.
- * \param nonce_counter The 128-bit nonce and counter. Must be an RW buffer of
- *                      length \c 16 Bytes.
- * \param stream_block  The saved stream-block for resuming. Must be an
+ * \param nonce_counter The 128-bit nonce and counter. This must be an RW buffer
+ *                      of length \c 16 Bytes.
+ * \param stream_block  The saved stream-block for resuming. This must be an
  *                      RW buffer of length \c 16 Bytes.
- * \param input         The input data stream. Must be a readable buffer of
+ * \param input         The input data stream. This must be a readable buffer of
  *                      size \p length Bytes. This may be \c NULL if \p length
  *                      is \c 0.
- * \param output        The output data stream. Must be a writable buffer of
- *                      size \p length Bytes. This may be \c NULL if \p length
- *                      is \c 0.
+ * \param output        The output data stream. This must be a writable buffer
+ *                      of size \p length Bytes. This may be \c NULL if
+ *                      \p length is \c 0.
  *
  * \return              \c 0 if successful.
  * \return              A negative error code on failure.

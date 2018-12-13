@@ -541,9 +541,8 @@ int mbedtls_gcm_auth_decrypt( mbedtls_gcm_context *ctx,
 
 void mbedtls_gcm_free( mbedtls_gcm_context *ctx )
 {
-    if( ctx == NULL ) {
+    if( ctx == NULL )
         return;
-    }
     mbedtls_cipher_free( &ctx->cipher_ctx );
     mbedtls_platform_zeroize( ctx, sizeof( mbedtls_gcm_context ) );
 }

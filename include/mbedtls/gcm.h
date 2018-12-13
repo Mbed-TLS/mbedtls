@@ -298,7 +298,7 @@ int mbedtls_gcm_finish( mbedtls_gcm_context *ctx,
  *                  cipher sub-context.
  *
  * \param ctx       The GCM context to clear. If this is \c NULL, the call has
- *                  no effect.
+ *                  no effect. Otherwise, this must be initialized.
  */
 void mbedtls_gcm_free( mbedtls_gcm_context *ctx );
 

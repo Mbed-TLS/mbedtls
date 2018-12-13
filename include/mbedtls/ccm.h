@@ -136,7 +136,7 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx );
  *                  15 - \p iv_len.
  * \param add       The additional data field. If \p add_len is greater than
  *                  zero, \p add must be a readable buffer of at least that
- *                  length. If `pad_len == 0`, this may be \c NULL.
+ *                  length. If `add_len == 0`, this may be \c NULL.
  * \param add_len   The length of additional data in Bytes.
  *                  This must be less than 2^16 - 2^8.
  * \param input     The buffer holding the input data. If \p length is greater
@@ -182,7 +182,7 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  *                  15 - \p iv_len.
  * \param add       The additional data field. If \p add_len is greater than
  *                  zero, \p add must be a readable buffer of at least that
- *                  length. If `pad_len == 0`, this may be \c NULL.
+ *                  length. If `add_len == 0`, this may be \c NULL.
  * \param add_len   The length of additional data in Bytes.
  *                  This must be less than 2^16 - 2^8.
  * \param input     The buffer holding the input data. If \p length is greater
@@ -222,7 +222,7 @@ int mbedtls_ccm_star_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  *                  15 - \p iv_len.
  * \param add       The additional data field. If \p add_len is greater than
  *                  zero, \p add must be a readable buffer of at least that
- *                  length. If `pad_len == 0`, this may be \c NULL.
+ *                  length. If `add_len == 0`, this may be \c NULL.
  * \param add_len   The length of additional data in Bytes.
  *                  This must be less than 2^16 - 2^8.
  * \param input     The buffer holding the input data. If \p length is greater
@@ -265,7 +265,7 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  *                  15 - \p iv_len.
  * \param add       The additional data field. If \p add_len is greater than
  *                  zero, \p add must be a readable buffer of at least that
- *                  length. If `pad_len == 0`, this may be \c NULL.
+ *                  length. If `add_len == 0`, this may be \c NULL.
  * \param add_len   The length of additional data in Bytes.
  *                  This must be less than 2^16 - 2^8.
  * \param input     The buffer holding the input data. If \p length is greater

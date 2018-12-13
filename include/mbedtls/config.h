@@ -292,6 +292,9 @@
  *   calls that function, but does not provide a default definition for it,
  * - or provide a different definition of the macro MBEDTLS_PARAM_FAILED()
  *   below if the above mechanism is not flexible enough to suit your needs.
+ *   Note that you may define it to expand to nothing if you're happy to be
+ *   notified about invalid parameters only in non-void functions, and have
+ *   void function just silently return early on invalid parameters.
  *
  * Uncomment to enable validation of application-controlled parameters.
  */
@@ -3054,6 +3057,12 @@
  *              particular, that all the necessary declarations are visible
  *              from within the library - you can ensure that by providing
  *              them in this file next to the macro definition).
+ *
+ *              Note that you may define this macro to expand to nothing, in
+ *              which case you don't have to worry about declarations or
+ *              definitions. However, you will then be notified about invalid
+ *              parameters only in non-void functions, and void function will
+ *              just silently return early on invalid parameters.
  *
  * \param cond  The expression that should evaluate to true, but doesn't.
  */

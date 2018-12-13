@@ -23,10 +23,14 @@ Security
      modules.
 
 Features
-   * Add new config.h flag MBEDTLS_CHECK_PARAMS that enables validation of
-     more of the parameters by public API functions (see its documentation in
-     config.h for details). Disabled by default - requires users to provide an
-     implementation of the callback function or macro.
+   * Add a new config.h option of MBEDTLS_CHECK_PARAMS that enables additional
+     validation of parameters in the library's public interface. This does not
+     change the API of existing functions, but additional clarity has been
+     added to the defined documentation interface to make clearer what the
+     interface is designed to accept. See the corresponding API documentation
+     for each function to see what parameter values are defined as invalid.
+     This feature is disabled by default. See its API documentation in
+     config.h for additional steps you have to take when enabling it.
 
 New deprecations
    * Deprecate mbedtls_ctr_drbg_update and mbedtls_hmac_drbg_update

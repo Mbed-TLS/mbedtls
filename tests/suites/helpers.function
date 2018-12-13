@@ -199,7 +199,7 @@ typedef enum
  *          Note: this macro is available even when #MBEDTLS_CHECK_PARAMS is
  *          disabled, as it makes sense to check that the functions accept all
  *          legal values even if this option is disabled - only in that case,
- *          the test if more about whether the function segfaults than about
+ *          the test is more about whether the function segfaults than about
  *          whether it invokes MBEDTLS_PARAM_FAILED().
  *
  * \param   TEST                The test expression to be tested.

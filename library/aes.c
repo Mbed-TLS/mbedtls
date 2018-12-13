@@ -1425,7 +1425,16 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
                        unsigned char *output )
 {
     int c, i;
-    size_t n = *nc_off;
+    size_t n;
+
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( nc_off != NULL );
+    AES_VALIDATE_RET( nonce_counter != NULL );
+    AES_VALIDATE_RET( stream_block != NULL );
+    AES_VALIDATE_RET( input != NULL );
+    AES_VALIDATE_RET( output != NULL );
+
+    n = *nc_off;
 
     if ( n > 0x0F )
         return( MBEDTLS_ERR_AES_BAD_INPUT_DATA );

@@ -534,6 +534,27 @@ void aes_check_params( )
                             mbedtls_aes_crypt_ofb( &aes_ctx, 16,
                                                    &size, out, in, NULL ) );
 #endif /* MBEDTLS_CIPHER_MODE_OFB */
+
+#if defined(MBEDTLS_CIPHER_MODE_CTR)
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_ctr( NULL, 16, &size, out,
+                                                   out, in, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_ctr( &aes_ctx, 16, NULL, out,
+                                                   out, in, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_ctr( &aes_ctx, 16, &size, NULL,
+                                                   out, in, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_ctr( &aes_ctx, 16, &size, out,
+                                                   NULL, in, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_ctr( &aes_ctx, 16, &size, out,
+                                                   out, NULL, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_ctr( &aes_ctx, 16, &size, out,
+                                                   out, in, NULL ) );
+#endif /* MBEDTLS_CIPHER_MODE_CTR */
 }
 /* END_CASE */
 

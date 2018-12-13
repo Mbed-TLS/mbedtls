@@ -561,15 +561,21 @@ int mbedtls_aes_crypt_ofb( mbedtls_aes_context *ctx,
  *             securely discarded as soon as it's no longer needed.
  *
  * \param ctx              The AES context to use for encryption or decryption.
+ *                         It must be initialized and bound to a key.
  * \param length           The length of the input data.
  * \param nc_off           The offset in the current \p stream_block, for
  *                         resuming within the current cipher stream. The
  *                         offset pointer should be 0 at the start of a stream.
+ *                         It must point to a valid \c size_t.
  * \param nonce_counter    The 128-bit nonce and counter.
+ *                         It must be a readable-writeable buffer of 16 Bytes.
  * \param stream_block     The saved stream block for resuming. This is
  *                         overwritten by the function.
+ *                         It must be a readable-writeable buffer of 16 Bytes.
  * \param input            The buffer holding the input data.
+ *                         It must be readable and of size \p length.
  * \param output           The buffer holding the output data.
+ *                         It must be writeable and of size \p length.
  *
  * \return                 \c 0 on success.
  */

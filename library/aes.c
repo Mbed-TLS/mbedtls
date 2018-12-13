@@ -1382,7 +1382,15 @@ int mbedtls_aes_crypt_ofb( mbedtls_aes_context *ctx,
                            unsigned char *output )
 {
     int ret = 0;
-    size_t n = *iv_off;
+    size_t n;
+
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( iv_off != NULL );
+    AES_VALIDATE_RET( iv != NULL );
+    AES_VALIDATE_RET( input != NULL );
+    AES_VALIDATE_RET( output != NULL );
+
+    n = *iv_off;
 
     while( length-- )
     {

@@ -516,6 +516,24 @@ void aes_check_params( )
                                                     MBEDTLS_AES_ENCRYPT, 16,
                                                     out, in, NULL ) );
 #endif /* MBEDTLS_CIPHER_MODE_CFB */
+
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_ofb( NULL, 16,
+                                                   &size, out, in, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_ofb( &aes_ctx, 16,
+                                                   NULL, out, in, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_ofb( &aes_ctx, 16,
+                                                   &size, NULL, in, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_ofb( &aes_ctx, 16,
+                                                   &size, out, NULL, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_ofb( &aes_ctx, 16,
+                                                   &size, out, in, NULL ) );
+#endif /* MBEDTLS_CIPHER_MODE_OFB */
 }
 /* END_CASE */
 

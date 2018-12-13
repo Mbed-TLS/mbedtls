@@ -480,11 +480,16 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
  *              will compromise security.
  *
  * \param ctx      The AES context to use for encryption or decryption.
+ *                 It must be initialized and bound to a key.
  * \param length   The length of the input data.
  * \param iv_off   The offset in IV (updated after use).
+ *                 It must point to a valid \c size_t.
  * \param iv       The initialization vector (updated after use).
+ *                 It must be a readable and writeable buffer of 16 Bytes.
  * \param input    The buffer holding the input data.
+ *                 It must be readable and of size \p length.
  * \param output   The buffer holding the output data.
+ *                 It must be writeable and of size \p length.
  *
  * \return         \c 0 on success.
  */

@@ -50,7 +50,7 @@
 
 /* Parameter validation macros */
 #define ARC4_VALIDATE_RET( cond )                                       \
-    MBEDTLS_INTERNAL_VALIDATE_RET( MBEDTLS_ERR_ARC4_BAD_INPUT_DATA, cond )
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_ARC4_BAD_INPUT_DATA )
 #define ARC4_VALIDATE( cond )                                           \
     MBEDTLS_INTERNAL_VALIDATE( cond )
 

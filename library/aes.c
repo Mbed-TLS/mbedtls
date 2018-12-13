@@ -1287,7 +1287,17 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
                        unsigned char *output )
 {
     int c;
-    size_t n = *iv_off;
+    size_t n;
+
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
+                      mode == MBEDTLS_AES_DECRYPT );
+    AES_VALIDATE_RET( iv_off != NULL );
+    AES_VALIDATE_RET( iv != NULL );
+    AES_VALIDATE_RET( input != NULL );
+    AES_VALIDATE_RET( output != NULL );
+
+    n = *iv_off;
 
     if( mode == MBEDTLS_AES_DECRYPT )
     {
@@ -1334,6 +1344,12 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
     unsigned char c;
     unsigned char ov[17];
 
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
+                      mode == MBEDTLS_AES_DECRYPT );
+    AES_VALIDATE_RET( iv != NULL );
+    AES_VALIDATE_RET( input != NULL );
+    AES_VALIDATE_RET( output != NULL );
     while( length-- )
     {
         memcpy( ov, iv, 16 );

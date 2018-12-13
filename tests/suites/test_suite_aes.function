@@ -379,6 +379,7 @@ void aes_check_params( )
     const unsigned char key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
     const unsigned char in[16] = { 0 };
     unsigned char out[16];
+    size_t size;
 
     TEST_INVALID_PARAM( mbedtls_aes_init( NULL ) );
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
@@ -466,6 +467,55 @@ void aes_check_params( )
                                                    MBEDTLS_AES_ENCRYPT, 16,
                                                    in, in, NULL ) );
 #endif /* MBEDTLS_CIPHER_MODE_XTS */
+
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_cfb128( NULL,
+                                                      MBEDTLS_AES_ENCRYPT, 16,
+                                                      &size, out, in, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_cfb128( &aes_ctx,
+                                                      42, 16,
+                                                      &size, out, in, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_cfb128( &aes_ctx,
+                                                      MBEDTLS_AES_ENCRYPT, 16,
+                                                      NULL, out, in, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_cfb128( &aes_ctx,
+                                                      MBEDTLS_AES_ENCRYPT, 16,
+                                                      &size, NULL, in, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_cfb128( &aes_ctx,
+                                                      MBEDTLS_AES_ENCRYPT, 16,
+                                                      &size, out, NULL, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_cfb128( &aes_ctx,
+                                                      MBEDTLS_AES_ENCRYPT, 16,
+                                                      &size, out, in, NULL ) );
+
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_cfb8( NULL,
+                                                    MBEDTLS_AES_ENCRYPT, 16,
+                                                    out, in, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_cfb8( &aes_ctx,
+                                                    42, 16,
+                                                    out, in, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_cfb8( &aes_ctx,
+                                                    MBEDTLS_AES_ENCRYPT, 16,
+                                                    NULL, in, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_cfb8( &aes_ctx,
+                                                    MBEDTLS_AES_ENCRYPT, 16,
+                                                    out, NULL, out ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_crypt_cfb8( &aes_ctx,
+                                                    MBEDTLS_AES_ENCRYPT, 16,
+                                                    out, in, NULL ) );
+#endif /* MBEDTLS_CIPHER_MODE_CFB */
 }
 /* END_CASE */
 

@@ -22,7 +22,7 @@ while (<>)
         $state = 'in';
     } elsif( $state eq 'in' and /}/ ) {
         $state = 'out';
-    } elsif( $state eq 'in' and not (/^#if/ or /#endif/)) {
+    } elsif( $state eq 'in' and not /^#/) {
         s/=.*//; s!/\*.*!!; s/,.*//; s/\s+//g; chomp;
         push @consts, $_ if $_;
     }

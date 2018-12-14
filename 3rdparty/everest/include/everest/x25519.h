@@ -40,7 +40,8 @@ typedef enum
 /**
  * \brief           The x25519 context structure.
  */
-typedef struct mbedtls_x25519_context_ {
+typedef struct
+{
   unsigned char our_secret[32];
   unsigned char peer_point[32];
 } mbedtls_x25519_context;

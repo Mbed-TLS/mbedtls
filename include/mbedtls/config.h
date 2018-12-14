@@ -3535,7 +3535,7 @@
  */
 //#define MBEDTLS_PLATFORM_GMTIME_R_ALT
 
-/*
+/**
  * \def MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
  *
  * Enable the verified implementations of crypto primitives

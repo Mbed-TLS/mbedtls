@@ -73,6 +73,4 @@
 /* For testing with compat.sh */
 #define MBEDTLS_FS_IO
 
-#include "mbedtls/check_config.h"
-
 #endif /* MBEDTLS_CONFIG_H */

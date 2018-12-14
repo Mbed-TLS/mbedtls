@@ -20,7 +20,7 @@ endif
 # CFLAGS += -D_BSD_EXTENSION
 
 # Include directories for Everest code
-CFLAGS+=-I../3rdparty/everest/include -I../3rdparty/everest/include/everest -I../3rdparty/everest/include/everest/kremlib
+LOCAL_CFLAGS+=-I../3rdparty/everest/include -I../3rdparty/everest/include/everest -I../3rdparty/everest/include/everest/kremlib
 
 # if were running on Windows build for Windows
 ifdef WINDOWS

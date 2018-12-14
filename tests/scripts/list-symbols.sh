@@ -30,9 +30,9 @@ if [ -n "$make_ret" ]; then
 fi
 
 if uname | grep -F Darwin >/dev/null; then
-    nm -gUj library/libmbed*.a 2>/dev/null | sed -n -e 's/^_//p'
+    nm -gUj library/libmbed*.a 2>/dev/null | sed -n -e 's/^_//p' | grep -v -e ^FStar -e ^Hacl
 elif uname | grep -F Linux >/dev/null; then
-    nm -og library/libmbed*.a | grep -v '^[^ ]*: *U \|^$\|^[^ ]*:$' | sed 's/^[^ ]* . //'
+    nm -og library/libmbed*.a | grep -v '^[^ ]*: *U \|^$\|^[^ ]*:$' | sed 's/^[^ ]* . //' | grep -v -e ^FStar -e ^Hacl
 fi | sort > exported-symbols
 make clean
 

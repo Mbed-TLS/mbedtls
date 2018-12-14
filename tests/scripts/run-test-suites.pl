@@ -4,19 +4,21 @@
 #
 # This file is part of mbed TLS (https://tls.mbed.org)
 #
-# Copyright (c) 2015-2016, ARM Limited, All Rights Reserved
-#
-# Purpose
-#
-# Executes all the available test suites, and provides a basic summary of the
-# results.
-#
-# Usage: run-test-suites.pl [-v]
-#
-# Options :
-#   -v|--verbose    - Provide a pass/fail/skip breakdown per test suite and
-#                     in total
-#
+# Copyright (c) 2015-2018, ARM Limited, All Rights Reserved
+
+=head1 SYNOPSIS
+
+Execute all the test suites and print a summary of the results.
+
+ run-test-suites.pl [[-v|--verbose] [VERBOSITY]]
+
+Options:
+
+  -v|--verbose        Print detailed failure information.
+  -v 2|--verbose=2    Print detailed failure information and summary messages.
+  -v 3|--verbose=3    Print detailed information about every test case.
+
+=cut
 
 use warnings;
 use strict;
@@ -24,10 +26,13 @@ use strict;
 use utf8;
 use open qw(:std utf8);
 
-use Getopt::Long;
+use Getopt::Long qw(:config auto_help);
+use Pod::Usage;
 
 my $verbose = 0;
-GetOptions( "verbose|v:1" => \$verbose );
+GetOptions(
+           'verbose|v:1' => \$verbose,
+          ) or die;
 
 # All test suites = executable files, excluding source files, debug
 # and profiling information, etc. We can't just grep {! /\./} because

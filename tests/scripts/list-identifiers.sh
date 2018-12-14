@@ -8,6 +8,7 @@ if [ -d include/mbedtls ]; then :; else
 fi
 
 HEADERS=$( ls include/mbedtls/*.h | egrep -v 'compat-1\.3\.h|bn_mul' )
+HEADERS="$HEADERS 3rdparty/everest/include/everest/everest.h 3rdparty/everest/include/everest/x25519.h"
 
 rm -f identifiers
 

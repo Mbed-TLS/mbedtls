@@ -179,6 +179,7 @@ endif()
 include_directories(include/ 3rdparty/everest/include/ 3rdparty/everest/include/everest/ 3rdparty/everest/include/everest/kremlin/ 3rdparty/everest/include/everest/kremlib/)
 include_directories(library/)
 
+add_subdirectory(3rdparty)
 add_subdirectory(library)
 add_subdirectory(include)
 

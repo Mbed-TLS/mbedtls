@@ -19,9 +19,6 @@ endif
 # To compile on Plan9:
 # CFLAGS += -D_BSD_EXTENSION
 
-# Include directories for Everest code
-LOCAL_CFLAGS+=-I../3rdparty/everest/include -I../3rdparty/everest/include/everest -I../3rdparty/everest/include/everest/kremlib
-
 # if were running on Windows build for Windows
 ifdef WINDOWS
 WINDOWS_BUILD=1
@@ -104,11 +101,9 @@ OBJS_CRYPTO += version.o
 OBJS_CRYPTO += version_features.o
 endif
 
-OBJS_CRYPTO+= \
-		../3rdparty/everest/library/everest.o \
-		../3rdparty/everest/library/Hacl_Curve25519.o \
-		../3rdparty/everest/library/x25519.o \
-		../3rdparty/everest/library/kremlib/FStar_UInt64_FStar_UInt32_FStar_UInt16_FStar_UInt8.o
+include ../3rdparty/Makefile.inc
+LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
+OBJS_CRYPTO+=$(THIRDPARTY_OBJECTS)
 
 .SILENT:
 
@@ -163,4 +158,3 @@ else
 	if exist libmbed* del /Q /F libmbed*
 	if exist $(OBJS_CRYPTO) del /Q /F $(OBJS_CRYPTO)
 endif
-

@@ -178,6 +178,7 @@ if(ENABLE_ZLIB_SUPPORT)
     endif(ZLIB_FOUND)
 endif(ENABLE_ZLIB_SUPPORT)
 
+add_subdirectory(3rdparty)
 add_subdirectory(library)
 add_subdirectory(include)
 if(USE_CRYPTO_SUBMODULE)

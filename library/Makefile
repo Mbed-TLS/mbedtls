@@ -18,9 +18,6 @@ endif
 # To compile on Plan9:
 # CFLAGS += -D_BSD_EXTENSION
 
-# Include directories for Everest code
-LOCAL_CFLAGS+=-I../3rdparty/everest/include -I../3rdparty/everest/include/everest -I../3rdparty/everest/include/everest/kremlib
-
 # if were running on Windows build for Windows
 ifdef WINDOWS
 WINDOWS_BUILD=1
@@ -98,12 +95,6 @@ OBJS_CRYPTO=	aes.o		aesni.o		arc4.o		\
 CRYPTO :=
 endif
 
-OBJS_CRYPTO+= \
-		../3rdparty/everest/library/everest.o \
-		../3rdparty/everest/library/Hacl_Curve25519.o \
-		../3rdparty/everest/library/x25519.o \
-		../3rdparty/everest/library/kremlib/FStar_UInt64_FStar_UInt32_FStar_UInt16_FStar_UInt8.o
-
 OBJS_X509=	certs.o		pkcs11.o	x509.o		\
 		x509_create.o	x509_crl.o	x509_crt.o	\
 		x509_csr.o	x509write_crt.o	x509write_csr.o
@@ -113,6 +104,10 @@ OBJS_TLS=	debug.o		net_sockets.o		\
 		ssl_cli.o	ssl_cookie.o		\
 		ssl_srv.o	ssl_ticket.o		\
 		ssl_tls.o
+
+include ../3rdparty/Makefile.inc
+LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
+OBJS_CRYPTO+=$(THIRDPARTY_OBJECTS)
 
 .SILENT:
 
@@ -224,4 +219,3 @@ ifndef WINDOWS
 else
 	del /Q /F *.o libmbed* $(OBJS_CRYPTO)
 endif
-

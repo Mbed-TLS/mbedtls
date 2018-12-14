@@ -108,3 +108,4 @@ int mbedtls_everest_calc_secret( mbedtls_ecdh_context_everest *ctx, size_t *olen
 }
 
 #endif /* MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED */
+

@@ -43,7 +43,7 @@
 #include "mbedtls/ecp.h"
 
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
-#undef MBEDTLS_ECDH_LEGACY_CONTEXT 
+#undef MBEDTLS_ECDH_LEGACY_CONTEXT
 #include "everest/everest.h"
 #endif
 

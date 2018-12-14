@@ -64,17 +64,8 @@ set(src_crypto
     version.c
     version_features.c
     xtea.c
+    ${src_thirdparty}
 )
-
-set(src_everest
-    ../3rdparty/everest/library/everest.c
-    ../3rdparty/everest/library/Hacl_Curve25519.c
-    ../3rdparty/everest/library/x25519.c
-    ../3rdparty/everest/library/kremlib/fstar_uint128.c
-    ../3rdparty/everest/library/kremlib/FStar_UInt64_FStar_UInt32_FStar_UInt16_FStar_UInt8.c
-)
-
-set(src_crypto ${src_crypto} ${src_everest})
 
 set(src_x509
     certs.c

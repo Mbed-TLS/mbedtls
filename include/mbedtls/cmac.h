@@ -77,7 +77,8 @@ struct mbedtls_cmac_context_t
  *                      as one of the following types: MBEDTLS_CIPHER_AES_128_ECB,
  *                      MBEDTLS_CIPHER_AES_192_ECB, MBEDTLS_CIPHER_AES_256_ECB,
  *                      or MBEDTLS_CIPHER_DES_EDE3_ECB.
- * \param key           The CMAC key. This must not be \c NULL.
+ * \param key           The CMAC key. This must be a readable buffer of length
+ *                      \p keybits Bits.
  * \param keybits       The length of the CMAC key in bits.
  *                      Must be supported by the cipher.
  *
@@ -97,7 +98,9 @@ int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
  *
  * \param ctx           The cipher context used for the CMAC operation.
  *                      This must be initialized.
- * \param input         The buffer holding the input data. This must not be \c NULL.
+ * \param input         The buffer holding the input data. This must be a
+ *                      readable buffer of length \p ilen Bytes. It may be
+ *                      \c NULL if ilen == 0.
  * \param ilen          The length of the input data.
  *
  * \return             \c 0 on success.
@@ -158,9 +161,12 @@ int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx );
  * \param cipher_info   The cipher information. This must not be \c NULL.
  * \param key           The CMAC key. This must not be \c NULL.
  * \param keylen        The length of the CMAC key in bits.
- * \param input         The buffer holding the input data. This must not be \c NULL.
+ * \param input         The buffer holding the input data. This must be a
+ *                      readable buffer of length \p ilen Bytes. It may be
+ *                      \c NULL if ilen == 0.
  * \param ilen          The length of the input data.
- * \param output        The buffer for the generic CMAC result. This must not be \c NULL.
+ * \param output        The buffer for the generic CMAC result.
+ *                      This must not be \c NULL.
  *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_MD_BAD_INPUT_DATA

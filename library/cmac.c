@@ -68,6 +68,10 @@
 
 #if !defined(MBEDTLS_CMAC_ALT) || defined(MBEDTLS_SELF_TEST)
 
+#define MBEDTLS_CMAC_VALIDATE_RET(cond) \
+        MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA )
+#define MBEDTLS_CMAC_VALIDATE(cond)    MBEDTLS_INTERNAL_VALIDATE( cond )
+
 /*
  * Multiplication by u in the Galois field of GF(2^n)
  *
@@ -206,8 +210,9 @@ int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
     mbedtls_cmac_context_t *cmac_ctx;
     int retval;
 
-    if( ctx == NULL || ctx->cipher_info == NULL || key == NULL )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    MBEDTLS_CMAC_VALIDATE_RET( ctx != NULL );
+    MBEDTLS_CMAC_VALIDATE_RET( ctx->cipher_info != NULL );
+    MBEDTLS_CMAC_VALIDATE_RET( key != NULL );
 
     if( ( retval = mbedtls_cipher_setkey( ctx, key, (int)keybits,
                                           MBEDTLS_ENCRYPT ) ) != 0 )
@@ -247,9 +252,9 @@ int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
     int ret = 0;
     size_t n, j, olen, block_size;
 
-    if( ctx == NULL || ctx->cipher_info == NULL || input == NULL ||
-        ctx->cmac_ctx == NULL )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    MBEDTLS_CMAC_VALIDATE_RET( ctx != NULL );
+    MBEDTLS_CMAC_VALIDATE_RET( ctx->cipher_info != NULL );
+    MBEDTLS_CMAC_VALIDATE_RET( input != NULL );
 
     cmac_ctx = ctx->cmac_ctx;
     block_size = ctx->cipher_info->block_size;
@@ -318,9 +323,9 @@ int mbedtls_cipher_cmac_finish( mbedtls_cipher_context_t *ctx,
     int ret;
     size_t olen, block_size;
 
-    if( ctx == NULL || ctx->cipher_info == NULL || ctx->cmac_ctx == NULL ||
-        output == NULL )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    MBEDTLS_CMAC_VALIDATE_RET( ctx != NULL );
+    MBEDTLS_CMAC_VALIDATE_RET( ctx->cipher_info != NULL );
+    MBEDTLS_CMAC_VALIDATE_RET( ctx->cmac_ctx != NULL );
 
     cmac_ctx = ctx->cmac_ctx;
     block_size = ctx->cipher_info->block_size;
@@ -372,8 +377,9 @@ int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx )
 {
     mbedtls_cmac_context_t* cmac_ctx;
 
-    if( ctx == NULL || ctx->cipher_info == NULL || ctx->cmac_ctx == NULL )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    MBEDTLS_CMAC_VALIDATE_RET( ctx != NULL );
+    MBEDTLS_CMAC_VALIDATE_RET( ctx->cipher_info != NULL );
+    MBEDTLS_CMAC_VALIDATE_RET( ctx->cmac_ctx != NULL );
 
     cmac_ctx = ctx->cmac_ctx;
 
@@ -395,8 +401,10 @@ int mbedtls_cipher_cmac( const mbedtls_cipher_info_t *cipher_info,
     mbedtls_cipher_context_t ctx;
     int ret;
 
-    if( cipher_info == NULL || key == NULL || input == NULL || output == NULL )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    MBEDTLS_CMAC_VALIDATE_RET( cipher_info != NULL );
+    MBEDTLS_CMAC_VALIDATE_RET( key != NULL );
+    MBEDTLS_CMAC_VALIDATE_RET( input != NULL );
+    MBEDTLS_CMAC_VALIDATE_RET( output != NULL );
 
     mbedtls_cipher_init( &ctx );
 
@@ -432,8 +440,9 @@ int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_length,
     unsigned char zero_key[MBEDTLS_AES_BLOCK_SIZE];
     unsigned char int_key[MBEDTLS_AES_BLOCK_SIZE];
 
-    if( key == NULL || input == NULL || output == NULL )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+	MBEDTLS_CMAC_VALIDATE_RET( key != NULL );
+	MBEDTLS_CMAC_VALIDATE_RET( input != NULL );
+	MBEDTLS_CMAC_VALIDATE_RET( output != NULL );
 
     cipher_info = mbedtls_cipher_info_from_type( MBEDTLS_CIPHER_AES_128_ECB );
     if( cipher_info == NULL )

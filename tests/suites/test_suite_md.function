@@ -48,28 +48,28 @@ void md_null_args(  )
 
     mbedtls_md_init( &ctx );
 
-    TEST_INVALID_PARAM( mbedtls_md_get_size( NULL ) == 0 );
-    TEST_INVALID_PARAM( mbedtls_md_get_type( NULL ) == MBEDTLS_MD_NONE );
-    TEST_INVALID_PARAM( mbedtls_md_get_name( NULL ) == NULL );
+    TEST_INVALID_PARAM( mbedtls_md_get_size( NULL ) );
+    TEST_INVALID_PARAM( mbedtls_md_get_type( NULL ) );
+    TEST_INVALID_PARAM( mbedtls_md_get_name( NULL ) );
 
-    TEST_INVALID_PARAM( mbedtls_md_info_from_string( NULL ) == NULL );
+    TEST_INVALID_PARAM( mbedtls_md_info_from_string( NULL ) );
 
-    TEST_INVALID_PARAM( mbedtls_md_setup( &ctx, NULL, 0 ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
-    TEST_INVALID_PARAM( mbedtls_md_setup( NULL, info, 0 ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+    TEST_INVALID_PARAM( mbedtls_md_setup( &ctx, NULL, 0 ) );
+    TEST_INVALID_PARAM( mbedtls_md_setup( NULL, info, 0 ) );
 
-    TEST_INVALID_PARAM( mbedtls_md_starts( NULL ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
-    TEST_INVALID_PARAM( mbedtls_md_starts( &ctx ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+    TEST_INVALID_PARAM( mbedtls_md_starts( NULL ) );
+    TEST_INVALID_PARAM( mbedtls_md_starts( &ctx ) );
 
-    TEST_INVALID_PARAM( mbedtls_md_update( NULL, buf, 1 ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
-    TEST_INVALID_PARAM( mbedtls_md_update( &ctx, buf, 1 ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+    TEST_INVALID_PARAM( mbedtls_md_update( NULL, buf, 1 ) );
+    TEST_INVALID_PARAM( mbedtls_md_update( &ctx, buf, 1 ) );
 
-    TEST_INVALID_PARAM( mbedtls_md_finish( NULL, buf ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
-    TEST_INVALID_PARAM( mbedtls_md_finish( &ctx, buf ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+    TEST_INVALID_PARAM( mbedtls_md_finish( NULL, buf ) );
+    TEST_INVALID_PARAM( mbedtls_md_finish( &ctx, buf ) );
 
-    TEST_INVALID_PARAM( mbedtls_md( NULL, buf, 1, buf ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+    TEST_INVALID_PARAM( mbedtls_md( NULL, buf, 1, buf ) );
 
 #if defined(MBEDTLS_FS_IO)
-    TEST_INVALID_PARAM( mbedtls_md_file( NULL, "", buf ) == MBEDTLS_ERR_MD_BAD_INPUT_DATA );
+    TEST_INVALID_PARAM( mbedtls_md_file( NULL, "", buf ) );
 #endif
 
     TEST_INVALID_PARAM( mbedtls_md_hmac_starts( NULL, buf, 1 ) );

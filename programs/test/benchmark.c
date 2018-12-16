@@ -136,7 +136,7 @@ do {                                                                    \
                                                                         \
     if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )               \
     {                                                                   \
-        mbedtls_printf( "Feature Not Supported. Skipping.\n" );         \
+        mbedtls_printf( "Feature not supported. Skipping.\n" );         \
         ret = 0;                                                        \
     }                                                                   \
     else if( ret != 0 )                                                 \
@@ -204,6 +204,23 @@ do {                                                                    \
         mbedtls_printf( "\n" );                                         \
     }                                                                   \
 } while( 0 )
+
+#define SET_KEY_ENC( MODULE, CTX, KEYSIZE )                             \
+        ret = mbedtls_##MODULE##_setkey_enc( CTX, tmp, KEYSIZE );       \
+        if( ret != 0 )                                                  \
+        {                                                               \
+            mbedtls_printf( HEADER_FORMAT, title );                     \
+            if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )       \
+            {                                                           \
+                mbedtls_printf( "Feature not supported. Skipping.\n" ); \
+                ret = 0;                                                \
+            }                                                           \
+            else                                                        \
+            {                                                           \
+                PRINT_ERROR;                                            \
+            }                                                           \
+            continue;                                                   \
+        }                                                               \
 
 static int myrand( void *rng_state, unsigned char *output, size_t len )
 {
@@ -413,9 +430,27 @@ int main( int argc, char *argv[] )
     {
         mbedtls_des3_context des3;
         mbedtls_des3_init( &des3 );
-        mbedtls_des3_set3key_enc( &des3, tmp );
-        TIME_AND_TSC( "3DES",
-                mbedtls_des3_crypt_cbc( &des3, MBEDTLS_DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
+        mbedtls_snprintf( title, sizeof( title ), "3DES" );
+        ret = mbedtls_des3_set3key_enc( &des3, tmp );
+        if( ret != 0 )
+        {
+            mbedtls_printf( HEADER_FORMAT, title );
+            if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
+            {
+                mbedtls_printf( "Feature not supported. Skipping.\n" );
+                ret = 0;
+            }
+            else
+            {
+                PRINT_ERROR;
+            }
+        }
+        else
+        {
+            TIME_AND_TSC( title,
+                    mbedtls_des3_crypt_cbc( &des3, MBEDTLS_DES_ENCRYPT, BUFSIZE,
+                                            tmp, buf, buf ) );
+        }
         mbedtls_des3_free( &des3 );
     }
 
@@ -423,9 +458,26 @@ int main( int argc, char *argv[] )
     {
         mbedtls_des_context des;
         mbedtls_des_init( &des );
-        mbedtls_des_setkey_enc( &des, tmp );
-        TIME_AND_TSC( "DES",
-                mbedtls_des_crypt_cbc( &des, MBEDTLS_DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
+        mbedtls_snprintf( title, sizeof( title ), "DES" );
+        ret = mbedtls_des_setkey_enc( &des, tmp );
+        if( ret != 0 )
+        {
+            mbedtls_printf( HEADER_FORMAT, title );
+            if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
+            {
+                mbedtls_printf( "Feature not supported. Skipping.\n" );
+                ret = 0;
+            }
+            else
+            {
+                 PRINT_ERROR;
+            }
+        }
+        else
+        {
+            TIME_AND_TSC( title,
+                    mbedtls_des_crypt_cbc( &des, MBEDTLS_DES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
+        }
         mbedtls_des_free( &des );
     }
 
@@ -461,21 +513,7 @@ int main( int argc, char *argv[] )
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            ret = mbedtls_aes_setkey_enc( &aes, tmp, keysize );
-            if( ret != 0 )
-            {
-                mbedtls_printf( HEADER_FORMAT, title );
-                if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
-                {
-                    mbedtls_printf( "Feature Not Supported. Skipping.\n" );
-                    ret = 0;
-                }
-                else
-                {
-                    PRINT_ERROR;
-                }
-                continue;
-            }
+            SET_KEY_ENC( aes, &aes, keysize );
 
             TIME_AND_TSC( title,
                 mbedtls_aes_crypt_cbc( &aes, MBEDTLS_AES_ENCRYPT, BUFSIZE, tmp, buf, buf ) );
@@ -496,21 +534,7 @@ int main( int argc, char *argv[] )
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            ret = mbedtls_aes_xts_setkey_enc( &ctx, tmp, keysize * 2 );
-            if( ret != 0 )
-            {
-                mbedtls_printf( HEADER_FORMAT, title );
-                if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
-                {
-                    mbedtls_printf( "Feature Not Supported. Skipping.\n" );
-                    ret = 0;
-                }
-                else
-                {
-                    PRINT_ERROR;
-                }
-                continue;
-            }
+            SET_KEY_ENC( aes_xts, &ctx, keysize * 2 );
 
             TIME_AND_TSC( title,
                     mbedtls_aes_crypt_xts( &ctx, MBEDTLS_AES_ENCRYPT, BUFSIZE,
@@ -539,7 +563,7 @@ int main( int argc, char *argv[] )
                 mbedtls_printf( HEADER_FORMAT, title );
                 if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
                 {
-                    mbedtls_printf( "Feature Not Supported. Skipping.\n" );
+                    mbedtls_printf( "Feature not supported. Skipping.\n" );
                     ret = 0;
                 }
                 else
@@ -576,7 +600,7 @@ int main( int argc, char *argv[] )
                 mbedtls_printf( HEADER_FORMAT, title );
                 if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
                 {
-                    mbedtls_printf( "Feature Not Supported. Skipping.\n" );
+                    mbedtls_printf( "Feature not supported. Skipping.\n" );
                     ret = 0;
                 }
                 else
@@ -612,7 +636,7 @@ int main( int argc, char *argv[] )
             mbedtls_printf( HEADER_FORMAT, title );
             if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
             {
-                mbedtls_printf( "Feature Not Supported. Skipping.\n" );
+                mbedtls_printf( "Feature not supported. Skipping.\n" );
                 ret = 0;
             }
             else
@@ -675,21 +699,7 @@ int main( int argc, char *argv[] )
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            ret = mbedtls_aria_setkey_enc( &aria, tmp, keysize );
-            if( ret != 0 )
-            {
-                mbedtls_printf( HEADER_FORMAT, title );
-                if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
-                {
-                    mbedtls_printf( "Feature Not Supported. Skipping.\n" );
-                    ret = 0;
-                }
-                else
-                {
-                    PRINT_ERROR;
-                }
-                continue;
-            }
+            SET_KEY_ENC( aria, &aria, keysize );
 
             TIME_AND_TSC( title,
                     mbedtls_aria_crypt_cbc( &aria, MBEDTLS_ARIA_ENCRYPT,
@@ -711,21 +721,7 @@ int main( int argc, char *argv[] )
 
             memset( buf, 0, sizeof( buf ) );
             memset( tmp, 0, sizeof( tmp ) );
-            ret = mbedtls_camellia_setkey_enc( &camellia, tmp, keysize );
-            if( ret != 0 )
-            {
-                mbedtls_printf( HEADER_FORMAT, title );
-                if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
-                {
-                    mbedtls_printf( "Feature Not Supported. Skipping.\n" );
-                    ret = 0;
-                }
-                else
-                {
-                    PRINT_ERROR;
-                }
-                continue;
-            }
+            SET_KEY_ENC( camellia, &camellia, keysize );
 
             TIME_AND_TSC( title,
                     mbedtls_camellia_crypt_cbc( &camellia, MBEDTLS_CAMELLIA_ENCRYPT,
@@ -768,7 +764,7 @@ int main( int argc, char *argv[] )
                 mbedtls_printf( HEADER_FORMAT, title );
                 if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
                 {
-                    mbedtls_printf( "Feature Not Supported. Skipping.\n" );
+                    mbedtls_printf( "Feature not supported. Skipping.\n" );
                     ret = 0;
                 }
                 else
@@ -931,7 +927,7 @@ int main( int argc, char *argv[] )
                 mbedtls_printf( HEADER_FORMAT, title );
                 if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
                 {
-                    mbedtls_printf( "Feature Not Supported. Skipping.\n" );
+                    mbedtls_printf( "Feature not supported. Skipping.\n" );
                     ret = 0;
                     continue;
                 }
@@ -984,7 +980,7 @@ int main( int argc, char *argv[] )
                 mbedtls_printf( HEADER_FORMAT, title );
                 if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
                 {
-                    mbedtls_printf( "Feature Not Supported. Skipping.\n" );
+                    mbedtls_printf( "Feature not supported. Skipping.\n" );
                     ret = 0;
                     continue;
                 }
@@ -1020,7 +1016,7 @@ int main( int argc, char *argv[] )
                 mbedtls_printf( HEADER_FORMAT, title );
                 if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
                 {
-                    mbedtls_printf( "Feature Not Supported. Skipping.\n" );
+                    mbedtls_printf( "Feature not supported. Skipping.\n" );
                     ret = 0;
                     continue;
                 }
@@ -1037,7 +1033,7 @@ int main( int argc, char *argv[] )
                 mbedtls_printf( HEADER_FORMAT, title );
                 if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
                 {
-                    mbedtls_printf( "Feature Not Supported. Skipping.\n" );
+                    mbedtls_printf( "Feature not supported. Skipping.\n" );
                     ret = 0;
                     continue;
                 }
@@ -1158,6 +1154,8 @@ int main( int argc, char *argv[] )
             mbedtls_ecdh_init( &ecdh );
             mbedtls_mpi_init( &z );
 
+            mbedtls_snprintf( title, sizeof(title), "ECDH-%s",
+                              curve_info->name );
             CHECK_AND_CONTINUE( mbedtls_ecp_group_load( &ecdh.grp, curve_info->grp_id ) );
             CHECK_AND_CONTINUE( mbedtls_ecdh_gen_public( &ecdh.grp, &ecdh.d, &ecdh.Qp,
                                  myrand, NULL ) );

@@ -158,9 +158,8 @@ static int exercise_mac_key( psa_key_handle_t handle,
                                           handle, alg ) );
         PSA_ASSERT( psa_mac_update( &operation,
                                     input, sizeof( input ) ) );
-        TEST_EQUAL( psa_mac_verify_finish( &operation,
-                                           mac,
-                                           mac_length ), verify_status );
+        TEST_EQUAL( psa_mac_verify_finish( &operation, mac, mac_length ),
+                    verify_status );
     }
 
     return( 1 );
@@ -273,7 +272,8 @@ static int exercise_aead_key( psa_key_handle_t handle,
                                       NULL, 0,
                                       ciphertext, ciphertext_length,
                                       plaintext, sizeof( plaintext ),
-                                      &plaintext_length ), verify_status );
+                                      &plaintext_length ),
+                    verify_status );
     }
 
     return( 1 );
@@ -334,12 +334,11 @@ static int exercise_asymmetric_encryption_key( psa_key_handle_t handle,
 
     if( usage & PSA_KEY_USAGE_ENCRYPT )
     {
-        PSA_ASSERT(
-            psa_asymmetric_encrypt( handle, alg,
-                                    plaintext, plaintext_length,
-                                    NULL, 0,
-                                    ciphertext, sizeof( ciphertext ),
-                                    &ciphertext_length ) );
+        PSA_ASSERT( psa_asymmetric_encrypt( handle, alg,
+                                            plaintext, plaintext_length,
+                                            NULL, 0,
+                                            ciphertext, sizeof( ciphertext ),
+                                            &ciphertext_length ) );
     }
 
     if( usage & PSA_KEY_USAGE_DECRYPT )
@@ -496,7 +495,8 @@ static int asn1_skip_integer( unsigned char **p, const unsigned char *end,
     size_t actual_bits;
     unsigned char msb;
     TEST_EQUAL( mbedtls_asn1_get_tag( p, end, &len,
-                                      MBEDTLS_ASN1_INTEGER ), 0 );
+                                      MBEDTLS_ASN1_INTEGER ),
+                0 );
     /* Tolerate a slight departure from DER encoding:
      * - 0 may be represented by an empty string or a 1-byte string.
      * - The sign bit may be used as a value bit. */
@@ -646,7 +646,8 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
          */
         TEST_EQUAL( mbedtls_asn1_get_tag( &p, end, &len,
                                           MBEDTLS_ASN1_SEQUENCE |
-                                          MBEDTLS_ASN1_CONSTRUCTED ), 0 );
+                                          MBEDTLS_ASN1_CONSTRUCTED ),
+                    0 );
         TEST_EQUAL( p + len, end );
         TEST_EQUAL( mbedtls_asn1_get_alg( &p, end, &alg, &params ), 0 );
         if( ! is_oid_of_key_type( type, alg.p, alg.len ) )
@@ -664,7 +665,8 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
             TEST_EQUAL( bitstring.unused_bits, 0 );
             TEST_EQUAL( mbedtls_asn1_get_tag( &p, end, &len,
                                               MBEDTLS_ASN1_SEQUENCE |
-                                              MBEDTLS_ASN1_CONSTRUCTED ), 0 );
+                                              MBEDTLS_ASN1_CONSTRUCTED ),
+                        0 );
             TEST_EQUAL( p + len, end );
             if( ! asn1_skip_integer( &p, end, bits, bits, 1 ) )
                 goto exit;
@@ -756,8 +758,7 @@ static int exercise_export_public_key( psa_key_handle_t handle )
     PSA_ASSERT( psa_get_key_information( handle, &type, &bits ) );
     if( ! PSA_KEY_TYPE_IS_ASYMMETRIC( type ) )
     {
-        TEST_EQUAL( psa_export_public_key( handle,
-                                           NULL, 0, &exported_length ),
+        TEST_EQUAL( psa_export_public_key( handle, NULL, 0, &exported_length ),
                     PSA_ERROR_INVALID_ARGUMENT );
         return( 1 );
     }
@@ -1014,8 +1015,8 @@ void import_export( data_t *data,
     psa_key_policy_set_usage( &policy, usage_arg, alg );
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
 
-    TEST_EQUAL( psa_get_key_information(
-                    handle, NULL, NULL ), PSA_ERROR_EMPTY_SLOT );
+    TEST_EQUAL( psa_get_key_information( handle, NULL, NULL ),
+                PSA_ERROR_EMPTY_SLOT );
 
     /* Import the key */
     PSA_ASSERT( psa_import_key( handle, type,
@@ -1075,8 +1076,8 @@ void import_export( data_t *data,
 destroy:
     /* Destroy the key */
     PSA_ASSERT( psa_destroy_key( handle ) );
-    TEST_EQUAL( psa_get_key_information(
-                    handle, NULL, NULL ), PSA_ERROR_INVALID_HANDLE );
+    TEST_EQUAL( psa_get_key_information( handle, NULL, NULL ),
+                PSA_ERROR_INVALID_HANDLE );
 
 exit:
     mbedtls_free( exported );
@@ -1826,14 +1827,12 @@ void hash_bad_order( )
 
     /* psa_hash_update without calling psa_hash_setup beforehand */
     memset( &operation, 0, sizeof( operation ) );
-    TEST_EQUAL( psa_hash_update( &operation,
-                                 input, sizeof( input ) ),
+    TEST_EQUAL( psa_hash_update( &operation, input, sizeof( input ) ),
                 PSA_ERROR_INVALID_ARGUMENT );
 
     /* psa_hash_verify without calling psa_hash_setup beforehand */
     memset( &operation, 0, sizeof( operation ) );
-    TEST_EQUAL( psa_hash_verify( &operation,
-                                 hash, sizeof( hash ) ),
+    TEST_EQUAL( psa_hash_verify( &operation, hash, sizeof( hash ) ),
                 PSA_ERROR_INVALID_ARGUMENT );
 
     /* psa_hash_finish without calling psa_hash_setup beforehand */
@@ -1864,20 +1863,17 @@ void hash_verify_bad_args( )
 
     /* psa_hash_verify with a smaller hash than expected */
     PSA_ASSERT( psa_hash_setup( &operation, alg ) );
-    TEST_EQUAL( psa_hash_verify( &operation,
-                                 hash, expected_size - 1 ),
+    TEST_EQUAL( psa_hash_verify( &operation, hash, expected_size - 1 ),
                 PSA_ERROR_INVALID_SIGNATURE );
 
     /* psa_hash_verify with a non-matching hash */
     PSA_ASSERT( psa_hash_setup( &operation, alg ) );
-    TEST_EQUAL( psa_hash_verify( &operation,
-                                 hash + 1, expected_size ),
+    TEST_EQUAL( psa_hash_verify( &operation, hash + 1, expected_size ),
                 PSA_ERROR_INVALID_SIGNATURE );
 
     /* psa_hash_verify with a hash longer than expected */
     PSA_ASSERT( psa_hash_setup( &operation, alg ) );
-    TEST_EQUAL( psa_hash_verify( &operation,
-                                 hash, sizeof( hash ) ),
+    TEST_EQUAL( psa_hash_verify( &operation, hash, sizeof( hash ) ),
                 PSA_ERROR_INVALID_SIGNATURE );
 
 exit:
@@ -1899,8 +1895,8 @@ void hash_finish_bad_args( )
     /* psa_hash_finish with a smaller hash buffer than expected */
     PSA_ASSERT( psa_hash_setup( &operation, alg ) );
     TEST_EQUAL( psa_hash_finish( &operation,
-                                 hash, expected_size - 1,
-                                 &hash_len ), PSA_ERROR_BUFFER_TOO_SMALL );
+                                 hash, expected_size - 1, &hash_len ),
+                PSA_ERROR_BUFFER_TOO_SMALL );
 
 exit:
     mbedtls_psa_crypto_free( );
@@ -2645,7 +2641,8 @@ void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
                                   additional_data->len,
                                   input_data->x, input_data->len,
                                   output_data, output_size,
-                                  &output_length ), expected_result );
+                                  &output_length ),
+                expected_result );
 
     if( PSA_SUCCESS == expected_result )
     {
@@ -2657,7 +2654,8 @@ void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
                                       additional_data->len,
                                       output_data, output_length,
                                       output_data2, output_length,
-                                      &output_length2 ), expected_result );
+                                      &output_length2 ),
+                    expected_result );
 
         ASSERT_COMPARE( input_data->x, input_data->len,
                         output_data2, output_length2 );
@@ -2782,7 +2780,8 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
                                   additional_data->len,
                                   input_data->x, input_data->len,
                                   output_data, output_size,
-                                  &output_length ), expected_result );
+                                  &output_length ),
+                expected_result );
 
     if( expected_result == PSA_SUCCESS )
         ASSERT_COMPARE( expected_data->x, expected_data->len,
@@ -2984,11 +2983,10 @@ void sign_verify( int key_type_arg, data_t *key_data,
          * detected as invalid. Flip a bit at the beginning, not at the end,
          * because ECDSA may ignore the last few bits of the input. */
         input_data->x[0] ^= 1;
-        TEST_EQUAL( psa_asymmetric_verify(
-                        handle, alg,
-                        input_data->x, input_data->len,
-                        signature,
-                        signature_length ), PSA_ERROR_INVALID_SIGNATURE );
+        TEST_EQUAL( psa_asymmetric_verify( handle, alg,
+                                           input_data->x, input_data->len,
+                                           signature, signature_length ),
+                    PSA_ERROR_INVALID_SIGNATURE );
     }
 
 exit:
@@ -3409,7 +3407,8 @@ void derive_setup( int key_type_arg,
     TEST_EQUAL( psa_key_derivation( &generator, handle, alg,
                                     salt->x, salt->len,
                                     label->x, label->len,
-                                    requested_capacity ), expected_status );
+                                    requested_capacity ),
+                expected_status );
 
 exit:
     psa_generator_abort( &generator );
@@ -3455,13 +3454,13 @@ void test_derive_invalid_generator_state( )
     TEST_EQUAL(  psa_key_derivation( &generator, handle, alg,
                                      NULL, 0,
                                      NULL, 0,
-                                     capacity ), PSA_ERROR_BAD_STATE );
+                                     capacity ),
+                 PSA_ERROR_BAD_STATE );
 
-    PSA_ASSERT( psa_generator_read( &generator, buffer, capacity )
-        );
+    PSA_ASSERT( psa_generator_read( &generator, buffer, capacity ) );
 
-    TEST_EQUAL( psa_generator_read( &generator, buffer, capacity )
-                , PSA_ERROR_INSUFFICIENT_CAPACITY );
+    TEST_EQUAL( psa_generator_read( &generator, buffer, capacity ),
+                PSA_ERROR_INSUFFICIENT_CAPACITY );
 
 exit:
     psa_generator_abort( &generator );
@@ -3649,9 +3648,8 @@ void derive_full( int alg_arg,
     }
 
     /* Check that the generator refuses to go over capacity. */
-    TEST_EQUAL( psa_generator_read( &generator,
-                                    output_buffer,
-                                    1 ), PSA_ERROR_INSUFFICIENT_CAPACITY );
+    TEST_EQUAL( psa_generator_read( &generator, output_buffer, 1 ),
+                PSA_ERROR_INSUFFICIENT_CAPACITY );
 
     PSA_ASSERT( psa_generator_abort( &generator ) );
 
@@ -3847,7 +3845,8 @@ void key_agreement_setup( int alg_arg,
     TEST_EQUAL( psa_key_agreement( &generator,
                                    our_key,
                                    peer_key_data->x, peer_key_data->len,
-                                   alg ), expected_status_arg );
+                                   alg ),
+                expected_status_arg );
 
 exit:
     psa_generator_abort( &generator );
@@ -3946,18 +3945,16 @@ void key_agreement_output( int alg_arg,
                                    peer_key_data->x, peer_key_data->len,
                                    alg ) );
 
-    PSA_ASSERT(
-        psa_generator_read( &generator,
-                            actual_output,
-                            expected_output1->len ) );
+    PSA_ASSERT( psa_generator_read( &generator,
+                                    actual_output,
+                                    expected_output1->len ) );
     TEST_EQUAL( memcmp( actual_output, expected_output1->x,
                         expected_output1->len ), 0 );
     if( expected_output2->len != 0 )
     {
-        PSA_ASSERT(
-            psa_generator_read( &generator,
-                                actual_output,
-                                expected_output2->len ) );
+        PSA_ASSERT( psa_generator_read( &generator,
+                                        actual_output,
+                                        expected_output2->len ) );
         TEST_EQUAL( memcmp( actual_output, expected_output2->x,
                             expected_output2->len ), 0 );
     }
@@ -4047,13 +4044,12 @@ void generate_key( int type_arg,
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
 
     /* Generate a key */
-    TEST_EQUAL( psa_generate_key( handle, type, bits,
-                                  NULL, 0 ), expected_status );
+    TEST_EQUAL( psa_generate_key( handle, type, bits, NULL, 0 ),
+                expected_status );
 
     /* Test the key information */
-    TEST_EQUAL( psa_get_key_information( handle,
-                                         &got_type,
-                                         &got_bits ), expected_info_status );
+    TEST_EQUAL( psa_get_key_information( handle, &got_type, &got_bits ),
+                expected_info_status );
     if( expected_info_status != PSA_SUCCESS )
         goto exit;
     TEST_EQUAL( got_type, type );
@@ -4144,8 +4140,10 @@ void persistent_key_load_key_from_storage( data_t *data, int type_arg,
     }
 
     /* Export the key */
-    TEST_EQUAL( psa_export_key( handle, first_export, export_size,
-                                &first_exported_length ), export_status );
+    TEST_EQUAL( psa_export_key( handle,
+                                first_export, export_size,
+                                &first_exported_length ),
+                export_status );
 
     /* Shutdown and restart */
     mbedtls_psa_crypto_free();
@@ -4160,14 +4158,14 @@ void persistent_key_load_key_from_storage( data_t *data, int type_arg,
     TEST_EQUAL( bits_get, (size_t) bits );
 
     PSA_ASSERT( psa_get_key_policy( handle, &policy_get ) );
-    TEST_EQUAL( psa_key_policy_get_usage(
-                    &policy_get ), policy_usage );
-    TEST_EQUAL( psa_key_policy_get_algorithm(
-                    &policy_get ), policy_alg );
+    TEST_EQUAL( psa_key_policy_get_usage( &policy_get ), policy_usage );
+    TEST_EQUAL( psa_key_policy_get_algorithm( &policy_get ), policy_alg );
 
     /* Export the key again */
-    TEST_EQUAL( psa_export_key( handle, second_export, export_size,
-                                &second_exported_length ), export_status );
+    TEST_EQUAL( psa_export_key( handle,
+                                second_export, export_size,
+                                &second_exported_length ),
+                export_status );
 
     if( export_status == PSA_SUCCESS )
     {

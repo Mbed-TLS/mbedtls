@@ -102,7 +102,8 @@ void save_large_persistent_key( int data_too_large, int expected_status )
                                 &handle ) );
 
     TEST_EQUAL( psa_import_key( handle, PSA_KEY_TYPE_RAW_DATA,
-                                data, data_length ), expected_status );
+                                data, data_length ),
+                expected_status );
 
 exit:
     mbedtls_free( data );
@@ -143,8 +144,8 @@ void persistent_key_destroy( int key_id_arg, int should_store,
 
     /* Check key slot storage is removed */
     TEST_EQUAL( psa_is_key_present_in_storage( key_id ), 0 );
-    TEST_EQUAL( psa_open_key( PSA_KEY_LIFETIME_PERSISTENT, key_id,
-                              &handle ), PSA_ERROR_EMPTY_SLOT );
+    TEST_EQUAL( psa_open_key( PSA_KEY_LIFETIME_PERSISTENT, key_id, &handle ),
+                PSA_ERROR_EMPTY_SLOT );
     TEST_EQUAL( handle, 0 );
 
     /* Shutdown and restart */
@@ -183,8 +184,8 @@ void persistent_key_import( int key_id_arg, int type_arg, data_t *data,
                                 PSA_BYTES_TO_BITS( data->len ),
                                 &handle ) );
     psa_key_policy_init( &policy );
-    TEST_EQUAL( psa_import_key( handle, type,
-                                data->x, data->len ), expected_status );
+    TEST_EQUAL( psa_import_key( handle, type, data->x, data->len ),
+                expected_status );
 
     if( expected_status != PSA_SUCCESS )
     {

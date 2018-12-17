@@ -287,20 +287,17 @@ void aead_algorithm( int alg_arg, int classification_flags,
     {
         psa_algorithm_t truncated_alg = PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, n );
         aead_algorithm_core( truncated_alg, classification_flags, n );
-        TEST_EQUAL(
-            PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH( truncated_alg ), alg );
+        TEST_EQUAL( PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH( truncated_alg ),
+                    alg );
         /* Check that calling PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH twice gives
          * the length of the outer truncation (even if the outer length is
          * smaller than the inner length). */
-        TEST_EQUAL(
-            PSA_ALG_AEAD_WITH_TAG_LENGTH( truncated_alg, 1 ),
-            PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, 1 ) );
-        TEST_EQUAL(
-            PSA_ALG_AEAD_WITH_TAG_LENGTH( truncated_alg, tag_length - 1 ),
-            PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, tag_length - 1) );
-        TEST_EQUAL(
-            PSA_ALG_AEAD_WITH_TAG_LENGTH( truncated_alg, tag_length ),
-            PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, tag_length ) );
+        TEST_EQUAL( PSA_ALG_AEAD_WITH_TAG_LENGTH( truncated_alg, 1 ),
+                    PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, 1 ) );
+        TEST_EQUAL( PSA_ALG_AEAD_WITH_TAG_LENGTH( truncated_alg, tag_length - 1 ),
+                    PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, tag_length - 1) );
+        TEST_EQUAL( PSA_ALG_AEAD_WITH_TAG_LENGTH( truncated_alg, tag_length ),
+                    PSA_ALG_AEAD_WITH_TAG_LENGTH( alg, tag_length ) );
     }
 }
 /* END_CASE */

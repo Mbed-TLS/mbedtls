@@ -292,9 +292,8 @@ void create_fail( int lifetime_arg, int id_arg,
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    TEST_EQUAL( psa_create_key( lifetime, id,
-                                type, max_bits,
-                                &handle ), expected_status );
+    TEST_EQUAL( psa_create_key( lifetime, id, type, max_bits, &handle ),
+                expected_status );
     TEST_EQUAL( handle, 0 );
 
 exit:

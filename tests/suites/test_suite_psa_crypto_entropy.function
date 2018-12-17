@@ -55,9 +55,9 @@ void validate_entropy_seed_injection( int seed_length_a,
     TEST_ASSERT( status == expected_status_a );
     status = mbedtls_psa_inject_entropy( seed, seed_length_b );
     TEST_ASSERT( status == expected_status_b );
-    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_generate_random( output,
-                                      sizeof( output ) ) == PSA_SUCCESS );
+    PSA_ASSERT( psa_crypto_init( ) );
+    PSA_ASSERT( psa_generate_random( output,
+                                     sizeof( output ) ) );
     TEST_ASSERT( memcmp( output, zeros, sizeof( output ) ) != 0 );
 exit:
     mbedtls_free( seed );
@@ -82,15 +82,15 @@ void run_entropy_inject_with_crypto_init( )
     TEST_ASSERT( ( its_status == PSA_ITS_SUCCESS ) ||
                  ( its_status == PSA_ITS_ERROR_KEY_NOT_FOUND ) );
     status = mbedtls_psa_inject_entropy( seed, sizeof( seed ) );
-    TEST_ASSERT( status == PSA_SUCCESS );
+    PSA_ASSERT( status );
     its_status =  psa_its_remove( PSA_CRYPTO_ITS_RANDOM_SEED_UID );
     TEST_ASSERT( its_status == PSA_ITS_SUCCESS );
     status = psa_crypto_init( );
     TEST_ASSERT( status == PSA_ERROR_INSUFFICIENT_ENTROPY );
     status = mbedtls_psa_inject_entropy( seed, sizeof( seed ) );
-    TEST_ASSERT( status == PSA_SUCCESS );
+    PSA_ASSERT( status );
     status = psa_crypto_init( );
-    TEST_ASSERT( status == PSA_SUCCESS );
+    PSA_ASSERT( status );
     mbedtls_psa_crypto_free( );
     /* The seed is written by nv_seed callback functions therefore the injection will fail */
     status = mbedtls_psa_inject_entropy( seed, sizeof( seed ) );

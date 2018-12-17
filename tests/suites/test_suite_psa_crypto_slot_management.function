@@ -367,7 +367,7 @@ void many_transient_handles( int max_handles_arg )
                                    &handles[i] );
         if( status == PSA_ERROR_INSUFFICIENT_MEMORY )
             break;
-        TEST_ASSERT( status == PSA_SUCCESS );
+        PSA_ASSERT( status );
         TEST_ASSERT( handles[i] != 0 );
         for( j = 0; j < i; j++ )
             TEST_ASSERT( handles[i] != handles[j] );

@@ -97,7 +97,6 @@ exit:
 }
 /* END_CASE */
 
-
 /* BEGIN_CASE */
 void get_file_size( data_t *data, int expected_data_length,
                     int expected_status, int should_make_file )

@@ -142,9 +142,9 @@ void init_deinit( int count )
     for( i = 0; i < count; i++ )
     {
         status = psa_crypto_init( );
-        TEST_ASSERT( status == PSA_SUCCESS );
+        PSA_ASSERT( status );
         status = psa_crypto_init( );
-        TEST_ASSERT( status == PSA_SUCCESS );
+        PSA_ASSERT( status );
         mbedtls_psa_crypto_free( );
     }
 }
@@ -156,7 +156,7 @@ void deinit_without_init( int count )
     int i;
     for( i = 0; i < count; i++ )
     {
-        TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+        PSA_ASSERT( psa_crypto_init( ) );
         mbedtls_psa_crypto_free( );
     }
     mbedtls_psa_crypto_free( );
@@ -172,7 +172,7 @@ void validate_module_init_generate_random( int count )
     for( i = 0; i < count; i++ )
     {
         status = psa_crypto_init( );
-        TEST_ASSERT( status == PSA_SUCCESS );
+        PSA_ASSERT( status );
         mbedtls_psa_crypto_free( );
     }
     status = psa_generate_random( random, sizeof( random ) );
@@ -189,7 +189,7 @@ void validate_module_init_key_based( int count )
     for( i = 0; i < count; i++ )
     {
         status = psa_crypto_init( );
-        TEST_ASSERT( status == PSA_SUCCESS );
+        PSA_ASSERT( status );
         mbedtls_psa_crypto_free( );
     }
     status = psa_import_key( 1, PSA_KEY_TYPE_RAW_DATA, data, sizeof( data ) );
@@ -204,16 +204,14 @@ void custom_entropy_sources( int sources_arg, int expected_init_status_arg )
     uint8_t random[10] = { 0 };
 
     custom_entropy_sources_mask = sources_arg;
-    TEST_ASSERT( mbedtls_psa_crypto_configure_entropy_sources(
-                     custom_entropy_init, mbedtls_entropy_free ) ==
-                 PSA_SUCCESS );
+    PSA_ASSERT( mbedtls_psa_crypto_configure_entropy_sources(
+                    custom_entropy_init, mbedtls_entropy_free ) );
 
     TEST_ASSERT( psa_crypto_init( ) == expected_init_status );
     if( expected_init_status != PSA_SUCCESS )
         goto exit;
 
-    TEST_ASSERT( psa_generate_random( random, sizeof( random ) ) ==
-                 PSA_SUCCESS );
+    PSA_ASSERT( psa_generate_random( random, sizeof( random ) ) );
 
 exit:
     mbedtls_psa_crypto_free( );
@@ -246,16 +244,14 @@ void fake_entropy_source( int threshold,
     fake_entropy_state.length_sequence = lengths;
 
     custom_entropy_sources_mask = ENTROPY_SOURCE_FAKE;
-    TEST_ASSERT( mbedtls_psa_crypto_configure_entropy_sources(
-                     custom_entropy_init, mbedtls_entropy_free ) ==
-                 PSA_SUCCESS );
+    PSA_ASSERT( mbedtls_psa_crypto_configure_entropy_sources(
+                    custom_entropy_init, mbedtls_entropy_free ) );
 
     TEST_ASSERT( psa_crypto_init( ) == expected_init_status );
     if( expected_init_status != PSA_SUCCESS )
         goto exit;
 
-    TEST_ASSERT( psa_generate_random( random, sizeof( random ) ) ==
-                 PSA_SUCCESS );
+    PSA_ASSERT( psa_generate_random( random, sizeof( random ) ) );
 
 exit:
     mbedtls_psa_crypto_free( );
@@ -275,16 +271,14 @@ void entropy_from_nv_seed( int seed_size_arg,
     TEST_ASSERT( mbedtls_nv_seed_write( seed, seed_size ) >= 0 );
 
     custom_entropy_sources_mask = ENTROPY_SOURCE_NV_SEED;
-    TEST_ASSERT( mbedtls_psa_crypto_configure_entropy_sources(
-                     custom_entropy_init, mbedtls_entropy_free ) ==
-                 PSA_SUCCESS );
+    PSA_ASSERT( mbedtls_psa_crypto_configure_entropy_sources(
+                    custom_entropy_init, mbedtls_entropy_free ) );
 
     TEST_ASSERT( psa_crypto_init( ) == expected_init_status );
     if( expected_init_status != PSA_SUCCESS )
         goto exit;
 
-    TEST_ASSERT( psa_generate_random( random, sizeof( random ) ) ==
-                 PSA_SUCCESS );
+    PSA_ASSERT( psa_generate_random( random, sizeof( random ) ) );
 
 exit:
     mbedtls_free( seed );

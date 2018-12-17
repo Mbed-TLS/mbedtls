@@ -23,14 +23,14 @@ void hash_finish( int alg_arg, data_t *input, data_t *expected_hash )
     size_t actual_hash_length;
     psa_hash_operation_t operation;
 
-    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+    PSA_ASSERT( psa_crypto_init( ) );
 
-    TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_hash_update( &operation,
-                                  input->x, input->len ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_hash_finish( &operation,
-                                  actual_hash, sizeof( actual_hash ),
-                                  &actual_hash_length ) == PSA_SUCCESS );
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    PSA_ASSERT( psa_hash_update( &operation,
+                                 input->x, input->len ) );
+    PSA_ASSERT( psa_hash_finish( &operation,
+                                 actual_hash, sizeof( actual_hash ),
+                                 &actual_hash_length ) );
     ASSERT_COMPARE( expected_hash->x, expected_hash->len,
                     actual_hash, actual_hash_length );
 
@@ -45,15 +45,15 @@ void hash_verify( int alg_arg, data_t *input, data_t *expected_hash )
     psa_algorithm_t alg = alg_arg;
     psa_hash_operation_t operation;
 
-    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+    PSA_ASSERT( psa_crypto_init( ) );
 
-    TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_hash_update( &operation,
-                                  input->x,
-                                  input->len ) == PSA_SUCCESS );
-    TEST_ASSERT( psa_hash_verify( &operation,
-                                  expected_hash->x,
-                                  expected_hash->len ) == PSA_SUCCESS );
+    PSA_ASSERT( psa_hash_setup( &operation, alg ) );
+    PSA_ASSERT( psa_hash_update( &operation,
+                                 input->x,
+                                 input->len ) );
+    PSA_ASSERT( psa_hash_verify( &operation,
+                                 expected_hash->x,
+                                 expected_hash->len ) );
 
 exit:
     mbedtls_psa_crypto_free( );
@@ -69,22 +69,21 @@ void hash_multi_part( int alg_arg, data_t *input, data_t *expected_hash )
     psa_hash_operation_t operation;
     uint32_t len = 0;
 
-    TEST_ASSERT( psa_crypto_init( ) == PSA_SUCCESS );
+    PSA_ASSERT( psa_crypto_init( ) );
 
     do
     {
         memset( actual_hash, 0, sizeof( actual_hash ) );
-        TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
+        PSA_ASSERT( psa_hash_setup( &operation, alg ) );
 
-        TEST_ASSERT( psa_hash_update( &operation,
-                                      input->x, len ) == PSA_SUCCESS );
-        TEST_ASSERT( psa_hash_update( &operation,
-                                      input->x + len, input->len - len ) ==
-                     PSA_SUCCESS );
+        PSA_ASSERT( psa_hash_update( &operation,
+                                     input->x, len ) );
+        PSA_ASSERT( psa_hash_update( &operation,
+                                     input->x + len, input->len - len ) );
 
-        TEST_ASSERT( psa_hash_finish( &operation,
-                                      actual_hash, sizeof( actual_hash ),
-                                      &actual_hash_length ) == PSA_SUCCESS );
+        PSA_ASSERT( psa_hash_finish( &operation,
+                                     actual_hash, sizeof( actual_hash ),
+                                     &actual_hash_length ) );
 
         ASSERT_COMPARE( expected_hash->x, expected_hash->len,
                         actual_hash, actual_hash_length );

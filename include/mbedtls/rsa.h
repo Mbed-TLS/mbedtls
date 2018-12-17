@@ -433,6 +433,7 @@ size_t mbedtls_rsa_get_len( const mbedtls_rsa_context *ctx );
  *                 This may be \c NULL if \p f_rng doesn't need a context.
  * \param nbits    The size of the public key in bits.
  * \param exponent The public exponent to use. For example, \c 65537.
+ *                 This must be odd.
  *
  * \return         \c 0 on success.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.

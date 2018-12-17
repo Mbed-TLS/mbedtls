@@ -283,9 +283,9 @@ int mbedtls_ecdh_make_params( mbedtls_ecdh_context *ctx, size_t *olen,
  * \see             ecp.h
  *
  * \param ctx       The ECDHE context to use. This must be initialized.
- * \param p         On input, *p must be the start of the input buffer.
- *                  On output, *p is updated to point to the end of the data
- *                  that has been read. On success, this is the first byte
+ * \param buf       On input, \c *buf must be the start of the input buffer.
+ *                  On output, \c *buf is updated to point to the end of the
+ *                  data that has been read. On success, this is the first byte
  *                  past the end of the ServerKeyExchange parameters.
  *                  On error, this is the point at which an error has been
  *                  detected, which is usually not useful except to debug

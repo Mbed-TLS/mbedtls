@@ -33,15 +33,15 @@ void aria_invalid_param( )
                             mbedtls_aria_setkey_enc( NULL, key,
                                                      sizeof( key ) ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
-                           mbedtls_aria_setkey_enc( &ctx, NULL,
-                                                    sizeof( key ) ) );
+                            mbedtls_aria_setkey_enc( &ctx, NULL,
+                                                     sizeof( key ) ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
-                           mbedtls_aria_setkey_dec( NULL, key,
-                                                    sizeof( key ) ) );
+                            mbedtls_aria_setkey_dec( NULL, key,
+                                                     sizeof( key ) ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
-                           mbedtls_aria_setkey_dec( &ctx, NULL,
-                                                    sizeof( key ) ) );
+                            mbedtls_aria_setkey_dec( &ctx, NULL,
+                                                     sizeof( key ) ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
                             mbedtls_aria_crypt_ecb( NULL, input, output ) );

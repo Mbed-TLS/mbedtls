@@ -89,7 +89,7 @@ void transient_slot_lifecycle( int type_arg, int max_bits_arg,
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
     PSA_ASSERT( psa_import_key( handle, type, key_data->x, key_data->len ) );
     PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
-    TEST_ASSERT( read_type == type );
+    TEST_EQUAL( read_type, type );
 
     /* Do something that invalidates the handle. */
     switch( close_method )
@@ -106,9 +106,9 @@ void transient_slot_lifecycle( int type_arg, int max_bits_arg,
             break;
     }
     /* Test that the handle is now invalid. */
-    TEST_ASSERT( psa_get_key_information( handle, &read_type, NULL ) ==
-                 PSA_ERROR_INVALID_HANDLE );
-    TEST_ASSERT( psa_close_key( handle ) == PSA_ERROR_INVALID_HANDLE );
+    TEST_EQUAL( psa_get_key_information( handle, &read_type, NULL ),
+                PSA_ERROR_INVALID_HANDLE );
+    TEST_EQUAL( psa_close_key( handle ), PSA_ERROR_INVALID_HANDLE );
 
 exit:
     mbedtls_psa_crypto_free( );
@@ -145,13 +145,13 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
     PSA_ASSERT( psa_import_key( handle, type, key_data->x, key_data->len ) );
     PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
-    TEST_ASSERT( read_type == type );
+    TEST_EQUAL( read_type, type );
 
     /* Close the key and reopen it. */
     PSA_ASSERT( psa_close_key( handle ) );
     PSA_ASSERT( psa_open_key( lifetime, id, &handle ) );
     PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
-    TEST_ASSERT( read_type == type );
+    TEST_EQUAL( read_type, type );
 
     /* Do something that invalidates the handle. */
     switch( close_method )
@@ -168,9 +168,9 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
             break;
     }
     /* Test that the handle is now invalid. */
-    TEST_ASSERT( psa_get_key_information( handle, &read_type, NULL ) ==
-                 PSA_ERROR_INVALID_HANDLE );
-    TEST_ASSERT( psa_close_key( handle ) == PSA_ERROR_INVALID_HANDLE );
+    TEST_EQUAL( psa_get_key_information( handle, &read_type, NULL ),
+                PSA_ERROR_INVALID_HANDLE );
+    TEST_EQUAL( psa_close_key( handle ), PSA_ERROR_INVALID_HANDLE );
 
     /* Try to reopen the key. If we destroyed it, check that it doesn't
      * exist, otherwise check that it still exists. */
@@ -180,11 +180,11 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
         case CLOSE_BY_SHUTDOWN:
             PSA_ASSERT( psa_open_key( lifetime, id, &handle ) );
             PSA_ASSERT( psa_get_key_information( handle, &read_type, NULL ) );
-            TEST_ASSERT( read_type == type );
+            TEST_EQUAL( read_type, type );
             break;
         case CLOSE_BY_DESTROY:
-            TEST_ASSERT( psa_open_key( lifetime, id, &handle ) ==
-                         PSA_ERROR_EMPTY_SLOT );
+            TEST_EQUAL( psa_open_key( lifetime, id, &handle ),
+                        PSA_ERROR_EMPTY_SLOT );
             break;
     }
 
@@ -230,9 +230,9 @@ void create_existent( int lifetime_arg, int id_arg,
         PSA_ASSERT( psa_close_key( handle1 ) );
 
     /* Attempt to create a new key in the same slot. */
-    TEST_ASSERT( psa_create_key( lifetime, id, type2, bits1, &handle2 ) ==
-                 PSA_ERROR_OCCUPIED_SLOT );
-    TEST_ASSERT( handle2 == 0 );
+    TEST_EQUAL( psa_create_key( lifetime, id, type2, bits1, &handle2 ),
+                PSA_ERROR_OCCUPIED_SLOT );
+    TEST_EQUAL( handle2, 0 );
 
     if( reopen_policy == CLOSE_AFTER )
         PSA_ASSERT( psa_close_key( handle1 ) );
@@ -243,8 +243,8 @@ void create_existent( int lifetime_arg, int id_arg,
     PSA_ASSERT( psa_get_key_policy( handle1, &read_policy ) );
     TEST_ASSERT( psa_key_policy_equal( &read_policy, &policy1 ) );
     PSA_ASSERT( psa_get_key_information( handle1, &read_type, &read_bits ) );
-    TEST_ASSERT( read_type == type1 );
-    TEST_ASSERT( read_bits == bits1 );
+    TEST_EQUAL( read_type, type1 );
+    TEST_EQUAL( read_bits, bits1 );
     PSA_ASSERT( psa_export_key( handle1,
                                 reexported, sizeof( reexported ),
                                 &reexported_length ) );
@@ -268,8 +268,8 @@ void open_fail( int lifetime_arg, int id_arg,
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    TEST_ASSERT( psa_open_key( lifetime, id, &handle ) == expected_status );
-    TEST_ASSERT( handle == 0 );
+    TEST_EQUAL( psa_open_key( lifetime, id, &handle ), expected_status );
+    TEST_EQUAL( handle, 0 );
 
 exit:
     mbedtls_psa_crypto_free( );
@@ -292,10 +292,10 @@ void create_fail( int lifetime_arg, int id_arg,
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    TEST_ASSERT( psa_create_key( lifetime, id,
-                                 type, max_bits,
-                                 &handle ) == expected_status );
-    TEST_ASSERT( handle == 0 );
+    TEST_EQUAL( psa_create_key( lifetime, id,
+                                type, max_bits,
+                                &handle ), expected_status );
+    TEST_EQUAL( handle, 0 );
 
 exit:
     mbedtls_psa_crypto_free( );
@@ -326,17 +326,17 @@ void invalid_handle( )
                                 material, sizeof( material ) ) );
 
     /* Attempt to close and destroy some invalid handles. */
-    TEST_ASSERT( psa_close_key( 0 ) == PSA_ERROR_INVALID_HANDLE );
-    TEST_ASSERT( psa_close_key( handle1 - 1 ) == PSA_ERROR_INVALID_HANDLE );
-    TEST_ASSERT( psa_close_key( handle1 + 1 ) == PSA_ERROR_INVALID_HANDLE );
-    TEST_ASSERT( psa_destroy_key( 0 ) == PSA_ERROR_INVALID_HANDLE );
-    TEST_ASSERT( psa_destroy_key( handle1 - 1 ) == PSA_ERROR_INVALID_HANDLE );
-    TEST_ASSERT( psa_destroy_key( handle1 + 1 ) == PSA_ERROR_INVALID_HANDLE );
+    TEST_EQUAL( psa_close_key( 0 ), PSA_ERROR_INVALID_HANDLE );
+    TEST_EQUAL( psa_close_key( handle1 - 1 ), PSA_ERROR_INVALID_HANDLE );
+    TEST_EQUAL( psa_close_key( handle1 + 1 ), PSA_ERROR_INVALID_HANDLE );
+    TEST_EQUAL( psa_destroy_key( 0 ), PSA_ERROR_INVALID_HANDLE );
+    TEST_EQUAL( psa_destroy_key( handle1 - 1 ), PSA_ERROR_INVALID_HANDLE );
+    TEST_EQUAL( psa_destroy_key( handle1 + 1 ), PSA_ERROR_INVALID_HANDLE );
 
     /* After all this, check that the original handle is intact. */
     PSA_ASSERT( psa_get_key_information( handle1, &read_type, &read_bits ) );
-    TEST_ASSERT( read_type == PSA_KEY_TYPE_RAW_DATA );
-    TEST_ASSERT( read_bits == PSA_BYTES_TO_BITS( sizeof( material ) ) );
+    TEST_EQUAL( read_type, PSA_KEY_TYPE_RAW_DATA );
+    TEST_EQUAL( read_bits, PSA_BYTES_TO_BITS( sizeof( material ) ) );
     PSA_ASSERT( psa_close_key( handle1 ) );
 
 exit:

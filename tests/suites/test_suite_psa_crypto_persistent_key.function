@@ -66,13 +66,13 @@ void parse_storage_data_check( data_t *file_data,
                                               &key_data, &key_data_length,
                                               &key_type, &key_policy );
 
-    TEST_ASSERT( status == expected_status );
+    TEST_EQUAL( status, expected_status );
     if( status != PSA_SUCCESS )
         goto exit;
 
-    TEST_ASSERT( key_type == (psa_key_type_t) expected_key_type );
-    TEST_ASSERT( key_policy.usage == (uint32_t) expected_key_usage );
-    TEST_ASSERT( key_policy.alg == (uint32_t) expected_key_alg );
+    TEST_EQUAL( key_type, (psa_key_type_t) expected_key_type );
+    TEST_EQUAL( key_policy.usage, (uint32_t) expected_key_usage );
+    TEST_EQUAL( key_policy.alg, (uint32_t) expected_key_alg );
     ASSERT_COMPARE( expected_key_data->x, expected_key_data->len,
                     key_data, key_data_length );
 
@@ -101,8 +101,8 @@ void save_large_persistent_key( int data_too_large, int expected_status )
                                 PSA_BYTES_TO_BITS( data_length ),
                                 &handle ) );
 
-    TEST_ASSERT( psa_import_key( handle, PSA_KEY_TYPE_RAW_DATA,
-                                 data, data_length ) == expected_status );
+    TEST_EQUAL( psa_import_key( handle, PSA_KEY_TYPE_RAW_DATA,
+                                data, data_length ), expected_status );
 
 exit:
     mbedtls_free( data );
@@ -142,10 +142,10 @@ void persistent_key_destroy( int key_id_arg, int should_store,
     PSA_ASSERT( psa_destroy_key( handle ) );
 
     /* Check key slot storage is removed */
-    TEST_ASSERT( psa_is_key_present_in_storage( key_id ) == 0 );
-    TEST_ASSERT( psa_open_key( PSA_KEY_LIFETIME_PERSISTENT, key_id,
-                               &handle ) == PSA_ERROR_EMPTY_SLOT );
-    TEST_ASSERT( handle == 0 );
+    TEST_EQUAL( psa_is_key_present_in_storage( key_id ), 0 );
+    TEST_EQUAL( psa_open_key( PSA_KEY_LIFETIME_PERSISTENT, key_id,
+                              &handle ), PSA_ERROR_EMPTY_SLOT );
+    TEST_EQUAL( handle, 0 );
 
     /* Shutdown and restart */
     mbedtls_psa_crypto_free();
@@ -183,17 +183,17 @@ void persistent_key_import( int key_id_arg, int type_arg, data_t *data,
                                 PSA_BYTES_TO_BITS( data->len ),
                                 &handle ) );
     psa_key_policy_init( &policy );
-    TEST_ASSERT( psa_import_key( handle, type,
-                                 data->x, data->len ) == expected_status );
+    TEST_EQUAL( psa_import_key( handle, type,
+                                data->x, data->len ), expected_status );
 
     if( expected_status != PSA_SUCCESS )
     {
-        TEST_ASSERT( psa_is_key_present_in_storage( key_id ) == 0 );
+        TEST_EQUAL( psa_is_key_present_in_storage( key_id ), 0 );
         goto exit;
     }
 
     PSA_ASSERT( psa_get_key_lifetime( handle, &lifetime ) );
-    TEST_ASSERT( lifetime == PSA_KEY_LIFETIME_PERSISTENT );
+    TEST_EQUAL( lifetime, PSA_KEY_LIFETIME_PERSISTENT );
 
 exit:
     psa_destroy_persistent_key( key_id );
@@ -235,15 +235,15 @@ void import_export_persistent_key( data_t *data, int type_arg,
                                 data->x, data->len ) );
 
     PSA_ASSERT( psa_get_key_lifetime( handle, &lifetime_get ) );
-    TEST_ASSERT( lifetime_get == PSA_KEY_LIFETIME_PERSISTENT );
+    TEST_EQUAL( lifetime_get, PSA_KEY_LIFETIME_PERSISTENT );
 
     /* Test the key information */
     PSA_ASSERT( psa_get_key_information(
                     handle, &got_type, &got_bits ) );
-    TEST_ASSERT( got_type == type );
-    TEST_ASSERT( got_bits == (size_t) expected_bits );
+    TEST_EQUAL( got_type, type );
+    TEST_EQUAL( got_bits, (size_t) expected_bits );
 
-    TEST_ASSERT( psa_is_key_present_in_storage( key_id ) == 1 );
+    TEST_EQUAL( psa_is_key_present_in_storage( key_id ), 1 );
 
     if( key_not_exist )
     {
@@ -257,7 +257,7 @@ void import_export_persistent_key( data_t *data, int type_arg,
 
     /* Destroy the key */
     PSA_ASSERT( psa_destroy_key( handle ) );
-    TEST_ASSERT( psa_is_key_present_in_storage( key_id ) == 0 );
+    TEST_EQUAL( psa_is_key_present_in_storage( key_id ), 0 );
 
 exit:
     mbedtls_free( exported );

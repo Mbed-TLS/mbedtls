@@ -36,8 +36,7 @@ void load_data_from_file( int id_to_load_arg,
     }
 
     /* Read from the file with psa_crypto_storage_load. */
-    loaded_data = mbedtls_calloc( 1, capacity );
-    TEST_ASSERT( loaded_data != NULL );
+    ASSERT_ALLOC( loaded_data, capacity );
     status = psa_crypto_storage_load( id_to_load, loaded_data, file_size );
 
     /* Check we get the expected status. */
@@ -82,8 +81,7 @@ void write_data_to_file( data_t *data, int expected_status )
     TEST_EQUAL( file_size, data->len );
 
     /* Check that the file contents are what we expect */
-    loaded_data = mbedtls_calloc( 1, data->len );
-    TEST_ASSERT( loaded_data != NULL );
+    ASSERT_ALLOC( loaded_data, data->len );
 
     num_read = fread( loaded_data, 1, file_size, file );
     TEST_EQUAL( num_read, file_size );

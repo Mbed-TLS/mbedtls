@@ -108,7 +108,6 @@ static int dhm_check_range( const mbedtls_mpi *param, const mbedtls_mpi *P )
     mbedtls_mpi L, U;
     int ret = 0;
 
-
     mbedtls_mpi_init( &L ); mbedtls_mpi_init( &U );
 
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( &L, 2 ) );

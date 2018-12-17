@@ -111,7 +111,7 @@ void mbedtls_ecjpake_init( mbedtls_ecjpake_context *ctx );
  * \param hash      The identifier of the hash function to use,
  *                  for example #MBEDTLS_MD_SHA256.
  * \param curve     The identifier of the Telliptic curve to use,
- *                  for example #MBEDTLS_ECP_SECP192k1.
+ *                  for example #MBEDTLS_ECP_DP_SECP192K1.
  * \param secret    The pre-shared secret (passphrase). This must be
  *                  a readable buffer of length \p len Bytes, but need
  *                  only be valid for the duration of this call. It may

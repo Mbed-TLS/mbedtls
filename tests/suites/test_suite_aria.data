@@ -1,4 +1,7 @@
-Parameter validation
+ARIA - Valid parameters
+aria_valid_param:
+
+ARIA - Invalid parameters
 aria_invalid_param:
 
 ARIA-128-ECB Encrypt - RFC 5794

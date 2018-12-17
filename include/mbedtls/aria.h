@@ -99,7 +99,7 @@ void mbedtls_aria_init( mbedtls_aria_context *ctx );
  * \brief          This function releases and clears the specified ARIA context.
  *
  * \param ctx      The ARIA context to clear. This may be \c NULL, in which
- *                 case this function is a no-op. If it is not \c NULL,
+ *                 case this function returns immediately. If it is not \c NULL,
  *                 it must point to an initialized ARIA context.
  */
 void mbedtls_aria_free( mbedtls_aria_context *ctx );
@@ -328,14 +328,14 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
  * \param ctx              The ARIA context to use for encryption or decryption.
  *                         This must be initialized and bound to a key.
  * \param length           The length of the input data \p input in Bytes.
- * \param nc_off           The offset in the current \p stream_block, for
- *                         resuming within the current cipher stream. The
- *                         offset pointer should be 0 at the start of a stream.
- *                         This must not be larger than 15.
+ * \param nc_off           The offset in Bytes in the current \p stream_block,
+ *                         for resuming within the current cipher stream. The
+ *                         offset pointer should be \c 0 at the start of a
+ *                         stream. This must not be larger than \c 15 Bytes.
  * \param nonce_counter    The 128-bit nonce and counter. This must point to
- *                         an RW-buffer of length 16 bytes.
+ *                         a read/write buffer of length \c 16 bytes.
  * \param stream_block     The saved stream block for resuming. This must
- *                         point to an RW-buffer of length 16 bytes.
+ *                         point to a read/write buffer of length \c 16 bytes.
  *                         This is overwritten by the function.
  * \param input            The buffer holding the input data.
  *                         This may be \c NULL if `length == 0`.

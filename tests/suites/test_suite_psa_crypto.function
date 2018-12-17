@@ -2135,8 +2135,8 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
 
     TEST_ASSERT( psa_cipher_set_iv( &operation,
                                     iv, iv_size ) == PSA_SUCCESS );
-    output_buffer_size = (size_t) input->len +
-                         PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
+    output_buffer_size = ( (size_t) input->len +
+                           PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
     ASSERT_ALLOC( output, output_buffer_size );
 
     TEST_ASSERT( psa_cipher_update( &operation,
@@ -2210,8 +2210,8 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
 
     TEST_ASSERT( psa_cipher_set_iv( &operation,
                                     iv, sizeof( iv ) ) == PSA_SUCCESS );
-    output_buffer_size = (size_t) input->len +
-                         PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
+    output_buffer_size = ( (size_t) input->len +
+                           PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
     ASSERT_ALLOC( output, output_buffer_size );
 
     TEST_ASSERT( (unsigned int) first_part_size < input->len );
@@ -2289,8 +2289,8 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
     TEST_ASSERT( psa_cipher_set_iv( &operation,
                                     iv, sizeof( iv ) ) == PSA_SUCCESS );
 
-    output_buffer_size = (size_t) input->len +
-                         PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
+    output_buffer_size = ( (size_t) input->len +
+                           PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
     ASSERT_ALLOC( output, output_buffer_size );
 
     TEST_ASSERT( (unsigned int) first_part_size < input->len );
@@ -2369,8 +2369,8 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     TEST_ASSERT( psa_cipher_set_iv( &operation,
                                     iv, iv_size ) == PSA_SUCCESS );
 
-    output_buffer_size = (size_t) input->len +
-                         PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
+    output_buffer_size = ( (size_t) input->len +
+                           PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
     ASSERT_ALLOC( output, output_buffer_size );
 
     TEST_ASSERT( psa_cipher_update( &operation,
@@ -2445,8 +2445,8 @@ void cipher_verify_output( int alg_arg, int key_type_arg,
     TEST_ASSERT( psa_cipher_generate_iv( &operation1,
                                          iv, iv_size,
                                          &iv_length ) == PSA_SUCCESS );
-    output1_size = (size_t) input->len +
-                   PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
+    output1_size = ( (size_t) input->len +
+                     PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
     ASSERT_ALLOC( output1, output1_size );
 
     TEST_ASSERT( psa_cipher_update( &operation1, input->x, input->len,
@@ -2536,8 +2536,8 @@ void cipher_verify_output_multipart( int alg_arg,
     TEST_ASSERT( psa_cipher_generate_iv( &operation1,
                                          iv, iv_size,
                                          &iv_length ) == PSA_SUCCESS );
-    output1_buffer_size = (size_t) input->len +
-                          PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
+    output1_buffer_size = ( (size_t) input->len +
+                            PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type ) );
     ASSERT_ALLOC( output1, output1_buffer_size );
 
     TEST_ASSERT( (unsigned int) first_part_size < input->len );

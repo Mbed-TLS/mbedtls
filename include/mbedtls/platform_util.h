@@ -41,6 +41,27 @@
 extern "C" {
 #endif
 
+/* Internal helper macros for deprecating API constants. */
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+/* Deliberately don't (yet) define MBEDTLS_DEPRECATED here to avoid
+ * conflict with other headers which define and use it, too.
+ * We might want to move all these definitions here at some point
+ * for uniformity. */
+__attribute__((deprecated))
+typedef char const * mbedtls_deprecated_string_constant_t;
+#define MBEDTLS_DEPRECATED_STRING_CONSTANT( VAL )       \
+    ( (mbedtls_deprecated_string_constant_t) ( VAL ) )
+ __attribute__((deprecated))
+typedef int mbedtls_deprecated_numeric_constant_t;
+#define MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( VAL )       \
+    ( (mbedtls_deprecated_numeric_constant_t) ( VAL ) )
+#else /* MBEDTLS_DEPRECATED_WARNING */
+#define MBEDTLS_DEPRECATED_STRING_CONSTANT( VAL ) VAL
+#define MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( VAL ) VAL
+#endif /* MBEDTLS_DEPRECATED_WARNING */
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
+
 /**
  * \brief       Securely zeroize a buffer
  *

@@ -8,8 +8,6 @@
 
 #include "psa_crypto_storage.h"
 
-#define PSA_ASSERT( expr ) TEST_ASSERT( ( expr ) == PSA_SUCCESS )
-
 typedef enum
 {
     CLOSE_BY_CLOSE,

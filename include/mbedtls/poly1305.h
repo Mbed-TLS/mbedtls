@@ -84,15 +84,18 @@ mbedtls_poly1305_context;
  *                  \c mbedtls_poly1305_finish(), then finally
  *                  \c mbedtls_poly1305_free().
  *
- * \param ctx       The Poly1305 context to initialize. Must not be \c NULL.
+ * \param ctx       The Poly1305 context to initialize. This must
+ *                  not be \c NULL.
  */
 void mbedtls_poly1305_init( mbedtls_poly1305_context *ctx );
 
 /**
- * \brief           This function releases and clears the specified Poly1305 context.
+ * \brief           This function releases and clears the specified
+ *                  Poly1305 context.
  *
- * \param ctx       The Poly1305 context to clear. May be \c NULL, in which
- *                  case this function is a no-op.
+ * \param ctx       The Poly1305 context to clear. This may be \c NULL, in which
+ *                  case this function is a no-op. If it is not \c NULL, it must
+ *                  point to an initialized Poly1305 context.
  */
 void mbedtls_poly1305_free( mbedtls_poly1305_context *ctx );
 
@@ -103,8 +106,8 @@ void mbedtls_poly1305_free( mbedtls_poly1305_context *ctx );
  *                  invocation of Poly1305.
  *
  * \param ctx       The Poly1305 context to which the key should be bound.
- *                  Must be initialized.
- * \param key       The buffer containing the 32-byte (256-bit) key.
+ *                  This must be initialized.
+ * \param key       The buffer containing the \c 32 Byte (\c 256 Bit) key.
  *
  * \return          \c 0 on success.
  * \return          A negative error code on failure.
@@ -121,8 +124,8 @@ int mbedtls_poly1305_starts( mbedtls_poly1305_context *ctx,
  *                  It can be called repeatedly to process a stream of data.
  *
  * \param ctx       The Poly1305 context to use for the Poly1305 operation.
- *                  Must be initialized.
- * \param ilen      The length of the input data (in bytes).
+ *                  This must be initialized and bound to a key.
+ * \param ilen      The length of the input data in Bytes.
  *                  Any value is accepted.
  * \param input     The buffer holding the input data.
  *                  This pointer can be \c NULL if `ilen == 0`.
@@ -139,9 +142,9 @@ int mbedtls_poly1305_update( mbedtls_poly1305_context *ctx,
  *                  Authentication Code (MAC).
  *
  * \param ctx       The Poly1305 context to use for the Poly1305 operation.
- *                  Must be initialized.
- * \param mac       The buffer to where the MAC is written. Must be big enough
- *                  to hold the 16-byte MAC.
+ *                  This must be initialized and bound to a key.
+ * \param mac       The buffer to where the MAC is written. This must
+ *                  be a writable buffer of length \c 16 Bytes.
  *
  * \return          \c 0 on success.
  * \return          A negative error code on failure.
@@ -156,13 +159,13 @@ int mbedtls_poly1305_finish( mbedtls_poly1305_context *ctx,
  * \warning         The key must be unique and unpredictable for each
  *                  invocation of Poly1305.
  *
- * \param key       The buffer containing the 32-byte (256-bit) key.
- * \param ilen      The length of the input data (in bytes).
+ * \param key       The buffer containing the \c 32 Byte (\c 256 Bit) key.
+ * \param ilen      The length of the input data in Bytes.
  *                  Any value is accepted.
  * \param input     The buffer holding the input data.
  *                  This pointer can be \c NULL if `ilen == 0`.
- * \param mac       The buffer to where the MAC is written. Must be big enough
- *                  to hold the 16-byte MAC.
+ * \param mac       The buffer to where the MAC is written. This must be
+ *                  a writable buffer of length \c 16 Bytes.
  *
  * \return          \c 0 on success.
  * \return          A negative error code on failure.

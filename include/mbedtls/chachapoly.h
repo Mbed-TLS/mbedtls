@@ -123,7 +123,7 @@ void mbedtls_chachapoly_init( mbedtls_chachapoly_context *ctx );
  * \brief           This function releases and clears the specified
  *                  ChaCha20-Poly1305 context.
  *
- * \param ctx       The ChachaPoly context to clear. May be \c NULL, in which
+ * \param ctx       The ChachaPoly context to clear. This may be \c NULL, in which
  *                  case this function is a no-op.
  */
 void mbedtls_chachapoly_free( mbedtls_chachapoly_context *ctx );
@@ -133,8 +133,8 @@ void mbedtls_chachapoly_free( mbedtls_chachapoly_context *ctx );
  *                  symmetric encryption key.
  *
  * \param ctx       The ChaCha20-Poly1305 context to which the key should be
- *                  bound. Must be initialized.
- * \param key       The 256-bit (32 bytes) key.
+ *                  bound. This must be initialized.
+ * \param key       The \c 256 Bit (\c 32 Bytes) key.
  *
  * \return          \c 0 on success.
  * \return          A negative error code on failure.
@@ -157,8 +157,10 @@ int mbedtls_chachapoly_setkey( mbedtls_chachapoly_context *ctx,
  * \warning         Decryption with the piecewise API is discouraged, see the
  *                  warning on \c mbedtls_chachapoly_init().
  *
- * \param ctx       The ChaCha20-Poly1305 context. Must be initialized.
- * \param nonce     The nonce/IV to use for the message. Must be 12 bytes.
+ * \param ctx       The ChaCha20-Poly1305 context. This must be initialized
+ *                  and bound to a key.
+ * \param nonce     The nonce/IV to use for the message.
+ *                  This must be a redable buffer of length \c 12 Bytes.
  * \param mode      The operation to perform: #MBEDTLS_CHACHAPOLY_ENCRYPT or
  *                  #MBEDTLS_CHACHAPOLY_DECRYPT (discouraged, see warning).
  *
@@ -194,11 +196,12 @@ int mbedtls_chachapoly_starts( mbedtls_chachapoly_context *ctx,
  * \warning         Decryption with the piecewise API is discouraged, see the
  *                  warning on \c mbedtls_chachapoly_init().
  *
- * \param ctx       The ChaCha20-Poly1305 context to use.
- * \param aad_len   The length (in bytes) of the AAD. The length has no
+ * \param ctx       The ChaCha20-Poly1305 context. This must be initialized
+ *                  and bound to a key.
+ * \param aad_len   The length in Bytes of the AAD. The length has no
  *                  restrictions.
  * \param aad       Buffer containing the AAD.
- *                  This pointer can be NULL if aad_len == 0.
+ *                  This pointer can be \c NULL if `aad_len == 0`.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA
@@ -228,12 +231,12 @@ int mbedtls_chachapoly_update_aad( mbedtls_chachapoly_context *ctx,
  * \warning         Decryption with the piecewise API is discouraged, see the
  *                  warning on \c mbedtls_chachapoly_init().
  *
- * \param ctx       The ChaCha20-Poly1305 context to use. Must be initialized.
+ * \param ctx       The ChaCha20-Poly1305 context to use. This must be initialized.
  * \param len       The length (in bytes) of the data to encrypt or decrypt.
  * \param input     The buffer containing the data to encrypt or decrypt.
  *                  This pointer can be \c NULL if `len == 0`.
  * \param output    The buffer to where the encrypted or decrypted data is
- *                  written. Must be able to hold \p len bytes.
+ *                  written. This must be able to hold \p len bytes.
  *                  This pointer can be \c NULL if `len == 0`.
  *
  * \return          \c 0 on success.
@@ -251,7 +254,7 @@ int mbedtls_chachapoly_update( mbedtls_chachapoly_context *ctx,
  * \brief           This function finished the ChaCha20-Poly1305 operation and
  *                  generates the MAC (authentication tag).
  *
- * \param ctx       The ChaCha20-Poly1305 context to use. Must be initialized.
+ * \param ctx       The ChaCha20-Poly1305 context to use. This must be initialized.
  * \param mac       The buffer to where the 128-bit (16 bytes) MAC is written.
  *
  * \warning         Decryption with the piecewise API is discouraged, see the
@@ -279,17 +282,18 @@ int mbedtls_chachapoly_finish( mbedtls_chachapoly_context *ctx,
  *                  and key.
  *
  * \param ctx       The ChaCha20-Poly1305 context to use (holds the key).
- *                  Must be initialized.
+ *                  This must be initialized.
  * \param length    The length (in bytes) of the data to encrypt or decrypt.
  * \param nonce     The 96-bit (12 bytes) nonce/IV to use.
- * \param aad       The buffer containing the additional authenticated data (AAD).
- *                  This pointer can be \c NULL if `aad_len == 0`.
+ * \param aad       The buffer containing the additional authenticated
+ *                  data (AAD). This pointer can be \c NULL if `aad_len == 0`.
  * \param aad_len   The length (in bytes) of the AAD data to process.
  * \param input     The buffer containing the data to encrypt or decrypt.
  *                  This pointer can be \c NULL if `ilen == 0`.
- * \param output    The buffer to where the encrypted or decrypted data is written.
- *                  This pointer can be \c NULL if `ilen == 0`.
- * \param tag       The buffer to where the computed 128-bit (16 bytes) MAC is written.
+ * \param output    The buffer to where the encrypted or decrypted data
+ *                  is written. This pointer can be \c NULL if `ilen == 0`.
+ * \param tag       The buffer to where the computed 128-bit (16 bytes) MAC
+ *                  is written. This must not be \c NULL.
  *
  * \return          \c 0 on success.
  * \return          A negative error code on failure.
@@ -311,16 +315,17 @@ int mbedtls_chachapoly_encrypt_and_tag( mbedtls_chachapoly_context *ctx,
  *                  \c mbedtls_chachapoly_setkey().
  *
  * \param ctx       The ChaCha20-Poly1305 context to use (holds the key).
- * \param length    The length (in bytes) of the data to decrypt.
- * \param nonce     The 96-bit (12 bytes) nonce/IV to use.
+ * \param length    The length (in Bytes) of the data to decrypt.
+ * \param nonce     The \c 96 Bit (\c 12 bytes) nonce/IV to use.
  * \param aad       The buffer containing the additional authenticated data (AAD).
- *                  This pointer can be NULL if aad_len == 0.
+ *                  This pointer can be \c NULL if `aad_len == 0`.
  * \param aad_len   The length (in bytes) of the AAD data to process.
  * \param tag       The buffer holding the authentication tag.
+ *                  This must be a readable buffer of length \c 16 Bytes.
  * \param input     The buffer containing the data to decrypt.
- *                  This pointer can be NULL if ilen == 0.
+ *                  This pointer can be \c NULL if `ilen == 0`.
  * \param output    The buffer to where the decrypted data is written.
- *                  This pointer can be NULL if ilen == 0.
+ *                  This pointer can be \c NULL if `ilen == 0`.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_CHACHAPOLY_AUTH_FAILED

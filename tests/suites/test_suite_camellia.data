@@ -1,4 +1,7 @@
-Camellia parameter validation
+Camellia - Valid parameters
+camellia_valid_param:
+
+Camellia - Invalid parameters
 camellia_invalid_param:
 
 Camellia-128-ECB Encrypt RFC3713 #1

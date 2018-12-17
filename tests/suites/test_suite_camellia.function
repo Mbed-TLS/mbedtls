@@ -7,6 +7,13 @@
  * END_DEPENDENCIES
  */
 
+/* BEGIN_CASE */
+void camellia_valid_param( )
+{
+    TEST_VALID_PARAM( mbedtls_camellia_free( NULL ) );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
 void camellia_invalid_param( )
 {
@@ -19,7 +26,6 @@ void camellia_invalid_param( )
     ((void) off);
 
     TEST_INVALID_PARAM( mbedtls_camellia_init( NULL ) );
-    TEST_VALID_PARAM( mbedtls_camellia_free( NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA,
                             mbedtls_camellia_setkey_enc( NULL,

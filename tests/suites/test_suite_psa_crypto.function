@@ -1985,8 +1985,8 @@ void mac_sign( int key_type_arg,
                                      &mac_length ) );
 
     /* Compare with the expected value. */
-    TEST_EQUAL( mac_length, expected_mac->len );
-    TEST_EQUAL( memcmp( actual_mac, expected_mac->x, mac_length ), 0 );
+    ASSERT_COMPARE( expected_mac->x, expected_mac->len,
+                    actual_mac, mac_length );
 
     /* Verify that the end of the buffer is untouched. */
     TEST_ASSERT( mem_is_char( actual_mac + mac_length, '+',
@@ -3576,8 +3576,8 @@ void derive_output( int alg_arg,
         /* Success. Check the read data. */
         PSA_ASSERT( status );
         if( output_sizes[i] != 0 )
-            TEST_EQUAL( memcmp( output_buffer, expected_outputs[i],
-                                output_sizes[i] ), 0 );
+            ASSERT_COMPARE( output_buffer, output_sizes[i],
+                            expected_outputs[i], output_sizes[i] );
         /* Check the generator status. */
         expected_capacity -= output_sizes[i];
         PSA_ASSERT( psa_get_generator_capacity( &generator,
@@ -3805,7 +3805,8 @@ void derive_key_export( int alg_arg,
     TEST_EQUAL( length, bytes2 );
 
     /* Compare the outputs from the two runs. */
-    TEST_EQUAL( memcmp( output_buffer, export_buffer, capacity ), 0 );
+    ASSERT_COMPARE( output_buffer, bytes1 + bytes2,
+                    export_buffer, capacity );
 
 exit:
     mbedtls_free( output_buffer );
@@ -3948,15 +3949,15 @@ void key_agreement_output( int alg_arg,
     PSA_ASSERT( psa_generator_read( &generator,
                                     actual_output,
                                     expected_output1->len ) );
-    TEST_EQUAL( memcmp( actual_output, expected_output1->x,
-                        expected_output1->len ), 0 );
+    ASSERT_COMPARE( actual_output, expected_output1->len,
+                    expected_output1->x, expected_output1->len );
     if( expected_output2->len != 0 )
     {
         PSA_ASSERT( psa_generator_read( &generator,
                                         actual_output,
                                         expected_output2->len ) );
-        TEST_EQUAL( memcmp( actual_output, expected_output2->x,
-                            expected_output2->len ), 0 );
+        ASSERT_COMPARE( actual_output, expected_output2->len,
+                        expected_output2->x, expected_output2->len );
     }
 
 exit:
@@ -3993,7 +3994,8 @@ void generate_random( int bytes_arg )
         PSA_ASSERT( psa_generate_random( output, bytes ) );
 
         /* Check that no more than bytes have been overwritten */
-        TEST_EQUAL( memcmp( output + bytes, trail, sizeof( trail ) ), 0 );
+        ASSERT_COMPARE( output + bytes, sizeof( trail ),
+                        trail, sizeof( trail ) );
 
         for( i = 0; i < bytes; i++ )
         {

@@ -95,7 +95,7 @@ void mbedtls_blowfish_free( mbedtls_blowfish_context *ctx );
  * \param key      encryption key
  * \param keybits  must be between 32 and 448 bits
  *
- * \return         0 if successful, or MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH
+ * \return         0 if successful, or MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA
  */
 int mbedtls_blowfish_setkey( mbedtls_blowfish_context *ctx, const unsigned char *key,
                      unsigned int keybits );
@@ -137,7 +137,7 @@ int mbedtls_blowfish_crypt_ecb( mbedtls_blowfish_context *ctx,
  * \param output   buffer holding the output data
  *
  * \return         0 if successful, or
- *                 MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH
+ *                 MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA
  */
 int mbedtls_blowfish_crypt_cbc( mbedtls_blowfish_context *ctx,
                         int mode,

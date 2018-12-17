@@ -111,7 +111,7 @@ void mbedtls_aria_free( mbedtls_aria_context *ctx );
  *                 <li>192 bits</li>
  *                 <li>256 bits</li></ul>
  *
- * \return         \c 0 on success or #MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH
+ * \return         \c 0 on success or #MBEDTLS_ERR_ARIA_BAD_INPUT_DATA
  *                 on failure.
  */
 int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx,
@@ -128,7 +128,7 @@ int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx,
  *                 <li>192 bits</li>
  *                 <li>256 bits</li></ul>
  *
- * \return         \c 0 on success, or #MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH on failure.
+ * \return         \c 0 on success, or #MBEDTLS_ERR_ARIA_BAD_INPUT_DATA on failure.
  */
 int mbedtls_aria_setkey_dec( mbedtls_aria_context *ctx,
                              const unsigned char *key,
@@ -190,7 +190,7 @@ int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
  * \param input    The buffer holding the input data.
  * \param output   The buffer holding the output data.
  *
- * \return         \c 0 on success, or #MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH
+ * \return         \c 0 on success, or #MBEDTLS_ERR_ARIA_BAD_INPUT_DATA
  *                 on failure.
  */
 int mbedtls_aria_crypt_cbc( mbedtls_aria_context *ctx,

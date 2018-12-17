@@ -86,7 +86,7 @@ void mbedtls_camellia_init( mbedtls_camellia_context *ctx );
  * \brief          Clear a CAMELLIA context.
  *
  * \param ctx      The CAMELLIA context to be cleared. This may be \c NULL,
- *                 in which case this function is a no-op. If it is not
+ *                 in which case this function returns immediately. If it is not
  *                 \c NULL, it must be initialized.
  */
 void mbedtls_camellia_free( mbedtls_camellia_context *ctx );
@@ -161,7 +161,7 @@ int mbedtls_camellia_crypt_ecb( mbedtls_camellia_context *ctx,
  *                 #MBEDTLS_CAMELLIA_ENCRYPT or #MBEDTLS_CAMELLIA_DECRYPT.
  * \param length   The length in Bytes of the input data \p input.
  *                 This must be a multiple of \c 16.
- * \param iv       The initialization vector. This must be RW buffer
+ * \param iv       The initialization vector. This must be a read/write buffer
  *                 of length \c 16 Bytes. It is updated to allow streaming
  *                 use as explained above.
  * \param input    The buffer holding the input data. This must point to a
@@ -206,10 +206,10 @@ int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
  *                 #MBEDTLS_CAMELLIA_ENCRYPT or #MBEDTLS_CAMELLIA_DECRYPT.
  * \param length   The length of the input data \p input. Any value is allowed.
  * \param iv_off   The current offset in the IV. This must be smaller
- *                 than \c 16. It is updated after this call to allow
+ *                 than \c 16 Bytes. It is updated after this call to allow
  *                 the aforementioned streaming usage.
- * \param iv       The initialization vector. This must be an RW buffer of
- *                 length \c 16 Bytes. It is updated after this call to
+ * \param iv       The initialization vector. This must be a read/write buffer
+ *                 of length \c 16 Bytes. It is updated after this call to
  *                 allow the aforementioned streaming usage.
  * \param input    The buffer holding the input data. This must be a readable
  *                 buffer of size \p length Bytes. This may be \c NULL if
@@ -286,16 +286,16 @@ int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
  *
  * \param ctx           The CAMELLIA context to use. This must be initialized
  *                      and bound to a key.
- * \param length        The length of the input data \p input.
+ * \param length        The length of the input data \p input in Bytes.
  *                      Any value is allowed.
  * \param nc_off        The offset in the current \p stream_block (for resuming
  *                      within current cipher stream). The offset pointer to
  *                      should be \c 0 at the start of a stream. It is updated
  *                      at the end of this call.
- * \param nonce_counter The 128-bit nonce and counter. This must be an RW buffer
- *                      of length \c 16 Bytes.
- * \param stream_block  The saved stream-block for resuming. This must be an
- *                      RW buffer of length \c 16 Bytes.
+ * \param nonce_counter The 128-bit nonce and counter. This must be a read/write
+ *                      buffer of length \c 16 Bytes.
+ * \param stream_block  The saved stream-block for resuming. This must be a
+ *                      read/write buffer of length \c 16 Bytes.
  * \param input         The input data stream. This must be a readable buffer of
  *                      size \p length Bytes. This may be \c NULL if \p length
  *                      is \c 0.

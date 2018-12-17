@@ -181,8 +181,8 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx )
 
 int mbedtls_cipher_setup( mbedtls_cipher_context_t *ctx, const mbedtls_cipher_info_t *cipher_info )
 {
-    if( NULL == cipher_info || NULL == ctx )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    CIPHER_VALIDATE_RET( ctx != NULL );
+    CIPHER_VALIDATE_RET( cipher_info != NULL );
 
     memset( ctx, 0, sizeof( mbedtls_cipher_context_t ) );
 
@@ -210,11 +210,11 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
                            int key_bitlen,
                            const mbedtls_operation_t operation )
 {
+    CIPHER_VALIDATE_RET( ctx != NULL );
+    CIPHER_VALIDATE_RET( ctx->cipher_info != NULL );
+    CIPHER_VALIDATE_RET( key != NULL );
     CIPHER_VALIDATE_RET( operation == MBEDTLS_ENCRYPT ||
                          operation == MBEDTLS_DECRYPT );
-
-    if( NULL == ctx || NULL == ctx->cipher_info )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
     if( ( ctx->cipher_info->flags & MBEDTLS_CIPHER_VARIABLE_KEY_LEN ) == 0 &&
         (int) ctx->cipher_info->key_bitlen != key_bitlen )
@@ -250,10 +250,9 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
 {
     size_t actual_iv_size;
 
-    if( NULL == ctx || NULL == ctx->cipher_info )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    else if( NULL == iv && iv_len != 0  )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    CIPHER_VALIDATE_RET( ctx != NULL );
+    CIPHER_VALIDATE_RET( ctx->cipher_info != NULL );
+    CIPHER_VALIDATE_RET( iv_len == 0 || iv != NULL );
 
     if( NULL == iv && iv_len == 0 )
         ctx->iv_size = 0;
@@ -296,8 +295,8 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
 
 int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx )
 {
-    if( NULL == ctx || NULL == ctx->cipher_info )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    CIPHER_VALIDATE_RET( ctx != NULL );
+    CIPHER_VALIDATE_RET( ctx->cipher_info != NULL );
 
     ctx->unprocessed_len = 0;
 
@@ -308,10 +307,9 @@ int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx )
 int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
                       const unsigned char *ad, size_t ad_len )
 {
+    CIPHER_VALIDATE_RET( ctx != NULL );
+    CIPHER_VALIDATE_RET( ctx->cipher_info != NULL );
     CIPHER_VALIDATE_RET( ad_len == 0 || ad != NULL );
-
-    if( NULL == ctx || NULL == ctx->cipher_info )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
@@ -352,14 +350,11 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
     int ret;
     size_t block_size;
 
+    CIPHER_VALIDATE_RET( ctx != NULL );
+    CIPHER_VALIDATE_RET( ctx->cipher_info != NULL );
     CIPHER_VALIDATE_RET( input != NULL );
     CIPHER_VALIDATE_RET( output != NULL );
     CIPHER_VALIDATE_RET( olen != NULL );
-
-    if( NULL == ctx || NULL == ctx->cipher_info )
-    {
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    }
 
     *olen = 0;
     block_size = mbedtls_cipher_get_block_size( ctx );
@@ -764,11 +759,10 @@ static int get_no_padding( unsigned char *input, size_t input_len,
 int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
                    unsigned char *output, size_t *olen )
 {
+    CIPHER_VALIDATE_RET( ctx != NULL );
+    CIPHER_VALIDATE_RET( ctx->cipher_info != NULL );
     CIPHER_VALIDATE_RET( output != NULL );
     CIPHER_VALIDATE_RET( olen != NULL );
-
-    if( NULL == ctx || NULL == ctx->cipher_info )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
     *olen = 0;
 
@@ -906,10 +900,9 @@ int mbedtls_cipher_set_padding_mode( mbedtls_cipher_context_t *ctx,
 int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
                       unsigned char *tag, size_t tag_len )
 {
+    CIPHER_VALIDATE_RET( ctx != NULL );
+    CIPHER_VALIDATE_RET( ctx->cipher_info != NULL );
     CIPHER_VALIDATE_RET( tag != NULL );
-
-    if( NULL == ctx || NULL == ctx->cipher_info )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
     if( MBEDTLS_ENCRYPT != ctx->operation )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
@@ -940,10 +933,11 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
     unsigned char check_tag[16];
     int ret;
 
+    CIPHER_VALIDATE_RET( ctx != NULL );
+    CIPHER_VALIDATE_RET( ctx->cipher_info != NULL );
     CIPHER_VALIDATE_RET( tag != NULL );
 
-    if( NULL == ctx || NULL == ctx->cipher_info ||
-        MBEDTLS_DECRYPT != ctx->operation )
+    if( MBEDTLS_DECRYPT != ctx->operation )
     {
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
     }

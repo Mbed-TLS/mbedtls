@@ -27,6 +27,7 @@ void aria_invalid_param( )
     size_t iv_off = 0;
 
     TEST_INVALID_PARAM( mbedtls_aria_init( NULL ) );
+    TEST_VALID_PARAM( mbedtls_aria_free( NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,
                             mbedtls_aria_setkey_enc( NULL, key,

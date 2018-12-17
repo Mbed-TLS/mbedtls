@@ -39,6 +39,10 @@ API Changes
      - MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH
      - MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH
      in favour of a new single error MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA.
+   * Deprecate the Blowfish error constants
+     - MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH
+     - MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH
+     in favour of a new single error MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA.
 
 New deprecations
    * Deprecate mbedtls_ctr_drbg_update and mbedtls_hmac_drbg_update

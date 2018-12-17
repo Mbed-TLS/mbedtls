@@ -1,3 +1,9 @@
+ECDH - Valid parameters
+ecdh_valid_param:
+
+ECDH - Invalid parameters
+ecdh_invalid_param:
+
 ECDH primitive random #1
 depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
 ecdh_primitive_random:MBEDTLS_ECP_DP_SECP192R1

@@ -618,10 +618,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 #endif /* MBEDTLS_ARC4_C */
 
 #if defined(MBEDTLS_ARIA_C)
-    if( use_ret == -(MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH) )
-        mbedtls_snprintf( buf, buflen, "ARIA - Invalid key length" );
-    if( use_ret == -(MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH) )
-        mbedtls_snprintf( buf, buflen, "ARIA - Invalid data input length" );
+    if( use_ret == -(MBEDTLS_ERR_ARIA_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "ARIA - Bad input data" );
     if( use_ret == -(MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE) )
         mbedtls_snprintf( buf, buflen, "ARIA - Feature not available. For example, an unsupported ARIA key size" );
     if( use_ret == -(MBEDTLS_ERR_ARIA_HW_ACCEL_FAILED) )
@@ -672,19 +670,15 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 #endif /* MBEDTLS_BIGNUM_C */
 
 #if defined(MBEDTLS_BLOWFISH_C)
-    if( use_ret == -(MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH) )
-        mbedtls_snprintf( buf, buflen, "BLOWFISH - Invalid key length" );
+    if( use_ret == -(MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "BLOWFISH - Bad input data" );
     if( use_ret == -(MBEDTLS_ERR_BLOWFISH_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "BLOWFISH - Blowfish hardware accelerator failed" );
-    if( use_ret == -(MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH) )
-        mbedtls_snprintf( buf, buflen, "BLOWFISH - Invalid data input length" );
 #endif /* MBEDTLS_BLOWFISH_C */
 
 #if defined(MBEDTLS_CAMELLIA_C)
-    if( use_ret == -(MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH) )
-        mbedtls_snprintf( buf, buflen, "CAMELLIA - Invalid key length" );
-    if( use_ret == -(MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH) )
-        mbedtls_snprintf( buf, buflen, "CAMELLIA - Invalid data input length" );
+    if( use_ret == -(MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA) )
+        mbedtls_snprintf( buf, buflen, "CAMELLIA - Bad input data" );
     if( use_ret == -(MBEDTLS_ERR_CAMELLIA_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "CAMELLIA - Camellia hardware accelerator failed" );
 #endif /* MBEDTLS_CAMELLIA_C */

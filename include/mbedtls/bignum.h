@@ -644,7 +644,7 @@ int mbedtls_mpi_add_int( mbedtls_mpi *X, const mbedtls_mpi *A,
  *
  * \param X        The destination MPI. This must point to an initialized MPI.
  * \param A        The minuend. This must point to an initialized MPI.
- * \param B        The subtrahend.
+ * \param b        The subtrahend.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.
@@ -817,7 +817,7 @@ int mbedtls_mpi_fill_random( mbedtls_mpi *X, size_t size,
  *
  * \param G        The destination MPI. This must point to an initialized MPI.
  * \param A        The first operand. This must point to an initialized MPI.
- * \param A        The second operand. This must point to an initialized MPI.
+ * \param B        The second operand. This must point to an initialized MPI.
  *
  * \return         \c 0 if successful.
  * \return         #MBEDTLS_ERR_MPI_ALLOC_FAILED if a memory allocation failed.

@@ -617,7 +617,7 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
         if( ! asn1_skip_integer( &p, end, 1, bits / 2 + 1, 0 ) )
             goto exit;
         TEST_ASSERT( p == end );
-     }
+    }
     else
 #endif /* MBEDTLS_RSA_C */
 
@@ -1210,7 +1210,7 @@ void export_after_import_failure( data_t *data, int type_arg,
 
     /* Import the key - expect failure */
     status = psa_import_key( handle, type,
-                                 data->x, data->len );
+                             data->x, data->len );
     TEST_ASSERT( status == expected_import_status );
 
     /* Export the key */
@@ -1242,7 +1242,7 @@ void cipher_after_import_failure( data_t *data, int type_arg,
 
     /* Import the key - expect failure */
     status = psa_import_key( handle, type,
-                                 data->x, data->len );
+                             data->x, data->len );
     TEST_ASSERT( status == expected_import_status );
 
     status = psa_cipher_encrypt_setup( &operation, handle, exercise_alg );
@@ -1832,19 +1832,19 @@ void hash_bad_order( )
     memset( &operation, 0, sizeof( operation ) );
     TEST_ASSERT( psa_hash_update( &operation,
                                   input, sizeof( input ) ) ==
-                                  PSA_ERROR_INVALID_ARGUMENT );
+                 PSA_ERROR_INVALID_ARGUMENT );
 
     /* psa_hash_verify without calling psa_hash_setup beforehand */
     memset( &operation, 0, sizeof( operation ) );
     TEST_ASSERT( psa_hash_verify( &operation,
                                   hash, sizeof( hash ) ) ==
-                                  PSA_ERROR_INVALID_ARGUMENT );
+                 PSA_ERROR_INVALID_ARGUMENT );
 
     /* psa_hash_finish without calling psa_hash_setup beforehand */
     memset( &operation, 0, sizeof( operation ) );
     TEST_ASSERT( psa_hash_finish( &operation,
                                   hash, sizeof( hash ), &hash_len ) ==
-                                  PSA_ERROR_INVALID_ARGUMENT );
+                 PSA_ERROR_INVALID_ARGUMENT );
 
 exit:
     mbedtls_psa_crypto_free( );
@@ -1870,19 +1870,19 @@ void hash_verify_bad_args( )
     TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
     TEST_ASSERT( psa_hash_verify( &operation,
                                   hash, expected_size - 1 ) ==
-                                  PSA_ERROR_INVALID_SIGNATURE );
+                 PSA_ERROR_INVALID_SIGNATURE );
 
     /* psa_hash_verify with a non-matching hash */
     TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
     TEST_ASSERT( psa_hash_verify( &operation,
                                   hash + 1, expected_size ) ==
-                                  PSA_ERROR_INVALID_SIGNATURE );
+                 PSA_ERROR_INVALID_SIGNATURE );
 
     /* psa_hash_verify with a hash longer than expected */
     TEST_ASSERT( psa_hash_setup( &operation, alg ) == PSA_SUCCESS );
     TEST_ASSERT( psa_hash_verify( &operation,
                                   hash, sizeof( hash ) ) ==
-                                  PSA_ERROR_INVALID_SIGNATURE );
+                 PSA_ERROR_INVALID_SIGNATURE );
 
 exit:
     mbedtls_psa_crypto_free( );
@@ -4143,7 +4143,7 @@ void persistent_key_load_key_from_storage( data_t *data, int type_arg,
             psa_key_policy_set_usage( &base_policy_set, PSA_KEY_USAGE_DERIVE,
                                       base_policy_alg );
             TEST_ASSERT( psa_set_key_policy(
-                base_key, &base_policy_set ) == PSA_SUCCESS );
+                             base_key, &base_policy_set ) == PSA_SUCCESS );
             TEST_ASSERT( psa_import_key( base_key, PSA_KEY_TYPE_DERIVE,
                                          data->x, data->len ) == PSA_SUCCESS );
             /* Derive a key. */
@@ -4152,8 +4152,8 @@ void persistent_key_load_key_from_storage( data_t *data, int type_arg,
                                              NULL, 0, NULL, 0,
                                              export_size ) == PSA_SUCCESS );
             TEST_ASSERT( psa_generator_import_key(
-                handle, PSA_KEY_TYPE_RAW_DATA,
-                bits, &generator ) == PSA_SUCCESS );
+                             handle, PSA_KEY_TYPE_RAW_DATA,
+                             bits, &generator ) == PSA_SUCCESS );
             break;
     }
 
@@ -4169,15 +4169,15 @@ void persistent_key_load_key_from_storage( data_t *data, int type_arg,
     TEST_ASSERT( psa_open_key( PSA_KEY_LIFETIME_PERSISTENT, 1,
                                &handle ) == PSA_SUCCESS );
     TEST_ASSERT( psa_get_key_information(
-        handle, &type_get, &bits_get ) == PSA_SUCCESS );
+                     handle, &type_get, &bits_get ) == PSA_SUCCESS );
     TEST_ASSERT( type_get == type );
     TEST_ASSERT( bits_get == (size_t) bits );
 
     TEST_ASSERT( psa_get_key_policy( handle, &policy_get ) == PSA_SUCCESS );
     TEST_ASSERT( psa_key_policy_get_usage(
-        &policy_get ) == policy_usage );
+                     &policy_get ) == policy_usage );
     TEST_ASSERT( psa_key_policy_get_algorithm(
-        &policy_get ) == policy_alg );
+                     &policy_get ) == policy_alg );
 
     /* Export the key again */
     TEST_ASSERT( psa_export_key( handle, second_export, export_size,

@@ -46,7 +46,7 @@
 #define KEY_TYPE_IS_DSA                 ( 1u << 5 )
 #define KEY_TYPE_IS_ECC                 ( 1u << 6 )
 
-#define TEST_CLASSIFICATION_MACRO( flag, alg, flags )            \
+#define TEST_CLASSIFICATION_MACRO( flag, alg, flags )           \
     TEST_ASSERT( PSA_##flag( alg ) == !! ( ( flags ) & flag ) )
 
 void algorithm_classification( psa_algorithm_t alg, unsigned flags )

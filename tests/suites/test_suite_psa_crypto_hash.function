@@ -15,7 +15,7 @@
  * END_DEPENDENCIES
  */
 
- /* BEGIN_CASE */
+/* BEGIN_CASE */
 void hash_finish( int alg_arg, data_t *input, data_t *expected_hash )
 {
     psa_algorithm_t alg = alg_arg;
@@ -80,7 +80,7 @@ void hash_multi_part( int alg_arg, data_t *input, data_t *expected_hash )
                                       input->x, len ) == PSA_SUCCESS );
         TEST_ASSERT( psa_hash_update( &operation,
                                       input->x + len, input->len - len ) ==
-                                      PSA_SUCCESS );
+                     PSA_SUCCESS );
 
         TEST_ASSERT( psa_hash_finish( &operation,
                                       actual_hash, sizeof( actual_hash ),

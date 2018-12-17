@@ -103,7 +103,7 @@ void save_large_persistent_key( int data_too_large, int expected_status )
                                  &handle ) == PSA_SUCCESS );
 
     TEST_ASSERT( psa_import_key( handle, PSA_KEY_TYPE_RAW_DATA,
-        data, data_length ) == expected_status );
+                                 data, data_length ) == expected_status );
 
 exit:
     mbedtls_free( data );
@@ -135,8 +135,8 @@ void persistent_key_destroy( int key_id_arg, int should_store,
     if( should_store == 1 )
     {
         TEST_ASSERT( psa_import_key(
-            handle, first_type,
-            first_data->x, first_data->len ) == PSA_SUCCESS );
+                         handle, first_type,
+                         first_data->x, first_data->len ) == PSA_SUCCESS );
     }
 
     /* Destroy the key */
@@ -158,8 +158,8 @@ void persistent_key_destroy( int key_id_arg, int should_store,
                                  PSA_BYTES_TO_BITS( second_data->len ),
                                  &handle ) == PSA_SUCCESS );
     TEST_ASSERT( psa_import_key(
-        handle, second_type,
-        second_data->x, second_data->len ) == PSA_SUCCESS );
+                     handle, second_type,
+                     second_data->x, second_data->len ) == PSA_SUCCESS );
 
 exit:
     mbedtls_psa_crypto_free();
@@ -240,7 +240,7 @@ void import_export_persistent_key( data_t *data, int type_arg,
 
     /* Test the key information */
     TEST_ASSERT( psa_get_key_information(
-        handle, &got_type, &got_bits ) == PSA_SUCCESS );
+                     handle, &got_type, &got_bits ) == PSA_SUCCESS );
     TEST_ASSERT( got_type == type );
     TEST_ASSERT( got_bits == (size_t) expected_bits );
 

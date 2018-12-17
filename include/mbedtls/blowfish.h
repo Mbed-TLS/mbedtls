@@ -88,8 +88,8 @@ void mbedtls_blowfish_init( mbedtls_blowfish_context *ctx );
  *
  * \param ctx      The Blowfish context to be cleared.
  *                 This may be \c NULL, in which case this function
- *                 is a no-op. If it is not \c NULL, it must point
- *                 to an initialized Blowfish context.
+ *                 returns immediately. If it is not \c NULL, it must
+ *                 point to an initialized Blowfish context.
  */
 void mbedtls_blowfish_free( mbedtls_blowfish_context *ctx );
 
@@ -146,7 +146,7 @@ int mbedtls_blowfish_crypt_ecb( mbedtls_blowfish_context *ctx,
  *                 #MBEDTLS_BLOWFISH_DECRYPT for decryption.
  * \param length   The length of the input data in Bytes. This must be
  *                 multiple of \c 8.
- * \param iv       The initialization vector. This must be an RW buffer
+ * \param iv       The initialization vector. This must be a read/write buffer
  *                 of length \c 8 Bytes. It is updated by this function.
  * \param input    The input data. This must be a readable buffer of length
  *                 \p length Bytes. If \p length if \c 0, it may be \c NULL.
@@ -183,10 +183,10 @@ int mbedtls_blowfish_crypt_cbc( mbedtls_blowfish_context *ctx,
  *                 #MBEDTLS_BLOWFISH_DECRYPT for decryption.
  * \param length   The length of the input data in Bytes.
  * \param iv_off   The offset in the initialiation vector.
- *                 The value pointed to must be smaller than \c 8.
+ *                 The value pointed to must be smaller than \c 8 Bytes.
  *                 It is updated by this function to support the aforementioned
  *                 streaming usage.
- * \param iv       The initialization vector. This must be an RW buffer of
+ * \param iv       The initialization vector. This must be a read/write buffer of
  *                 size \c 8 Bytes. It is updated after use.
  * \param input    The input data. This must be a readable buffer of length
  *                 \p length Bytes. If \p length if \c 0, it may be \c NULL.
@@ -257,10 +257,10 @@ int mbedtls_blowfish_crypt_cfb64( mbedtls_blowfish_context *ctx,
  *                      within current cipher stream). The offset pointer to
  *                      should be \c 0 at the start of a stream and must be
  *                      smaller than \c 8. It is updated by this function.
- * \param nonce_counter The 64-bit nonce and counter. This must point to an RW
- *                      buffer of length \c 8 Bytes.
+ * \param nonce_counter The 64-bit nonce and counter. This must point to a
+ *                      read/write buffer of length \c 8 Bytes.
  * \param stream_block  The saved stream-block for resuming. This must point to
- *                      an RW buffer of length \c 8 Bytes.
+ *                      a read/write buffer of length \c 8 Bytes.
  * \param input         The input data. This must be a readable buffer of length
  *                      \p length Bytes. If \p length is \c 0, it may be \c NULL.
  * \param output        The output data. This must be a writable buffer of length

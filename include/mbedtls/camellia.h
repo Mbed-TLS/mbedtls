@@ -159,15 +159,15 @@ int mbedtls_camellia_crypt_ecb( mbedtls_camellia_context *ctx,
  *                 and bound to a key.
  * \param mode     The mode of operation. This must be either
  *                 #MBEDTLS_CAMELLIA_ENCRYPT or #MBEDTLS_CAMELLIA_DECRYPT.
- * \param length   The length in Bytes of the input data.
- *                 Must be a multiple of \c 16.
+ * \param length   The length in Bytes of the input data \p input.
+ *                 This must be a multiple of \c 16.
  * \param iv       The initialization vector. This must be RW buffer
  *                 of length \c 16 Bytes. It is updated to allow streaming
  *                 use as explained above.
  * \param input    The buffer holding the input data. This must point to a
  *                 readable buffer of length \p length Bytes. This may be
  *                 \c NULL if `length == 0`.
- * \param input    The buffer holding the output data. This must point to a
+ * \param output   The buffer holding the output data. This must point to a
  *                 writable buffer of length \p length Bytes. This may be
  *                 \c NULL if `length == 0`.
  *
@@ -204,7 +204,7 @@ int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
  *                 and bound to a key.
  * \param mode     The mode of operation. This must be either
  *                 #MBEDTLS_CAMELLIA_ENCRYPT or #MBEDTLS_CAMELLIA_DECRYPT.
- * \param length   The length of the input data. Any value is allowed.
+ * \param length   The length of the input data \p input. Any value is allowed.
  * \param iv_off   The current offset in the IV. This must be smaller
  *                 than \c 16. It is updated after this call to allow
  *                 the aforementioned streaming usage.
@@ -284,8 +284,10 @@ int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
  *             content must not be written to insecure storage and should be
  *             securely discarded as soon as it's no longer needed.
  *
- * \param ctx           The CAMELLIA context to use.
- * \param length        The length of the input data. Any value is allowed.
+ * \param ctx           The CAMELLIA context to use. This must be initialized
+ *                      and bound to a key.
+ * \param length        The length of the input data \p input.
+ *                      Any value is allowed.
  * \param nc_off        The offset in the current \p stream_block (for resuming
  *                      within current cipher stream). The offset pointer to
  *                      should be \c 0 at the start of a stream. It is updated

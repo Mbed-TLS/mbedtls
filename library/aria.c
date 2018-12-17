@@ -451,7 +451,7 @@ int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx,
     uint32_t w[4][4], *w2;
 
     if( keybits != 128 && keybits != 192 && keybits != 256 )
-        return( MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH );
+        return( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA );
 
     /* Copy key to W0 (and potential remainder to W1) */
     GET_UINT32_LE( w[0][0], key,  0 );
@@ -613,7 +613,7 @@ int mbedtls_aria_crypt_cbc( mbedtls_aria_context *ctx,
     unsigned char temp[MBEDTLS_ARIA_BLOCKSIZE];
 
     if( length % MBEDTLS_ARIA_BLOCKSIZE )
-        return( MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH );
+        return( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA );
 
     if( mode == MBEDTLS_ARIA_DECRYPT )
     {

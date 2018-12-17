@@ -31,6 +31,10 @@ API Changes
      mbedtls_ctr_drbg_update() -> mbedtls_ctr_drbg_update_ret()
      mbedtls_hmac_drbg_update() -> mbedtls_hmac_drbg_update_ret()
    * Extend ECDH interface to enable alternative implementations.
+   * Deprecate the ARIA error constants
+     - MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH
+     - MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH
+     in favour of a new single error MBEDTLS_ERR_ARIA_BAD_INPUT_DATA.
 
 New deprecations
    * Deprecate mbedtls_ctr_drbg_update and mbedtls_hmac_drbg_update

@@ -33,11 +33,16 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "platform_util.h"
+
 #define MBEDTLS_CAMELLIA_ENCRYPT     1
 #define MBEDTLS_CAMELLIA_DECRYPT     0
 
-#define MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH           -0x0024  /**< Invalid key length. */
-#define MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH         -0x0026  /**< Invalid data input length. */
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#define MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH   MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( -0x0024 )
+#define MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( -0x0026 )
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+#define MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA -0x0024 /**< Bad input data. */
 
 /* MBEDTLS_ERR_CAMELLIA_HW_ACCEL_FAILED is deprecated and should not be used.
  */

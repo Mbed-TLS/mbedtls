@@ -877,7 +877,6 @@ void import( data_t *data, int type, int expected_status_arg )
     psa_status_t expected_status = expected_status_arg;
     psa_status_t status;
 
-    TEST_ASSERT( data != NULL );
     PSA_ASSERT( psa_crypto_init( ) );
 
     PSA_ASSERT( psa_allocate_key( type, KEY_BITS_FROM_DATA( type, data ),
@@ -995,7 +994,6 @@ void import_export( data_t *data,
     size_t got_bits;
     psa_key_policy_t policy;
 
-    TEST_ASSERT( data != NULL );
     export_size = (ptrdiff_t) data->len + export_size_delta;
     ASSERT_ALLOC( exported, export_size );
     if( ! canonical_input )
@@ -2005,10 +2003,6 @@ void mac_verify( int key_type_arg,
 
     TEST_ASSERT( expected_mac->len <= PSA_MAC_MAX_SIZE );
 
-    TEST_ASSERT( key != NULL );
-    TEST_ASSERT( input != NULL );
-    TEST_ASSERT( expected_mac != NULL );
-
     PSA_ASSERT( psa_crypto_init( ) );
 
     PSA_ASSERT( psa_allocate_key( key_type, PSA_BYTES_TO_BITS( key->len ),
@@ -2090,10 +2084,6 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
     psa_cipher_operation_t operation;
     psa_key_policy_t policy;
 
-    TEST_ASSERT( key != NULL );
-    TEST_ASSERT( input != NULL );
-    TEST_ASSERT( expected_output != NULL );
-
     iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
     memset( iv, 0x2a, iv_size );
 
@@ -2161,10 +2151,6 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
     size_t total_output_length = 0;
     psa_cipher_operation_t operation;
     psa_key_policy_t policy;
-
-    TEST_ASSERT( key != NULL );
-    TEST_ASSERT( input != NULL );
-    TEST_ASSERT( expected_output != NULL );
 
     iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
     memset( iv, 0x2a, iv_size );
@@ -2236,10 +2222,6 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
     size_t total_output_length = 0;
     psa_cipher_operation_t operation;
     psa_key_policy_t policy;
-
-    TEST_ASSERT( key != NULL );
-    TEST_ASSERT( input != NULL );
-    TEST_ASSERT( expected_output != NULL );
 
     iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
     memset( iv, 0x2a, iv_size );
@@ -2314,10 +2296,6 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     psa_cipher_operation_t operation;
     psa_key_policy_t policy;
 
-    TEST_ASSERT( key != NULL );
-    TEST_ASSERT( input != NULL );
-    TEST_ASSERT( expected_output != NULL );
-
     iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
     memset( iv, 0x2a, iv_size );
 
@@ -2389,9 +2367,6 @@ void cipher_verify_output( int alg_arg, int key_type_arg,
     psa_cipher_operation_t operation1;
     psa_cipher_operation_t operation2;
     psa_key_policy_t policy;
-
-    TEST_ASSERT( key != NULL );
-    TEST_ASSERT( input != NULL );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -2478,9 +2453,6 @@ void cipher_verify_output_multipart( int alg_arg,
     psa_cipher_operation_t operation1;
     psa_cipher_operation_t operation2;
     psa_key_policy_t policy;
-
-    TEST_ASSERT( key != NULL );
-    TEST_ASSERT( input != NULL );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -2583,11 +2555,6 @@ void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
     psa_status_t expected_result = expected_result_arg;
     psa_key_policy_t policy;
 
-    TEST_ASSERT( key_data != NULL );
-    TEST_ASSERT( input_data != NULL );
-    TEST_ASSERT( nonce != NULL );
-    TEST_ASSERT( additional_data != NULL );
-
     output_size = input_data->len + tag_length;
     ASSERT_ALLOC( output_data, output_size );
 
@@ -2655,12 +2622,6 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
     size_t tag_length = 16;
     psa_key_policy_t policy;
 
-    TEST_ASSERT( key_data != NULL );
-    TEST_ASSERT( input_data != NULL );
-    TEST_ASSERT( additional_data != NULL );
-    TEST_ASSERT( nonce != NULL );
-    TEST_ASSERT( expected_result != NULL );
-
     output_size = input_data->len + tag_length;
     ASSERT_ALLOC( output_data, output_size );
 
@@ -2711,12 +2672,6 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
     size_t tag_length = 16;
     psa_key_policy_t policy;
     psa_status_t expected_result = expected_result_arg;
-
-    TEST_ASSERT( key_data != NULL );
-    TEST_ASSERT( input_data != NULL );
-    TEST_ASSERT( additional_data != NULL );
-    TEST_ASSERT( nonce != NULL );
-    TEST_ASSERT( expected_data != NULL );
 
     output_size = input_data->len + tag_length;
     ASSERT_ALLOC( output_data, output_size );
@@ -2782,10 +2737,6 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
     size_t signature_length = 0xdeadbeef;
     psa_key_policy_t policy;
 
-    TEST_ASSERT( key_data != NULL );
-    TEST_ASSERT( input_data != NULL );
-    TEST_ASSERT( output_data != NULL );
-
     PSA_ASSERT( psa_crypto_init( ) );
 
     PSA_ASSERT( psa_allocate_key( key_type,
@@ -2840,9 +2791,6 @@ void sign_fail( int key_type_arg, data_t *key_data,
     unsigned char *signature = NULL;
     size_t signature_length = 0xdeadbeef;
     psa_key_policy_t policy;
-
-    TEST_ASSERT( key_data != NULL );
-    TEST_ASSERT( input_data != NULL );
 
     ASSERT_ALLOC( signature, signature_size );
 
@@ -2962,10 +2910,6 @@ void asymmetric_verify( int key_type_arg, data_t *key_data,
 
     TEST_ASSERT( signature_data->len <= PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE );
 
-    TEST_ASSERT( key_data != NULL );
-    TEST_ASSERT( hash_data != NULL );
-    TEST_ASSERT( signature_data != NULL );
-
     PSA_ASSERT( psa_crypto_init( ) );
 
     PSA_ASSERT( psa_allocate_key( key_type,
@@ -3001,10 +2945,6 @@ void asymmetric_verify_fail( int key_type_arg, data_t *key_data,
     psa_status_t actual_status;
     psa_status_t expected_status = expected_status_arg;
     psa_key_policy_t policy;
-
-    TEST_ASSERT( key_data != NULL );
-    TEST_ASSERT( hash_data != NULL );
-    TEST_ASSERT( signature_data != NULL );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -3124,9 +3064,6 @@ void asymmetric_encrypt_decrypt( int key_type_arg,
     size_t output2_length = ~0;
     psa_key_policy_t policy;
 
-    TEST_ASSERT( key_data != NULL );
-    TEST_ASSERT( input_data != NULL );
-
     PSA_ASSERT( psa_crypto_init( ) );
 
     PSA_ASSERT( psa_allocate_key( key_type,
@@ -3195,10 +3132,6 @@ void asymmetric_decrypt( int key_type_arg,
     size_t output_length = ~0;
     psa_key_policy_t policy;
 
-    TEST_ASSERT( key_data != NULL );
-    TEST_ASSERT( input_data != NULL );
-    TEST_ASSERT( expected_data != NULL );
-
     output_size = key_data->len;
     ASSERT_ALLOC( output, output_size );
 
@@ -3265,9 +3198,6 @@ void asymmetric_decrypt_fail( int key_type_arg,
     psa_status_t actual_status;
     psa_status_t expected_status = expected_status_arg;
     psa_key_policy_t policy;
-
-    TEST_ASSERT( key_data != NULL );
-    TEST_ASSERT( input_data != NULL );
 
     output_size = key_data->len;
     ASSERT_ALLOC( output, output_size );

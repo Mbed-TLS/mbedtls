@@ -13,12 +13,6 @@
 
 #define MAX( x, y ) ( ( x ) > ( y ) ? ( x ) : ( y ) )
 
-#if(UINT32_MAX > SIZE_MAX)
-#define PSA_CRYPTO_TEST_SIZE_T_RANGE( x ) ( ( x ) <= SIZE_MAX )
-#else
-#define PSA_CRYPTO_TEST_SIZE_T_RANGE( x ) 1
-#endif
-
 /** An invalid export length that will never be set by psa_export_key(). */
 static const size_t INVALID_EXPORT_LENGTH = ~0U;
 
@@ -884,7 +878,6 @@ void import( data_t *data, int type, int expected_status_arg )
     psa_status_t status;
 
     TEST_ASSERT( data != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( data->len ) );
     PSA_ASSERT( psa_crypto_init( ) );
 
     PSA_ASSERT( psa_allocate_key( type, KEY_BITS_FROM_DATA( type, data ),
@@ -1003,7 +996,6 @@ void import_export( data_t *data,
     psa_key_policy_t policy;
 
     TEST_ASSERT( data != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( data->len ) );
     export_size = (ptrdiff_t) data->len + export_size_delta;
     ASSERT_ALLOC( exported, export_size );
     if( ! canonical_input )
@@ -2016,9 +2008,6 @@ void mac_verify( int key_type_arg,
     TEST_ASSERT( key != NULL );
     TEST_ASSERT( input != NULL );
     TEST_ASSERT( expected_mac != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( expected_mac->len ) );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -2104,9 +2093,6 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
     TEST_ASSERT( key != NULL );
     TEST_ASSERT( input != NULL );
     TEST_ASSERT( expected_output != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( expected_output->len ) );
 
     iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
     memset( iv, 0x2a, iv_size );
@@ -2179,9 +2165,6 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
     TEST_ASSERT( key != NULL );
     TEST_ASSERT( input != NULL );
     TEST_ASSERT( expected_output != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( expected_output->len ) );
 
     iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
     memset( iv, 0x2a, iv_size );
@@ -2257,9 +2240,6 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
     TEST_ASSERT( key != NULL );
     TEST_ASSERT( input != NULL );
     TEST_ASSERT( expected_output != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( expected_output->len ) );
 
     iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
     memset( iv, 0x2a, iv_size );
@@ -2337,9 +2317,6 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     TEST_ASSERT( key != NULL );
     TEST_ASSERT( input != NULL );
     TEST_ASSERT( expected_output != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( expected_output->len ) );
 
     iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
     memset( iv, 0x2a, iv_size );
@@ -2415,8 +2392,6 @@ void cipher_verify_output( int alg_arg, int key_type_arg,
 
     TEST_ASSERT( key != NULL );
     TEST_ASSERT( input != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input->len ) );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -2506,8 +2481,6 @@ void cipher_verify_output_multipart( int alg_arg,
 
     TEST_ASSERT( key != NULL );
     TEST_ASSERT( input != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input->len ) );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -2614,10 +2587,6 @@ void aead_encrypt_decrypt( int key_type_arg, data_t *key_data,
     TEST_ASSERT( input_data != NULL );
     TEST_ASSERT( nonce != NULL );
     TEST_ASSERT( additional_data != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( nonce->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( additional_data->len ) );
 
     output_size = input_data->len + tag_length;
     ASSERT_ALLOC( output_data, output_size );
@@ -2691,11 +2660,6 @@ void aead_encrypt( int key_type_arg, data_t *key_data,
     TEST_ASSERT( additional_data != NULL );
     TEST_ASSERT( nonce != NULL );
     TEST_ASSERT( expected_result != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( additional_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( nonce->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( expected_result->len ) );
 
     output_size = input_data->len + tag_length;
     ASSERT_ALLOC( output_data, output_size );
@@ -2753,11 +2717,6 @@ void aead_decrypt( int key_type_arg, data_t *key_data,
     TEST_ASSERT( additional_data != NULL );
     TEST_ASSERT( nonce != NULL );
     TEST_ASSERT( expected_data != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( additional_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( nonce->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( expected_data->len ) );
 
     output_size = input_data->len + tag_length;
     ASSERT_ALLOC( output_data, output_size );
@@ -2826,9 +2785,6 @@ void sign_deterministic( int key_type_arg, data_t *key_data,
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( input_data != NULL );
     TEST_ASSERT( output_data != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( output_data->len ) );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -2887,8 +2843,6 @@ void sign_fail( int key_type_arg, data_t *key_data,
 
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( input_data != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input_data->len ) );
 
     ASSERT_ALLOC( signature, signature_size );
 
@@ -3011,9 +2965,6 @@ void asymmetric_verify( int key_type_arg, data_t *key_data,
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( hash_data != NULL );
     TEST_ASSERT( signature_data != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( hash_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( signature_data->len ) );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -3054,9 +3005,6 @@ void asymmetric_verify_fail( int key_type_arg, data_t *key_data,
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( hash_data != NULL );
     TEST_ASSERT( signature_data != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( hash_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( signature_data->len ) );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -3178,8 +3126,6 @@ void asymmetric_encrypt_decrypt( int key_type_arg,
 
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( input_data != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input_data->len ) );
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -3252,9 +3198,6 @@ void asymmetric_decrypt( int key_type_arg,
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( input_data != NULL );
     TEST_ASSERT( expected_data != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( expected_data->len ) );
 
     output_size = key_data->len;
     ASSERT_ALLOC( output, output_size );
@@ -3325,8 +3268,6 @@ void asymmetric_decrypt_fail( int key_type_arg,
 
     TEST_ASSERT( key_data != NULL );
     TEST_ASSERT( input_data != NULL );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( key_data->len ) );
-    TEST_ASSERT( PSA_CRYPTO_TEST_SIZE_T_RANGE( input_data->len ) );
 
     output_size = key_data->len;
     ASSERT_ALLOC( output, output_size );

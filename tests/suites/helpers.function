@@ -109,30 +109,31 @@ typedef enum
  *
  * \param   TEST    The test expression to be tested.
  */
-#define TEST_ASSERT( TEST )                                 \
-    do {                                                    \
-       if( ! (TEST) )                                       \
-       {                                                    \
-          test_fail( #TEST, __LINE__, __FILE__ );           \
-          goto exit;                                        \
-       }                                                    \
+
+#define TEST_ASSERT( TEST )                                       \
+    do {                                                          \
+        if( ! (TEST) )                                            \
+        {                                                         \
+            set_test_result( #TEST, __LINE__, __FILE__, TEST_RESULT_FAILED );\
+            goto exit;                                            \
+        }                                                         \
     } while( 0 )
 
-#define TEST_ASSERT_RET( TEST, EXP_RET )                                              \
-    do {                                                                              \
-        int ret = (TEST);                                                             \
-        if( ret != ( EXP_RET ) )                                                      \
-        {                                                                             \
-            if( ( -ret & ~0xFF80 ) == -( MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) ) \
-            {                                                                         \
-                test_skip( #TEST, __LINE__, __FILE__ );                               \
-            }                                                                         \
-            else                                                                      \
-            {                                                                         \
-                test_fail( #TEST, __LINE__, __FILE__ );                               \
-            }                                                                         \
-            goto exit;                                                                \
-        }                                                                             \
+#define TEST_ASSERT_RET( TEST, EXP_RET )                                                              \
+    do {                                                                                              \
+        int TEST_ASSERT_RET_ret = (TEST);                                                             \
+        if( TEST_ASSERT_RET_ret != ( EXP_RET ) )                                                      \
+        {                                                                                             \
+            if( ( -TEST_ASSERT_RET_ret & ~0xFF80 ) == -( MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) ) \
+            {                                                                                         \
+                set_test_result( #TEST, __LINE__, __FILE__, TEST_RESULT_SKIPPED );                    \
+            }                                                                                         \
+            else                                                                                      \
+            {                                                                                         \
+                set_test_result( #TEST, __LINE__, __FILE__, TEST_RESULT_FAILED );                     \
+            }                                                                                         \
+            goto exit;                                                                                \
+        }                                                                                             \
     } while( 0 )
 
 /**
@@ -177,7 +178,7 @@ typedef enum
         if( (TEST) != (PARAM_ERR_VALUE) ||                                  \
             test_info.paramfail_test_state != PARAMFAIL_TESTSTATE_CALLED )  \
         {                                                                   \
-            test_fail( #TEST, __LINE__, __FILE__ );                         \
+            set_test_result( #TEST, __LINE__, __FILE__, TEST_RESULT_FAILED );\
             goto exit;                                                      \
         }                                                                   \
    } while( 0 )
@@ -208,7 +209,7 @@ typedef enum
         if( setjmp( param_fail_jmp ) == 0 )                                 \
         {                                                                   \
             TEST;                                                           \
-            test_fail( #TEST, __LINE__, __FILE__ );                         \
+            set_test_result( #TEST, __LINE__, __FILE__, TEST_RESULT_FAILED );\
             goto exit;                                                      \
         }                                                                   \
         memcpy(param_fail_jmp, jmp_tmp, sizeof(jmp_buf));                   \
@@ -297,7 +298,6 @@ static struct
     const char *test;
     const char *filename;
     int line_no;
-    int skipped;
 }
 test_info;
 
@@ -328,21 +328,13 @@ jmp_buf jmp_tmp;
 /*----------------------------------------------------------------------------*/
 /* Helper Functions */
 
-void test_fail( const char *test, int line_no, const char* filename )
+static void set_test_result( const char *test, int line_no,
+                             const char* filename, test_result_t test_result )
 {
-    test_info.result = TEST_RESULT_FAILED;
+    test_info.result = test_result;
     test_info.test = test;
     test_info.line_no = line_no;
     test_info.filename = filename;
-}
-
-void test_skip( const char *test, int line_no, const char* filename )
-{
-    test_info.result = TEST_RESULT_SKIPPED;
-    test_info.test = test;
-    test_info.line_no = line_no;
-    test_info.filename = filename;
-    test_info.skipped = 1;
 }
 
 static int platform_setup()
@@ -377,7 +369,7 @@ void mbedtls_param_failed( const char *failure_condition,
 
         /* Record the location of the failure, but not as a failure yet, in case
          * it was part of the test */
-        test_fail( failure_condition, line, file );
+        set_test_result( failure_condition, line, file, TEST_RESULT_FAILED );
         test_info.result = TEST_RESULT_SUCCESS;
 
         longjmp( param_fail_jmp, 1 );

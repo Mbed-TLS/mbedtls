@@ -30,7 +30,7 @@ const mbedtls_x509_crt_profile profile_all =
         if( flags & ( MBEDTLS_X509_BADCERT_ALG_NOT_SUPPORTED |    \
                       MBEDTLS_X509_BADCRL_ALG_NOT_SUPPORTED ) )   \
         {                                                         \
-            test_skip( #TEST, __LINE__, __FILE__ );               \
+            set_test_result( #TEST, __LINE__, __FILE__, TEST_RESULT_SKIPPED );\
             goto exit;                                            \
         }                                                         \
     } while( 0 )

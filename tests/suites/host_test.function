@@ -548,7 +548,6 @@ int execute_tests( int argc , const char ** argv )
             {
                 test_info.result = TEST_RESULT_SUCCESS;
                 test_info.paramfail_test_state = PARAMFAIL_TESTSTATE_IDLE;
-                test_info.skipped = 0;
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
                 /* Suppress all output from the library unless we're verbose
@@ -612,9 +611,9 @@ int execute_tests( int argc , const char ** argv )
             }
             else if( ret == DISPATCH_TEST_SUCCESS )
             {
-                if( test_info.result == TEST_RESULT_SUCCESS )
+                if( test_info.result != TEST_RESULT_FAILED )
                 {
-                    if( test_info.skipped == 1 )
+                    if( test_info.result == TEST_RESULT_SKIPPED )
                     {
                         total_skipped++;
                         mbedtls_fprintf( stdout, "----\n" );
@@ -629,11 +628,6 @@ int execute_tests( int argc , const char ** argv )
                     {
                         mbedtls_fprintf( stdout, "PASS\n" );
                     }
-                }
-                else if( test_info.result == TEST_RESULT_SKIPPED )
-                {
-                    mbedtls_fprintf( stdout, "----\n" );
-                    total_skipped++;
                 }
                 else
                 {

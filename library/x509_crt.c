@@ -1571,7 +1571,7 @@ int mbedtls_x509_crt_parse_path( mbedtls_x509_crt *chain, const char *path )
 
         w_ret = mbedtls_x509_crt_parse_file( chain, filename );
         /*
-         * Quit parsing on a feature not suppoprted by HW error.
+         * Quit parsing if some feature is not supported by the hardware.
          */
         if( w_ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
         {
@@ -2377,9 +2377,9 @@ static int x509_crt_verifycrl( mbedtls_x509_crt *crt, mbedtls_x509_crt *ca,
                 flags |= MBEDTLS_X509_BADCRL_ALG_NOT_SUPPORTED;
             }
             /*
-             * Add the MBEDTLS_X509_BADCRL_NOT_TRUSTED flag because the CRL
-             * couldn't be verified.Otherwise, this can't happen except after an
-             * internal error
+             * The CRL couldn't be verified, so it isn't trusted.
+             * Apart from the case of an unsupported feature handled
+             * just above, this can only happen after an internal error.
              */
             flags |= MBEDTLS_X509_BADCRL_NOT_TRUSTED;
             break;

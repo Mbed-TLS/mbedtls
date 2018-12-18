@@ -3,8 +3,8 @@
  *
  * \brief AES-NI for hardware AES acceleration on some Intel processors
  *
- * \warning  These functions are only for internal use by other library
- * functions; you must not call them directly.
+ * \warning These functions are only for internal use by other library
+ *          functions; you must not call them directly.
  */
 /*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
@@ -45,7 +45,7 @@ extern "C" {
 #endif
 
 /**
- * \brief          Internal AES-NI features detection routine
+ * \brief          Internal function to detect the AES-NI feature in CPUs.
  *
  * \note           This function is only for internal use by other library
  *                 functions; you must not call it directly.
@@ -58,7 +58,7 @@ extern "C" {
 int mbedtls_aesni_has_support( unsigned int what );
 
 /**
- * \brief          Internal AES-NI AES-ECB block en(de)cryption
+ * \brief          Internal AES-NI AES-ECB block encryption and decryption
  *
  * \note           This function is only for internal use by other library
  *                 functions; you must not call it directly.
@@ -93,8 +93,8 @@ void mbedtls_aesni_gcm_mult( unsigned char c[16],
                              const unsigned char b[16] );
 
 /**
- * \brief           Internal round key inversion.
- *                  Compute decryption round keys from encryption round keys
+ * \brief           Internal round key inversion. This function computes
+ *                  decryption round keys from the encryption round keys.
  *
  * \note            This function is only for internal use by other library
  *                  functions; you must not call it directly.
@@ -108,7 +108,7 @@ void mbedtls_aesni_inverse_key( unsigned char *invkey,
                                 int nr );
 
 /**
- * \brief           Internal key expansion (for encryption)
+ * \brief           Internal key expansion for encryption
  *
  * \note            This function is only for internal use by other library
  *                  functions; you must not call it directly.

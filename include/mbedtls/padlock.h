@@ -4,8 +4,8 @@
  * \brief VIA PadLock ACE for HW encryption/decryption supported by some
  *        processors
  *
- * \warning  These functions are only for internal use by other library
- * functions; you must not call them directly.
+ * \warning These functions are only for internal use by other library
+ *          functions; you must not call them directly.
  */
 /*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved

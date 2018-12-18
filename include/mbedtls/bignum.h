@@ -688,9 +688,11 @@ int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A,
  *                 A = Q * B + R
  *
  * \param Q        The destination MPI for the quotient.
- *                 May be \c NULL is the value of the quotient is not needed.
+ *                 This may be \c NULL if the value of the
+ *                 quotient is not needed.
  * \param R        The destination MPI for the remainder value.
- *                 May be \c NULL if the value of the remainder is not needed.
+ *                 This may be \c NULL if the value of the
+ *                 remainder is not needed.
  * \param A        The divident. This must point to an initialized MPi.
  * \param B        The divisor. This must point to an initialized MPI.
  *
@@ -707,9 +709,11 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
  *                 A = Q * b + R
  *
  * \param Q        The destination MPI for the quotient.
- *                 May be \c NULL is the value of the quotient is not needed.
+ *                 This may be \c NULL if the value of the
+ *                 quotient is not needed.
  * \param R        The destination MPI for the remainder value.
- *                 May be \c NULL if the value of the remainder is not needed.
+ *                 This may be \c NULL if the value of the
+ *                 remainder is not needed.
  * \param A        The divident. This must point to an initialized MPi.
  * \param b        The divisor.
  *
@@ -922,7 +926,7 @@ typedef enum {
  * \param X        The destination MPI to store the generated prime in.
  *                 This must point to an initialized MPi.
  * \param nbits    The required size of the destination MPI in bits.
- *                 Must be between \c 3 and #MBEDTLS_MPI_MAX_BITS.
+ *                 This must be between \c 3 and #MBEDTLS_MPI_MAX_BITS.
  * \param flags    A mask of flags of type #mbedtls_mpi_gen_prime_flag_t.
  * \param f_rng    The RNG function to use. This must not be \c NULL.
  * \param p_rng    The RNG parameter to be passed to \p f_rng.

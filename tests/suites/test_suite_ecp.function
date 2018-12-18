@@ -288,6 +288,11 @@ void ecp_invalid_param( )
                             mbedtls_ecp_check_pubkey( &grp, NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecp_check_pub_priv( NULL, &kp ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecp_check_pub_priv( &kp, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecp_check_privkey( NULL, &m ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecp_check_privkey( &grp, NULL ) );

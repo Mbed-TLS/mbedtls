@@ -479,16 +479,16 @@ int mbedtls_ecdsa_genkey( mbedtls_ecdsa_context *ctx, mbedtls_ecp_group_id gid,
                   int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 /**
- * \brief           This function sets an ECDSA context from an EC key pair.
+ * \brief           This function sets up an ECDSA context from an EC key pair.
  *
  * \see             ecp.h
  *
- * \param ctx       The ECDSA context to set. This must be initialized.
+ * \param ctx       The ECDSA context to setup. This must be initialized.
  * \param key       The EC key to use. This must be initialized and hold
  *                  a private-public key pair or a public key. In the former
  *                  case, the ECDSA context may be used for signature creation
- *                  after this call. In the latter case, it may be used for
- *                  signature verification.
+ *                  and verification after this call. In the latter case, it
+ *                  may be used for signature verification.
  *
  * \return          \c 0 on success.
  * \return          An \c MBEDTLS_ERR_ECP_XXX code on failure.

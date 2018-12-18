@@ -433,7 +433,7 @@ size_t mbedtls_rsa_get_len( const mbedtls_rsa_context *ctx );
  *                 This may be \c NULL if \p f_rng doesn't need a context.
  * \param nbits    The size of the public key in bits.
  * \param exponent The public exponent to use. For example, \c 65537.
- *                 This must be odd.
+ *                 This must be odd and greater than \c 1.
  *
  * \return         \c 0 on success.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -737,7 +737,7 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
  *                 for an 2048-bit RSA modulus.
  * \param output   The buffer used to hold the plaintext. This must
  *                 be a writable buffer of length \p output_max_len Bytes.
- * \param output_max_len The maximum length of the output buffer.
+ * \param output_max_len The length in Bytes of the output buffer \p output.
  *
  * \return         \c 0 on success.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -783,7 +783,7 @@ int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
  *                 for an 2048-bit RSA modulus.
  * \param output   The buffer used to hold the plaintext. This must
  *                 be a writable buffer of length \p output_max_len Bytes.
- * \param output_max_len The maximum length of the output buffer.
+ * \param output_max_len The length in Bytes of the output buffer \p output.
  *
  * \return         \c 0 on success.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -819,7 +819,10 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
  *                   return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
  * \param ctx        The initialized RSA context to use.
- * \param f_rng      The RNG function. This is needed for #MBEDTLS_RSA_PRIVATE.
+ * \param f_rng      The RNG function. If \p mode is #MBEDTLS_RSA_PRIVATE,
+ *                   this is used for blinding and should be provided; see
+ *                   mbedtls_rsa_private() for more. If \p mode is
+ *                   #MBEDTLS_RSA_PUBLIC, it is ignored.
  * \param p_rng      The RNG context to be passed to \p f_rng. This may be
  *                   \c NULL if \p f_rng is \c NULL or doesn't need a context.
  * \param mode       The mode of operation. This must be either
@@ -835,7 +838,7 @@ int mbedtls_rsa_rsaes_pkcs1_v15_decrypt( mbedtls_rsa_context *ctx,
  *                   for an 2048-bit RSA modulus.
  * \param output     The buffer used to hold the plaintext. This must
  *                   be a writable buffer of length \p output_max_len Bytes.
- * \param output_max_len The maximum length of the output buffer.
+ * \param output_max_len The length in Bytes of the output buffer \p output.
  *
  * \return         \c 0 on success.
  * \return         An \c MBEDTLS_ERR_RSA_XXX error code on failure.
@@ -875,7 +878,8 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
  *
  * \param ctx      The initialized RSA context to use.
  * \param f_rng    The RNG function. It is needed for PKCS#1 v2.1 encoding
- *                 and for \p mode set to #MBEDTLS_RSA_PRIVATE.
+ *                 and for \p mode set to #MBEDTLS_RSA_PRIVATE, and ignored
+ *                 otherwise.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be \c NULL
  *                 if \p f_rng is \c NULL or doesn't need a context argument.
  * \param mode     The mode of operation. This must be either
@@ -919,8 +923,10 @@ int mbedtls_rsa_pkcs1_sign( mbedtls_rsa_context *ctx,
  *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG function. It is needed for PKCS#1 v2.1 encoding
- *                 and for \p mode set to #MBEDTLS_RSA_PRIVATE.
+ * \param f_rng    The RNG function. If \p mode is #MBEDTLS_RSA_PRIVATE,
+ *                 this is used for blinding and should be provided; see
+ *                 mbedtls_rsa_private() for more. If \p mode is
+ *                 #MBEDTLS_RSA_PUBLIC, it is ignored.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be \c NULL
  *                 if \p f_rng is \c NULL or doesn't need a context argument.
  * \param mode     The mode of operation. This must be either

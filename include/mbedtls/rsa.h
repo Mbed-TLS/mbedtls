@@ -725,7 +725,10 @@ int mbedtls_rsa_rsaes_oaep_encrypt( mbedtls_rsa_context *ctx,
  *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG function. This is needed for #MBEDTLS_RSA_PRIVATE.
+ * \param f_rng    The RNG function. If \p mode is #MBEDTLS_RSA_PRIVATE,
+ *                 this is used for blinding and should be provided; see
+ *                 mbedtls_rsa_private() for more. If \p mode is
+ *                 #MBEDTLS_RSA_PUBLIC, it is ignored.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be
  *                 \c NULL if \p f_rng is \c NULL or doesn't need a context.
  * \param mode     The mode of operation. This must be either
@@ -771,7 +774,10 @@ int mbedtls_rsa_pkcs1_decrypt( mbedtls_rsa_context *ctx,
  *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG function. This is needed for #MBEDTLS_RSA_PRIVATE.
+ * \param f_rng    The RNG function. If \p mode is #MBEDTLS_RSA_PRIVATE,
+ *                 this is used for blinding and should be provided; see
+ *                 mbedtls_rsa_private() for more. If \p mode is
+ *                 #MBEDTLS_RSA_PUBLIC, it is ignored.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be
  *                 \c NULL if \p f_rng is \c NULL or doesn't need a context.
  * \param mode     The mode of operation. This must be either
@@ -877,9 +883,10 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
  *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG function. It is needed for PKCS#1 v2.1 encoding
- *                 and for \p mode set to #MBEDTLS_RSA_PRIVATE, and ignored
- *                 otherwise.
+ * \param f_rng    The RNG function. If the padding mode is PKCS#1 v2.1
+ *                 and \p mode is set to #MBEDTLS_RSA_PRIVATE, it is used for
+ *                 blinding and should be provided; see mbedtls_rsa_private().
+ *                 It is ignored otherwise.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be \c NULL
  *                 if \p f_rng is \c NULL or doesn't need a context argument.
  * \param mode     The mode of operation. This must be either

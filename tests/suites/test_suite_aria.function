@@ -33,6 +33,9 @@ void aria_invalid_param( )
     unsigned char iv[MBEDTLS_ARIA_BLOCKSIZE] = { 0 };
     size_t iv_off = 0;
 
+    ((void) iv_off);
+    ((void) iv);
+
     TEST_INVALID_PARAM( mbedtls_aria_init( NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA,

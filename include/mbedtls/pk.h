@@ -197,23 +197,35 @@ typedef size_t (*mbedtls_pk_rsa_alt_key_len_func)( void *ctx );
 const mbedtls_pk_info_t *mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type );
 
 /**
- * \brief           Initialize a mbedtls_pk_context (as NONE)
+ * \brief           Initialize a #mbedtls_pk_context (as NONE).
+ *
+ * \param ctx       The context to initialize.
+ *                  This must not be \c NULL.
  */
 void mbedtls_pk_init( mbedtls_pk_context *ctx );
 
 /**
- * \brief           Free a mbedtls_pk_context
+ * \brief           Free the components of a #mbedtls_pk_context.
+ *
+ * \param ctx       The context to clear.
+ *                  If this is \c NULL, this function does nothing.
  */
 void mbedtls_pk_free( mbedtls_pk_context *ctx );
 
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
 /**
  * \brief           Initialize a restart context
+ *
+ * \param ctx       The context to initialize.
+ *                  This must not be \c NULL.
  */
 void mbedtls_pk_restart_init( mbedtls_pk_restart_ctx *ctx );
 
 /**
  * \brief           Free the components of a restart context
+ *
+ * \param ctx       The context to clear.
+ *                  If this is \c NULL, this function does nothing.
  */
 void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx );
 #endif /* MBEDTLS_ECDSA_C && MBEDTLS_ECP_RESTARTABLE */

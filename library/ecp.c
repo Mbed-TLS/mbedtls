@@ -244,6 +244,7 @@ static void ecp_restart_ma_free( mbedtls_ecp_restart_muladd_ctx *ctx )
  */
 void mbedtls_ecp_restart_init( mbedtls_ecp_restart_ctx *ctx )
 {
+    ECP_VALIDATE( ctx != NULL );
     ctx->ops_done = 0;
     ctx->depth = 0;
     ctx->rsm = NULL;

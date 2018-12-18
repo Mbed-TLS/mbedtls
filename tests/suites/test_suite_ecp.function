@@ -13,6 +13,22 @@
  * END_DEPENDENCIES
  */
 
+/* BEGIN_CASE */
+void ecp_valid_param( )
+{
+    TEST_VALID_PARAM( mbedtls_ecp_point_free( NULL ) );
+    TEST_VALID_PARAM( mbedtls_ecp_keypair_free( NULL ) );
+    TEST_VALID_PARAM( mbedtls_ecp_point_free( NULL ) );
+
+#if defined(MBEDTLS_ECP_RESTARTABLE)
+    TEST_VALID_PARAM( mbedtls_ecp_restart_free( NULL ) );
+#endif /* MBEDTLS_ECP_RESTARTABLE */
+
+exit:
+    return;
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
 void ecp_invalid_param( )
 {
@@ -32,13 +48,8 @@ void ecp_invalid_param( )
     TEST_INVALID_PARAM( mbedtls_ecp_keypair_init( NULL ) );
     TEST_INVALID_PARAM( mbedtls_ecp_point_init( NULL ) );
 
-    TEST_VALID_PARAM( mbedtls_ecp_point_free( NULL ) );
-    TEST_VALID_PARAM( mbedtls_ecp_keypair_free( NULL ) );
-    TEST_VALID_PARAM( mbedtls_ecp_point_free( NULL ) );
-
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     TEST_INVALID_PARAM( mbedtls_ecp_restart_init( NULL ) );
-    TEST_VALID_PARAM( mbedtls_ecp_restart_free( NULL ) );
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,

@@ -569,6 +569,7 @@ void aes_misc_params( )
 #endif
     const unsigned char in[16] = { 0 };
     unsigned char out[16];
+    size_t size;
 
     /* These calls accept NULL */
     TEST_VALID_PARAM( mbedtls_aes_free( NULL ) );
@@ -596,6 +597,19 @@ void aes_misc_params( )
                                         (1 << 24) + 1,
                                         in, in, out )
                  == MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH );
+#endif
+
+#if defined(MBEDTLS_CIPHER_MODE_CFB)
+    size = 16;
+    TEST_ASSERT( mbedtls_aes_crypt_cfb128( &aes_ctx, MBEDTLS_AES_ENCRYPT, 16,
+                                           &size, out, in, out )
+                 == MBEDTLS_ERR_AES_BAD_INPUT_DATA );
+#endif
+
+#if defined(MBEDTLS_CIPHER_MODE_OFB)
+    size = 16;
+    TEST_ASSERT( mbedtls_aes_crypt_ofb( &aes_ctx, 16, &size, out, in, out )
+                 == MBEDTLS_ERR_AES_BAD_INPUT_DATA );
 #endif
 }
 /* END_CASE */

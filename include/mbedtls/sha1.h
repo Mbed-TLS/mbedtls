@@ -141,7 +141,6 @@ int mbedtls_sha1_starts_ret( mbedtls_sha1_context *ctx );
  *                 and have a hash operation started.
  * \param input    The buffer holding the input data.
  *                 This must be a readable buffer of length \p ilen Bytes.
- *                 It may be \c NULL if \p ilen is zero.
  * \param ilen     The length of the input data \p input in Bytes.
  *
  * \return         \c 0 on success.
@@ -224,7 +223,6 @@ MBEDTLS_DEPRECATED void mbedtls_sha1_starts( mbedtls_sha1_context *ctx );
  *                 have a hash operation started.
  * \param input    The buffer holding the input data.
  *                 This must be a readable buffer of length \p ilen Bytes.
- *                 It may be \c NULL if \p ilen is zero.
  * \param ilen     The length of the input data \p input in Bytes.
  *
  */
@@ -286,7 +284,6 @@ MBEDTLS_DEPRECATED void mbedtls_sha1_process( mbedtls_sha1_context *ctx,
  *
  * \param input    The buffer holding the input data.
  *                 This must be a readable buffer of length \p ilen Bytes.
- *                 It may be \c NULL if \p ilen is zero.
  * \param ilen     The length of the input data \p input in Bytes.
  * \param output   The SHA-1 checksum result.
  *                 This must be a writable buffer of length \c 20 Bytes.
@@ -322,7 +319,6 @@ int mbedtls_sha1_ret( const unsigned char *input,
  *
  * \param input    The buffer holding the input data.
  *                 This must be a readable buffer of length \p ilen Bytes.
- *                 It may be \c NULL if \p ilen is zero.
  * \param ilen     The length of the input data \p input in Bytes.
  * \param output   The SHA-1 checksum result. This must be a writable
  *                 buffer of size \c 20 Bytes.

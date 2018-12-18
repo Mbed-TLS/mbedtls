@@ -52,9 +52,6 @@ void rsa_invalid_param( )
                             mbedtls_rsa_export( NULL, NULL, NULL,
                                                 NULL, NULL, NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
-                            mbedtls_rsa_export( NULL, NULL, NULL,
-                                                NULL, NULL, NULL ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_export_raw( NULL,
                                                     NULL, 0,
                                                     NULL, 0,

@@ -67,7 +67,11 @@ void rsa_invalid_param( )
                                                  invalid_padding, 0 ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
-                            mbedtls_rsa_gen_key( NULL, NULL, NULL, 0, 0 ) );
+                            mbedtls_rsa_gen_key( NULL, rnd_std_rand,
+                                                 NULL, 0, 0 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
+                            mbedtls_rsa_gen_key( &ctx, NULL,
+                                                 NULL, 0, 0 ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_RSA_BAD_INPUT_DATA,
                             mbedtls_rsa_check_pubkey( NULL ) );

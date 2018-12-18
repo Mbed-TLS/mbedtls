@@ -613,7 +613,7 @@ int mbedtls_aria_crypt_cbc( mbedtls_aria_context *ctx,
     unsigned char temp[MBEDTLS_ARIA_BLOCKSIZE];
 
     if( length % MBEDTLS_ARIA_BLOCKSIZE )
-        return( MBEDTLS_ERR_ARIA_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH );
 
     if( mode == MBEDTLS_ARIA_DECRYPT )
     {

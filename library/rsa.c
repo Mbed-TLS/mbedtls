@@ -1223,10 +1223,6 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
     if( mode == MBEDTLS_RSA_PRIVATE && ctx->padding != MBEDTLS_RSA_PKCS_V15 )
         return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
 
-    // We don't check p_rng because it won't be dereferenced here
-    if( f_rng == NULL || input == NULL || output == NULL )
-        return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
-
     olen = ctx->len;
 
     /* first comparison checks for overflow */
@@ -1238,6 +1234,9 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
     *p++ = 0;
     if( mode == MBEDTLS_RSA_PUBLIC )
     {
+        if( f_rng == NULL )
+            return( MBEDTLS_ERR_RSA_BAD_INPUT_DATA );
+
         *p++ = MBEDTLS_RSA_CRYPT;
 
         while( nb_pad-- > 0 )

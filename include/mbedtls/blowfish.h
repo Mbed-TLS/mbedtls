@@ -116,8 +116,10 @@ int mbedtls_blowfish_setkey( mbedtls_blowfish_context *ctx, const unsigned char 
  * \param mode     The mode of operation. Possible values are
  *                 #MBEDTLS_BLOWFISH_ENCRYPT for encryption, or
  *                 #MBEDTLS_BLOWFISH_DECRYPT for decryption.
- * \param input    The input block. This must be a readable buffer of size 8 Bytes.
- * \param input    The output block. This must be a writable buffer of size 8 Bytes.
+ * \param input    The input block. This must be a readable buffer
+ *                 of size \c 8 Bytes.
+ * \param output   The output block. This must be a writable buffer
+ *                 of size \c 8 Bytes.
  *
  * \return         \c 0 if successful.
  * \return         A negative error code on failure.
@@ -149,9 +151,9 @@ int mbedtls_blowfish_crypt_ecb( mbedtls_blowfish_context *ctx,
  * \param iv       The initialization vector. This must be a read/write buffer
  *                 of length \c 8 Bytes. It is updated by this function.
  * \param input    The input data. This must be a readable buffer of length
- *                 \p length Bytes. If \p length if \c 0, it may be \c NULL.
+ *                 \p length Bytes.
  * \param output   The output data. This must be a writable buffer of length
- *                 \p length Bytes. If \p length if \c 0, it may be \c NULL.
+ *                 \p length Bytes.
  *
  * \return         \c 0 if successful.
  * \return         A negative error code on failure.
@@ -186,12 +188,12 @@ int mbedtls_blowfish_crypt_cbc( mbedtls_blowfish_context *ctx,
  *                 The value pointed to must be smaller than \c 8 Bytes.
  *                 It is updated by this function to support the aforementioned
  *                 streaming usage.
- * \param iv       The initialization vector. This must be a read/write buffer of
- *                 size \c 8 Bytes. It is updated after use.
+ * \param iv       The initialization vector. This must be a read/write buffer
+ *                 of size \c 8 Bytes. It is updated after use.
  * \param input    The input data. This must be a readable buffer of length
- *                 \p length Bytes. If \p length if \c 0, it may be \c NULL.
+ *                 \p length Bytes.
  * \param output   The output data. This must be a writable buffer of length
- *                 \p length Bytes. If \p length if \c 0, it may be \c NULL.
+ *                 \p length Bytes.
  *
  * \return         \c 0 if successful.
  * \return         A negative error code on failure.
@@ -261,10 +263,10 @@ int mbedtls_blowfish_crypt_cfb64( mbedtls_blowfish_context *ctx,
  *                      read/write buffer of length \c 8 Bytes.
  * \param stream_block  The saved stream-block for resuming. This must point to
  *                      a read/write buffer of length \c 8 Bytes.
- * \param input         The input data. This must be a readable buffer of length
- *                      \p length Bytes. If \p length is \c 0, it may be \c NULL.
- * \param output        The output data. This must be a writable buffer of length
- *                      \p length Bytes. If \p length is \c 0, it may be \c NULL.
+ * \param input         The input data. This must be a readable buffer of
+ *                      length \p length Bytes.
+ * \param output        The output data. This must be a writable buffer of
+ *                      length \p length Bytes.
  *
  * \return              \c 0 if successful.
  * \return              A negative error code on failure.

@@ -679,6 +679,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 #if defined(MBEDTLS_CAMELLIA_C)
     if( use_ret == -(MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA) )
         mbedtls_snprintf( buf, buflen, "CAMELLIA - Bad input data" );
+    if( use_ret == -(MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH) )
+        mbedtls_snprintf( buf, buflen, "CAMELLIA - Invalid data input length" );
     if( use_ret == -(MBEDTLS_ERR_CAMELLIA_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "CAMELLIA - Camellia hardware accelerator failed" );
 #endif /* MBEDTLS_CAMELLIA_C */

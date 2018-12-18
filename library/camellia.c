@@ -562,7 +562,7 @@ int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
     unsigned char temp[16];
 
     if( length % 16 )
-        return( MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH );
 
     if( mode == MBEDTLS_CAMELLIA_DECRYPT )
     {

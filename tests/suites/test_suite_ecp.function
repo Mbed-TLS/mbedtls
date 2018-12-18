@@ -65,6 +65,22 @@ void ecp_invalid_param( )
                             mbedtls_ecp_group_copy( &grp, NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecp_gen_privkey( NULL,
+                                                     &m,
+                                                     rnd_std_rand,
+                                                     NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecp_gen_privkey( &grp,
+                                                     NULL,
+                                                     rnd_std_rand,
+                                                     NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
+                            mbedtls_ecp_gen_privkey( &grp,
+                                                     &m,
+                                                     NULL,
+                                                     NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecp_set_zero( NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                             mbedtls_ecp_is_zero( NULL ) );

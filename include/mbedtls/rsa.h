@@ -588,12 +588,12 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
  *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG to use. If PKCS#1 v2.1 padding encoding is
- *                 used, this must be provided. Additionally, it is
- *                 used for blinding if \p mode is #MBEDTLS_RSA_PRIVATE
- *                 and should be provided in this case; see
- *                 mbedtls_rsa_private() for more. It is ignored
- *                 for PKCS#1 v1.5 padding with #MBEDTLS_RSA_PUBLIC.
+ * \param f_rng    The RNG to use. It is mandatory for PKCS#1 v2.1 padding
+ *                 encoding, and for PKCS#1 v1.5 padding encoding when used
+ *                 with \p mode set to #MBEDTLS_RSA_PUBLIC. For PKCS#1 v1.5
+ *                 padding encoding and \p mode set to #MBEDTLS_RSA_PRIVATE,
+ *                 it is used for blinding and should be provided in this
+ *                 case; see mbedtls_rsa_private() for more.
  * \param p_rng    The RNG context to be passed to \p f_rng. May be
  *                 \c NULL if \p f_rng is \c NULL or if \p f_rng doesn't
  *                 need a context argument.

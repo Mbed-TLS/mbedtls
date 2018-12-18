@@ -64,10 +64,6 @@ static int ecdh_gen_public_restartable( mbedtls_ecp_group *grp,
                     mbedtls_ecp_restart_ctx *rs_ctx )
 {
     int ret;
-    ECDH_VALIDATE_RET( grp != NULL );
-    ECDH_VALIDATE_RET( d != NULL );
-    ECDH_VALIDATE_RET( Q != NULL );
-    ECDH_VALIDATE_RET( f_rng != NULL );
 
     /* If multiplication is in progress, we already generated a privkey */
 #if defined(MBEDTLS_ECP_RESTARTABLE)
@@ -513,6 +509,7 @@ int mbedtls_ecdh_make_public( mbedtls_ecdh_context *ctx, size_t *olen,
     ECDH_VALIDATE_RET( ctx != NULL );
     ECDH_VALIDATE_RET( olen != NULL );
     ECDH_VALIDATE_RET( buf != NULL );
+    ECDH_VALIDATE_RET( f_rng != NULL );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     restart_enabled = ctx->restart_enabled;

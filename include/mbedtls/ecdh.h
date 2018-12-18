@@ -312,8 +312,8 @@ int mbedtls_ecdh_read_params( mbedtls_ecdh_context *ctx,
  * \param ctx       The ECDH context to set up. This must be initialized.
  * \param key       The EC key to use. This must be initialized.
  * \param side      Defines the source of the key. Possible values are:
- *                  - \c 1: The imported key is ours.
- *                  - \c 0: The imported key is that of the peer.
+ *                  - #MBEDTLS_ECDH_OURS: The key is ours.
+ *                  - #MBEDTLS_ECDH_THEIRS: The key is that of the peer.
  *
  * \return          \c 0 on success.
  * \return          Another \c MBEDTLS_ERR_ECP_XXX error code on failure.
@@ -338,7 +338,7 @@ int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx,
  * \param olen      The address at which to store the number of Bytes written.
  *                  This must not be \c NULL.
  * \param buf       The destination buffer. This must be a writable buffer
- *                  of lsength \p blen Bytes.
+ *                  of length \p blen Bytes.
  * \param blen      The size of the destination buffer \p buf in Bytes.
  * \param f_rng     The RNG function to use. This must not be \c NULL.
  * \param p_rng     The RNG context to be passed to \p f_rng. This may be

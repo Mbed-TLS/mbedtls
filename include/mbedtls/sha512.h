@@ -116,8 +116,7 @@ int mbedtls_sha512_starts_ret( mbedtls_sha512_context *ctx, int is384 );
  *                 and have a hash operation started.
  * \param input    The buffer holding the input data. This must
  *                 be a readable buffer of length \p ilen Bytes.
- *                 It must not be \c NULL.
- * \param ilen     The length of the input data \p input in Bytes.
+ * \param ilen     The length of the input data in Bytes.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -184,8 +183,8 @@ MBEDTLS_DEPRECATED void mbedtls_sha512_starts( mbedtls_sha512_context *ctx,
  * \param ctx      The SHA-512 context. This must be initialized
  *                 and have a hash operation started.
  * \param input    The buffer holding the data. This must be a readable
- *                 buffer of length \p ilen Bytes. It must not be \c NULL.
- * \param ilen     The length of the input data \p input in Bytes.
+ *                 buffer of length \p ilen Bytes.
+ * \param ilen     The length of the input data in Bytes.
  */
 MBEDTLS_DEPRECATED void mbedtls_sha512_update( mbedtls_sha512_context *ctx,
                                                const unsigned char *input,
@@ -235,9 +234,8 @@ MBEDTLS_DEPRECATED void mbedtls_sha512_process(
  *                 output = SHA-512(input buffer).
  *
  * \param input    The buffer holding the input data. This must be
- *                 a readable buffer of length \p ilen Bytes. It
- *                 must not be \c NULL.
- * \param ilen     The length of the input data \p input in Bytes.
+ *                 a readable buffer of length \p ilen Bytes.
+ * \param ilen     The length of the input data in Bytes.
  * \param output   The SHA-384 or SHA-512 checksum result.
  *                 This must be a writable buffer of length \c 64 Bytes.
  * \param is384    Determines which function to use. This must be either
@@ -270,9 +268,8 @@ int mbedtls_sha512_ret( const unsigned char *input,
  * \deprecated     Superseded by mbedtls_sha512_ret() in 2.7.0
  *
  * \param input    The buffer holding the data. This must be a
- *                 readable buffer of length \p ilen Bytes. It
- *                 must not be \c NULL.
- * \param ilen     The length of the input data \p input in Bytes.
+ *                 readable buffer of length \p ilen Bytes.
+ * \param ilen     The length of the input data in Bytes.
  * \param output   The SHA-384 or SHA-512 checksum result. This must
  *                 be a writable buffer of length \c 64 Bytes.
  * \param is384    Determines which function to use. This must be eiher

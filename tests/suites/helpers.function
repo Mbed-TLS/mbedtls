@@ -202,6 +202,23 @@ typedef struct data_tag
     ( STATIC_ASSERT_THEN_RETURN( IS_ARRAY_NOT_POINTER( array ),         \
                                  ARRAY_LENGTH_UNSAFE( array ) ) )
 
+/** Return the smaller of two values.
+ *
+ * \param x         An integer-valued expression without side effects.
+ * \param y         An integer-valued expression without side effects.
+ *
+ * \return The smaller of \p x and \p y.
+ */
+#define MIN( x, y ) ( ( x ) < ( y ) ? ( x ) : ( y ) )
+
+/** Return the larger of two values.
+ *
+ * \param x         An integer-valued expression without side effects.
+ * \param y         An integer-valued expression without side effects.
+ *
+ * \return The larger of \p x and \p y.
+ */
+#define MAX( x, y ) ( ( x ) > ( y ) ? ( x ) : ( y ) )
 
 /*
  * 32-bit integer manipulation macros (big endian)

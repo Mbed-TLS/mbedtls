@@ -12,9 +12,6 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
 
-#define MIN( x, y ) ( ( x ) < ( y ) ? ( x ) : ( y ) )
-#define MAX( x, y ) ( ( x ) > ( y ) ? ( x ) : ( y ) )
-
 #define ENTROPY_MIN_NV_SEED_SIZE                                        \
     MAX(MBEDTLS_ENTROPY_MIN_PLATFORM, MBEDTLS_ENTROPY_BLOCK_SIZE)
 

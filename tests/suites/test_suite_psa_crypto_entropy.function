@@ -6,11 +6,6 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/entropy_poll.h"
 
-/* MAX value support macro */
-#if !defined(MAX)
-#define MAX(a,b) (((a)>(b))?(a):(b))
-#endif
-
 /* Calculating the minimum allowed entropy size in bytes */
 #define MBEDTLS_PSA_INJECT_ENTROPY_MIN_SIZE MAX(MBEDTLS_ENTROPY_MIN_PLATFORM, MBEDTLS_ENTROPY_BLOCK_SIZE)
 

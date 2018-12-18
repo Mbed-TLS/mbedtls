@@ -146,7 +146,7 @@ int mbedtls_camellia_crypt_ecb( mbedtls_camellia_context *ctx,
  * \param output   buffer holding the output data
  *
  * \return         0 if successful, or
- *                 MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA
+ *                 MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH
  */
 int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
                     int mode,

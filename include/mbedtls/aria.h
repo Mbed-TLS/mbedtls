@@ -191,7 +191,7 @@ int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
  * \param input    The buffer holding the input data.
  * \param output   The buffer holding the output data.
  *
- * \return         \c 0 on success, or #MBEDTLS_ERR_ARIA_BAD_INPUT_DATA
+ * \return         \c 0 on success, or #MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH
  *                 on failure.
  */
 int mbedtls_aria_crypt_cbc( mbedtls_aria_context *ctx,

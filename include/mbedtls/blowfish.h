@@ -138,7 +138,7 @@ int mbedtls_blowfish_crypt_ecb( mbedtls_blowfish_context *ctx,
  * \param output   buffer holding the output data
  *
  * \return         0 if successful, or
- *                 MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA
+ *                 MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH
  */
 int mbedtls_blowfish_crypt_cbc( mbedtls_blowfish_context *ctx,
                         int mode,

@@ -412,8 +412,7 @@ int mbedtls_mpi_read_string( mbedtls_mpi *X, int radix, const char *s );
  * \param X        The source MPI. This must point to an initialized MPI.
  * \param radix    The numeric base of the output string.
  * \param buf      The buffer to write the string to. This must be writable
- *                 buffer of length \p buflen Bytes. It May be \c NULL if
- *                 `buflen == 0`.
+ *                 buffer of length \p buflen Bytes.
  * \param buflen   The available size in Bytes of \p buf.
  * \param olen     The address at which to store the length of the string
  *                 written, including the  final \c NULL byte. This must

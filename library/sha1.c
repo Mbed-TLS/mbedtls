@@ -71,14 +71,14 @@
 }
 #endif
 
-#define MBEDTLS_SHA1_VALIDATE_RET(cond)                             \
+#define SHA1_VALIDATE_RET(cond)                             \
     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
 
-#define MBEDTLS_SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+#define SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
 
 void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
 {
-    MBEDTLS_SHA1_VALIDATE( ctx != NULL );
+    SHA1_VALIDATE( ctx != NULL );
 
     memset( ctx, 0, sizeof( mbedtls_sha1_context ) );
 }
@@ -94,8 +94,8 @@ void mbedtls_sha1_free( mbedtls_sha1_context *ctx )
 void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
                          const mbedtls_sha1_context *src )
 {
-    MBEDTLS_SHA1_VALIDATE( dst != NULL );
-    MBEDTLS_SHA1_VALIDATE( src != NULL );
+    SHA1_VALIDATE( dst != NULL );
+    SHA1_VALIDATE( src != NULL );
 
     *dst = *src;
 }
@@ -105,7 +105,7 @@ void mbedtls_sha1_clone( mbedtls_sha1_context *dst,
  */
 int mbedtls_sha1_starts_ret( mbedtls_sha1_context *ctx )
 {
-    MBEDTLS_SHA1_VALIDATE_RET( ctx != NULL );
+    SHA1_VALIDATE_RET( ctx != NULL );
 
     ctx->total[0] = 0;
     ctx->total[1] = 0;
@@ -132,8 +132,8 @@ int mbedtls_internal_sha1_process( mbedtls_sha1_context *ctx,
 {
     uint32_t temp, W[16], A, B, C, D, E;
 
-    MBEDTLS_SHA1_VALIDATE_RET( ctx != NULL );
-    MBEDTLS_SHA1_VALIDATE_RET( (const unsigned char *)data != NULL );
+    SHA1_VALIDATE_RET( ctx != NULL );
+    SHA1_VALIDATE_RET( (const unsigned char *)data != NULL );
 
     GET_UINT32_BE( W[ 0], data,  0 );
     GET_UINT32_BE( W[ 1], data,  4 );
@@ -309,8 +309,8 @@ int mbedtls_sha1_update_ret( mbedtls_sha1_context *ctx,
     size_t fill;
     uint32_t left;
 
-    MBEDTLS_SHA1_VALIDATE_RET( ctx != NULL );
-    MBEDTLS_SHA1_VALIDATE_RET( ilen == 0 || input != NULL );
+    SHA1_VALIDATE_RET( ctx != NULL );
+    SHA1_VALIDATE_RET( ilen == 0 || input != NULL );
 
     if( ilen == 0 )
         return( 0 );
@@ -370,8 +370,8 @@ int mbedtls_sha1_finish_ret( mbedtls_sha1_context *ctx,
     uint32_t used;
     uint32_t high, low;
 
-    MBEDTLS_SHA1_VALIDATE_RET( ctx != NULL );
-    MBEDTLS_SHA1_VALIDATE_RET( (unsigned char *)output != NULL );
+    SHA1_VALIDATE_RET( ctx != NULL );
+    SHA1_VALIDATE_RET( (unsigned char *)output != NULL );
 
     /*
      * Add padding: 0x80 then 0x00 until 8 bytes remain for the length
@@ -441,8 +441,8 @@ int mbedtls_sha1_ret( const unsigned char *input,
     int ret;
     mbedtls_sha1_context ctx;
 
-    MBEDTLS_SHA1_VALIDATE_RET( ilen == 0 || input != NULL );
-    MBEDTLS_SHA1_VALIDATE_RET( (unsigned char *)output != NULL );
+    SHA1_VALIDATE_RET( ilen == 0 || input != NULL );
+    SHA1_VALIDATE_RET( (unsigned char *)output != NULL );
 
     mbedtls_sha1_init( &ctx );
 

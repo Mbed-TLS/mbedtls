@@ -575,7 +575,6 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     {
         aes_gen_tables();
         aes_init_done = 1;
-
     }
 #endif
 
@@ -1002,9 +1001,9 @@ void mbedtls_aes_decrypt( mbedtls_aes_context *ctx,
  * AES-ECB block encryption/decryption
  */
 int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
-                    int mode,
-                    const unsigned char input[16],
-                    unsigned char output[16] )
+                           int mode,
+                           const unsigned char input[16],
+                           unsigned char output[16] )
 {
     AES_VALIDATE_RET( ctx != NULL );
     AES_VALIDATE_RET( input != NULL );
@@ -1055,7 +1054,6 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
     AES_VALIDATE_RET( iv != NULL );
     AES_VALIDATE_RET( input != NULL );
     AES_VALIDATE_RET( output != NULL );
-
 
     if( length % 16 )
         return( MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH );
@@ -1335,11 +1333,11 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
  * AES-CFB8 buffer encryption/decryption
  */
 int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
-                       int mode,
-                       size_t length,
-                       unsigned char iv[16],
-                       const unsigned char *input,
-                       unsigned char *output )
+                            int mode,
+                            size_t length,
+                            unsigned char iv[16],
+                            const unsigned char *input,
+                            unsigned char *output )
 {
     unsigned char c;
     unsigned char ov[17];

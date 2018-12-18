@@ -621,6 +621,7 @@ make TEST_CPP=1
 
 msg "build+test: MBEDTLS_CHECK_PARAMS without MBEDTLS_PLATFORM_C"
 cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full # includes CHECK_PARAMS
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
 scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
@@ -636,6 +637,7 @@ make CC=gcc CFLAGS='-Werror -O1' all test
 
 msg "build+test: MBEDTLS_CHECK_PARAMS with alternative MBEDTLS_PARAM_FAILED()"
 cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
 scripts/config.pl full # includes CHECK_PARAMS
 scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
 sed -i 's/.*\(#define MBEDTLS_PARAM_FAILED( cond )\).*/\1/' "$CONFIG_H"

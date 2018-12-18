@@ -621,7 +621,7 @@ int mbedtls_ecp_point_read_string( mbedtls_ecp_point *P, int radix,
  * \param format    The point format. This must be either
  *                  #MBEDTLS_ECP_PF_COMPRESSED or #MBEDTLS_ECP_PF_UNCOMPRESSED.
  * \param olen      The address at which to store the length of
- *                  the output in Bytes.
+ *                  the output in Bytes. This must not be \c NULL.
  * \param buf       The output buffer. This must be a writable buffer
  *                  of length \p buflen Bytes.
  * \param buflen    The length of the output buffer \p buf in Bytes.
@@ -793,7 +793,7 @@ int mbedtls_ecp_tls_write_group( const mbedtls_ecp_group *grp,
                                  unsigned char *buf, size_t blen );
 
 /**
- * \brief           This function performs a scalaar multiplication of a point
+ * \brief           This function performs a scalar multiplication of a point
  *                  by an integer: \p R = \p m * \p P.
  *
  *                  It is not thread-safe to use same group in multiple threads.

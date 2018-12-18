@@ -200,10 +200,10 @@ int mbedtls_aria_crypt_ecb( mbedtls_aria_context *ctx,
  *                 multiple of the block size (16 Bytes).
  * \param iv       Initialization vector (updated after use).
  *                 This must be a readable buffer of size 16 Bytes.
- * \param input    The buffer holding the input data.
- *                 This may be \c NULL if `length == 0`.
- * \param output   The buffer holding the output data.
- *                 This may be \c NULL if `length == 0`.
+ * \param input    The buffer holding the input data. This must
+ *                 be a readable buffer of length \p length Bytes.
+ * \param output   The buffer holding the output data. This must
+ *                 be a writable buffer of length \p length Bytes.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -250,10 +250,10 @@ int mbedtls_aria_crypt_cbc( mbedtls_aria_context *ctx,
  *                 This must not be larger than 15.
  * \param iv       The initialization vector (updated after use).
  *                 This must be a readable buffer of size 16 Bytes.
- * \param input    The buffer holding the input data.
- *                 This may be \c NULL if `length == 0`.
- * \param output   The buffer holding the output data.
- *                 This may be \c NULL if `length == 0`.
+ * \param input    The buffer holding the input data. This must
+ *                 be a readable buffer of length \p length Bytes.
+ * \param output   The buffer holding the output data. This must
+ *                 be a writable buffer of length \p length Bytes.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -337,10 +337,10 @@ int mbedtls_aria_crypt_cfb128( mbedtls_aria_context *ctx,
  * \param stream_block     The saved stream block for resuming. This must
  *                         point to a read/write buffer of length \c 16 bytes.
  *                         This is overwritten by the function.
- * \param input            The buffer holding the input data.
- *                         This may be \c NULL if `length == 0`.
- * \param output           The buffer holding the output data.
- *                         This may be \c NULL if `length == 0`.
+ * \param input            The buffer holding the input data. This must
+ *                         be a readable buffer of length \p length Bytes.
+ * \param output           The buffer holding the output data. This must
+ *                         be a writable buffer of length \p length Bytes.
  *
  * \return                 \c 0 on success.
  * \return                 A negative error code on failure.

@@ -50,6 +50,13 @@ int mbedtls_test_mpi_miller_rabin_determinizer( void* state,
  * END_DEPENDENCIES
  */
 
+/* BEGIN_CASE */
+void mpi_valid_param( )
+{
+    TEST_VALID_PARAM( mbedtls_mpi_free( NULL ) );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
 void mpi_invalid_param( )
 {
@@ -62,7 +69,6 @@ void mpi_invalid_param( )
     mbedtls_mpi_uint mpi_uint;
 
     TEST_INVALID_PARAM( mbedtls_mpi_init( NULL ) );
-    TEST_VALID_PARAM( mbedtls_mpi_free( NULL ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
                             mbedtls_mpi_grow( NULL, 42 ) );

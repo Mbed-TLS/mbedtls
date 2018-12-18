@@ -326,7 +326,7 @@ int mbedtls_ccm_star_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
     CCM_VALIDATE_RET( add_len == 0 || add != NULL );
     CCM_VALIDATE_RET( length == 0 || input != NULL );
     CCM_VALIDATE_RET( length == 0 || output != NULL );
-    CCM_VALIDATE_RET( tag != NULL );
+    CCM_VALIDATE_RET( tag_len == 0 || tag != NULL );
     return( ccm_auth_crypt( ctx, CCM_ENCRYPT, length, iv, iv_len,
                             add, add_len, input, output, tag, tag_len ) );
 }
@@ -342,7 +342,7 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
     CCM_VALIDATE_RET( add_len == 0 || add != NULL );
     CCM_VALIDATE_RET( length == 0 || input != NULL );
     CCM_VALIDATE_RET( length == 0 || output != NULL );
-    CCM_VALIDATE_RET( tag != NULL );
+    CCM_VALIDATE_RET( tag_len == 0 || tag != NULL );
     if( tag_len == 0 )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
 
@@ -369,7 +369,7 @@ int mbedtls_ccm_star_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
     CCM_VALIDATE_RET( add_len == 0 || add != NULL );
     CCM_VALIDATE_RET( length == 0 || input != NULL );
     CCM_VALIDATE_RET( length == 0 || output != NULL );
-    CCM_VALIDATE_RET( tag != NULL );
+    CCM_VALIDATE_RET( tag_len == 0 || tag != NULL );
 
     if( ( ret = ccm_auth_crypt( ctx, CCM_DECRYPT, length,
                                 iv, iv_len, add, add_len,
@@ -402,7 +402,7 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
     CCM_VALIDATE_RET( add_len == 0 || add != NULL );
     CCM_VALIDATE_RET( length == 0 || input != NULL );
     CCM_VALIDATE_RET( length == 0 || output != NULL );
-    CCM_VALIDATE_RET( tag != NULL );
+    CCM_VALIDATE_RET( tag_len == 0 || tag != NULL );
 
     if( tag_len == 0 )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );

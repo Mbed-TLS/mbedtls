@@ -126,10 +126,10 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx );
  *                  \p tag = \p output + \p length, and make sure that the
  *                  output buffer is at least \p length + \p tag_len wide.
  *
- * \param ctx       The CCM context to use for encryption. This must be an
- *                  initialized context.
+ * \param ctx       The CCM context to use for encryption. This must be
+ *                  initialized and bound to a key.
  * \param length    The length of the input data in Bytes.
- * \param iv        Initialization vector (nonce). This must be a readable
+ * \param iv        The initialization vector (nonce). This must be a readable
  *                  buffer of at least \p iv_len Bytes.
  * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
  *                  or 13. The length L of the message length field is
@@ -138,15 +138,16 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx );
  *                  zero, \p add must be a readable buffer of at least that
  *                  length. If `add_len == 0`, this may be \c NULL.
  * \param add_len   The length of additional data in Bytes.
- *                  This must be less than 2^16 - 2^8.
+ *                  This must be less than `2^16 - 2^8`.
  * \param input     The buffer holding the input data. If \p length is greater
  *                  than zero, \p input must be a readable buffer of at least
  *                  that length.
  * \param output    The buffer holding the output data. If \p length is greater
  *                  than zero, \p output must be a writable buffer of at least
  *                  that length.
- * \param tag       The buffer holding the authentication field. This must be a
- *                  readable buffer of at least \p tag_len Bytes.
+ * \param tag       The buffer holding the authentication field. If
+ *                  `tag_len > 0`, then this must be a readable buffer of at
+ *                  least \p tag_len Bytes. Otherwise, this may be \c NULL.
  * \param tag_len   The length of the authentication field to generate in Bytes:
  *                  4, 6, 8, 10, 12, 14 or 16.
  *
@@ -172,10 +173,10 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  *                  the tag length has to be encoded into the \p iv passed to
  *                  this function.
  *
- * \param ctx       The CCM context to use for encryption. This must be an
- *                  initialized context.
+ * \param ctx       The CCM context to use for encryption. This must be
+ *                  initialized and bound to a key.
  * \param length    The length of the input data in Bytes.
- * \param iv        Initialization vector (nonce). This must be a readable
+ * \param iv        The initialization vector (nonce). This must be a readable
  *                  buffer of at least \p iv_len Bytes.
  * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
  *                  or 13. The length L of the message length field is
@@ -191,8 +192,9 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  * \param output    The buffer holding the output data. If \p length is greater
  *                  than zero, \p output must be a writable buffer of at least
  *                  that length.
- * \param tag       The buffer holding the authentication field. This must be a
- *                  readable buffer of at least \p tag_len Bytes.
+ * \param tag       The buffer holding the authentication field. If
+ *                  `tag_len > 0`, then this must be a readable buffer of at
+ *                  least \p tag_len Bytes. Otherwise, this may be \c NULL.
  * \param tag_len   The length of the authentication field to generate in Bytes:
  *                  0, 4, 6, 8, 10, 12, 14 or 16.
  *
@@ -212,10 +214,10 @@ int mbedtls_ccm_star_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  * \brief           This function performs a CCM authenticated decryption of a
  *                  buffer.
  *
- * \param ctx       The CCM context to use for decryption. This must be an
- *                  initialized context.
+ * \param ctx       The CCM context to use for decryption. This must be
+ *                  initialized and bound to a key.
  * \param length    The length of the input data in Bytes.
- * \param iv        Initialization vector (nonce). This must be a readable
+ * \param iv        The initialization vector (nonce). This must be a readable
  *                  buffer of at least \p iv_len Bytes.
  * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
  *                  or 13. The length L of the message length field is
@@ -231,8 +233,9 @@ int mbedtls_ccm_star_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  * \param output    The buffer holding the output data. If \p length is greater
  *                  than zero, \p output must be a writable buffer of at least
  *                  that length.
- * \param tag       The buffer holding the authentication field. This must be a
- *                  readable buffer of at least \p tag_len Bytes.
+ * \param tag       The buffer holding the authentication field. If
+ *                  `tag_len > 0`, then this must be a readable buffer of at
+ *                  least \p tag_len Bytes. Otherwise, this may be \c NULL.
  * \param tag_len   The length of the authentication field to generate in Bytes:
  *                  4, 6, 8, 10, 12, 14 or 16.
  *
@@ -255,10 +258,10 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  *                  this function as \p tag_len. (\p tag needs to be adjusted
  *                  accordingly.)
  *
- * \param ctx       The CCM context to use for decryption. This must be an
- *                  initialized context.
+ * \param ctx       The CCM context to use for decryption. This must be
+ *                  initialized and bound to a key.
  * \param length    The length of the input data in Bytes.
- * \param iv        Initialization vector (nonce). This must be a readable
+ * \param iv        The initialization vector (nonce). This must be a readable
  *                  buffer of at least \p iv_len Bytes.
  * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
  *                  or 13. The length L of the message length field is
@@ -274,8 +277,9 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  * \param output    The buffer holding the output data. If \p length is greater
  *                  than zero, \p output must be a writable buffer of at least
  *                  that length.
- * \param tag       The buffer holding the authentication field. This must be a
- *                  readable buffer of at least \p tag_len Bytes.
+ * \param tag       The buffer holding the authentication field. If
+ *                  `tag_len > 0`, then this must be a readable buffer of at
+ *                  least \p tag_len Bytes. Otherwise, this may be \c NULL.
  * \param tag_len   The length of the authentication field in Bytes.
  *                  0, 4, 6, 8, 10, 12, 14 or 16.
  *

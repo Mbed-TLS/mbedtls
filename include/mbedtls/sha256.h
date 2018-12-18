@@ -144,8 +144,7 @@ int mbedtls_sha256_finish_ret( mbedtls_sha256_context *ctx,
  *                 the ongoing SHA-256 computation. This function is for
  *                 internal use only.
  *
- * \param ctx      The SHA-256 context. This must be initialized
- *                 and have a hash operation started.
+ * \param ctx      The SHA-256 context. This must be initialized.
  * \param data     The buffer holding one block of data. This must
  *                 be a readable buffer of length \c 64 Bytes.
  *
@@ -211,8 +210,7 @@ MBEDTLS_DEPRECATED void mbedtls_sha256_finish( mbedtls_sha256_context *ctx,
  *
  * \deprecated     Superseded by mbedtls_internal_sha256_process() in 2.7.0.
  *
- * \param ctx      The SHA-256 context. This must be initialized and
- *                 have a hash operation started.
+ * \param ctx      The SHA-256 context. This must be initialized.
  * \param data     The buffer holding one block of data. This must be
  *                 a readable buffer of size \c 64 Bytes.
  */

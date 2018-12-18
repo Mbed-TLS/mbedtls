@@ -505,6 +505,9 @@ const mbedtls_ecp_curve_info *mbedtls_ecp_curve_info_from_name( const char *name
 {
     const mbedtls_ecp_curve_info *curve_info;
 
+    if( name == NULL )
+        return( NULL );
+
     for( curve_info = mbedtls_ecp_curve_list();
          curve_info->grp_id != MBEDTLS_ECP_DP_NONE;
          curve_info++ )

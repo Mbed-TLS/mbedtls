@@ -4,14 +4,14 @@
 #include "mbedtls/sha512.h"
 /* END_HEADER */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_SHA1_C */
 void sha1_valid_param( )
 {
     TEST_VALID_PARAM( mbedtls_sha1_free( NULL ) );
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+/* BEGIN_CASE depends_on:MBEDTLS_SHA1_C:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
 void sha1_invalid_param( )
 {
     mbedtls_sha1_context ctx;

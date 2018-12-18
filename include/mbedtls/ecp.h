@@ -499,8 +499,8 @@ void mbedtls_ecp_point_free( mbedtls_ecp_point *pt );
  * \brief           This function frees the components of an ECP group.
  *
  * \param grp       The group to free. This may be \c NULL, in which
- *                  case this function is a no-op. If it is not \c NULL,
- *                  it must point to an initialized ECP group.
+ *                  case this function returns immediately. If it is not
+ *                  \c NULL, it must point to an initialized ECP group.
  */
 void mbedtls_ecp_group_free( mbedtls_ecp_group *grp );
 
@@ -508,8 +508,8 @@ void mbedtls_ecp_group_free( mbedtls_ecp_group *grp );
  * \brief           This function frees the components of a key pair.
  *
  * \param key       The key pair to free. This may be \c NULL, in which
- *                  case this function is a no-op. If it is not \c NULL,
- *                  it must point to an initialized ECP key pair.
+ *                  case this function returns immediately. If it is not
+ *                  \c NULL, it must point to an initialized ECP key pair.
  */
 void mbedtls_ecp_keypair_free( mbedtls_ecp_keypair *key );
 
@@ -526,8 +526,8 @@ void mbedtls_ecp_restart_init( mbedtls_ecp_restart_ctx *ctx );
  * \brief           Free the components of a restart context.
  *
  * \param ctx       The restart context to free. This may be \c NULL, in which
- *                  case this function is a no-op. If it is not \c NULL,
- *                  it must point to an initialized restart context.
+ *                  case this function returns immediately. If it is not
+ *                  \c NULL, it must point to an initialized restart context.
  */
 void mbedtls_ecp_restart_free( mbedtls_ecp_restart_ctx *ctx );
 #endif /* MBEDTLS_ECP_RESTARTABLE */

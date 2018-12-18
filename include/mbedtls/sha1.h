@@ -160,7 +160,6 @@ int mbedtls_sha1_update_ret( mbedtls_sha1_context *ctx,
  *
  * \param ctx      The SHA-1 context to use. This must be initialized and
  *                 have a hash operation started.
- *                 This must not be \c NULL.
  * \param output   The SHA-1 checksum result. This must be a writable
  *                 buffer of length \c 20 Bytes.
  *
@@ -177,8 +176,8 @@ int mbedtls_sha1_finish_ret( mbedtls_sha1_context *ctx,
  *                 constitutes a security risk. We recommend considering
  *                 stronger message digests instead.
  *
- * \param ctx      The SHA-1 context to use. This must be initialized and
- *                 have a hash operation started.
+ * \param ctx      The SHA-1 context to use. This must be initialized
+ *                 and have a hash operation started.
  * \param data     The data block being processed. This must be a
  *                 readable buffer of length \c 64 Bytes.
  *
@@ -219,7 +218,7 @@ MBEDTLS_DEPRECATED void mbedtls_sha1_starts( mbedtls_sha1_context *ctx );
  *
  * \deprecated     Superseded by mbedtls_sha1_update_ret() in 2.7.0.
  *
- * \param ctx      The SHA-1 context. THis must be initialized and
+ * \param ctx      The SHA-1 context. This must be initialized and
  *                 have a hash operation started.
  * \param input    The buffer holding the input data.
  *                 This must be a readable buffer of length \p ilen Bytes.

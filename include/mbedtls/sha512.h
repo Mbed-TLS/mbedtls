@@ -272,7 +272,7 @@ int mbedtls_sha512_ret( const unsigned char *input,
  * \param ilen     The length of the input data in Bytes.
  * \param output   The SHA-384 or SHA-512 checksum result. This must
  *                 be a writable buffer of length \c 64 Bytes.
- * \param is384    Determines which function to use. This must be eiher
+ * \param is384    Determines which function to use. This must be either
  *                 \c 0 for SHA-512, or \c 1 for SHA-384.
  */
 MBEDTLS_DEPRECATED void mbedtls_sha512( const unsigned char *input,

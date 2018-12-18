@@ -254,9 +254,6 @@ int mbedtls_cipher_set_iv( mbedtls_cipher_context_t *ctx,
     CIPHER_VALIDATE_RET( ctx->cipher_info != NULL );
     CIPHER_VALIDATE_RET( iv_len == 0 || iv != NULL );
 
-    if( NULL == iv && iv_len == 0 )
-        ctx->iv_size = 0;
-
     /* avoid buffer overflow in ctx->iv */
     if( iv_len > MBEDTLS_MAX_IV_LENGTH )
         return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
@@ -352,7 +349,7 @@ int mbedtls_cipher_update( mbedtls_cipher_context_t *ctx, const unsigned char *i
 
     CIPHER_VALIDATE_RET( ctx != NULL );
     CIPHER_VALIDATE_RET( ctx->cipher_info != NULL );
-    CIPHER_VALIDATE_RET( input != NULL );
+    CIPHER_VALIDATE_RET( ilen == 0 || input != NULL );
     CIPHER_VALIDATE_RET( output != NULL );
     CIPHER_VALIDATE_RET( olen != NULL );
 
@@ -902,7 +899,7 @@ int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
 {
     CIPHER_VALIDATE_RET( ctx != NULL );
     CIPHER_VALIDATE_RET( ctx->cipher_info != NULL );
-    CIPHER_VALIDATE_RET( tag != NULL );
+    CIPHER_VALIDATE_RET( tag_len == 0 || tag != NULL );
 
     if( MBEDTLS_ENCRYPT != ctx->operation )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
@@ -935,7 +932,7 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
 
     CIPHER_VALIDATE_RET( ctx != NULL );
     CIPHER_VALIDATE_RET( ctx->cipher_info != NULL );
-    CIPHER_VALIDATE_RET( tag != NULL );
+    CIPHER_VALIDATE_RET( tag_len == 0 || tag != NULL );
 
     if( MBEDTLS_DECRYPT != ctx->operation )
     {
@@ -1002,7 +999,7 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
     CIPHER_VALIDATE_RET( ctx != NULL );
     CIPHER_VALIDATE_RET( ctx->cipher_info != NULL );
     CIPHER_VALIDATE_RET( iv_len == 0 || iv != NULL );
-    CIPHER_VALIDATE_RET( input != NULL );
+    CIPHER_VALIDATE_RET( ilen == 0 || input != NULL );
     CIPHER_VALIDATE_RET( output != NULL );
     CIPHER_VALIDATE_RET( olen != NULL );
 
@@ -1038,10 +1035,10 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
     CIPHER_VALIDATE_RET( ctx->cipher_info != NULL );
     CIPHER_VALIDATE_RET( iv != NULL );
     CIPHER_VALIDATE_RET( ad_len == 0 || ad != NULL );
-    CIPHER_VALIDATE_RET( input != NULL );
+    CIPHER_VALIDATE_RET( ilen == 0 || input != NULL );
     CIPHER_VALIDATE_RET( output != NULL );
     CIPHER_VALIDATE_RET( olen != NULL );
-    CIPHER_VALIDATE_RET( tag != NULL );
+    CIPHER_VALIDATE_RET( tag_len == 0 || tag != NULL );
 
 #if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
@@ -1094,10 +1091,10 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
     CIPHER_VALIDATE_RET( ctx->cipher_info != NULL );
     CIPHER_VALIDATE_RET( iv != NULL );
     CIPHER_VALIDATE_RET( ad_len == 0 || ad != NULL );
-    CIPHER_VALIDATE_RET( input != NULL );
+    CIPHER_VALIDATE_RET( ilen == 0 || input != NULL );
     CIPHER_VALIDATE_RET( output != NULL );
     CIPHER_VALIDATE_RET( olen != NULL );
-    CIPHER_VALIDATE_RET( tag != NULL );
+    CIPHER_VALIDATE_RET( tag_len == 0 || tag != NULL );
 
 #if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )

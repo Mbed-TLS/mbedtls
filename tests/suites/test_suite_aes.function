@@ -402,7 +402,9 @@ void aes_valid_param( )
 {
     /* These calls accept NULL */
     TEST_VALID_PARAM( mbedtls_aes_free( NULL ) );
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
     TEST_VALID_PARAM( mbedtls_aes_xts_free( NULL ) );
+#endif
 }
 /* END_CASE */
 

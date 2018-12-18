@@ -265,7 +265,7 @@ int mbedtls_blowfish_crypt_cbc( mbedtls_blowfish_context *ctx,
     unsigned char temp[MBEDTLS_BLOWFISH_BLOCKSIZE];
 
     if( length % MBEDTLS_BLOWFISH_BLOCKSIZE )
-        return( MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA );
+        return( MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH );
 
     if( mode == MBEDTLS_BLOWFISH_DECRYPT )
     {

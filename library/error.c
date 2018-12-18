@@ -674,6 +674,8 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
 #if defined(MBEDTLS_BLOWFISH_C)
     if( use_ret == -(MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA) )
         mbedtls_snprintf( buf, buflen, "BLOWFISH - Bad input data" );
+    if( use_ret == -(MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH) )
+        mbedtls_snprintf( buf, buflen, "BLOWFISH - Invalid data input length" );
     if( use_ret == -(MBEDTLS_ERR_BLOWFISH_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "BLOWFISH - Blowfish hardware accelerator failed" );
 #endif /* MBEDTLS_BLOWFISH_C */

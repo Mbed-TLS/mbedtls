@@ -107,7 +107,8 @@ void mbedtls_sha256_clone( mbedtls_sha256_context *dst,
  */
 int mbedtls_sha256_starts_ret( mbedtls_sha256_context *ctx, int is224 )
 {
-    MBEDTLS_SHA256_VALIDATE( ctx != NULL );
+    MBEDTLS_SHA256_VALIDATE_RET( ctx != NULL );
+    MBEDTLS_SHA256_VALIDATE_RET( is224 == 0 || is224 == 1 );
 
     ctx->total[0] = 0;
     ctx->total[1] = 0;
@@ -277,11 +278,11 @@ int mbedtls_sha256_update_ret( mbedtls_sha256_context *ctx,
     size_t fill;
     uint32_t left;
 
+    MBEDTLS_SHA256_VALIDATE_RET( ctx != NULL );
+    MBEDTLS_SHA256_VALIDATE_RET( ilen == 0 || input != NULL );
+
     if( ilen == 0 )
         return( 0 );
-
-    MBEDTLS_SHA256_VALIDATE_RET( ctx != NULL );
-    MBEDTLS_SHA256_VALIDATE_RET( input != NULL );
 
     left = ctx->total[0] & 0x3F;
     fill = 64 - left;
@@ -415,6 +416,7 @@ int mbedtls_sha256_ret( const unsigned char *input,
     int ret;
     mbedtls_sha256_context ctx;
 
+    MBEDTLS_SHA256_VALIDATE_RET( is224 == 0 || is224 == 1 );
     MBEDTLS_SHA256_VALIDATE_RET( ilen == 0 || input != NULL );
     MBEDTLS_SHA256_VALIDATE_RET( (unsigned char *)output != NULL );
 

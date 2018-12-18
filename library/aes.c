@@ -1183,6 +1183,7 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
     AES_VALIDATE_RET( ctx != NULL );
     AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
                       mode == MBEDTLS_AES_DECRYPT );
+    AES_VALIDATE_RET( data_unit != NULL );
     AES_VALIDATE_RET( input != NULL );
     AES_VALIDATE_RET( output != NULL );
 

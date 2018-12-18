@@ -28,7 +28,8 @@ void rsa_invalid_param( )
     unsigned char buf[42] = { 0 };
     size_t olen;
 
-    TEST_INVALID_PARAM( mbedtls_rsa_init( NULL, 0, 0 ) );
+    TEST_INVALID_PARAM( mbedtls_rsa_init( NULL, valid_padding, 0 ) );
+    TEST_INVALID_PARAM( mbedtls_rsa_init( &ctx, invalid_padding, 0 ) );
     TEST_VALID_PARAM( mbedtls_rsa_free( NULL ) );
 
     /* No more variants because only the first argument must be non-NULL. */

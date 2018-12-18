@@ -75,8 +75,8 @@ do {                                                    \
 #endif
 
 #define MBEDTLS_SHA256_VALIDATE_RET(cond)                           \
-    MBEDTLS_VALIDATE_RET( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA, cond )
-#define MBEDTLS_SHA256_VALIDATE(cond)               MBEDTLS_VALIDATE( cond )
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
+#define MBEDTLS_SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
 
 void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
 {

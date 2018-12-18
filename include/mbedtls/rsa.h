@@ -588,9 +588,12 @@ int mbedtls_rsa_private( mbedtls_rsa_context *ctx,
  *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    This is the RNG function used to generate the
- *                 PKCS#1 v2.1 padding encoding if \p mode is
- *                 #MBEDTLS_RSA_PRIVATE.
+ * \param f_rng    The RNG to use. If PKCS#1 v2.1 padding encoding is
+ *                 used, this must be provided. Additionally, it is
+ *                 used for blinding if \p mode is #MBEDTLS_RSA_PRIVATE
+ *                 and should be provided in this case; see
+ *                 mbedtls_rsa_private() for more. It is ignored
+ *                 for PKCS#1 v1.5 padding with #MBEDTLS_RSA_PUBLIC.
  * \param p_rng    The RNG context to be passed to \p f_rng. May be
  *                 \c NULL if \p f_rng is \c NULL or if \p f_rng doesn't
  *                 need a context argument.
@@ -628,8 +631,10 @@ int mbedtls_rsa_pkcs1_encrypt( mbedtls_rsa_context *ctx,
  *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG function, needed for padding generation if
- *                 \p mode is #MBEDTLS_RSA_PRIVATE.
+ * \param f_rng    The RNG function to use. It is needed for padding generation
+ *                 if \p mode is #MBEDTLS_RSA_PUBLIC. If \p mode is
+ *                 #MBEDTLS_RSA_PRIVATE (discouraged), it is used for
+ *                 blinding and should be provided; see mbedtls_rsa_private().
  * \param p_rng    The RNG context to be passed to \p f_rng. This may
  *                 be \c NULL if \p f_rng is \c NULL or if \p f_rng
  *                 doesn't need a context argument.
@@ -670,11 +675,10 @@ int mbedtls_rsa_rsaes_pkcs1_v15_encrypt( mbedtls_rsa_context *ctx,
  *                   return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
  * \param ctx        The initnialized RSA context to use.
- * \param f_rng      The RNG function, needed for padding and PKCS#1 v2.1
- *                   encoding if \p mode is #MBEDTLS_RSA_PRIVATE.
+ * \param f_rng      The RNG function to use. This is needed for padding
+ *                   generation and must be provided.
  * \param p_rng      The RNG context to be passed to \p f_rng. This may
- *                   be \c NULL if \p f_rng is \c NULL or if \p f_rng
- *                   doesn't need a context argument.
+ *                   be \c NULL if \p f_rng doesn't need a context argument.
  * \param mode       The mode of operation. This must be either
  *                   #MBEDTLS_RSA_PUBLIC or #MBEDTLS_RSA_PRIVATE (deprecated).
  * \param label      The buffer holding the custom label to use.
@@ -883,10 +887,11 @@ int mbedtls_rsa_rsaes_oaep_decrypt( mbedtls_rsa_context *ctx,
  *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
  * \param ctx      The initialized RSA context to use.
- * \param f_rng    The RNG function. If the padding mode is PKCS#1 v2.1
- *                 and \p mode is set to #MBEDTLS_RSA_PRIVATE, it is used for
- *                 blinding and should be provided; see mbedtls_rsa_private().
- *                 It is ignored otherwise.
+ * \param f_rng    The RNG function to use. If the padding mode is PKCS#1 v2.1,
+ *                 this must be provided. If the padding mode is PKCS#1 v1.5 and
+ *                 \p mode is #MBEDTLS_RSA_PRIVATE, it is used for blinding
+ *                 and should be provided; see mbedtls_rsa_private() for more
+ *                 more. It is ignored otherwise.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be \c NULL
  *                 if \p f_rng is \c NULL or doesn't need a context argument.
  * \param mode     The mode of operation. This must be either
@@ -1045,8 +1050,9 @@ int mbedtls_rsa_rsassa_pss_sign( mbedtls_rsa_context *ctx,
  *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
  * \param ctx      The initialized RSA public key context to use.
- * \param f_rng    The RNG function to use. This is only needed if
- *                 \p mode is #MBEDTLS_RSA_PRIVATE.
+ * \param f_rng    The RNG function to use. If \p mode is #MBEDTLS_RSA_PRIVATE,
+ *                 this is used for blinding and should be provided; see
+ *                 mbedtls_rsa_private() for more. Otherwise, it is ignored.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be
  *                 \c NULL if \p f_rng is \c NULL or doesn't need a context.
  * \param mode     The mode of operation. This must be either
@@ -1090,8 +1096,9 @@ int mbedtls_rsa_pkcs1_verify( mbedtls_rsa_context *ctx,
  *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
  * \param ctx      The initialized RSA public key context to use.
- * \param f_rng    The RNG function to use. This is only needed if
- *                 \p mode is #MBEDTLS_RSA_PRIVATE.
+ * \param f_rng    The RNG function to use. If \p mode is #MBEDTLS_RSA_PRIVATE,
+ *                 this is used for blinding and should be provided; see
+ *                 mbedtls_rsa_private() for more. Otherwise, it is ignored.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be
  *                 \c NULL if \p f_rng is \c NULL or doesn't need a context.
  * \param mode     The mode of operation. This must be either
@@ -1146,8 +1153,9 @@ int mbedtls_rsa_rsassa_pkcs1_v15_verify( mbedtls_rsa_context *ctx,
  *                 return #MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED.
  *
  * \param ctx      The initialized RSA public key context to use.
- * \param f_rng    The RNG function to use. This is only needed if
- *                 \p mode is #MBEDTLS_RSA_PRIVATE.
+ * \param f_rng    The RNG function to use. If \p mode is #MBEDTLS_RSA_PRIVATE,
+ *                 this is used for blinding and should be provided; see
+ *                 mbedtls_rsa_private() for more. Otherwise, it is ignored.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be
  *                 \c NULL if \p f_rng is \c NULL or doesn't need a context.
  * \param mode     The mode of operation. This must be either
@@ -1190,8 +1198,9 @@ int mbedtls_rsa_rsassa_pss_verify( mbedtls_rsa_context *ctx,
  * \note           The \p hash_id in the RSA context is ignored.
  *
  * \param ctx      The initialized RSA public key context to use.
- * \param f_rng    The RNG function to use. This is only needed if
- *                 \p mode is #MBEDTLS_RSA_PRIVATE.
+ * \param f_rng    The RNG function to use. If \p mode is #MBEDTLS_RSA_PRIVATE,
+ *                 this is used for blinding and should be provided; see
+ *                 mbedtls_rsa_private() for more. Otherwise, it is ignored.
  * \param p_rng    The RNG context to be passed to \p f_rng. This may be
  *                 \c NULL if \p f_rng is \c NULL or doesn't need a context.
  * \param mode     The mode of operation. This must be either

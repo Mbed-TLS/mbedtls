@@ -238,7 +238,7 @@ static void ecdh_free_internal( mbedtls_ecdh_context_mbed *ctx )
  */
 void mbedtls_ecdh_enable_restart( mbedtls_ecdh_context *ctx )
 {
-    ECDH_VALIDATE_RET( ctx != NULL );
+    ECDH_VALIDATE( ctx != NULL );
 
     ctx->restart_enabled = 1;
 }

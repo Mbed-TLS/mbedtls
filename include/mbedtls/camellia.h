@@ -165,11 +165,9 @@ int mbedtls_camellia_crypt_ecb( mbedtls_camellia_context *ctx,
  *                 of length \c 16 Bytes. It is updated to allow streaming
  *                 use as explained above.
  * \param input    The buffer holding the input data. This must point to a
- *                 readable buffer of length \p length Bytes. This may be
- *                 \c NULL if `length == 0`.
+ *                 readable buffer of length \p length Bytes.
  * \param output   The buffer holding the output data. This must point to a
- *                 writable buffer of length \p length Bytes. This may be
- *                 \c NULL if `length == 0`.
+ *                 writable buffer of length \p length Bytes.
  *
  * \return         \c 0 if successful.
  * \return         A negative error code on failure.
@@ -212,11 +210,9 @@ int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
  *                 of length \c 16 Bytes. It is updated after this call to
  *                 allow the aforementioned streaming usage.
  * \param input    The buffer holding the input data. This must be a readable
- *                 buffer of size \p length Bytes. This may be \c NULL if
- *                 \p length is \c 0.
+ *                 buffer of size \p length Bytes.
  * \param output   The buffer to hold the output data. This must be a writable
- *                 buffer of length \p length Bytes. This may be \c NULL if
- *                 \p length is \c 0.
+ *                 buffer of length \p length Bytes.
  *
  * \return         \c 0 if successful.
  * \return         A negative error code on failure.
@@ -297,11 +293,9 @@ int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
  * \param stream_block  The saved stream-block for resuming. This must be a
  *                      read/write buffer of length \c 16 Bytes.
  * \param input         The input data stream. This must be a readable buffer of
- *                      size \p length Bytes. This may be \c NULL if \p length
- *                      is \c 0.
+ *                      size \p length Bytes.
  * \param output        The output data stream. This must be a writable buffer
- *                      of size \p length Bytes. This may be \c NULL if
- *                      \p length is \c 0.
+ *                      of size \p length Bytes.
  *
  * \return              \c 0 if successful.
  * \return              A negative error code on failure.

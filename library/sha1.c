@@ -72,9 +72,9 @@
 #endif
 
 #define MBEDTLS_SHA1_VALIDATE_RET(cond)                             \
-    MBEDTLS_VALIDATE_RET( MBEDTLS_ERR_SHA1_BAD_INPUT_DATA, cond )
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
 
-#define MBEDTLS_SHA1_VALIDATE(cond)                 MBEDTLS_VALIDATE( cond )
+#define MBEDTLS_SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
 
 void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
 {
@@ -309,11 +309,11 @@ int mbedtls_sha1_update_ret( mbedtls_sha1_context *ctx,
     size_t fill;
     uint32_t left;
 
+    MBEDTLS_SHA1_VALIDATE_RET( ctx != NULL );
+    MBEDTLS_SHA1_VALIDATE_RET( ilen == 0 || input != NULL );
+
     if( ilen == 0 )
         return( 0 );
-
-    MBEDTLS_SHA1_VALIDATE_RET( ctx != NULL );
-    MBEDTLS_SHA1_VALIDATE_RET( input != NULL );
 
     left = ctx->total[0] & 0x3F;
     fill = 64 - left;

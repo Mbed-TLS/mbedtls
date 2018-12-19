@@ -1,2 +1,5 @@
-CIPHER - Invalid parameters
-cipher_invalid_param:
+CIPHER - Conditional invalid parameter checks
+cipher_invalid_param_conditional:
+
+CIPHER - Unconditional invalid parameter checks
+cipher_invalid_param_unconditional:

@@ -111,6 +111,7 @@ int mbedtls_ecjpake_setup( mbedtls_ecjpake_context *ctx,
                            size_t len )
 {
     int ret;
+
     ECJPAKE_VALIDATE_RET( ctx != NULL );
     ECJPAKE_VALIDATE_RET( role == MBEDTLS_ECJPAKE_CLIENT ||
                           role == MBEDTLS_ECJPAKE_SERVER );
@@ -579,6 +580,7 @@ int mbedtls_ecjpake_read_round_two( mbedtls_ecjpake_context *ctx,
     const unsigned char *end = buf + len;
     mbedtls_ecp_group grp;
     mbedtls_ecp_point G;    /* C: GB, S: GA */
+
     ECJPAKE_VALIDATE_RET( ctx != NULL );
     ECJPAKE_VALIDATE_RET( buf != NULL );
 
@@ -673,6 +675,7 @@ int mbedtls_ecjpake_write_round_two( mbedtls_ecjpake_context *ctx,
     unsigned char *p = buf;
     const unsigned char *end = buf + len;
     size_t ec_len;
+
     ECJPAKE_VALIDATE_RET( ctx   != NULL );
     ECJPAKE_VALIDATE_RET( buf   != NULL );
     ECJPAKE_VALIDATE_RET( olen  != NULL );
@@ -752,6 +755,7 @@ int mbedtls_ecjpake_derive_secret( mbedtls_ecjpake_context *ctx,
     mbedtls_mpi m_xm2_s, one;
     unsigned char kx[MBEDTLS_ECP_MAX_BYTES];
     size_t x_bytes;
+
     ECJPAKE_VALIDATE_RET( ctx   != NULL );
     ECJPAKE_VALIDATE_RET( buf   != NULL );
     ECJPAKE_VALIDATE_RET( olen  != NULL );

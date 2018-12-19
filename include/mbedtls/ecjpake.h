@@ -110,8 +110,8 @@ void mbedtls_ecjpake_init( mbedtls_ecjpake_context *ctx );
  *                  #MBEDTLS_ECJPAKE_CLIENT or #MBEDTLS_ECJPAKE_SERVER.
  * \param hash      The identifier of the hash function to use,
  *                  for example #MBEDTLS_MD_SHA256.
- * \param curve     The identifier of the Telliptic curve to use,
- *                  for example #MBEDTLS_ECP_DP_SECP192K1.
+ * \param curve     The identifier of the elliptic curve to use,
+ *                  for example #MBEDTLS_ECP_DP_SECP256R1.
  * \param secret    The pre-shared secret (passphrase). This must be
  *                  a readable buffer of length \p len Bytes, but need
  *                  only be valid for the duration of this call. It may
@@ -209,7 +209,7 @@ int mbedtls_ecjpake_write_round_two( mbedtls_ecjpake_context *ctx,
  *                  (TLS: contents of the Client/ServerKeyExchange).
  *
  * \param ctx       The ECJPAKE context to use. This must be initialized
- *                  and set up and have performed roudn one.
+ *                  and set up and have performed round one.
  * \param buf       The buffer holding the second round message. This must
  *                  be a readable buffer of length \p len Bytes.
  * \param len       The length in Bytes of \p buf.

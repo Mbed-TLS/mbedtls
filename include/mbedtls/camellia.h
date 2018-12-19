@@ -33,11 +33,17 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "platform_util.h"
+
 #define MBEDTLS_CAMELLIA_ENCRYPT     1
 #define MBEDTLS_CAMELLIA_DECRYPT     0
 
-#define MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH           -0x0024  /**< Invalid key length. */
-#define MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH         -0x0026  /**< Invalid data input length. */
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#define MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH   MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( -0x0024 )
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+#define MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA -0x0024 /**< Bad input data. */
+
+#define MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH -0x0026 /**< Invalid data input length. */
 
 /* MBEDTLS_ERR_CAMELLIA_HW_ACCEL_FAILED is deprecated and should not be used.
  */
@@ -86,7 +92,7 @@ void mbedtls_camellia_free( mbedtls_camellia_context *ctx );
  * \param key      encryption key
  * \param keybits  must be 128, 192 or 256
  *
- * \return         0 if successful, or MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH
+ * \return         0 if successful, or MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA
  */
 int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx, const unsigned char *key,
                          unsigned int keybits );
@@ -98,7 +104,7 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx, const unsigned c
  * \param key      decryption key
  * \param keybits  must be 128, 192 or 256
  *
- * \return         0 if successful, or MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH
+ * \return         0 if successful, or MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA
  */
 int mbedtls_camellia_setkey_dec( mbedtls_camellia_context *ctx, const unsigned char *key,
                          unsigned int keybits );
@@ -175,7 +181,7 @@ int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
  * \param output   buffer holding the output data
  *
  * \return         0 if successful, or
- *                 MBEDTLS_ERR_CAMELLIA_INVALID_INPUT_LENGTH
+ *                 MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA.
  */
 int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
                        int mode,

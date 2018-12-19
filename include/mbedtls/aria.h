@@ -39,6 +39,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "platform_util.h"
+
 #define MBEDTLS_ARIA_ENCRYPT     1 /**< ARIA encryption. */
 #define MBEDTLS_ARIA_DECRYPT     0 /**< ARIA decryption. */
 
@@ -46,8 +48,12 @@
 #define MBEDTLS_ARIA_MAX_ROUNDS  16 /**< Maxiumum number of rounds in ARIA. */
 #define MBEDTLS_ARIA_MAX_KEYSIZE 32 /**< Maximum size of an ARIA key in bytes. */
 
-#define MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH   -0x005C  /**< Invalid key length. */
-#define MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH -0x005E  /**< Invalid data input length. */
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#define MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH   MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( -0x005C )
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+#define MBEDTLS_ERR_ARIA_BAD_INPUT_DATA -0x005C /**< Bad input data. */
+
+#define MBEDTLS_ERR_ARIA_INVALID_INPUT_LENGTH -0x005E /**< Invalid data input length. */
 
 /* MBEDTLS_ERR_ARIA_FEATURE_UNAVAILABLE is deprecated and should not be used.
  */
@@ -106,7 +112,7 @@ void mbedtls_aria_free( mbedtls_aria_context *ctx );
  *                 <li>192 bits</li>
  *                 <li>256 bits</li></ul>
  *
- * \return         \c 0 on success or #MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH
+ * \return         \c 0 on success or #MBEDTLS_ERR_ARIA_BAD_INPUT_DATA
  *                 on failure.
  */
 int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx,
@@ -123,7 +129,7 @@ int mbedtls_aria_setkey_enc( mbedtls_aria_context *ctx,
  *                 <li>192 bits</li>
  *                 <li>256 bits</li></ul>
  *
- * \return         \c 0 on success, or #MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH on failure.
+ * \return         \c 0 on success, or #MBEDTLS_ERR_ARIA_BAD_INPUT_DATA on failure.
  */
 int mbedtls_aria_setkey_dec( mbedtls_aria_context *ctx,
                              const unsigned char *key,

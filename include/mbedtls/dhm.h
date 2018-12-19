@@ -353,15 +353,6 @@ int mbedtls_dhm_self_test( int verbose );
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
 
-#if defined(MBEDTLS_DEPRECATED_WARNING)
-#define MBEDTLS_DEPRECATED __attribute__((deprecated))
-MBEDTLS_DEPRECATED typedef char const * mbedtls_deprecated_constant_t;
-#define MBEDTLS_DEPRECATED_STRING_CONSTANT( VAL )       \
-    ( (mbedtls_deprecated_constant_t) ( VAL ) )
-#else
-#define MBEDTLS_DEPRECATED_STRING_CONSTANT( VAL ) VAL
-#endif /* ! MBEDTLS_DEPRECATED_WARNING */
-
 /**
  * \warning The origin of the primes in RFC 5114 is not documented and
  *          their use therefore constitutes a security risk!

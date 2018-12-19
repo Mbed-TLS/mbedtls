@@ -33,6 +33,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "platform_util.h"
+
 #define MBEDTLS_BLOWFISH_ENCRYPT     1
 #define MBEDTLS_BLOWFISH_DECRYPT     0
 #define MBEDTLS_BLOWFISH_MAX_KEY_BITS     448
@@ -40,13 +42,16 @@
 #define MBEDTLS_BLOWFISH_ROUNDS      16         /**< Rounds to use. When increasing this value, make sure to extend the initialisation vectors */
 #define MBEDTLS_BLOWFISH_BLOCKSIZE   8          /* Blowfish uses 64 bit blocks */
 
-#define MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH                -0x0016  /**< Invalid key length. */
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+#define MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH   MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( -0x0016 )
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
+#define MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA -0x0016 /**< Bad input data. */
+
+#define MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH -0x0018 /**< Invalid data input length. */
 
 /* MBEDTLS_ERR_BLOWFISH_HW_ACCEL_FAILED is deprecated and should not be used.
  */
 #define MBEDTLS_ERR_BLOWFISH_HW_ACCEL_FAILED                   -0x0017  /**< Blowfish hardware accelerator failed. */
-
-#define MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH              -0x0018  /**< Invalid data input length. */
 
 #ifdef __cplusplus
 extern "C" {
@@ -91,7 +96,7 @@ void mbedtls_blowfish_free( mbedtls_blowfish_context *ctx );
  * \param key      encryption key
  * \param keybits  must be between 32 and 448 bits
  *
- * \return         0 if successful, or MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH
+ * \return         0 if successful, or MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA
  */
 int mbedtls_blowfish_setkey( mbedtls_blowfish_context *ctx, const unsigned char *key,
                      unsigned int keybits );

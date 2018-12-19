@@ -35,6 +35,8 @@ void cipher_invalid_param_unconditional( )
         *( mbedtls_cipher_list() ) );
     size_t size_t_var;
 
+    (void)valid_mode; /* In some configurations this is unused */
+
     mbedtls_cipher_init( &valid_ctx );
     mbedtls_cipher_setup( &valid_ctx, valid_info );
     mbedtls_cipher_init( &invalid_ctx );
@@ -156,6 +158,8 @@ void cipher_invalid_param_conditional( )
         *( mbedtls_cipher_list() ) );
 
     size_t size_t_var;
+
+    (void)valid_mode; /* In some configurations this is unused */
 
     /* mbedtls_cipher_init() */
     TEST_VALID_PARAM( mbedtls_cipher_init( &valid_ctx ) );

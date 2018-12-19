@@ -2,6 +2,8 @@
 #include "mbedtls/pk.h"
 
 /* For error codes */
+#include "mbedtls/asn1.h"
+#include "mbedtls/base64.h"
 #include "mbedtls/ecp.h"
 #include "mbedtls/rsa.h"
 
@@ -111,14 +113,36 @@ void valid_parameters( )
     TEST_ASSERT( mbedtls_pk_parse_public_key( &pk, NULL, 0 ) ==
                  MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
 #endif /* MBEDTLS_PK_PARSE_C */
+}
+/* END_CASE */
 
-#if defined(MBEDTLS_PK_WRITE_C)
+/* BEGIN_CASE depends_on:MBEDTLS_PK_WRITE_C */
+void valid_parameters_pkwrite( data_t *key_data )
+{
+    mbedtls_pk_context pk;
+
+    /* For the write tests to be effective, we need a valid key pair. */
+    mbedtls_pk_init( &pk );
+    TEST_ASSERT( mbedtls_pk_parse_key( &pk,
+                                       key_data->x, key_data->len,
+                                       NULL, 0 ) == 0 );
+
     TEST_ASSERT( mbedtls_pk_write_key_der( &pk, NULL, 0 ) ==
-                 MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+                 MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 
     TEST_ASSERT( mbedtls_pk_write_pubkey_der( &pk, NULL, 0 ) ==
-                 MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
-#endif /* MBEDTLS_PK_WRITE_C */
+                 MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+#if defined(MBEDTLS_PEM_WRITE_C)
+    TEST_ASSERT( mbedtls_pk_write_key_pem( &pk, NULL, 0 ) ==
+                 MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL );
+
+    TEST_ASSERT( mbedtls_pk_write_pubkey_pem( &pk, NULL, 0 ) ==
+                 MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL );
+#endif /* MBEDTLS_PEM_WRITE_C */
+
+exit:
+    mbedtls_pk_free( &pk );
 }
 /* END_CASE */
 

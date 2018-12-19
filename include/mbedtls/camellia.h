@@ -265,7 +265,7 @@ int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
  *             each  with the same key.
  *
  *             The per-message nonce (or information sufficient to reconstruct
- *             it) needs to be communicated with the ciphertext and must be.
+ *             it) needs to be communicated with the ciphertext and must be
  *             unique. The recommended way to ensure uniqueness is to use a
  *             message counter. An alternative is to generate random nonces,
  *             but this limits the number of messages that can be securely
@@ -273,7 +273,7 @@ int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
  *             not encrypt more than 2**32 messages with the same key.
  *
  *             Note that for both stategies, sizes are measured in blocks and
- *             that a CAMELLIA block is \c 16 bytes.
+ *             that a CAMELLIA block is \c 16 Bytes.
  *
  * \warning    Upon return, \p stream_block contains sensitive data. Its
  *             content must not be written to insecure storage and should be

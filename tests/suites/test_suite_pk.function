@@ -77,41 +77,41 @@ void valid_parameters( )
 
     mbedtls_pk_init( &pk );
 
-    TEST_VALID_PARAM( mbedtls_pk_setup( &pk, NULL ) ==
-                      MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_pk_setup( &pk, NULL ) ==
+                 MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    TEST_VALID_PARAM( mbedtls_pk_get_bitlen( NULL ) == 0 );
+    TEST_ASSERT( mbedtls_pk_get_bitlen( NULL ) == 0 );
 
-    TEST_VALID_PARAM( mbedtls_pk_get_len( NULL ) == 0 );
+    TEST_ASSERT( mbedtls_pk_get_len( NULL ) == 0 );
 
-    TEST_VALID_PARAM( mbedtls_pk_can_do( NULL, MBEDTLS_PK_NONE ) == 0 );
+    TEST_ASSERT( mbedtls_pk_can_do( NULL, MBEDTLS_PK_NONE ) == 0 );
 
-    TEST_VALID_PARAM( mbedtls_pk_encrypt( &pk,
-                                          NULL, 0,
-                                          NULL, &len, 0,
-                                          rnd_std_rand, NULL ) ==
-                      MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_pk_encrypt( &pk,
+                                     NULL, 0,
+                                     NULL, &len, 0,
+                                     rnd_std_rand, NULL ) ==
+                 MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    TEST_VALID_PARAM( mbedtls_pk_decrypt( &pk,
-                                          NULL, 0,
-                                          NULL, &len, 0,
-                                          rnd_std_rand, NULL ) ==
-                      MBEDTLS_ERR_PK_BAD_INPUT_DATA );
+    TEST_ASSERT( mbedtls_pk_decrypt( &pk,
+                                     NULL, 0,
+                                     NULL, &len, 0,
+                                     rnd_std_rand, NULL ) ==
+                 MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_PK_PARSE_C)
-    TEST_VALID_PARAM( mbedtls_pk_parse_key( &pk, NULL, 0, NULL, 1 ) ==
-                      MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
+    TEST_ASSERT( mbedtls_pk_parse_key( &pk, NULL, 0, NULL, 1 ) ==
+                 MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
 
-    TEST_VALID_PARAM( mbedtls_pk_parse_public_key( &pk, NULL, 0 ) ==
-                      MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
+    TEST_ASSERT( mbedtls_pk_parse_public_key( &pk, NULL, 0 ) ==
+                 MBEDTLS_ERR_PK_KEY_INVALID_FORMAT );
 #endif /* MBEDTLS_PK_PARSE_C */
 
 #if defined(MBEDTLS_PK_WRITE_C)
-    TEST_VALID_PARAM( mbedtls_pk_write_key_der( &pk, NULL, 0 ) ==
-                      MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+    TEST_ASSERT( mbedtls_pk_write_key_der( &pk, NULL, 0 ) ==
+                 MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 
-    TEST_VALID_PARAM( mbedtls_pk_write_pubkey_der( &pk, NULL, 0 ) ==
-                      MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+    TEST_ASSERT( mbedtls_pk_write_pubkey_der( &pk, NULL, 0 ) ==
+                 MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
 #endif /* MBEDTLS_PK_WRITE_C */
 }
 /* END_CASE */

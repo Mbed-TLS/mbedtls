@@ -113,9 +113,8 @@ void mbedtls_ecjpake_init( mbedtls_ecjpake_context *ctx );
  * \param curve     The identifier of the elliptic curve to use,
  *                  for example #MBEDTLS_ECP_DP_SECP256R1.
  * \param secret    The pre-shared secret (passphrase). This must be
- *                  a readable buffer of length \p len Bytes, but need
- *                  only be valid for the duration of this call. It may
- *                  be \c NULL if \p len is zero.
+ *                  a readable buffer of length \p len Bytes. It need
+ *                  only be valid for the duration of this call.
  * \param len       The length of the pre-shared secret \p secret.
  *
  * \return          \c 0 if successful.
@@ -209,7 +208,7 @@ int mbedtls_ecjpake_write_round_two( mbedtls_ecjpake_context *ctx,
  *                  (TLS: contents of the Client/ServerKeyExchange).
  *
  * \param ctx       The ECJPAKE context to use. This must be initialized
- *                  and set up and have performed round one.
+ *                  and set up and already have performed round one.
  * \param buf       The buffer holding the second round message. This must
  *                  be a readable buffer of length \p len Bytes.
  * \param len       The length in Bytes of \p buf.
@@ -245,7 +244,8 @@ int mbedtls_ecjpake_derive_secret( mbedtls_ecjpake_context *ctx,
                             void *p_rng );
 
 /**
- * \brief           Free an ECJPAKE context.
+ * \brief           This clears an ECJPAKE context and frees any
+ *                  embedded data structure.
  *
  * \param ctx       The ECJPAKE context to free. This may be \c NULL,
  *                  in which case this function does nothing. If it is not

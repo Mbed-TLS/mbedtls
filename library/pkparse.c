@@ -135,6 +135,7 @@ int mbedtls_pk_parse_keyfile( mbedtls_pk_context *ctx,
     unsigned char *buf;
 
     PK_VALIDATE_RET( ctx != NULL );
+    PK_VALIDATE_RET( path != NULL );
 
     if( ( ret = mbedtls_pk_load_file( path, &buf, &n ) ) != 0 )
         return( ret );
@@ -161,6 +162,7 @@ int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path )
     unsigned char *buf;
 
     PK_VALIDATE_RET( ctx != NULL );
+    PK_VALIDATE_RET( path != NULL );
 
     if( ( ret = mbedtls_pk_load_file( path, &buf, &n ) ) != 0 )
         return( ret );

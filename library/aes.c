@@ -56,6 +56,12 @@
 
 #if !defined(MBEDTLS_AES_ALT)
 
+/* Parameter validation macros based on platform_util.h */
+#define AES_VALIDATE_RET( cond )    \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_AES_BAD_INPUT_DATA )
+#define AES_VALIDATE( cond )        \
+    MBEDTLS_INTERNAL_VALIDATE( cond )
+
 /*
  * 32-bit integer manipulation macros (little endian)
  */
@@ -511,6 +517,8 @@ static void aes_gen_tables( void )
 
 void mbedtls_aes_init( mbedtls_aes_context *ctx )
 {
+    AES_VALIDATE( ctx != NULL );
+
     memset( ctx, 0, sizeof( mbedtls_aes_context ) );
 }
 
@@ -525,12 +533,17 @@ void mbedtls_aes_free( mbedtls_aes_context *ctx )
 #if defined(MBEDTLS_CIPHER_MODE_XTS)
 void mbedtls_aes_xts_init( mbedtls_aes_xts_context *ctx )
 {
+    AES_VALIDATE( ctx != NULL );
+
     mbedtls_aes_init( &ctx->crypt );
     mbedtls_aes_init( &ctx->tweak );
 }
 
 void mbedtls_aes_xts_free( mbedtls_aes_xts_context *ctx )
 {
+    if( ctx == NULL )
+        return;
+
     mbedtls_aes_free( &ctx->crypt );
     mbedtls_aes_free( &ctx->tweak );
 }
@@ -546,14 +559,8 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     unsigned int i;
     uint32_t *RK;
 
-#if !defined(MBEDTLS_AES_ROM_TABLES)
-    if( aes_init_done == 0 )
-    {
-        aes_gen_tables();
-        aes_init_done = 1;
-
-    }
-#endif
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( key != NULL );
 
     switch( keybits )
     {
@@ -562,6 +569,15 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
         case 256: ctx->nr = 14; break;
         default : return( MBEDTLS_ERR_AES_INVALID_KEY_LENGTH );
     }
+
+#if !defined(MBEDTLS_AES_ROM_TABLES)
+    if( aes_init_done == 0 )
+    {
+        aes_gen_tables();
+        aes_init_done = 1;
+
+    }
+#endif
 
 #if defined(MBEDTLS_PADLOCK_C) && defined(MBEDTLS_PADLOCK_ALIGN16)
     if( aes_padlock_ace == -1 )
@@ -661,6 +677,9 @@ int mbedtls_aes_setkey_dec( mbedtls_aes_context *ctx, const unsigned char *key,
     mbedtls_aes_context cty;
     uint32_t *RK;
     uint32_t *SK;
+
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( key != NULL );
 
     mbedtls_aes_init( &cty );
 

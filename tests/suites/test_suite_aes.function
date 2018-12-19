@@ -15,8 +15,8 @@ void aes_encrypt_ecb( data_t * key_str, data_t * src_str,
     mbedtls_aes_context ctx;
 
     memset(output, 0x00, 100);
-    mbedtls_aes_init( &ctx );
 
+    mbedtls_aes_init( &ctx );
 
     TEST_ASSERT( mbedtls_aes_setkey_enc( &ctx, key_str->x, key_str->len * 8 ) == setkey_result );
     if( setkey_result == 0 )
@@ -39,8 +39,8 @@ void aes_decrypt_ecb( data_t * key_str, data_t * src_str,
     mbedtls_aes_context ctx;
 
     memset(output, 0x00, 100);
-    mbedtls_aes_init( &ctx );
 
+    mbedtls_aes_init( &ctx );
 
     TEST_ASSERT( mbedtls_aes_setkey_dec( &ctx, key_str->x, key_str->len * 8 ) == setkey_result );
     if( setkey_result == 0 )
@@ -64,8 +64,8 @@ void aes_encrypt_cbc( data_t * key_str, data_t * iv_str,
     mbedtls_aes_context ctx;
 
     memset(output, 0x00, 100);
-    mbedtls_aes_init( &ctx );
 
+    mbedtls_aes_init( &ctx );
 
     mbedtls_aes_setkey_enc( &ctx, key_str->x, key_str->len * 8 );
     TEST_ASSERT( mbedtls_aes_crypt_cbc( &ctx, MBEDTLS_AES_ENCRYPT, src_str->len, iv_str->x, src_str->x, output ) == cbc_result );
@@ -90,7 +90,6 @@ void aes_decrypt_cbc( data_t * key_str, data_t * iv_str,
 
     memset(output, 0x00, 100);
     mbedtls_aes_init( &ctx );
-
 
     mbedtls_aes_setkey_dec( &ctx, key_str->x, key_str->len * 8 );
     TEST_ASSERT( mbedtls_aes_crypt_cbc( &ctx, MBEDTLS_AES_DECRYPT, src_str->len, iv_str->x, src_str->x, output ) == cbc_result );
@@ -369,6 +368,43 @@ void aes_encrypt_ofb( int fragment_size, char *hex_key_string,
 
 exit:
     mbedtls_aes_free( &ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+void aes_invalid_param( )
+{
+    mbedtls_aes_context dummy_ctx;
+    const unsigned char key[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+
+    TEST_INVALID_PARAM( mbedtls_aes_init( NULL ) );
+
+    TEST_INVALID_PARAM( mbedtls_aes_xts_init( NULL ) );
+
+    /* mbedtls_aes_setkey_enc() */
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_setkey_enc( NULL, key, 128 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_setkey_enc( &dummy_ctx, NULL, 128 ) );
+
+    /* mbedtls_aes_setkey_dec() */
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_setkey_dec( NULL, key, 128 ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_AES_BAD_INPUT_DATA,
+                            mbedtls_aes_setkey_dec( &dummy_ctx, NULL, 128 ) );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void aes_valid_param( )
+{
+    /* These calls accept NULL */
+    TEST_VALID_PARAM( mbedtls_aes_free( NULL ) );
+#if defined(MBEDTLS_CIPHER_MODE_XTS)
+    TEST_VALID_PARAM( mbedtls_aes_xts_free( NULL ) );
+#endif
 }
 /* END_CASE */
 

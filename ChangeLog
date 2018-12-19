@@ -22,6 +22,16 @@ Security
    * Wipe sensitive buffers on the stack in the CTR_DRBG and HMAC_DRBG
      modules.
 
+Features
+   * Add a new config.h option of MBEDTLS_CHECK_PARAMS that enables validation
+     of parameters in the API. This allows detection of obvious misuses of the
+     API, such as passing NULL pointers. The API of existing functions hasn't
+     changed, but requirements on parameters have been made more explicit in
+     the documentation. See the corresponding API documentation for each
+     function to see for which parameter values it is defined. This feature is
+     disabled by default. See its API documentation in config.h for additional
+     steps you have to take when enabling it.
+
 API Changes
    * The following functions in the random generator modules have been
      deprecated and replaced as shown below. The new functions change

@@ -134,9 +134,39 @@ $dispatch_code
 #line $line_no "suites/main_test.function"
 };
 
+/**
+ * \brief        Execute the test function.
+ *
+ *               This is a wrapper function around the test function execution
+ *               to allow the setjmp() call used to catch any calls to the
+ *               parameter failure callback, to be used. Calls to setjmp()
+ *               can invalidate the state of any local auto variables.
+ *
+ * \param fp     Function pointer to the test function
+ * \param params Parameters to pass
+ *
+ */
+void execute_function_ptr(TestWrapper_t fp, void **params)
+{
+#if defined(MBEDTLS_CHECK_PARAMS)
+    if ( setjmp( param_fail_jmp ) == 0 )
+    {
+        fp( params );
+    }
+    else
+    {
+        /* Unexpected parameter validation error */
+        test_info.failed = 1;
+    }
+
+    memset( param_fail_jmp, 0, sizeof(jmp_buf) );
+#else
+    fp( params );
+#endif
+}
 
 /**
- * \brief       Dispatches test functions based on function index.
+ * \brief        Dispatches test functions based on function index.
  *
  * \param exp_id    Test function index.
  *
@@ -153,7 +183,7 @@ int dispatch_test( int func_idx, void ** params )
     {
         fp = test_funcs[func_idx];
         if ( fp )
-            fp( params );
+            execute_function_ptr(fp, params);
         else
             ret = DISPATCH_UNSUPPORTED_SUITE;
     }

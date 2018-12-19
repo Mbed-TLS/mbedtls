@@ -112,8 +112,6 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
  *
  * \param ctx       The CCM context to clear. If this is \c NULL, the function
  *                  has no effect. Otherwise, this must be initialized.
- *
- * \note            If ctx is \c NULL, the function has no effect.
  */
 void mbedtls_ccm_free( mbedtls_ccm_context *ctx );
 
@@ -136,7 +134,7 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx );
  *                  15 - \p iv_len.
  * \param add       The additional data field. If \p add_len is greater than
  *                  zero, \p add must be a readable buffer of at least that
- *                  length. If `add_len == 0`, this may be \c NULL.
+ *                  length.
  * \param add_len   The length of additional data in Bytes.
  *                  This must be less than `2^16 - 2^8`.
  * \param input     The buffer holding the input data. If \p length is greater
@@ -145,9 +143,8 @@ void mbedtls_ccm_free( mbedtls_ccm_context *ctx );
  * \param output    The buffer holding the output data. If \p length is greater
  *                  than zero, \p output must be a writable buffer of at least
  *                  that length.
- * \param tag       The buffer holding the authentication field. If
- *                  `tag_len > 0`, then this must be a readable buffer of at
- *                  least \p tag_len Bytes. Otherwise, this may be \c NULL.
+ * \param tag       The buffer holding the authentication field. This must be a
+ *                  readable buffer of at least \p tag_len Bytes.
  * \param tag_len   The length of the authentication field to generate in Bytes:
  *                  4, 6, 8, 10, 12, 14 or 16.
  *
@@ -181,9 +178,8 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
  *                  or 13. The length L of the message length field is
  *                  15 - \p iv_len.
- * \param add       The additional data field. If \p add_len is greater than
- *                  zero, \p add must be a readable buffer of at least that
- *                  length. If `add_len == 0`, this may be \c NULL.
+ * \param add       The additional data field. This must be a readable buffer of
+ *                  at least \p add_len Bytes.
  * \param add_len   The length of additional data in Bytes.
  *                  This must be less than 2^16 - 2^8.
  * \param input     The buffer holding the input data. If \p length is greater
@@ -192,9 +188,8 @@ int mbedtls_ccm_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  * \param output    The buffer holding the output data. If \p length is greater
  *                  than zero, \p output must be a writable buffer of at least
  *                  that length.
- * \param tag       The buffer holding the authentication field. If
- *                  `tag_len > 0`, then this must be a readable buffer of at
- *                  least \p tag_len Bytes. Otherwise, this may be \c NULL.
+ * \param tag       The buffer holding the authentication field. This must be a
+ *                  readable buffer of at least \p tag_len Bytes.
  * \param tag_len   The length of the authentication field to generate in Bytes:
  *                  0, 4, 6, 8, 10, 12, 14 or 16.
  *
@@ -222,9 +217,8 @@ int mbedtls_ccm_star_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
  *                  or 13. The length L of the message length field is
  *                  15 - \p iv_len.
- * \param add       The additional data field. If \p add_len is greater than
- *                  zero, \p add must be a readable buffer of at least that
- *                  length. If `add_len == 0`, this may be \c NULL.
+ * \param add       The additional data field. This must be a readable buffer
+ *                  of at least that \p add_len Bytes..
  * \param add_len   The length of additional data in Bytes.
  *                  This must be less than 2^16 - 2^8.
  * \param input     The buffer holding the input data. If \p length is greater
@@ -233,9 +227,8 @@ int mbedtls_ccm_star_encrypt_and_tag( mbedtls_ccm_context *ctx, size_t length,
  * \param output    The buffer holding the output data. If \p length is greater
  *                  than zero, \p output must be a writable buffer of at least
  *                  that length.
- * \param tag       The buffer holding the authentication field. If
- *                  `tag_len > 0`, then this must be a readable buffer of at
- *                  least \p tag_len Bytes. Otherwise, this may be \c NULL.
+ * \param tag       The buffer holding the authentication field. This must be a
+ *                  readable buffer of at least \p tag_len Bytes.
  * \param tag_len   The length of the authentication field to generate in Bytes:
  *                  4, 6, 8, 10, 12, 14 or 16.
  *
@@ -266,9 +259,8 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  * \param iv_len    The length of the nonce in Bytes: 7, 8, 9, 10, 11, 12,
  *                  or 13. The length L of the message length field is
  *                  15 - \p iv_len.
- * \param add       The additional data field. If \p add_len is greater than
- *                  zero, \p add must be a readable buffer of at least that
- *                  length. If `add_len == 0`, this may be \c NULL.
+ * \param add       The additional data field. This must be a readable buffer of
+ *                  at least that \p add_len Bytes.
  * \param add_len   The length of additional data in Bytes.
  *                  This must be less than 2^16 - 2^8.
  * \param input     The buffer holding the input data. If \p length is greater
@@ -277,9 +269,8 @@ int mbedtls_ccm_auth_decrypt( mbedtls_ccm_context *ctx, size_t length,
  * \param output    The buffer holding the output data. If \p length is greater
  *                  than zero, \p output must be a writable buffer of at least
  *                  that length.
- * \param tag       The buffer holding the authentication field. If
- *                  `tag_len > 0`, then this must be a readable buffer of at
- *                  least \p tag_len Bytes. Otherwise, this may be \c NULL.
+ * \param tag       The buffer holding the authentication field. This must be a
+ *                  readable buffer of at least \p tag_len Bytes.
  * \param tag_len   The length of the authentication field in Bytes.
  *                  0, 4, 6, 8, 10, 12, 14 or 16.
  *

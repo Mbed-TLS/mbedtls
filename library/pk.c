@@ -90,8 +90,7 @@ void mbedtls_pk_restart_init( mbedtls_pk_restart_ctx *ctx )
  */
 void mbedtls_pk_restart_free( mbedtls_pk_restart_ctx *ctx )
 {
-    PK_VALIDATE( ctx != NULL );
-    if( ctx->pk_info == NULL ||
+    if( ctx == NULL || ctx->pk_info == NULL ||
         ctx->pk_info->rs_free_func == NULL )
     {
         return;

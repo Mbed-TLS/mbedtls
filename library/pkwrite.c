@@ -186,7 +186,9 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
     const char *oid;
 
     PK_VALIDATE_RET( key != NULL );
-    PK_VALIDATE_RET( buf != NULL || size == 0 );
+    if( size == 0 )
+        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+    PK_VALIDATE_RET( buf != NULL );
 
     c = buf + size;
 
@@ -236,7 +238,9 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
     size_t len = 0;
 
     PK_VALIDATE_RET( key != NULL );
-    PK_VALIDATE_RET( buf != NULL || size == 0 );
+    if( size == 0 )
+        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+    PK_VALIDATE_RET( buf != NULL );
 
     c = buf + size;
 

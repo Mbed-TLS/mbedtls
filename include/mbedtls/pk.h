@@ -530,9 +530,13 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
  * \brief           Parse a private key in PEM or DER format
  *
  * \param ctx       key to be initialized
- * \param key       input buffer
- * \param keylen    size of the buffer
- *                  (including the terminating null byte for PEM data)
+ * \param key       Input buffer to parse.
+ *                  The buffer must contain the input exactly, with no
+ *                  extra trailing material. For PEM, the buffer must
+ *                  contain a null-terminated string.
+ * \param keylen    Size of \b key in bytes.
+ *                  For PEM data, this includes the terminating null byte,
+ *                  so \p keylen must be equal to `strlen(key) + 1`.
  * \param pwd       password for decryption (optional)
  * \param pwdlen    size of the password
  *
@@ -553,9 +557,13 @@ int mbedtls_pk_parse_key( mbedtls_pk_context *ctx,
  * \brief           Parse a public key in PEM or DER format
  *
  * \param ctx       key to be initialized
- * \param key       input buffer
- * \param keylen    size of the buffer
- *                  (including the terminating null byte for PEM data)
+ * \param key       Input buffer to parse.
+ *                  The buffer must contain the input exactly, with no
+ *                  extra trailing material. For PEM, the buffer must
+ *                  contain a null-terminated string.
+ * \param keylen    Size of \b key in bytes.
+ *                  For PEM data, this includes the terminating null byte,
+ *                  so \p keylen must be equal to `strlen(key) + 1`.
  *
  * \note            On entry, ctx must be empty, either freshly initialised
  *                  with mbedtls_pk_init() or reset with mbedtls_pk_free(). If you need a
@@ -643,9 +651,10 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *ctx, unsigned char *buf, si
 /**
  * \brief           Write a public key to a PEM string
  *
- * \param ctx       public key to write away
- * \param buf       buffer to write to
- * \param size      size of the buffer
+ * \param ctx       Context containing the public key to write.
+ * \param buf       Buffer to write to. The output includes a
+ *                  terminating null byte.
+ * \param size      Size of the buffer in bytes.
  *
  * \return          0 if successful, or a specific error code
  */
@@ -654,9 +663,10 @@ int mbedtls_pk_write_pubkey_pem( mbedtls_pk_context *ctx, unsigned char *buf, si
 /**
  * \brief           Write a private key to a PKCS#1 or SEC1 PEM string
  *
- * \param ctx       private to write away
- * \param buf       buffer to write to
- * \param size      size of the buffer
+ * \param ctx       Context containing the private key to write.
+ * \param buf       Buffer to write to. The output includes a
+ *                  terminating null byte.
+ * \param size      Size of the buffer in bytes.
  *
  * \return          0 if successful, or a specific error code
  */

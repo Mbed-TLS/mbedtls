@@ -1,6 +1,9 @@
 PK invalid parameters
 invalid_parameters:
 
+PK valid parameters
+valid_parameters:
+
 PK utils: RSA
 depends_on:MBEDTLS_RSA_C:MBEDTLS_GENPRIME
 pk_utils:MBEDTLS_PK_RSA:512:64:"RSA"

@@ -401,7 +401,7 @@ void mbedtls_cipher_free( mbedtls_cipher_context_t *ctx );
  *                      the structure.
  *
  * \param ctx           The context to initialize. This must be initialized.
- * \param cipher_info   The cipher to use. This may not be \c NULL.
+ * \param cipher_info   The cipher to use.
  *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on

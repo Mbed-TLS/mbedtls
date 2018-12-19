@@ -537,8 +537,13 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx );
  * \param keylen    Size of \b key in bytes.
  *                  For PEM data, this includes the terminating null byte,
  *                  so \p keylen must be equal to `strlen(key) + 1`.
- * \param pwd       password for decryption (optional)
- * \param pwdlen    size of the password
+ * \param pwd       Optional password for decryption.
+ *                  Pass \c NULL if expecting a non-encrypted key.
+ *                  Pass a string of \p pwdlen bytes if expecting an encrypted
+ *                  key; a non-encrypted key will also be accepted.
+ *                  The empty password is not supported.
+ * \param pwdlen    Size of the password in bytes.
+ *                  Ignored if \p pwd is \c NULL.
  *
  * \note            On entry, ctx must be empty, either freshly initialised
  *                  with mbedtls_pk_init() or reset with mbedtls_pk_free(). If you need a
@@ -583,7 +588,11 @@ int mbedtls_pk_parse_public_key( mbedtls_pk_context *ctx,
  *
  * \param ctx       key to be initialized
  * \param path      filename to read the private key from
- * \param password  password to decrypt the file (can be NULL)
+ * \param password  Optional password to decrypt the file.
+ *                  Pass \c NULL if expecting a non-encrypted key.
+ *                  Pass a null-terminated string if expecting an encrypted
+ *                  key; a non-encrypted key will also be accepted.
+ *                  The empty password is not supported.
  *
  * \note            On entry, ctx must be empty, either freshly initialised
  *                  with mbedtls_pk_init() or reset with mbedtls_pk_free(). If you need a

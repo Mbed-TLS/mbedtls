@@ -432,10 +432,6 @@ void invalid_parameters( )
                             mbedtls_pk_parse_key( &pk,
                                                   NULL, sizeof( buf ),
                                                   buf, sizeof( buf ) ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_PK_BAD_INPUT_DATA,
-                            mbedtls_pk_parse_key( &pk,
-                                                  buf, sizeof( buf ),
-                                                  NULL, sizeof( buf ) ) );
 
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_PK_BAD_INPUT_DATA,
                             mbedtls_pk_parse_public_key( NULL,

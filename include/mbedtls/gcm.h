@@ -141,9 +141,8 @@ int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
  * \param iv        The initialization vector. This must be a readable buffer of
  *                  at least \p iv_len Bytes.
  * \param iv_len    The length of the IV.
- * \param add       The buffer holding the additional data. If \p add_len is
- *                  greater than zero, this must be of at least that size in
- *                  Bytes. If `add_len == 0`, this may be \c NULL.
+ * \param add       The buffer holding the additional data. This must be of at
+ *                  least that size in Bytes.
  * \param add_len   The length of the additional data.
  * \param input     The buffer holding the input data. If \p length is greater
  *                  than zero, this must be a readable buffer of at least that
@@ -188,9 +187,8 @@ int mbedtls_gcm_crypt_and_tag( mbedtls_gcm_context *ctx,
  * \param iv        The initialization vector. This must be a readable buffer
  *                  of at least \p iv_len Bytes.
  * \param iv_len    The length of the IV.
- * \param add       The buffer holding the additional data. If \p add_len is
- *                  greater than zero, this must be of at least that size in
- *                  Bytes. If `add_len == 0`, this may be \c NULL.
+ * \param add       The buffer holding the additional data. This must be of at
+ *                  least that size in Bytes.
  * \param add_len   The length of the additional data.
  * \param tag       The buffer holding the tag to verify. This must be a
  *                  readable buffer of at least \p tag_len Bytes.

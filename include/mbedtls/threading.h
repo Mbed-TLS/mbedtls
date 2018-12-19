@@ -48,9 +48,13 @@ typedef struct mbedtls_threading_mutex_t {
 #endif
 
 #if defined(MBEDTLS_THREADING_SRWLOCK)
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <synchapi.h>
+/*
+ * Use spaces to pass the macroses name check.
+ */
+#   define WIN32_LEAN_AND_MEAN
+#   include <windows.h>
+#   include <synchapi.h>
+#   undef WIN32_LEAN_AND_MEAN
 typedef struct mbedtls_threading_mutex_t
 {
     SRWLOCK lock;

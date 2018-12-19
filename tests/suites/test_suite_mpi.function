@@ -216,6 +216,8 @@ void mpi_invalid_param( )
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
                             mbedtls_mpi_div_int( &X, &X, NULL, 42 ) );
 
+    TEST_INVALID_PARAM_RET( 0, mbedtls_mpi_lsb( NULL ) );
+
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,
                             mbedtls_mpi_mod_mpi( NULL, &X, &X ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_MPI_BAD_INPUT_DATA,

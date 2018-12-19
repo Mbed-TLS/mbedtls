@@ -380,7 +380,7 @@ cleanup:
 size_t mbedtls_mpi_lsb( const mbedtls_mpi *X )
 {
     size_t i, j, count = 0;
-    MPI_VALIDATE_RET( X != NULL );
+    MBEDTLS_INTERNAL_VALIDATE_RET( X != NULL, 0 );
 
     for( i = 0; i < X->n; i++ )
         for( j = 0; j < biL; j++, count++ )

@@ -353,6 +353,7 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx,
     uint32_t SIGMA[6][2];
     uint32_t KC[16];
     uint32_t TK[20];
+
     CAMELLIA_VALIDATE_RET( ctx != NULL );
     CAMELLIA_VALIDATE_RET( key != NULL );
 
@@ -570,11 +571,11 @@ int mbedtls_camellia_crypt_ecb( mbedtls_camellia_context *ctx,
  * Camellia-CBC buffer encryption/decryption
  */
 int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
-                    int mode,
-                    size_t length,
-                    unsigned char iv[16],
-                    const unsigned char *input,
-                    unsigned char *output )
+                                int mode,
+                                size_t length,
+                                unsigned char iv[16],
+                                const unsigned char *input,
+                                unsigned char *output )
 {
     int i;
     unsigned char temp[16];

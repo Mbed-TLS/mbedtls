@@ -89,7 +89,7 @@ void mbedtls_camellia_init( mbedtls_camellia_context *ctx );
 void mbedtls_camellia_free( mbedtls_camellia_context *ctx );
 
 /**
- * \brief          Perform a CAMELLIA key schedule (encryption).
+ * \brief          Perform a CAMELLIA key schedule operation for encryption.
  *
  * \param ctx      The CAMELLIA context to use. This must be initialized.
  * \param key      The encryption key to use. This must be a readable buffer
@@ -105,7 +105,7 @@ int mbedtls_camellia_setkey_enc( mbedtls_camellia_context *ctx,
                                  unsigned int keybits );
 
 /**
- * \brief          Perform a CAMELLIA key schedule (decryption).
+ * \brief          Perform a CAMELLIA key schedule operation for decryption.
  *
  * \param ctx      The CAMELLIA context to use. This must be initialized.
  * \param key      The decryption key. This must be a readable buffer
@@ -121,7 +121,7 @@ int mbedtls_camellia_setkey_dec( mbedtls_camellia_context *ctx,
                                  unsigned int keybits );
 
 /**
- * \brief          Perform a CAMELLIA-ECB block encryption/decryption.
+ * \brief          Perform a CAMELLIA-ECB block encryption/decryption operation.
  *
  * \param ctx      The CAMELLIA context to use. This must be initialized
  *                 and bound to a key.
@@ -142,7 +142,7 @@ int mbedtls_camellia_crypt_ecb( mbedtls_camellia_context *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 /**
- * \brief          Perform a CAMELLIA-CBC buffer encryption/decryption.
+ * \brief          Perform a CAMELLIA-CBC buffer encryption/decryption operation.
  *
  * \note           Upon exit, the content of the IV is updated so that you can
  *                 call the function same function again on the following
@@ -157,7 +157,7 @@ int mbedtls_camellia_crypt_ecb( mbedtls_camellia_context *ctx,
  * \param mode     The mode of operation. This must be either
  *                 #MBEDTLS_CAMELLIA_ENCRYPT or #MBEDTLS_CAMELLIA_DECRYPT.
  * \param length   The length in Bytes of the input data \p input.
- *                 This must be a multiple of \c 16.
+ *                 This must be a multiple of \c 16 Bytes.
  * \param iv       The initialization vector. This must be a read/write buffer
  *                 of length \c 16 Bytes. It is updated to allow streaming
  *                 use as explained above.
@@ -179,13 +179,14 @@ int mbedtls_camellia_crypt_cbc( mbedtls_camellia_context *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
 /**
- * \brief          Perform a CAMELLIA-CFB128 buffer encryption/decryption.
+ * \brief          Perform a CAMELLIA-CFB128 buffer encryption/decryption
+ *                 operation.
  *
- * \note           Due to the nature of CFB you should use the same key
- *                 schedule for both encryption and decryption. So a
- *                 context initialized with mbedtls_camellia_setkey_enc()
- *                 for both #MBEDTLS_CAMELLIA_ENCRYPT and
- *                 #MBEDTLS_CAMELLIA_DECRYPT.
+ * \note           Due to the nature of CFB mode, you should use the same
+ *                 key for both encryption and decryption. In particular, calls
+ *                 to this function should be preceded by a key-schedule via
+ *                 mbedtls_camellia_setkey_enc() regardless of whether \p mode
+ *                 is #MBEDTLS_CAMELLIA_ENCRYPT or #MBEDTLS_CAMELLIA_DECRYPT.
  *
  * \note           Upon exit, the content of the IV is updated so that you can
  *                 call the function same function again on the following
@@ -225,13 +226,13 @@ int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
 /**
- * \brief      CAMELLIA-CTR buffer encryption/decryption
+ * \brief      Perform a CAMELLIA-CTR buffer encryption/decryption operation.
  *
- * \note       Due to the nature of CTR you should use the same key
- *             schedule for both encryption and decryption. So a
- *             context initialized with mbedtls_camellia_setkey_enc()
- *             for both #MBEDTLS_CAMELLIA_ENCRYPT and
- *             #MBEDTLS_CAMELLIA_DECRYPT.
+ * *note       Due to the nature of CTR mode, you should use the same
+ *             key for both encryption and decryption. In particular, calls
+ *             to this function should be preceded by a key-schedule via
+ *             mbedtls_camellia_setkey_enc() regardless of whether \p mode
+ *             is #MBEDTLS_CAMELLIA_ENCRYPT or #MBEDTLS_CAMELLIA_DECRYPT.
  *
  * \warning    You must never reuse a nonce value with the same key. Doing so
  *             would void the encryption for the two messages encrypted with
@@ -254,21 +255,22 @@ int mbedtls_camellia_crypt_cfb128( mbedtls_camellia_context *ctx,
  *             per-message nonce, handled by yourself, and the second one
  *             updated by this function internally.
  *
- *             For example, you might reserve the first 12 bytes for the
- *             per-message nonce, and the last 4 bytes for internal use. In that
- *             case, before calling this function on a new message you need to
- *             set the first 12 bytes of \p nonce_counter to your chosen nonce
- *             value, the last 4 to 0, and \p nc_off to 0 (which will cause \p
- *             stream_block to be ignored). That way, you can encrypt at most
- *             2**96 messages of up to 2**32 blocks each with the same key.
+ *             For example, you might reserve the first \c 12 Bytes for the
+ *             per-message nonce, and the last \c 4 Bytes for internal use.
+ *             In that case, before calling this function on a new message you
+ *             need to set the first \c 12 Bytes of \p nonce_counter to your
+ *             chosen nonce value, the last four to \c 0, and \p nc_off to \c 0
+ *             (which will cause \p stream_block to be ignored). That way, you
+ *             can encrypt at most \c 2**96 messages of up to \c 2**32 blocks
+ *             each  with the same key.
  *
  *             The per-message nonce (or information sufficient to reconstruct
- *             it) needs to be communicated with the ciphertext and must be unique.
- *             unique. The recommended way to ensure uniqueness is to use a message
- *             counter. An alternative is to generate random nonces, but this
- *             limits the number of messages that can be securely encrypted:
- *             for example, with 96-bit random nonces, you should not encrypt
- *             more than 2**32 messages with the same key.
+ *             it) needs to be communicated with the ciphertext and must be.
+ *             unique. The recommended way to ensure uniqueness is to use a
+ *             message counter. An alternative is to generate random nonces,
+ *             but this limits the number of messages that can be securely
+ *             encrypted: for example, with 96-bit random nonces, you should
+ *             not encrypt more than 2**32 messages with the same key.
  *
  *             Note that for both stategies, sizes are measured in blocks and
  *             that a CAMELLIA block is \c 16 bytes.

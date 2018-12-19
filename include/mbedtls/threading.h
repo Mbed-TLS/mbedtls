@@ -47,6 +47,16 @@ typedef struct mbedtls_threading_mutex_t {
 } mbedtls_threading_mutex_t;
 #endif
 
+#if defined(MBEDTLS_THREADING_SRWLOCK)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <synchapi.h>
+typedef struct mbedtls_threading_mutex_t
+{
+    SRWLOCK lock;
+} mbedtls_threading_mutex_t;
+#endif
+
 #if defined(MBEDTLS_THREADING_ALT)
 /* You should define the mbedtls_threading_mutex_t type in your header */
 #include "threading_alt.h"

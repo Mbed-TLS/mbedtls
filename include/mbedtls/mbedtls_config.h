@@ -1941,6 +1941,17 @@
 //#define MBEDTLS_THREADING_PTHREAD
 
 /**
+ * \def MBEDTLS_THREADING_SRWLOCK
+ *
+ * Enable the Windows SRW Locks wrapper layer for the threading layer.
+ *
+ * Requires: MBEDTLS_THREADING_C
+ *
+ * Uncomment this to enable SRW Lock mutexes.
+ */
+#define MBEDTLS_THREADING_SRWLOCK
+
+/**
  * \def MBEDTLS_USE_PSA_CRYPTO
  *
  * Make the X.509 and TLS library use PSA for cryptographic operations, and
@@ -3307,11 +3318,11 @@
  * provided).
  *
  * You will have to enable either MBEDTLS_THREADING_ALT or
- * MBEDTLS_THREADING_PTHREAD.
+ * MBEDTLS_THREADING_PTHREAD or MBEDTLS_THREADING_SRWLOCK
  *
  * Enable this layer to allow use of mutexes within mbed TLS
  */
-//#define MBEDTLS_THREADING_C
+#define MBEDTLS_THREADING_C
 
 /**
  * \def MBEDTLS_TIMING_C

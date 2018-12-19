@@ -1591,7 +1591,7 @@
  *
  * Uncomment this to enable SRW Lock mutexes.
  */
-#define MBEDTLS_THREADING_SRWLOCK
+//#define MBEDTLS_THREADING_SRWLOCK
 
 /**
  * \def MBEDTLS_VERSION_FEATURES
@@ -2783,7 +2783,7 @@
  *
  * Enable this layer to allow use of mutexes within mbed TLS
  */
-#define MBEDTLS_THREADING_C
+//#define MBEDTLS_THREADING_C
 
 /**
  * \def MBEDTLS_TIMING_C

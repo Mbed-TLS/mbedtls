@@ -90,10 +90,12 @@ void valid_parameters( )
     TEST_ASSERT( mbedtls_pk_setup( &pk, NULL ) ==
                  MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
+    /* In informational functions, we accept NULL where a context pointer
+     * is expected because that's what the library has done forever.
+     * We do not document that NULL is accepted, so we may wish to change
+     * the behavior in a future version. */
     TEST_ASSERT( mbedtls_pk_get_bitlen( NULL ) == 0 );
-
     TEST_ASSERT( mbedtls_pk_get_len( NULL ) == 0 );
-
     TEST_ASSERT( mbedtls_pk_can_do( NULL, MBEDTLS_PK_NONE ) == 0 );
 
     TEST_ASSERT( mbedtls_pk_sign_restartable( &pk,

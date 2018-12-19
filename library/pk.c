@@ -183,6 +183,9 @@ int mbedtls_pk_setup_rsa_alt( mbedtls_pk_context *ctx, void * key,
  */
 int mbedtls_pk_can_do( const mbedtls_pk_context *ctx, mbedtls_pk_type_t type )
 {
+    /* A context with null pk_info is not set up yet and can't do anything.
+     * For backward compatibility, also accept NULL instead of a context
+     * pointer. */
     if( ctx == NULL || ctx->pk_info == NULL )
         return( 0 );
 
@@ -493,6 +496,8 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
  */
 size_t mbedtls_pk_get_bitlen( const mbedtls_pk_context *ctx )
 {
+    /* For backward compatibility, accept NULL or a context that
+     * isn't set up yet, and return a fake value that should be safe. */
     if( ctx == NULL || ctx->pk_info == NULL )
         return( 0 );
 

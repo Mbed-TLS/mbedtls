@@ -856,7 +856,7 @@ void mbedtls_strerror( int ret, char *buf, size_t buflen )
     if( use_ret == -(MBEDTLS_ERR_SHA1_HW_ACCEL_FAILED) )
         mbedtls_snprintf( buf, buflen, "SHA1 - SHA-1 hardware accelerator failed" );
     if( use_ret == -(MBEDTLS_ERR_SHA1_BAD_INPUT_DATA) )
-        mbedtls_snprintf( buf, buflen, "SHA1 - Invalid input data" );
+        mbedtls_snprintf( buf, buflen, "SHA1 - SHA-1 input data was malformed" );
 #endif /* MBEDTLS_SHA1_C */
 
 #if defined(MBEDTLS_SHA256_C)

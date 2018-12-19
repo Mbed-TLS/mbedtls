@@ -1010,8 +1010,6 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
     CIPHER_VALIDATE_RET( ilen == 0 || input != NULL );
     CIPHER_VALIDATE_RET( output != NULL );
     CIPHER_VALIDATE_RET( olen != NULL );
-    if( ctx->cipher_info == NULL )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
     if( ( ret = mbedtls_cipher_set_iv( ctx, iv, iv_len ) ) != 0 )
         return( ret );
@@ -1048,8 +1046,6 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
     CIPHER_VALIDATE_RET( output != NULL );
     CIPHER_VALIDATE_RET( olen != NULL );
     CIPHER_VALIDATE_RET( tag_len == 0 || tag != NULL );
-    if( ctx->cipher_info == NULL )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )
@@ -1105,8 +1101,6 @@ int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
     CIPHER_VALIDATE_RET( output != NULL );
     CIPHER_VALIDATE_RET( olen != NULL );
     CIPHER_VALIDATE_RET( tag_len == 0 || tag != NULL );
-    if( ctx->cipher_info == NULL )
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_GCM_C)
     if( MBEDTLS_MODE_GCM == ctx->cipher_info->mode )

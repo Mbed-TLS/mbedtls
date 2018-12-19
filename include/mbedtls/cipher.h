@@ -600,9 +600,8 @@ int mbedtls_cipher_set_padding_mode( mbedtls_cipher_context_t *ctx,
  *
  * \param ctx       The generic cipher context. This must be initialized and
  *                  bound to a cipher information structure.
- * \param iv        The IV to use, or NONCE_COUNTER for CTR-mode ciphers. If
- *                  `iv_len > 0`, this may be \c NULL, otherwise this must be a
- *                  readable buffer of at least \p iv_len Bytes.
+ * \param iv        The IV to use, or NONCE_COUNTER for CTR-mode ciphers. This
+ *                  must be a readable buffer of at least \p iv_len Bytes.
  * \param iv_len    The IV length for ciphers with variable-size IV.
  *                  This parameter is discarded by ciphers with fixed-size IV.
  *
@@ -633,9 +632,8 @@ int mbedtls_cipher_reset( mbedtls_cipher_context_t *ctx );
  *                      mbedtls_cipher_reset().
  *
  * \param ctx           The generic cipher context. This must be initialized.
- * \param ad            The additional data to use. If `ad_len > 0`, then this
- *                      must be a readable buffer of at least \p ad_len Bytes,
- *                      otherwise this may be \c NULL.
+ * \param ad            The additional data to use. This must be a readable
+ *                      buffer of at least \p ad_len Bytes.
  * \param ad_len        the Length of \p ad Bytes.
  *
  * \return              \c 0 on success.
@@ -663,8 +661,7 @@ int mbedtls_cipher_update_ad( mbedtls_cipher_context_t *ctx,
  * \param ctx           The generic cipher context. This must be initialized and
  *                      bound to a key.
  * \param input         The buffer holding the input data. This must be a
- *                      readable buffer of at least \p ilen Bytes. If
- *                      `ilen == 0`, this may be \c NULL.
+ *                      readable buffer of at least \p ilen Bytes.
  * \param ilen          The length of the input data.
  * \param output        The buffer for the output data. This must be able to
  *                      hold at least `ilen + block_size`. This must not be the
@@ -719,8 +716,7 @@ int mbedtls_cipher_finish( mbedtls_cipher_context_t *ctx,
  *                      operation through mbedtls_cipher_finish() the tag for
  *                      which should be written.
  * \param tag           The buffer to write the tag to. This must be a writable
- *                      buffer of at least \p tag_len Bytes. If `tag_len == 0`,
- *                      this may be \c NULL.
+ *                      buffer of at least \p tag_len Bytes.
  * \param tag_len       The length of the tag to write.
  *
  * \return              \c 0 on success.
@@ -735,9 +731,8 @@ int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
  *                      This must be called after mbedtls_cipher_finish().
  *
  * \param ctx           The generic cipher context. This must be initialized.
- * \param tag           The buffer holding the tag. If `tag_len > 0`, then this
- *                      must be a readable buffer of at least \p tag_len Bytes,
- *                      otherwise this may be \c NULL.
+ * \param tag           The buffer holding the tag. This must be a readable
+ *                      buffer of at least \p tag_len Bytes.
  * \param tag_len       The length of the tag to check.
  *
  * \return              \c 0 on success.
@@ -753,14 +748,13 @@ int mbedtls_cipher_check_tag( mbedtls_cipher_context_t *ctx,
  *
  * \param ctx           The generic cipher context. This must be initialized.
  * \param iv            The IV to use, or NONCE_COUNTER for CTR-mode ciphers.
- *                      If `iv_len > 0`, this must be a readable buffer of at
- *                      least \p iv_len Bytes, otherwise this may be \c NULL.
+ *                      This must be a readable buffer of at least \p iv_len
+ *                      Bytes.
  * \param iv_len        The IV length for ciphers with variable-size IV.
  *                      This parameter is discarded by ciphers with fixed-size
  *                      IV.
- * \param input         The buffer holding the input data. If `ilen > 0`, then
- *                      this must be a readable buffer of at least \p ilen
- *                      Bytes, otherwise this may be \c NULL.
+ * \param input         The buffer holding the input data. This must be a
+ *                      readable buffer of at least \p ilen Bytes.
  * \param ilen          The length of the input data in Bytes.
  * \param output        The buffer for the output data. This must be able to
  *                      hold at least `ilen + block_size`. This must not be the
@@ -797,22 +791,19 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
  *                      Bytes.
  * \param iv_len        The IV length for ciphers with variable-size IV.
  *                      This parameter is discarded by ciphers with fixed-size IV.
- * \param ad            The additional data to authenticate. If `ad_len > 0`,
- *                      this must be a readable buffer of at least \p ad_len
- *                      Bytes, otherwise this may be \c NULL.
+ * \param ad            The additional data to authenticate. This must be a
+ *                      readable buffer of at least \p ad_len Bytes.
  * \param ad_len        The length of \p ad.
- * \param input         The buffer holding the input data. If `ilen > 0`, then
- *                      this must be a readable buffer of at least \p ilen
- *                      Bytes, otherwise this may be \c NULL.
+ * \param input         The buffer holding the input data. This must be a
+ *                      readable buffer of at least \p ilen Bytes.
  * \param ilen          The length of the input data.
  * \param output        The buffer for the output data. This must be able to
  *                      hold at least \p ilen Bytes.
  * \param olen          The length of the output data, to be updated with the
  *                      actual number of Bytes written. This must not be
  *                      \c NULL.
- * \param tag           The buffer for the authentication tag. If `tag_len > 0`,
- *                      then this must be a writable buffer of at least
- *                      \p tag_len Bytes, otherwise this may be \c NULL.
+ * \param tag           The buffer for the authentication tag. This must be a
+ *                      writable buffer of at least \p tag_len Bytes.
  * \param tag_len       The desired length of the authentication tag.
  *
  * \return              \c 0 on success.
@@ -841,22 +832,19 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
  *                      Bytes.
  * \param iv_len        The IV length for ciphers with variable-size IV.
  *                      This parameter is discarded by ciphers with fixed-size IV.
- * \param ad            The additional data to be authenticated. If `ad_len > 0`,
- *                      this must be a readable buffer of at least \p ad_len
- *                      Bytes, otherwise this may be \c NULL.
+ * \param ad            The additional data to be authenticated. This must be a
+ *                      readable buffer of at least \p ad_len Bytes.
  * \param ad_len        The length of \p ad.
- * \param input         The buffer holding the input data. If `ilen > 0`, then
- *                      this must be a readable buffer of at least \p ilen
- *                      Bytes, otherwise, this may be \c NULL.
+ * \param input         The buffer holding the input data. This must be a
+ *                      readable buffer of at least \p ilen Bytes.
  * \param ilen          The length of the input data.
  * \param output        The buffer for the output data.
  *                      This must be able to hold at least \p ilen Bytes.
  * \param olen          The length of the output data, to be updated with the
  *                      actual number of Bytes written. This must not be
  *                      \c NULL.
- * \param tag           The buffer holding the authentication tag. If
- *                      `tag_len > 0`, then this must be a readable buffer of at
- *                      least \p tag_len Bytes, otherwise this can be \c NULL.
+ * \param tag           The buffer holding the authentication tag. This must be
+ *                      a readable buffer of at least \p tag_len Bytes.
  * \param tag_len       The length of the authentication tag.
  *
  * \return              \c 0 on success.

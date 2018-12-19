@@ -145,8 +145,7 @@ int mbedtls_sha512_finish_ret( mbedtls_sha512_context *ctx,
  * \brief          This function processes a single data block within
  *                 the ongoing SHA-512 computation.
  *
- * \param ctx      The SHA-512 context. This must be initialized
- *                 and have a hash operation started.
+ * \param ctx      The SHA-512 context. This must be initialized.
  * \param data     The buffer holding one block of data. This
  *                 must be a readable buffer of length \c 128 Bytes.
  *
@@ -211,8 +210,7 @@ MBEDTLS_DEPRECATED void mbedtls_sha512_finish( mbedtls_sha512_context *ctx,
  *
  * \deprecated     Superseded by mbedtls_internal_sha512_process() in 2.7.0.
  *
- * \param ctx      The SHA-512 context. This must be initialized and
- *                 have a hash operation started.
+ * \param ctx      The SHA-512 context. This must be initialized.
  * \param data     The buffer holding one block of data. This must be
  *                 a readable buffer of length \c 128 Bytes.
  */

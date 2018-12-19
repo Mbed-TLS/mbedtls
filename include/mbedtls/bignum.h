@@ -196,7 +196,7 @@ mbedtls_mpi;
 void mbedtls_mpi_init( mbedtls_mpi *X );
 
 /**
- * \brief          This function frees the components an MPI context.
+ * \brief          This function frees the components of an MPI context.
  *
  * \param X        The MPI context to be cleared. This may be \c NULL,
  *                 in which case this function is a no-op. If it is
@@ -693,7 +693,7 @@ int mbedtls_mpi_mul_int( mbedtls_mpi *X, const mbedtls_mpi *A,
  * \param R        The destination MPI for the remainder value.
  *                 This may be \c NULL if the value of the
  *                 remainder is not needed.
- * \param A        The divident. This must point to an initialized MPi.
+ * \param A        The dividend. This must point to an initialized MPi.
  * \param B        The divisor. This must point to an initialized MPI.
  *
  * \return         \c 0 if successful.
@@ -714,7 +714,7 @@ int mbedtls_mpi_div_mpi( mbedtls_mpi *Q, mbedtls_mpi *R, const mbedtls_mpi *A,
  * \param R        The destination MPI for the remainder value.
  *                 This may be \c NULL if the value of the
  *                 remainder is not needed.
- * \param A        The divident. This must point to an initialized MPi.
+ * \param A        The dividend. This must point to an initialized MPi.
  * \param b        The divisor.
  *
  * \return         \c 0 if successful.
@@ -776,7 +776,7 @@ int mbedtls_mpi_mod_int( mbedtls_mpi_uint *r, const mbedtls_mpi *A,
  * \param _RR      A helper MPI depending solely on \p N which can be used to
  *                 speed-up multiple modular exponentiations for the same value
  *                 of \p N. This may be \c NULL. If it is not \c NULL, it must
- *                 point an initialized MPI. If it hasn't been used after
+ *                 point to an initialized MPI. If it hasn't been used after
  *                 the call to mbedtls_mpi_init(), this function will compute
  *                 the helper value and store it in \p _RR for reuse on
  *                 subsequent calls to this function. Otherwise, the function

@@ -724,7 +724,7 @@ int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf, size_t bu
     size_t i, j;
     size_t const limbs = CHARS_TO_LIMBS( buflen );
 
-    MPI_VALIDATE_RET( X   != NULL );
+    MPI_VALIDATE_RET( X != NULL );
     MPI_VALIDATE_RET( buflen == 0 || buf != NULL );
 
     /* Ensure that target MPI has exactly the necessary number of limbs */
@@ -2009,7 +2009,7 @@ int mbedtls_mpi_fill_random( mbedtls_mpi *X, size_t size,
 {
     int ret;
     unsigned char buf[MBEDTLS_MPI_MAX_SIZE];
-    MPI_VALIDATE_RET( X != NULL );
+    MPI_VALIDATE_RET( X     != NULL );
     MPI_VALIDATE_RET( f_rng != NULL );
 
     if( size > MBEDTLS_MPI_MAX_SIZE )
@@ -2192,7 +2192,7 @@ static int mpi_miller_rabin( const mbedtls_mpi *X, size_t rounds,
     size_t i, j, k, s;
     mbedtls_mpi W, R, T, A, RR;
 
-    MPI_VALIDATE_RET( X != NULL );
+    MPI_VALIDATE_RET( X     != NULL );
     MPI_VALIDATE_RET( f_rng != NULL );
 
     mbedtls_mpi_init( &W ); mbedtls_mpi_init( &R );
@@ -2284,7 +2284,7 @@ int mbedtls_mpi_is_prime_ext( const mbedtls_mpi *X, int rounds,
 {
     int ret;
     mbedtls_mpi XX;
-    MPI_VALIDATE_RET( X != NULL );
+    MPI_VALIDATE_RET( X     != NULL );
     MPI_VALIDATE_RET( f_rng != NULL );
 
     XX.s = 1;
@@ -2317,7 +2317,7 @@ int mbedtls_mpi_is_prime( const mbedtls_mpi *X,
                   int (*f_rng)(void *, unsigned char *, size_t),
                   void *p_rng )
 {
-    MPI_VALIDATE_RET( X != NULL );
+    MPI_VALIDATE_RET( X     != NULL );
     MPI_VALIDATE_RET( f_rng != NULL );
 
     /*
@@ -2353,7 +2353,7 @@ int mbedtls_mpi_gen_prime( mbedtls_mpi *X, size_t nbits, int flags,
     mbedtls_mpi_uint r;
     mbedtls_mpi Y;
 
-    MPI_VALIDATE_RET( X != NULL );
+    MPI_VALIDATE_RET( X     != NULL );
     MPI_VALIDATE_RET( f_rng != NULL );
 
     if( nbits < 3 || nbits > MBEDTLS_MPI_MAX_BITS )

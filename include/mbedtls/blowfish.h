@@ -94,7 +94,7 @@ void mbedtls_blowfish_init( mbedtls_blowfish_context *ctx );
 void mbedtls_blowfish_free( mbedtls_blowfish_context *ctx );
 
 /**
- * \brief          Perform a Blowfish key schedule.
+ * \brief          Perform a Blowfish key schedule operation.
  *
  * \param ctx      The Blowfish context to perform the key schedule on.
  * \param key      The encryption key. This must be a readable buffer of
@@ -109,7 +109,7 @@ int mbedtls_blowfish_setkey( mbedtls_blowfish_context *ctx, const unsigned char 
                      unsigned int keybits );
 
 /**
- * \brief          Perform a Blowfish-ECB block encryption/decryption.
+ * \brief          Perform a Blowfish-ECB block encryption/decryption operation.
  *
  * \param ctx      The Blowfish context to use. This must be initialized
  *                 and bound to a key.
@@ -131,7 +131,7 @@ int mbedtls_blowfish_crypt_ecb( mbedtls_blowfish_context *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
 /**
- * \brief          Perform a Blowfish-CBC buffer encryption/decryption.
+ * \brief          Perform a Blowfish-CBC buffer encryption/decryption operation.
  *
  * \note           Upon exit, the content of the IV is updated so that you can
  *                 call the function same function again on the following
@@ -168,7 +168,7 @@ int mbedtls_blowfish_crypt_cbc( mbedtls_blowfish_context *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_CFB)
 /**
- * \brief          Perform a Blowfish CFB buffer encryption/decryption.
+ * \brief          Perform a Blowfish CFB buffer encryption/decryption operation.
  *
  * \note           Upon exit, the content of the IV is updated so that you can
  *                 call the function same function again on the following
@@ -209,7 +209,7 @@ int mbedtls_blowfish_crypt_cfb64( mbedtls_blowfish_context *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_CTR)
 /**
- * \brief      Perform a Blowfish-CTR buffer encryption/decryption.
+ * \brief      Perform a Blowfish-CTR buffer encryption/decryption operation.
  *
  * \warning    You must never reuse a nonce value with the same key. Doing so
  *             would void the encryption for the two messages encrypted with
@@ -256,7 +256,7 @@ int mbedtls_blowfish_crypt_cfb64( mbedtls_blowfish_context *ctx,
  *                      and bound to a key.
  * \param length        The length of the input data in Bytes.
  * \param nc_off        The offset in the current stream_block (for resuming
- *                      within current cipher stream). The offset pointer to
+ *                      within current cipher stream). The offset pointer
  *                      should be \c 0 at the start of a stream and must be
  *                      smaller than \c 8. It is updated by this function.
  * \param nonce_counter The 64-bit nonce and counter. This must point to a

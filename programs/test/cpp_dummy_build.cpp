@@ -45,7 +45,6 @@
 #include "mbedtls/cipher.h"
 #include "mbedtls/cipher_internal.h"
 #include "mbedtls/cmac.h"
-#include "mbedtls/compat-1.3.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/debug.h"
 #include "mbedtls/des.h"

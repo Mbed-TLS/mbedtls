@@ -46,6 +46,11 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
+#define SHA1_VALIDATE_RET(cond)                             \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
+
+#define SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+
 #if !defined(MBEDTLS_SHA1_ALT)
 
 /*
@@ -70,11 +75,6 @@
     (b)[(i) + 3] = (unsigned char) ( (n)       );       \
 }
 #endif
-
-#define SHA1_VALIDATE_RET(cond)                             \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA1_BAD_INPUT_DATA )
-
-#define SHA1_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
 
 void mbedtls_sha1_init( mbedtls_sha1_context *ctx )
 {

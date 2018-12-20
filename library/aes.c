@@ -575,7 +575,6 @@ int mbedtls_aes_setkey_enc( mbedtls_aes_context *ctx, const unsigned char *key,
     {
         aes_gen_tables();
         aes_init_done = 1;
-
     }
 #endif
 
@@ -771,6 +770,9 @@ int mbedtls_aes_xts_setkey_enc( mbedtls_aes_xts_context *ctx,
     const unsigned char *key1, *key2;
     unsigned int key1bits, key2bits;
 
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( key != NULL );
+
     ret = mbedtls_aes_xts_decode_keys( key, keybits, &key1, &key1bits,
                                        &key2, &key2bits );
     if( ret != 0 )
@@ -792,6 +794,9 @@ int mbedtls_aes_xts_setkey_dec( mbedtls_aes_xts_context *ctx,
     int ret;
     const unsigned char *key1, *key2;
     unsigned int key1bits, key2bits;
+
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( key != NULL );
 
     ret = mbedtls_aes_xts_decode_keys( key, keybits, &key1, &key1bits,
                                        &key2, &key2bits );
@@ -996,10 +1001,16 @@ void mbedtls_aes_decrypt( mbedtls_aes_context *ctx,
  * AES-ECB block encryption/decryption
  */
 int mbedtls_aes_crypt_ecb( mbedtls_aes_context *ctx,
-                    int mode,
-                    const unsigned char input[16],
-                    unsigned char output[16] )
+                           int mode,
+                           const unsigned char input[16],
+                           unsigned char output[16] )
 {
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( input != NULL );
+    AES_VALIDATE_RET( output != NULL );
+    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
+                      mode == MBEDTLS_AES_DECRYPT );
+
 #if defined(MBEDTLS_AESNI_C) && defined(MBEDTLS_HAVE_X86_64)
     if( mbedtls_aesni_has_support( MBEDTLS_AESNI_AES ) )
         return( mbedtls_aesni_crypt_ecb( ctx, mode, input, output ) );
@@ -1036,6 +1047,13 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
 {
     int i;
     unsigned char temp[16];
+
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
+                      mode == MBEDTLS_AES_DECRYPT );
+    AES_VALIDATE_RET( iv != NULL );
+    AES_VALIDATE_RET( input != NULL );
+    AES_VALIDATE_RET( output != NULL );
 
     if( length % 16 )
         return( MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH );
@@ -1162,6 +1180,13 @@ int mbedtls_aes_crypt_xts( mbedtls_aes_xts_context *ctx,
     unsigned char prev_tweak[16];
     unsigned char tmp[16];
 
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
+                      mode == MBEDTLS_AES_DECRYPT );
+    AES_VALIDATE_RET( data_unit != NULL );
+    AES_VALIDATE_RET( input != NULL );
+    AES_VALIDATE_RET( output != NULL );
+
     /* Data units must be at least 16 bytes long. */
     if( length < 16 )
         return MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH;
@@ -1261,7 +1286,20 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
                        unsigned char *output )
 {
     int c;
-    size_t n = *iv_off;
+    size_t n;
+
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
+                      mode == MBEDTLS_AES_DECRYPT );
+    AES_VALIDATE_RET( iv_off != NULL );
+    AES_VALIDATE_RET( iv != NULL );
+    AES_VALIDATE_RET( input != NULL );
+    AES_VALIDATE_RET( output != NULL );
+
+    n = *iv_off;
+
+    if( n > 15 )
+        return( MBEDTLS_ERR_AES_BAD_INPUT_DATA );
 
     if( mode == MBEDTLS_AES_DECRYPT )
     {
@@ -1299,15 +1337,21 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
  * AES-CFB8 buffer encryption/decryption
  */
 int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
-                       int mode,
-                       size_t length,
-                       unsigned char iv[16],
-                       const unsigned char *input,
-                       unsigned char *output )
+                            int mode,
+                            size_t length,
+                            unsigned char iv[16],
+                            const unsigned char *input,
+                            unsigned char *output )
 {
     unsigned char c;
     unsigned char ov[17];
 
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( mode == MBEDTLS_AES_ENCRYPT ||
+                      mode == MBEDTLS_AES_DECRYPT );
+    AES_VALIDATE_RET( iv != NULL );
+    AES_VALIDATE_RET( input != NULL );
+    AES_VALIDATE_RET( output != NULL );
     while( length-- )
     {
         memcpy( ov, iv, 16 );
@@ -1340,7 +1384,18 @@ int mbedtls_aes_crypt_ofb( mbedtls_aes_context *ctx,
                            unsigned char *output )
 {
     int ret = 0;
-    size_t n = *iv_off;
+    size_t n;
+
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( iv_off != NULL );
+    AES_VALIDATE_RET( iv != NULL );
+    AES_VALIDATE_RET( input != NULL );
+    AES_VALIDATE_RET( output != NULL );
+
+    n = *iv_off;
+
+    if( n > 15 )
+        return( MBEDTLS_ERR_AES_BAD_INPUT_DATA );
 
     while( length-- )
     {
@@ -1375,7 +1430,16 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
                        unsigned char *output )
 {
     int c, i;
-    size_t n = *nc_off;
+    size_t n;
+
+    AES_VALIDATE_RET( ctx != NULL );
+    AES_VALIDATE_RET( nc_off != NULL );
+    AES_VALIDATE_RET( nonce_counter != NULL );
+    AES_VALIDATE_RET( stream_block != NULL );
+    AES_VALIDATE_RET( input != NULL );
+    AES_VALIDATE_RET( output != NULL );
+
+    n = *nc_off;
 
     if ( n > 0x0F )
         return( MBEDTLS_ERR_AES_BAD_INPUT_DATA );

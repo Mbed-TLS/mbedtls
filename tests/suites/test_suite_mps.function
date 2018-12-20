@@ -780,7 +780,7 @@ int transform_encrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec,
                        MPS_L2_MODE_STREAM, &rec_alt.ver[0] );
 
         printf( "Encrypt...\n" );
-        ret = ssl_encrypt_buf( NULL, real, &rec_alt, f_rng, p_rng );
+        ret = mbedtls_ssl_encrypt_buf( NULL, real, &rec_alt, f_rng, p_rng );
         if( ret != 0 )
             return( ret );
 
@@ -890,7 +890,7 @@ int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
         write_version( rec->major_ver, rec->minor_ver,
                        MPS_L2_MODE_STREAM, &rec_alt.ver[0] );
 
-        ret = ssl_decrypt_buf( NULL, real, &rec_alt );
+        ret = mbedtls_ssl_decrypt_buf( NULL, real, &rec_alt );
         if( ret != 0 )
             return( ret );
 

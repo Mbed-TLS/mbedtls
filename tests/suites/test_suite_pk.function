@@ -207,6 +207,9 @@ void invalid_parameters( )
     mbedtls_md_type_t valid_md = MBEDTLS_MD_SHA256;
     void *options = buf;
 
+    (void) null_buf;
+    (void) p;
+
     mbedtls_pk_init( &pk );
 
     TEST_INVALID_PARAM( mbedtls_pk_init( NULL ) );

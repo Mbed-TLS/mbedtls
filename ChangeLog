@@ -15,6 +15,8 @@ Bugfix
    * Add explicit integer to enumeration type casts to example program
      programs/pkey/gen_key which previously led to compilation failure
      on some toolchains. Reported by phoenixmcallister. Fixes #2170.
+   * Clarify documentation of mbedtls_ssl_set_own_cert() regarding the absence
+     of check for certificate/key matching. Reported by Attila Molnar, #507.
 
 = mbed TLS 2.1.17 branch released 2018-11-30
 

@@ -740,28 +740,28 @@ MPS Layer 4 DTLS: 1-byte fragmentation of HS msg with raw backup, repeated
 mbedtls_mps_l4_dtls_fragmentation:47:0:4
 
 MPS Layer 4 DTLS: Reassembly #0
-mbedtls_mps_l4_dtls_reassembly:100:0:1:0
+mbedtls_mps_l4_dtls_reassembly:100:0:1:0:0
 
 MPS Layer 4 DTLS: Reassembly #1
-mbedtls_mps_l4_dtls_reassembly:100:1:4:0
+mbedtls_mps_l4_dtls_reassembly:100:1:4:0:0
 
 MPS Layer 4 DTLS: Reordering #0
-mbedtls_mps_l4_dtls_reassembly:1000:0:4:1
+mbedtls_mps_l4_dtls_reassembly:1000:0:4:1:0
 
 MPS Layer 4 DTLS: Reordering #1
-mbedtls_mps_l4_dtls_reassembly:1000:1:4:1
+mbedtls_mps_l4_dtls_reassembly:1000:1:4:1:0
 
 MPS Layer 4 DTLS: Fragmentation, Reassembly, Reordering #0
-mbedtls_mps_l4_dtls_reassembly:100:0:4:1
+mbedtls_mps_l4_dtls_reassembly:100:0:4:1:0
 
 MPS Layer 4 DTLS: Fragmentation, Reassembly, Reordering #1
-mbedtls_mps_l4_dtls_reassembly:100:0:4:1
+mbedtls_mps_l4_dtls_reassembly:100:0:4:1:1
 
 MPS Layer 4 DTLS: Fragmentation, Reassembly, Reordering #2
-mbedtls_mps_l4_dtls_reassembly:70:0:4:1
+mbedtls_mps_l4_dtls_reassembly:70:0:4:1:1
 
 MPS Layer 4 DTLS: Fragmentation, Reassembly, Reordering #3
-mbedtls_mps_l4_dtls_reassembly:70:1:4:1
+mbedtls_mps_l4_dtls_reassembly:70:1:4:1:1
 
 MPS Layer 4 DTLS: 1 flight, 2 msgs/flight
 mbedtls_mps_l4_dtls_flight_exchange:1000:0:2:1:0:0:0

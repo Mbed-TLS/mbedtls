@@ -66,6 +66,62 @@ void mbedtls_sha1( data_t * src_str, data_t * hex_hash_string )
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+void sha256_valid_param( )
+{
+    TEST_VALID_PARAM( mbedtls_sha256_free( NULL ) );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+void sha256_invalid_param( )
+{
+    mbedtls_sha256_context ctx;
+    unsigned char buf[64] = { 0 };
+    size_t const buflen = sizeof( buf );
+    int valid_type = 0;
+    int invalid_type = 42;
+
+    TEST_INVALID_PARAM( mbedtls_sha256_init( NULL ) );
+
+    TEST_INVALID_PARAM( mbedtls_sha256_clone( NULL, &ctx ) );
+    TEST_INVALID_PARAM( mbedtls_sha256_clone( &ctx, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA,
+                            mbedtls_sha256_starts_ret( NULL, valid_type ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA,
+                            mbedtls_sha256_starts_ret( &ctx, invalid_type ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA,
+                            mbedtls_sha256_update_ret( NULL, buf, buflen ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA,
+                            mbedtls_sha256_update_ret( &ctx, NULL, buflen ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA,
+                            mbedtls_sha256_finish_ret( NULL, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA,
+                            mbedtls_sha256_finish_ret( &ctx, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA,
+                            mbedtls_internal_sha256_process( NULL, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA,
+                            mbedtls_internal_sha256_process( &ctx, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA,
+                            mbedtls_sha256_ret( NULL, buflen,
+                                                buf, valid_type ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA,
+                            mbedtls_sha256_ret( buf, buflen,
+                                                NULL, valid_type ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_SHA256_BAD_INPUT_DATA,
+                            mbedtls_sha256_ret( buf, buflen,
+                                                buf, invalid_type ) );
+
+exit:
+    return;
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
 void sha224( data_t * src_str, data_t * hex_hash_string )
 {
     unsigned char output[57];

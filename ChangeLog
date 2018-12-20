@@ -51,6 +51,8 @@ API Changes
    * Add validation checks for input parameters to functions in the GCM module.
    * Add validation checks for input parameters to functions in the SHA-1
      module.
+   * Add validation checks for input parameters to functions in the SHA-256
+     module.
 
 New deprecations
    * Deprecate mbedtls_ctr_drbg_update and mbedtls_hmac_drbg_update

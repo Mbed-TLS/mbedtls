@@ -49,6 +49,10 @@
 #endif /* MBEDTLS_PLATFORM_C */
 #endif /* MBEDTLS_SELF_TEST */
 
+#define SHA256_VALIDATE_RET(cond)                           \
+    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
+#define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
+
 #if !defined(MBEDTLS_SHA256_ALT)
 
 /*
@@ -73,10 +77,6 @@ do {                                                    \
     (b)[(i) + 3] = (unsigned char) ( (n)       );       \
 } while( 0 )
 #endif
-
-#define SHA256_VALIDATE_RET(cond)                           \
-    MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
-#define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
 
 void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
 {

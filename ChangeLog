@@ -41,7 +41,6 @@ API Changes
      mbedtls_ctr_drbg_update() -> mbedtls_ctr_drbg_update_ret()
      mbedtls_hmac_drbg_update() -> mbedtls_hmac_drbg_update_ret()
    * Extend ECDH interface to enable alternative implementations.
-<<<<<<< HEAD
    * Deprecate the ARIA error MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH
      in favour of a new generic error MBEDTLS_ERR_ARIA_BAD_INPUT_DATA.
    * Deprecate the CAMELLIA error MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH
@@ -55,6 +54,8 @@ API Changes
    * Add validation checks for input parameters to functions in the SHA-256
      module.
    * Add validation checks for input parameters to functions in the SHA-512
+     module.
+   * Add validation checks for input parameters to functions in the Cipher
      module.
 
 New deprecations

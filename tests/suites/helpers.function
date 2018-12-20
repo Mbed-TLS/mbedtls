@@ -632,4 +632,3 @@ int hexcmp( uint8_t * a, uint8_t * b, uint32_t a_len, uint32_t b_len )
     }
     return ret;
 }
-

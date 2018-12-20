@@ -155,33 +155,6 @@ void ecdsa_invalid_param( )
                                                            rnd_std_rand,
                                                            NULL, NULL ) );
 
-#if defined(MBEDTLS_ECDSA_DETERMINISTIC) && !defined(MBEDTLS_DEPRECATED_REMOVED)
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                       mbedtls_ecdsa_write_signature_det( NULL,
-                                                               buf,
-                                                               sizeof( buf ),
-                                                               buf, &slen,
-                                                               valid_md ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                       mbedtls_ecdsa_write_signature_det( &ctx,
-                                                               NULL,
-                                                               sizeof( buf ),
-                                                               buf, &slen,
-                                                               valid_md ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                       mbedtls_ecdsa_write_signature_det( &ctx,
-                                                               buf,
-                                                               sizeof( buf ),
-                                                               NULL, &slen,
-                                                               valid_md ) );
-    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
-                       mbedtls_ecdsa_write_signature_det( &ctx,
-                                                               buf,
-                                                               sizeof( buf ),
-                                                               buf, NULL,
-                                                               valid_md ) );
-#endif /* MBEDTLS_ECDSA_DETERMINISTIC && !MBEDTLS_DEPRECATED_REMOVED */
-
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_ECP_BAD_INPUT_DATA,
                        mbedtls_ecdsa_read_signature( NULL,
                                                         buf, sizeof( buf ),

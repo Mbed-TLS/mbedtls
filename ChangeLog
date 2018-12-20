@@ -2,26 +2,6 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.xx.x branch released xxxx-xx-xx
 
-Security
-   * Fix timing variations and memory access variations in RSA PKCS#1 v1.5
-     decryption that could lead to a Bleichenbacher-style padding oracle
-     attack. In TLS, this affects servers that accept ciphersuites based on
-     RSA decryption (i.e. ciphersuites whose name contains RSA but not
-     (EC)DH(E)). Discovered by Eyal Ronen (Weizmann Institute),  Robert Gillham
-     (University of Adelaide), Daniel Genkin (University of Michigan),
-     Adi Shamir (Weizmann Institute), David Wong (NCC Group), and Yuval Yarom
-     (University of Adelaide, Data61). The attack is described in more detail
-     in the paper available here: http://cat.eyalro.net/cat.pdf  CVE-2018-19608
-   * In mbedtls_mpi_write_binary(), don't leak the exact size of the number
-     via branching and memory access patterns. An attacker who could submit
-     a plaintext for RSA PKCS#1 v1.5 decryption but only observe the timing
-     of the decryption and not its result could nonetheless decrypt RSA
-     plaintexts and forge RSA signatures. Other asymmetric algorithms may
-     have been similarly vulnerable. Reported by Eyal Ronen, Robert Gillham,
-     Daniel Genkin, Adi Shamir, David Wong and Yuval Yarom.
-   * Wipe sensitive buffers on the stack in the CTR_DRBG and HMAC_DRBG
-     modules.
-
 Features
    * Add a new config.h option of MBEDTLS_CHECK_PARAMS that enables validation
      of parameters in the API. This allows detection of obvious misuses of the
@@ -41,22 +21,19 @@ API Changes
      mbedtls_ctr_drbg_update() -> mbedtls_ctr_drbg_update_ret()
      mbedtls_hmac_drbg_update() -> mbedtls_hmac_drbg_update_ret()
    * Extend ECDH interface to enable alternative implementations.
-   * Deprecate the ARIA error MBEDTLS_ERR_ARIA_INVALID_KEY_LENGTH
-     in favour of a new generic error MBEDTLS_ERR_ARIA_BAD_INPUT_DATA.
-   * Deprecate the CAMELLIA error MBEDTLS_ERR_CAMELLIA_INVALID_KEY_LENGTH
-     in favour a new generic error MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA.
-   * Deprecate the Blowfish error MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH
-     in favour of a new generic error MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA.
-   * Add validation checks for input parameters to functions in the CCM module.
-   * Add validation checks for input parameters to functions in the GCM module.
-   * Add validation checks for input parameters to functions in the SHA-1
-     module.
-   * Add validation checks for input parameters to functions in the SHA-256
-     module.
-   * Add validation checks for input parameters to functions in the SHA-512
-     module.
-   * Add validation checks for input parameters to functions in the Cipher
-     module.
+   * Deprecate error codes of the form MBEDTLS_ERR_xxx_INVALID_KEY_LENGTH for
+     ARIA, CAMELLIA and Blowfish. These error codes will be replaced by
+     the more generic per-module error codes MBEDTLS_ERR_xxx_BAD_INPUT_DATA.
+   * Additional parameter validation checks have been added for the following
+     modules - AES, ARIA, Blowfish, CAMELLIA, CCM, GCM, DHM, ECP, ECDSA, ECDH,
+     ECJPAKE, SHA, Chacha20 and Poly1305, cipher, pk, RSA, and MPI.
+     Where modules have had parameter validation added, existing parameter
+     checks may have changed. Some modules, such as Chacha20 had existing
+     parameter validation whereas other modules had little. This has now been
+     changed so that the same level of validation is present in all modules, and
+     that it is now optional with the MBEDTLS_CHECK_PARAMS flag which by default
+     is off. That means that checks which were previously present by default
+     will no longer be.
 
 New deprecations
    * Deprecate mbedtls_ctr_drbg_update and mbedtls_hmac_drbg_update
@@ -79,6 +56,35 @@ Bugfix
      hang.
    * Clarify documentation of mbedtls_ssl_set_own_cert() regarding the absence
      of check for certificate/key matching. Reported by Attila Molnar, #507.
+
+= mbed TLS 2.14.1 branch released 2018-11-30
+
+Security
+   * Fix timing variations and memory access variations in RSA PKCS#1 v1.5
+     decryption that could lead to a Bleichenbacher-style padding oracle
+     attack. In TLS, this affects servers that accept ciphersuites based on
+     RSA decryption (i.e. ciphersuites whose name contains RSA but not
+     (EC)DH(E)). Discovered by Eyal Ronen (Weizmann Institute),  Robert Gillham
+     (University of Adelaide), Daniel Genkin (University of Michigan),
+     Adi Shamir (Weizmann Institute), David Wong (NCC Group), and Yuval Yarom
+     (University of Adelaide, Data61). The attack is described in more detail
+     in the paper available here: http://cat.eyalro.net/cat.pdf  CVE-2018-19608
+   * In mbedtls_mpi_write_binary(), don't leak the exact size of the number
+     via branching and memory access patterns. An attacker who could submit
+     a plaintext for RSA PKCS#1 v1.5 decryption but only observe the timing
+     of the decryption and not its result could nonetheless decrypt RSA
+     plaintexts and forge RSA signatures. Other asymmetric algorithms may
+     have been similarly vulnerable. Reported by Eyal Ronen, Robert Gillham,
+     Daniel Genkin, Adi Shamir, David Wong and Yuval Yarom.
+   * Wipe sensitive buffers on the stack in the CTR_DRBG and HMAC_DRBG
+     modules.
+
+API Changes
+   * The new functions mbedtls_ctr_drbg_update_ret() and
+     mbedtls_hmac_drbg_update_ret() are similar to mbedtls_ctr_drbg_update()
+     and mbedtls_hmac_drbg_update() respectively, but the new functions
+     report errors whereas the old functions return void. We recommend that
+     applications use the new functions.
 
 = mbed TLS 2.14.0 branch released 2018-11-19
 

@@ -1,6 +1,12 @@
 CCM self test
 mbedtls_ccm_self_test:
 
+CCM - Invalid parameters
+ccm_invalid_param:
+
+CCM - Valid parameters
+ccm_valid_param:
+
 CCM init #1 AES-128: OK
 depends_on:MBEDTLS_AES_C
 mbedtls_ccm_setkey:MBEDTLS_CIPHER_ID_AES:128:0

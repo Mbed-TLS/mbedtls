@@ -47,6 +47,7 @@ API Changes
      in favour a new generic error MBEDTLS_ERR_CAMELLIA_BAD_INPUT_DATA.
    * Deprecate the Blowfish error MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH
      in favour of a new generic error MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA.
+   * Add validation checks for input parameters to functions in the CCM module.
 
 New deprecations
    * Deprecate mbedtls_ctr_drbg_update and mbedtls_hmac_drbg_update

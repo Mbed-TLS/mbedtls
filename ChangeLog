@@ -49,6 +49,8 @@ API Changes
      in favour of a new generic error MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA.
    * Add validation checks for input parameters to functions in the CCM module.
    * Add validation checks for input parameters to functions in the GCM module.
+   * Add validation checks for input parameters to functions in the SHA-1
+     module.
 
 New deprecations
    * Deprecate mbedtls_ctr_drbg_update and mbedtls_hmac_drbg_update

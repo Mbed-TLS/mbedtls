@@ -200,7 +200,9 @@ void invalid_parameters( )
     unsigned char *null_buf = NULL;
     unsigned char buf[1];
     unsigned char *p = buf;
+#if defined(MBEDTLS_FS_IO)
     char str[1] = {0};
+#endif
     mbedtls_pk_context pk;
     mbedtls_md_type_t valid_md = MBEDTLS_MD_SHA256;
     void *options = buf;
@@ -398,6 +400,7 @@ void invalid_parameters( )
                             mbedtls_pk_debug( NULL, NULL ) );
 
 #if defined(MBEDTLS_PK_PARSE_C)
+#if defined(MBEDTLS_FS_IO)
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_PK_BAD_INPUT_DATA,
                             mbedtls_pk_load_file( NULL, &p, &len ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_PK_BAD_INPUT_DATA,
@@ -405,7 +408,6 @@ void invalid_parameters( )
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_PK_BAD_INPUT_DATA,
                             mbedtls_pk_load_file( str, &p, NULL ) );
 
-#if defined(MBEDTLS_FS_IO)
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_PK_BAD_INPUT_DATA,
                             mbedtls_pk_parse_keyfile( NULL, str, NULL ) );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_PK_BAD_INPUT_DATA,

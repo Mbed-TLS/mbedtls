@@ -88,7 +88,7 @@ void mbedtls_poly1305( char *hex_key_string, char *hex_mac_string, char *hex_src
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
 void poly1305_bad_params()
 {
     unsigned char src[1];
@@ -97,38 +97,33 @@ void poly1305_bad_params()
     size_t src_len = sizeof( src );
     mbedtls_poly1305_context ctx;
 
-    mbedtls_poly1305_init( NULL );
-    mbedtls_poly1305_free( NULL );
+    TEST_INVALID_PARAM( mbedtls_poly1305_init( NULL ) );
+    TEST_VALID_PARAM( mbedtls_poly1305_free( NULL ) );
 
-    mbedtls_poly1305_init( &ctx );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                 mbedtls_poly1305_starts( NULL, key ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                 mbedtls_poly1305_starts( &ctx, NULL ) );
 
-    TEST_ASSERT( mbedtls_poly1305_starts( NULL, key )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_poly1305_starts( &ctx, NULL )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                 mbedtls_poly1305_update( NULL, src, 0 ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                 mbedtls_poly1305_update( &ctx, NULL, src_len ) );
 
-    TEST_ASSERT( mbedtls_poly1305_update( NULL, src, 0 )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_poly1305_update( &ctx, NULL, src_len )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_poly1305_update( &ctx, NULL, 0 )
-                 == 0 );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                 mbedtls_poly1305_finish( NULL, mac ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                 mbedtls_poly1305_finish( &ctx, NULL ) );
 
-    TEST_ASSERT( mbedtls_poly1305_finish( NULL, mac )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_poly1305_finish( &ctx, NULL )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                 mbedtls_poly1305_mac( NULL, src, 0, mac ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                 mbedtls_poly1305_mac( key, NULL, src_len, mac ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                 mbedtls_poly1305_mac( key, src, 0, NULL ) );
 
-    TEST_ASSERT( mbedtls_poly1305_mac( NULL, src, 0, mac )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_poly1305_mac( key, NULL, src_len, mac )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_poly1305_mac( key, src, 0, NULL )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_poly1305_mac( key, NULL, 0, mac )
-                 == 0 );
-
-    mbedtls_poly1305_free( &ctx );
+exit:
+    return;
 }
 /* END_CASE */
 

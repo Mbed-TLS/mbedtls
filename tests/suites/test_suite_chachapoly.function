@@ -118,7 +118,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
 void chachapoly_bad_params()
 {
     unsigned char key[32];
@@ -138,124 +138,114 @@ void chachapoly_bad_params()
     memset( output, 0x00, sizeof( output ) );
     memset( mac,    0x00, sizeof( mac ) );
 
-    mbedtls_chachapoly_init( NULL );
-    mbedtls_chachapoly_free( NULL );
+    TEST_INVALID_PARAM( mbedtls_chachapoly_init( NULL ) );
+    TEST_VALID_PARAM( mbedtls_chachapoly_free( NULL ) );
 
-    mbedtls_chachapoly_init( &ctx );
+    /* setkey */
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_setkey( NULL, key ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_setkey( &ctx, NULL ) );
 
-    TEST_ASSERT( mbedtls_chachapoly_setkey( NULL, key )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chachapoly_setkey( &ctx, NULL )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-
-    TEST_ASSERT( mbedtls_chachapoly_encrypt_and_tag( NULL,
+    /* encrypt_and_tag */
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_encrypt_and_tag( NULL,
                                       0, nonce,
                                       aad, 0,
-                                      input, output, mac )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chachapoly_encrypt_and_tag( &ctx,
+                                      input, output, mac ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_encrypt_and_tag( &ctx,
                                       0, NULL,
                                       aad, 0,
-                                      input, output, mac )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chachapoly_encrypt_and_tag( &ctx,
+                                      input, output, mac ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_encrypt_and_tag( &ctx,
                                       0, nonce,
                                       NULL, aad_len,
-                                      input, output, mac )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chachapoly_encrypt_and_tag( &ctx,
+                                      input, output, mac ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_encrypt_and_tag( &ctx,
                                       input_len, nonce,
                                       aad, 0,
-                                      NULL, output, mac )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chachapoly_encrypt_and_tag( &ctx,
+                                      NULL, output, mac ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_encrypt_and_tag( &ctx,
                                       input_len, nonce,
                                       aad, 0,
-                                      input, NULL, mac )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chachapoly_encrypt_and_tag( &ctx,
+                                      input, NULL, mac ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_encrypt_and_tag( &ctx,
                                       0, nonce,
                                       aad, 0,
-                                      input, output, NULL )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
+                                      input, output, NULL ) );
 
-    TEST_ASSERT( mbedtls_chachapoly_auth_decrypt( NULL,
+    /* auth_decrypt */
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_auth_decrypt( NULL,
                                            0, nonce,
                                            aad, 0,
-                                           mac, input, output )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chachapoly_auth_decrypt( &ctx,
+                                           mac, input, output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_auth_decrypt( &ctx,
                                            0, NULL,
                                            aad, 0,
-                                           mac, input, output )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chachapoly_auth_decrypt( &ctx,
+                                           mac, input, output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_auth_decrypt( &ctx,
                                            0, nonce,
                                            NULL, aad_len,
-                                           mac, input, output )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chachapoly_auth_decrypt( &ctx,
+                                           mac, input, output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_auth_decrypt( &ctx,
                                            0, nonce,
                                            aad, 0,
-                                           NULL, input, output )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chachapoly_auth_decrypt( &ctx,
+                                           NULL, input, output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_auth_decrypt( &ctx,
                                            input_len, nonce,
                                            aad, 0,
-                                           mac, NULL, output )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chachapoly_auth_decrypt( &ctx,
+                                           mac, NULL, output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_auth_decrypt( &ctx,
                                            input_len, nonce,
                                            aad, 0,
-                                           mac, input, NULL )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
+                                           mac, input, NULL ) );
 
-    TEST_ASSERT( mbedtls_chachapoly_encrypt_and_tag( &ctx,
-                                      0, nonce,
-                                      aad, aad_len,
-                                      NULL, NULL, mac )
-                 == 0 );
-    TEST_ASSERT( mbedtls_chachapoly_auth_decrypt( &ctx,
-                                           0, nonce,
-                                           aad, aad_len,
-                                           mac, NULL, NULL )
-                 == 0 );
+    /* starts */
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_starts( NULL, nonce,
+                                               MBEDTLS_CHACHAPOLY_ENCRYPT ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_starts( &ctx, NULL,
+                                               MBEDTLS_CHACHAPOLY_ENCRYPT ) );
 
-    TEST_ASSERT( mbedtls_chachapoly_encrypt_and_tag( &ctx,
-                                      input_len, nonce,
-                                      NULL, 0,
-                                      input, output, mac )
-                 == 0 );
-    TEST_ASSERT( mbedtls_chachapoly_auth_decrypt( &ctx,
-                                           input_len, nonce,
-                                           NULL, 0,
-                                           mac, input, output )
-                 == 0 );
+    /* update_aad */
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_update_aad( NULL, aad,
+                                                           aad_len ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_update_aad( &ctx, NULL,
+                                                           aad_len ) );
 
-    TEST_ASSERT( mbedtls_chachapoly_starts( NULL, nonce, MBEDTLS_CHACHAPOLY_ENCRYPT )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chachapoly_starts( &ctx, NULL, MBEDTLS_CHACHAPOLY_ENCRYPT )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
+    /* update */
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_update( NULL, input_len,
+                                                       input, output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_update( &ctx, input_len,
+                                                       NULL, output ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_update( &ctx, input_len,
+                                                       input, NULL ) );
 
-    TEST_ASSERT( mbedtls_chachapoly_update_aad( NULL, aad, aad_len )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chachapoly_update_aad( &ctx, NULL, aad_len )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-
-    TEST_ASSERT( mbedtls_chachapoly_update( NULL, input_len, input, output )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chachapoly_update( &ctx, input_len, NULL, output )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chachapoly_update( &ctx, input_len, input, NULL )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-
-    TEST_ASSERT( mbedtls_chachapoly_finish( NULL, mac )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chachapoly_finish( &ctx, NULL )
-                 == MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA );
+    /* finish */
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_finish( NULL, mac ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_POLY1305_BAD_INPUT_DATA,
+                            mbedtls_chachapoly_finish( &ctx, NULL ) );
 
 exit:
-    mbedtls_chachapoly_free( &ctx );
+    return;
 }
 /* END_CASE */
 

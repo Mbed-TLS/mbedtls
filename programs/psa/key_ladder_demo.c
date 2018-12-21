@@ -57,17 +57,7 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#if defined(MBEDTLS_PLATFORM_C)
-#include "mbedtls/platform.h"
-#else
 #include <stdlib.h>
-#define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
-#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
-#define mbedtls_calloc       calloc
-#define mbedtls_free         free
-#define mbedtls_printf       printf
-#define mbedtls_exit         exit
-#endif
 #include <stdio.h>
 #include <string.h>
 
@@ -79,9 +69,9 @@
     !defined(MBEDTLS_PSA_CRYPTO_C) || !defined(MBEDTLS_FS_IO)
 int main( void )
 {
-    mbedtls_printf("MBEDTLS_SHA256_C and/or MBEDTLS_MD_C and/or "
-                   "MBEDTLS_AES_C and/or MBEDTLS_CCM_C and/or "
-                   "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_FS_IO not defined.\n");
+    printf("MBEDTLS_SHA256_C and/or MBEDTLS_MD_C and/or "
+           "MBEDTLS_AES_C and/or MBEDTLS_CCM_C and/or "
+           "MBEDTLS_PSA_CRYPTO_C and/or MBEDTLS_FS_IO not defined.\n");
     return( 0 );
 }
 #else
@@ -112,10 +102,10 @@ int main( void )
         status = ( expr );                                      \
         if( status != PSA_SUCCESS )                             \
         {                                                       \
-            mbedtls_printf( "Error %d at line %u: %s\n",        \
-                            (int) status,                       \
-                            __LINE__,                           \
-                            #expr );                            \
+            printf( "Error %d at line %u: %s\n",                \
+                    (int) status,                               \
+                    __LINE__,                                   \
+                    #expr );                                    \
             goto exit;                                          \
         }                                                       \
     }                                                           \
@@ -254,8 +244,8 @@ static psa_status_t import_key_from_file( psa_key_usage_t usage,
                                    key_file ) ) != 0 );
     if( fread( &extra_byte, 1, 1, key_file ) != 0 )
     {
-        mbedtls_printf( "Key file too large (max: %u).\n",
-                        (unsigned) sizeof( key_data ) );
+        printf( "Key file too large (max: %u).\n",
+                (unsigned) sizeof( key_data ) );
         status = DEMO_ERROR;
         goto exit;
     }
@@ -395,7 +385,7 @@ static psa_status_t wrap_data( const char *input_file_name,
 #if LONG_MAX > SIZE_MAX
     if( input_position > SIZE_MAX )
     {
-        mbedtls_printf( "Input file too large.\n" );
+        printf( "Input file too large.\n" );
         status = DEMO_ERROR;
         goto exit;
     }
@@ -405,14 +395,14 @@ static psa_status_t wrap_data( const char *input_file_name,
     /* Check for integer overflow. */
     if( buffer_size < input_size )
     {
-        mbedtls_printf( "Input file too large.\n" );
+        printf( "Input file too large.\n" );
         status = DEMO_ERROR;
         goto exit;
     }
 
     /* Load the data to wrap. */
     SYS_CHECK( fseek( input_file, 0, SEEK_SET ) == 0 );
-    SYS_CHECK( ( buffer = mbedtls_calloc( 1, buffer_size ) ) != NULL );
+    SYS_CHECK( ( buffer = calloc( 1, buffer_size ) ) != NULL );
     SYS_CHECK( fread( buffer, 1, input_size, input_file ) == input_size );
     SYS_CHECK( fclose( input_file ) == 0 );
     input_file = NULL;
@@ -447,7 +437,7 @@ exit:
         fclose( output_file );
     if( buffer != NULL )
         mbedtls_platform_zeroize( buffer, buffer_size );
-    mbedtls_free( buffer );
+    free( buffer );
     return( status );
 }
 
@@ -471,13 +461,13 @@ static psa_status_t unwrap_data( const char *input_file_name,
     if( memcmp( &header.magic, WRAPPED_DATA_MAGIC,
                 WRAPPED_DATA_MAGIC_LENGTH ) != 0 )
     {
-        mbedtls_printf( "The input does not start with a valid magic header.\n" );
+        printf( "The input does not start with a valid magic header.\n" );
         status = DEMO_ERROR;
         goto exit;
     }
     if( header.ad_size != sizeof( header ) )
     {
-        mbedtls_printf( "The header size is not correct.\n" );
+        printf( "The header size is not correct.\n" );
         status = DEMO_ERROR;
         goto exit;
     }
@@ -486,18 +476,18 @@ static psa_status_t unwrap_data( const char *input_file_name,
     /* Check for integer overflow. */
     if( ciphertext_size < header.payload_size )
     {
-        mbedtls_printf( "Input file too large.\n" );
+        printf( "Input file too large.\n" );
         status = DEMO_ERROR;
         goto exit;
     }
 
     /* Load the payload data. */
-    SYS_CHECK( ( buffer = mbedtls_calloc( 1, ciphertext_size ) ) != NULL );
+    SYS_CHECK( ( buffer = calloc( 1, ciphertext_size ) ) != NULL );
     SYS_CHECK( fread( buffer, 1, ciphertext_size,
                       input_file ) == ciphertext_size );
     if( fread( &extra_byte, 1, 1, input_file ) != 0 )
     {
-        mbedtls_printf( "Extra garbage after ciphertext\n" );
+        printf( "Extra garbage after ciphertext\n" );
         status = DEMO_ERROR;
         goto exit;
     }
@@ -513,7 +503,7 @@ static psa_status_t unwrap_data( const char *input_file_name,
                                  &plaintext_size ) );
     if( plaintext_size != header.payload_size )
     {
-        mbedtls_printf( "Incorrect payload size in the header.\n" );
+        printf( "Incorrect payload size in the header.\n" );
         status = DEMO_ERROR;
         goto exit;
     }
@@ -532,7 +522,7 @@ exit:
         fclose( output_file );
     if( buffer != NULL )
         mbedtls_platform_zeroize( buffer, ciphertext_size );
-    mbedtls_free( buffer );
+    free( buffer );
     return( status );
 }
 
@@ -600,23 +590,23 @@ exit:
 
 static void usage( void )
 {
-    mbedtls_printf( "Usage: key_ladder_demo MODE [OPTION=VALUE]...\n" );
-    mbedtls_printf( "Demonstrate the usage of a key derivation ladder.\n" );
-    mbedtls_printf( "\n" );
-    mbedtls_printf( "Modes:\n" );
-    mbedtls_printf( "  generate  Generate the master key\n" );
-    mbedtls_printf( "  save      Save the derived key\n" );
-    mbedtls_printf( "  unwrap    Unwrap (decrypt) input with the derived key\n" );
-    mbedtls_printf( "  wrap      Wrap (encrypt) input with the derived key\n" );
-    mbedtls_printf( "\n" );
-    mbedtls_printf( "Options:\n" );
-    mbedtls_printf( "  input=FILENAME    Input file (required for wrap/unwrap)\n" );
-    mbedtls_printf( "  master=FILENAME   File containing the master key (default: master.key)\n" );
-    mbedtls_printf( "  output=FILENAME   Output file (required for save/wrap/unwrap)\n" );
-    mbedtls_printf( "  label=TEXT        Label for the key derivation.\n" );
-    mbedtls_printf( "                    This may be repeated multiple times.\n" );
-    mbedtls_printf( "                    To get the same key, you must use the same master key\n" );
-    mbedtls_printf( "                    and the same sequence of labels.\n" );
+    printf( "Usage: key_ladder_demo MODE [OPTION=VALUE]...\n" );
+    printf( "Demonstrate the usage of a key derivation ladder.\n" );
+    printf( "\n" );
+    printf( "Modes:\n" );
+    printf( "  generate  Generate the master key\n" );
+    printf( "  save      Save the derived key\n" );
+    printf( "  unwrap    Unwrap (decrypt) input with the derived key\n" );
+    printf( "  wrap      Wrap (encrypt) input with the derived key\n" );
+    printf( "\n" );
+    printf( "Options:\n" );
+    printf( "  input=FILENAME    Input file (required for wrap/unwrap)\n" );
+    printf( "  master=FILENAME   File containing the master key (default: master.key)\n" );
+    printf( "  output=FILENAME   Output file (required for save/wrap/unwrap)\n" );
+    printf( "  label=TEXT        Label for the key derivation.\n" );
+    printf( "                    This may be repeated multiple times.\n" );
+    printf( "                    To get the same key, you must use the same master key\n" );
+    printf( "                    and the same sequence of labels.\n" );
 }
 
 #if defined(MBEDTLS_CHECK_PARAMS)
@@ -625,9 +615,9 @@ void mbedtls_param_failed( const char *failure_condition,
                            const char *file,
                            int line )
 {
-    mbedtls_printf( "%s:%i: Input param failed - %s\n",
+    printf( "%s:%i: Input param failed - %s\n",
                     file, line, failure_condition );
-    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+    exit( EXIT_FAILURE );
 }
 #endif
 
@@ -648,7 +638,7 @@ int main( int argc, char *argv[] )
         strcmp( argv[1], "--help" ) == 0 )
     {
         usage( );
-        return( MBEDTLS_EXIT_SUCCESS );
+        return( EXIT_SUCCESS );
     }
 
     for( i = 2; i < argc; i++ )
@@ -656,7 +646,7 @@ int main( int argc, char *argv[] )
         char *q = strchr( argv[i], '=' );
         if( q == NULL )
         {
-            mbedtls_printf( "Missing argument to option %s\n", argv[i] );
+            printf( "Missing argument to option %s\n", argv[i] );
             goto usage_failure;
         }
         *q = 0;
@@ -667,9 +657,9 @@ int main( int argc, char *argv[] )
         {
             if( ladder_depth == MAX_LADDER_DEPTH )
             {
-                mbedtls_printf( "Maximum ladder depth %u exceeded.\n",
+                printf( "Maximum ladder depth %u exceeded.\n",
                                 (unsigned) MAX_LADDER_DEPTH );
-                return( MBEDTLS_EXIT_FAILURE );
+                return( EXIT_FAILURE );
             }
             ladder[ladder_depth] = q;
             ++ladder_depth;
@@ -680,7 +670,7 @@ int main( int argc, char *argv[] )
             output_file_name = q;
         else
         {
-            mbedtls_printf( "Unknown option: %s\n", argv[i] );
+            printf( "Unknown option: %s\n", argv[i] );
             goto usage_failure;
         }
     }
@@ -695,20 +685,20 @@ int main( int argc, char *argv[] )
         mode = MODE_WRAP;
     else
     {
-        mbedtls_printf( "Unknown action: %s\n", argv[1] );
+        printf( "Unknown action: %s\n", argv[1] );
         goto usage_failure;
     }
 
     if( input_file_name == NULL &&
         ( mode == MODE_WRAP || mode == MODE_UNWRAP ) )
     {
-        mbedtls_printf( "Required argument missing: input\n" );
+        printf( "Required argument missing: input\n" );
         return( DEMO_ERROR );
     }
     if( output_file_name == NULL &&
         ( mode == MODE_SAVE || mode == MODE_WRAP || mode == MODE_UNWRAP ) )
     {
-        mbedtls_printf( "Required argument missing: output\n" );
+        printf( "Required argument missing: output\n" );
         return( DEMO_ERROR );
     }
 
@@ -716,11 +706,11 @@ int main( int argc, char *argv[] )
                   ladder, ladder_depth,
                   input_file_name, output_file_name );
     return( status == PSA_SUCCESS ?
-            MBEDTLS_EXIT_SUCCESS :
-            MBEDTLS_EXIT_FAILURE );
+            EXIT_SUCCESS :
+            EXIT_FAILURE );
 
 usage_failure:
     usage( );
-    return( MBEDTLS_EXIT_FAILURE );
+    return( EXIT_FAILURE );
 }
 #endif /* MBEDTLS_SHA256_C && MBEDTLS_MD_C && MBEDTLS_AES_C && MBEDTLS_CCM_C && MBEDTLS_PSA_CRYPTO_C && MBEDTLS_FS_IO */

@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.7.x branch released xxxx-xx-xx
+= mbed TLS 2.7.9 branch released 2018-12-21
 
 Bugfix
    * Fix for Clang, which was reporting a warning for the bignum.c inline

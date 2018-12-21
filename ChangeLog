@@ -1,6 +1,6 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
-= mbed TLS 2.xx.x branch released xxxx-xx-xx
+= mbed TLS 2.16.0 branch released 2018-12-21
 
 Features
    * Add a new config.h option of MBEDTLS_CHECK_PARAMS that enables validation

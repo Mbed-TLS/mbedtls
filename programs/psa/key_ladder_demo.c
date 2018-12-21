@@ -393,7 +393,7 @@ static psa_status_t wrap_data( const char *input_file_name,
     FILE *output_file = NULL;
     long input_position;
     size_t input_size;
-    size_t buffer_size;
+    size_t buffer_size = 0;
     unsigned char *buffer = NULL;
     size_t ciphertext_size;
     wrapped_data_header_t header;
@@ -469,7 +469,7 @@ static psa_status_t unwrap_data( const char *input_file_name,
     FILE *input_file = NULL;
     FILE *output_file = NULL;
     unsigned char *buffer = NULL;
-    size_t ciphertext_size;
+    size_t ciphertext_size = 0;
     size_t plaintext_size;
     wrapped_data_header_t header;
     unsigned char extra_byte;

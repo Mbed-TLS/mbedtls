@@ -84,6 +84,8 @@ struct mbedtls_cmac_context_t
  *
  * \return              \c 0 on success.
  * \return              A cipher-specific error code on failure.
+ * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+ *                      if parameter verification fails.
  */
 int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
                                 const unsigned char *key, size_t keybits );
@@ -103,9 +105,9 @@ int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
  *                      \c NULL if `ilen == 0`.
  * \param ilen          The length of the input data.
  *
- * \return             \c 0 on success.
- * \return             #MBEDTLS_ERR_MD_BAD_INPUT_DATA
- *                     if parameter verification fails.
+ * \return              \c 0 on success.
+ * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+ *                      if parameter verification fails.
  */
 int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
                                 const unsigned char *input, size_t ilen );
@@ -125,7 +127,7 @@ int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
  *                      at least the block-size of the underlying cipher.
  *
  * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_MD_BAD_INPUT_DATA
+ * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
  *                      if parameter verification fails.
  */
 int mbedtls_cipher_cmac_finish( mbedtls_cipher_context_t *ctx,
@@ -143,7 +145,7 @@ int mbedtls_cipher_cmac_finish( mbedtls_cipher_context_t *ctx,
  *                      This must be initialized.
  *
  * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_MD_BAD_INPUT_DATA
+ * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
  *                      if parameter verification fails.
  */
 int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx );
@@ -171,7 +173,7 @@ int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx );
  *                      at least the block-size of the underlying cipher.
  *
  * \return              \c 0 on success.
- * \return              #MBEDTLS_ERR_MD_BAD_INPUT_DATA
+ * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
  *                      if parameter verification fails.
  */
 int mbedtls_cipher_cmac( const mbedtls_cipher_info_t *cipher_info,
@@ -197,6 +199,8 @@ int mbedtls_cipher_cmac( const mbedtls_cipher_info_t *cipher_info,
  *                  \c 16 Bytes.
  *
  * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA
+ *                  if parameter verification fails.
  */
 int mbedtls_aes_cmac_prf_128( const unsigned char *key, size_t key_len,
                               const unsigned char *input, size_t in_len,

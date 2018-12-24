@@ -100,7 +100,7 @@ int mbedtls_cipher_cmac_starts( mbedtls_cipher_context_t *ctx,
  *                      This must be initialized.
  * \param input         The buffer holding the input data. This must be a
  *                      readable buffer of length \p ilen Bytes. It may be
- *                      \c NULL if ilen == 0.
+ *                      \c NULL if `ilen == 0`.
  * \param ilen          The length of the input data.
  *
  * \return             \c 0 on success.
@@ -121,7 +121,8 @@ int mbedtls_cipher_cmac_update( mbedtls_cipher_context_t *ctx,
  * \param ctx           The cipher context used for the CMAC operation.
  *                      This must be initialized.
  * \param output        The output buffer for the CMAC checksum result.
- *                      This must not be \c NULL.
+ *                      This must be a writable buffer of length equal to
+ *                      at least the block-size of the underlying cipher.
  *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_MD_BAD_INPUT_DATA
@@ -163,10 +164,11 @@ int mbedtls_cipher_cmac_reset( mbedtls_cipher_context_t *ctx );
  * \param keylen        The length of the CMAC key in bits.
  * \param input         The buffer holding the input data. This must be a
  *                      readable buffer of length \p ilen Bytes. It may be
- *                      \c NULL if ilen == 0.
+ *                      \c NULL if `ilen == 0`.
  * \param ilen          The length of the input data.
  * \param output        The buffer for the generic CMAC result.
- *                      This must not be \c NULL.
+ *                      This must be a writable buffer of length equal to
+ *                      at least the block-size of the underlying cipher.
  *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_MD_BAD_INPUT_DATA
@@ -191,7 +193,8 @@ int mbedtls_cipher_cmac( const mbedtls_cipher_info_t *cipher_info,
  * \param input     The buffer holding the input data. This must not be \c NULL.
  * \param in_len    The length of the input data in Bytes.
  * \param output    The buffer holding the generated 16 Bytes of
- *                  pseudorandom output. This must not be \c NULL.
+ *                  pseudorandom output. This must be a writable buffer of size
+ *                  \c 16 Bytes.
  *
  * \return          \c 0 on success.
  */

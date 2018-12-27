@@ -976,6 +976,16 @@ support_test_mx32 () {
     esac
 }
 
+component_test_min_mpi_window_size () {
+    msg "build: Default + MBEDTLS_MPI_WINDOW_SIZE=1 (ASan build)" # ~ 10s
+    scripts/config.pl set MBEDTLS_MPI_WINDOW_SIZE 1
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
+
+    msg "test: MBEDTLS_MPI_WINDOW_SIZE=1 - main suites (inc. selftests) (ASan build)" # ~ 10s
+    make test
+}
+
 component_test_have_int32 () {
     msg "build: gcc, force 32-bit bignum limbs"
     scripts/config.pl unset MBEDTLS_HAVE_ASM

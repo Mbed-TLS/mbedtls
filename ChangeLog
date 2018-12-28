@@ -1,5 +1,10 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Bugfix
+   * Fix to allow test-ref-config.pl to build with Clang. Fixes #1628.
+
 = mbed TLS 2.7.9 branch released 2018-12-21
 
 Bugfix

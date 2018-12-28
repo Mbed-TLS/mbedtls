@@ -49,11 +49,11 @@
 #include <stdio.h>
 #endif
 
-#define MBEDTLS_MD_VALIDATE_RET(cond) \
+#define MD_VALIDATE_RET(cond) \
         MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_MD_BAD_INPUT_DATA )
-#define MBEDTLS_MD_VALIDATE_RET_NULL(cond) \
+#define MD_VALIDATE_RET_NULL(cond) \
         MBEDTLS_INTERNAL_VALIDATE_RET( cond, NULL )
-#define MBEDTLS_MD_VALIDATE(cond)    MBEDTLS_INTERNAL_VALIDATE( cond )
+#define MD_VALIDATE(cond)    MBEDTLS_INTERNAL_VALIDATE( cond )
 
 /*
  * Reminder: update profiles in x509_crt.c when adding a new hash!
@@ -100,7 +100,7 @@ const int *mbedtls_md_list( void )
 
 const mbedtls_md_info_t *mbedtls_md_info_from_string( const char *md_name )
 {
-    MBEDTLS_MD_VALIDATE_RET_NULL( md_name != NULL );
+    MD_VALIDATE_RET_NULL( md_name != NULL );
 
     /* Get the appropriate digest information */
 #if defined(MBEDTLS_MD2_C)
@@ -181,7 +181,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type( mbedtls_md_type_t md_type )
 
 void mbedtls_md_init( mbedtls_md_context_t *ctx )
 {
-    MBEDTLS_MD_VALIDATE( ctx != NULL );
+    MD_VALIDATE( ctx != NULL );
     memset( ctx, 0, sizeof( mbedtls_md_context_t ) );
 }
 
@@ -206,11 +206,11 @@ void mbedtls_md_free( mbedtls_md_context_t *ctx )
 int mbedtls_md_clone( mbedtls_md_context_t *dst,
                       const mbedtls_md_context_t *src )
 {
-    MBEDTLS_MD_VALIDATE_RET( dst != NULL );
-    MBEDTLS_MD_VALIDATE_RET( src != NULL );
-    MBEDTLS_MD_VALIDATE_RET( dst->md_info != NULL );
-    MBEDTLS_MD_VALIDATE_RET( src->md_info != NULL );
-    MBEDTLS_MD_VALIDATE_RET( dst->md_info == src->md_info );
+    MD_VALIDATE_RET( dst != NULL );
+    MD_VALIDATE_RET( src != NULL );
+    MD_VALIDATE_RET( dst->md_info != NULL );
+    MD_VALIDATE_RET( src->md_info != NULL );
+    MD_VALIDATE_RET( dst->md_info == src->md_info );
 
     dst->md_info->clone_func( dst->md_ctx, src->md_ctx );
 
@@ -226,8 +226,8 @@ int mbedtls_md_init_ctx( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_
 
 int mbedtls_md_setup( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info, int hmac )
 {
-    MBEDTLS_MD_VALIDATE_RET( md_info != NULL );
-    MBEDTLS_MD_VALIDATE_RET( ctx != NULL );
+    MD_VALIDATE_RET( md_info != NULL );
+    MD_VALIDATE_RET( ctx != NULL );
 
     if( ( ctx->md_ctx = md_info->ctx_alloc_func() ) == NULL )
         return( MBEDTLS_ERR_MD_ALLOC_FAILED );
@@ -249,26 +249,26 @@ int mbedtls_md_setup( mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_inf
 
 int mbedtls_md_starts( mbedtls_md_context_t *ctx )
 {
-    MBEDTLS_MD_VALIDATE_RET( ctx != NULL );
-    MBEDTLS_MD_VALIDATE_RET( ctx->md_info != NULL );
+    MD_VALIDATE_RET( ctx != NULL );
+    MD_VALIDATE_RET( ctx->md_info != NULL );
 
     return( ctx->md_info->starts_func( ctx->md_ctx ) );
 }
 
 int mbedtls_md_update( mbedtls_md_context_t *ctx, const unsigned char *input, size_t ilen )
 {
-    MBEDTLS_MD_VALIDATE_RET( ctx != NULL );
-    MBEDTLS_MD_VALIDATE_RET( ctx->md_info != NULL );
-    MBEDTLS_MD_VALIDATE_RET( input != NULL );
+    MD_VALIDATE_RET( ctx != NULL );
+    MD_VALIDATE_RET( ctx->md_info != NULL );
+    MD_VALIDATE_RET( ilen == 0 || input != NULL );
 
     return( ctx->md_info->update_func( ctx->md_ctx, input, ilen ) );
 }
 
 int mbedtls_md_finish( mbedtls_md_context_t *ctx, unsigned char *output )
 {
-    MBEDTLS_MD_VALIDATE_RET( ctx != NULL );
-    MBEDTLS_MD_VALIDATE_RET( ctx->md_info != NULL );
-    MBEDTLS_MD_VALIDATE_RET( output != NULL );
+    MD_VALIDATE_RET( ctx != NULL );
+    MD_VALIDATE_RET( ctx->md_info != NULL );
+    MD_VALIDATE_RET( output != NULL );
 
     return( ctx->md_info->finish_func( ctx->md_ctx, output ) );
 }
@@ -276,8 +276,9 @@ int mbedtls_md_finish( mbedtls_md_context_t *ctx, unsigned char *output )
 int mbedtls_md( const mbedtls_md_info_t *md_info, const unsigned char *input, size_t ilen,
             unsigned char *output )
 {
-    MBEDTLS_MD_VALIDATE_RET( md_info != NULL );
-    MBEDTLS_MD_VALIDATE_RET( output != NULL );
+    MD_VALIDATE_RET( md_info != NULL );
+    MD_VALIDATE_RET( ilen == 0 || input != NULL );
+    MD_VALIDATE_RET( output != NULL );
 
     return( md_info->digest_func( input, ilen, output ) );
 }
@@ -291,9 +292,9 @@ int mbedtls_md_file( const mbedtls_md_info_t *md_info, const char *path, unsigne
     mbedtls_md_context_t ctx;
     unsigned char buf[1024];
 
-    MBEDTLS_MD_VALIDATE_RET( md_info != NULL );
-    MBEDTLS_MD_VALIDATE_RET( path != NULL );
-    MBEDTLS_MD_VALIDATE_RET( output != NULL );
+    MD_VALIDATE_RET( md_info != NULL );
+    MD_VALIDATE_RET( path != NULL );
+    MD_VALIDATE_RET( output != NULL );
 
     if( ( f = fopen( path, "rb" ) ) == NULL )
         return( MBEDTLS_ERR_MD_FILE_IO_ERROR );
@@ -331,10 +332,10 @@ int mbedtls_md_hmac_starts( mbedtls_md_context_t *ctx, const unsigned char *key,
     unsigned char *ipad, *opad;
     size_t i;
 
-    MBEDTLS_MD_VALIDATE_RET( ctx != NULL );
-    MBEDTLS_MD_VALIDATE_RET( ctx->md_info  != NULL );
-    MBEDTLS_MD_VALIDATE_RET( ctx->hmac_ctx != NULL );
-    MBEDTLS_MD_VALIDATE_RET( key != NULL );
+    MD_VALIDATE_RET( ctx != NULL );
+    MD_VALIDATE_RET( ctx->md_info  != NULL );
+    MD_VALIDATE_RET( ctx->hmac_ctx != NULL );
+    MD_VALIDATE_RET( keylen == 0 || key != NULL );
 
     if( keylen > (size_t) ctx->md_info->block_size )
     {
@@ -375,9 +376,10 @@ cleanup:
 
 int mbedtls_md_hmac_update( mbedtls_md_context_t *ctx, const unsigned char *input, size_t ilen )
 {
-    MBEDTLS_MD_VALIDATE_RET( ctx != NULL );
-    MBEDTLS_MD_VALIDATE_RET( ctx->hmac_ctx != NULL );
-    MBEDTLS_MD_VALIDATE_RET( ctx->md_info != NULL );
+    MD_VALIDATE_RET( ctx != NULL );
+    MD_VALIDATE_RET( ilen == 0 || input != NULL );
+    MD_VALIDATE_RET( ctx->hmac_ctx != NULL );
+    MD_VALIDATE_RET( ctx->md_info != NULL );
 
     return( ctx->md_info->update_func( ctx->md_ctx, input, ilen ) );
 }
@@ -388,10 +390,10 @@ int mbedtls_md_hmac_finish( mbedtls_md_context_t *ctx, unsigned char *output )
     unsigned char tmp[MBEDTLS_MD_MAX_SIZE];
     unsigned char *opad;
 
-    MBEDTLS_MD_VALIDATE_RET( ctx != NULL );
-    MBEDTLS_MD_VALIDATE_RET( ctx->hmac_ctx != NULL );
-    MBEDTLS_MD_VALIDATE_RET( ctx->md_info != NULL );
-    MBEDTLS_MD_VALIDATE_RET( output != NULL );
+    MD_VALIDATE_RET( ctx != NULL );
+    MD_VALIDATE_RET( ctx->hmac_ctx != NULL );
+    MD_VALIDATE_RET( ctx->md_info != NULL );
+    MD_VALIDATE_RET( output != NULL );
 
     opad = (unsigned char *) ctx->hmac_ctx + ctx->md_info->block_size;
 
@@ -413,9 +415,9 @@ int mbedtls_md_hmac_reset( mbedtls_md_context_t *ctx )
     int ret;
     unsigned char *ipad;
 
-    MBEDTLS_MD_VALIDATE_RET( ctx != NULL );
-    MBEDTLS_MD_VALIDATE_RET( ctx->hmac_ctx != NULL );
-    MBEDTLS_MD_VALIDATE_RET( ctx->md_info != NULL );
+    MD_VALIDATE_RET( ctx != NULL );
+    MD_VALIDATE_RET( ctx->hmac_ctx != NULL );
+    MD_VALIDATE_RET( ctx->md_info != NULL );
 
     ipad = (unsigned char *) ctx->hmac_ctx;
 
@@ -433,9 +435,10 @@ int mbedtls_md_hmac( const mbedtls_md_info_t *md_info,
     mbedtls_md_context_t ctx;
     int ret;
 
-    MBEDTLS_MD_VALIDATE_RET( md_info != NULL );
-    MBEDTLS_MD_VALIDATE_RET( key != NULL );
-    MBEDTLS_MD_VALIDATE_RET( output != NULL );
+    MD_VALIDATE_RET( md_info != NULL );
+    MD_VALIDATE_RET( keylen == 0 || key != NULL );
+    MD_VALIDATE_RET( ilen == 0 || input != NULL );
+    MD_VALIDATE_RET( output != NULL );
 
     mbedtls_md_init( &ctx );
 
@@ -457,8 +460,9 @@ cleanup:
 
 int mbedtls_md_process( mbedtls_md_context_t *ctx, const unsigned char *data )
 {
-    MBEDTLS_MD_VALIDATE_RET( ctx != NULL );
-    MBEDTLS_MD_VALIDATE_RET( ctx->md_info != NULL );
+    MD_VALIDATE_RET( ctx != NULL );
+    MD_VALIDATE_RET( data != NULL );
+    MD_VALIDATE_RET( ctx->md_info != NULL );
 
     return( ctx->md_info->process_func( ctx->md_ctx, data ) );
 }
@@ -479,7 +483,7 @@ mbedtls_md_type_t mbedtls_md_get_type( const mbedtls_md_info_t *md_info )
 
 const char *mbedtls_md_get_name( const mbedtls_md_info_t *md_info )
 {
-    MBEDTLS_MD_VALIDATE_RET_NULL( md_info != NULL );
+    MD_VALIDATE_RET_NULL( md_info != NULL );
 
     return md_info->name;
 }

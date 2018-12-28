@@ -109,7 +109,8 @@ const int *mbedtls_md_list( void );
  * \brief           This function returns the message-digest information
  *                  associated with the given digest name.
  *
- * \param md_name   The name of the digest to search for. This must not be \c NULL.
+ * \param md_name   The name of the digest to search for. This must point to
+ *                  a NULL-terminated string.
  *
  * \return          The message-digest information associated with \p md_name.
  * \return          NULL if the associated message-digest information is not found.
@@ -120,7 +121,7 @@ const mbedtls_md_info_t *mbedtls_md_info_from_string( const char *md_name );
  * \brief           This function returns the message-digest information
  *                  associated with the given digest type.
  *
- * \param md_type   The type of digest to search for. This must not be \c NULL.
+ * \param md_type   The type of digest to search for.
  *
  * \return          The message-digest information associated with \p md_type.
  * \return          NULL if the associated message-digest information is not found.
@@ -133,7 +134,10 @@ const mbedtls_md_info_t *mbedtls_md_info_from_type( mbedtls_md_type_t md_type );
  *
  *                  This function should always be called first. It prepares the
  *                  context for mbedtls_md_setup() for binding it to a
- *                  message-digest algorithm. The \p ctx must not be \c NULL.
+ *                  message-digest algorithm.
+ *
+ * \param ctx       The context to initialize. This must not be \c NULL.
+ *
  */
 void mbedtls_md_init( mbedtls_md_context_t *ctx );
 
@@ -148,7 +152,7 @@ void mbedtls_md_init( mbedtls_md_context_t *ctx );
  *                  Calling this function if you have previously
  *                  called mbedtls_md_init() and nothing else is optional.
  *                  You must not call this function if you have not called
- *                  mbedtls_md_init(). The \p ctx must not be \c NULL.
+ *                  mbedtls_md_init().
  */
 void mbedtls_md_free( mbedtls_md_context_t *ctx );
 
@@ -280,7 +284,9 @@ int mbedtls_md_starts( mbedtls_md_context_t *ctx );
  *                  Afterwards, call mbedtls_md_finish().
  *
  * \param ctx       The generic message-digest context.
- * \param input     The buffer holding the input data. This must not be \c NULL.
+ * \param input     The buffer holding the input data. This must be a readable
+ *                  buffer of length \p ilen Bytes. It may be \c NULL if
+ *                  \p ilen is zero.
  * \param ilen      The length of the input data.
  *
  * \return          \c 0 on success.
@@ -302,7 +308,9 @@ int mbedtls_md_update( mbedtls_md_context_t *ctx, const unsigned char *input, si
  *
  * \param ctx       The generic message-digest context.
  * \param output    The buffer for the generic message-digest checksum result.
- *                  This must not be \c NULL.
+ *                  This must be a writable buffer large enough to hold the
+ *                  message-digest. You may use mbedtls_md_get_size() to obtain
+ *                  the message-digest size for a particular algorithm.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
@@ -320,10 +328,14 @@ int mbedtls_md_finish( mbedtls_md_context_t *ctx, unsigned char *output );
  *
  * \param md_info  The information structure of the message-digest algorithm
  *                 to use. This must not be \c NULL.
- * \param input    The buffer holding the data.
+ * \param input    The buffer holding the data. This must be a readable
+ *                 buffer of length \p ilen Bytes. It may be \c NULL if
+ *                 \p ilen is zero.
  * \param ilen     The length of the input data.
  * \param output   The generic message-digest checksum result.
- *                 This must not be \c NULL.
+ *                 This must be a writable buffer large enough to hold the
+ *                 message-digest. You may use mbedtls_md_get_size() to obtain
+ *                 the message-digest size for a particular algorithm.
  *
  * \return         \c 0 on success.
  * \return         #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
@@ -342,9 +354,11 @@ int mbedtls_md( const mbedtls_md_info_t *md_info, const unsigned char *input, si
  *
  * \param md_info  The information structure of the message-digest algorithm
  *                 to use. This must not be \c NULL.
- * \param path     The input file name. This must not be \c NULL.
+ * \param path     The input file name. This must be a NULL-terminated string.
  * \param output   The generic message-digest checksum result.
- *                 This must not be \c NULL.
+ *                 This must be a writable buffer large enough to hold the
+ *                 message-digest. You may use mbedtls_md_get_size() to obtain
+ *                 the message-digest size for a particular algorithm.
  *
  * \return         \c 0 on success.
  * \return         #MBEDTLS_ERR_MD_FILE_IO_ERROR on an I/O error accessing
@@ -366,7 +380,9 @@ int mbedtls_md_file( const mbedtls_md_info_t *md_info, const char *path,
  *
  * \param ctx       The message digest context containing an embedded HMAC
  *                  context.
- * \param key       The HMAC secret key. This must not be \c NULL.
+ * \param key       The HMAC secret key. This must be a readable buffer of
+ *                  length \p keylen Bytes. It may be \c NULL if
+ *                  \p keylen is zero.
  * \param keylen    The length of the HMAC key in Bytes.
  *
  * \return          \c 0 on success.
@@ -388,7 +404,9 @@ int mbedtls_md_hmac_starts( mbedtls_md_context_t *ctx, const unsigned char *key,
  *
  * \param ctx       The message digest context containing an embedded HMAC
  *                  context.
- * \param input     The buffer holding the input data.
+ * \param input     The buffer holding the input data. This must be a readable
+ *                  buffer of length \p ilen Bytes. It may be \c NULL if
+ *                  \p ilen is zero.
  * \param ilen      The length of the input data.
  *
  * \return          \c 0 on success.
@@ -410,7 +428,10 @@ int mbedtls_md_hmac_update( mbedtls_md_context_t *ctx, const unsigned char *inpu
  *
  * \param ctx       The message digest context containing an embedded HMAC
  *                  context.
- * \param output    The generic HMAC checksum result. This must not be \c NULL.
+ * \param output    The generic HMAC checksum result. This must be a writable
+ *                  buffer large enough to hold the message-digest. You may
+ *                  use mbedtls_md_get_size() to obtain the message-digest
+ *                  size for a particular algorithm.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
@@ -447,11 +468,18 @@ int mbedtls_md_hmac_reset( mbedtls_md_context_t *ctx );
  *
  * \param md_info  The information structure of the message-digest algorithm
  *                 to use. This must not be \c NULL.
- * \param key      The HMAC secret key. This must not be \c NULL.
+ * \param key      The HMAC secret key. This must be a readable buffer of
+ *                 length \p keylen Bytes. It may be \c NULL if
+ *                 \p keylen is zero.
  * \param keylen   The length of the HMAC secret key in Bytes.
- * \param input    The buffer holding the input data.
+ * \param input    The buffer holding the input data. This must be a readable
+ *                 buffer of length \p ilen Bytes. It may be \c NULL if
+ *                 \p ilen is zero.
  * \param ilen     The length of the input data.
- * \param output   The generic HMAC result. This must not be \c NULL.
+ * \param output   The generic HMAC result. This must be a writable
+ *                 buffer large enough to hold the message-digest. You may
+ *                 use mbedtls_md_get_size() to obtain the message-digest
+ *                 size for a particular algorithm.
  *
  * \return         \c 0 on success.
  * \return         #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification

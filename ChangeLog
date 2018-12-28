@@ -3,10 +3,10 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.xx.x branch released xxxx-xx-xx
 	
 Bugfix
-    * Fix for file not found, which was reporting in header files.
-      In header files at mbedlts/include folder, The include path has prefix 
-      "mbedtls/" may cause the header file not be found in the case of 
-      mbedtls as a dynamic/static library.
+   * Fix for file not found, which was reporting in header files.
+     In header files at mbedlts/include folder, The include path has prefix 
+     "mbedtls/" may cause the header file not be found in the case of 
+     mbedtls as a dynamic/static library.
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

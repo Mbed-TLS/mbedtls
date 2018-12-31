@@ -39,13 +39,14 @@
     !defined(MBEDTLS_X509_CRT_PARSE_C) || !defined(MBEDTLS_FS_IO) || \
     !defined(MBEDTLS_ENTROPY_C) || !defined(MBEDTLS_CTR_DRBG_C) || \
     !defined(MBEDTLS_ERROR_C) || !defined(MBEDTLS_SHA256_C) || \
-    !defined(MBEDTLS_PEM_WRITE_C)
+    !defined(MBEDTLS_PEM_WRITE_C) || !defined(MBEDTLS_RSA_C)
 int main( void )
 {
     mbedtls_printf( "MBEDTLS_X509_CRT_WRITE_C and/or MBEDTLS_X509_CRT_PARSE_C and/or "
             "MBEDTLS_FS_IO and/or MBEDTLS_SHA256_C and/or "
             "MBEDTLS_ENTROPY_C and/or MBEDTLS_CTR_DRBG_C and/or "
-            "MBEDTLS_ERROR_C not defined.\n");
+            "MBEDTLS_ERROR_C and/or MBEDTLS_SHA256_C and/or "
+            "MBEDTLS_PEM_WRITE_C and/or MBEDTLS_RSA_C not defined.\n");
     return( 0 );
 }
 #else

@@ -119,21 +119,45 @@ typedef enum
         }                                                         \
     } while( 0 )
 
-#define TEST_ASSERT_RET( TEST, EXP_RET )                                                              \
-    do {                                                                                              \
-        int TEST_ASSERT_RET_ret = (TEST);                                                             \
-        if( TEST_ASSERT_RET_ret != ( EXP_RET ) )                                                      \
-        {                                                                                             \
-            if( ( -TEST_ASSERT_RET_ret & ~0xFF80 ) == -( MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) ) \
-            {                                                                                         \
-                set_test_result( #TEST, __LINE__, __FILE__, TEST_RESULT_SKIPPED );                    \
-            }                                                                                         \
-            else                                                                                      \
-            {                                                                                         \
-                set_test_result( #TEST, __LINE__, __FILE__, TEST_RESULT_FAILED );                     \
-            }                                                                                         \
-            goto exit;                                                                                \
-        }                                                                                             \
+/**
+ * \brief   This macro tests the expression passed to it as a test step or
+ *          individual test in a test case, comparing result to an expected
+ *          result given as parameter, and skips the test in case the underlying
+ *          alternative implementation doesn't support the feature.
+ *
+ *          It allows a library function to return a value and return an error
+ *          code that can be tested.
+ *          It receives an expected return code and:
+ *          - If the underlying alternative implementation does not support the feature,
+ *          by returning MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED, the test is skipped.
+ *          - If and fails in case the expression
+ *          results different.
+ *
+ *          When MBEDTLS_CHECK_PARAMS is enabled, calls to the parameter failure
+ *          callback, MBEDTLS_PARAM_FAILED(), will be assumed to be a test
+ *          failure.
+ *
+ *          This macro is not suitable for negative parameter validation tests,
+ *          as it assumes the test step will not create an error.
+ *
+ * \param   TEST    The test expression to be tested.
+ */
+#define TEST_ASSERT_RET( TEST, EXP_RET )                                \
+    do {                                                                \
+        int TEST_ASSERT_RET_ret = (TEST);                               \
+        if( TEST_ASSERT_RET_ret != ( EXP_RET ) )                        \
+        {                                                               \
+            if( ( -TEST_ASSERT_RET_ret & ~0xFF80 ) ==                   \
+                -( MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) )         \
+            {                                                           \
+                set_test_result( #TEST, __LINE__, __FILE__, TEST_RESULT_SKIPPED );\
+            }                                                           \
+            else                                                        \
+            {                                                           \
+                set_test_result( #TEST, __LINE__, __FILE__, TEST_RESULT_FAILED ); \
+            }                                                           \
+            goto exit;                                                  \
+        }                                                               \
     } while( 0 )
 
 /**
@@ -174,12 +198,21 @@ typedef enum
  */
 #define TEST_INVALID_PARAM_RET( PARAM_ERR_VALUE, TEST )                     \
     do {                                                                    \
+        int TEST_INVALID_PARAM_RET_ret;                                     \
         test_info.paramfail_test_state = PARAMFAIL_TESTSTATE_PENDING;       \
-        if( (TEST) != (PARAM_ERR_VALUE) ||                                  \
+        TEST_INVALID_PARAM_RET_ret = (TEST);                                \
+        if( TEST_INVALID_PARAM_RET_ret != (PARAM_ERR_VALUE) ||              \
             test_info.paramfail_test_state != PARAMFAIL_TESTSTATE_CALLED )  \
         {                                                                   \
-            set_test_result( #TEST, __LINE__, __FILE__, TEST_RESULT_FAILED );\
-            goto exit;                                                      \
+            if( ( -TEST_INVALID_PARAM_RET_ret & ~0xFF80 ) ==                \
+                -( MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED ) )             \
+            {                                                               \
+                set_test_result( #TEST, __LINE__, __FILE__, TEST_RESULT_SKIPPED );\
+            }                                                               \
+            else                                                            \
+            {                                                               \
+                set_test_result( #TEST, __LINE__, __FILE__, TEST_RESULT_FAILED );\
+            }                                                               \
         }                                                                   \
    } while( 0 )
 
@@ -369,8 +402,7 @@ void mbedtls_param_failed( const char *failure_condition,
 
         /* Record the location of the failure, but not as a failure yet, in case
          * it was part of the test */
-        set_test_result( failure_condition, line, file, TEST_RESULT_FAILED );
-        test_info.result = TEST_RESULT_SUCCESS;
+        set_test_result( failure_condition, line, file, TEST_RESULT_SUCCESS );
 
         longjmp( param_fail_jmp, 1 );
     }
@@ -665,7 +697,6 @@ int rnd_pseudo_rand( void *rng_state, unsigned char *output, size_t len )
 
     return( 0 );
 }
-
 
 int hexcmp( uint8_t * a, uint8_t * b, uint32_t a_len, uint32_t b_len )
 {

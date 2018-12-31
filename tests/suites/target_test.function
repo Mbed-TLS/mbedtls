@@ -75,7 +75,7 @@ uint8_t receive_byte()
     c[1] = greentea_getc();
     c[2] = '\0';
 
-    assert( unhexify( &byte, c ) != 2 );
+    TEST_HELPER_ASSERT( unhexify( &byte, c ) != 2 );
     return( byte );
 }
 
@@ -100,7 +100,7 @@ uint32_t receive_uint32()
                            greentea_getc(),
                            '\0'
                          };
-    assert( unhexify( &value, c ) != 8 );
+    TEST_HELPER_ASSERT( unhexify( &value, c ) != 8 );
     return( (uint32_t)value );
 }
 

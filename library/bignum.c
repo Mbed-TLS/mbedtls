@@ -741,14 +741,19 @@ static mbedtls_mpi_uint mpi_uint_bigendian_to_host( mbedtls_mpi_uint x )
 #if ( __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__ )
 
 /* For GCC and Clang, have builtins for byte swapping. */
-#if( defined(__GNUC__) && defined(__GNUC_PREREQ) && __GNUC_PREREQ(4,3) )
-#define have_bswap
-#elif defined(__clang__)                &&               \
-      defined(__has_builtin)            &&               \
-      __has_builtin(__builtin_bswap32)  &&               \
-      __has_builtin(__builtin_bswap64)
+#if defined(__GNUC__) && defined(__GNUC_PREREQ)
+#if __GNUC_PREREQ(4,3)
 #define have_bswap
 #endif
+#endif
+
+#if defined(__clang__) && defined(__has_builtin)
+#if __has_builtin(__builtin_bswap32)  &&                 \
+    __has_builtin(__builtin_bswap64)
+#define have_bswap
+#endif
+#endif
+
 #if defined(have_bswap)
     /* The compiler is hopefully able to statically evaluate this! */
     switch( sizeof(mbedtls_mpi_uint) )

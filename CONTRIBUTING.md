@@ -56,9 +56,9 @@ It would be highly appreciated if contributions are backported to LTS branches i
 
 Currently maintained LTS branches are:
 
-1. [mbedtls-2.1](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.1)
+1. [mbedtls-2.7](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.7)
 
-2. [mbedtls-2.7](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.7)
+1. [mbedtls-2.16](https://github.com/ARMmbed/mbedtls/tree/mbedtls-2.16)
 
 
 Tests

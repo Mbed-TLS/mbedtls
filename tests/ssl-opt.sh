@@ -7306,6 +7306,11 @@ run_test    "DTLS proxy: 3d, gnutls server" \
             -s "Extra-header:" \
             -c "Extra-header:"
 
+# The next two test are disabled because they tend to trigger a bug in the
+# version of GnuTLS that's currently installed on our CI. The bug occurs when
+# different fragments of the same handshake message are received out-of-order
+# by GnuTLS and results in a timeout. It's been fixed in GnuTLS 3.5.2.
+skip_next_test
 requires_gnutls
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out
@@ -7317,6 +7322,7 @@ run_test    "DTLS proxy: 3d, gnutls server, fragmentation" \
             -s "Extra-header:" \
             -c "Extra-header:"
 
+skip_next_test
 requires_gnutls
 client_needs_more_time 8
 not_with_valgrind # risk of non-mbedtls peer timing out

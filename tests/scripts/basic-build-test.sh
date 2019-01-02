@@ -76,7 +76,7 @@ TEST_OUTPUT=out_${PPID}
 cd tests
 
 # Step 2a - Unit Tests
-perl scripts/run-test-suites.pl -v |tee unit-test-$TEST_OUTPUT
+perl scripts/run-test-suites.pl -v 2 |tee unit-test-$TEST_OUTPUT
 echo
 
 # Step 2b - System Tests
@@ -92,6 +92,9 @@ OPENSSL_CMD="$OPENSSL_LEGACY"                                       \
     GNUTLS_CLI="$GNUTLS_LEGACY_CLI"                                 \
     GNUTLS_SERV="$GNUTLS_LEGACY_SERV"                               \
     sh compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR' | \
+    tee -a compat-test-$TEST_OUTPUT
+OPENSSL_CMD="$OPENSSL_NEXT"                     \
+    sh compat.sh -e '^$' -f 'ARIA\|CHACHA' |    \
     tee -a compat-test-$TEST_OUTPUT
 echo
 

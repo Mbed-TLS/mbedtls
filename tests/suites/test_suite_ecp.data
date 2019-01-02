@@ -1,3 +1,9 @@
+ECP valid params
+ecp_valid_param:
+
+ECP invalid params
+ecp_invalid_param:
+
 ECP curve info #1
 depends_on:MBEDTLS_ECP_DP_BP512R1_ENABLED
 mbedtls_ecp_curve_info:MBEDTLS_ECP_DP_BP512R1:28:512:"brainpoolP512r1"
@@ -45,10 +51,6 @@ ecp_check_pub:MBEDTLS_ECP_DP_SECP224K1:"E2000000000000BB3A13D43B323337383935321F
 ECP check pubkey Koblitz #2 (coordinate not affine)
 depends_on:MBEDTLS_ECP_DP_SECP224K1_ENABLED
 ecp_check_pub:MBEDTLS_ECP_DP_SECP224K1:"E2000000000000BB3A13D43B323337383935321F0603551D":"100101FF040830060101FF02010A30220603551D0E041B04636FC0C0":"101":MBEDTLS_ERR_ECP_INVALID_KEY
-
-ECP write binary #0 (zero, bad format)
-depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED
-ecp_write_binary:MBEDTLS_ECP_DP_SECP192R1:"01":"01":"00":ECP_PF_UNKNOWN:"00":1:MBEDTLS_ERR_ECP_BAD_INPUT_DATA
 
 ECP write binary #1 (zero, uncompressed, buffer just fits)
 depends_on:MBEDTLS_ECP_DP_SECP192R1_ENABLED

@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define mbedtls_printf          printf
+#define mbedtls_exit            exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
 #define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
 #endif /* MBEDTLS_PLATFORM_C */
@@ -99,6 +100,17 @@ int main( void )
     "                          SHA224, SHA256\n"       \
     "                          SHA384, SHA512\n"       \
     "\n"
+
+#if defined(MBEDTLS_CHECK_PARAMS)
+void mbedtls_param_failed( const char *failure_condition,
+                           const char *file,
+                           int line )
+{
+    mbedtls_printf( "%s:%i: Input param failed - %s\n",
+                    file, line, failure_condition );
+    mbedtls_exit( MBEDTLS_EXIT_FAILURE );
+}
+#endif
 
 /*
  * global options

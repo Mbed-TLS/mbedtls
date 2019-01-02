@@ -1,9 +1,6 @@
 Cipher list
 mbedtls_cipher_list:
 
-Cipher null/uninitialised arguments
-cipher_null_args:
-
 Set padding with AES-CBC
 depends_on:MBEDTLS_AES_C:MBEDTLS_CIPHER_MODE_CBC:MBEDTLS_CIPHER_PADDING_PKCS7
 set_padding:MBEDTLS_CIPHER_AES_128_CBC:MBEDTLS_PADDING_PKCS7:0

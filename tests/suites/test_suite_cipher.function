@@ -22,72 +22,464 @@ void mbedtls_cipher_list(  )
 /* END_CASE */
 
 /* BEGIN_CASE */
-void cipher_null_args(  )
+void cipher_invalid_param_unconditional( )
 {
-    mbedtls_cipher_context_t ctx;
-    const mbedtls_cipher_info_t *info = mbedtls_cipher_info_from_type( *( mbedtls_cipher_list() ) );
-    unsigned char buf[1] = { 0 };
-    size_t olen;
+    mbedtls_cipher_context_t valid_ctx;
+    mbedtls_cipher_context_t invalid_ctx;
+    mbedtls_operation_t valid_operation = MBEDTLS_ENCRYPT;
+    mbedtls_cipher_padding_t valid_mode = MBEDTLS_PADDING_ZEROS;
+    unsigned char valid_buffer[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
+    int valid_size = sizeof(valid_buffer);
+    int valid_bitlen = valid_size * 8;
+    const mbedtls_cipher_info_t *valid_info = mbedtls_cipher_info_from_type(
+        *( mbedtls_cipher_list() ) );
+    size_t size_t_var;
 
-    mbedtls_cipher_init( &ctx );
+    (void)valid_mode; /* In some configurations this is unused */
 
-    TEST_ASSERT( mbedtls_cipher_get_block_size( NULL ) == 0 );
-    TEST_ASSERT( mbedtls_cipher_get_block_size( &ctx ) == 0 );
+    mbedtls_cipher_init( &valid_ctx );
+    mbedtls_cipher_setup( &valid_ctx, valid_info );
+    mbedtls_cipher_init( &invalid_ctx );
 
-    TEST_ASSERT( mbedtls_cipher_get_cipher_mode( NULL ) == MBEDTLS_MODE_NONE );
-    TEST_ASSERT( mbedtls_cipher_get_cipher_mode( &ctx ) == MBEDTLS_MODE_NONE );
+    /* mbedtls_cipher_setup() */
+    TEST_ASSERT( mbedtls_cipher_setup( &valid_ctx, NULL ) ==
+                 MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-    TEST_ASSERT( mbedtls_cipher_get_iv_size( NULL ) == 0 );
-    TEST_ASSERT( mbedtls_cipher_get_iv_size( &ctx ) == 0 );
+    /* mbedtls_cipher_get_block_size() */
+    TEST_ASSERT( mbedtls_cipher_get_block_size( &invalid_ctx ) == 0 );
 
-    TEST_ASSERT( mbedtls_cipher_info_from_string( NULL ) == NULL );
+    /* mbedtls_cipher_get_cipher_mode() */
+    TEST_ASSERT( mbedtls_cipher_get_cipher_mode( &invalid_ctx ) ==
+                 MBEDTLS_MODE_NONE );
 
-    TEST_ASSERT( mbedtls_cipher_setup( &ctx, NULL )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_setup( NULL, info )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    /* mbedtls_cipher_get_iv_size() */
+    TEST_ASSERT( mbedtls_cipher_get_iv_size( &invalid_ctx ) == 0 );
 
-    TEST_ASSERT( mbedtls_cipher_setkey( NULL, buf, 0, MBEDTLS_ENCRYPT )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_setkey( &ctx, buf, 0, MBEDTLS_ENCRYPT )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    /* mbedtls_cipher_get_type() */
+    TEST_ASSERT(
+        mbedtls_cipher_get_type( &invalid_ctx ) ==
+        MBEDTLS_CIPHER_NONE);
 
-    TEST_ASSERT( mbedtls_cipher_set_iv( NULL, buf, 0 )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_set_iv( &ctx, buf, 0 )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    /* mbedtls_cipher_get_name() */
+    TEST_ASSERT( mbedtls_cipher_get_name( &invalid_ctx ) == 0 );
 
-    TEST_ASSERT( mbedtls_cipher_reset( NULL ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_reset( &ctx ) == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    /* mbedtls_cipher_get_key_bitlen() */
+    TEST_ASSERT( mbedtls_cipher_get_key_bitlen( &invalid_ctx ) ==
+                 MBEDTLS_KEY_LENGTH_NONE );
+
+    /* mbedtls_cipher_get_operation() */
+    TEST_ASSERT( mbedtls_cipher_get_operation( &invalid_ctx ) ==
+                 MBEDTLS_OPERATION_NONE );
+
+    /* mbedtls_cipher_setkey() */
+    TEST_ASSERT(
+        mbedtls_cipher_setkey( &invalid_ctx,
+                               valid_buffer,
+                               valid_bitlen,
+                               valid_operation ) ==
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+    /* mbedtls_cipher_set_iv() */
+    TEST_ASSERT(
+        mbedtls_cipher_set_iv( &invalid_ctx,
+                               valid_buffer,
+                               valid_size ) ==
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+
+    /* mbedtls_cipher_reset() */
+    TEST_ASSERT( mbedtls_cipher_reset( &invalid_ctx ) ==
+                 MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( mbedtls_cipher_update_ad( NULL, buf, 0 )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_update_ad( &ctx, buf, 0 )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    /* mbedtls_cipher_update_ad() */
+    TEST_ASSERT(
+        mbedtls_cipher_update_ad( &invalid_ctx,
+                                  valid_buffer,
+                                  valid_size ) ==
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+#endif /* defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C) */
+
+#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
+    /* mbedtls_cipher_set_padding_mode() */
+    TEST_ASSERT( mbedtls_cipher_set_padding_mode( &invalid_ctx, valid_mode ) ==
+                 MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 #endif
 
-    TEST_ASSERT( mbedtls_cipher_update( NULL, buf, 0, buf, &olen )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_update( &ctx, buf, 0, buf, &olen )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    /* mbedtls_cipher_update() */
+    TEST_ASSERT(
+        mbedtls_cipher_update( &invalid_ctx,
+                               valid_buffer,
+                               valid_size,
+                               valid_buffer,
+                               &size_t_var ) ==
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-    TEST_ASSERT( mbedtls_cipher_finish( NULL, buf, &olen )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_finish( &ctx, buf, &olen )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    /* mbedtls_cipher_finish() */
+    TEST_ASSERT(
+        mbedtls_cipher_finish( &invalid_ctx,
+                               valid_buffer,
+                               &size_t_var ) ==
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
-    TEST_ASSERT( mbedtls_cipher_write_tag( NULL, buf, olen )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_write_tag( &ctx, buf, olen )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    /* mbedtls_cipher_write_tag() */
+    TEST_ASSERT(
+        mbedtls_cipher_write_tag( &invalid_ctx,
+                                  valid_buffer,
+                                  valid_size ) ==
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-    TEST_ASSERT( mbedtls_cipher_check_tag( NULL, buf, olen )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_cipher_check_tag( &ctx, buf, olen )
-                 == MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+    /* mbedtls_cipher_check_tag() */
+    TEST_ASSERT(
+        mbedtls_cipher_check_tag( &invalid_ctx,
+                                  valid_buffer,
+                                  valid_size ) ==
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
+#endif /* defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C) */
+
+exit:
+    mbedtls_cipher_free( &invalid_ctx );
+    mbedtls_cipher_free( &valid_ctx );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+void cipher_invalid_param_conditional( )
+{
+    mbedtls_cipher_context_t valid_ctx;
+
+    mbedtls_operation_t valid_operation = MBEDTLS_ENCRYPT;
+    mbedtls_operation_t invalid_operation = 100;
+    mbedtls_cipher_padding_t valid_mode = MBEDTLS_PADDING_ZEROS;
+    unsigned char valid_buffer[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
+    int valid_size = sizeof(valid_buffer);
+    int valid_bitlen = valid_size * 8;
+    const mbedtls_cipher_info_t *valid_info = mbedtls_cipher_info_from_type(
+        *( mbedtls_cipher_list() ) );
+
+    size_t size_t_var;
+
+    (void)valid_mode; /* In some configurations this is unused */
+
+    /* mbedtls_cipher_init() */
+    TEST_VALID_PARAM( mbedtls_cipher_init( &valid_ctx ) );
+    TEST_INVALID_PARAM( mbedtls_cipher_init( NULL ) );
+
+    /* mbedtls_cipher_setup() */
+    TEST_VALID_PARAM( mbedtls_cipher_setup( &valid_ctx, valid_info ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_setup( NULL, valid_info ) );
+
+    /* mbedtls_cipher_get_block_size() */
+    TEST_INVALID_PARAM_RET( 0, mbedtls_cipher_get_block_size( NULL ) );
+
+    /* mbedtls_cipher_get_cipher_mode() */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_MODE_NONE,
+        mbedtls_cipher_get_cipher_mode( NULL ) );
+
+    /* mbedtls_cipher_get_iv_size() */
+    TEST_INVALID_PARAM_RET( 0, mbedtls_cipher_get_iv_size( NULL ) );
+
+    /* mbedtls_cipher_get_type() */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_CIPHER_NONE,
+        mbedtls_cipher_get_type( NULL ) );
+
+    /* mbedtls_cipher_get_name() */
+    TEST_INVALID_PARAM_RET( 0, mbedtls_cipher_get_name( NULL ) );
+
+    /* mbedtls_cipher_get_key_bitlen() */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_KEY_LENGTH_NONE,
+        mbedtls_cipher_get_key_bitlen( NULL ) );
+
+    /* mbedtls_cipher_get_operation() */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_OPERATION_NONE,
+        mbedtls_cipher_get_operation( NULL ) );
+
+    /* mbedtls_cipher_setkey() */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_setkey( NULL,
+                               valid_buffer,
+                               valid_bitlen,
+                               valid_operation ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_setkey( &valid_ctx,
+                               NULL,
+                               valid_bitlen,
+                               valid_operation ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_setkey( &valid_ctx,
+                               valid_buffer,
+                               valid_bitlen,
+                               invalid_operation ) );
+
+    /* mbedtls_cipher_set_iv() */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_set_iv( NULL,
+                               valid_buffer,
+                               valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_set_iv( &valid_ctx,
+                               NULL,
+                               valid_size ) );
+
+    /* mbedtls_cipher_reset() */
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+                            mbedtls_cipher_reset( NULL ) );
+
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+    /* mbedtls_cipher_update_ad() */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_update_ad( NULL,
+                                  valid_buffer,
+                                  valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_update_ad( &valid_ctx,
+                                  NULL,
+                                  valid_size ) );
+#endif /* defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C) */
+
+#if defined(MBEDTLS_CIPHER_MODE_WITH_PADDING)
+    /* mbedtls_cipher_set_padding_mode() */
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+                            mbedtls_cipher_set_padding_mode( NULL, valid_mode ) );
 #endif
+
+    /* mbedtls_cipher_update() */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_update( NULL,
+                               valid_buffer,
+                               valid_size,
+                               valid_buffer,
+                               &size_t_var ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_update( &valid_ctx,
+                               NULL, valid_size,
+                               valid_buffer,
+                               &size_t_var ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_update( &valid_ctx,
+                               valid_buffer, valid_size,
+                               NULL,
+                               &size_t_var ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_update( &valid_ctx,
+                               valid_buffer, valid_size,
+                               valid_buffer,
+                               NULL ) );
+
+    /* mbedtls_cipher_finish() */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_finish( NULL,
+                               valid_buffer,
+                               &size_t_var ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_finish( &valid_ctx,
+                               NULL,
+                               &size_t_var ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_finish( &valid_ctx,
+                               valid_buffer,
+                               NULL ) );
+
+#if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
+    /* mbedtls_cipher_write_tag() */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_write_tag( NULL,
+                                  valid_buffer,
+                                  valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_write_tag( &valid_ctx,
+                                  NULL,
+                                  valid_size ) );
+
+    /* mbedtls_cipher_check_tag() */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_check_tag( NULL,
+                                  valid_buffer,
+                                  valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_check_tag( &valid_ctx,
+                                  NULL,
+                                  valid_size ) );
+#endif /* defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C) */
+
+    /* mbedtls_cipher_crypt() */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_crypt( NULL,
+                              valid_buffer, valid_size,
+                              valid_buffer, valid_size,
+                              valid_buffer, &size_t_var ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_crypt( &valid_ctx,
+                              NULL, valid_size,
+                              valid_buffer, valid_size,
+                              valid_buffer, &size_t_var ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_crypt( &valid_ctx,
+                              valid_buffer, valid_size,
+                              NULL, valid_size,
+                              valid_buffer, &size_t_var ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_crypt( &valid_ctx,
+                              valid_buffer, valid_size,
+                              valid_buffer, valid_size,
+                              NULL, &size_t_var ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_crypt( &valid_ctx,
+                              valid_buffer, valid_size,
+                              valid_buffer, valid_size,
+                              valid_buffer, NULL ) );
+
+#if defined(MBEDTLS_CIPHER_MODE_AEAD)
+    /* mbedtls_cipher_auth_encrypt() */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt( NULL,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, &size_t_var,
+                                     valid_buffer, valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt( &valid_ctx,
+                                     NULL, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, &size_t_var,
+                                     valid_buffer, valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt( &valid_ctx,
+                                     valid_buffer, valid_size,
+                                     NULL, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, &size_t_var,
+                                     valid_buffer, valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt( &valid_ctx,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     NULL, valid_size,
+                                     valid_buffer, &size_t_var,
+                                     valid_buffer, valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt( &valid_ctx,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     NULL, &size_t_var,
+                                     valid_buffer, valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt( &valid_ctx,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, NULL,
+                                     valid_buffer, valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_encrypt( &valid_ctx,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, &size_t_var,
+                                     NULL, valid_size ) );
+
+    /* mbedtls_cipher_auth_decrypt() */
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt( NULL,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, &size_t_var,
+                                     valid_buffer, valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt( &valid_ctx,
+                                     NULL, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, &size_t_var,
+                                     valid_buffer, valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt( &valid_ctx,
+                                     valid_buffer, valid_size,
+                                     NULL, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, &size_t_var,
+                                     valid_buffer, valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt( &valid_ctx,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     NULL, valid_size,
+                                     valid_buffer, &size_t_var,
+                                     valid_buffer, valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt( &valid_ctx,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     NULL, &size_t_var,
+                                     valid_buffer, valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt( &valid_ctx,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, NULL,
+                                     valid_buffer, valid_size ) );
+    TEST_INVALID_PARAM_RET(
+        MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA,
+        mbedtls_cipher_auth_decrypt( &valid_ctx,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, valid_size,
+                                     valid_buffer, &size_t_var,
+                                     NULL, valid_size ) );
+#endif /* defined(MBEDTLS_CIPHER_MODE_AEAD) */
+
+    /* mbedtls_cipher_free() */
+    TEST_VALID_PARAM( mbedtls_cipher_free( NULL ) );
+exit:
+    TEST_VALID_PARAM( mbedtls_cipher_free( &valid_ctx ) );
 }
 /* END_CASE */
 

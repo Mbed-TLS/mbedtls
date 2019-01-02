@@ -14,6 +14,14 @@ void des_check_weak( data_t * key, int ret )
 }
 /* END_CASE */
 
+/* BEGIN_CASE */
+void des_valid_params( )
+{
+    TEST_VALID_PARAM( mbedtls_des_free( NULL ) );
+    TEST_VALID_PARAM( mbedtls_des3_free( NULL ) );
+}
+/* END_CASE */
+
 /* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
 void des_invalid_params( )
 {
@@ -24,9 +32,8 @@ void des_invalid_params( )
     unsigned char input[8] = { 0 };
     unsigned char output[8] = { 0 };
     unsigned char iv[8] = { 0 };
-
-    TEST_VALID_PARAM( mbedtls_des_free( NULL ) );
-    TEST_VALID_PARAM( mbedtls_des3_free( NULL ) );
+    const int valid_mode = MBEDTLS_DES_DECRYPT;
+    const int invalid_mode = 42;
 
     TEST_INVALID_PARAM( mbedtls_des_init( NULL ) );
     TEST_INVALID_PARAM( mbedtls_des3_init( NULL ) );
@@ -70,22 +77,27 @@ void des_invalid_params( )
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DES_BAD_INPUT_DATA,
                             mbedtls_des_crypt_cbc( NULL,
-                                                   MBEDTLS_DES_ENCRYPT,
+                                                   valid_mode,
                                                    sizeof( input ), iv, input,
                                                    output )  );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DES_BAD_INPUT_DATA,
                             mbedtls_des_crypt_cbc( &ctx_des,
-                                                   MBEDTLS_DES_ENCRYPT,
+                                                   invalid_mode,
+                                                   sizeof( input ), iv, input,
+                                                   output )  );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DES_BAD_INPUT_DATA,
+                            mbedtls_des_crypt_cbc( &ctx_des,
+                                                   valid_mode,
                                                    sizeof( input ), NULL, input,
                                                    output )  );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DES_BAD_INPUT_DATA,
                             mbedtls_des_crypt_cbc( &ctx_des,
-                                                   MBEDTLS_DES_ENCRYPT,
+                                                   valid_mode,
                                                    sizeof( input ), iv, NULL,
                                                    output )  );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DES_BAD_INPUT_DATA,
                             mbedtls_des_crypt_cbc( &ctx_des,
-                                                   MBEDTLS_DES_ENCRYPT,
+                                                   valid_mode,
                                                    sizeof( input ), iv, input,
                                                    NULL )  );
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
@@ -99,22 +111,27 @@ void des_invalid_params( )
 
 #if defined(MBEDTLS_CIPHER_MODE_CBC)
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DES_BAD_INPUT_DATA,
-                            mbedtls_des3_crypt_cbc( NULL, MBEDTLS_DES_ENCRYPT,
+                            mbedtls_des3_crypt_cbc( NULL, valid_mode,
                                                     sizeof( input ), iv, input,
                                                     output )  );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DES_BAD_INPUT_DATA,
                             mbedtls_des3_crypt_cbc( &ctx_3des,
-                                                    MBEDTLS_DES_ENCRYPT,
+                                                    invalid_mode,
+                                                    sizeof( input ), iv,
+                                                    input, output )  );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DES_BAD_INPUT_DATA,
+                            mbedtls_des3_crypt_cbc( &ctx_3des,
+                                                    valid_mode,
                                                     sizeof( input ), NULL,
                                                     input, output )  );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DES_BAD_INPUT_DATA,
                             mbedtls_des3_crypt_cbc( &ctx_3des,
-                                                    MBEDTLS_DES_ENCRYPT,
+                                                    valid_mode,
                                                     sizeof( input ), iv, NULL,
                                                     output )  );
     TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DES_BAD_INPUT_DATA,
                             mbedtls_des3_crypt_cbc( &ctx_3des,
-                                                    MBEDTLS_DES_ENCRYPT,
+                                                    valid_mode,
                                                     sizeof( input ), iv, input,
                                                     NULL )  );
 #endif /* MBEDTLS_CIPHER_MODE_CBC */

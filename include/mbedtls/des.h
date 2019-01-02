@@ -98,8 +98,8 @@ void mbedtls_des_init( mbedtls_des_context *ctx );
 /**
  * \brief          Clear a DES context.
  *
- * \param ctx      The DES context to be cleared. May be \c NULL,
- *                 in which case this function is a no-op. If it is
+ * \param ctx      The DES context to be cleared. This may be \c NULL,
+ *                 in which case this function returns immediately. If it is
  *                 not \c NULL, it must point to an initialized DES context.
  *
  * \warning        DES is considered a weak cipher and its use constitutes a
@@ -119,8 +119,8 @@ void mbedtls_des3_init( mbedtls_des3_context *ctx );
 /**
  * \brief          Clear a Triple-DES context.
  *
- * \param ctx      The DES3 context to be cleared. May be \c NULL,
- *                 in which case this function is a no-op. If it is
+ * \param ctx      The DES3 context to be cleared. This may be \c NULL,
+ *                 in which case this function returns immediately. If it is
  *                 not \c NULL, it must point to an initialized 3DES context.
  */
 void mbedtls_des3_free( mbedtls_des3_context *ctx );
@@ -132,7 +132,7 @@ void mbedtls_des3_free( mbedtls_des3_context *ctx );
  *                 a parity bit to allow verification.
  *
  * \param key      The secret key.
- *                 This must be a R/W buffer of length 8 Bytes.
+ *                 This must be a read/write buffer of length \c 8 Bytes.
  *
  * \warning        DES is considered a weak cipher and its use constitutes a
  *                 security risk. We recommend considering stronger ciphers
@@ -147,7 +147,7 @@ void mbedtls_des_key_set_parity( unsigned char key[MBEDTLS_DES_KEY_SIZE] );
  *                 a parity bit to allow verification.
  *
  * \param key      The secret key.
- *                 This must be a readable buffer of length 8 Bytes.
+ *                 This must be a readable buffer of length \c 8 Bytes.
  *
  * \return         \c 0 if the parity was ok.
  * \return         \c 1 if the parity was not correct.
@@ -162,7 +162,7 @@ int mbedtls_des_key_check_key_parity( const unsigned char key[MBEDTLS_DES_KEY_SI
  * \brief          Check that key is not a weak or semi-weak DES key
  *
  * \param key      The secret key.
- *                 This must be a readable buffer of length 8 Bytes.
+ *                 This must be a readable buffer of length \c \c 8 Bytes.
  *
  * \return         \c 0 if no weakness was found in the key.
  * \return         \c 1 if a weak key was identified.
@@ -178,7 +178,7 @@ int mbedtls_des_key_check_weak( const unsigned char key[MBEDTLS_DES_KEY_SIZE] );
  *
  * \param ctx      The DES context to use. This must be initialized.
  * \param key      The secret key.
- *                 This must be a readable buffer of length 8 Bytes.
+ *                 This must be a readable buffer of length \c \c 8 Bytes.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -195,7 +195,7 @@ int mbedtls_des_setkey_enc( mbedtls_des_context *ctx,
  *
  * \param ctx      The DES context to use. This must be initialized.
  * \param key      The secret key.
- *                 This must be a readable buffer of length 8 Bytes.
+ *                 This must be a readable buffer of length \c 8 Bytes.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -268,9 +268,9 @@ int mbedtls_des3_set3key_dec( mbedtls_des3_context *ctx,
  *
  * \param ctx      The DES context to use. This must be initialized.
  * \param input    The input block.
- *                 This must be a readable buffer of length 8 Bytes.
+ *                 This must be a readable buffer of length \c 8 Bytes.
  * \param output   The output block.
- *                 This must be a writable buffer of length 8 Bytes.
+ *                 This must be a writable buffer of length \c 8 Bytes.
  *
  * \return         \c 0 if successful.
  * \return         A negative error code on failure.
@@ -299,9 +299,9 @@ int mbedtls_des_crypt_ecb( mbedtls_des_context *ctx,
  * \param mode     The mode to use:
  *                 #MBEDTLS_DES_ENCRYPT for encryption, or
  *                 #MBEDTLS_DES_DECRYPT for decryption.
- * \param length   The length of the input data \p input.
+ * \param length   The length of the input data \p input in Bytes.
  * \param iv       The initialization vector (updated after use).
- *                 Must point to a R/W buffer of length 8 Bytes.
+ *                 Must point to a read/write buffer of length \c 8 Bytes.
  * \param input    The buffer holding the input data.
  *                 This must be a readable buffer of length \p length Bytes.
  * \param output   The buffer to hold the output data.
@@ -327,9 +327,9 @@ int mbedtls_des_crypt_cbc( mbedtls_des_context *ctx,
  *
  * \param ctx      The 3DES context to use. This must be initialized.
  * \param input    The input block.
- *                 This must be a readable buffer of length 8 Bytes.
+ *                 This must be a readable buffer of length \c 8 Bytes.
  * \param output   The output block.
- *                 This must be a writable buffer of length 8 Bytes.
+ *                 This must be a writable buffer of length \c 8 Bytes.
  *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
@@ -354,9 +354,9 @@ int mbedtls_des3_crypt_ecb( mbedtls_des3_context *ctx,
  * \param mode     The mode of operation:
  *                 #MBEDTLS_DES_ENCRYPT for encryption, or
  *                 #MBEDTLS_DES_DECRYPT for decryption.
- * \param length   The length of the input data \p input.
+ * \param length   The length of the input data \p input in Bytes.
  * \param iv       The initialization vector (updated after use).
- *                 This must be a R/W buffer of length 8 Bytes.
+ *                 This must be a read/write buffer of length \c 8 Bytes.
  * \param input    The buffer holding the input data.
  *                 This must be a readable buffer of length \p length Bytes.
  * \param output   The buffer to hold the output data.
@@ -376,7 +376,7 @@ int mbedtls_des3_crypt_cbc( mbedtls_des3_context *ctx,
 /**
  * \brief          Internal function for key expansion.
  *                 (Only exposed to allow overriding it,
- *                 see MBEDTLS_DES_SETKEY_ALT)
+ *                 see #MBEDTLS_DES_SETKEY_ALT)
  *
  * \param SK       Round keys
  * \param key      Base key

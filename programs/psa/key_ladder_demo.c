@@ -620,9 +620,9 @@ static void usage( void )
 
 int main( int argc, char *argv[] )
 {
-    char *key_file_name = "master.key";
-    char *input_file_name = NULL;
-    char *output_file_name = NULL;
+    const char *key_file_name = "master.key";
+    const char *input_file_name = NULL;
+    const char *output_file_name = NULL;
     const char *ladder[MAX_LADDER_DEPTH];
     size_t ladder_depth = 0;
     int i;

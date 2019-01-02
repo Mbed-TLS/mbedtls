@@ -636,7 +636,7 @@
            "r6", "r7", "r8", "r9", "cc"         \
          );
 
-#elif defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1)
+#elif defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1) && (__ARM_ARCH >= 6)
 
 #define MULADDC_INIT                            \
     asm(

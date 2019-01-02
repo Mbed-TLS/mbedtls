@@ -539,7 +539,6 @@ component_test_ref_configs () {
 
 component_test_sslv3 () {
     msg "build: Default + SSLv3 (ASan build)" # ~ 6 min
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl set MBEDTLS_SSL_PROTO_SSL3
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
@@ -557,7 +556,6 @@ component_test_sslv3 () {
 
 component_test_no_renegotiation () {
     msg "build: Default + !MBEDTLS_SSL_RENEGOTIATION (ASan build)" # ~ 6 min
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl unset MBEDTLS_SSL_RENEGOTIATION
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
@@ -571,7 +569,6 @@ component_test_no_renegotiation () {
 
 component_test_rsa_no_crt () {
     msg "build: Default + RSA_NO_CRT (ASan build)" # ~ 6 min
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl set MBEDTLS_RSA_NO_CRT
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
@@ -588,7 +585,6 @@ component_test_rsa_no_crt () {
 
 component_test_full_cmake_clang () {
     msg "build: cmake, full config, clang" # ~ 50s
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
@@ -606,7 +602,6 @@ component_test_full_cmake_clang () {
 
 component_build_deprecated () {
     msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl set MBEDTLS_DEPRECATED_WARNING
     # Build with -O -Wextra to catch a maximum of issues.
@@ -653,7 +648,6 @@ component_test_no_platform () {
     # This should catch missing mbedtls_printf definitions, and by disabling file
     # IO, it should catch missing '#include <stdio.h>'
     msg "build: full config except platform/fsio/net, make, gcc, C99" # ~ 30s
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_PLATFORM_C
     scripts/config.pl unset MBEDTLS_NET_C
@@ -675,7 +669,6 @@ component_test_no_platform () {
 component_build_no_std_function () {
     # catch compile bugs in _uninit functions
     msg "build: full config with NO_STD_FUNCTION, make, gcc" # ~ 30s
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
     scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
@@ -684,7 +677,6 @@ component_build_no_std_function () {
 
 component_build_no_ssl_srv () {
     msg "build: full config except ssl_srv.c, make, gcc" # ~ 30s
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_SSL_SRV_C
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0'
@@ -692,7 +684,6 @@ component_build_no_ssl_srv () {
 
 component_build_no_ssl_cli () {
     msg "build: full config except ssl_cli.c, make, gcc" # ~ 30s
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_SSL_CLI_C
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0'
@@ -702,7 +693,6 @@ component_build_no_sockets () {
     # Note, C99 compliance can also be tested with the sockets support disabled,
     # as that requires a POSIX platform (which isn't the same as C99).
     msg "build: full config except net_sockets.c, make, gcc -std=c99 -pedantic" # ~ 30s
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
     scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
@@ -711,7 +701,6 @@ component_build_no_sockets () {
 
 component_test_no_max_fragment_length () {
     msg "build: default config except MFL extension (ASan build)" # ~ 30s
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
@@ -722,7 +711,6 @@ component_test_no_max_fragment_length () {
 
 component_test_null_entropy () {
     msg "build: default config with  MBEDTLS_TEST_NULL_ENTROPY (ASan build)"
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl set MBEDTLS_TEST_NULL_ENTROPY
     scripts/config.pl set MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
     scripts/config.pl set MBEDTLS_ENTROPY_C
@@ -738,7 +726,6 @@ component_test_null_entropy () {
 
 component_test_platform_calloc_macro () {
     msg "build: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl set MBEDTLS_PLATFORM_MEMORY
     scripts/config.pl set MBEDTLS_PLATFORM_CALLOC_MACRO calloc
     scripts/config.pl set MBEDTLS_PLATFORM_FREE_MACRO   free
@@ -761,7 +748,6 @@ component_test_m32_o0 () {
     if uname -a | grep -F x86_64 >/dev/null; then
         # Build once with -O0, to compile out the i386 specific inline assembly
         msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
-        cp "$CONFIG_H" "$CONFIG_BAK"
         scripts/config.pl full
         make CC=gcc CFLAGS='-O0 -Werror -Wall -Wextra -m32 -fsanitize=address'
 
@@ -774,7 +760,6 @@ component_test_m32_o1 () {
     if uname -a | grep -F x86_64 >/dev/null; then
         # Build again with -O1, to compile in the i386 specific inline assembly
         msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
-        cp "$CONFIG_H" "$CONFIG_BAK"
         scripts/config.pl full
         make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address'
 
@@ -786,7 +771,6 @@ component_test_m32_o1 () {
 component_test_mx32 () {
     if uname -a | grep -F x86_64 >/dev/null; then
         msg "build: 64-bit ILP32, make, gcc" # ~ 30s
-        cp "$CONFIG_H" "$CONFIG_BAK"
         scripts/config.pl full
         make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32'
 
@@ -797,7 +781,6 @@ component_test_mx32 () {
 
 component_test_have_int32 () {
     msg "build: gcc, force 32-bit bignum limbs"
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl unset MBEDTLS_HAVE_ASM
     scripts/config.pl unset MBEDTLS_AESNI_C
     scripts/config.pl unset MBEDTLS_PADLOCK_C
@@ -809,7 +792,6 @@ component_test_have_int32 () {
 
 component_test_have_int64 () {
     msg "build: gcc, force 64-bit bignum limbs"
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl unset MBEDTLS_HAVE_ASM
     scripts/config.pl unset MBEDTLS_AESNI_C
     scripts/config.pl unset MBEDTLS_PADLOCK_C
@@ -821,7 +803,6 @@ component_test_have_int64 () {
 
 component_build_arm_none_eabi_gcc () {
     msg "build: arm-none-eabi-gcc, make" # ~ 10s
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_NET_C
     scripts/config.pl unset MBEDTLS_TIMING_C
@@ -839,7 +820,6 @@ component_build_arm_none_eabi_gcc () {
 
 component_build_arm_none_eabi_gcc_no_udbl_division () {
     msg "build: arm-none-eabi-gcc -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_NET_C
     scripts/config.pl unset MBEDTLS_TIMING_C
@@ -860,7 +840,6 @@ component_build_arm_none_eabi_gcc_no_udbl_division () {
 
 component_build_armcc () {
     msg "build: ARM Compiler 5, make"
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_NET_C
     scripts/config.pl unset MBEDTLS_TIMING_C
@@ -901,7 +880,6 @@ component_build_armcc () {
 
 component_test_allow_sha1 () {
     msg "build: allow SHA1 in certificates by default"
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl set MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
     make CFLAGS='-Werror -Wall -Wextra'
     msg "test: allow SHA1 in certificates by default"
@@ -927,7 +905,6 @@ component_test_memsan () {
     # MemSan currently only available on Linux 64 bits
     if uname -a | grep 'Linux.*x86_64' >/dev/null; then
         msg "build: MSan (clang)" # ~ 1 min 20s
-        cp "$CONFIG_H" "$CONFIG_BAK"
         scripts/config.pl unset MBEDTLS_AESNI_C # memsan doesn't grok asm
         CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
         make
@@ -1021,6 +998,9 @@ post_report () {
 
 # Run one component and clean up afterwards.
 run_component () {
+    # Back up the configuration in case the component modifies it.
+    # The cleanup function will restore it.
+    cp -p "$CONFIG_H" "$CONFIG_BAK"
     current_component="$1"
     "$@"
     cleanup

@@ -113,8 +113,10 @@ void mbedtls_debug_set_threshold( int threshold );
  *                  library only.
  */
 #if defined(__GNUC__) || defined(__clang__)
+#if defined(__has_attribute)
 #if __has_attribute(format)
 __attribute__((format(__printf__, 5, 6)))
+#endif
 #endif
 #endif
 void mbedtls_debug_print_msg( const mbedtls_ssl_context *ssl, int level,

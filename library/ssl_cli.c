@@ -1063,7 +1063,7 @@ static int ssl_write_client_hello( mbedtls_ssl_context *ssl )
                                       ssl->conf->max_minor_ver ) != 0 )
             continue;
 
-        MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %04x (%s)",
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "client hello, add ciphersuite: %#04x (%s)",
                                     ciphersuites[i], ciphersuite_info->name ) );
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \

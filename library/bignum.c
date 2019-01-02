@@ -2091,7 +2091,7 @@ int mbedtls_mpi_fill_random( mbedtls_mpi *X, size_t size,
                      void *p_rng )
 {
     int ret;
-    size_t const limbs CHARS_TO_LIMBS( size );
+    size_t const limbs = CHARS_TO_LIMBS( size );
     size_t const overhead = ( limbs * ciL ) - size;
     unsigned char *Xp;
 

@@ -2413,14 +2413,6 @@ int query_config( const char *config )
     }
 #endif /* MBEDTLS_SSL_COOKIE_TIMEOUT */
 
-#if defined(MBEDTLS_SSL_CIPHERSUITES)
-    if( strcmp( "MBEDTLS_SSL_CIPHERSUITES", config ) == 0 )
-    {
-        MACRO_EXPANSION_TO_STR( MBEDTLS_SSL_CIPHERSUITES );
-        return( 0 );
-    }
-#endif /* MBEDTLS_SSL_CIPHERSUITES */
-
 #if defined(MBEDTLS_X509_MAX_INTERMEDIATE_CA)
     if( strcmp( "MBEDTLS_X509_MAX_INTERMEDIATE_CA", config ) == 0 )
     {

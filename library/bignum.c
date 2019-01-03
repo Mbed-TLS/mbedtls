@@ -823,10 +823,15 @@ int mbedtls_mpi_read_binary( mbedtls_mpi *X, const unsigned char *buf, size_t bu
     }
     MBEDTLS_MPI_CHK( mbedtls_mpi_lset( X, 0 ) );
 
-    Xp = (unsigned char*) X->p;
-    memcpy( Xp + overhead, buf, buflen );
+    /* Avoid calling `memcpy` with NULL source argument,
+     * even if buflen is 0. */
+    if( buf != NULL )
+    {
+        Xp = (unsigned char*) X->p;
+        memcpy( Xp + overhead, buf, buflen );
 
-    mpi_bigendian_to_host( X->p, limbs );
+        mpi_bigendian_to_host( X->p, limbs );
+    }
 
 cleanup:
 

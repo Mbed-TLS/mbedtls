@@ -1323,8 +1323,10 @@ struct mbedtls_ssl_context
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
 
-#define MBEDTLS_SSL_CHANNEL_OUTBOUND    0
-#define MBEDTLS_SSL_CHANNEL_INBOUND     1
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
+
+#define MBEDTLS_SSL_CHANNEL_OUTBOUND   MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( 0 )
+#define MBEDTLS_SSL_CHANNEL_INBOUND    MBEDTLS_DEPRECATED_NUMERIC_CONSTANT( 1 )
 
 #if defined(MBEDTLS_DEPRECATED_WARNING)
 #define MBEDTLS_DEPRECATED      __attribute__((deprecated))
@@ -1353,6 +1355,7 @@ MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_finish)(
                                                     mbedtls_ssl_context *ssl );
 
 #undef MBEDTLS_DEPRECATED
+#endif /* !MBEDTLS_DEPRECATED_REMOVED */
 
 #endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
 

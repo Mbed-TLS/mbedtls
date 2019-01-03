@@ -226,11 +226,16 @@
     <ClInclude Include="..\..\include\mbedtls\x509_csr.h" />
     <ClInclude Include="..\..\include\mbedtls\xtea.h" />
     <ClInclude Include="..\..\include\psa\crypto.h" />
-    <ClInclude Include="..\..\include\psa\crypto_driver.h" />
+    <ClInclude Include="..\..\include\psa\crypto_accel_driver.h" />
+    <ClInclude Include="..\..\include\psa\crypto_driver_common.h" />
+    <ClInclude Include="..\..\include\psa\crypto_entropy_driver.h" />
     <ClInclude Include="..\..\include\psa\crypto_extra.h" />
     <ClInclude Include="..\..\include\psa\crypto_platform.h" />
+    <ClInclude Include="..\..\include\psa\crypto_se_driver.h" />
     <ClInclude Include="..\..\include\psa\crypto_sizes.h" />
     <ClInclude Include="..\..\include\psa\crypto_struct.h" />
+    <ClInclude Include="..\..\include\psa\crypto_types.h" />
+    <ClInclude Include="..\..\include\psa\crypto_values.h" />
     <ClInclude Include="..\..\library/psa_crypto_core.h" />
     <ClInclude Include="..\..\library/psa_crypto_invasive.h" />
     <ClInclude Include="..\..\library/psa_crypto_slot_management.h" />

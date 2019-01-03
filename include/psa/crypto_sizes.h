@@ -50,6 +50,42 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+#define PSA_BITS_TO_BYTES(bits) (((bits) + 7) / 8)
+#define PSA_BYTES_TO_BITS(bytes) ((bytes) * 8)
+
+/** The size of the output of psa_hash_finish(), in bytes.
+ *
+ * This is also the hash size that psa_hash_verify() expects.
+ *
+ * \param alg   A hash algorithm (\c PSA_ALG_XXX value such that
+ *              #PSA_ALG_IS_HASH(\p alg) is true), or an HMAC algorithm
+ *              (#PSA_ALG_HMAC(\c hash_alg) where \c hash_alg is a
+ *              hash algorithm).
+ *
+ * \return The hash size for the specified hash algorithm.
+ *         If the hash algorithm is not recognized, return 0.
+ *         An implementation may return either 0 or the correct size
+ *         for a hash algorithm that it recognizes, but does not support.
+ */
+#define PSA_HASH_SIZE(alg)                                      \
+    (                                                           \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_MD2 ? 16 :            \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_MD4 ? 16 :            \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_MD5 ? 16 :            \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_RIPEMD160 ? 20 :      \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_1 ? 20 :          \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_224 ? 28 :        \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_256 ? 32 :        \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_384 ? 48 :        \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_512 ? 64 :        \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_512_224 ? 28 :    \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA_512_256 ? 32 :    \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_224 ? 28 :       \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_256 ? 32 :       \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_384 ? 48 :       \
+        PSA_ALG_HMAC_GET_HASH(alg) == PSA_ALG_SHA3_512 ? 64 :       \
+        0)
+
 /** \def PSA_HASH_MAX_SIZE
  *
  * Maximum size of a hash.
@@ -83,6 +119,26 @@
  * to 64 bytes.
  */
 #define PSA_MAC_MAX_SIZE PSA_HASH_MAX_SIZE
+
+/** The tag size for an AEAD algorithm, in bytes.
+ *
+ * \param alg                 An AEAD algorithm
+ *                            (\c PSA_ALG_XXX value such that
+ *                            #PSA_ALG_IS_AEAD(\p alg) is true).
+ *
+ * \return                    The tag size for the specified algorithm.
+ *                            If the AEAD algorithm does not have an identified
+ *                            tag that can be distinguished from the rest of
+ *                            the ciphertext, return 0.
+ *                            If the AEAD algorithm is not recognized, return 0.
+ *                            An implementation may return either 0 or a
+ *                            correct size for an AEAD algorithm that it
+ *                            recognizes, but does not support.
+ */
+#define PSA_AEAD_TAG_LENGTH(alg)                                        \
+    (PSA_ALG_IS_AEAD(alg) ?                                             \
+     (((alg) & PSA_ALG_AEAD_TAG_LENGTH_MASK) >> PSA_AEAD_TAG_LENGTH_OFFSET) : \
+     0)
 
 /* The maximum size of an RSA key on this implementation, in bits.
  * This is a vendor-specific macro.
@@ -235,6 +291,22 @@
     (PSA_AEAD_TAG_LENGTH(alg) != 0 ?                              \
      (plaintext_length) - PSA_AEAD_TAG_LENGTH(alg) :              \
      0)
+
+#define PSA_RSA_MINIMUM_PADDING_SIZE(alg)                               \
+    (PSA_ALG_IS_RSA_OAEP(alg) ?                                         \
+     2 * PSA_HASH_FINAL_SIZE(PSA_ALG_RSA_OAEP_GET_HASH(alg)) + 1 :      \
+     11 /*PKCS#1v1.5*/)
+
+/**
+ * \brief ECDSA signature size for a given curve bit size
+ *
+ * \param curve_bits    Curve size in bits.
+ * \return              Signature size in bytes.
+ *
+ * \note This macro returns a compile-time constant if its argument is one.
+ */
+#define PSA_ECDSA_SIGNATURE_SIZE(curve_bits)    \
+    (PSA_BITS_TO_BYTES(curve_bits) * 2)
 
 /** Safe signature buffer size for psa_asymmetric_sign().
  *

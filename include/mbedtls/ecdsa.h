@@ -176,6 +176,12 @@ int mbedtls_ecdsa_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
                 int (*f_rng)(void *, unsigned char *, size_t), void *p_rng );
 
 #if defined(MBEDTLS_ECDSA_DETERMINISTIC)
+#if ! defined(MBEDTLS_DEPRECATED_REMOVED)
+#if defined(MBEDTLS_DEPRECATED_WARNING)
+#define MBEDTLS_DEPRECATED    __attribute__((deprecated))
+#else
+#define MBEDTLS_DEPRECATED
+#endif
 /**
  * \brief           This function computes the ECDSA signature of a
  *                  previously-hashed message, deterministic version.
@@ -214,7 +220,10 @@ int mbedtls_ecdsa_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
 int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r,
                             mbedtls_mpi *s, const mbedtls_mpi *d,
                             const unsigned char *buf, size_t blen,
-                            mbedtls_md_type_t md_alg );
+                            mbedtls_md_type_t md_alg ) MBEDTLS_DEPRECATED;
+#undef MBEDTLS_DEPRECATED
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
+
 /**
  * \brief           This function computes the ECDSA signature of a
  *                  previously-hashed message, deterministic version.
@@ -338,7 +347,8 @@ int mbedtls_ecdsa_verify( mbedtls_ecp_group *grp,
  *                  the signature written. Must not be \c NULL.
  * \param f_rng     The RNG function. This must not be \c NULL if
  *                  #MBEDTLS_ECDSA_DETERMINISTIC is unset. Otherwise,
- *                  it is unused and may be set to \c NULL.
+ *                  it is used only for blinding and may be set to \c NULL, but
+ *                  doing so is DEPRECATED.
  * \param p_rng     The RNG context to be passed to \p f_rng. This may be
  *                  \c NULL if \p f_rng is \c NULL or doesn't use a context.
  *

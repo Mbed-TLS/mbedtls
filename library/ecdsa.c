@@ -503,6 +503,8 @@ cleanup:
 /*
  * Deterministic signature wrappers
  */
+
+#if !defined(MBEDTLS_DEPRECATED_REMOVED)
 int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r,
                             mbedtls_mpi *s, const mbedtls_mpi *d,
                             const unsigned char *buf, size_t blen,
@@ -517,6 +519,7 @@ int mbedtls_ecdsa_sign_det( mbedtls_ecp_group *grp, mbedtls_mpi *r,
     return( ecdsa_sign_det_restartable( grp, r, s, d, buf, blen, md_alg,
                                         NULL, NULL, NULL ) );
 }
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 int mbedtls_ecdsa_sign_det_ext( mbedtls_ecp_group *grp, mbedtls_mpi *r,
                                 mbedtls_mpi *s, const mbedtls_mpi *d,

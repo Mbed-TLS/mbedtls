@@ -8,6 +8,11 @@ Security
      as an ASN.1 INTEGER, which caused the size of the key to leak
      about 1 bit of information on average and could cause the value to be
      1 byte too large for the output buffer.
+   * The deterministic ECDSA calculation reused the scheme's HMAC-DRBG to
+     implement blinding. Because of this for the same key and message the same
+     blinding value was generated. This reduced the effectiveness of the
+     countermeasure and leaked information about the private key through side
+     channels. Reported by Jack Lloyd.
 
 Features
    * Add new API functions mbedtls_ssl_session_save() and
@@ -40,6 +45,16 @@ API Changes
      just curves for which both are supported. Call mbedtls_ecdsa_can_do() or
      mbedtls_ecdh_can_do() on each result to check whether each algorithm is
      supported.
+   * The following function in the ECDSA module has been deprecated and replaced
+     as shown below. The new function can take an RNG function as an argument
+     which is necessary for adequate blinding.
+     mbedtls_ecdsa_sign_det() -> mbedtls_ecdsa_sign_det_ext()
+
+New deprecations
+   * Deprecate mbedtls_ecdsa_sign_det() in favor of a functions that can take an
+     RNG function as an input.
+   * Calling mbedtls_ecdsa_write_signature() with NULL as the f_rng argument
+     is now deprecated.
 
 Bugfix
    * Fix missing bounds checks in X.509 parsing functions that could

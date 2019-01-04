@@ -91,10 +91,11 @@
 set -eu
 
 pre_check_environment () {
-    if [ "$( uname )" != "Linux" ]; then
-        echo "This script only works in Linux" >&2
+    if uname -a | grep 'Linux.*x86_64' >/dev/null; then :; else
+        echo "This script only works in Linux x86_64" >&2
         exit 1
-    elif [ -d library -a -d include -a -d tests ]; then :; else
+    fi
+    if [ -d library -a -d include -a -d tests ]; then :; else
         echo "Must be run from mbed TLS root" >&2
         exit 1
     fi
@@ -1070,8 +1071,6 @@ component_test_memcheck () {
     make memcheck
 
     # Optional part(s)
-    # Currently broken, programs don't seem to receive signals
-    # under valgrind on OS X
 
     if [ "$MEMORY" -gt 0 ]; then
         msg "test: ssl-opt.sh --memcheck (Release)"
@@ -1197,14 +1196,10 @@ run_all_components () {
     run_component component_test_aes_fewer_tables
     run_component component_test_aes_rom_tables
     run_component component_test_aes_fewer_tables_and_rom_tables
-    if uname -a | grep -F Linux >/dev/null; then
-        run_component component_test_make_shared
-    fi
-    if uname -a | grep -F x86_64 >/dev/null; then
-        run_component component_test_m32_o0
-        run_component component_test_m32_o1
-        run_component component_test_mx32
-    fi
+    run_component component_test_make_shared
+    run_component component_test_m32_o0
+    run_component component_test_m32_o1
+    run_component component_test_mx32
     run_component component_test_have_int32
     run_component component_test_have_int64
     run_component component_test_no_udbl_division
@@ -1215,11 +1210,7 @@ run_all_components () {
     run_component component_build_armcc
     run_component component_test_allow_sha1
     run_component component_build_mingw
-    # MemSan currently only available on Linux 64 bits
-    if uname -a | grep 'Linux.*x86_64' >/dev/null; then
-        run_component component_test_memsan
-    fi
-    # valgrind may catch some issues not found by ASan + MemSan
+    run_component component_test_memsan
     run_component component_test_memcheck
     run_component component_test_cmake_out_of_source
 

@@ -133,7 +133,7 @@ pre_initialize_variables () {
 
 # Test whether $1 is excluded via $COMPONENTS (a space-separated list of
 # wildcard patterns).
-component_is_excluded()
+is_excluded()
 {
     set -f
     for pattern in $COMPONENTS; do
@@ -469,6 +469,11 @@ pre_print_tools () {
            GNUTLS_SERV="$GNUTLS_SERV" GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI" \
            GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV" ARMC5_CC="$ARMC5_CC" \
            ARMC6_CC="$ARMC6_CC" RUN_ARMCC="$RUN_ARMCC" scripts/output_env.sh
+}
+
+component_check_component_list () {
+    msg "test: all.sh component list" # < 1s
+    record_status tests/scripts/check-all_sh_components.sh
 }
 
 component_check_recursion () {
@@ -1158,6 +1163,7 @@ post_report () {
 
 run_all_components () {
     # Small things
+    run_component component_check_component_list
     run_component component_check_recursion
     run_component component_check_generated_files
     run_component component_check_doxy_blocks
@@ -1222,7 +1228,7 @@ run_all_components () {
 
 # Run one component and clean up afterwards.
 run_component () {
-    if [ $ALL_EXCEPT -ne 0 ] && component_is_excluded "$1"; then
+    if [ $ALL_EXCEPT -ne 0 ] && is_excluded "$1"; then
         return
     fi
     # Back up the configuration in case the component modifies it.

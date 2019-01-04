@@ -77,14 +77,13 @@ void transient_slot_lifecycle( int type_arg, int max_bits_arg,
     close_method_t close_method = close_method_arg;
     psa_key_type_t read_type;
     psa_key_handle_t handle = 0;
-    psa_key_policy_t policy;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Get a handle and import a key. */
     PSA_ASSERT( psa_allocate_key( type, max_bits, &handle ) );
     TEST_ASSERT( handle != 0 );
-    psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, usage_flags, alg );
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
     PSA_ASSERT( psa_import_key( handle, type, key_data->x, key_data->len ) );
@@ -131,7 +130,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     close_method_t close_method = close_method_arg;
     psa_key_type_t read_type;
     psa_key_handle_t handle = 0;
-    psa_key_policy_t policy;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
     TEST_MAX_KEY_ID( id );
 
@@ -140,7 +139,6 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     /* Get a handle and import a key. */
     PSA_ASSERT( psa_create_key( lifetime, id, type, max_bits, &handle ) );
     TEST_ASSERT( handle != 0 );
-    psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, usage_flags, alg );
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
     PSA_ASSERT( psa_import_key( handle, type, key_data->x, key_data->len ) );
@@ -202,7 +200,8 @@ void create_existent( int lifetime_arg, int id_arg,
     psa_key_lifetime_t lifetime = lifetime_arg;
     psa_key_id_t id = id_arg;
     psa_key_handle_t handle1 = 0, handle2 = 0;
-    psa_key_policy_t policy1, read_policy;
+    psa_key_policy_t policy1 = PSA_KEY_POLICY_INIT;
+    psa_key_policy_t read_policy = PSA_KEY_POLICY_INIT;
     psa_key_type_t type1 = PSA_KEY_TYPE_RAW_DATA;
     psa_key_type_t type2 = new_type_arg;
     psa_key_type_t read_type;
@@ -220,7 +219,6 @@ void create_existent( int lifetime_arg, int id_arg,
     /* Create a key. */
     PSA_ASSERT( psa_create_key( lifetime, id, type1, bits1, &handle1 ) );
     TEST_ASSERT( handle1 != 0 );
-    psa_key_policy_init( &policy1 );
     psa_key_policy_set_usage( &policy1, PSA_KEY_USAGE_EXPORT, 0 );
     PSA_ASSERT( psa_set_key_policy( handle1, &policy1 ) );
     PSA_ASSERT( psa_import_key( handle1, type1,
@@ -308,7 +306,7 @@ exit:
 void invalid_handle( )
 {
     psa_key_handle_t handle1 = 0;
-    psa_key_policy_t policy;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
     psa_key_type_t read_type;
     size_t read_bits;
     uint8_t material[1] = "a";
@@ -318,7 +316,6 @@ void invalid_handle( )
     /* Allocate a handle and store a key in it. */
     PSA_ASSERT( psa_allocate_key( PSA_KEY_TYPE_RAW_DATA, 1, &handle1 ) );
     TEST_ASSERT( handle1 != 0 );
-    psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, 0, 0 );
     PSA_ASSERT( psa_set_key_policy( handle1, &policy ) );
     PSA_ASSERT( psa_import_key( handle1, PSA_KEY_TYPE_RAW_DATA,
@@ -350,14 +347,13 @@ void many_transient_handles( int max_handles_arg )
     size_t max_handles = max_handles_arg;
     size_t i, j;
     psa_status_t status;
-    psa_key_policy_t policy;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
     uint8_t exported[sizeof( size_t )];
     size_t exported_length;
     size_t max_bits = PSA_BITS_TO_BYTES( sizeof( exported ) );
 
     ASSERT_ALLOC( handles, max_handles );
     PSA_ASSERT( psa_crypto_init( ) );
-    psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT, 0 );
 
     for( i = 0; i < max_handles; i++ )

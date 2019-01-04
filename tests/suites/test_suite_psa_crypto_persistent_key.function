@@ -209,7 +209,7 @@ void import_export_persistent_key( data_t *data, int type_arg,
     size_t exported_length;
     psa_key_type_t got_type;
     size_t got_bits;
-    psa_key_policy_t policy;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
     psa_key_lifetime_t lifetime_get;
 
     ASSERT_ALLOC( exported, export_size );
@@ -221,7 +221,6 @@ void import_export_persistent_key( data_t *data, int type_arg,
                                 PSA_BYTES_TO_BITS( data->len ),
                                 &handle ) );
 
-    psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT,
                               PSA_ALG_VENDOR_FLAG );
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );

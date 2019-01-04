@@ -208,4 +208,11 @@ struct psa_key_policy_s
     psa_algorithm_t alg;
 };
 
+#define PSA_KEY_POLICY_INIT {0, 0}
+static inline struct psa_key_policy_s psa_key_policy_init( void )
+{
+    const struct psa_key_policy_s v = PSA_KEY_POLICY_INIT;
+    return( v );
+}
+
 #endif /* PSA_CRYPTO_STRUCT_H */

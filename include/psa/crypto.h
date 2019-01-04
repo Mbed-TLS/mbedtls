@@ -572,17 +572,49 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
 
 /** The type of the key policy data structure.
  *
+ * Before calling any function on a key policy, the application must initialize
+ * it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ *   \code
+ *   psa_key_policy_t policy;
+ *   memset(&policy, 0, sizeof(policy));
+ *   \endcode
+ * - Initialize the structure to logical zero values, for example:
+ *   \code
+ *   psa_key_policy_t policy = {0};
+ *   \endcode
+ * - Initialize the structure to the initializer #PSA_KEY_POLICY_INIT,
+ *   for example:
+ *   \code
+ *   psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+ *   \endcode
+ * - Assign the result of the function psa_key_policy_init()
+ *   to the structure, for example:
+ *   \code
+ *   psa_key_policy_t policy;
+ *   policy = psa_key_policy_init();
+ *   \endcode
+ *
  * This is an implementation-defined \c struct. Applications should not
  * make any assumptions about the content of this structure except
  * as directed by the documentation of a specific implementation. */
 typedef struct psa_key_policy_s psa_key_policy_t;
 
-/** \brief Initialize a key policy structure to a default that forbids all
- * usage of the key.
+/** \def PSA_KEY_POLICY_INIT
  *
- * \param[out] policy   The policy object to initialize.
+ * This macro returns a suitable initializer for a key policy object of type
+ * #psa_key_policy_t.
  */
-void psa_key_policy_init(psa_key_policy_t *policy);
+#ifdef __DOXYGEN_ONLY__
+/* This is an example definition for documentation purposes.
+ * Implementations should define a suitable value in `crypto_struct.h`.
+ */
+#define PSA_KEY_POLICY_INIT {0}
+#endif
+
+/** Return an initial value for a key policy that forbids all usage of the key.
+ */
+static psa_key_policy_t psa_key_policy_init(void);
 
 /** \brief Set the standard fields of a policy structure.
  *
@@ -590,9 +622,11 @@ void psa_key_policy_init(psa_key_policy_t *policy);
  * parameters. The values are only checked when applying the policy to
  * a key slot with psa_set_key_policy().
  *
- * \param[out] policy   The policy object to modify.
- * \param usage         The permitted uses for the key.
- * \param alg           The algorithm that the key may be used for.
+ * \param[in,out] policy The key policy to modify. It must have been
+ *                       initialized as per the documentation for
+ *                       #psa_key_policy_t.
+ * \param usage          The permitted uses for the key.
+ * \param alg            The algorithm that the key may be used for.
  */
 void psa_key_policy_set_usage(psa_key_policy_t *policy,
                               psa_key_usage_t usage,

@@ -332,6 +332,9 @@ import_rsa_made_up:PSA_VENDOR_RSA_MAX_KEY_BITS+8:0:PSA_ERROR_NOT_SUPPORTED
 PSA key policy set and get
 key_policy:PSA_KEY_USAGE_ENCRYPT:PSA_ALG_CBC_NO_PADDING
 
+Key policy initializers zero properly
+key_policy_init:
+
 PSA key policy: MAC, sign | verify
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 mac_key_policy:PSA_KEY_USAGE_SIGN | PSA_KEY_USAGE_VERIFY:PSA_ALG_HMAC(PSA_ALG_SHA_256):PSA_KEY_TYPE_HMAC:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa":PSA_ALG_HMAC(PSA_ALG_SHA_256)

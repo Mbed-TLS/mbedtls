@@ -124,7 +124,7 @@ static int exercise_mac_key( psa_key_handle_t handle,
                              psa_key_usage_t usage,
                              psa_algorithm_t alg )
 {
-    psa_mac_operation_t operation;
+    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
     const unsigned char input[] = "foo";
     unsigned char mac[PSA_MAC_MAX_SIZE] = {0};
     size_t mac_length = sizeof( mac );
@@ -1445,7 +1445,7 @@ void mac_key_policy( int policy_usage,
 {
     psa_key_handle_t handle = 0;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
-    psa_mac_operation_t operation;
+    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
     psa_status_t status;
     unsigned char mac[PSA_MAC_MAX_SIZE];
 
@@ -1925,6 +1925,31 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void mac_operation_init( )
+{
+    /* Test each valid way of initializing the object, except for `= {0}`, as
+     * Clang 5 complains when `-Wmissing-field-initializers` is used, even
+     * though it's OK by the C standard. We could test for this, but we'd need
+     * to supress the Clang warning for the test. */
+    psa_mac_operation_t func = psa_mac_operation_init( );
+    psa_mac_operation_t init = PSA_MAC_OPERATION_INIT;
+    psa_mac_operation_t zero;
+
+    memset( &zero, 0, sizeof( zero ) );
+
+    /* Although not technically guaranteed by the C standard nor the PSA Crypto
+     * specification, we test that all valid ways of initializing the object
+     * have the same bit pattern. This is a stronger requirement that may not
+     * be valid on all platforms or PSA Crypto implementations, but implies the
+     * weaker actual requirement is met: that a freshly initialized object, no
+     * matter how it was initialized, acts the same as any other valid
+     * initialization. */
+    TEST_EQUAL( memcmp( &func, &zero, sizeof( zero ) ), 0 );
+    TEST_EQUAL( memcmp( &init, &zero, sizeof( zero ) ), 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void mac_setup( int key_type_arg,
                 data_t *key,
                 int alg_arg,
@@ -1934,7 +1959,7 @@ void mac_setup( int key_type_arg,
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_status = expected_status_arg;
-    psa_mac_operation_t operation;
+    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
     psa_status_t status;
 
@@ -1970,7 +1995,7 @@ void mac_sign( int key_type_arg,
     psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
-    psa_mac_operation_t operation;
+    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
     /* Leave a little extra room in the output buffer. At the end of the
      * test, we'll check that the implementation didn't overwrite onto
@@ -2027,7 +2052,7 @@ void mac_verify( int key_type_arg,
     psa_key_handle_t handle = 0;
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
-    psa_mac_operation_t operation;
+    psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
     TEST_ASSERT( expected_mac->len <= PSA_MAC_MAX_SIZE );

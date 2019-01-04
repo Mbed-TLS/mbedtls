@@ -123,6 +123,13 @@ struct psa_mac_operation_s
     } ctx;
 };
 
+#define PSA_MAC_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, {0}}
+static inline struct psa_mac_operation_s psa_mac_operation_init( void )
+{
+    const struct psa_mac_operation_s v = PSA_MAC_OPERATION_INIT;
+    return( v );
+}
+
 struct psa_cipher_operation_s
 {
     psa_algorithm_t alg;

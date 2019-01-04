@@ -929,10 +929,49 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation);
 
 /** The type of the state data structure for multipart MAC operations.
  *
+ * Before calling any function on a MAC operation object, the application must
+ * initialize it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ *   \code
+ *   psa_mac_operation_t operation;
+ *   memset(&operation, 0, sizeof(operation));
+ *   \endcode
+ * - Initialize the structure to logical zero values, for example:
+ *   \code
+ *   psa_mac_operation_t operation = {0};
+ *   \endcode
+ * - Initialize the structure to the initializer #PSA_MAC_OPERATION_INIT,
+ *   for example:
+ *   \code
+ *   psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+ *   \endcode
+ * - Assign the result of the function psa_mac_operation_init()
+ *   to the structure, for example:
+ *   \code
+ *   psa_mac_operation_t operation;
+ *   operation = psa_mac_operation_init();
+ *   \endcode
+ *
  * This is an implementation-defined \c struct. Applications should not
  * make any assumptions about the content of this structure except
  * as directed by the documentation of a specific implementation. */
 typedef struct psa_mac_operation_s psa_mac_operation_t;
+
+/** \def PSA_MAC_OPERATION_INIT
+ *
+ * This macro returns a suitable initializer for a MAC operation object of type
+ * #psa_mac_operation_t.
+ */
+#ifdef __DOXYGEN_ONLY__
+/* This is an example definition for documentation purposes.
+ * Implementations should define a suitable value in `crypto_struct.h`.
+ */
+#define PSA_MAC_OPERATION_INIT {0}
+#endif
+
+/** Return an initial value for a MAC operation object.
+ */
+static psa_mac_operation_t psa_mac_operation_init(void);
 
 /** Start a multipart MAC calculation operation.
  *
@@ -944,6 +983,8 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  * The sequence of operations to calculate a MAC is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
+ * -# Initialize the operation object with one of the methods described in the
+ *    documentation for #psa_mac_operation_t, e.g. PSA_MAC_OPERATION_INIT.
  * -# Call psa_mac_sign_setup() to specify the algorithm and key.
  *    The key remains associated with the operation even if the content
  *    of the key slot changes.
@@ -954,14 +995,16 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  *    calculating the MAC value and retrieve it.
  *
  * The application may call psa_mac_abort() at any time after the operation
- * has been initialized with psa_mac_sign_setup().
+ * has been initialized.
  *
  * After a successful call to psa_mac_sign_setup(), the application must
  * eventually terminate the operation through one of the following methods:
  * - A failed call to psa_mac_update().
  * - A call to psa_mac_sign_finish() or psa_mac_abort().
  *
- * \param[out] operation    The operation object to use.
+ * \param[in,out] operation The operation object to set up. It must have
+ *                          been initialized as per the documentation for
+ *                          #psa_mac_operation_t and not yet in use.
  * \param handle            Handle to the key to use for the operation.
  * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
  *                          such that #PSA_ALG_IS_MAC(alg) is true).
@@ -996,6 +1039,8 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  * The sequence of operations to verify a MAC is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
+ * -# Initialize the operation object with one of the methods described in the
+ *    documentation for #psa_mac_operation_t, e.g. PSA_MAC_OPERATION_INIT.
  * -# Call psa_mac_verify_setup() to specify the algorithm and key.
  *    The key remains associated with the operation even if the content
  *    of the key slot changes.
@@ -1007,14 +1052,16 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  *    the expected value.
  *
  * The application may call psa_mac_abort() at any time after the operation
- * has been initialized with psa_mac_verify_setup().
+ * has been initialized.
  *
  * After a successful call to psa_mac_verify_setup(), the application must
  * eventually terminate the operation through one of the following methods:
  * - A failed call to psa_mac_update().
  * - A call to psa_mac_verify_finish() or psa_mac_abort().
  *
- * \param[out] operation    The operation object to use.
+ * \param[in,out] operation The operation object to set up. It must have
+ *                          been initialized as per the documentation for
+ *                          #psa_mac_operation_t and not yet in use.
  * \param handle            Handle to the key to use for the operation.
  * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
  *                          such that #PSA_ALG_IS_MAC(\p alg) is true).

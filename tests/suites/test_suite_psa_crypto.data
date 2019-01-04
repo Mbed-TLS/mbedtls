@@ -527,6 +527,9 @@ hash_verify_bad_args:
 PSA hash finish: bad arguments
 hash_finish_bad_args:
 
+MAC operation object initializers zero properly
+mac_operation_init:
+
 PSA MAC setup: good, HMAC-SHA-256
 depends_on:MBEDTLS_MD_C:MBEDTLS_SHA256_C
 mac_setup:PSA_KEY_TYPE_HMAC:"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f":PSA_ALG_HMAC(PSA_ALG_SHA_256):PSA_SUCCESS

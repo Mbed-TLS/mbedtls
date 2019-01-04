@@ -140,6 +140,7 @@ struct psa_cipher_operation_s
     uint8_t block_size;
     union
     {
+        unsigned dummy; /* Enable easier initializing of the union. */
         mbedtls_cipher_context_t cipher;
     } ctx;
 };

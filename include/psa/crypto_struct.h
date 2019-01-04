@@ -85,6 +85,13 @@ struct psa_hash_operation_s
     } ctx;
 };
 
+#define PSA_HASH_OPERATION_INIT {0, {0}}
+static inline struct psa_hash_operation_s psa_hash_operation_init( void )
+{
+    const struct psa_hash_operation_s v = PSA_HASH_OPERATION_INIT;
+    return( v );
+}
+
 #if defined(MBEDTLS_MD_C)
 typedef struct
 {

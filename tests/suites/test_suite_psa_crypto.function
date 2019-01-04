@@ -1788,12 +1788,37 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void hash_operation_init( )
+{
+    /* Test each valid way of initializing the object, except for `= {0}`, as
+     * Clang 5 complains when `-Wmissing-field-initializers` is used, even
+     * though it's OK by the C standard. We could test for this, but we'd need
+     * to supress the Clang warning for the test. */
+    psa_hash_operation_t func = psa_hash_operation_init( );
+    psa_hash_operation_t init = PSA_HASH_OPERATION_INIT;
+    psa_hash_operation_t zero;
+
+    memset( &zero, 0, sizeof( zero ) );
+
+    /* Although not technically guaranteed by the C standard nor the PSA Crypto
+     * specification, we test that all valid ways of initializing the object
+     * have the same bit pattern. This is a stronger requirement that may not
+     * be valid on all platforms or PSA Crypto implementations, but implies the
+     * weaker actual requirement is met: that a freshly initialized object, no
+     * matter how it was initialized, acts the same as any other valid
+     * initialization. */
+    TEST_EQUAL( memcmp( &func, &zero, sizeof( zero ) ), 0 );
+    TEST_EQUAL( memcmp( &init, &zero, sizeof( zero ) ), 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void hash_setup( int alg_arg,
                  int expected_status_arg )
 {
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_status = expected_status_arg;
-    psa_hash_operation_t operation;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     psa_status_t status;
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -1817,7 +1842,7 @@ void hash_bad_order( )
         0x99, 0x6f, 0xb9, 0x24, 0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c,
         0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55 };
     size_t hash_len;
-    psa_hash_operation_t operation;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -1853,7 +1878,7 @@ void hash_verify_bad_args( )
         0x99, 0x6f, 0xb9, 0x24, 0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c,
         0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55, 0xaa, 0xbb };
     size_t expected_size = PSA_HASH_SIZE( alg );
-    psa_hash_operation_t operation;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
 
@@ -1883,7 +1908,7 @@ void hash_finish_bad_args( )
     psa_algorithm_t alg = PSA_ALG_SHA_256;
     unsigned char hash[PSA_HASH_MAX_SIZE];
     size_t expected_size = PSA_HASH_SIZE( alg );
-    psa_hash_operation_t operation;
+    psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
     size_t hash_len;
 
     PSA_ASSERT( psa_crypto_init( ) );

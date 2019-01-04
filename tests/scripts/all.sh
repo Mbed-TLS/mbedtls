@@ -685,6 +685,12 @@ component_build_default_make_gcc_and_cxx () {
     make TEST_CPP=1
 }
 
+component_test_check_params_default_config () {
+    msg "build+test: MBEDTLS_CHECK_PARAMS, default config"
+    scripts/config.pl set MBEDTLS_CHECK_PARAMS
+    make CC=gcc CFLAGS='-Werror -O1' all test
+}
+
 component_test_check_params_without_platform () {
     msg "build+test: MBEDTLS_CHECK_PARAMS without MBEDTLS_PLATFORM_C"
     scripts/config.pl full # includes CHECK_PARAMS
@@ -1183,6 +1189,7 @@ run_all_components () {
     run_component component_test_depends_pkalgs
     run_component component_build_key_exchanges
     run_component component_build_default_make_gcc_and_cxx
+    run_component component_test_check_params_default_config
     run_component component_test_check_params_without_platform
     run_component component_test_check_params_silent
     run_component component_test_no_platform

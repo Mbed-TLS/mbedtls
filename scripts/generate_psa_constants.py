@@ -276,10 +276,11 @@ class MacroCollector:
         data['key_usage_code'] = self.make_key_usage_code()
         output_file.write(output_template % data)
 
-def generate_psa_constants(header_file_name, output_file_name):
+def generate_psa_constants(header_file_names, output_file_name):
     collector = MacroCollector()
-    with open(header_file_name) as header_file:
-        collector.read_file(header_file)
+    for header_file_name in header_file_names:
+        with open(header_file_name) as header_file:
+            collector.read_file(header_file)
     temp_file_name = output_file_name + '.tmp'
     with open(temp_file_name, 'w') as output_file:
         collector.write_file(output_file)
@@ -288,5 +289,6 @@ def generate_psa_constants(header_file_name, output_file_name):
 if __name__ == '__main__':
     if not os.path.isdir('programs') and os.path.isdir('../programs'):
         os.chdir('..')
-    generate_psa_constants('include/psa/crypto_values.h',
+    generate_psa_constants(['include/psa/crypto_values.h',
+                            'include/psa/crypto_extra.h'],
                            'programs/psa/psa_constant_names_generated.c')

@@ -294,7 +294,8 @@ if __name__ == '__main__':
                         action='store_false', dest='keep_c',
                         help='Don\'t keep the intermediate C file (default)')
     options = parser.parse_args()
-    headers = [os.path.join(options.include[0], 'psa/crypto.h')]
+    headers = [os.path.join(options.include[0], 'psa', h)
+               for h in ['crypto.h', 'crypto_extra.h', 'crypto_values.h']]
     test_suites = ['tests/suites/test_suite_psa_crypto_metadata.data']
     inputs = gather_inputs(headers, test_suites)
     count, errors = run_tests(options, inputs)

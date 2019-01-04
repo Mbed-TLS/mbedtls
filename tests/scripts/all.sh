@@ -1218,9 +1218,9 @@ run_all_components () {
     # MemSan currently only available on Linux 64 bits
     if uname -a | grep 'Linux.*x86_64' >/dev/null; then
         run_component component_test_memsan
-    else # no MemSan
-        run_component component_test_memcheck
     fi
+    # valgrind may catch some issues not found by ASan + MemSan
+    run_component component_test_memcheck
     run_component component_test_cmake_out_of_source
 
     # More small things

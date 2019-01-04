@@ -165,7 +165,7 @@ static int exercise_cipher_key( psa_key_handle_t handle,
                                 psa_key_usage_t usage,
                                 psa_algorithm_t alg )
 {
-    psa_cipher_operation_t operation;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     unsigned char iv[16] = {0};
     size_t iv_length = sizeof( iv );
     const unsigned char plaintext[16] = "Hello, world...";
@@ -1153,7 +1153,7 @@ void cipher_with_no_key_activity( )
     psa_key_handle_t handle = 0;
     psa_status_t status;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
-    psa_cipher_operation_t operation;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     int exercise_alg = PSA_ALG_CTR;
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -1210,7 +1210,7 @@ void cipher_after_import_failure( data_t *data, int type_arg,
                                   int expected_import_status_arg )
 {
     psa_key_handle_t handle = 0;
-    psa_cipher_operation_t operation;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_type_t type = type_arg;
     psa_status_t status;
     psa_status_t expected_import_status = expected_import_status_arg;
@@ -1492,7 +1492,7 @@ void cipher_key_policy( int policy_usage,
 {
     psa_key_handle_t handle = 0;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
-    psa_cipher_operation_t operation;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_status_t status;
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -2083,6 +2083,31 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE */
+void cipher_operation_init( )
+{
+    /* Test each valid way of initializing the object, except for `= {0}`, as
+     * Clang 5 complains when `-Wmissing-field-initializers` is used, even
+     * though it's OK by the C standard. We could test for this, but we'd need
+     * to supress the Clang warning for the test. */
+    psa_cipher_operation_t func = psa_cipher_operation_init( );
+    psa_cipher_operation_t init = PSA_CIPHER_OPERATION_INIT;
+    psa_cipher_operation_t zero;
+
+    memset( &zero, 0, sizeof( zero ) );
+
+    /* Although not technically guaranteed by the C standard nor the PSA Crypto
+     * specification, we test that all valid ways of initializing the object
+     * have the same bit pattern. This is a stronger requirement that may not
+     * be valid on all platforms or PSA Crypto implementations, but implies the
+     * weaker actual requirement is met: that a freshly initialized object, no
+     * matter how it was initialized, acts the same as any other valid
+     * initialization. */
+    TEST_EQUAL( memcmp( &func, &zero, sizeof( zero ) ), 0 );
+    TEST_EQUAL( memcmp( &init, &zero, sizeof( zero ) ), 0 );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
 void cipher_setup( int key_type_arg,
                    data_t *key,
                    int alg_arg,
@@ -2092,7 +2117,7 @@ void cipher_setup( int key_type_arg,
     psa_key_type_t key_type = key_type_arg;
     psa_algorithm_t alg = alg_arg;
     psa_status_t expected_status = expected_status_arg;
-    psa_cipher_operation_t operation;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
     psa_status_t status;
 
@@ -2133,7 +2158,7 @@ void cipher_encrypt( int alg_arg, int key_type_arg,
     size_t output_buffer_size = 0;
     size_t function_output_length = 0;
     size_t total_output_length = 0;
-    psa_cipher_operation_t operation;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
     iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
@@ -2200,7 +2225,7 @@ void cipher_encrypt_multipart( int alg_arg, int key_type_arg,
     size_t output_buffer_size = 0;
     size_t function_output_length = 0;
     size_t total_output_length = 0;
-    psa_cipher_operation_t operation;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
     iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
@@ -2270,7 +2295,7 @@ void cipher_decrypt_multipart( int alg_arg, int key_type_arg,
     size_t output_buffer_size = 0;
     size_t function_output_length = 0;
     size_t total_output_length = 0;
-    psa_cipher_operation_t operation;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
     iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
@@ -2342,7 +2367,7 @@ void cipher_decrypt( int alg_arg, int key_type_arg,
     size_t output_buffer_size = 0;
     size_t function_output_length = 0;
     size_t total_output_length = 0;
-    psa_cipher_operation_t operation;
+    psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
     iv_size = PSA_BLOCK_CIPHER_BLOCK_SIZE( key_type );
@@ -2412,8 +2437,8 @@ void cipher_verify_output( int alg_arg, int key_type_arg,
     size_t output2_size = 0;
     size_t output2_length = 0;
     size_t function_output_length = 0;
-    psa_cipher_operation_t operation1;
-    psa_cipher_operation_t operation2;
+    psa_cipher_operation_t operation1 = PSA_CIPHER_OPERATION_INIT;
+    psa_cipher_operation_t operation2 = PSA_CIPHER_OPERATION_INIT;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -2497,8 +2522,8 @@ void cipher_verify_output_multipart( int alg_arg,
     size_t output2_buffer_size = 0;
     size_t output2_length = 0;
     size_t function_output_length;
-    psa_cipher_operation_t operation1;
-    psa_cipher_operation_t operation2;
+    psa_cipher_operation_t operation1 = PSA_CIPHER_OPERATION_INIT;
+    psa_cipher_operation_t operation2 = PSA_CIPHER_OPERATION_INIT;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
     PSA_ASSERT( psa_crypto_init( ) );

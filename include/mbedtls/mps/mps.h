@@ -69,12 +69,20 @@ typedef enum
 
 typedef struct
 {
-    /* Indexed union:
-     * - If avail is ALERT_SENT or ALERT_RECEIVED, info.alert is valid.
-     * - If avail is INTERNAL_ERROR, avail.err is valid.
-     * - Otherwise, info is invalid.
-     */
+    /*! The reason for blocking MPS. */
     mbedtls_mps_blocking_reason_t reason;
+
+    /*! This is a union indexed by \c reason giving
+     *  more information about the reason for blocking MPS.
+     *  Specifically:
+     * - If \c avail is #MBEDTLS_MPS_ERROR_ALERT_SENT or
+     *   #MBEDTLS_MPS_ERROR_ALERT_RECEIVED, \c info.alert is valid.
+     *   and contains the type of alert sent or received, respectively.
+     * - If \c avail is #MBEDTLS_MPS_ERROR_INTERNAL_ERROR,
+     *   \c avail.err is valid and contains the internal error
+     *   code that lead to blocking MPS.
+     * - Otherwise, \c info is invalid.
+     */
     union
     {
         mbedtls_mps_alert_t alert;
@@ -407,12 +415,37 @@ typedef struct
     mps_config conf;
 
     /* Security configuration */
+
+    /*! The current incoming epoch specified by the user.
+     *  Only messages from this epoch will be handed to the
+     *  user. However, messages from different epochs might
+     *  still be handlded internally, e.g. to detect
+     *  retransmission. */
     mbedtls_mps_epoch_id in_epoch;
+
+    /*! The current outgoing epoch specified by the user.
+     *  Write requests by the user will be served by using
+     *  this epoch. */
     mbedtls_mps_epoch_id out_epoch;
 
     /* Connection state */
+
+    /*! This indicates if an alert needs to be sent.
+     *  If it is set, the type of alert is determined
+     *  by \c state and \c blocking_info. Specifically:
+     *  - If \c state indicates an orderly connection closure,
+     *    a ClosureAlert will be sent.
+     *  - If \c state indicates a blocked MPS, a fatal alert
+     *    based in the data in \c blocking_info will be sent.
+     */
     uint8_t alert_pending;
+
+    /*! The state of the connection. See the documentation of
+     *  ::mbedtls_mps_connection_state_t for the possible values. */
     mbedtls_mps_connection_state_t state;
+
+    /*! This structure contains information on why an MPS
+     *  instance was blocked. */
     mbedtls_mps_blocking_info_t blocking_info;
 
     /* Read state */

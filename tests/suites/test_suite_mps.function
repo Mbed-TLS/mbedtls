@@ -5145,9 +5145,6 @@ void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
 
     mps_alloc cli_alloc, srv_alloc;
 
-    mps_l0_send_t *cli_wr,  *srv_wr;
-    mps_l0_recv_t *cli_rcv, *srv_rcv;
-
     /* Layer 1 objects */
     mps_l1 cli_l1, srv_l1;
 
@@ -5370,16 +5367,8 @@ exit:
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
 
-    if( mode == MPS_L2_MODE_STREAM )
-    {
-        layer0_free( &s2c );
-        layer0_free( &c2s );
-    }
-    else
-    {
-        layer0_dgram_free( &s2c_d );
-        layer0_dgram_free( &c2s_d );
-    }
+    layer0_free( &s2c );
+    layer0_free( &c2s );
 }
 /* END_CASE */
 
@@ -5399,6 +5388,9 @@ void mbedtls_mps_l2_switch_epoch( int mode,
     int ret;
 
     mps_alloc cli_alloc, srv_alloc;
+
+    mps_l0_send_t *cli_wr,  *srv_wr;
+    mps_l0_recv_t *cli_rcv, *srv_rcv;
 
     /* Layer 1 objects */
     mps_l1 cli_l1, srv_l1;
@@ -5626,8 +5618,17 @@ exit:
     TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
-    layer0_free( &s2c );
-    layer0_free( &c2s );
+
+    if( mode == MPS_L1_MODE_STREAM )
+    {
+        layer0_free( &s2c );
+        layer0_free( &c2s );
+    }
+    else
+    {
+        layer0_dgram_free( &s2c_d );
+        layer0_dgram_free( &c2s_d );
+    }
 }
 /* END_CASE */
 

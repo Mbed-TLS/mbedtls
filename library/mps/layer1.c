@@ -22,7 +22,7 @@
 #include "../../include/mbedtls/mps/layer1.h"
 #include "../../include/mbedtls/mps/trace.h"
 
-static int trace_id = TRACE_ID_LAYER_1;
+static int trace_id = TRACE_BIT_LAYER_1;
 
 #include <string.h>
 

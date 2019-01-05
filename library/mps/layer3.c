@@ -22,7 +22,7 @@
 #include "../../include/mbedtls/mps/layer3.h"
 #include "../../include/mbedtls/mps/trace.h"
 
-static int trace_id = TRACE_ID_LAYER_3;
+static int trace_id = TRACE_BIT_LAYER_3;
 
 #include <stdlib.h>
 
@@ -351,17 +351,14 @@ int mps_l3_read( mps_l3 *l3 )
                      *       to avoid this distinction. */
                     if( l3->conf.mode == MPS_L3_MODE_STREAM )
                     {
-                        res = mbedtls_reader_init_ext( &l3->in.hs.rd_ext,
-                                                       l3->in.hs.len );
+                        mbedtls_reader_init_ext( &l3->in.hs.rd_ext,
+                                                 l3->in.hs.len );
                     }
                     else /* MPS_L3_MODE_DATAGRAM */
                     {
-                        res = mbedtls_reader_init_ext( &l3->in.hs.rd_ext,
-                                                       l3->in.hs.frag_len );
+                        mbedtls_reader_init_ext( &l3->in.hs.rd_ext,
+                                                 l3->in.hs.frag_len );
                     }
-
-                    if( res != 0 )
-                        RETURN( res );
 
                     break;
 
@@ -449,9 +446,7 @@ int mps_l3_read_consume( mps_l3 *l3 )
                 RETURN( res );
 
             /* Reset extended reader. */
-            res = mbedtls_reader_free_ext( &l3->in.hs.rd_ext );
-            if( res != 0 )
-                RETURN( res );
+            mbedtls_reader_free_ext( &l3->in.hs.rd_ext );
 
             break;
 
@@ -1014,13 +1009,13 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
          *       which is OK but fragile. */
         if( l3->conf.mode == MPS_L3_MODE_STREAM )
         {
-            res = mbedtls_writer_init_ext( &l3->out.hs.wr_ext,
-                                           out->len );
+            mbedtls_writer_init_ext( &l3->out.hs.wr_ext,
+                                     out->len );
         }
         else
         {
-            res = mbedtls_writer_init_ext( &l3->out.hs.wr_ext,
-                                           out->frag_len );
+            mbedtls_writer_init_ext( &l3->out.hs.wr_ext,
+                                     out->frag_len );
         }
         if( res != 0 )
             RETURN( res );
@@ -1189,9 +1184,7 @@ int mps_l3_write_abort_handshake( mps_l3 *l3 )
         RETURN( res );
 
     /* Reset extended writer. */
-    res = mbedtls_writer_free_ext( &l3->out.hs.wr_ext );
-    if( res != 0 )
-        RETURN( res );
+    mbedtls_writer_free_ext( &l3->out.hs.wr_ext );
 
     if( committed > 0 )
     {
@@ -1247,9 +1240,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
                 RETURN( res );
 
             /* Reset extended writer. */
-            res = mbedtls_writer_free_ext( &l3->out.hs.wr_ext );
-            if( res != 0 )
-                RETURN( res );
+            mbedtls_writer_free_ext( &l3->out.hs.wr_ext );
 
             /* Complete previously unknown length values. */
             if( l3->conf.mode == MPS_L3_MODE_STREAM )

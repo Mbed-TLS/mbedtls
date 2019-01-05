@@ -42,7 +42,7 @@
     } while( 0 )
 
 /* Debugging related */
-static int trace_id = TRACE_ID_LAYER_4;
+static int trace_id = TRACE_BIT_LAYER_4;
 
 /*
  * Error state handling
@@ -105,7 +105,6 @@ static int mps_handle_pending_alert( mbedtls_mps *mps );
  *
  * - The write-mode flag \c mode indicates if the handshake data is already
  *   available and how Layer 3 should be involved when writing the message.
- *
  *   More precisely, the supported values are the following:
  *
  *   - #MPS_DTLS_FRAG_OUT_START_USE_L3
@@ -1014,8 +1013,8 @@ static int mps_reassembly_done( mbedtls_mps *mps )
         /* The bitmask is freed as soon as the fragmentation completes. */
 
         MPS_CHK( mbedtls_reader_check_done( &in->rd_ext ) );
-        MPS_CHK( mbedtls_reader_free_ext( &in->rd_ext ) );
-        MPS_CHK( mbedtls_reader_free    ( &in->rd     ) );
+        mbedtls_reader_free_ext( &in->rd_ext );
+        mbedtls_reader_free    ( &in->rd     );
     }
     else
     {
@@ -1057,8 +1056,8 @@ static int mps_reassembly_next_msg_complete( mbedtls_mps *mps )
         reassembly->data.window.bitmask == NULL )
     {
         TRACE( trace_comment, "Next message already fully available." );
-        MPS_CHK( mbedtls_reader_init( &in->rd, NULL, 0 ) );
-        MPS_CHK( mbedtls_reader_init_ext( &in->rd_ext, reassembly->length ) );
+        mbedtls_reader_init( &in->rd, NULL, 0 );
+        mbedtls_reader_init_ext( &in->rd_ext, reassembly->length );
         MPS_CHK( mbedtls_reader_attach( &in->rd_ext, &in->rd ) );
         MPS_CHK( mbedtls_reader_feed( &in->rd,
                                       reassembly->data.window.buf,
@@ -2242,8 +2241,8 @@ static int mps_dtls_frag_out_clear_queue( mbedtls_mps *mps,
         MPS_CHK( mps_dtls_frag_out_close( mps ) );
         MPS_CHK( mps_dtls_frag_out_dispatch( mps ) );
 
-        MPS_CHK( mbedtls_writer_free( &mps->dtls.hs.wr ) );
-        MPS_CHK( mbedtls_writer_free_ext( &mps->dtls.hs.wr_ext ) );
+        mbedtls_writer_free( &mps->dtls.hs.wr );
+        mbedtls_writer_free_ext( &mps->dtls.hs.wr_ext );
         mps->dtls.hs.state = MPS_HS_NONE;
     }
     else
@@ -2354,8 +2353,8 @@ static int mps_dtls_frag_out_close( mbedtls_mps *mps )
 
         if( bytes_queued == 0 )
         {
-            MPS_CHK( mbedtls_writer_free( &mps->dtls.hs.wr ) );
-            MPS_CHK( mbedtls_writer_free_ext( &mps->dtls.hs.wr_ext ) );
+            mbedtls_writer_free( &mps->dtls.hs.wr );
+            mbedtls_writer_free_ext( &mps->dtls.hs.wr_ext );
             mps->dtls.hs.state = MPS_HS_NONE;
         }
         else
@@ -2459,8 +2458,8 @@ static int mps_dtls_frag_out_start( mbedtls_mps *mps,
     }
 
     /* Initialize (extended) writer serving the user's write requests. */
-    MPS_CHK( mbedtls_writer_init( &mps->dtls.hs.wr, queue, queue_len ) );
-    MPS_CHK( mbedtls_writer_init_ext( &mps->dtls.hs.wr_ext, hs->length ) );
+    mbedtls_writer_init( &mps->dtls.hs.wr, queue, queue_len );
+    mbedtls_writer_init_ext( &mps->dtls.hs.wr_ext, hs->length );
     MPS_CHK( mbedtls_writer_attach( &mps->dtls.hs.wr_ext, &mps->dtls.hs.wr,
                                     MBEDTLS_WRITER_EXT_PASS ) );
 

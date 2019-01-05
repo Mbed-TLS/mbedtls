@@ -22,7 +22,7 @@
 #include "../../include/mbedtls/mps/layer2.h"
 #include "../../include/mbedtls/mps/trace.h"
 
-static int trace_id = TRACE_ID_LAYER_2;
+static int trace_id = TRACE_BIT_LAYER_2;
 
 #include <stdlib.h>
 #include <string.h>
@@ -898,8 +898,8 @@ int mps_l2_write_start( mps_l2 *ctx, mps_l2_out *out )
             out->wr = &ctx->out.writer.wr;
             TRACE( trace_comment, "TOTAL: %u, WRITTEN: %u (==%u), REMAINING %u",
                    (unsigned) out->wr->out_len,
-                   (unsigned) out->wr->commit, (unsigned) out->wr->end,
-                   (unsigned) ( out->wr->out_len - out->wr->commit ) );
+                   (unsigned) out->wr->committed, (unsigned) out->wr->end,
+                   (unsigned) ( out->wr->out_len - out->wr->committed ) );
             RETURN( 0 );
         }
 
@@ -959,15 +959,13 @@ static int l2_out_track_record( mps_l2 *ctx )
          * provide a queue to the writer or not. */
         if( l2_type_can_be_paused( ctx, ctx->out.writer.type ) )
         {
-            ret = mbedtls_writer_init( &ctx->out.writer.wr, ctx->out.queue,
+            mbedtls_writer_init( &ctx->out.writer.wr, ctx->out.queue,
                                        ctx->out.queue_len );
         }
         else
         {
-            ret = mbedtls_writer_init( &ctx->out.writer.wr, NULL, 0 );
+            mbedtls_writer_init( &ctx->out.writer.wr, NULL, 0 );
         }
-        if( ret != 0 )
-            RETURN( ret );
     }
 
     ret = mbedtls_writer_feed( &ctx->out.writer.wr,
@@ -986,7 +984,7 @@ static int l2_out_track_record( mps_l2 *ctx )
 static int l2_out_release_record( mps_l2 *ctx, uint8_t force )
 {
     int ret;
-    size_t bytes_written, bytes_queued;
+    mbedtls_mps_size_t bytes_written, bytes_queued;
     TRACE_INIT( "l2_out_release_record, force %u, state %u", force,
            (unsigned) ctx->out.state );
 
@@ -1053,9 +1051,7 @@ static int l2_out_release_record( mps_l2 *ctx, uint8_t force )
         TRACE( trace_comment, "The writer has no queued data." );
 
         /* The writer is no longer needed. */
-        ret = mbedtls_writer_free( &ctx->out.writer.wr );
-        if( ret != 0 )
-            RETURN( ret );
+        mbedtls_writer_free( &ctx->out.writer.wr );
 
         ctx->out.state = MPS_L2_WRITER_STATE_UNSET;
     }
@@ -1186,9 +1182,7 @@ int mps_l2_read_done( mps_l2 *ctx )
         if( ret != 0 )
             RETURN( ret );
 
-        ret = mbedtls_reader_free( &ctx->in.active->rd );
-        if( ret != 0 )
-            RETURN( ret );
+        mbedtls_reader_free( &ctx->in.active->rd );
 
         ctx->in.active_state = MPS_L2_READER_STATE_UNSET;
         RETURN( 0 );
@@ -1459,9 +1453,7 @@ int mps_l2_read_start( mps_l2 *ctx, mps_l2_in *in )
 #endif
             }
 
-            ret = mbedtls_reader_init( &ctx->in.active->rd, acc, acc_len );
-            if( ret != 0 )
-                RETURN( ret );
+            mbedtls_reader_init( &ctx->in.active->rd, acc, acc_len );
 
             ret = mbedtls_reader_feed( &ctx->in.active->rd,
                                        rec.buf.buf + rec.buf.data_offset,

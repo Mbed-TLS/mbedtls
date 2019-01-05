@@ -296,6 +296,8 @@ typedef struct
 {
     uint8_t handle_type; /*!< The type of the retransmission handle.
                           *   Supported values are:
+                          *   - #MPS_RETRANSMISSION_HANDLE_NONE
+                          *     to characterize uninitialized handles.
                           *   - #MPS_RETRANSMISSION_HANDLE_HS_RAW
                           *     for a handshake message retransmission
                           *     based on a raw backup of the message.
@@ -304,12 +306,11 @@ typedef struct
                           *     based on a callback.
                           *   - #MPS_RETRANSMISSION_HANDLE_CCS
                           *     for a CCS message retransmission.
-                          *   - #MPS_RETRANSMISSION_HANDLE_NONE
                           */
 
     mbedtls_mps_epoch_id epoch; /*!< The epoch used to send the message. */
 
-    /* These fields are only relevant for HS retransmissions.
+    /* These fields are only relevant for handshake retransmissions.
      * They are unused for CCS retransmissions. */
     uint8_t    type;               /*!< The handshake type.                 */
     uint8_t  seq_nr;               /*!< The handshake sequence number.      */
@@ -319,16 +320,16 @@ typedef struct
      *  retransmission handle providing the message content. */
     union
     {
-        /*! Raw buffer holding backup of outgoing message. Valid if and
-         *  and only \c type has value #MPS_RETRANSMISSION_HANDLE_HS_RAW. */
+        /*! The raw buffer holding backup of outgoing message. This is valid if
+         *  and only if \c type has value #MPS_RETRANSMISSION_HANDLE_HS_RAW. */
         struct
         {
             unsigned char *buf; /*!< The buffer holding the message backup. */
             size_t         len; /*!< Total size of \c buf.                  */
         } raw;
 
-        /*! Callback for retransmission. Valid if and only if \c type
-         *  has value #MPS_RETRANSMISSION_HANDLE_CALLBACK. */
+        /*! The callback for retransmission. This is valid if and only if
+         *  \c type has value #MPS_RETRANSMISSION_HANDLE_CALLBACK. */
         struct
         {
             mbedtls_mps_write_cb_t        cb; /*!< The retransmission
@@ -339,30 +340,34 @@ typedef struct
 
         /* No data for CCS messages, i.e. if \c type
          * has value #MPS_RETRANSMISSION_CALLBACK_CCS */
+        struct
+        {
+            int unused[1];
+        } ccs;
 
     } handle;
 
 } mps_retransmission_handle;
 
-/**
- * Partial backup of messages belonging to incoming flights
- * that we keep to recognize retransmissions.
- */
 
 typedef void mbedtls_mps_set_timer_t( void * ctx,
                                       uint32_t int_ms,
                                       uint32_t fin_ms );
 typedef int mbedtls_mps_get_timer_t( void * ctx );
 
+/**
+ * \brief This structure represents partial backups of messages belonging
+ *        to incoming flights that we keep to recognize retransmissions.
+ *
+ * Currently, we recognize retransmissions by looking at the epoch
+ * and the sequence number only, ignoring the handshake type,
+ * handshake length, and contents.
+ *
+ * See the documentation of ::mbedtls_mps::dtls::retransmission_detection
+ * for more information on this.
+ */
 typedef struct
 {
-    /*
-     * Currently, we're recognizing retransmissions
-     * by looking at the epoch and the sequence number
-     * only, ignoring the handshake type, handshake length,
-     * and contents.
-     */
-
     /*!< The epoch through which the handshake message was secured. */
     mbedtls_mps_epoch_id epoch;
 
@@ -464,16 +469,30 @@ typedef struct
     struct
     {
         /*! This structure controls the state of outgoing handshake
-         *  messages and their fragmentation. Used for fresh messages
-         *  as well as retransmissions. */
+         *  messages and their fragmentation. It is used both for the
+         *  initial sending of messages as well as for retransmissions. */
         mps_handshake_out_internal hs;
 
         /*! This indicates the state of the retransmission state machine.
-         *  See the documentation of ::mbedtls_mps_flight_state_t for more. */
+         *  See the documentation of ::mbedtls_mps_flight_state_t. */
         mbedtls_mps_flight_state_t state;
 
+        /*! This indicates if we're currently retransmitting our last outgoing
+         *  flight, or are requesting retransmission from the peer.
+         *  See the documentation of ::mbedtls_mps_retransmit_state_t. */
         mbedtls_mps_retransmit_state_t retransmit_state;
 
+        /*! This structure is used when waiting for the next incoming
+         *  flight of the peer. It captures the time to wait until we
+         *  resend our last outgoing flight (in case we haven't received
+         *  anything so far) or request retransmission from the peer
+         *  (in case at least one message from the peer has been received).
+         *  Further, if we are in the process of resending our last flight
+         *  or requesting retransmission from the peer, it holds the sending
+         *  state.
+         *  Note: Retransmission requests are handled differently
+         *        between DTLS 1.2 and DTLS 1.3; see the documentation of
+         *        ::mbedtls_mps_retransmit_state_t for more. */
         struct
         {
             /*! The current retransmission timeout. Increases with
@@ -492,7 +511,8 @@ typedef struct
         struct
         {
             /*! This flag indicates if and how the outgoing
-             *  message contributes to an ongoing handshake. */
+             *  message contributes to an ongoing handshake.
+             *  See the documentation of ::mbedtls_mps_msg_flags. */
             mbedtls_mps_msg_flags flags;
 
             /*! The sequence number of the next outgoing message. */
@@ -502,7 +522,8 @@ typedef struct
             uint8_t flight_len;
 
             /*! A list of backup handles to be used in case the flight,
-             *  or parts of it, need to be retransmitted. */
+             *  or parts of it, need to be retransmitted. See the documentation
+             *  of ::mps_retransmission_handle_backup for more. */
             mps_retransmission_handle backup[ MBEDTLS_MPS_MAX_FLIGHT_LENGTH ];
 
         } outgoing;
@@ -513,7 +534,7 @@ typedef struct
          *  Contains all state related to message reassembly
          *  and buffering of future messages.
          *
-         *  Abstractly, it has the following states:
+         *  To the user, it has the following states:
          *  - Inactive:
          *    No incoming handshake message is ready to be read.
          *  - Available:
@@ -596,6 +617,8 @@ typedef struct
             mbedtls_reader         rd;
             mbedtls_reader_ext rd_ext;
 
+            /*! The array of structures representing future and/or
+             *  partially received handshake messages. */
             struct mps_msg_reassembly
             {
                 /*! The reassembly status of the handshake message.
@@ -644,7 +667,8 @@ typedef struct
                  *    In particular, it would buffer a future Finished
                  *    message in a DTLS 1.2 handshake even if it is unencrypted.
                  *    However, remembering the epoch here allows to error out
-                 *    by the time the user switches the incoming epoch.
+                 *    by the time the user switches the incoming epoch before
+                 *    asking for the Finished message.
                  *  - In DTLS 1.3, there can be key changes at flight
                  *    boundaries, in which case we have multiple incoming
                  *    epochs active when waiting for the next incoming flight,
@@ -658,19 +682,25 @@ typedef struct
                  *   message contents fetched so far. */
                 union
                 {
-                    /*! Valid if status is #MPS_REASSEMBLY_NO_FRAGMENTATION */
+                    /*! The extended reader owned by Layer 3 giving rise to the
+                     *  contents of the handshake message. This is valid if and
+                     *  only if \c status is #MPS_REASSEMBLY_NO_FRAGMENTATION */
                     mbedtls_reader_ext *rd_ext_l3;
 
-                    /*! Valid if status is #MPS_REASSEMBLY_WINDOW. */
+                    /*! The reassembly buffer holding the partially received
+                     *  handshake message. This is valid if and only if
+                     *  \c status is #MPS_REASSEMBLY_WINDOW. */
                     struct mps_msg_reassembly_window
                     {
-                        unsigned char *buf;
-                        size_t buf_len;
+                        unsigned char *buf; /*!< The reassembly buffer. */
+                        size_t buf_len;     /*!< The size of \c buf.    */
 
-                        unsigned char *bitmask;
-                        size_t bitmask_len;
-
+                        unsigned char *bitmask; /*!< The bitmask indicating
+                                                 *   the state of reassembly. */
+                        size_t bitmask_len;     /*!< The length of the
+                                                 *   reassembly bitmask. */
                     } window;
+
                 } data;
 
             } reassembly[ 1 + MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS ];

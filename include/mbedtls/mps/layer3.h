@@ -97,23 +97,6 @@ typedef enum mps_l3_hs_state
                                  *   message has commenced but been paused.  */
 } mps_l3_hs_state;
 
-/**
- * \brief    The enumeration of record content types
- *           recognized by Layer 3.
- */
-typedef enum
-{
-    MBEDTLS_MPS_MSG_NONE = 0,        /*!< This is a placeholder to indicate
-                                      *   that no record is currently open
-                                      *   for reading or writing.             */
-    MBEDTLS_MPS_MSG_APP=23,         /*!< This represents application data.    */
-    MBEDTLS_MPS_MSG_HS=22,          /*!< This represents handshake messages.  */
-    MBEDTLS_MPS_MSG_ALERT=21,       /*!< This represents alert messages.      */
-    MBEDTLS_MPS_MSG_CCS=20,         /*!< This represents CCS messages.        */
-    MBEDTLS_MPS_MSG_ACK=19          /*!< This represents ACK messages
-                                     *   (used in DTLS 1.3 only).             */
-} mbedtls_mps_msg_type_t;
-
 #define MPS_L3_LENGTH_UNKNOWN (-1)
 
 /**

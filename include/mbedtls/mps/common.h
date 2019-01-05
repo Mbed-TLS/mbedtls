@@ -32,6 +32,28 @@
  * \{
  */
 
+/** \brief   The enumeration of record content types recognized by MPS.
+ *
+ * \note     Not all of these are visible on the MPS boundary. For example,
+ *           ACK messages are handled by MPS internally and are never signalled
+ *           to the user.
+ *
+ * \note     The values are aligned to the ContentType field in [D]TLS records.
+ */
+
+typedef enum
+{
+    MBEDTLS_MPS_MSG_NONE = 0,        /*!< This is a placeholder to indicate
+                                      *   that no record is currently open
+                                      *   for reading or writing.             */
+    MBEDTLS_MPS_MSG_APP=23,         /*!< This represents application data.    */
+    MBEDTLS_MPS_MSG_HS=22,          /*!< This represents handshake messages.  */
+    MBEDTLS_MPS_MSG_ALERT=21,       /*!< This represents alert messages.      */
+    MBEDTLS_MPS_MSG_CCS=20,         /*!< This represents CCS messages.        */
+    MBEDTLS_MPS_MSG_ACK=19          /*!< This represents ACK messages
+                                     *   (used in DTLS 1.3 only).             */
+} mbedtls_mps_msg_type_t;
+
 /** \brief   The type of buffer sizes and offsets used in MPS structures.
  *
  *           This is an unsigned integer type that should be large enough to
@@ -45,8 +67,8 @@
  *           potential truncation during conversion.
  *
  */
-typedef uint16_t mbedtls_mps_size_t;
-#define MBEDTLS_MPS_OFFSET_MAX ( (mbedtls_mps_size_t) -1u )
+typedef uint16_t mbedtls_mps_stored_size_t;
+#define MBEDTLS_MPS_OFFSET_MAX ( (mbedtls_mps_stored_size_t) -1u )
 
 /* \brief The type of buffer sizes and offsets used in the MPS API
  *        and implementation.
@@ -59,7 +81,7 @@ typedef uint16_t mbedtls_mps_size_t;
  *        instead of uint16_t reduced the code size from 1060 Byte to 962 Byte,
  *        so almost 10%.
  */
-typedef uint_fast16_t mbedtls_mps_stored_size_t;
+typedef uint_fast16_t mbedtls_mps_size_t;
 
 #if (mbedtls_mps_size_t) -1u > (mbedtls_mps_stored_size_t) -1u
 #error "Misconfiguration of mbedtls_mps_size_t and mbedtls_mps_stored_size_t."

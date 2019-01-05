@@ -204,6 +204,7 @@
     <ClInclude Include="..\..\include\mbedtls\platform_time.h" />
     <ClInclude Include="..\..\include\mbedtls\platform_util.h" />
     <ClInclude Include="..\..\include\mbedtls\poly1305.h" />
+    <ClInclude Include="..\..\include\mbedtls\psa_util.h" />
     <ClInclude Include="..\..\include\mbedtls\ripemd160.h" />
     <ClInclude Include="..\..\include\mbedtls\rsa.h" />
     <ClInclude Include="..\..\include\mbedtls\rsa_internal.h" />
@@ -224,6 +225,22 @@
     <ClInclude Include="..\..\include\mbedtls\x509_crt.h" />
     <ClInclude Include="..\..\include\mbedtls\x509_csr.h" />
     <ClInclude Include="..\..\include\mbedtls\xtea.h" />
+    <ClInclude Include="..\..\include\psa\crypto.h" />
+    <ClInclude Include="..\..\include\psa\crypto_accel_driver.h" />
+    <ClInclude Include="..\..\include\psa\crypto_driver_common.h" />
+    <ClInclude Include="..\..\include\psa\crypto_entropy_driver.h" />
+    <ClInclude Include="..\..\include\psa\crypto_extra.h" />
+    <ClInclude Include="..\..\include\psa\crypto_platform.h" />
+    <ClInclude Include="..\..\include\psa\crypto_se_driver.h" />
+    <ClInclude Include="..\..\include\psa\crypto_sizes.h" />
+    <ClInclude Include="..\..\include\psa\crypto_struct.h" />
+    <ClInclude Include="..\..\include\psa\crypto_types.h" />
+    <ClInclude Include="..\..\include\psa\crypto_values.h" />
+    <ClInclude Include="..\..\library/psa_crypto_core.h" />
+    <ClInclude Include="..\..\library/psa_crypto_invasive.h" />
+    <ClInclude Include="..\..\library/psa_crypto_slot_management.h" />
+    <ClInclude Include="..\..\library/psa_crypto_storage.h" />
+    <ClInclude Include="..\..\library/psa_crypto_storage_backend.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\library\aes.c" />
@@ -280,6 +297,11 @@
     <ClCompile Include="..\..\library\platform.c" />
     <ClCompile Include="..\..\library\platform_util.c" />
     <ClCompile Include="..\..\library\poly1305.c" />
+    <ClCompile Include="..\..\library\psa_crypto.c" />
+    <ClCompile Include="..\..\library\psa_crypto_slot_management.c" />
+    <ClCompile Include="..\..\library\psa_crypto_storage.c" />
+    <ClCompile Include="..\..\library\psa_crypto_storage_file.c" />
+    <ClCompile Include="..\..\library\psa_crypto_storage_its.c" />
     <ClCompile Include="..\..\library\ripemd160.c" />
     <ClCompile Include="..\..\library\rsa.c" />
     <ClCompile Include="..\..\library\rsa_internal.c" />

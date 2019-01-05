@@ -17,6 +17,10 @@ use warnings;
 use strict;
 
 my %configs = (
+    'config-default.h' => {
+        'opt' => '-f Default',
+        'compat' => '-m tls1_2 -V NO',
+    },
     'config-mini-tls1_1.h' => {
         'compat' => '-m tls1_1 -f \'^DES-CBC3-SHA$\|^TLS-RSA-WITH-3DES-EDE-CBC-SHA$\'',
     },

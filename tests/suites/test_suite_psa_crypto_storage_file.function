@@ -1,0 +1,157 @@
+/* BEGIN_HEADER */
+#include <stdint.h>
+#include "psa/crypto.h"
+#include "psa_crypto_storage_backend.h"
+
+/* END_HEADER */
+
+/* BEGIN_DEPENDENCIES
+ * depends_on:MBEDTLS_PSA_CRYPTO_C:MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C
+ * END_DEPENDENCIES
+ */
+
+/* BEGIN_CASE */
+void load_data_from_file( int id_to_load_arg,
+                          data_t *data, int should_make_file,
+                          int capacity_arg, int expected_status )
+{
+    psa_key_id_t id_to_load = id_to_load_arg;
+    char slot_location[] = "psa_key_slot_1";
+    psa_status_t status;
+    int ret;
+    size_t file_size = 0;
+    uint8_t *loaded_data = NULL;
+    size_t capacity = (size_t) capacity_arg;
+
+    if( should_make_file == 1 )
+    {
+        /* Create a file with data contents, with mask permissions. */
+        FILE *file;
+        file = fopen( slot_location, "wb+" );
+        TEST_ASSERT( file != NULL );
+        file_size = fwrite( data->x, 1, data->len, file );
+        TEST_EQUAL( file_size, data->len );
+        ret = fclose( file );
+        TEST_EQUAL( ret, 0 );
+    }
+
+    /* Read from the file with psa_crypto_storage_load. */
+    ASSERT_ALLOC( loaded_data, capacity );
+    status = psa_crypto_storage_load( id_to_load, loaded_data, file_size );
+
+    /* Check we get the expected status. */
+    TEST_EQUAL( status, expected_status );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    /* Check that the file data and data length is what we expect. */
+    ASSERT_COMPARE( data->x, data->len, loaded_data, file_size );
+
+exit:
+    mbedtls_free( loaded_data );
+    remove( slot_location );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void write_data_to_file( data_t *data, int expected_status )
+{
+    char slot_location[] = "psa_key_slot_1";
+    psa_status_t status;
+    int ret;
+    FILE *file;
+    size_t file_size;
+    size_t num_read;
+    uint8_t *loaded_data = NULL;
+
+    /* Write data to file. */
+    status = psa_crypto_storage_store( 1, data->x, data->len );
+
+    /* Check that we got the expected status. */
+    TEST_EQUAL( status, expected_status );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+    /* Check that the file length is what we expect */
+    file = fopen( slot_location, "rb" );
+    TEST_ASSERT( file != NULL );
+    fseek( file, 0, SEEK_END );
+    file_size = (size_t) ftell( file );
+    fseek( file, 0, SEEK_SET );
+    TEST_EQUAL( file_size, data->len );
+
+    /* Check that the file contents are what we expect */
+    ASSERT_ALLOC( loaded_data, data->len );
+
+    num_read = fread( loaded_data, 1, file_size, file );
+    TEST_EQUAL( num_read, file_size );
+    ASSERT_COMPARE( data->x, data->len, loaded_data, file_size );
+    ret = fclose( file );
+    TEST_EQUAL( ret, 0 );
+
+exit:
+    mbedtls_free( loaded_data );
+    remove( slot_location );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void get_file_size( data_t *data, int expected_data_length,
+                    int expected_status, int should_make_file )
+{
+    char slot_location[] = "psa_key_slot_1";
+    psa_status_t status;
+    int ret;
+    size_t file_size;
+
+    if( should_make_file )
+    {
+        /* Create a file with data contents, with mask permissions. */
+        FILE *file;
+        file = fopen( slot_location, "wb+" );
+        TEST_ASSERT( file != NULL );
+        file_size = fwrite( data->x, 1, data->len, file );
+        TEST_EQUAL( file_size, data->len );
+        ret = fclose( file );
+        TEST_EQUAL( ret, 0 );
+    }
+
+    /* Check get data size is what we expect */
+    status = psa_crypto_storage_get_data_length( 1, &file_size );
+    TEST_EQUAL( status, expected_status );
+    if( expected_status == PSA_SUCCESS )
+        TEST_EQUAL( file_size, (size_t)expected_data_length );
+
+exit:
+    remove( slot_location );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void write_data_to_prexisting_file( char *preexist_file_location,
+                                    data_t *data, int expected_status )
+{
+    char slot_location[] = "psa_key_slot_1";
+    psa_status_t status;
+    int ret;
+    FILE *file;
+
+    /* Create file first */
+    file = fopen( preexist_file_location, "wb" );
+    TEST_ASSERT( file != NULL );
+    ret = fclose( file );
+    TEST_EQUAL( ret, 0 );
+
+    /* Write data to file. */
+    status = psa_crypto_storage_store( 1, data->x, data->len );
+
+    /* Check that we got the expected status. */
+    TEST_EQUAL( status, expected_status );
+    if( status != PSA_SUCCESS )
+        goto exit;
+
+exit:
+    remove( preexist_file_location );
+    remove( slot_location );
+}
+/* END_CASE */

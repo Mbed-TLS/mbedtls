@@ -1,41 +1,44 @@
-Note: This is just a template, so feel free to use/remove the unnecessary things
+<!--
+
+   ************************************** WARNING **************************************
+
+   The ciarcom bot parses this header automatically. Any deviation from the 
+   template may cause the bot to automatically correct this header or may result in a 
+   warning message, requesting updates.
+
+   Please ensure that nothing follows the Issue request type section, all 
+   issue details are within the Description section and no changes are made to the 
+   template format (as detailed below).
+
+   *************************************************************************************
+
+-->
 
 ### Description
-- Type: Bug | Enhancement\Feature Request | Question
-- Priority: Blocker | Major | Minor
 
----------------------------------------------------------------
-## Bug
+<!--
+    Required
+    Add detailed description of what you are reporting.
+    Good example: https://os.mbed.com/docs/latest/reference/workflow.html
+    Things to consider sharing:
+    - What target does this relate to?
+    - What toolchain (name + version) are you using?
+    - What tools (name + version - is it mbed-cli, online compiler or IDE) are you using?
+    - What is the SHA of Mbed OS (git log -n1 --oneline)?
+    - Steps to reproduce. (Did you publish code or a test case that exhibits the problem?)
+-->
 
-**OS**  
-Mbed OS|linux|windows|
 
-**mbed TLS build:**  
-Version: x.x.x or git commit id  
-OS version: x.x.x  
-Configuration: please attach config.h file where possible  
-Compiler and options (if you used a pre-built binary, please indicate how you obtained it):  
-Additional environment information:  
+### Issue request type
 
-**Peer device TLS stack and version**  
-OpenSSL|GnuTls|Chrome|NSS(Firefox)|SecureChannel (IIS/Internet Explorer/Edge)|Other  
-Version:  
+<!--
+    Required
+    Please add only one X to one of the following types. Do not fill multiple types (split the issue otherwise.)
+    Please note this is not a GitHub task list, indenting the boxes or changing the format to add a '.' or '*' in front
+    of them would change the meaning incorrectly. The only changes to be made are to add a description text under the
+    description heading and to add a 'x' to the correct box.
+-->
+    [ ] Question
+    [ ] Enhancement
+    [ ] Bug
 
-**Expected behavior**   
-
-**Actual behavior**  
-
-**Steps to reproduce**  
-
-----------------------------------------------------------------
-## Enhancement\Feature Request
-
-**Justification - why does the library need this feature?**  
-
-**Suggested enhancement**  
-
------------------------------------------------------------------
-
-## Question
-
-**Please first check for answers in the [Mbed TLS knowledge Base](https://tls.mbed.org/kb), and preferably file an issue in the [Mbed TLS support forum](https://forums.mbed.com/c/mbed-tls)**  

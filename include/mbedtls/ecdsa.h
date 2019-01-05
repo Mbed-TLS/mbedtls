@@ -35,25 +35,30 @@
 #include "ecp.h"
 #include "md.h"
 
-/*
- * RFC-4492 page 20:
+/**
+ * \brief           Maximum ECDSA signature size for a given curve bit size
  *
+ * \param bits      Curve size in bits
+ * \return          Maximum signature size in bytes
+ *
+ * \note            This macro returns a compile-time constant if its argument
+ *                  is one. It may evaluate its argument multiple times.
+ */
+/*
  *     Ecdsa-Sig-Value ::= SEQUENCE {
  *         r       INTEGER,
  *         s       INTEGER
  *     }
  *
- * Size is at most
- *    1 (tag) + 1 (len) + 1 (initial 0) + ECP_MAX_BYTES for each of r and s,
- *    twice that + 1 (tag) + 2 (len) for the sequence
- * (assuming ECP_MAX_BYTES is less than 126 for r and s,
- * and less than 124 (total len <= 255) for the sequence)
+ * For each of r and s, the value (V) may include an extra initial "0" bit.
  */
-#if MBEDTLS_ECP_MAX_BYTES > 124
-#error "MBEDTLS_ECP_MAX_BYTES bigger than expected, please fix MBEDTLS_ECDSA_MAX_LEN"
-#endif
+#define MBEDTLS_ECDSA_MAX_SIG_LEN( bits )                               \
+    ( /*T,L of SEQUENCE*/ ( ( bits ) >= 61 * 8 ? 3 : 2 ) +              \
+      /*T,L of r,s*/        2 * ( ( ( bits ) >= 127 * 8 ? 3 : 2 ) +     \
+      /*V of r,s*/                ( ( bits ) + 8 ) / 8 ) )
+
 /** The maximal size of an ECDSA signature in Bytes. */
-#define MBEDTLS_ECDSA_MAX_LEN  ( 3 + 2 * ( 3 + MBEDTLS_ECP_MAX_BYTES ) )
+#define MBEDTLS_ECDSA_MAX_LEN  MBEDTLS_ECDSA_MAX_SIG_LEN( MBEDTLS_ECP_MAX_BITS )
 
 #ifdef __cplusplus
 extern "C" {

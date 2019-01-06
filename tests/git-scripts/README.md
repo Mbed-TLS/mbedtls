@@ -10,6 +10,7 @@ Prerequisites for running the scripts:
 * python
 * perl
 * pylint (installed with `pip install pylint`)
+* doxygen
 
 Example:
 

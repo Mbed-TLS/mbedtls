@@ -110,7 +110,7 @@ pre_initialize_variables () {
     : ${ARMC6_BIN_DIR:=/usr/bin}
 
     # if MAKEFLAGS is not set add the -j option to speed up invocations of make
-    if [ -n "${MAKEFLAGS+set}" ]; then
+    if [ -z "${MAKEFLAGS+set}" ]; then
         export MAKEFLAGS="-j"
     fi
 

@@ -461,30 +461,50 @@ pre_print_configuration () {
     echo "ARMC6_BIN_DIR: $ARMC6_BIN_DIR"
 }
 
+# Make sure the tools we need are available.
 pre_check_tools () {
-    ARMC5_CC="$ARMC5_BIN_DIR/armcc"
-    ARMC5_AR="$ARMC5_BIN_DIR/armar"
-    ARMC6_CC="$ARMC6_BIN_DIR/armclang"
-    ARMC6_AR="$ARMC6_BIN_DIR/armar"
+    case " $RUN_COMPONENTS " in
+        # Require OpenSSL and GnuTLS if running any tests (as opposed to
+        # only doing builds). Not all tests run OpenSSL and GnuTLS, but this
+        # is a good enough approximation in practice.
+        *" test_"*)
+            # To avoid setting OpenSSL and GnuTLS for each call to compat.sh
+            # and ssl-opt.sh, we just export the variables they require.
+            export OPENSSL_CMD="$OPENSSL"
+            export GNUTLS_CLI="$GNUTLS_CLI"
+            export GNUTLS_SERV="$GNUTLS_SERV"
+            # Avoid passing --seed flag in every call to ssl-opt.sh
+            if [ -n "${SEED-}" ]; then
+                export SEED
+            fi
+            check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$OPENSSL_NEXT" \
+                        "$GNUTLS_CLI" "$GNUTLS_SERV" \
+                        "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV"
+            ;;
+    esac
 
-    # To avoid setting OpenSSL and GnuTLS for each call to compat.sh and ssl-opt.sh
-    # we just export the variables they require
-    export OPENSSL_CMD="$OPENSSL"
-    export GNUTLS_CLI="$GNUTLS_CLI"
-    export GNUTLS_SERV="$GNUTLS_SERV"
+    case " $RUN_COMPONENTS " in
+        *_doxygen[_\ ]*) check_tools "doxygen" "dot";;
+    esac
 
-    # Avoid passing --seed flag in every call to ssl-opt.sh
-    if [ -n "${SEED-}" ]; then
-        export SEED
-    fi
+    case " $RUN_COMPONENTS " in
+        *_arm_none_eabi_gcc[_\ ]*) check_tools "arm-none-eabi-gcc";;
+    esac
 
-    # Make sure the tools we need are available.
-    check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$OPENSSL_NEXT" \
-                "$GNUTLS_CLI" "$GNUTLS_SERV" \
-                "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
-                "arm-none-eabi-gcc" "i686-w64-mingw32-gcc" "gdb"
-    case $RUN_COMPONENTS in
+    case " $RUN_COMPONENTS " in
+        *_mingw[_\ ]*) check_tools "i686-w64-mingw32-gcc";;
+    esac
+
+    case " $RUN_COMPONENTS " in
+        *" test_zeroize "*) check_tools "gdb";;
+    esac
+
+    case " $RUN_COMPONENTS " in
         *_armcc*)
+            ARMC5_CC="$ARMC5_BIN_DIR/armcc"
+            ARMC5_AR="$ARMC5_BIN_DIR/armar"
+            ARMC6_CC="$ARMC6_BIN_DIR/armclang"
+            ARMC6_AR="$ARMC6_BIN_DIR/armar"
             check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR";;
     esac
 }

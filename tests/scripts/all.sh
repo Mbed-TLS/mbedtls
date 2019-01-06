@@ -1117,17 +1117,27 @@ component_test_zeroize () {
     # system in all cases that the script fails, so we must manually search the
     # output to check whether the pass string is present and no failure strings
     # were printed.
+
+    # Don't try to disable ASLR. We don't care about ASLR here. We do care
+    # about a spurious message if Gdb tries and fails, so suppress that.
+    gdb_disable_aslr=
+    if [ -z "$(gdb -batch -nw -ex 'set disable-randomization off' 2>&1)" ]; then
+        gdb_disable_aslr='set disable-randomization off'
+    fi
+
     for optimization_flag in -O2 -O3 -Ofast -Os; do
         for compiler in clang gcc; do
             msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
             make programs CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag"
-            if_build_succeeded gdb -x tests/scripts/test_zeroize.gdb -nw -batch -nx 2>&1 | tee test_zeroize.log
+            if_build_succeeded gdb -ex "$gdb_disable_aslr" -x tests/scripts/test_zeroize.gdb -nw -batch -nx 2>&1 | tee test_zeroize.log
             if_build_succeeded grep "The buffer was correctly zeroized" test_zeroize.log
             if_build_succeeded not grep -i "error" test_zeroize.log
             rm -f test_zeroize.log
             make clean
         done
     done
+
+    unset gdb_disable_aslr
 }
 
 component_check_python_files () {

@@ -463,6 +463,9 @@ pre_print_configuration () {
 
 # Make sure the tools we need are available.
 pre_check_tools () {
+    # Build the list of variables to pass to output_env.sh.
+    set env
+
     case " $RUN_COMPONENTS " in
         # Require OpenSSL and GnuTLS if running any tests (as opposed to
         # only doing builds). Not all tests run OpenSSL and GnuTLS, but this
@@ -477,6 +480,10 @@ pre_check_tools () {
             if [ -n "${SEED-}" ]; then
                 export SEED
             fi
+            set "$@" OPENSSL="$OPENSSL" OPENSSL_LEGACY="$OPENSSL_LEGACY"
+            set "$@" GNUTLS_CLI="$GNUTLS_CLI" GNUTLS_SERV="$GNUTLS_SERV"
+            set "$@" GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI"
+            set "$@" GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV"
             check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$OPENSSL_NEXT" \
                         "$GNUTLS_CLI" "$GNUTLS_SERV" \
                         "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV"
@@ -507,7 +514,16 @@ pre_check_tools () {
             ARMC6_AR="$ARMC6_BIN_DIR/armar"
             check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR";;
     esac
+
+    msg "info: output_env.sh"
+    case $RUN_COMPONENTS in
+        *_armcc*)
+            set "$@" ARMC5_CC="$ARMC5_CC" ARMC6_CC="$ARMC6_CC" RUN_ARMCC=1;;
+        *) set "$@" RUN_ARMCC=0;;
+    esac
+    "$@" scripts/output_env.sh
 }
+
 
 
 ################################################################
@@ -524,20 +540,6 @@ pre_check_tools () {
 # 2. Minimize total running time, by avoiding useless rebuilds
 #
 # Indicative running times are given for reference.
-
-pre_print_tools () {
-    msg "info: output_env.sh"
-    set env
-    set "$@" OPENSSL="$OPENSSL" OPENSSL_LEGACY="$OPENSSL_LEGACY"
-    set "$@" GNUTLS_CLI="$GNUTLS_CLI" GNUTLS_SERV="$GNUTLS_SERV"
-    set "$@" GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV"
-    case $RUN_COMPONENTS in
-        *_armcc*)
-            set "$@" ARMC5_CC="$ARMC5_CC" ARMC6_CC="$ARMC6_CC" RUN_ARMCC=1;;
-        *) set "$@" RUN_ARMCC=0;;
-    esac
-    "$@" scripts/output_env.sh
-}
 
 component_check_recursion () {
     msg "test: recursion.pl" # < 1s
@@ -1260,7 +1262,6 @@ else
 fi
 pre_print_configuration
 pre_check_tools
-pre_print_tools
 cleanup
 
 # Run the requested tests.

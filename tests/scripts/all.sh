@@ -106,7 +106,6 @@ pre_initialize_variables () {
     MEMORY=0
     FORCE=0
     KEEP_GOING=0
-    RUN_ARMCC=1
 
     # Default commands, can be overriden by the environment
     : ${OPENSSL:="openssl"}
@@ -291,10 +290,11 @@ check_headers_in_cpp () {
 pre_parse_command_line () {
     COMMAND_LINE_COMPONENTS=
     all_except=
+    no_armcc=
 
     while [ $# -gt 0 ]; do
         case "$1" in
-            --armcc) RUN_ARMCC=1;;
+            --armcc) no_armcc=;;
             --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
             --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
             --except) all_except=1;;
@@ -308,7 +308,7 @@ pre_parse_command_line () {
             --list-all-components) printf '%s\n' $ALL_COMPONENTS; exit;;
             --list-components) printf '%s\n' $SUPPORTED_COMPONENTS; exit;;
             --memory|-m) MEMORY=1;;
-            --no-armcc) RUN_ARMCC=0;;
+            --no-armcc) no_armcc=1;;
             --no-force) FORCE=0;;
             --no-keep-going) KEEP_GOING=0;;
             --no-memory) MEMORY=0;;
@@ -333,6 +333,12 @@ pre_parse_command_line () {
         all_except=1
     fi
 
+    # --no-armcc is a legacy option. The modern way is --except '*_armcc*'.
+    # Ignore it if components are listed explicitly on the command line.
+    if [ -n "$no_armcc" ] && [ -n "$all_except" ]; then
+        COMMAND_LINE_COMPONENTS="$COMMAND_LINE_COMPONENTS *_armcc*"
+    fi
+
     # Build the list of components to run.
     if [ -n "$all_except" ]; then
         RUN_COMPONENTS=
@@ -346,6 +352,7 @@ pre_parse_command_line () {
     fi
 
     unset all_except
+    unset no_armcc
 }
 
 pre_check_git () {
@@ -476,9 +483,10 @@ pre_check_tools () {
                 "$GNUTLS_CLI" "$GNUTLS_SERV" \
                 "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
                 "arm-none-eabi-gcc" "i686-w64-mingw32-gcc" "gdb"
-    if [ $RUN_ARMCC -ne 0 ]; then
-        check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR"
-    fi
+    case $RUN_COMPONENTS in
+        *_armcc*)
+            check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR";;
+    esac
 }
 
 
@@ -499,10 +507,16 @@ pre_check_tools () {
 
 pre_print_tools () {
     msg "info: output_env.sh"
-    OPENSSL="$OPENSSL" OPENSSL_LEGACY="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_CLI" \
-           GNUTLS_SERV="$GNUTLS_SERV" GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI" \
-           GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV" ARMC5_CC="$ARMC5_CC" \
-           ARMC6_CC="$ARMC6_CC" RUN_ARMCC="$RUN_ARMCC" scripts/output_env.sh
+    set env
+    set "$@" OPENSSL="$OPENSSL" OPENSSL_LEGACY="$OPENSSL_LEGACY"
+    set "$@" GNUTLS_CLI="$GNUTLS_CLI" GNUTLS_SERV="$GNUTLS_SERV"
+    set "$@" GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV"
+    case $RUN_COMPONENTS in
+        *_armcc*)
+            set "$@" ARMC5_CC="$ARMC5_CC" ARMC6_CC="$ARMC6_CC" RUN_ARMCC=1;;
+        *) set "$@" RUN_ARMCC=0;;
+    esac
+    "$@" scripts/output_env.sh
 }
 
 component_check_recursion () {
@@ -1032,25 +1046,23 @@ component_build_armcc () {
     scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
     scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
 
-    if [ $RUN_ARMCC -ne 0 ]; then
-        make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
-        make clean
+    make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
+    make clean
 
-        # ARM Compiler 6 - Target ARMv7-A
-        armc6_build_test "--target=arm-arm-none-eabi -march=armv7-a"
+    # ARM Compiler 6 - Target ARMv7-A
+    armc6_build_test "--target=arm-arm-none-eabi -march=armv7-a"
 
-        # ARM Compiler 6 - Target ARMv7-M
-        armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m"
+    # ARM Compiler 6 - Target ARMv7-M
+    armc6_build_test "--target=arm-arm-none-eabi -march=armv7-m"
 
-        # ARM Compiler 6 - Target ARMv8-A - AArch32
-        armc6_build_test "--target=arm-arm-none-eabi -march=armv8.2-a"
+    # ARM Compiler 6 - Target ARMv8-A - AArch32
+    armc6_build_test "--target=arm-arm-none-eabi -march=armv8.2-a"
 
-        # ARM Compiler 6 - Target ARMv8-M
-        armc6_build_test "--target=arm-arm-none-eabi -march=armv8-m.main"
+    # ARM Compiler 6 - Target ARMv8-M
+    armc6_build_test "--target=arm-arm-none-eabi -march=armv8-m.main"
 
-        # ARM Compiler 6 - Target ARMv8-A - AArch64
-        armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a"
-    fi
+    # ARM Compiler 6 - Target ARMv8-A - AArch64
+    armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a"
 }
 
 component_test_allow_sha1 () {

@@ -10,6 +10,10 @@ HMAC_DRBG entropy usage SHA-256
 depends_on:MBEDTLS_SHA256_C
 hmac_drbg_entropy_usage:MBEDTLS_MD_SHA256
 
+HMAC_DRBG entropy usage SHA-256 accumulator
+depends_on:MBEDTLS_SHA256_C:!MBEDTLS_SHA512_C
+hmac_drbg_entropy_usage:MBEDTLS_MD_SHA256
+
 HMAC_DRBG entropy usage SHA-384
 depends_on:MBEDTLS_SHA512_C
 hmac_drbg_entropy_usage:MBEDTLS_MD_SHA384
@@ -17,6 +21,10 @@ hmac_drbg_entropy_usage:MBEDTLS_MD_SHA384
 HMAC_DRBG entropy usage SHA-512
 depends_on:MBEDTLS_SHA512_C
 hmac_drbg_entropy_usage:MBEDTLS_MD_SHA512
+
+HMAC_DRBG NIST CAVS 14.3 No Reseed no SHA-512(SHA-256,256+128,0,0)
+depends_on:MBEDTLS_SHA256_C:!MBEDTLS_SHA512_C
+hmac_drbg_no_reseed:MBEDTLS_MD_SHA256:"ca851911349384bffe89de1cbdc46e6831e44d34a4fb935ee285dd14b71a7488659ba96c601dc69fc902940805ec0ca8":"":"":"":"e528e9abf2dece54d47c7e75e5fe302149f817ea9fb4bee6f4199697d04d5b89d54fbb978a15b5c443c9ec21036d2460b6f73ebad0dc2aba6e624abf07745bc107694bb7547bb0995f70de25d6b29e2d3011bb19d27676c07162c8b5ccde0668961df86803482cb37ed6d5c0bb8d50cf1f50d476aa0458bdaba806f48be9dcb8"
 
 HMAC_DRBG write/update seed file SHA-1
 depends_on:MBEDTLS_SHA1_C

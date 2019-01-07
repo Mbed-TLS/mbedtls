@@ -35,7 +35,7 @@
 
 #include "mbedtls/hmac_drbg.h"
 #include "mbedtls/platform_util.h"
-
+#include "mbedtls/entropy.h"
 #include <string.h>
 
 #if defined(MBEDTLS_FS_IO)
@@ -155,7 +155,8 @@ int mbedtls_hmac_drbg_reseed( mbedtls_hmac_drbg_context *ctx,
                       const unsigned char *additional, size_t len )
 {
     unsigned char seed[MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT];
-    size_t seedlen;
+    unsigned char *p = seed;
+    size_t seedlen, remaining_entropy_len, size_to_gather;
     int ret;
 
     /* III. Check input length */
@@ -167,10 +168,20 @@ int mbedtls_hmac_drbg_reseed( mbedtls_hmac_drbg_context *ctx,
 
     memset( seed, 0, MBEDTLS_HMAC_DRBG_MAX_SEED_INPUT );
 
-    /* IV. Gather entropy_len bytes of entropy for the seed */
-    if( ( ret = ctx->f_entropy( ctx->p_entropy,
-                                seed, ctx->entropy_len ) ) != 0 )
-        return( MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED );
+    remaining_entropy_len = ctx->entropy_len;
+
+    while( remaining_entropy_len > 0 )
+    {
+        size_to_gather = ( remaining_entropy_len > MBEDTLS_ENTROPY_BLOCK_SIZE ) ?
+                         MBEDTLS_ENTROPY_BLOCK_SIZE : remaining_entropy_len;
+        /* IV. Gather entropy_len bytes of entropy for the seed */
+        if( ( ret = ctx->f_entropy( ctx->p_entropy,
+                                    p, size_to_gather ) ) != 0 )
+            return( MBEDTLS_ERR_HMAC_DRBG_ENTROPY_SOURCE_FAILED );
+
+        remaining_entropy_len -= size_to_gather;
+        p += size_to_gather;
+    }
 
     seedlen = ctx->entropy_len;
 

@@ -2099,11 +2099,9 @@ psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
  * - For HKDF (#PSA_ALG_HKDF), \p salt is the salt used in the "extract" step
  *   and \p label is the info string used in the "expand" step.
  *
- * \param[in,out] generator       The generator object to set up. It must
- *                                have been initialized to all-bits-zero,
- *                                a logical zero (`{0}`),
- *                                \c PSA_CRYPTO_GENERATOR_INIT or
- *                                psa_crypto_generator_init().
+ * \param[in,out] generator       The generator object to set up. It must have
+ *                                been initialized as per the documentation for
+ *                                #psa_crypto_generator_t and not yet in use.
  * \param handle                  Handle to the secret key.
  * \param alg                     The key derivation algorithm to compute
  *                                (\c PSA_ALG_XXX value such that
@@ -2153,11 +2151,9 @@ psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
  * The resulting generator always has the maximum capacity permitted by
  * the algorithm.
  *
- * \param[in,out] generator       The generator object to set up. It must
- *                                have been initialized to all-bits-zero,
- *                                a logical zero (`{0}`),
- *                                \c PSA_CRYPTO_GENERATOR_INIT or
- *                                psa_crypto_generator_init().
+ * \param[in,out] generator       The generator object to set up. It must have
+ *                                been initialized as per the documentation for
+ *                                #psa_crypto_generator_t and not yet in use.
  * \param private_key             Handle to the private key to use.
  * \param[in] peer_key            Public key of the peer. It must be
  *                                in the same format that psa_import_key()

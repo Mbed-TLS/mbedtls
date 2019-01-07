@@ -366,11 +366,30 @@ static int exercise_key_derivation_key( psa_key_handle_t handle,
 
     if( usage & PSA_KEY_USAGE_DERIVE )
     {
-        PSA_ASSERT( psa_key_derivation( &generator,
-                                        handle, alg,
-                                        label, label_length,
-                                        seed, seed_length,
-                                        sizeof( output ) ) );
+        if( PSA_ALG_IS_HKDF( alg ) )
+        {
+            PSA_ASSERT( psa_key_derivation_setup( &generator, alg ) );
+            PSA_ASSERT( psa_key_derivation_input_bytes( &generator,
+                                                        PSA_KDF_STEP_SALT,
+                                                        label,
+                                                        label_length ) );
+            PSA_ASSERT( psa_key_derivation_input_key( &generator,
+                                                      PSA_KDF_STEP_SECRET,
+                                                      handle ) );
+            PSA_ASSERT( psa_key_derivation_input_bytes( &generator,
+                                                        PSA_KDF_STEP_INFO,
+                                                        seed,
+                                                        seed_length ) );
+        }
+        else
+        {
+            // legacy
+            PSA_ASSERT( psa_key_derivation( &generator,
+                                            handle, alg,
+                                            label, label_length,
+                                            seed, seed_length,
+                                            sizeof( output ) ) );
+        }
         PSA_ASSERT( psa_generator_read( &generator,
                                         output,
                                         sizeof( output ) ) );
@@ -3495,10 +3514,29 @@ void derive_output( int alg_arg,
                                 key_data->len ) );
 
     /* Extraction phase. */
-    PSA_ASSERT( psa_key_derivation( &generator, handle, alg,
-                                    salt->x, salt->len,
-                                    label->x, label->len,
-                                    requested_capacity ) );
+    if( PSA_ALG_IS_HKDF( alg ) )
+    {
+        PSA_ASSERT( psa_key_derivation_setup( &generator, alg ) );
+        PSA_ASSERT( psa_set_generator_capacity( &generator,
+                                                requested_capacity ) );
+        PSA_ASSERT( psa_key_derivation_input_bytes( &generator,
+                                                    PSA_KDF_STEP_SALT,
+                                                    salt->x, salt->len ) );
+        PSA_ASSERT( psa_key_derivation_input_key( &generator,
+                                                  PSA_KDF_STEP_SECRET,
+                                                  handle ) );
+        PSA_ASSERT( psa_key_derivation_input_bytes( &generator,
+                                                    PSA_KDF_STEP_INFO,
+                                                    label->x, label->len ) );
+    }
+    else
+    {
+        // legacy
+        PSA_ASSERT( psa_key_derivation( &generator, handle, alg,
+                                        salt->x, salt->len,
+                                        label->x, label->len,
+                                        requested_capacity ) );
+    }
     PSA_ASSERT( psa_get_generator_capacity( &generator,
                                             &current_capacity ) );
     TEST_EQUAL( current_capacity, requested_capacity );
@@ -3575,10 +3613,29 @@ void derive_full( int alg_arg,
                                 key_data->len ) );
 
     /* Extraction phase. */
-    PSA_ASSERT( psa_key_derivation( &generator, handle, alg,
-                                    salt->x, salt->len,
-                                    label->x, label->len,
-                                    requested_capacity ) );
+    if( PSA_ALG_IS_HKDF( alg ) )
+    {
+        PSA_ASSERT( psa_key_derivation_setup( &generator, alg ) );
+        PSA_ASSERT( psa_set_generator_capacity( &generator,
+                                                requested_capacity ) );
+        PSA_ASSERT( psa_key_derivation_input_bytes( &generator,
+                                                    PSA_KDF_STEP_SALT,
+                                                    salt->x, salt->len ) );
+        PSA_ASSERT( psa_key_derivation_input_key( &generator,
+                                                  PSA_KDF_STEP_SECRET,
+                                                  handle ) );
+        PSA_ASSERT( psa_key_derivation_input_bytes( &generator,
+                                                    PSA_KDF_STEP_INFO,
+                                                    label->x, label->len ) );
+    }
+    else
+    {
+        // legacy
+        PSA_ASSERT( psa_key_derivation( &generator, handle, alg,
+                                        salt->x, salt->len,
+                                        label->x, label->len,
+                                        requested_capacity ) );
+    }
     PSA_ASSERT( psa_get_generator_capacity( &generator,
                                             &current_capacity ) );
     TEST_EQUAL( current_capacity, expected_capacity );

@@ -1417,4 +1417,16 @@
 
 /**@}*/
 
+/** \defgroup derivation Key derivation
+ * @{
+ */
+
+#define PSA_KDF_STEP_SECRET              ((psa_key_derivation_step_t)0x0101)
+#define PSA_KDF_STEP_LABEL               ((psa_key_derivation_step_t)0x0201)
+#define PSA_KDF_STEP_SALT                ((psa_key_derivation_step_t)0x0202)
+#define PSA_KDF_STEP_INFO                ((psa_key_derivation_step_t)0x0203)
+#define PSA_KDF_STEP_PEER_KEY            ((psa_key_derivation_step_t)0x0301)
+
+/**@}*/
+
 #endif /* PSA_CRYPTO_VALUES_H */

@@ -1963,6 +1963,22 @@ static psa_crypto_generator_t psa_crypto_generator_init(void);
 psa_status_t psa_get_generator_capacity(const psa_crypto_generator_t *generator,
                                         size_t *capacity);
 
+/** Set the maximum capacity of a generator.
+ *
+ * \param[in,out] generator The generator object to modify.
+ * \param capacity          The new capacity of the generator.
+ *                          It must be less or equal to the generator's
+ *                          current capacity.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p capacity is larger than the generator's current capacity.
+ * \retval #PSA_ERROR_BAD_STATE
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ */
+psa_status_t psa_set_generator_capacity(psa_crypto_generator_t *generator,
+                                        size_t capacity);
+
 /** Read some data from a generator.
  *
  * This function reads and returns a sequence of bytes from a generator.
@@ -2087,6 +2103,131 @@ psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
 /** \defgroup derivation Key derivation
  * @{
  */
+
+/** Set up a key derivation operation.
+ *
+ * A key derivation algorithm takes some inputs and uses them to create
+ * a byte generator which can be used to produce keys and other
+ * cryptographic material.
+ *
+ * To use a generator for key derivation:
+ * - Start with an initialized object of type #psa_crypto_generator_t.
+ * - Call psa_key_derivation_setup() to select the algorithm.
+ * - Provide the inputs for the key derivation by calling
+ *   psa_key_derivation_input_bytes() or psa_key_derivation_input_key()
+ *   as appropriate. Which inputs are needed, in what order, and whether
+ *   they may be keys and if so of what type depends on the algorithm.
+ * - Optionally set the generator's maximum capacity with
+ *   psa_set_generator_capacity(). You may do this before, in the middle of
+ *   or after providing inputs. For some algorithms, this step is mandatory
+ *   because the output depends on the maximum capacity.
+ * - Generate output with psa_generator_read() or
+ *   psa_generator_import_key(). Successive calls to these functions
+ *   use successive output bytes from the generator.
+ * - Clean up the generator object with psa_generator_abort().
+ *
+ * \param[in,out] generator       The generator object to set up. It must
+ *                                have been initialized but not set up yet.
+ * \param alg                     The key derivation algorithm to compute
+ *                                (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_KEY_DERIVATION(\p alg) is true).
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c alg is not a key derivation algorithm.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \c alg is not supported or is not a key derivation algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ */
+psa_status_t psa_key_derivation_setup(psa_crypto_generator_t *generator,
+                                      psa_algorithm_t alg);
+
+/** Provide an input for key derivation.
+ *
+ * Which inputs are required and in what order depends on the type of
+ * key derivation algorithm.
+ *
+ * - For HKDF (#PSA_ALG_HKDF), the following inputs are supported:
+ *     - #PSA_KDF_STEP_SALT is the salt used in the "extract" step.
+ *       It is optional; if omitted, the derivation uses an empty salt.
+ *     - #PSA_KDF_STEP_SECRET is the secret key used in the "extract" step.
+ *       It may be a key of type #PSA_KEY_TYPE_DERIVE with the
+ *       usage flag #PSA_KEY_USAGE_DERIVE.
+ *     - #PSA_KDF_STEP_INFO is the info string used in the "expand" step.
+ *   You must pass #PSA_KDF_STEP_SALT before #PSA_KDF_STEP_SECRET.
+ *   #PSA_KDF_STEP_INFO may be passed at any time before starting to
+ *   generate output.
+ *
+ * \param[in,out] generator       The generator object to use. It must
+ *                                have been set up with
+ *                                psa_key_derivation_setup() and must not
+ *                                have produced any output yet.
+ * \param step                    Which step the input data is for.
+ *                                See above for the permitted values
+ *                                depending on the algorithm.
+ * \param[in] data                Input data to use.
+ * \param data_length             Size of the \p data buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c step is not compatible with the generator's algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The value of \p step is not valid given the state of \p generator.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_key_derivation_input_bytes(psa_crypto_generator_t *generator,
+                                            psa_key_derivation_step_t step,
+                                            const uint8_t *data,
+                                            size_t data_length);
+
+/** Provide an input for key derivation in the form of a key.
+ *
+ * See the descrition of psa_key_derivation_input_bytes() regarding
+ * what inputs are supported and in what order. An input step may only be
+ * a key if the descrition of psa_key_derivation_input_bytes() explicitly
+ * allows it.
+ *
+ * \param[in,out] generator       The generator object to use. It must
+ *                                have been set up with
+ *                                psa_key_derivation_setup() and must not
+ *                                have produced any output yet.
+ * \param step                    Which step the input data is for.
+ * \param handle                  Handle to the secret key.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c step is not compatible with the generator's algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The value of \p step is not valid given the state of \p generator.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_key_derivation_input_key(psa_crypto_generator_t *generator,
+                                          psa_key_derivation_step_t step,
+                                          psa_key_handle_t handle);
 
 /** Set up a key derivation operation.
  *

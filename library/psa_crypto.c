@@ -3313,6 +3313,11 @@ exit:
 /* Generators */
 /****************************************************************/
 
+#define HKDF_STATE_INIT 0 /* no input yet */
+#define HKDF_STATE_STARTED 1 /* got salt */
+#define HKDF_STATE_KEYED 2 /* got key */
+#define HKDF_STATE_OUTPUT 3 /* output started */
+
 psa_status_t psa_generator_abort( psa_crypto_generator_t *generator )
 {
     psa_status_t status = PSA_SUCCESS;
@@ -3366,11 +3371,21 @@ psa_status_t psa_generator_abort( psa_crypto_generator_t *generator )
     return( status );
 }
 
-
 psa_status_t psa_get_generator_capacity(const psa_crypto_generator_t *generator,
                                         size_t *capacity)
 {
     *capacity = generator->capacity;
+    return( PSA_SUCCESS );
+}
+
+psa_status_t psa_set_generator_capacity( psa_crypto_generator_t *generator,
+                                         size_t capacity )
+{
+    if( generator->alg == 0 )
+        return( PSA_ERROR_BAD_STATE );
+    if( capacity > generator->capacity )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    generator->capacity = capacity;
     return( PSA_SUCCESS );
 }
 
@@ -3384,6 +3399,10 @@ static psa_status_t psa_generator_hkdf_read( psa_hkdf_generator_t *hkdf,
 {
     uint8_t hash_length = PSA_HASH_SIZE( hash_alg );
     psa_status_t status;
+
+    if( hkdf->state < HKDF_STATE_KEYED || ! hkdf->info_set )
+        return( PSA_ERROR_BAD_STATE );
+    hkdf->state = HKDF_STATE_OUTPUT;
 
     while( output_length != 0 )
     {
@@ -3755,6 +3774,8 @@ static psa_status_t psa_generator_hkdf_setup( psa_hkdf_generator_t *hkdf,
             return( PSA_ERROR_INSUFFICIENT_MEMORY );
         memcpy( hkdf->info, label, label_length );
     }
+    hkdf->state = HKDF_STATE_KEYED;
+    hkdf->info_set = 1;
     return( PSA_SUCCESS );
 }
 #endif /* MBEDTLS_MD_C */
@@ -3996,6 +4017,177 @@ psa_status_t psa_key_derivation( psa_crypto_generator_t *generator,
     if( status != PSA_SUCCESS )
         psa_generator_abort( generator );
     return( status );
+}
+
+psa_status_t psa_key_derivation_setup( psa_crypto_generator_t *generator,
+                                       psa_algorithm_t alg )
+{
+    if( generator->alg != 0 )
+        return( PSA_ERROR_BAD_STATE );
+    /* Make sure that alg is a supported key derivation algorithm.
+     * Key agreement algorithms and key selection algorithms are not
+     * supported by this function. */
+#if defined(MBEDTLS_MD_C)
+    if( PSA_ALG_IS_HKDF( alg ) ||
+        PSA_ALG_IS_TLS12_PRF( alg ) ||
+        PSA_ALG_IS_TLS12_PSK_TO_MS( alg ) )
+    {
+        psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH( alg );
+        size_t hash_size = PSA_HASH_SIZE( hash_alg );
+        if( hash_size == 0 )
+            return( PSA_ERROR_NOT_SUPPORTED );
+        if( ( PSA_ALG_IS_TLS12_PRF( alg ) ||
+              PSA_ALG_IS_TLS12_PSK_TO_MS( alg ) ) &&
+            ! ( hash_alg == PSA_ALG_SHA_256 && hash_alg == PSA_ALG_SHA_384 ) )
+        {
+            return( PSA_ERROR_NOT_SUPPORTED );
+        }
+        generator->capacity = 255 * hash_size;
+    }
+#endif /* MBEDTLS_MD_C */
+    else if( PSA_ALG_IS_KEY_DERIVATION( alg ) )
+        return( PSA_ERROR_NOT_SUPPORTED );
+    else
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    generator->alg = alg;
+    return( PSA_SUCCESS );
+}
+
+#if defined(MBEDTLS_MD_C)
+static psa_status_t psa_hkdf_input( psa_hkdf_generator_t *hkdf,
+                                    psa_algorithm_t hash_alg,
+                                    psa_key_derivation_step_t step,
+                                    const uint8_t *data,
+                                    size_t data_length )
+{
+    psa_status_t status;
+    switch( step )
+    {
+        case PSA_KDF_STEP_SALT:
+            if( hkdf->state == HKDF_STATE_INIT )
+            {
+                status = psa_hmac_setup_internal( &hkdf->hmac,
+                                                  data, data_length,
+                                                  hash_alg );
+                if( status != PSA_SUCCESS )
+                    return( status );
+                hkdf->state = HKDF_STATE_STARTED;
+                return( PSA_SUCCESS );
+            }
+            else
+                return( PSA_ERROR_BAD_STATE );
+            break;
+        case PSA_KDF_STEP_SECRET:
+            /* If no salt was provided, use an empty salt. */
+            if( hkdf->state == HKDF_STATE_INIT )
+            {
+                status = psa_hmac_setup_internal( &hkdf->hmac,
+                                                  NULL, 0,
+                                                  PSA_ALG_HMAC( hash_alg ) );
+                if( status != PSA_SUCCESS )
+                    return( status );
+                hkdf->state = HKDF_STATE_STARTED;
+            }
+            if( hkdf->state == HKDF_STATE_STARTED )
+            {
+                status = psa_hash_update( &hkdf->hmac.hash_ctx,
+                                          data, data_length );
+                if( status != PSA_SUCCESS )
+                    return( status );
+                status = psa_hmac_finish_internal( &hkdf->hmac,
+                                                   hkdf->prk,
+                                                   sizeof( hkdf->prk ) );
+                if( status != PSA_SUCCESS )
+                    return( status );
+                hkdf->offset_in_block = PSA_HASH_SIZE( hash_alg );
+                hkdf->block_number = 0;
+                hkdf->state = HKDF_STATE_KEYED;
+                return( PSA_SUCCESS );
+            }
+            else
+                return( PSA_ERROR_BAD_STATE );
+            break;
+        case PSA_KDF_STEP_INFO:
+            if( hkdf->state == HKDF_STATE_OUTPUT )
+                return( PSA_ERROR_BAD_STATE );
+            if( hkdf->info_set )
+                return( PSA_ERROR_BAD_STATE );
+            hkdf->info_length = data_length;
+            if( data_length != 0 )
+            {
+                hkdf->info = mbedtls_calloc( 1, data_length );
+                if( hkdf->info == NULL )
+                    return( PSA_ERROR_INSUFFICIENT_MEMORY );
+                memcpy( hkdf->info, data, data_length );
+            }
+            hkdf->info_set = 1;
+            return( PSA_SUCCESS );
+        default:
+            return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+}
+#endif /* MBEDTLS_MD_C */
+
+psa_status_t psa_key_derivation_input_bytes( psa_crypto_generator_t *generator,
+                                             psa_key_derivation_step_t step,
+                                             const uint8_t *data,
+                                             size_t data_length )
+{
+    psa_status_t status;
+
+#if defined(MBEDTLS_MD_C)
+    if( PSA_ALG_IS_HKDF( generator->alg ) )
+    {
+        status = psa_hkdf_input( &generator->ctx.hkdf,
+                                 PSA_ALG_HKDF_GET_HASH( generator->alg ),
+                                 step, data, data_length );
+    }
+#endif /* MBEDTLS_MD_C */
+
+#if defined(MBEDTLS_MD_C)
+    /* TLS-1.2 PRF and TLS-1.2 PSK-to-MS are very similar, so share code. */
+    else if( PSA_ALG_IS_TLS12_PRF( generator->alg ) ||
+             PSA_ALG_IS_TLS12_PSK_TO_MS( generator->alg ) )
+    {
+        // TODO
+        status = PSA_ERROR_NOT_SUPPORTED;
+    }
+    else
+#endif /* MBEDTLS_MD_C */
+
+    {
+        /* This can't happen unless the generator object was not initialized */
+        return( PSA_ERROR_BAD_STATE );
+    }
+
+    if( status != PSA_SUCCESS )
+        psa_generator_abort( generator );
+    return( status );
+}
+
+psa_status_t psa_key_derivation_input_key( psa_crypto_generator_t *generator,
+                                           psa_key_derivation_step_t step,
+                                           psa_key_handle_t handle )
+{
+    psa_key_slot_t *slot;
+    psa_status_t status;
+    status = psa_get_key_from_slot( handle, &slot,
+                                    PSA_KEY_USAGE_DERIVE,
+                                    generator->alg );
+    if( status != PSA_SUCCESS )
+        return( status );
+    if( slot->type != PSA_KEY_TYPE_DERIVE )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    /* Don't allow a key to be used as an input that is usually public.
+     * This is debatable. It's ok from a cryptographic perspective to
+     * use secret material as an input that is usually public. However
+     * this is usually not intended, so be conservative at least for now. */
+    if( step != PSA_KDF_STEP_SECRET )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    return( psa_key_derivation_input_bytes( generator,
+                                            step,
+                                            slot->data.raw.data,
+                                            slot->data.raw.bytes ) );
 }
 
 

@@ -506,7 +506,7 @@ int mbedtls_ecdh_get_params( mbedtls_ecdh_context *ctx,
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
         case MBEDTLS_ECDH_VARIANT_EVEREST:
         {
-            mbedtls_x25519_ecdh_side s = side == MBEDTLS_ECDH_OURS ?
+            mbedtls_everest_ecdh_side s = side == MBEDTLS_ECDH_OURS ?
                                                    MBEDTLS_EVEREST_ECDH_OURS :
                                                    MBEDTLS_EVEREST_ECDH_THEIRS;
             return( mbedtls_everest_get_params( &ctx->ctx.everest_ecdh,

@@ -126,6 +126,16 @@ typedef void mbedtls_ecdsa_restart_ctx;
 #endif /* MBEDTLS_ECP_RESTARTABLE */
 
 /**
+ * \brief          This function checks whether a given group can be used
+ *                 for ECDSA.
+ *
+ * \param gid      The ECP group ID to check.
+ *
+ * \return         \c 1 if the group can be used, \c 0 otherwise
+ */
+int mbedtls_ecdsa_can_do( mbedtls_ecp_group_id gid );
+
+/**
  * \brief           This function computes the ECDSA signature of a
  *                  previously-hashed message.
  *
@@ -469,7 +479,6 @@ int mbedtls_ecdsa_read_signature_restartable( mbedtls_ecdsa_context *ctx,
                           const unsigned char *hash, size_t hlen,
                           const unsigned char *sig, size_t slen,
                           mbedtls_ecdsa_restart_ctx *rs_ctx );
-
 /**
  * \brief          This function generates an ECDSA keypair on the given curve.
  *

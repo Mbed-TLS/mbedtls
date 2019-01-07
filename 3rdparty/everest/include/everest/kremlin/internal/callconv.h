@@ -24,7 +24,9 @@
 #endif
 #endif
 
-/* TODO: review these two definitions and understand why they're needed. */
+/* Since KreMLin emits the inline keyword unconditionally, we follow the
+ * guidelines at https://gcc.gnu.org/onlinedocs/gcc/Inline.html and make this
+ * __inline__ to ensure the code compiles with -std=c90 and earlier. */
 #ifdef __GNUC__
 #  define inline __inline__
 #endif

@@ -220,20 +220,18 @@ int mbedtls_ecdh_setup( mbedtls_ecdh_context *ctx, mbedtls_ecp_group_id grp_id )
     switch( grp_id )
     {
 #if defined(MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED)
-        case MBEDTLS_ECP_DP_CURVE25519:
-        {
-            ctx->point_format = MBEDTLS_ECP_PF_COMPRESSED;
-            ctx->var = MBEDTLS_ECDH_VARIANT_EVEREST;
-            ctx->grp_id = grp_id;
-            return( mbedtls_everest_setup( &ctx->ctx.everest_ecdh, grp_id ) );
-        }
+    case MBEDTLS_ECP_DP_CURVE25519:
+        ctx->point_format = MBEDTLS_ECP_PF_COMPRESSED;
+        ctx->var = MBEDTLS_ECDH_VARIANT_EVEREST;
+        ctx->grp_id = grp_id;
+        return( mbedtls_everest_setup( &ctx->ctx.everest_ecdh, grp_id ) );
 #endif
-        default:
-            ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
-            ctx->var = MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0;
-            ctx->grp_id = grp_id;
-            ecdh_init_internal( &ctx->ctx.mbed_ecdh );
-            return( ecdh_setup_internal( &ctx->ctx.mbed_ecdh, grp_id ) );
+    default:
+        ctx->point_format = MBEDTLS_ECP_PF_UNCOMPRESSED;
+        ctx->var = MBEDTLS_ECDH_VARIANT_MBEDTLS_2_0;
+        ctx->grp_id = grp_id;
+        ecdh_init_internal( &ctx->ctx.mbed_ecdh );
+        return( ecdh_setup_internal( &ctx->ctx.mbed_ecdh, grp_id ) );
     }
 #endif
 }

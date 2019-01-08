@@ -1201,7 +1201,6 @@ static void mps_generic_failure_handler( mbedtls_mps *mps, int ret )
 
     for( idx=0; idx < sizeof( whitelist ) / sizeof( int ); idx++ )
     {
-        printf( "Check %d != %d\n", ret, whitelist[idx] );
         if( ret == whitelist[idx] )
             return;
     }

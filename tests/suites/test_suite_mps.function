@@ -9934,6 +9934,8 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
 
     size_t hs_len    = 100;
 
+    int ret;
+
     unsigned iteration;
     dummy_cb_ctx dummy_ctx;
     dummy_ctx.bytes_per_chunk = 50;
@@ -10012,7 +10014,6 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
     iteration = 0;
     while( iteration < (size_t) num_hs )
     {
-        int ret;
         hs_out.type = iteration;
 
         if( retransmission_callback == 0 )
@@ -10081,7 +10082,13 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
         }
     }
 
-    TEST_ASSERT( mbedtls_mps_flush( &cli ) == 0 );
+    while( 1 )
+    {
+        ret = mbedtls_mps_flush( &cli );
+        TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_WRITE );
+        if( ret == 0 )
+            break;
+    }
 
     /*
      * Apply a permutation to the underlying datagram transport.
@@ -10416,10 +10423,6 @@ void mbedtls_mps_l4_dtls_flight_exchange( int allocator_buffer_sz,
         {
             int ret;
             ret = mbedtls_mps_read( sender );
-            if( ret != MPS_ERR_WANT_READ && ret != MPS_ERR_WANT_WRITE )
-            {
-                printf( "UNEXPECTED RET VALUE %d\n", ret );
-            }
             TEST_ASSERT( ret == MPS_ERR_WANT_READ || ret == MPS_ERR_WANT_WRITE );
 
             if( ret == MPS_ERR_WANT_READ )

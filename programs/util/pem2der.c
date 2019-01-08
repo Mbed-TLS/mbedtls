@@ -66,7 +66,6 @@ int main( void )
 #else
 
 #if defined(MBEDTLS_CHECK_PARAMS)
-#define mbedtls_exit            exit
 void mbedtls_param_failed( const char *failure_condition,
                            const char *file,
                            int line )

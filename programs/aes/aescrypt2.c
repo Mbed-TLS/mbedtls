@@ -81,7 +81,6 @@ int main( void )
 #else
 
 #if defined(MBEDTLS_CHECK_PARAMS)
-#include "mbedtls/platform_util.h"
 void mbedtls_param_failed( const char *failure_condition,
                            const char *file,
                            int line )

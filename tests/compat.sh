@@ -53,7 +53,11 @@ MODES="tls1 tls1_1 tls1_2 dtls1 dtls1_2"
 VERIFIES="NO YES"
 TYPES="ECDSA RSA PSK"
 FILTER=""
-EXCLUDE='NULL\|DES-CBC-\|RC4\|ARCFOUR' # avoid plain DES but keep 3DES-EDE-CBC (mbedTLS), DES-CBC3 (OpenSSL)
+# exclude:
+# - NULL: excluded from our default config
+# - RC4, single-DES: requires legacy OpenSSL/GnuTLS versions
+#   avoid plain DES but keep 3DES-EDE-CBC (mbedTLS), DES-CBC3 (OpenSSL)
+EXCLUDE='NULL\|DES-CBC-\|RC4\|3DES\|ARCFOUR'
 VERBOSE=""
 MEMCHECK=0
 PEERS="OpenSSL$PEER_GNUTLS mbedTLS"

@@ -9672,6 +9672,21 @@ void mbedtls_mps_l4_dtls_fragmentation( int allocator_buffer_sz,
                                         int retransmission_callback,
                                         int num_hs )
 {
+    /* This test exericses the client writing a handshake
+     * message to the server which needs fragmentation on
+     * the underlying Layer 2. The client doesn't observe
+     * the fragmentation because the writer queue is large
+     * enough to hold the entire message. The underlying
+     * transport is reliable, so this does only test reassembly
+     * of in-order fragments.
+     *
+     * Parameters:
+     * - `num_hs` indicates the number of handshake messages
+     *   sent from client to server.
+     * - `retransmission_callback` indicates whether the handshake
+     *   message is sent through a retransmission callback.
+     */
+
     int ret;
 
     /* Allocator objects */
@@ -9875,6 +9890,21 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
                                      int permute,
                                      int force_pause )
 {
+    /* This test exercises a client sending a number of handshake
+     * messages to the server which are subject to fragmentation
+     * on the underlying Layer 2 as well as to reordering
+     * on the underlying transport layer.
+     *
+     * Parameters:
+     * - `retransmission_callback`: Indicates if the handshake
+     *   messages should be sent through a retransmission callback.
+     * - `num_hs`: The number of handshake messages to be sent.
+     * - `permute`: Indicates whether the handshake message fragments
+     *   should be subject to reordering on the underlying transport.
+     * - `force_pause`: Indicates whether the client should use
+     *   pausing when writing the handshake message.
+     */
+
     /* Allocator objects */
     mps_alloc cli_alloc, srv_alloc;
 
@@ -10123,6 +10153,30 @@ void mbedtls_mps_l4_dtls_flight_exchange( int allocator_buffer_sz,
                                           int permute,
                                           int use_mock_timer )
 {
+    /* This test exercises client and server exchanging
+     * flights of handshake messages, which may be subject
+     * to reordering, fragmentation, and retransmission.
+     *
+     * Parameters:
+     * - `num_hs`: The number of handshake messages per flight.
+     *             (Same for client and server).
+     * - `rounds`: The number of flights.
+     * - `server_reset`: Reset the server after sending the first
+     *                   outgoing flight. This mimicks the situation
+     *                   where a server resets after sending a
+     *                   HelloVerifyRequest in response to a ClientHello.
+     *                   While the client sees the entire exchange as
+     *                   a single handshake, the server forgets about
+     *                   the initial cookie-less ClientHello.
+     *                   This tests whether the server will correctly
+     *                   adapt to a non-zero handshake sequence number
+     *                   seen in the ClientHello.
+     * - `permute`: Indicates whether the handshake message fragments
+     *              should be permuted on the underlying transport.
+     * - `use_mock_timer`: Indicates whether a dummy timer should be
+     *                     used in which time passes infinitely fast.
+     */
+
     /* Allocator objects */
     mps_alloc cli_alloc, srv_alloc;
 

@@ -119,12 +119,23 @@ pre_initialize_variables () {
     # Parse the script with sed, because in sh there is no way to list
     # defined functions.
     ALL_COMPONENTS=$(sed -n 's/^ *component_\([0-9A-Z_a-z]*\) *().*/\1/p' <"$0")
+
+    # Exclude components that are not supported on this platform.
+    SUPPORTED_COMPONENTS=
+    for component in $ALL_COMPONENTS; do
+        case $(type "support_$component" 2>&1) in
+            *' function'*)
+                if ! support_$component; then continue; fi;;
+        esac
+        SUPPORTED_COMPONENTS="$SUPPORTED_COMPONENTS $component"
+    done
 }
 
-# Test whether $1 is excluded via $COMPONENTS (a space-separated list of
-# wildcard patterns).
+# Test whether $1 is excluded via the command line.
 is_component_excluded()
 {
+    # Is $1 excluded via $COMPONENTS (a space-separated list of wildcard
+    # patterns)?
     set -f
     for pattern in $COMPONENTS; do
         set +f
@@ -299,7 +310,7 @@ pre_parse_command_line () {
 
     if [ $ALL_EXCEPT -ne 0 ]; then
         RUN_COMPONENTS=
-        for component in $ALL_COMPONENTS; do
+        for component in $SUPPORTED_COMPONENTS; do
             if ! is_component_excluded "$component"; then
                 RUN_COMPONENTS="$RUN_COMPONENTS $component"
             fi
@@ -738,38 +749,49 @@ component_test_make_shared () {
     make SHARED=1 all check
 }
 
-case $(uname -m) in
-    amd64|x86_64)
-        component_test_m32_o0 () {
-            # Build once with -O0, to compile out the i386 specific inline assembly
-            msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
-            scripts/config.pl full
-            make CC=gcc CFLAGS='-O0 -Werror -Wall -Wextra -m32 -fsanitize=address'
+component_test_m32_o0 () {
+    # Build once with -O0, to compile out the i386 specific inline assembly
+    msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
+    scripts/config.pl full
+    make CC=gcc CFLAGS='-O0 -Werror -Wall -Wextra -m32 -fsanitize=address'
 
-            msg "test: i386, make, gcc -O0 (ASan build)"
-            make test
-        }
+    msg "test: i386, make, gcc -O0 (ASan build)"
+    make test
+}
+support_test_m32_o0 () {
+    case $(uname -m) in
+        *64*) true;;
+        *) false;;
+    esac
+}
 
-        component_test_m32_o1 () {
-            # Build again with -O1, to compile in the i386 specific inline assembly
-            msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
-            scripts/config.pl full
-            make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address'
+component_test_m32_o1 () {
+    # Build again with -O1, to compile in the i386 specific inline assembly
+    msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
+    scripts/config.pl full
+    make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address'
 
-            msg "test: i386, make, gcc -O1 (ASan build)"
-            make test
-        }
+    msg "test: i386, make, gcc -O1 (ASan build)"
+    make test
+}
+support_test_m32_o1 () {
+    support_test_m32_o0 "$@"
+}
 
-        component_test_mx32 () {
-            msg "build: 64-bit ILP32, make, gcc" # ~ 30s
-            scripts/config.pl full
-            make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32'
+component_test_mx32 () {
+    msg "build: 64-bit ILP32, make, gcc" # ~ 30s
+    scripts/config.pl full
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32'
 
-            msg "test: 64-bit ILP32, make, gcc"
-            make test
-        }
-        ;;
-esac
+    msg "test: 64-bit ILP32, make, gcc"
+    make test
+}
+support_test_mx32 () {
+    case $(uname -m) in
+        amd64|x86_64) true;;
+        *) false;;
+    esac
+}
 
 component_test_have_int32 () {
     msg "build: gcc, force 32-bit bignum limbs"

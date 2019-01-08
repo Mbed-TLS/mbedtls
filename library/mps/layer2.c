@@ -416,7 +416,8 @@ static int l2_out_prepare_record( mps_l2 *ctx, mbedtls_mps_epoch_id epoch_id )
     if( hdr_len + pre_expansion + post_expansion >= total_sz )
     {
         size_t bytes_pending;
-        TRACE( trace_comment, "Not enough space for record, need at least %u == ( %u + %u + %u + 1 ) but have only %u",
+        TRACE( trace_comment, "Not enough space for to hold a non-empty record." );
+        TRACE( trace_comment, "Need at least %u ( %u header + %u pre-expansion + %u post-expansion + 1 plaintext ) byte, but have only %u bytes available.",
                (unsigned)( hdr_len + pre_expansion + post_expansion + 1 ),
                (unsigned) hdr_len,
                (unsigned) pre_expansion,
@@ -433,6 +434,7 @@ static int l2_out_prepare_record( mps_l2 *ctx, mbedtls_mps_epoch_id epoch_id )
             /* If Layer 1 has no bytes pending but doesn't have enough space
              * to allow a record of size 1 to be sent, something must be
              * ill-configured. */
+            TRACE( trace_error, "Layer 1 doesn't have any data pending to be written but cannot serve a buffer large enough to hold a non-empty record. Abort." );
             RETURN( MPS_ERR_BUFFER_TOO_SMALL );
         }
 

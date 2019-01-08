@@ -302,38 +302,39 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
         if( cipher_psa->slot_state != MBEDTLS_CIPHER_PSA_KEY_UNSET )
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-        /* Find a fresh key slot to use. */
-        status = mbedtls_psa_get_free_key_slot( &cipher_psa->slot );
+        key_type = mbedtls_psa_translate_cipher_type(
+            ctx->cipher_info->type );
+        if( key_type == 0 )
+            return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+
+        /* Allocate a key slot to use. */
+        status = psa_allocate_key( key_type, key_bitlen, &cipher_psa->slot );
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
-         /* Indicate that we own the key slot and need to
-          * destroy it in mbedtls_cipher_free(). */
-        cipher_psa->slot_state = MBEDTLS_CIPHER_PSA_KEY_OWNED;
-
-        /* From that point on, the responsibility for destroying the
-         * key slot is on mbedtls_cipher_free(). This includes the case
-         * where the policy setup or key import below fail, as
-         * mbedtls_cipher_free() needs to be called in any case. */
 
         /* Setup policy for the new key slot. */
         psa_key_policy_init( &key_policy );
 
         /* Mbed TLS' cipher layer doesn't enforce the mode of operation
-         * (encrypt vs. decrypt): it is possible to setup a key for encryption
-         * and use it for AEAD decryption. Until tests relying on this
-         * are changed, allow any usage in PSA. */
+        * (encrypt vs. decrypt): it is possible to setup a key for encryption
+        * and use it for AEAD decryption. Until tests relying on this
+        * are changed, allow any usage in PSA. */
         /* key_usage = mbedtls_psa_translate_cipher_operation( operation ); */
         key_usage = PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT;
         psa_key_policy_set_usage( &key_policy, key_usage, cipher_psa->alg );
         status = psa_set_key_policy( cipher_psa->slot, &key_policy );
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
+        /* Indicate that we own the key slot and need to
+         * destroy it in mbedtls_cipher_free(). */
+        cipher_psa->slot_state = MBEDTLS_CIPHER_PSA_KEY_OWNED;
+
+        /* From that point on, the responsibility for destroying the
+        * key slot is on mbedtls_cipher_free(). This includes the case
+        * where the policy setup or key import below fail, as
+        * mbedtls_cipher_free() needs to be called in any case. */
 
         /* Populate new key slot. */
-        key_type = mbedtls_psa_translate_cipher_type(
-            ctx->cipher_info->type );
-        if( key_type == 0 )
-            return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
         status = psa_import_key( cipher_psa->slot,
                                  key_type, key, key_bytelen );
         if( status != PSA_SUCCESS )

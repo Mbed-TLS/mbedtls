@@ -153,6 +153,8 @@ By default, run all tests. With one or more COMPONENT, run only those.
 
 Special options:
   -h|--help             Print this help and exit.
+  --list-all-components List all available test components and exit.
+  --list-components     List components supported on this platform and exit.
 
 General options:
   -f|--force            Force the tests to overwrite any modified files.
@@ -284,6 +286,8 @@ pre_parse_command_line () {
             --gnutls-serv) shift; GNUTLS_SERV="$1";;
             --help|-h) usage; exit;;
             --keep-going|-k) KEEP_GOING=1;;
+            --list-all-components) printf '%s\n' $ALL_COMPONENTS; exit;;
+            --list-components) printf '%s\n' $SUPPORTED_COMPONENTS; exit;;
             --memory|-m) MEMORY=1;;
             --no-armcc) RUN_ARMCC=0;;
             --no-force) FORCE=0;;

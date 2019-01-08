@@ -268,6 +268,8 @@ int mbedtls_writer_get( mbedtls_writer *wr,
     /* We're still serving from the output buffer.
      * Check if there's enough space left in it. */
     or = ol - end;
+    TRACE( trace_comment, "%u bytes remaining in output buffer",
+           (unsigned) or );
     if( or < desired )
     {
         TRACE( trace_comment, "need %u, but only %u remains in write buffer",
@@ -471,7 +473,8 @@ int mbedtls_writer_commit_partial_ext( mbedtls_writer_ext *wr,
                                        mbedtls_mps_size_t omit )
 {
     int ret;
-    TRACE_INIT( "writer_commit_partial_ext" );
+    TRACE_INIT( "writer_commit_partial_ext, omit %u",
+                (unsigned) omit );
 
     if( wr->wr == NULL ||
         wr->passthrough == MBEDTLS_WRITER_EXT_BLOCK )
@@ -481,6 +484,7 @@ int mbedtls_writer_commit_partial_ext( mbedtls_writer_ext *wr,
 
     if( wr->passthrough == MBEDTLS_WRITER_EXT_PASS )
     {
+        TRACE( trace_comment, "Forward commit to underlying writer" );
         ret = mbedtls_writer_commit_partial( wr->wr, omit );
         if( ret != 0 )
             RETURN( ret );
@@ -489,6 +493,7 @@ int mbedtls_writer_commit_partial_ext( mbedtls_writer_ext *wr,
     if( wr->passthrough == MBEDTLS_WRITER_EXT_HOLD &&
         omit > 0 )
     {
+        TRACE( trace_comment, "Partial commit, blocking writer" );
         wr->passthrough = MBEDTLS_WRITER_EXT_BLOCK;
     }
 
@@ -559,9 +564,17 @@ int mbedtls_writer_detach( mbedtls_writer_ext *wr_ext,
         RETURN( MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
 
     if( uncommitted != NULL )
+    {
         *uncommitted = wr_ext->ofs_fetch - wr_ext->ofs_commit;
+        TRACE( trace_comment, "Uncommitted: %u",
+               (unsigned) *uncommitted );
+    }
     if( committed != NULL )
+    {
         *committed = wr_ext->ofs_commit;
+        TRACE( trace_comment, "Committed: %u",
+               (unsigned) *committed );
+    }
 
     wr_ext->ofs_fetch = wr_ext->ofs_commit;
     wr_ext->wr = NULL;

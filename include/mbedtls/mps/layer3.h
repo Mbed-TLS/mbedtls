@@ -387,14 +387,6 @@ struct mps_l3_hs_out_internal
                                  *   or #MPS_L3_LENGTH_UNKNOWN if
                                  *   it is not yet known.                    */
 
-    /* DTLS-specific fields. */
-    int32_t frag_len;           /*!< The length of the current handshake
-                                 *   fragment, or #MPS_L3_LENGTH_UNKNOWN
-                                 *   if the will be determined at write-time. */
-    uint16_t frag_offset;       /*!< The offset of the current fragment from
-                                 *   the beginning of the handshake message.  */
-    uint16_t seq_nr;            /*!< The handshake sequence number.           */
-
     unsigned char* hdr;         /*!< The buffer that should hold the
                                  *   handshake header once the length
                                  *   of the handshake message is known.      */
@@ -403,6 +395,15 @@ struct mps_l3_hs_out_internal
                                  *   to which the message contents can be
                                  *   written, and keeing track of message
                                  *   bounds.                                 */
+
+    /* DTLS-specific fields. */
+    int32_t frag_len;           /*!< The length of the current handshake
+                                 *   fragment, or #MPS_L3_LENGTH_UNKNOWN
+                                 *   if the will be determined at write-time. */
+    uint16_t frag_offset;       /*!< The offset of the current fragment from
+                                 *   the beginning of the handshake message.  */
+    uint16_t seq_nr;            /*!< The handshake sequence number.           */
+
 };
 
 struct mps_l3_alert_in_internal
@@ -871,7 +872,7 @@ int mps_l3_pause_handshake( mps_l3 *l3 );
  * \brief           Abort the writing of an outgoing handshake message.
  *
  *                  After the writing of a handshake message has commenced
- *                  through a successful call to mps_l3_write_hanshake(),
+ *                  through a successful call to mps_l3_write_handshake(),
  *                  this function can be used to abort the write, as long
  *                  as no data has been committed.
  *
@@ -885,7 +886,7 @@ int mps_l3_pause_handshake( mps_l3 *l3 );
   MPS_L3_INV_REQUIRES( l3 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
-int mps_l3_abort_handshake( mps_l3 *l3 );
+int mps_l3_write_abort_handshake( mps_l3 *l3 );
 
 /**
  * \brief         Conclude the writing of the current outgoing message.

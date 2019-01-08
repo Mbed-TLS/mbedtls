@@ -198,7 +198,7 @@ typedef struct
     size_t buflen;
 } layer0_dgram_mock_msg;
 
-#define L0_MOCK_DGRAM_MAX_MSGS 128
+#define L0_MOCK_DGRAM_MAX_MSGS 1280
 
 /* Simply a FIFO of instances of layer0_dgram_mock_msg */
 typedef struct
@@ -240,6 +240,58 @@ static int layer0_dgram_init( layer0_dgram_mock *ctx )
     return( 0 );
 }
 
+static unsigned layer0_dgram_shift_idx( size_t idx, size_t shift )
+{
+    return( ( idx + shift ) % L0_MOCK_DGRAM_MAX_MSGS );
+}
+
+static void layer0_dgram_swap_dgrams( layer0_dgram_mock *ctx,
+                                      size_t i, size_t j )
+{
+    layer0_dgram_mock_msg tmp;
+
+    size_t idx_a = layer0_dgram_shift_idx( ctx->read_pos, i );
+    size_t idx_b = layer0_dgram_shift_idx( ctx->read_pos, j );
+
+    tmp = ctx->msgs[idx_a];
+    ctx->msgs[idx_a] = ctx->msgs[idx_b];
+    ctx->msgs[idx_b] = tmp;
+}
+
+static unsigned layer0_dgram_msg_available( layer0_dgram_mock *ctx )
+{
+    size_t write_pos = ctx->write_pos;
+    size_t read_pos  = ctx->write_pos;
+    if( write_pos >= read_pos )
+        return( write_pos - read_pos );
+
+    return( write_pos + ( L0_MOCK_DGRAM_MAX_MSGS - read_pos ) );
+}
+
+static void layer0_dgram_permute( layer0_dgram_mock *ctx,
+                                  size_t transpositions )
+{
+    size_t const msg_avail = layer0_dgram_msg_available( ctx );
+    size_t iter;
+
+    if( msg_avail <= 1 )
+        return;
+
+    for( iter=0; iter < transpositions; iter++ )
+    {
+        size_t i, j;
+        do
+        {
+            i = rand() % msg_avail;
+            j = rand() % msg_avail;
+        } while( i == j );
+
+        printf( "L0 DGRAM MOCK: Swap %u <-> %u\n",
+                (unsigned) i, (unsigned) j );
+        layer0_dgram_swap_dgrams( ctx, i, j );
+    }
+}
+
 static int layer0_dgram_free( layer0_dgram_mock *ctx )
 {
     size_t idx;
@@ -269,19 +321,13 @@ static int layer0_dgram_write( layer0_dgram_mock *ctx,
     printf( "Datagram write\n" );
     printf( "* Write position: %u\n", (unsigned) write_pos );
     printf( "* Read position:  %u\n", (unsigned) read_pos );
+    printf( "* Datagram size:  %u\n", (unsigned) size );
 
     if( new_write_pos == read_pos )
         return( MPS_ERR_WANT_WRITE );
 
     layer0_dgram_msg_init( &ctx->msgs[write_pos], size );
     memcpy( ctx->msgs[write_pos].buf, src, size );
-
-    for( size_t idx=0; idx < size; idx++ )
-    {
-        printf( "data[%u] = %u\n",
-                (unsigned) idx,
-                (unsigned) ctx->msgs[write_pos].buf[idx] );
-    }
 
     ctx->write_pos = new_write_pos;
     return( (int) size );
@@ -295,8 +341,8 @@ static int layer0_dgram_read( layer0_dgram_mock *ctx,
     size_t new_read_pos = layer0_dgram_inc_idx( read_pos );
 
     printf( "Datagram Read\n" );
-    printf( "* Write position: %u\n", (unsigned) write_pos );
-    printf( "* Read position:  %u\n", (unsigned) read_pos );
+    printf( "* Write position:  %u\n", (unsigned) write_pos );
+    printf( "* Read position:   %u\n", (unsigned) read_pos );
 
     if( read_pos == write_pos )
     {
@@ -307,12 +353,8 @@ static int layer0_dgram_read( layer0_dgram_mock *ctx,
     if( size > ctx->msgs[read_pos].buflen )
         size = ctx->msgs[read_pos].buflen;
 
-    for( size_t idx=0; idx < size; idx++ )
-    {
-        printf( "data[%u] = %u\n",
-                (unsigned) idx,
-                (unsigned) ctx->msgs[read_pos].buf[idx] );
-    }
+    printf( "* Datagram length:    %u\n", (unsigned) ctx->msgs[read_pos].buflen );
+    printf( "* Target buffer size: %u\n", (unsigned) size );
 
     memcpy( dst, ctx->msgs[read_pos].buf, size );
     layer0_dgram_msg_free( &ctx->msgs[read_pos] );
@@ -343,6 +385,34 @@ int layer0_dgram_read_srv( unsigned char *dst, unsigned long size )
 int layer0_dgram_read_cli( unsigned char *dst, unsigned long size )
 {
     return layer0_dgram_read( &s2c_d, dst, size );
+}
+
+/*
+ * Timer mock object
+ */
+
+typedef struct
+{
+    uint32_t int_ms;
+    uint32_t fin_ms;
+} mock_timer_ctx;
+
+static void set_mock_timer( void* mock_ctx, uint32_t int_ms,
+                            uint32_t fin_ms )
+{
+    mock_timer_ctx *ctx = (mock_timer_ctx*) mock_ctx;
+    printf( "Set mock timeout to %u / %u\n", int_ms, fin_ms );
+    ctx->int_ms = int_ms;
+    ctx->fin_ms = fin_ms;
+}
+
+static int get_mock_timer( void* mock_ctx )
+{
+    mock_timer_ctx *ctx = (mock_timer_ctx*) mock_ctx;
+    if( ctx->int_ms > 0 )
+        return( 2 );
+
+    return( -1 );
 }
 
 /*
@@ -996,6 +1066,63 @@ typedef struct
     } data;
 
 } typed_data_chunk_l3;
+
+/*
+ *
+ * Helper structures for Layer 4 testing.
+ *
+ */
+
+/* Dummy retransmission callback. */
+
+typedef struct
+{
+    size_t cur_chunk;
+    size_t num_chunks;
+    size_t bytes_per_chunk;
+} dummy_cb_ctx;
+
+size_t mps_l4_dummy_callback_msg_length( dummy_cb_ctx *ctx )
+{
+    return( ctx->num_chunks + ctx->bytes_per_chunk );
+}
+
+int mps_l4_dummy_callback( mbedtls_mps_write_cb_ctx_t const *ctx,
+                           mbedtls_writer_ext *writer )
+{
+    int ret;
+    dummy_cb_ctx *dummy_ctx = ( (dummy_cb_ctx*) ctx );
+    unsigned char *chunk;
+    size_t idx;
+
+    printf( "DUMMY CALLBACK CALLED!\n" );
+
+    ret = mbedtls_writer_get_ext( writer, dummy_ctx->bytes_per_chunk,
+                                  &chunk, NULL );
+    if( ret == MBEDTLS_ERR_WRITER_OUT_OF_DATA )
+        return( MBEDTLS_MPS_RETRANSMISSION_CALLBACK_PAUSE );
+    else if( ret != 0 )
+        return( ret );
+
+    for( idx = 0; idx < dummy_ctx->bytes_per_chunk; idx++ )
+    {
+        chunk[idx] = (unsigned char)
+            ( ( dummy_ctx->cur_chunk * dummy_ctx->bytes_per_chunk ) + idx );
+    }
+
+    ret = mbedtls_writer_commit_ext( writer );
+    if( ret != 0 )
+        return( ret );
+
+    dummy_ctx->cur_chunk++;
+    if( dummy_ctx->cur_chunk == dummy_ctx->num_chunks )
+    {
+        dummy_ctx->cur_chunk = 0;
+        return( 0 );
+    }
+
+    return( MBEDTLS_MPS_RETRANSMISSION_CALLBACK_PAUSE );
+}
 
 /* END_HEADER */
 
@@ -3132,7 +3259,7 @@ void mbedtls_mps_l1_basic( int mode,
         memcpy( out_buf, data, data_len );
 
         /* Dispatch data in one go. */
-        TEST_ASSERT( mps_l1_dispatch( &cli, data_len ) == 0 );
+        TEST_ASSERT( mps_l1_dispatch( &cli, data_len, NULL ) == 0 );
         TEST_ASSERT( mps_l1_flush( &cli ) == 0 );
     }
     else
@@ -3150,7 +3277,7 @@ void mbedtls_mps_l1_basic( int mode,
 
             memcpy( out_buf, data + idx, send_chunk_size );
 
-            TEST_ASSERT( mps_l1_dispatch( &cli, send_chunk_size ) == 0 );
+            TEST_ASSERT( mps_l1_dispatch( &cli, send_chunk_size, NULL ) == 0 );
             if( send_multiple_do_flush )
                 TEST_ASSERT( mps_l1_flush( &cli ) == 0 );
         }
@@ -3288,7 +3415,7 @@ void mbedtls_mps_l1_want_read( )
     TEST_ASSERT( out_len == data_len );
     memcpy( out_buf, data, data_len / 2 );
 
-    TEST_ASSERT( mps_l1_dispatch( &cli, data_len / 2 ) == 0 );
+    TEST_ASSERT( mps_l1_dispatch( &cli, data_len / 2, NULL ) == 0 );
     TEST_ASSERT( mps_l1_flush( &cli ) == 0 );
 
     /* Step 2: Receive data on the server,
@@ -3305,7 +3432,7 @@ void mbedtls_mps_l1_want_read( )
     TEST_ASSERT( out_len == data_len );
     memcpy( out_buf, data + ( data_len / 2 ), data_len /2 );
 
-    TEST_ASSERT( mps_l1_dispatch( &cli, data_len / 2 ) == 0 );
+    TEST_ASSERT( mps_l1_dispatch( &cli, data_len / 2, NULL ) == 0 );
     TEST_ASSERT( mps_l1_flush( &cli ) == 0 );
 
     /* Step 4: Server retries, this time successfully. */
@@ -3416,7 +3543,7 @@ void mbedtls_mps_l1_dgram_bounds_violation()
     TEST_ASSERT( out_len == data_len );
     memcpy( out_buf, data, data_len );
 
-    TEST_ASSERT( mps_l1_dispatch( &cli, data_len ) == 0 );
+    TEST_ASSERT( mps_l1_dispatch( &cli, data_len, NULL ) == 0 );
     TEST_ASSERT( mps_l1_flush( &cli ) == 0 );
 
     /* Step 2: Receive data on the server. */
@@ -3498,7 +3625,7 @@ void mbedtls_mps_l1_want_write( int client_write_instead_reflush,
     TEST_ASSERT( out_len >= data_len );
     memcpy( out_buf, data, data_len );
 
-    TEST_ASSERT( mps_l1_dispatch( &cli, data_len ) == 0 );
+    TEST_ASSERT( mps_l1_dispatch( &cli, data_len, NULL ) == 0 );
     TEST_ASSERT( mps_l1_flush( &cli ) == MPS_ERR_WANT_WRITE );
 
     /* Step 2: Client attempts another write. */
@@ -3533,7 +3660,7 @@ void mbedtls_mps_l1_want_write( int client_write_instead_reflush,
         /* Step 4b: Client tries another write. */
         TEST_ASSERT( mps_l1_write( &cli, &out_buf, &out_len ) == 0 );
         /* Don't actually write anything. */
-        TEST_ASSERT( mps_l1_dispatch( &cli, 0 ) == 0 );
+        TEST_ASSERT( mps_l1_dispatch( &cli, 0, NULL ) == 0 );
     }
 
     /* Step 5a and 5b */
@@ -3742,7 +3869,7 @@ void mbedtls_mps_l1_random_communication( int allocator_buffer_sz,
 
             /* Transfer data to Layer 1 -- note that this does not
              * necessarily immediately transfer the data to Layer 0. */
-            ret = mps_l1_dispatch( actor, send_attempt );
+            ret = mps_l1_dispatch( actor, send_attempt, NULL );
             TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_WRITE );
 
             *send_pos += send_attempt;
@@ -3994,10 +4121,22 @@ void mbedtls_mps_l2_basic( int mode,
                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
     TEST_ASSERT( mps_l2_config_version( &srv,
                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
-    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A, 0, 1, 1 ) == 0 );
-    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_B, 0, 0, 1 ) == 0 );
-    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A, 0, 1, 1 ) == 0 );
-    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_B, 0, 1, 1 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A,
+                                         MPS_L2_SPLIT_DISABLED,
+                                         MPS_L2_PACK_ENABLED,
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli, ty_B,
+                                         MPS_L2_SPLIT_DISABLED,
+                                         MPS_L2_PACK_ENABLED,
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A,
+                                         MPS_L2_SPLIT_DISABLED,
+                                         MPS_L2_PACK_ENABLED,
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv, ty_B,
+                                         MPS_L2_SPLIT_DISABLED,
+                                         MPS_L2_PACK_ENABLED,
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init, MPS_EPOCH_WRITE ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &srv, dummy_s, &epoch_init ) == 0 );
@@ -4205,11 +4344,11 @@ void mbedtls_mps_l2_non_packable_type( int mode,
     TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_DISABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init,
                                      MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
@@ -4494,8 +4633,8 @@ void mbedtls_mps_l2_bad_record( int mode,
          * leading to the record being rejected on 'decryption'. */
         memset( l1_out_buf + tls_rec_hdr_len, 42, rec_sz );
 
-        TEST_ASSERT( mps_l1_dispatch( &cli_l1, tls_rec_hdr_len + rec_sz ) ==
-                     0 );
+        TEST_ASSERT( mps_l1_dispatch( &cli_l1,
+                           tls_rec_hdr_len + rec_sz, NULL ) == 0 );
     }
     else
     {
@@ -4559,8 +4698,8 @@ void mbedtls_mps_l2_bad_record( int mode,
          * leading to the record being rejected on 'decryption'. */
         memset( l1_out_buf + dtls_rec_hdr_len, 42, rec_sz );
 
-        TEST_ASSERT( mps_l1_dispatch( &cli_l1, dtls_rec_hdr_len + rec_sz ) ==
-                     0 );
+        TEST_ASSERT( mps_l1_dispatch( &cli_l1,
+                            dtls_rec_hdr_len + rec_sz, NULL ) == 0 );
     }
 
     /* Send a valid record; for DTLS, it will be in the same datagram
@@ -4612,7 +4751,7 @@ void mbedtls_mps_l2_bad_record( int mode,
     else
     {
         TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) ==
-                     MPS_ERR_CONTINUE_PROCESSING );
+                     MPS_ERR_WANT_READ );
 
         TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == 0 );
         TEST_ASSERT( in_srv.type == ty_A );
@@ -4880,7 +5019,7 @@ void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
             TEST_ASSERT( mps_l2_get_last_sequence_number( &srv, epoch_init, &in_ctr ) == 0 );
             TEST_ASSERT( in_ctr == 42 );
 
-            TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == MPS_ERR_REPLAYED_RECORD );
+            TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == MPS_ERR_WANT_READ );
 
             /* The sequence number of a replayed record shouldn't be recorded. */
             TEST_ASSERT( mps_l2_get_last_sequence_number( &srv, epoch_init, &in_ctr ) == 0 );
@@ -4919,7 +5058,7 @@ void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
             else
                 TEST_ASSERT( in_ctr == 1223 );
 
-            TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == MPS_ERR_REPLAYED_RECORD );
+            TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == MPS_ERR_WANT_READ );
 
             break;
         }
@@ -4957,7 +5096,7 @@ void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
             }
             else
             {
-                TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == MPS_ERR_REPLAYED_RECORD );
+                TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) == MPS_ERR_WANT_READ );
 
                 TEST_ASSERT( mps_l2_get_last_sequence_number( &srv, epoch_init, &in_ctr ) == 0 );
                 TEST_ASSERT( in_ctr == 80 );
@@ -5072,21 +5211,21 @@ void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
     TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A,
                                          MPS_L2_SPLIT_ENABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli, ty_B,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A,
                                          pausable_for_receiver == 1 ?
                                          MPS_L2_SPLIT_ENABLED :
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_B,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
 
     TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init, MPS_EPOCH_WRITE ) == 0 );
@@ -5365,19 +5504,19 @@ void mbedtls_mps_l2_switch_epoch( int mode,
     TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli, ty_B,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_B,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
 
     TEST_ASSERT( mps_l2_epoch_add( &cli,  epoch0_c, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &srv,  epoch0_s, &epoch_init ) == 0 );
@@ -5751,19 +5890,19 @@ void mbedtls_mps_l2_many_epochs( int mode,
     TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli, ty_B,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_B,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
 
     TEST_ASSERT( mps_l2_epoch_add( &cli, epochs_c[0], &next_cli_epoch ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &srv, epochs_s[0], &next_srv_epoch ) == 0 );
@@ -6062,8 +6201,14 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
     TEST_ASSERT( num_types <= 64 );
     for( size_t ty=0; ty < (unsigned) num_types; ty++ )
     {
-        TEST_ASSERT( mps_l2_config_add_type( &endpoint[0], ty, 1, 1, 0 ) == 0 );
-        TEST_ASSERT( mps_l2_config_add_type( &endpoint[1], ty, 1, 1, 0 ) == 0 );
+        TEST_ASSERT( mps_l2_config_add_type( &endpoint[0], ty,
+                                             MPS_L2_SPLIT_ENABLED,
+                                             MPS_L2_PACK_ENABLED,
+                                             MPS_L2_EMPTY_FORBIDDEN ) == 0 );
+        TEST_ASSERT( mps_l2_config_add_type( &endpoint[1], ty,
+                                             MPS_L2_SPLIT_ENABLED,
+                                             MPS_L2_PACK_ENABLED,
+                                             MPS_L2_EMPTY_FORBIDDEN ) == 0 );
     }
 
     TEST_ASSERT( mps_l2_epoch_add( &endpoint[0], epochs[0][0],
@@ -6542,11 +6687,11 @@ void mbedtls_mps_l3_basic_handshake(
     TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_HS,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_HS,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
 
     /* Initialize Layer 3 */
     TEST_ASSERT( mps_l3_init( &cli, &cli_l2, mode ) == 0 );
@@ -6612,7 +6757,7 @@ void mbedtls_mps_l3_basic_handshake(
             TEST_ASSERT( mbedtls_writer_get_ext( hs_out.wr_ext, 10,
                                                  &tmp, NULL ) == 0 );
 
-            TEST_ASSERT( mps_l3_abort_handshake( &cli ) == 0 );
+            TEST_ASSERT( mps_l3_write_abort_handshake( &cli ) == 0 );
         }
         else if( aborted_before == 2 )
         {
@@ -6622,7 +6767,7 @@ void mbedtls_mps_l3_basic_handshake(
 
             /* We shouldn't be allowed to abort once we have
              * committed something. */
-            TEST_ASSERT( mps_l3_abort_handshake( &cli ) ==
+            TEST_ASSERT( mps_l3_write_abort_handshake( &cli ) ==
                          MPS_ERR_INTERNAL_ERROR );
 
             goto exit;
@@ -6765,6 +6910,22 @@ void mbedtls_mps_l3_basic_handshake(
     /* Signal that message has been processed. */
     TEST_ASSERT( mps_l3_read_consume( &srv ) == 0 );
 
+    /* We should have consumed the entire record - check this.
+     * For example, this will catch if we messed up
+     * forwarding a partial commit from the extended writer
+     * to the writer: Say we start writing a handshake fragment
+     * of unspecified length, we write 30 bytes and we partially
+     * commit 20 to the extended writer, as above. If this partial
+     * commit is not properly forwarded to the underlying writer,
+     * but instead all 30 bytes are committed, then we will write
+     * a handshake fragment of length 20, followed by 10 more
+     * garbage bytes in the same record. This happened before
+     * and was not caught by the test. Attempting to read another
+     * message will catch it, because the remaining 10 bytes
+     * will be interpreted as a handshake header and lead to
+     * another handshake message being opened. */
+    TEST_ASSERT( mps_l3_read( &srv ) == MPS_ERR_WANT_READ );
+
 exit:
 
     /*
@@ -6861,27 +7022,27 @@ void mbedtls_mps_l3_bad_msg( int variant )
     TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_HS,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_HS,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_ALERT,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_ALERT,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_CCS,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_CCS,
                                          MPS_L2_SPLIT_DISABLED,
                                          MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_DISCARD ) == 0 );
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
 
     /* Initialize Layer 3 */
     TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MPS_L3_MODE_DATAGRAM ) == 0 );
@@ -7628,9 +7789,21 @@ void mbedtls_mps_l3_basic_alert( int allocator_buffer_sz,
     TEST_ASSERT( mps_l2_config_version( &srv_l2,
                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_ALERT,
-                                         1, alert_merging != 0, 0 ) == 0 );
+                                         handle_fragmentation ?
+                                           MPS_L2_SPLIT_ENABLED :
+                                           MPS_L2_SPLIT_DISABLED,
+                                         alert_merging ?
+                                           MPS_L2_PACK_ENABLED :
+                                           MPS_L2_PACK_DISABLED,
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_ALERT,
-                                         1, alert_merging != 0, 0 ) == 0 );
+                                         handle_fragmentation ?
+                                           MPS_L2_SPLIT_ENABLED :
+                                           MPS_L2_SPLIT_DISABLED,
+                                         alert_merging ?
+                                           MPS_L2_PACK_ENABLED :
+                                           MPS_L2_PACK_DISABLED,
+                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
 
     /* Initialize Layer 3 */
     TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MPS_L3_MODE_STREAM ) == 0 );
@@ -7648,22 +7821,19 @@ void mbedtls_mps_l3_basic_alert( int allocator_buffer_sz,
     alerts_remaining = (size_t) num_alerts;
     while( alerts_remaining-- )
     {
+        int retry = 0;
         alert_out.epoch = 0;
-        if( handle_fragmentation == 0 )
+        while( 1 )
         {
-            TEST_ASSERT( mps_l3_write_alert( &cli,
-                                             &alert_out ) == 0 );
-        }
-        else
-        {
-            while( 1 )
-            {
-                res = mps_l3_write_alert( &cli,
+            TEST_ASSERT( retry <= 1 );
+
+            res = mps_l3_write_alert( &cli,
                                           &alert_out );
-                TEST_ASSERT( res == 0 || res == MPS_ERR_WANT_WRITE );
-                if( res == 0 )
-                    break;
-            }
+            TEST_ASSERT( res == 0 || res == MPS_ERR_WANT_WRITE );
+            if( res == 0 )
+                break;
+
+            retry++;
         }
 
         *alert_out.level = (uint8_t)( alert_level + alerts_remaining );
@@ -7682,21 +7852,19 @@ void mbedtls_mps_l3_basic_alert( int allocator_buffer_sz,
     alerts_remaining = (size_t) num_alerts;
     while( alerts_remaining-- )
     {
-        if( handle_fragmentation == 0 )
+        int retry = 0;
+
+        while( 1 )
         {
-            TEST_ASSERT( mps_l3_read( &srv ) == MBEDTLS_MPS_MSG_ALERT );
+            TEST_ASSERT( retry <= 1 );
+            res = mps_l3_read( &srv );
+            TEST_ASSERT( res == MPS_ERR_WANT_READ ||
+                         res == MBEDTLS_MPS_MSG_ALERT );
+            if( res == MBEDTLS_MPS_MSG_ALERT )
+                break;
+            retry++;
         }
-        else
-        {
-            while( 1 )
-            {
-                res = mps_l3_read( &srv );
-                TEST_ASSERT( res == MPS_ERR_WANT_READ ||
-                             res == MBEDTLS_MPS_MSG_ALERT );
-                if( res == MBEDTLS_MPS_MSG_ALERT )
-                    break;
-            }
-        }
+
         TEST_ASSERT( mps_l3_read_alert( &srv, &alert_in ) == 0 );
 
         TEST_ASSERT( alert_in.level ==
@@ -8644,7 +8812,7 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
                     ret == MBEDTLS_MPS_MSG_ALERT       ||
                     ret == MBEDTLS_MPS_MSG_CCS ) )
             {
-                fprintf( stderr, "UNEXPECTED READ RESULT: %d\n",
+                printf( "UNEXPECTED READ RESULT: %d\n",
                          ret );
             }
             TEST_ASSERT( ret == 0                        ||
@@ -9179,7 +9347,7 @@ void mbedtls_mps_l4_basic_handshake( int allocator_buffer_sz,
     else
         hs_out.length = MPS_L3_LENGTH_UNKNOWN;
 
-    TEST_ASSERT( mbedtls_mps_write_handshake( &cli, &hs_out ) == 0 );
+    TEST_ASSERT( mbedtls_mps_write_handshake( &cli, &hs_out, NULL, NULL ) == 0 );
 
     if( multiple_fetch )
     {
@@ -9396,7 +9564,7 @@ void mbedtls_mps_l4_disruption( int allocator_buffer_sz,
     hs_out.type = 12;
     hs_out.length = 20;
 
-    TEST_ASSERT( mbedtls_mps_write_handshake( &cli, &hs_out ) == 0 );
+    TEST_ASSERT( mbedtls_mps_write_handshake( &cli, &hs_out, NULL, NULL ) == 0 );
 
     TEST_ASSERT( mbedtls_writer_get_ext( hs_out.handle,
                                          20,
@@ -9429,7 +9597,7 @@ void mbedtls_mps_l4_disruption( int allocator_buffer_sz,
 
 
     /* Attempt to write something should fail now. */
-    TEST_ASSERT( mbedtls_mps_write_handshake( &cli, &hs_out ) ==
+    TEST_ASSERT( mbedtls_mps_write_handshake( &cli, &hs_out, NULL, NULL ) ==
                  MBEDTLS_ERR_MPS_BLOCKED );
 
     /* But flushing should still work. */
@@ -9491,5 +9659,781 @@ exit:
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
     layer0_free( &s2c );
     layer0_free( &c2s );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L4 */
+void mbedtls_mps_l4_dtls_fragmentation( int allocator_buffer_sz,
+                                        int retransmission_callback,
+                                        int num_hs )
+{
+    int ret;
+
+    /* Allocator objects */
+    mps_alloc cli_alloc, srv_alloc;
+
+    /* Layer 1 objects */
+    mps_l1 cli_l1, srv_l1;
+
+    /* Layer 2 objects */
+    mps_l2 cli_l2, srv_l2;
+
+    /* Layer 3 objects */
+    mps_l3 cli_l3, srv_l3;
+
+    /* Layer 4 objects */
+    mbedtls_mps cli, srv;
+
+    unsigned char *tmp;
+
+    mbedtls_mps_epoch_id cli_epoch;
+    mbedtls_mps_epoch_id srv_epoch;
+
+    mbedtls_mps_handshake_out hs_out;
+    mps_l3_handshake_in hs_in;
+
+    /* Dummy record transformations for epoch 0 */
+    mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
+    mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
+
+    size_t hs_len    = 100;
+    size_t hs_offset;
+
+    unsigned iteration;
+
+    mbedtls_test_rnd_std_rand( NULL, (unsigned char*) &cli, sizeof( cli ) );
+    mbedtls_test_rnd_std_rand( NULL, (unsigned char*) &srv, sizeof( srv ) );
+
+    dummy_s->type = 0;
+    dummy_s->mock.enabled = 1;
+    dummy_s->mock.pad = 5;
+    dummy_c->type = 0;
+    dummy_c->mock.enabled = 1;
+    dummy_c->mock.pad = 5;
+
+    /* Initialize Layer 0 mock objects */
+    TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
+    TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, allocator_buffer_sz );
+    mps_alloc_init( &srv_alloc, allocator_buffer_sz );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L2_MODE_DATAGRAM,
+                              &cli_alloc,
+                              layer0_dgram_write_cli,
+                              layer0_dgram_read_cli ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L2_MODE_DATAGRAM,
+                              &srv_alloc,
+                              layer0_dgram_write_srv,
+                              layer0_dgram_read_srv ) == 0 );
+
+    /* Initialize and configure Layer 2 */
+    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MPS_L2_MODE_DATAGRAM,
+                              L2_DEFAULT_ACCUMULATOR_SIZE,
+                              L2_DEFAULT_QUEUE_SIZE,
+                              mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MPS_L2_MODE_DATAGRAM,
+                              L2_DEFAULT_ACCUMULATOR_SIZE,
+                              L2_DEFAULT_QUEUE_SIZE,
+                              mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &cli_l2,
+                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &srv_l2,
+                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_HS,
+                                         1, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_ALERT,
+                                         1, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_HS,
+                                         1, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_ALERT,
+                                         1, 1, 0 ) == 0 );
+
+    /* Initialize Layer 3 */
+    TEST_ASSERT( mps_l3_init( &cli_l3, &cli_l2, MPS_L3_MODE_DATAGRAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, MPS_L3_MODE_DATAGRAM ) == 0 );
+
+    /* Initialize Layer 4 */
+    TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3,
+                                   MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+    TEST_ASSERT( mbedtls_mps_init( &srv, &srv_l3,
+                                   MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+
+    TEST_ASSERT( mbedtls_mps_add_key_material( &cli, dummy_c,
+                                               &cli_epoch ) == 0 );
+    TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &cli, cli_epoch ) == 0 );
+
+    TEST_ASSERT( mbedtls_mps_add_key_material( &srv, dummy_s,
+                                               &srv_epoch ) == 0 );
+    TEST_ASSERT( mbedtls_mps_set_incoming_keys( &srv, srv_epoch ) == 0 );
+
+    /*
+     * Client: Write handshake message to server
+     */
+
+    for( iteration=0; iteration < (unsigned) num_hs; iteration++ )
+    {
+        hs_offset   = 0;
+        hs_out.type = iteration;
+
+        if( retransmission_callback == 0 )
+        {
+            /* TODO: Allow unknown length! */
+            /* hs_out.length = MBEDTLS_MPS_LENGTH_UNKNOWN; */
+            hs_out.length = hs_len + iteration;
+            TEST_ASSERT( mbedtls_mps_write_handshake( &cli, &hs_out,
+                                                      NULL, NULL ) == 0 );
+        }
+        else
+        {
+            hs_out.length = hs_len + iteration;
+            TEST_ASSERT( mbedtls_mps_write_handshake( &cli, &hs_out,
+                                                      mps_l4_dummy_callback,
+                                                      NULL ) == 0 );
+        }
+
+        TEST_ASSERT( mbedtls_writer_get_ext( hs_out.handle, hs_len + iteration,
+                                             &tmp, NULL ) == 0 );
+        for( size_t idx=0; idx<(unsigned) ( hs_len + iteration ); idx++ )
+            tmp[idx] = (unsigned char) idx;
+
+        /* Commit and update state */
+        TEST_ASSERT( mbedtls_writer_commit_ext( hs_out.handle ) == 0 );
+
+        /* Dispatch handshake message */
+        TEST_ASSERT( mbedtls_mps_dispatch( &cli ) == 0 );
+        TEST_ASSERT( mbedtls_mps_flush( &cli ) == 0 );
+
+        /*
+         * Server: Read handshake message from client
+         */
+
+        while( 1 )
+        {
+            ret = mps_l3_read( &srv_l3 );
+            if( ret == MPS_ERR_WANT_READ )
+                break;
+
+            TEST_ASSERT( ret == MBEDTLS_MPS_MSG_HS );
+
+            TEST_ASSERT( mps_l3_read_handshake( &srv_l3, &hs_in ) == 0 );
+            TEST_ASSERT( hs_in.type        == ( iteration )         );
+            TEST_ASSERT( hs_in.frag_offset == hs_offset             );
+            TEST_ASSERT( hs_in.len         == ( hs_len + iteration) );
+            TEST_ASSERT( hs_in.seq_nr      == iteration             );
+
+            TEST_ASSERT( mbedtls_reader_get_ext( hs_in.rd_ext ,
+                                                 hs_in.frag_len,
+                                                 &tmp, NULL ) == 0 );
+            for( size_t idx=0; idx<(unsigned) hs_in.frag_len; idx++ )
+                TEST_ASSERT( tmp[idx] == (unsigned char)( hs_offset + idx ) );
+
+            /* Commit last incoming chunk and update state */
+            TEST_ASSERT( mbedtls_reader_commit_ext( hs_in.rd_ext ) == 0 );
+
+            /* Signal that message fragment has been processed. */
+            TEST_ASSERT( mps_l3_read_consume( &srv_l3 ) == 0 );
+
+            hs_offset += hs_in.frag_len;
+        }
+        TEST_ASSERT( hs_offset == ( hs_len + iteration ) );
+    }
+
+exit:
+
+    /*
+     * Wrapup
+     */
+
+    TEST_ASSERT( mbedtls_mps_free( &cli ) == 0 );
+    TEST_ASSERT( mbedtls_mps_free( &srv ) == 0 );
+    TEST_ASSERT( mps_l3_free( &cli_l3 ) == 0 );
+    TEST_ASSERT( mps_l3_free( &srv_l3 ) == 0 );
+    TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
+    TEST_ASSERT( mps_l2_free( &srv_l2 ) == 0 );
+    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+    layer0_dgram_free( &s2c_d );
+    layer0_dgram_free( &c2s_d );
+}
+/* END_CASE */
+
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L4 */
+void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
+                                     int retransmission_callback,
+                                     int num_hs,
+                                     int permute,
+                                     int force_pause )
+{
+    /* Allocator objects */
+    mps_alloc cli_alloc, srv_alloc;
+
+    /* Layer 1 objects */
+    mps_l1 cli_l1, srv_l1;
+
+    /* Layer 2 objects */
+    mps_l2 cli_l2, srv_l2;
+
+    /* Layer 3 objects */
+    mps_l3 cli_l3, srv_l3;
+
+    /* Layer 4 objects */
+    mbedtls_mps cli, srv;
+
+    unsigned char *tmp;
+
+    mbedtls_mps_epoch_id cli_epoch;
+    mbedtls_mps_epoch_id srv_epoch;
+
+    mbedtls_mps_handshake_out hs_out;
+    mbedtls_mps_handshake_in  hs_in;
+
+    /* Dummy record transformations for epoch 0 */
+    mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
+    mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
+
+    size_t hs_len    = 100;
+
+    unsigned iteration;
+    dummy_cb_ctx dummy_ctx;
+    dummy_ctx.bytes_per_chunk = 50;
+    dummy_ctx.cur_chunk       = 0;
+    dummy_ctx.num_chunks      = 2;
+
+    dummy_s->type = 0;
+    dummy_s->mock.enabled = 1;
+    dummy_s->mock.pad = 5;
+    dummy_c->type = 0;
+    dummy_c->mock.enabled = 1;
+    dummy_c->mock.pad = 5;
+
+    /* Initialize Layer 0 mock objects */
+    TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
+    TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, allocator_buffer_sz );
+    mps_alloc_init( &srv_alloc, allocator_buffer_sz );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L2_MODE_DATAGRAM,
+                              &cli_alloc,
+                              layer0_dgram_write_cli,
+                              layer0_dgram_read_cli ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L2_MODE_DATAGRAM,
+                              &srv_alloc,
+                              layer0_dgram_write_srv,
+                              layer0_dgram_read_srv ) == 0 );
+
+    /* Initialize and configure Layer 2 */
+    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MPS_L2_MODE_DATAGRAM,
+                              L2_DEFAULT_ACCUMULATOR_SIZE,
+                              L2_DEFAULT_QUEUE_SIZE,
+                              mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MPS_L2_MODE_DATAGRAM,
+                              L2_DEFAULT_ACCUMULATOR_SIZE,
+                              L2_DEFAULT_QUEUE_SIZE,
+                              mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &cli_l2,
+                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &srv_l2,
+                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_HS,
+                                         1, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_ALERT,
+                                         1, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_HS,
+                                         1, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_ALERT,
+                                         1, 1, 0 ) == 0 );
+
+    /* Initialize Layer 3 */
+    TEST_ASSERT( mps_l3_init( &cli_l3, &cli_l2, MPS_L3_MODE_DATAGRAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, MPS_L3_MODE_DATAGRAM ) == 0 );
+
+    /* Initialize Layer 4 */
+    TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3,
+                                   MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+    TEST_ASSERT( mbedtls_mps_init( &srv, &srv_l3,
+                                   MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+
+    TEST_ASSERT( mbedtls_mps_add_key_material( &cli, dummy_c,
+                                               &cli_epoch ) == 0 );
+    TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &cli, cli_epoch ) == 0 );
+
+    TEST_ASSERT( mbedtls_mps_add_key_material( &srv, dummy_s,
+                                               &srv_epoch ) == 0 );
+    TEST_ASSERT( mbedtls_mps_set_incoming_keys( &srv, srv_epoch ) == 0 );
+
+    /*
+     * Client: Write handshake messages to server
+     */
+
+    iteration = 0;
+    while( iteration < (size_t) num_hs )
+    {
+        int ret;
+        hs_out.type = iteration;
+
+        if( retransmission_callback == 0 )
+        {
+            hs_out.length = MBEDTLS_MPS_LENGTH_UNKNOWN;
+            ret = mbedtls_mps_write_handshake( &cli, &hs_out,
+                                               NULL, NULL );
+            TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_WRITE );
+            if( ret == MPS_ERR_WANT_WRITE )
+                continue;
+
+            TEST_ASSERT( mbedtls_writer_get_ext( hs_out.handle,
+                                                 hs_len, &tmp, NULL ) == 0 );
+
+            for( size_t idx=0; idx<(unsigned) ( hs_len ); idx++ )
+                tmp[idx] = (unsigned char) idx;
+
+            TEST_ASSERT( mbedtls_writer_commit_ext( hs_out.handle ) == 0 );
+
+            /* Dispatch handshake message */
+            TEST_ASSERT( mbedtls_mps_dispatch( &cli ) == 0 );
+            iteration++;
+        }
+        else
+        {
+            hs_out.length = hs_len;
+            ret = mbedtls_mps_write_handshake( &cli, &hs_out,
+                                               mps_l4_dummy_callback,
+                                               NULL );
+            TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_WRITE );
+            if( ret == MPS_ERR_WANT_WRITE )
+                continue;
+
+            if( force_pause == 1 )
+            {
+                ret = mps_l4_dummy_callback( &dummy_ctx, hs_out.handle );
+                TEST_ASSERT( ret == 0 ||
+                             ret == MBEDTLS_MPS_RETRANSMISSION_CALLBACK_PAUSE );
+                if( ret == 0 )
+                {
+                    TEST_ASSERT( mbedtls_mps_dispatch( &cli ) == 0 );
+                    iteration++;
+/*                    TEST_ASSERT( mbedtls_mps_flush( &cli ) == 0 ); */
+                }
+                else
+                {
+                    TEST_ASSERT( mbedtls_mps_write_pause( &cli ) == 0 );
+/*                    TEST_ASSERT( mbedtls_mps_flush( &cli ) == 0 ); */
+                }
+            }
+            else
+            {
+                TEST_ASSERT( mbedtls_writer_get_ext( hs_out.handle,
+                                                     hs_len, &tmp, NULL ) == 0 );
+
+                for( size_t idx=0; idx<(unsigned) ( hs_len ); idx++ )
+                    tmp[idx] = (unsigned char) idx;
+
+                TEST_ASSERT( mbedtls_writer_commit_ext( hs_out.handle ) == 0 );
+
+                /* Dispatch handshake message */
+                TEST_ASSERT( mbedtls_mps_dispatch( &cli ) == 0 );
+                iteration++;
+/*                TEST_ASSERT( mbedtls_mps_flush( &cli ) == 0 ); */
+            }
+        }
+    }
+
+    TEST_ASSERT( mbedtls_mps_flush( &cli ) == 0 );
+
+    /*
+     * Apply a permutation to the underlying datagram transport.
+     */
+
+    if( permute )
+    {
+        layer0_dgram_permute( &c2s_d, 3 /* number of transpositions */ );
+    }
+
+
+    /*
+     * Server: Read handshake messages from client
+     */
+
+    for( iteration=0; iteration < (size_t) num_hs; iteration++ )
+    {
+        while( 1 )
+        {
+            int ret;
+            ret = mbedtls_mps_read( &srv );
+            TEST_ASSERT( ret == MBEDTLS_MPS_MSG_HS ||
+                         ret == MPS_ERR_WANT_READ  );
+            if( ret == MBEDTLS_MPS_MSG_HS )
+                break;
+        }
+
+        TEST_ASSERT( mbedtls_mps_read_handshake( &srv, &hs_in ) == 0 );
+
+        TEST_ASSERT( hs_in.length == hs_len    );
+        TEST_ASSERT( hs_in.type   == iteration );
+
+        TEST_ASSERT( mbedtls_reader_get_ext( hs_in.handle, hs_in.length,
+                                             &tmp, NULL ) == 0 );
+        for( size_t idx=0; idx<(unsigned) ( hs_len ); idx++ )
+            TEST_ASSERT( tmp[idx] == (unsigned char) idx );
+        TEST_ASSERT( mbedtls_reader_commit_ext( hs_in.handle ) == 0 );
+        TEST_ASSERT( mbedtls_mps_read_consume( &srv ) == 0 );
+
+    }
+
+exit:
+
+    /*
+     * Wrapup
+     */
+
+    TEST_ASSERT( mbedtls_mps_free( &cli ) == 0 );
+    TEST_ASSERT( mbedtls_mps_free( &srv ) == 0 );
+    TEST_ASSERT( mps_l3_free( &cli_l3 ) == 0 );
+    TEST_ASSERT( mps_l3_free( &srv_l3 ) == 0 );
+    TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
+    TEST_ASSERT( mps_l2_free( &srv_l2 ) == 0 );
+    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+    layer0_dgram_free( &s2c_d );
+    layer0_dgram_free( &c2s_d );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L4 */
+void mbedtls_mps_l4_dtls_flight_exchange( int allocator_buffer_sz,
+                                          int retransmission_callback,
+                                          int num_hs,
+                                          int rounds,
+                                          int server_reset,
+                                          int permute,
+                                          int use_mock_timer )
+{
+    /* Allocator objects */
+    mps_alloc cli_alloc, srv_alloc;
+
+    /* Layer 1 objects */
+    mps_l1 cli_l1, srv_l1;
+
+    /* Layer 2 objects */
+    mps_l2 cli_l2, srv_l2;
+
+    /* Layer 3 objects */
+    mps_l3 cli_l3, srv_l3;
+
+    /* Layer 4 objects */
+    mbedtls_mps cli, srv;
+
+    unsigned char *tmp;
+
+    mbedtls_mps_epoch_id cli_epoch;
+    mbedtls_mps_epoch_id srv_epoch;
+
+    mbedtls_mps_handshake_out hs_out;
+    mbedtls_mps_handshake_in  hs_in;
+
+    /* Dummy record transformations for epoch 0 */
+    mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
+    mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
+
+    size_t hs_len    = 100;
+    unsigned iteration;
+    unsigned round = 0;
+
+    mock_timer_ctx timer_cli;
+    mock_timer_ctx timer_srv;
+
+    dummy_cb_ctx *cb_ctxs;
+    cb_ctxs = malloc( sizeof( *cb_ctxs ) * ( rounds * num_hs ) );
+    TEST_ASSERT( cb_ctxs != NULL );
+    for( round = 0; round < (unsigned) ( rounds * num_hs ); round++ )
+    {
+        cb_ctxs[round].cur_chunk       = 0;
+        cb_ctxs[round].num_chunks      = 2;
+        cb_ctxs[round].bytes_per_chunk = 50;
+    }
+
+    dummy_s->type = 0;
+    dummy_s->mock.enabled = 1;
+    dummy_s->mock.pad = 5;
+    dummy_c->type = 0;
+    dummy_c->mock.enabled = 1;
+    dummy_c->mock.pad = 5;
+
+    /* Initialize Layer 0 mock objects */
+    TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
+    TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
+
+    /* Initialize allocators */
+    mps_alloc_init( &cli_alloc, allocator_buffer_sz );
+    mps_alloc_init( &srv_alloc, allocator_buffer_sz );
+
+    /* Initialize Layer 1 */
+    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L2_MODE_DATAGRAM,
+                              &cli_alloc,
+                              layer0_dgram_write_cli,
+                              layer0_dgram_read_cli ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L2_MODE_DATAGRAM,
+                              &srv_alloc,
+                              layer0_dgram_write_srv,
+                              layer0_dgram_read_srv ) == 0 );
+
+    /* Initialize and configure Layer 2 */
+    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MPS_L2_MODE_DATAGRAM,
+                              L2_DEFAULT_ACCUMULATOR_SIZE,
+                              L2_DEFAULT_QUEUE_SIZE,
+                              mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MPS_L2_MODE_DATAGRAM,
+                              L2_DEFAULT_ACCUMULATOR_SIZE,
+                              L2_DEFAULT_QUEUE_SIZE,
+                              mbedtls_test_rnd_std_rand, NULL ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &cli_l2,
+                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_version( &srv_l2,
+                        MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_HS,
+                                         1, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_ALERT,
+                                         1, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_HS,
+                                         1, 1, 0 ) == 0 );
+    TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_ALERT,
+                                         1, 1, 0 ) == 0 );
+
+    /* Initialize Layer 3 */
+    TEST_ASSERT( mps_l3_init( &cli_l3, &cli_l2, MPS_L3_MODE_DATAGRAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, MPS_L3_MODE_DATAGRAM ) == 0 );
+
+    /* Initialize Layer 4 */
+    TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3,
+                                   MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+    TEST_ASSERT( mbedtls_mps_init( &srv, &srv_l3,
+                                   MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+
+    TEST_ASSERT( mbedtls_mps_add_key_material( &cli, dummy_c,
+                                               &cli_epoch ) == 0 );
+    TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &cli, cli_epoch ) == 0 );
+    TEST_ASSERT( mbedtls_mps_set_incoming_keys( &cli, cli_epoch ) == 0 );
+
+    TEST_ASSERT( mbedtls_mps_add_key_material( &srv, dummy_s,
+                                               &srv_epoch ) == 0 );
+    TEST_ASSERT( mbedtls_mps_set_outgoing_keys( &srv, srv_epoch ) == 0 );
+    TEST_ASSERT( mbedtls_mps_set_incoming_keys( &srv, srv_epoch ) == 0 );
+
+    if( use_mock_timer )
+    {
+        srv.conf.p_timer = &timer_srv;
+        srv.conf.f_set_timer = set_mock_timer;
+        srv.conf.f_get_timer = get_mock_timer;
+        cli.conf.p_timer = &timer_cli;
+        cli.conf.f_set_timer = set_mock_timer;
+        cli.conf.f_get_timer = get_mock_timer;
+    }
+
+    for( round=0; round < (unsigned) rounds; round++ )
+    {
+        mbedtls_mps *sender, *receiver;
+        layer0_dgram_mock *l0;
+        if( round % 2 == 0 )
+        {
+            sender   = &cli;
+            receiver = &srv;
+            l0       = &c2s_d;
+
+            printf( "\n\n[[[[ ROUND %u, CLIENT ]]]]\n\n", (unsigned) round );
+        }
+        else
+        {
+            sender   = &srv;
+            receiver = &cli;
+            l0       = &s2c_d;
+
+            printf( "\n\n[[[[ ROUND %u, SERVER ]]]]\n\n", (unsigned) round );
+        }
+
+
+        /* Send flight */
+
+        for( iteration=0; iteration < (size_t) num_hs; iteration++ )
+        {
+            int ret;
+            printf( "[[[ ITERATION %u / %u ]]]\n",
+                    (unsigned) iteration, (unsigned) num_hs );
+            hs_out.type = iteration;
+
+            if( retransmission_callback == 0 )
+            {
+                hs_out.length = hs_len + iteration;
+
+                while( 1 )
+                {
+                    ret = mbedtls_mps_write_handshake( sender, &hs_out,
+                                                       NULL, NULL );
+                    TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_WRITE );
+                    if( ret == 0 )
+                        break;
+                }
+            }
+            else
+            {
+                hs_out.length = hs_len;
+                while( 1 )
+                {
+                    ret = mbedtls_mps_write_handshake( sender, &hs_out,
+                                         mps_l4_dummy_callback,
+                                         &cb_ctxs[round * num_hs + iteration] );
+                    TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_WRITE );
+                    if( ret == 0 )
+                        break;
+                }
+            }
+
+            /* Indicate the end of the flight */
+            if( iteration == (size_t) ( num_hs - 1 ) )
+            {
+                /* After the initial exchange, reset the server. */
+                if( ( round == 1 ) && ( server_reset == 1 ) )
+                {
+                    printf( "SERVER RESET\n" );
+                    TEST_ASSERT( mbedtls_mps_write_set_flags( sender,
+                                           MBEDTLS_MPS_FLIGHT_FINISHED ) == 0 );
+                }
+                else
+                {
+                    TEST_ASSERT( mbedtls_mps_write_set_flags( sender,
+                                           MBEDTLS_MPS_FLIGHT_END ) == 0 );
+                }
+            }
+
+            if( retransmission_callback == 0 )
+            {
+                TEST_ASSERT( mbedtls_writer_get_ext( hs_out.handle, hs_len + iteration,
+                                                     &tmp, NULL ) == 0 );
+                for( size_t idx=0; idx<(unsigned) ( hs_len + iteration ); idx++ )
+                    tmp[idx] = (unsigned char) idx;
+
+                /* Commit and update state */
+                TEST_ASSERT( mbedtls_writer_commit_ext( hs_out.handle ) == 0 );
+
+                /* Dispatch handshake message */
+                TEST_ASSERT( mbedtls_mps_dispatch( sender ) == 0 );
+            }
+            else
+            {
+                ret = mps_l4_dummy_callback( &cb_ctxs[round * num_hs], hs_out.handle );
+                TEST_ASSERT( ret == 0 ||
+                             ret == MBEDTLS_MPS_RETRANSMISSION_CALLBACK_PAUSE );
+
+                if( ret == 0 )
+                    TEST_ASSERT( mbedtls_mps_dispatch( sender ) == 0 );
+                else
+                    TEST_ASSERT( mbedtls_mps_write_pause( sender ) );
+            }
+        }
+
+        while( 1 )
+        {
+            int ret;
+            ret = mbedtls_mps_flush( sender );
+            TEST_ASSERT( ret == 0 || ret == MPS_ERR_WANT_WRITE );
+            if( ret == 0 )
+                break;
+        }
+
+        /* The sender has switched to RECEIVE mode now, hence
+         * will check the retransmission timer to see if it
+         * should retransmit. The mock timer always fires, so
+         * we expect retransmission here. */
+        while( 1 )
+        {
+            int ret;
+            ret = mbedtls_mps_read( sender );
+            if( ret != MPS_ERR_WANT_READ && ret != MPS_ERR_WANT_WRITE )
+            {
+                printf( "UNEXPECTED RET VALUE %d\n", ret );
+            }
+            TEST_ASSERT( ret == MPS_ERR_WANT_READ || ret == MPS_ERR_WANT_WRITE );
+
+            if( ret == MPS_ERR_WANT_READ )
+                break;
+        }
+
+        /*
+         * Apply a permutation to the underlying datagram transport.
+         */
+
+        printf( "PERMUTE\n" );
+
+        if( permute )
+        {
+            layer0_dgram_permute( l0, 5 /* number of transpositions */ );
+        }
+
+        printf( "RECEIVE\n" );
+
+        /* Receive flight */
+        for( iteration=0; iteration < (size_t) num_hs; iteration++ )
+        {
+            while( 1 )
+            {
+                int ret;
+                ret = mbedtls_mps_read( receiver );
+                TEST_ASSERT( ret == MBEDTLS_MPS_MSG_HS ||
+                             ret == MPS_ERR_WANT_READ  ||
+                             ret == MPS_ERR_WANT_WRITE );
+                if( ret == MBEDTLS_MPS_MSG_HS )
+                    break;
+            }
+
+            TEST_ASSERT( mbedtls_mps_read_handshake( receiver, &hs_in ) == 0 );
+
+            TEST_ASSERT( hs_in.length == hs_len + iteration );
+            TEST_ASSERT( hs_in.type   == iteration );
+
+            TEST_ASSERT( mbedtls_reader_get_ext( hs_in.handle, hs_in.length,
+                                                 &tmp, NULL ) == 0 );
+            for( size_t idx=0; idx<(unsigned) ( hs_len + iteration ); idx++ )
+                TEST_ASSERT( tmp[idx] == (unsigned char) idx );
+            TEST_ASSERT( mbedtls_reader_commit_ext( hs_in.handle ) == 0 );
+
+            if( iteration == (unsigned) ( num_hs - 1 ) )
+            {
+                TEST_ASSERT( mbedtls_mps_read_set_flags( receiver,
+                                            MBEDTLS_MPS_FLIGHT_END ) == 0 );
+            }
+
+            TEST_ASSERT( mbedtls_mps_read_consume( receiver ) == 0 );
+        }
+    }
+
+exit:
+
+    /*
+     * Wrapup
+     */
+
+    TEST_ASSERT( mbedtls_mps_free( &cli ) == 0 );
+    TEST_ASSERT( mbedtls_mps_free( &srv ) == 0 );
+    TEST_ASSERT( mps_l3_free( &cli_l3 ) == 0 );
+    TEST_ASSERT( mps_l3_free( &srv_l3 ) == 0 );
+    TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
+    TEST_ASSERT( mps_l2_free( &srv_l2 ) == 0 );
+    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
+    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
+    TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
+    layer0_dgram_free( &s2c_d );
+    layer0_dgram_free( &c2s_d );
+
+    free( cb_ctxs );
 }
 /* END_CASE */

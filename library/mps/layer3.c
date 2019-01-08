@@ -232,6 +232,12 @@ int mps_l3_read( mps_l3 *l3 )
                 res = mps_l2_read_done( l3->conf.l2 );
                 if( res != 0 )
                     RETURN( res );
+
+                /* No records are buffered by Layer 2, so progress depends
+                 * on the availability of the underlying transport.
+                 *
+                 * NOTE: If Layer 2 ever happens to fetch and buffer multiple
+                 *       records, this must be changed. */
                 RETURN( MPS_ERR_WANT_READ );
             }
             else if( res != 0 )
@@ -242,13 +248,18 @@ int mps_l3_read( mps_l3 *l3 )
         case MBEDTLS_MPS_MSG_CCS:
             TRACE( trace_comment, "-> CCS message" );
 
+            /* We don't need to consider #MBEDTLS_ERR_READER_OUT_OF_DATA
+             * here because the CCS content type does not allow empty
+             * records, and hence malicious length-0 records of type CCS
+             * will already have been silently skipped over (DTLS) or
+             * lead to failure (TLS) by Layer 2. */
             res = l3_parse_ccs( in.rd );
             if( res != 0 )
                 RETURN( res );
             break;
 
         case MBEDTLS_MPS_MSG_ACK:
-            /* TODO: Implement */
+            /* DTLS-1.3-TODO: Implement */
             RETURN( MPS_ERR_UNSUPPORTED_FEATURE );
 
         /* 3.2 */
@@ -320,6 +331,13 @@ int mps_l3_read( mps_l3 *l3 )
                         res = mps_l2_read_done( l3->conf.l2 );
                         if( res != 0 )
                             RETURN( res );
+
+                        /* No records are buffered by Layer 2, so progress
+                         * depends on the availability of the underlying
+                         * transport.
+                         *
+                         * NOTE: If Layer 2 ever happens to fetch and buffer
+                         *       multiple records, this must be changed. */
                         RETURN( MPS_ERR_WANT_READ );
                     }
                     else if( res != 0 )
@@ -336,7 +354,7 @@ int mps_l3_read( mps_l3 *l3 )
                         res = mbedtls_reader_init_ext( &l3->in.hs.rd_ext,
                                                        l3->in.hs.len );
                     }
-                    else
+                    else /* MPS_L3_MODE_DATAGRAM */
                     {
                         res = mbedtls_reader_init_ext( &l3->in.hs.rd_ext,
                                                        l3->in.hs.frag_len );
@@ -767,6 +785,7 @@ int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs )
 
     if( l3->conf.mode == MPS_L3_MODE_DATAGRAM )
     {
+        hs->seq_nr      = l3->in.hs.seq_nr;
         hs->frag_offset = l3->in.hs.frag_offset;
         hs->frag_len    = l3->in.hs.frag_len;
     }
@@ -881,9 +900,11 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
 
     TRACE_INIT( "l3_write_handshake" );
     TRACE( trace_comment, "Parameters: " );
-    TRACE( trace_comment, "* Epoch:  %u", (unsigned) out->epoch );
-    TRACE( trace_comment, "* Type:   %u", (unsigned) out->type );
-    TRACE( trace_comment, "* Length: %u", (unsigned) out->len );
+    TRACE( trace_comment, "* Epoch:    %u", (unsigned) out->epoch );
+    TRACE( trace_comment, "* Type:     %u", (unsigned) out->type );
+    TRACE( trace_comment, "* Length:   %u", (unsigned) out->len );
+    TRACE( trace_comment, "* Frag Off: %u", (unsigned) out->frag_offset );
+    TRACE( trace_comment, "* Frag Len: %u", (unsigned) out->frag_len );
 
     /*
      * See the documentation of mps_l3_read() for a description
@@ -897,6 +918,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
           l3->out.hs.type  != out->type  ||
           l3->out.hs.len   != out->len ) )
     {
+        TRACE( trace_error, "Inconsistent parameters on continuation." );
         RETURN( MPS_ERR_INCONSISTENT_ARGS );
     }
 
@@ -959,6 +981,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
          * again. */
         if( res == MBEDTLS_ERR_WRITER_OUT_OF_DATA )
         {
+            TRACE( trace_comment, "Not enough space to write handshake header - flush." );
             /* Remember that we must flush. */
             l3->out.clearing = 1;
             l3->out.state = MBEDTLS_MPS_MSG_NONE;
@@ -1078,8 +1101,12 @@ int mps_l3_write_ccs( mps_l3 *l3, mps_l3_ccs_out *ccs )
     res = mbedtls_writer_get( l3->out.raw_out, 1, &tmp, NULL );
     if( res == MBEDTLS_ERR_WRITER_OUT_OF_DATA )
     {
-        /* If a writer can be opened, at least 1 byte must be available. */
-        RETURN( MPS_ERR_INTERNAL_ERROR );
+        l3->out.clearing = 1;
+        l3->out.state = MBEDTLS_MPS_MSG_NONE;
+        res = mps_l2_write_done( l3->conf.l2 );
+        if( res != 0 )
+            RETURN( res );
+        RETURN( MPS_ERR_WANT_WRITE );
     }
     else if( res != 0 )
         RETURN( res );
@@ -1143,11 +1170,11 @@ int mps_l3_pause_handshake( mps_l3 *l3 )
 }
 
 /* Abort the writing of a handshake message. */
-int mps_l3_abort_handshake( mps_l3 *l3 )
+int mps_l3_write_abort_handshake( mps_l3 *l3 )
 {
     int res;
     size_t committed;
-     TRACE_INIT( "mps_l3_abort_handshake" );
+     TRACE_INIT( "mps_l3_write_abort_handshake" );
 
     if( l3->out.state  != MBEDTLS_MPS_MSG_HS )
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
@@ -1292,6 +1319,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
     if( res != 0 )
         RETURN( res );
 
+    TRACE( trace_comment, "Done" );
     l3->out.state = MBEDTLS_MPS_MSG_NONE;
     RETURN( 0 );
 }
@@ -1446,7 +1474,10 @@ static int l3_prepare_write( mps_l3 *l3, mbedtls_mps_msg_type_t port,
     TRACE( trace_comment, "* Epoch: %u", (unsigned) epoch );
 
     if( l3->out.state != MBEDTLS_MPS_MSG_NONE )
+    {
+        TRACE( trace_error, "Unexpected state" );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+    }
 
 #if !defined(MPS_L3_ALLOW_INTERLEAVED_SENDING)
     if( l3->out.hs.state == MPS_L3_HS_PAUSED && port != MBEDTLS_MPS_MSG_HS )

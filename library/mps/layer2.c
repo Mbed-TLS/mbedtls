@@ -75,7 +75,7 @@ static int l2_epoch_lookup( mps_l2 *ctx,
                             mbedtls_mps_epoch_id epoch_id,
                             mps_l2_epoch_t **epoch );
 
-/* Check some epochs are no longer needed and can be removed. */
+/* Check if some epochs are no longer needed and can be removed. */
 static int l2_epoch_cleanup( mps_l2 *ctx );
 
 /* Check if removal of the read-permission for an epoch
@@ -166,15 +166,6 @@ static int l2_counter_replay_check( mps_l2 *ctx,
     {                                                   \
         *( dst ) = ( (uint8_t*) ( src ) )[0];           \
     } while( 0 )
-
-/*
- * TODO: Decide and document clearly if the family of `dispatch` functions
- *       on the various layers is allowed to do actual transmission to the
- *       underlying transport or not. This is important, because if it doesn't
- *       -- and instead an explicit call to `flush` must be made -- then `dispatch`
- *       may be called in the middle of a function; if it does, then any call
- *       to `dispatch` must be made re-entrant.
- */
 
 static void l2_out_write_version( int major, int minor, int transport,
                        unsigned char ver[2] )
@@ -424,18 +415,26 @@ static int l2_out_prepare_record( mps_l2 *ctx, mbedtls_mps_epoch_id epoch_id )
      * at least a protected record with plaintext length 1. */
     if( hdr_len + pre_expansion + post_expansion >= total_sz )
     {
+        size_t bytes_pending;
         TRACE( trace_comment, "Not enough space for record, need at least %u == ( %u + %u + %u + 1 ) but have only %u",
                (unsigned)( hdr_len + pre_expansion + post_expansion + 1 ),
-               (unsigned) hdr_len, (unsigned) pre_expansion, (unsigned) post_expansion,
+               (unsigned) hdr_len,
+               (unsigned) pre_expansion,
+               (unsigned) post_expansion,
                (unsigned) total_sz );
 
-        /* TODO: Check that L1 has something to send to avoid an infinite loop
-         *       in case L1 is configured with such small buffers that it's
-         *       impossible to send a single record. */
-
         /* Abort the write and remember to flush before the next write. */
-        mps_l1_dispatch( ctx->conf.l1, 0 /* Abort := Dispatch nothing */ );
+        mps_l1_dispatch( ctx->conf.l1, 0 /* Abort := Dispatch nothing */,
+                         &bytes_pending );
         ctx->out.clearing = 1;
+
+        if( bytes_pending == 0 )
+        {
+            /* If Layer 1 has no bytes pending but doesn't have enough space
+             * to allow a record of size 1 to be sent, something must be
+             * ill-configured. */
+            RETURN( MPS_ERR_BUFFER_TOO_SMALL );
+        }
 
         RETURN( MPS_ERR_WANT_WRITE );
     }
@@ -501,7 +500,7 @@ static int l2_out_dispatch_record( mps_l2 *ctx )
                ctx->out.writer.type );
 
         /* dispatch(0) effectively resets the underlying Layer 1. */
-        ret = mps_l1_dispatch( ctx->conf.l1, 0 );
+        ret = mps_l1_dispatch( ctx->conf.l1, 0, NULL );
         if( ret != 0 )
             RETURN( ret );
     }
@@ -668,7 +667,8 @@ static int l2_out_write_protected_record_tls( mps_l2 *ctx, mps_rec *rec )
     MPS_L2_WRITE_UINT16_LE( &rec->buf.data_len, hdr + tls_rec_len_offset );
 
     TRACE( trace_comment, "Write protected record -- DISPATCH" );
-    RETURN( mps_l1_dispatch( ctx->conf.l1, hdr_len + rec->buf.data_len ) );
+    RETURN( mps_l1_dispatch( ctx->conf.l1, hdr_len + rec->buf.data_len,
+                             NULL ) );
 }
 
 static int l2_out_write_protected_record_dtls12( mps_l2 *ctx, mps_rec *rec )
@@ -719,14 +719,15 @@ static int l2_out_write_protected_record_dtls12( mps_l2 *ctx, mps_rec *rec )
     /* Epoch */
     MPS_L2_WRITE_UINT16_LE( &rec->epoch, hdr + dtls_rec_epoch_offset );
 
-    /* Sequence number */
+    /* Record sequence number */
     MPS_L2_WRITE_UINT48_LE( &rec->ctr, hdr + dtls_rec_seq_offset );
 
     /* Write ciphertext length. */
     MPS_L2_WRITE_UINT16_LE( &rec->buf.data_len, hdr + dtls_rec_len_offset );
 
     TRACE( trace_comment, "Write protected record -- DISPATCH" );
-    RETURN( mps_l1_dispatch( ctx->conf.l1, hdr_len + rec->buf.data_len ) );
+    RETURN( mps_l1_dispatch( ctx->conf.l1, hdr_len + rec->buf.data_len,
+                             NULL ) );
 }
 
 int mps_l2_write_flush( mps_l2 *ctx )
@@ -865,7 +866,7 @@ int mps_l2_write_start( mps_l2 *ctx, mps_l2_out *out )
     if( ret != 0 )
         RETURN( ret );
 
-    /* Make sure that no data is queued for dispatching, and that
+    /* Make sure that no data is queueing for dispatching, and that
      * all dispatched data has been delivered by Layer 1 in case
      * a flush has been requested.
      * Please consult the documentation of ::mps_l2 for further information. */
@@ -1142,7 +1143,8 @@ int mps_l2_read_done( mps_l2 *ctx )
          * multiple chunks of data in the same record. */
         if( l2_type_can_be_merged( ctx, ctx->in.active->type ) == 0 )
         {
-            TRACE( trace_error, "Record content type does not allow multiple reads from the same record." );
+            TRACE( trace_error, "Record content type %u does not allow multiple reads from the same record.",
+                   (unsigned) ctx->in.active->type );
             RETURN( MPS_ERR_INVALID_CONTENT_MERGE );
         }
 
@@ -1280,12 +1282,17 @@ int mps_l2_read_start( mps_l2 *ctx, mps_l2_in *in )
          * which have an invalid header field or can't be authenticated. */
         if( ctx->conf.mode == MPS_L2_MODE_DATAGRAM )
         {
-            if( ret == MPS_ERR_INVALID_RECORD ||
+            if( ret == MPS_ERR_REPLAYED_RECORD ||
+                ret == MPS_ERR_INVALID_RECORD  ||
                 ret == MPS_ERR_INVALID_MAC )
             {
                 if( ret == MPS_ERR_INVALID_RECORD )
                 {
                     TRACE( trace_error, "Record with invalid header received -- discard" );
+                }
+                else if( ret == MPS_ERR_REPLAYED_RECORD )
+                {
+                    TRACE( trace_error, "Record caught by replay protection -- discard" );
                 }
                 else /* ret == MPS_ERR_INVALID_MAC */
                 {
@@ -1306,7 +1313,13 @@ int mps_l2_read_start( mps_l2 *ctx, mps_l2_in *in )
                 }
 
                 TRACE( trace_comment, "Signal that the processing should be retried." );
-                RETURN( MPS_ERR_CONTINUE_PROCESSING );
+                /* It is OK to return #MPS_ERR_WANT_READ here because we have
+                 * discarded the entire underlying datagram, hence progress can
+                 * only be made once another datagram is available.
+                 *
+                 * NOTE: If Layer 1 ever buffers more than one datagram,
+                 *       this needs to be reconsidered. */
+                RETURN( MPS_ERR_WANT_READ );
             }
         }
 
@@ -1334,6 +1347,32 @@ int mps_l2_read_start( mps_l2 *ctx, mps_l2_in *in )
         ret = l2_in_update_counter( ctx, rec.epoch, rec.ctr );
         if( ret != 0 )
             RETURN( ret );
+
+        /*
+         * Check if the record is empty, and if yes,
+         * if empty records are allowed for the given content type.
+         */
+
+        if( rec.buf.data_len == 0 )
+        {
+            TRACE( trace_comment, "Record is empty" );
+            if( l2_type_empty_allowed( ctx, rec.type ) == 0 )
+            {
+                if( ctx->conf.mode == MPS_L2_MODE_DATAGRAM )
+                {
+                    /* As for other kinds of invalid records,
+                     * ignore the entire datagram. */
+                    if( ( ret = mps_l1_skip( ctx->conf.l1 ) ) != 0 )
+                        RETURN( ret );
+
+                    /* NOTE: As above, if Layer 1 ever buffers more than
+                     *       one datagram, returning #MPS_ERR_WANT_READ
+                     *       here needs to be reconsidered. */
+                    RETURN( MPS_ERR_WANT_READ );
+                }
+                RETURN( MPS_ERR_INVALID_RECORD );
+            }
+        }
 
         /* 3.1 */
         /* TLS only */
@@ -1363,6 +1402,16 @@ int mps_l2_read_start( mps_l2 *ctx, mps_l2_in *in )
                 if( ret != 0 )
                     RETURN( ret );
 
+                /* It is OK to return #MPS_ERR_WANT_READ here because the
+                 * present code-path is TLS-only, and in TLS we never internally
+                 * buffer more than one record. As we're done with the current
+                 * record, progress can only be made if the underlying transport
+                 * signals more incoming data available, which is precisely what
+                 * #MPS_ERR_WANT_READ indicates.
+                 *
+                 * NOTE: If Layer 1 ever changes to request and buffer more data
+                 *       than what we asked for, this needs to be reconsidered.
+                 */
                 RETURN( MPS_ERR_WANT_READ );
             }
             if( ret != 0 )
@@ -1957,7 +2006,7 @@ static int l2_in_fetch_protected_record_dtls12( mps_l2 *ctx, mps_rec *rec )
     if( ret != 0 )
         RETURN( ret );
 
-    /* Sequence number */
+    /* Record sequence number */
     MPS_L2_READ_UINT48_LE( buf + dtls_rec_seq_offset, &sequence_number );
     if( l2_counter_replay_check( ctx, epoch, sequence_number ) != 0 )
     {

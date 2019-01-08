@@ -599,16 +599,6 @@ int mps_l1_free( mps_l1 *ctx );
   @*/
 int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf, size_t desired );
 
-
-/* TODO: This is currently not used; remember the initial need
- *       for it and potentially remove it if it's unnecessary. */
-
-/*@
- MPS_L1_INV_REQUIRES( ctx )
- MPS_L1_INV_ENSURES( ctx )
-  @*/
-int mps_l1_stash( mps_l1 *ctx );
-
 /**
  * \brief          Mark the previously fetched data as consumed.
  *
@@ -683,6 +673,9 @@ int mps_l1_write( mps_l1 *ctx, unsigned char **buf, size_t *buflen );
  *
  * \param ctx      The pointer to the Layer 1 context.
  * \param len      The amount of data to dispatch.
+ * \param pending  The number of bytes now pending to be delivered,
+ *                 including the bytes just dispatched. May be \c NULL
+ *                 if this information is not required.
  *
  * \return         \c 0 on success.
  * \return         A non-zero error code on failure.
@@ -696,7 +689,7 @@ int mps_l1_write( mps_l1 *ctx, unsigned char **buf, size_t *buflen );
  MPS_L1_INV_REQUIRES( ctx )
  MPS_L1_INV_ENSURES( ctx )
   @*/
-int mps_l1_dispatch( mps_l1 *ctx, size_t len );
+int mps_l1_dispatch( mps_l1 *ctx, size_t len, size_t *pending );
 
 /**
  * \brief          Deliver all previously dispatched data
@@ -725,5 +718,60 @@ int mps_l1_dispatch( mps_l1 *ctx, size_t len );
  MPS_L1_INV_ENSURES( ctx )
   @*/
 int mps_l1_flush( mps_l1 *ctx );
+
+/**
+ * \brief          Check if a read request will necessarily involve
+ *                 interaction with the underlying transport.
+ *
+ *                 If no incoming data is buffered, a read request
+ *                 will necessarily involve the underlying transport,
+ *                 hence it is safe to wait with the call until
+ *                 it is available.
+ *
+ * \param ctx      The pointer to the Layer 1 context.
+ *
+ * \return         \c 0 if incoming data is buffered and the next
+ *                 read request will be attempted to be served from it.
+ * \return         \c -1 if no incoming data is buffered and any read request
+ *                 will necessarily involve the underlying transport.
+ *
+ */
+
+/*@
+ MPS_L1_INV_REQUIRES( ctx )
+ MPS_L1_INV_ENSURES( ctx )
+  @*/
+int mps_l1_read_dependency( mps_l1 *ctx );
+
+/**
+ * \brief          Check if a write request can be potentially be served
+ *                 without interaction with the underlying transport.
+ *
+ * \param ctx      The pointer to the Layer 1 context.
+ *
+ * \note           Layer 1 does never transfer dispatched data to the
+ *                 underlying transport immediately when mps_l1_dispatch()
+ *                 is called. Instead, it transfers it either when the
+ *                 user calls mps_l1_flush(), or on a subsequent call to
+ *                 mps_l1_write() which finds the internal output buffer
+ *                 exceeding an implementation-defined threshold.
+ *                 This function indicates if the latter might happen;
+ *                 if not, Layer 1 is guaranteed to be able to serve another
+ *                 write request via mps_l1_write() without transferring any
+ *                 data to the underlying transport first.
+ *
+ * \return         \c 0 if a write request can potentially be served
+ *                 without involving the underlying transport.
+ * \return         \c -1 if any write request will involve the underlying
+ *                 transport.
+ *
+ */
+
+/*@
+ MPS_L1_INV_REQUIRES( ctx )
+ MPS_L1_INV_ENSURES( ctx )
+  @*/
+int mps_l1_write_dependency( mps_l1 *ctx );
+
 
 #endif /* MBEDTLS_MPS_BUFFER_LAYER_H */

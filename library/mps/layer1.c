@@ -50,18 +50,16 @@ static inline void l1_init_stream( mps_l1_stream *p,
 static inline int l1_free_stream_read( mps_l1_stream_read *p );
 static inline int l1_free_stream_write( mps_l1_stream_write *p );
 static inline int l1_free_stream( mps_l1_stream *p );
-static inline int l1_stash_stream( mps_l1_stream_read *p );
-static inline int l1_fetch_stream( mps_l1_stream_read *p,
-                                   unsigned char **dst,
-                                   size_t len );
 static inline int l1_consume_stream( mps_l1_stream_read *p );
 static inline int l1_flush_stream( mps_l1_stream_write *p );
 static inline int l1_write_stream( mps_l1_stream_write *p,
                                    unsigned char **dst,
                                    size_t *buflen );
 static inline int l1_check_flush_stream( mps_l1_stream_write *p );
+static inline int l1_write_dependency_stream( mps_l1_stream_write *p );
+static inline int l1_read_dependency_stream( mps_l1_stream_write *p );
 static inline int l1_dispatch_stream( mps_l1_stream_write *p,
-                                      size_t len );
+                                      size_t len, size_t *pending );
 
 static inline void l1_init_dgram_read( mps_l1_dgram_read *p,
                                        mps_alloc *ctx,
@@ -77,17 +75,18 @@ static inline int l1_free_dgram_read( mps_l1_dgram_read *p );
 static inline int l1_free_dgram_write( mps_l1_dgram_write *p );
 static inline int l1_free_dgram( mps_l1_dgram *p );
 static inline int l1_ensure_in_dgram( mps_l1_dgram_read *p );
+static inline int l1_write_dependency_dgram( mps_l1_dgram_write *p );
+static inline int l1_read_dependency_dgram( mps_l1_dgram_write *p );
 static inline int l1_fetch_dgram( mps_l1_dgram_read *p,
                                   unsigned char **dst,
                                   size_t len );
-static inline int l1_stash_dgram( mps_l1_dgram_read *p );
 static inline int l1_consume_dgram( mps_l1_dgram_read *p );
 static inline int l1_write_dgram( mps_l1_dgram_write *p,
                                   unsigned char **buf,
                                   size_t *buflen );
-static inline int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len );
+static inline int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len,
+                                     size_t *pending );
 static inline int l1_flush_dgram( mps_l1_dgram_write *p );
-
 
 /*
  * GENERAL NOTE ON CODING STYLE
@@ -222,13 +221,6 @@ int l1_free_stream( mps_l1_stream *p )
     ret1 = l1_free_stream_write( &p->wr );
     if( ret0 != 0 || ret1 != 0 )
         return( MPS_ERR_INTERNAL_ERROR );
-    return( 0 );
-}
-
-static inline
-int l1_stash_stream( mps_l1_stream_read *p )
-{
-    p->bytes_fetched = 0;
     return( 0 );
 }
 
@@ -502,6 +494,23 @@ int l1_write_stream( mps_l1_stream_write *p,
     RETURN( 0 );
 }
 
+static inline int l1_write_dependency_stream( mps_l1_stream_write *p )
+{
+    uint8_t status;
+
+    status = p->status;
+    if( status == MPS_L1_STREAM_STATUS_FLUSH )
+        return( -1 );
+
+    return( 0 );
+}
+
+static inline int l1_read_dependency_stream( mps_l1_stream_write *p )
+{
+    ((void) p);
+    return( -1 );
+}
+
 static inline
 int l1_check_flush_stream( mps_l1_stream_write *p )
 {
@@ -522,7 +531,13 @@ int l1_check_flush_stream( mps_l1_stream_write *p )
 
     /* Several heuristics for flushing are conceivable,
      * the simplest one being to immediately flush once
-     * data is available. */
+     * data is available.
+     *
+     * QUESTION:
+     * Is it more efficient to gather a large buffer of
+     * outgoing data before calling the underlying stream
+     * transport, or should this always be done immediately?
+     */
     if( br > 0 && br >= 4 * bl / 5 )
     {
         TRACE( trace_comment, "L1 check flush -- flush" );
@@ -539,7 +554,7 @@ int l1_check_flush_stream( mps_l1_stream_write *p )
   MPS_L1_STREAM_WRITE_INV_ENSURES(p)
 @*/
 static inline
-int l1_dispatch_stream( mps_l1_stream_write *p, size_t len )
+int l1_dispatch_stream( mps_l1_stream_write *p, size_t len, size_t *pending )
 {
     size_t bl, br, data_remaining;
     uint8_t status = p->status;
@@ -565,6 +580,9 @@ int l1_dispatch_stream( mps_l1_stream_write *p, size_t len )
     p->bytes_ready = br;
     p->status = MPS_L1_STREAM_STATUS_READY;
 
+    if( pending != NULL )
+        *pending = br;
+
     /*
      * NOTE:
      *
@@ -579,6 +597,7 @@ int l1_dispatch_stream( mps_l1_stream_write *p, size_t len )
      * COMMENTS WELCOME
      *
      */
+
     RETURN( l1_check_flush_stream( p ) );
 }
 
@@ -674,12 +693,13 @@ int l1_ensure_in_dgram( mps_l1_dgram_read *p )
     unsigned char *buf;
     mps_l0_recv_t *recv;
     int ret;
+    TRACE_INIT( "l1_ensure_in_dgram" );
 
     /* 1. Ensure that a buffer is available to receive data */
     ret = l1_acquire_if_unset( &p->buf, &p->buf_len,
                                p->alloc, MPS_ALLOC_L1_IN );
     if( ret != 0 )
-        return( ret );
+        RETURN( ret );
 
     buf = p->buf;
     bl = p->buf_len;
@@ -688,17 +708,18 @@ int l1_ensure_in_dgram( mps_l1_dgram_read *p )
     ml = p->msg_len;
     if( ml == 0 )
     {
+        TRACE( trace_comment, "Request datagram from underlying transport." );
         /* Q: Will the underlying transport error out
          *    if the receive buffer is not large enough
          *    to hold the entire datagram? */
         recv = p->recv;
         ret = recv( buf, bl );
         if( ret <= 0 )
-            return( ret );
+            RETURN( ret );
 
 #if( MAX_INT > SIZE_MAX )
         if( ret > (int) SIZE_MAX )
-            return( MPS_ERR_INTERNAL_ERROR );
+            RETURN( MPS_ERR_INTERNAL_ERROR );
 #endif
 
         /* Now we know that we can safely cast ret to size_t. */
@@ -706,12 +727,13 @@ int l1_ensure_in_dgram( mps_l1_dgram_read *p )
 
         /* Double-check that the external Layer 0 obeys its spec. */
         if( ml > bl )
-            return( MPS_ERR_INTERNAL_ERROR );
+            RETURN( MPS_ERR_INTERNAL_ERROR );
 
+        TRACE( trace_comment, "Obtained datagram of size %u", (unsigned) ml );
         p->msg_len = ml;
     }
 
-    return( 0 );
+    RETURN( 0 );
 }
 
 static inline
@@ -732,6 +754,10 @@ int l1_fetch_dgram( mps_l1_dgram_read *p,
     if( ret != 0 )
         RETURN( ret );
 
+    TRACE( trace_comment, "* Datagram length: %u", (unsigned) p->msg_len     );
+    TRACE( trace_comment, "* Window base:     %u", (unsigned) p->window_base );
+    TRACE( trace_comment, "* Window length:   %u", (unsigned) p->window_len  );
+
     wb = p->window_base;
     wl = p->window_len;
     ml = p->msg_len;
@@ -749,7 +775,8 @@ int l1_fetch_dgram( mps_l1_dgram_read *p,
     data_avail = ml - ( wb + wl );
     if( data_need > data_avail )
     {
-        TRACE( trace_error, "Read request goes beyond the datagram boundary." );
+        TRACE( trace_error, "Read request goes beyond the datagram boundary - requested %u, available %u",
+               (unsigned) data_need, (unsigned) data_avail );
         RETURN( MPS_ERR_REQUEST_OUT_OF_BOUNDS );
     }
 
@@ -759,13 +786,6 @@ int l1_fetch_dgram( mps_l1_dgram_read *p,
     p->window_len = wl;
     *dst = buf + wb;
     RETURN( 0 );
-}
-
-static inline
-int l1_stash_dgram( mps_l1_dgram_read *p )
-{
-    p->window_len = 0;
-    return( 0 );
 }
 
 static inline
@@ -821,6 +841,28 @@ int l1_consume_dgram( mps_l1_dgram_read *p )
     RETURN( 0 );
 }
 
+static inline int l1_write_dependency_dgram( mps_l1_dgram_write *p )
+{
+    uint8_t flush;
+
+    flush = p->flush;
+    if( flush )
+        return( -1 );
+
+    return( 0 );
+}
+
+static inline int l1_read_dependency_dgram( mps_l1_dgram_write *p )
+{
+    unsigned char *buf;
+
+    buf = p->buf;
+    if( buf == NULL )
+        return( -1 );
+
+    return( 0 );
+}
+
 static inline
 int l1_write_dgram( mps_l1_dgram_write *p,
                      unsigned char **dst, size_t *dstlen )
@@ -861,7 +903,7 @@ int l1_write_dgram( mps_l1_dgram_write *p,
 }
 
 static inline
-int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len )
+int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len, size_t *pending )
 {
     size_t bl, br;
     unsigned char *buf;
@@ -886,6 +928,9 @@ int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len )
 
     br += len;
     p->bytes_ready = br;
+    if( pending != NULL )
+        *pending = br;
+
     RETURN( l1_check_flush_dgram( p ) );
 }
 
@@ -926,7 +971,7 @@ int l1_flush_dgram( mps_l1_dgram_write *p )
     if( buf == NULL )
     {
         TRACE( trace_error, "No outgoing datagram open." );
-        RETURN( MPS_ERR_INTERNAL_ERROR );
+        RETURN( 0 );
     }
     TRACE( trace_comment, "Datagram size: %u", (unsigned) p->bytes_ready );
 
@@ -963,6 +1008,7 @@ int l1_flush_dgram( mps_l1_dgram_write *p )
     p->buf         = NULL;
     p->buf_len     = 0;
 
+    p->flush = 0;
     RETURN( 0 );
 }
 
@@ -1045,27 +1091,6 @@ int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf, size_t desired )
     }
 }
 
-int mps_l1_stash( mps_l1 *ctx )
-{
-    uint8_t mode;
-
-    if( ctx == NULL )
-        return( MPS_ERR_INVALID_PARAMS );
-
-    mode = ctx->mode;
-    switch( mode )
-    {
-        case MPS_L1_MODE_STREAM:
-            return( l1_stash_stream( &ctx->raw.stream.rd ) );
-
-        case MPS_L1_MODE_DATAGRAM:
-            return( l1_stash_dgram( &ctx->raw.dgram.rd ) );
-
-        default:
-            return( MPS_ERR_INVALID_PARAMS );
-    }
-}
-
 int mps_l1_consume( mps_l1 *ctx )
 {
     uint8_t mode;
@@ -1108,7 +1133,7 @@ int mps_l1_write( mps_l1 *ctx, unsigned char **buf, size_t *buflen )
     }
 }
 
-int mps_l1_dispatch( mps_l1 *ctx, size_t len )
+int mps_l1_dispatch( mps_l1 *ctx, size_t len, size_t *pending )
 {
     uint8_t mode;
 
@@ -1119,10 +1144,10 @@ int mps_l1_dispatch( mps_l1 *ctx, size_t len )
     switch( mode )
     {
         case MPS_L1_MODE_STREAM:
-            return( l1_dispatch_stream( &ctx->raw.stream.wr, len ) );
+            return( l1_dispatch_stream( &ctx->raw.stream.wr, len, pending ) );
 
         case MPS_L1_MODE_DATAGRAM:
-            return( l1_dispatch_dgram( &ctx->raw.dgram.wr, len ) );
+            return( l1_dispatch_dgram( &ctx->raw.dgram.wr, len, pending ) );
 
         default:
             return( MPS_ERR_INVALID_PARAMS );
@@ -1144,6 +1169,48 @@ int mps_l1_flush( mps_l1 *ctx )
 
         case MPS_L1_MODE_DATAGRAM:
             return( l1_flush_dgram( &ctx->raw.dgram.wr ) );
+
+        default:
+            return( MPS_ERR_INVALID_PARAMS );
+    }
+}
+
+int mps_l1_read_dependency( mps_l1 *ctx )
+{
+    uint8_t mode;
+
+    if( ctx == NULL )
+        return( MPS_ERR_INVALID_PARAMS );
+
+    mode = ctx->mode;
+    switch( mode )
+    {
+        case MPS_L1_MODE_STREAM:
+            return( l1_read_dependency_stream( &ctx->raw.stream.wr ) );
+
+        case MPS_L1_MODE_DATAGRAM:
+            return( l1_read_dependency_dgram( &ctx->raw.dgram.wr ) );
+
+        default:
+            return( MPS_ERR_INVALID_PARAMS );
+    }
+}
+
+int mps_l1_write_dependency( mps_l1 *ctx )
+{
+    uint8_t mode;
+
+    if( ctx == NULL )
+        return( MPS_ERR_INVALID_PARAMS );
+
+    mode = ctx->mode;
+    switch( mode )
+    {
+        case MPS_L1_MODE_STREAM:
+            return( l1_write_dependency_stream( &ctx->raw.stream.wr ) );
+
+        case MPS_L1_MODE_DATAGRAM:
+            return( l1_write_dependency_dgram( &ctx->raw.dgram.wr ) );
 
         default:
             return( MPS_ERR_INVALID_PARAMS );

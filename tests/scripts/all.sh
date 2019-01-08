@@ -91,7 +91,6 @@ pre_initialize_variables () {
     CONFIG_H='include/mbedtls/config.h'
     CONFIG_BAK="$CONFIG_H.bak"
 
-    ALL_EXCEPT=0
     MEMORY=0
     FORCE=0
     KEEP_GOING=0
@@ -137,7 +136,7 @@ is_component_excluded()
     # Is $1 excluded via $COMPONENTS (a space-separated list of wildcard
     # patterns)?
     set -f
-    for pattern in $COMPONENTS; do
+    for pattern in $COMMAND_LINE_COMPONENTS; do
         set +f
         case ${1#component_} in $pattern) return 0;; esac
     done
@@ -269,14 +268,15 @@ check_tools()
 }
 
 pre_parse_command_line () {
-    COMPONENTS=
+    COMMAND_LINE_COMPONENTS=
+    all_except=
 
     while [ $# -gt 0 ]; do
         case "$1" in
             --armcc) RUN_ARMCC=1;;
             --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
             --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
-            --except) ALL_EXCEPT=1;;
+            --except) all_except=1;;
             --force|-f) FORCE=1;;
             --gnutls-cli) shift; GNUTLS_CLI="$1";;
             --gnutls-legacy-cli) shift; GNUTLS_LEGACY_CLI="$1";;
@@ -302,24 +302,28 @@ pre_parse_command_line () {
                 echo >&2 "Run $0 --help for usage."
                 exit 120
                 ;;
-            *)
-                COMPONENTS="$COMPONENTS $1";;
+            *) COMMAND_LINE_COMPONENTS="$COMMAND_LINE_COMPONENTS $1";;
         esac
         shift
     done
 
-    if [ $ALL_EXCEPT -ne 0 ]; then
+    if [ -z "$COMMAND_LINE_COMPONENTS" ]; then
+        all_except=1
+    fi
+
+    # Build the list of components to run.
+    if [ -n "$all_except" ]; then
         RUN_COMPONENTS=
         for component in $SUPPORTED_COMPONENTS; do
             if ! is_component_excluded "$component"; then
                 RUN_COMPONENTS="$RUN_COMPONENTS $component"
             fi
         done
-    elif [ -z "$COMPONENTS" ]; then
-        RUN_COMPONENTS="$ALL_COMPONENTS"
     else
-        RUN_COMPONENTS="$COMPONENTS"
+        RUN_COMPONENTS="$COMMAND_LINE_COMPONENTS"
     fi
+
+    unset all_except
 }
 
 pre_check_git () {
@@ -1031,7 +1035,7 @@ pre_print_configuration
 pre_check_tools
 cleanup
 
-# Run all the test components.
+# Run the requested tests.
 for component in $RUN_COMPONENTS; do
     run_component "component_$component"
 done

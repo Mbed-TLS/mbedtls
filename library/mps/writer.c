@@ -473,6 +473,7 @@ int mbedtls_writer_commit_partial_ext( mbedtls_writer_ext *wr,
                                        mbedtls_mps_size_t omit )
 {
     int ret;
+    mbedtls_mps_size_t ofs_fetch, ofs_commit;
     TRACE_INIT( "writer_commit_partial_ext, omit %u",
                 (unsigned) omit );
 
@@ -482,12 +483,26 @@ int mbedtls_writer_commit_partial_ext( mbedtls_writer_ext *wr,
         RETURN( MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
     }
 
+    ofs_fetch  = wr->ofs_fetch;
+    ofs_commit = wr->ofs_commit;
+
+    if( omit > ofs_fetch - ofs_commit )
+    {
+        TRACE( trace_error, "Try to omit %u bytes from commit, but only %u are uncommitted.",
+               (unsigned) omit, (unsigned)( ofs_fetch - ofs_commit ) );
+        RETURN( MBEDTLS_ERR_WRITER_BOUNDS_VIOLATION );
+    }
+
+    ofs_commit = ofs_fetch - omit;
+
     if( wr->passthrough == MBEDTLS_WRITER_EXT_PASS )
     {
         TRACE( trace_comment, "Forward commit to underlying writer" );
         ret = mbedtls_writer_commit_partial( wr->wr, omit );
         if( ret != 0 )
             RETURN( ret );
+
+        ofs_fetch = ofs_commit;
     }
 
     if( wr->passthrough == MBEDTLS_WRITER_EXT_HOLD &&
@@ -497,8 +512,8 @@ int mbedtls_writer_commit_partial_ext( mbedtls_writer_ext *wr,
         wr->passthrough = MBEDTLS_WRITER_EXT_BLOCK;
     }
 
-    wr->ofs_fetch  -= omit;
-    wr->ofs_commit = wr->ofs_fetch;
+    wr->ofs_fetch  = ofs_fetch;
+    wr->ofs_commit = ofs_commit;
     RETURN( 0 );
 }
 

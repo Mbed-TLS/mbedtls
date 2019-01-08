@@ -1,5 +1,12 @@
 mbed TLS ChangeLog (Sorted per branch, date)
 
+= mbed TLS x.x.x branch released xxxx-xx-xx
+
+Changes
+   * The experimental build option USE_CRYPTO_SUBMODULE introduced in 2.15.0
+     is removed as an option, as Mbed Crypto is now always built from the
+     submodule.
+
 = mbed TLS 2.15.1 branch released 2018-11-30
 
 Changes

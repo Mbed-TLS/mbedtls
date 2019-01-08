@@ -21,6 +21,20 @@ The main systems used for development are CMake and GNU Make. Those systems are 
 
 The Make and CMake build systems create three libraries: libmbedcrypto, libmbedx509, and libmbedtls. Note that libmbedtls depends on libmbedx509 and libmbedcrypto, and libmbedx509 depends on libmbedcrypto. As a result, some linkers will expect flags to be in a specific order, for example the GNU linker wants `-lmbedtls -lmbedx509 -lmbedcrypto`. Also, when loading shared libraries using dlopen(), you'll need to load libmbedcrypto first, then libmbedx509, before you can load libmbedtls.
 
+### Common steps when building from git
+
+The library Mbed Crypto (libmbedcrypto) is now built from a git submodule.
+When cloning the Mbed TLS repo, please make sure to use the `--recursive`
+option:
+
+        git clone --recursive https://github.com/ARMmbed/mbedtls
+
+Alternatively, if you have an existing git clone, you can initialize and
+update the submodule using:
+
+        git submodule init crypto
+        git submodule update crypto
+
 ### Make
 
 We require GNU Make. To build the library and the sample programs, GNU Make and a C compiler are sufficient. Some of the more advanced build targets require some Unix/Linux tools.
@@ -75,7 +89,7 @@ If you disabled the test suites, but kept the programs enabled, you can still ru
 
 To configure CMake for building shared libraries, use:
 
-    cmake -DUSE_SHARED_MBEDTLS_LIBRARY=On /path/to/mbedtls_source
+    cmake /path/to/mbedtls_source
 
 There are many different build modes available within the CMake buildsystem. Most of them are available for gcc and clang, though some are compiler-specific:
 
@@ -157,43 +171,6 @@ Configurations
 --------------
 
 We provide some non-standard configurations focused on specific use cases in the `configs/` directory. You can read more about those in `configs/README.txt`
-
-Using Mbed Crypto as a submodule
---------------------------------
-
-As an experimental feature, you can use Mbed Crypto as the source of the cryptography implementation, with Mbed TLS providing the X.509 and TLS parts of the library. Mbed Crypto is currently provided for evaluation only and should not be used in production. At this point, you should only use this option if you want to try out the experimental PSA Crypto API.
-
-To enable the use of Mbed Crypto as a submodule:
-
-1. Check out the `crypto` submodule and update it.
-
-        git submodule init crypto
-        git submodule update crypto
-
-2. (Optional) TO enable the PSA Crypto API, set the build configuration option `MBEDTLS_PSA_CRYPTO_C`. You can either edit `include/mbedtls/config.h` directly or use the configuration script:
-
-        scripts/config.pl set MBEDTLS_PSA_CRYPTO_C
-
-3. Activate the build option `USE_CRYPTO_SUBMODULE`. With GNU make, set `USE_CRYPTO_SUBMODULE=1` on each make invocation:
-
-        make USE_CRYPTO_SUBMODULE=1
-        make USE_CRYPTO_SUBMODULE=1 test
-        tests/ssl-opt.sh -f Default
-
-   Note that you need to pass `USE_CRYPTO_SUBMODULE=1` even to `make clean`. For example, if you change `config.h`, run this before rebuilding:
-
-        make USE_CRYPTO_SUBMODULE=1 clean
-
-   With CMake, create a build directory (recommended) and pass `-DUSE_CRYPTO_SUBMODULE=1` to `cmake`:
-
-        mkdir build
-        cd build
-        cmake -DUSE_CRYPTO_SUBMODULE=1 ..
-        make
-        make test
-        tests/ssl-opt.sh -f Default
-
-Note that this does not enable the PSA-specific tests and utility programs. To use these programs, use Mbed Crypto as a standalone project.
 
 Porting Mbed TLS
 ----------------

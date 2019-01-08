@@ -987,6 +987,8 @@ int l1_flush_dgram( mps_l1_dgram_write *p )
          * Fail with a fatal internal error if this spec is not obeyed. */
         if( ret == 0 )
             ret = MPS_ERR_INTERNAL_ERROR;
+
+        RETURN( ret );
     }
 
 #if( MAX_INT > SIZE_MAX )

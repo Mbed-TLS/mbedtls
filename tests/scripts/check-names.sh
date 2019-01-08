@@ -71,8 +71,6 @@ NL='
 sed -n 's/MBED..._[A-Z0-9_]*/\'"$NL"'&\'"$NL"/gp \
     $HEADERS library/*.c \
     | grep MBEDTLS | sort -u > _MBEDTLS_XXX
-
-
 TYPOS=$( diff _caps _MBEDTLS_XXX | sed -n 's/^> //p' \
             | egrep -v 'XXX|__|_$|^MBEDTLS_.*CONFIG_FILE$' || true )
 rm _MBEDTLS_XXX _caps

@@ -712,8 +712,8 @@ component_test_full_cmake_clang () {
     msg "test: ssl-opt.sh default, ECJPAKE, SSL async (full config)" # ~ 1s
     if_build_succeeded tests/ssl-opt.sh -f 'Default\|ECJPAKE\|SSL async private'
 
-    msg "test: compat.sh RC4, DES & NULL (full config)" # ~ 2 min
-    if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
+    msg "test: compat.sh RC4, DES, 3DES & NULL (full config)" # ~ 2 min
+    if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e 'DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
 
     msg "test: compat.sh ARIA + ChachaPoly"
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'

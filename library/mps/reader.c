@@ -157,9 +157,14 @@ int mbedtls_reader_get( mbedtls_reader *rd, size_t desired,
     /* Check that the reader is in consuming mode. */
     frag = rd->frag;
     if( frag == NULL )
+    {
+        TRACE( trace_error, "The reader is not in consuming mode." );
         RETURN( MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
+    }
 
-    /* Use synthetic fragment offset 0 if no accumulator is used. */
+    /* The fragment offset indicates the offset of the fragment
+     * from the accmulator, if the latter is present. Use a offset
+     * of \c 0 if no accumulator is used. */
     acc = rd->acc;
     if( acc == NULL )
         fo = 0;
@@ -170,11 +175,11 @@ int mbedtls_reader_get( mbedtls_reader *rd, size_t desired,
             (unsigned) fo, (unsigned) rd->end,
             acc == NULL ? -1 : (int) rd->acc_avail );
 
+    /* Check if we're still serving from the accumulator. */
     end = rd->end;
     if( end < fo )
     {
         TRACE( trace_comment, "Serve the request from the accumulator" );
-        /* Serve the request from the accumulator */
         if( fo - end < desired )
         {
             /* Illustration of supported and unsupported cases:
@@ -270,14 +275,16 @@ int mbedtls_reader_get( mbedtls_reader *rd, size_t desired,
         RETURN( 0 );
     }
 
+    /* Attempt to serve the request from the current fragment */
     TRACE( trace_comment, "Serve the request from the current fragment." );
 
-    /* Attempt to serve the request from the current fragment */
     fl = rd->frag_len;
-    frag_fetched = end - fo;
+    frag_fetched = end - fo; /* The amount of data from the current fragment
+                              * that has already been passed to the user. */
     frag += frag_fetched;
-    frag_remaining = fl - frag_fetched;
+    frag_remaining = fl - frag_fetched; /* Remaining data in fragment */
 
+    /* Check if we can serve the read request from the fragment. */
     if( frag_remaining < desired )
     {
         TRACE( trace_comment, "There's not enough data in the current fragment to serve the request." );
@@ -294,6 +301,8 @@ int mbedtls_reader_get( mbedtls_reader *rd, size_t desired,
         desired = frag_remaining;
     }
 
+    /* There's enough data in the current fragment to serve the
+     * (potentially modified) read request. */
     *buffer = frag;
     if( buflen != NULL )
         *buflen = desired;
@@ -519,10 +528,14 @@ int mbedtls_reader_get_ext( mbedtls_reader_ext *rd_ext, size_t desired,
         RETURN( MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
     }
 
+    TRACE( trace_comment, "* Fetch offset: %u", (unsigned) rd_ext->ofs_fetch );
+    TRACE( trace_comment, "* Group end:    %u",
+           (unsigned) rd_ext->grp_end[rd_ext->cur_grp] );
     logic_avail = rd_ext->grp_end[rd_ext->cur_grp] - rd_ext->ofs_fetch;
     if( desired > logic_avail )
     {
-        TRACE( trace_comment, "Requesting more data than logically available" );
+        TRACE( trace_comment, "Requesting more data (%u) than logically available (%u)",
+               (unsigned) desired, (unsigned) logic_avail );
         RETURN( MBEDTLS_ERR_READER_BOUNDS_VIOLATION );
     }
 

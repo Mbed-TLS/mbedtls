@@ -5,6 +5,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Fix a compilation issue with mbedtls_ecp_restart_ctx not being defined
      when MBEDTLS_ECP_ALT is defined. Reported by jwhui. Fixes #2242.
+   * Run the AD too long test only if MBEDTLS_CCM_ALT is not defined.
+     Raised as a comment in #1996.
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

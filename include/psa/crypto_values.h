@@ -1104,6 +1104,15 @@
  *
  * For example, `PSA_ALG_HKDF(PSA_ALG_SHA256)` is HKDF using HMAC-SHA-256.
  *
+ * This key derivation algorithm uses the following inputs:
+ * - #PSA_KDF_STEP_SALT is the salt used in the "extract" step.
+ *   It is optional; if omitted, the derivation uses an empty salt.
+ * - #PSA_KDF_STEP_SECRET is the secret key used in the "extract" step.
+ * - #PSA_KDF_STEP_INFO is the info string used in the "expand" step.
+ * You must pass #PSA_KDF_STEP_SALT before #PSA_KDF_STEP_SECRET.
+ * You may pass #PSA_KDF_STEP_INFO at any time after steup and before
+ * starting to generate output.
+ *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
  *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
  *
@@ -1421,11 +1430,44 @@
  * @{
  */
 
+/** A secret input for key derivation.
+ *
+ * This must be a key of type #PSA_KEY_TYPE_DERIVE.
+ */
 #define PSA_KDF_STEP_SECRET              ((psa_key_derivation_step_t)0x0101)
+
+/** A label for key derivation.
+ *
+ * This must be a direct input.
+ */
 #define PSA_KDF_STEP_LABEL               ((psa_key_derivation_step_t)0x0201)
+
+/** A salt for key derivation.
+ *
+ * This must be a direct input.
+ */
 #define PSA_KDF_STEP_SALT                ((psa_key_derivation_step_t)0x0202)
+
+/** An information string for key derivation.
+ *
+ * This must be a direct input.
+ */
 #define PSA_KDF_STEP_INFO                ((psa_key_derivation_step_t)0x0203)
-#define PSA_KDF_STEP_PEER_KEY            ((psa_key_derivation_step_t)0x0301)
+
+/** The private key in a key agreement.
+ *
+ * This must be a key pair of the appropriate type for the key agreement
+ * algorithm.
+ */
+#define PSA_KDF_STEP_OUR_KEY             ((psa_key_derivation_step_t)0x0301)
+
+/** A label for key derivation.
+ *
+ * This may be a key pair of the appropriate type for the key agreement
+ * algorithm, or a direct input which is parsed as a public key in the
+ * same format as psa_import_key().
+ */
+#define PSA_KDF_STEP_PEER_KEY            ((psa_key_derivation_step_t)0x0302)
 
 /**@}*/
 

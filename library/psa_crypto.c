@@ -4128,10 +4128,11 @@ static psa_status_t psa_hkdf_input( psa_hkdf_generator_t *hkdf,
 }
 #endif /* MBEDTLS_MD_C */
 
-psa_status_t psa_key_derivation_input_bytes( psa_crypto_generator_t *generator,
-                                             psa_key_derivation_step_t step,
-                                             const uint8_t *data,
-                                             size_t data_length )
+static psa_status_t psa_key_derivation_input_raw(
+    psa_crypto_generator_t *generator,
+    psa_key_derivation_step_t step,
+    const uint8_t *data,
+    size_t data_length )
 {
     psa_status_t status;
 
@@ -4165,6 +4166,23 @@ psa_status_t psa_key_derivation_input_bytes( psa_crypto_generator_t *generator,
     return( status );
 }
 
+psa_status_t psa_key_derivation_input_bytes( psa_crypto_generator_t *generator,
+                                             psa_key_derivation_step_t step,
+                                             const uint8_t *data,
+                                             size_t data_length )
+{
+    switch( step )
+    {
+        case PSA_KDF_STEP_LABEL:
+        case PSA_KDF_STEP_SALT:
+        case PSA_KDF_STEP_INFO:
+            return( psa_key_derivation_input_raw( generator, step,
+                                                  data, data_length ) );
+        default:
+            return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+}
+
 psa_status_t psa_key_derivation_input_key( psa_crypto_generator_t *generator,
                                            psa_key_derivation_step_t step,
                                            psa_key_handle_t handle )
@@ -4176,18 +4194,21 @@ psa_status_t psa_key_derivation_input_key( psa_crypto_generator_t *generator,
                                     generator->alg );
     if( status != PSA_SUCCESS )
         return( status );
+    // TODO: for a key agreement algorithm, allow the corresponding key type and step
     if( slot->type != PSA_KEY_TYPE_DERIVE )
         return( PSA_ERROR_INVALID_ARGUMENT );
     /* Don't allow a key to be used as an input that is usually public.
      * This is debatable. It's ok from a cryptographic perspective to
      * use secret material as an input that is usually public. However
-     * this is usually not intended, so be conservative at least for now. */
+     * the material should be dedicated to a particular input step,
+     * otherwise this may allow the key to be used in an unintended way
+     * and leak values derived from the key. So be conservative. */
     if( step != PSA_KDF_STEP_SECRET )
         return( PSA_ERROR_INVALID_ARGUMENT );
-    return( psa_key_derivation_input_bytes( generator,
-                                            step,
-                                            slot->data.raw.data,
-                                            slot->data.raw.bytes ) );
+    return( psa_key_derivation_input_raw( generator,
+                                          step,
+                                          slot->data.raw.data,
+                                          slot->data.raw.bytes ) );
 }
 
 

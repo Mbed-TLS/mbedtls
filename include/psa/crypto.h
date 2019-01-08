@@ -2147,29 +2147,21 @@ psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
 psa_status_t psa_key_derivation_setup(psa_crypto_generator_t *generator,
                                       psa_algorithm_t alg);
 
-/** Provide an input for key derivation.
+/** Provide an input for key derivation or key agreement.
  *
- * Which inputs are required and in what order depends on the type of
- * key derivation algorithm.
+ * Which inputs are required and in what order depends on the algorithm.
+ * Refer to the documentation of each key derivation or key agreement
+ * algorithm for information.
  *
- * - For HKDF (#PSA_ALG_HKDF), the following inputs are supported:
- *     - #PSA_KDF_STEP_SALT is the salt used in the "extract" step.
- *       It is optional; if omitted, the derivation uses an empty salt.
- *     - #PSA_KDF_STEP_SECRET is the secret key used in the "extract" step.
- *       It may be a key of type #PSA_KEY_TYPE_DERIVE with the
- *       usage flag #PSA_KEY_USAGE_DERIVE.
- *     - #PSA_KDF_STEP_INFO is the info string used in the "expand" step.
- *   You must pass #PSA_KDF_STEP_SALT before #PSA_KDF_STEP_SECRET.
- *   #PSA_KDF_STEP_INFO may be passed at any time before starting to
- *   generate output.
+ * This function passes direct inputs. Some inputs must be passed as keys
+ * using psa_key_derivation_input_key() instead of this function. Refer to
+ * the documentation of individual step types for information.
  *
  * \param[in,out] generator       The generator object to use. It must
  *                                have been set up with
  *                                psa_key_derivation_setup() and must not
  *                                have produced any output yet.
  * \param step                    Which step the input data is for.
- *                                See above for the permitted values
- *                                depending on the algorithm.
  * \param[in] data                Input data to use.
  * \param data_length             Size of the \p data buffer in bytes.
  *
@@ -2177,6 +2169,8 @@ psa_status_t psa_key_derivation_setup(psa_crypto_generator_t *generator,
  *         Success.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \c step is not compatible with the generator's algorithm.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c step does not allow direct inputs.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -2195,17 +2189,23 @@ psa_status_t psa_key_derivation_input_bytes(psa_crypto_generator_t *generator,
 
 /** Provide an input for key derivation in the form of a key.
  *
- * See the descrition of psa_key_derivation_input_bytes() regarding
- * what inputs are supported and in what order. An input step may only be
- * a key if the descrition of psa_key_derivation_input_bytes() explicitly
- * allows it.
+ * Which inputs are required and in what order depends on the algorithm.
+ * Refer to the documentation of each key derivation or key agreement
+ * algorithm for information.
+ *
+ * This function passes key inputs. Some inputs must be passed as keys
+ * of the appropriate type using this function, while others must be
+ * passed as direct inputs using psa_key_derivation_input_bytes(). Refer to
+ * the documentation of individual step types for information.
  *
  * \param[in,out] generator       The generator object to use. It must
  *                                have been set up with
  *                                psa_key_derivation_setup() and must not
  *                                have produced any output yet.
  * \param step                    Which step the input data is for.
- * \param handle                  Handle to the secret key.
+ * \param handle                  Handle to the key. It must have an
+ *                                appropriate type for \p step and must
+ *                                allow the usage #PSA_KEY_USAGE_DERIVE.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -2214,6 +2214,8 @@ psa_status_t psa_key_derivation_input_bytes(psa_crypto_generator_t *generator,
  * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         \c step is not compatible with the generator's algorithm.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c step does not allow key inputs.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE

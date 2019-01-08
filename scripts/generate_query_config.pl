@@ -29,6 +29,7 @@ my $query_config_file = "./programs/ssl/query_config.c";
 # throw errors.
 my @excluded = qw(
 MBEDTLS_SSL_CIPHERSUITES
+MBEDTLS_PARAM_FAILED
 );
 my $excluded_re = join '|', @excluded;
 

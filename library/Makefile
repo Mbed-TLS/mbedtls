@@ -167,6 +167,11 @@ OBJS_TLS= \
 	  mps/reader.o \
 	  mps/writer.o \
 	  mps/trace.o  \
+	  mps/layer1.o \
+	  mps/layer2.o \
+	  mps/layer3.o \
+	  mps/mps.o \
+	  mps/allocator.o \
 	  # This line is intentionally left blank
 
 .SILENT:

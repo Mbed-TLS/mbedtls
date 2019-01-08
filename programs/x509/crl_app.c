@@ -31,7 +31,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define mbedtls_printf          printf
-#define mbedtls_exit            exit
 #define mbedtls_fprintf         fprintf
 #define mbedtls_exit            exit
 #define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
@@ -64,7 +63,6 @@ int main( void )
     "\n"
 
 #if defined(MBEDTLS_CHECK_PARAMS)
-#define mbedtls_exit            exit
 void mbedtls_param_failed( const char *failure_condition,
                            const char *file,
                            int line )

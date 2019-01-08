@@ -94,6 +94,7 @@ pre_initialize_variables () {
     CONFIG_H='include/mbedtls/config.h'
     CONFIG_BAK="$CONFIG_H.bak"
 
+    COMPONENTS=
     MEMORY=0
     FORCE=0
     KEEP_GOING=0
@@ -126,8 +127,12 @@ pre_initialize_variables () {
 usage()
 {
     cat <<EOF
-Usage: $0 [OPTION]...
-  -h|--help             Print this help.
+Usage: $0 [OPTION]... [COMPONENT]...
+Run mbedtls release validation tests.
+By default, run all tests. With one or more COMPONENT, run only those.
+
+Special options:
+  -h|--help             Print this help and exit.
 
 General options:
   -f|--force            Force the tests to overwrite any modified files.
@@ -259,14 +264,20 @@ pre_parse_command_line () {
             --release-test|-r) SEED=1;;
             --seed|-s) shift; SEED="$1";;
             --yotta) YOTTA=1;;
-            *)
+            -*)
                 echo >&2 "Unknown option: $1"
                 echo >&2 "Run $0 --help for usage."
                 exit 120
                 ;;
+            *)
+                COMPONENTS="$COMPONENTS $1";;
         esac
         shift
     done
+
+    if [ -z "$COMPONENTS" ]; then
+        COMPONENTS="$ALL_COMPONENTS"
+    fi
 }
 
 pre_check_git () {
@@ -999,7 +1010,7 @@ pre_check_tools
 cleanup
 
 # Run all the test components.
-for component in $ALL_COMPONENTS; do
+for component in $COMPONENTS; do
     run_component "component_$component"
 done
 

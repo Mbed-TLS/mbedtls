@@ -30,8 +30,8 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "bignum.h"
-#include "ecp.h"
+#include "../../crypto/include/mbedtls/bignum.h"
+#include "../../crypto/include/mbedtls/ecp.h"
 
 #include "ssl_ciphersuites.h"
 
@@ -41,11 +41,11 @@
 #endif
 
 #if defined(MBEDTLS_DHM_C)
-#include "dhm.h"
+#include "../../crypto/include/mbedtls/dhm.h"
 #endif
 
 #if defined(MBEDTLS_ECDH_C)
-#include "ecdh.h"
+#include "../../crypto/include/mbedtls/ecdh.h"
 #endif
 
 #if defined(MBEDTLS_ZLIB_SUPPORT)
@@ -62,7 +62,7 @@
 #endif
 
 #if defined(MBEDTLS_HAVE_TIME)
-#include "platform_time.h"
+#include "../../crypto/include/mbedtls/platform_time.h"
 #endif
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)

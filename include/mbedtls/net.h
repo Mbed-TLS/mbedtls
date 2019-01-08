@@ -25,7 +25,7 @@
  */
 
 #if !defined(MBEDTLS_DEPRECATED_REMOVED)
-#include "net_sockets.h"
+#include "../../crypto/include/mbedtls/net_sockets.h"
 #if defined(MBEDTLS_DEPRECATED_WARNING)
 #warning "Deprecated header file: Superseded by mbedtls/net_sockets.h"
 #endif /* MBEDTLS_DEPRECATED_WARNING */

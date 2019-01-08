@@ -31,10 +31,10 @@
  */
 
 #include "ssl.h"
-#include "cipher.h"
+#include "../../crypto/include/mbedtls/cipher.h"
 
 #if defined(MBEDTLS_THREADING_C)
-#include "threading.h"
+#include "../../crypto/include/mbedtls/threading.h"
 #endif
 
 #ifdef __cplusplus

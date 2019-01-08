@@ -30,11 +30,11 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
-#include "asn1.h"
-#include "pk.h"
+#include "../../crypto/include/mbedtls/asn1.h"
+#include "../../crypto/include/mbedtls/pk.h"
 
 #if defined(MBEDTLS_RSA_C)
-#include "rsa.h"
+#include "../../crypto/include/mbedtls/rsa.h"
 #endif
 
 /**

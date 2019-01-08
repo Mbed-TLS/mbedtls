@@ -25,26 +25,26 @@
 #define MBEDTLS_SSL_INTERNAL_H
 
 #include "ssl.h"
-#include "cipher.h"
+#include "../../crypto/include/mbedtls/cipher.h"
 
 #if defined(MBEDTLS_MD5_C)
-#include "md5.h"
+#include "../../crypto/include/mbedtls/md5.h"
 #endif
 
 #if defined(MBEDTLS_SHA1_C)
-#include "sha1.h"
+#include "../../crypto/include/mbedtls/sha1.h"
 #endif
 
 #if defined(MBEDTLS_SHA256_C)
-#include "sha256.h"
+#include "../../crypto/include/mbedtls/sha256.h"
 #endif
 
 #if defined(MBEDTLS_SHA512_C)
-#include "sha512.h"
+#include "../../crypto/include/mbedtls/sha512.h"
 #endif
 
 #if defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
-#include "ecjpake.h"
+#include "../../crypto/include/mbedtls/ecjpake.h"
 #endif
 
 #if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && \

@@ -67,9 +67,6 @@ int mbedtls_writer_feed( mbedtls_writer *wr,
         RETURN( MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
     }
 
-    if( buf == NULL )
-        RETURN( MBEDTLS_ERR_WRITER_INVALID_ARG );
-
     /* Check if there is data in the queue pending to be dispatched. */
     queue = wr->queue;
     copy_from_queue = 0;

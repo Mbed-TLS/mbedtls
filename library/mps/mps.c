@@ -34,13 +34,6 @@
 #define mbedtls_free      free
 #endif
 
-#define MPS_L4_WRITE_UINT16_LE( dst, src )                              \
-    do                                                                  \
-    {                                                                   \
-        *( (uint8_t*) ( dst ) + 0 ) = ( *( src ) >>  8 ) & 0xFF;        \
-        *( (uint8_t*) ( dst ) + 1 ) = ( *( src ) >>  0 ) & 0xFF;        \
-    } while( 0 )
-
 /* Debugging related */
 static int trace_id = TRACE_BIT_LAYER_4;
 
@@ -2478,7 +2471,7 @@ static int mps_dtls_frag_out_start( mbedtls_mps *mps,
 
     /* Add the sequence number to the handshake handle, exposed
      * opaquely only to allow it to enter checksum computations. */
-    MPS_L4_WRITE_UINT16_LE( hs->add, &seq_nr );
+    MPS_WRITE_UINT16_LE( hs->add, &seq_nr );
     hs->addlen = sizeof( uint16_t );
 
     mps->dtls.hs.state = MPS_HS_ACTIVE;

@@ -292,9 +292,12 @@ int mbedtls_reader_get( mbedtls_reader *rd, size_t desired,
          * so either just RETURN what we have or fail. */
         if( buflen == NULL )
         {
-            rd->pending = desired - frag_remaining;
-            TRACE( trace_comment, "Remember to collect %u bytes before re-opening",
-                   (unsigned) rd->pending );
+            if( frag_remaining > 0 )
+            {
+                rd->pending = desired - frag_remaining;
+                TRACE( trace_comment, "Remember to collect %u bytes before re-opening",
+                       (unsigned) rd->pending );
+            }
             RETURN( MBEDTLS_ERR_READER_OUT_OF_DATA );
         }
 

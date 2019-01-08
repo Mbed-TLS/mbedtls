@@ -110,8 +110,8 @@ static int mps_handle_pending_alert( mbedtls_mps *mps );
  *
  *   - #MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY
  *     In this mode, the writer operates on the queue only. Gradual copying
- *     and dispatching to fragment buffers from Layer 3 happens only
- *     after message completion.
+ *     and dispatching to fragment buffers from Layer 3 happens only after
+ *     the message has been fully written to the queue.
  *     This mode is used to write messages that need to be backed up for
  *     retransmission; in this case, the backup buffer functions as the
  *     queue, so that the user writing the message directly writes it
@@ -1703,10 +1703,10 @@ static int mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
      *   However, if a fragmented message arrives, it's not
      *   clear how to behave -- concretely, imagine the following DTLS
      *   scenario: After the initial handshake has completed, the
-     *   client sends multiple ClientHello fragments the server in order
+     *   client sends multiple ClientHello fragments to the server in order
      *   to start a renegotiation, but only some reach the server.
      *   At the same time, the server attempts to start a renegotiation
-     *   by sending a HelloRequest. Two options to deal with that:
+     *   by sending a HelloRequest. There are options to deal with that:
      *   1 MPS switches to Receiving state silently as soon as it
      *     receives the first ClientHello fragment(s). Consequently,
      *     it blocks the server's attempt to send the HelloRequest
@@ -2166,12 +2166,12 @@ static int mps_out_flight_msg_start( mbedtls_mps *mps,
         MPS_CHK( MBEDTLS_ERR_MPS_COUNTER_WRAP );
     }
 
-    hdl = &mps->dtls.outgoing.backup[ cur_flight_len ];
+    hdl = &mps->dtls.outgoing.backup[ cur_flight_len++ ];
     hdl->seq_nr = cur_seq_nr;
 
     MPS_CHK( mps_retransmission_handle_init( hdl ) );
 
-    mps->dtls.outgoing.flight_len++;
+    mps->dtls.outgoing.flight_len = cur_flight_len;
     *handle = hdl;
 
     mps->dtls.outgoing.flags = 0;

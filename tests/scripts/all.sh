@@ -81,10 +81,7 @@
 set -eu
 
 pre_check_environment () {
-    if [ "$( uname )" != "Linux" ]; then
-        echo "This script only works in Linux" >&2
-        exit 1
-    elif [ -d library -a -d include -a -d tests ]; then :; else
+    if [ -d library -a -d include -a -d tests ]; then :; else
         echo "Must be run from mbed TLS root" >&2
         exit 1
     fi
@@ -737,47 +734,42 @@ component_test_platform_calloc_macro () {
 }
 
 component_test_make_shared () {
-    if uname -a | grep -F Linux >/dev/null; then
-        msg "build/test: make shared" # ~ 40s
-        make SHARED=1 all check
-    fi
-
+    msg "build/test: make shared" # ~ 40s
+    make SHARED=1 all check
 }
 
-component_test_m32_o0 () {
-    if uname -a | grep -F x86_64 >/dev/null; then
-        # Build once with -O0, to compile out the i386 specific inline assembly
-        msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
-        scripts/config.pl full
-        make CC=gcc CFLAGS='-O0 -Werror -Wall -Wextra -m32 -fsanitize=address'
+case $(uname -m) in
+    amd64|x86_64)
+        component_test_m32_o0 () {
+            # Build once with -O0, to compile out the i386 specific inline assembly
+            msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
+            scripts/config.pl full
+            make CC=gcc CFLAGS='-O0 -Werror -Wall -Wextra -m32 -fsanitize=address'
 
-        msg "test: i386, make, gcc -O0 (ASan build)"
-        make test
-    fi # x86_64
-}
+            msg "test: i386, make, gcc -O0 (ASan build)"
+            make test
+        }
 
-component_test_m32_o1 () {
-    if uname -a | grep -F x86_64 >/dev/null; then
-        # Build again with -O1, to compile in the i386 specific inline assembly
-        msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
-        scripts/config.pl full
-        make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address'
+        component_test_m32_o1 () {
+            # Build again with -O1, to compile in the i386 specific inline assembly
+            msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
+            scripts/config.pl full
+            make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address'
 
-        msg "test: i386, make, gcc -O1 (ASan build)"
-        make test
-    fi # x86_64
-}
+            msg "test: i386, make, gcc -O1 (ASan build)"
+            make test
+        }
 
-component_test_mx32 () {
-    if uname -a | grep -F x86_64 >/dev/null; then
-        msg "build: 64-bit ILP32, make, gcc" # ~ 30s
-        scripts/config.pl full
-        make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32'
+        component_test_mx32 () {
+            msg "build: 64-bit ILP32, make, gcc" # ~ 30s
+            scripts/config.pl full
+            make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32'
 
-        msg "test: 64-bit ILP32, make, gcc"
-        make test
-    fi # x86_64
-}
+            msg "test: 64-bit ILP32, make, gcc"
+            make test
+        }
+        ;;
+esac
 
 component_test_have_int32 () {
     msg "build: gcc, force 32-bit bignum limbs"
@@ -902,53 +894,46 @@ component_build_mingw () {
 }
 
 component_test_memsan () {
-    # MemSan currently only available on Linux 64 bits
-    if uname -a | grep 'Linux.*x86_64' >/dev/null; then
-        msg "build: MSan (clang)" # ~ 1 min 20s
-        scripts/config.pl unset MBEDTLS_AESNI_C # memsan doesn't grok asm
-        CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
-        make
+    msg "build: MSan (clang)" # ~ 1 min 20s
+    scripts/config.pl unset MBEDTLS_AESNI_C # memsan doesn't grok asm
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
+    make
 
-        msg "test: main suites (MSan)" # ~ 10s
-        make test
+    msg "test: main suites (MSan)" # ~ 10s
+    make test
 
-        msg "test: ssl-opt.sh (MSan)" # ~ 1 min
-        if_build_succeeded tests/ssl-opt.sh
+    msg "test: ssl-opt.sh (MSan)" # ~ 1 min
+    if_build_succeeded tests/ssl-opt.sh
 
-        # Optional part(s)
+    # Optional part(s)
 
-        if [ "$MEMORY" -gt 0 ]; then
-            msg "test: compat.sh (MSan)" # ~ 6 min 20s
-            if_build_succeeded tests/compat.sh
-        fi
+    if [ "$MEMORY" -gt 0 ]; then
+        msg "test: compat.sh (MSan)" # ~ 6 min 20s
+        if_build_succeeded tests/compat.sh
     fi
 }
 
 component_test_memcheck () {
-    # Only run if MemSan is not available
-    if ! uname -a | grep 'Linux.*x86_64' >/dev/null; then
-        msg "build: Release (clang)"
-        CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
-        make
+    msg "build: Release (clang)"
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
+    make
 
-        msg "test: main suites valgrind (Release)"
-        make memcheck
+    msg "test: main suites valgrind (Release)"
+    make memcheck
 
-        # Optional part(s)
-        # Currently broken, programs don't seem to receive signals
-        # under valgrind on OS X
+    # Optional part(s)
+    # Currently broken, programs don't seem to receive signals
+    # under valgrind on OS X
 
-        if [ "$MEMORY" -gt 0 ]; then
-            msg "test: ssl-opt.sh --memcheck (Release)"
-            if_build_succeeded tests/ssl-opt.sh --memcheck
-        fi
+    if [ "$MEMORY" -gt 0 ]; then
+        msg "test: ssl-opt.sh --memcheck (Release)"
+        if_build_succeeded tests/ssl-opt.sh --memcheck
+    fi
 
-        if [ "$MEMORY" -gt 1 ]; then
-            msg "test: compat.sh --memcheck (Release)"
-            if_build_succeeded tests/compat.sh --memcheck
-        fi
-
-    fi # MemSan
+    if [ "$MEMORY" -gt 1 ]; then
+        msg "test: compat.sh --memcheck (Release)"
+        if_build_succeeded tests/compat.sh --memcheck
+    fi
 }
 
 component_test_cmake_out_of_source () {

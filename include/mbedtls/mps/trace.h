@@ -47,7 +47,8 @@ typedef enum
 {
     trace_comment,
     trace_call,
-    trace_error
+    trace_error,
+    trace_return
 } trace_type;
 
 #define TRACE_BIT_LAYER_1 1
@@ -127,10 +128,11 @@ void trace_indent( int level, trace_type ty );
         inc_trace_depth();                                              \
     } while( 0 )
 
-#define TRACE_END()                                                     \
+#define TRACE_END( val )                                                \
     do {                                                                \
         if( ! ( TRACE_MASK & ( 1u << trace_id ) ) )                     \
             break;                                                      \
+        TRACE( trace_return, "%d", (int) val );                       \
         dec_trace_depth();                                              \
     } while( 0 )
 
@@ -138,7 +140,7 @@ void trace_indent( int level, trace_type ty );
     do {                                        \
         /* Breaks tail recursion. */            \
         int ret__ = val;                        \
-        TRACE_END();                            \
+        TRACE_END( ret__ );                     \
         return( ret__ );                        \
     } while( 0 )
 

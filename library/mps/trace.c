@@ -50,7 +50,8 @@ void trace_indent( int level, trace_type ty )
     {
         while( --level )
             printf( "|  " );
-        printf( "|--" );
+
+        printf( "|  " );
     }
 
     switch( ty )
@@ -60,11 +61,15 @@ void trace_indent( int level, trace_type ty )
             break;
 
         case trace_call:
-            printf( "+ " );
+            printf( "+--> " );
             break;
 
         case trace_error:
             printf( "E " );
+            break;
+
+        case trace_return:
+            printf( "< " );
             break;
 
         default:

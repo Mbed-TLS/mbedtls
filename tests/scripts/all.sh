@@ -1158,7 +1158,7 @@ component_test_memsan () {
     fi
 }
 
-component_test_memcheck () {
+component_test_valgrind () {
     msg "build: Release (clang)"
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
     make

@@ -381,7 +381,7 @@ pre_check_git () {
             exit 1
         fi
 
-        if ! git diff-files --quiet include/mbedtls/config.h; then
+        if ! git diff --quiet include/mbedtls/config.h; then
             err_msg "Warning - the configuration file 'include/mbedtls/config.h' has been edited. "
             echo "You can either delete or preserve your work, or force the test by rerunning the"
             echo "script as: $0 --force"

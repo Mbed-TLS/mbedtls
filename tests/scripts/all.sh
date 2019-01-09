@@ -154,11 +154,9 @@ pre_initialize_variables () {
     done
 }
 
-# Test whether $1 is excluded via the command line.
-is_component_excluded()
+# Test whether the component $1 is included in the command line patterns.
+is_component_included()
 {
-    # Is $1 excluded via $COMPONENTS (a space-separated list of wildcard
-    # patterns)?
     set -f
     for pattern in $COMMAND_LINE_COMPONENTS; do
         set +f
@@ -174,6 +172,13 @@ usage()
 Usage: $0 [OPTION]... [COMPONENT]...
 Run mbedtls release validation tests.
 By default, run all tests. With one or more COMPONENT, run only those.
+COMPONENT can be the name of a component or a shell wildcard pattern.
+
+Examples:
+  $0 "check_*"
+    Run all sanity checks.
+  $0 --no-armcc --except test_memsan
+    Run everything except builds that require armcc and MemSan.
 
 Special options:
   -h|--help             Print this help and exit.
@@ -185,11 +190,8 @@ General options:
   -k|--keep-going       Run all tests and report errors at the end.
   -m|--memory           Additional optional memory tests.
      --armcc            Run ARM Compiler builds (on by default).
-     --except           If some components are passed on the command line,
-                        run all the tests except for these components. In
-                        this mode, you can pass shell wildcard patterns as
-                        component names, e.g. "$0 --except 'test_*'" to
-                        exclude all components that run tests.
+     --except           Exclude the COMPONENTs listed on the command line,
+                        instead of running only those.
      --no-armcc         Skip ARM Compiler builds.
      --no-force         Refuse to overwrite modified files (default).
      --no-keep-going    Stop at the first error (default).
@@ -302,7 +304,7 @@ check_headers_in_cpp () {
 
 pre_parse_command_line () {
     COMMAND_LINE_COMPONENTS=
-    all_except=
+    all_except=0
     no_armcc=
 
     while [ $# -gt 0 ]; do
@@ -342,27 +344,24 @@ pre_parse_command_line () {
         shift
     done
 
+    # With no list of components, run everything.
     if [ -z "$COMMAND_LINE_COMPONENTS" ]; then
         all_except=1
     fi
 
     # --no-armcc is a legacy option. The modern way is --except '*_armcc*'.
     # Ignore it if components are listed explicitly on the command line.
-    if [ -n "$no_armcc" ] && [ -n "$all_except" ]; then
+    if [ -n "$no_armcc" ] && [ $all_except -eq 1 ]; then
         COMMAND_LINE_COMPONENTS="$COMMAND_LINE_COMPONENTS *_armcc*"
     fi
 
     # Build the list of components to run.
-    if [ -n "$all_except" ]; then
-        RUN_COMPONENTS=
-        for component in $SUPPORTED_COMPONENTS; do
-            if ! is_component_excluded "$component"; then
-                RUN_COMPONENTS="$RUN_COMPONENTS $component"
-            fi
-        done
-    else
-        RUN_COMPONENTS="$COMMAND_LINE_COMPONENTS"
-    fi
+    RUN_COMPONENTS=
+    for component in $SUPPORTED_COMPONENTS; do
+        if is_component_included "$component"; [ $? -eq $all_except ]; then
+            RUN_COMPONENTS="$RUN_COMPONENTS $component"
+        fi
+    done
 
     unset all_except
     unset no_armcc

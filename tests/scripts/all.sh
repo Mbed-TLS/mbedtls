@@ -459,6 +459,13 @@ if_build_succeeded () {
     fi
 }
 
+# to be used instead of ! for commands run with
+# record_status or if_build_succeeded
+not() {
+    ! "$@"
+}
+
+
 pre_print_configuration () {
     msg "info: $0 configuration"
     echo "MEMORY: $MEMORY"
@@ -920,7 +927,7 @@ component_build_arm_none_eabi_gcc_no_udbl_division () {
     scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
     make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
     echo "Checking that software 64-bit division is not required"
-    ! grep __aeabi_uldiv library/*.o
+    if_build_succeeded not grep __aeabi_uldiv library/*.o
 }
 
 component_build_armcc () {

@@ -604,7 +604,7 @@ int mbedtls_writer_check_done( mbedtls_writer_ext *wr_ext )
         RETURN( MBEDTLS_ERR_WRITER_BOUNDS_VIOLATION );
     }
 
-    if( wr_ext->grp_end[0] != MBEDTLS_MPS_OFFSET_MAX &&
+    if( wr_ext->grp_end[0] != MBEDTLS_MPS_SIZE_MAX &&
         wr_ext->ofs_commit != wr_ext->grp_end[0] )
     {
         RETURN( MBEDTLS_ERR_WRITER_BOUNDS_VIOLATION );

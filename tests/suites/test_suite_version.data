@@ -11,5 +11,28 @@ Check for MBEDTLS_AES_C when already present
 depends_on:MBEDTLS_AES_C
 check_feature:"MBEDTLS_AES_C":0
 
+Check for MBEDTLS_MD2_C when not present
+depends_on:!MBEDTLS_MD2_C
+check_feature:"MBEDTLS_MD2_C":-1
+
+Check for MBEDTLS_X509_USE_C when already present
+depends_on:MBEDTLS_X509_USE_C
+check_feature:"MBEDTLS_X509_USE_C":0
+
+Check for MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3 when not present
+depends_on:!MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3
+check_feature:"MBEDTLS_X509_ALLOW_EXTENSIONS_NON_V3":-1
+
+Check for MBEDTLS_SSL_TLS_C when already present
+depends_on:MBEDTLS_SSL_TLS_C
+check_feature:"MBEDTLS_SSL_TLS_C":0
+
+Check for MBEDTLS_SSL_PROTO_SSL3 when not present
+depends_on:!MBEDTLS_SSL_PROTO_SSL3
+check_feature:"MBEDTLS_SSL_PROTO_SSL3":-1
+
+Check for available define
+check_feature:"MBEDTLS_VERSION_FEATURES":0
+
 Check for unknown define
 check_feature:"MBEDTLS_UNKNOWN":-1

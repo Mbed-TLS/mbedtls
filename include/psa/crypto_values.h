@@ -1454,21 +1454,6 @@
  */
 #define PSA_KDF_STEP_INFO                ((psa_key_derivation_step_t)0x0203)
 
-/** The private key in a key agreement.
- *
- * This must be a key pair of the appropriate type for the key agreement
- * algorithm.
- */
-#define PSA_KDF_STEP_OUR_KEY             ((psa_key_derivation_step_t)0x0301)
-
-/** A label for key derivation.
- *
- * This may be a key pair of the appropriate type for the key agreement
- * algorithm, or a direct input which is parsed as a public key in the
- * same format as psa_import_key().
- */
-#define PSA_KDF_STEP_PEER_KEY            ((psa_key_derivation_step_t)0x0302)
-
 /**@}*/
 
 #endif /* PSA_CRYPTO_VALUES_H */

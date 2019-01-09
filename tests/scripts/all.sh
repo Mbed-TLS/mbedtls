@@ -276,40 +276,40 @@ check_headers_in_cpp () {
 
 pre_parse_command_line () {
     while [ $# -gt 0 ]; do
-          case "$1" in
-              --armcc) RUN_ARMCC=1;;
-              --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
-              --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
-              --except) ALL_EXCEPT=1;;
-              --force|-f) FORCE=1;;
-              --gnutls-cli) shift; GNUTLS_CLI="$1";;
-              --gnutls-legacy-cli) shift; GNUTLS_LEGACY_CLI="$1";;
-              --gnutls-legacy-serv) shift; GNUTLS_LEGACY_SERV="$1";;
-              --gnutls-serv) shift; GNUTLS_SERV="$1";;
-              --help|-h) usage; exit;;
-              --keep-going|-k) KEEP_GOING=1;;
-              --list-components) INTROSPECTION_MODE=list_components;;
-              --memory|-m) MEMORY=1;;
-              --no-armcc) RUN_ARMCC=0;;
-              --no-force) FORCE=0;;
-              --no-keep-going) KEEP_GOING=0;;
-              --no-memory) MEMORY=0;;
-              --openssl) shift; OPENSSL="$1";;
-              --openssl-legacy) shift; OPENSSL_LEGACY="$1";;
-              --openssl-next) shift; OPENSSL_NEXT="$1";;
-              --out-of-source-dir) shift; OUT_OF_SOURCE_DIR="$1";;
-              --random-seed) unset SEED;;
-              --release-test|-r) SEED=1;;
-              --seed|-s) shift; SEED="$1";;
-              -*)
-                  echo >&2 "Unknown option: $1"
-                  echo >&2 "Run $0 --help for usage."
-                  exit 120
-                  ;;
-              *)
-                  COMPONENTS="$COMPONENTS $1";;
-          esac
-          shift
+        case "$1" in
+            --armcc) RUN_ARMCC=1;;
+            --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
+            --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
+            --except) ALL_EXCEPT=1;;
+            --force|-f) FORCE=1;;
+            --gnutls-cli) shift; GNUTLS_CLI="$1";;
+            --gnutls-legacy-cli) shift; GNUTLS_LEGACY_CLI="$1";;
+            --gnutls-legacy-serv) shift; GNUTLS_LEGACY_SERV="$1";;
+            --gnutls-serv) shift; GNUTLS_SERV="$1";;
+            --help|-h) usage; exit;;
+            --keep-going|-k) KEEP_GOING=1;;
+            --list-components) INTROSPECTION_MODE=list_components;;
+            --memory|-m) MEMORY=1;;
+            --no-armcc) RUN_ARMCC=0;;
+            --no-force) FORCE=0;;
+            --no-keep-going) KEEP_GOING=0;;
+            --no-memory) MEMORY=0;;
+            --openssl) shift; OPENSSL="$1";;
+            --openssl-legacy) shift; OPENSSL_LEGACY="$1";;
+            --openssl-next) shift; OPENSSL_NEXT="$1";;
+            --out-of-source-dir) shift; OUT_OF_SOURCE_DIR="$1";;
+            --random-seed) unset SEED;;
+            --release-test|-r) SEED=1;;
+            --seed|-s) shift; SEED="$1";;
+            -*)
+                echo >&2 "Unknown option: $1"
+                echo >&2 "Run $0 --help for usage."
+                exit 120
+                ;;
+            *)
+                COMPONENTS="$COMPONENTS $1";;
+        esac
+        shift
     done
 }
 
@@ -1118,15 +1118,15 @@ component_test_zeroize () {
     # output to check whether the pass string is present and no failure strings
     # were printed.
     for optimization_flag in -O2 -O3 -Ofast -Os; do
-          for compiler in clang gcc; do
-                msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
-                make programs CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag"
-                if_build_succeeded gdb -x tests/scripts/test_zeroize.gdb -nw -batch -nx 2>&1 | tee test_zeroize.log
-                if_build_succeeded grep "The buffer was correctly zeroized" test_zeroize.log
-                if_build_succeeded not grep -i "error" test_zeroize.log
-                rm -f test_zeroize.log
-                make clean
-          done
+        for compiler in clang gcc; do
+            msg "test: $compiler $optimization_flag, mbedtls_platform_zeroize()"
+            make programs CC="$compiler" DEBUG=1 CFLAGS="$optimization_flag"
+            if_build_succeeded gdb -x tests/scripts/test_zeroize.gdb -nw -batch -nx 2>&1 | tee test_zeroize.log
+            if_build_succeeded grep "The buffer was correctly zeroized" test_zeroize.log
+            if_build_succeeded not grep -i "error" test_zeroize.log
+            rm -f test_zeroize.log
+            make clean
+        done
     done
 }
 

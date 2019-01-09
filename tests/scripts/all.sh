@@ -366,8 +366,9 @@ pre_parse_command_line () {
 
 pre_check_git () {
     if [ $FORCE -eq 1 ]; then
+        rm -rf "$OUT_OF_SOURCE_DIR"
         if [ $YOTTA -eq 1 ]; then
-            rm -rf yotta/module "$OUT_OF_SOURCE_DIR"
+            rm -rf yotta/module
         fi
         git checkout-index -f -q $CONFIG_H
         cleanup

@@ -59,29 +59,42 @@
 # following naming conventions:
 #  * pre_XXX: things to do before running the tests, in order.
 #  * component_XXX: independent components. They can be run in any order.
-#      * component_check_XXX: quick tests that aren't worth parallelizing
-#      * component_build_XXX: build things but don't run them
-#      * component_test_XXX: build and test
+#      * component_check_XXX: quick tests that aren't worth parallelizing.
+#      * component_build_XXX: build things but don't run them.
+#      * component_test_XXX: build and test.
 #  * support_XXX: if support_XXX exists and returns false then
 #    component_XXX is not run by default.
 #  * post_XXX: things to do after running the tests.
 #  * other: miscellaneous support functions.
 #
+# Each component must start by invoking `msg` with a short informative message.
+#
+# The framework performs some cleanup tasks after each component. This
+# means that components can assume that the working directory is in a
+# cleaned-up state, and don't need to perform the cleanup themselves.
+# * Run `make clean`.
+# * Restore `include/mbedtks/config.h` from a backup made before running
+#   the component.
+# * Check out `Makefile`, `library/Makefile`, `programs/Makefile` and
+#   `tests/Makefile` from git. This cleans up after an in-tree use of
+#   CMake.
+#
+# Any command that is expected to fail must be protected so that the
+# script keeps running in --keep-going mode despite `set -e`. In keep-going
+# mode, if a protected command fails, this is logged as a failure and the
+# script will exit with a failure status once it has run all components.
+# Commands can be protected in any of the following ways:
+# * `make` is a function which runs the `make` command with protection.
+#   Note that you must write `make VAR=value`, not `VAR=value make`,
+#   because the `VAR=value make` syntax doesn't work with functions.
+# * Put `report_status` before the command to protect it.
+# * Put `if_build_successful` before a command. This protects it, and
+#   additionally skips it if a prior invocation of `make` in the same
+#   component failed.
+#
 # The tests are roughly in order from fastest to slowest. This doesn't
 # have to be exact, but in general you should add slower tests towards
 # the end and fast checks near the beginning.
-#
-# Sanity checks have the following form:
-#   1. msg "short description of what is about to be done"
-#   2. run sanity check (failure stops the script)
-#
-# Build or build-and-test steps have the following form:
-#   1. msg "short description of what is about to be done"
-#   2. cleanup
-#   3. preparation (config.pl, cmake, ...) (failure stops the script)
-#   4. make
-#   5. Run tests if relevant. All tests must be prefixed with
-#      if_build_successful for the sake of --keep-going.
 
 
 

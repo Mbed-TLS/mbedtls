@@ -648,36 +648,12 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
 #if defined(MBEDTLS_ECP_C)
         if( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( type ) )
         {
-            mbedtls_asn1_buf alg;
-            mbedtls_asn1_buf params;
-            mbedtls_asn1_bitstring bitstring;
-            /* SubjectPublicKeyInfo  ::=  SEQUENCE  {
-             *      algorithm          AlgorithmIdentifier,
-             *      subjectPublicKey   BIT STRING  }
-             * AlgorithmIdentifier  ::=  SEQUENCE  {
-             *      algorithm          OBJECT IDENTIFIER,
-             *      parameters         ANY DEFINED BY algorithm OPTIONAL  }
+            /* The representation of an ECC public key is:
+             *      - The byte 0x04;
+             *      - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
+             *      - `y_P` as a `ceiling(m/8)`-byte string, big-endian;
+             *      - where m is the bit size associated with the curve.
              */
-
-            TEST_EQUAL( mbedtls_asn1_get_tag( &p, end, &len,
-                                              MBEDTLS_ASN1_SEQUENCE |
-                                              MBEDTLS_ASN1_CONSTRUCTED ),
-                        0 );
-            TEST_EQUAL( p + len, end );
-            TEST_EQUAL( mbedtls_asn1_get_alg( &p, end, &alg, &params ), 0 );
-            if( ! is_oid_of_key_type( type, alg.p, alg.len ) )
-                goto exit;
-            TEST_EQUAL( mbedtls_asn1_get_bitstring( &p, end, &bitstring ), 0 );
-            TEST_EQUAL( p, end );
-            p = bitstring.p;
-
-            /*   ECPoint ::= ...
-             *      -- first 8 bits: 0x04 (uncompressed representation);
-             *      -- then x_P as an n-bit string, big endian;
-             *      -- then y_P as a n-bit string, big endian,
-             *      -- where n is the order of the curve.
-             */
-            TEST_EQUAL( bitstring.unused_bits, 0 );
             TEST_EQUAL( p + 1 + 2 * PSA_BITS_TO_BYTES( bits ), end );
             TEST_EQUAL( p[0], 4 );
         }

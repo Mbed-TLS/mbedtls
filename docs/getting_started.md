@@ -116,14 +116,13 @@ This allows the key in the key slot to be used for RSA signing.
     int key_slot = 1;
     unsigned char key[] = "RSA_KEY";
     unsigned char payload[] = "ASYMMETRIC_INPUT_FOR_SIGN";
-    psa_key_policy_t policy;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
     unsigned char signature[PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE] = {0};
     size_t signature_length;
 
     status = psa_crypto_init();
 
     /* Import the key */
-    psa_key_policy_init(&policy);
     psa_key_policy_set_usage(&policy, PSA_KEY_USAGE_SIGN,
                              PSA_ALG_RSA_PKCS1V15_SIGN_RAW);
     status = psa_set_key_policy(key_slot, &policy);
@@ -343,7 +342,7 @@ At this point the derived key slot holds a new 128-bit AES-CTR encryption key de
 ```C
     psa_key_slot_t base_key = 1;
     psa_key_slot_t derived_key = 2;
-    psa_key_policy_t policy;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
     unsigned char key[] = {
         0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
@@ -358,6 +357,7 @@ At this point the derived key slot holds a new 128-bit AES-CTR encryption key de
                               0xf7, 0xf8, 0xf9 };
 
     psa_algorithm_t alg = PSA_ALG_HKDF(PSA_ALG_SHA_256);
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
     size_t derived_bits = 128;
     size_t capacity = PSA_BITS_TO_BYTES(derived_bits);
@@ -365,7 +365,6 @@ At this point the derived key slot holds a new 128-bit AES-CTR encryption key de
     status = psa_crypto_init();
 
     /* Import a key for use in key derivation, if such a key has already been imported you can skip this part */
-    psa_key_policy_init(&policy);
     psa_key_policy_set_usage(&policy, PSA_KEY_USAGE_DERIVE, alg);
     status = psa_set_key_policy(base_key, &policy);
 
@@ -416,12 +415,12 @@ To authenticate and encrypt a message:
     size_t output_size = 0;
     size_t output_length = 0;
     size_t tag_length = 16;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
     output_size = sizeof(input_data) + tag_length;
     output_data = malloc(output_size);
     status = psa_crypto_init();
 
-    psa_key_policy_init(&policy);
     psa_key_policy_set_usage(&policy, PSA_KEY_USAGE_ENCRYPT, PSA_ALG_CCM);
     status = psa_set_key_policy(slot, &policy);
 
@@ -463,12 +462,12 @@ To authenticate and decrypt a message:
     unsigned char *output_data = NULL;
     size_t output_size = 0;
     size_t output_length = 0;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
     output_size = sizeof(input_data);
     output_data = malloc(output_size);
     status = psa_crypto_init();
 
-    psa_key_policy_init(&policy);
     psa_key_policy_set_usage(&policy, PSA_KEY_USAGE_DECRYPT, PSA_ALG_CCM);
     status = psa_set_key_policy(slot, &policy);
 
@@ -503,10 +502,10 @@ Generate a piece of random 128-bit AES data:
     size_t exported_size = bits;
     size_t exported_length = 0;
     uint8_t *exported = malloc(exported_size);
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
     psa_crypto_init();
 
-    psa_key_policy_init(&policy);
     psa_key_policy_set_usage(&policy, PSA_KEY_USAGE_EXPORT, PSA_ALG_GCM);
     psa_set_key_policy(slot, &policy);
 

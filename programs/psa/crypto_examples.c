@@ -49,9 +49,8 @@ static psa_status_t set_key_policy( psa_key_handle_t key_handle,
                                     psa_algorithm_t alg )
 {
     psa_status_t status;
-    psa_key_policy_t policy;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
-    psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, key_usage, alg );
     status = psa_set_key_policy( key_handle, &policy );
     ASSERT_STATUS( status, PSA_SUCCESS );

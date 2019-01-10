@@ -209,12 +209,11 @@ static psa_status_t generate( const char *key_file_name )
 {
     psa_status_t status = PSA_SUCCESS;
     psa_key_handle_t key_handle = 0;
-    psa_key_policy_t policy;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
     PSA_CHECK( psa_allocate_key( PSA_KEY_TYPE_DERIVE,
                                  PSA_BYTES_TO_BITS( KEY_SIZE_BYTES ),
                                  &key_handle ) );
-    psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy,
                               PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT,
                               KDF_ALG );
@@ -243,7 +242,7 @@ static psa_status_t import_key_from_file( psa_key_usage_t usage,
                                           psa_key_handle_t *master_key_handle )
 {
     psa_status_t status = PSA_SUCCESS;
-    psa_key_policy_t policy;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
     uint8_t key_data[KEY_SIZE_BYTES];
     size_t key_size;
     FILE *key_file = NULL;
@@ -267,7 +266,6 @@ static psa_status_t import_key_from_file( psa_key_usage_t usage,
     PSA_CHECK( psa_allocate_key( PSA_KEY_TYPE_DERIVE,
                                  PSA_BYTES_TO_BITS( key_size ),
                                  master_key_handle ) );
-    psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, usage, alg );
     PSA_CHECK( psa_set_key_policy( *master_key_handle, &policy ) );
     PSA_CHECK( psa_import_key( *master_key_handle,
@@ -297,10 +295,9 @@ static psa_status_t derive_key_ladder( const char *ladder[],
                                        psa_key_handle_t *key_handle )
 {
     psa_status_t status = PSA_SUCCESS;
-    psa_key_policy_t policy;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
     size_t i;
-    psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy,
                               PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_EXPORT,
                               KDF_ALG );
@@ -351,13 +348,12 @@ static psa_status_t derive_wrapping_key( psa_key_usage_t usage,
                                          psa_key_handle_t *wrapping_key_handle )
 {
     psa_status_t status = PSA_SUCCESS;
-    psa_key_policy_t policy;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
 
     *wrapping_key_handle = 0;
     PSA_CHECK( psa_allocate_key( PSA_KEY_TYPE_AES, WRAPPING_KEY_BITS,
                                  wrapping_key_handle ) );
-    psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, usage, WRAPPING_ALG );
     PSA_CHECK( psa_set_key_policy( *wrapping_key_handle, &policy ) );
 

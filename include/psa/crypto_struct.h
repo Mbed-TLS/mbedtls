@@ -85,6 +85,13 @@ struct psa_hash_operation_s
     } ctx;
 };
 
+#define PSA_HASH_OPERATION_INIT {0, {0}}
+static inline struct psa_hash_operation_s psa_hash_operation_init( void )
+{
+    const struct psa_hash_operation_s v = PSA_HASH_OPERATION_INIT;
+    return( v );
+}
+
 #if defined(MBEDTLS_MD_C)
 typedef struct
 {
@@ -116,6 +123,13 @@ struct psa_mac_operation_s
     } ctx;
 };
 
+#define PSA_MAC_OPERATION_INIT {0, 0, 0, 0, 0, 0, 0, {0}}
+static inline struct psa_mac_operation_s psa_mac_operation_init( void )
+{
+    const struct psa_mac_operation_s v = PSA_MAC_OPERATION_INIT;
+    return( v );
+}
+
 struct psa_cipher_operation_s
 {
     psa_algorithm_t alg;
@@ -126,9 +140,17 @@ struct psa_cipher_operation_s
     uint8_t block_size;
     union
     {
+        unsigned dummy; /* Enable easier initializing of the union. */
         mbedtls_cipher_context_t cipher;
     } ctx;
 };
+
+#define PSA_CIPHER_OPERATION_INIT {0, 0, 0, 0, 0, 0, {0}}
+static inline struct psa_cipher_operation_s psa_cipher_operation_init( void )
+{
+    const struct psa_cipher_operation_s v = PSA_CIPHER_OPERATION_INIT;
+    return( v );
+}
 
 #if defined(MBEDTLS_MD_C)
 typedef struct
@@ -207,5 +229,12 @@ struct psa_key_policy_s
     psa_key_usage_t usage;
     psa_algorithm_t alg;
 };
+
+#define PSA_KEY_POLICY_INIT {0, 0}
+static inline struct psa_key_policy_s psa_key_policy_init( void )
+{
+    const struct psa_key_policy_s v = PSA_KEY_POLICY_INIT;
+    return( v );
+}
 
 #endif /* PSA_CRYPTO_STRUCT_H */

@@ -572,17 +572,49 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
 
 /** The type of the key policy data structure.
  *
+ * Before calling any function on a key policy, the application must initialize
+ * it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ *   \code
+ *   psa_key_policy_t policy;
+ *   memset(&policy, 0, sizeof(policy));
+ *   \endcode
+ * - Initialize the structure to logical zero values, for example:
+ *   \code
+ *   psa_key_policy_t policy = {0};
+ *   \endcode
+ * - Initialize the structure to the initializer #PSA_KEY_POLICY_INIT,
+ *   for example:
+ *   \code
+ *   psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+ *   \endcode
+ * - Assign the result of the function psa_key_policy_init()
+ *   to the structure, for example:
+ *   \code
+ *   psa_key_policy_t policy;
+ *   policy = psa_key_policy_init();
+ *   \endcode
+ *
  * This is an implementation-defined \c struct. Applications should not
  * make any assumptions about the content of this structure except
  * as directed by the documentation of a specific implementation. */
 typedef struct psa_key_policy_s psa_key_policy_t;
 
-/** \brief Initialize a key policy structure to a default that forbids all
- * usage of the key.
+/** \def PSA_KEY_POLICY_INIT
  *
- * \param[out] policy   The policy object to initialize.
+ * This macro returns a suitable initializer for a key policy object of type
+ * #psa_key_policy_t.
  */
-void psa_key_policy_init(psa_key_policy_t *policy);
+#ifdef __DOXYGEN_ONLY__
+/* This is an example definition for documentation purposes.
+ * Implementations should define a suitable value in `crypto_struct.h`.
+ */
+#define PSA_KEY_POLICY_INIT {0}
+#endif
+
+/** Return an initial value for a key policy that forbids all usage of the key.
+ */
+static psa_key_policy_t psa_key_policy_init(void);
 
 /** \brief Set the standard fields of a policy structure.
  *
@@ -590,9 +622,11 @@ void psa_key_policy_init(psa_key_policy_t *policy);
  * parameters. The values are only checked when applying the policy to
  * a key slot with psa_set_key_policy().
  *
- * \param[out] policy   The policy object to modify.
- * \param usage         The permitted uses for the key.
- * \param alg           The algorithm that the key may be used for.
+ * \param[in,out] policy The key policy to modify. It must have been
+ *                       initialized as per the documentation for
+ *                       #psa_key_policy_t.
+ * \param usage          The permitted uses for the key.
+ * \param alg            The algorithm that the key may be used for.
  */
 void psa_key_policy_set_usage(psa_key_policy_t *policy,
                               psa_key_usage_t usage,
@@ -672,10 +706,49 @@ psa_status_t psa_get_key_policy(psa_key_handle_t handle,
 
 /** The type of the state data structure for multipart hash operations.
  *
+ * Before calling any function on a hash operation object, the application must
+ * initialize it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ *   \code
+ *   psa_hash_operation_t operation;
+ *   memset(&operation, 0, sizeof(operation));
+ *   \endcode
+ * - Initialize the structure to logical zero values, for example:
+ *   \code
+ *   psa_hash_operation_t operation = {0};
+ *   \endcode
+ * - Initialize the structure to the initializer #PSA_HASH_OPERATION_INIT,
+ *   for example:
+ *   \code
+ *   psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+ *   \endcode
+ * - Assign the result of the function psa_hash_operation_init()
+ *   to the structure, for example:
+ *   \code
+ *   psa_hash_operation_t operation;
+ *   operation = psa_hash_operation_init();
+ *   \endcode
+ *
  * This is an implementation-defined \c struct. Applications should not
  * make any assumptions about the content of this structure except
  * as directed by the documentation of a specific implementation. */
 typedef struct psa_hash_operation_s psa_hash_operation_t;
+
+/** \def PSA_HASH_OPERATION_INIT
+ *
+ * This macro returns a suitable initializer for a hash operation object
+ * of type #psa_hash_operation_t.
+ */
+#ifdef __DOXYGEN_ONLY__
+/* This is an example definition for documentation purposes.
+ * Implementations should define a suitable value in `crypto_struct.h`.
+ */
+#define PSA_HASH_OPERATION_INIT {0}
+#endif
+
+/** Return an initial value for a hash operation object.
+ */
+static psa_hash_operation_t psa_hash_operation_init(void);
 
 /** Start a multipart hash operation.
  *
@@ -683,6 +756,8 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  * is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
+ * -# Initialize the operation object with one of the methods described in the
+ *    documentation for #psa_hash_operation_t, e.g. PSA_HASH_OPERATION_INIT.
  * -# Call psa_hash_setup() to specify the algorithm.
  * -# Call psa_hash_update() zero, one or more times, passing a fragment
  *    of the message each time. The hash that is calculated is the hash
@@ -691,7 +766,7 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  *    To compare the hash with an expected value, call psa_hash_verify().
  *
  * The application may call psa_hash_abort() at any time after the operation
- * has been initialized with psa_hash_setup().
+ * has been initialized.
  *
  * After a successful call to psa_hash_setup(), the application must
  * eventually terminate the operation. The following events terminate an
@@ -699,7 +774,9 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  * - A failed call to psa_hash_update().
  * - A call to psa_hash_finish(), psa_hash_verify() or psa_hash_abort().
  *
- * \param[out] operation    The operation object to use.
+ * \param[in,out] operation The operation object to set up. It must have
+ *                          been initialized as per the documentation for
+ *                          #psa_hash_operation_t and not yet in use.
  * \param alg               The hash algorithm to compute (\c PSA_ALG_XXX value
  *                          such that #PSA_ALG_IS_HASH(\p alg) is true).
  *
@@ -852,10 +929,49 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation);
 
 /** The type of the state data structure for multipart MAC operations.
  *
+ * Before calling any function on a MAC operation object, the application must
+ * initialize it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ *   \code
+ *   psa_mac_operation_t operation;
+ *   memset(&operation, 0, sizeof(operation));
+ *   \endcode
+ * - Initialize the structure to logical zero values, for example:
+ *   \code
+ *   psa_mac_operation_t operation = {0};
+ *   \endcode
+ * - Initialize the structure to the initializer #PSA_MAC_OPERATION_INIT,
+ *   for example:
+ *   \code
+ *   psa_mac_operation_t operation = PSA_MAC_OPERATION_INIT;
+ *   \endcode
+ * - Assign the result of the function psa_mac_operation_init()
+ *   to the structure, for example:
+ *   \code
+ *   psa_mac_operation_t operation;
+ *   operation = psa_mac_operation_init();
+ *   \endcode
+ *
  * This is an implementation-defined \c struct. Applications should not
  * make any assumptions about the content of this structure except
  * as directed by the documentation of a specific implementation. */
 typedef struct psa_mac_operation_s psa_mac_operation_t;
+
+/** \def PSA_MAC_OPERATION_INIT
+ *
+ * This macro returns a suitable initializer for a MAC operation object of type
+ * #psa_mac_operation_t.
+ */
+#ifdef __DOXYGEN_ONLY__
+/* This is an example definition for documentation purposes.
+ * Implementations should define a suitable value in `crypto_struct.h`.
+ */
+#define PSA_MAC_OPERATION_INIT {0}
+#endif
+
+/** Return an initial value for a MAC operation object.
+ */
+static psa_mac_operation_t psa_mac_operation_init(void);
 
 /** Start a multipart MAC calculation operation.
  *
@@ -867,6 +983,8 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  * The sequence of operations to calculate a MAC is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
+ * -# Initialize the operation object with one of the methods described in the
+ *    documentation for #psa_mac_operation_t, e.g. PSA_MAC_OPERATION_INIT.
  * -# Call psa_mac_sign_setup() to specify the algorithm and key.
  *    The key remains associated with the operation even if the content
  *    of the key slot changes.
@@ -877,14 +995,16 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  *    calculating the MAC value and retrieve it.
  *
  * The application may call psa_mac_abort() at any time after the operation
- * has been initialized with psa_mac_sign_setup().
+ * has been initialized.
  *
  * After a successful call to psa_mac_sign_setup(), the application must
  * eventually terminate the operation through one of the following methods:
  * - A failed call to psa_mac_update().
  * - A call to psa_mac_sign_finish() or psa_mac_abort().
  *
- * \param[out] operation    The operation object to use.
+ * \param[in,out] operation The operation object to set up. It must have
+ *                          been initialized as per the documentation for
+ *                          #psa_mac_operation_t and not yet in use.
  * \param handle            Handle to the key to use for the operation.
  * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
  *                          such that #PSA_ALG_IS_MAC(alg) is true).
@@ -919,6 +1039,8 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  * The sequence of operations to verify a MAC is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
+ * -# Initialize the operation object with one of the methods described in the
+ *    documentation for #psa_mac_operation_t, e.g. PSA_MAC_OPERATION_INIT.
  * -# Call psa_mac_verify_setup() to specify the algorithm and key.
  *    The key remains associated with the operation even if the content
  *    of the key slot changes.
@@ -930,14 +1052,16 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  *    the expected value.
  *
  * The application may call psa_mac_abort() at any time after the operation
- * has been initialized with psa_mac_verify_setup().
+ * has been initialized.
  *
  * After a successful call to psa_mac_verify_setup(), the application must
  * eventually terminate the operation through one of the following methods:
  * - A failed call to psa_mac_update().
  * - A call to psa_mac_verify_finish() or psa_mac_abort().
  *
- * \param[out] operation    The operation object to use.
+ * \param[in,out] operation The operation object to set up. It must have
+ *                          been initialized as per the documentation for
+ *                          #psa_mac_operation_t and not yet in use.
  * \param handle            Handle to the key to use for the operation.
  * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
  *                          such that #PSA_ALG_IS_MAC(\p alg) is true).
@@ -1105,10 +1229,49 @@ psa_status_t psa_mac_abort(psa_mac_operation_t *operation);
 
 /** The type of the state data structure for multipart cipher operations.
  *
+ * Before calling any function on a cipher operation object, the application
+ * must initialize it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ *   \code
+ *   psa_cipher_operation_t operation;
+ *   memset(&operation, 0, sizeof(operation));
+ *   \endcode
+ * - Initialize the structure to logical zero values, for example:
+ *   \code
+ *   psa_cipher_operation_t operation = {0};
+ *   \endcode
+ * - Initialize the structure to the initializer #PSA_CIPHER_OPERATION_INIT,
+ *   for example:
+ *   \code
+ *   psa_cipher_operation_t operation = PSA_CIPHER_OPERATION_INIT;
+ *   \endcode
+ * - Assign the result of the function psa_cipher_operation_init()
+ *   to the structure, for example:
+ *   \code
+ *   psa_cipher_operation_t operation;
+ *   operation = psa_cipher_operation_init();
+ *   \endcode
+ *
  * This is an implementation-defined \c struct. Applications should not
  * make any assumptions about the content of this structure except
  * as directed by the documentation of a specific implementation. */
 typedef struct psa_cipher_operation_s psa_cipher_operation_t;
+
+/** \def PSA_CIPHER_OPERATION_INIT
+ *
+ * This macro returns a suitable initializer for a cipher operation object of
+ * type #psa_cipher_operation_t.
+ */
+#ifdef __DOXYGEN_ONLY__
+/* This is an example definition for documentation purposes.
+ * Implementations should define a suitable value in `crypto_struct.h`.
+ */
+#define PSA_CIPHER_OPERATION_INIT {0}
+#endif
+
+/** Return an initial value for a cipher operation object.
+ */
+static psa_cipher_operation_t psa_cipher_operation_init(void);
 
 /** Set the key for a multipart symmetric encryption operation.
  *
@@ -1116,6 +1279,9 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
+ * -# Initialize the operation object with one of the methods described in the
+ *    documentation for #psa_cipher_operation_t, e.g.
+ *    PSA_CIPHER_OPERATION_INIT.
  * -# Call psa_cipher_encrypt_setup() to specify the algorithm and key.
  *    The key remains associated with the operation even if the content
  *    of the key slot changes.
@@ -1128,7 +1294,7 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  * -# Call psa_cipher_finish().
  *
  * The application may call psa_cipher_abort() at any time after the operation
- * has been initialized with psa_cipher_encrypt_setup().
+ * has been initialized.
  *
  * After a successful call to psa_cipher_encrypt_setup(), the application must
  * eventually terminate the operation. The following events terminate an
@@ -1137,7 +1303,9 @@ typedef struct psa_cipher_operation_s psa_cipher_operation_t;
  *   or psa_cipher_update().
  * - A call to psa_cipher_finish() or psa_cipher_abort().
  *
- * \param[out] operation        The operation object to use.
+ * \param[in,out] operation     The operation object to set up. It must have
+ *                              been initialized as per the documentation for
+ *                              #psa_cipher_operation_t and not yet in use.
  * \param handle                Handle to the key to use for the operation.
  * \param alg                   The cipher algorithm to compute
  *                              (\c PSA_ALG_XXX value such that
@@ -1171,6 +1339,9 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
  * is as follows:
  * -# Allocate an operation object which will be passed to all the functions
  *    listed here.
+ * -# Initialize the operation object with one of the methods described in the
+ *    documentation for #psa_cipher_operation_t, e.g.
+ *    PSA_CIPHER_OPERATION_INIT.
  * -# Call psa_cipher_decrypt_setup() to specify the algorithm and key.
  *    The key remains associated with the operation even if the content
  *    of the key slot changes.
@@ -1183,7 +1354,7 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
  * -# Call psa_cipher_finish().
  *
  * The application may call psa_cipher_abort() at any time after the operation
- * has been initialized with psa_cipher_decrypt_setup().
+ * has been initialized.
  *
  * After a successful call to psa_cipher_decrypt_setup(), the application must
  * eventually terminate the operation. The following events terminate an
@@ -1191,7 +1362,9 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
  * - A failed call to psa_cipher_update().
  * - A call to psa_cipher_finish() or psa_cipher_abort().
  *
- * \param[out] operation        The operation object to use.
+ * \param[in,out] operation     The operation object to set up. It must have
+ *                              been initialized as per the documentation for
+ *                              #psa_cipher_operation_t and not yet in use.
  * \param handle                Handle to the key to use for the operation.
  * \param alg                   The cipher algorithm to compute
  *                              (\c PSA_ALG_XXX value such that
@@ -1926,11 +2099,9 @@ psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
  * - For HKDF (#PSA_ALG_HKDF), \p salt is the salt used in the "extract" step
  *   and \p label is the info string used in the "expand" step.
  *
- * \param[in,out] generator       The generator object to set up. It must
- *                                have been initialized to all-bits-zero,
- *                                a logical zero (`{0}`),
- *                                \c PSA_CRYPTO_GENERATOR_INIT or
- *                                psa_crypto_generator_init().
+ * \param[in,out] generator       The generator object to set up. It must have
+ *                                been initialized as per the documentation for
+ *                                #psa_crypto_generator_t and not yet in use.
  * \param handle                  Handle to the secret key.
  * \param alg                     The key derivation algorithm to compute
  *                                (\c PSA_ALG_XXX value such that
@@ -1980,11 +2151,9 @@ psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
  * The resulting generator always has the maximum capacity permitted by
  * the algorithm.
  *
- * \param[in,out] generator       The generator object to set up. It must
- *                                have been initialized to all-bits-zero,
- *                                a logical zero (`{0}`),
- *                                \c PSA_CRYPTO_GENERATOR_INIT or
- *                                psa_crypto_generator_init().
+ * \param[in,out] generator       The generator object to set up. It must have
+ *                                been initialized as per the documentation for
+ *                                #psa_crypto_generator_t and not yet in use.
  * \param private_key             Handle to the private key to use.
  * \param[in] peer_key            Public key of the peer. It must be
  *                                in the same format that psa_import_key()

@@ -117,15 +117,12 @@ void persistent_key_destroy( int key_id_arg, int should_store,
                              int first_type_arg, data_t *first_data,
                              int second_type_arg, data_t *second_data )
 {
-    psa_key_policy_t policy;
     psa_key_id_t key_id = key_id_arg;
     psa_key_handle_t handle = 0;
     psa_key_type_t first_type = (psa_key_type_t) first_type_arg;
     psa_key_type_t second_type = (psa_key_type_t) second_type_arg;
 
     PSA_ASSERT( psa_crypto_init() );
-
-    psa_key_policy_init( &policy );
 
     PSA_ASSERT( psa_create_key( PSA_KEY_LIFETIME_PERSISTENT, key_id,
                                 first_type,
@@ -171,7 +168,6 @@ exit:
 void persistent_key_import( int key_id_arg, int type_arg, data_t *data,
                             int expected_status )
 {
-    psa_key_policy_t policy;
     psa_key_lifetime_t lifetime;
     psa_key_id_t key_id = (psa_key_id_t) key_id_arg;
     psa_key_type_t type = (psa_key_type_t) type_arg;
@@ -183,7 +179,6 @@ void persistent_key_import( int key_id_arg, int type_arg, data_t *data,
                                 type,
                                 PSA_BYTES_TO_BITS( data->len ),
                                 &handle ) );
-    psa_key_policy_init( &policy );
     TEST_EQUAL( psa_import_key( handle, type, data->x, data->len ),
                 expected_status );
 
@@ -214,7 +209,7 @@ void import_export_persistent_key( data_t *data, int type_arg,
     size_t exported_length;
     psa_key_type_t got_type;
     size_t got_bits;
-    psa_key_policy_t policy;
+    psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
     psa_key_lifetime_t lifetime_get;
 
     ASSERT_ALLOC( exported, export_size );
@@ -226,7 +221,6 @@ void import_export_persistent_key( data_t *data, int type_arg,
                                 PSA_BYTES_TO_BITS( data->len ),
                                 &handle ) );
 
-    psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT,
                               PSA_ALG_VENDOR_FLAG );
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );

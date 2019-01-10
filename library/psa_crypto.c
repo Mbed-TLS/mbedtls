@@ -61,6 +61,7 @@
 
 #include "mbedtls/arc4.h"
 #include "mbedtls/asn1.h"
+#include "mbedtls/asn1write.h"
 #include "mbedtls/bignum.h"
 #include "mbedtls/blowfish.h"
 #include "mbedtls/camellia.h"
@@ -899,6 +900,22 @@ psa_status_t psa_get_key_information( psa_key_handle_t handle,
     return( PSA_SUCCESS );
 }
 
+#if defined(MBEDTLS_RSA_C)
+static int pk_write_pubkey_simple( mbedtls_pk_context *key,
+                                   unsigned char *buf, size_t size )
+{
+    int ret;
+    unsigned char *c;
+    size_t len = 0;
+
+    c = buf + size;
+
+    MBEDTLS_ASN1_CHK_ADD( len, mbedtls_pk_write_pubkey( &c, buf, key ) );
+
+    return( (int) len );
+}
+#endif /* defined(MBEDTLS_RSA_C) */
+
 static  psa_status_t psa_internal_export_key( psa_key_slot_t *slot,
                                               uint8_t *data,
                                               size_t data_size,
@@ -969,9 +986,20 @@ static  psa_status_t psa_internal_export_key( psa_key_slot_t *slot,
 #endif
             }
             if( export_public_key || PSA_KEY_TYPE_IS_PUBLIC_KEY( slot->type ) )
-                ret = mbedtls_pk_write_pubkey_der( &pk, data, data_size );
+            {
+                if( PSA_KEY_TYPE_IS_RSA( slot->type ) )
+                {
+                    ret = pk_write_pubkey_simple( &pk, data, data_size );
+                }
+                else
+                {
+                    ret = mbedtls_pk_write_pubkey_der( &pk, data, data_size );
+                }
+            }
             else
+            {
                 ret = mbedtls_pk_write_key_der( &pk, data, data_size );
+            }
             if( ret < 0 )
             {
                 /* If data_size is 0 then data may be NULL and then the

@@ -625,27 +625,6 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
         uint8_t *p = exported;
         uint8_t *end = exported + exported_length;
         size_t len;
-        mbedtls_asn1_buf alg;
-        mbedtls_asn1_buf params;
-        mbedtls_asn1_bitstring bitstring;
-        /* SubjectPublicKeyInfo  ::=  SEQUENCE  {
-         *      algorithm          AlgorithmIdentifier,
-         *      subjectPublicKey   BIT STRING  }
-         * AlgorithmIdentifier  ::=  SEQUENCE  {
-         *      algorithm          OBJECT IDENTIFIER,
-         *      parameters         ANY DEFINED BY algorithm OPTIONAL  }
-         */
-        TEST_EQUAL( mbedtls_asn1_get_tag( &p, end, &len,
-                                          MBEDTLS_ASN1_SEQUENCE |
-                                          MBEDTLS_ASN1_CONSTRUCTED ),
-                    0 );
-        TEST_EQUAL( p + len, end );
-        TEST_EQUAL( mbedtls_asn1_get_alg( &p, end, &alg, &params ), 0 );
-        if( ! is_oid_of_key_type( type, alg.p, alg.len ) )
-            goto exit;
-        TEST_EQUAL( mbedtls_asn1_get_bitstring( &p, end, &bitstring ), 0 );
-        TEST_EQUAL( p, end );
-        p = bitstring.p;
 #if defined(MBEDTLS_RSA_C)
         if( type == PSA_KEY_TYPE_RSA_PUBLIC_KEY )
         {
@@ -653,7 +632,6 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
              *      modulus            INTEGER,    -- n
              *      publicExponent     INTEGER  }  -- e
              */
-            TEST_EQUAL( bitstring.unused_bits, 0 );
             TEST_EQUAL( mbedtls_asn1_get_tag( &p, end, &len,
                                               MBEDTLS_ASN1_SEQUENCE |
                                               MBEDTLS_ASN1_CONSTRUCTED ),
@@ -670,6 +648,29 @@ static int exported_key_sanity_check( psa_key_type_t type, size_t bits,
 #if defined(MBEDTLS_ECP_C)
         if( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( type ) )
         {
+            mbedtls_asn1_buf alg;
+            mbedtls_asn1_buf params;
+            mbedtls_asn1_bitstring bitstring;
+            /* SubjectPublicKeyInfo  ::=  SEQUENCE  {
+             *      algorithm          AlgorithmIdentifier,
+             *      subjectPublicKey   BIT STRING  }
+             * AlgorithmIdentifier  ::=  SEQUENCE  {
+             *      algorithm          OBJECT IDENTIFIER,
+             *      parameters         ANY DEFINED BY algorithm OPTIONAL  }
+             */
+
+            TEST_EQUAL( mbedtls_asn1_get_tag( &p, end, &len,
+                                              MBEDTLS_ASN1_SEQUENCE |
+                                              MBEDTLS_ASN1_CONSTRUCTED ),
+                        0 );
+            TEST_EQUAL( p + len, end );
+            TEST_EQUAL( mbedtls_asn1_get_alg( &p, end, &alg, &params ), 0 );
+            if( ! is_oid_of_key_type( type, alg.p, alg.len ) )
+                goto exit;
+            TEST_EQUAL( mbedtls_asn1_get_bitstring( &p, end, &bitstring ), 0 );
+            TEST_EQUAL( p, end );
+            p = bitstring.p;
+
             /*   ECPoint ::= ...
              *      -- first 8 bits: 0x04 (uncompressed representation);
              *      -- then x_P as an n-bit string, big endian;

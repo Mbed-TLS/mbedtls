@@ -417,25 +417,16 @@
 /* Maximum size of the export encoding of an RSA public key.
  * Assumes that the public exponent is less than 2^32.
  *
- * SubjectPublicKeyInfo  ::=  SEQUENCE  {
- *      algorithm            AlgorithmIdentifier,
- *      subjectPublicKey     BIT STRING  } -- contains RSAPublicKey
- * AlgorithmIdentifier  ::=  SEQUENCE  {
- *      algorithm               OBJECT IDENTIFIER,
- *      parameters              NULL  }
  * RSAPublicKey  ::=  SEQUENCE  {
  *    modulus            INTEGER,    -- n
  *    publicExponent     INTEGER  }  -- e
  *
- * - 3 * 4 bytes of SEQUENCE overhead;
- * - 1 + 1 + 9 bytes of algorithm (RSA OID);
- * - 2 bytes of NULL;
- * - 4 bytes of BIT STRING overhead;
+ * - 4 bytes of SEQUENCE overhead;
  * - n : INTEGER;
  * - 7 bytes for the public exponent.
  */
 #define PSA_KEY_EXPORT_RSA_PUBLIC_KEY_MAX_SIZE(key_bits)        \
-    (PSA_KEY_EXPORT_ASN1_INTEGER_MAX_SIZE(key_bits) + 36)
+    (PSA_KEY_EXPORT_ASN1_INTEGER_MAX_SIZE(key_bits) + 11)
 
 /* Maximum size of the export encoding of an RSA key pair.
  * Assumes thatthe public exponent is less than 2^32 and that the size

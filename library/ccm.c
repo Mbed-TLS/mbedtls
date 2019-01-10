@@ -80,7 +80,8 @@ int mbedtls_ccm_setkey( mbedtls_ccm_context *ctx,
     CCM_VALIDATE_RET( ctx != NULL );
     CCM_VALIDATE_RET( key != NULL );
 
-    cipher_info = mbedtls_cipher_info_from_values( cipher, keybits, MBEDTLS_MODE_ECB );
+    cipher_info = mbedtls_cipher_info_from_values( cipher, keybits,
+                                                   MBEDTLS_MODE_ECB );
     if( cipher_info == NULL )
         return( MBEDTLS_ERR_CCM_BAD_INPUT );
 
@@ -476,7 +477,8 @@ int mbedtls_ccm_self_test( int verbose )
 
     mbedtls_ccm_init( &ctx );
 
-    if( mbedtls_ccm_setkey( &ctx, MBEDTLS_CIPHER_ID_AES, key_test_data, 8 * sizeof key_test_data ) != 0 )
+    if( mbedtls_ccm_setkey( &ctx, MBEDTLS_CIPHER_ID_AES, key_test_data,
+                            8 * sizeof key_test_data ) != 0 )
     {
         if( verbose != 0 )
             mbedtls_printf( "  CCM: setup failed" );
@@ -497,10 +499,12 @@ int mbedtls_ccm_self_test( int verbose )
                                            iv_test_data, iv_len_test_data[i],
                                            ad_test_data, add_len_test_data[i],
                                            plaintext, ciphertext,
-                                           ciphertext + msg_len_test_data[i], tag_len_test_data[i] );
+                                           ciphertext + msg_len_test_data[i],
+                                           tag_len_test_data[i] );
 
         if( ret != 0 ||
-            memcmp( ciphertext, res_test_data[i], msg_len_test_data[i] + tag_len_test_data[i] ) != 0 )
+            memcmp( ciphertext, res_test_data[i],
+                    msg_len_test_data[i] + tag_len_test_data[i] ) != 0 )
         {
             if( verbose != 0 )
                 mbedtls_printf( "failed\n" );
@@ -513,7 +517,8 @@ int mbedtls_ccm_self_test( int verbose )
                                         iv_test_data, iv_len_test_data[i],
                                         ad_test_data, add_len_test_data[i],
                                         ciphertext, plaintext,
-                                        ciphertext + msg_len_test_data[i], tag_len_test_data[i] );
+                                        ciphertext + msg_len_test_data[i],
+                                        tag_len_test_data[i] );
 
         if( ret != 0 ||
             memcmp( plaintext, msg_test_data, msg_len_test_data[i] ) != 0 )

@@ -76,7 +76,8 @@ static int pkcs5_parse_pbkdf2_params( const mbedtls_asn1_buf *params,
      *  }
      *
      */
-    if( ( ret = mbedtls_asn1_get_tag( &p, end, &salt->len, MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_tag( &p, end, &salt->len,
+                                      MBEDTLS_ASN1_OCTET_STRING ) ) != 0 )
         return( MBEDTLS_ERR_PKCS5_INVALID_FORMAT + ret );
 
     salt->p = p;
@@ -141,7 +142,8 @@ int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
         return( MBEDTLS_ERR_PKCS5_INVALID_FORMAT +
                 MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
 
-    if( ( ret = mbedtls_asn1_get_alg( &p, end, &kdf_alg_oid, &kdf_alg_params ) ) != 0 )
+    if( ( ret = mbedtls_asn1_get_alg( &p, end, &kdf_alg_oid,
+                                      &kdf_alg_params ) ) != 0 )
         return( MBEDTLS_ERR_PKCS5_INVALID_FORMAT + ret );
 
     // Only PBKDF2 supported at the moment
@@ -202,7 +204,8 @@ int mbedtls_pkcs5_pbes2( const mbedtls_asn1_buf *pbe_params, int mode,
     if( ( ret = mbedtls_cipher_setup( &cipher_ctx, cipher_info ) ) != 0 )
         goto exit;
 
-    if( ( ret = mbedtls_cipher_setkey( &cipher_ctx, key, 8 * keylen, (mbedtls_operation_t) mode ) ) != 0 )
+    if( ( ret = mbedtls_cipher_setkey( &cipher_ctx, key, 8 * keylen,
+                                       (mbedtls_operation_t) mode ) ) != 0 )
         goto exit;
 
     if( ( ret = mbedtls_cipher_crypt( &cipher_ctx, iv, enc_scheme_params.len,
@@ -217,7 +220,8 @@ exit:
 }
 #endif /* MBEDTLS_ASN1_PARSE_C */
 
-int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx, const unsigned char *password,
+int mbedtls_pkcs5_pbkdf2_hmac( mbedtls_md_context_t *ctx,
+                       const unsigned char *password,
                        size_t plen, const unsigned char *salt, size_t slen,
                        unsigned int iteration_count,
                        uint32_t key_length, unsigned char *output )

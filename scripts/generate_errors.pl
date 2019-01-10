@@ -2,33 +2,21 @@
 
 # Generate error.c
 #
-# Usage: ./generate_errors.pl or scripts/generate_errors.pl without arguments,
-# or generate_errors.pl include_dir data_dir error_file
+# Usage: scripts/generate_errors.pl
 
 use strict;
 
-my ($include_dir, $data_dir, $error_file);
+# inputs
+my $include_dir = 'include/mbedtls';
+my $format_file = 'scripts/data_files/error.fmt';
 
-if( @ARGV ) {
-    die "Invalid number of arguments" if scalar @ARGV != 3;
-    ($include_dir, $data_dir, $error_file) = @ARGV;
+# output
+my $error_file = 'library/error.c';
 
-    -d $include_dir or die "No such directory: $include_dir\n";
-    -d $data_dir or die "No such directory: $data_dir\n";
-} else {
-    $include_dir = 'include/mbedtls';
-    $data_dir = 'scripts/data_files';
-    $error_file = 'library/error.c';
+# make sure we're in the right directory or fail with a clear message
+-d $include_dir && -r $format_file or die "Must be run from the root\n";
 
-    unless( -d $include_dir && -d $data_dir ) {
-        chdir '..' or die;
-        -d $include_dir && -d $data_dir
-            or die "Without arguments, must be run from root or scripts\n"
-    }
-}
-
-my $error_format_file = $data_dir.'/error.fmt';
-
+# these lists need to be updated when adding a new module
 my @low_level_modules = qw( AES ARC4 ARIA ASN1 BASE64 BIGNUM BLOWFISH
                             CAMELLIA CCM CHACHA20 CHACHAPOLY CMAC CTR_DRBG DES
                             ENTROPY GCM HKDF HMAC_DRBG MD2 MD4 MD5
@@ -41,7 +29,7 @@ my @high_level_modules = qw( CIPHER DHM ECP MD
 my $line_separator = $/;
 undef $/;
 
-open(FORMAT_FILE, "$error_format_file") or die "Opening error format file '$error_format_file': $!";
+open(FORMAT_FILE, "$format_file") or die "Opening error format file '$format_file': $!";
 my $error_format = <FORMAT_FILE>;
 close(FORMAT_FILE);
 

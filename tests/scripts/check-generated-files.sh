@@ -65,5 +65,5 @@ check()
 }
 
 check scripts/generate_errors.pl library/error.c
-check scripts/generate_features.pl library/version_features.c
+check scripts/generate_features.pl include/mbedtls/version_features.h
 check scripts/generate_visualc_files.pl visualc/VS2010

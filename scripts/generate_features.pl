@@ -7,7 +7,7 @@ my $config_h_file = 'include/mbedtls/config.h';
 my $format_file = 'scripts/data_files/version_features.fmt';
 
 # target
-my $feature_file = 'library/version_features.c';
+my $feature_file = 'include/mbedtls/version_features.h';
 
 # make sure we're in the right directory
 -r $config_h_file && -r $format_file or die "Must be run from root\n";

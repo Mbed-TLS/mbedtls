@@ -4044,12 +4044,13 @@ static psa_status_t psa_key_agreement_ecdh( const uint8_t *peer_key,
     mbedtls_pk_context pk;
     mbedtls_ecp_keypair *their_key = NULL;
     mbedtls_ecdh_context ecdh;
-    int ret;
+    psa_status_t status;
     mbedtls_ecdh_init( &ecdh );
     mbedtls_pk_init( &pk );
 
-    ret = mbedtls_pk_parse_public_key( &pk, peer_key, peer_key_length );
-    if( ret != 0 )
+    status = mbedtls_to_psa_error(
+        mbedtls_pk_parse_public_key( &pk, peer_key, peer_key_length ) );
+    if( status != PSA_SUCCESS )
         goto exit;
     switch( mbedtls_pk_get_type( &pk ) )
     {
@@ -4057,33 +4058,36 @@ static psa_status_t psa_key_agreement_ecdh( const uint8_t *peer_key,
         case MBEDTLS_PK_ECKEY_DH:
             break;
         default:
-            ret = MBEDTLS_ERR_ECP_INVALID_KEY;
+            status = PSA_ERROR_INVALID_ARGUMENT;
             goto exit;
     }
     their_key = mbedtls_pk_ec( pk );
     if( their_key->grp.id != our_key->grp.id )
     {
-        ret = MBEDTLS_ERR_ECP_INVALID_KEY;
+        status = PSA_ERROR_INVALID_ARGUMENT;
         goto exit;
     }
 
-    ret = mbedtls_ecdh_get_params( &ecdh, their_key, MBEDTLS_ECDH_THEIRS );
-    if( ret != 0 )
+    status = mbedtls_to_psa_error(
+        mbedtls_ecdh_get_params( &ecdh, their_key, MBEDTLS_ECDH_THEIRS ) );
+    if( status != PSA_SUCCESS )
         goto exit;
-    ret = mbedtls_ecdh_get_params( &ecdh, our_key, MBEDTLS_ECDH_OURS );
-    if( ret != 0 )
+    status = mbedtls_to_psa_error(
+        mbedtls_ecdh_get_params( &ecdh, our_key, MBEDTLS_ECDH_OURS ) );
+    if( status != PSA_SUCCESS )
         goto exit;
 
-    ret = mbedtls_ecdh_calc_secret( &ecdh,
-                                    shared_secret_length,
-                                    shared_secret, shared_secret_size,
-                                    mbedtls_ctr_drbg_random,
-                                    &global_data.ctr_drbg );
+    status = mbedtls_to_psa_error(
+        mbedtls_ecdh_calc_secret( &ecdh,
+                                  shared_secret_length,
+                                  shared_secret, shared_secret_size,
+                                  mbedtls_ctr_drbg_random,
+                                  &global_data.ctr_drbg ) );
 
 exit:
     mbedtls_pk_free( &pk );
     mbedtls_ecdh_free( &ecdh );
-    return( mbedtls_to_psa_error( ret ) );
+    return( status );
 }
 #endif /* MBEDTLS_ECDH_C */
 

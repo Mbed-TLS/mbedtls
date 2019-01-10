@@ -35,19 +35,13 @@ In addition to providing options for testing client-side features, the `ssl_clie
 
 ## Test utilities
 
-* [`test/benchmark.c`](test/benchmark.c): benchmark for cryptographic algorithms.
-
 * [`test/selftest.c`](test/selftest.c): runs the self-test function in each library module.
 
 * [`test/ssl_cert_test.c`](test/ssl_cert_test.c): demonstrates how to verify X.509 certificates, and (for RSA keys only) how to check that each certificate matches the corresponding private key. This program requires some test data which is not provided.
 
 * [`test/udp_proxy.c`](test/udp_proxy.c): a UDP proxy that can inject certain failures (delay, duplicate, drop). Useful for testing DTLS.
 
-* [`test/zeroize.c`](test/zeroize.c): a test program for `mbedtls_platform_zeroize`, used by [`tests/scripts/test_zeroize.gdb`](tests/scripts/test_zeroize.gdb).
-
 ## Development utilities
-
-* [`util/pem2der.c`](util/pem2der.c): a PEM to DER converter. Mbed TLS can read PEM files directly, but this utility can be useful for interacting with other tools or with minimal Mbed TLS builds that lack PEM support.
 
 * [`util/strerror.c`](util/strerror.c): prints the error description corresponding to an integer status returned by an Mbed TLS function.
 

@@ -61,11 +61,8 @@ APPS =	ssl/dtls_client$(EXEXT)		\
 	ssl/mini_client$(EXEXT)		\
 	ssl/ssl_mail_client$(EXEXT)	\
 	test/ssl_cert_test$(EXEXT)	\
-	test/benchmark$(EXEXT)		\
 	test/selftest$(EXEXT)		\
 	test/udp_proxy$(EXEXT)		\
-	test/zeroize$(EXEXT)		\
-	util/pem2der$(EXEXT)		\
 	util/strerror$(EXEXT)		\
 	x509/cert_app$(EXEXT)		\
 	x509/crl_app$(EXEXT)		\
@@ -134,10 +131,6 @@ test/ssl_cert_test$(EXEXT): test/ssl_cert_test.c $(DEP)
 	echo "  CC    test/ssl_cert_test.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/ssl_cert_test.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
-test/benchmark$(EXEXT): test/benchmark.c $(DEP)
-	echo "  CC    test/benchmark.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/benchmark.c   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
 test/cpp_dummy_build$(EXEXT): test/cpp_dummy_build.cpp $(DEP)
 	echo "  CXX   test/cpp_dummy_build.cpp"
 	$(CXX) $(LOCAL_CXXFLAGS) $(CXXFLAGS) test/cpp_dummy_build.cpp   $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
@@ -149,14 +142,6 @@ test/selftest$(EXEXT): test/selftest.c $(DEP)
 test/udp_proxy$(EXEXT): test/udp_proxy.c $(DEP)
 	echo "  CC    test/udp_proxy.c"
 	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/udp_proxy.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-test/zeroize$(EXEXT): test/zeroize.c $(DEP)
-	echo "  CC    test/zeroize.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) test/zeroize.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
-
-util/pem2der$(EXEXT): util/pem2der.c $(DEP)
-	echo "  CC    util/pem2der.c"
-	$(CC) $(LOCAL_CFLAGS) $(CFLAGS) util/pem2der.c    $(LOCAL_LDFLAGS) $(LDFLAGS) -o $@
 
 util/strerror$(EXEXT): util/strerror.c $(DEP)
 	echo "  CC    util/strerror.c"

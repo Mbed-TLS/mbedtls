@@ -521,9 +521,9 @@ static int mps_prepare_write( mbedtls_mps *mps,
          * Note that this does not apply to fatal alerts:
          * those are sent through mbedtls_mps_send_fatal()
          * which does not call this function. */
-        if( mps->dtls.state != MBEDTLS_MPS_FLIGHT_DONE &&
-            mps->dtls.state != MBEDTLS_MPS_FLIGHT_SEND &&
-            mps->dtls.state != MBEDTLS_MPS_FLIGHT_FINALIZE )
+        if( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR( mps->dtls.state,
+                                                MBEDTLS_MPS_FLIGHT_AWAIT,
+                                                MBEDTLS_MPS_FLIGHT_RECEIVE ) )
         {
             TRACE( trace_error, "Attempt to send message in an unexpected flight state %u",
                    (unsigned) mps->dtls.state );
@@ -1291,8 +1291,9 @@ static int mps_handle_pending_alert( mbedtls_mps *mps )
     alert.epoch = mps->out_epoch;
     MPS_CHK( mps_l3_write_alert( mps->conf.l3, &alert ) );
 
-    if( mps->state == MBEDTLS_MPS_STATE_READ_ONLY ||
-        mps->state == MBEDTLS_MPS_STATE_CLOSED )
+    if( MBEDTLS_MPS_STATE_EITHER_OR( mps->state,
+                                     MBEDTLS_MPS_STATE_READ_ONLY,
+                                     MBEDTLS_MPS_STATE_CLOSED ) )
     {
         TRACE( trace_comment, "Report orderly closure of write-side to peer." );
         *alert.level = MBEDTLS_MPS_ALERT_LEVEL_WARNING;
@@ -1361,8 +1362,9 @@ static int mps_check_read( mbedtls_mps const *mps )
 {
     TRACE_INIT( "mps_check_read, state %d", mps->state );
 
-    if( mps->state == MBEDTLS_MPS_STATE_OPEN ||
-        mps->state == MBEDTLS_MPS_STATE_READ_ONLY )
+    if( MBEDTLS_MPS_STATE_EITHER_OR( mps->state,
+                                     MBEDTLS_MPS_STATE_OPEN,
+                                     MBEDTLS_MPS_STATE_READ_ONLY ) )
     {
         TRACE( trace_comment, "Reading possible" );
         RETURN( 0 );
@@ -1377,8 +1379,9 @@ static int mps_check_write( mbedtls_mps const *mps )
 {
     TRACE_INIT( "mps_check_write, state %d", mps->state );
 
-    if( mps->state == MBEDTLS_MPS_STATE_OPEN ||
-        mps->state == MBEDTLS_MPS_STATE_WRITE_ONLY )
+    if( MBEDTLS_MPS_STATE_EITHER_OR( mps->state,
+                                     MBEDTLS_MPS_STATE_OPEN,
+                                     MBEDTLS_MPS_STATE_WRITE_ONLY ) )
     {
         TRACE( trace_comment, "Writing possible" );
         RETURN( 0 );
@@ -1734,8 +1737,10 @@ static int mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
 
     /* 1. Check if the message is recognized as a retransmission
      *    from an old flight. */
-    if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_AWAIT ||
-        mps->dtls.state == MBEDTLS_MPS_FLIGHT_FINALIZE )
+
+    if( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR( mps->dtls.state,
+                                            MBEDTLS_MPS_FLIGHT_AWAIT,
+                                            MBEDTLS_MPS_FLIGHT_FINALIZE ) )
     {
         TRACE( trace_comment, "Check if the fragment is a retransmission from an old flight." );
         ret = mps_retransmit_in_check( mps, &hs_l3 );

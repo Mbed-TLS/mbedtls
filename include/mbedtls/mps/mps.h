@@ -154,11 +154,20 @@ typedef struct
  *    The MPS is blocked after an error.
  */
 typedef uint8_t mbedtls_mps_connection_state_t;
-#define MBEDTLS_MPS_STATE_OPEN       ( (mbedtls_mps_connection_state_t) 0 )
-#define MBEDTLS_MPS_STATE_WRITE_ONLY ( (mbedtls_mps_connection_state_t) 1 )
-#define MBEDTLS_MPS_STATE_READ_ONLY  ( (mbedtls_mps_connection_state_t) 2 )
-#define MBEDTLS_MPS_STATE_CLOSED     ( (mbedtls_mps_connection_state_t) 3 )
-#define MBEDTLS_MPS_STATE_BLOCKED    ( (mbedtls_mps_connection_state_t) 4 )
+#define MBEDTLS_MPS_STATE_OPEN       ( (mbedtls_mps_connection_state_t) ( 1u << 0 ) )
+#define MBEDTLS_MPS_STATE_WRITE_ONLY ( (mbedtls_mps_connection_state_t) ( 1u << 1 ) )
+#define MBEDTLS_MPS_STATE_READ_ONLY  ( (mbedtls_mps_connection_state_t) ( 1u << 2 ) )
+#define MBEDTLS_MPS_STATE_CLOSED     ( (mbedtls_mps_connection_state_t) ( 1u << 3 ) )
+#define MBEDTLS_MPS_STATE_BLOCKED    ( (mbedtls_mps_connection_state_t) ( 1u << 4 ) )
+
+/* This works only if the values have no bit in common.
+ * I'd expect it to generate slightly smaller code. Is it actually true? */
+#define MBEDTLS_MPS_STATE_EITHER_OR( state, option_a, option_b ) \
+    ( ( state & ~( option_a | option_b ) ) == 0 )
+/* This alternative would work regardless of the valus of the enumeration. */
+/* #define MBEDTLS_MPS_STATE_EITHER_OR( state, option_a, option_b ) \ */
+/*     ( ( state == option_a ) ||                                   \ */
+/*       ( state == option_b ) ) */
 
 /*! The type of flight exchange states.
  *
@@ -183,11 +192,20 @@ typedef uint8_t mbedtls_mps_connection_state_t;
  *    but we're holding it back in case the peer didn't receive it.
  */
 typedef uint8_t mbedtls_mps_flight_state_t;
-#define MBEDTLS_MPS_FLIGHT_DONE     ( (mbedtls_mps_flight_state_t) 0 )
-#define MBEDTLS_MPS_FLIGHT_AWAIT    ( (mbedtls_mps_flight_state_t) 1 )
-#define MBEDTLS_MPS_FLIGHT_RECEIVE  ( (mbedtls_mps_flight_state_t) 2 )
-#define MBEDTLS_MPS_FLIGHT_SEND     ( (mbedtls_mps_flight_state_t) 3 )
-#define MBEDTLS_MPS_FLIGHT_FINALIZE ( (mbedtls_mps_flight_state_t) 4 )
+#define MBEDTLS_MPS_FLIGHT_DONE     ( (mbedtls_mps_flight_state_t) ( 1u << 0 ) )
+#define MBEDTLS_MPS_FLIGHT_AWAIT    ( (mbedtls_mps_flight_state_t) ( 1u << 1 ) )
+#define MBEDTLS_MPS_FLIGHT_RECEIVE  ( (mbedtls_mps_flight_state_t) ( 1u << 2 ) )
+#define MBEDTLS_MPS_FLIGHT_SEND     ( (mbedtls_mps_flight_state_t) ( 1u << 3 ) )
+#define MBEDTLS_MPS_FLIGHT_FINALIZE ( (mbedtls_mps_flight_state_t) ( 1u << 4 ) )
+
+/* This works only if the values have no bit in common.
+ * I'd expect it to generate slightly smaller code. Is it actually true? */
+#define MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR( state, option_a, option_b ) \
+    ( ( state & ~( option_a | option_b ) ) == 0 )
+/* This alternative would work regardless of the valus of the enumeration. */
+/* #define MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR( state, option_a, option_b ) \ */
+/*     ( ( state == option_a ) ||                                          \ */
+/*       ( state == option_b ) ) */
 
 /**
  * Retransmission state

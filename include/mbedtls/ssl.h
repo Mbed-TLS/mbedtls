@@ -605,7 +605,7 @@ typedef struct mbedtls_ssl_flight_item mbedtls_ssl_flight_item;
  *                  mbedtls_rsa_pkcs1_sign(). Before the private key operation,
  *                  apply the padding steps described in RFC 8017, section 9.2
  *                  "EMSA-PKCS1-v1_5" as follows.
- *                  - If \p md_alg is #MBEDTLS_MD_NONE, apply the PKCS#1 v1.5
+ *                  - If \p md_alg is MBEDTLS_MD_NONE, apply the PKCS#1 v1.5
  *                    encoding, treating \p hash as the DigestInfo to be
  *                    padded. In other words, apply EMSA-PKCS1-v1_5 starting
  *                    from step 3, with `T = hash` and `tLen = hash_len`.
@@ -2129,7 +2129,7 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
  * \param psk      The identifier of the key slot holding the PSK.
  *                 Until \p conf is destroyed or this function is successfully
  *                 called again, the key slot \p psk must be populated with a
- *                 key of type #PSA_ALG_CATEGORY_KEY_DERIVATION whose policy
+ *                 key of type PSA_ALG_CATEGORY_KEY_DERIVATION whose policy
  *                 allows its use for the key derivation algorithm applied
  *                 in the handshake.
  * \param psk_identity      The pointer to the pre-shared key identity.
@@ -2176,7 +2176,7 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
  * \param psk      The identifier of the key slot holding the PSK.
  *                 For the duration of the current handshake, the key slot
  *                 must be populated with a key of type
- *                 #PSA_ALG_CATEGORY_KEY_DERIVATION whose policy allows its
+ *                 PSA_ALG_CATEGORY_KEY_DERIVATION whose policy allows its
  *                 use for the key derivation algorithm
  *                 applied in the handshake.
   *

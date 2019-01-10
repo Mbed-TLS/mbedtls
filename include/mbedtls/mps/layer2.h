@@ -608,16 +608,32 @@ struct mbedtls_mps_l2
 
         /** The address of the header of the current outgoing record,
          *  or \c NULL if there is no such. */
+        /* OPTIMIZATION:
+         * This is the same as the buffer obtained from
+         * Layer 1. Consider removing this reference
+         * and querying Layer 1 when it's needed instead. */
         unsigned char *hdr;
         /** The length of the header buffer pointed to by \c hdr.          */
         mbedtls_mps_stored_size_t hdr_len;
+
         /** The buffer pair consisting of content buffer
          *  (plaintext or ciphertext) and work buffer.                     */
+        /* OPTIMIZATION:
+         * This has overlap with \c hdr: the outer buffer in the
+         * \c payload buffer pair always starts at `hdr + hdr_len`.
+         * Consider removing this redundancy provided (?) it's possible
+         * to do so without sacrifing structure and clarity of the code. */
         mps_l2_bufpair payload;
 
         /** The structure through which the content type, the epoch
          *  and the state of plaintext writing of the current outgoing
          *  record is tracked. */
+        /* OPTIMIZATION:
+         * The fragment managed by the writer the inner
+         * buffer in the \c payload buffer pair before
+         * encryption. Consider removing this redundancy
+         * provided (?) it's possible to do so without
+         * sacrificing structure and clarity of the code. */
         mbedtls_mps_l2_out_internal writer;
 
 #define MPS_L2_INV_OUT_WRITER_INV( p )          \

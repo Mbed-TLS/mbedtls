@@ -494,6 +494,10 @@ struct mps_l3
 
         /* Raw outgoing record data */
 
+        /* OPTIMIZATION:
+         * If not NULL, this always points to the writer
+         * maintained by the underlying Layer 2 instance.
+         * Consider using this instance directly. */
         mbedtls_writer *raw_out; /*!< Writer providing raw access to outgoing
                                   *   data buffers (including such to be used
                                   *   for headers in case of handshake

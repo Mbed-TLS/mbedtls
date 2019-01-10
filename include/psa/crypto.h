@@ -474,8 +474,17 @@ psa_status_t psa_export_key(psa_key_handle_t handle,
  * minimize the risk that an invalid input is accidentally interpreted
  * according to a different format.
  *
- * The format is the DER representation defined by RFC 5280 as
- * `SubjectPublicKeyInfo`, with the `subjectPublicKey` format
+ * For standard key types, the output format is as follows:
+ * - For RSA public keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY), the DER encoding of
+ *   the representation defined by RFC 3279 &sect;2.3.1 as `RSAPublicKey`.
+ *   ```
+ *   RSAPublicKey ::= SEQUENCE {
+ *      modulus            INTEGER,    -- n
+ *      publicExponent     INTEGER  }  -- e
+ *   ```
+ *
+ * For other public key types, the format is the DER representation defined by
+ * RFC 5280 as `SubjectPublicKeyInfo`, with the `subjectPublicKey` format
  * specified below.
  * ```
  * SubjectPublicKeyInfo  ::=  SEQUENCE  {
@@ -485,21 +494,6 @@ psa_status_t psa_export_key(psa_key_handle_t handle,
  *      algorithm          OBJECT IDENTIFIER,
  *      parameters         ANY DEFINED BY algorithm OPTIONAL  }
  * ```
- *
- * - For RSA public keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY),
- *   the `subjectPublicKey` format is defined by RFC 3279 &sect;2.3.1 as
- *   `RSAPublicKey`,
- *   with the OID `rsaEncryption`,
- *   and with the parameters `NULL`.
- *   ```
- *   pkcs-1 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)
- *                                  rsadsi(113549) pkcs(1) 1 }
- *   rsaEncryption OBJECT IDENTIFIER ::=  { pkcs-1 1 }
- *
- *   RSAPublicKey ::= SEQUENCE {
- *      modulus            INTEGER,    -- n
- *      publicExponent     INTEGER  }  -- e
- *   ```
  * - For DSA public keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY),
  *   the `subjectPublicKey` format is defined by RFC 3279 &sect;2.3.2 as
  *   `DSAPublicKey`,

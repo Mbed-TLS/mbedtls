@@ -1,29 +1,16 @@
 #!/usr/bin/env perl
-#
 
 use strict;
 
-my ($include_dir, $data_dir, $feature_file);
+# sources
+my $config_h_file = 'include/mbedtls/config.h';
+my $format_file = 'scripts/data_files/version_features.fmt';
 
-if( @ARGV ) {
-    die "Invalid number of arguments" if scalar @ARGV != 3;
-    ($include_dir, $data_dir, $feature_file) = @ARGV;
+# target
+my $feature_file = 'library/version_features.c';
 
-    -d $include_dir or die "No such directory: $include_dir\n";
-    -d $data_dir or die "No such directory: $data_dir\n";
-} else {
-    $include_dir = 'include/mbedtls';
-    $data_dir = 'scripts/data_files';
-    $feature_file = 'library/version_features.c';
-
-    unless( -d $include_dir && -d $data_dir ) {
-        chdir '..' or die;
-        -d $include_dir && -d $data_dir
-            or die "Without arguments, must be run from root or scripts\n"
-    }
-}
-
-my $feature_format_file = $data_dir.'/version_features.fmt';
+# make sure we're in the right directory
+-r $config_h_file && -r $format_file or die "Must be run from root\n";
 
 my @sections = ( "System support", "mbed TLS modules",
                  "mbed TLS feature support" );
@@ -31,13 +18,13 @@ my @sections = ( "System support", "mbed TLS modules",
 my $line_separator = $/;
 undef $/;
 
-open(FORMAT_FILE, "$feature_format_file") or die "Opening feature format file '$feature_format_file': $!";
+open(FORMAT_FILE, "$format_file") or die "Opening feature format file '$format_file': $!";
 my $feature_format = <FORMAT_FILE>;
 close(FORMAT_FILE);
 
 $/ = $line_separator;
 
-open(CONFIG_H, "$include_dir/config.h") || die("Failure when opening config.h: $!");
+open(CONFIG_H, "$config_h_file") || die("Failure when opening config.h: $!");
 
 my $feature_defines = "";
 my $in_section = 0;

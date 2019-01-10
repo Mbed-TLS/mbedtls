@@ -220,6 +220,7 @@
     <ClInclude Include="..\..\include\mbedtls\threading.h" />
     <ClInclude Include="..\..\include\mbedtls\timing.h" />
     <ClInclude Include="..\..\include\mbedtls\version.h" />
+    <ClInclude Include="..\..\include\mbedtls\version_features.h" />
     <ClInclude Include="..\..\include\mbedtls\x509.h" />
     <ClInclude Include="..\..\include\mbedtls\x509_crl.h" />
     <ClInclude Include="..\..\include\mbedtls\x509_crt.h" />

@@ -353,10 +353,14 @@ struct mps_l3_hs_out_internal
     mps_l3_hs_state state;
 
     /*! The handshake message type. */
+
+    /* OPTIMIZATION:
+     * Consider removing handshake metadata from Layer 3.
+     * See the corresponding comments in mps.h. */
     mbedtls_mps_stored_hs_type type;
 
     /*! The total length of the message (regardless of fragmentation),
-     *   or #MBEDTLS_MPS_SIZE_UNKNOWN if it is not yet known. */
+     *  or #MBEDTLS_MPS_SIZE_UNKNOWN if it is not yet known. */
     mbedtls_mps_stored_opt_size_t len;
 
     /*! The buffer that should hold the handshake header once
@@ -367,6 +371,11 @@ struct mps_l3_hs_out_internal
 
     /*! The extended writer providing buffers to which the message
      *  contents can be written, and keeing track of message bounds. */
+
+    /* OPTIMIZATION:
+     * Consider removing the extended writer from Layer 3 and
+     * performing bounds checks for handshake messages at Layer 4.
+     * See the corresponding comment in mps.h. */
     mbedtls_writer_ext wr_ext;
 
     /* DTLS-specific fields. */
@@ -380,6 +389,10 @@ struct mps_l3_hs_out_internal
     mbedtls_mps_stored_size_t frag_offset;
 
     /*! The handshake sequence number. */
+
+    /* OPTIMIZATION:
+     * Consider removing handshake metadata from Layer 3.
+     * See the corresponding comments in mps.h. */
     mbedtls_mps_stored_hs_seq_nr_t seq_nr;
 };
 
@@ -496,6 +509,11 @@ struct mps_l3
 
         /* Type-specific structures */
 
+        /* QUESTION:
+         * Why do we need to store meta-data such as the handshake
+         * sequence number here? We should be able to write the
+         * handshake header in mps_l3_write_handshake(), and afterwards
+         * the sequence number isn't needed anymore -- or is it? */
         mps_l3_hs_out_internal hs; /*!< Handle to outgoing handshake message. */
 
 #define MPS_L3_INV_OUT_HS_ACTIVE_STATE( p )             \

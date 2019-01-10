@@ -322,6 +322,36 @@ struct mbedtls_mps_handshake_out_internal
                                  *   different from the current outgoing
                                  *   epoch in case of retransmissions.        */
 
+    /* OPTIMIZATION:
+     * This has significant overlap with Layer 3, which also
+     * stores the metadata for handshake messages. Consider
+     * optimizing this.
+     *
+     * Initial thoughts:
+     * - For DTLS, handshake metadata isn't used after
+     *   the initial call to mps_l3_write_handshake()
+     *   anymore because the handshake header is written
+     *   immediately. It should therefore not be stored
+     *   in the Layer 3 structure in this case.
+     * - For TLS, Layer 3 currently uses the stored metadata
+     *   to check that the handshake message metadata doesn't
+     *   change during paused-and-continued handshake writes.
+     *   This is a legitimate use and makes the API harder
+     *   to abuse.
+     * - For DTLS, Layer 4 needs to store the handshake
+     *   metadata: If a large handshake message is written
+     *   by the user which fits in the writer's queue but
+     *   cannot be dispatched to Layer 3 in one go, the
+     *   calls to Layer 3 dispatching the remaining fragments
+     *   need the metadata.
+     * - Again for DTLS, Layer 4 uses the stored handshake
+     *   metadata to check consistency across paused-and-continued
+     *   handshake writes, making the API harder to abuse.
+     *
+     * It seems worth considering to remove the metadata from
+     * Layer 3 and storing it solely at Layer 4.
+     */
+
     /*! The handshake sequence number. */
     mbedtls_mps_stored_hs_seq_nr_t seq_nr;
 
@@ -348,17 +378,35 @@ struct mbedtls_mps_handshake_out_internal
      * part of the handshake message.
      */
 
-    /* TODO:
-     * Consider removing this; the reader can be queried
-     * from Layer 3 anytime, and there's no need to keep
-     * its address here. Moreover, the querying might be
-     * done through an inline function so that the compiler
-     * is able to optimize this into a direct structure
-     * field access.
+    /* OPTIMIZATION:
+     * Consider removing this pointer; the reader can be queried
+     * from Layer 3 anytime, and there's no need to keep its
+     * address here. Moreover, the querying might be done through
+     * an inline function so that the compiler is able to optimize
+     * this into a direct structure field access.
      * In general, care has to be taken to not have the
      * layered structure of MPS come at the cost of information
      * duplication and too many layers of indirections.
      */
+
+    /* OPTIMIZATION:
+     * Consider removing the extended writer from Layer 3.
+     * Currently, it is only needed to keep track of handshake
+     * message bounds during TLS handshake fragmentation, but
+     * these bounds checks could as well be moved to Layer 4.
+     * This would weaken the API guarantees of Layer 3 in that
+     * it'd allow to write fragmented handshake messages longer
+     * than indicated in their handshake header, but given
+     * that the logic layer only interfaces with Layer 4
+     * and the API guarantees of Layer 4 stay the same, this
+     * seems acceptable.
+     * This change would lead to conceptual simplification,
+     * less code, and saving one extended writer of RAM.
+     *
+     * Removing the extended writer from Layer 3 would mean that
+     * we'd safe a pointer to a raw writer here (which, however,
+     * might be removed due to the previous optimization
+     * opportunity). */
     mbedtls_writer_ext *wr_ext_l3;  /*!< The writer obtained from Layer 3 to
                                      *   write the next handshake fragment.*/
 
@@ -369,6 +417,9 @@ struct mbedtls_mps_handshake_out_internal
      * User-facing writers
      */
 
+    /* OPTIMIZATION:
+     * The queue and its length are already stored in the writer,
+     * and one should be able to avoid dupliating them here. */
     mbedtls_mps_stored_size_t queue_len;
     unsigned char            *queue;
     mbedtls_writer         wr;

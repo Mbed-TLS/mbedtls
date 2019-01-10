@@ -15,19 +15,21 @@ if [ -d library -a -d include -a -d tests ]; then :; else
     exit 1
 fi
 
+# usage:
+# - check script file1 [file2 [...]]
+# - check script directory
 check()
 {
     SCRIPT=$1
     TO_CHECK=$2
-    PATTERN=""
-    FILES=""
+    shift;
+    FILES="$@"
 
     if [ -d $TO_CHECK ]; then
+        FILES=""
         for FILE in $TO_CHECK/*; do
             FILES="$FILE $FILES"
         done
-    else
-        FILES=$TO_CHECK
     fi
 
     for FILE in $FILES; do
@@ -37,6 +39,7 @@ check()
     $SCRIPT
 
     # Compare the script output to the old files and remove backups
+    PATTERN=""
     for FILE in $FILES; do
         if ! diff $FILE $FILE.bak >/dev/null 2>&1; then
             echo "'$FILE' was either modified or deleted by '$SCRIPT'"
@@ -64,6 +67,6 @@ check()
     fi
 }
 
-check scripts/generate_errors.pl library/error.c
+check scripts/generate_errors.pl include/mbedtls/error_includes.h include/mbedtls/error_high.h include/mbedtls/error_low.h
 check scripts/generate_features.pl include/mbedtls/version_features.h
 check scripts/generate_visualc_files.pl visualc/VS2010

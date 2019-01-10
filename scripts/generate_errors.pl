@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# Generate error.c
+# Generate error_xxx.h
 #
 # Usage: scripts/generate_errors.pl
 
@@ -10,8 +10,10 @@ use strict;
 my $include_dir = 'include/mbedtls';
 my $format_file = 'scripts/data_files/error.fmt';
 
-# output
-my $error_file = 'library/error.c';
+# outputs
+my $out_file_includes = 'include/mbedtls/error_includes.h';
+my $out_file_high = 'include/mbedtls/error_high.h';
+my $out_file_low = 'include/mbedtls/error_low.h';
 
 # make sure we're in the right directory or fail with a clear message
 -d $include_dir && -r $format_file or die "Must be run from the root\n";
@@ -186,10 +188,21 @@ if ($hl_old_define ne "")
     $hl_code_check .= " */\n";
 }
 
-$error_format =~ s/HEADER_INCLUDED\n/$headers/g;
-$error_format =~ s/LOW_LEVEL_CODE_CHECKS\n/$ll_code_check/g;
-$error_format =~ s/HIGH_LEVEL_CODE_CHECKS\n/$hl_code_check/g;
+my %outputs = (
+    $out_file_includes => $headers,
+    $out_file_high => $hl_code_check,
+    $out_file_low => $ll_code_check,
+);
 
-open(ERROR_FILE, ">$error_file") or die "Opening destination file '$error_file': $!";
-print ERROR_FILE $error_format;
-close(ERROR_FILE);
+while (my ($file_name, $body) = each %outputs)
+{
+    (my $basename = $file_name) =~ s!.*/!!;
+    my $content = $error_format;
+    $content =~ s/FILENAME/$basename/;
+    $content =~ s/BODY\n/$body/;
+
+    open(my $out_fh, '>', $file_name) or die "Opening destination file '$file_name': $!";
+    print $out_fh $content;
+    close($out_fh);
+}
+

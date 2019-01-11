@@ -3,8 +3,8 @@ mbed TLS ChangeLog (Sorted per branch, date)
 = mbed TLS x.x.x branch released xxxx-xx-xx
 
 Changes
-   * Tweaked apidoc_full.sh to include functions with alternative
-     implementations in the header documentation.
+   * Adapt the script 'apidoc_full.sh' to include functions with alternative
+     implementations in the doxygen documentation.
 
 = mbed TLS 2.x.x branch released xxxx-xx-xx
 

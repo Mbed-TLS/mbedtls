@@ -276,14 +276,15 @@ int mps_l2_config_version( mbedtls_mps_l2 *ctx, uint8_t ver )
     RETURN( 0 );
 }
 
-/* Please consult the documentation of mbedtls_mps_l2 for a basic description of the
- * state flow when preapring outgoing records.
+/* Please consult the documentation of mbedtls_mps_l2 for a basic
+ * description of the state flow when preapring outgoing records.
  *
  * This function assumes that no outgoing record is currently being processed
  * and prepares L1-owned buffers holding the record header and record plaintext.
  * The latter is subsequently fed to the user-facing writer object (not done
  * in this function). */
-static int l2_out_prepare_record( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch_id )
+static int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
+                                  mbedtls_mps_epoch_id epoch_id )
 {
     int ret;
     uint8_t overflow; /* Helper variable to detect arithmetic overflow. */

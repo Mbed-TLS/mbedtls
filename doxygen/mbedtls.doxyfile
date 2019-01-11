@@ -710,6 +710,9 @@ EXCLUDE_SYMLINKS       = YES
 # against the file with absolute path, so to exclude all test directories
 # for example use the pattern */test/*
 
+# Note, we exclude all *_wrap.h headers, and *_internal.h headers, apart from
+# those *_internal.h headers which can be used by implementers of alternative
+# crypto implementations.
 EXCLUDE_PATTERNS       = cipher_internal.h \
                          md_internal.h \
                          pk_internal.h \

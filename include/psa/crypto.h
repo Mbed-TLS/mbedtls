@@ -467,6 +467,13 @@ psa_status_t psa_export_key(psa_key_handle_t handle,
  * The output of this function can be passed to psa_import_key() to
  * create an object that is equivalent to the public key.
  *
+ * This specification supports a single format for each key type.
+ * Implementations may support other formats as long as the standard
+ * format is supported. Implementations that support other formats
+ * should ensure that the formats are clearly unambiguous so as to
+ * minimize the risk that an invalid input is accidentally interpreted
+ * according to a different format.
+ *
  * The format is the DER representation defined by RFC 5280 as
  * `SubjectPublicKeyInfo`, with the `subjectPublicKey` format
  * specified below.

@@ -24,7 +24,7 @@
    to avoid having an infinite loop if the timer functions are not implemented
    correctly. Ideally this value should be based on the processor speed but we
    don't have this information! */
-#define TIMING_SHORT_TEST_ITERATIONS_MAX 1e8
+#define TIMING_SHORT_TEST_ITERATIONS_MAX 1e9
 
 /* alarm(0) must fire in no longer than this amount of time. */
 #define TIMING_ALARM_0_DELAY_MS TIMING_SHORT_TEST_MS

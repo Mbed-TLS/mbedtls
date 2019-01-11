@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "common.h"
 #include "allocator.h"
 #include "error.h"
 
@@ -58,24 +59,23 @@ typedef struct
      * could be removed here if there was a stub API to access
      * the allocated buffers from the allocator. */
     unsigned char *buf;   /*!< The buffer holding the data read from Layer 0 */
-    size_t buf_len;       /*!< The size of buf                               */
+    mbedtls_mps_stored_size_t buf_len;         /*!< The size of \c buf.      */
 
-    size_t bytes_read;    /*!< Total number of bytes read from the
-                           *   underlying transport so far.
-                           *   Must not be larger than buf_len
-                           *   (MPS_L1_STREAM_READ_INV_BUF_INEQUALITIES).        */
+    /*! Total number of bytes read from the underlying transport so far.
+     *  Must not be larger than \c buf_len
+     *  (MPS_L1_STREAM_READ_INV_BUF_INEQUALITIES). */
+    mbedtls_mps_stored_size_t bytes_read;
 
-    size_t bytes_fetched; /*!< Total number of bytes provided to the user
-                           *   at the last fetch call if that call was
-                           *   successful. If it failed, or if mps_l1_fetch
-                           *   hasn't been called at all, this is 0.
-                           *
-                           *   This field determines the read buffer in the
-                           *   abstract state of the Layer 1 context that the
-                           *   user has to keep in mind.
-                           *
-                           *   Must not be larger than bytes_read
-                           *   (MPS_L1_STREAM_READ_INV_BUF_INEQUALITIES).        */
+    /*! Total number of bytes provided to the user at the last fetch call if
+     *  that call was successful. If it failed, or if mps_l1_fetch() hasn't
+     *  been called at all, this is \c 0.
+     *
+     *  This field determines the read buffer in the abstract state of the
+     *  Layer 1 context that the user has to keep in mind.
+     *
+     *  Must not be larger than bytes_read
+     *  (MPS_L1_STREAM_READ_INV_BUF_INEQUALITIES). */
+    mbedtls_mps_stored_size_t bytes_fetched;
 
 } mps_l1_stream_read;
 
@@ -105,34 +105,32 @@ typedef struct
      * the allocated buffers from the allocator. */
     unsigned char *buf;    /*!< The buffer holding the data to be
                             *   passed to Layer 0                            */
-    size_t buf_len;        /*!< The size of buf                              */
+    mbedtls_mps_stored_size_t buf_len;    /*!< The size of \c buf.           */
 
-    size_t bytes_ready;    /*!< Number of bytes written and dispatched by
-                            *   the user. Must not be larger than buf_len
-                            *   (MPS_L1_STREAM_WRITE_INV_BUF_INEQUALITIES).      */
+    /*! Number of bytes written and dispatched by the user.
+     *  This must not be larger than buf_len
+     *  (MPS_L1_STREAM_WRITE_INV_BUF_INEQUALITIES). */
+    mbedtls_mps_stored_size_t bytes_ready;
 
-    size_t bytes_written;  /*!< The number of bytes already transferred
-                            *   to Layer 0 during flushing.
-                            *   This is only used if status is
-                            *   MPS_L1_STREAM_STATUS_FLUSH;
-                            *   otherwise, its value is 0
-                            *   (invariants MPS_L1_STREAM_WRITE_INV_STATUS_READY
-                            *    and MPS_L1_STREAM_WRITE_INV_STATUS_WRITE).
-                            *   Must not be larger than bytes_ready
-                            *   (MPS_L1_STREAM_WRITE_INV_BUF_INEQUALITIES).      */
+   /*! The number of bytes already transferred to Layer 0 during flushing.
+    *  This is only used if status is MPS_L1_STREAM_STATUS_FLUSH;
+    *  otherwise, its value is 0 (invariants
+    *  MPS_L1_STREAM_WRITE_INV_STATUS_READY and
+    *  MPS_L1_STREAM_WRITE_INV_STATUS_WRITE).
+    *  This must not be larger than bytes_ready
+    *  (MPS_L1_STREAM_WRITE_INV_BUF_INEQUALITIES). */
+    mbedtls_mps_stored_size_t bytes_written;
 
-    mps_l1_stream_state status;  /*!< Internal state:
-                                  * - L1_STREAM_STATUS_READY:
-                                  *    Write-buffer can be requested,
-                                  *    awaiting write call.
-                                  * - L1_STREAM_STATUS_FLUSH:
-                                  *    Outgoing data is pending to be
-                                  *    flushed to Layer 0 before write-buffer
-                                  *    can be requested.
-                                  * - L1_STREAM_STATUS_WRITE:
-                                  *    Write-buffer has been passed to the user,
-                                  *    awaiting dispatch call.
-                                  * Invariant L1_STREAM_INV_STATUS_VALID.     */
+    /*!< Internal state:
+     * - L1_STREAM_STATUS_READY:
+     *   Write-buffer can be requested, awaiting write call.
+     * - L1_STREAM_STATUS_FLUSH:
+     *   Outgoing data is pending to be flushed to Layer 0
+     *   before write-buffer can be requested.
+     * - L1_STREAM_STATUS_WRITE:
+     *   Write-buffer has been passed to the user, awaiting dispatch call.
+     * Invariant L1_STREAM_INV_STATUS_VALID.     */
+    mps_l1_stream_state status;
 
 } mps_l1_stream_write;
 
@@ -302,15 +300,18 @@ typedef struct
      * the allocated buffers from the allocator. */
     unsigned char *buf;     /*!< The buffer holding the datagram received
                              *   from the underlying Layer 0 transport.       */
-    size_t buf_len;         /*!< The size of buf                              */
+    /*! The size of \c buf. */
+    mbedtls_mps_stored_size_t buf_len;
 
-    size_t window_base;     /*!< The current read-position within buf.        */
-    size_t window_len;      /*!< The length of the fragment last handed out
-                             *   to the user in a call to mps_l1_fetch. If
-                             *   that call was unsuccessful, or if no such
-                             *   call has been made, the value is 0.          */
+    /*!< The current read-position within buf. */
+    mbedtls_mps_stored_size_t window_base;
+    /*! The length of the fragment last handed out to the user in a call to
+     *  mps_l1_fetch. If that call was unsuccessful, or if no such call has
+     *  been made, the value is \c 0. */
+    mbedtls_mps_stored_size_t window_len;
 
-    size_t msg_len;         /*!< The size of the current datagram (or 0
+
+    mbedtls_mps_stored_size_t msg_len;         /*!< The size of the current datagram (or 0
                              *   if none has been fetched yet).               */
 
 } mps_l1_dgram_read;
@@ -328,10 +329,11 @@ typedef struct
      * the allocated buffers from the allocator. */
     unsigned char *buf;     /*!< The buffer wherein the outgoing data
                              *   should be prepared.                          */
-    size_t buf_len;         /*!< The size of buf.                             */
 
-    size_t bytes_ready;     /*!< Number of bytes written and dispatched
-                             *   by the user                                  */
+    /*! The size of \c buf. */
+    mbedtls_mps_stored_size_t buf_len;
+    /*! Number of bytes written and dispatched by the user                  */
+    mbedtls_mps_stored_size_t bytes_ready;
 
     uint8_t flush;          /*!< Indicates if a flush is necessary before
                              *   serving the next write request.              */

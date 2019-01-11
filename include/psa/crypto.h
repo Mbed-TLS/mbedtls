@@ -387,6 +387,21 @@ psa_status_t psa_get_key_information(psa_key_handle_t handle,
  *      g       INTEGER
  *   }
  *   ```
+ * - For Diffie-Hellman key exchange keys (#PSA_KEY_TYPE_DH_PUBLIC_KEY), the
+ *   `DomainParameters` format as defined by RFC 3279 &sect;2.3.3.
+ *   ```
+ *   DomainParameters ::= SEQUENCE {
+ *      p               INTEGER,                    -- odd prime, p=jq +1
+ *      g               INTEGER,                    -- generator, g
+ *      q               INTEGER,                    -- factor of p-1
+ *      j               INTEGER OPTIONAL,           -- subgroup factor
+ *      validationParms ValidationParms OPTIONAL
+ *   }
+ *   ValidationParms ::= SEQUENCE {
+ *      seed            BIT STRING,
+ *      pgenCounter     INTEGER
+ *   }
+ *   ```
  *
  * \param handle      Handle to the key to set domain parameters for.
  * \param[in] data    Buffer containing the key domain parameters. The content
@@ -494,6 +509,10 @@ psa_status_t psa_get_key_domain_parameters(psa_key_handle_t handle,
  *   and `PSA_ECC_CURVE_BRAINPOOL_PXXX`).
  *   This is the content of the `privateKey` field of the `ECPrivateKey`
  *   format defined by RFC 5915.
+ * - For Diffie-Hellman key exchange key pairs (#PSA_KEY_TYPE_DH_KEYPAIR), the
+ *   format is the representation of the private key `x` as a big-endian byte
+ *   string. The length of the byte string is the private key size in bytes
+ *   (leading zeroes are not stripped).
  * - For public keys (key types for which #PSA_KEY_TYPE_IS_PUBLIC_KEY is
  *   true), the format is the same as for psa_export_public_key().
  *
@@ -560,6 +579,10 @@ psa_status_t psa_export_key(psa_key_handle_t handle,
  *   representation of the public key `y = g^x mod p` as a big-endian byte
  *   string. The length of the byte string is the length of the base prime `p`
  *   in bytes.
+ * - For Diffie-Hellman key exchange public keys (#PSA_KEY_TYPE_DH_PUBLIC_KEY),
+ *   the format is the representation of the public key `y = g^x mod p` as a
+ *   big-endian byte string. The length of the byte string is the length of the
+ *   base prime `p` in bytes.
  *
  * \param handle            Handle to the key to export.
  * \param[out] data         Buffer where the key data is to be written.
@@ -2300,6 +2323,12 @@ typedef struct {
  *                            is \c NULL is 65537.
  *                          - For an DSA key (\p type is
  *                            #PSA_KEY_TYPE_DSA_KEYPAIR), \p extra is an
+ *                            optional structure specifying the key domain
+ *                            parameters. The key domain parameters can also be
+ *                            provided by psa_set_key_domain_parameters(),
+ *                            which documents the format of the structure.
+ *                          - For a DH key (\p type is
+ *                            #PSA_KEY_TYPE_DH_KEYPAIR), the \p extra is an
  *                            optional structure specifying the key domain
  *                            parameters. The key domain parameters can also be
  *                            provided by psa_set_key_domain_parameters(),

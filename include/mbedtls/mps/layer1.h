@@ -52,6 +52,11 @@ typedef struct
     mps_alloc     *alloc; /*!< The allocator to use to acquire and release
                            *   the read-buffer used by Layer 1.              */
     mps_l0_recv_t *recv;  /*!< The Layer 0 receive callback                  */
+
+    /* OPTIMIZATION:
+     * This buffer is already present in the allocator and
+     * could be removed here if there was a stub API to access
+     * the allocated buffers from the allocator. */
     unsigned char *buf;   /*!< The buffer holding the data read from Layer 0 */
     size_t buf_len;       /*!< The size of buf                               */
 
@@ -94,6 +99,10 @@ typedef struct
                             *   the write-buffer used by Layer 1.            */
     mps_l0_send_t *send;   /*!< The Layer 0 send callback                    */
 
+    /* OPTIMIZATION:
+     * This buffer is already present in the allocator and
+     * could be removed here if there was a stub API to access
+     * the allocated buffers from the allocator. */
     unsigned char *buf;    /*!< The buffer holding the data to be
                             *   passed to Layer 0                            */
     size_t buf_len;        /*!< The size of buf                              */
@@ -287,6 +296,10 @@ typedef struct
                              *   the read-buffer used by Layer 1.             */
     mps_l0_recv_t *recv;    /*!< The Layer 0 receive callback                 */
 
+    /* OPTIMIZATION:
+     * This buffer is already present in the allocator and
+     * could be removed here if there was a stub API to access
+     * the allocated buffers from the allocator. */
     unsigned char *buf;     /*!< The buffer holding the datagram received
                              *   from the underlying Layer 0 transport.       */
     size_t buf_len;         /*!< The size of buf                              */
@@ -309,6 +322,10 @@ typedef struct
                              *   the write-buffer used by Layer 1.            */
     mps_l0_send_t *send;    /*!< The Layer 0 receive callback                 */
 
+    /* OPTIMIZATION:
+     * This buffer is already present in the allocator and
+     * could be removed here if there was a stub API to access
+     * the allocated buffers from the allocator. */
     unsigned char *buf;     /*!< The buffer wherein the outgoing data
                              *   should be prepared.                          */
     size_t buf_len;         /*!< The size of buf.                             */

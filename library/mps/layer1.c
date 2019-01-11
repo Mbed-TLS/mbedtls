@@ -239,6 +239,15 @@ int l1_fetch_stream( mps_l1_stream_read *p,
     mps_l0_recv_t *recv;
     TRACE_INIT( "l1_fetch_stream, desired %u", (unsigned) len );
 
+    /* OPTIMIZATION:
+     * This refers to the potential removal of `buf` from
+     * the Layer 0 structure. If we do that, we might change
+     * the allocator's allocation function to only take the
+     * ID of the allocation, and to add a function querying
+     * for the pointer on success. This function should be a
+     * simple getter function returning the corresponding
+     * field from the allocator, so that the compiler can
+     * inline the access here. */
     ret = l1_acquire_if_unset( &p->buf, &p->buf_len,
                                p->alloc, MPS_ALLOC_L1_IN );
     if( ret != 0 )

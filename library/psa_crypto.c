@@ -727,7 +727,7 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
 }
 
 /* Retrieve an empty key slot (slot with no key data, but possibly
- * with some metadata such as a policy). */
+ * with some metadata such as a policy or domain parameters). */
 static psa_status_t psa_get_empty_key_slot( psa_key_handle_t handle,
                                             psa_key_slot_t **p_slot )
 {

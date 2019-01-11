@@ -378,6 +378,15 @@ psa_status_t psa_get_key_information(psa_key_handle_t handle,
  * psa_generate_key().
  *
  * The format for the required domain parameters varies by the key type.
+ * - For DSA public keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY),
+ *   the `Dss-Parms` format as defined by RFC 3279 &sect;2.3.2.
+ *   ```
+ *   Dss-Parms ::= SEQUENCE  {
+ *      p       INTEGER,
+ *      q       INTEGER,
+ *      g       INTEGER
+ *   }
+ *   ```
  *
  * \param handle      Handle to the key to set domain parameters for.
  * \param[in] data    Buffer containing the key domain parameters. The content
@@ -470,19 +479,10 @@ psa_status_t psa_get_key_domain_parameters(psa_key_handle_t handle,
  *       coefficient         INTEGER,  -- (inverse of q) mod p
  *   }
  *   ```
- * - For DSA private keys (#PSA_KEY_TYPE_DSA_KEYPAIR), the format
- *   is the non-encrypted DER encoding of the representation used by
- *   OpenSSL and OpenSSH, whose structure is described in ASN.1 as follows:
- *   ```
- *   DSAPrivateKey ::= SEQUENCE {
- *       version             INTEGER,  -- must be 0
- *       prime               INTEGER,  -- p
- *       subprime            INTEGER,  -- q
- *       generator           INTEGER,  -- g
- *       public              INTEGER,  -- y
- *       private             INTEGER,  -- x
- *   }
- *   ```
+ * - For DSA private keys (#PSA_KEY_TYPE_DSA_KEYPAIR), the format is the
+ *   representation of the private key `x` as a big-endian byte string. The
+ *   length of the byte string is the private key size in bytes (leading zeroes
+ *   are not stripped).
  * - For elliptic curve key pairs (key types for which
  *   #PSA_KEY_TYPE_IS_ECC_KEYPAIR is true), the format is
  *   a representation of the private value as a `ceiling(m/8)`-byte string
@@ -556,33 +556,10 @@ psa_status_t psa_export_key(psa_key_handle_t handle,
  *      - The byte 0x04;
  *      - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
  *      - `y_P` as a `ceiling(m/8)`-byte string, big-endian.
- *
- * For other public key types, the format is the DER representation defined by
- * RFC 5280 as `SubjectPublicKeyInfo`, with the `subjectPublicKey` format
- * specified below.
- * ```
- * SubjectPublicKeyInfo  ::=  SEQUENCE  {
- *      algorithm          AlgorithmIdentifier,
- *      subjectPublicKey   BIT STRING  }
- * AlgorithmIdentifier  ::=  SEQUENCE  {
- *      algorithm          OBJECT IDENTIFIER,
- *      parameters         ANY DEFINED BY algorithm OPTIONAL  }
- * ```
- * - For DSA public keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY),
- *   the `subjectPublicKey` format is defined by RFC 3279 &sect;2.3.2 as
- *   `DSAPublicKey`,
- *   with the OID `id-dsa`,
- *   and with the parameters `DSS-Parms`.
- *   ```
- *   id-dsa OBJECT IDENTIFIER ::= {
- *      iso(1) member-body(2) us(840) x9-57(10040) x9cm(4) 1 }
- *
- *   Dss-Parms  ::=  SEQUENCE  {
- *      p                  INTEGER,
- *      q                  INTEGER,
- *      g                  INTEGER  }
- *   DSAPublicKey ::= INTEGER -- public key, Y
- *   ```
+ * - For DSA public keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY), the format is the
+ *   representation of the public key `y = g^x mod p` as a big-endian byte
+ *   string. The length of the byte string is the length of the base prime `p`
+ *   in bytes.
  *
  * \param handle            Handle to the key to export.
  * \param[out] data         Buffer where the key data is to be written.
@@ -2321,6 +2298,12 @@ typedef struct {
  *                            specifying the public exponent. The
  *                            default public exponent used when \p extra
  *                            is \c NULL is 65537.
+ *                          - For an DSA key (\p type is
+ *                            #PSA_KEY_TYPE_DSA_KEYPAIR), \p extra is an
+ *                            optional structure specifying the key domain
+ *                            parameters. The key domain parameters can also be
+ *                            provided by psa_set_key_domain_parameters(),
+ *                            which documents the format of the structure.
  * \param extra_size        Size of the buffer that \p extra
  *                          points to, in bytes. Note that if \p extra is
  *                          \c NULL then \p extra_size must be zero.

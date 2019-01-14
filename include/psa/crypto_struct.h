@@ -152,6 +152,27 @@ static inline struct psa_cipher_operation_s psa_cipher_operation_init( void )
     return( v );
 }
 
+struct psa_aead_operation_s
+{
+    psa_algorithm_t alg;
+    unsigned int key_set : 1;
+    unsigned int iv_set : 1;
+    uint8_t iv_size;
+    uint8_t block_size;
+    union
+    {
+        unsigned dummy; /* Enable easier initializing of the union. */
+        mbedtls_cipher_context_t cipher;
+    } ctx;
+};
+
+#define PSA_AEAD_OPERATION_INIT {0, 0, 0, 0, 0, {0}}
+static inline struct psa_aead_operation_s psa_aead_operation_init( void )
+{
+    const struct psa_aead_operation_s v = PSA_AEAD_OPERATION_INIT;
+    return( v );
+}
+
 #if defined(MBEDTLS_MD_C)
 typedef struct
 {

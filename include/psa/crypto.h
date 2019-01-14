@@ -231,6 +231,9 @@ psa_status_t psa_create_key(psa_key_lifetime_t lifetime,
  * with the key in volatile memory. The key slot in persistent storage is
  * not affected and can be opened again later with psa_open_key().
  *
+ * If the key is currently in use in a multipart operation,
+ * the multipart operation is aborted.
+ *
  * \param handle        The key handle to close.
  *
  * \retval #PSA_SUCCESS
@@ -314,6 +317,9 @@ psa_status_t psa_import_key(psa_key_handle_t handle,
  *
  * This function also erases any metadata such as policies and frees all
  * resources associated with the key.
+ *
+ * If the key is currently in use in a multipart operation,
+ * the multipart operation is aborted.
  *
  * \param handle        Handle to the key slot to erase.
  *
@@ -986,8 +992,6 @@ static psa_mac_operation_t psa_mac_operation_init(void);
  * -# Initialize the operation object with one of the methods described in the
  *    documentation for #psa_mac_operation_t, e.g. PSA_MAC_OPERATION_INIT.
  * -# Call psa_mac_sign_setup() to specify the algorithm and key.
- *    The key remains associated with the operation even if the content
- *    of the key slot changes.
  * -# Call psa_mac_update() zero, one or more times, passing a fragment
  *    of the message each time. The MAC that is calculated is the MAC
  *    of the concatenation of these messages in order.
@@ -1006,6 +1010,8 @@ static psa_mac_operation_t psa_mac_operation_init(void);
  *                          been initialized as per the documentation for
  *                          #psa_mac_operation_t and not yet in use.
  * \param handle            Handle to the key to use for the operation.
+ *                          It must remain valid until the operation
+ *                          terminates.
  * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
  *                          such that #PSA_ALG_IS_MAC(alg) is true).
  *
@@ -1042,8 +1048,6 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  * -# Initialize the operation object with one of the methods described in the
  *    documentation for #psa_mac_operation_t, e.g. PSA_MAC_OPERATION_INIT.
  * -# Call psa_mac_verify_setup() to specify the algorithm and key.
- *    The key remains associated with the operation even if the content
- *    of the key slot changes.
  * -# Call psa_mac_update() zero, one or more times, passing a fragment
  *    of the message each time. The MAC that is calculated is the MAC
  *    of the concatenation of these messages in order.
@@ -1063,6 +1067,8 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  *                          been initialized as per the documentation for
  *                          #psa_mac_operation_t and not yet in use.
  * \param handle            Handle to the key to use for the operation.
+ *                          It must remain valid until the operation
+ *                          terminates.
  * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
  *                          such that #PSA_ALG_IS_MAC(\p alg) is true).
  *
@@ -1283,8 +1289,6 @@ static psa_cipher_operation_t psa_cipher_operation_init(void);
  *    documentation for #psa_cipher_operation_t, e.g.
  *    PSA_CIPHER_OPERATION_INIT.
  * -# Call psa_cipher_encrypt_setup() to specify the algorithm and key.
- *    The key remains associated with the operation even if the content
- *    of the key slot changes.
  * -# Call either psa_cipher_generate_iv() or psa_cipher_set_iv() to
  *    generate or set the IV (initialization vector). You should use
  *    psa_cipher_generate_iv() unless the protocol you are implementing
@@ -1307,6 +1311,8 @@ static psa_cipher_operation_t psa_cipher_operation_init(void);
  *                              been initialized as per the documentation for
  *                              #psa_cipher_operation_t and not yet in use.
  * \param handle                Handle to the key to use for the operation.
+ *                              It must remain valid until the operation
+ *                              terminates.
  * \param alg                   The cipher algorithm to compute
  *                              (\c PSA_ALG_XXX value such that
  *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
@@ -1343,8 +1349,6 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
  *    documentation for #psa_cipher_operation_t, e.g.
  *    PSA_CIPHER_OPERATION_INIT.
  * -# Call psa_cipher_decrypt_setup() to specify the algorithm and key.
- *    The key remains associated with the operation even if the content
- *    of the key slot changes.
  * -# Call psa_cipher_update() with the IV (initialization vector) for the
  *    decryption. If the IV is prepended to the ciphertext, you can call
  *    psa_cipher_update() on a buffer containing the IV followed by the
@@ -1366,6 +1370,8 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
  *                              been initialized as per the documentation for
  *                              #psa_cipher_operation_t and not yet in use.
  * \param handle                Handle to the key to use for the operation.
+ *                              It must remain valid until the operation
+ *                              terminates.
  * \param alg                   The cipher algorithm to compute
  *                              (\c PSA_ALG_XXX value such that
  *                              #PSA_ALG_IS_CIPHER(\p alg) is true).

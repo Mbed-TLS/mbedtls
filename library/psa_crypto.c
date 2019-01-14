@@ -784,11 +784,18 @@ static psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot )
     return( PSA_SUCCESS );
 }
 
+static void psa_abort_operations_using_key( psa_key_slot_t *slot )
+{
+    /*TODO*/
+    (void) slot;
+}
+
 /** Completely wipe a slot in memory, including its policy.
  * Persistent storage is not affected. */
 psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
 {
     psa_status_t status = psa_remove_key_data_from_memory( slot );
+    psa_abort_operations_using_key( slot );
     /* At this point, key material and other type-specific content has
      * been wiped. Clear remaining metadata. We can call memset and not
      * zeroize because the metadata is not particularly sensitive. */

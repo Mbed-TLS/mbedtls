@@ -2136,21 +2136,28 @@ psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
  * The resulting generator always has the maximum capacity permitted by
  * the algorithm.
  *
- * \param[in,out] generator       The generator object to set up. It must have
- *                                been initialized as per the documentation for
- *                                #psa_crypto_generator_t and not yet in use.
- * \param private_key             Handle to the private key to use.
- * \param[in] peer_key            Public key of the peer. It must be
- *                                in the same format that psa_import_key()
- *                                accepts. The standard formats for public
- *                                keys are documented in the documentation
- *                                of psa_export_public_key(). For EC keys, it
- *                                must also be of the same group as the private
- *                                key.
- * \param peer_key_length         Size of \p peer_key in bytes.
- * \param alg                     The key agreement algorithm to compute
- *                                (\c PSA_ALG_XXX value such that
- *                                #PSA_ALG_IS_KEY_AGREEMENT(\p alg) is true).
+ * \param[in,out] generator The generator object to set up. It must have been
+ *                          initialized as per the documentation for
+ *                          #psa_crypto_generator_t and not yet in use.
+ * \param private_key       Handle to the private key to use.
+ * \param[in] peer_key      Public key of the peer. The peer key must be in the
+ *                          same format that psa_import_key() accepts for the
+ *                          public key type corresponding to the type of
+ *                          private_key. That is, this function performs the
+ *                          equivalent of
+ *                          `psa_import_key(internal_public_key_handle,
+ *                          PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(private_key_type),
+ *                          peer_key, peer_key_length)` where
+ *                          `private_key_type` is the type of `private_key`.
+ *                          For example, for EC keys, this means that peer_key
+ *                          is interpreted as a point on the curve that the
+ *                          private key is on. The standard formats for public
+ *                          keys are documented in the documentation of
+ *                          psa_export_public_key().
+ * \param peer_key_length   Size of \p peer_key in bytes.
+ * \param alg               The key agreement algorithm to compute
+ *                          (\c PSA_ALG_XXX value such that
+ *                          #PSA_ALG_IS_KEY_AGREEMENT(\p alg) is true).
  *
  * \retval #PSA_SUCCESS
  *         Success.

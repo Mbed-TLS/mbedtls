@@ -550,7 +550,10 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 
     status = psa_generator_abort( &generator );
     if( status != PSA_SUCCESS )
+    {
+        psa_destroy_key( master_slot );
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+    }
 
     status = psa_destroy_key( master_slot );
     if( status != PSA_SUCCESS )

@@ -9984,44 +9984,51 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
                                             unsigned char *data, size_t data_len,
                                             mbedtls_md_type_t md_alg )
 {
-    int ret = 0;
+    psa_status_t status;
     psa_hash_operation_t hash_operation;
     psa_algorithm_t hash_alg = mbedtls_psa_translate_md( md_alg );
 
-    if( ( ret = psa_hash_setup( &hash_operation, hash_alg ) ) != PSA_SUCCESS )
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "Perform PSA-based computation of digest \
+    		                     of ServerKeyExchange" ) );
+
+    if( ( status = psa_hash_setup( &hash_operation,
+                                   hash_alg ) ) != PSA_SUCCESS )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "psa_hash_setup", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "psa_hash_setup", status );
         goto exit;
     }
 
-    if( ( ret = psa_hash_update( &hash_operation, ssl->handshake->randbytes, 64 ) ) != PSA_SUCCESS )
+    if( ( status = psa_hash_update( &hash_operation, ssl->handshake->randbytes,
+                                    64 ) ) != PSA_SUCCESS )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "psa_hash_update", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "psa_hash_update", status );
         goto exit;
     }
 
-    if( ( ret = psa_hash_update( &hash_operation, data, data_len ) ) != PSA_SUCCESS )
+    if( ( status = psa_hash_update( &hash_operation,
+                                    data, data_len ) ) != PSA_SUCCESS )
     {
-        MBEDTLS_SSL_DEBUG_RET( 1, "psa_hash_update", ret );
+        MBEDTLS_SSL_DEBUG_RET( 1, "psa_hash_update", status );
         goto exit;
     }
 
-    if( ( ret = psa_hash_finish( &hash_operation, hash, MBEDTLS_MD_MAX_SIZE, hashlen ) ) != PSA_SUCCESS )
+    if( ( status = psa_hash_finish( &hash_operation, hash, MBEDTLS_MD_MAX_SIZE,
+                                    hashlen ) ) != PSA_SUCCESS )
     {
-         MBEDTLS_SSL_DEBUG_RET( 1, "psa_hash_finish", ret );
+         MBEDTLS_SSL_DEBUG_RET( 1, "psa_hash_finish", status );
          goto exit;
     }
 
 exit:
-    if( ret != 0 )
+    if( status != PSA_SUCCESS )
     {
         mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
-        switch(ret)
+        switch( status )
         {
             case PSA_ERROR_NOT_SUPPORTED:
                 return( MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE );
-            case PSA_ERROR_BAD_STATE: // Intentional fallthrough
+            case PSA_ERROR_BAD_STATE: /* Intentional fallthrough */
             case PSA_ERROR_BUFFER_TOO_SMALL:
                 return( MBEDTLS_ERR_MD_BAD_INPUT_DATA );
             case PSA_ERROR_INSUFFICIENT_MEMORY:
@@ -10044,6 +10051,9 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
     mbedtls_md_context_t ctx;
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_alg );
     *hashlen = mbedtls_md_get_size( md_info );
+
+    MBEDTLS_SSL_DEBUG_MSG( 2, ( "Perform mbedtls-based computation of digest \
+    		                     of ServerKeyExchange" ) );
 
     mbedtls_md_init( &ctx );
 

@@ -54,6 +54,10 @@
 #include "mbedtls/oid.h"
 #endif
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "mbedtls/psa_util.h"
+#endif
+
 static void ssl_reset_in_out_pointers( mbedtls_ssl_context *ssl );
 static uint32_t ssl_get_hs_total_len( mbedtls_ssl_context const *ssl );
 
@@ -490,6 +494,73 @@ static int tls1_prf( const unsigned char *secret, size_t slen,
 #endif /* MBEDTLS_SSL_PROTO_TLS1) || MBEDTLS_SSL_PROTO_TLS1_1 */
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+static int tls_prf_generic( mbedtls_md_type_t md_type,
+                            const unsigned char *secret, size_t slen,
+                            const char *label,
+                            const unsigned char *random, size_t rlen,
+                            unsigned char *dstbuf, size_t dlen )
+{
+    psa_status_t status;
+    psa_algorithm_t alg;
+    psa_key_policy_t policy;
+    psa_key_slot_t master_slot;
+    psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
+
+    status = mbedtls_psa_get_free_key_slot( &master_slot );
+    if( status != PSA_SUCCESS )
+        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+    if( md_type == MBEDTLS_MD_SHA384 )
+        alg = PSA_ALG_TLS12_PRF(PSA_ALG_SHA_384);
+    else
+        alg = PSA_ALG_TLS12_PRF(PSA_ALG_SHA_256);
+
+    psa_key_policy_init( &policy );
+    psa_key_policy_set_usage( &policy,
+                              PSA_KEY_USAGE_DERIVE,
+                              alg );
+    status = psa_set_key_policy( master_slot, &policy );
+    if( status != PSA_SUCCESS )
+        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+
+    status = psa_import_key( master_slot, PSA_KEY_TYPE_DERIVE, secret, slen );
+    if( status != PSA_SUCCESS )
+        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+
+    status = psa_key_derivation( &generator,
+                                 master_slot, alg,
+                                 random, rlen,
+                                 (unsigned char const *) label,
+                                 (size_t) strlen( label ),
+                                 dlen );
+    if( status != PSA_SUCCESS )
+    {
+        psa_generator_abort( &generator );
+        psa_destroy_key( master_slot );
+        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+    }
+
+    status = psa_generator_read( &generator, dstbuf, dlen );
+    if( status != PSA_SUCCESS )
+    {
+        psa_generator_abort( &generator );
+        psa_destroy_key( master_slot );
+        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+    }
+
+    status = psa_generator_abort( &generator );
+    if( status != PSA_SUCCESS )
+        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+
+    status = psa_destroy_key( master_slot );
+    if( status != PSA_SUCCESS )
+        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+
+    return 0;
+}
+
+#else /* MBEDTLS_USE_PSA_CRYPTO */
+
 static int tls_prf_generic( mbedtls_md_type_t md_type,
                             const unsigned char *secret, size_t slen,
                             const char *label,
@@ -552,7 +623,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 
     return( 0 );
 }
-
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
 #if defined(MBEDTLS_SHA256_C)
 static int tls_prf_sha256( const unsigned char *secret, size_t slen,
                            const char *label,

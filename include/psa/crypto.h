@@ -710,6 +710,66 @@ psa_status_t psa_get_key_policy(psa_key_handle_t handle,
  * @{
  */
 
+/** Calculate the hash (digest) of a message.
+ *
+ * \note To verify the hash of a message against an
+ *       expected value, use psa_hash_compare() instead.
+ *
+ * \param alg               The hash algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_HASH(\p alg) is true).
+ * \param[in] input         Buffer containing the message to hash.
+ * \param input_length      Size of the \p input buffer in bytes.
+ * \param[out] hash         Buffer where the hash is to be written.
+ * \param hash_size         Size of the \p hash buffer in bytes.
+ * \param[out] hash_length  On success, the number of bytes
+ *                          that make up the hash value. This is always
+ *                          #PSA_HASH_SIZE(\c alg) where \c alg is the
+ *                          hash algorithm that is calculated.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a hash algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_hash_compute(psa_algorithm_t alg,
+                              const uint8_t *input,
+                              size_t input_length,
+                              uint8_t *hash,
+                              size_t hash_size,
+                              size_t *hash_length);
+
+/** Calculate the hash (digest) of a message and compare it with a
+ * reference value.
+ *
+ * \param alg               The hash algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_HASH(\p alg) is true).
+ * \param[in] input         Buffer containing the message to hash.
+ * \param input_length      Size of the \p input buffer in bytes.
+ * \param[out] hash         Buffer containing the expected hash value.
+ * \param hash_size         Size of the \p hash buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         The expected hash is identical to the actual hash of the input.
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The hash of the message was calculated successfully, but it
+ *         differs from the expected hash.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a hash algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_hash_compare(psa_algorithm_t alg,
+                              const uint8_t *input,
+                              size_t input_length,
+                              const uint8_t *hash,
+                              const size_t hash_length);
+
 /** The type of the state data structure for multipart hash operations.
  *
  * Before calling any function on a hash operation object, the application must
@@ -932,6 +992,87 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation);
 /** \defgroup MAC Message authentication codes
  * @{
  */
+
+/** Calculate the MAC (message authentication code) of a message.
+ *
+ * \note To verify the MAC of a message against an
+ *       expected value, use psa_mac_verify() instead.
+ *       Beware that comparing integrity or authenticity data such as
+ *       MAC values with a function such as \c memcmp is risky
+ *       because the time taken by the comparison may leak information
+ *       about the MAC value which could allow an attacker to guess
+ *       a valid MAC and thereby bypass security controls.
+ *
+ * \param handle            Handle to the key to use for the operation.
+ * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_MAC(alg) is true).
+ * \param[in] input         Buffer containing the input message.
+ * \param input_length      Size of the \p input buffer in bytes.
+ * \param[out] mac          Buffer where the MAC value is to be written.
+ * \param mac_size          Size of the \p mac buffer in bytes.
+ * \param[out] mac_length   On success, the number of bytes
+ *                          that make up the mac value. This is always
+ *                          #PSA_HASH_SIZE(\c alg) where \c alg is the
+ *                          hash algorithm that is calculated.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a MAC algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_mac_compute(psa_key_handle_t handle,
+                             psa_algorithm_t alg,
+                             const uint8_t *input,
+                             size_t input_length,
+                             uint8_t *mac,
+                             size_t mac_size,
+                             size_t *mac_length);
+
+/** Calculate the MAC of a message and compare it with a reference value.
+ *
+ * \param handle            Handle to the key to use for the operation.
+ * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_MAC(alg) is true).
+ * \param[in] input         Buffer containing the input message.
+ * \param input_length      Size of the \p input buffer in bytes.
+ * \param[out] mac          Buffer containing the expected MAC value.
+ * \param mac_length        Size of the \p mac buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         The expected MAC is identical to the actual MAC of the input.
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The MAC of the message was calculated successfully, but it
+ *         differs from the expected value.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a MAC algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_mac_verify(psa_algorithm_t alg,
+                            const uint8_t *input,
+                            size_t input_length,
+                            const uint8_t *mac,
+                            const size_t mac_length);
 
 /** The type of the state data structure for multipart MAC operations.
  *
@@ -1232,6 +1373,124 @@ psa_status_t psa_mac_abort(psa_mac_operation_t *operation);
 /** \defgroup cipher Symmetric ciphers
  * @{
  */
+
+/** Encrypt a message using a symmetric cipher.
+ *
+ * This function encrypts a message with a random IV (initialization
+ * vector).
+ *
+ * \param handle                Handle to the key to use for the operation.
+ *                              It must remain valid until the operation
+ *                              terminates.
+ * \param alg                   The cipher algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
+ * \param[in] input             Buffer containing the message to encrypt.
+ * \param input_length          Size of the \p input buffer in bytes.
+ * \param[out] output           Buffer where the output is to be written.
+ *                              The output contains the IV followed by
+ *                              the ciphertext proper.
+ * \param output_size           Size of the \p output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the output.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a cipher algorithm.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_cipher_encrypt(psa_key_handle_t handle,
+                                psa_algorithm_t alg,
+                                const uint8_t *input,
+                                size_t input_length,
+                                uint8_t *output,
+                                size_t output_size,
+                                size_t *output_length);
+
+/** Decrypt a message using a symmetric cipher.
+ *
+ * This function decrypts a message encrypted with a symmetric cipher.
+ *
+ * \param handle                Handle to the key to use for the operation.
+ *                              It must remain valid until the operation
+ *                              terminates.
+ * \param alg                   The cipher algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
+ * \param[in] input             Buffer containing the message to decrypt.
+ *                              This consists of the IV followed by the
+ *                              ciphertext proper.
+ * \param input_length          Size of the \p input buffer in bytes.
+ * \param[out] output           Buffer where the plaintext is to be written.
+ * \param output_size           Size of the \p output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the output.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a cipher algorithm.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_cipher_decrypt(psa_key_handle_t handle,
+                                psa_algorithm_t alg,
+                                const uint8_t *input,
+                                size_t input_length,
+                                uint8_t *output,
+                                size_t output_size,
+                                size_t *output_length);
+
+/** Calculate the MAC of a message and compare it with a reference value.
+ *
+ * \param handle            Handle to the key to use for the operation.
+ * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_MAC(alg) is true).
+ * \param[in] input         Buffer containing the input message.
+ * \param input_length      Size of the \p input buffer in bytes.
+ * \param[out] mac          Buffer containing the expected MAC value.
+ * \param mac_length        Size of the \p mac buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         The expected MAC is identical to the actual MAC of the input.
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The MAC of the message was calculated successfully, but it
+ *         differs from the expected value.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a MAC algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_mac_verify(psa_algorithm_t alg,
+                            const uint8_t *input,
+                            size_t input_length,
+                            const uint8_t *mac,
+                            const size_t mac_length);
 
 /** The type of the state data structure for multipart cipher operations.
  *

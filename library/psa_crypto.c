@@ -701,8 +701,6 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
         status = psa_import_ec_private_key( PSA_KEY_TYPE_GET_CURVE( slot->type ),
                                             data, data_length,
                                             &slot->data.ecp );
-        if( status != PSA_SUCCESS )
-            return( status );
     }
     else if( PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY( slot->type ) )
     {
@@ -710,9 +708,6 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
             PSA_KEY_TYPE_GET_CURVE( slot->type ),
             data, data_length,
             &slot->data.ecp );
-
-        if( status != PSA_SUCCESS )
-            return( status );
     }
     else
 #endif /* MBEDTLS_ECP_C */
@@ -722,16 +717,13 @@ psa_status_t psa_import_key_into_slot( psa_key_slot_t *slot,
         status = psa_import_rsa_key( slot->type,
             data, data_length,
             &slot->data.rsa );
-
-        if( status != PSA_SUCCESS )
-            return( status );
     }
     else
 #endif /* defined(MBEDTLS_RSA_C) && defined(MBEDTLS_PK_PARSE_C) */
     {
         return( PSA_ERROR_NOT_SUPPORTED );
     }
-    return( PSA_SUCCESS );
+    return( status );
 }
 
 /* Retrieve an empty key slot (slot with no key data, but possibly

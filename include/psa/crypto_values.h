@@ -1046,6 +1046,23 @@
 #define PSA_ALG_IS_RANDOMIZED_ECDSA(alg)                                \
     (PSA_ALG_IS_ECDSA(alg) && !PSA_ALG_ECDSA_IS_DETERMINISTIC(alg))
 
+/** Whether the specified algorithm is a hash-and-sign algorithm.
+ *
+ * Hash-and-sign algorithms are public-key signature algorithms structured
+ * in two parts: first the calculation of a hash in a way that does not
+ * depend on the key, then the calculation of a signature from the
+ * hash value and the key.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \p alg is a hash-and-sign algorithm, 0 otherwise.
+ *         This macro may return either 0 or 1 if \p alg is not a supported
+ *         algorithm identifier.
+ */
+#define PSA_ALG_IS_HASH_AND_SIGN(alg)                                   \
+    (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||    \
+     PSA_ALG_IS_DSA(alg) || PSA_ALG_IS_ECDSA(alg))
+
 /** Get the hash used by a hash-and-sign signature algorithm.
  *
  * A hash-and-sign algorithm is a signature algorithm which is
@@ -1065,8 +1082,7 @@
  *              if it is not supported by the implementation.
  */
 #define PSA_ALG_SIGN_GET_HASH(alg)                                     \
-    (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||   \
-     PSA_ALG_IS_DSA(alg) || PSA_ALG_IS_ECDSA(alg) ?                    \
+    (PSA_ALG_IS_HASH_AND_SIGN(alg) ?                                   \
      ((alg) & PSA_ALG_HASH_MASK) == 0 ? /*"raw" algorithm*/ 0 :        \
      ((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH :             \
      0)

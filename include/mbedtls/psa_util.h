@@ -244,6 +244,19 @@ static inline int mbedtls_psa_err_translate_pk( psa_status_t status )
     }
 }
 
+/* Translations for ECC */
+
+/* This function transforms an ECC group identifier from
+ * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
+ * into a PSA ECC group identifier. */
+static inline psa_ecc_curve_t mbedtls_psa_parse_tls_ecc_group(
+    uint16_t tls_ecc_grp_reg_id )
+{
+    /* The PSA identifiers are currently aligned with those from
+     * the TLS Supported Groups registry, so no conversion is necessary. */
+    return( (psa_ecc_curve_t) tls_ecc_grp_reg_id );
+}
+
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 #endif /* MBEDTLS_PSA_UTIL_H */

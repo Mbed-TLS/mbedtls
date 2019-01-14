@@ -312,6 +312,15 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
 
+        /* Indicate that we own the key slot and need to
+         * destroy it in mbedtls_cipher_free(). */
+        cipher_psa->slot_state = MBEDTLS_CIPHER_PSA_KEY_OWNED;
+
+        /* From that point on, the responsibility for destroying the
+        * key slot is on mbedtls_cipher_free(). This includes the case
+        * where the policy setup or key import below fail, as
+        * mbedtls_cipher_free() needs to be called in any case. */
+
         /* Setup policy for the new key slot. */
         psa_key_policy_init( &key_policy );
 
@@ -325,14 +334,6 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
         status = psa_set_key_policy( cipher_psa->slot, &key_policy );
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
-        /* Indicate that we own the key slot and need to
-         * destroy it in mbedtls_cipher_free(). */
-        cipher_psa->slot_state = MBEDTLS_CIPHER_PSA_KEY_OWNED;
-
-        /* From that point on, the responsibility for destroying the
-        * key slot is on mbedtls_cipher_free(). This includes the case
-        * where the policy setup or key import below fail, as
-        * mbedtls_cipher_free() needs to be called in any case. */
 
         /* Populate new key slot. */
         status = psa_import_key( cipher_psa->slot,

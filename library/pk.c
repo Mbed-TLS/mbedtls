@@ -573,7 +573,7 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
 
     curve_id = mbedtls_ecp_curve_info_from_grp_id( ec->grp.id )->tls_id;
     key_type = PSA_KEY_TYPE_ECC_KEYPAIR(
-    		                     mbedtls_psa_parse_tls_ecc_group ( curve_id ) );
+                                 mbedtls_psa_parse_tls_ecc_group ( curve_id ) );
 
     /* allocate a key slot */
     if( PSA_SUCCESS != psa_allocate_key( key_type, d_len * 8, &key ) )

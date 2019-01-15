@@ -9897,12 +9897,12 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
      *
      * Parameters:
      * - `retransmission_callback`: Indicates if the handshake
-     *   messages should be sent through a retransmission callback.
+     *    messages should be sent through a retransmission callback.
      * - `num_hs`: The number of handshake messages to be sent.
      * - `permute`: Indicates whether the handshake message fragments
-     *   should be subject to reordering on the underlying transport.
+     *    should be subject to reordering on the underlying transport.
      * - `force_pause`: Indicates whether the client should use
-     *   pausing when writing the handshake message.
+     *    pausing when writing the handshake message.
      */
 
     /* Allocator objects */

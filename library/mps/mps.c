@@ -164,7 +164,7 @@ static int mps_clear_pending( mbedtls_mps *mps, uint8_t allow_paused_hs );
 
 static int mps_retransmission_finish_incoming_message( mbedtls_mps *mps );
 static int mps_retransmission_pause_incoming_message( mbedtls_mps *mps );
-static int mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps );
+static int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps );
 
 /*
  * Incoming flight retransmission detection
@@ -196,15 +196,15 @@ static int mps_out_flight_init( mbedtls_mps *mps, uint8_t seq_nr );
 static int mps_out_flight_free( mbedtls_mps *mps );
 static int mps_out_flight_forget( mbedtls_mps *mps );
 static int mps_out_flight_msg_start( mbedtls_mps *mps,
-                                     mps_retransmission_handle **handle );
+                                     mbedtls_mps_retransmission_handle **handle );
 static int mps_out_flight_msg_done( mbedtls_mps *mps );
 
-static int mps_retransmission_handle_init( mps_retransmission_handle *handle );
-static int mps_retransmission_handle_free( mps_retransmission_handle *handle );
-static int mps_retransmission_handle_resend( mbedtls_mps *mps,
-                                        mps_retransmission_handle *handle );
-static int mps_retransmission_handle_resend_empty( mbedtls_mps *mps,
-                                        mps_retransmission_handle *handle );
+static int mbedtls_mps_retransmission_handle_init( mbedtls_mps_retransmission_handle *handle );
+static int mbedtls_mps_retransmission_handle_free( mbedtls_mps_retransmission_handle *handle );
+static int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mps,
+                                        mbedtls_mps_retransmission_handle *handle );
+static int mbedtls_mps_retransmission_handle_resend_empty( mbedtls_mps *mps,
+                                        mbedtls_mps_retransmission_handle *handle );
 
 /*
  * Outgoing flight retransmission
@@ -243,8 +243,8 @@ static int mps_reassembly_pause( mbedtls_mps *mps );
 
 static int mps_reassembly_forget( mbedtls_mps *mps );
 
-#define MPS_RETRANSMISSION_HANDLE_UNFINISHED -1
-#define MPS_REASSEMBLY_FEED_NEED_MORE        -1
+#define MBEDTLS_MPS_RETRANSMISSION_HANDLE_UNFINISHED -1
+#define MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE        -1
 
 #define MPS_RETRANSMIT_ONLY_EMPTY_FRAGMENTS 0
 #define MPS_RETRANSMIT_FULL_FLIGHT          1
@@ -542,7 +542,7 @@ static int mps_prepare_write( mbedtls_mps *mps,
  * Incoming flight retransmission detection
  */
 
-static int mps_recognition_info_match( mps_recognition_info *info,
+static int mps_recognition_info_match( mbedtls_mps_recognition_info *info,
                                        mps_l3_handshake_in *hs_in )
 {
     if( info->epoch  == hs_in->epoch &&
@@ -559,7 +559,7 @@ static int mps_retransmit_in_check( mbedtls_mps *mps,
     uint8_t flight_len, msg_idx;
     uint8_t match_idx, match_status;
 
-    mps_recognition_info *info;
+    mbedtls_mps_recognition_info *info;
     uint8_t *status;
 
     /*
@@ -626,7 +626,7 @@ static int mps_retransmit_in_remember( mbedtls_mps *mps,
 {
     int ret = 0;
     size_t msg_idx;
-    mps_recognition_info *next_info;
+    mbedtls_mps_recognition_info *next_info;
     TRACE_INIT( "mps_retransmit_in_remember" );
 
     /* Currently, we are basing retransmission detection
@@ -738,8 +738,8 @@ static int mps_reassembly_feed( mbedtls_mps *mps,
 {
     int ret = 0;
     uint8_t seq_nr, seq_nr_offset;
-    mps_reassembly * const in = &mps->dtls.incoming;
-    mps_msg_reassembly * reassembly;
+    mbedtls_mps_reassembly * const in = &mps->dtls.incoming;
+    mbedtls_mps_msg_reassembly * reassembly;
 
     TRACE_INIT( "mps_reassembly_feed" );
     TRACE( trace_comment, "* Sequence number: %u", hs->seq_nr      );
@@ -773,19 +773,19 @@ static int mps_reassembly_feed( mbedtls_mps *mps,
                                          &tmp, NULL ) );
         MPS_CHK( mbedtls_reader_commit_ext( hs->rd_ext ) );
         MPS_CHK( mps_l3_read_consume( mps->conf.l3 ) );
-        RETURN( MPS_REASSEMBLY_FEED_NEED_MORE );
+        RETURN( MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE );
     }
 
     /* Check if the message has already been initialized. */
     reassembly = &in->reassembly[ seq_nr_offset ];
 
-    if( reassembly->status == MPS_REASSEMBLY_NO_FRAGMENTATION )
+    if( reassembly->status == MBEDTLS_MPS_REASSEMBLY_NO_FRAGMENTATION )
     {
         TRACE( trace_error, "Attempt to feed a fragment for a message that has previously been fully received." );
         RETURN( MPS_ERR_INTERNAL_ERROR );
     }
 
-    if( reassembly->status == MPS_REASSEMBLY_NONE )
+    if( reassembly->status == MBEDTLS_MPS_REASSEMBLY_NONE )
     {
         uint8_t complete_msg;
 
@@ -805,7 +805,7 @@ static int mps_reassembly_feed( mbedtls_mps *mps,
         if( seq_nr_offset == 0 && complete_msg )
         {
             TRACE( trace_comment, "Received next expected handshake message in a single fragment." );
-            reassembly->status = MPS_REASSEMBLY_NO_FRAGMENTATION;
+            reassembly->status = MBEDTLS_MPS_REASSEMBLY_NO_FRAGMENTATION;
             reassembly->data.rd_ext_l3 = hs->rd_ext;
             RETURN( 0 );
         }
@@ -839,7 +839,7 @@ static int mps_reassembly_feed( mbedtls_mps *mps,
             reassembly->data.window.buf_len     = msg_len;
             reassembly->data.window.buf         = buf;
 
-            reassembly->status = MPS_REASSEMBLY_WINDOW;
+            reassembly->status = MBEDTLS_MPS_REASSEMBLY_WINDOW;
         }
     }
     else
@@ -863,7 +863,7 @@ static int mps_reassembly_feed( mbedtls_mps *mps,
 
     /* No `else` because we want to fall through in case the
      * initial status was #MPS_REASSEMBLY_NONE. */
-    if( reassembly->status == MPS_REASSEMBLY_WINDOW )
+    if( reassembly->status == MBEDTLS_MPS_REASSEMBLY_WINDOW )
     {
         unsigned char* bitmask = reassembly->data.window.bitmask;
         unsigned char *frag_content;
@@ -893,12 +893,12 @@ static int mps_reassembly_feed( mbedtls_mps *mps,
             else
             {
                 TRACE( trace_comment, "Reassembly incomplete -- need more fragments." );
-                RETURN( MPS_REASSEMBLY_FEED_NEED_MORE );
+                RETURN( MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE );
             }
         }
 
         if( seq_nr_offset != 0 )
-            RETURN( MPS_REASSEMBLY_FEED_NEED_MORE );
+            RETURN( MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE );
     }
 
     MPS_INTERNAL_FAILURE_HANDLER
@@ -917,7 +917,7 @@ static int mps_reassembly_init( mbedtls_mps *mps,
     mps->dtls.incoming.next_seq_nr = init_seq_nr;
 
     for( idx = 0; idx < 1 + MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS; idx++ )
-        mps->dtls.incoming.reassembly[idx].status = MPS_REASSEMBLY_NONE;
+        mps->dtls.incoming.reassembly[idx].status = MBEDTLS_MPS_REASSEMBLY_NONE;
 
     return( 0 );
 }
@@ -931,15 +931,15 @@ static int mps_reassembly_get_seq( mbedtls_mps *mps,
 
 static int mps_reassembly_check( mbedtls_mps *mps )
 {
-    mps_reassembly * const in = &mps->dtls.incoming;
-    mps_msg_reassembly * reassembly = &in->reassembly[0];
+    mbedtls_mps_reassembly * const in = &mps->dtls.incoming;
+    mbedtls_mps_msg_reassembly * reassembly = &in->reassembly[0];
 
     switch( reassembly->status )
     {
-        case MPS_REASSEMBLY_NO_FRAGMENTATION:
+        case MBEDTLS_MPS_REASSEMBLY_NO_FRAGMENTATION:
             return( 0 );
 
-        case MPS_REASSEMBLY_WINDOW:
+        case MBEDTLS_MPS_REASSEMBLY_WINDOW:
             if( reassembly->data.window.bitmask == NULL )
                 return( 0 );
 
@@ -954,8 +954,8 @@ static int mps_reassembly_read( mbedtls_mps *mps,
                                 mbedtls_mps_handshake_in *hs )
 {
     int ret = 0;
-    mps_reassembly * const in = &mps->dtls.incoming;
-    mps_msg_reassembly * reassembly = &in->reassembly[0];
+    mbedtls_mps_reassembly * const in = &mps->dtls.incoming;
+    mbedtls_mps_msg_reassembly * reassembly = &in->reassembly[0];
     TRACE_INIT( "mps_reassembly_read" );
 
     hs->length = reassembly->length;
@@ -965,14 +965,14 @@ static int mps_reassembly_read( mbedtls_mps *mps,
 
     /* TODO: Add additional data (sequence number). */
 
-    if( reassembly->status == MPS_REASSEMBLY_NO_FRAGMENTATION )
+    if( reassembly->status == MBEDTLS_MPS_REASSEMBLY_NO_FRAGMENTATION )
     {
         TRACE( trace_comment, "Handshake message received as single fragment on Layer 3 - pass on to user." );
         /* The message has been received in a single fragment
          * from Layer 3, and we can pass that on to the user. */
         hs->handle = reassembly->data.rd_ext_l3;
     }
-    else if( reassembly->status == MPS_REASSEMBLY_WINDOW &&
+    else if( reassembly->status == MBEDTLS_MPS_REASSEMBLY_WINDOW &&
              reassembly->data.window.bitmask == NULL )
     {
         TRACE( trace_comment, "Fully reassembled handshake messaged" );
@@ -993,11 +993,11 @@ static int mps_reassembly_done( mbedtls_mps *mps )
 {
     int ret = 0;
     uint8_t idx;
-    mps_reassembly * const in = &mps->dtls.incoming;
-    mps_msg_reassembly * reassembly = &in->reassembly[0];
+    mbedtls_mps_reassembly * const in = &mps->dtls.incoming;
+    mbedtls_mps_msg_reassembly * reassembly = &in->reassembly[0];
     TRACE_INIT( "mps_reassembly_done" );
 
-    if( reassembly->status == MPS_REASSEMBLY_WINDOW )
+    if( reassembly->status == MBEDTLS_MPS_REASSEMBLY_WINDOW )
     {
         mbedtls_free( reassembly->data.window.buf );
         /* The bitmask is freed as soon as the fragmentation completes. */
@@ -1020,7 +1020,7 @@ static int mps_reassembly_done( mbedtls_mps *mps )
 #endif
 
     reassembly = &in->reassembly[ MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS ];
-    reassembly->status = MPS_REASSEMBLY_NONE;
+    reassembly->status = MBEDTLS_MPS_REASSEMBLY_NONE;
 
     in->next_seq_nr++;
     if( in->next_seq_nr == MBEDTLS_MPS_LIMIT_SEQUENCE_NUMBER )
@@ -1038,11 +1038,11 @@ static int mps_reassembly_done( mbedtls_mps *mps )
 static int mps_reassembly_next_msg_complete( mbedtls_mps *mps )
 {
     int ret = 0;
-    mps_reassembly * const in = &mps->dtls.incoming;
-    mps_msg_reassembly * reassembly = &in->reassembly[0];
+    mbedtls_mps_reassembly * const in = &mps->dtls.incoming;
+    mbedtls_mps_msg_reassembly * const reassembly = &in->reassembly[0];
     TRACE_INIT( "mps_reassembly_next_msg_complete" );
 
-    if( reassembly->status == MPS_REASSEMBLY_WINDOW &&
+    if( reassembly->status == MBEDTLS_MPS_REASSEMBLY_WINDOW &&
         reassembly->data.window.bitmask == NULL )
     {
         TRACE( trace_comment, "Next message already fully available." );
@@ -1071,7 +1071,7 @@ static int mps_reassembly_forget( mbedtls_mps *mps )
 {
     uint8_t idx;
     int ret = 0;
-    mps_reassembly * const in = &mps->dtls.incoming;
+    mbedtls_mps_reassembly * const in = &mps->dtls.incoming;
     TRACE_INIT( "mps_reassembly_forget" );
 
     /* Check that there are no more buffered messages.
@@ -1080,7 +1080,7 @@ static int mps_reassembly_forget( mbedtls_mps *mps )
 #if MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS > 0
     for( idx = 0; idx < MBEDTLS_MPS_FUTURE_MESSAGE_BUFFERS; idx++ )
         {
-            if( in->reassembly[idx].status != MPS_REASSEMBLY_NONE )
+            if( in->reassembly[idx].status != MBEDTLS_MPS_REASSEMBLY_NONE )
                 MPS_CHK( MPS_ERR_INTERNAL_ERROR );
         }
 #else
@@ -1106,7 +1106,7 @@ static int mps_retransmit_out_core( mbedtls_mps *mps,
 {
     int ret = 0;
     uint8_t offset;
-    mps_retransmission_handle *handle;
+    mbedtls_mps_retransmission_handle *handle;
     TRACE_INIT( "mps_retransmit_out" );
 
     if( mps->dtls.wait.resend_offset == 0 )
@@ -1131,13 +1131,13 @@ static int mps_retransmit_out_core( mbedtls_mps *mps,
 
         if( mode == MPS_RETRANSMIT_FULL_FLIGHT )
         {
-            ret = mps_retransmission_handle_resend( mps, handle );
-            if( ret != 0 && ret != MPS_RETRANSMISSION_HANDLE_UNFINISHED )
+            ret = mbedtls_mps_retransmission_handle_resend( mps, handle );
+            if( ret != 0 && ret != MBEDTLS_MPS_RETRANSMISSION_HANDLE_UNFINISHED )
                 MPS_CHK( ret );
         }
         else if( mode == MPS_RETRANSMIT_ONLY_EMPTY_FRAGMENTS )
         {
-            ret = mps_retransmission_handle_resend_empty( mps, handle );
+            ret = mbedtls_mps_retransmission_handle_resend_empty( mps, handle );
         }
 
         if( ret == 0 )
@@ -1615,7 +1615,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
             else
             {
                 /* DTLS */
-                ret = mps_retransmission_handle_incoming_fragment( mps );
+                ret = mbedtls_mps_retransmission_handle_incoming_fragment( mps );
                 if( ret == 0 )
                 {
                     TRACE( trace_comment, "New handshake message ready to be passed to the user." );
@@ -1681,7 +1681,7 @@ int mbedtls_mps_read_check( mbedtls_mps const *mps )
  * Main interface to the reading side of the retransmission state machine.
  */
 
-static int mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
+static int mbedtls_mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
 {
     int ret = 0;
     mps_l3_handshake_in hs_l3;
@@ -1815,7 +1815,7 @@ static int mps_retransmission_handle_incoming_fragment( mbedtls_mps *mps )
     /* 2. Feed the handshake fragment into the reassembly module. */
     TRACE( trace_comment, "Feed fragment into reassembly module." );
     ret = mps_reassembly_feed( mps, &hs_l3 );
-    if( ret == MPS_REASSEMBLY_FEED_NEED_MORE )
+    if( ret == MBEDTLS_MPS_REASSEMBLY_FEED_NEED_MORE )
     {
         MPS_CHK( MBEDTLS_ERR_MPS_NO_FORWARD );
     }
@@ -1933,7 +1933,7 @@ static int mps_retransmission_finish_incoming_message( mbedtls_mps *mps )
          * NOTE: Logically, we should remove this when switching from state
          *       #MBEDTLS_MPS_FLIGHT_AWAIT to #MBEDTLS_MPS_FLIGHT_RECEIVE;
          *       see the corresponding comments in
-         *       \c mps_retransmission_handle_incoming_fragment()
+         *       \c mbedtls_mps_retransmission_handle_incoming_fragment()
          *       for more. */
         MPS_CHK( mps_out_flight_forget( mps ) );
 
@@ -1985,7 +1985,7 @@ static int mps_out_flight_free( mbedtls_mps *mps )
 static int mps_out_flight_forget( mbedtls_mps *mps )
 {
     uint8_t idx, flight_len;
-    mps_retransmission_handle *handle;
+    mbedtls_mps_retransmission_handle *handle;
     TRACE_INIT( "mps_out_flight_forget" );
 
     flight_len =  mps->dtls.outgoing.flight_len;
@@ -1993,24 +1993,24 @@ static int mps_out_flight_forget( mbedtls_mps *mps )
     TRACE( trace_comment, "Flight length: %u", (unsigned) flight_len );
 
     for( idx=0; idx < flight_len; idx++, handle++ )
-        mps_retransmission_handle_free( handle );
+        mbedtls_mps_retransmission_handle_free( handle );
 
     mps->dtls.outgoing.flight_len = 0;
     RETURN( 0 );
 }
 
-static int mps_retransmission_handle_init( mps_retransmission_handle *handle )
+static int mbedtls_mps_retransmission_handle_init( mbedtls_mps_retransmission_handle *handle )
 {
-    handle->handle_type = MPS_RETRANSMISSION_HANDLE_NONE;
+    handle->handle_type = MBEDTLS_MPS_RETRANSMISSION_HANDLE_NONE;
     return( 0 );
 }
 
-static int mps_retransmission_handle_free( mps_retransmission_handle *handle )
+static int mbedtls_mps_retransmission_handle_free( mbedtls_mps_retransmission_handle *handle )
 {
     TRACE_INIT( "mps_retransmission_handle_free, handle %p", handle );
     switch( handle->handle_type )
     {
-        case MPS_RETRANSMISSION_HANDLE_HS_RAW:
+        case MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_RAW:
         {
             unsigned char *buf;
             size_t buflen;
@@ -2030,8 +2030,8 @@ static int mps_retransmission_handle_free( mps_retransmission_handle *handle )
     RETURN( 0 );
 }
 
-static int mps_retransmission_handle_resend_empty(
-    mbedtls_mps *mps, mps_retransmission_handle *handle )
+static int mbedtls_mps_retransmission_handle_resend_empty(
+    mbedtls_mps *mps, mbedtls_mps_retransmission_handle *handle )
 {
     int ret = 0;
     mps_l3_handshake_out hs_out_l3;
@@ -2050,14 +2050,14 @@ static int mps_retransmission_handle_resend_empty(
     MPS_INTERNAL_FAILURE_HANDLER
 }
 
-static int mps_retransmission_handle_resend( mbedtls_mps *mps,
-                                        mps_retransmission_handle *handle )
+static int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mps,
+                                        mbedtls_mps_retransmission_handle *handle )
 {
     int ret = 0;
     TRACE_INIT( "mps_retransmission_handle_resend" );
     switch( handle->handle_type )
     {
-        case MPS_RETRANSMISSION_HANDLE_HS_RAW:
+        case MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_RAW:
         {
             mbedtls_mps_handshake_out hs;
             TRACE( trace_comment, "Retransmission via raw backup" );
@@ -2079,7 +2079,7 @@ static int mps_retransmission_handle_resend( mbedtls_mps *mps,
             break;
         }
 
-        case MPS_RETRANSMISSION_HANDLE_HS_CALLBACK:
+        case MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_CALLBACK:
         {
             mbedtls_mps_write_cb_t      const cb  = handle->handle.callback.cb;
             mbedtls_mps_write_cb_ctx_t* const ctx = handle->handle.callback.ctx;
@@ -2115,14 +2115,14 @@ static int mps_retransmission_handle_resend( mbedtls_mps *mps,
 
             if( ret == MBEDTLS_MPS_RETRANSMISSION_CALLBACK_PAUSE )
             {
-                ret = MPS_RETRANSMISSION_HANDLE_UNFINISHED;
+                ret = MBEDTLS_MPS_RETRANSMISSION_HANDLE_UNFINISHED;
             }
 
             RETURN( ret );
             break;
         }
 
-        case MPS_RETRANSMISSION_HANDLE_CCS:
+        case MBEDTLS_MPS_RETRANSMISSION_HANDLE_CCS:
         {
             mps_l3_ccs_out ccs_l3;
             TRACE( trace_comment, "CCS retransmission" );
@@ -2143,12 +2143,12 @@ static int mps_retransmission_handle_resend( mbedtls_mps *mps,
 }
 
 static int mps_out_flight_msg_start( mbedtls_mps *mps,
-                                     mps_retransmission_handle **handle )
+                                     mbedtls_mps_retransmission_handle **handle )
 {
     int ret = 0;
     uint8_t cur_flight_len;
     uint8_t cur_seq_nr;
-    mps_retransmission_handle *hdl;
+    mbedtls_mps_retransmission_handle *hdl;
     TRACE_INIT( "mps_out_flight_msg_start" );
 
     TRACE( trace_comment,
@@ -2174,7 +2174,7 @@ static int mps_out_flight_msg_start( mbedtls_mps *mps,
     hdl = &mps->dtls.outgoing.backup[ cur_flight_len++ ];
     hdl->seq_nr = cur_seq_nr;
 
-    MPS_CHK( mps_retransmission_handle_init( hdl ) );
+    MPS_CHK( mbedtls_mps_retransmission_handle_init( hdl ) );
 
     mps->dtls.outgoing.flight_len = cur_flight_len;
     *handle = hdl;
@@ -2437,22 +2437,23 @@ static int mps_dtls_frag_out_start( mbedtls_mps *mps,
     mps->dtls.hs.type   = hs->type;
     mps->dtls.hs.seq_nr = seq_nr;
     mps->dtls.hs.offset = 0;
+    mps->dtls.hs.wr_ext_l3 = NULL;
 
-    /* See the declaration of mps_dtls_frag_out_start() for
-     * more information on the meaning of the various modes. */
-    if( mode == MPS_DTLS_FRAG_OUT_START_USE_L3 )
-    {
-        TRACE( trace_comment, "Request handshake fragment from Layer 3 to allow in-place writing." );
+    /* /\* See the declaration of mps_dtls_frag_out_start() for */
+    /*  * more information on the meaning of the various modes. *\/ */
+    /* if( mode == MPS_DTLS_FRAG_OUT_START_USE_L3 ) */
+    /* { */
+    /*     TRACE( trace_comment, "Request handshake fragment from Layer 3 to allow in-place writing." ); */
 
-        /* This must happen before any further change because it might
-         * fail with #MPS_ERR_WANT_WRITE. */
-        MPS_CHK( mps_dtls_frag_out_get( mps ) );
-    }
-    else
-    {
-        TRACE( trace_comment, "Write message into queue - no handshake fragment requested from Layer 3 yet." );
-        mps->dtls.hs.wr_ext_l3 = NULL;
-    }
+    /*     /\* This must happen before any further change because it might */
+    /*      * fail with #MPS_ERR_WANT_WRITE. *\/ */
+    /*     MPS_CHK( mps_dtls_frag_out_get( mps ) ); */
+    /* } */
+    /* else */
+    /* { */
+    /*     TRACE( trace_comment, "Write message into queue (no handshake fragment requested from Layer 3)." ); */
+    /*     mps->dtls.hs.wr_ext_l3 = NULL; */
+    /* } */
 
     /* Initialize (extended) writer serving the user's write requests. */
     mbedtls_writer_init( &mps->dtls.hs.wr, queue, queue_len );
@@ -2460,13 +2461,13 @@ static int mps_dtls_frag_out_start( mbedtls_mps *mps,
     MPS_CHK( mbedtls_writer_attach( &mps->dtls.hs.wr_ext, &mps->dtls.hs.wr,
                                     MBEDTLS_WRITER_EXT_PASS ) );
 
-    /* Bind fragment obtained from Layer 3 to writer, if any. */
-    MPS_CHK( mps_dtls_frag_out_track( mps ) );
-    hs->handle = &mps->dtls.hs.wr_ext;
+    /* /\* Bind fragment obtained from Layer 3 to writer, if any. *\/ */
+    /* MPS_CHK( mps_dtls_frag_out_track( mps ) ); */
+    /* hs->handle = &mps->dtls.hs.wr_ext; */
 
     if( mode == MPS_DTLS_FRAG_OUT_START_FROM_QUEUE )
     {
-        TRACE( trace_comment, "Contents already written to queue." );
+        TRACE( trace_comment, "Message contents have already been written to queue." );
         /* The message content has already been written to the queue, so
          * fake a write-request + commit without actually writing anything. */
         MPS_CHK( mbedtls_writer_get_ext( hs->handle, queue_len, &queue, NULL ) );
@@ -2743,7 +2744,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
             TRACE( trace_comment, "No flight-exchange in progress." );
             /* It is possible that we have already received some handshake
              * message fragments from the peer -- delete these. See the
-             * documentation of mps_retransmission_handle_incoming_fragment()
+             * documentation of mbedtls_mps_retransmission_handle_incoming_fragment()
              * for more information on this choice of behavior. */
             MPS_CHK( mps_reassembly_free( mps ) );
             MPS_CHK( mps_reassembly_init( mps, 0 ) );
@@ -2772,7 +2773,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
         }
         else if( mps->dtls.hs.state == MBEDTLS_MPS_HS_NONE )
         {
-            mps_retransmission_handle *handle;
+            mbedtls_mps_retransmission_handle *handle;
             unsigned char *queue;
             size_t queue_len;
             uint8_t mode;
@@ -2841,7 +2842,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
 
                 TRACE( trace_error, "Retransmission via raw backup" );
 
-                handle->handle_type = MPS_RETRANSMISSION_HANDLE_HS_RAW;
+                handle->handle_type = MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_RAW;
                 if( hs->length != MBEDTLS_MPS_SIZE_UNKNOWN )
                 {
                     TRACE( trace_comment, "Total handshake length known: %u",
@@ -2892,7 +2893,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                 }
                 handle->len = hs->length;
 
-                handle->handle_type = MPS_RETRANSMISSION_HANDLE_HS_CALLBACK;
+                handle->handle_type = MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_CALLBACK;
                 handle->handle.callback.cb  = cb;
                 handle->handle.callback.ctx = cb_ctx;
 

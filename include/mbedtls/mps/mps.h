@@ -78,9 +78,12 @@
  *
  */
 typedef uint8_t mbedtls_mps_msg_reassembly_state;
-#define MPS_REASSEMBLY_NONE             ( (mbedtls_mps_msg_reassembly_state) 0 )
-#define MPS_REASSEMBLY_NO_FRAGMENTATION ( (mbedtls_mps_msg_reassembly_state) 1 )
-#define MPS_REASSEMBLY_WINDOW           ( (mbedtls_mps_msg_reassembly_state) 2 )
+#define MBEDTLS_MPS_REASSEMBLY_NONE             \
+    ( (mbedtls_mps_msg_reassembly_state) 0 )
+#define MBEDTLS_MPS_REASSEMBLY_NO_FRAGMENTATION \
+    ( (mbedtls_mps_msg_reassembly_state) 1 )
+#define MBEDTLS_MPS_REASSEMBLY_WINDOW           \
+    ( (mbedtls_mps_msg_reassembly_state) 2 )
 
 /*! Messages of the last incoming flight are tagged with values of this type
  *  to indicate whether a re-receipt should lead to retransmission of our
@@ -455,33 +458,32 @@ typedef struct mbedtls_mps_handshake_out_internal mbedtls_mps_handshake_out_inte
 /*! The type of retransmission handle types.
  *
  *  Supported values are:
- *  - #MPS_RETRANSMISSION_HANDLE_NONE
+ *  - #MBEDTLS_MPS_RETRANSMISSION_HANDLE_NONE
  *    to characterize uninitialized handles.
- *  - #MPS_RETRANSMISSION_HANDLE_HS_RAW
+ *  - #MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_RAW
  *    for a handshake message retransmission
  *    based on a raw backup of the message.
- *  - #MPS_RETRANSMISSION_HANDLE_HS_CALLBACK
+ *  - #MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_CALLBACK
  *    for a handshake message retransmission
  *    based on a callback.
- *  - #MPS_RETRANSMISSION_HANDLE_CCS
+ *  - #MBEDTLS_MPS_RETRANSMISSION_HANDLE_CCS
  *    for a CCS message retransmission.
  */
-typedef uint8_t mps_retransmission_handle_type;
-#define MPS_RETRANSMISSION_HANDLE_NONE         ( (mps_retransmission_handle_type) 0 )
-#define MPS_RETRANSMISSION_HANDLE_HS_RAW       ( (mps_retransmission_handle_type) 1 )
-#define MPS_RETRANSMISSION_HANDLE_HS_CALLBACK  ( (mps_retransmission_handle_type) 2 )
-#define MPS_RETRANSMISSION_HANDLE_CCS          ( (mps_retransmission_handle_type) 3 )
+typedef uint8_t mbedtls_mps_retransmission_handle_type;
+#define MBEDTLS_MPS_RETRANSMISSION_HANDLE_NONE                  \
+    ( (mbedtls_mps_retransmission_handle_type) 0 )
+#define MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_RAW                \
+    ( (mbedtls_mps_retransmission_handle_type) 1 )
+#define MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_CALLBACK           \
+    ( (mbedtls_mps_retransmission_handle_type) 2 )
+#define MBEDTLS_MPS_RETRANSMISSION_HANDLE_CCS                   \
+    ( (mbedtls_mps_retransmission_handle_type) 3 )
 
-/*! A complete incoming flight has been received. */
-#define MPS_INCOMING_FLIGHT_FINISHED 0
-/*! We're currently receiving an incoming flight. */
-#define MPS_INCOMING_FLIGHT_ONGOING  1
-
-struct mps_retransmission_handle
+struct mbedtls_mps_retransmission_handle
 {
     /*! The type of the retransmission handle. See the documentation
      *  of ::mps_retransmission_handle_type for more information. */
-    mps_retransmission_handle_type handle_type;
+    mbedtls_mps_retransmission_handle_type handle_type;
 
     /*! The handshake type; unused for CCS retransmissions. */
     mbedtls_mps_stored_hs_type type;
@@ -527,8 +529,7 @@ struct mps_retransmission_handle
     } handle;
 
 };
-typedef struct mps_retransmission_handle mps_retransmission_handle;
-
+typedef struct mbedtls_mps_retransmission_handle mbedtls_mps_retransmission_handle;
 
 typedef void mbedtls_mps_set_timer_t( void * ctx,
                                       uint32_t int_ms,
@@ -546,7 +547,7 @@ typedef int mbedtls_mps_get_timer_t( void * ctx );
  * See the documentation of ::mbedtls_mps::dtls::retransmission_detection
  * for more information on this.
  */
-typedef struct
+struct mbedtls_mps_recognition_info
 {
     /*! The epoch through which the handshake message was secured. */
     mbedtls_mps_epoch_id epoch;
@@ -554,13 +555,14 @@ typedef struct
     /*! The handshake sequence number. */
     mbedtls_mps_stored_hs_seq_nr_t seq_nr;
 
-} mps_recognition_info;
+};
+typedef struct mbedtls_mps_recognition_info mbedtls_mps_recognition_info;
 
 /**
  * MPS Configuration
  */
 
-typedef struct
+struct mbedtls_mps_config
 {
     uint8_t mode;
     mps_l3 *l3;
@@ -576,7 +578,8 @@ typedef struct
     /*! Callback to set or reset timer. */
     mbedtls_mps_set_timer_t *f_set_timer;
 
-} mps_config;
+};
+typedef struct mbedtls_mps_config mbedtls_mps_config;
 
 /**
  * MPS context
@@ -584,7 +587,7 @@ typedef struct
 
 struct mbedtls_mps
 {
-    mps_config conf;
+    mbedtls_mps_config conf;
 
     /* Security configuration */
 
@@ -730,7 +733,8 @@ struct mbedtls_mps
             /*! A list of backup handles to be used in case the flight,
              *  or parts of it, need to be retransmitted. See the documentation
              *  of ::mps_retransmission_handle_backup for more. */
-            mps_retransmission_handle backup[ MBEDTLS_MPS_MAX_FLIGHT_LENGTH ];
+            mbedtls_mps_retransmission_handle
+                backup[ MBEDTLS_MPS_MAX_FLIGHT_LENGTH ];
 
         } outgoing;
 
@@ -813,7 +817,7 @@ struct mbedtls_mps
          *       be done before, on the basis of the recognition
          *       info structures of the last incoming flight.
          */
-        struct mps_reassembly
+        struct mbedtls_mps_reassembly
         {
             /* QUESTION:
              * Consider storing ::mps_reassembly on the heap
@@ -830,7 +834,7 @@ struct mbedtls_mps
 
             /*! The array of structures representing future and/or
              *  partially received handshake messages. */
-            struct mps_msg_reassembly
+            struct mbedtls_mps_msg_reassembly
             {
                 /*! The reassembly state of the message.
                  *  See ::mbedtls_mps_msg_reassembly_state for more. */
@@ -876,7 +880,7 @@ struct mbedtls_mps
                     /*! The reassembly buffer holding the partially received
                      *  handshake message. This is valid if and only if
                      *  \c status is #MPS_REASSEMBLY_WINDOW. */
-                    struct mps_msg_reassembly_window
+                    struct mbedtls_mps_msg_reassembly_window
                     {
                         unsigned char *buf;     /*!< The reassembly buffer.   */
                         unsigned char *bitmask; /*!< The bitmask indicating
@@ -968,7 +972,7 @@ struct mbedtls_mps
              *  we remember for the purpose of recognizing retransmissions.
              *  Currently, we base recognition of retransmitted messages
              *  on the handshake sequence number and epoch only. */
-            mps_recognition_info msgs[ MBEDTLS_MPS_MAX_FLIGHT_LENGTH ];
+            mbedtls_mps_recognition_info msgs[ MBEDTLS_MPS_MAX_FLIGHT_LENGTH ];
 
         } retransmission_detection;
 
@@ -986,9 +990,9 @@ struct mbedtls_mps
 };
 typedef struct mbedtls_mps mbedtls_mps;
 
-typedef struct mps_reassembly mps_reassembly;
-typedef struct mps_msg_reassembly mps_msg_reassembly;
-typedef struct mps_msg_reassembly_window mps_msg_reassembly_window;
+typedef struct mbedtls_mps_reassembly mbedtls_mps_reassembly;
+typedef struct mbedtls_mps_msg_reassembly mbedtls_mps_msg_reassembly;
+typedef struct mbedtls_mps_msg_reassembly_window mbedtls_mps_msg_reassembly_window;
 
 /**
  * \brief                Set the underlying transport callbacks for the MPS.

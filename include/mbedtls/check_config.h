@@ -800,9 +800,9 @@
 
 #if defined(MBEDTLS_SSL_HW_RECORD_ACCEL)
 #if defined(MBEDTLS_DEPRECATED_REMOVED)
-#error "MBEDTLS_SSL_HW_RECORD_ACCEL is deprecated and will likely be removed in a future version of Mbed TLS"
+#error "MBEDTLS_SSL_HW_RECORD_ACCEL is deprecated and will be removed in a future version of Mbed TLS"
 #elif defined(MBEDTLS_DEPRECATED_WARNING)
-#warning "MBEDTLS_SSL_HW_RECORD_ACCEL is deprecated and will likely be removed in a future version of Mbed TLS"
+#warning "MBEDTLS_SSL_HW_RECORD_ACCEL is deprecated and will be removed in a future version of Mbed TLS"
 #endif
 #endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
 

@@ -196,6 +196,19 @@ int mbedtls_ecdsa_sign( mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
  *                  (SECG): SEC1 Elliptic Curve Cryptography</em>, section
  *                  4.1.3, step 5.
  *
+ * \warning         Since the output of the internal RNG is always the same for
+ *                  the same key and message, this limits the efficiency of
+ *                  blinding and leaks information through side channels. For
+ *                  secure behavior use mbedtls_ecdsa_sign_det_ext() instead.
+ *
+ *                  (Optimally the blinding is a random value that is different
+ *                  on every execution. In this case the blinding is still
+ *                  random from the attackers perspective, but is the same on
+ *                  each execution. This means that this blinding does not
+ *                  prevent attackers from recovering secrets by combining
+ *                  several measurement traces, but may prevent some attacks
+ *                  that exploit relationships between secret data.)
+ *
  * \see             ecp.h
  *
  * \param grp       The context for the elliptic curve to use.

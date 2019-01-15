@@ -1571,8 +1571,8 @@
  * Enable support for receiving and parsing SSLv2 Client Hello messages for the
  * SSL Server module (MBEDTLS_SSL_SRV_C).
  *
- * \deprecated This option is deprecated and will likely be removed in a
- *             future version of Mbed TLS.
+ * \deprecated This option is deprecated and will be removed in a future
+ *             version of Mbed TLS.
  *
  * Uncomment this macro to enable support for SSLv2 Client Hello messages.
  */
@@ -1605,8 +1605,8 @@
  * Requires: MBEDTLS_MD5_C
  *           MBEDTLS_SHA1_C
  *
- * \deprecated This option is deprecated and will likely be removed in a
- *             future version of Mbed TLS.
+ * \deprecated This option is deprecated and will be removed in a future
+ *             version of Mbed TLS.
  *
  * Comment this macro to disable support for SSL 3.0
  */

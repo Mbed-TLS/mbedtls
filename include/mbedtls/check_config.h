@@ -776,17 +776,17 @@
 
 #if defined(MBEDTLS_SSL_PROTO_SSL3)
 #if defined(MBEDTLS_DEPRECATED_REMOVED)
-#error "MBEDTLS_SSL_PROTO_SSL3 is deprecated and will likely be removed in a future version of Mbed TLS"
+#error "MBEDTLS_SSL_PROTO_SSL3 is deprecated and will be removed in a future version of Mbed TLS"
 #elif defined(MBEDTLS_DEPRECATED_WARNING)
-#warning "MBEDTLS_SSL_PROTO_SSL3 is deprecated and will likely be removed in a future version of Mbed TLS"
+#warning "MBEDTLS_SSL_PROTO_SSL3 is deprecated and will be removed in a future version of Mbed TLS"
 #endif
 #endif /* MBEDTLS_SSL_PROTO_SSL3 */
 
 #if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
 #if defined(MBEDTLS_DEPRECATED_REMOVED)
-#error "MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO is deprecated and will likely be removed in a future version of Mbed TLS"
+#error "MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO is deprecated and will be removed in a future version of Mbed TLS"
 #elif defined(MBEDTLS_DEPRECATED_WARNING)
-#warning "MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO is deprecated and will likely be removed in a future version of Mbed TLS"
+#warning "MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO is deprecated and will be removed in a future version of Mbed TLS"
 #endif
 #endif /* MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO */
 

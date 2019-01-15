@@ -72,18 +72,16 @@ typedef struct mbedtls_pkcs11_context
  * Initialize a mbedtls_pkcs11_context.
  * (Just making memory references valid.)
  *
- * \deprecated          It is deprecated and discouraged to call this function
- *                      as future versions of the library are likely to remove
- *                      it.
+ * \deprecated          This function is deprecated and will be removed in a
+ *                      future version of the library.
  */
 MBEDTLS_DEPRECATED void mbedtls_pkcs11_init( mbedtls_pkcs11_context *ctx );
 
 /**
  * Fill in a mbed TLS certificate, based on the given PKCS11 helper certificate.
  *
- * \deprecated          It is deprecated and discouraged to call this function
- *                      as future versions of the library are likely to remove
- *                      it.
+ * \deprecated          This function is deprecated and will be removed in a
+ *                      future version of the library.
  *
  * \param cert          X.509 certificate to fill
  * \param pkcs11h_cert  PKCS #11 helper certificate
@@ -98,9 +96,8 @@ MBEDTLS_DEPRECATED int mbedtls_pkcs11_x509_cert_bind( mbedtls_x509_crt *cert,
  * mbedtls_pkcs11_context will take over control of the certificate, freeing it when
  * done.
  *
- * \deprecated          It is deprecated and discouraged to call this function
- *                      as future versions of the library are likely to remove
- *                      it.
+ * \deprecated          This function is deprecated and will be removed in a
+ *                      future version of the library.
  *
  * \param priv_key      Private key structure to fill.
  * \param pkcs11_cert   PKCS #11 helper certificate
@@ -115,9 +112,8 @@ MBEDTLS_DEPRECATED int mbedtls_pkcs11_priv_key_bind(
  * Free the contents of the given private key context. Note that the structure
  * itself is not freed.
  *
- * \deprecated          It is deprecated and discouraged to call this function
- *                      as future versions of the library are likely to remove
- *                      it.
+ * \deprecated          This function is deprecated and will be removed in a
+ *                      future version of the library.
  *
  * \param priv_key      Private key structure to cleanup
  */
@@ -128,8 +124,8 @@ MBEDTLS_DEPRECATED void mbedtls_pkcs11_priv_key_free(
  * \brief          Do an RSA private key decrypt, then remove the message
  *                 padding
  *
- * \deprecated     It is deprecated and discouraged to call this function as
- *                 future versions of the library are likely to remove it.
+ * \deprecated     This function is deprecated and will be removed in a future
+ *                 version of the library.
  *
  * \param ctx      PKCS #11 context
  * \param mode     must be MBEDTLS_RSA_PRIVATE, for compatibility with rsa.c's signature
@@ -153,8 +149,8 @@ MBEDTLS_DEPRECATED int mbedtls_pkcs11_decrypt( mbedtls_pkcs11_context *ctx,
 /**
  * \brief          Do a private RSA to sign a message digest
  *
- * \deprecated     It is deprecated and discouraged to call this function as
- *                 future versions of the library are likely to remove it.
+ * \deprecated     This function is deprecated and will be removed in a future
+ *                 version of the library.
  *
  * \param ctx      PKCS #11 context
  * \param mode     must be MBEDTLS_RSA_PRIVATE, for compatibility with rsa.c's signature
@@ -179,8 +175,8 @@ MBEDTLS_DEPRECATED int mbedtls_pkcs11_sign( mbedtls_pkcs11_context *ctx,
 /**
  * SSL/TLS wrappers for PKCS#11 functions
  *
- * \deprecated     It is deprecated and discouraged to call these functions as
- *                 future versions of the library are likely to remove them.
+ * \deprecated     This function is deprecated and will be removed in a future
+ *                 version of the library.
  */
 MBEDTLS_DEPRECATED static inline int mbedtls_ssl_pkcs11_decrypt( void *ctx,
                             int mode, size_t *olen,

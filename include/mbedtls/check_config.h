@@ -776,9 +776,9 @@
 
 #if defined(MBEDTLS_PKCS11_C)
 #if defined(MBEDTLS_DEPRECATED_REMOVED)
-#error "MBEDTLS_PKCS11_C is deprecated and will likely be removed in a future version of Mbed TLS"
+#error "MBEDTLS_PKCS11_C is deprecated and will be removed in a future version of Mbed TLS"
 #elif defined(MBEDTLS_DEPRECATED_WARNING)
-#warning "MBEDTLS_PKCS11_C is deprecated and will likely be removed in a future version of Mbed TLS"
+#warning "MBEDTLS_PKCS11_C is deprecated and will be removed in a future version of Mbed TLS"
 #endif
 #endif /* MBEDTLS_PKCS11_C */
 

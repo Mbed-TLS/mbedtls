@@ -2814,8 +2814,8 @@
  *
  * Enable wrapper for PKCS#11 smartcard support.
  *
- * \deprecated This option is deprecated and will likely be removed in a
- *             future version of Mbed TLS.
+ * \deprecated This option is deprecated and will be removed in a future
+ *             version of Mbed TLS.
  *
  * Module:  library/pkcs11.c
  * Caller:  library/pk.c

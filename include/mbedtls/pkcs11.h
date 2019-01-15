@@ -183,6 +183,32 @@ MBEDTLS_DEPRECATED static inline int mbedtls_ssl_pkcs11_decrypt( void *ctx,
                            output_max_len );
 }
 
+/**
+ * \brief          This function signs a message digest using RSA.
+ *
+ * \deprecated     This function is deprecated and will be removed in a future
+ *                 version of the library.
+ *
+ * \param ctx      The PKCS #11 context.
+ * \param f_rng    The RNG function. This parameter is unused.
+ * \param p_rng    The RNG context. This parameter is unused.
+ * \param mode     The operation to run. This must be set to
+ *                 MBEDTLS_RSA_PRIVATE, for compatibility with rsa.c's
+ *                 signature.
+ * \param md_alg   The message digest algorithm. One of the MBEDTLS_MD_XXX
+ *                 must be passed to this function and MBEDTLS_MD_NONE can be
+ *                 used for signing raw data.
+ * \param hashlen  The message digest length (for MBEDTLS_MD_NONE only).
+ * \param hash     The buffer holding the message digest.
+ * \param sig      The buffer that will hold the ciphertext.
+ *
+ * \return         \c 0 if the signing operation was successful.
+ * \return         A non-zero error code on failure.
+ *
+ * \note           The \p sig buffer must be as large as the size of
+ *                 <code>ctx->N<code>. For example, 128 bytes if RSA-1024 is
+ *                 used.
+ */
 MBEDTLS_DEPRECATED static inline int mbedtls_ssl_pkcs11_sign( void *ctx,
                     int (*f_rng)(void *, unsigned char *, size_t), void *p_rng,
                     int mode, mbedtls_md_type_t md_alg, unsigned int hashlen,
@@ -194,6 +220,16 @@ MBEDTLS_DEPRECATED static inline int mbedtls_ssl_pkcs11_sign( void *ctx,
                         hashlen, hash, sig );
 }
 
+/**
+ * This function gets the length of the private key.
+ *
+ * \deprecated     This function is deprecated and will be removed in a future
+ *                 version of the library.
+ *
+ * \param ctx      The PKCS #11 context.
+ *
+ * \return         The length of the private key.
+ */
 MBEDTLS_DEPRECATED static inline size_t mbedtls_ssl_pkcs11_key_len( void *ctx )
 {
     return ( (mbedtls_pkcs11_context *) ctx )->len;

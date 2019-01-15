@@ -154,7 +154,7 @@ class MbedTlsTest(BaseHostTest):
     DISPATCH_TEST_FN_NOT_FOUND = -3     # Test function not found.
     DISPATCH_INVALID_TEST_DATA = -4     # Invalid parameter type.
     DISPATCH_UNSUPPORTED_SUITE = -5     # Test suite not supported/enabled.
-    FEATURE_UNSUPPORTED        = -6     # Feture not supported by the platform.
+    FEATURE_UNSUPPORTED        = -6     # Feature not supported by the platform.
 
     def __init__(self):
         """

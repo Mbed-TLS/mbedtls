@@ -47,6 +47,8 @@
 extern "C" {
 #endif
 
+#if defined(MBEDTLS_DEPRECATED_REMOVED)
+
 /**
  * Context for PKCS #11 private keys.
  */
@@ -56,12 +58,6 @@ typedef struct mbedtls_pkcs11_context
         int len;
 } mbedtls_pkcs11_context;
 
-/*
- * NOTE: It is not necessary to enclose the definitions with
- * MBEDTLS_DEPRECATED_REMOVED because we already have a check for the full
- * MBEDTLS_PKCS11_C feature that makes compilation fail even before we get
- * here.
- */
 #if defined(MBEDTLS_DEPRECATED_WARNING)
 #define MBEDTLS_DEPRECATED      __attribute__((deprecated))
 #else
@@ -204,6 +200,8 @@ MBEDTLS_DEPRECATED static inline size_t mbedtls_ssl_pkcs11_key_len( void *ctx )
 }
 
 #undef MBEDTLS_DEPRECATED
+
+#endif /* MBEDTLS_DEPRECATED_REMOVED */
 
 #ifdef __cplusplus
 }

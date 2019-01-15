@@ -559,7 +559,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
     if( status != PSA_SUCCESS )
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
 
-    return 0;
+    return( 0 );
 }
 
 #else /* MBEDTLS_USE_PSA_CRYPTO */

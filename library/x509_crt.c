@@ -1473,7 +1473,7 @@ int mbedtls_x509_crt_parse( mbedtls_x509_crt *chain,
                 if( ret == MBEDTLS_ERR_X509_ALLOC_FAILED )
                     return( ret );
                 /*
-                 * Quit parsing on a feature not suppoprted by HW error.
+                 * Quit parsing on a feature not supported by HW error.
                  */
                 if( ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
                     return( ret );
@@ -1632,7 +1632,7 @@ cleanup:
         //
         t_ret = mbedtls_x509_crt_parse_file( chain, entry_name );
         /*
-         * Quit parsing on a feature not suppoprted by HW error.
+         * Quit parsing on a feature not supported by HW error.
          */
         if( t_ret == MBEDTLS_ERR_PLATFORM_FEATURE_UNSUPPORTED )
         {

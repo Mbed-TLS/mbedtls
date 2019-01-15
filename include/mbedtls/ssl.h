@@ -1332,7 +1332,7 @@ struct mbedtls_ssl_context
 #define MBEDTLS_DEPRECATED      __attribute__((deprecated))
 #else
 #define MBEDTLS_DEPRECATED
-#endif
+#endif /* MBEDTLS_DEPRECATED_WARNING */
 
 MBEDTLS_DEPRECATED extern int (*mbedtls_ssl_hw_record_init)(
                     mbedtls_ssl_context *ssl,

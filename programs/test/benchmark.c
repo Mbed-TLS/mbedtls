@@ -610,7 +610,6 @@ int main( int argc, char *argv[] )
                 continue;
             }
 
-
             TIME_AND_TSC( title,
                     mbedtls_ccm_encrypt_and_tag( &ccm, BUFSIZE, tmp,
                         12, NULL, 0, buf, buf, tmp, 16 ) );
@@ -940,7 +939,6 @@ int main( int argc, char *argv[] )
             if( mbedtls_mpi_copy( &dhm.GY, &dhm.GX ) != 0 )
                 mbedtls_exit( 1 );
 
-
             TIME_PUBLIC( title, "handshake",
                     ret |= mbedtls_dhm_make_public( &dhm, (int) dhm.len, buf, dhm.len,
                                             myrand, NULL );
@@ -1087,7 +1085,6 @@ int main( int argc, char *argv[] )
                                                     myrand, NULL ) );
             CHECK_AND_CONTINUE( mbedtls_ecp_copy( &ecdh.Qp, &ecdh.Q ) );
             ecp_clear_precomputed( &ecdh.grp );
-
 
             TIME_PUBLIC( title, "handshake",
                     CHECK_AND_CONTINUE( mbedtls_ecdh_make_public( &ecdh, &olen, buf, sizeof( buf),

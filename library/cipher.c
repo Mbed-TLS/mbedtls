@@ -317,17 +317,17 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
         cipher_psa->slot_state = MBEDTLS_CIPHER_PSA_KEY_OWNED;
 
         /* From that point on, the responsibility for destroying the
-        * key slot is on mbedtls_cipher_free(). This includes the case
-        * where the policy setup or key import below fail, as
-        * mbedtls_cipher_free() needs to be called in any case. */
+         * key slot is on mbedtls_cipher_free(). This includes the case
+         * where the policy setup or key import below fail, as
+         * mbedtls_cipher_free() needs to be called in any case. */
 
         /* Setup policy for the new key slot. */
         psa_key_policy_init( &key_policy );
 
         /* Mbed TLS' cipher layer doesn't enforce the mode of operation
-        * (encrypt vs. decrypt): it is possible to setup a key for encryption
-        * and use it for AEAD decryption. Until tests relying on this
-        * are changed, allow any usage in PSA. */
+         * (encrypt vs. decrypt): it is possible to setup a key for encryption
+         * and use it for AEAD decryption. Until tests relying on this
+         * are changed, allow any usage in PSA. */
         /* key_usage = mbedtls_psa_translate_cipher_operation( operation ); */
         key_usage = PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT;
         psa_key_policy_set_usage( &key_policy, key_usage, cipher_psa->alg );

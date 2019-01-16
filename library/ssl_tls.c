@@ -9988,8 +9988,7 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
     psa_hash_operation_t hash_operation;
     psa_algorithm_t hash_alg = mbedtls_psa_translate_md( md_alg );
 
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "Perform PSA-based computation of digest "
-                                "of ServerKeyExchange" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "Perform PSA-based computation of digest of ServerKeyExchange" ) );
 
     if( ( status = psa_hash_setup( &hash_operation,
                                    hash_alg ) ) != PSA_SUCCESS )
@@ -10052,8 +10051,7 @@ int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type( md_alg );
     *hashlen = mbedtls_md_get_size( md_info );
 
-    MBEDTLS_SSL_DEBUG_MSG( 1, ( "Perform mbedtls-based computation of digest "
-                                "of ServerKeyExchange" ) );
+    MBEDTLS_SSL_DEBUG_MSG( 1, ( "Perform mbedtls-based computation of digest of ServerKeyExchange" ) );
 
     mbedtls_md_init( &ctx );
 

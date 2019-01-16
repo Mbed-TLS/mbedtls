@@ -206,7 +206,7 @@ MBEDTLS_DEPRECATED static inline int mbedtls_ssl_pkcs11_decrypt( void *ctx,
  * \return         A non-zero error code on failure.
  *
  * \note           The \p sig buffer must be as large as the size of
- *                 <code>ctx->N<code>. For example, 128 bytes if RSA-1024 is
+ *                 <code>ctx->N</code>. For example, 128 bytes if RSA-1024 is
  *                 used.
  */
 MBEDTLS_DEPRECATED static inline int mbedtls_ssl_pkcs11_sign( void *ctx,

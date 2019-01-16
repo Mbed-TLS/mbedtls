@@ -409,6 +409,7 @@ int mbedtls_reader_reclaim( mbedtls_reader *rd, size_t *paused )
     {
         size_t frag_backup_offset;
         size_t frag_backup_len;
+        size_t idx;
         TRACE( trace_comment, "There has been an unsatisfied read-request with %u bytes overhead.",
                (unsigned) pending );
 
@@ -473,7 +474,7 @@ int mbedtls_reader_reclaim( mbedtls_reader *rd, size_t *paused )
 
         TRACE( trace_comment, "Backup %u bytes into accumulator",
                (unsigned) frag_backup_len );
-        for( size_t idx = 0; idx < frag_backup_len; idx++ )
+        for( idx = 0; idx < frag_backup_len; idx++ )
             TRACE( trace_comment, "Backup[%u]=%u", (unsigned) idx, frag[idx] );
 
         rd->acc_avail = fo + frag_backup_len;

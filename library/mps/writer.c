@@ -600,6 +600,8 @@ int mbedtls_writer_detach( mbedtls_writer_ext *wr_ext,
 int mbedtls_writer_check_done( mbedtls_writer_ext *wr_ext )
 {
     TRACE_INIT( "writer_check_done" );
+    TRACE( trace_comment, "* Commit: %u", wr_ext->ofs_commit );
+    TRACE( trace_comment, "* Group end: %u", wr_ext->grp_end[0] );
 
     if( wr_ext->cur_grp > 0 )
     {

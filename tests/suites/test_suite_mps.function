@@ -4015,7 +4015,7 @@ void mbedtls_mps_l1_random_communication_dgram( int max_dgram_size )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MBEDTLS_MPS_L2 */
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
 void mbedtls_mps_l2_basic( int mode,
                            int allocator_buffer_sz,
                            int layer0_buffer_sz,
@@ -4045,7 +4045,7 @@ void mbedtls_mps_l2_basic( int mode,
     size_t sz;
 
     /* Layer 2 objects */
-    mbedtls_mbedtls_mps_l2 cli, srv;
+    mbedtls_mps_l2 cli, srv;
     mps_l2_out out_cli;
     mps_l2_in in_srv;
 
@@ -4256,7 +4256,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MBEDTLS_MPS_L2 */
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
 void mbedtls_mps_l2_non_packable_type( int mode,
                            int allocator_buffer_sz,
                            int layer0_buffer_sz  )
@@ -4477,7 +4477,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MBEDTLS_MPS_L2 */
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
 void mbedtls_mps_l2_bad_record( int mode,
                                 int allocator_buffer_sz,
                                 int layer0_buffer_sz,
@@ -4797,7 +4797,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MBEDTLS_MPS_L2 */
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
 void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
                                  int variant )
 {
@@ -5130,7 +5130,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MBEDTLS_MPS_L2 */
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
 void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
                              int layer0_buffer_sz,
                              int accumulator_too_small,
@@ -5373,7 +5373,7 @@ exit:
 /* END_CASE */
 
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MBEDTLS_MPS_L2 */
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
 void mbedtls_mps_l2_switch_epoch( int mode,
                                   int allocator_buffer_sz,
                                   int layer0_buffer_sz,
@@ -5633,7 +5633,7 @@ exit:
 /* END_CASE */
 
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MBEDTLS_MPS_L2 */
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
 void mbedtls_mps_l2_queueing( int allocator_buffer_sz,
                               int layer0_buffer_sz,
                               int msg_size,
@@ -5770,7 +5770,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MBEDTLS_MPS_L2 */
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
 void mbedtls_mps_l2_many_epochs( int mode,
                                  int allocator_buffer_sz,
                                  int layer0_buffer_sz,
@@ -6072,7 +6072,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MBEDTLS_MPS_L2 */
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
 void mbedtls_mps_l2_random( int allocator_buffer_sz,
                             int layer0_buffer_sz,
                             int num_epochs,

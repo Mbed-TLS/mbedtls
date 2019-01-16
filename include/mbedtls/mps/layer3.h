@@ -515,7 +515,7 @@ struct mps_l3
 
         /* Type-specific structures */
 
-        /* QUESTION:
+        /* OPTIMIZATION:
          * Why do we need to store meta-data such as the handshake
          * sequence number here? We should be able to write the
          * handshake header in mps_l3_write_handshake(), and afterwards

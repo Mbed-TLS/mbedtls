@@ -94,63 +94,103 @@ static int mps_handle_pending_alert( mbedtls_mps *mps );
 
 /* The API between outgoing fragmentation and the rest of the MPS code. */
 
-#define MPS_DTLS_FRAG_OUT_START_USE_L3     0
-#define MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY 1
-#define MPS_DTLS_FRAG_OUT_START_FROM_QUEUE 2
-
-/*
- * Start a new outgoing handshake message.
+/*! The type of an outgoing handshake message.
  *
- * - The handshake parameters are provided in \c hs and \c seq_nr.
+ *  Possible values are:
+ *  - #MPS_DTLS_FRAG_OUT_START_USE_L3
+ *    In this type, the message writer operates on a buffer obtained from
+ *    Layer 3, and only resorts to the queue if necessary and available.
+ *    This type is used for messages which don't need to be backed
+ *    up for the purpose of retransmission (e.g. because a retransmission
+ *    callback is registered for them); for those, it is desirable to work
+ *    in place on the buffer(s) obtained from Layer 3 as much as possible.
  *
- * - The queue to be used for the underlying writer is provided in \c queue.
+ *  - #MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY
+ *    In this type, the writer operates on the queue only. Gradual copying
+ *    and dispatching to fragment buffers from Layer 3 happens only after
+ *    the message has been fully written to the queue.
+ *    This type is used to write messages that need to be backed up for
+ *    retransmission; in this case, the backup buffer functions as the
+ *    queue, so that the user writing the message directly writes it
+ *    it into the backup buffer, avoiding an unnecessary copy.
  *
- * - The write-mode flag \c mode indicates if the handshake data is already
- *   available and how Layer 3 should be involved when writing the message.
- *   More precisely, the supported values are the following:
- *
- *   - #MPS_DTLS_FRAG_OUT_START_USE_L3
- *     In this mode, the writer operates on a buffer obtained from
- *     Layer 3, and only resorts to the queue if necessary and available.
- *     This mode is used for messages which don't need to be backed
- *     up for the purpose of retransmission (e.g. because a retransmission
- *     callback is registered for them); for those, it is desirable to work
- *     in place on the buffer(s) obtained from Layer 3 as much as possible.
- *
- *   - #MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY
- *     In this mode, the writer operates on the queue only. Gradual copying
- *     and dispatching to fragment buffers from Layer 3 happens only after
- *     the message has been fully written to the queue.
- *     This mode is used to write messages that need to be backed up for
- *     retransmission; in this case, the backup buffer functions as the
- *     queue, so that the user writing the message directly writes it
- *     it into the backup buffer, avoiding an unnecessary copy.
- *
- *   - #MPS_DTLS_FRAG_OUT_START_FROM_QUEUE
- *     This mode is used if an entire message is already present
- *     in a contiguous buffer and solely needs to be dispatched
- *     to Layer 3, without any prior interaction with the user.
- *     In this case, \c queue specifies the message contents.
- *     This mode is used for retransmission of messages via raw backups.
- *
+ *  - #MPS_DTLS_FRAG_OUT_START_FROM_QUEUE
+ *    This type is used if an entire message is already present
+ *    in a contiguous buffer and solely needs to be dispatched
+ *    to Layer 3, without any prior interaction with the user.
+ *    In this case, \c queue specifies the message contents.
+ *    This type is used for retransmission of messages via raw backups.
  */
-static int mps_dtls_frag_out_start( mbedtls_mps *mps,
-                                    mbedtls_mps_handshake_out *hs,
+
+typedef uint8_t mps_dtls_outgoing_hs_msg_mode;
+#define MPS_DTLS_FRAG_OUT_START_USE_L3     ( (mps_dtls_outgoing_hs_msg_mode) 0 )
+#define MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY ( (mps_dtls_outgoing_hs_msg_mode) 1 )
+#define MPS_DTLS_FRAG_OUT_START_FROM_QUEUE ( (mps_dtls_outgoing_hs_msg_mode) 2 )
+
+/*! Start a new outgoing handshake message.
+ *
+ *  - The queue to be used for the underlying writer is provided in \c queue.
+ *  - The write-mode flag \c mode indicates if the handshake data is already
+ *    available and how Layer 3 should be involved when writing the message.
+ *    See the documentation of ::mps_dtls_outgoing_hs_msg_mode for more.
+ *
+ *  This does not interface with the underlying Layer 3 instance,
+ *  and any error it returns is fatal.
+ *
+ *  On success, the state of the internal structure representing
+ *  the outgoing handshake message depends on \p mode as follows:
+ *  - If \p mode is #MPS_DTLS_FRAG_OUT_START_USE_L3, the outgoing
+ *    handshake message structure is in state #MBEDTLS_MPS_HS_PAUSED.
+ *  - If \p mode is #MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY, the outgoing
+ *    handshake message structure is in state #MBEDTLS_MPS_HS_ACTIVE.
+ *  - If \p mode is #MPS_DTLS_FRAG_OUT_START_FROM_QUEUE, the outgoing
+ *    handshake message structure is in state #MBEDTLS_MPS_HS_PAUSED.
+ */
+static int mps_dtls_frag_out_start( mbedtls_mps_handshake_out_internal *hs,
                                     unsigned char *queue,
-                                    size_t queue_len,
-                                    uint8_t mode,
-                                    uint16_t seq_nr );
+                                    mbedtls_mps_size_t queue_len,
+                                    mbedtls_mps_msg_metadata *metadata,
+                                    mps_dtls_outgoing_hs_msg_mode mode );
 
+/*! Move the outgoing handshake message from state #MBEDTLS_MPS_HS_PAUSED
+ *  to state #MBEDTLS_MPS_HS_ACTIVE or #MBEDTLS_MPS_HS_NONE by dispatching
+ *  queued content through Layer 3 (if any).
+ *
+ *  If there is no outgoing handshake message in state #MBEDTLS_MPS_HS_PAUSED,
+ *  this function returns immediately.
+ *
+ *  This function might fail with #MBEDTLS_MPS_WANT_READ.
+ *
+ *  If this function succeeds, the outgoing handshake message is either
+ *  in state #MBEDTLS_MPS_HS_NONE (if it was in state #MBEDTLS_MPS_HS_NONE
+ *  beforehand, or if it was in state #MBEDTLS_MPS_HS_PAUSED with the entire
+ *  message content queued) or #MBEDTLS_MPS_HS_ACTIVE (if it was in state
+ *  #MBEDTLS_MPS_HS_ACTIVE beforehand, or if it was in state
+ *  #MBEDTLS_MPS_HS_PAUSED and the message hasn't been fully written yet).
+ */
+static int mps_dtls_frag_out_unpause( mbedtls_mps *mps,
+                                      uint8_t allow_active_hs );
 
+/*  The combination of mps_dtls_frag_out_close() and
+ *  mps_dtls_frag_out_dispatch() moves the outgoing handshake
+ *  message structure from state #MBEDTLS_MPS_HS_ACTIVE to state
+ *  #MBEDTLS_MPS_HS_NONE or #MBEDTLS_MPS_HS_PAUSED.
+ *
+ *  mps_dtls_frag_out_close() revokes the output buffer
+ *  from the user-facing writer.
+ *
+ *  mps_dtls_frag_out_dispatch() dispatches the next
+ *  fragment to Layer 3.
+ */
 static int mps_dtls_frag_out_close( mbedtls_mps *mps );
 static int mps_dtls_frag_out_dispatch( mbedtls_mps *mps );
-static int mps_dtls_frag_out_clear_queue( mbedtls_mps *mps,
-                                    uint8_t allow_active_hs );
 
-/* Functions internally used by the outgoing fragmention
- * handling, but not by other MPS Functions. */
-static int mps_dtls_frag_out_get( mbedtls_mps *mps );
-static int mps_dtls_frag_out_track( mbedtls_mps *mps );
+static int mps_dtls_frag_out_bind( mbedtls_mps *mps );
+/*  The combination of mps_dtls_frag_out_get() and
+ *  mps_dtls_frag_out_track() moves the outgoing handshake
+ *  message structure from state #MBEDTLS_MPS_HS_PAUSED ... */
+/* static int mps_dtls_frag_out_get( mbedtls_mps *mps ); */
+/* static int mps_dtls_frag_out_track( mbedtls_mps *mps ); */
 
 /*
  * Read/Write preparations
@@ -164,7 +204,8 @@ static int mps_dtls_frag_out_track( mbedtls_mps *mps );
 #define MPS_PAUSED_HS_ALLOWED   1
 
 static int mps_prepare_read( mbedtls_mps *mps );
-static int mps_prepare_write( mbedtls_mps *mps, uint8_t allow_paused_hs );
+static int mps_prepare_write( mbedtls_mps *mps,
+                              uint8_t allow_paused_hs );
 static int mps_clear_pending( mbedtls_mps *mps, uint8_t allow_paused_hs );
 
 /*
@@ -205,11 +246,11 @@ static int mps_out_flight_init( mbedtls_mps *mps, uint8_t seq_nr );
 static int mps_out_flight_free( mbedtls_mps *mps );
 static int mps_out_flight_forget( mbedtls_mps *mps );
 static int mps_out_flight_msg_start( mbedtls_mps *mps,
-                                     mbedtls_mps_retransmission_handle **handle );
+                                   mbedtls_mps_retransmission_handle **handle );
 static int mps_out_flight_msg_done( mbedtls_mps *mps );
 
-static int mbedtls_mps_retransmission_handle_init( mbedtls_mps_retransmission_handle *handle );
-static int mbedtls_mps_retransmission_handle_free( mbedtls_mps_retransmission_handle *handle );
+static void mbedtls_mps_retransmission_handle_init( mbedtls_mps_retransmission_handle *handle );
+static void mbedtls_mps_retransmission_handle_free( mbedtls_mps_retransmission_handle *handle );
 static int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mps,
                                         mbedtls_mps_retransmission_handle *handle );
 static int mbedtls_mps_retransmission_handle_resend_empty( mbedtls_mps *mps,
@@ -258,6 +299,8 @@ static int mps_reassembly_forget( mbedtls_mps *mps );
 #define MPS_RETRANSMIT_ONLY_EMPTY_FRAGMENTS 0
 #define MPS_RETRANSMIT_FULL_FLIGHT          1
 
+#define MPS_INITIAL_HS_SEQ_NR 0
+
 #define MBEDTLS_MPS_ALERT_LEVEL_WARNING         1
 #define MBEDTLS_MPS_ALERT_LEVEL_FATAL           2
 #define MBEDTLS_MPS_ALERT_MSG_CLOSE_NOTIFY      0
@@ -286,7 +329,7 @@ static int mps_clear_pending( mbedtls_mps *mps,
     if( mps->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
     {
         /* If present, dispatch queueing handshake data. */
-        MPS_CHK( mps_dtls_frag_out_clear_queue( mps, allow_active_hs ) );
+        MPS_CHK( mps_dtls_frag_out_unpause( mps, allow_active_hs ) );
     }
 
     /* Attempt to send any pending alerts. */
@@ -1144,7 +1187,7 @@ static int mps_retransmit_out_core( mbedtls_mps *mps,
             if( ret != 0 && ret != MBEDTLS_MPS_RETRANSMISSION_HANDLE_UNFINISHED )
                 MPS_CHK( ret );
         }
-        else if( mode == MPS_RETRANSMIT_ONLY_EMPTY_FRAGMENTS )
+        else /* if( mode == MPS_RETRANSMIT_ONLY_EMPTY_FRAGMENTS ) */
         {
             ret = mbedtls_mps_retransmission_handle_resend_empty( mps, handle );
         }
@@ -2008,15 +2051,13 @@ static int mps_out_flight_forget( mbedtls_mps *mps )
     RETURN( 0 );
 }
 
-static int mbedtls_mps_retransmission_handle_init( mbedtls_mps_retransmission_handle *handle )
+static void mbedtls_mps_retransmission_handle_init( mbedtls_mps_retransmission_handle *handle )
 {
     handle->handle_type = MBEDTLS_MPS_RETRANSMISSION_HANDLE_NONE;
-    return( 0 );
 }
 
-static int mbedtls_mps_retransmission_handle_free( mbedtls_mps_retransmission_handle *handle )
+static void mbedtls_mps_retransmission_handle_free( mbedtls_mps_retransmission_handle *handle )
 {
-    TRACE_INIT( "mps_retransmission_handle_free, handle %p", handle );
     switch( handle->handle_type )
     {
         case MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_RAW:
@@ -2036,7 +2077,6 @@ static int mbedtls_mps_retransmission_handle_free( mbedtls_mps_retransmission_ha
     }
 
     mbedtls_platform_zeroize( handle, sizeof( *handle ) );
-    RETURN( 0 );
 }
 
 static int mbedtls_mps_retransmission_handle_resend_empty(
@@ -2046,12 +2086,12 @@ static int mbedtls_mps_retransmission_handle_resend_empty(
     mps_l3_handshake_out hs_out_l3;
     TRACE_INIT( "mps_retransmission_handle_resend_empty" );
 
-    hs_out_l3.epoch       = handle->epoch;
+    hs_out_l3.epoch       = handle->metadata.epoch;
     hs_out_l3.frag_len    = 0;
     hs_out_l3.frag_offset = 0;
-    hs_out_l3.len         = handle->len;
-    hs_out_l3.seq_nr      = handle->seq_nr;
-    hs_out_l3.type        = handle->type;
+    hs_out_l3.len         = handle->metadata.len;
+    hs_out_l3.seq_nr      = handle->metadata.seq_nr;
+    hs_out_l3.type        = handle->metadata.type;
     MPS_CHK( mps_l3_write_handshake( mps->conf.l3, &hs_out_l3 ) );
     /* Don't write anything. */
     MPS_CHK( mps_l3_dispatch( mps->conf.l3 ) );
@@ -2060,31 +2100,35 @@ static int mbedtls_mps_retransmission_handle_resend_empty(
 }
 
 static int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mps,
-                                        mbedtls_mps_retransmission_handle *handle )
+                                    mbedtls_mps_retransmission_handle *handle )
 {
     int ret = 0;
+    mbedtls_mps_handshake_out_internal * const hs = &mps->dtls.hs;
+
     TRACE_INIT( "mps_retransmission_handle_resend" );
     switch( handle->handle_type )
     {
         case MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_RAW:
         {
-            mbedtls_mps_handshake_out hs;
+            unsigned char * backup_buf    = handle->handle.raw.buf;
+            mbedtls_mps_size_t backup_len = handle->handle.raw.len;
+
             TRACE( trace_comment, "Retransmission via raw backup" );
 
             MPS_CHK( mps_clear_pending( mps, MPS_PAUSED_HS_FORBIDDEN ) );
 
-            /* TODO: Add sequence number for checksum. */
-            hs.length = handle->len;
-            hs.type   = handle->type;
+            MPS_CHK( mps_dtls_frag_out_start( hs, backup_buf, backup_len,
+                                        &handle->metadata,
+                                        MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY ) );
 
-            MPS_CHK( mps_dtls_frag_out_start( mps, &hs,
-                                         handle->handle.raw.buf,
-                                         handle->handle.raw.len,
-                                         MPS_DTLS_FRAG_OUT_START_FROM_QUEUE,
-                                         handle->seq_nr ) );
+            MPS_CHK( mbedtls_writer_get_ext( &hs->wr_ext,
+                                             backup_len,
+                                             &backup_buf,
+                                             NULL ) );
+            MPS_CHK( mbedtls_writer_commit_ext( &hs->wr_ext ) );
+
             MPS_CHK( mps_dtls_frag_out_close( mps ) );
             MPS_CHK( mps_dtls_frag_out_dispatch( mps ) );
-            RETURN( ret );
             break;
         }
 
@@ -2092,22 +2136,18 @@ static int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mps,
         {
             mbedtls_mps_write_cb_t      const cb  = handle->handle.callback.cb;
             mbedtls_mps_write_cb_ctx_t* const ctx = handle->handle.callback.ctx;
-            mbedtls_mps_handshake_out hs;
             TRACE( trace_comment, "Retransmission via callback" );
 
             MPS_CHK( mps_clear_pending( mps, MPS_PAUSED_HS_ALLOWED ) );
 
-            /* TODO: Add sequence number for checksum. */
-            hs.length = handle->len;
-            hs.type   = handle->type;
-
             if( mps->dtls.hs.state == MBEDTLS_MPS_HS_NONE )
             {
                 TRACE( trace_comment, "Open new outgoing handshake message." );
-                MPS_CHK( mps_dtls_frag_out_start( mps, &hs,
-                                                  mps->dtls.hs.queue,
-                                                  mps->dtls.hs.queue_len,
-                                                  0, handle->seq_nr ) );
+                MPS_CHK( mps_dtls_frag_out_start( hs,
+                                           hs->queue,
+                                           hs->queue_len,
+                                           &handle->metadata,
+                                           MPS_DTLS_FRAG_OUT_START_USE_L3 ) );
             }
             else
             {
@@ -2115,7 +2155,7 @@ static int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mps,
             }
 
             /* Call retransmission callback. */
-            ret = cb( ctx, hs.handle );
+            ret = cb( ctx, &hs->wr_ext );
             if( ret != 0 && ret != MBEDTLS_MPS_RETRANSMISSION_CALLBACK_PAUSE )
                 MPS_CHK( ret );
 
@@ -2126,8 +2166,6 @@ static int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mps,
             {
                 ret = MBEDTLS_MPS_RETRANSMISSION_HANDLE_UNFINISHED;
             }
-
-            RETURN( ret );
             break;
         }
 
@@ -2137,7 +2175,7 @@ static int mbedtls_mps_retransmission_handle_resend( mbedtls_mps *mps,
             TRACE( trace_comment, "CCS retransmission" );
             MPS_CHK( mps_clear_pending( mps, MPS_PAUSED_HS_FORBIDDEN ) );
 
-            ccs_l3.epoch = handle->epoch;
+            ccs_l3.epoch = handle->metadata.epoch;
             MPS_CHK( mps_l3_write_ccs( mps->conf.l3, &ccs_l3 ) );
             MPS_CHK( mps_l3_dispatch( mps->conf.l3 ) );
             break;
@@ -2180,15 +2218,13 @@ static int mps_out_flight_msg_start( mbedtls_mps *mps,
         MPS_CHK( MBEDTLS_ERR_MPS_COUNTER_WRAP );
     }
 
-    hdl = &mps->dtls.outgoing.backup[ cur_flight_len++ ];
-    hdl->seq_nr = cur_seq_nr;
-
-    MPS_CHK( mbedtls_mps_retransmission_handle_init( hdl ) );
-
-    mps->dtls.outgoing.flight_len = cur_flight_len;
-    *handle = hdl;
-
+    mps->dtls.outgoing.flight_len = cur_flight_len + 1;
     mps->dtls.outgoing.flags = 0;
+
+    hdl = &mps->dtls.outgoing.backup[ cur_flight_len ];
+    mbedtls_mps_retransmission_handle_init( hdl );
+    hdl->metadata.seq_nr = cur_seq_nr;
+    *handle = hdl;
 
     MPS_INTERNAL_FAILURE_HANDLER
 }
@@ -2201,11 +2237,11 @@ static int mps_out_flight_msg_done( mbedtls_mps *mps )
     return( 0 );
 }
 
-static int mps_dtls_frag_out_clear_queue( mbedtls_mps *mps,
-                                    uint8_t allow_active_hs )
+static int mps_dtls_frag_out_unpause( mbedtls_mps *mps,
+                                      uint8_t allow_active_hs )
 {
     int ret;
-    TRACE_INIT( "mps_dtls_frag_out_clear_queue" );
+    TRACE_INIT( "mps_dtls_frag_out_unpause" );
 
     if( mps->dtls.hs.state != MBEDTLS_MPS_HS_PAUSED )
     {
@@ -2221,9 +2257,8 @@ static int mps_dtls_frag_out_clear_queue( mbedtls_mps *mps,
     do
     {
         TRACE( trace_comment, "Fetch new handshake fragment from Layer 3 to dispatch queued data." );
-        MPS_CHK( mps_dtls_frag_out_get( mps ) );
 
-        ret = mps_dtls_frag_out_track( mps );
+        ret = mps_dtls_frag_out_bind( mps );
         if( ret == 0 )
             break;
         if( ret != MBEDTLS_ERR_WRITER_NEED_MORE )
@@ -2249,6 +2284,8 @@ static int mps_dtls_frag_out_clear_queue( mbedtls_mps *mps,
 
         mbedtls_writer_free( &mps->dtls.hs.wr );
         mbedtls_writer_free_ext( &mps->dtls.hs.wr_ext );
+
+        TRACE( trace_comment, "New outgoing handshake message state: MBEDTLS_MPS_HS_NONE." );
         mps->dtls.hs.state = MBEDTLS_MPS_HS_NONE;
     }
     else
@@ -2264,59 +2301,52 @@ static int mps_dtls_frag_out_clear_queue( mbedtls_mps *mps,
     MPS_INTERNAL_FAILURE_HANDLER
 }
 
-static int mps_dtls_frag_out_get( mbedtls_mps *mps )
+static int mps_dtls_frag_out_bind( mbedtls_mps *mps )
 {
     int ret;
+    unsigned char *frag;
+    mbedtls_mps_size_t frag_len, remaining;
     mps_l3_handshake_out l3_hs;
+    mbedtls_mps_handshake_out_internal * const hs = &mps->dtls.hs;
+    mbedtls_mps_msg_metadata * const metadata = mps->dtls.hs.metadata;
 
-    TRACE_INIT( "mps_dtls_frag_out_get" );
+    TRACE_INIT( "mps_dtls_frag_out_bind" );
 
-    l3_hs.type        = mps->dtls.hs.type;
-    l3_hs.epoch       = mps->dtls.hs.epoch;
-    l3_hs.seq_nr      = mps->dtls.hs.seq_nr;
-    l3_hs.len         = mps->dtls.hs.length;
-    l3_hs.frag_offset = mps->dtls.hs.offset;
+    /* Request a new handshake fragment from Layer 3. */
+    l3_hs.type        = metadata->type;
+    l3_hs.epoch       = metadata->epoch;
+    l3_hs.seq_nr      = metadata->seq_nr;
+    l3_hs.len         = metadata->len;
+    l3_hs.frag_offset = hs->offset;
     l3_hs.frag_len    = MBEDTLS_MPS_SIZE_UNKNOWN;
     MPS_CHK( mps_l3_write_handshake( mps->conf.l3, &l3_hs ) );
-    mps->dtls.hs.wr_ext_l3 = l3_hs.wr_ext;
 
-    MPS_INTERNAL_FAILURE_HANDLER
-}
-
-static int mps_dtls_frag_out_track( mbedtls_mps *mps )
-{
-    int ret;
-    unsigned char* frag;
-    mbedtls_writer_ext* wr_ext_l3;
-    size_t frag_len, remaining;
-    TRACE_INIT( "mps_dtls_frag_out_track" );
-
-    wr_ext_l3 = mps->dtls.hs.wr_ext_l3;
-    if( wr_ext_l3 == NULL )
-    {
-        /* Feed an empty buffer to serve write requests from queue only. */
-        MPS_CHK( mbedtls_writer_feed( &mps->dtls.hs.wr, NULL, 0 ) );
-    }
+    /* Extract buffer for remaining handshake content from
+     * reader obtained from Layer 3. */
+    hs->wr_ext_l3 = l3_hs.wr_ext;
+    TRACE( trace_comment, "Get maximum length buffer from Layer 3 and feed it to writer." );
+    if( metadata->len == MBEDTLS_MPS_SIZE_UNKNOWN )
+        remaining = MBEDTLS_MPS_SIZE_MAX;
     else
+        remaining = metadata->len - hs->offset;
+    MPS_CHK( mbedtls_writer_get_ext( hs->wr_ext_l3, remaining,
+                                     &frag, &frag_len ) );
+    hs->frag_len = frag_len;
+    TRACE( trace_comment, "Received buffer of length %u from Layer 3.",
+           (unsigned) frag_len );
+
+    /* Feed the buffer into the user-facing writer
+     * used to write the handshake message. */
+    ret = mbedtls_writer_feed( &hs->wr, frag, frag_len );
+    if( ret == MBEDTLS_ERR_WRITER_NEED_MORE )
     {
-        if( mps->dtls.hs.length == MBEDTLS_MPS_SIZE_UNKNOWN )
-            remaining = -1u;
-        else
-            remaining = mps->dtls.hs.length - mps->dtls.hs.offset;
-
-        MPS_CHK( mbedtls_writer_get_ext( wr_ext_l3, remaining,
-                                         &frag, &frag_len ) );
-        mps->dtls.hs.frag_len = frag_len;
-
-        ret = mbedtls_writer_feed( &mps->dtls.hs.wr, frag, frag_len );
-        if( ret == MBEDTLS_ERR_WRITER_NEED_MORE )
-        {
-            MPS_CHK( mbedtls_writer_commit_ext( wr_ext_l3 ) );
-            MPS_CHK( MBEDTLS_ERR_WRITER_NEED_MORE );
-        }
+        TRACE( trace_comment, "The Layer 3 buffer is not large enough to dispatch all queued data." );
+        MPS_CHK( mbedtls_writer_commit_ext( hs->wr_ext_l3 ) );
+        MPS_CHK( MBEDTLS_ERR_WRITER_NEED_MORE );
     }
 
-    mps->dtls.hs.state = MBEDTLS_MPS_HS_ACTIVE;
+    TRACE( trace_comment, "New outgoing handshake message state: MBEDTLS_MPS_HS_ACTIVE." );
+    hs->state = MBEDTLS_MPS_HS_ACTIVE;
 
     MPS_INTERNAL_FAILURE_HANDLER
 }
@@ -2325,48 +2355,53 @@ static int mps_dtls_frag_out_close( mbedtls_mps *mps )
 {
     int ret;
     size_t frag_len, bytes_queued, remaining;
+    mbedtls_mps_handshake_out_internal * const hs = &mps->dtls.hs;
+    mbedtls_mps_msg_metadata * const metadata = hs->metadata;
     TRACE_INIT( "mps_dtls_frag_out_close" );
 
     /* Revoke the Layer 3 fragment buffer from the writer
      * and see how much has been written to it, and how much
      * is potentially still pending. */
-    MPS_CHK( mbedtls_writer_reclaim( &mps->dtls.hs.wr, &frag_len, &bytes_queued,
+    MPS_CHK( mbedtls_writer_reclaim( &hs->wr, &frag_len, &bytes_queued,
                                      MBEDTLS_WRITER_RECLAIM_FORCE ) );
     TRACE( trace_comment, "* Fragment length: %u", (unsigned) frag_len );
     TRACE( trace_comment, "* Bytes queued:    %u", (unsigned) bytes_queued );
 
-    TRACE( trace_comment, "* Total length:    %u", (unsigned) mps->dtls.hs.length );
-    TRACE( trace_comment, "* Fragment offset: %u", (unsigned) mps->dtls.hs.offset );
+    TRACE( trace_comment, "* Total length:    %u", (unsigned) metadata->len );
+    TRACE( trace_comment, "* Fragment offset: %u", (unsigned) hs->offset );
 
-    if( mps->dtls.hs.wr_ext_l3 != NULL )
+    if( hs->wr_ext_l3 != NULL )
     {
         /* Sanity check -- should never fail */
-        if( frag_len > mps->dtls.hs.frag_len ||
-            frag_len > mps->dtls.hs.length - mps->dtls.hs.offset )
+        if( frag_len > hs->frag_len ||
+            frag_len > metadata->len - hs->offset )
         {
             TRACE( trace_comment, "Writer claims to have written more data than what's available in the current fragment -- should never happen" );
             RETURN( MPS_ERR_INTERNAL_ERROR );
         }
-        remaining = mps->dtls.hs.frag_len - frag_len;
+        remaining = hs->frag_len - frag_len;
         TRACE( trace_comment, "%u bytes unwritten in fragment",
                (unsigned) remaining );
 
         /* Inform Layer 3 about how much has been written,
          * and dispatch the fragment. */
-        MPS_CHK( mbedtls_writer_commit_partial_ext( mps->dtls.hs.wr_ext_l3,
+        MPS_CHK( mbedtls_writer_commit_partial_ext( hs->wr_ext_l3,
                                                     remaining ) );
-        mps->dtls.hs.frag_len = frag_len;
+        hs->frag_len = frag_len;
+        hs->state = MBEDTLS_MPS_HS_PAUSED;
 
-        if( bytes_queued == 0 )
-        {
-            mbedtls_writer_free( &mps->dtls.hs.wr );
-            mbedtls_writer_free_ext( &mps->dtls.hs.wr_ext );
-            mps->dtls.hs.state = MBEDTLS_MPS_HS_NONE;
-        }
-        else
-        {
-            mps->dtls.hs.state = MBEDTLS_MPS_HS_PAUSED;
-        }
+        /* if( mbedtls_writer_check_done( &hs->wr_ext ) == 0 ) */
+        /* { */
+        /*     mbedtls_writer_free( &hs->wr ); */
+        /*     mbedtls_writer_free_ext( &hs->wr_ext ); */
+        /*     TRACE( trace_comment, "New outgoing handshake message state: MBEDTLS_MPS_HS_NONE." ); */
+        /*     hs->state = MBEDTLS_MPS_HS_NONE; */
+        /* } */
+        /* else */
+        /* { */
+        /*     TRACE( trace_comment, "New outgoing handshake message state: MBEDTLS_MPS_HS_PAUSED." ); */
+        /*     hs->state = MBEDTLS_MPS_HS_PAUSED; */
+        /* } */
     }
     else
     {
@@ -2376,22 +2411,24 @@ static int mps_dtls_frag_out_close( mbedtls_mps *mps )
             MPS_CHK( MPS_ERR_INTERNAL_ERROR );
         }
 
-        if( mps->dtls.hs.length != MBEDTLS_MPS_SIZE_UNKNOWN &&
-            (unsigned) mps->dtls.hs.length != bytes_queued )
+        if( metadata->len != MBEDTLS_MPS_SIZE_UNKNOWN &&
+            (unsigned) metadata->len != bytes_queued )
         {
             /* This is an internal error and not a usage error,
              * because it is checked in mbedtls_mps_dispatch()
              * that the extended writer is done, i.e. has written
              * the entire message. */
             TRACE( trace_error, "Handshake message size initially specified as %u, but only %u written.",
-                   (unsigned) mps->dtls.hs.length, (unsigned) bytes_queued );
+                   (unsigned) metadata->len, (unsigned) bytes_queued );
             MPS_CHK( MPS_ERR_INTERNAL_ERROR );
         }
 
         TRACE( trace_comment, "Total handshake length: %u",
                (unsigned) bytes_queued );
-        mps->dtls.hs.length = bytes_queued;
-        mps->dtls.hs.state  = MBEDTLS_MPS_HS_PAUSED;
+        metadata->len = bytes_queued;
+
+        TRACE( trace_comment, "New outgoing handshake message state: MBEDTLS_MPS_HS_PAUSED." );
+        hs->state  = MBEDTLS_MPS_HS_PAUSED;
     }
 
     MPS_INTERNAL_FAILURE_HANDLER
@@ -2400,95 +2437,70 @@ static int mps_dtls_frag_out_close( mbedtls_mps *mps )
 static int mps_dtls_frag_out_dispatch( mbedtls_mps *mps )
 {
     int ret = 0;
+    mbedtls_mps_handshake_out_internal * const hs = &mps->dtls.hs;
+    mbedtls_mps_msg_metadata * const metadata = hs->metadata;
     TRACE_INIT( "mps_dtls_frag_out_dispatch" );
 
     if( mps->dtls.hs.wr_ext_l3 != NULL )
     {
         TRACE( trace_comment, " * Sequence number: %u",
-               (unsigned) mps->dtls.hs.seq_nr );
+               (unsigned) metadata->seq_nr );
         TRACE( trace_comment, " * Fragment offset: %u",
-               (unsigned) mps->dtls.hs.offset );
+               (unsigned) hs->offset );
         TRACE( trace_comment, " * Fragment length: %u",
-               (unsigned) mps->dtls.hs.frag_len );
+               (unsigned) hs->frag_len );
         TRACE( trace_comment, " * Total length   : %u",
-               (unsigned) mps->dtls.hs.length );
+               (unsigned) metadata->len );
 
         MPS_CHK( mps_l3_dispatch( mps->conf.l3 ) );
 
-        mps->dtls.hs.offset    += mps->dtls.hs.frag_len;
-        mps->dtls.hs.wr_ext_l3  = NULL;
-        mps->dtls.hs.frag_len   = 0;
+        hs->offset    += hs->frag_len;
+        hs->wr_ext_l3  = NULL;
+        hs->frag_len   = 0;
     }
 
     TRACE( trace_comment, "Done" );
     MPS_INTERNAL_FAILURE_HANDLER
 }
 
-static int mps_dtls_frag_out_start( mbedtls_mps *mps,
-                                    mbedtls_mps_handshake_out *hs,
+static int mps_dtls_frag_out_start( mbedtls_mps_handshake_out_internal *hs,
                                     unsigned char *queue,
-                                    size_t queue_len,
-                                    uint8_t mode,
-                                    uint16_t seq_nr )
+                                    mbedtls_mps_size_t queue_len,
+                                    mbedtls_mps_msg_metadata *metadata,
+                                    mps_dtls_outgoing_hs_msg_mode mode )
 {
     int ret = 0;
+    mbedtls_mps_size_t msg_len;
     TRACE_INIT( "mps_dtls_frag_out_start, type %u, length %u",
-                (unsigned) hs->type, (unsigned) hs->length );
+                (unsigned) metadata->type, (unsigned) metadata->len );
 
-    if( mps->dtls.hs.state != MBEDTLS_MPS_HS_NONE )
+    if( hs->state != MBEDTLS_MPS_HS_NONE )
     {
         TRACE( trace_comment, "Attempt to start a new outgoing handshake message while another one is still not finished." );
         RETURN( MPS_ERR_INTERNAL_ERROR );
     }
 
-    mps->dtls.hs.epoch  = mps->out_epoch;
-    mps->dtls.hs.length = hs->length;
-    mps->dtls.hs.type   = hs->type;
-    mps->dtls.hs.seq_nr = seq_nr;
-    mps->dtls.hs.offset = 0;
-    mps->dtls.hs.wr_ext_l3 = NULL;
-
-    /* /\* See the declaration of mps_dtls_frag_out_start() for */
-    /*  * more information on the meaning of the various modes. *\/ */
-    /* if( mode == MPS_DTLS_FRAG_OUT_START_USE_L3 ) */
-    /* { */
-    /*     TRACE( trace_comment, "Request handshake fragment from Layer 3 to allow in-place writing." ); */
-
-    /*     /\* This must happen before any further change because it might */
-    /*      * fail with #MPS_ERR_WANT_WRITE. *\/ */
-    /*     MPS_CHK( mps_dtls_frag_out_get( mps ) ); */
-    /* } */
-    /* else */
-    /* { */
-    /*     TRACE( trace_comment, "Write message into queue (no handshake fragment requested from Layer 3)." ); */
-    /*     mps->dtls.hs.wr_ext_l3 = NULL; */
-    /* } */
+    hs->metadata = metadata;
+    hs->offset = 0;
+    hs->wr_ext_l3 = NULL;
 
     /* Initialize (extended) writer serving the user's write requests. */
-    mbedtls_writer_init( &mps->dtls.hs.wr, queue, queue_len );
-    mbedtls_writer_init_ext( &mps->dtls.hs.wr_ext, hs->length );
-    MPS_CHK( mbedtls_writer_attach( &mps->dtls.hs.wr_ext, &mps->dtls.hs.wr,
+    msg_len = metadata->len;
+    mbedtls_writer_init( &hs->wr, queue, queue_len );
+    mbedtls_writer_init_ext( &hs->wr_ext, msg_len );
+    MPS_CHK( mbedtls_writer_attach( &hs->wr_ext, &hs->wr,
                                     MBEDTLS_WRITER_EXT_PASS ) );
 
-    /* /\* Bind fragment obtained from Layer 3 to writer, if any. *\/ */
-    /* MPS_CHK( mps_dtls_frag_out_track( mps ) ); */
-    /* hs->handle = &mps->dtls.hs.wr_ext; */
-
-    if( mode == MPS_DTLS_FRAG_OUT_START_FROM_QUEUE )
+    if( mode == MPS_DTLS_FRAG_OUT_START_USE_L3 )
     {
-        TRACE( trace_comment, "Message contents have already been written to queue." );
-        /* The message content has already been written to the queue, so
-         * fake a write-request + commit without actually writing anything. */
-        MPS_CHK( mbedtls_writer_get_ext( hs->handle, queue_len, &queue, NULL ) );
-        MPS_CHK( mbedtls_writer_commit_ext( hs->handle ) );
+        hs->state = MBEDTLS_MPS_HS_PAUSED;
     }
-
-    /* Add the sequence number to the handshake handle, exposed
-     * opaquely only to allow it to enter checksum computations. */
-    MPS_WRITE_UINT16_LE( hs->add, &seq_nr );
-    hs->addlen = sizeof( uint16_t );
-
-    mps->dtls.hs.state = MBEDTLS_MPS_HS_ACTIVE;
+    else /* if( mode == MPS_DTLS_FRAG_OUT_START_QUEUE_ONLY ) */
+    {
+        /* Feed an empty buffer to serve write requests from the queue only. */
+        MPS_CHK( mbedtls_writer_feed( &hs->wr, NULL, 0 ) );
+        hs->state = MBEDTLS_MPS_HS_ACTIVE;
+    }
 
     MPS_INTERNAL_FAILURE_HANDLER
 }
@@ -2682,7 +2694,7 @@ int mbedtls_mps_write_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags )
 }
 
 int mbedtls_mps_write_handshake( mbedtls_mps *mps,
-                                 mbedtls_mps_handshake_out *hs,
+                                 mbedtls_mps_handshake_out *hs_new,
                                  mbedtls_mps_write_cb_t cb,
                                  mbedtls_mps_write_cb_ctx_t *cb_ctx )
 {
@@ -2701,7 +2713,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
 
     int ret;
     TRACE_INIT( "mbedtls_mps_write_handshake, type %u, length %u",
-                (unsigned) hs->type, (unsigned) hs->length );
+                (unsigned) hs_new->type, (unsigned) hs_new->length );
     MPS_CHK( mps_prepare_write( mps, MPS_PAUSED_HS_ALLOWED ) );
 
     if( mps->conf.mode == MBEDTLS_MPS_MODE_STREAM )
@@ -2714,17 +2726,18 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
         ((void) cb_ctx);
 
         hs_l3.epoch = mps->out_epoch;
-        hs_l3.type  = hs->type;
-        hs_l3.len   = hs->length;
+        hs_l3.type  = hs_new->type;
+        hs_l3.len   = hs_new->length;
 
         MPS_CHK( mps_l3_write_handshake( mps->conf.l3, &hs_l3 ) );
 
-        hs->handle = hs_l3.wr_ext;
-        hs->addlen = 0;
+        hs_new->handle = hs_l3.wr_ext;
+        hs_new->addlen = 0;
     }
     else
     {
         /* DTLS */
+        mbedtls_mps_handshake_out_internal * const hs = &mps->dtls.hs;
 
         /* We have to deal with the situation where a flight-exchange finished
          * with an outgoing flight of ours, and we attempt to start another one
@@ -2746,7 +2759,6 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
 
             /* Clearing the reassembly is done in the next branch. */
         }
-
         /* No `else` because we want to fall through. */
         if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_DONE )
         {
@@ -2761,26 +2773,27 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
             /* Now the previous handshake is fully wrapped up
              * and we can start a new one. */
 
-            MPS_CHK( mps_out_flight_init( mps, 0 /* start a handshake with
-                                                  * sequence number 0 */ ) );
+            MPS_CHK( mps_out_flight_init( mps, MPS_INITIAL_HS_SEQ_NR ) );
             MPS_CHK( mps_retransmit_in_init( mps ) );
 
             mps->dtls.state = MBEDTLS_MPS_FLIGHT_SEND;
         }
 
         /* Check if a handshake message is currently paused or not. */
-        if( mps->dtls.hs.state == MBEDTLS_MPS_HS_ACTIVE )
+        if( hs->state == MBEDTLS_MPS_HS_ACTIVE )
         {
+            mbedtls_mps_msg_metadata * const metadata = hs->metadata;
             TRACE( trace_comment, "Handshake message has been paused - continue" );
+
             /* Check consistency of parameters and forward to the user. */
-            if( mps->dtls.hs.length != hs->length ||
-                mps->dtls.hs.type   != hs->type )
+            if( metadata->len  != hs_new->length ||
+                metadata->type != hs_new->type )
             {
                 TRACE( trace_error, "Inconsistent parameters on continuation of handshake write." );
                 MPS_CHK( MPS_ERR_INTERNAL_ERROR );
             }
         }
-        else if( mps->dtls.hs.state == MBEDTLS_MPS_HS_NONE )
+        else if( hs->state == MBEDTLS_MPS_HS_NONE )
         {
             mbedtls_mps_retransmission_handle *handle;
             unsigned char *queue;
@@ -2821,25 +2834,21 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
              *   (if present).
              */
 
-            /* Request to add a new message to the current outgoing flight.
-             * If successful, this returns a handle controlling potential
-             * retransmissions. */
+            /* Request to add a new message to the current outgoing flight
+             * and setup the handle controlling potential retransmissions. */
 
-            /* TODO: There's a bug here, because the subsequent
-             * call to mps_dtls_frag_out_start() might fail with
-             * MPS_WANT_WRITE, in which case no outgoing handshake
-             * message has been opened but we have nonetheless
-             * increased the flight counter! Fix this. */
+            /* This allocates a fresh retransmission handle and sets the
+             * sequence number for the next outgoing handshake message. */
             MPS_CHK( mps_out_flight_msg_start( mps, &handle ) );
 
-            /* Setup the retransmission handle. */
-
-            /* The sequence number has been filled in already.         */
-            handle->epoch  = mps->out_epoch;
-            handle->type   = hs->type;
-            handle->len    = hs->length;
-            /* Note: We support unknown length, and in this
-             *       case we set the correct length later.             */
+            /* Remember the handshake message metadata.
+             * Note that the handshake sequence number has already
+             * been set through mps_out_flight_msg_start(). */
+            handle->metadata.epoch  = mps->out_epoch;
+            handle->metadata.type   = hs_new->type;
+            /* Note: We do support unknown lengths here. In this case,
+             *       we set the actual length later. */
+            handle->metadata.len    = hs_new->length;
 
             /* Distinguish between messages retransmitted by backup
              * and those retransmitted by a callback.                  */
@@ -2849,19 +2858,20 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                 size_t backup_len;
                 unsigned char *backup_buf;
 
-                TRACE( trace_error, "Retransmission via raw backup" );
-
+                TRACE( trace_comment, "Retransmission via raw backup" );
                 handle->handle_type = MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_RAW;
-                if( hs->length != MBEDTLS_MPS_SIZE_UNKNOWN )
+
+                /* Infer length for backup buffer. */
+                if( handle->metadata.len != MBEDTLS_MPS_SIZE_UNKNOWN )
                 {
                     TRACE( trace_comment, "Total handshake length known: %u",
-                           (unsigned) hs->length );
-                    if( hs->length > MBEDTLS_MPS_MAX_HS_LENGTH )
+                           (unsigned) hs_new->length );
+                    if( handle->metadata.len > MBEDTLS_MPS_MAX_HS_LENGTH )
                     {
                         TRACE( trace_error, "Bad handshake length" );
                         MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
                     }
-                    backup_len = hs->length;
+                    backup_len = handle->metadata.len;
                 }
                 else
                 {
@@ -2877,7 +2887,6 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                     TRACE( trace_error, "Error allocating backup buffer" );
                     MPS_CHK( MBEDTLS_ERR_MPS_OUT_OF_MEMORY );
                 }
-
                 handle->handle.raw.buf = backup_buf;
                 handle->handle.raw.len = backup_len;
 
@@ -2889,39 +2898,51 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
             {
                 /* Retransmission via callback. */
                 TRACE( trace_comment, "Retransmission via callback" );
+                handle->handle_type =
+                    MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_CALLBACK;
 
                 /* For now, demand that the total length is known.
                  * To support unknown length for messages using a
                  * retransmission callbacks, we need a way to set the
                  * total message length at Layer 3 after we have started
                  * a handshake write (shouldn't be difficult). */
-                if( hs->length == MBEDTLS_MPS_SIZE_UNKNOWN )
+                if( handle->metadata.len == MBEDTLS_MPS_SIZE_UNKNOWN )
                 {
                     TRACE( trace_error, "Handshake messages with retransmission callback and unknown size not supported." );
                     RETURN( MPS_ERR_INTERNAL_ERROR );
                 }
-                handle->len = hs->length;
 
-                handle->handle_type = MBEDTLS_MPS_RETRANSMISSION_HANDLE_HS_CALLBACK;
                 handle->handle.callback.cb  = cb;
                 handle->handle.callback.ctx = cb_ctx;
 
                 mode       = MPS_DTLS_FRAG_OUT_START_USE_L3;
-                queue      = mps->dtls.hs.queue;
-                queue_len  = mps->dtls.hs.queue_len;
+                queue      = hs->queue;
+                queue_len  = hs->queue_len;
             }
 
-            /* Prepare a new outgoing HS message in the fragmentation module. */
-            MPS_CHK( mps_dtls_frag_out_start( mps, hs, queue, queue_len,
-                                              mode, handle->seq_nr ) );
+            /* Setup the structure representing the new handshake message.
+             * Note that this does not interface with Layer 3, and every
+             * error is fatal. */
+            MPS_CHK( mps_dtls_frag_out_start( hs, queue, queue_len,
+                                              &handle->metadata,
+                                              mode ) );
+
+            /* This may interface with Layer 3 and potentially return
+             * MBEDTLS_MPS_ERR_WANT_WRITE. */
+            MPS_CHK( mps_dtls_frag_out_unpause( mps, MPS_PAUSED_HS_ALLOWED ) );
         }
         else
         {
             TRACE( trace_error, "Expecting HS state to be ACTIVE or NONE in body of write_handshake()" );
             MPS_CHK( MPS_ERR_INTERNAL_ERROR );
         }
-    }
 
+        /* Add the sequence number to the handshake handle, exposed
+         * opaquely only to allow it to enter checksum computations. */
+        MPS_WRITE_UINT16_LE( &hs->metadata->seq_nr, hs_new->add );
+        hs_new->addlen = sizeof( uint16_t );
+        hs_new->handle = &hs->wr_ext;
+    }
     mps->out.state = MBEDTLS_MPS_MSG_HS;
 
     MPS_API_BOUNDARY_FAILURE_HANDLER

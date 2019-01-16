@@ -900,6 +900,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
 
     TRACE_INIT( "l3_write_handshake" );
     TRACE( trace_comment, "Parameters: " );
+    TRACE( trace_comment, "* Seq Nr:   %u", (unsigned) out->seq_nr );
     TRACE( trace_comment, "* Epoch:    %u", (unsigned) out->epoch );
     TRACE( trace_comment, "* Type:     %u", (unsigned) out->type );
     TRACE( trace_comment, "* Length:   %u", (unsigned) out->len );

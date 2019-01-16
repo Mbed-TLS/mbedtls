@@ -34,6 +34,29 @@
 
 #include "../timing.h"
 
+struct mbedtls_mps_handshake_out_internal;
+struct mbedtls_mps_retransmission_handle;
+struct mbedtls_mps_recognition_info;
+struct mbedtls_mps_config;
+struct mbedtls_mps;
+struct mbedtls_mps_reassembly;
+struct mbedtls_mps_msg_reassembly;
+struct mbedtls_mps_msg_reassembly_window;
+struct mbedtls_mps_handshake_out;
+struct mbedtls_mps_app_out;
+struct mbedtls_mps_msg_metadata;
+typedef struct mbedtls_mps_msg_metadata mbedtls_mps_msg_metadata;
+typedef struct mbedtls_mps_handshake_out_internal mbedtls_mps_handshake_out_internal;
+typedef struct mbedtls_mps_retransmission_handle mbedtls_mps_retransmission_handle;
+typedef struct mbedtls_mps_recognition_info mbedtls_mps_recognition_info;
+typedef struct mbedtls_mps_config mbedtls_mps_config;
+typedef struct mbedtls_mps mbedtls_mps;
+typedef struct mbedtls_mps_reassembly mbedtls_mps_reassembly;
+typedef struct mbedtls_mps_msg_reassembly mbedtls_mps_msg_reassembly;
+typedef struct mbedtls_mps_msg_reassembly_window mbedtls_mps_msg_reassembly_window;
+typedef struct mbedtls_mps_handshake_out mbedtls_mps_handshake_out;
+typedef struct mbedtls_mps_app_out mbedtls_mps_app_out;
+
 /*! (DTLS only) The maximum number of messages in a flight.
  *
  *  This is used to allocate space for retransmission backup handles. */
@@ -312,13 +335,22 @@ typedef void mbedtls_mps_write_cb_ctx_t;
 typedef int (*mbedtls_mps_write_cb_t)( mbedtls_mps_write_cb_ctx_t const *ctx,
                                        mbedtls_writer_ext *writer );
 
-/**
- * Internal representation of outgoing handshake messages (DTLS only)
- */
-
+/*! Enumeration of states of ::mbedtls_mps_handshake_out_internal. */
 typedef uint8_t mbedtls_mps_hs_state;
+/*! This state indicates that the structure is not initialized.
+ *  TODO: Clarify whether this means that it's at least zeroized. */
 #define MBEDTLS_MPS_HS_NONE   ( (mbedtls_mps_hs_state) 0 )
+/*! This state indicates an initialized structure representing
+    an outgoing handshake message whose user-facing writer is in
+    writing-mode. */
 #define MBEDTLS_MPS_HS_ACTIVE ( (mbedtls_mps_hs_state) 1 )
+/*! This state indicates an initialized structure representing
+ *  an outgoing handshake message whose user-facing writer is in
+ *  providing mode. That's the case if the message is not yet
+ *  completely written and another message buffer is needed to
+ *  hold the next chunk of message contents; or it might be that
+ *  the message has been entirely written, but parts or all of its
+ *  content are still buffered and need to be dispatched. */
 #define MBEDTLS_MPS_HS_PAUSED ( (mbedtls_mps_hs_state) 2 )
 
 /*
@@ -337,11 +369,6 @@ struct mbedtls_mps_handshake_out_internal
     /*
      * Static information about the message.
      */
-
-    mbedtls_mps_epoch_id epoch; /*!< The epoch through which the handshake
-                                 *   message is to be secured. This may be
-                                 *   different from the current outgoing
-                                 *   epoch in case of retransmissions.        */
 
     /* OPTIMIZATION:
      * This has significant overlap with Layer 3, which also
@@ -373,18 +400,8 @@ struct mbedtls_mps_handshake_out_internal
      * Layer 3 and storing it solely at Layer 4.
      */
 
-    /*! The handshake sequence number. */
-    mbedtls_mps_stored_hs_seq_nr_t seq_nr;
+    mbedtls_mps_msg_metadata *metadata;
 
-    /*! The type of the handshake message. */
-    mbedtls_mps_stored_hs_type type;
-
-    /*! The length of the handshake message to be written, or
-     *  #MBEDTLS_MPS_LENGTH_UNKNOWN if the length is determined at write-time.
-     *  In this case, pausing is not possible for the handshake message
-     *  (because the headers for handshake fragments include the total
-     *  length of the handshake message). */
-    mbedtls_mps_stored_opt_size_t length;
 
     /*
      * Progress of writing
@@ -393,11 +410,8 @@ struct mbedtls_mps_handshake_out_internal
     /*! Indicates the offset of the fragment that's currently being written. */
     mbedtls_mps_stored_size_t offset;
 
-    /*
-     * Information about current handshake fragment
-     * currently opened at Layer 3 to carry the next
-     * part of the handshake message.
-     */
+    /* TODO: Document! When is this set? */
+    mbedtls_mps_stored_size_t frag_len;
 
     /* OPTIMIZATION:
      * Consider removing this pointer; the reader can be queried
@@ -431,16 +445,13 @@ struct mbedtls_mps_handshake_out_internal
     mbedtls_writer_ext *wr_ext_l3;  /*!< The writer obtained from Layer 3 to
                                      *   write the next handshake fragment.*/
 
-    /* TODO: Document! When is this set? */
-    mbedtls_mps_stored_size_t frag_len;
-
     /*
      * User-facing writers
      */
 
     /* OPTIMIZATION:
      * The queue and its length are already stored in the writer,
-     * and one should be able to avoid dupliating them here. */
+     * and one should be able to avoid duplicating them here. */
     mbedtls_mps_stored_size_t queue_len;
     unsigned char            *queue;
     mbedtls_writer         wr;
@@ -448,8 +459,6 @@ struct mbedtls_mps_handshake_out_internal
                                 *   content that's passed to the user.        */
 
 };
-
-typedef struct mbedtls_mps_handshake_out_internal mbedtls_mps_handshake_out_internal;
 
 /**
  * Retransmission backup
@@ -479,14 +488,11 @@ typedef uint8_t mbedtls_mps_retransmission_handle_type;
 #define MBEDTLS_MPS_RETRANSMISSION_HANDLE_CCS                   \
     ( (mbedtls_mps_retransmission_handle_type) 3 )
 
-struct mbedtls_mps_retransmission_handle
+struct mbedtls_mps_msg_metadata
 {
-    /*! The type of the retransmission handle. See the documentation
-     *  of ::mps_retransmission_handle_type for more information. */
-    mbedtls_mps_retransmission_handle_type handle_type;
-
     /*! The handshake type; unused for CCS retransmissions. */
     mbedtls_mps_stored_hs_type type;
+
     /*! The handshake sequence number; unused for CCS retransmissions. */
     mbedtls_mps_stored_hs_seq_nr_t seq_nr;
 
@@ -494,19 +500,33 @@ struct mbedtls_mps_retransmission_handle
     mbedtls_mps_epoch_id epoch;
 
     /*! The total handshake message length. */
-    mbedtls_mps_stored_size_t len;
+    mbedtls_mps_stored_opt_size_t len;
+};
+typedef struct mbedtls_mps_msg_metadata mbedtls_mps_msg_metadata;
+
+struct mbedtls_mps_retransmission_handle
+{
+    /*! The type of the retransmission handle. See the documentation
+     *  of ::mps_retransmission_handle_type for more information. */
+    mbedtls_mps_retransmission_handle_type handle_type;
+
+    mbedtls_mps_msg_metadata metadata;
 
     /*! Union indexed by \c handle_type containing the actual
      *  retransmission handle providing the message content. */
     union
     {
-        /*! The raw buffer holding backup of outgoing message. This is valid if
-         *  and only if \c type has value #MPS_RETRANSMISSION_HANDLE_HS_RAW. */
+        /*! The raw buffer holding the backup of the outgoing message. This is
+         *  valid if and only if \c type has value
+         *  #MPS_RETRANSMISSION_HANDLE_HS_RAW. */
         struct
         {
-            unsigned char *buf; /*!< The buffer holding the message backup. */
+            /*!< The buffer holding the message backup. */
+            unsigned char *buf;
 
-            mbedtls_mps_stored_size_t  len; /*!< Total size of \c buf.      */
+            /*!< Total size of \c buf. This may be larger than `len` above if
+             *   the length of the handshake message was initially not known. */
+            mbedtls_mps_stored_size_t  len;
         } raw;
 
         /*! The callback for retransmission. This is valid if and only if
@@ -529,7 +549,6 @@ struct mbedtls_mps_retransmission_handle
     } handle;
 
 };
-typedef struct mbedtls_mps_retransmission_handle mbedtls_mps_retransmission_handle;
 
 typedef void mbedtls_mps_set_timer_t( void * ctx,
                                       uint32_t int_ms,
@@ -556,7 +575,6 @@ struct mbedtls_mps_recognition_info
     mbedtls_mps_stored_hs_seq_nr_t seq_nr;
 
 };
-typedef struct mbedtls_mps_recognition_info mbedtls_mps_recognition_info;
 
 /**
  * MPS Configuration
@@ -579,7 +597,6 @@ struct mbedtls_mps_config
     mbedtls_mps_set_timer_t *f_set_timer;
 
 };
-typedef struct mbedtls_mps_config mbedtls_mps_config;
 
 /**
  * MPS context
@@ -988,11 +1005,6 @@ struct mbedtls_mps
     } dtls;
 
 };
-typedef struct mbedtls_mps mbedtls_mps;
-
-typedef struct mbedtls_mps_reassembly mbedtls_mps_reassembly;
-typedef struct mbedtls_mps_msg_reassembly mbedtls_mps_msg_reassembly;
-typedef struct mbedtls_mps_msg_reassembly_window mbedtls_mps_msg_reassembly_window;
 
 /**
  * \brief                Set the underlying transport callbacks for the MPS.
@@ -1239,7 +1251,7 @@ int mbedtls_mps_get_sequence_number( mbedtls_mps *mps, uint8_t seq[8] );
  */
 
 /* Structure representing an outgoing handshake message. */
-typedef struct
+struct mbedtls_mps_handshake_out
 {
     /*! The type of the handshake message to be written.
      *
@@ -1279,10 +1291,10 @@ typedef struct
                              *
                              *   This field is set by the MPS implementation
                              *   of mbedtls_mps_write_handshake().            */
-} mbedtls_mps_handshake_out;
+};
 
 /* Structure representing an outgoing application data message. */
-typedef struct
+struct mbedtls_mps_app_out
 {
     uint8_t* app;   /*!< Application data buffer. Its content
                      *   may be modified by the application. */
@@ -1291,7 +1303,7 @@ typedef struct
     size_t *written; /*!< Set by the user, indicating the amount
                       *   of the application data buffer that has
                       *   been filled with outgoing data.     */
-} mbedtls_mps_app_out;
+};
 
 /**
  * \brief          Indicate the contribution of the current outgoing

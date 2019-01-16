@@ -252,6 +252,7 @@ int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1, uint8_t mode,
 
 int mps_l2_free( mbedtls_mps_l2 *ctx )
 {
+    size_t offset;
     ((void) ctx);
     TRACE_INIT( "l2_free" );
 
@@ -267,7 +268,7 @@ int mps_l2_free( mbedtls_mps_l2 *ctx )
     ctx->out.queue = NULL;
     ctx->out.queue_len = 0;
 
-    for( size_t offset = 0; offset < MPS_L2_EPOCH_WINDOW_SIZE; offset++ )
+    for( offset = 0; offset < MPS_L2_EPOCH_WINDOW_SIZE; offset++ )
         l2_epoch_free( &ctx->epochs.window[offset] );
 
     RETURN( 0 );

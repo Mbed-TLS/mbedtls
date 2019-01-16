@@ -234,33 +234,34 @@ int mbedtls_asn1_write_bool( unsigned char **p, unsigned char *start, int boolea
 int mbedtls_asn1_write_int( unsigned char **p, unsigned char *start, int val )
 {
     int ret;
-    size_t len;
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-    unsigned i;
-    unsigned char *c;
-#endif
+    size_t i, len = 0;
 
-    if( *p < start || (size_t)( *p - start ) < sizeof(int) )
-        return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
-
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-    c = (unsigned char *)&val;
     for( i = 0 ; i < sizeof(int) ; i++ )
     {
-        *--(*p) = c[i];
-    }
-#else
-    (*p) -= sizeof(int);
-    *((int *)(*p)) = val;
-#endif
+        if( *p - start < 1 )
+            return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 
-    for( len = sizeof(int) ; len > 0 ; len-- )
+        *--(*p) = ( val >> ( i * 8 ) ) & 0xff;
+        len += 1;
+    }
+
+    if( val > 0 && **p & 0x80 )
+    {
+        if( *p - start < 1 )
+            return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
+
+        *--(*p) = 0x00;
+        len += 1;
+    }
+
+    for( i = 0; i < len ; i++ )
     {
        if( mbedtls_check_shortest_asn1_integer( *p, len ) == 0 )
        {
            break;
        }
        ++(*p);
+       len -= 1;
     }
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( p, start, len ) );

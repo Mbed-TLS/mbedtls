@@ -2284,19 +2284,24 @@ psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
                                 size_t label_length,
                                 size_t capacity);
 
-/** Set up a key agreement operation.
+/** Perform a key agreement and use the shared secret as input to a key
+ * derivation.
  *
  * A key agreement algorithm takes two inputs: a private key \p private_key
  * a public key \p peer_key.
- * The result of this function is a byte generator which can
- * be used to produce keys and other cryptographic material.
+ * The result of this function is passed as input to a key derivation.
+ * The output of this key derivation can be extracted by reading from the
+ * resulting generator to produce keys and other cryptographic material.
  *
- * The resulting generator always has the maximum capacity permitted by
- * the algorithm.
- *
- * \param[in,out] generator       The generator object to set up. It must have
- *                                been initialized as per the documentation for
- *                                #psa_crypto_generator_t and not yet in use.
+ * \param[in,out] generator       The generator object to use. It must
+ *                                have been set up with
+ *                                psa_key_derivation_setup() with a
+ *                                key agreement algorithm
+ *                                (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_KEY_AGREEMENT(\p alg) is true).
+ *                                The generator must be ready for an
+ *                                input of the type given by \p step.
+ * \param step                    Which step the input data is for.
  * \param private_key             Handle to the private key to use.
  * \param[in] peer_key            Public key of the peer. It must be
  *                                in the same format that psa_import_key()
@@ -2304,9 +2309,6 @@ psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
  *                                keys are documented in the documentation
  *                                of psa_export_public_key().
  * \param peer_key_length         Size of \p peer_key in bytes.
- * \param alg                     The key agreement algorithm to compute
- *                                (\c PSA_ALG_XXX value such that
- *                                #PSA_ALG_IS_KEY_AGREEMENT(\p alg) is true).
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -2325,10 +2327,10 @@ psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
 psa_status_t psa_key_agreement(psa_crypto_generator_t *generator,
+                               psa_key_derivation_step_t step,
                                psa_key_handle_t private_key,
                                const uint8_t *peer_key,
-                               size_t peer_key_length,
-                               psa_algorithm_t alg);
+                               size_t peer_key_length);
 
 /**@}*/
 

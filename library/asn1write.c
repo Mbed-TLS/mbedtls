@@ -254,7 +254,7 @@ int mbedtls_asn1_write_int( unsigned char **p, unsigned char *start, int val )
         len += 1;
     }
 
-    for( i = 0; i < len ; i++ )
+    for( i = 0; i < sizeof(int) ; i++ )
     {
        if( mbedtls_check_shortest_asn1_integer( *p, len ) == 0 )
        {

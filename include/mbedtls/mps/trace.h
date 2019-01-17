@@ -23,6 +23,10 @@
 #ifndef MBEDTLS_MPS_TRACE_H
 #define MBEDTLS_MPS_TRACE_H
 
+#include "common.h"
+
+#if defined(MBEDTLS_MPS_TRACE)
+
 /*
  * Adapt this to enable/disable tracing output
  * from the various layers of the MPS.
@@ -143,5 +147,14 @@ void trace_indent( int level, trace_type ty );
         TRACE_END( ret__ );                     \
         return( ret__ );                        \
     } while( 0 )
+
+#else /* MBEDTLS_MPS_TRACE */
+
+#define TRACE( type, fmt, ... ) do { } while( 0 )
+#define TRACE_INIT( fmt, ... )  do { } while( 0 )
+#define TRACE_END               do { } while( 0 )
+#define RETURN( val ) return( val );
+
+#endif /* MBEDTLS_MPS_TRACE */
 
 #endif /* MBEDTLS_MPS_TRACE_H */

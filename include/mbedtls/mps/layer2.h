@@ -25,6 +25,7 @@
 #define MBEDTLS_MPS_RECORD_LAYER_H
 
 #include "layer1.h"
+#include "common.h"
 
 #include "reader.h"
 #include "writer.h"
@@ -33,6 +34,12 @@
 #include "transform.h"
 
 #include <stdint.h>
+
+#if defined(MBEDTLS_MPS_SEPARATE_LAYERS)
+#define MPS_STATIC
+#else
+#define MPS_STATIC static
+#endif
 
 /*
  * Copied from existing headers -- remove when integrating MPS
@@ -996,10 +1003,10 @@ struct mbedtls_mps_l2
   MPS_L1_INV_REQUIRES( l1 )
   MPS_L2_INV_ENSURES( ctx )
 @*/
-int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1, uint8_t mode,
-                 size_t max_read, size_t max_write,
-                 int (*f_rng)(void *, unsigned char *, size_t),
-                 void *p_rng );
+MPS_STATIC int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1, uint8_t mode,
+                            size_t max_read, size_t max_write,
+                            int (*f_rng)(void *, unsigned char *, size_t),
+                            void *p_rng );
 
 /**
  * \brief          This functions frees a Layer 2 context.
@@ -1014,7 +1021,7 @@ int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1, uint8_t mode,
 /*@
   MPS_L2_INV_REQUIRES( ctx )
 @*/
-int mps_l2_free( mbedtls_mps_l2 *ctx );
+MPS_STATIC int mps_l2_free( mbedtls_mps_l2 *ctx );
 
 /**
  * \brief          Configure Layer 2 context to accept records
@@ -1107,7 +1114,7 @@ static inline int mps_l2_config_add_type( mbedtls_mps_l2 *ctx,
   MPS_L2_INV_REQUIRES( ctx )
   MPS_L2_INV_ENSURES( ctx )
 @*/
-int mps_l2_config_version( mbedtls_mps_l2 *ctx, uint8_t version );
+MPS_STATIC int mps_l2_config_version( mbedtls_mps_l2 *ctx, uint8_t version );
 
 /**
  * \brief          Query a Layer 2 context for incoming data.
@@ -1131,7 +1138,7 @@ int mps_l2_config_version( mbedtls_mps_l2 *ctx, uint8_t version );
   MPS_L2_INV_REQUIRES( ctx )
   MPS_L2_INV_ENSURES( ctx )
 @*/
-int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in );
+MPS_STATIC int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in );
 
 /**
  * \brief          Signal that incoming data previously
@@ -1149,7 +1156,7 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in );
   MPS_L2_INV_REQUIRES( ctx )
   MPS_L2_INV_ENSURES( ctx )
 @*/
-int mps_l2_read_done( mbedtls_mps_l2 *ctx );
+MPS_STATIC int mps_l2_read_done( mbedtls_mps_l2 *ctx );
 
 /**
  * \brief          Request to prepare the writing of data of
@@ -1172,7 +1179,7 @@ int mps_l2_read_done( mbedtls_mps_l2 *ctx );
   MPS_L2_INV_REQUIRES( ctx )
   MPS_L2_INV_ENSURES( ctx )
 @*/
-int mps_l2_write_start( mbedtls_mps_l2 *ctx, mps_l2_out *out );
+MPS_STATIC int mps_l2_write_start( mbedtls_mps_l2 *ctx, mps_l2_out *out );
 
 /**
  * \brief          Signal that the writing of outgoing data via
@@ -1195,7 +1202,7 @@ int mps_l2_write_start( mbedtls_mps_l2 *ctx, mps_l2_out *out );
   MPS_L2_INV_REQUIRES( ctx )
   MPS_L2_INV_ENSURES( ctx )
 @*/
-int mps_l2_write_done( mbedtls_mps_l2 *ctx );
+MPS_STATIC int mps_l2_write_done( mbedtls_mps_l2 *ctx );
 
 /**
  * \brief          Attempt to deliver all outgoing data previously
@@ -1217,7 +1224,7 @@ int mps_l2_write_done( mbedtls_mps_l2 *ctx );
   MPS_L2_INV_REQUIRES( ctx )
   MPS_L2_INV_ENSURES( ctx )
 @*/
-int mps_l2_write_flush( mbedtls_mps_l2 *ctx );
+MPS_STATIC int mps_l2_write_flush( mbedtls_mps_l2 *ctx );
 
 /**
  * \brief          Configure Layer 2 context to allow communication
@@ -1269,9 +1276,9 @@ int mps_l2_write_flush( mbedtls_mps_l2 *ctx );
   MPS_L2_INV_REQUIRES( ctx )
   MPS_L2_INV_ENSURES( ctx )
 @*/
-int mps_l2_epoch_add( mbedtls_mps_l2 *ctx,
-                      mbedtls_mps_transform_t *transform,
-                      mbedtls_mps_epoch_id *epoch );
+MPS_STATIC int mps_l2_epoch_add( mbedtls_mps_l2 *ctx,
+                                 mbedtls_mps_transform_t *transform,
+                                 mbedtls_mps_epoch_id *epoch );
 
 /**
  * \brief          Modify the usage configuration for a previously
@@ -1294,9 +1301,9 @@ int mps_l2_epoch_add( mbedtls_mps_l2 *ctx,
   MPS_L2_INV_REQUIRES( ctx )
   MPS_L2_INV_ENSURES( ctx )
 @*/
-int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx,
-                        mbedtls_mps_epoch_id epoch,
-                        mbedtls_mps_epoch_usage usage );
+MPS_STATIC int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx,
+                                   mbedtls_mps_epoch_id epoch,
+                                   mbedtls_mps_epoch_usage usage );
 
 /**
  * \brief          Enforce that the next outgoing record of the
@@ -1319,9 +1326,9 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx,
  * \return         \c 0 on success.
  *
  */
-int mps_l2_force_next_sequence_number( mbedtls_mps_l2 *ctx,
-                                       mbedtls_mps_epoch_id epoch_id,
-                                       uint64_t ctr );
+MPS_STATIC int mps_l2_force_next_sequence_number( mbedtls_mps_l2 *ctx,
+                                                  mbedtls_mps_epoch_id epoch_id,
+                                                  uint64_t ctr );
 
 /**
  * \brief          Get the sequence number of last incoming record
@@ -1344,8 +1351,8 @@ int mps_l2_force_next_sequence_number( mbedtls_mps_l2 *ctx,
  * \return         \c 0 on success.
  *
  */
-int mps_l2_get_last_sequence_number( mbedtls_mps_l2 *ctx,
-                                     mbedtls_mps_epoch_id epoch_id,
-                                     uint64_t *ctr );
+MPS_STATIC int mps_l2_get_last_sequence_number( mbedtls_mps_l2 *ctx,
+                                                mbedtls_mps_epoch_id epoch_id,
+                                                uint64_t *ctr );
 
 #endif /* MBEDTLS_MPS_RECORD_LAYER_H */

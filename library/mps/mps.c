@@ -21,8 +21,16 @@
 
 #include "../../include/mbedtls/mps/mps.h"
 #include "../../include/mbedtls/mps/trace.h"
+#include "../../include/mbedtls/mps/common.h"
 
 #include "../../include/mbedtls/platform_util.h"
+
+#if !defined(MBEDTLS_MPS_SEPARATE_LAYERS)
+#define MBEDTLS_MPS_TOP_TRANSLATION_UNIT
+#include "layer1.c"
+#include "layer2.c"
+#include "layer3.c"
+#endif /* MBEDTLS_MPS_SEPARATE_LAYERS */
 
 #include <string.h>
 
@@ -34,8 +42,9 @@
 #define mbedtls_free      free
 #endif
 
-/* Debugging related */
+#if defined(MBEDTLS_MPS_TRACE)
 static int trace_id = TRACE_BIT_LAYER_4;
+#endif /* MBEDTLS_MPS_TRACE */
 
 /*
  * Error state handling

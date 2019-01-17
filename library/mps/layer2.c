@@ -22,7 +22,12 @@
 #include "../../include/mbedtls/mps/layer2.h"
 #include "../../include/mbedtls/mps/trace.h"
 
+#if defined(MBEDTLS_MPS_SEPARATE_LAYERS) ||     \
+    defined(MBEDTLS_MPS_TOP_TRANSLATION_UNIT)
+
+#if defined(MBEDTLS_MPS_TRACE)
 static int trace_id = TRACE_BIT_LAYER_2;
+#endif /* MBEDTLS_MPS_TRACE */
 
 #include <stdlib.h>
 #include <string.h>
@@ -2594,3 +2599,6 @@ int mps_l2_get_last_sequence_number( mbedtls_mps_l2 *ctx,
     *ctr = epoch->stats.dtls.last_seen;
     RETURN( 0 );
 }
+
+#endif /* MBEDTLS_MPS_SEPARATE_LAYERS) ||
+          MBEDTLS_MPS_TOP_TRANSLATION_UNIT */

@@ -25,6 +25,24 @@
 
 #include <stdint.h>
 
+/*! This flag controls whether tracing for MPS should be enabled. */
+//#define MBEDTLS_MPS_TRACE
+
+/*! This internal macro determines whether all Layers of MPS should
+ *  be compiled into a single source file.
+ *
+ *  Comment to merge all MPS Layers into a single compilation unt,
+ *  solely exposing the top-level MPS API.
+ */
+//#define MBEDTLS_MPS_SEPARATE_LAYERS
+
+
+/** Internal macro sanity checks. */
+#if defined(MBEDTLS_MPS_TRACE) && \
+    !defined(MBEDTLS_MPS_SEPARATE_LAYERS)
+#error "Tracing (MBEDTLS_MPS_TRACE) is only possible in multi-unit MPS (MBEDTLS_MPS_SEPARATE_LAYERS)"
+#endif /* MBEDTLS_MPS_TRACE && !MBEDTLS_MPS_SEPARATE_LAYERS */
+
 #define MBEDTLS_MPS_MODE_STREAM   0 /* MBEDTLS_SSL_TRANSPORT_STREAM   */
 #define MBEDTLS_MPS_MODE_DATAGRAM 1 /* MBEDTLS_SSL_TRANSPORT_DATAGRAM */
 

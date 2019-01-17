@@ -30,9 +30,16 @@
 #include "writer.h"
 
 #include "layer2.h"
+#include "common.h"
 
 #include "transform.h"
 #include "error.h"
+
+#if defined(MBEDTLS_MPS_SEPARATE_LAYERS)
+#define MPS_STATIC
+#else
+#define MPS_STATIC static
+#endif
 
 /*
  * Layer 3 compile-time configuration
@@ -548,8 +555,8 @@ struct mps_l3
  * \param l2      The pointer to the underlying Layer 2 context to
  *                to be used by \p l3.
  * \param mode    The mode of operation for the Layer 3 context:
- *                Either #MPS_L3_MODE_STREAM for stream transports,
- *                or #MPS_L3_MODE_DATAGRAM for datagram transports.
+ *                Either #MBEDTLS_MODE_STREAM for stream transports,
+ *                or #MBEDTLS_MPS_MODE_DATAGRAM for datagram transports.
  *
  * \note          Layer 3 doesn't own its underlying Layer 2 context;
  *                the Layer 2 context \p l2 must already be initialized
@@ -563,7 +570,7 @@ struct mps_l3
   MPS_L2_INV_REQUIRES( l2 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
-int mps_l3_init( mps_l3 *l3, mbedtls_mps_l2 *l2, uint8_t mode );
+MPS_STATIC int mps_l3_init( mps_l3 *l3, mbedtls_mps_l2 *l2, uint8_t mode );
 
 /**
  * \brief         Free a Layer 3 context.
@@ -580,7 +587,7 @@ int mps_l3_init( mps_l3 *l3, mbedtls_mps_l2 *l2, uint8_t mode );
 /*@
   MPS_L3_INV_REQUIRES( l3 )
 @*/
-int mps_l3_free( mps_l3 *l3 );
+MPS_STATIC int mps_l3_free( mps_l3 *l3 );
 
 /**
  * \brief         Request an incoming message from Layer 3.
@@ -606,7 +613,7 @@ int mps_l3_free( mps_l3 *l3 );
   MPS_L3_INV_REQUIRES( l3 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
-int mps_l3_read( mps_l3 *l3 );
+MPS_STATIC int mps_l3_read( mps_l3 *l3 );
 
 /**
  * \brief       Check if a message has been read.
@@ -624,7 +631,7 @@ int mps_l3_read( mps_l3 *l3 );
  *              and only reports if a message is available
  *              through a prior call to mps_l3_read().
  */
-int mps_l3_read_check( mps_l3 * l3 );
+MPS_STATIC int mps_l3_read_check( mps_l3 * l3 );
 
 /**
  * \brief         Get a handle to the contents of an incoming handshake message.
@@ -649,7 +656,7 @@ int mps_l3_read_check( mps_l3 * l3 );
 
 /* TODO: Consider making this function static inline
  * to avoid a layer of indirection. */
-int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs );
+MPS_STATIC int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs );
 
 /**
  * \brief         Get a handle to the contents of an incoming
@@ -673,7 +680,7 @@ int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs );
   MPS_L3_INV_ENSURES( l3 )
 @*/
 
-int mps_l3_read_app( mps_l3 *l3, mps_l3_app_in *app );
+MPS_STATIC int mps_l3_read_app( mps_l3 *l3, mps_l3_app_in *app );
 
 /**
  * \brief         Get a handle to the contents of an incoming alert message.
@@ -690,7 +697,7 @@ int mps_l3_read_app( mps_l3 *l3, mps_l3_app_in *app );
   MPS_L3_INV_REQUIRES( l3 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
-int mps_l3_read_alert( mps_l3 *l3, mps_l3_alert_in *alert );
+MPS_STATIC int mps_l3_read_alert( mps_l3 *l3, mps_l3_alert_in *alert );
 
 /**
  * \brief         Get a handle to the contents of an incoming CCS message.
@@ -707,7 +714,7 @@ int mps_l3_read_alert( mps_l3 *l3, mps_l3_alert_in *alert );
   MPS_L3_INV_REQUIRES( l3 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
-int mps_l3_read_ccs( mps_l3 *l3, mps_l3_ccs_in *ccs );
+MPS_STATIC int mps_l3_read_ccs( mps_l3 *l3, mps_l3_ccs_in *ccs );
 
 /**
  * \brief         Pause the reading of an incoming handshake message.
@@ -737,7 +744,7 @@ int mps_l3_read_ccs( mps_l3 *l3, mps_l3_ccs_in *ccs );
   MPS_L3_INV_REQUIRES( l3 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
-int mps_l3_read_pause_handshake( mps_l3 *l3 );
+MPS_STATIC int mps_l3_read_pause_handshake( mps_l3 *l3 );
 
 /**
  * \brief         Conclude the reading of the current incoming message.
@@ -764,7 +771,7 @@ int mps_l3_read_pause_handshake( mps_l3 *l3 );
   MPS_L3_INV_REQUIRES( l3 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
-int mps_l3_read_consume( mps_l3 *l3 );
+MPS_STATIC int mps_l3_read_consume( mps_l3 *l3 );
 
 /**
  * \brief           Start writing an outgoing handshake message.
@@ -780,7 +787,7 @@ int mps_l3_read_consume( mps_l3 *l3 );
   MPS_L3_INV_REQUIRES( l3 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
-int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *hs );
+MPS_STATIC int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *hs );
 
 /**
  * \brief           Start writing outgoing application data.
@@ -796,7 +803,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *hs );
   MPS_L3_INV_REQUIRES( l3 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
-int mps_l3_write_app( mps_l3 *l3, mps_l3_app_out *app );
+MPS_STATIC int mps_l3_write_app( mps_l3 *l3, mps_l3_app_out *app );
 
 /**
  * \brief           Start writing an outgoing alert message.
@@ -812,7 +819,7 @@ int mps_l3_write_app( mps_l3 *l3, mps_l3_app_out *app );
   MPS_L3_INV_REQUIRES( l3 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
-int mps_l3_write_alert( mps_l3 *l3, mps_l3_alert_out *alert );
+MPS_STATIC int mps_l3_write_alert( mps_l3 *l3, mps_l3_alert_out *alert );
 
 /**
  * \brief           Start writing an outgoing CCS message.
@@ -834,7 +841,7 @@ int mps_l3_write_alert( mps_l3 *l3, mps_l3_alert_out *alert );
   MPS_L3_INV_REQUIRES( l3 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
-int mps_l3_write_ccs( mps_l3 *l3, mps_l3_ccs_out *ccs );
+MPS_STATIC int mps_l3_write_ccs( mps_l3 *l3, mps_l3_ccs_out *ccs );
 
 /**
  * \brief           Pause the writing of an outgoing handshake message.
@@ -864,7 +871,7 @@ int mps_l3_write_ccs( mps_l3 *l3, mps_l3_ccs_out *ccs );
   MPS_L3_INV_REQUIRES( l3 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
-int mps_l3_pause_handshake( mps_l3 *l3 );
+MPS_STATIC int mps_l3_pause_handshake( mps_l3 *l3 );
 
 /**
  * \brief           Abort the writing of an outgoing handshake message.
@@ -884,7 +891,7 @@ int mps_l3_pause_handshake( mps_l3 *l3 );
   MPS_L3_INV_REQUIRES( l3 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
-int mps_l3_write_abort_handshake( mps_l3 *l3 );
+MPS_STATIC int mps_l3_write_abort_handshake( mps_l3 *l3 );
 
 /**
  * \brief         Conclude the writing of the current outgoing message.
@@ -909,7 +916,7 @@ int mps_l3_write_abort_handshake( mps_l3 *l3 );
   MPS_L3_INV_REQUIRES( l3 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
-int mps_l3_dispatch( mps_l3 *l3 );
+MPS_STATIC int mps_l3_dispatch( mps_l3 *l3 );
 
 /**
  * \brief         Flush all outgoing messages dispatched so far
@@ -934,7 +941,7 @@ int mps_l3_dispatch( mps_l3 *l3 );
   MPS_L3_INV_REQUIRES( l3 )
   MPS_L3_INV_ENSURES( l3 )
 @*/
-int mps_l3_flush( mps_l3 *l3 );
+MPS_STATIC int mps_l3_flush( mps_l3 *l3 );
 
 
 static inline int mps_l3_epoch_add( mps_l3 *ctx,

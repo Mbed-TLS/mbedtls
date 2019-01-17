@@ -22,7 +22,12 @@
 #include "../../include/mbedtls/mps/layer3.h"
 #include "../../include/mbedtls/mps/trace.h"
 
+#if defined(MBEDTLS_MPS_SEPARATE_LAYERS) ||     \
+    defined(MBEDTLS_MPS_TOP_TRANSLATION_UNIT)
+
+#if defined(MBEDTLS_MPS_TRACE)
 static int trace_id = TRACE_BIT_LAYER_3;
+#endif /* MBEDTLS_MPS_TRACE */
 
 #include <stdlib.h>
 
@@ -1492,3 +1497,6 @@ static int l3_prepare_write( mps_l3 *l3, mbedtls_mps_msg_type_t port,
     l3->out.state   = port;
     RETURN( 0 );
 }
+
+#endif /* MBEDTLS_MPS_SEPARATE_LAYERS) ||
+          MBEDTLS_MPS_TOP_TRANSLATION_UNIT */

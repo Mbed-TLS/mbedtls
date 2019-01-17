@@ -22,7 +22,12 @@
 #include "../../include/mbedtls/mps/layer1.h"
 #include "../../include/mbedtls/mps/trace.h"
 
+#if defined(MBEDTLS_MPS_SEPARATE_LAYERS) ||     \
+    defined(MBEDTLS_MPS_TOP_TRANSLATION_UNIT)
+
+#if defined(MBEDTLS_MPS_TRACE)
 static int trace_id = TRACE_BIT_LAYER_1;
+#endif /* MBEDTLS_MPS_TRACE */
 
 #include <string.h>
 
@@ -1158,3 +1163,6 @@ int mps_l1_skip( mps_l1 *ctx )
     p->buf_len     = 0;
     RETURN( 0 );
 }
+
+#endif /* MBEDTLS_MPS_SEPARATE_LAYERS) ||
+          MBEDTLS_MPS_TOP_TRANSLATION_UNIT */

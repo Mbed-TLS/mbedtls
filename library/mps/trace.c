@@ -1,5 +1,8 @@
 
 #include "../../include/mbedtls/mps/trace.h"
+
+#if defined(MBEDTLS_MPS_TRACE)
+
 #include <stdio.h>
 
 static int trace_depth_ = 0;
@@ -76,3 +79,5 @@ void trace_indent( int level, trace_type ty )
             break;
     }
 }
+
+#endif /* MBEDTLS_MPS_TRACE */

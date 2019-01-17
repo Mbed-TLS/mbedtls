@@ -777,7 +777,7 @@ int transform_encrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec,
         rec_alt.ctr[6] = ( rec->ctr >>  8 ) & 0xFF;
         rec_alt.ctr[7] = ( rec->ctr >>  0 ) & 0xFF;
         write_version( rec->major_ver, rec->minor_ver,
-                       MPS_L2_MODE_STREAM, &rec_alt.ver[0] );
+                       MBEDTLS_MPS_MODE_STREAM, &rec_alt.ver[0] );
 
         printf( "Encrypt...\n" );
         ret = mbedtls_ssl_encrypt_buf( NULL, real, &rec_alt, f_rng, p_rng );
@@ -888,7 +888,7 @@ int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
         rec_alt.ctr[6] = ( rec->ctr >>  8 ) & 0xFF;
         rec_alt.ctr[7] = ( rec->ctr >>  0 ) & 0xFF;
         write_version( rec->major_ver, rec->minor_ver,
-                       MPS_L2_MODE_STREAM, &rec_alt.ver[0] );
+                       MBEDTLS_MPS_MODE_STREAM, &rec_alt.ver[0] );
 
         ret = mbedtls_ssl_decrypt_buf( NULL, real, &rec_alt );
         if( ret != 0 )
@@ -3214,7 +3214,7 @@ void mbedtls_mps_l1_basic( int mode,
     mps_l0_recv_t *cli_rcv, *srv_rcv;
 
     /* Initialize Layer 0 mock objects */
-    if( mode == MPS_L1_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         layer0_bufsize = (size_t) ( 2 * data_len );
         TEST_ASSERT( layer0_init( &s2c ) == 0 );
@@ -3294,7 +3294,7 @@ void mbedtls_mps_l1_basic( int mode,
      *         either in a single or in multiple chunks. */
     if( ! recv_multiple )
     {
-        if( ! ( mode == MPS_L1_MODE_DATAGRAM &&
+        if( ! ( mode == MBEDTLS_MPS_MODE_DATAGRAM &&
                 send_multiple                &&
                 send_multiple_do_flush ) )
         {
@@ -3358,7 +3358,7 @@ cleanup:
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
 
-    if( mode == MPS_L1_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         layer0_free( &s2c );
         layer0_free( &c2s );
@@ -3403,9 +3403,9 @@ void mbedtls_mps_l1_want_read( )
     mps_alloc_init( &srv_alloc, data_len );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli, MPS_L1_MODE_STREAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli, MBEDTLS_MPS_MODE_STREAM, &cli_alloc,
                               layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv, MPS_L1_MODE_STREAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv, MBEDTLS_MPS_MODE_STREAM, &srv_alloc,
                               layer0_write_srv, layer0_read_srv ) == 0 );
 
     /* Generate the random content to be exchanged */
@@ -3477,10 +3477,10 @@ void mbedtls_mps_l1_dgram_want_read()
     mps_alloc_init( &srv_alloc, data_len );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli, MPS_L1_MODE_DATAGRAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli, MBEDTLS_MPS_MODE_DATAGRAM, &cli_alloc,
                               layer0_dgram_write_cli,
                               layer0_dgram_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv, MPS_L1_MODE_DATAGRAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv, MBEDTLS_MPS_MODE_DATAGRAM, &srv_alloc,
                               layer0_dgram_write_srv,
                               layer0_dgram_read_srv ) == 0 );
 
@@ -3529,10 +3529,10 @@ void mbedtls_mps_l1_dgram_bounds_violation()
     mps_alloc_init( &srv_alloc, data_len );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli, MPS_L1_MODE_DATAGRAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli, MBEDTLS_MPS_MODE_DATAGRAM, &cli_alloc,
                               layer0_dgram_write_cli,
                               layer0_dgram_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv, MPS_L1_MODE_DATAGRAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv, MBEDTLS_MPS_MODE_DATAGRAM, &srv_alloc,
                               layer0_dgram_write_srv,
                               layer0_dgram_read_srv ) == 0 );
 
@@ -3613,9 +3613,9 @@ void mbedtls_mps_l1_want_write( int client_write_instead_reflush,
     mps_alloc_init( &srv_alloc, 100 );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli, MPS_L1_MODE_STREAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli, MBEDTLS_MPS_MODE_STREAM, &cli_alloc,
                               layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv, MPS_L1_MODE_STREAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv, MBEDTLS_MPS_MODE_STREAM, &srv_alloc,
                               layer0_write_srv, layer0_read_srv ) == 0 );
 
     /* Generate the random content to be exchanged */
@@ -3710,7 +3710,7 @@ void mbedtls_mps_l1_overly_large_request()
     mps_alloc_init( &alloc, 90 );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &l1, MPS_L1_MODE_STREAM, &alloc,
+    TEST_ASSERT( mps_l1_init( &l1, MBEDTLS_MPS_MODE_STREAM, &alloc,
                               layer0_write_cli, layer0_read_cli ) == 0 );
 
     /* Try to request more data than what fits in the allocator buffer. */
@@ -3797,9 +3797,9 @@ void mbedtls_mps_l1_random_communication( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli, MPS_L1_MODE_STREAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli, MBEDTLS_MPS_MODE_STREAM, &cli_alloc,
                               layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv, MPS_L1_MODE_STREAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv, MBEDTLS_MPS_MODE_STREAM, &srv_alloc,
                               layer0_write_srv, layer0_read_srv ) == 0 );
 
     /* Generate the random content to be exchanged */
@@ -4084,7 +4084,7 @@ void mbedtls_mps_l2_basic( int mode,
     }
 
     /* Initialize Layer 0 mock objects */
-    if( mode == MPS_L2_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         layer0_bufsize = (size_t) layer0_buffer_sz;
         TEST_ASSERT( layer0_init( &s2c ) == 0 );
@@ -4243,7 +4243,7 @@ exit:
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
 
-    if( mode == MPS_L2_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         layer0_free( &s2c );
         layer0_free( &c2s );
@@ -4304,7 +4304,7 @@ void mbedtls_mps_l2_non_packable_type( int mode,
     dummy_c->mock.pad = 5;
 
     /* Initialize Layer 0 mock objects */
-    if( mode == MPS_L2_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         layer0_bufsize = (size_t) layer0_buffer_sz;
         TEST_ASSERT( layer0_init( &s2c ) == 0 );
@@ -4464,7 +4464,7 @@ exit:
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
 
-    if( mode == MPS_L2_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         layer0_free( &s2c );
         layer0_free( &c2s );
@@ -4538,7 +4538,7 @@ void mbedtls_mps_l2_bad_record( int mode,
     dummy_c->mock.pad = 5;
 
     /* Initialize Layer 0 mock objects */
-    if( mode == MPS_L2_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         layer0_bufsize = (size_t) layer0_buffer_sz;
         TEST_ASSERT( layer0_init( &s2c ) == 0 );
@@ -4595,7 +4595,7 @@ void mbedtls_mps_l2_bad_record( int mode,
 
     /* Go through the various kinds of failure types. */
 
-    if( mode == MPS_L2_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         size_t const tls_rec_hdr_len = 5;
 
@@ -4746,7 +4746,7 @@ void mbedtls_mps_l2_bad_record( int mode,
      * Server: Attempt to read record.
      */
 
-    if( mode == MPS_L2_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         TEST_ASSERT( mps_l2_read_start( &srv, &in_srv ) ==
                      ( failure_type != 3 ? MPS_ERR_INVALID_RECORD
@@ -4784,7 +4784,7 @@ exit:
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
 
-    if( mode == MPS_L2_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         layer0_free( &s2c );
         layer0_free( &c2s );
@@ -4866,17 +4866,17 @@ void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L2_MODE_DATAGRAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_DATAGRAM, &cli_alloc,
                               layer0_dgram_write_cli,
                               layer0_dgram_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L2_MODE_DATAGRAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_DATAGRAM, &srv_alloc,
                               layer0_dgram_write_srv,
                               layer0_dgram_read_srv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli, &cli_l1, MPS_L1_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l2_init( &cli, &cli_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               0, 0, mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv, &srv_l1, MPS_L1_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l2_init( &srv, &srv_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               0, 0, mbedtls_test_rnd_std_rand, NULL ) == 0 );
     TEST_ASSERT( mps_l2_config_version( &cli,
                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
@@ -5191,17 +5191,17 @@ void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_STREAM, &cli_alloc,
                               layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_STREAM, &srv_alloc,
                               layer0_write_srv, layer0_read_srv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli, &cli_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &cli, &cli_l1, MBEDTLS_MPS_MODE_STREAM,
        0 /* The client doesn't send anything -> no accumulator needed */,
        0 /* The client doesn't need a queue */,
        mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv, &srv_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &srv, &srv_l1, MBEDTLS_MPS_MODE_STREAM,
             msg_chunk_size_A - ( accumulator_too_small == 1 ),
             0 /* Server doesn't send anything -> no queue needed. */,
             mbedtls_test_rnd_std_rand, NULL ) == 0 );
@@ -5454,7 +5454,7 @@ void mbedtls_mps_l2_switch_epoch( int mode,
     }
 
     /* Initialize Layer 0 mock objects */
-    if( mode == MPS_L2_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         layer0_bufsize = (size_t) layer0_buffer_sz;
         TEST_ASSERT( layer0_init( &s2c ) == 0 );
@@ -5619,7 +5619,7 @@ exit:
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
 
-    if( mode == MPS_L1_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         layer0_free( &s2c );
         layer0_free( &c2s );
@@ -5678,18 +5678,18 @@ void mbedtls_mps_l2_queueing( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_STREAM, &cli_alloc,
                               layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_STREAM, &srv_alloc,
                               layer0_write_srv, layer0_read_srv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli, &cli_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &cli, &cli_l1, MBEDTLS_MPS_MODE_STREAM,
           0 /* The client doesn't read anything -> no accumulator needed */,
           (size_t) msg_size /* Queue as big as the intended message size */,
           mbedtls_test_rnd_std_rand,
           NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv, &srv_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &srv, &srv_l1, MBEDTLS_MPS_MODE_STREAM,
              0 /* The server accepts any chunksize fo incoming data   */,
              0 /* The server doesn't send anything -> no queue needed */,
              mbedtls_test_rnd_std_rand, NULL ) == 0 );
@@ -5848,7 +5848,7 @@ void mbedtls_mps_l2_many_epochs( int mode,
     }
 
     /* Initialize Layer 0 mock objects */
-    if( mode == MPS_L2_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         layer0_bufsize = (size_t) layer0_buffer_sz;
         TEST_ASSERT( layer0_init( &s2c ) == 0 );
@@ -6056,7 +6056,7 @@ exit:
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
 
-    if( mode == MPS_L2_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         layer0_free( &s2c );
         layer0_free( &c2s );
@@ -6184,17 +6184,17 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_STREAM, &cli_alloc,
                               layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_STREAM, &srv_alloc,
                               layer0_write_srv, layer0_read_srv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &endpoint[0], &cli_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &endpoint[0], &cli_l1, MBEDTLS_MPS_MODE_STREAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &endpoint[1], &srv_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &endpoint[1], &srv_l1, MBEDTLS_MPS_MODE_STREAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
@@ -6650,7 +6650,7 @@ void mbedtls_mps_l3_basic_handshake(
     }
 
     /* Initialize Layer 0 mock objects */
-    if( mode == MPS_L2_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         layer0_bufsize = (size_t) layer0_buffer_sz;
         TEST_ASSERT( layer0_init( &s2c ) == 0 );
@@ -6717,7 +6717,7 @@ void mbedtls_mps_l3_basic_handshake(
         hs_out.epoch = 0;
         hs_out.type = 12;
 
-        if( mode == MPS_L3_MODE_STREAM )
+        if( mode == MBEDTLS_MPS_MODE_STREAM )
         {
             if( length_known == 0 )
             {
@@ -6786,7 +6786,7 @@ void mbedtls_mps_l3_basic_handshake(
     hs_out.epoch = 0;
     hs_out.type = 12;
 
-    if( mode == MPS_L3_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         if( length_known )
         {
@@ -6882,7 +6882,7 @@ void mbedtls_mps_l3_basic_handshake(
     TEST_ASSERT( hs_in.epoch == 0 );
     TEST_ASSERT( hs_in.type == 12 );
 
-    if( mode == MPS_L3_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         TEST_ASSERT( hs_in.len == 20 );
     }
@@ -6946,7 +6946,7 @@ exit:
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
 
-    if( mode == MPS_L1_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         layer0_free( &s2c );
         layer0_free( &c2s );
@@ -7010,19 +7010,19 @@ void mbedtls_mps_l3_bad_msg( int variant )
     mps_alloc_init( &srv_alloc, 100 );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L2_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               &cli_alloc,
                               layer0_dgram_write_cli,
                               layer0_dgram_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L2_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               &srv_alloc,
                               layer0_dgram_write_srv,
                               layer0_dgram_read_srv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MPS_L2_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               0, 0, mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MPS_L2_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               0, 0, mbedtls_test_rnd_std_rand, NULL ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_HS,
                                          MPS_L2_SPLIT_DISABLED,
@@ -7050,11 +7050,11 @@ void mbedtls_mps_l3_bad_msg( int variant )
                                          MPS_L2_EMPTY_ALLOWED ) == 0 );
 
     /* Initialize Layer 3 */
-    TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MPS_L3_MODE_DATAGRAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
     TEST_ASSERT( mps_l3_epoch_add( &cli, dummy_c, &cli_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &cli, cli_epoch, MPS_EPOCH_WRITE ) == 0 );
 
-    TEST_ASSERT( mps_l3_init( &srv, &srv_l2, MPS_L3_MODE_DATAGRAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &srv, &srv_l2, MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
     TEST_ASSERT( mps_l3_epoch_add( &srv, dummy_s, &srv_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &srv, srv_epoch, MPS_EPOCH_READ ) == 0 );
 
@@ -7229,17 +7229,17 @@ void mbedtls_mps_l3_handshake_gradual( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_STREAM, &cli_alloc,
                               layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_STREAM, &srv_alloc,
                               layer0_write_srv, layer0_read_srv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MBEDTLS_MPS_MODE_STREAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MBEDTLS_MPS_MODE_STREAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
@@ -7253,8 +7253,8 @@ void mbedtls_mps_l3_handshake_gradual( int allocator_buffer_sz,
                                          1, 1, 0 ) == 0 );
 
     /* Initialize Layer 3 */
-    TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MPS_L3_MODE_STREAM ) == 0 );
-    TEST_ASSERT( mps_l3_init( &srv, &srv_l2, MPS_L3_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &srv, &srv_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
 
     TEST_ASSERT( mps_l3_epoch_add( &cli, dummy_c, &cli_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &cli, cli_epoch, MPS_EPOCH_WRITE ) == 0 );
@@ -7608,17 +7608,17 @@ void mbedtls_mps_l3_basic_application( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_STREAM, &cli_alloc,
                               layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_STREAM, &srv_alloc,
                               layer0_write_srv, layer0_read_srv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MBEDTLS_MPS_MODE_STREAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MBEDTLS_MPS_MODE_STREAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
@@ -7632,8 +7632,8 @@ void mbedtls_mps_l3_basic_application( int allocator_buffer_sz,
                                          0, 1, 1 ) == 0 );
 
     /* Initialize Layer 3 */
-    TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MPS_L3_MODE_STREAM ) == 0 );
-    TEST_ASSERT( mps_l3_init( &srv, &srv_l2, MPS_L3_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &srv, &srv_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
 
     TEST_ASSERT( mps_l3_epoch_add( &cli, dummy_c, &cli_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &cli, cli_epoch, MPS_EPOCH_WRITE ) == 0 );
@@ -7775,17 +7775,17 @@ void mbedtls_mps_l3_basic_alert( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_STREAM, &cli_alloc,
                               layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_STREAM, &srv_alloc,
                               layer0_write_srv, layer0_read_srv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MBEDTLS_MPS_MODE_STREAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MBEDTLS_MPS_MODE_STREAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
@@ -7811,8 +7811,8 @@ void mbedtls_mps_l3_basic_alert( int allocator_buffer_sz,
                                          MPS_L2_EMPTY_ALLOWED ) == 0 );
 
     /* Initialize Layer 3 */
-    TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MPS_L3_MODE_STREAM ) == 0 );
-    TEST_ASSERT( mps_l3_init( &srv, &srv_l2, MPS_L3_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &srv, &srv_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
 
     TEST_ASSERT( mps_l3_epoch_add( &cli, dummy_c, &cli_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &cli, cli_epoch, MPS_EPOCH_WRITE ) == 0 );
@@ -7969,17 +7969,17 @@ void mbedtls_mps_l3_basic_ccs( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_STREAM, &cli_alloc,
                               layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_STREAM, &srv_alloc,
                               layer0_write_srv, layer0_read_srv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MBEDTLS_MPS_MODE_STREAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MBEDTLS_MPS_MODE_STREAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
@@ -7993,8 +7993,8 @@ void mbedtls_mps_l3_basic_ccs( int allocator_buffer_sz,
                                          1, ccs_merging != 0, 0 ) == 0 );
 
     /* Initialize Layer 3 */
-    TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MPS_L3_MODE_STREAM ) == 0 );
-    TEST_ASSERT( mps_l3_init( &srv, &srv_l2, MPS_L3_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &srv, &srv_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
 
     TEST_ASSERT( mps_l3_epoch_add( &cli, dummy_c, &cli_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &cli, cli_epoch, MPS_EPOCH_WRITE ) == 0 );
@@ -8168,15 +8168,15 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_STREAM, &cli_alloc,
                               layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_STREAM, &srv_alloc,
                               layer0_write_srv, layer0_read_srv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MBEDTLS_MPS_MODE_STREAM,
                               10, 10, mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MBEDTLS_MPS_MODE_STREAM,
                               10, 10, mbedtls_test_rnd_std_rand, NULL ) == 0 );
     TEST_ASSERT( mps_l2_config_version( &cli_l2,
                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
@@ -8194,8 +8194,8 @@ void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
                                          1, 1 ) == 0 );
 
     /* Initialize Layer 3 */
-    TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MPS_L3_MODE_STREAM ) == 0 );
-    TEST_ASSERT( mps_l3_init( &srv, &srv_l2, MPS_L3_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &srv, &srv_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
 
     TEST_ASSERT( mps_l3_epoch_add( &cli, dummy_c, &cli_epoch ) == 0 );
     TEST_ASSERT( mps_l3_epoch_usage( &cli, cli_epoch, MPS_EPOCH_WRITE ) == 0 );
@@ -8668,17 +8668,17 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_STREAM, &cli_alloc,
                               layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_STREAM, &srv_alloc,
                               layer0_write_srv, layer0_read_srv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MBEDTLS_MPS_MODE_STREAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MBEDTLS_MPS_MODE_STREAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
@@ -8704,8 +8704,8 @@ void mbedtls_mps_l3_random( int allocator_buffer_sz,
                                          0, 0, 0 ) == 0 );
 
     /* Initialize Layer 3 */
-    TEST_ASSERT( mps_l3_init( &endpoint[0], &cli_l2, MPS_L3_MODE_STREAM ) == 0 );
-    TEST_ASSERT( mps_l3_init( &endpoint[1], &srv_l2, MPS_L3_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &endpoint[0], &cli_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &endpoint[1], &srv_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
 
     TEST_ASSERT( mps_l3_epoch_add( &endpoint[0], epochs[0][0],
                                    &latest_epoch[0] ) == 0 );
@@ -9300,17 +9300,17 @@ void mbedtls_mps_l4_basic_handshake( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_STREAM, &cli_alloc,
                               layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_STREAM, &srv_alloc,
                               layer0_write_srv, layer0_read_srv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MBEDTLS_MPS_MODE_STREAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MBEDTLS_MPS_MODE_STREAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
@@ -9324,8 +9324,8 @@ void mbedtls_mps_l4_basic_handshake( int allocator_buffer_sz,
                                          1, 1, 0 ) == 0 );
 
     /* Initialize Layer 3 */
-    TEST_ASSERT( mps_l3_init( &cli_l3, &cli_l2, MPS_L3_MODE_STREAM ) == 0 );
-    TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, MPS_L3_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &cli_l3, &cli_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
 
     /* Initialize Layer 4 */
     TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3,
@@ -9517,17 +9517,17 @@ void mbedtls_mps_l4_disruption( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L1_MODE_STREAM, &cli_alloc,
+    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_STREAM, &cli_alloc,
                               layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L1_MODE_STREAM, &srv_alloc,
+    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_STREAM, &srv_alloc,
                               layer0_write_srv, layer0_read_srv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MBEDTLS_MPS_MODE_STREAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MPS_L2_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MBEDTLS_MPS_MODE_STREAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
@@ -9545,8 +9545,8 @@ void mbedtls_mps_l4_disruption( int allocator_buffer_sz,
                                          1, 1, 0 ) == 0 );
 
     /* Initialize Layer 3 */
-    TEST_ASSERT( mps_l3_init( &cli_l3, &cli_l2, MPS_L3_MODE_STREAM ) == 0 );
-    TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, MPS_L3_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &cli_l3, &cli_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
 
     /* Initialize Layer 4 */
     TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3,
@@ -9740,21 +9740,21 @@ void mbedtls_mps_l4_dtls_fragmentation( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L2_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               &cli_alloc,
                               layer0_dgram_write_cli,
                               layer0_dgram_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L2_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               &srv_alloc,
                               layer0_dgram_write_srv,
                               layer0_dgram_read_srv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MPS_L2_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MPS_L2_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
@@ -9772,8 +9772,8 @@ void mbedtls_mps_l4_dtls_fragmentation( int allocator_buffer_sz,
                                          1, 1, 0 ) == 0 );
 
     /* Initialize Layer 3 */
-    TEST_ASSERT( mps_l3_init( &cli_l3, &cli_l2, MPS_L3_MODE_DATAGRAM ) == 0 );
-    TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, MPS_L3_MODE_DATAGRAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &cli_l3, &cli_l2, MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
 
     /* Initialize Layer 4 */
     TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3,
@@ -9958,21 +9958,21 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L2_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               &cli_alloc,
                               layer0_dgram_write_cli,
                               layer0_dgram_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L2_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               &srv_alloc,
                               layer0_dgram_write_srv,
                               layer0_dgram_read_srv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MPS_L2_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MPS_L2_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
@@ -9990,8 +9990,8 @@ void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
                                          1, 1, 0 ) == 0 );
 
     /* Initialize Layer 3 */
-    TEST_ASSERT( mps_l3_init( &cli_l3, &cli_l2, MPS_L3_MODE_DATAGRAM ) == 0 );
-    TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, MPS_L3_MODE_DATAGRAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &cli_l3, &cli_l2, MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
 
     /* Initialize Layer 4 */
     TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3,
@@ -10244,21 +10244,21 @@ void mbedtls_mps_l4_dtls_flight_exchange( int allocator_buffer_sz,
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MPS_L2_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               &cli_alloc,
                               layer0_dgram_write_cli,
                               layer0_dgram_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MPS_L2_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               &srv_alloc,
                               layer0_dgram_write_srv,
                               layer0_dgram_read_srv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MPS_L2_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MPS_L2_MODE_DATAGRAM,
+    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
@@ -10276,8 +10276,8 @@ void mbedtls_mps_l4_dtls_flight_exchange( int allocator_buffer_sz,
                                          1, 1, 0 ) == 0 );
 
     /* Initialize Layer 3 */
-    TEST_ASSERT( mps_l3_init( &cli_l3, &cli_l2, MPS_L3_MODE_DATAGRAM ) == 0 );
-    TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, MPS_L3_MODE_DATAGRAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &cli_l3, &cli_l2, MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
 
     /* Initialize Layer 4 */
     TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3,

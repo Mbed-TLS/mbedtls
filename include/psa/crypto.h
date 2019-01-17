@@ -1974,6 +1974,10 @@ static psa_aead_operation_t psa_aead_operation_init(void);
  *    documentation for #psa_aead_operation_t, e.g.
  *    PSA_AEAD_OPERATION_INIT.
  * -# Call psa_aead_encrypt_setup() to specify the algorithm and key.
+ * -# If needed, call psa_aead_set_lengths() to specify the length of the
+ *    inputs to the subsequent calls to psa_aead_update_ad() and
+ *    psa_aead_update(). See the documentation of psa_aead_set_lengths()
+ *    for details.
  * -# Call either psa_aead_generate_nonce() or psa_aead_set_nonce() to
  *    generate or set the nonce. You should use
  *    psa_aead_generate_nonce() unless the protocol you are implementing
@@ -2035,6 +2039,10 @@ psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
  *    documentation for #psa_aead_operation_t, e.g.
  *    PSA_AEAD_OPERATION_INIT.
  * -# Call psa_aead_decrypt_setup() to specify the algorithm and key.
+ * -# If needed, call psa_aead_set_lengths() to specify the length of the
+ *    inputs to the subsequent calls to psa_aead_update_ad() and
+ *    psa_aead_update(). See the documentation of psa_aead_set_lengths()
+ *    for details.
  * -# Call psa_aead_set_nonce() with the nonce for the decryption.
  * -# Call psa_aead_update_ad() zero, one or more times, passing a fragment
  *    of the non-encrypted additional authenticated data each time.
@@ -2150,6 +2158,44 @@ psa_status_t psa_aead_set_nonce(psa_aead_operation_t *operation,
                                 const unsigned char *nonce,
                                 size_t nonce_length);
 
+/** Declare the lengths of the message and additional data for AEAD.
+ *
+ * The application must call this function before calling
+ * psa_aead_update_ad() or psa_aead_update() if the algorithm for
+ * the operation requires it. If the algorithm does not require it,
+ * calling this function is optional, but if this function is called
+ * then the implementation must enforce the lengths.
+ *
+ * You may call this function before or after setting the nonce with
+ * psa_aead_set_nonce() or psa_aead_generate_nonce().
+ *
+ * - For #PSA_ALG_CCM, calling this function is required.
+ * - For the other AEAD algorithms defined in this specification, calling
+ *   this function is not required.
+ * - For vendor-defined algorithm, refer to the vendor documentation.
+ *
+ * \param[in,out] operation     Active AEAD operation.
+ * \param ad_length             Size of the non-encrypted additional
+ *                              authenticated data in bytes.
+ * \param plaintext_length      Size of the plaintext to encrypt in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (not set up, already completed,
+ *         or psa_aead_update_ad() or psa_aead_update() already called).
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         At least one of the lengths is not acceptable for the chosen
+ *         algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_aead_set_lengths(psa_aead_operation_t *operation,
+                                  size_t ad_length,
+                                  size_t plaintext_length);
+
 /** Pass additional data to an active AEAD operation.
  *
  * Additional data is authenticated, but not encrypted.
@@ -2180,6 +2226,9 @@ psa_status_t psa_aead_set_nonce(psa_aead_operation_t *operation,
  * \retval #PSA_ERROR_BAD_STATE
  *         The operation state is not valid (not set up, nonce not set,
  *         psa_aead_update() already called, or operation already completed).
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total input length overflows the additional data length that
+ *         was previously specified with psa_aead_set_lengths().
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -2230,6 +2279,13 @@ psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
  *         or already completed).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total length of input to psa_aead_update_ad() so far is
+ *         less than the additional data length that was previously
+ *         specified with psa_aead_set_lengths().
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total input length overflows the plaintext length that
+ *         was previously specified with psa_aead_set_lengths().
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -2281,6 +2337,14 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
  *         decryption, or already completed).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total length of input to psa_aead_update_ad() so far is
+ *         less than the additional data length that was previously
+ *         specified with psa_aead_set_lengths().
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total length of input to psa_aead_update() so far is
+ *         less than the plaintext length that was previously
+ *         specified with psa_aead_set_lengths().
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -2316,6 +2380,14 @@ psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
  *         encryption, or already completed).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total length of input to psa_aead_update_ad() so far is
+ *         less than the additional data length that was previously
+ *         specified with psa_aead_set_lengths().
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total length of input to psa_aead_update() so far is
+ *         less than the plaintext length that was previously
+ *         specified with psa_aead_set_lengths().
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE

@@ -57,7 +57,7 @@ static inline int l1_write_stream( mps_l1_stream_write *p,
                                    size_t *buflen );
 static inline int l1_check_flush_stream( mps_l1_stream_write *p );
 static inline int l1_write_dependency_stream( mps_l1_stream_write *p );
-static inline int l1_read_dependency_stream( mps_l1_stream_write *p );
+static inline int l1_read_dependency_stream( mps_l1_stream_read *p );
 static inline int l1_dispatch_stream( mps_l1_stream_write *p,
                                       size_t len, size_t *pending );
 
@@ -76,7 +76,7 @@ static inline int l1_free_dgram_write( mps_l1_dgram_write *p );
 static inline int l1_free_dgram( mps_l1_dgram *p );
 static inline int l1_ensure_in_dgram( mps_l1_dgram_read *p );
 static inline int l1_write_dependency_dgram( mps_l1_dgram_write *p );
-static inline int l1_read_dependency_dgram( mps_l1_dgram_write *p );
+static inline int l1_read_dependency_dgram( mps_l1_dgram_read *p );
 static inline int l1_fetch_dgram( mps_l1_dgram_read *p,
                                   unsigned char **dst,
                                   size_t len );
@@ -514,7 +514,7 @@ static inline int l1_write_dependency_stream( mps_l1_stream_write *p )
     return( 0 );
 }
 
-static inline int l1_read_dependency_stream( mps_l1_stream_write *p )
+static inline int l1_read_dependency_stream( mps_l1_stream_read *p )
 {
     ((void) p);
     return( -1 );
@@ -861,7 +861,7 @@ static inline int l1_write_dependency_dgram( mps_l1_dgram_write *p )
     return( 0 );
 }
 
-static inline int l1_read_dependency_dgram( mps_l1_dgram_write *p )
+static inline int l1_read_dependency_dgram( mps_l1_dgram_read *p )
 {
     unsigned char *buf;
 
@@ -1188,44 +1188,22 @@ int mps_l1_flush( mps_l1 *ctx )
 
 int mps_l1_read_dependency( mps_l1 *ctx )
 {
-    uint8_t mode;
+    uint8_t const mode = ctx->mode;
 
-    if( ctx == NULL )
-        return( MPS_ERR_INVALID_PARAMS );
-
-    mode = ctx->mode;
-    switch( mode )
-    {
-        case MPS_L1_MODE_STREAM:
-            return( l1_read_dependency_stream( &ctx->raw.stream.wr ) );
-
-        case MPS_L1_MODE_DATAGRAM:
-            return( l1_read_dependency_dgram( &ctx->raw.dgram.wr ) );
-
-        default:
-            return( MPS_ERR_INVALID_PARAMS );
-    }
+    if( mode == MPS_L1_MODE_STREAM )
+        return( l1_read_dependency_stream( &ctx->raw.stream.rd ) );
+    else /* if( mode == MBEDTLS_MPS_DATAGRAM ) */
+        return( l1_read_dependency_dgram( &ctx->raw.dgram.rd ) );
 }
 
 int mps_l1_write_dependency( mps_l1 *ctx )
 {
-    uint8_t mode;
+    uint8_t const mode = ctx->mode;
 
-    if( ctx == NULL )
-        return( MPS_ERR_INVALID_PARAMS );
-
-    mode = ctx->mode;
-    switch( mode )
-    {
-        case MPS_L1_MODE_STREAM:
-            return( l1_write_dependency_stream( &ctx->raw.stream.wr ) );
-
-        case MPS_L1_MODE_DATAGRAM:
-            return( l1_write_dependency_dgram( &ctx->raw.dgram.wr ) );
-
-        default:
-            return( MPS_ERR_INVALID_PARAMS );
-    }
+    if( mode == MPS_L1_MODE_STREAM )
+        return( l1_write_dependency_stream( &ctx->raw.stream.wr ) );
+    else /* if( mode == MBEDTLS_MPS_DATAGRAM ) */
+        return( l1_write_dependency_dgram( &ctx->raw.dgram.wr ) );
 }
 
 int mps_l1_skip( mps_l1 *ctx )

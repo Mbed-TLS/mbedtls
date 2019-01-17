@@ -2087,7 +2087,7 @@
  * MBEDTLS_ECDH_LEGACY_CONTEXT).
  *
  */
-#define MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
+//#define MBEDTLS_ECDH_VARIANT_EVEREST_ENABLED
 
 /* \} name SECTION: Customisation configuration options */
 

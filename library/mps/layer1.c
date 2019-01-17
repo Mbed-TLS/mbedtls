@@ -1201,13 +1201,6 @@ int mps_l1_skip( mps_l1 *ctx )
     }
 
     p = &ctx->raw.dgram.rd;
-    buf = p->buf;
-    if( buf == NULL )
-    {
-        TRACE( trace_error, "No incoming datagram open." );
-        RETURN( MPS_ERR_INTERNAL_ERROR );
-    }
-
     ret = l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_IN );
     if( ret != 0 )
     {

@@ -1038,9 +1038,6 @@ int mps_l1_init( mps_l1 *ctx, uint8_t mode, mps_alloc *alloc,
 {
     TRACE_INIT( "mps_l1_init, mode %u", (unsigned) mode );
 
-    if( ctx == NULL || recv == NULL || send == NULL )
-        RETURN( MPS_ERR_INVALID_PARAMS );
-
     switch( mode )
     {
         case MPS_L1_MODE_STREAM:
@@ -1062,8 +1059,6 @@ int mps_l1_free( mps_l1 *ctx )
 {
     uint8_t mode;
 
-    if( ctx == NULL )
-        return( MPS_ERR_INVALID_PARAMS );
 
     mode = ctx->mode;
     switch( mode )
@@ -1085,9 +1080,6 @@ int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf, size_t desired )
 {
     uint8_t mode;
 
-    if( ctx == NULL )
-        return( MPS_ERR_INVALID_PARAMS );
-
     mode = ctx->mode;
     switch( mode )
     {
@@ -1105,9 +1097,6 @@ int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf, size_t desired )
 int mps_l1_consume( mps_l1 *ctx )
 {
     uint8_t mode;
-
-    if( ctx == NULL )
-        return( MPS_ERR_INVALID_PARAMS );
 
     mode = ctx->mode;
     switch( mode )
@@ -1127,9 +1116,6 @@ int mps_l1_write( mps_l1 *ctx, unsigned char **buf, size_t *buflen )
 {
     uint8_t mode;
 
-    if( ctx == NULL )
-        return( MPS_ERR_INVALID_PARAMS );
-
     mode = ctx->mode;
     switch( mode )
     {
@@ -1148,9 +1134,6 @@ int mps_l1_dispatch( mps_l1 *ctx, size_t len, size_t *pending )
 {
     uint8_t mode;
 
-    if( ctx == NULL )
-        return( MPS_ERR_INVALID_PARAMS );
-
     mode = ctx->mode;
     switch( mode )
     {
@@ -1168,9 +1151,6 @@ int mps_l1_dispatch( mps_l1 *ctx, size_t len, size_t *pending )
 int mps_l1_flush( mps_l1 *ctx )
 {
     uint8_t mode;
-
-    if( ctx == NULL )
-        return( MPS_ERR_INVALID_PARAMS );
 
     mode = ctx->mode;
     switch( mode )

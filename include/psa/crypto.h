@@ -750,7 +750,7 @@ psa_status_t psa_hash_compute(psa_algorithm_t alg,
  * \param[in] input         Buffer containing the message to hash.
  * \param input_length      Size of the \p input buffer in bytes.
  * \param[out] hash         Buffer containing the expected hash value.
- * \param hash_size         Size of the \p hash buffer in bytes.
+ * \param hash_length       Size of the \p hash buffer in bytes.
  *
  * \retval #PSA_SUCCESS
  *         The expected hash is identical to the actual hash of the input.
@@ -1068,7 +1068,8 @@ psa_status_t psa_mac_compute(psa_key_handle_t handle,
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
-psa_status_t psa_mac_verify(psa_algorithm_t alg,
+psa_status_t psa_mac_verify(psa_key_handle_t handle,
+                            psa_algorithm_t alg,
                             const uint8_t *input,
                             size_t input_length,
                             const uint8_t *mac,
@@ -1458,39 +1459,6 @@ psa_status_t psa_cipher_decrypt(psa_key_handle_t handle,
                                 uint8_t *output,
                                 size_t output_size,
                                 size_t *output_length);
-
-/** Calculate the MAC of a message and compare it with a reference value.
- *
- * \param handle            Handle to the key to use for the operation.
- * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
- *                          such that #PSA_ALG_IS_MAC(alg) is true).
- * \param[in] input         Buffer containing the input message.
- * \param input_length      Size of the \p input buffer in bytes.
- * \param[out] mac          Buffer containing the expected MAC value.
- * \param mac_length        Size of the \p mac buffer in bytes.
- *
- * \retval #PSA_SUCCESS
- *         The expected MAC is identical to the actual MAC of the input.
- * \retval #PSA_ERROR_INVALID_SIGNATURE
- *         The MAC of the message was calculated successfully, but it
- *         differs from the expected value.
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_EMPTY_SLOT
- * \retval #PSA_ERROR_NOT_PERMITTED
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p key is not compatible with \p alg.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         \p alg is not supported or is not a MAC algorithm.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
- */
-psa_status_t psa_mac_verify(psa_algorithm_t alg,
-                            const uint8_t *input,
-                            size_t input_length,
-                            const uint8_t *mac,
-                            const size_t mac_length);
 
 /** The type of the state data structure for multipart cipher operations.
  *
@@ -2013,7 +1981,7 @@ static psa_aead_operation_t psa_aead_operation_init(void);
  * -# Call psa_aead_update_ad() zero, one or more times, passing a fragment
  *    of the non-encrypted additional authenticated data each time.
  * -# Call psa_aead_update() zero, one or more times, passing a fragment
- *    of the message each time.
+ *    of the message to encrypt each time.
  * -# Call psa_aead_finish().
  *
  * The application may call psa_aead_abort() at any time after the operation
@@ -2071,8 +2039,8 @@ psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
  * -# Call psa_aead_update_ad() zero, one or more times, passing a fragment
  *    of the non-encrypted additional authenticated data each time.
  * -# Call psa_aead_update() zero, one or more times, passing a fragment
- *    of the message each time.
- * -# Call psa_aead_finish().
+ *    of the ciphertext to decrypt each time.
+ * -# Call psa_aead_verify().
  *
  * The application may call psa_aead_abort() at any time after the operation
  * has been initialized.
@@ -2159,13 +2127,13 @@ psa_status_t psa_aead_generate_nonce(psa_aead_operation_t *operation,
  *
  * If this function returns an error status, the operation becomes inactive.
  *
- * \note When encrypting, applications should use psa_aead_generate_iv()
+ * \note When encrypting, applications should use psa_aead_generate_nonce()
  * instead of this function, unless implementing a protocol that requires
  * a non-random IV.
  *
  * \param[in,out] operation     Active AEAD operation.
- * \param[in] iv                Buffer containing the nonce to use.
- * \param iv_length             Size of the nonce in bytes.
+ * \param[in] nonce             Buffer containing the nonce to use.
+ * \param nonce_length          Size of the nonce in bytes.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -2319,9 +2287,9 @@ psa_status_t psa_aead_update(psa_aead_operation_t *operation,
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
 psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
-                             uint8_t *output,
-                             size_t output_size,
-                             size_t *output_length,
+                             uint8_t *ciphertext,
+                             size_t ciphertext_size,
+                             size_t *ciphertext_length,
                              uint8_t *tag,
                              size_t tag_size,
                              size_t *tag_length);

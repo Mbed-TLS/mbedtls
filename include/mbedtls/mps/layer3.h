@@ -54,11 +54,6 @@
  */
 #define MPS_L3_ALLOW_INTERLEAVED_SENDING
 
-/** The mode for Layer 3 contexts implementing the TLS protocol.   */
-#define MPS_L3_MODE_STREAM   MBEDTLS_SSL_TRANSPORT_STREAM
-/** The mode for Layer 3 contexts implementing the DTLS protocol.  */
-#define MPS_L3_MODE_DATAGRAM MBEDTLS_SSL_TRANSPORT_DATAGRAM
-
 struct mps_l3;
 struct mps_l3_handshake_in;
 struct mps_l3_handshake_out;

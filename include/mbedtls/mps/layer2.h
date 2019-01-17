@@ -38,8 +38,6 @@
  * Copied from existing headers -- remove when integrating MPS
  */
 
-#define MBEDTLS_SSL_TRANSPORT_STREAM            0   /*!< TLS      */
-#define MBEDTLS_SSL_TRANSPORT_DATAGRAM          1   /*!< DTLS     */
 #define MBEDTLS_SSL_MAJOR_VERSION_3             3
 #define MBEDTLS_SSL_MINOR_VERSION_0             0   /*!< SSL v3.0 */
 #define MBEDTLS_SSL_MINOR_VERSION_1             1   /*!< TLS v1.0 */

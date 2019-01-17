@@ -121,7 +121,7 @@ static void l2_out_write_version( int major, int minor, int transport,
                        unsigned char ver[2] )
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( transport == MBEDTLS_MPS_MODE_DATAGRAM )
     {
         if( minor == MBEDTLS_SSL_MINOR_VERSION_2 )
             --minor; /* DTLS 1.0 stored as TLS 1.1 internally */
@@ -143,7 +143,7 @@ static void l2_read_version( int *major, int *minor, int transport,
                       const unsigned char ver[2] )
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( transport == MBEDTLS_MPS_MODE_DATAGRAM )
     {
         *major = 255 - ver[0] + 2;
         *minor = 255 - ver[1] + 1;
@@ -236,7 +236,7 @@ int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1, uint8_t mode,
 
     memset( &ctx->epochs, 0, sizeof( ctx->epochs ) );
 
-    if( mode == MPS_L2_MODE_STREAM )
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
     {
         ctx->epochs.permissions.tls.default_in  = MBEDTLS_MPS_EPOCH_NONE;
         ctx->epochs.permissions.tls.default_out = MBEDTLS_MPS_EPOCH_NONE;
@@ -504,7 +504,7 @@ static int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
     mps_l2_bufpair const zero_bufpair = { NULL, 0, 0, 0 };
     TRACE_INIT( "Write protected record" );
 
-    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
+    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
     {
         /* The record header structure is the same for all versions
          * of TLS, including TLS 1.3. The only difference is that in
@@ -515,7 +515,7 @@ static int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
          * it was part of CBC, and AEAD didn't allow padding at all. */
         ret = l2_out_write_protected_record_tls( ctx, rec );
     }
-    else if( ctx->conf.mode == MPS_L2_MODE_DATAGRAM )
+    else if( ctx->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
     {
         /* Only handle DTLS 1.0 and 1.2 for the moment,
          * which have a uniform and simple record header. */
@@ -591,7 +591,7 @@ static int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec 
     /* Write record version. */
     l2_out_write_version( rec->major_ver,
                           rec->minor_ver,
-                          MPS_L2_MODE_STREAM,
+                          MBEDTLS_MPS_MODE_STREAM,
                           hdr + tls_rec_ver_offset );
 
     /* Write ciphertext length. */
@@ -644,7 +644,7 @@ static int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx, mps_rec *r
     /* Write record version. */
     l2_out_write_version( rec->major_ver,
                           rec->minor_ver,
-                          MPS_L2_MODE_DATAGRAM,
+                          MBEDTLS_MPS_MODE_DATAGRAM,
                           hdr + dtls_rec_ver_offset );
 
     /* Epoch */
@@ -1205,7 +1205,7 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
 
         /* For DTLS, silently discard datagrams containing records
          * which have an invalid header field or can't be authenticated. */
-        if( ctx->conf.mode == MPS_L2_MODE_DATAGRAM )
+        if( ctx->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
         {
             if( ret == MPS_ERR_REPLAYED_RECORD ||
                 ret == MPS_ERR_INVALID_RECORD  ||
@@ -1283,7 +1283,7 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
             TRACE( trace_comment, "Record is empty" );
             if( l2_type_empty_allowed( ctx, rec.type ) == 0 )
             {
-                if( ctx->conf.mode == MPS_L2_MODE_DATAGRAM )
+                if( ctx->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
                 {
                     /* As for other kinds of invalid records,
                      * ignore the entire datagram. */
@@ -1301,7 +1301,7 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
 
         /* 3.1 */
         /* TLS only */
-        if( ctx->conf.mode == MPS_L2_MODE_STREAM               &&
+        if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM               &&
             ctx->in.paused_state == MBEDTLS_MPS_L2_READER_STATE_PAUSED &&
             ctx->in.paused->type == rec.type )
         {
@@ -1519,7 +1519,7 @@ static int l2_in_fetch_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 static int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
     TRACE_INIT( "l2_in_fetch_protected_record" );
-    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
+    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
     {
         /* The record header structure is the same for all versions
          * of TLS, including TLS 1.3. The only difference is that in
@@ -1531,7 +1531,7 @@ static int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
         RETURN( l2_in_fetch_protected_record_tls( ctx, rec ) );
     }
 
-    if( ctx->conf.mode == MPS_L2_MODE_DATAGRAM )
+    if( ctx->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
     {
         /* Only handle DTLS 1.0 and 1.2 for the moment,
          * which have a uniform and simple record header. */
@@ -1557,12 +1557,12 @@ static size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch
     ((void) epoch);
     TRACE_INIT( "l2_get_header_len, %d", epoch );
 
-    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
+    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
     {
         RETURN( tls12_rec_hdr_len );
     }
 
-    if( ctx->conf.mode == MPS_L2_MODE_DATAGRAM )
+    if( ctx->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
     {
         /* Only handle DTLS 1.0 and 1.2 for the moment,
          * which have a uniform and simple record header. */
@@ -1584,8 +1584,8 @@ static size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch
     /* Should never happen */
     TRACE( trace_error, "Invalid mode %u -- neither stream (%u) nor datagram (%u)",
            (unsigned) ctx->conf.mode,
-           MPS_L2_MODE_STREAM,
-           MPS_L2_MODE_DATAGRAM );
+           MBEDTLS_MPS_MODE_STREAM,
+           MBEDTLS_MPS_MODE_DATAGRAM );
     RETURN( MPS_ERR_INTERNAL_ERROR );
 }
 
@@ -1654,7 +1654,7 @@ static int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
 
     /* Version */
     l2_read_version( &major_ver, &minor_ver,
-                     MBEDTLS_SSL_TRANSPORT_STREAM,
+                     MBEDTLS_MPS_MODE_STREAM,
                      buf + tls_rec_ver_offset );
 
     if( major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 )
@@ -1736,7 +1736,7 @@ static int l2_in_update_counter( mbedtls_mps_l2 *ctx,
     if( ret != 0 )
         return( ret );
 
-    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
+    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
     {
         epoch->stats.tls.in_ctr = ctr + 1;
         if( epoch->stats.tls.in_ctr == 0 )
@@ -1823,7 +1823,7 @@ static int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
     if( ret != 0 )
         return( ret );
 
-    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
+    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
         src_ctr = &epoch->stats.tls.out_ctr;
     else
         src_ctr = &epoch->stats.dtls.out_ctr;
@@ -1897,7 +1897,7 @@ static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx, mps_rec *re
 
     /* Version */
     l2_read_version( &major_ver, &minor_ver,
-                     MBEDTLS_SSL_TRANSPORT_DATAGRAM,
+                     MBEDTLS_MPS_MODE_DATAGRAM,
                      buf + dtls_rec_ver_offset );
 
     if( major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 )
@@ -1994,7 +1994,7 @@ static int l2_type_can_be_paused( mbedtls_mps_l2 *ctx, uint8_t type )
 {
     /* Regardless of the configuration, pausing is only
      * allowed for stream transports. */
-    return( ( ctx->conf.mode == MPS_L2_MODE_STREAM ) &&
+    return( ( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM ) &&
             ( ( ctx->conf.pause_flag & ( ( (uint64_t) 1u ) << type ) ) != 0 ) );
 }
 
@@ -2072,7 +2072,7 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
     /* 2. Check if the change of permissions collides with
      *    potential present usage of the epoch. */
 
-    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
+    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
     {
         if( ( usage & MPS_EPOCH_READ ) != 0    &&
             ctx->epochs.permissions.tls.default_in != epoch_offset )
@@ -2117,7 +2117,7 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
 
     /* 3. Apply the change of permissions. */
 
-    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
+    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
     {
         if( usage & MPS_EPOCH_READ )
             ctx->epochs.permissions.tls.default_in = epoch_offset;
@@ -2232,7 +2232,7 @@ static int l2_epoch_check( mbedtls_mps_l2 *ctx,
     if( ret != 0 )
         RETURN( ret );
 
-    if( ctx->conf.mode == MPS_L2_MODE_DATAGRAM )
+    if( ctx->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
     {
         epoch_usage = ctx->epochs.permissions.dtls[ epoch_offset ];
         if( ( purpose & epoch_usage ) != purpose )
@@ -2308,7 +2308,7 @@ static int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
 
     TRACE_INIT( "l2_epoch_cleanup" );
 
-    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
+    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
     {
         /* TLS */
         /* An epoch is in use if it's either the default incoming
@@ -2428,7 +2428,7 @@ static int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
     }
 
     /* Shift permissions */
-    if( ctx->conf.mode == MPS_L2_MODE_STREAM )
+    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
     {
         ctx->epochs.permissions.tls.default_in  -= shift;
         ctx->epochs.permissions.tls.default_out -= shift;
@@ -2512,7 +2512,7 @@ static int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
     TRACE_INIT( "l2_counter_replay_check, epoch %u, ctr %u",
                 (unsigned) epoch_id, (unsigned) ctr );
 
-    if( ctx->conf.mode == MPS_L2_MODE_STREAM ||
+    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM ||
         ctx->conf.anti_replay == MBEDTLS_MPS_ANTI_REPLAY_DISABLED )
     {
         RETURN( 0 );
@@ -2558,7 +2558,7 @@ int mps_l2_force_next_sequence_number( mbedtls_mps_l2 *ctx,
     TRACE_INIT( "mps_l2_force_next_sequence_number, epoch %u, ctr %u",
                 (unsigned) epoch_id, (unsigned) ctr );
 
-    if( ctx->conf.mode != MPS_L2_MODE_DATAGRAM )
+    if( ctx->conf.mode != MBEDTLS_MPS_MODE_DATAGRAM )
     {
         TRACE( trace_error, "Sequence number forcing only needed and allowed in DTLS." );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
@@ -2581,7 +2581,7 @@ int mps_l2_get_last_sequence_number( mbedtls_mps_l2 *ctx,
     TRACE_INIT( "mps_l2_get_last_sequence_number, epoch %u",
                 (unsigned) epoch_id );
 
-    if( ctx->conf.mode != MPS_L2_MODE_DATAGRAM )
+    if( ctx->conf.mode != MBEDTLS_MPS_MODE_DATAGRAM )
     {
         TRACE( trace_error, "Sequence number retrieval only needed and allowed in DTLS." );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );

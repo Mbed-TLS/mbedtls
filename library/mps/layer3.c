@@ -222,7 +222,7 @@ int mps_l3_read( mps_l3 *l3 )
             res = l3_parse_alert( in.rd, &l3->in.alert );
             if( res == MBEDTLS_ERR_READER_OUT_OF_DATA )
             {
-                if( l3->conf.mode == MPS_L3_MODE_DATAGRAM )
+                if( l3->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
                 {
                     TRACE( trace_error, "Incomplete alert message found -- abort" );
                     RETURN( MPS_ERR_BAD_MSG );
@@ -320,7 +320,7 @@ int mps_l3_read( mps_l3 *l3 )
                                               &l3->in.hs );
                     if( res == MBEDTLS_ERR_READER_OUT_OF_DATA )
                     {
-                        if( l3->conf.mode == MPS_L3_MODE_DATAGRAM )
+                        if( l3->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
                         {
                             TRACE( trace_error, "Incomplete handshake header found -- abort" );
                             RETURN( MPS_ERR_BAD_MSG );
@@ -349,12 +349,12 @@ int mps_l3_read( mps_l3 *l3 )
 
                     /* TODO: Think about storing the frag_len in len for DTLS
                      *       to avoid this distinction. */
-                    if( l3->conf.mode == MPS_L3_MODE_STREAM )
+                    if( l3->conf.mode == MBEDTLS_MPS_MODE_STREAM )
                     {
                         mbedtls_reader_init_ext( &l3->in.hs.rd_ext,
                                                  l3->in.hs.len );
                     }
-                    else /* MPS_L3_MODE_DATAGRAM */
+                    else /* MBEDTLS_MPS_MODE_DATAGRAM */
                     {
                         mbedtls_reader_init_ext( &l3->in.hs.rd_ext,
                                                  l3->in.hs.frag_len );
@@ -523,9 +523,9 @@ static int l3_parse_hs_header( uint8_t mode, mbedtls_reader *rd,
 {
     switch( mode )
     {
-        case MPS_L3_MODE_STREAM:
+        case MBEDTLS_MPS_MODE_STREAM:
             return( l3_parse_hs_header_tls( rd, in ) );
-        case MPS_L3_MODE_DATAGRAM:
+        case MBEDTLS_MPS_MODE_DATAGRAM:
             return( l3_parse_hs_header_dtls( rd, in ) );
         default:
             return( MPS_ERR_INTERNAL_ERROR );
@@ -778,7 +778,7 @@ int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs )
     hs->type   = l3->in.hs.type;
     hs->rd_ext = &l3->in.hs.rd_ext;
 
-    if( l3->conf.mode == MPS_L3_MODE_DATAGRAM )
+    if( l3->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
     {
         hs->seq_nr      = l3->in.hs.seq_nr;
         hs->frag_offset = l3->in.hs.frag_offset;
@@ -882,7 +882,7 @@ static int l3_check_write_hs_hdr_dtls( mps_l3 *l3 )
 
 static int l3_check_write_hs_hdr( mps_l3 *l3 )
 {
-    if( l3->conf.mode == MPS_L3_MODE_STREAM )
+    if( l3->conf.mode == MBEDTLS_MPS_MODE_STREAM )
         return( l3_check_write_hs_hdr_tls( l3 ) );
     else
         return( l3_check_write_hs_hdr_dtls( l3 ) );
@@ -928,7 +928,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
         l3->out.hs.epoch = out->epoch;
         l3->out.hs.len   = out->len;
         l3->out.hs.type  = out->type;
-        if( l3->conf.mode == MPS_L3_MODE_DATAGRAM )
+        if( l3->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
         {
             l3->out.hs.seq_nr      = out->seq_nr;
             l3->out.hs.frag_len    = out->frag_len;
@@ -1007,7 +1007,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
          *       to avoid this distinction. */
         /* TODO: If `len` is UNKNOWN this is casted to -1u here,
          *       which is OK but fragile. */
-        if( l3->conf.mode == MPS_L3_MODE_STREAM )
+        if( l3->conf.mode == MBEDTLS_MPS_MODE_STREAM )
         {
             mbedtls_writer_init_ext( &l3->out.hs.wr_ext,
                                      out->len );
@@ -1021,7 +1021,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
             RETURN( res );
     }
 
-    if( l3->conf.mode == MPS_L3_MODE_DATAGRAM )
+    if( l3->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
         len = out->frag_len;
     else
         len = out->len;
@@ -1243,7 +1243,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
             mbedtls_writer_free_ext( &l3->out.hs.wr_ext );
 
             /* Complete previously unknown length values. */
-            if( l3->conf.mode == MPS_L3_MODE_STREAM )
+            if( l3->conf.mode == MBEDTLS_MPS_MODE_STREAM )
             {
                 if( l3->out.hs.len == MBEDTLS_MPS_SIZE_UNKNOWN )
                     l3->out.hs.len = committed;

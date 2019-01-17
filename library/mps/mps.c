@@ -274,7 +274,7 @@ static int mps_clear_pending( mbedtls_mps *mps,
     TRACE_INIT( "mps_clear_pending, allow_active_hs %u",
                 (unsigned) allow_active_hs );
 
-    if( mps->conf.mode == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( mps->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
     {
         /* If present, dispatch queueing handshake data. */
         MPS_CHK( mps_dtls_frag_out_clear_queue( mps, allow_active_hs ) );
@@ -2695,7 +2695,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                 (unsigned) hs->type, (unsigned) hs->length );
     MPS_CHK( mps_prepare_write( mps, MPS_PAUSED_HS_ALLOWED ) );
 
-    if( mps->conf.mode == MBEDTLS_SSL_TRANSPORT_STREAM )
+    if( mps->conf.mode == MBEDTLS_MPS_MODE_STREAM )
     {
         /* TLS
          * Write a handshake message on Layer 3 and forward the writer. */
@@ -2970,7 +2970,7 @@ int mbedtls_mps_write_pause( mbedtls_mps *mps )
     if( ret != 0 )
         RETURN( ret );
 
-    if( mps->conf.mode == MBEDTLS_SSL_TRANSPORT_STREAM )
+    if( mps->conf.mode == MBEDTLS_MPS_MODE_STREAM )
     {
         MPS_CHK( mps_l3_pause_handshake( mps->conf.l3 ) );
     }
@@ -3006,7 +3006,7 @@ int mbedtls_mps_dispatch( mbedtls_mps *mps )
     if( ret != 0 )
         RETURN( ret );
 
-    if( mps->conf.mode == MBEDTLS_SSL_TRANSPORT_STREAM )
+    if( mps->conf.mode == MBEDTLS_MPS_MODE_STREAM )
     {
         /* TLS */
         MPS_CHK( mps_l3_dispatch( mps->conf.l3 ) );

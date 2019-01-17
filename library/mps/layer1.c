@@ -1038,132 +1038,75 @@ int mps_l1_init( mps_l1 *ctx, uint8_t mode, mps_alloc *alloc,
 {
     TRACE_INIT( "mps_l1_init, mode %u", (unsigned) mode );
 
-    switch( mode )
-    {
-        case MPS_L1_MODE_STREAM:
-            TRACE( trace_comment, "Stream mode" );
-            l1_init_stream( &ctx->raw.stream, alloc, send, recv );
-            break;
-        case MPS_L1_MODE_DATAGRAM:
-            TRACE( trace_comment, "Datagram mode" );
-            l1_init_dgram( &ctx->raw.dgram, alloc, send, recv  );
-            break;
-        default:
-            RETURN( MPS_ERR_INVALID_PARAMS );
-    }
+    if( mode == MPS_L1_MODE_STREAM )
+        l1_init_stream( &ctx->raw.stream, alloc, send, recv );
+    else /* if( mode == MPS_L1_MODE_DATAGRAM ) */
+        l1_init_dgram( &ctx->raw.dgram, alloc, send, recv  );
+
     ctx->mode = mode;
     RETURN( 0 );
 }
 
 int mps_l1_free( mps_l1 *ctx )
 {
-    uint8_t mode;
+    uint8_t mode = ctx->mode;
 
+    if( mode == MPS_L1_MODE_STREAM )
+        l1_free_stream( &ctx->raw.stream );
+    else /* if( mode == MPS_L1_MODE_DATAGRAM ) */
+        l1_free_dgram( &ctx->raw.dgram );
 
-    mode = ctx->mode;
-    switch( mode )
-    {
-        case MPS_L1_MODE_STREAM:
-            l1_free_stream( &ctx->raw.stream );
-            break;
-        case MPS_L1_MODE_DATAGRAM:
-            l1_free_dgram( &ctx->raw.dgram );
-            break;
-        default:
-            return( MPS_ERR_INVALID_PARAMS );
-    }
-    ctx->mode = 0;
     return( 0 );
 }
 
 int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf, size_t desired )
 {
-    uint8_t mode;
+    uint8_t const mode = ctx->mode;
 
-    mode = ctx->mode;
-    switch( mode )
-    {
-        case MPS_L1_MODE_STREAM:
-            return( l1_fetch_stream( &ctx->raw.stream.rd, buf, desired ) );
-
-        case MPS_L1_MODE_DATAGRAM:
-            return( l1_fetch_dgram( &ctx->raw.dgram.rd, buf, desired ) );
-
-        default:
-            return( MPS_ERR_INVALID_PARAMS );
-    }
+    if( mode == MPS_L1_MODE_STREAM )
+        return( l1_fetch_stream( &ctx->raw.stream.rd, buf, desired ) );
+    else /* if( mode == MBEDTLS_MPS_DATAGRAM ) */
+        return( l1_fetch_dgram( &ctx->raw.dgram.rd, buf, desired ) );
 }
 
 int mps_l1_consume( mps_l1 *ctx )
 {
-    uint8_t mode;
+    uint8_t const mode = ctx->mode;
 
-    mode = ctx->mode;
-    switch( mode )
-    {
-        case MPS_L1_MODE_STREAM:
-            return( l1_consume_stream( &ctx->raw.stream.rd ) );
-
-        case MPS_L1_MODE_DATAGRAM:
-            return( l1_consume_dgram( &ctx->raw.dgram.rd ) );
-
-        default:
-            return( MPS_ERR_INVALID_PARAMS );
-    }
+    if( mode == MPS_L1_MODE_STREAM )
+        return( l1_consume_stream( &ctx->raw.stream.rd ) );
+    else /* if( mode == MBEDTLS_MPS_DATAGRAM ) */
+        return( l1_consume_dgram( &ctx->raw.dgram.rd ) );
 }
 
 int mps_l1_write( mps_l1 *ctx, unsigned char **buf, size_t *buflen )
 {
-    uint8_t mode;
+    uint8_t const mode = ctx->mode;
 
-    mode = ctx->mode;
-    switch( mode )
-    {
-        case MPS_L1_MODE_STREAM:
-            return( l1_write_stream( &ctx->raw.stream.wr, buf, buflen ) );
-
-        case MPS_L1_MODE_DATAGRAM:
-            return( l1_write_dgram( &ctx->raw.dgram.wr, buf, buflen ) );
-
-        default:
-            return( MPS_ERR_INVALID_PARAMS );
-    }
+    if( mode == MPS_L1_MODE_STREAM )
+        return( l1_write_stream( &ctx->raw.stream.wr, buf, buflen ) );
+    else /* if( mode == MBEDTLS_MPS_DATAGRAM ) */
+        return( l1_write_dgram( &ctx->raw.dgram.wr, buf, buflen ) );
 }
 
 int mps_l1_dispatch( mps_l1 *ctx, size_t len, size_t *pending )
 {
-    uint8_t mode;
+    uint8_t const mode = ctx->mode;
 
-    mode = ctx->mode;
-    switch( mode )
-    {
-        case MPS_L1_MODE_STREAM:
-            return( l1_dispatch_stream( &ctx->raw.stream.wr, len, pending ) );
-
-        case MPS_L1_MODE_DATAGRAM:
-            return( l1_dispatch_dgram( &ctx->raw.dgram.wr, len, pending ) );
-
-        default:
-            return( MPS_ERR_INVALID_PARAMS );
-    }
+    if( mode == MPS_L1_MODE_STREAM )
+        return( l1_dispatch_stream( &ctx->raw.stream.wr, len, pending ) );
+    else /* if( mode == MBEDTLS_MPS_DATAGRAM ) */
+        return( l1_dispatch_dgram( &ctx->raw.dgram.wr, len, pending ) );
 }
 
 int mps_l1_flush( mps_l1 *ctx )
 {
-    uint8_t mode;
+    uint8_t const mode = ctx->mode;
 
-    mode = ctx->mode;
-    switch( mode )
-    {
-        case MPS_L1_MODE_STREAM:
-            return( l1_flush_stream( &ctx->raw.stream.wr ) );
-
-        case MPS_L1_MODE_DATAGRAM:
-            return( l1_flush_dgram( &ctx->raw.dgram.wr ) );
-
-        default:
-            return( MPS_ERR_INVALID_PARAMS );
-    }
+    if( mode == MPS_L1_MODE_STREAM )
+        return( l1_flush_stream( &ctx->raw.stream.wr ) );
+    else /* if( mode == MBEDTLS_MPS_DATAGRAM ) */
+        return( l1_flush_dgram( &ctx->raw.dgram.wr ) );
 }
 
 int mps_l1_read_dependency( mps_l1 *ctx )
@@ -1189,12 +1132,12 @@ int mps_l1_write_dependency( mps_l1 *ctx )
 int mps_l1_skip( mps_l1 *ctx )
 {
     int ret;
-    unsigned char *buf;
     mps_l1_dgram_read *p;
+    uint8_t const mode = ctx->mode;
 
     TRACE_INIT( "mps_l1_skip" );
 
-    if( ctx->mode != MPS_L1_MODE_DATAGRAM )
+    if( mode != MPS_L1_MODE_DATAGRAM )
     {
         TRACE( trace_error, "Skipping only makes sense for a datagram-based Layer 1 context." );
         RETURN( MPS_ERR_INTERNAL_ERROR );

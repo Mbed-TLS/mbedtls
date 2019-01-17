@@ -11,6 +11,8 @@ Bugfix
      previously lead to a stack overflow on constrained targets.
    * Add `MBEDTLS_SELF_TEST` for the mbedtls_self_test functions
      in the header files, which missed the precompilation check. #971
+   * Fix memory leak in in mpi_miller_rabin(). Contributed by
+     Jens Wiklander <jens.wiklander@linaro.org> in #2363
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

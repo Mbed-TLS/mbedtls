@@ -69,7 +69,7 @@ struct _hr_time
 
 struct _hr_time
 {
-    struct timeval start;
+    struct timespec start;
 };
 
 #endif /* _WIN32 && !EFIX64 && !EFI32 */
@@ -217,26 +217,30 @@ unsigned long mbedtls_timing_hardclock( void )
 }
 #endif /* !HAVE_HARDCLOCK && _MSC_VER && !EFIX64 && !EFI32 */
 
+#if !defined(_WIN32)
+static clockid_t clock_id = CLOCK_MONOTONIC;
+#endif
+
 #if !defined(HAVE_HARDCLOCK)
 
 #define HAVE_HARDCLOCK
 
 static int hardclock_init = 0;
-static struct timeval tv_init;
+static struct timespec ts_init;
 
 unsigned long mbedtls_timing_hardclock( void )
 {
-    struct timeval tv_cur;
+    struct timespec ts_cur;
 
     if( hardclock_init == 0 )
     {
-        gettimeofday( &tv_init, NULL );
+        clock_gettime( clock_id, &ts_init );
         hardclock_init = 1;
     }
 
-    gettimeofday( &tv_cur, NULL );
-    return( ( tv_cur.tv_sec  - tv_init.tv_sec  ) * 1000000
-          + ( tv_cur.tv_usec - tv_init.tv_usec ) );
+    clock_gettime( clock_id, &ts_cur );
+    return( ( ts_cur.tv_sec  - ts_init.tv_sec ) * 1e6 +
+            ( ts_cur.tv_nsec - ts_init.tv_nsec ) / 1e3 );
 }
 #endif /* !HAVE_HARDCLOCK */
 
@@ -300,16 +304,16 @@ unsigned long mbedtls_timing_get_timer( struct mbedtls_timing_hr_time *val, int 
 
     if( reset )
     {
-        gettimeofday( &t->start, NULL );
+        clock_gettime( clock_id, &t->start );
         return( 0 );
     }
     else
     {
         unsigned long delta;
-        struct timeval now;
-        gettimeofday( &now, NULL );
-        delta = ( now.tv_sec  - t->start.tv_sec  ) * 1000ul
-              + ( now.tv_usec - t->start.tv_usec ) / 1000;
+        struct timespec now;
+        clock_gettime( clock_id, &now );
+        delta = ( now.tv_sec  - t->start.tv_sec ) * 1e3 +
+                ( now.tv_nsec - t->start.tv_nsec ) / 1e6;
         return( delta );
     }
 }

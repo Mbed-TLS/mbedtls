@@ -843,11 +843,18 @@ static psa_status_t psa_remove_key_data_from_memory( psa_key_slot_t *slot )
     return( PSA_SUCCESS );
 }
 
+static void psa_abort_operations_using_key( psa_key_slot_t *slot )
+{
+    /*TODO*/
+    (void) slot;
+}
+
 /** Completely wipe a slot in memory, including its policy.
  * Persistent storage is not affected. */
 psa_status_t psa_wipe_key_slot( psa_key_slot_t *slot )
 {
     psa_status_t status = psa_remove_key_data_from_memory( slot );
+    psa_abort_operations_using_key( slot );
     /* At this point, key material and other type-specific content has
      * been wiped. Clear remaining metadata. We can call memset and not
      * zeroize because the metadata is not particularly sensitive. */
@@ -3125,7 +3132,7 @@ typedef struct
     uint8_t tag_length;
 } aead_operation_t;
 
-static void psa_aead_abort( aead_operation_t *operation )
+static void psa_aead_abort_internal( aead_operation_t *operation )
 {
     switch( operation->core_alg )
     {
@@ -3212,7 +3219,7 @@ static psa_status_t psa_aead_setup( aead_operation_t *operation,
     return( PSA_SUCCESS );
 
 cleanup:
-    psa_aead_abort( operation );
+    psa_aead_abort_internal( operation );
     return( status );
 }
 
@@ -3283,7 +3290,7 @@ psa_status_t psa_aead_encrypt( psa_key_handle_t handle,
         memset( ciphertext, 0, ciphertext_size );
 
 exit:
-    psa_aead_abort( &operation );
+    psa_aead_abort_internal( &operation );
     if( status == PSA_SUCCESS )
         *ciphertext_length = plaintext_length + operation.tag_length;
     return( status );
@@ -3380,7 +3387,7 @@ psa_status_t psa_aead_decrypt( psa_key_handle_t handle,
         memset( plaintext, 0, plaintext_size );
 
 exit:
-    psa_aead_abort( &operation );
+    psa_aead_abort_internal( &operation );
     if( status == PSA_SUCCESS )
         *plaintext_length = ciphertext_length - operation.tag_length;
     return( status );

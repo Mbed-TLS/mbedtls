@@ -231,6 +231,9 @@ psa_status_t psa_create_key(psa_key_lifetime_t lifetime,
  * with the key in volatile memory. The key slot in persistent storage is
  * not affected and can be opened again later with psa_open_key().
  *
+ * If the key is currently in use in a multipart operation,
+ * the multipart operation is aborted.
+ *
  * \param handle        The key handle to close.
  *
  * \retval #PSA_SUCCESS
@@ -314,6 +317,9 @@ psa_status_t psa_import_key(psa_key_handle_t handle,
  *
  * This function also erases any metadata such as policies and frees all
  * resources associated with the key.
+ *
+ * If the key is currently in use in a multipart operation,
+ * the multipart operation is aborted.
  *
  * \param handle        Handle to the key slot to erase.
  *
@@ -765,6 +771,66 @@ psa_status_t psa_get_key_policy(psa_key_handle_t handle,
  * @{
  */
 
+/** Calculate the hash (digest) of a message.
+ *
+ * \note To verify the hash of a message against an
+ *       expected value, use psa_hash_compare() instead.
+ *
+ * \param alg               The hash algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_HASH(\p alg) is true).
+ * \param[in] input         Buffer containing the message to hash.
+ * \param input_length      Size of the \p input buffer in bytes.
+ * \param[out] hash         Buffer where the hash is to be written.
+ * \param hash_size         Size of the \p hash buffer in bytes.
+ * \param[out] hash_length  On success, the number of bytes
+ *                          that make up the hash value. This is always
+ *                          #PSA_HASH_SIZE(\c alg) where \c alg is the
+ *                          hash algorithm that is calculated.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a hash algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_hash_compute(psa_algorithm_t alg,
+                              const uint8_t *input,
+                              size_t input_length,
+                              uint8_t *hash,
+                              size_t hash_size,
+                              size_t *hash_length);
+
+/** Calculate the hash (digest) of a message and compare it with a
+ * reference value.
+ *
+ * \param alg               The hash algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_HASH(\p alg) is true).
+ * \param[in] input         Buffer containing the message to hash.
+ * \param input_length      Size of the \p input buffer in bytes.
+ * \param[out] hash         Buffer containing the expected hash value.
+ * \param hash_length       Size of the \p hash buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         The expected hash is identical to the actual hash of the input.
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The hash of the message was calculated successfully, but it
+ *         differs from the expected hash.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a hash algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_hash_compare(psa_algorithm_t alg,
+                              const uint8_t *input,
+                              size_t input_length,
+                              const uint8_t *hash,
+                              const size_t hash_length);
+
 /** The type of the state data structure for multipart hash operations.
  *
  * Before calling any function on a hash operation object, the application must
@@ -811,7 +877,7 @@ typedef struct psa_hash_operation_s psa_hash_operation_t;
  */
 static psa_hash_operation_t psa_hash_operation_init(void);
 
-/** Start a multipart hash operation.
+/** Set up a multipart hash operation.
  *
  * The sequence of operations to calculate a hash (message digest)
  * is as follows:
@@ -866,7 +932,7 @@ psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, or already completed).
+ *         The operation state is not valid (not set up, or already completed).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -903,7 +969,7 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, or already completed).
+ *         The operation state is not valid (not set up, or already completed).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p hash buffer is too small. You can determine a
  *         sufficient buffer size by calling #PSA_HASH_SIZE(\c alg)
@@ -943,7 +1009,7 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
  *         The hash of the message was calculated successfully, but it
  *         differs from the expected hash.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, or already completed).
+ *         The operation state is not valid (not set up, or already completed).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -987,6 +1053,88 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation);
 /** \defgroup MAC Message authentication codes
  * @{
  */
+
+/** Calculate the MAC (message authentication code) of a message.
+ *
+ * \note To verify the MAC of a message against an
+ *       expected value, use psa_mac_verify() instead.
+ *       Beware that comparing integrity or authenticity data such as
+ *       MAC values with a function such as \c memcmp is risky
+ *       because the time taken by the comparison may leak information
+ *       about the MAC value which could allow an attacker to guess
+ *       a valid MAC and thereby bypass security controls.
+ *
+ * \param handle            Handle to the key to use for the operation.
+ * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_MAC(alg) is true).
+ * \param[in] input         Buffer containing the input message.
+ * \param input_length      Size of the \p input buffer in bytes.
+ * \param[out] mac          Buffer where the MAC value is to be written.
+ * \param mac_size          Size of the \p mac buffer in bytes.
+ * \param[out] mac_length   On success, the number of bytes
+ *                          that make up the mac value. This is always
+ *                          #PSA_HASH_SIZE(\c alg) where \c alg is the
+ *                          hash algorithm that is calculated.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a MAC algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_mac_compute(psa_key_handle_t handle,
+                             psa_algorithm_t alg,
+                             const uint8_t *input,
+                             size_t input_length,
+                             uint8_t *mac,
+                             size_t mac_size,
+                             size_t *mac_length);
+
+/** Calculate the MAC of a message and compare it with a reference value.
+ *
+ * \param handle            Handle to the key to use for the operation.
+ * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
+ *                          such that #PSA_ALG_IS_MAC(alg) is true).
+ * \param[in] input         Buffer containing the input message.
+ * \param input_length      Size of the \p input buffer in bytes.
+ * \param[out] mac          Buffer containing the expected MAC value.
+ * \param mac_length        Size of the \p mac buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         The expected MAC is identical to the actual MAC of the input.
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The MAC of the message was calculated successfully, but it
+ *         differs from the expected value.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a MAC algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_mac_verify(psa_key_handle_t handle,
+                            psa_algorithm_t alg,
+                            const uint8_t *input,
+                            size_t input_length,
+                            const uint8_t *mac,
+                            const size_t mac_length);
 
 /** The type of the state data structure for multipart MAC operations.
  *
@@ -1034,7 +1182,7 @@ typedef struct psa_mac_operation_s psa_mac_operation_t;
  */
 static psa_mac_operation_t psa_mac_operation_init(void);
 
-/** Start a multipart MAC calculation operation.
+/** Set up a multipart MAC calculation operation.
  *
  * This function sets up the calculation of the MAC
  * (message authentication code) of a byte string.
@@ -1047,8 +1195,6 @@ static psa_mac_operation_t psa_mac_operation_init(void);
  * -# Initialize the operation object with one of the methods described in the
  *    documentation for #psa_mac_operation_t, e.g. PSA_MAC_OPERATION_INIT.
  * -# Call psa_mac_sign_setup() to specify the algorithm and key.
- *    The key remains associated with the operation even if the content
- *    of the key slot changes.
  * -# Call psa_mac_update() zero, one or more times, passing a fragment
  *    of the message each time. The MAC that is calculated is the MAC
  *    of the concatenation of these messages in order.
@@ -1067,6 +1213,8 @@ static psa_mac_operation_t psa_mac_operation_init(void);
  *                          been initialized as per the documentation for
  *                          #psa_mac_operation_t and not yet in use.
  * \param handle            Handle to the key to use for the operation.
+ *                          It must remain valid until the operation
+ *                          terminates.
  * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
  *                          such that #PSA_ALG_IS_MAC(alg) is true).
  *
@@ -1092,7 +1240,7 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
                                 psa_key_handle_t handle,
                                 psa_algorithm_t alg);
 
-/** Start a multipart MAC verification operation.
+/** Set up a multipart MAC verification operation.
  *
  * This function sets up the verification of the MAC
  * (message authentication code) of a byte string against an expected value.
@@ -1103,8 +1251,6 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  * -# Initialize the operation object with one of the methods described in the
  *    documentation for #psa_mac_operation_t, e.g. PSA_MAC_OPERATION_INIT.
  * -# Call psa_mac_verify_setup() to specify the algorithm and key.
- *    The key remains associated with the operation even if the content
- *    of the key slot changes.
  * -# Call psa_mac_update() zero, one or more times, passing a fragment
  *    of the message each time. The MAC that is calculated is the MAC
  *    of the concatenation of these messages in order.
@@ -1124,6 +1270,8 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
  *                          been initialized as per the documentation for
  *                          #psa_mac_operation_t and not yet in use.
  * \param handle            Handle to the key to use for the operation.
+ *                          It must remain valid until the operation
+ *                          terminates.
  * \param alg               The MAC algorithm to compute (\c PSA_ALG_XXX value
  *                          such that #PSA_ALG_IS_MAC(\p alg) is true).
  *
@@ -1164,7 +1312,7 @@ psa_status_t psa_mac_verify_setup(psa_mac_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, or already completed).
+ *         The operation state is not valid (not set up, or already completed).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -1203,7 +1351,7 @@ psa_status_t psa_mac_update(psa_mac_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, or already completed).
+ *         The operation state is not valid (not set up, or already completed).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p mac buffer is too small. You can determine a
  *         sufficient buffer size by calling PSA_MAC_FINAL_SIZE().
@@ -1242,7 +1390,7 @@ psa_status_t psa_mac_sign_finish(psa_mac_operation_t *operation,
  *         The MAC of the message was calculated successfully, but it
  *         differs from the expected MAC.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, or already completed).
+ *         The operation state is not valid (not set up, or already completed).
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
@@ -1287,6 +1435,91 @@ psa_status_t psa_mac_abort(psa_mac_operation_t *operation);
 /** \defgroup cipher Symmetric ciphers
  * @{
  */
+
+/** Encrypt a message using a symmetric cipher.
+ *
+ * This function encrypts a message with a random IV (initialization
+ * vector).
+ *
+ * \param handle                Handle to the key to use for the operation.
+ *                              It must remain valid until the operation
+ *                              terminates.
+ * \param alg                   The cipher algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
+ * \param[in] input             Buffer containing the message to encrypt.
+ * \param input_length          Size of the \p input buffer in bytes.
+ * \param[out] output           Buffer where the output is to be written.
+ *                              The output contains the IV followed by
+ *                              the ciphertext proper.
+ * \param output_size           Size of the \p output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the output.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a cipher algorithm.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_cipher_encrypt(psa_key_handle_t handle,
+                                psa_algorithm_t alg,
+                                const uint8_t *input,
+                                size_t input_length,
+                                uint8_t *output,
+                                size_t output_size,
+                                size_t *output_length);
+
+/** Decrypt a message using a symmetric cipher.
+ *
+ * This function decrypts a message encrypted with a symmetric cipher.
+ *
+ * \param handle                Handle to the key to use for the operation.
+ *                              It must remain valid until the operation
+ *                              terminates.
+ * \param alg                   The cipher algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
+ * \param[in] input             Buffer containing the message to decrypt.
+ *                              This consists of the IV followed by the
+ *                              ciphertext proper.
+ * \param input_length          Size of the \p input buffer in bytes.
+ * \param[out] output           Buffer where the plaintext is to be written.
+ * \param output_size           Size of the \p output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the output.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not a cipher algorithm.
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_cipher_decrypt(psa_key_handle_t handle,
+                                psa_algorithm_t alg,
+                                const uint8_t *input,
+                                size_t input_length,
+                                uint8_t *output,
+                                size_t output_size,
+                                size_t *output_length);
 
 /** The type of the state data structure for multipart cipher operations.
  *
@@ -1344,8 +1577,6 @@ static psa_cipher_operation_t psa_cipher_operation_init(void);
  *    documentation for #psa_cipher_operation_t, e.g.
  *    PSA_CIPHER_OPERATION_INIT.
  * -# Call psa_cipher_encrypt_setup() to specify the algorithm and key.
- *    The key remains associated with the operation even if the content
- *    of the key slot changes.
  * -# Call either psa_cipher_generate_iv() or psa_cipher_set_iv() to
  *    generate or set the IV (initialization vector). You should use
  *    psa_cipher_generate_iv() unless the protocol you are implementing
@@ -1360,14 +1591,15 @@ static psa_cipher_operation_t psa_cipher_operation_init(void);
  * After a successful call to psa_cipher_encrypt_setup(), the application must
  * eventually terminate the operation. The following events terminate an
  * operation:
- * - A failed call to psa_cipher_generate_iv(), psa_cipher_set_iv()
- *   or psa_cipher_update().
+ * - A failed call to any of the \c psa_cipher_xxx functions.
  * - A call to psa_cipher_finish() or psa_cipher_abort().
  *
  * \param[in,out] operation     The operation object to set up. It must have
  *                              been initialized as per the documentation for
  *                              #psa_cipher_operation_t and not yet in use.
  * \param handle                Handle to the key to use for the operation.
+ *                              It must remain valid until the operation
+ *                              terminates.
  * \param alg                   The cipher algorithm to compute
  *                              (\c PSA_ALG_XXX value such that
  *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
@@ -1404,9 +1636,7 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
  *    documentation for #psa_cipher_operation_t, e.g.
  *    PSA_CIPHER_OPERATION_INIT.
  * -# Call psa_cipher_decrypt_setup() to specify the algorithm and key.
- *    The key remains associated with the operation even if the content
- *    of the key slot changes.
- * -# Call psa_cipher_update() with the IV (initialization vector) for the
+ * -# Call psa_cipher_set_iv() with the IV (initialization vector) for the
  *    decryption. If the IV is prepended to the ciphertext, you can call
  *    psa_cipher_update() on a buffer containing the IV followed by the
  *    beginning of the message.
@@ -1420,13 +1650,15 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
  * After a successful call to psa_cipher_decrypt_setup(), the application must
  * eventually terminate the operation. The following events terminate an
  * operation:
- * - A failed call to psa_cipher_update().
+ * - A failed call to any of the \c psa_cipher_xxx functions.
  * - A call to psa_cipher_finish() or psa_cipher_abort().
  *
  * \param[in,out] operation     The operation object to set up. It must have
  *                              been initialized as per the documentation for
  *                              #psa_cipher_operation_t and not yet in use.
  * \param handle                Handle to the key to use for the operation.
+ *                              It must remain valid until the operation
+ *                              terminates.
  * \param alg                   The cipher algorithm to compute
  *                              (\c PSA_ALG_XXX value such that
  *                              #PSA_ALG_IS_CIPHER(\p alg) is true).
@@ -1473,7 +1705,7 @@ psa_status_t psa_cipher_decrypt_setup(psa_cipher_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, or IV already set).
+ *         The operation state is not valid (not set up, or IV already set).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p iv buffer is too small.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -1488,7 +1720,7 @@ psa_status_t psa_cipher_generate_iv(psa_cipher_operation_t *operation,
 
 /** Set the IV for a symmetric encryption or decryption operation.
  *
- * This function sets the random IV (initialization vector), nonce
+ * This function sets the IV (initialization vector), nonce
  * or initial counter value for the encryption or decryption operation.
  *
  * The application must call psa_cipher_encrypt_setup() before
@@ -1507,7 +1739,7 @@ psa_status_t psa_cipher_generate_iv(psa_cipher_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, or IV already set).
+ *         The operation state is not valid (not set up, or IV already set).
  * \retval #PSA_ERROR_INVALID_ARGUMENT
  *         The size of \p iv is not acceptable for the chosen algorithm,
  *         or the chosen algorithm does not use an IV.
@@ -1543,7 +1775,7 @@ psa_status_t psa_cipher_set_iv(psa_cipher_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, IV required but
+ *         The operation state is not valid (not set up, IV required but
  *         not set, or already completed).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
@@ -1581,7 +1813,7 @@ psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
  * \retval #PSA_SUCCESS
  *         Success.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (not started, IV required but
+ *         The operation state is not valid (not set up, IV required but
  *         not set, or already completed).
  * \retval #PSA_ERROR_BUFFER_TOO_SMALL
  *         The size of the \p output buffer is too small.
@@ -1746,6 +1978,515 @@ psa_status_t psa_aead_decrypt(psa_key_handle_t handle,
                               uint8_t *plaintext,
                               size_t plaintext_size,
                               size_t *plaintext_length);
+
+/** The type of the state data structure for multipart AEAD operations.
+ *
+ * Before calling any function on an AEAD operation object, the application
+ * must initialize it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ *   \code
+ *   psa_aead_operation_t operation;
+ *   memset(&operation, 0, sizeof(operation));
+ *   \endcode
+ * - Initialize the structure to logical zero values, for example:
+ *   \code
+ *   psa_aead_operation_t operation = {0};
+ *   \endcode
+ * - Initialize the structure to the initializer #PSA_AEAD_OPERATION_INIT,
+ *   for example:
+ *   \code
+ *   psa_aead_operation_t operation = PSA_AEAD_OPERATION_INIT;
+ *   \endcode
+ * - Assign the result of the function psa_aead_operation_init()
+ *   to the structure, for example:
+ *   \code
+ *   psa_aead_operation_t operation;
+ *   operation = psa_aead_operation_init();
+ *   \endcode
+ *
+ * This is an implementation-defined \c struct. Applications should not
+ * make any assumptions about the content of this structure except
+ * as directed by the documentation of a specific implementation. */
+typedef struct psa_aead_operation_s psa_aead_operation_t;
+
+/** \def PSA_AEAD_OPERATION_INIT
+ *
+ * This macro returns a suitable initializer for an AEAD operation object of
+ * type #psa_aead_operation_t.
+ */
+#ifdef __DOXYGEN_ONLY__
+/* This is an example definition for documentation purposes.
+ * Implementations should define a suitable value in `crypto_struct.h`.
+ */
+#define PSA_AEAD_OPERATION_INIT {0}
+#endif
+
+/** Return an initial value for an AEAD operation object.
+ */
+static psa_aead_operation_t psa_aead_operation_init(void);
+
+/** Set the key for a multipart authenticated encryption operation.
+ *
+ * The sequence of operations to encrypt a message with authentication
+ * is as follows:
+ * -# Allocate an operation object which will be passed to all the functions
+ *    listed here.
+ * -# Initialize the operation object with one of the methods described in the
+ *    documentation for #psa_aead_operation_t, e.g.
+ *    PSA_AEAD_OPERATION_INIT.
+ * -# Call psa_aead_encrypt_setup() to specify the algorithm and key.
+ * -# If needed, call psa_aead_set_lengths() to specify the length of the
+ *    inputs to the subsequent calls to psa_aead_update_ad() and
+ *    psa_aead_update(). See the documentation of psa_aead_set_lengths()
+ *    for details.
+ * -# Call either psa_aead_generate_nonce() or psa_aead_set_nonce() to
+ *    generate or set the nonce. You should use
+ *    psa_aead_generate_nonce() unless the protocol you are implementing
+ *    requires a specific nonce value.
+ * -# Call psa_aead_update_ad() zero, one or more times, passing a fragment
+ *    of the non-encrypted additional authenticated data each time.
+ * -# Call psa_aead_update() zero, one or more times, passing a fragment
+ *    of the message to encrypt each time.
+ * -# Call psa_aead_finish().
+ *
+ * The application may call psa_aead_abort() at any time after the operation
+ * has been initialized.
+ *
+ * After a successful call to psa_aead_encrypt_setup(), the application must
+ * eventually terminate the operation. The following events terminate an
+ * operation:
+ * - A failed call to any of the \c psa_aead_xxx functions.
+ * - A call to psa_aead_finish(), psa_aead_verify() or psa_aead_abort().
+ *
+ * \param[in,out] operation     The operation object to set up. It must have
+ *                              been initialized as per the documentation for
+ *                              #psa_aead_operation_t and not yet in use.
+ * \param handle                Handle to the key to use for the operation.
+ *                              It must remain valid until the operation
+ *                              terminates.
+ * \param alg                   The AEAD algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_AEAD(\p alg) is true).
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not an AEAD algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_aead_encrypt_setup(psa_aead_operation_t *operation,
+                                    psa_key_handle_t handle,
+                                    psa_algorithm_t alg);
+
+/** Set the key for a multipart authenticated decryption operation.
+ *
+ * The sequence of operations to decrypt a message with authentication
+ * is as follows:
+ * -# Allocate an operation object which will be passed to all the functions
+ *    listed here.
+ * -# Initialize the operation object with one of the methods described in the
+ *    documentation for #psa_aead_operation_t, e.g.
+ *    PSA_AEAD_OPERATION_INIT.
+ * -# Call psa_aead_decrypt_setup() to specify the algorithm and key.
+ * -# If needed, call psa_aead_set_lengths() to specify the length of the
+ *    inputs to the subsequent calls to psa_aead_update_ad() and
+ *    psa_aead_update(). See the documentation of psa_aead_set_lengths()
+ *    for details.
+ * -# Call psa_aead_set_nonce() with the nonce for the decryption.
+ * -# Call psa_aead_update_ad() zero, one or more times, passing a fragment
+ *    of the non-encrypted additional authenticated data each time.
+ * -# Call psa_aead_update() zero, one or more times, passing a fragment
+ *    of the ciphertext to decrypt each time.
+ * -# Call psa_aead_verify().
+ *
+ * The application may call psa_aead_abort() at any time after the operation
+ * has been initialized.
+ *
+ * After a successful call to psa_aead_decrypt_setup(), the application must
+ * eventually terminate the operation. The following events terminate an
+ * operation:
+ * - A failed call to any of the \c psa_aead_xxx functions.
+ * - A call to psa_aead_finish(), psa_aead_verify() or psa_aead_abort().
+ *
+ * \param[in,out] operation     The operation object to set up. It must have
+ *                              been initialized as per the documentation for
+ *                              #psa_aead_operation_t and not yet in use.
+ * \param handle                Handle to the key to use for the operation.
+ *                              It must remain valid until the operation
+ *                              terminates.
+ * \param alg                   The AEAD algorithm to compute
+ *                              (\c PSA_ALG_XXX value such that
+ *                              #PSA_ALG_IS_AEAD(\p alg) is true).
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p key is not compatible with \p alg.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not supported or is not an AEAD algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_aead_decrypt_setup(psa_aead_operation_t *operation,
+                                    psa_key_handle_t handle,
+                                    psa_algorithm_t alg);
+
+/** Generate a random nonce for an authenticated encryption operation.
+ *
+ * This function generates a random nonce for the authenticated encryption
+ * operation with an appropriate size for the chosen algorithm, key type
+ * and key size.
+ *
+ * The application must call psa_aead_encrypt_setup() before
+ * calling this function.
+ *
+ * If this function returns an error status, the operation becomes inactive.
+ *
+ * \param[in,out] operation     Active AEAD operation.
+ * \param[out] nonce            Buffer where the generated nonce is to be
+ *                              written.
+ * \param nonce_size            Size of the \p nonce buffer in bytes.
+ * \param[out] nonce_length     On success, the number of bytes of the
+ *                              generated nonce.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (not set up, or nonce already set).
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p nonce buffer is too small.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_aead_generate_nonce(psa_aead_operation_t *operation,
+                                     unsigned char *nonce,
+                                     size_t nonce_size,
+                                     size_t *nonce_length);
+
+/** Set the nonce for an authenticated encryption or decryption operation.
+ *
+ * This function sets the nonce for the authenticated
+ * encryption or decryption operation.
+ *
+ * The application must call psa_aead_encrypt_setup() before
+ * calling this function.
+ *
+ * If this function returns an error status, the operation becomes inactive.
+ *
+ * \note When encrypting, applications should use psa_aead_generate_nonce()
+ * instead of this function, unless implementing a protocol that requires
+ * a non-random IV.
+ *
+ * \param[in,out] operation     Active AEAD operation.
+ * \param[in] nonce             Buffer containing the nonce to use.
+ * \param nonce_length          Size of the nonce in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (not set up, or nonce already set).
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The size of \p nonce is not acceptable for the chosen algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_aead_set_nonce(psa_aead_operation_t *operation,
+                                const unsigned char *nonce,
+                                size_t nonce_length);
+
+/** Declare the lengths of the message and additional data for AEAD.
+ *
+ * The application must call this function before calling
+ * psa_aead_update_ad() or psa_aead_update() if the algorithm for
+ * the operation requires it. If the algorithm does not require it,
+ * calling this function is optional, but if this function is called
+ * then the implementation must enforce the lengths.
+ *
+ * You may call this function before or after setting the nonce with
+ * psa_aead_set_nonce() or psa_aead_generate_nonce().
+ *
+ * - For #PSA_ALG_CCM, calling this function is required.
+ * - For the other AEAD algorithms defined in this specification, calling
+ *   this function is not required.
+ * - For vendor-defined algorithm, refer to the vendor documentation.
+ *
+ * \param[in,out] operation     Active AEAD operation.
+ * \param ad_length             Size of the non-encrypted additional
+ *                              authenticated data in bytes.
+ * \param plaintext_length      Size of the plaintext to encrypt in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (not set up, already completed,
+ *         or psa_aead_update_ad() or psa_aead_update() already called).
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         At least one of the lengths is not acceptable for the chosen
+ *         algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_aead_set_lengths(psa_aead_operation_t *operation,
+                                  size_t ad_length,
+                                  size_t plaintext_length);
+
+/** Pass additional data to an active AEAD operation.
+ *
+ * Additional data is authenticated, but not encrypted.
+ *
+ * You may call this function multiple times to pass successive fragments
+ * of the additional data. You may not call this function after passing
+ * data to encrypt or decrypt with psa_aead_update().
+ *
+ * Before calling this function, you must:
+ * 1. Call either psa_aead_encrypt_setup() or psa_aead_decrypt_setup().
+ * 2. Set the nonce with psa_aead_generate_nonce() or psa_aead_set_nonce().
+ *
+ * If this function returns an error status, the operation becomes inactive.
+ *
+ * \warning When decrypting, until psa_aead_verify() has returned #PSA_SUCCESS,
+ *          there is no guarantee that the input is valid. Therefore, until
+ *          you have called psa_aead_verify() and it has returned #PSA_SUCCESS,
+ *          treat the input as untrusted and prepare to undo any action that
+ *          depends on the input if psa_aead_verify() returns an error status.
+ *
+ * \param[in,out] operation     Active AEAD operation.
+ * \param[in] input             Buffer containing the fragment of
+ *                              additional data.
+ * \param input_length          Size of the \p input buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (not set up, nonce not set,
+ *         psa_aead_update() already called, or operation already completed).
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total input length overflows the additional data length that
+ *         was previously specified with psa_aead_set_lengths().
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_aead_update_ad(psa_aead_operation_t *operation,
+                                const uint8_t *input,
+                                size_t input_length);
+
+/** Encrypt or decrypt a message fragment in an active AEAD operation.
+ *
+ * Before calling this function, you must:
+ * 1. Call either psa_aead_encrypt_setup() or psa_aead_decrypt_setup().
+ *    The choice of setup function determines whether this function
+ *    encrypts or decrypts its input.
+ * 2. Set the nonce with psa_aead_generate_nonce() or psa_aead_set_nonce().
+ * 3. Call psa_aead_update_ad() to pass all the additional data.
+ *
+ * If this function returns an error status, the operation becomes inactive.
+ *
+ * \warning When decrypting, until psa_aead_verify() has returned #PSA_SUCCESS,
+ *          there is no guarantee that the input is valid. Therefore, until
+ *          you have called psa_aead_verify() and it has returned #PSA_SUCCESS:
+ *          - Do not use the output in any way other than storing it in a
+ *            confidential location. If you take any action that depends
+ *            on the tentative decrypted data, this action will need to be
+ *            undone if the input turns out not to be valid. Furthermore,
+ *            if an adversary can observe that this action took place
+ *            (for example through timing), they may be able to use this
+ *            fact as an oracle to decrypt any message encrypted with the
+ *            same key.
+ *          - In particular, do not copy the output anywhere but to a
+ *            memory or storage space that you have exclusive access to.
+ *
+ * \param[in,out] operation     Active AEAD operation.
+ * \param[in] input             Buffer containing the message fragment to
+ *                              encrypt or decrypt.
+ * \param input_length          Size of the \p input buffer in bytes.
+ * \param[out] output           Buffer where the output is to be written.
+ * \param output_size           Size of the \p output buffer in bytes.
+ * \param[out] output_length    On success, the number of bytes
+ *                              that make up the returned output.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (not set up, nonce not set
+ *         or already completed).
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p output buffer is too small.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total length of input to psa_aead_update_ad() so far is
+ *         less than the additional data length that was previously
+ *         specified with psa_aead_set_lengths().
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total input length overflows the plaintext length that
+ *         was previously specified with psa_aead_set_lengths().
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_aead_update(psa_aead_operation_t *operation,
+                             const uint8_t *input,
+                             size_t input_length,
+                             unsigned char *output,
+                             size_t output_size,
+                             size_t *output_length);
+
+/** Finish encrypting a message in an AEAD operation.
+ *
+ * The operation must have been set up with psa_aead_encrypt_setup().
+ *
+ * This function finishes the authentication of the additional data
+ * formed by concatenating the inputs passed to preceding calls to
+ * psa_aead_update_ad() with the plaintext formed by concatenating the
+ * inputs passed to preceding calls to psa_aead_update().
+ *
+ * This function has two output buffers:
+ * - \p ciphertext contains trailing ciphertext that was buffered from
+ *   preceding calls to psa_aead_update(). For all standard AEAD algorithms,
+ *   psa_aead_update() does not buffer any output and therefore \p ciphertext
+ *   will not contain any output and can be a 0-sized buffer.
+ * - \p tag contains the authentication tag. Its length is always
+ *   #PSA_AEAD_TAG_LENGTH(\p alg) where \p alg is the AEAD algorithm
+ *   that the operation performs.
+ *
+ * When this function returns, the operation becomes inactive.
+ *
+ * \param[in,out] operation     Active AEAD operation.
+ * \param[out] ciphertext       Buffer where the last part of the ciphertext
+ *                              is to be written.
+ * \param ciphertext_size       Size of the \p ciphertext buffer in bytes.
+ * \param[out] ciphertext_length On success, the number of bytes of
+ *                              returned ciphertext.
+ * \param[out] tag              Buffer where the authentication tag is
+ *                              to be written.
+ * \param tag_size              Size of the \p tag buffer in bytes.
+ * \param[out] tag_length       On success, the number of bytes
+ *                              that make up the returned tag.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (not set up, nonce not set,
+ *         decryption, or already completed).
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p output buffer is too small.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total length of input to psa_aead_update_ad() so far is
+ *         less than the additional data length that was previously
+ *         specified with psa_aead_set_lengths().
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total length of input to psa_aead_update() so far is
+ *         less than the plaintext length that was previously
+ *         specified with psa_aead_set_lengths().
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_aead_finish(psa_aead_operation_t *operation,
+                             uint8_t *ciphertext,
+                             size_t ciphertext_size,
+                             size_t *ciphertext_length,
+                             uint8_t *tag,
+                             size_t tag_size,
+                             size_t *tag_length);
+
+/** Finish authenticating and decrypting a message in an AEAD operation.
+ *
+ * The operation must have been set up with psa_aead_decrypt_setup().
+ *
+ * This function finishes the authentication of the additional data
+ * formed by concatenating the inputs passed to preceding calls to
+ * psa_aead_update_ad() with the ciphertext formed by concatenating the
+ * inputs passed to preceding calls to psa_aead_update().
+ *
+ * When this function returns, the operation becomes inactive.
+ *
+ * \param[in,out] operation     Active AEAD operation.
+ * \param[in] tag               Buffer containing the authentication tag.
+ * \param tag_length            Size of the \p tag buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid (not set up, nonce not set,
+ *         encryption, or already completed).
+ * \retval #PSA_ERROR_BUFFER_TOO_SMALL
+ *         The size of the \p output buffer is too small.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total length of input to psa_aead_update_ad() so far is
+ *         less than the additional data length that was previously
+ *         specified with psa_aead_set_lengths().
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The total length of input to psa_aead_update() so far is
+ *         less than the plaintext length that was previously
+ *         specified with psa_aead_set_lengths().
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_aead_verify(psa_aead_operation_t *operation,
+                             const uint8_t *tag,
+                             size_t tag_length);
+
+/** Abort an AEAD operation.
+ *
+ * Aborting an operation frees all associated resources except for the
+ * \p operation structure itself. Once aborted, the operation object
+ * can be reused for another operation by calling
+ * psa_aead_encrypt_setup() or psa_aead_decrypt_setup() again.
+ *
+ * You may call this function any time after the operation object has
+ * been initialized by any of the following methods:
+ * - A call to psa_aead_encrypt_setup() or psa_aead_decrypt_setup(),
+ *   whether it succeeds or not.
+ * - Initializing the \c struct to all-bits-zero.
+ * - Initializing the \c struct to logical zeros, e.g.
+ *   `psa_aead_operation_t operation = {0}`.
+ *
+ * In particular, calling psa_aead_abort() after the operation has been
+ * terminated by a call to psa_aead_abort() or psa_aead_finish()
+ * is safe and has no effect.
+ *
+ * \param[in,out] operation     Initialized AEAD operation.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_BAD_STATE
+ *         \p operation is not an active AEAD operation.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_aead_abort(psa_aead_operation_t *operation);
 
 /**@}*/
 

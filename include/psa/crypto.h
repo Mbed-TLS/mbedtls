@@ -2765,6 +2765,22 @@ static psa_crypto_generator_t psa_crypto_generator_init(void);
 psa_status_t psa_get_generator_capacity(const psa_crypto_generator_t *generator,
                                         size_t *capacity);
 
+/** Set the maximum capacity of a generator.
+ *
+ * \param[in,out] generator The generator object to modify.
+ * \param capacity          The new capacity of the generator.
+ *                          It must be less or equal to the generator's
+ *                          current capacity.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p capacity is larger than the generator's current capacity.
+ * \retval #PSA_ERROR_BAD_STATE
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ */
+psa_status_t psa_set_generator_capacity(psa_crypto_generator_t *generator,
+                                        size_t capacity);
+
 /** Read some data from a generator.
  *
  * This function reads and returns a sequence of bytes from a generator.
@@ -2892,37 +2908,36 @@ psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
 
 /** Set up a key derivation operation.
  *
- * A key derivation algorithm takes three inputs: a secret input \p key and
- * two non-secret inputs \p label and p salt.
- * The result of this function is a byte generator which can
- * be used to produce keys and other cryptographic material.
+ * A key derivation algorithm takes some inputs and uses them to create
+ * a byte generator which can be used to produce keys and other
+ * cryptographic material.
  *
- * The role of \p label and \p salt is as follows:
- * - For HKDF (#PSA_ALG_HKDF), \p salt is the salt used in the "extract" step
- *   and \p label is the info string used in the "expand" step.
+ * To use a generator for key derivation:
+ * - Start with an initialized object of type #psa_crypto_generator_t.
+ * - Call psa_key_derivation_setup() to select the algorithm.
+ * - Provide the inputs for the key derivation by calling
+ *   psa_key_derivation_input_bytes() or psa_key_derivation_input_key()
+ *   as appropriate. Which inputs are needed, in what order, and whether
+ *   they may be keys and if so of what type depends on the algorithm.
+ * - Optionally set the generator's maximum capacity with
+ *   psa_set_generator_capacity(). You may do this before, in the middle of
+ *   or after providing inputs. For some algorithms, this step is mandatory
+ *   because the output depends on the maximum capacity.
+ * - Generate output with psa_generator_read() or
+ *   psa_generator_import_key(). Successive calls to these functions
+ *   use successive output bytes from the generator.
+ * - Clean up the generator object with psa_generator_abort().
  *
- * \param[in,out] generator       The generator object to set up. It must have
- *                                been initialized as per the documentation for
- *                                #psa_crypto_generator_t and not yet in use.
- * \param handle                  Handle to the secret key.
+ * \param[in,out] generator       The generator object to set up. It must
+ *                                have been initialized but not set up yet.
  * \param alg                     The key derivation algorithm to compute
  *                                (\c PSA_ALG_XXX value such that
  *                                #PSA_ALG_IS_KEY_DERIVATION(\p alg) is true).
- * \param[in] salt                Salt to use.
- * \param salt_length             Size of the \p salt buffer in bytes.
- * \param[in] label               Label to use.
- * \param label_length            Size of the \p label buffer in bytes.
- * \param capacity                The maximum number of bytes that the
- *                                generator will be able to provide.
  *
  * \retval #PSA_SUCCESS
  *         Success.
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_EMPTY_SLOT
- * \retval #PSA_ERROR_NOT_PERMITTED
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \c key is not compatible with \c alg,
- *         or \p capacity is too large for the specified algorithm and key.
+ *         \c alg is not a key derivation algorithm.
  * \retval #PSA_ERROR_NOT_SUPPORTED
  *         \c alg is not supported or is not a key derivation algorithm.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
@@ -2930,33 +2945,115 @@ psa_status_t psa_generator_abort(psa_crypto_generator_t *generator);
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  * \retval #PSA_ERROR_BAD_STATE
+ */
+psa_status_t psa_key_derivation_setup(psa_crypto_generator_t *generator,
+                                      psa_algorithm_t alg);
+
+/** Provide an input for key derivation or key agreement.
+ *
+ * Which inputs are required and in what order depends on the algorithm.
+ * Refer to the documentation of each key derivation or key agreement
+ * algorithm for information.
+ *
+ * This function passes direct inputs. Some inputs must be passed as keys
+ * using psa_key_derivation_input_key() instead of this function. Refer to
+ * the documentation of individual step types for information.
+ *
+ * \param[in,out] generator       The generator object to use. It must
+ *                                have been set up with
+ *                                psa_key_derivation_setup() and must not
+ *                                have produced any output yet.
+ * \param step                    Which step the input data is for.
+ * \param[in] data                Input data to use.
+ * \param data_length             Size of the \p data buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c step is not compatible with the generator's algorithm.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c step does not allow direct inputs.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The value of \p step is not valid given the state of \p generator.
+ * \retval #PSA_ERROR_BAD_STATE
  *         The library has not been previously initialized by psa_crypto_init().
  *         It is implementation-dependent whether a failure to initialize
  *         results in this error code.
  */
-psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
-                                psa_key_handle_t handle,
-                                psa_algorithm_t alg,
-                                const uint8_t *salt,
-                                size_t salt_length,
-                                const uint8_t *label,
-                                size_t label_length,
-                                size_t capacity);
+psa_status_t psa_key_derivation_input_bytes(psa_crypto_generator_t *generator,
+                                            psa_key_derivation_step_t step,
+                                            const uint8_t *data,
+                                            size_t data_length);
 
-/** Set up a key agreement operation.
+/** Provide an input for key derivation in the form of a key.
+ *
+ * Which inputs are required and in what order depends on the algorithm.
+ * Refer to the documentation of each key derivation or key agreement
+ * algorithm for information.
+ *
+ * This function passes key inputs. Some inputs must be passed as keys
+ * of the appropriate type using this function, while others must be
+ * passed as direct inputs using psa_key_derivation_input_bytes(). Refer to
+ * the documentation of individual step types for information.
+ *
+ * \param[in,out] generator       The generator object to use. It must
+ *                                have been set up with
+ *                                psa_key_derivation_setup() and must not
+ *                                have produced any output yet.
+ * \param step                    Which step the input data is for.
+ * \param handle                  Handle to the key. It must have an
+ *                                appropriate type for \p step and must
+ *                                allow the usage #PSA_KEY_USAGE_DERIVE.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c step is not compatible with the generator's algorithm.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \c step does not allow key inputs.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The value of \p step is not valid given the state of \p generator.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_key_derivation_input_key(psa_crypto_generator_t *generator,
+                                          psa_key_derivation_step_t step,
+                                          psa_key_handle_t handle);
+
+/** Perform a key agreement and use the shared secret as input to a key
+ * derivation.
  *
  * A key agreement algorithm takes two inputs: a private key \p private_key
  * a public key \p peer_key.
- * The result of this function is a byte generator which can
- * be used to produce keys and other cryptographic material.
+ * The result of this function is passed as input to a key derivation.
+ * The output of this key derivation can be extracted by reading from the
+ * resulting generator to produce keys and other cryptographic material.
  *
- * The resulting generator always has the maximum capacity permitted by
- * the algorithm.
- *
- * \param[in,out] generator The generator object to set up. It must have been
- *                          initialized as per the documentation for
- *                          #psa_crypto_generator_t and not yet in use.
- * \param private_key       Handle to the private key to use.
+ * \param[in,out] generator       The generator object to use. It must
+ *                                have been set up with
+ *                                psa_key_derivation_setup() with a
+ *                                key agreement and derivation algorithm
+ *                                \c alg (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_KEY_AGREEMENT(\p alg) is true
+ *                                and #PSA_ALG_IS_RAW_KEY_AGREEMENT(\p alg)
+ *                                is false).
+ *                                The generator must be ready for an
+ *                                input of the type given by \p step.
+ * \param step                    Which step the input data is for.
+ * \param private_key             Handle to the private key to use.
  * \param[in] peer_key      Public key of the peer. The peer key must be in the
  *                          same format that psa_import_key() accepts for the
  *                          public key type corresponding to the type of
@@ -2971,10 +3068,7 @@ psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
  *                          private key is on. The standard formats for public
  *                          keys are documented in the documentation of
  *                          psa_export_public_key().
- * \param peer_key_length   Size of \p peer_key in bytes.
- * \param alg               The key agreement algorithm to compute
- *                          (\c PSA_ALG_XXX value such that
- *                          #PSA_ALG_IS_KEY_AGREEMENT(\p alg) is true).
+ * \param peer_key_length         Size of \p peer_key in bytes.
  *
  * \retval #PSA_SUCCESS
  *         Success.
@@ -2993,10 +3087,62 @@ psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
  * \retval #PSA_ERROR_TAMPERING_DETECTED
  */
 psa_status_t psa_key_agreement(psa_crypto_generator_t *generator,
+                               psa_key_derivation_step_t step,
                                psa_key_handle_t private_key,
                                const uint8_t *peer_key,
-                               size_t peer_key_length,
-                               psa_algorithm_t alg);
+                               size_t peer_key_length);
+
+/** Perform a key agreement and use the shared secret as input to a key
+ * derivation.
+ *
+ * A key agreement algorithm takes two inputs: a private key \p private_key
+ * a public key \p peer_key.
+ *
+ * \warning The raw result of a key agreement algorithm such as finite-field
+ * Diffie-Hellman or elliptic curve Diffie-Hellman has biases and should
+ * not be used directly as key material. It should instead be passed as
+ * input to a key derivation algorithm. To chain a key agreement with
+ * a key derivation, use psa_key_agreement() and other functions from
+ * the key derivation and generator interface.
+ *
+ * \param private_key             Handle to the private key to use.
+ * \param[in] peer_key            Public key of the peer. It must be
+ *                                in the same format that psa_import_key()
+ *                                accepts. The standard formats for public
+ *                                keys are documented in the documentation
+ *                                of psa_export_public_key().
+ * \param peer_key_length         Size of \p peer_key in bytes.
+ * \param[out] output             Buffer where the decrypted message is to
+ *                                be written.
+ * \param output_size             Size of the \c output buffer in bytes.
+ * \param[out] output_length      On success, the number of bytes
+ *                                that make up the returned output.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p alg is not a key agreement algorithm
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p private_key is not compatible with \p alg,
+ *         or \p peer_key is not valid for \p alg or not compatible with
+ *         \p private_key.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not a supported key agreement algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_key_agreement_raw_shared_secret(psa_algorithm_t alg,
+                                                 psa_key_handle_t private_key,
+                                                 const uint8_t *peer_key,
+                                                 size_t peer_key_length,
+                                                 uint8_t *output,
+                                                 size_t output_size,
+                                                 size_t *output_length);
 
 /**@}*/
 

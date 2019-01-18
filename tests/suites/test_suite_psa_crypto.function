@@ -366,11 +366,30 @@ static int exercise_key_derivation_key( psa_key_handle_t handle,
 
     if( usage & PSA_KEY_USAGE_DERIVE )
     {
-        PSA_ASSERT( psa_key_derivation( &generator,
-                                        handle, alg,
-                                        label, label_length,
-                                        seed, seed_length,
-                                        sizeof( output ) ) );
+        if( PSA_ALG_IS_HKDF( alg ) )
+        {
+            PSA_ASSERT( psa_key_derivation_setup( &generator, alg ) );
+            PSA_ASSERT( psa_key_derivation_input_bytes( &generator,
+                                                        PSA_KDF_STEP_SALT,
+                                                        label,
+                                                        label_length ) );
+            PSA_ASSERT( psa_key_derivation_input_key( &generator,
+                                                      PSA_KDF_STEP_SECRET,
+                                                      handle ) );
+            PSA_ASSERT( psa_key_derivation_input_bytes( &generator,
+                                                        PSA_KDF_STEP_INFO,
+                                                        seed,
+                                                        seed_length ) );
+        }
+        else
+        {
+            // legacy
+            PSA_ASSERT( psa_key_derivation( &generator,
+                                            handle, alg,
+                                            label, label_length,
+                                            seed, seed_length,
+                                            sizeof( output ) ) );
+        }
         PSA_ASSERT( psa_generator_read( &generator,
                                         output,
                                         sizeof( output ) ) );
@@ -386,8 +405,7 @@ exit:
 /* We need two keys to exercise key agreement. Exercise the
  * private key against its own public key. */
 static psa_status_t key_agreement_with_self( psa_crypto_generator_t *generator,
-                                             psa_key_handle_t handle,
-                                             psa_algorithm_t alg )
+                                             psa_key_handle_t handle )
 {
     psa_key_type_t private_key_type;
     psa_key_type_t public_key_type;
@@ -409,9 +427,8 @@ static psa_status_t key_agreement_with_self( psa_crypto_generator_t *generator,
                                        public_key, public_key_length,
                                        &public_key_length ) );
 
-    status = psa_key_agreement( generator, handle,
-                                public_key, public_key_length,
-                                alg );
+    status = psa_key_agreement( generator, PSA_KDF_STEP_SECRET, handle,
+                                public_key, public_key_length );
 exit:
     mbedtls_free( public_key );
     return( status );
@@ -429,7 +446,8 @@ static int exercise_key_agreement_key( psa_key_handle_t handle,
     {
         /* We need two keys to exercise key agreement. Exercise the
          * private key against its own public key. */
-        PSA_ASSERT( key_agreement_with_self( &generator, handle, alg ) );
+        PSA_ASSERT( psa_key_derivation_setup( &generator, alg ) );
+        PSA_ASSERT( key_agreement_with_self( &generator, handle ) );
         PSA_ASSERT( psa_generator_read( &generator,
                                         output,
                                         sizeof( output ) ) );
@@ -1753,7 +1771,8 @@ void agreement_key_policy( int policy_usage,
     PSA_ASSERT( psa_import_key( handle, key_type,
                                 key_data->x, key_data->len ) );
 
-    status = key_agreement_with_self( &generator, handle, exercise_alg );
+    PSA_ASSERT( psa_key_derivation_setup( &generator, exercise_alg ) );
+    status = key_agreement_with_self( &generator, handle );
 
     if( policy_alg == exercise_alg &&
         ( policy_usage & PSA_KEY_USAGE_DERIVE ) != 0 )
@@ -3476,10 +3495,29 @@ void derive_output( int alg_arg,
                                 key_data->len ) );
 
     /* Extraction phase. */
-    PSA_ASSERT( psa_key_derivation( &generator, handle, alg,
-                                    salt->x, salt->len,
-                                    label->x, label->len,
-                                    requested_capacity ) );
+    if( PSA_ALG_IS_HKDF( alg ) )
+    {
+        PSA_ASSERT( psa_key_derivation_setup( &generator, alg ) );
+        PSA_ASSERT( psa_set_generator_capacity( &generator,
+                                                requested_capacity ) );
+        PSA_ASSERT( psa_key_derivation_input_bytes( &generator,
+                                                    PSA_KDF_STEP_SALT,
+                                                    salt->x, salt->len ) );
+        PSA_ASSERT( psa_key_derivation_input_key( &generator,
+                                                  PSA_KDF_STEP_SECRET,
+                                                  handle ) );
+        PSA_ASSERT( psa_key_derivation_input_bytes( &generator,
+                                                    PSA_KDF_STEP_INFO,
+                                                    label->x, label->len ) );
+    }
+    else
+    {
+        // legacy
+        PSA_ASSERT( psa_key_derivation( &generator, handle, alg,
+                                        salt->x, salt->len,
+                                        label->x, label->len,
+                                        requested_capacity ) );
+    }
     PSA_ASSERT( psa_get_generator_capacity( &generator,
                                             &current_capacity ) );
     TEST_EQUAL( current_capacity, requested_capacity );
@@ -3556,10 +3594,29 @@ void derive_full( int alg_arg,
                                 key_data->len ) );
 
     /* Extraction phase. */
-    PSA_ASSERT( psa_key_derivation( &generator, handle, alg,
-                                    salt->x, salt->len,
-                                    label->x, label->len,
-                                    requested_capacity ) );
+    if( PSA_ALG_IS_HKDF( alg ) )
+    {
+        PSA_ASSERT( psa_key_derivation_setup( &generator, alg ) );
+        PSA_ASSERT( psa_set_generator_capacity( &generator,
+                                                requested_capacity ) );
+        PSA_ASSERT( psa_key_derivation_input_bytes( &generator,
+                                                    PSA_KDF_STEP_SALT,
+                                                    salt->x, salt->len ) );
+        PSA_ASSERT( psa_key_derivation_input_key( &generator,
+                                                  PSA_KDF_STEP_SECRET,
+                                                  handle ) );
+        PSA_ASSERT( psa_key_derivation_input_bytes( &generator,
+                                                    PSA_KDF_STEP_INFO,
+                                                    label->x, label->len ) );
+    }
+    else
+    {
+        // legacy
+        PSA_ASSERT( psa_key_derivation( &generator, handle, alg,
+                                        salt->x, salt->len,
+                                        label->x, label->len,
+                                        requested_capacity ) );
+    }
     PSA_ASSERT( psa_get_generator_capacity( &generator,
                                             &current_capacity ) );
     TEST_EQUAL( current_capacity, expected_capacity );
@@ -3772,10 +3829,10 @@ void key_agreement_setup( int alg_arg,
                                 our_key_data->x,
                                 our_key_data->len ) );
 
-    TEST_EQUAL( psa_key_agreement( &generator,
+    PSA_ASSERT( psa_key_derivation_setup( &generator, alg ) );
+    TEST_EQUAL( psa_key_agreement( &generator, PSA_KDF_STEP_SECRET,
                                    our_key,
-                                   peer_key_data->x, peer_key_data->len,
-                                   alg ),
+                                   peer_key_data->x, peer_key_data->len ),
                 expected_status_arg );
 
 exit:
@@ -3811,10 +3868,10 @@ void key_agreement_capacity( int alg_arg,
                                 our_key_data->x,
                                 our_key_data->len ) );
 
-    PSA_ASSERT( psa_key_agreement( &generator,
+    PSA_ASSERT( psa_key_derivation_setup( &generator, alg ) );
+    PSA_ASSERT( psa_key_agreement( &generator, PSA_KDF_STEP_SECRET,
                                    our_key,
-                                   peer_key_data->x, peer_key_data->len,
-                                   alg ) );
+                                   peer_key_data->x, peer_key_data->len ) );
 
     /* Test the advertized capacity. */
     PSA_ASSERT( psa_get_generator_capacity(
@@ -3868,10 +3925,10 @@ void key_agreement_output( int alg_arg,
                                 our_key_data->x,
                                 our_key_data->len ) );
 
-    PSA_ASSERT( psa_key_agreement( &generator,
+    PSA_ASSERT( psa_key_derivation_setup( &generator, alg ) );
+    PSA_ASSERT( psa_key_agreement( &generator, PSA_KDF_STEP_SECRET,
                                    our_key,
-                                   peer_key_data->x, peer_key_data->len,
-                                   alg ) );
+                                   peer_key_data->x, peer_key_data->len ) );
 
     PSA_ASSERT( psa_generator_read( &generator,
                                     actual_output,

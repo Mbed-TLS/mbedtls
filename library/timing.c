@@ -218,8 +218,12 @@ unsigned long mbedtls_timing_hardclock( void )
 #endif /* !HAVE_HARDCLOCK && _MSC_VER && !EFIX64 && !EFI32 */
 
 #if !defined(_WIN32)
+#if defined(__FreeBSD__)
+static clockid_t clock_id = CLOCK_UPTIME;
+#else /* defined(__FreeBSD__) */
 static clockid_t clock_id = CLOCK_MONOTONIC;
-#endif
+#endif /* defined(__FreeBSD__) */
+#endif /* !defined(_WIN32) */
 
 #if !defined(HAVE_HARDCLOCK)
 

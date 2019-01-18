@@ -2279,6 +2279,58 @@ psa_status_t psa_key_agreement(psa_crypto_generator_t *generator,
                                const uint8_t *peer_key,
                                size_t peer_key_length);
 
+/** Perform a key agreement and use the shared secret as input to a key
+ * derivation.
+ *
+ * A key agreement algorithm takes two inputs: a private key \p private_key
+ * a public key \p peer_key.
+ *
+ * \warning The raw result of a key agreement algorithm such as finite-field
+ * Diffie-Hellman or elliptic curve Diffie-Hellman has biases and should
+ * not be used directly as key material. It should instead be passed as
+ * input to a key derivation algorithm. To chain a key agreement with
+ * a key derivation, use psa_key_agreement() and other functions from
+ * the key derivation and generator interface.
+ *
+ * \param private_key             Handle to the private key to use.
+ * \param[in] peer_key            Public key of the peer. It must be
+ *                                in the same format that psa_import_key()
+ *                                accepts. The standard formats for public
+ *                                keys are documented in the documentation
+ *                                of psa_export_public_key().
+ * \param peer_key_length         Size of \p peer_key in bytes.
+ * \param[out] output             Buffer where the decrypted message is to
+ *                                be written.
+ * \param output_size             Size of the \c output buffer in bytes.
+ * \param[out] output_length      On success, the number of bytes
+ *                                that make up the returned output.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p alg is not a key agreement algorithm
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p private_key is not compatible with \p alg,
+ *         or \p peer_key is not valid for \p alg or not compatible with
+ *         \p private_key.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p alg is not a supported key agreement algorithm.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_key_agreement_raw_shared_secret(psa_algorithm_t alg,
+                                                 psa_key_handle_t private_key,
+                                                 const uint8_t *peer_key,
+                                                 size_t peer_key_length,
+                                                 uint8_t *output,
+                                                 size_t output_size,
+                                                 size_t *output_length);
+
 /**@}*/
 
 /** \defgroup random Random generation

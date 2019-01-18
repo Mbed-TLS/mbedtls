@@ -497,6 +497,15 @@
 #define PSA_ECC_CURVE_CURVE25519        ((psa_ecc_curve_t) 0x001d)
 #define PSA_ECC_CURVE_CURVE448          ((psa_ecc_curve_t) 0x001e)
 
+/** Diffie-Hellman key exchange public key. */
+#define PSA_KEY_TYPE_DH_PUBLIC_KEY             ((psa_key_type_t)0x60040000)
+/** Diffie-Hellman key exchange key pair (private and public key). */
+#define PSA_KEY_TYPE_DH_KEYPAIR                ((psa_key_type_t)0x70040000)
+/** Whether a key type is a Diffie-Hellman key exchange key (pair or
+ * public-only). */
+#define PSA_KEY_TYPE_IS_DH(type)                                       \
+    (PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(type) == PSA_KEY_TYPE_DH_PUBLIC_KEY)
+
 /** The block size of a block cipher.
  *
  * \param type  A cipher key type (value of type #psa_key_type_t).

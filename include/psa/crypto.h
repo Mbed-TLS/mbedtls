@@ -370,6 +370,106 @@ psa_status_t psa_get_key_information(psa_key_handle_t handle,
                                      size_t *bits);
 
 /**
+ * \brief Set domain parameters for a key.
+ *
+ * Some key types require additional domain parameters to be set before import
+ * or generation of the key. The domain parameters can be set with this
+ * function or, for key generation, through the \c extra parameter of
+ * psa_generate_key().
+ *
+ * The format for the required domain parameters varies by the key type.
+ * - For DSA public keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY),
+ *   the `Dss-Parms` format as defined by RFC 3279 &sect;2.3.2.
+ *   ```
+ *   Dss-Parms ::= SEQUENCE  {
+ *      p       INTEGER,
+ *      q       INTEGER,
+ *      g       INTEGER
+ *   }
+ *   ```
+ * - For Diffie-Hellman key exchange keys (#PSA_KEY_TYPE_DH_PUBLIC_KEY), the
+ *   `DomainParameters` format as defined by RFC 3279 &sect;2.3.3.
+ *   ```
+ *   DomainParameters ::= SEQUENCE {
+ *      p               INTEGER,                    -- odd prime, p=jq +1
+ *      g               INTEGER,                    -- generator, g
+ *      q               INTEGER,                    -- factor of p-1
+ *      j               INTEGER OPTIONAL,           -- subgroup factor
+ *      validationParms ValidationParms OPTIONAL
+ *   }
+ *   ValidationParms ::= SEQUENCE {
+ *      seed            BIT STRING,
+ *      pgenCounter     INTEGER
+ *   }
+ *   ```
+ *
+ * \param handle      Handle to the slot where the key will be stored.
+ *                    This must be a valid slot for a key of the chosen
+ *                    type: it must have been obtained by calling
+ *                    psa_allocate_key() or psa_create_key() with the
+ *                    correct \p type and with a maximum size that is
+ *                    compatible with \p data. It must not contain
+ *                    key material yet.
+ * \param type        Key type (a \c PSA_KEY_TYPE_XXX value). When
+ *                    subsequently creating key material into \p handle,
+ *                    the type must be compatible.
+ * \param[in] data    Buffer containing the key domain parameters. The content
+ *                    of this buffer is interpreted according to \p type. of
+ *                    psa_export_key() or psa_export_public_key() for the
+ *                    chosen type.
+ * \param data_length Size of the \p data buffer in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_OCCUPIED_SLOT
+ *         There is already a key in the specified slot.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_set_key_domain_parameters(psa_key_handle_t handle,
+                                           psa_key_type_t type,
+                                           const uint8_t *data,
+                                           size_t data_length);
+
+/**
+ * \brief Get domain parameters for a key.
+ *
+ * Get the domain parameters for a key with this function, if any. The format
+ * of the domain parameters written to \p data is specified in the
+ * documentation for psa_set_key_domain_parameters().
+ *
+ * \param handle            Handle to the key to get domain parameters from.
+ * \param[out] data         On success, the key domain parameters.
+ * \param data_size         Size of the \p data buffer in bytes.
+ * \param[out] data_length  On success, the number of bytes
+ *                          that make up the key domain parameters data.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ *         There is no key in the specified slot.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_get_key_domain_parameters(psa_key_handle_t handle,
+                                           uint8_t *data,
+                                           size_t data_size,
+                                           size_t *data_length);
+
+/**
  * \brief Export a key in binary format.
  *
  * The output of this function can be passed to psa_import_key() to
@@ -404,19 +504,10 @@ psa_status_t psa_get_key_information(psa_key_handle_t handle,
  *       coefficient         INTEGER,  -- (inverse of q) mod p
  *   }
  *   ```
- * - For DSA private keys (#PSA_KEY_TYPE_DSA_KEYPAIR), the format
- *   is the non-encrypted DER encoding of the representation used by
- *   OpenSSL and OpenSSH, whose structure is described in ASN.1 as follows:
- *   ```
- *   DSAPrivateKey ::= SEQUENCE {
- *       version             INTEGER,  -- must be 0
- *       prime               INTEGER,  -- p
- *       subprime            INTEGER,  -- q
- *       generator           INTEGER,  -- g
- *       public              INTEGER,  -- y
- *       private             INTEGER,  -- x
- *   }
- *   ```
+ * - For DSA private keys (#PSA_KEY_TYPE_DSA_KEYPAIR), the format is the
+ *   representation of the private key `x` as a big-endian byte string. The
+ *   length of the byte string is the private key size in bytes (leading zeroes
+ *   are not stripped).
  * - For elliptic curve key pairs (key types for which
  *   #PSA_KEY_TYPE_IS_ECC_KEYPAIR is true), the format is
  *   a representation of the private value as a `ceiling(m/8)`-byte string
@@ -428,6 +519,10 @@ psa_status_t psa_get_key_information(psa_key_handle_t handle,
  *   and `PSA_ECC_CURVE_BRAINPOOL_PXXX`).
  *   This is the content of the `privateKey` field of the `ECPrivateKey`
  *   format defined by RFC 5915.
+ * - For Diffie-Hellman key exchange key pairs (#PSA_KEY_TYPE_DH_KEYPAIR), the
+ *   format is the representation of the private key `x` as a big-endian byte
+ *   string. The length of the byte string is the private key size in bytes
+ *   (leading zeroes are not stripped).
  * - For public keys (key types for which #PSA_KEY_TYPE_IS_PUBLIC_KEY is
  *   true), the format is the same as for psa_export_public_key().
  *
@@ -490,33 +585,14 @@ psa_status_t psa_export_key(psa_key_handle_t handle,
  *      - The byte 0x04;
  *      - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
  *      - `y_P` as a `ceiling(m/8)`-byte string, big-endian.
- *
- * For other public key types, the format is the DER representation defined by
- * RFC 5280 as `SubjectPublicKeyInfo`, with the `subjectPublicKey` format
- * specified below.
- * ```
- * SubjectPublicKeyInfo  ::=  SEQUENCE  {
- *      algorithm          AlgorithmIdentifier,
- *      subjectPublicKey   BIT STRING  }
- * AlgorithmIdentifier  ::=  SEQUENCE  {
- *      algorithm          OBJECT IDENTIFIER,
- *      parameters         ANY DEFINED BY algorithm OPTIONAL  }
- * ```
- * - For DSA public keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY),
- *   the `subjectPublicKey` format is defined by RFC 3279 &sect;2.3.2 as
- *   `DSAPublicKey`,
- *   with the OID `id-dsa`,
- *   and with the parameters `DSS-Parms`.
- *   ```
- *   id-dsa OBJECT IDENTIFIER ::= {
- *      iso(1) member-body(2) us(840) x9-57(10040) x9cm(4) 1 }
- *
- *   Dss-Parms  ::=  SEQUENCE  {
- *      p                  INTEGER,
- *      q                  INTEGER,
- *      g                  INTEGER  }
- *   DSAPublicKey ::= INTEGER -- public key, Y
- *   ```
+ * - For DSA public keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY), the format is the
+ *   representation of the public key `y = g^x mod p` as a big-endian byte
+ *   string. The length of the byte string is the length of the base prime `p`
+ *   in bytes.
+ * - For Diffie-Hellman key exchange public keys (#PSA_KEY_TYPE_DH_PUBLIC_KEY),
+ *   the format is the representation of the public key `y = g^x mod p` as a
+ *   big-endian byte string. The length of the byte string is the length of the
+ *   base prime `p` in bytes.
  *
  * \param handle            Handle to the key to export.
  * \param[out] data         Buffer where the key data is to be written.
@@ -2255,6 +2331,18 @@ typedef struct {
  *                            specifying the public exponent. The
  *                            default public exponent used when \p extra
  *                            is \c NULL is 65537.
+ *                          - For an DSA key (\p type is
+ *                            #PSA_KEY_TYPE_DSA_KEYPAIR), \p extra is an
+ *                            optional structure specifying the key domain
+ *                            parameters. The key domain parameters can also be
+ *                            provided by psa_set_key_domain_parameters(),
+ *                            which documents the format of the structure.
+ *                          - For a DH key (\p type is
+ *                            #PSA_KEY_TYPE_DH_KEYPAIR), the \p extra is an
+ *                            optional structure specifying the key domain
+ *                            parameters. The key domain parameters can also be
+ *                            provided by psa_set_key_domain_parameters(),
+ *                            which documents the format of the structure.
  * \param extra_size        Size of the buffer that \p extra
  *                          points to, in bytes. Note that if \p extra is
  *                          \c NULL then \p extra_size must be zero.

@@ -363,6 +363,8 @@ static int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
                          &bytes_pending );
         ctx->out.clearing = 1;
 
+        /* OPTIMIZATION: This is an assertion. Consider moving
+         *               it to debug-only modes. */
         if( bytes_pending == 0 )
         {
             /* If Layer 1 has no bytes pending but doesn't have enough space
@@ -607,7 +609,8 @@ static int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec 
                              NULL ) );
 }
 
-static int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx, mps_rec *rec )
+static int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
+                                                 mps_rec *rec )
 {
     uint8_t * const hdr     = ctx->out.hdr;
     size_t    const hdr_len = ctx->out.hdr_len;
@@ -789,6 +792,8 @@ int mps_l2_write_start( mbedtls_mps_l2 *ctx, mps_l2_out *out )
     }
 
     /* Check if the requested record content type is valid. */
+    /* OPTIMIZATION: This is an assertion; consider moving
+     *               it to debug-only builds. */
     desired_type = out->type;
     if( l2_type_is_valid( ctx, desired_type ) == 0 )
     {

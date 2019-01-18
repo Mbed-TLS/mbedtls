@@ -619,6 +619,9 @@ struct mbedtls_mps_l2
          * and querying Layer 1 when it's needed instead. */
         unsigned char *hdr;
         /** The length of the header buffer pointed to by \c hdr.          */
+        /* OPTIMIZATION:
+         * This can be inferred from the epoch through l2_get_header_len().
+         * Consider removing this field. */
         mbedtls_mps_stored_size_t hdr_len;
 
         /** The buffer pair consisting of content buffer
@@ -699,6 +702,13 @@ struct mbedtls_mps_l2
          * message. However, this usecase seems dubious in the first place
          * (supported by the fact that it's being removed in TLS 1.3), so
          * the limitation seems acceptable. */
+
+        /* OPTIMIZATION: For DTLS, only one reader is needed, and even
+         *               TLS needs only one unless interleaving of record
+         *               types should be supported (note that TLS 1.3
+         *               forbids this).
+         *               Write the code in a way that allows easy compile-time
+         *               switching between one and two readers. */
         mbedtls_mps_l2_in_internal readers[2];
 
 #define MPS_L2_INV_IN_READER_INV( p )                           \
@@ -714,6 +724,9 @@ struct mbedtls_mps_l2
          *  Instead, this is reflected in the \c active_state
          *  member having value #MBEDTLS_MPS_L2_READER_STATE_UNSET.
          */
+        /* OPTIMIZATION: As mentioned above, DTLS and TLS 1.3 need
+         *               only a single reader, and in this case this
+         *               field is redundant. */
         mbedtls_mps_l2_in_internal *active;
 
         /*! This field indicates the type, epoch and content
@@ -730,6 +743,9 @@ struct mbedtls_mps_l2
          *  Instead, this is reflected in the \c active_state
          *  member having value #MBEDTLS_MPS_L2_READER_STATE_UNSET.
          */
+        /* OPTIMIZATION: As mentioned above, DTLS and TLS 1.3 need
+         *               only a single reader, and in this case this
+         *               field is redundant. */
         mbedtls_mps_l2_in_internal *paused;
 
 #define MPS_L2_INV_IN_READERS_PERMUTATION( p )                   \

@@ -403,7 +403,16 @@ psa_status_t psa_get_key_information(psa_key_handle_t handle,
  *   }
  *   ```
  *
- * \param handle      Handle to the key to set domain parameters for.
+ * \param handle      Handle to the slot where the key will be stored.
+ *                    This must be a valid slot for a key of the chosen
+ *                    type: it must have been obtained by calling
+ *                    psa_allocate_key() or psa_create_key() with the
+ *                    correct \p type and with a maximum size that is
+ *                    compatible with \p data. It must not contain
+ *                    key material yet.
+ * \param type        Key type (a \c PSA_KEY_TYPE_XXX value). When
+ *                    subsequently creating key material into \p handle,
+ *                    the type must be compatible.
  * \param[in] data    Buffer containing the key domain parameters. The content
  *                    of this buffer is interpreted according to \p type. of
  *                    psa_export_key() or psa_export_public_key() for the
@@ -424,6 +433,7 @@ psa_status_t psa_get_key_information(psa_key_handle_t handle,
  *         results in this error code.
  */
 psa_status_t psa_set_key_domain_parameters(psa_key_handle_t handle,
+                                           psa_key_type_t type,
                                            const uint8_t *data,
                                            size_t data_length);
 

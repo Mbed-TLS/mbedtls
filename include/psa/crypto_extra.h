@@ -176,6 +176,8 @@ psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
                                 size_t label_length,
                                 size_t capacity);
 
+/* FIXME Deprecated. Remove this as soon as all the tests are updated. */
+#define PSA_ALG_SELECT_RAW                      ((psa_algorithm_t)0x31000001)
 
 #ifdef __cplusplus
 }

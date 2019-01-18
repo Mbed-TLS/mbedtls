@@ -2243,9 +2243,11 @@ psa_status_t psa_key_derivation_input_key(psa_crypto_generator_t *generator,
  * \param[in,out] generator       The generator object to use. It must
  *                                have been set up with
  *                                psa_key_derivation_setup() with a
- *                                key agreement algorithm
- *                                (\c PSA_ALG_XXX value such that
- *                                #PSA_ALG_IS_KEY_AGREEMENT(\p alg) is true).
+ *                                key agreement and derivation algorithm
+ *                                \c alg (\c PSA_ALG_XXX value such that
+ *                                #PSA_ALG_IS_KEY_AGREEMENT(\p alg) is true
+ *                                and #PSA_ALG_IS_RAW_KEY_AGREEMENT(\p alg)
+ *                                is false).
  *                                The generator must be ready for an
  *                                input of the type given by \p step.
  * \param step                    Which step the input data is for.

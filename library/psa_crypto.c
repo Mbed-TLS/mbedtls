@@ -4067,19 +4067,12 @@ psa_status_t psa_key_derivation_setup( psa_crypto_generator_t *generator,
     if( generator->alg != 0 )
         return( PSA_ERROR_BAD_STATE );
 
-    if( PSA_ALG_IS_KEY_AGREEMENT( alg ) )
+    if( PSA_ALG_IS_RAW_KEY_AGREEMENT( alg ) )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    else if( PSA_ALG_IS_KEY_AGREEMENT( alg ) )
     {
         psa_algorithm_t kdf_alg = PSA_ALG_KEY_AGREEMENT_GET_KDF( alg );
-        if( kdf_alg == PSA_ALG_SELECT_RAW )
-        {
-            /* It's too early to set the generator's capacity since it
-             * depends on the key size for the key agreement. */
-            status = PSA_SUCCESS;
-        }
-        else
-        {
-            status = psa_key_derivation_setup_kdf( generator, kdf_alg );
-        }
+        status = psa_key_derivation_setup_kdf( generator, kdf_alg );
     }
     else if( PSA_ALG_IS_KEY_DERIVATION( alg ) )
     {
@@ -4344,7 +4337,7 @@ static psa_status_t psa_key_agreement_internal( psa_crypto_generator_t *generato
     switch( PSA_ALG_KEY_AGREEMENT_GET_BASE( generator->alg ) )
     {
 #if defined(MBEDTLS_ECDH_C)
-        case PSA_ALG_ECDH_BASE:
+        case PSA_ALG_ECDH:
             if( ! PSA_KEY_TYPE_IS_ECC_KEYPAIR( private_key->type ) )
                 return( PSA_ERROR_INVALID_ARGUMENT );
             status = psa_key_agreement_ecdh( peer_key, peer_key_length,

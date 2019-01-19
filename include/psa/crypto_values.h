@@ -1404,6 +1404,24 @@
      PSA_ALG_SIGN_GET_HASH(alg) == PSA_ALG_ANY_HASH :   \
      (alg) == PSA_ALG_ANY_HASH)
 
+/** Whether the specified algorithm encoding is a wildcard.
+ *
+ * Wildcard values may only be used to set the usage algorithm field in
+ * a policy, not to perform an operation.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \c alg is a wildcard algorithm encoding.
+ * \return 0 if \c alg is a non-wildcard algorithm encoding (suitable for
+ *         an operation).
+ * \return This macro may return either 0 or 1 if \c alg is not a supported
+ *         algorithm identifier.
+ */
+#define PSA_ALG_IS_WILDCARD(alg)                        \
+    (PSA_ALG_IS_HASH_AND_SIGN(alg) ?                    \
+     PSA_ALG_SIGN_GET_HASH(alg) == PSA_ALG_ANY_HASH :   \
+     (alg) == PSA_ALG_ANY_HASH)
+
 /**@}*/
 
 /** \defgroup key_lifetimes Key lifetimes

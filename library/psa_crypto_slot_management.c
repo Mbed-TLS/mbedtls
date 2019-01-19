@@ -142,13 +142,8 @@ static psa_status_t psa_internal_release_key_slot( psa_key_handle_t handle )
     return( psa_wipe_key_slot( slot ) );
 }
 
-psa_status_t psa_allocate_key( psa_key_type_t type,
-                               size_t max_bits,
-                               psa_key_handle_t *handle )
+psa_status_t psa_allocate_key( psa_key_handle_t *handle )
 {
-    /* This implementation doesn't reserve memory for the keys. */
-    (void) type;
-    (void) max_bits;
     *handle = 0;
     return( psa_internal_allocate_key_slot( handle ) );
 }
@@ -259,15 +254,9 @@ psa_status_t psa_open_key( psa_key_lifetime_t lifetime,
 
 psa_status_t psa_create_key( psa_key_lifetime_t lifetime,
                              psa_key_id_t id,
-                             psa_key_type_t type,
-                             size_t max_bits,
                              psa_key_handle_t *handle )
 {
     psa_status_t status;
-
-    /* This implementation doesn't reserve memory for the keys. */
-    (void) type;
-    (void) max_bits;
 
     status = persistent_key_setup( lifetime, id, handle,
                                    PSA_ERROR_EMPTY_SLOT );

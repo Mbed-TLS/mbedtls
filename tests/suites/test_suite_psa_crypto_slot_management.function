@@ -65,15 +65,13 @@ static int psa_key_policy_equal( psa_key_policy_t *p1,
  */
 
 /* BEGIN_CASE */
-void transient_slot_lifecycle( int type_arg, int max_bits_arg,
-                               int alg_arg, int usage_arg,
-                               data_t *key_data,
+void transient_slot_lifecycle( int alg_arg, int usage_arg,
+                               int type_arg, data_t *key_data,
                                int close_method_arg )
 {
-    psa_key_type_t type = type_arg;
-    size_t max_bits = max_bits_arg;
     psa_algorithm_t alg = alg_arg;
     psa_key_usage_t usage_flags = usage_arg;
+    psa_key_type_t type = type_arg;
     close_method_t close_method = close_method_arg;
     psa_key_type_t read_type;
     psa_key_handle_t handle = 0;
@@ -82,7 +80,7 @@ void transient_slot_lifecycle( int type_arg, int max_bits_arg,
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Get a handle and import a key. */
-    PSA_ASSERT( psa_allocate_key( type, max_bits, &handle ) );
+    PSA_ASSERT( psa_allocate_key( &handle ) );
     TEST_ASSERT( handle != 0 );
     psa_key_policy_set_usage( &policy, usage_flags, alg );
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
@@ -116,17 +114,15 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C */
 void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
-                                int type_arg, int max_bits_arg,
                                 int alg_arg, int usage_arg,
-                                data_t *key_data,
+                                int type_arg, data_t *key_data,
                                 int close_method_arg )
 {
     psa_key_lifetime_t lifetime = lifetime_arg;
     psa_key_id_t id = id_arg;
-    psa_key_type_t type = type_arg;
-    size_t max_bits = max_bits_arg;
     psa_algorithm_t alg = alg_arg;
     psa_key_usage_t usage_flags = usage_arg;
+    psa_key_type_t type = type_arg;
     close_method_t close_method = close_method_arg;
     psa_key_type_t read_type;
     psa_key_handle_t handle = 0;
@@ -137,7 +133,7 @@ void persistent_slot_lifecycle( int lifetime_arg, int id_arg,
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Get a handle and import a key. */
-    PSA_ASSERT( psa_create_key( lifetime, id, type, max_bits, &handle ) );
+    PSA_ASSERT( psa_create_key( lifetime, id, &handle ) );
     TEST_ASSERT( handle != 0 );
     psa_key_policy_set_usage( &policy, usage_flags, alg );
     PSA_ASSERT( psa_set_key_policy( handle, &policy ) );
@@ -194,7 +190,6 @@ exit:
 
 /* BEGIN_CASE depends_on:MBEDTLS_PSA_CRYPTO_STORAGE_C */
 void create_existent( int lifetime_arg, int id_arg,
-                      int new_type_arg,
                       int reopen_policy_arg )
 {
     psa_key_lifetime_t lifetime = lifetime_arg;
@@ -203,7 +198,6 @@ void create_existent( int lifetime_arg, int id_arg,
     psa_key_policy_t policy1 = PSA_KEY_POLICY_INIT;
     psa_key_policy_t read_policy = PSA_KEY_POLICY_INIT;
     psa_key_type_t type1 = PSA_KEY_TYPE_RAW_DATA;
-    psa_key_type_t type2 = new_type_arg;
     psa_key_type_t read_type;
     const uint8_t material1[16] = "test material #1";
     size_t bits1 = PSA_BYTES_TO_BITS( sizeof( material1 ) );
@@ -217,7 +211,7 @@ void create_existent( int lifetime_arg, int id_arg,
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Create a key. */
-    PSA_ASSERT( psa_create_key( lifetime, id, type1, bits1, &handle1 ) );
+    PSA_ASSERT( psa_create_key( lifetime, id, &handle1 ) );
     TEST_ASSERT( handle1 != 0 );
     psa_key_policy_set_usage( &policy1, PSA_KEY_USAGE_EXPORT, 0 );
     PSA_ASSERT( psa_set_key_policy( handle1, &policy1 ) );
@@ -228,7 +222,7 @@ void create_existent( int lifetime_arg, int id_arg,
         PSA_ASSERT( psa_close_key( handle1 ) );
 
     /* Attempt to create a new key in the same slot. */
-    TEST_EQUAL( psa_create_key( lifetime, id, type2, bits1, &handle2 ),
+    TEST_EQUAL( psa_create_key( lifetime, id, &handle2 ),
                 PSA_ERROR_OCCUPIED_SLOT );
     TEST_EQUAL( handle2, 0 );
 
@@ -276,13 +270,10 @@ exit:
 
 /* BEGIN_CASE */
 void create_fail( int lifetime_arg, int id_arg,
-                  int type_arg, int max_bits_arg,
                   int expected_status_arg )
 {
     psa_key_lifetime_t lifetime = lifetime_arg;
     psa_key_id_t id = id_arg;
-    psa_key_type_t type = type_arg;
-    size_t max_bits = max_bits_arg;
     psa_status_t expected_status = expected_status_arg;
     psa_key_handle_t handle = 0xdead;
 
@@ -290,7 +281,7 @@ void create_fail( int lifetime_arg, int id_arg,
 
     PSA_ASSERT( psa_crypto_init( ) );
 
-    TEST_EQUAL( psa_create_key( lifetime, id, type, max_bits, &handle ),
+    TEST_EQUAL( psa_create_key( lifetime, id, &handle ),
                 expected_status );
     TEST_EQUAL( handle, 0 );
 
@@ -314,7 +305,7 @@ void invalid_handle( )
     PSA_ASSERT( psa_crypto_init( ) );
 
     /* Allocate a handle and store a key in it. */
-    PSA_ASSERT( psa_allocate_key( PSA_KEY_TYPE_RAW_DATA, 1, &handle1 ) );
+    PSA_ASSERT( psa_allocate_key( &handle1 ) );
     TEST_ASSERT( handle1 != 0 );
     psa_key_policy_set_usage( &policy, 0, 0 );
     PSA_ASSERT( psa_set_key_policy( handle1, &policy ) );
@@ -350,7 +341,6 @@ void many_transient_handles( int max_handles_arg )
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
     uint8_t exported[sizeof( size_t )];
     size_t exported_length;
-    size_t max_bits = PSA_BITS_TO_BYTES( sizeof( exported ) );
 
     ASSERT_ALLOC( handles, max_handles );
     PSA_ASSERT( psa_crypto_init( ) );
@@ -358,8 +348,7 @@ void many_transient_handles( int max_handles_arg )
 
     for( i = 0; i < max_handles; i++ )
     {
-        status = psa_allocate_key( PSA_KEY_TYPE_RAW_DATA, max_bits,
-                                   &handles[i] );
+        status = psa_allocate_key( &handles[i] );
         if( status == PSA_ERROR_INSUFFICIENT_MEMORY )
             break;
         PSA_ASSERT( status );

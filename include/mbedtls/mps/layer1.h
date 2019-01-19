@@ -49,6 +49,8 @@ typedef int mps_l0_send_t( unsigned char const *buf, size_t buflen );
  *
  */
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+
 /*
  * Stream-based implementation
  */
@@ -288,10 +290,13 @@ typedef struct
     ensures MPS_L1_STREAM_WRITE_INV_STATUS_FLUSH( p );               \
     ensures MPS_L1_STREAM_WRITE_INV_FLUSH_STRATEGY( p );
 
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
 /*
  * Datagram-based implementation
  */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
 
 /** Context maintaining the reading-side of a datagram-based Layer 1 context. */
 typedef struct
@@ -362,11 +367,16 @@ struct mps_l1
      * - MPS_L1_MODE_STREAM
      * - MPS_L1_MODE_DGRAM
      */
-    uint8_t mode;
+    MBEDTLS_MPS_PROTO_IF_BOTH( uint8_t mode; )
+
     union
     {
+#if defined(MBEDTLS_MPS_PROTO_TLS)
         mps_l1_stream stream;
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
         mps_l1_dgram  dgram;
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
     } raw;
 };
 
@@ -503,6 +513,7 @@ struct mps_l1
     MPS_L1_INV_STREAM_READ_REQUIRES( p )        \
     MPS_L1_INV_STREAM_WRITE_REQUIRES( p )
 
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 /*
  *
@@ -534,13 +545,15 @@ typedef struct mps_l1 mps_l1;
 #define MPS_L1_MODE_DATAGRAM   1    /*!< Datagram mode of operation */
 
 /**
- * \brief          Initialize a Layer 1 context
+ * \brief          Initialize a Layer 1 context.
  *
  * \param ctx      The pointer to the Layer 1 context to initialize.
  * \param mode     The mode of operation for the Layer 1 context.
- *                 Either #MPS_L1_MODE_STREAM if the underlying Layer 0
- *                 transport is a stream transport, or #MPS_L1_MODE_DGRAM if
- *                 the underlying Layer 0 transport is a datagram transport.
+ *                 Possible values are:
+ *                 - #MPS_L1_MODE_STREAM, if the underlying Layer 0
+ *                   transport is a stream transport.
+ *                 - #MPS_L1_MODE_DGRAM, if the underlying Layer 0
+ *                   transport is a datagram transport.
  * \param alloc    The allocator context to use to acquire and release
  *                 the read and write buffers used by Layer 1.
  * \param send     The callback to the sending function of the underlying
@@ -548,14 +561,29 @@ typedef struct mps_l1 mps_l1;
  * \param recv     The callback to the receiving function of the underlying
  *                 Layer 0 transport.
  *
+ * \warning        The preconditions listed below are *not* checked in
+ *                 a production build. The function's behavior is undefined
+ *                 if they are violated.
+ *
+ * \pre            \p ctx must point to a writable ::mps_l1 instance;
+ *                 in particular, it must not be \c NULL.
+ * \pre            \p mode must be either #MPS_L1_MODE_STREAM or
+ *                 #MPS_L1_MODE_STREAM.
+ * \pre            \p alloc must point to an initalized allocator context.
+ * \pre            \p send must be a valid function pointer;
+ *                 in particular, it must not be \c NULL.
+ * \pre            \p recv must be a valid function pointer;
+ *                 in particular, it must not be \c NULL.
+ *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  *
  */
 
+/* TODO: Add parameter preconditions. */
 /*@
   requires \valid( ctx );
- MPS_L1_INV_ENSURES( ctx )
+  MPS_L1_INV_ENSURES( ctx )
   @*/
 MPS_STATIC int mps_l1_init( mps_l1 *ctx, uint8_t mode, mps_alloc *alloc,
                             mps_l0_send_t *send, mps_l0_recv_t *recv );
@@ -565,6 +593,9 @@ MPS_STATIC int mps_l1_init( mps_l1 *ctx, uint8_t mode, mps_alloc *alloc,
  *
  * \param ctx      The pointer to the Layer 1 context to free.
  *
+ * \pre            \p ctx must point to a writable, initialized
+ *                 Layer 1 context.
+ *
  * \return         \c 0 on success.
  * \return         A negative error code on failure.
  *
@@ -573,7 +604,7 @@ MPS_STATIC int mps_l1_init( mps_l1 *ctx, uint8_t mode, mps_alloc *alloc,
 /*@
  MPS_L1_INV_REQUIRES( ctx )
   @*/
-MPS_STATIC int mps_l1_free( mps_l1 *ctx );
+MPS_STATIC void mps_l1_free( mps_l1 *ctx );
 
 /*
  * Read interface
@@ -622,6 +653,7 @@ MPS_STATIC int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf, size_t desired );
   @*/
 MPS_STATIC int mps_l1_consume( mps_l1 *ctx );
 
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
 /**
  * \brief          Skip a message unit within a Layer 1 context.
  *                 Discard the currently processed message unit.
@@ -641,6 +673,7 @@ MPS_STATIC int mps_l1_consume( mps_l1 *ctx );
  MPS_L1_INV_ENSURES( ctx )
   @*/
 MPS_STATIC int mps_l1_skip( mps_l1 *ctx );
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 /*
  * Write interface

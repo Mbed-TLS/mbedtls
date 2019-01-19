@@ -31,30 +31,30 @@ static int trace_id = TRACE_BIT_LAYER_1;
 
 #include <string.h>
 
-static inline int l1_check_flush_stream( mps_l1_stream_write *p );
-static inline int l1_check_flush_dgram( mps_l1_dgram_write *p );
-
-static int l1_release_if_set( unsigned char **buf_ptr,
-                              mps_alloc *ctx,
-                              mps_alloc_type purpose );
+static void l1_release_if_set( unsigned char **buf_ptr,
+                               mps_alloc *ctx,
+                               mps_alloc_type purpose );
 static int l1_acquire_if_unset( unsigned char **buf_ptr,
                                 size_t *buflen,
                                 mps_alloc *ctx,
                                 mps_alloc_type purpose );
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+
+static inline int l1_check_flush_stream( mps_l1_stream_write *p );
 static inline void l1_init_stream_read( mps_l1_stream_read *p,
                                         mps_alloc *ctx,
                                         mps_l0_recv_t *recv );
 static inline void l1_init_stream_write( mps_l1_stream_write *p,
                                          mps_alloc *ctx,
                                          mps_l0_send_t *send );
-
 static inline void l1_init_stream( mps_l1_stream *p,
                                    mps_alloc *ctx,
                                    mps_l0_send_t *send,
                                    mps_l0_recv_t *recv );
-static inline int l1_free_stream_read( mps_l1_stream_read *p );
-static inline int l1_free_stream_write( mps_l1_stream_write *p );
-static inline int l1_free_stream( mps_l1_stream *p );
+static inline void l1_free_stream_read( mps_l1_stream_read *p );
+static inline void l1_free_stream_write( mps_l1_stream_write *p );
+static inline void l1_free_stream( mps_l1_stream *p );
 static inline int l1_consume_stream( mps_l1_stream_read *p );
 static inline int l1_flush_stream( mps_l1_stream_write *p );
 static inline int l1_write_stream( mps_l1_stream_write *p,
@@ -65,7 +65,10 @@ static inline int l1_write_dependency_stream( mps_l1_stream_write *p );
 static inline int l1_read_dependency_stream( mps_l1_stream_read *p );
 static inline int l1_dispatch_stream( mps_l1_stream_write *p,
                                       size_t len, size_t *pending );
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+static inline int l1_check_flush_dgram( mps_l1_dgram_write *p );
 static inline void l1_init_dgram_read( mps_l1_dgram_read *p,
                                        mps_alloc *ctx,
                                        mps_l0_recv_t *recv );
@@ -76,9 +79,9 @@ static inline void l1_init_dgram( mps_l1_dgram *p,
                                   mps_alloc *ctx,
                                   mps_l0_send_t *send,
                                   mps_l0_recv_t *recv );
-static inline int l1_free_dgram_read( mps_l1_dgram_read *p );
-static inline int l1_free_dgram_write( mps_l1_dgram_write *p );
-static inline int l1_free_dgram( mps_l1_dgram *p );
+static inline void l1_free_dgram_read( mps_l1_dgram_read *p );
+static inline void l1_free_dgram_write( mps_l1_dgram_write *p );
+static inline void l1_free_dgram( mps_l1_dgram *p );
 static inline int l1_ensure_in_dgram( mps_l1_dgram_read *p );
 static inline int l1_write_dependency_dgram( mps_l1_dgram_write *p );
 static inline int l1_read_dependency_dgram( mps_l1_dgram_read *p );
@@ -92,6 +95,7 @@ static inline int l1_write_dgram( mps_l1_dgram_write *p,
 static inline int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len,
                                      size_t *pending );
 static inline int l1_flush_dgram( mps_l1_dgram_write *p );
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 /*
  * GENERAL NOTE ON CODING STYLE
@@ -122,16 +126,13 @@ static inline int l1_flush_dgram( mps_l1_dgram_write *p );
  *
  */
 
-static int l1_release_if_set( unsigned char **buf_ptr,
+static void l1_release_if_set( unsigned char **buf_ptr,
                               mps_alloc *ctx,
                               mps_alloc_type purpose )
 {
     unsigned char *buf = *buf_ptr;
-    if( buf == NULL )
-        return( 0 );
-
     *buf_ptr = NULL;
-    return( mps_alloc_release( ctx, purpose ) );
+    mps_alloc_release( ctx, purpose );
 }
 
 static int l1_acquire_if_unset( unsigned char **buf_ptr,
@@ -151,6 +152,8 @@ static int l1_acquire_if_unset( unsigned char **buf_ptr,
  * Stream-based implementation
  *
  */
+
+#if defined(MBEDTLS_PROTO_TLS)
 
 /*@
   requires ( p != NULL );
@@ -196,13 +199,12 @@ void l1_init_stream( mps_l1_stream *p, mps_alloc *ctx,
   MPS_L1_STREAM_READ_INV_REQUIRES(p)
 @*/
 static inline
-int l1_free_stream_read( mps_l1_stream_read *p )
+void l1_free_stream_read( mps_l1_stream_read *p )
 {
     int ret;
     mps_l1_stream_read const zero = { NULL, NULL, NULL, 0, 0, 0 };
-    ret = l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_IN );
+    l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_IN );
     *p = zero;
-    return( ret );
 }
 
 /*@
@@ -213,20 +215,16 @@ int l1_free_stream_write( mps_l1_stream_write *p )
 {
     int ret;
     mps_l1_stream_write const zero = { NULL, NULL, NULL, 0, 0, 0, 0 };
-    ret = l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_OUT );
+    l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_OUT );
     *p = zero;
-    return( ret );
 }
 
 static inline
 int l1_free_stream( mps_l1_stream *p )
 {
     int ret0, ret1;
-    ret0 = l1_free_stream_read( &p->rd );
-    ret1 = l1_free_stream_write( &p->wr );
-    if( ret0 != 0 || ret1 != 0 )
-        return( MPS_ERR_INTERNAL_ERROR );
-    return( 0 );
+    l1_free_stream_read( &p->rd );
+    l1_free_stream_write( &p->wr );
 }
 
 /*@
@@ -317,7 +315,6 @@ int l1_fetch_stream( mps_l1_stream_read *p,
 static inline
 int l1_consume_stream( mps_l1_stream_read *p )
 {
-    int ret;
     unsigned char *buf;
     size_t bf, br, not_yet_fetched;
     TRACE_INIT( "l1_consume_stream" );
@@ -339,16 +336,15 @@ int l1_consume_stream( mps_l1_stream_read *p )
     if( not_yet_fetched != 0 )
     {
         memmove( buf, buf + bf, not_yet_fetched );
-        ret = 0;
     }
     else
     {
-        ret = l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_IN );
+        l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_IN );
         p->buf = NULL;
         p->buf_len = 0;
     }
 
-    RETURN( ret );
+    RETURN( 0 );
 }
 
 /*@
@@ -615,11 +611,15 @@ int l1_dispatch_stream( mps_l1_stream_write *p, size_t len, size_t *pending )
     RETURN( l1_check_flush_stream( p ) );
 }
 
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
 /*
  *
  * Datagram-based implementation
  *
  */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
 
 static inline
 void l1_init_dgram_read( mps_l1_dgram_read *p,
@@ -655,38 +655,26 @@ void l1_init_dgram( mps_l1_dgram *p,
 }
 
 static inline
-int l1_free_dgram_read( mps_l1_dgram_read *p )
+void l1_free_dgram_read( mps_l1_dgram_read *p )
 {
     mps_l1_dgram_read const zero = { 0, NULL, NULL, 0, 0, 0, 0 };
-    int ret;
-    ret = l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_IN );
+    l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_IN );
     *p = zero;
-    return( ret );
 }
 
 static inline
-int l1_free_dgram_write( mps_l1_dgram_write *p )
+void l1_free_dgram_write( mps_l1_dgram_write *p )
 {
     mps_l1_dgram_write const zero = { 0, NULL, NULL, 0, 0, 0 };
-
-    int ret;
-    ret = l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_OUT );
+    l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_OUT );
     *p = zero;
-    return( ret );
 }
 
 static inline
-int l1_free_dgram( mps_l1_dgram *p )
+void l1_free_dgram( mps_l1_dgram *p )
 {
-    int ret0, ret1;
-
-    ret0 = l1_free_dgram_read ( &p->rd );
-    ret1 = l1_free_dgram_write( &p->wr );
-
-    if( ret0 != 0 || ret1 != 0 )
-        return( MPS_ERR_INTERNAL_ERROR );
-
-    return( 0 );
+    l1_free_dgram_read ( &p->rd );
+    l1_free_dgram_write( &p->wr );
 }
 
 /*
@@ -885,7 +873,6 @@ int l1_write_dgram( mps_l1_dgram_write *p,
     unsigned char *buf;
     size_t bl, br;
     uint8_t flush;
-
     TRACE_INIT( "l1_write_dgram" );
 
     flush = p->flush;
@@ -1016,9 +1003,7 @@ int l1_flush_dgram( mps_l1_dgram_write *p )
         RETURN( MPS_ERR_INTERNAL_ERROR );
     }
 
-    ret = l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_OUT );
-    if( ret != 0 )
-        RETURN( ret );
+    l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_OUT );
 
     p->bytes_ready = 0;
     p->buf         = NULL;
@@ -1027,6 +1012,8 @@ int l1_flush_dgram( mps_l1_dgram_write *p )
     p->flush = 0;
     RETURN( 0 );
 }
+
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 /*
  *
@@ -1043,118 +1030,96 @@ int mps_l1_init( mps_l1 *ctx, uint8_t mode, mps_alloc *alloc,
 {
     TRACE_INIT( "mps_l1_init, mode %u", (unsigned) mode );
 
-    if( mode == MPS_L1_MODE_STREAM )
-        l1_init_stream( &ctx->raw.stream, alloc, send, recv );
-    else /* if( mode == MPS_L1_MODE_DATAGRAM ) */
-        l1_init_dgram( &ctx->raw.dgram, alloc, send, recv  );
+    MBEDTLS_MPS_PROTO_IF( mode,
+                l1_init_stream( &ctx->raw.stream, alloc, send, recv ),
+                l1_init_dgram( &ctx->raw.dgram, alloc, send, recv  ) );
 
-    ctx->mode = mode;
+    MBEDTLS_MPS_PROTO_IF_BOTH( ctx->mode = mode; )
     RETURN( 0 );
 }
 
-int mps_l1_free( mps_l1 *ctx )
+void mps_l1_free( mps_l1 *ctx )
 {
-    uint8_t mode = ctx->mode;
+    MBEDTLS_MPS_PROTO_IF_BOTH( uint8_t mode = ctx->mode; )
 
-    if( mode == MPS_L1_MODE_STREAM )
-        l1_free_stream( &ctx->raw.stream );
-    else /* if( mode == MPS_L1_MODE_DATAGRAM ) */
-        l1_free_dgram( &ctx->raw.dgram );
-
-    return( 0 );
+    MBEDTLS_MPS_PROTO_IF( mode,
+        return( l1_free_stream( &ctx->raw.stream ) ),
+        return( l1_free_dgram( &ctx->raw.dgram ) ) );
 }
 
 int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf, size_t desired )
 {
-    uint8_t const mode = ctx->mode;
-
-    if( mode == MPS_L1_MODE_STREAM )
-        return( l1_fetch_stream( &ctx->raw.stream.rd, buf, desired ) );
-    else /* if( mode == MBEDTLS_MPS_DATAGRAM ) */
-        return( l1_fetch_dgram( &ctx->raw.dgram.rd, buf, desired ) );
+    MBEDTLS_MPS_PROTO_IF_BOTH( uint8_t const mode = ctx->mode; )
+    MBEDTLS_MPS_PROTO_IF( mode,
+        return( l1_fetch_stream( &ctx->raw.stream.rd, buf, desired ) ),
+        return( l1_fetch_dgram( &ctx->raw.dgram.rd, buf, desired ) ) );
 }
 
 int mps_l1_consume( mps_l1 *ctx )
 {
-    uint8_t const mode = ctx->mode;
-
-    if( mode == MPS_L1_MODE_STREAM )
-        return( l1_consume_stream( &ctx->raw.stream.rd ) );
-    else /* if( mode == MBEDTLS_MPS_DATAGRAM ) */
-        return( l1_consume_dgram( &ctx->raw.dgram.rd ) );
+    MBEDTLS_MPS_PROTO_IF_BOTH( uint8_t const mode = ctx->mode; )
+    MBEDTLS_MPS_PROTO_IF( mode,
+        return( l1_consume_stream( &ctx->raw.stream.rd ) ),
+        return( l1_consume_dgram( &ctx->raw.dgram.rd ) ) );
 }
 
 int mps_l1_write( mps_l1 *ctx, unsigned char **buf, size_t *buflen )
 {
-    uint8_t const mode = ctx->mode;
-
-    if( mode == MPS_L1_MODE_STREAM )
-        return( l1_write_stream( &ctx->raw.stream.wr, buf, buflen ) );
-    else /* if( mode == MBEDTLS_MPS_DATAGRAM ) */
-        return( l1_write_dgram( &ctx->raw.dgram.wr, buf, buflen ) );
+    MBEDTLS_MPS_PROTO_IF_BOTH( uint8_t const mode = ctx->mode; )
+    MBEDTLS_MPS_PROTO_IF( mode,
+         return( l1_write_stream( &ctx->raw.stream.wr, buf, buflen ) ),
+         return( l1_write_dgram( &ctx->raw.dgram.wr, buf, buflen ) ) );
 }
 
 int mps_l1_dispatch( mps_l1 *ctx, size_t len, size_t *pending )
 {
-    uint8_t const mode = ctx->mode;
-
-    if( mode == MPS_L1_MODE_STREAM )
-        return( l1_dispatch_stream( &ctx->raw.stream.wr, len, pending ) );
-    else /* if( mode == MBEDTLS_MPS_DATAGRAM ) */
-        return( l1_dispatch_dgram( &ctx->raw.dgram.wr, len, pending ) );
+    MBEDTLS_MPS_PROTO_IF_BOTH( uint8_t const mode = ctx->mode; )
+    MBEDTLS_MPS_PROTO_IF( mode,
+         return( l1_dispatch_stream( &ctx->raw.stream.wr, len, pending ) ),
+         return( l1_dispatch_dgram( &ctx->raw.dgram.wr, len, pending ) ) );
 }
 
 int mps_l1_flush( mps_l1 *ctx )
 {
-    uint8_t const mode = ctx->mode;
-
-    if( mode == MPS_L1_MODE_STREAM )
-        return( l1_flush_stream( &ctx->raw.stream.wr ) );
-    else /* if( mode == MBEDTLS_MPS_DATAGRAM ) */
-        return( l1_flush_dgram( &ctx->raw.dgram.wr ) );
+    MBEDTLS_MPS_PROTO_IF_BOTH( uint8_t const mode = ctx->mode; )
+    MBEDTLS_MPS_PROTO_IF( mode,
+        return( l1_flush_stream( &ctx->raw.stream.wr ) ),
+        return( l1_flush_dgram( &ctx->raw.dgram.wr ) ) );
 }
 
 int mps_l1_read_dependency( mps_l1 *ctx )
 {
-    uint8_t const mode = ctx->mode;
-
-    if( mode == MPS_L1_MODE_STREAM )
-        return( l1_read_dependency_stream( &ctx->raw.stream.rd ) );
-    else /* if( mode == MBEDTLS_MPS_DATAGRAM ) */
-        return( l1_read_dependency_dgram( &ctx->raw.dgram.rd ) );
+    MBEDTLS_MPS_PROTO_IF_BOTH( uint8_t const mode = ctx->mode; )
+    MBEDTLS_MPS_PROTO_IF( mode,
+        return( l1_read_dependency_stream( &ctx->raw.stream.rd ) ),
+        return( l1_read_dependency_dgram( &ctx->raw.dgram.rd ) ) );
 }
 
 int mps_l1_write_dependency( mps_l1 *ctx )
 {
-    uint8_t const mode = ctx->mode;
-
-    if( mode == MPS_L1_MODE_STREAM )
-        return( l1_write_dependency_stream( &ctx->raw.stream.wr ) );
-    else /* if( mode == MBEDTLS_MPS_DATAGRAM ) */
-        return( l1_write_dependency_dgram( &ctx->raw.dgram.wr ) );
+    MBEDTLS_MPS_PROTO_IF_BOTH( uint8_t const mode = ctx->mode; )
+    MBEDTLS_MPS_PROTO_IF( mode,
+        return( l1_write_dependency_stream( &ctx->raw.stream.wr ) ),
+        return( l1_write_dependency_dgram( &ctx->raw.dgram.wr ) ) );
 }
 
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
 int mps_l1_skip( mps_l1 *ctx )
 {
     int ret;
     mps_l1_dgram_read *p;
-    uint8_t const mode = ctx->mode;
 
-    TRACE_INIT( "mps_l1_skip" );
-
-    if( mode != MPS_L1_MODE_DATAGRAM )
-    {
-        TRACE( trace_error, "Skipping only makes sense for a datagram-based Layer 1 context." );
-        RETURN( MPS_ERR_INTERNAL_ERROR );
-    }
+    MBEDTLS_MPS_PROTO_IF_BOTH(
+        uint8_t const mode = ctx->mode;
+        if( mode != MPS_L1_MODE_DATAGRAM )
+        {
+            TRACE( trace_error, "mps_l1_skip() only for DTLS." );
+            RETURN( MPS_ERR_INTERNAL_ERROR );
+        }
+    )
 
     p = &ctx->raw.dgram.rd;
-    ret = l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_IN );
-    if( ret != 0 )
-    {
-        TRACE( trace_error, "Couldn't release buffer from allocator." );
-        RETURN( ret );
-    }
+    l1_release_if_set( &p->buf, p->alloc, MPS_ALLOC_L1_IN );
 
     p->window_base = 0;
     p->window_len  = 0;
@@ -1163,6 +1128,7 @@ int mps_l1_skip( mps_l1 *ctx )
     p->buf_len     = 0;
     RETURN( 0 );
 }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 #endif /* MBEDTLS_MPS_SEPARATE_LAYERS) ||
           MBEDTLS_MPS_TOP_TRANSLATION_UNIT */

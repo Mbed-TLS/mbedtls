@@ -3352,8 +3352,8 @@ void mbedtls_mps_l1_basic( int mode,
 
 cleanup:
 
-    TEST_ASSERT( mps_l1_free( &cli ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv ) == 0 );
+    mps_l1_free( &cli );
+    mps_l1_free( &srv );
 
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
@@ -3444,8 +3444,8 @@ void mbedtls_mps_l1_want_read( )
     TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, data_len ) == 0 );
     TEST_ASSERT( memcmp( in_buf, data, data_len ) == 0 );
 
-    TEST_ASSERT( mps_l1_free( &cli ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv ) == 0 );
+    mps_l1_free( &cli );
+    mps_l1_free( &srv );
 
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
@@ -3487,8 +3487,8 @@ void mbedtls_mps_l1_dgram_want_read()
     TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, data_len ) ==
                  MPS_ERR_WANT_READ );
 
-    TEST_ASSERT( mps_l1_free( &cli ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv ) == 0 );
+    mps_l1_free( &cli );
+    mps_l1_free( &srv );
 
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
@@ -3559,8 +3559,8 @@ void mbedtls_mps_l1_dgram_bounds_violation()
     TEST_ASSERT( mps_l1_fetch( &srv, &in_buf, data_len ) ==
                  MPS_ERR_REQUEST_OUT_OF_BOUNDS );
 
-    TEST_ASSERT( mps_l1_free( &cli ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv ) == 0 );
+    mps_l1_free( &cli );
+    mps_l1_free( &srv );
 
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
@@ -3682,8 +3682,8 @@ void mbedtls_mps_l1_want_write( int client_write_instead_reflush,
         TEST_ASSERT( memcmp( in_buf, data, data_len ) == 0 );
     }
 
-    TEST_ASSERT( mps_l1_free( &cli ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv ) == 0 );
+    mps_l1_free( &cli );
+    mps_l1_free( &srv );
 
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
@@ -3719,7 +3719,7 @@ void mbedtls_mps_l1_overly_large_request()
     TEST_ASSERT( mps_l1_fetch( &l1, &in_buf, 90 + 1 ) ==
                  MPS_ERR_BUFFER_TOO_SMALL );
 
-    TEST_ASSERT( mps_l1_free( &l1 ) == 0 );
+    mps_l1_free( &l1 );
     TEST_ASSERT( mps_alloc_free( &alloc ) == 0 );
     layer0_free( &s2c );
     layer0_free( &c2s );
@@ -3928,8 +3928,8 @@ void mbedtls_mps_l1_random_communication( int allocator_buffer_sz,
     TEST_ASSERT( memcmp( c2s_recv_buffer, s2c_send_buffer, len_total ) == 0 );
     TEST_ASSERT( memcmp( s2c_recv_buffer, c2s_send_buffer, len_total ) == 0 );
 
-    TEST_ASSERT( mps_l1_free( &cli ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv ) == 0 );
+    mps_l1_free( &cli );
+    mps_l1_free( &srv );
 
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
@@ -4238,8 +4238,8 @@ exit:
 
     TEST_ASSERT( mps_l2_free( &cli ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
 
@@ -4459,8 +4459,8 @@ exit:
 
     TEST_ASSERT( mps_l2_free( &cli ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
 
@@ -4779,8 +4779,8 @@ exit:
 
     TEST_ASSERT( mps_l2_free( &cli ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
 
@@ -5121,8 +5121,8 @@ exit:
 
     TEST_ASSERT( mps_l2_free( &cli ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
     layer0_dgram_free( &s2c_d );
@@ -5362,8 +5362,8 @@ exit:
      */
     TEST_ASSERT( mps_l2_free( &cli ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
 
@@ -5614,8 +5614,8 @@ exit:
      */
     TEST_ASSERT( mps_l2_free( &cli ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
 
@@ -5761,8 +5761,8 @@ exit:
      */
     TEST_ASSERT( mps_l2_free( &cli ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
     layer0_free( &s2c );
@@ -6051,8 +6051,8 @@ exit:
      */
     TEST_ASSERT( mps_l2_free( &cli ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
 
@@ -6572,8 +6572,8 @@ exit:
     free( epochs[0] );
     free( epochs[1] );
 
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
     layer0_free( &s2c );
@@ -6941,8 +6941,8 @@ exit:
     TEST_ASSERT( mps_l3_free( &srv ) == 0 );
     TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv_l2 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
 
@@ -7145,8 +7145,8 @@ exit:
     TEST_ASSERT( mps_l3_free( &srv ) == 0 );
     TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv_l2 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
     layer0_dgram_free( &s2c_d );
@@ -7532,8 +7532,8 @@ exit:
     TEST_ASSERT( mps_l3_free( &srv ) == 0 );
     TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv_l2 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
     layer0_free( &s2c );
@@ -7692,8 +7692,8 @@ exit:
     TEST_ASSERT( mps_l3_free( &srv ) == 0 );
     TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv_l2 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
     layer0_free( &s2c );
@@ -7891,8 +7891,8 @@ exit:
     TEST_ASSERT( mps_l3_free( &srv ) == 0 );
     TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv_l2 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
     layer0_free( &s2c );
@@ -8048,8 +8048,8 @@ exit:
     TEST_ASSERT( mps_l3_free( &srv ) == 0 );
     TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv_l2 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
     layer0_free( &s2c );
@@ -8483,8 +8483,8 @@ exit:
     TEST_ASSERT( mps_l3_free( &srv ) == 0 );
     TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv_l2 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
     layer0_free( &s2c );
@@ -9180,8 +9180,8 @@ exit:
     mps_l3_free( &endpoint[1] );
     TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv_l2 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
     layer0_free( &s2c );
@@ -9437,8 +9437,8 @@ exit:
     TEST_ASSERT( mps_l3_free( &srv_l3 ) == 0 );
     TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv_l2 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
     layer0_free( &s2c );
@@ -9658,8 +9658,8 @@ exit:
     TEST_ASSERT( mps_l3_free( &srv_l3 ) == 0 );
     TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv_l2 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
     layer0_free( &s2c );
@@ -9873,8 +9873,8 @@ exit:
     TEST_ASSERT( mps_l3_free( &srv_l3 ) == 0 );
     TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv_l2 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
     layer0_dgram_free( &s2c_d );
@@ -10142,8 +10142,8 @@ exit:
     TEST_ASSERT( mps_l3_free( &srv_l3 ) == 0 );
     TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv_l2 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
     layer0_dgram_free( &s2c_d );
@@ -10489,8 +10489,8 @@ exit:
     TEST_ASSERT( mps_l3_free( &srv_l3 ) == 0 );
     TEST_ASSERT( mps_l2_free( &cli_l2 ) == 0 );
     TEST_ASSERT( mps_l2_free( &srv_l2 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &cli_l1 ) == 0 );
-    TEST_ASSERT( mps_l1_free( &srv_l1 ) == 0 );
+    mps_l1_free( &cli_l1 );
+    mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
     layer0_dgram_free( &s2c_d );

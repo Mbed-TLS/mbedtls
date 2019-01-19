@@ -25,6 +25,12 @@
 
 #include <stdint.h>
 
+/**
+ * \name SECTION:       MPS Configuration
+ *
+ * \{
+ */
+
 /*! This flag controls whether tracing for MPS should be enabled. */
 //#define MBEDTLS_MPS_TRACE
 
@@ -36,15 +42,36 @@
  */
 //#define MBEDTLS_MPS_SEPARATE_LAYERS
 
-
-/** Internal macro sanity checks. */
+/** Internal macro sanity check. */
 #if defined(MBEDTLS_MPS_TRACE) && \
     !defined(MBEDTLS_MPS_SEPARATE_LAYERS)
 #error "Tracing (MBEDTLS_MPS_TRACE) is only possible in multi-unit MPS (MBEDTLS_MPS_SEPARATE_LAYERS)"
 #endif /* MBEDTLS_MPS_TRACE && !MBEDTLS_MPS_SEPARATE_LAYERS */
 
-#define MBEDTLS_MPS_MODE_STREAM   0 /* MBEDTLS_SSL_TRANSPORT_STREAM   */
-#define MBEDTLS_MPS_MODE_DATAGRAM 1 /* MBEDTLS_SSL_TRANSPORT_DATAGRAM */
+/*! This flag enables support for the TLS protocol.
+ *
+ *  Uncomment if only DTLS is needed.
+ */
+#define MBEDTLS_MPS_PROTO_TLS
+
+/*! This flag enables support for the DTLS protocol.
+ *
+ *  Uncomment if only TLS is needed.
+ */
+#define MBEDTLS_MPS_PROTO_DTLS
+
+/** Internal macro sanity check. */
+#if !defined(MBEDTLS_MPS_PROTO_TLS) && \
+    !defined(MBEDTLS_MPS_PROTO_DTLS)
+#error "Either MBEDTLS_MPS_PROTO_TLS or MBEDTLS_MPS_PROTO_DTLS must be set."
+#endif /* !MBEDTLS_MPS_PROTO_TLS && !MBEDTLS_MPS_PROTO_DTLS */
+
+#if defined(MBEDTLS_MPS_PROTO_TLS) && \
+    defined(MBEDTLS_MPS_PROTO_DTLS)
+#define MBEDTLS_MPS_PROTO_BOTH
+#endif
+
+/* \} name SECTION: MPS Configuration */
 
 /**
  * \name SECTION:       Common types
@@ -52,6 +79,49 @@
  * Various common types used throughout MPS.
  * \{
  */
+
+typedef uint8_t mbedtls_mps_transport_type;
+/* MBEDTLS_SSL_TRANSPORT_STREAM   */
+#define MBEDTLS_MPS_MODE_STREAM   ((mbedtls_mps_transport_type) 0)
+ /* MBEDTLS_SSL_TRANSPORT_DATAGRAM */
+#define MBEDTLS_MPS_MODE_DATAGRAM ((mbedtls_mps_transport_type) 1)
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+#define MBEDTLS_MPS_IS_TLS( mode )               \
+    ( (mode) == MBEDTLS_MPS_MODE_STREAM )
+#else
+#define MBEDTLS_MPS_IS_TLS( mode ) 1
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+#endif /* MBEDTLS_MPS_PROTO_TLS  */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+#define MBEDTLS_MPS_IS_DTLS( mode )               \
+    ( (mode) == MBEDTLS_MPS_MODE_DATAGRAM )
+#else
+#define MBEDTLS_MPS_IS_DTLS( mode ) 1
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+#endif /* MBEDTLS_MPS_PROTO_DTLS  */
+
+#if !defined(MBEDTLS_MPS_PROTO_TLS) /* DTLS only */
+#define MBEDTLS_MPS_PROTO_IF( mode, tls_code, dtls_code ) dtls_code
+#elif !defined(MBEDTLS_MPS_PROTO_DTLS) /* TLS only */
+#define MBEDTLS_MPS_PROTO_IF( mode, tls_code, dtls_code ) tls_code
+#else /* TLS and DTLS enabled */
+#define MBEDTLS_MPS_PROTO_IF( mode, tls_code, dtls_code ) \
+    do                                                    \
+    {                                                     \
+        if( (mode) == MBEDTLS_MPS_MODE_STREAM )           \
+        {                                                 \
+            tls_code;                                     \
+        }                                                 \
+        else /* (mode) == MBEDTLS_MPS_MODE_DATAGRAM */    \
+        {                                                 \
+            dtls_code;                                    \
+        }                                                 \
+    } while( 0 )
+#endif /* MBEDTLS_MPS_PROTO_TLS && MBEDTLS_MPS_PROTO_DTLS */
 
 /*! The enumeration of record content types recognized by MPS.
  *

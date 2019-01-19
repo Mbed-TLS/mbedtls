@@ -176,7 +176,7 @@ cipher_example_encrypt_decrypt_aes_cbc_nopad_1_block( void )
     status = psa_generate_random( input, sizeof( input ) );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
-    status = psa_allocate_key( PSA_KEY_TYPE_AES, key_bits, &key_handle );
+    status = psa_allocate_key( &key_handle );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
     status = set_key_policy( key_handle,
@@ -226,7 +226,7 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_cbc_pkcs7_multi( void )
     status = psa_generate_random( input, sizeof( input ) );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
-    status = psa_allocate_key( PSA_KEY_TYPE_AES, key_bits, &key_handle );
+    status = psa_allocate_key( &key_handle );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
     status = set_key_policy( key_handle,
@@ -275,7 +275,7 @@ static psa_status_t cipher_example_encrypt_decrypt_aes_ctr_multi( void )
     status = psa_generate_random( input, sizeof( input ) );
     ASSERT_STATUS( status, PSA_SUCCESS );
 
-    status = psa_allocate_key( PSA_KEY_TYPE_AES, key_bits, &key_handle );
+    status = psa_allocate_key( &key_handle );
     ASSERT_STATUS( status, PSA_SUCCESS );
     status = set_key_policy( key_handle,
                              PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT,

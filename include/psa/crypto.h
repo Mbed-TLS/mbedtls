@@ -93,6 +93,140 @@ psa_status_t psa_crypto_init(void);
 
 /**@}*/
 
+/** \defgroup policy Key policies
+ * @{
+ */
+
+/** The type of the key policy data structure.
+ *
+ * Before calling any function on a key policy, the application must initialize
+ * it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ *   \code
+ *   psa_key_policy_t policy;
+ *   memset(&policy, 0, sizeof(policy));
+ *   \endcode
+ * - Initialize the structure to logical zero values, for example:
+ *   \code
+ *   psa_key_policy_t policy = {0};
+ *   \endcode
+ * - Initialize the structure to the initializer #PSA_KEY_POLICY_INIT,
+ *   for example:
+ *   \code
+ *   psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
+ *   \endcode
+ * - Assign the result of the function psa_key_policy_init()
+ *   to the structure, for example:
+ *   \code
+ *   psa_key_policy_t policy;
+ *   policy = psa_key_policy_init();
+ *   \endcode
+ *
+ * This is an implementation-defined \c struct. Applications should not
+ * make any assumptions about the content of this structure except
+ * as directed by the documentation of a specific implementation. */
+typedef struct psa_key_policy_s psa_key_policy_t;
+
+/** \def PSA_KEY_POLICY_INIT
+ *
+ * This macro returns a suitable initializer for a key policy object of type
+ * #psa_key_policy_t.
+ */
+#ifdef __DOXYGEN_ONLY__
+/* This is an example definition for documentation purposes.
+ * Implementations should define a suitable value in `crypto_struct.h`.
+ */
+#define PSA_KEY_POLICY_INIT {0}
+#endif
+
+/** Return an initial value for a key policy that forbids all usage of the key.
+ */
+static psa_key_policy_t psa_key_policy_init(void);
+
+/** \brief Set the standard fields of a policy structure.
+ *
+ * Note that this function does not make any consistency check of the
+ * parameters. The values are only checked when applying the policy to
+ * a key slot with psa_set_key_policy().
+ *
+ * \param[in,out] policy The key policy to modify. It must have been
+ *                       initialized as per the documentation for
+ *                       #psa_key_policy_t.
+ * \param usage          The permitted uses for the key.
+ * \param alg            The algorithm that the key may be used for.
+ */
+void psa_key_policy_set_usage(psa_key_policy_t *policy,
+                              psa_key_usage_t usage,
+                              psa_algorithm_t alg);
+
+/** \brief Retrieve the usage field of a policy structure.
+ *
+ * \param[in] policy    The policy object to query.
+ *
+ * \return The permitted uses for a key with this policy.
+ */
+psa_key_usage_t psa_key_policy_get_usage(const psa_key_policy_t *policy);
+
+/** \brief Retrieve the algorithm field of a policy structure.
+ *
+ * \param[in] policy    The policy object to query.
+ *
+ * \return The permitted algorithm for a key with this policy.
+ */
+psa_algorithm_t psa_key_policy_get_algorithm(const psa_key_policy_t *policy);
+
+/** \brief Set the usage policy on a key slot.
+ *
+ * This function must be called on an empty key slot, before importing,
+ * generating or creating a key in the slot. Changing the policy of an
+ * existing key is not permitted.
+ *
+ * Implementations may set restrictions on supported key policies
+ * depending on the key type and the key slot.
+ *
+ * \param handle        Handle to the key whose policy is to be changed.
+ * \param[in] policy    The policy object to query.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ *         If the key is persistent, it is implementation-defined whether
+ *         the policy has been saved to persistent storage. Implementations
+ *         may defer saving the policy until the key material is created.
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_OCCUPIED_SLOT
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_set_key_policy(psa_key_handle_t handle,
+                                const psa_key_policy_t *policy);
+
+/** \brief Get the usage policy for a key slot.
+ *
+ * \param handle        Handle to the key slot whose policy is being queried.
+ * \param[out] policy   On success, the key's policy.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_get_key_policy(psa_key_handle_t handle,
+                                psa_key_policy_t *policy);
+
+/**@}*/
+
 /** \defgroup key_management Key management
  * @{
  */
@@ -545,139 +679,70 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
                                    size_t data_size,
                                    size_t *data_length);
 
-/**@}*/
-
-/** \defgroup policy Key policies
- * @{
- */
-
-/** The type of the key policy data structure.
+/** Make a copy of a key.
  *
- * Before calling any function on a key policy, the application must initialize
- * it by any of the following means:
- * - Set the structure to all-bits-zero, for example:
- *   \code
- *   psa_key_policy_t policy;
- *   memset(&policy, 0, sizeof(policy));
- *   \endcode
- * - Initialize the structure to logical zero values, for example:
- *   \code
- *   psa_key_policy_t policy = {0};
- *   \endcode
- * - Initialize the structure to the initializer #PSA_KEY_POLICY_INIT,
- *   for example:
- *   \code
- *   psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
- *   \endcode
- * - Assign the result of the function psa_key_policy_init()
- *   to the structure, for example:
- *   \code
- *   psa_key_policy_t policy;
- *   policy = psa_key_policy_init();
- *   \endcode
+ * Copy key material from one location to another.
  *
- * This is an implementation-defined \c struct. Applications should not
- * make any assumptions about the content of this structure except
- * as directed by the documentation of a specific implementation. */
-typedef struct psa_key_policy_s psa_key_policy_t;
-
-/** \def PSA_KEY_POLICY_INIT
+ * This function is primarily useful to copy a key from one lifetime
+ * to another. The target key retains its lifetime and location.
  *
- * This macro returns a suitable initializer for a key policy object of type
- * #psa_key_policy_t.
- */
-#ifdef __DOXYGEN_ONLY__
-/* This is an example definition for documentation purposes.
- * Implementations should define a suitable value in `crypto_struct.h`.
- */
-#define PSA_KEY_POLICY_INIT {0}
-#endif
-
-/** Return an initial value for a key policy that forbids all usage of the key.
- */
-static psa_key_policy_t psa_key_policy_init(void);
-
-/** \brief Set the standard fields of a policy structure.
+ * In an implementation where slots have different ownerships,
+ * this functin may be used to share a key with a different party,
+ * subject to implementation-defined restrictions on key sharing.
+ * In this case \p constraint would typically prevent the recipient
+ * from exporting the key.
  *
- * Note that this function does not make any consistency check of the
- * parameters. The values are only checked when applying the policy to
- * a key slot with psa_set_key_policy().
+ * The resulting key may only be used in a way that conforms to all
+ * three of: the policy of the source key, the policy previously set
+ * on the target, and the \p constraint parameter passed when calling
+ * this function.
+ * - The usage flags on the resulting key are the bitwise-and of the
+ *   usage flags on the source policy, the previously-set target policy
+ *   and the policy constraint.
+ * - If all three policies allow the same algorithm or wildcard-based
+ *   algorithm policy, the resulting key has the same algorithm policy.
+ * - If one of the policies allows an algorithm and all the other policies
+ *   either allow the same algorithm or a wildcard-based algorithm policy
+ *   that includes this algorithm, the resulting key allows the same
+ *   algorithm.
  *
- * \param[in,out] policy The key policy to modify. It must have been
- *                       initialized as per the documentation for
- *                       #psa_key_policy_t.
- * \param usage          The permitted uses for the key.
- * \param alg            The algorithm that the key may be used for.
- */
-void psa_key_policy_set_usage(psa_key_policy_t *policy,
-                              psa_key_usage_t usage,
-                              psa_algorithm_t alg);
-
-/** \brief Retrieve the usage field of a policy structure.
+ * The effect of this function on implementation-defined metadata is
+ * implementation-defined.
  *
- * \param[in] policy    The policy object to query.
- *
- * \return The permitted uses for a key with this policy.
- */
-psa_key_usage_t psa_key_policy_get_usage(const psa_key_policy_t *policy);
-
-/** \brief Retrieve the algorithm field of a policy structure.
- *
- * \param[in] policy    The policy object to query.
- *
- * \return The permitted algorithm for a key with this policy.
- */
-psa_algorithm_t psa_key_policy_get_algorithm(const psa_key_policy_t *policy);
-
-/** \brief Set the usage policy on a key slot.
- *
- * This function must be called on an empty key slot, before importing,
- * generating or creating a key in the slot. Changing the policy of an
- * existing key is not permitted.
- *
- * Implementations may set restrictions on supported key policies
- * depending on the key type and the key slot.
- *
- * \param handle        Handle to the key whose policy is to be changed.
- * \param[in] policy    The policy object to query.
+ * \param source_handle     The key to copy. It must be a handle to an
+ *                          occupied slot.
+ * \param target_handle     A handle to the target slot. It must not contain
+ *                          key material yet.
+ * \param[in] constraint    An optional policy constraint. If this parameter
+ *                          is non-null then the resulting key will conform
+ *                          to this policy in addition to the source policy
+ *                          and the policy already present on the target
+ *                          slot. If this parameter is null then the
+ *                          function behaves in the same way as if it was
+ *                          the target policy, i.e. only the source and
+ *                          target policies apply.
  *
  * \retval #PSA_SUCCESS
- *         Success.
- *         If the key is persistent, it is implementation-defined whether
- *         the policy has been saved to persistent storage. Implementations
- *         may defer saving the policy until the key material is created.
  * \retval #PSA_ERROR_INVALID_HANDLE
  * \retval #PSA_ERROR_OCCUPIED_SLOT
- * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         \p target already contains key material.
+ * \retval #PSA_ERROR_EMPTY_SLOT
+ *         \p source does not contain key material.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The policy constraints on the source, on the target and
+ *         \p constraints are incompatible.
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The source key is not exportable and its lifetime does not
+ *         allow copying it to the target's lifetime.
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
-psa_status_t psa_set_key_policy(psa_key_handle_t handle,
-                                const psa_key_policy_t *policy);
-
-/** \brief Get the usage policy for a key slot.
- *
- * \param handle        Handle to the key slot whose policy is being queried.
- * \param[out] policy   On success, the key's policy.
- *
- * \retval #PSA_SUCCESS
- * \retval #PSA_ERROR_INVALID_HANDLE
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_HARDWARE_FAILURE
- * \retval #PSA_ERROR_TAMPERING_DETECTED
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t psa_get_key_policy(psa_key_handle_t handle,
-                                psa_key_policy_t *policy);
+psa_status_t psa_copy_key(psa_key_handle_t source_handle,
+                          psa_key_handle_t target_handle,
+                          const psa_key_policy_t *constraint);
 
 /**@}*/
 

@@ -713,6 +713,32 @@ static psa_status_t psa_get_empty_key_slot( psa_key_handle_t handle,
     return( status );
 }
 
+/** Calculate the intersection of two algorithm usage policies.
+ *
+ * Return 0 (which allows no operation) on incompatibility.
+ */
+static psa_algorithm_t psa_key_policy_algorithm_intersection(
+    psa_algorithm_t alg1,
+    psa_algorithm_t alg2 )
+{
+    /* Common case: the policy only allows alg. */
+    if( alg1 == alg2 )
+        return( alg1 );
+    /* If the policies are from the same hash-and-sign family, check
+     * if one is a wildcard. */
+    if( PSA_ALG_IS_HASH_AND_SIGN( alg1 ) &&
+        PSA_ALG_IS_HASH_AND_SIGN( alg2 ) &&
+        ( alg1 & ~PSA_ALG_HASH_MASK ) == ( alg2 & ~PSA_ALG_HASH_MASK ) )
+    {
+        if( PSA_ALG_SIGN_GET_HASH( alg1 ) == PSA_ALG_ANY_HASH )
+            return( alg2 );
+        if( PSA_ALG_SIGN_GET_HASH( alg1 ) == PSA_ALG_ANY_HASH )
+            return( alg1 );
+    }
+    /* If the policies are incompatible, allow nothing. */
+    return( 0 );
+}
+
 /** Test whether a policy permits an algorithm.
  *
  * The caller must test usage flags separately.
@@ -734,6 +760,18 @@ static int psa_key_policy_permits( const psa_key_policy_t *policy,
     }
     /* If it isn't permitted, it's forbidden. */
     return( 0 );
+}
+
+static psa_status_t psa_restrict_key_policy(
+    psa_key_policy_t *policy,
+    const psa_key_policy_t *constraint )
+{
+    psa_algorithm_t intersection_alg =
+        psa_key_policy_algorithm_intersection( policy->alg, constraint->alg );
+    if( intersection_alg == 0 && policy->alg != 0 && constraint->alg != 0 )
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    policy->usage &= constraint->usage;
+    return( PSA_SUCCESS );
 }
 
 /** Retrieve a slot which must contain a key. The key must have allow all the
@@ -923,11 +961,11 @@ psa_status_t psa_get_key_information( psa_key_handle_t handle,
     return( PSA_SUCCESS );
 }
 
-static  psa_status_t psa_internal_export_key( psa_key_slot_t *slot,
-                                              uint8_t *data,
-                                              size_t data_size,
-                                              size_t *data_length,
-                                              int export_public_key )
+static psa_status_t psa_internal_export_key( const psa_key_slot_t *slot,
+                                             uint8_t *data,
+                                             size_t data_size,
+                                             size_t *data_length,
+                                             int export_public_key )
 {
     *data_length = 0;
 
@@ -1109,6 +1147,65 @@ exit:
     return( status );
 }
 #endif /* defined(MBEDTLS_PSA_CRYPTO_STORAGE_C) */
+
+static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
+                                           psa_key_handle_t target )
+{
+    psa_status_t status;
+    uint8_t *buffer = NULL;
+    size_t buffer_size = 0;
+    size_t length;
+
+    buffer_size = PSA_KEY_EXPORT_MAX_SIZE( source->type,
+                                           psa_get_key_bits( source ) );
+    buffer = mbedtls_calloc( 1, buffer_size );
+    if( buffer == NULL )
+    {
+        status = PSA_ERROR_INSUFFICIENT_MEMORY;
+        goto exit;
+    }
+    status = psa_internal_export_key( source, buffer, buffer_size, &length, 0 );
+    if( status != PSA_SUCCESS )
+        goto exit;
+    status = psa_import_key( target, source->type, buffer, length );
+
+exit:
+    return( status );
+}
+
+psa_status_t psa_copy_key(psa_key_handle_t source_handle,
+                          psa_key_handle_t target_handle,
+                          const psa_key_policy_t *constraint)
+{
+    psa_key_slot_t *source_slot = NULL;
+    psa_key_slot_t *target_slot = NULL;
+    psa_key_policy_t new_policy;
+    psa_status_t status;
+    status = psa_get_key_from_slot( source_handle, &source_slot, 0, 0 );
+    if( status != PSA_SUCCESS )
+        return( status );
+    status = psa_get_empty_key_slot( target_handle, &target_slot );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    new_policy = target_slot->policy;
+    status = psa_restrict_key_policy( &new_policy, &source_slot->policy );
+    if( status != PSA_SUCCESS )
+        return( status );
+    if( constraint != NULL )
+    {
+        status = psa_restrict_key_policy( &new_policy, constraint );
+        if( status != PSA_SUCCESS )
+            return( status );
+    }
+
+    status = psa_copy_key_material( source_slot, target_handle );
+    if( status != PSA_SUCCESS )
+        return( status );
+
+    target_slot->policy = new_policy;
+    return( PSA_SUCCESS );
+}
 
 
 

@@ -544,6 +544,12 @@ hash_verify_bad_args:
 PSA hash finish: bad arguments
 hash_finish_bad_args:
 
+PSA hash clone: source state
+hash_clone_source_state:
+
+PSA hash clone: target state
+hash_clone_target_state:
+
 MAC operation object initializers zero properly
 mac_operation_init:
 

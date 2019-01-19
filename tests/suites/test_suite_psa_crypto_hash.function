@@ -67,6 +67,7 @@ void hash_multi_part( int alg_arg, data_t *input, data_t *expected_hash )
     unsigned char actual_hash[PSA_HASH_MAX_SIZE];
     size_t actual_hash_length;
     psa_hash_operation_t operation = PSA_HASH_OPERATION_INIT;
+    psa_hash_operation_t operation2 = PSA_HASH_OPERATION_INIT;
     uint32_t len = 0;
 
     PSA_ASSERT( psa_crypto_init( ) );
@@ -78,16 +79,23 @@ void hash_multi_part( int alg_arg, data_t *input, data_t *expected_hash )
 
         PSA_ASSERT( psa_hash_update( &operation,
                                      input->x, len ) );
+        PSA_ASSERT( psa_hash_clone( &operation, &operation2 ) );
         PSA_ASSERT( psa_hash_update( &operation,
+                                     input->x + len, input->len - len ) );
+        PSA_ASSERT( psa_hash_update( &operation2,
                                      input->x + len, input->len - len ) );
 
         PSA_ASSERT( psa_hash_finish( &operation,
                                      actual_hash, sizeof( actual_hash ),
                                      &actual_hash_length ) );
-
         ASSERT_COMPARE( expected_hash->x, expected_hash->len,
                         actual_hash, actual_hash_length );
 
+        PSA_ASSERT( psa_hash_finish( &operation2,
+                                     actual_hash, sizeof( actual_hash ),
+                                     &actual_hash_length ) );
+        ASSERT_COMPARE( expected_hash->x, expected_hash->len,
+                        actual_hash, actual_hash_length );
     } while( len++ != input->len );
 
 exit:

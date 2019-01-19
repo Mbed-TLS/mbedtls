@@ -1048,6 +1048,24 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
  */
 psa_status_t psa_hash_abort(psa_hash_operation_t *operation);
 
+/** Clone a hash operation.
+ *
+ * \param[in] source_operation      The active hash operation to clone.
+ * \param[in,out] target_operation  The operation object to set up.
+ *                                  It must be initialized but not active.
+ *
+ * \retval #PSA_SUCCESS
+ * \retval #PSA_ERROR_BAD_STATE
+ *         \p source_operation is not an active hash operation.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         \p source_operation is active.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_HARDWARE_FAILURE
+ * \retval #PSA_ERROR_TAMPERING_DETECTED
+ */
+psa_status_t psa_hash_clone(const psa_hash_operation_t *source_operation,
+                            psa_hash_operation_t *target_operation);
+
 /**@}*/
 
 /** \defgroup MAC Message authentication codes

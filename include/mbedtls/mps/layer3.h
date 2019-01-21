@@ -716,6 +716,7 @@ MPS_STATIC int mps_l3_read_alert( mps_l3 *l3, mps_l3_alert_in *alert );
 @*/
 MPS_STATIC int mps_l3_read_ccs( mps_l3 *l3, mps_l3_ccs_in *ccs );
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
 /**
  * \brief         Pause the reading of an incoming handshake message.
  *
@@ -745,6 +746,7 @@ MPS_STATIC int mps_l3_read_ccs( mps_l3 *l3, mps_l3_ccs_in *ccs );
   MPS_L3_INV_ENSURES( l3 )
 @*/
 MPS_STATIC int mps_l3_read_pause_handshake( mps_l3 *l3 );
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
 /**
  * \brief         Conclude the reading of the current incoming message.
@@ -843,6 +845,7 @@ MPS_STATIC int mps_l3_write_alert( mps_l3 *l3, mps_l3_alert_out *alert );
 @*/
 MPS_STATIC int mps_l3_write_ccs( mps_l3 *l3, mps_l3_ccs_out *ccs );
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
 /**
  * \brief           Pause the writing of an outgoing handshake message.
  *
@@ -872,6 +875,7 @@ MPS_STATIC int mps_l3_write_ccs( mps_l3 *l3, mps_l3_ccs_out *ccs );
   MPS_L3_INV_ENSURES( l3 )
 @*/
 MPS_STATIC int mps_l3_pause_handshake( mps_l3 *l3 );
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
 /**
  * \brief           Abort the writing of an outgoing handshake message.

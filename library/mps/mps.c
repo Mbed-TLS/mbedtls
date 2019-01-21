@@ -323,14 +323,20 @@ static int mps_clear_pending( mbedtls_mps *mps,
                               uint8_t allow_active_hs )
 {
     int ret = 0;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode = mps->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
     TRACE_INIT( "mps_clear_pending, allow_active_hs %u",
                 (unsigned) allow_active_hs );
 
-    if( mps->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         /* If present, dispatch queueing handshake data. */
         MPS_CHK( mps_dtls_frag_out_unpause( mps, allow_active_hs ) );
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     /* Attempt to send any pending alerts. */
     MPS_CHK( mps_handle_pending_alert( mps ) );
@@ -478,6 +484,9 @@ exit:
 static int mps_prepare_read( mbedtls_mps *mps )
 {
     int ret;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode = mps->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
     TRACE_INIT( "mps_prepare_read" );
 
     ret = mps_check_read( mps );
@@ -499,7 +508,8 @@ static int mps_prepare_read( mbedtls_mps *mps )
         RETURN( MPS_ERR_INTERNAL_ERROR );
     }
 
-    if( mps->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         /* Reject read requests when sending flights. */
         if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_SEND )
@@ -518,6 +528,7 @@ static int mps_prepare_read( mbedtls_mps *mps )
          * earlier one that hasn't yet completed. */
         MPS_CHK( mps_check_retransmit( mps ) );
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     /* If a flush is pending, ensure that all outgoing data
      * gets delivered before allowing the next read request.
@@ -550,6 +561,9 @@ static int mps_prepare_write( mbedtls_mps *mps,
                               uint8_t allow_paused_hs )
 {
     int ret = 0;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode = mps->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
     TRACE_INIT( "mps_prepare_write" );
 
     ret = mps_check_write( mps );
@@ -566,8 +580,8 @@ static int mps_prepare_write( mbedtls_mps *mps,
     /* If a flush is pending, ensure that all outgoing data
      * gets delivered before allowing the next write request. */
     MPS_CHK( mps_clear_pending( mps, allow_paused_hs ) );
-
-    if( mps->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         /* Reject send requests when receiving flights.
          * Note that this does not apply to fatal alerts:
@@ -586,6 +600,7 @@ static int mps_prepare_write( mbedtls_mps *mps,
          * the timer has expired and we can wrapup the flight-exchange. */
         MPS_CHK( mps_retransmission_timer_check( mps ) );
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     MPS_INTERNAL_FAILURE_HANDLER
 }
@@ -1507,6 +1522,9 @@ int mbedtls_mps_read( mbedtls_mps *mps )
 {
     int ret;
     mbedtls_mps_msg_type_t msg;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode = mps->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
     TRACE_INIT( "mbedtls_mps_read" );
 
     MPS_CHK( mps_prepare_read( mps ) );
@@ -1657,14 +1675,16 @@ int mbedtls_mps_read( mbedtls_mps *mps )
              * deal with the distinction between new messages and
              * the continuation of paused ones.
              */
-
-            if( mps->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+            if( MBEDTLS_MPS_IS_TLS( mode ) )
             {
                 /* In TLS, we transparently forward the data from Layer 3. */
                 mps->in.state = MBEDTLS_MPS_MSG_HS;
                 RETURN( MBEDTLS_MPS_MSG_HS );
             }
-            else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+            if( MBEDTLS_MPS_IS_DTLS( mode ) )
             {
                 /* DTLS */
                 ret = mbedtls_mps_retransmission_handle_incoming_fragment( mps );
@@ -1682,6 +1702,7 @@ int mbedtls_mps_read( mbedtls_mps *mps )
                 }
                 MPS_CHK( ret );
             }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
             break;
         }
 
@@ -2509,6 +2530,9 @@ int mbedtls_mps_read_handshake( mbedtls_mps *mps,
                                 mbedtls_mps_handshake_in *hs )
 {
     int ret;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode = mps->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
     TRACE_INIT( "mbedtls_mps_read_handshake" );
 
     ret = mps_check_read( mps );
@@ -2518,7 +2542,8 @@ int mbedtls_mps_read_handshake( mbedtls_mps *mps,
     if( mps->in.state != MBEDTLS_MPS_MSG_HS )
         MPS_CHK( MBEDTLS_ERR_MPS_PORT_NOT_ACTIVE );
 
-    if( mps->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         /* TLS */
         mps_l3_handshake_in hs_l3;
@@ -2529,10 +2554,14 @@ int mbedtls_mps_read_handshake( mbedtls_mps *mps,
         hs->handle = hs_l3.rd_ext;
         hs->addlen = 0; /* No additional data in TLS */
     }
-    else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         MPS_CHK( mps_reassembly_read( mps, hs ) );
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     MPS_API_BOUNDARY_FAILURE_HANDLER
 }
@@ -2571,11 +2600,17 @@ int mbedtls_mps_read_alert( mbedtls_mps const *mps,
 
 int mbedtls_mps_read_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags )
 {
-    if( mps->conf.mode == MBEDTLS_MPS_MODE_STREAM ||
-        mps->in.state == MBEDTLS_MPS_MSG_NONE )
-    {
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode = mps->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
         return( MPS_ERR_INTERNAL_ERROR );
-    }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+    if( mps->in.state == MBEDTLS_MPS_MSG_NONE )
+        return( MPS_ERR_INTERNAL_ERROR );
 
     mps->in.flags = flags;
     return( 0 );
@@ -2584,6 +2619,9 @@ int mbedtls_mps_read_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags )
 int mbedtls_mps_read_pause( mbedtls_mps *mps )
 {
     int ret;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode = mps->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     ret = mps_check_read( mps );
     if( ret != 0 )
@@ -2592,16 +2630,22 @@ int mbedtls_mps_read_pause( mbedtls_mps *mps )
     if( mps->in.state != MBEDTLS_MPS_MSG_HS )
         return( MBEDTLS_ERR_MPS_PORT_NOT_ACTIVE );
 
-    if( mps->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         /* TLS */
         MPS_CHK( mps_l3_read_pause_handshake( mps->conf.l3 ) );
     }
-    else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         /* DTLS */
         MPS_CHK( mps_retransmission_pause_incoming_message( mps ) );
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
+
     mps->in.state = MBEDTLS_MPS_MSG_NONE;
 
     MPS_API_BOUNDARY_FAILURE_HANDLER
@@ -2610,6 +2654,9 @@ int mbedtls_mps_read_pause( mbedtls_mps *mps )
 int mbedtls_mps_read_consume( mbedtls_mps *mps )
 {
     int ret;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode = mps->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
     TRACE_INIT( "mbedtls_mps_read_consume" );
 
     ret = mps_check_read( mps );
@@ -2620,12 +2667,16 @@ int mbedtls_mps_read_consume( mbedtls_mps *mps )
     {
         case MBEDTLS_MPS_MSG_HS:
 
-            if( mps->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+            if( MBEDTLS_MPS_IS_TLS( mode ) )
             {
                 /* TLS */
                 MPS_CHK( mps_l3_read_consume( mps->conf.l3 ) );
             }
-            else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+            if( MBEDTLS_MPS_IS_DTLS( mode ) )
             {
                 /* DTLS
                  *
@@ -2640,6 +2691,7 @@ int mbedtls_mps_read_consume( mbedtls_mps *mps )
                  */
                 MPS_CHK( mps_retransmission_finish_incoming_message( mps ) );
             }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
             break;
 
         case MBEDTLS_MPS_MSG_APP:
@@ -2683,11 +2735,17 @@ int mbedtls_mps_get_sequence_number( mbedtls_mps *mps, uint8_t seq[8] )
 
 int mbedtls_mps_write_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags )
 {
-    if( mps->conf.mode == MBEDTLS_MPS_MODE_STREAM ||
-        mps->out.state == MBEDTLS_MPS_MSG_NONE )
-    {
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode = mps->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
         return( MPS_ERR_INTERNAL_ERROR );
-    }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+    if( mps->out.state == MBEDTLS_MPS_MSG_NONE )
+        return( MPS_ERR_INTERNAL_ERROR );
 
     mps->dtls.outgoing.flags = flags;
     return( 0 );
@@ -2712,11 +2770,17 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
      */
 
     int ret;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode = mps->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
     TRACE_INIT( "mbedtls_mps_write_handshake, type %u, length %u",
                 (unsigned) hs_new->type, (unsigned) hs_new->length );
+
     MPS_CHK( mps_prepare_write( mps, MPS_PAUSED_HS_ALLOWED ) );
 
-    if( mps->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         /* TLS
          * Write a handshake message on Layer 3 and forward the writer. */
@@ -2734,7 +2798,10 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
         hs_new->handle = hs_l3.wr_ext;
         hs_new->addlen = 0;
     }
-    else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         /* DTLS */
         mbedtls_mps_handshake_out_internal * const hs = &mps->dtls.hs;
@@ -2943,6 +3010,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
         hs_new->addlen = sizeof( uint16_t );
         hs_new->handle = &hs->wr_ext;
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
     mps->out.state = MBEDTLS_MPS_MSG_HS;
 
     MPS_API_BOUNDARY_FAILURE_HANDLER
@@ -2994,17 +3062,24 @@ int mbedtls_mps_write_ccs( mbedtls_mps *mps )
 int mbedtls_mps_write_pause( mbedtls_mps *mps )
 {
     int ret;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode = mps->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
     TRACE_INIT( "mbedtls_mps_write_pause" );
 
     ret = mps_check_write( mps );
     if( ret != 0 )
         RETURN( ret );
 
-    if( mps->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         MPS_CHK( mps_l3_pause_handshake( mps->conf.l3 ) );
     }
-    else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         /* DTLS */
         if( mps->dtls.hs.state != MBEDTLS_MPS_HS_ACTIVE )
@@ -3021,6 +3096,7 @@ int mbedtls_mps_write_pause( mbedtls_mps *mps )
         MPS_CHK( mps_dtls_frag_out_close( mps ) );
         MPS_CHK( mps_dtls_frag_out_dispatch( mps ) );
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     mps->out.state = MBEDTLS_MPS_MSG_NONE;
 
@@ -3030,18 +3106,25 @@ int mbedtls_mps_write_pause( mbedtls_mps *mps )
 int mbedtls_mps_dispatch( mbedtls_mps *mps )
 {
     int ret;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode = mps->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
     TRACE_INIT( "mbedtls_mps_dispatch" );
 
     ret = mps_check_write( mps );
     if( ret != 0 )
         RETURN( ret );
 
-    if( mps->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         /* TLS */
         MPS_CHK( mps_l3_dispatch( mps->conf.l3 ) );
     }
-    else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         /* DTLS */
         uint8_t flags;
@@ -3097,6 +3180,7 @@ int mbedtls_mps_dispatch( mbedtls_mps *mps )
             MPS_CHK( mps_retransmission_timer_update( mps ) );
         }
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     mps->out.state = MBEDTLS_MPS_MSG_NONE;
 

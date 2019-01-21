@@ -38,10 +38,17 @@ static int trace_id = TRACE_BIT_LAYER_3;
 /* Reading-related */
 static int l3_parse_hs_header( uint8_t mode, mbedtls_reader *rd,
                                mps_l3_hs_in_internal *in );
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
 static int l3_parse_hs_header_tls( mbedtls_reader *rd,
                                    mps_l3_hs_in_internal *in );
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
 static int l3_parse_hs_header_dtls( mbedtls_reader *rd,
                                     mps_l3_hs_in_internal *in );
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
+
 static int l3_parse_alert( mbedtls_reader *rd,
                            mps_l3_alert_in_internal *alert );
 static int l3_parse_ccs( mbedtls_reader *rd );
@@ -50,8 +57,14 @@ static int l3_parse_ccs( mbedtls_reader *rd );
 static int l3_prepare_write( mps_l3 *l3, mbedtls_mps_msg_type_t type,
                              mbedtls_mps_epoch_id epoch );
 static int l3_check_clear( mps_l3 *l3 );
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
 static int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs );
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
 static int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs );
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 /*
  * Constants and sizes from the [D]TLS standard
@@ -163,6 +176,10 @@ int mps_l3_read( mps_l3 *l3 )
 {
     int res;
     mps_l2_in in;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode = l3->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
     TRACE_INIT( "mps_l3_read" );
 
     /*
@@ -227,23 +244,30 @@ int mps_l3_read( mps_l3 *l3 )
             res = l3_parse_alert( in.rd, &l3->in.alert );
             if( res == MBEDTLS_ERR_READER_OUT_OF_DATA )
             {
-                if( l3->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+                if( MBEDTLS_MPS_IS_DTLS( mode ) )
                 {
                     TRACE( trace_error, "Incomplete alert message found -- abort" );
                     RETURN( MPS_ERR_BAD_MSG );
                 }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
-                TRACE( trace_comment, "Not enough data available in record to read alert message" );
-                res = mps_l2_read_done( l3->conf.l2 );
-                if( res != 0 )
-                    RETURN( res );
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+                if( MBEDTLS_MPS_IS_TLS( mode ) )
+                {
+                    TRACE( trace_comment, "Not enough data available in record to read alert message" );
+                    res = mps_l2_read_done( l3->conf.l2 );
+                    if( res != 0 )
+                        RETURN( res );
 
-                /* No records are buffered by Layer 2, so progress depends
-                 * on the availability of the underlying transport.
-                 *
-                 * NOTE: If Layer 2 ever happens to fetch and buffer multiple
-                 *       records, this must be changed. */
-                RETURN( MPS_ERR_WANT_READ );
+                    /* No records are buffered by Layer 2, so progress depends
+                     * on the availability of the underlying transport.
+                     *
+                     * NOTE: If Layer 2 ever happens to fetch and buffer
+                     *       multiple records, this must be changed. */
+                    RETURN( MPS_ERR_WANT_READ );
+                }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
             }
             else if( res != 0 )
                 RETURN( res );
@@ -325,25 +349,32 @@ int mps_l3_read( mps_l3 *l3 )
                                               &l3->in.hs );
                     if( res == MBEDTLS_ERR_READER_OUT_OF_DATA )
                     {
-                        if( l3->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+                        if( MBEDTLS_MPS_IS_DTLS( mode ) )
                         {
                             TRACE( trace_error, "Incomplete handshake header found -- abort" );
                             RETURN( MPS_ERR_BAD_MSG );
                         }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
-                        TRACE( trace_comment, "Incomplete handshake header in current record -- wait for more data." );
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+                        if( MBEDTLS_MPS_IS_TLS( mode ) )
+                        {
+                            TRACE( trace_comment, "Incomplete handshake header in current record -- wait for more data." );
 
-                        res = mps_l2_read_done( l3->conf.l2 );
-                        if( res != 0 )
-                            RETURN( res );
+                            res = mps_l2_read_done( l3->conf.l2 );
+                            if( res != 0 )
+                                RETURN( res );
 
-                        /* No records are buffered by Layer 2, so progress
-                         * depends on the availability of the underlying
-                         * transport.
-                         *
-                         * NOTE: If Layer 2 ever happens to fetch and buffer
-                         *       multiple records, this must be changed. */
-                        RETURN( MPS_ERR_WANT_READ );
+                            /* No records are buffered by Layer 2, so progress
+                             * depends on the availability of the underlying
+                             * transport.
+                             *
+                             * NOTE: If Layer 2 ever happens to fetch and buffer
+                             *       multiple records, this must be changed. */
+                            RETURN( MPS_ERR_WANT_READ );
+                        }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
                     }
                     else if( res != 0 )
                         RETURN( res );
@@ -354,16 +385,20 @@ int mps_l3_read( mps_l3 *l3 )
 
                     /* TODO: Think about storing the frag_len in len for DTLS
                      *       to avoid this distinction. */
-                    if( l3->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+                    if( MBEDTLS_MPS_IS_TLS( mode ) )
                     {
                         mbedtls_reader_init_ext( &l3->in.hs.rd_ext,
                                                  l3->in.hs.len );
                     }
-                    else /* MBEDTLS_MPS_MODE_DATAGRAM */
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+                    if( MBEDTLS_MPS_IS_DTLS( mode ) )
                     {
                         mbedtls_reader_init_ext( &l3->in.hs.rd_ext,
                                                  l3->in.hs.frag_len );
                     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
                     break;
 
@@ -482,6 +517,7 @@ int mps_l3_read_consume( mps_l3 *l3 )
     RETURN( 0 );
 }
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
 /* Pause the processing of an incoming handshake message. */
 int mps_l3_read_pause_handshake( mps_l3 *l3 )
 {
@@ -516,6 +552,7 @@ int mps_l3_read_pause_handshake( mps_l3 *l3 )
     l3->in.hs.state = MPS_L3_HS_PAUSED;
     RETURN( 0 );
 }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
 /*
  * Record content type specific parsing functions.
@@ -526,17 +563,24 @@ int mps_l3_read_pause_handshake( mps_l3 *l3 )
 static int l3_parse_hs_header( uint8_t mode, mbedtls_reader *rd,
                                mps_l3_hs_in_internal *in )
 {
-    switch( mode )
-    {
-        case MBEDTLS_MPS_MODE_STREAM:
-            return( l3_parse_hs_header_tls( rd, in ) );
-        case MBEDTLS_MPS_MODE_DATAGRAM:
-            return( l3_parse_hs_header_dtls( rd, in ) );
-        default:
-            return( MPS_ERR_INTERNAL_ERROR );
-    }
+#if !defined(MBEDTLS_MPS_PROTO_BOTH)
+    ((void) mode);
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
+        return( l3_parse_hs_header_tls( rd, in ) );
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+        return( l3_parse_hs_header_dtls( rd, in ) );
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+    return( MPS_ERR_INTERNAL_ERROR );
 }
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
 static int l3_parse_hs_header_tls( mbedtls_reader *rd,
                                    mps_l3_hs_in_internal *in )
 {
@@ -599,7 +643,9 @@ static int l3_parse_hs_header_tls( mbedtls_reader *rd,
     TRACE( trace_comment, "* Length: %u", (unsigned) in->len );
     RETURN( 0 );
 }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
 static int l3_parse_hs_header_dtls( mbedtls_reader *rd,
                                     mps_l3_hs_in_internal *in )
 {
@@ -676,6 +722,7 @@ static int l3_parse_hs_header_dtls( mbedtls_reader *rd,
 
     RETURN( 0 );
 }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 /* Alert */
 
@@ -768,6 +815,10 @@ static int l3_parse_ccs( mbedtls_reader *rd )
 
 int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs )
 {
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode = l3->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
     TRACE_INIT( "mps_l3_read_handshake" );
     if( l3->in.state != MBEDTLS_MPS_MSG_HS )
     {
@@ -783,12 +834,14 @@ int mps_l3_read_handshake( mps_l3 *l3, mps_l3_handshake_in *hs )
     hs->type   = l3->in.hs.type;
     hs->rd_ext = &l3->in.hs.rd_ext;
 
-    if( l3->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         hs->seq_nr      = l3->in.hs.seq_nr;
         hs->frag_offset = l3->in.hs.frag_offset;
         hs->frag_len    = l3->in.hs.frag_len;
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     RETURN( 0 );
 }
@@ -846,6 +899,7 @@ int mps_l3_flush( mps_l3 *l3 )
     RETURN( l3_check_clear( l3 ) );
 }
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
 static int l3_check_write_hs_hdr_tls( mps_l3 *l3 )
 {
     int res;
@@ -864,7 +918,9 @@ static int l3_check_write_hs_hdr_tls( mps_l3 *l3 )
 
     return( 0 );
 }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
 static int l3_check_write_hs_hdr_dtls( mps_l3 *l3 )
 {
     int res;
@@ -884,19 +940,34 @@ static int l3_check_write_hs_hdr_dtls( mps_l3 *l3 )
 
     return( 0 );
 }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 static int l3_check_write_hs_hdr( mps_l3 *l3 )
 {
-    if( l3->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode = l3->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
         return( l3_check_write_hs_hdr_tls( l3 ) );
-    else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
         return( l3_check_write_hs_hdr_dtls( l3 ) );
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
+
+    return( MPS_ERR_INTERNAL_ERROR );
 }
 
 int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
 {
     int res;
     int32_t len;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode = l3->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "l3_write_handshake" );
     TRACE( trace_comment, "Parameters: " );
@@ -934,7 +1005,8 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
         l3->out.hs.epoch = out->epoch;
         l3->out.hs.len   = out->len;
         l3->out.hs.type  = out->type;
-        if( l3->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+        if( MBEDTLS_MPS_IS_DTLS( mode ) )
         {
             l3->out.hs.seq_nr      = out->seq_nr;
             l3->out.hs.frag_len    = out->frag_len;
@@ -968,8 +1040,11 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
 
             l3->out.hs.hdr_len = MPS_DTLS_HS_HDR_SIZE;
         }
-        else
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+        if( MBEDTLS_MPS_IS_TLS( mode ) )
             l3->out.hs.hdr_len = MPS_TLS_HS_HDR_SIZE;
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
         res = mbedtls_writer_get( l3->out.raw_out,
                                   l3->out.hs.hdr_len,
@@ -1013,24 +1088,32 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
          *       to avoid this distinction. */
         /* TODO: If `len` is UNKNOWN this is casted to -1u here,
          *       which is OK but fragile. */
-        if( l3->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+        if( MBEDTLS_MPS_IS_TLS( mode ) )
         {
             mbedtls_writer_init_ext( &l3->out.hs.wr_ext,
                                      out->len );
         }
-        else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+        if( MBEDTLS_MPS_IS_DTLS( mode ) )
         {
             mbedtls_writer_init_ext( &l3->out.hs.wr_ext,
                                      out->frag_len );
         }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
         if( res != 0 )
             RETURN( res );
     }
 
-    if( l3->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
         len = out->frag_len;
-    else
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
         len = out->len;
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
     TRACE( trace_comment, "Bind raw writer to extended writer" );
     res = mbedtls_writer_attach( &l3->out.hs.wr_ext, l3->out.raw_out,
@@ -1116,6 +1199,7 @@ int mps_l3_write_ccs( mps_l3 *l3, mps_l3_ccs_out *ccs )
     RETURN( 0 );
 }
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
 /* Pause the writing of an outgoing handshake message (TLS only). */
 int mps_l3_pause_handshake( mps_l3 *l3 )
 {
@@ -1169,6 +1253,7 @@ int mps_l3_pause_handshake( mps_l3 *l3 )
     l3->out.state    = MBEDTLS_MPS_MSG_NONE;
     RETURN( 0 );
 }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
 /* Abort the writing of a handshake message. */
 int mps_l3_write_abort_handshake( mps_l3 *l3 )
@@ -1218,6 +1303,9 @@ int mps_l3_dispatch( mps_l3 *l3 )
     int res;
     size_t committed;
     size_t uncommitted;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type mode = l3->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "mps_l3_dispatch" );
 
@@ -1248,13 +1336,15 @@ int mps_l3_dispatch( mps_l3 *l3 )
             /* Reset extended writer. */
             mbedtls_writer_free_ext( &l3->out.hs.wr_ext );
 
-            /* Complete previously unknown length values. */
-            if( l3->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+            if( MBEDTLS_MPS_IS_TLS( mode ) )
             {
                 if( l3->out.hs.len == MBEDTLS_MPS_SIZE_UNKNOWN )
                     l3->out.hs.len = committed;
             }
-            else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+            if( MBEDTLS_MPS_IS_DTLS( mode ) )
             {
                 /* It has been checked in mps_l3_write_handshake()
                  * that if the total length of the handshake message
@@ -1265,6 +1355,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
                 if( l3->out.hs.frag_len == MBEDTLS_MPS_SIZE_UNKNOWN )
                     l3->out.hs.frag_len = committed;
             }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
             /* We didn't know the handshake message length
              * in advance and hence couldn't write the header
@@ -1321,6 +1412,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
     RETURN( 0 );
 }
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
 static int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs )
 
 {
@@ -1373,7 +1465,9 @@ static int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs )
 
     RETURN( 0 );
 }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
 static int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs )
 
 {
@@ -1437,6 +1531,7 @@ static int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs )
 
     RETURN( 0 );
 }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 /*
  * Flush Layer 2 if requested.

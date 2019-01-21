@@ -13,6 +13,13 @@ Bugfix
    * Run the AD too long test only if MBEDTLS_CCM_ALT is not defined.
      Raised as a comment in #1996.
 
+API Changes
+   * The new function mbedtls_ecdsa_sign_det_ext() is similar to
+     mbedtls_ecdsa_sign_det() but allows passing an external RNG for the
+     purpose of blinding.
+   * The new function mbedtls_ecp_gen_privkey() allows to generate a private
+     key without generating the public part of the pair.
+
 = mbed TLS 2.7.9 branch released 2018-12-21
 
 Bugfix

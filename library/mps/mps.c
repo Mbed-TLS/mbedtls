@@ -742,44 +742,21 @@ static int mps_retransmit_in_forget( mbedtls_mps *mps )
 /*
  * Mark bits in bitmask (used for DTLS HS reassembly)
  */
-static void mps_bitmask_set( unsigned char *mask, size_t offset, size_t len )
+static void mps_bitmask_set( unsigned char *mask, size_t first_bit,
+                                   size_t bitlen )
 {
-    unsigned int start_bits, end_bits;
+    /* Set one bit a time and (tail-)recurse. This is not efficient,
+     * but short, and this part of the code isn't time critical. */
+    size_t first_byte = first_bit >> 3;
+    size_t byte_frac = first_bit & 0x7;
 
-    start_bits = 8 - ( offset % 8 );
-    if( start_bits != 8 )
-    {
-        size_t first_byte_idx = offset / 8;
+    if( bitlen-- == 0 )
+        return;
 
-        /* Special case */
-        if( len <= start_bits )
-        {
-            for( ; len != 0; len-- )
-                mask[first_byte_idx] |= 1 << ( start_bits - len );
+    mask += first_byte;
+    *mask &= ~( 1u << byte_frac );
 
-            /* Avoid potential issues with offset or len becoming invalid */
-            return;
-        }
-
-        offset += start_bits; /* Now offset % 8 == 0 */
-        len -= start_bits;
-
-        for( ; start_bits != 0; start_bits-- )
-            mask[first_byte_idx] |= 1 << ( start_bits - 1 );
-    }
-
-    end_bits = len % 8;
-    if( end_bits != 0 )
-    {
-        size_t last_byte_idx = ( offset + len ) / 8;
-
-        len -= end_bits; /* Now len % 8 == 0 */
-
-        for( ; end_bits != 0; end_bits-- )
-            mask[last_byte_idx] |= 1 << ( 8 - end_bits );
-    }
-
-    memset( mask + offset / 8, 0xFF, len / 8 );
+    return( mps_bitmask_set( mask, byte_frac + 1, bitlen ) );
 }
 
 /*
@@ -787,15 +764,17 @@ static void mps_bitmask_set( unsigned char *mask, size_t offset, size_t len )
  */
 static int mps_bitmask_check( unsigned char *mask, size_t len )
 {
-    size_t i;
-
-    for( i = 0; i < len / 8; i++ )
-        if( mask[i] != 0xFF )
+    /* This function assumes that mask points to a bitmask of length
+     * len / 8 + 1 Bytes, even if len % 8 == 0. */
+    size_t byte_len = len / 8 + 1;
+    while( byte_len != 0 )
+    {
+        uint8_t const cur_byte = *mask;
+        if( cur_byte != 0x0 )
             return( -1 );
-
-    for( i = 0; i < len % 8; i++ )
-        if( ( mask[len / 8] & ( 1 << ( 7 - i ) ) ) == 0 )
-            return( -1 );
+        byte_len--;
+        mask++;
+    }
 
     return( 0 );
 }
@@ -888,9 +867,12 @@ static int mps_reassembly_feed( mbedtls_mps *mps,
              * to future messages, use a reassembly window. */
 
             msg_len     = hs->len;
-            bitmask_len = ( msg_len / 8 ) + ( msg_len % 8 != 0 );
+            /* Slightly overapproximate the size of the bitmask, at the
+             * benefit of simplifying the call to mps_bitmask_set() below
+             * and the implementation of mps_bitmask_check(). */
+            bitmask_len = msg_len / 8 + 2;
             bitmask     = mbedtls_calloc( 1, bitmask_len );
-            buf         = mbedtls_calloc( 1, msg_len     );
+            buf         = mbedtls_calloc( 1, msg_len );
 
             if( bitmask == NULL || buf == NULL )
             {
@@ -899,7 +881,8 @@ static int mps_reassembly_feed( mbedtls_mps *mps,
                 MPS_CHK( MBEDTLS_ERR_MPS_OUT_OF_MEMORY );
             }
 
-            memset( bitmask, 0, bitmask_len );
+            memset( bitmask, 0xFF, bitmask_len );
+            mps_bitmask_set( bitmask, msg_len, 8 );
 
             reassembly->data.window.bitmask_len = bitmask_len;
             reassembly->data.window.bitmask     = bitmask;

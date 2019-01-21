@@ -20,7 +20,7 @@ my $vsx_sln_file = "$vsx_dir/mbedTLS.sln";
 
 my $programs_dir = 'programs';
 my @header_dirs = ('include/mbedtls', '3rdparty/everest/include/everest');
-my @source_dirs = ('library', '3rdparty/everest/library', '3rdparty/everest/library/kremlib', '3rdparty/everest/library/vs2010');
+my @source_dirs = ('library', '3rdparty/everest/library', '3rdparty/everest/library/kremlib', '3rdparty/everest/library/legacy');
 
 # Need windows line endings!
 my $vsx_hdr_tpl = <<EOT;

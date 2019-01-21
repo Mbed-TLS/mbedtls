@@ -20,7 +20,8 @@ else
 CRYPTO := ../library/
 endif
 
-LOCAL_CFLAGS+=-I../3rdparty/everest/include
+include ../3rdparty/Makefile.inc
+LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 
 # Enable definition of various functions used throughout the testsuite
 # (gethostname, strdup, fileno...) even when compiling with -std=c99. Harmless

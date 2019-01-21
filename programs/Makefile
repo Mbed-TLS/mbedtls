@@ -18,7 +18,8 @@ LOCAL_LDFLAGS += -L../crypto/library
 LOCAL_CFLAGS += -I../crypto/include
 LOCAL_CXXFLAGS += -I../crypto/include
 
-LOCAL_CFLAGS+=-I../3rdparty/everest/include
+include ../3rdparty/Makefile.inc
+LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 
 ifndef SHARED
 DEP=../crypto/library/libmbedcrypto.a ../library/libmbedx509.a ../library/libmbedtls.a

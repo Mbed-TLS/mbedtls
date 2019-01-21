@@ -64,8 +64,9 @@ set(src_crypto
     version.c
     version_features.c
     xtea.c
-    ${src_thirdparty}
 )
+
+list(APPEND src_crypto ${thirdparty_src})
 
 set(src_x509
     certs.c

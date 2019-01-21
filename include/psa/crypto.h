@@ -1096,6 +1096,15 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation);
 
 /** Clone a hash operation.
  *
+ * This function copies the state of an ongoing hash operation to
+ * a new operation object. In other words, this function is equivalent
+ * to calling psa_hash_setup() on \p target_operation with the same
+ * algorithm that \p source_operation was set up for, then
+ * psa_hash_update() on \p target_operation with the same input that
+ * that was passed to \p source_operation. After this function returns, the
+ * two objects are independent, i.e. subsequent calls involving one of
+ * the objects do not affect the other object.
+ *
  * \param[in] source_operation      The active hash operation to clone.
  * \param[in,out] target_operation  The operation object to set up.
  *                                  It must be initialized but not active.
@@ -1104,7 +1113,7 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation);
  * \retval #PSA_ERROR_BAD_STATE
  *         \p source_operation is not an active hash operation.
  * \retval #PSA_ERROR_BAD_STATE
- *         \p source_operation is active.
+ *         \p target_operation is active.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE
  * \retval #PSA_ERROR_HARDWARE_FAILURE
  * \retval #PSA_ERROR_TAMPERING_DETECTED

@@ -11,7 +11,8 @@ LOCAL_CXXFLAGS = $(WARNING_CXXFLAGS) -I../include -D_FILE_OFFSET_BITS=64
 LOCAL_LDFLAGS = -L../library 			\
 		-lmbedcrypto$(SHARED_SUFFIX)
 
-LOCAL_CFLAGS+=-I../3rdparty/everest/include
+include ../3rdparty/Makefile.inc
+LOCAL_CFLAGS+=$(THIRDPARTY_INCLUDES)
 
 ifndef SHARED
 DEP=../library/libmbedcrypto.a

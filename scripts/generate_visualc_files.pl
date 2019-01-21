@@ -23,7 +23,7 @@ my $mbedtls_header_dir = 'include/mbedtls';
 my $psa_header_dir = 'include/psa';
 my $source_dir = 'library';
 my $everest_header_dir = '3rdparty/everest/include/everest';
-my @everest_source_dirs = ('3rdparty/everest/library', '3rdparty/everest/library/kremlib', '3rdparty/everest/library/vs2010');
+my @everest_source_dirs = ('3rdparty/everest/library', '3rdparty/everest/library/kremlib', '3rdparty/everest/library/legacy');
 
 # Need windows line endings!
 my $vsx_hdr_tpl = <<EOT;

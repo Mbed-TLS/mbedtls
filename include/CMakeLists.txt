@@ -4,9 +4,8 @@ if(INSTALL_MBEDTLS_HEADERS)
 
     file(GLOB headers "mbedtls/*.h")
     file(GLOB psa_headers "psa/*.h")
-    file(GLOB everest_headers "../3rdparty/everest/include/*.h")
 
-    install(FILES ${headers} ${everest_headers}
+    install(FILES ${headers}
         DESTINATION include/mbedtls
         PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 

@@ -126,6 +126,11 @@ static int ecdsa_sign_internal( mbedtls_ecp_group *grp, mbedtls_mpi *r,
         /*
          * Generate a random value to blind inv_mod in next step,
          * avoiding a potential timing leak.
+         *
+         * This loop does the same job as mbedtls_ecp_gen_privkey() and it is
+         * replaced by a call to it in the mainline. This change is not
+         * necessary to backport the fix separating the blinding and ephemeral
+         * key generating RNGs, therefore the original code is kept.
          */
         blind_tries = 0;
         do
@@ -135,7 +140,6 @@ static int ecdsa_sign_internal( mbedtls_ecp_group *grp, mbedtls_mpi *r,
                                                       p_rng_blind ) );
             MBEDTLS_MPI_CHK( mbedtls_mpi_shift_r( &t, 8 * n_size - grp->nbits ) );
 
-            /* See mbedtls_ecp_gen_keypair() */
             if( ++blind_tries > 30 )
                 return( MBEDTLS_ERR_ECP_RANDOM_FAILED );
         }

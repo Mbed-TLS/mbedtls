@@ -60,6 +60,11 @@ Changes
    * Ciphersuites based on 3DES now have the lowest priority by default when
      they are enabled.
 
+API Changes
+   * The new function mbedtls_ecdsa_sign_det_ext() is similar to
+     mbedtls_ecdsa_sign_det() but allows passing an external RNG for the
+     purpose of blinding.
+
 = mbed TLS 2.16.0 branch released 2018-12-21
 
 Features

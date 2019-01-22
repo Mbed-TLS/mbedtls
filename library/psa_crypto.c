@@ -1421,8 +1421,8 @@ psa_status_t psa_hash_verify( psa_hash_operation_t *operation,
     return( PSA_SUCCESS );
 }
 
-psa_status_t psa_hash_clone(const psa_hash_operation_t *source_operation,
-                            psa_hash_operation_t *target_operation)
+psa_status_t psa_hash_clone( const psa_hash_operation_t *source_operation,
+                             psa_hash_operation_t *target_operation )
 {
     if( target_operation->alg != 0 )
         return( PSA_ERROR_BAD_STATE );

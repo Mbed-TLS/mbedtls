@@ -97,8 +97,6 @@ void save_large_persistent_key( int data_too_large, int expected_status )
     PSA_ASSERT( psa_crypto_init() );
 
     PSA_ASSERT( psa_create_key( PSA_KEY_LIFETIME_PERSISTENT, key_id,
-                                PSA_KEY_TYPE_RAW_DATA,
-                                PSA_BYTES_TO_BITS( data_length ),
                                 &handle ) );
 
     TEST_EQUAL( psa_import_key( handle, PSA_KEY_TYPE_RAW_DATA,
@@ -125,8 +123,6 @@ void persistent_key_destroy( int key_id_arg, int should_store,
     PSA_ASSERT( psa_crypto_init() );
 
     PSA_ASSERT( psa_create_key( PSA_KEY_LIFETIME_PERSISTENT, key_id,
-                                first_type,
-                                PSA_BYTES_TO_BITS( first_data->len ),
                                 &handle ) );
 
     if( should_store == 1 )
@@ -151,8 +147,6 @@ void persistent_key_destroy( int key_id_arg, int should_store,
 
     /* Create another key in the same slot */
     PSA_ASSERT( psa_create_key( PSA_KEY_LIFETIME_PERSISTENT, key_id,
-                                second_type,
-                                PSA_BYTES_TO_BITS( second_data->len ),
                                 &handle ) );
     PSA_ASSERT( psa_import_key(
                     handle, second_type,
@@ -176,8 +170,6 @@ void persistent_key_import( int key_id_arg, int type_arg, data_t *data,
     PSA_ASSERT( psa_crypto_init() );
 
     PSA_ASSERT( psa_create_key( PSA_KEY_LIFETIME_PERSISTENT, key_id,
-                                type,
-                                PSA_BYTES_TO_BITS( data->len ),
                                 &handle ) );
     TEST_EQUAL( psa_import_key( handle, type, data->x, data->len ),
                 expected_status );
@@ -217,8 +209,6 @@ void import_export_persistent_key( data_t *data, int type_arg,
     PSA_ASSERT( psa_crypto_init( ) );
 
     PSA_ASSERT( psa_create_key( PSA_KEY_LIFETIME_PERSISTENT, key_id,
-                                type,
-                                PSA_BYTES_TO_BITS( data->len ),
                                 &handle ) );
 
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_EXPORT,

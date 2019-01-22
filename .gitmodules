@@ -1,4 +1,4 @@
 [submodule "crypto"]
 	path = crypto
-	url = git@github.com:ARMmbed/mbed-crypto.git
+	url = https://github.com/ARMmbed/mbed-crypto
 	branch = development

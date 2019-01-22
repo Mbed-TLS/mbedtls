@@ -1421,6 +1421,67 @@ psa_status_t psa_hash_verify( psa_hash_operation_t *operation,
     return( PSA_SUCCESS );
 }
 
+psa_status_t psa_hash_clone( const psa_hash_operation_t *source_operation,
+                             psa_hash_operation_t *target_operation )
+{
+    if( target_operation->alg != 0 )
+        return( PSA_ERROR_BAD_STATE );
+
+    switch( source_operation->alg )
+    {
+        case 0:
+            return( PSA_ERROR_BAD_STATE );
+#if defined(MBEDTLS_MD2_C)
+        case PSA_ALG_MD2:
+            mbedtls_md2_clone( &target_operation->ctx.md2,
+                               &source_operation->ctx.md2 );
+            break;
+#endif
+#if defined(MBEDTLS_MD4_C)
+        case PSA_ALG_MD4:
+            mbedtls_md4_clone( &target_operation->ctx.md4,
+                               &source_operation->ctx.md4 );
+            break;
+#endif
+#if defined(MBEDTLS_MD5_C)
+        case PSA_ALG_MD5:
+            mbedtls_md5_clone( &target_operation->ctx.md5,
+                               &source_operation->ctx.md5 );
+            break;
+#endif
+#if defined(MBEDTLS_RIPEMD160_C)
+        case PSA_ALG_RIPEMD160:
+            mbedtls_ripemd160_clone( &target_operation->ctx.ripemd160,
+                                     &source_operation->ctx.ripemd160 );
+            break;
+#endif
+#if defined(MBEDTLS_SHA1_C)
+        case PSA_ALG_SHA_1:
+            mbedtls_sha1_clone( &target_operation->ctx.sha1,
+                                &source_operation->ctx.sha1 );
+            break;
+#endif
+#if defined(MBEDTLS_SHA256_C)
+        case PSA_ALG_SHA_224:
+        case PSA_ALG_SHA_256:
+            mbedtls_sha256_clone( &target_operation->ctx.sha256,
+                                  &source_operation->ctx.sha256 );
+            break;
+#endif
+#if defined(MBEDTLS_SHA512_C)
+        case PSA_ALG_SHA_384:
+        case PSA_ALG_SHA_512:
+            mbedtls_sha512_clone( &target_operation->ctx.sha512,
+                                  &source_operation->ctx.sha512 );
+            break;
+#endif
+        default:
+            return( PSA_ERROR_NOT_SUPPORTED );
+    }
+
+    target_operation->alg = source_operation->alg;
+    return( PSA_SUCCESS );
+}
 
 
 /****************************************************************/

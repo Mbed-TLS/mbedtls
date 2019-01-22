@@ -1897,6 +1897,92 @@ exit:
 }
 /* END_CASE */
 
+/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+void hash_clone_source_state( )
+{
+    psa_algorithm_t alg = PSA_ALG_SHA_256;
+    unsigned char hash[PSA_HASH_MAX_SIZE];
+    psa_hash_operation_t op_source = PSA_HASH_OPERATION_INIT;
+    psa_hash_operation_t op_init = PSA_HASH_OPERATION_INIT;
+    psa_hash_operation_t op_setup = PSA_HASH_OPERATION_INIT;
+    psa_hash_operation_t op_finished = PSA_HASH_OPERATION_INIT;
+    psa_hash_operation_t op_aborted = PSA_HASH_OPERATION_INIT;
+    size_t hash_len;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+    PSA_ASSERT( psa_hash_setup( &op_source, alg ) );
+
+    PSA_ASSERT( psa_hash_setup( &op_setup, alg ) );
+    PSA_ASSERT( psa_hash_setup( &op_finished, alg ) );
+    PSA_ASSERT( psa_hash_finish( &op_finished,
+                                 hash, sizeof( hash ), &hash_len ) );
+    PSA_ASSERT( psa_hash_setup( &op_aborted, alg ) );
+    PSA_ASSERT( psa_hash_abort( &op_aborted ) );
+
+    TEST_EQUAL( psa_hash_clone( &op_source, &op_setup ),
+                PSA_ERROR_BAD_STATE );
+
+    PSA_ASSERT( psa_hash_clone( &op_source, &op_init ) );
+    PSA_ASSERT( psa_hash_finish( &op_init,
+                                 hash, sizeof( hash ), &hash_len ) );
+    PSA_ASSERT( psa_hash_clone( &op_source, &op_finished ) );
+    PSA_ASSERT( psa_hash_finish( &op_finished,
+                                 hash, sizeof( hash ), &hash_len ) );
+    PSA_ASSERT( psa_hash_clone( &op_source, &op_aborted ) );
+    PSA_ASSERT( psa_hash_finish( &op_aborted,
+                                 hash, sizeof( hash ), &hash_len ) );
+
+exit:
+    psa_hash_abort( &op_source );
+    psa_hash_abort( &op_init );
+    psa_hash_abort( &op_setup );
+    psa_hash_abort( &op_finished );
+    psa_hash_abort( &op_aborted );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE depends_on:MBEDTLS_SHA256_C */
+void hash_clone_target_state( )
+{
+    psa_algorithm_t alg = PSA_ALG_SHA_256;
+    unsigned char hash[PSA_HASH_MAX_SIZE];
+    psa_hash_operation_t op_init = PSA_HASH_OPERATION_INIT;
+    psa_hash_operation_t op_setup = PSA_HASH_OPERATION_INIT;
+    psa_hash_operation_t op_finished = PSA_HASH_OPERATION_INIT;
+    psa_hash_operation_t op_aborted = PSA_HASH_OPERATION_INIT;
+    psa_hash_operation_t op_target = PSA_HASH_OPERATION_INIT;
+    size_t hash_len;
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    PSA_ASSERT( psa_hash_setup( &op_setup, alg ) );
+    PSA_ASSERT( psa_hash_setup( &op_finished, alg ) );
+    PSA_ASSERT( psa_hash_finish( &op_finished,
+                                 hash, sizeof( hash ), &hash_len ) );
+    PSA_ASSERT( psa_hash_setup( &op_aborted, alg ) );
+    PSA_ASSERT( psa_hash_abort( &op_aborted ) );
+
+    PSA_ASSERT( psa_hash_clone( &op_setup, &op_target ) );
+    PSA_ASSERT( psa_hash_finish( &op_target,
+                                 hash, sizeof( hash ), &hash_len ) );
+
+    TEST_EQUAL( psa_hash_clone( &op_init, &op_target ), PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_hash_clone( &op_finished, &op_target ),
+                PSA_ERROR_BAD_STATE );
+    TEST_EQUAL( psa_hash_clone( &op_aborted, &op_target ),
+                PSA_ERROR_BAD_STATE );
+
+exit:
+    psa_hash_abort( &op_target );
+    psa_hash_abort( &op_init );
+    psa_hash_abort( &op_setup );
+    psa_hash_abort( &op_finished );
+    psa_hash_abort( &op_aborted );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void mac_operation_init( )
 {

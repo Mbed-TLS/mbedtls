@@ -2748,6 +2748,7 @@ static int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
             }
             else
             {
+#if defined(MBEDTLS_MPS_TRACE)
                 mbedtls_mps_epoch_id epoch = ctx->epochs.base + offset;
                 if( ctx->epochs.permissions.dtls[offset] & MPS_EPOCH_READ )
                 {
@@ -2759,6 +2760,7 @@ static int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
                     TRACE( trace_comment, "Epoch %d can be used for writing.",
                            epoch );
                 }
+#endif /* MBEDTLS_MPS_TRACE */
                 break;
             }
         }

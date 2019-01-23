@@ -12,6 +12,8 @@ Changes
    * Include configuration file in all header files that use configuration,
      instead of relying on other header files that they include.
      Inserted as an enhancement for #1371
+   * Add support for alternative CSR headers, as used by Microsoft and defined
+     in RFC 7468. Found by Michael Ernst. Fixes #767.
 
 = mbed TLS 2.7.9 branch released 2018-12-21
 

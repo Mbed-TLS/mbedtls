@@ -291,7 +291,7 @@ struct mbedtls_mps_l2_epoch_t
              *  the current or next outgoing record (depending
              *  on whether a record is currently open or not).
              */
-            uint64_t out_ctr;
+            uint32_t out_ctr[2];
 
             /*! The record sequence number of the last valid record.
              *
@@ -305,7 +305,7 @@ struct mbedtls_mps_l2_epoch_t
              *    the record sequence number in the ClientHello as
              *    the record sequence number in the HelloVerifyRequest.
              */
-            uint64_t last_seen;
+            uint32_t last_seen[2];
 
             /*! The replay protection window. */
             struct
@@ -313,13 +313,14 @@ struct mbedtls_mps_l2_epoch_t
                 /*! The top of the replay protection window,
                  *  i.e. the highest validated record sequence
                  *  number seen so far. */
-                uint64_t in_window_top;
+                uint32_t in_window_top_hi;
+                uint32_t in_window_top_lo;
 
                 /*! The bitmask indicating for which
                  *  record sequence numbers in the interval
                  *  [in_window_top-63, .., in_window_top]
                  *  we have seen a valid record. */
-                uint64_t in_window;
+                uint32_t in_window;
 
             } replay;
 

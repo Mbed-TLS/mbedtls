@@ -54,7 +54,7 @@ typedef struct
  */
 typedef struct
 {
-    uint64_t ctr;       /*!< The record sequence number.            */
+    uint32_t ctr[2];    /*!< The record sequence number.            */
     uint16_t epoch;     /*!< The epoch to which the record belongs. */
     uint8_t type;       /*!< The record content type.               */
     uint8_t major_ver;  /*!< The major TLS version of the record.   */

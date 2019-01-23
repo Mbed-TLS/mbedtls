@@ -140,11 +140,12 @@ static int l2_tls_in_get_epoch_and_counter( mbedtls_mps_l2 *ctx,
 
 static int l2_in_update_counter( mbedtls_mps_l2 *ctx,
                                  uint16_t epoch,
-                                 uint64_t ctr );
+                                 uint32_t ctr_hi,
+                                 uint32_t ctr_lo );
 
 static int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
                                           uint16_t epoch_id,
-                                          uint64_t *dst_ctr );
+                                          uint32_t *dst_ctr );
 
 /*
  * DTLS replay protection
@@ -152,7 +153,8 @@ static int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
 static int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
                                     mbedtls_mps_epoch_id epoch,
-                                    uint64_t ctr );
+                                    uint32_t ctr_hi,
+                                    uint32_t ctr_lo );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 static void l2_out_write_version( int major, int minor,
@@ -695,7 +697,7 @@ static int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
         rec.buf       = ctx->out.payload;
         rec.epoch     = ctx->out.writer.epoch;
         rec.type      = ctx->out.writer.type;
-        l2_out_get_and_update_rec_seq( ctx, rec.epoch, &rec.ctr );
+        l2_out_get_and_update_rec_seq( ctx, rec.epoch, rec.ctr );
 
         TRACE( trace_comment, "Record header fields:" );
         TRACE( trace_comment, "* Sequence number: %u", (unsigned) rec.ctr   );
@@ -908,7 +910,8 @@ static int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
     MPS_WRITE_UINT16_LE( &rec->epoch, hdr + dtls_rec_epoch_offset );
 
     /* Record sequence number */
-    MPS_WRITE_UINT48_LE( &rec->ctr, hdr + dtls_rec_seq_offset );
+    MPS_WRITE_UINT16_LE( &rec->ctr[0], hdr + dtls_rec_seq_offset );
+    MPS_WRITE_UINT32_LE( &rec->ctr[1], hdr + dtls_rec_seq_offset + 2 );
 
     /* Write ciphertext length. */
     MPS_WRITE_UINT16_LE( &rec->buf.data_len, hdr + dtls_rec_len_offset );
@@ -1552,7 +1555,7 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
          * Update record sequence numbers and replay protection.
          */
 
-        ret = l2_in_update_counter( ctx, rec.epoch, rec.ctr );
+        ret = l2_in_update_counter( ctx, rec.epoch, rec.ctr[0], rec.ctr[1] );
         if( ret != 0 )
             RETURN( ret );
 
@@ -2031,7 +2034,8 @@ static int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
 
 static int l2_in_update_counter( mbedtls_mps_l2 *ctx,
                                  uint16_t epoch_id,
-                                 uint64_t ctr )
+                                 uint32_t ctr_hi,
+                                 uint32_t ctr_lo )
 {
     int ret;
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
@@ -2055,41 +2059,41 @@ static int l2_in_update_counter( mbedtls_mps_l2 *ctx,
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
     if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
-        epoch->stats.dtls.last_seen = ctr;
+        epoch->stats.dtls.last_seen[0] = ctr_hi;
+        epoch->stats.dtls.last_seen[1] = ctr_lo;
         if( ctx->conf.anti_replay == MBEDTLS_MPS_ANTI_REPLAY_ENABLED )
         {
-            uint64_t window_top;
-            uint64_t window;
+            uint32_t window_top_hi, window_top_lo;
+            uint32_t window;
+            uint32_t flag = 1u;
 
-            window_top = epoch->stats.dtls.replay.in_window_top;
+            window_top_hi = epoch->stats.dtls.replay.in_window_top_hi;
+            window_top_lo = epoch->stats.dtls.replay.in_window_top_lo;
             window     = epoch->stats.dtls.replay.in_window;
 
-            if( ctr > window_top )
+            if( ctr_hi > window_top_hi )
+            {
+                window_top_hi = ctr_hi;
+                window_top_lo = ctr_lo;
+            }
+            else if( ctr_lo > window_top_lo )
             {
                 /* Update window_top and the contents of the window */
-                uint64_t shift = ctr - window_top;
-
-                if( shift >= 64 )
-                    window = 1;
-                else
-                {
-                    window <<= shift;
-                    window |= 1;
-                }
-
-                window_top = ctr;
+                uint32_t shift = ctr_lo - window_top_lo;
+                window <<= shift;
+                window_top_lo = ctr_lo;
             }
             else
             {
                 /* Mark that number as seen in the current window */
-                uint64_t bit = window_top - ctr;
-
-                if( bit < 64 ) /* Always true, but be extra sure */
-                    window |= (uint64_t) 1 << bit;
+                uint32_t bit = window_top_lo - ctr_lo;
+                flag <<= bit;
             }
+            window |= flag;
 
-            epoch->stats.dtls.replay.in_window     = window;
-            epoch->stats.dtls.replay.in_window_top = window_top;
+            epoch->stats.dtls.replay.in_window_top_lo = window_top_lo;
+            epoch->stats.dtls.replay.in_window_top_hi = window_top_hi;
+            epoch->stats.dtls.replay.in_window = window;
         }
     }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
@@ -2125,10 +2129,10 @@ static int l2_tls_in_get_epoch_and_counter( mbedtls_mps_l2 *ctx,
 
 static int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
                                           uint16_t epoch_id,
-                                          uint64_t *dst_ctr )
+                                          uint32_t *dst_ctr )
 {
     int ret;
-    uint64_t *src_ctr;
+    uint32_t *src_ctr;
     mbedtls_mps_l2_epoch_t *epoch;
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode = ctx->conf.mode;
@@ -2140,18 +2144,24 @@ static int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     if( MBEDTLS_MPS_IS_TLS( mode ) )
-        src_ctr = &epoch->stats.tls.out_ctr;
+        src_ctr = epoch->stats.tls.out_ctr;
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
     if( MBEDTLS_MPS_IS_DTLS( mode ) )
-        src_ctr = &epoch->stats.dtls.out_ctr;
+        src_ctr = epoch->stats.dtls.out_ctr;
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
-    *dst_ctr = *src_ctr;
+    dst_ctr[0] = src_ctr[0];
+    dst_ctr[1] = src_ctr[1];
 
-    if( ++*src_ctr == 0 )
-        return( MPS_ERR_COUNTER_WRAP );
+    src_ctr[0]++;
+    if( src_ctr[0] == 0 )
+    {
+        src_ctr[1]++;
+        if( src_ctr[1] == 0 )
+            return( MPS_ERR_COUNTER_WRAP );
+    }
 
     return( 0 );
 }
@@ -2192,7 +2202,7 @@ static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
     uint8_t  type;
     int      minor_ver, major_ver;
     uint16_t epoch;
-    uint64_t sequence_number;
+    uint32_t seq_nr[2];
     uint16_t len;
 
     TRACE_INIT( "l2_in_fetch_protected_record_dtls12" );
@@ -2252,8 +2262,9 @@ static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
         RETURN( ret );
 
     /* Record sequence number */
-    MPS_READ_UINT48_LE( buf + dtls_rec_seq_offset, &sequence_number );
-    if( l2_counter_replay_check( ctx, epoch, sequence_number ) != 0 )
+    MPS_READ_UINT16_LE( buf + dtls_rec_seq_offset,     &seq_nr[0] );
+    MPS_READ_UINT32_LE( buf + dtls_rec_seq_offset + 2, &seq_nr[1] );
+    if( l2_counter_replay_check( ctx, epoch, seq_nr[0], seq_nr[1] ) != 0 )
     {
         TRACE( trace_error, "Replayed record -- ignore" );
         RETURN( MPS_ERR_REPLAYED_RECORD );
@@ -2289,7 +2300,8 @@ static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
     rec->major_ver = major_ver;
     rec->minor_ver = minor_ver;
     rec->epoch     = epoch;
-    rec->ctr       = sequence_number;
+    rec->ctr[0]    = seq_nr[0];
+    rec->ctr[1]    = seq_nr[1];
 
     TRACE( trace_comment, "* Record epoch:  %u", (unsigned) rec->epoch );
     TRACE( trace_comment, "* Record number: %u", (unsigned) rec->ctr );
@@ -2885,13 +2897,14 @@ static int l2_epoch_lookup_internal( mbedtls_mps_l2 *ctx,
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
 static int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
                                     mbedtls_mps_epoch_id epoch_id,
-                                    uint64_t ctr )
+                                    uint32_t ctr_hi,
+                                    uint32_t ctr_lo )
 {
     int ret;
-    uint64_t bit;
+    uint32_t bit;
     mbedtls_mps_l2_epoch_t *epoch;
-    uint64_t window_top;
-    uint64_t window;
+    uint32_t window_top_hi, window_top_lo;
+    uint32_t window;
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode = ctx->conf.mode;
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
@@ -2913,24 +2926,30 @@ static int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
     if( ret != 0 )
         RETURN( ret );
 
-    window_top = epoch->stats.dtls.replay.in_window_top;
-    window     = epoch->stats.dtls.replay.in_window;
+    window_top_hi = epoch->stats.dtls.replay.in_window_top_hi;
+    window_top_lo = epoch->stats.dtls.replay.in_window_top_lo;
+    window = epoch->stats.dtls.replay.in_window;
 
-    if( ctr > window_top )
+    if( ctr_hi > window_top_hi )
     {
         TRACE( trace_comment, "Record sequence number larger than everything seen so far." );
         RETURN( 0 );
     }
+    else if( ctr_hi < window_top_hi )
+    {
+        /* Don't maintain window across 32-bit boundaries. */
+        TRACE( trace_comment, "Record sequence number too old -- drop" );
+        RETURN( -1 );
+    }
 
-    bit = window_top - ctr;
-
-    if( bit >= 64 )
+    bit = window_top_lo - ctr_lo;
+    if( bit >= 32 )
     {
         TRACE( trace_comment, "Record sequence number too old -- drop" );
         RETURN( -1 );
     }
 
-    if( ( window & ( (uint64_t) 1 << bit ) ) != 0 )
+    if( ( window & ( (uint32_t) 1u << bit ) ) != 0 )
     {
         TRACE( trace_comment, "Record sequence number seen before -- drop" );
         RETURN( -1 );
@@ -2967,7 +2986,9 @@ int mps_l2_force_next_sequence_number( mbedtls_mps_l2 *ctx,
     if( ret != 0 )
         RETURN( ret );
 
-    epoch->stats.dtls.out_ctr = ctr;
+
+    epoch->stats.dtls.out_ctr[0] = (uint32_t)( ctr >> 32 );
+    epoch->stats.dtls.out_ctr[1] = (uint32_t) ctr;
     RETURN( 0 );
 }
 
@@ -2996,7 +3017,8 @@ int mps_l2_get_last_sequence_number( mbedtls_mps_l2 *ctx,
     if( ret != 0 )
         RETURN( ret );
 
-    *ctr = epoch->stats.dtls.last_seen;
+    *ctr  = ((uint64_t) epoch->stats.dtls.last_seen[0]) << 32;
+    *ctr |=  (uint64_t) epoch->stats.dtls.last_seen[1];
     RETURN( 0 );
 }
 #endif /* MBEDTLS_MPS_PROTO_TLS */

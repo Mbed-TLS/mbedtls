@@ -483,7 +483,7 @@ static void write_version( int major, int minor, int transport,
                            unsigned char ver[2] )
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( transport == MBEDTLS_MPS_MODE_DATAGRAM )
     {
         if( minor == MBEDTLS_SSL_MINOR_VERSION_2 )
             --minor; /* DTLS 1.0 stored as TLS 1.1 internally */
@@ -505,7 +505,7 @@ static void read_version( int *major, int *minor, int transport,
                           const unsigned char ver[2] )
 {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM )
+    if( transport == MBEDTLS_MPS_MODE_DATAGRAM )
     {
         *major = 255 - ver[0] + 2;
         *minor = 255 - ver[1] + 1;

@@ -341,7 +341,7 @@ Security
      1.2, that allowed a local attacker, able to execute code on the local
      machine as well as manipulate network packets, to partially recover the
      plaintext of messages under some conditions by using a cache attack
-     targetting an internal MD/SHA buffer. With TLS or if
+     targeting an internal MD/SHA buffer. With TLS or if
      mbedtls_ssl_conf_dtls_badmac_limit() was used, the attack only worked if
      the same secret (for example a HTTP Cookie) has been repeatedly sent over
      connections manipulated by the attacker. Connections using GCM or CCM
@@ -1227,7 +1227,7 @@ Bugfix
    * Fix potential build failures related to the 'apidoc' target, introduced
      in the previous patch release. Found by Robert Scheck. #390 #391
    * Fix issue in Makefile that prevented building using armar. #386
-   * Fix memory leak that occured only when ECJPAKE was enabled and ECDHE and
+   * Fix memory leak that occurred only when ECJPAKE was enabled and ECDHE and
      ECDSA was disabled in config.h . The leak didn't occur by default.
    * Fix an issue that caused valid certificates to be rejected whenever an
      expired or not yet valid certificate was parsed before a valid certificate
@@ -1469,7 +1469,7 @@ API Changes
      You now need to link to all of them if you use TLS for example.
    * All public identifiers moved to the mbedtls_* or MBEDTLS_* namespace.
      Some names have been further changed to make them more consistent.
-     Migration helpers scripts/rename.pl and include/mbedlts/compat-1.3.h are
+     Migration helpers scripts/rename.pl and include/mbedtls/compat-1.3.h are
      provided. Full list of renamings in scripts/data_files/rename-1.3-2.0.txt
    * Renamings of fields inside structures, not covered by the previous list:
      mbedtls_cipher_info_t.key_length -> key_bitlen
@@ -1524,7 +1524,7 @@ API Changes
    * net_accept() gained new arguments for the size of the client_ip buffer.
    * In the threading layer, mbedtls_mutex_init() and mbedtls_mutex_free() now
      return void.
-   * ecdsa_write_signature() gained an addtional md_alg argument and
+   * ecdsa_write_signature() gained an additional md_alg argument and
      ecdsa_write_signature_det() was deprecated.
    * pk_sign() no longer accepts md_alg == POLARSSL_MD_NONE with ECDSA.
    * Last argument of x509_crt_check_key_usage() and
@@ -3059,7 +3059,7 @@ XySSL ChangeLog
       not swapped on PadLock; also fixed compilation on older versions
       of gcc (bug reported by David Barrett)
     * Correctly handle the case in padlock_xcryptcbc() when input or
-      ouput data is non-aligned by falling back to the software
+      output data is non-aligned by falling back to the software
       implementation, as VIA Nehemiah cannot handle non-aligned buffers
     * Fixed a memory leak in x509parse_crt() which was reported by Greg
       Robson-Garth; some x509write.c fixes by Pascal Vizeli, thanks to

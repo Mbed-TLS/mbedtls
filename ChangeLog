@@ -12,6 +12,7 @@ Bugfix
    * Add `MBEDTLS_SELF_TEST` for the mbedtls_self_test functions
      in the header files, which missed the precompilation check. #971
    * Fix returning the value 1 when mbedtls_ecdsa_genkey failed.
+   * Remove a duplicate #include in a sample program. Fixed by Masashi Honma #2326.
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

@@ -272,7 +272,7 @@ typedef uint_fast16_t mbedtls_mps_size_t;
     } while( 0 )
 
 
-#define MPS_WRITE_UINT24_LE( dst, src )                          \
+#define MPS_WRITE_UINT24_LE( src, dst )                          \
     do                                                           \
     {                                                            \
         *( (uint8_t*) ( dst ) + 0 ) = ( *( src ) >> 16 ) & 0xFF; \
@@ -280,7 +280,7 @@ typedef uint_fast16_t mbedtls_mps_size_t;
         *( (uint8_t*) ( dst ) + 2 ) = ( *( src ) >>  0 ) & 0xFF; \
     } while( 0 )
 
-#define MPS_READ_UINT24_LE( dst, src )                           \
+#define MPS_READ_UINT24_LE( src, dst )                           \
     do                                                           \
     {                                                            \
         *(dst) =                                                 \
@@ -289,7 +289,7 @@ typedef uint_fast16_t mbedtls_mps_size_t;
             ( ( (uint32_t) ( (uint8_t*) ( src ) )[2] ) <<  0 );  \
     } while( 0 )
 
-#define MPS_WRITE_UINT32_LE( dst, src )                          \
+#define MPS_WRITE_UINT32_LE( src, dst )                          \
     do                                                           \
     {                                                            \
         *( (uint8_t*) ( dst ) + 2 ) = ( *( src ) >> 24 ) & 0xFF; \
@@ -298,14 +298,14 @@ typedef uint_fast16_t mbedtls_mps_size_t;
         *( (uint8_t*) ( dst ) + 5 ) = ( *( src ) >>  0 ) & 0xFF; \
     } while( 0 )
 
-#define MPS_READ_UINT32_LE( dst, src )                           \
+#define MPS_READ_UINT32_LE( src, dst )                           \
     do                                                           \
     {                                                            \
         *( dst ) =                                               \
-            ( ( (uint64_t) ( (uint8_t*) ( src ) )[2] ) << 24 ) + \
-            ( ( (uint64_t) ( (uint8_t*) ( src ) )[3] ) << 16 ) + \
-            ( ( (uint64_t) ( (uint8_t*) ( src ) )[4] ) <<  8 ) + \
-            ( ( (uint64_t) ( (uint8_t*) ( src ) )[5] ) <<  0 );  \
+            ( ( (uint32_t) ( (uint8_t*) ( src ) )[0] ) << 24 ) + \
+            ( ( (uint32_t) ( (uint8_t*) ( src ) )[1] ) << 16 ) + \
+            ( ( (uint32_t) ( (uint8_t*) ( src ) )[2] ) <<  8 ) + \
+            ( ( (uint32_t) ( (uint8_t*) ( src ) )[3] ) <<  0 );  \
     } while( 0 )
 
 #define MPS_WRITE_UINT48_LE( src, dst )                          \

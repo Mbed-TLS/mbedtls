@@ -121,7 +121,7 @@ pre_initialize_variables () {
     KEEP_GOING=0
     YOTTA=1
 
-    # Default commands, can be overriden by the environment
+    # Default commands, can be overridden by the environment
     : ${OPENSSL:="openssl"}
     : ${OPENSSL_LEGACY:="$OPENSSL"}
     : ${GNUTLS_CLI:="gnutls-cli"}

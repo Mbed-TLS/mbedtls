@@ -5,6 +5,7 @@ mbed TLS ChangeLog (Sorted per branch, date)
 Bugfix
    * Run the AD too long test only if MBEDTLS_CCM_ALT is not defined.
      Raised as a comment in #1996.
+   * Fix returning the value 1 when mbedtls_ecdsa_genkey failed.
 
 = mbed TLS 2.7.9 branch released 2018-12-21
 

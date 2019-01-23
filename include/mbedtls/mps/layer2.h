@@ -66,8 +66,10 @@ typedef uint8_t mbedtls_mps_epoch_offset_t;
  * Compile-time configuration for Layer 2
  */
 
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
 #define MBEDTLS_MPS_ANTI_REPLAY_DISABLED 0
 #define MBEDTLS_MPS_ANTI_REPLAY_ENABLED  1
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 #define MPS_L2_ALLOW_PAUSABLE_CONTENT_TYPE_WITHOUT_ACCUMULATOR
 
@@ -83,7 +85,10 @@ typedef struct mbedtls_mps_l2 mbedtls_mps_l2;
  */
 typedef struct
 {
-    mbedtls_mps_msg_type_t type;             /*!< The opaque type of the incoming data. */
+    mbedtls_mps_msg_type_t type;  /*!< The type of the incoming data. It is
+                                   *   entirely opaque to Layer 2, that is,
+                                   *   no distinction is made between HS, App,
+                                   *   CCS, or Alert records. */
     mbedtls_mps_epoch_id epoch;   /*!< The epoch through which the incoming
                                    *   data is protected.                    */
     mbedtls_reader *rd;           /*!< The reader providing access to the
@@ -95,7 +100,10 @@ typedef struct
  */
 typedef struct
 {
-    mbedtls_mps_msg_type_t type;  /*!< The opaque type of the outgoing data. */
+    mbedtls_mps_msg_type_t type;  /*!< The type of the outgoing data. It is
+                                   *   entirely opaque to Layer 2, that is,
+                                   *   no distinction is made between HS, App,
+                                   *   CCS, or Alert records. */
     mbedtls_mps_epoch_id epoch;   /*!< The epoch through which the outgoing
                                    *   data will be protected.               */
     mbedtls_writer *wr;           /*!< The writer providing access to the
@@ -161,9 +169,11 @@ typedef struct
  */
 typedef uint8_t mbedtls_mps_l2_reader_state;
 #define MBEDTLS_MPS_L2_READER_STATE_UNSET    ( (mbedtls_mps_l2_reader_state) 0 )
-#define MBEDTLS_MPS_L2_READER_STATE_PAUSED   ( (mbedtls_mps_l2_reader_state) 1 )
-#define MBEDTLS_MPS_L2_READER_STATE_INTERNAL ( (mbedtls_mps_l2_reader_state) 2 )
-#define MBEDTLS_MPS_L2_READER_STATE_EXTERNAL ( (mbedtls_mps_l2_reader_state) 3 )
+#define MBEDTLS_MPS_L2_READER_STATE_INTERNAL ( (mbedtls_mps_l2_reader_state) 1 )
+#define MBEDTLS_MPS_L2_READER_STATE_EXTERNAL ( (mbedtls_mps_l2_reader_state) 2 )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+#define MBEDTLS_MPS_L2_READER_STATE_PAUSED   ( (mbedtls_mps_l2_reader_state) 3 )
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
 /*! The type of state of writers manages by Layer 2.
  *
@@ -171,44 +181,44 @@ typedef uint8_t mbedtls_mps_l2_reader_state;
  *  - #MBEDTLS_MPS_L2_WRITER_STATE_UNSET
  *    The writer does neither manage an outgoing Layer 1 record buffer
  *    nor hold back any queued data.
- *  - #MBEDTLS_MPS_L2_WRITER_STATE_QUEUEING
- *    The writer doesn't manage an outgoing Layer 1 record buffer but
- *    has data queued for transmission.
  *  - #MBEDTLS_MPS_L2_WRITER_STATE_INTERNAL
  *    The writer manages an outgoing Layer 1 record buffer but
  *    is currently not passed to the user.
  *  - #MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL
  *    The writer manages an outgoing Layer 1 record buffer and
  *    has been passed to the user.
+ *  - #MBEDTLS_MPS_L2_WRITER_STATE_QUEUEING
+ *    The writer doesn't manage an outgoing Layer 1 record buffer but
+ *    has data queued for transmission (TLS only).
  */
 typedef uint8_t mbedtls_mps_l2_writer_state;
 #define MBEDTLS_MPS_L2_WRITER_STATE_UNSET    ( (mbedtls_mps_l2_writer_state) 0 )
-#define MBEDTLS_MPS_L2_WRITER_STATE_QUEUEING ( (mbedtls_mps_l2_writer_state) 1 )
-#define MBEDTLS_MPS_L2_WRITER_STATE_INTERNAL ( (mbedtls_mps_l2_writer_state) 2 )
-#define MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL ( (mbedtls_mps_l2_writer_state) 3 )
+#define MBEDTLS_MPS_L2_WRITER_STATE_INTERNAL ( (mbedtls_mps_l2_writer_state) 1 )
+#define MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL ( (mbedtls_mps_l2_writer_state) 2 )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+#define MBEDTLS_MPS_L2_WRITER_STATE_QUEUEING ( (mbedtls_mps_l2_writer_state) 3 )
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #define MPS_L2_MAX_RECORD_CONTENT (1u << 14)
-
-/** The mode for Layer 2 contexts implementing the TLS record protocol.  */
-#define MPS_L2_MODE_STREAM   MBEDTLS_SSL_TRANSPORT_STREAM
-/** The mode for Layer 2 contexts implementing the DTLS record protocol. */
-#define MPS_L2_MODE_DATAGRAM MBEDTLS_SSL_TRANSPORT_DATAGRAM
 
 #define TLS_MAJOR_VER_DTLS 0xfe
 #define TLS_MAJOR_VER_TLS  0x03
 
 /**
- * \brief   Instances of this L2-internal structure represent incoming
+ * \brief   Instances of this internal structure represent incoming
  *          data streams of varying content type and epoch.
  */
 struct mbedtls_mps_l2_in_internal
 {
-    mbedtls_mps_msg_type_t type; /*!< The record content type of the
-                                  *   incoming data stream.            */
-    mbedtls_mps_epoch_id epoch; /*!< The epoch through which the data
-                                 *   is secured.                      */
-    mbedtls_reader rd;          /*!< The reader managing the incoming
-                                 *   data after decryption.           */
+    /*! The state of the stream. See ::mbedtls_mps_l2_reader_state
+     *  for more information. */
+    mbedtls_mps_l2_reader_state state;
+    /*! The record content type of the incoming data stream. */
+    mbedtls_mps_msg_type_t type;
+    /*! The epoch through which the data is secured. */
+    mbedtls_mps_epoch_id epoch;
+    /*! The reader managing the incoming data after decryption. */
+    mbedtls_reader rd;
 };
 typedef struct mbedtls_mps_l2_in_internal mbedtls_mps_l2_in_internal;
 
@@ -250,6 +260,7 @@ struct mbedtls_mps_l2_epoch_t
      *  sequence numbers for this connection state. */
     union
     {
+#if defined(MBEDTLS_MPS_PROTO_TLS)
         struct
         {
             /*! The outgoing record sequence number
@@ -269,7 +280,9 @@ struct mbedtls_mps_l2_epoch_t
             uint64_t in_ctr;
 
         } tls;
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
         struct
         {
             /*! The outgoing record sequence number
@@ -311,6 +324,7 @@ struct mbedtls_mps_l2_epoch_t
             } replay;
 
         } dtls;
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     } stats;
 
@@ -368,6 +382,8 @@ struct mbedtls_mps_l2_config
                            *   types, or attempts to send data of invalid
                            *   content types, are reported through the error
                            *   code MPS_ERR_INVALID_RECORD.                 */
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
     uint32_t pause_flag;  /*!< This member defines the record content type
                            *   ID's for which the Layer 2 instance allows
                            *   merging contents of multiple incoming records
@@ -376,6 +392,8 @@ struct mbedtls_mps_l2_config
                            *   n-th bit (n=0..31) indicating being set if
                            *   the record content type ID n is allowed.
                            *   This must be a sub-field of \p type_flag.     */
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
     uint32_t merge_flag;  /*!< This member defines the record content type
                            *   ID's for which the Layer 2 instance allows
                            *   multiple messages (that is, data written by
@@ -397,8 +415,12 @@ struct mbedtls_mps_l2_config
                            *   to send them will be silently ignored, while
                            *   incoming empty records are treated as errors. */
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
 #define MPS_L2_CONF_INV_PAUSE_FLAG( p )                         \
     ( ( (p)->pause_flag & (p)->type_flag ) == (p)->pause_flag )
+#else
+#define MPS_L2_CONF_INV_PAUSE_FLAG( p ) 1
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #define MPS_L2_CONF_INV_MERGE_FLAG( p )                         \
     ( ( (p)->merge_flag & (p)->type_flag ) == (p)->merge_flag )
@@ -431,6 +453,7 @@ struct mbedtls_mps_l2_config
                                    *   if no context information is needed by
                                    *   the PRNG, or is stored elsewhere.      */
 
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
     uint64_t badmac_limit;        /*!< Determines how many records with bad MAC
                                    *   are silently tolerated before an error
                                    *   is raised. Possible values are:
@@ -439,6 +462,7 @@ struct mbedtls_mps_l2_config
                                    *   - \c n greater \c 0: The n-th record
                                    *     with a bad MAC will lead to an error.
                                    */
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     /* TLS-1.3-NOTE: A boolean flag needs to be added to indicate whether
      *               Layer 2 should silently discard records that cannot
@@ -462,6 +486,7 @@ struct mbedtls_mps_l2
      */
     struct
     {
+#if defined(MBEDTLS_MPS_PROTO_TLS)
         /*! The queue for outgoing data of pausable record content types. */
         unsigned char *queue;
         /*! The size of the queue in Bytes. */
@@ -471,6 +496,9 @@ struct mbedtls_mps_l2
         ( (p)->out.queue != NULL ==>                        \
           ( \forall integer i; 0 <= i < (p)->out.queue_len  \
             ==> \valid( (p)->out.queue+i ) ) )
+#else
+#define MPS_L2_INV_QUEUE_VALID( p ) 1
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
         /** This variable indicates if preparation of a new outgoing
          *  record must be preceded by a flush on the underlying Layer 1 first.
@@ -668,146 +696,57 @@ struct mbedtls_mps_l2
     } out;
 
     /**
-     * \brief The substructure holding all data related
-     *        to incoming records.
+     * \brief The substructure holding all data related to incoming records.
+     */
+
+    /* OPTIMIZATION:
+     * Consider making reading and writing mutually exclusive and using
+     * a union for store the incoming and outgoing data structures.
+     * Together with the corresponding changes in the other layers, this
+     * might save a significant amount of RAM.
      */
     struct
     {
-        /* --- TLS ONLY --- */
+        /* Note: In contrast to the write-side, the read-side of Layer 2 does
+         * not remember the raw record buffers obtained from Layer 1 as they
+         * can be handled on the stack when a new record is fetched. */
 
+        /** The current TLS implementation allows a single paused reader,
+         *  allowing e.g. to pause the reading of a handshake message while
+         *  processing other content types; on the other hand, it is not
+         *  capable of dealing with a fragmented alert followed by a fragmented
+         *  handshake message. However, while allowed in TLS up to version 1.2,
+         *  this is more of an academic use case, and the limitation seems
+         *  acceptable. In fact, TLS 1.3 forbids any interleaving of record
+         *  content types, and for that purpose, a single active or paused
+         *  reader would be sufficient.
+         *
+         *  The Layer 2 implementation doesn't use this directly, but
+         *  only through the following internal interface. Re-implement
+         *  this interface to change the number of paused readers in TLS.
+         *  - mps_l2_readers_active_state
+         *  - mps_l2_readers_get_active
+         *  - mps_l2_setup_free_slot
+         *  - mps_l2_readers_update
+         *  - mps_l2_find_paused_slot (TLS only)
+         */
+
+        mbedtls_mps_l2_in_internal active;
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
         /*! The accumulator for incoming data of pausable
          *  record content types.    */
         unsigned char *accumulator;
         /*! The size of the accumulator in Bytes.*/
         mbedtls_mps_stored_size_t acc_len;
 
-        /* --- END OF TLS ONLY --- */
+        mbedtls_mps_l2_in_internal paused;
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
-#define MPS_L2_INV_ACCUMULATOR_VALID( p )                   \
-        ( (p)->in.accumulator != NULL ==>                   \
-          ( \forall integer i; 0 <= i < (p)->in.acc_len     \
-            ==> \valid( (p)->in.accumulator+i ) ) )
-
-        /* Note: In contrast to the write-side, the read-side of Layer 2 does
-         * not remember the raw record buffers obtained from Layer 1 as they
-         * can be handled on the stack when a new record is fetched. */
-
-        /*! The array of readers internally used by the Layer 2 instance to
-         *  track the incoming data streams of the various content types.
-         *
-         * The current implementation allows one active and one paused reader.
-         * This allows to pause the reading of handshake messages while
-         * processing other content types, while it is not capable of dealing
-         * with, say, a fragmented alert followed by a fragmented handshake
-         * message. However, this usecase seems dubious in the first place
-         * (supported by the fact that it's being removed in TLS 1.3), so
-         * the limitation seems acceptable. */
-
-        /* OPTIMIZATION: For DTLS, only one reader is needed, and even
-         *               TLS needs only one unless interleaving of record
-         *               types should be supported (note that TLS 1.3
-         *               forbids this).
-         *               Write the code in a way that allows easy compile-time
-         *               switching between one and two readers. */
-        mbedtls_mps_l2_in_internal readers[2];
-
-#define MPS_L2_INV_IN_READER_INV( p )                           \
-        ( READER_INV( &((p)->in.readers[0].rd) )  &&            \
-          READER_INV( &((p)->in.readers[1].rd) ) )
-
-        /*! This field indicates the type, epoch and content
-         *  of the current incoming record.
-         *
-         *  It always points to a member of the \c readers array;
-         *  in particular, it is always non \c NULL, even if no
-         *  incoming record is currently being processed.
-         *  Instead, this is reflected in the \c active_state
-         *  member having value #MBEDTLS_MPS_L2_READER_STATE_UNSET.
-         */
-        /* OPTIMIZATION: As mentioned above, DTLS and TLS 1.3 need
-         *               only a single reader, and in this case this
-         *               field is redundant. */
-        mbedtls_mps_l2_in_internal *active;
-
-        /*! This field indicates the type, epoch and content
-         *  of the currently paused incoming record
-         *  ( meaning: a record the content of which wasn't large
-         *    enough to serve a user's read-request, leading to
-         *    its contents being backed up until enough data from
-         *    subsequent records of the same content type is ready
-         *    to fulfill the request )
-         *
-         *  It always points to a member of the \c readers array;
-         *  in particular, it is always non \c NULL, even if no
-         *  incoming record is currently being processed.
-         *  Instead, this is reflected in the \c active_state
-         *  member having value #MBEDTLS_MPS_L2_READER_STATE_UNSET.
-         */
-        /* OPTIMIZATION: As mentioned above, DTLS and TLS 1.3 need
-         *               only a single reader, and in this case this
-         *               field is redundant. */
-        mbedtls_mps_l2_in_internal *paused;
-
-#define MPS_L2_INV_IN_READERS_PERMUTATION( p )                   \
-        ( ( (p)->in.active == &((p)->in.readers[0]) &&          \
-            (p)->in.paused == &((p)->in.readers[1]) ) ||        \
-          ( (p)->in.active == &((p)->in.readers[1]) &&          \
-            (p)->in.paused == &((p)->in.readers[0]) ) )
-
-        /*! The state of the \c active reader.
-         *  The value can be either #MBEDTLS_MPS_L2_READER_STATE_UNSET,
-         *  #MBEDTLS_MPS_L2_READER_STATE_INTERNAL or #MBEDTLS_MPS_L2_READER_STATE_EXTERNAL.
-         *  See the documentation of ::l2_reader_state for more
-         *  information on the meaning of these values. */
-        mbedtls_mps_l2_reader_state active_state;
-
-#define MPS_L2_INV_IN_ACTIVE_STATE( p )                                 \
-        ( (p)->in.active_state == MBEDTLS_MPS_L2_READER_STATE_UNSET    ||       \
-          (p)->in.active_state == MBEDTLS_MPS_L2_READER_STATE_INTERNAL ||       \
-          (p)->in.active_state == MBEDTLS_MPS_L2_READER_STATE_EXTERNAL )
-
-        /* If the active reader is marked internal, its content
-         * type must be valid. */
-#define MPS_L2_INV_IN_ACTIVE_IS_VALID( p )                              \
-        ( ( (p)->in.active_state != MBEDTLS_MPS_L2_READER_STATE_UNSET )         \
-          ==> ( ( ( (uint32_t) 1u << (p)->in.active->type ) & (p)->conf.type_flag ) != 0 ) )
-
-        /* If the active reader is marked internal, its content
-         * type must be mergeable. */
-#define MPS_L2_INV_IN_ACTIVE_IS_MERGEABLE( p )                            \
-        ( ( (p)->in.active_state == MBEDTLS_MPS_L2_READER_STATE_INTERNAL )        \
-          ==> ( ( ( (uint32_t) 1u << (p)->in.active->type ) & (p)->conf.merge_flag ) != 0 ) )
-
-        /*! The state of the \c paused reader.
-         *  The value can be either #MBEDTLS_MPS_L2_READER_STATE_UNSET or
-         *  #MBEDTLS_MPS_L2_READER_STATE_PAUSED.
-         *  See the documentation of ::l2_reader_state for more
-         *  information on the meaning of these values. */
-        mbedtls_mps_l2_reader_state paused_state;
-
-#define MPS_L2_INV_IN_PAUSED_STATE( p )                                 \
-        ( (p)->in.paused_state == MBEDTLS_MPS_L2_READER_STATE_UNSET    ||       \
-          (p)->in.paused_state == MBEDTLS_MPS_L2_READER_STATE_PAUSED )
-
-        /* If the paused reader is set, its content type must be valid. */
-#define MPS_L2_INV_IN_PAUSED_IS_VALID( p )                              \
-        ( ( (p)->in.paused_state == MBEDTLS_MPS_L2_READER_STATE_PAUSED )        \
-          ==> ( ( ( (uint32_t) 1u << (p)->in.paused->type ) & (p)->conf.type_flag ) != 0 ) )
-
-        /* The paused reader must have pausable record content type. */
-#define MPS_L2_INV_IN_PAUSED_IS_PAUSABLE( p )                           \
-        ( ( (p)->in.paused_state == MBEDTLS_MPS_L2_READER_STATE_PAUSED )        \
-          ==> ( ( ( (uint32_t) 1u << (p)->in.paused->type ) & (p)->conf.pause_flag ) != 0 ) )
-
-        /* The paused reader must not serve the same content type
-         * as the active reader. */
-#define MPS_L2_INV_IN_NO_ACTIVE_PAUSED_NO_OVERLAP( p )                  \
-        ( ( (p)->in.active_state != MBEDTLS_MPS_L2_READER_STATE_UNSET &&        \
-            (p)->in.paused_state == MBEDTLS_MPS_L2_READER_STATE_PAUSED )        \
-          ==> ( (p)->in.active->type != (p)->in.paused->type ) )
-
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
         uint64_t bad_mac_ctr; /* The number of records with bad MAC that have
                                * been received so far. DTLS only. */
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     } in;
 
@@ -846,9 +785,12 @@ struct mbedtls_mps_l2
         /*! The epoch usage permissions. */
         union
         {
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
             /*! The permissions for the epochs in the epoch window. */
             mbedtls_mps_epoch_usage dtls[ MPS_L2_EPOCH_WINDOW_SIZE ];
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
             struct
             {
                 /*! The offset of the ID of the epoch to be used for incoming
@@ -863,6 +805,7 @@ struct mbedtls_mps_l2
                 mbedtls_mps_epoch_offset_t default_out;
 
             } tls;
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
         } permissions;
 
@@ -1106,7 +1049,9 @@ static inline int mps_l2_config_add_type( mbedtls_mps_l2 *ctx,
         return( MPS_ERR_INVALID_ARGS );
 
     ctx->conf.type_flag |= mask;
+#if defined(MBEDTLS_MPS_PROTO_TLS)
     ctx->conf.pause_flag |= ( pausing == 1 ) * mask;
+#endif /* MBEDTL_SMPS_PROTO_TLS */
     ctx->conf.merge_flag |= ( merging == 1 ) * mask;
     ctx->conf.empty_flag |= ( empty   == 1 ) * mask;
 
@@ -1222,8 +1167,8 @@ MPS_STATIC int mps_l2_write_done( mbedtls_mps_l2 *ctx );
 
 /**
  * \brief          Attempt to deliver all outgoing data previously
- *                 dispatched via calls to mps_l2_write_done() are
- *                 being delivered to the underlying transport.
+ *                 dispatched via calls to mps_l2_write_done()
+ *                 to the underlying transport.
  *
  * \param ctx      The address of the Layer 2 context to use.
  *

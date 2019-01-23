@@ -52,7 +52,7 @@
  *
  *  Uncomment if only DTLS is needed.
  */
-#define MBEDTLS_MPS_PROTO_TLS
+//#define MBEDTLS_MPS_PROTO_TLS
 
 /*! This flag enables support for the DTLS protocol.
  *
@@ -105,9 +105,19 @@ typedef uint8_t mbedtls_mps_transport_type;
 #endif /* MBEDTLS_MPS_PROTO_DTLS  */
 
 #if !defined(MBEDTLS_MPS_PROTO_TLS) /* DTLS only */
-#define MBEDTLS_MPS_PROTO_IF( mode, tls_code, dtls_code ) dtls_code
+#define MBEDTLS_MPS_PROTO_IF( mode, tls_code, dtls_code ) \
+    do                                                    \
+    {                                                     \
+        dtls_code;                                        \
+    } while( 0 )
+#define MBEDTLS_MPS_PROTO_IF_BOTH( code )
 #elif !defined(MBEDTLS_MPS_PROTO_DTLS) /* TLS only */
-#define MBEDTLS_MPS_PROTO_IF( mode, tls_code, dtls_code ) tls_code
+#define MBEDTLS_MPS_PROTO_IF( mode, tls_code, dtls_code ) \
+    do                                                    \
+    {                                                     \
+        tls_code;                                         \
+    } while( 0 )
+#define MBEDTLS_MPS_PROTO_IF_BOTH( code )
 #else /* TLS and DTLS enabled */
 #define MBEDTLS_MPS_PROTO_IF( mode, tls_code, dtls_code ) \
     do                                                    \
@@ -121,6 +131,7 @@ typedef uint8_t mbedtls_mps_transport_type;
             dtls_code;                                    \
         }                                                 \
     } while( 0 )
+#define MBEDTLS_MPS_PROTO_IF_BOTH( code ) code
 #endif /* MBEDTLS_MPS_PROTO_TLS && MBEDTLS_MPS_PROTO_DTLS */
 
 /*! The enumeration of record content types recognized by MPS.

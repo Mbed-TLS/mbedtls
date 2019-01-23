@@ -32,30 +32,47 @@ static int trace_id = TRACE_BIT_LAYER_2;
 #include <stdlib.h>
 #include <string.h>
 
-static void l2_out_write_version( int major, int minor, int transport,
-                              unsigned char ver[2] );
-static void l2_read_version( int *major, int *minor, int transport,
+static void l2_out_write_version( int major, int minor,
+                                  mbedtls_mps_transport_type transport,
+                                  unsigned char ver[2] );
+static void l2_read_version( int *major, int *minor,
+                             mbedtls_mps_transport_type transport,
                              const unsigned char ver[2] );
 
 /* Reading related */
 static int l2_in_fetch_record( mbedtls_mps_l2 *ctx, mps_rec *rec );
 static int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec );
-static int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec );
-static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx, mps_rec *rec );
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+static int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx,
+                                             mps_rec *rec );
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
+                                                mps_rec *rec );
+static int l2_handle_invalid_record( mbedtls_mps_l2 *ctx, int ret );
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 static int l2_in_release_record( mbedtls_mps_l2 *ctx );
 
 /* Writing related */
-static int l2_out_prepare_record( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch );
+static int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
+                                  mbedtls_mps_epoch_id epoch );
 static int l2_out_track_record( mbedtls_mps_l2 *ctx );
 static int l2_out_release_record( mbedtls_mps_l2 *ctx, uint8_t force );
 static int l2_out_dispatch_record( mbedtls_mps_l2 *ctx );
 static int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec );
-static int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec );
-static int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx, mps_rec *rec );
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+static int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx,
+                                              mps_rec *rec );
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+static int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
+                                                 mps_rec *rec );
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 static int l2_out_release_and_dispatch( mbedtls_mps_l2 *ctx, uint8_t force );
 static int l2_out_clear_pending( mbedtls_mps_l2 *ctx );
 
-static size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch );
+static size_t l2_get_header_len( mbedtls_mps_l2 *ctx,
+                                 mbedtls_mps_epoch_id epoch );
 
 /* Configuration related */
 static int l2_type_can_be_paused( mbedtls_mps_l2 *ctx, uint8_t type );
@@ -102,9 +119,11 @@ static int l2_epoch_lookup_internal( mbedtls_mps_l2 *ctx,
  * Sequence number handling
  */
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
 static int l2_tls_in_get_epoch_and_counter( mbedtls_mps_l2 *ctx,
                                             uint16_t *dst_epoch,
                                             uint64_t *dst_ctr );
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
 static int l2_in_update_counter( mbedtls_mps_l2 *ctx,
                                  uint16_t epoch,
@@ -117,16 +136,27 @@ static int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
 /*
  * DTLS replay protection
  */
-
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
 static int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
                                     mbedtls_mps_epoch_id epoch,
                                     uint64_t ctr );
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
-static void l2_out_write_version( int major, int minor, int transport,
-                       unsigned char ver[2] )
+static void l2_out_write_version( int major, int minor,
+                                  mbedtls_mps_transport_type transport,
+                                  unsigned char ver[2] )
 {
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( transport == MBEDTLS_MPS_MODE_DATAGRAM )
+#if !defined(MBEDTLS_MPS_PROTO_BOTH)
+    ((void) transport);
+#endif
+
+    /* The goal of this guard-salad is to not include any mode checks in case
+     * only one of TLS or DTLS is enabled.
+     * The present solution, however, is not very readable, and I'd be glad
+     * about suggestions on how to improve this. */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( transport ) )
     {
         if( minor == MBEDTLS_SSL_MINOR_VERSION_2 )
             --minor; /* DTLS 1.0 stored as TLS 1.1 internally */
@@ -134,21 +164,27 @@ static void l2_out_write_version( int major, int minor, int transport,
         ver[0] = (unsigned char)( 255 - ( major - 2 ) );
         ver[1] = (unsigned char)( 255 - ( minor - 1 ) );
     }
-    else
-#else
-    ((void) transport);
-#endif
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( transport ) )
     {
         ver[0] = (unsigned char) major;
         ver[1] = (unsigned char) minor;
     }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 }
 
-static void l2_read_version( int *major, int *minor, int transport,
-                      const unsigned char ver[2] )
+static void l2_read_version( int *major, int *minor,
+                             mbedtls_mps_transport_type transport,
+                             const unsigned char ver[2] )
 {
-#if defined(MBEDTLS_SSL_PROTO_DTLS)
-    if( transport == MBEDTLS_MPS_MODE_DATAGRAM )
+#if !defined(MBEDTLS_MPS_PROTO_BOTH)
+    ((void) transport);
+#endif
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_DTLS( transport ) )
     {
         *major = 255 - ver[0] + 2;
         *minor = 255 - ver[1] + 1;
@@ -156,28 +192,183 @@ static void l2_read_version( int *major, int *minor, int transport,
         if( *minor == MBEDTLS_SSL_MINOR_VERSION_1 )
             ++*minor; /* DTLS 1.0 stored as TLS 1.1 internally */
     }
-    else
-#else
-    ((void) transport);
-#endif
+#endif /* MBEDTLS_MPS_PROTO_TTLS */
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( transport ) )
     {
         *major = ver[0];
         *minor = ver[1];
     }
+#endif
 }
 
-int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1, uint8_t mode,
+static void mps_l2_readers_init( mbedtls_mps_l2 *ctx )
+{
+    ctx->in.active.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
+    mbedtls_reader_init( &ctx->in.active.rd, NULL, 0 );
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    ctx->in.paused.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
+    mbedtls_reader_init( &ctx->in.paused.rd, NULL, 0 );
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+}
+
+static void mps_l2_readers_free( mbedtls_mps_l2 *ctx )
+{
+    ctx->in.active.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
+    mbedtls_reader_free( &ctx->in.active.rd );
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    ctx->in.paused.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
+    mbedtls_reader_free( &ctx->in.paused.rd );
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+}
+
+static inline mbedtls_mps_l2_reader_state mps_l2_readers_active_state(
+    mbedtls_mps_l2 *ctx )
+{
+    return( ctx->in.active.state );
+}
+
+static inline mbedtls_mps_l2_in_internal* mps_l2_readers_get_active(
+    mbedtls_mps_l2 *ctx )
+{
+    return( &ctx->in.active );
+}
+
+static inline void mps_l2_readers_update( mbedtls_mps_l2 *ctx )
+{
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    {
+        ((void) ctx);
+        return;
+    }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    {
+        /* Swap active and paused reader if the paused
+         * reader has been activated. */
+        if( ctx->in.paused.state == MBEDTLS_MPS_L2_READER_STATE_INTERNAL )
+        {
+            mbedtls_mps_l2_in_internal tmp = ctx->in.active;
+            ctx->in.active = ctx->in.paused;
+            ctx->in.paused = tmp;
+        }
+    }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+}
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+static inline mbedtls_mps_l2_in_internal *mps_l2_find_paused_slot(
+    mbedtls_mps_l2 *ctx, mbedtls_mps_msg_type_t type )
+{
+    if( ctx->in.paused.state == MBEDTLS_MPS_L2_READER_STATE_PAUSED &&
+        ctx->in.paused.type  == type )
+    {
+        return( &ctx->in.paused );
+    }
+
+    return( NULL );
+}
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+static inline mbedtls_mps_l2_in_internal *mps_l2_setup_free_slot(
+    mbedtls_mps_l2 *ctx, mbedtls_mps_msg_type_t type,
+    mbedtls_mps_epoch_id epoch )
+{
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
+    /* This assumes that there is no active slot. Hence, in case
+     * of DTLS, we can statically return the address of the single
+     * available slot. */
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    {
+        mbedtls_reader_init( &ctx->in.active.rd, NULL, 0 );
+        ctx->in.active.type = type;
+        ctx->in.active.epoch = epoch;
+        return( &ctx->in.active );
+    }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    {
+        unsigned char *acc = NULL;
+        mbedtls_mps_size_t acc_len = 0;
+
+        if( l2_type_can_be_paused( ctx, type ) )
+        {
+            TRACE( trace_comment, "Record content type can be paused" );
+            if( ctx->in.paused.state == MBEDTLS_MPS_L2_READER_STATE_UNSET )
+            {
+                TRACE( trace_comment, "The accumulator is available" );
+                acc = ctx->in.accumulator;
+                acc_len = ctx->in.acc_len;
+            }
+            else
+#if !defined(MPS_L2_ALLOW_PAUSABLE_CONTENT_TYPE_WITHOUT_ACCUMULATOR)
+            {
+                TRACE( trace_error,
+                       "The accumulator is not available, and don't allow "
+                       "to open pausable content types without accumulator." );
+                RETURN( MPS_ERR_MULTIPLE_PAUSING );
+            }
+#else
+            {
+                TRACE( trace_comment, "No accumulator is available, but open nonetheless." );
+            }
+        }
+#endif /* MPS_L2_ALLOW_PAUSABLE_CONTENT_TYPE_WITHOUT_ACCUMULATOR */
+
+        mbedtls_reader_init( &ctx->in.active.rd, acc, acc_len );
+        return( &ctx->in.active );
+    }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+    return( NULL );
+}
+
+static int mps_l2_reader_make_active( mbedtls_mps_l2 *ctx,
+                                      mbedtls_mps_msg_type_t type,
+                                      mbedtls_mps_l2_in_internal **active )
+{
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
+    TRACE_INIT( "mps_l2_reader_make_active" );
+
+    /* Currently, Layer 2 holds only one accumulator */
+
+    RETURN( 0 );
+}
+
+int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1,
+                 mbedtls_mps_transport_type mode,
                  size_t max_read, size_t max_write,
                  int (*f_rng)(void *, unsigned char *, size_t),
                  void *p_rng )
 {
+    /* TODO: Make this more compact; zeroize the Layer 2
+     *       structure first and then only correct those
+     *       fields where 0 is not proper initialization. */
+
     unsigned char *queue = NULL, *accumulator = NULL;
     mps_l2_bufpair zero_bufpair = { NULL, 0, 0, 0 };
     TRACE_INIT( "l2_init" );
 
-    if( ctx == NULL || l1 == NULL )
-        RETURN( MPS_ERR_INVALID_ARGS );
-
+#if defined(MBEDTLS_MPS_PROTO_TLS)
     if( max_write > 0 )
         queue = malloc( max_write );
     if( max_read > 0 )
@@ -190,13 +381,19 @@ int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1, uint8_t mode,
         free( accumulator );
         RETURN( MPS_ERR_ALLOC_FAILED );
     }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
     ctx->conf.l1 = l1;
     ctx->conf.mode = mode;
-    ctx->conf.version = MBEDTLS_SSL_MINOR_VERSION_3/* MPS_L2_VERSION_UNSPECIFIED */;
+
+    /* TODO: Allow setting an arbitrary version,
+     *       as well as an initially unspecified one. */
+    ctx->conf.version = MBEDTLS_SSL_MINOR_VERSION_3;
     ctx->conf.type_flag = 0;
     ctx->conf.merge_flag = 0;
+#if defined(MBEDTLS_MPS_PROTO_TLS)
     ctx->conf.pause_flag = 0;
+#endif /* MBEDTLS_MPS_PROTO_TLS */
     ctx->conf.empty_flag = 0;
     ctx->conf.max_plain_out = 1000;
     ctx->conf.max_plain_in  = 1000;
@@ -204,14 +401,19 @@ int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1, uint8_t mode,
     ctx->conf.f_rng = f_rng;
     ctx->conf.p_rng = p_rng;
     ctx->conf.badmac_limit = 0;
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
     ctx->conf.anti_replay = MBEDTLS_MPS_ANTI_REPLAY_ENABLED;
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     /* Initialize write-side */
     ctx->out.flush    = 0;
     ctx->out.clearing = 0;
     ctx->out.state = MBEDTLS_MPS_L2_WRITER_STATE_UNSET;
+#if defined(MBEDTLS_MPS_PROTO_TLS)
     ctx->out.queue = queue;
     ctx->out.queue_len = max_write;
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
     ctx->out.hdr = NULL;
     ctx->out.hdr_len = 0;
@@ -222,30 +424,25 @@ int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1, uint8_t mode,
     mbedtls_writer_init( &ctx->out.writer.wr, NULL, 0 );
 
     /* Initialize read-side */
+#if defined(MBEDTLS_MPS_PROTO_TLS)
     ctx->in.accumulator = accumulator;
     ctx->in.acc_len = max_read;
-    ctx->in.active_state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
-    ctx->in.paused_state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
-    ctx->in.active = &ctx->in.readers[0];
-    ctx->in.paused = &ctx->in.readers[1];
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+    mps_l2_readers_init( ctx );
 
-    ctx->in.readers[0].type  = MBEDTLS_MPS_MSG_NONE;
-    ctx->in.readers[0].epoch = MBEDTLS_MPS_EPOCH_NONE;
-    ctx->in.readers[1].type  = MBEDTLS_MPS_MSG_NONE;
-    ctx->in.readers[1].epoch = MBEDTLS_MPS_EPOCH_NONE;
-    mbedtls_reader_init( &ctx->in.readers[0].rd, NULL, 0 );
-    mbedtls_reader_init( &ctx->in.readers[1].rd, NULL, 0 );
     ctx->in.bad_mac_ctr = 0;
 
     /* Initialize epochs */
 
     memset( &ctx->epochs, 0, sizeof( ctx->epochs ) );
 
-    if( mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         ctx->epochs.permissions.tls.default_in  = MBEDTLS_MPS_EPOCH_NONE;
         ctx->epochs.permissions.tls.default_out = MBEDTLS_MPS_EPOCH_NONE;
     }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
     RETURN( 0 );
 }
@@ -256,10 +453,10 @@ int mps_l2_free( mbedtls_mps_l2 *ctx )
     ((void) ctx);
     TRACE_INIT( "l2_free" );
 
-    mbedtls_reader_free( &ctx->in.readers[0].rd );
-    mbedtls_reader_free( &ctx->in.readers[1].rd );
+    mps_l2_readers_free( ctx );
     mbedtls_writer_free( &ctx->out.writer.wr );
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
     free( ctx->in.accumulator );
     free( ctx->out.queue );
 
@@ -267,6 +464,7 @@ int mps_l2_free( mbedtls_mps_l2 *ctx )
     ctx->in.acc_len = 0;
     ctx->out.queue = NULL;
     ctx->out.queue_len = 0;
+#endif /* MBDTLS_MPS_PROTO_TLS */
 
     for( offset = 0; offset < MPS_L2_EPOCH_WINDOW_SIZE; offset++ )
         l2_epoch_free( &ctx->epochs.window[offset] );
@@ -283,7 +481,7 @@ int mps_l2_config_version( mbedtls_mps_l2 *ctx, uint8_t ver )
 }
 
 /* Please consult the documentation of mbedtls_mps_l2 for a basic
- * description of the state flow when preapring outgoing records.
+ * description of the state flow when preparing outgoing records.
  *
  * This function assumes that no outgoing record is currently being processed
  * and prepares L1-owned buffers holding the record header and record plaintext.
@@ -400,8 +598,8 @@ static int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
     RETURN( 0 );
 }
 
-/* Please consult the documentation of mbedtls_mps_l2 for a basic description of the
- * state flow when preapring outgoing records.
+/* Please consult the documentation of mbedtls_mps_l2 for a basic description
+ * of the state flow when preapring outgoing records.
  *
  * This function assumes that the record header and record plaintext pointers
  * are valid ( := obtained from l2_out_prepare ) and some content has been
@@ -510,9 +708,16 @@ static int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
     int ret = 0;
     mps_l2_bufpair const zero_bufpair = { NULL, 0, 0, 0 };
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type transport = ctx->conf.mode;
+#endif
+
     TRACE_INIT( "Write protected record" );
 
-    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    if( transport == MBEDTLS_MPS_MODE_STREAM )
+#endif
+#if defined(MBEDTLS_MPS_PROTO_TLS)
     {
         /* The record header structure is the same for all versions
          * of TLS, including TLS 1.3. The only difference is that in
@@ -523,7 +728,12 @@ static int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
          * it was part of CBC, and AEAD didn't allow padding at all. */
         ret = l2_out_write_protected_record_tls( ctx, rec );
     }
-    else if( ctx->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    if( transport == MBEDTLS_MPS_MODE_DATAGRAM )
+#endif
+#if defined(MBEDTLS_MPS_PROTO_TLS)
     {
         /* Only handle DTLS 1.0 and 1.2 for the moment,
          * which have a uniform and simple record header. */
@@ -537,11 +747,7 @@ static int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 
         }
     }
-    else
-    {
-        /* Should never happen. */
-        ret = MPS_ERR_INTERNAL_ERROR;
-    }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     /* Cleanup internal structure for outgoing data. */
     ctx->out.hdr = NULL;
@@ -551,6 +757,7 @@ static int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
     RETURN( ret );
 }
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
 static int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
     uint8_t * const hdr     = ctx->out.hdr;
@@ -609,7 +816,9 @@ static int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec 
     RETURN( mps_l1_dispatch( ctx->conf.l1, hdr_len + rec->buf.data_len,
                              NULL ) );
 }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
 static int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
                                                  mps_rec *rec )
 {
@@ -669,6 +878,7 @@ static int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
     RETURN( mps_l1_dispatch( ctx->conf.l1, hdr_len + rec->buf.data_len,
                              NULL ) );
 }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 int mps_l2_write_flush( mbedtls_mps_l2 *ctx )
 {
@@ -698,6 +908,7 @@ static int l2_out_clear_pending( mbedtls_mps_l2 *ctx )
         ctx->out.clearing = 0;
     }
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
     /* Each iteration strictly reduces the size of the
      * writer's queue, hence the loop must terminate. */
     while( ctx->out.state == MBEDTLS_MPS_L2_WRITER_STATE_QUEUEING )
@@ -725,6 +936,7 @@ static int l2_out_clear_pending( mbedtls_mps_l2 *ctx )
         if( ret != 0 )
             RETURN( ret );
     }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
     TRACE( trace_comment, "Queue clear" );
 
@@ -734,7 +946,8 @@ static int l2_out_clear_pending( mbedtls_mps_l2 *ctx )
                (unsigned) ctx->out.state );
         if( ctx->out.state == MBEDTLS_MPS_L2_WRITER_STATE_INTERNAL )
         {
-            ret = l2_out_release_and_dispatch( ctx, MBEDTLS_WRITER_RECLAIM_FORCE );
+            ret = l2_out_release_and_dispatch( ctx,
+                                               MBEDTLS_WRITER_RECLAIM_FORCE );
             if( ret != 0 )
                 RETURN( ret );
 
@@ -835,17 +1048,23 @@ int mps_l2_write_start( mbedtls_mps_l2 *ctx, mps_l2_out *out )
         if( ctx->out.writer.type  == desired_type &&
             ctx->out.writer.epoch == desired_epoch )
         {
-            TRACE( trace_comment, "Type and epoch of currently open record match -> attach to it" );
+            TRACE( trace_comment,
+                   "Type and epoch match currently open record -> attach." );
             ctx->out.state = MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL;
             out->wr = &ctx->out.writer.wr;
-            TRACE( trace_comment, "TOTAL: %u, WRITTEN: %u (==%u), REMAINING %u",
-                   (unsigned) out->wr->out_len,
-                   (unsigned) out->wr->committed, (unsigned) out->wr->end,
+
+            TRACE( trace_comment, "* Total size of record buffer: %u Bytes",
+                   (unsigned) out->wr->out_len );
+            TRACE( trace_comment, "* Committed: %u Bytes",
+                   (unsigned) out->wr->committed );
+            TRACE( trace_comment, "* Written: %u Bytes",
+                   (unsigned) out->wr->end );
+            TRACE( trace_comment, "* Remaining: %u Bytes",
                    (unsigned) ( out->wr->out_len - out->wr->committed ) );
             RETURN( 0 );
         }
 
-        TRACE( trace_comment, "Type or epoch of the currently open record don't match -> reclaim and dispatch" );
+        TRACE( trace_comment, "Type or epoch doesn't match open record." );
         ret = l2_out_release_and_dispatch( ctx, MBEDTLS_WRITER_RECLAIM_FORCE );
         if( ret != 0 )
             RETURN( ret );
@@ -897,14 +1116,17 @@ static int l2_out_track_record( mbedtls_mps_l2 *ctx )
 
     if( ctx->out.state == MBEDTLS_MPS_L2_WRITER_STATE_UNSET )
     {
+#if defined(MBEDTLS_MPS_PROTO_TLS)
         /* Depending on whether the record content type is pausable,
          * provide a queue to the writer or not. */
         if( l2_type_can_be_paused( ctx, ctx->out.writer.type ) )
         {
-            mbedtls_writer_init( &ctx->out.writer.wr, ctx->out.queue,
-                                       ctx->out.queue_len );
+            mbedtls_writer_init( &ctx->out.writer.wr,
+                                 ctx->out.queue,
+                                 ctx->out.queue_len );
         }
         else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
         {
             mbedtls_writer_init( &ctx->out.writer.wr, NULL, 0 );
         }
@@ -927,6 +1149,7 @@ static int l2_out_release_record( mbedtls_mps_l2 *ctx, uint8_t force )
 {
     int ret;
     mbedtls_mps_size_t bytes_written, bytes_queued;
+    mbedtls_mps_msg_type_t type;
     TRACE_INIT( "l2_out_release_record, force %u, state %u", force,
            (unsigned) ctx->out.state );
 
@@ -935,13 +1158,15 @@ static int l2_out_release_record( mbedtls_mps_l2 *ctx, uint8_t force )
     if( force == MBEDTLS_WRITER_RECLAIM_NO_FORCE &&
         ret   == MBEDTLS_ERR_WRITER_DATA_LEFT )
     {
-        TRACE( trace_comment, "Data left" );
+        TRACE( trace_comment, "There's space left in the current outgoing record." );
+        type = ctx->out.writer.type;
+
         /* Check if records of the given type may be merged.
          * E.g., in [D]TLS 1.3 multiple multiple alerts must not
          * be placed in a single record. */
-        if( l2_type_can_be_merged( ctx, ctx->out.writer.type ) == 1 )
+        if( l2_type_can_be_merged( ctx, type ) == 1 )
         {
-            TRACE( trace_comment, "Can be merged" );
+            TRACE( trace_comment, "Multiple messages of type %u can be merged in a single record.", (unsigned) type );
             /* Here's the place to add a heuristic deciding when to dispatch
              * a record even if space is left in the output buffer. For TLS,
              * in principle we can go on with as little as a single byte, but
@@ -949,15 +1174,17 @@ static int l2_out_release_record( mbedtls_mps_l2 *ctx, uint8_t force )
 
             if( /* HEURISTIC */ 1 )
             {
-                TRACE( trace_comment, "Await more data" );
+                TRACE( trace_comment, "Postpone dispatching to potentially merge further messages into this record." );
                 RETURN( MBEDTLS_ERR_WRITER_DATA_LEFT );
             }
+
+            TRACE( trace_comment, "Not enough space remaining to wait for another message oftype %u - dispatch.", (unsigned) type );
 
             /* Fall through if heuristic determines that the current record
              * should be dispatched albeit spacing being left: fall through */
         }
 
-        TRACE( trace_comment, "Type cannot be merged -- forced reclaim" );
+        TRACE( trace_comment, "Messages of type %u can either not be merged, or there's not enough space remaining in the current record -- force reclaim.", (unsigned) type );
         ret = mbedtls_writer_reclaim( &ctx->out.writer.wr, NULL, NULL,
                                       MBEDTLS_WRITER_RECLAIM_FORCE );
         if( ret != 0 )
@@ -968,9 +1195,7 @@ static int l2_out_release_record( mbedtls_mps_l2 *ctx, uint8_t force )
 
     /* Now it's clear that the record should be dispatched */
 
-    /* Update internal length field and change the writer state. */
-    ctx->out.payload.data_len = bytes_written;
-
+#if defined(MBEDTLS_MPS_PROTO_TLS)
     if( bytes_queued > 0 )
     {
         /* The writer has queued data */
@@ -988,6 +1213,7 @@ static int l2_out_release_record( mbedtls_mps_l2 *ctx, uint8_t force )
         ctx->out.state = MBEDTLS_MPS_L2_WRITER_STATE_QUEUEING;
     }
     else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
     {
         /* No data has been queued */
         TRACE( trace_comment, "The writer has no queued data." );
@@ -998,6 +1224,8 @@ static int l2_out_release_record( mbedtls_mps_l2 *ctx, uint8_t force )
         ctx->out.state = MBEDTLS_MPS_L2_WRITER_STATE_UNSET;
     }
 
+    /* Update internal length field and change the writer state. */
+    ctx->out.payload.data_len = bytes_written;
     RETURN( 0 );
 }
 
@@ -1032,8 +1260,18 @@ static int l2_out_release_and_dispatch( mbedtls_mps_l2 *ctx, uint8_t force )
 int mps_l2_read_done( mbedtls_mps_l2 *ctx )
 {
     int ret;
-    mbedtls_mps_l2_in_internal *tmp;
-    size_t paused;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
+    mbedtls_mps_l2_in_internal * active;
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    mbedtls_mps_l2_in_internal tmp;
+    mbedtls_mps_size_t paused;
+    mbedtls_mps_size_t * const paused_ptr = &paused;
+#else
+    mbedtls_mps_size_t * const paused_ptr = NULL;
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
     TRACE_INIT( "mps_l2_read_done" );
 
@@ -1058,20 +1296,23 @@ int mps_l2_read_done( mbedtls_mps_l2 *ctx )
      *   2.1 If no: Unset the active reader and return success.
      *              This happens when layer 3 acknowledges the end
      *              of a message at record boundary.
-     *   2.2 If yes: Swap active and paused reader, and return success.
-     *               In this case, when we read a new record of matching
-     *               content type, we'll feed its contents into the
-     *               paused reader until the reader becomes ready to be
-     *               reactivated, and then it'll be made active again.
+     *   2.2 If yes (TLS only): Swap active and paused reader, and return
+     *               success. In this case, when we read a new record of
+     *               matching content type, we'll feed its contents into
+     *               the paused reader until the reader becomes ready to
+     *               be reactivated, and then it'll be made active again.
      */
 
-    if( ctx->in.active_state != MBEDTLS_MPS_L2_READER_STATE_EXTERNAL )
+    if( mps_l2_readers_active_state( ctx )
+        != MBEDTLS_MPS_L2_READER_STATE_EXTERNAL )
     {
         TRACE( trace_comment, "Unexpected operation" );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
 
-    ret = mbedtls_reader_reclaim( &ctx->in.active->rd, &paused );
+    active = mps_l2_readers_get_active( ctx );
+
+    ret = mbedtls_reader_reclaim( &active->rd, paused_ptr );
     if( ret == MBEDTLS_ERR_READER_DATA_LEFT )
     {
         /* 1a */
@@ -1079,21 +1320,24 @@ int mps_l2_read_done( mbedtls_mps_l2 *ctx )
 
         /* Check if the content type is configured to allow packing of
          * multiple chunks of data in the same record. */
-        if( l2_type_can_be_merged( ctx, ctx->in.active->type ) == 0 )
+        if( l2_type_can_be_merged( ctx, active->type ) == 0 )
         {
             TRACE( trace_error, "Record content type %u does not allow multiple reads from the same record.",
-                   (unsigned) ctx->in.active->type );
+                   (unsigned) active->type );
             RETURN( MPS_ERR_INVALID_CONTENT_MERGE );
         }
 
-        ctx->in.active_state = MBEDTLS_MPS_L2_READER_STATE_INTERNAL;
+        active->state = MBEDTLS_MPS_L2_READER_STATE_INTERNAL;
         RETURN( 0 );
     }
-    else if( ret == MBEDTLS_ERR_READER_NEED_ACCUMULATOR      ||
-             ret == MBEDTLS_ERR_READER_ACCUMULATOR_TOO_SMALL )
+    else
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) &&
+        ( ret == MBEDTLS_ERR_READER_NEED_ACCUMULATOR      ||
+          ret == MBEDTLS_ERR_READER_ACCUMULATOR_TOO_SMALL ) )
     {
         /* 1b */
-        if( l2_type_can_be_paused( ctx, ctx->in.active->type ) == 1 )
+        if( l2_type_can_be_paused( ctx, active->type ) == 1 )
         {
 #if !defined(MPS_L2_ALLOW_PAUSABLE_CONTENT_TYPE_WITHOUT_ACCUMULATOR)
             /* In this configuration, we shouldn't have opened the read
@@ -1106,16 +1350,18 @@ int mps_l2_read_done( mbedtls_mps_l2 *ctx )
         }
         RETURN( MPS_ERR_TYPE_CANT_BE_PAUSED );
     }
-    else if( ret != 0 )
+    else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+    if( ret != 0 )
         RETURN( ret );
 
     /* 2 */
 
     TRACE( trace_comment, "Successfully reclaimed the record content buffer." );
-    TRACE( trace_comment, "Number of bytes asked for beyond record: %u",
-           (unsigned) paused );
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
     if( paused == 0 )
+#endif /* MBEDTLS_MPS_PROTO_TLS */
     {
         /* 2.1 */
         TRACE( trace_comment, "No excess request; releasing record." );
@@ -1124,13 +1370,18 @@ int mps_l2_read_done( mbedtls_mps_l2 *ctx )
         if( ret != 0 )
             RETURN( ret );
 
-        mbedtls_reader_free( &ctx->in.active->rd );
+        mbedtls_reader_free( &active->rd );
 
-        ctx->in.active_state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
+        active->state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
         RETURN( 0 );
     }
 
-    /* 2.2 */
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+
+    /* 2.2 (TLS only) */
+
+    /* !!! TODO !!!
+     * Make use of internal API for reader handling. */
 
     /*
      * At this point, we know that data has been backed up, so
@@ -1143,15 +1394,15 @@ int mps_l2_read_done( mbedtls_mps_l2 *ctx )
      *
      * NOTE: Potentially remove this after review.
      */
-    if( l2_type_can_be_paused( ctx, ctx->in.active->type ) == 0 ||
-        ctx->in.paused_state != MBEDTLS_MPS_L2_READER_STATE_UNSET )
+    if( l2_type_can_be_paused( ctx, active->type ) == 0 ||
+        ctx->in.paused.state != MBEDTLS_MPS_L2_READER_STATE_UNSET )
     {
         RETURN( MPS_ERR_INTERNAL_ERROR );
     }
 
     TRACE( trace_comment, "Switch active and paused reader" );
-    ctx->in.active_state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
-    ctx->in.paused_state = MBEDTLS_MPS_L2_READER_STATE_PAUSED;
+    ctx->in.active.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
+    ctx->in.paused.state = MBEDTLS_MPS_L2_READER_STATE_PAUSED;
 
     tmp = ctx->in.active;
     ctx->in.active = ctx->in.paused;
@@ -1162,15 +1413,47 @@ int mps_l2_read_done( mbedtls_mps_l2 *ctx )
         RETURN( ret );
 
     RETURN( 0 );
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 }
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+static int l2_handle_invalid_record( mbedtls_mps_l2 *ctx, int ret )
+{
+    /* This function assumes that the mode has been checked
+     * to be MBEDTLS_MPS_MODE_DATAGRAM and hence omits this check here. */
+
+    TRACE_INIT( "mps_l2_handle_invalid_record" );
+    if( ret == MPS_ERR_INVALID_RECORD )
+    {
+        TRACE( trace_error, "Record with invalid header received -- discard" );
+    }
+    else if( ret == MPS_ERR_REPLAYED_RECORD )
+    {
+        TRACE( trace_error, "Record caught by replay protection -- discard" );
+    }
+    else /* ret == MPS_ERR_INVALID_MAC */
+    {
+        TRACE( trace_error, "Record with invalid MAC received -- discard" );
+        ctx->in.bad_mac_ctr++;
+        if( ctx->conf.badmac_limit != 0 &&
+            ctx->in.bad_mac_ctr >= ctx->conf.badmac_limit )
+        {
+            TRACE( trace_error, "Bad-MAC-limit %u reached.",
+                   (unsigned) ctx->conf.badmac_limit );
+            RETURN( MPS_ERR_INVALID_MAC );
+        }
+    }
+
+    /* Silently discard datagrams containing invalid records. */
+    RETURN( mps_l1_skip( ctx->conf.l1 ) );
+}
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
 {
     int ret;
-    mbedtls_mps_l2_in_internal *tmp;
-    mps_rec rec;
-    unsigned char *acc;
-    size_t acc_len;
+    mbedtls_mps_l2_reader_state current_state;
+    mbedtls_mps_l2_in_internal *active;
     TRACE_INIT( "mps_l2_read_start" );
 
     /*
@@ -1179,32 +1462,34 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
      * 2 If instead the active reader is set and internal (i.e. a record has
      *   been opened but not yet fully processed), ensure the its epoch is still
      *   valid and make it external in this case.
-     * 3 If the active reader is unset, attempt to fetch a new record from L1.
-     *    If it succeeds:
-     *    3.1 If the paused reader is set, check if its type and epoch matches
-     *         the type and epoch of the new record.
-     *         3.1.1 If yes, feed the new record content into the paused reader.
-     *               3.1.1.1 If enough data is ready, make paused reader the active one.
-     *               3.1.1.2 If not, return WANT_READ.
-     *         3.1.2 If not, fall back to the case 3.2
-     *    3.2 If the paused reader is unset or we come from 3.1.2,
-     *        setup active reader with new record contents and return it.
-     *        Provide an accumulator if and only if the paused reader is unset
-     *        and the record content type is pausable. If the option
-     *        MPS_L2_ALLOW_PAUSABLE_CONTENT_TYPE_WITHOUT_ACCUMULATOR
-     *        is unset, fail if the content type is pausable but the
-     *        accumulator is not available.
+     * 3 If the active reader is unset, attempt to fetch and decrypt
+     *   a new record from L1. If it succeeds:
+     *   3.1 (TLS only) Check if there is a paused reader for the incoming
+     *       content type and epoch.
+     *        3.1.1 If yes, feed the new record content into the paused reader.
+     *              3.1.1.1 If enough data is ready, activate reader and return.
+     *              3.1.1.2 If not, keep the reader paused and return WANT_READ.
+     *        3.1.2 If not, fall back to the case 3.2
+     *   3.2 If the paused reader is unset or we come from 3.1.2,
+     *       setup active reader with new record contents and return it.
+     *       Provide an accumulator if and only if the paused reader is unset
+     *       and the record content type is pausable. If the option
+     *       MPS_L2_ALLOW_PAUSABLE_CONTENT_TYPE_WITHOUT_ACCUMULATOR
+     *       is unset, fail if the content type is pausable but the
+     *       accumulator is not available.
      */
 
+    current_state = mps_l2_readers_active_state( ctx );
+
     /* 1 */
-    if( ctx->in.active_state == MBEDTLS_MPS_L2_READER_STATE_EXTERNAL )
+    if( current_state == MBEDTLS_MPS_L2_READER_STATE_EXTERNAL )
     {
         TRACE( trace_error, "A record is already open and has been passed to the user." );
         RETURN( MPS_ERR_INTERNAL_ERROR );
     }
 
     /* 2 */
-    if( ctx->in.active_state == MBEDTLS_MPS_L2_READER_STATE_INTERNAL )
+    if( current_state == MBEDTLS_MPS_L2_READER_STATE_INTERNAL )
     {
         TRACE( trace_comment, "A record is already open for reading." );
     }
@@ -1212,52 +1497,38 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
     {
         /* 3 */
 
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+        mbedtls_mps_transport_type const mode = ctx->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
+        /* The slot we attempt to use to store payload from the new record. */
+        mbedtls_mps_l2_in_internal *slot = NULL;
+        mps_rec rec;
+
         ret = l2_in_fetch_record( ctx, &rec );
 
         /* For DTLS, silently discard datagrams containing records
          * which have an invalid header field or can't be authenticated. */
-        if( ctx->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+        if( MBEDTLS_MPS_IS_DTLS( mode ) &&
+            ( ret == MPS_ERR_REPLAYED_RECORD ||
+              ret == MPS_ERR_INVALID_RECORD  ||
+              ret == MPS_ERR_INVALID_MAC ) )
         {
-            if( ret == MPS_ERR_REPLAYED_RECORD ||
-                ret == MPS_ERR_INVALID_RECORD  ||
-                ret == MPS_ERR_INVALID_MAC )
-            {
-                if( ret == MPS_ERR_INVALID_RECORD )
-                {
-                    TRACE( trace_error, "Record with invalid header received -- discard" );
-                }
-                else if( ret == MPS_ERR_REPLAYED_RECORD )
-                {
-                    TRACE( trace_error, "Record caught by replay protection -- discard" );
-                }
-                else /* ret == MPS_ERR_INVALID_MAC */
-                {
-                    TRACE( trace_error, "Record with invalid MAC received -- discard" );
-                    if( ctx->conf.badmac_limit != 0 &&
-                        ++ctx->in.bad_mac_ctr >= ctx->conf.badmac_limit )
-                    {
-                        TRACE( trace_error, "Bad-MAC-limit %u exceeded.",
-                               (unsigned) ctx->conf.badmac_limit );
-                        RETURN( MPS_ERR_INVALID_MAC );
-                    }
-                }
+            ret = l2_handle_invalid_record( ctx, ret );
+            if( ret != 0 )
+                RETURN( ret );
 
-                /* Silently discard datagrams containing invalid records. */
-                if( ( ret = mps_l1_skip( ctx->conf.l1 ) ) != 0 )
-                {
-                    RETURN( ret );
-                }
-
-                TRACE( trace_comment, "Signal that the processing should be retried." );
-                /* It is OK to return #MPS_ERR_WANT_READ here because we have
-                 * discarded the entire underlying datagram, hence progress can
-                 * only be made once another datagram is available.
-                 *
-                 * NOTE: If Layer 1 ever buffers more than one datagram,
-                 *       this needs to be reconsidered. */
-                RETURN( MPS_ERR_WANT_READ );
-            }
+            TRACE( trace_comment, "Signal that the processing should be retried." );
+            /* It is OK to return #MPS_ERR_WANT_READ here because we have
+             * discarded the entire underlying datagram, hence progress can
+             * only be made once another datagram is available.
+             *
+             * NOTE: If Layer 1 ever buffers more than one datagram,
+             *       this needs to be reconsidered. */
+            RETURN( MPS_ERR_WANT_READ );
         }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
         /* TLS-1.3-NOTE
          * If the server does not support EarlyData is must silently
@@ -1294,10 +1565,11 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
             TRACE( trace_comment, "Record is empty" );
             if( l2_type_empty_allowed( ctx, rec.type ) == 0 )
             {
-                if( ctx->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
+                /* As for other kinds of invalid records in DTLS,
+                 * ignore the entire datagram. */
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+                if( MBEDTLS_MPS_IS_DTLS( mode ) )
                 {
-                    /* As for other kinds of invalid records,
-                     * ignore the entire datagram. */
                     if( ( ret = mps_l1_skip( ctx->conf.l1 ) ) != 0 )
                         RETURN( ret );
 
@@ -1306,107 +1578,101 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
                      *       here needs to be reconsidered. */
                     RETURN( MPS_ERR_WANT_READ );
                 }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
+
                 RETURN( MPS_ERR_INVALID_RECORD );
             }
         }
 
         /* 3.1 */
-        /* TLS only */
-        if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM               &&
-            ctx->in.paused_state == MBEDTLS_MPS_L2_READER_STATE_PAUSED &&
-            ctx->in.paused->type == rec.type )
+        /* Attempt to attach to a paused reader. */
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+        if( MBEDTLS_MPS_IS_TLS( mode ) )
         {
-            TRACE( trace_comment, "A reader is being paused for the received record content type." );
-            /* 3.1.1 */
-
-            /* It is not possible to change the incoming epoch when
-             * a reader is being paused, hence the epoch of the new
-             * record must match. Double-check this nonetheless.
-             *
-             * NOTE: Potentially remove this check at some point. */
-            if( ctx->in.paused->epoch != rec.epoch )
-                RETURN( MPS_ERR_INTERNAL_ERROR );
-
-            ret = mbedtls_reader_feed( &ctx->in.paused->rd,
-                                       rec.buf.buf + rec.buf.data_offset,
-                                       rec.buf.data_len );
-
-            if( ret == MBEDTLS_ERR_READER_NEED_MORE )
+            slot = mps_l2_find_paused_slot( ctx, rec.type );
+            if( slot != NULL )
             {
-                /* 3.1.1.2 */
-                ret = l2_in_release_record( ctx );
-                if( ret != 0 )
-                    RETURN( ret );
+                /* 3.1.1 */
+                TRACE( trace_comment, "A reader is being paused for the received record content type." );
 
-                /* It is OK to return #MPS_ERR_WANT_READ here because the
-                 * present code-path is TLS-only, and in TLS we never internally
-                 * buffer more than one record. As we're done with the current
-                 * record, progress can only be made if the underlying transport
-                 * signals more incoming data available, which is precisely what
-                 * #MPS_ERR_WANT_READ indicates.
+                /* It is not possible to change the incoming epoch when
+                 * a reader is being paused, hence the epoch of the new
+                 * record must match. Double-check this nonetheless.
                  *
-                 * NOTE: If Layer 1 ever changes to request and buffer more data
-                 *       than what we asked for, this needs to be reconsidered.
-                 */
-                RETURN( MPS_ERR_WANT_READ );
+                 * NOTE: Potentially remove this check at some point. */
+                if( ctx->in.paused.epoch != rec.epoch )
+                {
+                    TRACE( trace_error, "The paused epoch doesn't match the incoming epoch." );
+                    RETURN( MPS_ERR_INTERNAL_ERROR );
+                }
             }
+        }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+        /* In case of DTLS, this is always true, and the compiler
+         * should be able to eliminate this (test?). */
+        if( slot == NULL )
+        {
+            /* 3.2 */
+            /* Feed the payload into a fresh reader. */
+            slot = mps_l2_setup_free_slot( ctx, rec.type, rec.epoch );
+            if( slot == NULL )
+            {
+                /* This should never happen with the current implementation,
+                 * but it might if we switch the TLS implementation to use
+                 * a single pausable slot only. In the latter case, we'd reach
+                 * the present code-path in case of interleaving of records of
+                 * different content types. */
+                TRACE( trace_error, "No free slot available to store incoming record payload." );
+                RETURN( MPS_ERR_INTERNAL_ERROR );
+            }
+        }
+
+        /* 3.1.1 and 3.2 */
+        /* Feed record payload into target slot; might be either
+         * a fresh or a matching paused slot. */
+        ret = mbedtls_reader_feed( &slot->rd,
+                                   rec.buf.buf + rec.buf.data_offset,
+                                   rec.buf.data_len );
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+        if( MBEDTLS_MPS_IS_TLS( mode ) &&
+            ret == MBEDTLS_ERR_READER_NEED_MORE )
+        {
+            /* 3.1.1.2 */
+            ret = l2_in_release_record( ctx );
             if( ret != 0 )
                 RETURN( ret );
 
-            /* 3.1.1.1 */
-            ctx->in.paused_state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
-            tmp = ctx->in.active;
-            ctx->in.active = ctx->in.paused;
-            ctx->in.paused = tmp;
+            /* It is OK to return #MPS_ERR_WANT_READ here because the
+             * present code-path is TLS-only, and in TLS we never
+             * internally buffer more than one record. As we're done
+             * with the current record, progress can only be made if
+             * the underlying transport signals more incoming data
+             * available, which is precisely what #MPS_ERR_WANT_READ
+             * indicates.
+             *
+             * NOTE: If Layer 1 ever changes to request and buffer more
+             *       data than what we asked for, this needs to be
+             *       reconsidered.
+             */
+            RETURN( MPS_ERR_WANT_READ );
         }
         else
-        /* End TLS only */
-        {
-            TRACE( trace_comment, "The received content type doesn't match any paused reader." );
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+        if( ret != 0 )
+            RETURN( ret );
 
-            /* 3.1.2 & 3.2 */
-            TRACE( trace_comment, "Setup active reader with record content (size %u)",
-                   (unsigned) rec.buf.data_len );
-
-            /* Determine whether we should provide an accumulator to the reader. */
-            acc = NULL;
-            acc_len = 0;
-            if( l2_type_can_be_paused( ctx, rec.type ) )
-            {
-                TRACE( trace_comment, "Record content type can be paused" );
-                if( ctx->in.paused_state == MBEDTLS_MPS_L2_READER_STATE_UNSET )
-                {
-                    TRACE( trace_comment, "The accumulator is available" );
-                    acc = ctx->in.accumulator;
-                    acc_len = ctx->in.acc_len;
-                }
-                else
-#if !defined(MPS_L2_ALLOW_PAUSABLE_CONTENT_TYPE_WITHOUT_ACCUMULATOR)
-                {
-                    TRACE( trace_error,
-                           "The accumulator is not available, and don't allow "
-                           "to open pausable content types without accumulator." );
-                    RETURN( MPS_ERR_MULTIPLE_PAUSING );
-                }
-#else
-                {
-                    TRACE( trace_comment, "No accumulator is available, but open nonetheless." );
-                }
-#endif
-            }
-
-            mbedtls_reader_init( &ctx->in.active->rd, acc, acc_len );
-
-            ret = mbedtls_reader_feed( &ctx->in.active->rd,
-                                       rec.buf.buf + rec.buf.data_offset,
-                                       rec.buf.data_len );
-            if( ret != 0 )
-                RETURN( ret );
-
-            ctx->in.active->type  = rec.type;
-            ctx->in.active->epoch = rec.epoch;
-        }
+        /* 3.1.1.1 or 3.2 */
+        slot->state = MBEDTLS_MPS_L2_READER_STATE_INTERNAL;
+        mps_l2_readers_update( ctx );
     }
+
+    /* If we end up here, there's data available to be returned to
+     * the caller: It might be more data from an old incoming record
+     * that hasn't been fully read yet, or data from a newly fetched
+     * record. */
+
+    active = mps_l2_readers_get_active( ctx );
 
     /* Check if the record's epoch is a valid epoch for reading.
      *
@@ -1419,16 +1685,15 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
      *       handshake message -- which should use the new epoch -- in
      *       the same record as the previous one. */
 
-    ret = l2_epoch_check( ctx, ctx->in.active->epoch, MPS_EPOCH_READ );
+    ret = l2_epoch_check( ctx, active->epoch, MPS_EPOCH_READ );
     if( ret != 0 )
         RETURN( ret );
 
-    in->type  = ctx->in.active->type;
-    in->epoch = ctx->in.active->epoch;
-    in->rd    = &ctx->in.active->rd;
+    in->type  = active->type;
+    in->epoch = active->epoch;
+    in->rd    = &active->rd;
 
-    ctx->in.active_state = MBEDTLS_MPS_L2_READER_STATE_EXTERNAL;
-
+    active->state = MBEDTLS_MPS_L2_READER_STATE_EXTERNAL;
     RETURN( 0 );
 }
 
@@ -1448,6 +1713,7 @@ static int l2_in_fetch_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
     int ret;
     mbedtls_mps_l2_epoch_t *epoch;
+
     TRACE_INIT( "l2_in_fetch_record" );
 
     /*
@@ -1507,10 +1773,13 @@ static int l2_in_fetch_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
         RETURN( ret );
     }
 
-    TRACE( trace_comment, "Decrypt record with trafo %p", epoch->transform );
-    if( ( ret = transform_decrypt( epoch->transform, rec ) ) != 0 )
+    TRACE( trace_comment, "Decrypt record" );
+    ret = transform_decrypt( epoch->transform, rec );
+    if( ret != 0 )
+    {
+        TRACE( trace_comment, "Decryption failed with: %d", (int) ret );
         RETURN( ret );
-    TRACE( trace_comment, "Decryption done" );
+    }
 
     /* Validate plaintext length */
     if( rec->buf.data_len > ctx->conf.max_plain_in )
@@ -1529,8 +1798,14 @@ static int l2_in_fetch_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 
 static int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
     TRACE_INIT( "l2_in_fetch_protected_record" );
-    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         /* The record header structure is the same for all versions
          * of TLS, including TLS 1.3. The only difference is that in
@@ -1541,8 +1816,10 @@ static int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
          * it was part of CBC, and AEAD didn't allow padding at all. */
         RETURN( l2_in_fetch_protected_record_tls( ctx, rec ) );
     }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
-    if( ctx->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         /* Only handle DTLS 1.0 and 1.2 for the moment,
          * which have a uniform and simple record header. */
@@ -1555,6 +1832,7 @@ static int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
             /* TLS-1.3-NOTE: At some point, add DTLS 1.3 here */
         }
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     /* Should never happen */
     RETURN( MPS_ERR_INTERNAL_ERROR );
@@ -1562,19 +1840,33 @@ static int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 
 static size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
 {
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
     size_t const dtls12_rec_hdr_len = 13;
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
+#if defined(MBEDTLS_MPS_PROTO_TLS)
     size_t const  tls12_rec_hdr_len  = 5;
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
     ((void) epoch);
     TRACE_INIT( "l2_get_header_len, %d", epoch );
 
-    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         RETURN( tls12_rec_hdr_len );
     }
-
-    if( ctx->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
+        /* OPTIMIZATION:
+         * As long as we're only supporting DTLS 1.0 and 1.2
+         * which share the same record header, remove this
+         * switch to save a few bytes? */
+
         /* Only handle DTLS 1.0 and 1.2 for the moment,
          * which have a uniform and simple record header. */
         switch( ctx->conf.version )
@@ -1591,15 +1883,13 @@ static size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch
             /* TLS-1.3-NOTE: At some point, add DTLS 1.3 here */
         }
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     /* Should never happen */
-    TRACE( trace_error, "Invalid mode %u -- neither stream (%u) nor datagram (%u)",
-           (unsigned) ctx->conf.mode,
-           MBEDTLS_MPS_MODE_STREAM,
-           MBEDTLS_MPS_MODE_DATAGRAM );
     RETURN( MPS_ERR_INTERNAL_ERROR );
 }
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
 static int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
     int ret;
@@ -1736,68 +2026,77 @@ static int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
 
     RETURN( 0 );
 }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
 static int l2_in_update_counter( mbedtls_mps_l2 *ctx,
                                  uint16_t epoch_id,
                                  uint64_t ctr )
 {
     int ret;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+#endif
     mbedtls_mps_l2_epoch_t *epoch;
+
     ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
     if( ret != 0 )
         return( ret );
 
-    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         epoch->stats.tls.in_ctr = ctr + 1;
         if( epoch->stats.tls.in_ctr == 0 )
             return( MPS_ERR_COUNTER_WRAP );
-
-        return( 0 );
     }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
-    epoch->stats.dtls.last_seen = ctr;
-    if( ctx->conf.anti_replay == MBEDTLS_MPS_ANTI_REPLAY_DISABLED )
-        return( 0 );
-    else
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
-        uint64_t window_top;
-        uint64_t window;
-
-        window_top = epoch->stats.dtls.replay.in_window_top;
-        window     = epoch->stats.dtls.replay.in_window;
-
-        if( ctr > window_top )
+        epoch->stats.dtls.last_seen = ctr;
+        if( ctx->conf.anti_replay == MBEDTLS_MPS_ANTI_REPLAY_ENABLED )
         {
-            /* Update window_top and the contents of the window */
-            uint64_t shift = ctr - window_top;
+            uint64_t window_top;
+            uint64_t window;
 
-            if( shift >= 64 )
-                window = 1;
+            window_top = epoch->stats.dtls.replay.in_window_top;
+            window     = epoch->stats.dtls.replay.in_window;
+
+            if( ctr > window_top )
+            {
+                /* Update window_top and the contents of the window */
+                uint64_t shift = ctr - window_top;
+
+                if( shift >= 64 )
+                    window = 1;
+                else
+                {
+                    window <<= shift;
+                    window |= 1;
+                }
+
+                window_top = ctr;
+            }
             else
             {
-                window <<= shift;
-                window |= 1;
+                /* Mark that number as seen in the current window */
+                uint64_t bit = window_top - ctr;
+
+                if( bit < 64 ) /* Always true, but be extra sure */
+                    window |= (uint64_t) 1 << bit;
             }
 
-            window_top = ctr;
+            epoch->stats.dtls.replay.in_window     = window;
+            epoch->stats.dtls.replay.in_window_top = window_top;
         }
-        else
-        {
-            /* Mark that number as seen in the current window */
-            uint64_t bit = window_top - ctr;
-
-            if( bit < 64 ) /* Always true, but be extra sure */
-                window |= (uint64_t) 1 << bit;
-        }
-
-        epoch->stats.dtls.replay.in_window     = window;
-        epoch->stats.dtls.replay.in_window_top = window_top;
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     return( 0 );
 }
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
 static int l2_tls_in_get_epoch_and_counter( mbedtls_mps_l2 *ctx,
                                             uint16_t *dst_epoch,
                                             uint64_t *dst_ctr )
@@ -1821,6 +2120,7 @@ static int l2_tls_in_get_epoch_and_counter( mbedtls_mps_l2 *ctx,
 
     RETURN( 0 );
 }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
 static int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
                                           uint16_t epoch_id,
@@ -1829,15 +2129,23 @@ static int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
     int ret;
     uint64_t *src_ctr;
     mbedtls_mps_l2_epoch_t *epoch;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+#endif
 
     ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
     if( ret != 0 )
         return( ret );
 
-    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
         src_ctr = &epoch->stats.tls.out_ctr;
-    else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
         src_ctr = &epoch->stats.dtls.out_ctr;
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     *dst_ctr = *src_ctr;
 
@@ -1847,7 +2155,9 @@ static int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
     return( 0 );
 }
 
-static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx, mps_rec *rec )
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
+                                                mps_rec *rec )
 {
     int ret;
 
@@ -1990,31 +2300,45 @@ static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx, mps_rec *re
 
     RETURN( 0 );
 }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 /* Record content type validation */
 static int l2_type_is_valid( mbedtls_mps_l2 *ctx, uint8_t type )
 {
-    return( ( type < 64 ) &&
-            ( ctx->conf.type_flag & ( ( (uint64_t) 1u ) << type ) ) != 0 );
+    uint64_t const mask = ((uint64_t) 1u) << type;
+    uint64_t const flag = ctx->conf.type_flag;
+    return( ( type < 64 ) && ( flag & mask ) != 0 );
 }
 
 /* Check if a valid record content type can be paused.
  * This assumes that the provided type is at least valid,
  * and in particular smaller than 64. */
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
 static int l2_type_can_be_paused( mbedtls_mps_l2 *ctx, uint8_t type )
 {
     /* Regardless of the configuration, pausing is only
      * allowed for stream transports. */
-    return( ( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM ) &&
-            ( ( ctx->conf.pause_flag & ( ( (uint64_t) 1u ) << type ) ) != 0 ) );
+    uint64_t const mask = ((uint64_t) 1u) << type;
+    uint64_t const flag = ctx->conf.pause_flag;
+
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
+    return( MBEDTLS_MPS_IS_TLS( mode ) &&
+            ( flag & mask ) != 0 );
 }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
 /* Check if a valid record content type allows merging of data.
  * This assumes that the provided type is at least valid,
  * and in particular smaller than 64. */
 static int l2_type_can_be_merged( mbedtls_mps_l2 *ctx, uint8_t type )
 {
-    return( ( ctx->conf.merge_flag & ( ( (uint64_t) 1u ) << type ) ) != 0 );
+    uint64_t const mask = ((uint64_t) 1u) << type;
+    uint64_t const flag = ctx->conf.merge_flag;
+    return( ( flag & mask ) != 0 );
 }
 
 /* Check if a valid record content type allows empty records.
@@ -2022,7 +2346,9 @@ static int l2_type_can_be_merged( mbedtls_mps_l2 *ctx, uint8_t type )
  * and in particular smaller than 64. */
 static int l2_type_empty_allowed( mbedtls_mps_l2 *ctx, uint8_t type )
 {
-    return( ( ctx->conf.empty_flag & ( ( (uint64_t) 1u ) << type ) ) != 0 );
+    uint64_t const mask = ((uint64_t) 1u) << type;
+    uint64_t const flag = ctx->conf.empty_flag;
+    return( ( flag & mask ) != 0 );
 }
 
 static void l2_epoch_free( mbedtls_mps_l2_epoch_t *epoch )
@@ -2067,9 +2393,12 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
 {
     int ret;
     uint8_t epoch_offset;
-
     mbedtls_mps_epoch_id remove_read  = MBEDTLS_MPS_EPOCH_NONE;
     mbedtls_mps_epoch_id remove_write = MBEDTLS_MPS_EPOCH_NONE;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+#endif
+
     TRACE_INIT( "mps_l2_epoch_usage" );
     TRACE( trace_comment, "* Epoch: %d", epoch );
     TRACE( trace_comment, "* Usage: %u", (unsigned) usage );
@@ -2083,7 +2412,8 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
     /* 2. Check if the change of permissions collides with
      *    potential present usage of the epoch. */
 
-    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         if( ( usage & MPS_EPOCH_READ ) != 0    &&
             ctx->epochs.permissions.tls.default_in != epoch_offset )
@@ -2099,7 +2429,10 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
                 ctx->epochs.base + ctx->epochs.permissions.tls.default_out;
         }
     }
-    else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         mbedtls_mps_epoch_usage old_usage =
             ctx->epochs.permissions.dtls[ epoch_offset ];
@@ -2112,6 +2445,7 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
         if( ( permission_removal & MPS_EPOCH_WRITE ) != 0 )
             remove_write = epoch;
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     if( remove_read != MBEDTLS_MPS_EPOCH_NONE )
     {
@@ -2128,17 +2462,22 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
 
     /* 3. Apply the change of permissions. */
 
-    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         if( usage & MPS_EPOCH_READ )
             ctx->epochs.permissions.tls.default_in = epoch_offset;
         if( usage & MPS_EPOCH_WRITE )
             ctx->epochs.permissions.tls.default_out = epoch_offset;
     }
-    else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         ctx->epochs.permissions.dtls[ epoch_offset ] = usage;
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     RETURN( l2_epoch_cleanup( ctx ) );
 }
@@ -2185,24 +2524,27 @@ static int l2_epoch_check_remove_write( mbedtls_mps_l2 *ctx,
     RETURN( 0 );
 }
 
-static int l2_epoch_check_remove_read( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
+static int l2_epoch_check_remove_read( mbedtls_mps_l2 *ctx,
+                                       mbedtls_mps_epoch_id epoch )
 {
     TRACE_INIT( "l2_epoch_check_remove_read" );
     TRACE( trace_comment, " * Epoch ID: %u", (unsigned) epoch );
 
-    if( ctx->in.active_state == MBEDTLS_MPS_L2_READER_STATE_EXTERNAL &&
-        ctx->in.active->epoch == epoch )
+    if( ctx->in.active.state == MBEDTLS_MPS_L2_READER_STATE_EXTERNAL &&
+        ctx->in.active.epoch == epoch )
     {
         TRACE( trace_error, "The active reader is using the epoch." );
         RETURN( MPS_ERR_EPOCH_CHANGE_REJECTED );
     }
 
-    if( ctx->in.paused_state == MBEDTLS_MPS_L2_READER_STATE_PAUSED &&
-        ctx->in.paused->epoch == epoch )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( ctx->in.paused.state == MBEDTLS_MPS_L2_READER_STATE_PAUSED &&
+        ctx->in.paused.epoch == epoch )
     {
         TRACE( trace_error, "The paused reader is using the epoch." );
         RETURN( MPS_ERR_EPOCH_CHANGE_REJECTED );
     }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
     /* NOTE:
      * We allow the active reader to be in state
@@ -2235,6 +2577,9 @@ static int l2_epoch_check( mbedtls_mps_l2 *ctx,
     int ret;
     uint8_t epoch_offset;
     uint8_t epoch_usage;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "l2_epoch_check for epoch %d, purpose %u",
            epoch, (unsigned) purpose );
@@ -2243,7 +2588,8 @@ static int l2_epoch_check( mbedtls_mps_l2 *ctx,
     if( ret != 0 )
         RETURN( ret );
 
-    if( ctx->conf.mode == MBEDTLS_MPS_MODE_DATAGRAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         epoch_usage = ctx->epochs.permissions.dtls[ epoch_offset ];
         if( ( purpose & epoch_usage ) != purpose )
@@ -2252,7 +2598,10 @@ static int l2_epoch_check( mbedtls_mps_l2 *ctx,
             RETURN( MPS_ERR_INVALID_RECORD );
         }
     }
-    else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         if( purpose == MPS_EPOCH_READ &&
             ctx->epochs.permissions.tls.default_in != epoch_offset )
@@ -2268,6 +2617,7 @@ static int l2_epoch_check( mbedtls_mps_l2 *ctx,
             RETURN( MPS_ERR_INVALID_RECORD );
         }
     }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
     RETURN( 0 );
 }
@@ -2316,10 +2666,14 @@ static int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
 {
     uint8_t shift, offset;
     mbedtls_mps_epoch_id max_shift;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "l2_epoch_cleanup" );
 
-    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         /* TLS */
         /* An epoch is in use if it's either the default incoming
@@ -2371,7 +2725,10 @@ static int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
 
         shift = offset;
     }
-    else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         /* DTLS */
         /* An epoch is in use if its flags are not empty.
@@ -2406,6 +2763,7 @@ static int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
 
         shift = offset;
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     if( shift == 0 )
     {
@@ -2439,12 +2797,17 @@ static int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
     }
 
     /* Shift permissions */
-    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM )
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         ctx->epochs.permissions.tls.default_in  -= shift;
         ctx->epochs.permissions.tls.default_out -= shift;
     }
-    else
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         for( offset = 0; offset < MPS_L2_EPOCH_WINDOW_SIZE; offset++ )
         {
@@ -2455,6 +2818,7 @@ static int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
                 ctx->epochs.permissions.dtls[offset] = 0;
         }
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     TRACE( trace_comment, "Epoch cleanup done" );
     RETURN( 0 );
@@ -2510,6 +2874,7 @@ static int l2_epoch_lookup_internal( mbedtls_mps_l2 *ctx,
  * DTLS replay protection
  */
 
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
 static int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
                                     mbedtls_mps_epoch_id epoch_id,
                                     uint64_t ctr )
@@ -2519,12 +2884,19 @@ static int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
     mbedtls_mps_l2_epoch_t *epoch;
     uint64_t window_top;
     uint64_t window;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     TRACE_INIT( "l2_counter_replay_check, epoch %u, ctr %u",
                 (unsigned) epoch_id, (unsigned) ctr );
 
-    if( ctx->conf.mode == MBEDTLS_MPS_MODE_STREAM ||
-        ctx->conf.anti_replay == MBEDTLS_MPS_ANTI_REPLAY_DISABLED )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
+        RETURN( 0 );
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+    if( ctx->conf.anti_replay == MBEDTLS_MPS_ANTI_REPLAY_DISABLED )
     {
         RETURN( 0 );
     }
@@ -2559,21 +2931,29 @@ static int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
     TRACE( trace_comment, "Record sequence number within window and not seen so far." );
     RETURN( 0 );
 }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
 int mps_l2_force_next_sequence_number( mbedtls_mps_l2 *ctx,
                                        mbedtls_mps_epoch_id epoch_id,
                                        uint64_t ctr )
 {
     int ret;
     mbedtls_mps_l2_epoch_t *epoch;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
     TRACE_INIT( "mps_l2_force_next_sequence_number, epoch %u, ctr %u",
                 (unsigned) epoch_id, (unsigned) ctr );
 
-    if( ctx->conf.mode != MBEDTLS_MPS_MODE_DATAGRAM )
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         TRACE( trace_error, "Sequence number forcing only needed and allowed in DTLS." );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
     if( ret != 0 )
@@ -2589,14 +2969,20 @@ int mps_l2_get_last_sequence_number( mbedtls_mps_l2 *ctx,
 {
     int ret;
     mbedtls_mps_l2_epoch_t *epoch;
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    mbedtls_mps_transport_type const mode = ctx->conf.mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
+
     TRACE_INIT( "mps_l2_get_last_sequence_number, epoch %u",
                 (unsigned) epoch_id );
 
-    if( ctx->conf.mode != MBEDTLS_MPS_MODE_DATAGRAM )
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         TRACE( trace_error, "Sequence number retrieval only needed and allowed in DTLS." );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
     if( ret != 0 )
@@ -2605,6 +2991,7 @@ int mps_l2_get_last_sequence_number( mbedtls_mps_l2 *ctx,
     *ctr = epoch->stats.dtls.last_seen;
     RETURN( 0 );
 }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #endif /* MBEDTLS_MPS_SEPARATE_LAYERS) ||
           MBEDTLS_MPS_TOP_TRANSLATION_UNIT */

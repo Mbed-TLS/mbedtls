@@ -42,21 +42,6 @@
 #include "md.h"
 #include "pk.h"
 
-/* Slot allocation */
-
-static inline psa_status_t mbedtls_psa_get_free_key_slot( psa_key_slot_t *key )
-{
-    for( psa_key_slot_t slot = 1; slot <= 32; slot++ )
-    {
-        if( psa_get_key_information( slot, NULL, NULL ) == PSA_ERROR_EMPTY_SLOT )
-        {
-            *key = slot;
-            return( PSA_SUCCESS );
-        }
-    }
-    return( PSA_ERROR_INSUFFICIENT_MEMORY );
-}
-
 /* Translations for symmetric crypto. */
 
 static inline psa_key_type_t mbedtls_psa_translate_cipher_type(
@@ -231,6 +216,23 @@ static inline psa_ecc_curve_t mbedtls_psa_translate_ecc_group( mbedtls_ecp_group
     }
 }
 
+#define MBEDTLS_PSA_ECC_KEY_BITS_OF_CURVE( curve )                \
+    ( curve == PSA_ECC_CURVE_SECP192R1        ? 192 :             \
+      curve == PSA_ECC_CURVE_SECP224R1        ? 224 :             \
+      curve == PSA_ECC_CURVE_SECP256R1        ? 256 :             \
+      curve == PSA_ECC_CURVE_SECP384R1        ? 384 :             \
+      curve == PSA_ECC_CURVE_SECP521R1        ? 521 :             \
+      curve == PSA_ECC_CURVE_SECP192K1        ? 192 :             \
+      curve == PSA_ECC_CURVE_SECP224K1        ? 224 :             \
+      curve == PSA_ECC_CURVE_SECP256K1        ? 256 :             \
+      curve == PSA_ECC_CURVE_BRAINPOOL_P256R1 ? 256 :             \
+      curve == PSA_ECC_CURVE_BRAINPOOL_P384R1 ? 384 :             \
+      curve == PSA_ECC_CURVE_BRAINPOOL_P512R1 ? 512 :             \
+      0 )
+
+#define MBEDTLS_PSA_ECC_KEY_BYTES_OF_CURVE( curve )                \
+    ( ( MBEDTLS_PSA_ECC_KEY_BITS_OF_CURVE( curve ) + 7 ) / 8 )
+
 /* Translations for PK layer */
 
 static inline int mbedtls_psa_err_translate_pk( psa_status_t status )
@@ -257,6 +259,19 @@ static inline int mbedtls_psa_err_translate_pk( psa_status_t status )
                   * which failure conditions we have considered. */
             return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
     }
+}
+
+/* Translations for ECC */
+
+/* This function transforms an ECC group identifier from
+ * https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
+ * into a PSA ECC group identifier. */
+static inline psa_ecc_curve_t mbedtls_psa_parse_tls_ecc_group(
+    uint16_t tls_ecc_grp_reg_id )
+{
+    /* The PSA identifiers are currently aligned with those from
+     * the TLS Supported Groups registry, so no conversion is necessary. */
+    return( (psa_ecc_curve_t) tls_ecc_grp_reg_id );
 }
 
 #endif /* MBEDTLS_USE_PSA_CRYPTO */

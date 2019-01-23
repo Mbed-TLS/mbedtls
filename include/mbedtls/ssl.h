@@ -929,11 +929,11 @@ struct mbedtls_ssl_config
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_slot_t psk_opaque; /*!< PSA key slot holding opaque PSK.
-                                *   This field should only be set via
-                                *   mbedtls_ssl_conf_psk_opaque().
-                                *   If either no PSK or a raw PSK have
-                                *   been configured, this has value \c 0. */
+    psa_key_handle_t psk_opaque; /*!< PSA key slot holding opaque PSK.
+                                  *   This field should only be set via
+                                  *   mbedtls_ssl_conf_psk_opaque().
+                                  *   If either no PSK or a raw PSK have
+                                  *   been configured, this has value \c 0. */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
     unsigned char *psk;      /*!< The raw pre-shared key. This field should
@@ -2129,7 +2129,7 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
  * \param psk      The identifier of the key slot holding the PSK.
  *                 Until \p conf is destroyed or this function is successfully
  *                 called again, the key slot \p psk must be populated with a
- *                 key of type #PSA_ALG_CATEGORY_KEY_DERIVATION whose policy
+ *                 key of type PSA_ALG_CATEGORY_KEY_DERIVATION whose policy
  *                 allows its use for the key derivation algorithm applied
  *                 in the handshake.
  * \param psk_identity      The pointer to the pre-shared key identity.
@@ -2144,7 +2144,7 @@ int mbedtls_ssl_conf_psk( mbedtls_ssl_config *conf,
  * \return         An \c MBEDTLS_ERR_SSL_XXX error code on failure.
  */
 int mbedtls_ssl_conf_psk_opaque( mbedtls_ssl_config *conf,
-                                 psa_key_slot_t psk,
+                                 psa_key_handle_t psk,
                                  const unsigned char *psk_identity,
                                  size_t psk_identity_len );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
@@ -2176,7 +2176,7 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
  * \param psk      The identifier of the key slot holding the PSK.
  *                 For the duration of the current handshake, the key slot
  *                 must be populated with a key of type
- *                 #PSA_ALG_CATEGORY_KEY_DERIVATION whose policy allows its
+ *                 PSA_ALG_CATEGORY_KEY_DERIVATION whose policy allows its
  *                 use for the key derivation algorithm
  *                 applied in the handshake.
   *
@@ -2184,7 +2184,7 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
  * \return         An \c MBEDTLS_ERR_SSL_XXX error code on failure.
  */
 int mbedtls_ssl_set_hs_psk_opaque( mbedtls_ssl_context *ssl,
-                                   psa_key_slot_t psk );
+                                   psa_key_handle_t psk );
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 
 /**

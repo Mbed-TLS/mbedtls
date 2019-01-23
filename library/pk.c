@@ -147,10 +147,10 @@ int mbedtls_pk_setup( mbedtls_pk_context *ctx, const mbedtls_pk_info_t *info )
 /*
  * Initialise a PSA-wrapping context
  */
-int mbedtls_pk_setup_opaque( mbedtls_pk_context *ctx, const psa_key_slot_t key )
+int mbedtls_pk_setup_opaque( mbedtls_pk_context *ctx, const psa_key_handle_t key )
 {
     const mbedtls_pk_info_t * const info = &mbedtls_pk_opaque_info;
-    psa_key_slot_t *pk_ctx;
+    psa_key_handle_t *pk_ctx;
     psa_key_type_t type;
 
     if( ctx == NULL || ctx->pk_info != NULL )
@@ -168,7 +168,7 @@ int mbedtls_pk_setup_opaque( mbedtls_pk_context *ctx, const psa_key_slot_t key )
 
     ctx->pk_info = info;
 
-    pk_ctx = (psa_key_slot_t *) ctx->pk_ctx;
+    pk_ctx = (psa_key_handle_t *) ctx->pk_ctx;
     *pk_ctx = key;
 
     return( 0 );
@@ -547,13 +547,13 @@ mbedtls_pk_type_t mbedtls_pk_get_type( const mbedtls_pk_context *ctx )
  * Currently only works for EC private keys.
  */
 int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
-                               psa_key_slot_t *slot,
+                               psa_key_handle_t *slot,
                                psa_algorithm_t hash_alg )
 {
 #if !defined(MBEDTLS_ECP_C)
     return( MBEDTLS_ERR_PK_TYPE_MISMATCH );
 #else
-    psa_key_slot_t key;
+    psa_key_handle_t key;
     const mbedtls_ecp_keypair *ec;
     unsigned char d[MBEDTLS_ECP_MAX_BYTES];
     size_t d_len;
@@ -572,9 +572,11 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
         return( ret );
 
     curve_id = mbedtls_ecp_curve_info_from_grp_id( ec->grp.id )->tls_id;
+    key_type = PSA_KEY_TYPE_ECC_KEYPAIR(
+                                 mbedtls_psa_parse_tls_ecc_group ( curve_id ) );
 
-    /* find a free key slot */
-    if( PSA_SUCCESS != mbedtls_psa_get_free_key_slot( &key ) )
+    /* allocate a key slot */
+    if( PSA_SUCCESS != psa_allocate_key( key_type, d_len * 8, &key ) )
         return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
 
     /* set policy */
@@ -585,7 +587,6 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
         return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
 
     /* import private key in slot */
-    key_type = PSA_KEY_TYPE_ECC_KEYPAIR(curve_id);
     if( PSA_SUCCESS != psa_import_key( key, key_type, d, d_len ) )
         return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
 

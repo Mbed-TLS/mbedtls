@@ -546,7 +546,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
                        const unsigned char *sig, size_t sig_len )
 {
     int ret;
-    psa_key_slot_t key_slot;
+    psa_key_handle_t key_slot;
     psa_key_policy_t policy;
     psa_key_type_t psa_type;
     mbedtls_pk_context key;
@@ -571,14 +571,16 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     if( key_len <= 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    if( ( ret = mbedtls_psa_get_free_key_slot( &key_slot ) ) != PSA_SUCCESS )
-        return( mbedtls_psa_err_translate_pk( ret ) );
-
     psa_md = mbedtls_psa_translate_md( md_alg );
     if( psa_md == 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
     psa_sig_md = PSA_ALG_ECDSA( psa_md );
     psa_type = PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve );
+
+    if( ( ret = psa_allocate_key( psa_type,
+                                  MBEDTLS_PSA_ECC_KEY_BITS_OF_CURVE(curve),
+                                  &key_slot ) ) != PSA_SUCCESS )
+          return( mbedtls_psa_err_translate_pk( ret ) );
 
     psa_key_policy_init( &policy );
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_VERIFY, psa_sig_md );
@@ -879,7 +881,7 @@ const mbedtls_pk_info_t mbedtls_rsa_alt_info = {
 
 static void *pk_opaque_alloc_wrap( void )
 {
-    void *ctx = mbedtls_calloc( 1, sizeof( psa_key_slot_t ) );
+    void *ctx = mbedtls_calloc( 1, sizeof( psa_key_handle_t ) );
 
     /* no _init() function to call, an calloc() already zeroized */
 
@@ -888,13 +890,13 @@ static void *pk_opaque_alloc_wrap( void )
 
 static void pk_opaque_free_wrap( void *ctx )
 {
-    mbedtls_platform_zeroize( ctx, sizeof( psa_key_slot_t ) );
+    mbedtls_platform_zeroize( ctx, sizeof( psa_key_handle_t ) );
     mbedtls_free( ctx );
 }
 
 static size_t pk_opaque_get_bitlen( const void *ctx )
 {
-    const psa_key_slot_t *key = (const psa_key_slot_t *) ctx;
+    const psa_key_handle_t *key = (const psa_key_handle_t *) ctx;
     size_t bits;
 
     if( PSA_SUCCESS != psa_get_key_information( *key, NULL, &bits ) )
@@ -999,7 +1001,7 @@ static int pk_opaque_sign_wrap( void *ctx, mbedtls_md_type_t md_alg,
                    unsigned char *sig, size_t *sig_len,
                    int (*f_rng)(void *, unsigned char *, size_t), void *p_rng )
 {
-    const psa_key_slot_t *key = (const psa_key_slot_t *) ctx;
+    const psa_key_handle_t *key = (const psa_key_handle_t *) ctx;
     psa_algorithm_t alg = PSA_ALG_ECDSA( mbedtls_psa_translate_md( md_alg ) );
     size_t bits, buf_len;
     psa_status_t status;

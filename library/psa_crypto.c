@@ -1228,16 +1228,15 @@ static psa_status_t psa_copy_key_material( const psa_key_slot_t *source,
                                            psa_get_key_bits( source ) );
     buffer = mbedtls_calloc( 1, buffer_size );
     if( buffer == NULL )
-    {
-        status = PSA_ERROR_INSUFFICIENT_MEMORY;
-        goto exit;
-    }
+        return( PSA_ERROR_INSUFFICIENT_MEMORY );
     status = psa_internal_export_key( source, buffer, buffer_size, &length, 0 );
     if( status != PSA_SUCCESS )
         goto exit;
     status = psa_import_key( target, source->type, buffer, length );
 
 exit:
+    mbedtls_platform_zeroize( buffer, buffer_size );
+    mbedtls_free( buffer );
     return( status );
 }
 

@@ -504,10 +504,12 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
     psa_status_t status;
     psa_algorithm_t alg;
     psa_key_policy_t policy;
-    psa_key_slot_t master_slot;
+    psa_key_handle_t master_slot;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
 
-    status = mbedtls_psa_get_free_key_slot( &master_slot );
+    if( ( status = psa_allocate_key( PSA_KEY_TYPE_DERIVE,
+                                     slen * 8, &master_slot ) ) != PSA_SUCCESS )
+        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
     if( status != PSA_SUCCESS )
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
     if( md_type == MBEDTLS_MD_SHA384 )

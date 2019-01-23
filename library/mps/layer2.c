@@ -75,10 +75,23 @@ static size_t l2_get_header_len( mbedtls_mps_l2 *ctx,
                                  mbedtls_mps_epoch_id epoch );
 
 /* Configuration related */
-static int l2_type_can_be_paused( mbedtls_mps_l2 *ctx, uint8_t type );
-static int l2_type_can_be_merged( mbedtls_mps_l2 *ctx, uint8_t type );
-static int l2_type_is_valid( mbedtls_mps_l2 *ctx, uint8_t type );
-static int l2_type_empty_allowed( mbedtls_mps_l2 *ctx, uint8_t type );
+/* OPTIMIZATION: The flexibility of Layer 2 in terms of valid types,
+ *               pausing, merging, and the acceptance of empty records
+ *               is nice for testing, but on a low-profile production build
+ *               targeted at a specific version of [D]TLS, code can be saved
+ *               by implementing the l2_type_can_be_yyy() functions in a
+ *               static way (comparing against a mask / list of types fixed
+ *               at compile-time). */
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+static int l2_type_can_be_paused( mbedtls_mps_l2 *ctx,
+                                  mbedtls_mps_msg_type_t type );
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+static int l2_type_can_be_merged( mbedtls_mps_l2 *ctx,
+                                  mbedtls_mps_msg_type_t type );
+static int l2_type_is_valid( mbedtls_mps_l2 *ctx,
+                             mbedtls_mps_msg_type_t type );
+static int l2_type_empty_allowed( mbedtls_mps_l2 *ctx,
+                                  mbedtls_mps_msg_type_t type );
 
 /*
  * Epoch handling
@@ -2291,11 +2304,13 @@ static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 /* Record content type validation */
-static int l2_type_is_valid( mbedtls_mps_l2 *ctx, uint8_t type )
+static int l2_type_is_valid( mbedtls_mps_l2 *ctx,
+                             mbedtls_mps_msg_type_t type )
 {
-    uint64_t const mask = ((uint64_t) 1u) << type;
-    uint64_t const flag = ctx->conf.type_flag;
-    return( ( type < 64 ) && ( flag & mask ) != 0 );
+    uint32_t const mask = ((uint32_t) 1u) << type;
+    uint32_t const flag = ctx->conf.type_flag;
+    /* type <= MBEDTLS_MPS_MSG_MAX == 31 is automatic if flag & mask != 0. */
+    return( ( flag & mask ) != 0 );
 }
 
 /* Check if a valid record content type can be paused.
@@ -2303,12 +2318,13 @@ static int l2_type_is_valid( mbedtls_mps_l2 *ctx, uint8_t type )
  * and in particular smaller than 64. */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-static int l2_type_can_be_paused( mbedtls_mps_l2 *ctx, uint8_t type )
+static int l2_type_can_be_paused( mbedtls_mps_l2 *ctx,
+                                  mbedtls_mps_msg_type_t type )
 {
     /* Regardless of the configuration, pausing is only
      * allowed for stream transports. */
-    uint64_t const mask = ((uint64_t) 1u) << type;
-    uint64_t const flag = ctx->conf.pause_flag;
+    uint32_t const mask = ((uint32_t) 1u) << type;
+    uint32_t const flag = ctx->conf.pause_flag;
 
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode = ctx->conf.mode;
@@ -2321,21 +2337,23 @@ static int l2_type_can_be_paused( mbedtls_mps_l2 *ctx, uint8_t type )
 
 /* Check if a valid record content type allows merging of data.
  * This assumes that the provided type is at least valid,
- * and in particular smaller than 64. */
-static int l2_type_can_be_merged( mbedtls_mps_l2 *ctx, uint8_t type )
+ * and in particular smaller than 32. */
+static int l2_type_can_be_merged( mbedtls_mps_l2 *ctx,
+                                  mbedtls_mps_msg_type_t type )
 {
-    uint64_t const mask = ((uint64_t) 1u) << type;
-    uint64_t const flag = ctx->conf.merge_flag;
+    uint32_t const mask = ((uint32_t) 1u) << type;
+    uint32_t const flag = ctx->conf.merge_flag;
     return( ( flag & mask ) != 0 );
 }
 
 /* Check if a valid record content type allows empty records.
  * This assumes that the provided type is at least valid,
  * and in particular smaller than 64. */
-static int l2_type_empty_allowed( mbedtls_mps_l2 *ctx, uint8_t type )
+static int l2_type_empty_allowed( mbedtls_mps_l2 *ctx,
+                                  mbedtls_mps_msg_type_t type )
 {
-    uint64_t const mask = ((uint64_t) 1u) << type;
-    uint64_t const flag = ctx->conf.empty_flag;
+    uint32_t const mask = ((uint32_t) 1u) << type;
+    uint32_t const flag = ctx->conf.empty_flag;
     return( ( flag & mask ) != 0 );
 }
 

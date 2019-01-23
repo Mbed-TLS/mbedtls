@@ -131,7 +131,8 @@ int mbedtls_writer_reclaim( mbedtls_writer *wr,
 {
     mbedtls_mps_size_t commit, ol;
     unsigned char state;
-    TRACE_INIT( "writer_reclaim, force %u", (unsigned) force );
+    TRACE_INIT( "writer_reclaim" );
+    TRACE( trace_comment," * Force reclaim: %u", (unsigned) force );
 
     /* Check that the writer is in consuming mode. */
     state = wr->state;
@@ -144,8 +145,10 @@ int mbedtls_writer_reclaim( mbedtls_writer *wr,
     /* Check if there's space left unused. */
     commit = wr->committed;
     ol = wr->out_len;
-    TRACE( trace_comment, "commit %u, buflen %u",
-           (unsigned) commit, (unsigned) ol );
+
+    TRACE( trace_comment, "* Committed: %u Bytes", (unsigned) commit );
+    TRACE( trace_comment, "* Buffer length: %u Bytes", (unsigned) ol );
+
     if( commit <= ol )
     {
         if( olen != NULL )
@@ -164,7 +167,7 @@ int mbedtls_writer_reclaim( mbedtls_writer *wr,
     }
     else
     {
-        /* The commited parts of the queue that
+        /* The committed parts of the queue that
          * have no overlap with the current outgoing
          * data buffer need to be dispatched on
          * the next call(s) to mbedtls_writer_fetch. */
@@ -178,7 +181,7 @@ int mbedtls_writer_reclaim( mbedtls_writer *wr,
     if( queued != NULL )
     {
         mbedtls_mps_size_t qr = wr->queue_remaining;
-        TRACE( trace_comment, "queue remaining %u",
+        TRACE( trace_comment, "%u Bytes are queued for dispatching.",
                 (unsigned) wr->queue_remaining );
         *queued = qr;
     }

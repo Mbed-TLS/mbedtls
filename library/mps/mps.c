@@ -2459,7 +2459,9 @@ static int mps_dtls_frag_out_dispatch( mbedtls_mps *mps )
 {
     int ret = 0;
     mbedtls_mps_handshake_out_internal * const hs = &mps->dtls.hs;
+#if defined(MBEDTLS_MPS_TRACE)
     mbedtls_mps_msg_metadata * const metadata = hs->metadata;
+#endif /* MBEDTLS_MPS_TRACE */
     TRACE_INIT( "mps_dtls_frag_out_dispatch" );
 
     if( mps->dtls.hs.wr_ext_l3 != NULL )

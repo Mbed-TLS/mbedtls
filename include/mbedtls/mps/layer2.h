@@ -1051,6 +1051,8 @@ static inline int mps_l2_config_add_type( mbedtls_mps_l2 *ctx,
     ctx->conf.type_flag |= mask;
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     ctx->conf.pause_flag |= ( pausing == 1 ) * mask;
+#else
+    ((void) pausing);
 #endif /* MBEDTL_SMPS_PROTO_TLS */
     ctx->conf.merge_flag |= ( merging == 1 ) * mask;
     ctx->conf.empty_flag |= ( empty   == 1 ) * mask;

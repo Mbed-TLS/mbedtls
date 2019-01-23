@@ -225,13 +225,50 @@ static void mps_l2_readers_free( mbedtls_mps_l2 *ctx )
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 }
 
-static inline mbedtls_mps_l2_reader_state mps_l2_readers_active_state(
+static int mps_l2_readers_close_active( mbedtls_mps_l2 *ctx )
+{
+    mbedtls_reader_free( &ctx->in.active.rd );
+    ctx->in.active.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
+    return( 0 );
+}
+
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+static int mps_l2_readers_pause_active( mbedtls_mps_l2 *ctx )
+{
+    mbedtls_mps_l2_in_internal tmp;
+
+    /*
+     * At this point, we know that data has been backed up, so
+     * we must have provided an accumulator, so the record content
+     * type must have been pauseable.
+     * Also, we wouldn't have provided the accumulator if a
+     * reader had already been paused.
+     *
+     * Let's double-check this reasoning nonetheless.
+     *
+     * NOTE: Potentially remove this after review.
+     */
+    if( ctx->in.paused.state != MBEDTLS_MPS_L2_READER_STATE_UNSET )
+        return( MPS_ERR_INTERNAL_ERROR );
+
+    tmp = ctx->in.active;
+    ctx->in.active = ctx->in.paused;
+    ctx->in.paused = tmp;
+
+    ctx->in.active.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
+    ctx->in.paused.state = MBEDTLS_MPS_L2_READER_STATE_PAUSED;
+
+    return( 0 );
+}
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
+static mbedtls_mps_l2_reader_state mps_l2_readers_active_state(
     mbedtls_mps_l2 *ctx )
 {
     return( ctx->in.active.state );
 }
 
-static inline mbedtls_mps_l2_in_internal* mps_l2_readers_get_active(
+static mbedtls_mps_l2_in_internal* mps_l2_readers_get_active(
     mbedtls_mps_l2 *ctx )
 {
     return( &ctx->in.active );
@@ -270,12 +307,11 @@ static inline void mps_l2_readers_update( mbedtls_mps_l2 *ctx )
 static inline mbedtls_mps_l2_in_internal *mps_l2_find_paused_slot(
     mbedtls_mps_l2 *ctx, mbedtls_mps_msg_type_t type )
 {
-    if( ctx->in.paused.state == MBEDTLS_MPS_L2_READER_STATE_PAUSED &&
-        ctx->in.paused.type  == type )
+    if( ctx->in.paused.state == MBEDTLS_MPS_L2_READER_STATE_PAUSED )
     {
-        return( &ctx->in.paused );
+        if( ctx->in.paused.type == type )
+            return( &ctx->in.paused );
     }
-
     return( NULL );
 }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
@@ -312,7 +348,8 @@ static inline mbedtls_mps_l2_in_internal *mps_l2_setup_free_slot(
             TRACE( trace_comment, "Record content type can be paused" );
             if( ctx->in.paused.state == MBEDTLS_MPS_L2_READER_STATE_UNSET )
             {
-                TRACE( trace_comment, "The accumulator is available" );
+                TRACE( trace_comment, "The accumulator (size %u) is available",
+                       (unsigned) ctx->in.acc_len );
                 acc = ctx->in.accumulator;
                 acc_len = ctx->in.acc_len;
             }
@@ -332,26 +369,13 @@ static inline mbedtls_mps_l2_in_internal *mps_l2_setup_free_slot(
 #endif /* MPS_L2_ALLOW_PAUSABLE_CONTENT_TYPE_WITHOUT_ACCUMULATOR */
 
         mbedtls_reader_init( &ctx->in.active.rd, acc, acc_len );
+        ctx->in.active.type = type;
+        ctx->in.active.epoch = epoch;
         return( &ctx->in.active );
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
     return( NULL );
-}
-
-static int mps_l2_reader_make_active( mbedtls_mps_l2 *ctx,
-                                      mbedtls_mps_msg_type_t type,
-                                      mbedtls_mps_l2_in_internal **active )
-{
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type const mode = ctx->conf.mode;
-#endif /* MBEDTLS_MPS_PROTO_BOTH */
-
-    TRACE_INIT( "mps_l2_reader_make_active" );
-
-    /* Currently, Layer 2 holds only one accumulator */
-
-    RETURN( 0 );
 }
 
 int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1,
@@ -1268,7 +1292,6 @@ int mps_l2_read_done( mbedtls_mps_l2 *ctx )
 
     mbedtls_mps_l2_in_internal * active;
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    mbedtls_mps_l2_in_internal tmp;
     mbedtls_mps_size_t paused;
     mbedtls_mps_size_t * const paused_ptr = &paused;
 #else
@@ -1277,13 +1300,21 @@ int mps_l2_read_done( mbedtls_mps_l2 *ctx )
 
     TRACE_INIT( "mps_l2_read_done" );
 
+    /* This only makes sense if the active reader is currently
+     * on the user-side, i.e. 'external'. Everything else is
+     * a violation of the API. */
+    if( mps_l2_readers_active_state( ctx )
+        != MBEDTLS_MPS_L2_READER_STATE_EXTERNAL )
+    {
+        TRACE( trace_comment, "Unexpected operation" );
+        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+    }
+
     /*
-     * This only makes sense if the active reader is currently
-     * on the user-side, i.e. 'external'; in this case, layer 1
-     * has provided us with a record the contents of which the
+     * Layer 1 has provided the record the contents of which the
      * reader manages, so the order of freeing the resources is:
-     * first retract the reader's access to the buffer, then
-     * mark it as complete to layer 1, retracting our own access.
+     * First retract the reader's access to the buffer, then
+     * mark it as complete to Layer 1 (retracting our own access).
      *
      * Outline:
      * Attempt to reclaim the record buffer from the active external reader.
@@ -1305,15 +1336,8 @@ int mps_l2_read_done( mbedtls_mps_l2 *ctx )
      *               be reactivated, and then it'll be made active again.
      */
 
-    if( mps_l2_readers_active_state( ctx )
-        != MBEDTLS_MPS_L2_READER_STATE_EXTERNAL )
-    {
-        TRACE( trace_comment, "Unexpected operation" );
-        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
-    }
 
     active = mps_l2_readers_get_active( ctx );
-
     ret = mbedtls_reader_reclaim( &active->rd, paused_ptr );
     if( ret == MBEDTLS_ERR_READER_DATA_LEFT )
     {
@@ -1359,62 +1383,24 @@ int mps_l2_read_done( mbedtls_mps_l2 *ctx )
 
     /* 2 */
 
-    TRACE( trace_comment, "Successfully reclaimed the record content buffer." );
+    TRACE( trace_comment, "Detached record buffer from reader - release record from Layer 1." );
+    ret = l2_in_release_record( ctx );
+    if( ret != 0 )
+        RETURN( ret );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     if( paused == 0 )
 #endif /* MBEDTLS_MPS_PROTO_TLS */
     {
         /* 2.1 */
-        TRACE( trace_comment, "No excess request; releasing record." );
-
-        ret = l2_in_release_record( ctx );
-        if( ret != 0 )
-            RETURN( ret );
-
-        mbedtls_reader_free( &active->rd );
-
-        active->state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
-        RETURN( 0 );
+        TRACE( trace_comment, "No pausing - close active reader." );
+        RETURN( mps_l2_readers_close_active( ctx ) );
     }
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-
     /* 2.2 (TLS only) */
-
-    /* !!! TODO !!!
-     * Make use of internal API for reader handling. */
-
-    /*
-     * At this point, we know that data has been backed up, so
-     * we must have provided an accumulator, so the record content
-     * type must have been pauseable.
-     * Also, we wouldn't have provided the accumulator if a
-     * reader had already been paused.
-     *
-     * Let's double-check this reasoning nonetheless.
-     *
-     * NOTE: Potentially remove this after review.
-     */
-    if( l2_type_can_be_paused( ctx, active->type ) == 0 ||
-        ctx->in.paused.state != MBEDTLS_MPS_L2_READER_STATE_UNSET )
-    {
-        RETURN( MPS_ERR_INTERNAL_ERROR );
-    }
-
-    TRACE( trace_comment, "Switch active and paused reader" );
-    ctx->in.active.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
-    ctx->in.paused.state = MBEDTLS_MPS_L2_READER_STATE_PAUSED;
-
-    tmp = ctx->in.active;
-    ctx->in.active = ctx->in.paused;
-    ctx->in.paused = tmp;
-
-    ret = l2_in_release_record( ctx );
-    if( ret != 0 )
-        RETURN( ret );
-
-    RETURN( 0 );
+    TRACE( trace_comment, "Pause active reader." );
+    RETURN( mps_l2_readers_pause_active( ctx ) );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 }
 
@@ -1930,7 +1916,7 @@ static int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
 
     /* Record fields */
     int minor_ver, major_ver;
-    uint8_t type;
+    mbedtls_mps_msg_type_t type;
     uint16_t len;
 
     TRACE_INIT( "l2_in_fetch_protected_record_tls" );
@@ -2666,7 +2652,7 @@ static int l2_epoch_check( mbedtls_mps_l2 *ctx,
  */
 static int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
 {
-    uint8_t shift, offset;
+    uint8_t shift = 0, offset;
     mbedtls_mps_epoch_id max_shift;
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode = ctx->conf.mode;

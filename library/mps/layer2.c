@@ -183,7 +183,7 @@ static void l2_read_version( int *major, int *minor,
     ((void) transport);
 #endif
 
-#if defined(MBEDTLS_MPS_PROTO_TLS)
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
     if( MBEDTLS_MPS_IS_DTLS( transport ) )
     {
         *major = 255 - ver[0] + 2;
@@ -192,7 +192,7 @@ static void l2_read_version( int *major, int *minor,
         if( *minor == MBEDTLS_SSL_MINOR_VERSION_1 )
             ++*minor; /* DTLS 1.0 stored as TLS 1.1 internally */
     }
-#endif /* MBEDTLS_MPS_PROTO_TTLS */
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     if( MBEDTLS_MPS_IS_TLS( transport ) )
@@ -302,7 +302,7 @@ static inline mbedtls_mps_l2_in_internal *mps_l2_setup_free_slot(
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         unsigned char *acc = NULL;
         mbedtls_mps_size_t acc_len = 0;
@@ -364,7 +364,10 @@ int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1,
      *       structure first and then only correct those
      *       fields where 0 is not proper initialization. */
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
     unsigned char *queue = NULL, *accumulator = NULL;
+#endif /* MBEDTLS_MPS_PROTO_TLS */
+
     mps_l2_bufpair zero_bufpair = { NULL, 0, 0, 0 };
     TRACE_INIT( "l2_init" );
 
@@ -381,6 +384,9 @@ int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1,
         free( accumulator );
         RETURN( MPS_ERR_ALLOC_FAILED );
     }
+#else
+    ((void) max_read);
+    ((void) max_write);
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
     ctx->conf.l1 = l1;
@@ -709,15 +715,13 @@ static int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
     int ret = 0;
     mps_l2_bufpair const zero_bufpair = { NULL, 0, 0, 0 };
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
-    mbedtls_mps_transport_type transport = ctx->conf.mode;
+    mbedtls_mps_transport_type mode = ctx->conf.mode;
 #endif
 
     TRACE_INIT( "Write protected record" );
 
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    if( transport == MBEDTLS_MPS_MODE_STREAM )
-#endif
 #if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         /* The record header structure is the same for all versions
          * of TLS, including TLS 1.3. The only difference is that in
@@ -730,10 +734,8 @@ static int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
-#if defined(MBEDTLS_MPS_PROTO_BOTH)
-    if( transport == MBEDTLS_MPS_MODE_DATAGRAM )
-#endif
-#if defined(MBEDTLS_MPS_PROTO_TLS)
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         /* Only handle DTLS 1.0 and 1.2 for the moment,
          * which have a uniform and simple record header. */
@@ -2588,8 +2590,8 @@ static int l2_epoch_check( mbedtls_mps_l2 *ctx,
     if( ret != 0 )
         RETURN( ret );
 
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
         epoch_usage = ctx->epochs.permissions.dtls[ epoch_offset ];
         if( ( purpose & epoch_usage ) != purpose )
@@ -2598,7 +2600,7 @@ static int l2_epoch_check( mbedtls_mps_l2 *ctx,
             RETURN( MPS_ERR_INVALID_RECORD );
         }
     }
-#endif /* MBEDTLS_MPS_PROTO_TLS */
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     if( MBEDTLS_MPS_IS_TLS( mode ) )
@@ -2933,7 +2935,7 @@ static int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
 }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
-#if defined(MBEDTLS_MPS_PROTO_TLS)
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
 int mps_l2_force_next_sequence_number( mbedtls_mps_l2 *ctx,
                                        mbedtls_mps_epoch_id epoch_id,
                                        uint64_t ctr )
@@ -2947,13 +2949,13 @@ int mps_l2_force_next_sequence_number( mbedtls_mps_l2 *ctx,
     TRACE_INIT( "mps_l2_force_next_sequence_number, epoch %u, ctr %u",
                 (unsigned) epoch_id, (unsigned) ctr );
 
-#if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         TRACE( trace_error, "Sequence number forcing only needed and allowed in DTLS." );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
-#endif /* MBEDTLS_MPS_PROTO_DTLS */
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
     ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
     if( ret != 0 )
@@ -2976,13 +2978,13 @@ int mps_l2_get_last_sequence_number( mbedtls_mps_l2 *ctx,
     TRACE_INIT( "mps_l2_get_last_sequence_number, epoch %u",
                 (unsigned) epoch_id );
 
-#if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
         TRACE( trace_error, "Sequence number retrieval only needed and allowed in DTLS." );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
-#endif /* MBEDTLS_MPS_PROTO_DTLS */
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
     ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
     if( ret != 0 )

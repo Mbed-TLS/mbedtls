@@ -16,6 +16,11 @@ Bugfix
    * Remove the mbedtls namespacing from the header file, to fix a "file not found"
      build error. Fixed by Haijun Gu #2319.
 
+Changes
+   * Include configuration file in all header files that use configuration,
+     instead of relying on other header files that they include.
+     Inserted as an enhancement for #1371
+
 = mbed TLS 2.16.0 branch released 2018-12-21
 
 Features

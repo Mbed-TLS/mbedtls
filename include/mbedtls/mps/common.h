@@ -40,7 +40,7 @@
  *  Comment to merge all MPS Layers into a single compilation unt,
  *  solely exposing the top-level MPS API.
  */
-//#define MBEDTLS_MPS_SEPARATE_LAYERS
+#define MBEDTLS_MPS_SEPARATE_LAYERS
 
 /** Internal macro sanity check. */
 #if defined(MBEDTLS_MPS_TRACE) && \

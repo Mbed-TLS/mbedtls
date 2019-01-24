@@ -327,8 +327,10 @@ int mbedtls_reader_commit( mbedtls_reader *rd )
 
     /* Check that the reader is in consuming mode. */
     frag = rd->frag;
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( frag == NULL )
         RETURN( MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     acc = rd->acc;
     end = rd->end;
@@ -562,8 +564,10 @@ int mbedtls_reader_commit_ext( mbedtls_reader_ext *rd )
     int ret;
     TRACE_INIT( "reader_commit_ext" );
 
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( rd->rd == NULL )
         RETURN( MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     ret = mbedtls_reader_commit( rd->rd );
     if( ret != 0 )

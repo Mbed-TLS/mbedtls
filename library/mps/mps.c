@@ -27,6 +27,8 @@
 
 #if !defined(MBEDTLS_MPS_SEPARATE_LAYERS)
 #define MBEDTLS_MPS_TOP_TRANSLATION_UNIT
+#include "reader.c"
+#include "writer.c"
 #include "layer1.c"
 #include "layer2.c"
 #include "layer3.c"

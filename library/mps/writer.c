@@ -24,6 +24,9 @@
 #include "../../include/mbedtls/mps/writer.h"
 #include "../../include/mbedtls/mps/trace.h"
 
+#if defined(MBEDTLS_MPS_SEPARATE_LAYERS) ||     \
+    defined(MBEDTLS_MPS_TOP_TRANSLATION_UNIT)
+
 #if defined(MBEDTLS_MPS_TRACE)
 static int trace_id = TRACE_BIT_WRITER;
 #endif /* MBEDTLS_MPS_TRACE */
@@ -639,3 +642,6 @@ int mbedtls_writer_check_done( mbedtls_writer_ext *wr_ext )
 
     RETURN( 0 );
 }
+
+#endif /* MBEDTLS_MPS_SEPARATE_LAYERS) ||
+          MBEDTLS_MPS_TOP_TRANSLATION_UNIT */

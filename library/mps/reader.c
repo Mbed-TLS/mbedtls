@@ -24,6 +24,9 @@
 #include "../../include/mbedtls/mps/reader.h"
 #include "../../include/mbedtls/mps/trace.h"
 
+#if defined(MBEDTLS_MPS_SEPARATE_LAYERS) ||     \
+    defined(MBEDTLS_MPS_TOP_TRANSLATION_UNIT)
+
 #if defined(MBEDTLS_MPS_TRACE)
 static int trace_id = TRACE_BIT_READER;
 #endif /* MBEDTLS_MPS_TRACE */
@@ -649,3 +652,6 @@ int mbedtls_reader_check_done( mbedtls_reader_ext const *rd_ext )
 
     RETURN( 0 );
 }
+
+#endif /* MBEDTLS_MPS_SEPARATE_LAYERS) ||
+          MBEDTLS_MPS_TOP_TRANSLATION_UNIT */

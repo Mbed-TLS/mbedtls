@@ -31,6 +31,21 @@
  * \{
  */
 
+/*! This flag controls whether the MPS-internal components
+ *  (reader, writer, Layer 1-3) perform validation of the
+ *  expected abstract state at the entry of API calls.
+ *
+ *  For example: Enabling this makes mps_l2_read_done() fail if
+ *  no incoming record is currently open; disabling this would
+ *  lead to undefined behavior in this case.
+ *
+ *  If state validation fails, functions return
+ *  #MPS_ERR_UNEXPECTED_OPERATION.
+ *
+ *  Comment this to remove state validation.
+ */
+//#define MBEDTLS_MPS_STATE_VALIDATION
+
 /*! This flag controls whether tracing for MPS should be enabled. */
 //#define MBEDTLS_MPS_TRACE
 

@@ -373,9 +373,9 @@ static int mps_retransmission_timer_increase_timeout( mbedtls_mps *mps )
     new_timeout = 2 * cur_timeout;
 
     /* Avoid arithmetic overflow and range overflow */
-    overflow = ( new_timeout < cur_timeout );
-    if( overflow || new_timeout > max_timeout )
-        new_timeout = max_timeout;
+    /* overflow = ( new_timeout < cur_timeout ); */
+    /* if( overflow || new_timeout > max_timeout ) */
+    /*     new_timeout = max_timeout; */
 
     mps->dtls.wait.retransmit_timeout = new_timeout;
     TRACE( trace_comment, "Update timeout value to %u milliseonds",
@@ -456,28 +456,20 @@ exit:
 static int mps_check_retransmit( mbedtls_mps *mps )
 {
     int ret = 0;
+    mbedtls_mps_retransmit_state_t state = mps->dtls.retransmit_state;
 
-    switch( mps->dtls.retransmit_state )
-    {
-        case MBEDTLS_MPS_RETRANSMIT_RESEND:
-            MPS_CHK( mps_retransmit_out( mps ) );
+    if( state == MBEDTLS_MPS_RETRANSMIT_NONE )
+        return( 0 );
 
-            mps->dtls.retransmit_state = MBEDTLS_MPS_RETRANSMIT_NONE;
-            MPS_CHK( mps_retransmission_timer_increase_timeout( mps ) );
-            MPS_CHK( mps_retransmission_timer_update( mps ) );
-            break;
+    if( state == MBEDTLS_MPS_RETRANSMIT_RESEND )
+        ret = mps_retransmit_out( mps );
+    else /* if ( state ==  MBEDTLS_MPS_RETRANSMIT_REQUEST_RESEND ) */
+        ret = mps_request_resend( mps );
+    MPS_CHK( ret );
 
-        case MBEDTLS_MPS_RETRANSMIT_REQUEST_RESEND:
-            MPS_CHK( mps_request_resend( mps ) );
-
-            mps->dtls.retransmit_state = MBEDTLS_MPS_RETRANSMIT_NONE;
-            MPS_CHK( mps_retransmission_timer_increase_timeout( mps ) );
-            MPS_CHK( mps_retransmission_timer_update( mps ) );
-            break;
-
-        default:
-            break;
-    }
+    mps->dtls.retransmit_state = MBEDTLS_MPS_RETRANSMIT_NONE;
+    MPS_CHK( mps_retransmission_timer_increase_timeout( mps ) );
+    MPS_CHK( mps_retransmission_timer_update( mps ) );
 
 exit:
     return( ret );

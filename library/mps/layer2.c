@@ -925,11 +925,14 @@ static int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
 int mps_l2_write_flush( mbedtls_mps_l2 *ctx )
 {
     TRACE_INIT( "mps_l2_write_flush, state %u", ctx->out.state );
+
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( ctx->out.state == MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL )
     {
         TRACE( trace_error, "Unexpected operation" );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     ctx->out.flush = 1;
     RETURN( l2_out_clear_pending( ctx ) );
@@ -1041,11 +1044,13 @@ int mps_l2_write_start( mbedtls_mps_l2 *ctx, mps_l2_out *out )
     /* We must not attempt to write multiple records simultaneously.
      * If this happens, the layer most likely forgot to dispatch
      * the last outgoing record. */
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( ctx->out.state == MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL )
     {
         TRACE( trace_error, "Unexpected operation" );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     /* Check if the requested record content type is valid. */
     /* OPTIMIZATION: This is an assertion; consider moving
@@ -1139,8 +1144,13 @@ int mps_l2_write_done( mbedtls_mps_l2 *ctx )
 {
     int ret;
     TRACE_INIT( "l2_write_done" );
+
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( ctx->out.state != MBEDTLS_MPS_L2_WRITER_STATE_EXTERNAL )
+    {
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+    }
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     ctx->out.state = MBEDTLS_MPS_L2_WRITER_STATE_INTERNAL;
 
@@ -1319,12 +1329,15 @@ int mps_l2_read_done( mbedtls_mps_l2 *ctx )
     /* This only makes sense if the active reader is currently
      * on the user-side, i.e. 'external'. Everything else is
      * a violation of the API. */
+
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( mps_l2_readers_active_state( ctx )
         != MBEDTLS_MPS_L2_READER_STATE_EXTERNAL )
     {
         TRACE( trace_comment, "Unexpected operation" );
         RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     /*
      * Layer 1 has provided the record the contents of which the

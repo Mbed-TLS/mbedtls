@@ -79,55 +79,6 @@ static int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs );
 #define MPS_DTLS_HS_HDR_SIZE 13
 
 /*
- * Internal parsing/writing macros
- */
-
-#define MPS_L3_READ_UINT24_LE( dst, src )                               \
-    do                                                                  \
-    {                                                                   \
-        *(dst) =                                                        \
-            ( ( (uint32_t) ( (uint8_t*) ( src ) )[0] ) << 16 ) +        \
-            ( ( (uint32_t) ( (uint8_t*) ( src ) )[1] ) <<  8 ) +        \
-            ( ( (uint32_t) ( (uint8_t*) ( src ) )[2] ) <<  0 );         \
-    } while( 0 )
-
-#define MPS_L3_READ_UINT16_LE( dst, src )                               \
-    do                                                                  \
-    {                                                                   \
-        *(dst) =                                                        \
-            ( ( (uint16_t) ( (uint8_t*) ( src ) )[0] ) <<  8 ) +        \
-            ( ( (uint16_t) ( (uint8_t*) ( src ) )[1] ) <<  0 );         \
-    } while( 0 )
-
-#define MPS_L3_READ_UINT8_LE( dst, src )                \
-    do                                                  \
-    {                                                   \
-        *( dst ) = ( (uint8_t*) ( src ) )[0];           \
-    } while( 0 )
-
-#define MPS_L3_WRITE_UINT24_LE( dst, src )                              \
-    do                                                                  \
-    {                                                                   \
-        *( (uint8_t*) ( dst ) + 0 ) = ( *( src ) >> 16 ) & 0xFF;        \
-        *( (uint8_t*) ( dst ) + 1 ) = ( *( src ) >>  8 ) & 0xFF;        \
-        *( (uint8_t*) ( dst ) + 2 ) = ( *( src ) >>  0 ) & 0xFF;        \
-    } while( 0 )
-
-#define MPS_L3_WRITE_UINT16_LE( dst, src )                              \
-    do                                                                  \
-    {                                                                   \
-        *( (uint8_t*) ( dst ) + 0 ) = ( *( src ) >>  8 ) & 0xFF;        \
-        *( (uint8_t*) ( dst ) + 1 ) = ( *( src ) >>  0 ) & 0xFF;        \
-    } while( 0 )
-
-#define MPS_L3_WRITE_UINT8_LE( dst, src )               \
-    do                                                  \
-    {                                                   \
-        *( dst ) = ( (uint8_t*) ( src ) )[0];           \
-    } while( 0 )
-
-
-/*
  * Init & Free API
  */
 
@@ -638,8 +589,8 @@ static int l3_parse_hs_header_tls( mbedtls_reader *rd,
     if( res != 0 )
         RETURN( res );
 
-    MPS_L3_READ_UINT8_LE ( &in->type, tmp + tls_hs_type_offset   );
-    MPS_L3_READ_UINT24_LE( &in->len,  tmp + tls_hs_length_offset );
+    MPS_READ_UINT8_LE ( tmp + tls_hs_type_offset, &in->type );
+    MPS_READ_UINT24_LE( tmp + tls_hs_length_offset, &in->len );
 
     res = mbedtls_reader_commit( rd );
     if( res != 0 )
@@ -699,11 +650,11 @@ static int l3_parse_hs_header_dtls( mbedtls_reader *rd,
     if( res != 0 )
         RETURN( res );
 
-    MPS_L3_READ_UINT8_LE ( &in->type,        tmp + dtls_hs_type_offset );
-    MPS_L3_READ_UINT24_LE( &in->len,         tmp + dtls_hs_len_offset  );
-    MPS_L3_READ_UINT16_LE( &in->seq_nr,      tmp + dtls_hs_seq_offset  );
-    MPS_L3_READ_UINT24_LE( &in->frag_offset, tmp + dtls_hs_frag_off_offset  );
-    MPS_L3_READ_UINT24_LE( &in->frag_len,    tmp + dtls_hs_frag_len_offset  );
+    MPS_READ_UINT8_LE ( tmp + dtls_hs_type_offset, &in->type );
+    MPS_READ_UINT24_LE( tmp + dtls_hs_len_offset, &in->len );
+    MPS_READ_UINT16_LE( tmp + dtls_hs_seq_offset, &in->seq_nr );
+    MPS_READ_UINT24_LE( tmp + dtls_hs_frag_off_offset, &in->frag_offset );
+    MPS_READ_UINT24_LE( tmp + dtls_hs_frag_len_offset, &in->frag_len );
 
     res = mbedtls_reader_commit( rd );
     if( res != 0 )
@@ -763,8 +714,8 @@ static int l3_parse_alert( mbedtls_reader *rd,
     if( res != 0 )
         RETURN( res );
 
-    MPS_L3_READ_UINT8_LE ( &alert->level, tmp + 0 );
-    MPS_L3_READ_UINT8_LE ( &alert->type,  tmp + 1 );
+    MPS_READ_UINT8_LE ( tmp + 0, &alert->level );
+    MPS_READ_UINT8_LE ( tmp + 1, &alert->type );
 
     res = mbedtls_reader_commit( rd );
     if( res != 0 )
@@ -799,7 +750,7 @@ static int l3_parse_ccs( mbedtls_reader *rd )
     if( res != 0 )
         RETURN( res );
 
-    MPS_L3_READ_UINT8_LE( &val, tmp + 0 );
+    MPS_READ_UINT8_LE( tmp + 0, &val );
 
     res = mbedtls_reader_commit( rd );
     if( res != 0 )

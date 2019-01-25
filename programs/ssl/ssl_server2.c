@@ -2667,7 +2667,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         if( opt.psk_opaque != 0 )
         {
-            status = psa_allocate_key( PSA_KEY_TYPE_DERIVE, psk_len * 8, &psk_slot );
+            status = psa_allocate_key( &psk_slot );
             if( status != PSA_SUCCESS )
             {
                 fprintf( stderr, "ALLOC FAIL\n" );
@@ -2711,7 +2711,7 @@ int main( int argc, char *argv[] )
             psk_entry *cur_psk;
             for( cur_psk = psk_info; cur_psk != NULL; cur_psk = cur_psk->next )
             {
-                status = psa_allocate_key( PSA_KEY_TYPE_DERIVE, cur_psk->key_len * 8, &cur_psk->slot );
+                status = psa_allocate_key( &cur_psk->slot );
                 if( status != PSA_SUCCESS )
                 {
                     ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;

@@ -577,9 +577,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     psa_sig_md = PSA_ALG_ECDSA( psa_md );
     psa_type = PSA_KEY_TYPE_ECC_PUBLIC_KEY( curve );
 
-    if( ( ret = psa_allocate_key( psa_type,
-                                  MBEDTLS_PSA_ECC_KEY_BITS_OF_CURVE(curve),
-                                  &key_slot ) ) != PSA_SUCCESS )
+    if( ( ret = psa_allocate_key( &key_slot ) ) != PSA_SUCCESS )
           return( mbedtls_psa_err_translate_pk( ret ) );
 
     psa_key_policy_init( &policy );

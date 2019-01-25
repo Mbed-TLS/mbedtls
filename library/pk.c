@@ -576,7 +576,7 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
                                  mbedtls_psa_parse_tls_ecc_group ( curve_id ) );
 
     /* allocate a key slot */
-    if( PSA_SUCCESS != psa_allocate_key( key_type, d_len * 8, &key ) )
+    if( PSA_SUCCESS != psa_allocate_key( &key ) )
         return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
 
     /* set policy */

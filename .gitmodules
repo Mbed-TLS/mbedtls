@@ -1,4 +1,4 @@
 [submodule "crypto"]
 	path = crypto
 	url = https://github.com/ARMmbed/mbed-crypto
-	branch = iotssl-2697-psa-key-allocation-crypto
+	branch = development

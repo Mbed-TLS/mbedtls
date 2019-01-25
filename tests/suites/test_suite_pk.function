@@ -84,7 +84,7 @@ psa_key_handle_t pk_psa_genkey( void )
     psa_key_policy_t policy;
 
     /* Allocate a key slot */
-    if( PSA_SUCCESS != psa_allocate_key( type, bits, &key ) )
+    if( PSA_SUCCESS != psa_allocate_key( &key ) )
         return( PK_PSA_INVALID_SLOT );
 
     /* set up policy on key slot */

@@ -553,7 +553,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     int key_len;
     /* see ECP_PUB_DER_MAX_BYTES in pkwrite.c */
     unsigned char buf[30 + 2 * MBEDTLS_ECP_MAX_BYTES];
-    unsigned char *p = (unsigned char*) sig;
+    unsigned char *p;
     mbedtls_pk_info_t pk_info = mbedtls_eckey_info;
     psa_algorithm_t psa_sig_md, psa_md;
     psa_ecc_curve_t curve = mbedtls_psa_translate_ecc_group(
@@ -567,7 +567,8 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
      * re-construct one to make it happy */
     key.pk_info = &pk_info;
     key.pk_ctx = ctx;
-    key_len = mbedtls_pk_write_pubkey_der( &key, buf, sizeof( buf ) );
+    p = buf + sizeof( buf );
+    key_len = mbedtls_pk_write_pubkey( &p, buf, &key );
     if( key_len <= 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
@@ -603,6 +604,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
         goto cleanup;
     }
 
+    p = (unsigned char*) sig;
     if( ( ret = extract_ecdsa_sig( &p, sig + sig_len, buf,
                                    signature_part_size ) ) != 0 )
     {

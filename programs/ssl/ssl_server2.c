@@ -1239,7 +1239,7 @@ static psa_status_t psa_setup_psk_key_slot( psa_key_handle_t slot,
     psa_status_t status;
     psa_key_policy_t policy;
 
-    psa_key_policy_init( &policy );
+    policy = psa_key_policy_init();
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
 
     status = psa_set_key_policy( slot, &policy );

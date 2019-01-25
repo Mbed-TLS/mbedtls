@@ -308,7 +308,7 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
             return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
 
         /* Allocate a key slot to use. */
-        status = psa_allocate_key( key_type, key_bitlen, &cipher_psa->slot );
+        status = psa_allocate_key( &cipher_psa->slot );
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
 

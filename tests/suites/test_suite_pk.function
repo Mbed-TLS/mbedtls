@@ -88,7 +88,7 @@ psa_key_handle_t pk_psa_genkey( void )
         return( PK_PSA_INVALID_SLOT );
 
     /* set up policy on key slot */
-    psa_key_policy_init( &policy );
+    policy = psa_key_policy_init();
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_SIGN,
                                       PSA_ALG_ECDSA(PSA_ALG_SHA_256) );
     if( PSA_SUCCESS != psa_set_key_policy( key, &policy ) )

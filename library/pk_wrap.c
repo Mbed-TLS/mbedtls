@@ -580,7 +580,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     if( ( ret = psa_allocate_key( &key_slot ) ) != PSA_SUCCESS )
           return( mbedtls_psa_err_translate_pk( ret ) );
 
-    psa_key_policy_init( &policy );
+    policy = psa_key_policy_init();
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_VERIFY, psa_sig_md );
     if( ( ret = psa_set_key_policy( key_slot, &policy ) ) != PSA_SUCCESS )
     {

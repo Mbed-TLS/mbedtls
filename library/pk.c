@@ -580,7 +580,7 @@ int mbedtls_pk_wrap_as_opaque( mbedtls_pk_context *pk,
         return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
 
     /* set policy */
-    psa_key_policy_init( &policy );
+    policy = psa_key_policy_init();
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_SIGN,
                                        PSA_ALG_ECDSA(hash_alg) );
     if( PSA_SUCCESS != psa_set_key_policy( key, &policy ) )

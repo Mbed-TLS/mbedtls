@@ -2946,7 +2946,6 @@ static int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
 
     window_top_hi = epoch->stats.dtls.replay.in_window_top_hi;
     window_top_lo = epoch->stats.dtls.replay.in_window_top_lo;
-    window = epoch->stats.dtls.replay.in_window;
 
     if( ctr_hi > window_top_hi )
     {
@@ -2960,18 +2959,18 @@ static int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
         RETURN( -1 );
     }
 
-    bit = window_top_lo - ctr_lo;
-    if( bit >= 32 )
-    {
-        TRACE( trace_comment, "Record sequence number too old -- drop" );
-        RETURN( -1 );
-    }
+    /* Bit-reverse the window, so that bits corresponding to fresh
+     * sequence numbers are set. */
+    window = ~epoch->stats.dtls.replay.in_window;
 
-    if( ( window & ( (uint32_t) 1u << bit ) ) != 0 )
-    {
-        TRACE( trace_comment, "Record sequence number seen before -- drop" );
+    bit = window_top_lo - ctr_lo;
+
+    /* If bit >= 32 (including the case when window_top < ctr_lo)
+     * this will lead to window == 0, in which case the record
+     * is correctly rejected. */
+    window >>= bit;
+    if( ( window & 0x1 ) == 0 )
         RETURN( -1 );
-    }
 
     TRACE( trace_comment, "Record sequence number within window and not seen so far." );
     RETURN( 0 );

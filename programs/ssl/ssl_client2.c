@@ -1601,7 +1601,7 @@ int main( int argc, char *argv[] )
             goto exit;
         }
 
-        psa_key_policy_init( &policy );
+        policy = psa_key_policy_init();
         psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
 
         status = psa_set_key_policy( slot, &policy );

@@ -1594,7 +1594,7 @@ int main( int argc, char *argv[] )
     if( opt.psk_opaque != 0 )
     {
         /* The algorithm has already been determined earlier. */
-        status = psa_allocate_key( PSA_KEY_TYPE_DERIVE, psk_len * 8, &slot );
+        status = psa_allocate_key( &slot );
         if( status != PSA_SUCCESS )
         {
             ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;

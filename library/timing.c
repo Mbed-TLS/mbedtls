@@ -219,7 +219,7 @@ unsigned long mbedtls_timing_hardclock( void )
 
 #if !defined(_WIN32)
 #if defined(__FreeBSD__)
-static clockid_t clock_id = CLOCK_UPTIME_PRECISE;
+static clockid_t clock_id = CLOCK_MONOTONIC_PRECISE;
 #else /* defined(__FreeBSD__) */
 static clockid_t clock_id = CLOCK_MONOTONIC;
 #endif /* defined(__FreeBSD__) */

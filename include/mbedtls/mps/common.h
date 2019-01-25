@@ -120,6 +120,19 @@
  * \{
  */
 
+/*! This determines whether internal computations with values
+ *  of small range (such as record content types) should declare the
+ *  variables holding those values using the smallest possible type.
+ *
+ *  This is just to make it easier to investigate the effect
+ *  on code size that the choice of integer type has.
+ *
+ *  Currently, this is disabled by default because allowing
+ *  the compiler to use the most natural choice of type for the
+ *  target platform appears to lead to slightly smaller code.
+ */
+//#define MBEDTLS_MPS_INTERNAL_SMALL_TYPES
+
 typedef uint8_t mbedtls_mps_transport_type;
 /* MBEDTLS_SSL_TRANSPORT_STREAM   */
 #define MBEDTLS_MPS_MODE_STREAM   ((mbedtls_mps_transport_type) 0)
@@ -203,7 +216,12 @@ typedef uint8_t mbedtls_mps_msg_type_t;
 
 /* TODO: Document */
 typedef uint8_t mbedtls_mps_stored_hs_type;
+#if defined(MBEDTLS_MPS_INTERNAL_SMALL_TYPES)
+typedef mbedtls_mps_stored_hs_type mbedtls_mps_hs_type;
+#else
 typedef uint_fast8_t mbedtls_mps_hs_type;
+#endif /* MBEDTLS_MPS_INTERNAL_SMALL_TYPES */
+
 
 /** \brief The type of epoch IDs. */
 typedef int8_t mbedtls_mps_epoch_id;
@@ -236,7 +254,11 @@ typedef uint8_t mbedtls_mps_stored_hs_seq_nr_t;
  *           to be strictly larger if more suitable for the
  *           target architecture.
  */
+#if defined(MBEDTLS_MPS_INTERNAL_SMALL_TYPES)
+typedef mbedtls_mps_stored_hs_seq_nr_t mbedtls_mps_hs_seq_nr_t;
+#else
 typedef uint_fast8_t mbedtls_mps_hs_seq_nr_t;
+#endif /* MBEDTLS_MPS_INTERNAL_SMALL_TYPES */
 
 /** \brief   The type of buffer sizes and offsets used in MPS structures.
  *
@@ -269,10 +291,18 @@ typedef int16_t mbedtls_mps_stored_opt_size_t;
  *        instead of uint16_t reduced the code size from 1060 Byte to 962 Byte,
  *        so almost 10%.
  */
+#if defined(MBEDTLS_MPS_INTERNAL_SMALL_TYPES)
+typedef mbedtls_mps_stored_opt_size_t mbedtls_mps_size_t;
+#else
 typedef uint_fast16_t mbedtls_mps_size_t;
+#endif /* MBEDTLS_MPS_INTERNAL_SMALL_TYPES */
 
 #if (mbedtls_mps_size_t) -1 > (mbedtls_mps_stored_size_t) -1
 #error "Misconfiguration of mbedtls_mps_size_t and mbedtls_mps_stored_size_t."
+#endif
+
+#if defined(MBEDTLS_MPS_INTERNAL_SMALL_TYPES)
+#undef MBEDTLS_MPS_INTERNAL_SMALL_TYPES
 #endif
 
 /* \} SECTION: Common types */

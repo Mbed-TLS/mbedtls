@@ -431,8 +431,8 @@ struct mps_l3
     {
         /* Global reading state */
 
-        mbedtls_mps_msg_type_t state;  /*!< Indicates if and which record type
-                                        *   is currently open for reading.    */
+        /*! Indicates if and which record type is currently open for reading. */
+        mbedtls_mps_stored_msg_type_t state;
 
 #define MPS_L3_INV_IN_STATE( p )                          \
         ( (p)->in.state == MBEDTLS_MPS_MSG_NONE        ||    \
@@ -490,8 +490,8 @@ struct mps_l3
 
         /* Global writing state */
 
-        mbedtls_mps_msg_type_t state;  /*!< Indicates if and which record type
-                                        *   is currently open for writing.    */
+        /*!< Indicates which record type is currently open for writing. */
+        mbedtls_mps_stored_msg_type_t state;
 
 #define MPS_L3_INV_OUT_STATE( p )                          \
         ( (p)->out.state == MBEDTLS_MPS_MSG_NONE        ||    \

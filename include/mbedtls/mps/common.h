@@ -196,7 +196,12 @@ typedef uint8_t mbedtls_mps_transport_type;
  * \note     The values are aligned to the ContentType field in [D]TLS records.
  */
 
-typedef uint8_t mbedtls_mps_msg_type_t;
+typedef uint8_t mbedtls_mps_stored_msg_type_t;
+#if defined(MBEDTLS_MPS_INTERNAL_SMALL_TYPES)
+typedef mbedtls_mps_stored_msg_type_t mbedtls_mps_msg_type_t;
+#else
+typedef uint_fast8_t mbedtls_mps_msg_type_t;
+#endif /* MBEDTLS_MPS_INTERNAL_SMALL_TYPES */
 
 /*! This is a placeholder to indicate that no record is
  *  currently open for reading or writing. */

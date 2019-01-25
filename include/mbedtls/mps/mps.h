@@ -644,7 +644,7 @@ struct mbedtls_mps
     /* Read state */
     struct
     {
-        mbedtls_mps_msg_type_t state;
+        mbedtls_mps_stored_msg_type_t state;
 
         /* DTLS only */
         mbedtls_mps_msg_flags      flags; /*!< Indicates if and how the incoming
@@ -687,7 +687,7 @@ struct mbedtls_mps
                         *   needs to complete before the next read or write
                         *   can commence. */
 
-        mbedtls_mps_msg_type_t state;
+        mbedtls_mps_stored_msg_type_t state;
 
     } out;
 

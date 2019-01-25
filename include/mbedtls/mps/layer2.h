@@ -85,12 +85,12 @@ typedef struct mbedtls_mps_l2 mbedtls_mps_l2;
  */
 typedef struct
 {
-    mbedtls_mps_epoch_id epoch;   /*!< The epoch through which the incoming
-                                   *   data is protected.                    */
     /*! The type of the incoming data. It is entirely opaque to
      *  Layer 2, that is, no distinction is made between HS, App,
      *  CCS, or Alert records. */
     mbedtls_mps_stored_msg_type_t type;
+    /*!< The epoch through which the incoming data is protected. */
+    mbedtls_mps_stored_epoch_id epoch;
     mbedtls_reader *rd;           /*!< The reader providing access to the
                                    *   incoming data.                        */
 } mps_l2_in;
@@ -100,12 +100,12 @@ typedef struct
  */
 typedef struct
 {
-    mbedtls_mps_epoch_id epoch;   /*!< The epoch through which the outgoing
-                                   *   data will be protected.               */
     /*! The type of the outgoing data. It is entirely opaque to Layer 2,
      *  that is, no distinction is made between HS, App, CCS,
      *  or Alert records. */
     mbedtls_mps_stored_msg_type_t type;
+    /*!< The epoch through which the outgoing data will be protected. */
+    mbedtls_mps_stored_epoch_id epoch;
     mbedtls_writer *wr;           /*!< The writer providing access to the
                                    *   outgoing data buffers.                */
 } mps_l2_out;
@@ -216,7 +216,7 @@ struct mbedtls_mps_l2_in_internal
     /*! The record content type of the incoming data stream. */
     mbedtls_mps_stored_msg_type_t type;
     /*! The epoch through which the data is secured. */
-    mbedtls_mps_epoch_id epoch;
+    mbedtls_mps_stored_epoch_id epoch;
     /*! The reader managing the incoming data after decryption. */
     mbedtls_reader rd;
 };
@@ -228,12 +228,12 @@ typedef struct mbedtls_mps_l2_in_internal mbedtls_mps_l2_in_internal;
  */
 struct mbedtls_mps_l2_out_internal
 {
-    mbedtls_mps_epoch_id epoch; /*!< The epoch through which
-                                 *   the data is secured.             */
-    mbedtls_writer wr;          /*!< The writer managing the incoming
-                                 *   data before encryption.          */
     /*! The record content type of the outgoing data stream. */
     mbedtls_mps_stored_msg_type_t type;
+    /*! The epoch through which the data is secured. */
+    mbedtls_mps_stored_epoch_id epoch;
+    /*! The writer managing the incoming data before encryption. */
+    mbedtls_writer wr;
 };
 typedef struct mbedtls_mps_l2_out_internal mbedtls_mps_l2_out_internal;
 

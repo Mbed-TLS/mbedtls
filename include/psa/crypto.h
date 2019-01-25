@@ -448,8 +448,32 @@ psa_status_t psa_export_key(psa_key_handle_t handle,
  * The output of this function can be passed to psa_import_key() to
  * create an object that is equivalent to the public key.
  *
- * The format is the DER representation defined by RFC 5280 as
- * `SubjectPublicKeyInfo`, with the `subjectPublicKey` format
+ * This specification supports a single format for each key type.
+ * Implementations may support other formats as long as the standard
+ * format is supported. Implementations that support other formats
+ * should ensure that the formats are clearly unambiguous so as to
+ * minimize the risk that an invalid input is accidentally interpreted
+ * according to a different format.
+ *
+ * For standard key types, the output format is as follows:
+ * - For RSA public keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY), the DER encoding of
+ *   the representation defined by RFC 3279 &sect;2.3.1 as `RSAPublicKey`.
+ *   ```
+ *   RSAPublicKey ::= SEQUENCE {
+ *      modulus            INTEGER,    -- n
+ *      publicExponent     INTEGER  }  -- e
+ *   ```
+ * - For elliptic curve public keys (key types for which
+ *   #PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY is true), the format is the uncompressed
+ *   representation defined by SEC1 &sect;2.3.3 as the content of an ECPoint:
+ *   Let `m` be the bit size associated with the curve, i.e. the bit size of
+ *   `q` for a curve over `F_q`. The representation consists of:
+ *      - The byte 0x04;
+ *      - `x_P` as a `ceiling(m/8)`-byte string, big-endian;
+ *      - `y_P` as a `ceiling(m/8)`-byte string, big-endian.
+ *
+ * For other public key types, the format is the DER representation defined by
+ * RFC 5280 as `SubjectPublicKeyInfo`, with the `subjectPublicKey` format
  * specified below.
  * ```
  * SubjectPublicKeyInfo  ::=  SEQUENCE  {
@@ -459,21 +483,6 @@ psa_status_t psa_export_key(psa_key_handle_t handle,
  *      algorithm          OBJECT IDENTIFIER,
  *      parameters         ANY DEFINED BY algorithm OPTIONAL  }
  * ```
- *
- * - For RSA public keys (#PSA_KEY_TYPE_RSA_PUBLIC_KEY),
- *   the `subjectPublicKey` format is defined by RFC 3279 &sect;2.3.1 as
- *   `RSAPublicKey`,
- *   with the OID `rsaEncryption`,
- *   and with the parameters `NULL`.
- *   ```
- *   pkcs-1 OBJECT IDENTIFIER ::= { iso(1) member-body(2) us(840)
- *                                  rsadsi(113549) pkcs(1) 1 }
- *   rsaEncryption OBJECT IDENTIFIER ::=  { pkcs-1 1 }
- *
- *   RSAPublicKey ::= SEQUENCE {
- *      modulus            INTEGER,    -- n
- *      publicExponent     INTEGER  }  -- e
- *   ```
  * - For DSA public keys (#PSA_KEY_TYPE_DSA_PUBLIC_KEY),
  *   the `subjectPublicKey` format is defined by RFC 3279 &sect;2.3.2 as
  *   `DSAPublicKey`,
@@ -488,30 +497,6 @@ psa_status_t psa_export_key(psa_key_handle_t handle,
  *      q                  INTEGER,
  *      g                  INTEGER  }
  *   DSAPublicKey ::= INTEGER -- public key, Y
- *   ```
- * - For elliptic curve public keys (key types for which
- *   #PSA_KEY_TYPE_IS_ECC_PUBLIC_KEY is true),
- *   the `subjectPublicKey` format is defined by RFC 3279 &sect;2.3.5 as
- *   `ECPoint`, which contains the uncompressed
- *   representation defined by SEC1 &sect;2.3.3.
- *   The OID is `id-ecPublicKey`,
- *   and the parameters must be given as a `namedCurve` OID as specified in
- *   RFC 5480 &sect;2.1.1.1 or other applicable standards.
- *   ```
- *   ansi-X9-62 OBJECT IDENTIFIER ::=
- *                           { iso(1) member-body(2) us(840) 10045 }
- *   id-public-key-type OBJECT IDENTIFIER  ::= { ansi-X9.62 2 }
- *   id-ecPublicKey OBJECT IDENTIFIER ::= { id-publicKeyType 1 }
- *
- *   ECPoint ::= ...
- *      -- first 8 bits: 0x04;
- *      -- then x_P as a `ceiling(m/8)`-byte string, big endian;
- *      -- then y_P as a `ceiling(m/8)`-byte string, big endian;
- *      -- where `m` is the bit size associated with the curve,
- *      --       i.e. the bit size of `q` for a curve over `F_q`.
- *
- *   EcpkParameters ::= CHOICE { -- other choices are not allowed
- *      namedCurve    OBJECT IDENTIFIER }
  *   ```
  *
  * \param handle            Handle to the key to export.
@@ -2156,19 +2141,28 @@ psa_status_t psa_key_derivation(psa_crypto_generator_t *generator,
  * The resulting generator always has the maximum capacity permitted by
  * the algorithm.
  *
- * \param[in,out] generator       The generator object to set up. It must have
- *                                been initialized as per the documentation for
- *                                #psa_crypto_generator_t and not yet in use.
- * \param private_key             Handle to the private key to use.
- * \param[in] peer_key            Public key of the peer. It must be
- *                                in the same format that psa_import_key()
- *                                accepts. The standard formats for public
- *                                keys are documented in the documentation
- *                                of psa_export_public_key().
- * \param peer_key_length         Size of \p peer_key in bytes.
- * \param alg                     The key agreement algorithm to compute
- *                                (\c PSA_ALG_XXX value such that
- *                                #PSA_ALG_IS_KEY_AGREEMENT(\p alg) is true).
+ * \param[in,out] generator The generator object to set up. It must have been
+ *                          initialized as per the documentation for
+ *                          #psa_crypto_generator_t and not yet in use.
+ * \param private_key       Handle to the private key to use.
+ * \param[in] peer_key      Public key of the peer. The peer key must be in the
+ *                          same format that psa_import_key() accepts for the
+ *                          public key type corresponding to the type of
+ *                          \p private_key. That is, this function performs the
+ *                          equivalent of
+ *                          `psa_import_key(internal_public_key_handle,
+ *                          PSA_KEY_TYPE_PUBLIC_KEY_OF_KEYPAIR(private_key_type),
+ *                          peer_key, peer_key_length)` where
+ *                          `private_key_type` is the type of \p private_key.
+ *                          For example, for EC keys, this means that \p
+ *                          peer_key is interpreted as a point on the curve
+ *                          that the private key is associated with. The
+ *                          standard formats for public keys are documented in
+ *                          the documentation of psa_export_public_key().
+ * \param peer_key_length   Size of \p peer_key in bytes.
+ * \param alg               The key agreement algorithm to compute
+ *                          (\c PSA_ALG_XXX value such that
+ *                          #PSA_ALG_IS_KEY_AGREEMENT(\p alg) is true).
  *
  * \retval #PSA_SUCCESS
  *         Success.

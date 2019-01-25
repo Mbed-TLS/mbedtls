@@ -497,7 +497,7 @@ struct mbedtls_mps_msg_metadata
     mbedtls_mps_stored_hs_seq_nr_t seq_nr;
 
     /*! The epoch used to send the message. */
-    mbedtls_mps_epoch_id epoch;
+    mbedtls_mps_stored_epoch_id epoch;
 
     /*! The total handshake message length. */
     mbedtls_mps_stored_opt_size_t len;
@@ -569,7 +569,7 @@ typedef int mbedtls_mps_get_timer_t( void * ctx );
 struct mbedtls_mps_recognition_info
 {
     /*! The epoch through which the handshake message was secured. */
-    mbedtls_mps_epoch_id epoch;
+    mbedtls_mps_stored_epoch_id epoch;
 
     /*! The handshake sequence number. */
     mbedtls_mps_stored_hs_seq_nr_t seq_nr;
@@ -613,12 +613,12 @@ struct mbedtls_mps
      *  user. However, messages from different epochs might
      *  still be handlded internally, e.g. to detect
      *  retransmission. */
-    mbedtls_mps_epoch_id in_epoch;
+    mbedtls_mps_stored_epoch_id in_epoch;
 
     /*! The current outgoing epoch specified by the user.
      *  Write requests by the user will be served by using
      *  this epoch. */
-    mbedtls_mps_epoch_id out_epoch;
+    mbedtls_mps_stored_epoch_id out_epoch;
 
     /* Connection state */
 
@@ -879,7 +879,7 @@ struct mbedtls_mps
                  *    In this case, we must not piece together new messages
                  *    with fragments coming from different epochs.
                  */
-                mbedtls_mps_epoch_id epoch;
+                mbedtls_mps_stored_epoch_id epoch;
 
                 /*! The total handshake message length. Remembered to
                  *  check that it is consistent across fragments. */

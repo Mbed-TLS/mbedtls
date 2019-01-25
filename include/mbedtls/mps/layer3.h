@@ -133,7 +133,7 @@ struct mps_l3_handshake_out
 {
     /*! The epoch to use to protect the handshake message.
      *  This must be set by the user before calling mps_l3_write_handshake(). */
-    mbedtls_mps_epoch_id epoch;
+    mbedtls_mps_stored_epoch_id epoch;
 
     /*! The handshake message type. This must be set by
      *  the user before calling mps_l3_write_handshake().*/
@@ -193,7 +193,7 @@ struct mps_l3_handshake_out
 struct mps_l3_handshake_in
 {
     /*! The epoch used to protect the handshake message.*/
-    mbedtls_mps_epoch_id epoch;
+    mbedtls_mps_stored_epoch_id epoch;
 
     /*! The handshake message type. */
     mbedtls_mps_stored_hs_type type;
@@ -234,17 +234,22 @@ struct mps_l3_handshake_in
  */
 struct mps_l3_alert_in
 {
-    mbedtls_mps_epoch_id epoch;  /*!< The epoch used to protect the alert. */
-    uint8_t level;               /*!< The level of the incoming alert.     */
-    uint8_t type;                /*!< The type of the incoming alert.      */
+    /*! The epoch used to protect the alert. */
+    mbedtls_mps_stored_epoch_id epoch;
+    /*! The level of the incoming alert.     */
+    uint8_t level;
+    /*! The type of the incoming alert.      */
+    uint8_t type;
 };
 
 struct mps_l3_alert_out
 {
-    mbedtls_mps_epoch_id epoch;  /*!< The epoch to use to protect the
-                                  *   alert message. Set by user.          */
-    uint8_t *level;              /*!< The level of the incoming alert.     */
-    uint8_t *type;               /*!< The type of the incoming alert.      */
+    /*! The epoch to use to protect the alert message. Set by user. */
+    mbedtls_mps_stored_epoch_id epoch;
+    /*! The level of the incoming alert. */
+    uint8_t *level;
+    /*! The type of the incoming alert. */
+    uint8_t *type;
 };
 
 /**
@@ -265,15 +270,15 @@ struct mps_l3_alert_out
  */
 struct mps_l3_app_in
 {
-    mbedtls_mps_epoch_id epoch;  /*!< The epoch used to protect
-                                  *   the application data.                */
+    /*! The epoch used to protect the application data. */
+    mbedtls_mps_stored_epoch_id epoch;
     mbedtls_reader *rd;
 };
 
 struct mps_l3_app_out
 {
-    mbedtls_mps_epoch_id epoch;  /*!< The epoch used to protect the
-                                  *   application data. Set by the user.   */
+    /*! The epoch used to protect the application data. Set by the user. */
+    mbedtls_mps_stored_epoch_id epoch;
     mbedtls_writer *wr;          /*!< The writer to use to supply the
                                   *   actual application data. Set by MPS. */
 };
@@ -301,14 +306,14 @@ struct mps_l3_app_out
  */
 struct mps_l3_ccs_in
 {
-    mbedtls_mps_epoch_id epoch;  /*!< The epoch used to protect the
-                                  *   ChangeCipherSpec message.            */
+    /*! The epoch used to protect the ChangeCipherSpec message. */
+    mbedtls_mps_stored_epoch_id epoch;
 };
 
 struct mps_l3_ccs_out
 {
-    mbedtls_mps_epoch_id epoch;  /*!< The epoch to use to protect
-                                  *   the CCS message. Set by the user.    */
+    /*!< The epoch to use to protect the CCS message. Set by the user. */
+    mbedtls_mps_stored_epoch_id epoch;
 };
 
 /*
@@ -317,8 +322,8 @@ struct mps_l3_ccs_out
 
 struct mps_l3_hs_in_internal
 {
-    mbedtls_mps_epoch_id epoch; /*!< The epoch used to protect
-                                 *   the handshake message.                  */
+    /*!< The epoch used to protect the handshake message. */
+    mbedtls_mps_stored_epoch_id epoch;
     mps_l3_hs_state state;      /*!< Indicates if the incoming message
                                  *   is currently being paused or not.       */
 
@@ -349,7 +354,7 @@ struct mps_l3_hs_in_internal
 struct mps_l3_hs_out_internal
 {
     /*!< The epoch used to protect the handshake message. */
-    mbedtls_mps_epoch_id epoch;
+    mbedtls_mps_stored_epoch_id epoch;
 
     /*! Indicates if the outgoing message is currently being paused or not. */
     mps_l3_hs_state state;
@@ -438,7 +443,8 @@ struct mps_l3
 
         /* Raw record data. */
 
-        mbedtls_mps_epoch_id epoch; /*!< Epoch of current incoming message.  */
+        /*! Epoch of current incoming message.  */
+        mbedtls_mps_stored_epoch_id epoch;
         mbedtls_reader *raw_in; /*!< Reader providing raw access to incoming
                                  *   data of the type indicated by \c state
                                  *   (including headers in case of handshake

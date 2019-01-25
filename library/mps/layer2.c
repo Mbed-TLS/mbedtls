@@ -105,7 +105,12 @@ static int l2_epoch_check( mbedtls_mps_l2 *ctx,
                            mbedtls_mps_epoch_id epoch,
                            uint8_t purpose );
 
-/* Lookup the transform associated to an epoch. */
+/* Lookup the transform associated to an epoch.
+ *
+ * The epoch ID is fully untrusted (this function is called
+ * as part of replay protection for not yet authenticated
+ * records).
+ */
 static int l2_epoch_lookup( mbedtls_mps_l2 *ctx,
                             mbedtls_mps_epoch_id epoch_id,
                             mbedtls_mps_l2_epoch_t **epoch );

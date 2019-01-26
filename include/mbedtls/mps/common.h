@@ -89,6 +89,15 @@
  */
 #define MBEDTLS_MPS_ASSERT
 
+/*! This flag determines whether MPS should perform sanity
+ *  checks on the data returned by the record protection API.
+ *
+ *  MPS Layer 2 doesn't control the actual record protection
+ *  but only interfaces with it through the API defined in
+ *  transform.h.
+ */
+//#define MBEDTLS_MPS_TRANSFORM_VALIDATION
+
 /*! This flag controls whether tracing for MPS should be enabled. */
 //#define MBEDTLS_MPS_TRACE
 

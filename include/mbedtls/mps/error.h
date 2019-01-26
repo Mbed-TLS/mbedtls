@@ -86,6 +86,7 @@
 #define MPS_ERR_EPOCH_OVERFLOW         -0xa  /*!< The epoch under consideration exceeds the
                                               *   current epoch window.                    */
 #define MPS_ERR_CONTINUE_PROCESSING    -0x123
+#define MPS_ERR_BAD_TRANSFORM          -0x124
 
 /*
  * Error codes

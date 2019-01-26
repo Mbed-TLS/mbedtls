@@ -599,6 +599,7 @@ static int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
                              &pre_expansion,
                              &post_expansion );
 
+#if defined(MBEDTLS_MPS_TRANSFORM_VALIDATION)
     /* Check for overflow */
     overflow = 0;
     overflow |= ( hdr_len + pre_expansion < hdr_len );
@@ -608,8 +609,9 @@ static int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
     {
         TRACE( trace_comment, "INTERNAL ERROR on pre- and postexpansion, len %u, pre-expansion %u, post-expansion %u",
                (unsigned) hdr_len, (unsigned) pre_expansion, (unsigned) post_expansion );
-        RETURN( MPS_ERR_INTERNAL_ERROR );
+        RETURN( MPS_ERR_BAD_TRANSFORM );
     }
+#endif /* MBEDTLS_MPS_TRANSFORM_VALIDATION */
 
     /* Check if buffer obtained from Layer 1 is large enough to accomodate
      * at least a protected record with plaintext length 1. */
@@ -746,6 +748,7 @@ static int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
             RETURN( ret );
         }
 
+#if defined(MBEDTLS_MPS_TRANSFORM_VALIDATION)
         /* Double-check that we have calculated the offset of the
          * plaintext buffer from the ciphertext buffer correctly
          * when preparing the outgoing record.
@@ -754,8 +757,9 @@ static int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
         {
             TRACE( trace_error, "Get non-zero ciphertext offset %u after encryption.",
                    (unsigned) rec.buf.data_offset );
-            RETURN( MPS_ERR_INTERNAL_ERROR );
+            RETURN( MPS_ERR_BAD_TRANSFORM );
         }
+#endif /* MBEDTLS_MPS_TRANSFORM_VALIDATION */
 
         /* Step 3: Write version- and mode-specific header and send record. */
         ret = l2_out_write_protected_record( ctx, &rec );

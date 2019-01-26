@@ -47,13 +47,13 @@
  *  In addition to state integrity, all MPS structures have a more refined
  *  notion of abstract state that the API operates on. For example, all layers
  *  have a notion of 'abtract read state' which indicates if incoming data has
- *  been requested by the user, e.g. through mps_l2_read_start() for Layer 2
+ *  been passed to the user, e.g. through mps_l2_read_start() for Layer 2
  *  or mps_l3_read() in Layer 3. After such a call, it doesn't make sense to
  *  call these reading functions again until the incoming data has been
  *  explicitly 'consumed', e.g. through mps_l2_read_consume() for Layer 2 or
  *  mps_l3_read_consume() on Layer 3. However, even if it doesn't make sense,
  *  it's a design choice whether the API should fail gracefully on such
- *  non-sensical calls or not, which is what this option is about.
+ *  non-sensical calls or not, and that's what this option is about:
  *
  *  This option determines whether the expected abstract state
  *  is part of the API preconditions or not. If it is, the function's
@@ -70,6 +70,24 @@
  *  Comment this to remove state validation.
  */
 //#define MBEDTLS_MPS_STATE_VALIDATION
+
+/*! This flag enables/disables assertions on the internal state of MPS.
+ *
+ *  Assertions are sanity checks that should never trigger when MPS
+ *  is used within the bounds of its API and preconditions.
+ *
+ *  Enabling this increases security by limiting the scope of
+ *  potential bugs, but comes at the cost of increased code size.
+ *
+ *  At the time of writing (Jan '19), assertions increase
+ *  the code size by ~160 bytes.
+ *
+ *  Note: So far, there is no guiding principle as to what
+ *  expected conditions merit an assertion, and which don't.
+ *
+ *  Comment this to disable assertions.
+ */
+#define MBEDTLS_MPS_ASSERT
 
 /*! This flag controls whether tracing for MPS should be enabled. */
 //#define MBEDTLS_MPS_TRACE

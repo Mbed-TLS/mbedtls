@@ -407,12 +407,16 @@ static int mps_retransmission_timer_stop( mbedtls_mps *mps )
 {
     void*                     const timer_ctx = mps->conf.p_timer;
     mbedtls_mps_set_timer_t * const set_timer = mps->conf.f_set_timer;
+    TRACE_INIT( "mps_retransmission_timer_stop" );
 
     if( set_timer == NULL )
-        return( 0 );
+    {
+        TRACE( trace_comment, "No timer configured" );
+        RETURN( 0 );
+    }
 
     set_timer( timer_ctx, 0, 0 );
-    return( 0 );
+    RETURN( 0 );
 }
 
 static int mps_retransmission_timer_check( mbedtls_mps *mps )

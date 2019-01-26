@@ -173,7 +173,7 @@ static int l2_in_update_counter( mbedtls_mps_l2 *ctx,
                                  uint32_t ctr_lo );
 
 static int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
-                                          uint16_t epoch_id,
+                                          mbedtls_mps_l2_epoch_t *epoch,
                                           uint32_t *dst_ctr );
 
 /*
@@ -713,25 +713,25 @@ static int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
         /* Step 1: Prepare the record header structure. */
 
         /* TODO: Handle the case where the version hasn't been set yet! */
-
         rec.major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
         rec.minor_ver = ctx->conf.version;
         rec.buf       = ctx->out.payload;
         rec.epoch     = ctx->out.writer.epoch;
         rec.type      = ctx->out.writer.type;
-        l2_out_get_and_update_rec_seq( ctx, rec.epoch, rec.ctr );
 
         TRACE( trace_comment, "Record header fields:" );
         TRACE( trace_comment, "* Sequence number: %u", (unsigned) rec.ctr   );
         TRACE( trace_comment, "* Epoch:           %u", (unsigned) rec.epoch );
         TRACE( trace_comment, "* Type:            %u", (unsigned) rec.type  );
 
-        ret = l2_epoch_lookup( ctx, ctx->out.writer.epoch, &epoch );
+        ret = l2_epoch_lookup( ctx, rec.epoch, &epoch );
         if( ret != 0 )
         {
             TRACE( trace_comment, "Epoch lookup failed" );
             RETURN( ret );
         }
+
+        l2_out_get_and_update_rec_seq( ctx, epoch, rec.ctr );
 
         /* TLS-1.3-NOTE: Add TLSPlaintext header, incl. padding. */
 
@@ -2162,19 +2162,15 @@ static int l2_tls_in_get_epoch_and_counter( mbedtls_mps_l2 *ctx,
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
 static int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
-                                          uint16_t epoch_id,
+                                          mbedtls_mps_l2_epoch_t *epoch,
                                           uint32_t *dst_ctr )
 {
-    int ret;
     uint32_t *src_ctr;
-    mbedtls_mps_l2_epoch_t *epoch;
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode = ctx->conf.mode;
+#else
+    ((void) ctx);
 #endif
-
-    ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
-    if( ret != 0 )
-        return( ret );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     if( MBEDTLS_MPS_IS_TLS( mode ) )

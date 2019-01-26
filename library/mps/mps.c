@@ -460,7 +460,7 @@ exit:
 
 static int mps_check_retransmit( mbedtls_mps *mps )
 {
-    int ret = 0;
+    int ret;
     mbedtls_mps_retransmit_state_t state = mps->dtls.retransmit_state;
 
     if( state == MBEDTLS_MPS_RETRANSMIT_NONE )
@@ -468,8 +468,15 @@ static int mps_check_retransmit( mbedtls_mps *mps )
 
     if( state == MBEDTLS_MPS_RETRANSMIT_RESEND )
         ret = mps_retransmit_out( mps );
-    else /* if ( state ==  MBEDTLS_MPS_RETRANSMIT_REQUEST_RESEND ) */
+    else
+#if defined(MBEDTLS_MPS_ASSERT)
+    if( state ==  MBEDTLS_MPS_RETRANSMIT_REQUEST_RESEND )
+#endif /* MBEDTLS_MPS_ASSERT */
         ret = mps_request_resend( mps );
+#if defined(MBEDTLS_MPS_ASSERT)
+    else
+        return( MPS_ERR_INTERNAL_ERROR );
+#endif /* MBEDTLS_MPS_ASSERT */
     MPS_CHK( ret );
 
     mps->dtls.retransmit_state = MBEDTLS_MPS_RETRANSMIT_NONE;

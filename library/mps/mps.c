@@ -516,22 +516,25 @@ static int mps_prepare_read( mbedtls_mps *mps )
     }
 
     /* Layer 4 forbids reading while writing. */
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( mps->out.state != MBEDTLS_MPS_MSG_NONE )
     {
-        TRACE( trace_error, "Refuse to start reading while writing message of content type %u is in progress",
-               (unsigned) mps->out.state );
-        RETURN( MPS_ERR_INTERNAL_ERROR );
+        TRACE( trace_error, "Refuse to start reading while writing message." );
+        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
     if( MBEDTLS_MPS_IS_DTLS( mode ) )
     {
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
         /* Reject read requests when sending flights. */
         if( mps->dtls.state == MBEDTLS_MPS_FLIGHT_SEND )
         {
             TRACE( trace_error, "Refuse read request when sending flights." );
             MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
         }
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
         /* Check if the timer expired, and take appropriate action
          * (e.g. start a retransmission or send a retransmission
@@ -585,12 +588,14 @@ static int mps_prepare_write( mbedtls_mps *mps,
     if( ret != 0 )
         RETURN( ret );
 
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( mps->out.state != MBEDTLS_MPS_MSG_NONE )
     {
         TRACE( trace_error, "Write port %u already open",
                (unsigned) mps->out.state );
-        MPS_CHK( MBEDTLS_MPS_ERROR_INTERNAL_ERROR );
+        MPS_CHK( MPS_ERR_UNEXPECTED_OPERATION );
     }
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     /* If a flush is pending, ensure that all outgoing data
      * gets delivered before allowing the next write request. */
@@ -602,6 +607,7 @@ static int mps_prepare_write( mbedtls_mps *mps,
          * Note that this does not apply to fatal alerts:
          * those are sent through mbedtls_mps_send_fatal()
          * which does not call this function. */
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
         if( MBEDTLS_MPS_FLIGHT_STATE_EITHER_OR( mps->dtls.state,
                                                 MBEDTLS_MPS_FLIGHT_AWAIT,
                                                 MBEDTLS_MPS_FLIGHT_RECEIVE ) )
@@ -610,6 +616,7 @@ static int mps_prepare_write( mbedtls_mps *mps,
                    (unsigned) mps->dtls.state );
             MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
         }
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
         /* In state #MBEDTLS_MPS_FLIGHT_FINALIZE, check if
          * the timer has expired and we can wrapup the flight-exchange. */
@@ -2539,8 +2546,10 @@ int mbedtls_mps_read_handshake( mbedtls_mps *mps,
     if( ret != 0 )
         RETURN( ret );
 
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( mps->in.state != MBEDTLS_MPS_MSG_HS )
-        MPS_CHK( MBEDTLS_ERR_MPS_PORT_NOT_ACTIVE );
+        MPS_CHK( MPS_ERR_UNEXPECTED_OPERATION );
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     if( MBEDTLS_MPS_IS_TLS( mode ) )
@@ -2570,13 +2579,14 @@ int mbedtls_mps_read_application( mbedtls_mps *mps,
                                   mbedtls_reader **rd )
 {
     int ret;
-
     ret = mps_check_read( mps );
     if( ret != 0 )
         return( ret );
 
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( mps->in.state != MBEDTLS_MPS_MSG_APP )
-        return( MBEDTLS_ERR_MPS_PORT_NOT_ACTIVE );
+        return( MPS_ERR_UNEXPECTED_OPERATION );
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     *rd = mps->in.data.app;
     return( 0 );
@@ -2591,8 +2601,10 @@ int mbedtls_mps_read_alert( mbedtls_mps const *mps,
     if( ret != 0 )
         return( ret );
 
-    if( mps->in.state != MBEDTLS_MPS_MSG_APP )
-        return( MBEDTLS_ERR_MPS_PORT_NOT_ACTIVE );
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
+    if( mps->in.state != MBEDTLS_MPS_MSG_ALERT )
+        return( MPS_ERR_UNEXPECTED_OPERATION );
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     *alert_type = mps->in.data.alert;
     return( 0 );
@@ -2604,15 +2616,21 @@ int mbedtls_mps_read_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags )
     mbedtls_mps_transport_type mode = mps->conf.mode;
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
-        return( MPS_ERR_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_PROTO_TLS */
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
+    if( mps->out.state == MBEDTLS_MPS_MSG_NONE )
+        return( MPS_ERR_UNEXPECTED_OPERATION );
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
-    if( mps->in.state == MBEDTLS_MPS_MSG_NONE )
-        return( MPS_ERR_INTERNAL_ERROR );
+    /* The logic layer may call this function even for TLS,
+     * in which case it does nothing. That's to prevent the
+     * handshake logic code to be cluttered with TLS vs. DTLS
+     * distinctions. */
 
-    mps->in.flags = flags;
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+        mps->in.flags = flags;
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
+
     return( 0 );
 }
 
@@ -2623,12 +2641,14 @@ int mbedtls_mps_read_pause( mbedtls_mps *mps )
     mbedtls_mps_transport_type mode = mps->conf.mode;
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
+    if( mps->in.state != MBEDTLS_MPS_MSG_HS )
+        return( MPS_ERR_UNEXPECTED_OPERATION );
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+
     ret = mps_check_read( mps );
     if( ret != 0 )
         return( ret );
-
-    if( mps->in.state != MBEDTLS_MPS_MSG_HS )
-        return( MBEDTLS_ERR_MPS_PORT_NOT_ACTIVE );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     if( MBEDTLS_MPS_IS_TLS( mode ) )
@@ -2658,6 +2678,11 @@ int mbedtls_mps_read_consume( mbedtls_mps *mps )
     mbedtls_mps_transport_type mode = mps->conf.mode;
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
     TRACE_INIT( "mbedtls_mps_read_consume" );
+
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
+    if( mps->in.state == MBEDTLS_MPS_MSG_NONE )
+        return( MPS_ERR_UNEXPECTED_OPERATION );
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     ret = mps_check_read( mps );
     if( ret != 0 )
@@ -2739,15 +2764,21 @@ int mbedtls_mps_write_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags )
     mbedtls_mps_transport_type mode = mps->conf.mode;
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
-        return( MPS_ERR_INTERNAL_ERROR );
-#endif /* MBEDTLS_MPS_PROTO_TLS */
-
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( mps->out.state == MBEDTLS_MPS_MSG_NONE )
-        return( MPS_ERR_INTERNAL_ERROR );
+        return( MPS_ERR_UNEXPECTED_OPERATION );
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
-    mps->dtls.outgoing.flags = flags;
+    /* The logic layer may call this function even for TLS,
+     * in which case it does nothing. That's to prevent the
+     * handshake logic code to be cluttered with TLS vs. DTLS
+     * distinctions. */
+
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+        mps->dtls.outgoing.flags = flags;
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
+
     return( 0 );
 }
 

@@ -499,6 +499,15 @@ static int mps_prepare_read( mbedtls_mps *mps )
     if( ret != 0 )
         RETURN( ret );
 
+    /* Note: In contrast to many other state checks, we deliberately
+     * tolerate calling mps_read() while a message is already open.
+     * This is used when it's not clear which handshake message to
+     * expect next: In this case, the state coordination function can
+     * peek at the next message's content and call the corresonding
+     * handler, which in turn doesn't need to know that the message
+     * has already been opened and may call mps_read() again instead,
+     * like any other handler function for states where the next
+     * expected message is unambiguous. */
     if( mps->in.state != MBEDTLS_MPS_MSG_NONE )
     {
         TRACE( trace_comment, "Message of type %d already open",

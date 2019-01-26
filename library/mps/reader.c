@@ -324,15 +324,18 @@ int mbedtls_reader_get( mbedtls_reader *rd, size_t desired,
 
 int mbedtls_reader_commit( mbedtls_reader *rd )
 {
-    unsigned char *frag, *acc;
+    unsigned char *acc;
     size_t aa, end, fo, shift;
     TRACE_INIT( "reader_commit" );
 
     /* Check that the reader is in consuming mode. */
-    frag = rd->frag;
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( frag == NULL )
-        RETURN( MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
+    {
+        unsigned char *frag;
+        frag = rd->frag;
+        if( frag == NULL )
+            RETURN( MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
+    }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     acc = rd->acc;

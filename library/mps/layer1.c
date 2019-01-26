@@ -795,15 +795,15 @@ static inline
 int l1_consume_dgram( mps_l1_dgram_read *p )
 {
     int ret;
-    unsigned char *buf;
     size_t wl, wb, ml;
 
     TRACE_INIT( "l1_consume_dgram" );
-
-    buf = p->buf;
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( buf == NULL )
-        return( MPS_ERR_UNEXPECTED_OPERATION );
+    {
+        unsigned char * const buf = p->buf;
+        if( buf == NULL )
+            return( MPS_ERR_UNEXPECTED_OPERATION );
+    }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     wb = p->window_base;
@@ -910,15 +910,16 @@ static inline
 int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len, size_t *pending )
 {
     size_t bl, br;
-    unsigned char *buf;
     TRACE_INIT( "l1_dispatch_dgram, length %u", (unsigned) len );
 
-    buf = p->buf;
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
-    if( buf == NULL )
     {
-        TRACE( trace_error, "No outgoing datagram open." );
-        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+        unsigned char * const buf = p->buf;
+        if( buf == NULL )
+        {
+            TRACE( trace_error, "No outgoing datagram open." );
+            RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+        }
     }
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 

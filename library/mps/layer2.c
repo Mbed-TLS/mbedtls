@@ -35,9 +35,6 @@ static int trace_id = TRACE_BIT_LAYER_2;
 static void l2_out_write_version( int major, int minor,
                                   mbedtls_mps_transport_type transport,
                                   unsigned char ver[2] );
-static void l2_read_version( int *major, int *minor,
-                             mbedtls_mps_transport_type transport,
-                             const unsigned char ver[2] );
 
 /* Reading related */
 static int l2_in_fetch_record( mbedtls_mps_l2 *ctx, mps_rec *rec );
@@ -47,6 +44,33 @@ static int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx,
                                              mps_rec *rec );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
+/* \brief This function fetches and validates a DTLS 1.2 record header
+ *        from the underlying Layer 1 and writes it into the provided
+ *        record structure.
+ *
+ * \return  \c 0 on success.
+ * \return  #MPS_ERR_INVALID_RECORD if the record is invalid
+ *          for one of the following reasons:
+ *          - The epoch is not a valid epoch for incoming records.
+ *          - The record content type is not valid.
+ *          - The length field in the record header exceeds the
+ *            configured maximum record size.
+ *          - The datagram didn't contain as much data after
+ *            the record header as indicated in the record
+ *            header length field.
+ *          - There wasn't enough space remaining in the datagram
+ *            to load a DTLS 1.2 record header.
+ *          - The record sequence number has been seen before,
+ *            so the record is likely duplicated / replayed.
+ * \return  #MPS_ERR_WANT_READ if the underlying Layer 1
+ *          context has no data ready to be read.
+ * \return  Another error code on other kinds of failure.
+ *          The Layer 2 context must not be used anymore
+ *          in this case.
+ *
+ * \warning \p rec may be tainted on any kind of failure, even the
+ *          non-fatal ones, and \p rec must not be read in this case.
+ */
 static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
                                                 mps_rec *rec );
 static int l2_handle_invalid_record( mbedtls_mps_l2 *ctx, int ret );
@@ -195,33 +219,26 @@ static void l2_out_write_version( int major, int minor,
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 }
 
-static void l2_read_version( int *major, int *minor,
-                             mbedtls_mps_transport_type transport,
-                             const unsigned char ver[2] )
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+static void l2_read_version_tls( uint8_t *major, uint8_t *minor,
+                                       const unsigned char ver[2] )
 {
-#if !defined(MBEDTLS_MPS_PROTO_BOTH)
-    ((void) transport);
-#endif
+    *major = ver[0];
+    *minor = ver[1];
+}
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( transport ) )
-    {
-        *major = 255 - ver[0] + 2;
-        *minor = 255 - ver[1] + 1;
+static void l2_read_version_dtls( uint8_t *major, uint8_t *minor,
+                                  const unsigned char ver[2] )
+{
+    *major = 255 - ver[0] + 2;
+    *minor = 255 - ver[1] + 1;
 
-        if( *minor == MBEDTLS_SSL_MINOR_VERSION_1 )
-            ++*minor; /* DTLS 1.0 stored as TLS 1.1 internally */
-    }
-#endif /* MBEDTLS_MPS_PROTO_DTLS */
-
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( transport ) )
-    {
-        *major = ver[0];
-        *minor = ver[1];
-    }
-#endif
+    if( *minor == MBEDTLS_SSL_MINOR_VERSION_1 )
+        ++*minor; /* DTLS 1.0 stored as TLS 1.1 internally */
 }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 static void mps_l2_readers_init( mbedtls_mps_l2 *ctx )
 {
@@ -1949,7 +1966,7 @@ static int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
     const size_t tls_rec_len_offset  = 3;
 
     /* Record fields */
-    int minor_ver, major_ver;
+    uint8_t minor_ver, major_ver;
     mbedtls_mps_msg_type_t type;
     uint16_t len;
 
@@ -1976,9 +1993,8 @@ static int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
     }
 
     /* Version */
-    l2_read_version( &major_ver, &minor_ver,
-                     MBEDTLS_MPS_MODE_STREAM,
-                     buf + tls_rec_ver_offset );
+    l2_read_version_tls( &major_ver, &minor_ver,
+                         buf + tls_rec_ver_offset );
 
     if( major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 )
     {
@@ -2216,9 +2232,9 @@ static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
     size_t const dtls_rec_seq_offset   = 5;
     size_t const dtls_rec_len_offset   = 11;
 
-    /* Record fields */
+    /* Temporaries for record fields. */
     uint8_t  type;
-    int      minor_ver, major_ver;
+    uint8_t  minor_ver, major_ver;
     uint16_t epoch;
     uint32_t seq_nr[2];
     uint16_t len;
@@ -2235,6 +2251,17 @@ static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
 
     /*
      * Read and validate header fields
+     *
+     * We write individual header fields as soon as they have
+     * been validated, even if the validation of the rest of
+     * the header might still fail. This behavior is deliberate
+     * and documented, and reduces code size by keeping the
+     * usage scope of variables small.
+     *
+     * On the other hand, avoiding the temporaries by working
+     * directly on the target structure is considered bad style
+     * because, in theory, a different thread might tamper with
+     * the target structure during or after validation.
      */
 
     /* Record content type */
@@ -2244,24 +2271,17 @@ static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
         TRACE( trace_error, "Invalid record type received" );
         RETURN( MPS_ERR_INVALID_RECORD );
     }
+    rec->type = type;
 
     /* Version */
-    l2_read_version( &major_ver, &minor_ver,
-                     MBEDTLS_MPS_MODE_DATAGRAM,
-                     buf + dtls_rec_ver_offset );
-
+    l2_read_version_dtls( &major_ver, &minor_ver,
+                          buf + dtls_rec_ver_offset );
     if( major_ver != MBEDTLS_SSL_MAJOR_VERSION_3 )
     {
         TRACE( trace_error, "Invalid major record version %u received, expected %u",
                (unsigned) major_ver, MBEDTLS_SSL_MAJOR_VERSION_3 );
         RETURN( MPS_ERR_INVALID_RECORD );
     }
-
-    /* Initially, the server doesn't know which DTLS version
-     * the client will use for its ClientHello message, so
-     * Layer 2 must be configurable to allow arbitrary TLS
-     * versions. This is done through the initial version
-     * value MPS_L2_VERSION_UNSPECIFIED. */
     if( ctx->conf.version != MPS_L2_VERSION_UNSPECIFIED &&
         ctx->conf.version != minor_ver )
     {
@@ -2269,15 +2289,17 @@ static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
                (unsigned) minor_ver, ctx->conf.version );
         RETURN( MPS_ERR_INVALID_RECORD );
     }
+    rec->major_ver = major_ver;
+    rec->minor_ver = minor_ver;
 
     /* Epoch */
     MPS_READ_UINT16_LE( buf + dtls_rec_epoch_offset, &epoch );
-
     ret = l2_epoch_check( ctx, epoch, MPS_EPOCH_READ );
     if( ret == MPS_ERR_INVALID_EPOCH )
         ret = MPS_ERR_INVALID_RECORD;
-    if( ret != 0 )
+    if ( ret != 0 )
         RETURN( ret );
+    rec->epoch = epoch;
 
     /* Record sequence number */
     MPS_READ_UINT16_LE( buf + dtls_rec_seq_offset,     &seq_nr[0] );
@@ -2287,6 +2309,8 @@ static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
         TRACE( trace_error, "Replayed record -- ignore" );
         RETURN( MPS_ERR_REPLAYED_RECORD );
     }
+    rec->ctr[0] = seq_nr[0];
+    rec->ctr[1] = seq_nr[1];
 
     /* Length */
     MPS_READ_UINT16_LE( buf + dtls_rec_len_offset, &len );
@@ -2298,37 +2322,24 @@ static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
     /*
      * Read record contents from Layer 1
      */
-    ret = mps_l1_fetch( ctx->conf.l1, &buf,
-                        dtls_rec_hdr_len + len );
+
+    ret = mps_l1_fetch( ctx->conf.l1, &buf, dtls_rec_hdr_len + len );
 
     if( ret == MPS_ERR_REQUEST_OUT_OF_BOUNDS )
     {
         TRACE( trace_error, "Claimed record length exceeds datagram bounds." );
         ret = MPS_ERR_INVALID_RECORD;
     }
-
     if( ret != 0 )
         RETURN( ret );
-
-    /*
-     * 3. Fill record struct
-     */
-
-    rec->type      = type;
-    rec->major_ver = major_ver;
-    rec->minor_ver = minor_ver;
-    rec->epoch     = epoch;
-    rec->ctr[0]    = seq_nr[0];
-    rec->ctr[1]    = seq_nr[1];
-
-    TRACE( trace_comment, "* Record epoch:  %u", (unsigned) rec->epoch );
-    TRACE( trace_comment, "* Record number: %u", (unsigned) rec->ctr );
 
     rec->buf.buf         = buf + dtls_rec_hdr_len;
     rec->buf.buf_len     = len;
     rec->buf.data_offset = 0;
     rec->buf.data_len    = len;
 
+    TRACE( trace_comment, "* Record epoch:  %u", (unsigned) rec->epoch );
+    TRACE( trace_comment, "* Record number: %u", (unsigned) rec->ctr );
     RETURN( 0 );
 }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */

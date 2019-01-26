@@ -202,12 +202,13 @@ static int mps_dtls_frag_out_bind( mbedtls_mps *mps );
  * a retransmission.
  */
 
-#define MPS_PAUSED_HS_FORBIDDEN 0
-#define MPS_PAUSED_HS_ALLOWED   1
 
 static int mps_prepare_read( mbedtls_mps *mps );
 static int mps_prepare_write( mbedtls_mps *mps,
                               uint8_t allow_paused_hs );
+
+#define MPS_PAUSED_HS_FORBIDDEN 0
+#define MPS_PAUSED_HS_ALLOWED   1
 static int mps_clear_pending( mbedtls_mps *mps, uint8_t allow_paused_hs );
 
 /*

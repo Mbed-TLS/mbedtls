@@ -786,8 +786,8 @@ static void mps_bitmask_set( unsigned char *mask, size_t first_bit,
  */
 static int mps_bitmask_check( unsigned char *mask, size_t len )
 {
-    /* This function assumes that mask points to a bitmask of length
-     * len / 8 + 1 Bytes, even if len % 8 == 0. */
+    /* This function assumes that `mask` points to a bitmask of length
+     * `len / 8 + 1` Bytes, even if `len % 8 == 0`. */
     size_t byte_len = len / 8 + 1;
     while( byte_len != 0 )
     {

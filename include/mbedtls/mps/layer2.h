@@ -455,7 +455,7 @@ struct mbedtls_mps_l2_config
                                    *   the PRNG, or is stored elsewhere.      */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    uint64_t badmac_limit;        /*!< Determines how many records with bad MAC
+    uint32_t badmac_limit;        /*!< Determines how many records with bad MAC
                                    *   are silently tolerated before an error
                                    *   is raised. Possible values are:
                                    *   - \c 0: Records with bad MAC are always
@@ -745,7 +745,7 @@ struct mbedtls_mps_l2
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-        uint64_t bad_mac_ctr; /* The number of records with bad MAC that have
+        uint32_t bad_mac_ctr; /* The number of records with bad MAC that have
                                * been received so far. DTLS only. */
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 

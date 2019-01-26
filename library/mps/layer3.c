@@ -1484,11 +1484,11 @@ static int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs )
         RETURN( MPS_ERR_INTERNAL_ERROR );
     }
 
-    MPS_L3_WRITE_UINT8_LE ( buf + dtls_hs_type_offset, &hs->type   );
-    MPS_L3_WRITE_UINT24_LE( buf + dtls_hs_len_offset,  &hs->len    );
-    MPS_L3_WRITE_UINT16_LE( buf + dtls_hs_seq_offset,  &hs->seq_nr );
-    MPS_L3_WRITE_UINT24_LE( buf + dtls_hs_frag_off_offset,  &hs->frag_offset );
-    MPS_L3_WRITE_UINT24_LE( buf + dtls_hs_frag_len_offset,  &hs->frag_len    );
+    MPS_WRITE_UINT8_LE ( &hs->type,        buf + dtls_hs_type_offset     );
+    MPS_WRITE_UINT24_LE( &hs->len,         buf + dtls_hs_len_offset      );
+    MPS_WRITE_UINT16_LE( &hs->seq_nr,      buf + dtls_hs_seq_offset      );
+    MPS_WRITE_UINT24_LE( &hs->frag_offset, buf + dtls_hs_frag_off_offset );
+    MPS_WRITE_UINT24_LE( &hs->frag_len,    buf + dtls_hs_frag_len_offset );
 
     TRACE( trace_comment, "Wrote DTLS handshake header" );
     TRACE( trace_comment, "* Type:        %u", (unsigned) hs->type        );

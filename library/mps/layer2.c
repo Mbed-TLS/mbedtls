@@ -2340,7 +2340,8 @@ static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
     rec->buf.data_len    = len;
 
     TRACE( trace_comment, "* Record epoch:  %u", (unsigned) rec->epoch );
-    TRACE( trace_comment, "* Record number: %u", (unsigned) rec->ctr );
+    TRACE( trace_comment, "* Record number: ( %u << 32 ) + %u",
+           (unsigned) rec->ctr[0], (unsigned) rec->ctr[1] );
     RETURN( 0 );
 }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */

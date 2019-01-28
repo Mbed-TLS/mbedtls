@@ -442,7 +442,6 @@ typedef struct mbedtls_oid_descriptor_t
  */
 int mbedtls_oid_get_numeric_string( char *buf, size_t size, const mbedtls_asn1_buf *oid );
 
-#if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)
 /**
  * \brief          Translate an X.509 extension OID into local values
  *
@@ -452,7 +451,6 @@ int mbedtls_oid_get_numeric_string( char *buf, size_t size, const mbedtls_asn1_b
  * \return         0 if successful, or MBEDTLS_ERR_OID_NOT_FOUND
  */
 int mbedtls_oid_get_x509_ext_type( const mbedtls_asn1_buf *oid, int *ext_type );
-#endif
 
 /**
  * \brief          Translate an X.509 attribute type OID into the short name

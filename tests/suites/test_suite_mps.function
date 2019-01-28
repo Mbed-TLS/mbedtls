@@ -2283,40 +2283,6 @@ exit:
 /* END_CASE */
 
 /* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
-void mbedtls_mps_writer_feed_empty( int option )
-{
-    unsigned char buf[100];
-    unsigned char *tmp;
-    mbedtls_writer wr;
-    for( int i=0; (unsigned) i < sizeof( buf ); i++ )
-        buf[i] = (unsigned char) i;
-
-    /* Provisioning (lower layer) */
-    mbedtls_writer_init( &wr, NULL, 0 );
-    switch( option )
-    {
-        case 0: /* NULL buffer */
-            TEST_ASSERT( mbedtls_writer_feed( &wr, NULL, 0 ) ==
-                         MBEDTLS_ERR_WRITER_INVALID_ARG );
-            break;
-
-        default:
-            TEST_ASSERT( 0 );
-            break;
-    }
-    /* Subsequent feed-calls should still succeed. */
-    TEST_ASSERT( mbedtls_writer_feed( &wr, buf, sizeof( buf ) ) == 0 );
-    /* Producing (upper layer) */
-    TEST_ASSERT( mbedtls_writer_get( &wr, 100, &tmp, NULL ) == 0 );
-    TEST_ASSERT( memcmp( tmp, buf, 100 ) == 0 );
-    TEST_ASSERT( mbedtls_writer_commit( &wr ) == 0 );
-    /* Wrapup */
-    TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) == 0 );
-    mbedtls_writer_free( &wr );
-}
-/* END_CASE */
-
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
 void mbedtls_mps_writer_no_queueing_single_step_single_round( int with_queue )
 {
     /* The most basic use case: lower layer provides space

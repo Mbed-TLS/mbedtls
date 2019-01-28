@@ -768,14 +768,14 @@ int transform_encrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec,
         rec_alt.data_len = rec->buf.data_len;
         rec_alt.data_offset = rec->buf.data_offset;
         rec_alt.type = rec->type;
-        rec_alt.ctr[0] = ( rec->ctr >> 56 ) & 0xFF;
-        rec_alt.ctr[1] = ( rec->ctr >> 48 ) & 0xFF;
-        rec_alt.ctr[2] = ( rec->ctr >> 40 ) & 0xFF;
-        rec_alt.ctr[3] = ( rec->ctr >> 32 ) & 0xFF;
-        rec_alt.ctr[4] = ( rec->ctr >> 24 ) & 0xFF;
-        rec_alt.ctr[5] = ( rec->ctr >> 16 ) & 0xFF;
-        rec_alt.ctr[6] = ( rec->ctr >>  8 ) & 0xFF;
-        rec_alt.ctr[7] = ( rec->ctr >>  0 ) & 0xFF;
+        rec_alt.ctr[0] = ( rec->ctr[1] >> 24 ) & 0xFF;
+        rec_alt.ctr[1] = ( rec->ctr[1] >> 16 ) & 0xFF;
+        rec_alt.ctr[2] = ( rec->ctr[1] >>  8 ) & 0xFF;
+        rec_alt.ctr[3] = ( rec->ctr[1] >>  0 ) & 0xFF;
+        rec_alt.ctr[4] = ( rec->ctr[0] >> 24 ) & 0xFF;
+        rec_alt.ctr[5] = ( rec->ctr[0] >> 16 ) & 0xFF;
+        rec_alt.ctr[6] = ( rec->ctr[0] >>  8 ) & 0xFF;
+        rec_alt.ctr[7] = ( rec->ctr[0] >>  0 ) & 0xFF;
         write_version( rec->major_ver, rec->minor_ver,
                        MBEDTLS_MPS_MODE_STREAM, &rec_alt.ver[0] );
 
@@ -879,14 +879,14 @@ int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
         rec_alt.data_len = rec->buf.data_len;
         rec_alt.data_offset = rec->buf.data_offset;
         rec_alt.type = rec->type;
-        rec_alt.ctr[0] = ( rec->ctr >> 56 ) & 0xFF;
-        rec_alt.ctr[1] = ( rec->ctr >> 48 ) & 0xFF;
-        rec_alt.ctr[2] = ( rec->ctr >> 40 ) & 0xFF;
-        rec_alt.ctr[3] = ( rec->ctr >> 32 ) & 0xFF;
-        rec_alt.ctr[4] = ( rec->ctr >> 24 ) & 0xFF;
-        rec_alt.ctr[5] = ( rec->ctr >> 16 ) & 0xFF;
-        rec_alt.ctr[6] = ( rec->ctr >>  8 ) & 0xFF;
-        rec_alt.ctr[7] = ( rec->ctr >>  0 ) & 0xFF;
+        rec_alt.ctr[0] = ( rec->ctr[1] >> 24 ) & 0xFF;
+        rec_alt.ctr[1] = ( rec->ctr[1] >> 16 ) & 0xFF;
+        rec_alt.ctr[2] = ( rec->ctr[1] >>  8 ) & 0xFF;
+        rec_alt.ctr[3] = ( rec->ctr[1] >>  0 ) & 0xFF;
+        rec_alt.ctr[4] = ( rec->ctr[0] >> 24 ) & 0xFF;
+        rec_alt.ctr[5] = ( rec->ctr[0] >> 16 ) & 0xFF;
+        rec_alt.ctr[6] = ( rec->ctr[0] >>  8 ) & 0xFF;
+        rec_alt.ctr[7] = ( rec->ctr[0] >>  0 ) & 0xFF;
         write_version( rec->major_ver, rec->minor_ver,
                        MBEDTLS_MPS_MODE_STREAM, &rec_alt.ver[0] );
 
@@ -970,11 +970,9 @@ int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
     if( rec->buf.data_len < sizeof( rec->ctr ) )
         return( MPS_ERR_INVALID_MAC );
 
-    memcpy( &ctr, rec->buf.buf + rec->buf.data_offset, sizeof( rec->ctr ) );
-    if( ctr != rec->ctr )
+    if( memcmp( rec->buf.buf + rec->buf.data_offset, rec->ctr,
+                sizeof( rec->ctr ) ) != 0 )
     {
-        printf( "Sequence number mismatch: Expected %u, got %u\n",
-                (unsigned) rec->ctr, (unsigned) ctr );
         return( MPS_ERR_INVALID_MAC );
     }
     rec->buf.data_offset += sizeof( rec->ctr );

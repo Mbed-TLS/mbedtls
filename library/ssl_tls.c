@@ -507,8 +507,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
     psa_key_handle_t master_slot;
     psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
 
-    if( ( status = psa_allocate_key( PSA_KEY_TYPE_DERIVE,
-                                     slen * 8, &master_slot ) ) != PSA_SUCCESS )
+    if( ( status = psa_allocate_key( &master_slot ) ) != PSA_SUCCESS )
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
     if( status != PSA_SUCCESS )
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
@@ -517,7 +516,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
     else
         alg = PSA_ALG_TLS12_PRF(PSA_ALG_SHA_256);
 
-    psa_key_policy_init( &policy );
+    policy = psa_key_policy_init();
     psa_key_policy_set_usage( &policy,
                               PSA_KEY_USAGE_DERIVE,
                               alg );

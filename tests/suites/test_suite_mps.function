@@ -1793,8 +1793,12 @@ void mbedtls_mps_reader_commit_in_old()
     /* Preparation (lower layer) */
     mbedtls_reader_init( &rd, acc, sizeof( acc ) );
     TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) == 0 );
+
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     TEST_ASSERT( mbedtls_reader_feed( &rd, bufA, sizeof( bufA ) ) ==
                  MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+
     /* Consumption (upper layer) */
     /* Ask for more than what's available. */
     TEST_ASSERT( mbedtls_reader_get( &rd, 80, &tmp, NULL ) == 0 );
@@ -1814,8 +1818,12 @@ void mbedtls_mps_reader_commit_in_old()
                  MBEDTLS_ERR_READER_NEED_MORE );
     TEST_ASSERT( mbedtls_reader_feed( &rd, bufB + 8, sizeof( bufB ) - 8 ) ==
                  0 );
+
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     TEST_ASSERT( mbedtls_reader_feed( &rd, bufB, sizeof( bufB ) ) ==
                  MBEDTLS_ERR_READER_UNEXPECTED_OPERATION );
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+
     /* Consumption */
     TEST_ASSERT( mbedtls_reader_get( &rd, 10, &tmp, NULL ) == 0 );
     TEST_ASSERT( memcmp( tmp, bufA + 80, 10 ) == 0 );
@@ -2368,14 +2376,22 @@ void mbedtls_mps_writer_no_queueing_single_step_single_round( int with_queue )
         mbedtls_writer_init( &wr, NULL, 0 );
     else
         mbedtls_writer_init( &wr, queue, sizeof( queue ) );
+
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     /* Can't reclaim as long as nothing's provided. */
     TEST_ASSERT( mbedtls_writer_reclaim( &wr, NULL, NULL, 0 ) ==
                  MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+
     /* Feed some buffer to the writer */
     TEST_ASSERT( mbedtls_writer_feed( &wr, buf, sizeof( buf ) ) == 0 );
+
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     /* Can't feed again as we're now in producing mode */
     TEST_ASSERT( mbedtls_writer_feed( &wr, buf, sizeof( buf ) ) == 0
                  MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
+
     /* Producing (upper layer) */
     /* Fetch and write to the entire output buffer */
     TEST_ASSERT( mbedtls_writer_get( &wr, 100, &tmp, NULL ) == 0 );
@@ -2390,7 +2406,7 @@ void mbedtls_mps_writer_no_queueing_single_step_single_round( int with_queue )
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER */
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_WRITER:MBEDTLS_MPS_STATE_VALIDATION */
 void mbedtls_mps_writer_unexpected_operations()
 {
     /* Unexpected operations shouldn't corrupt any internal structures.

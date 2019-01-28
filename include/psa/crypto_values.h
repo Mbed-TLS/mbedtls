@@ -641,6 +641,7 @@
     (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_KEY_SELECTION)
 
 #define PSA_ALG_HASH_MASK                       ((psa_algorithm_t)0x000000ff)
+
 #define PSA_ALG_MD2                             ((psa_algorithm_t)0x01000001)
 #define PSA_ALG_MD4                             ((psa_algorithm_t)0x01000002)
 #define PSA_ALG_MD5                             ((psa_algorithm_t)0x01000003)
@@ -666,6 +667,44 @@
 #define PSA_ALG_SHA3_384                        ((psa_algorithm_t)0x01000012)
 /** SHA3-512 */
 #define PSA_ALG_SHA3_512                        ((psa_algorithm_t)0x01000013)
+
+/** In a hash-and-sign algorithm policy, allow any hash algorithm.
+ *
+ * This value may be used to form the algorithm usage field of a policy
+ * for a signature algorithm that is parametrized by a hash. The key
+ * may then be used to perform operations using the same signature
+ * algorithm parametrized with any supported hash.
+ *
+ * That is, suppose that `PSA_xxx_SIGNATURE` is one of the following macros:
+ * - #PSA_ALG_RSA_PKCS1V15_SIGN, #PSA_ALG_RSA_PSS,
+ * - #PSA_ALG_DSA, #PSA_ALG_DETERMINISTIC_DSA,
+ * - #PSA_ALG_ECDSA, #PSA_ALG_DETERMINISTIC_ECDSA.
+ * Then you may create and use a key as follows:
+ * - Set the key usage field using #PSA_ALG_ANY_HASH, for example:
+ *   ```
+ *   psa_key_policy_set_usage(&policy,
+ *                            PSA_KEY_USAGE_SIGN, //or PSA_KEY_USAGE_VERIFY
+ *                            PSA_xxx_SIGNATURE(PSA_ALG_ANY_HASH));
+ *   psa_set_key_policy(handle, &policy);
+ *   ```
+ * - Import or generate key material.
+ * - Call psa_asymmetric_sign() or psa_asymmetric_verify(), passing
+ *   an algorithm built from `PSA_xxx_SIGNATURE` and a specific hash. Each
+ *   call to sign or verify a message may use a different hash.
+ *   ```
+ *   psa_asymmetric_sign(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA_256), ...);
+ *   psa_asymmetric_sign(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA_512), ...);
+ *   psa_asymmetric_sign(handle, PSA_xxx_SIGNATURE(PSA_ALG_SHA3_256), ...);
+ *   ```
+ *
+ * This value may not be used to build other algorithms that are
+ * parametrized over a hash. For any valid use of this macro to build
+ * an algorithm `\p alg`, #PSA_ALG_IS_HASH_AND_SIGN(\p alg) is true.
+ *
+ * This value may not be used to build an algorithm specification to
+ * perform an operation. It is only valid to build policies.
+ */
+#define PSA_ALG_ANY_HASH                        ((psa_algorithm_t)0x010000ff)
 
 #define PSA_ALG_MAC_SUBCATEGORY_MASK            ((psa_algorithm_t)0x00c00000)
 #define PSA_ALG_HMAC_BASE                       ((psa_algorithm_t)0x02800000)
@@ -914,6 +953,8 @@
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
  *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
+ *                      This includes #PSA_ALG_ANY_HASH
+ *                      when specifying the algorithm in a usage policy.
  *
  * \return              The corresponding RSA PKCS#1 v1.5 signature algorithm.
  * \return              Unspecified if \p alg is not a supported
@@ -943,6 +984,8 @@
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
  *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
+ *                      This includes #PSA_ALG_ANY_HASH
+ *                      when specifying the algorithm in a usage policy.
  *
  * \return              The corresponding RSA PSS signature algorithm.
  * \return              Unspecified if \p alg is not a supported
@@ -961,6 +1004,8 @@
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
  *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
+ *                      This includes #PSA_ALG_ANY_HASH
+ *                      when specifying the algorithm in a usage policy.
  *
  * \return              The corresponding DSA signature algorithm.
  * \return              Unspecified if \p alg is not a supported
@@ -996,6 +1041,8 @@
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
  *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
+ *                      This includes #PSA_ALG_ANY_HASH
+ *                      when specifying the algorithm in a usage policy.
  *
  * \return              The corresponding ECDSA signature algorithm.
  * \return              Unspecified if \p alg is not a supported
@@ -1028,6 +1075,8 @@
  *
  * \param hash_alg      A hash algorithm (\c PSA_ALG_XXX value such that
  *                      #PSA_ALG_IS_HASH(\p hash_alg) is true).
+ *                      This includes #PSA_ALG_ANY_HASH
+ *                      when specifying the algorithm in a usage policy.
  *
  * \return              The corresponding deterministic ECDSA signature
  *                      algorithm.
@@ -1045,6 +1094,23 @@
     (PSA_ALG_IS_ECDSA(alg) && PSA_ALG_ECDSA_IS_DETERMINISTIC(alg))
 #define PSA_ALG_IS_RANDOMIZED_ECDSA(alg)                                \
     (PSA_ALG_IS_ECDSA(alg) && !PSA_ALG_ECDSA_IS_DETERMINISTIC(alg))
+
+/** Whether the specified algorithm is a hash-and-sign algorithm.
+ *
+ * Hash-and-sign algorithms are public-key signature algorithms structured
+ * in two parts: first the calculation of a hash in a way that does not
+ * depend on the key, then the calculation of a signature from the
+ * hash value and the key.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \p alg is a hash-and-sign algorithm, 0 otherwise.
+ *         This macro may return either 0 or 1 if \p alg is not a supported
+ *         algorithm identifier.
+ */
+#define PSA_ALG_IS_HASH_AND_SIGN(alg)                                   \
+    (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||    \
+     PSA_ALG_IS_DSA(alg) || PSA_ALG_IS_ECDSA(alg))
 
 /** Get the hash used by a hash-and-sign signature algorithm.
  *
@@ -1065,8 +1131,7 @@
  *              if it is not supported by the implementation.
  */
 #define PSA_ALG_SIGN_GET_HASH(alg)                                     \
-    (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||   \
-     PSA_ALG_IS_DSA(alg) || PSA_ALG_IS_ECDSA(alg) ?                    \
+    (PSA_ALG_IS_HASH_AND_SIGN(alg) ?                                   \
      ((alg) & PSA_ALG_HASH_MASK) == 0 ? /*"raw" algorithm*/ 0 :        \
      ((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH :             \
      0)
@@ -1324,6 +1389,24 @@
  */
 #define PSA_ALG_IS_ECDH(alg) \
     (PSA_ALG_KEY_AGREEMENT_GET_BASE(alg) == PSA_ALG_ECDH_BASE)
+
+/** Whether the specified algorithm encoding is a wildcard.
+ *
+ * Wildcard values may only be used to set the usage algorithm field in
+ * a policy, not to perform an operation.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \c alg is a wildcard algorithm encoding.
+ * \return 0 if \c alg is a non-wildcard algorithm encoding (suitable for
+ *         an operation).
+ * \return This macro may return either 0 or 1 if \c alg is not a supported
+ *         algorithm identifier.
+ */
+#define PSA_ALG_IS_WILDCARD(alg)                        \
+    (PSA_ALG_IS_HASH_AND_SIGN(alg) ?                    \
+     PSA_ALG_SIGN_GET_HASH(alg) == PSA_ALG_ANY_HASH :   \
+     (alg) == PSA_ALG_ANY_HASH)
 
 /**@}*/
 

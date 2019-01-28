@@ -29,10 +29,12 @@
 #define ALG_ECDSA_IS_DETERMINISTIC      ( 1u << 11 )
 #define ALG_IS_DETERMINISTIC_ECDSA      ( 1u << 12 )
 #define ALG_IS_RANDOMIZED_ECDSA         ( 1u << 13 )
-#define ALG_IS_RSA_OAEP                 ( 1u << 14 )
-#define ALG_IS_HKDF                     ( 1u << 15 )
-#define ALG_IS_FFDH                     ( 1u << 16 )
-#define ALG_IS_ECDH                     ( 1u << 17 )
+#define ALG_IS_HASH_AND_SIGN            ( 1u << 14 )
+#define ALG_IS_RSA_OAEP                 ( 1u << 15 )
+#define ALG_IS_HKDF                     ( 1u << 16 )
+#define ALG_IS_FFDH                     ( 1u << 17 )
+#define ALG_IS_ECDH                     ( 1u << 18 )
+#define ALG_IS_WILDCARD                 ( 1u << 19 )
 
 /* Flags for key type classification macros. There is a flag for every
  * key type classification macro PSA_KEY_TYPE_IS_xxx except for some that
@@ -67,8 +69,10 @@ void algorithm_classification( psa_algorithm_t alg, unsigned flags )
         TEST_CLASSIFICATION_MACRO( ALG_ECDSA_IS_DETERMINISTIC, alg, flags );
     TEST_CLASSIFICATION_MACRO( ALG_IS_DETERMINISTIC_ECDSA, alg, flags );
     TEST_CLASSIFICATION_MACRO( ALG_IS_RANDOMIZED_ECDSA, alg, flags );
+    TEST_CLASSIFICATION_MACRO( ALG_IS_HASH_AND_SIGN, alg, flags );
     TEST_CLASSIFICATION_MACRO( ALG_IS_RSA_OAEP, alg, flags );
     TEST_CLASSIFICATION_MACRO( ALG_IS_HKDF, alg, flags );
+    TEST_CLASSIFICATION_MACRO( ALG_IS_WILDCARD, alg, flags );
 exit: ;
 }
 
@@ -318,6 +322,17 @@ void asymmetric_signature_algorithm( int alg_arg, int classification_flags )
     TEST_ASSERT( ! PSA_ALG_IS_KEY_DERIVATION( alg ) );
     TEST_ASSERT( ! PSA_ALG_IS_KEY_SELECTION( alg ) );
     algorithm_classification( alg, classification_flags );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void asymmetric_signature_wildcard( int alg_arg, int classification_flags )
+{
+    classification_flags |= ALG_IS_HASH_AND_SIGN | ALG_IS_WILDCARD;
+    test_asymmetric_signature_algorithm( alg_arg, classification_flags );
+    /* Any failure of this test function comes from
+     * asymmetric_signature_algorithm. Pacify -Werror=unused-label. */
+    goto exit;
 }
 /* END_CASE */
 

@@ -1616,13 +1616,19 @@ void asymmetric_signature_key_policy( int policy_usage,
                                       int policy_alg,
                                       int key_type,
                                       data_t *key_data,
-                                      int exercise_alg )
+                                      int exercise_alg,
+                                      int payload_length_arg )
 {
     psa_key_handle_t handle = 0;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
     psa_status_t status;
-    unsigned char payload[16] = {1};
-    size_t payload_length = sizeof( payload );
+    unsigned char payload[PSA_HASH_MAX_SIZE] = {1};
+    /* If `payload_length_arg > 0`, `exercise_alg` is supposed to be
+     * compatible with the policy and `payload_length_arg` is supposed to be
+     * a valid input length to sign. If `payload_length_arg <= 0`,
+     * `exercise_alg` is supposed to be forbidden by the policy. */
+    int compatible_alg = payload_length_arg > 0;
+    size_t payload_length = compatible_alg ? payload_length_arg : 0;
     unsigned char signature[PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE] = {0};
     size_t signature_length;
 
@@ -1639,8 +1645,7 @@ void asymmetric_signature_key_policy( int policy_usage,
                                   payload, payload_length,
                                   signature, sizeof( signature ),
                                   &signature_length );
-    if( policy_alg == exercise_alg &&
-        ( policy_usage & PSA_KEY_USAGE_SIGN ) != 0 )
+    if( compatible_alg && ( policy_usage & PSA_KEY_USAGE_SIGN ) != 0 )
         PSA_ASSERT( status );
     else
         TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );
@@ -1649,8 +1654,7 @@ void asymmetric_signature_key_policy( int policy_usage,
     status = psa_asymmetric_verify( handle, exercise_alg,
                                     payload, payload_length,
                                     signature, sizeof( signature ) );
-    if( policy_alg == exercise_alg &&
-        ( policy_usage & PSA_KEY_USAGE_VERIFY ) != 0 )
+    if( compatible_alg && ( policy_usage & PSA_KEY_USAGE_VERIFY ) != 0 )
         TEST_EQUAL( status, PSA_ERROR_INVALID_SIGNATURE );
     else
         TEST_EQUAL( status, PSA_ERROR_NOT_PERMITTED );

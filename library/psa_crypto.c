@@ -748,6 +748,29 @@ static psa_status_t psa_get_empty_key_slot( psa_key_handle_t handle,
     return( status );
 }
 
+/** Test whether a policy permits an algorithm.
+ *
+ * The caller must test usage flags separately.
+ */
+static int psa_key_policy_permits( const psa_key_policy_t *policy,
+                                   psa_algorithm_t alg )
+{
+    /* Common case: the policy only allows alg. */
+    if( alg == policy->alg )
+        return( 1 );
+    /* If policy->alg is a hash-and-sign with a wildcard for the hash,
+     * and alg is the same hash-and-sign family with any hash,
+     * then alg is compliant with policy->alg. */
+    if( PSA_ALG_IS_HASH_AND_SIGN( alg ) &&
+        PSA_ALG_SIGN_GET_HASH( policy->alg ) == PSA_ALG_ANY_HASH )
+    {
+        return( ( policy->alg & ~PSA_ALG_HASH_MASK ) ==
+                (         alg & ~PSA_ALG_HASH_MASK ) );
+    }
+    /* If it isn't permitted, it's forbidden. */
+    return( 0 );
+}
+
 /** Retrieve a slot which must contain a key. The key must have allow all the
  * usage flags set in \p usage. If \p alg is nonzero, the key must allow
  * operations with this algorithm. */
@@ -775,7 +798,9 @@ static psa_status_t psa_get_key_from_slot( psa_key_handle_t handle,
         usage &= ~PSA_KEY_USAGE_EXPORT;
     if( ( slot->policy.usage & usage ) != usage )
         return( PSA_ERROR_NOT_PERMITTED );
-    if( alg != 0 && ( alg != slot->policy.alg ) )
+
+    /* Enforce that the usage policy permits the requested algortihm. */
+    if( alg != 0 && ! psa_key_policy_permits( &slot->policy, alg ) )
         return( PSA_ERROR_NOT_PERMITTED );
 
     *p_slot = slot;

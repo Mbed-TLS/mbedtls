@@ -70,19 +70,25 @@ extern "C" {
 #endif
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_PRINTF)
-#define MBEDTLS_PLATFORM_STD_PRINTF   printf /**< The default \c printf function to use. */
+#define MBEDTLS_PLATFORM_STD_PRINTF     printf /**< The default \c printf function to use. */
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_FPRINTF)
-#define MBEDTLS_PLATFORM_STD_FPRINTF fprintf /**< The default \c fprintf function to use. */
+#define MBEDTLS_PLATFORM_STD_FPRINTF    fprintf /**< The default \c fprintf function to use. */
+#endif
+#if !defined(MBEDTLS_PLATFORM_STD_MALLOC)
+#define MBEDTLS_PLATFORM_STD_MALLOC     malloc /**< The default \c malloc function to use. */
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_CALLOC)
-#define MBEDTLS_PLATFORM_STD_CALLOC   calloc /**< The default \c calloc function to use. */
+#define MBEDTLS_PLATFORM_STD_CALLOC     calloc /**< The default \c calloc function to use. */
+#endif
+#if !defined(MBEDTLS_PLATFORM_STD_REALLOC)
+#define MBEDTLS_PLATFORM_STD_REALLOC    realloc /**< The default \c realloc function to use. */
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_FREE)
 #define MBEDTLS_PLATFORM_STD_FREE       free /**< The default \c free function to use. */
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_EXIT)
-#define MBEDTLS_PLATFORM_STD_EXIT      exit /**< The default \c exit function to use. */
+#define MBEDTLS_PLATFORM_STD_EXIT       exit /**< The default \c exit function to use. */
 #endif
 #if !defined(MBEDTLS_PLATFORM_STD_TIME)
 #define MBEDTLS_PLATFORM_STD_TIME       time    /**< The default \c time function to use. */

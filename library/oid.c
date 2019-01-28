@@ -41,10 +41,6 @@
 #define mbedtls_snprintf snprintf
 #endif
 
-#if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)
-#include "mbedtls/x509.h"
-#endif
-
 /*
  * Macro to automatically add the size of #define'd OIDs
  */
@@ -260,23 +256,23 @@ static const oid_x509_ext_t oid_x509_ext[] =
 {
     {
         { ADD_LEN( MBEDTLS_OID_BASIC_CONSTRAINTS ),    "id-ce-basicConstraints",   "Basic Constraints" },
-        MBEDTLS_X509_EXT_BASIC_CONSTRAINTS,
+        MBEDTLS_OID_X509_EXT_BASIC_CONSTRAINTS,
     },
     {
         { ADD_LEN( MBEDTLS_OID_KEY_USAGE ),            "id-ce-keyUsage",           "Key Usage" },
-        MBEDTLS_X509_EXT_KEY_USAGE,
+        MBEDTLS_OID_X509_EXT_KEY_USAGE,
     },
     {
         { ADD_LEN( MBEDTLS_OID_EXTENDED_KEY_USAGE ),   "id-ce-extKeyUsage",        "Extended Key Usage" },
-        MBEDTLS_X509_EXT_EXTENDED_KEY_USAGE,
+        MBEDTLS_OID_X509_EXT_EXTENDED_KEY_USAGE,
     },
     {
         { ADD_LEN( MBEDTLS_OID_SUBJECT_ALT_NAME ),     "id-ce-subjectAltName",     "Subject Alt Name" },
-        MBEDTLS_X509_EXT_SUBJECT_ALT_NAME,
+        MBEDTLS_OID_X509_EXT_SUBJECT_ALT_NAME,
     },
     {
         { ADD_LEN( MBEDTLS_OID_NS_CERT_TYPE ),         "id-netscape-certtype",     "Netscape Certificate Type" },
-        MBEDTLS_X509_EXT_NS_CERT_TYPE,
+        MBEDTLS_OID_X509_EXT_NS_CERT_TYPE,
     },
     {
         { NULL, 0, NULL, NULL },

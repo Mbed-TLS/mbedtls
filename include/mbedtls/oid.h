@@ -43,12 +43,30 @@
 #include "md.h"
 #endif
 
-#if defined(MBEDTLS_X509_USE_C) || defined(MBEDTLS_X509_CREATE_C)
-#include "x509.h"
-#endif
-
 #define MBEDTLS_ERR_OID_NOT_FOUND                         -0x002E  /**< OID is not found. */
 #define MBEDTLS_ERR_OID_BUF_TOO_SMALL                     -0x000B  /**< output buffer is too small */
+
+/* This is for the benefit of X.509, but defined here in order to avoid
+ * having a "backwards" include of x.509.h here */
+/*
+ * X.509 extension types (internal, arbitrary values for bitsets)
+ */
+#define MBEDTLS_OID_X509_EXT_AUTHORITY_KEY_IDENTIFIER    (1 << 0)
+#define MBEDTLS_OID_X509_EXT_SUBJECT_KEY_IDENTIFIER      (1 << 1)
+#define MBEDTLS_OID_X509_EXT_KEY_USAGE                   (1 << 2)
+#define MBEDTLS_OID_X509_EXT_CERTIFICATE_POLICIES        (1 << 3)
+#define MBEDTLS_OID_X509_EXT_POLICY_MAPPINGS             (1 << 4)
+#define MBEDTLS_OID_X509_EXT_SUBJECT_ALT_NAME            (1 << 5)
+#define MBEDTLS_OID_X509_EXT_ISSUER_ALT_NAME             (1 << 6)
+#define MBEDTLS_OID_X509_EXT_SUBJECT_DIRECTORY_ATTRS     (1 << 7)
+#define MBEDTLS_OID_X509_EXT_BASIC_CONSTRAINTS           (1 << 8)
+#define MBEDTLS_OID_X509_EXT_NAME_CONSTRAINTS            (1 << 9)
+#define MBEDTLS_OID_X509_EXT_POLICY_CONSTRAINTS          (1 << 10)
+#define MBEDTLS_OID_X509_EXT_EXTENDED_KEY_USAGE          (1 << 11)
+#define MBEDTLS_OID_X509_EXT_CRL_DISTRIBUTION_POINTS     (1 << 12)
+#define MBEDTLS_OID_X509_EXT_INIHIBIT_ANYPOLICY          (1 << 13)
+#define MBEDTLS_OID_X509_EXT_FRESHEST_CRL                (1 << 14)
+#define MBEDTLS_OID_X509_EXT_NS_CERT_TYPE                (1 << 16)
 
 /*
  * Top level OID tuples

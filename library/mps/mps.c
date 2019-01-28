@@ -3052,7 +3052,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
 
         /* Add the sequence number to the handshake handle, exposed
          * opaquely only to allow it to enter checksum computations. */
-        MPS_WRITE_UINT16_LE( &hs->metadata->seq_nr, hs_new->add );
+        MPS_WRITE_UINT16_BE( &hs->metadata->seq_nr, hs_new->add );
         hs_new->addlen = sizeof( uint16_t );
         hs_new->handle = &hs->wr_ext;
     }

@@ -348,23 +348,23 @@ typedef uint_fast16_t mbedtls_mps_size_t;
 /**
  * \name SECTION:       Parsing and writing macros
  *
- * Macros to be used for parsing various types of fiellds.
+ * Macros to be used for parsing various types of fields.
  * \{
  */
 
-#define MPS_READ_UINT8_LE( src, dst )                            \
+#define MPS_READ_UINT8_BE( src, dst )                            \
     do                                                           \
     {                                                            \
         *( dst ) = ( (uint8_t*) ( src ) )[0];                    \
     } while( 0 )
 
-#define MPS_WRITE_UINT8_LE( src, dst )                           \
+#define MPS_WRITE_UINT8_BE( src, dst )                           \
     do                                                           \
     {                                                            \
         *( dst ) = ( (uint8_t*) ( src ) )[0];                    \
     } while( 0 )
 
-#define MPS_READ_UINT16_LE( src, dst )                           \
+#define MPS_READ_UINT16_BE( src, dst )                           \
     do                                                           \
     {                                                            \
         *( dst ) =                                               \
@@ -372,7 +372,7 @@ typedef uint_fast16_t mbedtls_mps_size_t;
             ( ( (uint16_t) ( (uint8_t*) ( src ) )[1] ) << 0 );   \
     } while( 0 )
 
-#define MPS_WRITE_UINT16_LE( src, dst )                          \
+#define MPS_WRITE_UINT16_BE( src, dst )                          \
     do                                                           \
     {                                                            \
         *( (uint8_t*) ( dst ) + 0 ) = ( *( src ) >> 8 ) & 0xFF;  \
@@ -380,7 +380,7 @@ typedef uint_fast16_t mbedtls_mps_size_t;
     } while( 0 )
 
 
-#define MPS_WRITE_UINT24_LE( src, dst )                          \
+#define MPS_WRITE_UINT24_BE( src, dst )                          \
     do                                                           \
     {                                                            \
         *( (uint8_t*) ( dst ) + 0 ) = ( *( src ) >> 16 ) & 0xFF; \
@@ -388,7 +388,7 @@ typedef uint_fast16_t mbedtls_mps_size_t;
         *( (uint8_t*) ( dst ) + 2 ) = ( *( src ) >>  0 ) & 0xFF; \
     } while( 0 )
 
-#define MPS_READ_UINT24_LE( src, dst )                           \
+#define MPS_READ_UINT24_BE( src, dst )                           \
     do                                                           \
     {                                                            \
         *(dst) =                                                 \
@@ -397,16 +397,16 @@ typedef uint_fast16_t mbedtls_mps_size_t;
             ( ( (uint32_t) ( (uint8_t*) ( src ) )[2] ) <<  0 );  \
     } while( 0 )
 
-#define MPS_WRITE_UINT32_LE( src, dst )                          \
+#define MPS_WRITE_UINT32_BE( src, dst )                          \
     do                                                           \
     {                                                            \
-        *( (uint8_t*) ( dst ) + 2 ) = ( *( src ) >> 24 ) & 0xFF; \
-        *( (uint8_t*) ( dst ) + 3 ) = ( *( src ) >> 16 ) & 0xFF; \
-        *( (uint8_t*) ( dst ) + 4 ) = ( *( src ) >>  8 ) & 0xFF; \
-        *( (uint8_t*) ( dst ) + 5 ) = ( *( src ) >>  0 ) & 0xFF; \
+        *( (uint8_t*) ( dst ) + 0 ) = ( *( src ) >> 24 ) & 0xFF; \
+        *( (uint8_t*) ( dst ) + 1 ) = ( *( src ) >> 16 ) & 0xFF; \
+        *( (uint8_t*) ( dst ) + 2 ) = ( *( src ) >>  8 ) & 0xFF; \
+        *( (uint8_t*) ( dst ) + 3 ) = ( *( src ) >>  0 ) & 0xFF; \
     } while( 0 )
 
-#define MPS_READ_UINT32_LE( src, dst )                           \
+#define MPS_READ_UINT32_BE( src, dst )                           \
     do                                                           \
     {                                                            \
         *( dst ) =                                               \
@@ -416,7 +416,7 @@ typedef uint_fast16_t mbedtls_mps_size_t;
             ( ( (uint32_t) ( (uint8_t*) ( src ) )[3] ) <<  0 );  \
     } while( 0 )
 
-#define MPS_WRITE_UINT48_LE( src, dst )                          \
+#define MPS_WRITE_UINT48_BE( src, dst )                          \
     do                                                           \
     {                                                            \
         *( (uint8_t*) ( dst ) + 0 ) = ( *( src ) >> 40 ) & 0xFF; \
@@ -427,7 +427,7 @@ typedef uint_fast16_t mbedtls_mps_size_t;
         *( (uint8_t*) ( dst ) + 5 ) = ( *( src ) >>  0 ) & 0xFF; \
     } while( 0 )
 
-#define MPS_READ_UINT48_LE( src, dst )                           \
+#define MPS_READ_UINT48_BE( src, dst )                           \
     do                                                           \
     {                                                            \
         *( dst ) =                                               \

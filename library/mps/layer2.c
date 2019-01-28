@@ -868,7 +868,7 @@ static int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec 
     */
 
     /* Write record content type. */
-    MPS_WRITE_UINT8_LE( &rec->type, hdr + tls_rec_type_offset );
+    MPS_WRITE_UINT8_BE( &rec->type, hdr + tls_rec_type_offset );
 
     /* Write record version. */
     l2_out_write_version( rec->major_ver,
@@ -877,7 +877,7 @@ static int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec 
                           hdr + tls_rec_ver_offset );
 
     /* Write ciphertext length. */
-    MPS_WRITE_UINT16_LE( &rec->buf.data_len, hdr + tls_rec_len_offset );
+    MPS_WRITE_UINT16_BE( &rec->buf.data_len, hdr + tls_rec_len_offset );
 
     TRACE( trace_comment, "Write protected record -- DISPATCH" );
     RETURN( mps_l1_dispatch( ctx->conf.l1, hdr_len + rec->buf.data_len,
@@ -924,7 +924,7 @@ static int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
         RETURN( MPS_ERR_INTERNAL_ERROR );
 
     /* Write record content type. */
-    MPS_WRITE_UINT8_LE( &rec->type, hdr + dtls_rec_type_offset );
+    MPS_WRITE_UINT8_BE( &rec->type, hdr + dtls_rec_type_offset );
 
     /* Write record version. */
     l2_out_write_version( rec->major_ver,
@@ -933,14 +933,14 @@ static int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
                           hdr + dtls_rec_ver_offset );
 
     /* Epoch */
-    MPS_WRITE_UINT16_LE( &rec->epoch, hdr + dtls_rec_epoch_offset );
+    MPS_WRITE_UINT16_BE( &rec->epoch, hdr + dtls_rec_epoch_offset );
 
     /* Record sequence number */
-    MPS_WRITE_UINT16_LE( &rec->ctr[0], hdr + dtls_rec_seq_offset );
-    MPS_WRITE_UINT32_LE( &rec->ctr[1], hdr + dtls_rec_seq_offset + 2 );
+    MPS_WRITE_UINT16_BE( &rec->ctr[0], hdr + dtls_rec_seq_offset );
+    MPS_WRITE_UINT32_BE( &rec->ctr[1], hdr + dtls_rec_seq_offset + 2 );
 
     /* Write ciphertext length. */
-    MPS_WRITE_UINT16_LE( &rec->buf.data_len, hdr + dtls_rec_len_offset );
+    MPS_WRITE_UINT16_BE( &rec->buf.data_len, hdr + dtls_rec_len_offset );
 
     TRACE( trace_comment, "Write protected record -- DISPATCH" );
     RETURN( mps_l1_dispatch( ctx->conf.l1, hdr_len + rec->buf.data_len,
@@ -1989,7 +1989,7 @@ static int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
      */
 
     /* Record content type */
-    MPS_READ_UINT8_LE( buf + tls_rec_type_offset, &type );
+    MPS_READ_UINT8_BE( buf + tls_rec_type_offset, &type );
     if( l2_type_is_valid( ctx, type ) == 0 )
     {
         TRACE( trace_error, "Invalid record type received" );
@@ -2021,7 +2021,7 @@ static int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
     }
 
     /* Length */
-    MPS_READ_UINT16_LE( buf + tls_rec_len_offset, &len );
+    MPS_READ_UINT16_BE( buf + tls_rec_len_offset, &len );
     /* TODO: Add length check, at least the architectural bound of 16384 + 2K,
      *       but preferably a transform-dependent bound that'll catch records
      *       with overly long plaintext by considering the maximum expansion
@@ -2265,7 +2265,7 @@ static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
      */
 
     /* Record content type */
-    MPS_READ_UINT8_LE( buf + dtls_rec_type_offset, &type );
+    MPS_READ_UINT8_BE( buf + dtls_rec_type_offset, &type );
     if( l2_type_is_valid( ctx, type ) == 0 )
     {
         TRACE( trace_error, "Invalid record type received" );
@@ -2293,7 +2293,7 @@ static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
     rec->minor_ver = minor_ver;
 
     /* Epoch */
-    MPS_READ_UINT16_LE( buf + dtls_rec_epoch_offset, &epoch );
+    MPS_READ_UINT16_BE( buf + dtls_rec_epoch_offset, &epoch );
     ret = l2_epoch_check( ctx, epoch, MPS_EPOCH_READ );
     if( ret == MPS_ERR_INVALID_EPOCH )
         ret = MPS_ERR_INVALID_RECORD;
@@ -2302,8 +2302,9 @@ static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
     rec->epoch = epoch;
 
     /* Record sequence number */
-    MPS_READ_UINT16_LE( buf + dtls_rec_seq_offset,     &seq_nr[0] );
-    MPS_READ_UINT32_LE( buf + dtls_rec_seq_offset + 2, &seq_nr[1] );
+    MPS_READ_UINT16_BE( buf + dtls_rec_seq_offset,     &seq_nr[0] );
+    MPS_READ_UINT32_BE( buf + dtls_rec_seq_offset + 2, &seq_nr[1] );
+
     if( l2_counter_replay_check( ctx, epoch, seq_nr[0], seq_nr[1] ) != 0 )
     {
         TRACE( trace_error, "Replayed record -- ignore" );
@@ -2313,7 +2314,7 @@ static int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
     rec->ctr[1] = seq_nr[1];
 
     /* Length */
-    MPS_READ_UINT16_LE( buf + dtls_rec_len_offset, &len );
+    MPS_READ_UINT16_BE( buf + dtls_rec_len_offset, &len );
     /* TODO: Add length check, at least the architectural bound of 16384 + 2K,
      *       but preferably a transform-dependent bound that'll catch records
      *       with overly long plaintext by considering the maximum expansion

@@ -589,8 +589,8 @@ static int l3_parse_hs_header_tls( mbedtls_reader *rd,
     if( res != 0 )
         RETURN( res );
 
-    MPS_READ_UINT8_LE ( tmp + tls_hs_type_offset, &in->type );
-    MPS_READ_UINT24_LE( tmp + tls_hs_length_offset, &in->len );
+    MPS_READ_UINT8_BE ( tmp + tls_hs_type_offset, &in->type );
+    MPS_READ_UINT24_BE( tmp + tls_hs_length_offset, &in->len );
 
     res = mbedtls_reader_commit( rd );
     if( res != 0 )
@@ -650,11 +650,11 @@ static int l3_parse_hs_header_dtls( mbedtls_reader *rd,
     if( res != 0 )
         RETURN( res );
 
-    MPS_READ_UINT8_LE ( tmp + dtls_hs_type_offset, &in->type );
-    MPS_READ_UINT24_LE( tmp + dtls_hs_len_offset, &in->len );
-    MPS_READ_UINT16_LE( tmp + dtls_hs_seq_offset, &in->seq_nr );
-    MPS_READ_UINT24_LE( tmp + dtls_hs_frag_off_offset, &in->frag_offset );
-    MPS_READ_UINT24_LE( tmp + dtls_hs_frag_len_offset, &in->frag_len );
+    MPS_READ_UINT8_BE ( tmp + dtls_hs_type_offset, &in->type );
+    MPS_READ_UINT24_BE( tmp + dtls_hs_len_offset, &in->len );
+    MPS_READ_UINT16_BE( tmp + dtls_hs_seq_offset, &in->seq_nr );
+    MPS_READ_UINT24_BE( tmp + dtls_hs_frag_off_offset, &in->frag_offset );
+    MPS_READ_UINT24_BE( tmp + dtls_hs_frag_len_offset, &in->frag_len );
 
     res = mbedtls_reader_commit( rd );
     if( res != 0 )
@@ -750,7 +750,7 @@ static int l3_parse_ccs( mbedtls_reader *rd )
     if( res != 0 )
         RETURN( res );
 
-    MPS_READ_UINT8_LE( tmp + 0, &val );
+    MPS_READ_UINT8_BE( tmp + 0, &val );
 
     res = mbedtls_reader_commit( rd );
     if( res != 0 )
@@ -1429,7 +1429,7 @@ static int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs )
     }
 
     MPS_L3_WRITE_UINT8_LE ( buf + tls_hs_type_offset,   &hs->type );
-    MPS_L3_WRITE_UINT24_LE( buf + tls_hs_length_offset, &hs->len  );
+    MPS_L3_WRITE_UINT24_BE( buf + tls_hs_length_offset, &hs->len  );
 
     RETURN( 0 );
 }
@@ -1484,11 +1484,11 @@ static int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs )
         RETURN( MPS_ERR_INTERNAL_ERROR );
     }
 
-    MPS_WRITE_UINT8_LE ( &hs->type,        buf + dtls_hs_type_offset     );
-    MPS_WRITE_UINT24_LE( &hs->len,         buf + dtls_hs_len_offset      );
-    MPS_WRITE_UINT16_LE( &hs->seq_nr,      buf + dtls_hs_seq_offset      );
-    MPS_WRITE_UINT24_LE( &hs->frag_offset, buf + dtls_hs_frag_off_offset );
-    MPS_WRITE_UINT24_LE( &hs->frag_len,    buf + dtls_hs_frag_len_offset );
+    MPS_WRITE_UINT8_BE ( &hs->type,        buf + dtls_hs_type_offset     );
+    MPS_WRITE_UINT24_BE( &hs->len,         buf + dtls_hs_len_offset      );
+    MPS_WRITE_UINT16_BE( &hs->seq_nr,      buf + dtls_hs_seq_offset      );
+    MPS_WRITE_UINT24_BE( &hs->frag_offset, buf + dtls_hs_frag_off_offset );
+    MPS_WRITE_UINT24_BE( &hs->frag_len,    buf + dtls_hs_frag_len_offset );
 
     TRACE( trace_comment, "Wrote DTLS handshake header" );
     TRACE( trace_comment, "* Type:        %u", (unsigned) hs->type        );

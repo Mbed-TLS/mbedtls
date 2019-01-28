@@ -286,8 +286,6 @@ static void layer0_dgram_permute( layer0_dgram_mock *ctx,
             j = rand() % msg_avail;
         } while( i == j );
 
-        printf( "L0 DGRAM MOCK: Swap %u <-> %u\n",
-                (unsigned) i, (unsigned) j );
         layer0_dgram_swap_dgrams( ctx, i, j );
     }
 }
@@ -318,11 +316,6 @@ static int layer0_dgram_write( layer0_dgram_mock *ctx,
     size_t read_pos      = ctx->read_pos;
     size_t new_write_pos = layer0_dgram_inc_idx( write_pos );
 
-    printf( "Datagram write\n" );
-    printf( "* Write position: %u\n", (unsigned) write_pos );
-    printf( "* Read position:  %u\n", (unsigned) read_pos );
-    printf( "* Datagram size:  %u\n", (unsigned) size );
-
     if( new_write_pos == read_pos )
         return( MPS_ERR_WANT_WRITE );
 
@@ -340,21 +333,11 @@ static int layer0_dgram_read( layer0_dgram_mock *ctx,
     size_t read_pos     = ctx->read_pos;
     size_t new_read_pos = layer0_dgram_inc_idx( read_pos );
 
-    printf( "Datagram Read\n" );
-    printf( "* Write position:  %u\n", (unsigned) write_pos );
-    printf( "* Read position:   %u\n", (unsigned) read_pos );
-
     if( read_pos == write_pos )
-    {
-        printf( "No datagram available\n" );
         return( MPS_ERR_WANT_READ );
-    }
 
     if( size > ctx->msgs[read_pos].buflen )
         size = ctx->msgs[read_pos].buflen;
-
-    printf( "* Datagram length:    %u\n", (unsigned) ctx->msgs[read_pos].buflen );
-    printf( "* Target buffer size: %u\n", (unsigned) size );
 
     memcpy( dst, ctx->msgs[read_pos].buf, size );
     layer0_dgram_msg_free( &ctx->msgs[read_pos] );
@@ -747,8 +730,6 @@ int transform_encrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec,
     /* Distinguish between our test-only mock transforms and
      * the real record transformations used in [D]TLS. */
 
-    printf( "Transform %p\n", transform_ );
-
 #if !defined(TEST_SUITE_MPS_NO_SSL)
     if( transform_->type == 1 )
     {
@@ -779,7 +760,6 @@ int transform_encrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec,
         write_version( rec->major_ver, rec->minor_ver,
                        MBEDTLS_MPS_MODE_STREAM, &rec_alt.ver[0] );
 
-        printf( "Encrypt...\n" );
         ret = mbedtls_ssl_encrypt_buf( NULL, real, &rec_alt, f_rng, p_rng );
         if( ret != 0 )
             return( ret );
@@ -802,13 +782,10 @@ int transform_encrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec,
         return( 0 );
     }
 
-//    srand( rand() % time( NULL ) );
-
     /* Add record sequence number */
     if( rec->buf.data_offset < sizeof( rec->ctr ) )
         return( -1 );
 
-    printf( "Add sequence number %u\n", (unsigned) rec->ctr );
     rec->buf.data_offset -= sizeof( rec->ctr );
     rec->buf.data_len    += sizeof( rec->ctr );
     memcpy( rec->buf.buf + rec->buf.data_offset, &rec->ctr,
@@ -818,7 +795,6 @@ int transform_encrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec,
     if( rec->buf.data_offset < sizeof( rec->epoch ) )
         return( -1 );
 
-    printf( "Add epoch %u\n", (unsigned) rec->epoch );
     rec->buf.data_offset -= sizeof( rec->epoch );
     rec->buf.data_len    += sizeof( rec->epoch );
     memcpy( rec->buf.buf + rec->buf.data_offset,
@@ -828,7 +804,6 @@ int transform_encrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec,
     pre_pad = transform->pad;
     if( rec->buf.data_offset < pre_pad )
         return( -1 );
-    printf( "Add pre-padding %u\n", (unsigned) pre_pad );
 
     rec->buf.data_offset -= pre_pad;
     rec->buf.data_len    += pre_pad;
@@ -837,7 +812,6 @@ int transform_encrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec,
 
     /* Add random post-padding */
     post_pad = rand() % transform->pad;
-    printf( "Add post-padding %u\n", (unsigned) post_pad );
 
     rec->buf.buf[ rec->buf.data_len ] = 0x1;
     memset( rec->buf.buf + rec->buf.data_len + 1, 0, post_pad );
@@ -903,19 +877,13 @@ int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
 
     /* Mock transformations */
 
-    printf( "Decryption, %p\n", transform );
     if( rec->buf.data_offset != 0 )
-    {
-        printf( "BAD OFFSET!\n" );
         return( -1 );
-    }
     if( transform->enabled == 0 )
     {
         /* Identity transformation */
         return( 0 );
     }
-
-    printf( "Decryption, pre-padding %u\n", (unsigned) transform->pad );
 
     /* Check pre-padding */
     pre_pad = transform->pad;
@@ -924,10 +892,7 @@ int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
     for( idx = 0; idx < pre_pad; idx++ )
     {
         if( rec->buf.buf[idx] != idx )
-        {
-            printf( "Bad pre-padding!\n" );
             return( MPS_ERR_INVALID_MAC );
-        }
     }
     rec->buf.data_offset = pre_pad;
     rec->buf.data_len -= pre_pad;
@@ -939,10 +904,7 @@ int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
         if( val == 0 )
             continue;
         if( val != 1 )
-        {
-            printf( "Bad post-padding\n" );
             return( MPS_ERR_INVALID_MAC );
-        }
         break;
     }
     val = rec->buf.buf[ rec->buf.data_offset + idx ];
@@ -952,7 +914,6 @@ int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
     post_pad = rec->buf.data_len - idx - 1;
     if( post_pad >= transform->pad )
         return( -1 );
-    printf( "Found post-padding %u\n", (unsigned) post_pad );
     rec->buf.data_len -= post_pad + 1;
 
     /* Check epoch */
@@ -991,7 +952,6 @@ int transform_get_expansion( mbedtls_mps_transform_t *transform,
 
         /* For the moment copied from mbedtls_ssl_get_record_expansion */
         *pre_exp = transform->real.ivlen - transform->real.fixed_ivlen;
-        printf( "Pre-expansion: %u\n", (unsigned) *pre_exp );
         switch( mbedtls_cipher_get_cipher_mode(
                     &transform->real.cipher_ctx_enc ) )
         {

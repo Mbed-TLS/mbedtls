@@ -558,8 +558,6 @@ static int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
                                   mbedtls_mps_epoch_id epoch_id )
 {
     int ret;
-    uint8_t overflow; /* Helper variable to detect arithmetic overflow. */
-
     unsigned char *rec_buf; /* The buffer received from Layer 1
                              * to which we write the record.       */
     size_t total_sz;        /* The total size of rec_buf in bytes. */
@@ -600,16 +598,17 @@ static int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
                              &post_expansion );
 
 #if defined(MBEDTLS_MPS_TRANSFORM_VALIDATION)
-    /* Check for overflow */
-    overflow = 0;
-    overflow |= ( hdr_len + pre_expansion < hdr_len );
-    overflow |= ( ( hdr_len + pre_expansion ) + post_expansion <
-                    hdr_len + pre_expansion );
-    if( overflow )
     {
-        TRACE( trace_comment, "INTERNAL ERROR on pre- and postexpansion, len %u, pre-expansion %u, post-expansion %u",
-               (unsigned) hdr_len, (unsigned) pre_expansion, (unsigned) post_expansion );
-        RETURN( MPS_ERR_BAD_TRANSFORM );
+        uint8_t overflow = 0; /* Helper variable to detect arithmetic overflow. */
+        overflow |= ( hdr_len + pre_expansion < hdr_len );
+        overflow |= ( ( hdr_len + pre_expansion ) + post_expansion <
+                      hdr_len + pre_expansion );
+        if( overflow )
+        {
+            TRACE( trace_comment, "INTERNAL ERROR on pre- and postexpansion, len %u, pre-expansion %u, post-expansion %u",
+                   (unsigned) hdr_len, (unsigned) pre_expansion, (unsigned) post_expansion );
+            RETURN( MPS_ERR_BAD_TRANSFORM );
+        }
     }
 #endif /* MBEDTLS_MPS_TRANSFORM_VALIDATION */
 

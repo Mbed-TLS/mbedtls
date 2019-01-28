@@ -2940,10 +2940,8 @@ static int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
     mbedtls_mps_transport_type const mode = ctx->conf.mode;
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
-    TRACE_INIT( "l2_counter_replay_check, epoch %u, ctr ( %u << 32 ) + %u",
-                (unsigned) epoch_id,
-                (unsigned) ctr_hi,
-                (unsigned) ctr_lo );
+    TRACE_INIT( "l2_counter_replay_check, epoch %u",
+                (unsigned) epoch_id );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     if( MBEDTLS_MPS_IS_TLS( mode ) )
@@ -2961,6 +2959,10 @@ static int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
 
     window_top_hi = epoch->stats.dtls.replay.in_window_top_hi;
     window_top_lo = epoch->stats.dtls.replay.in_window_top_lo;
+    TRACE( trace_comment, "* Window top hi:  %u", window_top_hi );
+    TRACE( trace_comment, "* Window top lo:  %u", window_top_lo );
+    TRACE( trace_comment, "* Counter top hi: %u", ctr_hi );
+    TRACE( trace_comment, "* Counter top lo: %u", ctr_lo );
 
     if( ctr_hi > window_top_hi )
     {
@@ -2973,16 +2975,17 @@ static int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
         TRACE( trace_comment, "Record sequence number too old -- drop" );
         RETURN( -1 );
     }
+    else if( ctr_lo > window_top_lo )
+        RETURN( 0 );
+
+    bit = window_top_lo - ctr_lo;
+    if( bit >= 32 )
+        RETURN( -1 );
 
     /* Bit-reverse the window, so that bits corresponding to fresh
      * sequence numbers are set. */
     window = ~epoch->stats.dtls.replay.in_window;
 
-    bit = window_top_lo - ctr_lo;
-
-    /* If bit >= 32 (including the case when window_top < ctr_lo)
-     * this will lead to window == 0, in which case the record
-     * is correctly rejected. */
     window >>= bit;
     if( ( window & 0x1 ) == 0 )
         RETURN( -1 );

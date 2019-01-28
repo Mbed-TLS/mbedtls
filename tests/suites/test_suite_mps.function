@@ -826,7 +826,6 @@ int transform_decrypt( mbedtls_mps_transform_t *transform_, mps_rec *rec )
     size_t pre_pad;
     size_t post_pad;
     uint8_t val;
-    uint64_t ctr;
 
     mbedtls_transform_mock_t *transform;
     transform = &transform_->mock;
@@ -4747,21 +4746,21 @@ void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
      *     In this case, the second record should be dropped.
      * (b) Client sends
      *     - Record A with counter c_A,
-     *     - Record B with counter c_B > c_A but c_B < c_A + 64
+     *     - Record B with counter c_B > c_A but c_B < c_A + 32
      *     - Record A with counter c_A
      *     In this case, the second instance of A should be dropped.
      * (c) Client sends
      *     - Record A with counter c_A,
-     *     - Record B with counter c_B > c_A but c_B >= c_A + 64
+     *     - Record B with counter c_B > c_A but c_B >= c_A + 32
      *     - Record A with counter c_A
      *     In this case, the second instance of A should be dropped.
      * (d) Client sends
      *     - Record A with counter c_A
-     *     - Out of order record B with counter c_B >= c_A - 64
+     *     - Out of order record B with counter c_B >= c_A - 32
      *     In this case, record B should be seen by the server.
      * (e) Client sends
      *     - Record A with counter c_A
-     *     - Out of order record B with counter c_B < c_A - 64
+     *     - Out of order record B with counter c_B < c_A - 32
      *     In this case, record B should not be seen by the server
      *     because it is too old.
      */
@@ -4876,7 +4875,7 @@ void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
             TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
 
             if( variant == 1 )
-                TEST_ASSERT( mps_l2_force_next_sequence_number( &cli, epoch_init, 80 ) == 0 );
+                TEST_ASSERT( mps_l2_force_next_sequence_number( &cli, epoch_init, 50 ) == 0 );
             if( variant == 2 )
                 TEST_ASSERT( mps_l2_force_next_sequence_number( &cli, epoch_init, 1223 ) == 0 );
 
@@ -4921,7 +4920,7 @@ void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
             TEST_ASSERT( mps_l2_write_flush( &cli ) == 0 );
 
             if( variant == 3 )
-                TEST_ASSERT( mps_l2_force_next_sequence_number( &cli, epoch_init, 42 ) == 0 );
+                TEST_ASSERT( mps_l2_force_next_sequence_number( &cli, epoch_init, 60 ) == 0 );
             if( variant == 4 )
                 TEST_ASSERT( mps_l2_force_next_sequence_number( &cli, epoch_init, 10 ) == 0 );
 

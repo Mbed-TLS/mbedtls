@@ -142,10 +142,10 @@ int mbedtls_writer_reclaim( mbedtls_writer *wr,
     /* Check that the writer is in consuming mode. */
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
     {
-        unsigned char const  state = wr->state;
+        unsigned char const state = wr->state;
         if( state != MBEDTLS_WRITER_CONSUMING )
         {
-            TRACE( trace_error, "Attempt to reclaim output buffer outside of consuming mode." );
+            TRACE( trace_error, "Can't reclaim output buffer outside of consuming mode." );
             RETURN( MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
         }
     }

@@ -5469,8 +5469,6 @@ void mbedtls_mps_l2_switch_epoch( int mode,
     out_cli.type = ty_A;
     out_cli.epoch = epoch_init;
     ret = mps_l2_write_start( &cli, &out_cli );
-    if( ret != 0 )
-        printf( "l2_write_start returned %d\n", ret );
     TEST_ASSERT( ret == 0 );
 
     TEST_ASSERT( mbedtls_writer_get( out_cli.wr, 20, &buf, &sz ) == 0 );

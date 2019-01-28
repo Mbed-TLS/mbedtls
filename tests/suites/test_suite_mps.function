@@ -3707,7 +3707,7 @@ void mbedtls_mps_l1_want_write( int client_write_instead_reflush,
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L1:MBEDTLS_MPS_MODE_STREAM */
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L1:MBEDTLS_MPS_PROTO_TLS */
 void mbedtls_mps_l1_overly_large_request()
 {
     mps_alloc alloc;
@@ -3740,7 +3740,7 @@ void mbedtls_mps_l1_overly_large_request()
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L1:MBEDTLS_MPS_PROTO_DTLS */
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L1:MBEDTLS_MPS_PROTO_TLS */
 void mbedtls_mps_l1_random_communication_stream( int allocator_buffer_sz,
                                                  int layer0_buffer_sz )
 {
@@ -8103,7 +8103,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L3:MPS_L3_ALLOW_INTERLEAVED_SENDING */
+/* BEGIN_CASE depends_on:MBEDTLS_MPS_PROTO_TLS:TEST_SUITE_MPS_L3:MPS_L3_ALLOW_INTERLEAVED_SENDING */
 void mbedtls_mps_l3_handshake_alert_interleaved( int allocator_buffer_sz,
                                                  int layer0_buffer_sz,
                                                  int rec_sz,
@@ -8538,7 +8538,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L3 */
+/* BEGIN_CASE depends_on:MBEDTLS_MPS_PROTO_TLS:TEST_SUITE_MPS_L3 */
 void mbedtls_mps_l3_random( int allocator_buffer_sz,
                             int layer0_buffer_sz,
                             int num_epochs,

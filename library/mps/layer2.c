@@ -722,7 +722,6 @@ static int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
         rec.type      = ctx->out.writer.type;
 
         TRACE( trace_comment, "Record header fields:" );
-        TRACE( trace_comment, "* Sequence number: %u", (unsigned) rec.ctr   );
         TRACE( trace_comment, "* Epoch:           %u", (unsigned) rec.epoch );
         TRACE( trace_comment, "* Type:            %u", (unsigned) rec.type  );
 
@@ -734,6 +733,8 @@ static int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
         }
 
         l2_out_get_and_update_rec_seq( ctx, epoch, rec.ctr );
+        TRACE( trace_comment, "* Sequence number: ( %u << 16 ) + %u",
+               (unsigned) rec.ctr[0], (unsigned) rec.ctr[1] );
 
         /* TLS-1.3-NOTE: Add TLSPlaintext header, incl. padding. */
 

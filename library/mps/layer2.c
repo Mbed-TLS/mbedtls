@@ -2190,11 +2190,11 @@ static int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
     dst_ctr[0] = src_ctr[0];
     dst_ctr[1] = src_ctr[1];
 
-    src_ctr[0]++;
-    if( src_ctr[0] == 0 )
+    src_ctr[1]++;
+    if( src_ctr[1] == 0 )
     {
-        src_ctr[1]++;
-        if( src_ctr[1] == 0 )
+        src_ctr[0]++;
+        if( src_ctr[0] == 0 )
             return( MPS_ERR_COUNTER_WRAP );
     }
 

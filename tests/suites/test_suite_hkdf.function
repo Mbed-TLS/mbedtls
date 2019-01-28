@@ -21,9 +21,9 @@ void test_hkdf( int md_alg, char *hex_ikm_string, char *hex_salt_string,
     unsigned char okm[128] = { '\0' };
     /*
      * okm_hex is the string representation of okm,
-     * so its size is twice the size of okm.
+     * so its size is twice the size of okm, and an extra null-termination.
      */
-    unsigned char okm_hex[256] = { '\0' };
+    unsigned char okm_hex[257] = { '\0' };
 
     const mbedtls_md_info_t *md = mbedtls_md_info_from_type( md_alg );
     TEST_ASSERT( md != NULL );

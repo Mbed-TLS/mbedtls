@@ -714,8 +714,8 @@ static int l3_parse_alert( mbedtls_reader *rd,
     if( res != 0 )
         RETURN( res );
 
-    MPS_READ_UINT8_LE ( tmp + 0, &alert->level );
-    MPS_READ_UINT8_LE ( tmp + 1, &alert->type );
+    MPS_READ_UINT8_BE( tmp + 0, &alert->level );
+    MPS_READ_UINT8_BE( tmp + 1, &alert->type );
 
     res = mbedtls_reader_commit( rd );
     if( res != 0 )

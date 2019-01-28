@@ -282,13 +282,38 @@ static int exercise_signature_key( psa_key_handle_t handle,
     size_t payload_length = 16;
     unsigned char signature[PSA_ASYMMETRIC_SIGNATURE_MAX_SIZE] = {0};
     size_t signature_length = sizeof( signature );
+    psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
+
+    /* If the policy allows signing with any hash, just pick one. */
+    if( PSA_ALG_IS_HASH_AND_SIGN( alg ) && hash_alg == PSA_ALG_ANY_HASH )
+    {
+#if defined(MBEDTLS_MD2_C)
+        hash_alg = PSA_ALG_MD2;
+#elif defined(MBEDTLS_MD4_C)
+        hash_alg = PSA_ALG_MD4;
+#elif defined(MBEDTLS_MD5_C)
+        hash_alg = PSA_ALG_MD5;
+#elif defined(MBEDTLS_RIPEMD160_C)
+        hash_alg = PSA_ALG_RIPEMD160;
+#elif defined(MBEDTLS_SHA1_C)
+        hash_alg = PSA_ALG_SHA_1;
+#elif defined(MBEDTLS_SHA256_C)
+        hash_alg = PSA_ALG_SHA_256;
+#elif defined(MBEDTLS_SHA512_C)
+        hash_alg = PSA_ALG_SHA_384;
+#elif defined(MBEDTLS_SHA3_C)
+        hash_alg = PSA_ALG_SHA3_256;
+#else
+        test_fail( "No hash algorithm for hash-and-sign testing", __LINE__, __FILE__ );
+#endif
+        alg ^= PSA_ALG_ANY_HASH ^ hash_alg;
+    }
 
     if( usage & PSA_KEY_USAGE_SIGN )
     {
         /* Some algorithms require the payload to have the size of
          * the hash encoded in the algorithm. Use this input size
          * even for algorithms that allow other input sizes. */
-        psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH( alg );
         if( hash_alg != 0 )
             payload_length = PSA_HASH_SIZE( hash_alg );
         PSA_ASSERT( psa_asymmetric_sign( handle, alg,
@@ -1737,6 +1762,159 @@ void agreement_key_policy( int policy_usage,
 exit:
     psa_generator_abort( &generator );
     psa_destroy_key( handle );
+    mbedtls_psa_crypto_free( );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void copy_key_policy( int source_usage_arg, int source_alg_arg,
+                      int type_arg, data_t *material,
+                      int target_usage_arg, int target_alg_arg,
+                      int constraint_usage_arg, int constraint_alg_arg,
+                      int expected_usage_arg, int expected_alg_arg )
+{
+    psa_key_usage_t source_usage = source_usage_arg;
+    psa_algorithm_t source_alg = source_alg_arg;
+    psa_key_handle_t source_handle = 0;
+    psa_key_policy_t source_policy = PSA_KEY_POLICY_INIT;
+    psa_key_type_t source_type = type_arg;
+    size_t source_bits;
+    psa_key_usage_t target_usage = target_usage_arg;
+    psa_algorithm_t target_alg = target_alg_arg;
+    psa_key_handle_t target_handle = 0;
+    psa_key_policy_t target_policy = PSA_KEY_POLICY_INIT;
+    psa_key_type_t target_type;
+    size_t target_bits;
+    psa_key_usage_t constraint_usage = constraint_usage_arg;
+    psa_algorithm_t constraint_alg = constraint_alg_arg;
+    psa_key_policy_t constraint = PSA_KEY_POLICY_INIT;
+    psa_key_policy_t *p_constraint = NULL;
+    psa_key_usage_t expected_usage = expected_usage_arg;
+    psa_algorithm_t expected_alg = expected_alg_arg;
+    uint8_t *export_buffer = NULL;
+
+    if( constraint_usage_arg != -1 )
+    {
+        p_constraint = &constraint;
+        psa_key_policy_set_usage( p_constraint,
+                                  constraint_usage, constraint_alg );
+    }
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    /* Populate the source slot. */
+    PSA_ASSERT( psa_allocate_key( &source_handle ) );
+    psa_key_policy_set_usage( &source_policy, source_usage, source_alg );
+    PSA_ASSERT( psa_set_key_policy( source_handle, &source_policy ) );
+    PSA_ASSERT( psa_import_key( source_handle, source_type,
+                                material->x, material->len ) );
+    PSA_ASSERT( psa_get_key_information( source_handle, NULL, &source_bits ) );
+
+    /* Prepare the target slot. */
+    PSA_ASSERT( psa_allocate_key( &target_handle ) );
+    psa_key_policy_set_usage( &target_policy, target_usage, target_alg );
+    PSA_ASSERT( psa_set_key_policy( target_handle, &target_policy ) );
+    target_policy = psa_key_policy_init();
+
+    /* Copy the key. */
+    PSA_ASSERT( psa_copy_key( source_handle, target_handle, p_constraint ) );
+
+    /* Destroy the source to ensure that this doesn't affect the target. */
+    PSA_ASSERT( psa_destroy_key( source_handle ) );
+
+    /* Test that the target slot has the expected content and policy. */
+    PSA_ASSERT( psa_get_key_information( target_handle,
+                                         &target_type, &target_bits ) );
+    TEST_EQUAL( source_type, target_type );
+    TEST_EQUAL( source_bits, target_bits );
+    PSA_ASSERT( psa_get_key_policy( target_handle, &target_policy ) );
+    TEST_EQUAL( expected_usage, psa_key_policy_get_usage( &target_policy ) );
+    TEST_EQUAL( expected_alg, psa_key_policy_get_algorithm( &target_policy ) );
+    if( expected_usage & PSA_KEY_USAGE_EXPORT )
+    {
+        size_t length;
+        ASSERT_ALLOC( export_buffer, material->len );
+        PSA_ASSERT( psa_export_key( target_handle, export_buffer,
+                                    material->len, &length ) );
+        ASSERT_COMPARE( material->x, material->len,
+                        export_buffer, length );
+    }
+    if( ! exercise_key( target_handle, expected_usage, expected_alg ) )
+        goto exit;
+
+    PSA_ASSERT( psa_close_key( target_handle ) );
+
+exit:
+    mbedtls_psa_crypto_free( );
+    mbedtls_free( export_buffer );
+}
+/* END_CASE */
+
+/* BEGIN_CASE */
+void copy_fail( int source_usage_arg, int source_alg_arg,
+                int type_arg, data_t *material,
+                int target_usage_arg, int target_alg_arg,
+                int constraint_usage_arg, int constraint_alg_arg,
+                int expected_status_arg )
+{
+    /* Test copy failure into an empty slot. There is a test for copy failure
+     * into an occupied slot in
+     * test_suite_psa_crypto_slot_management.function. */
+
+    psa_key_usage_t source_usage = source_usage_arg;
+    psa_algorithm_t source_alg = source_alg_arg;
+    psa_key_handle_t source_handle = 0;
+    psa_key_policy_t source_policy = PSA_KEY_POLICY_INIT;
+    psa_key_type_t source_type = type_arg;
+    size_t source_bits;
+    psa_key_usage_t target_usage = target_usage_arg;
+    psa_algorithm_t target_alg = target_alg_arg;
+    psa_key_handle_t target_handle = 0;
+    psa_key_policy_t target_policy = PSA_KEY_POLICY_INIT;
+    psa_key_type_t target_type;
+    size_t target_bits;
+    psa_key_usage_t constraint_usage = constraint_usage_arg;
+    psa_algorithm_t constraint_alg = constraint_alg_arg;
+    psa_key_policy_t constraint = PSA_KEY_POLICY_INIT;
+    psa_key_policy_t *p_constraint = NULL;
+    psa_status_t expected_status = expected_status_arg;
+
+    if( constraint_usage_arg != -1 )
+    {
+        p_constraint = &constraint;
+        psa_key_policy_set_usage( p_constraint,
+                                  constraint_usage, constraint_alg );
+    }
+
+    PSA_ASSERT( psa_crypto_init( ) );
+
+    /* Populate the source slot. */
+    PSA_ASSERT( psa_allocate_key( &source_handle ) );
+    psa_key_policy_set_usage( &source_policy, source_usage, source_alg );
+    PSA_ASSERT( psa_set_key_policy( source_handle, &source_policy ) );
+    PSA_ASSERT( psa_import_key( source_handle, source_type,
+                                material->x, material->len ) );
+    PSA_ASSERT( psa_get_key_information( source_handle, NULL, &source_bits ) );
+
+    /* Prepare the target slot. */
+    PSA_ASSERT( psa_allocate_key( &target_handle ) );
+    psa_key_policy_set_usage( &target_policy, target_usage, target_alg );
+    PSA_ASSERT( psa_set_key_policy( target_handle, &target_policy ) );
+    target_policy = psa_key_policy_init();
+
+    /* Copy the key. */
+    TEST_EQUAL( psa_copy_key( source_handle, target_handle, p_constraint ),
+                expected_status );
+
+    /* Test that the target slot is unaffected. */
+    TEST_EQUAL( psa_get_key_information( target_handle,
+                                         &target_type, &target_bits ),
+                PSA_ERROR_EMPTY_SLOT );
+    PSA_ASSERT( psa_get_key_policy( target_handle, &target_policy ) );
+    TEST_EQUAL( target_usage, psa_key_policy_get_usage( &target_policy ) );
+    TEST_EQUAL( target_alg, psa_key_policy_get_algorithm( &target_policy ) );
+
+exit:
     mbedtls_psa_crypto_free( );
 }
 /* END_CASE */

@@ -571,7 +571,7 @@ int main( int argc, char *argv[] )
     const char *pers = "ssl_client2";
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_slot_t slot = 0;
+    psa_key_handle_t slot = 0;
     psa_algorithm_t alg = 0;
     psa_key_policy_t policy;
     psa_status_t status;
@@ -594,7 +594,7 @@ int main( int argc, char *argv[] )
     mbedtls_x509_crt clicert;
     mbedtls_pk_context pkey;
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_slot_t key_slot = 0; /* invalid key slot */
+    psa_key_handle_t key_slot = 0; /* invalid key slot */
 #endif
 #endif
     char *p, *q;
@@ -1594,14 +1594,14 @@ int main( int argc, char *argv[] )
     if( opt.psk_opaque != 0 )
     {
         /* The algorithm has already been determined earlier. */
-        status = mbedtls_psa_get_free_key_slot( &slot );
+        status = psa_allocate_key( &slot );
         if( status != PSA_SUCCESS )
         {
             ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;
             goto exit;
         }
 
-        psa_key_policy_init( &policy );
+        policy = psa_key_policy_init();
         psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
 
         status = psa_set_key_policy( slot, &policy );

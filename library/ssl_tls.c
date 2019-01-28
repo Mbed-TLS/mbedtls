@@ -798,7 +798,7 @@ int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl )
             psa_status_t status;
             psa_algorithm_t alg;
             psa_crypto_generator_t generator = PSA_CRYPTO_GENERATOR_INIT;
-            psa_key_slot_t psk;
+            psa_key_handle_t psk;
 
             MBEDTLS_SSL_DEBUG_MSG( 2, ( "perform PSA-based PSK-to-MS expansion" ) );
 
@@ -7617,7 +7617,7 @@ int mbedtls_ssl_set_hs_psk( mbedtls_ssl_context *ssl,
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 int mbedtls_ssl_conf_psk_opaque( mbedtls_ssl_config *conf,
-                                 psa_key_slot_t psk_slot,
+                                 psa_key_handle_t psk_slot,
                                  const unsigned char *psk_identity,
                                  size_t psk_identity_len )
 {
@@ -7640,7 +7640,7 @@ int mbedtls_ssl_conf_psk_opaque( mbedtls_ssl_config *conf,
 }
 
 int mbedtls_ssl_set_hs_psk_opaque( mbedtls_ssl_context *ssl,
-                                   psa_key_slot_t psk_slot )
+                                   psa_key_handle_t psk_slot )
 {
     if( psk_slot == 0 || ssl->handshake == NULL )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );

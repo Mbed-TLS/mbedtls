@@ -302,12 +302,18 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
         if( cipher_psa->slot_state != MBEDTLS_CIPHER_PSA_KEY_UNSET )
             return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-        /* Find a fresh key slot to use. */
-        status = mbedtls_psa_get_free_key_slot( &cipher_psa->slot );
+        key_type = mbedtls_psa_translate_cipher_type(
+            ctx->cipher_info->type );
+        if( key_type == 0 )
+            return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
+
+        /* Allocate a key slot to use. */
+        status = psa_allocate_key( &cipher_psa->slot );
         if( status != PSA_SUCCESS )
             return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
-         /* Indicate that we own the key slot and need to
-          * destroy it in mbedtls_cipher_free(). */
+
+        /* Indicate that we own the key slot and need to
+         * destroy it in mbedtls_cipher_free(). */
         cipher_psa->slot_state = MBEDTLS_CIPHER_PSA_KEY_OWNED;
 
         /* From that point on, the responsibility for destroying the
@@ -316,7 +322,7 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
          * mbedtls_cipher_free() needs to be called in any case. */
 
         /* Setup policy for the new key slot. */
-        psa_key_policy_init( &key_policy );
+        key_policy = psa_key_policy_init();
 
         /* Mbed TLS' cipher layer doesn't enforce the mode of operation
          * (encrypt vs. decrypt): it is possible to setup a key for encryption
@@ -330,10 +336,6 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
             return( MBEDTLS_ERR_CIPHER_HW_ACCEL_FAILED );
 
         /* Populate new key slot. */
-        key_type = mbedtls_psa_translate_cipher_type(
-            ctx->cipher_info->type );
-        if( key_type == 0 )
-            return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
         status = psa_import_key( cipher_psa->slot,
                                  key_type, key, key_bytelen );
         if( status != PSA_SUCCESS )

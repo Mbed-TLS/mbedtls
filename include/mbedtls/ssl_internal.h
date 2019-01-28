@@ -284,7 +284,7 @@ struct mbedtls_ssl_handshake_params
 #endif
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_slot_t psk_opaque;          /*!< Opaque PSK from the callback   */
+    psa_key_handle_t psk_opaque;        /*!< Opaque PSK from the callback   */
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     unsigned char *psk;                 /*!<  PSK from the callback         */
     size_t psk_len;                     /*!<  Length of PSK from callback   */

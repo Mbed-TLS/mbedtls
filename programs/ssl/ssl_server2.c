@@ -806,7 +806,7 @@ struct _psk_entry
     size_t key_len;
     unsigned char key[MBEDTLS_PSK_MAX_LEN];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_key_slot_t slot;
+    psa_key_handle_t slot;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     psk_entry *next;
 };
@@ -822,7 +822,7 @@ int psk_free( psk_entry *head )
     {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         psa_status_t status;
-        psa_key_slot_t const slot = head->slot;
+        psa_key_handle_t const slot = head->slot;
 
         if( slot != 0 )
         {
@@ -1231,7 +1231,7 @@ int idle( mbedtls_net_context *fd,
 }
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-static psa_status_t psa_setup_psk_key_slot( psa_key_slot_t slot,
+static psa_status_t psa_setup_psk_key_slot( psa_key_handle_t slot,
                                             psa_algorithm_t alg,
                                             unsigned char *psk,
                                             size_t psk_len )
@@ -1239,7 +1239,7 @@ static psa_status_t psa_setup_psk_key_slot( psa_key_slot_t slot,
     psa_status_t status;
     psa_key_policy_t policy;
 
-    psa_key_policy_init( &policy );
+    policy = psa_key_policy_init();
     psa_key_policy_set_usage( &policy, PSA_KEY_USAGE_DERIVE, alg );
 
     status = psa_set_key_policy( slot, &policy );
@@ -1268,7 +1268,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_KEY_EXCHANGE__SOME__PSK_ENABLED)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     psa_algorithm_t alg = 0;
-    psa_key_slot_t psk_slot = 0;
+    psa_key_handle_t psk_slot = 0;
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     unsigned char psk[MBEDTLS_PSK_MAX_LEN];
     size_t psk_len = 0;
@@ -2667,7 +2667,7 @@ int main( int argc, char *argv[] )
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
         if( opt.psk_opaque != 0 )
         {
-            status = mbedtls_psa_get_free_key_slot( &psk_slot );
+            status = psa_allocate_key( &psk_slot );
             if( status != PSA_SUCCESS )
             {
                 fprintf( stderr, "ALLOC FAIL\n" );
@@ -2711,7 +2711,7 @@ int main( int argc, char *argv[] )
             psk_entry *cur_psk;
             for( cur_psk = psk_info; cur_psk != NULL; cur_psk = cur_psk->next )
             {
-                status = mbedtls_psa_get_free_key_slot( &cur_psk->slot );
+                status = psa_allocate_key( &cur_psk->slot );
                 if( status != PSA_SUCCESS )
                 {
                     ret = MBEDTLS_ERR_SSL_HW_ACCEL_FAILED;

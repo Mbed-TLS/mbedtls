@@ -2938,8 +2938,10 @@ static int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
     mbedtls_mps_transport_type const mode = ctx->conf.mode;
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
-    TRACE_INIT( "l2_counter_replay_check, epoch %u, ctr %u",
-                (unsigned) epoch_id, (unsigned) ctr );
+    TRACE_INIT( "l2_counter_replay_check, epoch %u, ctr ( %u << 32 ) + %u",
+                (unsigned) epoch_id,
+                (unsigned) ctr_hi,
+                (unsigned) ctr_lo );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     if( MBEDTLS_MPS_IS_TLS( mode ) )

@@ -126,6 +126,12 @@
 #define MBEDTLS_MPS_INLINE static inline
 #endif /* MBEDTLS_MPS_NO_STATIC_FUNCTIONS */
 
+#if !defined(MBEDTLS_MPS_SEPARATE_LAYERS)
+#define MBEDTLS_MPS_PUBLIC MBEDTLS_MPS_STATIC
+#else
+#define MBEDTLS_MPS_PUBLIC
+#endif /* MBEDTLS_MPS_SEPARATE_LAYERS */
+
 /** Internal macro sanity check. */
 #if defined(MBEDTLS_MPS_TRACE) && \
     !defined(MBEDTLS_MPS_SEPARATE_LAYERS)

@@ -31,70 +31,70 @@ static int trace_id = TRACE_BIT_LAYER_1;
 
 #include <string.h>
 
-static void l1_release_if_set( unsigned char **buf_ptr,
+MBEDTLS_MPS_STATIC void l1_release_if_set( unsigned char **buf_ptr,
                                mps_alloc *ctx,
                                mps_alloc_type purpose );
-static int l1_acquire_if_unset( unsigned char **buf_ptr,
+MBEDTLS_MPS_STATIC int l1_acquire_if_unset( unsigned char **buf_ptr,
                                 size_t *buflen,
                                 mps_alloc *ctx,
                                 mps_alloc_type purpose );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
 
-static inline int l1_check_flush_stream( mps_l1_stream_write *p );
-static inline void l1_init_stream_read( mps_l1_stream_read *p,
+MBEDTLS_MPS_INLINE int l1_check_flush_stream( mps_l1_stream_write *p );
+MBEDTLS_MPS_INLINE void l1_init_stream_read( mps_l1_stream_read *p,
                                         mps_alloc *ctx,
                                         mps_l0_recv_t *recv );
-static inline void l1_init_stream_write( mps_l1_stream_write *p,
+MBEDTLS_MPS_INLINE void l1_init_stream_write( mps_l1_stream_write *p,
                                          mps_alloc *ctx,
                                          mps_l0_send_t *send );
-static inline void l1_init_stream( mps_l1_stream *p,
+MBEDTLS_MPS_INLINE void l1_init_stream( mps_l1_stream *p,
                                    mps_alloc *ctx,
                                    mps_l0_send_t *send,
                                    mps_l0_recv_t *recv );
-static inline void l1_free_stream_read( mps_l1_stream_read *p );
-static inline void l1_free_stream_write( mps_l1_stream_write *p );
-static inline void l1_free_stream( mps_l1_stream *p );
-static inline int l1_consume_stream( mps_l1_stream_read *p );
-static inline int l1_flush_stream( mps_l1_stream_write *p );
-static inline int l1_write_stream( mps_l1_stream_write *p,
+MBEDTLS_MPS_INLINE void l1_free_stream_read( mps_l1_stream_read *p );
+MBEDTLS_MPS_INLINE void l1_free_stream_write( mps_l1_stream_write *p );
+MBEDTLS_MPS_INLINE void l1_free_stream( mps_l1_stream *p );
+MBEDTLS_MPS_INLINE int l1_consume_stream( mps_l1_stream_read *p );
+MBEDTLS_MPS_INLINE int l1_flush_stream( mps_l1_stream_write *p );
+MBEDTLS_MPS_INLINE int l1_write_stream( mps_l1_stream_write *p,
                                    unsigned char **dst,
                                    size_t *buflen );
-static inline int l1_check_flush_stream( mps_l1_stream_write *p );
-static inline int l1_write_dependency_stream( mps_l1_stream_write *p );
-static inline int l1_read_dependency_stream( mps_l1_stream_read *p );
-static inline int l1_dispatch_stream( mps_l1_stream_write *p,
+MBEDTLS_MPS_INLINE int l1_check_flush_stream( mps_l1_stream_write *p );
+MBEDTLS_MPS_INLINE int l1_write_dependency_stream( mps_l1_stream_write *p );
+MBEDTLS_MPS_INLINE int l1_read_dependency_stream( mps_l1_stream_read *p );
+MBEDTLS_MPS_INLINE int l1_dispatch_stream( mps_l1_stream_write *p,
                                       size_t len, size_t *pending );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-static inline int l1_check_flush_dgram( mps_l1_dgram_write *p );
-static inline void l1_init_dgram_read( mps_l1_dgram_read *p,
+MBEDTLS_MPS_INLINE int l1_check_flush_dgram( mps_l1_dgram_write *p );
+MBEDTLS_MPS_INLINE void l1_init_dgram_read( mps_l1_dgram_read *p,
                                        mps_alloc *ctx,
                                        mps_l0_recv_t *recv );
-static inline void l1_init_dgram_write( mps_l1_dgram_write *p,
+MBEDTLS_MPS_INLINE void l1_init_dgram_write( mps_l1_dgram_write *p,
                                         mps_alloc *ctx,
                                         mps_l0_send_t *send );
-static inline void l1_init_dgram( mps_l1_dgram *p,
+MBEDTLS_MPS_INLINE void l1_init_dgram( mps_l1_dgram *p,
                                   mps_alloc *ctx,
                                   mps_l0_send_t *send,
                                   mps_l0_recv_t *recv );
-static inline void l1_free_dgram_read( mps_l1_dgram_read *p );
-static inline void l1_free_dgram_write( mps_l1_dgram_write *p );
-static inline void l1_free_dgram( mps_l1_dgram *p );
-static inline int l1_ensure_in_dgram( mps_l1_dgram_read *p );
-static inline int l1_write_dependency_dgram( mps_l1_dgram_write *p );
-static inline int l1_read_dependency_dgram( mps_l1_dgram_read *p );
-static inline int l1_fetch_dgram( mps_l1_dgram_read *p,
+MBEDTLS_MPS_INLINE void l1_free_dgram_read( mps_l1_dgram_read *p );
+MBEDTLS_MPS_INLINE void l1_free_dgram_write( mps_l1_dgram_write *p );
+MBEDTLS_MPS_INLINE void l1_free_dgram( mps_l1_dgram *p );
+MBEDTLS_MPS_INLINE int l1_ensure_in_dgram( mps_l1_dgram_read *p );
+MBEDTLS_MPS_INLINE int l1_write_dependency_dgram( mps_l1_dgram_write *p );
+MBEDTLS_MPS_INLINE int l1_read_dependency_dgram( mps_l1_dgram_read *p );
+MBEDTLS_MPS_INLINE int l1_fetch_dgram( mps_l1_dgram_read *p,
                                   unsigned char **dst,
                                   size_t len );
-static inline int l1_consume_dgram( mps_l1_dgram_read *p );
-static inline int l1_write_dgram( mps_l1_dgram_write *p,
+MBEDTLS_MPS_INLINE int l1_consume_dgram( mps_l1_dgram_read *p );
+MBEDTLS_MPS_INLINE int l1_write_dgram( mps_l1_dgram_write *p,
                                   unsigned char **buf,
                                   size_t *buflen );
-static inline int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len,
+MBEDTLS_MPS_INLINE int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len,
                                      size_t *pending );
-static inline int l1_flush_dgram( mps_l1_dgram_write *p );
+MBEDTLS_MPS_INLINE int l1_flush_dgram( mps_l1_dgram_write *p );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 /*
@@ -126,7 +126,7 @@ static inline int l1_flush_dgram( mps_l1_dgram_write *p );
  *
  */
 
-static void l1_release_if_set( unsigned char **buf_ptr,
+MBEDTLS_MPS_STATIC void l1_release_if_set( unsigned char **buf_ptr,
                               mps_alloc *ctx,
                               mps_alloc_type purpose )
 {
@@ -134,7 +134,7 @@ static void l1_release_if_set( unsigned char **buf_ptr,
     mps_alloc_release( ctx, purpose );
 }
 
-static int l1_acquire_if_unset( unsigned char **buf_ptr,
+MBEDTLS_MPS_STATIC int l1_acquire_if_unset( unsigned char **buf_ptr,
                                 size_t *buflen,
                                 mps_alloc *ctx,
                                 mps_alloc_type purpose )
@@ -159,7 +159,7 @@ static int l1_acquire_if_unset( unsigned char **buf_ptr,
   requires ( recv != NULL );
   MPS_L1_STREAM_READ_INV_ENSURES(p)
 @*/
-static inline
+MBEDTLS_MPS_INLINE
 void l1_init_stream_read( mps_l1_stream_read *p,
                           mps_alloc *ctx,
                           mps_l0_recv_t *recv )
@@ -175,7 +175,7 @@ void l1_init_stream_read( mps_l1_stream_read *p,
   requires ( send != NULL );
   MPS_L1_STREAM_WRITE_INV_ENSURES(p)
 @*/
-static inline
+MBEDTLS_MPS_INLINE
 void l1_init_stream_write( mps_l1_stream_write *p,
                            mps_alloc *ctx,
                            mps_l0_send_t *send )
@@ -186,7 +186,7 @@ void l1_init_stream_write( mps_l1_stream_write *p,
     p->alloc = ctx;
 }
 
-static inline
+MBEDTLS_MPS_INLINE
 void l1_init_stream( mps_l1_stream *p, mps_alloc *ctx,
                      mps_l0_send_t *send, mps_l0_recv_t *recv )
 {
@@ -197,7 +197,7 @@ void l1_init_stream( mps_l1_stream *p, mps_alloc *ctx,
 /*@
   MPS_L1_STREAM_READ_INV_REQUIRES(p)
 @*/
-static inline
+MBEDTLS_MPS_INLINE
 void l1_free_stream_read( mps_l1_stream_read *p )
 {
     mps_l1_stream_read const zero = { NULL, NULL, NULL, 0, 0, 0 };
@@ -208,7 +208,7 @@ void l1_free_stream_read( mps_l1_stream_read *p )
 /*@
   MPS_L1_STREAM_WRITE_INV_REQUIRES(p)
 @*/
-static inline
+MBEDTLS_MPS_INLINE
 void l1_free_stream_write( mps_l1_stream_write *p )
 {
     mps_l1_stream_write const zero = { NULL, NULL, NULL, 0, 0, 0, 0 };
@@ -216,7 +216,7 @@ void l1_free_stream_write( mps_l1_stream_write *p )
     *p = zero;
 }
 
-static inline
+MBEDTLS_MPS_INLINE
 void l1_free_stream( mps_l1_stream *p )
 {
     l1_free_stream_read( &p->rd );
@@ -227,7 +227,7 @@ void l1_free_stream( mps_l1_stream *p )
   MPS_L1_STREAM_READ_INV_REQUIRES(p)
   MPS_L1_STREAM_READ_INV_ENSURES(p)
 @*/
-static inline
+MBEDTLS_MPS_INLINE
 int l1_fetch_stream( mps_l1_stream_read *p,
                      unsigned char **dst,
                      size_t len )
@@ -308,7 +308,7 @@ int l1_fetch_stream( mps_l1_stream_read *p,
   MPS_L1_STREAM_READ_INV_REQUIRES(p)
   MPS_L1_STREAM_READ_INV_ENSURES(p)
 @*/
-static inline
+MBEDTLS_MPS_INLINE
 int l1_consume_stream( mps_l1_stream_read *p )
 {
     unsigned char *buf;
@@ -347,7 +347,7 @@ int l1_consume_stream( mps_l1_stream_read *p )
   MPS_L1_STREAM_WRITE_INV_REQUIRES(p)
   MPS_L1_STREAM_WRITE_INV_ENSURES(p)
 @*/
-static inline
+MBEDTLS_MPS_INLINE
 int l1_flush_stream( mps_l1_stream_write *p )
 {
     int ret = 0;
@@ -441,7 +441,7 @@ int l1_flush_stream( mps_l1_stream_write *p )
   MPS_L1_STREAM_WRITE_INV_REQUIRES(p)
   MPS_L1_STREAM_WRITE_INV_ENSURES(p)
 @*/
-static inline
+MBEDTLS_MPS_INLINE
 int l1_write_stream( mps_l1_stream_write *p,
                      unsigned char **dst, size_t *buflen )
 {
@@ -503,7 +503,7 @@ int l1_write_stream( mps_l1_stream_write *p,
     RETURN( 0 );
 }
 
-static inline int l1_write_dependency_stream( mps_l1_stream_write *p )
+MBEDTLS_MPS_INLINE int l1_write_dependency_stream( mps_l1_stream_write *p )
 {
     uint8_t status;
 
@@ -514,13 +514,13 @@ static inline int l1_write_dependency_stream( mps_l1_stream_write *p )
     return( 0 );
 }
 
-static inline int l1_read_dependency_stream( mps_l1_stream_read *p )
+MBEDTLS_MPS_INLINE int l1_read_dependency_stream( mps_l1_stream_read *p )
 {
     ((void) p);
     return( -1 );
 }
 
-static inline
+MBEDTLS_MPS_INLINE
 int l1_check_flush_stream( mps_l1_stream_write *p )
 {
     /*
@@ -562,7 +562,7 @@ int l1_check_flush_stream( mps_l1_stream_write *p )
   MPS_L1_STREAM_WRITE_INV_REQUIRES(p)
   MPS_L1_STREAM_WRITE_INV_ENSURES(p)
 @*/
-static inline
+MBEDTLS_MPS_INLINE
 int l1_dispatch_stream( mps_l1_stream_write *p, size_t len, size_t *pending )
 {
     size_t bl, br, data_remaining;
@@ -622,7 +622,7 @@ int l1_dispatch_stream( mps_l1_stream_write *p, size_t len, size_t *pending )
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
 
-static inline
+MBEDTLS_MPS_INLINE
 void l1_init_dgram_read( mps_l1_dgram_read *p,
                          mps_alloc *ctx,
                          mps_l0_recv_t *recv )
@@ -634,7 +634,7 @@ void l1_init_dgram_read( mps_l1_dgram_read *p,
     p->alloc = ctx;
 }
 
-static inline
+MBEDTLS_MPS_INLINE
 void l1_init_dgram_write( mps_l1_dgram_write *p,
                           mps_alloc *ctx,
                           mps_l0_send_t *send )
@@ -646,7 +646,7 @@ void l1_init_dgram_write( mps_l1_dgram_write *p,
     p->alloc = ctx;
 }
 
-static inline
+MBEDTLS_MPS_INLINE
 void l1_init_dgram( mps_l1_dgram *p,
                     mps_alloc *ctx,
                     mps_l0_send_t *send, mps_l0_recv_t *recv )
@@ -655,7 +655,7 @@ void l1_init_dgram( mps_l1_dgram *p,
     l1_init_dgram_write( &p->wr, ctx, send );
 }
 
-static inline
+MBEDTLS_MPS_INLINE
 void l1_free_dgram_read( mps_l1_dgram_read *p )
 {
     mps_l1_dgram_read const zero = { 0, NULL, NULL, 0, 0, 0, 0 };
@@ -663,7 +663,7 @@ void l1_free_dgram_read( mps_l1_dgram_read *p )
     *p = zero;
 }
 
-static inline
+MBEDTLS_MPS_INLINE
 void l1_free_dgram_write( mps_l1_dgram_write *p )
 {
     mps_l1_dgram_write const zero = { 0, NULL, NULL, 0, 0, 0 };
@@ -671,7 +671,7 @@ void l1_free_dgram_write( mps_l1_dgram_write *p )
     *p = zero;
 }
 
-static inline
+MBEDTLS_MPS_INLINE
 void l1_free_dgram( mps_l1_dgram *p )
 {
     l1_free_dgram_read ( &p->rd );
@@ -689,7 +689,7 @@ void l1_free_dgram( mps_l1_dgram *p )
  * This function is not part of the L1 API but only used
  * as a preparation for the `fetch` function.
  */
-static inline
+MBEDTLS_MPS_INLINE
 int l1_ensure_in_dgram( mps_l1_dgram_read *p )
 {
     size_t ml, bl;
@@ -739,7 +739,7 @@ int l1_ensure_in_dgram( mps_l1_dgram_read *p )
     RETURN( 0 );
 }
 
-static inline
+MBEDTLS_MPS_INLINE
 int l1_fetch_dgram( mps_l1_dgram_read *p,
                     unsigned char **dst,
                     size_t len )
@@ -791,7 +791,7 @@ int l1_fetch_dgram( mps_l1_dgram_read *p,
     RETURN( 0 );
 }
 
-static inline
+MBEDTLS_MPS_INLINE
 int l1_consume_dgram( mps_l1_dgram_read *p )
 {
     int ret;
@@ -846,7 +846,7 @@ int l1_consume_dgram( mps_l1_dgram_read *p )
     RETURN( 0 );
 }
 
-static inline int l1_write_dependency_dgram( mps_l1_dgram_write *p )
+MBEDTLS_MPS_INLINE int l1_write_dependency_dgram( mps_l1_dgram_write *p )
 {
     uint8_t flush;
 
@@ -857,7 +857,7 @@ static inline int l1_write_dependency_dgram( mps_l1_dgram_write *p )
     return( 0 );
 }
 
-static inline int l1_read_dependency_dgram( mps_l1_dgram_read *p )
+MBEDTLS_MPS_INLINE int l1_read_dependency_dgram( mps_l1_dgram_read *p )
 {
     unsigned char *buf;
 
@@ -868,7 +868,7 @@ static inline int l1_read_dependency_dgram( mps_l1_dgram_read *p )
     return( 0 );
 }
 
-static inline
+MBEDTLS_MPS_INLINE
 int l1_write_dgram( mps_l1_dgram_write *p,
                      unsigned char **dst, size_t *dstlen )
 {
@@ -906,7 +906,7 @@ int l1_write_dgram( mps_l1_dgram_write *p,
     RETURN( 0 );
 }
 
-static inline
+MBEDTLS_MPS_INLINE
 int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len, size_t *pending )
 {
     size_t bl, br;
@@ -941,7 +941,7 @@ int l1_dispatch_dgram( mps_l1_dgram_write *p, size_t len, size_t *pending )
     RETURN( l1_check_flush_dgram( p ) );
 }
 
-static inline
+MBEDTLS_MPS_INLINE
 int l1_check_flush_dgram( mps_l1_dgram_write *p )
 {
     size_t bl, br;
@@ -964,7 +964,7 @@ int l1_check_flush_dgram( mps_l1_dgram_write *p )
     RETURN( 0 );
 }
 
-static inline
+MBEDTLS_MPS_INLINE
 int l1_flush_dgram( mps_l1_dgram_write *p )
 {
     int ret;

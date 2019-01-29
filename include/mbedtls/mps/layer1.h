@@ -31,12 +31,6 @@
 #include "allocator.h"
 #include "error.h"
 
-#if defined(MBEDTLS_MPS_SEPARATE_LAYERS)
-#define MPS_STATIC
-#else
-#define MPS_STATIC static
-#endif
-
 /*
  * External interface to layer 0
  */
@@ -587,7 +581,7 @@ typedef struct mps_l1 mps_l1;
   requires \valid( ctx );
   MPS_L1_INV_ENSURES( ctx )
   @*/
-MPS_STATIC int mps_l1_init( mps_l1 *ctx, uint8_t mode, mps_alloc *alloc,
+MBEDTLS_MPS_PUBLIC int mps_l1_init( mps_l1 *ctx, uint8_t mode, mps_alloc *alloc,
                             mps_l0_send_t *send, mps_l0_recv_t *recv );
 
 /**
@@ -606,7 +600,7 @@ MPS_STATIC int mps_l1_init( mps_l1 *ctx, uint8_t mode, mps_alloc *alloc,
 /*@
  MPS_L1_INV_REQUIRES( ctx )
   @*/
-MPS_STATIC void mps_l1_free( mps_l1 *ctx );
+MBEDTLS_MPS_PUBLIC void mps_l1_free( mps_l1 *ctx );
 
 /*
  * Read interface
@@ -635,7 +629,7 @@ MPS_STATIC void mps_l1_free( mps_l1 *ctx );
  MPS_L1_INV_REQUIRES( ctx )
  MPS_L1_INV_ENSURES( ctx )
   @*/
-MPS_STATIC int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf, size_t desired );
+MBEDTLS_MPS_PUBLIC int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf, size_t desired );
 
 /**
  * \brief          Mark the previously fetched data as consumed.
@@ -653,7 +647,7 @@ MPS_STATIC int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf, size_t desired );
  MPS_L1_INV_REQUIRES( ctx )
  MPS_L1_INV_ENSURES( ctx )
   @*/
-MPS_STATIC int mps_l1_consume( mps_l1 *ctx );
+MBEDTLS_MPS_PUBLIC int mps_l1_consume( mps_l1 *ctx );
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
 /**
@@ -674,7 +668,7 @@ MPS_STATIC int mps_l1_consume( mps_l1 *ctx );
  MPS_L1_INV_REQUIRES( ctx )
  MPS_L1_INV_ENSURES( ctx )
   @*/
-MPS_STATIC int mps_l1_skip( mps_l1 *ctx );
+MBEDTLS_MPS_PUBLIC int mps_l1_skip( mps_l1 *ctx );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 /*
@@ -706,7 +700,7 @@ MPS_STATIC int mps_l1_skip( mps_l1 *ctx );
  MPS_L1_INV_REQUIRES( ctx )
  MPS_L1_INV_ENSURES( ctx )
   @*/
-MPS_STATIC int mps_l1_write( mps_l1 *ctx, unsigned char **buf, size_t *buflen );
+MBEDTLS_MPS_PUBLIC int mps_l1_write( mps_l1 *ctx, unsigned char **buf, size_t *buflen );
 
 /**
  * \brief          Dispatch data provided in the outgoing data buffer.
@@ -729,7 +723,7 @@ MPS_STATIC int mps_l1_write( mps_l1 *ctx, unsigned char **buf, size_t *buflen );
  MPS_L1_INV_REQUIRES( ctx )
  MPS_L1_INV_ENSURES( ctx )
   @*/
-MPS_STATIC int mps_l1_dispatch( mps_l1 *ctx, size_t len, size_t *pending );
+MBEDTLS_MPS_PUBLIC int mps_l1_dispatch( mps_l1 *ctx, size_t len, size_t *pending );
 
 /**
  * \brief          Deliver all previously dispatched data
@@ -757,7 +751,7 @@ MPS_STATIC int mps_l1_dispatch( mps_l1 *ctx, size_t len, size_t *pending );
  MPS_L1_INV_REQUIRES( ctx )
  MPS_L1_INV_ENSURES( ctx )
   @*/
-MPS_STATIC int mps_l1_flush( mps_l1 *ctx );
+MBEDTLS_MPS_PUBLIC int mps_l1_flush( mps_l1 *ctx );
 
 /**
  * \brief          Check if a read request will necessarily involve
@@ -781,7 +775,7 @@ MPS_STATIC int mps_l1_flush( mps_l1 *ctx );
  MPS_L1_INV_REQUIRES( ctx )
  MPS_L1_INV_ENSURES( ctx )
   @*/
-MPS_STATIC int mps_l1_read_dependency( mps_l1 *ctx );
+MBEDTLS_MPS_PUBLIC int mps_l1_read_dependency( mps_l1 *ctx );
 
 /**
  * \brief          Check if a write request can be potentially be served
@@ -811,7 +805,7 @@ MPS_STATIC int mps_l1_read_dependency( mps_l1 *ctx );
  MPS_L1_INV_REQUIRES( ctx )
  MPS_L1_INV_ENSURES( ctx )
   @*/
-MPS_STATIC int mps_l1_write_dependency( mps_l1 *ctx );
+MBEDTLS_MPS_PUBLIC int mps_l1_write_dependency( mps_l1 *ctx );
 
 
 #endif /* MBEDTLS_MPS_BUFFER_LAYER_H */

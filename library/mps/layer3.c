@@ -36,34 +36,34 @@ static int trace_id = TRACE_BIT_LAYER_3;
  */
 
 /* Reading-related */
-static int l3_parse_hs_header( uint8_t mode, mbedtls_reader *rd,
+MBEDTLS_MPS_STATIC int l3_parse_hs_header( uint8_t mode, mbedtls_reader *rd,
                                mps_l3_hs_in_internal *in );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-static int l3_parse_hs_header_tls( mbedtls_reader *rd,
+MBEDTLS_MPS_STATIC int l3_parse_hs_header_tls( mbedtls_reader *rd,
                                    mps_l3_hs_in_internal *in );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-static int l3_parse_hs_header_dtls( mbedtls_reader *rd,
+MBEDTLS_MPS_STATIC int l3_parse_hs_header_dtls( mbedtls_reader *rd,
                                     mps_l3_hs_in_internal *in );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
-static int l3_parse_alert( mbedtls_reader *rd,
+MBEDTLS_MPS_STATIC int l3_parse_alert( mbedtls_reader *rd,
                            mps_l3_alert_in_internal *alert );
-static int l3_parse_ccs( mbedtls_reader *rd );
+MBEDTLS_MPS_STATIC int l3_parse_ccs( mbedtls_reader *rd );
 
 /* Writing-related */
-static int l3_prepare_write( mps_l3 *l3, mbedtls_mps_msg_type_t type,
+MBEDTLS_MPS_STATIC int l3_prepare_write( mps_l3 *l3, mbedtls_mps_msg_type_t type,
                              mbedtls_mps_epoch_id epoch );
-static int l3_check_clear( mps_l3 *l3 );
+MBEDTLS_MPS_STATIC int l3_check_clear( mps_l3 *l3 );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-static int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs );
+MBEDTLS_MPS_STATIC int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-static int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs );
+MBEDTLS_MPS_STATIC int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 /*
@@ -530,7 +530,7 @@ int mps_l3_read_pause_handshake( mps_l3 *l3 )
 
 /* Handshake */
 
-static int l3_parse_hs_header( uint8_t mode, mbedtls_reader *rd,
+MBEDTLS_MPS_STATIC int l3_parse_hs_header( uint8_t mode, mbedtls_reader *rd,
                                mps_l3_hs_in_internal *in )
 {
 #if !defined(MBEDTLS_MPS_PROTO_BOTH)
@@ -551,7 +551,7 @@ static int l3_parse_hs_header( uint8_t mode, mbedtls_reader *rd,
 }
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-static int l3_parse_hs_header_tls( mbedtls_reader *rd,
+MBEDTLS_MPS_STATIC int l3_parse_hs_header_tls( mbedtls_reader *rd,
                                    mps_l3_hs_in_internal *in )
 {
     int res;
@@ -616,7 +616,7 @@ static int l3_parse_hs_header_tls( mbedtls_reader *rd,
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-static int l3_parse_hs_header_dtls( mbedtls_reader *rd,
+MBEDTLS_MPS_STATIC int l3_parse_hs_header_dtls( mbedtls_reader *rd,
                                     mps_l3_hs_in_internal *in )
 {
     int res;
@@ -696,7 +696,7 @@ static int l3_parse_hs_header_dtls( mbedtls_reader *rd,
 
 /* Alert */
 
-static int l3_parse_alert( mbedtls_reader *rd,
+MBEDTLS_MPS_STATIC int l3_parse_alert( mbedtls_reader *rd,
                            mps_l3_alert_in_internal *alert )
 {
     int res;
@@ -741,7 +741,7 @@ static int l3_parse_alert( mbedtls_reader *rd,
 
 /* CCS */
 
-static int l3_parse_ccs( mbedtls_reader *rd )
+MBEDTLS_MPS_STATIC int l3_parse_ccs( mbedtls_reader *rd )
 {
     int res;
     unsigned char *tmp;
@@ -876,7 +876,7 @@ int mps_l3_flush( mps_l3 *l3 )
 }
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-static int l3_check_write_hs_hdr_tls( mps_l3 *l3 )
+MBEDTLS_MPS_STATIC int l3_check_write_hs_hdr_tls( mps_l3 *l3 )
 {
     int res;
     mps_l3_hs_out_internal *hs = &l3->out.hs;
@@ -897,7 +897,7 @@ static int l3_check_write_hs_hdr_tls( mps_l3 *l3 )
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-static int l3_check_write_hs_hdr_dtls( mps_l3 *l3 )
+MBEDTLS_MPS_STATIC int l3_check_write_hs_hdr_dtls( mps_l3 *l3 )
 {
     int res;
     mps_l3_hs_out_internal *hs = &l3->out.hs;
@@ -918,7 +918,7 @@ static int l3_check_write_hs_hdr_dtls( mps_l3 *l3 )
 }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
-static int l3_check_write_hs_hdr( mps_l3 *l3 )
+MBEDTLS_MPS_STATIC int l3_check_write_hs_hdr( mps_l3 *l3 )
 {
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type mode = l3->conf.mode;
@@ -1402,7 +1402,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
 }
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-static int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs )
+MBEDTLS_MPS_STATIC int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs )
 
 {
     unsigned char *buf = hs->hdr;
@@ -1460,7 +1460,7 @@ static int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs )
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-static int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs )
+MBEDTLS_MPS_STATIC int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs )
 
 {
     unsigned char *buf = hs->hdr;
@@ -1532,7 +1532,7 @@ static int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs )
 /*
  * Flush Layer 2 if requested.
  */
-static int l3_check_clear( mps_l3 *l3 )
+MBEDTLS_MPS_STATIC int l3_check_clear( mps_l3 *l3 )
 {
     int res;
     TRACE_INIT( "l3_check_clear" );
@@ -1552,7 +1552,7 @@ static int l3_check_clear( mps_l3 *l3 )
  *
  * This also keeps track of pursuing ongoing but not yet finished flush calls.
  */
-static int l3_prepare_write( mps_l3 *l3, mbedtls_mps_msg_type_t port,
+MBEDTLS_MPS_STATIC int l3_prepare_write( mps_l3 *l3, mbedtls_mps_msg_type_t port,
                              mbedtls_mps_epoch_id epoch )
 {
     int res;

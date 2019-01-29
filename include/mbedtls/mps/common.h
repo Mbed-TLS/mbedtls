@@ -167,52 +167,31 @@ typedef uint8_t mbedtls_mps_transport_type;
 #define MBEDTLS_MPS_MODE_DATAGRAM ((mbedtls_mps_transport_type) 1)
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
+
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
 #define MBEDTLS_MPS_IS_TLS( mode )               \
     ( (mode) == MBEDTLS_MPS_MODE_STREAM )
 #else
 #define MBEDTLS_MPS_IS_TLS( mode ) 1
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
+
+#define MBEDTLS_MPS_IF_TLS( mode ) if( MBEDTLS_MPS_IS_TLS( mode ) )
 #endif /* MBEDTLS_MPS_PROTO_TLS  */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
 #define MBEDTLS_MPS_IS_DTLS( mode )               \
     ( (mode) == MBEDTLS_MPS_MODE_DATAGRAM )
+#define MBEDTLS_MPS_ELSE_IF_DTLS( mode )         \
+    else
 #else
 #define MBEDTLS_MPS_IS_DTLS( mode ) 1
+#define MBEDTLS_MPS_ELSE_IF_DTLS( mode )        \
+    if( MBEDTLS_MPS_IS_DTLS( mode ) )
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
-#endif /* MBEDTLS_MPS_PROTO_DTLS  */
 
-#if !defined(MBEDTLS_MPS_PROTO_TLS) /* DTLS only */
-#define MBEDTLS_MPS_PROTO_IF( mode, tls_code, dtls_code ) \
-    do                                                    \
-    {                                                     \
-        dtls_code;                                        \
-    } while( 0 )
-#define MBEDTLS_MPS_PROTO_IF_BOTH( code )
-#elif !defined(MBEDTLS_MPS_PROTO_DTLS) /* TLS only */
-#define MBEDTLS_MPS_PROTO_IF( mode, tls_code, dtls_code ) \
-    do                                                    \
-    {                                                     \
-        tls_code;                                         \
-    } while( 0 )
-#define MBEDTLS_MPS_PROTO_IF_BOTH( code )
-#else /* TLS and DTLS enabled */
-#define MBEDTLS_MPS_PROTO_IF( mode, tls_code, dtls_code ) \
-    do                                                    \
-    {                                                     \
-        if( (mode) == MBEDTLS_MPS_MODE_STREAM )           \
-        {                                                 \
-            tls_code;                                     \
-        }                                                 \
-        else /* (mode) == MBEDTLS_MPS_MODE_DATAGRAM */    \
-        {                                                 \
-            dtls_code;                                    \
-        }                                                 \
-    } while( 0 )
-#define MBEDTLS_MPS_PROTO_IF_BOTH( code ) code
-#endif /* MBEDTLS_MPS_PROTO_TLS && MBEDTLS_MPS_PROTO_DTLS */
+#define MBEDTLS_MPS_IF_DTLS( mode ) if( MBEDTLS_MPS_IS_DTLS( mode ) )
+#endif /* MBEDTLS_MPS_PROTO_DTLS  */
 
 /*! The enumeration of record content types recognized by MPS.
  *

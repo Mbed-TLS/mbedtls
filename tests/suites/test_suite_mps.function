@@ -9570,10 +9570,8 @@ void mbedtls_mps_l4_disruption( int mode,
     TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, mode ) == 0 );
 
     /* Initialize Layer 4 */
-    TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3,
-                                   MBEDTLS_MPS_MODE_STREAM ) == 0 );
-    TEST_ASSERT( mbedtls_mps_init( &srv, &srv_l3,
-                                   MBEDTLS_MPS_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3, mode ) == 0 );
+    TEST_ASSERT( mbedtls_mps_init( &srv, &srv_l3, mode ) == 0 );
 
     TEST_ASSERT( mbedtls_mps_add_key_material( &cli, dummy_c,
                                                &cli_epoch ) == 0 );

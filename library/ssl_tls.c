@@ -509,8 +509,7 @@ static int tls_prf_generic( mbedtls_md_type_t md_type,
 
     if( ( status = psa_allocate_key( &master_slot ) ) != PSA_SUCCESS )
         return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
-    if( status != PSA_SUCCESS )
-        return( MBEDTLS_ERR_SSL_HW_ACCEL_FAILED );
+
     if( md_type == MBEDTLS_MD_SHA384 )
         alg = PSA_ALG_TLS12_PRF(PSA_ALG_SHA_384);
     else

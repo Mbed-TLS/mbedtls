@@ -1038,12 +1038,11 @@ int mps_l1_init( mps_l1 *ctx, uint8_t mode, mps_alloc *alloc,
     TRACE_INIT( "mps_l1_init, mode %u", (unsigned) mode );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
         l1_init_stream( &ctx->raw.stream, alloc, send, recv );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
         l1_init_dgram( &ctx->raw.dgram, alloc, send, recv );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -1062,12 +1061,11 @@ void mps_l1_free( mps_l1 *ctx )
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
         l1_free_stream( &ctx->raw.stream );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
         l1_free_dgram( &ctx->raw.dgram );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 }
@@ -1079,16 +1077,13 @@ int mps_l1_fetch( mps_l1 *ctx, unsigned char **buf, size_t desired )
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
         return( l1_fetch_stream( &ctx->raw.stream.rd, buf, desired ) );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
         return( l1_fetch_dgram( &ctx->raw.dgram.rd, buf, desired ) );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
-
-    return( MPS_ERR_INTERNAL_ERROR );
 }
 
 int mps_l1_consume( mps_l1 *ctx )
@@ -1098,16 +1093,13 @@ int mps_l1_consume( mps_l1 *ctx )
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
         return( l1_consume_stream( &ctx->raw.stream.rd ) );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
         return( l1_consume_dgram( &ctx->raw.dgram.rd ) );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
-
-    return( MPS_ERR_INTERNAL_ERROR );
 }
 
 int mps_l1_write( mps_l1 *ctx, unsigned char **buf, size_t *buflen )
@@ -1117,16 +1109,13 @@ int mps_l1_write( mps_l1 *ctx, unsigned char **buf, size_t *buflen )
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
         return( l1_write_stream( &ctx->raw.stream.wr, buf, buflen ) );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
         return( l1_write_dgram( &ctx->raw.dgram.wr, buf, buflen ) );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
-
-    return( MPS_ERR_INTERNAL_ERROR );
 }
 
 int mps_l1_dispatch( mps_l1 *ctx, size_t len, size_t *pending )
@@ -1136,16 +1125,13 @@ int mps_l1_dispatch( mps_l1 *ctx, size_t len, size_t *pending )
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
         return( l1_dispatch_stream( &ctx->raw.stream.wr, len, pending ) );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
         return( l1_dispatch_dgram( &ctx->raw.dgram.wr, len, pending ) );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
-
-    return( MPS_ERR_INTERNAL_ERROR );
 }
 
 int mps_l1_flush( mps_l1 *ctx )
@@ -1155,16 +1141,13 @@ int mps_l1_flush( mps_l1 *ctx )
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
         return( l1_flush_stream( &ctx->raw.stream.wr ) );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
         return( l1_flush_dgram( &ctx->raw.dgram.wr ) );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
-
-    return( MPS_ERR_INTERNAL_ERROR );
 }
 
 int mps_l1_read_dependency( mps_l1 *ctx )
@@ -1174,16 +1157,13 @@ int mps_l1_read_dependency( mps_l1 *ctx )
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
         return( l1_read_dependency_stream( &ctx->raw.stream.rd ) );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
         return( l1_read_dependency_dgram( &ctx->raw.dgram.rd ) );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
-
-    return( MPS_ERR_INTERNAL_ERROR );
 }
 
 int mps_l1_write_dependency( mps_l1 *ctx )
@@ -1193,16 +1173,13 @@ int mps_l1_write_dependency( mps_l1 *ctx )
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
         return( l1_write_dependency_stream( &ctx->raw.stream.wr ) );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
         return( l1_write_dependency_dgram( &ctx->raw.dgram.wr ) );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
-
-    return( MPS_ERR_INTERNAL_ERROR );
 }
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)

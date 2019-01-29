@@ -13,8 +13,8 @@ Bugfix
      in the header files, which missed the precompilation check. #971
 
 Changes
-   * Reduced the complexity of the timing tests, as they were failing in less
-     reliable environments.
+   * Reduced the complexity of the timing tests, as they were assuming more than
+     the underlying OS actually guarantees.
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

@@ -4736,7 +4736,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L2 */
+/* BEGIN_CASE depends_on:MBEDTLS_MPS_PROTO_DTLS:TEST_SUITE_MPS_L2 */
 void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
                                  int variant )
 {
@@ -9703,7 +9703,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L4 */
+/* BEGIN_CASE depends_on:MBEDTLS_MPS_PROTO_DTLS:TEST_SUITE_MPS_L4 */
 void mbedtls_mps_l4_dtls_fragmentation( int allocator_buffer_sz,
                                         int retransmission_callback,
                                         int num_hs )
@@ -9919,7 +9919,7 @@ exit:
 /* END_CASE */
 
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L4 */
+/* BEGIN_CASE depends_on:MBEDTLS_MPS_PROTO_DTLS:TEST_SUITE_MPS_L4 */
 void mbedtls_mps_l4_dtls_reassembly( int allocator_buffer_sz,
                                      int retransmission_callback,
                                      int num_hs,
@@ -10187,7 +10187,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L4 */
+/* BEGIN_CASE depends_on:MBEDTLS_MPS_PROTO_DTLS:TEST_SUITE_MPS_L4 */
 void mbedtls_mps_l4_dtls_flight_exchange( int allocator_buffer_sz,
                                           int retransmission_callback,
                                           int num_hs,

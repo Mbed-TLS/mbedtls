@@ -219,7 +219,14 @@ class ExclusiveDomain(Domain):
 Establish a list of configuration symbols. For each symbol, run a test job
 with this symbol set and the others unset, and a test job with this symbol
 unset and the others set."""
-    def __init__(self, symbols, commands):
+    def __init__(self, symbols, commands, exclude=None):
+        """Build a domain for the specified list of configuration symbols.
+The domain contains two sets of jobs: jobs that enable one of the elements
+of symbols and disable the others, and jobs that disable one of the elements
+of symbols and enable the others.
+Each job runs the specified commands.
+If exclude is a regular expression, skip generated jobs whose description
+would match this regular expression."""
         self.jobs = []
         for invert in [False, True]:
             base_config_settings = {}
@@ -227,6 +234,8 @@ unset and the others set."""
                 base_config_settings[symbol] = invert
             for symbol in symbols:
                 description = '!' + symbol if invert else symbol
+                if exclude and re.match(exclude, description):
+                    continue
                 config_settings = base_config_settings.copy()
                 config_settings[symbol] = not invert
                 turn_off_dependencies(config_settings)
@@ -238,6 +247,9 @@ class ComplementaryDomain:
 Establish a list of configuration symbols. For each symbol, run a test job
 with this symbol unset."""
     def __init__(self, symbols, commands):
+        """Build a domain for the specified list of configuration symbols.
+Each job in the domain disables one of the specified symbols.
+Each job runs the specified commands."""
         self.jobs = []
         for symbol in symbols:
             description = '!' + symbol
@@ -279,7 +291,8 @@ Return them in a generator."""
             'curves': ExclusiveDomain(curve_symbols, build_and_test),
             # Hash algorithms. Exclude configurations with only one
             # hash which is obsolete. Run the test suites.
-            'hashes': ExclusiveDomain(hash_symbols, build_and_test),
+            'hashes': ExclusiveDomain(hash_symbols, build_and_test,
+                                      exclude=r'MBEDTLS_(MD|RIPEMD|SHA1_)'),
             # Key exchange types. Just check the build.
             'kex': ExclusiveDomain(key_exchange_symbols, [build_command]),
             # Public-key algorithms. Run the test suites.

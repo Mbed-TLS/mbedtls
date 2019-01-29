@@ -131,7 +131,9 @@ where each argument takes each possible value at least once.'''
     excluded_name_re = re.compile('_(?:GET|IS|OF)_|_(?:BASE|FLAG|MASK)\Z')
     # Additional excluded macros.
     excluded_names = set(['PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH',
-                          'PSA_ALG_FULL_LENGTH_MAC'])
+                          'PSA_ALG_FULL_LENGTH_MAC',
+                          'PSA_ALG_ECDH',
+                          'PSA_ALG_FFDH'])
     argument_split_re = re.compile(r' *, *')
     def parse_header_line(self, line):
         '''Parse a C header line, looking for "#define PSA_xxx".'''
@@ -158,6 +160,8 @@ where each argument takes each possible value at least once.'''
     def add_test_case_line(self, function, argument):
         '''Parse a test case data line, looking for algorithm metadata tests.'''
         if function.endswith('_algorithm'):
+            if 'ECDH' in argument or 'FFDH' in argument:
+                return
             self.algorithms.add(argument)
             if function == 'hash_algorithm':
                 self.hash_algorithms.add(argument)

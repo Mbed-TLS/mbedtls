@@ -9560,7 +9560,15 @@ void mbedtls_mps_l4_disruption( int mode,
     hs_out.type = 12;
     hs_out.length = 20;
 
-    TEST_ASSERT( mbedtls_mps_write_handshake( &cli, &hs_out, NULL, NULL ) == 0 );
+    TEST_ASSERT( mbedtls_mps_write_handshake( &cli, &hs_out,
+                                              NULL, NULL ) == 0 );
+
+    if( shutdown )
+    {
+        /* An orderly shutdown cannot happen in the middle of a handshake. */
+        TEST_ASSERT( mbedtls_mps_write_set_flags( &cli,
+                                     MBEDTLS_MPS_FLIGHT_FINISHED ) == 0 );
+    }
 
     TEST_ASSERT( mbedtls_writer_get_ext( hs_out.handle,
                                          20,

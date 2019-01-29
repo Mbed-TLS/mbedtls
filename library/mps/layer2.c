@@ -188,9 +188,10 @@ MBEDTLS_MPS_STATIC int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
                                     uint32_t ctr_lo );
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
-MBEDTLS_MPS_STATIC void l2_out_write_version( int major, int minor,
-                                  mbedtls_mps_transport_type transport,
-                                  unsigned char ver[2] )
+MBEDTLS_MPS_STATIC
+void l2_out_write_version( int major, int minor,
+                           mbedtls_mps_transport_type transport,
+                           unsigned char ver[2] )
 {
 #if !defined(MBEDTLS_MPS_PROTO_BOTH)
     ((void) transport);
@@ -222,8 +223,9 @@ MBEDTLS_MPS_STATIC void l2_out_write_version( int major, int minor,
 }
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-MBEDTLS_MPS_STATIC void l2_read_version_tls( uint8_t *major, uint8_t *minor,
-                                       const unsigned char ver[2] )
+MBEDTLS_MPS_STATIC
+void l2_read_version_tls( uint8_t *major, uint8_t *minor,
+                          const unsigned char ver[2] )
 {
     *major = ver[0];
     *minor = ver[1];
@@ -231,8 +233,9 @@ MBEDTLS_MPS_STATIC void l2_read_version_tls( uint8_t *major, uint8_t *minor,
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-MBEDTLS_MPS_STATIC void l2_read_version_dtls( uint8_t *major, uint8_t *minor,
-                                  const unsigned char ver[2] )
+MBEDTLS_MPS_STATIC
+void l2_read_version_dtls( uint8_t *major, uint8_t *minor,
+                           const unsigned char ver[2] )
 {
     *major = 255 - ver[0] + 2;
     *minor = 255 - ver[1] + 1;
@@ -242,7 +245,8 @@ MBEDTLS_MPS_STATIC void l2_read_version_dtls( uint8_t *major, uint8_t *minor,
 }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
-MBEDTLS_MPS_STATIC void mps_l2_readers_init( mbedtls_mps_l2 *ctx )
+MBEDTLS_MPS_STATIC
+void mps_l2_readers_init( mbedtls_mps_l2 *ctx )
 {
     ctx->in.active.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
     mbedtls_reader_init( &ctx->in.active.rd, NULL, 0 );
@@ -253,7 +257,8 @@ MBEDTLS_MPS_STATIC void mps_l2_readers_init( mbedtls_mps_l2 *ctx )
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 }
 
-MBEDTLS_MPS_STATIC void mps_l2_readers_free( mbedtls_mps_l2 *ctx )
+MBEDTLS_MPS_STATIC
+void mps_l2_readers_free( mbedtls_mps_l2 *ctx )
 {
     ctx->in.active.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
     mbedtls_reader_free( &ctx->in.active.rd );
@@ -264,7 +269,8 @@ MBEDTLS_MPS_STATIC void mps_l2_readers_free( mbedtls_mps_l2 *ctx )
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 }
 
-MBEDTLS_MPS_STATIC int mps_l2_readers_close_active( mbedtls_mps_l2 *ctx )
+MBEDTLS_MPS_STATIC
+int mps_l2_readers_close_active( mbedtls_mps_l2 *ctx )
 {
     mbedtls_reader_free( &ctx->in.active.rd );
     ctx->in.active.state = MBEDTLS_MPS_L2_READER_STATE_UNSET;
@@ -272,7 +278,8 @@ MBEDTLS_MPS_STATIC int mps_l2_readers_close_active( mbedtls_mps_l2 *ctx )
 }
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-MBEDTLS_MPS_STATIC int mps_l2_readers_pause_active( mbedtls_mps_l2 *ctx )
+MBEDTLS_MPS_STATIC
+int mps_l2_readers_pause_active( mbedtls_mps_l2 *ctx )
 {
     mbedtls_mps_l2_in_internal tmp;
 
@@ -301,19 +308,20 @@ MBEDTLS_MPS_STATIC int mps_l2_readers_pause_active( mbedtls_mps_l2 *ctx )
 }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
-MBEDTLS_MPS_STATIC mbedtls_mps_l2_reader_state mps_l2_readers_active_state(
-    mbedtls_mps_l2 *ctx )
+MBEDTLS_MPS_STATIC
+mbedtls_mps_l2_reader_state mps_l2_readers_active_state( mbedtls_mps_l2 *ctx )
 {
     return( ctx->in.active.state );
 }
 
-MBEDTLS_MPS_STATIC mbedtls_mps_l2_in_internal* mps_l2_readers_get_active(
-    mbedtls_mps_l2 *ctx )
+MBEDTLS_MPS_STATIC
+mbedtls_mps_l2_in_internal* mps_l2_readers_get_active( mbedtls_mps_l2 *ctx )
 {
     return( &ctx->in.active );
 }
 
-MBEDTLS_MPS_INLINE void mps_l2_readers_update( mbedtls_mps_l2 *ctx )
+MBEDTLS_MPS_INLINE
+void mps_l2_readers_update( mbedtls_mps_l2 *ctx )
 {
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode = ctx->conf.mode;
@@ -343,8 +351,9 @@ MBEDTLS_MPS_INLINE void mps_l2_readers_update( mbedtls_mps_l2 *ctx )
 }
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-MBEDTLS_MPS_INLINE mbedtls_mps_l2_in_internal *mps_l2_find_paused_slot(
-    mbedtls_mps_l2 *ctx, mbedtls_mps_msg_type_t type )
+MBEDTLS_MPS_INLINE
+mbedtls_mps_l2_in_internal *mps_l2_find_paused_slot( mbedtls_mps_l2 *ctx,
+                                                  mbedtls_mps_msg_type_t type )
 {
     if( ctx->in.paused.state == MBEDTLS_MPS_L2_READER_STATE_PAUSED )
     {
@@ -355,9 +364,10 @@ MBEDTLS_MPS_INLINE mbedtls_mps_l2_in_internal *mps_l2_find_paused_slot(
 }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
-MBEDTLS_MPS_INLINE mbedtls_mps_l2_in_internal *mps_l2_setup_free_slot(
-    mbedtls_mps_l2 *ctx, mbedtls_mps_msg_type_t type,
-    mbedtls_mps_epoch_id epoch )
+MBEDTLS_MPS_INLINE
+mbedtls_mps_l2_in_internal *mps_l2_setup_free_slot( mbedtls_mps_l2 *ctx,
+                                                    mbedtls_mps_msg_type_t type,
+                                                    mbedtls_mps_epoch_id epoch )
 {
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode = ctx->conf.mode;
@@ -414,7 +424,8 @@ MBEDTLS_MPS_INLINE mbedtls_mps_l2_in_internal *mps_l2_setup_free_slot(
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 }
 
-MBEDTLS_MPS_STATIC int l2_increment_counter( uint32_t ctr[2] )
+MBEDTLS_MPS_STATIC
+int l2_increment_counter( uint32_t ctr[2] )
 {
     if( ++ctr[1] == 0 && ++ctr[0] == 0 )
         return( MPS_ERR_COUNTER_WRAP );
@@ -562,8 +573,9 @@ int mps_l2_config_version( mbedtls_mps_l2 *ctx, uint8_t ver )
  * and prepares L1-owned buffers holding the record header and record plaintext.
  * The latter is subsequently fed to the user-facing writer object (not done
  * in this function). */
-MBEDTLS_MPS_STATIC int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
-                                  mbedtls_mps_epoch_id epoch_id )
+MBEDTLS_MPS_STATIC
+int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
+                           mbedtls_mps_epoch_id epoch_id )
 {
     int ret;
     unsigned char *rec_buf; /* The buffer received from Layer 1
@@ -686,7 +698,8 @@ MBEDTLS_MPS_STATIC int l2_out_prepare_record( mbedtls_mps_l2 *ctx,
  * the buffers has already been revoked). It then proceeds to protect the
  * record payload via the transform attached to the record's epoch, writes
  * the header, and dispatches the final record to Layer 1. */
-MBEDTLS_MPS_STATIC int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
+MBEDTLS_MPS_STATIC
+int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
 {
     int ret;
     mps_rec rec;
@@ -783,7 +796,8 @@ MBEDTLS_MPS_STATIC int l2_out_dispatch_record( mbedtls_mps_l2 *ctx )
     RETURN( 0 );
 }
 
-MBEDTLS_MPS_STATIC int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
+MBEDTLS_MPS_STATIC
+int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
     int ret = 0;
     mps_l2_bufpair const zero_bufpair = { NULL, 0, 0, 0 };
@@ -832,7 +846,8 @@ MBEDTLS_MPS_STATIC int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_r
 }
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-MBEDTLS_MPS_STATIC int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
+MBEDTLS_MPS_STATIC
+int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
     uint8_t * const hdr     = ctx->out.hdr;
     size_t    const hdr_len = ctx->out.hdr_len;
@@ -851,6 +866,8 @@ MBEDTLS_MPS_STATIC int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx, m
      * This should always be true, but better err on the safe side. */
     if( hdr_len != tls_rec_hdr_len )
         RETURN( MPS_ERR_INTERNAL_ERROR );
+#else
+    ((void) tls_rec_hdr_len);
 #endif /* MBEDTLS_MPS_ASSERT */
 
     /* Header structure is the same for all TLS versions.
@@ -895,7 +912,8 @@ MBEDTLS_MPS_STATIC int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx, m
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-MBEDTLS_MPS_STATIC int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
+MBEDTLS_MPS_STATIC
+int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
                                                  mps_rec *rec )
 {
     uint8_t * const hdr     = ctx->out.hdr;
@@ -932,6 +950,8 @@ MBEDTLS_MPS_STATIC int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx
      * This should always be true, but better err on the safe side. */
     if( hdr_len != dtls_rec_hdr_len )
         RETURN( MPS_ERR_INTERNAL_ERROR );
+#else
+    ((void) dtls_rec_hdr_len);
 #endif /* MBEDTLS_MPS_ASSERT */
 
     /* Write record content type. */
@@ -977,7 +997,8 @@ int mps_l2_write_flush( mbedtls_mps_l2 *ctx )
 
 /* See the documentation of `clearing` and `flush` in layer2.h
  * for more information on the flow of this routine. */
-MBEDTLS_MPS_STATIC int l2_out_clear_pending( mbedtls_mps_l2 *ctx )
+MBEDTLS_MPS_STATIC
+int l2_out_clear_pending( mbedtls_mps_l2 *ctx )
 {
     int ret;
     TRACE_INIT( "l2_out_clear_pending, state %u", (unsigned) ctx->out.state );
@@ -1196,7 +1217,8 @@ int mps_l2_write_done( mbedtls_mps_l2 *ctx )
     RETURN( 0 );
 }
 
-MBEDTLS_MPS_STATIC int l2_out_track_record( mbedtls_mps_l2 *ctx )
+MBEDTLS_MPS_STATIC
+int l2_out_track_record( mbedtls_mps_l2 *ctx )
 {
     int ret;
     TRACE_INIT( "l2_out_track_record" );
@@ -1232,7 +1254,8 @@ MBEDTLS_MPS_STATIC int l2_out_track_record( mbedtls_mps_l2 *ctx )
     RETURN( 0 );
 }
 
-MBEDTLS_MPS_STATIC int l2_out_release_record( mbedtls_mps_l2 *ctx, uint8_t force )
+MBEDTLS_MPS_STATIC
+int l2_out_release_record( mbedtls_mps_l2 *ctx, uint8_t force )
 {
     int ret;
     mbedtls_mps_size_t bytes_written, bytes_queued;
@@ -1318,7 +1341,8 @@ MBEDTLS_MPS_STATIC int l2_out_release_record( mbedtls_mps_l2 *ctx, uint8_t force
     RETURN( 0 );
 }
 
-MBEDTLS_MPS_STATIC int l2_out_release_and_dispatch( mbedtls_mps_l2 *ctx, uint8_t force )
+MBEDTLS_MPS_STATIC
+int l2_out_release_and_dispatch( mbedtls_mps_l2 *ctx, uint8_t force )
 {
     int ret;
     TRACE_INIT( "l2_out_release_and_dispatch, force %u", force );
@@ -1471,7 +1495,8 @@ int mps_l2_read_done( mbedtls_mps_l2 *ctx )
 }
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-MBEDTLS_MPS_STATIC int l2_handle_invalid_record( mbedtls_mps_l2 *ctx, int ret )
+MBEDTLS_MPS_STATIC
+int l2_handle_invalid_record( mbedtls_mps_l2 *ctx, int ret )
 {
     /* This function assumes that the mode has been checked
      * to be MBEDTLS_MPS_MODE_DATAGRAM and hence omits this check here. */
@@ -1755,7 +1780,8 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
     RETURN( 0 );
 }
 
-MBEDTLS_MPS_STATIC int l2_in_release_record( mbedtls_mps_l2 *ctx )
+MBEDTLS_MPS_STATIC
+int l2_in_release_record( mbedtls_mps_l2 *ctx )
 {
     int ret;
     TRACE_INIT( "l2_in_release_record" );
@@ -1767,7 +1793,8 @@ MBEDTLS_MPS_STATIC int l2_in_release_record( mbedtls_mps_l2 *ctx )
     RETURN( 0 );
 }
 
-MBEDTLS_MPS_STATIC int l2_in_fetch_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
+MBEDTLS_MPS_STATIC
+int l2_in_fetch_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
     int ret;
     mbedtls_mps_l2_epoch_t *epoch;
@@ -1854,7 +1881,8 @@ MBEDTLS_MPS_STATIC int l2_in_fetch_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
     RETURN( 0 );
 }
 
-MBEDTLS_MPS_STATIC int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
+MBEDTLS_MPS_STATIC
+int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode = ctx->conf.mode;
@@ -1878,21 +1906,24 @@ MBEDTLS_MPS_STATIC int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_re
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
     MBEDTLS_MPS_ELSE_IF_DTLS( mode )
     {
+#if defined(MBEDTLS_MPS_ASSERT)
+        if( ctx->conf.version != MBEDTLS_SSL_MINOR_VERSION_2 &&
+            ctx->conf.version != MBEDTLS_SSL_MINOR_VERSION_3 )
+        {
+            TRACE( trace_error, "ASSERTION FAILURE!" );
+            RETURN( MPS_ERR_INTERNAL_ERROR );
+        }
+#endif /* MBEDTLS_MPS_ASSERT */
+
         /* Only handle DTLS 1.0 and 1.2 for the moment,
          * which have a uniform and simple record header. */
-        switch( ctx->conf.version )
-        {
-            case MBEDTLS_SSL_MINOR_VERSION_2: /* DTLS 1.0 */
-            case MBEDTLS_SSL_MINOR_VERSION_3: /* DTLS 1.2 */
-                RETURN( l2_in_fetch_protected_record_dtls12( ctx, rec ) );
-
-            /* TLS-1.3-NOTE: At some point, add DTLS 1.3 here */
-        }
+        RETURN( l2_in_fetch_protected_record_dtls12( ctx, rec ) );
     }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 }
 
-MBEDTLS_MPS_STATIC size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
+MBEDTLS_MPS_STATIC
+size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch )
 {
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type const mode = ctx->conf.mode;
@@ -1921,27 +1952,25 @@ MBEDTLS_MPS_STATIC size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_ep
          * which share the same record header, remove this
          * switch to save a few bytes? */
 
+#if defined(MBEDTLS_MPS_ASSERT)
+        if( ctx->conf.version != MBEDTLS_SSL_MINOR_VERSION_2 &&
+            ctx->conf.version != MBEDTLS_SSL_MINOR_VERSION_3 )
+        {
+            TRACE( trace_error, "ASSERTION FAILURE!" );
+            RETURN( MPS_ERR_INTERNAL_ERROR );
+        }
+#endif /* MBEDTLS_MPS_ASSERT */
+
         /* Only handle DTLS 1.0 and 1.2 for the moment,
          * which have a uniform and simple record header. */
-        switch( ctx->conf.version )
-        {
-            case MBEDTLS_SSL_MINOR_VERSION_2: /* DTLS 1.0 */
-            case MBEDTLS_SSL_MINOR_VERSION_3: /* DTLS 1.2 */
-                RETURN( dtls12_rec_hdr_len );
-
-            default:
-                TRACE( trace_error, "Invalid DTLS version %u -- expected DTLS 1.0 (%u) or DTLS 1.2 (%u)",
-                       (unsigned) ctx->conf.version,
-                       MBEDTLS_SSL_MINOR_VERSION_2,
-                       MBEDTLS_SSL_MINOR_VERSION_3 );
-            /* TLS-1.3-NOTE: At some point, add DTLS 1.3 here */
-        }
+        RETURN( dtls12_rec_hdr_len );
     }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 }
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-MBEDTLS_MPS_STATIC int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
+MBEDTLS_MPS_STATIC
+int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
 {
     int ret;
 
@@ -2079,10 +2108,11 @@ MBEDTLS_MPS_STATIC int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mp
 }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
-MBEDTLS_MPS_STATIC int l2_in_update_counter( mbedtls_mps_l2 *ctx,
-                                 uint16_t epoch_id,
-                                 uint32_t ctr_hi,
-                                 uint32_t ctr_lo )
+MBEDTLS_MPS_STATIC
+int l2_in_update_counter( mbedtls_mps_l2 *ctx,
+                          uint16_t epoch_id,
+                          uint32_t ctr_hi,
+                          uint32_t ctr_lo )
 {
     int ret;
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
@@ -2148,9 +2178,10 @@ MBEDTLS_MPS_STATIC int l2_in_update_counter( mbedtls_mps_l2 *ctx,
 }
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-MBEDTLS_MPS_STATIC int l2_tls_in_get_epoch_and_counter( mbedtls_mps_l2 *ctx,
-                                            uint16_t *dst_epoch,
-                                            uint32_t dst_ctr[2] )
+MBEDTLS_MPS_STATIC
+int l2_tls_in_get_epoch_and_counter( mbedtls_mps_l2 *ctx,
+                                     uint16_t *dst_epoch,
+                                     uint32_t dst_ctr[2] )
 {
     uint8_t  offset;
     uint16_t epoch;
@@ -2170,9 +2201,10 @@ MBEDTLS_MPS_STATIC int l2_tls_in_get_epoch_and_counter( mbedtls_mps_l2 *ctx,
 }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
-MBEDTLS_MPS_STATIC int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
-                                          mbedtls_mps_l2_epoch_t *epoch,
-                                          uint32_t *dst_ctr )
+MBEDTLS_MPS_STATIC
+int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
+                                   mbedtls_mps_l2_epoch_t *epoch,
+                                   uint32_t *dst_ctr )
 {
     uint32_t *src_ctr;
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
@@ -2196,8 +2228,9 @@ MBEDTLS_MPS_STATIC int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
 }
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-MBEDTLS_MPS_STATIC int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
-                                                mps_rec *rec )
+MBEDTLS_MPS_STATIC
+int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
+                                         mps_rec *rec )
 {
     int ret;
 
@@ -2342,8 +2375,8 @@ MBEDTLS_MPS_STATIC int l2_in_fetch_protected_record_dtls12( mbedtls_mps_l2 *ctx,
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 /* Record content type validation */
-MBEDTLS_MPS_STATIC int l2_type_is_valid( mbedtls_mps_l2 *ctx,
-                             mbedtls_mps_msg_type_t type )
+MBEDTLS_MPS_STATIC
+int l2_type_is_valid( mbedtls_mps_l2 *ctx, mbedtls_mps_msg_type_t type )
 {
     uint32_t const mask = ((uint32_t) 1u) << type;
     uint32_t const flag = ctx->conf.type_flag;
@@ -2356,8 +2389,8 @@ MBEDTLS_MPS_STATIC int l2_type_is_valid( mbedtls_mps_l2 *ctx,
  * and in particular smaller than 64. */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-MBEDTLS_MPS_STATIC int l2_type_can_be_paused( mbedtls_mps_l2 *ctx,
-                                  mbedtls_mps_msg_type_t type )
+MBEDTLS_MPS_STATIC
+int l2_type_can_be_paused( mbedtls_mps_l2 *ctx, mbedtls_mps_msg_type_t type )
 {
     /* Regardless of the configuration, pausing is only
      * allowed for stream transports. */
@@ -2376,8 +2409,8 @@ MBEDTLS_MPS_STATIC int l2_type_can_be_paused( mbedtls_mps_l2 *ctx,
 /* Check if a valid record content type allows merging of data.
  * This assumes that the provided type is at least valid,
  * and in particular smaller than 32. */
-MBEDTLS_MPS_STATIC int l2_type_can_be_merged( mbedtls_mps_l2 *ctx,
-                                  mbedtls_mps_msg_type_t type )
+MBEDTLS_MPS_STATIC
+int l2_type_can_be_merged( mbedtls_mps_l2 *ctx, mbedtls_mps_msg_type_t type )
 {
     uint32_t const mask = ((uint32_t) 1u) << type;
     uint32_t const flag = ctx->conf.merge_flag;
@@ -2387,15 +2420,16 @@ MBEDTLS_MPS_STATIC int l2_type_can_be_merged( mbedtls_mps_l2 *ctx,
 /* Check if a valid record content type allows empty records.
  * This assumes that the provided type is at least valid,
  * and in particular smaller than 64. */
-MBEDTLS_MPS_STATIC int l2_type_empty_allowed( mbedtls_mps_l2 *ctx,
-                                  mbedtls_mps_msg_type_t type )
+MBEDTLS_MPS_STATIC
+int l2_type_empty_allowed( mbedtls_mps_l2 *ctx, mbedtls_mps_msg_type_t type )
 {
     uint32_t const mask = ((uint32_t) 1u) << type;
     uint32_t const flag = ctx->conf.empty_flag;
     return( ( flag & mask ) != 0 );
 }
 
-MBEDTLS_MPS_STATIC void l2_epoch_free( mbedtls_mps_l2_epoch_t *epoch )
+MBEDTLS_MPS_STATIC
+void l2_epoch_free( mbedtls_mps_l2_epoch_t *epoch )
 {
     if( epoch->transform != NULL )
     {
@@ -2406,7 +2440,8 @@ MBEDTLS_MPS_STATIC void l2_epoch_free( mbedtls_mps_l2_epoch_t *epoch )
     memset( epoch, 0, sizeof( mbedtls_mps_l2_epoch_t ) );
 }
 
-MBEDTLS_MPS_STATIC void l2_epoch_init( mbedtls_mps_l2_epoch_t *epoch )
+MBEDTLS_MPS_STATIC
+void l2_epoch_init( mbedtls_mps_l2_epoch_t *epoch )
 {
     memset( epoch, 0, sizeof( mbedtls_mps_l2_epoch_t ) );
 }
@@ -2524,8 +2559,9 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
     RETURN( l2_epoch_cleanup( ctx ) );
 }
 
-MBEDTLS_MPS_STATIC int l2_epoch_check_remove_write( mbedtls_mps_l2 *ctx,
-                                        mbedtls_mps_epoch_id epoch )
+MBEDTLS_MPS_STATIC
+int l2_epoch_check_remove_write( mbedtls_mps_l2 *ctx,
+                                 mbedtls_mps_epoch_id epoch )
 {
     int ret;
     TRACE_INIT( "l2_epoch_check_remove_write" );
@@ -2566,8 +2602,9 @@ MBEDTLS_MPS_STATIC int l2_epoch_check_remove_write( mbedtls_mps_l2 *ctx,
     RETURN( 0 );
 }
 
-MBEDTLS_MPS_STATIC int l2_epoch_check_remove_read( mbedtls_mps_l2 *ctx,
-                                       mbedtls_mps_epoch_id epoch )
+MBEDTLS_MPS_STATIC
+int l2_epoch_check_remove_read( mbedtls_mps_l2 *ctx,
+                                mbedtls_mps_epoch_id epoch )
 {
     TRACE_INIT( "l2_epoch_check_remove_read" );
     TRACE( trace_comment, " * Epoch ID: %u", (unsigned) epoch );
@@ -2612,9 +2649,10 @@ MBEDTLS_MPS_STATIC int l2_epoch_check_remove_read( mbedtls_mps_l2 *ctx,
  * This function checks whether an epoch is valid
  * and available for reading or writing.
  */
-MBEDTLS_MPS_STATIC int l2_epoch_check( mbedtls_mps_l2 *ctx,
-                           mbedtls_mps_epoch_id epoch,
-                           uint8_t purpose )
+MBEDTLS_MPS_STATIC
+int l2_epoch_check( mbedtls_mps_l2 *ctx,
+                    mbedtls_mps_epoch_id epoch,
+                    uint8_t purpose )
 {
     int ret;
     uint8_t epoch_offset;
@@ -2703,7 +2741,8 @@ MBEDTLS_MPS_STATIC int l2_epoch_check( mbedtls_mps_l2 *ctx,
  * dispatched, which is only possible in TLS. This explains the checks below.
  *
  */
-MBEDTLS_MPS_STATIC int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
+MBEDTLS_MPS_STATIC
+int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
 {
     uint8_t shift = 0, offset;
     mbedtls_mps_epoch_id max_shift;
@@ -2865,17 +2904,19 @@ MBEDTLS_MPS_STATIC int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
     RETURN( 0 );
 }
 
-MBEDTLS_MPS_STATIC int l2_epoch_lookup( mbedtls_mps_l2 *ctx,
-                            mbedtls_mps_epoch_id epoch_id,
-                            mbedtls_mps_l2_epoch_t **epoch )
+MBEDTLS_MPS_STATIC
+int l2_epoch_lookup( mbedtls_mps_l2 *ctx,
+                     mbedtls_mps_epoch_id epoch_id,
+                     mbedtls_mps_l2_epoch_t **epoch )
 {
     return( l2_epoch_lookup_internal( ctx, epoch_id, NULL, epoch ) );
 }
 
-MBEDTLS_MPS_STATIC int l2_epoch_lookup_internal( mbedtls_mps_l2 *ctx,
-                                     mbedtls_mps_epoch_id epoch_id,
-                                     uint8_t *offset,
-                                     mbedtls_mps_l2_epoch_t **epoch )
+MBEDTLS_MPS_STATIC
+int l2_epoch_lookup_internal( mbedtls_mps_l2 *ctx,
+                              mbedtls_mps_epoch_id epoch_id,
+                              uint8_t *offset,
+                              mbedtls_mps_l2_epoch_t **epoch )
 {
     uint8_t epoch_offset;
     TRACE_INIT( "l2_epoch_lookup" );
@@ -2916,10 +2957,11 @@ MBEDTLS_MPS_STATIC int l2_epoch_lookup_internal( mbedtls_mps_l2 *ctx,
  */
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-MBEDTLS_MPS_STATIC int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
-                                    mbedtls_mps_epoch_id epoch_id,
-                                    uint32_t ctr_hi,
-                                    uint32_t ctr_lo )
+MBEDTLS_MPS_STATIC
+int l2_counter_replay_check( mbedtls_mps_l2 *ctx,
+                             mbedtls_mps_epoch_id epoch_id,
+                             uint32_t ctr_hi,
+                             uint32_t ctr_lo )
 {
     int ret;
     uint32_t bit;

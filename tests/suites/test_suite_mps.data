@@ -708,9 +708,11 @@ depends_on:MBEDTLS_MPS_PROTO_TLS
 mbedtls_mps_l3_basic_application:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:1
 
 MPS Layer 3 DTLS: Application data message, fake transform
+depends_on:MBEDTLS_MPS_PROTO_DTLS
 mbedtls_mps_l3_basic_application:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0
 
 MPS Layer 3 DTLS: Application data message, real transform
+depends_on:MBEDTLS_MPS_PROTO_DTLS
 mbedtls_mps_l3_basic_application:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:1
 
 MPS Layer 3 TLS: Alert message, fake transform

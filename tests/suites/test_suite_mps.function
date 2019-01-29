@@ -4065,21 +4065,21 @@ void mbedtls_mps_l2_basic( int mode,
     TEST_ASSERT( mps_l2_config_version( &srv,
                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli, ty_B,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_B,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init, MPS_EPOCH_WRITE ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &srv, dummy_s, &epoch_init ) == 0 );
@@ -4285,13 +4285,13 @@ void mbedtls_mps_l2_non_packable_type( int mode,
     TEST_ASSERT( mps_l2_config_version( &srv,
                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_DISABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_DISABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init,
                                      MPS_EPOCH_READ | MPS_EPOCH_WRITE ) == 0 );
@@ -5149,23 +5149,23 @@ void mbedtls_mps_l2_pausing( int allocator_buffer_sz,
     TEST_ASSERT( mps_l2_config_version( &srv,
                                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A,
-                                         MPS_L2_SPLIT_ENABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_ENABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli, ty_B,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A,
                                          pausable_for_receiver == 1 ?
-                                         MPS_L2_SPLIT_ENABLED :
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_ENABLED :
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_B,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
 
     TEST_ASSERT( mps_l2_epoch_add( &cli, dummy_c, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_usage( &cli, epoch_init, MPS_EPOCH_WRITE ) == 0 );
@@ -5437,21 +5437,21 @@ void mbedtls_mps_l2_switch_epoch( int mode,
     TEST_ASSERT( mps_l2_config_version( &srv,
                                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli, ty_B,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_B,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
 
     TEST_ASSERT( mps_l2_epoch_add( &cli,  epoch0_c, &epoch_init ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &srv,  epoch0_s, &epoch_init ) == 0 );
@@ -5830,21 +5830,21 @@ void mbedtls_mps_l2_many_epochs( int mode,
                                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
 
     TEST_ASSERT( mps_l2_config_add_type( &cli, ty_A,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli, ty_B,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_A,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv, ty_B,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
 
     TEST_ASSERT( mps_l2_epoch_add( &cli, epochs_c[0], &next_cli_epoch ) == 0 );
     TEST_ASSERT( mps_l2_epoch_add( &srv, epochs_s[0], &next_srv_epoch ) == 0 );
@@ -6144,13 +6144,13 @@ void mbedtls_mps_l2_random( int allocator_buffer_sz,
     for( size_t ty=0; ty < (unsigned) num_types; ty++ )
     {
         TEST_ASSERT( mps_l2_config_add_type( &endpoint[0], ty,
-                                             MPS_L2_SPLIT_ENABLED,
-                                             MPS_L2_PACK_ENABLED,
-                                             MPS_L2_EMPTY_FORBIDDEN ) == 0 );
+                                             MBEDTLS_MPS_SPLIT_ENABLED,
+                                             MBEDTLS_MPS_PACK_ENABLED,
+                                             MBEDTLS_MPS_EMPTY_FORBIDDEN ) == 0 );
         TEST_ASSERT( mps_l2_config_add_type( &endpoint[1], ty,
-                                             MPS_L2_SPLIT_ENABLED,
-                                             MPS_L2_PACK_ENABLED,
-                                             MPS_L2_EMPTY_FORBIDDEN ) == 0 );
+                                             MBEDTLS_MPS_SPLIT_ENABLED,
+                                             MBEDTLS_MPS_PACK_ENABLED,
+                                             MBEDTLS_MPS_EMPTY_FORBIDDEN ) == 0 );
     }
 
     TEST_ASSERT( mps_l2_epoch_add( &endpoint[0], epochs[0][0],
@@ -6627,13 +6627,13 @@ void mbedtls_mps_l3_basic_handshake(
     TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, mode,
                               0, 0, mbedtls_test_rnd_std_rand, NULL ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_HS,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_HS,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
 
     /* Initialize Layer 3 */
     TEST_ASSERT( mps_l3_init( &cli, &cli_l2, mode ) == 0 );
@@ -6962,29 +6962,29 @@ void mbedtls_mps_l3_bad_msg( int variant )
     TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MBEDTLS_MPS_MODE_DATAGRAM,
                               0, 0, mbedtls_test_rnd_std_rand, NULL ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_HS,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_HS,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_ALERT,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_ALERT,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_CCS,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_CCS,
-                                         MPS_L2_SPLIT_DISABLED,
-                                         MPS_L2_PACK_ENABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_SPLIT_DISABLED,
+                                         MBEDTLS_MPS_PACK_ENABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
 
     /* Initialize Layer 3 */
     TEST_ASSERT( mps_l3_init( &cli, &cli_l2, MBEDTLS_MPS_MODE_DATAGRAM ) == 0 );
@@ -7785,20 +7785,20 @@ void mbedtls_mps_l3_basic_alert( int mode,
                         MBEDTLS_SSL_MINOR_VERSION_3 ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &cli_l2, MBEDTLS_MPS_MSG_ALERT,
                                          handle_fragmentation ?
-                                           MPS_L2_SPLIT_ENABLED :
-                                           MPS_L2_SPLIT_DISABLED,
+                                           MBEDTLS_MPS_SPLIT_ENABLED :
+                                           MBEDTLS_MPS_SPLIT_DISABLED,
                                          alert_merging ?
-                                           MPS_L2_PACK_ENABLED :
-                                           MPS_L2_PACK_DISABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                           MBEDTLS_MPS_PACK_ENABLED :
+                                           MBEDTLS_MPS_PACK_DISABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_ALERT,
                                          handle_fragmentation ?
-                                           MPS_L2_SPLIT_ENABLED :
-                                           MPS_L2_SPLIT_DISABLED,
+                                           MBEDTLS_MPS_SPLIT_ENABLED :
+                                           MBEDTLS_MPS_SPLIT_DISABLED,
                                          alert_merging ?
-                                           MPS_L2_PACK_ENABLED :
-                                           MPS_L2_PACK_DISABLED,
-                                         MPS_L2_EMPTY_ALLOWED ) == 0 );
+                                           MBEDTLS_MPS_PACK_ENABLED :
+                                           MBEDTLS_MPS_PACK_DISABLED,
+                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
 
     /* Initialize Layer 3 */
     TEST_ASSERT( mps_l3_init( &cli, &cli_l2, mode ) == 0 );

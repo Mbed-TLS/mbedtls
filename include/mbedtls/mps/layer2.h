@@ -1021,24 +1021,27 @@ MPS_STATIC int mps_l2_free( mbedtls_mps_l2 *ctx );
  * \return         A negative error code on failure.
  *
  */
-#define MPS_L2_SPLIT_DISABLED 0
-#define MPS_L2_SPLIT_ENABLED  1
+typedef uint8_t mbedtls_mps_record_split_config_t;
+#define MBEDTLS_MPS_SPLIT_DISABLED ( (mbedtls_mps_record_split_config_t) 0 )
+#define MBEDTLS_MPS_SPLIT_ENABLED  ( (mbedtls_mps_record_split_config_t) 1 )
 
-#define MPS_L2_PACK_DISABLED  0
-#define MPS_L2_PACK_ENABLED   1
+typedef uint8_t mbedtls_mps_record_pack_config_t;
+#define MBEDTLS_MPS_PACK_DISABLED  ( (mbedtls_mps_record_pack_config_t) 0 )
+#define MBEDTLS_MPS_PACK_ENABLED   ( (mbedtls_mps_record_pack_config_t) 1 )
 
-#define MPS_L2_EMPTY_FORBIDDEN 0
-#define MPS_L2_EMPTY_ALLOWED   1
+typedef uint8_t mbedtls_mps_record_empty_config_t;
+#define MBEDTLS_MPS_EMPTY_FORBIDDEN ( (mbedtls_mps_record_empty_config_t) 0 )
+#define MBEDTLS_MPS_EMPTY_ALLOWED   ( (mbedtls_mps_record_empty_config_t) 1 )
 
 /*@
   MPS_L2_INV_REQUIRES( ctx )
   MPS_L2_INV_ENSURES( ctx )
 @*/
 static inline int mps_l2_config_add_type( mbedtls_mps_l2 *ctx,
-                                          mbedtls_mps_msg_type_t type,
-                                          uint8_t pausing,
-                                          uint8_t merging,
-                                          uint8_t empty )
+                                    mbedtls_mps_msg_type_t type,
+                                    mbedtls_mps_record_split_config_t pausing,
+                                    mbedtls_mps_record_pack_config_t merging,
+                                    mbedtls_mps_record_empty_config_t empty )
 {
     uint32_t mask;
 
@@ -1051,12 +1054,12 @@ static inline int mps_l2_config_add_type( mbedtls_mps_l2 *ctx,
 
     ctx->conf.type_flag |= mask;
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    ctx->conf.pause_flag |= ( pausing == 1 ) * mask;
+    ctx->conf.pause_flag |= ( pausing == MBEDTLS_MPS_SPLIT_ENABLED ) * mask;
 #else
     ((void) pausing);
 #endif /* MBEDTL_SMPS_PROTO_TLS */
-    ctx->conf.merge_flag |= ( merging == 1 ) * mask;
-    ctx->conf.empty_flag |= ( empty   == 1 ) * mask;
+    ctx->conf.merge_flag |= ( merging == MBEDTLS_MPS_PACK_ENABLED  ) * mask;
+    ctx->conf.empty_flag |= ( empty   == MBEDTLS_MPS_EMPTY_ALLOWED ) * mask;
 
     return( 0 );
 }

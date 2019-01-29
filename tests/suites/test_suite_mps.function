@@ -9223,8 +9223,10 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:MBEDTLS_MPS_PROTO_TLS:TEST_SUITE_MPS_L4 */
-void mbedtls_mps_l4_basic_handshake( int allocator_buffer_sz,
+/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L4 */
+void mbedtls_mps_l4_basic_handshake(
+          int mode,
+          int allocator_buffer_sz,
           int layer0_buffer_sz,
           int rec_sz,
           int real_transforms,
@@ -9262,6 +9264,9 @@ void mbedtls_mps_l4_basic_handshake( int allocator_buffer_sz,
     mbedtls_mps_transform_t *dummy_c = malloc( sizeof( mbedtls_mps_transform_t ) );
     mbedtls_mps_transform_t *dummy_s = malloc( sizeof( mbedtls_mps_transform_t ) );
 
+    mps_l0_send_t *cli_wr,  *srv_wr;
+    mps_l0_recv_t *cli_rcv, *srv_rcv;
+
 #if !defined(TEST_SUITE_MPS_NO_SSL)
     if( real_transforms == 1 )
     {
@@ -9290,26 +9295,44 @@ void mbedtls_mps_l4_basic_handshake( int allocator_buffer_sz,
     ((void) rec_sz);
 
     /* Initialize Layer 0 mock objects */
-    layer0_bufsize = (size_t) layer0_buffer_sz;
-    TEST_ASSERT( layer0_init( &s2c ) == 0 );
-    TEST_ASSERT( layer0_init( &c2s ) == 0 );
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
+    {
+        layer0_bufsize = layer0_buffer_sz;
+        TEST_ASSERT( layer0_init( &s2c ) == 0 );
+        TEST_ASSERT( layer0_init( &c2s ) == 0 );
+
+        cli_wr  = &layer0_write_cli;
+        cli_rcv = &layer0_read_cli;
+        srv_wr  = &layer0_write_srv;
+        srv_rcv = &layer0_read_srv;
+    }
+    else
+    {
+        TEST_ASSERT( layer0_dgram_init( &s2c_d ) == 0 );
+        TEST_ASSERT( layer0_dgram_init( &c2s_d ) == 0 );
+
+        cli_wr  = &layer0_dgram_write_cli;
+        cli_rcv = &layer0_dgram_read_cli;
+        srv_wr  = &layer0_dgram_write_srv;
+        srv_rcv = &layer0_dgram_read_srv;
+    }
 
     /* Initialize allocators */
     mps_alloc_init( &cli_alloc, allocator_buffer_sz );
     mps_alloc_init( &srv_alloc, allocator_buffer_sz );
 
     /* Initialize Layer 1 */
-    TEST_ASSERT( mps_l1_init( &cli_l1, MBEDTLS_MPS_MODE_STREAM, &cli_alloc,
-                              layer0_write_cli, layer0_read_cli ) == 0 );
-    TEST_ASSERT( mps_l1_init( &srv_l1, MBEDTLS_MPS_MODE_STREAM, &srv_alloc,
-                              layer0_write_srv, layer0_read_srv ) == 0 );
+    TEST_ASSERT( mps_l1_init( &cli_l1, mode, &cli_alloc,
+                              cli_wr, cli_rcv ) == 0 );
+    TEST_ASSERT( mps_l1_init( &srv_l1, mode, &srv_alloc,
+                              srv_wr, srv_rcv ) == 0 );
 
     /* Initialize and configure Layer 2 */
-    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, MBEDTLS_MPS_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &cli_l2, &cli_l1, mode,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
-    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, MBEDTLS_MPS_MODE_STREAM,
+    TEST_ASSERT( mps_l2_init( &srv_l2, &srv_l1, mode,
                               L2_DEFAULT_ACCUMULATOR_SIZE,
                               L2_DEFAULT_QUEUE_SIZE,
                               mbedtls_test_rnd_std_rand, NULL ) == 0 );
@@ -9323,14 +9346,14 @@ void mbedtls_mps_l4_basic_handshake( int allocator_buffer_sz,
                                          1, 1, 0 ) == 0 );
 
     /* Initialize Layer 3 */
-    TEST_ASSERT( mps_l3_init( &cli_l3, &cli_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
-    TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, MBEDTLS_MPS_MODE_STREAM ) == 0 );
+    TEST_ASSERT( mps_l3_init( &cli_l3, &cli_l2, mode ) == 0 );
+    TEST_ASSERT( mps_l3_init( &srv_l3, &srv_l2, mode ) == 0 );
 
     /* Initialize Layer 4 */
     TEST_ASSERT( mbedtls_mps_init( &cli, &cli_l3,
-                                   MBEDTLS_MPS_MODE_STREAM ) == 0 );
+                                   mode ) == 0 );
     TEST_ASSERT( mbedtls_mps_init( &srv, &srv_l3,
-                                   MBEDTLS_MPS_MODE_STREAM ) == 0 );
+                                   mode ) == 0 );
 
     TEST_ASSERT( mbedtls_mps_add_key_material( &cli, dummy_c,
                                                &cli_epoch ) == 0 );
@@ -9391,7 +9414,7 @@ void mbedtls_mps_l4_basic_handshake( int allocator_buffer_sz,
     }
 
     /* Check that writer is blocked. */
-    if( !length_known && partial_commit )
+    if( mode == MBEDTLS_MPS_MODE_STREAM && !length_known && partial_commit )
     {
         TEST_ASSERT( mbedtls_writer_get_ext( hs_out.handle, 10, &tmp, NULL ) ==
                      MBEDTLS_ERR_WRITER_UNEXPECTED_OPERATION );
@@ -9440,8 +9463,17 @@ exit:
     mps_l1_free( &srv_l1 );
     TEST_ASSERT( mps_alloc_free( &cli_alloc ) == 0 );
     TEST_ASSERT( mps_alloc_free( &srv_alloc ) == 0 );
-    layer0_free( &s2c );
-    layer0_free( &c2s );
+
+    if( mode == MBEDTLS_MPS_MODE_STREAM )
+    {
+        layer0_free( &s2c );
+        layer0_free( &c2s );
+    }
+    else
+    {
+        layer0_dgram_free( &s2c_d );
+        layer0_dgram_free( &c2s_d );
+    }
 }
 /* END_CASE */
 

@@ -804,58 +804,112 @@ MPS Layer 3 TLS: Random communication, real transforms, 1-byte Layer 0
 mbedtls_mps_l3_random:100:200:100:100:200:1:50:50
 
 MPS Layer 4 TLS: HS, fake transform, unknown length #0
-mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:0:0:0
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:0:0:0:0:0
 
 MPS Layer 4 TLS: HS, fake transform, unknown length #1
-mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:0:0:1
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:0:0:0:0:1
 
 MPS Layer 4 TLS: HS, fake transform, unknown length #2
-mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:1:0:0
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:0:0:1:0:0
 
 MPS Layer 4 TLS: HS, fake transform, unknown length #3
-mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:1:0:1
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:0:0:1:0:1
 
 MPS Layer 4 TLS: HS, fake transform, unknown length #4
-mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:1:1:0
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:0:0:1:1:0
 
 MPS Layer 4 TLS: HS, fake transform, unknown length #5
-mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:1:1:1
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:0:0:1:1:1
 
 MPS Layer 4 TLS: HS, fake transform, known length #0
-mbedtls_mps_l4_basic_handshake:1000:1000:100:0:1:0:0:0
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:0:1:0:0:0
 
 MPS Layer 4 TLS: HS, fake transform, known length #1
-mbedtls_mps_l4_basic_handshake:1000:1000:100:0:1:1:0:0
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:0:1:1:0:0
 
 MPS Layer 4 TLS: HS, fake transform, known length #2
-mbedtls_mps_l4_basic_handshake:1000:1000:100:0:1:1:1:0
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:0:1:1:1:0
 
 MPS Layer 4 TLS: HS, real transform, unknown length #0
-mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:0:0:0
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:1:0:0:0:0
 
 MPS Layer 4 TLS: HS, real transform, unknown length #1
-mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:0:0:1
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:1:0:0:0:1
 
 MPS Layer 4 TLS: HS, real transform, unknown length #2
-mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:1:0:0
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:1:0:1:0:0
 
 MPS Layer 4 TLS: HS, real transform, unknown length #3
-mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:1:0:1
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:1:0:1:0:1
 
 MPS Layer 4 TLS: HS, real transform, unknown length #4
-mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:1:1:0
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:1:0:1:1:0
 
 MPS Layer 4 TLS: HS, real transform, unknown length #5
-mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:1:1:1
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:1:0:1:1:1
 
 MPS Layer 4 TLS: HS, real transform, known length #0
-mbedtls_mps_l4_basic_handshake:1000:1000:100:1:1:0:0:0
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:1:1:0:0:0
 
 MPS Layer 4 TLS: HS, real transform, known length #1
-mbedtls_mps_l4_basic_handshake:1000:1000:100:1:1:1:0:0
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:1:1:1:0:0
 
 MPS Layer 4 TLS: HS, real transform, known length #2
-mbedtls_mps_l4_basic_handshake:1000:1000:100:1:1:1:1:0
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:1:1:1:1:0
+
+MPS Layer 4 DTLS: HS, fake transform, unknown length #0
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0:0:0:0:0
+
+MPS Layer 4 DTLS: HS, fake transform, unknown length #1
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0:0:0:0:1
+
+MPS Layer 4 DTLS: HS, fake transform, unknown length #2
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0:0:1:0:0
+
+MPS Layer 4 DTLS: HS, fake transform, unknown length #3
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0:0:1:0:1
+
+MPS Layer 4 DTLS: HS, fake transform, unknown length #4
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0:0:1:1:0
+
+MPS Layer 4 DTLS: HS, fake transform, unknown length #5
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0:0:1:1:1
+
+MPS Layer 4 DTLS: HS, fake transform, known length #0
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0:1:0:0:0
+
+MPS Layer 4 DTLS: HS, fake transform, known length #1
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0:1:1:0:0
+
+MPS Layer 4 DTLS: HS, fake transform, known length #2
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0:1:1:1:0
+
+MPS Layer 4 DTLS: HS, real transform, unknown length #0
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:1:0:0:0:0
+
+MPS Layer 4 DTLS: HS, real transform, unknown length #1
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:1:0:0:0:1
+
+MPS Layer 4 DTLS: HS, real transform, unknown length #2
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:1:0:1:0:0
+
+MPS Layer 4 DTLS: HS, real transform, unknown length #3
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:1:0:1:0:1
+
+MPS Layer 4 DTLS: HS, real transform, unknown length #4
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:1:0:1:1:0
+
+MPS Layer 4 DTLS: HS, real transform, unknown length #5
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:1:0:1:1:1
+
+MPS Layer 4 DTLS: HS, real transform, known length #0
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:1:1:0:0:0
+
+MPS Layer 4 DTLS: HS, real transform, known length #1
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:1:1:1:0:0
+
+MPS Layer 4 DTLS: HS, real transform, known length #2
+mbedtls_mps_l4_basic_handshake:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:1:1:1:1:0
 
 MPS Layer 4 TLS: Connection closure #0, real transforms
 depends_on:MBEDTLS_MPS_PROTO_TLS
@@ -974,6 +1028,3 @@ mbedtls_mps_l4_dtls_flight_exchange:100:0:2:2:0:1:1
 
 MPS Layer 4 DTLS: 2 flights, 2 msgs/flight, server restart, fragmented + reordered, mock timer
 mbedtls_mps_l4_dtls_flight_exchange:100:0:2:2:1:1:1
-
-MPS Layer 4 DTLS: Reassembly #0
-mbedtls_mps_l4_dtls_reassembly:100:1:1:0:1

@@ -364,6 +364,7 @@ int mps_l3_read( mps_l3 *l3 )
                         /* This should never happen, as we don't allow switching
                          * the incoming epoch while pausing the reading of a
                          * handshake message. But double-check nonetheless. */
+                        TRACE( trace_error, "ASSERTION FAILURE!" );
                         RETURN( MPS_ERR_INTERNAL_ERROR );
                     }
 #endif /* MBEDTLS_MPS_ASSERT */
@@ -375,6 +376,7 @@ int mps_l3_read( mps_l3 *l3 )
                     /* Should never happen -- if a handshake message
                      * is active, then this must be reflected in the
                      * state variable l3->in.state. */
+                    TRACE( trace_error, "ASSERTION FAILURE!" );
                     RETURN( MPS_ERR_INTERNAL_ERROR );
 #endif /* MBEDTLS_MPS_ASSERT */
             }
@@ -396,6 +398,7 @@ int mps_l3_read( mps_l3 *l3 )
         default:
             /* Should never happen because we configured L2
              * to only accept the above types. */
+            TRACE( trace_error, "ASSERTION FAILURE!" );
             RETURN( MPS_ERR_INTERNAL_ERROR );
 #endif /* MBEDTLS_MPS_ASSERT */
     }
@@ -460,6 +463,7 @@ int mps_l3_read_consume( mps_l3 *l3 )
 
 #if defined(MBEDTLS_MPS_ASSERT)
         default:
+            TRACE( trace_error, "ASSERTION FAILURE!" );
             RETURN( MPS_ERR_INTERNAL_ERROR );
 #endif /* MBEDTLS_MPS_ASSERT */
     }
@@ -994,6 +998,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
                 ( out->frag_offset != 0 ||
                   out->frag_len    != MBEDTLS_MPS_SIZE_UNKNOWN ) )
             {
+                TRACE( trace_error, "ASSERTION FAILURE!" );
                 RETURN( MPS_ERR_INTERNAL_ERROR );
             }
 
@@ -1004,6 +1009,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
                 int overflow = out->frag_offset + out->frag_len < out->frag_len;
                 if( overflow || out->frag_offset + out->frag_len > out->len )
                 {
+                    TRACE( trace_error, "ASSERTION FAILURE!" );
                     RETURN( MPS_ERR_INTERNAL_ERROR );
                 }
             }
@@ -1294,7 +1300,10 @@ int mps_l3_dispatch( mps_l3 *l3 )
 
 #if defined(MBEDTLS_MPS_ASSERT)
             if( l3->out.hs.state != MPS_L3_HS_ACTIVE )
+            {
+                TRACE( trace_error, "ASSERTION FAILURE!" );
                 RETURN( MPS_ERR_INTERNAL_ERROR );
+            }
 #endif /* MBEDTLS_MPS_ASSERT */
 
             res = mbedtls_writer_check_done( &l3->out.hs.wr_ext );
@@ -1374,6 +1383,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
 
 #if defined(MBEDTLS_MPS_ASSERT)
         default:
+            TRACE( trace_error, "ASSERTION FAILURE!" );
             RETURN( MPS_ERR_INTERNAL_ERROR );
 #endif /* MBEDTLS_MPS_ASSERT */
     }
@@ -1435,8 +1445,7 @@ static int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs )
 #if defined(MBEDTLS_MPS_ASSERT)
     if( buf == NULL || hs->hdr_len != tls_hs_hdr_len )
     {
-        TRACE( trace_error, "Buffer to hold handshake header is of wrong size: Expected %u, have %u",
-               (unsigned) tls_hs_hdr_len, (unsigned) hs->hdr_len );
+        TRACE( trace_error, "ASSERTION FAILURE!" );
         RETURN( MPS_ERR_INTERNAL_ERROR );
     }
 #else
@@ -1496,7 +1505,7 @@ static int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs )
 #if defined(MBEDTLS_MPS_ASSERT)
     if( buf == NULL || hs->hdr_len != dtls_hs_hdr_len )
     {
-        TRACE( trace_error, "Buffer to hold DTLS handshake header is of wrong size." );
+        TRACE( trace_error, "ASSERTION FAILURE!" );
         RETURN( MPS_ERR_INTERNAL_ERROR );
     }
 #else

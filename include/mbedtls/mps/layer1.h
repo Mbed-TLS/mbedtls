@@ -357,6 +357,8 @@ typedef struct
     mps_l1_dgram_write wr;
 } mps_l1_dgram;
 
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
+
 /*
  * Generic implementation
  */
@@ -367,7 +369,9 @@ struct mps_l1
      * - MPS_L1_MODE_STREAM
      * - MPS_L1_MODE_DGRAM
      */
-    MBEDTLS_MPS_PROTO_IF_BOTH( uint8_t mode; )
+#if defined(MBEDTLS_MPS_PROTO_BOTH)
+    uint8_t mode;
+#endif /* MBEDTLS_MPS_PROTO_BOTH */
 
     union
     {
@@ -512,8 +516,6 @@ struct mps_l1
     requires \valid( p );                       \
     MPS_L1_INV_STREAM_READ_REQUIRES( p )        \
     MPS_L1_INV_STREAM_WRITE_REQUIRES( p )
-
-#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
 /*
  *

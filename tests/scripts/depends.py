@@ -323,15 +323,12 @@ Run the jobs listed in options.domains."""
     finally:
         if options.keep_going:
             restore_config(options, True)
+    if successes:
+        log_line('{} passed'.format(' '.join(successes)), color=colors.bold_green)
     if failures:
-        if successes:
-            log_line('{} passed; {} FAILED'.format(' '.join(successes),
-                                                   ' '.join(failures)))
-        else:
-            log_line('{} FAILED'.format(' '.join(failures)))
+        log_line('{} FAILED'.format(' '.join(failures)), color=colors.bold_red)
         return False
     else:
-        log_line('{} passed'.format(' '.join(successes)))
         return True
 
 

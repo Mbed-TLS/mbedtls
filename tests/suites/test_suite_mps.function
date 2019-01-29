@@ -7670,7 +7670,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L3 */
+/* BEGIN_CASE depends_on:MBEDTLS_MPS_PROTO_TLS:TEST_SUITE_MPS_L3 */
 void mbedtls_mps_l3_basic_alert( int allocator_buffer_sz,
                                  int layer0_buffer_sz,
                                  int rec_sz,
@@ -7869,7 +7869,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L3 */
+/* BEGIN_CASE depends_on:MBEDTLS_MPS_PROTO_TLS:TEST_SUITE_MPS_L3 */
 void mbedtls_mps_l3_basic_ccs( int allocator_buffer_sz,
                                int layer0_buffer_sz,
                                int rec_sz,
@@ -9193,7 +9193,7 @@ exit:
 }
 /* END_CASE */
 
-/* BEGIN_CASE depends_on:TEST_SUITE_MPS_L4 */
+/* BEGIN_CASE depends_on:MBEDTLS_MPS_PROTO_TLS:TEST_SUITE_MPS_L4 */
 void mbedtls_mps_l4_basic_handshake( int allocator_buffer_sz,
           int layer0_buffer_sz,
           int rec_sz,

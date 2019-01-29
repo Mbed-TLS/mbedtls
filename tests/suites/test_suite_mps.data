@@ -699,128 +699,138 @@ mbedtls_mps_l3_handshake_gradual:1000:10000:100:0:100:0
 MPS Layer 3 TLS: Multiple handshake messages, real transform
 mbedtls_mps_l3_handshake_gradual:1000:10000:100:1:100:0
 
-MPS Layer 3: Application data message, fake transform
+MPS Layer 3 TLS: Application data message, fake transform
 mbedtls_mps_l3_basic_application:1000:1000:100:0
 
-MPS Layer 3: Application data message, real transform
+MPS Layer 3 TLS: Application data message, real transform
 mbedtls_mps_l3_basic_application:1000:1000:100:1
 
-MPS Layer 3: Alert message, fake transform
+MPS Layer 3 TLS: Alert message, fake transform
 mbedtls_mps_l3_basic_alert:100:1000:100:0:0:1:0
 
-MPS Layer 3: Alert message, real transform
+MPS Layer 3 TLS: Alert message, real transform
 mbedtls_mps_l3_basic_alert:100:1000:100:1:0:1:0
 
-MPS Layer 3: Alert message, real transform, fragmented
+MPS Layer 3 TLS: Alert message, real transform, fragmented
 mbedtls_mps_l3_basic_alert:58:1000:100:1:1:1:1
 
-MPS Layer 3: Multiple alert messages, fake transform, merge
+MPS Layer 3 TLS: Multiple alert messages, fake transform, merge
 mbedtls_mps_l3_basic_alert:100:10000:100:0:0:100:1
 
-MPS Layer 3: Multiple alert messages, fake transform, no merge
+MPS Layer 3 TLS: Multiple alert messages, fake transform, no merge
 mbedtls_mps_l3_basic_alert:100:10000:100:0:0:100:0
 
-MPS Layer 3: Multiple alert messages, real transform, merge
+MPS Layer 3 TLS: Multiple alert messages, real transform, merge
 mbedtls_mps_l3_basic_alert:100:10000:100:1:0:100:1
 
-MPS Layer 3: Multiple alert messages, real transform, no merge
+MPS Layer 3 TLS: Multiple alert messages, real transform, no merge
 mbedtls_mps_l3_basic_alert:100:10000:100:1:0:100:0
 
-MPS Layer 3: CCS message, fake transform
+MPS Layer 3 TLS: CCS message, fake transform
 mbedtls_mps_l3_basic_ccs:100:1000:100:0:1:0
 
-MPS Layer 3: CCS message, real transform
+MPS Layer 3 TLS: CCS message, real transform
 mbedtls_mps_l3_basic_ccs:100:1000:100:0:1:0
 
-MPS Layer 3: Multiple CCS messages, fake transform, no merging
+MPS Layer 3 TLS: Multiple CCS messages, fake transform, no merging
 mbedtls_mps_l3_basic_ccs:100:10000:100:0:100:0
 
-MPS Layer 3: Multiple CCS messages, real transform, no merging
+MPS Layer 3 TLS: Multiple CCS messages, real transform, no merging
 mbedtls_mps_l3_basic_ccs:100:10000:100:1:100:0
 
-MPS Layer 3: Multiple CCS messages, fake transform, merging
+MPS Layer 3 TLS: Multiple CCS messages, fake transform, merging
 mbedtls_mps_l3_basic_ccs:100:10000:100:0:100:1
 
-MPS Layer 3: Multiple CCS messages, real transform, merging
+MPS Layer 3 TLS: Multiple CCS messages, real transform, merging
 mbedtls_mps_l3_basic_ccs:100:10000:100:1:100:1
 
-MPS Layer 3: Interleave fragmented handshake message with alert, real transforms
+MPS Layer 3 TLS: Interleave fragmented handshake message with alert, real transforms
 mbedtls_mps_l3_handshake_alert_interleaved:74:10000:100:1:5
 
-MPS Layer 3: Interleave fragmented handshake message with alert, fake transforms
+MPS Layer 3 TLS: Interleave fragmented handshake message with alert, fake transforms
 mbedtls_mps_l3_handshake_alert_interleaved:74:10000:100:0:5
 
-MPS Layer 3: Random communication, fake transforms
+MPS Layer 3 TLS: Random communication, fake transforms
 mbedtls_mps_l3_random:100:200:1:3:200:0:50:50
 
-MPS Layer 3: Random communication, fake transforms, 1-byte Layer 0
+MPS Layer 3 TLS: Random communication, fake transforms, 1-byte Layer 0
 mbedtls_mps_l3_random:100:1:1:3:200:0:50:50
 
-MPS Layer 3: Random communication, real transforms
+MPS Layer 3 TLS: Random communication, real transforms
 mbedtls_mps_l3_random:100:200:1:3:200:1:50:50
 
-MPS Layer 3: Random communication, real transforms, 1-byte Layer 0
+MPS Layer 3 TLS: Random communication, real transforms, 1-byte Layer 0
 mbedtls_mps_l3_random:100:200:100:100:200:1:50:50
 
 MPS Layer 4: HS, fake transform, unknown length #0
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:0:0:0
 
-MPS Layer 4: HS, fake transform, unknown length #1
+MPS Layer 4 TLS: HS, fake transform, unknown length #1
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:0:0:1
 
-MPS Layer 4: HS, fake transform, unknown length #2
+MPS Layer 4 TLS: HS, fake transform, unknown length #2
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:1:0:0
 
-MPS Layer 4: HS, fake transform, unknown length #3
+MPS Layer 4 TLS: HS, fake transform, unknown length #3
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:1:0:1
 
-MPS Layer 4: HS, fake transform, unknown length #4
+MPS Layer 4 TLS: HS, fake transform, unknown length #4
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:1:1:0
 
-MPS Layer 4: HS, fake transform, unknown length #5
+MPS Layer 4 TLS: HS, fake transform, unknown length #5
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:0:1:1:1
 
-MPS Layer 4: HS, fake transform, known length #0
+MPS Layer 4 TLS: HS, fake transform, known length #0
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:1:0:0:0
 
-MPS Layer 4: HS, fake transform, known length #1
+MPS Layer 4 TLS: HS, fake transform, known length #1
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:1:1:0:0
 
-MPS Layer 4: HS, fake transform, known length #2
+MPS Layer 4 TLS: HS, fake transform, known length #2
 mbedtls_mps_l4_basic_handshake:1000:1000:100:0:1:1:1:0
 
-MPS Layer 4: HS, real transform, unknown length #0
+MPS Layer 4 TLS: HS, real transform, unknown length #0
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:0:0:0
 
-MPS Layer 4: HS, real transform, unknown length #1
+MPS Layer 4 TLS: HS, real transform, unknown length #1
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:0:0:1
 
-MPS Layer 4: HS, real transform, unknown length #2
+MPS Layer 4 TLS: HS, real transform, unknown length #2
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:1:0:0
 
-MPS Layer 4: HS, real transform, unknown length #3
+MPS Layer 4 TLS: HS, real transform, unknown length #3
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:1:0:1
 
-MPS Layer 4: HS, real transform, unknown length #4
+MPS Layer 4 TLS: HS, real transform, unknown length #4
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:1:1:0
 
-MPS Layer 4: HS, real transform, unknown length #5
+MPS Layer 4 TLS: HS, real transform, unknown length #5
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:0:1:1:1
 
-MPS Layer 4: HS, real transform, known length #0
+MPS Layer 4 TLS: HS, real transform, known length #0
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:1:0:0:0
 
-MPS Layer 4: HS, real transform, known length #1
+MPS Layer 4 TLS: HS, real transform, known length #1
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:1:1:0:0
 
-MPS Layer 4: HS, real transform, known length #2
+MPS Layer 4 TLS: HS, real transform, known length #2
 mbedtls_mps_l4_basic_handshake:1000:1000:100:1:1:1:1:0
 
-MPS Layer 4: Connection closure #0, real transforms
-mbedtls_mps_l4_disruption:1000:1000:100:0:1
+MPS Layer 4 TLS: Connection closure #0, real transforms
+depends_on:MBEDTLS_MPS_PROTO_TLS
+mbedtls_mps_l4_disruption:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:0:1
 
-MPS Layer 4: Fatal alert #0, real transforms
-mbedtls_mps_l4_disruption:1000:1000:100:0:0
+MPS Layer 4 DTLS: Connection closure #0, real transforms
+depends_on:MBEDTLS_MPS_PROTO_DTLS
+mbedtls_mps_l4_disruption:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0:1
+
+MPS Layer 4 TLS: Fatal alert #0, real transforms
+depends_on:MBEDTLS_MPS_PROTO_TLS
+mbedtls_mps_l4_disruption:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:0:0
+
+MPS Layer 4 DTLS: Fatal alert #0, real transforms
+depends_on:MBEDTLS_MPS_PROTO_DTLS
+mbedtls_mps_l4_disruption:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0:0
 
 MPS Layer 4 DTLS: Fragmentation of HS msg with raw backup
 mbedtls_mps_l4_dtls_fragmentation:100:0:1

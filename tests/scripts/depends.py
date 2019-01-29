@@ -33,6 +33,11 @@ def log_line(text, prefix='depends.py'):
     sys.stderr.write(prefix + ' ' + text + '\n')
     sys.stderr.flush()
 
+def log_command(cmd):
+    """Print a trace of the specified command.
+cmd is a list of strings: a command name and its arguments."""
+    log_line(' '.join(cmd), prefix='+')
+
 def backup_config(options):
     """Back up the library configuration file (config.h)."""
     shutil.copy(options.config, options.config_backup)
@@ -44,6 +49,14 @@ If done is true, remove the backup file."""
         shutil.move(options.config_backup, options.config)
     else:
         shutil.copy(options.config_backup, options.config)
+def run_config_pl(options, args):
+    """Run scripts/config.pl with the specified arguments."""
+    cmd = ['scripts/config.pl']
+    if options.config != 'include/mbedtls/config.h':
+        cmd += ['--file', options.config]
+    cmd += args
+    log_command(cmd)
+    subprocess.check_call(cmd)
 
 class Job:
     """A job builds the library in a specific configuration and runs some tests."""
@@ -73,12 +86,8 @@ If what is False, announce that the job has failed.'''
         else:
             log_line('starting ' + self.name)
 
-    def trace_command(self, cmd):
-        '''Print a trace of the specified command.
-cmd is a list of strings: a command name and its arguments.'''
-        log_line(' '.join(cmd), prefix='+')
 
-    def configure(self, config_file_name):
+    def configure(self, options):
         '''Set library configuration options as required for the job.
 config_file_name indicates which file to modify.'''
         for key, value in sorted(self.config_settings.items()):
@@ -88,12 +97,7 @@ config_file_name indicates which file to modify.'''
                 args = ['unset', key]
             else:
                 args = ['set', key, value]
-            cmd = ['scripts/config.pl']
-            if config_file_name != 'include/mbedtls/config.h':
-                cmd += ['--file', config_file_name]
-            cmd += args
-            self.trace_command(cmd)
-            subprocess.check_call(cmd)
+            run_config_pl(options, args)
 
     def test(self, options):
         '''Run the job's build and test commands.
@@ -105,7 +109,7 @@ and subsequent commands are tests that cannot run if the build failed).'''
         built = False
         success = True
         for command in self.commands:
-            self.trace_command(command)
+            log_command(command)
             ret = subprocess.call(command)
             if ret != 0:
                 if command[0] not in ['make', options.make_command]:
@@ -257,7 +261,7 @@ def run(options, job):
     """Run the specified job (a Job instance)."""
     subprocess.check_call([options.make_command, 'clean'])
     job.announce(None)
-    job.configure(options.config)
+    job.configure(options)
     success = job.test(options)
     job.announce(success)
     return success

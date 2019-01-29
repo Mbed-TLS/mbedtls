@@ -68,16 +68,23 @@ cmd is a list of strings: a command name and its arguments."""
     log_line(' '.join(cmd), prefix='+')
 
 def backup_config(options):
-    """Back up the library configuration file (config.h)."""
-    shutil.copy(options.config, options.config_backup)
+    """Back up the library configuration file (config.h).
+If the backup file already exists, it is presumed to be the desired backup,
+so don't make another backup."""
+    if os.path.exists(options.config_backup):
+        options.own_backup = False
+    else:
+        options.own_backup = True
+        shutil.copy(options.config, options.config_backup)
 
-def restore_config(options, done=False):
+def restore_config(options):
     """Restore the library configuration file (config.h).
-If done is true, remove the backup file."""
-    if done:
+Remove the backup file if it was saved earlier."""
+    if options.own_backup:
         shutil.move(options.config_backup, options.config)
     else:
         shutil.copy(options.config_backup, options.config)
+
 def run_config_pl(options, args):
     """Run scripts/config.pl with the specified arguments."""
     cmd = ['scripts/config.pl']
@@ -115,10 +122,21 @@ If what is False, announce that the job has failed.'''
         else:
             log_line('starting ' + self.name)
 
+    def set_reference_config(self, options):
+        """Change the library configuration file (config.h) to the reference state.
+    The reference state is the one from which the tested configurations are
+    derived."""
+        # Turn off memory management options that are not relevant to
+        # the tests and slow them down.
+        run_config_pl(options, ['full'])
+        run_config_pl(options, ['unset', 'MBEDTLS_MEMORY_BACKTRACE'])
+        run_config_pl(options, ['unset', 'MBEDTLS_MEMORY_BUFFER_ALLOC_C'])
+        run_config_pl(options, ['unset', 'MBEDTLS_MEMORY_DEBUG'])
 
     def configure(self, options):
         '''Set library configuration options as required for the job.
 config_file_name indicates which file to modify.'''
+        self.set_reference_config(options)
         for key, value in sorted(self.config_settings.items()):
             if value is True:
                 args = ['set', key]
@@ -319,10 +337,14 @@ Run the jobs listed in options.domains."""
                     return False
             else:
                 successes.append(job.name)
-            restore_config(options)
-    finally:
+        restore_config(options)
+    except:
+        # Restore the configuration, except in stop-on-error mode if there
+        # was an error, where we leave the failing configuration up for
+        # developer convenience.
         if options.keep_going:
-            restore_config(options, True)
+            restore_config(options)
+        raise
     if successes:
         log_line('{} passed'.format(' '.join(successes)), color=colors.bold_green)
     if failures:

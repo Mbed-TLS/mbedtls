@@ -700,31 +700,70 @@ MPS Layer 3 TLS: Multiple handshake messages, real transform
 mbedtls_mps_l3_handshake_gradual:1000:10000:100:1:100:0
 
 MPS Layer 3 TLS: Application data message, fake transform
-mbedtls_mps_l3_basic_application:1000:1000:100:0
+depends_on:MBEDTLS_MPS_PROTO_TLS
+mbedtls_mps_l3_basic_application:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:0
 
 MPS Layer 3 TLS: Application data message, real transform
-mbedtls_mps_l3_basic_application:1000:1000:100:1
+depends_on:MBEDTLS_MPS_PROTO_TLS
+mbedtls_mps_l3_basic_application:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:1
+
+MPS Layer 3 DTLS: Application data message, fake transform
+mbedtls_mps_l3_basic_application:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0
+
+MPS Layer 3 DTLS: Application data message, real transform
+mbedtls_mps_l3_basic_application:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:1
 
 MPS Layer 3 TLS: Alert message, fake transform
-mbedtls_mps_l3_basic_alert:100:1000:100:0:0:1:0
+depends_on:MBEDTLS_MPS_PROTO_TLS
+mbedtls_mps_l3_basic_alert:MBEDTLS_MPS_MODE_STREAM:100:1000:100:0:0:1:0
 
 MPS Layer 3 TLS: Alert message, real transform
-mbedtls_mps_l3_basic_alert:100:1000:100:1:0:1:0
+depends_on:MBEDTLS_MPS_PROTO_TLS
+mbedtls_mps_l3_basic_alert:MBEDTLS_MPS_MODE_STREAM:100:1000:100:1:0:1:0
 
 MPS Layer 3 TLS: Alert message, real transform, fragmented
-mbedtls_mps_l3_basic_alert:58:1000:100:1:1:1:1
+depends_on:MBEDTLS_MPS_PROTO_TLS
+mbedtls_mps_l3_basic_alert:MBEDTLS_MPS_MODE_STREAM:58:1000:100:1:1:1:1
+
+MPS Layer 3 DTLS: Alert message, fake transform
+depends_on:MBEDTLS_MPS_PROTO_DTLS
+mbedtls_mps_l3_basic_alert:MBEDTLS_MPS_MODE_DATAGRAM:100:1000:100:0:0:1:0
+
+MPS Layer 3 DTLS: Alert message, real transform
+depends_on:MBEDTLS_MPS_PROTO_DTLS
+mbedtls_mps_l3_basic_alert:MBEDTLS_MPS_MODE_DATAGRAM:100:1000:100:1:0:1:0
 
 MPS Layer 3 TLS: Multiple alert messages, fake transform, merge
-mbedtls_mps_l3_basic_alert:100:10000:100:0:0:100:1
+depends_on:MBEDTLS_MPS_PROTO_TLS
+mbedtls_mps_l3_basic_alert:MBEDTLS_MPS_MODE_STREAM:100:10000:100:0:0:100:1
 
 MPS Layer 3 TLS: Multiple alert messages, fake transform, no merge
-mbedtls_mps_l3_basic_alert:100:10000:100:0:0:100:0
+depends_on:MBEDTLS_MPS_PROTO_TLS
+mbedtls_mps_l3_basic_alert:MBEDTLS_MPS_MODE_STREAM:100:10000:100:0:0:100:0
 
 MPS Layer 3 TLS: Multiple alert messages, real transform, merge
-mbedtls_mps_l3_basic_alert:100:10000:100:1:0:100:1
+depends_on:MBEDTLS_MPS_PROTO_TLS
+mbedtls_mps_l3_basic_alert:MBEDTLS_MPS_MODE_STREAM:100:10000:100:1:0:100:1
 
 MPS Layer 3 TLS: Multiple alert messages, real transform, no merge
-mbedtls_mps_l3_basic_alert:100:10000:100:1:0:100:0
+depends_on:MBEDTLS_MPS_PROTO_TLS
+mbedtls_mps_l3_basic_alert:MBEDTLS_MPS_MODE_STREAM:100:10000:100:1:0:100:0
+
+MPS Layer 3 DTLS: Multiple alert messages, fake transform, merge
+depends_on:MBEDTLS_MPS_PROTO_DTLS
+mbedtls_mps_l3_basic_alert:MBEDTLS_MPS_MODE_DATAGRAM:100:10000:100:0:0:100:1
+
+MPS Layer 3 DTLS: Multiple alert messages, fake transform, no merge
+depends_on:MBEDTLS_MPS_PROTO_DTLS
+mbedtls_mps_l3_basic_alert:MBEDTLS_MPS_MODE_DATAGRAM:100:10000:100:0:0:100:0
+
+MPS Layer 3 DTLS: Multiple alert messages, real transform, merge
+depends_on:MBEDTLS_MPS_PROTO_DTLS
+mbedtls_mps_l3_basic_alert:MBEDTLS_MPS_MODE_DATAGRAM:100:10000:100:1:0:100:1
+
+MPS Layer 3 DTLS: Multiple alert messages, real transform, no merge
+depends_on:MBEDTLS_MPS_PROTO_DTLS
+mbedtls_mps_l3_basic_alert:MBEDTLS_MPS_MODE_DATAGRAM:100:10000:100:1:0:100:0
 
 MPS Layer 3 TLS: CCS message, fake transform
 mbedtls_mps_l3_basic_ccs:100:1000:100:0:1:0

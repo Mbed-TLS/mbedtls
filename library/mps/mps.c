@@ -2993,8 +2993,8 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                         TRACE( trace_error, "Bad handshake length" );
                         MPS_CHK( MBEDTLS_ERR_MPS_INTERNAL_ERROR );
                     }
-                    backup_len = handle->metadata.len;
 #endif /* MBEDTLS_MPS_ASSERT */
+                    backup_len = handle->metadata.len;
                 }
                 else
                 {

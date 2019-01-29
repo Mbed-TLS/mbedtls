@@ -859,13 +859,13 @@ MPS Layer 4 TLS: Connection closure #0, real transforms
 depends_on:MBEDTLS_MPS_PROTO_TLS
 mbedtls_mps_l4_disruption:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:0:1
 
-MPS Layer 4 DTLS: Connection closure #0, real transforms
-depends_on:MBEDTLS_MPS_PROTO_DTLS
-mbedtls_mps_l4_disruption:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0:1
-
 MPS Layer 4 TLS: Fatal alert #0, real transforms
 depends_on:MBEDTLS_MPS_PROTO_TLS
 mbedtls_mps_l4_disruption:MBEDTLS_MPS_MODE_STREAM:1000:1000:100:0:0
+
+MPS Layer 4 DTLS: Connection closure #0, real transforms
+depends_on:MBEDTLS_MPS_PROTO_DTLS
+mbedtls_mps_l4_disruption:MBEDTLS_MPS_MODE_DATAGRAM:1000:1000:100:0:1
 
 MPS Layer 4 DTLS: Fatal alert #0, real transforms
 depends_on:MBEDTLS_MPS_PROTO_DTLS

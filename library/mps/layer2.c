@@ -36,6 +36,8 @@ static void l2_out_write_version( int major, int minor,
                                   mbedtls_mps_transport_type transport,
                                   unsigned char ver[2] );
 
+static int l2_increment_counter( uint32_t ctr[2] );
+
 /* Reading related */
 static int l2_in_fetch_record( mbedtls_mps_l2 *ctx, mps_rec *rec );
 static int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec );
@@ -164,7 +166,7 @@ static int l2_epoch_lookup_internal( mbedtls_mps_l2 *ctx,
 #if defined(MBEDTLS_MPS_PROTO_TLS)
 static int l2_tls_in_get_epoch_and_counter( mbedtls_mps_l2 *ctx,
                                             uint16_t *dst_epoch,
-                                            uint64_t *dst_ctr );
+                                            uint32_t dst_ctr[2] );
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
 static int l2_in_update_counter( mbedtls_mps_l2 *ctx,
@@ -413,6 +415,13 @@ static inline mbedtls_mps_l2_in_internal *mps_l2_setup_free_slot(
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
     return( NULL );
+}
+
+static int l2_increment_counter( uint32_t ctr[2] )
+{
+    if( ++ctr[1] == 0 && ++ctr[0] == 0 )
+        return( MPS_ERR_COUNTER_WRAP );
+    return( 0 );
 }
 
 int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1,
@@ -2052,12 +2061,13 @@ static int l2_in_fetch_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec )
      * authenticated.
      */
 
-    ret = l2_tls_in_get_epoch_and_counter( ctx, &rec->epoch, &rec->ctr );
+    ret = l2_tls_in_get_epoch_and_counter( ctx, &rec->epoch, rec->ctr );
     if( ret != 0 )
         RETURN( ret );
 
     TRACE( trace_comment, "* Record epoch:  %u", (unsigned) rec->epoch );
-    TRACE( trace_comment, "* Record number: %u", (unsigned) rec->ctr );
+    TRACE( trace_comment, "* Record number: ( %u << 32 ) + %u ",
+           (unsigned) rec->ctr[0], (unsigned) rec->ctr[1] );
 
     rec->type      = type;
     rec->major_ver = major_ver;
@@ -2090,9 +2100,9 @@ static int l2_in_update_counter( mbedtls_mps_l2 *ctx,
 #if defined(MBEDTLS_MPS_PROTO_TLS)
     if( MBEDTLS_MPS_IS_TLS( mode ) )
     {
-        epoch->stats.tls.in_ctr = ctr + 1;
-        if( epoch->stats.tls.in_ctr == 0 )
-            return( MPS_ERR_COUNTER_WRAP );
+        ret = l2_increment_counter( epoch->stats.tls.in_ctr );
+        if( ret != 0 )
+            return( ret );
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 
@@ -2144,11 +2154,10 @@ static int l2_in_update_counter( mbedtls_mps_l2 *ctx,
 #if defined(MBEDTLS_MPS_PROTO_TLS)
 static int l2_tls_in_get_epoch_and_counter( mbedtls_mps_l2 *ctx,
                                             uint16_t *dst_epoch,
-                                            uint64_t *dst_ctr )
+                                            uint32_t dst_ctr[2] )
 {
     uint8_t  offset;
     uint16_t epoch;
-    uint64_t ctr;
     TRACE_INIT( "l2_tls_in_get_epoch_and_counter" );
 
     epoch   = ctx->epochs.base;
@@ -2158,11 +2167,9 @@ static int l2_tls_in_get_epoch_and_counter( mbedtls_mps_l2 *ctx,
     TRACE( trace_comment, "* Base:   %u", (unsigned) ctx->epochs.base );
     TRACE( trace_comment, "* Offset: %u", (unsigned) offset );
 
-    ctr = ctx->epochs.window[ offset ].stats.tls.in_ctr;
-
+    dst_ctr[0] = ctx->epochs.window[ offset ].stats.tls.in_ctr[0];
+    dst_ctr[1] = ctx->epochs.window[ offset ].stats.tls.in_ctr[1];
     *dst_epoch = epoch;
-    *dst_ctr   = ctr;
-
     RETURN( 0 );
 }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
@@ -2190,16 +2197,7 @@ static int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
 
     dst_ctr[0] = src_ctr[0];
     dst_ctr[1] = src_ctr[1];
-
-    src_ctr[1]++;
-    if( src_ctr[1] == 0 )
-    {
-        src_ctr[0]++;
-        if( src_ctr[0] == 0 )
-            return( MPS_ERR_COUNTER_WRAP );
-    }
-
-    return( 0 );
+    return( l2_increment_counter( src_ctr ) );
 }
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)

@@ -269,7 +269,7 @@ struct mbedtls_mps_l2_epoch_t
              *  the current or next outgoing record (depending
              *  on whether a record is currently open or not).
              */
-            uint64_t out_ctr;
+            uint32_t out_ctr[2];
 
             /*! The incoming record sequence number.
              *
@@ -277,7 +277,7 @@ struct mbedtls_mps_l2_epoch_t
              *  the current or next incoming record (depending
              *  on whether a record is currently open or not).
              */
-            uint64_t in_ctr;
+            uint32_t in_ctr[2];
 
         } tls;
 #endif /* MBEDTLS_MPS_PROTO_TLS */

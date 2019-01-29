@@ -176,16 +176,22 @@ ssl_pre_1_2_dependencies = ['MBEDTLS_SSL_CBC_RECORD_SPLITTING',
 
 # If the configuration option A requires B, make sure that
 # B in reverse_dependencies[A].
+# All the information here should be contained in check_config.h. This
+# file includes a copy because it changes rarely and it would be a pain
+# to extract automatically.
 reverse_dependencies = {
     'MBEDTLS_ECDSA_C': ['MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED'],
     'MBEDTLS_ECP_C': ['MBEDTLS_ECDSA_C',
                       'MBEDTLS_ECDH_C',
                       'MBEDTLS_ECJPAKE_C',
+                      'MBEDTLS_ECP_RESTARTABLE',
+                      'MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECDHE_PSK_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED'],
+    'MBEDTLS_ECP_DP_SECP256R1_ENABLED': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED'],
     'MBEDTLS_MD5_C': ssl_pre_1_2_dependencies,
     'MBEDTLS_PKCS1_V21': ['MBEDTLS_X509_RSASSA_PSS_SUPPORT'],
     'MBEDTLS_PKCS1_V15': ['MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED',
@@ -198,6 +204,8 @@ reverse_dependencies = {
                       'MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED',
                       'MBEDTLS_KEY_EXCHANGE_RSA_ENABLED'],
     'MBEDTLS_SHA1_C': ssl_pre_1_2_dependencies,
+    'MBEDTLS_SHA256_C': ['MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED',
+                         'MBEDTLS_ENTROPY_FORCE_SHA256'],
     'MBEDTLS_X509_RSASSA_PSS_SUPPORT': [],
 }
 

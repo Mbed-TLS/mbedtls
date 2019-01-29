@@ -301,9 +301,11 @@ Return them in a generator."""
             # hash which is obsolete. Run the test suites.
             'hashes': ExclusiveDomain(hash_symbols, build_and_test,
                                       exclude=r'MBEDTLS_(MD|RIPEMD|SHA1_)'),
-            # Key exchange types. Just check the build.
-            'kex': ExclusiveDomain(key_exchange_symbols, [build_command]),
-            # Public-key algorithms. Run the test suites.
+            # Key exchange types. Only build the library and the sample
+            # programs.
+            'kex': ExclusiveDomain(key_exchange_symbols,
+                                   [build_command + ['lib'],
+                                    build_command + ['-C', 'programs']]),
             'pkalgs': ComplementaryDomain(['MBEDTLS_ECDSA_C',
                                            'MBEDTLS_ECP_C',
                                            'MBEDTLS_PKCS1_V21',

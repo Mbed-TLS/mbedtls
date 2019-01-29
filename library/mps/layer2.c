@@ -476,9 +476,9 @@ int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1,
     ctx->conf.max_cipher_in = 1000;
     ctx->conf.f_rng = f_rng;
     ctx->conf.p_rng = p_rng;
-    ctx->conf.badmac_limit = 0;
 
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
+    ctx->conf.badmac_limit = 0;
     ctx->conf.anti_replay = MBEDTLS_MPS_ANTI_REPLAY_ENABLED;
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -506,7 +506,9 @@ int mps_l2_init( mbedtls_mps_l2 *ctx, mps_l1 *l1,
 #endif /* MBEDTLS_MPS_PROTO_TLS */
     mps_l2_readers_init( ctx );
 
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
     ctx->in.bad_mac_ctr = 0;
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     /* Initialize epochs */
 

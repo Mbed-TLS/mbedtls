@@ -27,6 +27,10 @@
 #include "ssl.h"
 #include "cipher.h"
 
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+#include "psa/crypto.h"
+#endif
+
 #if defined(MBEDTLS_MD5_C)
 #include "md5.h"
 #endif
@@ -370,10 +374,18 @@ struct mbedtls_ssl_handshake_params
 #endif
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_hash_operation_t fin_sha256_psa;
+#else
     mbedtls_sha256_context fin_sha256;
 #endif
+#endif
 #if defined(MBEDTLS_SHA512_C)
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_hash_operation_t fin_sha512_psa;
+#else
     mbedtls_sha512_context fin_sha512;
+#endif
 #endif
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
 

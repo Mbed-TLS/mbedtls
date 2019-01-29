@@ -2906,15 +2906,7 @@ int mbedtls_mps_write_handshake( mbedtls_mps *mps,
                 MPS_CHK( MPS_ERR_INVALID_ARGS );
             }
         }
-        else
-#if defined(MBEDTLS_MPS_ASSERT)
-        if( hs->state != MBEDTLS_MPS_HS_NONE )
-        {
-            TRACE( trace_error, "ASSERTION FAILURE!" );
-            RETURN( MPS_ERR_INTERNAL_ERROR );
-        }
-        else
-#endif /* MBEDTLS_MPS_ASSERT */
+        else if( hs->state == MBEDTLS_MPS_HS_NONE )
         {
             mbedtls_mps_retransmission_handle *handle;
             unsigned char *queue;

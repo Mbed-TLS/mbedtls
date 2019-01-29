@@ -4997,7 +4997,7 @@ void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
 
             TEST_ASSERT( mps_l2_get_last_sequence_number( &srv, epoch_init, &in_ctr ) == 0 );
             if( variant == 1 )
-                TEST_ASSERT( in_ctr == 80 );
+                TEST_ASSERT( in_ctr == 50 );
             else
                 TEST_ASSERT( in_ctr == 1223 );
 
@@ -5035,7 +5035,7 @@ void mbedtls_mps_l2_anti_replay( int allocator_buffer_sz,
                 TEST_ASSERT( mps_l2_read_done( &srv ) == 0 );
 
                 TEST_ASSERT( mps_l2_get_last_sequence_number( &srv, epoch_init, &in_ctr ) == 0 );
-                TEST_ASSERT( in_ctr == 42 );
+                TEST_ASSERT( in_ctr == 60 );
             }
             else
             {

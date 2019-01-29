@@ -2769,10 +2769,12 @@ int mbedtls_mps_write_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags )
 #if defined(MBEDTLS_MPS_PROTO_BOTH)
     mbedtls_mps_transport_type mode = mps->conf.mode;
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
+    TRACE_INIT( "mbedtls_mps_write_set_flags" );
+    TRACE( trace_comment, "* Flags: %02x", (unsigned) flags );
 
 #if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( mps->out.state == MBEDTLS_MPS_MSG_NONE )
-        return( MPS_ERR_UNEXPECTED_OPERATION );
+        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     /* The logic layer may call this function even for TLS,
@@ -2785,7 +2787,7 @@ int mbedtls_mps_write_set_flags( mbedtls_mps *mps, mbedtls_mps_msg_flags flags )
         mps->dtls.outgoing.flags = flags;
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
-    return( 0 );
+    RETURN( 0 );
 }
 
 int mbedtls_mps_write_handshake( mbedtls_mps *mps,

@@ -1452,8 +1452,8 @@ static int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs )
     ((void) tls_hs_hdr_len);
 #endif /* MBEDTLS_MPS_ASSERT */
 
-    MPS_L3_WRITE_UINT8_LE ( buf + tls_hs_type_offset,   &hs->type );
-    MPS_L3_WRITE_UINT24_BE( buf + tls_hs_length_offset, &hs->len  );
+    MPS_WRITE_UINT8_BE ( buf + tls_hs_type_offset,   &hs->type );
+    MPS_WRITE_UINT24_BE( buf + tls_hs_length_offset, &hs->len  );
 
     RETURN( 0 );
 }

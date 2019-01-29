@@ -201,8 +201,15 @@ static void l2_out_write_version( int major, int minor,
      * The present solution, however, is not very readable, and I'd be glad
      * about suggestions on how to improve this. */
 
+#if defined(MBEDTLS_MPS_PROTO_TLS)
+    MBEDTLS_MPS_IF_TLS( transport )
+    {
+        ver[0] = (unsigned char) major;
+        ver[1] = (unsigned char) minor;
+    }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( transport ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( transport )
     {
         if( minor == MBEDTLS_SSL_MINOR_VERSION_2 )
             --minor; /* DTLS 1.0 stored as TLS 1.1 internally */
@@ -212,13 +219,6 @@ static void l2_out_write_version( int major, int minor,
     }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
-#if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( transport ) )
-    {
-        ver[0] = (unsigned char) major;
-        ver[1] = (unsigned char) minor;
-    }
-#endif /* MBEDTLS_MPS_PROTO_TLS */
 }
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
@@ -319,16 +319,8 @@ static inline void mps_l2_readers_update( mbedtls_mps_l2 *ctx )
     mbedtls_mps_transport_type const mode = ctx->conf.mode;
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
-#if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
-    {
-        ((void) ctx);
-        return;
-    }
-#endif /* MBEDTLS_MPS_PROTO_DTLS */
-
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
     {
         /* Swap active and paused reader if the paused
          * reader has been activated. */
@@ -340,6 +332,14 @@ static inline void mps_l2_readers_update( mbedtls_mps_l2 *ctx )
         }
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
+    {
+        ((void) ctx);
+        return;
+    }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
+
 }
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
@@ -363,21 +363,8 @@ static inline mbedtls_mps_l2_in_internal *mps_l2_setup_free_slot(
     mbedtls_mps_transport_type const mode = ctx->conf.mode;
 #endif /* MBEDTLS_MPS_PROTO_BOTH */
 
-    /* This assumes that there is no active slot. Hence, in case
-     * of DTLS, we can statically return the address of the single
-     * available slot. */
-#if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
-    {
-        mbedtls_reader_init( &ctx->in.active.rd, NULL, 0 );
-        ctx->in.active.type = type;
-        ctx->in.active.epoch = epoch;
-        return( &ctx->in.active );
-    }
-#endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
     {
         unsigned char *acc = NULL;
         mbedtls_mps_size_t acc_len = 0;
@@ -413,8 +400,18 @@ static inline mbedtls_mps_l2_in_internal *mps_l2_setup_free_slot(
         return( &ctx->in.active );
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
-    return( NULL );
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
+    {
+        /* This assumes that there is no active slot. Hence, in case
+         * of DTLS, we can statically return the address of the single
+         * available slot. */
+        mbedtls_reader_init( &ctx->in.active.rd, NULL, 0 );
+        ctx->in.active.type = type;
+        ctx->in.active.epoch = epoch;
+        return( &ctx->in.active );
+    }
+#endif /* MBEDTLS_MPS_PROTO_TLS */
 }
 
 static int l2_increment_counter( uint32_t ctr[2] )
@@ -797,7 +794,7 @@ static int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
     TRACE_INIT( "Write protected record" );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
     {
         /* The record header structure is the same for all versions
          * of TLS, including TLS 1.3. The only difference is that in
@@ -809,9 +806,8 @@ static int l2_out_write_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
         ret = l2_out_write_protected_record_tls( ctx, rec );
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
     {
         /* Only handle DTLS 1.0 and 1.2 for the moment,
          * which have a uniform and simple record header. */
@@ -1861,7 +1857,7 @@ static int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
     TRACE_INIT( "l2_in_fetch_protected_record" );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
     {
         /* The record header structure is the same for all versions
          * of TLS, including TLS 1.3. The only difference is that in
@@ -1873,9 +1869,8 @@ static int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
         RETURN( l2_in_fetch_protected_record_tls( ctx, rec ) );
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
     {
         /* Only handle DTLS 1.0 and 1.2 for the moment,
          * which have a uniform and simple record header. */
@@ -1910,13 +1905,13 @@ static size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch
     TRACE_INIT( "l2_get_header_len, %d", epoch );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
     {
         RETURN( tls12_rec_hdr_len );
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
     {
         /* OPTIMIZATION:
          * As long as we're only supporting DTLS 1.0 and 1.2
@@ -1940,9 +1935,6 @@ static size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch
         }
     }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
-
-    /* Should never happen */
-    RETURN( MPS_ERR_INTERNAL_ERROR );
 }
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
@@ -2100,16 +2092,15 @@ static int l2_in_update_counter( mbedtls_mps_l2 *ctx,
         return( ret );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
     {
         ret = l2_increment_counter( epoch->stats.tls.in_ctr );
         if( ret != 0 )
             return( ret );
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
     {
         epoch->stats.dtls.last_seen[0] = ctr_hi;
         epoch->stats.dtls.last_seen[1] = ctr_lo;
@@ -2188,12 +2179,11 @@ static int l2_out_get_and_update_rec_seq( mbedtls_mps_l2 *ctx,
 #endif
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
         src_ctr = epoch->stats.tls.out_ctr;
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
         src_ctr = epoch->stats.dtls.out_ctr;
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
 
@@ -2464,7 +2454,7 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
      *    potential present usage of the epoch. */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
     {
         if( ( usage & MPS_EPOCH_READ ) != 0    &&
             ctx->epochs.permissions.tls.default_in != epoch_offset )
@@ -2481,9 +2471,8 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
         }
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
     {
         mbedtls_mps_epoch_usage old_usage =
             ctx->epochs.permissions.dtls[ epoch_offset ];
@@ -2514,7 +2503,7 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
     /* 3. Apply the change of permissions. */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
     {
         if( usage & MPS_EPOCH_READ )
             ctx->epochs.permissions.tls.default_in = epoch_offset;
@@ -2522,9 +2511,8 @@ int mps_l2_epoch_usage( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch,
             ctx->epochs.permissions.tls.default_out = epoch_offset;
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
     {
         ctx->epochs.permissions.dtls[ epoch_offset ] = usage;
     }
@@ -2639,20 +2627,8 @@ static int l2_epoch_check( mbedtls_mps_l2 *ctx,
     if( ret != 0 )
         RETURN( ret );
 
-#if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
-    {
-        epoch_usage = ctx->epochs.permissions.dtls[ epoch_offset ];
-        if( ( purpose & epoch_usage ) != purpose )
-        {
-            TRACE( trace_comment, "epoch usage not allowed" );
-            RETURN( MPS_ERR_INVALID_RECORD );
-        }
-    }
-#endif /* MBEDTLS_MPS_PROTO_DTLS */
-
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
     {
         if( purpose == MPS_EPOCH_READ &&
             ctx->epochs.permissions.tls.default_in != epoch_offset )
@@ -2669,6 +2645,17 @@ static int l2_epoch_check( mbedtls_mps_l2 *ctx,
         }
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
+#if defined(MBEDTLS_MPS_PROTO_DTLS)
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
+    {
+        epoch_usage = ctx->epochs.permissions.dtls[ epoch_offset ];
+        if( ( purpose & epoch_usage ) != purpose )
+        {
+            TRACE( trace_comment, "epoch usage not allowed" );
+            RETURN( MPS_ERR_INVALID_RECORD );
+        }
+    }
+#endif /* MBEDTLS_MPS_PROTO_DTLS */
 
     RETURN( 0 );
 }
@@ -2724,7 +2711,7 @@ static int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
     TRACE_INIT( "l2_epoch_cleanup" );
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
     {
         /* TLS */
         /* An epoch is in use if it's either the default incoming
@@ -2777,9 +2764,8 @@ static int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
         shift = offset;
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
     {
         /* DTLS */
         /* An epoch is in use if its flags are not empty.
@@ -2852,15 +2838,14 @@ static int l2_epoch_cleanup( mbedtls_mps_l2 *ctx )
     /* Shift permissions */
 
 #if defined(MBEDTLS_MPS_PROTO_TLS)
-    if( MBEDTLS_MPS_IS_TLS( mode ) )
+    MBEDTLS_MPS_IF_TLS( mode )
     {
         ctx->epochs.permissions.tls.default_in  -= shift;
         ctx->epochs.permissions.tls.default_out -= shift;
     }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
-
 #if defined(MBEDTLS_MPS_PROTO_DTLS)
-    if( MBEDTLS_MPS_IS_DTLS( mode ) )
+    MBEDTLS_MPS_ELSE_IF_DTLS( mode )
     {
         for( offset = 0; offset < MPS_L2_EPOCH_WINDOW_SIZE; offset++ )
         {
@@ -3022,7 +3007,6 @@ int mps_l2_force_next_sequence_number( mbedtls_mps_l2 *ctx,
     ret = l2_epoch_lookup( ctx, epoch_id, &epoch );
     if( ret != 0 )
         RETURN( ret );
-
 
     epoch->stats.dtls.out_ctr[0] = (uint32_t)( ctr >> 32 );
     epoch->stats.dtls.out_ctr[1] = (uint32_t) ctr;

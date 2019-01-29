@@ -28,9 +28,38 @@ import subprocess
 import sys
 import traceback
 
-def log_line(text, prefix='depends.py'):
+class Colors:
+    """Minimalistic support for colored output.
+Each field of an object of this class is either None if colored output
+is not possible or not desired, or a pair of strings (start, stop) such
+that outputting start switches the text color to the desired color and
+stop switches the text color back to the default."""
+    red = None
+    green = None
+    bold_red = None
+    bold_green = None
+    def __init__(self, options=None):
+        if not options or options.color in ['no', 'never']:
+            want_color = False
+        elif options.color in ['yes', 'always']:
+            want_color = True
+        else:
+            want_color = sys.stderr.isatty()
+        if want_color:
+            # Assume ANSI compatible terminal
+            normal = '\033[0m'
+            self.red = ('\033[31m', normal)
+            self.green = ('\033[32m', normal)
+            self.bold_red = ('\033[1;31m', normal)
+            self.bold_green = ('\033[1;32m', normal)
+NO_COLORS = Colors(None)
+
+def log_line(text, prefix='depends.py:', suffix='', color=None):
     """Print a status message."""
-    sys.stderr.write(prefix + ' ' + text + '\n')
+    if color != None:
+        prefix = color[0] + prefix
+        suffix = suffix + color[1]
+    sys.stderr.write(prefix + ' ' + text + suffix + '\n')
     sys.stderr.flush()
 
 def log_command(cmd):
@@ -74,15 +103,15 @@ shell=False."""
         self.config_settings = config_settings
         self.commands = commands
 
-    def announce(self, what):
+    def announce(self, colors, what):
         '''Announce the start or completion of a job.
 If what is None, announce the start of the job.
 If what is True, announce that the job has passed.
 If what is False, announce that the job has failed.'''
         if what is True:
-            log_line(self.name + ' PASSED')
+            log_line(self.name + ' PASSED', color=colors.green)
         elif what is False:
-            log_line(self.name + ' FAILED')
+            log_line(self.name + ' FAILED', color=colors.red)
         else:
             log_line('starting ' + self.name)
 
@@ -257,13 +286,13 @@ A name can either be the name of a domain or the name of one specific job."""
         else:
             return [self.jobs[name]]
 
-def run(options, job):
+def run(options, job, colors=NO_COLORS):
     """Run the specified job (a Job instance)."""
     subprocess.check_call([options.make_command, 'clean'])
-    job.announce(None)
+    job.announce(colors, None)
     job.configure(options)
     success = job.test(options)
-    job.announce(success)
+    job.announce(colors, success)
     return success
 
 def main(options, domain_data):
@@ -273,6 +302,7 @@ domains and jobs.
 Run the jobs listed in options.domains."""
     if not hasattr(options, 'config_backup'):
         options.config_backup = options.config + '.bak'
+    colors = Colors(options)
     jobs = []
     failures = []
     successes = []
@@ -281,7 +311,7 @@ Run the jobs listed in options.domains."""
     backup_config(options)
     try:
         for job in jobs:
-            success = run(options, job)
+            success = run(options, job, colors=colors)
             if not success:
                 if options.keep_going:
                     failures.append(job.name)
@@ -308,6 +338,9 @@ Run the jobs listed in options.domains."""
 if __name__ == '__main__':
     try:
         parser = argparse.ArgumentParser(description=__doc__)
+        parser.add_argument('--color', metavar='WHEN',
+                            help='Colorize the output (always/auto/never)',
+                            choices=['always', 'auto', 'never'], default='auto')
         parser.add_argument('-c', '--config', metavar='FILE',
                             help='Configuration file to modify',
                             default='include/mbedtls/config.h')

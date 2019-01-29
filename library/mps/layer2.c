@@ -1261,8 +1261,10 @@ static int l2_out_release_record( mbedtls_mps_l2 *ctx, uint8_t force )
             /* Fall through if heuristic determines that the current record
              * should be dispatched albeit spacing being left: fall through */
         }
+        else
+            TRACE( trace_comment, "Multiple messages of type %u cannot be merged in a single record.", (unsigned) type );
 
-        TRACE( trace_comment, "Messages of type %u can either not be merged, or there's not enough space remaining in the current record -- force reclaim.", (unsigned) type );
+        TRACE( trace_comment, "Force reclaim of current record." );
         ret = mbedtls_writer_reclaim( &ctx->out.writer.wr, NULL, NULL,
                                       MBEDTLS_WRITER_RECLAIM_FORCE );
         if( ret != 0 )

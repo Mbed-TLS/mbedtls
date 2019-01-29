@@ -27,7 +27,6 @@
 
 #if defined(MBEDTLS_THREADING_C)
 
-#include <stdbool.h>
 #include "mbedtls/threading.h"
 
 #if defined(MBEDTLS_THREADING_PTHREAD)

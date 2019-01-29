@@ -108,6 +108,23 @@
  *  solely exposing the top-level MPS API.
  */
 #define MBEDTLS_MPS_SEPARATE_LAYERS
+/*! This test-only flag controls whether all usually static helper function
+ *  in MPS should have external linkage.
+ *
+ *  This is useful when analyzing the code-size of MPS.
+ *
+ *  Uncomment to give all MPS helper functions external linkage,
+ *  making them visible in the generated object file.
+ */
+#define MBEDTLS_MPS_NO_STATIC_FUNCTIONS
+
+#if defined(MBEDTLS_MPS_NO_STATIC_FUNCTIONS)
+#define MBEDTLS_MPS_STATIC
+#define MBEDTLS_MPS_INLINE
+#else
+#define MBEDTLS_MPS_STATIC static
+#define MBEDTLS_MPS_INLINE static inline
+#endif /* MBEDTLS_MPS_NO_STATIC_FUNCTIONS */
 
 /** Internal macro sanity check. */
 #if defined(MBEDTLS_MPS_TRACE) && \

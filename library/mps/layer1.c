@@ -975,13 +975,11 @@ int l1_flush_dgram( mps_l1_dgram_write *p )
     TRACE_INIT( "l1_flush_dgram" );
 
     buf = p->buf;
-#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( buf == NULL )
     {
         TRACE( trace_error, "No outgoing datagram open." );
-        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
+        RETURN( 0 );
     }
-#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     TRACE( trace_comment, "Datagram size: %u", (unsigned) p->bytes_ready );
 

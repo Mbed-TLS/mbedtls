@@ -358,6 +358,7 @@ int mps_l3_read( mps_l3 *l3 )
                 /* 3.2.2 */
                 case MPS_L3_HS_PAUSED:
                     TRACE( trace_comment, "A handshake message currently paused" );
+#if defined(MBEDTLS_MPS_ASSERT)
                     if( l3->in.hs.epoch != in.epoch )
                     {
                         /* This should never happen, as we don't allow switching
@@ -365,14 +366,17 @@ int mps_l3_read( mps_l3 *l3 )
                          * handshake message. But double-check nonetheless. */
                         RETURN( MPS_ERR_INTERNAL_ERROR );
                     }
+#endif /* MBEDTLS_MPS_ASSERT */
                     break;
 
+#if defined(MBEDTLS_MPS_ASSERT)
                 case MPS_L3_HS_ACTIVE:
                 default:
                     /* Should never happen -- if a handshake message
                      * is active, then this must be reflected in the
                      * state variable l3->in.state. */
                     RETURN( MPS_ERR_INTERNAL_ERROR );
+#endif /* MBEDTLS_MPS_ASSERT */
             }
 
             /* Bind the raw reader (supplying record contents) to the
@@ -388,10 +392,12 @@ int mps_l3_read( mps_l3 *l3 )
 
             break;
 
+#if defined(MBEDTLS_MPS_ASSERT)
         default:
             /* Should never happen because we configured L2
              * to only accept the above types. */
             RETURN( MPS_ERR_INTERNAL_ERROR );
+#endif /* MBEDTLS_MPS_ASSERT */
     }
 
     l3->in.raw_in = in.rd;
@@ -452,8 +458,10 @@ int mps_l3_read_consume( mps_l3 *l3 )
             /* All contents are already committed in parsing functions. */
             break;
 
+#if defined(MBEDTLS_MPS_ASSERT)
         default:
             RETURN( MPS_ERR_INTERNAL_ERROR );
+#endif /* MBEDTLS_MPS_ASSERT */
     }
 
     /* Remove reference to the raw reader borrowed from Layer 2
@@ -949,6 +957,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
      * is analogous.
      */
 
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     if( l3->out.hs.state == MPS_L3_HS_PAUSED &&
         ( l3->out.hs.epoch != out->epoch ||
           l3->out.hs.type  != out->type  ||
@@ -957,6 +966,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
         TRACE( trace_error, "Inconsistent parameters on continuation." );
         RETURN( MPS_ERR_INCONSISTENT_ARGS );
     }
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     res = l3_prepare_write( l3, MBEDTLS_MPS_MSG_HS, out->epoch );
     if( res != 0 )
@@ -976,11 +986,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
             l3->out.hs.frag_len    = out->frag_len;
             l3->out.hs.frag_offset = out->frag_offset;
 
-            /* TODO:
-             * The following two checks are internal sanity checks only.
-             * Consider removing them after initial testing.
-             */
-
+#if defined(MBEDTLS_MPS_ASSERT)
             /* If the total length isn't specified, then
              * then the fragment offset must be 0, and the
              * fragment length must be unspecified, too. */
@@ -1001,6 +1007,7 @@ int mps_l3_write_handshake( mps_l3 *l3, mps_l3_handshake_out *out )
                     RETURN( MPS_ERR_INTERNAL_ERROR );
                 }
             }
+#endif /* MBEDTLS_MPS_ASSERT */
 
             l3->out.hs.hdr_len = MPS_DTLS_HS_HDR_SIZE;
         }
@@ -1285,8 +1292,11 @@ int mps_l3_dispatch( mps_l3 *l3 )
         case MBEDTLS_MPS_MSG_HS:
 
             TRACE( trace_comment, "Dispatch handshake message" );
+
+#if defined(MBEDTLS_MPS_ASSERT)
             if( l3->out.hs.state != MPS_L3_HS_ACTIVE )
                 RETURN( MPS_ERR_INTERNAL_ERROR );
+#endif /* MBEDTLS_MPS_ASSERT */
 
             res = mbedtls_writer_check_done( &l3->out.hs.wr_ext );
             if( res != 0 )
@@ -1363,8 +1373,10 @@ int mps_l3_dispatch( mps_l3 *l3 )
             TRACE( trace_comment, "application data message" );
             break;
 
+#if defined(MBEDTLS_MPS_ASSERT)
         default:
             RETURN( MPS_ERR_INTERNAL_ERROR );
+#endif /* MBEDTLS_MPS_ASSERT */
     }
 
     /* Remove reference to the raw writer borrowed from Layer 2
@@ -1421,12 +1433,16 @@ static int l3_write_hs_header_tls( mps_l3_hs_out_internal *hs )
     TRACE_INIT( "l3_write_hs_hdr_tls, type %u, len %u",
            (unsigned) hs->type, (unsigned) hs->len );
 
+#if defined(MBEDTLS_MPS_ASSERT)
     if( buf == NULL || hs->hdr_len != tls_hs_hdr_len )
     {
         TRACE( trace_error, "Buffer to hold handshake header is of wrong size: Expected %u, have %u",
                (unsigned) tls_hs_hdr_len, (unsigned) hs->hdr_len );
         RETURN( MPS_ERR_INTERNAL_ERROR );
     }
+#else
+    ((void) tls_hs_hdr_len);
+#endif /* MBEDTLS_MPS_ASSERT */
 
     MPS_L3_WRITE_UINT8_LE ( buf + tls_hs_type_offset,   &hs->type );
     MPS_L3_WRITE_UINT24_BE( buf + tls_hs_length_offset, &hs->len  );
@@ -1478,11 +1494,15 @@ static int l3_write_hs_header_dtls( mps_l3_hs_out_internal *hs )
     TRACE_INIT( "l3_write_hs_hdr_tls, type %u, len %u",
            (unsigned) hs->type, (unsigned) hs->len );
 
+#if defined(MBEDTLS_MPS_ASSERT)
     if( buf == NULL || hs->hdr_len != dtls_hs_hdr_len )
     {
         TRACE( trace_error, "Buffer to hold DTLS handshake header is of wrong size." );
         RETURN( MPS_ERR_INTERNAL_ERROR );
     }
+#else
+    ((void) dtls_hs_hdr_len);
+#endif /* MBEDTLS_MPS_ASSERT */
 
     MPS_WRITE_UINT8_BE ( &hs->type,        buf + dtls_hs_type_offset     );
     MPS_WRITE_UINT24_BE( &hs->len,         buf + dtls_hs_len_offset      );

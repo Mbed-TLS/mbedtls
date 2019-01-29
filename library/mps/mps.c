@@ -1361,6 +1361,9 @@ static int mps_handle_pending_alert( mbedtls_mps *mps )
     }
 
     alert.epoch = mps->out_epoch;
+    /* This might fail, but we only reset `mps->alert_pending`
+     * on success, so in this case we'll retry sending the alert
+     * on a subsequent call to mps_flush(). */
     MPS_CHK( mps_l3_write_alert( mps->conf.l3, &alert ) );
 
     if( MBEDTLS_MPS_STATE_EITHER_OR( mps->state,

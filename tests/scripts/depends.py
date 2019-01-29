@@ -180,6 +180,12 @@ ssl_pre_1_2_dependencies = ['MBEDTLS_SSL_CBC_RECORD_SPLITTING',
 # file includes a copy because it changes rarely and it would be a pain
 # to extract automatically.
 reverse_dependencies = {
+    'MBEDTLS_AES_C': ['MBEDTLS_CTR_DRBG_C',
+                      'MBEDTLS_NIST_KW_C',
+                      'MBEDTLS_PSA_CRYPTO_STORAGE_C',
+                      'MBEDTLS_PSA_CRYPTO_STORAGE_FILE_C',
+                      'MBEDTLS_PSA_CRYPTO_C'],
+    'MBEDTLS_CHACHA20_C': ['MBEDTLS_CHACHAPOLY_C'],
     'MBEDTLS_ECDSA_C': ['MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED'],
     'MBEDTLS_ECP_C': ['MBEDTLS_ECDSA_C',
                       'MBEDTLS_ECDH_C',
@@ -266,6 +272,16 @@ Each job runs the specified commands."""
             job = Job(description, config_settings, commands)
             self.jobs.append(job)
 
+class CipherInfo:
+    """Collect data about cipher.h."""
+    def __init__(self, options):
+        self.base_symbols = set()
+        with open('include/mbedtls/cipher.h') as fh:
+            for line in fh:
+                m = re.match(r' *MBEDTLS_CIPHER_ID_(\w+),', line)
+                if m and m.group(1) not in ['NONE', 'NULL', '3DES']:
+                    self.base_symbols.add('MBEDTLS_' + m.group(1) + '_C')
+
 class DomainData:
     """Collect data about the library."""
     def collect_config_symbols(self, options):
@@ -294,7 +310,21 @@ Return them in a generator."""
         curve_symbols = self.config_symbols_matching(r'MBEDTLS_ECP_DP_\w+_ENABLED\Z')
         # Find key exchange enabling macros by name.
         key_exchange_symbols = self.config_symbols_matching(r'MBEDTLS_KEY_EXCHANGE_\w+_ENABLED\Z')
+        # Find cipher IDs (block permutations and stream ciphers --- chaining
+        # and padding modes are exercised separately) information by parsing
+        # cipher.h, as the information is not readily available in config.h.
+        cipher_info = CipherInfo(options)
+        # Find block cipher chaining and padding mode enabling macros by name.
+        cipher_chaining_symbols = self.config_symbols_matching(r'MBEDTLS_CIPHER_MODE_\w+\Z')
+        cipher_padding_symbols = self.config_symbols_matching(r'MBEDTLS_CIPHER_PADDING_\w+\Z')
         self.domains = {
+            # Cipher IDs, chaining modes and padding modes. Run the test suites.
+            'cipher_id': ExclusiveDomain(cipher_info.base_symbols,
+                                         build_and_test),
+            'cipher_chaining': ExclusiveDomain(cipher_chaining_symbols,
+                                               build_and_test),
+            'cipher_padding': ExclusiveDomain(cipher_padding_symbols,
+                                              build_and_test),
             # Elliptic curves. Run the test suites.
             'curves': ExclusiveDomain(curve_symbols, build_and_test),
             # Hash algorithms. Exclude configurations with only one

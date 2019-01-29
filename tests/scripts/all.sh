@@ -1092,6 +1092,17 @@ support_test_mx32 () {
     esac
 }
 
+component_test_no_x509_info () {
+    msg "build: omit MBEDTLS_X509_INFO" # ~ 10s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    scripts/config.pl unset MBEDTLS_X509_INFO
+    make CFLAGS='-Werror -O1'
+
+    msg "test: omit MBEDTLS_X509_INFO" # ~ 10s
+    make test
+}
+
 component_build_arm_none_eabi_gcc () {
     msg "build: arm-none-eabi-gcc, make" # ~ 10s
     scripts/config.pl full

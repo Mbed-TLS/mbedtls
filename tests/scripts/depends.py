@@ -31,6 +31,7 @@ import traceback
 def log_line(text, prefix='depends.py'):
     """Print a status message."""
     sys.stderr.write(prefix + ' ' + text + '\n')
+    sys.stderr.flush()
 
 def backup_config(options):
     """Back up the library configuration file (config.h)."""

@@ -563,7 +563,7 @@ static int ecdsa_verify_wrap( void *ctx, mbedtls_md_type_t md_alg,
     if( curve == 0 )
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
 
-    /* mbedlts_pk_write_pubkey_der() expects a full PK context,
+    /* mbedtls_pk_write_pubkey() expects a full PK context;
      * re-construct one to make it happy */
     key.pk_info = &pk_info;
     key.pk_ctx = ctx;

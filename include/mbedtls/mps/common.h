@@ -38,10 +38,10 @@
  *  Context: All MPS API functions impose assumptions/preconditions on the
  *  context on which they operate. For example, every structure has a notion of
  *  state integrity which is established by `xxx_init()` and preserved by any
- *  calls to the MPS API which satisfy their preconditions and either succeed
+ *  calls to the MPS API which satisfy their preconditions and either succeed,
  *  or fail with an error code which is explicitly documented to not corrupt
- *  structure integrity (such as #MPS_ERR_WANT_READ and #MPS_ERR_WANT_WRITE),
- *  and apart from `xxx_init()` any function assumes state integrity as a
+ *  structure integrity (such as #MPS_ERR_WANT_READ and #MPS_ERR_WANT_WRITE);
+ *  apart from `xxx_init()` any function assumes state integrity as a
  *  precondition (but usually more). If any of the preconditions is violated,
  *  the function's behavior is entirely undefined.
  *  In addition to state integrity, all MPS structures have a more refined

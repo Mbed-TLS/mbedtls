@@ -7790,7 +7790,7 @@ void mbedtls_mps_l3_basic_alert( int mode,
                                          alert_merging ?
                                            MBEDTLS_MPS_PACK_ENABLED :
                                            MBEDTLS_MPS_PACK_DISABLED,
-                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_EMPTY_FORBIDDEN ) == 0 );
     TEST_ASSERT( mps_l2_config_add_type( &srv_l2, MBEDTLS_MPS_MSG_ALERT,
                                          handle_fragmentation ?
                                            MBEDTLS_MPS_SPLIT_ENABLED :
@@ -7798,7 +7798,7 @@ void mbedtls_mps_l3_basic_alert( int mode,
                                          alert_merging ?
                                            MBEDTLS_MPS_PACK_ENABLED :
                                            MBEDTLS_MPS_PACK_DISABLED,
-                                         MBEDTLS_MPS_EMPTY_ALLOWED ) == 0 );
+                                         MBEDTLS_MPS_EMPTY_FORBIDDEN ) == 0 );
 
     /* Initialize Layer 3 */
     TEST_ASSERT( mps_l3_init( &cli, &cli_l2, mode ) == 0 );

@@ -1290,7 +1290,6 @@ int mps_l3_dispatch( mps_l3 *l3 )
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
         case MBEDTLS_MPS_MSG_HS:
-
             TRACE( trace_comment, "Dispatch handshake message" );
 
 #if defined(MBEDTLS_MPS_ASSERT)
@@ -1352,7 +1351,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
             break;
 
         case MBEDTLS_MPS_MSG_ALERT:
-            TRACE( trace_comment, "alert message" );
+            TRACE( trace_comment, "Dispatch alert message" );
             res = mbedtls_writer_commit( l3->out.raw_out );
             if( res != 0 )
                 RETURN( res );
@@ -1360,7 +1359,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
             break;
 
         case MBEDTLS_MPS_MSG_CCS:
-            TRACE( trace_comment, "CCS message" );
+            TRACE( trace_comment, "Dispatch CCS message" );
             res = mbedtls_writer_commit( l3->out.raw_out );
             if( res != 0 )
                 RETURN( res );
@@ -1370,7 +1369,7 @@ int mps_l3_dispatch( mps_l3 *l3 )
         case MBEDTLS_MPS_MSG_APP:
             /* The application data is directly written through
              * the writer. */
-            TRACE( trace_comment, "application data message" );
+            TRACE( trace_comment, "Dispatch application data" );
             break;
 
 #if defined(MBEDTLS_MPS_ASSERT)

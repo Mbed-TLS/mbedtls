@@ -2331,6 +2331,8 @@ MBEDTLS_MPS_STATIC int mps_dtls_frag_out_unpause( mbedtls_mps *mps,
             TRACE( trace_error, "Caller doesn't allow active handshake after this call." );
             MPS_CHK( MPS_ERR_INTERNAL_ERROR );
         }
+#else
+        ((void)allow_active_hs);
 #endif /* MBEDTLS_MPS_ASSERT */
 
         TRACE( trace_comment, "Handshake message not yet fully written -- keep it open" );

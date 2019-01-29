@@ -276,6 +276,7 @@ static int mps_l2_readers_pause_active( mbedtls_mps_l2 *ctx )
 {
     mbedtls_mps_l2_in_internal tmp;
 
+#if defined(MBEDTLS_MPS_ASSERT)
     /*
      * At this point, we know that data has been backed up, so
      * we must have provided an accumulator, so the record content
@@ -284,11 +285,10 @@ static int mps_l2_readers_pause_active( mbedtls_mps_l2 *ctx )
      * reader had already been paused.
      *
      * Let's double-check this reasoning nonetheless.
-     *
-     * NOTE: Potentially remove this after review.
      */
     if( ctx->in.paused.state != MBEDTLS_MPS_L2_READER_STATE_UNSET )
         return( MPS_ERR_INTERNAL_ERROR );
+#endif /* MBEDTLS_MPS_ASSERT */
 
     tmp = ctx->in.active;
     ctx->in.active = ctx->in.paused;
@@ -845,11 +845,13 @@ static int l2_out_write_protected_record_tls( mbedtls_mps_l2 *ctx, mps_rec *rec 
 
     TRACE_INIT( "l2_write_protected_record_tls" );
 
+#if defined(MBEDTLS_MPS_ASSERT)
     /* Double-check that we have calculated the header length
      * correctly when preparing the outgoing record.
      * This should always be true, but better err on the safe side. */
     if( hdr_len != tls_rec_hdr_len )
         RETURN( MPS_ERR_INTERNAL_ERROR );
+#endif /* MBEDTLS_MPS_ASSERT */
 
     /* Header structure is the same for all TLS versions.
 
@@ -924,11 +926,13 @@ static int l2_out_write_protected_record_dtls12( mbedtls_mps_l2 *ctx,
 
     TRACE_INIT( "l2_write_protected_record_dtls12" );
 
+#if defined(MBEDTLS_MPS_ASSERT)
     /* Double-check that we have calculated the header length
      * correctly when preparing the outgoing record.
      * This should always be true, but better err on the safe side. */
     if( hdr_len != dtls_rec_hdr_len )
         RETURN( MPS_ERR_INTERNAL_ERROR );
+#endif /* MBEDTLS_MPS_ASSERT */
 
     /* Write record content type. */
     MPS_WRITE_UINT8_BE( &rec->type, hdr + dtls_rec_type_offset );
@@ -1086,8 +1090,6 @@ int mps_l2_write_start( mbedtls_mps_l2 *ctx, mps_l2_out *out )
 #endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     /* Check if the requested record content type is valid. */
-    /* OPTIMIZATION: This is an assertion; consider moving
-     *               it to debug-only builds. */
     desired_type = out->type;
     if( l2_type_is_valid( ctx, desired_type ) == 0 )
     {
@@ -1533,12 +1535,14 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
 
     current_state = mps_l2_readers_active_state( ctx );
 
+#if defined(MBEDTLS_MPS_STATE_VALIDATION)
     /* 1 */
     if( current_state == MBEDTLS_MPS_L2_READER_STATE_EXTERNAL )
     {
         TRACE( trace_error, "A record is already open and has been passed to the user." );
-        RETURN( MPS_ERR_INTERNAL_ERROR );
+        RETURN( MPS_ERR_UNEXPECTED_OPERATION );
     }
+#endif /* MBEDTLS_MPS_STATE_VALIDATION */
 
     /* 2 */
     if( current_state == MBEDTLS_MPS_L2_READER_STATE_INTERNAL )
@@ -1647,16 +1651,16 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
                 /* 3.1.1 */
                 TRACE( trace_comment, "A reader is being paused for the received record content type." );
 
+#if defined(MBEDTLS_MPS_ASSERT)
                 /* It is not possible to change the incoming epoch when
                  * a reader is being paused, hence the epoch of the new
-                 * record must match. Double-check this nonetheless.
-                 *
-                 * NOTE: Potentially remove this check at some point. */
+                 * record must match. Double-check this nonetheless. */
                 if( ctx->in.paused.epoch != rec.epoch )
                 {
                     TRACE( trace_error, "The paused epoch doesn't match the incoming epoch." );
                     RETURN( MPS_ERR_INTERNAL_ERROR );
                 }
+#endif /* MBEDTLS_MPS_ASSERT */
             }
         }
 #endif /* MBEDTLS_MPS_PROTO_TLS */
@@ -1668,6 +1672,7 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
             /* 3.2 */
             /* Feed the payload into a fresh reader. */
             slot = mps_l2_setup_free_slot( ctx, rec.type, rec.epoch );
+#if defined(MBEDTLS_MPS_ASSERT)
             if( slot == NULL )
             {
                 /* This should never happen with the current implementation,
@@ -1678,6 +1683,7 @@ int mps_l2_read_start( mbedtls_mps_l2 *ctx, mps_l2_in *in )
                 TRACE( trace_error, "No free slot available to store incoming record payload." );
                 RETURN( MPS_ERR_INTERNAL_ERROR );
             }
+#endif /* MBEDTLS_MPS_ASSERT */
         }
 
         /* 3.1.1 and 3.2 */
@@ -1884,9 +1890,6 @@ static int l2_in_fetch_protected_record( mbedtls_mps_l2 *ctx, mps_rec *rec )
         }
     }
 #endif /* MBEDTLS_MPS_PROTO_DTLS */
-
-    /* Should never happen */
-    RETURN( MPS_ERR_INTERNAL_ERROR );
 }
 
 static size_t l2_get_header_len( mbedtls_mps_l2 *ctx, mbedtls_mps_epoch_id epoch )

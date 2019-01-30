@@ -1410,17 +1410,17 @@ void ssl_calc_verify_tls_sha384( mbedtls_ssl_context *ssl, unsigned char hash[48
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     size_t hash_size;
     psa_status_t status;
-    psa_hash_operation_t sha512_psa = psa_hash_operation_init();
+    psa_hash_operation_t sha384_psa = psa_hash_operation_init();
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> PSA calc verify sha384" ) );
-    status = psa_hash_clone( &ssl->handshake->fin_sha512_psa, &sha512_psa );
+    status = psa_hash_clone( &ssl->handshake->fin_sha384_psa, &sha384_psa );
     if( status != PSA_SUCCESS )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "PSA hash clone failed" ) );
         return;
     }
 
-    status = psa_hash_finish( &sha512_psa, hash, 48, &hash_size );
+    status = psa_hash_finish( &sha384_psa, hash, 48, &hash_size );
     if( status != PSA_SUCCESS )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "PSA hash finish failed" ) );
@@ -6221,7 +6221,7 @@ void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl )
 #endif
 #if defined(MBEDTLS_SHA512_C)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_hash_setup( &ssl->handshake->fin_sha512_psa, PSA_ALG_SHA_384 );
+    psa_hash_setup( &ssl->handshake->fin_sha384_psa, PSA_ALG_SHA_384 );
 #else
     mbedtls_sha512_starts_ret( &ssl->handshake->fin_sha512, 1 );
 #endif
@@ -6247,7 +6247,7 @@ static void ssl_update_checksum_start( mbedtls_ssl_context *ssl,
 #endif
 #if defined(MBEDTLS_SHA512_C)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_hash_update( &ssl->handshake->fin_sha512_psa, buf, len );
+    psa_hash_update( &ssl->handshake->fin_sha384_psa, buf, len );
 #else
     mbedtls_sha512_update_ret( &ssl->handshake->fin_sha512, buf, len );
 #endif
@@ -6283,7 +6283,7 @@ static void ssl_update_checksum_sha384( mbedtls_ssl_context *ssl,
                                         const unsigned char *buf, size_t len )
 {
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_hash_update( &ssl->handshake->fin_sha512_psa, buf, len );
+    psa_hash_update( &ssl->handshake->fin_sha384_psa, buf, len );
 #else
     mbedtls_sha512_update_ret( &ssl->handshake->fin_sha512, buf, len );
 #endif
@@ -6521,7 +6521,7 @@ static void ssl_calc_finished_tls_sha384(
     unsigned char padbuf[48];
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     size_t hash_size;
-    psa_hash_operation_t sha512_psa;
+    psa_hash_operation_t sha384_psa;
     psa_status_t status;
 #else
     mbedtls_sha512_context sha512;
@@ -6536,18 +6536,18 @@ static void ssl_calc_finished_tls_sha384(
                 : "server finished";
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    sha512_psa = psa_hash_operation_init();
+    sha384_psa = psa_hash_operation_init();
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> calc PSA finished tls sha384" ) );
 
-    status = psa_hash_clone( &ssl->handshake->fin_sha512_psa, &sha512_psa );
+    status = psa_hash_clone( &ssl->handshake->fin_sha384_psa, &sha384_psa );
     if( status != PSA_SUCCESS )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "PSA hash clone failed" ) );
         return;
     }
 
-    status = psa_hash_finish( &sha512_psa, padbuf, sizeof( padbuf ), &hash_size );
+    status = psa_hash_finish( &sha384_psa, padbuf, sizeof( padbuf ), &hash_size );
     if( status != PSA_SUCCESS )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "PSA hash finish failed" ) );
@@ -6901,8 +6901,8 @@ static void ssl_handshake_params_init( mbedtls_ssl_handshake_params *handshake )
 #endif
 #if defined(MBEDTLS_SHA512_C)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    handshake->fin_sha512_psa = psa_hash_operation_init();
-    psa_hash_setup( &handshake->fin_sha512_psa, PSA_ALG_SHA_384 );
+    handshake->fin_sha384_psa = psa_hash_operation_init();
+    psa_hash_setup( &handshake->fin_sha384_psa, PSA_ALG_SHA_384 );
 #else
     mbedtls_sha512_init(   &handshake->fin_sha512    );
     mbedtls_sha512_starts_ret( &handshake->fin_sha512, 1 );
@@ -9218,7 +9218,7 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 #endif
 #if defined(MBEDTLS_SHA512_C)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_hash_abort( &handshake->fin_sha512_psa );
+    psa_hash_abort( &handshake->fin_sha384_psa );
 #else
     mbedtls_sha512_free(   &handshake->fin_sha512    );
 #endif

@@ -382,7 +382,7 @@ struct mbedtls_ssl_handshake_params
 #endif
 #if defined(MBEDTLS_SHA512_C)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
-    psa_hash_operation_t fin_sha512_psa;
+    psa_hash_operation_t fin_sha384_psa;
 #else
     mbedtls_sha512_context fin_sha512;
 #endif

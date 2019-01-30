@@ -6214,6 +6214,7 @@ void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl )
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2)
 #if defined(MBEDTLS_SHA256_C)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_hash_abort( &ssl->handshake->fin_sha256_psa );
     psa_hash_setup( &ssl->handshake->fin_sha256_psa, PSA_ALG_SHA_256 );
 #else
     mbedtls_sha256_starts_ret( &ssl->handshake->fin_sha256, 0 );
@@ -6221,6 +6222,7 @@ void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl )
 #endif
 #if defined(MBEDTLS_SHA512_C)
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
+    psa_hash_abort( &ssl->handshake->fin_sha384_psa );
     psa_hash_setup( &ssl->handshake->fin_sha384_psa, PSA_ALG_SHA_384 );
 #else
     mbedtls_sha512_starts_ret( &ssl->handshake->fin_sha512, 1 );

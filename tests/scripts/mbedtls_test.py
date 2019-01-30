@@ -75,11 +75,10 @@ class TestDataParser(object):
         :param split_char: Split character
         :return: List of splits
         """
+        split_colon_fn = lambda x: re.sub(r'\\' + split_char, split_char, x)
         if len(split_char) > 1:
             raise ValueError('Expected split character. Found string!')
-        out = re.sub(r'(\\.)|' + split_char,
-                     lambda m: m.group(1) or '\n', inp_str,
-                     len(inp_str)).split('\n')
+        out = map(split_colon_fn, re.split(r'(?<!\\)' + split_char, inp_str))
         out = [x for x in out if x]
         return out
 
@@ -112,8 +111,8 @@ class TestDataParser(object):
             args = parts[1:]
             args_count = len(args)
             if args_count % 2 != 0:
-                raise TestDataParserError("Number of test arguments should "
-                                          "be even: %s" % line)
+                err_str_fmt = "Number of test arguments({}) should be even: {}"
+                raise TestDataParserError(err_str_fmt.format(args_count, line))
             grouped_args = [(args[i * 2], args[(i * 2) + 1])
                             for i in range(len(args)/2)]
             self.tests.append((name, function_name, dependencies,

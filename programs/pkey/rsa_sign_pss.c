@@ -55,7 +55,6 @@ int main( void )
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/md.h"
 #include "mbedtls/rsa.h"
-#include "mbedtls/md.h"
 #include "mbedtls/x509.h"
 
 #include <stdio.h>

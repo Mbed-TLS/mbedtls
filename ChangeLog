@@ -22,6 +22,7 @@ Changes
      Inserted as an enhancement for #1371
    * Add support for alternative CSR headers, as used by Microsoft and defined
      in RFC 7468. Found by Michael Ernst. Fixes #767.
+   * Correct many misspellings. Fixed by MisterDA #2371.
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

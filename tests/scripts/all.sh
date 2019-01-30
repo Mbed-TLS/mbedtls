@@ -96,7 +96,7 @@ FORCE=0
 KEEP_GOING=0
 RUN_ARMCC=1
 
-# Default commands, can be overriden by the environment
+# Default commands, can be overridden by the environment
 : ${OPENSSL:="openssl"}
 : ${OPENSSL_LEGACY:="$OPENSSL"}
 : ${OPENSSL_NEXT:="$OPENSSL"}

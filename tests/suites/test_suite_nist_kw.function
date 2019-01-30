@@ -30,7 +30,7 @@ void mbedtls_nist_kw_mix_contexts( )
     memset( key, 0, sizeof( key ) );
 
     /*
-     * 1. Check wrap and unwrap with two seperate contexts
+     * 1. Check wrap and unwrap with two separate contexts
      */
     mbedtls_nist_kw_init( &ctx1 );
     mbedtls_nist_kw_init( &ctx2 );

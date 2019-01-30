@@ -755,13 +755,15 @@ run_test() {
 run_test_psa() {
     requires_config_enabled MBEDTLS_USE_PSA_CRYPTO
     run_test    "PSA-supported ciphersuite: $1" \
-                "$P_SRV debug_level=1 force_version=tls1_2" \
-                "$P_CLI debug_level=1 force_version=tls1_2 force_ciphersuite=$1" \
+                "$P_SRV debug_level=2 force_version=tls1_2" \
+                "$P_CLI debug_level=2 force_version=tls1_2 force_ciphersuite=$1" \
                 0 \
                 -c "Successfully setup PSA-based decryption cipher context" \
                 -c "Successfully setup PSA-based encryption cipher context" \
+                -c "PSA calc verify" \
                 -s "Successfully setup PSA-based decryption cipher context" \
                 -s "Successfully setup PSA-based encryption cipher context" \
+                -s "PSA calc verify" \
                 -C "Failed to setup PSA-based cipher context"\
                 -S "Failed to setup PSA-based cipher context"\
                 -s "Protocol is TLSv1.2" \

@@ -111,6 +111,8 @@ Bugfix
      leading content octet. Fixes #1610.
 
 Changes
+   * Reduce RAM consumption during session renegotiation by not storing
+     the peer CRT chain and session ticket twice.
    * Include configuration file in all header files that use configuration,
      instead of relying on other header files that they include.
      Inserted as an enhancement for #1371

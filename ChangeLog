@@ -17,6 +17,8 @@ Bugfix
      build error. Fixed by Haijun Gu #2319.
    * Fix signed-to-unsigned integer conversion warning
      in X.509 module. Fixes #2212.
+   * Reduce stack usage of `mpi_write_hlp()` by eliminating recursion.
+     Fixes #2190.
 
 Changes
    * Include configuration file in all header files that use configuration,

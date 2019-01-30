@@ -49,6 +49,9 @@ Bugfix
    * Fix propagation of restart contexts in restartable EC operations.
      This could previously lead to segmentation faults in builds using an
      address-sanitizer and enabling but not using MBEDTLS_ECP_RESTARTABLE.
+   * Improve code clarity in x509_crt module, removing false-positive
+     uninitialized variable warnings on some recent toolchains (GCC8, etc).
+     Discovered and fixed by Andy Gross (Linaro), #2392.
 
 Changes
    * Replace multiple uses of MD2 by SHA-256 in X.509 test suite. Fixes #821.

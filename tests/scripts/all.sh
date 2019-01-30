@@ -55,21 +55,46 @@
 # Notes for maintainers
 # ---------------------
 #
+# The bulk of the code is organized into functions that follow one of the
+# following naming conventions:
+#  * pre_XXX: things to do before running the tests, in order.
+#  * component_XXX: independent components. They can be run in any order.
+#      * component_check_XXX: quick tests that aren't worth parallelizing.
+#      * component_build_XXX: build things but don't run them.
+#      * component_test_XXX: build and test.
+#  * support_XXX: if support_XXX exists and returns false then
+#    component_XXX is not run by default.
+#  * post_XXX: things to do after running the tests.
+#  * other: miscellaneous support functions.
+#
+# Each component must start by invoking `msg` with a short informative message.
+#
+# The framework performs some cleanup tasks after each component. This
+# means that components can assume that the working directory is in a
+# cleaned-up state, and don't need to perform the cleanup themselves.
+# * Run `make clean`.
+# * Restore `include/mbedtks/config.h` from a backup made before running
+#   the component.
+# * Check out `Makefile`, `library/Makefile`, `programs/Makefile` and
+#   `tests/Makefile` from git. This cleans up after an in-tree use of
+#   CMake.
+#
+# Any command that is expected to fail must be protected so that the
+# script keeps running in --keep-going mode despite `set -e`. In keep-going
+# mode, if a protected command fails, this is logged as a failure and the
+# script will exit with a failure status once it has run all components.
+# Commands can be protected in any of the following ways:
+# * `make` is a function which runs the `make` command with protection.
+#   Note that you must write `make VAR=value`, not `VAR=value make`,
+#   because the `VAR=value make` syntax doesn't work with functions.
+# * Put `report_status` before the command to protect it.
+# * Put `if_build_successful` before a command. This protects it, and
+#   additionally skips it if a prior invocation of `make` in the same
+#   component failed.
+#
 # The tests are roughly in order from fastest to slowest. This doesn't
 # have to be exact, but in general you should add slower tests towards
 # the end and fast checks near the beginning.
-#
-# Sanity checks have the following form:
-#   1. msg "short description of what is about to be done"
-#   2. run sanity check (failure stops the script)
-#
-# Build or build-and-test steps have the following form:
-#   1. msg "short description of what is about to be done"
-#   2. cleanup
-#   3. preparation (config.pl, cmake, ...) (failure stops the script)
-#   4. make
-#   5. Run tests if relevant. All tests must be prefixed with
-#      if_build_successful for the sake of --keep-going.
 
 
 
@@ -80,50 +105,93 @@
 # Abort on errors (and uninitialised variables)
 set -eu
 
-if [ "$( uname )" != "Linux" ]; then
-    echo "This script only works in Linux" >&2
-    exit 1
-elif [ -d library -a -d include -a -d tests ]; then :; else
-    echo "Must be run from mbed TLS root" >&2
-    exit 1
-fi
+pre_check_environment () {
+    if [ -d library -a -d include -a -d tests ]; then :; else
+        echo "Must be run from mbed TLS root" >&2
+        exit 1
+    fi
+}
 
-CONFIG_H='include/mbedtls/config.h'
-CONFIG_BAK="$CONFIG_H.bak"
+pre_initialize_variables () {
+    CONFIG_H='include/mbedtls/config.h'
+    CONFIG_BAK="$CONFIG_H.bak"
 
-MEMORY=0
-FORCE=0
-KEEP_GOING=0
-RUN_ARMCC=1
-YOTTA=1
+    MEMORY=0
+    FORCE=0
+    KEEP_GOING=0
+    YOTTA=1
 
-# Default commands, can be overriden by the environment
-: ${OPENSSL:="openssl"}
-: ${OPENSSL_LEGACY:="$OPENSSL"}
-: ${GNUTLS_CLI:="gnutls-cli"}
-: ${GNUTLS_SERV:="gnutls-serv"}
-: ${GNUTLS_LEGACY_CLI:="$GNUTLS_CLI"}
-: ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
-: ${OUT_OF_SOURCE_DIR:=./mbedtls_out_of_source_build}
-: ${ARMC5_BIN_DIR:=/usr/bin}
-: ${ARMC6_BIN_DIR:=/usr/bin}
+    # Default commands, can be overriden by the environment
+    : ${OPENSSL:="openssl"}
+    : ${OPENSSL_LEGACY:="$OPENSSL"}
+    : ${GNUTLS_CLI:="gnutls-cli"}
+    : ${GNUTLS_SERV:="gnutls-serv"}
+    : ${GNUTLS_LEGACY_CLI:="$GNUTLS_CLI"}
+    : ${GNUTLS_LEGACY_SERV:="$GNUTLS_SERV"}
+    : ${OUT_OF_SOURCE_DIR:=./mbedtls_out_of_source_build}
+    : ${ARMC5_BIN_DIR:=/usr/bin}
+    : ${ARMC6_BIN_DIR:=/usr/bin}
 
-# if MAKEFLAGS is not set add the -j option to speed up invocations of make
-if [ -n "${MAKEFLAGS+set}" ]; then
-    export MAKEFLAGS="-j"
-fi
+    # if MAKEFLAGS is not set add the -j option to speed up invocations of make
+    if [ -z "${MAKEFLAGS+set}" ]; then
+        export MAKEFLAGS="-j"
+    fi
+
+    # Gather the list of available components. These are the functions
+    # defined in this script whose name starts with "component_".
+    # Parse the script with sed, because in sh there is no way to list
+    # defined functions.
+    ALL_COMPONENTS=$(sed -n 's/^ *component_\([0-9A-Z_a-z]*\) *().*/\1/p' <"$0")
+
+    # Exclude components that are not supported on this platform.
+    SUPPORTED_COMPONENTS=
+    for component in $ALL_COMPONENTS; do
+        case $(type "support_$component" 2>&1) in
+            *' function'*)
+                if ! support_$component; then continue; fi;;
+        esac
+        SUPPORTED_COMPONENTS="$SUPPORTED_COMPONENTS $component"
+    done
+}
+
+# Test whether the component $1 is included in the command line patterns.
+is_component_included()
+{
+    set -f
+    for pattern in $COMMAND_LINE_COMPONENTS; do
+        set +f
+        case ${1#component_} in $pattern) return 0;; esac
+    done
+    set +f
+    return 1
+}
 
 usage()
 {
     cat <<EOF
-Usage: $0 [OPTION]...
-  -h|--help             Print this help.
+Usage: $0 [OPTION]... [COMPONENT]...
+Run mbedtls release validation tests.
+By default, run all tests. With one or more COMPONENT, run only those.
+COMPONENT can be the name of a component or a shell wildcard pattern.
+
+Examples:
+  $0 "check_*"
+    Run all sanity checks.
+  $0 --no-armcc --except test_memsan
+    Run everything except builds that require armcc and MemSan.
+
+Special options:
+  -h|--help             Print this help and exit.
+  --list-all-components List all available test components and exit.
+  --list-components     List components supported on this platform and exit.
 
 General options:
   -f|--force            Force the tests to overwrite any modified files.
   -k|--keep-going       Run all tests and report errors at the end.
   -m|--memory           Additional optional memory tests.
      --armcc            Run ARM Compiler builds (on by default).
+     --except           Exclude the COMPONENTs listed on the command line,
+                        instead of running only those.
      --no-armcc         Skip ARM Compiler builds.
      --no-force         Refuse to overwrite modified files (default).
      --no-keep-going    Stop at the first error (default).
@@ -190,25 +258,27 @@ trap 'fatal_signal TERM' TERM
 
 msg()
 {
+    if [ -n "${current_component:-}" ]; then
+        current_section="${current_component#component_}: $1"
+    else
+        current_section="$1"
+    fi
     echo ""
     echo "******************************************************************"
-    echo "* $1 "
+    echo "* $current_section "
     printf "* "; date
     echo "******************************************************************"
-    current_section=$1
 }
 
-if [ $RUN_ARMCC -ne 0 ]; then
-    armc6_build_test()
-    {
-        FLAGS="$1"
+armc6_build_test()
+{
+    FLAGS="$1"
 
-        msg "build: ARM Compiler 6 ($FLAGS), make"
-        ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" CFLAGS="$FLAGS" \
-                        WARNING_CFLAGS='-xc -std=c99' make lib
-        make clean
-    }
-fi
+    msg "build: ARM Compiler 6 ($FLAGS), make"
+    ARM_TOOL_VARIANT="ult" CC="$ARMC6_CC" AR="$ARMC6_AR" CFLAGS="$FLAGS" \
+                    WARNING_CFLAGS='-xc -std=c99' make lib
+    make clean
+}
 
 err_msg()
 {
@@ -225,72 +295,108 @@ check_tools()
     done
 }
 
-while [ $# -gt 0 ]; do
-    case "$1" in
-        --armcc) RUN_ARMCC=1;;
-        --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
-        --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
-        --force|-f) FORCE=1;;
-        --gnutls-cli) shift; GNUTLS_CLI="$1";;
-        --gnutls-legacy-cli) shift; GNUTLS_LEGACY_CLI="$1";;
-        --gnutls-legacy-serv) shift; GNUTLS_LEGACY_SERV="$1";;
-        --gnutls-serv) shift; GNUTLS_SERV="$1";;
-        --help|-h) usage; exit;;
-        --keep-going|-k) KEEP_GOING=1;;
-        --memory|-m) MEMORY=1;;
-        --no-armcc) RUN_ARMCC=0;;
-        --no-force) FORCE=0;;
-        --no-keep-going) KEEP_GOING=0;;
-        --no-memory) MEMORY=0;;
-        --no-yotta) YOTTA=0;;
-        --openssl) shift; OPENSSL="$1";;
-        --openssl-legacy) shift; OPENSSL_LEGACY="$1";;
-        --out-of-source-dir) shift; OUT_OF_SOURCE_DIR="$1";;
-        --random-seed) unset SEED;;
-        --release-test|-r) SEED=1;;
-        --seed|-s) shift; SEED="$1";;
-        --yotta) YOTTA=1;;
-        *)
-            echo >&2 "Unknown option: $1"
-            echo >&2 "Run $0 --help for usage."
-            exit 120
-            ;;
-    esac
-    shift
-done
+pre_parse_command_line () {
+    COMMAND_LINE_COMPONENTS=
+    all_except=0
+    no_armcc=
 
-if [ $FORCE -eq 1 ]; then
-    if [ $YOTTA -eq 1 ]; then
-        rm -rf yotta/module "$OUT_OF_SOURCE_DIR"
-    fi
-    git checkout-index -f -q $CONFIG_H
-    cleanup
-else
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --armcc) no_armcc=;;
+            --armc5-bin-dir) shift; ARMC5_BIN_DIR="$1";;
+            --armc6-bin-dir) shift; ARMC6_BIN_DIR="$1";;
+            --except) all_except=1;;
+            --force|-f) FORCE=1;;
+            --gnutls-cli) shift; GNUTLS_CLI="$1";;
+            --gnutls-legacy-cli) shift; GNUTLS_LEGACY_CLI="$1";;
+            --gnutls-legacy-serv) shift; GNUTLS_LEGACY_SERV="$1";;
+            --gnutls-serv) shift; GNUTLS_SERV="$1";;
+            --help|-h) usage; exit;;
+            --keep-going|-k) KEEP_GOING=1;;
+            --list-all-components) printf '%s\n' $ALL_COMPONENTS; exit;;
+            --list-components) printf '%s\n' $SUPPORTED_COMPONENTS; exit;;
+            --memory|-m) MEMORY=1;;
+            --no-armcc) no_armcc=1;;
+            --no-force) FORCE=0;;
+            --no-keep-going) KEEP_GOING=0;;
+            --no-memory) MEMORY=0;;
+            --no-yotta) YOTTA=0;;
+            --openssl) shift; OPENSSL="$1";;
+            --openssl-legacy) shift; OPENSSL_LEGACY="$1";;
+            --out-of-source-dir) shift; OUT_OF_SOURCE_DIR="$1";;
+            --random-seed) unset SEED;;
+            --release-test|-r) SEED=1;;
+            --seed|-s) shift; SEED="$1";;
+            --yotta) YOTTA=1;;
+            -*)
+                echo >&2 "Unknown option: $1"
+                echo >&2 "Run $0 --help for usage."
+                exit 120
+                ;;
+            *) COMMAND_LINE_COMPONENTS="$COMMAND_LINE_COMPONENTS $1";;
+        esac
+        shift
+    done
 
-    if [ $YOTTA -ne 0 ] && [ -d yotta/module ]; then
-        err_msg "Warning - there is an existing yotta module in the directory 'yotta/module'"
-        echo "You can either delete your work and retry, or force the test to overwrite the"
-        echo "test by rerunning the script as: $0 --force"
-        exit 1
-    fi
-
-    if [ -d "$OUT_OF_SOURCE_DIR" ]; then
-        echo "Warning - there is an existing directory at '$OUT_OF_SOURCE_DIR'" >&2
-        echo "You can either delete this directory manually, or force the test by rerunning"
-        echo "the script as: $0 --force --out-of-source-dir $OUT_OF_SOURCE_DIR"
-        exit 1
+    # With no list of components, run everything.
+    if [ -z "$COMMAND_LINE_COMPONENTS" ]; then
+        all_except=1
     fi
 
-    if ! git diff-files --quiet include/mbedtls/config.h; then
-        err_msg "Warning - the configuration file 'include/mbedtls/config.h' has been edited. "
-        echo "You can either delete or preserve your work, or force the test by rerunning the"
-        echo "script as: $0 --force"
-        exit 1
+    # --no-armcc is a legacy option. The modern way is --except '*_armcc*'.
+    # Ignore it if components are listed explicitly on the command line.
+    if [ -n "$no_armcc" ] && [ $all_except -eq 1 ]; then
+        COMMAND_LINE_COMPONENTS="$COMMAND_LINE_COMPONENTS *_armcc*"
+        # --no-armcc also disables yotta.
+        COMMAND_LINE_COMPONENTS="$COMMAND_LINE_COMPONENTS *_yotta*"
     fi
-fi
 
-build_status=0
-if [ $KEEP_GOING -eq 1 ]; then
+    # Build the list of components to run.
+    RUN_COMPONENTS=
+    for component in $SUPPORTED_COMPONENTS; do
+        if is_component_included "$component"; [ $? -eq $all_except ]; then
+            RUN_COMPONENTS="$RUN_COMPONENTS $component"
+        fi
+    done
+
+    unset all_except
+    unset no_armcc
+}
+
+pre_check_git () {
+    if [ $FORCE -eq 1 ]; then
+        rm -rf "$OUT_OF_SOURCE_DIR"
+        if [ $YOTTA -eq 1 ]; then
+            rm -rf yotta/module
+        fi
+        git checkout-index -f -q $CONFIG_H
+        cleanup
+    else
+
+        if [ $YOTTA -ne 0 ] && [ -d yotta/module ]; then
+            err_msg "Warning - there is an existing yotta module in the directory 'yotta/module'"
+            echo "You can either delete your work and retry, or force the test to overwrite the"
+            echo "test by rerunning the script as: $0 --force"
+            exit 1
+        fi
+
+        if [ -d "$OUT_OF_SOURCE_DIR" ]; then
+            echo "Warning - there is an existing directory at '$OUT_OF_SOURCE_DIR'" >&2
+            echo "You can either delete this directory manually, or force the test by rerunning"
+            echo "the script as: $0 --force --out-of-source-dir $OUT_OF_SOURCE_DIR"
+            exit 1
+        fi
+
+        if ! git diff --quiet include/mbedtls/config.h; then
+            err_msg "Warning - the configuration file 'include/mbedtls/config.h' has been edited. "
+            echo "You can either delete or preserve your work, or force the test by rerunning the"
+            echo "script as: $0 --force"
+            exit 1
+        fi
+    fi
+}
+
+pre_setup_keep_going () {
     failure_summary=
     failure_count=0
     start_red=
@@ -344,53 +450,94 @@ $text"
             echo "Killed by SIG$1."
         fi
     }
-else
-    record_status () {
-        "$@"
-    }
-fi
+}
+
 if_build_succeeded () {
     if [ $build_status -eq 0 ]; then
         record_status "$@"
     fi
 }
 
-msg "info: $0 configuration"
-echo "MEMORY: $MEMORY"
-echo "FORCE: $FORCE"
-echo "SEED: ${SEED-"UNSET"}"
-echo "OPENSSL: $OPENSSL"
-echo "OPENSSL_LEGACY: $OPENSSL_LEGACY"
-echo "GNUTLS_CLI: $GNUTLS_CLI"
-echo "GNUTLS_SERV: $GNUTLS_SERV"
-echo "GNUTLS_LEGACY_CLI: $GNUTLS_LEGACY_CLI"
-echo "GNUTLS_LEGACY_SERV: $GNUTLS_LEGACY_SERV"
-echo "ARMC5_BIN_DIR: $ARMC5_BIN_DIR"
-echo "ARMC6_BIN_DIR: $ARMC6_BIN_DIR"
+# to be used instead of ! for commands run with
+# record_status or if_build_succeeded
+not() {
+    ! "$@"
+}
 
-ARMC5_CC="$ARMC5_BIN_DIR/armcc"
-ARMC5_AR="$ARMC5_BIN_DIR/armar"
-ARMC6_CC="$ARMC6_BIN_DIR/armclang"
-ARMC6_AR="$ARMC6_BIN_DIR/armar"
 
-# To avoid setting OpenSSL and GnuTLS for each call to compat.sh and ssl-opt.sh
-# we just export the variables they require
-export OPENSSL_CMD="$OPENSSL"
-export GNUTLS_CLI="$GNUTLS_CLI"
-export GNUTLS_SERV="$GNUTLS_SERV"
-
-# Avoid passing --seed flag in every call to ssl-opt.sh
-if [ -n "${SEED-}" ]; then
-  export SEED
-fi
+pre_print_configuration () {
+    msg "info: $0 configuration"
+    echo "MEMORY: $MEMORY"
+    echo "FORCE: $FORCE"
+    echo "SEED: ${SEED-"UNSET"}"
+    echo "OPENSSL: $OPENSSL"
+    echo "OPENSSL_LEGACY: $OPENSSL_LEGACY"
+    echo "GNUTLS_CLI: $GNUTLS_CLI"
+    echo "GNUTLS_SERV: $GNUTLS_SERV"
+    echo "GNUTLS_LEGACY_CLI: $GNUTLS_LEGACY_CLI"
+    echo "GNUTLS_LEGACY_SERV: $GNUTLS_LEGACY_SERV"
+    echo "ARMC5_BIN_DIR: $ARMC5_BIN_DIR"
+    echo "ARMC6_BIN_DIR: $ARMC6_BIN_DIR"
+}
 
 # Make sure the tools we need are available.
-check_tools "$OPENSSL" "$OPENSSL_LEGACY" "$GNUTLS_CLI" "$GNUTLS_SERV" \
-            "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV" "doxygen" "dot" \
-            "arm-none-eabi-gcc" "i686-w64-mingw32-gcc"
-if [ $RUN_ARMCC -ne 0 ]; then
-    check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR"
-fi
+pre_check_tools () {
+    # Build the list of variables to pass to output_env.sh.
+    set env
+
+    case " $RUN_COMPONENTS " in
+        # Require OpenSSL and GnuTLS if running any tests (as opposed to
+        # only doing builds). Not all tests run OpenSSL and GnuTLS, but this
+        # is a good enough approximation in practice.
+        *" test_"*)
+            # To avoid setting OpenSSL and GnuTLS for each call to compat.sh
+            # and ssl-opt.sh, we just export the variables they require.
+            export OPENSSL_CMD="$OPENSSL"
+            export GNUTLS_CLI="$GNUTLS_CLI"
+            export GNUTLS_SERV="$GNUTLS_SERV"
+            # Avoid passing --seed flag in every call to ssl-opt.sh
+            if [ -n "${SEED-}" ]; then
+                export SEED
+            fi
+            set "$@" OPENSSL="$OPENSSL" OPENSSL_LEGACY="$OPENSSL_LEGACY"
+            set "$@" GNUTLS_CLI="$GNUTLS_CLI" GNUTLS_SERV="$GNUTLS_SERV"
+            set "$@" GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI"
+            set "$@" GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV"
+            check_tools "$OPENSSL" "$OPENSSL_LEGACY" \
+                        "$GNUTLS_CLI" "$GNUTLS_SERV" \
+                        "$GNUTLS_LEGACY_CLI" "$GNUTLS_LEGACY_SERV"
+            ;;
+    esac
+
+    case " $RUN_COMPONENTS " in
+        *_doxygen[_\ ]*) check_tools "doxygen" "dot";;
+    esac
+
+    case " $RUN_COMPONENTS " in
+        *_arm_none_eabi_gcc[_\ ]*) check_tools "arm-none-eabi-gcc";;
+    esac
+
+    case " $RUN_COMPONENTS " in
+        *_mingw[_\ ]*) check_tools "i686-w64-mingw32-gcc";;
+    esac
+
+    case " $RUN_COMPONENTS " in
+        *_armcc*|*_yotta*)
+            ARMC5_CC="$ARMC5_BIN_DIR/armcc"
+            ARMC5_AR="$ARMC5_BIN_DIR/armar"
+            ARMC6_CC="$ARMC6_BIN_DIR/armclang"
+            ARMC6_AR="$ARMC6_BIN_DIR/armar"
+            check_tools "$ARMC5_CC" "$ARMC5_AR" "$ARMC6_CC" "$ARMC6_AR";;
+    esac
+
+    msg "info: output_env.sh"
+    case $RUN_COMPONENTS in
+        *_armcc*|*_yotta*)
+            set "$@" ARMC5_CC="$ARMC5_CC" ARMC6_CC="$ARMC6_CC" RUN_ARMCC=1;;
+        *) set "$@" RUN_ARMCC=0;;
+    esac
+    "$@" scripts/output_env.sh
+}
 
 
 
@@ -409,378 +556,398 @@ fi
 #
 # Indicative running times are given for reference.
 
-msg "info: output_env.sh"
-OPENSSL="$OPENSSL" OPENSSL_LEGACY="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_CLI" \
-    GNUTLS_SERV="$GNUTLS_SERV" GNUTLS_LEGACY_CLI="$GNUTLS_LEGACY_CLI" \
-    GNUTLS_LEGACY_SERV="$GNUTLS_LEGACY_SERV" ARMC5_CC="$ARMC5_CC" \
-    ARMC6_CC="$ARMC6_CC" RUN_ARMCC="$RUN_ARMCC" scripts/output_env.sh
+component_check_recursion () {
+    msg "test: recursion.pl" # < 1s
+    record_status tests/scripts/recursion.pl library/*.c
+}
 
-msg "test: recursion.pl" # < 1s
-record_status tests/scripts/recursion.pl library/*.c
+component_check_generated_files () {
+    msg "test: freshness of generated source files" # < 1s
+    record_status tests/scripts/check-generated-files.sh
+}
 
-msg "test: freshness of generated source files" # < 1s
-record_status tests/scripts/check-generated-files.sh
+component_check_doxy_blocks () {
+    msg "test: doxygen markup outside doxygen blocks" # < 1s
+    record_status tests/scripts/check-doxy-blocks.pl
+}
 
-msg "test: doxygen markup outside doxygen blocks" # < 1s
-record_status tests/scripts/check-doxy-blocks.pl
+component_check_files () {
+    msg "test: check-files.py" # < 1s
+    record_status tests/scripts/check-files.py
+}
 
-msg "test: check-files.py" # < 1s
-cleanup
-record_status tests/scripts/check-files.py
+component_check_names () {
+    msg "test/build: declared and exported names" # < 3s
+    record_status tests/scripts/check-names.sh
+}
 
-msg "test/build: declared and exported names" # < 3s
-cleanup
-record_status tests/scripts/check-names.sh
-
-msg "test: doxygen warnings" # ~ 3s
-cleanup
-record_status tests/scripts/doxygen.sh
-
+component_check_doxygen_warnings () {
+    msg "test: doxygen warnings" # ~ 3s
+    record_status tests/scripts/doxygen.sh
+}
 
 
 ################################################################
 #### Build and test many configurations and targets
 ################################################################
 
-if [ $RUN_ARMCC -ne 0 ] && [ $YOTTA -ne 0 ]; then
+component_build_yotta () {
     # Note - use of yotta is deprecated, and yotta also requires armcc to be on the
     # path, and uses whatever version of armcc it finds there.
     msg "build: create and build yotta module" # ~ 30s
-    cleanup
     record_status tests/scripts/yotta-build.sh
-fi
+}
+support_build_yotta () {
+    [ $YOTTA -ne 0 ]
+}
 
-msg "build: cmake, gcc, ASan" # ~ 1 min 50s
-cleanup
-CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-make
+component_test_default_cmake_gcc_asan () {
+    msg "build: cmake, gcc, ASan" # ~ 1 min 50s
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
 
-msg "test: main suites (inc. selftests) (ASan build)" # ~ 50s
-make test
+    msg "test: main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
 
-msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
-if_build_succeeded tests/ssl-opt.sh
+    msg "test: ssl-opt.sh (ASan build)" # ~ 1 min
+    if_build_succeeded tests/ssl-opt.sh
 
-msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
-record_status tests/scripts/test-ref-configs.pl
+    msg "test: compat.sh (ASan build)" # ~ 6 min
+    if_build_succeeded tests/compat.sh
+}
 
-msg "build: with ASan (rebuild after ref-configs)" # ~ 1 min
-make
+component_test_ref_configs () {
+    msg "test/build: ref-configs (ASan build)" # ~ 6 min 20s
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    record_status tests/scripts/test-ref-configs.pl
+}
 
-msg "test: compat.sh (ASan build)" # ~ 6 min
-if_build_succeeded tests/compat.sh
+component_test_sslv3 () {
+    msg "build: Default + SSLv3 (ASan build)" # ~ 6 min
+    scripts/config.pl set MBEDTLS_SSL_PROTO_SSL3
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
 
-msg "build: Default + SSLv3 (ASan build)" # ~ 6 min
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl set MBEDTLS_SSL_PROTO_SSL3
-CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-make
+    msg "test: SSLv3 - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
 
-msg "test: SSLv3 - main suites (inc. selftests) (ASan build)" # ~ 50s
-make test
+    msg "build: SSLv3 - compat.sh (ASan build)" # ~ 6 min
+    if_build_succeeded tests/compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
+    if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
 
-msg "build: SSLv3 - compat.sh (ASan build)" # ~ 6 min
-if_build_succeeded tests/compat.sh -m 'tls1 tls1_1 tls1_2 dtls1 dtls1_2'
-if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
+    msg "build: SSLv3 - ssl-opt.sh (ASan build)" # ~ 6 min
+    if_build_succeeded tests/ssl-opt.sh
+}
 
-msg "build: SSLv3 - ssl-opt.sh (ASan build)" # ~ 6 min
-if_build_succeeded tests/ssl-opt.sh
+component_test_no_renegotiation () {
+    msg "build: Default + !MBEDTLS_SSL_RENEGOTIATION (ASan build)" # ~ 6 min
+    scripts/config.pl unset MBEDTLS_SSL_RENEGOTIATION
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
 
-msg "build: Default + !MBEDTLS_SSL_RENEGOTIATION (ASan build)" # ~ 6 min
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl unset MBEDTLS_SSL_RENEGOTIATION
-CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-make
+    msg "test: !MBEDTLS_SSL_RENEGOTIATION - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
 
-msg "test: !MBEDTLS_SSL_RENEGOTIATION - main suites (inc. selftests) (ASan build)" # ~ 50s
-make test
+    msg "test: !MBEDTLS_SSL_RENEGOTIATION - ssl-opt.sh (ASan build)" # ~ 6 min
+    if_build_succeeded tests/ssl-opt.sh
+}
 
-msg "test: !MBEDTLS_SSL_RENEGOTIATION - ssl-opt.sh (ASan build)" # ~ 6 min
-if_build_succeeded tests/ssl-opt.sh
+component_test_rsa_no_crt () {
+    msg "build: Default + RSA_NO_CRT (ASan build)" # ~ 6 min
+    scripts/config.pl set MBEDTLS_RSA_NO_CRT
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
 
-msg "build: Default + RSA_NO_CRT (ASan build)" # ~ 6 min
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl set MBEDTLS_RSA_NO_CRT
-CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-make
+    msg "test: RSA_NO_CRT - main suites (inc. selftests) (ASan build)" # ~ 50s
+    make test
 
-msg "test: RSA_NO_CRT - main suites (inc. selftests) (ASan build)" # ~ 50s
-make test
+    msg "test: RSA_NO_CRT - RSA-related part of ssl-opt.sh (ASan build)" # ~ 5s
+    if_build_succeeded tests/ssl-opt.sh -f RSA
 
-msg "test: RSA_NO_CRT - RSA-related part of ssl-opt.sh (ASan build)" # ~ 5s
-if_build_succeeded tests/ssl-opt.sh -f RSA
+    msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
+    if_build_succeeded tests/compat.sh -t RSA
+}
 
-msg "test: RSA_NO_CRT - RSA-related part of compat.sh (ASan build)" # ~ 3 min
-if_build_succeeded tests/compat.sh -t RSA
+component_test_full_cmake_clang () {
+    msg "build: cmake, full config, clang" # ~ 50s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
+    make
 
-msg "build: cmake, full config, clang" # ~ 50s
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl full
-scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-CC=clang cmake -D CMAKE_BUILD_TYPE:String=Check -D ENABLE_TESTING=On .
-make
+    msg "test: main suites (full config)" # ~ 5s
+    make test
 
-msg "test: main suites (full config)" # ~ 5s
-make test
+    msg "test: ssl-opt.sh default (full config)" # ~ 1s
+    if_build_succeeded tests/ssl-opt.sh -f Default
 
-msg "test: ssl-opt.sh default (full config)" # ~ 1s
-if_build_succeeded tests/ssl-opt.sh -f Default
+    msg "test: compat.sh RC4, DES & NULL (full config)" # ~ 2 min
+    if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
+}
 
-msg "test: compat.sh RC4, DES & NULL (full config)" # ~ 2 min
-if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
+component_build_deprecated () {
+    msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
+    scripts/config.pl full
+    scripts/config.pl set MBEDTLS_DEPRECATED_WARNING
+    # Build with -O -Wextra to catch a maximum of issues.
+    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra' lib programs
+    make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
 
-msg "build: make, full config + DEPRECATED_WARNING, gcc -O" # ~ 30s
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl full
-scripts/config.pl set MBEDTLS_DEPRECATED_WARNING
-# Build with -O -Wextra to catch a maximum of issues.
-make CC=gcc CFLAGS='-O -Werror -Wall -Wextra' lib programs
-make CC=gcc CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
+    msg "build: make, full config + DEPRECATED_REMOVED, clang -O" # ~ 30s
+    # No cleanup, just tweak the configuration and rebuild
+    make clean
+    scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
+    scripts/config.pl set MBEDTLS_DEPRECATED_REMOVED
+    # Build with -O -Wextra to catch a maximum of issues.
+    make CC=clang CFLAGS='-O -Werror -Wall -Wextra' lib programs
+    make CC=clang CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
+}
 
-msg "build: make, full config + DEPRECATED_REMOVED, clang -O" # ~ 30s
-# No cleanup, just tweak the configuration and rebuild
-make clean
-scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
-scripts/config.pl set MBEDTLS_DEPRECATED_REMOVED
-# Build with -O -Wextra to catch a maximum of issues.
-make CC=clang CFLAGS='-O -Werror -Wall -Wextra' lib programs
-make CC=clang CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
+component_test_depends_curves () {
+    msg "test/build: curves.pl (gcc)" # ~ 4 min
+    record_status tests/scripts/curves.pl
+}
 
-msg "test/build: curves.pl (gcc)" # ~ 4 min
-cleanup
-record_status tests/scripts/curves.pl
+component_test_depends_hashes () {
+    msg "test/build: depends-hashes.pl (gcc)" # ~ 2 min
+    record_status tests/scripts/depends-hashes.pl
+}
 
-msg "test/build: depends-hashes.pl (gcc)" # ~ 2 min
-cleanup
-record_status tests/scripts/depends-hashes.pl
+component_test_depends_pkalgs () {
+    msg "test/build: depends-pkalgs.pl (gcc)" # ~ 2 min
+    record_status tests/scripts/depends-pkalgs.pl
+}
 
-msg "test/build: depends-pkalgs.pl (gcc)" # ~ 2 min
-cleanup
-record_status tests/scripts/depends-pkalgs.pl
+component_build_key_exchanges () {
+    msg "test/build: key-exchanges (gcc)" # ~ 1 min
+    record_status tests/scripts/key-exchanges.pl
+}
 
-msg "test/build: key-exchanges (gcc)" # ~ 1 min
-cleanup
-record_status tests/scripts/key-exchanges.pl
+component_build_default_make_gcc () {
+    msg "build: Unix make, -Os (gcc)" # ~ 30s
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -Os'
+}
 
-msg "build: Unix make, -Os (gcc)" # ~ 30s
-cleanup
-make CC=gcc CFLAGS='-Werror -Wall -Wextra -Os'
+component_test_no_platform () {
+    # Full configuration build, without platform support, file IO and net sockets.
+    # This should catch missing mbedtls_printf definitions, and by disabling file
+    # IO, it should catch missing '#include <stdio.h>'
+    msg "build: full config except platform/fsio/net, make, gcc, C99" # ~ 30s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_PLATFORM_C
+    scripts/config.pl unset MBEDTLS_NET_C
+    scripts/config.pl unset MBEDTLS_PLATFORM_MEMORY
+    scripts/config.pl unset MBEDTLS_PLATFORM_PRINTF_ALT
+    scripts/config.pl unset MBEDTLS_PLATFORM_FPRINTF_ALT
+    scripts/config.pl unset MBEDTLS_PLATFORM_SNPRINTF_ALT
+    scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT
+    scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
+    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+    scripts/config.pl unset MBEDTLS_FS_IO
+    # Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
+    # to re-enable platform integration features otherwise disabled in C99 builds
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -O0 -D_DEFAULT_SOURCE' lib programs
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0' test
+}
 
-# Full configuration build, without platform support, file IO and net sockets.
-# This should catch missing mbedtls_printf definitions, and by disabling file
-# IO, it should catch missing '#include <stdio.h>'
-msg "build: full config except platform/fsio/net, make, gcc, C99" # ~ 30s
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl full
-scripts/config.pl unset MBEDTLS_PLATFORM_C
-scripts/config.pl unset MBEDTLS_NET_C
-scripts/config.pl unset MBEDTLS_PLATFORM_MEMORY
-scripts/config.pl unset MBEDTLS_PLATFORM_PRINTF_ALT
-scripts/config.pl unset MBEDTLS_PLATFORM_FPRINTF_ALT
-scripts/config.pl unset MBEDTLS_PLATFORM_SNPRINTF_ALT
-scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT
-scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
-scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
-scripts/config.pl unset MBEDTLS_FS_IO
-# Note, _DEFAULT_SOURCE needs to be defined for platforms using glibc version >2.19,
-# to re-enable platform integration features otherwise disabled in C99 builds
-make CC=gcc CFLAGS='-Werror -Wall -Wextra -std=c99 -pedantic -O0 -D_DEFAULT_SOURCE' lib programs
-make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0' test
+component_build_no_std_function () {
+    # catch compile bugs in _uninit functions
+    msg "build: full config with NO_STD_FUNCTION, make, gcc" # ~ 30s
+    scripts/config.pl full
+    scripts/config.pl set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
+    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0'
+}
 
-# catch compile bugs in _uninit functions
-msg "build: full config with NO_STD_FUNCTION, make, gcc" # ~ 30s
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl full
-scripts/config.pl set MBEDTLS_PLATFORM_NO_STD_FUNCTIONS
-scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0'
+component_build_no_ssl_srv () {
+    msg "build: full config except ssl_srv.c, make, gcc" # ~ 30s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_SSL_SRV_C
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0'
+}
 
-msg "build: full config except ssl_srv.c, make, gcc" # ~ 30s
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl full
-scripts/config.pl unset MBEDTLS_SSL_SRV_C
-make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0'
+component_build_no_ssl_cli () {
+    msg "build: full config except ssl_cli.c, make, gcc" # ~ 30s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_SSL_CLI_C
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0'
+}
 
-msg "build: full config except ssl_cli.c, make, gcc" # ~ 30s
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl full
-scripts/config.pl unset MBEDTLS_SSL_CLI_C
-make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0'
+component_build_no_sockets () {
+    # Note, C99 compliance can also be tested with the sockets support disabled,
+    # as that requires a POSIX platform (which isn't the same as C99).
+    msg "build: full config except net_sockets.c, make, gcc -std=c99 -pedantic" # ~ 30s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
+    scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0 -std=c99 -pedantic' lib
+}
 
-# Note, C99 compliance can also be tested with the sockets support disabled,
-# as that requires a POSIX platform (which isn't the same as C99).
-msg "build: full config except net_sockets.c, make, gcc -std=c99 -pedantic" # ~ 30s
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl full
-scripts/config.pl unset MBEDTLS_NET_C # getaddrinfo() undeclared, etc.
-scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY # uses syscall() on GNU/Linux
-make CC=gcc CFLAGS='-Werror -Wall -Wextra -O0 -std=c99 -pedantic' lib
+component_test_no_max_fragment_length () {
+    msg "build: default config except MFL extension (ASan build)" # ~ 30s
+    scripts/config.pl unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
 
-msg "build: default config except MFL extension (ASan build)" # ~ 30s
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl unset MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-make
+    msg "test: ssl-opt.sh, MFL-related tests"
+    if_build_succeeded tests/ssl-opt.sh -f "Max fragment length"
+}
 
-msg "test: ssl-opt.sh, MFL-related tests"
-if_build_succeeded tests/ssl-opt.sh -f "Max fragment length"
+component_test_null_entropy () {
+    msg "build: default config with  MBEDTLS_TEST_NULL_ENTROPY (ASan build)"
+    scripts/config.pl set MBEDTLS_TEST_NULL_ENTROPY
+    scripts/config.pl set MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
+    scripts/config.pl set MBEDTLS_ENTROPY_C
+    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_ENTROPY_HARDWARE_ALT
+    scripts/config.pl unset MBEDTLS_HAVEGE_C
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan -D UNSAFE_BUILD=ON .
+    make
 
-msg "build: default config with  MBEDTLS_TEST_NULL_ENTROPY (ASan build)"
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl set MBEDTLS_TEST_NULL_ENTROPY
-scripts/config.pl set MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
-scripts/config.pl set MBEDTLS_ENTROPY_C
-scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-scripts/config.pl unset MBEDTLS_ENTROPY_HARDWARE_ALT
-scripts/config.pl unset MBEDTLS_HAVEGE_C
-CC=gcc cmake  -D UNSAFE_BUILD=ON -D CMAKE_C_FLAGS:String="-fsanitize=address -fno-common -O3" .
-make
+    msg "test: MBEDTLS_TEST_NULL_ENTROPY - main suites (inc. selftests) (ASan build)"
+    make test
+}
 
-msg "test: MBEDTLS_TEST_NULL_ENTROPY - main suites (inc. selftests) (ASan build)"
-make test
+component_test_platform_calloc_macro () {
+    msg "build: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
+    scripts/config.pl set MBEDTLS_PLATFORM_MEMORY
+    scripts/config.pl set MBEDTLS_PLATFORM_CALLOC_MACRO calloc
+    scripts/config.pl set MBEDTLS_PLATFORM_FREE_MACRO   free
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
+    make
 
-msg "build: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl set MBEDTLS_PLATFORM_MEMORY
-scripts/config.pl set MBEDTLS_PLATFORM_CALLOC_MACRO calloc
-scripts/config.pl set MBEDTLS_PLATFORM_FREE_MACRO   free
-CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-make
+    msg "test: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
+    make test
+}
 
-msg "test: MBEDTLS_PLATFORM_{CALLOC/FREE}_MACRO enabled (ASan build)"
-make test
-
-if uname -a | grep -F Linux >/dev/null; then
+component_test_make_shared () {
     msg "build/test: make shared" # ~ 40s
-    cleanup
     make SHARED=1 all check
-fi
+}
 
-if uname -a | grep -F x86_64 >/dev/null; then
+component_test_m32_o0 () {
     # Build once with -O0, to compile out the i386 specific inline assembly
     msg "build: i386, make, gcc -O0 (ASan build)" # ~ 30s
-    cleanup
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     make CC=gcc CFLAGS='-O0 -Werror -Wall -Wextra -m32 -fsanitize=address'
 
     msg "test: i386, make, gcc -O0 (ASan build)"
     make test
+}
+support_test_m32_o0 () {
+    case $(uname -m) in
+        *64*) true;;
+        *) false;;
+    esac
+}
 
+component_test_m32_o1 () {
     # Build again with -O1, to compile in the i386 specific inline assembly
     msg "build: i386, make, gcc -O1 (ASan build)" # ~ 30s
-    cleanup
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     make CC=gcc CFLAGS='-O1 -Werror -Wall -Wextra -m32 -fsanitize=address'
 
     msg "test: i386, make, gcc -O1 (ASan build)"
     make test
+}
+support_test_m32_o1 () {
+    support_test_m32_o0 "$@"
+}
 
+component_test_mx32 () {
     msg "build: 64-bit ILP32, make, gcc" # ~ 30s
-    cleanup
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl full
     make CC=gcc CFLAGS='-Werror -Wall -Wextra -mx32'
 
     msg "test: 64-bit ILP32, make, gcc"
     make test
-fi # x86_64
+}
+support_test_mx32 () {
+    case $(uname -m) in
+        amd64|x86_64) true;;
+        *) false;;
+    esac
+}
 
-msg "build: gcc, force 32-bit bignum limbs"
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl unset MBEDTLS_HAVE_ASM
-scripts/config.pl unset MBEDTLS_AESNI_C
-scripts/config.pl unset MBEDTLS_PADLOCK_C
-make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32'
+component_test_have_int32 () {
+    msg "build: gcc, force 32-bit bignum limbs"
+    scripts/config.pl unset MBEDTLS_HAVE_ASM
+    scripts/config.pl unset MBEDTLS_AESNI_C
+    scripts/config.pl unset MBEDTLS_PADLOCK_C
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT32'
 
-msg "test: gcc, force 32-bit bignum limbs"
-make test
+    msg "test: gcc, force 32-bit bignum limbs"
+    make test
+}
 
-msg "build: gcc, force 64-bit bignum limbs"
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl unset MBEDTLS_HAVE_ASM
-scripts/config.pl unset MBEDTLS_AESNI_C
-scripts/config.pl unset MBEDTLS_PADLOCK_C
-make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
+component_test_have_int64 () {
+    msg "build: gcc, force 64-bit bignum limbs"
+    scripts/config.pl unset MBEDTLS_HAVE_ASM
+    scripts/config.pl unset MBEDTLS_AESNI_C
+    scripts/config.pl unset MBEDTLS_PADLOCK_C
+    make CC=gcc CFLAGS='-Werror -Wall -Wextra -DMBEDTLS_HAVE_INT64'
 
-msg "test: gcc, force 64-bit bignum limbs"
-make test
+    msg "test: gcc, force 64-bit bignum limbs"
+    make test
+}
 
-msg "build: arm-none-eabi-gcc, make" # ~ 10s
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl full
-scripts/config.pl unset MBEDTLS_NET_C
-scripts/config.pl unset MBEDTLS_TIMING_C
-scripts/config.pl unset MBEDTLS_FS_IO
-scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
-# following things are not in the default config
-scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
-scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
-scripts/config.pl unset MBEDTLS_THREADING_C
-scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
-make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
+component_build_arm_none_eabi_gcc () {
+    msg "build: arm-none-eabi-gcc, make" # ~ 10s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_NET_C
+    scripts/config.pl unset MBEDTLS_TIMING_C
+    scripts/config.pl unset MBEDTLS_FS_IO
+    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
+    # following things are not in the default config
+    scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
+    scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
+    scripts/config.pl unset MBEDTLS_THREADING_C
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
+    make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
+}
 
-msg "build: arm-none-eabi-gcc -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl full
-scripts/config.pl unset MBEDTLS_NET_C
-scripts/config.pl unset MBEDTLS_TIMING_C
-scripts/config.pl unset MBEDTLS_FS_IO
-scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
-# following things are not in the default config
-scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
-scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
-scripts/config.pl unset MBEDTLS_THREADING_C
-scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
-scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
-make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
-echo "Checking that software 64-bit division is not required"
-! grep __aeabi_uldiv library/*.o
+component_build_arm_none_eabi_gcc_no_udbl_division () {
+    msg "build: arm-none-eabi-gcc -DMBEDTLS_NO_UDBL_DIVISION, make" # ~ 10s
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_NET_C
+    scripts/config.pl unset MBEDTLS_TIMING_C
+    scripts/config.pl unset MBEDTLS_FS_IO
+    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
+    # following things are not in the default config
+    scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
+    scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
+    scripts/config.pl unset MBEDTLS_THREADING_C
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
+    scripts/config.pl set MBEDTLS_NO_UDBL_DIVISION
+    make CC=arm-none-eabi-gcc AR=arm-none-eabi-ar LD=arm-none-eabi-ld CFLAGS='-Werror -Wall -Wextra' lib
+    echo "Checking that software 64-bit division is not required"
+    if_build_succeeded not grep __aeabi_uldiv library/*.o
+}
 
-msg "build: ARM Compiler 5, make"
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl full
-scripts/config.pl unset MBEDTLS_NET_C
-scripts/config.pl unset MBEDTLS_TIMING_C
-scripts/config.pl unset MBEDTLS_FS_IO
-scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
-scripts/config.pl unset MBEDTLS_HAVE_TIME
-scripts/config.pl unset MBEDTLS_HAVE_TIME_DATE
-scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
-# following things are not in the default config
-scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
-scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
-scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
-scripts/config.pl unset MBEDTLS_THREADING_C
-scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
-scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
-scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
+component_build_armcc () {
+    msg "build: ARM Compiler 5, make"
+    scripts/config.pl full
+    scripts/config.pl unset MBEDTLS_NET_C
+    scripts/config.pl unset MBEDTLS_TIMING_C
+    scripts/config.pl unset MBEDTLS_FS_IO
+    scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+    scripts/config.pl unset MBEDTLS_HAVE_TIME
+    scripts/config.pl unset MBEDTLS_HAVE_TIME_DATE
+    scripts/config.pl set MBEDTLS_NO_PLATFORM_ENTROPY
+    # following things are not in the default config
+    scripts/config.pl unset MBEDTLS_DEPRECATED_WARNING
+    scripts/config.pl unset MBEDTLS_HAVEGE_C # depends on timing.c
+    scripts/config.pl unset MBEDTLS_THREADING_PTHREAD
+    scripts/config.pl unset MBEDTLS_THREADING_C
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # execinfo.h
+    scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C # calls exit
+    scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT # depends on MBEDTLS_HAVE_TIME
 
-if [ $RUN_ARMCC -ne 0 ]; then
     make CC="$ARMC5_CC" AR="$ARMC5_AR" WARNING_CFLAGS='--strict --c99' lib
     make clean
 
@@ -798,46 +965,33 @@ if [ $RUN_ARMCC -ne 0 ]; then
 
     # ARM Compiler 6 - Target ARMv8-A - AArch64
     armc6_build_test "--target=aarch64-arm-none-eabi -march=armv8.2-a"
-fi
+}
 
-msg "build: allow SHA1 in certificates by default"
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl set MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
-make CFLAGS='-Werror -Wall -Wextra'
-msg "test: allow SHA1 in certificates by default"
-make test
-if_build_succeeded tests/ssl-opt.sh -f SHA-1
+component_test_allow_sha1 () {
+    msg "build: allow SHA1 in certificates by default"
+    scripts/config.pl set MBEDTLS_TLS_DEFAULT_ALLOW_SHA1_IN_CERTIFICATES
+    make CFLAGS='-Werror -Wall -Wextra'
+    msg "test: allow SHA1 in certificates by default"
+    make test
+    if_build_succeeded tests/ssl-opt.sh -f SHA-1
+}
 
-msg "build: Default + MBEDTLS_RSA_NO_CRT (ASan build)" # ~ 6 min
-cleanup
-cp "$CONFIG_H" "$CONFIG_BAK"
-scripts/config.pl set MBEDTLS_RSA_NO_CRT
-CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
-make
+component_build_mingw () {
+    msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs
 
-msg "test: MBEDTLS_RSA_NO_CRT - main suites (inc. selftests) (ASan build)"
-make test
+    # note Make tests only builds the tests, but doesn't run them
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror' WINDOWS_BUILD=1 tests
+    make WINDOWS_BUILD=1 clean
 
-msg "build: Windows cross build - mingw64, make (Link Library)" # ~ 30s
-cleanup
-make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 lib programs
+    msg "build: Windows cross build - mingw64, make (DLL)" # ~ 30s
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 lib programs
+    make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 tests
+    make WINDOWS_BUILD=1 clean
+}
 
-# note Make tests only builds the tests, but doesn't run them
-make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror' WINDOWS_BUILD=1 tests
-make WINDOWS_BUILD=1 clean
-
-msg "build: Windows cross build - mingw64, make (DLL)" # ~ 30s
-make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 lib programs
-make CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar LD=i686-w64-minggw32-ld CFLAGS='-Werror -Wall -Wextra' WINDOWS_BUILD=1 SHARED=1 tests
-make WINDOWS_BUILD=1 clean
-
-# MemSan currently only available on Linux 64 bits
-if uname -a | grep 'Linux.*x86_64' >/dev/null; then
-
+component_test_memsan () {
     msg "build: MSan (clang)" # ~ 1 min 20s
-    cleanup
-    cp "$CONFIG_H" "$CONFIG_BAK"
     scripts/config.pl unset MBEDTLS_AESNI_C # memsan doesn't grok asm
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=MemSan .
     make
@@ -854,11 +1008,10 @@ if uname -a | grep 'Linux.*x86_64' >/dev/null; then
         msg "test: compat.sh (MSan)" # ~ 6 min 20s
         if_build_succeeded tests/compat.sh
     fi
+}
 
-else # no MemSan
-
+component_test_valgrind () {
     msg "build: Release (clang)"
-    cleanup
     CC=clang cmake -D CMAKE_BUILD_TYPE:String=Release .
     make
 
@@ -878,33 +1031,33 @@ else # no MemSan
         msg "test: compat.sh --memcheck (Release)"
         if_build_succeeded tests/compat.sh --memcheck
     fi
+}
 
-fi # MemSan
+component_test_cmake_out_of_source () {
+    msg "build: cmake 'out-of-source' build"
+    MBEDTLS_ROOT_DIR="$PWD"
+    mkdir "$OUT_OF_SOURCE_DIR"
+    cd "$OUT_OF_SOURCE_DIR"
+    cmake "$MBEDTLS_ROOT_DIR"
+    make
 
-msg "build: cmake 'out-of-source' build"
-cleanup
-MBEDTLS_ROOT_DIR="$PWD"
-mkdir "$OUT_OF_SOURCE_DIR"
-cd "$OUT_OF_SOURCE_DIR"
-cmake "$MBEDTLS_ROOT_DIR"
-make
-
-msg "test: cmake 'out-of-source' build"
-make test
-# Test an SSL option that requires an auxiliary script in test/scripts/.
-# Also ensure that there are no error messages such as
-# "No such file or directory", which would indicate that some required
-# file is missing (ssl-opt.sh tolerates the absence of some files so
-# may exit with status 0 but emit errors).
-if_build_succeeded ./tests/ssl-opt.sh -f 'Fallback SCSV: beginning of list' 2>ssl-opt.err
-if [ -s ssl-opt.err ]; then
-  cat ssl-opt.err >&2
-  record_status [ ! -s ssl-opt.err ]
-  rm ssl-opt.err
-fi
-cd "$MBEDTLS_ROOT_DIR"
-rm -rf "$OUT_OF_SOURCE_DIR"
-unset MBEDTLS_ROOT_DIR
+    msg "test: cmake 'out-of-source' build"
+    make test
+    # Test an SSL option that requires an auxiliary script in test/scripts/.
+    # Also ensure that there are no error messages such as
+    # "No such file or directory", which would indicate that some required
+    # file is missing (ssl-opt.sh tolerates the absence of some files so
+    # may exit with status 0 but emit errors).
+    if_build_succeeded ./tests/ssl-opt.sh -f 'Fallback SCSV: beginning of list' 2>ssl-opt.err
+    if [ -s ssl-opt.err ]; then
+        cat ssl-opt.err >&2
+        record_status [ ! -s ssl-opt.err ]
+        rm ssl-opt.err
+    fi
+    cd "$MBEDTLS_ROOT_DIR"
+    rm -rf "$OUT_OF_SOURCE_DIR"
+    unset MBEDTLS_ROOT_DIR
+}
 
 
 
@@ -912,7 +1065,51 @@ unset MBEDTLS_ROOT_DIR
 #### Termination
 ################################################################
 
-msg "Done, cleaning up"
+post_report () {
+    msg "Done, cleaning up"
+    cleanup
+
+    final_report
+}
+
+
+
+################################################################
+#### Run all the things
+################################################################
+
+# Run one component and clean up afterwards.
+run_component () {
+    # Back up the configuration in case the component modifies it.
+    # The cleanup function will restore it.
+    cp -p "$CONFIG_H" "$CONFIG_BAK"
+    current_component="$1"
+    "$@"
+    cleanup
+}
+
+# Preliminary setup
+pre_check_environment
+pre_initialize_variables
+pre_parse_command_line "$@"
+
+pre_check_git
+build_status=0
+if [ $KEEP_GOING -eq 1 ]; then
+    pre_setup_keep_going
+else
+    record_status () {
+        "$@"
+    }
+fi
+pre_print_configuration
+pre_check_tools
 cleanup
 
-final_report
+# Run the requested tests.
+for component in $RUN_COMPONENTS; do
+    run_component "component_$component"
+done
+
+# We're done.
+post_report

@@ -14,6 +14,11 @@ Changes
      Inserted as an enhancement for #1371
    * Add support for alternative CSR headers, as used by Microsoft and defined
      in RFC 7468. Found by Michael Ernst. Fixes #767.
+   * Fix clobber list in MIPS assembly for large integer multiplication.
+     Previously, this could lead to functionally incorrect assembly being
+     produced by some optimizing compilers, showing up as failures in
+     e.g. RSA or ECC signature operations. Reported in #1722, fix suggested
+     by Aurelien Jarno and submitted by Jeffrey Martin.
 
 = mbed TLS 2.7.9 branch released 2018-12-21
 

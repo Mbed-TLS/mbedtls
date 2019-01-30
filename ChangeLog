@@ -26,6 +26,11 @@ Changes
    * Provide an abstraction of vsnprintf to allow alternative implementations
      for platforms that don't provide it. Based on contributions by Joris Aerts
      and Nathaniel Wesley Filardo.
+   * Fix clobber list in MIPS assembly for large integer multiplication.
+     Previously, this could lead to functionally incorrect assembly being
+     produced by some optimizing compilers, showing up as failures in
+     e.g. RSA or ECC signature operations. Reported in #1722, fix suggested
+     by Aurelien Jarno and submitted by Jeffrey Martin.
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

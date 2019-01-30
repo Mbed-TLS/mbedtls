@@ -761,9 +761,11 @@ run_test_psa() {
                 -c "Successfully setup PSA-based decryption cipher context" \
                 -c "Successfully setup PSA-based encryption cipher context" \
                 -c "PSA calc verify" \
+                -c "calc PSA finished" \
                 -s "Successfully setup PSA-based decryption cipher context" \
                 -s "Successfully setup PSA-based encryption cipher context" \
                 -s "PSA calc verify" \
+                -s "calc PSA finished" \
                 -C "Failed to setup PSA-based cipher context"\
                 -S "Failed to setup PSA-based cipher context"\
                 -s "Protocol is TLSv1.2" \

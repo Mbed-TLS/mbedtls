@@ -22,6 +22,11 @@ Bugfix
      Fixes #2190.
    * Remove a duplicate #include in a sample program. Fixed by Masashi Honma #2326.
 
+Changes
+   * Include configuration file in all header files that use configuration,
+     instead of relying on other header files that they include.
+     Inserted as an enhancement for #1371
+
 = mbed TLS 2.16.0 branch released 2018-12-21
 
 Features

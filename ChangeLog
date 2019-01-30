@@ -56,6 +56,8 @@ Bugfix
      hang.
    * Clarify documentation of mbedtls_ssl_set_own_cert() regarding the absence
      of check for certificate/key matching. Reported by Attila Molnar, #507.
+   * Fix compiler warning in x509_crt.  Discovered and fixed by
+     Andy Gross (Linaro), #2392.
 
 = mbed TLS 2.14.1 branch released 2018-11-30
 

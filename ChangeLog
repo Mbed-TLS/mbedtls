@@ -15,6 +15,8 @@ Bugfix
    * Remove a duplicate #include in a sample program. Fixed by Masashi Honma #2326.
    * Remove the mbedtls namespacing from the header file, to fix a "file not found"
      build error. Fixed by Haijun Gu #2319.
+   * Fix signed-to-unsigned integer conversion warning
+     in X.509 module. Fixes #2212.
 
 Changes
    * Include configuration file in all header files that use configuration,

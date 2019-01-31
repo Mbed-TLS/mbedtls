@@ -109,9 +109,8 @@ int mbedtls_ctr_drbg_seed_entropy_len(
     }
 
     if( ( ret = mbedtls_ctr_drbg_reseed( ctx, custom, len ) ) != 0 )
-    {
         return( ret );
-    }
+
     return( 0 );
 }
 
@@ -354,7 +353,7 @@ int mbedtls_ctr_drbg_update_ret( mbedtls_ctr_drbg_context *ctx,
                                  size_t add_len )
 {
     unsigned char add_input[MBEDTLS_CTR_DRBG_SEEDLEN];
-    int ret;
+    int ret = 0;
 
     if( add_len == 0 )
         return( 0 );
@@ -538,7 +537,7 @@ int mbedtls_ctr_drbg_random_with_add( void *p_rng,
 exit:
     mbedtls_platform_zeroize( add_input, sizeof( add_input ) );
     mbedtls_platform_zeroize( tmp, sizeof( tmp ) );
-    return( 0 );
+    return( ret );
 }
 
 int mbedtls_ctr_drbg_random( void *p_rng, unsigned char *output,

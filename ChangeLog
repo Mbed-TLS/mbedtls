@@ -2,6 +2,16 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.x.x branch released xxxx-xx-xx
 
+Features
+   * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`
+     which allows copy-less parsing of DER encoded X.509 CRTs,
+     at the cost of additional lifetime constraints on the input
+     buffer, but at the benefit of reduced RAM consumption.
+
+API Changes
+   * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`.
+     See the Features section for more information.
+
 Bugfix
    * Fix a compilation issue with mbedtls_ecp_restart_ctx not being defined
      when MBEDTLS_ECP_ALT is defined. Reported by jwhui. Fixes #2242.

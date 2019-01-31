@@ -10,6 +10,10 @@ Security
      an error or a meaningless output from mbedtls_ecdh_get_params. In the
      latter case, this could expose at most 5 bits of the private key.
 
+API Changes
+   * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`.
+     See the Features section for more information.
+
 Features
    * Add support for draft-05 of the Connection ID extension, as specified
      in https://tools.ietf.org/html/draft-ietf-tls-dtls-connection-id-05.
@@ -24,6 +28,10 @@ Features
      mbedtls_ssl_session_load() to allow serializing a session, for example to
      store it in non-volatile storage, and later using it for TLS session
      resumption.
+   * Add a new X.509 API call `mbedtls_x509_parse_der_nocopy()`
+     which allows copy-less parsing of DER encoded X.509 CRTs,
+     at the cost of additional lifetime constraints on the input
+     buffer, but at the benefit of reduced RAM consumption.
 
 Bugfix
    * Server's RSA certificate in certs.c was SHA-1 signed. In the default

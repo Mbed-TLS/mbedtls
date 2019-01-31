@@ -6120,6 +6120,7 @@ write_msg:
     return( ret );
 }
 
+#if defined(MBEDTLS_SSL_RENEGOTIATION) && defined(MBEDTLS_SSL_CLI_C)
 static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
                                          unsigned char *crt_buf,
                                          size_t crt_buf_len )
@@ -6134,6 +6135,7 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
 
     return( memcmp( peer_crt->raw.p, crt_buf, crt_buf_len) );
 }
+#endif /* MBEDTLS_SSL_RENEGOTIATION && MBEDTLS_SSL_CLI_C */
 
 /*
  * Once the certificate message is read, parse it into a cert chain and

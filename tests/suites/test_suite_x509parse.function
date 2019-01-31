@@ -505,8 +505,22 @@ void x509parse_crt( data_t * buf, char * result_str, int result )
     mbedtls_x509_crt_init( &crt );
     memset( output, 0, 2000 );
 
+    TEST_ASSERT( mbedtls_x509_crt_parse_der( &crt, buf->x, buf->len ) == ( result ) );
+    if( ( result ) == 0 )
+    {
+        res = mbedtls_x509_crt_info( (char *) output, 2000, "", &crt );
 
-    TEST_ASSERT( mbedtls_x509_crt_parse( &crt, buf->x, buf->len ) == ( result ) );
+        TEST_ASSERT( res != -1 );
+        TEST_ASSERT( res != -2 );
+
+        TEST_ASSERT( strcmp( (char *) output, result_str ) == 0 );
+    }
+
+    mbedtls_x509_crt_free( &crt );
+    mbedtls_x509_crt_init( &crt );
+    memset( output, 0, 2000 );
+
+    TEST_ASSERT( mbedtls_x509_crt_parse_der_nocopy( &crt, buf->x, buf->len ) == ( result ) );
     if( ( result ) == 0 )
     {
         res = mbedtls_x509_crt_info( (char *) output, 2000, "", &crt );

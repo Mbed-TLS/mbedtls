@@ -6304,6 +6304,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
                 /* Delete all remaining CRTs from the original CRT chain. */
                 mbedtls_x509_crt_free(
                     ssl->session_negotiate->peer_cert->next );
+                mbedtls_free( ssl->session_negotiate->peer_cert->next );
                 ssl->session_negotiate->peer_cert->next = NULL;
 
                 i += n;

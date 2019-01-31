@@ -7,6 +7,113 @@
  * END_DEPENDENCIES
  */
 
+/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
+void dhm_invalid_params( )
+{
+    mbedtls_dhm_context ctx;
+    unsigned char buf[42] = { 0 };
+    unsigned char *buf_null = NULL;
+    mbedtls_mpi X;
+    size_t const buflen = sizeof( buf );
+    size_t len;
+
+    TEST_INVALID_PARAM( mbedtls_dhm_init( NULL ) );
+    TEST_VALID_PARAM( mbedtls_dhm_free( NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_read_params( NULL,
+                                                     (unsigned char**) &buf,
+                                                     buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_read_params( &ctx, &buf_null, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_read_params( &ctx, NULL, buf ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_read_params( &ctx,
+                                                     (unsigned char**) &buf,
+                                                     NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_make_params( NULL, buflen,
+                                                     buf, &len,
+                                                     rnd_std_rand,
+                                                     NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_make_params( &ctx, buflen,
+                                                     NULL, &len,
+                                                     rnd_std_rand,
+                                                     NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_make_params( &ctx, buflen,
+                                                     buf, NULL,
+                                                     rnd_std_rand,
+                                                     NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_make_params( &ctx, buflen,
+                                                     buf, &len,
+                                                     NULL,
+                                                     NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_set_group( NULL, &X, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_set_group( &ctx, NULL, &X ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_set_group( &ctx, &X, NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_read_public( NULL, buf, buflen ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_read_public( &ctx, NULL, buflen ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_make_public( NULL, buflen,
+                                                     buf, buflen,
+                                                     rnd_std_rand,
+                                                     NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_make_public( &ctx, buflen,
+                                                     NULL, buflen,
+                                                     rnd_std_rand,
+                                                     NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_make_public( &ctx, buflen,
+                                                     buf, buflen,
+                                                     NULL,
+                                                     NULL ) );
+
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_calc_secret( NULL, buf, buflen,
+                                                     &len, rnd_std_rand,
+                                                     NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_calc_secret( &ctx, NULL, buflen,
+                                                     &len, rnd_std_rand,
+                                                     NULL ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_calc_secret( &ctx, buf, buflen,
+                                                     NULL, rnd_std_rand,
+                                                     NULL ) );
+
+#if defined(MBEDTLS_ASN1_PARSE_C)
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_parse_dhm( NULL, buf, buflen ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_parse_dhm( &ctx, NULL, buflen ) );
+
+#if defined(MBEDTLS_FS_IO)
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_parse_dhmfile( NULL, "" ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_DHM_BAD_INPUT_DATA,
+                            mbedtls_dhm_parse_dhmfile( &ctx, NULL ) );
+#endif /* MBEDTLS_FS_IO */
+#endif /* MBEDTLS_ASN1_PARSE_C */
+
+exit:
+    return;
+}
+/* END_CASE */
+
 /* BEGIN_CASE */
 void dhm_do_dhm( int radix_P, char *input_P,
                  int radix_G, char *input_G, int result )

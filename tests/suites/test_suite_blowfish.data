@@ -1,3 +1,9 @@
+BLOWFISH - Valid parameters
+blowfish_valid_param:
+
+BLOWFISH - Invalid parameters
+blowfish_invalid_param:
+
 BLOWFISH-ECB Encrypt SSLeay reference #1
 blowfish_encrypt_ecb:"0000000000000000":"0000000000000000":"4ef997456198dd78":0
 
@@ -203,13 +209,13 @@ BLOWFISH-ECB Decrypt SSLeay reference #34
 blowfish_decrypt_ecb:"fedcba9876543210":"6b5c5a9c5d9e0a5a":"ffffffffffffffff":0
 
 BLOWFISH-SETKEY Setkey SSLeay reference #1
-blowfish_encrypt_ecb:"f0":"fedcba9876543210":"":MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH
+blowfish_encrypt_ecb:"f0":"fedcba9876543210":"":MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA
 
 BLOWFISH-SETKEY Setkey SSLeay reference #2
-blowfish_encrypt_ecb:"f0e1":"fedcba9876543210":"":MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH
+blowfish_encrypt_ecb:"f0e1":"fedcba9876543210":"":MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA
 
 BLOWFISH-SETKEY Setkey SSLeay reference #3
-blowfish_encrypt_ecb:"f0e1d2":"fedcba9876543210":"":MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH
+blowfish_encrypt_ecb:"f0e1d2":"fedcba9876543210":"":MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA
 
 BLOWFISH-SETKEY Setkey SSLeay reference #4
 blowfish_encrypt_ecb:"f0e1d2c3":"fedcba9876543210":"be1e639408640f05":0
@@ -281,7 +287,7 @@ BLOWFISH-SETKEY Setkey 448 bits
 blowfish_encrypt_ecb:"f0e1d2c3b4a5968778695a4b3c2d1e0f00112233445566778899aabbccddeeff0123456789abcdef0102030405060708090a0b0c0d0e0fff":"fedcba9876543210":"2fb3ab7f0ee91b69":0
 
 BLOWFISH-SETKEY Setkey 456 bits
-blowfish_encrypt_ecb:"f0e1d2c3b4a5968778695a4b3c2d1e0f00112233445566778899aabbccddeeff0123456789abcdef0102030405060708090a0b0c0d0e0fffff":"fedcba9876543210":"":MBEDTLS_ERR_BLOWFISH_INVALID_KEY_LENGTH
+blowfish_encrypt_ecb:"f0e1d2c3b4a5968778695a4b3c2d1e0f00112233445566778899aabbccddeeff0123456789abcdef0102030405060708090a0b0c0d0e0fffff":"fedcba9876543210":"":MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA
 
 BLOWFISH-CBC Encrypt
 blowfish_encrypt_cbc:"0123456789ABCDEFF0E1D2C3B4A59687":"FEDCBA9876543210":"37363534333231204E6F77206973207468652074696D6520666F722000000000":"6b77b4d63006dee605b156e27403979358deb9e7154616d959f1652bd5ff92cc":0

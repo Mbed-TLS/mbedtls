@@ -82,7 +82,7 @@ void chacha20_crypt( char *hex_key_string,
 }
 /* END_CASE */
 
-/* BEGIN_CASE */
+/* BEGIN_CASE depends_on:MBEDTLS_CHECK_PARAMS:!MBEDTLS_PARAM_FAILED_ALT */
 void chacha20_bad_params()
 {
     unsigned char key[32];
@@ -93,42 +93,38 @@ void chacha20_bad_params()
     size_t len = sizeof( src );
     mbedtls_chacha20_context ctx;
 
-    mbedtls_chacha20_init( NULL );
-    mbedtls_chacha20_free( NULL );
+    TEST_INVALID_PARAM( mbedtls_chacha20_init( NULL ) );
+    TEST_VALID_PARAM( mbedtls_chacha20_free( NULL ) );
 
-    mbedtls_chacha20_init( &ctx );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
+                            mbedtls_chacha20_setkey( NULL, key ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
+                            mbedtls_chacha20_setkey( &ctx, NULL ) );
 
-    TEST_ASSERT( mbedtls_chacha20_setkey( NULL, key )
-                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chacha20_setkey( &ctx, NULL )
-                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
+                            mbedtls_chacha20_starts( NULL, nonce, counter ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
+                            mbedtls_chacha20_starts( &ctx, NULL, counter ) );
 
-    TEST_ASSERT( mbedtls_chacha20_starts( NULL, nonce, counter )
-                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chacha20_starts( &ctx, NULL, counter )
-                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
+                            mbedtls_chacha20_update( NULL, 0, src, dst ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
+                            mbedtls_chacha20_update( &ctx, len, NULL, dst ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
+                            mbedtls_chacha20_update( &ctx, len, src, NULL ) );
 
-    TEST_ASSERT( mbedtls_chacha20_update( NULL, 0, src, dst )
-                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chacha20_update( &ctx, len, NULL, dst )
-                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chacha20_update( &ctx, len, src, NULL )
-                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chacha20_update( &ctx, 0, NULL, NULL )
-                 == 0 );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
+                            mbedtls_chacha20_crypt( NULL, nonce, counter, 0, src, dst ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
+                            mbedtls_chacha20_crypt( key, NULL, counter, 0, src, dst ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
+                            mbedtls_chacha20_crypt( key, nonce, counter, len, NULL, dst ) );
+    TEST_INVALID_PARAM_RET( MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA,
+                            mbedtls_chacha20_crypt( key, nonce, counter, len, src, NULL ) );
 
-    mbedtls_chacha20_free( &ctx );
+exit:
+    return;
 
-    TEST_ASSERT( mbedtls_chacha20_crypt( NULL, nonce, counter, 0, src, dst )
-                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chacha20_crypt( key, NULL, counter, 0, src, dst )
-                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chacha20_crypt( key, nonce, counter, len, NULL, dst )
-                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chacha20_crypt( key, nonce, counter, len, src, NULL )
-                 == MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA );
-    TEST_ASSERT( mbedtls_chacha20_crypt( key, nonce, counter, 0, NULL, NULL )
-                 == 0 );
 }
 /* END_CASE */
 

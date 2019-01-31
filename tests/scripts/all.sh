@@ -720,6 +720,32 @@ record_status check_headers_in_cpp
 msg "build: Unix make, incremental g++"
 make TEST_CPP=1
 
+
+msg "build+test: MBEDTLS_CHECK_PARAMS without MBEDTLS_PLATFORM_C"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full # includes CHECK_PARAMS
+scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+scripts/config.pl unset MBEDTLS_MEMORY_BUFFER_ALLOC_C
+scripts/config.pl unset MBEDTLS_PLATFORM_EXIT_ALT
+scripts/config.pl unset MBEDTLS_PLATFORM_TIME_ALT
+scripts/config.pl unset MBEDTLS_PLATFORM_FPRINTF_ALT
+scripts/config.pl unset MBEDTLS_PLATFORM_MEMORY
+scripts/config.pl unset MBEDTLS_PLATFORM_PRINTF_ALT
+scripts/config.pl unset MBEDTLS_PLATFORM_SNPRINTF_ALT
+scripts/config.pl unset MBEDTLS_ENTROPY_NV_SEED
+scripts/config.pl unset MBEDTLS_PLATFORM_C
+make CC=gcc CFLAGS='-Werror -O1' all test
+
+msg "build+test: MBEDTLS_CHECK_PARAMS with alternative MBEDTLS_PARAM_FAILED()"
+cleanup
+cp "$CONFIG_H" "$CONFIG_BAK"
+scripts/config.pl full # includes CHECK_PARAMS
+scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+sed -i 's/.*\(#define MBEDTLS_PARAM_FAILED( cond )\).*/\1/' "$CONFIG_H"
+make CC=gcc CFLAGS='-Werror -O1' all test
+
+
 # Full configuration build, without platform support, file IO and net sockets.
 # This should catch missing mbedtls_printf definitions, and by disabling file
 # IO, it should catch missing '#include <stdio.h>'

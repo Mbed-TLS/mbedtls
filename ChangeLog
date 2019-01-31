@@ -19,6 +19,8 @@ Bugfix
      in X.509 module. Fixes #2212.
    * Reduce stack usage of `mpi_write_hlp()` by eliminating recursion.
      Fixes #2190.
+   * Return error code of mbedtls_aes_crypt_ecb() if failed, when calling it from
+     other modes and ciphers. Fix for #1092 reported by adustm.
 
 Changes
    * Include configuration file in all header files that use configuration,

@@ -884,8 +884,9 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
                     const unsigned char *input,
                     unsigned char *output )
 {
-    int i;
+    int i, ret = 0;
     unsigned char temp[16];
+    unsigned char *out = output;
 
     if( length % 16 )
         return( MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH );
@@ -907,7 +908,9 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
         while( length > 0 )
         {
             memcpy( temp, input, 16 );
-            mbedtls_aes_crypt_ecb( ctx, mode, input, output );
+            ret = mbedtls_aes_crypt_ecb( ctx, mode, input, output );
+            if( ret != 0 )
+                goto end;
 
             for( i = 0; i < 16; i++ )
                 output[i] = (unsigned char)( output[i] ^ iv[i] );
@@ -926,7 +929,10 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
             for( i = 0; i < 16; i++ )
                 output[i] = (unsigned char)( input[i] ^ iv[i] );
 
-            mbedtls_aes_crypt_ecb( ctx, mode, output, output );
+            ret = mbedtls_aes_crypt_ecb( ctx, mode, output, output );
+            if( ret != 0 )
+                goto end;
+
             memcpy( iv, output, 16 );
 
             input  += 16;
@@ -935,7 +941,10 @@ int mbedtls_aes_crypt_cbc( mbedtls_aes_context *ctx,
         }
     }
 
-    return( 0 );
+end:
+    if( ret != 0 )
+        mbedtls_zeroize( out, output - out );
+    return( ret );
 }
 #endif /* MBEDTLS_CIPHER_MODE_CBC */
 
@@ -951,15 +960,20 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
                        const unsigned char *input,
                        unsigned char *output )
 {
-    int c;
+    int c, ret = 0;
     size_t n = *iv_off;
+    unsigned char *out = output;
 
     if( mode == MBEDTLS_AES_DECRYPT )
     {
         while( length-- )
         {
             if( n == 0 )
-                mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
+            {
+                ret = mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
+                if( ret != 0 )
+                    goto end;
+            }
 
             c = *input++;
             *output++ = (unsigned char)( c ^ iv[n] );
@@ -973,7 +987,11 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
         while( length-- )
         {
             if( n == 0 )
-                mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
+            {
+                ret = mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
+                if( ret != 0 )
+                    goto end;
+            }
 
             iv[n] = *output++ = (unsigned char)( iv[n] ^ *input++ );
 
@@ -983,7 +1001,10 @@ int mbedtls_aes_crypt_cfb128( mbedtls_aes_context *ctx,
 
     *iv_off = n;
 
-    return( 0 );
+end:
+    if( ret != 0 )
+        mbedtls_zeroize( out, output - out );
+    return( ret );
 }
 
 /*
@@ -998,11 +1019,15 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
 {
     unsigned char c;
     unsigned char ov[17];
+    int ret = 0;
+    unsigned char *out = output;
 
     while( length-- )
     {
         memcpy( ov, iv, 16 );
-        mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
+        ret = mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, iv, iv );
+        if( ret != 0 )
+            goto end;
 
         if( mode == MBEDTLS_AES_DECRYPT )
             ov[16] = *input;
@@ -1014,8 +1039,10 @@ int mbedtls_aes_crypt_cfb8( mbedtls_aes_context *ctx,
 
         memcpy( iv, ov + 1, 16 );
     }
-
-    return( 0 );
+end:
+    if( ret != 0 )
+        mbedtls_zeroize( out, output - out );
+    return( ret );
 }
 #endif /*MBEDTLS_CIPHER_MODE_CFB */
 
@@ -1031,13 +1058,18 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
                        const unsigned char *input,
                        unsigned char *output )
 {
-    int c, i;
+    int c, i, ret = 0;
     size_t n = *nc_off;
+    unsigned char *out = output;
 
     while( length-- )
     {
-        if( n == 0 ) {
-            mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT, nonce_counter, stream_block );
+        if( n == 0 )
+        {
+            ret = mbedtls_aes_crypt_ecb( ctx, MBEDTLS_AES_ENCRYPT,
+                                         nonce_counter, stream_block );
+            if( ret != 0 )
+                goto end;
 
             for( i = 16; i > 0; i-- )
                 if( ++nonce_counter[i - 1] != 0 )
@@ -1050,8 +1082,10 @@ int mbedtls_aes_crypt_ctr( mbedtls_aes_context *ctx,
     }
 
     *nc_off = n;
-
-    return( 0 );
+end:
+    if( ret != 0 )
+        mbedtls_zeroize( out, output - out );
+    return( ret );
 }
 #endif /* MBEDTLS_CIPHER_MODE_CTR */
 

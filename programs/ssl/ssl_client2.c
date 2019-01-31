@@ -1421,7 +1421,7 @@ int main( int argc, char *argv[] )
     if( opt.key_opaque != 0 )
     {
         if( ( ret = mbedtls_pk_wrap_as_opaque( &pkey, &key_slot,
-                                               PSA_ALG_SHA_256 ) ) != 0 )
+                                               PSA_ALG_ANY_HASH ) ) != 0 )
         {
             mbedtls_printf( " failed\n  !  "
                             "mbedtls_pk_wrap_as_opaque returned -0x%x\n\n", -ret );

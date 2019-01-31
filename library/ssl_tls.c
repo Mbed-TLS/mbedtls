@@ -5559,8 +5559,9 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
         /* Check that there's room for the next CRT's length fields. */
         if ( i + 3 > ssl->in_hslen ) {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                            MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+            mbedtls_ssl_send_alert_message( ssl,
+                              MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                              MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
         }
         /* In theory, the CRT can be up to 2**24 Bytes, but we don't support
@@ -5568,8 +5569,9 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
         if( ssl->in_msg[i] != 0 )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                            MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+            mbedtls_ssl_send_alert_message( ssl,
+                            MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                            MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
         }
 
@@ -5581,8 +5583,9 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
         if( n < 128 || i + n > ssl->in_hslen )
         {
             MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate message" ) );
-            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                            MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
+            mbedtls_ssl_send_alert_message( ssl,
+                                 MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                 MBEDTLS_SSL_ALERT_MSG_DECODE_ERROR );
             return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
         }
 
@@ -5598,11 +5601,14 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
                 ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 3, ( "Check that peer CRT hasn't changed during renegotiation" ) );
-                if( ssl_check_peer_crt_unchanged( ssl, &ssl->in_msg[i], n ) != 0 )
+                if( ssl_check_peer_crt_unchanged( ssl,
+                                                  &ssl->in_msg[i],
+                                                  n ) != 0 )
                 {
                     MBEDTLS_SSL_DEBUG_MSG( 1, ( "new server cert during renegotiation" ) );
-                    mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                                    MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED );
+                    mbedtls_ssl_send_alert_message( ssl,
+                             MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                             MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED );
                     return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
                 }
 
@@ -5611,7 +5617,8 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
                 ssl->session->peer_cert = NULL;
 
                 /* Delete all remaining CRTs from the original CRT chain. */
-                mbedtls_x509_crt_free( ssl->session_negotiate->peer_cert->next );
+                mbedtls_x509_crt_free(
+                    ssl->session_negotiate->peer_cert->next );
                 ssl->session_negotiate->peer_cert->next = NULL;
 
                 i += n;
@@ -5628,8 +5635,9 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
             {
                 MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
                                             sizeof( mbedtls_x509_crt ) ) );
-                mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                                MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
+                mbedtls_ssl_send_alert_message( ssl,
+                               MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                               MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
                 return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
             }
 

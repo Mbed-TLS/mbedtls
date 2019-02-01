@@ -37,9 +37,6 @@
 #       - this could be enabled if the respective tests were adapted
 #   MBEDTLS_ZLIB_SUPPORT
 #   MBEDTLS_PKCS11_C
-#   MBEDTLS_USE_PSA_CRYPTO
-#       - experimental, and more an alternative implementation than a feature
-#   MBEDTLS_PSA_ITS_FILE_C
 #   MBEDTLS_PSA_CRYPTO_SPM
 #   MBEDTLS_PSA_INJECT_ENTROPY
 #   and any symbol beginning _ALT
@@ -103,8 +100,6 @@ MBEDTLS_ZLIB_SUPPORT
 MBEDTLS_PKCS11_C
 MBEDTLS_NO_UDBL_DIVISION
 MBEDTLS_NO_64BIT_MULTIPLICATION
-MBEDTLS_USE_PSA_CRYPTO
-MBEDTLS_PSA_ITS_FILE_C
 MBEDTLS_PSA_CRYPTO_SPM
 MBEDTLS_PSA_INJECT_ENTROPY
 _ALT\s*$

@@ -8,6 +8,8 @@ Features
      https://sweet32.info/SWEET32_CCS16.pdf.
 
 Bugfix
+   * Fix 1-byte buffer overflow in mbedtls_mpi_write_string() when
+     used with negative inputs. Found by Guido Vranken in #2404.
    * Run the AD too long test only if MBEDTLS_CCM_ALT is not defined.
      Raised as a comment in #1996.
    * Fix returning the value 1 when mbedtls_ecdsa_genkey failed.

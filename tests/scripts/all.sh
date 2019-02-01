@@ -769,7 +769,6 @@ component_build_deprecated () {
     make CC=clang CFLAGS='-O -Werror -Wall -Wextra -Wno-unused-function' tests
 }
 
-
 component_test_depends_curves () {
     msg "test/build: curves.pl (gcc)" # ~ 4 min
     record_status tests/scripts/curves.pl
@@ -802,11 +801,10 @@ component_build_default_make_gcc_and_cxx () {
 }
 
 component_test_submodule_cmake () {
-    # USE_CRYPTO_SUBMODULE: check that the build works with CMake
-    msg "build: cmake, full config + USE_CRYPTO_SUBMODULE, gcc+debug"
+    # USE_CRYPTO_SUBMODULE: check that it's enabled by default with cmake
+    msg "build: cmake, full config (with USE_CRYPTO_SUBMODULE), gcc+debug"
     scripts/config.pl full # enables md4 and submodule doesn't enable md4
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
-    CC=gcc cmake -D USE_CRYPTO_SUBMODULE=1 -D CMAKE_BUILD_TYPE=Debug .
+    CC=gcc cmake -D CMAKE_BUILD_TYPE=Debug .
     make
     msg "test: top-level libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, cmake)"
     if_build_succeeded not test -f library/libmbedcrypto.a
@@ -814,51 +812,67 @@ component_test_submodule_cmake () {
     if_build_succeeded objdump -g crypto/library/libmbedcrypto.a | grep -E 'crypto/library$' > /dev/null
     msg "test: libmbedcrypto uses top-level config (USE_CRYPTO_SUBMODULE, cmake)"
     if_build_succeeded objdump -g crypto/library/libmbedcrypto.a | grep 'md4.c' > /dev/null
-    msg "test: main suites (USE_CRYPTO_SUBMODULE, cmake)"
-    make test
-    msg "test: ssl-opt.sh (USE_CRYPTO_SUBMODULE, cmake)"
-    if_build_succeeded tests/ssl-opt.sh
+    # no need for runtime tests - this is the default, tested elsewhere
+
 }
 
 component_test_submodule_make () {
-    # USE_CRYPTO_SUBMODULE: check that the build works with make
-    msg "build: make, full config + USE_CRYPTO_SUBMODULE, gcc+debug"
+    # USE_CRYPTO_SUBMODULE: check that it's enabled by default with make
+    msg "build: make, full config (with USE_CRYPTO_SUBMODULE), gcc+debug"
     scripts/config.pl full # enables md4 and submodule doesn't enable md4
-    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     make CC=gcc CFLAGS='-g' USE_CRYPTO_SUBMODULE=1
+
     msg "test: top-level libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, make)"
     if_build_succeeded not test -f library/libmbedcrypto.a
+
     msg "test: libmbedcrypto symbols are from crypto files (USE_CRYPTO_SUBMODULE, make)"
     if_build_succeeded objdump -g crypto/library/libmbedcrypto.a | grep -E 'crypto/library$' > /dev/null
+
     msg "test: libmbedcrypto uses top-level config (USE_CRYPTO_SUBMODULE, make)"
     if_build_succeeded objdump -g crypto/library/libmbedcrypto.a | grep 'md4.c' > /dev/null
-    msg "test: main suites (USE_CRYPTO_SUBMODULE, make)"
-    make CC=gcc USE_CRYPTO_SUBMODULE=1 test
-    msg "test: ssl-opt.sh (USE_CRYPTO_SUBMODULE, make)"
-    if_build_succeeded tests/ssl-opt.sh
 }
 
 component_test_not_submodule_make () {
-    # Don't USE_CRYPTO_SUBMODULE: check that the submodule is not used with make
-    msg "build: make, full config - USE_CRYPTO_SUBMODULE, gcc+debug"
+    # Disable USE_CRYPTO_SUBMODULE: check that the submodule is not used with make
+    msg "build: make, full config without USE_CRYPTO_SUBMODULE, gcc+debug"
     scripts/config.pl full
-    make CC=gcc CFLAGS='-g'
-    msg "test: submodule libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, make)"
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    make CC=gcc CFLAGS='-g' USE_CRYPTO_SUBMODULE=0
+
+    msg "test: submodule libmbedcrypto wasn't built (no USE_CRYPTO_SUBMODULE, make)"
     if_build_succeeded not test -f crypto/library/libmbedcrypto.a
-    msg "test: libmbedcrypto symbols are from library files (USE_CRYPTO_SUBMODULE, make)"
+
+    msg "test: libmbedcrypto symbols are from library files (no USE_CRYPTO_SUBMODULE, make)"
     if_build_succeeded objdump -g library/libmbedcrypto.a | grep -E 'library$' | not grep 'crypto' > /dev/null
+
+    # run some tests to validate this non-default build
+    msg "test: main suites (no USE_CRYPTO_SUBMODULE, cmake)"
+    make test
+
+    msg "test: ssl-opt.sh (no USE_CRYPTO_SUBMODULE, cmake)"
+    if_build_succeeded tests/ssl-opt.sh
 }
 
 component_test_not_submodule_cmake () {
     # Don't USE_CRYPTO_SUBMODULE: check that the submodule is not used with CMake
-    msg "build: cmake, full config - USE_CRYPTO_SUBMODULE, gcc+debug"
+    msg "build: cmake, full config without USE_CRYPTO_SUBMODULE, gcc+debug"
     scripts/config.pl full
-    CC=gcc cmake -D CMAKE_BUILD_TYPE=Debug .
+    scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    CC=gcc cmake -D CMAKE_BUILD_TYPE=Debug -D USE_CRYPTO_SUBMODULE=Off .
     make
-    msg "test: submodule libmbedcrypto wasn't built (USE_CRYPTO_SUBMODULE, cmake)"
+
+    msg "test: submodule libmbedcrypto wasn't built (no USE_CRYPTO_SUBMODULE, cmake)"
     if_build_succeeded not test -f crypto/library/libmbedcrypto.a
-    msg "test: libmbedcrypto symbols are from library files (USE_CRYPTO_SUBMODULE, cmake)"
+
+    msg "test: libmbedcrypto symbols are from library files (no USE_CRYPTO_SUBMODULE, cmake)"
     if_build_succeeded objdump -g library/libmbedcrypto.a | grep -E 'library$' | not grep 'crypto' > /dev/null
+
+    # run some tests to validate this non-default build
+    msg "test: main suites (no USE_CRYPTO_SUBMODULE, cmake)"
+    make test
+
+    msg "test: ssl-opt.sh (no USE_CRYPTO_SUBMODULE, cmake)"
+    if_build_succeeded tests/ssl-opt.sh
 }
 
 component_test_use_psa_crypto_full_cmake_asan() {
@@ -869,7 +883,7 @@ component_test_use_psa_crypto_full_cmake_asan() {
     scripts/config.pl unset MBEDTLS_ECP_RESTARTABLE  # restartable ECC not supported through PSA
     scripts/config.pl set MBEDTLS_PSA_CRYPTO_C
     scripts/config.pl set MBEDTLS_USE_PSA_CRYPTO
-    CC=gcc cmake -D USE_CRYPTO_SUBMODULE=1 -D CMAKE_BUILD_TYPE:String=Asan .
+    CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
     msg "test: main suites (MBEDTLS_USE_PSA_CRYPTO)"

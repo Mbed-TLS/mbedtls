@@ -840,6 +840,7 @@ component_test_not_submodule_make () {
     scripts/config.pl unset MBEDTLS_USE_PSA_CRYPTO # depends on PSA
     scripts/config.pl unset MBEDTLS_PSA_CRYPTO_C # only works from submodule
     scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C # depends on PSA
+    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C # depends on PSA
     make CC=gcc CFLAGS='-g' USE_CRYPTO_SUBMODULE=0
 
     msg "test: submodule libmbedcrypto wasn't built (no USE_CRYPTO_SUBMODULE, make)"
@@ -863,6 +864,8 @@ component_test_not_submodule_cmake () {
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     scripts/config.pl unset MBEDTLS_PSA_CRYPTO_C # only works from submodule
     scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C # depends on PSA
+    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C # depends on PSA
+    scripts/config.pl unset MBEDTLS_USE_PSA_CRYPTO # depends on PSA
     CC=gcc cmake -D CMAKE_BUILD_TYPE=Debug -D USE_CRYPTO_SUBMODULE=Off .
     make
 
@@ -880,33 +883,34 @@ component_test_not_submodule_cmake () {
     if_build_succeeded tests/ssl-opt.sh
 }
 
-component_test_use_psa_crypto_full_cmake_asan() {
-    # MBEDTLS_USE_PSA_CRYPTO: run the same set of tests as basic-build-test.sh
+component_test_no_use_psa_crypto_full_cmake_asan() {
+    # full minus MBEDTLS_USE_PSA_CRYPTO: run the same set of tests as basic-build-test.sh
     msg "build: cmake, full config + MBEDTLS_USE_PSA_CRYPTO, ASan"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
     scripts/config.pl unset MBEDTLS_ECP_RESTARTABLE  # restartable ECC not supported through PSA
     scripts/config.pl set MBEDTLS_PSA_CRYPTO_C
-    scripts/config.pl set MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.pl unset MBEDTLS_USE_PSA_CRYPTO
+    scripts/config.pl unset MBEDTLS_PSA_ITS_FILE_C
     CC=gcc cmake -D CMAKE_BUILD_TYPE:String=Asan .
     make
 
-    msg "test: main suites (MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: main suites (full minus MBEDTLS_USE_PSA_CRYPTO)"
     make test
 
-    msg "test: ssl-opt.sh (MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: ssl-opt.sh (full minus MBEDTLS_USE_PSA_CRYPTO)"
     if_build_succeeded tests/ssl-opt.sh
 
-    msg "test: compat.sh default (MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: compat.sh default (full minus MBEDTLS_USE_PSA_CRYPTO)"
     if_build_succeeded tests/compat.sh
 
-    msg "test: compat.sh ssl3 (MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: compat.sh ssl3 (full minus MBEDTLS_USE_PSA_CRYPTO)"
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" tests/compat.sh -m 'ssl3'
 
-    msg "test: compat.sh RC4, DES & NULL (MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: compat.sh RC4, DES & NULL (full minus MBEDTLS_USE_PSA_CRYPTO)"
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_LEGACY" GNUTLS_CLI="$GNUTLS_LEGACY_CLI" GNUTLS_SERV="$GNUTLS_LEGACY_SERV" tests/compat.sh -e '3DES\|DES-CBC3' -f 'NULL\|DES\|RC4\|ARCFOUR'
 
-    msg "test: compat.sh ARIA + ChachaPoly (MBEDTLS_USE_PSA_CRYPTO)"
+    msg "test: compat.sh ARIA + ChachaPoly (full minus MBEDTLS_USE_PSA_CRYPTO)"
     if_build_succeeded env OPENSSL_CMD="$OPENSSL_NEXT" tests/compat.sh -e '^$' -f 'ARIA\|CHACHA'
 }
 

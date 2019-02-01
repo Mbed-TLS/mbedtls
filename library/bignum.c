@@ -572,7 +572,10 @@ int mbedtls_mpi_write_string( const mbedtls_mpi *X, int radix,
     mbedtls_mpi_init( &T );
 
     if( X->s == -1 )
+    {
         *p++ = '-';
+        buflen--;
+    }
 
     if( radix == 16 )
     {

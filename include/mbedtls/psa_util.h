@@ -41,6 +41,7 @@
 #include "ecp.h"
 #include "md.h"
 #include "pk.h"
+#include "oid.h"
 
 /* Translations for symmetric crypto. */
 
@@ -154,6 +155,82 @@ static inline psa_algorithm_t mbedtls_psa_translate_md( mbedtls_md_type_t md_alg
 }
 
 /* Translations for ECC. */
+
+static inline int mbedtls_psa_get_ecc_oid_from_id(
+    psa_ecc_curve_t curve, char const **oid, size_t *oid_len )
+{
+    switch( curve )
+    {
+#if defined(MBEDTLS_ECP_DP_SECP192R1_ENABLED)
+        case PSA_ECC_CURVE_SECP192R1:
+            *oid = MBEDTLS_OID_EC_GRP_SECP192R1;
+            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP192R1 );
+            return( 0 );
+#endif /* MBEDTLS_ECP_DP_SECP192R1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_SECP224R1_ENABLED)
+        case PSA_ECC_CURVE_SECP224R1:
+            *oid = MBEDTLS_OID_EC_GRP_SECP224R1;
+            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP224R1 );
+            return( 0 );
+#endif /* MBEDTLS_ECP_DP_SECP224R1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
+        case PSA_ECC_CURVE_SECP256R1:
+            *oid = MBEDTLS_OID_EC_GRP_SECP256R1;
+            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP256R1 );
+            return( 0 );
+#endif /* MBEDTLS_ECP_DP_SECP256R1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_SECP384R1_ENABLED)
+        case PSA_ECC_CURVE_SECP384R1:
+            *oid = MBEDTLS_OID_EC_GRP_SECP384R1;
+            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP384R1 );
+            return( 0 );
+#endif /* MBEDTLS_ECP_DP_SECP384R1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_SECP521R1_ENABLED)
+        case PSA_ECC_CURVE_SECP521R1:
+            *oid = MBEDTLS_OID_EC_GRP_SECP521R1;
+            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP521R1 );
+            return( 0 );
+#endif /* MBEDTLS_ECP_DP_SECP521R1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_SECP192K1_ENABLED)
+        case PSA_ECC_CURVE_SECP192K1:
+            *oid = MBEDTLS_OID_EC_GRP_SECP192K1;
+            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP192K1 );
+            return( 0 );
+#endif /* MBEDTLS_ECP_DP_SECP192K1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_SECP224K1_ENABLED)
+        case PSA_ECC_CURVE_SECP224K1:
+            *oid = MBEDTLS_OID_EC_GRP_SECP224K1;
+            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP224K1 );
+            return( 0 );
+#endif /* MBEDTLS_ECP_DP_SECP224K1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_SECP256K1_ENABLED)
+        case PSA_ECC_CURVE_SECP256K1:
+            *oid = MBEDTLS_OID_EC_GRP_SECP256K1;
+            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_SECP256K1 );
+            return( 0 );
+#endif /* MBEDTLS_ECP_DP_SECP256K1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_BP256R1_ENABLED)
+        case PSA_ECC_CURVE_BRAINPOOL_P256R1:
+            *oid = MBEDTLS_OID_EC_GRP_BP256R1;
+            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_BP256R1 );
+            return( 0 );
+#endif /* MBEDTLS_ECP_DP_BP256R1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_BP384R1_ENABLED)
+        case PSA_ECC_CURVE_BRAINPOOL_P384R1:
+            *oid = MBEDTLS_OID_EC_GRP_BP384R1;
+            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_BP384R1 );
+            return( 0 );
+#endif /* MBEDTLS_ECP_DP_BP384R1_ENABLED */
+#if defined(MBEDTLS_ECP_DP_BP512R1_ENABLED)
+        case PSA_ECC_CURVE_BRAINPOOL_P512R1:
+            *oid = MBEDTLS_OID_EC_GRP_BP512R1;
+            *oid_len = MBEDTLS_OID_SIZE( MBEDTLS_OID_EC_GRP_BP512R1 );
+            return( 0 );
+#endif /* MBEDTLS_ECP_DP_BP512R1_ENABLED */
+    }
+
+     return( -1 );
+}
 
 static inline psa_ecc_curve_t mbedtls_psa_translate_ecc_group( mbedtls_ecp_group_id grpid )
 {

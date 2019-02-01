@@ -2036,6 +2036,8 @@ int main( int argc, char *argv[] )
     else
 #endif
 #if defined(MBEDTLS_CERTS_C)
+    {
+#if defined(MBEDTLS_PEM_PARSE_C)
         for( i = 0; mbedtls_test_cas[i] != NULL; i++ )
         {
             ret = mbedtls_x509_crt_parse( &cacert,
@@ -2044,12 +2046,23 @@ int main( int argc, char *argv[] )
             if( ret != 0 )
                 break;
         }
+        if( ret == 0 )
+#endif /* MBEDTLS_PEM_PARSE_C */
+        for( i = 0; mbedtls_test_cas_der[i] != NULL; i++ )
+        {
+            ret = mbedtls_x509_crt_parse_der( &cacert,
+                         (const unsigned char *) mbedtls_test_cas_der[i],
+                         mbedtls_test_cas_der_len[i] );
+            if( ret != 0 )
+                break;
+        }
+    }
 #else
     {
         ret = 1;
         mbedtls_printf("MBEDTLS_CERTS_C not defined.");
     }
-#endif
+#endif /* MBEDTLS_CERTS_C */
     if( ret < 0 )
     {
         mbedtls_printf( " failed\n  !  mbedtls_x509_crt_parse returned -0x%x\n\n", -ret );

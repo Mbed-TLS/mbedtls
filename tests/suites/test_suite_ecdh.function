@@ -278,7 +278,7 @@ void ecdh_exchange( int id )
     mbedtls_ecdh_init( &cli );
     memset( &rnd_info, 0x00, sizeof( rnd_pseudo_info ) );
 
-	TEST_ASSERT( mbedtls_ecdh_setup( &srv, id ) == 0 );
+    TEST_ASSERT( mbedtls_ecdh_setup( &srv, id ) == 0 );
 
     memset( buf, 0x00, sizeof( buf ) ); vbuf = buf;
     TEST_ASSERT( mbedtls_ecdh_make_params( &srv, &len, buf, 1000,
@@ -351,7 +351,7 @@ void ecdh_restart( int id, char *dA_str, char *dB_str, char *z_str,
         mbedtls_ecdh_enable_restart( &cli );
     }
 
-    /* server writes its paramaters */
+    /* server writes its parameters */
     memset( buf, 0x00, sizeof( buf ) );
     len = 0;
 

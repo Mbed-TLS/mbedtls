@@ -48,6 +48,7 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
+#include "mbedtls/psa_util.h"
 #endif
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"

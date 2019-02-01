@@ -1,6 +1,9 @@
 
 # Also see "include/mbedtls/config.h"
 
+# build crypto form submodule unless explicitly disabled
+USE_CRYPTO_SUBMODULE ?= 1
+
 CFLAGS	?= -O2
 WARNING_CFLAGS ?=  -Wall -W -Wdeclaration-after-statement
 LDFLAGS ?=
@@ -64,7 +67,7 @@ endif
 endif
 
 
-ifdef USE_CRYPTO_SUBMODULE
+ifneq ($(USE_CRYPTO_SUBMODULE), 0)
 # Look in crypto for libmbedcrypto.
 LOCAL_LDFLAGS += -L../crypto/library
 LOCAL_CFLAGS += -I../crypto/include
@@ -174,7 +177,7 @@ libmbedx509.dll: $(OBJS_X509) libmbedcrypto.dll
 	$(CC) -shared -Wl,-soname,$@ -Wl,--out-implib,$@.a -o $@ $(OBJS_X509) -lws2_32 -lwinmm -lgdi32 -L. -lmbedcrypto -static-libgcc $(LOCAL_LDFLAGS) $(LDFLAGS)
 
 # crypto
-ifdef USE_CRYPTO_SUBMODULE
+ifneq ($(USE_CRYPTO_SUBMODULE), 0)
 libmbedcrypto.%:
 	$(MAKE) CRYPTO_INCLUDES:="-I../../include -I../include" -C ../crypto/library $@
 else

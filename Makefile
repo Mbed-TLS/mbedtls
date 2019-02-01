@@ -1,4 +1,7 @@
 
+# build crypto form submodule unless explicitly disabled
+USE_CRYPTO_SUBMODULE ?= 1
+
 DESTDIR=/usr/local
 PREFIX=mbedtls_
 
@@ -31,7 +34,7 @@ install: no_test
 	mkdir -p $(DESTDIR)/lib
 	cp -RP library/libmbedtls.*    $(DESTDIR)/lib
 	cp -RP library/libmbedx509.*   $(DESTDIR)/lib
-ifdef USE_CRYPTO_SUBMODULE
+ifneq ($(USE_CRYPTO_SUBMODULE), 0)
 	mkdir -p $(DESTDIR)/include/psa
 	cp -rp crypto/include/psa $(DESTDIR)/include
 	cp -RP crypto/library/libmbedcrypto.* $(DESTDIR)/lib
@@ -53,7 +56,7 @@ uninstall:
 	rm -f $(DESTDIR)/lib/libmbedtls.*
 	rm -f $(DESTDIR)/lib/libmbedx509.*
 	rm -f $(DESTDIR)/lib/libmbedcrypto.*
-ifdef USE_CRYPTO_SUBMODULE
+ifneq ($(USE_CRYPTO_SUBMODULE), 0)
 	$(MAKE) -C crypto uninstall
 endif
 
@@ -97,7 +100,7 @@ clean:
 	$(MAKE) -C library clean
 	$(MAKE) -C programs clean
 	$(MAKE) -C tests clean
-ifdef USE_CRYPTO_SUBMODULE
+ifneq ($(USE_CRYPTO_SUBMODULE), 0)
 	$(MAKE) -C crypto clean
 endif
 ifndef WINDOWS

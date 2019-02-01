@@ -1,4 +1,7 @@
 
+# build crypto form submodule unless explicitly disabled
+USE_CRYPTO_SUBMODULE ?= 1
+
 # To compile on SunOS: add "-lsocket -lnsl" to LDFLAGS
 # To compile with PKCS11: add "-lpkcs11-helper" to LDFLAGS
 
@@ -12,7 +15,7 @@ LOCAL_LDFLAGS = -L../library			\
 		-lmbedx509$(SHARED_SUFFIX)	\
 		-lmbedcrypto$(SHARED_SUFFIX)
 
-ifdef USE_CRYPTO_SUBMODULE
+ifneq ($(USE_CRYPTO_SUBMODULE), 0)
 LOCAL_LDFLAGS += -L../crypto/library
 LOCAL_CFLAGS += -I../crypto/include
 CRYPTO := ../crypto/library/

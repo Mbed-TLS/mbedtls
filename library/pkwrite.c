@@ -181,7 +181,8 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
         }
         else
         {
-            memmove( *p - len, start, len );
+            *p -= len;
+            memmove( *p, start, len );
         }
     }
     else

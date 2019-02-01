@@ -837,6 +837,9 @@ component_test_not_submodule_make () {
     msg "build: make, full config without USE_CRYPTO_SUBMODULE, gcc+debug"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    scripts/config.pl unset MBEDTLS_USE_PSA_CRYPTO # depends on PSA
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_C # only works from submodule
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C # depends on PSA
     make CC=gcc CFLAGS='-g' USE_CRYPTO_SUBMODULE=0
 
     msg "test: submodule libmbedcrypto wasn't built (no USE_CRYPTO_SUBMODULE, make)"
@@ -858,6 +861,8 @@ component_test_not_submodule_cmake () {
     msg "build: cmake, full config without USE_CRYPTO_SUBMODULE, gcc+debug"
     scripts/config.pl full
     scripts/config.pl unset MBEDTLS_MEMORY_BACKTRACE # too slow for tests
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_C # only works from submodule
+    scripts/config.pl unset MBEDTLS_PSA_CRYPTO_STORAGE_C # depends on PSA
     CC=gcc cmake -D CMAKE_BUILD_TYPE=Debug -D USE_CRYPTO_SUBMODULE=Off .
     make
 

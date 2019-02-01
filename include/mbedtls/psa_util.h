@@ -41,6 +41,7 @@
 #include "ecp.h"
 #include "md.h"
 #include "pk.h"
+#include "oid.h"
 
 /* Translations for symmetric crypto. */
 

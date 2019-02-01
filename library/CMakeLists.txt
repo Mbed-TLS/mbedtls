@@ -105,7 +105,7 @@ if(UNSAFE_BUILD)
 endif(UNSAFE_BUILD)
 
 if(WIN32)
-    set(libs ${libs} ws2_32)
+    set(libs ${libs} ws2_32 bcrypt)
 endif(WIN32)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

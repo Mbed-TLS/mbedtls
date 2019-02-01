@@ -684,6 +684,8 @@ Changes
    * Clarify the documentation of mbedtls_ssl_setup.
    * Use (void) when defining functions with no parameters. Contributed by
      Joris Aerts. #678
+   * Update Win32 APIs used to remove those not permitted by the Windows Store.
+     Fix provided by Kevin Kane, Microsoft. #635
 
 = mbed TLS 2.7.0 branch released 2018-02-03
 

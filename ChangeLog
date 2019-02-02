@@ -2,6 +2,10 @@ mbed TLS ChangeLog (Sorted per branch, date)
 
 = mbed TLS 2.x.x branch released xxxx-xx-xx
 
+Features
+   * Add mbedtls_ssl_ciphersuites_count() to easily determine available cipher suite
+     count. Implemented in PR #2408.
+
 Bugfix
    * Fix a compilation issue with mbedtls_ecp_restart_ctx not being defined
      when MBEDTLS_ECP_ALT is defined. Reported by jwhui. Fixes #2242.

@@ -2181,13 +2181,20 @@ const int *mbedtls_ssl_list_ciphersuites( void )
 {
     return( ciphersuite_preference );
 }
+
+int mbedtls_ssl_ciphersuites_count( void )
+{
+    /* Subtract one for the final NULL-entry */
+    return( ( sizeof( ciphersuite_preference ) / sizeof( *ciphersuite_preference ) ) - 1 );
+}
 #else
 #define MAX_CIPHERSUITES    sizeof( ciphersuite_definitions     ) /         \
                             sizeof( ciphersuite_definitions[0]  )
 static int supported_ciphersuites[MAX_CIPHERSUITES];
 static int supported_init = 0;
+static int supported_count = 0;
 
-const int *mbedtls_ssl_list_ciphersuites( void )
+static void mbedtls_ssl_ciphersuites_init( void )
 {
     /*
      * On initial call filter out all ciphersuites not supported by current
@@ -2209,14 +2216,29 @@ const int *mbedtls_ssl_list_ciphersuites( void )
 #else
             if( mbedtls_ssl_ciphersuite_from_id( *p ) != NULL )
 #endif
+            {
                 *(q++) = *p;
+                supported_count++;
+            }
         }
         *q = 0;
 
         supported_init = 1;
     }
+}
+
+const int *mbedtls_ssl_list_ciphersuites( void )
+{
+    mbedtls_ssl_ciphersuites_init();
 
     return( supported_ciphersuites );
+}
+
+int mbedtls_ssl_ciphersuites_count( void )
+{
+    mbedtls_ssl_ciphersuites_init();
+
+    return( supported_count );
 }
 #endif /* MBEDTLS_SSL_CIPHERSUITES */
 

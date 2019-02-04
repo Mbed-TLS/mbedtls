@@ -702,6 +702,21 @@ int mbedtls_pk_parse_public_keyfile( mbedtls_pk_context *ctx, const char *path )
 int mbedtls_pk_write_key_der( mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
 
 /**
+ * \brief           This function writes a private key to a PKCS#8 or SEC8 DER
+ *                  structure.
+ *
+ * \param ctx       The private key to write.
+ * \param buf       The buffer that will hold the encoded private key.
+ * \param size      The length of the output buffer \p buf.
+ *
+ * \return          The length of data written on success.
+ * \return          A negative error code on failure.
+ */
+int mbedtls_pkcs8_write_key_der( mbedtls_pk_context *ctx,
+                                 unsigned char *buf,
+                                 size_t size );
+
+/**
  * \brief           Write a public key to a SubjectPublicKeyInfo DER structure
  *                  Note: data is written at the end of the buffer! Use the
  *                        return value to determine where you should start

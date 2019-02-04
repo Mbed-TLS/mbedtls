@@ -106,12 +106,15 @@ int dev_random_entropy_poll( void *data, unsigned char *output,
 
 #define FORMAT_PEM              0
 #define FORMAT_DER              1
-#define FORMAT_PEM_PKCS8        2
+
+#define SYNTAX_PKCS1        0
+#define SYNTAX_PKCS8        1
 
 #define DFL_TYPE                MBEDTLS_PK_RSA
 #define DFL_RSA_KEYSIZE         4096
 #define DFL_FILENAME            "keyfile.key"
 #define DFL_FORMAT              FORMAT_PEM
+#define DFL_SYNTAX              SYNTAX_PKCS8
 #define DFL_USE_DEV_RANDOM      0
 
 #define USAGE \
@@ -122,6 +125,7 @@ int dev_random_entropy_poll( void *data, unsigned char *output,
     "    ec_curve=%%s           see below\n"            \
     "    filename=%%s           default: keyfile.key\n" \
     "    format=pem|der        default: pem\n"          \
+    "    syntax=pkcs1|pkcs8    default: pkcs1\n"        \
     USAGE_DEV_RANDOM                                    \
     "\n"
 
@@ -160,6 +164,7 @@ struct options
     int ec_curve;               /* curve identifier for EC keys         */
     const char *filename;       /* filename of the key file             */
     int format;                 /* the output format to use             */
+    int syntax;                 /* the standard syntax to use           */
     int use_dev_random;         /* use /dev/random as entropy source    */
 } opt;
 
@@ -172,25 +177,37 @@ static int write_private_key( mbedtls_pk_context *key, const char *output_file )
     size_t len = 0;
 
     memset(output_buf, 0, 16000);
-    if( opt.format == FORMAT_PEM || opt.format == FORMAT_PEM_PKCS8)
+    if( opt.format == FORMAT_PEM )
     {
-	if (opt.format == FORMAT_PEM_PKCS8)
-	{
-	    if( ( ret = mbedtls_pkcs8_write_key_pem( key, output_buf, 16000 ) ) != 0 )
-		return( ret );
-	}
-	else
-	{
-	    if( ( ret = mbedtls_pk_write_key_pem( key, output_buf, 16000 ) ) != 0 )
-		return( ret );
-	}
+        if( opt.syntax == SYNTAX_PKCS1 )
+        {
+            ret = mbedtls_pk_write_key_pem( key, output_buf, 16000 );
+            if( ret != 0 )
+                return( ret );
+        }
+        else
+        {
+            ret = mbedtls_pkcs8_write_key_pem( key, output_buf, 16000 );
+            if( ret != 0 )
+                return( ret );
+        }
 
         len = strlen( (char *) output_buf );
     }
     else
     {
-        if( ( ret = mbedtls_pk_write_key_der( key, output_buf, 16000 ) ) < 0 )
-            return( ret );
+        if( opt.syntax == SYNTAX_PKCS1 )
+        {
+            ret = mbedtls_pk_write_key_der( key, output_buf, 16000 );
+            if( ret < 0 )
+                return( ret );
+        }
+        else
+        {
+            ret = mbedtls_pkcs8_write_key_der( key, output_buf, 16000 );
+            if( ret < 0 )
+                return( ret );
+        }
 
         len = ret;
         c = output_buf + sizeof(output_buf) - len;
@@ -281,8 +298,15 @@ int main( int argc, char *argv[] )
                 opt.format = FORMAT_PEM;
             else if( strcmp( q, "der" ) == 0 )
                 opt.format = FORMAT_DER;
+            else
+                goto usage;
+        }
+        else if( strcmp( p, "syntax" ) == 0 )
+        {
+            if( strcmp( p, "pkcs1") == 0 )
+                opt.syntax = SYNTAX_PKCS1;
             else if( strcmp( q, "pkcs8" ) == 0 )
-                opt.format = FORMAT_PEM_PKCS8;
+                opt.syntax = SYNTAX_PKCS8;
             else
                 goto usage;
         }

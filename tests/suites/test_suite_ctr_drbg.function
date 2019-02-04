@@ -270,6 +270,11 @@ void ctr_drbg_entropy_usage(  )
     TEST_ASSERT( mbedtls_ctr_drbg_random( &ctx, out, sizeof( out ) ) == 0 );
     TEST_ASSERT( test_offset_idx - last_idx == 13 );
 
+    mbedtls_ctr_drbg_set_entropy_len( &ctx, MBEDTLS_CTR_DRBG_MAX_SEED_INPUT );
+    last_idx = test_offset_idx;
+    TEST_ASSERT( mbedtls_ctr_drbg_random( &ctx, out, sizeof( out ) ) == 0 );
+    TEST_ASSERT( test_offset_idx - last_idx == MBEDTLS_CTR_DRBG_MAX_SEED_INPUT );
+
 exit:
     mbedtls_ctr_drbg_free( &ctx );
 }

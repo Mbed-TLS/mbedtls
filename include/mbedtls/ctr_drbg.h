@@ -176,6 +176,10 @@ void mbedtls_ctr_drbg_init( mbedtls_ctr_drbg_context *ctx );
                         identifiers. Can be NULL.
  * \param len           The length of the personalization data.
  *
+ * \warning             \p f_entropy MUST fill the buffer with full entropy
+ *                      and MUST be able to do so for buffer lengths up to
+ *                      at least `MBEDTLS_ENTROPY_BLOCK_SIZE` bytes.
+ *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED on failure.
  */

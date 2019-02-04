@@ -34,6 +34,7 @@
 
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/platform_util.h"
+#include "mbedtls/entropy.h"
 
 #include <string.h>
 
@@ -380,7 +381,8 @@ int mbedtls_ctr_drbg_reseed( mbedtls_ctr_drbg_context *ctx,
                      const unsigned char *additional, size_t len )
 {
     unsigned char seed[MBEDTLS_CTR_DRBG_MAX_SEED_INPUT];
-    size_t seedlen = 0;
+    unsigned char *p = seed;
+    size_t seedlen = 0, remaining_entropy_len, size_to_gather;
     int ret;
 
     if( ctx->entropy_len > MBEDTLS_CTR_DRBG_MAX_SEED_INPUT ||
@@ -389,13 +391,23 @@ int mbedtls_ctr_drbg_reseed( mbedtls_ctr_drbg_context *ctx,
 
     memset( seed, 0, MBEDTLS_CTR_DRBG_MAX_SEED_INPUT );
 
-    /*
-     * Gather entropy_len bytes of entropy to seed state
-     */
-    if( 0 != ctx->f_entropy( ctx->p_entropy, seed,
-                             ctx->entropy_len ) )
+    remaining_entropy_len = ctx->entropy_len;
+
+    while( remaining_entropy_len > 0 )
     {
-        return( MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED );
+        size_to_gather = ( remaining_entropy_len > MBEDTLS_ENTROPY_BLOCK_SIZE ) ?
+                           MBEDTLS_ENTROPY_BLOCK_SIZE : remaining_entropy_len;
+        /*
+         * Gather entropy_len bytes of entropy to seed state
+         */
+        if( 0 != ctx->f_entropy( ctx->p_entropy, p,
+                                 size_to_gather ) )
+        {
+            return( MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED );
+        }
+
+        remaining_entropy_len -= size_to_gather;
+        p += size_to_gather;
     }
 
     seedlen += ctx->entropy_len;

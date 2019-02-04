@@ -19,6 +19,8 @@ Bugfix
      in X.509 module. Fixes #2212.
    * Reduce stack usage of `mpi_write_hlp()` by eliminating recursion.
      Fixes #2190.
+   * Fix issue in seeding HMAC DRBG when MBEDTLS_SHA512_C is disabled.
+     Reported by dbedev. Fixes #770.
 
 Changes
    * Include configuration file in all header files that use configuration,

@@ -2755,12 +2755,17 @@ void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
 #if defined(MBEDTLS_SSL_MAX_FRAGMENT_LENGTH)
 /**
  * \brief          Set the maximum fragment length to emit and/or negotiate
- *                 (Default: the smaller of MBEDTLS_SSL_IN_CONTENT_LEN and
+ *                 (Typical: the smaller of MBEDTLS_SSL_IN_CONTENT_LEN and
  *                 MBEDTLS_SSL_OUT_CONTENT_LEN, usually 2^14 bytes)
  *                 (Server: set maximum fragment length to emit,
- *                 usually negotiated by the client during handshake
+ *                 usually negotiated by the client during handshake)
  *                 (Client: set maximum fragment length to emit *and*
  *                 negotiate with the server during handshake)
+ *
+ * \note           By default the \c mfl_code field ofthe \c mbedtls_ssl_config
+ *                 structure is equal `0 == MBEDTLS_SSL_MAX_FRAG_LEN_NONE`.
+ *                 This means the max fragment length extension *will not* be
+ *                 used unless set to other value via this function.
  *
  * \note           With TLS, this currently only affects ApplicationData (sent
  *                 with \c mbedtls_ssl_read()), not handshake messages.

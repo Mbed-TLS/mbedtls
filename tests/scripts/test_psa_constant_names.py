@@ -61,7 +61,7 @@ when applicable.'''
         self.key_types = set(['0xffffffff'])
         self.key_usage_flags = set(['0x80000000'])
         # Hard-coded value for unknown algorithms
-        self.hash_algorithms = set(['0x010000ff'])
+        self.hash_algorithms = set(['0x010000fe'])
         self.mac_algorithms = set(['0x02ff00ff'])
         self.kdf_algorithms = set(['0x300000ff', '0x310000ff'])
         # For AEAD algorithms, the only variability is over the tag length,

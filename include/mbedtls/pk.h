@@ -742,15 +742,19 @@ int mbedtls_pk_write_pubkey_pem( mbedtls_pk_context *ctx, unsigned char *buf, si
 int mbedtls_pk_write_key_pem( mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
 
 /**
- * \brief           Write a private key to a PKCS#8 or SEC8 PEM string
+ * \brief           This function writes a private key to a PKCS#8 or SEC8 PEM
+ *                  string.
  *
- * \param ctx       private to write away
- * \param buf       buffer to write to
- * \param size      size of the buffer
+ * \param ctx       The private to write.
+ * \param buf       The buffer that will hold the encoded private key.
+ * \param size      The length of the output buffer \p buf.
  *
- * \return          0 if successful, or a specific error code
+ * \return          \c 0 on success.
+ * \return          A negative error code on failure.
  */
-int mbedtls_pkcs8_write_key_pem( mbedtls_pk_context *ctx, unsigned char *buf, size_t size );
+int mbedtls_pkcs8_write_key_pem( mbedtls_pk_context *ctx,
+                                 unsigned char *buf,
+                                 size_t size );
 #endif /* MBEDTLS_PEM_WRITE_C */
 #endif /* MBEDTLS_PK_WRITE_C */
 

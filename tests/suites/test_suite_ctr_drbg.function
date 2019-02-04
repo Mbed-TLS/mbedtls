@@ -1,10 +1,15 @@
 /* BEGIN_HEADER */
 #include "mbedtls/ctr_drbg.h"
+#include "mbedtls/entropy.h"
 
 static int test_offset_idx;
 static int mbedtls_test_entropy_func( void *data, unsigned char *buf, size_t len )
 {
     const unsigned char *p = (unsigned char *) data;
+
+    if( len > MBEDTLS_ENTROPY_BLOCK_SIZE )
+        return( MBEDTLS_ERR_ENTROPY_SOURCE_FAILED );
+
     memcpy( buf, p + test_offset_idx, len );
     test_offset_idx += len;
     return( 0 );

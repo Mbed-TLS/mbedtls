@@ -132,6 +132,10 @@ void mbedtls_hmac_drbg_init( mbedtls_hmac_drbg_context *ctx );
  *                      256 bits if md_alg is SHA-256 or higher.
  *                      Note that SHA-256 is just as efficient as SHA-224.
  *
+ * \warning             \p f_entropy MUST fill the buffer with full entropy
+ *                      and MUST be able to do so for buffer lengths up to
+ *                      at least `MBEDTLS_ENTROPY_BLOCK_SIZE` bytes.
+ *
  * \return              0 if successful, or
  *                      MBEDTLS_ERR_MD_BAD_INPUT_DATA, or
  *                      MBEDTLS_ERR_MD_ALLOC_FAILED, or

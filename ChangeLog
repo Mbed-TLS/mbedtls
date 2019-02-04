@@ -24,6 +24,8 @@ Bugfix
    * Remove the mbedtls namespacing from the header file, to fix a "file not found"
      build error. Fixed by Haijun Gu #2319.
    * Fix returning the value 1 when mbedtls_ecdsa_genkey failed.
+   * Fix issue in seeding HMAC DRBG when MBEDTLS_SHA512_C is disabled.
+     Reported by dbedev. Fixes #770.
 
 Changes
    * Include configuration file in all header files that use configuration,

@@ -8833,7 +8833,8 @@ const mbedtls_x509_crt *mbedtls_ssl_get_peer_cert( const mbedtls_ssl_context *ss
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
 #if defined(MBEDTLS_SSL_CLI_C)
-int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl, mbedtls_ssl_session *dst )
+int mbedtls_ssl_get_session( const mbedtls_ssl_context *ssl,
+                             mbedtls_ssl_session *dst )
 {
     if( ssl == NULL ||
         dst == NULL ||

@@ -5798,9 +5798,6 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
     /* Make &ssl->in_msg[i] point to the beginning of the CRT chain. */
     i += 3;
 
-    /* In case we tried to reuse a session but it failed. */
-    ssl_clear_peer_cert( ssl->session_negotiate );
-
     /* Iterate through and parse the CRTs in the provided chain. */
     while( i < ssl->in_hslen )
     {
@@ -6037,6 +6034,9 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
     }
 #endif /* MBEDTLS_SSL_SRV_C */
+
+    /* In case we tried to reuse a session but it failed. */
+    ssl_clear_peer_cert( ssl->session_negotiate );
 
     if( ( ret = ssl_parse_certificate_chain( ssl ) ) != 0 )
     {

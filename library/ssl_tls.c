@@ -5725,6 +5725,8 @@ write_msg:
 }
 
 #if defined(MBEDTLS_SSL_RENEGOTIATION) && defined(MBEDTLS_SSL_CLI_C)
+
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
 static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
                                          unsigned char *crt_buf,
                                          size_t crt_buf_len )
@@ -5739,6 +5741,35 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
 
     return( memcmp( peer_crt->raw.p, crt_buf, crt_buf_len ) );
 }
+#else /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
+                                         unsigned char *crt_buf,
+                                         size_t crt_buf_len )
+{
+    int ret;
+    unsigned char const * const peer_cert_digest =
+        ssl->session->peer_cert_digest;
+    mbedtls_md_type_t const peer_cert_digest_type =
+        ssl->session->peer_cert_digest_type;
+    mbedtls_md_info_t const * const digest_info =
+        mbedtls_md_info_from_type( peer_cert_digest_type );
+    unsigned char tmp_digest[MBEDTLS_SSL_PEER_CERT_DIGEST_MAX_LEN];
+    size_t digest_len;
+
+    if( peer_cert_digest == NULL || digest_info == NULL )
+        return( -1 );
+
+    digest_len = mbedtls_md_get_size( digest_info );
+    if( digest_len > MBEDTLS_SSL_PEER_CERT_DIGEST_MAX_LEN )
+        return( -1 );
+
+    ret = mbedtls_md( digest_info, crt_buf, crt_buf_len, tmp_digest );
+    if( ret != 0 )
+        return( -1 );
+
+    return( memcmp( tmp_digest, peer_cert_digest, digest_len ) );
+}
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_SSL_RENEGOTIATION && MBEDTLS_SSL_CLI_C */
 
 static void ssl_clear_peer_cert( mbedtls_ssl_session *session )

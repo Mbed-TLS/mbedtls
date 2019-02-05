@@ -832,7 +832,7 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
 
 #if defined(MBEDTLS_CIPHER_MODE_AEAD)
 /**
- * \brief             The generic autenticated encryption (AEAD) function.
+ * \brief               The generic autenticated encryption (AEAD) function.
  *
  * \param ctx           The generic cipher context. This must be initialized and
  *                      bound to a key.
@@ -856,10 +856,10 @@ int mbedtls_cipher_crypt( mbedtls_cipher_context_t *ctx,
  *                      writable buffer of at least \p tag_len Bytes.
  * \param tag_len       The desired length of the authentication tag.
  *
- * \return            \c 0 on success.
- * \return            #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
- *                    parameter-verification failure.
- * \return            A cipher-specific error code on failure.
+ * \return              \c 0 on success.
+ * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
+ *                      parameter-verification failure.
+ * \return              A cipher-specific error code on failure.
  */
 int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
                          const unsigned char *iv, size_t iv_len,
@@ -869,11 +869,11 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
                          unsigned char *tag, size_t tag_len );
 
 /**
- * \brief             The generic autenticated decryption (AEAD) function.
+ * \brief               The generic autenticated decryption (AEAD) function.
  *
- * \note              If the data is not authentic, then the output buffer
- *                    is zeroed out to prevent the unauthentic plaintext being
- *                    used, making this interface safer.
+ * \note                If the data is not authentic, then the output buffer
+ *                      is zeroed out to prevent the unauthentic plaintext being
+ *                      used, making this interface safer.
  *
  * \param ctx           The generic cipher context. This must be initialized and
  *                      and bound to a key.
@@ -897,11 +897,11 @@ int mbedtls_cipher_auth_encrypt( mbedtls_cipher_context_t *ctx,
  *                      a readable buffer of at least \p tag_len Bytes.
  * \param tag_len       The length of the authentication tag.
  *
- * \return            \c 0 on success.
- * \return            #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
- *                    parameter-verification failure.
- * \return            #MBEDTLS_ERR_CIPHER_AUTH_FAILED if data is not authentic.
- * \return            A cipher-specific error code on failure.
+ * \return              \c 0 on success.
+ * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
+ *                      parameter-verification failure.
+ * \return              #MBEDTLS_ERR_CIPHER_AUTH_FAILED if data is not authentic.
+ * \return              A cipher-specific error code on failure.
  */
 int mbedtls_cipher_auth_decrypt( mbedtls_cipher_context_t *ctx,
                          const unsigned char *iv, size_t iv_len,

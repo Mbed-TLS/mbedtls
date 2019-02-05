@@ -771,6 +771,33 @@ exit:
     return( ok );
 }
 
+/** Do smoke tests on a key.
+ *
+ * Perform one of each operation indicated by \p alg (decrypt/encrypt,
+ * sign/verify, or derivation) that is permitted according to \p usage.
+ * \p usage and \p alg should correspond to the expected policy on the
+ * key.
+ *
+ * Export the key if permitted by \p usage, and check that the output
+ * looks sensible. If \p usage forbids export, check that
+ * \p psa_export_key correctly rejects the attempt. If the key is
+ * asymmetric, also check \p psa_export_public_key.
+ *
+ * If the key fails the tests, this function calls the test framework's
+ * `test_fail` function and returns false. Otherwise this function returns
+ * true. Therefore it should be used as follows:
+ * ```
+ * if( ! exercise_key( ... ) ) goto exit;
+ * ```
+ *
+ * \param handle    The key to exercise. It should be capable of performing
+ *                  \p alg.
+ * \param usage     The usage flags to assume.
+ * \param alg       The algorithm to exercise.
+ *
+ * \retval 0 The key failed the smoke tests.
+ * \retval 1 The key passed the smoke tests.
+ */
 static int exercise_key( psa_key_handle_t handle,
                          psa_key_usage_t usage,
                          psa_algorithm_t alg )
@@ -920,7 +947,8 @@ void import_twice( int alg_arg, int usage_arg,
     if( expected_import1_status == PSA_SUCCESS ||
         expected_import2_status == PSA_SUCCESS )
     {
-        TEST_ASSERT( exercise_key( handle, usage, alg ) );
+        if( ! exercise_key( handle, usage, alg ) )
+            goto exit;
     }
 
 exit:

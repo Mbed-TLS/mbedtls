@@ -112,11 +112,6 @@ pre_check_environment () {
     fi
 }
 
-if ! [ -f crypto/Makefile ]; then
-    echo "Please initialize the crypto submodule" >&2
-    exit 1
-fi
-
 pre_initialize_variables () {
     CONFIG_H='include/mbedtls/config.h'
     CONFIG_BAK="$CONFIG_H.bak"
@@ -400,6 +395,10 @@ pre_check_git () {
             echo "script as: $0 --force"
             exit 1
         fi
+    fi
+    if ! [ -f crypto/Makefile ]; then
+        echo "Please initialize the crypto submodule" >&2
+        exit 1
     fi
 }
 

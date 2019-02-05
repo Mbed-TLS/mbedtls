@@ -5741,6 +5741,16 @@ static int ssl_check_peer_crt_unchanged( mbedtls_ssl_context *ssl,
 }
 #endif /* MBEDTLS_SSL_RENEGOTIATION && MBEDTLS_SSL_CLI_C */
 
+static void ssl_clear_peer_cert( mbedtls_ssl_session *session )
+{
+    if( session->peer_cert != NULL )
+    {
+        mbedtls_x509_crt_free( session->peer_cert );
+        mbedtls_free( session->peer_cert );
+        session->peer_cert = NULL;
+    }
+}
+
 /*
  * Once the certificate message is read, parse it into a cert chain and
  * perform basic checks, but leave actual verification to the caller
@@ -5834,13 +5844,8 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
     /* Make &ssl->in_msg[i] point to the beginning of the CRT chain. */
     i += 3;
 
-    /* In case we tried to reuse a session but it failed */
-    if( ssl->session_negotiate->peer_cert != NULL )
-    {
-        mbedtls_x509_crt_free( ssl->session_negotiate->peer_cert );
-        mbedtls_free( ssl->session_negotiate->peer_cert );
-        ssl->session_negotiate->peer_cert = NULL;
-    }
+    /* In case we tried to reuse a session but it failed. */
+    ssl_clear_peer_cert( ssl->session_negotiate );
 
     /* Iterate through and parse the CRTs in the provided chain. */
     while( i < ssl->in_hslen )
@@ -5902,9 +5907,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
                 }
 
                 /* Now we can safely free the original chain. */
-                mbedtls_x509_crt_free( ssl->session_negotiate->peer_cert );
-                mbedtls_free( ssl->session_negotiate->peer_cert );
-                ssl->session_negotiate->peer_cert = NULL;
+                ssl_clear_peer_cert( ssl->session );
 
                 /* Intentional fallthrough. */
             }
@@ -9420,11 +9423,7 @@ void mbedtls_ssl_session_free( mbedtls_ssl_session *session )
         return;
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
-    if( session->peer_cert != NULL )
-    {
-        mbedtls_x509_crt_free( session->peer_cert );
-        mbedtls_free( session->peer_cert );
-    }
+    ssl_clear_peer_cert( session );
 #endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)

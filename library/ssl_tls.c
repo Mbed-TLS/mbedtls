@@ -5962,7 +5962,7 @@ static int ssl_srv_check_client_no_crt_notification( mbedtls_ssl_context *ssl )
 
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 {
-    int ret;
+    int ret = 0;
     const mbedtls_ssl_ciphersuite_t * const ciphersuite_info =
           ssl->transform_negotiate->ciphersuite_info;
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
@@ -5982,8 +5982,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_ECJPAKE )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
-        ssl->state++;
-        return( 0 );
+        goto exit;
     }
 
 #if defined(MBEDTLS_SSL_SRV_C)
@@ -5991,8 +5990,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         ciphersuite_info->key_exchange == MBEDTLS_KEY_EXCHANGE_RSA_PSK )
     {
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
-        ssl->state++;
-        return( 0 );
+        goto exit;
     }
 
     if( ssl->conf->endpoint == MBEDTLS_SSL_IS_SERVER &&
@@ -6000,9 +5998,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     {
         ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_SKIP_VERIFY;
         MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= skip parse certificate" ) );
-
-        ssl->state++;
-        return( 0 );
+        goto exit;
     }
 #endif
 
@@ -6026,12 +6022,13 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     if( ssl_srv_check_client_no_crt_notification( ssl ) == 0 )
     {
         ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING;
-        ssl->state++;
 
         if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
-            return( 0 );
+            ret = 0;
+        else
+            ret = MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE;
 
-        return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
+        goto exit;
     }
 #endif /* MBEDTLS_SSL_SRV_C */
 
@@ -6039,10 +6036,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     ssl_clear_peer_cert( ssl->session_negotiate );
 
     if( ( ret = ssl_parse_certificate_chain( ssl ) ) != 0 )
-    {
-        ssl->state++;
-        return( ret );
-    }
+        goto exit;
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
     if( ssl->handshake->ecrs_enabled)
@@ -6188,10 +6182,11 @@ crt_verify:
 #endif /* MBEDTLS_DEBUG_C */
     }
 
-    ssl->state++;
-
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );
 
+exit:
+
+    ssl->state++;
     return( ret );
 }
 #endif /* !MBEDTLS_KEY_EXCHANGE_RSA_ENABLED

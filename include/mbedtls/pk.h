@@ -210,7 +210,7 @@ const mbedtls_pk_info_t *mbedtls_pk_info_from_type( mbedtls_pk_type_t pk_type );
 void mbedtls_pk_init( mbedtls_pk_context *ctx );
 
 /**
- * \brief           Free a mbedtls_pk_context
+ * \brief           Free the components of a #mbedtls_pk_context.
  *
  * \param ctx       The context to clear. It must have been initialized.
  *                  If this is \c NULL, this function does nothing.

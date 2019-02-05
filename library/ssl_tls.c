@@ -6590,6 +6590,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     const int authmode = ssl->conf->authmode;
 #endif
     void *rs_ctx = NULL;
+    mbedtls_x509_crt *chain = NULL;
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "=> parse certificate" ) );
 
@@ -6604,6 +6605,8 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     if( ssl->handshake->ecrs_enabled &&
         ssl->handshake->ecrs_state == ssl_ecrs_crt_verify )
     {
+        chain = ssl->handshake->ecrs_peer_cert;
+        ssl->handshake->ecrs_peer_cert = NULL;
         goto crt_verify;
     }
 #endif
@@ -6613,7 +6616,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         /* mbedtls_ssl_read_record may have sent an alert already. We
            let it decide whether to alert. */
         MBEDTLS_SSL_DEBUG_RET( 1, "mbedtls_ssl_read_record", ret );
-        return( ret );
+        goto exit;
     }
 
 #if defined(MBEDTLS_SSL_SRV_C)
@@ -6633,22 +6636,24 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     /* Clear existing peer CRT structure in case we tried to
      * reuse a session but it failed, and allocate a new one. */
     ssl_clear_peer_cert( ssl->session_negotiate );
-    ssl->session_negotiate->peer_cert =
-        mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );
-    if( ssl->session_negotiate->peer_cert == NULL )
+
+    chain = mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );
+    if( chain == NULL )
     {
         MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
                                     sizeof( mbedtls_x509_crt ) ) );
         mbedtls_ssl_send_alert_message( ssl,
                                         MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
-    }
-    mbedtls_x509_crt_init( ssl->session_negotiate->peer_cert );
 
-    ret = ssl_parse_certificate_chain( ssl, ssl->session_negotiate->peer_cert );
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto exit;
+    }
+    mbedtls_x509_crt_init( chain );
+
+    ret = ssl_parse_certificate_chain( ssl, chain );
     if( ret != 0 )
-        return( ret );
+        goto exit;
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
     if( ssl->handshake->ecrs_enabled)
@@ -6660,12 +6665,12 @@ crt_verify:
 #endif
 
     ret = ssl_parse_certificate_verify( ssl, authmode,
-                                        ssl->session_negotiate->peer_cert,
-                                        rs_ctx );
+                                        chain, rs_ctx );
     if( ret != 0 )
-        return( ret );
+        goto exit;
 
 #if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+
     /* Remember digest of the peer's end-CRT. */
     ssl->session_negotiate->peer_cert_digest =
         mbedtls_calloc( 1, MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN );
@@ -6676,15 +6681,16 @@ crt_verify:
         mbedtls_ssl_send_alert_message( ssl,
                                         MBEDTLS_SSL_ALERT_LEVEL_FATAL,
                                         MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
-        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+
+        ret = MBEDTLS_ERR_SSL_ALLOC_FAILED;
+        goto exit;
     }
     ret = mbedtls_md( mbedtls_md_info_from_type(
-                          MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE ),
-                      ssl->session_negotiate->peer_cert->raw.p,
-                      ssl->session_negotiate->peer_cert->raw.len,
+                      MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE ),
+                      chain->raw.p, chain->raw.len,
                       ssl->session_negotiate->peer_cert_digest );
     if( ret != 0 )
-        return( ret );
+        goto exit;
 
     ssl->session_negotiate->peer_cert_digest_type =
         MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE;
@@ -6692,11 +6698,30 @@ crt_verify:
         MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN;
 #endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
+    ssl->session_negotiate->peer_cert = chain;
+    chain = NULL;
+
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );
 
 exit:
 
-    ssl->state++;
+    if( ret == 0 )
+        ssl->state++;
+
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    if( ret == MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS )
+    {
+        ssl->handshake->ecrs_peer_cert = chain;
+        chain = NULL;
+    }
+#endif
+
+    if( chain != NULL )
+    {
+        mbedtls_x509_crt_free( chain );
+        mbedtls_free( chain );
+    }
+
     return( ret );
 }
 #endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
@@ -10283,6 +10308,11 @@ void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl )
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
     mbedtls_x509_crt_restart_free( &handshake->ecrs_ctx );
+    if( handshake->ecrs_peer_cert != NULL )
+    {
+        mbedtls_x509_crt_free( handshake->ecrs_peer_cert );
+        mbedtls_free( handshake->ecrs_peer_cert );
+    }
 #endif
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

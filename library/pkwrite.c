@@ -597,14 +597,13 @@ int mbedtls_pk_write_key_der( mbedtls_pk_context *key, unsigned char *buf, size_
 
 /*
  * PKCS8 envelope:
- * PrivateKeyInfo ::= SEQUENCE {
- *       version                   Version,
- *       privateKeyAlgorithm       PrivateKeyAlgorithmIdentifier,
+ * PrivateKeyInfo ::= SEQUENCE {                                    1 + 3
+ *       version                   Version,                         1 + 1 + 1
+ *       privateKeyAlgorithm       PrivateKeyAlgorithmIdentifier,   1 + 1 + 13
  *       privateKey                PrivateKey,
  *       attributes           [0]  IMPLICIT Attributes OPTIONAL }
  * }
  */
-
 #define PRV_PKCS8_DER_MAX_BYTES   22 + PRV_DER_MAX_BYTES
 
 int mbedtls_pk_write_pubkey_pem( mbedtls_pk_context *key, unsigned char *buf, size_t size )

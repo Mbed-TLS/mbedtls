@@ -6315,18 +6315,12 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
                     return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
                 }
 
-                /* Move CRT chain structure to new session instance. */
-                ssl->session_negotiate->peer_cert = ssl->session->peer_cert;
-                ssl->session->peer_cert = NULL;
+                /* Now we can safely free the original chain. */
+                mbedtls_x509_crt_free( ssl->session_negotiate->peer_cert );
+                mbedtls_free( ssl->session_negotiate->peer_cert );
+                ssl->session_negotiate->peer_cert = NULL;
 
-                /* Delete all remaining CRTs from the original CRT chain. */
-                mbedtls_x509_crt_free(
-                    ssl->session_negotiate->peer_cert->next );
-                mbedtls_free( ssl->session_negotiate->peer_cert->next );
-                ssl->session_negotiate->peer_cert->next = NULL;
-
-                i += n;
-                continue;
+                /* Intentional fallthrough. */
             }
 #endif /* MBEDTLS_SSL_RENEGOTIATION && MBEDTLS_SSL_CLI_C */
 

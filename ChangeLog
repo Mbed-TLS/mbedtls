@@ -22,8 +22,8 @@ Changes
      Inserted as an enhancement for #1371
    * Add support for alternative CSR headers, as used by Microsoft and defined
      in RFC 7468. Found by Michael Ernst. Fixes #767.
-   * Reduced the complexity of the timing tests, as they were assuming more than
-     the underlying OS actually guarantees.
+   * Reduce the complexity of the timing tests. They were assuming more than the
+     underlying OS actually guarantees.
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 

@@ -1200,44 +1200,65 @@ exit:
 void pk_psa_sign(  )
 {
     mbedtls_pk_context pk;
-    psa_key_handle_t key;
-    unsigned char hash[50], sig[100], pkey[100];
-    size_t sig_len, klen = 0;
+    unsigned char hash[50], sig[100], pkey_legacy[100], pkey_psa[100];
+    unsigned char *pkey_legacy_start, *pkey_psa_start;
+    size_t sig_len, klen_legacy, klen_psa;
+    int ret;
+    psa_key_handle_t handle;
 
     /*
      * This tests making signatures with a wrapped PSA key:
-     * - generate a fresh PSA key
+     * - generate a fresh ECP legacy PK context
      * - wrap it in a PK context and make a signature this way
      * - extract the public key
      * - parse it to a PK context and verify the signature this way
      */
 
+    /* Create legacy EC public/private key in PK context. */
     mbedtls_pk_init( &pk );
+    TEST_ASSERT( mbedtls_pk_setup( &pk,
+                      mbedtls_pk_info_from_type( MBEDTLS_PK_ECKEY ) ) == 0 );
+    TEST_ASSERT( mbedtls_ecp_gen_key( MBEDTLS_ECP_DP_SECP256R1,
+                                      (mbedtls_ecp_keypair*) pk.pk_ctx,
+                                      rnd_std_rand, NULL ) == 0 );
+
+    /* Export underlying public key for re-importing in a legacy context. */
+    ret = mbedtls_pk_write_pubkey_der( &pk, pkey_legacy,
+                                       sizeof( pkey_legacy ) );
+    TEST_ASSERT( ret >= 0 );
+    klen_legacy = (size_t) ret;
+    /* mbedtls_pk_write_pubkey_der() writes backwards in the data buffer. */
+    pkey_legacy_start = pkey_legacy + sizeof( pkey_legacy ) - klen_legacy;
+
+    /* Turn PK context into an opaque one. */
+    TEST_ASSERT( psa_allocate_key( &handle ) == PSA_SUCCESS );
+    TEST_ASSERT( mbedtls_pk_wrap_as_opaque( &pk, &handle,
+                                            PSA_ALG_SHA_256 ) == 0 );
 
     memset( hash, 0x2a, sizeof hash );
     memset( sig, 0, sizeof sig );
-    memset( pkey, 0, sizeof pkey );
-
-    key = pk_psa_genkey();
-    TEST_ASSERT( key != 0 );
-
-    TEST_ASSERT( mbedtls_pk_setup_opaque( &pk, key ) == 0 );
 
     TEST_ASSERT( mbedtls_pk_sign( &pk, MBEDTLS_MD_SHA256,
                  hash, sizeof hash, sig, &sig_len,
                  NULL, NULL ) == 0 );
 
-    mbedtls_pk_free( &pk );
+    /* Export underlying public key for re-importing in a psa context. */
+    ret = mbedtls_pk_write_pubkey_der( &pk, pkey_psa,
+                                       sizeof( pkey_psa ) );
+    TEST_ASSERT( ret >= 0 );
+    klen_psa = (size_t) ret;
+    /* mbedtls_pk_write_pubkey_der() writes backwards in the data buffer. */
+    pkey_psa_start = pkey_psa + sizeof( pkey_psa ) - klen_psa;
 
-    TEST_ASSERT( PSA_SUCCESS == psa_export_public_key(
-                                key, pkey, sizeof( pkey ), &klen ) );
-    TEST_ASSERT( PSA_SUCCESS == psa_destroy_key( key ) );
+    TEST_ASSERT( klen_psa == klen_legacy );
+    TEST_ASSERT( memcmp( pkey_psa_start, pkey_legacy_start, klen_psa ) == 0 );
+
+    mbedtls_pk_free( &pk );
+    TEST_ASSERT( PSA_SUCCESS == psa_destroy_key( handle ) );
 
     mbedtls_pk_init( &pk );
-
-    TEST_ASSERT( mbedtls_pk_parse_public_key( &pk, pkey, klen ) == 0 );
-
-
+    TEST_ASSERT( mbedtls_pk_parse_public_key( &pk, pkey_legacy_start,
+                                              klen_legacy ) == 0 );
     TEST_ASSERT( mbedtls_pk_verify( &pk, MBEDTLS_MD_SHA256,
                             hash, sizeof hash, sig, sig_len ) == 0 );
 

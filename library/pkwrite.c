@@ -49,6 +49,7 @@
 
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
+#include "mbedtls/psa_util.h"
 #endif
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"
@@ -193,7 +194,8 @@ int mbedtls_pk_write_pubkey( unsigned char **p, unsigned char *start,
         }
         else
         {
-            memmove( *p - len, start, len );
+            *p -= len;
+            memmove( *p, start, len );
         }
     }
     else
@@ -208,6 +210,7 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
     int ret;
     unsigned char *c;
     size_t len = 0, par_len = 0, oid_len;
+    mbedtls_pk_type_t pk_type;
     const char *oid;
 
     PK_VALIDATE_RET( key != NULL );
@@ -219,10 +222,6 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_pk_write_pubkey( &c, buf, key ) );
 
-    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_OPAQUE )
-    {
-        return( (int) len );
-    }
     if( c - buf < 1 )
         return( MBEDTLS_ERR_ASN1_BUF_TOO_SMALL );
 
@@ -237,18 +236,51 @@ int mbedtls_pk_write_pubkey_der( mbedtls_pk_context *key, unsigned char *buf, si
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_len( &c, buf, len ) );
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_tag( &c, buf, MBEDTLS_ASN1_BIT_STRING ) );
 
-    if( ( ret = mbedtls_oid_get_oid_by_pk_alg( mbedtls_pk_get_type( key ),
-                                       &oid, &oid_len ) ) != 0 )
-    {
-        return( ret );
-    }
-
+    pk_type = mbedtls_pk_get_type( key );
 #if defined(MBEDTLS_ECP_C)
-    if( mbedtls_pk_get_type( key ) == MBEDTLS_PK_ECKEY )
+    if( pk_type == MBEDTLS_PK_ECKEY )
     {
         MBEDTLS_ASN1_CHK_ADD( par_len, pk_write_ec_param( &c, buf, mbedtls_pk_ec( *key ) ) );
     }
 #endif
+#if defined(MBEDTLS_USE_PSA_CRYPTO)
+    if( pk_type == MBEDTLS_PK_OPAQUE )
+    {
+        psa_status_t status;
+        psa_key_type_t key_type;
+        psa_key_handle_t handle;
+        psa_ecc_curve_t curve;
+
+        handle = *((psa_key_handle_t*) key->pk_ctx );
+
+        status = psa_get_key_information( handle, &key_type,
+                                          NULL /* bitsize not needed */ );
+        if( status != PSA_SUCCESS )
+            return( MBEDTLS_ERR_PK_HW_ACCEL_FAILED );
+
+        curve = PSA_KEY_TYPE_GET_CURVE( key_type );
+        if( curve == 0 )
+            return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+
+        ret = mbedtls_psa_get_ecc_oid_from_id( curve, &oid, &oid_len );
+        if( ret != 0 )
+            return( MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE );
+
+        /* Write EC algorithm parameters; that's akin
+         * to pk_write_ec_param() above. */
+        MBEDTLS_ASN1_CHK_ADD( par_len, mbedtls_asn1_write_oid( &c, buf,
+                                                               oid, oid_len ) );
+
+        /* The rest of the function works as for legacy EC contexts. */
+        pk_type = MBEDTLS_PK_ECKEY;
+    }
+#endif /* MBEDTLS_USE_PSA_CRYPTO */
+
+    if( ( ret = mbedtls_oid_get_oid_by_pk_alg( pk_type, &oid,
+                                               &oid_len ) ) != 0 )
+    {
+        return( ret );
+    }
 
     MBEDTLS_ASN1_CHK_ADD( len, mbedtls_asn1_write_algorithm_identifier( &c, buf, oid, oid_len,
                                                         par_len ) );

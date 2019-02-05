@@ -6039,7 +6039,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     ssl_clear_peer_cert( ssl->session_negotiate );
 
     if( ( ret = ssl_parse_certificate_chain( ssl ) ) != 0 )
-        goto exit;
+        return( ret );
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
     if( ssl->handshake->ecrs_enabled)

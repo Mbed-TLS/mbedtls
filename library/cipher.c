@@ -283,12 +283,6 @@ int mbedtls_cipher_setkey( mbedtls_cipher_context_t *ctx,
     if( ctx->cipher_info == NULL )
         return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
 
-    if( operation != MBEDTLS_DECRYPT &&
-        operation != MBEDTLS_ENCRYPT )
-    {
-        return( MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA );
-    }
-
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if( ctx->psa_enabled == 1 )
     {

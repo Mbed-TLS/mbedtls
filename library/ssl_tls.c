@@ -5761,52 +5761,6 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
     size_t i, n;
     uint8_t alert;
 
-#if defined(MBEDTLS_SSL_SRV_C)
-#if defined(MBEDTLS_SSL_PROTO_SSL3)
-    /*
-     * Check if the client sent an empty certificate
-     */
-    if( ssl->conf->endpoint  == MBEDTLS_SSL_IS_SERVER &&
-        ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
-    {
-        if( ssl->in_msglen  == 2                        &&
-            ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT            &&
-            ssl->in_msg[0]  == MBEDTLS_SSL_ALERT_LEVEL_WARNING  &&
-            ssl->in_msg[1]  == MBEDTLS_SSL_ALERT_MSG_NO_CERT )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "SSLv3 client has no certificate" ) );
-
-            /* The client was asked for a certificate but didn't send
-               one. The client should know what's going on, so we
-               don't send an alert. */
-            ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING;
-            return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
-        }
-    }
-#endif /* MBEDTLS_SSL_PROTO_SSL3 */
-
-#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
-    defined(MBEDTLS_SSL_PROTO_TLS1_2)
-    if( ssl->conf->endpoint  == MBEDTLS_SSL_IS_SERVER &&
-        ssl->minor_ver != MBEDTLS_SSL_MINOR_VERSION_0 )
-    {
-        if( ssl->in_hslen   == 3 + mbedtls_ssl_hs_hdr_len( ssl ) &&
-            ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE    &&
-            ssl->in_msg[0]  == MBEDTLS_SSL_HS_CERTIFICATE   &&
-            memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ), "\0\0\0", 3 ) == 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLSv1 client has no certificate" ) );
-
-            /* The client was asked for a certificate but didn't send
-               one. The client should know what's going on, so we
-               don't send an alert. */
-            ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING;
-            return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
-        }
-    }
-#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
-          MBEDTLS_SSL_PROTO_TLS1_2 */
-#endif /* MBEDTLS_SSL_SRV_C */
 
     if( ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE )
     {
@@ -5967,6 +5921,48 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
     return( 0 );
 }
 
+#if defined(MBEDTLS_SSL_SRV_C)
+static int ssl_srv_check_client_no_crt_notification( mbedtls_ssl_context *ssl )
+{
+    if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT )
+        return( -1 );
+
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+    /*
+     * Check if the client sent an empty certificate
+     */
+    if( ssl->minor_ver == MBEDTLS_SSL_MINOR_VERSION_0 )
+    {
+        if( ssl->in_msglen  == 2                        &&
+            ssl->in_msgtype == MBEDTLS_SSL_MSG_ALERT            &&
+            ssl->in_msg[0]  == MBEDTLS_SSL_ALERT_LEVEL_WARNING  &&
+            ssl->in_msg[1]  == MBEDTLS_SSL_ALERT_MSG_NO_CERT )
+        {
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "SSLv3 client has no certificate" ) );
+            return( 0 );
+        }
+
+        return( -1 );
+    }
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+    if( ssl->in_hslen   == 3 + mbedtls_ssl_hs_hdr_len( ssl ) &&
+        ssl->in_msgtype == MBEDTLS_SSL_MSG_HANDSHAKE    &&
+        ssl->in_msg[0]  == MBEDTLS_SSL_HS_CERTIFICATE   &&
+        memcmp( ssl->in_msg + mbedtls_ssl_hs_hdr_len( ssl ), "\0\0\0", 3 ) == 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "TLSv1 client has no certificate" ) );
+        return( 0 );
+    }
+
+    return( -1 );
+#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
+          MBEDTLS_SSL_PROTO_TLS1_2 */
+}
+#endif /* MBEDTLS_SSL_SRV_C */
+
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
 {
     int ret;
@@ -6029,16 +6025,21 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
         return( ret );
     }
 
+#if defined(MBEDTLS_SSL_SRV_C)
+    if( ssl_srv_check_client_no_crt_notification( ssl ) == 0 )
+    {
+        ssl->session_negotiate->verify_result = MBEDTLS_X509_BADCERT_MISSING;
+        ssl->state++;
+
+        if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
+            return( 0 );
+
+        return( MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE );
+    }
+#endif /* MBEDTLS_SSL_SRV_C */
+
     if( ( ret = ssl_parse_certificate_chain( ssl ) ) != 0 )
     {
-#if defined(MBEDTLS_SSL_SRV_C)
-        if( ret == MBEDTLS_ERR_SSL_NO_CLIENT_CERTIFICATE &&
-            authmode == MBEDTLS_SSL_VERIFY_OPTIONAL )
-        {
-            ret = 0;
-        }
-#endif
-
         ssl->state++;
         return( ret );
     }

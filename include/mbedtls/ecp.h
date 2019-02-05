@@ -159,6 +159,10 @@ mbedtls_ecp_point;
  * additions or subtractions. Therefore, it is only an approximative modular
  * reduction. It must return 0 on success and non-zero on failure.
  *
+ * \note        Alternative implementations must keep the group IDs distinct. If
+ *              two group structures have the same ID, then they must be
+ *              identical.
+ *
  */
 typedef struct mbedtls_ecp_group
 {
@@ -632,7 +636,7 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp, mbedtls_ecp_poi
 /**
  * \brief           This function imports a point from a TLS ECPoint record.
  *
- * \note            On function return, \p buf is updated to point to immediately
+ * \note            On function return, \p *buf is updated to point immediately
  *                  after the ECPoint record.
  *
  * \param grp       The ECP group used.
@@ -641,7 +645,8 @@ int mbedtls_ecp_point_read_binary( const mbedtls_ecp_group *grp, mbedtls_ecp_poi
  * \param len       The length of the buffer.
  *
  * \return          \c 0 on success.
- * \return          An \c MBEDTLS_ERR_MPI_XXX error code on initialization failure.
+ * \return          An \c MBEDTLS_ERR_MPI_XXX error code on initialization
+ *                  failure.
  * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if input is invalid.
  */
 int mbedtls_ecp_tls_read_point( const mbedtls_ecp_group *grp, mbedtls_ecp_point *pt,
@@ -687,19 +692,39 @@ int mbedtls_ecp_group_load( mbedtls_ecp_group *grp, mbedtls_ecp_group_id id );
 /**
  * \brief           This function sets a group from a TLS ECParameters record.
  *
- * \note            \p buf is updated to point right after the ECParameters record
- *                  on exit.
+ * \note            \p buf is updated to point right after the ECParameters
+ *                  record on exit.
  *
  * \param grp       The destination group.
  * \param buf       The address of the pointer to the start of the input buffer.
  * \param len       The length of the buffer.
  *
  * \return          \c 0 on success.
- * \return          An \c MBEDTLS_ERR_MPI_XXX error code on initialization failure.
+ * \return          An \c MBEDTLS_ERR_MPI_XXX error code on initialization
+ *                  failure.
  * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if input is invalid.
+ * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the group is not
+ *                  recognised.
  */
 int mbedtls_ecp_tls_read_group( mbedtls_ecp_group *grp, const unsigned char **buf, size_t len );
 
+/**
+ * \brief           This function reads a group from a TLS ECParameters record.
+ *
+ * \note            \p buf is updated to point right after the ECParameters
+ *                  record on exit.
+ *
+ * \param grp       Output parameter to hold the group id.
+ * \param buf       The address of the pointer to the start of the input buffer.
+ * \param len       The length of the buffer.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_ECP_BAD_INPUT_DATA if input is invalid.
+ * \return          #MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE if the group is not
+ *                  recognised.
+ */
+int mbedtls_ecp_tls_read_group_id( mbedtls_ecp_group_id *grp,
+                                   const unsigned char **buf, size_t len );
 /**
  * \brief           This function writes the TLS ECParameters record for a group.
  *

@@ -47,6 +47,35 @@
 #include MBEDTLS_CONFIG_FILE
 #endif
 
+/**
+ * \brief Function level alternative implementation.
+ *
+ * The MBEDTLS_ECP_INTERNAL_ALT macro enables alternative implementations to
+ * replace certain functions in this module. The alternative implementations are
+ * typically hardware accelerators and need to activate the hardware before the
+ * computation starts and deactivate it after it finishes. The
+ * mbedtls_internal_ecp_init() and mbedtls_internal_ecp_free() functions serve
+ * this purpose.
+ *
+ * To preserve the correct functionality the following conditions must hold:
+ *
+ * - The alternative implementation must be activated by
+ *   mbedtls_internal_ecp_init() before any of the replaceable functions is
+ *   called.
+ * - mbedtls_internal_ecp_free() must \b only be called when the alternative
+ *   implementation is activated.
+ * - mbedtls_internal_ecp_init() must \b not be called when the alternative
+ *   implementation is activated.
+ * - Public functions must not return while the alternative implementation is
+ *   activated.
+ * - Replaceable functions are guarded by \c MBEDTLS_ECP_XXX_ALT macros and
+ *   before calling them an \code if( mbedtls_internal_ecp_grp_capable( grp ) )
+ *   \endcode ensures that the alternative implementation supports the current
+ *   group.
+ */
+#if defined(MBEDTLS_ECP_INTERNAL_ALT)
+#endif
+
 #if defined(MBEDTLS_ECP_C)
 
 #include "mbedtls/ecp.h"
@@ -645,7 +674,7 @@ int mbedtls_ecp_is_zero( mbedtls_ecp_point *pt )
 }
 
 /*
- * Compare two points lazyly
+ * Compare two points lazily
  */
 int mbedtls_ecp_point_cmp( const mbedtls_ecp_point *P,
                            const mbedtls_ecp_point *Q )
@@ -833,7 +862,24 @@ int mbedtls_ecp_tls_write_point( const mbedtls_ecp_group *grp, const mbedtls_ecp
 /*
  * Set a group from an ECParameters record (RFC 4492)
  */
-int mbedtls_ecp_tls_read_group( mbedtls_ecp_group *grp, const unsigned char **buf, size_t len )
+int mbedtls_ecp_tls_read_group( mbedtls_ecp_group *grp,
+                                const unsigned char **buf, size_t len )
+{
+    int ret;
+    mbedtls_ecp_group_id grp_id;
+
+    if( ( ret = mbedtls_ecp_tls_read_group_id( &grp_id, buf, len ) ) != 0 )
+        return( ret );
+
+    return mbedtls_ecp_group_load( grp, grp_id );
+}
+
+/*
+ * Read a group id from an ECParameters record (RFC 4492) and convert it to
+ * mbedtls_ecp_group_id.
+ */
+int mbedtls_ecp_tls_read_group_id( mbedtls_ecp_group_id *grp,
+                                   const unsigned char **buf, size_t len )
 {
     uint16_t tls_id;
     const mbedtls_ecp_curve_info *curve_info;
@@ -860,7 +906,9 @@ int mbedtls_ecp_tls_read_group( mbedtls_ecp_group *grp, const unsigned char **bu
     if( ( curve_info = mbedtls_ecp_curve_info_from_tls_id( tls_id ) ) == NULL )
         return( MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE );
 
-    return mbedtls_ecp_group_load( grp, curve_info->grp_id );
+    *grp = curve_info->grp_id;
+
+    return( 0 );
 }
 
 /*
@@ -2393,11 +2441,6 @@ int mbedtls_ecp_muladd_restartable(
 
     mbedtls_ecp_point_init( &mP );
 
-#if defined(MBEDTLS_ECP_INTERNAL_ALT)
-    if( ( is_grp_capable = mbedtls_internal_ecp_grp_capable( grp ) ) )
-        MBEDTLS_MPI_CHK( mbedtls_internal_ecp_init( grp ) );
-#endif /* MBEDTLS_ECP_INTERNAL_ALT */
-
     ECP_RS_ENTER( ma );
 
 #if defined(MBEDTLS_ECP_RESTARTABLE)
@@ -2425,6 +2468,12 @@ int mbedtls_ecp_muladd_restartable(
 mul2:
 #endif
     MBEDTLS_MPI_CHK( mbedtls_ecp_mul_shortcuts( grp, pR,  n, Q, rs_ctx ) );
+
+#if defined(MBEDTLS_ECP_INTERNAL_ALT)
+    if( ( is_grp_capable = mbedtls_internal_ecp_grp_capable( grp ) ) )
+        MBEDTLS_MPI_CHK( mbedtls_internal_ecp_init( grp ) );
+#endif /* MBEDTLS_ECP_INTERNAL_ALT */
+
 #if defined(MBEDTLS_ECP_RESTARTABLE)
     if( rs_ctx != NULL && rs_ctx->ma != NULL )
         rs_ctx->ma->state = ecp_rsma_add;

@@ -43,11 +43,14 @@ class IssueTracker(object):
             for i, line in enumerate(iter(f.readline, b"")):
                 self.check_file_line(filepath, line, i + 1)
 
+    def record_issue(self, filepath, line_number):
+        if filepath not in self.files_with_issues.keys():
+            self.files_with_issues[filepath] = []
+        self.files_with_issues[filepath].append(line_number)
+
     def check_file_line(self, filepath, line, line_number):
         if self.issue_with_line(line):
-            if filepath not in self.files_with_issues.keys():
-                self.files_with_issues[filepath] = []
-            self.files_with_issues[filepath].append(line_number)
+            self.record_issue(filepath, line_number)
 
     def output_file_issues(self, logger):
         if self.files_with_issues.values():
@@ -132,13 +135,36 @@ class TabIssueTracker(IssueTracker):
         return b"\t" in line
 
 
+class MergeArtifactIssueTracker(IssueTracker):
+
+    def __init__(self):
+        super().__init__()
+        self.heading = "Merge artifact:"
+
+    def issue_with_line(self, filepath, line):
+        # Detect leftover git conflict markers.
+        if line.startswith(b'<<<<<<< ') or line.startswith(b'>>>>>>> '):
+            return True
+        if line.startswith(b'||||||| '): # from merge.conflictStyle=diff3
+            return True
+        if line.rstrip(b'\r\n') == b'=======' and \
+           not filepath.endswith('.md'):
+            return True
+        return False
+
+    def check_file_line(self, filepath, line, line_number):
+        if self.issue_with_line(filepath, line):
+            self.record_issue(filepath, line_number)
+
 class TodoIssueTracker(IssueTracker):
 
     def __init__(self):
         super().__init__()
         self.heading = "TODO present:"
         self.files_exemptions = [
-            __file__, "benchmark.c", "pull_request_template.md"
+            os.path.basename(__file__),
+            "benchmark.c",
+            "pull_request_template.md",
         ]
 
     def issue_with_line(self, line):
@@ -167,6 +193,7 @@ class IntegrityChecker(object):
             LineEndingIssueTracker(),
             TrailingWhitespaceIssueTracker(),
             TabIssueTracker(),
+            MergeArtifactIssueTracker(),
             TodoIssueTracker(),
         ]
 

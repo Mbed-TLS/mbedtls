@@ -3240,8 +3240,12 @@ int mbedtls_ssl_get_max_out_record_payload( const mbedtls_ssl_context *ssl );
  * \param  ssl     The SSL context to use. This must be initialized and setup.
  *
  * \return         The current peer certificate, or \c NULL if
- *                 none is available. It is owned by the SSL context
- *                 and valid only until the next call to the SSL API.
+ *                 none is available, which might be because the chosen
+ *                 ciphersuite does not use peer certificates, or because
+ *                 #MBEDTLS_SSL_KEEP_PEER_CERTIFICATE has been disabled.
+ *                 If this functions does not return \c NULL, the returned
+ *                 certificate is owned by the SSL context and valid only
+ *                 until the next call to the SSL API.
  *
  * \note           For one-time inspection of the peer's certificate during
  *                 the handshake, consider registering an X.509 CRT verification

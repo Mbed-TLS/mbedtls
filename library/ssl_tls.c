@@ -5981,11 +5981,155 @@ static int ssl_parse_certificate_coordinate( mbedtls_ssl_context *ssl,
     return( SSL_CERTIFICATE_EXPECTED );
 }
 
-int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
+static int ssl_parse_certificate_verify( mbedtls_ssl_context *ssl,
+                                         int authmode,
+                                         mbedtls_x509_crt *chain,
+                                         void *rs_ctx )
 {
     int ret = 0;
     const mbedtls_ssl_ciphersuite_t *ciphersuite_info =
         ssl->transform_negotiate->ciphersuite_info;
+    mbedtls_x509_crt *ca_chain;
+    mbedtls_x509_crl *ca_crl;
+
+    if( authmode == MBEDTLS_SSL_VERIFY_NONE )
+        return( 0 );
+
+#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
+    if( ssl->handshake->sni_ca_chain != NULL )
+    {
+        ca_chain = ssl->handshake->sni_ca_chain;
+        ca_crl   = ssl->handshake->sni_ca_crl;
+    }
+    else
+#endif
+    {
+        ca_chain = ssl->conf->ca_chain;
+        ca_crl   = ssl->conf->ca_crl;
+    }
+
+    /*
+     * Main check: verify certificate
+     */
+    ret = mbedtls_x509_crt_verify_restartable(
+        chain,
+        ca_chain, ca_crl,
+        ssl->conf->cert_profile,
+        ssl->hostname,
+        &ssl->session_negotiate->verify_result,
+        ssl->conf->f_vrfy, ssl->conf->p_vrfy, rs_ctx );
+
+    if( ret != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_RET( 1, "x509_verify_cert", ret );
+    }
+
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
+        return( MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS );
+#endif
+
+    /*
+     * Secondary checks: always done, but change 'ret' only if it was 0
+     */
+
+#if defined(MBEDTLS_ECP_C)
+    {
+        const mbedtls_pk_context *pk = &chain->pk;
+
+        /* If certificate uses an EC key, make sure the curve is OK */
+        if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECKEY ) &&
+            mbedtls_ssl_check_curve( ssl, mbedtls_pk_ec( *pk )->grp.id ) != 0 )
+        {
+            ssl->session_negotiate->verify_result |= MBEDTLS_X509_BADCERT_BAD_KEY;
+
+            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate (EC key curve)" ) );
+            if( ret == 0 )
+                ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE;
+        }
+    }
+#endif /* MBEDTLS_ECP_C */
+
+    if( mbedtls_ssl_check_cert_usage( chain,
+                                      ciphersuite_info,
+                                      ! ssl->conf->endpoint,
+                                      &ssl->session_negotiate->verify_result ) != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate (usage extensions)" ) );
+        if( ret == 0 )
+            ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE;
+    }
+
+    /* mbedtls_x509_crt_verify_with_profile is supposed to report a
+     * verification failure through MBEDTLS_ERR_X509_CERT_VERIFY_FAILED,
+     * with details encoded in the verification flags. All other kinds
+     * of error codes, including those from the user provided f_vrfy
+     * functions, are treated as fatal and lead to a failure of
+     * ssl_parse_certificate even if verification was optional. */
+    if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL &&
+        ( ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED ||
+          ret == MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE ) )
+    {
+        ret = 0;
+    }
+
+    if( ca_chain == NULL && authmode == MBEDTLS_SSL_VERIFY_REQUIRED )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no CA chain" ) );
+        ret = MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED;
+    }
+
+    if( ret != 0 )
+    {
+        uint8_t alert;
+
+        /* The certificate may have been rejected for several reasons.
+           Pick one and send the corresponding alert. Which alert to send
+           may be a subject of debate in some cases. */
+        if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_OTHER )
+            alert = MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED;
+        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_CN_MISMATCH )
+            alert = MBEDTLS_SSL_ALERT_MSG_BAD_CERT;
+        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_KEY_USAGE )
+            alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
+        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_EXT_KEY_USAGE )
+            alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
+        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_NS_CERT_TYPE )
+            alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
+        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_BAD_PK )
+            alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
+        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_BAD_KEY )
+            alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
+        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_EXPIRED )
+            alert = MBEDTLS_SSL_ALERT_MSG_CERT_EXPIRED;
+        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_REVOKED )
+            alert = MBEDTLS_SSL_ALERT_MSG_CERT_REVOKED;
+        else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_NOT_TRUSTED )
+            alert = MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA;
+        else
+            alert = MBEDTLS_SSL_ALERT_MSG_CERT_UNKNOWN;
+        mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                        alert );
+    }
+
+#if defined(MBEDTLS_DEBUG_C)
+    if( ssl->session_negotiate->verify_result != 0 )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "! Certificate verification flags %x",
+                                    ssl->session_negotiate->verify_result ) );
+    }
+    else
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 3, ( "Certificate verification flags clear" ) );
+    }
+#endif /* MBEDTLS_DEBUG_C */
+
+    return( ret );
+}
+
+int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
+{
+    int ret = 0;
     int crt_expected;
 #if defined(MBEDTLS_SSL_SRV_C) && defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
     const int authmode = ssl->handshake->sni_authmode != MBEDTLS_SSL_VERIFY_UNSET
@@ -6050,140 +6194,11 @@ crt_verify:
         rs_ctx = &ssl->handshake->ecrs_ctx;
 #endif
 
-    if( authmode != MBEDTLS_SSL_VERIFY_NONE )
-    {
-        mbedtls_x509_crt *ca_chain;
-        mbedtls_x509_crl *ca_crl;
-
-#if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-        if( ssl->handshake->sni_ca_chain != NULL )
-        {
-            ca_chain = ssl->handshake->sni_ca_chain;
-            ca_crl   = ssl->handshake->sni_ca_crl;
-        }
-        else
-#endif
-        {
-            ca_chain = ssl->conf->ca_chain;
-            ca_crl   = ssl->conf->ca_crl;
-        }
-
-        /*
-         * Main check: verify certificate
-         */
-        ret = mbedtls_x509_crt_verify_restartable(
-                                ssl->session_negotiate->peer_cert,
-                                ca_chain, ca_crl,
-                                ssl->conf->cert_profile,
-                                ssl->hostname,
-                               &ssl->session_negotiate->verify_result,
-                                ssl->conf->f_vrfy, ssl->conf->p_vrfy, rs_ctx );
-
-        if( ret != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_RET( 1, "x509_verify_cert", ret );
-        }
-
-#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
-        if( ret == MBEDTLS_ERR_ECP_IN_PROGRESS )
-            return( MBEDTLS_ERR_SSL_CRYPTO_IN_PROGRESS );
-#endif
-
-        /*
-         * Secondary checks: always done, but change 'ret' only if it was 0
-         */
-
-#if defined(MBEDTLS_ECP_C)
-        {
-            const mbedtls_pk_context *pk = &ssl->session_negotiate->peer_cert->pk;
-
-            /* If certificate uses an EC key, make sure the curve is OK */
-            if( mbedtls_pk_can_do( pk, MBEDTLS_PK_ECKEY ) &&
-                mbedtls_ssl_check_curve( ssl, mbedtls_pk_ec( *pk )->grp.id ) != 0 )
-            {
-                ssl->session_negotiate->verify_result |= MBEDTLS_X509_BADCERT_BAD_KEY;
-
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate (EC key curve)" ) );
-                if( ret == 0 )
-                    ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE;
-            }
-        }
-#endif /* MBEDTLS_ECP_C */
-
-        if( mbedtls_ssl_check_cert_usage( ssl->session_negotiate->peer_cert,
-                                 ciphersuite_info,
-                                 ! ssl->conf->endpoint,
-                                 &ssl->session_negotiate->verify_result ) != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "bad certificate (usage extensions)" ) );
-            if( ret == 0 )
-                ret = MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE;
-        }
-
-        /* mbedtls_x509_crt_verify_with_profile is supposed to report a
-         * verification failure through MBEDTLS_ERR_X509_CERT_VERIFY_FAILED,
-         * with details encoded in the verification flags. All other kinds
-         * of error codes, including those from the user provided f_vrfy
-         * functions, are treated as fatal and lead to a failure of
-         * ssl_parse_certificate even if verification was optional. */
-        if( authmode == MBEDTLS_SSL_VERIFY_OPTIONAL &&
-            ( ret == MBEDTLS_ERR_X509_CERT_VERIFY_FAILED ||
-              ret == MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE ) )
-        {
-            ret = 0;
-        }
-
-        if( ca_chain == NULL && authmode == MBEDTLS_SSL_VERIFY_REQUIRED )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 1, ( "got no CA chain" ) );
-            ret = MBEDTLS_ERR_SSL_CA_CHAIN_REQUIRED;
-        }
-
-        if( ret != 0 )
-        {
-            uint8_t alert;
-
-            /* The certificate may have been rejected for several reasons.
-               Pick one and send the corresponding alert. Which alert to send
-               may be a subject of debate in some cases. */
-            if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_OTHER )
-                alert = MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED;
-            else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_CN_MISMATCH )
-                alert = MBEDTLS_SSL_ALERT_MSG_BAD_CERT;
-            else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_KEY_USAGE )
-                alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
-            else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_EXT_KEY_USAGE )
-                alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
-            else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_NS_CERT_TYPE )
-                alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
-            else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_BAD_PK )
-                alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
-            else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_BAD_KEY )
-                alert = MBEDTLS_SSL_ALERT_MSG_UNSUPPORTED_CERT;
-            else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_EXPIRED )
-                alert = MBEDTLS_SSL_ALERT_MSG_CERT_EXPIRED;
-            else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_REVOKED )
-                alert = MBEDTLS_SSL_ALERT_MSG_CERT_REVOKED;
-            else if( ssl->session_negotiate->verify_result & MBEDTLS_X509_BADCERT_NOT_TRUSTED )
-                alert = MBEDTLS_SSL_ALERT_MSG_UNKNOWN_CA;
-            else
-                alert = MBEDTLS_SSL_ALERT_MSG_CERT_UNKNOWN;
-            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                            alert );
-        }
-
-#if defined(MBEDTLS_DEBUG_C)
-        if( ssl->session_negotiate->verify_result != 0 )
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "! Certificate verification flags %x",
-                                        ssl->session_negotiate->verify_result ) );
-        }
-        else
-        {
-            MBEDTLS_SSL_DEBUG_MSG( 3, ( "Certificate verification flags clear" ) );
-        }
-#endif /* MBEDTLS_DEBUG_C */
-    }
+    ret = ssl_parse_certificate_verify( ssl, authmode,
+                                        ssl->session_negotiate->peer_cert,
+                                        rs_ctx );
+    if( ret != 0 )
+        return( ret );
 
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );
 

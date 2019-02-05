@@ -508,8 +508,7 @@ int mbedtls_pk_check_pair( const mbedtls_pk_context *pub, const mbedtls_pk_conte
     PK_VALIDATE_RET( prv != NULL );
 
     if( pub->pk_info == NULL ||
-        prv->pk_info == NULL ||
-        prv->pk_info->check_pair_func == NULL )
+        prv->pk_info == NULL )
     {
         return( MBEDTLS_ERR_PK_BAD_INPUT_DATA );
     }

@@ -5740,9 +5740,13 @@ static void ssl_clear_peer_cert( mbedtls_ssl_session *session )
  * Once the certificate message is read, parse it into a cert chain and
  * perform basic checks, but leave actual verification to the caller
  */
-static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
+static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl,
+                                        mbedtls_x509_crt *chain )
 {
-    int ret, crt_cnt=0;
+    int ret;
+#if defined(MBEDTLS_SSL_RENEGOTIATION) && defined(MBEDTLS_SSL_CLI_C)
+    int crt_cnt=0;
+#endif
     size_t i, n;
     uint8_t alert;
 
@@ -5819,58 +5823,34 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
         }
 
         /* Check if we're handling the first CRT in the chain. */
-        if( crt_cnt++ == 0 )
+#if defined(MBEDTLS_SSL_RENEGOTIATION) && defined(MBEDTLS_SSL_CLI_C)
+        if( crt_cnt++ == 0 &&
+            ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
+            ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )
         {
             /* During client-side renegotiation, check that the server's
              * end-CRTs hasn't changed compared to the initial handshake,
              * mitigating the triple handshake attack. On success, reuse
              * the original end-CRT instead of parsing it again. */
-#if defined(MBEDTLS_SSL_RENEGOTIATION) && defined(MBEDTLS_SSL_CLI_C)
-            if( ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT &&
-                ssl->renego_status == MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS )
+            MBEDTLS_SSL_DEBUG_MSG( 3, ( "Check that peer CRT hasn't changed during renegotiation" ) );
+            if( ssl_check_peer_crt_unchanged( ssl,
+                                              &ssl->in_msg[i],
+                                              n ) != 0 )
             {
-                MBEDTLS_SSL_DEBUG_MSG( 3, ( "Check that peer CRT hasn't changed during renegotiation" ) );
-                if( ssl_check_peer_crt_unchanged( ssl,
-                                                  &ssl->in_msg[i],
-                                                  n ) != 0 )
-                {
-                    MBEDTLS_SSL_DEBUG_MSG( 1, ( "new server cert during renegotiation" ) );
-                    mbedtls_ssl_send_alert_message( ssl,
-                             MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                             MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED );
-                    return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
-                }
-
-                /* Now we can safely free the original chain. */
-                ssl_clear_peer_cert( ssl->session );
-
-                /* Intentional fallthrough. */
+                MBEDTLS_SSL_DEBUG_MSG( 1, ( "new server cert during renegotiation" ) );
+                mbedtls_ssl_send_alert_message( ssl,
+                                                MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                                MBEDTLS_SSL_ALERT_MSG_ACCESS_DENIED );
+                return( MBEDTLS_ERR_SSL_BAD_HS_CERTIFICATE );
             }
+
+            /* Now we can safely free the original chain. */
+            ssl_clear_peer_cert( ssl->session );
+        }
 #endif /* MBEDTLS_SSL_RENEGOTIATION && MBEDTLS_SSL_CLI_C */
 
-            /* Outside of client-side renegotiation, create a fresh X.509 CRT
-             * instance to parse the end-CRT into. */
-
-            ssl->session_negotiate->peer_cert =
-                mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );
-            if( ssl->session_negotiate->peer_cert == NULL )
-            {
-                MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
-                                            sizeof( mbedtls_x509_crt ) ) );
-                mbedtls_ssl_send_alert_message( ssl,
-                               MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                               MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
-                return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
-            }
-
-            mbedtls_x509_crt_init( ssl->session_negotiate->peer_cert );
-
-            /* Intentional fall through */
-        }
-
         /* Parse the next certificate in the chain. */
-        ret = mbedtls_x509_crt_parse_der( ssl->session_negotiate->peer_cert,
-                                          ssl->in_msg + i, n );
+        ret = mbedtls_x509_crt_parse_der( chain, ssl->in_msg + i, n );
         switch( ret )
         {
             case 0: /*ok*/
@@ -5898,7 +5878,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
         i += n;
     }
 
-    MBEDTLS_SSL_DEBUG_CRT( 3, "peer certificate", ssl->session_negotiate->peer_cert );
+    MBEDTLS_SSL_DEBUG_CRT( 3, "peer certificate", chain );
     return( 0 );
 }
 
@@ -6179,10 +6159,24 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     }
 #endif /* MBEDTLS_SSL_SRV_C */
 
-    /* In case we tried to reuse a session but it failed. */
+    /* Clear existing peer CRT structure in case we tried to
+     * reuse a session but it failed, and allocate a new one. */
     ssl_clear_peer_cert( ssl->session_negotiate );
+    ssl->session_negotiate->peer_cert =
+        mbedtls_calloc( 1, sizeof( mbedtls_x509_crt ) );
+    if( ssl->session_negotiate->peer_cert == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
+                                    sizeof( mbedtls_x509_crt ) ) );
+        mbedtls_ssl_send_alert_message( ssl,
+                                        MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                        MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+    }
+    mbedtls_x509_crt_init( ssl->session_negotiate->peer_cert );
 
-    if( ( ret = ssl_parse_certificate_chain( ssl ) ) != 0 )
+    ret = ssl_parse_certificate_chain( ssl, ssl->session_negotiate->peer_cert );
+    if( ret != 0 )
         return( ret );
 
 #if defined(MBEDTLS_SSL__ECP_RESTARTABLE)

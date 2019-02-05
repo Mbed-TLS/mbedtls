@@ -1100,8 +1100,6 @@ int mbedtls_cipher_write_tag( mbedtls_cipher_context_t *ctx,
          * operations, we currently don't make it
          * accessible through the cipher layer. */
         return( MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE );
-
-        return( 0 );
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
 

@@ -6220,6 +6220,33 @@ crt_verify:
     if( ret != 0 )
         return( ret );
 
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    /* Remember digest of the peer's end-CRT. */
+    ssl->session_negotiate->peer_cert_digest =
+        mbedtls_calloc( 1, MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN );
+    if( ssl->session_negotiate->peer_cert_digest == NULL )
+    {
+        MBEDTLS_SSL_DEBUG_MSG( 1, ( "alloc(%d bytes) failed",
+                             sizeof( MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN ) ) );
+        mbedtls_ssl_send_alert_message( ssl,
+                                        MBEDTLS_SSL_ALERT_LEVEL_FATAL,
+                                        MBEDTLS_SSL_ALERT_MSG_INTERNAL_ERROR );
+        return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+    }
+    ret = mbedtls_md( mbedtls_md_info_from_type(
+                          MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE ),
+                      ssl->session_negotiate->peer_cert->raw.p,
+                      ssl->session_negotiate->peer_cert->raw.len,
+                      ssl->session_negotiate->peer_cert_digest );
+    if( ret != 0 )
+        return( ret );
+
+    ssl->session_negotiate->peer_cert_digest_type =
+        MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_TYPE;
+    ssl->session_negotiate->peer_cert_digest_len =
+        MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN;
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
     MBEDTLS_SSL_DEBUG_MSG( 2, ( "<= parse certificate" ) );
 
 exit:

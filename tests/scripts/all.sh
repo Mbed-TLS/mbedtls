@@ -782,7 +782,7 @@ component_build_default_make_gcc_and_cxx () {
     make TEST_CPP=1
 }
 
-component_test_submodule_cmake () {
+component_test_use_psa_crypto_cmake () {
     # USE_CRYPTO_SUBMODULE: check that the build works with CMake
     msg "build: cmake, full config + USE_CRYPTO_SUBMODULE, gcc+debug"
     scripts/config.pl full # enables md4 and submodule doesn't enable md4
@@ -801,7 +801,7 @@ component_test_submodule_cmake () {
     if_build_succeeded tests/ssl-opt.sh
 }
 
-component_test_submodule_make () {
+component_test_use_psa_crypto_make () {
     # USE_CRYPTO_SUBMODULE: check that the build works with make
     msg "build: make, full config + USE_CRYPTO_SUBMODULE, gcc+debug"
     scripts/config.pl full # enables md4 and submodule doesn't enable md4
@@ -819,7 +819,7 @@ component_test_submodule_make () {
     if_build_succeeded tests/ssl-opt.sh
 }
 
-component_test_no_submodule_make () {
+component_test_not_use_psa_crypto_make () {
     # Don't USE_CRYPTO_SUBMODULE: check that the submodule is not used with make
     msg "build: make, full config - USE_CRYPTO_SUBMODULE, gcc+debug"
     scripts/config.pl full
@@ -830,7 +830,7 @@ component_test_no_submodule_make () {
     if_build_succeeded objdump -g library/libmbedcrypto.a | grep -E 'library$' | not grep 'crypto' > /dev/null
 }
 
-component_test_no_submodule_cmake () {
+component_test_not_use_psa_crypto_cmake () {
     # Don't USE_CRYPTO_SUBMODULE: check that the submodule is not used with CMake
     msg "build: cmake, full config - USE_CRYPTO_SUBMODULE, gcc+debug"
     scripts/config.pl full
@@ -842,7 +842,7 @@ component_test_no_submodule_cmake () {
     if_build_succeeded objdump -g library/libmbedcrypto.a | grep -E 'library$' | not grep 'crypto' > /dev/null
 }
 
-component_test_submodule_full_cmake_asan() {
+component_test_use_psa_crypto_full_cmake_asan() {
     # MBEDTLS_USE_PSA_CRYPTO: run the same set of tests as basic-build-test.sh
     msg "build: cmake, full config + MBEDTLS_USE_PSA_CRYPTO, ASan"
     scripts/config.pl full

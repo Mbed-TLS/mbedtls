@@ -668,11 +668,12 @@ psa_status_t psa_export_public_key(psa_key_handle_t handle,
  *
  * Copy key material from one location to another.
  *
- * This function is primarily useful to copy a key from one lifetime
- * to another. The target key retains its lifetime and location.
+ * This function is primarily useful to copy a key from one location
+ * to another, since it populates a key using the material from
+ * another key which may have a different lifetime.
  *
  * In an implementation where slots have different ownerships,
- * this functin may be used to share a key with a different party,
+ * this function may be used to share a key with a different party,
  * subject to implementation-defined restrictions on key sharing.
  * In this case \p constraint would typically prevent the recipient
  * from exporting the key.

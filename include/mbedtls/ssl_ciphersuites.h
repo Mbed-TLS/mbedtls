@@ -406,9 +406,12 @@ struct mbedtls_ssl_ciphersuite_t
 
 const int *mbedtls_ssl_list_ciphersuites( void );
 
-/*
- * Returns the count of ciphersuites available.
- * Please note that the returned count does not include the final zero element from mbedtls_ssl_list_ciphersuites().
+/** 
+ * \brief Function that returns the number of supported ciphersuites
+ *
+ * \return The Number of supported ciphersuites.
+ *
+ * \note The number of ciphersuites returned do not include the terminating zero element from \c mbedtls_ssl_list_ciphersuites().
  */
 int mbedtls_ssl_ciphersuites_count( void );
 

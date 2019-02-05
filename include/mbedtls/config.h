@@ -1355,6 +1355,28 @@
 #define MBEDTLS_SSL_FALLBACK_SCSV
 
 /**
+ * \def MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
+ *
+ * This option controls the presence of the API mbedtls_ssl_get_peer_cert()
+ * giving access to the peer's certificate after completion of the handshake.
+ *
+ * Unless you need mbedtls_ssl_peer_cert() in your application, it is
+ * recommended to disable this option for reduced RAM usage.
+ *
+ * \note If this option is disabled, mbedtls_ssl_get_peer_cert() is still
+ *       defined, but always returns \c NULL.
+ *
+ * \note This option has no influence on the protection against the
+ *       triple handshake attack. Even if it is disabled, Mbed TLS will
+ *       still ensure that certificates do not change during renegotiation,
+ *       for exaple by keeping a hash of the peer's certificate.
+ *
+ * Comment this macro to disable storing the peer's certificate
+ * after the handshake.
+ */
+#define MBEDTLS_SSL_KEEP_PEER_CERTIFICATE
+
+/**
  * \def MBEDTLS_SSL_HW_RECORD_ACCEL
  *
  * Enable hooking functions in SSL module for hardware acceleration of

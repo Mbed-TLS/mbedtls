@@ -26,25 +26,15 @@ Changes
      Inserted as an enhancement for #1371
    * Add support for alternative CSR headers, as used by Microsoft and defined
      in RFC 7468. Found by Michael Ernst. Fixes #767.
-   * Update the Mbed Crypto submodule to version 0.1.0b2.
-   * Add unit tests for AES-GCM when called through mbedtls_cipher_auth_xxx()
-     from the cipher abstraction layer. Fixes #2198.
-
-Features
-  * Add an experimental build option, USE_CRYPTO_SUBMODULE, to enable use of
-    Mbed Crypto as the source of the cryptography implementation.
-  * Add an experimental configuration option, MBEDTLS_PSA_CRYPTO_C, to enable
-    the PSA Crypto API from Mbed Crypto when additionally used with the
-    USE_CRYPTO_SUBMODULE build option.
-  * Correct many misspellings. Fixed by MisterDA #2371.
-  * Provide an abstraction of vsnprintf to allow alternative implementations
-   for platforms that don't provide it. Based on contributions by Joris Aerts
-   and Nathaniel Wesley Filardo.
-  * Fix clobber list in MIPS assembly for large integer multiplication.
-    Previously, this could lead to functionally incorrect assembly being
-    produced by some optimizing compilers, showing up as failures in
-    e.g. RSA or ECC signature operations. Reported in #1722, fix suggested
-    by Aurelien Jarno and submitted by Jeffrey Martin.
+   * Correct many misspellings. Fixed by MisterDA #2371.
+   * Provide an abstraction of vsnprintf to allow alternative implementations
+     for platforms that don't provide it. Based on contributions by Joris Aerts
+     and Nathaniel Wesley Filardo.
+   * Fix clobber list in MIPS assembly for large integer multiplication.
+     Previously, this could lead to functionally incorrect assembly being
+     produced by some optimizing compilers, showing up as failures in
+     e.g. RSA or ECC signature operations. Reported in #1722, fix suggested
+     by Aurelien Jarno and submitted by Jeffrey Martin.
 
 = mbed TLS 2.16.0 branch released 2018-12-21
 
@@ -102,6 +92,24 @@ Bugfix
      hang.
    * Clarify documentation of mbedtls_ssl_set_own_cert() regarding the absence
      of check for certificate/key matching. Reported by Attila Molnar, #507.
+
+ = mbed TLS 2.15.1 branch released 2018-11-30
+
+ Changes
+    * Update the Mbed Crypto submodule to version 0.1.0b2.
+
+ = mbed TLS 2.15.0 branch released 2018-11-23
+
+ Features
+    * Add an experimental build option, USE_CRYPTO_SUBMODULE, to enable use of
+      Mbed Crypto as the source of the cryptography implementation.
+    * Add an experimental configuration option, MBEDTLS_PSA_CRYPTO_C, to enable
+      the PSA Crypto API from Mbed Crypto when additionally used with the
+      USE_CRYPTO_SUBMODULE build option.
+
+ Changes
+    * Add unit tests for AES-GCM when called through mbedtls_cipher_auth_xxx()
+      from the cipher abstraction layer. Fixes #2198.
 
 = mbed TLS 2.14.1 branch released 2018-11-30
 

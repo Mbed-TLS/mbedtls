@@ -406,7 +406,7 @@ struct mbedtls_ssl_ciphersuite_t
 
 const int *mbedtls_ssl_list_ciphersuites( void );
 
-/** 
+/**
  * \brief Function that returns the number of supported ciphersuites
  *
  * \return The Number of supported ciphersuites.

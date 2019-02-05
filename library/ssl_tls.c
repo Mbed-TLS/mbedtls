@@ -5757,7 +5757,7 @@ static void ssl_clear_peer_cert( mbedtls_ssl_session *session )
  */
 static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
 {
-    int ret;
+    int ret, crt_cnt=0;
     size_t i, n;
     uint8_t alert;
 
@@ -5884,7 +5884,7 @@ static int ssl_parse_certificate_chain( mbedtls_ssl_context *ssl )
         }
 
         /* Check if we're handling the first CRT in the chain. */
-        if( ssl->session_negotiate->peer_cert == NULL )
+        if( crt_cnt++ == 0 )
         {
             /* During client-side renegotiation, check that the server's
              * end-CRTs hasn't changed compared to the initial handshake,

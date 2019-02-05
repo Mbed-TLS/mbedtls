@@ -5971,13 +5971,7 @@ int mbedtls_ssl_send_alert_message( mbedtls_ssl_context *ssl,
 /*
  * Handshake functions
  */
-#if !defined(MBEDTLS_KEY_EXCHANGE_RSA_ENABLED)         && \
-    !defined(MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED)     && \
-    !defined(MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED)     && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED)   && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED) && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED)    && \
-    !defined(MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED)
+#if !defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
 /* No certificate support -> dummy functions */
 int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
 {
@@ -6019,7 +6013,7 @@ int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl )
     return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
 }
 
-#else
+#else /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 /* Some certificate support -> implement write and parse */
 
 int mbedtls_ssl_write_certificate( mbedtls_ssl_context *ssl )
@@ -6603,13 +6597,7 @@ exit:
     ssl->state++;
     return( ret );
 }
-#endif /* !MBEDTLS_KEY_EXCHANGE_RSA_ENABLED
-          !MBEDTLS_KEY_EXCHANGE_RSA_PSK_ENABLED
-          !MBEDTLS_KEY_EXCHANGE_DHE_RSA_ENABLED
-          !MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED
-          !MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
-          !MBEDTLS_KEY_EXCHANGE_ECDH_RSA_ENABLED
-          !MBEDTLS_KEY_EXCHANGE_ECDH_ECDSA_ENABLED */
+#endif /* MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 int mbedtls_ssl_write_change_cipher_spec( mbedtls_ssl_context *ssl )
 {

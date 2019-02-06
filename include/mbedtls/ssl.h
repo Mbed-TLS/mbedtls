@@ -2764,8 +2764,9 @@ void mbedtls_ssl_conf_cert_req_ca_list( mbedtls_ssl_config *conf,
  *
  * \note           By default the \c mfl_code field of the \c mbedtls_ssl_config
  *                 structure is equal to `0 == MBEDTLS_SSL_MAX_FRAG_LEN_NONE`.
- *                 This means the maximum fragment length extension *will not*
- *                 be used unless set to another value via this function.
+ *                 Therefore, the maximum fragment length extension *will not*
+ *                 be used, unless the maximum fragment length has been set to a
+ *                 different value via this function.
  *
  * \note           With TLS, this currently only affects ApplicationData (sent
  *                 with \c mbedtls_ssl_read()), not handshake messages.

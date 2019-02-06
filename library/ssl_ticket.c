@@ -204,6 +204,9 @@ static int ssl_save_session( const mbedtls_ssl_session *session,
     if( left < sizeof( mbedtls_ssl_session ) )
         return( MBEDTLS_ERR_SSL_BUFFER_TOO_SMALL );
 
+    /* This also copies the values of pointer fields in the
+     * session to be serialized, but they'll be ignored when
+     * loading the session through ssl_load_session(). */
     memcpy( p, session, sizeof( mbedtls_ssl_session ) );
     p += sizeof( mbedtls_ssl_session );
     left -= sizeof( mbedtls_ssl_session );
@@ -250,18 +253,24 @@ static int ssl_load_session( mbedtls_ssl_session *session,
     memcpy( session, p, sizeof( mbedtls_ssl_session ) );
     p += sizeof( mbedtls_ssl_session );
 
+    /* Non-NULL pointer fields of `session` are meaningless
+     * and potentially harmful. Zeroize them for safety. */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
+    session->peer_cert = NULL;
+#endif /* MBEDTLS_X509_CRT_PARSE_C */
+#if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
+    session->ticket = NULL;
+#endif /* MBEDTLS_SSL_SESSION_TICKETS && MBEDTLS_SSL_CLI_C */
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+    /* Deserialize CRT from the end of the ticket. */
     if( 3 > (size_t)( end - p ) )
         return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
 
     cert_len = ( p[0] << 16 ) | ( p[1] << 8 ) | p[2];
     p += 3;
 
-    if( cert_len == 0 )
-    {
-        session->peer_cert = NULL;
-    }
-    else
+    if( cert_len != 0 )
     {
         int ret;
 

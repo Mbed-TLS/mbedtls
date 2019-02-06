@@ -130,6 +130,8 @@ where each argument takes each possible value at least once.'''
     # Regex of macro names to exclude.
     excluded_name_re = re.compile('_(?:GET|IS|OF)_|_(?:BASE|FLAG|MASK)\Z')
     # Additional excluded macros.
+    # PSA_ALG_ECDH and PSA_ALG_FFDH are excluded for now as the script
+    # currently doesn't support them.
     excluded_names = set(['PSA_ALG_AEAD_WITH_DEFAULT_TAG_LENGTH',
                           'PSA_ALG_FULL_LENGTH_MAC',
                           'PSA_ALG_ECDH',
@@ -160,6 +162,8 @@ where each argument takes each possible value at least once.'''
     def add_test_case_line(self, function, argument):
         '''Parse a test case data line, looking for algorithm metadata tests.'''
         if function.endswith('_algorithm'):
+            # As above, ECDH and FFDH algorithms are excluded for now.
+            # Support for them will be added in the future.
             if 'ECDH' in argument or 'FFDH' in argument:
                 return
             self.algorithms.add(argument)

@@ -6284,6 +6284,24 @@ crt_verify:
         MBEDTLS_SSL_PEER_CERT_DIGEST_DFL_LEN;
 #endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    /* Make a copy of the peer's raw public key. */
+    mbedtls_pk_init( &ssl->handshake->peer_pubkey );
+    {
+        unsigned char *p, *end;
+        p = chain->pk_raw.p;
+        end = p + chain->pk_raw.len;
+        ret = mbedtls_pk_parse_subpubkey( &p, end,
+                                          &ssl->handshake->peer_pubkey );
+        if( ret != 0 )
+        {
+            /* We should have parsed the public key before. */
+            ret = MBEDTLS_ERR_SSL_INTERNAL_ERROR;
+            goto exit;
+        }
+    }
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
     ssl->session_negotiate->peer_cert = chain;
     chain = NULL;
 

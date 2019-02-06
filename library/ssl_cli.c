@@ -2292,8 +2292,8 @@ static int ssl_write_encrypted_pms( mbedtls_ssl_context *ssl,
 
     if( ssl->session_negotiate->peer_cert == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "certificate required" ) );
-        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+        /* Should never happen */
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
     /*
@@ -2404,8 +2404,8 @@ static int ssl_get_ecdh_params_from_cert( mbedtls_ssl_context *ssl )
 
     if( ssl->session_negotiate->peer_cert == NULL )
     {
-        MBEDTLS_SSL_DEBUG_MSG( 2, ( "certificate required" ) );
-        return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+        /* Should never happen */
+        return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
     }
 
     if( ! mbedtls_pk_can_do( &ssl->session_negotiate->peer_cert->pk,
@@ -2744,10 +2744,8 @@ start_processing:
 
         if( ssl->session_negotiate->peer_cert == NULL )
         {
-            MBEDTLS_SSL_DEBUG_MSG( 2, ( "certificate required" ) );
-            mbedtls_ssl_send_alert_message( ssl, MBEDTLS_SSL_ALERT_LEVEL_FATAL,
-                                            MBEDTLS_SSL_ALERT_MSG_HANDSHAKE_FAILURE );
-            return( MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE );
+            /* Should never happen */
+            return( MBEDTLS_ERR_SSL_INTERNAL_ERROR );
         }
 
         /*

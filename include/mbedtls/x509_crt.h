@@ -70,6 +70,7 @@ typedef struct mbedtls_x509_crt
     mbedtls_x509_time valid_from;       /**< Start time of certificate validity. */
     mbedtls_x509_time valid_to;         /**< End time of certificate validity. */
 
+    mbedtls_x509_buf pk_raw;
     mbedtls_pk_context pk;              /**< Container for the public key context. */
 
     mbedtls_x509_buf issuer_id;         /**< Optional X.509 v2/v3 issuer unique identifier. */

@@ -31,16 +31,12 @@
 #include "mbedtls/platform_util.h"
 
 /* The compile time configuration of memory allocation via the macros
- * MBEDTLS_PLATFORM_{FREE/CALLOC}_MACRO takes precedence over the runtime
- * configuration via mbedtls_platform_set_calloc_free() or via
- * mbedtls_platform_set_malloc_calloc_realloc_free(). So, omit everything
- * related to the latter if MBEDTLS_PLATFORM_{FREE/MALLOC/CALLOC/REALLOC}_MACRO
- * are defined. */
-#if defined(MBEDTLS_PLATFORM_MEMORY) &&                 \
-    !( defined(MBEDTLS_PLATFORM_MALLOC_MACRO) &&        \
-       defined(MBEDTLS_PLATFORM_CALLOC_MACRO) &&        \
-       defined(MBEDTLS_PLATFORM_REALLOC_MACRO) &&       \
-       defined(MBEDTLS_PLATFORM_FREE_MACRO) )
+ * MBEDTLS_PLATFORM_{FREE/MALLOC/CALLOC/REALLOC}_MACRO takes precedence
+ * over the runtime configuration via mbedtls_platform_set_calloc_free()
+ * or via mbedtls_platform_set_malloc_calloc_realloc_free().
+ * So, omit everything related to the latter if
+ * MBEDTLS_PLATFORM_{FREE/MALLOC/CALLOC/REALLOC}_MACRO are defined. */
+#if defined(MBEDTLS_PLATFORM_MEMORY)
 
 #if !defined(MBEDTLS_PLATFORM_STD_MALLOC)
 static void *platform_malloc_uninit( size_t size )

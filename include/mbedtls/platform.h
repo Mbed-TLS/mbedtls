@@ -139,21 +139,28 @@ extern "C" {
  * The function pointers for calloc and free.
  */
 #if defined(MBEDTLS_PLATFORM_MEMORY)
+
 #if defined(MBEDTLS_PLATFORM_FREE_MACRO)   && \
     defined(MBEDTLS_PLATFORM_MALLOC_MACRO) && \
     defined(MBEDTLS_PLATFORM_CALLOC_MACRO) && \
     defined(MBEDTLS_PLATFORM_REALLOC_MACRO)
+
 #define mbedtls_free       MBEDTLS_PLATFORM_FREE_MACRO
 #define mbedtls_malloc     MBEDTLS_PLATFORM_MALLOC_MACRO
 #define mbedtls_calloc     MBEDTLS_PLATFORM_CALLOC_MACRO
 #define mbedtls_realloc    MBEDTLS_PLATFORM_REALLOC_MACRO
+
+/* For backwards compatibility */
 #elif defined(MBEDTLS_PLATFORM_FREE_MACRO)    && \
       !defined(MBEDTLS_PLATFORM_MALLOC_MACRO) && \
       defined(MBEDTLS_PLATFORM_CALLOC_MACRO)  && \
       !defined(MBEDTLS_PLATFORM_REALLOC_MACRO)
+
 #define mbedtls_free       MBEDTLS_PLATFORM_FREE_MACRO
 #define mbedtls_calloc     MBEDTLS_PLATFORM_CALLOC_MACRO
+
 #else
+
 /* For size_t */
 #include <stddef.h>
 extern void *mbedtls_malloc( size_t size );
@@ -199,7 +206,7 @@ int mbedtls_platform_set_malloc_calloc_realloc_free(
 #define mbedtls_malloc     malloc
 #define mbedtls_calloc     calloc
 #define mbedtls_realloc    realloc
-#endif /* MBEDTLS_PLATFORM_MEMORY && !MBEDTLS_PLATFORM_{FREE,MALLOC,CALLOC,REALLOC}_MACRO */
+#endif /* MBEDTLS_PLATFORM_MEMORY
 
 /*
  * The function pointers for fprintf

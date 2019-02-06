@@ -3206,7 +3206,7 @@ void asymmetric_decrypt( int key_type_arg,
     size_t output_length = ~0;
     psa_key_policy_t policy = PSA_KEY_POLICY_INIT;
 
-    output_size = key_data->len;
+    output_size = expected_data->len;
     ASSERT_ALLOC( output, output_size );
 
     PSA_ASSERT( psa_crypto_init( ) );

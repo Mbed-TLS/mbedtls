@@ -9023,6 +9023,12 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
 #define SSL_SERIALIZED_SESSION_CONFIG_TICKET 0
 #endif /* MBEDTLS_SSL_SESSION_TICKETS */
 
+#if defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+#define SSL_SERIALIZED_SESSION_CONFIG_KEEP_CRT 1
+#else
+#define SSL_SERIALIZED_SESSION_CONFIG_KEEP_CRT 0
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
+
 #define SSL_SERIALIZED_SESSION_CONFIG_TIME_BIT          0
 #define SSL_SERIALIZED_SESSION_CONFIG_CRT_BIT           1
 #define SSL_SERIALIZED_SESSION_CONFIG_CLIENT_TICKET_BIT 2
@@ -9030,6 +9036,7 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
 #define SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC_BIT    4
 #define SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT           5
 #define SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT        6
+#define SSL_SERIALIZED_SESSION_CONFIG_KEEP_CRT_BIT      7
 
 #define SSL_SERIALIZED_SESSION_CONFIG_BITFLAG                           \
     ( (uint16_t) (                                                      \
@@ -9039,7 +9046,8 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer( const mbedtls_ssl_co
         ( SSL_SERIALIZED_SESSION_CONFIG_MFL           << SSL_SERIALIZED_SESSION_CONFIG_MFL_BIT           ) | \
         ( SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC    << SSL_SERIALIZED_SESSION_CONFIG_TRUNC_HMAC_BIT    ) | \
         ( SSL_SERIALIZED_SESSION_CONFIG_ETM           << SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT           ) | \
-        ( SSL_SERIALIZED_SESSION_CONFIG_TICKET        << SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT        ) ) )
+        ( SSL_SERIALIZED_SESSION_CONFIG_TICKET        << SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT        ) | \
+        ( SSL_SERIALIZED_SESSION_CONFIG_KEEP_CRT      << SSL_SERIALIZED_SESSION_CONFIG_KEEP_CRT_BIT      ) ) )
 
 static unsigned char ssl_serialized_session_header[] = {
     MBEDTLS_VERSION_MAJOR,
@@ -9073,6 +9081,8 @@ static unsigned char ssl_serialized_session_header[] = {
  *  opaque master[48];           // fixed length in the standard
  *  uint32 verify_result;
  *  opaque peer_cert<0..2^24-1>; // length 0 means no peer cert
+ *  uint8_t peer_cert_digest_type;
+ *  opaque peer_cert_digest<0..2^8-1>;
  *  opaque ticket<0..2^24-1>;    // length 0 means no ticket
  *  uint32 ticket_lifetime;
  *  uint8 mfl_code;              // up to 255 according to standard
@@ -9184,6 +9194,31 @@ int mbedtls_ssl_session_save( const mbedtls_ssl_session *session,
             p += cert_len;
         }
     }
+
+    /* Digest of peer certificate */
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    if( session->peer_cert_digest != NULL )
+    {
+        used += 1 /* type */ + 1 /* length */ + session->peer_cert_digest_len;
+        if( used <= buf_len )
+        {
+            *p++ = (unsigned char) session->peer_cert_digest_type;
+            *p++ = (unsigned char) session->peer_cert_digest_len;
+            memcpy( p, session->peer_cert_digest,
+                    session->peer_cert_digest_len );
+            p += session->peer_cert_digest_len;
+        }
+    }
+    else
+    {
+        used += 2;
+        if( used <= buf_len )
+        {
+            *p++ = (unsigned char) MBEDTLS_MD_NONE;
+            *p++ = 0;
+        }
+    }
+#endif /* !MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     /*
@@ -9325,6 +9360,9 @@ static int ssl_session_load( mbedtls_ssl_session *session,
      * we exit early before we replaced them with valid ones. */
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
     session->peer_cert = NULL;
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    session->peer_cert_digest = NULL;
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif
 #if defined(MBEDTLS_SSL_SESSION_TICKETS) && defined(MBEDTLS_SSL_CLI_C)
     session->ticket = NULL;
@@ -9369,6 +9407,30 @@ static int ssl_session_load( mbedtls_ssl_session *session,
 
         p += cert_len;
     }
+
+#if !defined(MBEDTLS_SSL_KEEP_PEER_CERTIFICATE)
+    /* Deserialize CRT digest from the end of the ticket. */
+    if( 2 > (size_t)( end - p ) )
+        return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+    session->peer_cert_digest_type = (mbedtls_md_type_t) *p++;
+    session->peer_cert_digest_len  = (size_t) *p++;
+
+    if( session->peer_cert_digest_len != 0 )
+    {
+        if( session->peer_cert_digest_len > (size_t)( end - p ) )
+            return( MBEDTLS_ERR_SSL_BAD_INPUT_DATA );
+
+        session->peer_cert_digest =
+            mbedtls_calloc( 1, session->peer_cert_digest_len );
+        if( session->peer_cert_digest == NULL )
+            return( MBEDTLS_ERR_SSL_ALLOC_FAILED );
+
+        memcpy( session->peer_cert_digest, p,
+                session->peer_cert_digest_len );
+        p += session->peer_cert_digest_len;
+    }
+#endif /* MBEDTLS_SSL_KEEP_PEER_CERTIFICATE */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
 
     /*
